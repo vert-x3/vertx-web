@@ -16,6 +16,7 @@
 
 package io.vertx.ext.rest.test;
 
+import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpMethod;
@@ -37,12 +38,12 @@ import java.util.concurrent.CountDownLatch;
  */
 public class RouterTest extends VertxTestBase {
 
-  HttpServer server;
-  HttpClient client;
-  Router router;
-  static Set<HttpMethod> METHODS = new HashSet<>(Arrays.asList(HttpMethod.DELETE, HttpMethod.GET,
+  protected static Set<HttpMethod> METHODS = new HashSet<>(Arrays.asList(HttpMethod.DELETE, HttpMethod.GET,
     HttpMethod.HEAD, HttpMethod.PATCH, HttpMethod.OPTIONS, HttpMethod.TRACE, HttpMethod.POST, HttpMethod.PUT));
 
+  protected HttpServer server;
+  protected HttpClient client;
+  protected Router router;
 
   @Override
   public void setUp() throws Exception {
@@ -431,19 +432,15 @@ public class RouterTest extends VertxTestBase {
 
   // TODO timeouts
 
-  // TODO test route with no path specified
-
   // TODO test consumes/produces
-
-  // params
-
-  // regex
 
   // cookies
 
   // form params
 
   // uploads
+
+  // sub routers
 
   @Test
   public void testExceptionHandler1() throws Exception {
@@ -491,20 +488,140 @@ public class RouterTest extends VertxTestBase {
     testRequest(HttpMethod.GET, path, 500, "Internal Server Error");
   }
 
+  @Test
+  public void testPattern1() throws Exception {
+    router.route("/:abc").handler(rc -> {
+      rc.response().setStatusMessage(rc.request().params().get("abc")).end();
+    });
+    testPattern("/tim", "tim", false);
+  }
+
+  @Test
+  public void testPattern2() throws Exception {
+    router.route("/blah/:abc").handler(rc -> {
+      rc.response().setStatusMessage(rc.request().params().get("abc")).end();
+    });
+    testPattern("/blah/tim", "tim", false);
+  }
+
+  @Test
+  public void testPattern3() throws Exception {
+    router.route("/blah/:abc/blah").handler(rc -> {
+      rc.response().setStatusMessage(rc.request().params().get("abc")).end();
+    });
+    testPattern("/blah/tim/blah", "tim", true);
+  }
+
+  @Test
+  public void testPattern4() throws Exception {
+    router.route("/blah/:abc/foo").handler(rc -> {
+      rc.response().setStatusMessage(rc.request().params().get("abc")).end();
+    });
+    testPattern("/blah/tim/foo", "tim", true);
+  }
+
+  @Test
+  public void testPattern5() throws Exception {
+    router.route("/blah/:abc/:def/:ghi").handler(rc -> {
+      MultiMap params = rc.request().params();
+      rc.response().setStatusMessage(params.get("abc") + params.get("def") + params.get("ghi")).end();
+    });
+    testPattern("/blah/tim/julien/nick", "timjuliennick", false);
+  }
+
+  @Test
+  public void testPattern6() throws Exception {
+    router.route("/blah/:abc/:def/:ghi/blah").handler(rc -> {
+      MultiMap params = rc.request().params();
+      rc.response().setStatusMessage(params.get("abc") + params.get("def") + params.get("ghi")).end();
+    });
+    testPattern("/blah/tim/julien/nick/blah", "timjuliennick", true);
+  }
+
+  @Test
+  public void testPattern7() throws Exception {
+    router.route("/blah/:abc/quux/:def/eep/:ghi").handler(rc -> {
+      MultiMap params = rc.request().params();
+      rc.response().setStatusMessage(params.get("abc") + params.get("def") + params.get("ghi")).end();
+    });
+    testPattern("/blah/tim/quux/julien/eep/nick", "timjuliennick", false);
+  }
+
+  private void testPattern(String pathRoot, String expected, boolean testWrongEnd) throws Exception {
+    testRequest(HttpMethod.GET, pathRoot, 200, expected);
+    testRequest(HttpMethod.GET, pathRoot + "/", 200, expected);
+    testRequest(HttpMethod.GET, pathRoot + "/wibble", 200, expected);
+    testRequest(HttpMethod.GET, pathRoot + "/wibble/blibble", 200, expected);
+    if (testWrongEnd) {
+      testRequest(HttpMethod.GET, pathRoot.substring(0, pathRoot.length() - 1), 404, "Not Found");
+    }
+  }
+
+  @Test
+  public void testInvalidPattern() throws Exception {
+    router.route("/blah/:!!!/").handler(rc -> {
+      MultiMap params = rc.request().params();
+      rc.response().setStatusMessage(params.get("!!!")).end();
+    });
+    testRequest(HttpMethod.GET, "/blah/tim", 404, "Not Found"); // Because it won't match
+  }
+
+  @Test
+  public void testGroupMoreThanOne() throws Exception {
+    try {
+      router.route("/blah/:abc/:abc");
+      fail();
+    } catch (IllegalArgumentException e) {
+      // OK
+    }
+  }
+
+  @Test
+  public void testRegex1() throws Exception {
+    router.routeWithRegex("\\/([^\\/]+)\\/([^\\/]+)").handler(rc -> {
+      MultiMap params = rc.request().params();
+      rc.response().setStatusMessage(params.get("param0") + params.get("param1")).end();
+    });
+    testPattern("/dog/cat", "dogcat", false);
+  }
+
+  @Test
+  public void testRegex2() throws Exception {
+    router.routeWithRegex("\\/([^\\/]+)\\/([^\\/]+)/blah").handler(rc -> {
+      MultiMap params = rc.request().params();
+      rc.response().setStatusMessage(params.get("param0") + params.get("param1")).end();
+    });
+    testPattern("/dog/cat/blah", "dogcat", true);
+  }
+
+  @Test
+  public void testSubRouters() throws Exception {
+    Router subRouter = Router.router();
+
+    router.route("/subpath/").handler(subRouter);
+
+    router.route("/otherpath/").handler(rc -> {
+      rc.response().setStatusMessage(rc.request().path()).end();
+    });
+
+    subRouter.route("/subpath/foo").handler(rc -> {
+      rc.response().setStatusMessage(rc.request().path()).end();
+    });
+    subRouter.route("/subpath/bar").handler(rc -> {
+      rc.response().setStatusMessage(rc.request().path()).end();
+    });
+
+    testRequest(HttpMethod.GET, "/otherpath/", 200, "/otherpath/");
+    testRequest(HttpMethod.GET, "/otherpath/foo", 200, "/otherpath/foo");
+
+    testRequest(HttpMethod.GET, "/subpath/foo", 200, "/subpath/foo");
+    testRequest(HttpMethod.GET, "/subpath/bar", 200, "/subpath/bar");
+
+    testRequest(HttpMethod.GET, "/subpath/unknown", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/subpath/", 404, "Not Found");
+
+  }
 
 
-//  @Test
-//  public void testTimeout() throws Exception {
-//    String path = "/blah";
-//    router.route(path).handler(rc -> {
-//      rc.next();
-//    });
-//    router.route(path).handler(rc -> {
-//      rc.next();
-//    });
-//    testRequest(HttpMethod.GET, path, 404, "Not Found");
-//  }
-
-  //private static final String DEFAULT_404 = "<html><body><h1>Resource not found</h1></body></html>";
 
 }

@@ -54,6 +54,8 @@ public class RouteImpl implements Route {
   private Handler<RoutingContext> contextHandler;
   private Handler<FailureRoutingContext> exceptionHandler;
   private boolean added;
+  private Pattern pattern;
+  private Set<String> groups;
 
   RouteImpl(RouterImpl router, int order) {
     this.router = router;
@@ -64,105 +66,24 @@ public class RouteImpl implements Route {
     this(router, order);
     methods.add(method);
     checkPath(path);
-    this.path = path;
+    setPath(path);
   }
 
   RouteImpl(RouterImpl router, int order, String path) {
     this(router, order);
     checkPath(path);
-    this.path = path;
+    setPath(path);
   }
 
   RouteImpl(RouterImpl router, int order, HttpMethod method, String regex, boolean bregex) {
     this(router, order);
     methods.add(method);
-    this.regex = regex;
+    setRegex(regex);
   }
 
   RouteImpl(RouterImpl router, int order, String regex, boolean bregex) {
     this(router, order);
-    this.regex = regex;
-  }
-
-  private Pattern pattern;
-  Set<String> groups;
-
-  private void setRegex(String regex) {
-    // We need to search for any :<token name> tokens in the String and replace them with named capture groups
-    Matcher m =  Pattern.compile(":([A-Za-z][A-Za-z0-9_]*)").matcher(regex);
-    StringBuffer sb = new StringBuffer();
-    groups = new HashSet<>();
-    while (m.find()) {
-      String group = m.group().substring(1);
-      if (groups.contains(group)) {
-        throw new IllegalArgumentException("Cannot use identifier " + group + " more than once in pattern string");
-      }
-      m.appendReplacement(sb, "(?<$1>[^\\/]+)");
-      groups.add(group);
-    }
-    m.appendTail(sb);
-    regex = sb.toString();
-    pattern = Pattern.compile(regex);
-  }
-
-  boolean matches(HttpServerRequest request, boolean failure) {
-    System.out.println("req: " + request.path() + " method: " + request.method());
-    if (failure && exceptionHandler == null || !failure && contextHandler == null) {
-      return false;
-    }
-    if (!enabled) {
-      return false;
-    }
-    if (!methods.isEmpty() && !methods.contains(request.method())) {
-      return false;
-    }
-    if (path != null && !request.path().startsWith(path)) {
-      return false;
-    }
-    if (pattern != null) {
-      Matcher m = pattern.matcher(request.path());
-      if (m.matches()) {
-        Map<String, String> params = new HashMap<>(m.groupCount());
-        if (groups != null) {
-          // Named params
-          for (String param: groups) {
-            params.put(param, m.group(param));
-          }
-        } else {
-          // Un-named params
-          for (int i = 0; i < m.groupCount(); i++) {
-            params.put("param" + i, m.group(i + 1));
-          }
-        }
-        request.params().addAll(params);
-      } else {
-        return false;
-      }
-    }
-    if (!consumes.isEmpty()) {
-      String contentType = request.headers().get("content-type");
-      if (contentType == null || !consumes.contains(contentType)) {
-        return false;
-      }
-    }
-    if (!produces.isEmpty()) {
-      String accept = request.headers().get("accept");
-      // TODO accept header matching
-      return false;
-    }
-    return true;
-  }
-
-  synchronized void handleContext(RoutingContext context) {
-    if (contextHandler != null) {
-      contextHandler.handle(context);
-    }
-  }
-
-  synchronized void handleFailure(FailureRoutingContext context) {
-    if (exceptionHandler != null) {
-      exceptionHandler.handle(context);
-    }
+    setRegex(regex);
   }
 
   @Override
@@ -174,13 +95,13 @@ public class RouteImpl implements Route {
   @Override
   public synchronized Route path(String path) {
     checkPath(path);
-    this.path = path;
+    setPath(path);
     return this;
   }
 
   @Override
   public synchronized Route pathRegex(String path) {
-    this.regex = path;
+    setRegex(regex);
     return this;
   }
 
@@ -206,7 +127,7 @@ public class RouteImpl implements Route {
   }
 
   @Override
-  public Route last(boolean last) {
+  public synchronized Route last(boolean last) {
     return order(Integer.MAX_VALUE);
   }
 
@@ -244,6 +165,102 @@ public class RouteImpl implements Route {
 
   public String toString() {
     return "Route: " + System.identityHashCode(this) + ", path: " + path + ", regex: " + regex + ", method: " + methods;
+  }
+
+  synchronized void handleContext(RoutingContext context) {
+    if (contextHandler != null) {
+      contextHandler.handle(context);
+    }
+  }
+
+  synchronized void handleFailure(FailureRoutingContext context) {
+    if (exceptionHandler != null) {
+      exceptionHandler.handle(context);
+    }
+  }
+
+  synchronized boolean matches(HttpServerRequest request, boolean failure) {
+    //System.out.println("req: " + request.path() + " method: " + request.method());
+    if (failure && exceptionHandler == null || !failure && contextHandler == null) {
+      return false;
+    }
+    if (!enabled) {
+      return false;
+    }
+    if (!methods.isEmpty() && !methods.contains(request.method())) {
+      return false;
+    }
+    if (path != null && !request.path().startsWith(path)) {
+      return false;
+    }
+    if (pattern != null) {
+      Matcher m = pattern.matcher(request.path());
+      if (m.matches()) {
+        if (m.groupCount() > 0) {
+          Map<String, String> params = new HashMap<>(m.groupCount());
+          if (groups != null) {
+            // Pattern - named params
+            for (String param : groups) {
+              params.put(param, m.group(param));
+            }
+          } else {
+            // Straight regex - un-named params
+            for (int i = 0; i < m.groupCount(); i++) {
+              params.put("param" + i, m.group(i + 1));
+            }
+          }
+          request.params().addAll(params);
+        }
+      } else {
+        return false;
+      }
+    }
+    if (!consumes.isEmpty()) {
+      String contentType = request.headers().get("content-type");
+      if (contentType == null || !consumes.contains(contentType)) {
+        return false;
+      }
+    }
+    if (!produces.isEmpty()) {
+      String accept = request.headers().get("accept");
+      // TODO accept header matching
+      return false;
+    }
+    return true;
+  }
+
+  private void setPath(String path) {
+    // See if the path contains ":" - if so then it contains parameter capture groups and we have to generate
+    // a regex for that
+    if (path.indexOf(':') != -1) {
+      createPatternRegex(path);
+    } else {
+      this.path = path;
+    }
+  }
+
+  private void setRegex(String regex) {
+    pattern = Pattern.compile(regex + "(/.*)?"); // The regex is not an exact match - it matches the *start* of the path
+  }
+
+  private void createPatternRegex(String path) {
+    // We need to search for any :<token name> tokens in the String and replace them with named capture groups
+    Matcher m =  Pattern.compile(":([A-Za-z][A-Za-z0-9_]*)").matcher(path);
+    StringBuffer sb = new StringBuffer();
+    groups = new HashSet<>();
+    while (m.find()) {
+      String group = m.group().substring(1);
+      if (groups.contains(group)) {
+        throw new IllegalArgumentException("Cannot use identifier " + group + " more than once in pattern string");
+      }
+      m.appendReplacement(sb, "(?<$1>[^/]+)");
+      groups.add(group);
+    }
+    m.appendTail(sb);
+    sb.append("(/.*)?"); // Match anything after that - i.e. the regex matches the *start* of the path
+    path = sb.toString();
+
+    pattern = Pattern.compile(path);
   }
 
   private void checkPath(String path) {

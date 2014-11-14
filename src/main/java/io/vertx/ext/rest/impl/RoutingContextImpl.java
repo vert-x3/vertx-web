@@ -40,6 +40,7 @@ public class RoutingContextImpl implements RoutingContext, FailureRoutingContext
   private final Iterator<RouteImpl> iter;
   private final Map<String, Object> contextData;
   private final Throwable failure;
+  private boolean matched;
 
   RoutingContextImpl(RouterImpl router, RoutingContextImpl parent, Iterator<RouteImpl> iter) {
     this(router, parent.request, parent, iter, parent.contextData, null);
@@ -78,21 +79,32 @@ public class RoutingContextImpl implements RoutingContext, FailureRoutingContext
 //    return contextData;
 //  }
 
+  private int matchCount;
+
+
+  RoutingContextImpl getTopMostContext() {
+    if (parent == null) {
+      return this;
+    } else {
+      return parent.getTopMostContext();
+    }
+  }
+
   @Override
   public Throwable failure() {
     return failure;
   }
 
-  private boolean matched;
-
   @Override
   public void next() {
     boolean failed = failure != null;
 
+    RoutingContextImpl topmost = getTopMostContext();
+
     while (iter.hasNext()) {
       RouteImpl route = iter.next();
       if (route.matches(request, failed)) {
-        matched = true;
+        topmost.matchCount++;
         try {
           if (failed) {
             route.handleFailure(this);
@@ -107,9 +119,14 @@ public class RoutingContextImpl implements RoutingContext, FailureRoutingContext
     }
 
     if (parent != null) {
+      if (matchCount == 0) {
+        // Nothing was matched in this context, but there's a parent, so decrement the match count
+        // as it was previously incremented for this sub router
+        topmost.matchCount--;
+      }
       parent.next();
     } else {
-      if (!matched) {
+      if (topmost.matchCount == 0) {
         // Got to end of route chain but nothing matched
         if (failed) {
           // Send back default 500
