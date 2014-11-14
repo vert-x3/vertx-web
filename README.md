@@ -1,4 +1,3 @@
-vertx-apex
-==========
+# Apex
 
-Route matching and HTTP/REST support for Vert.x
+Route Matching and HTTP/REST support for Vert.x
