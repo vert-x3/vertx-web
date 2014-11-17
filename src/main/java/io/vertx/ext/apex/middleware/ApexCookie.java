@@ -197,17 +197,10 @@ public interface ApexCookie {
   Set<Integer> getPorts();
 
   /**
-   * Sets the ports that this {@link ApexCookie} can be accessed on.
+   * Adds a port that this {@link ApexCookie} can be accessed on.
    *
-   * @param ports The ports that this {@link ApexCookie} can be accessed on
+   * @param port The ports that this {@link ApexCookie} can be accessed on
    */
-  void setPorts(int... ports);
+  void addPort(int port);
 
-  /**
-   * Sets the ports that this {@link ApexCookie} can be accessed on.
-   *
-   * @param ports The {@link Iterable} collection of ports that this
-   *              {@link ApexCookie} can be accessed on.
-   */
-  void setPorts(Iterable<Integer> ports);
 }

@@ -16,10 +16,30 @@
 
 package io.vertx.ext.apex.middleware.test;
 
-import io.vertx.test.core.VertxTestBase;
+import io.vertx.core.http.HttpMethod;
+import io.vertx.ext.apex.middleware.ApexCookie;
+import io.vertx.ext.apex.middleware.CookieParser;
+import io.vertx.ext.apex.test.ApexTestBase;
+import org.junit.Test;
+
+import java.util.Set;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public class CookierParserTest extends VertxTestBase {
+public class CookierParserTest extends ApexTestBase {
+
+  @Test
+  public void testSimpleCookie() throws Exception {
+    router.route().handler(CookieParser.cookierParser());
+    router.route().handler(rc -> {
+      Set<ApexCookie> cookies = rc.getCookies();
+      for (ApexCookie cookie: cookies) {
+        assertEquals("foo", cookie.getName());
+        assertEquals("bar", cookie.getValue());
+      }
+      rc.response().end();
+    });
+    testRequestWithCookies(HttpMethod.GET, "/", "foo=bar", 200, "OK");
+  }
 }

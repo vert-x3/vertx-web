@@ -26,6 +26,7 @@ import io.vertx.ext.apex.core.RoutingContext;
 import io.vertx.ext.apex.middleware.ApexCookie;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -143,8 +144,11 @@ public class RoutingContextImpl implements RoutingContext, FailureRoutingContext
   }
 
   @Override
-  public void setCookies(Set<ApexCookie> cookies) {
-    this.cookies = cookies;
+  public void addCookie(ApexCookie cookie) {
+    if (cookies == null) {
+      cookies = new HashSet<>();
+    }
+    cookies.add(cookie);
   }
 
   private RoutingContextImpl getTopMostContext() {

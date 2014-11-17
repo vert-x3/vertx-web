@@ -24,7 +24,6 @@ import io.vertx.ext.apex.middleware.CookieParser;
 
 import javax.crypto.Mac;
 import java.util.Set;
-import java.util.TreeSet;
 
 /**
  * # CookieParser
@@ -78,11 +77,10 @@ public class CookieParserImpl implements CookieParser {
 
     if (cookieHeader != null) {
       Set<Cookie> nettyCookies = CookieDecoder.decode(cookieHeader);
-      Set<ApexCookie> cookies = new TreeSet<>();
-
       for (Cookie cookie : nettyCookies) {
-        ApexCookie yokeCookie = new ApexCookieImpl(cookie, mac);
-        String value = yokeCookie.getUnsignedValue();
+        System.out.println("got cookie:" + cookie);
+        ApexCookie apexCookie = new ApexCookieImpl(cookie, mac);
+        String value = apexCookie.getUnsignedValue();
         // value cannot be null in a cookie if the signature is mismatch then this value will be null
         // in that case the cookie has been tampered
         if (value == null) {
@@ -90,10 +88,8 @@ public class CookieParserImpl implements CookieParser {
           //next.handle(400);
           return;
         }
-        cookies.add(yokeCookie);
+        context.addCookie(apexCookie);
       }
-
-      context.setCookies(cookies);
     }
 
     context.next();

@@ -39,4 +39,6 @@ public interface CookieParser extends Handler<RoutingContext> {
     return new CookieParserImpl();
   }
 
+  @Override
+  void handle(RoutingContext event);
 }

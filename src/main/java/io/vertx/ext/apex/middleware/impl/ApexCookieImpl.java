@@ -184,13 +184,9 @@ public class ApexCookieImpl implements ApexCookie {
   }
 
   @Override
-  public void setPorts(final int... ports) {
-    nettyCookie.setPorts(ports);
+  public void addPort(final int port) {
+    nettyCookie.setPorts();
   }
 
-  @Override
-  public void setPorts(final Iterable<Integer> ports) {
-    nettyCookie.setPorts(ports);
-  }
 
 }

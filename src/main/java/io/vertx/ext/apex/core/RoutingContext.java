@@ -46,6 +46,6 @@ public interface RoutingContext {
 
   Set<ApexCookie> getCookies();
 
-  void setCookies(Set<ApexCookie> cookies);
+  void addCookie(ApexCookie cookie);
 
 }
