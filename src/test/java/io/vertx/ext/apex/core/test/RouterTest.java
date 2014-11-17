@@ -14,7 +14,7 @@
  * You may elect to redistribute this code under either of these licenses.
  */
 
-package io.vertx.ext.apex.test;
+package io.vertx.ext.apex.core.test;
 
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpClient;
@@ -25,8 +25,8 @@ import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.apex.Route;
-import io.vertx.ext.apex.Router;
+import io.vertx.ext.apex.core.Route;
+import io.vertx.ext.apex.core.Router;
 import io.vertx.test.core.VertxTestBase;
 import org.junit.Test;
 

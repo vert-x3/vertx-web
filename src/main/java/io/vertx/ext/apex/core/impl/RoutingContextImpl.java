@@ -14,15 +14,15 @@
  *  You may elect to redistribute this code under either of these licenses.
  */
 
-package io.vertx.ext.apex.impl;
+package io.vertx.ext.apex.core.impl;
 
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.impl.LoggerFactory;
-import io.vertx.ext.apex.FailureRoutingContext;
-import io.vertx.ext.apex.RoutingContext;
+import io.vertx.ext.apex.core.FailureRoutingContext;
+import io.vertx.ext.apex.core.RoutingContext;
 
 import java.util.HashMap;
 import java.util.Iterator;

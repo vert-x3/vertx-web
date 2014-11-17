@@ -14,40 +14,41 @@
  *  You may elect to redistribute this code under either of these licenses.
  */
 
-package io.vertx.ext.apex;
+package io.vertx.ext.apex.core;
 
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;
-import io.vertx.core.http.HttpServerRequest;
-import io.vertx.ext.apex.impl.RouterImpl;
-
-import java.util.List;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 @VertxGen
-public interface Router extends Handler<RoutingContext> {
+public interface Route {
 
-  static Router router() {
-    return new RouterImpl();
-  }
+  Route method(HttpMethod method);
 
-  void accept(HttpServerRequest request);
+  Route path(String path);
 
-  Route route();
+  Route pathRegex(String path);
 
-  Route route(HttpMethod method, String path);
+  Route produces(String contentType);
 
-  Route route(String path);
+  Route consumes(String contentType);
 
-  Route routeWithRegex(HttpMethod method, String regex);
+  Route order(int order);
 
-  Route routeWithRegex(String regex);
+  Route last(boolean last);
 
-  List<Route> getRoutes();
+  Route handler(Handler<RoutingContext> requestHandler);
 
-  Router clear();
+  Route failureHandler(Handler<FailureRoutingContext> exceptionHandler);
 
+  Route remove();
+
+  Route disable();
+
+  Route enable();
 }
+
+
