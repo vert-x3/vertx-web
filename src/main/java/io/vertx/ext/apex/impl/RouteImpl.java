@@ -14,16 +14,16 @@
  *  You may elect to redistribute this code under either of these licenses.
  */
 
-package io.vertx.ext.rest.impl;
+package io.vertx.ext.apex.impl;
 
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.impl.LoggerFactory;
-import io.vertx.ext.rest.FailureRoutingContext;
-import io.vertx.ext.rest.Route;
-import io.vertx.ext.rest.RoutingContext;
+import io.vertx.ext.apex.FailureRoutingContext;
+import io.vertx.ext.apex.Route;
+import io.vertx.ext.apex.RoutingContext;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -36,23 +36,24 @@ import java.util.regex.Pattern;
  *
  * This class is thread-safe
  *
+ * Some parts (e.g. content negotiation) from Yoke by Paulo Lopes
+ *
  * @author <a href="http://tfox.org">Tim Fox</a>
+ * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
  */
 public class RouteImpl implements Route {
 
   private static final Logger log = LoggerFactory.getLogger(RouteImpl.class);
 
   private final RouterImpl router;
-
   private final Set<HttpMethod> methods = new HashSet<>();
   private final Set<String> consumes = new HashSet<>();
   private final Set<String> produces = new HashSet<>();
   private String path;
-  private String regex;
   private int order;
   private boolean enabled = true;
   private Handler<RoutingContext> contextHandler;
-  private Handler<FailureRoutingContext> exceptionHandler;
+  private Handler<FailureRoutingContext> failureHandler;
   private boolean added;
   private Pattern pattern;
   private Set<String> groups;
@@ -101,7 +102,7 @@ public class RouteImpl implements Route {
 
   @Override
   public synchronized Route pathRegex(String path) {
-    setRegex(regex);
+    setRegex(path);
     return this;
   }
 
@@ -139,8 +140,8 @@ public class RouteImpl implements Route {
   }
 
   @Override
-  public synchronized Route exceptionHandler(Handler<FailureRoutingContext> exceptionHandler) {
-    this.exceptionHandler = exceptionHandler;
+  public synchronized Route failureHandler(Handler<FailureRoutingContext> exceptionHandler) {
+    this.failureHandler = exceptionHandler;
     checkAdd();
     return this;
   }
@@ -163,10 +164,6 @@ public class RouteImpl implements Route {
     return this;
   }
 
-  public String toString() {
-    return "Route: " + System.identityHashCode(this) + ", path: " + path + ", regex: " + regex + ", method: " + methods;
-  }
-
   synchronized void handleContext(RoutingContext context) {
     if (contextHandler != null) {
       contextHandler.handle(context);
@@ -174,14 +171,14 @@ public class RouteImpl implements Route {
   }
 
   synchronized void handleFailure(FailureRoutingContext context) {
-    if (exceptionHandler != null) {
-      exceptionHandler.handle(context);
+    if (failureHandler != null) {
+      failureHandler.handle(context);
     }
   }
 
   synchronized boolean matches(HttpServerRequest request, boolean failure) {
     //System.out.println("req: " + request.path() + " method: " + request.method());
-    if (failure && exceptionHandler == null || !failure && contextHandler == null) {
+    if (failure && failureHandler == null || !failure && contextHandler == null) {
       return false;
     }
     if (!enabled) {
@@ -216,8 +213,16 @@ public class RouteImpl implements Route {
       }
     }
     if (!consumes.isEmpty()) {
+      // Can this route consume the specified content type
       String contentType = request.headers().get("content-type");
-      if (contentType == null || !consumes.contains(contentType)) {
+      boolean matches = false;
+      for (String ct: consumes) {
+        if (canConsume(contentType, ct)) {
+          matches = true;
+          break;
+        }
+      }
+      if (!matches) {
         return false;
       }
     }
@@ -227,6 +232,42 @@ public class RouteImpl implements Route {
       return false;
     }
     return true;
+  }
+
+
+  /*
+  E.g.
+  "text/html", "text/*"  - returns true
+  "text/html", "html" - returns true
+  "application/json", "json" - returns true
+  "application/*", "json" - returns true
+  TODO - don't parse consumes types on each request - they can be preparsed!
+   */
+  private boolean canConsume(String requestCT, String consumesCT) {
+
+    if (consumesCT.equals("*") || consumesCT.equals("*/*")) {
+      return true;
+    }
+
+    // get the content type only (exclude charset)
+    requestCT = requestCT.split(";")[0];
+
+    // if we received an incomplete CT
+    if (consumesCT.indexOf('/') == -1) {
+      // when the content is incomplete we assume */type, e.g.:
+      // json -> */json
+      consumesCT = "*/" + consumesCT;
+    }
+
+    // process wildcards
+    if (consumesCT.contains("*")) {
+      String[] consumesParts = consumesCT.split("/");
+      String[] requestParts = requestCT.split("/");
+      return "*".equals(consumesParts[0]) && consumesParts[1].equals(requestParts[1]) ||
+             "*".equals(consumesParts[1]) && consumesParts[0].equals(requestParts[0]);
+    }
+
+    return requestCT.contains(consumesCT);
   }
 
   private void setPath(String path) {
@@ -279,6 +320,5 @@ public class RouteImpl implements Route {
       added = true;
     }
   }
-
 
 }

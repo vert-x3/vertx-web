@@ -14,13 +14,13 @@
  *  You may elect to redistribute this code under either of these licenses.
  */
 
-package io.vertx.ext.rest.impl;
+package io.vertx.ext.apex.impl;
 
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
-import io.vertx.ext.rest.Route;
-import io.vertx.ext.rest.Router;
-import io.vertx.ext.rest.RoutingContext;
+import io.vertx.ext.apex.Route;
+import io.vertx.ext.apex.Router;
+import io.vertx.ext.apex.RoutingContext;
 
 import java.util.ArrayList;
 import java.util.List;

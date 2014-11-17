@@ -14,27 +14,41 @@
  *  You may elect to redistribute this code under either of these licenses.
  */
 
-package io.vertx.ext.yoke3;
+package io.vertx.ext.apex;
 
+import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
-import io.vertx.ext.rest.RoutingContext;
+import io.vertx.core.http.HttpMethod;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public class YokeHandler implements Handler<RoutingContext> {
+@VertxGen
+public interface Route {
 
+  Route method(HttpMethod method);
 
-  public YokeHandler() {
-    super();
-  }
+  Route path(String path);
 
-  public void handleYoke(YokeContext ctx) {
+  Route pathRegex(String path);
 
-  }
+  Route produces(String contentType);
 
-  @Override
-  public void handle(RoutingContext ctx) {
-    //handle(YokeContext.create(ctx));
-  }
+  Route consumes(String contentType);
+
+  Route order(int order);
+
+  Route last(boolean last);
+
+  Route handler(Handler<RoutingContext> requestHandler);
+
+  Route failureHandler(Handler<FailureRoutingContext> exceptionHandler);
+
+  Route remove();
+
+  Route disable();
+
+  Route enable();
 }
+
+

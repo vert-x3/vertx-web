@@ -1,4 +1,0 @@
-basic auth
-body parser
-cookies - should cookies be supported in core api?
-CORS

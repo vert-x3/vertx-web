@@ -15,7 +15,7 @@
  */
 
 var utils = require('vertx-js/util/utils');
-var RoutingContext = require('ext-rest-js/routing_context');
+var RoutingContext = require('ext-apex-js/routing_context');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;

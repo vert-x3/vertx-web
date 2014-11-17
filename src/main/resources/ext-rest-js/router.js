@@ -16,7 +16,7 @@
 
 var utils = require('vertx-js/util/utils');
 var HttpServerRequest = require('vertx-js/http_server_request');
-var Route = require('ext-rest-js/route');
+var Route = require('ext-apex-js/route');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;

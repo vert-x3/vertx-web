@@ -14,24 +14,18 @@
  *  You may elect to redistribute this code under either of these licenses.
  */
 
-package io.vertx.ext.rest.middleware;
+package io.vertx.ext.apex;
 
-import io.vertx.core.Handler;
-import io.vertx.ext.rest.RoutingContext;
+import io.vertx.codegen.annotations.CacheReturn;
+import io.vertx.codegen.annotations.VertxGen;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public class BodyParser implements Handler<RoutingContext> {
+@VertxGen
+public interface FailureRoutingContext extends RoutingContext {
 
-  public static final String BODY = "BodyParser.body";
+  @CacheReturn
+  Throwable failure();
 
-  @Override
-  public void handle(RoutingContext routeContext) {
-
-  }
-
-//  public static JsonObject bodyJson(RoutingContext ctx) {
-//    return (JsonObject)ctx.contextData().get(BODY);
-//  }
 }

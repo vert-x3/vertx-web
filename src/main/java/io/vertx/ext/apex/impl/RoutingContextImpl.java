@@ -14,14 +14,15 @@
  *  You may elect to redistribute this code under either of these licenses.
  */
 
-package io.vertx.ext.rest.impl;
+package io.vertx.ext.apex.impl;
 
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
+import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.impl.LoggerFactory;
-import io.vertx.ext.rest.FailureRoutingContext;
-import io.vertx.ext.rest.RoutingContext;
+import io.vertx.ext.apex.FailureRoutingContext;
+import io.vertx.ext.apex.RoutingContext;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -40,7 +41,8 @@ public class RoutingContextImpl implements RoutingContext, FailureRoutingContext
   private final Iterator<RouteImpl> iter;
   private final Map<String, Object> contextData;
   private final Throwable failure;
-  private boolean matched;
+  private final JsonObject data = new JsonObject();
+  private int matchCount;
 
   RoutingContextImpl(RouterImpl router, RoutingContextImpl parent, Iterator<RouteImpl> iter) {
     this(router, parent.request, parent, iter, parent.contextData, null);
@@ -72,22 +74,6 @@ public class RoutingContextImpl implements RoutingContext, FailureRoutingContext
   @Override
   public HttpServerResponse response() {
     return request.response();
-  }
-
-//  @Override
-//  public Map<String, Object> contextData() {
-//    return contextData;
-//  }
-
-  private int matchCount;
-
-
-  RoutingContextImpl getTopMostContext() {
-    if (parent == null) {
-      return this;
-    } else {
-      return parent.getTopMostContext();
-    }
   }
 
   @Override
@@ -139,6 +125,19 @@ public class RoutingContextImpl implements RoutingContext, FailureRoutingContext
           response().end(DEFAULT_404);
         }
       }
+    }
+  }
+
+  @Override
+  public JsonObject data() {
+    return data;
+  }
+
+  private RoutingContextImpl getTopMostContext() {
+    if (parent == null) {
+      return this;
+    } else {
+      return parent.getTopMostContext();
     }
   }
 

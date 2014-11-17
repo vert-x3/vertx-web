@@ -14,21 +14,25 @@
  * You may elect to redistribute this code under either of these licenses.
  */
 
-package io.vertx.ext.rest.test;
+package io.vertx.ext.apex.test;
 
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientOptions;
+import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
-import io.vertx.ext.rest.Route;
-import io.vertx.ext.rest.Router;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
+import io.vertx.ext.apex.Route;
+import io.vertx.ext.apex.Router;
 import io.vertx.test.core.VertxTestBase;
 import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
@@ -170,28 +174,6 @@ public class RouterTest extends VertxTestBase {
     testRequest(method, path.substring(0, path.length() - 1), 404, "Not Found");
     testRequest(method, "/", 404, "Not Found");
     testRequest(method, "/" + UUID.randomUUID().toString(), 404, "Not Found");
-  }
-
-  protected void testRequest(HttpMethod method, String path, int statusCode, String statusMessage) throws Exception {
-    testRequest(method, path, statusCode, statusMessage, null);
-  }
-
-  protected void testRequest(HttpMethod method, String path, int statusCode, String statusMessage,
-                             String responseBody) throws Exception {
-    CountDownLatch latch = new CountDownLatch(1);
-    client.request(method, 8080, "localhost", path, resp -> {
-      assertEquals(statusCode, resp.statusCode());
-      assertEquals(statusMessage, resp.statusMessage());
-      if (responseBody == null) {
-        latch.countDown();
-      } else {
-        resp.bodyHandler(buff -> {
-          assertEquals(responseBody, buff.toString());
-          latch.countDown();
-        });
-      }
-    }).end();
-    awaitLatch(latch);
   }
 
   @Test
@@ -405,7 +387,7 @@ public class RouterTest extends VertxTestBase {
   @Test
   public void testChangeOrderAfterActive2() throws Exception {
     String path = "/blah";
-    Route route = router.route(path).exceptionHandler(rc -> {
+    Route route = router.route(path).failureHandler(rc -> {
       rc.response().write("apples");
       rc.next();
     });
@@ -447,7 +429,7 @@ public class RouterTest extends VertxTestBase {
     String path = "/blah";
     router.route(path).handler(rc -> {
       throw new RuntimeException("ouch!");
-    }).exceptionHandler(frc -> {
+    }).failureHandler(frc -> {
       frc.response().setStatusCode(555).setStatusMessage("oh dear").end();
     });
     testRequest(HttpMethod.GET, path, 555, "oh dear");
@@ -459,7 +441,7 @@ public class RouterTest extends VertxTestBase {
     router.route(path).handler(rc -> {
       throw new RuntimeException("ouch!");
     });
-    router.route("/bl").exceptionHandler(frc -> {
+    router.route("/bl").failureHandler(frc -> {
       frc.response().setStatusCode(555).setStatusMessage("oh dear").end();
     });
     testRequest(HttpMethod.GET, path, 555, "oh dear");
@@ -481,7 +463,7 @@ public class RouterTest extends VertxTestBase {
     router.route(path).handler(rc -> {
       throw new RuntimeException("ouch!");
     });
-    router.route("/other").exceptionHandler(frc -> {
+    router.route("/other").failureHandler(frc -> {
       frc.response().setStatusCode(555).setStatusMessage("oh dear").end();
     });
     // Default failure response
@@ -491,6 +473,23 @@ public class RouterTest extends VertxTestBase {
   @Test
   public void testPattern1() throws Exception {
     router.route("/:abc").handler(rc -> {
+      rc.response().setStatusMessage(rc.request().params().get("abc")).end();
+    });
+    testPattern("/tim", "tim", false);
+  }
+
+  @Test
+  public void testPattern1WithMethod() throws Exception {
+    router.route(HttpMethod.GET, "/:abc").handler(rc -> {
+      rc.response().setStatusMessage(rc.request().params().get("abc")).end();
+    });
+    testPattern("/tim", "tim", false);
+    testRequest(HttpMethod.POST, "/tim", 404, "Not Found");
+  }
+
+  @Test
+  public void testPattern1WithBuilder() throws Exception {
+    router.route().path("/:abc").handler(rc -> {
       rc.response().setStatusMessage(rc.request().params().get("abc")).end();
     });
     testPattern("/tim", "tim", false);
@@ -567,6 +566,15 @@ public class RouterTest extends VertxTestBase {
   }
 
   @Test
+  public void testInvalidPatternWithBuilder() throws Exception {
+    router.route().path("/blah/:!!!/").handler(rc -> {
+      MultiMap params = rc.request().params();
+      rc.response().setStatusMessage(params.get("!!!")).end();
+    });
+    testRequest(HttpMethod.GET, "/blah/tim", 404, "Not Found"); // Because it won't match
+  }
+
+  @Test
   public void testGroupMoreThanOne() throws Exception {
     try {
       router.route("/blah/:abc/:abc");
@@ -586,6 +594,25 @@ public class RouterTest extends VertxTestBase {
   }
 
   @Test
+  public void testRegex1WithBuilder() throws Exception {
+    router.route().pathRegex("\\/([^\\/]+)\\/([^\\/]+)").handler(rc -> {
+      MultiMap params = rc.request().params();
+      rc.response().setStatusMessage(params.get("param0") + params.get("param1")).end();
+    });
+    testPattern("/dog/cat", "dogcat", false);
+  }
+
+  @Test
+  public void testRegex1WithMethod() throws Exception {
+    router.routeWithRegex(HttpMethod.GET, "\\/([^\\/]+)\\/([^\\/]+)").handler(rc -> {
+      MultiMap params = rc.request().params();
+      rc.response().setStatusMessage(params.get("param0") + params.get("param1")).end();
+    });
+    testPattern("/dog/cat", "dogcat", false);
+    testRequest(HttpMethod.POST, "/dog/cat", 404, "Not Found");
+  }
+
+  @Test
   public void testRegex2() throws Exception {
     router.routeWithRegex("\\/([^\\/]+)\\/([^\\/]+)/blah").handler(rc -> {
       MultiMap params = rc.request().params();
@@ -595,6 +622,7 @@ public class RouterTest extends VertxTestBase {
   }
 
   @Test
+  // TODO - should subrouters have a mount point and paths relative to that?
   public void testSubRouters() throws Exception {
     Router subRouter = Router.router();
 
@@ -622,6 +650,156 @@ public class RouterTest extends VertxTestBase {
 
   }
 
+  @Test
+  public void testConsumes() throws Exception {
+    router.route().consumes("text/html").handler(rc -> rc.response().end());
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 200, "OK");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/json", 404, "Not Found");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "something/html", 404, "Not Found");
+  }
+
+  @Test
+  public void testConsumesMultiple() throws Exception {
+    router.route().consumes("text/html").consumes("application/json").handler(rc -> rc.response().end());
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 200, "OK");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "application/json", 200, "OK");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/json", 404, "Not Found");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "something/html", 404, "Not Found");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/json", 404, "Not Found");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "application/blah", 404, "Not Found");
+  }
+
+  @Test
+  public void testConsumesMissingSlash() throws Exception {
+    // will assume "*/html"
+    router.route().consumes("json").handler(rc -> rc.response().end());
+    testRequestWithContentType(HttpMethod.GET, "/foo", "application/json", 200, "OK");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "application/json", 200, "OK");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/json", 200, "OK");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 404, "Not Found");
+  }
+
+  @Test
+  public void testConsumesSubtypeWildcard() throws Exception {
+    router.route().consumes("text/*").handler(rc -> rc.response().end());
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 200, "OK");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/json", 200, "OK");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "application/json", 404, "Not Found");
+  }
+
+  @Test
+  public void testConsumesTopLevelTypeWildcard() throws Exception {
+    router.route().consumes("*/json").handler(rc -> rc.response().end());
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/json", 200, "OK");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "application/json", 200, "OK");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "application/html", 404, "Not Found");
+  }
+
+  @Test
+  public void testConsumesAll1() throws Exception {
+    router.route().consumes("*/*").handler(rc -> rc.response().end());
+    testRequestWithContentType(HttpMethod.GET, "/foo", "application/json", 200, "OK");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 200, "OK");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html; someparam=12", 200, "OK");
+    testRequest(HttpMethod.GET, "/foo", 200, "OK");
+  }
+
+  @Test
+  public void testConsumesAll2() throws Exception {
+    router.route().consumes("*").handler(rc -> rc.response().end());
+    testRequestWithContentType(HttpMethod.GET, "/foo", "application/json", 200, "OK");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 200, "OK");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html; someparam=12", 200, "OK");
+    testRequest(HttpMethod.GET, "/foo", 200, "OK");
+  }
+
+  @Test
+  public void testConsumesCTParamsIgnored() throws Exception {
+    router.route().consumes("text/html").handler(rc -> rc.response().end());
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html; someparam=12", 200, "OK");
+  }
+
+  /*
+  We won't test all the methods as the RoutingContext implementation as the implementation is already tested
+  in JsonObject
+   */
+  @Test
+  public void testGetPutContextData() throws Exception {
+    router.route().handler(ctx -> {
+      JsonObject data = ctx.data();
+      data.put("str", "bar");
+      data.put("obj", new JsonObject().put("blah", "wibble"));
+      data.put("arr", new JsonArray().add("blah").add("eek"));
+      data.put("num", 1234);
+      ctx.next();
+    });
+    router.route().handler(ctx -> {
+      JsonObject data = ctx.data();
+      assertEquals("bar", data.getString("str"));
+      assertEquals(new JsonObject().put("blah", "wibble"), data.getJsonObject("obj"));
+      assertEquals(new JsonArray().add("blah").add("eek"), data.getJsonArray("arr"));
+      assertEquals(1234, data.getInteger("num").intValue());
+      ctx.response().end();
+    });
+    testRequest(HttpMethod.GET, "/", 200, "OK");
+  }
+
+  @Test
+  public void testGetRoutes() throws Exception {
+    router.route("/abc").handler(rc -> {});
+    router.route("/abc/def").handler(rc -> {});
+    router.route("/xyz").handler(rc -> {});
+    List<Route> routes = router.getRoutes();
+    assertEquals(3, routes.size());
+  }
+
+
+  protected void testRequest(HttpMethod method, String path, int statusCode, String statusMessage) throws Exception {
+    testRequest(method, path, null, statusCode, statusMessage, null);
+  }
+
+  protected void testRequest(HttpMethod method, String path, int statusCode, String statusMessage,
+                             String responseBody) throws Exception {
+    testRequest(method, path, null, statusCode, statusMessage, responseBody);
+  }
+
+  protected void testRequestWithContentType(HttpMethod method, String path, String contentType, int statusCode, String statusMessage) throws Exception {
+    testRequest(method, path, contentType, statusCode, statusMessage, null);
+  }
+
+  protected void testRequestWithAccepts(HttpMethod method, String path, String accepts, int statusCode, String statusMessage) throws Exception {
+    testRequest(method, path, null, accepts, statusCode, statusMessage, null);
+  }
+
+  protected void testRequest(HttpMethod method, String path, String contentType, int statusCode, String statusMessage,
+                             String responseBody) throws Exception {
+    testRequest(method, path, contentType, null, statusCode, statusMessage, responseBody);
+  }
+
+  protected void testRequest(HttpMethod method, String path, String contentType, String accepts, int statusCode, String statusMessage,
+                             String responseBody) throws Exception {
+    CountDownLatch latch = new CountDownLatch(1);
+    HttpClientRequest req = client.request(method, 8080, "localhost", path, resp -> {
+      assertEquals(statusCode, resp.statusCode());
+      assertEquals(statusMessage, resp.statusMessage());
+      if (responseBody == null) {
+        latch.countDown();
+      } else {
+        resp.bodyHandler(buff -> {
+          assertEquals(responseBody, buff.toString());
+          latch.countDown();
+        });
+      }
+    });
+    if (contentType != null) {
+      req.putHeader("content-type", contentType);
+    }
+    if (accepts != null) {
+      req.putHeader("accepts", accepts);
+    }
+    req.end();
+    awaitLatch(latch);
+  }
 
 
 }
