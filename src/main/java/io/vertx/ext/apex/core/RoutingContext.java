@@ -21,6 +21,9 @@ import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.apex.middleware.ApexCookie;
+
+import java.util.Set;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -34,8 +37,15 @@ public interface RoutingContext {
   @CacheReturn
   HttpServerResponse response();
 
+  @CacheReturn
+  JsonObject data();
+
   void next();
 
-  JsonObject data();
+  // Not sure about these below. Do they belong here?
+
+  Set<ApexCookie> getCookies();
+
+  void setCookies(Set<ApexCookie> cookies);
 
 }

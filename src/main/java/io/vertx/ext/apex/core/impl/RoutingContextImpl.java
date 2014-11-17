@@ -23,10 +23,12 @@ import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.impl.LoggerFactory;
 import io.vertx.ext.apex.core.FailureRoutingContext;
 import io.vertx.ext.apex.core.RoutingContext;
+import io.vertx.ext.apex.middleware.ApexCookie;
 
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -43,6 +45,8 @@ public class RoutingContextImpl implements RoutingContext, FailureRoutingContext
   private final Throwable failure;
   private final JsonObject data = new JsonObject();
   private int matchCount;
+
+  private Set<ApexCookie> cookies;
 
   RoutingContextImpl(RouterImpl router, RoutingContextImpl parent, Iterator<RouteImpl> iter) {
     this(router, parent.request, parent, iter, parent.contextData, null);
@@ -131,6 +135,16 @@ public class RoutingContextImpl implements RoutingContext, FailureRoutingContext
   @Override
   public JsonObject data() {
     return data;
+  }
+
+  @Override
+  public Set<ApexCookie> getCookies() {
+    return cookies;
+  }
+
+  @Override
+  public void setCookies(Set<ApexCookie> cookies) {
+    this.cookies = cookies;
   }
 
   private RoutingContextImpl getTopMostContext() {
