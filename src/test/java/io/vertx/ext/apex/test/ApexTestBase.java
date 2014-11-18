@@ -19,6 +19,7 @@ package io.vertx.ext.apex.test;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpClientRequest;
+import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
@@ -46,7 +47,7 @@ public class ApexTestBase extends VertxTestBase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    router = Router.router();
+    router = Router.router(vertx);
     server = vertx.createHttpServer(new HttpServerOptions().setPort(8080).setHost("localhost"));
     client = vertx.createHttpClient(new HttpClientOptions());
     CountDownLatch latch = new CountDownLatch(1);
@@ -93,12 +94,22 @@ public class ApexTestBase extends VertxTestBase {
     testRequest(method, path, req -> req.putHeader("cookie", cookieHeader), statusCode, statusMessage, null);
   }
 
-  protected void testRequest(HttpMethod method, String path, Consumer<HttpClientRequest> requestAction, int statusCode, String statusMessage,
+  protected void testRequest(HttpMethod method, String path, Consumer<HttpClientRequest> requestAction,
+                             int statusCode, String statusMessage,
+                             String responseBody) throws Exception {
+    testRequest(method, path, requestAction, null, statusCode, statusMessage, responseBody);
+  }
+
+  protected void testRequest(HttpMethod method, String path, Consumer<HttpClientRequest> requestAction, Consumer<HttpClientResponse> responseAction,
+                             int statusCode, String statusMessage,
                              String responseBody) throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
     HttpClientRequest req = client.request(method, 8080, "localhost", path, resp -> {
       assertEquals(statusCode, resp.statusCode());
       assertEquals(statusMessage, resp.statusMessage());
+      if (responseAction != null) {
+        responseAction.accept(resp);
+      }
       if (responseBody == null) {
         latch.countDown();
       } else {

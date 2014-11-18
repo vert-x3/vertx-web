@@ -1,3 +1,4 @@
+
 /*
  * Copyright 2014 Red Hat, Inc.
  *
@@ -14,21 +15,7 @@
  *  You may elect to redistribute this code under either of these licenses.
  */
 
-package io.vertx.ext.apex.core;
+@GenModule(name = "ext-apex-middleware")
+package io.vertx.ext.apex.middleware;
 
-import io.vertx.codegen.annotations.CacheReturn;
-import io.vertx.codegen.annotations.VertxGen;
-
-/**
- * @author <a href="http://tfox.org">Tim Fox</a>
- */
-@VertxGen
-public interface FailureRoutingContext extends RoutingContext {
-
-  @CacheReturn
-  Throwable failure();
-
-  @CacheReturn
-  int statusCode();
-
-}
+import io.vertx.codegen.annotations.GenModule;

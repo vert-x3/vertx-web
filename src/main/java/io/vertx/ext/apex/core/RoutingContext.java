@@ -18,12 +18,10 @@ package io.vertx.ext.apex.core;
 
 import io.vertx.codegen.annotations.CacheReturn;
 import io.vertx.codegen.annotations.VertxGen;
+import io.vertx.core.Context;
+import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
-import io.vertx.core.json.JsonObject;
-import io.vertx.ext.apex.middleware.ApexCookie;
-
-import java.util.Set;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -31,21 +29,34 @@ import java.util.Set;
 @VertxGen
 public interface RoutingContext {
 
+  public static final String ROUTING_CONTEXT_KEY = RoutingContext.class.getName();
+
+  public static RoutingContext getContext() {
+    Context ctx = Vertx.currentContext();
+    if (ctx == null) {
+      throw new IllegalStateException("You are not in a Vert.x context");
+    }
+    RoutingContext rc = ctx.get(ROUTING_CONTEXT_KEY);
+    if (rc == null) {
+      throw new IllegalStateException("You are not in a Handler<RoutingContext>");
+    }
+    return rc;
+  }
+
   @CacheReturn
   HttpServerRequest request();
 
   @CacheReturn
   HttpServerResponse response();
 
-  @CacheReturn
-  JsonObject data();
-
   void next();
 
-  // Not sure about these below. Do they belong here?
+  void fail(int statusCode);
 
-  Set<ApexCookie> getCookies();
+  void put(String key, Object obj);
 
-  void addCookie(ApexCookie cookie);
+  <T> T get(String key);
+
+  Vertx vertx();
 
 }

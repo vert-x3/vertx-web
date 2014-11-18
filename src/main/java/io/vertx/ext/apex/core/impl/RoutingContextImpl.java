@@ -16,20 +16,18 @@
 
 package io.vertx.ext.apex.core.impl;
 
+import io.vertx.core.Context;
+import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
-import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.impl.LoggerFactory;
 import io.vertx.ext.apex.core.FailureRoutingContext;
 import io.vertx.ext.apex.core.RoutingContext;
-import io.vertx.ext.apex.middleware.ApexCookie;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -44,31 +42,33 @@ public class RoutingContextImpl implements RoutingContext, FailureRoutingContext
   private final Iterator<RouteImpl> iter;
   private final Map<String, Object> contextData;
   private final Throwable failure;
-  private final JsonObject data = new JsonObject();
+  private final int statusCode;
+  private final Map<String, Object> data = new HashMap<>();
   private int matchCount;
 
-  private Set<ApexCookie> cookies;
-
   RoutingContextImpl(RouterImpl router, RoutingContextImpl parent, Iterator<RouteImpl> iter) {
-    this(router, parent.request, parent, iter, parent.contextData, null);
+    this(router, parent.request, parent, iter, parent.contextData, null, -1);
   }
 
   RoutingContextImpl(RouterImpl router, HttpServerRequest request, Iterator<RouteImpl> iter) {
-    this(router, request, null, iter, new HashMap<>(), null);
+    this(router, request, null, iter, new HashMap<>(), null, -1);
   }
 
-  RoutingContextImpl(RouterImpl router, RoutingContextImpl ctx, Iterator<RouteImpl> iter, Throwable t) {
-    this(router, ctx.request, ctx.parent, iter, ctx.contextData, t);
+  RoutingContextImpl(RouterImpl router, RoutingContextImpl ctx, Iterator<RouteImpl> iter, Throwable t,
+                     int errorCode) {
+    this(router, ctx.request, ctx.parent, iter, ctx.contextData, t, errorCode);
   }
 
   private RoutingContextImpl(RouterImpl router, HttpServerRequest request, RoutingContextImpl parent,
-                             Iterator<RouteImpl> iter, Map<String, Object> contextData, Throwable failure) {
+                             Iterator<RouteImpl> iter, Map<String, Object> contextData, Throwable failure,
+                             int statusCode) {
     this.router = router;
     this.request = request;
     this.parent = parent;
     this.iter = iter;
     this.contextData = contextData;
     this.failure = failure;
+    this.statusCode = statusCode;
   }
 
   @Override
@@ -87,68 +87,81 @@ public class RoutingContextImpl implements RoutingContext, FailureRoutingContext
   }
 
   @Override
+  public int statusCode() {
+    return statusCode;
+  }
+
+  @Override
   public void next() {
-    boolean failed = failure != null;
+    boolean failed = failure != null || statusCode != -1;
+    setOnContext(this);
+    try {
+      RoutingContextImpl topmost = getTopMostContext();
 
-    RoutingContextImpl topmost = getTopMostContext();
-
-    while (iter.hasNext()) {
-      RouteImpl route = iter.next();
-      if (route.matches(request, failed)) {
-        topmost.matchCount++;
-        try {
-          if (failed) {
-            route.handleFailure(this);
-          } else {
-            route.handleContext(this);
+      while (iter.hasNext()) {
+        RouteImpl route = iter.next();
+        if (route.matches(request, failed)) {
+          topmost.matchCount++;
+          try {
+            if (failed) {
+              route.handleFailure(this);
+            } else {
+              route.handleContext(this);
+            }
+          } catch (Throwable t) {
+            router.handleFailure(t, -1, this);
           }
-        } catch (Throwable t) {
-          router.handleFailure(t, this);
-        }
-        return;
-      }
-    }
-
-    if (parent != null) {
-      if (matchCount == 0) {
-        // Nothing was matched in this context, but there's a parent, so decrement the match count
-        // as it was previously incremented for this sub router
-        topmost.matchCount--;
-      }
-      parent.next();
-    } else {
-      if (topmost.matchCount == 0) {
-        // Got to end of route chain but nothing matched
-        if (failed) {
-          // Send back default 500
-          response().setStatusCode(500);
-          response().end(DEFAULT_500);
-          log.error("Unhandled failure in route", failure);
-        } else {
-          // Send back default 404
-          response().setStatusCode(404);
-          response().end(DEFAULT_404);
+          return;
         }
       }
+
+      if (parent != null) {
+        if (matchCount == 0) {
+          // Nothing was matched in this context, but there's a parent, so decrement the match count
+          // as it was previously incremented for this sub router
+          topmost.matchCount--;
+        }
+        parent.next();
+      } else {
+        if (topmost.matchCount == 0) {
+          // Got to end of route chain but nothing matched
+          if (failed) {
+            // Send back FAILURE
+            int code = statusCode != -1 ? statusCode : 500;
+            response().setStatusCode(code);
+            response().end(UNHANDLED_FAILURE);
+          } else {
+            // Send back default 404
+            response().setStatusCode(404);
+            response().end(DEFAULT_404);
+          }
+        }
+      }
+    } finally {
+      setOnContext(null);
     }
   }
 
   @Override
-  public JsonObject data() {
-    return data;
+  public void fail(int statusCode) {
+    router.handleFailure(null, statusCode, this);
   }
 
   @Override
-  public Set<ApexCookie> getCookies() {
-    return cookies;
+  public void put(String key, Object obj) {
+    data.put(key, obj);
   }
 
   @Override
-  public void addCookie(ApexCookie cookie) {
-    if (cookies == null) {
-      cookies = new HashSet<>();
-    }
-    cookies.add(cookie);
+  public Vertx vertx() {
+    return router.vertx();
+  }
+
+  @Override
+  @SuppressWarnings("unchecked")
+  public <T> T get(String key) {
+    Object obj = data.get(key);
+    return (T)obj;
   }
 
   private RoutingContextImpl getTopMostContext() {
@@ -159,10 +172,19 @@ public class RoutingContextImpl implements RoutingContext, FailureRoutingContext
     }
   }
 
+  private void setOnContext(RoutingContext rc) {
+    Context ctx = Vertx.currentContext();
+    if (rc == null) {
+      ctx.remove(ROUTING_CONTEXT_KEY);
+    } else {
+      ctx.put(ROUTING_CONTEXT_KEY, rc);
+    }
+  }
+
   private static final String DEFAULT_404 =
     "<html><body><h1>Resource not found</h1></body></html>";
 
-  private static final String DEFAULT_500 =
+  private static final String UNHANDLED_FAILURE =
     "<html><body><h1>Ooops! Something went wrong</h1></body></html>";
 
 }

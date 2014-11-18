@@ -13,36 +13,31 @@
  *
  *  You may elect to redistribute this code under either of these licenses.
  */
+
 package io.vertx.ext.apex.middleware;
 
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
 import io.vertx.ext.apex.core.RoutingContext;
-import io.vertx.ext.apex.middleware.impl.CookieParserImpl;
-
-import java.util.Map;
+import io.vertx.ext.apex.middleware.impl.TimeoutImpl;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 @VertxGen
-public interface CookieParser extends Handler<RoutingContext> {
+public interface Timeout extends Handler<RoutingContext> {
 
-  static CookieParser cookierParser() {
-    return new CookieParserImpl();
+  static final long DEFAULT_TIMEOUT = 500;
+
+  static Timeout timeout() {
+    return new TimeoutImpl(DEFAULT_TIMEOUT);
+  }
+
+  static Timeout timeout(long timeout) {
+    return new TimeoutImpl(timeout);
   }
 
   @Override
   void handle(RoutingContext event);
-
-  static final String COOKIES_ENTRY_NAME = CookieParser.class.getName() + ".cookies";
-
-  static Map<String, ApexCookie> cookies() {
-    return RoutingContext.getContext().get(COOKIES_ENTRY_NAME);
-  }
-
-  static Map<String, ApexCookie> cookies(RoutingContext context) {
-    return context.get(COOKIES_ENTRY_NAME);
-  }
 
 }

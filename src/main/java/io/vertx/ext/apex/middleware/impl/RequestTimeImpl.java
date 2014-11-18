@@ -14,21 +14,23 @@
  *  You may elect to redistribute this code under either of these licenses.
  */
 
-package io.vertx.ext.apex.core;
+package io.vertx.ext.apex.middleware.impl;
 
-import io.vertx.codegen.annotations.CacheReturn;
-import io.vertx.codegen.annotations.VertxGen;
+import io.vertx.ext.apex.core.RoutingContext;
+import io.vertx.ext.apex.middleware.RequestTime;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-@VertxGen
-public interface FailureRoutingContext extends RoutingContext {
+public class RequestTimeImpl implements RequestTime {
 
-  @CacheReturn
-  Throwable failure();
-
-  @CacheReturn
-  int statusCode();
-
+  @Override
+  public void handle(RoutingContext ctx) {
+    long start = System.currentTimeMillis();
+    ctx.response().headersEndHandler(v -> {
+      long duration = System.currentTimeMillis() - start;
+      ctx.response().putHeader("x-response-time", duration + "ms");
+    });
+    ctx.next();
+  }
 }

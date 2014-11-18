@@ -16,6 +16,7 @@
 
 package io.vertx.ext.apex.core.impl;
 
+import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.ext.apex.core.Route;
@@ -36,8 +37,13 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class RouterImpl implements Router {
 
+  private final Vertx vertx;
   private final Set<RouteImpl> routes =
     new ConcurrentSkipListSet<>((RouteImpl o1, RouteImpl o2) -> Integer.compare(o1.order(), o2.order()));
+
+  public RouterImpl(Vertx vertx) {
+    this.vertx = vertx;
+  }
 
   private final AtomicInteger orderSequence = new AtomicInteger();
 
@@ -87,8 +93,8 @@ public class RouterImpl implements Router {
     new RoutingContextImpl(this, (RoutingContextImpl)ctx, routes.iterator()).next();
   }
 
-  void handleFailure(Throwable t, RoutingContextImpl ctx) {
-    new RoutingContextImpl(this, ctx, routes.iterator(), t).next();
+  void handleFailure(Throwable t, int statusCode, RoutingContextImpl ctx) {
+    new RoutingContextImpl(this, ctx, routes.iterator(), t, statusCode).next();
   }
 
   void add(RouteImpl route) {
@@ -98,4 +104,9 @@ public class RouterImpl implements Router {
   void remove(RouteImpl route) {
     routes.remove(route);
   }
+
+  Vertx vertx() {
+    return vertx;
+  }
+
 }

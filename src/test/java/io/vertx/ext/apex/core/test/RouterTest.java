@@ -18,8 +18,6 @@ package io.vertx.ext.apex.core.test;
 
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpMethod;
-import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.apex.core.Route;
 import io.vertx.ext.apex.core.Router;
 import io.vertx.ext.apex.test.ApexTestBase;
@@ -381,7 +379,7 @@ public class RouterTest extends ApexTestBase {
   // sub routers
 
   @Test
-  public void testExceptionHandler1() throws Exception {
+  public void testFailureHandler1() throws Exception {
     String path = "/blah";
     router.route(path).handler(rc -> {
       throw new RuntimeException("ouch!");
@@ -392,7 +390,19 @@ public class RouterTest extends ApexTestBase {
   }
 
   @Test
-  public void testExceptionHandler2() throws Exception {
+  public void testFailureHandler1CallFail() throws Exception {
+    String path = "/blah";
+    router.route(path).handler(rc -> {
+      rc.fail(400);
+    }).failureHandler(frc -> {
+      assertEquals(400, frc.statusCode());
+      frc.response().setStatusCode(400).setStatusMessage("oh dear").end();
+    });
+    testRequest(HttpMethod.GET, path, 400, "oh dear");
+  }
+
+  @Test
+  public void testFailureHandler2() throws Exception {
     String path = "/blah";
     router.route(path).handler(rc -> {
       throw new RuntimeException("ouch!");
@@ -404,7 +414,20 @@ public class RouterTest extends ApexTestBase {
   }
 
   @Test
-  public void testDefaultExceptionHandler() throws Exception {
+  public void testFailureHandler2CallFail() throws Exception {
+    String path = "/blah";
+    router.route(path).handler(rc -> {
+      rc.fail(400);
+    });
+    router.route("/bl").failureHandler(frc -> {
+      assertEquals(400, frc.statusCode());
+      frc.response().setStatusCode(400).setStatusMessage("oh dear").end();
+    });
+    testRequest(HttpMethod.GET, path, 400, "oh dear");
+  }
+
+  @Test
+  public void testDefaultFailureHandler() throws Exception {
     String path = "/blah";
     router.route(path).handler(rc -> {
       throw new RuntimeException("ouch!");
@@ -414,7 +437,17 @@ public class RouterTest extends ApexTestBase {
   }
 
   @Test
-  public void testExceptionHandlerNoMatch() throws Exception {
+  public void testDefaultFailureHandlerCallFail() throws Exception {
+    String path = "/blah";
+    router.route(path).handler(rc -> {
+      rc.fail(400);
+    });
+    // Default failure response
+    testRequest(HttpMethod.GET, path, 400, "Bad Request");
+  }
+
+  @Test
+  public void testFailureHandlerNoMatch() throws Exception {
     String path = "/blah";
     router.route(path).handler(rc -> {
       throw new RuntimeException("ouch!");
@@ -580,7 +613,7 @@ public class RouterTest extends ApexTestBase {
   @Test
   // TODO - should subrouters have a mount point and paths relative to that?
   public void testSubRouters() throws Exception {
-    Router subRouter = Router.router();
+    Router subRouter = Router.router(vertx);
 
     router.route("/subpath/").handler(subRouter);
 
@@ -675,29 +708,23 @@ public class RouterTest extends ApexTestBase {
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html; someparam=12", 200, "OK");
   }
 
-  /*
-  We won't test all the methods as the RoutingContext implementation as the implementation is already tested
-  in JsonObject
-   */
   @Test
   public void testGetPutContextData() throws Exception {
+    SomeObject obj = new SomeObject();
     router.route().handler(ctx -> {
-      JsonObject data = ctx.data();
-      data.put("str", "bar");
-      data.put("obj", new JsonObject().put("blah", "wibble"));
-      data.put("arr", new JsonArray().add("blah").add("eek"));
-      data.put("num", 1234);
+      ctx.put("foo", "bar");
+      ctx.put("blah", obj);
       ctx.next();
     });
     router.route().handler(ctx -> {
-      JsonObject data = ctx.data();
-      assertEquals("bar", data.getString("str"));
-      assertEquals(new JsonObject().put("blah", "wibble"), data.getJsonObject("obj"));
-      assertEquals(new JsonArray().add("blah").add("eek"), data.getJsonArray("arr"));
-      assertEquals(1234, data.getInteger("num").intValue());
+      assertEquals("bar", ctx.get("foo"));
+      assertEquals(obj, ctx.get("blah"));
       ctx.response().end();
     });
     testRequest(HttpMethod.GET, "/", 200, "OK");
+  }
+
+  class SomeObject {
   }
 
   @Test

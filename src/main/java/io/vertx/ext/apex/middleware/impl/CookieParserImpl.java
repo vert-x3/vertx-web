@@ -23,6 +23,8 @@ import io.vertx.ext.apex.middleware.ApexCookie;
 import io.vertx.ext.apex.middleware.CookieParser;
 
 import javax.crypto.Mac;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -55,7 +57,7 @@ public class CookieParserImpl implements CookieParser {
    *
    * @param mac Mac
    */
-  public CookieParserImpl(final Mac mac) {
+  public CookieParserImpl(Mac mac) {
     this.mac = mac;
   }
 
@@ -75,23 +77,34 @@ public class CookieParserImpl implements CookieParser {
   public void handle(RoutingContext context) {
     String cookieHeader = context.request().headers().get("cookie");
 
+    Map<String, ApexCookie> apexCookies = new HashMap<>();
     if (cookieHeader != null) {
       Set<Cookie> nettyCookies = CookieDecoder.decode(cookieHeader);
       for (Cookie cookie : nettyCookies) {
-        System.out.println("got cookie:" + cookie);
+        //System.out.println("got cookie:" + cookie);
         ApexCookie apexCookie = new ApexCookieImpl(cookie, mac);
         String value = apexCookie.getUnsignedValue();
         // value cannot be null in a cookie if the signature is mismatch then this value will be null
         // in that case the cookie has been tampered
         if (value == null) {
-          // FIXME - how to handle this??
-          //next.handle(400);
+          context.fail(400);
           return;
         }
-        context.addCookie(apexCookie);
+        apexCookies.put(apexCookie.getName(), apexCookie);
       }
+      context.put(CookieParserImpl.COOKIES_ENTRY_NAME, apexCookies);
     }
+
+    context.response().headersEndHandler(v -> {
+      // save the cookies
+      if (!apexCookies.isEmpty()) {
+        for (ApexCookie cookie: apexCookies.values()) {
+          context.response().headers().add("set-cookie", cookie.encode());
+        }
+      }
+    });
 
     context.next();
   }
+
 }

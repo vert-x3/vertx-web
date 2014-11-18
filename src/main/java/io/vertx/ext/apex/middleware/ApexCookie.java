@@ -17,6 +17,7 @@
 package io.vertx.ext.apex.middleware;
 
 import io.vertx.codegen.annotations.VertxGen;
+import io.vertx.ext.apex.middleware.impl.ApexCookieImpl;
 
 import java.util.Set;
 
@@ -25,6 +26,10 @@ import java.util.Set;
  */
 @VertxGen
 public interface ApexCookie {
+
+  static ApexCookie apexCookie(String name, String value) {
+    return new ApexCookieImpl(name, value);
+  }
 
   /**
    * Returns the name of this {@link ApexCookie}.
@@ -47,7 +52,7 @@ public interface ApexCookie {
    *
    * @param value The value to set
    */
-  void setValue(String value);
+  ApexCookie setValue(String value);
 
   /**
    * Returns the domain of this {@link ApexCookie}.
@@ -61,7 +66,7 @@ public interface ApexCookie {
    *
    * @param domain The domain to use
    */
-  void setDomain(String domain);
+  ApexCookie setDomain(String domain);
 
   /**
    * Returns the path of this {@link ApexCookie}.
@@ -75,7 +80,7 @@ public interface ApexCookie {
    *
    * @param path The path to use for this {@link ApexCookie}
    */
-  void setPath(String path);
+  ApexCookie setPath(String path);
 
   /**
    * Returns the comment of this {@link ApexCookie}.
@@ -89,7 +94,7 @@ public interface ApexCookie {
    *
    * @param comment The comment to use
    */
-  void setComment(String comment);
+  ApexCookie setComment(String comment);
 
   /**
    * Returns the maximum age of this {@link ApexCookie} in seconds or {@link Long#MIN_VALUE} if unspecified
@@ -107,7 +112,7 @@ public interface ApexCookie {
    *
    * @param maxAge The maximum age of this {@link ApexCookie} in seconds
    */
-  void setMaxAge(long maxAge);
+  ApexCookie setMaxAge(long maxAge);
 
   /**
    * Returns the version of this {@link ApexCookie}.
@@ -121,7 +126,7 @@ public interface ApexCookie {
    *
    * @param version The new version to use
    */
-  void setVersion(int version);
+  ApexCookie setVersion(int version);
 
   /**
    * Checks to see if this {@link ApexCookie} is secure
@@ -135,7 +140,7 @@ public interface ApexCookie {
    *
    * @param secure True if this {@link ApexCookie} is to be secure, otherwise false
    */
-  void setSecure(boolean secure);
+  ApexCookie setSecure(boolean secure);
 
   /**
    * Checks to see if this {@link ApexCookie} can only be accessed via HTTP.
@@ -156,7 +161,7 @@ public interface ApexCookie {
    *
    * @param httpOnly True if the {@link ApexCookie} is HTTP only, otherwise false.
    */
-  void setHttpOnly(boolean httpOnly);
+  ApexCookie setHttpOnly(boolean httpOnly);
 
   /**
    * Returns the comment URL of this {@link ApexCookie}.
@@ -170,7 +175,7 @@ public interface ApexCookie {
    *
    * @param commentUrl The comment URL to use
    */
-  void setCommentUrl(String commentUrl);
+  ApexCookie setCommentUrl(String commentUrl);
 
   /**
    * Checks to see if this {@link ApexCookie} is to be discarded by the browser
@@ -187,7 +192,7 @@ public interface ApexCookie {
    *
    * @param discard True if the {@link ApexCookie} is to be discarded
    */
-  void setDiscard(boolean discard);
+  ApexCookie setDiscard(boolean discard);
 
   /**
    * Returns the ports that this {@link ApexCookie} can be accessed on.
@@ -202,5 +207,7 @@ public interface ApexCookie {
    * @param port The ports that this {@link ApexCookie} can be accessed on
    */
   void addPort(int port);
+
+  String encode();
 
 }

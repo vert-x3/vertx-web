@@ -17,15 +17,20 @@
 package io.vertx.ext.apex.middleware.impl;
 
 import io.netty.handler.codec.http.Cookie;
+import io.netty.handler.codec.http.DefaultCookie;
+import io.netty.handler.codec.http.ServerCookieEncoder;
 import io.vertx.ext.apex.middleware.ApexCookie;
 
 import javax.crypto.Mac;
 import java.util.Set;
 
 /**
- * # ApexCookie
+ * ApexCookie
+ *
+ * I'm not entirely happy this uses Netty.
  *
  * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
+ * @author <a href="http://tfox.org">Tim Fox</a>
  */
 public class ApexCookieImpl implements ApexCookie {
 
@@ -34,7 +39,12 @@ public class ApexCookieImpl implements ApexCookie {
   private String value;
   private boolean signed;
 
-  public ApexCookieImpl(final Cookie nettyCookie, final Mac mac) {
+  public ApexCookieImpl(String name, String value) {
+    this.nettyCookie = new DefaultCookie(name, value);
+    this.mac = null;
+  }
+
+  public ApexCookieImpl(Cookie nettyCookie, Mac mac) {
     this.nettyCookie = nettyCookie;
     this.mac = mac;
 
@@ -77,10 +87,11 @@ public class ApexCookieImpl implements ApexCookie {
   }
 
   @Override
-  public void setValue(final String value) {
+  public ApexCookie setValue(final String value) {
     this.value = value;
     this.signed = false;
     nettyCookie.setValue(value);
+    return this;
   }
 
   @Override
@@ -94,8 +105,9 @@ public class ApexCookieImpl implements ApexCookie {
   }
 
   @Override
-  public void setDomain(final String domain) {
+  public ApexCookie setDomain(final String domain) {
     nettyCookie.setDomain(domain);
+    return this;
   }
 
   @Override
@@ -104,8 +116,9 @@ public class ApexCookieImpl implements ApexCookie {
   }
 
   @Override
-  public void setPath(final String path) {
+  public ApexCookie setPath(final String path) {
     nettyCookie.setPath(path);
+    return this;
   }
 
   @Override
@@ -114,8 +127,9 @@ public class ApexCookieImpl implements ApexCookie {
   }
 
   @Override
-  public void setComment(final String comment) {
+  public ApexCookie setComment(final String comment) {
     nettyCookie.setComment(comment);
+    return this;
   }
 
   @Override
@@ -124,8 +138,9 @@ public class ApexCookieImpl implements ApexCookie {
   }
 
   @Override
-  public void setMaxAge(final long maxAge) {
+  public ApexCookie setMaxAge(final long maxAge) {
     nettyCookie.setMaxAge(maxAge);
+    return this;
   }
 
   @Override
@@ -134,8 +149,9 @@ public class ApexCookieImpl implements ApexCookie {
   }
 
   @Override
-  public void setVersion(final int version) {
+  public ApexCookie setVersion(final int version) {
     nettyCookie.setVersion(version);
+    return this;
   }
 
   @Override
@@ -144,8 +160,9 @@ public class ApexCookieImpl implements ApexCookie {
   }
 
   @Override
-  public void setSecure(final boolean secure) {
+  public ApexCookie setSecure(final boolean secure) {
     nettyCookie.setSecure(secure);
+    return this;
   }
 
   @Override
@@ -154,8 +171,9 @@ public class ApexCookieImpl implements ApexCookie {
   }
 
   @Override
-  public void setHttpOnly(final boolean httpOnly) {
+  public ApexCookie setHttpOnly(final boolean httpOnly) {
     nettyCookie.setHttpOnly(httpOnly);
+    return this;
   }
 
   @Override
@@ -164,8 +182,9 @@ public class ApexCookieImpl implements ApexCookie {
   }
 
   @Override
-  public void setCommentUrl(final String commentUrl) {
+  public ApexCookie setCommentUrl(final String commentUrl) {
     nettyCookie.setCommentUrl(commentUrl);
+    return this;
   }
 
   @Override
@@ -174,8 +193,9 @@ public class ApexCookieImpl implements ApexCookie {
   }
 
   @Override
-  public void setDiscard(final boolean discard) {
+  public ApexCookie setDiscard(final boolean discard) {
     nettyCookie.setDiscard(discard);
+    return this;
   }
 
   @Override
@@ -188,5 +208,8 @@ public class ApexCookieImpl implements ApexCookie {
     nettyCookie.setPorts();
   }
 
-
+  @Override
+  public String encode() {
+    return ServerCookieEncoder.encode(nettyCookie);
+  }
 }
