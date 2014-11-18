@@ -16,6 +16,7 @@
 
 package io.vertx.ext.apex.test;
 
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpClientRequest;
@@ -82,6 +83,11 @@ public class ApexTestBase extends VertxTestBase {
     testRequest(method, path, null, statusCode, statusMessage, responseBody);
   }
 
+  protected void testRequest(HttpMethod method, String path, int statusCode, String statusMessage,
+                             Buffer responseBody) throws Exception {
+    testRequestBuffer(method, path, null, null, statusCode, statusMessage, responseBody);
+  }
+
   protected void testRequestWithContentType(HttpMethod method, String path, String contentType, int statusCode, String statusMessage) throws Exception {
     testRequest(method, path, req -> req.putHeader("content-type", contentType), statusCode, statusMessage, null);
   }
@@ -103,6 +109,12 @@ public class ApexTestBase extends VertxTestBase {
   protected void testRequest(HttpMethod method, String path, Consumer<HttpClientRequest> requestAction, Consumer<HttpClientResponse> responseAction,
                              int statusCode, String statusMessage,
                              String responseBody) throws Exception {
+    testRequestBuffer(method, path, requestAction, responseAction, statusCode, statusMessage, responseBody != null ? Buffer.buffer(responseBody) : null);
+  }
+
+  protected void testRequestBuffer(HttpMethod method, String path, Consumer<HttpClientRequest> requestAction, Consumer<HttpClientResponse> responseAction,
+                                   int statusCode, String statusMessage,
+                                   Buffer responseBodyBuffer) throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
     HttpClientRequest req = client.request(method, 8080, "localhost", path, resp -> {
       assertEquals(statusCode, resp.statusCode());
@@ -110,11 +122,11 @@ public class ApexTestBase extends VertxTestBase {
       if (responseAction != null) {
         responseAction.accept(resp);
       }
-      if (responseBody == null) {
+      if (responseBodyBuffer == null) {
         latch.countDown();
       } else {
         resp.bodyHandler(buff -> {
-          assertEquals(responseBody, buff.toString());
+          assertEquals(responseBodyBuffer, buff);
           latch.countDown();
         });
       }

@@ -130,6 +130,9 @@ public class RoutingContextImpl implements RoutingContext, FailureRoutingContext
             int code = statusCode != -1 ? statusCode : 500;
             response().setStatusCode(code);
             response().end(UNHANDLED_FAILURE);
+            if (failure != null) {
+              log.error("Unexpected exception in route", failure);
+            }
           } else {
             // Send back default 404
             response().setStatusCode(404);
