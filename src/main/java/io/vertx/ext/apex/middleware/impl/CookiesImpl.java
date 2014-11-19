@@ -16,11 +16,10 @@
 
 package io.vertx.ext.apex.middleware.impl;
 
-import io.netty.handler.codec.http.Cookie;
 import io.netty.handler.codec.http.CookieDecoder;
 import io.vertx.ext.apex.core.RoutingContext;
-import io.vertx.ext.apex.middleware.ApexCookie;
-import io.vertx.ext.apex.middleware.CookieParser;
+import io.vertx.ext.apex.middleware.Cookie;
+import io.vertx.ext.apex.middleware.Cookies;
 
 import javax.crypto.Mac;
 import java.util.HashMap;
@@ -40,7 +39,7 @@ import java.util.Set;
  * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public class CookieParserImpl implements CookieParser {
+public class CookiesImpl implements Cookies {
 
   /**
    * Message Signer
@@ -57,7 +56,7 @@ public class CookieParserImpl implements CookieParser {
    *
    * @param mac Mac
    */
-  public CookieParserImpl(Mac mac) {
+  public CookiesImpl(Mac mac) {
     this.mac = mac;
   }
 
@@ -69,7 +68,7 @@ public class CookieParserImpl implements CookieParser {
    * yoke.use(new CookieParser());
    * </pre>
    */
-  public CookieParserImpl() {
+  public CookiesImpl() {
     this(null);
   }
 
@@ -77,12 +76,12 @@ public class CookieParserImpl implements CookieParser {
   public void handle(RoutingContext context) {
     String cookieHeader = context.request().headers().get("cookie");
 
-    Map<String, ApexCookie> apexCookies = new HashMap<>();
+    Map<String, Cookie> apexCookies = new HashMap<>();
     if (cookieHeader != null) {
-      Set<Cookie> nettyCookies = CookieDecoder.decode(cookieHeader);
-      for (Cookie cookie : nettyCookies) {
+      Set<io.netty.handler.codec.http.Cookie> nettyCookies = CookieDecoder.decode(cookieHeader);
+      for (io.netty.handler.codec.http.Cookie cookie : nettyCookies) {
         //System.out.println("got cookie:" + cookie);
-        ApexCookie apexCookie = new ApexCookieImpl(cookie, mac);
+        Cookie apexCookie = new ApexCookieImpl(cookie, mac);
         String value = apexCookie.getUnsignedValue();
         // value cannot be null in a cookie if the signature is mismatch then this value will be null
         // in that case the cookie has been tampered
@@ -92,13 +91,13 @@ public class CookieParserImpl implements CookieParser {
         }
         apexCookies.put(apexCookie.getName(), apexCookie);
       }
-      context.put(CookieParserImpl.COOKIES_ENTRY_NAME, apexCookies);
+      context.put(Cookies.COOKIES_ENTRY_NAME, apexCookies);
     }
 
     context.response().headersEndHandler(v -> {
       // save the cookies
       if (!apexCookies.isEmpty()) {
-        for (ApexCookie cookie: apexCookies.values()) {
+        for (Cookie cookie: apexCookies.values()) {
           context.response().headers().add("set-cookie", cookie.encode());
         }
       }
@@ -106,5 +105,7 @@ public class CookieParserImpl implements CookieParser {
 
     context.next();
   }
+
+
 
 }

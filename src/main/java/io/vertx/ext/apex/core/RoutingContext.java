@@ -18,10 +18,10 @@ package io.vertx.ext.apex.core;
 
 import io.vertx.codegen.annotations.CacheReturn;
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.core.Context;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
+import io.vertx.ext.apex.core.impl.RoutingContextHelper;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -29,18 +29,8 @@ import io.vertx.core.http.HttpServerResponse;
 @VertxGen
 public interface RoutingContext {
 
-  public static final String ROUTING_CONTEXT_KEY = RoutingContext.class.getName();
-
   public static RoutingContext getContext() {
-    Context ctx = Vertx.currentContext();
-    if (ctx == null) {
-      throw new IllegalStateException("You are not in a Vert.x context");
-    }
-    RoutingContext rc = ctx.get(ROUTING_CONTEXT_KEY);
-    if (rc == null) {
-      throw new IllegalStateException("You are not in a Handler<RoutingContext>");
-    }
-    return rc;
+    return RoutingContextHelper.getContext();
   }
 
   @CacheReturn

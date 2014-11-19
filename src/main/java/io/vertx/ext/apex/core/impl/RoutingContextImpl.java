@@ -16,7 +16,6 @@
 
 package io.vertx.ext.apex.core.impl;
 
-import io.vertx.core.Context;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
@@ -94,7 +93,7 @@ public class RoutingContextImpl implements RoutingContext, FailureRoutingContext
   @Override
   public void next() {
     boolean failed = failure != null || statusCode != -1;
-    setOnContext(this);
+    RoutingContextHelper.setOnContext(this);
     try {
       RoutingContextImpl topmost = getTopMostContext();
 
@@ -141,7 +140,7 @@ public class RoutingContextImpl implements RoutingContext, FailureRoutingContext
         }
       }
     } finally {
-      setOnContext(null);
+      RoutingContextHelper.setOnContext(null);
     }
   }
 
@@ -172,15 +171,6 @@ public class RoutingContextImpl implements RoutingContext, FailureRoutingContext
       return this;
     } else {
       return parent.getTopMostContext();
-    }
-  }
-
-  private void setOnContext(RoutingContext rc) {
-    Context ctx = Vertx.currentContext();
-    if (rc == null) {
-      ctx.remove(ROUTING_CONTEXT_KEY);
-    } else {
-      ctx.put(ROUTING_CONTEXT_KEY, rc);
     }
   }
 
