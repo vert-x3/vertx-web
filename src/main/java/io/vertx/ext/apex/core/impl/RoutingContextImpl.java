@@ -16,6 +16,7 @@
 
 package io.vertx.ext.apex.core.impl;
 
+import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
@@ -24,8 +25,10 @@ import io.vertx.core.logging.impl.LoggerFactory;
 import io.vertx.ext.apex.core.FailureRoutingContext;
 import io.vertx.ext.apex.core.RoutingContext;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -43,6 +46,8 @@ public class RoutingContextImpl implements RoutingContext, FailureRoutingContext
   private final Throwable failure;
   private final int statusCode;
   private final Map<String, Object> data = new HashMap<>();
+  private List<Handler<Void>> headersEndHandlers;
+  private List<Handler<Void>> bodyEndHandlers;
   private int matchCount;
 
   RoutingContextImpl(RouterImpl router, RoutingContextImpl parent, Iterator<RouteImpl> iter) {
@@ -172,6 +177,42 @@ public class RoutingContextImpl implements RoutingContext, FailureRoutingContext
     } else {
       return parent.getTopMostContext();
     }
+  }
+
+  @Override
+  public void addHeadersEndHandler(Handler<Void> handler) {
+    getHeadersEndHandlers().add(handler);
+  }
+
+  @Override
+  public boolean removeHeadersEndHandler(Handler<Void> handler) {
+    return getHeadersEndHandlers().remove(handler);
+  }
+
+  private List<Handler<Void>> getHeadersEndHandlers() {
+    if (headersEndHandlers == null) {
+      headersEndHandlers = new ArrayList<>();
+      response().headersEndHandler(v -> headersEndHandlers.forEach(handler -> handler.handle(null)));
+    }
+    return headersEndHandlers;
+  }
+
+  @Override
+  public void addBodyEndHandler(Handler<Void> handler) {
+    getBodyEndHandlers().add(handler);
+  }
+
+  @Override
+  public boolean removeBodyEndHandler(Handler<Void> handler) {
+    return getBodyEndHandlers().remove(handler);
+  }
+
+  private List<Handler<Void>> getBodyEndHandlers() {
+    if (bodyEndHandlers == null) {
+      bodyEndHandlers = new ArrayList<>();
+      response().bodyEndHandler(v -> bodyEndHandlers.forEach(handler -> handler.handle(null)));
+    }
+    return bodyEndHandlers;
   }
 
   private static final String DEFAULT_404 =

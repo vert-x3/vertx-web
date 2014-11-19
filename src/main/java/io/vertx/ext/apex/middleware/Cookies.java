@@ -33,7 +33,7 @@ public interface Cookies extends Handler<RoutingContext> {
     return new CookiesImpl();
   }
 
-  static final String COOKIES_ENTRY_NAME = Cookies.class.getName() + ".cookies";
+  static final String COOKIES_ENTRY_NAME = "__apex_cookies";
 
   static Cookie getCookie(String name) {
     return CookiesHelper.getCookie(name);

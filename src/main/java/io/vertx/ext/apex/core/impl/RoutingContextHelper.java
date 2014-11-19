@@ -25,7 +25,7 @@ import io.vertx.ext.apex.core.RoutingContext;
  */
 public class RoutingContextHelper {
 
-  public static final String ROUTING_CONTEXT_KEY = RoutingContext.class.getName();
+  public static final String ROUTING_CONTEXT_KEY = "__apex_routingcontext";
 
   public static RoutingContext getContext() {
     Context ctx = Vertx.currentContext();

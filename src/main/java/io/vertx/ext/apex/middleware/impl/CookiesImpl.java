@@ -94,7 +94,7 @@ public class CookiesImpl implements Cookies {
       context.put(Cookies.COOKIES_ENTRY_NAME, apexCookies);
     }
 
-    context.response().headersEndHandler(v -> {
+    context.addHeadersEndHandler(v -> {
       // save the cookies
       if (!apexCookies.isEmpty()) {
         for (Cookie cookie: apexCookies.values()) {

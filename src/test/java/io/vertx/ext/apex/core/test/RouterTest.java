@@ -16,21 +16,21 @@
 
 package io.vertx.ext.apex.core.test;
 
+import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.apex.core.Route;
-import io.vertx.ext.apex.core.Router;
 import io.vertx.ext.apex.test.ApexTestBase;
 import org.junit.Test;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 public class RouterTest extends ApexTestBase {
-
 
   @Test
   public void testInvalidPath() throws Exception {
@@ -198,6 +198,44 @@ public class RouterTest extends ApexTestBase {
       rc.response().end();
       // An extra call to next shouldn't cause a problem
       rc.next();
+    });
+    testRequest(HttpMethod.GET, path, 200, "OK", "applesorangesbananas");
+  }
+
+  @Test
+  public void testAsyncChaining() throws Exception {
+    String path = "/blah";
+    router.route(path).handler(rc -> {
+      rc.response().setChunked(true);
+      rc.response().write("apples");
+      vertx.runOnContext(v -> rc.next());
+    });
+    router.route(path).handler(rc -> {
+      rc.response().write("oranges");
+      vertx.runOnContext(v -> rc.next());
+    });
+    router.route(path).handler(rc -> {
+      rc.response().write("bananas");
+      rc.response().end();
+    });
+    testRequest(HttpMethod.GET, path, 200, "OK", "applesorangesbananas");
+  }
+
+  @Test
+  public void testChainingWithTimers() throws Exception {
+    String path = "/blah";
+    router.route(path).handler(rc -> {
+      rc.response().setChunked(true);
+      rc.response().write("apples");
+      vertx.setTimer(1, v -> rc.next());
+    });
+    router.route(path).handler(rc -> {
+      rc.response().write("oranges");
+      vertx.setTimer(1, v -> rc.next());
+    });
+    router.route(path).handler(rc -> {
+      rc.response().write("bananas");
+      rc.response().end();
     });
     testRequest(HttpMethod.GET, path, 200, "OK", "applesorangesbananas");
   }
@@ -610,34 +648,35 @@ public class RouterTest extends ApexTestBase {
     testPattern("/dog/cat/blah", "dogcat", true);
   }
 
-  @Test
-  // TODO - should subrouters have a mount point and paths relative to that?
-  public void testSubRouters() throws Exception {
-    Router subRouter = Router.router(vertx);
+//  @Test
+//  // TODO - should subrouters have a mount point and paths relative to that?
+//  public void testSubRouters() throws Exception {
+//    Router subRouter = Router.router(vertx);
+//
+//    router.route("/subpath/").handler(subRouter);
+//
+//    router.route("/otherpath/").handler(rc -> {
+//      rc.response().setStatusMessage(rc.request().path()).end();
+//    });
+//
+//    subRouter.route("/subpath/foo").handler(rc -> {
+//      rc.response().setStatusMessage(rc.request().path()).end();
+//    });
+//    subRouter.route("/subpath/bar").handler(rc -> {
+//      rc.response().setStatusMessage(rc.request().path()).end();
+//    });
+//
+//    testRequest(HttpMethod.GET, "/otherpath/", 200, "/otherpath/");
+//    testRequest(HttpMethod.GET, "/otherpath/foo", 200, "/otherpath/foo");
+//
+//    testRequest(HttpMethod.GET, "/subpath/foo", 200, "/subpath/foo");
+//    testRequest(HttpMethod.GET, "/subpath/bar", 200, "/subpath/bar");
+//
+//    testRequest(HttpMethod.GET, "/subpath/unknown", 404, "Not Found");
+//    testRequest(HttpMethod.GET, "/subpath/", 404, "Not Found");
+//
+//  }
 
-    router.route("/subpath/").handler(subRouter);
-
-    router.route("/otherpath/").handler(rc -> {
-      rc.response().setStatusMessage(rc.request().path()).end();
-    });
-
-    subRouter.route("/subpath/foo").handler(rc -> {
-      rc.response().setStatusMessage(rc.request().path()).end();
-    });
-    subRouter.route("/subpath/bar").handler(rc -> {
-      rc.response().setStatusMessage(rc.request().path()).end();
-    });
-
-    testRequest(HttpMethod.GET, "/otherpath/", 200, "/otherpath/");
-    testRequest(HttpMethod.GET, "/otherpath/foo", 200, "/otherpath/foo");
-
-    testRequest(HttpMethod.GET, "/subpath/foo", 200, "/subpath/foo");
-    testRequest(HttpMethod.GET, "/subpath/bar", 200, "/subpath/bar");
-
-    testRequest(HttpMethod.GET, "/subpath/unknown", 404, "Not Found");
-    testRequest(HttpMethod.GET, "/subpath/", 404, "Not Found");
-
-  }
 
   @Test
   public void testConsumes() throws Exception {
@@ -736,7 +775,113 @@ public class RouterTest extends ApexTestBase {
     assertEquals(3, routes.size());
   }
 
+  // Test that adding headersEndhandlers doesn't overwrite other ones
+  @Test
+  public void testHeadersEndHandler() throws Exception {
+    router.route().handler(rc -> {
+      rc.addHeadersEndHandler(v -> {
+        rc.response().putHeader("header1", "foo");
+      });
+      rc.next();
+    });
+    router.route().handler(rc -> {
+      rc.addHeadersEndHandler(v -> {
+        rc.response().putHeader("header2", "foo");
+      });
+      rc.next();
+    });
+    router.route().handler(rc -> {
+      rc.addHeadersEndHandler(v -> {
+        rc.response().putHeader("header3", "foo");
+      });
+      rc.response().end();
+    });
+    testRequest(HttpMethod.GET, "/", null, resp -> {
+      MultiMap headers = resp.headers();
+      assertTrue(headers.contains("header1"));
+      assertTrue(headers.contains("header2"));
+      assertTrue(headers.contains("header3"));
+    }, 200, "OK", null);
+  }
 
+  @Test
+  public void testHeadersEndHandlerRemoveHandler() throws Exception {
+    router.route().handler(rc -> {
+      rc.addHeadersEndHandler(v -> {
+        rc.response().putHeader("header1", "foo");
+      });
+      rc.next();
+    });
+    router.route().handler(rc -> {
+      Handler<Void> handler = v -> {
+        rc.response().putHeader("header2", "foo");
+      };
+      rc.addHeadersEndHandler(handler);
+      vertx.setTimer(1, tid -> {
+        assertTrue(rc.removeHeadersEndHandler(handler));
+        assertFalse(rc.removeHeadersEndHandler(v -> {
+        }));
+        rc.response().end();
+      });
+    });
+
+    testRequest(HttpMethod.GET, "/", null, resp -> {
+      MultiMap headers = resp.headers();
+      assertTrue(headers.contains("header1"));
+    }, 200, "OK", null);
+  }
+
+  // Test that adding bodyEndhandlers doesn't overwrite other ones
+  @Test
+  public void testBodyEndHandler() throws Exception {
+    AtomicInteger cnt = new AtomicInteger();
+    router.route().handler(rc -> {
+      rc.addBodyEndHandler(v -> {
+        cnt.incrementAndGet();
+      });
+      rc.next();
+    });
+    router.route().handler(rc -> {
+      rc.addBodyEndHandler(v -> {
+        cnt.incrementAndGet();
+      });
+      rc.next();
+    });
+    router.route().handler(rc -> {
+      rc.addBodyEndHandler(v -> {
+        cnt.incrementAndGet();
+      });
+      rc.response().end();
+    });
+    testRequest(HttpMethod.GET, "/", 200, "OK");
+    waitUntil(() -> cnt.get() == 3);
+  }
+
+  @Test
+  public void testBodyEndHandlerRemoveHandler() throws Exception {
+    AtomicInteger cnt = new AtomicInteger();
+    router.route().handler(rc -> {
+      rc.addBodyEndHandler(v -> {
+        cnt.incrementAndGet();
+      });
+      rc.next();
+    });
+    router.route().handler(rc -> {
+      Handler<Void> handler = v -> {
+        cnt.incrementAndGet();
+      };
+      rc.addBodyEndHandler(handler);
+      vertx.setTimer(1, tid -> {
+        assertTrue(rc.removeBodyEndHandler(handler));
+        assertFalse(rc.removeBodyEndHandler(v -> {
+        }));
+        rc.response().end();
+      });
+    });
+
+    testRequest(HttpMethod.GET, "/", 200, "OK");
+    waitUntil(() -> cnt.get() == 1);
+  }
 
 
 }

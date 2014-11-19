@@ -18,6 +18,7 @@ package io.vertx.ext.apex.core;
 
 import io.vertx.codegen.annotations.CacheReturn;
 import io.vertx.codegen.annotations.VertxGen;
+import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
@@ -48,5 +49,15 @@ public interface RoutingContext {
   <T> T get(String key);
 
   Vertx vertx();
+
+  // Some Helper methods
+
+  void addHeadersEndHandler(Handler<Void> handler);
+
+  boolean removeHeadersEndHandler(Handler<Void> handler);
+
+  void addBodyEndHandler(Handler<Void> handler);
+
+  boolean removeBodyEndHandler(Handler<Void> handler);
 
 }
