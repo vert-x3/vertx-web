@@ -33,6 +33,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class RouterTest extends ApexTestBase {
 
   @Test
+  public void testSimpleRoute() throws Exception {
+    router.route().handler(rc -> rc.response().end());
+    testRequest(HttpMethod.GET, "/", 200, "OK");
+  }
+
+  @Test
   public void testInvalidPath() throws Exception {
     try {
       router.route("blah");
@@ -404,18 +410,6 @@ public class RouterTest extends ApexTestBase {
     testRequest(HttpMethod.GET, path, 200, "OK");
   }
 
-  // TODO timeouts
-
-  // TODO test consumes/produces
-
-  // cookies
-
-  // form params
-
-  // uploads
-
-  // sub routers
-
   @Test
   public void testFailureHandler1() throws Exception {
     String path = "/blah";
@@ -653,7 +647,7 @@ public class RouterTest extends ApexTestBase {
 //  public void testSubRouters() throws Exception {
 //    Router subRouter = Router.router(vertx);
 //
-//    router.route("/subpath/").handler(subRouter);
+//    router.route("/subpath/").handler(subRouter::handleContext);
 //
 //    router.route("/otherpath/").handler(rc -> {
 //      rc.response().setStatusMessage(rc.request().path()).end();

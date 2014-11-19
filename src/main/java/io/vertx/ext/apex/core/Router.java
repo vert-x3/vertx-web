@@ -17,7 +17,6 @@
 package io.vertx.ext.apex.core;
 
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
@@ -29,7 +28,7 @@ import java.util.List;
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 @VertxGen
-public interface Router extends Handler<RoutingContext> {
+public interface Router {
 
   static Router router(Vertx vertx) {
     return new RouterImpl(vertx);
@@ -50,5 +49,9 @@ public interface Router extends Handler<RoutingContext> {
   List<Route> getRoutes();
 
   Router clear();
+
+  void handleContext(RoutingContext context);
+
+  void handleFailure(FailureRoutingContext context);
 
 }

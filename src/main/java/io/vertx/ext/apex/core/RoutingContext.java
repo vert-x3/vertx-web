@@ -17,6 +17,7 @@
 package io.vertx.ext.apex.core;
 
 import io.vertx.codegen.annotations.CacheReturn;
+import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
@@ -44,6 +45,9 @@ public interface RoutingContext {
 
   void fail(int statusCode);
 
+  @GenIgnore
+  void fail(Throwable throwable);
+
   void put(String key, Object obj);
 
   <T> T get(String key);
@@ -59,5 +63,11 @@ public interface RoutingContext {
   void addBodyEndHandler(Handler<Void> handler);
 
   boolean removeBodyEndHandler(Handler<Void> handler);
+
+  boolean handled();
+
+  void setHandled(boolean handled);
+
+  boolean failed();
 
 }

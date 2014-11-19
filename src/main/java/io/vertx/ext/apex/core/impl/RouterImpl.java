@@ -19,11 +19,13 @@ package io.vertx.ext.apex.core.impl;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
+import io.vertx.ext.apex.core.FailureRoutingContext;
 import io.vertx.ext.apex.core.Route;
 import io.vertx.ext.apex.core.Router;
 import io.vertx.ext.apex.core.RoutingContext;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListSet;
@@ -89,13 +91,15 @@ public class RouterImpl implements Router {
   }
 
   @Override
-  public void handle(RoutingContext ctx) {
-    new RoutingContextImpl(this, (RoutingContextImpl)ctx, routes.iterator()).next();
+  public void handleContext(RoutingContext ctx) {
+    new RoutingContextWrapper(ctx.request(), routes.iterator(), ctx).next();
   }
 
-  void handleFailure(Throwable t, int statusCode, RoutingContextImpl ctx) {
-    new RoutingContextImpl(this, ctx, routes.iterator(), t, statusCode).next();
+  @Override
+  public void handleFailure(FailureRoutingContext ctx) {
+    new FailureRoutingContextWrapper(ctx.request(), routes.iterator(), ctx).next();
   }
+
 
   void add(RouteImpl route) {
     routes.add(route);
@@ -107,6 +111,10 @@ public class RouterImpl implements Router {
 
   Vertx vertx() {
     return vertx;
+  }
+
+  Iterator<RouteImpl> iterator() {
+    return routes.iterator();
   }
 
 }

@@ -22,8 +22,6 @@ import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.impl.LoggerFactory;
-import io.vertx.ext.apex.core.FailureRoutingContext;
-import io.vertx.ext.apex.core.RoutingContext;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -34,45 +32,21 @@ import java.util.Map;
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public class RoutingContextImpl implements RoutingContext, FailureRoutingContext {
+public class RoutingContextImpl extends RoutingContextImplBase {
 
   private static final Logger log = LoggerFactory.getLogger(RoutingContextImpl.class);
 
   private final RouterImpl router;
-  private final HttpServerRequest request;
-  private final RoutingContextImpl parent;
-  private final Iterator<RouteImpl> iter;
-  private final Map<String, Object> contextData;
-  private final Throwable failure;
-  private final int statusCode;
   private final Map<String, Object> data = new HashMap<>();
   private List<Handler<Void>> headersEndHandlers;
   private List<Handler<Void>> bodyEndHandlers;
-  private int matchCount;
+  private Throwable failure;
+  private int statusCode = -1;
+  private boolean handled;
 
-  RoutingContextImpl(RouterImpl router, RoutingContextImpl parent, Iterator<RouteImpl> iter) {
-    this(router, parent.request, parent, iter, parent.contextData, null, -1);
-  }
-
-  RoutingContextImpl(RouterImpl router, HttpServerRequest request, Iterator<RouteImpl> iter) {
-    this(router, request, null, iter, new HashMap<>(), null, -1);
-  }
-
-  RoutingContextImpl(RouterImpl router, RoutingContextImpl ctx, Iterator<RouteImpl> iter, Throwable t,
-                     int errorCode) {
-    this(router, ctx.request, ctx.parent, iter, ctx.contextData, t, errorCode);
-  }
-
-  private RoutingContextImpl(RouterImpl router, HttpServerRequest request, RoutingContextImpl parent,
-                             Iterator<RouteImpl> iter, Map<String, Object> contextData, Throwable failure,
-                             int statusCode) {
+  public RoutingContextImpl(RouterImpl router, HttpServerRequest request, Iterator<RouteImpl> iter) {
+    super(request, iter);
     this.router = router;
-    this.request = request;
-    this.parent = parent;
-    this.iter = iter;
-    this.contextData = contextData;
-    this.failure = failure;
-    this.statusCode = statusCode;
   }
 
   @Override
@@ -96,67 +70,61 @@ public class RoutingContextImpl implements RoutingContext, FailureRoutingContext
   }
 
   @Override
+  public boolean failed() {
+    return failure != null || statusCode != -1;
+  }
+
+  @Override
   public void next() {
-    boolean failed = failure != null || statusCode != -1;
-    RoutingContextHelper.setOnContext(this);
-    try {
-      RoutingContextImpl topmost = getTopMostContext();
+    if (!iterateNext()) {
+      checkHandleNoMatch();
+    }
+  }
 
-      while (iter.hasNext()) {
-        RouteImpl route = iter.next();
-        if (route.matches(request, failed)) {
-          topmost.matchCount++;
-          try {
-            if (failed) {
-              route.handleFailure(this);
-            } else {
-              route.handleContext(this);
-            }
-          } catch (Throwable t) {
-            router.handleFailure(t, -1, this);
-          }
-          return;
+  private void checkHandleNoMatch() {
+    if (!handled()) {
+      // Got to end of route chain but nothing matched
+      if (failed()) {
+        // Send back FAILURE
+        int code = statusCode != -1 ? statusCode : 500;
+        response().setStatusCode(code);
+        response().end(UNHANDLED_FAILURE);
+        if (failure != null) {
+          log.error("Unexpected exception in route", failure);
         }
-      }
-
-      if (parent != null) {
-        if (matchCount == 0) {
-          // Nothing was matched in this context, but there's a parent, so decrement the match count
-          // as it was previously incremented for this sub router
-          topmost.matchCount--;
-        }
-        parent.next();
       } else {
-        if (topmost.matchCount == 0) {
-          // Got to end of route chain but nothing matched
-          if (failed) {
-            // Send back FAILURE
-            int code = statusCode != -1 ? statusCode : 500;
-            response().setStatusCode(code);
-            response().end(UNHANDLED_FAILURE);
-            if (failure != null) {
-              log.error("Unexpected exception in route", failure);
-            }
-          } else {
-            // Send back default 404
-            response().setStatusCode(404);
-            response().end(DEFAULT_404);
-          }
-        }
+        // Send back default 404
+        response().setStatusCode(404);
+        response().end(DEFAULT_404);
       }
-    } finally {
-      RoutingContextHelper.setOnContext(null);
     }
   }
 
   @Override
   public void fail(int statusCode) {
-    router.handleFailure(null, statusCode, this);
+    this.statusCode = statusCode;
+    doFail();
+  }
+
+  @Override
+  public void fail(Throwable t) {
+    this.failure = t;
+    doFail();
   }
 
   @Override
   public void put(String key, Object obj) {
     data.put(key, obj);
+  }
+
+  @Override
+  public boolean handled() {
+    return handled;
+  }
+
+  @Override
+  public void setHandled(boolean handled) {
+    this.handled = handled;
   }
 
   @Override
@@ -171,14 +139,6 @@ public class RoutingContextImpl implements RoutingContext, FailureRoutingContext
     return (T)obj;
   }
 
-  private RoutingContextImpl getTopMostContext() {
-    if (parent == null) {
-      return this;
-    } else {
-      return parent.getTopMostContext();
-    }
-  }
-
   @Override
   public void addHeadersEndHandler(Handler<Void> handler) {
     getHeadersEndHandlers().add(handler);
@@ -187,14 +147,6 @@ public class RoutingContextImpl implements RoutingContext, FailureRoutingContext
   @Override
   public boolean removeHeadersEndHandler(Handler<Void> handler) {
     return getHeadersEndHandlers().remove(handler);
-  }
-
-  private List<Handler<Void>> getHeadersEndHandlers() {
-    if (headersEndHandlers == null) {
-      headersEndHandlers = new ArrayList<>();
-      response().headersEndHandler(v -> headersEndHandlers.forEach(handler -> handler.handle(null)));
-    }
-    return headersEndHandlers;
   }
 
   @Override
@@ -206,6 +158,21 @@ public class RoutingContextImpl implements RoutingContext, FailureRoutingContext
   public boolean removeBodyEndHandler(Handler<Void> handler) {
     return getBodyEndHandlers().remove(handler);
   }
+
+  private void doFail() {
+    handled = false;
+    this.iter = router.iterator();
+    next();
+  }
+
+  private List<Handler<Void>> getHeadersEndHandlers() {
+    if (headersEndHandlers == null) {
+      headersEndHandlers = new ArrayList<>();
+      response().headersEndHandler(v -> headersEndHandlers.forEach(handler -> handler.handle(null)));
+    }
+    return headersEndHandlers;
+  }
+
 
   private List<Handler<Void>> getBodyEndHandlers() {
     if (bodyEndHandlers == null) {
