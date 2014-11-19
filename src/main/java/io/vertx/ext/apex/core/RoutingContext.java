@@ -68,6 +68,8 @@ public interface RoutingContext {
 
   void setHandled(boolean handled);
 
+  void unhandled();
+
   boolean failed();
 
 }

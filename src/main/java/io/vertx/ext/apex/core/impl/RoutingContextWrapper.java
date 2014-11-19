@@ -95,6 +95,9 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   @Override
   public void next() {
     if (!super.iterateNext()) {
+      // The router itself counts as handling so we cancel this if we didn't handle anything in the router
+      unhandled();
+      // We didn't route request to anything so go to parent
       inner.next();
     }
   }
@@ -115,12 +118,17 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   }
 
   @Override
+  public void unhandled() {
+    inner.unhandled();
+  }
+
+  @Override
   public Throwable failure() {
-    return null;
+    throw new UnsupportedOperationException();
   }
 
   @Override
   public int statusCode() {
-    return 0;
+    throw new UnsupportedOperationException();
   }
 }

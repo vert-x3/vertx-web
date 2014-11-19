@@ -43,6 +43,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   private Throwable failure;
   private int statusCode = -1;
   private boolean handled;
+  private boolean prevHandled;
 
   public RoutingContextImpl(RouterImpl router, HttpServerRequest request, Iterator<RouteImpl> iter) {
     super(request, iter);
@@ -124,7 +125,15 @@ public class RoutingContextImpl extends RoutingContextImplBase {
 
   @Override
   public void setHandled(boolean handled) {
-    this.handled = handled;
+    this.prevHandled = this.handled;
+    this.handled = true;
+  }
+
+  // Revert to previous value of handled - basically
+  // saying "hasn't been handled by current handler"
+  @Override
+  public void unhandled() {
+    this.handled = prevHandled;
   }
 
   @Override
@@ -160,7 +169,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   }
 
   private void doFail() {
-    handled = false;
+    handled = prevHandled = false;
     this.iter = router.iterator();
     next();
   }
