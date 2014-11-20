@@ -16,6 +16,7 @@
 
 package io.vertx.ext.apex.core.impl;
 
+import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
@@ -48,6 +49,7 @@ public class RouterImpl implements Router {
   }
 
   private final AtomicInteger orderSequence = new AtomicInteger();
+  private Handler<Throwable> exceptionHandler;
 
   @Override
   public void accept(HttpServerRequest request) {
@@ -92,19 +94,24 @@ public class RouterImpl implements Router {
 
   @Override
   public void handleContext(RoutingContext ctx) {
-    Route currentRoute = ctx.currentRoute();
-    new RoutingContextWrapper(currentRoute.getPath(), ctx.request(), routes.iterator(), ctx).next();
+    new RoutingContextWrapper(getAndCheckRoutePath(ctx), ctx.request(), routes.iterator(), ctx).next();
   }
 
   @Override
   public void handleFailure(FailureRoutingContext ctx) {
-    Route currentRoute = ctx.currentRoute();
-    new FailureRoutingContextWrapper(currentRoute.getPath(), ctx.request(), routes.iterator(), ctx).next();
+    new FailureRoutingContextWrapper(getAndCheckRoutePath(ctx), ctx.request(), routes.iterator(), ctx).next();
   }
 
   @Override
-  public void mountSubRouter(String mountPoint, Router subRouter) {
+  public Router mountSubRouter(String mountPoint, Router subRouter) {
     route(mountPoint).handler(subRouter::handleContext).failureHandler(subRouter::handleFailure);
+    return this;
+  }
+
+  @Override
+  public synchronized Router exceptionHandler(Handler<Throwable> exceptionHandler) {
+    this.exceptionHandler = exceptionHandler;
+    return this;
   }
 
   void add(RouteImpl route) {
@@ -122,5 +129,19 @@ public class RouterImpl implements Router {
   Iterator<RouteImpl> iterator() {
     return routes.iterator();
   }
+
+  Handler<Throwable> exceptionHandler() {
+    return exceptionHandler;
+  }
+
+  private String getAndCheckRoutePath(RoutingContext ctx) {
+    Route currentRoute = ctx.currentRoute();
+    String path = currentRoute.getPath();
+    if (path == null) {
+      throw new IllegalStateException("Sub routers must be mounted on constant paths (no regex or patterns)");
+    }
+    return path;
+  }
+
 
 }

@@ -248,6 +248,9 @@ public class RouteImpl implements Route {
     return true;
   }
 
+  RouterImpl router() {
+    return router;
+  }
 
   /*
   E.g.

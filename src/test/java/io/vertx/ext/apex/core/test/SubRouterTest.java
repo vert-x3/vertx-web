@@ -358,5 +358,27 @@ public class SubRouterTest extends ApexTestBase {
     testRequest(HttpMethod.GET, "/subpath/foo/bar", 557, "Chipmunks");
   }
 
+  @Test
+  public void testSubRoutePattern() throws Exception {
+    Router subRouter = Router.router(vertx);
+    router.mountSubRouter("/foo/:abc/bar", subRouter);
+    subRouter.route("/blah").handler(rc -> {
+      rc.response().setStatusMessage("sausages").end();
+    });
+    testRequest(HttpMethod.GET, "/foo/aardvark/bar/blah", 500, "Internal Server Error");
+
+  }
+
+  @Test
+  public void testSubRouteRegex() throws Exception {
+    Router subRouter = Router.router(vertx);
+    router.routeWithRegex("/foo").handler(subRouter::handleContext).failureHandler(subRouter::handleFailure);
+    subRouter.route("/blah").handler(rc -> {
+      rc.response().setStatusMessage("sausages").end();
+    });
+    testRequest(HttpMethod.GET, "/foo/blah", 500, "Internal Server Error");
+
+  }
+
 
 }

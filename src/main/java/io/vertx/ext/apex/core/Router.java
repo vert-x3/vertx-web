@@ -17,6 +17,7 @@
 package io.vertx.ext.apex.core;
 
 import io.vertx.codegen.annotations.VertxGen;
+import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
@@ -36,6 +37,10 @@ public interface Router {
 
   void accept(HttpServerRequest request);
 
+  void handleContext(RoutingContext context);
+
+  void handleFailure(FailureRoutingContext context);
+
   Route route();
 
   Route route(HttpMethod method, String path);
@@ -50,10 +55,9 @@ public interface Router {
 
   Router clear();
 
-  void handleContext(RoutingContext context);
+  Router mountSubRouter(String mountPoint, Router subRouter);
 
-  void handleFailure(FailureRoutingContext context);
+  Router exceptionHandler(Handler<Throwable> exceptionHandler);
 
-  void mountSubRouter(String mountPoint, Router subRouter);
 
 }

@@ -25,6 +25,7 @@ import org.junit.Test;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -419,6 +420,32 @@ public class RouterTest extends ApexTestBase {
       frc.response().setStatusCode(555).setStatusMessage("oh dear").end();
     });
     testRequest(HttpMethod.GET, path, 555, "oh dear");
+  }
+
+  @Test
+  public void testFailureinHandlingFailure() throws Exception {
+    String path = "/blah";
+    router.route(path).handler(rc -> {
+      throw new RuntimeException("ouch!");
+    }).failureHandler(frc -> {
+      throw new RuntimeException("super ouch!");
+    });
+    testRequest(HttpMethod.GET, path, 500, "Internal Server Error");
+  }
+
+  @Test
+  public void testSetExceptionHandler() throws Exception {
+    String path = "/blah";
+    router.route(path).handler(rc -> {
+      throw new RuntimeException("ouch!");
+    });
+    CountDownLatch latch = new CountDownLatch(1);
+    router.exceptionHandler(t -> {
+      assertEquals("ouch!", t.getMessage());
+      latch.countDown();
+    });
+    testRequest(HttpMethod.GET, path, 500, "Internal Server Error");
+    awaitLatch(latch);
   }
 
   @Test

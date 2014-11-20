@@ -87,12 +87,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
       // Got to end of route chain but nothing matched
       if (failed()) {
         // Send back FAILURE
-        int code = statusCode != -1 ? statusCode : 500;
-        response().setStatusCode(code);
-        response().end(UNHANDLED_FAILURE);
-        if (failure != null) {
-          log.error("Unexpected exception in route", failure);
-        }
+        unhandledFailure(statusCode, failure, router);
       } else {
         // Send back default 404
         response().setStatusCode(404);
@@ -188,8 +183,5 @@ public class RoutingContextImpl extends RoutingContextImplBase {
 
   private static final String DEFAULT_404 =
     "<html><body><h1>Resource not found</h1></body></html>";
-
-  private static final String UNHANDLED_FAILURE =
-    "<html><body><h1>Ooops! Something went wrong</h1></body></html>";
 
 }
