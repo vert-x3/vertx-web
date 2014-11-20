@@ -20,7 +20,6 @@ import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.apex.core.Route;
-import io.vertx.ext.apex.core.Router;
 import io.vertx.ext.apex.test.ApexTestBase;
 import org.junit.Test;
 
@@ -644,36 +643,6 @@ public class RouterTest extends ApexTestBase {
   }
 
   @Test
-  // TODO - should subrouters have a mount point and paths relative to that?
-  public void testSubRouters() throws Exception {
-    Router subRouter = Router.router(vertx);
-
-    router.route("/subpath/").handler(subRouter::handleContext);
-
-    router.route("/otherpath/").handler(rc -> {
-      rc.response().setStatusMessage(rc.request().path()).end();
-    });
-
-    subRouter.route("/subpath/foo").handler(rc -> {
-      rc.response().setStatusMessage(rc.request().path()).end();
-    });
-    subRouter.route("/subpath/bar").handler(rc -> {
-      rc.response().setStatusMessage(rc.request().path()).end();
-    });
-
-    testRequest(HttpMethod.GET, "/otherpath/", 200, "/otherpath/");
-    testRequest(HttpMethod.GET, "/otherpath/foo", 200, "/otherpath/foo");
-
-    testRequest(HttpMethod.GET, "/subpath/foo", 200, "/subpath/foo");
-    testRequest(HttpMethod.GET, "/subpath/bar", 200, "/subpath/bar");
-
-    testRequest(HttpMethod.GET, "/subpath/unknown", 404, "Not Found");
-    testRequest(HttpMethod.GET, "/subpath/", 404, "Not Found");
-
-  }
-
-
-  @Test
   public void testConsumes() throws Exception {
     router.route().consumes("text/html").handler(rc -> rc.response().end());
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 200, "OK");
@@ -877,6 +846,65 @@ public class RouterTest extends ApexTestBase {
     testRequest(HttpMethod.GET, "/", 200, "OK");
     waitUntil(() -> cnt.get() == 1);
   }
+
+  @Test
+  public void testNoRoutes() throws Exception {
+    testRequest(HttpMethod.GET, "/whatever", 404, "Not Found");
+  }
+
+  @Test
+  public void testUnhandle() throws Exception {
+    router.route().handler(rc -> {
+      rc.response().putHeader("foo", "bar");
+      rc.unhandled();
+      rc.next();
+    });
+    testRequest(HttpMethod.GET, "/", null, resp -> {
+      assertEquals("bar", resp.headers().get("foo"));
+    }, 404, "Not Found", null);
+  }
+
+  @Test
+  public void testUnhandle2() throws Exception {
+    router.route().handler(rc -> {
+      rc.next();
+    });
+    router.route().handler(rc -> {
+      rc.response().putHeader("foo", "bar");
+      // Unhandled only reverse the last change in handled so in this case handled will remain true
+      // and default 404 won't be returned
+      rc.unhandled();
+      rc.next();
+      vertx.setTimer(10, tid -> {
+        rc.response().setStatusMessage("gerbils").end();
+      });
+    });
+    testRequest(HttpMethod.GET, "/whatever", 200, "gerbils");
+  }
+
+  @Test
+  public void testSetHandled() throws Exception {
+    router.route().handler(rc -> {
+      rc.response().putHeader("foo", "bar");
+      rc.next();
+    });
+    router.route().handler(rc -> {
+      rc.response().putHeader("wibble", "eeek");
+      rc.next();
+    });
+    router.route().handler(rc -> {
+      rc.response().putHeader("oob", "blarb");
+      rc.setHandled(false);
+      rc.next();
+    });
+    testRequest(HttpMethod.GET, "/", null, resp -> {
+      assertEquals("bar", resp.headers().get("foo"));
+      assertEquals("eeek", resp.headers().get("wibble"));
+      assertEquals("blarb", resp.headers().get("oob"));
+    }, 404, "Not Found", null);
+  }
+
+
 
 
 }

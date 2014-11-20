@@ -18,6 +18,7 @@ package io.vertx.ext.apex.core.impl;
 
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.ext.apex.core.FailureRoutingContext;
+import io.vertx.ext.apex.core.Route;
 
 import java.util.Iterator;
 
@@ -26,10 +27,13 @@ import java.util.Iterator;
  */
 public abstract class RoutingContextImplBase implements FailureRoutingContext {
 
+  protected final String mountPoint;
   protected final HttpServerRequest request;
   protected Iterator<RouteImpl> iter;
+  protected RouteImpl currentRoute;
 
-  protected RoutingContextImplBase(HttpServerRequest request, Iterator<RouteImpl> iter) {
+  protected RoutingContextImplBase(String mountPoint, HttpServerRequest request, Iterator<RouteImpl> iter) {
+    this.mountPoint = mountPoint;
     this.request = request;
     this.iter = iter;
   }
@@ -40,18 +44,17 @@ public abstract class RoutingContextImplBase implements FailureRoutingContext {
     try {
       while (iter.hasNext()) {
         RouteImpl route = iter.next();
-        if (route.matches(request, failed)) {
-          boolean prevHandled = handled();
+        if (route.matches(mountPoint(), request, failed)) {
           try {
             setHandled(true);
+            currentRoute = route;
             if (failed) {
               route.handleFailure(this);
             } else {
               route.handleContext(this);
             }
           } catch (Throwable t) {
-            // Restore handled
-            setHandled(prevHandled);
+            currentRoute = null;
             fail(t);
           }
           return true;
@@ -63,4 +66,13 @@ public abstract class RoutingContextImplBase implements FailureRoutingContext {
     return false;
   }
 
+  @Override
+  public String mountPoint() {
+    return mountPoint;
+  }
+
+  @Override
+  public Route currentRoute() {
+    return currentRoute;
+  }
 }

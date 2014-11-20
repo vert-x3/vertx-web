@@ -30,11 +30,18 @@ import java.util.Iterator;
 public class RoutingContextWrapper extends RoutingContextImplBase {
 
   protected final RoutingContext inner;
+  private final String mountPoint;
 
-  public RoutingContextWrapper(HttpServerRequest request, Iterator<RouteImpl> iter,
+  public RoutingContextWrapper(String mountPoint, HttpServerRequest request, Iterator<RouteImpl> iter,
                                RoutingContext inner) {
-    super(request, iter);
+    super(mountPoint, request, iter);
     this.inner = inner;
+    String parentMountPoint = inner.mountPoint();
+    if (mountPoint.charAt(mountPoint.length() - 1) == '/') {
+      // Remove the trailing slash or we won't match
+      mountPoint = mountPoint.substring(0, mountPoint.length() - 1);
+    }
+    this.mountPoint = parentMountPoint == null ? mountPoint : parentMountPoint + mountPoint;
   }
 
   @Override
@@ -94,9 +101,9 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
 
   @Override
   public void next() {
+    // The router itself counts as handling so we reverse this
+    unhandled();
     if (!super.iterateNext()) {
-      // The router itself counts as handling so we cancel this if we didn't handle anything in the router
-      unhandled();
       // We didn't route request to anything so go to parent
       inner.next();
     }
@@ -105,11 +112,6 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   @Override
   public void setHandled(boolean handled) {
     inner.setHandled(handled);
-  }
-
-  @Override
-  public boolean handled() {
-    return inner.handled();
   }
 
   @Override
@@ -130,5 +132,10 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   @Override
   public int statusCode() {
     throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public String mountPoint() {
+    return mountPoint;
   }
 }

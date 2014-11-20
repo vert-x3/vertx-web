@@ -45,8 +45,8 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   private boolean handled;
   private boolean prevHandled;
 
-  public RoutingContextImpl(RouterImpl router, HttpServerRequest request, Iterator<RouteImpl> iter) {
-    super(request, iter);
+  public RoutingContextImpl(String mountPoint, RouterImpl router, HttpServerRequest request, Iterator<RouteImpl> iter) {
+    super(mountPoint, request, iter);
     this.router = router;
   }
 
@@ -83,7 +83,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   }
 
   private void checkHandleNoMatch() {
-    if (!handled()) {
+    if (!handled) {
       // Got to end of route chain but nothing matched
       if (failed()) {
         // Send back FAILURE
@@ -119,14 +119,9 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   }
 
   @Override
-  public boolean handled() {
-    return handled;
-  }
-
-  @Override
   public void setHandled(boolean handled) {
     this.prevHandled = this.handled;
-    this.handled = true;
+    this.handled = handled;
   }
 
   // Revert to previous value of handled - basically

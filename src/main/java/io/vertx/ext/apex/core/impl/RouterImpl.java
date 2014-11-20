@@ -51,7 +51,7 @@ public class RouterImpl implements Router {
 
   @Override
   public void accept(HttpServerRequest request) {
-    new RoutingContextImpl(this, request, routes.iterator()).next();
+    new RoutingContextImpl(null, this, request, routes.iterator()).next();
   }
 
   @Override
@@ -92,14 +92,20 @@ public class RouterImpl implements Router {
 
   @Override
   public void handleContext(RoutingContext ctx) {
-    new RoutingContextWrapper(ctx.request(), routes.iterator(), ctx).next();
+    Route currentRoute = ctx.currentRoute();
+    new RoutingContextWrapper(currentRoute.getPath(), ctx.request(), routes.iterator(), ctx).next();
   }
 
   @Override
   public void handleFailure(FailureRoutingContext ctx) {
-    new FailureRoutingContextWrapper(ctx.request(), routes.iterator(), ctx).next();
+    Route currentRoute = ctx.currentRoute();
+    new FailureRoutingContextWrapper(currentRoute.getPath(), ctx.request(), routes.iterator(), ctx).next();
   }
 
+  @Override
+  public void mountSubRouter(String mountPoint, Router subRouter) {
+    route(mountPoint).handler(subRouter::handleContext).failureHandler(subRouter::handleFailure);
+  }
 
   void add(RouteImpl route) {
     routes.add(route);

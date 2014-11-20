@@ -28,9 +28,9 @@ public class FailureRoutingContextWrapper extends RoutingContextWrapper {
 
   private FailureRoutingContext inner;
 
-  public FailureRoutingContextWrapper(HttpServerRequest request, Iterator<RouteImpl> iter,
+  public FailureRoutingContextWrapper(String mountPoint, HttpServerRequest request, Iterator<RouteImpl> iter,
                                       FailureRoutingContext inner) {
-    super(request, iter, inner);
+    super(mountPoint, request, iter, inner);
     this.inner = inner;
   }
 

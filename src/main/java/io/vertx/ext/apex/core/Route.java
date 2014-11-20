@@ -49,6 +49,10 @@ public interface Route {
   Route disable();
 
   Route enable();
+
+  String getPath();
+
+  // TODO Other getters?
 }
 
 

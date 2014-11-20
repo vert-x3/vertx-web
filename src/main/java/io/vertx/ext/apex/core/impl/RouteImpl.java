@@ -164,6 +164,11 @@ public class RouteImpl implements Route {
     return this;
   }
 
+  @Override
+  public String getPath() {
+    return path;
+  }
+
   synchronized void handleContext(RoutingContext context) {
     if (contextHandler != null) {
       contextHandler.handle(context);
@@ -176,7 +181,16 @@ public class RouteImpl implements Route {
     }
   }
 
-  synchronized boolean matches(HttpServerRequest request, boolean failure) {
+  private boolean pathMatches(String mountPoint, HttpServerRequest request) {
+    String requestPath = request.path();
+    if (mountPoint == null) {
+      return requestPath.startsWith(path);
+    } else {
+      return requestPath.startsWith(mountPoint + path);
+    }
+  }
+
+  synchronized boolean matches(String mountPoint, HttpServerRequest request, boolean failure) {
     //System.out.println("req: " + request.path() + " method: " + request.method());
     if (failure && failureHandler == null || !failure && contextHandler == null) {
       return false;
@@ -187,7 +201,7 @@ public class RouteImpl implements Route {
     if (!methods.isEmpty() && !methods.contains(request.method())) {
       return false;
     }
-    if (path != null && !request.path().startsWith(path)) {
+    if (path != null && !pathMatches(mountPoint, request)) {
       return false;
     }
     if (pattern != null) {

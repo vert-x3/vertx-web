@@ -54,4 +54,6 @@ public interface Router {
 
   void handleFailure(FailureRoutingContext context);
 
+  void mountSubRouter(String mountPoint, Router subRouter);
+
 }

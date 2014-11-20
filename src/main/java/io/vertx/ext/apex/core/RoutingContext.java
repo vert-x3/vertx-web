@@ -64,12 +64,14 @@ public interface RoutingContext {
 
   boolean removeBodyEndHandler(Handler<Void> handler);
 
-  boolean handled();
-
   void setHandled(boolean handled);
 
   void unhandled();
 
   boolean failed();
+
+  String mountPoint();
+
+  Route currentRoute();
 
 }
