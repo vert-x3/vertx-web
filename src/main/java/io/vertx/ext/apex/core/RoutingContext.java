@@ -74,4 +74,6 @@ public interface RoutingContext {
 
   Route currentRoute();
 
+  String normalisedPath();
+
 }

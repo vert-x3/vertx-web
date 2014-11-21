@@ -138,4 +138,9 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   public String mountPoint() {
     return mountPoint;
   }
+
+  @Override
+  public String normalisedPath() {
+    return inner.normalisedPath();
+  }
 }

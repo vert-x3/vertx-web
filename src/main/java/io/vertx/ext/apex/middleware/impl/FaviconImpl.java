@@ -21,6 +21,7 @@ import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.CaseInsensitiveHeaders;
 import io.vertx.ext.apex.core.RoutingContext;
+import io.vertx.ext.apex.core.impl.Utils;
 import io.vertx.ext.apex.middleware.Favicon;
 
 import java.security.MessageDigest;
@@ -150,7 +151,7 @@ public class FaviconImpl implements Favicon {
       if (path == null) {
         icon = new Icon(Utils.readResourceToBuffer("favicon.ico"));
       } else {
-        icon = new Icon(vertx.fileSystem().readFileSync(path));
+        icon = new Icon(vertx.fileSystem().readFileBlocking(path));
       }
     } catch (Exception e) {
       throw new RuntimeException(e);

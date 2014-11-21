@@ -44,6 +44,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   private int statusCode = -1;
   private boolean handled;
   private boolean prevHandled;
+  private String normalisedPath;
 
   public RoutingContextImpl(String mountPoint, RouterImpl router, HttpServerRequest request, Iterator<RouteImpl> iter) {
     super(mountPoint, request, iter);
@@ -156,6 +157,14 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   @Override
   public boolean removeBodyEndHandler(Handler<Void> handler) {
     return getBodyEndHandlers().remove(handler);
+  }
+
+  @Override
+  public String normalisedPath() {
+    if (normalisedPath == null) {
+      normalisedPath = Utils.normalisePath(request.path());
+    }
+    return normalisedPath;
   }
 
   private void doFail() {

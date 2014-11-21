@@ -18,8 +18,8 @@ package io.vertx.ext.apex.middleware.test;
 
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.ext.apex.core.impl.Utils;
 import io.vertx.ext.apex.middleware.Favicon;
-import io.vertx.ext.apex.middleware.impl.Utils;
 import io.vertx.ext.apex.test.ApexTestBase;
 import org.junit.Test;
 

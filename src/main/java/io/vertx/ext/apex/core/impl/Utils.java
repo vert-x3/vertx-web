@@ -14,24 +14,37 @@
  *  You may elect to redistribute this code under either of these licenses.
  */
 
-package io.vertx.ext.apex.middleware.impl;
+package io.vertx.ext.apex.core.impl;
 
 import io.vertx.core.buffer.Buffer;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URLDecoder;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
- * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
- *
+ * @author <a href="http://tfox.org">Tim Fox</a>
  */
 public class Utils {
 
-  /**
-   * Avoid using this method for constant reads, use it only for one time only reads from resources in the classpath
-   */
+  public static String normalisePath(String path) {
+    if (path == null || path.charAt(0) != '/') {
+      return null;
+    }
+    try {
+      path = URLDecoder.decode(path, "UTF-8");
+      Path p = Paths.get(path).normalize();
+      return p.toString();
+    } catch (Exception e) {
+      throw new IllegalStateException(e);
+    }
+  }
+
   public static Buffer readResourceToBuffer(String resource) {
-    ClassLoader cl = Thread.currentThread().getContextClassLoader();
+    ClassLoader tccl = Thread.currentThread().getContextClassLoader();
+    ClassLoader cl = tccl == null ? Utils.class.getClassLoader() : tccl;
     try {
       Buffer buffer = Buffer.buffer();
       try (InputStream in = cl.getResourceAsStream(resource)) {
@@ -52,5 +65,4 @@ public class Utils {
       throw new RuntimeException(ioe);
     }
   }
-
 }
