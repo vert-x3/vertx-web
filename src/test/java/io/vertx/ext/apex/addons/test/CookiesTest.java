@@ -30,9 +30,15 @@ import java.util.Set;
  */
 public class CookiesTest extends ApexTestBase {
 
+  @Override
+  public void setUp() throws Exception {
+    super.setUp();
+    router.route().handler(Cookies.cookies());
+  }
+
+
   @Test
   public void testSimpleCookie() throws Exception {
-    router.route().handler(Cookies.cookierParser());
     router.route().handler(rc -> {
       assertEquals(1, Cookies.cookieCount());
       Cookie cookie = Cookies.getCookie("foo");
@@ -45,7 +51,6 @@ public class CookiesTest extends ApexTestBase {
 
   @Test
   public void testCookiesReturned() throws Exception {
-    router.route().handler(Cookies.cookierParser());
     router.route().handler(rc -> {
       assertEquals(3, Cookies.cookieCount());
       assertEquals("bar", Cookies.getCookie("foo").getValue());
@@ -66,7 +71,6 @@ public class CookiesTest extends ApexTestBase {
 
   @Test
   public void testCookiesNames() throws Exception {
-    router.route().handler(Cookies.cookierParser());
     router.route().handler(rc -> {
       assertEquals(3, Cookies.cookieCount());
       Set<String> names = Cookies.cookiesNames();
@@ -91,7 +95,6 @@ public class CookiesTest extends ApexTestBase {
 
   @Test
   public void testCookiesChangedInHandler() throws Exception {
-    router.route().handler(Cookies.cookierParser());
     router.route().handler(rc -> {
       assertEquals(3, Cookies.cookieCount());
       assertEquals("bar", Cookies.getCookie("foo").getValue());

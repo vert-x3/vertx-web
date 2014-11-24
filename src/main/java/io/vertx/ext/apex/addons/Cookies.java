@@ -29,7 +29,7 @@ import java.util.Set;
 @VertxGen
 public interface Cookies extends Handler<RoutingContext> {
 
-  static Cookies cookierParser() {
+  static Cookies cookies() {
     return new CookiesImpl();
   }
 
