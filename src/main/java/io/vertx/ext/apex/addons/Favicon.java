@@ -14,12 +14,12 @@
  *  You may elect to redistribute this code under either of these licenses.
  */
 
-package io.vertx.ext.apex.middleware;
+package io.vertx.ext.apex.addons;
 
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
 import io.vertx.ext.apex.core.RoutingContext;
-import io.vertx.ext.apex.middleware.impl.FaviconImpl;
+import io.vertx.ext.apex.addons.impl.FaviconImpl;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>

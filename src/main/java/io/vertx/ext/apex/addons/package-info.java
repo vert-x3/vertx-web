@@ -1,3 +1,4 @@
+
 /*
  * Copyright 2014 Red Hat, Inc.
  *
@@ -14,24 +15,7 @@
  *  You may elect to redistribute this code under either of these licenses.
  */
 
-package io.vertx.ext.apex.middleware;
+@GenModule(name = "ext-apex-addons")
+package io.vertx.ext.apex.addons;
 
-import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.core.Handler;
-import io.vertx.ext.apex.core.RoutingContext;
-import io.vertx.ext.apex.middleware.impl.RequestTimeImpl;
-
-/**
- * @author <a href="http://tfox.org">Tim Fox</a>
- */
-@VertxGen
-public interface RequestTime extends Handler<RoutingContext> {
-
-  static RequestTime requestTime() {
-    return new RequestTimeImpl();
-  }
-
-  @Override
-  void handle(RoutingContext event);
-
-}
+import io.vertx.codegen.annotations.GenModule;

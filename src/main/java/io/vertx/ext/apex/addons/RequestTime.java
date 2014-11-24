@@ -14,23 +14,24 @@
  *  You may elect to redistribute this code under either of these licenses.
  */
 
-package io.vertx.ext.apex.middleware.impl;
+package io.vertx.ext.apex.addons;
 
+import io.vertx.codegen.annotations.VertxGen;
+import io.vertx.core.Handler;
 import io.vertx.ext.apex.core.RoutingContext;
-import io.vertx.ext.apex.middleware.RequestTime;
+import io.vertx.ext.apex.addons.impl.RequestTimeImpl;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public class RequestTimeImpl implements RequestTime {
+@VertxGen
+public interface RequestTime extends Handler<RoutingContext> {
+
+  static RequestTime requestTime() {
+    return new RequestTimeImpl();
+  }
 
   @Override
-  public void handle(RoutingContext ctx) {
-    long start = System.currentTimeMillis();
-    ctx.response().headersEndHandler(v -> {
-      long duration = System.currentTimeMillis() - start;
-      ctx.response().putHeader("x-response-time", duration + "ms");
-    });
-    ctx.next();
-  }
+  void handle(RoutingContext event);
+
 }

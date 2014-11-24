@@ -14,11 +14,11 @@
  *  You may elect to redistribute this code under either of these licenses.
  */
 
-package io.vertx.ext.apex.middleware.impl;
+package io.vertx.ext.apex.addons.impl;
 
 import io.netty.handler.codec.http.DefaultCookie;
 import io.netty.handler.codec.http.ServerCookieEncoder;
-import io.vertx.ext.apex.middleware.Cookie;
+import io.vertx.ext.apex.addons.Cookie;
 
 import javax.crypto.Mac;
 import java.util.Set;

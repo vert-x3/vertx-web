@@ -14,32 +14,30 @@
  *  You may elect to redistribute this code under either of these licenses.
  */
 
-package io.vertx.ext.apex.middleware.impl;
+package io.vertx.ext.apex.addons;
 
+import io.vertx.codegen.annotations.VertxGen;
+import io.vertx.core.Handler;
 import io.vertx.ext.apex.core.RoutingContext;
-import io.vertx.ext.apex.middleware.Timeout;
+import io.vertx.ext.apex.addons.impl.TimeoutImpl;
 
 /**
- * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
  * @author <a href="http://tfox.org">Tim Fox</a>
- *
  */
-public class TimeoutImpl implements Timeout {
+@VertxGen
+public interface Timeout extends Handler<RoutingContext> {
 
-  private final long timeout;
+  static final long DEFAULT_TIMEOUT = 500;
 
-  public TimeoutImpl(long timeout) {
-    this.timeout = timeout;
+  static Timeout timeout() {
+    return new TimeoutImpl(DEFAULT_TIMEOUT);
+  }
+
+  static Timeout timeout(long timeout) {
+    return new TimeoutImpl(timeout);
   }
 
   @Override
-  public void handle(RoutingContext ctx) {
+  void handle(RoutingContext event);
 
-    // We send a 408 response after timeout
-    long tid = ctx.vertx().setTimer(timeout, t -> ctx.fail(408));
-
-    ctx.response().bodyEndHandler(v -> ctx.vertx().cancelTimer(tid));
-
-    ctx.next();
-  }
 }

@@ -14,11 +14,11 @@
  *  You may elect to redistribute this code under either of these licenses.
  */
 
-package io.vertx.ext.apex.middleware.test;
+package io.vertx.ext.apex.addons.test;
 
 import io.vertx.core.http.HttpMethod;
-import io.vertx.ext.apex.middleware.Cookie;
-import io.vertx.ext.apex.middleware.Cookies;
+import io.vertx.ext.apex.addons.Cookie;
+import io.vertx.ext.apex.addons.Cookies;
 import io.vertx.ext.apex.test.ApexTestBase;
 import org.junit.Test;
 

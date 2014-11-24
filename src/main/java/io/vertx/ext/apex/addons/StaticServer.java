@@ -14,19 +14,20 @@
  *  You may elect to redistribute this code under either of these licenses.
  */
 
-package io.vertx.ext.apex.middleware;
+package io.vertx.ext.apex.addons;
 
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
 import io.vertx.ext.apex.core.RoutingContext;
-import io.vertx.ext.apex.middleware.impl.StaticImpl;
+import io.vertx.ext.apex.addons.impl.StaticServerImpl;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 @VertxGen
-public interface Static extends Handler<RoutingContext> {
+public interface StaticServer extends Handler<RoutingContext> {
 
+  static final String DEFAULT_WEB_ROOT = "webroot";
   static final boolean DEFAULT_FILES_READ_ONLY = true;
   static final long DEFAULT_MAX_AGE_SECONDS = 86400; // One day
   static final boolean DEFAULT_CACHING_ENABLED = true;
@@ -35,25 +36,31 @@ public interface Static extends Handler<RoutingContext> {
   static final long DEFAULT_CACHE_ENTRY_TIMEOUT = 30000; // 30 seconds
   static final String DEFAULT_INDEX_PAGE = "/index.html";
 
-  static Static staticSite(String root) {
-    return new StaticImpl(root);
+  static StaticServer staticServer(String root) {
+    return new StaticServerImpl(root);
+  }
+
+  static StaticServer staticServer() {
+    return new StaticServerImpl();
   }
 
   @Override
   void handle(RoutingContext event);
 
-  Static setFilesReadOnly(boolean readOnly);
+  StaticServer setWebRoot(String webRoot);
 
-  Static setMaxAgeSeconds(long maxAgeSeconds);
+  StaticServer setFilesReadOnly(boolean readOnly);
 
-  Static setCachingEnabled(boolean enabled);
+  StaticServer setMaxAgeSeconds(long maxAgeSeconds);
 
-  Static setDirectoryListing(boolean directoryListing);
+  StaticServer setCachingEnabled(boolean enabled);
 
-  Static setIncludeHidden(boolean includeHidden);
+  StaticServer setDirectoryListing(boolean directoryListing);
 
-  Static setCacheEntryTimeout(long timeout);
+  StaticServer setIncludeHidden(boolean includeHidden);
 
-  Static setIndexPage(String indexPage);
+  StaticServer setCacheEntryTimeout(long timeout);
+
+  StaticServer setIndexPage(String indexPage);
 
 }

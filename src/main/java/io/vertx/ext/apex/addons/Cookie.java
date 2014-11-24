@@ -14,10 +14,10 @@
  *  You may elect to redistribute this code under either of these licenses.
  */
 
-package io.vertx.ext.apex.middleware;
+package io.vertx.ext.apex.addons;
 
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.ext.apex.middleware.impl.ApexCookieImpl;
+import io.vertx.ext.apex.addons.impl.ApexCookieImpl;
 
 import java.util.Set;
 

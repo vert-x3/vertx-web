@@ -14,7 +14,7 @@
  *  You may elect to redistribute this code under either of these licenses.
  */
 
-package io.vertx.ext.apex.middleware.impl;
+package io.vertx.ext.apex.addons.impl;
 
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
@@ -22,7 +22,7 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.CaseInsensitiveHeaders;
 import io.vertx.ext.apex.core.RoutingContext;
 import io.vertx.ext.apex.core.impl.Utils;
-import io.vertx.ext.apex.middleware.Favicon;
+import io.vertx.ext.apex.addons.Favicon;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;

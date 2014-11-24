@@ -14,12 +14,12 @@
  *  You may elect to redistribute this code under either of these licenses.
  */
 
-package io.vertx.ext.apex.middleware.test;
+package io.vertx.ext.apex.addons.test;
 
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.apex.core.impl.Utils;
-import io.vertx.ext.apex.middleware.Favicon;
+import io.vertx.ext.apex.addons.Favicon;
 import io.vertx.ext.apex.test.ApexTestBase;
 import org.junit.Test;
 

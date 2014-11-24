@@ -14,7 +14,7 @@
  *  You may elect to redistribute this code under either of these licenses.
  */
 
-package io.vertx.ext.apex.middleware.impl;
+package io.vertx.ext.apex.addons.impl;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;

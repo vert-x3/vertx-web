@@ -13,28 +13,46 @@
  *
  *  You may elect to redistribute this code under either of these licenses.
  */
-
-package io.vertx.ext.apex.middleware;
+package io.vertx.ext.apex.addons;
 
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
 import io.vertx.ext.apex.core.RoutingContext;
-import io.vertx.ext.apex.middleware.impl.TimeoutImpl;
+import io.vertx.ext.apex.addons.impl.CookiesImpl;
+import io.vertx.ext.apex.addons.impl.CookiesHelper;
+
+import java.util.Set;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 @VertxGen
-public interface Timeout extends Handler<RoutingContext> {
+public interface Cookies extends Handler<RoutingContext> {
 
-  static final long DEFAULT_TIMEOUT = 500;
-
-  static Timeout timeout() {
-    return new TimeoutImpl(DEFAULT_TIMEOUT);
+  static Cookies cookierParser() {
+    return new CookiesImpl();
   }
 
-  static Timeout timeout(long timeout) {
-    return new TimeoutImpl(timeout);
+  static final String COOKIES_ENTRY_NAME = "__apex_cookies";
+
+  static Cookie getCookie(String name) {
+    return CookiesHelper.getCookie(name);
+  }
+
+  static void addCookie(Cookie cookie) {
+    CookiesHelper.addCookie(cookie);
+  }
+
+  static Cookie removeCookie(String name) {
+    return CookiesHelper.removeCookie(name);
+  }
+
+  static Set<String> cookiesNames() {
+    return CookiesHelper.cookiesNames();
+  }
+
+  static int cookieCount() {
+    return CookiesHelper.cookieCount();
   }
 
   @Override

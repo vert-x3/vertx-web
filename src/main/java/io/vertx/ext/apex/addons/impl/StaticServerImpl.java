@@ -14,7 +14,7 @@
  *  You may elect to redistribute this code under either of these licenses.
  */
 
-package io.vertx.ext.apex.middleware.impl;
+package io.vertx.ext.apex.addons.impl;
 
 import io.vertx.core.MultiMap;
 import io.vertx.core.VertxException;
@@ -27,7 +27,7 @@ import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.impl.LoggerFactory;
 import io.vertx.ext.apex.core.RoutingContext;
 import io.vertx.ext.apex.core.impl.Utils;
-import io.vertx.ext.apex.middleware.Static;
+import io.vertx.ext.apex.addons.StaticServer;
 
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -45,9 +45,9 @@ import java.util.TimeZone;
  * @author <a href="http://tfox.org">Tim Fox</a>
  * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
  */
-public class StaticImpl implements Static {
+public class StaticServerImpl implements StaticServer {
 
-  private static final Logger log = LoggerFactory.getLogger(StaticImpl.class);
+  private static final Logger log = LoggerFactory.getLogger(StaticServerImpl.class);
 
   private static final String directoryTemplate = Utils.readResourceToBuffer("directory.html").toString();
 
@@ -56,7 +56,7 @@ public class StaticImpl implements Static {
     DATE_TIME_FORMATTER.setTimeZone(TimeZone.getTimeZone("UTC"));
   }
   private final Map<String, CacheEntry> propsCache = new HashMap<>();
-  private final String root;
+  private String webRoot = DEFAULT_WEB_ROOT;
   private long maxAgeSeconds = DEFAULT_MAX_AGE_SECONDS; // One day
   private boolean directoryListing = DEFAULT_DIRECTORY_LISTING;
   private boolean includeHidden = DEFAULT_INCLUDE_HIDDEN;
@@ -65,12 +65,11 @@ public class StaticImpl implements Static {
   private long cacheEntryTimeout = DEFAULT_CACHE_ENTRY_TIMEOUT;
   private String indexPage = DEFAULT_INDEX_PAGE;
 
-  public StaticImpl(String root) {
-    Objects.requireNonNull(root);
-    if (root.startsWith("/")) {
-      throw new IllegalArgumentException("root cannot start with '/'");
-    }
-    this.root = root;
+  public StaticServerImpl(String root) {
+    setRoot(root);
+  }
+
+  public StaticServerImpl() {
   }
 
   /**
@@ -107,7 +106,7 @@ public class StaticImpl implements Static {
         return;
       }
 
-      if ("/".equals(path)) {
+      if (!directoryListing && "/".equals(path)) {
         path = indexPage;
       }
 
@@ -153,11 +152,14 @@ public class StaticImpl implements Static {
           if (props.isDirectory()) {
             if (directoryListing) {
               sendDirectory(file, context);
+              return;
             } else {
               // Directory listing denied
               context.fail(403);
+              return;
             }
           } else {
+            System.out.println("Added entry to cache, lm: " + props.lastModifiedTime());
             propsCache.put(path, new CacheEntry(props, System.currentTimeMillis()));
           }
         } else {
@@ -171,6 +173,9 @@ public class StaticImpl implements Static {
       if (request.method() == HttpMethod.HEAD) {
         request.response().end();
       } else {
+        if (file == null) {
+          file = getFile(path, context);
+        }
         request.response().sendFile(file, res -> {
           if (res.failed()) {
             log.error("Failed to send file", res.cause());
@@ -182,13 +187,19 @@ public class StaticImpl implements Static {
   }
 
   @Override
-  public Static setFilesReadOnly(boolean readOnly) {
+  public StaticServer setWebRoot(String webRoot) {
+    setRoot(webRoot);
+    return this;
+  }
+
+  @Override
+  public StaticServer setFilesReadOnly(boolean readOnly) {
     this.filesReadOnly = readOnly;
     return this;
   }
 
   @Override
-  public Static setMaxAgeSeconds(long maxAgeSeconds) {
+  public StaticServer setMaxAgeSeconds(long maxAgeSeconds) {
     if (maxAgeSeconds < 0) {
       throw new IllegalArgumentException("timeout must be >= 0");
     }
@@ -197,25 +208,25 @@ public class StaticImpl implements Static {
   }
 
   @Override
-  public Static setCachingEnabled(boolean enabled) {
+  public StaticServer setCachingEnabled(boolean enabled) {
     this.cachingEnabled = enabled;
     return this;
   }
 
   @Override
-  public Static setDirectoryListing(boolean directoryListing) {
+  public StaticServer setDirectoryListing(boolean directoryListing) {
     this.directoryListing = directoryListing;
     return this;
   }
 
   @Override
-  public Static setIncludeHidden(boolean includeHidden) {
+  public StaticServer setIncludeHidden(boolean includeHidden) {
     this.includeHidden = includeHidden;
     return this;
   }
 
   @Override
-  public Static setCacheEntryTimeout(long timeout) {
+  public StaticServer setCacheEntryTimeout(long timeout) {
     if (timeout < 1) {
       throw new IllegalArgumentException("timeout must be >= 1");
     }
@@ -224,7 +235,7 @@ public class StaticImpl implements Static {
   }
 
   @Override
-  public Static setIndexPage(String indexPage) {
+  public StaticServer setIndexPage(String indexPage) {
     Objects.requireNonNull(indexPage);
     if (!indexPage.startsWith("/")) {
       indexPage = "/" + indexPage;
@@ -245,24 +256,36 @@ public class StaticImpl implements Static {
     // map file path from the request
     // the final path is, root + request.path excluding mount
     String mountPoint = context.mountPoint();
-    return mountPoint != null ? root + path.substring(mountPoint.length()) : root + path;
+    return mountPoint != null ? webRoot + path.substring(mountPoint.length()) : webRoot + path;
+  }
+
+  private void setRoot(String webRoot) {
+    Objects.requireNonNull(webRoot);
+    if (webRoot.startsWith("/")) {
+      throw new IllegalArgumentException("root cannot start with '/'");
+    }
+    this.webRoot = webRoot;
   }
 
   private void sendDirectory(String dir, RoutingContext context) {
     FileSystem fileSystem = context.vertx().fileSystem();
     HttpServerRequest request = context.request();
 
+    System.out.println("File system reading dir: " + dir);
     fileSystem.readDir(dir, asyncResult -> {
       if (asyncResult.failed()) {
         context.fail(asyncResult.cause());
       } else {
+
+        System.out.println("There are: " + asyncResult.result().size() + " files");
+
         String accept = request.headers().get("accept");
         if (accept == null) {
           accept = "text/plain";
         }
 
         if (accept.contains("html")) {
-          String normalizedDir = dir.substring(root.length());
+          String normalizedDir = dir.substring(webRoot.length());
           if (!normalizedDir.endsWith("/")) {
             normalizedDir += "/";
           }
@@ -326,7 +349,7 @@ public class StaticImpl implements Static {
             }
             json.add(file);
           }
-
+          request.response().putHeader("content-type", "application/json");
           request.response().end(json.encode());
         } else {
           String file;
@@ -361,17 +384,19 @@ public class StaticImpl implements Static {
 
     // return true if there are conditional headers present and they match what is in the entry
     boolean shouldUseCached(HttpServerRequest request) {
-      String modifiedSince = request.headers().get("if-modified-since");
-      if (modifiedSince == null) {
+      String ifModifiedSince = request.headers().get("if-modified-since");
+      if (ifModifiedSince == null) {
         // Not a conditional request
         return false;
       }
-      Date modifiedSinceDate = parseDate(modifiedSince);
-      return modifiedSinceDate.getTime() > props.lastModifiedTime();
+      Date ifModifiedSinceDate = parseDate(ifModifiedSince);
+      boolean modifiedSince = props.lastModifiedTime() > ifModifiedSinceDate.getTime();
+      return !modifiedSince;
     }
 
     boolean isOutOfDate() {
-      return System.currentTimeMillis() - createDate > cacheEntryTimeout;
+      boolean outOfDate = System.currentTimeMillis() - createDate > cacheEntryTimeout;
+      return outOfDate;
     }
 
   }

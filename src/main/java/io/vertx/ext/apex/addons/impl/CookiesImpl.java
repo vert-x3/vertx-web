@@ -14,12 +14,12 @@
  *  You may elect to redistribute this code under either of these licenses.
  */
 
-package io.vertx.ext.apex.middleware.impl;
+package io.vertx.ext.apex.addons.impl;
 
 import io.netty.handler.codec.http.CookieDecoder;
 import io.vertx.ext.apex.core.RoutingContext;
-import io.vertx.ext.apex.middleware.Cookie;
-import io.vertx.ext.apex.middleware.Cookies;
+import io.vertx.ext.apex.addons.Cookie;
+import io.vertx.ext.apex.addons.Cookies;
 
 import javax.crypto.Mac;
 import java.util.HashMap;

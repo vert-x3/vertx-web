@@ -14,11 +14,11 @@
  *  You may elect to redistribute this code under either of these licenses.
  */
 
-package io.vertx.ext.apex.middleware.impl;
+package io.vertx.ext.apex.addons.impl;
 
 import io.vertx.ext.apex.core.RoutingContext;
-import io.vertx.ext.apex.middleware.Cookie;
-import io.vertx.ext.apex.middleware.Cookies;
+import io.vertx.ext.apex.addons.Cookie;
+import io.vertx.ext.apex.addons.Cookies;
 
 import java.util.Collections;
 import java.util.HashMap;
