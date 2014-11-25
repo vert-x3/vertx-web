@@ -17,7 +17,7 @@
 package io.vertx.ext.apex.addons;
 
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.ext.apex.addons.impl.ApexCookieImpl;
+import io.vertx.ext.apex.addons.impl.CookieImpl;
 
 import java.util.Set;
 
@@ -27,8 +27,8 @@ import java.util.Set;
 @VertxGen
 public interface Cookie {
 
-  static Cookie apexCookie(String name, String value) {
-    return new ApexCookieImpl(name, value);
+  static Cookie cookie(String name, String value) {
+    return new CookieImpl(name, value);
   }
 
   /**

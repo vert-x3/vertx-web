@@ -80,7 +80,7 @@ public class CookiesImpl implements Cookies {
     if (cookieHeader != null) {
       Set<io.netty.handler.codec.http.Cookie> nettyCookies = CookieDecoder.decode(cookieHeader);
       for (io.netty.handler.codec.http.Cookie cookie : nettyCookies) {
-        Cookie apexCookie = new ApexCookieImpl(cookie, mac);
+        Cookie apexCookie = new CookieImpl(cookie, mac);
         String value = apexCookie.getUnsignedValue();
         // value cannot be null in a cookie if the signature is mismatch then this value will be null
         // in that case the cookie has been tampered

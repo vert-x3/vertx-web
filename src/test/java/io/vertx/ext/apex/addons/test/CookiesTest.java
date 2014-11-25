@@ -109,7 +109,7 @@ public class CookiesTest extends ApexTestBase {
       assertEquals("bar", Cookies.getCookie("foo").getValue());
       assertEquals("blibble", Cookies.getCookie("wibble").getValue());
       assertNull(Cookies.getCookie("plop"));
-      Cookies.addCookie(Cookie.apexCookie("fleeb", "floob"));
+      Cookies.addCookie(Cookie.cookie("fleeb", "floob"));
       assertEquals(3, Cookies.cookieCount());
       assertNull(Cookies.removeCookie("blarb"));
       assertEquals(3, Cookies.cookieCount());

@@ -17,38 +17,26 @@
 package io.vertx.ext.apex.addons;
 
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.core.Handler;
-import io.vertx.ext.apex.addons.impl.LoggerImpl;
-import io.vertx.ext.apex.core.RoutingContext;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
- * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
  */
 @VertxGen
-public interface Logger extends Handler<RoutingContext> {
+public interface FileUpload {
 
-  static Logger logger() {
-    return new LoggerImpl();
-  }
+  String name();
 
-  static Logger logger(Format format) {
-    return new LoggerImpl(format);
-  }
+  String uploadedFileName();
 
-  static Logger logger(boolean immediate, Format format) {
-    return new LoggerImpl(immediate, format);
-  }
+  String fileName();
 
-  /**
-   * The possible out of the box formats.
-   */
-  public enum Format {
-    DEFAULT,
-    SHORT,
-    TINY
-  }
+  long size();
 
-  @Override
-  void handle(RoutingContext event);
+  String contentType();
+
+  String contentTransferEncoding();
+
+  String charSet();
+
+
 }

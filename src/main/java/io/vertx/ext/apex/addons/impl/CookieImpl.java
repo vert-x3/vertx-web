@@ -31,19 +31,19 @@ import java.util.Set;
  * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public class ApexCookieImpl implements Cookie {
+public class CookieImpl implements Cookie {
 
   private final io.netty.handler.codec.http.Cookie nettyCookie;
   private final Mac mac;
   private String value;
   private boolean signed;
 
-  public ApexCookieImpl(String name, String value) {
+  public CookieImpl(String name, String value) {
     this.nettyCookie = new DefaultCookie(name, value);
     this.mac = null;
   }
 
-  public ApexCookieImpl(io.netty.handler.codec.http.Cookie nettyCookie, Mac mac) {
+  public CookieImpl(io.netty.handler.codec.http.Cookie nettyCookie, Mac mac) {
     this.nettyCookie = nettyCookie;
     this.mac = mac;
 
