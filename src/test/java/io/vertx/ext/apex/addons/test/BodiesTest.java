@@ -16,6 +16,7 @@
 
 package io.vertx.ext.apex.addons.test;
 
+import io.vertx.core.MultiMap;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
@@ -226,6 +227,52 @@ public class BodiesTest extends ApexTestBase {
       req.headers().set("content-type", "multipart/form-data; boundary=" + boundary);
       req.write(buffer);
     }, statusCode, statusMessage, null);
+  }
+
+  @Test
+  public void testFormURLEncoded() throws Exception {
+    router.route().handler(rc -> {
+      MultiMap attrs = rc.request().formAttributes();
+      assertNotNull(attrs);
+      assertEquals(3, attrs.size());
+      assertEquals("junit-testUserAlias", attrs.get("origin"));
+      assertEquals("admin@foo.bar", attrs.get("login"));
+      assertEquals("admin", attrs.get("pass word"));
+      rc.response().end();
+    });
+    testRequest(HttpMethod.POST, "/", req -> {
+      Buffer buffer = Buffer.buffer();
+      buffer.appendString("origin=junit-testUserAlias&login=admin%40foo.bar&pass+word=admin");
+      req.headers().set("content-length", String.valueOf(buffer.length()));
+      req.headers().set("content-type", "application/x-www-form-urlencoded");
+      req.write(buffer);
+    }, 200, "OK", null);
+  }
+
+  @Test
+  public void testFormMultipartFormData() throws Exception {
+    router.route().handler(rc -> {
+      MultiMap attrs = rc.request().formAttributes();
+      assertNotNull(attrs);
+      assertEquals(2, attrs.size());
+      assertEquals("Tim", attrs.get("attr1"));
+      assertEquals("Julien", attrs.get("attr2"));
+      rc.response().end();
+    });
+    testRequest(HttpMethod.POST, "/", req -> {
+      String boundary = "dLV9Wyq26L_-JQxk6ferf-RT153LhOO";
+      Buffer buffer = Buffer.buffer();
+      String str =
+        "--" + boundary + "\r\n" +
+        "Content-Disposition: form-data; name=\"attr1\"\r\n\r\nTim\r\n" +
+        "--" + boundary + "\r\n" +
+        "Content-Disposition: form-data; name=\"attr2\"\r\n\r\nJulien\r\n" +
+        "--" + boundary + "--\r\n";
+      buffer.appendString(str);
+      req.headers().set("content-length", String.valueOf(buffer.length()));
+      req.headers().set("content-type", "multipart/form-data; boundary=" + boundary);
+      req.write(buffer);
+    }, 200, "OK", null);
   }
 
 }
