@@ -26,6 +26,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import static io.vertx.core.http.HttpHeaders.*;
+
 /**
  * # CookieParser
  * <p>
@@ -74,7 +76,7 @@ public class CookiesImpl implements Cookies {
 
   @Override
   public void handle(RoutingContext context) {
-    String cookieHeader = context.request().headers().get("cookie");
+    String cookieHeader = context.request().headers().get(COOKIE);
 
     Map<String, Cookie> apexCookies = new HashMap<>();
     if (cookieHeader != null) {
@@ -97,7 +99,7 @@ public class CookiesImpl implements Cookies {
       // save the cookies
       if (!apexCookies.isEmpty()) {
         for (Cookie cookie: apexCookies.values()) {
-          context.response().headers().add("set-cookie", cookie.encode());
+          context.response().headers().add(SET_COOKIE, cookie.encode());
         }
       }
     });

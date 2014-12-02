@@ -25,9 +25,9 @@ import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.impl.LoggerFactory;
+import io.vertx.ext.apex.addons.StaticServer;
 import io.vertx.ext.apex.core.RoutingContext;
 import io.vertx.ext.apex.core.impl.Utils;
-import io.vertx.ext.apex.addons.StaticServer;
 
 import java.text.DateFormat;
 import java.text.ParseException;
