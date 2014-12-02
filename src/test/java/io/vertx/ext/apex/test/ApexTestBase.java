@@ -115,7 +115,6 @@ public class ApexTestBase extends VertxTestBase {
   protected void testRequestBuffer(HttpMethod method, String path, Consumer<HttpClientRequest> requestAction, Consumer<HttpClientResponse> responseAction,
                                    int statusCode, String statusMessage,
                                    Buffer responseBodyBuffer) throws Exception {
-    //System.out.println("Sending request to path:" + path);
     CountDownLatch latch = new CountDownLatch(1);
     HttpClientRequest req = client.request(method, 8080, "localhost", path, resp -> {
       assertEquals(statusCode, resp.statusCode());

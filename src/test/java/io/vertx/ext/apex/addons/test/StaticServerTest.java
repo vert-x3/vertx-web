@@ -152,9 +152,7 @@ public class StaticServerTest extends ApexTestBase {
     }, 200, "OK", "<html><body>Other page</body></html>");
     testRequest(HttpMethod.GET, "/otherpage.html", req -> {
       req.putHeader("if-modified-since", lastModifiedRef.get());
-    }, res -> {
-      res.headers().forEach(entry -> System.out.println(entry));
-    }, 304, "Not Modified", null);
+    }, null, 304, "Not Modified", null);
   }
 
   @Test
@@ -190,7 +188,6 @@ public class StaticServerTest extends ApexTestBase {
     testRequest(HttpMethod.GET, "/otherpage.html", req -> {
       req.putHeader("if-modified-since", DATE_TIME_FORMATTER.format(toDateTime(lastModifiedRef.get()) - 1));
     }, res -> {
-      res.headers().forEach(entry -> System.out.println(entry));
     }, 200, "OK", "<html><body>Other page</body></html>");
   }
 

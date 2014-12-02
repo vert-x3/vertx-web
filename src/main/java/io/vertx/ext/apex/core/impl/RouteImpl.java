@@ -191,7 +191,6 @@ public class RouteImpl implements Route {
   }
 
   synchronized boolean matches(String mountPoint, HttpServerRequest request, boolean failure) {
-    //System.out.println("req: " + request.path() + " method: " + request.method());
     if (failure && failureHandler == null || !failure && contextHandler == null) {
       return false;
     }

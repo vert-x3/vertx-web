@@ -159,7 +159,6 @@ public class StaticServerImpl implements StaticServer {
               return;
             }
           } else {
-            System.out.println("Added entry to cache, lm: " + props.lastModifiedTime());
             propsCache.put(path, new CacheEntry(props, System.currentTimeMillis()));
           }
         } else {
@@ -271,13 +270,10 @@ public class StaticServerImpl implements StaticServer {
     FileSystem fileSystem = context.vertx().fileSystem();
     HttpServerRequest request = context.request();
 
-    System.out.println("File system reading dir: " + dir);
     fileSystem.readDir(dir, asyncResult -> {
       if (asyncResult.failed()) {
         context.fail(asyncResult.cause());
       } else {
-
-        System.out.println("There are: " + asyncResult.result().size() + " files");
 
         String accept = request.headers().get("accept");
         if (accept == null) {
