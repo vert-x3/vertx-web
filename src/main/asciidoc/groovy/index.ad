@@ -1,0 +1,15 @@
+= Vert.x Apex
+
+The link:groovydoc/io/vertx/groovy/ext/apex/core/Router.html[`router`] is really cool stuff, here is an example
+
+[source,{lang}]
+----
+import io.vertx.groovy.ext.apex.core.Router
+def router = Router.router(vertx);
+def subRouter = Router.router(vertx);
+router.mountSubRouter("/subpath", subRouter);
+subRouter.route("/foo").handler({ rc ->
+  rc.response().setStatusMessage(rc.request().path()).end();
+});
+
+----
