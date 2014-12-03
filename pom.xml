@@ -4,14 +4,13 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
   <parent>
-    <groupId>org.sonatype.oss</groupId>
-    <artifactId>oss-parent</artifactId>
-    <version>7</version>
+    <groupId>io.vertx</groupId>
+    <artifactId>ext-parent</artifactId>
+    <version>3.0.0-SNAPSHOT</version>
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>io.vertx</groupId>
   <artifactId>vertx-apex</artifactId>
   <version>3.0.0-SNAPSHOT</version>
 
@@ -21,34 +20,13 @@
       <groupId>io.vertx</groupId>
       <artifactId>codegen</artifactId>
       <version>1.0-SNAPSHOT</version>
-    </dependency>
-    <dependency>
-      <groupId>io.vertx</groupId>
-      <artifactId>codegen</artifactId>
-      <version>1.0-SNAPSHOT</version>
       <classifier>sources</classifier>
     </dependency>
     <dependency>
       <groupId>io.vertx</groupId>
       <artifactId>vertx-core</artifactId>
       <version>3.0.0-SNAPSHOT</version>
-    </dependency>
-    <dependency>
-      <groupId>io.vertx</groupId>
-      <artifactId>vertx-core</artifactId>
-      <version>3.0.0-SNAPSHOT</version>
       <classifier>sources</classifier>
-    </dependency>
-
-    <dependency>
-      <groupId>io.vertx</groupId>
-      <artifactId>vertx-js</artifactId>
-      <version>3.0.0-SNAPSHOT</version>
-    </dependency>
-    <dependency>
-      <groupId>io.vertx</groupId>
-      <artifactId>vertx-groovy</artifactId>
-      <version>3.0.0-SNAPSHOT</version>
     </dependency>
 
     <dependency>
@@ -70,55 +48,19 @@
   <build>
     <pluginManagement>
       <plugins>
-        <!-- Configure the execution of the compiler to execute the codegen processor -->
-        <!--<plugin>-->
-          <!--<artifactId>maven-compiler-plugin</artifactId>-->
-          <!--<version>3.1</version>-->
-          <!--<configuration>-->
-            <!--<source>1.8</source>-->
-            <!--<target>1.8</target>-->
-            <!--<encoding>${project.build.sourceEncoding}</encoding>-->
-          <!--</configuration>-->
-          <!--<executions>-->
-            <!--<execution>-->
-              <!--<id>default-testCompile</id>-->
-              <!--<configuration>-->
-                <!--<annotationProcessors>-->
-                  <!--<annotationProcessor>io.vertx.codegen.CodeGenProcessor</annotationProcessor>-->
-                <!--</annotationProcessors>-->
-                <!--<generatedTestSourcesDirectory>${project.basedir}/src/test/generated</generatedTestSourcesDirectory>-->
-                <!--<compilerArgs>-->
-                  <!--<arg>-AoutputDirectory=${project.basedir}/src/test</arg>-->
-                <!--</compilerArgs>-->
-              <!--</configuration>-->
-            <!--</execution>-->
-          <!--</executions>-->
-        <!--</plugin>-->
-        <plugin>
-          <artifactId>maven-compiler-plugin</artifactId>
-          <version>3.1</version>
-          <configuration>
-            <source>1.8</source>
-            <target>1.8</target>
-            <encoding>${project.build.sourceEncoding}</encoding>
-          </configuration>
-          <executions>
-            <execution>
-              <id>default-compile</id>
-              <configuration>
-                <annotationProcessors>
-                  <annotationProcessor>io.vertx.codegen.CodeGenProcessor</annotationProcessor>
-                </annotationProcessors>
-                <generatedSourcesDirectory>${project.basedir}/src/main/generated</generatedSourcesDirectory>
-                <compilerArgs>
-                  <arg>-AoutputDirectory=${project.basedir}/src/main</arg>
-                </compilerArgs>
-              </configuration>
-            </execution>
-          </executions>
-        </plugin>
       </plugins>
     </pluginManagement>
+    <plugins>
+      <plugin>
+        <groupId>org.asciidoctor</groupId>
+        <artifactId>asciidoctor-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>bilto</id>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
   </build>
 
 </project>
