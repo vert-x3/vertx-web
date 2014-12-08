@@ -25,9 +25,9 @@ import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.impl.LoggerFactory;
+import io.vertx.ext.apex.addons.StaticServer;
 import io.vertx.ext.apex.core.RoutingContext;
 import io.vertx.ext.apex.core.impl.Utils;
-import io.vertx.ext.apex.addons.StaticServer;
 
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -49,7 +49,7 @@ public class StaticServerImpl implements StaticServer {
 
   private static final Logger log = LoggerFactory.getLogger(StaticServerImpl.class);
 
-  private static final String directoryTemplate = Utils.readResourceToBuffer("directory.html").toString();
+  private static final String directoryTemplate = Utils.readResourceToBuffer("apex-directory.html").toString();
 
   private final DateFormat DATE_TIME_FORMATTER = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz");
   {
