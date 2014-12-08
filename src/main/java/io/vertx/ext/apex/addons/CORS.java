@@ -16,26 +16,44 @@
 
 package io.vertx.ext.apex.addons;
 
+import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
+import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.apex.addons.impl.CORSImpl;
 import io.vertx.ext.apex.core.RoutingContext;
 
 import java.util.Set;
 
 /**
+ * Server side CORS support for Vert.x Apex
+ * http://www.w3.org/TR/cors/
+ *
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 @VertxGen
 public interface CORS extends Handler<RoutingContext> {
 
-  static CORS cors(String allowedOriginPattern,
-                   Set<String> allowedMethods,
-                   Set<String> allowedHeaders,
-                   Set<String> exposedHeaders,
-                   boolean allowCredentials) {
-    return new CORSImpl(allowedOriginPattern, allowedMethods, allowedHeaders, exposedHeaders, allowCredentials);
+  static CORS cors(String allowedOriginPattern) {
+    return new CORSImpl(allowedOriginPattern);
   }
+
+  CORS allowedMethod(HttpMethod method);
+
+  @GenIgnore
+  CORS allowedMethods(Set<HttpMethod> methods);
+
+  CORS allowedHeader(String headerName);
+
+  CORS allowedHeaders(Set<String> headerNames);
+
+  CORS exposedHeader(String headerName);
+
+  CORS exposedHeaders(Set<String> headerNames);
+
+  CORS allowCredentials(boolean allow);
+
+  CORS maxAgeSeconds(int maxAgeSeconds);
 
   @Override
   void handle(RoutingContext context);

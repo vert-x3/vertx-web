@@ -23,126 +23,165 @@ import io.vertx.ext.apex.addons.CORS;
 import io.vertx.ext.apex.core.RoutingContext;
 
 import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
+
 import static io.vertx.core.http.HttpHeaders.*;
 
 /**
- * Ported from original authored by David Dossot
+ * Based partially on original authored by David Dossot
  * @author <a href="david@dossot.net">David Dossot</a>
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 public class CORSImpl implements CORS {
 
-  private final String allowedOriginPattern;
-  private final String allowedMethods;
-  private final String allowedHeaders;
-  private final String exposedHeaders;
-  private final boolean allowCredentials;
   private final Pattern allowedOrigin;
 
-  /**
-   * @param allowedOriginPattern if null, '*' will be used.
-   */
-  public CORSImpl(String allowedOriginPattern,
-                  Set<String> allowedMethods,
-                  Set<String> allowedHeaders,
-                  Set<String> exposedHeaders,
-                  boolean allowCredentials) {
-    if (allowCredentials && allowedOriginPattern == null) {
-      throw new IllegalArgumentException("Resource that supports credentials can't accept all origins.");
-    }
+  private String allowedMethodsString;
+  private String allowedHeadersString;
+  private String exposedHeadersString;
+  private boolean allowCredentials;
+  private String maxAgeSeconds;
+  private final Set<HttpMethod> allowedMethods = new LinkedHashSet<>();
+  private final Set<String> allowedHeaders = new LinkedHashSet<>();
+  private final Set<String> exposedHeaders = new LinkedHashSet<>();
 
-    this.allowedOriginPattern = allowedOriginPattern;
-    this.allowedMethods = join(allowedMethods, ",");
-    this.allowedHeaders = join(allowedHeaders, ",");
-    this.exposedHeaders = join(exposedHeaders, ",");
-    this.allowCredentials = allowCredentials;
-    if (allowedOriginPattern != null) {
-      allowedOrigin = Pattern.compile(allowedOriginPattern);
-    } else {
+  public CORSImpl(String allowedOriginPattern) {
+    Objects.requireNonNull(allowedOriginPattern);
+    if ("*".equals(allowedOriginPattern)) {
       allowedOrigin = null;
+    } else {
+      allowedOrigin = Pattern.compile(allowedOriginPattern);
     }
+  }
+
+  @Override
+  public CORS allowedMethod(HttpMethod method) {
+    allowedMethods.add(method);
+    allowedMethodsString = join(allowedMethods);
+    return this;
+  }
+
+  @Override
+  public CORS allowedMethods(Set<HttpMethod> methods) {
+    allowedMethods.addAll(methods);
+    allowedMethodsString = join(allowedMethods);
+    return this;
+  }
+
+  @Override
+  public CORS allowedHeader(String headerName) {
+    allowedHeaders.add(headerName);
+    allowedHeadersString = join(allowedHeaders);
+    return this;
+  }
+
+  @Override
+  public CORS allowedHeaders(Set<String> headerNames) {
+    allowedHeaders.addAll(headerNames);
+    allowedHeadersString = join(allowedHeaders);
+    return this;
+  }
+
+  @Override
+  public CORS exposedHeader(String headerName) {
+    exposedHeaders.add(headerName);
+    exposedHeadersString = join(exposedHeaders);
+    return this;
+  }
+
+  @Override
+  public CORS exposedHeaders(Set<String> headerNames) {
+    exposedHeaders.addAll(headerNames);
+    exposedHeadersString = join(exposedHeaders);
+    return this;
+  }
+
+  @Override
+  public CORS allowCredentials(boolean allow) {
+    this.allowCredentials = allow;
+    return this;
+  }
+
+  @Override
+  public CORS maxAgeSeconds(int maxAgeSeconds) {
+    this.maxAgeSeconds = maxAgeSeconds == -1 ? null : String.valueOf(maxAgeSeconds);
+    return this;
   }
 
   @Override
   public void handle(RoutingContext context) {
     HttpServerRequest request = context.request();
-    if (isPreflightRequest(request)) {
-      handlePreflightRequest(request);
-    } else {
-      // FIXME = no checking of origin????
-      addCorsResponseHeaders(context);
-      context.next();
-    }
-  }
-
-  private boolean isPreflightRequest(HttpServerRequest request) {
-    return request.method() == HttpMethod.OPTIONS &&
-      (request.headers().get(ACCESS_CONTROL_REQUEST_HEADERS) != null || request.headers().get(ACCESS_CONTROL_REQUEST_METHOD) != null);
-  }
-
-  private void handlePreflightRequest(HttpServerRequest request) {
-    if (isValidOrigin(request.headers().get(ORIGIN))) {
-      addCorsResponseHeaders(request.headers().get(ORIGIN),
-        request.response().setStatusCode(204).setStatusMessage("No Content")).end();
-    } else {
-      request.response().setStatusCode(403).setStatusMessage("CORS Rejected").end();
-    }
-  }
-
-  private HttpServerResponse addCorsResponseHeaders(RoutingContext context) {
+    HttpServerResponse response = context.response();
     String origin = context.request().headers().get(ORIGIN);
-    return addCorsResponseHeaders(origin, context.response());
+    if (isValidOrigin(origin)) {
+      String accessControlRequestMethod = request.headers().get(ACCESS_CONTROL_REQUEST_METHOD);
+      if (request.method() == HttpMethod.OPTIONS && accessControlRequestMethod != null) {
+        // Pre-flight request
+        addCredentialsAndOriginHeader(response, origin);
+        if (allowedMethodsString != null) {
+          response.putHeader(ACCESS_CONTROL_ALLOW_METHODS, allowedMethodsString);
+        }
+        if (allowedHeadersString != null) {
+          response.putHeader(ACCESS_CONTROL_ALLOW_HEADERS, allowedHeadersString);
+        }
+        if (maxAgeSeconds != null) {
+          response.putHeader(ACCESS_CONTROL_MAX_AGE, maxAgeSeconds);
+        }
+        response.setStatusCode(204).end();
+      } else {
+        addCredentialsAndOriginHeader(response, origin);
+        if (exposedHeadersString != null) {
+          response.putHeader(ACCESS_CONTROL_EXPOSE_HEADERS, exposedHeadersString);
+        }
+        context.next();
+      }
+    } else {
+      sendInvalid(request.response());
+    }
   }
 
-  private HttpServerResponse addCorsResponseHeaders(String origin, HttpServerResponse response) {
-    if (isValidOrigin(origin)) {
+  private void addCredentialsAndOriginHeader(HttpServerResponse response, String origin) {
+    if (allowCredentials) {
+      response.putHeader(ACCESS_CONTROL_ALLOW_CREDENTIALS, "true");
+      // Must be exact origin (not '*') in case of credentials
+      response.putHeader(ACCESS_CONTROL_ALLOW_ORIGIN, origin);
+    } else {
+      // Can be '*' too
       response.putHeader(ACCESS_CONTROL_ALLOW_ORIGIN, getAllowedOrigin(origin));
-
-      if (allowedMethods != null) {
-        response.putHeader(ACCESS_CONTROL_ALLOW_METHODS, allowedMethods);
-      }
-
-      if (allowedHeaders != null) {
-        response.putHeader(ACCESS_CONTROL_ALLOW_HEADERS, allowedHeaders);
-      }
-
-      if (exposedHeaders != null) {
-        response.putHeader(ACCESS_CONTROL_EXPOSE_HEADERS, exposedHeaders);
-      }
-
-      if (allowCredentials) {
-        response.putHeader(ACCESS_CONTROL_ALLOW_CREDENTIALS, "true");
-      }
     }
+  }
 
-    return response;
+  private void sendInvalid(HttpServerResponse resp) {
+    resp.setStatusCode(403).setStatusMessage("CORS Rejected - Invalid origin").end();
   }
 
   private boolean isValidOrigin(String origin) {
-    return allowedOriginPattern == null
-      || (isNotBlank(origin) && allowedOrigin.matcher(origin).matches());
+    if (allowedOrigin == null) {
+      // Null means accept all origins
+      return true;
+    }
+    if (origin == null) {
+      return false;
+    }
+    return allowedOrigin.matcher(origin).matches();
   }
 
   private String getAllowedOrigin(String origin) {
-    return allowedOriginPattern == null ? "*" : origin;
+    return allowedOrigin == null ? "*" : origin;
   }
 
-  private static boolean isNotBlank(String s) {
-    return s == null || !s.trim().isEmpty();
-  }
-
-  private static String join(Collection<String> ss, String j) {
+  private String join(Collection<? extends Object> ss) {
     if (ss == null || ss.isEmpty()) {
-      return "";
+      return null;
     }
-
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     boolean first = true;
-    for (String s : ss) {
+    for (Object s : ss) {
       if (!first) {
-        sb.append(j);
+        sb.append(',');
       }
       sb.append(s);
       first = false;
