@@ -1,6 +1,6 @@
 = Vert.x Apex
 
-The link:jsdoc/symbols/Router.html[`router`] is really cool stuff, here is an example
+The link:jsdoc/router-Router.html[`router`] is really cool stuff, here is an example
 
 [source,{lang}]
 ----

@@ -8,7 +8,7 @@
  * {@link examples.Examples#router(io.vertx.core.Vertx)}
  * ----
  */
-@Document(fileName = "index.ad")
+@Document(fileName = "index.adoc")
 package io.vertx.ext.apex;
 
 import io.vertx.docgen.Document;
