@@ -20,7 +20,7 @@ import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;
-import io.vertx.ext.apex.addons.impl.CORSImpl;
+import io.vertx.ext.apex.addons.impl.CorsImpl;
 import io.vertx.ext.apex.core.RoutingContext;
 
 import java.util.Set;
@@ -32,28 +32,28 @@ import java.util.Set;
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 @VertxGen
-public interface CORS extends Handler<RoutingContext> {
+public interface Cors extends Handler<RoutingContext> {
 
-  static CORS cors(String allowedOriginPattern) {
-    return new CORSImpl(allowedOriginPattern);
+  static Cors cors(String allowedOriginPattern) {
+    return new CorsImpl(allowedOriginPattern);
   }
 
-  CORS allowedMethod(HttpMethod method);
+  Cors allowedMethod(HttpMethod method);
 
   @GenIgnore
-  CORS allowedMethods(Set<HttpMethod> methods);
+  Cors allowedMethods(Set<HttpMethod> methods);
 
-  CORS allowedHeader(String headerName);
+  Cors allowedHeader(String headerName);
 
-  CORS allowedHeaders(Set<String> headerNames);
+  Cors allowedHeaders(Set<String> headerNames);
 
-  CORS exposedHeader(String headerName);
+  Cors exposedHeader(String headerName);
 
-  CORS exposedHeaders(Set<String> headerNames);
+  Cors exposedHeaders(Set<String> headerNames);
 
-  CORS allowCredentials(boolean allow);
+  Cors allowCredentials(boolean allow);
 
-  CORS maxAgeSeconds(int maxAgeSeconds);
+  Cors maxAgeSeconds(int maxAgeSeconds);
 
   @Override
   void handle(RoutingContext context);
