@@ -255,7 +255,7 @@ public class StaticServerImpl implements StaticServer {
 
   private Map<String, CacheEntry> propsCache() {
     if (propsCache == null) {
-      propsCache = new LRUCache<String, CacheEntry>(maxCacheSize);
+      propsCache = new LRUCache<>(maxCacheSize);
     }
     return propsCache;
   }

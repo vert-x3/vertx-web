@@ -24,56 +24,33 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.ext.apex.addons.AbstractTemplateEngine;
 import io.vertx.ext.apex.addons.HandlebarsTemplateEngine;
 import io.vertx.ext.apex.core.RoutingContext;
-import io.vertx.ext.apex.core.impl.ConcurrentLRUCache;
 import io.vertx.ext.apex.core.impl.Utils;
 
 import java.io.IOException;
-import java.util.Map;
-import java.util.Objects;
 
 /**
  * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public class HandlebarsTemplateEngineImpl extends AbstractTemplateEngine implements HandlebarsTemplateEngine {
+public class HandlebarsTemplateEngineImpl extends CachingTemplateEngine<Template> implements HandlebarsTemplateEngine {
 
   private final Handlebars handlebars;
-  private final String prefix;
-  private final String extension ;
-  private final Map<String, Template> cache;
 
   public HandlebarsTemplateEngineImpl(String resourcePrefix, String ext, int maxCacheSize) {
-    Objects.requireNonNull(ext);
-    if (maxCacheSize < 1) {
-      throw new IllegalArgumentException("maxCacheSize must be >= 1");
-    }
-    if (resourcePrefix != null && !resourcePrefix.endsWith("/")) {
-      resourcePrefix += "/";
-    }
-    this.prefix = resourcePrefix;
-    this.extension = ext.charAt(0) == '.' ? ext : "." + ext;
-    this.cache = new ConcurrentLRUCache<>(maxCacheSize);
+    super(resourcePrefix, ext, maxCacheSize);
 
     handlebars = new Handlebars(new TemplateLoader() {
       @Override
       public TemplateSource sourceAt(String location) throws IOException {
 
-        if (!location.endsWith(extension)) {
-          location += extension;
-        }
-        if (prefix != null) {
-          location = prefix + location;
-        }
+        final String loc = adjustLocation(location);
 
-        final String loc = location;
-
-        String templ = Utils.readResourceToString(location);
+        String templ = Utils.readResourceToString(loc);
 
         if (templ == null) {
-          throw new IllegalArgumentException("Cannot find resource " + location);
+          throw new IllegalArgumentException("Cannot find resource " + loc);
         }
 
         long lastMod = System.currentTimeMillis();
@@ -115,7 +92,7 @@ public class HandlebarsTemplateEngineImpl extends AbstractTemplateEngine impleme
   }
 
   @Override
-  public synchronized void render(RoutingContext context, String templateFileName, Handler<AsyncResult<Buffer>> handler) {
+  public void render(RoutingContext context, String templateFileName, Handler<AsyncResult<Buffer>> handler) {
     try {
       Template template = cache.get(templateFileName);
       if (template == null) {
