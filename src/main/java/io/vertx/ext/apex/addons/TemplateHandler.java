@@ -13,49 +13,25 @@
  *
  *  You may elect to redistribute this code under either of these licenses.
  */
+
 package io.vertx.ext.apex.addons;
 
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
+import io.vertx.ext.apex.addons.impl.TemplateHandlerImpl;
 import io.vertx.ext.apex.core.RoutingContext;
-import io.vertx.ext.apex.addons.impl.CookiesImpl;
-import io.vertx.ext.apex.addons.impl.CookiesHelper;
-
-import java.util.Set;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 @VertxGen
-public interface Cookies extends Handler<RoutingContext> {
+public interface TemplateHandler extends Handler<RoutingContext> {
 
-  static Cookies cookies() {
-    return new CookiesImpl();
-  }
-
-  static final String COOKIES_ENTRY_NAME = "__apex_cookies";
-
-  static Cookie getCookie(String name) {
-    return CookiesHelper.getCookie(name);
-  }
-
-  static void addCookie(Cookie cookie) {
-    CookiesHelper.addCookie(cookie);
-  }
-
-  static Cookie removeCookie(String name) {
-    return CookiesHelper.removeCookie(name);
-  }
-
-  static Set<String> cookiesNames() {
-    return CookiesHelper.cookiesNames();
-  }
-
-  static int cookieCount() {
-    return CookiesHelper.cookieCount();
+  static TemplateHandler templateHandler(TemplateEngine engine, String templateFileName, String contentType) {
+    return new TemplateHandlerImpl(engine, templateFileName, contentType);
   }
 
   @Override
-  void handle(RoutingContext event);
+  void handle(RoutingContext context);
 
 }

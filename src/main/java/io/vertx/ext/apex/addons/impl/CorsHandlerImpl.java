@@ -19,7 +19,7 @@ package io.vertx.ext.apex.addons.impl;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
-import io.vertx.ext.apex.addons.Cors;
+import io.vertx.ext.apex.addons.CorsHandler;
 import io.vertx.ext.apex.core.RoutingContext;
 
 import java.util.Collection;
@@ -35,7 +35,7 @@ import static io.vertx.core.http.HttpHeaders.*;
  * @author <a href="david@dossot.net">David Dossot</a>
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public class CorsImpl implements Cors {
+public class CorsHandlerImpl implements CorsHandler {
 
   private final Pattern allowedOrigin;
 
@@ -48,7 +48,7 @@ public class CorsImpl implements Cors {
   private final Set<String> allowedHeaders = new LinkedHashSet<>();
   private final Set<String> exposedHeaders = new LinkedHashSet<>();
 
-  public CorsImpl(String allowedOriginPattern) {
+  public CorsHandlerImpl(String allowedOriginPattern) {
     Objects.requireNonNull(allowedOriginPattern);
     if ("*".equals(allowedOriginPattern)) {
       allowedOrigin = null;
@@ -58,55 +58,55 @@ public class CorsImpl implements Cors {
   }
 
   @Override
-  public Cors allowedMethod(HttpMethod method) {
+  public CorsHandler allowedMethod(HttpMethod method) {
     allowedMethods.add(method);
     allowedMethodsString = join(allowedMethods);
     return this;
   }
 
   @Override
-  public Cors allowedMethods(Set<HttpMethod> methods) {
+  public CorsHandler allowedMethods(Set<HttpMethod> methods) {
     allowedMethods.addAll(methods);
     allowedMethodsString = join(allowedMethods);
     return this;
   }
 
   @Override
-  public Cors allowedHeader(String headerName) {
+  public CorsHandler allowedHeader(String headerName) {
     allowedHeaders.add(headerName);
     allowedHeadersString = join(allowedHeaders);
     return this;
   }
 
   @Override
-  public Cors allowedHeaders(Set<String> headerNames) {
+  public CorsHandler allowedHeaders(Set<String> headerNames) {
     allowedHeaders.addAll(headerNames);
     allowedHeadersString = join(allowedHeaders);
     return this;
   }
 
   @Override
-  public Cors exposedHeader(String headerName) {
+  public CorsHandler exposedHeader(String headerName) {
     exposedHeaders.add(headerName);
     exposedHeadersString = join(exposedHeaders);
     return this;
   }
 
   @Override
-  public Cors exposedHeaders(Set<String> headerNames) {
+  public CorsHandler exposedHeaders(Set<String> headerNames) {
     exposedHeaders.addAll(headerNames);
     exposedHeadersString = join(exposedHeaders);
     return this;
   }
 
   @Override
-  public Cors allowCredentials(boolean allow) {
+  public CorsHandler allowCredentials(boolean allow) {
     this.allowCredentials = allow;
     return this;
   }
 
   @Override
-  public Cors maxAgeSeconds(int maxAgeSeconds) {
+  public CorsHandler maxAgeSeconds(int maxAgeSeconds) {
     this.maxAgeSeconds = maxAgeSeconds == -1 ? null : String.valueOf(maxAgeSeconds);
     return this;
   }

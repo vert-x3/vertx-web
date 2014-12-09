@@ -20,7 +20,7 @@ import io.vertx.core.MultiMap;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.apex.addons.Bodies;
+import io.vertx.ext.apex.core.BodyHandler;
 import io.vertx.ext.apex.addons.FileUpload;
 import io.vertx.ext.apex.test.ApexTestBase;
 import io.vertx.test.core.TestUtils;
@@ -42,13 +42,13 @@ public class BodiesTest extends ApexTestBase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    router.route().handler(Bodies.bodies());
+    router.route().handler(BodyHandler.bodyHandler());
   }
 
   @Override
   public void tearDown() throws Exception {
-    if (vertx.fileSystem().existsBlocking(Bodies.DEFAULT_UPLOADS_DIRECTORY)) {
-      vertx.fileSystem().deleteRecursiveBlocking(Bodies.DEFAULT_UPLOADS_DIRECTORY, true);
+    if (vertx.fileSystem().existsBlocking(BodyHandler.DEFAULT_UPLOADS_DIRECTORY)) {
+      vertx.fileSystem().deleteRecursiveBlocking(BodyHandler.DEFAULT_UPLOADS_DIRECTORY, true);
     }
     super.tearDown();
   }
@@ -56,7 +56,7 @@ public class BodiesTest extends ApexTestBase {
   @Test
   public void testGETNoBody() throws Exception {
     router.route().handler(rc -> {
-      assertNull(Bodies.getBody());
+      assertNull(rc.getBody());
       rc.response().end();
     });
     testRequest(HttpMethod.GET, "/", 200, "OK");
@@ -65,7 +65,7 @@ public class BodiesTest extends ApexTestBase {
   @Test
   public void testHEADNoBody() throws Exception {
     router.route().handler(rc -> {
-      assertNull(Bodies.getBody());
+      assertNull(rc.getBody());
       rc.response().end();
     });
     testRequest(HttpMethod.HEAD, "/", 200, "OK");
@@ -75,7 +75,7 @@ public class BodiesTest extends ApexTestBase {
   public void testBodyBuffer() throws Exception {
     Buffer buff = TestUtils.randomBuffer(1000);
     router.route().handler(rc -> {
-      assertEquals(buff, Bodies.getBody());
+      assertEquals(buff, rc.getBody());
       rc.response().end();
     });
     testRequest(HttpMethod.POST, "/", req -> {
@@ -88,7 +88,7 @@ public class BodiesTest extends ApexTestBase {
   public void testBodyString() throws Exception {
     String str = "sausages";
     router.route().handler(rc -> {
-      assertEquals(str, Bodies.getBodyAsString());
+      assertEquals(str, rc.getBodyAsString());
       rc.response().end();
     });
     testRequest(HttpMethod.POST, "/", req -> {
@@ -102,7 +102,7 @@ public class BodiesTest extends ApexTestBase {
     String str = TestUtils.randomUnicodeString(100);
     String enc = "UTF-16";
     router.route().handler(rc -> {
-      assertEquals(str, Bodies.getBodyAsString(enc));
+      assertEquals(str, rc.getBodyAsString(enc));
       rc.response().end();
     });
     testRequest(HttpMethod.POST, "/", req -> {
@@ -115,7 +115,7 @@ public class BodiesTest extends ApexTestBase {
   public void testBodyJson() throws Exception {
     JsonObject json = new JsonObject().put("foo", "bar").put("blah", 123);
     router.route().handler(rc -> {
-      assertEquals(json, Bodies.getBodyAsJson());
+      assertEquals(json, rc.getBodyAsJson());
       rc.response().end();
     });
     testRequest(HttpMethod.POST, "/", req -> {
@@ -127,7 +127,7 @@ public class BodiesTest extends ApexTestBase {
   @Test
   public void testBodyTooBig() throws Exception {
     router.clear();
-    router.route().handler(Bodies.bodies(5000));
+    router.route().handler(BodyHandler.bodyHandler(5000));
     Buffer buff = TestUtils.randomBuffer(10000);
     router.route().handler(rc -> {
       fail("Should not be called");
@@ -140,14 +140,14 @@ public class BodiesTest extends ApexTestBase {
 
   @Test
   public void testFileUploadDefaultUploadsDir() throws Exception {
-    testFileUpload(Bodies.DEFAULT_UPLOADS_DIRECTORY);
+    testFileUpload(BodyHandler.DEFAULT_UPLOADS_DIRECTORY);
   }
 
   @Test
   public void testFileUploadOtherUploadsDir() throws Exception {
     router.clear();
     File dir = tempUploads.newFolder();
-    router.route().handler(Bodies.bodies(dir.getPath()));
+    router.route().handler(BodyHandler.bodyHandler(dir.getPath()));
     testFileUpload(dir.getPath());
   }
 
@@ -157,7 +157,7 @@ public class BodiesTest extends ApexTestBase {
     String contentType = "application/octet-stream";
     Buffer fileData = TestUtils.randomBuffer(50000);
     router.route().handler(rc -> {
-      Set<FileUpload> fileUploads = Bodies.fileUploads();
+      Set<FileUpload> fileUploads = rc.fileUploads();
       assertNotNull(fileUploads);
       assertEquals(1, fileUploads.size());
       FileUpload upload = fileUploads.iterator().next();
@@ -173,7 +173,7 @@ public class BodiesTest extends ApexTestBase {
       Buffer uploaded = vertx.fileSystem().readFileBlocking(uploadedFileName);
       assertEquals(fileData, uploaded);
       // The body should be set too
-      Buffer rawBody = Bodies.getBody();
+      Buffer rawBody = rc.getBody();
       assertNotNull(rawBody);
       assertTrue(rawBody.length() > fileData.length());
       rc.response().end();
@@ -184,7 +184,7 @@ public class BodiesTest extends ApexTestBase {
   @Test
   public void testFileUploadTooBig() throws Exception {
     router.clear();
-    router.route().handler(Bodies.bodies(20000));
+    router.route().handler(BodyHandler.bodyHandler(20000));
 
     Buffer fileData = TestUtils.randomBuffer(50000);
     router.route().handler(rc -> {
@@ -196,7 +196,7 @@ public class BodiesTest extends ApexTestBase {
   @Test
   public void testFileUploadTooBig2() throws Exception {
     router.clear();
-    router.route().handler(Bodies.bodies(20000, Bodies.DEFAULT_UPLOADS_DIRECTORY));
+    router.route().handler(BodyHandler.bodyHandler(20000, BodyHandler.DEFAULT_UPLOADS_DIRECTORY));
 
     Buffer fileData = TestUtils.randomBuffer(50000);
     router.route().handler(rc -> {

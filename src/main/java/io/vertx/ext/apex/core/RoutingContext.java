@@ -21,9 +21,15 @@ import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
+import io.vertx.core.json.JsonObject;
+import io.vertx.ext.apex.addons.FileUpload;
 import io.vertx.ext.apex.core.impl.RoutingContextHelper;
+
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -52,9 +58,14 @@ public interface RoutingContext {
 
   <T> T get(String key);
 
+  @GenIgnore
+  Map<String, Object> contextData();
+
   Vertx vertx();
 
   // Some Helper methods
+
+  // TODO - shouldn't these below be fluent??
 
   void addHeadersEndHandler(Handler<Void> handler);
 
@@ -75,5 +86,31 @@ public interface RoutingContext {
   Route currentRoute();
 
   String normalisedPath();
+
+  // Cookies
+
+  Cookie getCookie(String name);
+
+  void addCookie(Cookie cookie);
+
+  Cookie removeCookie(String name);
+
+  int cookieCount();
+
+  Set<Cookie> cookies();
+
+  // Bodies
+
+  String getBodyAsString();
+
+  String getBodyAsString(String encoding);
+
+  JsonObject getBodyAsJson();
+
+  Buffer getBody();
+
+  void setBody(Buffer body);
+
+  Set<FileUpload> fileUploads();
 
 }

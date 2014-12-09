@@ -32,6 +32,11 @@
       <version>${vertx.version}</version>
       <classifier>sources</classifier>
     </dependency>
+    <dependency>
+      <groupId>org.thymeleaf</groupId>
+      <artifactId>thymeleaf</artifactId>
+      <version>2.1.2.RELEASE</version>
+    </dependency>
 
     <dependency>
       <groupId>junit</groupId>

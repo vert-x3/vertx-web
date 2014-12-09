@@ -18,11 +18,17 @@ package io.vertx.ext.apex.core.impl;
 
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
+import io.vertx.core.json.JsonObject;
+import io.vertx.ext.apex.core.Cookie;
+import io.vertx.ext.apex.addons.FileUpload;
 import io.vertx.ext.apex.core.RoutingContext;
 
 import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -72,6 +78,11 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   @Override
   public <T> T get(String key) {
     return inner.get(key);
+  }
+
+  @Override
+  public Map<String, Object> contextData() {
+    return inner.contextData();
   }
 
   @Override
@@ -142,5 +153,60 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   @Override
   public String normalisedPath() {
     return inner.normalisedPath();
+  }
+
+  @Override
+  public Cookie getCookie(String name) {
+    return inner.getCookie(name);
+  }
+
+  @Override
+  public void addCookie(Cookie cookie) {
+    inner.addCookie(cookie);
+  }
+
+  @Override
+  public Cookie removeCookie(String name) {
+    return inner.removeCookie(name);
+  }
+
+  @Override
+  public int cookieCount() {
+    return inner.cookieCount();
+  }
+
+  @Override
+  public Set<Cookie> cookies() {
+    return inner.cookies();
+  }
+
+  @Override
+  public String getBodyAsString() {
+    return inner.getBodyAsString();
+  }
+
+  @Override
+  public String getBodyAsString(String encoding) {
+    return inner.getBodyAsString(encoding);
+  }
+
+  @Override
+  public JsonObject getBodyAsJson() {
+    return inner.getBodyAsJson();
+  }
+
+  @Override
+  public Buffer getBody() {
+    return inner.getBody();
+  }
+
+  @Override
+  public void setBody(Buffer body) {
+    inner.setBody(body);
+  }
+
+  @Override
+  public Set<FileUpload> fileUploads() {
+    return inner.fileUploads();
   }
 }

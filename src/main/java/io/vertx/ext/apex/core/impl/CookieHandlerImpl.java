@@ -14,16 +14,14 @@
  *  You may elect to redistribute this code under either of these licenses.
  */
 
-package io.vertx.ext.apex.addons.impl;
+package io.vertx.ext.apex.core.impl;
 
 import io.netty.handler.codec.http.CookieDecoder;
+import io.vertx.ext.apex.core.Cookie;
+import io.vertx.ext.apex.core.CookieHandler;
 import io.vertx.ext.apex.core.RoutingContext;
-import io.vertx.ext.apex.addons.Cookie;
-import io.vertx.ext.apex.addons.Cookies;
 
 import javax.crypto.Mac;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Set;
 
 import static io.vertx.core.http.HttpHeaders.*;
@@ -41,7 +39,7 @@ import static io.vertx.core.http.HttpHeaders.*;
  * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public class CookiesImpl implements Cookies {
+public class CookieHandlerImpl implements CookieHandler {
 
   /**
    * Message Signer
@@ -58,7 +56,7 @@ public class CookiesImpl implements Cookies {
    *
    * @param mac Mac
    */
-  public CookiesImpl(Mac mac) {
+  public CookieHandlerImpl(Mac mac) {
     this.mac = mac;
   }
 
@@ -70,7 +68,7 @@ public class CookiesImpl implements Cookies {
    * yoke.use(new CookieParser());
    * </pre>
    */
-  public CookiesImpl() {
+  public CookieHandlerImpl() {
     this(null);
   }
 
@@ -78,7 +76,6 @@ public class CookiesImpl implements Cookies {
   public void handle(RoutingContext context) {
     String cookieHeader = context.request().headers().get(COOKIE);
 
-    Map<String, Cookie> apexCookies = new HashMap<>();
     if (cookieHeader != null) {
       Set<io.netty.handler.codec.http.Cookie> nettyCookies = CookieDecoder.decode(cookieHeader);
       for (io.netty.handler.codec.http.Cookie cookie : nettyCookies) {
@@ -90,15 +87,15 @@ public class CookiesImpl implements Cookies {
           context.fail(400);
           return;
         }
-        apexCookies.put(apexCookie.getName(), apexCookie);
+        context.addCookie(apexCookie);
       }
-      context.put(Cookies.COOKIES_ENTRY_NAME, apexCookies);
     }
 
     context.addHeadersEndHandler(v -> {
       // save the cookies
-      if (!apexCookies.isEmpty()) {
-        for (Cookie cookie: apexCookies.values()) {
+      Set<Cookie> cookies = context.cookies();
+      if (!cookies.isEmpty()) {
+        for (Cookie cookie: cookies) {
           context.response().headers().add(SET_COOKIE, cookie.encode());
         }
       }

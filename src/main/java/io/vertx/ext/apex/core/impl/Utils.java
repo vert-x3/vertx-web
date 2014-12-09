@@ -48,9 +48,13 @@ public class Utils {
     }
   }
 
-  public static Buffer readResourceToBuffer(String resource) {
+  public static ClassLoader getClassLoader() {
     ClassLoader tccl = Thread.currentThread().getContextClassLoader();
-    ClassLoader cl = tccl == null ? Utils.class.getClassLoader() : tccl;
+    return tccl == null ? Utils.class.getClassLoader() : tccl;
+  }
+
+  public static Buffer readResourceToBuffer(String resource) {
+    ClassLoader cl = getClassLoader();
     try {
       Buffer buffer = Buffer.buffer();
       try (InputStream in = cl.getResourceAsStream(resource)) {

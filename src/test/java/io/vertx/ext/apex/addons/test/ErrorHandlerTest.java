@@ -197,7 +197,7 @@ public class ErrorHandlerTest extends ApexTestBase {
   @Test
   public void testSpecifyTemplate() throws Exception {
     router.clear();
-    router.route().failureHandler(ErrorHandler.errorHandler("test-template.html"));
+    router.route().failureHandler(ErrorHandler.errorHandler("test-error-template.html"));
     int statusCode = 404;
     String statusMessage = "Not Found";
 

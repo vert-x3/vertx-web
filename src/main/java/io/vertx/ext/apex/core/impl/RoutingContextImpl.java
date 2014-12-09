@@ -18,16 +18,22 @@ package io.vertx.ext.apex.core.impl;
 
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
+import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.impl.LoggerFactory;
+import io.vertx.ext.apex.core.Cookie;
+import io.vertx.ext.apex.addons.FileUpload;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -45,6 +51,10 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   private boolean handled;
   private boolean prevHandled;
   private String normalisedPath;
+  // We use Cookie as the key too so we can return keySet in cookies() without copying
+  private Map<Cookie, Cookie> cookies;
+  private Buffer body;
+  private Set<FileUpload> fileUploads;
 
   public RoutingContextImpl(String mountPoint, RouterImpl router, HttpServerRequest request, Iterator<RouteImpl> iter) {
     super(mountPoint, request, iter);
@@ -140,6 +150,11 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   }
 
   @Override
+  public Map<String, Object> contextData() {
+    return data;
+  }
+
+  @Override
   public void addHeadersEndHandler(Handler<Void> handler) {
     getHeadersEndHandlers().add(handler);
   }
@@ -167,6 +182,75 @@ public class RoutingContextImpl extends RoutingContextImplBase {
     return normalisedPath;
   }
 
+  @Override
+  public Cookie getCookie(String name) {
+    return cookiesMap().get(new LookupCookie(name));
+  }
+
+  @Override
+  public void addCookie(Cookie cookie) {
+    cookiesMap().put(cookie, cookie);
+  }
+
+  @Override
+  public Cookie removeCookie(String name) {
+    return cookiesMap().remove(new LookupCookie(name));
+  }
+
+  @Override
+  public int cookieCount() {
+    return cookiesMap().size();
+  }
+
+  @Override
+  public Set<Cookie> cookies() {
+    return cookiesMap().keySet();
+  }
+
+  @Override
+  public String getBodyAsString() {
+    return body != null ? body.toString() : null;
+  }
+
+  @Override
+  public String getBodyAsString(String encoding) {
+    return body != null ? body.toString(encoding) : null;
+  }
+
+  @Override
+  public JsonObject getBodyAsJson() {
+    return body != null ? new JsonObject(body.toString()) : null;
+  }
+
+  @Override
+  public Buffer getBody() {
+    return body;
+  }
+
+  @Override
+  public void setBody(Buffer body) {
+    this.body = body;
+  }
+
+  @Override
+  public Set<FileUpload> fileUploads() {
+    return getFileUploads();
+  }
+
+  private Map<Cookie, Cookie> cookiesMap() {
+    if (cookies == null) {
+      cookies = new HashMap<>();
+    }
+    return cookies;
+  }
+
+  private Set<FileUpload> getFileUploads() {
+    if (fileUploads == null) {
+      fileUploads = new HashSet<>();
+    }
+    return fileUploads;
+  }
+
   private void doFail() {
     handled = prevHandled = false;
     this.iter = router.iterator();
@@ -180,7 +264,6 @@ public class RoutingContextImpl extends RoutingContextImplBase {
     }
     return headersEndHandlers;
   }
-
 
   private List<Handler<Void>> getBodyEndHandlers() {
     if (bodyEndHandlers == null) {

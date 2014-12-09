@@ -14,11 +14,12 @@
  *  You may elect to redistribute this code under either of these licenses.
  */
 
-package io.vertx.ext.apex.addons.impl;
+package io.vertx.ext.apex.core.impl;
 
 import io.netty.handler.codec.http.DefaultCookie;
 import io.netty.handler.codec.http.ServerCookieEncoder;
-import io.vertx.ext.apex.addons.Cookie;
+import io.vertx.ext.apex.addons.impl.ApexSecurity;
+import io.vertx.ext.apex.core.Cookie;
 
 import javax.crypto.Mac;
 import java.util.Set;
@@ -210,5 +211,19 @@ public class CookieImpl implements Cookie {
   @Override
   public String encode() {
     return ServerCookieEncoder.encode(nettyCookie);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (o instanceof Cookie) {
+      return ((Cookie)o).getName().equals(getName());
+    } else {
+      return false;
+    }
+  }
+
+  @Override
+  public int hashCode() {
+    return getName().hashCode();
   }
 }

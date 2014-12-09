@@ -18,7 +18,7 @@ package io.vertx.ext.apex.addons.test;
 
 import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.http.HttpMethod;
-import io.vertx.ext.apex.addons.Cors;
+import io.vertx.ext.apex.addons.CorsHandler;
 import io.vertx.ext.apex.test.ApexTestBase;
 import org.junit.Test;
 
@@ -34,13 +34,13 @@ public class CORSTest extends ApexTestBase {
 
   @Test(expected=NullPointerException.class)
   public void testNullAllowedOrigin() throws Exception {
-    Cors.cors(null);
+    CorsHandler.cors(null);
   }
 
 
   @Test
   public void testAcceptAllAllowedOrigin() throws Exception {
-    router.route().handler(Cors.cors("*"));
+    router.route().handler(CorsHandler.cors("*"));
     router.route().handler(context -> {
       context.response().end();
     });
@@ -53,7 +53,7 @@ public class CORSTest extends ApexTestBase {
 
   @Test
   public void testAcceptAllAllowedOriginNoOriginHeader() throws Exception {
-    router.route().handler(Cors.cors("*"));
+    router.route().handler(CorsHandler.cors("*"));
     router.route().handler(context -> {
       context.response().end();
     });
@@ -64,7 +64,7 @@ public class CORSTest extends ApexTestBase {
 
   @Test
   public void testAcceptConstantOrigin() throws Exception {
-    router.route().handler(Cors.cors("vertx\\.io"));
+    router.route().handler(CorsHandler.cors("vertx\\.io"));
     router.route().handler(context -> {
       context.response().end();
     });
@@ -77,7 +77,7 @@ public class CORSTest extends ApexTestBase {
 
   @Test
   public void testAcceptConstantOriginDenied1() throws Exception {
-    router.route().handler(Cors.cors("vertx\\.io"));
+    router.route().handler(CorsHandler.cors("vertx\\.io"));
     router.route().handler(context -> {
       context.response().end();
     });
@@ -90,7 +90,7 @@ public class CORSTest extends ApexTestBase {
 
   @Test
   public void testAcceptConstantOriginDenied2() throws Exception {
-    router.route().handler(Cors.cors("vertx\\.io"));
+    router.route().handler(CorsHandler.cors("vertx\\.io"));
     router.route().handler(context -> {
       context.response().end();
     });
@@ -104,7 +104,7 @@ public class CORSTest extends ApexTestBase {
 
   @Test
   public void testAcceptConstantOriginNoOriginHeaderDenied() throws Exception {
-    router.route().handler(Cors.cors("vertx\\.io"));
+    router.route().handler(CorsHandler.cors("vertx\\.io"));
     router.route().handler(context -> {
       context.response().end();
     });
@@ -115,7 +115,7 @@ public class CORSTest extends ApexTestBase {
 
   @Test
   public void testAcceptDotisAnyCharacter1() throws Exception {
-    router.route().handler(Cors.cors("vertx.io")); // dot matches any character - watch out!
+    router.route().handler(CorsHandler.cors("vertx.io")); // dot matches any character - watch out!
     router.route().handler(context -> {
       context.response().end();
     });
@@ -128,7 +128,7 @@ public class CORSTest extends ApexTestBase {
 
   @Test
   public void testAcceptDotisAnyCharacter2() throws Exception {
-    router.route().handler(Cors.cors("vertx.io")); // dot matches any character - watch out!
+    router.route().handler(CorsHandler.cors("vertx.io")); // dot matches any character - watch out!
     router.route().handler(context -> {
       context.response().end();
     });
@@ -142,7 +142,7 @@ public class CORSTest extends ApexTestBase {
   @Test
   public void testAcceptPattern() throws Exception {
     // Any subdomains of vertx.io
-    router.route().handler(Cors.cors(".*\\.vertx\\.io"));
+    router.route().handler(CorsHandler.cors(".*\\.vertx\\.io"));
     router.route().handler(context -> {
       context.response().end();
     });
@@ -166,7 +166,7 @@ public class CORSTest extends ApexTestBase {
   @Test
   public void testAcceptPatternDenied() throws Exception {
     // Any subdomains of vertx.io
-    router.route().handler(Cors.cors(".*\\.vertx\\.io"));
+    router.route().handler(CorsHandler.cors(".*\\.vertx\\.io"));
     router.route().handler(context -> {
       context.response().end();
     });
@@ -185,7 +185,7 @@ public class CORSTest extends ApexTestBase {
   @Test
   public void testPreflightSimple() throws Exception {
     Set<HttpMethod> allowedMethods = new LinkedHashSet<>(Arrays.asList(HttpMethod.PUT, HttpMethod.DELETE));
-    router.route().handler(Cors.cors("vertx\\.io").allowedMethods(allowedMethods));
+    router.route().handler(CorsHandler.cors("vertx\\.io").allowedMethods(allowedMethods));
     router.route().handler(context -> {
       context.response().end();
     });
@@ -201,7 +201,7 @@ public class CORSTest extends ApexTestBase {
   public void testPreflightAllowedHeaders() throws Exception {
     Set<HttpMethod> allowedMethods = new LinkedHashSet<>(Arrays.asList(HttpMethod.PUT, HttpMethod.DELETE));
     Set<String> allowedHeaders = new LinkedHashSet<>(Arrays.asList("X-wibble", "X-blah"));
-    router.route().handler(Cors.cors("vertx\\.io").allowedMethods(allowedMethods).allowedHeaders(allowedHeaders));
+    router.route().handler(CorsHandler.cors("vertx\\.io").allowedMethods(allowedMethods).allowedHeaders(allowedHeaders));
     router.route().handler(context -> {
       context.response().end();
     });
@@ -218,7 +218,7 @@ public class CORSTest extends ApexTestBase {
   public void testPreflightNoExposeHeaders() throws Exception {
     Set<HttpMethod> allowedMethods = new LinkedHashSet<>(Arrays.asList(HttpMethod.PUT, HttpMethod.DELETE));
     Set<String> exposeHeaders = new LinkedHashSet<>(Arrays.asList("X-floob", "X-blurp"));
-    router.route().handler(Cors.cors("vertx\\.io").allowedMethods(allowedMethods).exposedHeaders(exposeHeaders));
+    router.route().handler(CorsHandler.cors("vertx\\.io").allowedMethods(allowedMethods).exposedHeaders(exposeHeaders));
     router.route().handler(context -> {
       context.response().end();
     });
@@ -234,7 +234,7 @@ public class CORSTest extends ApexTestBase {
   @Test
   public void testPreflightAllowCredentials() throws Exception {
     Set<HttpMethod> allowedMethods = new LinkedHashSet<>(Arrays.asList(HttpMethod.PUT, HttpMethod.DELETE));
-    router.route().handler(Cors.cors("vertx\\.io").allowedMethods(allowedMethods).allowCredentials(true));
+    router.route().handler(CorsHandler.cors("vertx\\.io").allowedMethods(allowedMethods).allowCredentials(true));
     router.route().handler(context -> {
       context.response().end();
     });
@@ -250,7 +250,7 @@ public class CORSTest extends ApexTestBase {
   public void testPreflightAllowCredentialsNoWildcardOrigin() throws Exception {
     Set<HttpMethod> allowedMethods = new LinkedHashSet<>(Arrays.asList(HttpMethod.PUT, HttpMethod.DELETE));
     // Make sure * isn't returned in access-control-allow-origin for credentials
-    router.route().handler(Cors.cors("*").allowedMethods(allowedMethods).allowCredentials(true));
+    router.route().handler(CorsHandler.cors("*").allowedMethods(allowedMethods).allowCredentials(true));
     router.route().handler(context -> {
       context.response().end();
     });
@@ -266,7 +266,7 @@ public class CORSTest extends ApexTestBase {
   public void testPreflightMaxAge() throws Exception {
     Set<HttpMethod> allowedMethods = new LinkedHashSet<>(Arrays.asList(HttpMethod.PUT, HttpMethod.DELETE));
     int maxAge = 131233;
-    router.route().handler(Cors.cors("vertx\\.io").allowedMethods(allowedMethods).maxAgeSeconds(maxAge));
+    router.route().handler(CorsHandler.cors("vertx\\.io").allowedMethods(allowedMethods).maxAgeSeconds(maxAge));
     router.route().handler(context -> {
       context.response().end();
     });
@@ -281,7 +281,7 @@ public class CORSTest extends ApexTestBase {
   @Test
   public void testRealRequestAllowCredentials() throws Exception {
     Set<HttpMethod> allowedMethods = new LinkedHashSet<>(Arrays.asList(HttpMethod.PUT, HttpMethod.DELETE));
-    router.route().handler(Cors.cors("vertx\\.io").allowedMethods(allowedMethods).allowCredentials(true));
+    router.route().handler(CorsHandler.cors("vertx\\.io").allowedMethods(allowedMethods).allowCredentials(true));
     router.route().handler(context -> {
       context.response().end();
     });
@@ -295,7 +295,7 @@ public class CORSTest extends ApexTestBase {
   @Test
   public void testRealRequestCredentialsNoWildcardOrigin() throws Exception {
     Set<HttpMethod> allowedMethods = new LinkedHashSet<>(Arrays.asList(HttpMethod.PUT, HttpMethod.DELETE));
-    router.route().handler(Cors.cors("*").allowedMethods(allowedMethods).allowCredentials(true));
+    router.route().handler(CorsHandler.cors("*").allowedMethods(allowedMethods).allowCredentials(true));
     router.route().handler(context -> {
       context.response().end();
     });
@@ -308,7 +308,7 @@ public class CORSTest extends ApexTestBase {
 
   @Test
   public void testChaining() throws Exception {
-    Cors cors = Cors.cors("*");
+    CorsHandler cors = CorsHandler.cors("*");
     assertNotNull(cors);
     assertSame(cors, cors.allowedMethod(HttpMethod.POST));
     assertSame(cors, cors.allowedMethod(HttpMethod.DELETE));

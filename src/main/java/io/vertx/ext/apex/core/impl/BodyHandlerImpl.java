@@ -14,18 +14,18 @@
  *  You may elect to redistribute this code under either of these licenses.
  */
 
-package io.vertx.ext.apex.addons.impl;
+package io.vertx.ext.apex.core.impl;
 
 import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
-import io.vertx.ext.apex.addons.Bodies;
+import io.vertx.ext.apex.addons.impl.FileUploadImpl;
+import io.vertx.ext.apex.core.BodyHandler;
 import io.vertx.ext.apex.addons.FileUpload;
 import io.vertx.ext.apex.core.RoutingContext;
 
 import java.io.File;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
@@ -33,24 +33,24 @@ import java.util.UUID;
  *
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public class BodiesImpl implements Bodies {
+public class BodyHandlerImpl implements BodyHandler {
 
   private final long bodyLimit;
   private final File uploadsDir;
 
-  public BodiesImpl() {
+  public BodyHandlerImpl() {
     this(DEFAULT_BODY_LIMIT, DEFAULT_UPLOADS_DIRECTORY);
   }
 
-  public BodiesImpl(long bodyLimit) {
+  public BodyHandlerImpl(long bodyLimit) {
     this(bodyLimit, DEFAULT_UPLOADS_DIRECTORY);
   }
 
-  public BodiesImpl(String uploadsDirectory) {
+  public BodyHandlerImpl(String uploadsDirectory) {
     this(DEFAULT_BODY_LIMIT, uploadsDirectory);
   }
 
-  public BodiesImpl(long bodyLimit, String uploadsDirectory) {
+  public BodyHandlerImpl(long bodyLimit, String uploadsDirectory) {
     this.bodyLimit = bodyLimit;
     uploadsDir = new File(uploadsDirectory);
     if (!uploadsDir.exists()) {
@@ -73,22 +73,19 @@ public class BodiesImpl implements Bodies {
 
   private class BodyHandler implements Handler<Buffer> {
 
-    final RoutingContext context;
-    final Buffer body = Buffer.buffer();
-    Set<FileUpload> fileUploads;
+    RoutingContext context;
+    Buffer body = Buffer.buffer();
     boolean failed;
 
     private BodyHandler(RoutingContext context) {
       this.context = context;
+      Set<FileUpload> fileUploads = context.fileUploads();
       context.request().setExpectMultipart(true);
       context.request().exceptionHandler(context::fail);
       context.request().uploadHandler(upload -> {
         // We actually upload to a file with a generated filename
         String uploadedFileName = new File(uploadsDir, UUID.randomUUID().toString()).getPath();
         upload.streamToFileSystem(uploadedFileName);
-        if (fileUploads == null) {
-          fileUploads = new HashSet<>();
-        }
         FileUploadImpl fileUpload = new FileUploadImpl(uploadedFileName, upload);
         fileUploads.add(fileUpload);
         upload.exceptionHandler(context::fail);
@@ -112,8 +109,7 @@ public class BodiesImpl implements Bodies {
       if (failed) {
         return;
       }
-      context.put(Bodies.FILE_UPLOADS_ENTRY_NAME, fileUploads);
-      context.put(Bodies.BODY_ENTRY_NAME, body);
+      context.setBody(body);
       context.next();
     }
   }
