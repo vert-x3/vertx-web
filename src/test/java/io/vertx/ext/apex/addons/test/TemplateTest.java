@@ -30,9 +30,6 @@ import io.vertx.ext.apex.core.impl.Utils;
 import io.vertx.ext.apex.test.ApexTestBase;
 import org.junit.Test;
 
-import java.io.InputStream;
-import java.util.Scanner;
-
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
@@ -127,13 +124,10 @@ public class TemplateTest extends ApexTestBase {
       if (fail) {
         handler.handle(Future.failedFuture(new Exception("eek")));
       } else {
-        InputStream is = Utils.getClassLoader().getResourceAsStream(templateFileName);
-        try (Scanner scanner = new Scanner(is, "UTF-8").useDelimiter("\\A")) {
-          String templ = scanner.hasNext() ? scanner.next() : "";
-          String rendered = templ.replace("{foo}", context.get("foo"));
-          rendered = rendered.replace("{bar}", context.get("bar"));
-          handler.handle(Future.succeededFuture(Buffer.buffer(rendered)));
-        }
+        String templ = Utils.readResourceToString(templateFileName);
+        String rendered = templ.replace("{foo}", context.get("foo"));
+        rendered = rendered.replace("{bar}", context.get("bar"));
+        handler.handle(Future.succeededFuture(Buffer.buffer(rendered)));
       }
     }
 

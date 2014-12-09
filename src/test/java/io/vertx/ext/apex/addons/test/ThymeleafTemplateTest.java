@@ -31,28 +31,28 @@ public class ThymeleafTemplateTest extends ApexTestBase {
   @Test
   public void testTemplateHandler() throws Exception {
     TemplateEngine engine = ThymeleafTemplateEngine.create();
-    testTemplateHandler(engine);
+    testTemplateHandler(engine, "test-thymeleaf-template.html");
   }
 
   @Test
   public void testTemplateHandlerwithPrefixAndType1() throws Exception {
     TemplateEngine engine = ThymeleafTemplateEngine.create("somedir/", "XHTML");
-    testTemplateHandler(engine);
+    testTemplateHandler(engine, "test-thymeleaf-template2.html");
   }
 
   @Test
   public void testTemplateHandlerwithPrefixAndType2() throws Exception {
     TemplateEngine engine = ThymeleafTemplateEngine.create("somedir", "XHTML");
-    testTemplateHandler(engine);
+    testTemplateHandler(engine, "test-thymeleaf-template2.html");
   }
 
-  private void testTemplateHandler(TemplateEngine engine) throws Exception {
+  private void testTemplateHandler(TemplateEngine engine, String templateName) throws Exception {
     router.route().handler(context -> {
       context.put("foo", "badger");
       context.put("bar", "fox");
       context.next();
     });
-    router.route().handler(TemplateHandler.templateHandler(engine, "test-thymeleaf-template.html", "text/html"));
+    router.route().handler(TemplateHandler.templateHandler(engine, templateName, "text/html"));
     String expected =
       "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">\n" +
         "\n" +

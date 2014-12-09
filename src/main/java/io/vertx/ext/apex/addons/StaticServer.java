@@ -35,6 +35,7 @@ public interface StaticServer extends Handler<RoutingContext> {
   static final boolean DEFAULT_INCLUDE_HIDDEN = true;
   static final long DEFAULT_CACHE_ENTRY_TIMEOUT = 30000; // 30 seconds
   static final String DEFAULT_INDEX_PAGE = "/index.html";
+  static final int DEFAULT_MAX_CACHE_SIZE = 10000;
 
   static StaticServer staticServer(String root) {
     return new StaticServerImpl(root);
@@ -62,5 +63,7 @@ public interface StaticServer extends Handler<RoutingContext> {
   StaticServer setCacheEntryTimeout(long timeout);
 
   StaticServer setIndexPage(String indexPage);
+
+  StaticServer setMaxCacheSize(int maxCacheSize);
 
 }

@@ -27,13 +27,13 @@ import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.impl.LoggerFactory;
 import io.vertx.ext.apex.addons.StaticServer;
 import io.vertx.ext.apex.core.RoutingContext;
+import io.vertx.ext.apex.core.impl.LRUCache;
 import io.vertx.ext.apex.core.impl.Utils;
 
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.TimeZone;
@@ -55,7 +55,7 @@ public class StaticServerImpl implements StaticServer {
   {
     DATE_TIME_FORMATTER.setTimeZone(TimeZone.getTimeZone("UTC"));
   }
-  private final Map<String, CacheEntry> propsCache = new HashMap<>();
+  private Map<String, CacheEntry> propsCache;
   private String webRoot = DEFAULT_WEB_ROOT;
   private long maxAgeSeconds = DEFAULT_MAX_AGE_SECONDS; // One day
   private boolean directoryListing = DEFAULT_DIRECTORY_LISTING;
@@ -64,6 +64,7 @@ public class StaticServerImpl implements StaticServer {
   private boolean cachingEnabled = DEFAULT_CACHING_ENABLED;
   private long cacheEntryTimeout = DEFAULT_CACHE_ENTRY_TIMEOUT;
   private String indexPage = DEFAULT_INDEX_PAGE;
+  private int maxCacheSize = DEFAULT_MAX_CACHE_SIZE;
 
   public StaticServerImpl(String root) {
     setRoot(root);
@@ -125,7 +126,7 @@ public class StaticServerImpl implements StaticServer {
       // Look in cache
       CacheEntry entry = null;
       if (cachingEnabled) {
-        entry = propsCache.get(path);
+        entry = propsCache().get(path);
         if (entry != null) {
           if ((filesReadOnly || !entry.isOutOfDate()) && entry.shouldUseCached(request)) {
             context.response().setStatusCode(304).end();
@@ -159,7 +160,7 @@ public class StaticServerImpl implements StaticServer {
               return;
             }
           } else {
-            propsCache.put(path, new CacheEntry(props, System.currentTimeMillis()));
+            propsCache().put(path, new CacheEntry(props, System.currentTimeMillis()));
           }
         } else {
           context.fail(404);
@@ -207,6 +208,15 @@ public class StaticServerImpl implements StaticServer {
   }
 
   @Override
+  public StaticServer setMaxCacheSize(int maxCacheSize) {
+    if (maxCacheSize < 1) {
+      throw new IllegalArgumentException("maxCacheSize must be >= 1");
+    }
+    this.maxCacheSize = maxCacheSize;
+    return this;
+  }
+
+  @Override
   public StaticServer setCachingEnabled(boolean enabled) {
     this.cachingEnabled = enabled;
     return this;
@@ -241,6 +251,13 @@ public class StaticServerImpl implements StaticServer {
     }
     this.indexPage = indexPage;
     return this;
+  }
+
+  private Map<String, CacheEntry> propsCache() {
+    if (propsCache == null) {
+      propsCache = new LRUCache<String, CacheEntry>(maxCacheSize);
+    }
+    return propsCache;
   }
 
   private Date parseDate(String header) {

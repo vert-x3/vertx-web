@@ -58,6 +58,9 @@ public class Utils {
     try {
       Buffer buffer = Buffer.buffer();
       try (InputStream in = cl.getResourceAsStream(resource)) {
+        if (in == null) {
+          return null;
+        }
         int read;
         byte[] data = new byte[4096];
         while ((read = in.read(data, 0, data.length)) != -1) {
@@ -74,6 +77,11 @@ public class Utils {
     } catch (IOException ioe) {
       throw new RuntimeException(ioe);
     }
+  }
+
+  public static String readResourceToString(String resource) {
+    Buffer buff = readResourceToBuffer(resource);
+    return buff == null ? null : buff.toString();
   }
 
   public static List<String> getSortedAcceptableMimeTypes(String acceptHeader) {
