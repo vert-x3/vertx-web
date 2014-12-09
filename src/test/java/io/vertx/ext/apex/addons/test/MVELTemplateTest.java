@@ -17,7 +17,7 @@
 package io.vertx.ext.apex.addons.test;
 
 import io.vertx.core.http.HttpMethod;
-import io.vertx.ext.apex.addons.JadeTemplateEngine;
+import io.vertx.ext.apex.addons.MVELTemplateEngine;
 import io.vertx.ext.apex.addons.TemplateEngine;
 import io.vertx.ext.apex.addons.TemplateHandler;
 import io.vertx.ext.apex.test.ApexTestBase;
@@ -26,70 +26,71 @@ import org.junit.Test;
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public class JadeTemplateTest extends ApexTestBase {
+public class MVELTemplateTest extends ApexTestBase {
 
   @Test
   public void testTemplateHandler() throws Exception {
-    TemplateEngine engine = JadeTemplateEngine.create();
-    testTemplateHandler(engine, "test-jade-template.jade");
+    TemplateEngine engine = MVELTemplateEngine.create();
+    testTemplateHandler(engine, "test-mvel-template.templ");
   }
 
   @Test
   public void testTemplateHandlerwithPrefixAndExtension1() throws Exception {
-    TemplateEngine engine = JadeTemplateEngine.create("somedir/", "jade");
-    testTemplateHandler(engine, "test-jade-template2.jade");
+    TemplateEngine engine = MVELTemplateEngine.create("somedir/", "templ");
+    testTemplateHandler(engine, "test-mvel-template2.templ");
   }
 
   @Test
   public void testTemplateHandlerwithPrefixAndExtension2() throws Exception {
-    TemplateEngine engine = JadeTemplateEngine.create("somedir/", "jade");
-    testTemplateHandler(engine, "test-jade-template2");
+    TemplateEngine engine = MVELTemplateEngine.create("somedir/", "templ");
+    testTemplateHandler(engine, "test-mvel-template2");
   }
 
   @Test
   public void testTemplateHandlerwithPrefixAndExtension3() throws Exception {
-    TemplateEngine engine = JadeTemplateEngine.create("somedir/", ".jade");
-    testTemplateHandler(engine, "test-jade-template2");
+    TemplateEngine engine = MVELTemplateEngine.create("somedir/", ".templ");
+    testTemplateHandler(engine, "test-mvel-template2");
   }
 
   @Test
   public void testTemplateHandlerwithPrefixAndExtension4() throws Exception {
-    TemplateEngine engine = JadeTemplateEngine.create("somedir", ".jade");
-    testTemplateHandler(engine, "test-jade-template2");
+    TemplateEngine engine = MVELTemplateEngine.create("somedir", ".templ");
+    testTemplateHandler(engine, "test-mvel-template2");
   }
 
   @Test
   public void testTemplateHandlerwithPrefixAndExtension5() throws Exception {
-    TemplateEngine engine = JadeTemplateEngine.create("somedir", ".foo");
-    testTemplateHandler(engine, "test-jade-template2");
+    TemplateEngine engine = MVELTemplateEngine.create("somedir", ".foo");
+    testTemplateHandler(engine, "test-mvel-template2");
   }
 
   @Test
   public void testTemplateHandlerNoExtension() throws Exception {
-    TemplateEngine engine = JadeTemplateEngine.create();
-    testTemplateHandler(engine, "test-jade-template");
+    TemplateEngine engine = MVELTemplateEngine.create();
+    testTemplateHandler(engine, "test-mvel-template");
   }
 
   @Test
   public void testTemplateHandlerwithMaxCacheSize() throws Exception {
-    TemplateEngine engine = JadeTemplateEngine.create("somedir", ".foo", 12);
-    testTemplateHandler(engine, "test-jade-template2");
+    TemplateEngine engine = MVELTemplateEngine.create("somedir", ".foo", 12);
+    testTemplateHandler(engine, "test-mvel-template2");
   }
 
   private void testTemplateHandler(TemplateEngine engine, String templateName) throws Exception {
     router.route().handler(context -> {
       context.put("foo", "badger");
+      context.put("bar", "fox");
       context.next();
     });
     router.route().handler(TemplateHandler.templateHandler(engine, templateName, "text/plain"));
-    String expected = "<!DOCTYPE html><html><head><title>badger</title></head><body></body></html>";
+    String expected = "Hello badger and fox";
     testRequest(HttpMethod.GET, "/", 200, "OK", expected);
   }
 
   @Test
   public void testNoSuchTemplate() throws Exception {
-    TemplateEngine engine = JadeTemplateEngine.create();
-    router.route().handler(TemplateHandler.templateHandler(engine, "nosuchtemplate.jade", "text/plain"));
+    TemplateEngine engine = MVELTemplateEngine.create();
+    router.route().handler(TemplateHandler.templateHandler(engine, "nosuchtemplate.templ", "text/plain"));
     testRequest(HttpMethod.GET, "/", 500, "Internal Server Error");
   }
 
