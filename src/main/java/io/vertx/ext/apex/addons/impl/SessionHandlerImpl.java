@@ -103,7 +103,7 @@ public class SessionHandlerImpl implements SessionHandler {
     Session session = new SessionImpl(sessionID, sessionTimeout, sessionStore);
     context.setSession(session);
     Cookie cookie = Cookie.cookie(sessionCookieName, sessionID);
-    cookie.setMaxAge(cookieMaxAge);
+    cookie.setMaxAge(cookieMaxAge / 1000); // in seconds
     context.addCookie(cookie);
     addStoreSessionHandler(context, sessionID, session, true);
   }

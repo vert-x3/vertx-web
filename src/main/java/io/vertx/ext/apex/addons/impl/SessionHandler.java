@@ -26,8 +26,8 @@ import io.vertx.ext.apex.core.SessionStore;
 public interface SessionHandler extends Handler<RoutingContext> {
 
   public static final String DEFAULT_SESSION_COOKIE_NAME = "apex.session";
-  public static final long DEFAULT_COOKIE_MAX_AGE = 30 * 60; // 30 minutes
-  public static final long DEFAULT_SESSION_TIMEOUT = 30 * 60 ; // 30 minutes
+  public static final long DEFAULT_COOKIE_MAX_AGE = 30 * 60 * 1000; // 30 minutes
+  public static final long DEFAULT_SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutes
 
   static SessionHandler sessionHandler(String sessionCookieName, long cookieMaxAge, long sessionTimeout,
                                        SessionStore sessionStore) {

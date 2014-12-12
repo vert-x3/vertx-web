@@ -71,7 +71,7 @@ public abstract class SessionHandlerTestBase extends ApexTestBase {
       String expiresString = setCookie.substring(pos + 10);
       try {
         Date date = DATE_TIME_FORMATTER.parse(expiresString);
-        long diff = date.getTime() - now - expires * 1000;
+        long diff = date.getTime() - now - expires;
         assertTrue(diff < 1000);
       } catch (ParseException e) {
         fail(e.getMessage());
@@ -167,7 +167,7 @@ public abstract class SessionHandlerTestBase extends ApexTestBase {
   @Test
   public void testSessionExpires() throws Exception {
     router.route().handler(CookieHandler.cookieHandler());
-    long timeout = 1;
+    long timeout = 1000;
     router.route().handler(SessionHandler.sessionHandler(SessionHandler.DEFAULT_SESSION_COOKIE_NAME, SessionHandler.DEFAULT_COOKIE_MAX_AGE,
       timeout, store));
     AtomicReference<String> rid = new AtomicReference<>();
@@ -195,7 +195,7 @@ public abstract class SessionHandlerTestBase extends ApexTestBase {
       String setCookie = resp.headers().get("set-cookie");
       rSetCookie.set(setCookie);
     }, 200, "OK", null);
-    Thread.sleep(2 * (LocalSessionStore.DEFAULT_REAPER_PERIOD + timeout * 1000));
+    Thread.sleep(2 * (LocalSessionStore.DEFAULT_REAPER_PERIOD + timeout));
     testRequest(HttpMethod.GET, "/", req -> {
       req.putHeader("cookie", rSetCookie.get());
     }, null, 200, "OK", null);
@@ -206,7 +206,7 @@ public abstract class SessionHandlerTestBase extends ApexTestBase {
       latch1.countDown();
     }));
     awaitLatch(latch1);
-    Thread.sleep(2 * (LocalSessionStore.DEFAULT_REAPER_PERIOD + timeout * 1000));
+    Thread.sleep(2 * (LocalSessionStore.DEFAULT_REAPER_PERIOD + timeout));
     CountDownLatch latch2 = new CountDownLatch(1);
     store.size(onSuccess(res -> {
       assertEquals(0, res.intValue());

@@ -32,10 +32,10 @@ import java.util.Set;
  */
 public class LocalSessionStoreImpl implements SessionStore, Handler<Long> {
 
-  private final Vertx vertx;
-  private final LocalMap<String, Session> localMap;
+  protected final Vertx vertx;
+  protected final LocalMap<String, Session> localMap;
   private final long reaperPeriod;
-  private long timerID;
+  private long timerID = -1;
   private boolean closed;
 
   public LocalSessionStoreImpl(Vertx vertx, String sessionMapName, long reaperPeriod) {
@@ -75,7 +75,9 @@ public class LocalSessionStoreImpl implements SessionStore, Handler<Long> {
   @Override
   public synchronized void close() {
     localMap.close();
-    vertx.cancelTimer(timerID);
+    if (timerID != -1) {
+      vertx.cancelTimer(timerID);
+    }
     closed = true;
   }
 
@@ -84,7 +86,7 @@ public class LocalSessionStoreImpl implements SessionStore, Handler<Long> {
     long now = System.currentTimeMillis();
     Set<String> toRemove = new HashSet<>();
     for (Session session: localMap.values()) {
-      if (now - session.lastAccessed() > 1000 * session.timeout()) {
+      if (now - session.lastAccessed() > session.timeout()) {
         toRemove.add(session.id());
       }
     }
@@ -97,7 +99,9 @@ public class LocalSessionStoreImpl implements SessionStore, Handler<Long> {
   }
 
   private void setTimer() {
-    timerID = vertx.setTimer(reaperPeriod, this);
+    if (reaperPeriod != 0) {
+      timerID = vertx.setTimer(reaperPeriod, this);
+    }
   }
 
 }

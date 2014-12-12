@@ -21,31 +21,28 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.shareddata.AsyncMap;
-import io.vertx.core.shareddata.LocalMap;
 import io.vertx.ext.apex.core.Session;
-import io.vertx.ext.apex.core.SessionStore;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public class ClusteredSessionStoreImpl implements SessionStore {
+public class ClusteredSessionStoreImpl extends LocalSessionStoreImpl {
 
-  private final Vertx vertx;
   private final String sessionMapName;
+  private final boolean cacheLocally;
+
   // Clustered Map
   private volatile AsyncMap<String, Session> sessionMap;
-  // We also cache locally for better performance - in many cases requests will be pinned to a node anyway
-  private final LocalMap<String, Session> localMap;
 
-  public ClusteredSessionStoreImpl(Vertx vertx, String sessionMapName, boolean cacheLocally) {
-    this.vertx = vertx;
+  public ClusteredSessionStoreImpl(Vertx vertx, String sessionMapName, boolean cacheLocally, long localReaperPeriod) {
+    super(vertx, sessionMapName, cacheLocally ? localReaperPeriod : 0);
     this.sessionMapName = sessionMapName;
-    localMap = cacheLocally ? vertx.sharedData().getLocalMap(sessionMapName) : null;
+    this.cacheLocally = cacheLocally;
   }
 
   @Override
   public void get(String id, Handler<AsyncResult<Session>> resultHandler) {
-    Session session = localMap != null ? localMap.get(id) : null;
+    Session session = cacheLocally ? localMap.get(id) : null;
     if (session != null) {
       resultHandler.handle(Future.succeededFuture(hasExpired(session)));
     } else {
@@ -66,7 +63,7 @@ public class ClusteredSessionStoreImpl implements SessionStore {
   }
 
   private Session hasExpired(Session session) {
-    if (System.currentTimeMillis() - session.lastAccessed() >= 1000 * session.timeout()) {
+    if (session != null && System.currentTimeMillis() - session.lastAccessed() >= session.timeout()) {
       return null;
     } else {
       return session;
@@ -79,7 +76,7 @@ public class ClusteredSessionStoreImpl implements SessionStore {
       if (res.succeeded()) {
         res.result().remove(id, res2 -> {
           if (res2.succeeded()) {
-            if (localMap != null) {
+            if (cacheLocally) {
               localMap.remove(id);
             }
             resultHandler.handle(Future.succeededFuture(res2.result() != null));
@@ -97,9 +94,9 @@ public class ClusteredSessionStoreImpl implements SessionStore {
   public void put(String id, Session session, long timeout, Handler<AsyncResult<Boolean>> resultHandler) {
     getMap(res -> {
       if (res.succeeded()) {
-        res.result().put(id, session, timeout * 1000, res2 -> {
+        res.result().put(id, session, timeout, res2 -> {
           if (res2.succeeded()) {
-            if (localMap != null) {
+            if (cacheLocally) {
               localMap.put(id, session);
             }
             resultHandler.handle(Future.succeededFuture(res2.result() != null));
@@ -119,7 +116,7 @@ public class ClusteredSessionStoreImpl implements SessionStore {
       if (res.succeeded()) {
         res.result().clear(res2 -> {
           if (res2.succeeded()) {
-            if (localMap != null) {
+            if (cacheLocally) {
               localMap.clear();
             }
             resultHandler.handle(Future.succeededFuture(res2.result() != null));
@@ -135,13 +132,22 @@ public class ClusteredSessionStoreImpl implements SessionStore {
 
   @Override
   public void size(Handler<AsyncResult<Integer>> resultHandler) {
-    resultHandler.handle(Future.succeededFuture(localMap == null ? -1 : localMap.size()));
-  }
-
-  @Override
-  public void close() {
-    if (localMap != null) {
-      localMap.close();
+    if (cacheLocally) {
+      resultHandler.handle(Future.succeededFuture(localMap.size()));
+    } else {
+      getMap(res -> {
+        if (res.succeeded()) {
+          res.result().size(res2 -> {
+            if (res2.succeeded()) {
+              resultHandler.handle(Future.succeededFuture(res2.result()));
+            } else {
+              resultHandler.handle(Future.failedFuture(res2.cause()));
+            }
+          });
+        } else {
+          resultHandler.handle(Future.failedFuture(res.cause()));
+        }
+      });
     }
   }
 
