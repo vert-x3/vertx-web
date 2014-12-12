@@ -14,24 +14,30 @@
  *  You may elect to redistribute this code under either of these licenses.
  */
 
-package io.vertx.ext.apex.addons;
+package io.vertx.ext.apex.core;
 
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.core.Handler;
-import io.vertx.ext.apex.core.RoutingContext;
-import io.vertx.ext.apex.addons.impl.RequestTimeImpl;
+import io.vertx.core.json.JsonObject;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 @VertxGen
-public interface RequestTime extends Handler<RoutingContext> {
+public interface Session {
 
-  static RequestTime requestTime() {
-    return new RequestTimeImpl();
-  }
+  JsonObject data();
 
-  @Override
-  void handle(RoutingContext event);
+  String id();
 
+  long lastAccessed();
+
+  void accessed();
+
+  void destroy();
+
+  boolean isDestroyed();
+
+  long timeout();
+
+  SessionStore sessionStore();
 }

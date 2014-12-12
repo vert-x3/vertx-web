@@ -22,8 +22,9 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.apex.core.Session;
 import io.vertx.ext.apex.core.Cookie;
-import io.vertx.ext.apex.addons.FileUpload;
+import io.vertx.ext.apex.core.FileUpload;
 import io.vertx.ext.apex.core.RoutingContext;
 
 import java.util.Iterator;
@@ -91,23 +92,33 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   }
 
   @Override
-  public void addHeadersEndHandler(Handler<Void> handler) {
-    inner.addHeadersEndHandler(handler);
+  public int addHeadersEndHandler(Handler<Void> handler) {
+    return inner.addHeadersEndHandler(handler);
   }
 
   @Override
-  public boolean removeHeadersEndHandler(Handler<Void> handler) {
-    return inner.removeHeadersEndHandler(handler);
+  public boolean removeHeadersEndHandler(int handlerID) {
+    return inner.removeHeadersEndHandler(handlerID);
   }
 
   @Override
-  public void addBodyEndHandler(Handler<Void> handler) {
-    inner.addBodyEndHandler(handler);
+  public int addBodyEndHandler(Handler<Void> handler) {
+    return inner.addBodyEndHandler(handler);
   }
 
   @Override
-  public boolean removeBodyEndHandler(Handler<Void> handler) {
-    return inner.removeBodyEndHandler(handler);
+  public boolean removeBodyEndHandler(int handlerID) {
+    return inner.removeBodyEndHandler(handlerID);
+  }
+
+  @Override
+  public void setSession(Session session) {
+   inner.setSession(session);
+  }
+
+  @Override
+  public Session session() {
+    return inner.session();
   }
 
   @Override

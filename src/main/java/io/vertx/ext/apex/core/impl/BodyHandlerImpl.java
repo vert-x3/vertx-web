@@ -20,9 +20,8 @@ import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
-import io.vertx.ext.apex.addons.impl.FileUploadImpl;
 import io.vertx.ext.apex.core.BodyHandler;
-import io.vertx.ext.apex.addons.FileUpload;
+import io.vertx.ext.apex.core.FileUpload;
 import io.vertx.ext.apex.core.RoutingContext;
 
 import java.io.File;

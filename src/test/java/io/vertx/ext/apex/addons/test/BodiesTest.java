@@ -21,7 +21,7 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.apex.core.BodyHandler;
-import io.vertx.ext.apex.addons.FileUpload;
+import io.vertx.ext.apex.core.FileUpload;
 import io.vertx.ext.apex.test.ApexTestBase;
 import io.vertx.test.core.TestUtils;
 import org.junit.Rule;

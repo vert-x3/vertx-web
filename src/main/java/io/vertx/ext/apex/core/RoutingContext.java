@@ -25,8 +25,6 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.apex.addons.FileUpload;
-import io.vertx.ext.apex.core.impl.RoutingContextHelper;
 
 import java.util.Map;
 import java.util.Set;
@@ -36,10 +34,6 @@ import java.util.Set;
  */
 @VertxGen
 public interface RoutingContext {
-
-  public static RoutingContext getContext() {
-    return RoutingContextHelper.getContext();
-  }
 
   @CacheReturn
   HttpServerRequest request();
@@ -67,13 +61,13 @@ public interface RoutingContext {
 
   // TODO - shouldn't these below be fluent??
 
-  void addHeadersEndHandler(Handler<Void> handler);
+  int addHeadersEndHandler(Handler<Void> handler);
 
-  boolean removeHeadersEndHandler(Handler<Void> handler);
+  boolean removeHeadersEndHandler(int handlerID);
 
-  void addBodyEndHandler(Handler<Void> handler);
+  int addBodyEndHandler(Handler<Void> handler);
 
-  boolean removeBodyEndHandler(Handler<Void> handler);
+  boolean removeBodyEndHandler(int handlerID);
 
   void setHandled(boolean handled);
 
@@ -112,5 +106,11 @@ public interface RoutingContext {
   void setBody(Buffer body);
 
   Set<FileUpload> fileUploads();
+
+  // Sessions
+
+  void setSession(Session session);
+
+  Session session();
 
 }

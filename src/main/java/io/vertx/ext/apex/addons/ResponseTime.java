@@ -17,26 +17,21 @@
 package io.vertx.ext.apex.addons;
 
 import io.vertx.codegen.annotations.VertxGen;
+import io.vertx.core.Handler;
+import io.vertx.ext.apex.core.RoutingContext;
+import io.vertx.ext.apex.addons.impl.ResponseTimeImpl;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 @VertxGen
-public interface FileUpload {
+public interface ResponseTime extends Handler<RoutingContext> {
 
-  String name();
+  static ResponseTime requestTime() {
+    return new ResponseTimeImpl();
+  }
 
-  String uploadedFileName();
-
-  String fileName();
-
-  long size();
-
-  String contentType();
-
-  String contentTransferEncoding();
-
-  String charSet();
-
+  @Override
+  void handle(RoutingContext event);
 
 }

@@ -59,5 +59,4 @@ public interface Router {
 
   Router exceptionHandler(Handler<Throwable> exceptionHandler);
 
-
 }

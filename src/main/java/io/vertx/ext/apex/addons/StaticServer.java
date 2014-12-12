@@ -46,7 +46,7 @@ public interface StaticServer extends Handler<RoutingContext> {
   }
 
   @Override
-  void handle(RoutingContext event);
+  void handle(RoutingContext context);
 
   StaticServer setWebRoot(String webRoot);
 

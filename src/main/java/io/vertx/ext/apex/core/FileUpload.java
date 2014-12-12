@@ -14,23 +14,29 @@
  *  You may elect to redistribute this code under either of these licenses.
  */
 
-package io.vertx.ext.apex.addons.impl;
+package io.vertx.ext.apex.core;
 
-import io.vertx.ext.apex.core.RoutingContext;
-import io.vertx.ext.apex.addons.RequestTime;
+import io.vertx.codegen.annotations.VertxGen;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public class RequestTimeImpl implements RequestTime {
+@VertxGen
+public interface FileUpload {
 
-  @Override
-  public void handle(RoutingContext ctx) {
-    long start = System.currentTimeMillis();
-    ctx.response().headersEndHandler(v -> {
-      long duration = System.currentTimeMillis() - start;
-      ctx.response().putHeader("x-response-time", duration + "ms");
-    });
-    ctx.next();
-  }
+  String name();
+
+  String uploadedFileName();
+
+  String fileName();
+
+  long size();
+
+  String contentType();
+
+  String contentTransferEncoding();
+
+  String charSet();
+
+
 }

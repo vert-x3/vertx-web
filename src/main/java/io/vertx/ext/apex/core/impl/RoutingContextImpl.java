@@ -25,15 +25,16 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.impl.LoggerFactory;
 import io.vertx.ext.apex.core.Cookie;
-import io.vertx.ext.apex.addons.FileUpload;
+import io.vertx.ext.apex.core.FileUpload;
+import io.vertx.ext.apex.core.Session;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -43,9 +44,10 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   private static final Logger log = LoggerFactory.getLogger(RoutingContextImpl.class);
 
   private final RouterImpl router;
-  private final Map<String, Object> data = new HashMap<>();
-  private List<Handler<Void>> headersEndHandlers;
-  private List<Handler<Void>> bodyEndHandlers;
+  private Map<String, Object> data;
+  private AtomicInteger handlerSeq = new AtomicInteger();
+  private Map<Integer, Handler<Void>> headersEndHandlers;
+  private Map<Integer, Handler<Void>> bodyEndHandlers;
   private Throwable failure;
   private int statusCode = -1;
   private boolean handled;
@@ -55,6 +57,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   private Map<Cookie, Cookie> cookies;
   private Buffer body;
   private Set<FileUpload> fileUploads;
+  private Session session;
 
   public RoutingContextImpl(String mountPoint, RouterImpl router, HttpServerRequest request, Iterator<RouteImpl> iter) {
     super(mountPoint, request, iter);
@@ -121,7 +124,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
 
   @Override
   public void put(String key, Object obj) {
-    data.put(key, obj);
+    data().put(key, obj);
   }
 
   @Override
@@ -145,33 +148,13 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   @Override
   @SuppressWarnings("unchecked")
   public <T> T get(String key) {
-    Object obj = data.get(key);
+    Object obj = data().get(key);
     return (T)obj;
   }
 
   @Override
   public Map<String, Object> contextData() {
-    return data;
-  }
-
-  @Override
-  public void addHeadersEndHandler(Handler<Void> handler) {
-    getHeadersEndHandlers().add(handler);
-  }
-
-  @Override
-  public boolean removeHeadersEndHandler(Handler<Void> handler) {
-    return getHeadersEndHandlers().remove(handler);
-  }
-
-  @Override
-  public void addBodyEndHandler(Handler<Void> handler) {
-    getBodyEndHandlers().add(handler);
-  }
-
-  @Override
-  public boolean removeBodyEndHandler(Handler<Void> handler) {
-    return getBodyEndHandlers().remove(handler);
+    return data();
   }
 
   @Override
@@ -237,6 +220,56 @@ public class RoutingContextImpl extends RoutingContextImplBase {
     return getFileUploads();
   }
 
+  @Override
+  public void setSession(Session session) {
+    this.session = session;
+  }
+
+  @Override
+  public Session session() {
+    return session;
+  }
+
+  @Override
+  public int addHeadersEndHandler(Handler<Void> handler) {
+    int seq = nextHandlerSeq();
+    getHeadersEndHandlers().put(seq, handler);
+    return seq;
+  }
+
+  @Override
+  public boolean removeHeadersEndHandler(int handlerID) {
+    return getHeadersEndHandlers().remove(handlerID) != null;
+  }
+
+  @Override
+  public int addBodyEndHandler(Handler<Void> handler) {
+    int seq = nextHandlerSeq();
+    getBodyEndHandlers().put(seq, handler);
+    return seq;
+  }
+
+  @Override
+  public boolean removeBodyEndHandler(int handlerID) {
+    return getBodyEndHandlers().remove(handlerID) != null;
+  }
+
+  private Map<Integer, Handler<Void>> getHeadersEndHandlers() {
+    if (headersEndHandlers == null) {
+      headersEndHandlers = new LinkedHashMap<>();
+      response().headersEndHandler(v -> headersEndHandlers.values().forEach(handler -> handler.handle(null)));
+    }
+    return headersEndHandlers;
+  }
+
+  private Map<Integer, Handler<Void>> getBodyEndHandlers() {
+    if (bodyEndHandlers == null) {
+      bodyEndHandlers = new LinkedHashMap<>();
+      response().bodyEndHandler(v -> bodyEndHandlers.values().forEach(handler -> handler.handle(null)));
+    }
+    return bodyEndHandlers;
+  }
+
   private Map<Cookie, Cookie> cookiesMap() {
     if (cookies == null) {
       cookies = new HashMap<>();
@@ -257,20 +290,19 @@ public class RoutingContextImpl extends RoutingContextImplBase {
     next();
   }
 
-  private List<Handler<Void>> getHeadersEndHandlers() {
-    if (headersEndHandlers == null) {
-      headersEndHandlers = new ArrayList<>();
-      response().headersEndHandler(v -> headersEndHandlers.forEach(handler -> handler.handle(null)));
+  private Map<String, Object> data() {
+    if (data == null) {
+      data = new HashMap<>();
     }
-    return headersEndHandlers;
+    return data;
   }
 
-  private List<Handler<Void>> getBodyEndHandlers() {
-    if (bodyEndHandlers == null) {
-      bodyEndHandlers = new ArrayList<>();
-      response().bodyEndHandler(v -> bodyEndHandlers.forEach(handler -> handler.handle(null)));
+  private int nextHandlerSeq() {
+    int seq = handlerSeq.incrementAndGet();
+    if (seq == Integer.MAX_VALUE) {
+      throw new IllegalStateException("Too many header/body end handlers!");
     }
-    return bodyEndHandlers;
+    return seq;
   }
 
   private static final String DEFAULT_404 =

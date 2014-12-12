@@ -57,34 +57,29 @@ public abstract class RoutingContextImplBase implements FailureRoutingContext {
 
   protected boolean iterateNext() {
     boolean failed = failed();
-    RoutingContextHelper.setOnContext(this);
-    try {
-      while (iter.hasNext()) {
-        RouteImpl route = iter.next();
-        if (route.matches(mountPoint(), request, failed)) {
-          try {
-            setHandled(true);
-            currentRoute = route;
-            if (failed) {
-              route.handleFailure(this);
-            } else {
-              route.handleContext(this);
-            }
-          } catch (Throwable t) {
-            if (!failed) {
-              fail(t);
-            } else {
-              // Failure in handling failure!
-              unhandledFailure(-1, t, route.router());
-            }
-          } finally {
-            currentRoute = null;
+    while (iter.hasNext()) {
+      RouteImpl route = iter.next();
+      if (route.matches(mountPoint(), request, failed)) {
+        try {
+          setHandled(true);
+          currentRoute = route;
+          if (failed) {
+            route.handleFailure(this);
+          } else {
+            route.handleContext(this);
           }
-          return true;
+        } catch (Throwable t) {
+          if (!failed) {
+            fail(t);
+          } else {
+            // Failure in handling failure!
+            unhandledFailure(-1, t, route.router());
+          }
+        } finally {
+          currentRoute = null;
         }
+        return true;
       }
-    } finally {
-      RoutingContextHelper.setOnContext(null);
     }
     return false;
   }
