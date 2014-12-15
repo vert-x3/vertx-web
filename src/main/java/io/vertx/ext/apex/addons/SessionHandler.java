@@ -14,9 +14,10 @@
  *  You may elect to redistribute this code under either of these licenses.
  */
 
-package io.vertx.ext.apex.addons.impl;
+package io.vertx.ext.apex.addons;
 
 import io.vertx.core.Handler;
+import io.vertx.ext.apex.addons.impl.SessionHandlerImpl;
 import io.vertx.ext.apex.core.RoutingContext;
 import io.vertx.ext.apex.core.SessionStore;
 

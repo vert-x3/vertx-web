@@ -14,9 +14,10 @@
  *  You may elect to redistribute this code under either of these licenses.
  */
 
-package io.vertx.ext.apex.addons.impl;
+package io.vertx.ext.apex.addons;
 
 import io.vertx.core.Vertx;
+import io.vertx.ext.apex.addons.impl.ClusteredSessionStoreImpl;
 import io.vertx.ext.apex.core.SessionStore;
 
 /**

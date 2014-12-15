@@ -14,19 +14,18 @@
  *  You may elect to redistribute this code under either of these licenses.
  */
 
-package io.vertx.ext.apex.addons.test;
+package io.vertx.ext.apex.addons.impl;
 
-import io.vertx.ext.apex.addons.LocalSessionStore;
+import io.vertx.ext.apex.addons.OAuthHandler;
+import io.vertx.ext.apex.core.RoutingContext;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public class LocalSessionHandlerTest extends SessionHandlerTestBase {
+public class OAuthHandlerImpl implements OAuthHandler {
 
   @Override
-  public void setUp() throws Exception {
-    super.setUp();
-    store = LocalSessionStore.localSessionStore(vertx);
-  }
+  public void handle(RoutingContext context) {
 
+  }
 }
