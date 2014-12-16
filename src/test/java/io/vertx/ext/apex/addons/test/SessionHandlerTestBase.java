@@ -27,9 +27,7 @@ import io.vertx.ext.apex.test.ApexTestBase;
 import org.junit.Test;
 
 import java.text.DateFormat;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.TimeZone;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -43,49 +41,12 @@ public abstract class SessionHandlerTestBase extends ApexTestBase {
   protected SessionStore store;
 
   @Test
-  public void testSessionCookieDefaultExpires() throws Exception {
-    router.route().handler(CookieHandler.cookieHandler());
-    router.route().handler(SessionHandler.sessionHandler(store));
-    testSessionCookieExpires(SessionHandler.DEFAULT_COOKIE_MAX_AGE);
-  }
-
-  @Test
-  public void testSessionCookieExpires() throws Exception {
-    router.route().handler(CookieHandler.cookieHandler());
-    long expires = 123456;
-    router.route().handler(SessionHandler.sessionHandler(SessionHandler.DEFAULT_SESSION_COOKIE_NAME, expires,
-                           SessionHandler.DEFAULT_SESSION_TIMEOUT, store));
-    testSessionCookieExpires(expires);
-  }
-
-  private void testSessionCookieExpires(long expires) throws Exception {
-    router.route().handler(rc -> {
-      rc.response().end();
-    });
-    long now = System.currentTimeMillis();
-    testRequest(HttpMethod.GET, "/", null, resp -> {
-      String setCookie = resp.headers().get("set-cookie");
-      assertTrue(setCookie.startsWith(SessionHandler.DEFAULT_SESSION_COOKIE_NAME + "="));
-      int pos = setCookie.indexOf("; Expires=");
-      assertTrue(pos != -1);
-      String expiresString = setCookie.substring(pos + 10);
-      try {
-        Date date = DATE_TIME_FORMATTER.parse(expiresString);
-        long diff = date.getTime() - now - expires;
-        assertTrue(diff < 1000);
-      } catch (ParseException e) {
-        fail(e.getMessage());
-      }
-
-    }, 200, "OK", null);
-  }
-
-  @Test
   public void testSessionCookieName() throws Exception {
     router.route().handler(CookieHandler.cookieHandler());
     String sessionCookieName = "acme.sillycookie";
-    router.route().handler(SessionHandler.sessionHandler(sessionCookieName, SessionHandler.DEFAULT_COOKIE_MAX_AGE,
-                                                         SessionHandler.DEFAULT_SESSION_TIMEOUT, store));
+    router.route().handler(SessionHandler.sessionHandler(sessionCookieName,
+                                                         SessionHandler.DEFAULT_SESSION_TIMEOUT,
+                                                         SessionHandler.DEFAULT_NAG_HTTPS, store));
     router.route().handler(rc -> {
       rc.response().end();
     });
@@ -116,7 +77,7 @@ public abstract class SessionHandlerTestBase extends ApexTestBase {
     testRequest(HttpMethod.GET, "/", null, resp -> {
       String setCookie = resp.headers().get("set-cookie");
       assertTrue(setCookie.startsWith(SessionHandler.DEFAULT_SESSION_COOKIE_NAME + "="));
-      int pos = setCookie.indexOf("; Expires=");
+      int pos = setCookie.indexOf("; Path=/");
       String sessID = setCookie.substring(13, pos);
       assertEquals(rid.get(), sessID);
     }, 200, "OK", null);
@@ -168,8 +129,8 @@ public abstract class SessionHandlerTestBase extends ApexTestBase {
   public void testSessionExpires() throws Exception {
     router.route().handler(CookieHandler.cookieHandler());
     long timeout = 1000;
-    router.route().handler(SessionHandler.sessionHandler(SessionHandler.DEFAULT_SESSION_COOKIE_NAME, SessionHandler.DEFAULT_COOKIE_MAX_AGE,
-      timeout, store));
+    router.route().handler(SessionHandler.sessionHandler(SessionHandler.DEFAULT_SESSION_COOKIE_NAME,
+      timeout, SessionHandler.DEFAULT_NAG_HTTPS, store));
     AtomicReference<String> rid = new AtomicReference<>();
     AtomicInteger requestCount = new AtomicInteger();
     router.route().handler(rc -> {

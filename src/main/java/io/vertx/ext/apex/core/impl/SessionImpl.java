@@ -36,6 +36,7 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
   private final SessionStore sessionStore;
   private final long timeout;
 
+  private boolean loggedIn;
   private JsonObject data = new JsonObject();
   private long lastAccessed;
   private boolean destroyed;
@@ -75,6 +76,8 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
   @Override
   public void destroy() {
     destroyed = true;
+    loggedIn = false;
+    data = null;
     sessionStore.delete(id, res -> {
       if (!res.succeeded()) {
         log.error("Failed to delete session", res.cause());
@@ -90,6 +93,21 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
   @Override
   public SessionStore sessionStore() {
     return sessionStore;
+  }
+
+  @Override
+  public boolean isLoggedIn() {
+    return loggedIn;
+  }
+
+  @Override
+  public void setLoggedIn(boolean loggedIn) {
+    this.loggedIn = loggedIn;
+  }
+
+  @Override
+  public void logout() {
+    this.loggedIn = false;
   }
 
   @Override

@@ -21,6 +21,8 @@ import io.vertx.ext.apex.addons.TemplateHandler;
 import io.vertx.ext.apex.core.RoutingContext;
 
 /**
+ * TODO directory
+ *
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 public class TemplateHandlerImpl implements TemplateHandler {

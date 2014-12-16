@@ -213,17 +213,4 @@ public class CookieImpl implements Cookie {
     return ServerCookieEncoder.encode(nettyCookie);
   }
 
-  @Override
-  public boolean equals(Object o) {
-    if (o instanceof Cookie) {
-      return ((Cookie)o).getName().equals(getName());
-    } else {
-      return false;
-    }
-  }
-
-  @Override
-  public int hashCode() {
-    return getName().hashCode();
-  }
 }

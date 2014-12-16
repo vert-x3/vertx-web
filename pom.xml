@@ -56,6 +56,12 @@
       <version>2.2.0.Final</version>
     </dependency>
 
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-auth-service</artifactId>
+      <version>${vertx.version}</version>
+    </dependency>
+
     <!-- Pac4j -->
     <dependency>
       <groupId>org.pac4j</groupId>
