@@ -21,19 +21,19 @@ import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
-import io.vertx.ext.apex.core.impl.RoutingContextHelper;
+import io.vertx.core.json.JsonObject;
+
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 @VertxGen
 public interface RoutingContext {
-
-  public static RoutingContext getContext() {
-    return RoutingContextHelper.getContext();
-  }
 
   @CacheReturn
   HttpServerRequest request();
@@ -52,17 +52,22 @@ public interface RoutingContext {
 
   <T> T get(String key);
 
+  @GenIgnore
+  Map<String, Object> contextData();
+
   Vertx vertx();
 
   // Some Helper methods
 
-  void addHeadersEndHandler(Handler<Void> handler);
+  // TODO - shouldn't these below be fluent??
 
-  boolean removeHeadersEndHandler(Handler<Void> handler);
+  int addHeadersEndHandler(Handler<Void> handler);
 
-  void addBodyEndHandler(Handler<Void> handler);
+  boolean removeHeadersEndHandler(int handlerID);
 
-  boolean removeBodyEndHandler(Handler<Void> handler);
+  int addBodyEndHandler(Handler<Void> handler);
+
+  boolean removeBodyEndHandler(int handlerID);
 
   void setHandled(boolean handled);
 
@@ -75,5 +80,37 @@ public interface RoutingContext {
   Route currentRoute();
 
   String normalisedPath();
+
+  // Cookies
+
+  Cookie getCookie(String name);
+
+  void addCookie(Cookie cookie);
+
+  Cookie removeCookie(String name);
+
+  int cookieCount();
+
+  Set<Cookie> cookies();
+
+  // Bodies
+
+  String getBodyAsString();
+
+  String getBodyAsString(String encoding);
+
+  JsonObject getBodyAsJson();
+
+  Buffer getBody();
+
+  void setBody(Buffer body);
+
+  Set<FileUpload> fileUploads();
+
+  // Sessions
+
+  void setSession(Session session);
+
+  Session session();
 
 }

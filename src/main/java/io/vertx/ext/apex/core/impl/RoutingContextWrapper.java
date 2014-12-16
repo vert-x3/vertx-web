@@ -18,11 +18,18 @@ package io.vertx.ext.apex.core.impl;
 
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
+import io.vertx.core.json.JsonObject;
+import io.vertx.ext.apex.core.Session;
+import io.vertx.ext.apex.core.Cookie;
+import io.vertx.ext.apex.core.FileUpload;
 import io.vertx.ext.apex.core.RoutingContext;
 
 import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -75,28 +82,43 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   }
 
   @Override
+  public Map<String, Object> contextData() {
+    return inner.contextData();
+  }
+
+  @Override
   public Vertx vertx() {
     return inner.vertx();
   }
 
   @Override
-  public void addHeadersEndHandler(Handler<Void> handler) {
-    inner.addHeadersEndHandler(handler);
+  public int addHeadersEndHandler(Handler<Void> handler) {
+    return inner.addHeadersEndHandler(handler);
   }
 
   @Override
-  public boolean removeHeadersEndHandler(Handler<Void> handler) {
-    return inner.removeHeadersEndHandler(handler);
+  public boolean removeHeadersEndHandler(int handlerID) {
+    return inner.removeHeadersEndHandler(handlerID);
   }
 
   @Override
-  public void addBodyEndHandler(Handler<Void> handler) {
-    inner.addBodyEndHandler(handler);
+  public int addBodyEndHandler(Handler<Void> handler) {
+    return inner.addBodyEndHandler(handler);
   }
 
   @Override
-  public boolean removeBodyEndHandler(Handler<Void> handler) {
-    return inner.removeBodyEndHandler(handler);
+  public boolean removeBodyEndHandler(int handlerID) {
+    return inner.removeBodyEndHandler(handlerID);
+  }
+
+  @Override
+  public void setSession(Session session) {
+   inner.setSession(session);
+  }
+
+  @Override
+  public Session session() {
+    return inner.session();
   }
 
   @Override
@@ -142,5 +164,60 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   @Override
   public String normalisedPath() {
     return inner.normalisedPath();
+  }
+
+  @Override
+  public Cookie getCookie(String name) {
+    return inner.getCookie(name);
+  }
+
+  @Override
+  public void addCookie(Cookie cookie) {
+    inner.addCookie(cookie);
+  }
+
+  @Override
+  public Cookie removeCookie(String name) {
+    return inner.removeCookie(name);
+  }
+
+  @Override
+  public int cookieCount() {
+    return inner.cookieCount();
+  }
+
+  @Override
+  public Set<Cookie> cookies() {
+    return inner.cookies();
+  }
+
+  @Override
+  public String getBodyAsString() {
+    return inner.getBodyAsString();
+  }
+
+  @Override
+  public String getBodyAsString(String encoding) {
+    return inner.getBodyAsString(encoding);
+  }
+
+  @Override
+  public JsonObject getBodyAsJson() {
+    return inner.getBodyAsJson();
+  }
+
+  @Override
+  public Buffer getBody() {
+    return inner.getBody();
+  }
+
+  @Override
+  public void setBody(Buffer body) {
+    inner.setBody(body);
+  }
+
+  @Override
+  public Set<FileUpload> fileUploads() {
+    return inner.fileUploads();
   }
 }

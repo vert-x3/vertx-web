@@ -1,0 +1,13 @@
+<!DOCTYPE html SYSTEM "http://www.thymeleaf.org/dtd/xhtml1-strict-thymeleaf-4.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+</head>
+<body>
+<p th:text="${foo}"></p>
+<p th:text="${bar}"></p>
+<p th:text="${_context.normalisedPath()}"></p>
+<p th:text="${_request.params().get('param1')}"></p>
+<p th:text="${_request.params().get('param2')}"></p>
+</body>
+</html>

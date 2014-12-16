@@ -807,11 +807,10 @@ public class RouterTest extends ApexTestBase {
       Handler<Void> handler = v -> {
         rc.response().putHeader("header2", "foo");
       };
-      rc.addHeadersEndHandler(handler);
+      int handlerID = rc.addHeadersEndHandler(handler);
       vertx.setTimer(1, tid -> {
-        assertTrue(rc.removeHeadersEndHandler(handler));
-        assertFalse(rc.removeHeadersEndHandler(v -> {
-        }));
+        assertTrue(rc.removeHeadersEndHandler(handlerID));
+        assertFalse(rc.removeHeadersEndHandler(handlerID + 1));
         rc.response().end();
       });
     });
@@ -861,11 +860,10 @@ public class RouterTest extends ApexTestBase {
       Handler<Void> handler = v -> {
         cnt.incrementAndGet();
       };
-      rc.addBodyEndHandler(handler);
+      int handlerID = rc.addBodyEndHandler(handler);
       vertx.setTimer(1, tid -> {
-        assertTrue(rc.removeBodyEndHandler(handler));
-        assertFalse(rc.removeBodyEndHandler(v -> {
-        }));
+        assertTrue(rc.removeBodyEndHandler(handlerID));
+        assertFalse(rc.removeBodyEndHandler(handlerID + 1));
         rc.response().end();
       });
     });

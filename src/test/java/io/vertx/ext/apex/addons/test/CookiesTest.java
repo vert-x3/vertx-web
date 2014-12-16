@@ -17,8 +17,9 @@
 package io.vertx.ext.apex.addons.test;
 
 import io.vertx.core.http.HttpMethod;
-import io.vertx.ext.apex.addons.Cookie;
-import io.vertx.ext.apex.addons.Cookies;
+import io.vertx.ext.apex.core.Cookie;
+import io.vertx.ext.apex.core.CookieHandler;
+import io.vertx.ext.apex.core.impl.LookupCookie;
 import io.vertx.ext.apex.test.ApexTestBase;
 import org.junit.Test;
 
@@ -33,15 +34,15 @@ public class CookiesTest extends ApexTestBase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    router.route().handler(Cookies.cookies());
+    router.route().handler(CookieHandler.cookieHandler());
   }
 
 
   @Test
   public void testSimpleCookie() throws Exception {
     router.route().handler(rc -> {
-      assertEquals(1, Cookies.cookieCount());
-      Cookie cookie = Cookies.getCookie("foo");
+      assertEquals(1, rc.cookieCount());
+      Cookie cookie = rc.getCookie("foo");
       assertNotNull(cookie);
       assertEquals("bar", cookie.getValue());
       rc.response().end();
@@ -52,10 +53,10 @@ public class CookiesTest extends ApexTestBase {
   @Test
   public void testCookiesReturned() throws Exception {
     router.route().handler(rc -> {
-      assertEquals(3, Cookies.cookieCount());
-      assertEquals("bar", Cookies.getCookie("foo").getValue());
-      assertEquals("blibble", Cookies.getCookie("wibble").getValue());
-      assertEquals("flop", Cookies.getCookie("plop").getValue());
+      assertEquals(3, rc.cookieCount());
+      assertEquals("bar", rc.getCookie("foo").getValue());
+      assertEquals("blibble", rc.getCookie("wibble").getValue());
+      assertEquals("flop", rc.getCookie("plop").getValue());
       rc.response().end();
     });
     testRequest(HttpMethod.GET, "/", req -> {
@@ -70,17 +71,17 @@ public class CookiesTest extends ApexTestBase {
   }
 
   @Test
-  public void testCookiesNames() throws Exception {
+  public void testGetCookies() throws Exception {
     router.route().handler(rc -> {
-      assertEquals(3, Cookies.cookieCount());
-      Set<String> names = Cookies.cookiesNames();
-      assertTrue(names.contains("foo"));
-      assertTrue(names.contains("wibble"));
-      assertTrue(names.contains("plop"));
-      Cookies.removeCookie("foo");
-      assertFalse(names.contains("foo"));
-      assertTrue(names.contains("wibble"));
-      assertTrue(names.contains("plop"));
+      assertEquals(3, rc.cookieCount());
+      Set<Cookie> cookies = rc.cookies();
+      assertTrue(cookies.contains(new LookupCookie("foo")));
+      assertTrue(cookies.contains(new LookupCookie("wibble")));
+      assertTrue(cookies.contains(new LookupCookie("plop")));
+      rc.removeCookie("foo");
+      assertFalse(cookies.contains(new LookupCookie("foo")));
+      assertTrue(cookies.contains(new LookupCookie("wibble")));
+      assertTrue(cookies.contains(new LookupCookie("plop")));
       rc.response().end();
     });
     testRequest(HttpMethod.GET, "/", req -> {
@@ -96,23 +97,23 @@ public class CookiesTest extends ApexTestBase {
   @Test
   public void testCookiesChangedInHandler() throws Exception {
     router.route().handler(rc -> {
-      assertEquals(3, Cookies.cookieCount());
-      assertEquals("bar", Cookies.getCookie("foo").getValue());
-      assertEquals("blibble", Cookies.getCookie("wibble").getValue());
-      assertEquals("flop", Cookies.getCookie("plop").getValue());
-      Cookies.removeCookie("plop");
-      assertEquals(2, Cookies.cookieCount());
+      assertEquals(3, rc.cookieCount());
+      assertEquals("bar", rc.getCookie("foo").getValue());
+      assertEquals("blibble", rc.getCookie("wibble").getValue());
+      assertEquals("flop", rc.getCookie("plop").getValue());
+      rc.removeCookie("plop");
+      assertEquals(2, rc.cookieCount());
       rc.next();
     });
     router.route().handler(rc -> {
-      assertEquals(2, Cookies.cookieCount());
-      assertEquals("bar", Cookies.getCookie("foo").getValue());
-      assertEquals("blibble", Cookies.getCookie("wibble").getValue());
-      assertNull(Cookies.getCookie("plop"));
-      Cookies.addCookie(Cookie.cookie("fleeb", "floob"));
-      assertEquals(3, Cookies.cookieCount());
-      assertNull(Cookies.removeCookie("blarb"));
-      assertEquals(3, Cookies.cookieCount());
+      assertEquals(2, rc.cookieCount());
+      assertEquals("bar", rc.getCookie("foo").getValue());
+      assertEquals("blibble", rc.getCookie("wibble").getValue());
+      assertNull(rc.getCookie("plop"));
+      rc.addCookie(Cookie.cookie("fleeb", "floob"));
+      assertEquals(3, rc.cookieCount());
+      assertNull(rc.removeCookie("blarb"));
+      assertEquals(3, rc.cookieCount());
       rc.response().end();
     });
     testRequest(HttpMethod.GET, "/", req -> {
