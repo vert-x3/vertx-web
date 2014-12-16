@@ -62,50 +62,6 @@
       <version>${vertx.version}</version>
     </dependency>
 
-    <!-- Pac4j -->
-    <dependency>
-      <groupId>org.pac4j</groupId>
-      <artifactId>pac4j-core</artifactId>
-      <version>${pac4j.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.pac4j</groupId>
-      <artifactId>pac4j-oauth</artifactId>
-      <version>${pac4j.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.pac4j</groupId>
-      <artifactId>pac4j-openid</artifactId>
-      <version>${pac4j.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.pac4j</groupId>
-      <artifactId>pac4j-cas</artifactId>
-      <version>${pac4j.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>org.slf4j</groupId>
-          <artifactId>slf4j-log4j12</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.pac4j</groupId>
-      <artifactId>pac4j-saml</artifactId>
-      <version>${pac4j.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>org.slf4j</groupId>
-          <artifactId>slf4j-log4j12</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.pac4j</groupId>
-      <artifactId>pac4j-http</artifactId>
-      <version>${pac4j.version}</version>
-    </dependency>
-
     <!-- Testing -->
     <dependency>
       <groupId>junit</groupId>
