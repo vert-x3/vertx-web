@@ -40,4 +40,10 @@ public interface Session {
   long timeout();
 
   SessionStore sessionStore();
+
+  boolean isLoggedIn();
+
+  void setLoggedIn(boolean loggedIn);
+
+  void logout();
 }

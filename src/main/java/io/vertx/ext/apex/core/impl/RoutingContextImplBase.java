@@ -88,7 +88,7 @@ public abstract class RoutingContextImplBase implements FailureRoutingContext {
   protected void unhandledFailure(int statusCode, Throwable failure, RouterImpl router) {
     int code = statusCode != -1 ? statusCode : 500;
     response().setStatusCode(code);
-    response().end(UNHANDLED_FAILURE);
+    response().end();
     if (failure != null) {
       if (router.exceptionHandler() != null) {
         router.exceptionHandler().handle(failure);

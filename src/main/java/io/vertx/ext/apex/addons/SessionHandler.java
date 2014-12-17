@@ -26,17 +26,17 @@ import io.vertx.ext.apex.core.SessionStore;
  */
 public interface SessionHandler extends Handler<RoutingContext> {
 
-  public static final String DEFAULT_SESSION_COOKIE_NAME = "apex.session";
-  public static final long DEFAULT_COOKIE_MAX_AGE = 30 * 60 * 1000; // 30 minutes
-  public static final long DEFAULT_SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutes
+  static final String DEFAULT_SESSION_COOKIE_NAME = "apex.session";
+  static final long DEFAULT_SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutes
+  static final boolean DEFAULT_NAG_HTTPS = true;
 
-  static SessionHandler sessionHandler(String sessionCookieName, long cookieMaxAge, long sessionTimeout,
+  static SessionHandler sessionHandler(String sessionCookieName, long sessionTimeout, boolean nagHttps,
                                        SessionStore sessionStore) {
-    return new SessionHandlerImpl(sessionCookieName, cookieMaxAge, sessionTimeout, sessionStore);
+    return new SessionHandlerImpl(sessionCookieName, sessionTimeout, nagHttps, sessionStore);
   }
 
   static SessionHandler sessionHandler(SessionStore sessionStore) {
-    return new SessionHandlerImpl(DEFAULT_SESSION_COOKIE_NAME, DEFAULT_COOKIE_MAX_AGE, DEFAULT_SESSION_TIMEOUT, sessionStore);
+    return new SessionHandlerImpl(DEFAULT_SESSION_COOKIE_NAME, DEFAULT_SESSION_TIMEOUT, DEFAULT_NAG_HTTPS, sessionStore);
   }
 
   @Override

@@ -19,7 +19,6 @@ package io.vertx.ext.apex.addons.test;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.apex.core.Cookie;
 import io.vertx.ext.apex.core.CookieHandler;
-import io.vertx.ext.apex.core.impl.LookupCookie;
 import io.vertx.ext.apex.test.ApexTestBase;
 import org.junit.Test;
 
@@ -75,13 +74,14 @@ public class CookiesTest extends ApexTestBase {
     router.route().handler(rc -> {
       assertEquals(3, rc.cookieCount());
       Set<Cookie> cookies = rc.cookies();
-      assertTrue(cookies.contains(new LookupCookie("foo")));
-      assertTrue(cookies.contains(new LookupCookie("wibble")));
-      assertTrue(cookies.contains(new LookupCookie("plop")));
+      assertTrue(contains(cookies, "foo"));
+      assertTrue(contains(cookies, "wibble"));
+      assertTrue(contains(cookies, "plop"));
       rc.removeCookie("foo");
-      assertFalse(cookies.contains(new LookupCookie("foo")));
-      assertTrue(cookies.contains(new LookupCookie("wibble")));
-      assertTrue(cookies.contains(new LookupCookie("plop")));
+      cookies = rc.cookies();
+      assertFalse(contains(cookies, "foo"));
+      assertTrue(contains(cookies, "wibble"));
+      assertTrue(contains(cookies, "plop"));
       rc.response().end();
     });
     testRequest(HttpMethod.GET, "/", req -> {
@@ -92,6 +92,15 @@ public class CookiesTest extends ApexTestBase {
       assertTrue(cookies.contains("wibble=blibble"));
       assertTrue(cookies.contains("plop=flop"));
     }, 200, "OK", null);
+  }
+
+  private boolean contains(Set<Cookie> cookies, String name) {
+    for (Cookie cookie: cookies) {
+      if (cookie.getName().equals(name)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   @Test

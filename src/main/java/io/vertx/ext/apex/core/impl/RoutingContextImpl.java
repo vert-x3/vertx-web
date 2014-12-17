@@ -54,7 +54,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   private boolean prevHandled;
   private String normalisedPath;
   // We use Cookie as the key too so we can return keySet in cookies() without copying
-  private Map<Cookie, Cookie> cookies;
+  private Map<String, Cookie> cookies;
   private Buffer body;
   private Set<FileUpload> fileUploads;
   private Session session;
@@ -167,17 +167,17 @@ public class RoutingContextImpl extends RoutingContextImplBase {
 
   @Override
   public Cookie getCookie(String name) {
-    return cookiesMap().get(new LookupCookie(name));
+    return cookiesMap().get(name);
   }
 
   @Override
   public void addCookie(Cookie cookie) {
-    cookiesMap().put(cookie, cookie);
+    cookiesMap().put(cookie.getName(), cookie);
   }
 
   @Override
   public Cookie removeCookie(String name) {
-    return cookiesMap().remove(new LookupCookie(name));
+    return cookiesMap().remove(name);
   }
 
   @Override
@@ -187,7 +187,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
 
   @Override
   public Set<Cookie> cookies() {
-    return cookiesMap().keySet();
+    return new HashSet<>(cookiesMap().values());
   }
 
   @Override
@@ -270,7 +270,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
     return bodyEndHandlers;
   }
 
-  private Map<Cookie, Cookie> cookiesMap() {
+  private Map<String, Cookie> cookiesMap() {
     if (cookies == null) {
       cookies = new HashMap<>();
     }

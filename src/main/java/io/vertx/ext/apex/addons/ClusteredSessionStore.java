@@ -26,18 +26,13 @@ import io.vertx.ext.apex.core.SessionStore;
 public interface ClusteredSessionStore extends SessionStore {
 
   static final String DEFAULT_SESSION_MAP_NAME = "apex.sessions";
-  static final boolean DEFAULT_CACHE_LOCALLY = true;
-  static final long DEFAULT_LOCAL_REAPER_PERIOD = 1000;
-
-  static SessionStore clusteredSessionStore(Vertx vertx, String sessionMapName, boolean cacheLocally, long localReaperPeriod) {
-    return new ClusteredSessionStoreImpl(vertx, sessionMapName, cacheLocally, localReaperPeriod);
-  }
 
   static SessionStore clusteredSessionStore(Vertx vertx, String sessionMapName) {
-    return new ClusteredSessionStoreImpl(vertx, sessionMapName, DEFAULT_CACHE_LOCALLY, DEFAULT_LOCAL_REAPER_PERIOD);
+    return new ClusteredSessionStoreImpl(vertx, sessionMapName);
   }
 
   static SessionStore clusteredSessionStore(Vertx vertx) {
-    return new ClusteredSessionStoreImpl(vertx, DEFAULT_SESSION_MAP_NAME, DEFAULT_CACHE_LOCALLY, DEFAULT_LOCAL_REAPER_PERIOD);
+    return new ClusteredSessionStoreImpl(vertx, DEFAULT_SESSION_MAP_NAME);
   }
+
 }

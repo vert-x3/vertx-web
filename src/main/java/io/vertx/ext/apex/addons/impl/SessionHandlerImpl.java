@@ -35,24 +35,30 @@ public class SessionHandlerImpl implements SessionHandler {
   private static final Logger log = LoggerFactory.getLogger(SessionHandlerImpl.class);
 
   private final String sessionCookieName;
-  private final long cookieMaxAge;
   private final long sessionTimeout;
   private final SessionStore sessionStore;
+  private final boolean nagHttps;
 
-  public SessionHandlerImpl(String sessionCookieName, long cookieMaxAge, long sessionTimeout, SessionStore sessionStore) {
+  public SessionHandlerImpl(String sessionCookieName, long sessionTimeout, boolean nagHttps, SessionStore sessionStore) {
     this.sessionCookieName = sessionCookieName;
-    this.cookieMaxAge = cookieMaxAge;
     this.sessionTimeout = sessionTimeout;
+    this.nagHttps = nagHttps;
     this.sessionStore = sessionStore;
   }
 
   @Override
   public void handle(RoutingContext context) {
 
+    if (nagHttps) {
+      String uri = context.request().absoluteURI();
+      if (!uri.startsWith("https:")) {
+        log.warn("Using session cookies without https could make you susceptible to session hijacking: " + uri);
+      }
+    }
+
     // Look for existing session cookie
     Cookie cookie = context.getCookie(sessionCookieName);
     if (cookie != null) {
-      // TODO validate path?
       // Look up session
       String sessionID = cookie.getValue();
       sessionStore.get(sessionID, res -> {
@@ -63,7 +69,7 @@ public class SessionHandlerImpl implements SessionHandler {
             session.accessed();
             addStoreSessionHandler(context, sessionID, session, false);
           } else {
-            // Cannot find session - either it timed out, or was explicitly destroyed at the server side on a
+             // Cannot find session - either it timed out, or was explicitly destroyed at the server side on a
             // previous request.
             // Either way, we create a new one.
             createNewSession(context);
@@ -104,7 +110,8 @@ public class SessionHandlerImpl implements SessionHandler {
     Session session = new SessionImpl(sessionID, sessionTimeout, sessionStore);
     context.setSession(session);
     Cookie cookie = Cookie.cookie(sessionCookieName, sessionID);
-    cookie.setMaxAge(cookieMaxAge / 1000); // in seconds
+    cookie.setPath("/");
+    // Don't set max age - it's a session cookie
     context.addCookie(cookie);
     addStoreSessionHandler(context, sessionID, session, true);
   }
