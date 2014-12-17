@@ -18,21 +18,22 @@ package io.vertx.ext.apex.addons.impl;
 
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.impl.LoggerFactory;
-import io.vertx.ext.apex.addons.RequiresLoginHandler;
 import io.vertx.ext.apex.core.RoutingContext;
 import io.vertx.ext.apex.core.Session;
+import io.vertx.ext.auth.AuthService;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public class RequiresLoginHandlerImpl implements RequiresLoginHandler {
+public class RedirectAuthHandlerImpl extends AuthHandlerImpl {
 
-  private static final Logger log = LoggerFactory.getLogger(RequiresLoginHandlerImpl.class);
+  private static final Logger log = LoggerFactory.getLogger(RedirectAuthHandlerImpl.class);
 
   private final String loginRedirectURL;
   private final String returnURLParam;
 
-  public RequiresLoginHandlerImpl(String loginRedirectURL, String returnURLParam) {
+  public RedirectAuthHandlerImpl(AuthService authService, String loginRedirectURL, String returnURLParam) {
+    super (authService);
     this.loginRedirectURL = loginRedirectURL;
     this.returnURLParam = returnURLParam;
   }
@@ -42,10 +43,10 @@ public class RequiresLoginHandlerImpl implements RequiresLoginHandler {
     Session session = context.session();
     if (session != null) {
       if (session.isLoggedIn()) {
-        // Already logged in
-        context.next();
+        // Already logged in, just authorise
+        authorise(context);
       } else {
-        // Now redirect to the login url
+        // Now redirect to the login url - we'll get redirected back here after successful login
         session.data().put(returnURLParam, context.request().path());
         context.response().putHeader("location", loginRedirectURL).setStatusCode(302).end();
       }

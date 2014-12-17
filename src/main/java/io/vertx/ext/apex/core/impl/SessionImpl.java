@@ -40,6 +40,7 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
   private JsonObject data = new JsonObject();
   private long lastAccessed;
   private boolean destroyed;
+  private String principal;
 
   public SessionImpl(String id, long timeout, SessionStore sessionStore) {
     this.id = id;
@@ -69,7 +70,7 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
   }
 
   @Override
-  public void accessed() {
+  public void setAccessed() {
     this.lastAccessed = System.currentTimeMillis();
   }
 
@@ -97,17 +98,24 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
 
   @Override
   public boolean isLoggedIn() {
-    return loggedIn;
-  }
-
-  @Override
-  public void setLoggedIn(boolean loggedIn) {
-    this.loggedIn = loggedIn;
+    return principal != null;
   }
 
   @Override
   public void logout() {
     this.loggedIn = false;
+    this.principal = null;
+  }
+
+  @Override
+  public void setPrincipal(String principal) {
+    this.loggedIn = principal != null;
+    this.principal = principal;
+  }
+
+  @Override
+  public String getPrincipal() {
+    return principal;
   }
 
   @Override

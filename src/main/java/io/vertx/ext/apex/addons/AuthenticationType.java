@@ -14,39 +14,11 @@
  *  You may elect to redistribute this code under either of these licenses.
  */
 
-package io.vertx.ext.apex.core;
-
-import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.core.json.JsonObject;
+package io.vertx.ext.apex.addons;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-@VertxGen
-public interface Session {
-
-  JsonObject data();
-
-  String id();
-
-  long lastAccessed();
-
-  void setAccessed();
-
-  void destroy();
-
-  boolean isDestroyed();
-
-  long timeout();
-
-  SessionStore sessionStore();
-
-  boolean isLoggedIn();
-
-  void logout();
-
-  void setPrincipal(String principal);
-
-  String getPrincipal();
-
+public enum AuthenticationType {
+  BASIC, REDIRECT
 }

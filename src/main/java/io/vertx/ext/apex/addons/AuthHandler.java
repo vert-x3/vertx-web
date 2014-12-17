@@ -14,39 +14,23 @@
  *  You may elect to redistribute this code under either of these licenses.
  */
 
-package io.vertx.ext.apex.core;
+package io.vertx.ext.apex.addons;
 
-import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.core.json.JsonObject;
+import io.vertx.core.Handler;
+import io.vertx.ext.apex.core.RoutingContext;
+
+import java.util.Set;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-@VertxGen
-public interface Session {
+public interface AuthHandler extends Handler<RoutingContext> {
 
-  JsonObject data();
+  AuthHandler addRole(String role);
 
-  String id();
+  AuthHandler addPermission(String permission);
 
-  long lastAccessed();
+  AuthHandler addRoles(Set<String> roles);
 
-  void setAccessed();
-
-  void destroy();
-
-  boolean isDestroyed();
-
-  long timeout();
-
-  SessionStore sessionStore();
-
-  boolean isLoggedIn();
-
-  void logout();
-
-  void setPrincipal(String principal);
-
-  String getPrincipal();
-
+  AuthHandler addPermissions(Set<String> permissions);
 }

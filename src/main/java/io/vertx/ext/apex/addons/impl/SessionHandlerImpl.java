@@ -66,7 +66,7 @@ public class SessionHandlerImpl implements SessionHandler {
           Session session = res.result();
           if (session != null) {
             context.setSession(session);
-            session.accessed();
+            session.setAccessed();
             addStoreSessionHandler(context, sessionID, session, false);
           } else {
              // Cannot find session - either it timed out, or was explicitly destroyed at the server side on a
@@ -89,7 +89,7 @@ public class SessionHandlerImpl implements SessionHandler {
     context.addHeadersEndHandler(v -> {
       if (!originalSession.isDestroyed() && (isNew || !originalSession.data().equals(context.session().data()))) {
         // Session has changed, so store it
-        context.session().accessed();
+        context.session().setAccessed();
         sessionStore.put(sessionID, context.session(), sessionTimeout, res -> {
           if (res.succeeded()) {
             // FIXME ???
