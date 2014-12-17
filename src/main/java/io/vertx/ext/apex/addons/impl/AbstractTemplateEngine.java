@@ -14,9 +14,10 @@
  *  You may elect to redistribute this code under either of these licenses.
  */
 
-package io.vertx.ext.apex.addons;
+package io.vertx.ext.apex.addons.impl;
 
 import io.vertx.core.http.HttpHeaders;
+import io.vertx.ext.apex.addons.TemplateEngine;
 import io.vertx.ext.apex.core.RoutingContext;
 
 /**

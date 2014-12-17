@@ -22,7 +22,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
-import io.vertx.ext.apex.addons.AbstractTemplateEngine;
+import io.vertx.ext.apex.addons.impl.AbstractTemplateEngine;
 import io.vertx.ext.apex.addons.TemplateEngine;
 import io.vertx.ext.apex.addons.TemplateHandler;
 import io.vertx.ext.apex.core.RoutingContext;

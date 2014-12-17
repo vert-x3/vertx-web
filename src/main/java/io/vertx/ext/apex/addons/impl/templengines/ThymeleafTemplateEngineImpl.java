@@ -20,7 +20,7 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.ext.apex.addons.AbstractTemplateEngine;
+import io.vertx.ext.apex.addons.impl.AbstractTemplateEngine;
 import io.vertx.ext.apex.addons.ThymeleafTemplateEngine;
 import io.vertx.ext.apex.core.RoutingContext;
 import io.vertx.ext.apex.core.impl.Utils;

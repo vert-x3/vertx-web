@@ -16,6 +16,7 @@
 
 package io.vertx.ext.apex.addons;
 
+import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Vertx;
 import io.vertx.ext.apex.addons.impl.ClusteredSessionStoreImpl;
 import io.vertx.ext.apex.core.SessionStore;
@@ -23,6 +24,7 @@ import io.vertx.ext.apex.core.SessionStore;
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
+@VertxGen
 public interface ClusteredSessionStore extends SessionStore {
 
   static final String DEFAULT_SESSION_MAP_NAME = "apex.sessions";

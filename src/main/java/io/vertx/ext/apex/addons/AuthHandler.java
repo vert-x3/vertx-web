@@ -16,6 +16,7 @@
 
 package io.vertx.ext.apex.addons;
 
+import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
 import io.vertx.ext.apex.core.RoutingContext;
 
@@ -24,6 +25,7 @@ import java.util.Set;
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
+@VertxGen
 public interface AuthHandler extends Handler<RoutingContext> {
 
   AuthHandler addRole(String role);

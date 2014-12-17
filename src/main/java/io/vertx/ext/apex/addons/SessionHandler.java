@@ -16,6 +16,7 @@
 
 package io.vertx.ext.apex.addons;
 
+import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
 import io.vertx.ext.apex.addons.impl.SessionHandlerImpl;
 import io.vertx.ext.apex.core.RoutingContext;
@@ -24,6 +25,7 @@ import io.vertx.ext.apex.core.SessionStore;
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
+@VertxGen
 public interface SessionHandler extends Handler<RoutingContext> {
 
   static final String DEFAULT_SESSION_COOKIE_NAME = "apex.session";

@@ -16,7 +16,7 @@
 
 package io.vertx.ext.apex.addons.impl.templengines;
 
-import io.vertx.ext.apex.addons.AbstractTemplateEngine;
+import io.vertx.ext.apex.addons.impl.AbstractTemplateEngine;
 import io.vertx.ext.apex.core.impl.ConcurrentLRUCache;
 
 import java.util.Map;

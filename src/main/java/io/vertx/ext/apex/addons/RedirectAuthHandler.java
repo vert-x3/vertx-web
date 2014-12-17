@@ -16,12 +16,14 @@
 
 package io.vertx.ext.apex.addons;
 
+import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.ext.apex.addons.impl.RedirectAuthHandlerImpl;
 import io.vertx.ext.auth.AuthService;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
+@VertxGen
 public interface RedirectAuthHandler extends AuthHandler {
 
   static final String DEFAULT_LOGIN_REDIRECT_URL = "/loginpage";

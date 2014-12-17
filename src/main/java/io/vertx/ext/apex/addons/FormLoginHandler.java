@@ -16,6 +16,7 @@
 
 package io.vertx.ext.apex.addons;
 
+import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
 import io.vertx.ext.apex.addons.impl.FormLoginHandlerImpl;
 import io.vertx.ext.apex.core.RoutingContext;
@@ -24,6 +25,7 @@ import io.vertx.ext.auth.AuthService;
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
+@VertxGen
 public interface FormLoginHandler extends Handler<RoutingContext> {
 
   static final String DEFAULT_USERNAME_PARAM = "username";

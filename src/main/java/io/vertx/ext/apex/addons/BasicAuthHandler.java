@@ -16,6 +16,7 @@
 
 package io.vertx.ext.apex.addons;
 
+import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.ext.apex.addons.impl.BasicAuthHandlerImpl;
 import io.vertx.ext.apex.core.RoutingContext;
 import io.vertx.ext.auth.AuthService;
@@ -23,6 +24,7 @@ import io.vertx.ext.auth.AuthService;
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
+@VertxGen
 public interface BasicAuthHandler extends AuthHandler {
 
   static final String DEFAULT_REALM = "apex";
