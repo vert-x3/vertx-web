@@ -26,12 +26,49 @@ Here's the obligatory hello world router which responds to all requests with the
     Router router = Router.router();
     router.route().handler(rc -> rc.response.end("hello world");
     
+Here's a more complex example
+    
+    Router router = Router.router();
+    
+    // Paths starting with `/static` serve as static resources (from filesystem or classpath)
+    router.route("/static").handler(StaticServer.staticServer());
+    
+    // Paths starting with `/dynamic` return pages generated from handlebars templates 
+    router.route("/dynamic").handler(HandlebarsTemplateEngine.create());
+    
+    // Create a sub router for our REST API
+    Router apiRouter = Router.router();
+    
+    // We need body parsing
+    apiRouter.route(BodyHandler.bodyHandler());
+    
+    apiRouter.route("/orders")
+             .method(POST)
+             .consumes("application/json")
+             .handler(context -> {
+               JsonObject order = context.getBodyAsJson();
+               // .... store the order
+               context.response().end(); // Send back 200-OK
+             });
+             
+    // ... more API 
+                 
+    // attach the sub router to the main router at the mount point "/api"
+    router.route("/api").handler(apiRouter);                     
+            
+    
 Your application is simply a set of handlers wired together in specific ways using routers.
   
 You wire a `Router` to your `HttpServer` as follows:
+
+    // First create your server
+    Vertx vertx = Vert.vertx();
+    HttpServer server = vertx.createHttpServer(new HttpServerOptions().setHost("foo.com");
     
-    HttpServer server = ... // Create your Http Server as normal
+    // Connect your router to your Http Server
     server.requestHandler(router::accept);
+    
+    server.listen();
     
     
 ## Features
@@ -39,6 +76,8 @@ You wire a `Router` to your `HttpServer` as follows:
 Apex core features:
 
 * Routing (based on method, path, etc)
+* Regex pattern matching for paths
+* Extraction of parameters from paths
 * Content negotiation
 * Request body handling
 * Body size limits
