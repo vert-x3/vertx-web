@@ -16,31 +16,26 @@
 
 package io.vertx.ext.apex.addons;
 
-import io.vertx.core.Handler;
-import io.vertx.ext.apex.addons.impl.RequiresLoginHandlerImpl;
-import io.vertx.ext.apex.core.RoutingContext;
+import io.vertx.ext.apex.addons.impl.RedirectAuthHandlerImpl;
+import io.vertx.ext.auth.AuthService;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public interface RequiresLoginHandler extends Handler<RoutingContext> {
+public interface RedirectAuthHandler extends AuthHandler {
 
   static final String DEFAULT_LOGIN_REDIRECT_URL = "/loginpage";
   static final String DEFAULT_RETURN_URL_PARAM = "return_url";
 
-  static RequiresLoginHandler requiresLoginHandler() {
-    return new RequiresLoginHandlerImpl(DEFAULT_LOGIN_REDIRECT_URL, DEFAULT_RETURN_URL_PARAM);
+  static AuthHandler redirectAuthHandler(AuthService authService) {
+    return new RedirectAuthHandlerImpl(authService, DEFAULT_LOGIN_REDIRECT_URL, DEFAULT_RETURN_URL_PARAM);
   }
 
-  static RequiresLoginHandler requiresLoginHandler(String loginRedirectURL) {
-    return new RequiresLoginHandlerImpl(loginRedirectURL, DEFAULT_RETURN_URL_PARAM);
+  static AuthHandler redirectAuthHandler(AuthService authService, String loginRedirectURL) {
+    return new RedirectAuthHandlerImpl(authService, loginRedirectURL, DEFAULT_RETURN_URL_PARAM);
   }
 
-  static RequiresLoginHandler requiresLoginHandler(String loginRedirectURL, String returnURLParam) {
-    return new RequiresLoginHandlerImpl(loginRedirectURL, returnURLParam);
+  static AuthHandler redirectAuthHandler(AuthService authService, String loginRedirectURL, String returnURLParam) {
+    return new RedirectAuthHandlerImpl(authService, loginRedirectURL, returnURLParam);
   }
-
-  @Override
-  void handle(RoutingContext context);
-
 }

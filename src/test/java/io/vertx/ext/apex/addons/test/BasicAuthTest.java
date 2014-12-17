@@ -19,6 +19,7 @@ package io.vertx.ext.apex.addons.test;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.apex.addons.AuthHandler;
 import io.vertx.ext.apex.addons.BasicAuthHandler;
 import io.vertx.ext.apex.addons.LocalSessionStore;
 import io.vertx.ext.apex.addons.SessionHandler;
@@ -27,7 +28,6 @@ import io.vertx.ext.apex.core.CookieHandler;
 import io.vertx.ext.apex.core.RoutingContext;
 import io.vertx.ext.apex.core.Session;
 import io.vertx.ext.apex.core.SessionStore;
-import io.vertx.ext.apex.test.ApexTestBase;
 import io.vertx.ext.auth.AuthService;
 import org.junit.Test;
 
@@ -36,7 +36,7 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public class BasicAuthHandlerTest extends ApexTestBase {
+public class BasicAuthTest extends AuthTestBase {
 
   protected AtomicReference<String> sessionCookie = new AtomicReference<>();
 
@@ -136,5 +136,10 @@ public class BasicAuthHandlerTest extends ApexTestBase {
 
     }, 401, "Unauthorized", null);
 
+  }
+
+  @Override
+  protected AuthHandler createAuthHandler(AuthService authService) {
+    return BasicAuthHandler.basicAuthHandler(authService);
   }
 }

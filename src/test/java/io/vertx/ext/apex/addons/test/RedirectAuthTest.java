@@ -20,25 +20,26 @@ import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.apex.addons.AuthHandler;
 import io.vertx.ext.apex.addons.FormLoginHandler;
 import io.vertx.ext.apex.addons.LocalSessionStore;
-import io.vertx.ext.apex.addons.RequiresLoginHandler;
+import io.vertx.ext.apex.addons.RedirectAuthHandler;
 import io.vertx.ext.apex.addons.SessionHandler;
 import io.vertx.ext.apex.core.BodyHandler;
 import io.vertx.ext.apex.core.CookieHandler;
 import io.vertx.ext.apex.core.RoutingContext;
 import io.vertx.ext.apex.core.Session;
 import io.vertx.ext.apex.core.SessionStore;
-import io.vertx.ext.apex.test.ApexTestBase;
 import io.vertx.ext.auth.AuthService;
 import org.junit.Test;
 
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public class LoginTest extends ApexTestBase {
+public class RedirectAuthTest extends AuthTestBase {
 
   protected AtomicReference<String> sessionCookie = new AtomicReference<>();
 
@@ -95,6 +96,11 @@ public class LoginTest extends ApexTestBase {
     testLoginFail(false);
   }
 
+  @Override
+  protected AuthHandler createAuthHandler(AuthService authService) {
+    return RedirectAuthHandler.redirectAuthHandler(authService);
+  }
+
   private void testLoginFail(boolean badUser) throws Exception {
 
     doLoginFail(badUser, rc -> {
@@ -141,13 +147,24 @@ public class LoginTest extends ApexTestBase {
   }
 
   private void doLoginCommon(Handler<RoutingContext> handler) throws Exception {
+    doLoginCommon(handler, null, null);
+  }
+
+  private void doLoginCommon(Handler<RoutingContext> handler, Set<String> roles, Set<String> permissions) throws Exception {
     router.route().handler(BodyHandler.bodyHandler());
     router.route().handler(CookieHandler.cookieHandler());
     SessionStore store = LocalSessionStore.localSessionStore(vertx);
     router.route().handler(SessionHandler.sessionHandler(store));
-    router.route("/protected").handler(RequiresLoginHandler.requiresLoginHandler());
     JsonObject authConfig = new JsonObject().put("properties_path", "classpath:login/loginusers.properties");
     AuthService authService = AuthService.create(vertx, authConfig);
+    AuthHandler authHandler = RedirectAuthHandler.redirectAuthHandler(authService);
+    if (roles != null) {
+      authHandler.addRoles(roles);
+    }
+    if (permissions != null) {
+      authHandler.addPermissions(permissions);
+    }
+    router.route("/protected").handler(authHandler);
     router.route("/protected/somepage").handler(handler);
     router.route("/loginpage").handler(rc -> {
       rc.response().putHeader("content-type", "text/html").end(loginHTML);
@@ -204,6 +221,45 @@ public class LoginTest extends ApexTestBase {
       assertEquals(sessionCookie.get(), setCookie);
     }, 302, "Found", null);
   }
+
+//  private void doAuthorisation(boolean fail, Set<String> roles, Set<String> permissions) throws Exception {
+//    doLoginCommon(rc -> {
+//      Session sess = rc.session();
+//      assertNotNull(sess);
+//      assertEquals(sessionCookie.get().substring(13, 49), sess.id());
+//      assertTrue(sess.isLoggedIn());
+//      rc.response().end("Welcome to the protected resource!");
+//    }, roles, permissions);
+//    testRequest(HttpMethod.POST, "/login", req -> {
+//      String boundary = "dLV9Wyq26L_-JQxk6ferf-RT153LhOO";
+//      Buffer buffer = Buffer.buffer();
+//      String str =
+//        "--" + boundary + "\r\n" +
+//          "Content-Disposition: form-data; name=\"username\"\r\n\r\ntim\r\n" +
+//          "--" + boundary + "\r\n" +
+//          "Content-Disposition: form-data; name=\"password\"\r\n\r\nsausages\r\n" +
+//          "--" + boundary + "--\r\n";
+//      buffer.appendString(str);
+//      req.putHeader("content-length", String.valueOf(buffer.length()));
+//      req.putHeader("content-type", "multipart/form-data; boundary=" + boundary);
+//      req.putHeader("cookie", sessionCookie.get());
+//      req.write(buffer);
+//    }, resp -> {
+//      String location = resp.headers().get("location");
+//      assertNotNull(location);
+//      assertEquals("/protected/somepage", location);
+//      String setCookie = resp.headers().get("set-cookie");
+//      assertNotNull(setCookie);
+//      assertEquals(sessionCookie.get(), setCookie);
+//    }, 302, "Found", null);
+//    testRequest(HttpMethod.GET, "/protected/somepage", req -> {
+//      req.putHeader("cookie", sessionCookie.get());
+//    }, resp -> {
+//      String setCookie = resp.headers().get("set-cookie");
+//      assertNotNull(setCookie);
+//      assertEquals(sessionCookie.get(), setCookie);
+//    }, fail ? 403: 200, fail? "Forbidden": "OK", fail? null : "Welcome to the protected resource!");
+//  }
 
   String loginHTML = "<html>\n" +
     "<body>\n" +

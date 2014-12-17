@@ -16,25 +16,21 @@
 
 package io.vertx.ext.apex.addons;
 
-import io.vertx.ext.apex.addons.impl.BasicAuthHandlerImpl;
+import io.vertx.core.Handler;
 import io.vertx.ext.apex.core.RoutingContext;
-import io.vertx.ext.auth.AuthService;
+
+import java.util.Set;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public interface BasicAuthHandler extends AuthHandler {
+public interface AuthHandler extends Handler<RoutingContext> {
 
-  static final String DEFAULT_REALM = "apex";
+  AuthHandler addRole(String role);
 
-  static AuthHandler basicAuthHandler(AuthService authService) {
-    return new BasicAuthHandlerImpl(authService, DEFAULT_REALM);
-  }
+  AuthHandler addPermission(String permission);
 
-  static AuthHandler basicAuthHandler(AuthService authService, String realm) {
-    return new BasicAuthHandlerImpl(authService, realm);
-  }
+  AuthHandler addRoles(Set<String> roles);
 
-  @Override
-  void handle(RoutingContext context);
+  AuthHandler addPermissions(Set<String> permissions);
 }

@@ -70,7 +70,7 @@ public class FormLoginHandlerImpl implements FormLoginHandler {
               if (principal == null) {
                 context.fail(403);  // Failed login
               } else {
-                session.setLoggedIn(true);
+                session.setPrincipal(principal);
                 String returnURL = (String)session.data().remove(returnURLParam);
                 if (returnURL == null) {
                   // Just return OK

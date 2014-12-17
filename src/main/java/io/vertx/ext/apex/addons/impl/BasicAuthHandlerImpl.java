@@ -19,7 +19,6 @@ package io.vertx.ext.apex.addons.impl;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.apex.addons.BasicAuthHandler;
 import io.vertx.ext.apex.core.RoutingContext;
 import io.vertx.ext.apex.core.Session;
 import io.vertx.ext.auth.AuthService;
@@ -30,66 +29,71 @@ import java.util.Base64;
  * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public class BasicAuthHandlerImpl implements BasicAuthHandler {
+public class BasicAuthHandlerImpl extends AuthHandlerImpl {
 
-  private final AuthService authService;
   private final String realm;
 
   public BasicAuthHandlerImpl(AuthService authService, String realm) {
-    this.authService = authService;
+    super(authService);
     this.realm = realm;
   }
 
   @Override
   public void handle(RoutingContext context) {
-    HttpServerRequest request = context.request();
-    String authorization = request.headers().get(HttpHeaders.AUTHORIZATION);
 
-    if (authorization == null) {
-      handle401(context);
+    Session session = context.session();
+    if (session == null) {
+      context.fail(new NullPointerException("No session - did you forget to include a SessionHandler?"));
     } else {
-      String user;
-      String pass;
-      String scheme;
-
-      try {
-        String[] parts = authorization.split(" ");
-        scheme = parts[0];
-        String[] credentials = new String(Base64.getDecoder().decode(parts[1])).split(":");
-        user = credentials[0];
-        // when the header is: "user:"
-        pass = credentials.length > 1 ? credentials[1] : null;
-      } catch (ArrayIndexOutOfBoundsException e) {
-        handle401(context);
-        return;
-      } catch (IllegalArgumentException | NullPointerException e) {
-        // IllegalArgumentException includes PatternSyntaxException
-        context.fail(e);
-        return;
-      }
-
-      if (!"Basic".equals(scheme)) {
-        context.fail(400);
+      if (session.isLoggedIn()) {
+        // Already logged in, just authorise
+        authorise(context);
       } else {
-        authService.login(new JsonObject().put("username", user).put("password", pass), res -> {
-          if (res.succeeded()) {
-            String principal = res.result();
-            if (principal == null) {
-              // Failed to login
-              handle401(context);
-            } else {
-              Session session = context.session();
-              if (session == null) {
-                context.fail(new NullPointerException("No session - did you forget to include a SessionHandler?"));
-              } else {
-                session.setLoggedIn(true);
-                context.next();
-              }
-            }
-          } else {
-            context.fail(res.cause());
+        HttpServerRequest request = context.request();
+        String authorization = request.headers().get(HttpHeaders.AUTHORIZATION);
+
+        if (authorization == null) {
+          handle401(context);
+        } else {
+          String user;
+          String pass;
+          String scheme;
+
+          try {
+            String[] parts = authorization.split(" ");
+            scheme = parts[0];
+            String[] credentials = new String(Base64.getDecoder().decode(parts[1])).split(":");
+            user = credentials[0];
+            // when the header is: "user:"
+            pass = credentials.length > 1 ? credentials[1] : null;
+          } catch (ArrayIndexOutOfBoundsException e) {
+            handle401(context);
+            return;
+          } catch (IllegalArgumentException | NullPointerException e) {
+            // IllegalArgumentException includes PatternSyntaxException
+            context.fail(e);
+            return;
           }
-        });
+
+          if (!"Basic".equals(scheme)) {
+            context.fail(400);
+          } else {
+            authService.login(new JsonObject().put("username", user).put("password", pass), res -> {
+              if (res.succeeded()) {
+                String principal = res.result();
+                if (principal == null) {
+                  // Failed to login
+                  handle401(context);
+                } else {
+                  session.setPrincipal(principal);
+                  authorise(context);
+                }
+              } else {
+                context.fail(res.cause());
+              }
+            });
+          }
+        }
       }
     }
   }

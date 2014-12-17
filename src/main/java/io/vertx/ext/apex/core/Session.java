@@ -31,7 +31,7 @@ public interface Session {
 
   long lastAccessed();
 
-  void accessed();
+  void setAccessed();
 
   void destroy();
 
@@ -43,7 +43,10 @@ public interface Session {
 
   boolean isLoggedIn();
 
-  void setLoggedIn(boolean loggedIn);
-
   void logout();
+
+  void setPrincipal(String principal);
+
+  String getPrincipal();
+
 }

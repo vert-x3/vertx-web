@@ -16,25 +16,9 @@
 
 package io.vertx.ext.apex.addons;
 
-import io.vertx.ext.apex.addons.impl.BasicAuthHandlerImpl;
-import io.vertx.ext.apex.core.RoutingContext;
-import io.vertx.ext.auth.AuthService;
-
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public interface BasicAuthHandler extends AuthHandler {
-
-  static final String DEFAULT_REALM = "apex";
-
-  static AuthHandler basicAuthHandler(AuthService authService) {
-    return new BasicAuthHandlerImpl(authService, DEFAULT_REALM);
-  }
-
-  static AuthHandler basicAuthHandler(AuthService authService, String realm) {
-    return new BasicAuthHandlerImpl(authService, realm);
-  }
-
-  @Override
-  void handle(RoutingContext context);
+public enum AuthenticationType {
+  BASIC, REDIRECT
 }
