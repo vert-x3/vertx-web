@@ -22,8 +22,12 @@ import io.vertx.ext.apex.core.CookieHandler;
 import io.vertx.ext.apex.test.ApexTestBase;
 import org.junit.Test;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.TimeZone;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -136,5 +140,44 @@ public class CookiesTest extends ApexTestBase {
     }, 200, "OK", null);
   }
 
-  // TODO tests on all Cookie methods
+  @Test
+  public void testCookieFields() throws Exception {
+    Cookie cookie = Cookie.cookie("foo", "bar");
+    assertEquals("foo", cookie.getName());
+    assertEquals("bar", cookie.getValue());
+    assertEquals("foo=bar", cookie.encode());
+    assertNull(cookie.getPath());
+    cookie.setPath("/somepath");
+    assertEquals("/somepath", cookie.getPath());
+    assertEquals("foo=bar; Path=/somepath", cookie.encode());
+    assertNull(cookie.getDomain());
+    cookie.setDomain("foo.com");
+    assertEquals("foo.com", cookie.getDomain());
+    assertEquals("foo=bar; Path=/somepath; Domain=foo.com", cookie.encode());
+    assertEquals(Long.MIN_VALUE, cookie.getMaxAge());
+    long maxAge = 30 * 60;
+    cookie.setMaxAge(maxAge);
+    assertEquals(maxAge, cookie.getMaxAge());
+    long now = System.currentTimeMillis();
+    String encoded = cookie.encode();
+    int startPos = encoded.indexOf("Expires=");
+    int endPos = encoded.indexOf(';', startPos);
+    String expiresDate = encoded.substring(startPos + 8, endPos);
+    Date d = DATE_TIME_FORMATTER.parse(expiresDate);
+    assertTrue(d.getTime() - now >= maxAge);
+    cookie.setMaxAge(Long.MIN_VALUE);
+    assertFalse(cookie.isSecure());
+    cookie.setSecure(true);
+    assertEquals(true, cookie.isSecure());
+    assertEquals("foo=bar; Path=/somepath; Domain=foo.com; Secure", cookie.encode());
+    assertFalse(cookie.isHttpOnly());
+    cookie.setHttpOnly(true);
+    assertTrue(cookie.isHttpOnly());
+    assertEquals("foo=bar; Path=/somepath; Domain=foo.com; Secure; HTTPOnly", cookie.encode());
+  }
+
+  private final DateFormat DATE_TIME_FORMATTER = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz");
+  {
+    DATE_TIME_FORMATTER.setTimeZone(TimeZone.getTimeZone("UTC"));
+  }
 }

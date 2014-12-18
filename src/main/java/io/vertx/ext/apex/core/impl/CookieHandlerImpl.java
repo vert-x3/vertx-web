@@ -21,7 +21,6 @@ import io.vertx.ext.apex.core.Cookie;
 import io.vertx.ext.apex.core.CookieHandler;
 import io.vertx.ext.apex.core.RoutingContext;
 
-import javax.crypto.Mac;
 import java.util.Set;
 
 import static io.vertx.core.http.HttpHeaders.*;
@@ -41,37 +40,6 @@ import static io.vertx.core.http.HttpHeaders.*;
  */
 public class CookieHandlerImpl implements CookieHandler {
 
-  /**
-   * Message Signer
-   */
-  private final Mac mac;
-
-  /**
-   * Instantiates a CookieParser with a given Mac.
-   * <p>
-   * <pre>
-   * Yoke yoke = new Yoke(...);
-   * yoke.use(new CookieParser(YokeSecurity.newHmacSHA256("s3cr3t")));
-   * </pre>
-   *
-   * @param mac Mac
-   */
-  public CookieHandlerImpl(Mac mac) {
-    this.mac = mac;
-  }
-
-  /**
-   * Instantiates a CookieParser without a Mac. In this case no cookies will be signed.
-   * <p>
-   * <pre>
-   * Yoke yoke = new Yoke(...);
-   * yoke.use(new CookieParser());
-   * </pre>
-   */
-  public CookieHandlerImpl() {
-    this(null);
-  }
-
   @Override
   public void handle(RoutingContext context) {
     String cookieHeader = context.request().headers().get(COOKIE);
@@ -80,14 +48,7 @@ public class CookieHandlerImpl implements CookieHandler {
 
       Set<io.netty.handler.codec.http.Cookie> nettyCookies = CookieDecoder.decode(cookieHeader);
       for (io.netty.handler.codec.http.Cookie cookie : nettyCookies) {
-        Cookie apexCookie = new CookieImpl(cookie, mac);
-        String value = apexCookie.getUnsignedValue();
-        // value cannot be null in a cookie if the signature is mismatch then this value will be null
-        // in that case the cookie has been tampered
-        if (value == null) {
-          context.fail(400);
-          return;
-        }
+        Cookie apexCookie = new CookieImpl(cookie);
         context.addCookie(apexCookie);
       }
     }
