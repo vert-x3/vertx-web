@@ -160,6 +160,45 @@ var StaticServer = function(j_val) {
     } else utils.invalidArgs();
   };
 
+  /**
+
+   @public
+   @param alwaysAsyncFS {boolean} 
+   @return {StaticServer}
+   */
+  this.setAlwaysAsyncFS = function(alwaysAsyncFS) {
+    var __args = arguments;
+    if (__args.length === 1 && typeof __args[0] ==='boolean') {
+      return new StaticServer(j_staticServer.setAlwaysAsyncFS(alwaysAsyncFS));
+    } else utils.invalidArgs();
+  };
+
+  /**
+
+   @public
+   @param enableFSTuning {boolean} 
+   @return {StaticServer}
+   */
+  this.setEnableFSTuning = function(enableFSTuning) {
+    var __args = arguments;
+    if (__args.length === 1 && typeof __args[0] ==='boolean') {
+      return new StaticServer(j_staticServer.setEnableFSTuning(enableFSTuning));
+    } else utils.invalidArgs();
+  };
+
+  /**
+
+   @public
+   @param maxAvgServeTimeNanoSeconds {number} 
+   @return {StaticServer}
+   */
+  this.setMaxAvgServeTimeNs = function(maxAvgServeTimeNanoSeconds) {
+    var __args = arguments;
+    if (__args.length === 1 && typeof __args[0] ==='number') {
+      return new StaticServer(j_staticServer.setMaxAvgServeTimeNs(maxAvgServeTimeNanoSeconds));
+    } else utils.invalidArgs();
+  };
+
   // A reference to the underlying Java delegate
   // NOTE! This is an internal API and must not be used in user code.
   // If you rely on this property your code is likely to break if we change it / remove it without warning.

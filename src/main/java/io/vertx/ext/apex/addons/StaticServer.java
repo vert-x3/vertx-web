@@ -36,6 +36,9 @@ public interface StaticServer extends Handler<RoutingContext> {
   static final long DEFAULT_CACHE_ENTRY_TIMEOUT = 30000; // 30 seconds
   static final String DEFAULT_INDEX_PAGE = "/index.html";
   static final int DEFAULT_MAX_CACHE_SIZE = 10000;
+  static final boolean DEFAULT_ALWAYS_ASYNC_FS = false;
+  static final boolean DEFAULT_ENABLE_FS_TUNING = true;
+  static final long DEFAULT_MAX_AVG_SERVE_TIME_NS = 1000000; // 1ms
 
   static StaticServer staticServer(String root) {
     return new StaticServerImpl(root);
@@ -65,5 +68,11 @@ public interface StaticServer extends Handler<RoutingContext> {
   StaticServer setIndexPage(String indexPage);
 
   StaticServer setMaxCacheSize(int maxCacheSize);
+
+  StaticServer setAlwaysAsyncFS(boolean alwaysAsyncFS);
+
+  StaticServer setEnableFSTuning(boolean enableFSTuning);
+
+  StaticServer setMaxAvgServeTimeNs(long maxAvgServeTimeNanoSeconds);
 
 }
