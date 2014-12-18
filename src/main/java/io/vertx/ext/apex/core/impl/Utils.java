@@ -23,11 +23,14 @@ import java.io.InputStream;
 import java.net.URLDecoder;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.TimeZone;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -109,6 +112,12 @@ public class Utils {
     }
 
     return list;
+  }
+
+  public static DateFormat createISODateTimeFormatter() {
+    DateFormat dtf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz");
+    dtf.setTimeZone(TimeZone.getTimeZone("UTC"));
+    return dtf;
   }
 
   private static final Comparator<String> ACCEPT_X_COMPARATOR = new Comparator<String>() {

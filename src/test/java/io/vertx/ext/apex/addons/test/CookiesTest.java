@@ -19,15 +19,14 @@ package io.vertx.ext.apex.addons.test;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.apex.core.Cookie;
 import io.vertx.ext.apex.core.CookieHandler;
+import io.vertx.ext.apex.core.impl.Utils;
 import io.vertx.ext.apex.test.ApexTestBase;
 import org.junit.Test;
 
 import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-import java.util.TimeZone;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -163,7 +162,7 @@ public class CookiesTest extends ApexTestBase {
     int startPos = encoded.indexOf("Expires=");
     int endPos = encoded.indexOf(';', startPos);
     String expiresDate = encoded.substring(startPos + 8, endPos);
-    Date d = DATE_TIME_FORMATTER.parse(expiresDate);
+    Date d = dateTimeFormat.parse(expiresDate);
     assertTrue(d.getTime() - now >= maxAge);
     cookie.setMaxAge(Long.MIN_VALUE);
     assertFalse(cookie.isSecure());
@@ -176,8 +175,5 @@ public class CookiesTest extends ApexTestBase {
     assertEquals("foo=bar; Path=/somepath; Domain=foo.com; Secure; HTTPOnly", cookie.encode());
   }
 
-  private final DateFormat DATE_TIME_FORMATTER = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz");
-  {
-    DATE_TIME_FORMATTER.setTimeZone(TimeZone.getTimeZone("UTC"));
-  }
+  private final DateFormat dateTimeFormat = Utils.createISODateTimeFormatter();
 }
