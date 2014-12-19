@@ -16,10 +16,14 @@
 
 package io.vertx.ext.apex.addons.impl;
 
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
+import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.VertxException;
 import io.vertx.core.file.FileProps;
 import io.vertx.core.file.FileSystem;
+import io.vertx.core.file.FileSystemException;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.json.JsonArray;
@@ -30,6 +34,7 @@ import io.vertx.ext.apex.core.RoutingContext;
 import io.vertx.ext.apex.core.impl.LRUCache;
 import io.vertx.ext.apex.core.impl.Utils;
 
+import java.nio.file.NoSuchFileException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -65,6 +70,16 @@ public class StaticServerImpl implements StaticServer {
   private long cacheEntryTimeout = DEFAULT_CACHE_ENTRY_TIMEOUT;
   private String indexPage = DEFAULT_INDEX_PAGE;
   private int maxCacheSize = DEFAULT_MAX_CACHE_SIZE;
+
+  // These members are all related to auto tuning of synchronous vs asynchronous file system access
+  private static int NUM_SERVES_TUNING_FS_ACCESS = 1000;
+  private boolean alwaysAsyncFS = DEFAULT_ALWAYS_ASYNC_FS;
+  private long maxAvgServeTimeNanoSeconds = DEFAULT_MAX_AVG_SERVE_TIME_NS;
+  private boolean tuning = DEFAULT_ENABLE_FS_TUNING;
+  private long totalTime;
+  private int numServesBlocking;
+  private boolean useAsyncFS;
+  private long nextAvgCheck = NUM_SERVES_TUNING_FS_ACCESS;
 
   public StaticServerImpl(String root) {
     setRoot(root);
@@ -135,54 +150,106 @@ public class StaticServerImpl implements StaticServer {
         }
       }
 
+      if (file == null) {
+        file = getFile(path, context);
+      }
+
       FileProps props;
       if (filesReadOnly && entry != null) {
         props = entry.props;
+        sendFile(context, file, props);
       } else {
         // Need to read the props from the filesystem
-
-        if (file == null) {
-          file = getFile(path, context);
-        }
-
-        // TODO blocking code
-        FileSystem filesystem = context.vertx().fileSystem();
-        boolean exists = filesystem.existsBlocking(file);
-        if (exists) {
-          props = filesystem.propsBlocking(file);
-          if (props.isDirectory()) {
-            if (directoryListing) {
-              sendDirectory(file, context);
-              return;
+        String spath = path;
+        String sfile = file;
+        getFileProps(context, file, res -> {
+          if (res.succeeded()) {
+            FileProps fprops = res.result();
+            if (fprops == null) {
+              // File does not exist
+              System.out.println("File does not exist");
+              context.fail(404);
+            } else if (fprops.isDirectory()) {
+              if (directoryListing) {
+                sendDirectory(sfile, context);
+              } else {
+                // Directory listing denied
+                context.fail(403);
+              }
             } else {
-              // Directory listing denied
-              context.fail(403);
-              return;
+              propsCache().put(spath, new CacheEntry(fprops, System.currentTimeMillis()));
+              sendFile(context, sfile, fprops);
             }
           } else {
-            propsCache().put(path, new CacheEntry(props, System.currentTimeMillis()));
-          }
-        } else {
-          context.fail(404);
-          return;
-        }
-      }
-
-      writeCacheHeaders(request, props);
-
-      if (request.method() == HttpMethod.HEAD) {
-        request.response().end();
-      } else {
-        if (file == null) {
-          file = getFile(path, context);
-        }
-        request.response().sendFile(file, res -> {
-          if (res.failed()) {
-            log.error("Failed to send file", res.cause());
-            context.fail(404);
+            if (res.cause() instanceof NoSuchFileException) {
+              context.fail(404);
+            } else {
+              context.fail(res.cause());
+            }
           }
         });
+
       }
+
+    }
+  }
+
+  private synchronized void getFileProps(RoutingContext context, String file, Handler<AsyncResult<FileProps>> resultHandler) {
+    FileSystem fs = context.vertx().fileSystem();
+    if (alwaysAsyncFS  || useAsyncFS) {
+      fs.props(file, resultHandler);
+    } else {
+      // Use synchronous access - it might well be faster!
+      long start = 0;
+      if (tuning) {
+        start = System.nanoTime();
+      }
+      try {
+        FileProps props = fs.propsBlocking(file);
+        if (tuning) {
+          long end = System.nanoTime();
+          long dur = end - start;
+          totalTime += dur;
+          numServesBlocking++;
+          if (numServesBlocking == Long.MAX_VALUE) {
+            // Unlikely.. but...
+            resetTuning();
+          } else if (numServesBlocking == nextAvgCheck) {
+            double avg = (double) totalTime / numServesBlocking;
+            if (avg > maxAvgServeTimeNanoSeconds) {
+              useAsyncFS = true;
+              log.info("Switching to async file system access in static file server as fs access is slow! (Average access time of " + avg + " ns)");
+              tuning = false;
+            }
+            nextAvgCheck += NUM_SERVES_TUNING_FS_ACCESS;
+          }
+        }
+        resultHandler.handle(Future.succeededFuture(props));
+      } catch (FileSystemException e) {
+        resultHandler.handle(Future.failedFuture(e.getCause()));
+      }
+    }
+  }
+
+  private void resetTuning() {
+    // Reset
+    nextAvgCheck = NUM_SERVES_TUNING_FS_ACCESS;
+    totalTime = 0;
+    numServesBlocking = 0;
+  }
+
+  private void sendFile(RoutingContext context, String file, FileProps fileProps) {
+    HttpServerRequest request = context.request();
+    writeCacheHeaders(request, fileProps);
+
+    if (request.method() == HttpMethod.HEAD) {
+      request.response().end();
+    } else {
+      request.response().sendFile(file, res2 -> {
+        if (res2.failed()) {
+          context.fail(res2.cause());
+        }
+      });
     }
   }
 
@@ -250,6 +317,27 @@ public class StaticServerImpl implements StaticServer {
       indexPage = "/" + indexPage;
     }
     this.indexPage = indexPage;
+    return this;
+  }
+
+  @Override
+  public StaticServer setAlwaysAsyncFS(boolean alwaysAsyncFS) {
+    this.alwaysAsyncFS = alwaysAsyncFS;
+    return this;
+  }
+
+  @Override
+  public synchronized StaticServer setEnableFSTuning(boolean enableFSTuning) {
+    this.tuning = enableFSTuning;
+    if (!tuning) {
+      resetTuning();
+    }
+    return this;
+  }
+
+  @Override
+  public StaticServer setMaxAvgServeTimeNs(long maxAvgServeTimeNanoSeconds) {
+    this.maxAvgServeTimeNanoSeconds = maxAvgServeTimeNanoSeconds;
     return this;
   }
 

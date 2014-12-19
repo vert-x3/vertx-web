@@ -78,6 +78,18 @@ public class StaticServer {
     def ret= StaticServer.FACTORY.apply(this.delegate.setMaxCacheSize(maxCacheSize));
     return ret;
   }
+  public StaticServer setAlwaysAsyncFS(boolean alwaysAsyncFS) {
+    def ret= StaticServer.FACTORY.apply(this.delegate.setAlwaysAsyncFS(alwaysAsyncFS));
+    return ret;
+  }
+  public StaticServer setEnableFSTuning(boolean enableFSTuning) {
+    def ret= StaticServer.FACTORY.apply(this.delegate.setEnableFSTuning(enableFSTuning));
+    return ret;
+  }
+  public StaticServer setMaxAvgServeTimeNs(long maxAvgServeTimeNanoSeconds) {
+    def ret= StaticServer.FACTORY.apply(this.delegate.setMaxAvgServeTimeNs(maxAvgServeTimeNanoSeconds));
+    return ret;
+  }
 
   static final java.util.function.Function<io.vertx.ext.apex.addons.StaticServer, StaticServer> FACTORY = io.vertx.lang.groovy.Factories.createFactory() {
     io.vertx.ext.apex.addons.StaticServer arg -> new StaticServer(arg);

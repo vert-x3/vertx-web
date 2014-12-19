@@ -102,6 +102,16 @@ public class StaticServerTest extends ApexTestBase {
   }
 
   @Test
+  public void testCantGetNoSuchPage() throws Exception {
+    testRequest(HttpMethod.GET, "/notexists.html", 404, "Not Found");
+  }
+
+  @Test
+  public void testCantGetNoSuchPageInSubDir() throws Exception {
+    testRequest(HttpMethod.GET, "/somedir/notexists.html", 404, "Not Found");
+  }
+
+  @Test
   public void testDateHeaderSet() throws Exception {
     testRequest(HttpMethod.GET, "/otherpage.html", null, res -> {
       String dateHeader = res.headers().get("date");
@@ -359,6 +369,20 @@ public class StaticServerTest extends ApexTestBase {
         }
       });
     }, 200, "OK", null);
+  }
+
+  @Test
+  public void testFSBlockingTuning() throws Exception {
+    stat.setCachingEnabled(false);
+    stat.setMaxAvgServeTimeNs(10000);
+    for (int i = 0; i < 2000; i++) {
+      testRequest(HttpMethod.GET, "/otherpage.html", null, res -> {
+        String cacheControl = res.headers().get("cache-control");
+        String lastModified = res.headers().get("last-modified");
+        assertNull(cacheControl);
+        assertNull(lastModified);
+      }, 200, "OK", "<html><body>Other page</body></html>");
+    }
   }
 
   // TODO
