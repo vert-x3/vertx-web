@@ -17,7 +17,6 @@
 package io.vertx.groovy.ext.apex.core;
 import groovy.transform.CompileStatic
 import io.vertx.lang.groovy.InternalHelper
-import java.util.Set
 /**
  * Derived from io.netty.handler.codec.http.Cookie
  */
@@ -50,10 +49,6 @@ public class Cookie {
    */
   public String getValue() {
     def ret = this.delegate.getValue();
-    return ret;
-  }
-  public String getUnsignedValue() {
-    def ret = this.delegate.getUnsignedValue();
     return ret;
   }
   /**
@@ -102,24 +97,6 @@ public class Cookie {
     return ret;
   }
   /**
-   * Returns the comment of this {@link Cookie}.
-   *
-   * @return The comment of this {@link Cookie}
-   */
-  public String getComment() {
-    def ret = this.delegate.getComment();
-    return ret;
-  }
-  /**
-   * Sets the comment of this {@link Cookie}.
-   *
-   * @param comment The comment to use
-   */
-  public Cookie setComment(String comment) {
-    def ret= Cookie.FACTORY.apply(this.delegate.setComment(comment));
-    return ret;
-  }
-  /**
    * Returns the maximum age of this {@link Cookie} in seconds or {@link Long#MIN_VALUE} if unspecified
    *
    * @return The maximum age of this {@link Cookie}
@@ -139,24 +116,6 @@ public class Cookie {
    */
   public Cookie setMaxAge(long maxAge) {
     def ret= Cookie.FACTORY.apply(this.delegate.setMaxAge(maxAge));
-    return ret;
-  }
-  /**
-   * Returns the version of this {@link Cookie}.
-   *
-   * @return The version of this {@link Cookie}
-   */
-  public int getVersion() {
-    def ret = this.delegate.getVersion();
-    return ret;
-  }
-  /**
-   * Sets the version of this {@link Cookie}.
-   *
-   * @param version The new version to use
-   */
-  public Cookie setVersion(int version) {
-    def ret= Cookie.FACTORY.apply(this.delegate.setVersion(version));
     return ret;
   }
   /**
@@ -201,62 +160,6 @@ public class Cookie {
   public Cookie setHttpOnly(boolean httpOnly) {
     def ret= Cookie.FACTORY.apply(this.delegate.setHttpOnly(httpOnly));
     return ret;
-  }
-  /**
-   * Returns the comment URL of this {@link Cookie}.
-   *
-   * @return The comment URL of this {@link Cookie}
-   */
-  public String getCommentUrl() {
-    def ret = this.delegate.getCommentUrl();
-    return ret;
-  }
-  /**
-   * Sets the comment URL of this {@link Cookie}.
-   *
-   * @param commentUrl The comment URL to use
-   */
-  public Cookie setCommentUrl(String commentUrl) {
-    def ret= Cookie.FACTORY.apply(this.delegate.setCommentUrl(commentUrl));
-    return ret;
-  }
-  /**
-   * Checks to see if this {@link Cookie} is to be discarded by the browser
-   * at the end of the current session.
-   *
-   * @return True if this {@link Cookie} is to be discarded, otherwise false
-   */
-  public boolean isDiscard() {
-    def ret = this.delegate.isDiscard();
-    return ret;
-  }
-  /**
-   * Sets the discard flag of this {@link Cookie}.
-   * If set to true, this {@link Cookie} will be discarded by the browser
-   * at the end of the current session
-   *
-   * @param discard True if the {@link Cookie} is to be discarded
-   */
-  public Cookie setDiscard(boolean discard) {
-    def ret= Cookie.FACTORY.apply(this.delegate.setDiscard(discard));
-    return ret;
-  }
-  /**
-   * Returns the ports that this {@link Cookie} can be accessed on.
-   *
-   * @return The {@link java.util.Set} of ports that this {@link Cookie} can use
-   */
-  public Set<Integer> getPorts() {
-    def ret = this.delegate.getPorts();
-    return ret;
-  }
-  /**
-   * Adds a port that this {@link Cookie} can be accessed on.
-   *
-   * @param port The ports that this {@link Cookie} can be accessed on
-   */
-  public void addPort(int port) {
-    this.delegate.addPort(port);
   }
   public String encode() {
     def ret = this.delegate.encode();

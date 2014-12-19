@@ -16,10 +16,9 @@
 
 package io.vertx.ext.apex.core;
 
+import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.ext.apex.core.impl.CookieImpl;
-
-import java.util.Set;
 
 /**
  * Derived from io.netty.handler.codec.http.Cookie
@@ -29,6 +28,11 @@ public interface Cookie {
 
   static Cookie cookie(String name, String value) {
     return new CookieImpl(name, value);
+  }
+
+  @GenIgnore
+  static Cookie cookie(io.netty.handler.codec.http.Cookie nettyCookie) {
+    return new CookieImpl(nettyCookie);
   }
 
   /**
@@ -44,8 +48,6 @@ public interface Cookie {
    * @return The value of this {@link Cookie}
    */
   String getValue();
-
-  String getUnsignedValue();
 
   /**
    * Sets the value of this {@link Cookie}.
@@ -83,20 +85,6 @@ public interface Cookie {
   Cookie setPath(String path);
 
   /**
-   * Returns the comment of this {@link Cookie}.
-   *
-   * @return The comment of this {@link Cookie}
-   */
-  String getComment();
-
-  /**
-   * Sets the comment of this {@link Cookie}.
-   *
-   * @param comment The comment to use
-   */
-  Cookie setComment(String comment);
-
-  /**
    * Returns the maximum age of this {@link Cookie} in seconds or {@link Long#MIN_VALUE} if unspecified
    *
    * @return The maximum age of this {@link Cookie}
@@ -113,20 +101,6 @@ public interface Cookie {
    * @param maxAge The maximum age of this {@link Cookie} in seconds
    */
   Cookie setMaxAge(long maxAge);
-
-  /**
-   * Returns the version of this {@link Cookie}.
-   *
-   * @return The version of this {@link Cookie}
-   */
-  int getVersion();
-
-  /**
-   * Sets the version of this {@link Cookie}.
-   *
-   * @param version The new version to use
-   */
-  Cookie setVersion(int version);
 
   /**
    * Checks to see if this {@link Cookie} is secure
@@ -163,50 +137,6 @@ public interface Cookie {
    */
   Cookie setHttpOnly(boolean httpOnly);
 
-  /**
-   * Returns the comment URL of this {@link Cookie}.
-   *
-   * @return The comment URL of this {@link Cookie}
-   */
-  String getCommentUrl();
-
-  /**
-   * Sets the comment URL of this {@link Cookie}.
-   *
-   * @param commentUrl The comment URL to use
-   */
-  Cookie setCommentUrl(String commentUrl);
-
-  /**
-   * Checks to see if this {@link Cookie} is to be discarded by the browser
-   * at the end of the current session.
-   *
-   * @return True if this {@link Cookie} is to be discarded, otherwise false
-   */
-  boolean isDiscard();
-
-  /**
-   * Sets the discard flag of this {@link Cookie}.
-   * If set to true, this {@link Cookie} will be discarded by the browser
-   * at the end of the current session
-   *
-   * @param discard True if the {@link Cookie} is to be discarded
-   */
-  Cookie setDiscard(boolean discard);
-
-  /**
-   * Returns the ports that this {@link Cookie} can be accessed on.
-   *
-   * @return The {@link java.util.Set} of ports that this {@link Cookie} can use
-   */
-  Set<Integer> getPorts();
-
-  /**
-   * Adds a port that this {@link Cookie} can be accessed on.
-   *
-   * @param port The ports that this {@link Cookie} can be accessed on
-   */
-  void addPort(int port);
 
   String encode();
 

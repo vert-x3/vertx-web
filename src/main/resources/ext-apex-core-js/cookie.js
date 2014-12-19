@@ -58,19 +58,6 @@ var Cookie = function(j_val) {
   };
 
   /**
-
-   @public
-
-   @return {string}
-   */
-  this.getUnsignedValue = function() {
-    var __args = arguments;
-    if (__args.length === 0) {
-      return j_cookie.getUnsignedValue();
-    } else utils.invalidArgs();
-  };
-
-  /**
   
    @public
    @param value {string} 
@@ -139,32 +126,6 @@ var Cookie = function(j_val) {
   
    @public
 
-   @return {string}
-   */
-  this.getComment = function() {
-    var __args = arguments;
-    if (__args.length === 0) {
-      return j_cookie.getComment();
-    } else utils.invalidArgs();
-  };
-
-  /**
-  
-   @public
-   @param comment {string} 
-   @return {Cookie}
-   */
-  this.setComment = function(comment) {
-    var __args = arguments;
-    if (__args.length === 1 && typeof __args[0] === 'string') {
-      return new Cookie(j_cookie.setComment(comment));
-    } else utils.invalidArgs();
-  };
-
-  /**
-  
-   @public
-
    @return {number}
    */
   this.getMaxAge = function() {
@@ -184,32 +145,6 @@ var Cookie = function(j_val) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] ==='number') {
       return new Cookie(j_cookie.setMaxAge(maxAge));
-    } else utils.invalidArgs();
-  };
-
-  /**
-  
-   @public
-
-   @return {number}
-   */
-  this.getVersion = function() {
-    var __args = arguments;
-    if (__args.length === 0) {
-      return j_cookie.getVersion();
-    } else utils.invalidArgs();
-  };
-
-  /**
-  
-   @public
-   @param version {number} 
-   @return {Cookie}
-   */
-  this.setVersion = function(version) {
-    var __args = arguments;
-    if (__args.length === 1 && typeof __args[0] ==='number') {
-      return new Cookie(j_cookie.setVersion(version));
     } else utils.invalidArgs();
   };
 
@@ -262,83 +197,6 @@ var Cookie = function(j_val) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] ==='boolean') {
       return new Cookie(j_cookie.setHttpOnly(httpOnly));
-    } else utils.invalidArgs();
-  };
-
-  /**
-  
-   @public
-
-   @return {string}
-   */
-  this.getCommentUrl = function() {
-    var __args = arguments;
-    if (__args.length === 0) {
-      return j_cookie.getCommentUrl();
-    } else utils.invalidArgs();
-  };
-
-  /**
-  
-   @public
-   @param commentUrl {string} 
-   @return {Cookie}
-   */
-  this.setCommentUrl = function(commentUrl) {
-    var __args = arguments;
-    if (__args.length === 1 && typeof __args[0] === 'string') {
-      return new Cookie(j_cookie.setCommentUrl(commentUrl));
-    } else utils.invalidArgs();
-  };
-
-  /**
-  
-   @public
-
-   @return {boolean}
-   */
-  this.isDiscard = function() {
-    var __args = arguments;
-    if (__args.length === 0) {
-      return j_cookie.isDiscard();
-    } else utils.invalidArgs();
-  };
-
-  /**
-  
-   @public
-   @param discard {boolean} 
-   @return {Cookie}
-   */
-  this.setDiscard = function(discard) {
-    var __args = arguments;
-    if (__args.length === 1 && typeof __args[0] ==='boolean') {
-      return new Cookie(j_cookie.setDiscard(discard));
-    } else utils.invalidArgs();
-  };
-
-  /**
-  
-   @public
-
-   @return {Array.<number>}
-   */
-  this.getPorts = function() {
-    var __args = arguments;
-    if (__args.length === 0) {
-      return utils.convReturnSet(j_cookie.getPorts());
-    } else utils.invalidArgs();
-  };
-
-  /**
-  
-   @public
-   @param port {number} 
-   */
-  this.addPort = function(port) {
-    var __args = arguments;
-    if (__args.length === 1 && typeof __args[0] ==='number') {
-      j_cookie.addPort(port);
     } else utils.invalidArgs();
   };
 

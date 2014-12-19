@@ -18,16 +18,10 @@ package io.vertx.ext.apex.core.impl;
 
 import io.netty.handler.codec.http.DefaultCookie;
 import io.netty.handler.codec.http.ServerCookieEncoder;
-import io.vertx.ext.apex.addons.impl.ApexSecurity;
 import io.vertx.ext.apex.core.Cookie;
-
-import javax.crypto.Mac;
-import java.util.Set;
 
 /**
  * ApexCookie
- *
- * I'm not entirely happy this uses Netty.
  *
  * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -35,50 +29,13 @@ import java.util.Set;
 public class CookieImpl implements Cookie {
 
   private final io.netty.handler.codec.http.Cookie nettyCookie;
-  private final Mac mac;
-  private String value;
-  private boolean signed;
 
   public CookieImpl(String name, String value) {
     this.nettyCookie = new DefaultCookie(name, value);
-    this.mac = null;
   }
 
-  public CookieImpl(io.netty.handler.codec.http.Cookie nettyCookie, Mac mac) {
+  public CookieImpl(io.netty.handler.codec.http.Cookie nettyCookie) {
     this.nettyCookie = nettyCookie;
-    this.mac = mac;
-
-    // get the original value
-    value = nettyCookie.getValue();
-    // if the prefix is there then it is signed
-    if (value.startsWith("s:")) {
-      signed = true;
-      // if it is signed get the unsigned value
-      if (mac == null) {
-        // this is an error
-        value = null;
-      } else {
-        value = ApexSecurity.unsign(value.substring(2), mac);
-      }
-    }
-  }
-
-  // extensions
-  public boolean isSigned() {
-    return signed;
-  }
-
-  public void sign() {
-    if (mac != null) {
-      nettyCookie.setValue("s:" + ApexSecurity.sign(value, mac));
-      signed = true;
-    } else {
-      signed = false;
-    }
-  }
-
-  public String getUnsignedValue() {
-    return value;
   }
 
   @Override
@@ -88,8 +45,6 @@ public class CookieImpl implements Cookie {
 
   @Override
   public Cookie setValue(final String value) {
-    this.value = value;
-    this.signed = false;
     nettyCookie.setValue(value);
     return this;
   }
@@ -121,16 +76,6 @@ public class CookieImpl implements Cookie {
     return this;
   }
 
-  @Override
-  public String getComment() {
-    return nettyCookie.getComment();
-  }
-
-  @Override
-  public Cookie setComment(final String comment) {
-    nettyCookie.setComment(comment);
-    return this;
-  }
 
   @Override
   public long getMaxAge() {
@@ -140,17 +85,6 @@ public class CookieImpl implements Cookie {
   @Override
   public Cookie setMaxAge(final long maxAge) {
     nettyCookie.setMaxAge(maxAge);
-    return this;
-  }
-
-  @Override
-  public int getVersion() {
-    return nettyCookie.getVersion();
-  }
-
-  @Override
-  public Cookie setVersion(final int version) {
-    nettyCookie.setVersion(version);
     return this;
   }
 
@@ -174,38 +108,6 @@ public class CookieImpl implements Cookie {
   public Cookie setHttpOnly(final boolean httpOnly) {
     nettyCookie.setHttpOnly(httpOnly);
     return this;
-  }
-
-  @Override
-  public String getCommentUrl() {
-    return nettyCookie.getCommentUrl();
-  }
-
-  @Override
-  public Cookie setCommentUrl(final String commentUrl) {
-    nettyCookie.setCommentUrl(commentUrl);
-    return this;
-  }
-
-  @Override
-  public boolean isDiscard() {
-    return nettyCookie.isDiscard();
-  }
-
-  @Override
-  public Cookie setDiscard(final boolean discard) {
-    nettyCookie.setDiscard(discard);
-    return this;
-  }
-
-  @Override
-  public Set<Integer> getPorts() {
-    return nettyCookie.getPorts();
-  }
-
-  @Override
-  public void addPort(final int port) {
-    nettyCookie.setPorts();
   }
 
   @Override
