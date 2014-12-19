@@ -131,12 +131,13 @@ public class LoggerImpl implements Logger {
           (System.currentTimeMillis() - timestamp));
         break;
     }
+    doLog(status, message);
+  }
 
+  protected void doLog(int status, String message) {
     if (status >= 500) {
-      logger.fatal(message);
-    } else if (status >= 400) {
       logger.error(message);
-    } else if (status >= 300) {
+    } else if (status >= 400) {
       logger.warn(message);
     } else {
       logger.info(message);
