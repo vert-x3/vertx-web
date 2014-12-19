@@ -37,11 +37,9 @@ import io.vertx.ext.apex.core.impl.Utils;
 import java.nio.file.NoSuchFileException;
 import java.text.DateFormat;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
 import java.util.Objects;
-import java.util.TimeZone;
 
 /**
  * Static web server
@@ -56,10 +54,7 @@ public class StaticServerImpl implements StaticServer {
 
   private static final String directoryTemplate = Utils.readResourceToBuffer("apex-directory.html").toString();
 
-  private final DateFormat DATE_TIME_FORMATTER = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz");
-  {
-    DATE_TIME_FORMATTER.setTimeZone(TimeZone.getTimeZone("UTC"));
-  }
+  private final DateFormat dateTimeFormatter = Utils.createISODateTimeFormatter();
   private Map<String, CacheEntry> propsCache;
   private String webRoot = DEFAULT_WEB_ROOT;
   private long maxAgeSeconds = DEFAULT_MAX_AGE_SECONDS; // One day
@@ -102,11 +97,11 @@ public class StaticServerImpl implements StaticServer {
       // We use cache-control and last-modified
       // We *do not use* etags and expires (since they do the same thing - redundant)
       headers.set("cache-control", "public, max-age=" + maxAgeSeconds);
-      headers.set("last-modified", DATE_TIME_FORMATTER.format(props.lastModifiedTime()));
+      headers.set("last-modified", dateTimeFormatter.format(props.lastModifiedTime()));
     }
 
     // date header is mandatory
-    headers.set("date", DATE_TIME_FORMATTER.format(new Date()));
+    headers.set("date", dateTimeFormatter.format(new Date()));
   }
 
   @Override
@@ -350,7 +345,7 @@ public class StaticServerImpl implements StaticServer {
 
   private Date parseDate(String header) {
     try {
-      return DATE_TIME_FORMATTER.parse(header);
+      return dateTimeFormatter.parse(header);
     } catch (ParseException e) {
       throw new VertxException(e);
     }

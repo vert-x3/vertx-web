@@ -19,18 +19,17 @@ package io.vertx.ext.apex.addons.test;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonArray;
 import io.vertx.ext.apex.addons.StaticServer;
+import io.vertx.ext.apex.core.impl.Utils;
 import io.vertx.ext.apex.test.ApexTestBase;
 import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
 import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.TimeZone;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -39,10 +38,7 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public class StaticServerTest extends ApexTestBase {
 
-  private final DateFormat DATE_TIME_FORMATTER = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz");
-  {
-    DATE_TIME_FORMATTER.setTimeZone(TimeZone.getTimeZone("UTC"));
-  }
+  private final DateFormat dateTimeFormatter = Utils.createISODateTimeFormatter();
 
   protected StaticServer stat;
 
@@ -196,7 +192,7 @@ public class StaticServerTest extends ApexTestBase {
       assertEquals("public, max-age=" + StaticServer.DEFAULT_MAX_AGE_SECONDS, cacheControl);
     }, 200, "OK", "<html><body>Other page</body></html>");
     testRequest(HttpMethod.GET, "/otherpage.html", req -> {
-      req.putHeader("if-modified-since", DATE_TIME_FORMATTER.format(toDateTime(lastModifiedRef.get()) - 1));
+      req.putHeader("if-modified-since", dateTimeFormatter.format(toDateTime(lastModifiedRef.get()) - 1));
     }, res -> {
     }, 200, "OK", "<html><body>Other page</body></html>");
   }
@@ -241,7 +237,7 @@ public class StaticServerTest extends ApexTestBase {
       assertEquals(modified, toDateTime(lastModified));
     }, 200, "OK", "<html><body>File system page</body></html>");
     testRequest(HttpMethod.GET, "/fspage.html", req -> {
-      req.putHeader("if-modified-since", DATE_TIME_FORMATTER.format(modified));
+      req.putHeader("if-modified-since", dateTimeFormatter.format(modified));
     }, null, 304, "Not Modified", null);
   }
 
@@ -259,7 +255,7 @@ public class StaticServerTest extends ApexTestBase {
     }, 200, "OK", "<html><body>File system page</body></html>");
     // But it should still return not modified as the entry is cached
     testRequest(HttpMethod.GET, "/fspage.html", req -> {
-      req.putHeader("if-modified-since", DATE_TIME_FORMATTER.format(modified));
+      req.putHeader("if-modified-since", dateTimeFormatter.format(modified));
     }, null, 304, "Not Modified", null);
   }
 
@@ -279,7 +275,7 @@ public class StaticServerTest extends ApexTestBase {
     // But it should return a new entry as the entry is now old
     Thread.sleep(2001);
     testRequest(HttpMethod.GET, "/fspage.html", req -> {
-      req.putHeader("if-modified-since", DATE_TIME_FORMATTER.format(modified));
+      req.putHeader("if-modified-since", dateTimeFormatter.format(modified));
     }, res -> {
       String lastModified = res.headers().get("last-modified");
       assertEquals(modified + 1000, toDateTime(lastModified));
@@ -391,7 +387,7 @@ public class StaticServerTest extends ApexTestBase {
 
   private long toDateTime(String header) {
     try {
-      Date date = DATE_TIME_FORMATTER.parse(header);
+      Date date = dateTimeFormatter.parse(header);
       return date.getTime();
     } catch (Exception e) {
       fail(e.getMessage());

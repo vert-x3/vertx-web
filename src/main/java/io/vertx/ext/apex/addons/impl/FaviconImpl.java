@@ -20,13 +20,9 @@ import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.CaseInsensitiveHeaders;
+import io.vertx.ext.apex.addons.Favicon;
 import io.vertx.ext.apex.core.RoutingContext;
 import io.vertx.ext.apex.core.impl.Utils;
-import io.vertx.ext.apex.addons.Favicon;
-
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.Base64;
 
 import static io.vertx.core.http.HttpHeaders.*;
 
@@ -63,14 +59,6 @@ public class FaviconImpl implements Favicon {
 
       headers.add(CONTENT_TYPE, "image/x-icon");
       headers.add(CONTENT_LENGTH, Integer.toString(buffer.length()));
-
-      try {
-        // TODO use expires not etag as apex doesn't use etags!
-        MessageDigest md = MessageDigest.getInstance("MD5");
-        headers.add(ETAG, "\"" + Base64.getEncoder().encodeToString(md.digest(buffer.getBytes())) + "\"");
-      } catch (NoSuchAlgorithmException e) {
-        // ignore
-      }
       headers.add(CACHE_CONTROL, "public, max-age=" + (maxAge / 1000));
     }
   }

@@ -23,12 +23,11 @@ import io.vertx.ext.apex.addons.SessionHandler;
 import io.vertx.ext.apex.core.CookieHandler;
 import io.vertx.ext.apex.core.Session;
 import io.vertx.ext.apex.core.SessionStore;
+import io.vertx.ext.apex.core.impl.Utils;
 import io.vertx.ext.apex.test.ApexTestBase;
 import org.junit.Test;
 
 import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.TimeZone;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -251,9 +250,6 @@ public abstract class SessionHandlerTestBase extends ApexTestBase {
     assertTrue(rid.get().lastAccessed() - System.currentTimeMillis() < 500);
   }
 
-  private final DateFormat DATE_TIME_FORMATTER = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz");
-  {
-    DATE_TIME_FORMATTER.setTimeZone(TimeZone.getTimeZone("UTC"));
-  }
+  private final DateFormat dateTimeFormatter = Utils.createISODateTimeFormatter();
 
 }

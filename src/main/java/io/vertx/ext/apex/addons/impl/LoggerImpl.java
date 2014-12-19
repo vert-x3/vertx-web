@@ -23,9 +23,9 @@ import io.vertx.core.logging.impl.LoggerFactory;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.ext.apex.addons.Logger;
 import io.vertx.ext.apex.core.RoutingContext;
+import io.vertx.ext.apex.core.impl.Utils;
 
 import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /** # Logger
@@ -48,7 +48,7 @@ public class LoggerImpl implements Logger {
 
   /** The Date formatter (UTC JS compatible format)
    */
-  private final DateFormat ISODATE = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz");
+  private final DateFormat dateTimeFormat = Utils.createISODateTimeFormatter();
 
   /** log before request or after
    */
@@ -103,7 +103,7 @@ public class LoggerImpl implements Logger {
 
         message = String.format("%s - - [%s] \"%s %s %s\" %d %d \"%s\" \"%s\"",
           remoteClient,
-          ISODATE.format(new Date(timestamp)),
+          dateTimeFormat.format(new Date(timestamp)),
           method,
           uri,
           version,
