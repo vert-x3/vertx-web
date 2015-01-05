@@ -282,10 +282,7 @@ public class StaticServerTest extends ApexTestBase {
     }, 200, "OK", "<html><body>File system page</body></html>");
   }
 
-  // FIXME - currently ignored as FileResolver doesn't recursively unpack directories
-
   @Test
-  @Ignore
   public void testDirectoryListingText() throws Exception {
     stat.setDirectoryListing(true);
     Set<String> expected = new HashSet<>(Arrays.asList(".hidden.html", "foo.json", "index.html", "otherpage.html", "somedir"));
@@ -303,7 +300,6 @@ public class StaticServerTest extends ApexTestBase {
   }
 
   @Test
-  @Ignore
   public void testDirectoryListingTextNoHidden() throws Exception {
     stat.setDirectoryListing(true);
     stat.setIncludeHidden(false);
@@ -323,7 +319,6 @@ public class StaticServerTest extends ApexTestBase {
   }
 
   @Test
-  @Ignore
   public void testDirectoryListingJson() throws Exception {
     stat.setDirectoryListing(true);
     Set<String> expected = new HashSet<>(Arrays.asList(".hidden.html", "foo.json", "index.html", "otherpage.html", "somedir"));
@@ -346,7 +341,6 @@ public class StaticServerTest extends ApexTestBase {
   }
 
   @Test
-  @Ignore
   public void testDirectoryListingJsonNoHidden() throws Exception {
     stat.setDirectoryListing(true);
     stat.setIncludeHidden(false);
