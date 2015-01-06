@@ -72,7 +72,7 @@ public class StaticServerImpl implements StaticServer {
   private long maxAvgServeTimeNanoSeconds = DEFAULT_MAX_AVG_SERVE_TIME_NS;
   private boolean tuning = DEFAULT_ENABLE_FS_TUNING;
   private long totalTime;
-  private int numServesBlocking;
+  private long numServesBlocking;
   private boolean useAsyncFS;
   private long nextAvgCheck = NUM_SERVES_TUNING_FS_ACCESS;
 

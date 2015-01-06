@@ -34,11 +34,11 @@ Here's a more complex example
     router.route("/static").handler(StaticServer.staticServer());
     
     // Paths starting with `/dynamic` return pages generated from handlebars templates 
-    router.route("/dynamic").handler(HandlebarsTemplateEngine.create());
-    
+    router.route("/dynamic").handler(TemplateHandler.templateHandler(HandlebarsTemplateEngine.create()));
+
     // Create a sub router for our REST API
     Router apiRouter = Router.router();
-    
+
     // We need body parsing
     apiRouter.route(BodyHandler.bodyHandler());
     
@@ -51,10 +51,10 @@ Here's a more complex example
                context.response().end(); // Send back 200-OK
              });
              
-    // ... more API 
+    // ... more API
                  
     // attach the sub router to the main router at the mount point "/api"
-    router.route("/api").handler(apiRouter);                     
+    router.mountSubRouter("/api", apiRouter);
             
     
 Your application is simply a set of handlers wired together in specific ways using routers.
