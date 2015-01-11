@@ -169,7 +169,7 @@ public class BodiesTest extends ApexTestBase {
       // FIXME Add test in core test suite to validated this!
       // assertEquals(fileData.length(), upload.size());
       String uploadedFileName = upload.uploadedFileName();
-      assertTrue(uploadedFileName.startsWith(uploadsDir + "/"));
+      assertTrue(uploadedFileName.startsWith(uploadsDir + File.separator));
       Buffer uploaded = vertx.fileSystem().readFileBlocking(uploadedFileName);
       assertEquals(fileData, uploaded);
       // The body should be set too

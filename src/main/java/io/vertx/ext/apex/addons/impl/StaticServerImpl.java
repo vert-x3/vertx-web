@@ -34,6 +34,7 @@ import io.vertx.ext.apex.core.RoutingContext;
 import io.vertx.ext.apex.core.impl.LRUCache;
 import io.vertx.ext.apex.core.impl.Utils;
 
+import java.io.File;
 import java.nio.file.NoSuchFileException;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -390,7 +391,7 @@ public class StaticServerImpl implements StaticServer {
           StringBuilder files = new StringBuilder("<ul id=\"files\">");
 
           for (String s : asyncResult.result()) {
-            file = s.substring(s.lastIndexOf('/') + 1);
+            file = s.substring(s.lastIndexOf(File.separatorChar) + 1);
             // skip dot files
             if (!includeHidden && file.charAt(0) == '.') {
               continue;
@@ -438,7 +439,7 @@ public class StaticServerImpl implements StaticServer {
           JsonArray json = new JsonArray();
 
           for (String s : asyncResult.result()) {
-            file = s.substring(s.lastIndexOf('/') + 1);
+            file = s.substring(s.lastIndexOf(File.separatorChar) + 1);
             // skip dot files
             if (!includeHidden && file.charAt(0) == '.') {
               continue;
@@ -452,7 +453,7 @@ public class StaticServerImpl implements StaticServer {
           StringBuilder buffer = new StringBuilder();
 
           for (String s : asyncResult.result()) {
-            file = s.substring(s.lastIndexOf('/') + 1);
+            file = s.substring(s.lastIndexOf(File.separatorChar) + 1);
             // skip dot files
             if (!includeHidden && file.charAt(0) == '.') {
               continue;
