@@ -15,7 +15,7 @@
  *  You may elect to redistribute this code under either of these licenses.
  */
 
-@GenModule(name = "ext-apex-addons")
+@GenModule(name = "vertx-apex-addons")
 package io.vertx.ext.apex.addons;
 
 import io.vertx.codegen.annotations.GenModule;
