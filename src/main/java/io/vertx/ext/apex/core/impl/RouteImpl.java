@@ -204,7 +204,11 @@ public class RouteImpl implements Route {
       return false;
     }
     if (pattern != null) {
-      Matcher m = pattern.matcher(request.path());
+      String path  = request.path();
+      if (mountPoint != null) {
+        path = path.substring(mountPoint.length());
+      }
+      Matcher m = pattern.matcher(path);
       if (m.matches()) {
         if (m.groupCount() > 0) {
           Map<String, String> params = new HashMap<>(m.groupCount());

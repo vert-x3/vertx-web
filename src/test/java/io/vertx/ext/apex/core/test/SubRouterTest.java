@@ -380,5 +380,15 @@ public class SubRouterTest extends ApexTestBase {
 
   }
 
+  @Test
+  public void testRegexInSubRouter() throws Exception {
+    Router subRouter = Router.router(vertx);
+    router.mountSubRouter("/api", subRouter);
+    subRouter.routeWithRegex("\\/test").handler(rc -> {
+      rc.response().setStatusMessage("sausages").end();
+    });
+    testRequest(HttpMethod.GET, "/api/test", 200, "sausages");
+
+  }
 
 }
