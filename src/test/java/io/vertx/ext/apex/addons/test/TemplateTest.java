@@ -22,9 +22,9 @@ import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.ext.apex.addons.PathTemplateHandler;
 import io.vertx.ext.apex.addons.impl.AbstractTemplateEngine;
 import io.vertx.ext.apex.addons.TemplateEngine;
-import io.vertx.ext.apex.addons.TemplateHandler;
 import io.vertx.ext.apex.core.RoutingContext;
 import io.vertx.ext.apex.core.impl.Utils;
 import io.vertx.ext.apex.test.ApexTestBase;
@@ -43,7 +43,7 @@ public class TemplateTest extends ApexTestBase {
       context.put("bar", "fox");
       context.next();
     });
-    router.route().handler(TemplateHandler.templateHandler(engine, "test-template.html", "text/html"));
+    router.route().handler(PathTemplateHandler.templateHandler(engine, "somedir", "text/html"));
     String expected =
       "<html>\n" +
       "<body>\n" +
@@ -51,18 +51,18 @@ public class TemplateTest extends ApexTestBase {
       "foo is badger bar is fox<br>\n" +
       "</body>\n" +
       "</html>";
-    testRequest(HttpMethod.GET, "/", 200, "OK", expected);
+    testRequest(HttpMethod.GET, "/test-template.html", 200, "OK", expected);
   }
 
   @Test
   public void testTemplateEngineFail() throws Exception {
     TemplateEngine engine = new TestEngine(true);
-    router.route().handler(TemplateHandler.templateHandler(engine, "test-template.html", "text/html"));
+    router.route().handler(PathTemplateHandler.templateHandler(engine, "somedir", "text/html"));
     router.exceptionHandler(t -> {
       assertEquals("eek", t.getMessage());
       testComplete();
     });
-    testRequest(HttpMethod.GET, "/", 500, "Internal Server Error");
+    testRequest(HttpMethod.GET, "/foo.html", 500, "Internal Server Error");
     await();
   }
 
@@ -72,7 +72,7 @@ public class TemplateTest extends ApexTestBase {
     router.route().handler(context -> {
       context.put("foo", "badger");
       context.put("bar", "fox");
-      engine.renderResponse(context, "test-template.html", "text/html");
+      engine.renderResponse(context, "somedir/test-template.html", "text/html");
     });
     String expected =
       "<html>\n" +
@@ -97,7 +97,7 @@ public class TemplateTest extends ApexTestBase {
     router.route().handler(context -> {
       context.put("foo", "badger");
       context.put("bar", "fox");
-      engine.render(context, "test-template.html", onSuccess(res -> {
+      engine.render(context, "somedir/test-template.html", onSuccess(res -> {
         String rendered = res.toString();
         assertEquals(expected, rendered);
         context.response().putHeader(HttpHeaders.CONTENT_TYPE, "text/html");

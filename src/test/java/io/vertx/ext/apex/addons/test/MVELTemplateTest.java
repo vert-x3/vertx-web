@@ -18,8 +18,8 @@ package io.vertx.ext.apex.addons.test;
 
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.apex.addons.MVELTemplateEngine;
+import io.vertx.ext.apex.addons.PathTemplateHandler;
 import io.vertx.ext.apex.addons.TemplateEngine;
-import io.vertx.ext.apex.addons.TemplateHandler;
 import io.vertx.ext.apex.test.ApexTestBase;
 import org.junit.Test;
 
@@ -31,67 +31,31 @@ public class MVELTemplateTest extends ApexTestBase {
   @Test
   public void testTemplateHandler() throws Exception {
     TemplateEngine engine = MVELTemplateEngine.create();
-    testTemplateHandler(engine, "test-mvel-template.templ");
-  }
-
-  @Test
-  public void testTemplateHandlerwithPrefixAndExtension1() throws Exception {
-    TemplateEngine engine = MVELTemplateEngine.create("somedir/", "templ");
-    testTemplateHandler(engine, "test-mvel-template2.templ");
-  }
-
-  @Test
-  public void testTemplateHandlerwithPrefixAndExtension2() throws Exception {
-    TemplateEngine engine = MVELTemplateEngine.create("somedir/", "templ");
-    testTemplateHandler(engine, "test-mvel-template2");
-  }
-
-  @Test
-  public void testTemplateHandlerwithPrefixAndExtension3() throws Exception {
-    TemplateEngine engine = MVELTemplateEngine.create("somedir/", ".templ");
-    testTemplateHandler(engine, "test-mvel-template2");
-  }
-
-  @Test
-  public void testTemplateHandlerwithPrefixAndExtension4() throws Exception {
-    TemplateEngine engine = MVELTemplateEngine.create("somedir", ".templ");
-    testTemplateHandler(engine, "test-mvel-template2");
-  }
-
-  @Test
-  public void testTemplateHandlerwithPrefixAndExtension5() throws Exception {
-    TemplateEngine engine = MVELTemplateEngine.create("somedir", ".foo");
-    testTemplateHandler(engine, "test-mvel-template2");
+    testTemplateHandler(engine, "somedir", "test-mvel-template2.templ");
   }
 
   @Test
   public void testTemplateHandlerNoExtension() throws Exception {
     TemplateEngine engine = MVELTemplateEngine.create();
-    testTemplateHandler(engine, "test-mvel-template");
+    testTemplateHandler(engine, "somedir", "test-mvel-template2");
   }
 
-  @Test
-  public void testTemplateHandlerwithMaxCacheSize() throws Exception {
-    TemplateEngine engine = MVELTemplateEngine.create("somedir", ".foo", 12);
-    testTemplateHandler(engine, "test-mvel-template2");
-  }
-
-  private void testTemplateHandler(TemplateEngine engine, String templateName) throws Exception {
+  private void testTemplateHandler(TemplateEngine engine, String directoryName, String templateName) throws Exception {
     router.route().handler(context -> {
       context.put("foo", "badger");
       context.put("bar", "fox");
       context.next();
     });
-    router.route().handler(TemplateHandler.templateHandler(engine, templateName, "text/plain"));
+    router.route().handler(PathTemplateHandler.templateHandler(engine, directoryName, "text/plain"));
     String expected = "Hello badger and fox";
-    testRequest(HttpMethod.GET, "/", 200, "OK", expected);
+    testRequest(HttpMethod.GET, "/" + templateName, 200, "OK", expected);
   }
 
   @Test
   public void testNoSuchTemplate() throws Exception {
     TemplateEngine engine = MVELTemplateEngine.create();
-    router.route().handler(TemplateHandler.templateHandler(engine, "nosuchtemplate.templ", "text/plain"));
-    testRequest(HttpMethod.GET, "/", 500, "Internal Server Error");
+    router.route().handler(PathTemplateHandler.templateHandler(engine, "nosuchtemplate.templ", "text/plain"));
+    testRequest(HttpMethod.GET, "/foo.templ", 500, "Internal Server Error");
   }
 
 }

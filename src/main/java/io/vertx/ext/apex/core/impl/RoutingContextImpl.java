@@ -53,6 +53,8 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   private boolean handled;
   private boolean prevHandled;
   private String normalisedPath;
+  private String pathFromMountPoint;
+
   // We use Cookie as the key too so we can return keySet in cookies() without copying
   private Map<String, Cookie> cookies;
   private Buffer body;
@@ -163,6 +165,15 @@ public class RoutingContextImpl extends RoutingContextImplBase {
       normalisedPath = Utils.normalisePath(request.path());
     }
     return normalisedPath;
+  }
+
+  @Override
+  public String pathFromMountPoint() {
+    if (pathFromMountPoint == null) {
+      String path = normalisedPath();
+      pathFromMountPoint = mountPoint == null ? path : path.substring(mountPoint.length());
+    }
+    return pathFromMountPoint;
   }
 
   @Override

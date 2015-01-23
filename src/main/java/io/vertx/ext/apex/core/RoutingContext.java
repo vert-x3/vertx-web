@@ -81,6 +81,8 @@ public interface RoutingContext {
 
   String normalisedPath();
 
+  String pathFromMountPoint();
+
   // Cookies
 
   Cookie getCookie(String name);

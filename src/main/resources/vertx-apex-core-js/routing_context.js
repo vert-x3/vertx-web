@@ -263,6 +263,19 @@ var RoutingContext = function(j_val) {
   /**
 
    @public
+
+   @return {string}
+   */
+  this.pathFromMountPoint = function() {
+    var __args = arguments;
+    if (__args.length === 0) {
+      return j_routingContext.pathFromMountPoint();
+    } else utils.invalidArgs();
+  };
+
+  /**
+
+   @public
    @param name {string} 
    @return {Cookie}
    */
