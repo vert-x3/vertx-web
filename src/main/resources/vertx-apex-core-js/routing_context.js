@@ -276,6 +276,31 @@ var RoutingContext = function(j_val) {
   /**
 
    @public
+
+   @return {string}
+   */
+  this.getAcceptableContentType = function() {
+    var __args = arguments;
+    if (__args.length === 0) {
+      return j_routingContext.getAcceptableContentType();
+    } else utils.invalidArgs();
+  };
+
+  /**
+
+   @public
+   @param contentType {string} 
+   */
+  this.setAcceptableContentType = function(contentType) {
+    var __args = arguments;
+    if (__args.length === 1 && typeof __args[0] === 'string') {
+      j_routingContext.setAcceptableContentType(contentType);
+    } else utils.invalidArgs();
+  };
+
+  /**
+
+   @public
    @param name {string} 
    @return {Cookie}
    */

@@ -760,35 +760,122 @@ public class RouterTest extends ApexTestBase {
   @Test
   public void testProducesMissingSlash() throws Exception {
     // will assume "*/json"
-    router.route().produces("application/json").handler(rc -> rc.response().end());
-    testRequestWithAccepts(HttpMethod.GET, "/foo", "json", 200, "OK");
+    router.route().produces("application/json").handler(rc -> {
+      rc.response().setStatusMessage(rc.getAcceptableContentType());
+      rc.response().end();
+    });
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "json", 200, "application/json");
     testRequestWithAccepts(HttpMethod.GET, "/foo", "text", 404, "Not Found");
   }
 
   @Test
   public void testProducesSubtypeWildcard() throws Exception {
-    router.route().produces("text/html").handler(rc -> rc.response().end());
-    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/*", 200, "OK");
+    router.route().produces("text/html").handler(rc -> {
+      rc.response().setStatusMessage(rc.getAcceptableContentType());
+      rc.response().end();
+    });
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/*", 200, "text/html");
     testRequestWithAccepts(HttpMethod.GET, "/foo", "application/*", 404, "Not Found");
   }
 
   @Test
   public void testProducesTopLevelTypeWildcard() throws Exception {
-    router.route().produces("application/json").handler(rc -> rc.response().end());
-    testRequestWithAccepts(HttpMethod.GET, "/foo", "*/json", 200, "OK");
+    router.route().produces("application/json").handler(rc -> {
+      rc.response().setStatusMessage(rc.getAcceptableContentType());
+      rc.response().end();
+    });
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "*/json", 200, "application/json");
     testRequestWithAccepts(HttpMethod.GET, "/foo", "*/html", 404, "Not Found");
   }
 
   @Test
   public void testProducesAll1() throws Exception {
-    router.route().produces("application/json").handler(rc -> rc.response().end());
-    testRequestWithAccepts(HttpMethod.GET, "/foo", "*/*", 200, "OK");
+    router.route().produces("application/json").handler(rc -> {
+      rc.response().setStatusMessage(rc.getAcceptableContentType());
+      rc.response().end();
+    });
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "*/*", 200, "application/json");
   }
 
   @Test
   public void testProducesAll2() throws Exception {
-    router.route().produces("application/json").handler(rc -> rc.response().end());
-    testRequestWithAccepts(HttpMethod.GET, "/foo", "*", 200, "OK");
+    router.route().produces("application/json").handler(rc -> {
+      rc.response().setStatusMessage(rc.getAcceptableContentType());
+      rc.response().end();
+    });
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "*", 200, "application/json");
+  }
+
+  @Test
+  public void testAcceptsMultiple1() throws Exception {
+    router.route().produces("application/json").handler(rc -> {
+      rc.response().setStatusMessage(rc.getAcceptableContentType());
+      rc.response().end();
+    });
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html,application/json,text/plain", 200, "application/json");
+  }
+
+  @Test
+  public void testAcceptsMultiple2() throws Exception {
+    router.route().produces("application/json").handler(rc -> {
+      rc.response().setStatusMessage(rc.getAcceptableContentType());
+      rc.response().end();
+    });
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html,application/*,text/plain", 200, "application/json");
+  }
+
+  @Test
+  public void testAcceptsMultiple3() throws Exception {
+    router.route().produces("application/json").produces("text/plain").handler(rc -> {
+      rc.response().setStatusMessage(rc.getAcceptableContentType());
+      rc.response().end();
+    });
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html,application/json,text/plain", 200, "application/json");
+  }
+
+  @Test
+  public void testAcceptsMultiple4() throws Exception {
+    router.route().produces("application/json").produces("text/plain").handler(rc -> {
+      rc.response().setStatusMessage(rc.getAcceptableContentType());
+      rc.response().end();
+    });
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html,text/plain,application/json", 200, "text/plain");
+  }
+
+  @Test
+  public void testAcceptsMultiple5() throws Exception {
+    router.route().produces("application/json").produces("text/plain").handler(rc -> {
+      rc.response().setStatusMessage(rc.getAcceptableContentType());
+      rc.response().end();
+    });
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html,text/plain,application/json;q=0.9", 200, "text/plain");
+  }
+
+  @Test
+  public void testAcceptsMultiple6() throws Exception {
+    router.route().produces("application/json").produces("text/plain").handler(rc -> {
+      rc.response().setStatusMessage(rc.getAcceptableContentType());
+      rc.response().end();
+    });
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html,text/plain;q=0.9,application/json", 200, "application/json");
+  }
+
+  @Test
+  public void testAcceptsMultiple7() throws Exception {
+    router.route().produces("application/json").produces("text/plain").handler(rc -> {
+      rc.response().setStatusMessage(rc.getAcceptableContentType());
+      rc.response().end();
+    });
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html,text/plain;q=0.9,application/json;q=1.0", 200, "application/json");
+  }
+
+  @Test
+  public void testAcceptsMultiple8() throws Exception {
+    router.route().produces("application/json").produces("text/plain").handler(rc -> {
+      rc.response().setStatusMessage(rc.getAcceptableContentType());
+      rc.response().end();
+    });
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html,text/plain;q=0.9,application/json;q=0.8", 200, "text/plain");
   }
 
   @Test

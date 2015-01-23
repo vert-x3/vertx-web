@@ -19,6 +19,8 @@ package io.vertx.ext.apex.core.test;
 import io.vertx.ext.apex.core.impl.Utils;
 import org.junit.Test;
 
+import java.util.List;
+
 import static org.junit.Assert.*;
 
 /**
@@ -79,5 +81,69 @@ public class UtilsTest {
   @Test
   public void testDodgyPath4() throws Exception {
     assertEquals("/blah", Utils.normalisePath("/../blah"));
+  }
+
+  @Test
+  public void testSortedAcceptableMimeTypes1() {
+    String accept = "text/html";
+    List<String> types = Utils.getSortedAcceptableMimeTypes(accept);
+    assertEquals(1, types.size());
+    assertEquals("text/html", types.get(0));
+  }
+
+  @Test
+  public void testSortedAcceptableMimeTypes2() {
+    String accept = "text/html, application/json";
+    List<String> types = Utils.getSortedAcceptableMimeTypes(accept);
+    assertEquals(2, types.size());
+    assertEquals("text/html", types.get(0));
+    assertEquals("application/json", types.get(1));
+  }
+
+  @Test
+  public void testSortedAcceptableMimeTypes3() {
+    String accept = "text/html,application/json";
+    List<String> types = Utils.getSortedAcceptableMimeTypes(accept);
+    assertEquals(2, types.size());
+    assertEquals("text/html", types.get(0));
+    assertEquals("application/json", types.get(1));
+  }
+
+  @Test
+  public void testSortedAcceptableMimeTypes4() {
+    String accept = "text/html; q=0.8,application/json; q=0.9";
+    List<String> types = Utils.getSortedAcceptableMimeTypes(accept);
+    assertEquals(2, types.size());
+    assertEquals("application/json", types.get(0));
+    assertEquals("text/html", types.get(1));
+  }
+
+  @Test
+  public void testSortedAcceptableMimeTypes5() {
+    String accept = "text/html;q=0.8,application/json;q=0.9";
+    List<String> types = Utils.getSortedAcceptableMimeTypes(accept);
+    assertEquals(2, types.size());
+    assertEquals("application/json", types.get(0));
+    assertEquals("text/html", types.get(1));
+  }
+
+  @Test
+  public void testSortedAcceptableMimeTypes6() {
+    String accept = "text/html; q=0.8,application/json; q=0.9, text/plain";
+    List<String> types = Utils.getSortedAcceptableMimeTypes(accept);
+    assertEquals(3, types.size());
+    assertEquals("text/plain", types.get(0));
+    assertEquals("application/json", types.get(1));
+    assertEquals("text/html", types.get(2));
+  }
+
+  @Test
+  public void testSortedAcceptableMimeTypes7() {
+    String accept = "text/html;q=0.8,application/json;q=0.9,text/plain";
+    List<String> types = Utils.getSortedAcceptableMimeTypes(accept);
+    assertEquals(3, types.size());
+    assertEquals("text/plain", types.get(0));
+    assertEquals("application/json", types.get(1));
+    assertEquals("text/html", types.get(2));
   }
 }

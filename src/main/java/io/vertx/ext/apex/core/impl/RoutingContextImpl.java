@@ -54,6 +54,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   private boolean prevHandled;
   private String normalisedPath;
   private String pathFromMountPoint;
+  private String acceptableContentType;
 
   // We use Cookie as the key too so we can return keySet in cookies() without copying
   private Map<String, Cookie> cookies;
@@ -239,6 +240,16 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   @Override
   public Session session() {
     return session;
+  }
+
+  @Override
+  public String getAcceptableContentType() {
+    return acceptableContentType;
+  }
+
+  @Override
+  public void setAcceptableContentType(String contentType) {
+    this.acceptableContentType = contentType;
   }
 
   @Override

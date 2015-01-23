@@ -82,6 +82,12 @@ public interface RoutingContext {
   String normalisedPath();
 
   String pathFromMountPoint();
+  
+  // Acceptable content type
+
+  String getAcceptableContentType();
+
+  void setAcceptableContentType(String contentType);
 
   // Cookies
 

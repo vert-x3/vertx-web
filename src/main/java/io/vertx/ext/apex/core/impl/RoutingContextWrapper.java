@@ -225,4 +225,14 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   public Set<FileUpload> fileUploads() {
     return inner.fileUploads();
   }
+
+  @Override
+  public String getAcceptableContentType() {
+    return inner.getAcceptableContentType();
+  }
+
+  @Override
+  public void setAcceptableContentType(String contentType) {
+    inner.setAcceptableContentType(contentType);
+  }
 }

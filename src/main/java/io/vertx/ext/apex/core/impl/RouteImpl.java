@@ -25,10 +25,7 @@ import io.vertx.ext.apex.core.FailureRoutingContext;
 import io.vertx.ext.apex.core.Route;
 import io.vertx.ext.apex.core.RoutingContext;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -190,13 +187,14 @@ public class RouteImpl implements Route {
     }
   }
 
-  synchronized boolean matches(String mountPoint, HttpServerRequest request, boolean failure) {
+  synchronized boolean matches(RoutingContext context, String mountPoint, boolean failure) {
     if (failure && failureHandler == null || !failure && contextHandler == null) {
       return false;
     }
     if (!enabled) {
       return false;
     }
+    HttpServerRequest request = context.request();
     if (!methods.isEmpty() && !methods.contains(request.method())) {
       return false;
     }
@@ -246,9 +244,13 @@ public class RouteImpl implements Route {
     if (!produces.isEmpty()) {
       String accept = request.headers().get("accept");
       if (accept != null) {
-        for (String produce: produces) {
-          if (ctMatches(produce, accept)) {
-            return true;
+        List<String> acceptableTypes = Utils.getSortedAcceptableMimeTypes(accept);
+        for (String acceptable: acceptableTypes) {
+          for (String produce : produces) {
+            if (ctMatches(produce, acceptable)) {
+              context.setAcceptableContentType(produce);
+              return true;
+            }
           }
         }
       }
