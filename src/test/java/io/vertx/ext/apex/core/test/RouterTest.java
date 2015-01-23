@@ -690,7 +690,7 @@ public class RouterTest extends ApexTestBase {
 
   @Test
   public void testConsumesMissingSlash() throws Exception {
-    // will assume "*/html"
+    // will assume "*/json"
     router.route().consumes("json").handler(rc -> rc.response().end());
     testRequestWithContentType(HttpMethod.GET, "/foo", "application/json", 200, "OK");
     testRequestWithContentType(HttpMethod.GET, "/foo", "application/json", 200, "OK");
@@ -736,6 +736,59 @@ public class RouterTest extends ApexTestBase {
   public void testConsumesCTParamsIgnored() throws Exception {
     router.route().consumes("text/html").handler(rc -> rc.response().end());
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html; someparam=12", 200, "OK");
+  }
+
+  @Test
+  public void testProduces() throws Exception {
+    router.route().produces("text/html").handler(rc -> rc.response().end());
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html", 200, "OK");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/json", 404, "Not Found");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "something/html", 404, "Not Found");
+  }
+
+  @Test
+  public void testProducesMultiple() throws Exception {
+    router.route().produces("text/html").produces("application/json").handler(rc -> rc.response().end());
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html", 200, "OK");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "application/json", 200, "OK");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/json", 404, "Not Found");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "something/html", 404, "Not Found");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/json", 404, "Not Found");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "application/blah", 404, "Not Found");
+  }
+
+  @Test
+  public void testProducesMissingSlash() throws Exception {
+    // will assume "*/json"
+    router.route().produces("application/json").handler(rc -> rc.response().end());
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "json", 200, "OK");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text", 404, "Not Found");
+  }
+
+  @Test
+  public void testProducesSubtypeWildcard() throws Exception {
+    router.route().produces("text/html").handler(rc -> rc.response().end());
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/*", 200, "OK");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "application/*", 404, "Not Found");
+  }
+
+  @Test
+  public void testProducesTopLevelTypeWildcard() throws Exception {
+    router.route().produces("application/json").handler(rc -> rc.response().end());
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "*/json", 200, "OK");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "*/html", 404, "Not Found");
+  }
+
+  @Test
+  public void testProducesAll1() throws Exception {
+    router.route().produces("application/json").handler(rc -> rc.response().end());
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "*/*", 200, "OK");
+  }
+
+  @Test
+  public void testProducesAll2() throws Exception {
+    router.route().produces("application/json").handler(rc -> rc.response().end());
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "*", 200, "OK");
   }
 
   @Test

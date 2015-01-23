@@ -234,7 +234,7 @@ public class RouteImpl implements Route {
       String contentType = request.headers().get("content-type");
       boolean matches = false;
       for (String ct: consumes) {
-        if (canConsume(contentType, ct)) {
+        if (ctMatches(contentType, ct)) {
           matches = true;
           break;
         }
@@ -245,7 +245,13 @@ public class RouteImpl implements Route {
     }
     if (!produces.isEmpty()) {
       String accept = request.headers().get("accept");
-      // TODO accept header matching
+      if (accept != null) {
+        for (String produce: produces) {
+          if (ctMatches(produce, accept)) {
+            return true;
+          }
+        }
+      }
       return false;
     }
     return true;
@@ -263,31 +269,31 @@ public class RouteImpl implements Route {
   "application/*", "json" - returns true
   TODO - don't parse consumes types on each request - they can be preparsed!
    */
-  private boolean canConsume(String requestCT, String consumesCT) {
+  private boolean ctMatches(String actualCT, String allowsCT) {
 
-    if (consumesCT.equals("*") || consumesCT.equals("*/*")) {
+    if (allowsCT.equals("*") || allowsCT.equals("*/*")) {
       return true;
     }
 
     // get the content type only (exclude charset)
-    requestCT = requestCT.split(";")[0];
+    actualCT = actualCT.split(";")[0];
 
     // if we received an incomplete CT
-    if (consumesCT.indexOf('/') == -1) {
+    if (allowsCT.indexOf('/') == -1) {
       // when the content is incomplete we assume */type, e.g.:
       // json -> */json
-      consumesCT = "*/" + consumesCT;
+      allowsCT = "*/" + allowsCT;
     }
 
     // process wildcards
-    if (consumesCT.contains("*")) {
-      String[] consumesParts = consumesCT.split("/");
-      String[] requestParts = requestCT.split("/");
+    if (allowsCT.contains("*")) {
+      String[] consumesParts = allowsCT.split("/");
+      String[] requestParts = actualCT.split("/");
       return "*".equals(consumesParts[0]) && consumesParts[1].equals(requestParts[1]) ||
              "*".equals(consumesParts[1]) && consumesParts[0].equals(requestParts[0]);
     }
 
-    return requestCT.contains(consumesCT);
+    return actualCT.contains(allowsCT);
   }
 
   private void setPath(String path) {
