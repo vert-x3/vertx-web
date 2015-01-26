@@ -21,6 +21,9 @@ import io.vertx.core.Handler;
 import io.vertx.ext.apex.core.RoutingContext;
 import io.vertx.ext.apex.addons.impl.StaticServerImpl;
 
+import java.io.File;
+
+
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
@@ -34,7 +37,7 @@ public interface StaticServer extends Handler<RoutingContext> {
   static final boolean DEFAULT_DIRECTORY_LISTING = false;
   static final boolean DEFAULT_INCLUDE_HIDDEN = true;
   static final long DEFAULT_CACHE_ENTRY_TIMEOUT = 30000; // 30 seconds
-  static final String DEFAULT_INDEX_PAGE = "/index.html";
+  static final String DEFAULT_INDEX_PAGE = File.separator + "index.html";
   static final int DEFAULT_MAX_CACHE_SIZE = 10000;
   static final boolean DEFAULT_ALWAYS_ASYNC_FS = false;
   static final boolean DEFAULT_ENABLE_FS_TUNING = true;

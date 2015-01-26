@@ -34,6 +34,7 @@ import io.vertx.ext.apex.core.RoutingContext;
 import io.vertx.ext.apex.core.impl.LRUCache;
 import io.vertx.ext.apex.core.impl.Utils;
 
+import java.io.File;
 import java.nio.file.NoSuchFileException;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -117,7 +118,7 @@ public class StaticServerImpl implements StaticServer {
         return;
       }
 
-      if (!directoryListing && "/".equals(path)) {
+      if (!directoryListing && File.separator.equals(path)) {
         path = indexPage;
       }
 
@@ -125,7 +126,7 @@ public class StaticServerImpl implements StaticServer {
 
       if (!includeHidden) {
         file = getFile(path, context);
-        int idx = file.lastIndexOf('/');
+        int idx = file.lastIndexOf(File.separatorChar);
         String name = file.substring(idx + 1);
         if (name.length() > 0 && name.charAt(0) == '.') {
           context.fail(404);
@@ -311,7 +312,7 @@ public class StaticServerImpl implements StaticServer {
     if (!indexPage.startsWith("/")) {
       indexPage = "/" + indexPage;
     }
-    this.indexPage = indexPage;
+    this.indexPage = Utils.normalisePath(indexPage);
     return this;
   }
 

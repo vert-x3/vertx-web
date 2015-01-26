@@ -39,7 +39,7 @@ import java.util.TimeZone;
 public class Utils {
 
   public static String normalisePath(String path) {
-    if (path == null || path.charAt(0) != '/') {
+    if (path == null || path.isEmpty() || (path.charAt(0) != '/' && path.charAt(0) != '\\')) {
       return null;
     }
     try {
