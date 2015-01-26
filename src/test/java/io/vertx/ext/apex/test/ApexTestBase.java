@@ -93,7 +93,7 @@ public class ApexTestBase extends VertxTestBase {
   }
 
   protected void testRequestWithAccepts(HttpMethod method, String path, String accepts, int statusCode, String statusMessage) throws Exception {
-    testRequest(method, path, req -> req.putHeader("accepts", accepts), statusCode, statusMessage, null);
+    testRequest(method, path, req -> req.putHeader("accept", accepts), statusCode, statusMessage, null);
   }
 
   protected void testRequestWithCookies(HttpMethod method, String path, String cookieHeader, int statusCode, String statusMessage) throws Exception {

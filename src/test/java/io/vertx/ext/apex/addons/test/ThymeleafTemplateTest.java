@@ -17,13 +17,14 @@
 package io.vertx.ext.apex.addons.test;
 
 import io.vertx.core.http.HttpMethod;
+import io.vertx.ext.apex.addons.PathTemplateHandler;
 import io.vertx.ext.apex.addons.TemplateEngine;
-import io.vertx.ext.apex.addons.TemplateHandler;
 import io.vertx.ext.apex.addons.ThymeleafTemplateEngine;
 import io.vertx.ext.apex.test.ApexTestBase;
 import org.junit.Test;
 
 /**
+ *
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 public class ThymeleafTemplateTest extends ApexTestBase {
@@ -31,28 +32,16 @@ public class ThymeleafTemplateTest extends ApexTestBase {
   @Test
   public void testTemplateHandler() throws Exception {
     TemplateEngine engine = ThymeleafTemplateEngine.create();
-    testTemplateHandler(engine, "test-thymeleaf-template.html");
+    testTemplateHandler(engine, "somedir", "test-thymeleaf-template2.html");
   }
 
-  @Test
-  public void testTemplateHandlerwithPrefixAndType1() throws Exception {
-    TemplateEngine engine = ThymeleafTemplateEngine.create("somedir/", "XHTML");
-    testTemplateHandler(engine, "test-thymeleaf-template2.html");
-  }
-
-  @Test
-  public void testTemplateHandlerwithPrefixAndType2() throws Exception {
-    TemplateEngine engine = ThymeleafTemplateEngine.create("somedir", "XHTML");
-    testTemplateHandler(engine, "test-thymeleaf-template2.html");
-  }
-
-  private void testTemplateHandler(TemplateEngine engine, String templateName) throws Exception {
+  private void testTemplateHandler(TemplateEngine engine, String directoryName, String templateName) throws Exception {
     router.route().handler(context -> {
       context.put("foo", "badger");
       context.put("bar", "fox");
       context.next();
     });
-    router.route().handler(TemplateHandler.templateHandler(engine, templateName, "text/html"));
+    router.route().handler(PathTemplateHandler.templateHandler(engine, directoryName, "text/html"));
     String expected =
       "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">\n" +
         "\n" +
@@ -63,20 +52,20 @@ public class ThymeleafTemplateTest extends ApexTestBase {
         "<body>\n" +
         "<p>badger</p>\n" +
         "<p>fox</p>\n" +
-        "<p>/somepath.foo</p>\n" +
+        "<p>/test-thymeleaf-template2.html</p>\n" +
         "<p>blah</p>\n" +
         "<p>wibble</p>\n" +
         "</body>\n" +
         "</html>";
 
-    testRequest(HttpMethod.GET, "/somepath.foo?param1=blah&param2=wibble", 200, "OK", expected);
+    testRequest(HttpMethod.GET, "/" + templateName + "?param1=blah&param2=wibble", 200, "OK", expected);
   }
 
   @Test
   public void testNoSuchTemplate() throws Exception {
     TemplateEngine engine = ThymeleafTemplateEngine.create();
-    router.route().handler(TemplateHandler.templateHandler(engine, "nosuchtemplate.html", "text/html"));
-    testRequest(HttpMethod.GET, "/", 500, "Internal Server Error");
+    router.route().handler(PathTemplateHandler.templateHandler(engine, "nosuchtemplate.html", "text/html"));
+    testRequest(HttpMethod.GET, "/foo.html", 500, "Internal Server Error");
   }
 
 }

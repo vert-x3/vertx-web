@@ -18,8 +18,8 @@ package io.vertx.ext.apex.addons.test;
 
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.apex.addons.JadeTemplateEngine;
+import io.vertx.ext.apex.addons.PathTemplateHandler;
 import io.vertx.ext.apex.addons.TemplateEngine;
-import io.vertx.ext.apex.addons.TemplateHandler;
 import io.vertx.ext.apex.test.ApexTestBase;
 import org.junit.Test;
 
@@ -31,66 +31,30 @@ public class JadeTemplateTest extends ApexTestBase {
   @Test
   public void testTemplateHandler() throws Exception {
     TemplateEngine engine = JadeTemplateEngine.create();
-    testTemplateHandler(engine, "test-jade-template.jade");
-  }
-
-  @Test
-  public void testTemplateHandlerwithPrefixAndExtension1() throws Exception {
-    TemplateEngine engine = JadeTemplateEngine.create("somedir/", "jade");
-    testTemplateHandler(engine, "test-jade-template2.jade");
-  }
-
-  @Test
-  public void testTemplateHandlerwithPrefixAndExtension2() throws Exception {
-    TemplateEngine engine = JadeTemplateEngine.create("somedir/", "jade");
-    testTemplateHandler(engine, "test-jade-template2");
-  }
-
-  @Test
-  public void testTemplateHandlerwithPrefixAndExtension3() throws Exception {
-    TemplateEngine engine = JadeTemplateEngine.create("somedir/", ".jade");
-    testTemplateHandler(engine, "test-jade-template2");
-  }
-
-  @Test
-  public void testTemplateHandlerwithPrefixAndExtension4() throws Exception {
-    TemplateEngine engine = JadeTemplateEngine.create("somedir", ".jade");
-    testTemplateHandler(engine, "test-jade-template2");
-  }
-
-  @Test
-  public void testTemplateHandlerwithPrefixAndExtension5() throws Exception {
-    TemplateEngine engine = JadeTemplateEngine.create("somedir", ".foo");
-    testTemplateHandler(engine, "test-jade-template2");
+    testTemplateHandler(engine, "somedir", "test-jade-template2.jade");
   }
 
   @Test
   public void testTemplateHandlerNoExtension() throws Exception {
     TemplateEngine engine = JadeTemplateEngine.create();
-    testTemplateHandler(engine, "test-jade-template");
+    testTemplateHandler(engine, "somedir", "test-jade-template2");
   }
 
-  @Test
-  public void testTemplateHandlerwithMaxCacheSize() throws Exception {
-    TemplateEngine engine = JadeTemplateEngine.create("somedir", ".foo", 12);
-    testTemplateHandler(engine, "test-jade-template2");
-  }
-
-  private void testTemplateHandler(TemplateEngine engine, String templateName) throws Exception {
+  private void testTemplateHandler(TemplateEngine engine, String directoryName, String templateName) throws Exception {
     router.route().handler(context -> {
       context.put("foo", "badger");
       context.next();
     });
-    router.route().handler(TemplateHandler.templateHandler(engine, templateName, "text/plain"));
+    router.route().handler(PathTemplateHandler.templateHandler(engine, directoryName, "text/plain"));
     String expected = "<!DOCTYPE html><html><head><title>badger</title></head><body></body></html>";
-    testRequest(HttpMethod.GET, "/", 200, "OK", expected);
+    testRequest(HttpMethod.GET, "/" + templateName, 200, "OK", expected);
   }
 
   @Test
   public void testNoSuchTemplate() throws Exception {
     TemplateEngine engine = JadeTemplateEngine.create();
-    router.route().handler(TemplateHandler.templateHandler(engine, "nosuchtemplate.jade", "text/plain"));
-    testRequest(HttpMethod.GET, "/", 500, "Internal Server Error");
+    router.route().handler(PathTemplateHandler.templateHandler(engine, "nosuchtemplate.jade", "text/plain"));
+    testRequest(HttpMethod.GET, "/foo.jade", 500, "Internal Server Error");
   }
 
 }

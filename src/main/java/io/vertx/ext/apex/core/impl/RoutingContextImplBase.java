@@ -59,7 +59,7 @@ public abstract class RoutingContextImplBase implements FailureRoutingContext {
     boolean failed = failed();
     while (iter.hasNext()) {
       RouteImpl route = iter.next();
-      if (route.matches(mountPoint(), request, failed)) {
+      if (route.matches(this, mountPoint(), failed)) {
         try {
           setHandled(true);
           currentRoute = route;

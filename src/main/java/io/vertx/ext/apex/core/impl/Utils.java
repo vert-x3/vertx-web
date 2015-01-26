@@ -25,12 +25,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.TimeZone;
+import java.util.*;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -115,7 +110,7 @@ public class Utils {
   }
 
   public static DateFormat createISODateTimeFormatter() {
-    DateFormat dtf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz");
+    DateFormat dtf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.ENGLISH);
     dtf.setTimeZone(TimeZone.getTimeZone("UTC"));
     return dtf;
   }

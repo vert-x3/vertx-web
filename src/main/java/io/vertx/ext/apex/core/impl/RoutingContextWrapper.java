@@ -167,6 +167,11 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   }
 
   @Override
+  public String pathFromMountPoint() {
+    return inner.pathFromMountPoint();
+  }
+
+  @Override
   public Cookie getCookie(String name) {
     return inner.getCookie(name);
   }
@@ -219,5 +224,15 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   @Override
   public Set<FileUpload> fileUploads() {
     return inner.fileUploads();
+  }
+
+  @Override
+  public String getAcceptableContentType() {
+    return inner.getAcceptableContentType();
+  }
+
+  @Override
+  public void setAcceptableContentType(String contentType) {
+    inner.setAcceptableContentType(contentType);
   }
 }
