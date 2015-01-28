@@ -3,6 +3,16 @@
 Apex is a set of building blocks for building web applications with Vert.x. Think of it as a Swiss Army Knife for building 
 modern, scalable, web apps.
 
+Please see the in source asciidoc documentation or the main documentation on the web-site for a full description
+of Apex:
+
+[Java in-source docs](src/main/asciidoc/java/index.adoc)
+[JavaScript in-source docs](src/main/asciidoc/js/index.adoc)
+[Groovy in-source docs](src/main/asciidoc/groovy/index.adoc)
+
+TODO remove the stuff below
+
+
 It's the successor to [Yoke](http://pmlopes.github.io/yoke/) in Vert.x 2.x, and takes inspiration from projects such
 as [Express](http://expressjs.com/) in the Node.js world.
 
