@@ -75,7 +75,7 @@ public class LoggerImpl implements Logger {
     if (inetSocketAddress == null) {
       return null;
     }
-    return inetSocketAddress.hostAddress();
+    return inetSocketAddress.host();
   }
 
   private void log(RoutingContext context, long timestamp, String remoteClient, HttpVersion version, HttpMethod method, String uri) {
