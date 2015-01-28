@@ -670,6 +670,16 @@ public class RouterTest extends ApexTestBase {
   }
 
   @Test
+  public void testRegex3() throws Exception {
+    router.routeWithRegex(".*foo.txt").handler(rc -> {
+      rc.response().setStatusMessage("ok").end();
+    });
+    testPattern("/dog/cat/foo.txt", "ok", true);
+    testRequest(HttpMethod.POST, "/dog/cat/foo.bar", 404, "Not Found");
+
+  }
+
+  @Test
   public void testConsumes() throws Exception {
     router.route().consumes("text/html").handler(rc -> rc.response().end());
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 200, "OK");

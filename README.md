@@ -13,17 +13,6 @@ of Apex:
 
 TODO remove the stuff below
 
-
-It's the successor to [Yoke](http://pmlopes.github.io/yoke/) in Vert.x 2.x, and takes inspiration from projects such
-as [Express](http://expressjs.com/) in the Node.js world.
-
-Apex is designed to be powerful, unopionated and fully embeddable. You just use the parts you want and nothing more. It's not a
-container.
-
-You can use Apex to create classic server side web applications, RESTful web applications, 'real-time' (server push) web applications,
-or any other kind of web application you can think of. Apex doesn't care. It's up to you to chose the type of app you prefer, not Apex.
- 
-
 ## Introduction
 
 Everything in Apex is based around wiring together handlers. The object that lets you wire them together is called a 
