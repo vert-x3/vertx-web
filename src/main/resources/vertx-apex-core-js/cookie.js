@@ -32,10 +32,11 @@ var Cookie = function(j_val) {
   var that = this;
 
   /**
-  
+   Returns the name of this {@link Cookie}.
+
    @public
 
-   @return {string}
+   @return {string} The name of this {@link Cookie}
    */
   this.getName = function() {
     var __args = arguments;
@@ -45,10 +46,11 @@ var Cookie = function(j_val) {
   };
 
   /**
-  
+   Returns the value of this {@link Cookie}.
+
    @public
 
-   @return {string}
+   @return {string} The value of this {@link Cookie}
    */
   this.getValue = function() {
     var __args = arguments;
@@ -58,9 +60,10 @@ var Cookie = function(j_val) {
   };
 
   /**
-  
+   Sets the value of this {@link Cookie}.
+
    @public
-   @param value {string} 
+   @param value {string} The value to set 
    @return {Cookie}
    */
   this.setValue = function(value) {
@@ -71,10 +74,11 @@ var Cookie = function(j_val) {
   };
 
   /**
-  
+   Returns the domain of this {@link Cookie}.
+
    @public
 
-   @return {string}
+   @return {string} The domain of this {@link Cookie}
    */
   this.getDomain = function() {
     var __args = arguments;
@@ -84,9 +88,10 @@ var Cookie = function(j_val) {
   };
 
   /**
-  
+   Sets the domain of this {@link Cookie}.
+
    @public
-   @param domain {string} 
+   @param domain {string} The domain to use 
    @return {Cookie}
    */
   this.setDomain = function(domain) {
@@ -97,10 +102,11 @@ var Cookie = function(j_val) {
   };
 
   /**
-  
+   Returns the path of this {@link Cookie}.
+
    @public
 
-   @return {string}
+   @return {string} The {@link Cookie}'s path
    */
   this.getPath = function() {
     var __args = arguments;
@@ -110,9 +116,10 @@ var Cookie = function(j_val) {
   };
 
   /**
-  
+   Sets the path of this {@link Cookie}.
+
    @public
-   @param path {string} 
+   @param path {string} The path to use for this {@link Cookie} 
    @return {Cookie}
    */
   this.setPath = function(path) {
@@ -123,10 +130,11 @@ var Cookie = function(j_val) {
   };
 
   /**
-  
+   Returns the maximum age of this {@link Cookie} in seconds or  if unspecified
+
    @public
 
-   @return {number}
+   @return {number} The maximum age of this {@link Cookie}
    */
   this.getMaxAge = function() {
     var __args = arguments;
@@ -136,9 +144,14 @@ var Cookie = function(j_val) {
   };
 
   /**
-  
+   Sets the maximum age of this {@link Cookie} in seconds.
+   If an age of <code>0</code> is specified, this {@link Cookie} will be
+   automatically removed by browser because it will expire immediately.
+   If  is specified, this {@link Cookie} will be removed when the
+   browser is closed.
+
    @public
-   @param maxAge {number} 
+   @param maxAge {number} The maximum age of this {@link Cookie} in seconds 
    @return {Cookie}
    */
   this.setMaxAge = function(maxAge) {
@@ -149,10 +162,11 @@ var Cookie = function(j_val) {
   };
 
   /**
-  
+   Checks to see if this {@link Cookie} is secure
+
    @public
 
-   @return {boolean}
+   @return {boolean} True if this {@link Cookie} is secure, otherwise false
    */
   this.isSecure = function() {
     var __args = arguments;
@@ -162,9 +176,10 @@ var Cookie = function(j_val) {
   };
 
   /**
-  
+   Sets the security getStatus of this {@link Cookie}
+
    @public
-   @param secure {boolean} 
+   @param secure {boolean} True if this {@link Cookie} is to be secure, otherwise false 
    @return {Cookie}
    */
   this.setSecure = function(secure) {
@@ -175,10 +190,14 @@ var Cookie = function(j_val) {
   };
 
   /**
-  
+   Checks to see if this {@link Cookie} can only be accessed via HTTP.
+   If this returns true, the {@link Cookie} cannot be accessed through
+   client side script - But only if the browser supports it.
+   For more information, please look <a href="http://www.owasp.org/index.php/HTTPOnly">here</a>
+
    @public
 
-   @return {boolean}
+   @return {boolean} True if this {@link Cookie} is HTTP-only or false if it isn't
    */
   this.isHttpOnly = function() {
     var __args = arguments;
@@ -188,9 +207,14 @@ var Cookie = function(j_val) {
   };
 
   /**
-  
+   Determines if this {@link Cookie} is HTTP only.
+   If set to true, this {@link Cookie} cannot be accessed by a client
+   side script. However, this works only if the browser supports it.
+   For for information, please look
+   <a href="http://www.owasp.org/index.php/HTTPOnly">here</a>.
+
    @public
-   @param httpOnly {boolean} 
+   @param httpOnly {boolean} True if the {@link Cookie} is HTTP only, otherwise false. 
    @return {Cookie}
    */
   this.setHttpOnly = function(httpOnly) {

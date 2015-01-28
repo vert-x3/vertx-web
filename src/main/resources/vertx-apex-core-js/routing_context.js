@@ -365,7 +365,7 @@ var RoutingContext = function(j_val) {
   /**
 
    @public
-
+   @param encoding {string} 
    @return {string}
    */
   this.getBodyAsString = function() {
@@ -450,6 +450,38 @@ var RoutingContext = function(j_val) {
     var __args = arguments;
     if (__args.length === 0) {
       return new Session(j_routingContext.session());
+    } else utils.invalidArgs();
+  };
+
+  /**
+
+   @public
+
+   @return {todo}
+   */
+  this.failure = function() {
+    var __args = arguments;
+    if (__args.length === 0) {
+      if (that.cachedfailure == null) {
+        that.cachedfailure = utils.convReturnTypeUnknown(j_routingContext.failure());
+      }
+      return that.cachedfailure;
+    } else utils.invalidArgs();
+  };
+
+  /**
+
+   @public
+
+   @return {number}
+   */
+  this.statusCode = function() {
+    var __args = arguments;
+    if (__args.length === 0) {
+      if (that.cachedstatusCode == null) {
+        that.cachedstatusCode = j_routingContext.statusCode();
+      }
+      return that.cachedstatusCode;
     } else utils.invalidArgs();
   };
 

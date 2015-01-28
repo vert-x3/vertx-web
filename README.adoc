@@ -1,0 +1,12 @@
+= Apex
+
+Apex is a set of building blocks for building web applications with Vert.x. Think of it as a Swiss Army Knife for building 
+modern, scalable, web apps.
+
+Please see the in source asciidoc documentation or the main documentation on the web-site for a full description
+of Apex:
+
+* Web-site docs
+* link:src/main/asciidoc/java/index.adoc[Java in-source docs]
+* link:src/main/asciidoc/js/index.adoc[JavaScript in-source docs]
+* link:src/main/asciidoc/groovy/index.adoc[Groovy in-source docs]

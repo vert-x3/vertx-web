@@ -17,7 +17,6 @@
 /** @module vertx-apex-core-js/route */
 var utils = require('vertx-js/util/utils');
 var RoutingContext = require('vertx-apex-core-js/routing_context');
-var FailureRoutingContext = require('vertx-apex-core-js/failure_routing_context');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
@@ -141,14 +140,14 @@ var Route = function(j_val) {
   /**
 
    @public
-   @param exceptionHandler {function} 
+   @param failureHandler {function} 
    @return {Route}
    */
-  this.failureHandler = function(exceptionHandler) {
+  this.failureHandler = function(failureHandler) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'function') {
       return new Route(j_route.failureHandler(function(jVal) {
-      exceptionHandler(new FailureRoutingContext(jVal));
+      failureHandler(new RoutingContext(jVal));
     }));
     } else utils.invalidArgs();
   };

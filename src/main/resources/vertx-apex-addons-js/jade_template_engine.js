@@ -42,7 +42,9 @@ var JadeTemplateEngine = function(j_val) {
 /**
 
  @memberof module:vertx-apex-addons-js/jade_template_engine
-
+ @param resourcePrefix {string} 
+ @param extension {string} 
+ @param maxCacheSize {number} 
  @return {JadeTemplateEngine}
  */
 JadeTemplateEngine.create = function() {
