@@ -49,38 +49,23 @@ public class UtilsTest {
   }
 
   @Test
-  public void testPathWithDot() throws Exception {
-    assertEquals("/foo/blah/eek", Utils.normalisePath("/foo/blah/./eek"));
-  }
-
-  @Test
-  public void testPathWithExtraSlashes1() throws Exception {
-    assertEquals("/foo/blah/eek", Utils.normalisePath("/foo//blah//eek"));
-  }
-
-  @Test
-  public void testPathWithExtraSlashes2() throws Exception {
-    assertEquals("/foo/blah/eek", Utils.normalisePath("//foo/blah/eek//"));
-  }
-
-  @Test
   public void testDodgyPath1() throws Exception {
-    assertEquals("/blah", Utils.normalisePath("/foo/../../blah"));
+    assertEquals("/foo///blah", Utils.normalisePath("/foo/../../blah"));
   }
 
   @Test
   public void testDodgyPath2() throws Exception {
-    assertEquals("/blah", Utils.normalisePath("/foo/../../../blah"));
+    assertEquals("/foo////blah", Utils.normalisePath("/foo/../../../blah"));
   }
 
   @Test
   public void testDodgyPath3() throws Exception {
-    assertEquals("/blah", Utils.normalisePath("/foo/../blah"));
+    assertEquals("/foo//blah", Utils.normalisePath("/foo/../blah"));
   }
 
   @Test
   public void testDodgyPath4() throws Exception {
-    assertEquals("/blah", Utils.normalisePath("/../blah"));
+    assertEquals("//blah", Utils.normalisePath("/../blah"));
   }
 
   @Test

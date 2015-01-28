@@ -38,9 +38,10 @@ public class Utils {
       return null;
     }
     try {
+      // TODO this can be optimised
       path = URLDecoder.decode(path, "UTF-8");
-      Path p = Paths.get(path).normalize();
-      return p.toString();
+      path = path.replace("..", ""); // Safety
+      return path;
     } catch (Exception e) {
       throw new IllegalStateException(e);
     }

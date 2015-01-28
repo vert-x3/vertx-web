@@ -61,6 +61,11 @@ public class StaticServerTest extends ApexTestBase {
   }
 
   @Test
+  public void testGetFileWithSpaces() throws Exception {
+    testRequest(HttpMethod.GET, "/file%20with%20spaces.html", 200, "OK", "<html><body>File with spaces</body></html>");
+  }
+
+  @Test
   public void testGetOtherPage() throws Exception {
     testRequest(HttpMethod.GET, "/otherpage.html", 200, "OK", "<html><body>Other page</body></html>");
   }
@@ -285,7 +290,7 @@ public class StaticServerTest extends ApexTestBase {
   @Test
   public void testDirectoryListingText() throws Exception {
     stat.setDirectoryListing(true);
-    Set<String> expected = new HashSet<>(Arrays.asList(".hidden.html", "foo.json", "index.html", "otherpage.html", "somedir"));
+    Set<String> expected = new HashSet<>(Arrays.asList(".hidden.html", "foo.json", "index.html", "otherpage.html", "somedir", "file with spaces.html"));
 
     testRequest(HttpMethod.GET, "/", null, resp -> {
       resp.bodyHandler(buff -> {
@@ -303,7 +308,7 @@ public class StaticServerTest extends ApexTestBase {
   public void testDirectoryListingTextNoHidden() throws Exception {
     stat.setDirectoryListing(true);
     stat.setIncludeHidden(false);
-    Set<String> expected = new HashSet<>(Arrays.asList("foo.json", "index.html", "otherpage.html", "somedir"));
+    Set<String> expected = new HashSet<>(Arrays.asList("foo.json", "index.html", "otherpage.html", "somedir", "file with spaces.html"));
 
     testRequest(HttpMethod.GET, "/", null, resp -> {
       resp.bodyHandler(buff -> {
@@ -321,7 +326,7 @@ public class StaticServerTest extends ApexTestBase {
   @Test
   public void testDirectoryListingJson() throws Exception {
     stat.setDirectoryListing(true);
-    Set<String> expected = new HashSet<>(Arrays.asList(".hidden.html", "foo.json", "index.html", "otherpage.html", "somedir"));
+    Set<String> expected = new HashSet<>(Arrays.asList(".hidden.html", "foo.json", "index.html", "otherpage.html", "somedir", "file with spaces.html"));
 
     testRequest(HttpMethod.GET, "/", req -> {
       req.putHeader("accept", "application/json");
@@ -344,7 +349,7 @@ public class StaticServerTest extends ApexTestBase {
   public void testDirectoryListingJsonNoHidden() throws Exception {
     stat.setDirectoryListing(true);
     stat.setIncludeHidden(false);
-    Set<String> expected = new HashSet<>(Arrays.asList("foo.json", "index.html", "otherpage.html", "somedir"));
+    Set<String> expected = new HashSet<>(Arrays.asList("foo.json", "index.html", "otherpage.html", "somedir", "file with spaces.html"));
 
     testRequest(HttpMethod.GET, "/", req -> {
       req.putHeader("accept", "application/json");
