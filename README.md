@@ -40,7 +40,7 @@ Here's a more complex example
     Router apiRouter = Router.router();
 
     // We need body parsing
-    apiRouter.route(BodyHandler.bodyHandler());
+    apiRouter.route().handler(BodyHandler.bodyHandler());
     
     apiRouter.route("/orders")
              .method(POST)
