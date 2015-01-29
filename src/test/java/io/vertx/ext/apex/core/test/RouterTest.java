@@ -1079,6 +1079,252 @@ public class RouterTest extends ApexTestBase {
     }, 404, "Not Found", null);
   }
 
+  @Test
+  public void testGet() throws Exception {
+    router.get().handler(rc -> {
+      rc.response().setStatusMessage("foo").end();
+    });
+    testRequest(HttpMethod.GET, "/whatever", 200, "foo");
+    testRequest(HttpMethod.POST, "/whatever", 404, "Not Found");
+    testRequest(HttpMethod.PUT, "/whatever", 404, "Not Found");
+    testRequest(HttpMethod.DELETE, "/whatever", 404, "Not Found");
+    testRequest(HttpMethod.OPTIONS, "/whatever", 404, "Not Found");
+    testRequest(HttpMethod.HEAD, "/whatever", 404, "Not Found");
+  }
+
+  @Test
+  public void testGetWithPath() throws Exception {
+    router.get("/somepath/").handler(rc -> {
+      rc.response().setStatusMessage("foo").end();
+    });
+    testRequest(HttpMethod.GET, "/somepath/whatever", 200, "foo");
+    testRequest(HttpMethod.GET, "/otherpath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.POST, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.PUT, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.DELETE, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.HEAD, "/somepath/whatever", 404, "Not Found");
+  }
+
+  @Test
+  public void testGetWithRegex() throws Exception {
+    router.getWithRegex("\\/somepath\\/.*").handler(rc -> {
+      rc.response().setStatusMessage("foo").end();
+    });
+    testRequest(HttpMethod.GET, "/somepath/whatever", 200, "foo");
+    testRequest(HttpMethod.GET, "/otherpath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.POST, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.PUT, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.DELETE, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.HEAD, "/somepath/whatever", 404, "Not Found");
+  }
+
+  @Test
+  public void testPost() throws Exception {
+    router.post().handler(rc -> {
+      rc.response().setStatusMessage("foo").end();
+    });
+    testRequest(HttpMethod.POST, "/whatever", 200, "foo");
+    testRequest(HttpMethod.GET, "/whatever", 404, "Not Found");
+    testRequest(HttpMethod.PUT, "/whatever", 404, "Not Found");
+    testRequest(HttpMethod.DELETE, "/whatever", 404, "Not Found");
+    testRequest(HttpMethod.OPTIONS, "/whatever", 404, "Not Found");
+    testRequest(HttpMethod.HEAD, "/whatever", 404, "Not Found");
+  }
+
+  @Test
+  public void testPostWithPath() throws Exception {
+    router.post("/somepath/").handler(rc -> {
+      rc.response().setStatusMessage("foo").end();
+    });
+    testRequest(HttpMethod.POST, "/somepath/whatever", 200, "foo");
+    testRequest(HttpMethod.POST, "/otherpath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.PUT, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.DELETE, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.HEAD, "/somepath/whatever", 404, "Not Found");
+  }
+
+  @Test
+  public void testPostWithRegex() throws Exception {
+    router.postWithRegex("\\/somepath\\/.*").handler(rc -> {
+      rc.response().setStatusMessage("foo").end();
+    });
+    testRequest(HttpMethod.POST, "/somepath/whatever", 200, "foo");
+    testRequest(HttpMethod.POST, "/otherpath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.PUT, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.DELETE, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.HEAD, "/somepath/whatever", 404, "Not Found");
+  }
+
+  @Test
+  public void testPut() throws Exception {
+    router.put().handler(rc -> {
+      rc.response().setStatusMessage("foo").end();
+    });
+    testRequest(HttpMethod.PUT, "/whatever", 200, "foo");
+    testRequest(HttpMethod.GET, "/whatever", 404, "Not Found");
+    testRequest(HttpMethod.POST, "/whatever", 404, "Not Found");
+    testRequest(HttpMethod.DELETE, "/whatever", 404, "Not Found");
+    testRequest(HttpMethod.OPTIONS, "/whatever", 404, "Not Found");
+    testRequest(HttpMethod.HEAD, "/whatever", 404, "Not Found");
+  }
+
+  @Test
+  public void testPutWithPath() throws Exception {
+    router.put("/somepath/").handler(rc -> {
+      rc.response().setStatusMessage("foo").end();
+    });
+    testRequest(HttpMethod.PUT, "/somepath/whatever", 200, "foo");
+    testRequest(HttpMethod.PUT, "/otherpath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.POST, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.DELETE, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.HEAD, "/somepath/whatever", 404, "Not Found");
+  }
+
+  @Test
+  public void testPutWithRegex() throws Exception {
+    router.putWithRegex("\\/somepath\\/.*").handler(rc -> {
+      rc.response().setStatusMessage("foo").end();
+    });
+    testRequest(HttpMethod.PUT, "/somepath/whatever", 200, "foo");
+    testRequest(HttpMethod.PUT, "/otherpath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.POST, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.DELETE, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.HEAD, "/somepath/whatever", 404, "Not Found");
+  }
+
+  @Test
+  public void testDelete() throws Exception {
+    router.delete().handler(rc -> {
+      rc.response().setStatusMessage("foo").end();
+    });
+    testRequest(HttpMethod.DELETE, "/whatever", 200, "foo");
+    testRequest(HttpMethod.GET, "/whatever", 404, "Not Found");
+    testRequest(HttpMethod.POST, "/whatever", 404, "Not Found");
+    testRequest(HttpMethod.PUT, "/whatever", 404, "Not Found");
+    testRequest(HttpMethod.OPTIONS, "/whatever", 404, "Not Found");
+    testRequest(HttpMethod.HEAD, "/whatever", 404, "Not Found");
+  }
+
+  @Test
+  public void testDeleteWithPath() throws Exception {
+    router.delete("/somepath/").handler(rc -> {
+      rc.response().setStatusMessage("foo").end();
+    });
+    testRequest(HttpMethod.DELETE, "/somepath/whatever", 200, "foo");
+    testRequest(HttpMethod.DELETE, "/otherpath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.POST, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.PUT, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.HEAD, "/somepath/whatever", 404, "Not Found");
+  }
+
+  @Test
+  public void testDeleteWithRegex() throws Exception {
+    router.deleteWithRegex("\\/somepath\\/.*").handler(rc -> {
+      rc.response().setStatusMessage("foo").end();
+    });
+    testRequest(HttpMethod.DELETE, "/somepath/whatever", 200, "foo");
+    testRequest(HttpMethod.DELETE, "/otherpath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.POST, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.PUT, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.HEAD, "/somepath/whatever", 404, "Not Found");
+  }
+
+  @Test
+  public void testOptions() throws Exception {
+    router.options().handler(rc -> {
+      rc.response().setStatusMessage("foo").end();
+    });
+    testRequest(HttpMethod.OPTIONS, "/whatever", 200, "foo");
+    testRequest(HttpMethod.GET, "/whatever", 404, "Not Found");
+    testRequest(HttpMethod.POST, "/whatever", 404, "Not Found");
+    testRequest(HttpMethod.PUT, "/whatever", 404, "Not Found");
+    testRequest(HttpMethod.DELETE, "/whatever", 404, "Not Found");
+    testRequest(HttpMethod.HEAD, "/whatever", 404, "Not Found");
+  }
+
+  @Test
+  public void testOptionsWithPath() throws Exception {
+    router.options("/somepath/").handler(rc -> {
+      rc.response().setStatusMessage("foo").end();
+    });
+    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", 200, "foo");
+    testRequest(HttpMethod.OPTIONS, "/otherpath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.POST, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.PUT, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.DELETE, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.HEAD, "/somepath/whatever", 404, "Not Found");
+  }
+
+  @Test
+  public void testOptionsWithRegex() throws Exception {
+    router.optionsWithRegex("\\/somepath\\/.*").handler(rc -> {
+      rc.response().setStatusMessage("foo").end();
+    });
+    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", 200, "foo");
+    testRequest(HttpMethod.OPTIONS, "/otherpath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.POST, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.PUT, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.DELETE, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.HEAD, "/somepath/whatever", 404, "Not Found");
+  }
+
+  @Test
+  public void testHead() throws Exception {
+    router.head().handler(rc -> {
+      rc.response().setStatusMessage("foo").end();
+    });
+    testRequest(HttpMethod.HEAD, "/whatever", 200, "foo");
+    testRequest(HttpMethod.GET, "/whatever", 404, "Not Found");
+    testRequest(HttpMethod.POST, "/whatever", 404, "Not Found");
+    testRequest(HttpMethod.PUT, "/whatever", 404, "Not Found");
+    testRequest(HttpMethod.OPTIONS, "/whatever", 404, "Not Found");
+    testRequest(HttpMethod.DELETE, "/whatever", 404, "Not Found");
+  }
+
+  @Test
+  public void testHeadWithPath() throws Exception {
+    router.head("/somepath/").handler(rc -> {
+      rc.response().setStatusMessage("foo").end();
+    });
+    testRequest(HttpMethod.HEAD, "/somepath/whatever", 200, "foo");
+    testRequest(HttpMethod.HEAD, "/otherpath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.POST, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.PUT, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.DELETE, "/somepath/whatever", 404, "Not Found");
+  }
+
+  @Test
+  public void testHeadWithRegex() throws Exception {
+    router.headWithRegex("\\/somepath\\/.*").handler(rc -> {
+      rc.response().setStatusMessage("foo").end();
+    });
+    testRequest(HttpMethod.HEAD, "/somepath/whatever", 200, "foo");
+    testRequest(HttpMethod.HEAD, "/otherpath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.POST, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.PUT, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.DELETE, "/somepath/whatever", 404, "Not Found");
+  }
+
 
 
 

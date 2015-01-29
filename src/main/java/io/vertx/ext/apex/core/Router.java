@@ -51,6 +51,42 @@ public interface Router {
 
   Route routeWithRegex(String regex);
 
+  Route get();
+
+  Route get(String path);
+
+  Route getWithRegex(String path);
+
+  Route head();
+
+  Route head(String path);
+
+  Route headWithRegex(String path);
+
+  Route options();
+
+  Route options(String path);
+
+  Route optionsWithRegex(String path);
+
+  Route put();
+
+  Route put(String path);
+
+  Route putWithRegex(String path);
+
+  Route post();
+
+  Route post(String path);
+
+  Route postWithRegex(String path);
+
+  Route delete();
+
+  Route delete(String path);
+
+  Route deleteWithRegex(String path);
+
   List<Route> getRoutes();
 
   Router clear();

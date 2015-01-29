@@ -82,6 +82,96 @@ public class RouterImpl implements Router {
   }
 
   @Override
+  public Route get() {
+    return route().method(HttpMethod.GET);
+  }
+
+  @Override
+  public Route get(String path) {
+    return route(HttpMethod.GET, path);
+  }
+
+  @Override
+  public Route getWithRegex(String path) {
+    return route().method(HttpMethod.GET).pathRegex(path);
+  }
+
+  @Override
+  public Route head() {
+    return route().method(HttpMethod.HEAD);
+  }
+
+  @Override
+  public Route head(String path) {
+    return route(HttpMethod.HEAD, path);
+  }
+
+  @Override
+  public Route headWithRegex(String path) {
+    return route().method(HttpMethod.HEAD).pathRegex(path);
+  }
+
+  @Override
+  public Route options() {
+    return route().method(HttpMethod.OPTIONS);
+  }
+
+  @Override
+  public Route options(String path) {
+    return route(HttpMethod.OPTIONS, path);
+  }
+
+  @Override
+  public Route optionsWithRegex(String path) {
+    return route().method(HttpMethod.OPTIONS).pathRegex(path);
+  }
+
+  @Override
+  public Route put() {
+    return route().method(HttpMethod.PUT);
+  }
+
+  @Override
+  public Route put(String path) {
+    return route(HttpMethod.PUT, path);
+  }
+
+  @Override
+  public Route putWithRegex(String path) {
+    return route().method(HttpMethod.PUT).pathRegex(path);
+  }
+
+  @Override
+  public Route post() {
+    return route().method(HttpMethod.POST);
+  }
+
+  @Override
+  public Route post(String path) {
+    return route(HttpMethod.POST, path);
+  }
+
+  @Override
+  public Route postWithRegex(String path) {
+    return route().method(HttpMethod.POST).pathRegex(path);
+  }
+
+  @Override
+  public Route delete() {
+    return route().method(HttpMethod.DELETE);
+  }
+
+  @Override
+  public Route delete(String path) {
+    return route(HttpMethod.DELETE, path);
+  }
+
+  @Override
+  public Route deleteWithRegex(String path) {
+    return route().method(HttpMethod.DELETE).pathRegex(path);
+  }
+
+  @Override
   public List<Route> getRoutes() {
     return new ArrayList<>(routes);
   }

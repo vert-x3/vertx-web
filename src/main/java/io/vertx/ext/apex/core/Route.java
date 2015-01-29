@@ -52,7 +52,6 @@ public interface Route {
 
   String getPath();
 
-  // TODO Other getters?
 }
 
 

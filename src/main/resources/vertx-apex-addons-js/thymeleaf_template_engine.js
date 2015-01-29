@@ -41,7 +41,8 @@ var ThymeleafTemplateEngine = function(j_val) {
 /**
 
  @memberof module:vertx-apex-addons-js/thymeleaf_template_engine
-
+ @param resourcePrefix {string} 
+ @param templateMode {string} 
  @return {ThymeleafTemplateEngine}
  */
 ThymeleafTemplateEngine.create = function() {

@@ -208,7 +208,7 @@ var StaticServer = function(j_val) {
 /**
 
  @memberof module:vertx-apex-addons-js/static_server
-
+ @param root {string} 
  @return {StaticServer}
  */
 StaticServer.staticServer = function() {

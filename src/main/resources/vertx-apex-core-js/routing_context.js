@@ -365,7 +365,7 @@ var RoutingContext = function(j_val) {
   /**
 
    @public
-
+   @param encoding {string} 
    @return {string}
    */
   this.getBodyAsString = function() {

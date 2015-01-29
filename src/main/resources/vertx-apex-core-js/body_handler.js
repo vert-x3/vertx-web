@@ -52,7 +52,8 @@ var BodyHandler = function(j_val) {
 /**
 
  @memberof module:vertx-apex-core-js/body_handler
-
+ @param bodyLimit {number} 
+ @param uploadsDirectory {string} 
  @return {BodyHandler}
  */
 BodyHandler.bodyHandler = function() {

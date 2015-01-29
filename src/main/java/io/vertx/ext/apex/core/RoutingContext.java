@@ -57,10 +57,6 @@ public interface RoutingContext {
 
   Vertx vertx();
 
-  // Some Helper methods
-
-  // TODO - shouldn't these below be fluent??
-
   int addHeadersEndHandler(Handler<Void> handler);
 
   boolean removeHeadersEndHandler(int handlerID);

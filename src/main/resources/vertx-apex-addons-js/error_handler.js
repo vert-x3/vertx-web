@@ -52,7 +52,8 @@ var ErrorHandler = function(j_val) {
 /**
 
  @memberof module:vertx-apex-addons-js/error_handler
-
+ @param errorTemplateName {string} 
+ @param displayExceptionDetails {boolean} 
  @return {ErrorHandler}
  */
 ErrorHandler.errorHandler = function() {

@@ -123,16 +123,53 @@ The object that gets passed into the handler is a link:jsdoc/routin_context-Rout
 the standard Vert.x link:jsdoc/htt_serve_request-HttpServerRequest.html[`HttpServerRequest`] and link:jsdoc/htt_serve_response-HttpServerResponse.html[`HttpServerResponse`]
 but also various other useful stuff that makes working with Apex simpler.
 
+For every request that is routed there is a unique routing context instance, and the same instance is passed to
+all handlers for that request.
+
 Once we've set up the handler, we set the request handler of the HTTP server to pass all incoming requests
 to link:jsdoc/router-Router.html#accept[`accept`].
 
 So, that's the basics. Now we'll look at things in more detail:
 
-=== Routing requests
+== Handling requests and calling the next handler
 
-There are many ways routes can be set-up to route requests to handlers. We'll look at them all here.
+When a route matches the handler for the route will be called, passing in an instance of link:jsdoc/routin_context-RoutingContext.html[`RoutingContext`].
 
-==== Routing by path
+If you don't end the request in your handler, you can call link:jsdoc/routin_context-RoutingContext.html#next[`next`] then the router
+will call the next matching route handler (if any).
+
+You don't have to call link:jsdoc/routin_context-RoutingContext.html#next[`next`] before the handler has finished executing.
+You can do this some time later, if you want:
+
+[source,java]
+----
+var route1 = router.route("/some/path/").handler(function (routingContext) {
+  var response = routingContext.response();
+  response.write("route1\n");
+  routingContext.vertx().setTimer(5000, function (tid) {
+    routingContext.next()});
+});
+var route2 = router.route("/some/path/").handler(function (routingContext) {
+  var response = routingContext.response();
+  response.write("route2\n");
+  routingContext.vertx().setTimer(5000, function (tid) {
+    routingContext.next()});
+});
+var route3 = router.route("/some/path/").handler(function (routingContext) {
+  var response = routingContext.response();
+  response.write("route3");
+  routingContext.response().end();
+});
+route2.order(-1);
+
+----
+
+In the above example `route1` is written to the response, then 5 seconds later `route2` is written to the response,
+then 5 seconds later `route3` is written to the response and the response is ended.
+
+Note, all this happens without any thread blocking.
+
+== Routing by path
 
 A route can be set-up to match the path from the request URI.
 
@@ -161,7 +198,22 @@ route.handler(function (routingContext) {
 
 ----
 
-==== Routing with regular expressions
+== Capturing path parameters
+
+It's possible to match paths using placeholders for parameters which are then available in the request
+link:jsdoc/htt_serve_request-HttpServerRequest.html#params[`params`].
+
+Here's an example
+
+[source,java]
+----
+todo
+----
+
+In the above example, if a POST request is made to path: `/catalogue/products/tools/drill123/` then the route will match
+and `productType` will receive the value `tools` and productID will receive the value `drill123`.
+
+== Routing with regular expressions
 
 Regular expressions can also be used to match URI paths in routes.
 
@@ -185,7 +237,26 @@ route.handler(function (routingContext) {
 
 ----
 
-==== Routing by HTTP method
+== Capturing path parameters with regular expressions
+
+You can also capture path parameters when using regular expressions, here's an example:
+
+[source,java]
+----
+var route = router.routeWithRegex(".*foo");
+route.pathRegex("\\/([^\\/]+)\\/([^\\/]+)").handler(function (routingContext) {
+  var productType = routingContext.request().params().get("param0");
+  var productID = routingContext.request().params().get("param1");
+});
+
+----
+
+In the above example, if a request is made to path: `/tools/drill123/` then the route will match
+and `productType` will receive the value `tools` and productID will receive the value `drill123`.
+
+Captures are denoted in regular expressions with capture groups (i.e. surrounding the capture with round brackets)
+
+== Routing by HTTP method
 
 By default a route will match all HTTP methods.
 
@@ -203,6 +274,21 @@ Or you can specify this with a path when creating the route:
 todo
 ----
 
+If you want to route for a specific HTTP method you can also use the methods such as link:jsdoc/router-Router.html#get[`get`],
+link:jsdoc/router-Router.html#post[`post`] and link:jsdoc/router-Router.html#put[`put`] named after the HTTP
+method name. For example:
+
+[source,java]
+----
+router.get().handler(function (routingContext) {
+});
+router.get("/some/path/").handler(function (routingContext) {
+});
+router.getWithRegex(".*foo").handler(function (routingContext) {
+});
+
+----
+
 If you want to specify a route will match for more than HTTP method you can call link:jsdoc/route-Route.html#method[`method`]
 multiple times:
 
@@ -211,7 +297,9 @@ multiple times:
 todo
 ----
 
-==== Route order
+
+
+== Route order
 
 By default routes are matched in the order they are added to the router.
 
@@ -297,21 +385,7 @@ If two matching routes have the same value of order, then they will be called in
 
 You can also specify a route is handled last, with link:jsdoc/route-Route.html#last[`last`]
 
-==== Enabling and disabling routes
-
-You can disable a route with link:jsdoc/route-Route.html#disable[`disable`].
-
-A disabled route will be ignored when matching.
-
-You can re-enable a disabled route with link:jsdoc/route-Route.html#enable[`enable`]
-
-==== Content based routing
-
-Apex supports content based routing which allows request to be routed to specific handlers depending on the
-MIME type of the request body as specified in the `content-type` header, and/or the set of MIME types the client
-accepts as specified in the `accept` header.
-
-===== Routing based on MIME type of request
+== Routing based on MIME type of request
 
 You can specify that a route will match against matching request MIME types using link:jsdoc/route-Route.html#consumes[`consumes`].
 
@@ -359,64 +433,209 @@ router.route().consumes("*/json").handler(function (routingContext) {
 
 If you don't specify a `/` in the consumers, it will assume you meant the sub-type.
 
-===== Routing based on MIME types acceptable by the client
+== Routing based on MIME types acceptable by the client
 
-The HTTP `accept` header is used to signify what MIME types of the response are acceptable to the client.
+The HTTP `accept` header is used to signify which MIME types of the response are acceptable to the client.
 
-An `accept` header can have multiple MIME types separated by `,`. MIME types can also have a q value appended to them
-which signifies a weighting to apply if more than one response MIME type is available matching the accept header.
+An `accept` header can have multiple MIME types separated by `,`. MIME types can also have a `q` value appended to them
+which signifies a weighting to apply if more than one response MIME type is available matching the accept header. The
+q value is a number between 0 and 1.0. If omitted it defaults to 1.0.
+
+For example, the following `accept` header signifies the client will accept a MIME type of only `text/plain`:
+
+ Accept: text/plain
+
+ With the following the client will accept `text/plain` or `text/html` with no preference.
+
+ Accept: text/plain, text/html
+
+ With the following the client will accept `text/plain` or `text/html` but prefers `text/html` as it has a higher `q` value
+ (the default value is q=1.0)
+
+ Accept: text/plain; q=0.9, text/html
+
+ If the server can provide both text/plain and text/html it should provide the text/html in this case.
 
 By using link:jsdoc/route-Route.html#produces[`produces`] you define which MIME type(s) the route produces, e.g. the
 following handler produces a response with MIME type `application/json`.
 
-This will then match against
+[source,java]
+----
+router.route().produces("application/json").handler(function (routingContext) {
+  var response = routingContext.response();
+  response.putHeader("content-type", "application/json");
+  response.write(someJSON).end();
+});
 
-==== Combining routing criteria
+----
 
-You can combine routing criteria in many different ways
+In this case the route will match with any request with an `accept` header that matches `application/json`.
 
-(example of path, methods, content based)
+Here are some examples of `accept` headers that will match:
 
-=== Context data
+ Accept: application/json
+ Accept: application/*
+ Accept: *json
+ Accept: application/json, text/html
+ Accept: application/json;q=0.7, text/html;q=0.8, text/plain
 
-=== Sub-routers
-
-=== Handling requests and calling the next handler
-
-When a route matches the handler for the route will be called, passing in an instance of link:jsdoc/routin_context-RoutingContext.html[`RoutingContext`].
-
-If you don't end the request in your handler, you can call link:jsdoc/routin_context-RoutingContext.html#next[`next`] then the router
-will call the next matching route handler (if any).
-
-You don't have to call link:jsdoc/routin_context-RoutingContext.html#next[`next`] before the handler has finished executing.
-You can do this some time later, if you want:
+ You can also mark your route as producing more than one MIME type. If this is the case, then you use
+ link:jsdoc/routin_context-RoutingContext.html#getAcceptableContentType[`getAcceptableContentType`] to find out the actual MIME type that
+ was accepted.
 
 [source,java]
 ----
-var route1 = router.route("/some/path/").handler(function (routingContext) {
+router.route().produces("application/json").produces("text/html").handler(function (routingContext) {
   var response = routingContext.response();
-  response.write("route1\n");
-  routingContext.vertx().setTimer(5000, function (tid) {
-    routingContext.next()});
+  var acceptableContentType = routingContext.getAcceptableContentType();
+  response.putHeader("content-type", acceptableContentType);
+  response.write(whatever).end();
 });
-var route2 = router.route("/some/path/").handler(function (routingContext) {
-  var response = routingContext.response();
-  response.write("route2\n");
-  routingContext.vertx().setTimer(5000, function (tid) {
-    routingContext.next()});
-});
-var route3 = router.route("/some/path/").handler(function (routingContext) {
-  var response = routingContext.response();
-  response.write("route3");
-  routingContext.response().end();
-});
-route2.order(-1);
 
 ----
 
-In the above example `route1` is written to the response, then 5 seconds later `route2` is written to the response,
-then 5 seconds later `route3` is written to the response and the response is ended.
+In the above example, if I sent a request with the following `accept` header:
 
-Note, all this happens without any thread blocking.
+ Accept: application/json; q=0.7, text/html
 
-=== Error handling
+Then the route would match and `acceptableContentType` would contain `text/html` as both are
+acceptable but that has a higher `q` value.
+
+== Combining routing criteria
+
+You can combine all the above routing criteria in many different ways, for example:
+
+[source,java]
+----
+todo
+----
+
+== Enabling and disabling routes
+
+You can disable a route with link:jsdoc/route-Route.html#disable[`disable`].
+
+A disabled route will be ignored when matching.
+
+You can re-enable a disabled route with link:jsdoc/route-Route.html#enable[`enable`]
+
+== Context data
+
+You can use the context data in the link:jsdoc/routin_context-RoutingContext.html[`RoutingContext`] to maintain any data that you
+want to share between handlers for the lifetime of the request.
+
+Here's an example where one handler sets some data in the context data a subsequent handler retrieves it:
+
+You can use the link:jsdoc/routin_context-RoutingContext.html#put[`put`] to put any object, and
+link:jsdoc/routin_context-RoutingContext.html#get[`get`] to retrieve any object from the context data.
+
+A request sent to path `/some/path` will match both routes.
+
+[source,java]
+----
+todo
+----
+
+Alternatively you can access the entire context data map with link:jsdoc/routin_context-RoutingContext.html#contextData[`contextData`].
+
+== Sub-routers
+
+Sometimes if you have a lot of handlers it can make sense to split them up into multiple routers. This is also useful
+if you want to reuse a set of handlers in a different application, rooted at a different path root.
+
+To do this you can mount a router at a _mount point_ in another router. The router that is mounted is called a
+_sub-router_. Sub routers can mount other sub routers so you can have several levels of sub-routers if you like.
+
+Let's look at a simple example of a sub-router mounted with another router.
+
+The sub-router will maintain the set of handlers that corresponds to a simple fictional REST API. We will mount that on another
+router. The full implementation of the REST API is not shown.
+
+Here's the sub-router:
+
+[source,java]
+----
+var Router = require("vertx-apex-core-js/router");
+var restAPI = Router.router(vertx);
+restAPI.get("/products/:productID").handler(function (rc) {
+  rc.response().write(productJSON);
+});
+restAPI.put("/products/:productID").handler(function (rc) {
+  rc.response().end();
+});
+restAPI.delete("/products/:productID").handler(function (rc) {
+  rc.response().end();
+});
+
+----
+
+If this router was used as a top level router, then GET/PUT/DELETE requests to urls like `/products/product1234`
+would invoke the  API.
+
+However, let's say we already have a web-site as described by another router:
+
+[source,java]
+----
+var Router = require("vertx-apex-core-js/router");
+var mainRouter = Router.router(vertx);
+mainRouter.route("/static").handler(myStaticHandler);
+mainRouter.route(".*\\.templ").handler(myTemplateHandler);
+
+----
+
+We can now mount the sub router on the main router, against a mount point, in this case `/productsAPI`
+
+[source,java]
+----
+mainRouter.mountSubRouter("/productsAPI", restAPI);
+
+----
+
+This means the REST API is not accessible via paths like: `/productsAPI/products/product1234`
+
+== Default 404 Handling
+
+If no routes match for any particular request, Apex will signal a 404 error. This can then be handled by your
+own error handler, or perhaps the augmented error handler that we supply to use, or if no error handler is provided
+Apex will send back a basic 404 (Not Found) response.
+
+== Error handling
+
+As well as setting handlers to handle requests you can also set handlers to handle errors in Vert.x.
+
+Error handlers can be used with the exact same route matching criteria that you can use with normal handlers.
+
+For example you can provide an error handler that will only handle errors on certain paths, or for certain HTTP methods.
+
+This allows you to set different error handlers for different parts of your web application.
+
+Here's an example error handler that will only be called for errors that occur when routing to GET requests
+to paths that start with `\somepath\`:
+
+[source,java]
+----
+mainRouter.mountSubRouter("/productsAPI", restAPI);
+
+----
+
+Error routing will occur if a handler throws an exception, or if a handler calls
+link:jsdoc/routin_context-RoutingContext.html#fail[`fail`] specifying an HTTP status code to deliberately signal a failure.
+
+If an exception is caught from a handler this will result in a failure with status code `500` being signalled.
+
+When handling the failure, the failure handler is passed an instance of link:jsdoc/failur_routin_context-FailureRoutingContext.html[`FailureRoutingContext`]
+which is like link:jsdoc/routin_context-RoutingContext.html[`RoutingContext`] but which also allows the failure or failure code
+to be retrieved so the failure handler can use that to generate a failure response.
+
+[source,java]
+----
+var route = router.get("/somepath/");
+route.failureHandler(function (frc) {
+});
+
+----
+
+
+== Apex add-ons
+
+Whereas Apex core contains basic routing functionality, Apex also provides a set of useful "add-ons" that you can
+use to build real web applications more easily.
