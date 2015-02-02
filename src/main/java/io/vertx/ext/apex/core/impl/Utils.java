@@ -20,12 +20,16 @@ import io.vertx.core.buffer.Buffer;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URLDecoder;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.io.UnsupportedEncodingException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Locale;
+import java.util.TimeZone;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -34,16 +38,87 @@ import java.util.*;
 public class Utils {
 
   public static String normalisePath(String path) {
-    if (path == null || path.charAt(0) != '/') {
+    if (path == null) {
       return null;
     }
     try {
-      // TODO this can be optimised
-      path = URLDecoder.decode(path, "UTF-8");
-      path = path.replace("..", ""); // Safety
-      return path;
-    } catch (Exception e) {
+      StringBuilder result = new StringBuilder();
+      byte[] escapedSeqBytes = new byte[path.length() / 3];
+
+      for (int i = 0; i < path.length(); i++) {
+        char c = path.charAt(i);
+
+        if (c == '+') {
+          result.append(' ');
+        } else if (c == '/') {
+          processSlash(result);
+        } else if (c != '%') {
+          result.append(c);
+        } else {
+          int used = 0;
+          do {
+            if (i >= path.length() - 2) {
+              throw new IllegalArgumentException("Invalid position for escape character: " + i);
+            }
+            int unescaped = Integer.parseInt(path.substring(i + 1, i + 3), 16);
+            if (unescaped < 0) {
+              throw new IllegalArgumentException("Invalid escape sequence: " + path.substring(i, i + 3));
+            }
+            escapedSeqBytes[used++] = (byte) unescaped;
+            i += 3;
+          } while (i < path.length() && path.charAt(i) == '%');
+          i--;
+
+          String escapedSeq = new String(escapedSeqBytes, 0, used, "UTF-8");
+
+          for (int j = 0; j < escapedSeq.length(); j++) {
+            c = escapedSeq.charAt(j);
+            if (c == '/') {
+              processSlash(result);
+            } else {
+              result.append(c);
+            }
+          }
+        }
+      }
+
+      if (path.charAt(0) != '/') {
+        return null;
+      }
+
+      // Check for paths ending in ..
+      if (path.length() > 1 && path.charAt(path.length() - 1) == '.' && path.charAt(path.length() - 2) == '.') {
+        result.delete(result.length() - 2, result.length());
+      }
+
+      return result.toString();
+
+    } catch (UnsupportedEncodingException e) {
       throw new IllegalStateException(e);
+    }
+  }
+
+  /**
+   * Check if adding a slash causes an invalid sequence (// or ../). If it does, in the former, we just don't add the
+   * slash, while in the latter, we delete the '..'
+   *
+   * If it does not introduce an invalid sequence, slash is added to the given path
+   * 
+   * @param path
+   *          The partial path which is being checked
+   */
+  private static void processSlash(StringBuilder path) {
+    if (path.length() == 0) {
+      path.append('/');
+    } else if (path.length() == 1) {
+      if (path.charAt(0) != '/')
+        path.append('/');
+    } else {
+      if (path.charAt(path.length() - 1) == '.' && path.charAt(path.length() - 2) == '.') {
+        path.delete(path.length() - 2, path.length());
+      } else if (path.charAt(path.length() - 1) != '/') {
+        path.append('/');
+      }
     }
   }
 
@@ -131,6 +206,7 @@ public class Utils {
       }
       return 1;
     }
+
     @Override
     public int compare(String o1, String o2) {
       float f1 = getQuality(o1);
