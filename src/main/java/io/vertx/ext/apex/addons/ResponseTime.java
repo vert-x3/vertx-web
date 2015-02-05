@@ -27,7 +27,7 @@ import io.vertx.ext.apex.addons.impl.ResponseTimeImpl;
 @VertxGen
 public interface ResponseTime extends Handler<RoutingContext> {
 
-  static ResponseTime requestTime() {
+  static ResponseTime responseTime() {
     return new ResponseTimeImpl();
   }
 

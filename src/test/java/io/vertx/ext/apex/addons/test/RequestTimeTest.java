@@ -28,7 +28,7 @@ public class RequestTimeTest extends ApexTestBase {
 
   @Test
   public void testRequestTime1() throws Exception {
-    router.route().handler(ResponseTime.requestTime());
+    router.route().handler(ResponseTime.responseTime());
     router.route().handler(rc -> {
       rc.response().end();
     });
@@ -41,7 +41,7 @@ public class RequestTimeTest extends ApexTestBase {
 
   @Test
   public void testRequestTime2() throws Exception {
-    router.route().handler(ResponseTime.requestTime());
+    router.route().handler(ResponseTime.responseTime());
     router.route().handler(rc -> {
       vertx.setTimer(250, tid -> rc.response().end());
     });

@@ -27,7 +27,7 @@ public class ResponseTimeImpl implements ResponseTime {
   @Override
   public void handle(RoutingContext ctx) {
     long start = System.currentTimeMillis();
-    ctx.response().headersEndHandler(v -> {
+    ctx.addHeadersEndHandler(v -> {
       long duration = System.currentTimeMillis() - start;
       ctx.response().putHeader("x-response-time", duration + "ms");
     });
