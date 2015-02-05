@@ -130,6 +130,9 @@ public class RouteImpl implements Route {
 
   @Override
   public synchronized Route handler(Handler<RoutingContext> contextHandler) {
+    if (this.contextHandler != null) {
+      log.warn("Setting handler for a route more than once!");
+    }
     this.contextHandler = contextHandler;
     checkAdd();
     return this;
@@ -137,6 +140,9 @@ public class RouteImpl implements Route {
 
   @Override
   public synchronized Route failureHandler(Handler<RoutingContext> exceptionHandler) {
+    if (this.failureHandler != null) {
+      log.warn("Setting failureHandler for a route more than once!");
+    }
     this.failureHandler = exceptionHandler;
     checkAdd();
     return this;
