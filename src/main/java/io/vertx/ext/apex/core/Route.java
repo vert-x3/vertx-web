@@ -42,7 +42,7 @@ public interface Route {
 
   Route handler(Handler<RoutingContext> requestHandler);
 
-  Route failureHandler(Handler<FailureRoutingContext> exceptionHandler);
+  Route failureHandler(Handler<RoutingContext> failureHandler);
 
   Route remove();
 

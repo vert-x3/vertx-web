@@ -30,6 +30,8 @@ import io.vertx.ext.apex.core.impl.Utils;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
@@ -72,7 +74,9 @@ public class JadeTemplateEngineImpl extends CachingTemplateEngine<JadeTemplate> 
         template = config.getTemplate(templateFileName);
         cache.put(templateFileName, template);
       }
-      handler.handle(Future.succeededFuture(Buffer.buffer(config.renderTemplate(template, context.contextData()))));
+      Map<String, Object> variables = new HashMap<>(1);
+      variables.put("context", context);
+      handler.handle(Future.succeededFuture(Buffer.buffer(config.renderTemplate(template, variables))));
     } catch (Exception ex) {
       handler.handle(Future.failedFuture(ex));
     }

@@ -22,7 +22,7 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.apex.addons.AuthHandler;
 import io.vertx.ext.apex.addons.FormLoginHandler;
-import io.vertx.ext.apex.core.impl.LocalSessionStore;
+import io.vertx.ext.apex.core.LocalSessionStore;
 import io.vertx.ext.apex.addons.RedirectAuthHandler;
 import io.vertx.ext.apex.core.SessionHandler;
 import io.vertx.ext.apex.core.BodyHandler;

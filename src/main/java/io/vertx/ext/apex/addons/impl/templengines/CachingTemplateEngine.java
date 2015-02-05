@@ -16,7 +16,7 @@
 
 package io.vertx.ext.apex.addons.impl.templengines;
 
-import io.vertx.ext.apex.addons.impl.AbstractTemplateEngine;
+import io.vertx.ext.apex.addons.TemplateEngine;
 import io.vertx.ext.apex.core.impl.ConcurrentLRUCache;
 
 import java.util.Map;
@@ -25,7 +25,7 @@ import java.util.Objects;
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public abstract class CachingTemplateEngine<T> extends AbstractTemplateEngine {
+public abstract class CachingTemplateEngine<T> implements TemplateEngine {
 
   protected final String prefix;
   protected final String extension ;

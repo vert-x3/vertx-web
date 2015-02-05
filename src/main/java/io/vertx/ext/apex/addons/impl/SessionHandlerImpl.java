@@ -87,8 +87,8 @@ public class SessionHandlerImpl implements SessionHandler {
 
   private void addStoreSessionHandler(RoutingContext context, String sessionID, Session originalSession, boolean isNew) {
     context.addHeadersEndHandler(v -> {
-      if (!originalSession.isDestroyed() && (isNew || !originalSession.data().equals(context.session().data()))) {
-        // Session has changed, so store it
+      if (!originalSession.isDestroyed()) {
+        // Store the session
         context.session().setAccessed();
         sessionStore.put(sessionID, context.session(), sessionTimeout, res -> {
           if (res.succeeded()) {

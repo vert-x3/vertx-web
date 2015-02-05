@@ -148,12 +148,12 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
 
   @Override
   public Throwable failure() {
-    throw new UnsupportedOperationException();
+    return inner.failure();
   }
 
   @Override
   public int statusCode() {
-    throw new UnsupportedOperationException();
+    return inner.statusCode();
   }
 
   @Override

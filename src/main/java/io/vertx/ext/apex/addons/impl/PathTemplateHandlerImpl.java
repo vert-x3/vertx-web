@@ -32,6 +32,7 @@
 
 package io.vertx.ext.apex.addons.impl;
 
+import io.vertx.core.http.HttpHeaders;
 import io.vertx.ext.apex.addons.PathTemplateHandler;
 import io.vertx.ext.apex.addons.TemplateEngine;
 import io.vertx.ext.apex.core.RoutingContext;
@@ -55,6 +56,12 @@ public class PathTemplateHandlerImpl implements PathTemplateHandler {
   @Override
   public void handle(RoutingContext context) {
     String file = templateDirectory + context.pathFromMountPoint();
-    engine.renderResponse(context, file, contentType);
+    engine.render(context, file, res -> {
+      if (res.succeeded()) {
+        context.response().putHeader(HttpHeaders.CONTENT_TYPE, contentType).end(res.result());
+      } else {
+        context.fail(res.cause());
+      }
+    });
   }
 }

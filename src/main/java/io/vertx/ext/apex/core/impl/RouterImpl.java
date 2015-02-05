@@ -20,7 +20,6 @@ import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
-import io.vertx.ext.apex.core.FailureRoutingContext;
 import io.vertx.ext.apex.core.Route;
 import io.vertx.ext.apex.core.Router;
 import io.vertx.ext.apex.core.RoutingContext;
@@ -188,8 +187,8 @@ public class RouterImpl implements Router {
   }
 
   @Override
-  public void handleFailure(FailureRoutingContext ctx) {
-    new FailureRoutingContextWrapper(getAndCheckRoutePath(ctx), ctx.request(), routes.iterator(), ctx).next();
+  public void handleFailure(RoutingContext ctx) {
+    new RoutingContextWrapper(getAndCheckRoutePath(ctx), ctx.request(), routes.iterator(), ctx).next();
   }
 
   @Override

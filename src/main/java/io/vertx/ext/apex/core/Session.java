@@ -16,16 +16,17 @@
 
 package io.vertx.ext.apex.core;
 
+import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.json.JsonObject;
+
+import java.util.Map;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 @VertxGen
 public interface Session {
-
-  JsonObject data();
 
   String id();
 
@@ -48,5 +49,14 @@ public interface Session {
   void setPrincipal(String principal);
 
   String getPrincipal();
+
+  void put(String key, Object obj);
+
+  <T> T get(String key);
+
+  <T> T remove(String key);
+
+  @GenIgnore
+  Map<String, Object> sessionData();
 
 }

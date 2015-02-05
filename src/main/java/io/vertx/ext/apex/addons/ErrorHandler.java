@@ -19,14 +19,14 @@ package io.vertx.ext.apex.addons;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
 import io.vertx.ext.apex.addons.impl.ErrorHandlerImpl;
-import io.vertx.ext.apex.core.FailureRoutingContext;
+import io.vertx.ext.apex.core.RoutingContext;
 
 /**
  *
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 @VertxGen
-public interface ErrorHandler extends Handler<FailureRoutingContext> {
+public interface ErrorHandler extends Handler<RoutingContext> {
 
   public static final String DEFAULT_ERROR_HANDLER_TEMPLATE = "apex-error.html";
   public static final boolean DEFAULT_DISPLAY_EXCEPTION_DETAILS = true;
@@ -48,6 +48,6 @@ public interface ErrorHandler extends Handler<FailureRoutingContext> {
   }
 
   @Override
-  void handle(FailureRoutingContext context);
+  void handle(RoutingContext context);
 
 }

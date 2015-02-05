@@ -29,6 +29,4 @@ import io.vertx.ext.apex.core.RoutingContext;
 public interface TemplateEngine {
 
   void render(RoutingContext context, String templateFileName, Handler<AsyncResult<Buffer>> handler);
-
-  void renderResponse(RoutingContext context, String templateFileName, String contentType);
 }

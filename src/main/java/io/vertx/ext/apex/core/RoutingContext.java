@@ -117,4 +117,12 @@ public interface RoutingContext {
 
   Session session();
 
+  // Failure
+
+  @CacheReturn
+  Throwable failure();
+
+  @CacheReturn
+  int statusCode();
+
 }

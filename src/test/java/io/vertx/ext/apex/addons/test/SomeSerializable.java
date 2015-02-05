@@ -14,21 +14,22 @@
  *  You may elect to redistribute this code under either of these licenses.
  */
 
-package io.vertx.ext.apex.core;
+package io.vertx.ext.apex.addons.test;
 
-import io.vertx.codegen.annotations.CacheReturn;
-import io.vertx.codegen.annotations.VertxGen;
+import java.io.Serializable;
 
 /**
- * @author <a href="http://tfox.org">Tim Fox</a>
+ * Created by tim on 05/02/15.
  */
-@VertxGen
-public interface FailureRoutingContext extends RoutingContext {
+public class SomeSerializable implements Serializable {
 
-  @CacheReturn
-  Throwable failure();
+  private String wibble;
 
-  @CacheReturn
-  int statusCode();
+  public SomeSerializable(String wibble) {
+    this.wibble = wibble;
+  }
 
+  public String getWibble() {
+    return wibble;
+  }
 }

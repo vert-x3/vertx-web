@@ -16,7 +16,7 @@
 
 package io.vertx.ext.apex.addons.test;
 
-import io.vertx.ext.apex.core.impl.LocalSessionStore;
+import io.vertx.ext.apex.core.LocalSessionStore;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>

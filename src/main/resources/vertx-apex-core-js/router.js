@@ -18,7 +18,6 @@
 var utils = require('vertx-js/util/utils');
 var RoutingContext = require('vertx-apex-core-js/routing_context');
 var HttpServerRequest = require('vertx-js/http_server_request');
-var FailureRoutingContext = require('vertx-apex-core-js/failure_routing_context');
 var Route = require('vertx-apex-core-js/route');
 
 var io = Packages.io;
@@ -61,7 +60,7 @@ var Router = function(j_val) {
   /**
 
    @public
-   @param context {FailureRoutingContext} 
+   @param context {RoutingContext} 
    */
   this.handleFailure = function(context) {
     var __args = arguments;

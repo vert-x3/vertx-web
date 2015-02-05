@@ -21,7 +21,6 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.impl.LoggerFactory;
-import io.vertx.ext.apex.core.FailureRoutingContext;
 import io.vertx.ext.apex.core.Route;
 import io.vertx.ext.apex.core.RoutingContext;
 
@@ -50,7 +49,7 @@ public class RouteImpl implements Route {
   private int order;
   private boolean enabled = true;
   private Handler<RoutingContext> contextHandler;
-  private Handler<FailureRoutingContext> failureHandler;
+  private Handler<RoutingContext> failureHandler;
   private boolean added;
   private Pattern pattern;
   private Set<String> groups;
@@ -137,7 +136,7 @@ public class RouteImpl implements Route {
   }
 
   @Override
-  public synchronized Route failureHandler(Handler<FailureRoutingContext> exceptionHandler) {
+  public synchronized Route failureHandler(Handler<RoutingContext> exceptionHandler) {
     this.failureHandler = exceptionHandler;
     checkAdd();
     return this;
@@ -172,7 +171,7 @@ public class RouteImpl implements Route {
     }
   }
 
-  synchronized void handleFailure(FailureRoutingContext context) {
+  synchronized void handleFailure(RoutingContext context) {
     if (failureHandler != null) {
       failureHandler.handle(context);
     }

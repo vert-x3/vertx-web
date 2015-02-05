@@ -14,27 +14,30 @@
  *  You may elect to redistribute this code under either of these licenses.
  */
 
-package io.vertx.ext.apex.core.impl;
+package io.vertx.ext.apex.core;
 
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Vertx;
-import io.vertx.ext.apex.addons.impl.ClusteredSessionStoreImpl;
-import io.vertx.ext.apex.core.SessionStore;
+import io.vertx.ext.apex.addons.impl.LocalSessionStoreImpl;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 @VertxGen
-public interface ClusteredSessionStore extends SessionStore {
+public interface LocalSessionStore extends SessionStore {
 
+  static final long DEFAULT_REAPER_PERIOD = 1000;
   static final String DEFAULT_SESSION_MAP_NAME = "apex.sessions";
 
-  static SessionStore clusteredSessionStore(Vertx vertx, String sessionMapName) {
-    return new ClusteredSessionStoreImpl(vertx, sessionMapName);
+  static LocalSessionStore localSessionStore(Vertx vertx) {
+    return new LocalSessionStoreImpl(vertx, DEFAULT_SESSION_MAP_NAME, DEFAULT_REAPER_PERIOD);
   }
 
-  static SessionStore clusteredSessionStore(Vertx vertx) {
-    return new ClusteredSessionStoreImpl(vertx, DEFAULT_SESSION_MAP_NAME);
+  static LocalSessionStore localSessionStore(Vertx vertx, String sessionMapName) {
+    return new LocalSessionStoreImpl(vertx, sessionMapName, DEFAULT_REAPER_PERIOD);
   }
 
+  static LocalSessionStore localSessionStore(Vertx vertx, String sessionMapName, long reaperPeriod) {
+    return new LocalSessionStoreImpl(vertx, sessionMapName, reaperPeriod);
+  }
 }

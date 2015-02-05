@@ -506,8 +506,7 @@
  *
  * If an exception is caught from a handler this will result in a failure with status code `500` being signalled.
  *
- * When handling the failure, the failure handler is passed an instance of {@link io.vertx.ext.apex.core.FailureRoutingContext}
- * which is like {@link io.vertx.ext.apex.core.RoutingContext} but which also allows the failure or failure code
+ * When handling the failure, the failure handler is passed the routing context which also allows the failure or failure code
  * to be retrieved so the failure handler can use that to generate a failure response.
  *
  * [source,java]
@@ -571,12 +570,7 @@
  * {@link examples.Examples#example29}
  * ----
  *
- * == Apex add-ons
- *
- * Whereas Apex core contains basic routing functionality, Apex also provides a set of useful "add-ons" that you can
- * use to build real web applications more easily.
- *
- * === Retrieving cookies
+ * == Manipulating cookies
  *
  * To retrieve cookies you can use {@link io.vertx.ext.apex.core.RoutingContext#getCookie(java.lang.String)} to retrieve
  * one by name, or use {@link io.vertx.ext.apex.core.RoutingContext#cookies()} to retrieve the entire set.
@@ -598,19 +592,482 @@
  * {@link examples.Examples#example30}
  * ----
  *
- * === Session Handling
+ * == Sessions
  *
- * If you want to enable sessions in your Apex application, you need a {@link io.vertx.ext.apex.core.SessionHandler}
+ * Apex provides out of the box support for sessions. Sessions last between HTTP requests and give you a place where
+ * you can add session-scope information, such as a shopping basket.
+ *
+ * Apex uses session cookies to identify a session. The session cookie is temporary and will be deleted by your browser
+ * when it's closed.
+ *
+ * We don't put the actual data of your session in the session cookie - the cookie simply uses an identifier to look-up
+ * the actual session on the server. The identifier is a random UUID generated using a secure random, so it should
+ * be effectively unguessable.
+ *
+ * Cookies are passed across the wire in HTTP requests and responses so it's always wise to make sure you are using
+ * HTTPS when sessions are being used. Vert.x will warn you if you attempt to use sessions over straight HTTP.
+ *
+ * To enable sessions in your application you make sure you have a {@link io.vertx.ext.apex.core.SessionHandler}
  * on a matching route before your application logic.
  *
- * The session handler should be created with a {@link io.vertx.ext.apex.core.SessionStore} instance. Apex comes with
- * two session store implementations:
+ * The session handler handles the creation of session cookies and the lookup of the session so you don't have to do
+ * that yourself.
  *
- * Clustered session store::
+ * === Session stores
+ *
+ * When creating a session handler you need to have a session store instance. The session store is the object that
+ * holds the actual sessions for your application.
+ *
+ * Apex comes with two session store implementations out of the box, and you can also write your own if you like.
  *
  * Local session store::
+ * Sessions are stored locally in memory and only available in this instance. This store is appropriate if you are
+ * using sticky sessions in your application and have configured your load balancer (if you have one) to always route
+ * HTTP requests to the same Vert.x instance. If you aren't using sticky sessions then don't use this store as your
+ * requests might end up on a server which doesn't know about your session.
  *
- * Your session is available on the routing context with {@link io.vertx.ext.apex.core.RoutingContext#session()}.
+ * Local session stores are implemented by using a shared local map, and have a reaper which clears out expired sessions.
+ * The reaper period can be configured with
+ * {@link io.vertx.ext.apex.core.LocalSessionStore#localSessionStore(io.vertx.core.Vertx, java.lang.String, long)}.
+ *
+ * Here are some examples of creating a {@link io.vertx.ext.apex.core.LocalSessionStore}
+ *
+ * [source,java]
+ * ----
+ * {@link examples.Examples#example31}
+ * ----
+ *
+ * Clustered session store::
+ * Sessions are stored in a distributed map which is accessible across the Vert.x cluster. This store is appropriate if
+ * you're _not_ using sticky sessions and your load balancer is distributing different requests from the same browser to different
+ * servers. Your session is accessible from any node in the cluster using this store.
+ *
+ * Here are some examples of creating a {@link io.vertx.ext.apex.core.ClusteredSessionStore}
+ *
+ * [source,java]
+ * ----
+ * {@link examples.Examples#example32}
+ * ----
+ *
+ * === Creating the session handler
+ *
+ * Once you've created a session store you can create a session handler, and add it to a route. You should make sure
+ * your session handler is routed to before your application handlers.
+ *
+ * You'll also need to include a {@link io.vertx.ext.apex.core.CookieHandler} as the session handler uses cookies to
+ * lookup the session. The cookie handler should be before the session handler when routing.
+ *
+ * [source,java]
+ * ----
+ * {@link examples.Examples#example33}
+ * ----
+ *
+ * The session handler will ensure that your session is automatically looked up (or created if no session) from the
+ * session store and set on the routing context before it gets to your application handlers.
+ *
+ * === Using the session
+ *
+ * In your handlers you an access the session instance with {@link io.vertx.ext.apex.core.RoutingContext#session()}.
+ *
+ * You put data into the session with {@link io.vertx.ext.apex.core.Session#put(java.lang.String, java.lang.Object)},
+ * you get data from the session with {@link io.vertx.ext.apex.core.Session#get(java.lang.String)}, and you remove
+ * data from the session with {@link io.vertx.ext.apex.core.Session#remove(java.lang.String)}.
+ *
+ * The keys for items in the session are always strings. The values can be any type for a local session store, and for
+ * a clustered session store they can be any basic type, or {@link io.vertx.core.buffer.Buffer}, {@link io.vertx.core.json.JsonObject},
+ * {@link io.vertx.core.json.JsonArray} or a serializable object, as the values have to serialized across the cluster.
+ *
+ * Here's an example of manipulating session data:
+ *
+ * [source,java]
+ * ----
+ * {@link examples.Examples#example34}
+ * ----
+ *
+ * Sessions are automatically written back to the store after after every response that has been routed through the
+ * session handler has been written.
+ *
+ * You can manually destroy a session using {@link io.vertx.ext.apex.core.Session#destroy()}. This will remove the session
+ * from the context and the session store. Note that if there is no session a new one will be automatically created
+ * for the next request from the browser that's routed through the session handler.
+ *
+ * == Authentication / authorisation
+ *
+ * Vert.x comes with some out of the box handlers for handling both authentication (login) and authorisation (seeing
+ * whether you have rights for some resource).
+ *
+ * === Basic auth
+ *
+ * http://en.wikipedia.org/wiki/Basic_access_authentication[HTTP Basic authentication] is a simple means of authentication
+ * that can be appropriate for simple applications.
+ *
+ * With basic auth, credentials are sent unencrypted across the wire in HTTP headers so it's essential that you serve
+ * your application using HTTPS not HTTP.
+ *
+ * With basic auth, if a user requests a resource that requires authorisation, the basic auth handler will send back
+ * a `401` response with the header `WWW-Authenticate` set. This prompts the browser to show a log-in dialogue and
+ * prompt the user to enter their username and password.
+ *
+ * The request is made to the resource again, this time with the `Authorization` header set, containing the username
+ * and password encoded in Base64.
+ *
+ * When the basic auth handler receives this information, it calls the configured {@link io.vertx.ext.auth.AuthService auth service}
+ * with the username and password to authenticate the user. If the authentication is successful the handler attempts
+ * to authorise the user. If that is successful then the routing of the request is allowed to continue to the application
+ * handlers, otherwise a `403` response is returned to signify that access is denied.
+ *
+ * The auth handler can be set-up with a set of permissions and/or roles that are required for access to the resources to
+ * be granted.
+ *
+ * ==== Creating an auth handler
+ *
+ * To create an auth handler you need an instance of {@link io.vertx.ext.auth.AuthService}. Auth service is
+ * (unsurprisingly) a Vert.x service that is used for authentication and authorisation of users. It uses a simple
+ * role/permission model and, by default, is backed by Apache Shiro. For full information on the auth service and how
+ * to use and configure it please consult the auth service documentation.
+ *
+ * Like many services in Vert.x they can be instantiated locally, or you can create a proxy to an existing auth service
+ * deployed as a verticle somewhere on the network. The latter case is useful if you have an app composed of many verticles
+ * that want to do auth and you don't want each verticle to have its own auth service instance, or perhaps you have a single
+ * auth service managed somewhere on your network and you want all auth request to go through that.
+ *
+ * Here's a simple example of creating a basic auth service that gets user data from a properties file and creating
+ * an auth handler from that:
+ *
+ * [source,java]
+ * ----
+ * {@link examples.Examples#example35}
+ * ----
+ *
+ * And here's an example of creating an auth service proxy to an existing auth service that is deployed elsewhere:
+ *
+ * [source,java]
+ * ----
+ * {@link examples.Examples#example36}
+ * ----
+ *
+ * You'll also need cookies and sessions enabled for auth handling to work:
+ *
+ * [source,java]
+ * ----
+ * {@link examples.Examples#example37}
+ * ----
+ *
+ * ==== Handling auth in your application
+ *
+ * Let's say you want all requests to paths that start with `/private/` to be subject to auth. To do that you make sure
+ * your auth handler is before your application handlers on those paths:
+ *
+ * [source,java]
+ * ----
+ * {@link examples.Examples#example38}
+ * ----
+ *
+ * If the auth handler has successfully authenticated and authorised the user it will set the principal (username) on the
+ * session object, and the session will be marked as logged in. You can query the logged in status and get the
+ * principal with {@link io.vertx.ext.apex.core.Session#isLoggedIn()} and {@link io.vertx.ext.apex.core.Session#getPrincipal()}.
+ *
+ * If you want to cause the user to be logged out you can call {@link io.vertx.ext.apex.core.Session#logout()}.
+ *
+ * === Redirect auth handler
+ *
+ * With redirect auth handling the user is redirected to towards a login page in the case they are trying to access
+ * a protected resource and they are not logged in.
+ *
+ * The user then fills in the login form and submits it. This is handled by the server which authenticates
+ * the user and, if authenticated redirects the user back to the original resource.
+ *
+ * To use redirect auth you configure an instance of {@link io.vertx.ext.apex.addons.RedirectAuthHandler} instead of a
+ * basic auth handler.
+ *
+ * You will also need to setup handlers to serve your actual login page, and a handler to handle the actual login itself.
+ * To handle the login we provide a prebuilt handler {@link io.vertx.ext.apex.addons.FormLoginHandler} for the purpose.
+ *
+ * Here's an example of a simple app, using a redirect auth handler on the default redirect url `/loginpage`.
+ *
+ * [source,java]
+ * ----
+ * {@link examples.Examples#example39}
+ * ----
+ *
+ * === Configuring required roles and permissions
+ *
+ * With any auth handler you can also configure required roles and permissions to access the resource. By default,
+ * if no roles/permissions are configured then it is sufficient to be logged in to access the resource, otherwise
+ * the user must be both logged in (authenticated) and have the required roles/permissions.
+ *
+ * Here's an example of configuring an app so that different roles/permissions are required for different parts of the
+ * app:
+ *
+ * [source,java]
+ * ----
+ * {@link examples.Examples#example40}
+ * ----
+ *
+ * === OAuth
+ *
+ * TODO
+ *
+
+ *
+ * == Serving static resources
+ *
+ * Apex comes with an out of the box handler for serving static web resources so you can write static web servers
+ * very easily.
+ *
+ * To serve static resources such as `.html`, `.css`, `.js` or any other static resource, you use an instance of
+ * {@link io.vertx.ext.apex.addons.StaticServer}.
+ *
+ * Any requests to paths handled by the static server will result in files being served from a directory on the file system
+ * or from the classpath. The default static file directory is `webroot` but this can be configured.
+ *
+ * In the following example all requests to paths starting with `/static` get served from the directory `webroot`:
+ *
+ * [source,java]
+ * ----
+ * {@link examples.Examples#example41}
+ * ----
+ *
+ * For example, if there was a request with path `/static/css/mystyles.css` the static serve will look for a file in the
+ * directory `webroot/css/mystyle.css`.
+ *
+ * It will also look for a file on the classpath called `webroot/css/mystyle.css`. This means you can package up all your
+ * static resources into a jar file (or fatjar) and distribute them like that.
+ *
+ * When Vert.x finds a resource on the classpath for the first time it extracts it and caches it in a temporary directory
+ * on disk so it doesn't have to do this each time.
+ *
+ * === Configuring caching
+ *
+ * By default the static server will set cache headers to enable browsers to effectively cache files.
+ *
+ * Apex sets the headers `cache-control`,`last-modified`, and `date`.
+ *
+ * `cache-control` is set to `max-age=86400` by default. This corresponds to one day. This can be configured with
+ * {@link io.vertx.ext.apex.addons.StaticServer#setMaxAgeSeconds(long)} if required.
+ *
+ * If a browser sends a GET or a HEAD request with an `if-modified-since` header and the resource has not been modified
+ * since that date, a `304` status is returned which tells the browser to use its locally cached resource.
+ *
+ * If handling of cache headers is not required, it can be disabled with {@link io.vertx.ext.apex.addons.StaticServer#setCachingEnabled(boolean)}.
+ *
+ * When cache handling is enabled Apex will cache the last modified date of resources in memory, this avoids a disk hit
+ * to check the actual last modified date every time.
+ *
+ * Entries in the cache have an expiry time, and after that time, the file on disk will be checked again and the cache
+ * entry updated.
+ *
+ * If you know that your files never change on disk, then the cache entry will effectively never expire. This is the
+ * default.
+ *
+ * If you know that your files might change on disk when the server is running then you can set files read only to false with
+ * {@link io.vertx.ext.apex.addons.StaticServer#setFilesReadOnly(boolean)}.
+ *
+ * To enable the maximum number of entries that can be cached in memory at any one time you can use
+ * {@link io.vertx.ext.apex.addons.StaticServer#setMaxCacheSize(int)}.
+ *
+ * To configure the expiry time of cache entries you can use {@link io.vertx.ext.apex.addons.StaticServer#setCacheEntryTimeout(long)}.
+ *
+ * === Configuring the index page
+ *
+ * Any requests to the root path `/` will cause the index page to be served. By default the index page is `index.html`.
+ * This can be configured with {@link io.vertx.ext.apex.addons.StaticServer#setIndexPage(java.lang.String)}.
+ *
+ * === Changing the web root
+ *
+ * By default static resources will be served from the directory `webroot`. To configure this use
+ * {@link io.vertx.ext.apex.addons.StaticServer#setWebRoot(java.lang.String)}.
+ *
+ * === Serving hidden files
+ *
+ * By default the serve will serve hidden files (files starting with `.`).
+ *
+ * If you do not want hidden files to be served you can configure it with {@link io.vertx.ext.apex.addons.StaticServer#setIncludeHidden(boolean)}.
+ *
+ * === Directory listing
+ *
+ * The server can also perform directory listing. By default directory listing is disabled. To enabled it use
+ * {@link io.vertx.ext.apex.addons.StaticServer#setDirectoryListing(boolean)}.
+ *
+ * When directory listing is enabled the content returned depends on the content type in the `accept` header.
+ *
+ * For `text/html` directory listing, the template used to render the directory listing page can be configured with
+ * {@link io.vertx.ext.apex.addons.StaticServer#setDirectoryTemplate(java.lang.String)}.
+ *
+ * == CORS handling
+ *
+ * http://en.wikipedia.org/wiki/Cross-origin_resource_sharing[Cross Origin Resource Sharing] is a safe mechanism for
+ * allowing resources to be requested from one domain and served from another.
+ *
+ * Apex includes a handler {@link io.vertx.ext.apex.addons.CorsHandler} that handles the CORS protocol for you.
+ *
+ * Here's an example:
+ *
+ * [source,java]
+ * ----
+ * {@link examples.Examples#example41_0_1}
+ * ----
+ *
+ * TODO more CORS docs
+ *
+ * == Templates
+ *
+ * Apex includes dynamic page generation capabilities by including out of the box support for several popular template
+ * engines. You can also easily add your own.
+ *
+ * Template engines are described by {@link io.vertx.ext.apex.addons.TemplateEngine}. In order to render a template
+ * {@link io.vertx.ext.apex.addons.TemplateEngine#render} is used.
+ *
+ * The simplest way to use templates is not to call the template engine directly but to use the
+ * {@link io.vertx.ext.apex.addons.PathTemplateHandler}.
+ * This handler calls the template engine for you based on the path in the HTTP request.
+ *
+ * By default the path template handler will look for templates in a directory called `templates`. This can be configured.
+ *
+ * The handler will return the results of rendering with a content type of `text/html` by default. This can also be configured.
+ *
+ * When you create the template handler you pass in an instance of the template engine you want.
+ *
+ * Here are some examples
+ *
+ * [source,java]
+ * ----
+ * {@link examples.Examples#example41_1}
+ * ----
+ *
+ * === MVEL template engine
+ *
+ * When using the {@link io.vertx.ext.apex.addons.MVELTemplateEngine MVEL template engine}, it will by default look for
+ * templates with the `.templ` extension if no extension is specified in the file name.
+ *
+ * The routing context ({@link io.vertx.ext.apex.core.RoutingContext} is available
+ * in the MVEL template as the `context` variable, this means you can render the template based on anything in the context
+ * including the request, response, session or context data.
+ *
+ * Here are some examples:
+ *
+ * ----
+ * The request path is @{context.request().path()}
+ *
+ * The variable 'foo' from the session is @{context.session().get('foo')}
+ *
+ * The value 'bar' from the context data is @{context.contextData().get('bar')}
+ * ----
+ *
+ * Please consult the http://mvel.codehaus.org/MVEL+2.0+Templating+Guide[MVEL templates documentation] for how to write
+ * MVEL templates.
+ *
+ * === Jade template engine
+ *
+ * When using the {@link io.vertx.ext.apex.addons.JadeTemplateEngine Jade template engine}, it will by default look for
+ * templates with the `.jade` extension if no extension is specified in the file name.
+ *
+ * The routing context ({@link io.vertx.ext.apex.core.RoutingContext} is available
+ * in the Jade template as the `context` variable, this means you can render the template based on anything in the context
+ * including the request, response, session or context data.
+ *
+ * Here are some examples:
+ *
+ * ----
+ * !!! 5
+ * html
+ *   head
+ *     title= context.contextData().get('foo') + context.request().path()
+ *   body
+ * ----
+ *
+ * Please consult the https://github.com/neuland/jade4j[Jade4j documentation] for how to write
+ * Jade templates.
+ *
+ * === Handlebars template engine
+ *
+ * When using the {@link io.vertx.ext.apex.addons.HandlebarsTemplateEngine Handlebars template engine}, it will by default look for
+ * templates with the `.hbs` extension if no extension is specified in the file name.
+ *
+ * Handlebars templates are not able to call arbitrary methods in objects so we can't just pass the routing context
+ * into the template and let the template introspect it like we can with other template engines.
+ *
+ * Instead, the {@link io.vertx.ext.apex.core.RoutingContext#contextData()} is available in the template.
+ *
+ * If you want to have access to other data like the request path, request params or session data you should
+ * add it the context data in a handler before the template handler. For example:
+ *
+ * [source,java]
+ * ----
+ * {@link examples.Examples#example41_2}
+ * ----
+ *
+ * Please consult the https://github.com/jknack/handlebars.java[Handlebars Java port documentation] for how to write
+ * handlebars templates.
+ *
+ * === Thymeleaf template engine
+ * 
+ * When using the {@link io.vertx.ext.apex.addons.ThymeleafTemplateEngine Thymeleaf template engine}, it will by default look for
+ * templates with the `.html` extension if no extension is specified in the file name.
+ *
+ * The routing context ({@link io.vertx.ext.apex.core.RoutingContext} is available
+ * in the Thymeleaf template as the `context` variable, this means you can render the template based on anything in the context
+ * including the request, response, session or context data.
+ *
+ * Here are some examples:
+ *
+ * ----
+ * [snip]
+ * &lt;p th:text="${context.contextData().get('foo')}"&gt;&lt;/p&gt;
+ * &lt;p th:text="${context.contextData().get('bar')}"&gt;&lt;/p&gt;
+ * &lt;p th:text="${context.normalisedPath()}"&gt;&lt;/p&gt;
+ * &lt;p th:text="${context.request().params().get('param1')}"&gt;&lt;/p&gt;
+ * &lt;p th:text="${context.request().params().get('param2')}"&gt;&lt;/p&gt;
+ * [snip]
+ * ----
+ *
+ * Please consult the http://www.thymeleaf.org/[Thymeleaf documentation] for how to write
+ * Thymeleaf templates.
+ *
+ * == Error handler
+ *
+ * You can render your own errors using a template handler or otherwise but Apex also includes an out of the boxy
+ * "pretty" error handler that can render error pages for you.
+ *
+ * The handler is {@link io.vertx.ext.apex.addons.ErrorHandler}. To use the error handler just set it as a
+ * failure handler for any paths that you want covered.
+ *
+ * == Request logger
+ *
+ * Apex includes a handler {@link io.vertx.ext.apex.addons.Logger} that you can use to log HTTP requests.
+ *
+ *
+ * By default requests are logged to the Vert.x logger which can be configured to use JUL logging, log4j or SLF4J.
+ *
+ * == Serving favicons
+ *
+ * Apex includes the handler {@link io.vertx.ext.apex.addons.Favicon} especially for serving favicons.
+ *
+ * Favicons can be specified using a path to the filesystem, or by default Apex will look for a file on the classpath
+ * with the name `favicon.ico`. This means you bundle the favicon in the jar of your application.
+ *
+ * == Timeout handler
+ *
+ * Apex includes a timeout handler that you can use to timeout requests if they take too long to process.
+ *
+ * This is configured using an instance of {@link io.vertx.ext.apex.addons.Timeout}.
+ *
+ * If a request times out before the response is written a `408` response will be returned to the client.
+ *
+ * Here's an example of using a timeout handler which will timeout all requests to paths starting with `/foo` after 5
+ * seconds:
+ *
+ * [source,java]
+ * ----
+ * {@link examples.Examples#example42}
+ * ----
+ *
+ * == Response time handler
+ *
+ * This handler sets the header `x-response-time` containing the time from when the request was received to when the
+ * response headers were written, in ms. E.g
+ *  x-response-time: 1456ms
+ *
  *
  */
 @Document(fileName = "index.adoc")

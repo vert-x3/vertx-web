@@ -17,17 +17,21 @@
 package io.vertx.ext.apex.addons.test;
 
 import io.vertx.core.VertxOptions;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
-import io.vertx.ext.apex.core.impl.ClusteredSessionStore;
+import io.vertx.core.json.JsonObject;
+import io.vertx.ext.apex.core.ClusteredSessionStore;
 import io.vertx.ext.apex.core.SessionHandler;
 import io.vertx.ext.apex.core.CookieHandler;
 import io.vertx.ext.apex.core.Router;
 import io.vertx.ext.apex.core.Session;
 import io.vertx.ext.apex.core.SessionStore;
+import io.vertx.ext.apex.core.impl.SessionImpl;
+import io.vertx.test.core.TestUtils;
 import io.vertx.test.fakecluster.FakeClusterManager;
 import org.junit.Test;
 
@@ -40,6 +44,8 @@ import java.util.concurrent.atomic.AtomicReference;
 public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
 
   int numNodes = 3;
+  byte[] bytes = TestUtils.randomByteArray(100);
+  Buffer buffer = TestUtils.randomBuffer(100);
 
   @Override
   public void setUp() throws Exception {
@@ -85,21 +91,24 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
 
     router1.route().handler(rc -> {
       Session sess = rc.session();
-      sess.data().put("foo", "bar");
+      sess.put("foo", "bar");
+      stuffSession(sess);
       rc.response().end();
     });
 
     router2.route().handler(rc -> {
       Session sess = rc.session();
-      assertEquals("bar", sess.data().getString("foo"));
-      sess.data().put("eek", "wibble");
+      checkSession(sess);
+      assertEquals("bar", sess.get("foo"));
+      sess.put("eek", "wibble");
       rc.response().end();
     });
 
     router3.route().handler(rc -> {
       Session sess = rc.session();
-      assertEquals("bar", sess.data().getString("foo"));
-      assertEquals("wibble", sess.data().getString("eek"));
+      checkSession(sess);
+      assertEquals("bar", sess.get("foo"));
+      assertEquals("wibble", sess.get("eek"));
       rc.response().end();
     });
 
@@ -117,4 +126,52 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
 
   }
 
+  @Test
+  public void testSessionSerialization() {
+    SessionImpl session = new SessionImpl("foo", 0, null);
+    stuffSession(session);
+    checkSession(session);
+    Buffer buffer = session.writeToBuffer();
+    SessionImpl session2 = new SessionImpl("bar", 0, null);
+    session2.readFromBuffer(buffer);
+    checkSession(session2);
+  }
+
+  private void stuffSession(Session session) {
+    session.put("somelong", 123456l);
+    session.put("someint", 1234);
+    session.put("someshort", (short)123);
+    session.put("somebyte", (byte)12);
+    session.put("somedouble", 123.456d);
+    session.put("somefloat", 123.456f);
+    session.put("somechar", 'X');
+    session.put("somebooleantrue", true);
+    session.put("somebooleanfalse", false);
+    session.put("somestring", "wibble");
+    session.put("somebytes", bytes);
+    session.put("somebuffer", buffer);
+    session.put("someserializable", new SomeSerializable("eek"));
+    session.put("someclusterserializable", new JsonObject().put("foo", "bar"));
+  }
+
+  private void checkSession(Session session) {
+    assertEquals(123456l, (long)session.get("somelong"));
+    assertEquals(1234, (int)session.get("someint"));
+    assertEquals((short)123, (short)session.get("someshort"));
+    assertEquals((byte)12, (byte)session.get("somebyte"));
+    assertEquals(123.456d, (double)session.get("somedouble"), 0);
+    assertEquals(123.456f, (float)session.get("somefloat"), 0);
+    assertEquals('X', (char)session.get("somechar"));
+    assertTrue(session.get("somebooleantrue"));
+    assertFalse(session.get("somebooleanfalse"));
+    assertEquals("wibble", session.get("somestring"));
+    assertTrue(TestUtils.byteArraysEqual(bytes, session.get("somebytes")));
+    assertEquals(buffer, session.get("somebuffer"));
+    JsonObject json = session.get("someclusterserializable");
+    assertNotNull(json);
+    assertEquals("bar", json.getString("foo"));
+  }
+
 }
+
+

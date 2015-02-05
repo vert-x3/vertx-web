@@ -39,7 +39,7 @@ public interface Router {
 
   void handleContext(RoutingContext context);
 
-  void handleFailure(FailureRoutingContext context);
+  void handleFailure(RoutingContext context);
 
   Route route();
 

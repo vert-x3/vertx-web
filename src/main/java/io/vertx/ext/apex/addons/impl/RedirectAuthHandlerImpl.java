@@ -47,7 +47,7 @@ public class RedirectAuthHandlerImpl extends AuthHandlerImpl {
         authorise(context);
       } else {
         // Now redirect to the login url - we'll get redirected back here after successful login
-        session.data().put(returnURLParam, context.request().path());
+        session.put(returnURLParam, context.request().path());
         context.response().putHeader("location", loginRedirectURL).setStatusCode(302).end();
       }
     } else {

@@ -22,7 +22,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.shareddata.LocalMap;
 import io.vertx.ext.apex.core.Session;
-import io.vertx.ext.apex.core.SessionStore;
+import io.vertx.ext.apex.core.LocalSessionStore;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -30,7 +30,7 @@ import java.util.Set;
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public class LocalSessionStoreImpl implements SessionStore, Handler<Long> {
+public class LocalSessionStoreImpl implements LocalSessionStore, Handler<Long> {
 
   protected final Vertx vertx;
   protected final LocalMap<String, Session> localMap;

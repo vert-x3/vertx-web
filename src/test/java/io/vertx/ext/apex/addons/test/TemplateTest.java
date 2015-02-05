@@ -23,7 +23,6 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.apex.addons.PathTemplateHandler;
-import io.vertx.ext.apex.addons.impl.AbstractTemplateEngine;
 import io.vertx.ext.apex.addons.TemplateEngine;
 import io.vertx.ext.apex.core.RoutingContext;
 import io.vertx.ext.apex.core.impl.Utils;
@@ -72,7 +71,13 @@ public class TemplateTest extends ApexTestBase {
     router.route().handler(context -> {
       context.put("foo", "badger");
       context.put("bar", "fox");
-      engine.renderResponse(context, "somedir/test-template.html", "text/html");
+      engine.render(context, "somedir/test-template.html", res -> {
+        if (res.succeeded()) {
+          context.response().putHeader(HttpHeaders.CONTENT_TYPE, "text/html").end(res.result());
+        } else {
+          context.fail(res.cause());
+        }
+      });
     });
     String expected =
       "<html>\n" +
@@ -111,7 +116,7 @@ public class TemplateTest extends ApexTestBase {
   }
 
   // Just for testing - not for actual use
-  class TestEngine extends AbstractTemplateEngine {
+  class TestEngine implements TemplateEngine {
 
     boolean fail;
 

@@ -43,6 +43,13 @@ import io.vertx.ext.apex.core.RoutingContext;
 @VertxGen
 public interface PathTemplateHandler extends Handler<RoutingContext> {
 
+  static final String DEFAULT_TEMPLATE_DIRECTORY = "templates";
+  static final String DEFAULT_CONTENT_TYPE = "text/html";
+
+  static PathTemplateHandler templateHandler(TemplateEngine engine) {
+    return new PathTemplateHandlerImpl(engine, DEFAULT_TEMPLATE_DIRECTORY, DEFAULT_CONTENT_TYPE);
+  }
+
   static PathTemplateHandler templateHandler(TemplateEngine engine, String templateDirectory, String contentType) {
     return new PathTemplateHandlerImpl(engine, templateDirectory, contentType);
   }

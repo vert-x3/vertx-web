@@ -29,6 +29,9 @@ import io.vertx.ext.apex.core.RoutingContext;
 import io.vertx.ext.apex.core.impl.Utils;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
@@ -104,6 +107,5 @@ public class HandlebarsTemplateEngineImpl extends CachingTemplateEngine<Template
       handler.handle(Future.failedFuture(ex));
     }
   }
-
 
 }

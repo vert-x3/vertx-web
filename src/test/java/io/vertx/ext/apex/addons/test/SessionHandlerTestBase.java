@@ -18,7 +18,7 @@ package io.vertx.ext.apex.addons.test;
 
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.apex.core.impl.LocalSessionStore;
+import io.vertx.ext.apex.core.LocalSessionStore;
 import io.vertx.ext.apex.core.SessionHandler;
 import io.vertx.ext.apex.core.CookieHandler;
 import io.vertx.ext.apex.core.Session;
@@ -69,8 +69,6 @@ public abstract class SessionHandlerTestBase extends ApexTestBase {
       assertFalse(sess.isDestroyed());
       assertSame(store, sess.sessionStore());
       assertEquals(SessionHandler.DEFAULT_SESSION_TIMEOUT, sess.timeout());
-      JsonObject data = sess.data();
-      assertNotNull(data);
       rc.response().end();
     });
     testRequest(HttpMethod.GET, "/", null, resp -> {
@@ -96,17 +94,17 @@ public abstract class SessionHandlerTestBase extends ApexTestBase {
       switch (requestCount.get()) {
         case 0:
           rid.set(sess.id());
-          sess.data().put("foo", "bar");
+          sess.put("foo", "bar");
           break;
         case 1:
           assertEquals(rid.get(), sess.id());
-          assertEquals("bar", sess.data().getString("foo"));
-          sess.data().put("eek", "wibble");
+          assertEquals("bar", sess.get("foo"));
+          sess.put("eek", "wibble");
           break;
         case 2:
           assertEquals(rid.get(), sess.id());
-          assertEquals("bar", sess.data().getString("foo"));
-          assertEquals("wibble", sess.data().getString("eek"));
+          assertEquals("bar", sess.get("foo"));
+          assertEquals("wibble", sess.get("eek"));
       }
       requestCount.incrementAndGet();
       rc.response().end();
@@ -140,11 +138,11 @@ public abstract class SessionHandlerTestBase extends ApexTestBase {
       switch (requestCount.get()) {
         case 0:
           rid.set(sess.id());
-          sess.data().put("foo", "bar");
+          sess.put("foo", "bar");
           break;
         case 1:
           assertFalse(rid.get().equals(sess.id())); // New session
-          assertNull(sess.data().getString("foo"));
+          assertNull(sess.get("foo"));
           break;
       }
       requestCount.incrementAndGet();
@@ -189,12 +187,12 @@ public abstract class SessionHandlerTestBase extends ApexTestBase {
       switch (requestCount.get()) {
         case 0:
           rid.set(sess.id());
-          sess.data().put("foo", "bar");
+          sess.put("foo", "bar");
           sess.destroy();
           break;
         case 1:
           assertFalse(rid.get().equals(sess.id())); // New session
-          assertNull(sess.data().getString("foo"));
+          assertNull(sess.get("foo"));
           sess.destroy();
           break;
       }
@@ -242,7 +240,7 @@ public abstract class SessionHandlerTestBase extends ApexTestBase {
     AtomicReference<Session> rid = new AtomicReference<>();
     router.route().handler(rc -> {
       rid.set(rc.session());
-      rc.session().data().put("foo", "bar");
+      rc.session().put("foo", "bar");
       vertx.setTimer(1000, tid -> rc.response().end());
     });
     testRequest(HttpMethod.GET, "/", 200, "OK");

@@ -31,23 +31,23 @@ public class MVELTemplateTest extends ApexTestBase {
   @Test
   public void testTemplateHandler() throws Exception {
     TemplateEngine engine = MVELTemplateEngine.create();
-    testTemplateHandler(engine, "somedir", "test-mvel-template2.templ");
+    testTemplateHandler(engine, "somedir", "test-mvel-template2.templ", "Hello badger and fox\nRequest path is /test-mvel-template2.templ");
   }
 
   @Test
   public void testTemplateHandlerNoExtension() throws Exception {
     TemplateEngine engine = MVELTemplateEngine.create();
-    testTemplateHandler(engine, "somedir", "test-mvel-template2");
+    testTemplateHandler(engine, "somedir", "test-mvel-template2", "Hello badger and fox\nRequest path is /test-mvel-template2");
   }
 
-  private void testTemplateHandler(TemplateEngine engine, String directoryName, String templateName) throws Exception {
+  private void testTemplateHandler(TemplateEngine engine, String directoryName, String templateName,
+                                   String expected) throws Exception {
     router.route().handler(context -> {
       context.put("foo", "badger");
       context.put("bar", "fox");
       context.next();
     });
     router.route().handler(PathTemplateHandler.templateHandler(engine, directoryName, "text/plain"));
-    String expected = "Hello badger and fox";
     testRequest(HttpMethod.GET, "/" + templateName, 200, "OK", expected);
   }
 

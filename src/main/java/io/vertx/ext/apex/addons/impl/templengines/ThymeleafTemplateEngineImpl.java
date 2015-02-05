@@ -20,7 +20,6 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.ext.apex.addons.impl.AbstractTemplateEngine;
 import io.vertx.ext.apex.addons.ThymeleafTemplateEngine;
 import io.vertx.ext.apex.core.RoutingContext;
 import io.vertx.ext.apex.core.impl.Utils;
@@ -40,7 +39,7 @@ import java.util.Locale;
  * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public class ThymeleafTemplateEngineImpl extends AbstractTemplateEngine implements ThymeleafTemplateEngine {
+public class ThymeleafTemplateEngineImpl implements ThymeleafTemplateEngine {
 
   private final TemplateEngine engine = new TemplateEngine();
 
@@ -83,10 +82,8 @@ public class ThymeleafTemplateEngineImpl extends AbstractTemplateEngine implemen
     Buffer buffer = Buffer.buffer();
     try {
       // Not very happy making a copy here... and it seems Thymeleaf copies the data again internally as well...
-      VariablesMap<String, Object> data = new VariablesMap<>(context.contextData());
-      data.put("_context", context);
-      data.put("_request", context.request());
-      data.put("_response", context.response());
+      VariablesMap<String, Object> data = new VariablesMap<>();
+      data.put("context", context);
 
       engine.process(templateFileName, new ApexIContext(data), new Writer() {
         @Override

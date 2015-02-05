@@ -52,20 +52,6 @@ var TemplateEngine = function(j_val) {
     } else utils.invalidArgs();
   };
 
-  /**
-
-   @public
-   @param context {RoutingContext} 
-   @param templateFileName {string} 
-   @param contentType {string} 
-   */
-  this.renderResponse = function(context, templateFileName, contentType) {
-    var __args = arguments;
-    if (__args.length === 3 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'string' && typeof __args[2] === 'string') {
-      j_templateEngine.renderResponse(context._jdel, templateFileName, contentType);
-    } else utils.invalidArgs();
-  };
-
   // A reference to the underlying Java delegate
   // NOTE! This is an internal API and must not be used in user code.
   // If you rely on this property your code is likely to break if we change it / remove it without warning.

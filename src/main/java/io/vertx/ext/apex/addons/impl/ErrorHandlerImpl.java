@@ -22,7 +22,7 @@ import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.apex.addons.ErrorHandler;
-import io.vertx.ext.apex.core.FailureRoutingContext;
+import io.vertx.ext.apex.core.RoutingContext;
 import io.vertx.ext.apex.core.impl.Utils;
 
 import java.util.List;
@@ -51,7 +51,7 @@ public class ErrorHandlerImpl implements ErrorHandler {
   }
 
   @Override
-  public void handle(FailureRoutingContext context) {
+  public void handle(RoutingContext context) {
 
     HttpServerRequest request = context.request();
     HttpServerResponse response = context.response();
@@ -96,7 +96,7 @@ public class ErrorHandlerImpl implements ErrorHandler {
     sendError(context, "text/plain", errorCode, errorMessage);
   }
 
-  private boolean sendError(FailureRoutingContext context, String mime, int errorCode, String errorMessage) {
+  private boolean sendError(RoutingContext context, String mime, int errorCode, String errorMessage) {
 
     final String title = "Matron!";
 

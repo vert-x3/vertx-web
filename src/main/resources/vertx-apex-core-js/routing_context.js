@@ -453,6 +453,38 @@ var RoutingContext = function(j_val) {
     } else utils.invalidArgs();
   };
 
+  /**
+
+   @public
+
+   @return {todo}
+   */
+  this.failure = function() {
+    var __args = arguments;
+    if (__args.length === 0) {
+      if (that.cachedfailure == null) {
+        that.cachedfailure = utils.convReturnTypeUnknown(j_routingContext.failure());
+      }
+      return that.cachedfailure;
+    } else utils.invalidArgs();
+  };
+
+  /**
+
+   @public
+
+   @return {number}
+   */
+  this.statusCode = function() {
+    var __args = arguments;
+    if (__args.length === 0) {
+      if (that.cachedstatusCode == null) {
+        that.cachedstatusCode = j_routingContext.statusCode();
+      }
+      return that.cachedstatusCode;
+    } else utils.invalidArgs();
+  };
+
   // A reference to the underlying Java delegate
   // NOTE! This is an internal API and must not be used in user code.
   // If you rely on this property your code is likely to break if we change it / remove it without warning.

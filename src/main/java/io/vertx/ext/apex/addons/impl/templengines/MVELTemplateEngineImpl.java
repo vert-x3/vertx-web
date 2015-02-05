@@ -28,6 +28,9 @@ import org.mvel2.templates.CompiledTemplate;
 import org.mvel2.templates.TemplateCompiler;
 import org.mvel2.templates.TemplateRuntime;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
@@ -53,7 +56,9 @@ public class MVELTemplateEngineImpl extends CachingTemplateEngine<CompiledTempla
         template = TemplateCompiler.compileTemplate(templateText);
         cache.put(templateFileName, template);
       }
-      handler.handle(Future.succeededFuture(Buffer.buffer((String)TemplateRuntime.execute(template, context.contextData()))));
+      Map<String, RoutingContext> variables = new HashMap<>(1);
+      variables.put("context", context);
+      handler.handle(Future.succeededFuture(Buffer.buffer((String)TemplateRuntime.execute(template, variables))));
     } catch (Exception ex) {
       handler.handle(Future.failedFuture(ex));
     }

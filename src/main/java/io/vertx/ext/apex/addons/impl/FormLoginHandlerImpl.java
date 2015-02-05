@@ -71,7 +71,7 @@ public class FormLoginHandlerImpl implements FormLoginHandler {
                 context.fail(403);  // Failed login
               } else {
                 session.setPrincipal(principal);
-                String returnURL = (String)session.data().remove(returnURLParam);
+                String returnURL = session.remove(returnURLParam);
                 if (returnURL == null) {
                   // Just return OK
                   req.response().end("Logged in OK, but no return URL");

@@ -19,20 +19,17 @@ package io.vertx.ext.apex.core.impl;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.impl.LoggerFactory;
-import io.vertx.ext.apex.core.FailureRoutingContext;
 import io.vertx.ext.apex.core.Route;
+import io.vertx.ext.apex.core.RoutingContext;
 
 import java.util.Iterator;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public abstract class RoutingContextImplBase implements FailureRoutingContext {
+public abstract class RoutingContextImplBase implements RoutingContext {
 
   private static final Logger log = LoggerFactory.getLogger(RoutingContextImplBase.class);
-
-  private static final String UNHANDLED_FAILURE =
-    "<html><body><h1>Ooops! Something went wrong</h1></body></html>";
 
   protected final String mountPoint;
   protected final HttpServerRequest request;

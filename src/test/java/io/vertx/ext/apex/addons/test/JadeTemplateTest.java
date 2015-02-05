@@ -31,22 +31,22 @@ public class JadeTemplateTest extends ApexTestBase {
   @Test
   public void testTemplateHandler() throws Exception {
     TemplateEngine engine = JadeTemplateEngine.create();
-    testTemplateHandler(engine, "somedir", "test-jade-template2.jade");
+    testTemplateHandler(engine, "somedir", "test-jade-template2.jade", "<!DOCTYPE html><html><head><title>badger/test-jade-template2.jade</title></head><body></body></html>");
   }
 
   @Test
   public void testTemplateHandlerNoExtension() throws Exception {
     TemplateEngine engine = JadeTemplateEngine.create();
-    testTemplateHandler(engine, "somedir", "test-jade-template2");
+    testTemplateHandler(engine, "somedir", "test-jade-template2", "<!DOCTYPE html><html><head><title>badger/test-jade-template2</title></head><body></body></html>");
   }
 
-  private void testTemplateHandler(TemplateEngine engine, String directoryName, String templateName) throws Exception {
+  private void testTemplateHandler(TemplateEngine engine, String directoryName, String templateName,
+                                   String expected) throws Exception {
     router.route().handler(context -> {
       context.put("foo", "badger");
       context.next();
     });
     router.route().handler(PathTemplateHandler.templateHandler(engine, directoryName, "text/plain"));
-    String expected = "<!DOCTYPE html><html><head><title>badger</title></head><body></body></html>";
     testRequest(HttpMethod.GET, "/" + templateName, 200, "OK", expected);
   }
 

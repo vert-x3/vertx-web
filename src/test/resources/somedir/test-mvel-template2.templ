@@ -1,1 +1,2 @@
-Hello @{foo} and @{bar}
+Hello @{context.contextData().get("foo")} and @{context.contextData().get("bar")}
+Request path is @{context.request().path()}

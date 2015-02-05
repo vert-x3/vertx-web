@@ -22,12 +22,12 @@ import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.shareddata.AsyncMap;
 import io.vertx.ext.apex.core.Session;
-import io.vertx.ext.apex.core.SessionStore;
+import io.vertx.ext.apex.core.ClusteredSessionStore;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public class ClusteredSessionStoreImpl implements SessionStore {
+public class ClusteredSessionStoreImpl implements ClusteredSessionStore {
 
   private final Vertx vertx;
   private final String sessionMapName;
