@@ -32,6 +32,7 @@ public interface StaticServer extends Handler<RoutingContext> {
   static final long DEFAULT_MAX_AGE_SECONDS = 86400; // One day
   static final boolean DEFAULT_CACHING_ENABLED = true;
   static final boolean DEFAULT_DIRECTORY_LISTING = false;
+  static final String DEFAULT_DIRECTORY_TEMPLATE = "apex-directory.html";
   static final boolean DEFAULT_INCLUDE_HIDDEN = true;
   static final long DEFAULT_CACHE_ENTRY_TIMEOUT = 30000; // 30 seconds
   static final String DEFAULT_INDEX_PAGE = "/index.html";
@@ -74,5 +75,7 @@ public interface StaticServer extends Handler<RoutingContext> {
   StaticServer setEnableFSTuning(boolean enableFSTuning);
 
   StaticServer setMaxAvgServeTimeNs(long maxAvgServeTimeNanoSeconds);
+
+  StaticServer setDirectoryTemplate(String directoryTemplate);
 
 }

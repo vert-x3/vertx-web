@@ -106,7 +106,7 @@ The route can have a *handler* associated with it, which then receives the reque
 
 You then *do something* with the request, and then, either end it or pass it to the next matching handler.
 
-Here's the simplest router example:
+Here's a simple router example:
 
 [source,java]
 ----
@@ -567,7 +567,9 @@ You can combine all the above routing criteria in many different ways, for examp
 
 [source,java]
 ----
-Route route = router.route(HttpMethod.PUT, "myapi/orders").consumes("application/json").produces("application/json");
+Route route = router.route(HttpMethod.PUT, "myapi/orders")
+                    .consumes("application/json")
+                    .produces("application/json");
 route.handler(routingContext -> {
   // This would be match for any PUT method to paths starting with "myapi/orders" with a content-type of "application/json"
   // and an accept header matching "application/json"
@@ -596,10 +598,15 @@ A request sent to path `/some/path` will match both routes.
 
 [source,java]
 ----
-Route route = router.route(HttpMethod.PUT, "myapi/orders").consumes("application/json").produces("application/json");
-route.handler(routingContext -> {
-  // This would be match for any PUT method to paths starting with "myapi/orders" with a content-type of "application/json"
-  // and an accept header matching "application/json"
+router.get("/some/path").handler(routingContext -> {
+  routingContext.put("foo", "bar");
+  routingContext.next();
+});
+
+router.get("/some/path/other").handler(routingContext -> {
+  String bar = routingContext.get("foo");
+  // Do something with bar
+  routingContext.response().end();
 });
 ----
 
@@ -683,7 +690,13 @@ to paths that start with `\somepath\`:
 
 [source,java]
 ----
-mainRouter.mountSubRouter("/productsAPI", restAPI);
+Route route = router.get("/somepath/");
+
+route.failureHandler(frc -> {
+  // This will be called for failures that occur
+  // when routing requests to paths starting with
+  // '/somepath'
+});
 ----
 
 Error routing will occur if a handler throws an exception, or if a handler calls
@@ -697,17 +710,137 @@ to be retrieved so the failure handler can use that to generate a failure respon
 
 [source,java]
 ----
-Route route = router.get("/somepath/");
+Route route1 = router.get("/somepath/path1/");
+route1.handler(routingContext -> {
+  // Let's say this throws a RuntimeException
+  throw new RuntimeException("something happened!");
+});
 
-route.failureHandler(frc -> {
-  // This will be called for failures that occur
-  // when routing requests to paths starting with
-  // '/somepath'
+Route route2 = router.get("/somepath/path2");
+route2.handler(routingContext -> {
+  // This one deliberately fails the request passing in the status code
+  // E.g. 403 - Forbidden
+  routingContext.fail(403);
+});
+
+// Define a failure handler
+// This will get called for any failures in the above handlers
+Route route3 = router.get("/somepath/");
+route3.failureHandler(failureRoutingContext -> {
+  int statusCode = failureRoutingContext.statusCode();
+  // Status code will be 500 for the RuntimeException or 403 for the other failure
+  HttpServerResponse response = failureRoutingContext.response();
+  response.setStatusCode(statusCode).end("Sorry! Not today");
 });
 ----
 
+== Using the BodyHandler
+
+The link:apidocs/io/vertx/ext/apex/core/BodyHandler.html[`BodyHandler`] allows you to retrieve request bodies, limit body sizes and handle
+file uploads.
+
+You should make sure a body handler is on a matching route for any requests that require this functionality.
+
+[source,java]
+----
+router.route().handler(BodyHandler.bodyHandler());
+----
+
+=== Getting the request body
+
+If you know the request body is JSON, then you can use link:apidocs/io/vertx/ext/apex/core/RoutingContext.html#getBodyAsJson--[`getBodyAsJson`],
+if you know it's a string you can use link:apidocs/io/vertx/ext/apex/core/RoutingContext.html#getBodyAsString--[`getBodyAsString`], or to
+retrieve it as a buffer use link:apidocs/io/vertx/ext/apex/core/RoutingContext.html#getBody--[`getBody`].
+
+=== Limiting body size
+
+To limit the size of a request body, create the body handler with link:apidocs/io/vertx/ext/apex/core/BodyHandler.html#bodyHandler-long-[`BodyHandler.bodyHandler`]
+specifying the maximum body size, in bytes. This is useful to avoid running out of memory with very large bodies.
+
+If an attempt to send a body greater than the maximum size is made, an HTTP status code of 413 - `Request Entity Too Large`,
+will be sent.
+
+There is no body limit by default.
+
+=== Handling file uploads
+
+Body handler can also be used to handle multi-part file uploads. If a body handler is on a matching route for the
+request, any file uploads will be automatically streamed to the uploads directory, which is `file-uploads` by default.
+Each file will be given an automatically generated file name, and the file uploads will be available on the routing
+context with link:apidocs/io/vertx/ext/apex/core/RoutingContext.html#fileUploads--[`fileUploads`].
+
+Here's an example:
+
+[source,java]
+----
+router.route().handler(BodyHandler.bodyHandler());
+router.post("/some/path/uploads").handler(routingContext -> {
+  Set<FileUpload> uploads = routingContext.fileUploads();
+  // Do something with uploads....
+});
+----
+
+Each file upload is described by a link:apidocs/io/vertx/ext/apex/core/FileUpload.html[`FileUpload`] instance, which allows various properties
+such as the name, file-name and size to be accessed.
+
+== Handling cookies
+
+Apex has cookies support using the link:apidocs/io/vertx/ext/apex/core/CookieHandler.html[`CookieHandler`].
+
+You should make sure a cookie handler is on a matching route for any requests that require this functionality.
+
+[source,java]
+----
+router.route().handler(CookieHandler.cookieHandler());
+----
 
 == Apex add-ons
 
 Whereas Apex core contains basic routing functionality, Apex also provides a set of useful "add-ons" that you can
 use to build real web applications more easily.
+
+=== Retrieving cookies
+
+To retrieve cookies you can use link:apidocs/io/vertx/ext/apex/core/RoutingContext.html#getCookie-java.lang.String-[`getCookie`] to retrieve
+one by name, or use link:apidocs/io/vertx/ext/apex/core/RoutingContext.html#cookies--[`cookies`] to retrieve the entire set.
+
+To remove a cookie, use link:apidocs/io/vertx/ext/apex/core/RoutingContext.html#removeCookie-java.lang.String-[`removeCookie`].
+
+To add a cookie use link:apidocs/io/vertx/ext/apex/core/RoutingContext.html#addCookie-io.vertx.ext.apex.core.Cookie-[`addCookie`].
+
+The set of cookies will be written back in the response automatically when the response headers are written so the
+browser can update any values.
+
+Cookies are described by instances of link:apidocs/io/vertx/ext/apex/core/Cookie.html[`Cookie`]. This allows you to retrieve the name,
+value, domain, path and other normal cookie properties.
+
+Here's an example of querying and adding cookies:
+
+[source,java]
+----
+router.route().handler(CookieHandler.cookieHandler());
+router.route("some/path/").handler(routingContext -> {
+
+  Cookie someCookie = routingContext.getCookie("mycookie");
+  String cookieValue = someCookie.getValue();
+
+  // Do something with cookie...
+
+  // Add a cookie - this will get written back in the response automatically
+  routingContext.addCookie(Cookie.cookie("othercookie", "somevalue"));
+});
+----
+
+=== Session Handling
+
+If you want to enable sessions in your Apex application, you need a link:apidocs/io/vertx/ext/apex/core/SessionHandler.html[`SessionHandler`]
+on a matching route before your application logic.
+
+The session handler should be created with a link:apidocs/io/vertx/ext/apex/core/SessionStore.html[`SessionStore`] instance. Apex comes with
+two session store implementations:
+
+Clustered session store::
+
+Local session store::
+
+Your session is available on the routing context with link:apidocs/io/vertx/ext/apex/core/RoutingContext.html#session--[`session`].

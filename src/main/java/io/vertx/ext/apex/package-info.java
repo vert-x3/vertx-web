@@ -498,7 +498,7 @@
  *
  * [source,java]
  * ----
- * {@link examples.Examples#example24}
+ * {@link examples.Examples#example25}
  * ----
  *
  * Error routing will occur if a handler throws an exception, or if a handler calls
@@ -512,17 +512,105 @@
  *
  * [source,java]
  * ----
- * {@link examples.Examples#example25}
+ * {@link examples.Examples#example26}
  * ----
  *
+ * == Using the BodyHandler
+ *
+ * The {@link io.vertx.ext.apex.core.BodyHandler} allows you to retrieve request bodies, limit body sizes and handle
+ * file uploads.
+ *
+ * You should make sure a body handler is on a matching route for any requests that require this functionality.
+ *
+ * [source,java]
+ * ----
+ * {@link examples.Examples#example27}
+ * ----
+ *
+ * === Getting the request body
+ *
+ * If you know the request body is JSON, then you can use {@link io.vertx.ext.apex.core.RoutingContext#getBodyAsJson},
+ * if you know it's a string you can use {@link io.vertx.ext.apex.core.RoutingContext#getBodyAsString}, or to
+ * retrieve it as a buffer use {@link io.vertx.ext.apex.core.RoutingContext#getBody()}.
+ *
+ * === Limiting body size
+ *
+ * To limit the size of a request body, create the body handler with {@link io.vertx.ext.apex.core.BodyHandler#bodyHandler(long)}
+ * specifying the maximum body size, in bytes. This is useful to avoid running out of memory with very large bodies.
+ *
+ * If an attempt to send a body greater than the maximum size is made, an HTTP status code of 413 - `Request Entity Too Large`,
+ * will be sent.
+ *
+ * There is no body limit by default.
+ *
+ * === Handling file uploads
+ *
+ * Body handler can also be used to handle multi-part file uploads. If a body handler is on a matching route for the
+ * request, any file uploads will be automatically streamed to the uploads directory, which is `file-uploads` by default.
+ * Each file will be given an automatically generated file name, and the file uploads will be available on the routing
+ * context with {@link io.vertx.ext.apex.core.RoutingContext#fileUploads()}.
+ *
+ * Here's an example:
+ *
+ * [source,java]
+ * ----
+ * {@link examples.Examples#example28}
+ * ----
+ *
+ * Each file upload is described by a {@link io.vertx.ext.apex.core.FileUpload} instance, which allows various properties
+ * such as the name, file-name and size to be accessed.
+ *
+ * == Handling cookies
+ *
+ * Apex has cookies support using the {@link io.vertx.ext.apex.core.CookieHandler}.
+ *
+ * You should make sure a cookie handler is on a matching route for any requests that require this functionality.
+ *
+ * [source,java]
+ * ----
+ * {@link examples.Examples#example29}
+ * ----
  *
  * == Apex add-ons
  *
  * Whereas Apex core contains basic routing functionality, Apex also provides a set of useful "add-ons" that you can
  * use to build real web applications more easily.
  *
+ * === Retrieving cookies
  *
+ * To retrieve cookies you can use {@link io.vertx.ext.apex.core.RoutingContext#getCookie(java.lang.String)} to retrieve
+ * one by name, or use {@link io.vertx.ext.apex.core.RoutingContext#cookies()} to retrieve the entire set.
  *
+ * To remove a cookie, use {@link io.vertx.ext.apex.core.RoutingContext#removeCookie(java.lang.String)}.
+ *
+ * To add a cookie use {@link io.vertx.ext.apex.core.RoutingContext#addCookie(io.vertx.ext.apex.core.Cookie)}.
+ *
+ * The set of cookies will be written back in the response automatically when the response headers are written so the
+ * browser can update any values.
+ *
+ * Cookies are described by instances of {@link io.vertx.ext.apex.core.Cookie}. This allows you to retrieve the name,
+ * value, domain, path and other normal cookie properties.
+ *
+ * Here's an example of querying and adding cookies:
+ *
+ * [source,java]
+ * ----
+ * {@link examples.Examples#example30}
+ * ----
+ *
+ * === Session Handling
+ *
+ * If you want to enable sessions in your Apex application, you need a {@link io.vertx.ext.apex.core.SessionHandler}
+ * on a matching route before your application logic.
+ *
+ * The session handler should be created with a {@link io.vertx.ext.apex.core.SessionStore} instance. Apex comes with
+ * two session store implementations:
+ *
+ * Clustered session store::
+ *
+ * Local session store::
+ *
+ * Your session is available on the routing context with {@link io.vertx.ext.apex.core.RoutingContext#session()}.
  *
  */
 @Document(fileName = "index.adoc")

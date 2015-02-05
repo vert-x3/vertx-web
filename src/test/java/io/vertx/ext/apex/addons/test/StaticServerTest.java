@@ -285,7 +285,7 @@ public class StaticServerTest extends ApexTestBase {
   @Test
   public void testDirectoryListingText() throws Exception {
     stat.setDirectoryListing(true);
-    Set<String> expected = new HashSet<>(Arrays.asList(".hidden.html", "foo.json", "index.html", "otherpage.html", "somedir"));
+    Set<String> expected = new HashSet<>(Arrays.asList(".hidden.html", "foo.json", "index.html", "otherpage.html", "somedir", "somedir2"));
 
     testRequest(HttpMethod.GET, "/", null, resp -> {
       resp.bodyHandler(buff -> {
@@ -303,7 +303,7 @@ public class StaticServerTest extends ApexTestBase {
   public void testDirectoryListingTextNoHidden() throws Exception {
     stat.setDirectoryListing(true);
     stat.setIncludeHidden(false);
-    Set<String> expected = new HashSet<>(Arrays.asList("foo.json", "index.html", "otherpage.html", "somedir"));
+    Set<String> expected = new HashSet<>(Arrays.asList("foo.json", "index.html", "otherpage.html", "somedir", "somedir2"));
 
     testRequest(HttpMethod.GET, "/", null, resp -> {
       resp.bodyHandler(buff -> {
@@ -321,7 +321,7 @@ public class StaticServerTest extends ApexTestBase {
   @Test
   public void testDirectoryListingJson() throws Exception {
     stat.setDirectoryListing(true);
-    Set<String> expected = new HashSet<>(Arrays.asList(".hidden.html", "foo.json", "index.html", "otherpage.html", "somedir"));
+    Set<String> expected = new HashSet<>(Arrays.asList(".hidden.html", "foo.json", "index.html", "otherpage.html", "somedir", "somedir2"));
 
     testRequest(HttpMethod.GET, "/", req -> {
       req.putHeader("accept", "application/json");
@@ -344,7 +344,7 @@ public class StaticServerTest extends ApexTestBase {
   public void testDirectoryListingJsonNoHidden() throws Exception {
     stat.setDirectoryListing(true);
     stat.setIncludeHidden(false);
-    Set<String> expected = new HashSet<>(Arrays.asList("foo.json", "index.html", "otherpage.html", "somedir"));
+    Set<String> expected = new HashSet<>(Arrays.asList("foo.json", "index.html", "otherpage.html", "somedir", "somedir2"));
 
     testRequest(HttpMethod.GET, "/", req -> {
       req.putHeader("accept", "application/json");
@@ -357,8 +357,53 @@ public class StaticServerTest extends ApexTestBase {
         for (Object elem: arr) {
           assertTrue(expected.contains(elem));
         }
+        testComplete();
       });
     }, 200, "OK", null);
+    await();
+  }
+
+  @Test
+  public void testDirectoryListingHtml() throws Exception {
+    stat.setDirectoryListing(true);
+
+    testDirectoryListingHtmlCustomTemplate("apex-directory.html");
+  }
+
+  @Test
+  public void testCustomDirectoryListingHtml() throws Exception {
+    stat.setDirectoryListing(true);
+    String dirTemplate = "custom_dir_template.html";
+    stat.setDirectoryTemplate(dirTemplate);
+
+    testDirectoryListingHtmlCustomTemplate(dirTemplate);
+  }
+
+  private void testDirectoryListingHtmlCustomTemplate(String dirTemplateFile) throws Exception {
+    stat.setDirectoryListing(true);
+
+
+    String directoryTemplate = Utils.readResourceToBuffer(dirTemplateFile).toString();
+
+    String parentLink = "<a href=\"/" + "webroot/" + "\">..</a>";
+    String files = "<ul id=\"files\"><li><a href=\"/somedir2/foo2.json\" title=\"foo2.json\">foo2.json</a></li>" +
+      "<li><a href=\"/somedir2/somepage.html\" title=\"somepage.html\">somepage.html</a></li>" +
+      "<li><a href=\"/somedir2/somepage2.html\" title=\"somepage2.html\">somepage2.html</a></li></ul>";
+
+    String expected = directoryTemplate.replace("{directory}", "/somedir2/").replace("{parent}", parentLink).replace("{files}", files);
+
+    testRequest(HttpMethod.GET, "/somedir2", req -> {
+      req.putHeader("accept", "text/html");
+    }, resp -> {
+      resp.bodyHandler(buff -> {
+        assertEquals("text/html", resp.headers().get("content-type"));
+        String sBuff = buff.toString();
+        System.out.println(sBuff);
+        assertEquals(expected, sBuff);
+        testComplete();
+      });
+    }, 200, "OK", null);
+    await();
   }
 
   @Test

@@ -52,13 +52,12 @@ public class StaticServerImpl implements StaticServer {
 
   private static final Logger log = LoggerFactory.getLogger(StaticServerImpl.class);
 
-  private static final String directoryTemplate = Utils.readResourceToBuffer("apex-directory.html").toString();
-
   private final DateFormat dateTimeFormatter = Utils.createISODateTimeFormatter();
   private Map<String, CacheEntry> propsCache;
   private String webRoot = DEFAULT_WEB_ROOT;
   private long maxAgeSeconds = DEFAULT_MAX_AGE_SECONDS; // One day
   private boolean directoryListing = DEFAULT_DIRECTORY_LISTING;
+  private String directoryTemplate = Utils.readResourceToString(DEFAULT_DIRECTORY_TEMPLATE);
   private boolean includeHidden = DEFAULT_INCLUDE_HIDDEN;
   private boolean filesReadOnly = DEFAULT_FILES_READ_ONLY;
   private boolean cachingEnabled = DEFAULT_CACHING_ENABLED;
@@ -291,6 +290,12 @@ public class StaticServerImpl implements StaticServer {
   }
 
   @Override
+  public StaticServer setDirectoryTemplate(String directoryTemplate) {
+    this.directoryTemplate = Utils.readResourceToString(directoryTemplate);
+    return null;
+  }
+
+  @Override
   public StaticServer setIncludeHidden(boolean includeHidden) {
     this.includeHidden = includeHidden;
     return this;
@@ -407,31 +412,21 @@ public class StaticServerImpl implements StaticServer {
 
           files.append("</ul>");
 
-          StringBuilder directory = new StringBuilder();
-          // define access to root
-          directory.append("<a href=\"/\">/</a> ");
-
-          StringBuilder expandingPath = new StringBuilder();
-          String[] dirParts = normalizedDir.split("/");
-          for (int i = 1; i < dirParts.length; i++) {
-            // dynamic expansion
-            expandingPath.append("/");
-            expandingPath.append(dirParts[i]);
-            // anchor building
-            if (i > 1) {
-              directory.append(" / ");
+          // link to parent dir
+          int slashPos = 0;
+          for (int i = dir.length() - 2; i > 0; i--) {
+            if (dir.charAt(i) == '/') {
+              slashPos = i;
+              break;
             }
-            directory.append("<a href=\"");
-            directory.append(expandingPath.toString());
-            directory.append("\">");
-            directory.append(dirParts[i]);
-            directory.append("</a>");
           }
+
+          String parent = "<a href=\"/" + dir.substring(0, slashPos + 1) + "\">..</a>";
 
           request.response().putHeader("content-type", "text/html");
           request.response().end(
-            directoryTemplate.replace("{title}", context.get("title")).replace("{directory}", normalizedDir)
-              .replace("{linked-path}", directory.toString())
+            directoryTemplate.replace("{directory}", normalizedDir)
+              .replace("{parent}", parent)
               .replace("{files}", files.toString()));
         } else if (accept.contains("json")) {
           String file;

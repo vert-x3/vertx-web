@@ -103,7 +103,7 @@ The route can have a *handler* associated with it, which then receives the reque
 
 You then *do something* with the request, and then, either end it or pass it to the next matching handler.
 
-Here's the simplest router example:
+Here's a simple router example:
 
 [source,java]
 ----
@@ -207,7 +207,12 @@ Here's an example
 
 [source,java]
 ----
-todo
+def route = router.route(io.vertx.core.http.HttpMethod.POST, "/catalogue/products/:productype/:productid/");
+route.handler({ routingContext ->
+  def productType = routingContext.request().params().get("producttype");
+  def productID = routingContext.request().params().get("productid");
+});
+
 ----
 
 In the above example, if a POST request is made to path: `/catalogue/products/tools/drill123/` then the route will match
@@ -264,14 +269,20 @@ If you want a route to only match for a specific HTTP method you can use link:gr
 
 [source,java]
 ----
-todo
+def route = router.route().method(io.vertx.core.http.HttpMethod.POST);
+route.handler({ routingContext ->
+});
+
 ----
 
 Or you can specify this with a path when creating the route:
 
 [source,java]
 ----
-todo
+def route = router.route(io.vertx.core.http.HttpMethod.POST, "/some/path/");
+route.handler({ routingContext ->
+});
+
 ----
 
 If you want to route for a specific HTTP method you can also use the methods such as link:groovydoc/io/vertx/groovy/ext/apex/core/Router.html#get()[`get`],
@@ -294,7 +305,10 @@ multiple times:
 
 [source,java]
 ----
-todo
+def route = router.route().method(io.vertx.core.http.HttpMethod.POST).method(io.vertx.core.http.HttpMethod.PUT);
+route.handler({ routingContext ->
+});
+
 ----
 
 
@@ -507,7 +521,10 @@ You can combine all the above routing criteria in many different ways, for examp
 
 [source,java]
 ----
-todo
+def route = router.route(io.vertx.core.http.HttpMethod.PUT, "myapi/orders").consumes("application/json").produces("application/json");
+route.handler({ routingContext ->
+});
+
 ----
 
 == Enabling and disabling routes
@@ -532,7 +549,15 @@ A request sent to path `/some/path` will match both routes.
 
 [source,java]
 ----
-todo
+router.get("/some/path").handler({ routingContext ->
+  routingContext.put("foo", "bar");
+  routingContext.next();
+});
+router.get("/some/path/other").handler({ routingContext ->
+  def bar = routingContext.get("foo");
+  routingContext.response().end();
+});
+
 ----
 
 Alternatively you can access the entire context data map with link:groovydoc/io/vertx/groovy/ext/apex/core/RoutingContext.html#contextData()[`contextData`].
@@ -613,7 +638,9 @@ to paths that start with `\somepath\`:
 
 [source,java]
 ----
-mainRouter.mountSubRouter("/productsAPI", restAPI);
+def route = router.get("/somepath/");
+route.failureHandler({ frc ->
+});
 
 ----
 
@@ -628,14 +655,119 @@ to be retrieved so the failure handler can use that to generate a failure respon
 
 [source,java]
 ----
-def route = router.get("/somepath/");
-route.failureHandler({ frc ->
+todo
+----
+
+== Using the BodyHandler
+
+The link:groovydoc/io/vertx/groovy/ext/apex/core/BodyHandler.html[`BodyHandler`] allows you to retrieve request bodies, limit body sizes and handle
+file uploads.
+
+You should make sure a body handler is on a matching route for any requests that require this functionality.
+
+[source,java]
+----
+import io.vertx.groovy.ext.apex.core.BodyHandler
+router.route().handler(BodyHandler.bodyHandler());
+
+----
+
+=== Getting the request body
+
+If you know the request body is JSON, then you can use link:groovydoc/io/vertx/groovy/ext/apex/core/RoutingContext.html#getBodyAsJson()[`getBodyAsJson`],
+if you know it's a string you can use link:groovydoc/io/vertx/groovy/ext/apex/core/RoutingContext.html#getBodyAsString()[`getBodyAsString`], or to
+retrieve it as a buffer use link:groovydoc/io/vertx/groovy/ext/apex/core/RoutingContext.html#getBody()[`getBody`].
+
+=== Limiting body size
+
+To limit the size of a request body, create the body handler with link:groovydoc/io/vertx/groovy/ext/apex/core/BodyHandler.html#bodyHandler(long)[`BodyHandler.bodyHandler`]
+specifying the maximum body size, in bytes. This is useful to avoid running out of memory with very large bodies.
+
+If an attempt to send a body greater than the maximum size is made, an HTTP status code of 413 - `Request Entity Too Large`,
+will be sent.
+
+There is no body limit by default.
+
+=== Handling file uploads
+
+Body handler can also be used to handle multi-part file uploads. If a body handler is on a matching route for the
+request, any file uploads will be automatically streamed to the uploads directory, which is `file-uploads` by default.
+Each file will be given an automatically generated file name, and the file uploads will be available on the routing
+context with link:groovydoc/io/vertx/groovy/ext/apex/core/RoutingContext.html#fileUploads()[`fileUploads`].
+
+Here's an example:
+
+[source,java]
+----
+import io.vertx.groovy.ext.apex.core.BodyHandler
+router.route().handler(BodyHandler.bodyHandler());
+router.post("/some/path/uploads").handler({ routingContext ->
+  def uploads = routingContext.fileUploads();
 });
 
 ----
 
+Each file upload is described by a link:groovydoc/io/vertx/groovy/ext/apex/core/FileUpload.html[`FileUpload`] instance, which allows various properties
+such as the name, file-name and size to be accessed.
+
+== Handling cookies
+
+Apex has cookies support using the link:groovydoc/io/vertx/groovy/ext/apex/core/CookieHandler.html[`CookieHandler`].
+
+You should make sure a cookie handler is on a matching route for any requests that require this functionality.
+
+[source,java]
+----
+import io.vertx.groovy.ext.apex.core.CookieHandler
+router.route().handler(CookieHandler.cookieHandler());
+
+----
 
 == Apex add-ons
 
 Whereas Apex core contains basic routing functionality, Apex also provides a set of useful "add-ons" that you can
 use to build real web applications more easily.
+
+=== Retrieving cookies
+
+To retrieve cookies you can use link:groovydoc/io/vertx/groovy/ext/apex/core/RoutingContext.html#getCookie(java.lang.String)[`getCookie`] to retrieve
+one by name, or use link:groovydoc/io/vertx/groovy/ext/apex/core/RoutingContext.html#cookies()[`cookies`] to retrieve the entire set.
+
+To remove a cookie, use link:groovydoc/io/vertx/groovy/ext/apex/core/RoutingContext.html#removeCookie(java.lang.String)[`removeCookie`].
+
+To add a cookie use link:groovydoc/io/vertx/groovy/ext/apex/core/RoutingContext.html#addCookie(io.vertx.ext.apex.core.Cookie)[`addCookie`].
+
+The set of cookies will be written back in the response automatically when the response headers are written so the
+browser can update any values.
+
+Cookies are described by instances of link:groovydoc/io/vertx/groovy/ext/apex/core/Cookie.html[`Cookie`]. This allows you to retrieve the name,
+value, domain, path and other normal cookie properties.
+
+Here's an example of querying and adding cookies:
+
+[source,java]
+----
+import io.vertx.groovy.ext.apex.core.CookieHandler
+import io.vertx.groovy.ext.apex.core.Cookie
+router.route().handler(CookieHandler.cookieHandler());
+router.route("some/path/").handler({ routingContext ->
+  def someCookie = routingContext.getCookie("mycookie");
+  def cookieValue = someCookie.getValue();
+  routingContext.addCookie(Cookie.cookie("othercookie", "somevalue"));
+});
+
+----
+
+=== Session Handling
+
+If you want to enable sessions in your Apex application, you need a link:groovydoc/io/vertx/groovy/ext/apex/core/SessionHandler.html[`SessionHandler`]
+on a matching route before your application logic.
+
+The session handler should be created with a link:groovydoc/io/vertx/groovy/ext/apex/core/SessionStore.html[`SessionStore`] instance. Apex comes with
+two session store implementations:
+
+Clustered session store::
+
+Local session store::
+
+Your session is available on the routing context with link:groovydoc/io/vertx/groovy/ext/apex/core/RoutingContext.html#session()[`session`].

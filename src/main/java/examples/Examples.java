@@ -7,9 +7,9 @@ import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerResponse;
-import io.vertx.ext.apex.core.Route;
-import io.vertx.ext.apex.core.Router;
-import io.vertx.ext.apex.core.RoutingContext;
+import io.vertx.ext.apex.core.*;
+
+import java.util.Set;
 
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
@@ -391,6 +391,40 @@ public class Examples {
       response.setStatusCode(statusCode).end("Sorry! Not today");
     });
 
+  }
+
+  public void example27(Router router) {
+    // This body handler will be called for all routes
+    router.route().handler(BodyHandler.bodyHandler());
+  }
+
+  public void example28(Router router) {
+    // This body handler will be called for all routes
+    router.route().handler(BodyHandler.bodyHandler());
+    router.post("/some/path/uploads").handler(routingContext -> {
+      Set<FileUpload> uploads = routingContext.fileUploads();
+      // Do something with uploads....
+    });
+  }
+
+  public void example29(Router router) {
+    // This cookie handler will be called for all routes
+    router.route().handler(CookieHandler.cookieHandler());
+  }
+
+  public void example30(Router router) {
+    // This cookie handler will be called for all routes
+    router.route().handler(CookieHandler.cookieHandler());
+    router.route("some/path/").handler(routingContext -> {
+
+      Cookie someCookie = routingContext.getCookie("mycookie");
+      String cookieValue = someCookie.getValue();
+
+      // Do something with cookie...
+
+      // Add a cookie - this will get written back in the response automatically
+      routingContext.addCookie(Cookie.cookie("othercookie", "somevalue"));
+    });
   }
 
 }

@@ -14,13 +14,11 @@
  *  You may elect to redistribute this code under either of these licenses.
  */
 
-package io.vertx.ext.apex.addons;
+package io.vertx.ext.apex.core;
 
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
 import io.vertx.ext.apex.addons.impl.SessionHandlerImpl;
-import io.vertx.ext.apex.core.RoutingContext;
-import io.vertx.ext.apex.core.SessionStore;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
