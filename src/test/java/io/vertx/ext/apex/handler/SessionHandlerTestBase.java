@@ -40,9 +40,7 @@ public abstract class SessionHandlerTestBase extends ApexTestBase {
   public void testSessionCookieName() throws Exception {
     router.route().handler(CookieHandler.create());
     String sessionCookieName = "acme.sillycookie";
-    router.route().handler(SessionHandler.create(sessionCookieName,
-      SessionHandler.DEFAULT_SESSION_TIMEOUT,
-      SessionHandler.DEFAULT_NAG_HTTPS, store));
+    router.route().handler(SessionHandler.create(store).setSessionCookieName(sessionCookieName));
     router.route().handler(rc -> {
       rc.response().end();
     });
@@ -123,8 +121,7 @@ public abstract class SessionHandlerTestBase extends ApexTestBase {
   public void testSessionExpires() throws Exception {
     router.route().handler(CookieHandler.create());
     long timeout = 1000;
-    router.route().handler(SessionHandler.create(SessionHandler.DEFAULT_SESSION_COOKIE_NAME,
-      timeout, SessionHandler.DEFAULT_NAG_HTTPS, store));
+    router.route().handler(SessionHandler.create(store).setSessionTimeout(timeout));
     AtomicReference<String> rid = new AtomicReference<>();
     AtomicInteger requestCount = new AtomicInteger();
     router.route().handler(rc -> {

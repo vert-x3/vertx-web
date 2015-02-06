@@ -22,17 +22,35 @@ import io.vertx.ext.apex.RoutingContext;
 import io.vertx.ext.auth.AuthService;
 
 /**
+ * An auth handler that provides HTTP Basic Authentication support.
+ *
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 @VertxGen
 public interface BasicAuthHandler extends AuthHandler {
 
+  /**
+   * The default realm to use
+   */
   static final String DEFAULT_REALM = "apex";
 
+  /**
+   * Create a basic auth handler
+   *
+   * @param authService  the auth service to use
+   * @return the auth handler
+   */
   static AuthHandler create(AuthService authService) {
     return new BasicAuthHandlerImpl(authService, DEFAULT_REALM);
   }
 
+  /**
+   * Create a basic auth handler, specifying realm
+   *
+   * @param authService  the auth service to use
+   * @param realm  the realm to use
+   * @return the auth handler
+   */
   static AuthHandler create(AuthService authService, String realm) {
     return new BasicAuthHandlerImpl(authService, realm);
   }

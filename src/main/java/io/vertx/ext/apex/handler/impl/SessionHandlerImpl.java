@@ -34,16 +34,34 @@ public class SessionHandlerImpl implements SessionHandler {
 
   private static final Logger log = LoggerFactory.getLogger(SessionHandlerImpl.class);
 
-  private final String sessionCookieName;
-  private final long sessionTimeout;
   private final SessionStore sessionStore;
-  private final boolean nagHttps;
+  private String sessionCookieName;
+  private long sessionTimeout;
+  private boolean nagHttps;
 
   public SessionHandlerImpl(String sessionCookieName, long sessionTimeout, boolean nagHttps, SessionStore sessionStore) {
     this.sessionCookieName = sessionCookieName;
     this.sessionTimeout = sessionTimeout;
     this.nagHttps = nagHttps;
     this.sessionStore = sessionStore;
+  }
+
+  @Override
+  public SessionHandler setSessionTimeout(long timeout) {
+    this.sessionTimeout = timeout;
+    return this;
+  }
+
+  @Override
+  public SessionHandler setNagHttps(boolean nag) {
+    this.nagHttps = nag;
+    return this;
+  }
+
+  @Override
+  public SessionHandler setSessionCookieName(String sessionCookieName) {
+    this.sessionCookieName = sessionCookieName;
+    return this;
   }
 
   @Override
@@ -90,7 +108,7 @@ public class SessionHandlerImpl implements SessionHandler {
       if (!originalSession.isDestroyed()) {
         // Store the session
         context.session().setAccessed();
-        sessionStore.put(sessionID, context.session(), sessionTimeout, res -> {
+        sessionStore.put(context.session(), sessionTimeout, res -> {
           if (res.succeeded()) {
             // FIXME ???
             // We need to wait for session to be persisted before returning response otherwise

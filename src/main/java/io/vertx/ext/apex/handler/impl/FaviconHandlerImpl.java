@@ -59,7 +59,7 @@ public class FaviconHandlerImpl implements FaviconHandler {
 
       headers.add(CONTENT_TYPE, "image/x-icon");
       headers.add(CONTENT_LENGTH, Integer.toString(buffer.length()));
-      headers.add(CACHE_CONTROL, "public, max-age=" + (maxAge / 1000));
+      headers.add(CACHE_CONTROL, "public, max-age=" + maxAgeSeconds);
     }
   }
 
@@ -76,7 +76,7 @@ public class FaviconHandlerImpl implements FaviconHandler {
   /**
    * Cache control for the resource
    */
-  private final long maxAge;
+  private final long maxAgeSeconds;
 
   /**
    * Create a new Favicon instance using a file in the file system and customizable cache period
@@ -87,13 +87,13 @@ public class FaviconHandlerImpl implements FaviconHandler {
    * </pre>
    *
    * @param path
-   * @param maxAge
+   * @param maxAgeSeconds
    */
-  public FaviconHandlerImpl(String path, long maxAge) {
+  public FaviconHandlerImpl(String path, long maxAgeSeconds) {
     this.path = path;
-    this.maxAge = maxAge;
-    if (maxAge < 0) {
-      throw new IllegalArgumentException("maxAge must be > 0");
+    this.maxAgeSeconds = maxAgeSeconds;
+    if (maxAgeSeconds < 0) {
+      throw new IllegalArgumentException("maxAgeSeconds must be > 0");
     }
   }
 
@@ -105,10 +105,10 @@ public class FaviconHandlerImpl implements FaviconHandler {
    * yoke.use(new Favicon("/icons/icon.ico", 1000));
    * </pre>
    *
-   * @param maxAge
+   * @param maxAgeSeconds
    */
-  public FaviconHandlerImpl(long maxAge) {
-    this(null, maxAge);
+  public FaviconHandlerImpl(long maxAgeSeconds) {
+    this(null, maxAgeSeconds);
   }
 
   /**
@@ -122,7 +122,7 @@ public class FaviconHandlerImpl implements FaviconHandler {
    * @param path
    */
   public FaviconHandlerImpl(String path) {
-    this(path, DEFAULT_MAX_AGE);
+    this(path, DEFAULT_MAX_AGE_SECONDS);
   }
 
   /**

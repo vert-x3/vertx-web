@@ -22,11 +22,19 @@ import io.vertx.ext.apex.RoutingContext;
 import io.vertx.ext.apex.handler.impl.ResponseTimeHandlerImpl;
 
 /**
+ * Handler which adds a header `x-response-time` in the response of matching requests containing the time taken
+ * in ms to process the request.
+ *
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 @VertxGen
 public interface ResponseTimeHandler extends Handler<RoutingContext> {
 
+  /**
+   * Create a handler
+   *
+   * @return the handler
+   */
   static ResponseTimeHandler create() {
     return new ResponseTimeHandlerImpl();
   }

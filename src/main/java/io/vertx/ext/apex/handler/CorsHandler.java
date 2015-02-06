@@ -26,33 +26,86 @@ import io.vertx.ext.apex.RoutingContext;
 import java.util.Set;
 
 /**
- * Server side CORS support for Vert.x Apex
- * http://www.w3.org/TR/cors/
+ * A handler which implements server side http://www.w3.org/TR/cors/[CORS] support for Apex.
  *
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 @VertxGen
 public interface CorsHandler extends Handler<RoutingContext> {
 
+  /**
+   * Create a CORS handler
+   *
+   * @param allowedOriginPattern  the allowed origin pattern
+   * @return  the handler
+   */
   static CorsHandler create(String allowedOriginPattern) {
     return new CorsHandlerImpl(allowedOriginPattern);
   }
 
+  /**
+   * Add an allowed method
+   *
+   * @param method  the method to add
+   * @return a reference to this, so the API can be used fluently
+   */
   CorsHandler allowedMethod(HttpMethod method);
 
+  /**
+   * Add a set of  allowed methods
+   *
+   * @param methods the methods to add
+   * @return a reference to this, so the API can be used fluently
+   */
   @GenIgnore
   CorsHandler allowedMethods(Set<HttpMethod> methods);
 
+  /**
+   * Add an allowed header
+   *
+   * @param headerName  the allowed header name
+   * @return a reference to this, so the API can be used fluently
+   */
   CorsHandler allowedHeader(String headerName);
 
+  /**
+   * Add a set of allowed headers
+   *
+   * @param headerNames  the allowed header names
+   * @return a reference to this, so the API can be used fluently
+   */
   CorsHandler allowedHeaders(Set<String> headerNames);
 
+  /**
+   * Add an exposed header
+   *
+   * @param headerName  the exposed header name
+   * @return a reference to this, so the API can be used fluently
+   */
   CorsHandler exposedHeader(String headerName);
 
+  /**
+   * Add a set of exposed headers
+   *
+   * @param headerNames  the exposed header names
+   * @return a reference to this, so the API can be used fluently
+   */
   CorsHandler exposedHeaders(Set<String> headerNames);
 
+  /**
+   * Set whether credentials are allowed
+   *
+   * @param allow true if allowed
+   * @return a reference to this, so the API can be used fluently
+   */
   CorsHandler allowCredentials(boolean allow);
 
+  /**
+   * Set how long the browser should cache the information
+   *
+   * @param maxAgeSeconds  max age in seconds
+   * @return a reference to this, so the API can be used fluently
+   */
   CorsHandler maxAgeSeconds(int maxAgeSeconds);
 
   @Override

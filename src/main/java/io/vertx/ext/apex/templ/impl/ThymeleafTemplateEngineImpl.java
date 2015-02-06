@@ -43,9 +43,6 @@ public class ThymeleafTemplateEngineImpl implements ThymeleafTemplateEngine {
 
   private final TemplateEngine engine = new TemplateEngine();
 
-  public ThymeleafTemplateEngineImpl() {
-    this(null, "XHTML");
-  }
 
   public ThymeleafTemplateEngineImpl(String resourcePrefix, String templateMode) {
 

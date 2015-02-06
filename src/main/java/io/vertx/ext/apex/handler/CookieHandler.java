@@ -21,11 +21,19 @@ import io.vertx.ext.apex.RoutingContext;
 import io.vertx.ext.apex.handler.impl.CookieHandlerImpl;
 
 /**
+ * A handler which decodes cookies from the request, makes them available in the {@link io.vertx.ext.apex.RoutingContext}
+ * and writes them back in the response.
+ *
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 @VertxGen
 public interface CookieHandler extends Handler<RoutingContext> {
 
+  /**
+   * Create a cookie handler
+   *
+   * @return the cookie handler
+   */
   static CookieHandler create() {
     return new CookieHandlerImpl();
   }

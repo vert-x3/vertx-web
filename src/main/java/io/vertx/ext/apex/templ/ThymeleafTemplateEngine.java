@@ -20,15 +20,31 @@ import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.ext.apex.templ.impl.ThymeleafTemplateEngineImpl;
 
 /**
+ * A template engine that uses the Thymeleaf library.
+ *
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 @VertxGen
 public interface ThymeleafTemplateEngine extends TemplateEngine {
 
+  static final String DEFAULT_TEMPLATE_MODE = "XHTML";
+
+  /**
+   * Create a template engine using defaults
+   *
+   * @return  the engine
+   */
   static ThymeleafTemplateEngine create() {
-    return new ThymeleafTemplateEngineImpl();
+    return new ThymeleafTemplateEngineImpl(null, DEFAULT_TEMPLATE_MODE);
   }
 
+  /**
+   * Create a template engine
+   *
+   * @param resourcePrefix  the resource prefix
+   * @param templateMode  the template mode - e.g. XHTML
+   * @return  the engine
+   */
   static ThymeleafTemplateEngine create(String resourcePrefix, String templateMode) {
     return new ThymeleafTemplateEngineImpl(resourcePrefix, templateMode);
   }

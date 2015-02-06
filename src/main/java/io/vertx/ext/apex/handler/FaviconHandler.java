@@ -22,27 +22,58 @@ import io.vertx.ext.apex.RoutingContext;
 import io.vertx.ext.apex.handler.impl.FaviconHandlerImpl;
 
 /**
+ * A handler that serves favicons.
+ * <p>
+ * If no file system path is specified it will attempt to serve a resource called `favicon.ico` from the classpath.
+ *
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 @VertxGen
 public interface FaviconHandler extends Handler<RoutingContext> {
 
-  public static final long DEFAULT_MAX_AGE = 86400000;
+  /**
+   * The default max age in seconds as set in the cache-control header
+   */
+  public static final long DEFAULT_MAX_AGE_SECONDS = 86400;
 
+  /**
+   * Create a handler with defaults
+   *
+   * @return the handler
+   */
   static FaviconHandler create() {
     return new FaviconHandlerImpl();
   }
 
+  /**
+   * Create a handler attempting to load favicon file from the specified path
+   *
+   * @param path  the path
+   * @return the handler
+   */
   static FaviconHandler create(String path) {
     return new FaviconHandlerImpl(path);
   }
 
-  static FaviconHandler create(String path, long maxAge) {
-    return new FaviconHandlerImpl(path, maxAge);
+  /**
+   * Create a handler attempting to load favicon file from the specified path, and with the specified max cache time
+   *
+   * @param path  the path
+   * @param maxAgeSeconds max how long the file will be cached by browser, in seconds
+   * @return the handler
+   */
+  static FaviconHandler create(String path, long maxAgeSeconds) {
+    return new FaviconHandlerImpl(path, maxAgeSeconds);
   }
 
-  static FaviconHandler create(long maxAge) {
-    return new FaviconHandlerImpl(maxAge);
+  /**
+   * Create a handler with the specified max cache time
+   *
+   * @param maxAgeSeconds max how long the file will be cached by browser, in seconds
+   * @return the handler
+   */
+  static FaviconHandler create(long maxAgeSeconds) {
+    return new FaviconHandlerImpl(maxAgeSeconds);
   }
 
   @Override

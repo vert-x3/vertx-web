@@ -22,20 +22,42 @@ import io.vertx.ext.apex.handler.impl.LoggerHandlerImpl;
 import io.vertx.ext.apex.RoutingContext;
 
 /**
+ * A handler which logs request information to the Vert.x logger.
+ *
  * @author <a href="http://tfox.org">Tim Fox</a>
  * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
  */
 @VertxGen
 public interface LoggerHandler extends Handler<RoutingContext> {
 
+  static final Format DEFAULT_FORMAT = Format.DEFAULT;
+
+  /**
+   * Create a handler with default format
+   *
+   * @return the handler
+   */
   static LoggerHandler create() {
-    return new LoggerHandlerImpl();
+    return new LoggerHandlerImpl(DEFAULT_FORMAT);
   }
 
+  /**
+   * Create a handler with he specified format
+   *
+   * @param format  the format
+   * @return the handler
+   */
   static LoggerHandler create(Format format) {
     return new LoggerHandlerImpl(format);
   }
 
+  /**
+   * Create a handler with he specified format
+   *
+   * @param immediate  true if logging should occur as soon as request arrives
+   * @param format  the format
+   * @return the handler
+   */
   static LoggerHandler create(boolean immediate, Format format) {
     return new LoggerHandlerImpl(immediate, format);
   }

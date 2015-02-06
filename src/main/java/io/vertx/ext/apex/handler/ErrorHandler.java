@@ -22,27 +22,59 @@ import io.vertx.ext.apex.handler.impl.ErrorHandlerImpl;
 import io.vertx.ext.apex.RoutingContext;
 
 /**
+ * A pretty error handler for rendering error pages.
  *
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 @VertxGen
 public interface ErrorHandler extends Handler<RoutingContext> {
 
+  /**
+   * The default template to use for rendering
+   */
   public static final String DEFAULT_ERROR_HANDLER_TEMPLATE = "apex-error.html";
+
+  /**
+   * Should exception details be displayed by default?
+   */
   public static final boolean DEFAULT_DISPLAY_EXCEPTION_DETAILS = true;
 
+  /**
+   * Create an error handler using defaults
+   *
+   * @return the handler
+   */
   static ErrorHandler create() {
     return new ErrorHandlerImpl(DEFAULT_ERROR_HANDLER_TEMPLATE, DEFAULT_DISPLAY_EXCEPTION_DETAILS);
   }
 
+  /**
+   * Create an error handler
+   *
+   * @param errorTemplateName  the error template name - will be looked up from the classpath
+   * @param displayExceptionDetails  true if exception details should be displayed
+   * @return the handler
+   */
   static ErrorHandler create(String errorTemplateName, boolean displayExceptionDetails) {
     return new ErrorHandlerImpl(errorTemplateName, displayExceptionDetails);
   }
 
+  /**
+   * Create an error handler
+   *
+   * @param displayExceptionDetails  true if exception details should be displayed
+   * @return the handler
+   */
   static ErrorHandler create(boolean displayExceptionDetails) {
     return new ErrorHandlerImpl(DEFAULT_ERROR_HANDLER_TEMPLATE, displayExceptionDetails);
   }
 
+  /**
+   * Create an error handler
+   *
+   * @param errorTemplateName  the error template name - will be looked up from the classpath
+   * @return the handler
+   */
   static ErrorHandler create(String errorTemplateName) {
     return new ErrorHandlerImpl(errorTemplateName, DEFAULT_DISPLAY_EXCEPTION_DETAILS);
   }

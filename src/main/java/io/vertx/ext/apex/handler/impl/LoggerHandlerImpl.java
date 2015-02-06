@@ -67,10 +67,6 @@ public class LoggerHandlerImpl implements LoggerHandler {
     this(false, format);
   }
 
-  public LoggerHandlerImpl() {
-    this(false, Format.DEFAULT);
-  }
-
   private String getClientAddress(SocketAddress inetSocketAddress) {
     if (inetSocketAddress == null) {
       return null;

@@ -23,10 +23,20 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.ext.apex.RoutingContext;
 
 /**
+ * A template engine uses a specific template and the data in a routing context to render a resource into a buffer.
+ * <p>
+ * Concrete implementations exist for several well-known template engines.
+ *
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 @VertxGen
 public interface TemplateEngine {
 
+  /**
+   * Render
+   * @param context  the routing context
+   * @param templateFileName  the template file name to use
+   * @param handler  the handler that will be called with a result containing the buffer or a failure.
+   */
   void render(RoutingContext context, String templateFileName, Handler<AsyncResult<Buffer>> handler);
 }

@@ -29,36 +29,36 @@ public class FaviconHandlerTest extends ApexTestBase {
 
   @Test
   public void testFaviconClasspath() throws Exception {
-    testFaviconPath(FaviconHandler.create(), FaviconHandler.DEFAULT_MAX_AGE);
+    testFaviconPath(FaviconHandler.create(), FaviconHandler.DEFAULT_MAX_AGE_SECONDS);
   }
 
   @Test
   public void testFaviconPath() throws Exception {
     String path = "src/test/resources/favicon.ico";
-    testFaviconPath(FaviconHandler.create(path), FaviconHandler.DEFAULT_MAX_AGE);
+    testFaviconPath(FaviconHandler.create(path), FaviconHandler.DEFAULT_MAX_AGE_SECONDS);
   }
 
   @Test
   public void testFaviconPathMaxAge() throws Exception {
     String path = "src/test/resources/favicon.ico";
-    long maxAge = FaviconHandler.DEFAULT_MAX_AGE * 2;
+    long maxAge = FaviconHandler.DEFAULT_MAX_AGE_SECONDS * 2;
     testFaviconPath(FaviconHandler.create(path, maxAge), maxAge);
   }
 
   @Test
   public void testFaviconMaxAge() throws Exception {
-    long maxAge = FaviconHandler.DEFAULT_MAX_AGE * 2;
+    long maxAge = FaviconHandler.DEFAULT_MAX_AGE_SECONDS * 2;
     testFaviconPath(FaviconHandler.create(maxAge), maxAge);
   }
 
-  private void testFaviconPath(FaviconHandler favicon, long maxAge) throws Exception {
+  private void testFaviconPath(FaviconHandler favicon, long maxAgeSeconds) throws Exception {
     router.route().handler(favicon);
     router.route().handler(rc -> rc.response().end());
     Buffer icon = Utils.readResourceToBuffer("favicon.ico");
     testRequestBuffer(HttpMethod.GET, "/favicon.ico", null, resp -> {
       assertEquals("image/x-icon", resp.headers().get("content-type"));
       assertEquals(icon.length(), Integer.valueOf(resp.headers().get("content-length")).intValue());
-      assertEquals("public, max-age=" + (maxAge / 1000), resp.headers().get("cache-control"));
+      assertEquals("public, max-age=" + maxAgeSeconds, resp.headers().get("cache-control"));
     }, 200, "OK", icon);
   }
 

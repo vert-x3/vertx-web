@@ -83,10 +83,10 @@ public class ClusteredSessionStoreImpl implements ClusteredSessionStore {
   }
 
   @Override
-  public void put(String id, Session session, long timeout, Handler<AsyncResult<Boolean>> resultHandler) {
+  public void put(Session session, long timeout, Handler<AsyncResult<Boolean>> resultHandler) {
     getMap(res -> {
       if (res.succeeded()) {
-        res.result().put(id, session, timeout, res2 -> {
+        res.result().put(session.id(), session, timeout, res2 -> {
           if (res2.succeeded()) {
             resultHandler.handle(Future.succeededFuture(res2.result() != null));
           } else {

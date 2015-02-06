@@ -23,19 +23,50 @@ import io.vertx.ext.apex.RoutingContext;
 import io.vertx.ext.auth.AuthService;
 
 /**
+ * Handler that handles login from a form on a custom login page.
+ * <p>
+ * Used in conjunction with the {@link io.vertx.ext.apex.handler.RedirectAuthHandler}.
+ *
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 @VertxGen
 public interface FormLoginHandler extends Handler<RoutingContext> {
 
+  /**
+   * The default value of the form attribute which will contain the username
+   */
   static final String DEFAULT_USERNAME_PARAM = "username";
+
+  /**
+   * The default value of the form attribute which will contain the password
+   */
   static final String DEFAULT_PASSWORD_PARAM = "password";
+
+  /**
+   * The default value of the form attribute which will contain the return url
+   */
   static final String DEFAULT_RETURN_URL_PARAM = "return_url";
 
+  /**
+   * Create a handler
+   *
+   * @param authService  the auth service to use
+   * @return the handler
+   */
   static FormLoginHandler create(AuthService authService) {
     return new FormLoginHandlerImpl(authService, DEFAULT_USERNAME_PARAM, DEFAULT_PASSWORD_PARAM, DEFAULT_RETURN_URL_PARAM);
   }
 
+  /**
+   * Create a handler
+   *
+   * @param authService  the auth service to use
+   * @param usernameParam   the value of the form attribute which will contain the username
+   * @param passwordParam   the value of the form attribute which will contain the password
+   * @param returnURLParam   the value of the form attribute which will contain the return url
+   *
+   * @return the handler
+   */
   static FormLoginHandler create(AuthService authService, String usernameParam, String passwordParam,
                                  String returnURLParam) {
     return new FormLoginHandlerImpl(authService, usernameParam, passwordParam, returnURLParam);
