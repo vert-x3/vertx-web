@@ -234,8 +234,7 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   }
 
   @Override
-  public RoutingContext setAcceptableContentType(String contentType) {
+  public void setAcceptableContentType(String contentType) {
     inner.setAcceptableContentType(contentType);
-    return this;
   }
 }

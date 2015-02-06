@@ -23,6 +23,9 @@ import io.vertx.ext.apex.RoutingContext;
 import java.util.Set;
 
 /**
+ *
+ * Auth handler requires a {@link io.vertx.ext.apex.handler.SessionHandler} to be on the routing chain before it.
+ *
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 @VertxGen

@@ -20,7 +20,11 @@ import io.vertx.ext.auth.PropertiesAuthRealmConstants;
 import java.util.Set;
 
 /**
+ *
+ * These are the examples used in the documentation.
+ *
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
+ * @author <a href="http://tfox.org">Tim Fox</a>
  */
 public class Examples {
 

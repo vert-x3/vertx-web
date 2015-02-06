@@ -251,9 +251,8 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   }
 
   @Override
-  public RoutingContext setAcceptableContentType(String contentType) {
+  public void setAcceptableContentType(String contentType) {
     this.acceptableContentType = contentType;
-    return this;
   }
 
   @Override

@@ -23,6 +23,9 @@ import io.vertx.ext.apex.handler.impl.SessionHandlerImpl;
 import io.vertx.ext.apex.sstore.SessionStore;
 
 /**
+ *
+ * Session handler requires a {@link io.vertx.ext.apex.handler.CookieHandler} to be on the routing chain before it.
+ *
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 @VertxGen
