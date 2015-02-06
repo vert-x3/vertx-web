@@ -15,20 +15,18 @@
  * as http://expressjs.com/[Express] in the Node.js world and http://www.sinatrarb.com/[Sinatra] in the Ruby world.
  *
  * Apex is designed to be powerful, un-opionated and fully embeddable. You just use the parts you want and nothing more.
- *
  * Apex is not a container.
  *
  * You can use Apex to create classic server-side web applications, RESTful web applications, 'real-time' (server push)
- * web applications, or any other kind of web application you can think of. Apex doesn't care.
- *
- * It's up to you to chose the type of app you prefer, not Apex.
+ * web applications, or any other kind of web application you can think of. Apex doesn't care. It's up to you to chose
+ * the type of app you prefer, not Apex.
  *
  * Apex is a great fit for writing *RESTful HTTP micro-services*, but we don't *force* you to write apps like that.
  *
  * Some of the key features of Apex include:
  *
  * * Routing (based on method, path, etc)
- * * Regex pattern matching for paths
+ * * Regular expression pattern matching for paths
  * * Extraction of parameters from paths
  * * Content negotiation
  * * Request body handling
@@ -37,17 +35,18 @@
  * * Multipart forms
  * * Multipart file uploads
  * * Sub routers
- *
- * Apex add-ons include:
- *
  * * Session support - both local (for sticky sessions) and clustered (for non sticky)
  * * CORS (Cross Origin Resource Sharing) support
- * * Error page template
+ * * Error page handler
  * * Basic Authentication
  * * Redirect based authentication
  * * User/role/permission authorisation
  * * Favicon handling
- * * Template support for server side rendering. Supports: Handlebars, Jade, MVEL and Thymeleaf out of the box
+ * * Template support for server side rendering, including support for the following template engines out of the box:
+ * ** Handlebars
+ * ** Jade,
+ * ** MVEL
+ * ** Thymeleaf
  * * Response time handler
  * * Static file serving, including caching logic and directory listing.
  * * Request timeout support
@@ -59,7 +58,7 @@
  *
  * == Re-cap on Vert.x core HTTP servers
  *
- * Apex uses and exposes API from Vert.x core, so it's well worth getting familiar with the basic concepts of writing
+ * Apex uses and exposes the API from Vert.x core, so it's well worth getting familiar with the basic concepts of writing
  * HTTP servers using Vert.x core, if you're not already.
  *
  * The Vert.x core HTTP documentation goes into a lot of detail on this.
@@ -85,15 +84,13 @@
  *
  * Here's the 10000 foot view:
  *
- * A {@link io.vertx.ext.apex.Router} is one of the core concepts of Apex.
+ * A {@link io.vertx.ext.apex.Router} is one of the core concepts of Apex. It's an object which maintains zero or more
+ * {@link io.vertx.ext.apex.Route}s.
  *
- * A router is an object which maintains zero or more {@link io.vertx.ext.apex.Route}s.
+ * A router takes an HTTP request and finds the first matching route for that request, and passes the request to that route.
  *
- * A router handles an HTTP request and finds the first matching route for that request, and passes the request to that route.
- *
- * The route can have a *handler* associated with it, which then receives the request.
- *
- * You then *do something* with the request, and then, either end it or pass it to the next matching handler.
+ * The route can have a _handler_ associated with it, which then receives the request. You then _do something_ with the
+ * request, and then, either end it or pass it to the next matching handler.
  *
  * Here's a simple router example:
  *
@@ -102,12 +99,11 @@
  * {@link examples.Examples#example2}
  * ----
  *
- * It's basically does the same thing as the Vert.x Core HTTP server hello world example from the previous section,
+ * It basically does the same thing as the Vert.x Core HTTP server hello world example from the previous section,
  * but this time using Apex.
  *
- * We create an HTTP server as before, then we create a router.
- *
- * Once we've done that we create a simple route with no matching criteria so it will match *all* requests that arrive on the server.
+ * We create an HTTP server as before, then we create a router. Once we've done that we create a simple route with
+ * no matching criteria so it will match _all_ requests that arrive on the server.
  *
  * We then specify a handler for that route. That handler will be called for all requests that arrive on the server.
  *
@@ -125,10 +121,11 @@
  *
  * == Handling requests and calling the next handler
  *
- * When a route matches the handler for the route will be called, passing in an instance of {@link io.vertx.ext.apex.RoutingContext}.
+ * When Apex decides to route a request to a matching route, it calls the handler of the route passing in an instance
+ * of {@link io.vertx.ext.apex.RoutingContext}.
  *
- * If you don't end the request in your handler, you can call {@link io.vertx.ext.apex.RoutingContext#next} then the router
- * will call the next matching route handler (if any).
+ * If you don't end the response in your handler, you should call {@link io.vertx.ext.apex.RoutingContext#next} so another
+ * matching route can handle the request (if any).
  *
  * You don't have to call {@link io.vertx.ext.apex.RoutingContext#next} before the handler has finished executing.
  * You can do this some time later, if you want:
@@ -145,9 +142,8 @@
  *
  * == Routing by path
  *
- * A route can be set-up to match the path from the request URI.
- *
- * In this case it will match any request which has a path that *starts with* the specified path.
+ * A route can be set-up to match the path from the request URI. In this case it will match any request which has a path
+ * that _starts with_ the specified path.
  *
  * In the following example the handler will be called for all requests with a URI path that starts with
  * `/some/path/`.
@@ -248,8 +244,6 @@
  * {@link examples.Examples#example9}
  * ----
  *
- *
- *
  * == Route order
  *
  * By default routes are matched in the order they are added to the router.
@@ -280,7 +274,7 @@
  * If you want to override the default ordering for routes, you can do so using {@link io.vertx.ext.apex.Route#order},
  * specifying an integer value.
  *
- * Default routes are assigned an implicit order corresponding to the order in which they were added to the router, with
+ * Routes are assigned an order at creation time corresponding to the order in which they were added to the router, with
  * the first route numbered `0`, the second route numbered `1`, and so on.
  *
  * By specifying an order for the route you can override the default ordering. Order can also be negative, e.g. if you
@@ -303,17 +297,16 @@
  *
  * If two matching routes have the same value of order, then they will be called in the order they were added.
  *
- * You can also specify a route is handled last, with {@link io.vertx.ext.apex.Route#last}
+ * You can also specify that a route is handled last, with {@link io.vertx.ext.apex.Route#last}
  *
  * == Routing based on MIME type of request
  *
  * You can specify that a route will match against matching request MIME types using {@link io.vertx.ext.apex.Route#consumes}.
  *
  * In this case, the request will contain a `content-type` header specifying the MIME type of the request body.
- *
  * This will be matched against the value specified in {@link io.vertx.ext.apex.Route#consumes}.
  *
- * Basically, `consumes` is describing which MIME types the route will consume.
+ * Basically, `consumes` is describing which MIME types the handler can _consume_.
  *
  * Matching can be done on exact MIME type matches:
  *
@@ -349,24 +342,26 @@
  *
  * The HTTP `accept` header is used to signify which MIME types of the response are acceptable to the client.
  *
- * An `accept` header can have multiple MIME types separated by `,`. MIME types can also have a `q` value appended to them
- * which signifies a weighting to apply if more than one response MIME type is available matching the accept header. The
- * q value is a number between 0 and 1.0. If omitted it defaults to 1.0.
+ * An `accept` header can have multiple MIME types separated by '`,`'.
+ *
+ * MIME types can also have a `q` value appended to them* which signifies a weighting to apply if more than one
+ * response MIME type is available matching the accept header. The q value is a number between 0 and 1.0.
+ * If omitted it defaults to 1.0.
  *
  * For example, the following `accept` header signifies the client will accept a MIME type of only `text/plain`:
  *
  *  Accept: text/plain
  *
- *  With the following the client will accept `text/plain` or `text/html` with no preference.
+ * With the following the client will accept `text/plain` or `text/html` with no preference.
  *
  *  Accept: text/plain, text/html
  *
- *  With the following the client will accept `text/plain` or `text/html` but prefers `text/html` as it has a higher `q` value
- *  (the default value is q=1.0)
+ * With the following the client will accept `text/plain` or `text/html` but prefers `text/html` as it has a higher
+ * `q` value (the default value is q=1.0)
  *
  *  Accept: text/plain; q=0.9, text/html
  *
- *  If the server can provide both text/plain and text/html it should provide the text/html in this case.
+ * If the server can provide both text/plain and text/html it should provide the text/html in this case.
  *
  * By using {@link io.vertx.ext.apex.Route#produces} you define which MIME type(s) the route produces, e.g. the
  * following handler produces a response with MIME type `application/json`.
@@ -382,20 +377,19 @@
  *
  *  Accept: application/json
  *  Accept: application/*
- *  Accept: *&#47;json
  *  Accept: application/json, text/html
  *  Accept: application/json;q=0.7, text/html;q=0.8, text/plain
  *
- *  You can also mark your route as producing more than one MIME type. If this is the case, then you use
- *  {@link io.vertx.ext.apex.RoutingContext#getAcceptableContentType} to find out the actual MIME type that
- *  was accepted.
+ * You can also mark your route as producing more than one MIME type. If this is the case, then you use
+ * {@link io.vertx.ext.apex.RoutingContext#getAcceptableContentType} to find out the actual MIME type that
+ * was accepted.
  *
  * [source,java]
  * ----
  * {@link examples.Examples#example17}
  * ----
  *
- * In the above example, if I sent a request with the following `accept` header:
+ * In the above example, if you sent a request with the following `accept` header:
  *
  *  Accept: application/json; q=0.7, text/html
  *
@@ -413,9 +407,7 @@
  *
  * == Enabling and disabling routes
  *
- * You can disable a route with {@link io.vertx.ext.apex.Route#disable}.
- *
- * A disabled route will be ignored when matching.
+ * You can disable a route with {@link io.vertx.ext.apex.Route#disable}. A disabled route will be ignored when matching.
  *
  * You can re-enable a disabled route with {@link io.vertx.ext.apex.Route#enable}
  *
@@ -424,12 +416,12 @@
  * You can use the context data in the {@link io.vertx.ext.apex.RoutingContext} to maintain any data that you
  * want to share between handlers for the lifetime of the request.
  *
- * Here's an example where one handler sets some data in the context data a subsequent handler retrieves it:
+ * Here's an example where one handler sets some data in the context data and a subsequent handler retrieves it:
  *
  * You can use the {@link io.vertx.ext.apex.RoutingContext#put} to put any object, and
  * {@link io.vertx.ext.apex.RoutingContext#get} to retrieve any object from the context data.
  *
- * A request sent to path `/some/path` will match both routes.
+ * A request sent to path `/some/path/other` will match both routes.
  *
  * [source,java]
  * ----
@@ -448,7 +440,7 @@
  *
  * Let's look at a simple example of a sub-router mounted with another router.
  *
- * The sub-router will maintain the set of handlers that corresponds to a simple fictional REST API. We will mount that on another
+ * This sub-router will maintain the set of handlers that corresponds to a simple fictional REST API. We will mount that on another
  * router. The full implementation of the REST API is not shown.
  *
  * Here's the sub-router:
@@ -479,29 +471,30 @@
  *
  * == Default 404 Handling
  *
- * If no routes match for any particular request, Apex will signal a 404 error. This can then be handled by your
- * own error handler, or perhaps the augmented error handler that we supply to use, or if no error handler is provided
- * Apex will send back a basic 404 (Not Found) response.
+ * If no routes match for any particular request, Apex will signal a 404 error.
+ *
+ * This can then be handled by your own error handler, or perhaps the augmented error handler that we supply to use,
+ * or if no error handler is provided Apex will send back a basic 404 (Not Found) response.
  *
  * == Error handling
  *
- * As well as setting handlers to handle requests you can also set handlers to handle errors in Vert.x.
+ * As well as setting handlers to handle requests you can also set handlers to handle failures in routing.
  *
- * Error handlers can be used with the exact same route matching criteria that you can use with normal handlers.
+ * Failure handlers are used with the exact same route matching criteria that you use with normal handlers.
  *
- * For example you can provide an error handler that will only handle errors on certain paths, or for certain HTTP methods.
+ * For example you can provide a failure handler that will only handle failures on certain paths, or for certain HTTP methods.
  *
- * This allows you to set different error handlers for different parts of your web application.
+ * This allows you to set different failure handlers for different parts of your application.
  *
- * Here's an example error handler that will only be called for errors that occur when routing to GET requests
- * to paths that start with `\somepath\`:
+ * Here's an example failure handler that will only be called for failure that occur when routing to GET requests
+ * to paths that start with `/somepath/`:
  *
  * [source,java]
  * ----
  * {@link examples.Examples#example25}
  * ----
  *
- * Error routing will occur if a handler throws an exception, or if a handler calls
+ * Failure routing will occur if a handler throws an exception, or if a handler calls
  * {@link io.vertx.ext.apex.RoutingContext#fail} specifying an HTTP status code to deliberately signal a failure.
  *
  * If an exception is caught from a handler this will result in a failure with status code `500` being signalled.
@@ -514,7 +507,7 @@
  * {@link examples.Examples#example26}
  * ----
  *
- * == Using the BodyHandler
+ * == Request body handling
  *
  * The {@link io.vertx.ext.apex.handler.BodyHandler} allows you to retrieve request bodies, limit body sizes and handle
  * file uploads.
@@ -544,8 +537,11 @@
  *
  * === Handling file uploads
  *
- * Body handler can also be used to handle multi-part file uploads. If a body handler is on a matching route for the
- * request, any file uploads will be automatically streamed to the uploads directory, which is `file-uploads` by default.
+ * Body handler is also used to handle multi-part file uploads.
+ *
+ * If a body handler is on a matching route for the request, any file uploads will be automatically streamed to the
+ * uploads directory, which is `file-uploads` by default.
+ *
  * Each file will be given an automatically generated file name, and the file uploads will be available on the routing
  * context with {@link io.vertx.ext.apex.RoutingContext#fileUploads()}.
  *
@@ -570,17 +566,17 @@
  * {@link examples.Examples#example29}
  * ----
  *
- * == Manipulating cookies
+ * === Manipulating cookies
  *
- * To retrieve cookies you can use {@link io.vertx.ext.apex.RoutingContext#getCookie(java.lang.String)} to retrieve
- * one by name, or use {@link io.vertx.ext.apex.RoutingContext#cookies()} to retrieve the entire set.
+ * You use {@link io.vertx.ext.apex.RoutingContext#getCookie(java.lang.String)} to retrieve
+ * a cookie by name, or use {@link io.vertx.ext.apex.RoutingContext#cookies()} to retrieve the entire set.
  *
  * To remove a cookie, use {@link io.vertx.ext.apex.RoutingContext#removeCookie(java.lang.String)}.
  *
  * To add a cookie use {@link io.vertx.ext.apex.RoutingContext#addCookie(Cookie)}.
  *
  * The set of cookies will be written back in the response automatically when the response headers are written so the
- * browser can update any values.
+ * browser can store them.
  *
  * Cookies are described by instances of {@link io.vertx.ext.apex.Cookie}. This allows you to retrieve the name,
  * value, domain, path and other normal cookie properties.
@@ -592,10 +588,12 @@
  * {@link examples.Examples#example30}
  * ----
  *
- * == Sessions
+ * == Handling sessions
  *
- * Apex provides out of the box support for sessions. Sessions last between HTTP requests and give you a place where
- * you can add session-scope information, such as a shopping basket.
+ * Apex provides out of the box support for sessions.
+ *
+ * Sessions last between HTTP requests for the length of a browser session and give you a place where you can add
+ * session-scope information, such as a shopping basket.
  *
  * Apex uses session cookies to identify a session. The session cookie is temporary and will be deleted by your browser
  * when it's closed.
@@ -607,7 +605,7 @@
  * Cookies are passed across the wire in HTTP requests and responses so it's always wise to make sure you are using
  * HTTPS when sessions are being used. Vert.x will warn you if you attempt to use sessions over straight HTTP.
  *
- * To enable sessions in your application you make sure you have a {@link io.vertx.ext.apex.handler.SessionHandler}
+ * To enable sessions in your application you must have a {@link io.vertx.ext.apex.handler.SessionHandler}
  * on a matching route before your application logic.
  *
  * The session handler handles the creation of session cookies and the lookup of the session so you don't have to do
@@ -615,18 +613,24 @@
  *
  * === Session stores
  *
- * When creating a session handler you need to have a session store instance. The session store is the object that
+ * To create a session handler you need to have a session store instance. The session store is the object that
  * holds the actual sessions for your application.
  *
- * Apex comes with two session store implementations out of the box, and you can also write your own if you like.
+ * Apex comes with two session store implementations out of the box, and you can also write your own if you prefer.
  *
- * Local session store::
- * Sessions are stored locally in memory and only available in this instance. This store is appropriate if you are
- * using sticky sessions in your application and have configured your load balancer (if you have one) to always route
- * HTTP requests to the same Vert.x instance. If you aren't using sticky sessions then don't use this store as your
+ * ==== Local session store
+ *
+ * With this store, sessions are stored locally in memory and only available in this instance.
+ *
+ *
+ * This store is appropriate if you are using sticky sessions in your application and have configured your load balancer
+ * (if you have one) to always route HTTP requests to the same Vert.x instance.
+ *
+ * If you can't ensure your requests will all terminate on the same server then don't use this store as your
  * requests might end up on a server which doesn't know about your session.
  *
  * Local session stores are implemented by using a shared local map, and have a reaper which clears out expired sessions.
+ *
  * The reaper period can be configured with
  * {@link io.vertx.ext.apex.sstore.LocalSessionStore#create(io.vertx.core.Vertx, java.lang.String, long)}.
  *
@@ -637,10 +641,16 @@
  * {@link examples.Examples#example31}
  * ----
  *
- * Clustered session store::
- * Sessions are stored in a distributed map which is accessible across the Vert.x cluster. This store is appropriate if
- * you're _not_ using sticky sessions and your load balancer is distributing different requests from the same browser to different
- * servers. Your session is accessible from any node in the cluster using this store.
+ * ==== Clustered session store
+ *
+ * With this store, sessions are stored in a distributed map which is accessible across the Vert.x cluster.
+ *
+ * This store is appropriate if you're _not_ using sticky sessions, i.e. your load balancer is distributing different
+ * requests from the same browser to different servers.
+ *
+ * Your session is accessible from any node in the cluster using this store.
+ *
+ * To you use a clustered session store you should make sure your Vert.x instance is clustered.
  *
  * Here are some examples of creating a {@link io.vertx.ext.apex.sstore.ClusteredSessionStore}
  *
@@ -657,13 +667,15 @@
  * You'll also need to include a {@link io.vertx.ext.apex.handler.CookieHandler} as the session handler uses cookies to
  * lookup the session. The cookie handler should be before the session handler when routing.
  *
+ * Here's an example:
+ *
  * [source,java]
  * ----
  * {@link examples.Examples#example33}
  * ----
  *
- * The session handler will ensure that your session is automatically looked up (or created if no session) from the
- * session store and set on the routing context before it gets to your application handlers.
+ * The session handler will ensure that your session is automatically looked up (or created if no session exists)
+ * from the session store and set on the routing context before it gets to your application handlers.
  *
  * === Using the session
  *
@@ -696,30 +708,7 @@
  * Vert.x comes with some out of the box handlers for handling both authentication (login) and authorisation (seeing
  * whether you have rights for some resource).
  *
- * === Basic auth
- *
- * http://en.wikipedia.org/wiki/Basic_access_authentication[HTTP Basic authentication] is a simple means of authentication
- * that can be appropriate for simple applications.
- *
- * With basic auth, credentials are sent unencrypted across the wire in HTTP headers so it's essential that you serve
- * your application using HTTPS not HTTP.
- *
- * With basic auth, if a user requests a resource that requires authorisation, the basic auth handler will send back
- * a `401` response with the header `WWW-Authenticate` set. This prompts the browser to show a log-in dialogue and
- * prompt the user to enter their username and password.
- *
- * The request is made to the resource again, this time with the `Authorization` header set, containing the username
- * and password encoded in Base64.
- *
- * When the basic auth handler receives this information, it calls the configured {@link io.vertx.ext.auth.AuthService auth service}
- * with the username and password to authenticate the user. If the authentication is successful the handler attempts
- * to authorise the user. If that is successful then the routing of the request is allowed to continue to the application
- * handlers, otherwise a `403` response is returned to signify that access is denied.
- *
- * The auth handler can be set-up with a set of permissions and/or roles that are required for access to the resources to
- * be granted.
- *
- * ==== Creating an auth handler
+ * === Creating an auth handler
  *
  * To create an auth handler you need an instance of {@link io.vertx.ext.auth.AuthService}. Auth service is
  * (unsurprisingly) a Vert.x service that is used for authentication and authorisation of users. It uses a simple
@@ -732,7 +721,7 @@
  * auth service managed somewhere on your network and you want all auth request to go through that.
  *
  * Here's a simple example of creating a basic auth service that gets user data from a properties file and creating
- * an auth handler from that:
+ * an auth handler from that, but it's the same principle whatever concrete auth service you use.
  *
  * [source,java]
  * ----
@@ -753,7 +742,7 @@
  * {@link examples.Examples#example37}
  * ----
  *
- * ==== Handling auth in your application
+ * === Handling auth in your application
  *
  * Let's say you want all requests to paths that start with `/private/` to be subject to auth. To do that you make sure
  * your auth handler is before your application handlers on those paths:
@@ -768,6 +757,29 @@
  * principal with {@link io.vertx.ext.apex.Session#isLoggedIn()} and {@link io.vertx.ext.apex.Session#getPrincipal()}.
  *
  * If you want to cause the user to be logged out you can call {@link io.vertx.ext.apex.Session#logout()}.
+ *
+ * === HTTP Basic Authentication
+ *
+ * http://en.wikipedia.org/wiki/Basic_access_authentication[HTTP Basic Authentication] is a simple means of authentication
+ * that can be appropriate for simple applications.
+ *
+ * With basic auth, credentials are sent unencrypted across the wire in HTTP headers so it's essential that you serve
+ * your application using HTTPS not HTTP.
+ *
+ * With basic auth, if a user requests a resource that requires authorisation, the basic auth handler will send back
+ * a `401` response with the header `WWW-Authenticate` set. This prompts the browser to show a log-in dialogue and
+ * prompt the user to enter their username and password.
+ *
+ * The request is made to the resource again, this time with the `Authorization` header set, containing the username
+ * and password encoded in Base64.
+ *
+ * When the basic auth handler receives this information, it calls the configured {@link io.vertx.ext.auth.AuthService auth service}
+ * with the username and password to authenticate the user. If the authentication is successful the handler attempts
+ * to authorise the user. If that is successful then the routing of the request is allowed to continue to the application
+ * handlers, otherwise a `403` response is returned to signify that access is denied.
+ *
+ * The auth handler can be set-up with a set of permissions and/or roles that are required for access to the resources to
+ * be granted.
  *
  * === Redirect auth handler
  *
@@ -792,8 +804,9 @@
  *
  * === Configuring required roles and permissions
  *
- * With any auth handler you can also configure required roles and permissions to access the resource. By default,
- * if no roles/permissions are configured then it is sufficient to be logged in to access the resource, otherwise
+ * With any auth handler you can also configure required roles and permissions to access the resource.
+ *
+ * By default, if no roles/permissions are configured then it is sufficient to be logged in to access the resource, otherwise
  * the user must be both logged in (authenticated) and have the required roles/permissions.
  *
  * Here's an example of configuring an app so that different roles/permissions are required for different parts of the
@@ -808,8 +821,6 @@
  *
  * TODO
  *
-
- *
  * == Serving static resources
  *
  * Apex comes with an out of the box handler for serving static web resources so you can write static web servers
@@ -821,7 +832,7 @@
  * Any requests to paths handled by the static handler will result in files being served from a directory on the file system
  * or from the classpath. The default static file directory is `webroot` but this can be configured.
  *
- * In the following example all requests to paths starting with `/static` get served from the directory `webroot`:
+ * In the following example all requests to paths starting with `/static/` will get served from the directory `webroot`:
  *
  * [source,java]
  * ----
@@ -829,9 +840,9 @@
  * ----
  *
  * For example, if there was a request with path `/static/css/mystyles.css` the static serve will look for a file in the
- * directory `webroot/css/mystyle.css`.
+ * directory `webroot/static/css/mystyle.css`.
  *
- * It will also look for a file on the classpath called `webroot/css/mystyle.css`. This means you can package up all your
+ * It will also look for a file on the classpath called `webroot/static/css/mystyle.css`. This means you can package up all your
  * static resources into a jar file (or fatjar) and distribute them like that.
  *
  * When Vert.x finds a resource on the classpath for the first time it extracts it and caches it in a temporary directory
@@ -922,7 +933,7 @@
  * {@link io.vertx.ext.apex.handler.TemplateHandler}.
  * This handler calls the template engine for you based on the path in the HTTP request.
  *
- * By default the path template handler will look for templates in a directory called `templates`. This can be configured.
+ * By default the template handler will look for templates in a directory called `templates`. This can be configured.
  *
  * The handler will return the results of rendering with a content type of `text/html` by default. This can also be configured.
  *
@@ -940,7 +951,7 @@
  * When using the {@link io.vertx.ext.apex.templ.MVELTemplateEngine MVEL template engine}, it will by default look for
  * templates with the `.templ` extension if no extension is specified in the file name.
  *
- * The routing context ({@link io.vertx.ext.apex.RoutingContext} is available
+ * The routing context {@link io.vertx.ext.apex.RoutingContext} is available
  * in the MVEL template as the `context` variable, this means you can render the template based on anything in the context
  * including the request, response, session or context data.
  *
@@ -951,7 +962,7 @@
  *
  * The variable 'foo' from the session is @{context.session().get('foo')}
  *
- * The value 'bar' from the context data is @{context.data().get('bar')}
+ * The value 'bar' from the context data is @{context.get('bar')}
  * ----
  *
  * Please consult the http://mvel.codehaus.org/MVEL+2.0+Templating+Guide[MVEL templates documentation] for how to write
@@ -962,7 +973,7 @@
  * When using the {@link io.vertx.ext.apex.templ.JadeTemplateEngine Jade template engine}, it will by default look for
  * templates with the `.jade` extension if no extension is specified in the file name.
  *
- * The routing context ({@link io.vertx.ext.apex.RoutingContext} is available
+ * The routing context {@link io.vertx.ext.apex.RoutingContext} is available
  * in the Jade template as the `context` variable, this means you can render the template based on anything in the context
  * including the request, response, session or context data.
  *
@@ -972,7 +983,7 @@
  * !!! 5
  * html
  *   head
- *     title= context.data().get('foo') + context.request().path()
+ *     title= context.get('foo') + context.request().path()
  *   body
  * ----
  *
@@ -987,7 +998,7 @@
  * Handlebars templates are not able to call arbitrary methods in objects so we can't just pass the routing context
  * into the template and let the template introspect it like we can with other template engines.
  *
- * Instead, the {@link io.vertx.ext.apex.RoutingContext#data()} is available in the template.
+ * Instead, the context {@link io.vertx.ext.apex.RoutingContext#data()} is available in the template.
  *
  * If you want to have access to other data like the request path, request params or session data you should
  * add it the context data in a handler before the template handler. For example:
@@ -1005,7 +1016,7 @@
  * When using the {@link io.vertx.ext.apex.templ.ThymeleafTemplateEngine Thymeleaf template engine}, it will by default look for
  * templates with the `.html` extension if no extension is specified in the file name.
  *
- * The routing context ({@link io.vertx.ext.apex.RoutingContext} is available
+ * The routing context {@link io.vertx.ext.apex.RoutingContext} is available
  * in the Thymeleaf template as the `context` variable, this means you can render the template based on anything in the context
  * including the request, response, session or context data.
  *
@@ -1013,8 +1024,8 @@
  *
  * ----
  * [snip]
- * &lt;p th:text="${context.data().get('foo')}"&gt;&lt;/p&gt;
- * &lt;p th:text="${context.data().get('bar')}"&gt;&lt;/p&gt;
+ * &lt;p th:text="${context.get('foo')}"&gt;&lt;/p&gt;
+ * &lt;p th:text="${context.get('bar')}"&gt;&lt;/p&gt;
  * &lt;p th:text="${context.normalisedPath()}"&gt;&lt;/p&gt;
  * &lt;p th:text="${context.request().params().get('param1')}"&gt;&lt;/p&gt;
  * &lt;p th:text="${context.request().params().get('param2')}"&gt;&lt;/p&gt;
@@ -1064,8 +1075,9 @@
  *
  * == Response time handler
  *
- * This handler sets the header `x-response-time` containing the time from when the request was received to when the
- * response headers were written, in ms. E.g
+ * This handler sets the header `x-response-time` response header containing the time from when the request was received
+ * to when the response headers were written, in ms., e.g.:
+ *
  *  x-response-time: 1456ms
  *
  *

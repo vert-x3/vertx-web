@@ -281,7 +281,7 @@ public interface RoutingContext {
   /**
    * Remove a headers end handler
    *
-   * @param handlerID  the id as returned from {@link #addHeadersEndHandler(io.vertx.core.Handler)}.
+   * @param handlerID  the id as returned from {@link io.vertx.ext.apex.RoutingContext#addHeadersEndHandler(io.vertx.core.Handler)}.
    * @return true if the handler existed and was removed, false otherwise
    */
   boolean removeHeadersEndHandler(int handlerID);
@@ -298,7 +298,7 @@ public interface RoutingContext {
   /**
    * Remove a body end handler
    *
-   * @param handlerID  the id as returned from {@link #addBodyEndHandler(io.vertx.core.Handler)}.
+   * @param handlerID  the id as returned from {@link io.vertx.ext.apex.RoutingContext#addBodyEndHandler(io.vertx.core.Handler)}.
    * @return true if the handler existed and was removed, false otherwise
    */
   boolean removeBodyEndHandler(int handlerID);
