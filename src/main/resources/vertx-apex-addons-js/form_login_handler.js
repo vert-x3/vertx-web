@@ -54,6 +54,9 @@ var FormLoginHandler = function(j_val) {
 
  @memberof module:vertx-apex-addons-js/form_login_handler
  @param authService {AuthService} 
+ @param usernameParam {string} 
+ @param passwordParam {string} 
+ @param returnURLParam {string} 
  @return {FormLoginHandler}
  */
 FormLoginHandler.formLoginHandler = function() {

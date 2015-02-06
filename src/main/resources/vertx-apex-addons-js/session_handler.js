@@ -53,6 +53,9 @@ var SessionHandler = function(j_val) {
 /**
 
  @memberof module:vertx-apex-addons-js/session_handler
+ @param sessionCookieName {string} 
+ @param sessionTimeout {number} 
+ @param nagHttps {boolean} 
  @param sessionStore {SessionStore} 
  @return {SessionHandler}
  */

@@ -56,6 +56,7 @@ var BasicAuthHandler = function(j_val) {
 
  @memberof module:vertx-apex-addons-js/basic_auth_handler
  @param authService {AuthService} 
+ @param realm {string} 
  @return {AuthHandler}
  */
 BasicAuthHandler.basicAuthHandler = function() {

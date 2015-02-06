@@ -16,7 +16,7 @@
 
 /** @module vertx-apex-addons-js/error_handler */
 var utils = require('vertx-js/util/utils');
-var FailureRoutingContext = require('vertx-apex-core-js/failure_routing_context');
+var RoutingContext = require('vertx-apex-core-js/routing_context');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
@@ -34,7 +34,7 @@ var ErrorHandler = function(j_val) {
   /**
 
    @public
-   @param context {FailureRoutingContext} 
+   @param context {RoutingContext} 
    */
   this.handle = function(context) {
     var __args = arguments;
@@ -52,7 +52,8 @@ var ErrorHandler = function(j_val) {
 /**
 
  @memberof module:vertx-apex-addons-js/error_handler
-
+ @param errorTemplateName {string} 
+ @param displayExceptionDetails {boolean} 
  @return {ErrorHandler}
  */
 ErrorHandler.errorHandler = function() {

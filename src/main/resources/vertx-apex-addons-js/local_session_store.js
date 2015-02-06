@@ -42,6 +42,8 @@ var LocalSessionStore = function(j_val) {
 
  @memberof module:vertx-apex-addons-js/local_session_store
  @param vertx {Vertx} 
+ @param sessionMapName {string} 
+ @param reaperPeriod {number} 
  @return {SessionStore}
  */
 LocalSessionStore.localSessionStore = function() {

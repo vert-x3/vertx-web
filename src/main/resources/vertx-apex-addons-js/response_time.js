@@ -55,10 +55,10 @@ var ResponseTime = function(j_val) {
 
  @return {ResponseTime}
  */
-ResponseTime.requestTime = function() {
+ResponseTime.responseTime = function() {
   var __args = arguments;
   if (__args.length === 0) {
-    return new ResponseTime(JResponseTime.requestTime());
+    return new ResponseTime(JResponseTime.responseTime());
   } else utils.invalidArgs();
 };
 
