@@ -7,9 +7,13 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.apex.addons.*;
-import io.vertx.ext.apex.core.*;
-import io.vertx.ext.apex.core.LocalSessionStore;
+import io.vertx.ext.apex.*;
+import io.vertx.ext.apex.sstore.ClusteredSessionStore;
+import io.vertx.ext.apex.sstore.LocalSessionStore;
+import io.vertx.ext.apex.handler.*;
+import io.vertx.ext.apex.sstore.SessionStore;
+import io.vertx.ext.apex.templ.HandlebarsTemplateEngine;
+import io.vertx.ext.apex.templ.TemplateEngine;
 import io.vertx.ext.auth.AuthService;
 import io.vertx.ext.auth.PropertiesAuthRealmConstants;
 
@@ -399,12 +403,12 @@ public class Examples {
 
   public void example27(Router router) {
     // This body handler will be called for all routes
-    router.route().handler(BodyHandler.bodyHandler());
+    router.route().handler(BodyHandler.create());
   }
 
   public void example28(Router router) {
     // This body handler will be called for all routes
-    router.route().handler(BodyHandler.bodyHandler());
+    router.route().handler(BodyHandler.create());
     router.post("/some/path/uploads").handler(routingContext -> {
       Set<FileUpload> uploads = routingContext.fileUploads();
       // Do something with uploads....
@@ -413,12 +417,12 @@ public class Examples {
 
   public void example29(Router router) {
     // This cookie handler will be called for all routes
-    router.route().handler(CookieHandler.cookieHandler());
+    router.route().handler(CookieHandler.create());
   }
 
   public void example30(Router router) {
     // This cookie handler will be called for all routes
-    router.route().handler(CookieHandler.cookieHandler());
+    router.route().handler(CookieHandler.create());
     router.route("some/path/").handler(routingContext -> {
 
       Cookie someCookie = routingContext.getCookie("mycookie");
@@ -433,40 +437,40 @@ public class Examples {
 
   public void example31(Vertx vertx) {
     // Create a local session store using defaults
-    SessionStore store1 = LocalSessionStore.localSessionStore(vertx);
+    SessionStore store1 = LocalSessionStore.create(vertx);
 
     // Create a local session store specifying the local shared map name to use
     // This might be useful if you have more than one application in the same Vert.x instance and want to use
     // different maps for different applications
-    SessionStore store2 = LocalSessionStore.localSessionStore(vertx, "myapp3.sessionmap");
+    SessionStore store2 = LocalSessionStore.create(vertx, "myapp3.sessionmap");
 
     // Create a local session store specifying the local shared map name to use and
     // setting the reaper period for expired sessions to 10 seconds
-    SessionStore store3 = LocalSessionStore.localSessionStore(vertx, "myapp3.sessionmap", 10000);
+    SessionStore store3 = LocalSessionStore.create(vertx, "myapp3.sessionmap", 10000);
   }
 
   public void example32(Vertx vertx) {
     // Create a clustered session store using defaults
-    SessionStore store1 = ClusteredSessionStore.clusteredSessionStore(vertx);
+    SessionStore store1 = ClusteredSessionStore.create(vertx);
 
     // Create a clustered session store specifying the distributed map name to use
     // This might be useful if you have more than one application in the cluster and want to use
     // different maps for different applications
-    SessionStore store2 = ClusteredSessionStore.clusteredSessionStore(vertx, "myclusteredapp3.sessionmap");
+    SessionStore store2 = ClusteredSessionStore.create(vertx, "myclusteredapp3.sessionmap");
 
   }
 
   public void example33(Vertx vertx) {
     // Create a clustered session store using defaults
-    SessionStore store = ClusteredSessionStore.clusteredSessionStore(vertx);
+    SessionStore store = ClusteredSessionStore.create(vertx);
 
-    SessionHandler sessionHandler = SessionHandler.sessionHandler(store);
+    SessionHandler sessionHandler = SessionHandler.create(store);
 
     Router router = Router.router(vertx);
 
     // We need a cookie handler too
 
-    router.route().handler(CookieHandler.cookieHandler());
+    router.route().handler(CookieHandler.create());
 
     // Make sure all requests are routed through the session handler first
     router.route().handler(sessionHandler);
@@ -482,7 +486,7 @@ public class Examples {
 
   public void example34(SessionHandler sessionHandler, Router router) {
 
-    router.route().handler(CookieHandler.cookieHandler());
+    router.route().handler(CookieHandler.create());
 
     // Make sure all requests are routed through the session handler first
     router.route().handler(sessionHandler);
@@ -512,7 +516,7 @@ public class Examples {
     config.put(PropertiesAuthRealmConstants.PROPERTIES_PROPS_PATH_FIELD, "classpath:test-auth.properties");
     AuthService authService = AuthService.create(vertx, config);
 
-    AuthHandler basicAuthHandler = BasicAuthHandler.basicAuthHandler(authService);
+    AuthHandler basicAuthHandler = BasicAuthHandler.create(authService);
   }
 
   public void example36(Vertx vertx, Router router) {
@@ -521,25 +525,25 @@ public class Examples {
 
     AuthService authService = AuthService.createEventBusProxy(vertx, "acme.authservice");
 
-    AuthHandler basicAuthHandler = BasicAuthHandler.basicAuthHandler(authService);
+    AuthHandler basicAuthHandler = BasicAuthHandler.create(authService);
   }
 
   public void example37(Vertx vertx, Router router) {
 
-    router.route().handler(CookieHandler.cookieHandler());
-    router.route().handler(SessionHandler.sessionHandler(LocalSessionStore.localSessionStore(vertx)));
+    router.route().handler(CookieHandler.create());
+    router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
 
     AuthService authService = AuthService.createEventBusProxy(vertx, "acme.authservice");
-    AuthHandler basicAuthHandler = BasicAuthHandler.basicAuthHandler(authService);
+    AuthHandler basicAuthHandler = BasicAuthHandler.create(authService);
   }
 
   public void example38(Vertx vertx, Router router) {
 
-    router.route().handler(CookieHandler.cookieHandler());
-    router.route().handler(SessionHandler.sessionHandler(LocalSessionStore.localSessionStore(vertx)));
+    router.route().handler(CookieHandler.create());
+    router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
 
     AuthService authService = AuthService.createEventBusProxy(vertx, "acme.authservice");
-    AuthHandler basicAuthHandler = BasicAuthHandler.basicAuthHandler(authService);
+    AuthHandler basicAuthHandler = BasicAuthHandler.create(authService);
 
     // All requests to paths starting with '/private/' will be protected
     router.route("/private/").handler(basicAuthHandler);
@@ -558,20 +562,20 @@ public class Examples {
 
   public void example39(Vertx vertx, Router router) {
 
-    router.route().handler(CookieHandler.cookieHandler());
-    router.route().handler(SessionHandler.sessionHandler(LocalSessionStore.localSessionStore(vertx)));
+    router.route().handler(CookieHandler.create());
+    router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
 
     AuthService authService = AuthService.createEventBusProxy(vertx, "acme.authservice");
-    AuthHandler redirectAuthHandler = RedirectAuthHandler.redirectAuthHandler(authService);
+    AuthHandler redirectAuthHandler = RedirectAuthHandler.create(authService);
 
     // All requests to paths starting with '/private/' will be protected
     router.route("/private/").handler(redirectAuthHandler);
 
     // Handle the actual login
-    router.route("/login").handler(FormLoginHandler.formLoginHandler(authService));
+    router.route("/login").handler(FormLoginHandler.create(authService));
 
     // Set a static server to serve static resources, e.g. the login page
-    router.route().handler(StaticServer.staticServer());
+    router.route().handler(StaticHandler.create());
 
     router.route("/someotherpath").handler(routingContext -> {
       // This will be public access - no login required
@@ -588,13 +592,13 @@ public class Examples {
 
   public void example40(AuthService authService, Router router) {
 
-    AuthHandler managerAuthHandler = RedirectAuthHandler.redirectAuthHandler(authService);
+    AuthHandler managerAuthHandler = RedirectAuthHandler.create(authService);
     managerAuthHandler.addRole("manager").addRole("admin");
 
     // Roles "manager" and "admin" have access to /private/managers
     router.route("/private/managers").handler(managerAuthHandler);
 
-    AuthHandler settingsAuthHandler = RedirectAuthHandler.redirectAuthHandler(authService);
+    AuthHandler settingsAuthHandler = RedirectAuthHandler.create(authService);
     settingsAuthHandler.addRole("admin");
 
     // Only "admin" has access to /private/settings
@@ -604,13 +608,13 @@ public class Examples {
 
   public void example41(Router router) {
 
-    router.route("/static/").handler(StaticServer.staticServer());
+    router.route("/static/").handler(StaticHandler.create());
 
   }
   public void example41_0_1(Router router) {
 
     // Will only accept GET requests from origin "vertx.io"
-    router.route().handler(CorsHandler.cors("vertx\\.io").allowedMethod(HttpMethod.GET));
+    router.route().handler(CorsHandler.create("vertx\\.io").allowedMethod(HttpMethod.GET));
 
     router.route().handler(routingContext -> {
       // Your app handlers
@@ -620,7 +624,7 @@ public class Examples {
   public void example41_1(Router router) {
 
     TemplateEngine engine = HandlebarsTemplateEngine.create();
-    PathTemplateHandler handler = PathTemplateHandler.templateHandler(engine);
+    TemplateHandler handler = TemplateHandler.create(engine);
 
     // This will route all GET requests starting with /dynamic/ to the template handler
     // E.g. /dynamic/graph.hbs will look for a template in /templates/dynamic/graph.hbs
@@ -634,11 +638,11 @@ public class Examples {
   public void example41_2(Router router) {
 
     TemplateEngine engine = HandlebarsTemplateEngine.create();
-    PathTemplateHandler handler = PathTemplateHandler.templateHandler(engine);
+    TemplateHandler handler = TemplateHandler.create(engine);
 
     router.get("/dynamic").handler(routingContext -> {
       routingContext.put("request_path", routingContext.request().path());
-      routingContext.put("session_data", routingContext.session().sessionData());
+      routingContext.put("session_data", routingContext.session().data());
       routingContext.next();
     });
 
@@ -649,14 +653,14 @@ public class Examples {
   public void example41_3(Router router) {
 
     // Any errors on paths beginning with '/somepath/' will be handled by this error handler
-    router.route("/somepath/").failureHandler(ErrorHandler.errorHandler());
+    router.route("/somepath/").failureHandler(ErrorHandler.create());
 
   }
 
 
   public void example42(Router router) {
 
-    router.route("/foo/").handler(Timeout.timeout(5000));
+    router.route("/foo/").handler(TimeoutHandler.create(5000));
 
   }
 

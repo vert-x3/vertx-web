@@ -207,7 +207,7 @@ Here's an example
 
 [source,java]
 ----
-var route = router.route(Java.type("io.vertx.core.http.HttpMethod").POST, "/catalogue/products/:productype/:productid/");
+var route = router.route('POST', "/catalogue/products/:productype/:productid/");
 route.handler(function (routingContext) {
   var productType = routingContext.request().params().get("producttype");
   var productID = routingContext.request().params().get("productid");
@@ -269,7 +269,7 @@ If you want a route to only match for a specific HTTP method you can use link:js
 
 [source,java]
 ----
-var route = router.route().method(Java.type("io.vertx.core.http.HttpMethod").POST);
+var route = router.route().method('POST');
 route.handler(function (routingContext) {
 });
 
@@ -279,7 +279,7 @@ Or you can specify this with a path when creating the route:
 
 [source,java]
 ----
-var route = router.route(Java.type("io.vertx.core.http.HttpMethod").POST, "/some/path/");
+var route = router.route('POST', "/some/path/");
 route.handler(function (routingContext) {
 });
 
@@ -305,7 +305,7 @@ multiple times:
 
 [source,java]
 ----
-var route = router.route().method(Java.type("io.vertx.core.http.HttpMethod").POST).method(Java.type("io.vertx.core.http.HttpMethod").PUT);
+var route = router.route().method('POST').method('PUT');
 route.handler(function (routingContext) {
 });
 
@@ -521,7 +521,7 @@ You can combine all the above routing criteria in many different ways, for examp
 
 [source,java]
 ----
-var route = router.route(Java.type("io.vertx.core.http.HttpMethod").PUT, "myapi/orders").consumes("application/json").produces("application/json");
+var route = router.route('PUT', "myapi/orders").consumes("application/json").produces("application/json");
 route.handler(function (routingContext) {
 });
 
@@ -560,7 +560,7 @@ router.get("/some/path/other").handler(function (routingContext) {
 
 ----
 
-Alternatively you can access the entire context data map with link:jsdoc/routing_context-RoutingContext.html#contextData[`contextData`].
+Alternatively you can access the entire context data map with link:jsdoc/routing_context-RoutingContext.html#data[`data`].
 
 == Sub-routers
 
@@ -579,7 +579,7 @@ Here's the sub-router:
 
 [source,java]
 ----
-var Router = require("vertx-apex-core-js/router");
+var Router = require("vertx-apex-js/router");
 var restAPI = Router.router(vertx);
 restAPI.get("/products/:productID").handler(function (rc) {
   rc.response().write(productJSON);
@@ -600,7 +600,7 @@ However, let's say we already have a web-site as described by another router:
 
 [source,java]
 ----
-var Router = require("vertx-apex-core-js/router");
+var Router = require("vertx-apex-js/router");
 var mainRouter = Router.router(vertx);
 mainRouter.route("/static").handler(myStaticHandler);
 mainRouter.route(".*\\.templ").handler(myTemplateHandler);
@@ -666,8 +666,8 @@ You should make sure a body handler is on a matching route for any requests that
 
 [source,java]
 ----
-var BodyHandler = require("vertx-apex-core-js/body_handler");
-router.route().handler(BodyHandler.bodyHandler());
+var BodyHandler = require("vertx-apex-js/body_handler");
+router.route().handler(BodyHandler.create());
 
 ----
 
@@ -679,7 +679,7 @@ retrieve it as a buffer use link:jsdoc/routing_context-RoutingContext.html#getBo
 
 === Limiting body size
 
-To limit the size of a request body, create the body handler with link:jsdoc/body_handler-BodyHandler.html#bodyHandler[`BodyHandler.bodyHandler`]
+To limit the size of a request body, create the body handler with link:jsdoc/body_handler-BodyHandler.html#create[`BodyHandler.create`]
 specifying the maximum body size, in bytes. This is useful to avoid running out of memory with very large bodies.
 
 If an attempt to send a body greater than the maximum size is made, an HTTP status code of 413 - `Request Entity Too Large`,
@@ -698,8 +698,8 @@ Here's an example:
 
 [source,java]
 ----
-var BodyHandler = require("vertx-apex-core-js/body_handler");
-router.route().handler(BodyHandler.bodyHandler());
+var BodyHandler = require("vertx-apex-js/body_handler");
+router.route().handler(BodyHandler.create());
 router.post("/some/path/uploads").handler(function (routingContext) {
   var uploads = routingContext.fileUploads();
 });
@@ -717,8 +717,8 @@ You should make sure a cookie handler is on a matching route for any requests th
 
 [source,java]
 ----
-var CookieHandler = require("vertx-apex-core-js/cookie_handler");
-router.route().handler(CookieHandler.cookieHandler());
+var CookieHandler = require("vertx-apex-js/cookie_handler");
+router.route().handler(CookieHandler.create());
 
 ----
 
@@ -741,9 +741,9 @@ Here's an example of querying and adding cookies:
 
 [source,java]
 ----
-var CookieHandler = require("vertx-apex-core-js/cookie_handler");
-var Cookie = require("vertx-apex-core-js/cookie");
-router.route().handler(CookieHandler.cookieHandler());
+var CookieHandler = require("vertx-apex-js/cookie_handler");
+var Cookie = require("vertx-apex-js/cookie");
+router.route().handler(CookieHandler.create());
 router.route("some/path/").handler(function (routingContext) {
   var someCookie = routingContext.getCookie("mycookie");
   var cookieValue = someCookie.getValue();
@@ -788,16 +788,16 @@ requests might end up on a server which doesn't know about your session.
 
 Local session stores are implemented by using a shared local map, and have a reaper which clears out expired sessions.
 The reaper period can be configured with
-link:jsdoc/local_session_store-LocalSessionStore.html#localSessionStore[`LocalSessionStore.localSessionStore`].
+link:jsdoc/local_session_store-LocalSessionStore.html#create[`LocalSessionStore.create`].
 
 Here are some examples of creating a link:jsdoc/local_session_store-LocalSessionStore.html[`LocalSessionStore`]
 
 [source,java]
 ----
-var LocalSessionStore = require("vertx-apex-core-js/local_session_store");
-var store1 = LocalSessionStore.localSessionStore(vertx);
-var store2 = LocalSessionStore.localSessionStore(vertx, "myapp3.sessionmap");
-var store3 = LocalSessionStore.localSessionStore(vertx, "myapp3.sessionmap", 10000);
+var LocalSessionStore = require("vertx-apex-js/local_session_store");
+var store1 = LocalSessionStore.create(vertx);
+var store2 = LocalSessionStore.create(vertx, "myapp3.sessionmap");
+var store3 = LocalSessionStore.create(vertx, "myapp3.sessionmap", 10000);
 
 ----
 
@@ -810,9 +810,9 @@ Here are some examples of creating a link:jsdoc/clustered_session_store-Clustere
 
 [source,java]
 ----
-var ClusteredSessionStore = require("vertx-apex-core-js/clustered_session_store");
-var store1 = ClusteredSessionStore.clusteredSessionStore(vertx);
-var store2 = ClusteredSessionStore.clusteredSessionStore(vertx, "myclusteredapp3.sessionmap");
+var ClusteredSessionStore = require("vertx-apex-js/clustered_session_store");
+var store1 = ClusteredSessionStore.create(vertx);
+var store2 = ClusteredSessionStore.create(vertx, "myclusteredapp3.sessionmap");
 
 ----
 
@@ -826,14 +826,14 @@ lookup the session. The cookie handler should be before the session handler when
 
 [source,java]
 ----
-var ClusteredSessionStore = require("vertx-apex-core-js/clustered_session_store");
-var SessionHandler = require("vertx-apex-core-js/session_handler");
-var Router = require("vertx-apex-core-js/router");
-var CookieHandler = require("vertx-apex-core-js/cookie_handler");
-var store = ClusteredSessionStore.clusteredSessionStore(vertx);
-var sessionHandler = SessionHandler.sessionHandler(store);
+var ClusteredSessionStore = require("vertx-apex-js/clustered_session_store");
+var SessionHandler = require("vertx-apex-js/session_handler");
+var Router = require("vertx-apex-js/router");
+var CookieHandler = require("vertx-apex-js/cookie_handler");
+var store = ClusteredSessionStore.create(vertx);
+var sessionHandler = SessionHandler.create(store);
 var router = Router.router(vertx);
-router.route().handler(CookieHandler.cookieHandler());
+router.route().handler(CookieHandler.create());
 router.route().handler(sessionHandler);
 router.route("/somepath/blah").handler(function (routingContext) {
   var session = routingContext.session();
@@ -861,8 +861,8 @@ Here's an example of manipulating session data:
 
 [source,java]
 ----
-var CookieHandler = require("vertx-apex-core-js/cookie_handler");
-router.route().handler(CookieHandler.cookieHandler());
+var CookieHandler = require("vertx-apex-js/cookie_handler");
+router.route().handler(CookieHandler.create());
 router.route().handler(sessionHandler);
 router.route("/somepath/blah").handler(function (routingContext) {
   var session = routingContext.session();
@@ -926,12 +926,12 @@ an auth handler from that:
 [source,java]
 ----
 var AuthService = require("vertx-auth-js/auth_service");
-var BasicAuthHandler = require("vertx-apex-addons-js/basic_auth_handler");
+var BasicAuthHandler = require("vertx-apex-js/basic_auth_handler");
 var config = {
 };
 config.Java.type("io.vertx.ext.auth.PropertiesAuthRealmConstants").PROPERTIES_PROPS_PATH_FIELD = "classpath:test-auth.properties";
 var authService = AuthService.create(vertx, config);
-var basicAuthHandler = BasicAuthHandler.basicAuthHandler(authService);
+var basicAuthHandler = BasicAuthHandler.create(authService);
 
 ----
 
@@ -940,9 +940,9 @@ And here's an example of creating an auth service proxy to an existing auth serv
 [source,java]
 ----
 var AuthService = require("vertx-auth-js/auth_service");
-var BasicAuthHandler = require("vertx-apex-addons-js/basic_auth_handler");
+var BasicAuthHandler = require("vertx-apex-js/basic_auth_handler");
 var authService = AuthService.createEventBusProxy(vertx, "acme.authservice");
-var basicAuthHandler = BasicAuthHandler.basicAuthHandler(authService);
+var basicAuthHandler = BasicAuthHandler.create(authService);
 
 ----
 
@@ -950,15 +950,15 @@ You'll also need cookies and sessions enabled for auth handling to work:
 
 [source,java]
 ----
-var CookieHandler = require("vertx-apex-core-js/cookie_handler");
-var SessionHandler = require("vertx-apex-core-js/session_handler");
-var LocalSessionStore = require("vertx-apex-core-js/local_session_store");
+var CookieHandler = require("vertx-apex-js/cookie_handler");
+var SessionHandler = require("vertx-apex-js/session_handler");
+var LocalSessionStore = require("vertx-apex-js/local_session_store");
 var AuthService = require("vertx-auth-js/auth_service");
-var BasicAuthHandler = require("vertx-apex-addons-js/basic_auth_handler");
-router.route().handler(CookieHandler.cookieHandler());
-router.route().handler(SessionHandler.sessionHandler(LocalSessionStore.localSessionStore(vertx)));
+var BasicAuthHandler = require("vertx-apex-js/basic_auth_handler");
+router.route().handler(CookieHandler.create());
+router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
 var authService = AuthService.createEventBusProxy(vertx, "acme.authservice");
-var basicAuthHandler = BasicAuthHandler.basicAuthHandler(authService);
+var basicAuthHandler = BasicAuthHandler.create(authService);
 
 ----
 
@@ -969,15 +969,15 @@ your auth handler is before your application handlers on those paths:
 
 [source,java]
 ----
-var CookieHandler = require("vertx-apex-core-js/cookie_handler");
-var SessionHandler = require("vertx-apex-core-js/session_handler");
-var LocalSessionStore = require("vertx-apex-core-js/local_session_store");
+var CookieHandler = require("vertx-apex-js/cookie_handler");
+var SessionHandler = require("vertx-apex-js/session_handler");
+var LocalSessionStore = require("vertx-apex-js/local_session_store");
 var AuthService = require("vertx-auth-js/auth_service");
-var BasicAuthHandler = require("vertx-apex-addons-js/basic_auth_handler");
-router.route().handler(CookieHandler.cookieHandler());
-router.route().handler(SessionHandler.sessionHandler(LocalSessionStore.localSessionStore(vertx)));
+var BasicAuthHandler = require("vertx-apex-js/basic_auth_handler");
+router.route().handler(CookieHandler.create());
+router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
 var authService = AuthService.createEventBusProxy(vertx, "acme.authservice");
-var basicAuthHandler = BasicAuthHandler.basicAuthHandler(authService);
+var basicAuthHandler = BasicAuthHandler.create(authService);
 router.route("/private/").handler(basicAuthHandler);
 router.route("/someotherpath").handler(function (routingContext) {
 });
@@ -1011,20 +1011,20 @@ Here's an example of a simple app, using a redirect auth handler on the default 
 
 [source,java]
 ----
-var CookieHandler = require("vertx-apex-core-js/cookie_handler");
-var SessionHandler = require("vertx-apex-core-js/session_handler");
-var LocalSessionStore = require("vertx-apex-core-js/local_session_store");
+var CookieHandler = require("vertx-apex-js/cookie_handler");
+var SessionHandler = require("vertx-apex-js/session_handler");
+var LocalSessionStore = require("vertx-apex-js/local_session_store");
 var AuthService = require("vertx-auth-js/auth_service");
-var RedirectAuthHandler = require("vertx-apex-addons-js/redirect_auth_handler");
-var FormLoginHandler = require("vertx-apex-addons-js/form_login_handler");
-var StaticServer = require("vertx-apex-addons-js/static_server");
-router.route().handler(CookieHandler.cookieHandler());
-router.route().handler(SessionHandler.sessionHandler(LocalSessionStore.localSessionStore(vertx)));
+var RedirectAuthHandler = require("vertx-apex-js/redirect_auth_handler");
+var FormLoginHandler = require("vertx-apex-js/form_login_handler");
+var StaticHandler = require("vertx-apex-js/static_handler");
+router.route().handler(CookieHandler.create());
+router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
 var authService = AuthService.createEventBusProxy(vertx, "acme.authservice");
-var redirectAuthHandler = RedirectAuthHandler.redirectAuthHandler(authService);
+var redirectAuthHandler = RedirectAuthHandler.create(authService);
 router.route("/private/").handler(redirectAuthHandler);
-router.route("/login").handler(FormLoginHandler.formLoginHandler(authService));
-router.route().handler(StaticServer.staticServer());
+router.route("/login").handler(FormLoginHandler.create(authService));
+router.route().handler(StaticHandler.create());
 router.route("/someotherpath").handler(function (routingContext) {
 });
 router.route("/private/somepath").handler(function (routingContext) {
@@ -1044,11 +1044,11 @@ app:
 
 [source,java]
 ----
-var RedirectAuthHandler = require("vertx-apex-addons-js/redirect_auth_handler");
-var managerAuthHandler = RedirectAuthHandler.redirectAuthHandler(authService);
+var RedirectAuthHandler = require("vertx-apex-js/redirect_auth_handler");
+var managerAuthHandler = RedirectAuthHandler.create(authService);
 managerAuthHandler.addRole("manager").addRole("admin");
 router.route("/private/managers").handler(managerAuthHandler);
-var settingsAuthHandler = RedirectAuthHandler.redirectAuthHandler(authService);
+var settingsAuthHandler = RedirectAuthHandler.create(authService);
 settingsAuthHandler.addRole("admin");
 router.route("/private/settings").handler(settingsAuthHandler);
 
@@ -1066,17 +1066,17 @@ Apex comes with an out of the box handler for serving static web resources so yo
 very easily.
 
 To serve static resources such as `.html`, `.css`, `.js` or any other static resource, you use an instance of
-link:jsdoc/static_server-StaticServer.html[`StaticServer`].
+link:jsdoc/static_handler-StaticHandler.html[`StaticHandler`].
 
-Any requests to paths handled by the static server will result in files being served from a directory on the file system
+Any requests to paths handled by the static handler will result in files being served from a directory on the file system
 or from the classpath. The default static file directory is `webroot` but this can be configured.
 
 In the following example all requests to paths starting with `/static` get served from the directory `webroot`:
 
 [source,java]
 ----
-var StaticServer = require("vertx-apex-addons-js/static_server");
-router.route("/static/").handler(StaticServer.staticServer());
+var StaticHandler = require("vertx-apex-js/static_handler");
+router.route("/static/").handler(StaticHandler.create());
 
 ----
 
@@ -1091,17 +1091,17 @@ on disk so it doesn't have to do this each time.
 
 === Configuring caching
 
-By default the static server will set cache headers to enable browsers to effectively cache files.
+By default the static handler will set cache headers to enable browsers to effectively cache files.
 
 Apex sets the headers `cache-control`,`last-modified`, and `date`.
 
 `cache-control` is set to `max-age=86400` by default. This corresponds to one day. This can be configured with
-link:jsdoc/static_server-StaticServer.html#setMaxAgeSeconds[`setMaxAgeSeconds`] if required.
+link:jsdoc/static_handler-StaticHandler.html#setMaxAgeSeconds[`setMaxAgeSeconds`] if required.
 
 If a browser sends a GET or a HEAD request with an `if-modified-since` header and the resource has not been modified
 since that date, a `304` status is returned which tells the browser to use its locally cached resource.
 
-If handling of cache headers is not required, it can be disabled with link:jsdoc/static_server-StaticServer.html#setCachingEnabled[`setCachingEnabled`].
+If handling of cache headers is not required, it can be disabled with link:jsdoc/static_handler-StaticHandler.html#setCachingEnabled[`setCachingEnabled`].
 
 When cache handling is enabled Apex will cache the last modified date of resources in memory, this avoids a disk hit
 to check the actual last modified date every time.
@@ -1113,38 +1113,38 @@ If you know that your files never change on disk, then the cache entry will effe
 default.
 
 If you know that your files might change on disk when the server is running then you can set files read only to false with
-link:jsdoc/static_server-StaticServer.html#setFilesReadOnly[`setFilesReadOnly`].
+link:jsdoc/static_handler-StaticHandler.html#setFilesReadOnly[`setFilesReadOnly`].
 
 To enable the maximum number of entries that can be cached in memory at any one time you can use
-link:jsdoc/static_server-StaticServer.html#setMaxCacheSize[`setMaxCacheSize`].
+link:jsdoc/static_handler-StaticHandler.html#setMaxCacheSize[`setMaxCacheSize`].
 
-To configure the expiry time of cache entries you can use link:jsdoc/static_server-StaticServer.html#setCacheEntryTimeout[`setCacheEntryTimeout`].
+To configure the expiry time of cache entries you can use link:jsdoc/static_handler-StaticHandler.html#setCacheEntryTimeout[`setCacheEntryTimeout`].
 
 === Configuring the index page
 
 Any requests to the root path `/` will cause the index page to be served. By default the index page is `index.html`.
-This can be configured with link:jsdoc/static_server-StaticServer.html#setIndexPage[`setIndexPage`].
+This can be configured with link:jsdoc/static_handler-StaticHandler.html#setIndexPage[`setIndexPage`].
 
 === Changing the web root
 
 By default static resources will be served from the directory `webroot`. To configure this use
-link:jsdoc/static_server-StaticServer.html#setWebRoot[`setWebRoot`].
+link:jsdoc/static_handler-StaticHandler.html#setWebRoot[`setWebRoot`].
 
 === Serving hidden files
 
 By default the serve will serve hidden files (files starting with `.`).
 
-If you do not want hidden files to be served you can configure it with link:jsdoc/static_server-StaticServer.html#setIncludeHidden[`setIncludeHidden`].
+If you do not want hidden files to be served you can configure it with link:jsdoc/static_handler-StaticHandler.html#setIncludeHidden[`setIncludeHidden`].
 
 === Directory listing
 
 The server can also perform directory listing. By default directory listing is disabled. To enabled it use
-link:jsdoc/static_server-StaticServer.html#setDirectoryListing[`setDirectoryListing`].
+link:jsdoc/static_handler-StaticHandler.html#setDirectoryListing[`setDirectoryListing`].
 
 When directory listing is enabled the content returned depends on the content type in the `accept` header.
 
 For `text/html` directory listing, the template used to render the directory listing page can be configured with
-link:jsdoc/static_server-StaticServer.html#setDirectoryTemplate[`setDirectoryTemplate`].
+link:jsdoc/static_handler-StaticHandler.html#setDirectoryTemplate[`setDirectoryTemplate`].
 
 == CORS handling
 
@@ -1157,8 +1157,8 @@ Here's an example:
 
 [source,java]
 ----
-var CorsHandler = require("vertx-apex-addons-js/cors_handler");
-router.route().handler(CorsHandler.cors("vertx\\.io").allowedMethod(Java.type("io.vertx.core.http.HttpMethod").GET));
+var CorsHandler = require("vertx-apex-js/cors_handler");
+router.route().handler(CorsHandler.create("vertx\\.io").allowedMethod('GET'));
 router.route().handler(function (routingContext) {
 });
 
@@ -1175,7 +1175,7 @@ Template engines are described by link:jsdoc/template_engine-TemplateEngine.html
 link:jsdoc/template_engine-TemplateEngine.html#render[`render`] is used.
 
 The simplest way to use templates is not to call the template engine directly but to use the
-link:jsdoc/path_template_handler-PathTemplateHandler.html[`PathTemplateHandler`].
+link:jsdoc/template_handler-TemplateHandler.html[`TemplateHandler`].
 This handler calls the template engine for you based on the path in the HTTP request.
 
 By default the path template handler will look for templates in a directory called `templates`. This can be configured.
@@ -1188,10 +1188,10 @@ Here are some examples
 
 [source,java]
 ----
-var HandlebarsTemplateEngine = require("vertx-apex-addons-js/handlebars_template_engine");
-var PathTemplateHandler = require("vertx-apex-addons-js/path_template_handler");
+var HandlebarsTemplateEngine = require("vertx-apex-js/handlebars_template_engine");
+var TemplateHandler = require("vertx-apex-js/template_handler");
 var engine = HandlebarsTemplateEngine.create();
-var handler = PathTemplateHandler.templateHandler(engine);
+var handler = TemplateHandler.create(engine);
 router.get("/dynamic/").handler(handler);
 router.getWithRegex(".+\\.hbs").handler(handler);
 
@@ -1213,7 +1213,7 @@ The request path is @{context.request().path()}
 
 The variable 'foo' from the session is @{context.session().get('foo')}
 
-The value 'bar' from the context data is @{context.contextData().get('bar')}
+The value 'bar' from the context data is @{context.data().get('bar')}
 ----
 
 Please consult the http://mvel.codehaus.org/MVEL+2.0+Templating+Guide[MVEL templates documentation] for how to write
@@ -1234,7 +1234,7 @@ Here are some examples:
 !!! 5
 html
   head
-    title= context.contextData().get('foo') + context.request().path()
+    title= context.data().get('foo') + context.request().path()
   body
 ----
 
@@ -1249,20 +1249,20 @@ templates with the `.hbs` extension if no extension is specified in the file nam
 Handlebars templates are not able to call arbitrary methods in objects so we can't just pass the routing context
 into the template and let the template introspect it like we can with other template engines.
 
-Instead, the link:jsdoc/routing_context-RoutingContext.html#contextData[`contextData`] is available in the template.
+Instead, the link:jsdoc/routing_context-RoutingContext.html#data[`data`] is available in the template.
 
 If you want to have access to other data like the request path, request params or session data you should
 add it the context data in a handler before the template handler. For example:
 
 [source,java]
 ----
-var HandlebarsTemplateEngine = require("vertx-apex-addons-js/handlebars_template_engine");
-var PathTemplateHandler = require("vertx-apex-addons-js/path_template_handler");
+var HandlebarsTemplateEngine = require("vertx-apex-js/handlebars_template_engine");
+var TemplateHandler = require("vertx-apex-js/template_handler");
 var engine = HandlebarsTemplateEngine.create();
-var handler = PathTemplateHandler.templateHandler(engine);
+var handler = TemplateHandler.create(engine);
 router.get("/dynamic").handler(function (routingContext) {
   routingContext.put("request_path", routingContext.request().path());
-  routingContext.put("session_data", routingContext.session().sessionData());
+  routingContext.put("session_data", routingContext.session().data());
   routingContext.next();
 });
 router.get("/dynamic/").handler(handler);
@@ -1285,8 +1285,8 @@ Here are some examples:
 
 ----
 [snip]
-p th:text="${context.contextData().get('foo')}"/p
-p th:text="${context.contextData().get('bar')}"/p
+p th:text="${context.data().get('foo')}"/p
+p th:text="${context.data().get('bar')}"/p
 p th:text="${context.normalisedPath()}"/p
 p th:text="${context.request().params().get('param1')}"/p
 p th:text="${context.request().params().get('param2')}"/p
@@ -1306,14 +1306,14 @@ failure handler for any paths that you want covered.
 
 == Request logger
 
-Apex includes a handler link:jsdoc/logger-Logger.html[`Logger`] that you can use to log HTTP requests.
+Apex includes a handler link:jsdoc/logger_handler-LoggerHandler.html[`LoggerHandler`] that you can use to log HTTP requests.
 
 
 By default requests are logged to the Vert.x logger which can be configured to use JUL logging, log4j or SLF4J.
 
 == Serving favicons
 
-Apex includes the handler link:jsdoc/favicon-Favicon.html[`Favicon`] especially for serving favicons.
+Apex includes the handler link:jsdoc/favicon_handler-FaviconHandler.html[`FaviconHandler`] especially for serving favicons.
 
 Favicons can be specified using a path to the filesystem, or by default Apex will look for a file on the classpath
 with the name `favicon.ico`. This means you bundle the favicon in the jar of your application.
@@ -1322,7 +1322,7 @@ with the name `favicon.ico`. This means you bundle the favicon in the jar of you
 
 Apex includes a timeout handler that you can use to timeout requests if they take too long to process.
 
-This is configured using an instance of link:jsdoc/timeout-Timeout.html[`Timeout`].
+This is configured using an instance of link:jsdoc/timeout_handler-TimeoutHandler.html[`TimeoutHandler`].
 
 If a request times out before the response is written a `408` response will be returned to the client.
 
@@ -1331,8 +1331,8 @@ seconds:
 
 [source,java]
 ----
-var Timeout = require("vertx-apex-addons-js/timeout");
-router.route("/foo/").handler(Timeout.timeout(5000));
+var TimeoutHandler = require("vertx-apex-js/timeout_handler");
+router.route("/foo/").handler(TimeoutHandler.create(5000));
 
 ----
 
