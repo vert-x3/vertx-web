@@ -1026,58 +1026,6 @@ public class RouterTest extends ApexTestBase {
   }
 
   @Test
-  public void testUnhandle() throws Exception {
-    router.route().handler(rc -> {
-      rc.response().putHeader("foo", "bar");
-      rc.unhandled();
-      rc.next();
-    });
-    testRequest(HttpMethod.GET, "/", null, resp -> {
-      assertEquals("bar", resp.headers().get("foo"));
-    }, 404, "Not Found", null);
-  }
-
-  @Test
-  public void testUnhandle2() throws Exception {
-    router.route().handler(rc -> {
-      rc.next();
-    });
-    router.route().handler(rc -> {
-      rc.response().putHeader("foo", "bar");
-      // Unhandled only reverse the last change in handled so in this case handled will remain true
-      // and default 404 won't be returned
-      rc.unhandled();
-      rc.next();
-      vertx.setTimer(10, tid -> {
-        rc.response().setStatusMessage("gerbils").end();
-      });
-    });
-    testRequest(HttpMethod.GET, "/whatever", 200, "gerbils");
-  }
-
-  @Test
-  public void testSetHandled() throws Exception {
-    router.route().handler(rc -> {
-      rc.response().putHeader("foo", "bar");
-      rc.next();
-    });
-    router.route().handler(rc -> {
-      rc.response().putHeader("wibble", "eeek");
-      rc.next();
-    });
-    router.route().handler(rc -> {
-      rc.response().putHeader("oob", "blarb");
-      rc.setHandled(false);
-      rc.next();
-    });
-    testRequest(HttpMethod.GET, "/", null, resp -> {
-      assertEquals("bar", resp.headers().get("foo"));
-      assertEquals("eeek", resp.headers().get("wibble"));
-      assertEquals("blarb", resp.headers().get("oob"));
-    }, 404, "Not Found", null);
-  }
-
-  @Test
   public void testGet() throws Exception {
     router.get().handler(rc -> {
       rc.response().setStatusMessage("foo").end();

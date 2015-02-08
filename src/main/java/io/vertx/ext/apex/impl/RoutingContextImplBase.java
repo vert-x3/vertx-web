@@ -53,12 +53,13 @@ public abstract class RoutingContextImplBase implements RoutingContext {
   }
 
   protected boolean iterateNext() {
+    //setHandled(false);
     boolean failed = failed();
     while (iter.hasNext()) {
       RouteImpl route = iter.next();
       if (route.matches(this, mountPoint(), failed)) {
         try {
-          setHandled(true);
+         // setHandled(true);
           currentRoute = route;
           if (failed) {
             route.handleFailure(this);
@@ -85,7 +86,7 @@ public abstract class RoutingContextImplBase implements RoutingContext {
   protected void unhandledFailure(int statusCode, Throwable failure, RouterImpl router) {
     int code = statusCode != -1 ? statusCode : 500;
     response().setStatusCode(code);
-    response().end();
+    response().end(response().getStatusMessage());
     if (failure != null) {
       if (router.exceptionHandler() != null) {
         router.exceptionHandler().handle(failure);

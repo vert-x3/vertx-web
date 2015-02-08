@@ -124,8 +124,6 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
 
   @Override
   public void next() {
-    // The router itself counts as handling so we reverse this
-    unhandled();
     if (!super.iterateNext()) {
       // We didn't route request to anything so go to parent
       inner.next();
@@ -133,18 +131,8 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   }
 
   @Override
-  public void setHandled(boolean handled) {
-    inner.setHandled(handled);
-  }
-
-  @Override
   public boolean failed() {
     return inner.failed();
-  }
-
-  @Override
-  public void unhandled() {
-    inner.unhandled();
   }
 
   @Override
@@ -237,4 +225,5 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   public void setAcceptableContentType(String contentType) {
     inner.setAcceptableContentType(contentType);
   }
+
 }

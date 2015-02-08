@@ -51,8 +51,6 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   private Map<Integer, Handler<Void>> bodyEndHandlers;
   private Throwable failure;
   private int statusCode = -1;
-  private boolean handled;
-  private boolean prevHandled;
   private String normalisedPath;
   private String pathFromMountPoint;
   private String acceptableContentType;
@@ -101,16 +99,14 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   }
 
   private void checkHandleNoMatch() {
-    if (!handled) {
-      // Got to end of route chain but nothing matched
-      if (failed()) {
-        // Send back FAILURE
-        unhandledFailure(statusCode, failure, router);
-      } else {
-        // Send back default 404
-        response().setStatusCode(404);
-        response().end(DEFAULT_404);
-      }
+    // Next called but no more matching routes
+    if (failed()) {
+      // Send back FAILURE
+      unhandledFailure(statusCode, failure, router);
+    } else {
+      // Send back default 404
+      response().setStatusCode(404);
+      response().end(DEFAULT_404);
     }
   }
 
@@ -130,19 +126,6 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   public RoutingContext put(String key, Object obj) {
     getData().put(key, obj);
     return this;
-  }
-
-  @Override
-  public void setHandled(boolean handled) {
-    this.prevHandled = this.handled;
-    this.handled = handled;
-  }
-
-  // Revert to previous value of handled - basically
-  // saying "hasn't been handled by current handler"
-  @Override
-  public void unhandled() {
-    this.handled = prevHandled;
   }
 
   @Override
@@ -310,7 +293,6 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   }
 
   private void doFail() {
-    handled = prevHandled = false;
     this.iter = router.iterator();
     next();
   }

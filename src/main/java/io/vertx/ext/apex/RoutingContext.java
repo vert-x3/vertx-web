@@ -304,18 +304,6 @@ public interface RoutingContext {
   boolean removeBodyEndHandler(int handlerID);
 
   /**
-   * Set that the request has been handled. Will supress default error handling logic.
-   *
-   * @param handled true if been handled
-   */
-  void setHandled(boolean handled);
-
-  /**
-   * Unset that the request has been handled
-   */
-  void unhandled();
-
-  /**
    * @return true if the context is being routed to failure handlers.
    */
   boolean failed();
