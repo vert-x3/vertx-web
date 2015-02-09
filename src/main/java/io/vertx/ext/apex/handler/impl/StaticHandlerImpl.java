@@ -37,9 +37,7 @@ import io.vertx.ext.apex.impl.Utils;
 import java.nio.file.NoSuchFileException;
 import java.text.DateFormat;
 import java.text.ParseException;
-import java.util.Date;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * Static web server
@@ -394,7 +392,10 @@ public class StaticHandlerImpl implements StaticHandler {
           String file;
           StringBuilder files = new StringBuilder("<ul id=\"files\">");
 
-          for (String s : asyncResult.result()) {
+          List<String> list = asyncResult.result();
+          Collections.sort(list);
+
+          for (String s : list) {
             file = s.substring(s.lastIndexOf('/') + 1);
             // skip dot files
             if (!includeHidden && file.charAt(0) == '.') {

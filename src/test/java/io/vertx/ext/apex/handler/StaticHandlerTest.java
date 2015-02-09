@@ -397,7 +397,6 @@ public class StaticHandlerTest extends ApexTestBase {
       resp.bodyHandler(buff -> {
         assertEquals("text/html", resp.headers().get("content-type"));
         String sBuff = buff.toString();
-        System.out.println(sBuff);
         assertEquals(expected, sBuff);
         testComplete();
       });
