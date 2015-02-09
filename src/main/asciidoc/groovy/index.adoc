@@ -93,7 +93,7 @@ You can run this, and point your browser at `http://localhost:8080` to verify th
 Here's the 10000 foot view:
 
 A `link:groovydoc/io/vertx/groovy/ext/apex/Router.html[Router]` is one of the core concepts of Apex. It's an object which maintains zero or more
-`link:groovydoc/io/vertx/groovy/ext/apex/Route.html[Route]`s.
+`link:groovydoc/io/vertx/groovy/ext/apex/Route.html[Routes]` .
 
 A router takes an HTTP request and finds the first matching route for that request, and passes the request to that route.
 
@@ -209,6 +209,9 @@ route.handler({ routingContext ->
 });
 
 ----
+
+The placeholders consist of `:` followed by the parameter name. Parameter names consist of any alphabetic character,
+numeric character or underscore.
 
 In the above example, if a POST request is made to path: `/catalogue/products/tools/drill123/` then the route will match
 and `productType` will receive the value `tools` and productID will receive the value `drill123`.
