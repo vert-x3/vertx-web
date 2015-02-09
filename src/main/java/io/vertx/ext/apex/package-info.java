@@ -85,7 +85,7 @@
  * Here's the 10000 foot view:
  *
  * A {@link io.vertx.ext.apex.Router} is one of the core concepts of Apex. It's an object which maintains zero or more
- * {@link io.vertx.ext.apex.Route}s.
+ * {@link io.vertx.ext.apex.Route Routes} .
  *
  * A router takes an HTTP request and finds the first matching route for that request, and passes the request to that route.
  *
