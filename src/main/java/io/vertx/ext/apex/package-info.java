@@ -174,6 +174,9 @@
  * {@link examples.Examples#example4_1}
  * ----
  *
+ * The placeholders consist of `:` followed by the parameter name. Parameter names consist of any alphabetic character,
+ * numeric character or underscore.
+ *
  * In the above example, if a POST request is made to path: `/catalogue/products/tools/drill123/` then the route will match
  * and `productType` will receive the value `tools` and productID will receive the value `drill123`.
  *
