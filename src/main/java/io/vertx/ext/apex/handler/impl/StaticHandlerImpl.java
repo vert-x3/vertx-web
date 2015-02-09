@@ -355,10 +355,16 @@ public class StaticHandlerImpl implements StaticHandler {
   }
 
   private String getFile(String path, RoutingContext context) {
-    // map file path from the request
-    // the final path is, root + request.path excluding mount
+    int prefixLen = 0;
     String mountPoint = context.mountPoint();
-    return mountPoint != null ? webRoot + path.substring(mountPoint.length()) : webRoot + path;
+    if (mountPoint != null) {
+      prefixLen = mountPoint.length();
+    }
+    String routePath = context.currentRoute().getPath();
+    if (routePath != null) {
+      prefixLen += routePath.length() - 1;
+    }
+    return prefixLen != 0 ? webRoot + path.substring(prefixLen) : webRoot + path;
   }
 
   private void setRoot(String webRoot) {

@@ -18,6 +18,7 @@ package io.vertx.ext.apex.handler;
 
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonArray;
+import io.vertx.ext.apex.Router;
 import io.vertx.ext.apex.impl.Utils;
 import io.vertx.ext.apex.ApexTestBase;
 import org.junit.Test;
@@ -416,6 +417,22 @@ public class StaticHandlerTest extends ApexTestBase {
         assertNull(lastModified);
       }, 200, "OK", "<html><body>Other page</body></html>");
     }
+  }
+
+  @Test
+  public void testServerRelativeToPath() throws Exception {
+    router.clear();
+    router.route("/somedir/").handler(stat);
+    testRequest(HttpMethod.GET, "/somedir/otherpage.html", 200, "OK", "<html><body>Other page</body></html>");
+  }
+
+  @Test
+  public void testServerRelativeToPathAndMountPoint() throws Exception {
+    router.clear();
+    Router subRouter = Router.router(vertx);
+    subRouter.route("/somedir/").handler(stat);
+    router.mountSubRouter("/mymount/", subRouter);
+    testRequest(HttpMethod.GET, "/mymount/somedir/otherpage.html", 200, "OK", "<html><body>Other page</body></html>");
   }
 
   // TODO
