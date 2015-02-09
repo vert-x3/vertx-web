@@ -52,7 +52,8 @@ var Logger = function(j_val) {
 /**
 
  @memberof module:vertx-apex-addons-js/logger
-
+ @param immediate {boolean} 
+ @param format {Object} 
  @return {Logger}
  */
 Logger.logger = function() {

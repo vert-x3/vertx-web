@@ -42,7 +42,9 @@ var HandlebarsTemplateEngine = function(j_val) {
 /**
 
  @memberof module:vertx-apex-addons-js/handlebars_template_engine
-
+ @param resourcePrefix {string} 
+ @param extension {string} 
+ @param maxCacheSize {number} 
  @return {HandlebarsTemplateEngine}
  */
 HandlebarsTemplateEngine.create = function() {

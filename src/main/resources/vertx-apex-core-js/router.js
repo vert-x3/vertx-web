@@ -18,7 +18,6 @@
 var utils = require('vertx-js/util/utils');
 var RoutingContext = require('vertx-apex-core-js/routing_context');
 var HttpServerRequest = require('vertx-js/http_server_request');
-var FailureRoutingContext = require('vertx-apex-core-js/failure_routing_context');
 var Route = require('vertx-apex-core-js/route');
 
 var io = Packages.io;
@@ -61,7 +60,7 @@ var Router = function(j_val) {
   /**
 
    @public
-   @param context {FailureRoutingContext} 
+   @param context {RoutingContext} 
    */
   this.handleFailure = function(context) {
     var __args = arguments;
@@ -73,7 +72,8 @@ var Router = function(j_val) {
   /**
 
    @public
-
+   @param method {Object} 
+   @param path {string} 
    @return {Route}
    */
   this.route = function() {
@@ -90,6 +90,7 @@ var Router = function(j_val) {
   /**
 
    @public
+   @param method {Object} 
    @param regex {string} 
    @return {Route}
    */
@@ -99,6 +100,174 @@ var Router = function(j_val) {
       return new Route(j_router.routeWithRegex(__args[0]));
     }  else if (__args.length === 2 && typeof __args[0] === 'string' && typeof __args[1] === 'string') {
       return new Route(j_router.routeWithRegex(io.vertx.core.http.HttpMethod.valueOf(__args[0]), __args[1]));
+    } else utils.invalidArgs();
+  };
+
+  /**
+
+   @public
+   @param path {string} 
+   @return {Route}
+   */
+  this.get = function() {
+    var __args = arguments;
+    if (__args.length === 0) {
+      return new Route(j_router.get());
+    }  else if (__args.length === 1 && typeof __args[0] === 'string') {
+      return new Route(j_router.get(__args[0]));
+    } else utils.invalidArgs();
+  };
+
+  /**
+
+   @public
+   @param path {string} 
+   @return {Route}
+   */
+  this.getWithRegex = function(path) {
+    var __args = arguments;
+    if (__args.length === 1 && typeof __args[0] === 'string') {
+      return new Route(j_router.getWithRegex(path));
+    } else utils.invalidArgs();
+  };
+
+  /**
+
+   @public
+   @param path {string} 
+   @return {Route}
+   */
+  this.head = function() {
+    var __args = arguments;
+    if (__args.length === 0) {
+      return new Route(j_router.head());
+    }  else if (__args.length === 1 && typeof __args[0] === 'string') {
+      return new Route(j_router.head(__args[0]));
+    } else utils.invalidArgs();
+  };
+
+  /**
+
+   @public
+   @param path {string} 
+   @return {Route}
+   */
+  this.headWithRegex = function(path) {
+    var __args = arguments;
+    if (__args.length === 1 && typeof __args[0] === 'string') {
+      return new Route(j_router.headWithRegex(path));
+    } else utils.invalidArgs();
+  };
+
+  /**
+
+   @public
+   @param path {string} 
+   @return {Route}
+   */
+  this.options = function() {
+    var __args = arguments;
+    if (__args.length === 0) {
+      return new Route(j_router.options());
+    }  else if (__args.length === 1 && typeof __args[0] === 'string') {
+      return new Route(j_router.options(__args[0]));
+    } else utils.invalidArgs();
+  };
+
+  /**
+
+   @public
+   @param path {string} 
+   @return {Route}
+   */
+  this.optionsWithRegex = function(path) {
+    var __args = arguments;
+    if (__args.length === 1 && typeof __args[0] === 'string') {
+      return new Route(j_router.optionsWithRegex(path));
+    } else utils.invalidArgs();
+  };
+
+  /**
+
+   @public
+   @param path {string} 
+   @return {Route}
+   */
+  this.put = function() {
+    var __args = arguments;
+    if (__args.length === 0) {
+      return new Route(j_router.put());
+    }  else if (__args.length === 1 && typeof __args[0] === 'string') {
+      return new Route(j_router.put(__args[0]));
+    } else utils.invalidArgs();
+  };
+
+  /**
+
+   @public
+   @param path {string} 
+   @return {Route}
+   */
+  this.putWithRegex = function(path) {
+    var __args = arguments;
+    if (__args.length === 1 && typeof __args[0] === 'string') {
+      return new Route(j_router.putWithRegex(path));
+    } else utils.invalidArgs();
+  };
+
+  /**
+
+   @public
+   @param path {string} 
+   @return {Route}
+   */
+  this.post = function() {
+    var __args = arguments;
+    if (__args.length === 0) {
+      return new Route(j_router.post());
+    }  else if (__args.length === 1 && typeof __args[0] === 'string') {
+      return new Route(j_router.post(__args[0]));
+    } else utils.invalidArgs();
+  };
+
+  /**
+
+   @public
+   @param path {string} 
+   @return {Route}
+   */
+  this.postWithRegex = function(path) {
+    var __args = arguments;
+    if (__args.length === 1 && typeof __args[0] === 'string') {
+      return new Route(j_router.postWithRegex(path));
+    } else utils.invalidArgs();
+  };
+
+  /**
+
+   @public
+   @param path {string} 
+   @return {Route}
+   */
+  this.delete = function() {
+    var __args = arguments;
+    if (__args.length === 0) {
+      return new Route(j_router.delete());
+    }  else if (__args.length === 1 && typeof __args[0] === 'string') {
+      return new Route(j_router.delete(__args[0]));
+    } else utils.invalidArgs();
+  };
+
+  /**
+
+   @public
+   @param path {string} 
+   @return {Route}
+   */
+  this.deleteWithRegex = function(path) {
+    var __args = arguments;
+    if (__args.length === 1 && typeof __args[0] === 'string') {
+      return new Route(j_router.deleteWithRegex(path));
     } else utils.invalidArgs();
   };
 

@@ -52,7 +52,7 @@ var Timeout = function(j_val) {
 /**
 
  @memberof module:vertx-apex-addons-js/timeout
-
+ @param timeout {number} 
  @return {Timeout}
  */
 Timeout.timeout = function() {

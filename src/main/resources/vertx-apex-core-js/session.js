@@ -35,19 +35,6 @@ var Session = function(j_val) {
 
    @public
 
-   @return {Object}
-   */
-  this.data = function() {
-    var __args = arguments;
-    if (__args.length === 0) {
-      return utils.convReturnJson(j_session.data());
-    } else utils.invalidArgs();
-  };
-
-  /**
-
-   @public
-
    @return {string}
    */
   this.id = function() {
@@ -180,6 +167,45 @@ var Session = function(j_val) {
     var __args = arguments;
     if (__args.length === 0) {
       return j_session.getPrincipal();
+    } else utils.invalidArgs();
+  };
+
+  /**
+
+   @public
+   @param key {string} 
+   @param obj {Object} 
+   */
+  this.put = function(key, obj) {
+    var __args = arguments;
+    if (__args.length === 2 && typeof __args[0] === 'string' && true) {
+      j_session.put(key, utils.convParamTypeUnknown(obj));
+    } else utils.invalidArgs();
+  };
+
+  /**
+
+   @public
+   @param key {string} 
+   @return {Object}
+   */
+  this.get = function(key) {
+    var __args = arguments;
+    if (__args.length === 1 && typeof __args[0] === 'string') {
+      return utils.convReturnTypeUnknown(j_session.get(key));
+    } else utils.invalidArgs();
+  };
+
+  /**
+
+   @public
+   @param key {string} 
+   @return {Object}
+   */
+  this.remove = function(key) {
+    var __args = arguments;
+    if (__args.length === 1 && typeof __args[0] === 'string') {
+      return utils.convReturnTypeUnknown(j_session.remove(key));
     } else utils.invalidArgs();
   };
 

@@ -52,7 +52,8 @@ var Favicon = function(j_val) {
 /**
 
  @memberof module:vertx-apex-addons-js/favicon
-
+ @param path {string} 
+ @param maxAge {number} 
  @return {Favicon}
  */
 Favicon.favicon = function() {

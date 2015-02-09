@@ -199,6 +199,19 @@ var StaticServer = function(j_val) {
     } else utils.invalidArgs();
   };
 
+  /**
+
+   @public
+   @param directoryTemplate {string} 
+   @return {StaticServer}
+   */
+  this.setDirectoryTemplate = function(directoryTemplate) {
+    var __args = arguments;
+    if (__args.length === 1 && typeof __args[0] === 'string') {
+      return new StaticServer(j_staticServer.setDirectoryTemplate(directoryTemplate));
+    } else utils.invalidArgs();
+  };
+
   // A reference to the underlying Java delegate
   // NOTE! This is an internal API and must not be used in user code.
   // If you rely on this property your code is likely to break if we change it / remove it without warning.
@@ -208,7 +221,7 @@ var StaticServer = function(j_val) {
 /**
 
  @memberof module:vertx-apex-addons-js/static_server
-
+ @param root {string} 
  @return {StaticServer}
  */
 StaticServer.staticServer = function() {

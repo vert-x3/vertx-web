@@ -43,6 +43,8 @@ var RedirectAuthHandler = function(j_val) {
 
  @memberof module:vertx-apex-addons-js/redirect_auth_handler
  @param authService {AuthService} 
+ @param loginRedirectURL {string} 
+ @param returnURLParam {string} 
  @return {AuthHandler}
  */
 RedirectAuthHandler.redirectAuthHandler = function() {

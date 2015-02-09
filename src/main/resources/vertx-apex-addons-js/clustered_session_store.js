@@ -42,6 +42,7 @@ var ClusteredSessionStore = function(j_val) {
 
  @memberof module:vertx-apex-addons-js/clustered_session_store
  @param vertx {Vertx} 
+ @param sessionMapName {string} 
  @return {SessionStore}
  */
 ClusteredSessionStore.clusteredSessionStore = function() {

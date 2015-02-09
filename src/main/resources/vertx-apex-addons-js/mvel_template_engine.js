@@ -42,7 +42,9 @@ var MVELTemplateEngine = function(j_val) {
 /**
 
  @memberof module:vertx-apex-addons-js/mvel_template_engine
-
+ @param resourcePrefix {string} 
+ @param extension {string} 
+ @param maxCacheSize {number} 
  @return {MVELTemplateEngine}
  */
 MVELTemplateEngine.create = function() {
