@@ -52,7 +52,6 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   private Throwable failure;
   private int statusCode = -1;
   private String normalisedPath;
-  private String pathFromMountPoint;
   private String acceptableContentType;
 
   // We use Cookie as the key too so we can return keySet in cookies() without copying
@@ -64,6 +63,9 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   public RoutingContextImpl(String mountPoint, RouterImpl router, HttpServerRequest request, Iterator<RouteImpl> iter) {
     super(mountPoint, request, iter);
     this.router = router;
+    if (request.path().charAt(0) != '/') {
+      fail(404);
+    }
   }
 
   @Override
@@ -151,15 +153,6 @@ public class RoutingContextImpl extends RoutingContextImplBase {
       normalisedPath = Utils.normalisePath(request.path());
     }
     return normalisedPath;
-  }
-
-  @Override
-  public String pathFromMountPoint() {
-    if (pathFromMountPoint == null) {
-      String path = normalisedPath();
-      pathFromMountPoint = mountPoint == null ? path : path.substring(mountPoint.length());
-    }
-    return pathFromMountPoint;
   }
 
   @Override

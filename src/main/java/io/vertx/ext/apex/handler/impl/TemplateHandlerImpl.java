@@ -34,6 +34,7 @@ package io.vertx.ext.apex.handler.impl;
 
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.ext.apex.handler.TemplateHandler;
+import io.vertx.ext.apex.impl.Utils;
 import io.vertx.ext.apex.templ.TemplateEngine;
 import io.vertx.ext.apex.RoutingContext;
 
@@ -55,7 +56,8 @@ public class TemplateHandlerImpl implements TemplateHandler {
 
   @Override
   public void handle(RoutingContext context) {
-    String file = templateDirectory + context.pathFromMountPoint();
+
+    String file = templateDirectory + Utils.pathOffset(context.normalisedPath(), context);
     engine.render(context, file, res -> {
       if (res.succeeded()) {
         context.response().putHeader(HttpHeaders.CONTENT_TYPE, contentType).end(res.result());
