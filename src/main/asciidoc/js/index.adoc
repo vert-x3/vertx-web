@@ -69,11 +69,17 @@ Here's a hello world web server written using Vert.x core. At this point there i
 [source,java]
 ----
 var server = vertx.createHttpServer();
+
 server.requestHandler(function (request) {
+
+  // This handler gets called for each request that arrives on the server
   var response = request.response();
   response.putHeader("content-type", "text/plain");
+
+  // Write to the response and end it
   response.end("Hello World!");
 });
+
 server.listen(8080);
 
 ----
@@ -140,23 +146,36 @@ You can do this some time later, if you want:
 
 [source,java]
 ----
+
 var route1 = router.route("/some/path/").handler(function (routingContext) {
+
   var response = routingContext.response();
   response.write("route1\n");
+
+  // Call the next matching route after a 5 second delay
   routingContext.vertx().setTimer(5000, function (tid) {
     routingContext.next()});
 });
+
 var route2 = router.route("/some/path/").handler(function (routingContext) {
+
   var response = routingContext.response();
   response.write("route2\n");
+
+  // Call the next matching route after a 5 second delay
   routingContext.vertx().setTimer(5000, function (tid) {
     routingContext.next()});
 });
+
 var route3 = router.route("/some/path/").handler(function (routingContext) {
+
   var response = routingContext.response();
   response.write("route3");
+
+  // Now end the response
   routingContext.response().end();
 });
+
 
 ----
 
@@ -177,9 +196,12 @@ For example `/some/path/foo.html` and `/some/path/otherdir/blah.css` would both 
 
 [source,java]
 ----
+
 var route = router.route().path("/some/path/");
+
 route.handler(function (routingContext) {
 });
+
 
 ----
 
@@ -187,9 +209,12 @@ Alternatively the path can be specified when creating the route:
 
 [source,java]
 ----
+
 var route = router.route("/some/path/");
+
 route.handler(function (routingContext) {
 });
+
 
 ----
 
@@ -202,11 +227,17 @@ Here's an example
 
 [source,java]
 ----
+
 var route = router.route('POST', "/catalogue/products/:productype/:productid/");
+
 route.handler(function (routingContext) {
+
   var productType = routingContext.request().getParam("producttype");
   var productID = routingContext.request().getParam("productid");
+
+  // Do something with them...
 });
+
 
 ----
 
@@ -224,9 +255,13 @@ As in straight path matching the regex is not an *exact match* for the path, but
 
 [source,java]
 ----
+
+// Matches any path ending with 'foo'
 var route = router.route().pathRegex(".*foo");
+
 route.handler(function (routingContext) {
 });
+
 
 ----
 
@@ -234,9 +269,12 @@ Alternatively the regex can be specified when creating the route:
 
 [source,java]
 ----
+
 var route = router.routeWithRegex(".*foo");
+
 route.handler(function (routingContext) {
 });
+
 
 ----
 
@@ -246,11 +284,20 @@ You can also capture path parameters when using regular expressions, here's an e
 
 [source,java]
 ----
+
 var route = router.routeWithRegex(".*foo");
+
+// This regular expression matches paths that start with something like:
+// "/foo/bar" - where the "foo" is captured into param0 and the "bar" is captured into
+// param1
 route.pathRegex("\\/([^\\/]+)\\/([^\\/]+)").handler(function (routingContext) {
+
   var productType = routingContext.request().getParam("param0");
   var productID = routingContext.request().getParam("param1");
+
+  // Do something with them...
 });
+
 
 ----
 
@@ -267,9 +314,12 @@ If you want a route to only match for a specific HTTP method you can use `link:j
 
 [source,java]
 ----
+
 var route = router.route().method('POST');
+
 route.handler(function (routingContext) {
 });
+
 
 ----
 
@@ -277,9 +327,12 @@ Or you can specify this with a path when creating the route:
 
 [source,java]
 ----
+
 var route = router.route('POST', "/some/path/");
+
 route.handler(function (routingContext) {
 });
+
 
 ----
 
@@ -289,12 +342,18 @@ method name. For example:
 
 [source,java]
 ----
+
 router.get().handler(function (routingContext) {
 });
+
 router.get("/some/path/").handler(function (routingContext) {
 });
+
 router.getWithRegex(".*foo").handler(function (routingContext) {
 });
+
+// There are also equivalents to the above for PUT, POST, DELETE, HEAD and OPTIONS
+
 
 ----
 
@@ -303,9 +362,12 @@ multiple times:
 
 [source,java]
 ----
+
 var route = router.route().method('POST').method('PUT');
+
 route.handler(function (routingContext) {
 });
+
 
 ----
 
@@ -323,21 +385,34 @@ Here's an example to illustrate this:
 
 [source,java]
 ----
+
 var route1 = router.route("/some/path/").handler(function (routingContext) {
+
   var response = routingContext.response();
   response.write("route1\n");
+
+  // Now call the next matching route
   routingContext.next();
 });
+
 var route2 = router.route("/some/path/").handler(function (routingContext) {
+
   var response = routingContext.response();
   response.write("route2\n");
+
+  // Now call the next matching route
   routingContext.next();
 });
+
 var route3 = router.route("/some/path/").handler(function (routingContext) {
+
   var response = routingContext.response();
   response.write("route3");
+
+  // Now end the response
   routingContext.response().end();
 });
+
 
 ----
 
@@ -364,21 +439,35 @@ Let's change the ordering of route2 so it runs before route1:
 
 [source,java]
 ----
+
 var route1 = router.route("/some/path/").handler(function (routingContext) {
+
   var response = routingContext.response();
   response.write("route1\n");
+
+  // Now call the next matching route
   routingContext.next();
 });
+
 var route2 = router.route("/some/path/").handler(function (routingContext) {
+
   var response = routingContext.response();
   response.write("route2\n");
+
+  // Now call the next matching route
   routingContext.next();
 });
+
 var route3 = router.route("/some/path/").handler(function (routingContext) {
+
   var response = routingContext.response();
   response.write("route3");
+
+  // Now end the response
   routingContext.response().end();
 });
+
+// Change the order of route2 so it runs before route1
 route2.order(-1);
 
 ----
@@ -408,6 +497,8 @@ Matching can be done on exact MIME type matches:
 
 [source,java]
 ----
+
+// Exact match
 router.route().consumes("text/html").handler(function (routingContext) {
 });
 
@@ -417,6 +508,8 @@ Multiple exact matches can also be specified:
 
 [source,java]
 ----
+
+// Multiple exact matches
 router.route().consumes("text/html").consumes("text/plain").handler(function (routingContext) {
 });
 
@@ -426,6 +519,8 @@ Matching on wildcards for the sub-type is supported:
 
 [source,java]
 ----
+
+// Sub-type wildcard match
 router.route().consumes("text/*").handler(function (routingContext) {
 });
 
@@ -435,6 +530,8 @@ And you can also match on the top level type
 
 [source,java]
 ----
+
+// Top level type wildcard match
 router.route().consumes("*/json").handler(function (routingContext) {
 });
 
@@ -472,10 +569,13 @@ following handler produces a response with MIME type `application/json`.
 
 [source,java]
 ----
+
 router.route().produces("application/json").handler(function (routingContext) {
+
   var response = routingContext.response();
   response.putHeader("content-type", "application/json");
   response.write(someJSON).end();
+
 });
 
 ----
@@ -495,9 +595,15 @@ was accepted.
 
 [source,java]
 ----
+
+// This route can produce two different MIME types
 router.route().produces("application/json").produces("text/html").handler(function (routingContext) {
+
   var response = routingContext.response();
+
+  // Get the actual MIME type acceptable
   var acceptableContentType = routingContext.getAcceptableContentType();
+
   response.putHeader("content-type", acceptableContentType);
   response.write(whatever).end();
 });
@@ -517,9 +623,12 @@ You can combine all the above routing criteria in many different ways, for examp
 
 [source,java]
 ----
+
 var route = router.route('PUT', "myapi/orders").consumes("application/json").produces("application/json");
+
 route.handler(function (routingContext) {
 });
+
 
 ----
 
@@ -543,14 +652,22 @@ A request sent to path `/some/path/other` will match both routes.
 
 [source,java]
 ----
+
 router.get("/some/path").handler(function (routingContext) {
+
   routingContext.put("foo", "bar");
   routingContext.next();
+
 });
+
 router.get("/some/path/other").handler(function (routingContext) {
+
   var bar = routingContext.get("foo");
+  // Do something with bar
   routingContext.response().end();
+
 });
+
 
 ----
 
@@ -574,15 +691,28 @@ Here's the sub-router:
 [source,java]
 ----
 var Router = require("vertx-apex-js/router");
+
 var restAPI = Router.router(vertx);
+
 restAPI.get("/products/:productID").handler(function (rc) {
+
+  // TODO Handle the lookup of the product....
   rc.response().write(productJSON);
+
 });
+
 restAPI.put("/products/:productID").handler(function (rc) {
+
+  // TODO Add a new product...
   rc.response().end();
+
 });
+
 restAPI.delete("/products/:productID").handler(function (rc) {
+
+  // TODO delete the product...
   rc.response().end();
+
 });
 
 ----
@@ -596,7 +726,10 @@ However, let's say we already have a web-site as described by another router:
 ----
 var Router = require("vertx-apex-js/router");
 var mainRouter = Router.router(vertx);
+
+// Handle static resources
 mainRouter.route("/static").handler(myStaticHandler);
+
 mainRouter.route(".*\\.templ").handler(myTemplateHandler);
 
 ----
@@ -605,7 +738,9 @@ We can now mount the sub router on the main router, against a mount point, in th
 
 [source,java]
 ----
+
 mainRouter.mountSubRouter("/productsAPI", restAPI);
+
 
 ----
 
@@ -633,7 +768,9 @@ to paths that start with `/somepath/`:
 
 [source,java]
 ----
+
 var route = router.get("/somepath/");
+
 route.failureHandler(function (frc) {
 });
 
@@ -662,7 +799,10 @@ You should make sure a body handler is on a matching route for any requests that
 [source,java]
 ----
 var BodyHandler = require("vertx-apex-js/body_handler");
+
+// This body handler will be called for all routes
 router.route().handler(BodyHandler.create());
+
 
 ----
 
@@ -697,9 +837,14 @@ Here's an example:
 [source,java]
 ----
 var BodyHandler = require("vertx-apex-js/body_handler");
+
 router.route().handler(BodyHandler.create());
+
 router.post("/some/path/uploads").handler(function (routingContext) {
+
   var uploads = routingContext.fileUploads();
+  // Do something with uploads....
+
 });
 
 ----
@@ -716,7 +861,10 @@ You should make sure a cookie handler is on a matching route for any requests th
 [source,java]
 ----
 var CookieHandler = require("vertx-apex-js/cookie_handler");
+
+// This cookie handler will be called for all routes
 router.route().handler(CookieHandler.create());
+
 
 ----
 
@@ -741,10 +889,18 @@ Here's an example of querying and adding cookies:
 ----
 var CookieHandler = require("vertx-apex-js/cookie_handler");
 var Cookie = require("vertx-apex-js/cookie");
+
+// This cookie handler will be called for all routes
 router.route().handler(CookieHandler.create());
+
 router.route("some/path/").handler(function (routingContext) {
+
   var someCookie = routingContext.getCookie("mycookie");
   var cookieValue = someCookie.getValue();
+
+  // Do something with cookie...
+
+  // Add a cookie - this will get written back in the response automatically
   routingContext.addCookie(Cookie.cookie("othercookie", "somevalue"));
 });
 
@@ -801,9 +957,19 @@ Here are some examples of creating a `link:jsdoc/local_session_store-LocalSessio
 [source,java]
 ----
 var LocalSessionStore = require("vertx-apex-js/local_session_store");
+
+// Create a local session store using defaults
 var store1 = LocalSessionStore.create(vertx);
+
+// Create a local session store specifying the local shared map name to use
+// This might be useful if you have more than one application in the same
+// Vert.x instance and want to use different maps for different applications
 var store2 = LocalSessionStore.create(vertx, "myapp3.sessionmap");
+
+// Create a local session store specifying the local shared map name to use and
+// setting the reaper period for expired sessions to 10 seconds
 var store3 = LocalSessionStore.create(vertx, "myapp3.sessionmap", 10000);
+
 
 ----
 
@@ -824,13 +990,23 @@ Here are some examples of creating a `link:jsdoc/clustered_session_store-Cluster
 ----
 var Vertx = require("vertx-js/vertx");
 var ClusteredSessionStore = require("vertx-apex-js/clustered_session_store");
+
+// a clustered Vert.x
 Vertx.clusteredVertx({
   "clustered" : true
 }, function (res, res_err) {
+
   var vertx = res;
+
+  // Create a clustered session store using defaults
   var store1 = ClusteredSessionStore.create(vertx);
+
+  // Create a clustered session store specifying the distributed map name to use
+  // This might be useful if you have more than one application in the cluster
+  // and want to use different maps for different applications
   var store2 = ClusteredSessionStore.create(vertx, "myclusteredapp3.sessionmap");
 });
+
 
 ----
 
@@ -850,15 +1026,29 @@ var Router = require("vertx-apex-js/router");
 var CookieHandler = require("vertx-apex-js/cookie_handler");
 var ClusteredSessionStore = require("vertx-apex-js/clustered_session_store");
 var SessionHandler = require("vertx-apex-js/session_handler");
+
 var router = Router.router(vertx);
+
+// We need a cookie handler first
 router.route().handler(CookieHandler.create());
+
+// Create a clustered session store using defaults
 var store = ClusteredSessionStore.create(vertx);
+
 var sessionHandler = SessionHandler.create(store);
+
+// Make sure all requests are routed through the session handler too
 router.route().handler(sessionHandler);
+
+// Now your application handlers
 router.route("/somepath/blah/").handler(function (routingContext) {
+
   var session = routingContext.session();
   session.put("foo", "bar");
+  // etc
+
 });
+
 
 ----
 
@@ -882,14 +1072,26 @@ Here's an example of manipulating session data:
 [source,java]
 ----
 var CookieHandler = require("vertx-apex-js/cookie_handler");
+
 router.route().handler(CookieHandler.create());
 router.route().handler(sessionHandler);
+
+// Now your application handlers
 router.route("/somepath/blah").handler(function (routingContext) {
+
   var session = routingContext.session();
+
+  // Put some data from the session
   session.put("foo", "bar");
+
+  // Retrieve some data from a session
   var age = session.get("age");
+
+  // Remove some data from a session
   var obj = session.remove("myobj");
+
 });
+
 
 ----
 
@@ -924,10 +1126,15 @@ an auth handler from that, but it's the same principle whatever concrete auth se
 ----
 var AuthService = require("vertx-auth-js/auth_service");
 var BasicAuthHandler = require("vertx-apex-js/basic_auth_handler");
+
+// Create a simple local auth service that gets user data from properties file
+// See the AuthService documentation for how to configure the auth service
+
 var config = {
 };
 config.Java.type("io.vertx.ext.auth.PropertiesAuthRealmConstants").PROPERTIES_PROPS_PATH_FIELD = "classpath:test-auth.properties";
 var authService = AuthService.create(vertx, config);
+
 var basicAuthHandler = BasicAuthHandler.create(authService);
 
 ----
@@ -938,7 +1145,11 @@ And here's an example of creating an auth service proxy to an existing auth serv
 ----
 var AuthService = require("vertx-auth-js/auth_service");
 var BasicAuthHandler = require("vertx-apex-js/basic_auth_handler");
+
+// Let's say you already have an auth service somewhere on your network listening on event bus address `acme.authservice`.
+
 var authService = AuthService.createEventBusProxy(vertx, "acme.authservice");
+
 var basicAuthHandler = BasicAuthHandler.create(authService);
 
 ----
@@ -952,10 +1163,13 @@ var SessionHandler = require("vertx-apex-js/session_handler");
 var LocalSessionStore = require("vertx-apex-js/local_session_store");
 var AuthService = require("vertx-auth-js/auth_service");
 var BasicAuthHandler = require("vertx-apex-js/basic_auth_handler");
+
 router.route().handler(CookieHandler.create());
 router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
+
 var authService = AuthService.createEventBusProxy(vertx, "acme.authservice");
 var basicAuthHandler = BasicAuthHandler.create(authService);
+
 
 ----
 
@@ -971,15 +1185,26 @@ var SessionHandler = require("vertx-apex-js/session_handler");
 var LocalSessionStore = require("vertx-apex-js/local_session_store");
 var AuthService = require("vertx-auth-js/auth_service");
 var BasicAuthHandler = require("vertx-apex-js/basic_auth_handler");
+
 router.route().handler(CookieHandler.create());
 router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
+
 var authService = AuthService.createEventBusProxy(vertx, "acme.authservice");
 var basicAuthHandler = BasicAuthHandler.create(authService);
+
+// All requests to paths starting with '/private/' will be protected
 router.route("/private/").handler(basicAuthHandler);
+
 router.route("/someotherpath").handler(function (routingContext) {
 });
+
 router.route("/private/somepath").handler(function (routingContext) {
+
+  // This will require a login
+
+  // This will have the value true
   var isLoggedIn = routingContext.session().isLoggedIn();
+
 });
 
 ----
@@ -1038,18 +1263,34 @@ var AuthService = require("vertx-auth-js/auth_service");
 var RedirectAuthHandler = require("vertx-apex-js/redirect_auth_handler");
 var FormLoginHandler = require("vertx-apex-js/form_login_handler");
 var StaticHandler = require("vertx-apex-js/static_handler");
+
 router.route().handler(CookieHandler.create());
 router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
+
 var authService = AuthService.createEventBusProxy(vertx, "acme.authservice");
 var redirectAuthHandler = RedirectAuthHandler.create(authService);
+
+// All requests to paths starting with '/private/' will be protected
 router.route("/private/").handler(redirectAuthHandler);
+
+// Handle the actual login
 router.route("/login").handler(FormLoginHandler.create(authService));
+
+// Set a static server to serve static resources, e.g. the login page
 router.route().handler(StaticHandler.create());
+
 router.route("/someotherpath").handler(function (routingContext) {
 });
+
 router.route("/private/somepath").handler(function (routingContext) {
+
+  // This will require a login
+
+  // This will have the value true
   var isLoggedIn = routingContext.session().isLoggedIn();
+
 });
+
 
 ----
 
@@ -1066,12 +1307,19 @@ app:
 [source,java]
 ----
 var RedirectAuthHandler = require("vertx-apex-js/redirect_auth_handler");
+
 var managerAuthHandler = RedirectAuthHandler.create(authService);
 managerAuthHandler.addRole("manager").addRole("admin");
+
+// Roles "manager" and "admin" have access to /private/managers
 router.route("/private/managers").handler(managerAuthHandler);
+
 var settingsAuthHandler = RedirectAuthHandler.create(authService);
 settingsAuthHandler.addRole("admin");
+
+// Only "admin" has access to /private/settings
 router.route("/private/settings").handler(settingsAuthHandler);
+
 
 ----
 
@@ -1095,7 +1343,9 @@ In the following example all requests to paths starting with `/static/` will get
 [source,java]
 ----
 var StaticHandler = require("vertx-apex-js/static_handler");
+
 router.route("/static/").handler(StaticHandler.create());
+
 
 ----
 
@@ -1177,7 +1427,10 @@ Here's an example:
 [source,java]
 ----
 var CorsHandler = require("vertx-apex-js/cors_handler");
+
+// Will only accept GET requests from origin "vertx.io"
 router.route().handler(CorsHandler.create("vertx\\.io").allowedMethod('GET'));
+
 router.route().handler(function (routingContext) {
 });
 
@@ -1209,10 +1462,17 @@ Here are some examples
 ----
 var HandlebarsTemplateEngine = require("vertx-apex-js/handlebars_template_engine");
 var TemplateHandler = require("vertx-apex-js/template_handler");
+
 var engine = HandlebarsTemplateEngine.create();
 var handler = TemplateHandler.create(engine);
+
+// This will route all GET requests starting with /dynamic/ to the template handler
+// E.g. /dynamic/graph.hbs will look for a template in /templates/dynamic/graph.hbs
 router.get("/dynamic/").handler(handler);
+
+// Route all GET requests for resource ending in .hbs to the template handler
 router.getWithRegex(".+\\.hbs").handler(handler);
+
 
 ----
 
@@ -1277,14 +1537,20 @@ add it the context data in a handler before the template handler. For example:
 ----
 var HandlebarsTemplateEngine = require("vertx-apex-js/handlebars_template_engine");
 var TemplateHandler = require("vertx-apex-js/template_handler");
+
 var engine = HandlebarsTemplateEngine.create();
 var handler = TemplateHandler.create(engine);
+
 router.get("/dynamic").handler(function (routingContext) {
+
   routingContext.put("request_path", routingContext.request().path());
   routingContext.put("session_data", routingContext.session().data());
+
   routingContext.next();
 });
+
 router.get("/dynamic/").handler(handler);
+
 
 ----
 
@@ -1351,7 +1617,9 @@ seconds:
 [source,java]
 ----
 var TimeoutHandler = require("vertx-apex-js/timeout_handler");
+
 router.route("/foo/").handler(TimeoutHandler.create(5000));
+
 
 ----
 
