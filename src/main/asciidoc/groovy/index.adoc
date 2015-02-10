@@ -68,13 +68,19 @@ Here's a hello world web server written using Vert.x core. At this point there i
 
 [source,java]
 ----
-def server = vertx.createHttpServer();
+def server = vertx.createHttpServer()
+
 server.requestHandler({ request ->
-  def response = request.response();
-  response.putHeader("content-type", "text/plain");
-  response.end("Hello World!");
-});
-server.listen(8080);
+
+  // This handler gets called for each request that arrives on the server
+  def response = request.response()
+  response.putHeader("content-type", "text/plain")
+
+  // Write to the response and end it
+  response.end("Hello World!")
+})
+
+server.listen(8080)
 
 ----
 
@@ -140,23 +146,36 @@ You can do this some time later, if you want:
 
 [source,java]
 ----
+
 def route1 = router.route("/some/path/").handler({ routingContext ->
-  def response = routingContext.response();
-  response.write("route1\n");
+
+  def response = routingContext.response()
+  response.write("route1\n")
+
+  // Call the next matching route after a 5 second delay
   routingContext.vertx().setTimer(5000, { tid ->
-    routingContext.next()});
-});
+    routingContext.next()})
+})
+
 def route2 = router.route("/some/path/").handler({ routingContext ->
-  def response = routingContext.response();
-  response.write("route2\n");
+
+  def response = routingContext.response()
+  response.write("route2\n")
+
+  // Call the next matching route after a 5 second delay
   routingContext.vertx().setTimer(5000, { tid ->
-    routingContext.next()});
-});
+    routingContext.next()})
+})
+
 def route3 = router.route("/some/path/").handler({ routingContext ->
-  def response = routingContext.response();
-  response.write("route3");
-  routingContext.response().end();
-});
+
+  def response = routingContext.response()
+  response.write("route3")
+
+  // Now end the response
+  routingContext.response().end()
+})
+
 
 ----
 
@@ -177,9 +196,12 @@ For example `/some/path/foo.html` and `/some/path/otherdir/blah.css` would both 
 
 [source,java]
 ----
-def route = router.route().path("/some/path/");
+
+def route = router.route().path("/some/path/")
+
 route.handler({ routingContext ->
-});
+})
+
 
 ----
 
@@ -187,9 +209,12 @@ Alternatively the path can be specified when creating the route:
 
 [source,java]
 ----
-def route = router.route("/some/path/");
+
+def route = router.route("/some/path/")
+
 route.handler({ routingContext ->
-});
+})
+
 
 ----
 
@@ -202,11 +227,17 @@ Here's an example
 
 [source,java]
 ----
-def route = router.route('POST', "/catalogue/products/:productype/:productid/");
+
+def route = router.route('POST', "/catalogue/products/:productype/:productid/")
+
 route.handler({ routingContext ->
-  def productType = routingContext.request().getParam("producttype");
-  def productID = routingContext.request().getParam("productid");
-});
+
+  def productType = routingContext.request().getParam("producttype")
+  def productID = routingContext.request().getParam("productid")
+
+  // Do something with them...
+})
+
 
 ----
 
@@ -224,9 +255,13 @@ As in straight path matching the regex is not an *exact match* for the path, but
 
 [source,java]
 ----
-def route = router.route().pathRegex(".*foo");
+
+// Matches any path ending with 'foo'
+def route = router.route().pathRegex(".*foo")
+
 route.handler({ routingContext ->
-});
+})
+
 
 ----
 
@@ -234,9 +269,12 @@ Alternatively the regex can be specified when creating the route:
 
 [source,java]
 ----
-def route = router.routeWithRegex(".*foo");
+
+def route = router.routeWithRegex(".*foo")
+
 route.handler({ routingContext ->
-});
+})
+
 
 ----
 
@@ -246,11 +284,20 @@ You can also capture path parameters when using regular expressions, here's an e
 
 [source,java]
 ----
-def route = router.routeWithRegex(".*foo");
+
+def route = router.routeWithRegex(".*foo")
+
+// This regular expression matches paths that start with something like:
+// "/foo/bar" - where the "foo" is captured into param0 and the "bar" is captured into
+// param1
 route.pathRegex("\\/([^\\/]+)\\/([^\\/]+)").handler({ routingContext ->
-  def productType = routingContext.request().getParam("param0");
-  def productID = routingContext.request().getParam("param1");
-});
+
+  def productType = routingContext.request().getParam("param0")
+  def productID = routingContext.request().getParam("param1")
+
+  // Do something with them...
+})
+
 
 ----
 
@@ -267,9 +314,12 @@ If you want a route to only match for a specific HTTP method you can use `link:g
 
 [source,java]
 ----
-def route = router.route().method('POST');
+
+def route = router.route().method('POST')
+
 route.handler({ routingContext ->
-});
+})
+
 
 ----
 
@@ -277,9 +327,12 @@ Or you can specify this with a path when creating the route:
 
 [source,java]
 ----
-def route = router.route('POST', "/some/path/");
+
+def route = router.route('POST', "/some/path/")
+
 route.handler({ routingContext ->
-});
+})
+
 
 ----
 
@@ -289,12 +342,18 @@ method name. For example:
 
 [source,java]
 ----
+
 router.get().handler({ routingContext ->
-});
+})
+
 router.get("/some/path/").handler({ routingContext ->
-});
+})
+
 router.getWithRegex(".*foo").handler({ routingContext ->
-});
+})
+
+// There are also equivalents to the above for PUT, POST, DELETE, HEAD and OPTIONS
+
 
 ----
 
@@ -303,9 +362,12 @@ multiple times:
 
 [source,java]
 ----
-def route = router.route().method('POST').method('PUT');
+
+def route = router.route().method('POST').method('PUT')
+
 route.handler({ routingContext ->
-});
+})
+
 
 ----
 
@@ -323,21 +385,34 @@ Here's an example to illustrate this:
 
 [source,java]
 ----
+
 def route1 = router.route("/some/path/").handler({ routingContext ->
-  def response = routingContext.response();
-  response.write("route1\n");
-  routingContext.next();
-});
+
+  def response = routingContext.response()
+  response.write("route1\n")
+
+  // Now call the next matching route
+  routingContext.next()
+})
+
 def route2 = router.route("/some/path/").handler({ routingContext ->
-  def response = routingContext.response();
-  response.write("route2\n");
-  routingContext.next();
-});
+
+  def response = routingContext.response()
+  response.write("route2\n")
+
+  // Now call the next matching route
+  routingContext.next()
+})
+
 def route3 = router.route("/some/path/").handler({ routingContext ->
-  def response = routingContext.response();
-  response.write("route3");
-  routingContext.response().end();
-});
+
+  def response = routingContext.response()
+  response.write("route3")
+
+  // Now end the response
+  routingContext.response().end()
+})
+
 
 ----
 
@@ -364,22 +439,36 @@ Let's change the ordering of route2 so it runs before route1:
 
 [source,java]
 ----
+
 def route1 = router.route("/some/path/").handler({ routingContext ->
-  def response = routingContext.response();
-  response.write("route1\n");
-  routingContext.next();
-});
+
+  def response = routingContext.response()
+  response.write("route1\n")
+
+  // Now call the next matching route
+  routingContext.next()
+})
+
 def route2 = router.route("/some/path/").handler({ routingContext ->
-  def response = routingContext.response();
-  response.write("route2\n");
-  routingContext.next();
-});
+
+  def response = routingContext.response()
+  response.write("route2\n")
+
+  // Now call the next matching route
+  routingContext.next()
+})
+
 def route3 = router.route("/some/path/").handler({ routingContext ->
-  def response = routingContext.response();
-  response.write("route3");
-  routingContext.response().end();
-});
-route2.order(-1);
+
+  def response = routingContext.response()
+  response.write("route3")
+
+  // Now end the response
+  routingContext.response().end()
+})
+
+// Change the order of route2 so it runs before route1
+route2.order(-1)
 
 ----
 
@@ -408,8 +497,10 @@ Matching can be done on exact MIME type matches:
 
 [source,java]
 ----
+
+// Exact match
 router.route().consumes("text/html").handler({ routingContext ->
-});
+})
 
 ----
 
@@ -417,8 +508,10 @@ Multiple exact matches can also be specified:
 
 [source,java]
 ----
+
+// Multiple exact matches
 router.route().consumes("text/html").consumes("text/plain").handler({ routingContext ->
-});
+})
 
 ----
 
@@ -426,8 +519,10 @@ Matching on wildcards for the sub-type is supported:
 
 [source,java]
 ----
+
+// Sub-type wildcard match
 router.route().consumes("text/*").handler({ routingContext ->
-});
+})
 
 ----
 
@@ -435,8 +530,10 @@ And you can also match on the top level type
 
 [source,java]
 ----
+
+// Top level type wildcard match
 router.route().consumes("*/json").handler({ routingContext ->
-});
+})
 
 ----
 
@@ -472,11 +569,14 @@ following handler produces a response with MIME type `application/json`.
 
 [source,java]
 ----
+
 router.route().produces("application/json").handler({ routingContext ->
-  def response = routingContext.response();
-  response.putHeader("content-type", "application/json");
-  response.write(someJSON).end();
-});
+
+  def response = routingContext.response()
+  response.putHeader("content-type", "application/json")
+  response.write(someJSON).end()
+
+})
 
 ----
 
@@ -495,12 +595,18 @@ was accepted.
 
 [source,java]
 ----
+
+// This route can produce two different MIME types
 router.route().produces("application/json").produces("text/html").handler({ routingContext ->
-  def response = routingContext.response();
-  def acceptableContentType = routingContext.getAcceptableContentType();
-  response.putHeader("content-type", acceptableContentType);
-  response.write(whatever).end();
-});
+
+  def response = routingContext.response()
+
+  // Get the actual MIME type acceptable
+  def acceptableContentType = routingContext.getAcceptableContentType()
+
+  response.putHeader("content-type", acceptableContentType)
+  response.write(whatever).end()
+})
 
 ----
 
@@ -517,9 +623,12 @@ You can combine all the above routing criteria in many different ways, for examp
 
 [source,java]
 ----
-def route = router.route('PUT', "myapi/orders").consumes("application/json").produces("application/json");
+
+def route = router.route('PUT', "myapi/orders").consumes("application/json").produces("application/json")
+
 route.handler({ routingContext ->
-});
+})
+
 
 ----
 
@@ -543,14 +652,22 @@ A request sent to path `/some/path/other` will match both routes.
 
 [source,java]
 ----
+
 router.get("/some/path").handler({ routingContext ->
-  routingContext.put("foo", "bar");
-  routingContext.next();
-});
+
+  routingContext.put("foo", "bar")
+  routingContext.next()
+
+})
+
 router.get("/some/path/other").handler({ routingContext ->
-  def bar = routingContext.get("foo");
-  routingContext.response().end();
-});
+
+  def bar = routingContext.get("foo")
+  // Do something with bar
+  routingContext.response().end()
+
+})
+
 
 ----
 
@@ -574,16 +691,29 @@ Here's the sub-router:
 [source,java]
 ----
 import io.vertx.groovy.ext.apex.Router
-def restAPI = Router.router(vertx);
+
+def restAPI = Router.router(vertx)
+
 restAPI.get("/products/:productID").handler({ rc ->
-  rc.response().write(productJSON);
-});
+
+  // TODO Handle the lookup of the product....
+  rc.response().write(productJSON)
+
+})
+
 restAPI.put("/products/:productID").handler({ rc ->
-  rc.response().end();
-});
+
+  // TODO Add a new product...
+  rc.response().end()
+
+})
+
 restAPI.delete("/products/:productID").handler({ rc ->
-  rc.response().end();
-});
+
+  // TODO delete the product...
+  rc.response().end()
+
+})
 
 ----
 
@@ -595,9 +725,12 @@ However, let's say we already have a web-site as described by another router:
 [source,java]
 ----
 import io.vertx.groovy.ext.apex.Router
-def mainRouter = Router.router(vertx);
-mainRouter.route("/static").handler(myStaticHandler);
-mainRouter.route(".*\\.templ").handler(myTemplateHandler);
+def mainRouter = Router.router(vertx)
+
+// Handle static resources
+mainRouter.route("/static").handler(myStaticHandler)
+
+mainRouter.route(".*\\.templ").handler(myTemplateHandler)
 
 ----
 
@@ -605,7 +738,9 @@ We can now mount the sub router on the main router, against a mount point, in th
 
 [source,java]
 ----
-mainRouter.mountSubRouter("/productsAPI", restAPI);
+
+mainRouter.mountSubRouter("/productsAPI", restAPI)
+
 
 ----
 
@@ -633,9 +768,11 @@ to paths that start with `/somepath/`:
 
 [source,java]
 ----
-def route = router.get("/somepath/");
+
+def route = router.get("/somepath/")
+
 route.failureHandler({ frc ->
-});
+})
 
 ----
 
@@ -662,7 +799,10 @@ You should make sure a body handler is on a matching route for any requests that
 [source,java]
 ----
 import io.vertx.groovy.ext.apex.handler.BodyHandler
-router.route().handler(BodyHandler.create());
+
+// This body handler will be called for all routes
+router.route().handler(BodyHandler.create())
+
 
 ----
 
@@ -697,10 +837,15 @@ Here's an example:
 [source,java]
 ----
 import io.vertx.groovy.ext.apex.handler.BodyHandler
-router.route().handler(BodyHandler.create());
+
+router.route().handler(BodyHandler.create())
+
 router.post("/some/path/uploads").handler({ routingContext ->
-  def uploads = routingContext.fileUploads();
-});
+
+  def uploads = routingContext.fileUploads()
+  // Do something with uploads....
+
+})
 
 ----
 
@@ -716,7 +861,10 @@ You should make sure a cookie handler is on a matching route for any requests th
 [source,java]
 ----
 import io.vertx.groovy.ext.apex.handler.CookieHandler
-router.route().handler(CookieHandler.create());
+
+// This cookie handler will be called for all routes
+router.route().handler(CookieHandler.create())
+
 
 ----
 
@@ -741,12 +889,20 @@ Here's an example of querying and adding cookies:
 ----
 import io.vertx.groovy.ext.apex.handler.CookieHandler
 import io.vertx.groovy.ext.apex.Cookie
-router.route().handler(CookieHandler.create());
+
+// This cookie handler will be called for all routes
+router.route().handler(CookieHandler.create())
+
 router.route("some/path/").handler({ routingContext ->
-  def someCookie = routingContext.getCookie("mycookie");
-  def cookieValue = someCookie.getValue();
-  routingContext.addCookie(Cookie.cookie("othercookie", "somevalue"));
-});
+
+  def someCookie = routingContext.getCookie("mycookie")
+  def cookieValue = someCookie.getValue()
+
+  // Do something with cookie...
+
+  // Add a cookie - this will get written back in the response automatically
+  routingContext.addCookie(Cookie.cookie("othercookie", "somevalue"))
+})
 
 ----
 
@@ -801,9 +957,19 @@ Here are some examples of creating a `link:groovydoc/io/vertx/groovy/ext/apex/ss
 [source,java]
 ----
 import io.vertx.groovy.ext.apex.sstore.LocalSessionStore
-def store1 = LocalSessionStore.create(vertx);
-def store2 = LocalSessionStore.create(vertx, "myapp3.sessionmap");
-def store3 = LocalSessionStore.create(vertx, "myapp3.sessionmap", 10000);
+
+// Create a local session store using defaults
+def store1 = LocalSessionStore.create(vertx)
+
+// Create a local session store specifying the local shared map name to use
+// This might be useful if you have more than one application in the same
+// Vert.x instance and want to use different maps for different applications
+def store2 = LocalSessionStore.create(vertx, "myapp3.sessionmap")
+
+// Create a local session store specifying the local shared map name to use and
+// setting the reaper period for expired sessions to 10 seconds
+def store3 = LocalSessionStore.create(vertx, "myapp3.sessionmap", 10000)
+
 
 ----
 
@@ -824,13 +990,23 @@ Here are some examples of creating a `link:groovydoc/io/vertx/groovy/ext/apex/ss
 ----
 import io.vertx.groovy.core.Vertx
 import io.vertx.groovy.ext.apex.sstore.ClusteredSessionStore
+
+// a clustered Vert.x
 Vertx.clusteredVertx([
   clustered:true
 ], { res ->
-  def vertx = res.result();
-  def store1 = ClusteredSessionStore.create(vertx);
-  def store2 = ClusteredSessionStore.create(vertx, "myclusteredapp3.sessionmap");
-});
+
+  def vertx = res.result()
+
+  // Create a clustered session store using defaults
+  def store1 = ClusteredSessionStore.create(vertx)
+
+  // Create a clustered session store specifying the distributed map name to use
+  // This might be useful if you have more than one application in the cluster
+  // and want to use different maps for different applications
+  def store2 = ClusteredSessionStore.create(vertx, "myclusteredapp3.sessionmap")
+})
+
 
 ----
 
@@ -850,15 +1026,29 @@ import io.vertx.groovy.ext.apex.Router
 import io.vertx.groovy.ext.apex.handler.CookieHandler
 import io.vertx.groovy.ext.apex.sstore.ClusteredSessionStore
 import io.vertx.groovy.ext.apex.handler.SessionHandler
-def router = Router.router(vertx);
-router.route().handler(CookieHandler.create());
-def store = ClusteredSessionStore.create(vertx);
-def sessionHandler = SessionHandler.create(store);
-router.route().handler(sessionHandler);
+
+def router = Router.router(vertx)
+
+// We need a cookie handler first
+router.route().handler(CookieHandler.create())
+
+// Create a clustered session store using defaults
+def store = ClusteredSessionStore.create(vertx)
+
+def sessionHandler = SessionHandler.create(store)
+
+// Make sure all requests are routed through the session handler too
+router.route().handler(sessionHandler)
+
+// Now your application handlers
 router.route("/somepath/blah/").handler({ routingContext ->
-  def session = routingContext.session();
-  session.put("foo", "bar");
-});
+
+  def session = routingContext.session()
+  session.put("foo", "bar")
+  // etc
+
+})
+
 
 ----
 
@@ -882,14 +1072,26 @@ Here's an example of manipulating session data:
 [source,java]
 ----
 import io.vertx.groovy.ext.apex.handler.CookieHandler
-router.route().handler(CookieHandler.create());
-router.route().handler(sessionHandler);
+
+router.route().handler(CookieHandler.create())
+router.route().handler(sessionHandler)
+
+// Now your application handlers
 router.route("/somepath/blah").handler({ routingContext ->
-  def session = routingContext.session();
-  session.put("foo", "bar");
-  def age = session.get("age");
-  def obj = session.remove("myobj");
-});
+
+  def session = routingContext.session()
+
+  // Put some data from the session
+  session.put("foo", "bar")
+
+  // Retrieve some data from a session
+  def age = session.get("age")
+
+  // Remove some data from a session
+  def obj = session.remove("myobj")
+
+})
+
 
 ----
 
@@ -924,10 +1126,15 @@ an auth handler from that, but it's the same principle whatever concrete auth se
 ----
 import io.vertx.groovy.ext.auth.AuthService
 import io.vertx.groovy.ext.apex.handler.BasicAuthHandler
-def config = [:];
-config.io.vertx.ext.auth.PropertiesAuthRealmConstants.PROPERTIES_PROPS_PATH_FIELD = "classpath:test-auth.properties";
-def authService = AuthService.create(vertx, config);
-def basicAuthHandler = BasicAuthHandler.create(authService);
+
+// Create a simple local auth service that gets user data from properties file
+// See the AuthService documentation for how to configure the auth service
+
+def config = [:]
+config.io.vertx.ext.auth.PropertiesAuthRealmConstants.PROPERTIES_PROPS_PATH_FIELD = "classpath:test-auth.properties"
+def authService = AuthService.create(vertx, config)
+
+def basicAuthHandler = BasicAuthHandler.create(authService)
 
 ----
 
@@ -937,8 +1144,12 @@ And here's an example of creating an auth service proxy to an existing auth serv
 ----
 import io.vertx.groovy.ext.auth.AuthService
 import io.vertx.groovy.ext.apex.handler.BasicAuthHandler
-def authService = AuthService.createEventBusProxy(vertx, "acme.authservice");
-def basicAuthHandler = BasicAuthHandler.create(authService);
+
+// Let's say you already have an auth service somewhere on your network listening on event bus address `acme.authservice`.
+
+def authService = AuthService.createEventBusProxy(vertx, "acme.authservice")
+
+def basicAuthHandler = BasicAuthHandler.create(authService)
 
 ----
 
@@ -951,10 +1162,13 @@ import io.vertx.groovy.ext.apex.handler.SessionHandler
 import io.vertx.groovy.ext.apex.sstore.LocalSessionStore
 import io.vertx.groovy.ext.auth.AuthService
 import io.vertx.groovy.ext.apex.handler.BasicAuthHandler
-router.route().handler(CookieHandler.create());
-router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
-def authService = AuthService.createEventBusProxy(vertx, "acme.authservice");
-def basicAuthHandler = BasicAuthHandler.create(authService);
+
+router.route().handler(CookieHandler.create())
+router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)))
+
+def authService = AuthService.createEventBusProxy(vertx, "acme.authservice")
+def basicAuthHandler = BasicAuthHandler.create(authService)
+
 
 ----
 
@@ -970,16 +1184,27 @@ import io.vertx.groovy.ext.apex.handler.SessionHandler
 import io.vertx.groovy.ext.apex.sstore.LocalSessionStore
 import io.vertx.groovy.ext.auth.AuthService
 import io.vertx.groovy.ext.apex.handler.BasicAuthHandler
-router.route().handler(CookieHandler.create());
-router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
-def authService = AuthService.createEventBusProxy(vertx, "acme.authservice");
-def basicAuthHandler = BasicAuthHandler.create(authService);
-router.route("/private/").handler(basicAuthHandler);
+
+router.route().handler(CookieHandler.create())
+router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)))
+
+def authService = AuthService.createEventBusProxy(vertx, "acme.authservice")
+def basicAuthHandler = BasicAuthHandler.create(authService)
+
+// All requests to paths starting with '/private/' will be protected
+router.route("/private/").handler(basicAuthHandler)
+
 router.route("/someotherpath").handler({ routingContext ->
-});
+})
+
 router.route("/private/somepath").handler({ routingContext ->
-  def isLoggedIn = routingContext.session().isLoggedIn();
-});
+
+  // This will require a login
+
+  // This will have the value true
+  def isLoggedIn = routingContext.session().isLoggedIn()
+
+})
 
 ----
 
@@ -1037,18 +1262,34 @@ import io.vertx.groovy.ext.auth.AuthService
 import io.vertx.groovy.ext.apex.handler.RedirectAuthHandler
 import io.vertx.groovy.ext.apex.handler.FormLoginHandler
 import io.vertx.groovy.ext.apex.handler.StaticHandler
-router.route().handler(CookieHandler.create());
-router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
-def authService = AuthService.createEventBusProxy(vertx, "acme.authservice");
-def redirectAuthHandler = RedirectAuthHandler.create(authService);
-router.route("/private/").handler(redirectAuthHandler);
-router.route("/login").handler(FormLoginHandler.create(authService));
-router.route().handler(StaticHandler.create());
+
+router.route().handler(CookieHandler.create())
+router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)))
+
+def authService = AuthService.createEventBusProxy(vertx, "acme.authservice")
+def redirectAuthHandler = RedirectAuthHandler.create(authService)
+
+// All requests to paths starting with '/private/' will be protected
+router.route("/private/").handler(redirectAuthHandler)
+
+// Handle the actual login
+router.route("/login").handler(FormLoginHandler.create(authService))
+
+// Set a static server to serve static resources, e.g. the login page
+router.route().handler(StaticHandler.create())
+
 router.route("/someotherpath").handler({ routingContext ->
-});
+})
+
 router.route("/private/somepath").handler({ routingContext ->
-  def isLoggedIn = routingContext.session().isLoggedIn();
-});
+
+  // This will require a login
+
+  // This will have the value true
+  def isLoggedIn = routingContext.session().isLoggedIn()
+
+})
+
 
 ----
 
@@ -1065,12 +1306,19 @@ app:
 [source,java]
 ----
 import io.vertx.groovy.ext.apex.handler.RedirectAuthHandler
-def managerAuthHandler = RedirectAuthHandler.create(authService);
-managerAuthHandler.addRole("manager").addRole("admin");
-router.route("/private/managers").handler(managerAuthHandler);
-def settingsAuthHandler = RedirectAuthHandler.create(authService);
-settingsAuthHandler.addRole("admin");
-router.route("/private/settings").handler(settingsAuthHandler);
+
+def managerAuthHandler = RedirectAuthHandler.create(authService)
+managerAuthHandler.addRole("manager").addRole("admin")
+
+// Roles "manager" and "admin" have access to /private/managers
+router.route("/private/managers").handler(managerAuthHandler)
+
+def settingsAuthHandler = RedirectAuthHandler.create(authService)
+settingsAuthHandler.addRole("admin")
+
+// Only "admin" has access to /private/settings
+router.route("/private/settings").handler(settingsAuthHandler)
+
 
 ----
 
@@ -1094,7 +1342,9 @@ In the following example all requests to paths starting with `/static/` will get
 [source,java]
 ----
 import io.vertx.groovy.ext.apex.handler.StaticHandler
-router.route("/static/").handler(StaticHandler.create());
+
+router.route("/static/").handler(StaticHandler.create())
+
 
 ----
 
@@ -1176,9 +1426,12 @@ Here's an example:
 [source,java]
 ----
 import io.vertx.groovy.ext.apex.handler.CorsHandler
-router.route().handler(CorsHandler.create("vertx\\.io").allowedMethod('GET'));
+
+// Will only accept GET requests from origin "vertx.io"
+router.route().handler(CorsHandler.create("vertx\\.io").allowedMethod('GET'))
+
 router.route().handler({ routingContext ->
-});
+})
 
 ----
 
@@ -1208,10 +1461,17 @@ Here are some examples
 ----
 import io.vertx.groovy.ext.apex.templ.HandlebarsTemplateEngine
 import io.vertx.groovy.ext.apex.handler.TemplateHandler
-def engine = HandlebarsTemplateEngine.create();
-def handler = TemplateHandler.create(engine);
-router.get("/dynamic/").handler(handler);
-router.getWithRegex(".+\\.hbs").handler(handler);
+
+def engine = HandlebarsTemplateEngine.create()
+def handler = TemplateHandler.create(engine)
+
+// This will route all GET requests starting with /dynamic/ to the template handler
+// E.g. /dynamic/graph.hbs will look for a template in /templates/dynamic/graph.hbs
+router.get("/dynamic/").handler(handler)
+
+// Route all GET requests for resource ending in .hbs to the template handler
+router.getWithRegex(".+\\.hbs").handler(handler)
+
 
 ----
 
@@ -1276,14 +1536,20 @@ add it the context data in a handler before the template handler. For example:
 ----
 import io.vertx.groovy.ext.apex.templ.HandlebarsTemplateEngine
 import io.vertx.groovy.ext.apex.handler.TemplateHandler
-def engine = HandlebarsTemplateEngine.create();
-def handler = TemplateHandler.create(engine);
+
+def engine = HandlebarsTemplateEngine.create()
+def handler = TemplateHandler.create(engine)
+
 router.get("/dynamic").handler({ routingContext ->
-  routingContext.put("request_path", routingContext.request().path());
-  routingContext.put("session_data", routingContext.session().data());
-  routingContext.next();
-});
-router.get("/dynamic/").handler(handler);
+
+  routingContext.put("request_path", routingContext.request().path())
+  routingContext.put("session_data", routingContext.session().data())
+
+  routingContext.next()
+})
+
+router.get("/dynamic/").handler(handler)
+
 
 ----
 
@@ -1350,7 +1616,9 @@ seconds:
 [source,java]
 ----
 import io.vertx.groovy.ext.apex.handler.TimeoutHandler
-router.route("/foo/").handler(TimeoutHandler.create(5000));
+
+router.route("/foo/").handler(TimeoutHandler.create(5000))
+
 
 ----
 
