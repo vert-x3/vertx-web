@@ -46,7 +46,7 @@ public class TemplateTest extends ApexTestBase {
 
   @Test
   public void testRelativeToRoutePath() throws Exception {
-    testRelativeToRoutePath("/pathprefix");
+    testRelativeToRoutePath("/pathprefix/");
   }
 
   private void testRelativeToRoutePath(String pathPrefix) throws Exception {
