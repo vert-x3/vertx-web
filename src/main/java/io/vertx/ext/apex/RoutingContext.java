@@ -132,12 +132,6 @@ public interface RoutingContext {
   String mountPoint();
 
   /**
-   * @return the path from the mount point. E.g. if the mount point is `/some/path/` and the URI path is
-   * `/some/path/somedir/foo.html` then the path from mount point is `/somedir/foo.html`.
-   */
-  String pathFromMountPoint();
-
-  /**
    * @return the current route this context is being routed through.
    */
   Route currentRoute();

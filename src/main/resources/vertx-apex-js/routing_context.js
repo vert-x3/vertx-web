@@ -167,21 +167,6 @@ var RoutingContext = function(j_val) {
   };
 
   /**
-   @return the path from the mount point. E.g. if the mount point is `/some/path/` and the URI path is
-   `/some/path/somedir/foo.html` then the path from mount point is `/somedir/foo.html`.
-
-   @public
-
-   @return {string}
-   */
-  this.pathFromMountPoint = function() {
-    var __args = arguments;
-    if (__args.length === 0) {
-      return j_routingContext.pathFromMountPoint();
-    } else utils.invalidArgs();
-  };
-
-  /**
    @return the current route this context is being routed through.
 
    @public

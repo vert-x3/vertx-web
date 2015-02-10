@@ -156,11 +156,6 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   }
 
   @Override
-  public String pathFromMountPoint() {
-    return inner.pathFromMountPoint();
-  }
-
-  @Override
   public Cookie getCookie(String name) {
     return inner.getCookie(name);
   }

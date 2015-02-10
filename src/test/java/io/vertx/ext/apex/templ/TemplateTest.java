@@ -22,6 +22,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.ext.apex.Route;
 import io.vertx.ext.apex.handler.TemplateHandler;
 import io.vertx.ext.apex.RoutingContext;
 import io.vertx.ext.apex.impl.Utils;
@@ -35,21 +36,39 @@ public class TemplateTest extends ApexTestBase {
 
   @Test
   public void testTemplateHandler() throws Exception {
+    testRelativeToRoutePath(null);
+  }
+
+  @Test
+  public void testTemplateHandler2() throws Exception {
+    testRelativeToRoutePath("/");
+  }
+
+  @Test
+  public void testRelativeToRoutePath() throws Exception {
+    testRelativeToRoutePath("/pathprefix");
+  }
+
+  private void testRelativeToRoutePath(String pathPrefix) throws Exception {
     TemplateEngine engine = new TestEngine(false);
     router.route().handler(context -> {
       context.put("foo", "badger");
       context.put("bar", "fox");
       context.next();
     });
-    router.route().handler(TemplateHandler.create(engine, "somedir", "text/html"));
+    Route route = router.route();
+    if (pathPrefix != null) {
+      route.path(pathPrefix);
+    }
+    route.handler(TemplateHandler.create(engine, "somedir", "text/html"));
     String expected =
       "<html>\n" +
-      "<body>\n" +
-      "<h1>Test template</h1>\n" +
-      "foo is badger bar is fox<br>\n" +
-      "</body>\n" +
-      "</html>";
-    testRequest(HttpMethod.GET, "/test-template.html", 200, "OK", expected);
+        "<body>\n" +
+        "<h1>Test template</h1>\n" +
+        "foo is badger bar is fox<br>\n" +
+        "</body>\n" +
+        "</html>";
+    testRequest(HttpMethod.GET, pathPrefix != null ? pathPrefix + "/test-template.html" : "/test-template.html", 200, "OK", expected);
   }
 
   @Test

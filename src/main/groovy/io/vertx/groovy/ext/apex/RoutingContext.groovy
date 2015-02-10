@@ -135,14 +135,6 @@ public class RoutingContext {
     return ret;
   }
   /**
-   * @return the path from the mount point. E.g. if the mount point is `/some/path/` and the URI path is
-   * `/some/path/somedir/foo.html` then the path from mount point is `/somedir/foo.html`.
-   */
-  public String pathFromMountPoint() {
-    def ret = this.delegate.pathFromMountPoint();
-    return ret;
-  }
-  /**
    * @return the current route this context is being routed through.
    */
   public Route currentRoute() {

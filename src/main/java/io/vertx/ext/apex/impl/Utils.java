@@ -17,6 +17,7 @@
 package io.vertx.ext.apex.impl;
 
 import io.vertx.core.buffer.Buffer;
+import io.vertx.ext.apex.RoutingContext;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -114,6 +115,19 @@ public class Utils {
     DateFormat dtf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.ENGLISH);
     dtf.setTimeZone(TimeZone.getTimeZone("UTC"));
     return dtf;
+  }
+
+  public static String pathOffset(String path, RoutingContext context) {
+    int prefixLen = 0;
+    String mountPoint = context.mountPoint();
+    if (mountPoint != null) {
+      prefixLen = mountPoint.length();
+    }
+    String routePath = context.currentRoute().getPath();
+    if (routePath != null) {
+      prefixLen += routePath.length() - 1;
+    }
+    return prefixLen != 0 ? path.substring(prefixLen) : path;
   }
 
   private static final Comparator<String> ACCEPT_X_COMPARATOR = new Comparator<String>() {
