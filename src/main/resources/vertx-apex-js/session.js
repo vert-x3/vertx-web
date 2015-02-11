@@ -17,6 +17,7 @@
 /** @module vertx-apex-js/session */
 var utils = require('vertx-js/util/utils');
 var SessionStore = require('vertx-apex-js/session_store');
+var AuthService = require('vertx-auth-js/auth_service');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
@@ -166,6 +167,46 @@ var Session = function(j_val) {
   };
 
   /**
+   Does the logged in user have the specified role?  Information is cached for the lifetime of the session
+
+   @public
+   @param role {string} the role 
+   @param resultHandler {function} will be called with a result true/false 
+   */
+  this.hasRole = function(role, resultHandler) {
+    var __args = arguments;
+    if (__args.length === 2 && typeof __args[0] === 'string' && typeof __args[1] === 'function') {
+      j_session.hasRole(role, function(ar) {
+      if (ar.succeeded()) {
+        resultHandler(ar.result(), null);
+      } else {
+        resultHandler(null, ar.cause());
+      }
+    });
+    } else utils.invalidArgs();
+  };
+
+  /**
+   Does the logged in user have the specified permissions?  Information is cached for the lifetime of the session
+
+   @public
+   @param permission {string} the permission 
+   @param resultHandler {function} will be called with a result true/false 
+   */
+  this.hasPermission = function(permission, resultHandler) {
+    var __args = arguments;
+    if (__args.length === 2 && typeof __args[0] === 'string' && typeof __args[1] === 'function') {
+      j_session.hasPermission(permission, function(ar) {
+      if (ar.succeeded()) {
+        resultHandler(ar.result(), null);
+      } else {
+        resultHandler(null, ar.cause());
+      }
+    });
+    } else utils.invalidArgs();
+  };
+
+  /**
    Logout the user.
 
    @public
@@ -229,6 +270,19 @@ var Session = function(j_val) {
     var __args = arguments;
     if (__args.length === 0) {
       j_session.setAccessed();
+    } else utils.invalidArgs();
+  };
+
+  /**
+   Set the auth service
+
+   @public
+   @param authService {AuthService} the auth service 
+   */
+  this.setAuthService = function(authService) {
+    var __args = arguments;
+    if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
+      j_session.setAuthService(authService._jdel);
     } else utils.invalidArgs();
   };
 

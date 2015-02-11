@@ -19,7 +19,10 @@ package io.vertx.ext.apex;
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
 import io.vertx.ext.apex.sstore.SessionStore;
+import io.vertx.ext.auth.AuthService;
 
 import java.util.Map;
 
@@ -103,6 +106,22 @@ public interface Session {
   boolean isLoggedIn();
 
   /**
+   * Does the logged in user have the specified role?  Information is cached for the lifetime of the session
+   *
+   * @param role  the role
+   * @param resultHandler will be called with a result true/false
+   */
+  void hasRole(String role, Handler<AsyncResult<Boolean>> resultHandler);
+
+  /**
+   * Does the logged in user have the specified permissions?  Information is cached for the lifetime of the session
+   *
+   * @param permission  the permission
+   * @param resultHandler will be called with a result true/false
+   */
+  void hasPermission(String permission, Handler<AsyncResult<Boolean>> resultHandler);
+
+  /**
    * Logout the user.
    */
   void logout();
@@ -128,5 +147,12 @@ public interface Session {
    * Mark the session as being accessed.
    */
   void setAccessed();
+
+  /**
+   * Set the auth service
+   *
+   * @param authService  the auth service
+   */
+  void setAuthService(AuthService authService);
 
 }

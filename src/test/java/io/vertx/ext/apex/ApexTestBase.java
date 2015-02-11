@@ -17,14 +17,7 @@
 package io.vertx.ext.apex;
 
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.http.HttpClient;
-import io.vertx.core.http.HttpClientOptions;
-import io.vertx.core.http.HttpClientRequest;
-import io.vertx.core.http.HttpClientResponse;
-import io.vertx.core.http.HttpMethod;
-import io.vertx.core.http.HttpServer;
-import io.vertx.core.http.HttpServerOptions;
-import io.vertx.ext.apex.Router;
+import io.vertx.core.http.*;
 import io.vertx.test.core.VertxTestBase;
 
 import java.util.Arrays;
@@ -50,7 +43,7 @@ public class ApexTestBase extends VertxTestBase {
     super.setUp();
     router = Router.router(vertx);
     server = vertx.createHttpServer(new HttpServerOptions().setPort(8080).setHost("localhost"));
-    client = vertx.createHttpClient(new HttpClientOptions());
+    client = vertx.createHttpClient(new HttpClientOptions().setDefaultPort(8080));
     CountDownLatch latch = new CountDownLatch(1);
     server.requestHandler(router::accept).listen(onSuccess(res -> {
       latch.countDown();

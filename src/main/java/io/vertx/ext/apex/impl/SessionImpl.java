@@ -16,6 +16,9 @@
 
 package io.vertx.ext.apex.impl;
 
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
+import io.vertx.core.Handler;
 import io.vertx.core.VertxException;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.logging.Logger;
@@ -24,11 +27,14 @@ import io.vertx.core.shareddata.Shareable;
 import io.vertx.core.shareddata.impl.ClusterSerializable;
 import io.vertx.ext.apex.Session;
 import io.vertx.ext.apex.sstore.SessionStore;
+import io.vertx.ext.auth.AuthService;
 
 import java.io.*;
 import java.nio.charset.Charset;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -60,6 +66,9 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
   private long lastAccessed;
   private boolean destroyed;
   private String principal;
+  private AuthService authService;
+  private Set<String> roles = new HashSet<>();
+  private Set<String> permissions = new HashSet<>();
 
   public SessionImpl(String id, long timeout, SessionStore sessionStore) {
     this.id = id;
@@ -140,8 +149,60 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
   }
 
   @Override
+  public void hasRole(String role, Handler<AsyncResult<Boolean>> resultHandler) {
+    if (roles.contains(role)) {
+      resultHandler.handle(Future.succeededFuture(true));
+    } else {
+      if (authService != null && principal != null) {
+        authService.hasRole(principal, role, res -> {
+          if (res.succeeded()) {
+            boolean has = res.result();
+            if (has) {
+              roles.add(role);
+              resultHandler.handle(Future.succeededFuture(true));
+            } else {
+              resultHandler.handle(Future.succeededFuture(false));
+            }
+          } else {
+            log.error(res.cause());
+          }
+        });
+      } else {
+        resultHandler.handle(Future.succeededFuture(false));
+      }
+    }
+  }
+
+  @Override
+  public void hasPermission(String permission, Handler<AsyncResult<Boolean>> resultHandler) {
+    if (permissions.contains(permission)) {
+      resultHandler.handle(Future.succeededFuture(true));
+    } else {
+      if (authService != null && principal != null) {
+        authService.hasPermission(principal, permission, res -> {
+          if (res.succeeded()) {
+            boolean has = res.result();
+            if (has) {
+              permissions.add(permission);
+              resultHandler.handle(Future.succeededFuture(true));
+            } else {
+              resultHandler.handle(Future.succeededFuture(false));
+            }
+          } else {
+            log.error(res.cause());
+          }
+        });
+      } else {
+        resultHandler.handle(Future.succeededFuture(false));
+      }
+    }
+  }
+
+  @Override
   public void logout() {
     this.principal = null;
+    roles.clear();
+    permissions.clear();
   }
 
   @Override
@@ -152,6 +213,11 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
   @Override
   public String getPrincipal() {
     return principal;
+  }
+
+  @Override
+  public void setAuthService(AuthService authService) {
+    this.authService = authService;
   }
 
   @Override
@@ -348,3 +414,4 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
   }
 
 }
+
