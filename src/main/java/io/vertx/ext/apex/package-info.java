@@ -94,7 +94,7 @@
  *
  * Here's a simple router example:
  *
- * [source,java]
+ * [source,$lang]
  * ----
  * {@link examples.Examples#example2}
  * ----
@@ -130,7 +130,7 @@
  * You don't have to call {@link io.vertx.ext.apex.RoutingContext#next} before the handler has finished executing.
  * You can do this some time later, if you want:
  *
- * [source,java]
+ * [source,$lang]
  * ----
  * {@link examples.Examples#example20}
  * ----
@@ -150,14 +150,14 @@
  *
  * For example `/some/path/foo.html` and `/some/path/otherdir/blah.css` would both match.
  *
- * [source,java]
+ * [source,$lang]
  * ----
  * {@link examples.Examples#example3}
  * ----
  *
  * Alternatively the path can be specified when creating the route:
  *
- * [source,java]
+ * [source,$lang]
  * ----
  * {@link examples.Examples#example4}
  * ----
@@ -169,7 +169,7 @@
  *
  * Here's an example
  *
- * [source,java]
+ * [source,$lang]
  * ----
  * {@link examples.Examples#example4_1}
  * ----
@@ -186,14 +186,14 @@
  *
  * As in straight path matching the regex is not an *exact match* for the path, but matches the start of the path.
  *
- * [source,java]
+ * [source,$lang]
  * ----
  * {@link examples.Examples#example5}
  * ----
  *
  * Alternatively the regex can be specified when creating the route:
  *
- * [source,java]
+ * [source,$lang]
  * ----
  * {@link examples.Examples#example6}
  * ----
@@ -202,7 +202,7 @@
  *
  * You can also capture path parameters when using regular expressions, here's an example:
  *
- * [source,java]
+ * [source,$lang]
  * ----
  * {@link examples.Examples#example6_1}
  * ----
@@ -218,14 +218,14 @@
  *
  * If you want a route to only match for a specific HTTP method you can use {@link io.vertx.ext.apex.Route#method}
  *
- * [source,java]
+ * [source,$lang]
  * ----
  * {@link examples.Examples#example7}
  * ----
  *
  * Or you can specify this with a path when creating the route:
  *
- * [source,java]
+ * [source,$lang]
  * ----
  * {@link examples.Examples#example8}
  * ----
@@ -234,7 +234,7 @@
  * {@link io.vertx.ext.apex.Router#post} and {@link io.vertx.ext.apex.Router#put} named after the HTTP
  * method name. For example:
  *
- * [source,java]
+ * [source,$lang]
  * ----
  * {@link examples.Examples#example8_1}
  * ----
@@ -242,7 +242,7 @@
  * If you want to specify a route will match for more than HTTP method you can call {@link io.vertx.ext.apex.Route#method}
  * multiple times:
  *
- * [source,java]
+ * [source,$lang]
  * ----
  * {@link examples.Examples#example9}
  * ----
@@ -259,7 +259,7 @@
  *
  * Here's an example to illustrate this:
  *
- * [source,java]
+ * [source,$lang]
  * ----
  * {@link examples.Examples#example10}
  * ----
@@ -285,7 +285,7 @@
  *
  * Let's change the ordering of route2 so it runs before route1:
  *
- * [source,java]
+ * [source,$lang]
  * ----
  * {@link examples.Examples#example11}
  * ----
@@ -313,28 +313,28 @@
  *
  * Matching can be done on exact MIME type matches:
  *
- * [source,java]
+ * [source,$lang]
  * ----
  * {@link examples.Examples#example12}
  * ----
  *
  * Multiple exact matches can also be specified:
  *
- * [source,java]
+ * [source,$lang]
  * ----
  * {@link examples.Examples#example13}
  * ----
  *
  * Matching on wildcards for the sub-type is supported:
  *
- * [source,java]
+ * [source,$lang]
  * ----
  * {@link examples.Examples#example14}
  * ----
  *
  * And you can also match on the top level type
  *
- * [source,java]
+ * [source,$lang]
  * ----
  * {@link examples.Examples#example15}
  * ----
@@ -387,7 +387,7 @@
  * {@link io.vertx.ext.apex.RoutingContext#getAcceptableContentType} to find out the actual MIME type that
  * was accepted.
  *
- * [source,java]
+ * [source,$lang]
  * ----
  * {@link examples.Examples#example17}
  * ----
@@ -403,7 +403,7 @@
  *
  * You can combine all the above routing criteria in many different ways, for example:
  *
- * [source,java]
+ * [source,$lang]
  * ----
  * {@link examples.Examples#example18}
  * ----
@@ -426,7 +426,7 @@
  *
  * A request sent to path `/some/path/other` will match both routes.
  *
- * [source,java]
+ * [source,$lang]
  * ----
  * {@link examples.Examples#example21}
  * ----
@@ -448,7 +448,7 @@
  *
  * Here's the sub-router:
  *
- * [source,java]
+ * [source,$lang]
  * ----
  * {@link examples.Examples#example22}
  * ----
@@ -458,14 +458,14 @@
  *
  * However, let's say we already have a web-site as described by another router:
  *
- * [source,java]
+ * [source,$lang]
  * ----
  * {@link examples.Examples#example23}
  * ----
  *
  * We can now mount the sub router on the main router, against a mount point, in this case `/productsAPI`
  *
- * [source,java]
+ * [source,$lang]
  * ----
  * {@link examples.Examples#example24}
  * ----
@@ -492,7 +492,7 @@
  * Here's an example failure handler that will only be called for failure that occur when routing to GET requests
  * to paths that start with `/somepath/`:
  *
- * [source,java]
+ * [source,$lang]
  * ----
  * {@link examples.Examples#example25}
  * ----
@@ -505,7 +505,7 @@
  * When handling the failure, the failure handler is passed the routing context which also allows the failure or failure code
  * to be retrieved so the failure handler can use that to generate a failure response.
  *
- * [source,java]
+ * [source,$lang]
  * ----
  * {@link examples.Examples#example26}
  * ----
@@ -517,7 +517,7 @@
  *
  * You should make sure a body handler is on a matching route for any requests that require this functionality.
  *
- * [source,java]
+ * [source,$lang]
  * ----
  * {@link examples.Examples#example27}
  * ----
@@ -550,7 +550,7 @@
  *
  * Here's an example:
  *
- * [source,java]
+ * [source,$lang]
  * ----
  * {@link examples.Examples#example28}
  * ----
@@ -564,7 +564,7 @@
  *
  * You should make sure a cookie handler is on a matching route for any requests that require this functionality.
  *
- * [source,java]
+ * [source,$lang]
  * ----
  * {@link examples.Examples#example29}
  * ----
@@ -586,7 +586,7 @@
  *
  * Here's an example of querying and adding cookies:
  *
- * [source,java]
+ * [source,$lang]
  * ----
  * {@link examples.Examples#example30}
  * ----
@@ -639,7 +639,7 @@
  *
  * Here are some examples of creating a {@link io.vertx.ext.apex.sstore.LocalSessionStore}
  *
- * [source,java]
+ * [source,$lang]
  * ----
  * {@link examples.Examples#example31}
  * ----
@@ -657,7 +657,7 @@
  *
  * Here are some examples of creating a {@link io.vertx.ext.apex.sstore.ClusteredSessionStore}
  *
- * [source,java]
+ * [source,$lang]
  * ----
  * {@link examples.Examples#example32}
  * ----
@@ -672,7 +672,7 @@
  *
  * Here's an example:
  *
- * [source,java]
+ * [source,$lang]
  * ----
  * {@link examples.Examples#example33}
  * ----
@@ -694,7 +694,7 @@
  *
  * Here's an example of manipulating session data:
  *
- * [source,java]
+ * [source,$lang]
  * ----
  * {@link examples.Examples#example34}
  * ----
@@ -726,21 +726,21 @@
  * Here's a simple example of creating a basic auth service that gets user data from a properties file and creating
  * an auth handler from that, but it's the same principle whatever concrete auth service you use.
  *
- * [source,java]
+ * [source,$lang]
  * ----
  * {@link examples.Examples#example35}
  * ----
  *
  * And here's an example of creating an auth service proxy to an existing auth service that is deployed elsewhere:
  *
- * [source,java]
+ * [source,$lang]
  * ----
  * {@link examples.Examples#example36}
  * ----
  *
  * You'll also need cookies and sessions enabled for auth handling to work:
  *
- * [source,java]
+ * [source,$lang]
  * ----
  * {@link examples.Examples#example37}
  * ----
@@ -750,7 +750,7 @@
  * Let's say you want all requests to paths that start with `/private/` to be subject to auth. To do that you make sure
  * your auth handler is before your application handlers on those paths:
  *
- * [source,java]
+ * [source,$lang]
  * ----
  * {@link examples.Examples#example38}
  * ----
@@ -800,7 +800,7 @@
  *
  * Here's an example of a simple app, using a redirect auth handler on the default redirect url `/loginpage`.
  *
- * [source,java]
+ * [source,$lang]
  * ----
  * {@link examples.Examples#example39}
  * ----
@@ -815,7 +815,7 @@
  * Here's an example of configuring an app so that different roles/permissions are required for different parts of the
  * app:
  *
- * [source,java]
+ * [source,$lang]
  * ----
  * {@link examples.Examples#example40}
  * ----
@@ -837,7 +837,7 @@
  *
  * In the following example all requests to paths starting with `/static/` will get served from the directory `webroot`:
  *
- * [source,java]
+ * [source,$lang]
  * ----
  * {@link examples.Examples#example41}
  * ----
@@ -917,7 +917,7 @@
  *
  * Here's an example:
  *
- * [source,java]
+ * [source,$lang]
  * ----
  * {@link examples.Examples#example41_0_1}
  * ----
@@ -944,7 +944,7 @@
  *
  * Here are some examples
  *
- * [source,java]
+ * [source,$lang]
  * ----
  * {@link examples.Examples#example41_1}
  * ----
@@ -1006,7 +1006,7 @@
  * If you want to have access to other data like the request path, request params or session data you should
  * add it the context data in a handler before the template handler. For example:
  *
- * [source,java]
+ * [source,$lang]
  * ----
  * {@link examples.Examples#example41_2}
  * ----
@@ -1071,7 +1071,7 @@
  * Here's an example of using a timeout handler which will timeout all requests to paths starting with `/foo` after 5
  * seconds:
  *
- * [source,java]
+ * [source,$lang]
  * ----
  * {@link examples.Examples#example42}
  * ----

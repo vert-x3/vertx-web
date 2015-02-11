@@ -108,7 +108,7 @@ request, and then, either end it or pass it to the next matching handler.
 
 Here's a simple router example:
 
-[source,java]
+[source,groovy]
 ----
 todo
 ----
@@ -144,7 +144,7 @@ matching route can handle the request (if any).
 You don't have to call `link:groovydoc/io/vertx/groovy/ext/apex/RoutingContext.html#next()[next]` before the handler has finished executing.
 You can do this some time later, if you want:
 
-[source,java]
+[source,groovy]
 ----
 
 def route1 = router.route("/some/path/").handler({ routingContext ->
@@ -194,7 +194,7 @@ In the following example the handler will be called for all requests with a URI 
 
 For example `/some/path/foo.html` and `/some/path/otherdir/blah.css` would both match.
 
-[source,java]
+[source,groovy]
 ----
 
 def route = router.route().path("/some/path/")
@@ -207,7 +207,7 @@ route.handler({ routingContext ->
 
 Alternatively the path can be specified when creating the route:
 
-[source,java]
+[source,groovy]
 ----
 
 def route = router.route("/some/path/")
@@ -225,7 +225,7 @@ It's possible to match paths using placeholders for parameters which are then av
 
 Here's an example
 
-[source,java]
+[source,groovy]
 ----
 
 def route = router.route('POST', "/catalogue/products/:productype/:productid/")
@@ -253,7 +253,7 @@ Regular expressions can also be used to match URI paths in routes.
 
 As in straight path matching the regex is not an *exact match* for the path, but matches the start of the path.
 
-[source,java]
+[source,groovy]
 ----
 
 // Matches any path ending with 'foo'
@@ -267,7 +267,7 @@ route.handler({ routingContext ->
 
 Alternatively the regex can be specified when creating the route:
 
-[source,java]
+[source,groovy]
 ----
 
 def route = router.routeWithRegex(".*foo")
@@ -282,7 +282,7 @@ route.handler({ routingContext ->
 
 You can also capture path parameters when using regular expressions, here's an example:
 
-[source,java]
+[source,groovy]
 ----
 
 def route = router.routeWithRegex(".*foo")
@@ -312,7 +312,7 @@ By default a route will match all HTTP methods.
 
 If you want a route to only match for a specific HTTP method you can use `link:groovydoc/io/vertx/groovy/ext/apex/Route.html#method(io.vertx.core.http.HttpMethod)[method]`
 
-[source,java]
+[source,groovy]
 ----
 
 def route = router.route().method('POST')
@@ -325,7 +325,7 @@ route.handler({ routingContext ->
 
 Or you can specify this with a path when creating the route:
 
-[source,java]
+[source,groovy]
 ----
 
 def route = router.route('POST', "/some/path/")
@@ -340,7 +340,7 @@ If you want to route for a specific HTTP method you can also use the methods suc
 `link:groovydoc/io/vertx/groovy/ext/apex/Router.html#post()[post]` and `link:groovydoc/io/vertx/groovy/ext/apex/Router.html#put()[put]` named after the HTTP
 method name. For example:
 
-[source,java]
+[source,groovy]
 ----
 
 router.get().handler({ routingContext ->
@@ -360,7 +360,7 @@ router.getWithRegex(".*foo").handler({ routingContext ->
 If you want to specify a route will match for more than HTTP method you can call `link:groovydoc/io/vertx/groovy/ext/apex/Route.html#method(io.vertx.core.http.HttpMethod)[method]`
 multiple times:
 
-[source,java]
+[source,groovy]
 ----
 
 def route = router.route().method('POST').method('PUT')
@@ -383,7 +383,7 @@ matching route (if any) will be called. And so on.
 
 Here's an example to illustrate this:
 
-[source,java]
+[source,groovy]
 ----
 
 def route1 = router.route("/some/path/").handler({ routingContext ->
@@ -437,7 +437,7 @@ want to ensure a route is evaluated before route number `0`.
 
 Let's change the ordering of route2 so it runs before route1:
 
-[source,java]
+[source,groovy]
 ----
 
 def route1 = router.route("/some/path/").handler({ routingContext ->
@@ -495,7 +495,7 @@ Basically, `consumes` is describing which MIME types the handler can _consume_.
 
 Matching can be done on exact MIME type matches:
 
-[source,java]
+[source,groovy]
 ----
 
 // Exact match
@@ -506,7 +506,7 @@ router.route().consumes("text/html").handler({ routingContext ->
 
 Multiple exact matches can also be specified:
 
-[source,java]
+[source,groovy]
 ----
 
 // Multiple exact matches
@@ -517,7 +517,7 @@ router.route().consumes("text/html").consumes("text/plain").handler({ routingCon
 
 Matching on wildcards for the sub-type is supported:
 
-[source,java]
+[source,groovy]
 ----
 
 // Sub-type wildcard match
@@ -528,7 +528,7 @@ router.route().consumes("text/*").handler({ routingContext ->
 
 And you can also match on the top level type
 
-[source,java]
+[source,groovy]
 ----
 
 // Top level type wildcard match
@@ -593,7 +593,7 @@ You can also mark your route as producing more than one MIME type. If this is th
 `link:groovydoc/io/vertx/groovy/ext/apex/RoutingContext.html#getAcceptableContentType()[getAcceptableContentType]` to find out the actual MIME type that
 was accepted.
 
-[source,java]
+[source,groovy]
 ----
 
 // This route can produce two different MIME types
@@ -621,7 +621,7 @@ acceptable but that has a higher `q` value.
 
 You can combine all the above routing criteria in many different ways, for example:
 
-[source,java]
+[source,groovy]
 ----
 
 def route = router.route('PUT', "myapi/orders").consumes("application/json").produces("application/json")
@@ -650,7 +650,7 @@ You can use the `link:groovydoc/io/vertx/groovy/ext/apex/RoutingContext.html#put
 
 A request sent to path `/some/path/other` will match both routes.
 
-[source,java]
+[source,groovy]
 ----
 
 router.get("/some/path").handler({ routingContext ->
@@ -688,7 +688,7 @@ router. The full implementation of the REST API is not shown.
 
 Here's the sub-router:
 
-[source,java]
+[source,groovy]
 ----
 import io.vertx.groovy.ext.apex.Router
 
@@ -722,7 +722,7 @@ would invoke the  API.
 
 However, let's say we already have a web-site as described by another router:
 
-[source,java]
+[source,groovy]
 ----
 import io.vertx.groovy.ext.apex.Router
 def mainRouter = Router.router(vertx)
@@ -736,7 +736,7 @@ mainRouter.route(".*\\.templ").handler(myTemplateHandler)
 
 We can now mount the sub router on the main router, against a mount point, in this case `/productsAPI`
 
-[source,java]
+[source,groovy]
 ----
 
 mainRouter.mountSubRouter("/productsAPI", restAPI)
@@ -766,7 +766,7 @@ This allows you to set different failure handlers for different parts of your ap
 Here's an example failure handler that will only be called for failure that occur when routing to GET requests
 to paths that start with `/somepath/`:
 
-[source,java]
+[source,groovy]
 ----
 
 def route = router.get("/somepath/")
@@ -784,7 +784,7 @@ If an exception is caught from a handler this will result in a failure with stat
 When handling the failure, the failure handler is passed the routing context which also allows the failure or failure code
 to be retrieved so the failure handler can use that to generate a failure response.
 
-[source,java]
+[source,groovy]
 ----
 todo
 ----
@@ -796,7 +796,7 @@ file uploads.
 
 You should make sure a body handler is on a matching route for any requests that require this functionality.
 
-[source,java]
+[source,groovy]
 ----
 import io.vertx.groovy.ext.apex.handler.BodyHandler
 
@@ -834,7 +834,7 @@ context with `link:groovydoc/io/vertx/groovy/ext/apex/RoutingContext.html#fileUp
 
 Here's an example:
 
-[source,java]
+[source,groovy]
 ----
 import io.vertx.groovy.ext.apex.handler.BodyHandler
 
@@ -858,7 +858,7 @@ Apex has cookies support using the `link:groovydoc/io/vertx/groovy/ext/apex/hand
 
 You should make sure a cookie handler is on a matching route for any requests that require this functionality.
 
-[source,java]
+[source,groovy]
 ----
 import io.vertx.groovy.ext.apex.handler.CookieHandler
 
@@ -885,7 +885,7 @@ value, domain, path and other normal cookie properties.
 
 Here's an example of querying and adding cookies:
 
-[source,java]
+[source,groovy]
 ----
 import io.vertx.groovy.ext.apex.handler.CookieHandler
 import io.vertx.groovy.ext.apex.Cookie
@@ -954,7 +954,7 @@ The reaper period can be configured with
 
 Here are some examples of creating a `link:groovydoc/io/vertx/groovy/ext/apex/sstore/LocalSessionStore.html[LocalSessionStore]`
 
-[source,java]
+[source,groovy]
 ----
 import io.vertx.groovy.ext.apex.sstore.LocalSessionStore
 
@@ -986,7 +986,7 @@ To you use a clustered session store you should make sure your Vert.x instance i
 
 Here are some examples of creating a `link:groovydoc/io/vertx/groovy/ext/apex/sstore/ClusteredSessionStore.html[ClusteredSessionStore]`
 
-[source,java]
+[source,groovy]
 ----
 import io.vertx.groovy.core.Vertx
 import io.vertx.groovy.ext.apex.sstore.ClusteredSessionStore
@@ -1020,7 +1020,7 @@ lookup the session. The cookie handler should be before the session handler when
 
 Here's an example:
 
-[source,java]
+[source,groovy]
 ----
 import io.vertx.groovy.ext.apex.Router
 import io.vertx.groovy.ext.apex.handler.CookieHandler
@@ -1069,7 +1069,7 @@ a clustered session store they can be any basic type, or `link:groovydoc/io/vert
 
 Here's an example of manipulating session data:
 
-[source,java]
+[source,groovy]
 ----
 import io.vertx.groovy.ext.apex.handler.CookieHandler
 
@@ -1122,7 +1122,7 @@ auth service managed somewhere on your network and you want all auth request to 
 Here's a simple example of creating a basic auth service that gets user data from a properties file and creating
 an auth handler from that, but it's the same principle whatever concrete auth service you use.
 
-[source,java]
+[source,groovy]
 ----
 import io.vertx.groovy.ext.auth.AuthService
 import io.vertx.groovy.ext.apex.handler.BasicAuthHandler
@@ -1140,7 +1140,7 @@ def basicAuthHandler = BasicAuthHandler.create(authService)
 
 And here's an example of creating an auth service proxy to an existing auth service that is deployed elsewhere:
 
-[source,java]
+[source,groovy]
 ----
 import io.vertx.groovy.ext.auth.AuthService
 import io.vertx.groovy.ext.apex.handler.BasicAuthHandler
@@ -1155,7 +1155,7 @@ def basicAuthHandler = BasicAuthHandler.create(authService)
 
 You'll also need cookies and sessions enabled for auth handling to work:
 
-[source,java]
+[source,groovy]
 ----
 import io.vertx.groovy.ext.apex.handler.CookieHandler
 import io.vertx.groovy.ext.apex.handler.SessionHandler
@@ -1177,7 +1177,7 @@ def basicAuthHandler = BasicAuthHandler.create(authService)
 Let's say you want all requests to paths that start with `/private/` to be subject to auth. To do that you make sure
 your auth handler is before your application handlers on those paths:
 
-[source,java]
+[source,groovy]
 ----
 import io.vertx.groovy.ext.apex.handler.CookieHandler
 import io.vertx.groovy.ext.apex.handler.SessionHandler
@@ -1253,7 +1253,7 @@ To handle the login we provide a prebuilt handler `link:groovydoc/io/vertx/groov
 
 Here's an example of a simple app, using a redirect auth handler on the default redirect url `/loginpage`.
 
-[source,java]
+[source,groovy]
 ----
 import io.vertx.groovy.ext.apex.handler.CookieHandler
 import io.vertx.groovy.ext.apex.handler.SessionHandler
@@ -1303,7 +1303,7 @@ the user must be both logged in (authenticated) and have the required roles/perm
 Here's an example of configuring an app so that different roles/permissions are required for different parts of the
 app:
 
-[source,java]
+[source,groovy]
 ----
 import io.vertx.groovy.ext.apex.handler.RedirectAuthHandler
 
@@ -1339,7 +1339,7 @@ or from the classpath. The default static file directory is `webroot` but this c
 
 In the following example all requests to paths starting with `/static/` will get served from the directory `webroot`:
 
-[source,java]
+[source,groovy]
 ----
 import io.vertx.groovy.ext.apex.handler.StaticHandler
 
@@ -1423,7 +1423,7 @@ Apex includes a handler `link:groovydoc/io/vertx/groovy/ext/apex/handler/CorsHan
 
 Here's an example:
 
-[source,java]
+[source,groovy]
 ----
 import io.vertx.groovy.ext.apex.handler.CorsHandler
 
@@ -1457,7 +1457,7 @@ When you create the template handler you pass in an instance of the template eng
 
 Here are some examples
 
-[source,java]
+[source,groovy]
 ----
 import io.vertx.groovy.ext.apex.templ.HandlebarsTemplateEngine
 import io.vertx.groovy.ext.apex.handler.TemplateHandler
@@ -1532,7 +1532,7 @@ Instead, the context `link:groovydoc/io/vertx/groovy/ext/apex/RoutingContext.htm
 If you want to have access to other data like the request path, request params or session data you should
 add it the context data in a handler before the template handler. For example:
 
-[source,java]
+[source,groovy]
 ----
 import io.vertx.groovy.ext.apex.templ.HandlebarsTemplateEngine
 import io.vertx.groovy.ext.apex.handler.TemplateHandler
@@ -1613,7 +1613,7 @@ If a request times out before the response is written a `408` response will be r
 Here's an example of using a timeout handler which will timeout all requests to paths starting with `/foo` after 5
 seconds:
 
-[source,java]
+[source,groovy]
 ----
 import io.vertx.groovy.ext.apex.handler.TimeoutHandler
 
