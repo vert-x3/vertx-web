@@ -29,9 +29,11 @@ import io.vertx.ext.apex.Cookie;
 public class CookieImpl implements Cookie {
 
   private final io.netty.handler.codec.http.Cookie nettyCookie;
+  private boolean changed;
 
   public CookieImpl(String name, String value) {
     this.nettyCookie = new DefaultCookie(name, value);
+    this.changed = true;
   }
 
   public CookieImpl(io.netty.handler.codec.http.Cookie nettyCookie) {
@@ -46,6 +48,7 @@ public class CookieImpl implements Cookie {
   @Override
   public Cookie setValue(final String value) {
     nettyCookie.setValue(value);
+    this.changed = true;
     return this;
   }
 
@@ -55,13 +58,21 @@ public class CookieImpl implements Cookie {
   }
 
   @Override
+  public Cookie setDomain(final String domain) {
+    nettyCookie.setDomain(domain);
+    this.changed = true;
+    return this;
+  }
+
+  @Override
   public String getDomain() {
     return nettyCookie.getDomain();
   }
 
   @Override
-  public Cookie setDomain(final String domain) {
-    nettyCookie.setDomain(domain);
+  public Cookie setPath(final String path) {
+    nettyCookie.setPath(path);
+    this.changed = true;
     return this;
   }
 
@@ -71,42 +82,30 @@ public class CookieImpl implements Cookie {
   }
 
   @Override
-  public Cookie setPath(final String path) {
-    nettyCookie.setPath(path);
-    return this;
-  }
-
-
-  @Override
-  public long getMaxAge() {
-    return nettyCookie.getMaxAge();
-  }
-
-  @Override
   public Cookie setMaxAge(final long maxAge) {
     nettyCookie.setMaxAge(maxAge);
+    this.changed = true;
     return this;
-  }
-
-  @Override
-  public boolean isSecure() {
-    return nettyCookie.isSecure();
   }
 
   @Override
   public Cookie setSecure(final boolean secure) {
     nettyCookie.setSecure(secure);
+    this.changed = true;
     return this;
-  }
-
-  @Override
-  public boolean isHttpOnly() {
-    return nettyCookie.isHttpOnly();
   }
 
   @Override
   public Cookie setHttpOnly(final boolean httpOnly) {
     nettyCookie.setHttpOnly(httpOnly);
+    this.changed = true;
+    return this;
+  }
+
+  @Override
+  public Cookie setVersion(int version) {
+    nettyCookie.setVersion(version);
+    this.changed = true;
     return this;
   }
 
@@ -115,4 +114,13 @@ public class CookieImpl implements Cookie {
     return ServerCookieEncoder.encode(nettyCookie);
   }
 
+  @Override
+  public boolean isChanged() {
+    return changed;
+  }
+
+  @Override
+  public void setChanged(boolean changed) {
+    this.changed = changed;
+  }
 }

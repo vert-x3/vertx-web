@@ -69,11 +69,6 @@ public interface Cookie {
   Cookie setValue(String value);
 
   /**
-   * @return the domain of this cookie
-   */
-  String getDomain();
-
-  /**
    * Sets the domain of this cookie
    *
    * @param domain The domain to use
@@ -82,9 +77,9 @@ public interface Cookie {
   Cookie setDomain(String domain);
 
   /**
-   * @return The path of this cookie
+   * @return  the domain for the cookie
    */
-  String getPath();
+  String getDomain();
 
   /**
    * Sets the path of this cookie.
@@ -95,9 +90,10 @@ public interface Cookie {
   Cookie setPath(String path);
 
   /**
-   * @return The maximum age of this cookie in seconds, or Long.MIN_VALUE if it's a session cookie (default)
+   *
+   * @return the path for this cookie
    */
-  long getMaxAge();
+  String getPath();
 
   /**
    * Sets the maximum age of this cookie in seconds.
@@ -112,27 +108,12 @@ public interface Cookie {
   Cookie setMaxAge(long maxAge);
 
   /**
-   * @return True if this cookie is secure, otherwise false
-   */
-  boolean isSecure();
-
-  /**
    * Sets the security getStatus of this cookie
    *
    * @param secure True if this cookie is to be secure, otherwise false
    * @return a reference to this, so the API can be used fluently
    */
   Cookie setSecure(boolean secure);
-
-  /**
-   * Checks to see if this cookie can only be accessed via HTTP.
-   * If this returns true, the cookie cannot be accessed through
-   * client side script - But only if the browser supports it.
-   * For more information, please look <a href="http://www.owasp.org/index.php/HTTPOnly">here</a>
-   *
-   * @return True if this cookie is HTTP-only or false if it isn't
-   */
-  boolean isHttpOnly();
 
   /**
    * Determines if this cookie is HTTP only.
@@ -145,6 +126,14 @@ public interface Cookie {
    */
   Cookie setHttpOnly(boolean httpOnly);
 
+  /**
+   * Set the version of the cookie
+   *
+   * @param version 0 or 1
+   * @return a reference to this, so the API can be used fluently
+   */
+  Cookie setVersion(int version);
+
 
   /**
    * Encode the cookie to a string. This is what is used in the Set-Cookie header
@@ -152,5 +141,20 @@ public interface Cookie {
    * @return  the encoded cookie
    */
   String encode();
+
+  /**
+   * Has the cookie been changed? Changed cookies will be saved out in the response and sent to the browser.
+   *
+   * @return true  if changed
+   */
+  boolean isChanged();
+
+  /**
+   * Set the cookie as being changed. Changed will be true for a cookie just created, false by default if just
+   * read from the request
+   *
+   * @param changed  true if changed
+   */
+  void setChanged(boolean changed);
 
 }

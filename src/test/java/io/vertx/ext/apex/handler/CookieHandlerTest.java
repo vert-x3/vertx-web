@@ -38,7 +38,6 @@ public class CookieHandlerTest extends ApexTestBase {
     router.route().handler(CookieHandler.create());
   }
 
-
   @Test
   public void testSimpleCookie() throws Exception {
     router.route().handler(rc -> {
@@ -49,26 +48,6 @@ public class CookieHandlerTest extends ApexTestBase {
       rc.response().end();
     });
     testRequestWithCookies(HttpMethod.GET, "/", "foo=bar", 200, "OK");
-  }
-
-  @Test
-  public void testCookiesReturned() throws Exception {
-    router.route().handler(rc -> {
-      assertEquals(3, rc.cookieCount());
-      assertEquals("bar", rc.getCookie("foo").getValue());
-      assertEquals("blibble", rc.getCookie("wibble").getValue());
-      assertEquals("flop", rc.getCookie("plop").getValue());
-      rc.response().end();
-    });
-    testRequest(HttpMethod.GET, "/", req -> {
-      req.headers().set("Cookie", "foo=bar; wibble=blibble; plop=flop");
-    }, resp -> {
-      List<String> cookies = resp.headers().getAll("set-cookie");
-      assertEquals(3, cookies.size());
-      assertTrue(cookies.contains("foo=bar"));
-      assertTrue(cookies.contains("wibble=blibble"));
-      assertTrue(cookies.contains("plop=flop"));
-    }, 200, "OK", null);
   }
 
   @Test
@@ -90,9 +69,7 @@ public class CookieHandlerTest extends ApexTestBase {
       req.headers().set("Cookie", "foo=bar; wibble=blibble; plop=flop");
     }, resp -> {
       List<String> cookies = resp.headers().getAll("set-cookie");
-      assertEquals(2, cookies.size());
-      assertTrue(cookies.contains("wibble=blibble"));
-      assertTrue(cookies.contains("plop=flop"));
+      assertEquals(0, cookies.size());
     }, 200, "OK", null);
   }
 
@@ -125,15 +102,16 @@ public class CookieHandlerTest extends ApexTestBase {
       assertEquals(3, rc.cookieCount());
       assertNull(rc.removeCookie("blarb"));
       assertEquals(3, rc.cookieCount());
+      Cookie foo = rc.getCookie("foo");
+      foo.setValue("blah");
       rc.response().end();
     });
     testRequest(HttpMethod.GET, "/", req -> {
       req.headers().set("Cookie", "foo=bar; wibble=blibble; plop=flop");
     }, resp -> {
       List<String> cookies = resp.headers().getAll("set-cookie");
-      assertEquals(3, cookies.size());
-      assertTrue(cookies.contains("foo=bar"));
-      assertTrue(cookies.contains("wibble=blibble"));
+      assertEquals(2, cookies.size());
+      assertTrue(cookies.contains("foo=blah"));
       assertTrue(cookies.contains("fleeb=floob"));
     }, 200, "OK", null);
   }
@@ -152,10 +130,10 @@ public class CookieHandlerTest extends ApexTestBase {
     cookie.setDomain("foo.com");
     assertEquals("foo.com", cookie.getDomain());
     assertEquals("foo=bar; Path=/somepath; Domain=foo.com", cookie.encode());
-    assertEquals(Long.MIN_VALUE, cookie.getMaxAge());
     long maxAge = 30 * 60;
     cookie.setMaxAge(maxAge);
-    assertEquals(maxAge, cookie.getMaxAge());
+
+
     long now = System.currentTimeMillis();
     String encoded = cookie.encode();
     int startPos = encoded.indexOf("Expires=");
@@ -163,15 +141,19 @@ public class CookieHandlerTest extends ApexTestBase {
     String expiresDate = encoded.substring(startPos + 8, endPos);
     Date d = dateTimeFormat.parse(expiresDate);
     assertTrue(d.getTime() - now >= maxAge);
+
     cookie.setMaxAge(Long.MIN_VALUE);
-    assertFalse(cookie.isSecure());
     cookie.setSecure(true);
-    assertEquals(true, cookie.isSecure());
     assertEquals("foo=bar; Path=/somepath; Domain=foo.com; Secure", cookie.encode());
-    assertFalse(cookie.isHttpOnly());
     cookie.setHttpOnly(true);
-    assertTrue(cookie.isHttpOnly());
     assertEquals("foo=bar; Path=/somepath; Domain=foo.com; Secure; HTTPOnly", cookie.encode());
+
+    cookie.setMaxAge(maxAge);
+    cookie.setVersion(1);
+    encoded = cookie.encode();
+    assertEquals("foo=bar; Max-Age=1800; Path=\"/somepath\"; Domain=foo.com; Secure; HTTPOnly; Version=1", encoded);
+    cookie.setVersion(0);
+
   }
 
   private final DateFormat dateTimeFormat = Utils.createISODateTimeFormatter();
