@@ -65,7 +65,7 @@ public class SessionStore {
 
   public Observable<Session> getObservable(String id) {
     io.vertx.rx.java.ObservableFuture<Session> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
-    get(id, resultHandler.asHandler());
+    get(id, resultHandler.toHandler());
     return resultHandler;
   }
 
@@ -81,7 +81,7 @@ public class SessionStore {
 
   public Observable<Boolean> deleteObservable(String id) {
     io.vertx.rx.java.ObservableFuture<Boolean> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
-    delete(id, resultHandler.asHandler());
+    delete(id, resultHandler.toHandler());
     return resultHandler;
   }
 
@@ -98,7 +98,7 @@ public class SessionStore {
 
   public Observable<Boolean> putObservable(Session session, long timeout) {
     io.vertx.rx.java.ObservableFuture<Boolean> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
-    put(session, timeout, resultHandler.asHandler());
+    put(session, timeout, resultHandler.toHandler());
     return resultHandler;
   }
 
@@ -113,7 +113,7 @@ public class SessionStore {
 
   public Observable<Boolean> clearObservable() {
     io.vertx.rx.java.ObservableFuture<Boolean> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
-    clear(resultHandler.asHandler());
+    clear(resultHandler.toHandler());
     return resultHandler;
   }
 
@@ -128,7 +128,7 @@ public class SessionStore {
 
   public Observable<Integer> sizeObservable() {
     io.vertx.rx.java.ObservableFuture<Integer> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
-    size(resultHandler.asHandler());
+    size(resultHandler.toHandler());
     return resultHandler;
   }
 

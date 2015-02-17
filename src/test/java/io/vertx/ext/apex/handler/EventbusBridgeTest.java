@@ -36,11 +36,14 @@ import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.apex.ApexTestBase;
+import io.vertx.ext.apex.Router;
 import io.vertx.ext.apex.handler.sockjs.BridgeOptions;
 import io.vertx.ext.apex.handler.sockjs.SockJSHandler;
 import io.vertx.ext.apex.sstore.LocalSessionStore;
 import io.vertx.ext.apex.sstore.SessionStore;
 import io.vertx.ext.auth.AuthService;
+import io.vertx.ext.auth.shiro.ShiroAuthRealmType;
+import io.vertx.ext.auth.shiro.ShiroAuthService;
 import org.junit.Test;
 
 import java.util.UUID;
@@ -583,7 +586,7 @@ public class EventbusBridgeTest extends ApexTestBase {
     router.route().handler(SessionHandler.create(store));
     router.route("/eventbus").handler(rc -> {
       // Pretend he's logged in
-      rc.session().setPrincipal("joebloggs");
+      rc.session().setLoginID("joebloggs");
       rc.next();
     });
     router.route("/eventbus").handler(sockJSHandler);
@@ -598,13 +601,8 @@ public class EventbusBridgeTest extends ApexTestBase {
     SessionStore store = LocalSessionStore.create(vertx);
     router.route().handler(SessionHandler.create(store));
     JsonObject authConfig = new JsonObject().put("properties_path", "classpath:login/loginusers.properties");
-    AuthService authService = AuthService.create(vertx, authConfig);
-    router.route("/eventbus").handler(rc -> {
-      // Pretend he's logged in
-      rc.session().setPrincipal("tim");
-      rc.session().setAuthService(authService);
-      rc.next();
-    });
+    AuthService authService = ShiroAuthService.create(vertx, ShiroAuthRealmType.PROPERTIES, authConfig);
+    addLoginHandler(router, authService);
     router.route("/eventbus").handler(sockJSHandler);
     testSend("foo");
   }
@@ -617,13 +615,8 @@ public class EventbusBridgeTest extends ApexTestBase {
     SessionStore store = LocalSessionStore.create(vertx);
     router.route().handler(SessionHandler.create(store));
     JsonObject authConfig = new JsonObject().put("properties_path", "classpath:login/loginusers.properties");
-    AuthService authService = AuthService.create(vertx, authConfig);
-    router.route("/eventbus").handler(rc -> {
-      // Pretend he's logged in
-      rc.session().setPrincipal("tim");
-      rc.session().setAuthService(authService);
-      rc.next();
-    });
+    AuthService authService = ShiroAuthService.create(vertx, ShiroAuthRealmType.PROPERTIES, authConfig);
+    addLoginHandler(router, authService);
     router.route("/eventbus").handler(sockJSHandler);
     testSend("foo");
   }
@@ -636,15 +629,27 @@ public class EventbusBridgeTest extends ApexTestBase {
     SessionStore store = LocalSessionStore.create(vertx);
     router.route().handler(SessionHandler.create(store));
     JsonObject authConfig = new JsonObject().put("properties_path", "classpath:login/loginusers.properties");
-    AuthService authService = AuthService.create(vertx, authConfig);
-    router.route("/eventbus").handler(rc -> {
-      // Pretend he's logged in
-      rc.session().setPrincipal("tim");
-      rc.session().setAuthService(authService);
-      rc.next();
-    });
+    AuthService authService = ShiroAuthService.create(vertx, ShiroAuthRealmType.PROPERTIES, authConfig);
+    addLoginHandler(router, authService);
     router.route("/eventbus").handler(sockJSHandler);
     testError(new JsonObject().put("type", "send").put("address", addr).put("body", "foo"), "access_denied");
+  }
+
+  private void addLoginHandler(Router router, AuthService authService) {
+    router.route("/eventbus").handler(rc -> {
+      // we need to be logged in
+      if (!rc.session().isLoggedIn()) {
+        authService.login(new JsonObject().put("username", "tim").put("password", "sausages"), res -> {
+          if (res.succeeded()) {
+            rc.session().setLoginID(res.result());
+            rc.session().setAuthService(authService);
+            rc.next();
+          } else {
+            rc.fail(res.cause());
+          }
+        });
+      }
+    });
   }
 
   @Test
@@ -655,13 +660,8 @@ public class EventbusBridgeTest extends ApexTestBase {
     SessionStore store = LocalSessionStore.create(vertx);
     router.route().handler(SessionHandler.create(store));
     JsonObject authConfig = new JsonObject().put("properties_path", "classpath:login/loginusers.properties");
-    AuthService authService = AuthService.create(vertx, authConfig);
-    router.route("/eventbus").handler(rc -> {
-      // Pretend he's logged in
-      rc.session().setPrincipal("tim");
-      rc.session().setAuthService(authService);
-      rc.next();
-    });
+    AuthService authService = ShiroAuthService.create(vertx, ShiroAuthRealmType.PROPERTIES, authConfig);
+    addLoginHandler(router, authService);
     router.route("/eventbus").handler(sockJSHandler);
     testError(new JsonObject().put("type", "send").put("address", addr).put("body", "foo"), "access_denied");
   }

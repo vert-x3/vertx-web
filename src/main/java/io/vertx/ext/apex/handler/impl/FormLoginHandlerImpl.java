@@ -66,22 +66,18 @@ public class FormLoginHandlerImpl implements FormLoginHandler {
         } else {
           authService.login(new JsonObject().put("username", username).put("password", password), res -> {
             if (res.succeeded()) {
-              String principal = res.result();
-              if (principal == null) {
-                context.fail(403);  // Failed login
+              String loginID = res.result();
+              session.setLoginID(loginID);
+              String returnURL = session.remove(returnURLParam);
+              if (returnURL == null) {
+                // Just return OK
+                req.response().end("Logged in OK, but no return URL");
               } else {
-                session.setPrincipal(principal);
-                String returnURL = session.remove(returnURLParam);
-                if (returnURL == null) {
-                  // Just return OK
-                  req.response().end("Logged in OK, but no return URL");
-                } else {
-                  // Now redirect back to the original url
-                  req.response().putHeader("location", returnURL).setStatusCode(302).end();
-                }
+                // Now redirect back to the original url
+                req.response().putHeader("location", returnURL).setStatusCode(302).end();
               }
             } else {
-              context.fail(res.cause());
+              context.fail(403);  // Failed login
             }
           });
         }

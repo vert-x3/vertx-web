@@ -85,7 +85,7 @@ public class SessionHandlerImpl implements SessionHandler {
           if (session != null) {
             context.setSession(session);
             session.setAccessed();
-            addStoreSessionHandler(context, sessionID, session, false);
+            addStoreSessionHandler(context);
           } else {
              // Cannot find session - either it timed out, or was explicitly destroyed at the server side on a
             // previous request.
@@ -103,9 +103,9 @@ public class SessionHandlerImpl implements SessionHandler {
     }
   }
 
-  private void addStoreSessionHandler(RoutingContext context, String sessionID, Session originalSession, boolean isNew) {
+  private void addStoreSessionHandler(RoutingContext context) {
     context.addHeadersEndHandler(v -> {
-      if (!originalSession.isDestroyed()) {
+      if (!context.session().isDestroyed()) {
         // Store the session
         context.session().setAccessed();
         sessionStore.put(context.session(), sessionTimeout, res -> {
@@ -131,6 +131,6 @@ public class SessionHandlerImpl implements SessionHandler {
     cookie.setPath("/");
     // Don't set max age - it's a session cookie
     context.addCookie(cookie);
-    addStoreSessionHandler(context, sessionID, session, true);
+    addStoreSessionHandler(context);
   }
 }

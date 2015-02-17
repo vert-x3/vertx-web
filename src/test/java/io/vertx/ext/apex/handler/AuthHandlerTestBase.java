@@ -22,6 +22,8 @@ import io.vertx.ext.apex.sstore.LocalSessionStore;
 import io.vertx.ext.apex.sstore.SessionStore;
 import io.vertx.ext.apex.ApexTestBase;
 import io.vertx.ext.auth.AuthService;
+import io.vertx.ext.auth.shiro.ShiroAuthRealmType;
+import io.vertx.ext.auth.shiro.ShiroAuthService;
 import org.junit.Test;
 
 import java.util.HashSet;
@@ -69,7 +71,7 @@ public abstract class AuthHandlerTestBase extends ApexTestBase {
     SessionStore store = LocalSessionStore.create(vertx);
     router.route().handler(SessionHandler.create(store));
     JsonObject authConfig = new JsonObject().put("properties_path", "classpath:login/loginusers.properties");
-    AuthService authService = AuthService.create(vertx, authConfig);
+    AuthService authService = ShiroAuthService.create(vertx, ShiroAuthRealmType.PROPERTIES, authConfig);
     AuthHandler authHandler = createAuthHandler(authService);
     if (roles != null) {
       authHandler.addRoles(roles);
@@ -78,9 +80,18 @@ public abstract class AuthHandlerTestBase extends ApexTestBase {
       authHandler.addPermissions(permissions);
     }
     router.route().handler(rc -> {
-      // Fake a login
-      rc.session().setPrincipal(username);
-      rc.next();
+      // we need to be logged in
+      if (!rc.session().isLoggedIn()) {
+        authService.login(new JsonObject().put("username", username).put("password", "sausages"), res -> {
+          if (res.succeeded()) {
+            rc.session().setLoginID(res.result());
+            rc.session().setAuthService(authService);
+            rc.next();
+          } else {
+            rc.fail(res.cause());
+          }
+        });
+      }
     });
     router.route().handler(authHandler);
     router.route().handler(rc -> rc.response().end());

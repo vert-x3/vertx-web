@@ -80,16 +80,11 @@ public class BasicAuthHandlerImpl extends AuthHandlerImpl {
           } else {
             authService.login(new JsonObject().put("username", user).put("password", pass), res -> {
               if (res.succeeded()) {
-                String principal = res.result();
-                if (principal == null) {
-                  // Failed to login
-                  handle401(context);
-                } else {
-                  session.setPrincipal(principal);
-                  authorise(context);
-                }
+                String loginID = res.result();
+                session.setLoginID(loginID);
+                authorise(context);
               } else {
-                context.fail(res.cause());
+                handle401(context);
               }
             });
           }

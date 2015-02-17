@@ -1126,15 +1126,15 @@ an auth handler from that, but it's the same principle whatever concrete auth se
 
 [source,groovy]
 ----
-import io.vertx.groovy.ext.auth.AuthService
+import io.vertx.groovy.ext.auth.shiro.ShiroAuthService
 import io.vertx.groovy.ext.apex.handler.BasicAuthHandler
 
 // Create a simple local auth service that gets user data from properties file
 // See the AuthService documentation for how to configure the auth service
 
 def config = [:]
-config.io.vertx.ext.auth.PropertiesAuthRealmConstants.PROPERTIES_PROPS_PATH_FIELD = "classpath:test-auth.properties"
-def authService = AuthService.create(vertx, config)
+config.io.vertx.ext.auth.shiro.PropertiesAuthRealmConstants.PROPERTIES_PROPS_PATH_FIELD = "classpath:test-auth.properties"
+def authService = ShiroAuthService.create(vertx, 'PROPERTIES', config)
 
 def basicAuthHandler = BasicAuthHandler.create(authService)
 
@@ -1210,9 +1210,9 @@ router.route("/private/somepath").handler({ routingContext ->
 
 ----
 
-If the auth handler has successfully authenticated and authorised the user it will set the principal (username) on the
+If the auth handler has successfully authenticated and authorised the user it will set the login ID on the
 session object, and the session will be marked as logged in. You can query the logged in status and get the
-principal with `link:groovydoc/io/vertx/groovy/ext/apex/Session.html#isLoggedIn()[isLoggedIn]` and `link:groovydoc/io/vertx/groovy/ext/apex/Session.html#getPrincipal()[getPrincipal]`.
+login ID with `link:groovydoc/io/vertx/groovy/ext/apex/Session.html#isLoggedIn()[isLoggedIn]` and `link:groovydoc/io/vertx/groovy/ext/apex/Session.html#getLoginID()[getLoginID]`.
 
 If you want to cause the user to be logged out you can call `link:groovydoc/io/vertx/groovy/ext/apex/Session.html#logout()[logout]`.
 

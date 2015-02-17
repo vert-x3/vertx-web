@@ -1126,7 +1126,7 @@ an auth handler from that, but it's the same principle whatever concrete auth se
 
 [source,js]
 ----
-var AuthService = require("vertx-auth-js/auth_service");
+var ShiroAuthService = require("vertx-auth-js/shiro_auth_service");
 var BasicAuthHandler = require("vertx-apex-js/basic_auth_handler");
 
 // Create a simple local auth service that gets user data from properties file
@@ -1134,8 +1134,8 @@ var BasicAuthHandler = require("vertx-apex-js/basic_auth_handler");
 
 var config = {
 };
-config.Java.type("io.vertx.ext.auth.PropertiesAuthRealmConstants").PROPERTIES_PROPS_PATH_FIELD = "classpath:test-auth.properties";
-var authService = AuthService.create(vertx, config);
+config.Java.type("io.vertx.ext.auth.shiro.PropertiesAuthRealmConstants").PROPERTIES_PROPS_PATH_FIELD = "classpath:test-auth.properties";
+var authService = ShiroAuthService.create(vertx, 'PROPERTIES', config);
 
 var basicAuthHandler = BasicAuthHandler.create(authService);
 
@@ -1211,9 +1211,9 @@ router.route("/private/somepath").handler(function (routingContext) {
 
 ----
 
-If the auth handler has successfully authenticated and authorised the user it will set the principal (username) on the
+If the auth handler has successfully authenticated and authorised the user it will set the login ID on the
 session object, and the session will be marked as logged in. You can query the logged in status and get the
-principal with `link:jsdoc/session-Session.html#isLoggedIn[isLoggedIn]` and `link:jsdoc/session-Session.html#getPrincipal[getPrincipal]`.
+login ID with `link:jsdoc/session-Session.html#isLoggedIn[isLoggedIn]` and `link:jsdoc/session-Session.html#getLoginID[getLoginID]`.
 
 If you want to cause the user to be logged out you can call `link:jsdoc/session-Session.html#logout[logout]`.
 

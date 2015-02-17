@@ -78,20 +78,6 @@ var Cookie = function(j_val) {
   };
 
   /**
-   @return the domain of this cookie
-
-   @public
-
-   @return {string}
-   */
-  this.getDomain = function() {
-    var __args = arguments;
-    if (__args.length === 0) {
-      return j_cookie.getDomain();
-    } else utils.invalidArgs();
-  };
-
-  /**
    Sets the domain of this cookie
 
    @public
@@ -106,16 +92,16 @@ var Cookie = function(j_val) {
   };
 
   /**
-   @return The path of this cookie
+   @return  the domain for the cookie
 
    @public
 
    @return {string}
    */
-  this.getPath = function() {
+  this.getDomain = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return j_cookie.getPath();
+      return j_cookie.getDomain();
     } else utils.invalidArgs();
   };
 
@@ -134,16 +120,15 @@ var Cookie = function(j_val) {
   };
 
   /**
-   @return The maximum age of this cookie in seconds, or Long.MIN_VALUE if it's a session cookie (default)
 
    @public
 
-   @return {number}
+   @return {string} the path for this cookie
    */
-  this.getMaxAge = function() {
+  this.getPath = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return j_cookie.getMaxAge();
+      return j_cookie.getPath();
     } else utils.invalidArgs();
   };
 
@@ -167,20 +152,6 @@ var Cookie = function(j_val) {
   };
 
   /**
-   @return True if this cookie is secure, otherwise false
-
-   @public
-
-   @return {boolean}
-   */
-  this.isSecure = function() {
-    var __args = arguments;
-    if (__args.length === 0) {
-      return j_cookie.isSecure();
-    } else utils.invalidArgs();
-  };
-
-  /**
    Sets the security getStatus of this cookie
 
    @public
@@ -191,23 +162,6 @@ var Cookie = function(j_val) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] ==='boolean') {
       return new Cookie(j_cookie.setSecure(secure));
-    } else utils.invalidArgs();
-  };
-
-  /**
-   Checks to see if this cookie can only be accessed via HTTP.
-   If this returns true, the cookie cannot be accessed through
-   client side script - But only if the browser supports it.
-   For more information, please look <a href="http://www.owasp.org/index.php/HTTPOnly">here</a>
-
-   @public
-
-   @return {boolean} True if this cookie is HTTP-only or false if it isn't
-   */
-  this.isHttpOnly = function() {
-    var __args = arguments;
-    if (__args.length === 0) {
-      return j_cookie.isHttpOnly();
     } else utils.invalidArgs();
   };
 
@@ -230,6 +184,20 @@ var Cookie = function(j_val) {
   };
 
   /**
+   Set the version of the cookie
+
+   @public
+   @param version {number} 0 or 1 
+   @return {Cookie} a reference to this, so the API can be used fluently
+   */
+  this.setVersion = function(version) {
+    var __args = arguments;
+    if (__args.length === 1 && typeof __args[0] ==='number') {
+      return new Cookie(j_cookie.setVersion(version));
+    } else utils.invalidArgs();
+  };
+
+  /**
    Encode the cookie to a string. This is what is used in the Set-Cookie header
 
    @public
@@ -240,6 +208,34 @@ var Cookie = function(j_val) {
     var __args = arguments;
     if (__args.length === 0) {
       return j_cookie.encode();
+    } else utils.invalidArgs();
+  };
+
+  /**
+   Has the cookie been changed? Changed cookies will be saved out in the response and sent to the browser.
+
+   @public
+
+   @return {boolean} true if changed
+   */
+  this.isChanged = function() {
+    var __args = arguments;
+    if (__args.length === 0) {
+      return j_cookie.isChanged();
+    } else utils.invalidArgs();
+  };
+
+  /**
+   Set the cookie as being changed. Changed will be true for a cookie just created, false by default if just
+   read from the request
+
+   @public
+   @param changed {boolean} true if changed 
+   */
+  this.setChanged = function(changed) {
+    var __args = arguments;
+    if (__args.length === 1 && typeof __args[0] ==='boolean') {
+      j_cookie.setChanged(changed);
     } else utils.invalidArgs();
   };
 

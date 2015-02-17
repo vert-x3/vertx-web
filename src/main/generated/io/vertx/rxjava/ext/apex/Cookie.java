@@ -81,14 +81,6 @@ public class Cookie {
   }
 
   /**
-   * @return the domain of this cookie
-   */
-  public String getDomain() {
-    String ret = this.delegate.getDomain();
-    return ret;
-  }
-
-  /**
    * Sets the domain of this cookie
    *
    * @param domain The domain to use
@@ -100,10 +92,10 @@ public class Cookie {
   }
 
   /**
-   * @return The path of this cookie
+   * @return  the domain for the cookie
    */
-  public String getPath() {
-    String ret = this.delegate.getPath();
+  public String getDomain() {
+    String ret = this.delegate.getDomain();
     return ret;
   }
 
@@ -119,10 +111,11 @@ public class Cookie {
   }
 
   /**
-   * @return The maximum age of this cookie in seconds, or Long.MIN_VALUE if it's a session cookie (default)
+   *
+   * @return the path for this cookie
    */
-  public long getMaxAge() {
-    long ret = this.delegate.getMaxAge();
+  public String getPath() {
+    String ret = this.delegate.getPath();
     return ret;
   }
 
@@ -142,14 +135,6 @@ public class Cookie {
   }
 
   /**
-   * @return True if this cookie is secure, otherwise false
-   */
-  public boolean isSecure() {
-    boolean ret = this.delegate.isSecure();
-    return ret;
-  }
-
-  /**
    * Sets the security getStatus of this cookie
    *
    * @param secure True if this cookie is to be secure, otherwise false
@@ -157,19 +142,6 @@ public class Cookie {
    */
   public Cookie setSecure(boolean secure) {
     Cookie ret= Cookie.newInstance(this.delegate.setSecure(secure));
-    return ret;
-  }
-
-  /**
-   * Checks to see if this cookie can only be accessed via HTTP.
-   * If this returns true, the cookie cannot be accessed through
-   * client side script - But only if the browser supports it.
-   * For more information, please look <a href="http://www.owasp.org/index.php/HTTPOnly">here</a>
-   *
-   * @return True if this cookie is HTTP-only or false if it isn't
-   */
-  public boolean isHttpOnly() {
-    boolean ret = this.delegate.isHttpOnly();
     return ret;
   }
 
@@ -188,6 +160,17 @@ public class Cookie {
   }
 
   /**
+   * Set the version of the cookie
+   *
+   * @param version 0 or 1
+   * @return a reference to this, so the API can be used fluently
+   */
+  public Cookie setVersion(int version) {
+    Cookie ret= Cookie.newInstance(this.delegate.setVersion(version));
+    return ret;
+  }
+
+  /**
    * Encode the cookie to a string. This is what is used in the Set-Cookie header
    *
    * @return  the encoded cookie
@@ -195,6 +178,26 @@ public class Cookie {
   public String encode() {
     String ret = this.delegate.encode();
     return ret;
+  }
+
+  /**
+   * Has the cookie been changed? Changed cookies will be saved out in the response and sent to the browser.
+   *
+   * @return true  if changed
+   */
+  public boolean isChanged() {
+    boolean ret = this.delegate.isChanged();
+    return ret;
+  }
+
+  /**
+   * Set the cookie as being changed. Changed will be true for a cookie just created, false by default if just
+   * read from the request
+   *
+   * @param changed  true if changed
+   */
+  public void setChanged(boolean changed) {
+    this.delegate.setChanged(changed);
   }
 
 
