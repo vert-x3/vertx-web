@@ -51,6 +51,8 @@ Some of the key features of Apex include:
 * Response time handler
 * Static file serving, including caching logic and directory listing.
 * Request timeout support
+* SockJS support
+* Event-bus bridge
 
 Most features in Apex are implemented as handlers so you can always write your own. We envisage many more being written
 over time.
@@ -1562,3 +1564,346 @@ This handler sets the header `x-response-time` response header containing the ti
 to when the response headers were written, in ms., e.g.:
 
  x-response-time: 1456ms
+
+== SockJS
+
+SockJS is a client side JavaScript library and protocol which provides a simple WebSocket-like interface allowing you
+to make connections to SockJS servers irrespective of whether the actual browser or network will allow real WebSockets.
+
+It does this by supporting various different transports between browser and server, and choosing one at run-time
+according to browser and network capabilities.
+
+All this is transparent to you - you are simply presented with the WebSocket-like interface which _just works_.
+
+Please see the https://github.com/sockjs/sockjs-client[SockJS website] for more information on SockJS.
+
+=== SockJS handler
+
+Vert.x provides an out of the box handler called `link:apidocs/io/vertx/ext/apex/handler/sockjs/SockJSHandler.html[SockJSHandler]` for
+using SockJS in your Apex applications.
+
+You should create one handler per SockJS application using `link:apidocs/io/vertx/ext/apex/handler/sockjs/SockJSHandler.html#create-io.vertx.core.Vertx-[SockJSHandler.create]`.
+You can also specify configuration options when creating the instance. The configuration options are described with
+an instance of `link:apidocs/io/vertx/ext/apex/handler/sockjs/SockJSHandlerOptions.html[SockJSHandlerOptions]`.
+
+[source,java]
+----
+Router router = Router.router(vertx);
+
+SockJSHandlerOptions options = new SockJSHandlerOptions().setHeartbeatPeriod(2000);
+
+SockJSHandler sockJSHandler = SockJSHandler.create(vertx, options);
+
+router.route("/myapp").handler(sockJSHandler);
+----
+
+=== Handling SockJS sockets
+
+On the server-side you set a handler on the SockJS handler, and
+this will be called every time a SockJS connection is made from a client:
+
+The object passed into the handler is a `link:apidocs/io/vertx/ext/apex/handler/sockjs/SockJSSocket.html[SockJSSocket]`. This has a familiar
+socket-like interface which you can read and write to similarly to a `link:apidocs/io/vertx/core/net/NetSocket.html[NetSocket]` or
+a `link:apidocs/io/vertx/core/http/WebSocket.html[WebSocket]`. It also implements `link:apidocs/io/vertx/core/streams/ReadStream.html[ReadStream]` and
+`link:apidocs/io/vertx/core/streams/WriteStream.html[WriteStream]` so you can pump it to and from other read and write streams.
+
+Here's an example of a simple SockJS handler that simply echoes back any back any data that it reads:
+
+[source,java]
+----
+Router router = Router.router(vertx);
+
+SockJSHandlerOptions options = new SockJSHandlerOptions().setHeartbeatPeriod(2000);
+
+SockJSHandler sockJSHandler = SockJSHandler.create(vertx, options);
+
+sockJSHandler.socketHandler(sockJSSocket -> {
+
+  // Just echo the data back
+  sockJSSocket.handler(sockJSSocket::write);
+});
+
+router.route("/myapp").handler(sockJSHandler);
+----
+
+=== The client side
+
+In client side JavaScript you use the SockJS client side library to make connections.
+
+You can find that http://cdn.sockjs.org/sockjs-0.3.4.js[here].
+The minified version is http://cdn.sockjs.org/sockjs-0.3.4.min.js[here].
+
+Full details for using the SockJS JavaScript client are on the https://github.com/sockjs/sockjs-client[SockJS website],
+but in summary you use it something like this:
+
+----
+var sock = new SockJS('http://mydomain.com/myapp');
+
+sock.onopen = function() {
+  console.log('open');
+};
+
+sock.onmessage = function(e) {
+  console.log('message', e.data);
+};
+
+sock.onclose = function() {
+  console.log('close');
+};
+
+sock.send('test');
+
+sock.close();
+----
+
+=== Configuring the SockJS handler
+
+The handler can be configured with various options using `link:apidocs/io/vertx/ext/apex/handler/sockjs/SockJSHandlerOptions.html[SockJSHandlerOptions]`.
+
+`insertJSESSIONID`:: Insert a JSESSIONID cookie so load-balancers ensure requests for a specific SockJS session
+are always routed to the correct server. Default is `true`.
+`sessionTimeout`:: The server sends a `close` event when a client receiving connection have not been seen for a while.
+This delay is configured by this setting. By default the `close` event will be emitted when a receiving
+connection wasn't seen for 5 seconds.
+`heartbeaPperiod`:: In order to keep proxies and load balancers from closing long running http
+requests we need to pretend that the connection is active and send a heartbeat packet once in a while.
+This setting controls how often this is done. By default a heartbeat packet is sent every 25 seconds.
+`maxBytesStreaming`:: Most streaming transports save responses on the client side and don't free memory used
+by delivered messages. Such transports need to be garbage-collected once in a while. `max_bytes_streaming` sets a
+minimum number of bytes that can be send over a single http streaming request before it will be closed. After that
+client needs to open new request. Setting this value to one effectively disables streaming and will make streaming
+transports to behave like polling transports. The default value is 128K.
+`libraryURL`:: Transports which don't support cross-domain communication natively ('eventsource' to name one)
+use an iframe trick. A simple page is served from the SockJS server (using its foreign domain) and is placed in an
+invisible iframe. Code run from this iframe doesn't need to worry about cross-domain issues, as it's being run from
+domain local to the SockJS server. This iframe also does need to load SockJS javascript client library, and this option
+lets you specify its url (if you're unsure, point it to the latest minified SockJS client release, this is the default).
+The default value is `http://cdn.sockjs.org/sockjs-0.3.4.min.js`
+`disabledTransports`:: This is a list of transports that you want to disable. Possible values are
+WEBSOCKET, EVENT_SOURCE, HTML_FILE, JSON_P, XHR.
+
+== SockJS event bus bridge
+
+Apex comes with a built-in SockJS socket handler called the event bus bridge which effectively extends the server-side
+Vert.x event bus into client side JavaScript.
+
+This creates a distributed event bus which not only spans multiple Vert.x instances on the server side, but includes
+client side JavaScript running in browsers.
+
+We can therefore create a huge distributed bus encompassing many browsers and servers. The browsers don't have to
+be connected to the same server as long as the servers are connected.
+
+This is done by providing a simple client side JavaScript library called `vertxbus.js` which provides an API
+very similar to the server-side Vert.x event-bus API, which allows you to send and publish messages to the event bus
+and register handlers to receive messages.
+
+This JavaScript library uses the JavaScript SockJS client to tunnel the event bus traffic over SockJS connections
+terminating at at a `link:apidocs/io/vertx/ext/apex/handler/sockjs/SockJSHandler.html[SockJSHandler]` on the server-side.
+
+A special SockJS socket handler is then installed on the `link:apidocs/io/vertx/ext/apex/handler/sockjs/SockJSHandler.html[SockJSHandler]` which
+handles the SockJS data and bridges it to and from the server side event bus.
+
+To activate the bridge you simply call
+`link:apidocs/io/vertx/ext/apex/handler/sockjs/SockJSHandler.html#bridge-io.vertx.ext.apex.handler.sockjs.BridgeOptions-[bridge]` on the
+SockJS handler.
+
+[source,java]
+----
+Router router = Router.router(vertx);
+
+SockJSHandler sockJSHandler = SockJSHandler.create(vertx);
+BridgeOptions options = new BridgeOptions();
+sockJSHandler.bridge(options);
+
+router.route("/eventbus").handler(sockJSHandler);
+----
+
+In client side JavaScript you use the 'vertxbus.js` library to create connections to the event bus and to send
+and receive messages:
+
+----
+<script src="http://cdn.sockjs.org/sockjs-0.3.4.min.js"></script>
+<script src='vertxbus.js'></script>
+
+<script>
+
+var eb = new vertx.EventBus('http://localhost:8080/eventbus');
+
+eb.onopen = function() {
+
+  // set a handler to receive a message
+  eb.registerHandler('some-address', function(message) {
+    console.log('received a message: ' + JSON.stringify(message);
+  });
+
+  // send a message
+  eb.send('some-address', {name: 'tim', age: 587});
+
+}
+
+</script>
+----
+
+The first thing the example does is to create a instance of the event bus
+
+ var eb = new vertx.EventBus('http://localhost:8080/eventbus');
+
+The parameter to the constructor is the URI where to connect to the event bus. Since we create our bridge with
+the prefix `eventbus` we will connect there.
+
+You can't actually do anything with the connection until it is opened. When it is open the `onopen` handler will be called.
+
+=== Securing the Bridge
+
+If you started a bridge like in the above example without securing it, and attempted to send messages through
+it you'd find that the messages mysteriously disappeared. What happened to them?
+
+For most applications you probably don't want client side JavaScript being able to send just any message to any
+handlers on the server side or to all other browsers.
+
+For example, you may have a service on the event bus which allows data to be accessed or deleted. We don't want
+badly behaved or malicious clients being able to delete all the data in your database!
+
+Also, we don't necessarily want any client to be able to listen in on any event bus address.
+
+To deal with this, a SockJS bridge will by default refuse to let through any messages. It's up to you to tell the
+bridge what messages are ok for it to pass through. (There is an exception for reply messages which are always allowed through).
+
+In other words the bridge acts like a kind of firewall which has a default _deny-all_ policy.
+
+Configuring the bridge to tell it what messages it should pass through is easy.
+
+You can specify which _matches_ you want to allow for inbound and outbound traffic using the
+`link:apidocs/io/vertx/ext/apex/handler/sockjs/BridgeOptions.html[BridgeOptions]` that you pass in when calling bridge.
+
+Each match is a Json object that can contain several fields.
+
+`address`:: This represents the exact address the message is being sent to. If you want to allow messages based on
+an exact address you use this field.
+`address_re`:: This is a regular expression that will be matched against the address. If you want to allow messages
+based on a regular expression you use this field. If the `address` field is specified this field will be ignored.
+`match`:: This allows you to allow messages based on their structure. Any fields in the match must exist in the
+message with the same values for them to be allowed. This currently only works with JSON messages.
+
+If a message is _in-bound_ (i.e. being sent from client side JavaScript to the server) when it is received Apex
+will look through any inbound permitted matches. If any match, it will be allowed through.
+
+If a message is _out-bound_ (i.e. being sent from the server to client side JavaScript) before it is sent to the client
+Apex will look through any inbound permitted matches. If any match, it will be allowed through.
+
+The actual matching works as follows:
+
+If an `address` field has been specified then the `address` must match _exactly_ with the address of the message
+for it to be considered matched.
+
+If an `address` field has not been specified and an `address_re` field has been specified then the regular expression
+in `address_re` must match with the address of the message for it to be considered matched.
+
+If a `match` field has been specified, then also the structure of the message must match. Structuring matching works
+by looking at all the fields and values in the match object and checking they all exist in the actual message body.
+
+Here's an example:
+
+[source,java]
+----
+Router router = Router.router(vertx);
+
+SockJSHandler sockJSHandler = SockJSHandler.create(vertx);
+
+BridgeOptions options = new BridgeOptions();
+
+// First let's define what we're going to allow from client -> server
+
+// Let through any messages sent to 'demo.orderMgr' from the client
+JsonObject inboundPermitted1 = new JsonObject().put("address", "demo.orderMgr");
+options.addInboundPermitted(inboundPermitted1);
+
+// Allow calls to the address 'demo.persistor' from the client as long as the messages
+// have an action field with value 'find' and a collection field with value
+// 'albums'
+JsonObject inboundPermitted2 = new JsonObject().put("address", "demo.persistor")
+    .put("match", new JsonObject().put("action", "find")
+      .put("collection", "albums"));
+options.addInboundPermitted(inboundPermitted2);
+
+// Allow through any message with a field `wibble` with value `foo`.
+JsonObject inboundPermitted3 = new JsonObject().put("match", new JsonObject().put("wibble", "foo"));
+options.addInboundPermitted(inboundPermitted3);
+
+// First let's define what we're going to allow from server -> client
+
+// Let through any messages coming from address 'ticker.mystock'
+JsonObject outboundPermitted1 = new JsonObject().put("address", "ticker.mystock");
+options.addOutboundPermitted(outboundPermitted1);
+
+// Let through any messages from addresses starting with "news." (e.g. news.europe, news.usa, etc)
+JsonObject outboundPermitted2 = new JsonObject().put("address_re", "news\\..+");
+options.addOutboundPermitted(outboundPermitted2);
+
+sockJSHandler.bridge(options);
+
+router.route("/eventbus").handler(sockJSHandler);
+----
+
+=== Requiring authorisation for messages
+
+The event bus bridge can also be configured to use the Apex authorisation functionality to require
+authorisation for messages, either in-bound or out-bound on the bridge.
+
+To do this, you can add extra fields to the match described in the previous section that determine what role and/or
+permission is required for the match.
+
+To declare that a specific role for the logged-in user is required in order to access allow the messages you use the
+`required_role` field.
+
+To declare that a specific permission for the logged-in user is required in order to access allow the messages you use the
+`required_permission` field.
+
+Here's an example:
+
+[source,java]
+----
+JsonObject inboundPermitted = new JsonObject().put("address", "demo.adminService");
+
+// But only if the user is logged in and has the role "admin"
+inboundPermitted.put("required_role", "admin");
+
+options.addInboundPermitted(inboundPermitted);
+----
+
+For the user to be authorised they must be first logged in and secondly have the required role.
+
+To handle the login and actually auth you can configure the normal Vert.x auth handlers. For example:
+
+[source,java]
+----
+Router router = Router.router(vertx);
+
+SockJSHandler sockJSHandler = SockJSHandler.create(vertx);
+
+BridgeOptions options = new BridgeOptions();
+
+// Let through any messages sent to 'demo.orderMgr' from the client
+JsonObject inboundPermitted = new JsonObject().put("address", "demo.adminService");
+
+// But only if the user is logged in and has the role "admin"
+inboundPermitted.put("required_role", "admin");
+
+options.addInboundPermitted(inboundPermitted);
+
+// Now set up some basic auth handling:
+
+router.route().handler(CookieHandler.create());
+router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
+
+JsonObject authConfig = new JsonObject();
+authConfig.put(PropertiesAuthRealmConstants.PROPERTIES_PROPS_PATH_FIELD,
+  "classpath:test-auth.properties");
+AuthService authService = AuthService.create(vertx, authConfig);
+AuthHandler basicAuthHandler = BasicAuthHandler.create(authService);
+
+router.route("/eventbus/").handler(basicAuthHandler);
+
+
+router.route("/eventbus/").handler(sockJSHandler);
+----

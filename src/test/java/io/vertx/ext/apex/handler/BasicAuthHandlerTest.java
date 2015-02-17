@@ -78,8 +78,6 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
       req.putHeader("cookie", sessionCookie.get());
       req.putHeader("Authorization", "Basic dGltOnNhdXNhZ2Vz");
     }, resp -> {
-      String setCookie = resp.headers().get("set-cookie");
-      assertEquals(sessionCookie.get(), setCookie);
       String wwwAuth = resp.headers().get("WWW-Authenticate");
       assertNull(wwwAuth);
 
@@ -123,8 +121,6 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
       req.putHeader("cookie", sessionCookie.get());
       req.putHeader("Authorization", "Basic dGltOn5hdXdhZ2Vz");
     }, resp -> {
-      String setCookie = resp.headers().get("set-cookie");
-      assertEquals(sessionCookie.get(), setCookie);
       String wwwAuth = resp.headers().get("WWW-Authenticate");
       assertNotNull(wwwAuth);
       assertEquals("Basic realm=\"" + realm + "\"", wwwAuth);

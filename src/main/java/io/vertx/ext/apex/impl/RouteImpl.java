@@ -184,7 +184,10 @@ public class RouteImpl implements Route {
   }
 
   private boolean pathMatches(String mountPoint, HttpServerRequest request) {
+    //System.out.println("Matches, mountPoint: " + mountPoint);
     String requestPath = request.path();
+//    System.out.println("request path: " + requestPath);
+//    System.out.println("path: " + path);
     if (mountPoint == null) {
       return requestPath.startsWith(path);
     } else {

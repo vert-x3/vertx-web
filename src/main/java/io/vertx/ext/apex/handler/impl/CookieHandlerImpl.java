@@ -46,7 +46,6 @@ public class CookieHandlerImpl implements CookieHandler {
     String cookieHeader = context.request().headers().get(COOKIE);
 
     if (cookieHeader != null) {
-
       Set<io.netty.handler.codec.http.Cookie> nettyCookies = CookieDecoder.decode(cookieHeader);
       for (io.netty.handler.codec.http.Cookie cookie : nettyCookies) {
         Cookie apexCookie = new CookieImpl(cookie);
@@ -58,7 +57,9 @@ public class CookieHandlerImpl implements CookieHandler {
       // save the cookies
       Set<Cookie> cookies = context.cookies();
       for (Cookie cookie: cookies) {
-        context.response().headers().add(SET_COOKIE, cookie.encode());
+        if (cookie.isChanged()) {
+          context.response().headers().add(SET_COOKIE, cookie.encode());
+        }
       }
 
     });

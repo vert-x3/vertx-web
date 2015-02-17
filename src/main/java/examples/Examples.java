@@ -1,6 +1,5 @@
 package examples;
 
-import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
@@ -9,9 +8,12 @@ import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.apex.*;
+import io.vertx.ext.apex.handler.*;
+import io.vertx.ext.apex.handler.sockjs.BridgeOptions;
+import io.vertx.ext.apex.handler.sockjs.SockJSHandler;
+import io.vertx.ext.apex.handler.sockjs.SockJSHandlerOptions;
 import io.vertx.ext.apex.sstore.ClusteredSessionStore;
 import io.vertx.ext.apex.sstore.LocalSessionStore;
-import io.vertx.ext.apex.handler.*;
 import io.vertx.ext.apex.sstore.SessionStore;
 import io.vertx.ext.apex.templ.HandlebarsTemplateEngine;
 import io.vertx.ext.apex.templ.TemplateEngine;
@@ -797,6 +799,131 @@ public class Examples {
 
   }
 
+  public void example43(Vertx vertx) {
+
+    Router router = Router.router(vertx);
+
+    SockJSHandlerOptions options = new SockJSHandlerOptions().setHeartbeatPeriod(2000);
+
+    SockJSHandler sockJSHandler = SockJSHandler.create(vertx, options);
+
+    router.route("/myapp").handler(sockJSHandler);
+  }
+
+  public void example44(Vertx vertx) {
+
+    Router router = Router.router(vertx);
+
+    SockJSHandlerOptions options = new SockJSHandlerOptions().setHeartbeatPeriod(2000);
+
+    SockJSHandler sockJSHandler = SockJSHandler.create(vertx, options);
+
+    sockJSHandler.socketHandler(sockJSSocket -> {
+
+      // Just echo the data back
+      sockJSSocket.handler(sockJSSocket::write);
+    });
+
+    router.route("/myapp").handler(sockJSHandler);
+  }
+
+  public void example45(Vertx vertx) {
+
+    Router router = Router.router(vertx);
+
+    SockJSHandler sockJSHandler = SockJSHandler.create(vertx);
+    BridgeOptions options = new BridgeOptions();
+    sockJSHandler.bridge(options);
+
+    router.route("/eventbus").handler(sockJSHandler);
+  }
+
+  public void example46(Vertx vertx) {
+
+    Router router = Router.router(vertx);
+
+    SockJSHandler sockJSHandler = SockJSHandler.create(vertx);
+
+    BridgeOptions options = new BridgeOptions();
+
+    // First let's define what we're going to allow from client -> server
+
+    // Let through any messages sent to 'demo.orderMgr' from the client
+    JsonObject inboundPermitted1 = new JsonObject().put("address", "demo.orderMgr");
+    options.addInboundPermitted(inboundPermitted1);
+
+    // Allow calls to the address 'demo.persistor' from the client as long as the messages
+    // have an action field with value 'find' and a collection field with value
+    // 'albums'
+    JsonObject inboundPermitted2 = new JsonObject().put("address", "demo.persistor")
+        .put("match", new JsonObject().put("action", "find")
+          .put("collection", "albums"));
+    options.addInboundPermitted(inboundPermitted2);
+
+    // Allow through any message with a field `wibble` with value `foo`.
+    JsonObject inboundPermitted3 = new JsonObject().put("match", new JsonObject().put("wibble", "foo"));
+    options.addInboundPermitted(inboundPermitted3);
+
+    // First let's define what we're going to allow from server -> client
+
+    // Let through any messages coming from address 'ticker.mystock'
+    JsonObject outboundPermitted1 = new JsonObject().put("address", "ticker.mystock");
+    options.addOutboundPermitted(outboundPermitted1);
+
+    // Let through any messages from addresses starting with "news." (e.g. news.europe, news.usa, etc)
+    JsonObject outboundPermitted2 = new JsonObject().put("address_re", "news\\..+");
+    options.addOutboundPermitted(outboundPermitted2);
+
+    sockJSHandler.bridge(options);
+
+    router.route("/eventbus").handler(sockJSHandler);
+  }
+
+  public void example47(BridgeOptions options) {
+
+    // Let through any messages sent to 'demo.orderMgr' from the client
+    JsonObject inboundPermitted = new JsonObject().put("address", "demo.adminService");
+
+    // But only if the user is logged in and has the role "admin"
+    inboundPermitted.put("required_role", "admin");
+
+    options.addInboundPermitted(inboundPermitted);
+
+  }
+
+  public void example48(Vertx vertx) {
+
+    Router router = Router.router(vertx);
+
+    SockJSHandler sockJSHandler = SockJSHandler.create(vertx);
+
+    BridgeOptions options = new BridgeOptions();
+
+    // Let through any messages sent to 'demo.orderMgr' from the client
+    JsonObject inboundPermitted = new JsonObject().put("address", "demo.adminService");
+
+    // But only if the user is logged in and has the role "admin"
+    inboundPermitted.put("required_role", "admin");
+
+    options.addInboundPermitted(inboundPermitted);
+
+    // Now set up some basic auth handling:
+
+    router.route().handler(CookieHandler.create());
+    router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
+
+    JsonObject authConfig = new JsonObject();
+    authConfig.put(PropertiesAuthRealmConstants.PROPERTIES_PROPS_PATH_FIELD,
+      "classpath:test-auth.properties");
+    AuthService authService = AuthService.create(vertx, authConfig);
+    AuthHandler basicAuthHandler = BasicAuthHandler.create(authService);
+
+    router.route("/eventbus/").handler(basicAuthHandler);
+
+
+    router.route("/eventbus/").handler(sockJSHandler);
+
+  }
 
 
 
