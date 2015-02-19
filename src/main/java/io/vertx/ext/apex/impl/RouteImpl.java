@@ -285,6 +285,10 @@ public class RouteImpl implements Route {
       return true;
     }
 
+    if (actualCT == null) {
+      return false;
+    }
+    
     // get the content type only (exclude charset)
     actualCT = actualCT.split(";")[0];
 
