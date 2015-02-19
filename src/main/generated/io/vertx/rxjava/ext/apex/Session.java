@@ -20,6 +20,9 @@ import java.util.Map;
 import io.vertx.lang.rxjava.InternalHelper;
 import rx.Observable;
 import io.vertx.rxjava.ext.apex.sstore.SessionStore;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
+import io.vertx.rxjava.ext.auth.AuthService;
 
 /**
  * Represents a browser session.
@@ -115,11 +118,11 @@ public class Session {
   }
 
   /**
-   * @return  the principal (username) of the logged in user (if any). Must be used in conjunction with a
+   * @return  the login ID of the logged in user (if any). Must be used in conjunction with a
    * {@link io.vertx.ext.apex.handler.AuthHandler}.
    */
-  public String getPrincipal() {
-    String ret = this.delegate.getPrincipal();
+  public String getLoginID() {
+    String ret = this.delegate.getLoginID();
     return ret;
   }
 
@@ -129,6 +132,38 @@ public class Session {
   public boolean isLoggedIn() {
     boolean ret = this.delegate.isLoggedIn();
     return ret;
+  }
+
+  /**
+   * Does the logged in user have the specified role?  Information is cached for the lifetime of the session
+   *
+   * @param role  the role
+   * @param resultHandler will be called with a result true/false
+   */
+  public void hasRole(String role, Handler<AsyncResult<Boolean>> resultHandler) {
+    this.delegate.hasRole(role, resultHandler);
+  }
+
+  public Observable<Boolean> hasRoleObservable(String role) {
+    io.vertx.rx.java.ObservableFuture<Boolean> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
+    hasRole(role, resultHandler.toHandler());
+    return resultHandler;
+  }
+
+  /**
+   * Does the logged in user have the specified permissions?  Information is cached for the lifetime of the session
+   *
+   * @param permission  the permission
+   * @param resultHandler will be called with a result true/false
+   */
+  public void hasPermission(String permission, Handler<AsyncResult<Boolean>> resultHandler) {
+    this.delegate.hasPermission(permission, resultHandler);
+  }
+
+  public Observable<Boolean> hasPermissionObservable(String permission) {
+    io.vertx.rx.java.ObservableFuture<Boolean> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
+    hasPermission(permission, resultHandler.toHandler());
+    return resultHandler;
   }
 
   /**
@@ -155,12 +190,12 @@ public class Session {
   }
 
   /**
-   * Set the principal for the session
+   * Set the login ID for the session
    *
-   * @param principal  the principal
+   * @param loginID  the login ID
    */
-  public void setPrincipal(String principal) {
-    this.delegate.setPrincipal(principal);
+  public void setLoginID(String loginID) {
+    this.delegate.setLoginID(loginID);
   }
 
   /**
@@ -168,6 +203,15 @@ public class Session {
    */
   public void setAccessed() {
     this.delegate.setAccessed();
+  }
+
+  /**
+   * Set the auth service
+   *
+   * @param authService  the auth service
+   */
+  public void setAuthService(AuthService authService) {
+    this.delegate.setAuthService((io.vertx.ext.auth.AuthService) authService.getDelegate());
   }
 
 

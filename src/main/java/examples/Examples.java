@@ -18,7 +18,9 @@ import io.vertx.ext.apex.sstore.SessionStore;
 import io.vertx.ext.apex.templ.HandlebarsTemplateEngine;
 import io.vertx.ext.apex.templ.TemplateEngine;
 import io.vertx.ext.auth.AuthService;
-import io.vertx.ext.auth.PropertiesAuthRealmConstants;
+import io.vertx.ext.auth.shiro.PropertiesAuthRealmConstants;
+import io.vertx.ext.auth.shiro.ShiroAuthRealmType;
+import io.vertx.ext.auth.shiro.ShiroAuthService;
 
 import java.util.Set;
 
@@ -638,7 +640,7 @@ public class Examples {
     JsonObject config = new JsonObject();
     config.put(PropertiesAuthRealmConstants.PROPERTIES_PROPS_PATH_FIELD,
                "classpath:test-auth.properties");
-    AuthService authService = AuthService.create(vertx, config);
+    AuthService authService = ShiroAuthService.create(vertx, ShiroAuthRealmType.PROPERTIES, config);
 
     AuthHandler basicAuthHandler = BasicAuthHandler.create(authService);
   }
@@ -915,7 +917,7 @@ public class Examples {
     JsonObject authConfig = new JsonObject();
     authConfig.put(PropertiesAuthRealmConstants.PROPERTIES_PROPS_PATH_FIELD,
       "classpath:test-auth.properties");
-    AuthService authService = AuthService.create(vertx, authConfig);
+    AuthService authService = ShiroAuthService.create(vertx, ShiroAuthRealmType.PROPERTIES, authConfig);
     AuthHandler basicAuthHandler = BasicAuthHandler.create(authService);
 
     router.route("/eventbus/").handler(basicAuthHandler);

@@ -24,6 +24,8 @@ import io.vertx.ext.apex.RoutingContext;
 import io.vertx.ext.apex.Session;
 import io.vertx.ext.apex.sstore.SessionStore;
 import io.vertx.ext.auth.AuthService;
+import io.vertx.ext.auth.shiro.ShiroAuthRealmType;
+import io.vertx.ext.auth.shiro.ShiroAuthService;
 import org.junit.Test;
 
 import java.util.concurrent.atomic.AtomicReference;
@@ -59,7 +61,7 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
     SessionStore store = LocalSessionStore.create(vertx);
     router.route().handler(SessionHandler.create(store));
     JsonObject authConfig = new JsonObject().put("properties_path", "classpath:login/loginusers.properties");
-    AuthService authService = AuthService.create(vertx, authConfig);
+    AuthService authService = ShiroAuthService.create(vertx, ShiroAuthRealmType.PROPERTIES, authConfig);;
     router.route("/protected").handler(BasicAuthHandler.create(authService, realm));
 
     router.route("/protected/somepage").handler(handler);
@@ -102,7 +104,7 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
     SessionStore store = LocalSessionStore.create(vertx);
     router.route().handler(SessionHandler.create(store));
     JsonObject authConfig = new JsonObject().put("properties_path", "classpath:login/loginusers.properties");
-    AuthService authService = AuthService.create(vertx, authConfig);
+    AuthService authService = ShiroAuthService.create(vertx, ShiroAuthRealmType.PROPERTIES, authConfig);
     router.route("/protected").handler(BasicAuthHandler.create(authService));
 
     router.route("/protected/somepage").handler(handler);

@@ -65,7 +65,7 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
 
   private long lastAccessed;
   private boolean destroyed;
-  private String principal;
+  private String loginID;
   private AuthService authService;
   private Set<String> roles = new HashSet<>();
   private Set<String> permissions = new HashSet<>();
@@ -120,6 +120,13 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
   @Override
   public void setAccessed() {
     this.lastAccessed = System.currentTimeMillis();
+    if (authService != null && loginID != null) {
+      authService.refreshLoginSession(loginID, res -> {
+        if (res.failed()) {
+          log.error("Failed to refresh login", res.cause());
+        }
+      });
+    }
   }
 
   @Override
@@ -145,7 +152,7 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
 
   @Override
   public boolean isLoggedIn() {
-    return principal != null;
+    return loginID != null;
   }
 
   @Override
@@ -153,8 +160,8 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
     if (roles.contains(role)) {
       resultHandler.handle(Future.succeededFuture(true));
     } else {
-      if (authService != null && principal != null) {
-        authService.hasRole(principal, role, res -> {
+      if (authService != null && loginID != null) {
+        authService.hasRole(loginID, role, res -> {
           if (res.succeeded()) {
             boolean has = res.result();
             if (has) {
@@ -178,8 +185,8 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
     if (permissions.contains(permission)) {
       resultHandler.handle(Future.succeededFuture(true));
     } else {
-      if (authService != null && principal != null) {
-        authService.hasPermission(principal, permission, res -> {
+      if (authService != null && loginID != null) {
+        authService.hasPermission(loginID, permission, res -> {
           if (res.succeeded()) {
             boolean has = res.result();
             if (has) {
@@ -200,19 +207,26 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
 
   @Override
   public void logout() {
-    this.principal = null;
+    if (authService != null && loginID != null) {
+      authService.logout(loginID, res -> {
+        if (res.failed()) {
+          log.error("Failed to logout", res.cause());
+        }
+      });
+    }
+    this.loginID = null;
     roles.clear();
     permissions.clear();
   }
 
   @Override
-  public void setPrincipal(String principal) {
-    this.principal = principal;
+  public void setLoginID(String loginID) {
+    this.loginID = loginID;
   }
 
   @Override
-  public String getPrincipal() {
-    return principal;
+  public String getLoginID() {
+    return loginID;
   }
 
   @Override

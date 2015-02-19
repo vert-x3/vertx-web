@@ -68,7 +68,7 @@ public class TemplateEngine {
 
   public Observable<Buffer> renderObservable(RoutingContext context, String templateFileName) {
     io.vertx.rx.java.ObservableFuture<Buffer> handler = io.vertx.rx.java.RxHelper.observableFuture();
-    render(context, templateFileName, handler.asHandler());
+    render(context, templateFileName, handler.toHandler());
     return handler;
   }
 

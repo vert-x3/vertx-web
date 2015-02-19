@@ -95,10 +95,10 @@ public interface Session {
   boolean isDestroyed();
 
   /**
-   * @return  the principal (username) of the logged in user (if any). Must be used in conjunction with a
+   * @return  the login ID of the logged in user (if any). Must be used in conjunction with a
    * {@link io.vertx.ext.apex.handler.AuthHandler}.
    */
-  String getPrincipal();
+  String getLoginID();
 
   /**
    * @return  true if the user is logged in.
@@ -137,11 +137,11 @@ public interface Session {
   SessionStore sessionStore();
 
   /**
-   * Set the principal for the session
+   * Set the login ID for the session
    *
-   * @param principal  the principal
+   * @param loginID  the login ID
    */
-  void setPrincipal(String principal);
+  void setLoginID(String loginID);
 
   /**
    * Mark the session as being accessed.

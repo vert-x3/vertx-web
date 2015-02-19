@@ -94,10 +94,10 @@ public abstract class AuthHandlerImpl implements AuthHandler {
       };
 
       if (!permissions.isEmpty()) {
-        authService.hasPermissions(session.getPrincipal(), permissions, authHandler);
+        authService.hasPermissions(session.getLoginID(), permissions, authHandler);
       }
       if (!roles.isEmpty()) {
-        authService.hasRoles(session.getPrincipal(), roles, authHandler);
+        authService.hasRoles(session.getLoginID(), roles, authHandler);
       }
     } else {
       // No auth required

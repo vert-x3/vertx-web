@@ -25,6 +25,8 @@ import io.vertx.ext.apex.RoutingContext;
 import io.vertx.ext.apex.Session;
 import io.vertx.ext.apex.sstore.SessionStore;
 import io.vertx.ext.auth.AuthService;
+import io.vertx.ext.auth.shiro.ShiroAuthRealmType;
+import io.vertx.ext.auth.shiro.ShiroAuthService;
 import org.junit.Test;
 
 import java.util.Set;
@@ -137,7 +139,7 @@ public class RedirectAuthHandlerTest extends AuthHandlerTestBase {
     SessionStore store = LocalSessionStore.create(vertx);
     router.route().handler(SessionHandler.create(store));
     JsonObject authConfig = new JsonObject().put("properties_path", "classpath:login/loginusers.properties");
-    AuthService authService = AuthService.create(vertx, authConfig);
+    AuthService authService = ShiroAuthService.create(vertx, ShiroAuthRealmType.PROPERTIES, authConfig);
     AuthHandler authHandler = RedirectAuthHandler.create(authService);
     if (roles != null) {
       authHandler.addRoles(roles);

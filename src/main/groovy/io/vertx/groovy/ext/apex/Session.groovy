@@ -18,6 +18,9 @@ package io.vertx.groovy.ext.apex;
 import groovy.transform.CompileStatic
 import io.vertx.lang.groovy.InternalHelper
 import io.vertx.groovy.ext.apex.sstore.SessionStore
+import io.vertx.core.AsyncResult
+import io.vertx.core.Handler
+import io.vertx.groovy.ext.auth.AuthService
 /**
  * Represents a browser session.
  * <p>
@@ -101,11 +104,11 @@ public class Session {
     return ret;
   }
   /**
-   * @return  the principal (username) of the logged in user (if any). Must be used in conjunction with a
+   * @return  the login ID of the logged in user (if any). Must be used in conjunction with a
    * {@link io.vertx.ext.apex.handler.AuthHandler}.
    */
-  public String getPrincipal() {
-    def ret = this.delegate.getPrincipal();
+  public String getLoginID() {
+    def ret = this.delegate.getLoginID();
     return ret;
   }
   /**
@@ -114,6 +117,24 @@ public class Session {
   public boolean isLoggedIn() {
     def ret = this.delegate.isLoggedIn();
     return ret;
+  }
+  /**
+   * Does the logged in user have the specified role?  Information is cached for the lifetime of the session
+   *
+   * @param role  the role
+   * @param resultHandler will be called with a result true/false
+   */
+  public void hasRole(String role, Handler<AsyncResult<Boolean>> resultHandler) {
+    this.delegate.hasRole(role, resultHandler);
+  }
+  /**
+   * Does the logged in user have the specified permissions?  Information is cached for the lifetime of the session
+   *
+   * @param permission  the permission
+   * @param resultHandler will be called with a result true/false
+   */
+  public void hasPermission(String permission, Handler<AsyncResult<Boolean>> resultHandler) {
+    this.delegate.hasPermission(permission, resultHandler);
   }
   /**
    * Logout the user.
@@ -136,18 +157,26 @@ public class Session {
     return ret;
   }
   /**
-   * Set the principal for the session
+   * Set the login ID for the session
    *
-   * @param principal  the principal
+   * @param loginID  the login ID
    */
-  public void setPrincipal(String principal) {
-    this.delegate.setPrincipal(principal);
+  public void setLoginID(String loginID) {
+    this.delegate.setLoginID(loginID);
   }
   /**
    * Mark the session as being accessed.
    */
   public void setAccessed() {
     this.delegate.setAccessed();
+  }
+  /**
+   * Set the auth service
+   *
+   * @param authService  the auth service
+   */
+  public void setAuthService(AuthService authService) {
+    this.delegate.setAuthService((io.vertx.ext.auth.AuthService)authService.getDelegate());
   }
 
   static final java.util.function.Function<io.vertx.ext.apex.Session, Session> FACTORY = io.vertx.lang.groovy.Factories.createFactory() {

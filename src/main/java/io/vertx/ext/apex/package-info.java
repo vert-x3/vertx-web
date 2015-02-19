@@ -757,9 +757,9 @@
  * {@link examples.Examples#example38}
  * ----
  *
- * If the auth handler has successfully authenticated and authorised the user it will set the principal (username) on the
+ * If the auth handler has successfully authenticated and authorised the user it will set the login ID on the
  * session object, and the session will be marked as logged in. You can query the logged in status and get the
- * principal with {@link io.vertx.ext.apex.Session#isLoggedIn()} and {@link io.vertx.ext.apex.Session#getPrincipal()}.
+ * login ID with {@link io.vertx.ext.apex.Session#isLoggedIn()} and {@link io.vertx.ext.apex.Session#getLoginID()}.
  *
  * If you want to cause the user to be logged out you can call {@link io.vertx.ext.apex.Session#logout()}.
  *
