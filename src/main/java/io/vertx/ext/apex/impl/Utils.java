@@ -125,7 +125,7 @@ public class Utils {
     }
     String routePath = context.currentRoute().getPath();
     if (routePath != null) {
-      prefixLen += routePath.length() - 1;
+      prefixLen += routePath.length() + 1;
     }
     return prefixLen != 0 ? path.substring(prefixLen) : path;
   }
