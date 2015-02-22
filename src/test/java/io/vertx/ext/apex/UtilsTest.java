@@ -69,6 +69,41 @@ public class UtilsTest {
   }
 
   @Test
+  public void testMultipleSlashPath1() throws Exception {
+    assertEquals("/blah", Utils.normalisePath("//blah"));
+  }
+
+  @Test
+  public void testMultipleSlashPath2() throws Exception {
+    assertEquals("/blah", Utils.normalisePath("///blah"));
+  }
+
+  @Test
+  public void testMultipleSlashPath3() throws Exception {
+    assertEquals("/foo/blah", Utils.normalisePath("/foo//blah"));
+  }
+
+  @Test
+  public void testMultipleSlashPath4() throws Exception {
+    assertEquals("/foo/blah/", Utils.normalisePath("/foo//blah///"));
+  }
+
+  @Test
+  public void testSlashesAndDodgyPath1() throws Exception {
+    assertEquals("/blah", Utils.normalisePath("//../blah"));
+  }
+
+  @Test
+  public void testSlashesAndDodgyPath2() throws Exception {
+    assertEquals("/blah", Utils.normalisePath("/..//blah"));
+  }
+
+  @Test
+  public void testSlashesAndDodgyPath3() throws Exception {
+    assertEquals("/blah", Utils.normalisePath("//..//blah"));
+  }
+
+  @Test
   public void testDodgyPathEncoded() throws Exception {
     assertEquals("/blah", Utils.normalisePath("/%2E%2E%2Fblah"));
   }
