@@ -117,6 +117,11 @@ public class UtilsTest {
   }
 
   @Test
+  public void testURLDecodeNonLatin() throws Exception {
+    assertEquals("/foo/\u00F1/blah/\u5a74\u513f\u670d\u9970/eek/\u0E0C", Utils.normalisePath("/foo/%C3%B1/blah/%E5%A9%B4%E5%84%BF%E6%9C%8D%E9%A5%B0/eek/%E0%B8%8C"));
+  }
+
+  @Test
   public void testSortedAcceptableMimeTypes1() {
     String accept = "text/html";
     List<String> types = Utils.getSortedAcceptableMimeTypes(accept);
