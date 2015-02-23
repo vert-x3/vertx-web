@@ -138,8 +138,18 @@ public class BodyHandlerTest extends ApexTestBase {
   }
 
   @Test
+  public void testFileUploadSmallUpload() throws Exception {
+    testFileUpload(BodyHandler.DEFAULT_UPLOADS_DIRECTORY, 50);
+  }
+
+  @Test
+  public void testFileUploadLargeUpload() throws Exception {
+    testFileUpload(BodyHandler.DEFAULT_UPLOADS_DIRECTORY, 20000);
+  }
+
+  @Test
   public void testFileUploadDefaultUploadsDir() throws Exception {
-    testFileUpload(BodyHandler.DEFAULT_UPLOADS_DIRECTORY);
+    testFileUpload(BodyHandler.DEFAULT_UPLOADS_DIRECTORY, 5000);
   }
 
   @Test
@@ -147,14 +157,14 @@ public class BodyHandlerTest extends ApexTestBase {
     router.clear();
     File dir = tempUploads.newFolder();
     router.route().handler(BodyHandler.create(dir.getPath()));
-    testFileUpload(dir.getPath());
+    testFileUpload(dir.getPath(), 5000);
   }
 
-  private void testFileUpload(String uploadsDir) throws Exception {
+  private void testFileUpload(String uploadsDir, int size) throws Exception {
     String name = "somename";
     String fileName = "somefile.dat";
     String contentType = "application/octet-stream";
-    Buffer fileData = TestUtils.randomBuffer(50000);
+    Buffer fileData = TestUtils.randomBuffer(size);
     router.route().handler(rc -> {
       Set<FileUpload> fileUploads = rc.fileUploads();
       assertNotNull(fileUploads);
@@ -164,9 +174,7 @@ public class BodyHandlerTest extends ApexTestBase {
       assertEquals(fileName, upload.fileName());
       assertEquals(contentType, upload.contentType());
       assertEquals("binary", upload.contentTransferEncoding());
-      // FIXME - Netty seems to be reporting wrong upload size
-      // FIXME Add test in core test suite to validated this!
-      // assertEquals(fileData.length(), upload.size());
+      assertEquals(fileData.length(), upload.size());
       String uploadedFileName = upload.uploadedFileName();
       assertTrue(uploadedFileName.startsWith(uploadsDir + "/"));
       Buffer uploaded = vertx.fileSystem().readFileBlocking(uploadedFileName);
