@@ -747,6 +747,12 @@ public class RouterTest extends ApexTestBase {
   }
 
   @Test
+  public void testConsumesNoContentType() throws Exception {
+    router.route().consumes("text/html").handler(rc -> rc.response().end());
+    testRequest(HttpMethod.GET, "/foo", 404, "Not Found");
+  }
+
+  @Test
   public void testProduces() throws Exception {
     router.route().produces("text/html").handler(rc -> rc.response().end());
     testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html", 200, "OK");
