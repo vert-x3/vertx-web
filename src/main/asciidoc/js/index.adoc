@@ -202,6 +202,8 @@ For example `/some/path/foo.html` and `/some/path/otherdir/blah.css` would both 
 var route = router.route().path("/some/path/");
 
 route.handler(function (routingContext) {
+  // This handler will be called for any request with
+  // a URI path that starts with `/some/path`
 });
 
 
@@ -215,6 +217,7 @@ Alternatively the path can be specified when creating the route:
 var route = router.route("/some/path/");
 
 route.handler(function (routingContext) {
+  // This handler will be called same as previous example
 });
 
 
@@ -262,6 +265,16 @@ As in straight path matching the regex is not an *exact match* for the path, but
 var route = router.route().pathRegex(".*foo");
 
 route.handler(function (routingContext) {
+
+  // This handler will be called for:
+
+  // /some/path/foo
+  // /foo
+  // /foo/bar/wibble/foo
+  // /foo/bar
+
+  // But not:
+  // /bar/wibble
 });
 
 
@@ -275,6 +288,9 @@ Alternatively the regex can be specified when creating the route:
 var route = router.routeWithRegex(".*foo");
 
 route.handler(function (routingContext) {
+
+  // This handler will be called same as previous example
+
 });
 
 
@@ -320,6 +336,9 @@ If you want a route to only match for a specific HTTP method you can use `link:j
 var route = router.route().method('POST');
 
 route.handler(function (routingContext) {
+
+  // This handler will be called for any POST request
+
 });
 
 
@@ -333,6 +352,9 @@ Or you can specify this with a path when creating the route:
 var route = router.route('POST', "/some/path/");
 
 route.handler(function (routingContext) {
+
+  // This handler will be called for any POST request to a URI path starting with /some/path/
+
 });
 
 
@@ -346,12 +368,23 @@ method name. For example:
 ----
 
 router.get().handler(function (routingContext) {
+
+  // Will be called for any GET request
+
 });
 
 router.get("/some/path/").handler(function (routingContext) {
+
+  // Will be called for any GET request to a path
+  // starting with /some/path
+
 });
 
 router.getWithRegex(".*foo").handler(function (routingContext) {
+
+  // Will be called for any GET request to a path
+  // ending with `foo`
+
 });
 
 // There are also equivalents to the above for PUT, POST, DELETE, HEAD and OPTIONS
@@ -368,6 +401,9 @@ multiple times:
 var route = router.route().method('POST').method('PUT');
 
 route.handler(function (routingContext) {
+
+  // This handler will be called for any POST or PUT request
+
 });
 
 
@@ -502,6 +538,10 @@ Matching can be done on exact MIME type matches:
 
 // Exact match
 router.route().consumes("text/html").handler(function (routingContext) {
+
+  // This handler will be called for any request with
+  // content-type header set to `text/html`
+
 });
 
 ----
@@ -513,6 +553,10 @@ Multiple exact matches can also be specified:
 
 // Multiple exact matches
 router.route().consumes("text/html").consumes("text/plain").handler(function (routingContext) {
+
+  // This handler will be called for any request with
+  // content-type header set to `text/html` or `text/plain`.
+
 });
 
 ----
@@ -524,6 +568,10 @@ Matching on wildcards for the sub-type is supported:
 
 // Sub-type wildcard match
 router.route().consumes("text/*").handler(function (routingContext) {
+
+  // This handler will be called for any request with top level type `text`
+  // e.g. content-type header set to `text/html` or `text/plain` will both match
+
 });
 
 ----
@@ -535,6 +583,10 @@ And you can also match on the top level type
 
 // Top level type wildcard match
 router.route().consumes("*/json").handler(function (routingContext) {
+
+  // This handler will be called for any request with sub-type json
+  // e.g. content-type header set to `text/json` or `application/json` will both match
+
 });
 
 ----
@@ -629,6 +681,11 @@ You can combine all the above routing criteria in many different ways, for examp
 var route = router.route('PUT', "myapi/orders").consumes("application/json").produces("application/json");
 
 route.handler(function (routingContext) {
+
+  // This would be match for any PUT method to paths starting with "myapi/orders" with a
+  // content-type of "application/json"
+  // and an accept header matching "application/json"
+
 });
 
 
@@ -774,6 +831,11 @@ to paths that start with `/somepath/`:
 var route = router.get("/somepath/");
 
 route.failureHandler(function (frc) {
+
+  // This will be called for failures that occur
+  // when routing requests to paths starting with
+  // '/somepath/'
+
 });
 
 ----
@@ -1198,6 +1260,9 @@ var basicAuthHandler = BasicAuthHandler.create(authService);
 router.route("/private/").handler(basicAuthHandler);
 
 router.route("/someotherpath").handler(function (routingContext) {
+
+  // This will be public access - no login required
+
 });
 
 router.route("/private/somepath").handler(function (routingContext) {
@@ -1282,6 +1347,7 @@ router.route("/login").handler(FormLoginHandler.create(authService));
 router.route().handler(StaticHandler.create());
 
 router.route("/someotherpath").handler(function (routingContext) {
+  // This will be public access - no login required
 });
 
 router.route("/private/somepath").handler(function (routingContext) {
@@ -1434,6 +1500,9 @@ var CorsHandler = require("vertx-apex-js/cors_handler");
 router.route().handler(CorsHandler.create("vertx\\.io").allowedMethod('GET'));
 
 router.route().handler(function (routingContext) {
+
+  // Your app handlers
+
 });
 
 ----
