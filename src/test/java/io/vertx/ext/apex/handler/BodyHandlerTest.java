@@ -143,6 +143,12 @@ public class BodyHandlerTest extends ApexTestBase {
   }
 
   @Test
+  // This size (7990) has caused issues in the past so testing it
+  public void testFileUpload7990Upload() throws Exception {
+    testFileUpload(BodyHandler.DEFAULT_UPLOADS_DIRECTORY, 7990);
+  }
+
+  @Test
   public void testFileUploadLargeUpload() throws Exception {
     testFileUpload(BodyHandler.DEFAULT_UPLOADS_DIRECTORY, 20000);
   }
