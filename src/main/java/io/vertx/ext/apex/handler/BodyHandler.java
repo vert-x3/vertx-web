@@ -42,6 +42,11 @@ public interface BodyHandler extends Handler<RoutingContext> {
   static final String DEFAULT_UPLOADS_DIRECTORY = "file-uploads";
 
   /**
+   * Default value of whether form attributes should be merged into request params
+   */
+  static final boolean DEFAULT_MERGE_FORM_ATTRIBUTES = true;
+
+  /**
    * Create a body handler with defaults
    *
    * @return the body handler
@@ -51,35 +56,28 @@ public interface BodyHandler extends Handler<RoutingContext> {
   }
 
   /**
-   * Create a body handler specifying max body size
+   * Set the maximum body size -1 means unlimited
    *
-   * @param bodyLimit - the max body size in bytes
-   * @return the body handler
+   * @param bodyLimit  the max size
+   * @return reference to this for fluency
    */
-  static BodyHandler create(long bodyLimit) {
-    return new BodyHandlerImpl(bodyLimit);
-  }
+  BodyHandler setBodyLimit(long bodyLimit);
 
   /**
-   * Create a body handler specifying uploads directory
+   * Set the uploads directory to use
    *
-   * @param uploadsDirectory - the uploads directory
-   * @return the body handler
+   * @param uploadsDirectory  the uploads directory
+   * @return reference to this for fluency
    */
-  static BodyHandler create(String uploadsDirectory) {
-    return new BodyHandlerImpl(uploadsDirectory);
-  }
+  BodyHandler setUploadsDirectory(String uploadsDirectory);
 
   /**
-   * Create a body handler specifying max body size and uploads directory
+   * Set whether form attributes will be added to the request parameters
    *
-   * @param bodyLimit - the max body size in bytes
-   * @param uploadsDirectory - the uploads directory
-   * @return the body handler
+   * @param mergeFormAttributes  true if they should be merged
+   * @return reference to this for fluency
    */
-  static BodyHandler create(long bodyLimit, String uploadsDirectory) {
-    return new BodyHandlerImpl(bodyLimit, uploadsDirectory);
-  }
+  BodyHandler setMergeFormAttributes(boolean mergeFormAttributes);
 
   @Override
   void handle(RoutingContext context);

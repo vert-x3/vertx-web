@@ -32,6 +32,48 @@ var BodyHandler = function(j_val) {
   var that = this;
 
   /**
+   Set the maximum body size -1 means unlimited
+
+   @public
+   @param bodyLimit {number} the max size 
+   @return {BodyHandler} reference to this for fluency
+   */
+  this.setBodyLimit = function(bodyLimit) {
+    var __args = arguments;
+    if (__args.length === 1 && typeof __args[0] ==='number') {
+      return new BodyHandler(j_bodyHandler.setBodyLimit(bodyLimit));
+    } else utils.invalidArgs();
+  };
+
+  /**
+   Set the uploads directory to use
+
+   @public
+   @param uploadsDirectory {string} the uploads directory 
+   @return {BodyHandler} reference to this for fluency
+   */
+  this.setUploadsDirectory = function(uploadsDirectory) {
+    var __args = arguments;
+    if (__args.length === 1 && typeof __args[0] === 'string') {
+      return new BodyHandler(j_bodyHandler.setUploadsDirectory(uploadsDirectory));
+    } else utils.invalidArgs();
+  };
+
+  /**
+   Set whether form attributes will be added to the request parameters
+
+   @public
+   @param mergeFormAttributes {boolean} true if they should be merged 
+   @return {BodyHandler} reference to this for fluency
+   */
+  this.setMergeFormAttributes = function(mergeFormAttributes) {
+    var __args = arguments;
+    if (__args.length === 1 && typeof __args[0] ==='boolean') {
+      return new BodyHandler(j_bodyHandler.setMergeFormAttributes(mergeFormAttributes));
+    } else utils.invalidArgs();
+  };
+
+  /**
 
    @public
    @param context {RoutingContext} 
@@ -50,23 +92,16 @@ var BodyHandler = function(j_val) {
 };
 
 /**
- Create a body handler specifying max body size and uploads directory
+ Create a body handler with defaults
 
  @memberof module:vertx-apex-js/body_handler
- @param bodyLimit {number} - the max body size in bytes 
- @param uploadsDirectory {string} - the uploads directory 
+
  @return {BodyHandler} the body handler
  */
 BodyHandler.create = function() {
   var __args = arguments;
   if (__args.length === 0) {
     return new BodyHandler(JBodyHandler.create());
-  }else if (__args.length === 1 && typeof __args[0] ==='number') {
-    return new BodyHandler(JBodyHandler.create(__args[0]));
-  }else if (__args.length === 1 && typeof __args[0] === 'string') {
-    return new BodyHandler(JBodyHandler.create(__args[0]));
-  }else if (__args.length === 2 && typeof __args[0] ==='number' && typeof __args[1] === 'string') {
-    return new BodyHandler(JBodyHandler.create(__args[0], __args[1]));
   } else utils.invalidArgs();
 };
 
