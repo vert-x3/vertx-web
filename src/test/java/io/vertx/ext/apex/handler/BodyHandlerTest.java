@@ -126,7 +126,7 @@ public class BodyHandlerTest extends ApexTestBase {
   @Test
   public void testBodyTooBig() throws Exception {
     router.clear();
-    router.route().handler(BodyHandler.create(5000));
+    router.route().handler(BodyHandler.create().setBodyLimit(5000));
     Buffer buff = TestUtils.randomBuffer(10000);
     router.route().handler(rc -> {
       fail("Should not be called");
@@ -162,7 +162,7 @@ public class BodyHandlerTest extends ApexTestBase {
   public void testFileUploadOtherUploadsDir() throws Exception {
     router.clear();
     File dir = tempUploads.newFolder();
-    router.route().handler(BodyHandler.create(dir.getPath()));
+    router.route().handler(BodyHandler.create().setUploadsDirectory(dir.getPath()));
     testFileUpload(dir.getPath(), 5000);
   }
 
@@ -197,7 +197,7 @@ public class BodyHandlerTest extends ApexTestBase {
   @Test
   public void testFileUploadTooBig() throws Exception {
     router.clear();
-    router.route().handler(BodyHandler.create(20000));
+    router.route().handler(BodyHandler.create().setBodyLimit(20000));
 
     Buffer fileData = TestUtils.randomBuffer(50000);
     router.route().handler(rc -> {
@@ -209,7 +209,7 @@ public class BodyHandlerTest extends ApexTestBase {
   @Test
   public void testFileUploadTooBig2() throws Exception {
     router.clear();
-    router.route().handler(BodyHandler.create(20000, BodyHandler.DEFAULT_UPLOADS_DIRECTORY));
+    router.route().handler(BodyHandler.create().setBodyLimit(20000));
 
     Buffer fileData = TestUtils.randomBuffer(50000);
     router.route().handler(rc -> {
@@ -263,16 +263,46 @@ public class BodyHandlerTest extends ApexTestBase {
   }
 
   @Test
-  public void testFormMultipartFormData() throws Exception {
+  public void testFormMultipartFormDataMergeAttributesDefault() throws Exception {
+    testFormMultipartFormData(true);
+  }
+
+  @Test
+  public void testFormMultipartFormDataMergeAttributes() throws Exception {
+    router.clear();
+    router.route().handler(BodyHandler.create().setMergeFormAttributes(true));
+    testFormMultipartFormData(true);
+  }
+
+  @Test
+  public void testFormMultipartFormDataNoMergeAttributes() throws Exception {
+    router.clear();
+    router.route().handler(BodyHandler.create().setMergeFormAttributes(false));
+    testFormMultipartFormData(false);
+  }
+
+  private void testFormMultipartFormData(boolean mergeAttributes) throws Exception {
     router.route().handler(rc -> {
       MultiMap attrs = rc.request().formAttributes();
       assertNotNull(attrs);
       assertEquals(2, attrs.size());
       assertEquals("Tim", attrs.get("attr1"));
       assertEquals("Julien", attrs.get("attr2"));
+      MultiMap params = rc.request().params();
+      if (mergeAttributes) {
+        assertNotNull(params);
+        assertEquals(3, params.size());
+        assertEquals("Tim", params.get("attr1"));
+        assertEquals("Julien", params.get("attr2"));
+        assertEquals("foo", params.get("p1"));
+      } else {
+        assertNotNull(params);
+        assertEquals(1, params.size());
+        assertEquals("foo", params.get("p1"));
+      }
       rc.response().end();
     });
-    testRequest(HttpMethod.POST, "/", req -> {
+    testRequest(HttpMethod.POST, "/?p1=foo", req -> {
       String boundary = "dLV9Wyq26L_-JQxk6ferf-RT153LhOO";
       Buffer buffer = Buffer.buffer();
       String str =

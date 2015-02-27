@@ -35,27 +35,12 @@ import java.util.UUID;
  */
 public class BodyHandlerImpl implements BodyHandler {
 
-  private final long bodyLimit;
-  private final File uploadsDir;
+  private long bodyLimit = DEFAULT_BODY_LIMIT;
+  private File uploadsDir;
+  private boolean mergeFormAttributes = DEFAULT_MERGE_FORM_ATTRIBUTES;
 
   public BodyHandlerImpl() {
-    this(DEFAULT_BODY_LIMIT, DEFAULT_UPLOADS_DIRECTORY);
-  }
-
-  public BodyHandlerImpl(long bodyLimit) {
-    this(bodyLimit, DEFAULT_UPLOADS_DIRECTORY);
-  }
-
-  public BodyHandlerImpl(String uploadsDirectory) {
-    this(DEFAULT_BODY_LIMIT, uploadsDirectory);
-  }
-
-  public BodyHandlerImpl(long bodyLimit, String uploadsDirectory) {
-    this.bodyLimit = bodyLimit;
-    uploadsDir = new File(uploadsDirectory);
-    if (!uploadsDir.exists()) {
-      uploadsDir.mkdirs();
-    }
+    setUploadsDirectory(DEFAULT_UPLOADS_DIRECTORY);
   }
 
   @Override
@@ -65,19 +50,40 @@ public class BodyHandlerImpl implements BodyHandler {
       // Don't have bodies
       context.next();
     } else {
-      BodyHandler handler = new BodyHandler(context);
+      BHandler handler = new BHandler(context);
       request.handler(handler);
       request.endHandler(v -> handler.end());
     }
   }
 
-  private class BodyHandler implements Handler<Buffer> {
+  @Override
+  public BodyHandler setBodyLimit(long bodyLimit) {
+    this.bodyLimit = bodyLimit;
+    return this;
+  }
+
+  @Override
+  public BodyHandler setUploadsDirectory(String uploadsDirectory) {
+    this.uploadsDir = new File(uploadsDirectory);
+    if (!uploadsDir.exists()) {
+      uploadsDir.mkdirs();
+    }
+    return this;
+  }
+
+  @Override
+  public BodyHandler setMergeFormAttributes(boolean mergeFormAttributes) {
+    this.mergeFormAttributes = mergeFormAttributes;
+    return this;
+  }
+
+  private class BHandler implements Handler<Buffer> {
 
     RoutingContext context;
     Buffer body = Buffer.buffer();
     boolean failed;
 
-    private BodyHandler(RoutingContext context) {
+    private BHandler(RoutingContext context) {
       this.context = context;
       Set<FileUpload> fileUploads = context.fileUploads();
       context.request().setExpectMultipart(true);
@@ -108,6 +114,10 @@ public class BodyHandlerImpl implements BodyHandler {
     void end() {
       if (failed) {
         return;
+      }
+      HttpServerRequest req = context.request();
+      if (mergeFormAttributes && req.isExpectMultipart()) {
+        req.params().addAll(req.formAttributes());
       }
       context.setBody(body);
       context.next();

@@ -55,36 +55,35 @@ public class BodyHandler {
   }
 
   /**
-   * Create a body handler specifying max body size
+   * Set the maximum body size -1 means unlimited
    *
-   * @param bodyLimit - the max body size in bytes
-   * @return the body handler
+   * @param bodyLimit  the max size
+   * @return reference to this for fluency
    */
-  public static BodyHandler create(long bodyLimit) {
-    BodyHandler ret= BodyHandler.newInstance(io.vertx.ext.apex.handler.BodyHandler.create(bodyLimit));
+  public BodyHandler setBodyLimit(long bodyLimit) {
+    BodyHandler ret= BodyHandler.newInstance(this.delegate.setBodyLimit(bodyLimit));
     return ret;
   }
 
   /**
-   * Create a body handler specifying uploads directory
+   * Set the uploads directory to use
    *
-   * @param uploadsDirectory - the uploads directory
-   * @return the body handler
+   * @param uploadsDirectory  the uploads directory
+   * @return reference to this for fluency
    */
-  public static BodyHandler create(String uploadsDirectory) {
-    BodyHandler ret= BodyHandler.newInstance(io.vertx.ext.apex.handler.BodyHandler.create(uploadsDirectory));
+  public BodyHandler setUploadsDirectory(String uploadsDirectory) {
+    BodyHandler ret= BodyHandler.newInstance(this.delegate.setUploadsDirectory(uploadsDirectory));
     return ret;
   }
 
   /**
-   * Create a body handler specifying max body size and uploads directory
+   * Set whether form attributes will be added to the request parameters
    *
-   * @param bodyLimit - the max body size in bytes
-   * @param uploadsDirectory - the uploads directory
-   * @return the body handler
+   * @param mergeFormAttributes  true if they should be merged
+   * @return reference to this for fluency
    */
-  public static BodyHandler create(long bodyLimit, String uploadsDirectory) {
-    BodyHandler ret= BodyHandler.newInstance(io.vertx.ext.apex.handler.BodyHandler.create(bodyLimit, uploadsDirectory));
+  public BodyHandler setMergeFormAttributes(boolean mergeFormAttributes) {
+    BodyHandler ret= BodyHandler.newInstance(this.delegate.setMergeFormAttributes(mergeFormAttributes));
     return ret;
   }
 

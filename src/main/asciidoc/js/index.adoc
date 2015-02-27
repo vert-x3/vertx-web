@@ -878,13 +878,18 @@ retrieve it as a buffer use `link:jsdoc/routing_context-RoutingContext.html#getB
 
 === Limiting body size
 
-To limit the size of a request body, create the body handler with `link:jsdoc/body_handler-BodyHandler.html#create[BodyHandler.create]`
-specifying the maximum body size, in bytes. This is useful to avoid running out of memory with very large bodies.
+To limit the size of a request body, create the body handler then use `link:jsdoc/body_handler-BodyHandler.html#setBodyLimit[setBodyLimit]`
+to specifying the maximum body size, in bytes. This is useful to avoid running out of memory with very large bodies.
 
 If an attempt to send a body greater than the maximum size is made, an HTTP status code of 413 - `Request Entity Too Large`,
 will be sent.
 
 There is no body limit by default.
+
+=== Merging form attributes
+
+By default, the body handler will merge any form attributes into the request parameters. If you don't want this behaviour
+you can use disable it with `link:jsdoc/body_handler-BodyHandler.html#setMergeFormAttributes[setMergeFormAttributes]`.
 
 === Handling file uploads
 

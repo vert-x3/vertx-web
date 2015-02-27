@@ -532,13 +532,18 @@
  *
  * === Limiting body size
  *
- * To limit the size of a request body, create the body handler with {@link io.vertx.ext.apex.handler.BodyHandler#create(long)}
- * specifying the maximum body size, in bytes. This is useful to avoid running out of memory with very large bodies.
+ * To limit the size of a request body, create the body handler then use {@link io.vertx.ext.apex.handler.BodyHandler#setBodyLimit(long)}
+ * to specifying the maximum body size, in bytes. This is useful to avoid running out of memory with very large bodies.
  *
  * If an attempt to send a body greater than the maximum size is made, an HTTP status code of 413 - `Request Entity Too Large`,
  * will be sent.
  *
  * There is no body limit by default.
+ *
+ * === Merging form attributes
+ *
+ * By default, the body handler will merge any form attributes into the request parameters. If you don't want this behaviour
+ * you can use disable it with {@link io.vertx.ext.apex.handler.BodyHandler#setMergeFormAttributes(boolean)}.
  *
  * === Handling file uploads
  *
