@@ -43,29 +43,22 @@ public interface MVELTemplateEngine extends TemplateEngine {
    * @return  the engine
    */
   static MVELTemplateEngine create() {
-    return new MVELTemplateEngineImpl(null, DEFAULT_TEMPLATE_EXTENSION, DEFAULT_MAX_CACHE_SIZE);
+    return new MVELTemplateEngineImpl();
   }
 
   /**
-   * Create a template engine
+   * Set the extension for the engine
    *
-   * @param resourcePrefix  the resource prefix
    * @param extension  the extension
-   * @return  the engine
+   * @return a reference to this for fluency
    */
-  static MVELTemplateEngine create(String resourcePrefix, String extension) {
-    return new MVELTemplateEngineImpl(resourcePrefix, extension, DEFAULT_MAX_CACHE_SIZE);
-  }
+  MVELTemplateEngine setExtension(String extension);
 
   /**
-   * Create a template engine
+   * Set the max cache size for the engine
    *
-   * @param resourcePrefix  the resource prefix
-   * @param extension  the extension
-   * @param maxCacheSize  the max cache size
-   * @return  the engine
+   * @param maxCacheSize  the maxCacheSize
+   * @return a reference to this for fluency
    */
-  static MVELTemplateEngine create(String resourcePrefix, String extension, int maxCacheSize) {
-    return new MVELTemplateEngineImpl(resourcePrefix, extension, maxCacheSize);
-  }
+  MVELTemplateEngine setMaxCacheSize(int maxCacheSize);
 }

@@ -43,29 +43,22 @@ public interface JadeTemplateEngine extends TemplateEngine {
    * @return  the engine
    */
   static JadeTemplateEngine create() {
-    return new JadeTemplateEngineImpl(null, DEFAULT_TEMPLATE_EXTENSION, DEFAULT_MAX_CACHE_SIZE);
+    return new JadeTemplateEngineImpl();
   }
 
   /**
-   * Create a template engine
+   * Set the extension for the engine
    *
-   * @param resourcePrefix  the resource prefix
    * @param extension  the extension
-   * @return  the engine
+   * @return a reference to this for fluency
    */
-  static JadeTemplateEngine create(String resourcePrefix, String extension) {
-    return new JadeTemplateEngineImpl(resourcePrefix, extension, DEFAULT_MAX_CACHE_SIZE);
-  }
+  JadeTemplateEngine setExtension(String extension);
 
   /**
-   * Create a template engine
+   * Set the max cache size for the engine
    *
-   * @param resourcePrefix  the resource prefix
-   * @param extension  the extension
-   * @param maxCacheSize  the max cache size
-   * @return  the engine
+   * @param maxCacheSize  the maxCacheSize
+   * @return a reference to this for fluency
    */
-  static JadeTemplateEngine create(String resourcePrefix, String extension, int maxCacheSize) {
-    return new JadeTemplateEngineImpl(resourcePrefix, extension, maxCacheSize);
-  }
+  JadeTemplateEngine setMaxCacheSize(int maxCacheSize);
 }

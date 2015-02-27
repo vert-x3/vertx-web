@@ -147,7 +147,7 @@ public class TemplateTest extends ApexTestBase {
       if (fail) {
         handler.handle(Future.failedFuture(new Exception("eek")));
       } else {
-        String templ = Utils.readResourceToString(templateFileName);
+        String templ = Utils.readFileToString(vertx, templateFileName);
         String rendered = templ.replace("{foo}", context.get("foo"));
         rendered = rendered.replace("{bar}", context.get("bar"));
         handler.handle(Future.succeededFuture(Buffer.buffer(rendered)));

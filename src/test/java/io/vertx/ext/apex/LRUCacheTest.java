@@ -19,14 +19,16 @@ package io.vertx.ext.apex;
 import io.vertx.ext.apex.impl.LRUCache;
 import org.junit.Test;
 
+import java.util.Map;
+
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 public class LRUCacheTest extends LRUCacheTestBase {
 
   @Override
-  protected void createCache() {
-    cache = new LRUCache<>(maxSize);
+  protected Map<String, String> createCache() {
+    return new LRUCache<>(maxSize);
   }
 
   @Test(expected=IllegalArgumentException.class)

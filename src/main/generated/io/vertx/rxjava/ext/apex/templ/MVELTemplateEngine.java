@@ -52,27 +52,24 @@ public class MVELTemplateEngine extends TemplateEngine {
   }
 
   /**
-   * Create a template engine
+   * Set the extension for the engine
    *
-   * @param resourcePrefix  the resource prefix
    * @param extension  the extension
-   * @return  the engine
+   * @return a reference to this for fluency
    */
-  public static MVELTemplateEngine create(String resourcePrefix, String extension) {
-    MVELTemplateEngine ret= MVELTemplateEngine.newInstance(io.vertx.ext.apex.templ.MVELTemplateEngine.create(resourcePrefix, extension));
+  public MVELTemplateEngine setExtension(String extension) {
+    MVELTemplateEngine ret= MVELTemplateEngine.newInstance(this.delegate.setExtension(extension));
     return ret;
   }
 
   /**
-   * Create a template engine
+   * Set the max cache size for the engine
    *
-   * @param resourcePrefix  the resource prefix
-   * @param extension  the extension
-   * @param maxCacheSize  the max cache size
-   * @return  the engine
+   * @param maxCacheSize  the maxCacheSize
+   * @return a reference to this for fluency
    */
-  public static MVELTemplateEngine create(String resourcePrefix, String extension, int maxCacheSize) {
-    MVELTemplateEngine ret= MVELTemplateEngine.newInstance(io.vertx.ext.apex.templ.MVELTemplateEngine.create(resourcePrefix, extension, maxCacheSize));
+  public MVELTemplateEngine setMaxCacheSize(int maxCacheSize) {
+    MVELTemplateEngine ret= MVELTemplateEngine.newInstance(this.delegate.setMaxCacheSize(maxCacheSize));
     return ret;
   }
 

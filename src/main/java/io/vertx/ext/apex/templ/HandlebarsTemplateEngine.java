@@ -43,29 +43,22 @@ public interface HandlebarsTemplateEngine extends TemplateEngine {
    * @return  the engine
    */
   static HandlebarsTemplateEngine create() {
-    return new HandlebarsTemplateEngineImpl(null, DEFAULT_TEMPLATE_EXTENSION, DEFAULT_MAX_CACHE_SIZE);
+    return new HandlebarsTemplateEngineImpl();
   }
 
   /**
-   * Create a template engine
+   * Set the extension for the engine
    *
-   * @param resourcePrefix  the resource prefix
    * @param extension  the extension
-   * @return  the engine
+   * @return a reference to this for fluency
    */
-  static HandlebarsTemplateEngine create(String resourcePrefix, String extension) {
-    return new HandlebarsTemplateEngineImpl(resourcePrefix, extension, DEFAULT_MAX_CACHE_SIZE);
-  }
+  HandlebarsTemplateEngine setExtension(String extension);
 
   /**
-   * Create a template engine
+   * Set the max cache size for the engine
    *
-   * @param resourcePrefix  the resource prefix
-   * @param extension  the extension
-   * @param maxCacheSize  the max cache size
-   * @return  the engine
+   * @param maxCacheSize  the maxCacheSize
+   * @return a reference to this for fluency
    */
-  static HandlebarsTemplateEngine create(String resourcePrefix, String extension, int maxCacheSize) {
-    return new HandlebarsTemplateEngineImpl(resourcePrefix, extension, maxCacheSize);
-  }
+  HandlebarsTemplateEngine setMaxCacheSize(int maxCacheSize);
 }

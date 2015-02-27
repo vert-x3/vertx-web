@@ -27,15 +27,27 @@ import org.junit.Test;
 public class JadeTemplateTest extends ApexTestBase {
 
   @Test
-  public void testTemplateHandler() throws Exception {
+  public void testTemplateHandlerOnClasspath() throws Exception {
     TemplateEngine engine = JadeTemplateEngine.create();
     testTemplateHandler(engine, "somedir", "test-jade-template2.jade", "<!DOCTYPE html><html><head><title>badger/test-jade-template2.jade</title></head><body></body></html>");
+  }
+
+  @Test
+  public void testTemplateHandlerOnFileSystem() throws Exception {
+    TemplateEngine engine = JadeTemplateEngine.create();
+    testTemplateHandler(engine, "src/test/filesystemtemplates", "test-jade-template3.jade", "<!DOCTYPE html><html><head><title>badger/test-jade-template3.jade</title></head><body></body></html>");
   }
 
   @Test
   public void testTemplateHandlerNoExtension() throws Exception {
     TemplateEngine engine = JadeTemplateEngine.create();
     testTemplateHandler(engine, "somedir", "test-jade-template2", "<!DOCTYPE html><html><head><title>badger/test-jade-template2</title></head><body></body></html>");
+  }
+
+  @Test
+  public void testTemplateHandlerChangeExtension() throws Exception {
+    TemplateEngine engine = JadeTemplateEngine.create().setExtension("made");
+    testTemplateHandler(engine, "somedir", "test-jade-template2", "<!DOCTYPE html><html><head><title>aardvark/test-jade-template2</title></head><body></body></html>");
   }
 
   private void testTemplateHandler(TemplateEngine engine, String directoryName, String templateName,
@@ -51,7 +63,7 @@ public class JadeTemplateTest extends ApexTestBase {
   @Test
   public void testNoSuchTemplate() throws Exception {
     TemplateEngine engine = JadeTemplateEngine.create();
-    router.route().handler(TemplateHandler.create(engine, "nosuchtemplate.jade", "text/plain"));
+    router.route().handler(TemplateHandler.create(engine, "somedir", "text/plain"));
     testRequest(HttpMethod.GET, "/foo.jade", 500, "Internal Server Error");
   }
 

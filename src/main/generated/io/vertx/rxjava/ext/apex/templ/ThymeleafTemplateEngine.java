@@ -52,14 +52,13 @@ public class ThymeleafTemplateEngine extends TemplateEngine {
   }
 
   /**
-   * Create a template engine
+   * Set the mode for the engine
    *
-   * @param resourcePrefix  the resource prefix
-   * @param templateMode  the template mode - e.g. XHTML
-   * @return  the engine
+   * @param mode  the mode
+   * @return a reference to this for fluency
    */
-  public static ThymeleafTemplateEngine create(String resourcePrefix, String templateMode) {
-    ThymeleafTemplateEngine ret= ThymeleafTemplateEngine.newInstance(io.vertx.ext.apex.templ.ThymeleafTemplateEngine.create(resourcePrefix, templateMode));
+  public ThymeleafTemplateEngine setMode(String mode) {
+    ThymeleafTemplateEngine ret= ThymeleafTemplateEngine.newInstance(this.delegate.setMode(mode));
     return ret;
   }
 

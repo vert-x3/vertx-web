@@ -35,17 +35,15 @@ public interface ThymeleafTemplateEngine extends TemplateEngine {
    * @return  the engine
    */
   static ThymeleafTemplateEngine create() {
-    return new ThymeleafTemplateEngineImpl(null, DEFAULT_TEMPLATE_MODE);
+    return new ThymeleafTemplateEngineImpl();
   }
 
   /**
-   * Create a template engine
+   * Set the mode for the engine
    *
-   * @param resourcePrefix  the resource prefix
-   * @param templateMode  the template mode - e.g. XHTML
-   * @return  the engine
+   * @param mode  the mode
+   * @return a reference to this for fluency
    */
-  static ThymeleafTemplateEngine create(String resourcePrefix, String templateMode) {
-    return new ThymeleafTemplateEngineImpl(resourcePrefix, templateMode);
-  }
+  ThymeleafTemplateEngine setMode(String mode);
+
 }

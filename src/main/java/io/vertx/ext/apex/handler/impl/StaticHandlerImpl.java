@@ -16,11 +16,7 @@
 
 package io.vertx.ext.apex.handler.impl;
 
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Future;
-import io.vertx.core.Handler;
-import io.vertx.core.MultiMap;
-import io.vertx.core.VertxException;
+import io.vertx.core.*;
 import io.vertx.core.file.FileProps;
 import io.vertx.core.file.FileSystem;
 import io.vertx.core.file.FileSystemException;
@@ -29,8 +25,8 @@ import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.impl.LoggerFactory;
-import io.vertx.ext.apex.handler.StaticHandler;
 import io.vertx.ext.apex.RoutingContext;
+import io.vertx.ext.apex.handler.StaticHandler;
 import io.vertx.ext.apex.impl.LRUCache;
 import io.vertx.ext.apex.impl.Utils;
 
@@ -55,7 +51,8 @@ public class StaticHandlerImpl implements StaticHandler {
   private String webRoot = DEFAULT_WEB_ROOT;
   private long maxAgeSeconds = DEFAULT_MAX_AGE_SECONDS; // One day
   private boolean directoryListing = DEFAULT_DIRECTORY_LISTING;
-  private String directoryTemplate = Utils.readResourceToString(DEFAULT_DIRECTORY_TEMPLATE);
+  private String directoryTemplateResource = DEFAULT_DIRECTORY_TEMPLATE;
+  private String directoryTemplate;
   private boolean includeHidden = DEFAULT_INCLUDE_HIDDEN;
   private boolean filesReadOnly = DEFAULT_FILES_READ_ONLY;
   private boolean cachingEnabled = DEFAULT_CACHING_ENABLED;
@@ -78,6 +75,13 @@ public class StaticHandlerImpl implements StaticHandler {
   }
 
   public StaticHandlerImpl() {
+  }
+
+  private String directoryTemplate(Vertx vertx) {
+    if (directoryTemplate == null) {
+      directoryTemplate = Utils.readFileToString(vertx, directoryTemplateResource);
+    }
+    return directoryTemplate;
   }
 
   /**
@@ -289,8 +293,9 @@ public class StaticHandlerImpl implements StaticHandler {
 
   @Override
   public StaticHandler setDirectoryTemplate(String directoryTemplate) {
-    this.directoryTemplate = Utils.readResourceToString(directoryTemplate);
-    return null;
+    this.directoryTemplateResource = directoryTemplate;
+    this.directoryTemplate = null;
+    return this;
   }
 
   @Override
@@ -423,7 +428,7 @@ public class StaticHandlerImpl implements StaticHandler {
 
           request.response().putHeader("content-type", "text/html");
           request.response().end(
-            directoryTemplate.replace("{directory}", normalizedDir)
+            directoryTemplate(context.vertx()).replace("{directory}", normalizedDir)
               .replace("{parent}", parent)
               .replace("{files}", files.toString()));
         } else if (accept.contains("json")) {

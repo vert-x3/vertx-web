@@ -33,6 +33,34 @@ var HandlebarsTemplateEngine = function(j_val) {
   var that = this;
   TemplateEngine.call(this, j_val);
 
+  /**
+   Set the extension for the engine
+
+   @public
+   @param extension {string} the extension 
+   @return {HandlebarsTemplateEngine} a reference to this for fluency
+   */
+  this.setExtension = function(extension) {
+    var __args = arguments;
+    if (__args.length === 1 && typeof __args[0] === 'string') {
+      return new HandlebarsTemplateEngine(j_handlebarsTemplateEngine.setExtension(extension));
+    } else utils.invalidArgs();
+  };
+
+  /**
+   Set the max cache size for the engine
+
+   @public
+   @param maxCacheSize {number} the maxCacheSize 
+   @return {HandlebarsTemplateEngine} a reference to this for fluency
+   */
+  this.setMaxCacheSize = function(maxCacheSize) {
+    var __args = arguments;
+    if (__args.length === 1 && typeof __args[0] ==='number') {
+      return new HandlebarsTemplateEngine(j_handlebarsTemplateEngine.setMaxCacheSize(maxCacheSize));
+    } else utils.invalidArgs();
+  };
+
   // A reference to the underlying Java delegate
   // NOTE! This is an internal API and must not be used in user code.
   // If you rely on this property your code is likely to break if we change it / remove it without warning.
@@ -40,22 +68,16 @@ var HandlebarsTemplateEngine = function(j_val) {
 };
 
 /**
- Create a template engine
+ Create a template engine using defaults
 
  @memberof module:vertx-apex-js/handlebars_template_engine
- @param resourcePrefix {string} the resource prefix 
- @param extension {string} the extension 
- @param maxCacheSize {number} the max cache size 
+
  @return {HandlebarsTemplateEngine} the engine
  */
 HandlebarsTemplateEngine.create = function() {
   var __args = arguments;
   if (__args.length === 0) {
     return new HandlebarsTemplateEngine(JHandlebarsTemplateEngine.create());
-  }else if (__args.length === 2 && typeof __args[0] === 'string' && typeof __args[1] === 'string') {
-    return new HandlebarsTemplateEngine(JHandlebarsTemplateEngine.create(__args[0], __args[1]));
-  }else if (__args.length === 3 && typeof __args[0] === 'string' && typeof __args[1] === 'string' && typeof __args[2] ==='number') {
-    return new HandlebarsTemplateEngine(JHandlebarsTemplateEngine.create(__args[0], __args[1], __args[2]));
   } else utils.invalidArgs();
 };
 

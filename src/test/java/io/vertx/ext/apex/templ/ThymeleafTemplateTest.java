@@ -28,9 +28,15 @@ import org.junit.Test;
 public class ThymeleafTemplateTest extends ApexTestBase {
 
   @Test
-  public void testTemplateHandler() throws Exception {
+  public void testTemplateHandlerOnClasspath() throws Exception {
     TemplateEngine engine = ThymeleafTemplateEngine.create();
     testTemplateHandler(engine, "somedir", "test-thymeleaf-template2.html");
+  }
+
+  @Test
+  public void testTemplateHandlerOnFileSystem() throws Exception {
+    TemplateEngine engine = ThymeleafTemplateEngine.create();
+    testTemplateHandler(engine, "src/test/filesystemtemplates", "test-thymeleaf-template3.html");
   }
 
   private void testTemplateHandler(TemplateEngine engine, String directoryName, String templateName) throws Exception {
@@ -50,7 +56,7 @@ public class ThymeleafTemplateTest extends ApexTestBase {
         "<body>\n" +
         "<p>badger</p>\n" +
         "<p>fox</p>\n" +
-        "<p>/test-thymeleaf-template2.html</p>\n" +
+        "<p>/" + templateName + "</p>\n" +
         "<p>blah</p>\n" +
         "<p>wibble</p>\n" +
         "</body>\n" +

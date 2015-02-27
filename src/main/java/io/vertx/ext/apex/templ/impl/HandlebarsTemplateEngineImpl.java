@@ -20,13 +20,11 @@ import com.github.jknack.handlebars.Handlebars;
 import com.github.jknack.handlebars.Template;
 import com.github.jknack.handlebars.io.TemplateLoader;
 import com.github.jknack.handlebars.io.TemplateSource;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Future;
-import io.vertx.core.Handler;
+import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.ext.apex.templ.HandlebarsTemplateEngine;
 import io.vertx.ext.apex.RoutingContext;
 import io.vertx.ext.apex.impl.Utils;
+import io.vertx.ext.apex.templ.HandlebarsTemplateEngine;
 
 import java.io.IOException;
 
@@ -37,58 +35,23 @@ import java.io.IOException;
 public class HandlebarsTemplateEngineImpl extends CachingTemplateEngine<Template> implements HandlebarsTemplateEngine {
 
   private final Handlebars handlebars;
+  private final Loader loader = new Loader();
 
-  public HandlebarsTemplateEngineImpl(String resourcePrefix, String ext, int maxCacheSize) {
-    super(resourcePrefix, ext, maxCacheSize);
+  public HandlebarsTemplateEngineImpl() {
+    super(HandlebarsTemplateEngine.DEFAULT_TEMPLATE_EXTENSION, HandlebarsTemplateEngine.DEFAULT_MAX_CACHE_SIZE);
+    handlebars = new Handlebars(loader);
+  }
 
-    handlebars = new Handlebars(new TemplateLoader() {
-      @Override
-      public TemplateSource sourceAt(String location) throws IOException {
+  @Override
+  public HandlebarsTemplateEngine setExtension(String extension) {
+    doSetExtension(extension);
+    return this;
+  }
 
-        final String loc = adjustLocation(location);
-
-        String templ = Utils.readResourceToString(loc);
-
-        if (templ == null) {
-          throw new IllegalArgumentException("Cannot find resource " + loc);
-        }
-
-        long lastMod = System.currentTimeMillis();
-
-        return new TemplateSource() {
-          @Override
-          public String content() throws IOException {
-            // load from the file system
-            return templ;
-          }
-
-          @Override
-          public String filename() {
-            return loc;
-          }
-
-          @Override
-          public long lastModified() {
-            return lastMod;
-          }
-        };
-      }
-
-      @Override
-      public String resolve(String location) {
-        return location;
-      }
-
-      @Override
-      public String getPrefix() {
-        return prefix;
-      }
-
-      @Override
-      public String getSuffix() {
-        return extension;
-      }
-    });
+  @Override
+  public HandlebarsTemplateEngine setMaxCacheSize(int maxCacheSize) {
+    this.cache.setMaxSize(maxCacheSize);
+    return null;
   }
 
   @Override
@@ -96,13 +59,72 @@ public class HandlebarsTemplateEngineImpl extends CachingTemplateEngine<Template
     try {
       Template template = cache.get(templateFileName);
       if (template == null) {
-        template = handlebars.compile(templateFileName);
-        cache.put(templateFileName, template);
+        synchronized (this) {
+          loader.setVertx(context.vertx());
+          template = handlebars.compile(templateFileName);
+          cache.put(templateFileName, template);
+        }
       }
       handler.handle(Future.succeededFuture(Buffer.buffer(template.apply(context.data()))));
     } catch (Exception ex) {
       handler.handle(Future.failedFuture(ex));
     }
   }
+
+  private class Loader implements TemplateLoader {
+
+    private Vertx vertx;
+
+    void setVertx(Vertx vertx) {
+      this.vertx = vertx;
+    }
+
+    @Override
+    public TemplateSource sourceAt(String location) throws IOException {
+
+      String loc = adjustLocation(location);
+      String templ = Utils.readFileToString(vertx, loc);
+
+      if (templ == null) {
+        throw new IllegalArgumentException("Cannot find resource " + loc);
+      }
+
+      long lastMod = System.currentTimeMillis();
+
+      return new TemplateSource() {
+        @Override
+        public String content() throws IOException {
+          // load from the file system
+          return templ;
+        }
+
+        @Override
+        public String filename() {
+          return loc;
+        }
+
+        @Override
+        public long lastModified() {
+          return lastMod;
+        }
+      };
+    }
+
+    @Override
+    public String resolve(String location) {
+      return location;
+    }
+
+    @Override
+    public String getPrefix() {
+      return null;
+    }
+
+    @Override
+    public String getSuffix() {
+      return extension;
+    }
+  }
+
 
 }

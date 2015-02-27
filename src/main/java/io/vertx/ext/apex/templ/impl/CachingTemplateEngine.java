@@ -16,10 +16,9 @@
 
 package io.vertx.ext.apex.templ.impl;
 
-import io.vertx.ext.apex.templ.TemplateEngine;
 import io.vertx.ext.apex.impl.ConcurrentLRUCache;
+import io.vertx.ext.apex.templ.TemplateEngine;
 
-import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -27,20 +26,15 @@ import java.util.Objects;
  */
 public abstract class CachingTemplateEngine<T> implements TemplateEngine {
 
-  protected final String prefix;
-  protected final String extension ;
-  protected final Map<String, T> cache;
+  protected final ConcurrentLRUCache<String, T> cache;
+  protected String extension;
 
-  protected CachingTemplateEngine(String prefix, String ext, int maxCacheSize) {
+  protected CachingTemplateEngine(String ext, int maxCacheSize) {
     Objects.requireNonNull(ext);
     if (maxCacheSize < 1) {
       throw new IllegalArgumentException("maxCacheSize must be >= 1");
     }
-    if (prefix != null && !prefix.endsWith("/")) {
-      prefix += "/";
-    }
-    this.prefix = prefix;
-    this.extension = ext.charAt(0) == '.' ? ext : "." + ext;
+    doSetExtension(ext);
     this.cache = new ConcurrentLRUCache<>(maxCacheSize);
   }
 
@@ -48,10 +42,11 @@ public abstract class CachingTemplateEngine<T> implements TemplateEngine {
     if (!location.endsWith(extension)) {
       location += extension;
     }
-    if (prefix != null) {
-      location = prefix + location;
-    }
     return location;
+  }
+
+  protected void doSetExtension(String ext) {
+    this.extension = ext.charAt(0) == '.' ? ext : "." + ext;
   }
 
 }
