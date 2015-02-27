@@ -22,10 +22,11 @@ import de.neuland.jade4j.template.TemplateLoader;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
+import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.ext.apex.templ.JadeTemplateEngine;
 import io.vertx.ext.apex.RoutingContext;
 import io.vertx.ext.apex.impl.Utils;
+import io.vertx.ext.apex.templ.JadeTemplateEngine;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -40,28 +41,23 @@ import java.util.Map;
 public class JadeTemplateEngineImpl extends CachingTemplateEngine<JadeTemplate> implements JadeTemplateEngine {
 
   private final JadeConfiguration config = new JadeConfiguration();
+  private final JadeTemplateLoader loader = new JadeTemplateLoader();
 
-  public JadeTemplateEngineImpl(String resourcePrefix, String ext, int maxCacheSize) {
-    super(resourcePrefix, ext, maxCacheSize);
+  public JadeTemplateEngineImpl() {
+    super(JadeTemplateEngine.DEFAULT_TEMPLATE_EXTENSION, JadeTemplateEngine.DEFAULT_MAX_CACHE_SIZE);
+    config.setTemplateLoader(loader);
+  }
 
-    long lastMod = System.currentTimeMillis();
+  @Override
+  public JadeTemplateEngine setExtension(String extension) {
+    doSetExtension(extension);
+    return this;
+  }
 
-    config.setTemplateLoader(new TemplateLoader() {
-      @Override
-      public long getLastModified(String name) throws IOException {
-        return lastMod;
-      }
-
-      @Override
-      public Reader getReader(String name) throws IOException {
-        name = adjustLocation(name);
-        String templ = Utils.readResourceToString(name);
-        if (templ == null) {
-          throw new IllegalArgumentException("Cannot find resource " + name);
-        }
-        return new StringReader(templ);
-      }
-    });
+  @Override
+  public JadeTemplateEngine setMaxCacheSize(int maxCacheSize) {
+    this.cache.setMaxSize(maxCacheSize);
+    return this;
   }
 
   @Override
@@ -70,8 +66,11 @@ public class JadeTemplateEngineImpl extends CachingTemplateEngine<JadeTemplate> 
       JadeTemplate template = cache.get(templateFileName);
 
       if (template == null) {
-        // real compile
-        template = config.getTemplate(templateFileName);
+        synchronized (this) {
+          loader.setVertx(context.vertx());
+          // Compile
+          template = config.getTemplate(templateFileName);
+        }
         cache.put(templateFileName, template);
       }
       Map<String, Object> variables = new HashMap<>(1);
@@ -81,5 +80,31 @@ public class JadeTemplateEngineImpl extends CachingTemplateEngine<JadeTemplate> 
       handler.handle(Future.failedFuture(ex));
     }
   }
+
+  private class JadeTemplateLoader implements TemplateLoader {
+
+    private Vertx vertx;
+    private long lastMod = System.currentTimeMillis();
+
+    void setVertx(Vertx vertx) {
+      this.vertx = vertx;
+    }
+
+    @Override
+    public long getLastModified(String name) throws IOException {
+      return lastMod;
+    }
+
+    @Override
+    public Reader getReader(String name) throws IOException {
+      name = adjustLocation(name);
+      String templ = Utils.readFileToString(vertx, name);
+      if (templ == null) {
+        throw new IllegalArgumentException("Cannot find resource " + name);
+      }
+      return new StringReader(templ);
+    }
+  }
+
 
 }

@@ -16,13 +16,11 @@
 
 package io.vertx.ext.apex.templ.impl;
 
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Future;
-import io.vertx.core.Handler;
+import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.ext.apex.templ.ThymeleafTemplateEngine;
 import io.vertx.ext.apex.RoutingContext;
 import io.vertx.ext.apex.impl.Utils;
+import io.vertx.ext.apex.templ.ThymeleafTemplateEngine;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.TemplateProcessingParameters;
 import org.thymeleaf.context.IContext;
@@ -30,9 +28,7 @@ import org.thymeleaf.context.VariablesMap;
 import org.thymeleaf.resourceresolver.IResourceResolver;
 import org.thymeleaf.templateresolver.TemplateResolver;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.Writer;
+import java.io.*;
 import java.util.Locale;
 
 /**
@@ -42,36 +38,20 @@ import java.util.Locale;
 public class ThymeleafTemplateEngineImpl implements ThymeleafTemplateEngine {
 
   private final TemplateEngine engine = new TemplateEngine();
+  private final TemplateResolver templateResolver;
+  private final ResourceResolver resolver = new ResourceResolver();
 
-
-  public ThymeleafTemplateEngineImpl(String resourcePrefix, String templateMode) {
-
-    if (resourcePrefix != null && !resourcePrefix.endsWith("/")) {
-      resourcePrefix += "/";
-    }
-
-    TemplateResolver templateResolver = new TemplateResolver();
-
-    // XHTML is the default mode, but we will set it anyway for better understanding of code
-    templateResolver.setTemplateMode(templateMode);
-    if (resourcePrefix != null) {
-      templateResolver.setPrefix(resourcePrefix);
-    }
-
-    templateResolver.setResourceResolver(new IResourceResolver() {
-
-      @Override
-      public String getName() {
-        return "Apex/Thymeleaf";
-      }
-
-      @Override
-      public InputStream getResourceAsStream(TemplateProcessingParameters templateProcessingParameters, String resourceName) {
-        return Utils.getClassLoader().getResourceAsStream(resourceName);
-      }
-    });
-
+  public ThymeleafTemplateEngineImpl() {
+    templateResolver = new TemplateResolver();
+    templateResolver.setTemplateMode(ThymeleafTemplateEngine.DEFAULT_TEMPLATE_MODE);
+    templateResolver.setResourceResolver(resolver);
     engine.setTemplateResolver(templateResolver);
+  }
+
+  @Override
+  public ThymeleafTemplateEngine setMode(String mode) {
+    templateResolver.setTemplateMode(ThymeleafTemplateEngine.DEFAULT_TEMPLATE_MODE);
+    return this;
   }
 
   @Override
@@ -82,19 +62,25 @@ public class ThymeleafTemplateEngineImpl implements ThymeleafTemplateEngine {
       VariablesMap<String, Object> data = new VariablesMap<>();
       data.put("context", context);
 
-      engine.process(templateFileName, new ApexIContext(data), new Writer() {
-        @Override
-        public void write(char[] cbuf, int off, int len) throws IOException {
-          buffer.appendString(new String(cbuf, off, len));
-        }
+      // Need to synchronized to make sure right Vert.x is used!
+      synchronized (this) {
+        resolver.setVertx(context.vertx());
 
-        @Override
-        public void flush() throws IOException {}
+        engine.process(templateFileName, new ApexIContext(data), new Writer() {
+          @Override
+          public void write(char[] cbuf, int off, int len) throws IOException {
+            buffer.appendString(new String(cbuf, off, len));
+          }
 
-        @Override
-        public void close() throws IOException {
-        }
-      });
+          @Override
+          public void flush() throws IOException {
+          }
+
+          @Override
+          public void close() throws IOException {
+          }
+        });
+      }
       handler.handle(Future.succeededFuture(buffer));
     } catch (Exception ex) {
       handler.handle(Future.failedFuture(ex));
@@ -132,6 +118,34 @@ public class ThymeleafTemplateEngineImpl implements ThymeleafTemplateEngine {
     }
 
   }
+
+  private static class ResourceResolver implements IResourceResolver {
+
+    private Vertx vertx;
+
+    void setVertx(Vertx vertx) {
+      this.vertx = vertx;
+    }
+
+    @Override
+    public String getName() {
+      return "Apex/Thymeleaf";
+    }
+
+    @Override
+    public InputStream getResourceAsStream(TemplateProcessingParameters templateProcessingParameters, String resourceName) {
+      String str = Utils.readFileToString(vertx, resourceName);
+      try {
+        ByteArrayInputStream bis = new ByteArrayInputStream(str.getBytes("UTF-8"));
+        BufferedInputStream buis = new BufferedInputStream(bis);
+        return buis;
+      } catch (UnsupportedEncodingException e) {
+        throw new VertxException(e);
+      }
+    }
+  }
+
+
 
 
 }

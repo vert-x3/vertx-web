@@ -19,6 +19,8 @@ package io.vertx.ext.apex;
 import io.vertx.ext.apex.impl.ConcurrentLRUCache;
 import org.junit.Test;
 
+import java.util.Map;
+
 import static org.junit.Assert.*;
 
 /**
@@ -27,8 +29,8 @@ import static org.junit.Assert.*;
 public class ConcurrentLRUCacheTest extends LRUCacheTestBase {
 
   @Override
-  protected void createCache() {
-    cache = new ConcurrentLRUCache<>(maxSize);
+  protected Map<String, String> createCache() {
+    return new ConcurrentLRUCache<>(maxSize);
   }
 
   @Test
@@ -52,4 +54,19 @@ public class ConcurrentLRUCacheTest extends LRUCacheTestBase {
   public void testCacheInvalidSize2() {
     new ConcurrentLRUCache<>(-1);
   }
+
+  @Test
+  public void testIncreaseMaxSize() {
+    for (int i = 0; i < maxSize; i++) {
+      cache.put("key" + i, "value" + i);
+    }
+    assertEquals(maxSize, cache.size());
+    ConcurrentLRUCache<String, String> ccache = (ConcurrentLRUCache<String, String>)cache;
+    ccache.setMaxSize(maxSize + 10);
+    for (int i = maxSize; i < maxSize + 10; i++) {
+      cache.put("key" + i, "value" + i);
+    }
+    assertEquals(maxSize + 10, cache.size());
+  }
+
 }

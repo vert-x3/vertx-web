@@ -16,14 +16,13 @@
 
 package io.vertx.ext.apex.templ.impl;
 
-import de.neuland.jade4j.JadeConfiguration;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.ext.apex.templ.MVELTemplateEngine;
 import io.vertx.ext.apex.RoutingContext;
 import io.vertx.ext.apex.impl.Utils;
+import io.vertx.ext.apex.templ.MVELTemplateEngine;
 import org.mvel2.templates.CompiledTemplate;
 import org.mvel2.templates.TemplateCompiler;
 import org.mvel2.templates.TemplateRuntime;
@@ -36,10 +35,20 @@ import java.util.Map;
  */
 public class MVELTemplateEngineImpl extends CachingTemplateEngine<CompiledTemplate> implements MVELTemplateEngine {
 
-  private final JadeConfiguration config = new JadeConfiguration();
+  public MVELTemplateEngineImpl() {
+    super(MVELTemplateEngine.DEFAULT_TEMPLATE_EXTENSION, MVELTemplateEngine.DEFAULT_MAX_CACHE_SIZE);
+  }
 
-  public MVELTemplateEngineImpl(String resourcePrefix, String ext, int maxCacheSize) {
-    super(resourcePrefix, ext, maxCacheSize);
+  @Override
+  public MVELTemplateEngine setExtension(String extension) {
+    doSetExtension(extension);
+    return this;
+  }
+
+  @Override
+  public MVELTemplateEngine setMaxCacheSize(int maxCacheSize) {
+    this.cache.setMaxSize(maxCacheSize);
+    return this;
   }
 
   @Override
@@ -49,7 +58,7 @@ public class MVELTemplateEngineImpl extends CachingTemplateEngine<CompiledTempla
       if (template == null) {
         // real compile
         String loc = adjustLocation(templateFileName);
-        String templateText = Utils.readResourceToString(loc);
+        String templateText = Utils.readFileToString(context.vertx(), loc);
         if (templateText == null) {
           throw new IllegalArgumentException("Cannot find template " + loc);
         }

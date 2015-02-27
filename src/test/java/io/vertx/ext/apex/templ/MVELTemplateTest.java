@@ -27,15 +27,27 @@ import org.junit.Test;
 public class MVELTemplateTest extends ApexTestBase {
 
   @Test
-  public void testTemplateHandler() throws Exception {
+  public void testTemplateHandlerOnClasspath() throws Exception {
     TemplateEngine engine = MVELTemplateEngine.create();
     testTemplateHandler(engine, "somedir", "test-mvel-template2.templ", "Hello badger and fox\nRequest path is /test-mvel-template2.templ");
+  }
+
+  @Test
+  public void testTemplateHandlerOnFileSystem() throws Exception {
+    TemplateEngine engine = MVELTemplateEngine.create();
+    testTemplateHandler(engine, "src/test/filesystemtemplates", "test-mvel-template3.templ", "Hello badger and fox\nRequest path is /test-mvel-template3.templ");
   }
 
   @Test
   public void testTemplateHandlerNoExtension() throws Exception {
     TemplateEngine engine = MVELTemplateEngine.create();
     testTemplateHandler(engine, "somedir", "test-mvel-template2", "Hello badger and fox\nRequest path is /test-mvel-template2");
+  }
+
+  @Test
+  public void testTemplateHandlerChangeExtension() throws Exception {
+    TemplateEngine engine = MVELTemplateEngine.create().setExtension("bempl");
+    testTemplateHandler(engine, "somedir", "test-mvel-template2", "Cheerio badger and fox\nRequest path is /test-mvel-template2");
   }
 
   private void testTemplateHandler(TemplateEngine engine, String directoryName, String templateName,

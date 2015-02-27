@@ -52,27 +52,24 @@ public class JadeTemplateEngine extends TemplateEngine {
   }
 
   /**
-   * Create a template engine
+   * Set the extension for the engine
    *
-   * @param resourcePrefix  the resource prefix
    * @param extension  the extension
-   * @return  the engine
+   * @return a reference to this for fluency
    */
-  public static JadeTemplateEngine create(String resourcePrefix, String extension) {
-    JadeTemplateEngine ret= JadeTemplateEngine.newInstance(io.vertx.ext.apex.templ.JadeTemplateEngine.create(resourcePrefix, extension));
+  public JadeTemplateEngine setExtension(String extension) {
+    JadeTemplateEngine ret= JadeTemplateEngine.newInstance(this.delegate.setExtension(extension));
     return ret;
   }
 
   /**
-   * Create a template engine
+   * Set the max cache size for the engine
    *
-   * @param resourcePrefix  the resource prefix
-   * @param extension  the extension
-   * @param maxCacheSize  the max cache size
-   * @return  the engine
+   * @param maxCacheSize  the maxCacheSize
+   * @return a reference to this for fluency
    */
-  public static JadeTemplateEngine create(String resourcePrefix, String extension, int maxCacheSize) {
-    JadeTemplateEngine ret= JadeTemplateEngine.newInstance(io.vertx.ext.apex.templ.JadeTemplateEngine.create(resourcePrefix, extension, maxCacheSize));
+  public JadeTemplateEngine setMaxCacheSize(int maxCacheSize) {
+    JadeTemplateEngine ret= JadeTemplateEngine.newInstance(this.delegate.setMaxCacheSize(maxCacheSize));
     return ret;
   }
 

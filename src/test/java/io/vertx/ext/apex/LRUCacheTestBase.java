@@ -33,10 +33,10 @@ public abstract class LRUCacheTestBase {
 
   @Before
   public void setUp() {
-    createCache();
+    cache = createCache();
   }
 
-  protected abstract void createCache();
+  protected abstract Map<String, String> createCache();
 
   @Test
   public void testPut() {

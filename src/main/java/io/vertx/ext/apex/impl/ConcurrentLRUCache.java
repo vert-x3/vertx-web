@@ -31,7 +31,7 @@ import java.util.function.BiFunction;
  */
 public class ConcurrentLRUCache<K, V> extends ConcurrentHashMap<K, V> {
 
-  private final int maxSize;
+  private int maxSize;
   private final Queue<K> queue = new ArrayDeque<>();
 
   public ConcurrentLRUCache(int maxSize) {
@@ -65,6 +65,11 @@ public class ConcurrentLRUCache<K, V> extends ConcurrentHashMap<K, V> {
     super(initialCapacity, loadFactor, concurrencyLevel);
     this.maxSize = maxSize;
     checkSize();
+  }
+
+  public void setMaxSize(int maxSize) {
+    this.maxSize = maxSize;
+    checkRemoveOldest();
   }
 
   @Override

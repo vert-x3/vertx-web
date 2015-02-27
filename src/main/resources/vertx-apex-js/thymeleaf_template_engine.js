@@ -33,6 +33,20 @@ var ThymeleafTemplateEngine = function(j_val) {
   var that = this;
   TemplateEngine.call(this, j_val);
 
+  /**
+   Set the mode for the engine
+
+   @public
+   @param mode {string} the mode 
+   @return {ThymeleafTemplateEngine} a reference to this for fluency
+   */
+  this.setMode = function(mode) {
+    var __args = arguments;
+    if (__args.length === 1 && typeof __args[0] === 'string') {
+      return new ThymeleafTemplateEngine(j_thymeleafTemplateEngine.setMode(mode));
+    } else utils.invalidArgs();
+  };
+
   // A reference to the underlying Java delegate
   // NOTE! This is an internal API and must not be used in user code.
   // If you rely on this property your code is likely to break if we change it / remove it without warning.
@@ -40,19 +54,16 @@ var ThymeleafTemplateEngine = function(j_val) {
 };
 
 /**
- Create a template engine
+ Create a template engine using defaults
 
  @memberof module:vertx-apex-js/thymeleaf_template_engine
- @param resourcePrefix {string} the resource prefix 
- @param templateMode {string} the template mode - e.g. XHTML 
+
  @return {ThymeleafTemplateEngine} the engine
  */
 ThymeleafTemplateEngine.create = function() {
   var __args = arguments;
   if (__args.length === 0) {
     return new ThymeleafTemplateEngine(JThymeleafTemplateEngine.create());
-  }else if (__args.length === 2 && typeof __args[0] === 'string' && typeof __args[1] === 'string') {
-    return new ThymeleafTemplateEngine(JThymeleafTemplateEngine.create(__args[0], __args[1]));
   } else utils.invalidArgs();
 };
 

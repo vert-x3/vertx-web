@@ -16,14 +16,14 @@
 
 package io.vertx.ext.apex.impl;
 
+import io.vertx.core.Vertx;
+import io.vertx.core.VertxException;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.ext.apex.RoutingContext;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLDecoder;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -82,6 +82,18 @@ public class Utils {
   public static String readResourceToString(String resource) {
     Buffer buff = readResourceToBuffer(resource);
     return buff == null ? null : buff.toString();
+  }
+
+  /*
+  Reads from file or classpath
+   */
+  public static String readFileToString(Vertx vertx, String resource) {
+    try {
+      Buffer buff = vertx.fileSystem().readFileBlocking(resource);
+      return buff.toString();
+    } catch (Exception e) {
+      throw new VertxException(e);
+    }
   }
 
   public static List<String> getSortedAcceptableMimeTypes(String acceptHeader) {

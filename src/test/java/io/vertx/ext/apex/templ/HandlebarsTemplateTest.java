@@ -27,26 +27,43 @@ import org.junit.Test;
 public class HandlebarsTemplateTest extends ApexTestBase {
 
   @Test
-  public void testTemplateHandler() throws Exception {
+  public void testTemplateOnClasspath() throws Exception {
     TemplateEngine engine = HandlebarsTemplateEngine.create();
-    testTemplateHandler(engine, "somedir", "test-handlebars-template2.hbs");
+    testTemplateHandler(engine, "somedir", "test-handlebars-template2.hbs", "Hello badger and fox");
   }
 
-  private void testTemplateHandler(TemplateEngine engine, String directoryName, String templateName) throws Exception {
+  @Test
+  public void testTemplateOnFileSystem() throws Exception {
+    TemplateEngine engine = HandlebarsTemplateEngine.create();
+    testTemplateHandler(engine, "src/test/filesystemtemplates", "test-handlebars-template3.hbs", "Goodbye badger and fox" );
+  }
+
+  @Test
+  public void testTemplateNoExtension() throws Exception {
+    TemplateEngine engine = HandlebarsTemplateEngine.create();
+    testTemplateHandler(engine, "somedir", "test-handlebars-template2", "Hello badger and fox");
+  }
+
+  @Test
+  public void testTemplateChangeExtension() throws Exception {
+    TemplateEngine engine = HandlebarsTemplateEngine.create().setExtension("zbs");
+    testTemplateHandler(engine, "somedir", "test-handlebars-template2", "Cheerio badger and fox");
+  }
+
+  private void testTemplateHandler(TemplateEngine engine, String directoryName, String templateName, String expected) throws Exception {
     router.route().handler(context -> {
       context.put("foo", "badger");
       context.put("bar", "fox");
       context.next();
     });
     router.route().handler(TemplateHandler.create(engine, directoryName, "text/plain"));
-    String expected = "Hello badger and fox";
     testRequest(HttpMethod.GET, "/" + templateName, 200, "OK", expected);
   }
 
   @Test
   public void testNoSuchTemplate() throws Exception {
     TemplateEngine engine = HandlebarsTemplateEngine.create();
-    router.route().handler(TemplateHandler.create(engine, "nosuchtemplate.hbs", "text/html"));
+    router.route().handler(TemplateHandler.create(engine, "somedir", "text/html"));
     testRequest(HttpMethod.GET, "/foo.hbs", 500, "Internal Server Error");
   }
 
