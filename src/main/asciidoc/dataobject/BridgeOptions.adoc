@@ -1,0 +1,21 @@
+== BridgeOptions
+
+++++
+ Options for configuring the event bus bridge.
+++++
+
+|===
+|Name | Type | Description
+
+|maxAddressLength
+|Number
+|-
+|maxHandlersPerSocket
+|Number
+|-
+|pingTimeout
+|Number
+|-
+|replyTimeout
+|Number
+|-|===

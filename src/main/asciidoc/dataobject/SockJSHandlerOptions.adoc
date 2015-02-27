@@ -1,0 +1,27 @@
+== SockJSHandlerOptions
+
+++++
+ Options for configuring a SockJS handler
+++++
+
+|===
+|Name | Type | Description
+
+|sessionTimeout
+|Number
+|-
+|insertJSESSIONID
+|Boolean
+|-
+|heartbeatPeriod
+|Number
+|-
+|maxBytesStreaming
+|Number
+|-
+|libraryURL
+|String
+|-
+|disabledTransports
+|Array of String
+|-|===
