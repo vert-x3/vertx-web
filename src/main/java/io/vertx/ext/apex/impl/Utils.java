@@ -79,11 +79,6 @@ public class Utils {
     }
   }
 
-  public static String readResourceToString(String resource) {
-    Buffer buff = readResourceToBuffer(resource);
-    return buff == null ? null : buff.toString();
-  }
-
   /*
   Reads from file or classpath
    */

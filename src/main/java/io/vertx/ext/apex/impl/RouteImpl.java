@@ -54,6 +54,27 @@ public class RouteImpl implements Route {
   private Pattern pattern;
   private Set<String> groups;
 
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder("Route[ ");
+    sb.append("path:").append(path);
+    sb.append(" pattern:").append(pattern);
+    sb.append(" handler:").append(contextHandler);
+    sb.append(" failureHandler:").append(failureHandler);
+    sb.append(" order:").append(order);
+    sb.append(" methods:[");
+    int cnt = 0;
+    for (HttpMethod method: methods) {
+      sb.append(method);
+      cnt++;
+      if (cnt < methods.size()) {
+        sb.append(",");
+      }
+    }
+    sb.append("]]@").append(System.identityHashCode(this));
+    return sb.toString();
+  }
+
   RouteImpl(RouterImpl router, int order) {
     this.router = router;
     this.order = order;

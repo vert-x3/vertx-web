@@ -20,6 +20,8 @@ import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.impl.LoggerFactory;
 import io.vertx.ext.apex.Route;
 import io.vertx.ext.apex.Router;
 import io.vertx.ext.apex.RoutingContext;
@@ -39,6 +41,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class RouterImpl implements Router {
 
+  private static final Logger log = LoggerFactory.getLogger(RouterImpl.class);
+
   private final Vertx vertx;
   private final Set<RouteImpl> routes =
     new ConcurrentSkipListSet<>((RouteImpl o1, RouteImpl o2) -> Integer.compare(o1.order(), o2.order()));
@@ -52,6 +56,8 @@ public class RouterImpl implements Router {
 
   @Override
   public void accept(HttpServerRequest request) {
+    if (log.isTraceEnabled()) log.trace("Router: " + System.identityHashCode(this) +
+      " accepting request " + request.method() + " " + request.absoluteURI());
     new RoutingContextImpl(null, this, request, routes.iterator()).next();
   }
 

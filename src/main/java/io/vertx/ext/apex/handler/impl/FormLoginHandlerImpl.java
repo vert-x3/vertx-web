@@ -53,6 +53,9 @@ public class FormLoginHandlerImpl implements FormLoginHandler {
     if (req.method() != HttpMethod.POST) {
       context.fail(405); // Must be a POST
     } else {
+      if (!req.isExpectMultipart()) {
+        throw new IllegalStateException("Form body not parsed - do you forget to include a BodyHandler?");
+      }
       MultiMap params = req.formAttributes();
       String username = params.get(usernameParam);
       String password = params.get(passwordParam);

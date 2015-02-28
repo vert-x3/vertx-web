@@ -53,24 +53,27 @@ public abstract class RoutingContextImplBase implements RoutingContext {
   }
 
   protected boolean iterateNext() {
-    //setHandled(false);
     boolean failed = failed();
     while (iter.hasNext()) {
       RouteImpl route = iter.next();
       if (route.matches(this, mountPoint(), failed)) {
+        if (log.isTraceEnabled()) log.trace("Route matches: " + route);
         try {
-         // setHandled(true);
           currentRoute = route;
+          if (log.isTraceEnabled()) log.trace("Calling the " + (failed ? "failure" : "") + " handler");
           if (failed) {
             route.handleFailure(this);
           } else {
             route.handleContext(this);
           }
         } catch (Throwable t) {
+          if (log.isTraceEnabled()) log.trace("Throwable thrown from handler", t);
           if (!failed) {
+            if (log.isTraceEnabled()) log.trace("Failing the routing");
             fail(t);
           } else {
             // Failure in handling failure!
+            if (log.isTraceEnabled()) log.trace("Failure in handling failure");
             unhandledFailure(-1, t, route.router());
           }
         } finally {

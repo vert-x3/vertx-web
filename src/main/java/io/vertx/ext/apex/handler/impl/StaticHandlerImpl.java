@@ -109,11 +109,13 @@ public class StaticHandlerImpl implements StaticHandler {
   public void handle(RoutingContext context) {
     HttpServerRequest request = context.request();
     if (request.method() != HttpMethod.GET && request.method() != HttpMethod.HEAD) {
+      if (log.isTraceEnabled()) log.trace("Not GET or HEAD so ignoring request");
       context.next();
     } else {
       String path = context.normalisedPath();
       // if the normalized path is null it cannot be resolved
       if (path == null) {
+        log.warn("Invalid path: " + context.request().path() + " so returning 404");
         context.fail(404);
         return;
       }
@@ -360,7 +362,9 @@ public class StaticHandlerImpl implements StaticHandler {
   }
 
   private String getFile(String path, RoutingContext context) {
-    return webRoot + Utils.pathOffset(path, context);
+    String file = webRoot + Utils.pathOffset(path, context);
+    if (log.isTraceEnabled()) log.trace("File to serve is " + file);
+    return file;
   }
 
   private void setRoot(String webRoot) {
