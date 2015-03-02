@@ -1,0 +1,30 @@
+== SockJSHandlerOptions
+
+++++
+ Options for configuring a SockJS handler
+++++
+'''
+
+[cols=">25%,^25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+
+|`sessionTimeout`
+|`Number`
+|-
+|`insertJSESSIONID`
+|`Boolean`
+|-
+|`heartbeatPeriod`
+|`Number`
+|-
+|`maxBytesStreaming`
+|`Number`
+|-
+|`libraryURL`
+|`String`
+|-
+|`disabledTransports`
+|`Array of String`
+|-|===

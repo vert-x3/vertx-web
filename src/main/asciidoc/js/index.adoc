@@ -1725,7 +1725,7 @@ using SockJS in your Apex applications.
 
 You should create one handler per SockJS application using `link:jsdoc/sock_js_handler-SockJSHandler.html#create[SockJSHandler.create]`.
 You can also specify configuration options when creating the instance. The configuration options are described with
-an instance of `link:dataobject/SockJSHandlerOptions.html[SockJSHandlerOptions]`.
+an instance of `link:../cheatsheet/SockJSHandlerOptions.html[SockJSHandlerOptions]`.
 
 [source,js]
 ----
@@ -1793,7 +1793,7 @@ sock.close();
 
 === Configuring the SockJS handler
 
-The handler can be configured with various options using `link:dataobject/SockJSHandlerOptions.html[SockJSHandlerOptions]`.
+The handler can be configured with various options using `link:../cheatsheet/SockJSHandlerOptions.html[SockJSHandlerOptions]`.
 
 `insertJSESSIONID`:: Insert a JSESSIONID cookie so load-balancers ensure requests for a specific SockJS session
 are always routed to the correct server. Default is `true`.
@@ -1914,7 +1914,7 @@ In other words the bridge acts like a kind of firewall which has a default _deny
 Configuring the bridge to tell it what messages it should pass through is easy.
 
 You can specify which _matches_ you want to allow for inbound and outbound traffic using the
-`link:dataobject/BridgeOptions.html[BridgeOptions]` that you pass in when calling bridge.
+`link:../cheatsheet/BridgeOptions.html[BridgeOptions]` that you pass in when calling bridge.
 
 Each match is a Json object that can contain several fields.
 
