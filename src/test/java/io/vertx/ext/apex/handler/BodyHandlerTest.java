@@ -23,11 +23,14 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.apex.FileUpload;
 import io.vertx.ext.apex.ApexTestBase;
 import io.vertx.test.core.TestUtils;
+import org.junit.AfterClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Set;
 
 /**
@@ -44,12 +47,24 @@ public class BodyHandlerTest extends ApexTestBase {
     router.route().handler(BodyHandler.create());
   }
 
-  @Override
-  public void tearDown() throws Exception {
-    if (vertx.fileSystem().existsBlocking(BodyHandler.DEFAULT_UPLOADS_DIRECTORY)) {
-      vertx.fileSystem().deleteRecursiveBlocking(BodyHandler.DEFAULT_UPLOADS_DIRECTORY, true);
+  @AfterClass
+  public static void oneTimeTearDown() {
+    File f = new File(BodyHandler.DEFAULT_UPLOADS_DIRECTORY);
+    try {
+      delete(f);
     }
-    super.tearDown();
+    catch(Throwable t) {
+      t.printStackTrace();
+    }
+  }
+
+  private static void delete(File f) throws IOException {
+    if (f.isDirectory()) {
+      for (File c : f.listFiles())
+        delete(c);
+    }
+    if (!f.delete())
+      throw new FileNotFoundException("Failed to delete file: " + f);
   }
 
   @Test
@@ -182,7 +197,7 @@ public class BodyHandlerTest extends ApexTestBase {
       assertEquals("binary", upload.contentTransferEncoding());
       assertEquals(fileData.length(), upload.size());
       String uploadedFileName = upload.uploadedFileName();
-      assertTrue(uploadedFileName.startsWith(uploadsDir + "/"));
+      assertTrue(uploadedFileName.startsWith(uploadsDir + File.separator));
       Buffer uploaded = vertx.fileSystem().readFileBlocking(uploadedFileName);
       assertEquals(fileData, uploaded);
       // The body should be set too
