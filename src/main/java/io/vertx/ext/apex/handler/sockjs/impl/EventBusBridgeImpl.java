@@ -45,6 +45,7 @@ import io.vertx.core.logging.impl.LoggerFactory;
 import io.vertx.ext.apex.Session;
 import io.vertx.ext.apex.handler.sockjs.BridgeOptions;
 import io.vertx.ext.apex.handler.sockjs.EventBusBridgeHook;
+import io.vertx.ext.apex.handler.sockjs.PermissionOptions;
 import io.vertx.ext.apex.handler.sockjs.SockJSSocket;
 
 import java.util.*;
@@ -62,8 +63,8 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
   private static final Logger log = LoggerFactory.getLogger(EventBusBridgeImpl.class);
 
   private final Map<SockJSSocket, SockInfo> sockInfos = new HashMap<>();
-  private final List<JsonObject> inboundPermitted;
-  private final List<JsonObject> outboundPermitted;
+  private final List<PermissionOptions> inboundPermitted;
+  private final List<PermissionOptions> outboundPermitted;
   private final int maxAddressLength;
   private final int maxHandlersPerSocket;
   private final long pingTimeout;
@@ -83,7 +84,6 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
     this.maxHandlersPerSocket = options.getMaxHandlersPerSocket();
     this.pingTimeout = options.getPingTimeout();
     this.replyTimeout = options.getReplyTimeout();
-    validatePermitted();
   }
 
   private void handleSocketClosed(SockJSSocket sock, Map<String, MessageConsumer> registrations) {
@@ -436,13 +436,13 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
       return new Match(true);
     }
 
-    List<JsonObject> matches = inbound ? inboundPermitted : outboundPermitted;
+    List<PermissionOptions> matches = inbound ? inboundPermitted : outboundPermitted;
 
-    for (JsonObject matchHolder: matches) {
-      String matchAddress = matchHolder.getString("address");
+    for (PermissionOptions matchHolder: matches) {
+      String matchAddress = matchHolder.getAddress();
       String matchRegex;
       if (matchAddress == null) {
-        matchRegex = matchHolder.getString("address_re");
+        matchRegex = matchHolder.getAddressRegex();
       } else {
         matchRegex = null;
       }
@@ -459,10 +459,10 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
       }
 
       if (addressOK) {
-        boolean matched = structureMatches(matchHolder.getJsonObject("match"), body);
+        boolean matched = structureMatches(matchHolder.getMatch(), body);
         if (matched) {
-          String requiredRole = matchHolder.getString("required_role");
-          String requiredPermission = matchHolder.getString("required_permission");
+          String requiredRole = matchHolder.getRequiredRole();
+          String requiredPermission = matchHolder.getRequiredPermission();
           return new Match(true, requiredRole, requiredPermission);
         }
       }
@@ -638,25 +638,4 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
     int handlerCount;
     PingInfo pingInfo;
   }
-
-  private void validatePermitted() {
-    for (JsonObject obj: inboundPermitted) {
-      validatePermitted(obj);
-    }
-    for (JsonObject obj: outboundPermitted) {
-      validatePermitted(obj);
-    }
-  }
-
-  private void validatePermitted(JsonObject obj) {
-    for (String key: obj.fieldNames()) {
-      boolean ok = key.equals("address") || key.equals("match") || key.equals("required_role")
-        || key.equals("required_permission") || key.equals("address_re");
-      if (!ok) {
-        throw new IllegalArgumentException("Invalid field: " + key  + " in inbound/outbound permitted");
-      }
-    }
-  }
-
-
 }

@@ -22,10 +22,7 @@ import io.vertx.ext.apex.handler.LoggerHandler.Format
 import io.vertx.core.Handler
 /**
  * A handler which logs request information to the Vert.x logger.
- *
- * @author <a href="http://tfox.org">Tim Fox</a>
- * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
- */
+*/
 @CompileStatic
 public class LoggerHandler {
   final def io.vertx.ext.apex.handler.LoggerHandler delegate;
@@ -37,7 +34,6 @@ public class LoggerHandler {
   }
   /**
    * Create a handler with default format
-   *
    * @return the handler
    */
   public static LoggerHandler create() {
@@ -46,8 +42,7 @@ public class LoggerHandler {
   }
   /**
    * Create a handler with he specified format
-   *
-   * @param format  the format
+   * @param format the format
    * @return the handler
    */
   public static LoggerHandler create(Format format) {
@@ -56,9 +51,8 @@ public class LoggerHandler {
   }
   /**
    * Create a handler with he specified format
-   *
-   * @param immediate  true if logging should occur as soon as request arrives
-   * @param format  the format
+   * @param immediate true if logging should occur as soon as request arrives
+   * @param format the format
    * @return the handler
    */
   public static LoggerHandler create(boolean immediate, Format format) {

@@ -1,0 +1,36 @@
+== PermissionOptions
+
+++++
+ Specify a _match_ to allow for inbound and outbound traffic using the
+ link.
+++++
+'''
+
+[cols=">25%,^25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+
+|`address`
+|`String`
+|+++
+The exact address the message is being sent to. If you want to allow messages based on
+ an exact address you use this field.+++
+
+|`addressRegex`
+|`String`
+|+++
+A regular expression that will be matched against the address. If you want to allow messages
+ based on a regular expression you use this field. If the link value is specified
+ this will be ignored.+++
+
+|`requiredRole`
+|`String`
+|+++
+Declare a specific role for the logged-in user is required in order to access allow the messages.+++
+
+|`requiredPermission`
+|`String`
+|+++
+Declare a specific permission for the logged-in user is required in order to access allow the messages;+++
+|===

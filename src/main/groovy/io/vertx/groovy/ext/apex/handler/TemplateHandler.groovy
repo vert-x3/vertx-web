@@ -24,9 +24,7 @@ import io.vertx.core.Handler
  *
  * A handler which renders responses using a template engine and where the template name is selected from the URI
  * path.
- *
- * @author <a href="http://tfox.org">Tim Fox</a>
- */
+*/
 @CompileStatic
 public class TemplateHandler {
   final def io.vertx.ext.apex.handler.TemplateHandler delegate;
@@ -38,8 +36,7 @@ public class TemplateHandler {
   }
   /**
    * Create a handler
-   *
-   * @param engine  the template engine
+   * @param engine the template engine
    * @return the handler
    */
   public static TemplateHandler create(TemplateEngine engine) {
@@ -48,10 +45,9 @@ public class TemplateHandler {
   }
   /**
    * Create a handler
-   *
-   * @param engine  the template engine
-   * @param templateDirectory  the template directory where templates will be looked for
-   * @param contentType  the content type header to be used in the response
+   * @param engine the template engine
+   * @param templateDirectory the template directory where templates will be looked for
+   * @param contentType the content type header to be used in the response
    * @return the handler
    */
   public static TemplateHandler create(TemplateEngine engine, String templateDirectory, String contentType) {

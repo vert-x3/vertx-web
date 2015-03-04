@@ -71,8 +71,8 @@ public class BridgeOptions {
   private long pingTimeout;
   private long replyTimeout;
 
-  private List<JsonObject> inboundPermitted = new ArrayList<>();
-  private List<JsonObject> outboundPermitted = new ArrayList<>();
+  private List<PermissionOptions> inboundPermitted = new ArrayList<>();
+  private List<PermissionOptions> outboundPermitted = new ArrayList<>();
 
   /**
    * Copy constructor
@@ -114,7 +114,7 @@ public class BridgeOptions {
       for (Object obj: arr) {
         if (obj instanceof JsonObject) {
           JsonObject jobj = (JsonObject)obj;
-          inboundPermitted.add(jobj);
+          inboundPermitted.add(new PermissionOptions(jobj));
         } else {
           throw new IllegalArgumentException("Invalid type " + obj.getClass() + " in inboundPermitteds array");
         }
@@ -125,7 +125,7 @@ public class BridgeOptions {
       for (Object obj: arr) {
         if (obj instanceof JsonObject) {
           JsonObject jobj = (JsonObject)obj;
-          outboundPermitted.add(jobj);
+          outboundPermitted.add(new PermissionOptions(jobj));
         } else {
           throw new IllegalArgumentException("Invalid type " + obj.getClass() + " in outboundPermitteds array");
         }
@@ -181,22 +181,29 @@ public class BridgeOptions {
     return this;
   }
 
-  public BridgeOptions addInboundPermitted(JsonObject json) {
-    inboundPermitted.add(json);
+  public BridgeOptions addInboundPermitted(PermissionOptions permitted) {
+    inboundPermitted.add(permitted);
     return this;
   }
 
-  public List<JsonObject> getInboundPermitteds() {
+  public List<PermissionOptions> getInboundPermitteds() {
     return inboundPermitted;
   }
 
-  public BridgeOptions addOutboundPermitted(JsonObject json) {
-    outboundPermitted.add(json);
+  public void setInboundPermitted(List<PermissionOptions> inboundPermitted) {
+    this.inboundPermitted = inboundPermitted;
+  }
+
+  public BridgeOptions addOutboundPermitted(PermissionOptions permitted) {
+    outboundPermitted.add(permitted);
     return this;
   }
 
-  public List<JsonObject> getOutboundPermitteds() {
+  public List<PermissionOptions> getOutboundPermitteds() {
     return outboundPermitted;
   }
 
+  public void setOutboundPermitted(List<PermissionOptions> outboundPermitted) {
+    this.outboundPermitted = outboundPermitted;
+  }
 }

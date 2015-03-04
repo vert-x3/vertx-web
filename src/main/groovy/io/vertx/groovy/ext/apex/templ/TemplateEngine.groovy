@@ -25,9 +25,7 @@ import io.vertx.core.Handler
  * A template engine uses a specific template and the data in a routing context to render a resource into a buffer.
  * <p>
  * Concrete implementations exist for several well-known template engines.
- *
- * @author <a href="http://tfox.org">Tim Fox</a>
- */
+*/
 @CompileStatic
 public class TemplateEngine {
   final def io.vertx.ext.apex.templ.TemplateEngine delegate;
@@ -39,9 +37,9 @@ public class TemplateEngine {
   }
   /**
    * Render
-   * @param context  the routing context
-   * @param templateFileName  the template file name to use
-   * @param handler  the handler that will be called with a result containing the buffer or a failure.
+   * @param context the routing context
+   * @param templateFileName the template file name to use
+   * @param handler the handler that will be called with a result containing the buffer or a failure.
    */
   public void render(RoutingContext context, String templateFileName, Handler<AsyncResult<Buffer>> handler) {
     this.delegate.render((io.vertx.ext.apex.RoutingContext)context.getDelegate(), templateFileName, new Handler<AsyncResult<io.vertx.core.buffer.Buffer>>() {

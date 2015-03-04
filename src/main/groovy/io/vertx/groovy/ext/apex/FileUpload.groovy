@@ -20,9 +20,7 @@ import io.vertx.lang.groovy.InternalHelper
 /**
  * Represents a file-upload from an HTTP multipart form submission.
  * <p>
- *
- * @author <a href="http://tfox.org">Tim Fox</a>
- */
+*/
 @CompileStatic
 public class FileUpload {
   final def io.vertx.ext.apex.FileUpload delegate;
@@ -34,6 +32,7 @@ public class FileUpload {
   }
   /**
    * @return the name of the upload as provided in the form submission
+   * @return 
    */
   public String name() {
     def ret = this.delegate.name();
@@ -41,6 +40,7 @@ public class FileUpload {
   }
   /**
    * @return the actual temporary file name on the server where the file was uploaded to.
+   * @return 
    */
   public String uploadedFileName() {
     def ret = this.delegate.uploadedFileName();
@@ -48,6 +48,7 @@ public class FileUpload {
   }
   /**
    * @return the file name of the upload as provided in the form submission
+   * @return 
    */
   public String fileName() {
     def ret = this.delegate.fileName();
@@ -55,6 +56,7 @@ public class FileUpload {
   }
   /**
    * @return the size of the upload, in bytes
+   * @return 
    */
   public long size() {
     def ret = this.delegate.size();
@@ -62,6 +64,7 @@ public class FileUpload {
   }
   /**
    * @return the content type (MIME type) of the upload
+   * @return 
    */
   public String contentType() {
     def ret = this.delegate.contentType();
@@ -69,6 +72,7 @@ public class FileUpload {
   }
   /**
    * @return the content transfer encoding of the upload - this describes how the upload was encoded in the form submission.
+   * @return 
    */
   public String contentTransferEncoding() {
     def ret = this.delegate.contentTransferEncoding();
@@ -76,6 +80,7 @@ public class FileUpload {
   }
   /**
    * @return the charset of the upload
+   * @return 
    */
   public String charSet() {
     def ret = this.delegate.charSet();

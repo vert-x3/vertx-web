@@ -38,12 +38,14 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.apex.ApexTestBase;
 import io.vertx.ext.apex.Router;
 import io.vertx.ext.apex.handler.sockjs.BridgeOptions;
+import io.vertx.ext.apex.handler.sockjs.PermissionOptions;
 import io.vertx.ext.apex.handler.sockjs.SockJSHandler;
 import io.vertx.ext.apex.sstore.LocalSessionStore;
 import io.vertx.ext.apex.sstore.SessionStore;
 import io.vertx.ext.auth.AuthService;
 import io.vertx.ext.auth.shiro.ShiroAuthRealmType;
 import io.vertx.ext.auth.shiro.ShiroAuthService;
+import io.vertx.test.core.TestUtils;
 import org.junit.Test;
 
 import java.util.UUID;
@@ -59,7 +61,7 @@ public class EventbusBridgeTest extends ApexTestBase {
   protected SockJSHandler sockJSHandler;
   protected BridgeOptions defaultOptions = new BridgeOptions();
   protected BridgeOptions allAccessOptions =
-    new BridgeOptions().addInboundPermitted(new JsonObject()).addOutboundPermitted(new JsonObject());
+    new BridgeOptions().addInboundPermitted(new PermissionOptions()).addOutboundPermitted(new PermissionOptions());
 
   protected String websocketURI = "/eventbus/websocket";
   protected String addr = "someaddress";
@@ -219,7 +221,7 @@ public class EventbusBridgeTest extends ApexTestBase {
   @Test
   public void testSendPermittedAllowAddress() throws Exception {
     String addr = "allow1";
-    sockJSHandler.bridge(defaultOptions.addInboundPermitted(new JsonObject().put("address", addr)));
+    sockJSHandler.bridge(defaultOptions.addInboundPermitted(new PermissionOptions().setAddress(addr)));
     testSend(addr, "foobar");
     testError(new JsonObject().put("type", "send").put("address", "allow2").put("body", "blah"),
       "access_denied");
@@ -228,7 +230,7 @@ public class EventbusBridgeTest extends ApexTestBase {
   @Test
   public void testSendPermittedAllowAddressRe() throws Exception {
     String addr = "allo.+";
-    sockJSHandler.bridge(defaultOptions.addInboundPermitted(new JsonObject().put("address_re", addr)));
+    sockJSHandler.bridge(defaultOptions.addInboundPermitted(new PermissionOptions().setAddressRegex(addr)));
     testSend("allow1", "foobar");
     testSend("allow2", "foobar");
     testError(new JsonObject().put("type", "send").put("address", "hello").put("body", "blah"),
@@ -239,8 +241,8 @@ public class EventbusBridgeTest extends ApexTestBase {
   public void testSendPermittedMultipleAddresses() throws Exception {
     String addr1 = "allow1";
     String addr2 = "allow2";
-    sockJSHandler.bridge(defaultOptions.addInboundPermitted(new JsonObject().put("address", addr1)).
-         addInboundPermitted(new JsonObject().put("address", addr2)));
+    sockJSHandler.bridge(defaultOptions.addInboundPermitted(new PermissionOptions().setAddress(addr1)).
+        addInboundPermitted(new PermissionOptions().setAddress(addr2)));
     testSend("allow1", "foobar");
     testSend("allow2", "foobar");
     testError(new JsonObject().put("type", "send").put("address", "allow3").put("body", "blah"),
@@ -251,8 +253,8 @@ public class EventbusBridgeTest extends ApexTestBase {
   public void testSendPermittedMultipleAddressRe() throws Exception {
     String addr1 = "allo.+";
     String addr2 = "ballo.+";
-    sockJSHandler.bridge(defaultOptions.addInboundPermitted(new JsonObject().put("address_re", addr1)).
-      addInboundPermitted(new JsonObject().put("address_re", addr2)));
+    sockJSHandler.bridge(defaultOptions.addInboundPermitted(new PermissionOptions().setAddressRegex(addr1)).
+        addInboundPermitted(new PermissionOptions().setAddressRegex(addr2)));
     testSend("allow1", "foobar");
     testSend("allow2", "foobar");
     testSend("ballow1", "foobar");
@@ -265,8 +267,8 @@ public class EventbusBridgeTest extends ApexTestBase {
   public void testSendPermittedMixedAddressRe() throws Exception {
     String addr1 = "allow1";
     String addr2 = "ballo.+";
-    sockJSHandler.bridge(defaultOptions.addInboundPermitted(new JsonObject().put("address", addr1)).
-      addInboundPermitted(new JsonObject().put("address_re", addr2)));
+    sockJSHandler.bridge(defaultOptions.addInboundPermitted(new PermissionOptions().setAddress(addr1)).
+        addInboundPermitted(new PermissionOptions().setAddressRegex(addr2)));
     testSend("allow1", "foobar");
     testSend("ballow1", "foobar");
     testSend("ballow2", "foobar");
@@ -279,7 +281,7 @@ public class EventbusBridgeTest extends ApexTestBase {
   @Test
   public void testSendPermittedStructureMatch() throws Exception {
     JsonObject match = new JsonObject().put("fib", "wib").put("oop", 12);
-    sockJSHandler.bridge(defaultOptions.addInboundPermitted(new JsonObject().put("match", match)));
+    sockJSHandler.bridge(defaultOptions.addInboundPermitted(new PermissionOptions().setMatch(match)));
     testSend(addr, match);
     JsonObject json1 = match.copy();
     json1.put("blah", "foob");
@@ -292,7 +294,7 @@ public class EventbusBridgeTest extends ApexTestBase {
   @Test
   public void testSendPermittedStructureMatchWithAddress() throws Exception {
     JsonObject match = new JsonObject().put("fib", "wib").put("oop", 12);
-    sockJSHandler.bridge(defaultOptions.addInboundPermitted(new JsonObject().put("match", match).put("address", addr)));
+    sockJSHandler.bridge(defaultOptions.addInboundPermitted(new PermissionOptions().setMatch(match).setAddress(addr)));
     testSend(addr, match);
     JsonObject json1 = match.copy();
     json1.put("blah", "foob");
@@ -307,7 +309,7 @@ public class EventbusBridgeTest extends ApexTestBase {
   @Test
   public void testRegisterPermittedAllowAddress() throws Exception  {
     String addr = "allow1";
-    sockJSHandler.bridge(defaultOptions.addOutboundPermitted(new JsonObject().put("address", addr)));
+    sockJSHandler.bridge(defaultOptions.addOutboundPermitted(new PermissionOptions().setAddress(addr)));
     testReceive(addr, "foobar");
     testError(new JsonObject().put("type", "register").put("address", "allow2").put("body", "blah"),
       "access_denied");
@@ -316,7 +318,7 @@ public class EventbusBridgeTest extends ApexTestBase {
   @Test
   public void testRegisterPermittedAllowAddressRe() throws Exception  {
     String addr = "allo.+";
-    sockJSHandler.bridge(defaultOptions.addOutboundPermitted(new JsonObject().put("address_re", addr)));
+    sockJSHandler.bridge(defaultOptions.addOutboundPermitted(new PermissionOptions().setAddressRegex(addr)));
     testReceive("allow1", "foobar");
     testReceive("allow2", "foobar");
     testError(new JsonObject().put("type", "register").put("address", "hello").put("body", "blah"),
@@ -327,8 +329,8 @@ public class EventbusBridgeTest extends ApexTestBase {
   public void testRegisterPermittedMultipleAddresses() throws Exception  {
     String addr1 = "allow1";
     String addr2 = "allow2";
-    sockJSHandler.bridge(defaultOptions.addOutboundPermitted(new JsonObject().put("address", addr1)).
-      addOutboundPermitted(new JsonObject().put("address", addr2)));
+    sockJSHandler.bridge(defaultOptions.addOutboundPermitted(new PermissionOptions().setAddress(addr1)).
+        addOutboundPermitted(new PermissionOptions().setAddress(addr2)));
     testReceive("allow1", "foobar");
     testReceive("allow2", "foobar");
     testError(new JsonObject().put("type", "register").put("address", "allow3").put("body", "blah"),
@@ -339,8 +341,8 @@ public class EventbusBridgeTest extends ApexTestBase {
   public void testRegisterPermittedMultipleAddressRe() throws Exception  {
     String addr1 = "allo.+";
     String addr2 = "ballo.+";
-    sockJSHandler.bridge(defaultOptions.addOutboundPermitted(new JsonObject().put("address_re", addr1)).
-      addOutboundPermitted(new JsonObject().put("address_re", addr2)));
+    sockJSHandler.bridge(defaultOptions.addOutboundPermitted(new PermissionOptions().setAddressRegex(addr1)).
+        addOutboundPermitted(new PermissionOptions().setAddressRegex(addr2)));
     testReceive("allow1", "foobar");
     testReceive("allow2", "foobar");
     testReceive("ballow1", "foobar");
@@ -353,8 +355,8 @@ public class EventbusBridgeTest extends ApexTestBase {
   public void testRegisterPermittedMixedAddressRe() throws Exception  {
     String addr1 = "allow1";
     String addr2 = "ballo.+";
-    sockJSHandler.bridge(defaultOptions.addOutboundPermitted(new JsonObject().put("address", addr1)).
-      addOutboundPermitted(new JsonObject().put("address_re", addr2)));
+    sockJSHandler.bridge(defaultOptions.addOutboundPermitted(new PermissionOptions().setAddress(addr1)).
+        addOutboundPermitted(new PermissionOptions().setAddressRegex(addr2)));
     testReceive("allow1", "foobar");
     testReceive("ballow1", "foobar");
     testReceive("ballow2", "foobar");
@@ -367,7 +369,7 @@ public class EventbusBridgeTest extends ApexTestBase {
   @Test
   public void testRegisterPermittedStructureMatch() throws Exception  {
     JsonObject match = new JsonObject().put("fib", "wib").put("oop", 12);
-    sockJSHandler.bridge(defaultOptions.addOutboundPermitted(new JsonObject().put("match", match)));
+    sockJSHandler.bridge(defaultOptions.addOutboundPermitted(new PermissionOptions().setMatch(match)));
     testReceive(addr, match);
     JsonObject json1 = match.copy();
     json1.put("blah", "foob");
@@ -381,7 +383,7 @@ public class EventbusBridgeTest extends ApexTestBase {
   @Test
   public void testRegisterPermittedStructureMatchWithAddress() throws Exception  {
     JsonObject match = new JsonObject().put("fib", "wib").put("oop", 12);
-    sockJSHandler.bridge(defaultOptions.addOutboundPermitted(new JsonObject().put("match", match).put("address", addr)));
+    sockJSHandler.bridge(defaultOptions.addOutboundPermitted(new PermissionOptions().setMatch(match).setAddress(addr)));
     testReceive(addr, match);
     JsonObject json1 = match.copy();
     json1.put("blah", "foob");
@@ -395,7 +397,7 @@ public class EventbusBridgeTest extends ApexTestBase {
   public void testReplyMessagesInbound() throws Exception {
 
     // Only allow inbound address, reply message should still get through though
-    sockJSHandler.bridge(defaultOptions.addInboundPermitted(new JsonObject().put("address", addr)));
+    sockJSHandler.bridge(defaultOptions.addInboundPermitted(new PermissionOptions().setAddress(addr)));
 
     CountDownLatch latch = new CountDownLatch(1);
 
@@ -434,7 +436,7 @@ public class EventbusBridgeTest extends ApexTestBase {
   public void testReplyMessagesOutbound() throws Exception {
 
     // Only allow outbound address, reply message should still get through though
-    sockJSHandler.bridge(defaultOptions.addOutboundPermitted(new JsonObject().put("address", addr)));
+    sockJSHandler.bridge(defaultOptions.addOutboundPermitted(new PermissionOptions().setAddress(addr)));
 
     CountDownLatch latch = new CountDownLatch(1);
 
@@ -480,7 +482,7 @@ public class EventbusBridgeTest extends ApexTestBase {
   public void testUnregisterNotPermittedDefaultOptions() throws Exception {
     sockJSHandler.bridge(defaultOptions);
     testError(new JsonObject().put("type", "unregister").put("address", addr),
-      "access_denied");
+        "access_denied");
   }
 
   @Test
@@ -556,19 +558,19 @@ public class EventbusBridgeTest extends ApexTestBase {
 
   @Test
   public void testSendRequiresRoleFailsNoSession() throws Exception {
-    sockJSHandler.bridge(defaultOptions.addInboundPermitted(new JsonObject().put("address", addr).put("required_role", "admin")));
+    sockJSHandler.bridge(defaultOptions.addInboundPermitted(new PermissionOptions().setAddress(addr).setRequiredRole("admin")));
     testError(new JsonObject().put("type", "send").put("address", addr).put("body", "foo"), "no_session");
   }
 
   @Test
   public void testSendRequiresPermissionFailsNoSession() throws Exception {
-    sockJSHandler.bridge(defaultOptions.addInboundPermitted(new JsonObject().put("address", addr).put("required_permission", "admin")));
+    sockJSHandler.bridge(defaultOptions.addInboundPermitted(new PermissionOptions().setAddress(addr).setRequiredPermission("admin")));
     testError(new JsonObject().put("type", "send").put("address", addr).put("body", "foo"), "no_session");
   }
 
   @Test
   public void testSendRequiresRoleNotLoggedIn() throws Exception {
-    sockJSHandler.bridge(defaultOptions.addInboundPermitted(new JsonObject().put("address", addr).put("required_role", "admin")));
+    sockJSHandler.bridge(defaultOptions.addInboundPermitted(new PermissionOptions().setAddress(addr).setRequiredRole("admin")));
     router.clear();
     router.route().handler(CookieHandler.create());
     SessionStore store = LocalSessionStore.create(vertx);
@@ -579,7 +581,7 @@ public class EventbusBridgeTest extends ApexTestBase {
 
   @Test
   public void testSendRequiresRoleNotAuthService() throws Exception {
-    sockJSHandler.bridge(defaultOptions.addInboundPermitted(new JsonObject().put("address", addr).put("required_role", "admin")));
+    sockJSHandler.bridge(defaultOptions.addInboundPermitted(new PermissionOptions().setAddress(addr).setRequiredRole("admin")));
     router.clear();
     router.route().handler(CookieHandler.create());
     SessionStore store = LocalSessionStore.create(vertx);
@@ -595,7 +597,7 @@ public class EventbusBridgeTest extends ApexTestBase {
 
   @Test
   public void testSendRequiresRoleHasRole() throws Exception {
-    sockJSHandler.bridge(defaultOptions.addInboundPermitted(new JsonObject().put("address", addr).put("required_role", "morris_dancer")));
+    sockJSHandler.bridge(defaultOptions.addInboundPermitted(new PermissionOptions().setAddress(addr).setRequiredRole("morris_dancer")));
     router.clear();
     router.route().handler(CookieHandler.create());
     SessionStore store = LocalSessionStore.create(vertx);
@@ -609,7 +611,7 @@ public class EventbusBridgeTest extends ApexTestBase {
 
   @Test
   public void testSendRequiresPermissionHasPermission() throws Exception {
-    sockJSHandler.bridge(defaultOptions.addInboundPermitted(new JsonObject().put("address", addr).put("required_permission", "bang_sticks")));
+    sockJSHandler.bridge(defaultOptions.addInboundPermitted(new PermissionOptions().setAddress(addr).setRequiredPermission("bang_sticks")));
     router.clear();
     router.route().handler(CookieHandler.create());
     SessionStore store = LocalSessionStore.create(vertx);
@@ -623,7 +625,7 @@ public class EventbusBridgeTest extends ApexTestBase {
 
   @Test
   public void testSendRequiresRoleHasnotRole() throws Exception {
-    sockJSHandler.bridge(defaultOptions.addInboundPermitted(new JsonObject().put("address", addr).put("required_role", "cheesemaker")));
+    sockJSHandler.bridge(defaultOptions.addInboundPermitted(new PermissionOptions().setAddress(addr).setRequiredRole("cheesemaker")));
     router.clear();
     router.route().handler(CookieHandler.create());
     SessionStore store = LocalSessionStore.create(vertx);
@@ -654,7 +656,7 @@ public class EventbusBridgeTest extends ApexTestBase {
 
   @Test
   public void testSendRequiresRoleHasnotPermission() throws Exception {
-    sockJSHandler.bridge(defaultOptions.addInboundPermitted(new JsonObject().put("address", addr).put("required_role", "nosepicker")));
+    sockJSHandler.bridge(defaultOptions.addInboundPermitted(new PermissionOptions().setAddress(addr).setRequiredRole("nosepicker")));
     router.clear();
     router.route().handler(CookieHandler.create());
     SessionStore store = LocalSessionStore.create(vertx);
@@ -664,16 +666,6 @@ public class EventbusBridgeTest extends ApexTestBase {
     addLoginHandler(router, authService);
     router.route("/eventbus").handler(sockJSHandler);
     testError(new JsonObject().put("type", "send").put("address", addr).put("body", "foo"), "access_denied");
-  }
-
-  @Test(expected = IllegalArgumentException.class)
-  public void testInvalidInboundPermitted() throws Exception {
-    sockJSHandler.bridge(defaultOptions.addInboundPermitted(new JsonObject().put("foo", "ijij")));
-  }
-
-  @Test(expected = IllegalArgumentException.class)
-  public void testInvalidOutboundPermitted() throws Exception {
-    sockJSHandler.bridge(defaultOptions.addOutboundPermitted(new JsonObject().put("foo", "ijij")));
   }
 
   @Test
@@ -692,6 +684,68 @@ public class EventbusBridgeTest extends ApexTestBase {
     awaitLatch(latch);
     long dur = System.currentTimeMillis() - start;
     assertTrue(dur > 1000 && dur < 3000);
+  }
+
+  @Test
+  public void testPermissionOptions() {
+    PermissionOptions options = new PermissionOptions();
+    assertEquals(PermissionOptions.DEFAULT_ADDRESS, options.getAddress());
+    assertEquals(PermissionOptions.DEFAULT_ADDRESS_REGEX, options.getAddressRegex());
+    assertEquals(PermissionOptions.DEFAULT_REQUIRED_PERMISSION, options.getRequiredPermission());
+    assertEquals(PermissionOptions.DEFAULT_REQUIRED_ROLE, options.getRequiredRole());
+    assertEquals(PermissionOptions.DEFAULT_MATCH, options.getMatch());
+    String address = TestUtils.randomAlphaString(10);
+    String addressRegex = TestUtils.randomAlphaString(10);
+    String requiredPermission = TestUtils.randomAlphaString(10);
+    String requiredRole = TestUtils.randomAlphaString(10);
+    JsonObject match = new JsonObject().put(TestUtils.randomAlphaString(10), TestUtils.randomAlphaString(10));
+    assertSame(options, options.setAddress(address));
+    assertSame(options, options.setAddressRegex(addressRegex));
+    assertSame(options, options.setRequiredPermission(requiredPermission));
+    assertSame(options, options.setRequiredRole(requiredRole));
+    assertSame(options, options.setMatch(match));
+    assertEquals(address, options.getAddress());
+    assertEquals(addressRegex, options.getAddressRegex());
+    assertEquals(requiredPermission, options.getRequiredPermission());
+    assertEquals(requiredRole, options.getRequiredRole());
+    assertEquals(match, options.getMatch());
+    PermissionOptions copy = new PermissionOptions(options);
+    assertEquals(address, copy.getAddress());
+    assertEquals(addressRegex, copy.getAddressRegex());
+    assertEquals(requiredPermission, copy.getRequiredPermission());
+    assertEquals(requiredRole, copy.getRequiredRole());
+    assertEquals(match, copy.getMatch());
+    assertSame(copy, copy.setAddress(TestUtils.randomAlphaString(10)));
+    assertSame(copy, copy.setAddressRegex(TestUtils.randomAlphaString(10)));
+    assertSame(copy, copy.setRequiredPermission(TestUtils.randomAlphaString(10)));
+    assertSame(copy, copy.setRequiredRole(TestUtils.randomAlphaString(10)));
+    assertSame(copy, copy.setMatch(new JsonObject().put(TestUtils.randomAlphaString(10), TestUtils.randomAlphaString(10))));
+    assertSame(options, options.setAddress(address));
+    assertSame(options, options.setAddressRegex(addressRegex));
+    assertSame(options, options.setRequiredPermission(requiredPermission));
+    assertSame(options, options.setRequiredRole(requiredRole));
+    assertSame(options, options.setMatch(match));
+  }
+
+  @Test
+  public void testPermissionsOptionsJson() {
+    String address = TestUtils.randomAlphaString(10);
+    String addressRegex = TestUtils.randomAlphaString(10);
+    String requiredPermission = TestUtils.randomAlphaString(10);
+    String requiredRole = TestUtils.randomAlphaString(10);
+    JsonObject match = new JsonObject().put(TestUtils.randomAlphaString(10), TestUtils.randomAlphaString(10));
+    JsonObject json = new JsonObject().
+        put("address", address).
+        put("addressRegex", addressRegex).
+        put("requiredPermission", requiredPermission).
+        put("requiredRole", requiredRole).
+        put("match", match);
+    PermissionOptions options = new PermissionOptions(json);
+    assertEquals(address, options.getAddress());
+    assertEquals(addressRegex, options.getAddressRegex());
+    assertEquals(requiredPermission, options.getRequiredPermission());
+    assertEquals(requiredRole, options.getRequiredRole());
+    assertEquals(match, options.getMatch());
   }
 
   private void testError(JsonObject msg, String expectedErr) throws Exception {

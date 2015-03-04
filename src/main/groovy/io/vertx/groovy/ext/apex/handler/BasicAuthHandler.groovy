@@ -21,9 +21,7 @@ import io.vertx.groovy.ext.apex.RoutingContext
 import io.vertx.groovy.ext.auth.AuthService
 /**
  * An auth handler that provides HTTP Basic Authentication support.
- *
- * @author <a href="http://tfox.org">Tim Fox</a>
- */
+*/
 @CompileStatic
 public class BasicAuthHandler extends AuthHandler {
   final def io.vertx.ext.apex.handler.BasicAuthHandler delegate;
@@ -36,8 +34,7 @@ public class BasicAuthHandler extends AuthHandler {
   }
   /**
    * Create a basic auth handler
-   *
-   * @param authService  the auth service to use
+   * @param authService the auth service to use
    * @return the auth handler
    */
   public static AuthHandler create(AuthService authService) {
@@ -46,9 +43,8 @@ public class BasicAuthHandler extends AuthHandler {
   }
   /**
    * Create a basic auth handler, specifying realm
-   *
-   * @param authService  the auth service to use
-   * @param realm  the realm to use
+   * @param authService the auth service to use
+   * @param realm the realm to use
    * @return the auth handler
    */
   public static AuthHandler create(AuthService authService, String realm) {

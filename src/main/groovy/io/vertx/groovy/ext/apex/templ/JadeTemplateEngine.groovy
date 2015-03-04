@@ -19,9 +19,7 @@ import groovy.transform.CompileStatic
 import io.vertx.lang.groovy.InternalHelper
 /**
  * A template engine that uses Jade.
- *
- * @author <a href="http://tfox.org">Tim Fox</a>
- */
+*/
 @CompileStatic
 public class JadeTemplateEngine extends TemplateEngine {
   final def io.vertx.ext.apex.templ.JadeTemplateEngine delegate;
@@ -34,8 +32,7 @@ public class JadeTemplateEngine extends TemplateEngine {
   }
   /**
    * Create a template engine using defaults
-   *
-   * @return  the engine
+   * @return the engine
    */
   public static JadeTemplateEngine create() {
     def ret= JadeTemplateEngine.FACTORY.apply(io.vertx.ext.apex.templ.JadeTemplateEngine.create());
@@ -43,8 +40,7 @@ public class JadeTemplateEngine extends TemplateEngine {
   }
   /**
    * Set the extension for the engine
-   *
-   * @param extension  the extension
+   * @param extension the extension
    * @return a reference to this for fluency
    */
   public JadeTemplateEngine setExtension(String extension) {
@@ -53,8 +49,7 @@ public class JadeTemplateEngine extends TemplateEngine {
   }
   /**
    * Set the max cache size for the engine
-   *
-   * @param maxCacheSize  the maxCacheSize
+   * @param maxCacheSize the maxCacheSize
    * @return a reference to this for fluency
    */
   public JadeTemplateEngine setMaxCacheSize(int maxCacheSize) {

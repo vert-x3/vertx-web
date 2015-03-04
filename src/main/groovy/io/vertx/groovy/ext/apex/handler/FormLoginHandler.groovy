@@ -23,10 +23,8 @@ import io.vertx.groovy.ext.auth.AuthService
 /**
  * Handler that handles login from a form on a custom login page.
  * <p>
- * Used in conjunction with the {@link io.vertx.ext.apex.handler.RedirectAuthHandler}.
- *
- * @author <a href="http://tfox.org">Tim Fox</a>
- */
+ * Used in conjunction with the {@link io.vertx.groovy.ext.apex.handler.RedirectAuthHandler}.
+*/
 @CompileStatic
 public class FormLoginHandler {
   final def io.vertx.ext.apex.handler.FormLoginHandler delegate;
@@ -38,8 +36,7 @@ public class FormLoginHandler {
   }
   /**
    * Create a handler
-   *
-   * @param authService  the auth service to use
+   * @param authService the auth service to use
    * @return the handler
    */
   public static FormLoginHandler create(AuthService authService) {
@@ -48,12 +45,10 @@ public class FormLoginHandler {
   }
   /**
    * Create a handler
-   *
-   * @param authService  the auth service to use
-   * @param usernameParam   the value of the form attribute which will contain the username
-   * @param passwordParam   the value of the form attribute which will contain the password
-   * @param returnURLParam   the value of the form attribute which will contain the return url
-   *
+   * @param authService the auth service to use
+   * @param usernameParam the value of the form attribute which will contain the username
+   * @param passwordParam the value of the form attribute which will contain the password
+   * @param returnURLParam the value of the form attribute which will contain the return url
    * @return the handler
    */
   public static FormLoginHandler create(AuthService authService, String usernameParam, String passwordParam, String returnURLParam) {

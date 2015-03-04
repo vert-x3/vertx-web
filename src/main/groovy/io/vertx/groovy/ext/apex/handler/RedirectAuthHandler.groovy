@@ -20,9 +20,7 @@ import io.vertx.lang.groovy.InternalHelper
 import io.vertx.groovy.ext.auth.AuthService
 /**
  * An auth handler that's used to handle auth by redirecting user to a custom login page.
- *
- * @author <a href="http://tfox.org">Tim Fox</a>
- */
+*/
 @CompileStatic
 public class RedirectAuthHandler extends AuthHandler {
   final def io.vertx.ext.apex.handler.RedirectAuthHandler delegate;
@@ -35,8 +33,7 @@ public class RedirectAuthHandler extends AuthHandler {
   }
   /**
    * Create a handler
-   *
-   * @param authService  the auth service to use
+   * @param authService the auth service to use
    * @return the handler
    */
   public static AuthHandler create(AuthService authService) {
@@ -45,9 +42,8 @@ public class RedirectAuthHandler extends AuthHandler {
   }
   /**
    * Create a handler
-   *
-   * @param authService  the auth service to use
-   * @param loginRedirectURL  the url to redirect the user to
+   * @param authService the auth service to use
+   * @param loginRedirectURL the url to redirect the user to
    * @return the handler
    */
   public static AuthHandler create(AuthService authService, String loginRedirectURL) {
@@ -56,10 +52,9 @@ public class RedirectAuthHandler extends AuthHandler {
   }
   /**
    * Create a handler
-   *
-   * @param authService  the auth service to use
-   * @param loginRedirectURL  the url to redirect the user to
-   * @param returnURLParam  the name of param used to store return url information in session
+   * @param authService the auth service to use
+   * @param loginRedirectURL the url to redirect the user to
+   * @param returnURLParam the name of param used to store return url information in session
    * @return the handler
    */
   public static AuthHandler create(AuthService authService, String loginRedirectURL, String returnURLParam) {

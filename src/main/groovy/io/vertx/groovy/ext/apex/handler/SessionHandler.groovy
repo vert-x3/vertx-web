@@ -21,17 +21,15 @@ import io.vertx.groovy.ext.apex.sstore.SessionStore
 import io.vertx.groovy.ext.apex.RoutingContext
 import io.vertx.core.Handler
 /**
- * A handler that maintains a {@link io.vertx.ext.apex.Session} for each browser session.
+ * A handler that maintains a {@link io.vertx.groovy.ext.apex.Session} for each browser session.
  * <p>
  * It looks up the session for each request based on a session cookie which contains a session ID. It stores the session
  * when the response is ended in the session store.
  * <p>
- * The session is available on the routing context with {@link io.vertx.ext.apex.RoutingContext#session()}.
+ * The session is available on the routing context with {@link io.vertx.groovy.ext.apex.RoutingContext#session}.
  * <p>
- * The session handler requires a {@link io.vertx.ext.apex.handler.CookieHandler} to be on the routing chain before it.
- *
- * @author <a href="http://tfox.org">Tim Fox</a>
- */
+ * The session handler requires a {@link io.vertx.groovy.ext.apex.handler.CookieHandler} to be on the routing chain before it.
+*/
 @CompileStatic
 public class SessionHandler {
   final def io.vertx.ext.apex.handler.SessionHandler delegate;
@@ -43,8 +41,7 @@ public class SessionHandler {
   }
   /**
    * Create a session handler
-   *
-   * @param sessionStore  the session store
+   * @param sessionStore the session store
    * @return the handler
    */
   public static SessionHandler create(SessionStore sessionStore) {
@@ -53,8 +50,7 @@ public class SessionHandler {
   }
   /**
    * Set the session timeout
-   *
-   * @param timeout  the timeout, in ms.
+   * @param timeout the timeout, in ms.
    * @return a reference to this, so the API can be used fluently
    */
   public SessionHandler setSessionTimeout(long timeout) {
@@ -64,7 +60,7 @@ public class SessionHandler {
   /**
    * Set whether a nagging log warning should be written if the session handler is accessed over HTTP, not
    * HTTPS
-   * @param nag  true to nag
+   * @param nag true to nag
    * @return a reference to this, so the API can be used fluently
    */
   public SessionHandler setNagHttps(boolean nag) {
@@ -73,8 +69,7 @@ public class SessionHandler {
   }
   /**
    * Set the session cookie name
-   *
-   * @param sessionCookieName  the session cookie name
+   * @param sessionCookieName the session cookie name
    * @return a reference to this, so the API can be used fluently
    */
   public SessionHandler setSessionCookieName(String sessionCookieName) {

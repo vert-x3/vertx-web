@@ -20,9 +20,7 @@ import io.vertx.lang.groovy.InternalHelper
 import io.vertx.groovy.core.Vertx
 /**
  * A session store which stores sessions in a distributed map so they are available across the cluster.
- *
- * @author <a href="http://tfox.org">Tim Fox</a>
- */
+*/
 @CompileStatic
 public class ClusteredSessionStore extends SessionStore {
   final def io.vertx.ext.apex.sstore.ClusteredSessionStore delegate;
@@ -35,9 +33,8 @@ public class ClusteredSessionStore extends SessionStore {
   }
   /**
    * Create a session store
-   *
-   * @param vertx  the Vert.x instance
-   * @param sessionMapName  the session map name
+   * @param vertx the Vert.x instance
+   * @param sessionMapName the session map name
    * @return the session store
    */
   public static ClusteredSessionStore create(Vertx vertx, String sessionMapName) {
@@ -46,8 +43,7 @@ public class ClusteredSessionStore extends SessionStore {
   }
   /**
    * Create a session store
-   *
-   * @param vertx  the Vert.x instance
+   * @param vertx the Vert.x instance
    * @return the session store
    */
   public static ClusteredSessionStore create(Vertx vertx) {

@@ -23,9 +23,7 @@ import io.vertx.core.Handler
  * A handler that serves favicons.
  * <p>
  * If no file system path is specified it will attempt to serve a resource called `favicon.ico` from the classpath.
- *
- * @author <a href="http://tfox.org">Tim Fox</a>
- */
+*/
 @CompileStatic
 public class FaviconHandler {
   final def io.vertx.ext.apex.handler.FaviconHandler delegate;
@@ -37,7 +35,6 @@ public class FaviconHandler {
   }
   /**
    * Create a handler with defaults
-   *
    * @return the handler
    */
   public static FaviconHandler create() {
@@ -46,8 +43,7 @@ public class FaviconHandler {
   }
   /**
    * Create a handler attempting to load favicon file from the specified path
-   *
-   * @param path  the path
+   * @param path the path
    * @return the handler
    */
   public static FaviconHandler create(String path) {
@@ -56,8 +52,7 @@ public class FaviconHandler {
   }
   /**
    * Create a handler attempting to load favicon file from the specified path, and with the specified max cache time
-   *
-   * @param path  the path
+   * @param path the path
    * @param maxAgeSeconds max how long the file will be cached by browser, in seconds
    * @return the handler
    */
@@ -67,7 +62,6 @@ public class FaviconHandler {
   }
   /**
    * Create a handler with the specified max cache time
-   *
    * @param maxAgeSeconds max how long the file will be cached by browser, in seconds
    * @return the handler
    */

@@ -28,13 +28,11 @@ import io.vertx.groovy.core.net.SocketAddress
  *
  * You interact with SockJS clients through instances of SockJS socket.
  * <p>
- * The API is very similar to {@link io.vertx.core.http.WebSocket}.
- * It implements both {@link io.vertx.core.streams.ReadStream} and {@link io.vertx.core.streams.WriteStream}
+ * The API is very similar to {@link io.vertx.groovy.core.http.WebSocket}.
+ * It implements both {@link io.vertx.groovy.core.streams.ReadStream} and {@link io.vertx.groovy.core.streams.WriteStream}
  * so it can be used with
- * {@link io.vertx.core.streams.Pump} to pump data with flow control.<p>
- *
- * @author <a href="http://tfox.org">Tim Fox</a>
- */
+ * {@link io.vertx.groovy.core.streams.Pump} to pump data with flow control.<p>
+*/
 @CompileStatic
 public class SockJSSocket implements ReadStream<Buffer>,  WriteStream<Buffer> {
   final def io.vertx.ext.apex.handler.sockjs.SockJSSocket delegate;
@@ -85,12 +83,13 @@ public class SockJSSocket implements ReadStream<Buffer>,  WriteStream<Buffer> {
     return this;
   }
   /**
-   * When a {@code SockJSSocket} is created it automatically registers an event handler with the event bus, the ID of that
-   * handler is given by {@code writeHandlerID}.
+   * When a <code>SockJSSocket</code> is created it automatically registers an event handler with the event bus, the ID of that
+   * handler is given by <code>writeHandlerID</code>.
    * <p>
    * Given this ID, a different event loop can send a buffer to that event handler using the event bus and
    * that buffer will be received by this instance in its own event loop and written to the underlying socket. This
    * allows you to write data to other sockets which are owned by different event loops.
+   * @return 
    */
   public String writeHandlerID() {
     def ret = this.delegate.writeHandlerID();
@@ -104,6 +103,7 @@ public class SockJSSocket implements ReadStream<Buffer>,  WriteStream<Buffer> {
   }
   /**
    * Return the remote address for this socket
+   * @return 
    */
   public SocketAddress remoteAddress() {
     def ret= SocketAddress.FACTORY.apply(this.delegate.remoteAddress());
@@ -111,6 +111,7 @@ public class SockJSSocket implements ReadStream<Buffer>,  WriteStream<Buffer> {
   }
   /**
    * Return the local address for this socket
+   * @return 
    */
   public SocketAddress localAddress() {
     def ret= SocketAddress.FACTORY.apply(this.delegate.localAddress());
@@ -119,6 +120,7 @@ public class SockJSSocket implements ReadStream<Buffer>,  WriteStream<Buffer> {
   /**
    * Return the headers corresponding to the last request for this socket or the websocket handshake
    * Any cookie headers will be removed for security reasons
+   * @return 
    */
   public MultiMap headers() {
     def ret= MultiMap.FACTORY.apply(this.delegate.headers());
@@ -126,6 +128,7 @@ public class SockJSSocket implements ReadStream<Buffer>,  WriteStream<Buffer> {
   }
   /**
    * Return the URI corresponding to the last request for this socket or the websocket handshake
+   * @return 
    */
   public String uri() {
     def ret = this.delegate.uri();
@@ -133,6 +136,7 @@ public class SockJSSocket implements ReadStream<Buffer>,  WriteStream<Buffer> {
   }
   /**
    * @return the Apex session corresponding to this socket
+   * @return 
    */
   public Session apexSession() {
     def ret= Session.FACTORY.apply(this.delegate.apexSession());

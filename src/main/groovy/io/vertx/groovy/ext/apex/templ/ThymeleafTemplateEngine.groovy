@@ -19,9 +19,7 @@ import groovy.transform.CompileStatic
 import io.vertx.lang.groovy.InternalHelper
 /**
  * A template engine that uses the Thymeleaf library.
- *
- * @author <a href="http://tfox.org">Tim Fox</a>
- */
+*/
 @CompileStatic
 public class ThymeleafTemplateEngine extends TemplateEngine {
   final def io.vertx.ext.apex.templ.ThymeleafTemplateEngine delegate;
@@ -34,8 +32,7 @@ public class ThymeleafTemplateEngine extends TemplateEngine {
   }
   /**
    * Create a template engine using defaults
-   *
-   * @return  the engine
+   * @return the engine
    */
   public static ThymeleafTemplateEngine create() {
     def ret= ThymeleafTemplateEngine.FACTORY.apply(io.vertx.ext.apex.templ.ThymeleafTemplateEngine.create());
@@ -43,8 +40,7 @@ public class ThymeleafTemplateEngine extends TemplateEngine {
   }
   /**
    * Set the mode for the engine
-   *
-   * @param mode  the mode
+   * @param mode the mode
    * @return a reference to this for fluency
    */
   public ThymeleafTemplateEngine setMode(String mode) {

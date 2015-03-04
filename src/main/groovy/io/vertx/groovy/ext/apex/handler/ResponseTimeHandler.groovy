@@ -22,9 +22,7 @@ import io.vertx.core.Handler
 /**
  * Handler which adds a header `x-response-time` in the response of matching requests containing the time taken
  * in ms to process the request.
- *
- * @author <a href="http://tfox.org">Tim Fox</a>
- */
+*/
 @CompileStatic
 public class ResponseTimeHandler {
   final def io.vertx.ext.apex.handler.ResponseTimeHandler delegate;
@@ -36,7 +34,6 @@ public class ResponseTimeHandler {
   }
   /**
    * Create a handler
-   *
    * @return the handler
    */
   public static ResponseTimeHandler create() {

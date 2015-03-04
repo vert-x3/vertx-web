@@ -22,9 +22,7 @@ import io.vertx.groovy.core.Vertx
  * A session store which is only available on a single node.
  * <p>
  * Can be used when sticky sessions are being used.
- *
- * @author <a href="http://tfox.org">Tim Fox</a>
- */
+*/
 @CompileStatic
 public class LocalSessionStore extends SessionStore {
   final def io.vertx.ext.apex.sstore.LocalSessionStore delegate;
@@ -37,8 +35,7 @@ public class LocalSessionStore extends SessionStore {
   }
   /**
    * Create a session store
-   *
-   * @param vertx  the Vert.x instance
+   * @param vertx the Vert.x instance
    * @return the session store
    */
   public static LocalSessionStore create(Vertx vertx) {
@@ -47,9 +44,8 @@ public class LocalSessionStore extends SessionStore {
   }
   /**
    * Create a session store
-   *
-   * @param vertx  the Vert.x instance
-   * @param sessionMapName  name for map used to store sessions
+   * @param vertx the Vert.x instance
+   * @param sessionMapName name for map used to store sessions
    * @return the session store
    */
   public static LocalSessionStore create(Vertx vertx, String sessionMapName) {
@@ -58,10 +54,9 @@ public class LocalSessionStore extends SessionStore {
   }
   /**
    * Create a session store
-   *
-   * @param vertx  the Vert.x instance
-   * @param sessionMapName  name for map used to store sessions
-   * @param reaperPeriod  how often, in ms, to check for expired sessions
+   * @param vertx the Vert.x instance
+   * @param sessionMapName name for map used to store sessions
+   * @param reaperPeriod how often, in ms, to check for expired sessions
    * @return the session store
    */
   public static LocalSessionStore create(Vertx vertx, String sessionMapName, long reaperPeriod) {

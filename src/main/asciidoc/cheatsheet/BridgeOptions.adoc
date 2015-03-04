@@ -21,4 +21,16 @@
 |-
 |`replyTimeout`
 |`Number`
+|-
+|`inboundPermitteds`
+|`Array of link:PermissionOptions.html[PermissionOptions]`
+|-
+|`inboundPermitted`
+|`Array of link:PermissionOptions.html[PermissionOptions]`
+|-
+|`outboundPermitteds`
+|`Array of link:PermissionOptions.html[PermissionOptions]`
+|-
+|`outboundPermitted`
+|`Array of link:PermissionOptions.html[PermissionOptions]`
 |-|===
