@@ -23,14 +23,14 @@
 |`Number`
 |-
 |`inboundPermitteds`
-|`Array of link:PermissionOptions.html[PermissionOptions]`
+|`Array of link:PermittedOptions.html[PermittedOptions]`
 |-
 |`inboundPermitted`
-|`Array of link:PermissionOptions.html[PermissionOptions]`
+|`Array of link:PermittedOptions.html[PermittedOptions]`
 |-
 |`outboundPermitteds`
-|`Array of link:PermissionOptions.html[PermissionOptions]`
+|`Array of link:PermittedOptions.html[PermittedOptions]`
 |-
 |`outboundPermitted`
-|`Array of link:PermissionOptions.html[PermissionOptions]`
+|`Array of link:PermittedOptions.html[PermittedOptions]`
 |-|===

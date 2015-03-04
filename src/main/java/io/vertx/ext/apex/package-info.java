@@ -1277,13 +1277,13 @@
  * You can specify which _matches_ you want to allow for inbound and outbound traffic using the
  * {@link io.vertx.ext.apex.handler.sockjs.BridgeOptions} that you pass in when calling bridge.
  *
- * Each match is a {@link io.vertx.ext.apex.handler.sockjs.PermissionOptions} object:
+ * Each match is a {@link io.vertx.ext.apex.handler.sockjs.PermittedOptions} object:
  *
- * {@link io.vertx.ext.apex.handler.sockjs.PermissionOptions#setAddress}:: This represents the exact address the message is being sent to. If you want to allow messages based on
+ * {@link io.vertx.ext.apex.handler.sockjs.PermittedOptions#setAddress}:: This represents the exact address the message is being sent to. If you want to allow messages based on
  * an exact address you use this field.
- * {@link io.vertx.ext.apex.handler.sockjs.PermissionOptions#setAddressRegex}:: This is a regular expression that will be matched against the address. If you want to allow messages
+ * {@link io.vertx.ext.apex.handler.sockjs.PermittedOptions#setAddressRegex}:: This is a regular expression that will be matched against the address. If you want to allow messages
  * based on a regular expression you use this field. If the `address` field is specified this field will be ignored.
- * {@link io.vertx.ext.apex.handler.sockjs.PermissionOptions#setMatch}:: This allows you to allow messages based on their structure. Any fields in the match must exist in the
+ * {@link io.vertx.ext.apex.handler.sockjs.PermittedOptions#setMatch}:: This allows you to allow messages based on their structure. Any fields in the match must exist in the
  * message with the same values for them to be allowed. This currently only works with JSON messages.
  *
  * If a message is _in-bound_ (i.e. being sent from client side JavaScript to the server) when it is received Apex
@@ -1319,10 +1319,10 @@
  * permission is required for the match.
  *
  * To declare that a specific role for the logged-in user is required in order to access allow the messages you use the
- * {@link io.vertx.ext.apex.handler.sockjs.PermissionOptions#setRequiredRole} field.
+ * {@link io.vertx.ext.apex.handler.sockjs.PermittedOptions#setRequiredRole} field.
  *
  * To declare that a specific permission for the logged-in user is required in order to access allow the messages you use the
- * {@link io.vertx.ext.apex.handler.sockjs.PermissionOptions#setRequiredPermission} field.
+ * {@link io.vertx.ext.apex.handler.sockjs.PermittedOptions#setRequiredPermission} field.
  *
  * Here's an example:
  *

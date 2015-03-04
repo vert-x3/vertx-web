@@ -1914,13 +1914,13 @@ Configuring the bridge to tell it what messages it should pass through is easy.
 You can specify which _matches_ you want to allow for inbound and outbound traffic using the
 `link:../cheatsheet/BridgeOptions.html[BridgeOptions]` that you pass in when calling bridge.
 
-Each match is a `link:../cheatsheet/PermissionOptions.html[PermissionOptions]` object:
+Each match is a `link:../cheatsheet/PermittedOptions.html[PermittedOptions]` object:
 
-`link:../cheatsheet/PermissionOptions.html#setAddress(java.lang.String)[setAddress]`:: This represents the exact address the message is being sent to. If you want to allow messages based on
+`link:../cheatsheet/PermittedOptions.html#setAddress(java.lang.String)[setAddress]`:: This represents the exact address the message is being sent to. If you want to allow messages based on
 an exact address you use this field.
-`link:../cheatsheet/PermissionOptions.html#setAddressRegex(java.lang.String)[setAddressRegex]`:: This is a regular expression that will be matched against the address. If you want to allow messages
+`link:../cheatsheet/PermittedOptions.html#setAddressRegex(java.lang.String)[setAddressRegex]`:: This is a regular expression that will be matched against the address. If you want to allow messages
 based on a regular expression you use this field. If the `address` field is specified this field will be ignored.
-`link:../cheatsheet/PermissionOptions.html#setMatch(io.vertx.core.json.JsonObject)[setMatch]`:: This allows you to allow messages based on their structure. Any fields in the match must exist in the
+`link:../cheatsheet/PermittedOptions.html#setMatch(io.vertx.core.json.JsonObject)[setMatch]`:: This allows you to allow messages based on their structure. Any fields in the match must exist in the
 message with the same values for them to be allowed. This currently only works with JSON messages.
 
 If a message is _in-bound_ (i.e. being sent from client side JavaScript to the server) when it is received Apex
@@ -1956,10 +1956,10 @@ To do this, you can add extra fields to the match described in the previous sect
 permission is required for the match.
 
 To declare that a specific role for the logged-in user is required in order to access allow the messages you use the
-`link:../cheatsheet/PermissionOptions.html#setRequiredRole(java.lang.String)[setRequiredRole]` field.
+`link:../cheatsheet/PermittedOptions.html#setRequiredRole(java.lang.String)[setRequiredRole]` field.
 
 To declare that a specific permission for the logged-in user is required in order to access allow the messages you use the
-`link:../cheatsheet/PermissionOptions.html#setRequiredPermission(java.lang.String)[setRequiredPermission]` field.
+`link:../cheatsheet/PermittedOptions.html#setRequiredPermission(java.lang.String)[setRequiredPermission]` field.
 
 Here's an example:
 

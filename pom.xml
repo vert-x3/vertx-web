@@ -6,7 +6,7 @@
   <parent>
     <groupId>io.vertx</groupId>
     <artifactId>vertx-ext-parent</artifactId>
-    <version>5</version>
+    <version>7</version>
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
@@ -17,8 +17,6 @@
   <properties>
     <stack.version>3.0.0-SNAPSHOT</stack.version>
     <pac4j.version>1.6.0</pac4j.version>
-    <!-- until we have it in vertx-ext-parent -->
-    <sourcepath>${basedir}/src/main/java;${basedir}/src/main/generated</sourcepath>
   </properties>
 
   <dependencyManagement>

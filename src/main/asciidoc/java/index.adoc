@@ -1781,13 +1781,13 @@ Configuring the bridge to tell it what messages it should pass through is easy.
 You can specify which _matches_ you want to allow for inbound and outbound traffic using the
 `link:apidocs/io/vertx/ext/apex/handler/sockjs/BridgeOptions.html[BridgeOptions]` that you pass in when calling bridge.
 
-Each match is a `link:apidocs/io/vertx/ext/apex/handler/sockjs/PermissionOptions.html[PermissionOptions]` object:
+Each match is a `link:apidocs/io/vertx/ext/apex/handler/sockjs/PermittedOptions.html[PermittedOptions]` object:
 
-`link:apidocs/io/vertx/ext/apex/handler/sockjs/PermissionOptions.html#setAddress-java.lang.String-[setAddress]`:: This represents the exact address the message is being sent to. If you want to allow messages based on
+`link:apidocs/io/vertx/ext/apex/handler/sockjs/PermittedOptions.html#setAddress-java.lang.String-[setAddress]`:: This represents the exact address the message is being sent to. If you want to allow messages based on
 an exact address you use this field.
-`link:apidocs/io/vertx/ext/apex/handler/sockjs/PermissionOptions.html#setAddressRegex-java.lang.String-[setAddressRegex]`:: This is a regular expression that will be matched against the address. If you want to allow messages
+`link:apidocs/io/vertx/ext/apex/handler/sockjs/PermittedOptions.html#setAddressRegex-java.lang.String-[setAddressRegex]`:: This is a regular expression that will be matched against the address. If you want to allow messages
 based on a regular expression you use this field. If the `address` field is specified this field will be ignored.
-`link:apidocs/io/vertx/ext/apex/handler/sockjs/PermissionOptions.html#setMatch-io.vertx.core.json.JsonObject-[setMatch]`:: This allows you to allow messages based on their structure. Any fields in the match must exist in the
+`link:apidocs/io/vertx/ext/apex/handler/sockjs/PermittedOptions.html#setMatch-io.vertx.core.json.JsonObject-[setMatch]`:: This allows you to allow messages based on their structure. Any fields in the match must exist in the
 message with the same values for them to be allowed. This currently only works with JSON messages.
 
 If a message is _in-bound_ (i.e. being sent from client side JavaScript to the server) when it is received Apex
@@ -1820,29 +1820,29 @@ BridgeOptions options = new BridgeOptions();
 // First let's define what we're going to allow from client -> server
 
 // Let through any messages sent to 'demo.orderMgr' from the client
-PermissionOptions inboundPermitted1 = new PermissionOptions().setAddress("demo.orderMgr");
+PermittedOptions inboundPermitted1 = new PermittedOptions().setAddress("demo.orderMgr");
 options.addInboundPermitted(inboundPermitted1);
 
 // Allow calls to the address 'demo.persistor' from the client as long as the messages
 // have an action field with value 'find' and a collection field with value
 // 'albums'
-PermissionOptions inboundPermitted2 = new PermissionOptions().setAddress("demo.persistor")
+PermittedOptions inboundPermitted2 = new PermittedOptions().setAddress("demo.persistor")
     .setMatch(new JsonObject().put("action", "find")
         .put("collection", "albums"));
 options.addInboundPermitted(inboundPermitted2);
 
 // Allow through any message with a field `wibble` with value `foo`.
-PermissionOptions inboundPermitted3 = new PermissionOptions().setMatch(new JsonObject().put("wibble", "foo"));
+PermittedOptions inboundPermitted3 = new PermittedOptions().setMatch(new JsonObject().put("wibble", "foo"));
 options.addInboundPermitted(inboundPermitted3);
 
 // First let's define what we're going to allow from server -> client
 
 // Let through any messages coming from address 'ticker.mystock'
-PermissionOptions outboundPermitted1 = new PermissionOptions().setAddress("ticker.mystock");
+PermittedOptions outboundPermitted1 = new PermittedOptions().setAddress("ticker.mystock");
 options.addOutboundPermitted(outboundPermitted1);
 
 // Let through any messages from addresses starting with "news." (e.g. news.europe, news.usa, etc)
-PermissionOptions outboundPermitted2 = new PermissionOptions().setAddressRegex("news\\..+");
+PermittedOptions outboundPermitted2 = new PermittedOptions().setAddressRegex("news\\..+");
 options.addOutboundPermitted(outboundPermitted2);
 
 sockJSHandler.bridge(options);
@@ -1859,16 +1859,16 @@ To do this, you can add extra fields to the match described in the previous sect
 permission is required for the match.
 
 To declare that a specific role for the logged-in user is required in order to access allow the messages you use the
-`link:apidocs/io/vertx/ext/apex/handler/sockjs/PermissionOptions.html#setRequiredRole-java.lang.String-[setRequiredRole]` field.
+`link:apidocs/io/vertx/ext/apex/handler/sockjs/PermittedOptions.html#setRequiredRole-java.lang.String-[setRequiredRole]` field.
 
 To declare that a specific permission for the logged-in user is required in order to access allow the messages you use the
-`link:apidocs/io/vertx/ext/apex/handler/sockjs/PermissionOptions.html#setRequiredPermission-java.lang.String-[setRequiredPermission]` field.
+`link:apidocs/io/vertx/ext/apex/handler/sockjs/PermittedOptions.html#setRequiredPermission-java.lang.String-[setRequiredPermission]` field.
 
 Here's an example:
 
 [source,java]
 ----
-PermissionOptions inboundPermitted = new PermissionOptions().setAddress("demo.adminService");
+PermittedOptions inboundPermitted = new PermittedOptions().setAddress("demo.adminService");
 
 // But only if the user is logged in and has the role "admin"
 inboundPermitted.setRequiredRole("admin");
@@ -1889,7 +1889,7 @@ SockJSHandler sockJSHandler = SockJSHandler.create(vertx);
 BridgeOptions options = new BridgeOptions();
 
 // Let through any messages sent to 'demo.orderMgr' from the client
-PermissionOptions inboundPermitted = new PermissionOptions().setAddress("demo.adminService");
+PermittedOptions inboundPermitted = new PermittedOptions().setAddress("demo.adminService");
 
 // But only if the user is logged in and has the role "admin"
 inboundPermitted.setRequiredRole("admin");

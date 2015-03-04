@@ -10,7 +10,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.apex.*;
 import io.vertx.ext.apex.handler.*;
 import io.vertx.ext.apex.handler.sockjs.BridgeOptions;
-import io.vertx.ext.apex.handler.sockjs.PermissionOptions;
+import io.vertx.ext.apex.handler.sockjs.PermittedOptions;
 import io.vertx.ext.apex.handler.sockjs.SockJSHandler;
 import io.vertx.ext.apex.handler.sockjs.SockJSHandlerOptions;
 import io.vertx.ext.apex.sstore.ClusteredSessionStore;
@@ -852,29 +852,29 @@ public class Examples {
     // First let's define what we're going to allow from client -> server
 
     // Let through any messages sent to 'demo.orderMgr' from the client
-    PermissionOptions inboundPermitted1 = new PermissionOptions().setAddress("demo.orderMgr");
+    PermittedOptions inboundPermitted1 = new PermittedOptions().setAddress("demo.orderMgr");
     options.addInboundPermitted(inboundPermitted1);
 
     // Allow calls to the address 'demo.persistor' from the client as long as the messages
     // have an action field with value 'find' and a collection field with value
     // 'albums'
-    PermissionOptions inboundPermitted2 = new PermissionOptions().setAddress("demo.persistor")
+    PermittedOptions inboundPermitted2 = new PermittedOptions().setAddress("demo.persistor")
         .setMatch(new JsonObject().put("action", "find")
             .put("collection", "albums"));
     options.addInboundPermitted(inboundPermitted2);
 
     // Allow through any message with a field `wibble` with value `foo`.
-    PermissionOptions inboundPermitted3 = new PermissionOptions().setMatch(new JsonObject().put("wibble", "foo"));
+    PermittedOptions inboundPermitted3 = new PermittedOptions().setMatch(new JsonObject().put("wibble", "foo"));
     options.addInboundPermitted(inboundPermitted3);
 
     // First let's define what we're going to allow from server -> client
 
     // Let through any messages coming from address 'ticker.mystock'
-    PermissionOptions outboundPermitted1 = new PermissionOptions().setAddress("ticker.mystock");
+    PermittedOptions outboundPermitted1 = new PermittedOptions().setAddress("ticker.mystock");
     options.addOutboundPermitted(outboundPermitted1);
 
     // Let through any messages from addresses starting with "news." (e.g. news.europe, news.usa, etc)
-    PermissionOptions outboundPermitted2 = new PermissionOptions().setAddressRegex("news\\..+");
+    PermittedOptions outboundPermitted2 = new PermittedOptions().setAddressRegex("news\\..+");
     options.addOutboundPermitted(outboundPermitted2);
 
     sockJSHandler.bridge(options);
@@ -885,7 +885,7 @@ public class Examples {
   public void example47(BridgeOptions options) {
 
     // Let through any messages sent to 'demo.orderMgr' from the client
-    PermissionOptions inboundPermitted = new PermissionOptions().setAddress("demo.adminService");
+    PermittedOptions inboundPermitted = new PermittedOptions().setAddress("demo.adminService");
 
     // But only if the user is logged in and has the role "admin"
     inboundPermitted.setRequiredRole("admin");
@@ -903,7 +903,7 @@ public class Examples {
     BridgeOptions options = new BridgeOptions();
 
     // Let through any messages sent to 'demo.orderMgr' from the client
-    PermissionOptions inboundPermitted = new PermissionOptions().setAddress("demo.adminService");
+    PermittedOptions inboundPermitted = new PermittedOptions().setAddress("demo.adminService");
 
     // But only if the user is logged in and has the role "admin"
     inboundPermitted.setRequiredRole("admin");

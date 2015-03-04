@@ -4,13 +4,13 @@ import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
 
 /**
- * Specify a _match_ to allow for inbound and outbound traffic using the
+ * Specify a match to allow for inbound and outbound traffic using the
  * {@link io.vertx.ext.apex.handler.sockjs.BridgeOptions}.
  *
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
  */
 @DataObject
-public class PermissionOptions {
+public class PermittedOptions {
 
   /**
    * The default permission address : {@code null}.
@@ -43,10 +43,10 @@ public class PermissionOptions {
   private String requiredPermission;
   private JsonObject match;
 
-  public PermissionOptions() {
+  public PermittedOptions() {
   }
 
-  public PermissionOptions(PermissionOptions that) {
+  public PermittedOptions(PermittedOptions that) {
     address = that.address;
     addressRegex = that.addressRegex;
     requiredRole = that.requiredRole;
@@ -54,7 +54,7 @@ public class PermissionOptions {
     match = that.match != null ? new JsonObject(that.match.encode()) : null;
   }
 
-  public PermissionOptions(JsonObject json) {
+  public PermittedOptions(JsonObject json) {
     address = json.getString("address", DEFAULT_ADDRESS);
     addressRegex = json.getString("addressRegex", DEFAULT_ADDRESS_REGEX);
     requiredRole = json.getString("requiredRole", DEFAULT_REQUIRED_ROLE);
@@ -73,7 +73,7 @@ public class PermissionOptions {
    * @param address the address
    * @return a reference to this, so the API can be used fluently
    */
-  public PermissionOptions setAddress(String address) {
+  public PermittedOptions setAddress(String address) {
     this.address = address;
     return this;
   }
@@ -90,7 +90,7 @@ public class PermissionOptions {
    * @param addressRegex the address regex
    * @return a reference to this, so the API can be used fluently
    */
-  public PermissionOptions setAddressRegex(String addressRegex) {
+  public PermittedOptions setAddressRegex(String addressRegex) {
     this.addressRegex = addressRegex;
     return this;
   }
@@ -105,7 +105,7 @@ public class PermissionOptions {
    * @param requiredRole the role
    * @return a reference to this, so the API can be used fluently
    */
-  public PermissionOptions setRequiredRole(String requiredRole) {
+  public PermittedOptions setRequiredRole(String requiredRole) {
     this.requiredRole = requiredRole;
     return this;
   }
@@ -120,7 +120,7 @@ public class PermissionOptions {
    * @param requiredPermission the permission
    * @return a reference to this, so the API can be used fluently
    */
-  public PermissionOptions setRequiredPermission(String requiredPermission) {
+  public PermittedOptions setRequiredPermission(String requiredPermission) {
     this.requiredPermission = requiredPermission;
     return this;
   }
@@ -136,7 +136,7 @@ public class PermissionOptions {
    * @param match the match json object
    * @return a reference to this, so the API can be used fluently
    */
-  public PermissionOptions setMatch(JsonObject match) {
+  public PermittedOptions setMatch(JsonObject match) {
     this.match = match;
     return this;
   }

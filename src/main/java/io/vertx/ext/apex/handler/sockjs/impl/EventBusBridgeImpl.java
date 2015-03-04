@@ -45,7 +45,7 @@ import io.vertx.core.logging.impl.LoggerFactory;
 import io.vertx.ext.apex.Session;
 import io.vertx.ext.apex.handler.sockjs.BridgeOptions;
 import io.vertx.ext.apex.handler.sockjs.EventBusBridgeHook;
-import io.vertx.ext.apex.handler.sockjs.PermissionOptions;
+import io.vertx.ext.apex.handler.sockjs.PermittedOptions;
 import io.vertx.ext.apex.handler.sockjs.SockJSSocket;
 
 import java.util.*;
@@ -63,8 +63,8 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
   private static final Logger log = LoggerFactory.getLogger(EventBusBridgeImpl.class);
 
   private final Map<SockJSSocket, SockInfo> sockInfos = new HashMap<>();
-  private final List<PermissionOptions> inboundPermitted;
-  private final List<PermissionOptions> outboundPermitted;
+  private final List<PermittedOptions> inboundPermitted;
+  private final List<PermittedOptions> outboundPermitted;
   private final int maxAddressLength;
   private final int maxHandlersPerSocket;
   private final long pingTimeout;
@@ -436,9 +436,9 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
       return new Match(true);
     }
 
-    List<PermissionOptions> matches = inbound ? inboundPermitted : outboundPermitted;
+    List<PermittedOptions> matches = inbound ? inboundPermitted : outboundPermitted;
 
-    for (PermissionOptions matchHolder: matches) {
+    for (PermittedOptions matchHolder: matches) {
       String matchAddress = matchHolder.getAddress();
       String matchRegex;
       if (matchAddress == null) {

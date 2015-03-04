@@ -1,4 +1,4 @@
-== PermissionOptions
+== PermittedOptions
 
 ++++
  Specify a _match_ to allow for inbound and outbound traffic using the
