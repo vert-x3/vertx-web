@@ -133,9 +133,7 @@ public class StaticHandlerTest extends ApexTestBase {
       String contentType = res.headers().get("content-type");
       String contentLength = res.headers().get("content-length");
       assertEquals("application/json", contentType);
-      // Account for CRLF if checked out on Windows
-      int contentLengthInt = Integer.valueOf(contentLength);
-      assertTrue(18 == contentLengthInt || 20 == contentLengthInt);
+      assertEquals(18, Integer.valueOf(contentLength).intValue());
     }, 200, "OK", null);
   }
 
