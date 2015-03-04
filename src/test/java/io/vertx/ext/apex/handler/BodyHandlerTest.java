@@ -17,6 +17,7 @@
 package io.vertx.ext.apex.handler;
 
 import io.vertx.core.MultiMap;
+import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
@@ -29,8 +30,6 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.Set;
 
 /**
@@ -49,22 +48,10 @@ public class BodyHandlerTest extends ApexTestBase {
 
   @AfterClass
   public static void oneTimeTearDown() {
-    File f = new File(BodyHandler.DEFAULT_UPLOADS_DIRECTORY);
-    try {
-      delete(f);
+    Vertx vertx = Vertx.vertx();
+    if (vertx.fileSystem().existsBlocking(BodyHandler.DEFAULT_UPLOADS_DIRECTORY)) {
+      vertx.fileSystem().deleteRecursiveBlocking(BodyHandler.DEFAULT_UPLOADS_DIRECTORY, true);
     }
-    catch(Throwable t) {
-      t.printStackTrace();
-    }
-  }
-
-  private static void delete(File f) throws IOException {
-    if (f.isDirectory()) {
-      for (File c : f.listFiles())
-        delete(c);
-    }
-    if (!f.delete())
-      throw new FileNotFoundException("Failed to delete file: " + f);
   }
 
   @Test
@@ -143,6 +130,20 @@ public class BodyHandlerTest extends ApexTestBase {
     router.clear();
     router.route().handler(BodyHandler.create().setBodyLimit(5000));
     Buffer buff = TestUtils.randomBuffer(10000);
+    router.route().handler(rc -> {
+      fail("Should not be called");
+    });
+    testRequest(HttpMethod.POST, "/", req -> {
+      req.setChunked(true);
+      req.write(buff);
+    }, 413, "Request Entity Too Large", null);
+  }
+
+  @Test
+  public void testBodyTooBig2() throws Exception {
+    router.clear();
+    router.route().handler(BodyHandler.create().setBodyLimit(500));
+    Buffer buff = TestUtils.randomBuffer(1000);
     router.route().handler(rc -> {
       fail("Should not be called");
     });
