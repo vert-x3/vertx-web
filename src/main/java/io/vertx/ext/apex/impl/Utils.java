@@ -23,7 +23,7 @@ import io.vertx.ext.apex.RoutingContext;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URLDecoder;
+import java.io.UnsupportedEncodingException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -39,13 +39,79 @@ public class Utils {
       return null;
     }
     try {
-      // TODO this can be optimised
-      path = URLDecoder.decode(path, "UTF-8");
-      path = path.replace("..", ""); // Safety
-      return path;
-    } catch (Exception e) {
+      StringBuilder result = new StringBuilder();
+
+      for (int i = 0; i < path.length(); i++) {
+        char c = path.charAt(i);
+
+        if (c == '+') {
+          result.append(' ');
+        } else if (c == '/') {
+          if (i == 0 || result.charAt(result.length() - 1) != '/')
+            result.append(c);
+        } else if (c == '%') {
+          i = processEscapeSequence(path, result, i);
+        } else if (c == '.') {
+          if (i == 0 || result.charAt(result.length() - 1) != '.')
+            result.append(c);
+          else
+            result.deleteCharAt(result.length() - 1);
+        } else {
+          result.append(c);
+        }
+      }
+
+      return result.toString();
+
+    } catch (UnsupportedEncodingException e) {
       throw new IllegalStateException(e);
     }
+  }
+
+  /**
+   * Processes a escape sequence in path
+   *
+   * @param path
+   *          The original path
+   * @param result
+   *          The result of unescaping the escape sequence (and removing dangerous constructs)
+   * @param i
+   *          The index of path where the escape sequence begins
+   * @return The index of path where the escape sequence ends
+   * @throws UnsupportedEncodingException
+   *           If the escape sequence does not represent a valid UTF-8 string
+   */
+  private static int processEscapeSequence(String path, StringBuilder result, int i) throws UnsupportedEncodingException {
+    Buffer buf = Buffer.buffer(2);
+    do {
+      if (i >= path.length() - 2) {
+        throw new IllegalArgumentException("Invalid position for escape character: " + i);
+      }
+      int unescaped = Integer.parseInt(path.substring(i + 1, i + 3), 16);
+      if (unescaped < 0) {
+        throw new IllegalArgumentException("Invalid escape sequence: " + path.substring(i, i + 3));
+      }
+      buf.appendByte((byte) unescaped);
+      i += 3;
+    } while (i < path.length() && path.charAt(i) == '%');
+
+    String escapedSeq = new String(buf.getBytes(), "UTF-8");
+
+    for (int j = 0; j < escapedSeq.length(); j++) {
+      char c = escapedSeq.charAt(j);
+      if (c == '/') {
+        if (j == 0 || result.charAt(result.length() - 1) != '/')
+          result.append(c);
+      } else if (c == '.') {
+        if (j == 0 || result.charAt(result.length() - 1) != '.')
+          result.append(c);
+        else
+          result.deleteCharAt(result.length() - 1);
+      } else {
+        result.append(c);
+      }
+    }
+    return i - 1;
   }
 
   public static ClassLoader getClassLoader() {
@@ -152,6 +218,7 @@ public class Utils {
       }
       return 1;
     }
+
     @Override
     public int compare(String o1, String o2) {
       float f1 = getQuality(o1);
