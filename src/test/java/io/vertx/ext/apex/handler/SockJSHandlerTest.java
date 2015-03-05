@@ -69,9 +69,11 @@ public class SockJSHandlerTest extends ApexTestBase {
 
   @Test
   public void testGreeting() {
-    waitFor(2);
+    waitFor(4);
     testGreeting("/echo/");
     testGreeting("/echo");
+    testGreeting("/echo//");
+    testGreeting("/echo///");
     await();
   }
 
@@ -88,12 +90,10 @@ public class SockJSHandlerTest extends ApexTestBase {
 
   @Test
   public void testNotFound() {
-    waitFor(7);
+    waitFor(5);
 
     testNotFound("/echo/a");
     testNotFound("/echo/a.html");
-    testNotFound("/echo//");
-    testNotFound("/echo///");
     testNotFound("/echo/a/a");
     testNotFound("/echo/a/a/");
     testNotFound("/echo/a/");
