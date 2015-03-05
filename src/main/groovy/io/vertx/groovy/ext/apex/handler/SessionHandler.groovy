@@ -54,8 +54,8 @@ public class SessionHandler {
    * @return a reference to this, so the API can be used fluently
    */
   public SessionHandler setSessionTimeout(long timeout) {
-    def ret= SessionHandler.FACTORY.apply(this.delegate.setSessionTimeout(timeout));
-    return ret;
+    this.delegate.setSessionTimeout(timeout);
+    return this;
   }
   /**
    * Set whether a nagging log warning should be written if the session handler is accessed over HTTP, not
@@ -64,8 +64,8 @@ public class SessionHandler {
    * @return a reference to this, so the API can be used fluently
    */
   public SessionHandler setNagHttps(boolean nag) {
-    def ret= SessionHandler.FACTORY.apply(this.delegate.setNagHttps(nag));
-    return ret;
+    this.delegate.setNagHttps(nag);
+    return this;
   }
   /**
    * Set the session cookie name
@@ -73,8 +73,8 @@ public class SessionHandler {
    * @return a reference to this, so the API can be used fluently
    */
   public SessionHandler setSessionCookieName(String sessionCookieName) {
-    def ret= SessionHandler.FACTORY.apply(this.delegate.setSessionCookieName(sessionCookieName));
-    return ret;
+    this.delegate.setSessionCookieName(sessionCookieName);
+    return this;
   }
   public void handle(RoutingContext context) {
     this.delegate.handle((io.vertx.ext.apex.RoutingContext)context.getDelegate());

@@ -16,6 +16,7 @@
 
 package io.vertx.ext.apex;
 
+import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;
@@ -36,6 +37,7 @@ public interface Route {
    * @param method  the HTTP method to add
    * @return a reference to this, so the API can be used fluently
    */
+  @Fluent
   Route method(HttpMethod method);
 
   /**
@@ -45,6 +47,7 @@ public interface Route {
    * @param path  the path prefix
    * @return a reference to this, so the API can be used fluently
    */
+  @Fluent
   Route path(String path);
 
   /**
@@ -54,6 +57,7 @@ public interface Route {
    * @param path  the path regex
    * @return a reference to this, so the API can be used fluently
    */
+  @Fluent
   Route pathRegex(String path);
 
   /**
@@ -70,6 +74,7 @@ public interface Route {
    * @param contentType  the content type
    * @return a reference to this, so the API can be used fluently
    */
+  @Fluent
   Route consumes(String contentType);
 
   /**
@@ -78,6 +83,7 @@ public interface Route {
    * @param order  the order
    * @return a reference to this, so the API can be used fluently
    */
+  @Fluent
   Route order(int order);
 
   /**
@@ -86,6 +92,7 @@ public interface Route {
    * @param last  true if last
    * @return a reference to this, so the API can be used fluently
    */
+  @Fluent
   Route last(boolean last);
 
   /**
@@ -96,6 +103,7 @@ public interface Route {
    * @param requestHandler  the request handler
    * @return a reference to this, so the API can be used fluently
    */
+  @Fluent
   Route handler(Handler<RoutingContext> requestHandler);
 
   /**
@@ -106,6 +114,7 @@ public interface Route {
    * @param failureHandler  the request handler
    * @return a reference to this, so the API can be used fluently
    */
+  @Fluent
   Route failureHandler(Handler<RoutingContext> failureHandler);
 
   /**
@@ -113,6 +122,7 @@ public interface Route {
    *
    * @return a reference to this, so the API can be used fluently
    */
+  @Fluent
   Route remove();
 
   /**
@@ -120,6 +130,7 @@ public interface Route {
    *
    * @return a reference to this, so the API can be used fluently
    */
+  @Fluent
   Route disable();
 
   /**
@@ -127,6 +138,7 @@ public interface Route {
    *
    * @return a reference to this, so the API can be used fluently
    */
+  @Fluent
   Route enable();
 
   /**

@@ -16,6 +16,7 @@
 
 package io.vertx.ext.apex;
 
+import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
@@ -260,6 +261,7 @@ public interface Router {
    *
    * @return a reference to this, so the API can be used fluently
    */
+  @Fluent
   Router clear();
 
   /**
@@ -269,6 +271,7 @@ public interface Router {
    * @param subRouter  the router to mount as a sub router
    * @return a reference to this, so the API can be used fluently
    */
+  @Fluent
   Router mountSubRouter(String mountPoint, Router subRouter);
 
   /**
@@ -278,6 +281,7 @@ public interface Router {
    * @param exceptionHandler  the exception handler
    * @return a reference to this, so the API can be used fluently
    */
+  @Fluent
   Router exceptionHandler(Handler<Throwable> exceptionHandler);
 
   /**

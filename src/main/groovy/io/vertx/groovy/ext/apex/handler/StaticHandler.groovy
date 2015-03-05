@@ -57,8 +57,8 @@ public class StaticHandler {
    * @return a reference to this, so the API can be used fluently
    */
   public StaticHandler setWebRoot(String webRoot) {
-    def ret= StaticHandler.FACTORY.apply(this.delegate.setWebRoot(webRoot));
-    return ret;
+    this.delegate.setWebRoot(webRoot);
+    return this;
   }
   /**
    * Set whether files are read-only and will never change
@@ -66,8 +66,8 @@ public class StaticHandler {
    * @return a reference to this, so the API can be used fluently
    */
   public StaticHandler setFilesReadOnly(boolean readOnly) {
-    def ret= StaticHandler.FACTORY.apply(this.delegate.setFilesReadOnly(readOnly));
-    return ret;
+    this.delegate.setFilesReadOnly(readOnly);
+    return this;
   }
   /**
    * Set value for max age in caching headers
@@ -75,8 +75,8 @@ public class StaticHandler {
    * @return a reference to this, so the API can be used fluently
    */
   public StaticHandler setMaxAgeSeconds(long maxAgeSeconds) {
-    def ret= StaticHandler.FACTORY.apply(this.delegate.setMaxAgeSeconds(maxAgeSeconds));
-    return ret;
+    this.delegate.setMaxAgeSeconds(maxAgeSeconds);
+    return this;
   }
   /**
    * Set whether cache header handling is enabled
@@ -84,8 +84,8 @@ public class StaticHandler {
    * @return a reference to this, so the API can be used fluently
    */
   public StaticHandler setCachingEnabled(boolean enabled) {
-    def ret= StaticHandler.FACTORY.apply(this.delegate.setCachingEnabled(enabled));
-    return ret;
+    this.delegate.setCachingEnabled(enabled);
+    return this;
   }
   /**
    * Set whether directory listing is enabled
@@ -93,8 +93,8 @@ public class StaticHandler {
    * @return a reference to this, so the API can be used fluently
    */
   public StaticHandler setDirectoryListing(boolean directoryListing) {
-    def ret= StaticHandler.FACTORY.apply(this.delegate.setDirectoryListing(directoryListing));
-    return ret;
+    this.delegate.setDirectoryListing(directoryListing);
+    return this;
   }
   /**
    * Set whether hidden files should be served
@@ -102,8 +102,8 @@ public class StaticHandler {
    * @return a reference to this, so the API can be used fluently
    */
   public StaticHandler setIncludeHidden(boolean includeHidden) {
-    def ret= StaticHandler.FACTORY.apply(this.delegate.setIncludeHidden(includeHidden));
-    return ret;
+    this.delegate.setIncludeHidden(includeHidden);
+    return this;
   }
   /**
    * Set the server cache entry timeout when caching is enabled
@@ -111,8 +111,8 @@ public class StaticHandler {
    * @return a reference to this, so the API can be used fluently
    */
   public StaticHandler setCacheEntryTimeout(long timeout) {
-    def ret= StaticHandler.FACTORY.apply(this.delegate.setCacheEntryTimeout(timeout));
-    return ret;
+    this.delegate.setCacheEntryTimeout(timeout);
+    return this;
   }
   /**
    * Set the index page
@@ -120,8 +120,8 @@ public class StaticHandler {
    * @return a reference to this, so the API can be used fluently
    */
   public StaticHandler setIndexPage(String indexPage) {
-    def ret= StaticHandler.FACTORY.apply(this.delegate.setIndexPage(indexPage));
-    return ret;
+    this.delegate.setIndexPage(indexPage);
+    return this;
   }
   /**
    * Set the max cache size, when caching is enabled
@@ -129,8 +129,8 @@ public class StaticHandler {
    * @return a reference to this, so the API can be used fluently
    */
   public StaticHandler setMaxCacheSize(int maxCacheSize) {
-    def ret= StaticHandler.FACTORY.apply(this.delegate.setMaxCacheSize(maxCacheSize));
-    return ret;
+    this.delegate.setMaxCacheSize(maxCacheSize);
+    return this;
   }
   /**
    * Set whether async filesystem access should always be used
@@ -138,8 +138,8 @@ public class StaticHandler {
    * @return a reference to this, so the API can be used fluently
    */
   public StaticHandler setAlwaysAsyncFS(boolean alwaysAsyncFS) {
-    def ret= StaticHandler.FACTORY.apply(this.delegate.setAlwaysAsyncFS(alwaysAsyncFS));
-    return ret;
+    this.delegate.setAlwaysAsyncFS(alwaysAsyncFS);
+    return this;
   }
   /**
    * Set whether async/sync filesystem tuning should enabled
@@ -147,8 +147,8 @@ public class StaticHandler {
    * @return a reference to this, so the API can be used fluently
    */
   public StaticHandler setEnableFSTuning(boolean enableFSTuning) {
-    def ret= StaticHandler.FACTORY.apply(this.delegate.setEnableFSTuning(enableFSTuning));
-    return ret;
+    this.delegate.setEnableFSTuning(enableFSTuning);
+    return this;
   }
   /**
    * Set the max serve time in ns, above which serves are considered slow
@@ -156,8 +156,8 @@ public class StaticHandler {
    * @return a reference to this, so the API can be used fluently
    */
   public StaticHandler setMaxAvgServeTimeNs(long maxAvgServeTimeNanoSeconds) {
-    def ret= StaticHandler.FACTORY.apply(this.delegate.setMaxAvgServeTimeNs(maxAvgServeTimeNanoSeconds));
-    return ret;
+    this.delegate.setMaxAvgServeTimeNs(maxAvgServeTimeNanoSeconds);
+    return this;
   }
   /**
    * Set the directory template to be used when directory listing
@@ -165,8 +165,8 @@ public class StaticHandler {
    * @return a reference to this, so the API can be used fluently
    */
   public StaticHandler setDirectoryTemplate(String directoryTemplate) {
-    def ret= StaticHandler.FACTORY.apply(this.delegate.setDirectoryTemplate(directoryTemplate));
-    return ret;
+    this.delegate.setDirectoryTemplate(directoryTemplate);
+    return this;
   }
 
   static final java.util.function.Function<io.vertx.ext.apex.handler.StaticHandler, StaticHandler> FACTORY = io.vertx.lang.groovy.Factories.createFactory() {

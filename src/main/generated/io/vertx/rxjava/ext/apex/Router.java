@@ -348,8 +348,8 @@ public class Router {
    * @return a reference to this, so the API can be used fluently
    */
   public Router clear() {
-    Router ret= Router.newInstance(this.delegate.clear());
-    return ret;
+    this.delegate.clear();
+    return this;
   }
 
   /**
@@ -360,8 +360,8 @@ public class Router {
    * @return a reference to this, so the API can be used fluently
    */
   public Router mountSubRouter(String mountPoint, Router subRouter) {
-    Router ret= Router.newInstance(this.delegate.mountSubRouter(mountPoint, (io.vertx.ext.apex.Router) subRouter.getDelegate()));
-    return ret;
+    this.delegate.mountSubRouter(mountPoint, (io.vertx.ext.apex.Router) subRouter.getDelegate());
+    return this;
   }
 
   /**
@@ -372,8 +372,8 @@ public class Router {
    * @return a reference to this, so the API can be used fluently
    */
   public Router exceptionHandler(Handler<Throwable> exceptionHandler) {
-    Router ret= Router.newInstance(this.delegate.exceptionHandler(exceptionHandler));
-    return ret;
+    this.delegate.exceptionHandler(exceptionHandler);
+    return this;
   }
 
   /**

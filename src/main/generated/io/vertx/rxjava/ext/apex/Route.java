@@ -51,8 +51,8 @@ public class Route {
    * @return a reference to this, so the API can be used fluently
    */
   public Route method(HttpMethod method) {
-    Route ret= Route.newInstance(this.delegate.method(method));
-    return ret;
+    this.delegate.method(method);
+    return this;
   }
 
   /**
@@ -63,8 +63,8 @@ public class Route {
    * @return a reference to this, so the API can be used fluently
    */
   public Route path(String path) {
-    Route ret= Route.newInstance(this.delegate.path(path));
-    return ret;
+    this.delegate.path(path);
+    return this;
   }
 
   /**
@@ -75,8 +75,8 @@ public class Route {
    * @return a reference to this, so the API can be used fluently
    */
   public Route pathRegex(String path) {
-    Route ret= Route.newInstance(this.delegate.pathRegex(path));
-    return ret;
+    this.delegate.pathRegex(path);
+    return this;
   }
 
   /**
@@ -97,8 +97,8 @@ public class Route {
    * @return a reference to this, so the API can be used fluently
    */
   public Route consumes(String contentType) {
-    Route ret= Route.newInstance(this.delegate.consumes(contentType));
-    return ret;
+    this.delegate.consumes(contentType);
+    return this;
   }
 
   /**
@@ -108,8 +108,8 @@ public class Route {
    * @return a reference to this, so the API can be used fluently
    */
   public Route order(int order) {
-    Route ret= Route.newInstance(this.delegate.order(order));
-    return ret;
+    this.delegate.order(order);
+    return this;
   }
 
   /**
@@ -119,8 +119,8 @@ public class Route {
    * @return a reference to this, so the API can be used fluently
    */
   public Route last(boolean last) {
-    Route ret= Route.newInstance(this.delegate.last(last));
-    return ret;
+    this.delegate.last(last);
+    return this;
   }
 
   /**
@@ -132,12 +132,12 @@ public class Route {
    * @return a reference to this, so the API can be used fluently
    */
   public Route handler(Handler<RoutingContext> requestHandler) {
-    Route ret= Route.newInstance(this.delegate.handler(new Handler<io.vertx.ext.apex.RoutingContext>() {
+    this.delegate.handler(new Handler<io.vertx.ext.apex.RoutingContext>() {
       public void handle(io.vertx.ext.apex.RoutingContext event) {
         requestHandler.handle(new RoutingContext(event));
       }
-    }));
-    return ret;
+    });
+    return this;
   }
 
   /**
@@ -149,12 +149,12 @@ public class Route {
    * @return a reference to this, so the API can be used fluently
    */
   public Route failureHandler(Handler<RoutingContext> failureHandler) {
-    Route ret= Route.newInstance(this.delegate.failureHandler(new Handler<io.vertx.ext.apex.RoutingContext>() {
+    this.delegate.failureHandler(new Handler<io.vertx.ext.apex.RoutingContext>() {
       public void handle(io.vertx.ext.apex.RoutingContext event) {
         failureHandler.handle(new RoutingContext(event));
       }
-    }));
-    return ret;
+    });
+    return this;
   }
 
   /**
@@ -163,8 +163,8 @@ public class Route {
    * @return a reference to this, so the API can be used fluently
    */
   public Route remove() {
-    Route ret= Route.newInstance(this.delegate.remove());
-    return ret;
+    this.delegate.remove();
+    return this;
   }
 
   /**
@@ -173,8 +173,8 @@ public class Route {
    * @return a reference to this, so the API can be used fluently
    */
   public Route disable() {
-    Route ret= Route.newInstance(this.delegate.disable());
-    return ret;
+    this.delegate.disable();
+    return this;
   }
 
   /**
@@ -183,8 +183,8 @@ public class Route {
    * @return a reference to this, so the API can be used fluently
    */
   public Route enable() {
-    Route ret= Route.newInstance(this.delegate.enable());
-    return ret;
+    this.delegate.enable();
+    return this;
   }
 
   /**

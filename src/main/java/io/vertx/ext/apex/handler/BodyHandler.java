@@ -16,6 +16,7 @@
 
 package io.vertx.ext.apex.handler;
 
+import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
 import io.vertx.ext.apex.RoutingContext;
@@ -61,6 +62,7 @@ public interface BodyHandler extends Handler<RoutingContext> {
    * @param bodyLimit  the max size
    * @return reference to this for fluency
    */
+  @Fluent
   BodyHandler setBodyLimit(long bodyLimit);
 
   /**
@@ -69,6 +71,7 @@ public interface BodyHandler extends Handler<RoutingContext> {
    * @param uploadsDirectory  the uploads directory
    * @return reference to this for fluency
    */
+  @Fluent
   BodyHandler setUploadsDirectory(String uploadsDirectory);
 
   /**
@@ -77,6 +80,7 @@ public interface BodyHandler extends Handler<RoutingContext> {
    * @param mergeFormAttributes  true if they should be merged
    * @return reference to this for fluency
    */
+  @Fluent
   BodyHandler setMergeFormAttributes(boolean mergeFormAttributes);
 
   @Override

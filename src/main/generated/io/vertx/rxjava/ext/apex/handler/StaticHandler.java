@@ -74,8 +74,8 @@ public class StaticHandler {
    * @return a reference to this, so the API can be used fluently
    */
   public StaticHandler setWebRoot(String webRoot) {
-    StaticHandler ret= StaticHandler.newInstance(this.delegate.setWebRoot(webRoot));
-    return ret;
+    this.delegate.setWebRoot(webRoot);
+    return this;
   }
 
   /**
@@ -85,8 +85,8 @@ public class StaticHandler {
    * @return a reference to this, so the API can be used fluently
    */
   public StaticHandler setFilesReadOnly(boolean readOnly) {
-    StaticHandler ret= StaticHandler.newInstance(this.delegate.setFilesReadOnly(readOnly));
-    return ret;
+    this.delegate.setFilesReadOnly(readOnly);
+    return this;
   }
 
   /**
@@ -96,8 +96,8 @@ public class StaticHandler {
    * @return a reference to this, so the API can be used fluently
    */
   public StaticHandler setMaxAgeSeconds(long maxAgeSeconds) {
-    StaticHandler ret= StaticHandler.newInstance(this.delegate.setMaxAgeSeconds(maxAgeSeconds));
-    return ret;
+    this.delegate.setMaxAgeSeconds(maxAgeSeconds);
+    return this;
   }
 
   /**
@@ -107,8 +107,8 @@ public class StaticHandler {
    * @return a reference to this, so the API can be used fluently
    */
   public StaticHandler setCachingEnabled(boolean enabled) {
-    StaticHandler ret= StaticHandler.newInstance(this.delegate.setCachingEnabled(enabled));
-    return ret;
+    this.delegate.setCachingEnabled(enabled);
+    return this;
   }
 
   /**
@@ -118,8 +118,8 @@ public class StaticHandler {
    * @return a reference to this, so the API can be used fluently
    */
   public StaticHandler setDirectoryListing(boolean directoryListing) {
-    StaticHandler ret= StaticHandler.newInstance(this.delegate.setDirectoryListing(directoryListing));
-    return ret;
+    this.delegate.setDirectoryListing(directoryListing);
+    return this;
   }
 
   /**
@@ -129,8 +129,8 @@ public class StaticHandler {
    * @return a reference to this, so the API can be used fluently
    */
   public StaticHandler setIncludeHidden(boolean includeHidden) {
-    StaticHandler ret= StaticHandler.newInstance(this.delegate.setIncludeHidden(includeHidden));
-    return ret;
+    this.delegate.setIncludeHidden(includeHidden);
+    return this;
   }
 
   /**
@@ -140,8 +140,8 @@ public class StaticHandler {
    * @return a reference to this, so the API can be used fluently
    */
   public StaticHandler setCacheEntryTimeout(long timeout) {
-    StaticHandler ret= StaticHandler.newInstance(this.delegate.setCacheEntryTimeout(timeout));
-    return ret;
+    this.delegate.setCacheEntryTimeout(timeout);
+    return this;
   }
 
   /**
@@ -151,8 +151,8 @@ public class StaticHandler {
    * @return a reference to this, so the API can be used fluently
    */
   public StaticHandler setIndexPage(String indexPage) {
-    StaticHandler ret= StaticHandler.newInstance(this.delegate.setIndexPage(indexPage));
-    return ret;
+    this.delegate.setIndexPage(indexPage);
+    return this;
   }
 
   /**
@@ -162,8 +162,8 @@ public class StaticHandler {
    * @return a reference to this, so the API can be used fluently
    */
   public StaticHandler setMaxCacheSize(int maxCacheSize) {
-    StaticHandler ret= StaticHandler.newInstance(this.delegate.setMaxCacheSize(maxCacheSize));
-    return ret;
+    this.delegate.setMaxCacheSize(maxCacheSize);
+    return this;
   }
 
   /**
@@ -173,8 +173,8 @@ public class StaticHandler {
    * @return a reference to this, so the API can be used fluently
    */
   public StaticHandler setAlwaysAsyncFS(boolean alwaysAsyncFS) {
-    StaticHandler ret= StaticHandler.newInstance(this.delegate.setAlwaysAsyncFS(alwaysAsyncFS));
-    return ret;
+    this.delegate.setAlwaysAsyncFS(alwaysAsyncFS);
+    return this;
   }
 
   /**
@@ -184,8 +184,8 @@ public class StaticHandler {
    * @return a reference to this, so the API can be used fluently
    */
   public StaticHandler setEnableFSTuning(boolean enableFSTuning) {
-    StaticHandler ret= StaticHandler.newInstance(this.delegate.setEnableFSTuning(enableFSTuning));
-    return ret;
+    this.delegate.setEnableFSTuning(enableFSTuning);
+    return this;
   }
 
   /**
@@ -195,8 +195,8 @@ public class StaticHandler {
    * @return a reference to this, so the API can be used fluently
    */
   public StaticHandler setMaxAvgServeTimeNs(long maxAvgServeTimeNanoSeconds) {
-    StaticHandler ret= StaticHandler.newInstance(this.delegate.setMaxAvgServeTimeNs(maxAvgServeTimeNanoSeconds));
-    return ret;
+    this.delegate.setMaxAvgServeTimeNs(maxAvgServeTimeNanoSeconds);
+    return this;
   }
 
   /**
@@ -206,8 +206,8 @@ public class StaticHandler {
    * @return a reference to this, so the API can be used fluently
    */
   public StaticHandler setDirectoryTemplate(String directoryTemplate) {
-    StaticHandler ret= StaticHandler.newInstance(this.delegate.setDirectoryTemplate(directoryTemplate));
-    return ret;
+    this.delegate.setDirectoryTemplate(directoryTemplate);
+    return this;
   }
 
 

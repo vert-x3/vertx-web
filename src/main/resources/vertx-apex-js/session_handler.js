@@ -42,7 +42,8 @@ var SessionHandler = function(j_val) {
   this.setSessionTimeout = function(timeout) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] ==='number') {
-      return new SessionHandler(j_sessionHandler.setSessionTimeout(timeout));
+      j_sessionHandler.setSessionTimeout(timeout);
+      return that;
     } else utils.invalidArgs();
   };
 
@@ -57,7 +58,8 @@ var SessionHandler = function(j_val) {
   this.setNagHttps = function(nag) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] ==='boolean') {
-      return new SessionHandler(j_sessionHandler.setNagHttps(nag));
+      j_sessionHandler.setNagHttps(nag);
+      return that;
     } else utils.invalidArgs();
   };
 
@@ -71,7 +73,8 @@ var SessionHandler = function(j_val) {
   this.setSessionCookieName = function(sessionCookieName) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return new SessionHandler(j_sessionHandler.setSessionCookieName(sessionCookieName));
+      j_sessionHandler.setSessionCookieName(sessionCookieName);
+      return that;
     } else utils.invalidArgs();
   };
 

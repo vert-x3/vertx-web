@@ -65,8 +65,8 @@ public class Cookie {
    * @return a reference to this, so the API can be used fluently
    */
   public Cookie setValue(String value) {
-    def ret= Cookie.FACTORY.apply(this.delegate.setValue(value));
-    return ret;
+    this.delegate.setValue(value);
+    return this;
   }
   /**
    * Sets the domain of this cookie
@@ -74,8 +74,8 @@ public class Cookie {
    * @return a reference to this, so the API can be used fluently
    */
   public Cookie setDomain(String domain) {
-    def ret= Cookie.FACTORY.apply(this.delegate.setDomain(domain));
-    return ret;
+    this.delegate.setDomain(domain);
+    return this;
   }
   /**
    * @return  the domain for the cookie
@@ -91,8 +91,8 @@ public class Cookie {
    * @return a reference to this, so the API can be used fluently
    */
   public Cookie setPath(String path) {
-    def ret= Cookie.FACTORY.apply(this.delegate.setPath(path));
-    return ret;
+    this.delegate.setPath(path);
+    return this;
   }
   /**
    * @return the path for this cookie
@@ -121,8 +121,8 @@ public class Cookie {
    * @return a reference to this, so the API can be used fluently
    */
   public Cookie setSecure(boolean secure) {
-    def ret= Cookie.FACTORY.apply(this.delegate.setSecure(secure));
-    return ret;
+    this.delegate.setSecure(secure);
+    return this;
   }
   /**
    * Determines if this cookie is HTTP only.
@@ -143,8 +143,8 @@ public class Cookie {
    * @return a reference to this, so the API can be used fluently
    */
   public Cookie setVersion(int version) {
-    def ret= Cookie.FACTORY.apply(this.delegate.setVersion(version));
-    return ret;
+    this.delegate.setVersion(version);
+    return this;
   }
   /**
    * Encode the cookie to a string. This is what is used in the Set-Cookie header

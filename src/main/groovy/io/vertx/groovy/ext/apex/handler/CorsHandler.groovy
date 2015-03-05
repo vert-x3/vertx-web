@@ -48,8 +48,8 @@ public class CorsHandler {
    * @return a reference to this, so the API can be used fluently
    */
   public CorsHandler allowedMethod(HttpMethod method) {
-    def ret= CorsHandler.FACTORY.apply(this.delegate.allowedMethod(method));
-    return ret;
+    this.delegate.allowedMethod(method);
+    return this;
   }
   /**
    * Add an allowed header
@@ -57,8 +57,8 @@ public class CorsHandler {
    * @return a reference to this, so the API can be used fluently
    */
   public CorsHandler allowedHeader(String headerName) {
-    def ret= CorsHandler.FACTORY.apply(this.delegate.allowedHeader(headerName));
-    return ret;
+    this.delegate.allowedHeader(headerName);
+    return this;
   }
   /**
    * Add a set of allowed headers
@@ -66,8 +66,8 @@ public class CorsHandler {
    * @return a reference to this, so the API can be used fluently
    */
   public CorsHandler allowedHeaders(Set<String> headerNames) {
-    def ret= CorsHandler.FACTORY.apply(this.delegate.allowedHeaders(headerNames));
-    return ret;
+    this.delegate.allowedHeaders(headerNames);
+    return this;
   }
   /**
    * Add an exposed header
@@ -75,8 +75,8 @@ public class CorsHandler {
    * @return a reference to this, so the API can be used fluently
    */
   public CorsHandler exposedHeader(String headerName) {
-    def ret= CorsHandler.FACTORY.apply(this.delegate.exposedHeader(headerName));
-    return ret;
+    this.delegate.exposedHeader(headerName);
+    return this;
   }
   /**
    * Add a set of exposed headers
@@ -84,8 +84,8 @@ public class CorsHandler {
    * @return a reference to this, so the API can be used fluently
    */
   public CorsHandler exposedHeaders(Set<String> headerNames) {
-    def ret= CorsHandler.FACTORY.apply(this.delegate.exposedHeaders(headerNames));
-    return ret;
+    this.delegate.exposedHeaders(headerNames);
+    return this;
   }
   /**
    * Set whether credentials are allowed
@@ -93,8 +93,8 @@ public class CorsHandler {
    * @return a reference to this, so the API can be used fluently
    */
   public CorsHandler allowCredentials(boolean allow) {
-    def ret= CorsHandler.FACTORY.apply(this.delegate.allowCredentials(allow));
-    return ret;
+    this.delegate.allowCredentials(allow);
+    return this;
   }
   /**
    * Set how long the browser should cache the information
@@ -102,8 +102,8 @@ public class CorsHandler {
    * @return a reference to this, so the API can be used fluently
    */
   public CorsHandler maxAgeSeconds(int maxAgeSeconds) {
-    def ret= CorsHandler.FACTORY.apply(this.delegate.maxAgeSeconds(maxAgeSeconds));
-    return ret;
+    this.delegate.maxAgeSeconds(maxAgeSeconds);
+    return this;
   }
   public void handle(RoutingContext context) {
     this.delegate.handle((io.vertx.ext.apex.RoutingContext)context.getDelegate());

@@ -16,6 +16,7 @@
 
 package io.vertx.ext.apex.handler;
 
+import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
 import io.vertx.ext.apex.RoutingContext;
@@ -122,6 +123,7 @@ public interface StaticHandler extends Handler<RoutingContext> {
    * @param webRoot  the web root
    * @return a reference to this, so the API can be used fluently
    */
+  @Fluent
   StaticHandler setWebRoot(String webRoot);
 
   /**
@@ -130,6 +132,7 @@ public interface StaticHandler extends Handler<RoutingContext> {
    * @param readOnly  whether files are read-only
    * @return a reference to this, so the API can be used fluently
    */
+  @Fluent
   StaticHandler setFilesReadOnly(boolean readOnly);
 
   /**
@@ -138,6 +141,7 @@ public interface StaticHandler extends Handler<RoutingContext> {
    * @param maxAgeSeconds  maximum time for browser to cache, in seconds
    * @return a reference to this, so the API can be used fluently
    */
+  @Fluent
   StaticHandler setMaxAgeSeconds(long maxAgeSeconds);
 
   /**
@@ -146,6 +150,7 @@ public interface StaticHandler extends Handler<RoutingContext> {
    * @param enabled  true if enabled
    * @return a reference to this, so the API can be used fluently
    */
+  @Fluent
   StaticHandler setCachingEnabled(boolean enabled);
 
   /**
@@ -154,6 +159,7 @@ public interface StaticHandler extends Handler<RoutingContext> {
    * @param directoryListing  true if enabled
    * @return a reference to this, so the API can be used fluently
    */
+  @Fluent
   StaticHandler setDirectoryListing(boolean directoryListing);
 
   /**
@@ -162,6 +168,7 @@ public interface StaticHandler extends Handler<RoutingContext> {
    * @param includeHidden  true if hidden files should be served
    * @return a reference to this, so the API can be used fluently
    */
+  @Fluent
   StaticHandler setIncludeHidden(boolean includeHidden);
 
   /**
@@ -170,6 +177,7 @@ public interface StaticHandler extends Handler<RoutingContext> {
    * @param timeout  the timeout, in ms
    * @return a reference to this, so the API can be used fluently
    */
+  @Fluent
   StaticHandler setCacheEntryTimeout(long timeout);
 
   /**
@@ -178,6 +186,7 @@ public interface StaticHandler extends Handler<RoutingContext> {
    * @param indexPage  the index page
    * @return a reference to this, so the API can be used fluently
    */
+  @Fluent
   StaticHandler setIndexPage(String indexPage);
 
   /**
@@ -186,6 +195,7 @@ public interface StaticHandler extends Handler<RoutingContext> {
    * @param maxCacheSize  the max cache size
    * @return a reference to this, so the API can be used fluently
    */
+  @Fluent
   StaticHandler setMaxCacheSize(int maxCacheSize);
 
   /**
@@ -194,6 +204,7 @@ public interface StaticHandler extends Handler<RoutingContext> {
    * @param alwaysAsyncFS  true for always async FS access
    * @return a reference to this, so the API can be used fluently
    */
+  @Fluent
   StaticHandler setAlwaysAsyncFS(boolean alwaysAsyncFS);
 
   /**
@@ -202,6 +213,7 @@ public interface StaticHandler extends Handler<RoutingContext> {
    * @param enableFSTuning  true to enabled FS tuning
    * @return a reference to this, so the API can be used fluently
    */
+  @Fluent
   StaticHandler setEnableFSTuning(boolean enableFSTuning);
 
   /**
@@ -210,6 +222,7 @@ public interface StaticHandler extends Handler<RoutingContext> {
    * @param maxAvgServeTimeNanoSeconds  max serve time, in ns
    * @return a reference to this, so the API can be used fluently
    */
+  @Fluent
   StaticHandler setMaxAvgServeTimeNs(long maxAvgServeTimeNanoSeconds);
 
   /**
@@ -218,6 +231,7 @@ public interface StaticHandler extends Handler<RoutingContext> {
    * @param directoryTemplate  the directory template
    * @return a reference to this, so the API can be used fluently
    */
+  @Fluent
   StaticHandler setDirectoryTemplate(String directoryTemplate);
 
 }

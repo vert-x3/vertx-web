@@ -47,8 +47,8 @@ public class BodyHandler {
    * @return reference to this for fluency
    */
   public BodyHandler setBodyLimit(long bodyLimit) {
-    def ret= BodyHandler.FACTORY.apply(this.delegate.setBodyLimit(bodyLimit));
-    return ret;
+    this.delegate.setBodyLimit(bodyLimit);
+    return this;
   }
   /**
    * Set the uploads directory to use
@@ -56,8 +56,8 @@ public class BodyHandler {
    * @return reference to this for fluency
    */
   public BodyHandler setUploadsDirectory(String uploadsDirectory) {
-    def ret= BodyHandler.FACTORY.apply(this.delegate.setUploadsDirectory(uploadsDirectory));
-    return ret;
+    this.delegate.setUploadsDirectory(uploadsDirectory);
+    return this;
   }
   /**
    * Set whether form attributes will be added to the request parameters
@@ -65,8 +65,8 @@ public class BodyHandler {
    * @return reference to this for fluency
    */
   public BodyHandler setMergeFormAttributes(boolean mergeFormAttributes) {
-    def ret= BodyHandler.FACTORY.apply(this.delegate.setMergeFormAttributes(mergeFormAttributes));
-    return ret;
+    this.delegate.setMergeFormAttributes(mergeFormAttributes);
+    return this;
   }
   public void handle(RoutingContext context) {
     this.delegate.handle((io.vertx.ext.apex.RoutingContext)context.getDelegate());

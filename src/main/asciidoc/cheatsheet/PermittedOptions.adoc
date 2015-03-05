@@ -1,7 +1,7 @@
 == PermittedOptions
 
 ++++
- Specify a _match_ to allow for inbound and outbound traffic using the
+ Specify a match to allow for inbound and outbound traffic using the
  link.
 ++++
 '''

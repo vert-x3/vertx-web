@@ -44,7 +44,8 @@ var Route = function(j_val) {
   this.method = function(method) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return new Route(j_route.method(io.vertx.core.http.HttpMethod.valueOf(__args[0])));
+      j_route.method(io.vertx.core.http.HttpMethod.valueOf(__args[0]));
+      return that;
     } else utils.invalidArgs();
   };
 
@@ -59,7 +60,8 @@ var Route = function(j_val) {
   this.path = function(path) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return new Route(j_route.path(path));
+      j_route.path(path);
+      return that;
     } else utils.invalidArgs();
   };
 
@@ -74,7 +76,8 @@ var Route = function(j_val) {
   this.pathRegex = function(path) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return new Route(j_route.pathRegex(path));
+      j_route.pathRegex(path);
+      return that;
     } else utils.invalidArgs();
   };
 
@@ -102,7 +105,8 @@ var Route = function(j_val) {
   this.consumes = function(contentType) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return new Route(j_route.consumes(contentType));
+      j_route.consumes(contentType);
+      return that;
     } else utils.invalidArgs();
   };
 
@@ -116,7 +120,8 @@ var Route = function(j_val) {
   this.order = function(order) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] ==='number') {
-      return new Route(j_route.order(order));
+      j_route.order(order);
+      return that;
     } else utils.invalidArgs();
   };
 
@@ -130,7 +135,8 @@ var Route = function(j_val) {
   this.last = function(last) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] ==='boolean') {
-      return new Route(j_route.last(last));
+      j_route.last(last);
+      return that;
     } else utils.invalidArgs();
   };
 
@@ -146,9 +152,10 @@ var Route = function(j_val) {
   this.handler = function(requestHandler) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'function') {
-      return new Route(j_route.handler(function(jVal) {
+      j_route.handler(function(jVal) {
       requestHandler(new RoutingContext(jVal));
-    }));
+    });
+      return that;
     } else utils.invalidArgs();
   };
 
@@ -164,9 +171,10 @@ var Route = function(j_val) {
   this.failureHandler = function(failureHandler) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'function') {
-      return new Route(j_route.failureHandler(function(jVal) {
+      j_route.failureHandler(function(jVal) {
       failureHandler(new RoutingContext(jVal));
-    }));
+    });
+      return that;
     } else utils.invalidArgs();
   };
 
@@ -180,7 +188,8 @@ var Route = function(j_val) {
   this.remove = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return new Route(j_route.remove());
+      j_route.remove();
+      return that;
     } else utils.invalidArgs();
   };
 
@@ -194,7 +203,8 @@ var Route = function(j_val) {
   this.disable = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return new Route(j_route.disable());
+      j_route.disable();
+      return that;
     } else utils.invalidArgs();
   };
 
@@ -208,7 +218,8 @@ var Route = function(j_val) {
   this.enable = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return new Route(j_route.enable());
+      j_route.enable();
+      return that;
     } else utils.invalidArgs();
   };
 

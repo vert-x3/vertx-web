@@ -288,7 +288,8 @@ var Router = function(j_val) {
   this.clear = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return new Router(j_router.clear());
+      j_router.clear();
+      return that;
     } else utils.invalidArgs();
   };
 
@@ -303,7 +304,8 @@ var Router = function(j_val) {
   this.mountSubRouter = function(mountPoint, subRouter) {
     var __args = arguments;
     if (__args.length === 2 && typeof __args[0] === 'string' && typeof __args[1] === 'object' && __args[1]._jdel) {
-      return new Router(j_router.mountSubRouter(mountPoint, subRouter._jdel));
+      j_router.mountSubRouter(mountPoint, subRouter._jdel);
+      return that;
     } else utils.invalidArgs();
   };
 
@@ -318,9 +320,10 @@ var Router = function(j_val) {
   this.exceptionHandler = function(exceptionHandler) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'function') {
-      return new Router(j_router.exceptionHandler(function(jVal) {
+      j_router.exceptionHandler(function(jVal) {
       exceptionHandler(utils.convReturnTypeUnknown(jVal));
-    }));
+    });
+      return that;
     } else utils.invalidArgs();
   };
 

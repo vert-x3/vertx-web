@@ -39,8 +39,8 @@ public class Route {
    * @return a reference to this, so the API can be used fluently
    */
   public Route method(HttpMethod method) {
-    def ret= Route.FACTORY.apply(this.delegate.method(method));
-    return ret;
+    this.delegate.method(method);
+    return this;
   }
   /**
    * Set the path prefix for this route. If set then this route will only match request URI paths which start with this
@@ -49,8 +49,8 @@ public class Route {
    * @return a reference to this, so the API can be used fluently
    */
   public Route path(String path) {
-    def ret= Route.FACTORY.apply(this.delegate.path(path));
-    return ret;
+    this.delegate.path(path);
+    return this;
   }
   /**
    * Set the path prefix as a regular expression. If set then this route will only match request URI paths, the beginning
@@ -59,8 +59,8 @@ public class Route {
    * @return a reference to this, so the API can be used fluently
    */
   public Route pathRegex(String path) {
-    def ret= Route.FACTORY.apply(this.delegate.pathRegex(path));
-    return ret;
+    this.delegate.pathRegex(path);
+    return this;
   }
   /**
    * Add a content type produced by this route. Used for content based routing.
@@ -77,8 +77,8 @@ public class Route {
    * @return a reference to this, so the API can be used fluently
    */
   public Route consumes(String contentType) {
-    def ret= Route.FACTORY.apply(this.delegate.consumes(contentType));
-    return ret;
+    this.delegate.consumes(contentType);
+    return this;
   }
   /**
    * Specify the order for this route. The router tests routes in that order.
@@ -86,8 +86,8 @@ public class Route {
    * @return a reference to this, so the API can be used fluently
    */
   public Route order(int order) {
-    def ret= Route.FACTORY.apply(this.delegate.order(order));
-    return ret;
+    this.delegate.order(order);
+    return this;
   }
   /**
    * Specify whether this is the last route for the router.
@@ -95,8 +95,8 @@ public class Route {
    * @return a reference to this, so the API can be used fluently
    */
   public Route last(boolean last) {
-    def ret= Route.FACTORY.apply(this.delegate.last(last));
-    return ret;
+    this.delegate.last(last);
+    return this;
   }
   /**
    * Specify a request handler for the route. The router routes requests to handlers depending on whether the various
@@ -106,12 +106,12 @@ public class Route {
    * @return a reference to this, so the API can be used fluently
    */
   public Route handler(Handler<RoutingContext> requestHandler) {
-    def ret= Route.FACTORY.apply(this.delegate.handler(new Handler<io.vertx.ext.apex.RoutingContext>() {
+    this.delegate.handler(new Handler<io.vertx.ext.apex.RoutingContext>() {
       public void handle(io.vertx.ext.apex.RoutingContext event) {
         requestHandler.handle(RoutingContext.FACTORY.apply(event));
       }
-    }));
-    return ret;
+    });
+    return this;
   }
   /**
    * Specify a failure handler for the route. The router routes failures to failurehandlers depending on whether the various
@@ -121,36 +121,36 @@ public class Route {
    * @return a reference to this, so the API can be used fluently
    */
   public Route failureHandler(Handler<RoutingContext> failureHandler) {
-    def ret= Route.FACTORY.apply(this.delegate.failureHandler(new Handler<io.vertx.ext.apex.RoutingContext>() {
+    this.delegate.failureHandler(new Handler<io.vertx.ext.apex.RoutingContext>() {
       public void handle(io.vertx.ext.apex.RoutingContext event) {
         failureHandler.handle(RoutingContext.FACTORY.apply(event));
       }
-    }));
-    return ret;
+    });
+    return this;
   }
   /**
    * Remove this route from the router
    * @return a reference to this, so the API can be used fluently
    */
   public Route remove() {
-    def ret= Route.FACTORY.apply(this.delegate.remove());
-    return ret;
+    this.delegate.remove();
+    return this;
   }
   /**
    * Disable this route. While disabled the router will not route any requests or failures to it.
    * @return a reference to this, so the API can be used fluently
    */
   public Route disable() {
-    def ret= Route.FACTORY.apply(this.delegate.disable());
-    return ret;
+    this.delegate.disable();
+    return this;
   }
   /**
    * Enable this route.
    * @return a reference to this, so the API can be used fluently
    */
   public Route enable() {
-    def ret= Route.FACTORY.apply(this.delegate.enable());
-    return ret;
+    this.delegate.enable();
+    return this;
   }
   /**
    * @return the path prefix (if any) for this route

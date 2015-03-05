@@ -61,8 +61,8 @@ public class BodyHandler {
    * @return reference to this for fluency
    */
   public BodyHandler setBodyLimit(long bodyLimit) {
-    BodyHandler ret= BodyHandler.newInstance(this.delegate.setBodyLimit(bodyLimit));
-    return ret;
+    this.delegate.setBodyLimit(bodyLimit);
+    return this;
   }
 
   /**
@@ -72,8 +72,8 @@ public class BodyHandler {
    * @return reference to this for fluency
    */
   public BodyHandler setUploadsDirectory(String uploadsDirectory) {
-    BodyHandler ret= BodyHandler.newInstance(this.delegate.setUploadsDirectory(uploadsDirectory));
-    return ret;
+    this.delegate.setUploadsDirectory(uploadsDirectory);
+    return this;
   }
 
   /**
@@ -83,8 +83,8 @@ public class BodyHandler {
    * @return reference to this for fluency
    */
   public BodyHandler setMergeFormAttributes(boolean mergeFormAttributes) {
-    BodyHandler ret= BodyHandler.newInstance(this.delegate.setMergeFormAttributes(mergeFormAttributes));
-    return ret;
+    this.delegate.setMergeFormAttributes(mergeFormAttributes);
+    return this;
   }
 
   public void handle(RoutingContext context) {

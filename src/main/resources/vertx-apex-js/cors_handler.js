@@ -42,7 +42,8 @@ var CorsHandler = function(j_val) {
   this.allowedMethod = function(method) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return new CorsHandler(j_corsHandler.allowedMethod(io.vertx.core.http.HttpMethod.valueOf(__args[0])));
+      j_corsHandler.allowedMethod(io.vertx.core.http.HttpMethod.valueOf(__args[0]));
+      return that;
     } else utils.invalidArgs();
   };
 
@@ -56,7 +57,8 @@ var CorsHandler = function(j_val) {
   this.allowedHeader = function(headerName) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return new CorsHandler(j_corsHandler.allowedHeader(headerName));
+      j_corsHandler.allowedHeader(headerName);
+      return that;
     } else utils.invalidArgs();
   };
 
@@ -70,7 +72,8 @@ var CorsHandler = function(j_val) {
   this.allowedHeaders = function(headerNames) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'object' && __args[0] instanceof Array) {
-      return new CorsHandler(j_corsHandler.allowedHeaders(utils.convParamSetBasicOther(headerNames)));
+      j_corsHandler.allowedHeaders(utils.convParamSetBasicOther(headerNames));
+      return that;
     } else utils.invalidArgs();
   };
 
@@ -84,7 +87,8 @@ var CorsHandler = function(j_val) {
   this.exposedHeader = function(headerName) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return new CorsHandler(j_corsHandler.exposedHeader(headerName));
+      j_corsHandler.exposedHeader(headerName);
+      return that;
     } else utils.invalidArgs();
   };
 
@@ -98,7 +102,8 @@ var CorsHandler = function(j_val) {
   this.exposedHeaders = function(headerNames) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'object' && __args[0] instanceof Array) {
-      return new CorsHandler(j_corsHandler.exposedHeaders(utils.convParamSetBasicOther(headerNames)));
+      j_corsHandler.exposedHeaders(utils.convParamSetBasicOther(headerNames));
+      return that;
     } else utils.invalidArgs();
   };
 
@@ -112,7 +117,8 @@ var CorsHandler = function(j_val) {
   this.allowCredentials = function(allow) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] ==='boolean') {
-      return new CorsHandler(j_corsHandler.allowCredentials(allow));
+      j_corsHandler.allowCredentials(allow);
+      return that;
     } else utils.invalidArgs();
   };
 
@@ -126,7 +132,8 @@ var CorsHandler = function(j_val) {
   this.maxAgeSeconds = function(maxAgeSeconds) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] ==='number') {
-      return new CorsHandler(j_corsHandler.maxAgeSeconds(maxAgeSeconds));
+      j_corsHandler.maxAgeSeconds(maxAgeSeconds);
+      return that;
     } else utils.invalidArgs();
   };
 

@@ -73,7 +73,8 @@ var Cookie = function(j_val) {
   this.setValue = function(value) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return new Cookie(j_cookie.setValue(value));
+      j_cookie.setValue(value);
+      return that;
     } else utils.invalidArgs();
   };
 
@@ -87,7 +88,8 @@ var Cookie = function(j_val) {
   this.setDomain = function(domain) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return new Cookie(j_cookie.setDomain(domain));
+      j_cookie.setDomain(domain);
+      return that;
     } else utils.invalidArgs();
   };
 
@@ -115,7 +117,8 @@ var Cookie = function(j_val) {
   this.setPath = function(path) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return new Cookie(j_cookie.setPath(path));
+      j_cookie.setPath(path);
+      return that;
     } else utils.invalidArgs();
   };
 
@@ -161,7 +164,8 @@ var Cookie = function(j_val) {
   this.setSecure = function(secure) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] ==='boolean') {
-      return new Cookie(j_cookie.setSecure(secure));
+      j_cookie.setSecure(secure);
+      return that;
     } else utils.invalidArgs();
   };
 
@@ -193,7 +197,8 @@ var Cookie = function(j_val) {
   this.setVersion = function(version) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] ==='number') {
-      return new Cookie(j_cookie.setVersion(version));
+      j_cookie.setVersion(version);
+      return that;
     } else utils.invalidArgs();
   };
 

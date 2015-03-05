@@ -41,7 +41,8 @@ var BodyHandler = function(j_val) {
   this.setBodyLimit = function(bodyLimit) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] ==='number') {
-      return new BodyHandler(j_bodyHandler.setBodyLimit(bodyLimit));
+      j_bodyHandler.setBodyLimit(bodyLimit);
+      return that;
     } else utils.invalidArgs();
   };
 
@@ -55,7 +56,8 @@ var BodyHandler = function(j_val) {
   this.setUploadsDirectory = function(uploadsDirectory) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return new BodyHandler(j_bodyHandler.setUploadsDirectory(uploadsDirectory));
+      j_bodyHandler.setUploadsDirectory(uploadsDirectory);
+      return that;
     } else utils.invalidArgs();
   };
 
@@ -69,7 +71,8 @@ var BodyHandler = function(j_val) {
   this.setMergeFormAttributes = function(mergeFormAttributes) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] ==='boolean') {
-      return new BodyHandler(j_bodyHandler.setMergeFormAttributes(mergeFormAttributes));
+      j_bodyHandler.setMergeFormAttributes(mergeFormAttributes);
+      return that;
     } else utils.invalidArgs();
   };
 

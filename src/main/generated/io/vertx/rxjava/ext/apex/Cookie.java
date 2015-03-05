@@ -76,8 +76,8 @@ public class Cookie {
    * @return a reference to this, so the API can be used fluently
    */
   public Cookie setValue(String value) {
-    Cookie ret= Cookie.newInstance(this.delegate.setValue(value));
-    return ret;
+    this.delegate.setValue(value);
+    return this;
   }
 
   /**
@@ -87,8 +87,8 @@ public class Cookie {
    * @return a reference to this, so the API can be used fluently
    */
   public Cookie setDomain(String domain) {
-    Cookie ret= Cookie.newInstance(this.delegate.setDomain(domain));
-    return ret;
+    this.delegate.setDomain(domain);
+    return this;
   }
 
   /**
@@ -106,8 +106,8 @@ public class Cookie {
    * @return a reference to this, so the API can be used fluently
    */
   public Cookie setPath(String path) {
-    Cookie ret= Cookie.newInstance(this.delegate.setPath(path));
-    return ret;
+    this.delegate.setPath(path);
+    return this;
   }
 
   /**
@@ -141,8 +141,8 @@ public class Cookie {
    * @return a reference to this, so the API can be used fluently
    */
   public Cookie setSecure(boolean secure) {
-    Cookie ret= Cookie.newInstance(this.delegate.setSecure(secure));
-    return ret;
+    this.delegate.setSecure(secure);
+    return this;
   }
 
   /**
@@ -166,8 +166,8 @@ public class Cookie {
    * @return a reference to this, so the API can be used fluently
    */
   public Cookie setVersion(int version) {
-    Cookie ret= Cookie.newInstance(this.delegate.setVersion(version));
-    return ret;
+    this.delegate.setVersion(version);
+    return this;
   }
 
   /**

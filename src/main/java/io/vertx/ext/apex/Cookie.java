@@ -16,6 +16,7 @@
 
 package io.vertx.ext.apex;
 
+import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.ext.apex.impl.CookieImpl;
@@ -66,6 +67,7 @@ public interface Cookie {
    * @param value The value to set
    * @return a reference to this, so the API can be used fluently
    */
+  @Fluent
   Cookie setValue(String value);
 
   /**
@@ -74,6 +76,7 @@ public interface Cookie {
    * @param domain The domain to use
    * @return a reference to this, so the API can be used fluently
    */
+  @Fluent
   Cookie setDomain(String domain);
 
   /**
@@ -87,6 +90,7 @@ public interface Cookie {
    * @param path The path to use for this cookie
    * @return a reference to this, so the API can be used fluently
    */
+  @Fluent
   Cookie setPath(String path);
 
   /**
@@ -113,6 +117,7 @@ public interface Cookie {
    * @param secure True if this cookie is to be secure, otherwise false
    * @return a reference to this, so the API can be used fluently
    */
+  @Fluent
   Cookie setSecure(boolean secure);
 
   /**
@@ -132,6 +137,7 @@ public interface Cookie {
    * @param version 0 or 1
    * @return a reference to this, so the API can be used fluently
    */
+  @Fluent
   Cookie setVersion(int version);
 
 

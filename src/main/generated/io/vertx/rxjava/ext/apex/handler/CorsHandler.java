@@ -62,8 +62,8 @@ public class CorsHandler {
    * @return a reference to this, so the API can be used fluently
    */
   public CorsHandler allowedMethod(HttpMethod method) {
-    CorsHandler ret= CorsHandler.newInstance(this.delegate.allowedMethod(method));
-    return ret;
+    this.delegate.allowedMethod(method);
+    return this;
   }
 
   /**
@@ -73,8 +73,8 @@ public class CorsHandler {
    * @return a reference to this, so the API can be used fluently
    */
   public CorsHandler allowedHeader(String headerName) {
-    CorsHandler ret= CorsHandler.newInstance(this.delegate.allowedHeader(headerName));
-    return ret;
+    this.delegate.allowedHeader(headerName);
+    return this;
   }
 
   /**
@@ -84,8 +84,8 @@ public class CorsHandler {
    * @return a reference to this, so the API can be used fluently
    */
   public CorsHandler allowedHeaders(Set<String> headerNames) {
-    CorsHandler ret= CorsHandler.newInstance(this.delegate.allowedHeaders(headerNames));
-    return ret;
+    this.delegate.allowedHeaders(headerNames);
+    return this;
   }
 
   /**
@@ -95,8 +95,8 @@ public class CorsHandler {
    * @return a reference to this, so the API can be used fluently
    */
   public CorsHandler exposedHeader(String headerName) {
-    CorsHandler ret= CorsHandler.newInstance(this.delegate.exposedHeader(headerName));
-    return ret;
+    this.delegate.exposedHeader(headerName);
+    return this;
   }
 
   /**
@@ -106,8 +106,8 @@ public class CorsHandler {
    * @return a reference to this, so the API can be used fluently
    */
   public CorsHandler exposedHeaders(Set<String> headerNames) {
-    CorsHandler ret= CorsHandler.newInstance(this.delegate.exposedHeaders(headerNames));
-    return ret;
+    this.delegate.exposedHeaders(headerNames);
+    return this;
   }
 
   /**
@@ -117,8 +117,8 @@ public class CorsHandler {
    * @return a reference to this, so the API can be used fluently
    */
   public CorsHandler allowCredentials(boolean allow) {
-    CorsHandler ret= CorsHandler.newInstance(this.delegate.allowCredentials(allow));
-    return ret;
+    this.delegate.allowCredentials(allow);
+    return this;
   }
 
   /**
@@ -128,8 +128,8 @@ public class CorsHandler {
    * @return a reference to this, so the API can be used fluently
    */
   public CorsHandler maxAgeSeconds(int maxAgeSeconds) {
-    CorsHandler ret= CorsHandler.newInstance(this.delegate.maxAgeSeconds(maxAgeSeconds));
-    return ret;
+    this.delegate.maxAgeSeconds(maxAgeSeconds);
+    return this;
   }
 
   public void handle(RoutingContext context) {

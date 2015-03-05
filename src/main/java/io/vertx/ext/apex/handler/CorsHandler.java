@@ -16,6 +16,7 @@
 
 package io.vertx.ext.apex.handler;
 
+import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
@@ -49,6 +50,7 @@ public interface CorsHandler extends Handler<RoutingContext> {
    * @param method  the method to add
    * @return a reference to this, so the API can be used fluently
    */
+  @Fluent
   CorsHandler allowedMethod(HttpMethod method);
 
   /**
@@ -66,6 +68,7 @@ public interface CorsHandler extends Handler<RoutingContext> {
    * @param headerName  the allowed header name
    * @return a reference to this, so the API can be used fluently
    */
+  @Fluent
   CorsHandler allowedHeader(String headerName);
 
   /**
@@ -74,6 +77,7 @@ public interface CorsHandler extends Handler<RoutingContext> {
    * @param headerNames  the allowed header names
    * @return a reference to this, so the API can be used fluently
    */
+  @Fluent
   CorsHandler allowedHeaders(Set<String> headerNames);
 
   /**
@@ -82,6 +86,7 @@ public interface CorsHandler extends Handler<RoutingContext> {
    * @param headerName  the exposed header name
    * @return a reference to this, so the API can be used fluently
    */
+  @Fluent
   CorsHandler exposedHeader(String headerName);
 
   /**
@@ -90,6 +95,7 @@ public interface CorsHandler extends Handler<RoutingContext> {
    * @param headerNames  the exposed header names
    * @return a reference to this, so the API can be used fluently
    */
+  @Fluent
   CorsHandler exposedHeaders(Set<String> headerNames);
 
   /**
@@ -98,6 +104,7 @@ public interface CorsHandler extends Handler<RoutingContext> {
    * @param allow true if allowed
    * @return a reference to this, so the API can be used fluently
    */
+  @Fluent
   CorsHandler allowCredentials(boolean allow);
 
   /**
@@ -106,6 +113,7 @@ public interface CorsHandler extends Handler<RoutingContext> {
    * @param maxAgeSeconds  max age in seconds
    * @return a reference to this, so the API can be used fluently
    */
+  @Fluent
   CorsHandler maxAgeSeconds(int maxAgeSeconds);
 
   @Override

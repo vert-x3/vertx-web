@@ -270,8 +270,8 @@ public class Router {
    * @return a reference to this, so the API can be used fluently
    */
   public Router clear() {
-    def ret= Router.FACTORY.apply(this.delegate.clear());
-    return ret;
+    this.delegate.clear();
+    return this;
   }
   /**
    * Mount a sub router on this router
@@ -280,8 +280,8 @@ public class Router {
    * @return a reference to this, so the API can be used fluently
    */
   public Router mountSubRouter(String mountPoint, Router subRouter) {
-    def ret= Router.FACTORY.apply(this.delegate.mountSubRouter(mountPoint, (io.vertx.ext.apex.Router)subRouter.getDelegate()));
-    return ret;
+    this.delegate.mountSubRouter(mountPoint, (io.vertx.ext.apex.Router)subRouter.getDelegate());
+    return this;
   }
   /**
    * Specify a handler for any unhandled exceptions on this router. The handler will be called for exceptions thrown
@@ -290,8 +290,8 @@ public class Router {
    * @return a reference to this, so the API can be used fluently
    */
   public Router exceptionHandler(Handler<Throwable> exceptionHandler) {
-    def ret= Router.FACTORY.apply(this.delegate.exceptionHandler(exceptionHandler));
-    return ret;
+    this.delegate.exceptionHandler(exceptionHandler);
+    return this;
   }
   /**
    * Used to route a context to the router. Used for sub-routers. You wouldn't normally call this method directly.

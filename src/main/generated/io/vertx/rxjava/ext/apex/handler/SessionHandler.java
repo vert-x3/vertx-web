@@ -68,8 +68,8 @@ public class SessionHandler {
    * @return a reference to this, so the API can be used fluently
    */
   public SessionHandler setSessionTimeout(long timeout) {
-    SessionHandler ret= SessionHandler.newInstance(this.delegate.setSessionTimeout(timeout));
-    return ret;
+    this.delegate.setSessionTimeout(timeout);
+    return this;
   }
 
   /**
@@ -79,8 +79,8 @@ public class SessionHandler {
    * @return a reference to this, so the API can be used fluently
    */
   public SessionHandler setNagHttps(boolean nag) {
-    SessionHandler ret= SessionHandler.newInstance(this.delegate.setNagHttps(nag));
-    return ret;
+    this.delegate.setNagHttps(nag);
+    return this;
   }
 
   /**
@@ -90,8 +90,8 @@ public class SessionHandler {
    * @return a reference to this, so the API can be used fluently
    */
   public SessionHandler setSessionCookieName(String sessionCookieName) {
-    SessionHandler ret= SessionHandler.newInstance(this.delegate.setSessionCookieName(sessionCookieName));
-    return ret;
+    this.delegate.setSessionCookieName(sessionCookieName);
+    return this;
   }
 
   public void handle(RoutingContext context) {

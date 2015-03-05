@@ -16,6 +16,7 @@
 
 package io.vertx.ext.apex.handler;
 
+import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
 import io.vertx.ext.apex.RoutingContext;
@@ -69,6 +70,7 @@ public interface SessionHandler extends Handler<RoutingContext> {
    * @param timeout  the timeout, in ms.
    * @return a reference to this, so the API can be used fluently
    */
+  @Fluent
   SessionHandler setSessionTimeout(long timeout);
 
   /**
@@ -77,6 +79,7 @@ public interface SessionHandler extends Handler<RoutingContext> {
    * @param nag  true to nag
    * @return a reference to this, so the API can be used fluently
    */
+  @Fluent
   SessionHandler setNagHttps(boolean nag);
 
   /**
@@ -85,6 +88,7 @@ public interface SessionHandler extends Handler<RoutingContext> {
    * @param sessionCookieName  the session cookie name
    * @return a reference to this, so the API can be used fluently
    */
+  @Fluent
   SessionHandler setSessionCookieName(String sessionCookieName);
 
   @Override
