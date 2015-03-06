@@ -58,7 +58,7 @@ public class TemplateTest extends ApexTestBase {
     });
     Route route = router.route();
     if (pathPrefix != null) {
-      route.path(pathPrefix);
+      route.path(pathPrefix + "*");
     }
     route.handler(TemplateHandler.create(engine, "somedir", "text/html"));
     String expected =

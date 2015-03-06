@@ -74,8 +74,33 @@ public class Examples {
     Route route = router.route().path("/some/path/");
 
     route.handler(routingContext -> {
-      // This handler will be called for any request with
-      // a URI path that starts with `/some/path`
+      // This handler will be called for the following request paths:
+
+      // `/some/path`
+      // `/some/path/`
+      // `/some/path//`
+      //
+      // but not:
+      // `/some/path/subdir`
+    });
+
+  }
+
+  public void example3_1(Router router) {
+
+    Route route = router.route().path("/some/path/*");
+
+    route.handler(routingContext -> {
+      // This handler will be called for any path that starts with
+      // `/some/path/`, e.g.
+
+      // `/some/path`
+      // `/some/path/`
+      // `/some/path/subdir`
+      // `/some/path/subdir/blah.html`
+      //
+      // but not:
+      // `/some/bath`
     });
 
   }

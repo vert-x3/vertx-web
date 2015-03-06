@@ -83,7 +83,7 @@ class HtmlFileTransport extends BaseTransport {
   HtmlFileTransport(Vertx vertx, Router router, LocalMap<String, SockJSSession> sessions, SockJSHandlerOptions options,
                     Handler<SockJSSocket> sockHandler) {
     super(vertx, sessions, options);
-    String htmlFileRE = COMMON_PATH_ELEMENT_RE + "htmlfile";
+    String htmlFileRE = COMMON_PATH_ELEMENT_RE + "htmlfile.*";
 
     router.getWithRegex(htmlFileRE).handler(rc -> {
       if (log.isTraceEnabled()) log.trace("HtmlFile, get: " + rc.request().uri());
@@ -127,7 +127,7 @@ class HtmlFileTransport extends BaseTransport {
         setNoCacheHeaders(rc);
         rc.response().setChunked(true);
         setJSESSIONID(options, rc);
-        rc.response().end(htmlFile);
+        rc.response().write(htmlFile);
         headersWritten = true;
       }
       body = escapeForJavaScript(body);
@@ -136,7 +136,7 @@ class HtmlFileTransport extends BaseTransport {
       sb.append(body);
       sb.append("\");\n</script>\r\n");
       Buffer buff = buffer(sb.toString());
-      rc.response().end(buff);
+      rc.response().write(buff);
       bytesSent += buff.length();
       if (bytesSent >= maxBytesStreaming) {
         if (log.isTraceEnabled()) log.trace("More than maxBytes sent so closing connection");

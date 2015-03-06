@@ -62,7 +62,7 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
     router.route().handler(SessionHandler.create(store));
     JsonObject authConfig = new JsonObject().put("properties_path", "classpath:login/loginusers.properties");
     AuthService authService = ShiroAuthService.create(vertx, ShiroAuthRealmType.PROPERTIES, authConfig);;
-    router.route("/protected").handler(BasicAuthHandler.create(authService, realm));
+    router.route("/protected/*").handler(BasicAuthHandler.create(authService, realm));
 
     router.route("/protected/somepage").handler(handler);
 
@@ -88,7 +88,7 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
   }
 
   @Test
-  public void loginFail() throws Exception {
+  public void testLoginFail() throws Exception {
 
     String realm = "apex";
 
@@ -105,7 +105,7 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
     router.route().handler(SessionHandler.create(store));
     JsonObject authConfig = new JsonObject().put("properties_path", "classpath:login/loginusers.properties");
     AuthService authService = ShiroAuthService.create(vertx, ShiroAuthRealmType.PROPERTIES, authConfig);
-    router.route("/protected").handler(BasicAuthHandler.create(authService));
+    router.route("/protected/*").handler(BasicAuthHandler.create(authService));
 
     router.route("/protected/somepage").handler(handler);
 

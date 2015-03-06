@@ -142,22 +142,35 @@
  *
  * Note, all this happens without any thread blocking.
  *
- * == Routing by path
+ * == Routing by exact path
  *
  * A route can be set-up to match the path from the request URI. In this case it will match any request which has a path
- * that _starts with_ the specified path.
+ * that's the same as the specified path.
  *
- * In the following example the handler will be called for all requests with a URI path that starts with
- * `/some/path/`.
- *
- * For example `/some/path/foo.html` and `/some/path/otherdir/blah.css` would both match.
+ * In the following example the handler will be called for a request `/some/path/`. We also ignore trailing slashes
+ * so it will be called for paths `/some/path` and `/some/path//` too:
  *
  * [source,$lang]
  * ----
  * {@link examples.Examples#example3}
  * ----
  *
- * Alternatively the path can be specified when creating the route:
+ * == Routing by paths that begin with something
+ *
+ * Often you want to route all requests that begin with a certain path. You could use a regex to do this, but a simply
+ * way is to use an asterisk `*` at the end of the path when declaring the route path.
+ *
+ * In the following example the handler will be called for any request with a URI path that starts with
+ * `/some/path/`.
+ *
+ * For example `/some/path/foo.html` and `/some/path/otherdir/blah.css` would both match.
+ *
+ * [source,$lang]
+ * ----
+ * {@link examples.Examples#example3_1}
+ * ----
+ *
+ * With any path it can also be specified when creating the route:
  *
  * [source,$lang]
  * ----
@@ -185,8 +198,6 @@
  * == Routing with regular expressions
  *
  * Regular expressions can also be used to match URI paths in routes.
- *
- * As in straight path matching the regex is not an *exact match* for the path, but matches the start of the path.
  *
  * [source,$lang]
  * ----

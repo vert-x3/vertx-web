@@ -165,7 +165,6 @@ public class StaticHandlerImpl implements StaticHandler {
             FileProps fprops = res.result();
             if (fprops == null) {
               // File does not exist
-              System.out.println("File does not exist");
               context.fail(404);
             } else if (fprops.isDirectory()) {
               if (directoryListing) {
