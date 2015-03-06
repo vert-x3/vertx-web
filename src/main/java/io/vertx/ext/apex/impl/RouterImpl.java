@@ -199,7 +199,13 @@ public class RouterImpl implements Router {
 
   @Override
   public Router mountSubRouter(String mountPoint, Router subRouter) {
-    route(mountPoint).handler(subRouter::handleContext).failureHandler(subRouter::handleFailure);
+    if (mountPoint.endsWith("*")) {
+      throw new IllegalArgumentException("Don't include * when mounting subrouter");
+    }
+    if (mountPoint.contains(":")) {
+      throw new IllegalArgumentException("Can't use patterns in subrouter mounts");
+    }
+    route(mountPoint + "*").handler(subRouter::handleContext).failureHandler(subRouter::handleFailure);
     return this;
   }
 

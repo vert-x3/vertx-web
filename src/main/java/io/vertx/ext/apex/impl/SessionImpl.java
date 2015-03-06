@@ -238,23 +238,18 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
   public Buffer writeToBuffer() {
     Buffer buff = Buffer.buffer();
     buff.appendLong(lastAccessed);
-    System.out.println("wrote last accessed:" + lastAccessed);
     Buffer dataBuf = writeDataToBuffer();
     buff.appendInt(dataBuf.length());
-    System.out.println("databuf length is " + dataBuf.length());
     buff.appendBuffer(dataBuf);
     return buff;
   }
 
   @Override
   public void readFromBuffer(Buffer buffer) {
-    System.out.println("read buffer length is " + buffer.length());
     int pos = 0;
     lastAccessed = buffer.getLong(pos);
-    System.out.println("read last accessed:" + lastAccessed);
     pos += 8;
     int len = buffer.getInt(pos);
-    System.out.println("lenght read is " + len);
     pos += 4;
     data = readDataFromBuffer(buffer, pos);
   }

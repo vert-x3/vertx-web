@@ -56,17 +56,28 @@ public class RouterTest extends ApexTestBase {
   @Test
   public void testRoutePathAndMethod() throws Exception {
     for (HttpMethod meth: METHODS) {
-      testRoutePathAndMethod(meth);
+      testRoutePathAndMethod(meth, true);
     }
   }
 
-  private void testRoutePathAndMethod(HttpMethod method) throws Exception {
+  @Test
+  public void testRoutePathAndMethodBegin() throws Exception {
+    for (HttpMethod meth: METHODS) {
+      testRoutePathAndMethod(meth, false);
+    }
+  }
+
+  private void testRoutePathAndMethod(HttpMethod method, boolean exact) throws Exception {
     String path = "/blah";
     router.clear();
-    router.route(method, path).handler(rc -> {
+    router.route(method, exact ? path : path + "*").handler(rc -> {
       rc.response().setStatusCode(200).setStatusMessage(rc.request().path()).end();
     });
-    testPath(method, path);
+    if (exact) {
+      testPathExact(method, path);
+    } else {
+      testPathBegin(method, path);
+    }
     for (HttpMethod meth: METHODS) {
       if (meth != method) {
         testRequest(meth, path, 404, "Not Found");
@@ -85,8 +96,23 @@ public class RouterTest extends ApexTestBase {
       rc.response().setStatusCode(200).setStatusMessage(rc.request().path()).end();
     });
 
-    testPath(path1);
-    testPath(path2);
+    testPathExact(path1);
+    testPathExact(path2);
+  }
+
+  @Test
+  public void testRoutePathOnlyBegin() throws Exception {
+    String path1 = "/blah";
+    router.route(path1 + "*").handler(rc -> {
+      rc.response().setStatusCode(200).setStatusMessage(rc.request().path()).end();
+    });
+    String path2 = "/quux";
+    router.route(path2 + "*").handler(rc -> {
+      rc.response().setStatusCode(200).setStatusMessage(rc.request().path()).end();
+    });
+
+    testPathBegin(path1);
+    testPathBegin(path2);
   }
 
   @Test
@@ -95,7 +121,16 @@ public class RouterTest extends ApexTestBase {
     router.route().path(path).handler(rc -> {
       rc.response().setStatusCode(200).setStatusMessage(rc.request().path()).end();
     });
-    testPath(path);
+    testPathExact(path);
+  }
+
+  @Test
+  public void testRoutePathBuilderBegin() throws Exception {
+    String path = "/blah";
+    router.route().path(path + "*").handler(rc -> {
+      rc.response().setStatusCode(200).setStatusMessage(rc.request().path()).end();
+    });
+    testPathBegin(path);
   }
 
   @Test
@@ -104,7 +139,17 @@ public class RouterTest extends ApexTestBase {
     router.route().path(path).method(HttpMethod.GET).handler(rc -> {
       rc.response().setStatusCode(200).setStatusMessage(rc.request().path()).end();
     });
-    testPath(HttpMethod.GET, path);
+    testPathExact(HttpMethod.GET, path);
+    testRequest(HttpMethod.POST, path, 404, "Not Found");
+  }
+
+  @Test
+  public void testRoutePathAndMethodBuilderBegin() throws Exception {
+    String path = "/blah";
+    router.route().path(path + "*").method(HttpMethod.GET).handler(rc -> {
+      rc.response().setStatusCode(200).setStatusMessage(rc.request().path()).end();
+    });
+    testPathBegin(HttpMethod.GET, path);
     testRequest(HttpMethod.POST, path, 404, "Not Found");
   }
 
@@ -114,22 +159,49 @@ public class RouterTest extends ApexTestBase {
     router.route().path(path).method(HttpMethod.GET).method(HttpMethod.POST).handler(rc -> {
       rc.response().setStatusCode(200).setStatusMessage(rc.request().path()).end();
     });
-    testPath(HttpMethod.GET, path);
-    testPath(HttpMethod.POST, path);
+    testPathExact(HttpMethod.GET, path);
+    testPathExact(HttpMethod.POST, path);
     testRequest(HttpMethod.PUT, path, 404, "Not Found");
   }
 
-  private void testPath(String path) throws Exception {
+  @Test
+  public void testRoutePathAndMultipleMethodBuilderBegin() throws Exception {
+    String path = "/blah";
+    router.route().path(path + "*").method(HttpMethod.GET).method(HttpMethod.POST).handler(rc -> {
+      rc.response().setStatusCode(200).setStatusMessage(rc.request().path()).end();
+    });
+    testPathBegin(HttpMethod.GET, path);
+    testPathBegin(HttpMethod.POST, path);
+    testRequest(HttpMethod.PUT, path, 404, "Not Found");
+  }
+
+  private void testPathBegin(String path) throws Exception {
     for (HttpMethod meth: METHODS) {
-      testPath(meth, path);
+      testPathBegin(meth, path);
     }
   }
 
-  private void testPath(HttpMethod method, String path) throws Exception {
+  private void testPathExact(String path) throws Exception {
+    for (HttpMethod meth: METHODS) {
+      testPathExact(meth, path);
+    }
+  }
+
+  private void testPathBegin(HttpMethod method, String path) throws Exception {
     testRequest(method, path, 200, path);
     testRequest(method, path + "wibble", 200, path + "wibble");
     testRequest(method, path + "/wibble", 200, path + "/wibble");
     testRequest(method, path + "/wibble/floob", 200, path + "/wibble/floob");
+    testRequest(method, path.substring(0, path.length() - 1), 404, "Not Found");
+    testRequest(method, "/", 404, "Not Found");
+    testRequest(method, "/" + UUID.randomUUID().toString(), 404, "Not Found");
+  }
+
+  private void testPathExact(HttpMethod method, String path) throws Exception {
+    testRequest(method, path, 200, path);
+    testRequest(method, path + "wibble", 404, "Not Found");
+    testRequest(method, path + "/wibble", 404, "Not Found");
+    testRequest(method, path + "/wibble/floob", 404, "Not Found");
     testRequest(method, path.substring(0, path.length() - 1), 404, "Not Found");
     testRequest(method, "/", 404, "Not Found");
     testRequest(method, "/" + UUID.randomUUID().toString(), 404, "Not Found");
@@ -464,7 +536,7 @@ public class RouterTest extends ApexTestBase {
     router.route(path).handler(rc -> {
       throw new RuntimeException("ouch!");
     });
-    router.route("/bl").failureHandler(frc -> {
+    router.route("/bl*").failureHandler(frc -> {
       frc.response().setStatusCode(555).setStatusMessage("oh dear").end();
     });
     testRequest(HttpMethod.GET, path, 555, "oh dear");
@@ -476,7 +548,7 @@ public class RouterTest extends ApexTestBase {
     router.route(path).handler(rc -> {
       rc.fail(400);
     });
-    router.route("/bl").failureHandler(frc -> {
+    router.route("/bl*").failureHandler(frc -> {
       assertEquals(400, frc.statusCode());
       frc.response().setStatusCode(400).setStatusMessage("oh dear").end();
     });
@@ -521,7 +593,7 @@ public class RouterTest extends ApexTestBase {
     router.route("/:abc").handler(rc -> {
       rc.response().setStatusMessage(rc.request().params().get("abc")).end();
     });
-    testPattern("/tim", "tim", false);
+    testPattern("/tim", "tim");
   }
 
   @Test
@@ -529,7 +601,7 @@ public class RouterTest extends ApexTestBase {
     router.route(HttpMethod.GET, "/:abc").handler(rc -> {
       rc.response().setStatusMessage(rc.request().params().get("abc")).end();
     });
-    testPattern("/tim", "tim", false);
+    testPattern("/tim", "tim");
     testRequest(HttpMethod.POST, "/tim", 404, "Not Found");
   }
 
@@ -538,7 +610,7 @@ public class RouterTest extends ApexTestBase {
     router.route().path("/:abc").handler(rc -> {
       rc.response().setStatusMessage(rc.request().params().get("abc")).end();
     });
-    testPattern("/tim", "tim", false);
+    testPattern("/tim", "tim");
   }
 
   @Test
@@ -546,7 +618,7 @@ public class RouterTest extends ApexTestBase {
     router.route("/blah/:abc").handler(rc -> {
       rc.response().setStatusMessage(rc.request().params().get("abc")).end();
     });
-    testPattern("/blah/tim", "tim", false);
+    testPattern("/blah/tim", "tim");
   }
 
   @Test
@@ -554,7 +626,7 @@ public class RouterTest extends ApexTestBase {
     router.route("/blah/:abc/blah").handler(rc -> {
       rc.response().setStatusMessage(rc.request().params().get("abc")).end();
     });
-    testPattern("/blah/tim/blah", "tim", true);
+    testPattern("/blah/tim/blah", "tim");
   }
 
   @Test
@@ -562,7 +634,7 @@ public class RouterTest extends ApexTestBase {
     router.route("/blah/:abc/foo").handler(rc -> {
       rc.response().setStatusMessage(rc.request().params().get("abc")).end();
     });
-    testPattern("/blah/tim/foo", "tim", true);
+    testPattern("/blah/tim/foo", "tim");
   }
 
   @Test
@@ -571,7 +643,7 @@ public class RouterTest extends ApexTestBase {
       MultiMap params = rc.request().params();
       rc.response().setStatusMessage(params.get("abc") + params.get("def") + params.get("ghi")).end();
     });
-    testPattern("/blah/tim/julien/nick", "timjuliennick", false);
+    testPattern("/blah/tim/julien/nick", "timjuliennick");
   }
 
   @Test
@@ -580,7 +652,7 @@ public class RouterTest extends ApexTestBase {
       MultiMap params = rc.request().params();
       rc.response().setStatusMessage(params.get("abc") + params.get("def") + params.get("ghi")).end();
     });
-    testPattern("/blah/tim/julien/nick/blah", "timjuliennick", true);
+    testPattern("/blah/tim/julien/nick/blah", "timjuliennick");
   }
 
   @Test
@@ -589,17 +661,14 @@ public class RouterTest extends ApexTestBase {
       MultiMap params = rc.request().params();
       rc.response().setStatusMessage(params.get("abc") + params.get("def") + params.get("ghi")).end();
     });
-    testPattern("/blah/tim/quux/julien/eep/nick", "timjuliennick", false);
+    testPattern("/blah/tim/quux/julien/eep/nick", "timjuliennick");
   }
 
-  private void testPattern(String pathRoot, String expected, boolean testWrongEnd) throws Exception {
+  private void testPattern(String pathRoot, String expected) throws Exception {
     testRequest(HttpMethod.GET, pathRoot, 200, expected);
-    testRequest(HttpMethod.GET, pathRoot + "/", 200, expected);
-    testRequest(HttpMethod.GET, pathRoot + "/wibble", 200, expected);
-    testRequest(HttpMethod.GET, pathRoot + "/wibble/blibble", 200, expected);
-    if (testWrongEnd) {
-      testRequest(HttpMethod.GET, pathRoot.substring(0, pathRoot.length() - 1), 404, "Not Found");
-    }
+    testRequest(HttpMethod.GET, pathRoot + "/", 404, "Not Found");
+    testRequest(HttpMethod.GET, pathRoot + "/wibble", 404, "Not Found");
+    testRequest(HttpMethod.GET, pathRoot + "/wibble/blibble", 404, "Not Found");
   }
 
   @Test
@@ -636,7 +705,7 @@ public class RouterTest extends ApexTestBase {
       MultiMap params = rc.request().params();
       rc.response().setStatusMessage(params.get("param0") + params.get("param1")).end();
     });
-    testPattern("/dog/cat", "dogcat", false);
+    testPattern("/dog/cat", "dogcat");
   }
 
   @Test
@@ -645,7 +714,7 @@ public class RouterTest extends ApexTestBase {
       MultiMap params = rc.request().params();
       rc.response().setStatusMessage(params.get("param0") + params.get("param1")).end();
     });
-    testPattern("/dog/cat", "dogcat", false);
+    testPattern("/dog/cat", "dogcat");
   }
 
   @Test
@@ -654,7 +723,7 @@ public class RouterTest extends ApexTestBase {
       MultiMap params = rc.request().params();
       rc.response().setStatusMessage(params.get("param0") + params.get("param1")).end();
     });
-    testPattern("/dog/cat", "dogcat", false);
+    testPattern("/dog/cat", "dogcat");
     testRequest(HttpMethod.POST, "/dog/cat", 404, "Not Found");
   }
 
@@ -664,7 +733,7 @@ public class RouterTest extends ApexTestBase {
       MultiMap params = rc.request().params();
       rc.response().setStatusMessage(params.get("param0") + params.get("param1")).end();
     });
-    testPattern("/dog/cat/blah", "dogcat", true);
+    testPattern("/dog/cat/blah", "dogcat");
   }
 
   @Test
@@ -672,7 +741,7 @@ public class RouterTest extends ApexTestBase {
     router.routeWithRegex(".*foo.txt").handler(rc -> {
       rc.response().setStatusMessage("ok").end();
     });
-    testPattern("/dog/cat/foo.txt", "ok", true);
+    testPattern("/dog/cat/foo.txt", "ok");
     testRequest(HttpMethod.POST, "/dog/cat/foo.bar", 404, "Not Found");
 
   }
@@ -1045,8 +1114,22 @@ public class RouterTest extends ApexTestBase {
   }
 
   @Test
-  public void testGetWithPath() throws Exception {
+  public void testGetWithPathExact() throws Exception {
     router.get("/somepath/").handler(rc -> {
+      rc.response().setStatusMessage("foo").end();
+    });
+    testRequest(HttpMethod.GET, "/somepath/", 200, "foo");
+    testRequest(HttpMethod.GET, "/otherpath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.POST, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.PUT, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.DELETE, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.HEAD, "/somepath/whatever", 404, "Not Found");
+  }
+
+  @Test
+  public void testGetWithPathBegin() throws Exception {
+    router.get("/somepath/*").handler(rc -> {
       rc.response().setStatusMessage("foo").end();
     });
     testRequest(HttpMethod.GET, "/somepath/whatever", 200, "foo");
@@ -1086,8 +1169,22 @@ public class RouterTest extends ApexTestBase {
   }
 
   @Test
-  public void testPostWithPath() throws Exception {
+  public void testPostWithPathExact() throws Exception {
     router.post("/somepath/").handler(rc -> {
+      rc.response().setStatusMessage("foo").end();
+    });
+    testRequest(HttpMethod.POST, "/somepath/", 200, "foo");
+    testRequest(HttpMethod.POST, "/otherpath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.PUT, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.DELETE, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.HEAD, "/somepath/whatever", 404, "Not Found");
+  }
+
+  @Test
+  public void testPostWithPathBegin() throws Exception {
+    router.post("/somepath/*").handler(rc -> {
       rc.response().setStatusMessage("foo").end();
     });
     testRequest(HttpMethod.POST, "/somepath/whatever", 200, "foo");
@@ -1127,8 +1224,22 @@ public class RouterTest extends ApexTestBase {
   }
 
   @Test
-  public void testPutWithPath() throws Exception {
+  public void testPutWithPathExact() throws Exception {
     router.put("/somepath/").handler(rc -> {
+      rc.response().setStatusMessage("foo").end();
+    });
+    testRequest(HttpMethod.PUT, "/somepath/", 200, "foo");
+    testRequest(HttpMethod.PUT, "/otherpath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.POST, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.DELETE, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.HEAD, "/somepath/whatever", 404, "Not Found");
+  }
+
+  @Test
+  public void testPutWithPathBegin() throws Exception {
+    router.put("/somepath/*").handler(rc -> {
       rc.response().setStatusMessage("foo").end();
     });
     testRequest(HttpMethod.PUT, "/somepath/whatever", 200, "foo");
@@ -1168,8 +1279,22 @@ public class RouterTest extends ApexTestBase {
   }
 
   @Test
-  public void testDeleteWithPath() throws Exception {
+  public void testDeleteWithPathExact() throws Exception {
     router.delete("/somepath/").handler(rc -> {
+      rc.response().setStatusMessage("foo").end();
+    });
+    testRequest(HttpMethod.DELETE, "/somepath/", 200, "foo");
+    testRequest(HttpMethod.DELETE, "/otherpath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.POST, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.PUT, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.HEAD, "/somepath/whatever", 404, "Not Found");
+  }
+
+  @Test
+  public void testDeleteWithPathBegin() throws Exception {
+    router.delete("/somepath/*").handler(rc -> {
       rc.response().setStatusMessage("foo").end();
     });
     testRequest(HttpMethod.DELETE, "/somepath/whatever", 200, "foo");
@@ -1209,8 +1334,22 @@ public class RouterTest extends ApexTestBase {
   }
 
   @Test
-  public void testOptionsWithPath() throws Exception {
+  public void testOptionsWithPathExact() throws Exception {
     router.options("/somepath/").handler(rc -> {
+      rc.response().setStatusMessage("foo").end();
+    });
+    testRequest(HttpMethod.OPTIONS, "/somepath/", 200, "foo");
+    testRequest(HttpMethod.OPTIONS, "/otherpath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.POST, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.PUT, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.DELETE, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.HEAD, "/somepath/whatever", 404, "Not Found");
+  }
+
+  @Test
+  public void testOptionsWithPathBegin() throws Exception {
+    router.options("/somepath/*").handler(rc -> {
       rc.response().setStatusMessage("foo").end();
     });
     testRequest(HttpMethod.OPTIONS, "/somepath/whatever", 200, "foo");
@@ -1250,8 +1389,22 @@ public class RouterTest extends ApexTestBase {
   }
 
   @Test
-  public void testHeadWithPath() throws Exception {
+  public void testHeadWithPathExact() throws Exception {
     router.head("/somepath/").handler(rc -> {
+      rc.response().setStatusMessage("foo").end();
+    });
+    testRequest(HttpMethod.HEAD, "/somepath/", 200, "foo");
+    testRequest(HttpMethod.HEAD, "/otherpath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.POST, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.PUT, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.DELETE, "/somepath/whatever", 404, "Not Found");
+  }
+
+  @Test
+  public void testHeadWithPathBegin() throws Exception {
+    router.head("/somepath/*").handler(rc -> {
       rc.response().setStatusMessage("foo").end();
     });
     testRequest(HttpMethod.HEAD, "/somepath/whatever", 200, "foo");
@@ -1277,6 +1430,39 @@ public class RouterTest extends ApexTestBase {
     testRequest(HttpMethod.DELETE, "/somepath/whatever", 404, "Not Found");
   }
 
+  @Test
+  public void testRouteNormalised1() throws Exception {
+    router.route("/foo").handler(rc -> {
+      rc.response().setStatusMessage("socks").end();
+    });
+    testRequest(HttpMethod.GET, "/foo", 200, "socks");
+    testRequest(HttpMethod.GET, "/foo/", 200, "socks");
+    testRequest(HttpMethod.GET, "//foo/", 200, "socks");
+    testRequest(HttpMethod.GET, "//foo//", 200, "socks");
+    testRequest(HttpMethod.GET, "//foo/////", 200, "socks");
+  }
+
+  @Test
+  public void testRouteNormalised2() throws Exception {
+    router.route("/foo/").handler(rc -> {
+      rc.response().setStatusMessage("socks").end();
+    });
+    testRequest(HttpMethod.GET, "/foo", 200, "socks");
+    testRequest(HttpMethod.GET, "/foo/", 200, "socks");
+    testRequest(HttpMethod.GET, "//foo/", 200, "socks");
+    testRequest(HttpMethod.GET, "//foo//", 200, "socks");
+    testRequest(HttpMethod.GET, "//foo/////", 200, "socks");
+  }
+
+  @Test
+  public void testRouteNormalised3() throws Exception {
+    router.route("/").handler(rc -> {
+      rc.response().setStatusMessage("pants").end();
+    });
+    testRequest(HttpMethod.GET, "/", 200, "pants");
+    testRequest(HttpMethod.GET, "//", 200, "pants");
+    testRequest(HttpMethod.GET, "///", 200, "pants");
+  }
 
 
 

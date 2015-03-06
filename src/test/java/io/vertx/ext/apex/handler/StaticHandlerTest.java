@@ -422,7 +422,7 @@ public class StaticHandlerTest extends ApexTestBase {
   @Test
   public void testServerRelativeToPath() throws Exception {
     router.clear();
-    router.route("/somedir/").handler(stat);
+    router.route("/somedir/*").handler(stat);
     testRequest(HttpMethod.GET, "/somedir/otherpage.html", 200, "OK", "<html><body>Other page</body></html>");
   }
 
@@ -430,7 +430,7 @@ public class StaticHandlerTest extends ApexTestBase {
   public void testServerRelativeToPathAndMountPoint() throws Exception {
     router.clear();
     Router subRouter = Router.router(vertx);
-    subRouter.route("/somedir/").handler(stat);
+    subRouter.route("/somedir/*").handler(stat);
     router.mountSubRouter("/mymount/", subRouter);
     testRequest(HttpMethod.GET, "/mymount/somedir/otherpage.html", 200, "OK", "<html><body>Other page</body></html>");
   }

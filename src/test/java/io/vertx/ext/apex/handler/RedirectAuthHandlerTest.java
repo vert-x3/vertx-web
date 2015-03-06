@@ -147,7 +147,7 @@ public class RedirectAuthHandlerTest extends AuthHandlerTestBase {
     if (permissions != null) {
       authHandler.addPermissions(permissions);
     }
-    router.route("/protected").handler(authHandler);
+    router.route("/protected/*").handler(authHandler);
     router.route("/protected/somepage").handler(handler);
     router.route("/loginpage").handler(rc -> {
       rc.response().putHeader("content-type", "text/html").end(loginHTML);

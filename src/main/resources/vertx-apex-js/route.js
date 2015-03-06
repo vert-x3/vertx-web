@@ -224,6 +224,22 @@ var Route = function(j_val) {
   };
 
   /**
+   If true then the normalised request path will be used when routing (e.g. removing duplicate /)
+   Default is true
+
+   @public
+   @param useNormalisedPath {boolean} use normalised path for routing? 
+   @return {Route} a reference to this, so the API can be used fluently
+   */
+  this.useNormalisedPath = function(useNormalisedPath) {
+    var __args = arguments;
+    if (__args.length === 1 && typeof __args[0] ==='boolean') {
+      j_route.useNormalisedPath(useNormalisedPath);
+      return that;
+    } else utils.invalidArgs();
+  };
+
+  /**
    @return the path prefix (if any) for this route
 
    @public

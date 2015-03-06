@@ -24,6 +24,27 @@ import org.junit.Test;
  */
 public class SubRouterTest extends ApexTestBase {
 
+  @Test(expected = IllegalArgumentException.class)
+  public void testInvalidMountPoint1() throws Exception {
+    Router subRouter = Router.router(vertx);
+
+    router.mountSubRouter("/subpath*", subRouter);
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testInvalidMountPoint2() throws Exception {
+    Router subRouter = Router.router(vertx);
+
+    router.mountSubRouter("/subpath/*", subRouter);
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testInvalidMountPoint3() throws Exception {
+    Router subRouter = Router.router(vertx);
+
+    router.mountSubRouter("subpath", subRouter);
+  }
+
   @Test
   public void testSimple() throws Exception {
     Router subRouter = Router.router(vertx);
@@ -161,7 +182,7 @@ public class SubRouterTest extends ApexTestBase {
   public void testChain2() throws Exception {
     Router subRouter = Router.router(vertx);
 
-    router.route("/foo").handler(rc -> {
+    router.route("/foo/*").handler(rc -> {
       rc.response().setChunked(true);
       rc.response().write("red");
       rc.next();
@@ -185,7 +206,7 @@ public class SubRouterTest extends ApexTestBase {
       rc.next();
     });
 
-    router.route("/foo").handler(rc -> {
+    router.route("/foo/*").handler(rc -> {
       assertNull(rc.mountPoint());
       rc.response().write("pie");
       rc.response().end();
@@ -234,18 +255,18 @@ public class SubRouterTest extends ApexTestBase {
     Router subRouter2 = Router.router(vertx);
     Router subRouter3 = Router.router(vertx);
 
-    router.route("/foo").handler(rc -> {
+    router.route("/foo/*").handler(rc -> {
       rc.put("key0", "blah0");
       rc.next();
     });
 
     router.mountSubRouter("/foo", subRouter1);
-    subRouter1.route("/bar").handler(rc -> {
+    subRouter1.route("/bar/*").handler(rc -> {
       rc.put("key1", "blah1");
       rc.next();
     });
     subRouter1.mountSubRouter("/bar", subRouter2);
-    subRouter2.route("/wibble").handler(rc -> {
+    subRouter2.route("/wibble/*").handler(rc -> {
       rc.put("key2", "blah2");
       rc.next();
     });
@@ -256,7 +277,7 @@ public class SubRouterTest extends ApexTestBase {
       rc.next();
     });
 
-    router.route("/foo").handler(rc -> {
+    router.route("/foo/*").handler(rc -> {
       assertEquals("blah0", rc.get("key0"));
       assertEquals("blah1", rc.get("key1"));
       assertEquals("blah2", rc.get("key2"));
@@ -264,7 +285,7 @@ public class SubRouterTest extends ApexTestBase {
       rc.response().setStatusMessage(rc.currentRoute().getPath()).end();
     });
 
-    testRequest(HttpMethod.GET, "/foo/bar/wibble/eek", 200, "/foo");
+    testRequest(HttpMethod.GET, "/foo/bar/wibble/eek", 200, "/foo/");
   }
 
   @Test
@@ -286,11 +307,11 @@ public class SubRouterTest extends ApexTestBase {
 
     router.mountSubRouter("/subpath", subRouter);
 
-    subRouter.route("/foo").handler(rc -> {
+    subRouter.route("/foo/*").handler(rc -> {
       throw new RuntimeException("Balderdash!");
     });
 
-    router.route("/subpath").failureHandler(rc -> {
+    router.route("/subpath/*").failureHandler(rc -> {
       assertEquals(-1, rc.statusCode());
       assertEquals("Balderdash!", rc.failure().getMessage());
       rc.response().setStatusCode(555).setStatusMessage("Badgers").end();
@@ -305,11 +326,11 @@ public class SubRouterTest extends ApexTestBase {
 
     router.mountSubRouter("/subpath", subRouter);
 
-    subRouter.route("/foo").handler(rc -> {
+    subRouter.route("/foo/*").handler(rc -> {
       throw new RuntimeException("Balderdash!");
     });
 
-    subRouter.route("/foo").failureHandler(rc -> {
+    subRouter.route("/foo/*").failureHandler(rc -> {
       assertEquals(-1, rc.statusCode());
       assertEquals("Balderdash!", rc.failure().getMessage());
       rc.response().setStatusCode(555).setStatusMessage("Badgers").end();
@@ -324,11 +345,11 @@ public class SubRouterTest extends ApexTestBase {
 
     router.mountSubRouter("/subpath", subRouter);
 
-    subRouter.route("/foo").handler(rc -> {
+    subRouter.route("/foo/*").handler(rc -> {
       rc.fail(557);
     });
 
-    router.route("/subpath").failureHandler(rc -> {
+    router.route("/subpath/*").failureHandler(rc -> {
       assertEquals(557, rc.statusCode());
       assertNull(rc.failure());
       rc.response().setStatusCode(rc.statusCode()).setStatusMessage("Chipmunks").end();
@@ -343,11 +364,11 @@ public class SubRouterTest extends ApexTestBase {
 
     router.mountSubRouter("/subpath", subRouter);
 
-    subRouter.route("/foo").handler(rc -> {
+    subRouter.route("/foo/*").handler(rc -> {
       rc.fail(557);
     });
 
-    router.route("/subpath").failureHandler(rc -> {
+    router.route("/subpath/*").failureHandler(rc -> {
       assertEquals(557, rc.statusCode());
       assertNull(rc.failure());
       rc.response().setStatusCode(rc.statusCode()).setStatusMessage("Chipmunks").end();
@@ -356,21 +377,16 @@ public class SubRouterTest extends ApexTestBase {
     testRequest(HttpMethod.GET, "/subpath/foo/bar", 557, "Chipmunks");
   }
 
-  @Test
+  @Test(expected = IllegalArgumentException.class)
   public void testSubRoutePattern() throws Exception {
     Router subRouter = Router.router(vertx);
     router.mountSubRouter("/foo/:abc/bar", subRouter);
-    subRouter.route("/blah").handler(rc -> {
-      rc.response().setStatusMessage("sausages").end();
-    });
-    testRequest(HttpMethod.GET, "/foo/aardvark/bar/blah", 500, "Internal Server Error");
-
   }
 
   @Test
   public void testSubRouteRegex() throws Exception {
     Router subRouter = Router.router(vertx);
-    router.routeWithRegex("/foo").handler(subRouter::handleContext).failureHandler(subRouter::handleFailure);
+    router.routeWithRegex("/foo/.*").handler(subRouter::handleContext).failureHandler(subRouter::handleFailure);
     subRouter.route("/blah").handler(rc -> {
       rc.response().setStatusMessage("sausages").end();
     });
@@ -387,6 +403,60 @@ public class SubRouterTest extends ApexTestBase {
     });
     testRequest(HttpMethod.GET, "/api/test", 200, "sausages");
 
+  }
+
+  @Test
+  public void testNormalised1() throws Exception {
+    Router subRouter = Router.router(vertx);
+    router.mountSubRouter("/api", subRouter);
+    subRouter.route("/foo").handler(rc -> {
+      rc.response().setStatusMessage("sausages").end();
+    });
+    testRequest(HttpMethod.GET, "/api/foo", 200, "sausages");
+    testRequest(HttpMethod.GET, "/api/foo/", 200, "sausages");
+    testRequest(HttpMethod.GET, "/api/foo//", 200, "sausages");
+    testRequest(HttpMethod.GET, "//api//foo//", 200, "sausages");
+    testRequest(HttpMethod.GET, "//api//foo///", 200, "sausages");
+  }
+
+  @Test
+  public void testNormalised2() throws Exception {
+    Router subRouter = Router.router(vertx);
+    router.mountSubRouter("/api/", subRouter);
+    subRouter.route("/foo").handler(rc -> {
+      rc.response().setStatusMessage("sausages").end();
+    });
+    testRequest(HttpMethod.GET, "/api/foo", 200, "sausages");
+    testRequest(HttpMethod.GET, "/api/foo/", 200, "sausages");
+    testRequest(HttpMethod.GET, "/api/foo//", 200, "sausages");
+    testRequest(HttpMethod.GET, "//api//foo//", 200, "sausages");
+    testRequest(HttpMethod.GET, "//api//foo///", 200, "sausages");
+  }
+
+  @Test
+  public void testNormalised3() throws Exception {
+    Router subRouter = Router.router(vertx);
+    router.mountSubRouter("/api", subRouter);
+    subRouter.route("/").handler(rc -> {
+      rc.response().setStatusMessage("sausages").end();
+    });
+    testRequest(HttpMethod.GET, "/api/", 200, "sausages");
+    testRequest(HttpMethod.GET, "/api", 200, "sausages");
+    testRequest(HttpMethod.GET, "/api///", 200, "sausages");
+    testRequest(HttpMethod.GET, "//api//", 200, "sausages");
+  }
+
+  @Test
+  public void testNormalised4() throws Exception {
+    Router subRouter = Router.router(vertx);
+    router.mountSubRouter("/api/", subRouter);
+    subRouter.route("/").handler(rc -> {
+      rc.response().setStatusMessage("sausages").end();
+    });
+    testRequest(HttpMethod.GET, "/api/", 200, "sausages");
+    testRequest(HttpMethod.GET, "/api", 200, "sausages");
+    testRequest(HttpMethod.GET, "/api///", 200, "sausages");
+    testRequest(HttpMethod.GET, "//api//", 200, "sausages");
   }
 
 }

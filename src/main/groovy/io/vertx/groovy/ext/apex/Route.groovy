@@ -153,6 +153,16 @@ public class Route {
     return this;
   }
   /**
+   * If true then the normalised request path will be used when routing (e.g. removing duplicate /)
+   * Default is true
+   * @param useNormalisedPath use normalised path for routing?
+   * @return a reference to this, so the API can be used fluently
+   */
+  public Route useNormalisedPath(boolean useNormalisedPath) {
+    this.delegate.useNormalisedPath(useNormalisedPath);
+    return this;
+  }
+  /**
    * @return the path prefix (if any) for this route
    * @return 
    */

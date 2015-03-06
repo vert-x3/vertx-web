@@ -142,6 +142,16 @@ public interface Route {
   Route enable();
 
   /**
+   * If true then the normalised request path will be used when routing (e.g. removing duplicate /)
+   * Default is true
+   *
+   * @param useNormalisedPath  use normalised path for routing?
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  Route useNormalisedPath(boolean useNormalisedPath);
+
+  /**
    * @return the path prefix (if any) for this route
    */
   String getPath();

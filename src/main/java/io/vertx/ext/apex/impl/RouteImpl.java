@@ -53,27 +53,7 @@ public class RouteImpl implements Route {
   private boolean added;
   private Pattern pattern;
   private Set<String> groups;
-
-  @Override
-  public String toString() {
-    StringBuilder sb = new StringBuilder("Route[ ");
-    sb.append("path:").append(path);
-    sb.append(" pattern:").append(pattern);
-    sb.append(" handler:").append(contextHandler);
-    sb.append(" failureHandler:").append(failureHandler);
-    sb.append(" order:").append(order);
-    sb.append(" methods:[");
-    int cnt = 0;
-    for (HttpMethod method: methods) {
-      sb.append(method);
-      cnt++;
-      if (cnt < methods.size()) {
-        sb.append(",");
-      }
-    }
-    sb.append("]]@").append(System.identityHashCode(this));
-    return sb.toString();
-  }
+  private boolean useNormalisedPath = true;
 
   RouteImpl(RouterImpl router, int order) {
     this.router = router;
@@ -118,8 +98,8 @@ public class RouteImpl implements Route {
   }
 
   @Override
-  public synchronized Route pathRegex(String path) {
-    setRegex(path);
+  public synchronized Route pathRegex(String regex) {
+    setRegex(regex);
     return this;
   }
 
@@ -188,8 +168,35 @@ public class RouteImpl implements Route {
   }
 
   @Override
+  public Route useNormalisedPath(boolean useNormalisedPath) {
+    this.useNormalisedPath = useNormalisedPath;
+    return this;
+  }
+
+  @Override
   public String getPath() {
     return path;
+  }
+
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder("Route[ ");
+    sb.append("path:").append(path);
+    sb.append(" pattern:").append(pattern);
+    sb.append(" handler:").append(contextHandler);
+    sb.append(" failureHandler:").append(failureHandler);
+    sb.append(" order:").append(order);
+    sb.append(" methods:[");
+    int cnt = 0;
+    for (HttpMethod method: methods) {
+      sb.append(method);
+      cnt++;
+      if (cnt < methods.size()) {
+        sb.append(",");
+      }
+    }
+    sb.append("]]@").append(System.identityHashCode(this));
+    return sb.toString();
   }
 
   synchronized void handleContext(RoutingContext context) {
@@ -204,19 +211,8 @@ public class RouteImpl implements Route {
     }
   }
 
-  private boolean pathMatches(String mountPoint, HttpServerRequest request) {
-    //System.out.println("Matches, mountPoint: " + mountPoint);
-    String requestPath = request.path();
-//    System.out.println("request path: " + requestPath);
-//    System.out.println("path: " + path);
-    if (mountPoint == null) {
-      return requestPath.startsWith(path);
-    } else {
-      return requestPath.startsWith(mountPoint + path);
-    }
-  }
-
   synchronized boolean matches(RoutingContext context, String mountPoint, boolean failure) {
+
     if (failure && failureHandler == null || !failure && contextHandler == null) {
       return false;
     }
@@ -227,7 +223,7 @@ public class RouteImpl implements Route {
     if (!methods.isEmpty() && !methods.contains(request.method())) {
       return false;
     }
-    if (path != null && !pathMatches(mountPoint, request)) {
+    if (path != null && !pathMatches(mountPoint, context)) {
       return false;
     }
     if (pattern != null) {
@@ -331,18 +327,47 @@ public class RouteImpl implements Route {
     return actualCT.contains(allowsCT);
   }
 
+  private boolean pathMatches(String mountPoint, RoutingContext ctx) {
+    String thePath = mountPoint == null ? path : mountPoint + path;
+    String requestPath = useNormalisedPath ? ctx.normalisedPath() : ctx.request().path();
+    if (exactPath) {
+      return pathMatchesExact(requestPath, thePath);
+    } else {
+      return requestPath.startsWith(removeTrailing(thePath));
+    }
+  }
+
+  private boolean pathMatchesExact(String path1, String path2) {
+    // Ignore trailing slash when matching paths
+    return removeTrailing(path1).equals(removeTrailing(path2));
+  }
+
+  private String removeTrailing(String path) {
+    int i = path.length();
+    if (path.charAt(i - 1) == '/') {
+      path = path.substring(0, i - 1);
+    }
+    return path;
+  }
+
   private void setPath(String path) {
     // See if the path contains ":" - if so then it contains parameter capture groups and we have to generate
     // a regex for that
     if (path.indexOf(':') != -1) {
       createPatternRegex(path);
     } else {
-      this.path = path;
+      if (path.charAt(path.length() - 1) != '*') {
+        exactPath = true;
+        this.path = path;
+      } else {
+        exactPath = false;
+        this.path = path.substring(0, path.length() - 1);
+      }
     }
   }
 
   private void setRegex(String regex) {
-    pattern = Pattern.compile(regex + "(/.*)?"); // The regex is not an exact match - it matches the *start* of the path
+    pattern = Pattern.compile(regex);
   }
 
   private void createPatternRegex(String path) {
@@ -359,9 +384,7 @@ public class RouteImpl implements Route {
       groups.add(group);
     }
     m.appendTail(sb);
-    sb.append("(/.*)?"); // Match anything after that - i.e. the regex matches the *start* of the path
     path = sb.toString();
-
     pattern = Pattern.compile(path);
   }
 
@@ -370,6 +393,8 @@ public class RouteImpl implements Route {
       throw new IllegalArgumentException("Path must start with /");
     }
   }
+
+  private boolean exactPath;
 
   int order() {
     return order;

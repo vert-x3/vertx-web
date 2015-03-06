@@ -44,7 +44,6 @@ import io.vertx.core.shareddata.LocalMap;
 import io.vertx.ext.apex.Router;
 import io.vertx.ext.apex.RoutingContext;
 import io.vertx.ext.apex.handler.sockjs.*;
-import io.vertx.ext.apex.impl.Utils;
 
 import java.security.MessageDigest;
 import java.text.SimpleDateFormat;
@@ -96,6 +95,11 @@ public class SockJSHandlerImpl implements SockJSHandler, Handler<RoutingContext>
   @Override
   public SockJSHandler socketHandler(Handler<SockJSSocket> sockHandler) {
 
+    router.route("/").useNormalisedPath(false).handler(rc -> {
+      if (log.isTraceEnabled()) log.trace("Returning welcome response");
+      rc.response().putHeader("Content-Type", "text/plain; charset=UTF-8").end("Welcome to SockJS!\n");
+    });
+
     // Iframe handlers
     String iframeHTML = IFRAME_TEMPLATE.replace("{{ sockjs_url }}", options.getLibraryURL());
     Handler<RoutingContext> iframeHandler = createIFrameHandler(iframeHTML);
@@ -144,19 +148,7 @@ public class SockJSHandlerImpl implements SockJSHandler, Handler<RoutingContext>
       new WebSocketTransport(vertx, router, sessions, options, sockHandler);
       new RawWebSocketTransport(vertx, router, sockHandler);
     }
-    // Catch all for any other requests on this app
 
-    router.route().handler(rc -> {
-      System.out.println("mount point is " + rc.mountPoint());
-      String offset = Utils.pathOffset(rc.normalisedPath(), rc);
-      if ("/".equals(offset) || "".equals(offset)) {
-        if (log.isTraceEnabled()) log.trace("Returning welcome response");
-        rc.response().putHeader("Content-Type", "text/plain; charset=UTF-8").end("Welcome to SockJS!\n");
-      } else {
-        if (log.isTraceEnabled()) log.trace("Request: " + rc.request().uri() + " does not match, returning 404");
-        rc.response().setStatusCode(404).end();
-      }
-    });
     return this;
   }
 
@@ -284,17 +276,17 @@ public class SockJSHandlerImpl implements SockJSHandler, Handler<RoutingContext>
 
     // These applications are required by the SockJS protocol and QUnit tests
 
-    router.route("/echo").handler(SockJSHandler.create(vertx, new SockJSHandlerOptions().setMaxBytesStreaming(4096)).socketHandler(
+    router.route("/echo/*").handler(SockJSHandler.create(vertx, new SockJSHandlerOptions().setMaxBytesStreaming(4096)).socketHandler(
       sock -> sock.handler(sock::write)));
-    router.route("/close").handler(SockJSHandler.create(vertx, new SockJSHandlerOptions().setMaxBytesStreaming(4096)).socketHandler(
+    router.route("/close/*").handler(SockJSHandler.create(vertx, new SockJSHandlerOptions().setMaxBytesStreaming(4096)).socketHandler(
       sock -> sock.close()));
-    router.route("/disabled_websocket_echo").handler(SockJSHandler.create(vertx, new SockJSHandlerOptions()
+    router.route("/disabled_websocket_echo/*").handler(SockJSHandler.create(vertx, new SockJSHandlerOptions()
       .setMaxBytesStreaming(4096).addDisabledTransport("WEBSOCKET")).socketHandler(sock -> sock.handler(sock::write)));
-    router.route("/ticker").handler(SockJSHandler.create(vertx, new SockJSHandlerOptions().setMaxBytesStreaming(4096)).socketHandler(sock -> {
+    router.route("/ticker/*").handler(SockJSHandler.create(vertx, new SockJSHandlerOptions().setMaxBytesStreaming(4096)).socketHandler(sock -> {
       long timerID = vertx.setPeriodic(1000, tid -> sock.write(buffer("tick!")));
       sock.endHandler(v -> vertx.cancelTimer(timerID));
     }));
-    router.route("/amplify").handler(SockJSHandler.create(vertx, new SockJSHandlerOptions().setMaxBytesStreaming(4096)).socketHandler(
+    router.route("/amplify/*").handler(SockJSHandler.create(vertx, new SockJSHandlerOptions().setMaxBytesStreaming(4096)).socketHandler(
       sock -> {
         sock.handler(data -> {
           String str = data.toString();
@@ -310,7 +302,7 @@ public class SockJSHandlerImpl implements SockJSHandler, Handler<RoutingContext>
           sock.write(buff);
         });
       }));
-    router.route("/broadcast").handler(SockJSHandler.create(vertx, new SockJSHandlerOptions().setMaxBytesStreaming(4096)).socketHandler(
+    router.route("/broadcast/*").handler(SockJSHandler.create(vertx, new SockJSHandlerOptions().setMaxBytesStreaming(4096)).socketHandler(
       new Handler<SockJSSocket>() {
         Set<String> connections = new HashSet<>();
 
@@ -328,7 +320,7 @@ public class SockJSHandlerImpl implements SockJSHandler, Handler<RoutingContext>
           });
         }
       }));
-    router.route("/cookie_needed_echo").handler(SockJSHandler.create(vertx, new SockJSHandlerOptions().
+    router.route("/cookie_needed_echo/*").handler(SockJSHandler.create(vertx, new SockJSHandlerOptions().
       setMaxBytesStreaming(4096).setInsertJSESSIONID(true)).socketHandler(sock -> sock.handler(sock::write)));
   }
 
@@ -339,9 +331,8 @@ public class SockJSHandlerImpl implements SockJSHandler, Handler<RoutingContext>
     Router router = Router.router(vertx);
     installTestApplications(router, vertx);
     server.requestHandler(req -> {
-      System.out.println("Received request: " + req.uri());
       router.accept(req);
-    }).listen(8081);
+    }).listen(9091);
   }
 
 
