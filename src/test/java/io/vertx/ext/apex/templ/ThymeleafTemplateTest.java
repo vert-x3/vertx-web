@@ -27,6 +27,7 @@ import org.junit.Test;
  */
 public class ThymeleafTemplateTest extends ApexTestBase {
 
+	
   @Test
   public void testTemplateHandlerOnClasspath() throws Exception {
     TemplateEngine engine = ThymeleafTemplateEngine.create();
@@ -39,6 +40,14 @@ public class ThymeleafTemplateTest extends ApexTestBase {
     testTemplateHandler(engine, "src/test/filesystemtemplates", "test-thymeleaf-template3.html");
   }
 
+  @Test
+  public void testTemplateHandlerUncached() throws Exception {
+	ThymeleafTemplateEngine engine = ThymeleafTemplateEngine.create();
+    engine.setCacheable( false );
+    testTemplateHandler(engine, "somedir", "test-thymeleaf-template2.html");
+  }
+
+  
   private void testTemplateHandler(TemplateEngine engine, String directoryName, String templateName) throws Exception {
     router.route().handler(context -> {
       context.put("foo", "badger");
