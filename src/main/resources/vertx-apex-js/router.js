@@ -35,7 +35,7 @@ var Router = function(j_val) {
 
   /**
    This method is used to provide a request to the router. Usually you take request from the
-   link and pass it to this method. The
+   {@link HttpServer#requestHandler} and pass it to this method. The
    router then routes it to matching routes.
 
    @public

@@ -21,14 +21,14 @@ import io.vertx.groovy.ext.apex.sstore.SessionStore
 import io.vertx.groovy.ext.apex.RoutingContext
 import io.vertx.core.Handler
 /**
- * A handler that maintains a link for each browser session.
+ * A handler that maintains a {@link io.vertx.groovy.ext.apex.Session} for each browser session.
  * <p>
  * It looks up the session for each request based on a session cookie which contains a session ID. It stores the session
  * when the response is ended in the session store.
  * <p>
- * The session is available on the routing context with link.
+ * The session is available on the routing context with {@link io.vertx.groovy.ext.apex.RoutingContext#session}.
  * <p>
- * The session handler requires a link to be on the routing chain before it.
+ * The session handler requires a {@link io.vertx.groovy.ext.apex.handler.CookieHandler} to be on the routing chain before it.
 */
 @CompileStatic
 public class SessionHandler implements Handler<RoutingContext> {

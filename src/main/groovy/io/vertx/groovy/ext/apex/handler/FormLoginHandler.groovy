@@ -23,7 +23,7 @@ import io.vertx.groovy.ext.auth.AuthService
 /**
  * Handler that handles login from a form on a custom login page.
  * <p>
- * Used in conjunction with the link.
+ * Used in conjunction with the {@link io.vertx.groovy.ext.apex.handler.RedirectAuthHandler}.
 */
 @CompileStatic
 public class FormLoginHandler implements Handler<RoutingContext> {

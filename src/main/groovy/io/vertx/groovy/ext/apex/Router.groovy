@@ -23,8 +23,8 @@ import io.vertx.core.http.HttpMethod
 import io.vertx.groovy.core.Vertx
 import io.vertx.core.Handler
 /**
- * A router receives request from an link and routes it to the first matching
- * link that it contains. A router can contain many routes.
+ * A router receives request from an {@link io.vertx.groovy.core.http.HttpServer} and routes it to the first matching
+ * {@link io.vertx.groovy.ext.apex.Route} that it contains. A router can contain many routes.
  * <p>
  * Routers are also used for routing failures.
 */
@@ -48,7 +48,7 @@ public class Router {
   }
   /**
    * This method is used to provide a request to the router. Usually you take request from the
-   * link and pass it to this method. The
+   * {@link io.vertx.groovy.core.http.HttpServer#requestHandler} and pass it to this method. The
    * router then routes it to matching routes.
    * @param request the request
    */

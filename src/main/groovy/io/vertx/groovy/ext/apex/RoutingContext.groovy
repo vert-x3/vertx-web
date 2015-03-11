@@ -28,16 +28,16 @@ import io.vertx.core.Handler
  * Represents the context for the handling of a request in Apex.
  * <p>
  * A new instance is created for each HTTP request that is received in the
- * link of the router.
+ * {@link io.vertx.groovy.ext.apex.Router#accept} of the router.
  * <p>
  * The same instance is passed to any matching request or failure handlers during the routing of the request or
  * failure.
  * <p>
- * The context provides access to the link and link
+ * The context provides access to the {@link io.vertx.groovy.core.http.HttpServerRequest} and {@link io.vertx.groovy.core.http.HttpServerResponse}
  * and allows you to maintain arbitrary data that lives for the lifetime of the context. Contexts are discarded once they
  * have been routed to the handler for the request.
  * <p>
- * The context also provides access to the link, cookies and body for the request, given the correct handlers
+ * The context also provides access to the {@link io.vertx.groovy.ext.apex.Session}, cookies and body for the request, given the correct handlers
  * in the application.
 */
 @CompileStatic
@@ -115,7 +115,7 @@ public class RoutingContext {
     return ret;
   }
   /**
-   * @return the Vert.x instance associated to the initiating link for this context
+   * @return the Vert.x instance associated to the initiating {@link io.vertx.groovy.ext.apex.Router} for this context
    * @return 
    */
   public Vertx vertx() {
@@ -149,7 +149,7 @@ public class RoutingContext {
    * The normalised path will also not contain any `..` character sequences to prevent resources being accessed outside
    * of the permitted area.
    * <p>
-   * It's recommended to always use the normalised path as opposed to link
+   * It's recommended to always use the normalised path as opposed to {@link io.vertx.groovy.core.http.HttpServerRequest#path}
    * if accessing server resources requested by a client.
    * @return the normalised path
    */
@@ -158,7 +158,7 @@ public class RoutingContext {
     return ret;
   }
   /**
-   * Get the cookie with the specified name. The context must have first been routed to a link
+   * Get the cookie with the specified name. The context must have first been routed to a {@link io.vertx.groovy.ext.apex.handler.CookieHandler}
    * for this to work.
    * @param name the cookie name
    * @return the cookie
@@ -169,7 +169,7 @@ public class RoutingContext {
   }
   /**
    * Add a cookie. This will be sent back to the client in the response. The context must have first been routed
-   * to a link for this to work.
+   * to a {@link io.vertx.groovy.ext.apex.handler.CookieHandler} for this to work.
    * @param cookie the cookie
    * @return a reference to this, so the API can be used fluently
    */
@@ -178,7 +178,7 @@ public class RoutingContext {
     return this;
   }
   /**
-   * Remove a cookie. The context must have first been routed to a link
+   * Remove a cookie. The context must have first been routed to a {@link io.vertx.groovy.ext.apex.handler.CookieHandler}
    * for this to work.
    * @param name the name of the cookie
    * @return the cookie, if it existed, or null
@@ -188,7 +188,7 @@ public class RoutingContext {
     return ret;
   }
   /**
-   * @return the number of cookies. The context must have first been routed to a link
+   * @return the number of cookies. The context must have first been routed to a {@link io.vertx.groovy.ext.apex.handler.CookieHandler}
    * for this to work.
    * @return 
    */
@@ -197,7 +197,7 @@ public class RoutingContext {
     return ret;
   }
   /**
-   * @return a set of all the cookies. The context must have first been routed to a link
+   * @return a set of all the cookies. The context must have first been routed to a {@link io.vertx.groovy.ext.apex.handler.CookieHandler}
    * for this to be populated.
    * @return 
    */
@@ -207,7 +207,7 @@ public class RoutingContext {
   }
   /**
    * @return  the entire HTTP request body as a string, assuming UTF-8 encoding. The context must have first been routed to a
-   * link for this to be populated.
+   * {@link io.vertx.groovy.ext.apex.handler.BodyHandler} for this to be populated.
    * @return 
    */
   public String getBodyAsString() {
@@ -216,7 +216,7 @@ public class RoutingContext {
   }
   /**
    * Get the entire HTTP request body as a string, assuming the specified encoding. The context must have first been routed to a
-   * link for this to be populated.
+   * {@link io.vertx.groovy.ext.apex.handler.BodyHandler} for this to be populated.
    * @param encoding the encoding, e.g. "UTF-16"
    * @return the body
    */
@@ -225,8 +225,8 @@ public class RoutingContext {
     return ret;
   }
   /**
-   * @return Get the entire HTTP request body as a link. The context must have first been routed to a
-   * link for this to be populated.
+   * @return Get the entire HTTP request body as a {@link io.vertx.groovy.core.json.JsonObject}. The context must have first been routed to a
+   * {@link io.vertx.groovy.ext.apex.handler.BodyHandler} for this to be populated.
    * @return 
    */
   public Map<String, Object> getBodyAsJson() {
@@ -234,8 +234,8 @@ public class RoutingContext {
     return ret;
   }
   /**
-   * @return Get the entire HTTP request body as a link. The context must have first been routed to a
-   * link for this to be populated.
+   * @return Get the entire HTTP request body as a {@link io.vertx.groovy.core.buffer.Buffer}. The context must have first been routed to a
+   * {@link io.vertx.groovy.ext.apex.handler.BodyHandler} for this to be populated.
    * @return 
    */
   public Buffer getBody() {
@@ -244,7 +244,7 @@ public class RoutingContext {
   }
   /**
    * @return a set of fileuploads (if any) for the request. The context must have first been routed to a
-   * link for this to work.
+   * {@link io.vertx.groovy.ext.apex.handler.BodyHandler} for this to work.
    * @return 
    */
   public Set<FileUpload> fileUploads() {
@@ -252,7 +252,7 @@ public class RoutingContext {
     return ret;
   }
   /**
-   * Get the session. The context must have first been routed to a link
+   * Get the session. The context must have first been routed to a {@link io.vertx.groovy.ext.apex.handler.SessionHandler}
    * for this to be populated.
    * Sessions live for a browser session, and are maintained by session cookies.
    * @return the session.
@@ -263,7 +263,7 @@ public class RoutingContext {
   }
   /**
    * If the context is being routed to failure handlers after a failure has been triggered by calling
-   * link  then this will return that status code.  It can be used by failure handlers to render a response,
+   * {@link io.vertx.groovy.ext.apex.RoutingContext#fail}  then this will return that status code.  It can be used by failure handlers to render a response,
    * e.g. create a failure response page.
    * @return the status code used when signalling failure
    */
@@ -331,14 +331,14 @@ public class RoutingContext {
     return ret;
   }
   /**
-   * Set the body. Used by the link. You will not normally call this method.
+   * Set the body. Used by the {@link io.vertx.groovy.ext.apex.handler.BodyHandler}. You will not normally call this method.
    * @param body the body
    */
   public void setBody(Buffer body) {
     this.delegate.setBody((io.vertx.core.buffer.Buffer)body.getDelegate());
   }
   /**
-   * Set the session. Used by the link. You will not normally call this method.
+   * Set the session. Used by the {@link io.vertx.groovy.ext.apex.handler.SessionHandler}. You will not normally call this method.
    * @param session the session
    */
   public void setSession(Session session) {

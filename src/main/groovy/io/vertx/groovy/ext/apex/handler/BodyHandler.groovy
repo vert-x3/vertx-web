@@ -20,7 +20,7 @@ import io.vertx.lang.groovy.InternalHelper
 import io.vertx.groovy.ext.apex.RoutingContext
 import io.vertx.core.Handler
 /**
- * A handler which gathers the entire request body and sets it on the link.
+ * A handler which gathers the entire request body and sets it on the {@link io.vertx.groovy.ext.apex.RoutingContext}.
  * <p>
  * It also handles HTTP file uploads and can be used to limit body sizes.
 */

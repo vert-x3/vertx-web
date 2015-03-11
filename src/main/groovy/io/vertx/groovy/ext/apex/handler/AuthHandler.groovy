@@ -25,7 +25,7 @@ import io.vertx.core.Handler
  * <p>
  * An auth handler allows your application to provide authentication/authorisation support.
  * <p>
- * Auth handler requires a link to be on the routing chain before it.
+ * Auth handler requires a {@link io.vertx.groovy.ext.apex.handler.SessionHandler} to be on the routing chain before it.
 */
 @CompileStatic
 public interface AuthHandler extends Handler<RoutingContext> {
