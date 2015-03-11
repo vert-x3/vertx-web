@@ -16,6 +16,7 @@
 
 /** @module vertx-apex-js/auth_handler */
 var utils = require('vertx-js/util/utils');
+var RoutingContext = require('vertx-apex-js/routing_context');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
@@ -32,6 +33,18 @@ var AuthHandler = function(j_val) {
 
   var j_authHandler = j_val;
   var that = this;
+
+  /**
+
+   @public
+   @param arg0 {RoutingContext} 
+   */
+  this.handle = function(arg0) {
+    var __args = arguments;
+    if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
+      j_authHandler.handle(arg0._jdel);
+    } else utils.invalidArgs();
+  };
 
   /**
    Add a required role for this auth handler

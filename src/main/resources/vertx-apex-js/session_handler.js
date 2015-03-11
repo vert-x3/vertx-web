@@ -33,6 +33,18 @@ var SessionHandler = function(j_val) {
   var that = this;
 
   /**
+
+   @public
+   @param arg0 {RoutingContext} 
+   */
+  this.handle = function(arg0) {
+    var __args = arguments;
+    if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
+      j_sessionHandler.handle(arg0._jdel);
+    } else utils.invalidArgs();
+  };
+
+  /**
    Set the session timeout
 
    @public
@@ -75,18 +87,6 @@ var SessionHandler = function(j_val) {
     if (__args.length === 1 && typeof __args[0] === 'string') {
       j_sessionHandler.setSessionCookieName(sessionCookieName);
       return that;
-    } else utils.invalidArgs();
-  };
-
-  /**
-
-   @public
-   @param context {RoutingContext} 
-   */
-  this.handle = function(context) {
-    var __args = arguments;
-    if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
-      j_sessionHandler.handle(context._jdel);
     } else utils.invalidArgs();
   };
 

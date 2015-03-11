@@ -10,27 +10,27 @@
 |===
 ^|Name | Type ^| Description
 
-|`maxAddressLength`
+|[[maxAddressLength]]`maxAddressLength`
 |`Number`
 |-
-|`maxHandlersPerSocket`
+|[[maxHandlersPerSocket]]`maxHandlersPerSocket`
 |`Number`
 |-
-|`pingTimeout`
+|[[pingTimeout]]`pingTimeout`
 |`Number`
 |-
-|`replyTimeout`
+|[[replyTimeout]]`replyTimeout`
 |`Number`
 |-
-|`inboundPermitteds`
+|[[inboundPermitteds]]`inboundPermitteds`
 |`Array of link:PermittedOptions.html[PermittedOptions]`
 |-
-|`inboundPermitted`
+|[[inboundPermitted]]`inboundPermitted`
 |`Array of link:PermittedOptions.html[PermittedOptions]`
 |-
-|`outboundPermitteds`
+|[[outboundPermitteds]]`outboundPermitteds`
 |`Array of link:PermittedOptions.html[PermittedOptions]`
 |-
-|`outboundPermitted`
+|[[outboundPermitted]]`outboundPermitted`
 |`Array of link:PermittedOptions.html[PermittedOptions]`
 |-|===

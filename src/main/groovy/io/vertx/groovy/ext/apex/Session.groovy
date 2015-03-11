@@ -29,7 +29,7 @@ import io.vertx.groovy.ext.auth.AuthService
  * <p>
  * Sessions can be used to maintain data for a browser session, e.g. a shopping basket.
  * <p>
- * The context must have first been routed to a {@link io.vertx.groovy.ext.apex.handler.SessionHandler}
+ * The context must have first been routed to a link
  * for sessions to be available.
 */
 @CompileStatic
@@ -103,7 +103,7 @@ public class Session {
   }
   /**
    * @return  the login ID of the logged in user (if any). Must be used in conjunction with a
-   * {@link io.vertx.groovy.ext.apex.handler.AuthHandler}.
+   * link.
    * @return 
    */
   public String getLoginID() {

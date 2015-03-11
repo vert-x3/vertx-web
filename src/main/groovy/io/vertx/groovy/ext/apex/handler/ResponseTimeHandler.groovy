@@ -24,13 +24,16 @@ import io.vertx.core.Handler
  * in ms to process the request.
 */
 @CompileStatic
-public class ResponseTimeHandler {
+public class ResponseTimeHandler implements Handler<RoutingContext> {
   final def io.vertx.ext.apex.handler.ResponseTimeHandler delegate;
   public ResponseTimeHandler(io.vertx.ext.apex.handler.ResponseTimeHandler delegate) {
     this.delegate = delegate;
   }
   public Object getDelegate() {
     return delegate;
+  }
+  public void handle(RoutingContext arg0) {
+    ((io.vertx.core.Handler) this.delegate).handle((io.vertx.ext.apex.RoutingContext)arg0.getDelegate());
   }
   /**
    * Create a handler
@@ -39,9 +42,6 @@ public class ResponseTimeHandler {
   public static ResponseTimeHandler create() {
     def ret= ResponseTimeHandler.FACTORY.apply(io.vertx.ext.apex.handler.ResponseTimeHandler.create());
     return ret;
-  }
-  public void handle(RoutingContext event) {
-    this.delegate.handle((io.vertx.ext.apex.RoutingContext)event.getDelegate());
   }
 
   static final java.util.function.Function<io.vertx.ext.apex.handler.ResponseTimeHandler, ResponseTimeHandler> FACTORY = io.vertx.lang.groovy.Factories.createFactory() {

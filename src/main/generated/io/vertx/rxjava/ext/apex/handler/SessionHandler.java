@@ -38,7 +38,7 @@ import io.vertx.core.Handler;
  * NOTE: This class has been automatically generated from the original non RX-ified interface using Vert.x codegen.
  */
 
-public class SessionHandler {
+public class SessionHandler implements Handler<RoutingContext> {
 
   final io.vertx.ext.apex.handler.SessionHandler delegate;
 
@@ -50,13 +50,17 @@ public class SessionHandler {
     return delegate;
   }
 
+  public void handle(RoutingContext arg0) { 
+    this.delegate.handle((io.vertx.ext.apex.RoutingContext) arg0.getDelegate());
+  }
+
   /**
    * Create a session handler
    *
    * @param sessionStore  the session store
    * @return the handler
    */
-  public static SessionHandler create(SessionStore sessionStore) {
+  public static SessionHandler create(SessionStore sessionStore) { 
     SessionHandler ret= SessionHandler.newInstance(io.vertx.ext.apex.handler.SessionHandler.create((io.vertx.ext.apex.sstore.SessionStore) sessionStore.getDelegate()));
     return ret;
   }
@@ -67,7 +71,7 @@ public class SessionHandler {
    * @param timeout  the timeout, in ms.
    * @return a reference to this, so the API can be used fluently
    */
-  public SessionHandler setSessionTimeout(long timeout) {
+  public SessionHandler setSessionTimeout(long timeout) { 
     this.delegate.setSessionTimeout(timeout);
     return this;
   }
@@ -78,7 +82,7 @@ public class SessionHandler {
    * @param nag  true to nag
    * @return a reference to this, so the API can be used fluently
    */
-  public SessionHandler setNagHttps(boolean nag) {
+  public SessionHandler setNagHttps(boolean nag) { 
     this.delegate.setNagHttps(nag);
     return this;
   }
@@ -89,13 +93,9 @@ public class SessionHandler {
    * @param sessionCookieName  the session cookie name
    * @return a reference to this, so the API can be used fluently
    */
-  public SessionHandler setSessionCookieName(String sessionCookieName) {
+  public SessionHandler setSessionCookieName(String sessionCookieName) { 
     this.delegate.setSessionCookieName(sessionCookieName);
     return this;
-  }
-
-  public void handle(RoutingContext context) {
-    this.delegate.handle((io.vertx.ext.apex.RoutingContext) context.getDelegate());
   }
 
 

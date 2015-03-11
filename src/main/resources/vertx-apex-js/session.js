@@ -139,7 +139,7 @@ var Session = function(j_val) {
 
   /**
    @return  the login ID of the logged in user (if any). Must be used in conjunction with a
-   {@link AuthHandler}.
+   link.
 
    @public
 

@@ -31,7 +31,7 @@ import io.vertx.core.Handler;
  * NOTE: This class has been automatically generated from the original non RX-ified interface using Vert.x codegen.
  */
 
-public class TimeoutHandler {
+public class TimeoutHandler implements Handler<RoutingContext> {
 
   final io.vertx.ext.apex.handler.TimeoutHandler delegate;
 
@@ -43,12 +43,16 @@ public class TimeoutHandler {
     return delegate;
   }
 
+  public void handle(RoutingContext arg0) { 
+    this.delegate.handle((io.vertx.ext.apex.RoutingContext) arg0.getDelegate());
+  }
+
   /**
    * Create a handler
    *
    * @return the handler
    */
-  public static TimeoutHandler create() {
+  public static TimeoutHandler create() { 
     TimeoutHandler ret= TimeoutHandler.newInstance(io.vertx.ext.apex.handler.TimeoutHandler.create());
     return ret;
   }
@@ -59,13 +63,9 @@ public class TimeoutHandler {
    * @param timeout  the timeout, in ms
    * @return the handler
    */
-  public static TimeoutHandler create(long timeout) {
+  public static TimeoutHandler create(long timeout) { 
     TimeoutHandler ret= TimeoutHandler.newInstance(io.vertx.ext.apex.handler.TimeoutHandler.create(timeout));
     return ret;
-  }
-
-  public void handle(RoutingContext event) {
-    this.delegate.handle((io.vertx.ext.apex.RoutingContext) event.getDelegate());
   }
 
 

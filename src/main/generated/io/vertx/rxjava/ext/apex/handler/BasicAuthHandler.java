@@ -20,6 +20,7 @@ import java.util.Map;
 import io.vertx.lang.rxjava.InternalHelper;
 import rx.Observable;
 import io.vertx.rxjava.ext.apex.RoutingContext;
+import java.util.Set;
 import io.vertx.rxjava.ext.auth.AuthService;
 
 /**
@@ -30,17 +31,64 @@ import io.vertx.rxjava.ext.auth.AuthService;
  * NOTE: This class has been automatically generated from the original non RX-ified interface using Vert.x codegen.
  */
 
-public class BasicAuthHandler extends AuthHandler {
+public class BasicAuthHandler implements AuthHandler {
 
   final io.vertx.ext.apex.handler.BasicAuthHandler delegate;
 
   public BasicAuthHandler(io.vertx.ext.apex.handler.BasicAuthHandler delegate) {
-    super(delegate);
     this.delegate = delegate;
   }
 
   public Object getDelegate() {
     return delegate;
+  }
+
+  public void handle(RoutingContext arg0) { 
+    this.delegate.handle((io.vertx.ext.apex.RoutingContext) arg0.getDelegate());
+  }
+
+  /**
+   * Add a required role for this auth handler
+   *
+   * @param role  the role
+   * @return a reference to this, so the API can be used fluently
+   */
+  public AuthHandler addRole(String role) { 
+    this.delegate.addRole(role);
+    return this;
+  }
+
+  /**
+   * Add a required permission for this auth handler
+   *
+   * @param permission  the permission
+   * @return a reference to this, so the API can be used fluently
+   */
+  public AuthHandler addPermission(String permission) { 
+    this.delegate.addPermission(permission);
+    return this;
+  }
+
+  /**
+   * Add a set of required roles for this auth handler
+   *
+   * @param roles  the set of roles
+   * @return a reference to this, so the API can be used fluently
+   */
+  public AuthHandler addRoles(Set<String> roles) { 
+    this.delegate.addRoles(roles);
+    return this;
+  }
+
+  /**
+   * Add a set of required permissions for this auth handler
+   *
+   * @param permissions  the set of permissions
+   * @return a reference to this, so the API can be used fluently
+   */
+  public AuthHandler addPermissions(Set<String> permissions) { 
+    this.delegate.addPermissions(permissions);
+    return this;
   }
 
   /**
@@ -49,7 +97,7 @@ public class BasicAuthHandler extends AuthHandler {
    * @param authService  the auth service to use
    * @return the auth handler
    */
-  public static AuthHandler create(AuthService authService) {
+  public static AuthHandler create(AuthService authService) { 
     AuthHandler ret= AuthHandler.newInstance(io.vertx.ext.apex.handler.BasicAuthHandler.create((io.vertx.ext.auth.AuthService) authService.getDelegate()));
     return ret;
   }
@@ -61,13 +109,9 @@ public class BasicAuthHandler extends AuthHandler {
    * @param realm  the realm to use
    * @return the auth handler
    */
-  public static AuthHandler create(AuthService authService, String realm) {
+  public static AuthHandler create(AuthService authService, String realm) { 
     AuthHandler ret= AuthHandler.newInstance(io.vertx.ext.apex.handler.BasicAuthHandler.create((io.vertx.ext.auth.AuthService) authService.getDelegate(), realm));
     return ret;
-  }
-
-  public void handle(RoutingContext context) {
-    this.delegate.handle((io.vertx.ext.apex.RoutingContext) context.getDelegate());
   }
 
 

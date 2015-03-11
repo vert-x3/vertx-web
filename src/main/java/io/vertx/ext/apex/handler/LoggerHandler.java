@@ -70,7 +70,4 @@ public interface LoggerHandler extends Handler<RoutingContext> {
     SHORT,
     TINY
   }
-
-  @Override
-  void handle(RoutingContext event);
 }

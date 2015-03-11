@@ -38,12 +38,72 @@ var BasicAuthHandler = function(j_val) {
   /**
 
    @public
-   @param context {RoutingContext} 
+   @param arg0 {RoutingContext} 
    */
-  this.handle = function(context) {
+  this.handle = function(arg0) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
-      j_basicAuthHandler.handle(context._jdel);
+      j_basicAuthHandler.handle(arg0._jdel);
+    } else utils.invalidArgs();
+  };
+
+  /**
+   Add a required role for this auth handler
+
+   @public
+   @param role {string} the role 
+   @return {AuthHandler} a reference to this, so the API can be used fluently
+   */
+  this.addRole = function(role) {
+    var __args = arguments;
+    if (__args.length === 1 && typeof __args[0] === 'string') {
+      j_basicAuthHandler.addRole(role);
+      return that;
+    } else utils.invalidArgs();
+  };
+
+  /**
+   Add a required permission for this auth handler
+
+   @public
+   @param permission {string} the permission 
+   @return {AuthHandler} a reference to this, so the API can be used fluently
+   */
+  this.addPermission = function(permission) {
+    var __args = arguments;
+    if (__args.length === 1 && typeof __args[0] === 'string') {
+      j_basicAuthHandler.addPermission(permission);
+      return that;
+    } else utils.invalidArgs();
+  };
+
+  /**
+   Add a set of required roles for this auth handler
+
+   @public
+   @param roles {Array.<string>} the set of roles 
+   @return {AuthHandler} a reference to this, so the API can be used fluently
+   */
+  this.addRoles = function(roles) {
+    var __args = arguments;
+    if (__args.length === 1 && typeof __args[0] === 'object' && __args[0] instanceof Array) {
+      j_basicAuthHandler.addRoles(utils.convParamSetBasicOther(roles));
+      return that;
+    } else utils.invalidArgs();
+  };
+
+  /**
+   Add a set of required permissions for this auth handler
+
+   @public
+   @param permissions {Array.<string>} the set of permissions 
+   @return {AuthHandler} a reference to this, so the API can be used fluently
+   */
+  this.addPermissions = function(permissions) {
+    var __args = arguments;
+    if (__args.length === 1 && typeof __args[0] === 'object' && __args[0] instanceof Array) {
+      j_basicAuthHandler.addPermissions(utils.convParamSetBasicOther(permissions));
+      return that;
     } else utils.invalidArgs();
   };
 

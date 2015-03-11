@@ -33,7 +33,7 @@ import io.vertx.core.Handler;
  * NOTE: This class has been automatically generated from the original non RX-ified interface using Vert.x codegen.
  */
 
-public class TemplateHandler {
+public class TemplateHandler implements Handler<RoutingContext> {
 
   final io.vertx.ext.apex.handler.TemplateHandler delegate;
 
@@ -45,13 +45,17 @@ public class TemplateHandler {
     return delegate;
   }
 
+  public void handle(RoutingContext arg0) { 
+    this.delegate.handle((io.vertx.ext.apex.RoutingContext) arg0.getDelegate());
+  }
+
   /**
    * Create a handler
    *
    * @param engine  the template engine
    * @return the handler
    */
-  public static TemplateHandler create(TemplateEngine engine) {
+  public static TemplateHandler create(TemplateEngine engine) { 
     TemplateHandler ret= TemplateHandler.newInstance(io.vertx.ext.apex.handler.TemplateHandler.create((io.vertx.ext.apex.templ.TemplateEngine) engine.getDelegate()));
     return ret;
   }
@@ -64,13 +68,9 @@ public class TemplateHandler {
    * @param contentType  the content type header to be used in the response
    * @return the handler
    */
-  public static TemplateHandler create(TemplateEngine engine, String templateDirectory, String contentType) {
+  public static TemplateHandler create(TemplateEngine engine, String templateDirectory, String contentType) { 
     TemplateHandler ret= TemplateHandler.newInstance(io.vertx.ext.apex.handler.TemplateHandler.create((io.vertx.ext.apex.templ.TemplateEngine) engine.getDelegate(), templateDirectory, contentType));
     return ret;
-  }
-
-  public void handle(RoutingContext context) {
-    this.delegate.handle((io.vertx.ext.apex.RoutingContext) context.getDelegate());
   }
 
 

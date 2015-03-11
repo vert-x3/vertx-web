@@ -46,7 +46,7 @@ public class JadeTemplateEngine extends TemplateEngine {
    *
    * @return  the engine
    */
-  public static JadeTemplateEngine create() {
+  public static JadeTemplateEngine create() { 
     JadeTemplateEngine ret= JadeTemplateEngine.newInstance(io.vertx.ext.apex.templ.JadeTemplateEngine.create());
     return ret;
   }
@@ -57,7 +57,7 @@ public class JadeTemplateEngine extends TemplateEngine {
    * @param extension  the extension
    * @return a reference to this for fluency
    */
-  public JadeTemplateEngine setExtension(String extension) {
+  public JadeTemplateEngine setExtension(String extension) { 
     JadeTemplateEngine ret= JadeTemplateEngine.newInstance(this.delegate.setExtension(extension));
     return ret;
   }
@@ -68,7 +68,7 @@ public class JadeTemplateEngine extends TemplateEngine {
    * @param maxCacheSize  the maxCacheSize
    * @return a reference to this for fluency
    */
-  public JadeTemplateEngine setMaxCacheSize(int maxCacheSize) {
+  public JadeTemplateEngine setMaxCacheSize(int maxCacheSize) { 
     JadeTemplateEngine ret= JadeTemplateEngine.newInstance(this.delegate.setMaxCacheSize(maxCacheSize));
     return ret;
   }

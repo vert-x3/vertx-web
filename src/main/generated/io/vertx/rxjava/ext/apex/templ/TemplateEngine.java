@@ -52,7 +52,7 @@ public class TemplateEngine {
    * @param templateFileName  the template file name to use
    * @param handler  the handler that will be called with a result containing the buffer or a failure.
    */
-  public void render(RoutingContext context, String templateFileName, Handler<AsyncResult<Buffer>> handler) {
+  public void render(RoutingContext context, String templateFileName, Handler<AsyncResult<Buffer>> handler) { 
     this.delegate.render((io.vertx.ext.apex.RoutingContext) context.getDelegate(), templateFileName, new Handler<AsyncResult<io.vertx.core.buffer.Buffer>>() {
       public void handle(AsyncResult<io.vertx.core.buffer.Buffer> event) {
         AsyncResult<Buffer> f;
@@ -66,7 +66,13 @@ public class TemplateEngine {
     });
   }
 
-  public Observable<Buffer> renderObservable(RoutingContext context, String templateFileName) {
+  /**
+   * Render
+   * @param context  the routing context
+   * @param templateFileName  the template file name to use
+   * @param handler  the handler that will be called with a result containing the buffer or a failure.
+   */
+  public Observable<Buffer> renderObservable(RoutingContext context, String templateFileName) { 
     io.vertx.rx.java.ObservableFuture<Buffer> handler = io.vertx.rx.java.RxHelper.observableFuture();
     render(context, templateFileName, handler.toHandler());
     return handler;

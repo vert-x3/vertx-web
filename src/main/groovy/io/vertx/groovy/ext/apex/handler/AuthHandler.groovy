@@ -25,16 +25,33 @@ import io.vertx.core.Handler
  * <p>
  * An auth handler allows your application to provide authentication/authorisation support.
  * <p>
- * Auth handler requires a {@link io.vertx.groovy.ext.apex.handler.SessionHandler} to be on the routing chain before it.
+ * Auth handler requires a link to be on the routing chain before it.
 */
 @CompileStatic
-public class AuthHandler {
+public interface AuthHandler extends Handler<RoutingContext> {
+  public Object getDelegate();
+  void handle(RoutingContext arg0);
+  AuthHandler addRole(String role);
+  AuthHandler addPermission(String permission);
+  AuthHandler addRoles(Set<String> roles);
+  AuthHandler addPermissions(Set<String> permissions);
+
+  static final java.util.function.Function<io.vertx.ext.apex.handler.AuthHandler, AuthHandler> FACTORY = io.vertx.lang.groovy.Factories.createFactory() {
+    io.vertx.ext.apex.handler.AuthHandler arg -> new AuthHandlerImpl(arg);
+  };
+}
+
+@CompileStatic
+class AuthHandlerImpl implements AuthHandler {
   final def io.vertx.ext.apex.handler.AuthHandler delegate;
-  public AuthHandler(io.vertx.ext.apex.handler.AuthHandler delegate) {
+  public AuthHandlerImpl(io.vertx.ext.apex.handler.AuthHandler delegate) {
     this.delegate = delegate;
   }
   public Object getDelegate() {
     return delegate;
+  }
+  public void handle(RoutingContext arg0) {
+    ((io.vertx.core.Handler) this.delegate).handle((io.vertx.ext.apex.RoutingContext)arg0.getDelegate());
   }
   /**
    * Add a required role for this auth handler
@@ -42,7 +59,7 @@ public class AuthHandler {
    * @return a reference to this, so the API can be used fluently
    */
   public AuthHandler addRole(String role) {
-    this.delegate.addRole(role);
+    ((io.vertx.ext.apex.handler.AuthHandler) this.delegate).addRole(role);
     return this;
   }
   /**
@@ -51,7 +68,7 @@ public class AuthHandler {
    * @return a reference to this, so the API can be used fluently
    */
   public AuthHandler addPermission(String permission) {
-    this.delegate.addPermission(permission);
+    ((io.vertx.ext.apex.handler.AuthHandler) this.delegate).addPermission(permission);
     return this;
   }
   /**
@@ -60,7 +77,7 @@ public class AuthHandler {
    * @return a reference to this, so the API can be used fluently
    */
   public AuthHandler addRoles(Set<String> roles) {
-    this.delegate.addRoles(roles);
+    ((io.vertx.ext.apex.handler.AuthHandler) this.delegate).addRoles(roles);
     return this;
   }
   /**
@@ -69,11 +86,7 @@ public class AuthHandler {
    * @return a reference to this, so the API can be used fluently
    */
   public AuthHandler addPermissions(Set<String> permissions) {
-    this.delegate.addPermissions(permissions);
+    ((io.vertx.ext.apex.handler.AuthHandler) this.delegate).addPermissions(permissions);
     return this;
   }
-
-  static final java.util.function.Function<io.vertx.ext.apex.handler.AuthHandler, AuthHandler> FACTORY = io.vertx.lang.groovy.Factories.createFactory() {
-    io.vertx.ext.apex.handler.AuthHandler arg -> new AuthHandler(arg);
-  };
 }

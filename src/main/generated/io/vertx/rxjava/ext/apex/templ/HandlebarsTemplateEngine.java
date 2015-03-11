@@ -46,7 +46,7 @@ public class HandlebarsTemplateEngine extends TemplateEngine {
    *
    * @return  the engine
    */
-  public static HandlebarsTemplateEngine create() {
+  public static HandlebarsTemplateEngine create() { 
     HandlebarsTemplateEngine ret= HandlebarsTemplateEngine.newInstance(io.vertx.ext.apex.templ.HandlebarsTemplateEngine.create());
     return ret;
   }
@@ -57,7 +57,7 @@ public class HandlebarsTemplateEngine extends TemplateEngine {
    * @param extension  the extension
    * @return a reference to this for fluency
    */
-  public HandlebarsTemplateEngine setExtension(String extension) {
+  public HandlebarsTemplateEngine setExtension(String extension) { 
     HandlebarsTemplateEngine ret= HandlebarsTemplateEngine.newInstance(this.delegate.setExtension(extension));
     return ret;
   }
@@ -68,7 +68,7 @@ public class HandlebarsTemplateEngine extends TemplateEngine {
    * @param maxCacheSize  the maxCacheSize
    * @return a reference to this for fluency
    */
-  public HandlebarsTemplateEngine setMaxCacheSize(int maxCacheSize) {
+  public HandlebarsTemplateEngine setMaxCacheSize(int maxCacheSize) { 
     HandlebarsTemplateEngine ret= HandlebarsTemplateEngine.newInstance(this.delegate.setMaxCacheSize(maxCacheSize));
     return ret;
   }

@@ -49,7 +49,7 @@ public class SessionStore {
    * @param id  the unique ID of the session
    * @param resultHandler  will be called with a result holding the session, or a failure
    */
-  public void get(String id, Handler<AsyncResult<Session>> resultHandler) {
+  public void get(String id, Handler<AsyncResult<Session>> resultHandler) { 
     this.delegate.get(id, new Handler<AsyncResult<io.vertx.ext.apex.Session>>() {
       public void handle(AsyncResult<io.vertx.ext.apex.Session> event) {
         AsyncResult<Session> f;
@@ -63,7 +63,13 @@ public class SessionStore {
     });
   }
 
-  public Observable<Session> getObservable(String id) {
+  /**
+   * Get the session with the specified ID
+   *
+   * @param id  the unique ID of the session
+   * @param resultHandler  will be called with a result holding the session, or a failure
+   */
+  public Observable<Session> getObservable(String id) { 
     io.vertx.rx.java.ObservableFuture<Session> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
     get(id, resultHandler.toHandler());
     return resultHandler;
@@ -75,11 +81,17 @@ public class SessionStore {
    * @param id  the unique ID of the session
    * @param resultHandler  will be called with a result true/false, or a failure
    */
-  public void delete(String id, Handler<AsyncResult<Boolean>> resultHandler) {
+  public void delete(String id, Handler<AsyncResult<Boolean>> resultHandler) { 
     this.delegate.delete(id, resultHandler);
   }
 
-  public Observable<Boolean> deleteObservable(String id) {
+  /**
+   * Delete the session with the specified ID
+   *
+   * @param id  the unique ID of the session
+   * @param resultHandler  will be called with a result true/false, or a failure
+   */
+  public Observable<Boolean> deleteObservable(String id) { 
     io.vertx.rx.java.ObservableFuture<Boolean> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
     delete(id, resultHandler.toHandler());
     return resultHandler;
@@ -92,11 +104,18 @@ public class SessionStore {
    * @param timeout  max time session will last without being accessed before getting expired
    * @param resultHandler  will be called with a result true/false, or a failure
    */
-  public void put(Session session, long timeout, Handler<AsyncResult<Boolean>> resultHandler) {
+  public void put(Session session, long timeout, Handler<AsyncResult<Boolean>> resultHandler) { 
     this.delegate.put((io.vertx.ext.apex.Session) session.getDelegate(), timeout, resultHandler);
   }
 
-  public Observable<Boolean> putObservable(Session session, long timeout) {
+  /**
+   * Add a session with the specified ID
+   *
+   * @param session  the session
+   * @param timeout  max time session will last without being accessed before getting expired
+   * @param resultHandler  will be called with a result true/false, or a failure
+   */
+  public Observable<Boolean> putObservable(Session session, long timeout) { 
     io.vertx.rx.java.ObservableFuture<Boolean> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
     put(session, timeout, resultHandler.toHandler());
     return resultHandler;
@@ -107,11 +126,16 @@ public class SessionStore {
    *
    * @param resultHandler  will be called with a result true/false, or a failure
    */
-  public void clear(Handler<AsyncResult<Boolean>> resultHandler) {
+  public void clear(Handler<AsyncResult<Boolean>> resultHandler) { 
     this.delegate.clear(resultHandler);
   }
 
-  public Observable<Boolean> clearObservable() {
+  /**
+   * Remove all sessions from the store
+   *
+   * @param resultHandler  will be called with a result true/false, or a failure
+   */
+  public Observable<Boolean> clearObservable() { 
     io.vertx.rx.java.ObservableFuture<Boolean> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
     clear(resultHandler.toHandler());
     return resultHandler;
@@ -122,11 +146,16 @@ public class SessionStore {
    *
    * @param resultHandler  will be called with the number, or a failure
    */
-  public void size(Handler<AsyncResult<Integer>> resultHandler) {
+  public void size(Handler<AsyncResult<Integer>> resultHandler) { 
     this.delegate.size(resultHandler);
   }
 
-  public Observable<Integer> sizeObservable() {
+  /**
+   * Get the number of sessions in the store
+   *
+   * @param resultHandler  will be called with the number, or a failure
+   */
+  public Observable<Integer> sizeObservable() { 
     io.vertx.rx.java.ObservableFuture<Integer> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
     size(resultHandler.toHandler());
     return resultHandler;
@@ -135,7 +164,7 @@ public class SessionStore {
   /**
    * Close the store
    */
-  public void close() {
+  public void close() { 
     this.delegate.close();
   }
 

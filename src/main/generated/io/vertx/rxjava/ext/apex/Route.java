@@ -50,7 +50,7 @@ public class Route {
    * @param method  the HTTP method to add
    * @return a reference to this, so the API can be used fluently
    */
-  public Route method(HttpMethod method) {
+  public Route method(HttpMethod method) { 
     this.delegate.method(method);
     return this;
   }
@@ -62,7 +62,7 @@ public class Route {
    * @param path  the path prefix
    * @return a reference to this, so the API can be used fluently
    */
-  public Route path(String path) {
+  public Route path(String path) { 
     this.delegate.path(path);
     return this;
   }
@@ -74,7 +74,7 @@ public class Route {
    * @param path  the path regex
    * @return a reference to this, so the API can be used fluently
    */
-  public Route pathRegex(String path) {
+  public Route pathRegex(String path) { 
     this.delegate.pathRegex(path);
     return this;
   }
@@ -85,7 +85,7 @@ public class Route {
    * @param contentType  the content type
    * @return a reference to this, so the API can be used fluently
    */
-  public Route produces(String contentType) {
+  public Route produces(String contentType) { 
     Route ret= Route.newInstance(this.delegate.produces(contentType));
     return ret;
   }
@@ -96,7 +96,7 @@ public class Route {
    * @param contentType  the content type
    * @return a reference to this, so the API can be used fluently
    */
-  public Route consumes(String contentType) {
+  public Route consumes(String contentType) { 
     this.delegate.consumes(contentType);
     return this;
   }
@@ -107,7 +107,7 @@ public class Route {
    * @param order  the order
    * @return a reference to this, so the API can be used fluently
    */
-  public Route order(int order) {
+  public Route order(int order) { 
     this.delegate.order(order);
     return this;
   }
@@ -118,7 +118,7 @@ public class Route {
    * @param last  true if last
    * @return a reference to this, so the API can be used fluently
    */
-  public Route last(boolean last) {
+  public Route last(boolean last) { 
     this.delegate.last(last);
     return this;
   }
@@ -131,7 +131,7 @@ public class Route {
    * @param requestHandler  the request handler
    * @return a reference to this, so the API can be used fluently
    */
-  public Route handler(Handler<RoutingContext> requestHandler) {
+  public Route handler(Handler<RoutingContext> requestHandler) { 
     this.delegate.handler(new Handler<io.vertx.ext.apex.RoutingContext>() {
       public void handle(io.vertx.ext.apex.RoutingContext event) {
         requestHandler.handle(new RoutingContext(event));
@@ -148,7 +148,7 @@ public class Route {
    * @param failureHandler  the request handler
    * @return a reference to this, so the API can be used fluently
    */
-  public Route failureHandler(Handler<RoutingContext> failureHandler) {
+  public Route failureHandler(Handler<RoutingContext> failureHandler) { 
     this.delegate.failureHandler(new Handler<io.vertx.ext.apex.RoutingContext>() {
       public void handle(io.vertx.ext.apex.RoutingContext event) {
         failureHandler.handle(new RoutingContext(event));
@@ -162,7 +162,7 @@ public class Route {
    *
    * @return a reference to this, so the API can be used fluently
    */
-  public Route remove() {
+  public Route remove() { 
     this.delegate.remove();
     return this;
   }
@@ -172,7 +172,7 @@ public class Route {
    *
    * @return a reference to this, so the API can be used fluently
    */
-  public Route disable() {
+  public Route disable() { 
     this.delegate.disable();
     return this;
   }
@@ -182,7 +182,7 @@ public class Route {
    *
    * @return a reference to this, so the API can be used fluently
    */
-  public Route enable() {
+  public Route enable() { 
     this.delegate.enable();
     return this;
   }
@@ -194,7 +194,7 @@ public class Route {
    * @param useNormalisedPath  use normalised path for routing?
    * @return a reference to this, so the API can be used fluently
    */
-  public Route useNormalisedPath(boolean useNormalisedPath) {
+  public Route useNormalisedPath(boolean useNormalisedPath) { 
     this.delegate.useNormalisedPath(useNormalisedPath);
     return this;
   }
@@ -202,7 +202,7 @@ public class Route {
   /**
    * @return the path prefix (if any) for this route
    */
-  public String getPath() {
+  public String getPath() { 
     String ret = this.delegate.getPath();
     return ret;
   }

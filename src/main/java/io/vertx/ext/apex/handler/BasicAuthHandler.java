@@ -18,7 +18,6 @@ package io.vertx.ext.apex.handler;
 
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.ext.apex.handler.impl.BasicAuthHandlerImpl;
-import io.vertx.ext.apex.RoutingContext;
 import io.vertx.ext.auth.AuthService;
 
 /**
@@ -54,7 +53,4 @@ public interface BasicAuthHandler extends AuthHandler {
   static AuthHandler create(AuthService authService, String realm) {
     return new BasicAuthHandlerImpl(authService, realm);
   }
-
-  @Override
-  void handle(RoutingContext context);
 }

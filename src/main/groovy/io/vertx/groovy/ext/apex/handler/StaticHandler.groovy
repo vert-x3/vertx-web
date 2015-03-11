@@ -23,13 +23,16 @@ import io.vertx.core.Handler
  * A handler for serving static resources from the file system or classpath.
 */
 @CompileStatic
-public class StaticHandler {
+public class StaticHandler implements Handler<RoutingContext> {
   final def io.vertx.ext.apex.handler.StaticHandler delegate;
   public StaticHandler(io.vertx.ext.apex.handler.StaticHandler delegate) {
     this.delegate = delegate;
   }
   public Object getDelegate() {
     return delegate;
+  }
+  public void handle(RoutingContext arg0) {
+    ((io.vertx.core.Handler) this.delegate).handle((io.vertx.ext.apex.RoutingContext)arg0.getDelegate());
   }
   /**
    * Create a handler using defaults
@@ -47,9 +50,6 @@ public class StaticHandler {
   public static StaticHandler create(String root) {
     def ret= StaticHandler.FACTORY.apply(io.vertx.ext.apex.handler.StaticHandler.create(root));
     return ret;
-  }
-  public void handle(RoutingContext context) {
-    this.delegate.handle((io.vertx.ext.apex.RoutingContext)context.getDelegate());
   }
   /**
    * Set the web root

@@ -32,7 +32,7 @@ import io.vertx.core.Handler;
  * NOTE: This class has been automatically generated from the original non RX-ified interface using Vert.x codegen.
  */
 
-public class BodyHandler {
+public class BodyHandler implements Handler<RoutingContext> {
 
   final io.vertx.ext.apex.handler.BodyHandler delegate;
 
@@ -44,12 +44,16 @@ public class BodyHandler {
     return delegate;
   }
 
+  public void handle(RoutingContext arg0) { 
+    this.delegate.handle((io.vertx.ext.apex.RoutingContext) arg0.getDelegate());
+  }
+
   /**
    * Create a body handler with defaults
    *
    * @return the body handler
    */
-  public static BodyHandler create() {
+  public static BodyHandler create() { 
     BodyHandler ret= BodyHandler.newInstance(io.vertx.ext.apex.handler.BodyHandler.create());
     return ret;
   }
@@ -60,7 +64,7 @@ public class BodyHandler {
    * @param bodyLimit  the max size
    * @return reference to this for fluency
    */
-  public BodyHandler setBodyLimit(long bodyLimit) {
+  public BodyHandler setBodyLimit(long bodyLimit) { 
     this.delegate.setBodyLimit(bodyLimit);
     return this;
   }
@@ -71,7 +75,7 @@ public class BodyHandler {
    * @param uploadsDirectory  the uploads directory
    * @return reference to this for fluency
    */
-  public BodyHandler setUploadsDirectory(String uploadsDirectory) {
+  public BodyHandler setUploadsDirectory(String uploadsDirectory) { 
     this.delegate.setUploadsDirectory(uploadsDirectory);
     return this;
   }
@@ -82,13 +86,9 @@ public class BodyHandler {
    * @param mergeFormAttributes  true if they should be merged
    * @return reference to this for fluency
    */
-  public BodyHandler setMergeFormAttributes(boolean mergeFormAttributes) {
+  public BodyHandler setMergeFormAttributes(boolean mergeFormAttributes) { 
     this.delegate.setMergeFormAttributes(mergeFormAttributes);
     return this;
-  }
-
-  public void handle(RoutingContext context) {
-    this.delegate.handle((io.vertx.ext.apex.RoutingContext) context.getDelegate());
   }
 
 

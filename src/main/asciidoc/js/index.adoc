@@ -124,7 +124,7 @@ no matching criteria so it will match _all_ requests that arrive on the server.
 We then specify a handler for that route. That handler will be called for all requests that arrive on the server.
 
 The object that gets passed into the handler is a `link:jsdoc/routing_context-RoutingContext.html[RoutingContext]` - this contains
-the standard Vert.x `link:jsdoc/http_server_request-HttpServerRequest.html[HttpServerRequest]` and `link:jsdoc/http_server_response-HttpServerResponse.html[HttpServerResponse]`
+the standard Vert.x `link:../../vertx-core/js/jsdoc/http_server_request-HttpServerRequest.html[HttpServerRequest]` and `link:../../vertx-core/js/jsdoc/http_server_response-HttpServerResponse.html[HttpServerResponse]`
 but also various other useful stuff that makes working with Apex simpler.
 
 For every request that is routed there is a unique routing context instance, and the same instance is passed to
@@ -261,7 +261,7 @@ route.handler(function (routingContext) {
 == Capturing path parameters
 
 It's possible to match paths using placeholders for parameters which are then available in the request
-`link:jsdoc/http_server_request-HttpServerRequest.html#params[params]`.
+`link:../../vertx-core/js/jsdoc/http_server_request-HttpServerRequest.html#params[params]`.
 
 Here's an example
 
@@ -1166,8 +1166,8 @@ you get data from the session with `link:jsdoc/session-Session.html#get[get]`, a
 data from the session with `link:jsdoc/session-Session.html#remove[remove]`.
 
 The keys for items in the session are always strings. The values can be any type for a local session store, and for
-a clustered session store they can be any basic type, or `link:jsdoc/buffer-Buffer.html[Buffer]`, `link:jsdoc/json_object-JsonObject.html[JsonObject]`,
-`link:jsdoc/json_array-JsonArray.html[JsonArray]` or a serializable object, as the values have to serialized across the cluster.
+a clustered session store they can be any basic type, or `link:../../vertx-core/js/jsdoc/buffer-Buffer.html[Buffer]`, `link:../../vertx-core/js/jsdoc/json_object-JsonObject.html[JsonObject]`,
+`link:../../vertx-core/js/jsdoc/json_array-JsonArray.html[JsonArray]` or a serializable object, as the values have to serialized across the cluster.
 
 Here's an example of manipulating session data:
 
@@ -1211,7 +1211,7 @@ whether you have rights for some resource).
 
 === Creating an auth handler
 
-To create an auth handler you need an instance of `link:jsdoc/auth_service-AuthService.html[AuthService]`. Auth service is
+To create an auth handler you need an instance of `link:../../vertx-auth-service/js/jsdoc/auth_service-AuthService.html[AuthService]`. Auth service is
 (unsurprisingly) a Vert.x service that is used for authentication and authorisation of users. It uses a simple
 role/permission model and, by default, is backed by Apache Shiro. For full information on the auth service and how
 to use and configure it please consult the auth service documentation.
@@ -1335,7 +1335,7 @@ prompt the user to enter their username and password.
 The request is made to the resource again, this time with the `Authorization` header set, containing the username
 and password encoded in Base64.
 
-When the basic auth handler receives this information, it calls the configured `link:jsdoc/auth_service-AuthService.html[auth service]`
+When the basic auth handler receives this information, it calls the configured `link:../../vertx-auth-service/js/jsdoc/auth_service-AuthService.html[auth service]`
 with the username and password to authenticate the user. If the authentication is successful the handler attempts
 to authorise the user. If that is successful then the routing of the request is allowed to continue to the application
 handlers, otherwise a `403` response is returned to signify that access is denied.
@@ -1783,9 +1783,9 @@ On the server-side you set a handler on the SockJS handler, and
 this will be called every time a SockJS connection is made from a client:
 
 The object passed into the handler is a `link:jsdoc/sock_js_socket-SockJSSocket.html[SockJSSocket]`. This has a familiar
-socket-like interface which you can read and write to similarly to a `link:jsdoc/net_socket-NetSocket.html[NetSocket]` or
-a `link:jsdoc/web_socket-WebSocket.html[WebSocket]`. It also implements `link:jsdoc/read_stream-ReadStream.html[ReadStream]` and
-`link:jsdoc/write_stream-WriteStream.html[WriteStream]` so you can pump it to and from other read and write streams.
+socket-like interface which you can read and write to similarly to a `link:../../vertx-core/js/jsdoc/net_socket-NetSocket.html[NetSocket]` or
+a `link:../../vertx-core/js/jsdoc/web_socket-WebSocket.html[WebSocket]`. It also implements `link:../../vertx-core/js/jsdoc/read_stream-ReadStream.html[ReadStream]` and
+`link:../../vertx-core/js/jsdoc/write_stream-WriteStream.html[WriteStream]` so you can pump it to and from other read and write streams.
 
 Here's an example of a simple SockJS handler that simply echoes back any back any data that it reads:
 
@@ -1951,11 +1951,11 @@ You can specify which _matches_ you want to allow for inbound and outbound traff
 
 Each match is a `link:../cheatsheet/PermittedOptions.html[PermittedOptions]` object:
 
-`link:../cheatsheet/PermittedOptions.html#setAddress[setAddress]`:: This represents the exact address the message is being sent to. If you want to allow messages based on
+`link:../cheatsheet/PermittedOptions.html#address[address]`:: This represents the exact address the message is being sent to. If you want to allow messages based on
 an exact address you use this field.
-`link:../cheatsheet/PermittedOptions.html#setAddressRegex[setAddressRegex]`:: This is a regular expression that will be matched against the address. If you want to allow messages
+`link:../cheatsheet/PermittedOptions.html#addressRegex[addressRegex]`:: This is a regular expression that will be matched against the address. If you want to allow messages
 based on a regular expression you use this field. If the `address` field is specified this field will be ignored.
-`link:../cheatsheet/PermittedOptions.html#setMatch[setMatch]`:: This allows you to allow messages based on their structure. Any fields in the match must exist in the
+`link:../cheatsheet/PermittedOptions.html#match[match]`:: This allows you to allow messages based on their structure. Any fields in the match must exist in the
 message with the same values for them to be allowed. This currently only works with JSON messages.
 
 If a message is _in-bound_ (i.e. being sent from client side JavaScript to the server) when it is received Apex
@@ -1991,10 +1991,10 @@ To do this, you can add extra fields to the match described in the previous sect
 permission is required for the match.
 
 To declare that a specific role for the logged-in user is required in order to access allow the messages you use the
-`link:../cheatsheet/PermittedOptions.html#setRequiredRole[setRequiredRole]` field.
+`link:../cheatsheet/PermittedOptions.html#requiredRole[requiredRole]` field.
 
 To declare that a specific permission for the logged-in user is required in order to access allow the messages you use the
-`link:../cheatsheet/PermittedOptions.html#setRequiredPermission[setRequiredPermission]` field.
+`link:../cheatsheet/PermittedOptions.html#requiredPermission[requiredPermission]` field.
 
 Here's an example:
 

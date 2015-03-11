@@ -48,7 +48,7 @@ public class Cookie {
    * @param value  the cookie value
    * @return the cookie
    */
-  public static Cookie cookie(String name, String value) {
+  public static Cookie cookie(String name, String value) { 
     Cookie ret= Cookie.newInstance(io.vertx.ext.apex.Cookie.cookie(name, value));
     return ret;
   }
@@ -56,7 +56,7 @@ public class Cookie {
   /**
    * @return the name of this cookie
    */
-  public String getName() {
+  public String getName() { 
     String ret = this.delegate.getName();
     return ret;
   }
@@ -64,7 +64,7 @@ public class Cookie {
   /**
    * @return the value of this cookie
    */
-  public String getValue() {
+  public String getValue() { 
     String ret = this.delegate.getValue();
     return ret;
   }
@@ -75,7 +75,7 @@ public class Cookie {
    * @param value The value to set
    * @return a reference to this, so the API can be used fluently
    */
-  public Cookie setValue(String value) {
+  public Cookie setValue(String value) { 
     this.delegate.setValue(value);
     return this;
   }
@@ -86,7 +86,7 @@ public class Cookie {
    * @param domain The domain to use
    * @return a reference to this, so the API can be used fluently
    */
-  public Cookie setDomain(String domain) {
+  public Cookie setDomain(String domain) { 
     this.delegate.setDomain(domain);
     return this;
   }
@@ -94,7 +94,7 @@ public class Cookie {
   /**
    * @return  the domain for the cookie
    */
-  public String getDomain() {
+  public String getDomain() { 
     String ret = this.delegate.getDomain();
     return ret;
   }
@@ -105,7 +105,7 @@ public class Cookie {
    * @param path The path to use for this cookie
    * @return a reference to this, so the API can be used fluently
    */
-  public Cookie setPath(String path) {
+  public Cookie setPath(String path) { 
     this.delegate.setPath(path);
     return this;
   }
@@ -114,7 +114,7 @@ public class Cookie {
    *
    * @return the path for this cookie
    */
-  public String getPath() {
+  public String getPath() { 
     String ret = this.delegate.getPath();
     return ret;
   }
@@ -129,7 +129,7 @@ public class Cookie {
    *
    * @param maxAge The maximum age of this cookie in seconds
    */
-  public Cookie setMaxAge(long maxAge) {
+  public Cookie setMaxAge(long maxAge) { 
     Cookie ret= Cookie.newInstance(this.delegate.setMaxAge(maxAge));
     return ret;
   }
@@ -140,7 +140,7 @@ public class Cookie {
    * @param secure True if this cookie is to be secure, otherwise false
    * @return a reference to this, so the API can be used fluently
    */
-  public Cookie setSecure(boolean secure) {
+  public Cookie setSecure(boolean secure) { 
     this.delegate.setSecure(secure);
     return this;
   }
@@ -154,7 +154,7 @@ public class Cookie {
    *
    * @param httpOnly True if the cookie is HTTP only, otherwise false.
    */
-  public Cookie setHttpOnly(boolean httpOnly) {
+  public Cookie setHttpOnly(boolean httpOnly) { 
     Cookie ret= Cookie.newInstance(this.delegate.setHttpOnly(httpOnly));
     return ret;
   }
@@ -165,7 +165,7 @@ public class Cookie {
    * @param version 0 or 1
    * @return a reference to this, so the API can be used fluently
    */
-  public Cookie setVersion(int version) {
+  public Cookie setVersion(int version) { 
     this.delegate.setVersion(version);
     return this;
   }
@@ -175,7 +175,7 @@ public class Cookie {
    *
    * @return  the encoded cookie
    */
-  public String encode() {
+  public String encode() { 
     String ret = this.delegate.encode();
     return ret;
   }
@@ -185,7 +185,7 @@ public class Cookie {
    *
    * @return true  if changed
    */
-  public boolean isChanged() {
+  public boolean isChanged() { 
     boolean ret = this.delegate.isChanged();
     return ret;
   }
@@ -196,7 +196,7 @@ public class Cookie {
    *
    * @param changed  true if changed
    */
-  public void setChanged(boolean changed) {
+  public void setChanged(boolean changed) { 
     this.delegate.setChanged(changed);
   }
 

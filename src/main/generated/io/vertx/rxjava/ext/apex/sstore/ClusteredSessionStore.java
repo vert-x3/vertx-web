@@ -49,7 +49,7 @@ public class ClusteredSessionStore extends SessionStore {
    * @param sessionMapName  the session map name
    * @return the session store
    */
-  public static ClusteredSessionStore create(Vertx vertx, String sessionMapName) {
+  public static ClusteredSessionStore create(Vertx vertx, String sessionMapName) { 
     ClusteredSessionStore ret= ClusteredSessionStore.newInstance(io.vertx.ext.apex.sstore.ClusteredSessionStore.create((io.vertx.core.Vertx) vertx.getDelegate(), sessionMapName));
     return ret;
   }
@@ -60,7 +60,7 @@ public class ClusteredSessionStore extends SessionStore {
    * @param vertx  the Vert.x instance
    * @return the session store
    */
-  public static ClusteredSessionStore create(Vertx vertx) {
+  public static ClusteredSessionStore create(Vertx vertx) { 
     ClusteredSessionStore ret= ClusteredSessionStore.newInstance(io.vertx.ext.apex.sstore.ClusteredSessionStore.create((io.vertx.core.Vertx) vertx.getDelegate()));
     return ret;
   }

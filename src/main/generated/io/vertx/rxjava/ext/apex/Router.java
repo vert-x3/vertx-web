@@ -54,7 +54,7 @@ public class Router {
    * @param vertx  the Vert.x instance
    * @return the router
    */
-  public static Router router(Vertx vertx) {
+  public static Router router(Vertx vertx) { 
     Router ret= Router.newInstance(io.vertx.ext.apex.Router.router((io.vertx.core.Vertx) vertx.getDelegate()));
     return ret;
   }
@@ -66,7 +66,7 @@ public class Router {
    *
    * @param request  the request
    */
-  public void accept(HttpServerRequest request) {
+  public void accept(HttpServerRequest request) { 
     this.delegate.accept((io.vertx.core.http.HttpServerRequest) request.getDelegate());
   }
 
@@ -75,7 +75,7 @@ public class Router {
    *
    * @return  the route
    */
-  public Route route() {
+  public Route route() { 
     Route ret= Route.newInstance(this.delegate.route());
     return ret;
   }
@@ -88,7 +88,7 @@ public class Router {
    *
    * @return the route
    */
-  public Route route(HttpMethod method, String path) {
+  public Route route(HttpMethod method, String path) { 
     Route ret= Route.newInstance(this.delegate.route(method, path));
     return ret;
   }
@@ -100,7 +100,7 @@ public class Router {
    *
    * @return the route
    */
-  public Route route(String path) {
+  public Route route(String path) { 
     Route ret= Route.newInstance(this.delegate.route(path));
     return ret;
   }
@@ -113,7 +113,7 @@ public class Router {
    *
    * @return the route
    */
-  public Route routeWithRegex(HttpMethod method, String regex) {
+  public Route routeWithRegex(HttpMethod method, String regex) { 
     Route ret= Route.newInstance(this.delegate.routeWithRegex(method, regex));
     return ret;
   }
@@ -125,7 +125,7 @@ public class Router {
    *
    * @return the route
    */
-  public Route routeWithRegex(String regex) {
+  public Route routeWithRegex(String regex) { 
     Route ret= Route.newInstance(this.delegate.routeWithRegex(regex));
     return ret;
   }
@@ -135,7 +135,7 @@ public class Router {
    *
    * @return the route
    */
-  public Route get() {
+  public Route get() { 
     Route ret= Route.newInstance(this.delegate.get());
     return ret;
   }
@@ -147,7 +147,7 @@ public class Router {
    *
    * @return the route
    */
-  public Route get(String path) {
+  public Route get(String path) { 
     Route ret= Route.newInstance(this.delegate.get(path));
     return ret;
   }
@@ -159,7 +159,7 @@ public class Router {
    *
    * @return the route
    */
-  public Route getWithRegex(String regex) {
+  public Route getWithRegex(String regex) { 
     Route ret= Route.newInstance(this.delegate.getWithRegex(regex));
     return ret;
   }
@@ -169,7 +169,7 @@ public class Router {
    *
    * @return the route
    */
-  public Route head() {
+  public Route head() { 
     Route ret= Route.newInstance(this.delegate.head());
     return ret;
   }
@@ -181,7 +181,7 @@ public class Router {
    *
    * @return the route
    */
-  public Route head(String path) {
+  public Route head(String path) { 
     Route ret= Route.newInstance(this.delegate.head(path));
     return ret;
   }
@@ -193,7 +193,7 @@ public class Router {
    *
    * @return the route
    */
-  public Route headWithRegex(String regex) {
+  public Route headWithRegex(String regex) { 
     Route ret= Route.newInstance(this.delegate.headWithRegex(regex));
     return ret;
   }
@@ -203,7 +203,7 @@ public class Router {
    *
    * @return the route
    */
-  public Route options() {
+  public Route options() { 
     Route ret= Route.newInstance(this.delegate.options());
     return ret;
   }
@@ -215,7 +215,7 @@ public class Router {
    *
    * @return the route
    */
-  public Route options(String path) {
+  public Route options(String path) { 
     Route ret= Route.newInstance(this.delegate.options(path));
     return ret;
   }
@@ -227,7 +227,7 @@ public class Router {
    *
    * @return the route
    */
-  public Route optionsWithRegex(String regex) {
+  public Route optionsWithRegex(String regex) { 
     Route ret= Route.newInstance(this.delegate.optionsWithRegex(regex));
     return ret;
   }
@@ -237,7 +237,7 @@ public class Router {
    *
    * @return the route
    */
-  public Route put() {
+  public Route put() { 
     Route ret= Route.newInstance(this.delegate.put());
     return ret;
   }
@@ -249,7 +249,7 @@ public class Router {
    *
    * @return the route
    */
-  public Route put(String path) {
+  public Route put(String path) { 
     Route ret= Route.newInstance(this.delegate.put(path));
     return ret;
   }
@@ -261,7 +261,7 @@ public class Router {
    *
    * @return the route
    */
-  public Route putWithRegex(String regex) {
+  public Route putWithRegex(String regex) { 
     Route ret= Route.newInstance(this.delegate.putWithRegex(regex));
     return ret;
   }
@@ -271,7 +271,7 @@ public class Router {
    *
    * @return the route
    */
-  public Route post() {
+  public Route post() { 
     Route ret= Route.newInstance(this.delegate.post());
     return ret;
   }
@@ -283,7 +283,7 @@ public class Router {
    *
    * @return the route
    */
-  public Route post(String path) {
+  public Route post(String path) { 
     Route ret= Route.newInstance(this.delegate.post(path));
     return ret;
   }
@@ -295,7 +295,7 @@ public class Router {
    *
    * @return the route
    */
-  public Route postWithRegex(String regex) {
+  public Route postWithRegex(String regex) { 
     Route ret= Route.newInstance(this.delegate.postWithRegex(regex));
     return ret;
   }
@@ -305,7 +305,7 @@ public class Router {
    *
    * @return the route
    */
-  public Route delete() {
+  public Route delete() { 
     Route ret= Route.newInstance(this.delegate.delete());
     return ret;
   }
@@ -317,7 +317,7 @@ public class Router {
    *
    * @return the route
    */
-  public Route delete(String path) {
+  public Route delete(String path) { 
     Route ret= Route.newInstance(this.delegate.delete(path));
     return ret;
   }
@@ -329,7 +329,7 @@ public class Router {
    *
    * @return the route
    */
-  public Route deleteWithRegex(String regex) {
+  public Route deleteWithRegex(String regex) { 
     Route ret= Route.newInstance(this.delegate.deleteWithRegex(regex));
     return ret;
   }
@@ -337,7 +337,7 @@ public class Router {
   /**
    * @return a list of all the routes on this router
    */
-  public List<Route> getRoutes() {
+  public List<Route> getRoutes() { 
     List<Route> ret = this.delegate.getRoutes().stream().map(Route::newInstance).collect(java.util.stream.Collectors.toList());
     return ret;
   }
@@ -347,7 +347,7 @@ public class Router {
    *
    * @return a reference to this, so the API can be used fluently
    */
-  public Router clear() {
+  public Router clear() { 
     this.delegate.clear();
     return this;
   }
@@ -359,7 +359,7 @@ public class Router {
    * @param subRouter  the router to mount as a sub router
    * @return a reference to this, so the API can be used fluently
    */
-  public Router mountSubRouter(String mountPoint, Router subRouter) {
+  public Router mountSubRouter(String mountPoint, Router subRouter) { 
     this.delegate.mountSubRouter(mountPoint, (io.vertx.ext.apex.Router) subRouter.getDelegate());
     return this;
   }
@@ -371,7 +371,7 @@ public class Router {
    * @param exceptionHandler  the exception handler
    * @return a reference to this, so the API can be used fluently
    */
-  public Router exceptionHandler(Handler<Throwable> exceptionHandler) {
+  public Router exceptionHandler(Handler<Throwable> exceptionHandler) { 
     this.delegate.exceptionHandler(exceptionHandler);
     return this;
   }
@@ -381,7 +381,7 @@ public class Router {
    *
    * @param context  the routing context
    */
-  public void handleContext(RoutingContext context) {
+  public void handleContext(RoutingContext context) { 
     this.delegate.handleContext((io.vertx.ext.apex.RoutingContext) context.getDelegate());
   }
 
@@ -390,7 +390,7 @@ public class Router {
    *
    * @param context  the routing context
    */
-  public void handleFailure(RoutingContext context) {
+  public void handleFailure(RoutingContext context) { 
     this.delegate.handleFailure((io.vertx.ext.apex.RoutingContext) context.getDelegate());
   }
 

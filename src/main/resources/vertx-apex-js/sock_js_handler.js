@@ -16,6 +16,7 @@
 
 /** @module vertx-apex-js/sock_js_handler */
 var utils = require('vertx-js/util/utils');
+var RoutingContext = require('vertx-apex-js/routing_context');
 var Router = require('vertx-apex-js/router');
 var SockJSSocket = require('vertx-apex-js/sock_js_socket');
 
@@ -35,6 +36,18 @@ var SockJSHandler = function(j_val) {
 
   var j_sockJSHandler = j_val;
   var that = this;
+
+  /**
+
+   @public
+   @param arg0 {RoutingContext} 
+   */
+  this.handle = function(arg0) {
+    var __args = arguments;
+    if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
+      j_sockJSHandler.handle(arg0._jdel);
+    } else utils.invalidArgs();
+  };
 
   /**
    Set a SockJS socket handler. This handler will be called with a SockJS socket whenever a SockJS connection

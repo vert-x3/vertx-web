@@ -80,7 +80,4 @@ public interface TemplateHandler extends Handler<RoutingContext> {
     return new TemplateHandlerImpl(engine, templateDirectory, contentType);
   }
 
-  @Override
-  void handle(RoutingContext context);
-
 }

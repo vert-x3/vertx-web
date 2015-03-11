@@ -35,7 +35,7 @@ import io.vertx.ext.apex.handler.sockjs.BridgeOptions;
  * NOTE: This class has been automatically generated from the original non RX-ified interface using Vert.x codegen.
  */
 
-public class SockJSHandler {
+public class SockJSHandler implements Handler<RoutingContext> {
 
   final io.vertx.ext.apex.handler.sockjs.SockJSHandler delegate;
 
@@ -47,13 +47,17 @@ public class SockJSHandler {
     return delegate;
   }
 
+  public void handle(RoutingContext arg0) { 
+    this.delegate.handle((io.vertx.ext.apex.RoutingContext) arg0.getDelegate());
+  }
+
   /**
    * Create a SockJS handler
    *
    * @param vertx  the Vert.x instance
    * @return the handler
    */
-  public static SockJSHandler create(Vertx vertx) {
+  public static SockJSHandler create(Vertx vertx) { 
     SockJSHandler ret= SockJSHandler.newInstance(io.vertx.ext.apex.handler.sockjs.SockJSHandler.create((io.vertx.core.Vertx) vertx.getDelegate()));
     return ret;
   }
@@ -65,7 +69,7 @@ public class SockJSHandler {
    * @param options  options to configure the handler
    * @return the handler
    */
-  public static SockJSHandler create(Vertx vertx, SockJSHandlerOptions options) {
+  public static SockJSHandler create(Vertx vertx, SockJSHandlerOptions options) { 
     SockJSHandler ret= SockJSHandler.newInstance(io.vertx.ext.apex.handler.sockjs.SockJSHandler.create((io.vertx.core.Vertx) vertx.getDelegate(), options));
     return ret;
   }
@@ -76,7 +80,7 @@ public class SockJSHandler {
    * @param router  the router to install on
    * @param vertx  the Vert.x instance
    */
-  public static void installTestApplications(Router router, Vertx vertx) {
+  public static void installTestApplications(Router router, Vertx vertx) { 
     io.vertx.ext.apex.handler.sockjs.SockJSHandler.installTestApplications((io.vertx.ext.apex.Router) router.getDelegate(), (io.vertx.core.Vertx) vertx.getDelegate());
   }
 
@@ -87,7 +91,7 @@ public class SockJSHandler {
    * @param handler  the handler
    * @return a reference to this, so the API can be used fluently
    */
-  public SockJSHandler socketHandler(Handler<SockJSSocket> handler) {
+  public SockJSHandler socketHandler(Handler<SockJSSocket> handler) { 
     this.delegate.socketHandler(new Handler<io.vertx.ext.apex.handler.sockjs.SockJSSocket>() {
       public void handle(io.vertx.ext.apex.handler.sockjs.SockJSSocket event) {
         handler.handle(new SockJSSocket(event));
@@ -104,7 +108,7 @@ public class SockJSHandler {
    * @param bridgeOptions  options to configure the bridge with
    * @return a reference to this, so the API can be used fluently
    */
-  public SockJSHandler bridge(BridgeOptions bridgeOptions) {
+  public SockJSHandler bridge(BridgeOptions bridgeOptions) { 
     this.delegate.bridge(bridgeOptions);
     return this;
   }

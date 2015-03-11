@@ -26,13 +26,16 @@ import io.vertx.core.Handler
  * path.
 */
 @CompileStatic
-public class TemplateHandler {
+public class TemplateHandler implements Handler<RoutingContext> {
   final def io.vertx.ext.apex.handler.TemplateHandler delegate;
   public TemplateHandler(io.vertx.ext.apex.handler.TemplateHandler delegate) {
     this.delegate = delegate;
   }
   public Object getDelegate() {
     return delegate;
+  }
+  public void handle(RoutingContext arg0) {
+    ((io.vertx.core.Handler) this.delegate).handle((io.vertx.ext.apex.RoutingContext)arg0.getDelegate());
   }
   /**
    * Create a handler
@@ -53,9 +56,6 @@ public class TemplateHandler {
   public static TemplateHandler create(TemplateEngine engine, String templateDirectory, String contentType) {
     def ret= TemplateHandler.FACTORY.apply(io.vertx.ext.apex.handler.TemplateHandler.create((io.vertx.ext.apex.templ.TemplateEngine)engine.getDelegate(), templateDirectory, contentType));
     return ret;
-  }
-  public void handle(RoutingContext context) {
-    this.delegate.handle((io.vertx.ext.apex.RoutingContext)context.getDelegate());
   }
 
   static final java.util.function.Function<io.vertx.ext.apex.handler.TemplateHandler, TemplateHandler> FACTORY = io.vertx.lang.groovy.Factories.createFactory() {

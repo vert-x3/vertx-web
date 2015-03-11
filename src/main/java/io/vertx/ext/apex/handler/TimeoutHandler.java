@@ -54,7 +54,4 @@ public interface TimeoutHandler extends Handler<RoutingContext> {
     return new TimeoutHandlerImpl(timeout);
   }
 
-  @Override
-  void handle(RoutingContext event);
-
 }

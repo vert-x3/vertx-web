@@ -138,7 +138,7 @@ var RoutingContext = function(j_val) {
   };
 
   /**
-   @return the Vert.x instance associated to the initiating {@link Router} for this context
+   @return the Vert.x instance associated to the initiating link for this context
 
    @public
 
@@ -190,7 +190,7 @@ var RoutingContext = function(j_val) {
    The normalised path will also not contain any `..` character sequences to prevent resources being accessed outside
    of the permitted area.
    <p>
-   It's recommended to always use the normalised path as opposed to {@link HttpServerRequest#path}
+   It's recommended to always use the normalised path as opposed to link
    if accessing server resources requested by a client.
 
    @public
@@ -205,7 +205,7 @@ var RoutingContext = function(j_val) {
   };
 
   /**
-   Get the cookie with the specified name. The context must have first been routed to a {@link CookieHandler}
+   Get the cookie with the specified name. The context must have first been routed to a link
    for this to work.
 
    @public
@@ -221,7 +221,7 @@ var RoutingContext = function(j_val) {
 
   /**
    Add a cookie. This will be sent back to the client in the response. The context must have first been routed
-   to a {@link CookieHandler} for this to work.
+   to a link for this to work.
 
    @public
    @param cookie {Cookie} the cookie 
@@ -236,7 +236,7 @@ var RoutingContext = function(j_val) {
   };
 
   /**
-   Remove a cookie. The context must have first been routed to a {@link CookieHandler}
+   Remove a cookie. The context must have first been routed to a link
    for this to work.
 
    @public
@@ -251,7 +251,7 @@ var RoutingContext = function(j_val) {
   };
 
   /**
-   @return the number of cookies. The context must have first been routed to a {@link CookieHandler}
+   @return the number of cookies. The context must have first been routed to a link
    for this to work.
 
    @public
@@ -266,7 +266,7 @@ var RoutingContext = function(j_val) {
   };
 
   /**
-   @return a set of all the cookies. The context must have first been routed to a {@link CookieHandler}
+   @return a set of all the cookies. The context must have first been routed to a link
    for this to be populated.
 
    @public
@@ -282,7 +282,7 @@ var RoutingContext = function(j_val) {
 
   /**
    Get the entire HTTP request body as a string, assuming the specified encoding. The context must have first been routed to a
-   {@link BodyHandler} for this to be populated.
+   link for this to be populated.
 
    @public
    @param encoding {string} the encoding, e.g. "UTF-16" 
@@ -298,8 +298,8 @@ var RoutingContext = function(j_val) {
   };
 
   /**
-   @return Get the entire HTTP request body as a {@link JsonObject}. The context must have first been routed to a
-   {@link BodyHandler} for this to be populated.
+   @return Get the entire HTTP request body as a link. The context must have first been routed to a
+   link for this to be populated.
 
    @public
 
@@ -313,8 +313,8 @@ var RoutingContext = function(j_val) {
   };
 
   /**
-   @return Get the entire HTTP request body as a {@link Buffer}. The context must have first been routed to a
-   {@link BodyHandler} for this to be populated.
+   @return Get the entire HTTP request body as a link. The context must have first been routed to a
+   link for this to be populated.
 
    @public
 
@@ -329,7 +329,7 @@ var RoutingContext = function(j_val) {
 
   /**
    @return a set of fileuploads (if any) for the request. The context must have first been routed to a
-   {@link BodyHandler} for this to work.
+   link for this to work.
 
    @public
 
@@ -343,7 +343,7 @@ var RoutingContext = function(j_val) {
   };
 
   /**
-   Get the session. The context must have first been routed to a {@link SessionHandler}
+   Get the session. The context must have first been routed to a link
    for this to be populated.
    Sessions live for a browser session, and are maintained by session cookies.
 
@@ -360,7 +360,7 @@ var RoutingContext = function(j_val) {
 
   /**
    If the context is being routed to failure handlers after a failure has been triggered by calling
-   {@link RoutingContext#fail}  then this will return that status code.  It can be used by failure handlers to render a response,
+   link  then this will return that status code.  It can be used by failure handlers to render a response,
    e.g. create a failure response page.
 
    @public
@@ -465,7 +465,7 @@ var RoutingContext = function(j_val) {
   };
 
   /**
-   Set the body. Used by the {@link BodyHandler}. You will not normally call this method.
+   Set the body. Used by the link. You will not normally call this method.
 
    @public
    @param body {Buffer} the body 
@@ -478,7 +478,7 @@ var RoutingContext = function(j_val) {
   };
 
   /**
-   Set the session. Used by the {@link SessionHandler}. You will not normally call this method.
+   Set the session. Used by the link. You will not normally call this method.
 
    @public
    @param session {Session} the session 

@@ -39,7 +39,4 @@ public interface ResponseTimeHandler extends Handler<RoutingContext> {
     return new ResponseTimeHandlerImpl();
   }
 
-  @Override
-  void handle(RoutingContext event);
-
 }

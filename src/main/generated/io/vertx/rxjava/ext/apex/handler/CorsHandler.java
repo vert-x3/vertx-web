@@ -32,7 +32,7 @@ import io.vertx.core.Handler;
  * NOTE: This class has been automatically generated from the original non RX-ified interface using Vert.x codegen.
  */
 
-public class CorsHandler {
+public class CorsHandler implements Handler<RoutingContext> {
 
   final io.vertx.ext.apex.handler.CorsHandler delegate;
 
@@ -44,13 +44,17 @@ public class CorsHandler {
     return delegate;
   }
 
+  public void handle(RoutingContext arg0) { 
+    this.delegate.handle((io.vertx.ext.apex.RoutingContext) arg0.getDelegate());
+  }
+
   /**
    * Create a CORS handler
    *
    * @param allowedOriginPattern  the allowed origin pattern
    * @return  the handler
    */
-  public static CorsHandler create(String allowedOriginPattern) {
+  public static CorsHandler create(String allowedOriginPattern) { 
     CorsHandler ret= CorsHandler.newInstance(io.vertx.ext.apex.handler.CorsHandler.create(allowedOriginPattern));
     return ret;
   }
@@ -61,7 +65,7 @@ public class CorsHandler {
    * @param method  the method to add
    * @return a reference to this, so the API can be used fluently
    */
-  public CorsHandler allowedMethod(HttpMethod method) {
+  public CorsHandler allowedMethod(HttpMethod method) { 
     this.delegate.allowedMethod(method);
     return this;
   }
@@ -72,7 +76,7 @@ public class CorsHandler {
    * @param headerName  the allowed header name
    * @return a reference to this, so the API can be used fluently
    */
-  public CorsHandler allowedHeader(String headerName) {
+  public CorsHandler allowedHeader(String headerName) { 
     this.delegate.allowedHeader(headerName);
     return this;
   }
@@ -83,7 +87,7 @@ public class CorsHandler {
    * @param headerNames  the allowed header names
    * @return a reference to this, so the API can be used fluently
    */
-  public CorsHandler allowedHeaders(Set<String> headerNames) {
+  public CorsHandler allowedHeaders(Set<String> headerNames) { 
     this.delegate.allowedHeaders(headerNames);
     return this;
   }
@@ -94,7 +98,7 @@ public class CorsHandler {
    * @param headerName  the exposed header name
    * @return a reference to this, so the API can be used fluently
    */
-  public CorsHandler exposedHeader(String headerName) {
+  public CorsHandler exposedHeader(String headerName) { 
     this.delegate.exposedHeader(headerName);
     return this;
   }
@@ -105,7 +109,7 @@ public class CorsHandler {
    * @param headerNames  the exposed header names
    * @return a reference to this, so the API can be used fluently
    */
-  public CorsHandler exposedHeaders(Set<String> headerNames) {
+  public CorsHandler exposedHeaders(Set<String> headerNames) { 
     this.delegate.exposedHeaders(headerNames);
     return this;
   }
@@ -116,7 +120,7 @@ public class CorsHandler {
    * @param allow true if allowed
    * @return a reference to this, so the API can be used fluently
    */
-  public CorsHandler allowCredentials(boolean allow) {
+  public CorsHandler allowCredentials(boolean allow) { 
     this.delegate.allowCredentials(allow);
     return this;
   }
@@ -127,13 +131,9 @@ public class CorsHandler {
    * @param maxAgeSeconds  max age in seconds
    * @return a reference to this, so the API can be used fluently
    */
-  public CorsHandler maxAgeSeconds(int maxAgeSeconds) {
+  public CorsHandler maxAgeSeconds(int maxAgeSeconds) { 
     this.delegate.maxAgeSeconds(maxAgeSeconds);
     return this;
-  }
-
-  public void handle(RoutingContext context) {
-    this.delegate.handle((io.vertx.ext.apex.RoutingContext) context.getDelegate());
   }
 
 

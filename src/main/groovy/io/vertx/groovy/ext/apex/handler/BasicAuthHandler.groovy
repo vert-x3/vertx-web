@@ -18,19 +18,58 @@ package io.vertx.groovy.ext.apex.handler;
 import groovy.transform.CompileStatic
 import io.vertx.lang.groovy.InternalHelper
 import io.vertx.groovy.ext.apex.RoutingContext
+import java.util.Set
 import io.vertx.groovy.ext.auth.AuthService
 /**
  * An auth handler that provides HTTP Basic Authentication support.
 */
 @CompileStatic
-public class BasicAuthHandler extends AuthHandler {
+public class BasicAuthHandler implements AuthHandler {
   final def io.vertx.ext.apex.handler.BasicAuthHandler delegate;
   public BasicAuthHandler(io.vertx.ext.apex.handler.BasicAuthHandler delegate) {
-    super(delegate);
     this.delegate = delegate;
   }
   public Object getDelegate() {
     return delegate;
+  }
+  public void handle(RoutingContext arg0) {
+    ((io.vertx.core.Handler) this.delegate).handle((io.vertx.ext.apex.RoutingContext)arg0.getDelegate());
+  }
+  /**
+   * Add a required role for this auth handler
+   * @param role the role
+   * @return a reference to this, so the API can be used fluently
+   */
+  public AuthHandler addRole(String role) {
+    ((io.vertx.ext.apex.handler.AuthHandler) this.delegate).addRole(role);
+    return this;
+  }
+  /**
+   * Add a required permission for this auth handler
+   * @param permission the permission
+   * @return a reference to this, so the API can be used fluently
+   */
+  public AuthHandler addPermission(String permission) {
+    ((io.vertx.ext.apex.handler.AuthHandler) this.delegate).addPermission(permission);
+    return this;
+  }
+  /**
+   * Add a set of required roles for this auth handler
+   * @param roles the set of roles
+   * @return a reference to this, so the API can be used fluently
+   */
+  public AuthHandler addRoles(Set<String> roles) {
+    ((io.vertx.ext.apex.handler.AuthHandler) this.delegate).addRoles(roles);
+    return this;
+  }
+  /**
+   * Add a set of required permissions for this auth handler
+   * @param permissions the set of permissions
+   * @return a reference to this, so the API can be used fluently
+   */
+  public AuthHandler addPermissions(Set<String> permissions) {
+    ((io.vertx.ext.apex.handler.AuthHandler) this.delegate).addPermissions(permissions);
+    return this;
   }
   /**
    * Create a basic auth handler
@@ -50,9 +89,6 @@ public class BasicAuthHandler extends AuthHandler {
   public static AuthHandler create(AuthService authService, String realm) {
     def ret= AuthHandler.FACTORY.apply(io.vertx.ext.apex.handler.BasicAuthHandler.create((io.vertx.ext.auth.AuthService)authService.getDelegate(), realm));
     return ret;
-  }
-  public void handle(RoutingContext context) {
-    this.delegate.handle((io.vertx.ext.apex.RoutingContext)context.getDelegate());
   }
 
   static final java.util.function.Function<io.vertx.ext.apex.handler.BasicAuthHandler, BasicAuthHandler> FACTORY = io.vertx.lang.groovy.Factories.createFactory() {

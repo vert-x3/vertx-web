@@ -20,17 +20,20 @@ import io.vertx.lang.groovy.InternalHelper
 import io.vertx.groovy.ext.apex.RoutingContext
 import io.vertx.core.Handler
 /**
- * A handler which decodes cookies from the request, makes them available in the {@link io.vertx.groovy.ext.apex.RoutingContext}
+ * A handler which decodes cookies from the request, makes them available in the link
  * and writes them back in the response.
 */
 @CompileStatic
-public class CookieHandler {
+public class CookieHandler implements Handler<RoutingContext> {
   final def io.vertx.ext.apex.handler.CookieHandler delegate;
   public CookieHandler(io.vertx.ext.apex.handler.CookieHandler delegate) {
     this.delegate = delegate;
   }
   public Object getDelegate() {
     return delegate;
+  }
+  public void handle(RoutingContext arg0) {
+    ((io.vertx.core.Handler) this.delegate).handle((io.vertx.ext.apex.RoutingContext)arg0.getDelegate());
   }
   /**
    * Create a cookie handler
@@ -39,9 +42,6 @@ public class CookieHandler {
   public static CookieHandler create() {
     def ret= CookieHandler.FACTORY.apply(io.vertx.ext.apex.handler.CookieHandler.create());
     return ret;
-  }
-  public void handle(RoutingContext event) {
-    this.delegate.handle((io.vertx.ext.apex.RoutingContext)event.getDelegate());
   }
 
   static final java.util.function.Function<io.vertx.ext.apex.handler.CookieHandler, CookieHandler> FACTORY = io.vertx.lang.groovy.Factories.createFactory() {

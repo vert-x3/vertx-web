@@ -64,17 +64,17 @@ public class SockJSSocket implements ReadStream<Buffer>,  WriteStream<Buffer> {
     return observable;
   }
 
-  public boolean writeQueueFull() {
+  public boolean writeQueueFull() { 
     boolean ret = this.delegate.writeQueueFull();
     return ret;
   }
 
-  public SockJSSocket exceptionHandler(Handler<Throwable> handler) {
+  public SockJSSocket exceptionHandler(Handler<Throwable> handler) { 
     this.delegate.exceptionHandler(handler);
     return this;
   }
 
-  public SockJSSocket handler(Handler<Buffer> handler) {
+  public SockJSSocket handler(Handler<Buffer> handler) { 
     this.delegate.handler(new Handler<io.vertx.core.buffer.Buffer>() {
       public void handle(io.vertx.core.buffer.Buffer event) {
         handler.handle(new Buffer(event));
@@ -83,32 +83,32 @@ public class SockJSSocket implements ReadStream<Buffer>,  WriteStream<Buffer> {
     return this;
   }
 
-  public SockJSSocket pause() {
+  public SockJSSocket pause() { 
     this.delegate.pause();
     return this;
   }
 
-  public SockJSSocket resume() {
+  public SockJSSocket resume() { 
     this.delegate.resume();
     return this;
   }
 
-  public SockJSSocket endHandler(Handler<Void> endHandler) {
+  public SockJSSocket endHandler(Handler<Void> endHandler) { 
     this.delegate.endHandler(endHandler);
     return this;
   }
 
-  public SockJSSocket write(Buffer data) {
+  public SockJSSocket write(Buffer data) { 
     this.delegate.write((io.vertx.core.buffer.Buffer) data.getDelegate());
     return this;
   }
 
-  public SockJSSocket setWriteQueueMaxSize(int maxSize) {
+  public SockJSSocket setWriteQueueMaxSize(int maxSize) { 
     this.delegate.setWriteQueueMaxSize(maxSize);
     return this;
   }
 
-  public SockJSSocket drainHandler(Handler<Void> handler) {
+  public SockJSSocket drainHandler(Handler<Void> handler) { 
     this.delegate.drainHandler(handler);
     return this;
   }
@@ -121,7 +121,7 @@ public class SockJSSocket implements ReadStream<Buffer>,  WriteStream<Buffer> {
    * that buffer will be received by this instance in its own event loop and written to the underlying socket. This
    * allows you to write data to other sockets which are owned by different event loops.
    */
-  public String writeHandlerID() {
+  public String writeHandlerID() { 
     String ret = this.delegate.writeHandlerID();
     return ret;
   }
@@ -129,14 +129,14 @@ public class SockJSSocket implements ReadStream<Buffer>,  WriteStream<Buffer> {
   /**
    * Close it
    */
-  public void close() {
+  public void close() { 
     this.delegate.close();
   }
 
   /**
    * Return the remote address for this socket
    */
-  public SocketAddress remoteAddress() {
+  public SocketAddress remoteAddress() { 
     SocketAddress ret= SocketAddress.newInstance(this.delegate.remoteAddress());
     return ret;
   }
@@ -144,7 +144,7 @@ public class SockJSSocket implements ReadStream<Buffer>,  WriteStream<Buffer> {
   /**
    * Return the local address for this socket
    */
-  public SocketAddress localAddress() {
+  public SocketAddress localAddress() { 
     SocketAddress ret= SocketAddress.newInstance(this.delegate.localAddress());
     return ret;
   }
@@ -153,7 +153,7 @@ public class SockJSSocket implements ReadStream<Buffer>,  WriteStream<Buffer> {
    * Return the headers corresponding to the last request for this socket or the websocket handshake
    * Any cookie headers will be removed for security reasons
    */
-  public MultiMap headers() {
+  public MultiMap headers() { 
     MultiMap ret= MultiMap.newInstance(this.delegate.headers());
     return ret;
   }
@@ -161,7 +161,7 @@ public class SockJSSocket implements ReadStream<Buffer>,  WriteStream<Buffer> {
   /**
    * Return the URI corresponding to the last request for this socket or the websocket handshake
    */
-  public String uri() {
+  public String uri() { 
     String ret = this.delegate.uri();
     return ret;
   }
@@ -169,7 +169,7 @@ public class SockJSSocket implements ReadStream<Buffer>,  WriteStream<Buffer> {
   /**
    * @return the Apex session corresponding to this socket
    */
-  public Session apexSession() {
+  public Session apexSession() { 
     Session ret= Session.newInstance(this.delegate.apexSession());
     return ret;
   }

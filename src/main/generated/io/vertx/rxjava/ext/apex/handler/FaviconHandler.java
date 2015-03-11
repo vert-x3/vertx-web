@@ -32,7 +32,7 @@ import io.vertx.core.Handler;
  * NOTE: This class has been automatically generated from the original non RX-ified interface using Vert.x codegen.
  */
 
-public class FaviconHandler {
+public class FaviconHandler implements Handler<RoutingContext> {
 
   final io.vertx.ext.apex.handler.FaviconHandler delegate;
 
@@ -44,12 +44,16 @@ public class FaviconHandler {
     return delegate;
   }
 
+  public void handle(RoutingContext arg0) { 
+    this.delegate.handle((io.vertx.ext.apex.RoutingContext) arg0.getDelegate());
+  }
+
   /**
    * Create a handler with defaults
    *
    * @return the handler
    */
-  public static FaviconHandler create() {
+  public static FaviconHandler create() { 
     FaviconHandler ret= FaviconHandler.newInstance(io.vertx.ext.apex.handler.FaviconHandler.create());
     return ret;
   }
@@ -60,7 +64,7 @@ public class FaviconHandler {
    * @param path  the path
    * @return the handler
    */
-  public static FaviconHandler create(String path) {
+  public static FaviconHandler create(String path) { 
     FaviconHandler ret= FaviconHandler.newInstance(io.vertx.ext.apex.handler.FaviconHandler.create(path));
     return ret;
   }
@@ -72,7 +76,7 @@ public class FaviconHandler {
    * @param maxAgeSeconds max how long the file will be cached by browser, in seconds
    * @return the handler
    */
-  public static FaviconHandler create(String path, long maxAgeSeconds) {
+  public static FaviconHandler create(String path, long maxAgeSeconds) { 
     FaviconHandler ret= FaviconHandler.newInstance(io.vertx.ext.apex.handler.FaviconHandler.create(path, maxAgeSeconds));
     return ret;
   }
@@ -83,13 +87,9 @@ public class FaviconHandler {
    * @param maxAgeSeconds max how long the file will be cached by browser, in seconds
    * @return the handler
    */
-  public static FaviconHandler create(long maxAgeSeconds) {
+  public static FaviconHandler create(long maxAgeSeconds) { 
     FaviconHandler ret= FaviconHandler.newInstance(io.vertx.ext.apex.handler.FaviconHandler.create(maxAgeSeconds));
     return ret;
-  }
-
-  public void handle(RoutingContext event) {
-    this.delegate.handle((io.vertx.ext.apex.RoutingContext) event.getDelegate());
   }
 
 

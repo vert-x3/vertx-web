@@ -20,18 +20,21 @@ import io.vertx.lang.groovy.InternalHelper
 import io.vertx.groovy.ext.apex.RoutingContext
 import io.vertx.core.Handler
 /**
- * A handler which gathers the entire request body and sets it on the {@link io.vertx.groovy.ext.apex.RoutingContext}.
+ * A handler which gathers the entire request body and sets it on the link.
  * <p>
  * It also handles HTTP file uploads and can be used to limit body sizes.
 */
 @CompileStatic
-public class BodyHandler {
+public class BodyHandler implements Handler<RoutingContext> {
   final def io.vertx.ext.apex.handler.BodyHandler delegate;
   public BodyHandler(io.vertx.ext.apex.handler.BodyHandler delegate) {
     this.delegate = delegate;
   }
   public Object getDelegate() {
     return delegate;
+  }
+  public void handle(RoutingContext arg0) {
+    ((io.vertx.core.Handler) this.delegate).handle((io.vertx.ext.apex.RoutingContext)arg0.getDelegate());
   }
   /**
    * Create a body handler with defaults
@@ -67,9 +70,6 @@ public class BodyHandler {
   public BodyHandler setMergeFormAttributes(boolean mergeFormAttributes) {
     this.delegate.setMergeFormAttributes(mergeFormAttributes);
     return this;
-  }
-  public void handle(RoutingContext context) {
-    this.delegate.handle((io.vertx.ext.apex.RoutingContext)context.getDelegate());
   }
 
   static final java.util.function.Function<io.vertx.ext.apex.handler.BodyHandler, BodyHandler> FACTORY = io.vertx.lang.groovy.Factories.createFactory() {

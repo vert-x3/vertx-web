@@ -76,7 +76,4 @@ public interface FaviconHandler extends Handler<RoutingContext> {
     return new FaviconHandlerImpl(maxAgeSeconds);
   }
 
-  @Override
-  void handle(RoutingContext event);
-
 }

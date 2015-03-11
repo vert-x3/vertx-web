@@ -46,7 +46,7 @@ public class ThymeleafTemplateEngine extends TemplateEngine {
    *
    * @return  the engine
    */
-  public static ThymeleafTemplateEngine create() {
+  public static ThymeleafTemplateEngine create() { 
     ThymeleafTemplateEngine ret= ThymeleafTemplateEngine.newInstance(io.vertx.ext.apex.templ.ThymeleafTemplateEngine.create());
     return ret;
   }
@@ -57,7 +57,7 @@ public class ThymeleafTemplateEngine extends TemplateEngine {
    * @param mode  the mode
    * @return a reference to this for fluency
    */
-  public ThymeleafTemplateEngine setMode(String mode) {
+  public ThymeleafTemplateEngine setMode(String mode) { 
     ThymeleafTemplateEngine ret= ThymeleafTemplateEngine.newInstance(this.delegate.setMode(mode));
     return ret;
   }

@@ -30,7 +30,7 @@ import io.vertx.core.Handler;
  * NOTE: This class has been automatically generated from the original non RX-ified interface using Vert.x codegen.
  */
 
-public class ErrorHandler {
+public class ErrorHandler implements Handler<RoutingContext> {
 
   final io.vertx.ext.apex.handler.ErrorHandler delegate;
 
@@ -42,12 +42,16 @@ public class ErrorHandler {
     return delegate;
   }
 
+  public void handle(RoutingContext arg0) { 
+    this.delegate.handle((io.vertx.ext.apex.RoutingContext) arg0.getDelegate());
+  }
+
   /**
    * Create an error handler using defaults
    *
    * @return the handler
    */
-  public static ErrorHandler create() {
+  public static ErrorHandler create() { 
     ErrorHandler ret= ErrorHandler.newInstance(io.vertx.ext.apex.handler.ErrorHandler.create());
     return ret;
   }
@@ -59,7 +63,7 @@ public class ErrorHandler {
    * @param displayExceptionDetails  true if exception details should be displayed
    * @return the handler
    */
-  public static ErrorHandler create(String errorTemplateName, boolean displayExceptionDetails) {
+  public static ErrorHandler create(String errorTemplateName, boolean displayExceptionDetails) { 
     ErrorHandler ret= ErrorHandler.newInstance(io.vertx.ext.apex.handler.ErrorHandler.create(errorTemplateName, displayExceptionDetails));
     return ret;
   }
@@ -70,7 +74,7 @@ public class ErrorHandler {
    * @param displayExceptionDetails  true if exception details should be displayed
    * @return the handler
    */
-  public static ErrorHandler create(boolean displayExceptionDetails) {
+  public static ErrorHandler create(boolean displayExceptionDetails) { 
     ErrorHandler ret= ErrorHandler.newInstance(io.vertx.ext.apex.handler.ErrorHandler.create(displayExceptionDetails));
     return ret;
   }
@@ -81,13 +85,9 @@ public class ErrorHandler {
    * @param errorTemplateName  the error template name - will be looked up from the classpath
    * @return the handler
    */
-  public static ErrorHandler create(String errorTemplateName) {
+  public static ErrorHandler create(String errorTemplateName) { 
     ErrorHandler ret= ErrorHandler.newInstance(io.vertx.ext.apex.handler.ErrorHandler.create(errorTemplateName));
     return ret;
-  }
-
-  public void handle(RoutingContext context) {
-    this.delegate.handle((io.vertx.ext.apex.RoutingContext) context.getDelegate());
   }
 
 

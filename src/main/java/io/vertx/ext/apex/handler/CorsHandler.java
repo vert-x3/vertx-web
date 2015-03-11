@@ -116,7 +116,4 @@ public interface CorsHandler extends Handler<RoutingContext> {
   @Fluent
   CorsHandler maxAgeSeconds(int maxAgeSeconds);
 
-  @Override
-  void handle(RoutingContext context);
-
 }

@@ -28,10 +28,10 @@ import io.vertx.groovy.core.net.SocketAddress
  *
  * You interact with SockJS clients through instances of SockJS socket.
  * <p>
- * The API is very similar to {@link io.vertx.groovy.core.http.WebSocket}.
- * It implements both {@link io.vertx.groovy.core.streams.ReadStream} and {@link io.vertx.groovy.core.streams.WriteStream}
+ * The API is very similar to link.
+ * It implements both link and link
  * so it can be used with
- * {@link io.vertx.groovy.core.streams.Pump} to pump data with flow control.<p>
+ * link to pump data with flow control.<p>
 */
 @CompileStatic
 public class SockJSSocket implements ReadStream<Buffer>,  WriteStream<Buffer> {

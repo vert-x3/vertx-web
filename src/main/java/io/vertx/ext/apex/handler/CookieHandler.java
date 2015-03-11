@@ -38,7 +38,4 @@ public interface CookieHandler extends Handler<RoutingContext> {
     return new CookieHandlerImpl();
   }
 
-  @Override
-  void handle(RoutingContext event);
-
 }

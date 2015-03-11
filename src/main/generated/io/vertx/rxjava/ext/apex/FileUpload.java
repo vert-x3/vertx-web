@@ -44,7 +44,7 @@ public class FileUpload {
   /**
    * @return the name of the upload as provided in the form submission
    */
-  public String name() {
+  public String name() { 
     String ret = this.delegate.name();
     return ret;
   }
@@ -52,7 +52,7 @@ public class FileUpload {
   /**
    * @return the actual temporary file name on the server where the file was uploaded to.
    */
-  public String uploadedFileName() {
+  public String uploadedFileName() { 
     String ret = this.delegate.uploadedFileName();
     return ret;
   }
@@ -60,7 +60,7 @@ public class FileUpload {
   /**
    * @return the file name of the upload as provided in the form submission
    */
-  public String fileName() {
+  public String fileName() { 
     String ret = this.delegate.fileName();
     return ret;
   }
@@ -68,7 +68,7 @@ public class FileUpload {
   /**
    * @return the size of the upload, in bytes
    */
-  public long size() {
+  public long size() { 
     long ret = this.delegate.size();
     return ret;
   }
@@ -76,7 +76,7 @@ public class FileUpload {
   /**
    * @return the content type (MIME type) of the upload
    */
-  public String contentType() {
+  public String contentType() { 
     String ret = this.delegate.contentType();
     return ret;
   }
@@ -84,7 +84,7 @@ public class FileUpload {
   /**
    * @return the content transfer encoding of the upload - this describes how the upload was encoded in the form submission.
    */
-  public String contentTransferEncoding() {
+  public String contentTransferEncoding() { 
     String ret = this.delegate.contentTransferEncoding();
     return ret;
   }
@@ -92,7 +92,7 @@ public class FileUpload {
   /**
    * @return the charset of the upload
    */
-  public String charSet() {
+  public String charSet() { 
     String ret = this.delegate.charSet();
     return ret;
   }

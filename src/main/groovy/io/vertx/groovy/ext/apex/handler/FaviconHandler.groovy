@@ -25,13 +25,16 @@ import io.vertx.core.Handler
  * If no file system path is specified it will attempt to serve a resource called `favicon.ico` from the classpath.
 */
 @CompileStatic
-public class FaviconHandler {
+public class FaviconHandler implements Handler<RoutingContext> {
   final def io.vertx.ext.apex.handler.FaviconHandler delegate;
   public FaviconHandler(io.vertx.ext.apex.handler.FaviconHandler delegate) {
     this.delegate = delegate;
   }
   public Object getDelegate() {
     return delegate;
+  }
+  public void handle(RoutingContext arg0) {
+    ((io.vertx.core.Handler) this.delegate).handle((io.vertx.ext.apex.RoutingContext)arg0.getDelegate());
   }
   /**
    * Create a handler with defaults
@@ -68,9 +71,6 @@ public class FaviconHandler {
   public static FaviconHandler create(long maxAgeSeconds) {
     def ret= FaviconHandler.FACTORY.apply(io.vertx.ext.apex.handler.FaviconHandler.create(maxAgeSeconds));
     return ret;
-  }
-  public void handle(RoutingContext event) {
-    this.delegate.handle((io.vertx.ext.apex.RoutingContext)event.getDelegate());
   }
 
   static final java.util.function.Function<io.vertx.ext.apex.handler.FaviconHandler, FaviconHandler> FACTORY = io.vertx.lang.groovy.Factories.createFactory() {

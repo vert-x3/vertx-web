@@ -32,6 +32,18 @@ var BodyHandler = function(j_val) {
   var that = this;
 
   /**
+
+   @public
+   @param arg0 {RoutingContext} 
+   */
+  this.handle = function(arg0) {
+    var __args = arguments;
+    if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
+      j_bodyHandler.handle(arg0._jdel);
+    } else utils.invalidArgs();
+  };
+
+  /**
    Set the maximum body size -1 means unlimited
 
    @public
@@ -73,18 +85,6 @@ var BodyHandler = function(j_val) {
     if (__args.length === 1 && typeof __args[0] ==='boolean') {
       j_bodyHandler.setMergeFormAttributes(mergeFormAttributes);
       return that;
-    } else utils.invalidArgs();
-  };
-
-  /**
-
-   @public
-   @param context {RoutingContext} 
-   */
-  this.handle = function(context) {
-    var __args = arguments;
-    if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
-      j_bodyHandler.handle(context._jdel);
     } else utils.invalidArgs();
   };
 

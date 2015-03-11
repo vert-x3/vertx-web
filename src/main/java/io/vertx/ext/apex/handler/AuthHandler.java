@@ -32,7 +32,7 @@ import java.util.Set;
  *
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-@VertxGen
+@VertxGen(concrete = false)
 public interface AuthHandler extends Handler<RoutingContext> {
 
   /**

@@ -23,16 +23,19 @@ import io.vertx.groovy.ext.auth.AuthService
 /**
  * Handler that handles login from a form on a custom login page.
  * <p>
- * Used in conjunction with the {@link io.vertx.groovy.ext.apex.handler.RedirectAuthHandler}.
+ * Used in conjunction with the link.
 */
 @CompileStatic
-public class FormLoginHandler {
+public class FormLoginHandler implements Handler<RoutingContext> {
   final def io.vertx.ext.apex.handler.FormLoginHandler delegate;
   public FormLoginHandler(io.vertx.ext.apex.handler.FormLoginHandler delegate) {
     this.delegate = delegate;
   }
   public Object getDelegate() {
     return delegate;
+  }
+  public void handle(RoutingContext arg0) {
+    ((io.vertx.core.Handler) this.delegate).handle((io.vertx.ext.apex.RoutingContext)arg0.getDelegate());
   }
   /**
    * Create a handler
@@ -54,9 +57,6 @@ public class FormLoginHandler {
   public static FormLoginHandler create(AuthService authService, String usernameParam, String passwordParam, String returnURLParam) {
     def ret= FormLoginHandler.FACTORY.apply(io.vertx.ext.apex.handler.FormLoginHandler.create((io.vertx.ext.auth.AuthService)authService.getDelegate(), usernameParam, passwordParam, returnURLParam));
     return ret;
-  }
-  public void handle(RoutingContext context) {
-    this.delegate.handle((io.vertx.ext.apex.RoutingContext)context.getDelegate());
   }
 
   static final java.util.function.Function<io.vertx.ext.apex.handler.FormLoginHandler, FormLoginHandler> FACTORY = io.vertx.lang.groovy.Factories.createFactory() {

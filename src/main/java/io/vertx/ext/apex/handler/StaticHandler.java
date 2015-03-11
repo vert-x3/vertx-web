@@ -114,9 +114,6 @@ public interface StaticHandler extends Handler<RoutingContext> {
     return new StaticHandlerImpl(root);
   }
 
-  @Override
-  void handle(RoutingContext context);
-
   /**
    * Set the web root
    *

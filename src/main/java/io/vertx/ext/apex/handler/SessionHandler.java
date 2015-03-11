@@ -91,6 +91,4 @@ public interface SessionHandler extends Handler<RoutingContext> {
   @Fluent
   SessionHandler setSessionCookieName(String sessionCookieName);
 
-  @Override
-  void handle(RoutingContext context);
 }

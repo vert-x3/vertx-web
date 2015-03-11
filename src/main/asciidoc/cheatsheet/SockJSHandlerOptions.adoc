@@ -10,21 +10,21 @@
 |===
 ^|Name | Type ^| Description
 
-|`sessionTimeout`
+|[[sessionTimeout]]`sessionTimeout`
 |`Number`
 |-
-|`insertJSESSIONID`
+|[[insertJSESSIONID]]`insertJSESSIONID`
 |`Boolean`
 |-
-|`heartbeatPeriod`
+|[[heartbeatPeriod]]`heartbeatPeriod`
 |`Number`
 |-
-|`maxBytesStreaming`
+|[[maxBytesStreaming]]`maxBytesStreaming`
 |`Number`
 |-
-|`libraryURL`
+|[[libraryURL]]`libraryURL`
 |`String`
 |-
-|`disabledTransports`
+|[[disabledTransports]]`disabledTransports`
 |`Array of String`
 |-|===

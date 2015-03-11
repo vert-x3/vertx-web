@@ -33,6 +33,18 @@ var CorsHandler = function(j_val) {
   var that = this;
 
   /**
+
+   @public
+   @param arg0 {RoutingContext} 
+   */
+  this.handle = function(arg0) {
+    var __args = arguments;
+    if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
+      j_corsHandler.handle(arg0._jdel);
+    } else utils.invalidArgs();
+  };
+
+  /**
    Add an allowed method
 
    @public
@@ -134,18 +146,6 @@ var CorsHandler = function(j_val) {
     if (__args.length === 1 && typeof __args[0] ==='number') {
       j_corsHandler.maxAgeSeconds(maxAgeSeconds);
       return that;
-    } else utils.invalidArgs();
-  };
-
-  /**
-
-   @public
-   @param context {RoutingContext} 
-   */
-  this.handle = function(context) {
-    var __args = arguments;
-    if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
-      j_corsHandler.handle(context._jdel);
     } else utils.invalidArgs();
   };
 

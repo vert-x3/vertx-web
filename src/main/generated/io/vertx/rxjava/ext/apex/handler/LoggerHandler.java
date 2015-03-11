@@ -32,7 +32,7 @@ import io.vertx.core.Handler;
  * NOTE: This class has been automatically generated from the original non RX-ified interface using Vert.x codegen.
  */
 
-public class LoggerHandler {
+public class LoggerHandler implements Handler<RoutingContext> {
 
   final io.vertx.ext.apex.handler.LoggerHandler delegate;
 
@@ -44,12 +44,16 @@ public class LoggerHandler {
     return delegate;
   }
 
+  public void handle(RoutingContext arg0) { 
+    this.delegate.handle((io.vertx.ext.apex.RoutingContext) arg0.getDelegate());
+  }
+
   /**
    * Create a handler with default format
    *
    * @return the handler
    */
-  public static LoggerHandler create() {
+  public static LoggerHandler create() { 
     LoggerHandler ret= LoggerHandler.newInstance(io.vertx.ext.apex.handler.LoggerHandler.create());
     return ret;
   }
@@ -60,7 +64,7 @@ public class LoggerHandler {
    * @param format  the format
    * @return the handler
    */
-  public static LoggerHandler create(Format format) {
+  public static LoggerHandler create(Format format) { 
     LoggerHandler ret= LoggerHandler.newInstance(io.vertx.ext.apex.handler.LoggerHandler.create(format));
     return ret;
   }
@@ -72,13 +76,9 @@ public class LoggerHandler {
    * @param format  the format
    * @return the handler
    */
-  public static LoggerHandler create(boolean immediate, Format format) {
+  public static LoggerHandler create(boolean immediate, Format format) { 
     LoggerHandler ret= LoggerHandler.newInstance(io.vertx.ext.apex.handler.LoggerHandler.create(immediate, format));
     return ret;
-  }
-
-  public void handle(RoutingContext event) {
-    this.delegate.handle((io.vertx.ext.apex.RoutingContext) event.getDelegate());
   }
 
 

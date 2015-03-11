@@ -79,7 +79,4 @@ public interface ErrorHandler extends Handler<RoutingContext> {
     return new ErrorHandlerImpl(errorTemplateName, DEFAULT_DISPLAY_EXCEPTION_DETAILS);
   }
 
-  @Override
-  void handle(RoutingContext context);
-
 }

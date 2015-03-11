@@ -31,7 +31,7 @@ import io.vertx.core.Handler;
  * NOTE: This class has been automatically generated from the original non RX-ified interface using Vert.x codegen.
  */
 
-public class CookieHandler {
+public class CookieHandler implements Handler<RoutingContext> {
 
   final io.vertx.ext.apex.handler.CookieHandler delegate;
 
@@ -43,18 +43,18 @@ public class CookieHandler {
     return delegate;
   }
 
+  public void handle(RoutingContext arg0) { 
+    this.delegate.handle((io.vertx.ext.apex.RoutingContext) arg0.getDelegate());
+  }
+
   /**
    * Create a cookie handler
    *
    * @return the cookie handler
    */
-  public static CookieHandler create() {
+  public static CookieHandler create() { 
     CookieHandler ret= CookieHandler.newInstance(io.vertx.ext.apex.handler.CookieHandler.create());
     return ret;
-  }
-
-  public void handle(RoutingContext event) {
-    this.delegate.handle((io.vertx.ext.apex.RoutingContext) event.getDelegate());
   }
 
 

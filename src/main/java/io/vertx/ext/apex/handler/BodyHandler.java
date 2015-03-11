@@ -83,7 +83,4 @@ public interface BodyHandler extends Handler<RoutingContext> {
   @Fluent
   BodyHandler setMergeFormAttributes(boolean mergeFormAttributes);
 
-  @Override
-  void handle(RoutingContext context);
-
 }

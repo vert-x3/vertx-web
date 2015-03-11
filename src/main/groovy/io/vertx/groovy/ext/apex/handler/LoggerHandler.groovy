@@ -24,13 +24,16 @@ import io.vertx.core.Handler
  * A handler which logs request information to the Vert.x logger.
 */
 @CompileStatic
-public class LoggerHandler {
+public class LoggerHandler implements Handler<RoutingContext> {
   final def io.vertx.ext.apex.handler.LoggerHandler delegate;
   public LoggerHandler(io.vertx.ext.apex.handler.LoggerHandler delegate) {
     this.delegate = delegate;
   }
   public Object getDelegate() {
     return delegate;
+  }
+  public void handle(RoutingContext arg0) {
+    ((io.vertx.core.Handler) this.delegate).handle((io.vertx.ext.apex.RoutingContext)arg0.getDelegate());
   }
   /**
    * Create a handler with default format
@@ -58,9 +61,6 @@ public class LoggerHandler {
   public static LoggerHandler create(boolean immediate, Format format) {
     def ret= LoggerHandler.FACTORY.apply(io.vertx.ext.apex.handler.LoggerHandler.create(immediate, format));
     return ret;
-  }
-  public void handle(RoutingContext event) {
-    this.delegate.handle((io.vertx.ext.apex.RoutingContext)event.getDelegate());
   }
 
   static final java.util.function.Function<io.vertx.ext.apex.handler.LoggerHandler, LoggerHandler> FACTORY = io.vertx.lang.groovy.Factories.createFactory() {

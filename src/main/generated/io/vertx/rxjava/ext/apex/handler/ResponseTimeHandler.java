@@ -31,7 +31,7 @@ import io.vertx.core.Handler;
  * NOTE: This class has been automatically generated from the original non RX-ified interface using Vert.x codegen.
  */
 
-public class ResponseTimeHandler {
+public class ResponseTimeHandler implements Handler<RoutingContext> {
 
   final io.vertx.ext.apex.handler.ResponseTimeHandler delegate;
 
@@ -43,18 +43,18 @@ public class ResponseTimeHandler {
     return delegate;
   }
 
+  public void handle(RoutingContext arg0) { 
+    this.delegate.handle((io.vertx.ext.apex.RoutingContext) arg0.getDelegate());
+  }
+
   /**
    * Create a handler
    *
    * @return the handler
    */
-  public static ResponseTimeHandler create() {
+  public static ResponseTimeHandler create() { 
     ResponseTimeHandler ret= ResponseTimeHandler.newInstance(io.vertx.ext.apex.handler.ResponseTimeHandler.create());
     return ret;
-  }
-
-  public void handle(RoutingContext event) {
-    this.delegate.handle((io.vertx.ext.apex.RoutingContext) event.getDelegate());
   }
 
 

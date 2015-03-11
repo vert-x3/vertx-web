@@ -72,7 +72,4 @@ public interface FormLoginHandler extends Handler<RoutingContext> {
     return new FormLoginHandlerImpl(authService, usernameParam, passwordParam, returnURLParam);
   }
 
-  @Override
-  void handle(RoutingContext context);
-
 }

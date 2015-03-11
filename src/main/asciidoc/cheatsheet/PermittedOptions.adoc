@@ -11,25 +11,25 @@
 |===
 ^|Name | Type ^| Description
 
-|`address`
+|[[address]]`address`
 |`String`
 |+++
 The exact address the message is being sent to. If you want to allow messages based on
  an exact address you use this field.+++
 
-|`addressRegex`
+|[[addressRegex]]`addressRegex`
 |`String`
 |+++
 A regular expression that will be matched against the address. If you want to allow messages
  based on a regular expression you use this field. If the link value is specified
  this will be ignored.+++
 
-|`requiredRole`
+|[[requiredRole]]`requiredRole`
 |`String`
 |+++
 Declare a specific role for the logged-in user is required in order to access allow the messages.+++
 
-|`requiredPermission`
+|[[requiredPermission]]`requiredPermission`
 |`String`
 |+++
 Declare a specific permission for the logged-in user is required in order to access allow the messages;+++

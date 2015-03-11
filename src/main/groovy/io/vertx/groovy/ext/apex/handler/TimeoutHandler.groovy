@@ -24,13 +24,16 @@ import io.vertx.core.Handler
  * Timeout requests will be ended with an HTTP status code `408`.
 */
 @CompileStatic
-public class TimeoutHandler {
+public class TimeoutHandler implements Handler<RoutingContext> {
   final def io.vertx.ext.apex.handler.TimeoutHandler delegate;
   public TimeoutHandler(io.vertx.ext.apex.handler.TimeoutHandler delegate) {
     this.delegate = delegate;
   }
   public Object getDelegate() {
     return delegate;
+  }
+  public void handle(RoutingContext arg0) {
+    ((io.vertx.core.Handler) this.delegate).handle((io.vertx.ext.apex.RoutingContext)arg0.getDelegate());
   }
   /**
    * Create a handler
@@ -48,9 +51,6 @@ public class TimeoutHandler {
   public static TimeoutHandler create(long timeout) {
     def ret= TimeoutHandler.FACTORY.apply(io.vertx.ext.apex.handler.TimeoutHandler.create(timeout));
     return ret;
-  }
-  public void handle(RoutingContext event) {
-    this.delegate.handle((io.vertx.ext.apex.RoutingContext)event.getDelegate());
   }
 
   static final java.util.function.Function<io.vertx.ext.apex.handler.TimeoutHandler, TimeoutHandler> FACTORY = io.vertx.lang.groovy.Factories.createFactory() {

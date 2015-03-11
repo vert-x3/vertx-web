@@ -30,7 +30,7 @@ import io.vertx.core.Handler;
  * NOTE: This class has been automatically generated from the original non RX-ified interface using Vert.x codegen.
  */
 
-public class StaticHandler {
+public class StaticHandler implements Handler<RoutingContext> {
 
   final io.vertx.ext.apex.handler.StaticHandler delegate;
 
@@ -42,12 +42,16 @@ public class StaticHandler {
     return delegate;
   }
 
+  public void handle(RoutingContext arg0) { 
+    this.delegate.handle((io.vertx.ext.apex.RoutingContext) arg0.getDelegate());
+  }
+
   /**
    * Create a handler using defaults
    *
    * @return the handler
    */
-  public static StaticHandler create() {
+  public static StaticHandler create() { 
     StaticHandler ret= StaticHandler.newInstance(io.vertx.ext.apex.handler.StaticHandler.create());
     return ret;
   }
@@ -58,13 +62,9 @@ public class StaticHandler {
    * @param root  the web-root
    * @return the handler
    */
-  public static StaticHandler create(String root) {
+  public static StaticHandler create(String root) { 
     StaticHandler ret= StaticHandler.newInstance(io.vertx.ext.apex.handler.StaticHandler.create(root));
     return ret;
-  }
-
-  public void handle(RoutingContext context) {
-    this.delegate.handle((io.vertx.ext.apex.RoutingContext) context.getDelegate());
   }
 
   /**
@@ -73,7 +73,7 @@ public class StaticHandler {
    * @param webRoot  the web root
    * @return a reference to this, so the API can be used fluently
    */
-  public StaticHandler setWebRoot(String webRoot) {
+  public StaticHandler setWebRoot(String webRoot) { 
     this.delegate.setWebRoot(webRoot);
     return this;
   }
@@ -84,7 +84,7 @@ public class StaticHandler {
    * @param readOnly  whether files are read-only
    * @return a reference to this, so the API can be used fluently
    */
-  public StaticHandler setFilesReadOnly(boolean readOnly) {
+  public StaticHandler setFilesReadOnly(boolean readOnly) { 
     this.delegate.setFilesReadOnly(readOnly);
     return this;
   }
@@ -95,7 +95,7 @@ public class StaticHandler {
    * @param maxAgeSeconds  maximum time for browser to cache, in seconds
    * @return a reference to this, so the API can be used fluently
    */
-  public StaticHandler setMaxAgeSeconds(long maxAgeSeconds) {
+  public StaticHandler setMaxAgeSeconds(long maxAgeSeconds) { 
     this.delegate.setMaxAgeSeconds(maxAgeSeconds);
     return this;
   }
@@ -106,7 +106,7 @@ public class StaticHandler {
    * @param enabled  true if enabled
    * @return a reference to this, so the API can be used fluently
    */
-  public StaticHandler setCachingEnabled(boolean enabled) {
+  public StaticHandler setCachingEnabled(boolean enabled) { 
     this.delegate.setCachingEnabled(enabled);
     return this;
   }
@@ -117,7 +117,7 @@ public class StaticHandler {
    * @param directoryListing  true if enabled
    * @return a reference to this, so the API can be used fluently
    */
-  public StaticHandler setDirectoryListing(boolean directoryListing) {
+  public StaticHandler setDirectoryListing(boolean directoryListing) { 
     this.delegate.setDirectoryListing(directoryListing);
     return this;
   }
@@ -128,7 +128,7 @@ public class StaticHandler {
    * @param includeHidden  true if hidden files should be served
    * @return a reference to this, so the API can be used fluently
    */
-  public StaticHandler setIncludeHidden(boolean includeHidden) {
+  public StaticHandler setIncludeHidden(boolean includeHidden) { 
     this.delegate.setIncludeHidden(includeHidden);
     return this;
   }
@@ -139,7 +139,7 @@ public class StaticHandler {
    * @param timeout  the timeout, in ms
    * @return a reference to this, so the API can be used fluently
    */
-  public StaticHandler setCacheEntryTimeout(long timeout) {
+  public StaticHandler setCacheEntryTimeout(long timeout) { 
     this.delegate.setCacheEntryTimeout(timeout);
     return this;
   }
@@ -150,7 +150,7 @@ public class StaticHandler {
    * @param indexPage  the index page
    * @return a reference to this, so the API can be used fluently
    */
-  public StaticHandler setIndexPage(String indexPage) {
+  public StaticHandler setIndexPage(String indexPage) { 
     this.delegate.setIndexPage(indexPage);
     return this;
   }
@@ -161,7 +161,7 @@ public class StaticHandler {
    * @param maxCacheSize  the max cache size
    * @return a reference to this, so the API can be used fluently
    */
-  public StaticHandler setMaxCacheSize(int maxCacheSize) {
+  public StaticHandler setMaxCacheSize(int maxCacheSize) { 
     this.delegate.setMaxCacheSize(maxCacheSize);
     return this;
   }
@@ -172,7 +172,7 @@ public class StaticHandler {
    * @param alwaysAsyncFS  true for always async FS access
    * @return a reference to this, so the API can be used fluently
    */
-  public StaticHandler setAlwaysAsyncFS(boolean alwaysAsyncFS) {
+  public StaticHandler setAlwaysAsyncFS(boolean alwaysAsyncFS) { 
     this.delegate.setAlwaysAsyncFS(alwaysAsyncFS);
     return this;
   }
@@ -183,7 +183,7 @@ public class StaticHandler {
    * @param enableFSTuning  true to enabled FS tuning
    * @return a reference to this, so the API can be used fluently
    */
-  public StaticHandler setEnableFSTuning(boolean enableFSTuning) {
+  public StaticHandler setEnableFSTuning(boolean enableFSTuning) { 
     this.delegate.setEnableFSTuning(enableFSTuning);
     return this;
   }
@@ -194,7 +194,7 @@ public class StaticHandler {
    * @param maxAvgServeTimeNanoSeconds  max serve time, in ns
    * @return a reference to this, so the API can be used fluently
    */
-  public StaticHandler setMaxAvgServeTimeNs(long maxAvgServeTimeNanoSeconds) {
+  public StaticHandler setMaxAvgServeTimeNs(long maxAvgServeTimeNanoSeconds) { 
     this.delegate.setMaxAvgServeTimeNs(maxAvgServeTimeNanoSeconds);
     return this;
   }
@@ -205,7 +205,7 @@ public class StaticHandler {
    * @param directoryTemplate  the directory template
    * @return a reference to this, so the API can be used fluently
    */
-  public StaticHandler setDirectoryTemplate(String directoryTemplate) {
+  public StaticHandler setDirectoryTemplate(String directoryTemplate) { 
     this.delegate.setDirectoryTemplate(directoryTemplate);
     return this;
   }

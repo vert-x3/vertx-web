@@ -35,16 +35,63 @@ import io.vertx.core.Handler;
  * NOTE: This class has been automatically generated from the original non RX-ified interface using Vert.x codegen.
  */
 
-public class AuthHandler {
+public interface AuthHandler extends Handler<RoutingContext> {
 
+  Object getDelegate();
+
+  public void handle(RoutingContext arg0);
+
+  /**
+   * Add a required role for this auth handler
+   *
+   * @param role  the role
+   * @return a reference to this, so the API can be used fluently
+   */
+  public AuthHandler addRole(String role);
+
+  /**
+   * Add a required permission for this auth handler
+   *
+   * @param permission  the permission
+   * @return a reference to this, so the API can be used fluently
+   */
+  public AuthHandler addPermission(String permission);
+
+  /**
+   * Add a set of required roles for this auth handler
+   *
+   * @param roles  the set of roles
+   * @return a reference to this, so the API can be used fluently
+   */
+  public AuthHandler addRoles(Set<String> roles);
+
+  /**
+   * Add a set of required permissions for this auth handler
+   *
+   * @param permissions  the set of permissions
+   * @return a reference to this, so the API can be used fluently
+   */
+  public AuthHandler addPermissions(Set<String> permissions);
+
+
+  public static AuthHandler newInstance(io.vertx.ext.apex.handler.AuthHandler arg) {
+    return new AuthHandlerImpl(arg);
+  }
+}
+
+class AuthHandlerImpl implements AuthHandler {
   final io.vertx.ext.apex.handler.AuthHandler delegate;
 
-  public AuthHandler(io.vertx.ext.apex.handler.AuthHandler delegate) {
+  public AuthHandlerImpl(io.vertx.ext.apex.handler.AuthHandler delegate) {
     this.delegate = delegate;
   }
 
   public Object getDelegate() {
     return delegate;
+  }
+
+  public void handle(RoutingContext arg0) { 
+    this.delegate.handle((io.vertx.ext.apex.RoutingContext) arg0.getDelegate());
   }
 
   /**
@@ -53,7 +100,7 @@ public class AuthHandler {
    * @param role  the role
    * @return a reference to this, so the API can be used fluently
    */
-  public AuthHandler addRole(String role) {
+  public AuthHandler addRole(String role) { 
     this.delegate.addRole(role);
     return this;
   }
@@ -64,7 +111,7 @@ public class AuthHandler {
    * @param permission  the permission
    * @return a reference to this, so the API can be used fluently
    */
-  public AuthHandler addPermission(String permission) {
+  public AuthHandler addPermission(String permission) { 
     this.delegate.addPermission(permission);
     return this;
   }
@@ -75,7 +122,7 @@ public class AuthHandler {
    * @param roles  the set of roles
    * @return a reference to this, so the API can be used fluently
    */
-  public AuthHandler addRoles(Set<String> roles) {
+  public AuthHandler addRoles(Set<String> roles) { 
     this.delegate.addRoles(roles);
     return this;
   }
@@ -86,13 +133,9 @@ public class AuthHandler {
    * @param permissions  the set of permissions
    * @return a reference to this, so the API can be used fluently
    */
-  public AuthHandler addPermissions(Set<String> permissions) {
+  public AuthHandler addPermissions(Set<String> permissions) { 
     this.delegate.addPermissions(permissions);
     return this;
   }
 
-
-  public static AuthHandler newInstance(io.vertx.ext.apex.handler.AuthHandler arg) {
-    return new AuthHandler(arg);
-  }
 }

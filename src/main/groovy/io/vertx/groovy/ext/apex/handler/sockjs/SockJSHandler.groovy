@@ -28,13 +28,16 @@ import io.vertx.ext.apex.handler.sockjs.BridgeOptions
  * A handler that allows you to handle SockJS connections from clients.
 */
 @CompileStatic
-public class SockJSHandler {
+public class SockJSHandler implements Handler<RoutingContext> {
   final def io.vertx.ext.apex.handler.sockjs.SockJSHandler delegate;
   public SockJSHandler(io.vertx.ext.apex.handler.sockjs.SockJSHandler delegate) {
     this.delegate = delegate;
   }
   public Object getDelegate() {
     return delegate;
+  }
+  public void handle(RoutingContext arg0) {
+    ((io.vertx.core.Handler) this.delegate).handle((io.vertx.ext.apex.RoutingContext)arg0.getDelegate());
   }
   /**
    * Create a SockJS handler

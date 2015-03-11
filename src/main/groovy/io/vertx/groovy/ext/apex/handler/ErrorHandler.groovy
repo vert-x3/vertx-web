@@ -23,13 +23,16 @@ import io.vertx.core.Handler
  * A pretty error handler for rendering error pages.
 */
 @CompileStatic
-public class ErrorHandler {
+public class ErrorHandler implements Handler<RoutingContext> {
   final def io.vertx.ext.apex.handler.ErrorHandler delegate;
   public ErrorHandler(io.vertx.ext.apex.handler.ErrorHandler delegate) {
     this.delegate = delegate;
   }
   public Object getDelegate() {
     return delegate;
+  }
+  public void handle(RoutingContext arg0) {
+    ((io.vertx.core.Handler) this.delegate).handle((io.vertx.ext.apex.RoutingContext)arg0.getDelegate());
   }
   /**
    * Create an error handler using defaults
@@ -66,9 +69,6 @@ public class ErrorHandler {
   public static ErrorHandler create(String errorTemplateName) {
     def ret= ErrorHandler.FACTORY.apply(io.vertx.ext.apex.handler.ErrorHandler.create(errorTemplateName));
     return ret;
-  }
-  public void handle(RoutingContext context) {
-    this.delegate.handle((io.vertx.ext.apex.RoutingContext)context.getDelegate());
   }
 
   static final java.util.function.Function<io.vertx.ext.apex.handler.ErrorHandler, ErrorHandler> FACTORY = io.vertx.lang.groovy.Factories.createFactory() {

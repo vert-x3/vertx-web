@@ -35,12 +35,12 @@ var LoggerHandler = function(j_val) {
   /**
 
    @public
-   @param event {RoutingContext} 
+   @param arg0 {RoutingContext} 
    */
-  this.handle = function(event) {
+  this.handle = function(arg0) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
-      j_loggerHandler.handle(event._jdel);
+      j_loggerHandler.handle(arg0._jdel);
     } else utils.invalidArgs();
   };
 

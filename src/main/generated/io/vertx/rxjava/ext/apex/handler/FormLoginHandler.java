@@ -33,7 +33,7 @@ import io.vertx.rxjava.ext.auth.AuthService;
  * NOTE: This class has been automatically generated from the original non RX-ified interface using Vert.x codegen.
  */
 
-public class FormLoginHandler {
+public class FormLoginHandler implements Handler<RoutingContext> {
 
   final io.vertx.ext.apex.handler.FormLoginHandler delegate;
 
@@ -45,13 +45,17 @@ public class FormLoginHandler {
     return delegate;
   }
 
+  public void handle(RoutingContext arg0) { 
+    this.delegate.handle((io.vertx.ext.apex.RoutingContext) arg0.getDelegate());
+  }
+
   /**
    * Create a handler
    *
    * @param authService  the auth service to use
    * @return the handler
    */
-  public static FormLoginHandler create(AuthService authService) {
+  public static FormLoginHandler create(AuthService authService) { 
     FormLoginHandler ret= FormLoginHandler.newInstance(io.vertx.ext.apex.handler.FormLoginHandler.create((io.vertx.ext.auth.AuthService) authService.getDelegate()));
     return ret;
   }
@@ -66,13 +70,9 @@ public class FormLoginHandler {
    *
    * @return the handler
    */
-  public static FormLoginHandler create(AuthService authService, String usernameParam, String passwordParam, String returnURLParam) {
+  public static FormLoginHandler create(AuthService authService, String usernameParam, String passwordParam, String returnURLParam) { 
     FormLoginHandler ret= FormLoginHandler.newInstance(io.vertx.ext.apex.handler.FormLoginHandler.create((io.vertx.ext.auth.AuthService) authService.getDelegate(), usernameParam, passwordParam, returnURLParam));
     return ret;
-  }
-
-  public void handle(RoutingContext context) {
-    this.delegate.handle((io.vertx.ext.apex.RoutingContext) context.getDelegate());
   }
 
 
