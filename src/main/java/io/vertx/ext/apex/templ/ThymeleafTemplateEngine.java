@@ -1,23 +1,17 @@
 /*
- * Copyright 2014 Red Hat, Inc.
- *
- *  All rights reserved. This program and the accompanying materials
- *  are made available under the terms of the Eclipse Public License v1.0
- *  and Apache License v2.0 which accompanies this distribution.
- *
- *  The Eclipse Public License is available at
- *  http://www.eclipse.org/legal/epl-v10.html
- *
- *  The Apache License v2.0 is available at
- *  http://www.opensource.org/licenses/apache2.0.php
- *
- *  You may elect to redistribute this code under either of these licenses.
+ * Copyright 2014 Red Hat, Inc. All rights reserved. This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v1.0 and Apache License v2.0 which accompanies this distribution. The
+ * Eclipse Public License is available at http://www.eclipse.org/legal/epl-v10.html The Apache License v2.0 is available
+ * at http://www.opensource.org/licenses/apache2.0.php You may elect to redistribute this code under either of these
+ * licenses.
  */
 
 package io.vertx.ext.apex.templ;
 
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.ext.apex.templ.impl.ThymeleafTemplateEngineImpl;
+
+import org.thymeleaf.templateresolver.TemplateResolver;
 
 /**
  * A template engine that uses the Thymeleaf library.
@@ -32,7 +26,7 @@ public interface ThymeleafTemplateEngine extends TemplateEngine {
   /**
    * Create a template engine using defaults
    *
-   * @return  the engine
+   * @return the engine
    */
   static ThymeleafTemplateEngine create() {
     return new ThymeleafTemplateEngineImpl();
@@ -41,9 +35,17 @@ public interface ThymeleafTemplateEngine extends TemplateEngine {
   /**
    * Set the mode for the engine
    *
-   * @param mode  the mode
+   * @param mode
+   *          the mode
    * @return a reference to this for fluency
    */
   ThymeleafTemplateEngine setMode(String mode);
+
+  /**
+   * Retrieve the template resolver to be able to access the settings of Thymeleaf
+   * 
+   * @return
+   */
+  public TemplateResolver getTemplateResolver();
 
 }
