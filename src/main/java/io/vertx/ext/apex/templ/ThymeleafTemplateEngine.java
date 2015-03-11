@@ -11,6 +11,8 @@ package io.vertx.ext.apex.templ;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.ext.apex.templ.impl.ThymeleafTemplateEngineImpl;
 
+import org.thymeleaf.templateresolver.TemplateResolver;
+
 /**
  * A template engine that uses the Thymeleaf library.
  *
@@ -40,21 +42,10 @@ public interface ThymeleafTemplateEngine extends TemplateEngine {
   ThymeleafTemplateEngine setMode(String mode);
 
   /**
-   * Set the overall cacheability for underlaying engine
-   *
-   * @param cachable
-   *          activate / deactivate the cache
-   * @return a reference to this for fluency
+   * Retrieve the template resolver to be able to access the settings of Thymeleaf
+   * 
+   * @return
    */
-  ThymeleafTemplateEngine setCacheable(boolean cacheable);
-
-  /**
-   * Set the cache time of the underlaying engine
-   *
-   * @param cacheTTLMs
-   *          the cacheTTLMs
-   * @return a reference to this for fluency
-   */
-  ThymeleafTemplateEngine setCacheTTLMs(Long cacheTTLMs);
+  public TemplateResolver getTemplateResolver();
 
 }

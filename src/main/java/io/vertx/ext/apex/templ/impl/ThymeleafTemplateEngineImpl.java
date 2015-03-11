@@ -91,22 +91,11 @@ public class ThymeleafTemplateEngineImpl implements ThymeleafTemplateEngine {
 
   /*
    * (non-Javadoc)
-   * @see io.vertx.ext.apex.templ.ThymeleafTemplateEngine#setCacheable(boolean)
+   * @see io.vertx.ext.apex.templ.ThymeleafTemplateEngine#getTemplateResolver()
    */
   @Override
-  public ThymeleafTemplateEngine setCacheable(boolean cacheable) {
-    templateResolver.setCacheable(cacheable);
-    return this;
-  }
-
-  /*
-   * (non-Javadoc)
-   * @see io.vertx.ext.apex.templ.ThymeleafTemplateEngine#setCacheTTLMs(java.lang.Long)
-   */
-  @Override
-  public ThymeleafTemplateEngine setCacheTTLMs(Long cacheTTLMs) {
-    templateResolver.setCacheTTLMs(cacheTTLMs);
-    return this;
+  public TemplateResolver getTemplateResolver() {
+    return templateResolver;
   }
 
   /*
