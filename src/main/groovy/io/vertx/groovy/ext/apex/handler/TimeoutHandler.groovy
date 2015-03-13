@@ -40,7 +40,7 @@ public class TimeoutHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static TimeoutHandler create() {
-    def ret= TimeoutHandler.FACTORY.apply(io.vertx.ext.apex.handler.TimeoutHandler.create());
+    def ret= new io.vertx.groovy.ext.apex.handler.TimeoutHandler(io.vertx.ext.apex.handler.TimeoutHandler.create());
     return ret;
   }
   /**
@@ -49,11 +49,7 @@ public class TimeoutHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static TimeoutHandler create(long timeout) {
-    def ret= TimeoutHandler.FACTORY.apply(io.vertx.ext.apex.handler.TimeoutHandler.create(timeout));
+    def ret= new io.vertx.groovy.ext.apex.handler.TimeoutHandler(io.vertx.ext.apex.handler.TimeoutHandler.create(timeout));
     return ret;
   }
-
-  static final java.util.function.Function<io.vertx.ext.apex.handler.TimeoutHandler, TimeoutHandler> FACTORY = io.vertx.lang.groovy.Factories.createFactory() {
-    io.vertx.ext.apex.handler.TimeoutHandler arg -> new TimeoutHandler(arg);
-  };
 }

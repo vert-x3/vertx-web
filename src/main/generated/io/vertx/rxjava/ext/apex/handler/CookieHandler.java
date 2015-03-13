@@ -23,12 +23,11 @@ import io.vertx.rxjava.ext.apex.RoutingContext;
 import io.vertx.core.Handler;
 
 /**
- * A handler which decodes cookies from the request, makes them available in the {@link io.vertx.ext.apex.RoutingContext}
+ * A handler which decodes cookies from the request, makes them available in the {@link  io.vertx.rxjava.ext.apex.RoutingContext}
  * and writes them back in the response.
  *
- * @author <a href="http://tfox.org">Tim Fox</a>
- *
- * NOTE: This class has been automatically generated from the original non RX-ified interface using Vert.x codegen.
+ * <p/>
+ * NOTE: This class has been automatically generated from the {@link io.vertx.ext.apex.handler.CookieHandler original} non RX-ified interface using Vert.x codegen.
  */
 
 public class CookieHandler implements Handler<RoutingContext> {
@@ -49,7 +48,6 @@ public class CookieHandler implements Handler<RoutingContext> {
 
   /**
    * Create a cookie handler
-   *
    * @return the cookie handler
    */
   public static CookieHandler create() { 

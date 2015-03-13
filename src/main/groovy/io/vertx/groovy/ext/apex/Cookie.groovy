@@ -40,7 +40,7 @@ public class Cookie {
    * @return the cookie
    */
   public static Cookie cookie(String name, String value) {
-    def ret= Cookie.FACTORY.apply(io.vertx.ext.apex.Cookie.cookie(name, value));
+    def ret= new io.vertx.groovy.ext.apex.Cookie(io.vertx.ext.apex.Cookie.cookie(name, value));
     return ret;
   }
   /**
@@ -112,7 +112,7 @@ public class Cookie {
    * @return 
    */
   public Cookie setMaxAge(long maxAge) {
-    def ret= Cookie.FACTORY.apply(this.delegate.setMaxAge(maxAge));
+    def ret= new io.vertx.groovy.ext.apex.Cookie(this.delegate.setMaxAge(maxAge));
     return ret;
   }
   /**
@@ -134,7 +134,7 @@ public class Cookie {
    * @return 
    */
   public Cookie setHttpOnly(boolean httpOnly) {
-    def ret= Cookie.FACTORY.apply(this.delegate.setHttpOnly(httpOnly));
+    def ret= new io.vertx.groovy.ext.apex.Cookie(this.delegate.setHttpOnly(httpOnly));
     return ret;
   }
   /**
@@ -170,8 +170,4 @@ public class Cookie {
   public void setChanged(boolean changed) {
     this.delegate.setChanged(changed);
   }
-
-  static final java.util.function.Function<io.vertx.ext.apex.Cookie, Cookie> FACTORY = io.vertx.lang.groovy.Factories.createFactory() {
-    io.vertx.ext.apex.Cookie arg -> new Cookie(arg);
-  };
 }

@@ -23,9 +23,8 @@ import rx.Observable;
 /**
  * A template engine that uses Jade.
  *
- * @author <a href="http://tfox.org">Tim Fox</a>
- *
- * NOTE: This class has been automatically generated from the original non RX-ified interface using Vert.x codegen.
+ * <p/>
+ * NOTE: This class has been automatically generated from the {@link io.vertx.ext.apex.templ.JadeTemplateEngine original} non RX-ified interface using Vert.x codegen.
  */
 
 public class JadeTemplateEngine extends TemplateEngine {
@@ -43,8 +42,7 @@ public class JadeTemplateEngine extends TemplateEngine {
 
   /**
    * Create a template engine using defaults
-   *
-   * @return  the engine
+   * @return the engine
    */
   public static JadeTemplateEngine create() { 
     JadeTemplateEngine ret= JadeTemplateEngine.newInstance(io.vertx.ext.apex.templ.JadeTemplateEngine.create());
@@ -53,8 +51,7 @@ public class JadeTemplateEngine extends TemplateEngine {
 
   /**
    * Set the extension for the engine
-   *
-   * @param extension  the extension
+   * @param extension the extension
    * @return a reference to this for fluency
    */
   public JadeTemplateEngine setExtension(String extension) { 
@@ -64,8 +61,7 @@ public class JadeTemplateEngine extends TemplateEngine {
 
   /**
    * Set the max cache size for the engine
-   *
-   * @param maxCacheSize  the maxCacheSize
+   * @param maxCacheSize the maxCacheSize
    * @return a reference to this for fluency
    */
   public JadeTemplateEngine setMaxCacheSize(int maxCacheSize) { 

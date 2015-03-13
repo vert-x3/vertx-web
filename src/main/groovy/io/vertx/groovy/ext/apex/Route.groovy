@@ -68,7 +68,7 @@ public class Route {
    * @return a reference to this, so the API can be used fluently
    */
   public Route produces(String contentType) {
-    def ret= Route.FACTORY.apply(this.delegate.produces(contentType));
+    def ret= new io.vertx.groovy.ext.apex.Route(this.delegate.produces(contentType));
     return ret;
   }
   /**
@@ -108,7 +108,7 @@ public class Route {
   public Route handler(Handler<RoutingContext> requestHandler) {
     this.delegate.handler(new Handler<io.vertx.ext.apex.RoutingContext>() {
       public void handle(io.vertx.ext.apex.RoutingContext event) {
-        requestHandler.handle(RoutingContext.FACTORY.apply(event));
+        requestHandler.handle(new io.vertx.groovy.ext.apex.RoutingContext(event));
       }
     });
     return this;
@@ -123,7 +123,7 @@ public class Route {
   public Route failureHandler(Handler<RoutingContext> failureHandler) {
     this.delegate.failureHandler(new Handler<io.vertx.ext.apex.RoutingContext>() {
       public void handle(io.vertx.ext.apex.RoutingContext event) {
-        failureHandler.handle(RoutingContext.FACTORY.apply(event));
+        failureHandler.handle(new io.vertx.groovy.ext.apex.RoutingContext(event));
       }
     });
     return this;
@@ -170,8 +170,4 @@ public class Route {
     def ret = this.delegate.getPath();
     return ret;
   }
-
-  static final java.util.function.Function<io.vertx.ext.apex.Route, Route> FACTORY = io.vertx.lang.groovy.Factories.createFactory() {
-    io.vertx.ext.apex.Route arg -> new Route(arg);
-  };
 }

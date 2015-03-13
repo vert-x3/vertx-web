@@ -41,7 +41,7 @@ public class BodyHandler implements Handler<RoutingContext> {
    * @return the body handler
    */
   public static BodyHandler create() {
-    def ret= BodyHandler.FACTORY.apply(io.vertx.ext.apex.handler.BodyHandler.create());
+    def ret= new io.vertx.groovy.ext.apex.handler.BodyHandler(io.vertx.ext.apex.handler.BodyHandler.create());
     return ret;
   }
   /**
@@ -71,8 +71,4 @@ public class BodyHandler implements Handler<RoutingContext> {
     this.delegate.setMergeFormAttributes(mergeFormAttributes);
     return this;
   }
-
-  static final java.util.function.Function<io.vertx.ext.apex.handler.BodyHandler, BodyHandler> FACTORY = io.vertx.lang.groovy.Factories.createFactory() {
-    io.vertx.ext.apex.handler.BodyHandler arg -> new BodyHandler(arg);
-  };
 }

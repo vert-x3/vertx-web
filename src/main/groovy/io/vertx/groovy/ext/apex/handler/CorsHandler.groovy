@@ -42,7 +42,7 @@ public class CorsHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static CorsHandler create(String allowedOriginPattern) {
-    def ret= CorsHandler.FACTORY.apply(io.vertx.ext.apex.handler.CorsHandler.create(allowedOriginPattern));
+    def ret= new io.vertx.groovy.ext.apex.handler.CorsHandler(io.vertx.ext.apex.handler.CorsHandler.create(allowedOriginPattern));
     return ret;
   }
   /**
@@ -108,8 +108,4 @@ public class CorsHandler implements Handler<RoutingContext> {
     this.delegate.maxAgeSeconds(maxAgeSeconds);
     return this;
   }
-
-  static final java.util.function.Function<io.vertx.ext.apex.handler.CorsHandler, CorsHandler> FACTORY = io.vertx.lang.groovy.Factories.createFactory() {
-    io.vertx.ext.apex.handler.CorsHandler arg -> new CorsHandler(arg);
-  };
 }

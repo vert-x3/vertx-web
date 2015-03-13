@@ -87,8 +87,4 @@ public class SessionStore {
   public void close() {
     this.delegate.close();
   }
-
-  static final java.util.function.Function<io.vertx.ext.apex.sstore.SessionStore, SessionStore> FACTORY = io.vertx.lang.groovy.Factories.createFactory() {
-    io.vertx.ext.apex.sstore.SessionStore arg -> new SessionStore(arg);
-  };
 }

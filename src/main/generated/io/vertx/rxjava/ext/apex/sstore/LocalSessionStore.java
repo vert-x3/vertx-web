@@ -26,9 +26,8 @@ import io.vertx.rxjava.core.Vertx;
  * <p>
  * Can be used when sticky sessions are being used.
  *
- * @author <a href="http://tfox.org">Tim Fox</a>
- *
- * NOTE: This class has been automatically generated from the original non RX-ified interface using Vert.x codegen.
+ * <p/>
+ * NOTE: This class has been automatically generated from the {@link io.vertx.ext.apex.sstore.LocalSessionStore original} non RX-ified interface using Vert.x codegen.
  */
 
 public class LocalSessionStore extends SessionStore {
@@ -46,8 +45,7 @@ public class LocalSessionStore extends SessionStore {
 
   /**
    * Create a session store
-   *
-   * @param vertx  the Vert.x instance
+   * @param vertx the Vert.x instance
    * @return the session store
    */
   public static LocalSessionStore create(Vertx vertx) { 
@@ -57,9 +55,8 @@ public class LocalSessionStore extends SessionStore {
 
   /**
    * Create a session store
-   *
-   * @param vertx  the Vert.x instance
-   * @param sessionMapName  name for map used to store sessions
+   * @param vertx the Vert.x instance
+   * @param sessionMapName name for map used to store sessions
    * @return the session store
    */
   public static LocalSessionStore create(Vertx vertx, String sessionMapName) { 
@@ -69,10 +66,9 @@ public class LocalSessionStore extends SessionStore {
 
   /**
    * Create a session store
-   *
-   * @param vertx  the Vert.x instance
-   * @param sessionMapName  name for map used to store sessions
-   * @param reaperPeriod  how often, in ms, to check for expired sessions
+   * @param vertx the Vert.x instance
+   * @param sessionMapName name for map used to store sessions
+   * @param reaperPeriod how often, in ms, to check for expired sessions
    * @return the session store
    */
   public static LocalSessionStore create(Vertx vertx, String sessionMapName, long reaperPeriod) { 

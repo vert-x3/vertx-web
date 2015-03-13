@@ -26,9 +26,8 @@ import io.vertx.rxjava.ext.auth.AuthService;
 /**
  * An auth handler that's used to handle auth by redirecting user to a custom login page.
  *
- * @author <a href="http://tfox.org">Tim Fox</a>
- *
- * NOTE: This class has been automatically generated from the original non RX-ified interface using Vert.x codegen.
+ * <p/>
+ * NOTE: This class has been automatically generated from the {@link io.vertx.ext.apex.handler.RedirectAuthHandler original} non RX-ified interface using Vert.x codegen.
  */
 
 public class RedirectAuthHandler implements AuthHandler {
@@ -49,8 +48,7 @@ public class RedirectAuthHandler implements AuthHandler {
 
   /**
    * Add a required role for this auth handler
-   *
-   * @param role  the role
+   * @param role the role
    * @return a reference to this, so the API can be used fluently
    */
   public AuthHandler addRole(String role) { 
@@ -60,8 +58,7 @@ public class RedirectAuthHandler implements AuthHandler {
 
   /**
    * Add a required permission for this auth handler
-   *
-   * @param permission  the permission
+   * @param permission the permission
    * @return a reference to this, so the API can be used fluently
    */
   public AuthHandler addPermission(String permission) { 
@@ -71,8 +68,7 @@ public class RedirectAuthHandler implements AuthHandler {
 
   /**
    * Add a set of required roles for this auth handler
-   *
-   * @param roles  the set of roles
+   * @param roles the set of roles
    * @return a reference to this, so the API can be used fluently
    */
   public AuthHandler addRoles(Set<String> roles) { 
@@ -82,8 +78,7 @@ public class RedirectAuthHandler implements AuthHandler {
 
   /**
    * Add a set of required permissions for this auth handler
-   *
-   * @param permissions  the set of permissions
+   * @param permissions the set of permissions
    * @return a reference to this, so the API can be used fluently
    */
   public AuthHandler addPermissions(Set<String> permissions) { 
@@ -93,8 +88,7 @@ public class RedirectAuthHandler implements AuthHandler {
 
   /**
    * Create a handler
-   *
-   * @param authService  the auth service to use
+   * @param authService the auth service to use
    * @return the handler
    */
   public static AuthHandler create(AuthService authService) { 
@@ -104,9 +98,8 @@ public class RedirectAuthHandler implements AuthHandler {
 
   /**
    * Create a handler
-   *
-   * @param authService  the auth service to use
-   * @param loginRedirectURL  the url to redirect the user to
+   * @param authService the auth service to use
+   * @param loginRedirectURL the url to redirect the user to
    * @return the handler
    */
   public static AuthHandler create(AuthService authService, String loginRedirectURL) { 
@@ -116,10 +109,9 @@ public class RedirectAuthHandler implements AuthHandler {
 
   /**
    * Create a handler
-   *
-   * @param authService  the auth service to use
-   * @param loginRedirectURL  the url to redirect the user to
-   * @param returnURLParam  the name of param used to store return url information in session
+   * @param authService the auth service to use
+   * @param loginRedirectURL the url to redirect the user to
+   * @param returnURLParam the name of param used to store return url information in session
    * @return the handler
    */
   public static AuthHandler create(AuthService authService, String loginRedirectURL, String returnURLParam) { 

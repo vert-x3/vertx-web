@@ -26,11 +26,10 @@ import io.vertx.rxjava.ext.auth.AuthService;
 /**
  * Handler that handles login from a form on a custom login page.
  * <p>
- * Used in conjunction with the {@link io.vertx.ext.apex.handler.RedirectAuthHandler}.
+ * Used in conjunction with the {@link  io.vertx.rxjava.ext.apex.handler.RedirectAuthHandler}.
  *
- * @author <a href="http://tfox.org">Tim Fox</a>
- *
- * NOTE: This class has been automatically generated from the original non RX-ified interface using Vert.x codegen.
+ * <p/>
+ * NOTE: This class has been automatically generated from the {@link io.vertx.ext.apex.handler.FormLoginHandler original} non RX-ified interface using Vert.x codegen.
  */
 
 public class FormLoginHandler implements Handler<RoutingContext> {
@@ -51,8 +50,7 @@ public class FormLoginHandler implements Handler<RoutingContext> {
 
   /**
    * Create a handler
-   *
-   * @param authService  the auth service to use
+   * @param authService the auth service to use
    * @return the handler
    */
   public static FormLoginHandler create(AuthService authService) { 
@@ -62,12 +60,10 @@ public class FormLoginHandler implements Handler<RoutingContext> {
 
   /**
    * Create a handler
-   *
-   * @param authService  the auth service to use
-   * @param usernameParam   the value of the form attribute which will contain the username
-   * @param passwordParam   the value of the form attribute which will contain the password
-   * @param returnURLParam   the value of the form attribute which will contain the return url
-   *
+   * @param authService the auth service to use
+   * @param usernameParam the value of the form attribute which will contain the username
+   * @param passwordParam the value of the form attribute which will contain the password
+   * @param returnURLParam the value of the form attribute which will contain the return url
    * @return the handler
    */
   public static FormLoginHandler create(AuthService authService, String usernameParam, String passwordParam, String returnURLParam) { 

@@ -35,7 +35,7 @@ public class ThymeleafTemplateEngine extends TemplateEngine {
    * @return the engine
    */
   public static ThymeleafTemplateEngine create() {
-    def ret= ThymeleafTemplateEngine.FACTORY.apply(io.vertx.ext.apex.templ.ThymeleafTemplateEngine.create());
+    def ret= new io.vertx.groovy.ext.apex.templ.ThymeleafTemplateEngine(io.vertx.ext.apex.templ.ThymeleafTemplateEngine.create());
     return ret;
   }
   /**
@@ -44,11 +44,7 @@ public class ThymeleafTemplateEngine extends TemplateEngine {
    * @return a reference to this for fluency
    */
   public ThymeleafTemplateEngine setMode(String mode) {
-    def ret= ThymeleafTemplateEngine.FACTORY.apply(this.delegate.setMode(mode));
+    def ret= new io.vertx.groovy.ext.apex.templ.ThymeleafTemplateEngine(this.delegate.setMode(mode));
     return ret;
   }
-
-  static final java.util.function.Function<io.vertx.ext.apex.templ.ThymeleafTemplateEngine, ThymeleafTemplateEngine> FACTORY = io.vertx.lang.groovy.Factories.createFactory() {
-    io.vertx.ext.apex.templ.ThymeleafTemplateEngine arg -> new ThymeleafTemplateEngine(arg);
-  };
 }

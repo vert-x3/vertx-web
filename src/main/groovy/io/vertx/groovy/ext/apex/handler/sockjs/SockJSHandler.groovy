@@ -45,7 +45,7 @@ public class SockJSHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static SockJSHandler create(Vertx vertx) {
-    def ret= SockJSHandler.FACTORY.apply(io.vertx.ext.apex.handler.sockjs.SockJSHandler.create((io.vertx.core.Vertx)vertx.getDelegate()));
+    def ret= new io.vertx.groovy.ext.apex.handler.sockjs.SockJSHandler(io.vertx.ext.apex.handler.sockjs.SockJSHandler.create((io.vertx.core.Vertx)vertx.getDelegate()));
     return ret;
   }
   /**
@@ -55,7 +55,7 @@ public class SockJSHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static SockJSHandler create(Vertx vertx, Map<String, Object> options) {
-    def ret= SockJSHandler.FACTORY.apply(io.vertx.ext.apex.handler.sockjs.SockJSHandler.create((io.vertx.core.Vertx)vertx.getDelegate(), options != null ? new io.vertx.ext.apex.handler.sockjs.SockJSHandlerOptions(new io.vertx.core.json.JsonObject(options)) : null));
+    def ret= new io.vertx.groovy.ext.apex.handler.sockjs.SockJSHandler(io.vertx.ext.apex.handler.sockjs.SockJSHandler.create((io.vertx.core.Vertx)vertx.getDelegate(), options != null ? new io.vertx.ext.apex.handler.sockjs.SockJSHandlerOptions(new io.vertx.core.json.JsonObject(options)) : null));
     return ret;
   }
   /**
@@ -75,7 +75,7 @@ public class SockJSHandler implements Handler<RoutingContext> {
   public SockJSHandler socketHandler(Handler<SockJSSocket> handler) {
     this.delegate.socketHandler(new Handler<io.vertx.ext.apex.handler.sockjs.SockJSSocket>() {
       public void handle(io.vertx.ext.apex.handler.sockjs.SockJSSocket event) {
-        handler.handle(SockJSSocket.FACTORY.apply(event));
+        handler.handle(new io.vertx.groovy.ext.apex.handler.sockjs.SockJSSocket(event));
       }
     });
     return this;
@@ -91,8 +91,4 @@ public class SockJSHandler implements Handler<RoutingContext> {
     this.delegate.bridge(bridgeOptions != null ? new io.vertx.ext.apex.handler.sockjs.BridgeOptions(new io.vertx.core.json.JsonObject(bridgeOptions)) : null);
     return this;
   }
-
-  static final java.util.function.Function<io.vertx.ext.apex.handler.sockjs.SockJSHandler, SockJSHandler> FACTORY = io.vertx.lang.groovy.Factories.createFactory() {
-    io.vertx.ext.apex.handler.sockjs.SockJSHandler arg -> new SockJSHandler(arg);
-  };
 }

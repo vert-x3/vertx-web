@@ -77,7 +77,7 @@ public class RedirectAuthHandler implements AuthHandler {
    * @return the handler
    */
   public static AuthHandler create(AuthService authService) {
-    def ret= AuthHandler.FACTORY.apply(io.vertx.ext.apex.handler.RedirectAuthHandler.create((io.vertx.ext.auth.AuthService)authService.getDelegate()));
+    def ret= new io.vertx.groovy.ext.apex.handler.AuthHandlerImpl(io.vertx.ext.apex.handler.RedirectAuthHandler.create((io.vertx.ext.auth.AuthService)authService.getDelegate()));
     return ret;
   }
   /**
@@ -87,7 +87,7 @@ public class RedirectAuthHandler implements AuthHandler {
    * @return the handler
    */
   public static AuthHandler create(AuthService authService, String loginRedirectURL) {
-    def ret= AuthHandler.FACTORY.apply(io.vertx.ext.apex.handler.RedirectAuthHandler.create((io.vertx.ext.auth.AuthService)authService.getDelegate(), loginRedirectURL));
+    def ret= new io.vertx.groovy.ext.apex.handler.AuthHandlerImpl(io.vertx.ext.apex.handler.RedirectAuthHandler.create((io.vertx.ext.auth.AuthService)authService.getDelegate(), loginRedirectURL));
     return ret;
   }
   /**
@@ -98,11 +98,7 @@ public class RedirectAuthHandler implements AuthHandler {
    * @return the handler
    */
   public static AuthHandler create(AuthService authService, String loginRedirectURL, String returnURLParam) {
-    def ret= AuthHandler.FACTORY.apply(io.vertx.ext.apex.handler.RedirectAuthHandler.create((io.vertx.ext.auth.AuthService)authService.getDelegate(), loginRedirectURL, returnURLParam));
+    def ret= new io.vertx.groovy.ext.apex.handler.AuthHandlerImpl(io.vertx.ext.apex.handler.RedirectAuthHandler.create((io.vertx.ext.auth.AuthService)authService.getDelegate(), loginRedirectURL, returnURLParam));
     return ret;
   }
-
-  static final java.util.function.Function<io.vertx.ext.apex.handler.RedirectAuthHandler, RedirectAuthHandler> FACTORY = io.vertx.lang.groovy.Factories.createFactory() {
-    io.vertx.ext.apex.handler.RedirectAuthHandler arg -> new RedirectAuthHandler(arg);
-  };
 }

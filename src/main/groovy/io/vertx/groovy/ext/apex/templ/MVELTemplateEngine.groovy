@@ -35,7 +35,7 @@ public class MVELTemplateEngine extends TemplateEngine {
    * @return the engine
    */
   public static MVELTemplateEngine create() {
-    def ret= MVELTemplateEngine.FACTORY.apply(io.vertx.ext.apex.templ.MVELTemplateEngine.create());
+    def ret= new io.vertx.groovy.ext.apex.templ.MVELTemplateEngine(io.vertx.ext.apex.templ.MVELTemplateEngine.create());
     return ret;
   }
   /**
@@ -44,7 +44,7 @@ public class MVELTemplateEngine extends TemplateEngine {
    * @return a reference to this for fluency
    */
   public MVELTemplateEngine setExtension(String extension) {
-    def ret= MVELTemplateEngine.FACTORY.apply(this.delegate.setExtension(extension));
+    def ret= new io.vertx.groovy.ext.apex.templ.MVELTemplateEngine(this.delegate.setExtension(extension));
     return ret;
   }
   /**
@@ -53,11 +53,7 @@ public class MVELTemplateEngine extends TemplateEngine {
    * @return a reference to this for fluency
    */
   public MVELTemplateEngine setMaxCacheSize(int maxCacheSize) {
-    def ret= MVELTemplateEngine.FACTORY.apply(this.delegate.setMaxCacheSize(maxCacheSize));
+    def ret= new io.vertx.groovy.ext.apex.templ.MVELTemplateEngine(this.delegate.setMaxCacheSize(maxCacheSize));
     return ret;
   }
-
-  static final java.util.function.Function<io.vertx.ext.apex.templ.MVELTemplateEngine, MVELTemplateEngine> FACTORY = io.vertx.lang.groovy.Factories.createFactory() {
-    io.vertx.ext.apex.templ.MVELTemplateEngine arg -> new MVELTemplateEngine(arg);
-  };
 }

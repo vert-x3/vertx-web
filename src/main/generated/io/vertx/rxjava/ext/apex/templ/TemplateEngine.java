@@ -29,9 +29,8 @@ import io.vertx.core.Handler;
  * <p>
  * Concrete implementations exist for several well-known template engines.
  *
- * @author <a href="http://tfox.org">Tim Fox</a>
- *
- * NOTE: This class has been automatically generated from the original non RX-ified interface using Vert.x codegen.
+ * <p/>
+ * NOTE: This class has been automatically generated from the {@link io.vertx.ext.apex.templ.TemplateEngine original} non RX-ified interface using Vert.x codegen.
  */
 
 public class TemplateEngine {
@@ -48,9 +47,9 @@ public class TemplateEngine {
 
   /**
    * Render
-   * @param context  the routing context
-   * @param templateFileName  the template file name to use
-   * @param handler  the handler that will be called with a result containing the buffer or a failure.
+   * @param context the routing context
+   * @param templateFileName the template file name to use
+   * @param handler the handler that will be called with a result containing the buffer or a failure.
    */
   public void render(RoutingContext context, String templateFileName, Handler<AsyncResult<Buffer>> handler) { 
     this.delegate.render((io.vertx.ext.apex.RoutingContext) context.getDelegate(), templateFileName, new Handler<AsyncResult<io.vertx.core.buffer.Buffer>>() {
@@ -68,9 +67,9 @@ public class TemplateEngine {
 
   /**
    * Render
-   * @param context  the routing context
-   * @param templateFileName  the template file name to use
-   * @param handler  the handler that will be called with a result containing the buffer or a failure.
+   * @param context the routing context
+   * @param templateFileName the template file name to use
+   * @return 
    */
   public Observable<Buffer> renderObservable(RoutingContext context, String templateFileName) { 
     io.vertx.rx.java.ObservableFuture<Buffer> handler = io.vertx.rx.java.RxHelper.observableFuture();

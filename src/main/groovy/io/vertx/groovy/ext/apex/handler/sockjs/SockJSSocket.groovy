@@ -53,7 +53,7 @@ public class SockJSSocket implements ReadStream<Buffer>,  WriteStream<Buffer> {
   public SockJSSocket handler(Handler<Buffer> handler) {
     this.delegate.handler(new Handler<io.vertx.core.buffer.Buffer>() {
       public void handle(io.vertx.core.buffer.Buffer event) {
-        handler.handle(Buffer.FACTORY.apply(event));
+        handler.handle(new io.vertx.groovy.core.buffer.Buffer(event));
       }
     });
     return this;
@@ -106,7 +106,7 @@ public class SockJSSocket implements ReadStream<Buffer>,  WriteStream<Buffer> {
    * @return 
    */
   public SocketAddress remoteAddress() {
-    def ret= SocketAddress.FACTORY.apply(this.delegate.remoteAddress());
+    def ret= new io.vertx.groovy.core.net.SocketAddress(this.delegate.remoteAddress());
     return ret;
   }
   /**
@@ -114,7 +114,7 @@ public class SockJSSocket implements ReadStream<Buffer>,  WriteStream<Buffer> {
    * @return 
    */
   public SocketAddress localAddress() {
-    def ret= SocketAddress.FACTORY.apply(this.delegate.localAddress());
+    def ret= new io.vertx.groovy.core.net.SocketAddress(this.delegate.localAddress());
     return ret;
   }
   /**
@@ -123,7 +123,7 @@ public class SockJSSocket implements ReadStream<Buffer>,  WriteStream<Buffer> {
    * @return 
    */
   public MultiMap headers() {
-    def ret= MultiMap.FACTORY.apply(this.delegate.headers());
+    def ret= new io.vertx.groovy.core.MultiMap(this.delegate.headers());
     return ret;
   }
   /**
@@ -139,11 +139,7 @@ public class SockJSSocket implements ReadStream<Buffer>,  WriteStream<Buffer> {
    * @return 
    */
   public Session apexSession() {
-    def ret= Session.FACTORY.apply(this.delegate.apexSession());
+    def ret= new io.vertx.groovy.ext.apex.Session(this.delegate.apexSession());
     return ret;
   }
-
-  static final java.util.function.Function<io.vertx.ext.apex.handler.sockjs.SockJSSocket, SockJSSocket> FACTORY = io.vertx.lang.groovy.Factories.createFactory() {
-    io.vertx.ext.apex.handler.sockjs.SockJSSocket arg -> new SockJSSocket(arg);
-  };
 }

@@ -43,7 +43,7 @@ public class Router {
    * @return the router
    */
   public static Router router(Vertx vertx) {
-    def ret= Router.FACTORY.apply(io.vertx.ext.apex.Router.router((io.vertx.core.Vertx)vertx.getDelegate()));
+    def ret= new io.vertx.groovy.ext.apex.Router(io.vertx.ext.apex.Router.router((io.vertx.core.Vertx)vertx.getDelegate()));
     return ret;
   }
   /**
@@ -60,7 +60,7 @@ public class Router {
    * @return the route
    */
   public Route route() {
-    def ret= Route.FACTORY.apply(this.delegate.route());
+    def ret= new io.vertx.groovy.ext.apex.Route(this.delegate.route());
     return ret;
   }
   /**
@@ -70,7 +70,7 @@ public class Router {
    * @return the route
    */
   public Route route(HttpMethod method, String path) {
-    def ret= Route.FACTORY.apply(this.delegate.route(method, path));
+    def ret= new io.vertx.groovy.ext.apex.Route(this.delegate.route(method, path));
     return ret;
   }
   /**
@@ -79,7 +79,7 @@ public class Router {
    * @return the route
    */
   public Route route(String path) {
-    def ret= Route.FACTORY.apply(this.delegate.route(path));
+    def ret= new io.vertx.groovy.ext.apex.Route(this.delegate.route(path));
     return ret;
   }
   /**
@@ -89,7 +89,7 @@ public class Router {
    * @return the route
    */
   public Route routeWithRegex(HttpMethod method, String regex) {
-    def ret= Route.FACTORY.apply(this.delegate.routeWithRegex(method, regex));
+    def ret= new io.vertx.groovy.ext.apex.Route(this.delegate.routeWithRegex(method, regex));
     return ret;
   }
   /**
@@ -98,7 +98,7 @@ public class Router {
    * @return the route
    */
   public Route routeWithRegex(String regex) {
-    def ret= Route.FACTORY.apply(this.delegate.routeWithRegex(regex));
+    def ret= new io.vertx.groovy.ext.apex.Route(this.delegate.routeWithRegex(regex));
     return ret;
   }
   /**
@@ -106,7 +106,7 @@ public class Router {
    * @return the route
    */
   public Route get() {
-    def ret= Route.FACTORY.apply(this.delegate.get());
+    def ret= new io.vertx.groovy.ext.apex.Route(this.delegate.get());
     return ret;
   }
   /**
@@ -115,7 +115,7 @@ public class Router {
    * @return the route
    */
   public Route get(String path) {
-    def ret= Route.FACTORY.apply(this.delegate.get(path));
+    def ret= new io.vertx.groovy.ext.apex.Route(this.delegate.get(path));
     return ret;
   }
   /**
@@ -124,7 +124,7 @@ public class Router {
    * @return the route
    */
   public Route getWithRegex(String regex) {
-    def ret= Route.FACTORY.apply(this.delegate.getWithRegex(regex));
+    def ret= new io.vertx.groovy.ext.apex.Route(this.delegate.getWithRegex(regex));
     return ret;
   }
   /**
@@ -132,7 +132,7 @@ public class Router {
    * @return the route
    */
   public Route head() {
-    def ret= Route.FACTORY.apply(this.delegate.head());
+    def ret= new io.vertx.groovy.ext.apex.Route(this.delegate.head());
     return ret;
   }
   /**
@@ -141,7 +141,7 @@ public class Router {
    * @return the route
    */
   public Route head(String path) {
-    def ret= Route.FACTORY.apply(this.delegate.head(path));
+    def ret= new io.vertx.groovy.ext.apex.Route(this.delegate.head(path));
     return ret;
   }
   /**
@@ -150,7 +150,7 @@ public class Router {
    * @return the route
    */
   public Route headWithRegex(String regex) {
-    def ret= Route.FACTORY.apply(this.delegate.headWithRegex(regex));
+    def ret= new io.vertx.groovy.ext.apex.Route(this.delegate.headWithRegex(regex));
     return ret;
   }
   /**
@@ -158,7 +158,7 @@ public class Router {
    * @return the route
    */
   public Route options() {
-    def ret= Route.FACTORY.apply(this.delegate.options());
+    def ret= new io.vertx.groovy.ext.apex.Route(this.delegate.options());
     return ret;
   }
   /**
@@ -167,7 +167,7 @@ public class Router {
    * @return the route
    */
   public Route options(String path) {
-    def ret= Route.FACTORY.apply(this.delegate.options(path));
+    def ret= new io.vertx.groovy.ext.apex.Route(this.delegate.options(path));
     return ret;
   }
   /**
@@ -176,7 +176,7 @@ public class Router {
    * @return the route
    */
   public Route optionsWithRegex(String regex) {
-    def ret= Route.FACTORY.apply(this.delegate.optionsWithRegex(regex));
+    def ret= new io.vertx.groovy.ext.apex.Route(this.delegate.optionsWithRegex(regex));
     return ret;
   }
   /**
@@ -184,7 +184,7 @@ public class Router {
    * @return the route
    */
   public Route put() {
-    def ret= Route.FACTORY.apply(this.delegate.put());
+    def ret= new io.vertx.groovy.ext.apex.Route(this.delegate.put());
     return ret;
   }
   /**
@@ -193,7 +193,7 @@ public class Router {
    * @return the route
    */
   public Route put(String path) {
-    def ret= Route.FACTORY.apply(this.delegate.put(path));
+    def ret= new io.vertx.groovy.ext.apex.Route(this.delegate.put(path));
     return ret;
   }
   /**
@@ -202,7 +202,7 @@ public class Router {
    * @return the route
    */
   public Route putWithRegex(String regex) {
-    def ret= Route.FACTORY.apply(this.delegate.putWithRegex(regex));
+    def ret= new io.vertx.groovy.ext.apex.Route(this.delegate.putWithRegex(regex));
     return ret;
   }
   /**
@@ -210,7 +210,7 @@ public class Router {
    * @return the route
    */
   public Route post() {
-    def ret= Route.FACTORY.apply(this.delegate.post());
+    def ret= new io.vertx.groovy.ext.apex.Route(this.delegate.post());
     return ret;
   }
   /**
@@ -219,7 +219,7 @@ public class Router {
    * @return the route
    */
   public Route post(String path) {
-    def ret= Route.FACTORY.apply(this.delegate.post(path));
+    def ret= new io.vertx.groovy.ext.apex.Route(this.delegate.post(path));
     return ret;
   }
   /**
@@ -228,7 +228,7 @@ public class Router {
    * @return the route
    */
   public Route postWithRegex(String regex) {
-    def ret= Route.FACTORY.apply(this.delegate.postWithRegex(regex));
+    def ret= new io.vertx.groovy.ext.apex.Route(this.delegate.postWithRegex(regex));
     return ret;
   }
   /**
@@ -236,7 +236,7 @@ public class Router {
    * @return the route
    */
   public Route delete() {
-    def ret= Route.FACTORY.apply(this.delegate.delete());
+    def ret= new io.vertx.groovy.ext.apex.Route(this.delegate.delete());
     return ret;
   }
   /**
@@ -245,7 +245,7 @@ public class Router {
    * @return the route
    */
   public Route delete(String path) {
-    def ret= Route.FACTORY.apply(this.delegate.delete(path));
+    def ret= new io.vertx.groovy.ext.apex.Route(this.delegate.delete(path));
     return ret;
   }
   /**
@@ -254,7 +254,7 @@ public class Router {
    * @return the route
    */
   public Route deleteWithRegex(String regex) {
-    def ret= Route.FACTORY.apply(this.delegate.deleteWithRegex(regex));
+    def ret= new io.vertx.groovy.ext.apex.Route(this.delegate.deleteWithRegex(regex));
     return ret;
   }
   /**
@@ -262,7 +262,7 @@ public class Router {
    * @return 
    */
   public List<Route> getRoutes() {
-    def ret = this.delegate.getRoutes()?.collect({underpants -> Route.FACTORY.apply(underpants)});
+    def ret = this.delegate.getRoutes()?.collect({underpants -> new io.vertx.groovy.ext.apex.Route(underpants)});
       return ret;
   }
   /**
@@ -307,8 +307,4 @@ public class Router {
   public void handleFailure(RoutingContext context) {
     this.delegate.handleFailure((io.vertx.ext.apex.RoutingContext)context.getDelegate());
   }
-
-  static final java.util.function.Function<io.vertx.ext.apex.Router, Router> FACTORY = io.vertx.lang.groovy.Factories.createFactory() {
-    io.vertx.ext.apex.Router arg -> new Router(arg);
-  };
 }

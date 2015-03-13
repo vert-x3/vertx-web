@@ -112,7 +112,24 @@ Here's a simple router example:
 
 [source,js]
 ----
-todo
+var Router = require("vertx-apex-js/router");
+var server = vertx.createHttpServer();
+
+var router = Router.router(vertx);
+
+router.route().handler(function (routingContext) {
+
+  // This handler will be called for every request
+  var response = routingContext.response();
+  response.putHeader("content-type", "text/plain");
+
+  // Write to the response and end it
+  response.end("Hello World from Apex!");
+});
+
+server.requestHandler(router.accept).listen(8080);
+
+
 ----
 
 It basically does the same thing as the Vert.x Core HTTP server hello world example from the previous section,
@@ -1791,7 +1808,25 @@ Here's an example of a simple SockJS handler that simply echoes back any back an
 
 [source,js]
 ----
-todo
+var Router = require("vertx-apex-js/router");
+var SockJSHandler = require("vertx-apex-js/sock_js_handler");
+
+var router = Router.router(vertx);
+
+var options = {
+  "heartbeatPeriod" : 2000
+};
+
+var sockJSHandler = SockJSHandler.create(vertx, options);
+
+sockJSHandler.socketHandler(function (sockJSSocket) {
+
+  // Just echo the data back
+  sockJSSocket.handler(sockJSSocket.write);
+});
+
+router.route("/myapp").handler(sockJSHandler);
+
 ----
 
 === The client side

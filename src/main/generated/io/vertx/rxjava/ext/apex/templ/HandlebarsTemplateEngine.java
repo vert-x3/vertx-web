@@ -23,9 +23,8 @@ import rx.Observable;
 /**
  * A template engine that uses the Handlebars library.
  *
- * @author <a href="http://tfox.org">Tim Fox</a>
- *
- * NOTE: This class has been automatically generated from the original non RX-ified interface using Vert.x codegen.
+ * <p/>
+ * NOTE: This class has been automatically generated from the {@link io.vertx.ext.apex.templ.HandlebarsTemplateEngine original} non RX-ified interface using Vert.x codegen.
  */
 
 public class HandlebarsTemplateEngine extends TemplateEngine {
@@ -43,8 +42,7 @@ public class HandlebarsTemplateEngine extends TemplateEngine {
 
   /**
    * Create a template engine using defaults
-   *
-   * @return  the engine
+   * @return the engine
    */
   public static HandlebarsTemplateEngine create() { 
     HandlebarsTemplateEngine ret= HandlebarsTemplateEngine.newInstance(io.vertx.ext.apex.templ.HandlebarsTemplateEngine.create());
@@ -53,8 +51,7 @@ public class HandlebarsTemplateEngine extends TemplateEngine {
 
   /**
    * Set the extension for the engine
-   *
-   * @param extension  the extension
+   * @param extension the extension
    * @return a reference to this for fluency
    */
   public HandlebarsTemplateEngine setExtension(String extension) { 
@@ -64,8 +61,7 @@ public class HandlebarsTemplateEngine extends TemplateEngine {
 
   /**
    * Set the max cache size for the engine
-   *
-   * @param maxCacheSize  the maxCacheSize
+   * @param maxCacheSize the maxCacheSize
    * @return a reference to this for fluency
    */
   public HandlebarsTemplateEngine setMaxCacheSize(int maxCacheSize) { 

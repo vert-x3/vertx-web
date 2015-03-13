@@ -30,9 +30,8 @@ import io.vertx.ext.apex.handler.sockjs.BridgeOptions;
  *
  * A handler that allows you to handle SockJS connections from clients.
  *
- * @author <a href="http://tfox.org">Tim Fox</a>
- *
- * NOTE: This class has been automatically generated from the original non RX-ified interface using Vert.x codegen.
+ * <p/>
+ * NOTE: This class has been automatically generated from the {@link io.vertx.ext.apex.handler.sockjs.SockJSHandler original} non RX-ified interface using Vert.x codegen.
  */
 
 public class SockJSHandler implements Handler<RoutingContext> {
@@ -53,8 +52,7 @@ public class SockJSHandler implements Handler<RoutingContext> {
 
   /**
    * Create a SockJS handler
-   *
-   * @param vertx  the Vert.x instance
+   * @param vertx the Vert.x instance
    * @return the handler
    */
   public static SockJSHandler create(Vertx vertx) { 
@@ -64,9 +62,8 @@ public class SockJSHandler implements Handler<RoutingContext> {
 
   /**
    * Create a SockJS handler
-   *
-   * @param vertx  the Vert.x instance
-   * @param options  options to configure the handler
+   * @param vertx the Vert.x instance
+   * @param options options to configure the handler
    * @return the handler
    */
   public static SockJSHandler create(Vertx vertx, SockJSHandlerOptions options) { 
@@ -76,9 +73,8 @@ public class SockJSHandler implements Handler<RoutingContext> {
 
   /**
    * Install SockJS test applications on a router - used when running the SockJS test suite
-   *
-   * @param router  the router to install on
-   * @param vertx  the Vert.x instance
+   * @param router the router to install on
+   * @param vertx the Vert.x instance
    */
   public static void installTestApplications(Router router, Vertx vertx) { 
     io.vertx.ext.apex.handler.sockjs.SockJSHandler.installTestApplications((io.vertx.ext.apex.Router) router.getDelegate(), (io.vertx.core.Vertx) vertx.getDelegate());
@@ -87,8 +83,7 @@ public class SockJSHandler implements Handler<RoutingContext> {
   /**
    * Set a SockJS socket handler. This handler will be called with a SockJS socket whenever a SockJS connection
    * is made from a client
-   *
-   * @param handler  the handler
+   * @param handler the handler
    * @return a reference to this, so the API can be used fluently
    */
   public SockJSHandler socketHandler(Handler<SockJSSocket> handler) { 
@@ -104,8 +99,7 @@ public class SockJSHandler implements Handler<RoutingContext> {
    * Bridge the SockJS handler to the Vert.x event bus. This basically installs a built-in SockJS socket handler
    * which takes SockJS traffic and bridges it to the event bus, thus allowing you to extend the server-side
    * Vert.x event bus to browsers
-   *
-   * @param bridgeOptions  options to configure the bridge with
+   * @param bridgeOptions options to configure the bridge with
    * @return a reference to this, so the API can be used fluently
    */
   public SockJSHandler bridge(BridgeOptions bridgeOptions) { 

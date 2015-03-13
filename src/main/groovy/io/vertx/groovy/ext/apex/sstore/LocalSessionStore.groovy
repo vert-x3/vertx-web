@@ -39,7 +39,7 @@ public class LocalSessionStore extends SessionStore {
    * @return the session store
    */
   public static LocalSessionStore create(Vertx vertx) {
-    def ret= LocalSessionStore.FACTORY.apply(io.vertx.ext.apex.sstore.LocalSessionStore.create((io.vertx.core.Vertx)vertx.getDelegate()));
+    def ret= new io.vertx.groovy.ext.apex.sstore.LocalSessionStore(io.vertx.ext.apex.sstore.LocalSessionStore.create((io.vertx.core.Vertx)vertx.getDelegate()));
     return ret;
   }
   /**
@@ -49,7 +49,7 @@ public class LocalSessionStore extends SessionStore {
    * @return the session store
    */
   public static LocalSessionStore create(Vertx vertx, String sessionMapName) {
-    def ret= LocalSessionStore.FACTORY.apply(io.vertx.ext.apex.sstore.LocalSessionStore.create((io.vertx.core.Vertx)vertx.getDelegate(), sessionMapName));
+    def ret= new io.vertx.groovy.ext.apex.sstore.LocalSessionStore(io.vertx.ext.apex.sstore.LocalSessionStore.create((io.vertx.core.Vertx)vertx.getDelegate(), sessionMapName));
     return ret;
   }
   /**
@@ -60,11 +60,7 @@ public class LocalSessionStore extends SessionStore {
    * @return the session store
    */
   public static LocalSessionStore create(Vertx vertx, String sessionMapName, long reaperPeriod) {
-    def ret= LocalSessionStore.FACTORY.apply(io.vertx.ext.apex.sstore.LocalSessionStore.create((io.vertx.core.Vertx)vertx.getDelegate(), sessionMapName, reaperPeriod));
+    def ret= new io.vertx.groovy.ext.apex.sstore.LocalSessionStore(io.vertx.ext.apex.sstore.LocalSessionStore.create((io.vertx.core.Vertx)vertx.getDelegate(), sessionMapName, reaperPeriod));
     return ret;
   }
-
-  static final java.util.function.Function<io.vertx.ext.apex.sstore.LocalSessionStore, LocalSessionStore> FACTORY = io.vertx.lang.groovy.Factories.createFactory() {
-    io.vertx.ext.apex.sstore.LocalSessionStore arg -> new LocalSessionStore(arg);
-  };
 }

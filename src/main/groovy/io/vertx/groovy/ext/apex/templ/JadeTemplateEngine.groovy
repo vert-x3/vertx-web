@@ -35,7 +35,7 @@ public class JadeTemplateEngine extends TemplateEngine {
    * @return the engine
    */
   public static JadeTemplateEngine create() {
-    def ret= JadeTemplateEngine.FACTORY.apply(io.vertx.ext.apex.templ.JadeTemplateEngine.create());
+    def ret= new io.vertx.groovy.ext.apex.templ.JadeTemplateEngine(io.vertx.ext.apex.templ.JadeTemplateEngine.create());
     return ret;
   }
   /**
@@ -44,7 +44,7 @@ public class JadeTemplateEngine extends TemplateEngine {
    * @return a reference to this for fluency
    */
   public JadeTemplateEngine setExtension(String extension) {
-    def ret= JadeTemplateEngine.FACTORY.apply(this.delegate.setExtension(extension));
+    def ret= new io.vertx.groovy.ext.apex.templ.JadeTemplateEngine(this.delegate.setExtension(extension));
     return ret;
   }
   /**
@@ -53,11 +53,7 @@ public class JadeTemplateEngine extends TemplateEngine {
    * @return a reference to this for fluency
    */
   public JadeTemplateEngine setMaxCacheSize(int maxCacheSize) {
-    def ret= JadeTemplateEngine.FACTORY.apply(this.delegate.setMaxCacheSize(maxCacheSize));
+    def ret= new io.vertx.groovy.ext.apex.templ.JadeTemplateEngine(this.delegate.setMaxCacheSize(maxCacheSize));
     return ret;
   }
-
-  static final java.util.function.Function<io.vertx.ext.apex.templ.JadeTemplateEngine, JadeTemplateEngine> FACTORY = io.vertx.lang.groovy.Factories.createFactory() {
-    io.vertx.ext.apex.templ.JadeTemplateEngine arg -> new JadeTemplateEngine(arg);
-  };
 }

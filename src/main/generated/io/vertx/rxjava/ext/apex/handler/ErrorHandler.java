@@ -25,9 +25,8 @@ import io.vertx.core.Handler;
 /**
  * A pretty error handler for rendering error pages.
  *
- * @author <a href="http://tfox.org">Tim Fox</a>
- *
- * NOTE: This class has been automatically generated from the original non RX-ified interface using Vert.x codegen.
+ * <p/>
+ * NOTE: This class has been automatically generated from the {@link io.vertx.ext.apex.handler.ErrorHandler original} non RX-ified interface using Vert.x codegen.
  */
 
 public class ErrorHandler implements Handler<RoutingContext> {
@@ -48,7 +47,6 @@ public class ErrorHandler implements Handler<RoutingContext> {
 
   /**
    * Create an error handler using defaults
-   *
    * @return the handler
    */
   public static ErrorHandler create() { 
@@ -58,9 +56,8 @@ public class ErrorHandler implements Handler<RoutingContext> {
 
   /**
    * Create an error handler
-   *
-   * @param errorTemplateName  the error template name - will be looked up from the classpath
-   * @param displayExceptionDetails  true if exception details should be displayed
+   * @param errorTemplateName the error template name - will be looked up from the classpath
+   * @param displayExceptionDetails true if exception details should be displayed
    * @return the handler
    */
   public static ErrorHandler create(String errorTemplateName, boolean displayExceptionDetails) { 
@@ -70,8 +67,7 @@ public class ErrorHandler implements Handler<RoutingContext> {
 
   /**
    * Create an error handler
-   *
-   * @param displayExceptionDetails  true if exception details should be displayed
+   * @param displayExceptionDetails true if exception details should be displayed
    * @return the handler
    */
   public static ErrorHandler create(boolean displayExceptionDetails) { 
@@ -81,8 +77,7 @@ public class ErrorHandler implements Handler<RoutingContext> {
 
   /**
    * Create an error handler
-   *
-   * @param errorTemplateName  the error template name - will be looked up from the classpath
+   * @param errorTemplateName the error template name - will be looked up from the classpath
    * @return the handler
    */
   public static ErrorHandler create(String errorTemplateName) { 

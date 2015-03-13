@@ -112,7 +112,24 @@ Here's a simple router example:
 
 [source,groovy]
 ----
-todo
+import io.vertx.groovy.ext.apex.Router
+def server = vertx.createHttpServer()
+
+def router = Router.router(vertx)
+
+router.route().handler({ routingContext ->
+
+  // This handler will be called for every request
+  def response = routingContext.response()
+  response.putHeader("content-type", "text/plain")
+
+  // Write to the response and end it
+  response.end("Hello World from Apex!")
+})
+
+server.requestHandler(router.&accept).listen(8080)
+
+
 ----
 
 It basically does the same thing as the Vert.x Core HTTP server hello world example from the previous section,
@@ -1790,7 +1807,25 @@ Here's an example of a simple SockJS handler that simply echoes back any back an
 
 [source,groovy]
 ----
-todo
+import io.vertx.groovy.ext.apex.Router
+import io.vertx.groovy.ext.apex.handler.sockjs.SockJSHandler
+
+def router = Router.router(vertx)
+
+def options = [
+  heartbeatPeriod:2000
+]
+
+def sockJSHandler = SockJSHandler.create(vertx, options)
+
+sockJSHandler.socketHandler({ sockJSSocket ->
+
+  // Just echo the data back
+  sockJSSocket.handler(sockJSSocket.&write)
+})
+
+router.route("/myapp").handler(sockJSHandler)
+
 ----
 
 === The client side

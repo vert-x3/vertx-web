@@ -48,7 +48,7 @@ public class SessionHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static SessionHandler create(SessionStore sessionStore) {
-    def ret= SessionHandler.FACTORY.apply(io.vertx.ext.apex.handler.SessionHandler.create((io.vertx.ext.apex.sstore.SessionStore)sessionStore.getDelegate()));
+    def ret= new io.vertx.groovy.ext.apex.handler.SessionHandler(io.vertx.ext.apex.handler.SessionHandler.create((io.vertx.ext.apex.sstore.SessionStore)sessionStore.getDelegate()));
     return ret;
   }
   /**
@@ -79,8 +79,4 @@ public class SessionHandler implements Handler<RoutingContext> {
     this.delegate.setSessionCookieName(sessionCookieName);
     return this;
   }
-
-  static final java.util.function.Function<io.vertx.ext.apex.handler.SessionHandler, SessionHandler> FACTORY = io.vertx.lang.groovy.Factories.createFactory() {
-    io.vertx.ext.apex.handler.SessionHandler arg -> new SessionHandler(arg);
-  };
 }

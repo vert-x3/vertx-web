@@ -40,7 +40,7 @@ public class LoggerHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static LoggerHandler create() {
-    def ret= LoggerHandler.FACTORY.apply(io.vertx.ext.apex.handler.LoggerHandler.create());
+    def ret= new io.vertx.groovy.ext.apex.handler.LoggerHandler(io.vertx.ext.apex.handler.LoggerHandler.create());
     return ret;
   }
   /**
@@ -49,7 +49,7 @@ public class LoggerHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static LoggerHandler create(Format format) {
-    def ret= LoggerHandler.FACTORY.apply(io.vertx.ext.apex.handler.LoggerHandler.create(format));
+    def ret= new io.vertx.groovy.ext.apex.handler.LoggerHandler(io.vertx.ext.apex.handler.LoggerHandler.create(format));
     return ret;
   }
   /**
@@ -59,11 +59,7 @@ public class LoggerHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static LoggerHandler create(boolean immediate, Format format) {
-    def ret= LoggerHandler.FACTORY.apply(io.vertx.ext.apex.handler.LoggerHandler.create(immediate, format));
+    def ret= new io.vertx.groovy.ext.apex.handler.LoggerHandler(io.vertx.ext.apex.handler.LoggerHandler.create(immediate, format));
     return ret;
   }
-
-  static final java.util.function.Function<io.vertx.ext.apex.handler.LoggerHandler, LoggerHandler> FACTORY = io.vertx.lang.groovy.Factories.createFactory() {
-    io.vertx.ext.apex.handler.LoggerHandler arg -> new LoggerHandler(arg);
-  };
 }

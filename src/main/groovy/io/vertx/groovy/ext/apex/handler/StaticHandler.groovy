@@ -39,7 +39,7 @@ public class StaticHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static StaticHandler create() {
-    def ret= StaticHandler.FACTORY.apply(io.vertx.ext.apex.handler.StaticHandler.create());
+    def ret= new io.vertx.groovy.ext.apex.handler.StaticHandler(io.vertx.ext.apex.handler.StaticHandler.create());
     return ret;
   }
   /**
@@ -48,7 +48,7 @@ public class StaticHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static StaticHandler create(String root) {
-    def ret= StaticHandler.FACTORY.apply(io.vertx.ext.apex.handler.StaticHandler.create(root));
+    def ret= new io.vertx.groovy.ext.apex.handler.StaticHandler(io.vertx.ext.apex.handler.StaticHandler.create(root));
     return ret;
   }
   /**
@@ -168,8 +168,4 @@ public class StaticHandler implements Handler<RoutingContext> {
     this.delegate.setDirectoryTemplate(directoryTemplate);
     return this;
   }
-
-  static final java.util.function.Function<io.vertx.ext.apex.handler.StaticHandler, StaticHandler> FACTORY = io.vertx.lang.groovy.Factories.createFactory() {
-    io.vertx.ext.apex.handler.StaticHandler arg -> new StaticHandler(arg);
-  };
 }

@@ -43,7 +43,7 @@ public class TemplateHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static TemplateHandler create(TemplateEngine engine) {
-    def ret= TemplateHandler.FACTORY.apply(io.vertx.ext.apex.handler.TemplateHandler.create((io.vertx.ext.apex.templ.TemplateEngine)engine.getDelegate()));
+    def ret= new io.vertx.groovy.ext.apex.handler.TemplateHandler(io.vertx.ext.apex.handler.TemplateHandler.create((io.vertx.ext.apex.templ.TemplateEngine)engine.getDelegate()));
     return ret;
   }
   /**
@@ -54,11 +54,7 @@ public class TemplateHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static TemplateHandler create(TemplateEngine engine, String templateDirectory, String contentType) {
-    def ret= TemplateHandler.FACTORY.apply(io.vertx.ext.apex.handler.TemplateHandler.create((io.vertx.ext.apex.templ.TemplateEngine)engine.getDelegate(), templateDirectory, contentType));
+    def ret= new io.vertx.groovy.ext.apex.handler.TemplateHandler(io.vertx.ext.apex.handler.TemplateHandler.create((io.vertx.ext.apex.templ.TemplateEngine)engine.getDelegate(), templateDirectory, contentType));
     return ret;
   }
-
-  static final java.util.function.Function<io.vertx.ext.apex.handler.TemplateHandler, TemplateHandler> FACTORY = io.vertx.lang.groovy.Factories.createFactory() {
-    io.vertx.ext.apex.handler.TemplateHandler arg -> new TemplateHandler(arg);
-  };
 }
