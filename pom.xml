@@ -12,10 +12,10 @@
   <modelVersion>4.0.0</modelVersion>
 
   <artifactId>vertx-apex</artifactId>
-  <version>3.0.0-milestone3</version>
+  <version>3.0.0-SNAPSHOT</version>
 
   <properties>
-    <stack.version>3.0.0-milestone3</stack.version>
+    <stack.version>3.0.0-SNAPSHOT</stack.version>
     <pac4j.version>1.6.0</pac4j.version>
   </properties>
 
