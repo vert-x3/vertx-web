@@ -284,8 +284,9 @@ Here's an example
 
 [source,groovy]
 ----
+import io.vertx.core.http.HttpMethod
 
-def route = router.route('POST', "/catalogue/products/:productype/:productid/")
+def route = router.route(HttpMethod.POST, "/catalogue/products/:productype/:productid/")
 
 route.handler({ routingContext ->
 
@@ -382,8 +383,9 @@ If you want a route to only match for a specific HTTP method you can use `link:g
 
 [source,groovy]
 ----
+import io.vertx.core.http.HttpMethod
 
-def route = router.route().method('POST')
+def route = router.route().method(HttpMethod.POST)
 
 route.handler({ routingContext ->
 
@@ -398,8 +400,9 @@ Or you can specify this with a path when creating the route:
 
 [source,groovy]
 ----
+import io.vertx.core.http.HttpMethod
 
-def route = router.route('POST', "/some/path/")
+def route = router.route(HttpMethod.POST, "/some/path/")
 
 route.handler({ routingContext ->
 
@@ -447,8 +450,9 @@ multiple times:
 
 [source,groovy]
 ----
+import io.vertx.core.http.HttpMethod
 
-def route = router.route().method('POST').method('PUT')
+def route = router.route().method(HttpMethod.POST).method(HttpMethod.PUT)
 
 route.handler({ routingContext ->
 
@@ -727,8 +731,9 @@ You can combine all the above routing criteria in many different ways, for examp
 
 [source,groovy]
 ----
+import io.vertx.core.http.HttpMethod
 
-def route = router.route('PUT', "myapi/orders").consumes("application/json").produces("application/json")
+def route = router.route(HttpMethod.PUT, "myapi/orders").consumes("application/json").produces("application/json")
 
 route.handler({ routingContext ->
 
@@ -1244,6 +1249,7 @@ an auth handler from that, but it's the same principle whatever concrete auth se
 [source,groovy]
 ----
 import io.vertx.groovy.ext.auth.shiro.ShiroAuthService
+import io.vertx.ext.auth.shiro.ShiroAuthRealmType
 import io.vertx.groovy.ext.apex.handler.BasicAuthHandler
 
 // Create a simple local auth service that gets user data from properties file
@@ -1251,7 +1257,7 @@ import io.vertx.groovy.ext.apex.handler.BasicAuthHandler
 
 def config = [:]
 config.io.vertx.ext.auth.shiro.PropertiesAuthRealmConstants.PROPERTIES_PROPS_PATH_FIELD = "classpath:test-auth.properties"
-def authService = ShiroAuthService.create(vertx, 'PROPERTIES', config)
+def authService = ShiroAuthService.create(vertx, ShiroAuthRealmType.PROPERTIES, config)
 
 def basicAuthHandler = BasicAuthHandler.create(authService)
 
@@ -1549,9 +1555,10 @@ Here's an example:
 [source,groovy]
 ----
 import io.vertx.groovy.ext.apex.handler.CorsHandler
+import io.vertx.core.http.HttpMethod
 
 // Will only accept GET requests from origin "vertx.io"
-router.route().handler(CorsHandler.create("vertx\\.io").allowedMethod('GET'))
+router.route().handler(CorsHandler.create("vertx\\.io").allowedMethod(HttpMethod.GET))
 
 router.route().handler({ routingContext ->
 

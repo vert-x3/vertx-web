@@ -915,7 +915,7 @@ You should make sure a body handler is on a matching route for any requests that
 var BodyHandler = require("vertx-apex-js/body_handler");
 
 // This body handler will be called for all routes
-router.route().handler(BodyHandler.create());
+router.route().handler(BodyHandler.create().handle);
 
 
 ----
@@ -957,7 +957,7 @@ Here's an example:
 ----
 var BodyHandler = require("vertx-apex-js/body_handler");
 
-router.route().handler(BodyHandler.create());
+router.route().handler(BodyHandler.create().handle);
 
 router.post("/some/path/uploads").handler(function (routingContext) {
 
@@ -982,7 +982,7 @@ You should make sure a cookie handler is on a matching route for any requests th
 var CookieHandler = require("vertx-apex-js/cookie_handler");
 
 // This cookie handler will be called for all routes
-router.route().handler(CookieHandler.create());
+router.route().handler(CookieHandler.create().handle);
 
 
 ----
@@ -1010,7 +1010,7 @@ var CookieHandler = require("vertx-apex-js/cookie_handler");
 var Cookie = require("vertx-apex-js/cookie");
 
 // This cookie handler will be called for all routes
-router.route().handler(CookieHandler.create());
+router.route().handler(CookieHandler.create().handle);
 
 router.route("some/path/").handler(function (routingContext) {
 
@@ -1149,7 +1149,7 @@ var SessionHandler = require("vertx-apex-js/session_handler");
 var router = Router.router(vertx);
 
 // We need a cookie handler first
-router.route().handler(CookieHandler.create());
+router.route().handler(CookieHandler.create().handle);
 
 // Create a clustered session store using defaults
 var store = ClusteredSessionStore.create(vertx);
@@ -1157,7 +1157,7 @@ var store = ClusteredSessionStore.create(vertx);
 var sessionHandler = SessionHandler.create(store);
 
 // Make sure all requests are routed through the session handler too
-router.route().handler(sessionHandler);
+router.route().handler(sessionHandler.handle);
 
 // Now your application handlers
 router.route("/somepath/blah/").handler(function (routingContext) {
@@ -1192,8 +1192,8 @@ Here's an example of manipulating session data:
 ----
 var CookieHandler = require("vertx-apex-js/cookie_handler");
 
-router.route().handler(CookieHandler.create());
-router.route().handler(sessionHandler);
+router.route().handler(CookieHandler.create().handle);
+router.route().handler(sessionHandler.handle);
 
 // Now your application handlers
 router.route("/somepath/blah").handler(function (routingContext) {
@@ -1283,8 +1283,8 @@ var LocalSessionStore = require("vertx-apex-js/local_session_store");
 var AuthService = require("vertx-auth-js/auth_service");
 var BasicAuthHandler = require("vertx-apex-js/basic_auth_handler");
 
-router.route().handler(CookieHandler.create());
-router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
+router.route().handler(CookieHandler.create().handle);
+router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)).handle);
 
 var authService = AuthService.createEventBusProxy(vertx, "acme.authservice");
 var basicAuthHandler = BasicAuthHandler.create(authService);
@@ -1305,14 +1305,14 @@ var LocalSessionStore = require("vertx-apex-js/local_session_store");
 var AuthService = require("vertx-auth-js/auth_service");
 var BasicAuthHandler = require("vertx-apex-js/basic_auth_handler");
 
-router.route().handler(CookieHandler.create());
-router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
+router.route().handler(CookieHandler.create().handle);
+router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)).handle);
 
 var authService = AuthService.createEventBusProxy(vertx, "acme.authservice");
 var basicAuthHandler = BasicAuthHandler.create(authService);
 
 // All requests to paths starting with '/private/' will be protected
-router.route("/private/").handler(basicAuthHandler);
+router.route("/private/").handler(basicAuthHandler.handle);
 
 router.route("/someotherpath").handler(function (routingContext) {
 
@@ -1386,20 +1386,20 @@ var RedirectAuthHandler = require("vertx-apex-js/redirect_auth_handler");
 var FormLoginHandler = require("vertx-apex-js/form_login_handler");
 var StaticHandler = require("vertx-apex-js/static_handler");
 
-router.route().handler(CookieHandler.create());
-router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
+router.route().handler(CookieHandler.create().handle);
+router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)).handle);
 
 var authService = AuthService.createEventBusProxy(vertx, "acme.authservice");
 var redirectAuthHandler = RedirectAuthHandler.create(authService);
 
 // All requests to paths starting with '/private/' will be protected
-router.route("/private/").handler(redirectAuthHandler);
+router.route("/private/").handler(redirectAuthHandler.handle);
 
 // Handle the actual login
-router.route("/login").handler(FormLoginHandler.create(authService));
+router.route("/login").handler(FormLoginHandler.create(authService).handle);
 
 // Set a static server to serve static resources, e.g. the login page
-router.route().handler(StaticHandler.create());
+router.route().handler(StaticHandler.create().handle);
 
 router.route("/someotherpath").handler(function (routingContext) {
   // This will be public access - no login required
@@ -1435,13 +1435,13 @@ var managerAuthHandler = RedirectAuthHandler.create(authService);
 managerAuthHandler.addRole("manager").addRole("admin");
 
 // Roles "manager" and "admin" have access to /private/managers
-router.route("/private/managers").handler(managerAuthHandler);
+router.route("/private/managers").handler(managerAuthHandler.handle);
 
 var settingsAuthHandler = RedirectAuthHandler.create(authService);
 settingsAuthHandler.addRole("admin");
 
 // Only "admin" has access to /private/settings
-router.route("/private/settings").handler(settingsAuthHandler);
+router.route("/private/settings").handler(settingsAuthHandler.handle);
 
 
 ----
@@ -1467,7 +1467,7 @@ In the following example all requests to paths starting with `/static/` will get
 ----
 var StaticHandler = require("vertx-apex-js/static_handler");
 
-router.route("/static/").handler(StaticHandler.create());
+router.route("/static/").handler(StaticHandler.create().handle);
 
 
 ----
@@ -1552,7 +1552,7 @@ Here's an example:
 var CorsHandler = require("vertx-apex-js/cors_handler");
 
 // Will only accept GET requests from origin "vertx.io"
-router.route().handler(CorsHandler.create("vertx\\.io").allowedMethod('GET'));
+router.route().handler(CorsHandler.create("vertx\\.io").allowedMethod('GET').handle);
 
 router.route().handler(function (routingContext) {
 
@@ -1594,10 +1594,10 @@ var handler = TemplateHandler.create(engine);
 
 // This will route all GET requests starting with /dynamic/ to the template handler
 // E.g. /dynamic/graph.hbs will look for a template in /templates/dynamic/graph.hbs
-router.get("/dynamic/").handler(handler);
+router.get("/dynamic/").handler(handler.handle);
 
 // Route all GET requests for resource ending in .hbs to the template handler
-router.getWithRegex(".+\\.hbs").handler(handler);
+router.getWithRegex(".+\\.hbs").handler(handler.handle);
 
 
 ----
@@ -1675,7 +1675,7 @@ router.get("/dynamic").handler(function (routingContext) {
   routingContext.next();
 });
 
-router.get("/dynamic/").handler(handler);
+router.get("/dynamic/").handler(handler.handle);
 
 
 ----
@@ -1744,7 +1744,7 @@ seconds:
 ----
 var TimeoutHandler = require("vertx-apex-js/timeout_handler");
 
-router.route("/foo/").handler(TimeoutHandler.create(5000));
+router.route("/foo/").handler(TimeoutHandler.create(5000).handle);
 
 
 ----
@@ -1790,7 +1790,7 @@ var options = {
 
 var sockJSHandler = SockJSHandler.create(vertx, options);
 
-router.route("/myapp").handler(sockJSHandler);
+router.route("/myapp").handler(sockJSHandler.handle);
 
 ----
 
@@ -1825,7 +1825,7 @@ sockJSHandler.socketHandler(function (sockJSSocket) {
   sockJSSocket.handler(sockJSSocket.write);
 });
 
-router.route("/myapp").handler(sockJSHandler);
+router.route("/myapp").handler(sockJSHandler.handle);
 
 ----
 
@@ -1922,7 +1922,7 @@ var options = {
 };
 sockJSHandler.bridge(options);
 
-router.route("/eventbus").handler(sockJSHandler);
+router.route("/eventbus").handler(sockJSHandler.handle);
 
 ----
 
