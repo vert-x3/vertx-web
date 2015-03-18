@@ -71,6 +71,7 @@ public class FormLoginHandlerImpl implements FormLoginHandler {
             if (res.succeeded()) {
               String loginID = res.result();
               session.setLoginID(loginID);
+              session.setAuthService(authService);
               String returnURL = session.remove(returnURLParam);
               if (returnURL == null) {
                 // Just return OK

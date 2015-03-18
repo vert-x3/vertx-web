@@ -207,6 +207,9 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
 
   @Override
   public void logout() {
+    if (authService == null && loginID != null) {
+      throw new IllegalStateException("No auth service");
+    }
     if (authService != null && loginID != null) {
       authService.logout(loginID, res -> {
         if (res.failed()) {
@@ -232,6 +235,11 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
   @Override
   public void setAuthService(AuthService authService) {
     this.authService = authService;
+  }
+
+  @Override
+  public AuthService getAuthService() {
+    return authService;
   }
 
   @Override

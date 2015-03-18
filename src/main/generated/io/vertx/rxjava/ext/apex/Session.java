@@ -223,6 +223,15 @@ public class Session {
     this.delegate.setAuthService((io.vertx.ext.auth.AuthService) authService.getDelegate());
   }
 
+  /**
+   * Get the auth service
+   * @return the auth service
+   */
+  public AuthService getAuthService() { 
+    AuthService ret= AuthService.newInstance(this.delegate.getAuthService());
+    return ret;
+  }
+
 
   public static Session newInstance(io.vertx.ext.apex.Session arg) {
     return new Session(arg);

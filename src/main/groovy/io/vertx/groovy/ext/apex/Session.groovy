@@ -176,4 +176,12 @@ public class Session {
   public void setAuthService(AuthService authService) {
     this.delegate.setAuthService((io.vertx.ext.auth.AuthService)authService.getDelegate());
   }
+  /**
+   * Get the auth service
+   * @return the auth service
+   */
+  public AuthService getAuthService() {
+    def ret= new io.vertx.groovy.ext.auth.AuthService(this.delegate.getAuthService());
+    return ret;
+  }
 }

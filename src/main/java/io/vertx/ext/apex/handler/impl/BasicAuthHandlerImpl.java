@@ -82,6 +82,7 @@ public class BasicAuthHandlerImpl extends AuthHandlerImpl {
               if (res.succeeded()) {
                 String loginID = res.result();
                 session.setLoginID(loginID);
+                session.setAuthService(authService);
                 authorise(context);
               } else {
                 handle401(context);
