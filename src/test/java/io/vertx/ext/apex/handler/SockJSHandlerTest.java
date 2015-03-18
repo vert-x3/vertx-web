@@ -134,7 +134,7 @@ public class SockJSHandlerTest extends ApexTestBase {
     int res = p.waitFor();
 
     // Make sure all tests pass
-    assertEquals(0, res);
+    assertEquals("Protocol tests failed", 0, res);
 
   }
 
