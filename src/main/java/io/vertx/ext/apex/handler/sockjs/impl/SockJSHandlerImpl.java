@@ -325,6 +325,8 @@ public class SockJSHandlerImpl implements SockJSHandler, Handler<RoutingContext>
   }
 
   // For debug only
+
+  // The sockjs-protocol tests must be run against the tests in the 0.3.3 tag of sockjs-protocol !!
   public static void main(String[] args) throws Exception {
     Vertx vertx = Vertx.vertx();
     HttpServer server = vertx.createHttpServer();
@@ -332,7 +334,7 @@ public class SockJSHandlerImpl implements SockJSHandler, Handler<RoutingContext>
     installTestApplications(router, vertx);
     server.requestHandler(req -> {
       router.accept(req);
-    }).listen(9091);
+    }).listen(8081);
   }
 
 

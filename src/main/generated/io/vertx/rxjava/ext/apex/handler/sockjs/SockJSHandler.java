@@ -29,6 +29,9 @@ import io.vertx.ext.apex.handler.sockjs.BridgeOptions;
 /**
  *
  * A handler that allows you to handle SockJS connections from clients.
+ * <p>
+ * We currently support version 0.3.3 of the SockJS protocol, which can be found in
+ * <a href="https://github.com/sockjs/sockjs-protocol/tree/v0.3.3">this tag:</a>
  *
  * <p/>
  * NOTE: This class has been automatically generated from the {@link io.vertx.ext.apex.handler.sockjs.SockJSHandler original} non RX-ified interface using Vert.x codegen.
