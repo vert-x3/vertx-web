@@ -154,17 +154,6 @@ class BaseTransport {
   }
 
   static void setCORS(RoutingContext rc) {
-//    String origin = rc.request().getHeader("origin");
-//    if (origin == null || "null".equals(origin)) {
-//      origin = "*";
-//    } else {
-//      rc.response().putHeader("Access-Control-Allow-Credentials", "true");
-//    }
-//    rc.response().putHeader("Access-Control-Allow-Origin", origin);
-//    String hdr = rc.request().getHeader("Access-Control-Request-Headers");
-//    if (hdr != null) {
-//      rc.response().putHeader("Access-Control-Allow-Headers", hdr);
-//    }
     HttpServerRequest req = rc.request();
     String origin = req.headers().get("origin");
     if (origin == null || "null".equals(origin)) {
