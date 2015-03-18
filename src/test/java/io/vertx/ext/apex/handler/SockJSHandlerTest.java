@@ -128,7 +128,6 @@ public class SockJSHandlerTest extends ApexTestBase {
       String line;
       while ((line = input.readLine()) != null) {
         log.info(line);
-        System.out.println(line);
       }
     }
 
