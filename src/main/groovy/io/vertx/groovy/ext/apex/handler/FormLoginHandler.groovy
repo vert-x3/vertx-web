@@ -43,7 +43,7 @@ public class FormLoginHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static FormLoginHandler create(AuthService authService) {
-    def ret= FormLoginHandler.FACTORY.apply(io.vertx.ext.apex.handler.FormLoginHandler.create((io.vertx.ext.auth.AuthService)authService.getDelegate()));
+    def ret= new io.vertx.groovy.ext.apex.handler.FormLoginHandler(io.vertx.ext.apex.handler.FormLoginHandler.create((io.vertx.ext.auth.AuthService)authService.getDelegate()));
     return ret;
   }
   /**
@@ -55,11 +55,7 @@ public class FormLoginHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static FormLoginHandler create(AuthService authService, String usernameParam, String passwordParam, String returnURLParam) {
-    def ret= FormLoginHandler.FACTORY.apply(io.vertx.ext.apex.handler.FormLoginHandler.create((io.vertx.ext.auth.AuthService)authService.getDelegate(), usernameParam, passwordParam, returnURLParam));
+    def ret= new io.vertx.groovy.ext.apex.handler.FormLoginHandler(io.vertx.ext.apex.handler.FormLoginHandler.create((io.vertx.ext.auth.AuthService)authService.getDelegate(), usernameParam, passwordParam, returnURLParam));
     return ret;
   }
-
-  static final java.util.function.Function<io.vertx.ext.apex.handler.FormLoginHandler, FormLoginHandler> FACTORY = io.vertx.lang.groovy.Factories.createFactory() {
-    io.vertx.ext.apex.handler.FormLoginHandler arg -> new FormLoginHandler(arg);
-  };
 }

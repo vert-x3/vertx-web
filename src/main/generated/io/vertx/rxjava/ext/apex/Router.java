@@ -26,14 +26,13 @@ import io.vertx.rxjava.core.Vertx;
 import io.vertx.core.Handler;
 
 /**
- * A router receives request from an {@link io.vertx.core.http.HttpServer} and routes it to the first matching
- * {@link io.vertx.ext.apex.Route} that it contains. A router can contain many routes.
+ * A router receives request from an {@link  io.vertx.rxjava.core.http.HttpServer} and routes it to the first matching
+ * {@link  io.vertx.rxjava.ext.apex.Route} that it contains. A router can contain many routes.
  * <p>
  * Routers are also used for routing failures.
  *
- * @author <a href="http://tfox.org">Tim Fox</a>
- *
- * NOTE: This class has been automatically generated from the original non RX-ified interface using Vert.x codegen.
+ * <p/>
+ * NOTE: This class has been automatically generated from the {@link io.vertx.ext.apex.Router original} non RX-ified interface using Vert.x codegen.
  */
 
 public class Router {
@@ -50,8 +49,7 @@ public class Router {
 
   /**
    * Create a router
-   *
-   * @param vertx  the Vert.x instance
+   * @param vertx the Vert.x instance
    * @return the router
    */
   public static Router router(Vertx vertx) { 
@@ -61,10 +59,9 @@ public class Router {
 
   /**
    * This method is used to provide a request to the router. Usually you take request from the
-   * {@link io.vertx.core.http.HttpServer#requestHandler(io.vertx.core.Handler)} and pass it to this method. The
+   * {@link  io.vertx.rxjava.core.http.HttpServer#requestHandler(io.vertx.rxjava.core.Handler)} and pass it to this method. The
    * router then routes it to matching routes.
-   *
-   * @param request  the request
+   * @param request the request
    */
   public void accept(HttpServerRequest request) { 
     this.delegate.accept((io.vertx.core.http.HttpServerRequest) request.getDelegate());
@@ -72,8 +69,7 @@ public class Router {
 
   /**
    * Add a route with no matching criteria, i.e. it matches all requests or failures.
-   *
-   * @return  the route
+   * @return the route
    */
   public Route route() { 
     Route ret= Route.newInstance(this.delegate.route());
@@ -82,10 +78,8 @@ public class Router {
 
   /**
    * Add a route that matches the specified HTTP method and path
-   *
-   * @param method  the HTTP method to match
-   * @param path  URI paths that begin with this path will match
-   *
+   * @param method the HTTP method to match
+   * @param path URI paths that begin with this path will match
    * @return the route
    */
   public Route route(HttpMethod method, String path) { 
@@ -95,9 +89,7 @@ public class Router {
 
   /**
    * Add a route that matches the specified path
-   *
-   * @param path  URI paths that begin with this path will match
-   *
+   * @param path URI paths that begin with this path will match
    * @return the route
    */
   public Route route(String path) { 
@@ -107,10 +99,8 @@ public class Router {
 
   /**
    * Add a route that matches the specified HTTP method and path regex
-   *
-   * @param method  the HTTP method to match
-   * @param regex  URI paths that begin with a match for this regex will match
-   *
+   * @param method the HTTP method to match
+   * @param regex URI paths that begin with a match for this regex will match
    * @return the route
    */
   public Route routeWithRegex(HttpMethod method, String regex) { 
@@ -120,9 +110,7 @@ public class Router {
 
   /**
    * Add a route that matches the specified path regex
-   *
-   * @param regex  URI paths that begin with a match for this regex will match
-   *
+   * @param regex URI paths that begin with a match for this regex will match
    * @return the route
    */
   public Route routeWithRegex(String regex) { 
@@ -132,7 +120,6 @@ public class Router {
 
   /**
    * Add a route that matches any HTTP GET request
-   *
    * @return the route
    */
   public Route get() { 
@@ -142,9 +129,7 @@ public class Router {
 
   /**
    * Add a route that matches a HTTP GET request and the specified path
-   *
-   * @param path  URI paths that begin with this path will match
-   *
+   * @param path URI paths that begin with this path will match
    * @return the route
    */
   public Route get(String path) { 
@@ -154,9 +139,7 @@ public class Router {
 
   /**
    * Add a route that matches a HTTP GET request and the specified path regex
-   *
-   * @param regex  URI paths that begin with a match for this regex will match
-   *
+   * @param regex URI paths that begin with a match for this regex will match
    * @return the route
    */
   public Route getWithRegex(String regex) { 
@@ -166,7 +149,6 @@ public class Router {
 
   /**
    * Add a route that matches any HTTP HEAD request
-   *
    * @return the route
    */
   public Route head() { 
@@ -176,9 +158,7 @@ public class Router {
 
   /**
    * Add a route that matches a HTTP HEAD request and the specified path
-   *
-   * @param path  URI paths that begin with this path will match
-   *
+   * @param path URI paths that begin with this path will match
    * @return the route
    */
   public Route head(String path) { 
@@ -188,9 +168,7 @@ public class Router {
 
   /**
    * Add a route that matches a HTTP HEAD request and the specified path regex
-   *
-   * @param regex  URI paths that begin with a match for this regex will match
-   *
+   * @param regex URI paths that begin with a match for this regex will match
    * @return the route
    */
   public Route headWithRegex(String regex) { 
@@ -200,7 +178,6 @@ public class Router {
 
   /**
    * Add a route that matches any HTTP OPTIONS request
-   *
    * @return the route
    */
   public Route options() { 
@@ -210,9 +187,7 @@ public class Router {
 
   /**
    * Add a route that matches a HTTP OPTIONS request and the specified path
-   *
-   * @param path  URI paths that begin with this path will match
-   *
+   * @param path URI paths that begin with this path will match
    * @return the route
    */
   public Route options(String path) { 
@@ -222,9 +197,7 @@ public class Router {
 
   /**
    * Add a route that matches a HTTP OPTIONS request and the specified path regex
-   *
-   * @param regex  URI paths that begin with a match for this regex will match
-   *
+   * @param regex URI paths that begin with a match for this regex will match
    * @return the route
    */
   public Route optionsWithRegex(String regex) { 
@@ -234,7 +207,6 @@ public class Router {
 
   /**
    * Add a route that matches any HTTP PUT request
-   *
    * @return the route
    */
   public Route put() { 
@@ -244,9 +216,7 @@ public class Router {
 
   /**
    * Add a route that matches a HTTP PUT request and the specified path
-   *
-   * @param path  URI paths that begin with this path will match
-   *
+   * @param path URI paths that begin with this path will match
    * @return the route
    */
   public Route put(String path) { 
@@ -256,9 +226,7 @@ public class Router {
 
   /**
    * Add a route that matches a HTTP PUT request and the specified path regex
-   *
-   * @param regex  URI paths that begin with a match for this regex will match
-   *
+   * @param regex URI paths that begin with a match for this regex will match
    * @return the route
    */
   public Route putWithRegex(String regex) { 
@@ -268,7 +236,6 @@ public class Router {
 
   /**
    * Add a route that matches any HTTP POST request
-   *
    * @return the route
    */
   public Route post() { 
@@ -278,9 +245,7 @@ public class Router {
 
   /**
    * Add a route that matches a HTTP POST request and the specified path
-   *
-   * @param path  URI paths that begin with this path will match
-   *
+   * @param path URI paths that begin with this path will match
    * @return the route
    */
   public Route post(String path) { 
@@ -290,9 +255,7 @@ public class Router {
 
   /**
    * Add a route that matches a HTTP POST request and the specified path regex
-   *
-   * @param regex  URI paths that begin with a match for this regex will match
-   *
+   * @param regex URI paths that begin with a match for this regex will match
    * @return the route
    */
   public Route postWithRegex(String regex) { 
@@ -302,7 +265,6 @@ public class Router {
 
   /**
    * Add a route that matches any HTTP DELETE request
-   *
    * @return the route
    */
   public Route delete() { 
@@ -312,9 +274,7 @@ public class Router {
 
   /**
    * Add a route that matches a HTTP DELETE request and the specified path
-   *
-   * @param path  URI paths that begin with this path will match
-   *
+   * @param path URI paths that begin with this path will match
    * @return the route
    */
   public Route delete(String path) { 
@@ -324,9 +284,7 @@ public class Router {
 
   /**
    * Add a route that matches a HTTP DELETE request and the specified path regex
-   *
-   * @param regex  URI paths that begin with a match for this regex will match
-   *
+   * @param regex URI paths that begin with a match for this regex will match
    * @return the route
    */
   public Route deleteWithRegex(String regex) { 
@@ -336,6 +294,7 @@ public class Router {
 
   /**
    * @return a list of all the routes on this router
+   * @return 
    */
   public List<Route> getRoutes() { 
     List<Route> ret = this.delegate.getRoutes().stream().map(Route::newInstance).collect(java.util.stream.Collectors.toList());
@@ -344,7 +303,6 @@ public class Router {
 
   /**
    * Remove all the routes from this router
-   *
    * @return a reference to this, so the API can be used fluently
    */
   public Router clear() { 
@@ -354,9 +312,8 @@ public class Router {
 
   /**
    * Mount a sub router on this router
-   *
-   * @param mountPoint  the mount point (path prefix) to mount it on
-   * @param subRouter  the router to mount as a sub router
+   * @param mountPoint the mount point (path prefix) to mount it on
+   * @param subRouter the router to mount as a sub router
    * @return a reference to this, so the API can be used fluently
    */
   public Router mountSubRouter(String mountPoint, Router subRouter) { 
@@ -367,8 +324,7 @@ public class Router {
   /**
    * Specify a handler for any unhandled exceptions on this router. The handler will be called for exceptions thrown
    * from handlers. This does not affect the normal failure routing logic.
-   *
-   * @param exceptionHandler  the exception handler
+   * @param exceptionHandler the exception handler
    * @return a reference to this, so the API can be used fluently
    */
   public Router exceptionHandler(Handler<Throwable> exceptionHandler) { 
@@ -378,8 +334,7 @@ public class Router {
 
   /**
    * Used to route a context to the router. Used for sub-routers. You wouldn't normally call this method directly.
-   *
-   * @param context  the routing context
+   * @param context the routing context
    */
   public void handleContext(RoutingContext context) { 
     this.delegate.handleContext((io.vertx.ext.apex.RoutingContext) context.getDelegate());
@@ -387,8 +342,7 @@ public class Router {
 
   /**
    * Used to route a failure to the router. Used for sub-routers. You wouldn't normally call this method directly.
-   *
-   * @param context  the routing context
+   * @param context the routing context
    */
   public void handleFailure(RoutingContext context) { 
     this.delegate.handleFailure((io.vertx.ext.apex.RoutingContext) context.getDelegate());

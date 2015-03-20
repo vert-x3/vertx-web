@@ -86,8 +86,4 @@ public class FileUpload {
     def ret = this.delegate.charSet();
     return ret;
   }
-
-  static final java.util.function.Function<io.vertx.ext.apex.FileUpload, FileUpload> FACTORY = io.vertx.lang.groovy.Factories.createFactory() {
-    io.vertx.ext.apex.FileUpload arg -> new FileUpload(arg);
-  };
 }

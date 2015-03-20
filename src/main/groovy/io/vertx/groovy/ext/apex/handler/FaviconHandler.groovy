@@ -41,7 +41,7 @@ public class FaviconHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static FaviconHandler create() {
-    def ret= FaviconHandler.FACTORY.apply(io.vertx.ext.apex.handler.FaviconHandler.create());
+    def ret= new io.vertx.groovy.ext.apex.handler.FaviconHandler(io.vertx.ext.apex.handler.FaviconHandler.create());
     return ret;
   }
   /**
@@ -50,7 +50,7 @@ public class FaviconHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static FaviconHandler create(String path) {
-    def ret= FaviconHandler.FACTORY.apply(io.vertx.ext.apex.handler.FaviconHandler.create(path));
+    def ret= new io.vertx.groovy.ext.apex.handler.FaviconHandler(io.vertx.ext.apex.handler.FaviconHandler.create(path));
     return ret;
   }
   /**
@@ -60,7 +60,7 @@ public class FaviconHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static FaviconHandler create(String path, long maxAgeSeconds) {
-    def ret= FaviconHandler.FACTORY.apply(io.vertx.ext.apex.handler.FaviconHandler.create(path, maxAgeSeconds));
+    def ret= new io.vertx.groovy.ext.apex.handler.FaviconHandler(io.vertx.ext.apex.handler.FaviconHandler.create(path, maxAgeSeconds));
     return ret;
   }
   /**
@@ -69,11 +69,7 @@ public class FaviconHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static FaviconHandler create(long maxAgeSeconds) {
-    def ret= FaviconHandler.FACTORY.apply(io.vertx.ext.apex.handler.FaviconHandler.create(maxAgeSeconds));
+    def ret= new io.vertx.groovy.ext.apex.handler.FaviconHandler(io.vertx.ext.apex.handler.FaviconHandler.create(maxAgeSeconds));
     return ret;
   }
-
-  static final java.util.function.Function<io.vertx.ext.apex.handler.FaviconHandler, FaviconHandler> FACTORY = io.vertx.lang.groovy.Factories.createFactory() {
-    io.vertx.ext.apex.handler.FaviconHandler arg -> new FaviconHandler(arg);
-  };
 }

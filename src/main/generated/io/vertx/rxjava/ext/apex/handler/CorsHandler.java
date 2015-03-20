@@ -27,9 +27,8 @@ import io.vertx.core.Handler;
 /**
  * A handler which implements server side http://www.w3.org/TR/cors/[CORS] support for Apex.
  *
- * @author <a href="http://tfox.org">Tim Fox</a>
- *
- * NOTE: This class has been automatically generated from the original non RX-ified interface using Vert.x codegen.
+ * <p/>
+ * NOTE: This class has been automatically generated from the {@link io.vertx.ext.apex.handler.CorsHandler original} non RX-ified interface using Vert.x codegen.
  */
 
 public class CorsHandler implements Handler<RoutingContext> {
@@ -50,9 +49,8 @@ public class CorsHandler implements Handler<RoutingContext> {
 
   /**
    * Create a CORS handler
-   *
-   * @param allowedOriginPattern  the allowed origin pattern
-   * @return  the handler
+   * @param allowedOriginPattern the allowed origin pattern
+   * @return the handler
    */
   public static CorsHandler create(String allowedOriginPattern) { 
     CorsHandler ret= CorsHandler.newInstance(io.vertx.ext.apex.handler.CorsHandler.create(allowedOriginPattern));
@@ -61,8 +59,7 @@ public class CorsHandler implements Handler<RoutingContext> {
 
   /**
    * Add an allowed method
-   *
-   * @param method  the method to add
+   * @param method the method to add
    * @return a reference to this, so the API can be used fluently
    */
   public CorsHandler allowedMethod(HttpMethod method) { 
@@ -72,8 +69,7 @@ public class CorsHandler implements Handler<RoutingContext> {
 
   /**
    * Add an allowed header
-   *
-   * @param headerName  the allowed header name
+   * @param headerName the allowed header name
    * @return a reference to this, so the API can be used fluently
    */
   public CorsHandler allowedHeader(String headerName) { 
@@ -83,8 +79,7 @@ public class CorsHandler implements Handler<RoutingContext> {
 
   /**
    * Add a set of allowed headers
-   *
-   * @param headerNames  the allowed header names
+   * @param headerNames the allowed header names
    * @return a reference to this, so the API can be used fluently
    */
   public CorsHandler allowedHeaders(Set<String> headerNames) { 
@@ -94,8 +89,7 @@ public class CorsHandler implements Handler<RoutingContext> {
 
   /**
    * Add an exposed header
-   *
-   * @param headerName  the exposed header name
+   * @param headerName the exposed header name
    * @return a reference to this, so the API can be used fluently
    */
   public CorsHandler exposedHeader(String headerName) { 
@@ -105,8 +99,7 @@ public class CorsHandler implements Handler<RoutingContext> {
 
   /**
    * Add a set of exposed headers
-   *
-   * @param headerNames  the exposed header names
+   * @param headerNames the exposed header names
    * @return a reference to this, so the API can be used fluently
    */
   public CorsHandler exposedHeaders(Set<String> headerNames) { 
@@ -116,7 +109,6 @@ public class CorsHandler implements Handler<RoutingContext> {
 
   /**
    * Set whether credentials are allowed
-   *
    * @param allow true if allowed
    * @return a reference to this, so the API can be used fluently
    */
@@ -127,8 +119,7 @@ public class CorsHandler implements Handler<RoutingContext> {
 
   /**
    * Set how long the browser should cache the information
-   *
-   * @param maxAgeSeconds  max age in seconds
+   * @param maxAgeSeconds max age in seconds
    * @return a reference to this, so the API can be used fluently
    */
   public CorsHandler maxAgeSeconds(int maxAgeSeconds) { 

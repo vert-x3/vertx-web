@@ -40,11 +40,7 @@ public class ResponseTimeHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static ResponseTimeHandler create() {
-    def ret= ResponseTimeHandler.FACTORY.apply(io.vertx.ext.apex.handler.ResponseTimeHandler.create());
+    def ret= new io.vertx.groovy.ext.apex.handler.ResponseTimeHandler(io.vertx.ext.apex.handler.ResponseTimeHandler.create());
     return ret;
   }
-
-  static final java.util.function.Function<io.vertx.ext.apex.handler.ResponseTimeHandler, ResponseTimeHandler> FACTORY = io.vertx.lang.groovy.Factories.createFactory() {
-    io.vertx.ext.apex.handler.ResponseTimeHandler arg -> new ResponseTimeHandler(arg);
-  };
 }

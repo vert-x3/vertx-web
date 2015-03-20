@@ -27,7 +27,8 @@ import rx.Observable;
  * <p>
  * (Derived from io.netty.handler.codec.http.Cookie)
  *
- * NOTE: This class has been automatically generated from the original non RX-ified interface using Vert.x codegen.
+ * <p/>
+ * NOTE: This class has been automatically generated from the {@link io.vertx.ext.apex.Cookie original} non RX-ified interface using Vert.x codegen.
  */
 
 public class Cookie {
@@ -44,8 +45,8 @@ public class Cookie {
 
   /**
    * Create a new cookie
-   * @param name  the name of the cookie
-   * @param value  the cookie value
+   * @param name the name of the cookie
+   * @param value the cookie value
    * @return the cookie
    */
   public static Cookie cookie(String name, String value) { 
@@ -55,6 +56,7 @@ public class Cookie {
 
   /**
    * @return the name of this cookie
+   * @return 
    */
   public String getName() { 
     String ret = this.delegate.getName();
@@ -63,6 +65,7 @@ public class Cookie {
 
   /**
    * @return the value of this cookie
+   * @return 
    */
   public String getValue() { 
     String ret = this.delegate.getValue();
@@ -71,7 +74,6 @@ public class Cookie {
 
   /**
    * Sets the value of this cookie
-   *
    * @param value The value to set
    * @return a reference to this, so the API can be used fluently
    */
@@ -82,7 +84,6 @@ public class Cookie {
 
   /**
    * Sets the domain of this cookie
-   *
    * @param domain The domain to use
    * @return a reference to this, so the API can be used fluently
    */
@@ -93,6 +94,7 @@ public class Cookie {
 
   /**
    * @return  the domain for the cookie
+   * @return 
    */
   public String getDomain() { 
     String ret = this.delegate.getDomain();
@@ -101,7 +103,6 @@ public class Cookie {
 
   /**
    * Sets the path of this cookie.
-   *
    * @param path The path to use for this cookie
    * @return a reference to this, so the API can be used fluently
    */
@@ -111,7 +112,6 @@ public class Cookie {
   }
 
   /**
-   *
    * @return the path for this cookie
    */
   public String getPath() { 
@@ -121,13 +121,13 @@ public class Cookie {
 
   /**
    * Sets the maximum age of this cookie in seconds.
-   * If an age of {@code 0} is specified, this cookie will be
+   * If an age of <code>0</code> is specified, this cookie will be
    * automatically removed by browser because it will expire immediately.
-   * If {@link Long#MIN_VALUE} is specified, this cookie will be removed when the
+   * If  is specified, this cookie will be removed when the
    * browser is closed.
    * If you don't set this the cookie will be a session cookie and be removed when the browser is closed.
-   *
    * @param maxAge The maximum age of this cookie in seconds
+   * @return 
    */
   public Cookie setMaxAge(long maxAge) { 
     Cookie ret= Cookie.newInstance(this.delegate.setMaxAge(maxAge));
@@ -136,7 +136,6 @@ public class Cookie {
 
   /**
    * Sets the security getStatus of this cookie
-   *
    * @param secure True if this cookie is to be secure, otherwise false
    * @return a reference to this, so the API can be used fluently
    */
@@ -151,8 +150,8 @@ public class Cookie {
    * side script. However, this works only if the browser supports it.
    * For for information, please look
    * <a href="http://www.owasp.org/index.php/HTTPOnly">here</a>.
-   *
    * @param httpOnly True if the cookie is HTTP only, otherwise false.
+   * @return 
    */
   public Cookie setHttpOnly(boolean httpOnly) { 
     Cookie ret= Cookie.newInstance(this.delegate.setHttpOnly(httpOnly));
@@ -161,7 +160,6 @@ public class Cookie {
 
   /**
    * Set the version of the cookie
-   *
    * @param version 0 or 1
    * @return a reference to this, so the API can be used fluently
    */
@@ -172,8 +170,7 @@ public class Cookie {
 
   /**
    * Encode the cookie to a string. This is what is used in the Set-Cookie header
-   *
-   * @return  the encoded cookie
+   * @return the encoded cookie
    */
   public String encode() { 
     String ret = this.delegate.encode();
@@ -182,8 +179,7 @@ public class Cookie {
 
   /**
    * Has the cookie been changed? Changed cookies will be saved out in the response and sent to the browser.
-   *
-   * @return true  if changed
+   * @return true if changed
    */
   public boolean isChanged() { 
     boolean ret = this.delegate.isChanged();
@@ -193,8 +189,7 @@ public class Cookie {
   /**
    * Set the cookie as being changed. Changed will be true for a cookie just created, false by default if just
    * read from the request
-   *
-   * @param changed  true if changed
+   * @param changed true if changed
    */
   public void setChanged(boolean changed) { 
     this.delegate.setChanged(changed);

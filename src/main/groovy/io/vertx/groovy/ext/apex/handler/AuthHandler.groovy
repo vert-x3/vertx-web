@@ -35,10 +35,6 @@ public interface AuthHandler extends Handler<RoutingContext> {
   AuthHandler addPermission(String permission);
   AuthHandler addRoles(Set<String> roles);
   AuthHandler addPermissions(Set<String> permissions);
-
-  static final java.util.function.Function<io.vertx.ext.apex.handler.AuthHandler, AuthHandler> FACTORY = io.vertx.lang.groovy.Factories.createFactory() {
-    io.vertx.ext.apex.handler.AuthHandler arg -> new AuthHandlerImpl(arg);
-  };
 }
 
 @CompileStatic

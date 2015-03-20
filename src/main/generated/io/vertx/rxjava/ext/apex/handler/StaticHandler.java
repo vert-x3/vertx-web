@@ -25,9 +25,8 @@ import io.vertx.core.Handler;
 /**
  * A handler for serving static resources from the file system or classpath.
  *
- * @author <a href="http://tfox.org">Tim Fox</a>
- *
- * NOTE: This class has been automatically generated from the original non RX-ified interface using Vert.x codegen.
+ * <p/>
+ * NOTE: This class has been automatically generated from the {@link io.vertx.ext.apex.handler.StaticHandler original} non RX-ified interface using Vert.x codegen.
  */
 
 public class StaticHandler implements Handler<RoutingContext> {
@@ -48,7 +47,6 @@ public class StaticHandler implements Handler<RoutingContext> {
 
   /**
    * Create a handler using defaults
-   *
    * @return the handler
    */
   public static StaticHandler create() { 
@@ -58,8 +56,7 @@ public class StaticHandler implements Handler<RoutingContext> {
 
   /**
    * Create a handler, specifying web-root
-   *
-   * @param root  the web-root
+   * @param root the web-root
    * @return the handler
    */
   public static StaticHandler create(String root) { 
@@ -69,8 +66,7 @@ public class StaticHandler implements Handler<RoutingContext> {
 
   /**
    * Set the web root
-   *
-   * @param webRoot  the web root
+   * @param webRoot the web root
    * @return a reference to this, so the API can be used fluently
    */
   public StaticHandler setWebRoot(String webRoot) { 
@@ -80,8 +76,7 @@ public class StaticHandler implements Handler<RoutingContext> {
 
   /**
    * Set whether files are read-only and will never change
-   *
-   * @param readOnly  whether files are read-only
+   * @param readOnly whether files are read-only
    * @return a reference to this, so the API can be used fluently
    */
   public StaticHandler setFilesReadOnly(boolean readOnly) { 
@@ -91,8 +86,7 @@ public class StaticHandler implements Handler<RoutingContext> {
 
   /**
    * Set value for max age in caching headers
-   *
-   * @param maxAgeSeconds  maximum time for browser to cache, in seconds
+   * @param maxAgeSeconds maximum time for browser to cache, in seconds
    * @return a reference to this, so the API can be used fluently
    */
   public StaticHandler setMaxAgeSeconds(long maxAgeSeconds) { 
@@ -102,8 +96,7 @@ public class StaticHandler implements Handler<RoutingContext> {
 
   /**
    * Set whether cache header handling is enabled
-   *
-   * @param enabled  true if enabled
+   * @param enabled true if enabled
    * @return a reference to this, so the API can be used fluently
    */
   public StaticHandler setCachingEnabled(boolean enabled) { 
@@ -113,8 +106,7 @@ public class StaticHandler implements Handler<RoutingContext> {
 
   /**
    * Set whether directory listing is enabled
-   *
-   * @param directoryListing  true if enabled
+   * @param directoryListing true if enabled
    * @return a reference to this, so the API can be used fluently
    */
   public StaticHandler setDirectoryListing(boolean directoryListing) { 
@@ -124,8 +116,7 @@ public class StaticHandler implements Handler<RoutingContext> {
 
   /**
    * Set whether hidden files should be served
-   *
-   * @param includeHidden  true if hidden files should be served
+   * @param includeHidden true if hidden files should be served
    * @return a reference to this, so the API can be used fluently
    */
   public StaticHandler setIncludeHidden(boolean includeHidden) { 
@@ -135,8 +126,7 @@ public class StaticHandler implements Handler<RoutingContext> {
 
   /**
    * Set the server cache entry timeout when caching is enabled
-   *
-   * @param timeout  the timeout, in ms
+   * @param timeout the timeout, in ms
    * @return a reference to this, so the API can be used fluently
    */
   public StaticHandler setCacheEntryTimeout(long timeout) { 
@@ -146,8 +136,7 @@ public class StaticHandler implements Handler<RoutingContext> {
 
   /**
    * Set the index page
-   *
-   * @param indexPage  the index page
+   * @param indexPage the index page
    * @return a reference to this, so the API can be used fluently
    */
   public StaticHandler setIndexPage(String indexPage) { 
@@ -157,8 +146,7 @@ public class StaticHandler implements Handler<RoutingContext> {
 
   /**
    * Set the max cache size, when caching is enabled
-   *
-   * @param maxCacheSize  the max cache size
+   * @param maxCacheSize the max cache size
    * @return a reference to this, so the API can be used fluently
    */
   public StaticHandler setMaxCacheSize(int maxCacheSize) { 
@@ -168,8 +156,7 @@ public class StaticHandler implements Handler<RoutingContext> {
 
   /**
    * Set whether async filesystem access should always be used
-   *
-   * @param alwaysAsyncFS  true for always async FS access
+   * @param alwaysAsyncFS true for always async FS access
    * @return a reference to this, so the API can be used fluently
    */
   public StaticHandler setAlwaysAsyncFS(boolean alwaysAsyncFS) { 
@@ -179,8 +166,7 @@ public class StaticHandler implements Handler<RoutingContext> {
 
   /**
    * Set whether async/sync filesystem tuning should enabled
-   *
-   * @param enableFSTuning  true to enabled FS tuning
+   * @param enableFSTuning true to enabled FS tuning
    * @return a reference to this, so the API can be used fluently
    */
   public StaticHandler setEnableFSTuning(boolean enableFSTuning) { 
@@ -190,8 +176,7 @@ public class StaticHandler implements Handler<RoutingContext> {
 
   /**
    * Set the max serve time in ns, above which serves are considered slow
-   *
-   * @param maxAvgServeTimeNanoSeconds  max serve time, in ns
+   * @param maxAvgServeTimeNanoSeconds max serve time, in ns
    * @return a reference to this, so the API can be used fluently
    */
   public StaticHandler setMaxAvgServeTimeNs(long maxAvgServeTimeNanoSeconds) { 
@@ -201,8 +186,7 @@ public class StaticHandler implements Handler<RoutingContext> {
 
   /**
    * Set the directory template to be used when directory listing
-   *
-   * @param directoryTemplate  the directory template
+   * @param directoryTemplate the directory template
    * @return a reference to this, so the API can be used fluently
    */
   public StaticHandler setDirectoryTemplate(String directoryTemplate) { 

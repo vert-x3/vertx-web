@@ -77,7 +77,7 @@ public class BasicAuthHandler implements AuthHandler {
    * @return the auth handler
    */
   public static AuthHandler create(AuthService authService) {
-    def ret= AuthHandler.FACTORY.apply(io.vertx.ext.apex.handler.BasicAuthHandler.create((io.vertx.ext.auth.AuthService)authService.getDelegate()));
+    def ret= new io.vertx.groovy.ext.apex.handler.AuthHandlerImpl(io.vertx.ext.apex.handler.BasicAuthHandler.create((io.vertx.ext.auth.AuthService)authService.getDelegate()));
     return ret;
   }
   /**
@@ -87,11 +87,7 @@ public class BasicAuthHandler implements AuthHandler {
    * @return the auth handler
    */
   public static AuthHandler create(AuthService authService, String realm) {
-    def ret= AuthHandler.FACTORY.apply(io.vertx.ext.apex.handler.BasicAuthHandler.create((io.vertx.ext.auth.AuthService)authService.getDelegate(), realm));
+    def ret= new io.vertx.groovy.ext.apex.handler.AuthHandlerImpl(io.vertx.ext.apex.handler.BasicAuthHandler.create((io.vertx.ext.auth.AuthService)authService.getDelegate(), realm));
     return ret;
   }
-
-  static final java.util.function.Function<io.vertx.ext.apex.handler.BasicAuthHandler, BasicAuthHandler> FACTORY = io.vertx.lang.groovy.Factories.createFactory() {
-    io.vertx.ext.apex.handler.BasicAuthHandler arg -> new BasicAuthHandler(arg);
-  };
 }

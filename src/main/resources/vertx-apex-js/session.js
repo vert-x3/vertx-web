@@ -286,6 +286,20 @@ var Session = function(j_val) {
     } else utils.invalidArgs();
   };
 
+  /**
+   Get the auth service
+
+   @public
+
+   @return {AuthService} the auth service
+   */
+  this.getAuthService = function() {
+    var __args = arguments;
+    if (__args.length === 0) {
+      return new AuthService(j_session.getAuthService());
+    } else utils.invalidArgs();
+  };
+
   // A reference to the underlying Java delegate
   // NOTE! This is an internal API and must not be used in user code.
   // If you rely on this property your code is likely to break if we change it / remove it without warning.

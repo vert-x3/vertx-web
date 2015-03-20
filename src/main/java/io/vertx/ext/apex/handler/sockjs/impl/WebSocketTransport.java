@@ -34,6 +34,7 @@ package io.vertx.ext.apex.handler.sockjs.impl;
 
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
+import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.ServerWebSocket;
 import io.vertx.core.http.WebSocketFrame;
 import io.vertx.core.logging.Logger;
@@ -58,11 +59,18 @@ class WebSocketTransport extends BaseTransport {
     String wsRE = COMMON_PATH_ELEMENT_RE + "websocket";
 
     router.getWithRegex(wsRE).handler(rc -> {
-      ServerWebSocket ws = rc.request().upgrade();
-      if (log.isTraceEnabled()) log.trace("WS, handler");
-      final SockJSSession session = new SockJSSession(vertx, sessions, rc, options.getHeartbeatPeriod(), sockHandler);
-      session.setInfo(ws.localAddress(), ws.remoteAddress(), ws.uri(), ws.headers());
-      session.register(new WebSocketListener(ws, session));
+      HttpServerRequest req = rc.request();
+      String connectionHeader = req.headers().get(io.vertx.core.http.HttpHeaders.CONNECTION);
+      if (connectionHeader == null || !connectionHeader.toLowerCase().contains("upgrade")) {
+        rc.response().setStatusCode(400);
+        rc.response().end("Can \"Upgrade\" only to \"WebSocket\".");
+      } else {
+        ServerWebSocket ws = rc.request().upgrade();
+        if (log.isTraceEnabled()) log.trace("WS, handler");
+        SockJSSession session = new SockJSSession(vertx, sessions, rc, options.getHeartbeatPeriod(), sockHandler);
+        session.setInfo(ws.localAddress(), ws.remoteAddress(), ws.uri(), ws.headers());
+        session.register(new WebSocketListener(ws, session));
+      }
     });
 
     router.getWithRegex(wsRE).handler(rc -> {

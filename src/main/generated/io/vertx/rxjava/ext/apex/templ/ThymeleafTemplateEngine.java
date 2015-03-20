@@ -23,9 +23,8 @@ import rx.Observable;
 /**
  * A template engine that uses the Thymeleaf library.
  *
- * @author <a href="http://tfox.org">Tim Fox</a>
- *
- * NOTE: This class has been automatically generated from the original non RX-ified interface using Vert.x codegen.
+ * <p/>
+ * NOTE: This class has been automatically generated from the {@link io.vertx.ext.apex.templ.ThymeleafTemplateEngine original} non RX-ified interface using Vert.x codegen.
  */
 
 public class ThymeleafTemplateEngine extends TemplateEngine {
@@ -43,8 +42,7 @@ public class ThymeleafTemplateEngine extends TemplateEngine {
 
   /**
    * Create a template engine using defaults
-   *
-   * @return  the engine
+   * @return the engine
    */
   public static ThymeleafTemplateEngine create() { 
     ThymeleafTemplateEngine ret= ThymeleafTemplateEngine.newInstance(io.vertx.ext.apex.templ.ThymeleafTemplateEngine.create());
@@ -53,8 +51,7 @@ public class ThymeleafTemplateEngine extends TemplateEngine {
 
   /**
    * Set the mode for the engine
-   *
-   * @param mode  the mode
+   * @param mode the mode
    * @return a reference to this for fluency
    */
   public ThymeleafTemplateEngine setMode(String mode) { 

@@ -26,9 +26,8 @@ import io.vertx.core.Handler;
  * Handler that will timeout requests if the response has not been written after a certain time.
  * Timeout requests will be ended with an HTTP status code `408`.
  *
- * @author <a href="http://tfox.org">Tim Fox</a>
- *
- * NOTE: This class has been automatically generated from the original non RX-ified interface using Vert.x codegen.
+ * <p/>
+ * NOTE: This class has been automatically generated from the {@link io.vertx.ext.apex.handler.TimeoutHandler original} non RX-ified interface using Vert.x codegen.
  */
 
 public class TimeoutHandler implements Handler<RoutingContext> {
@@ -49,7 +48,6 @@ public class TimeoutHandler implements Handler<RoutingContext> {
 
   /**
    * Create a handler
-   *
    * @return the handler
    */
   public static TimeoutHandler create() { 
@@ -59,8 +57,7 @@ public class TimeoutHandler implements Handler<RoutingContext> {
 
   /**
    * Create a handler
-   *
-   * @param timeout  the timeout, in ms
+   * @param timeout the timeout, in ms
    * @return the handler
    */
   public static TimeoutHandler create(long timeout) { 

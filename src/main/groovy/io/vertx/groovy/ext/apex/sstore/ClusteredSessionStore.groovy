@@ -38,7 +38,7 @@ public class ClusteredSessionStore extends SessionStore {
    * @return the session store
    */
   public static ClusteredSessionStore create(Vertx vertx, String sessionMapName) {
-    def ret= ClusteredSessionStore.FACTORY.apply(io.vertx.ext.apex.sstore.ClusteredSessionStore.create((io.vertx.core.Vertx)vertx.getDelegate(), sessionMapName));
+    def ret= new io.vertx.groovy.ext.apex.sstore.ClusteredSessionStore(io.vertx.ext.apex.sstore.ClusteredSessionStore.create((io.vertx.core.Vertx)vertx.getDelegate(), sessionMapName));
     return ret;
   }
   /**
@@ -47,11 +47,7 @@ public class ClusteredSessionStore extends SessionStore {
    * @return the session store
    */
   public static ClusteredSessionStore create(Vertx vertx) {
-    def ret= ClusteredSessionStore.FACTORY.apply(io.vertx.ext.apex.sstore.ClusteredSessionStore.create((io.vertx.core.Vertx)vertx.getDelegate()));
+    def ret= new io.vertx.groovy.ext.apex.sstore.ClusteredSessionStore(io.vertx.ext.apex.sstore.ClusteredSessionStore.create((io.vertx.core.Vertx)vertx.getDelegate()));
     return ret;
   }
-
-  static final java.util.function.Function<io.vertx.ext.apex.sstore.ClusteredSessionStore, ClusteredSessionStore> FACTORY = io.vertx.lang.groovy.Factories.createFactory() {
-    io.vertx.ext.apex.sstore.ClusteredSessionStore arg -> new ClusteredSessionStore(arg);
-  };
 }

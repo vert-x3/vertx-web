@@ -39,7 +39,7 @@ public class ErrorHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static ErrorHandler create() {
-    def ret= ErrorHandler.FACTORY.apply(io.vertx.ext.apex.handler.ErrorHandler.create());
+    def ret= new io.vertx.groovy.ext.apex.handler.ErrorHandler(io.vertx.ext.apex.handler.ErrorHandler.create());
     return ret;
   }
   /**
@@ -49,7 +49,7 @@ public class ErrorHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static ErrorHandler create(String errorTemplateName, boolean displayExceptionDetails) {
-    def ret= ErrorHandler.FACTORY.apply(io.vertx.ext.apex.handler.ErrorHandler.create(errorTemplateName, displayExceptionDetails));
+    def ret= new io.vertx.groovy.ext.apex.handler.ErrorHandler(io.vertx.ext.apex.handler.ErrorHandler.create(errorTemplateName, displayExceptionDetails));
     return ret;
   }
   /**
@@ -58,7 +58,7 @@ public class ErrorHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static ErrorHandler create(boolean displayExceptionDetails) {
-    def ret= ErrorHandler.FACTORY.apply(io.vertx.ext.apex.handler.ErrorHandler.create(displayExceptionDetails));
+    def ret= new io.vertx.groovy.ext.apex.handler.ErrorHandler(io.vertx.ext.apex.handler.ErrorHandler.create(displayExceptionDetails));
     return ret;
   }
   /**
@@ -67,11 +67,7 @@ public class ErrorHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static ErrorHandler create(String errorTemplateName) {
-    def ret= ErrorHandler.FACTORY.apply(io.vertx.ext.apex.handler.ErrorHandler.create(errorTemplateName));
+    def ret= new io.vertx.groovy.ext.apex.handler.ErrorHandler(io.vertx.ext.apex.handler.ErrorHandler.create(errorTemplateName));
     return ret;
   }
-
-  static final java.util.function.Function<io.vertx.ext.apex.handler.ErrorHandler, ErrorHandler> FACTORY = io.vertx.lang.groovy.Factories.createFactory() {
-    io.vertx.ext.apex.handler.ErrorHandler arg -> new ErrorHandler(arg);
-  };
 }

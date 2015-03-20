@@ -1,0 +1,21 @@
+Requirement already up-to-date: unittest2 in ./venv/lib/python2.7/site-packages (from -r requirements.txt (line 1))
+Downloading/unpacking websocket-client==0.4.1 (from -r requirements.txt (line 2))
+  Downloading websocket-client-0.4.1.tar.gz
+  Running setup.py (path:/home/tim/projects/sockjs-protocol/venv/build/websocket-client/setup.py) egg_info for package websocket-client
+    
+Obtaining ws4py from git+git://github.com/majek/WebSocket-for-Python.git@master#egg=ws4py (from -r requirements.txt (line 4))
+  Cloning git://github.com/majek/WebSocket-for-Python.git (to master) to ./venv/src/ws4py
+  Running setup.py (path:/home/tim/projects/sockjs-protocol/venv/src/ws4py/setup.py) egg_info for package ws4py
+    
+  Installing extra requirements: 'egg'
+Installing collected packages: websocket-client, ws4py
+  Running setup.py install for websocket-client
+    
+  Running setup.py develop for ws4py
+    
+    Creating /home/tim/projects/sockjs-protocol/venv/lib/python2.7/site-packages/ws4py.egg-link (link to .)
+    Adding ws4py 0.1.3 to easy-install.pth file
+    
+    Installed /home/tim/projects/sockjs-protocol/venv/src/ws4py
+Successfully installed websocket-client ws4py
+Cleaning up...

@@ -31,21 +31,20 @@ import io.vertx.core.Handler;
  * Represents the context for the handling of a request in Apex.
  * <p>
  * A new instance is created for each HTTP request that is received in the
- * {@link io.vertx.ext.apex.Router#accept(io.vertx.core.http.HttpServerRequest)} of the router.
+ * {@link  io.vertx.rxjava.ext.apex.Router#accept(io.vertx.rxjava.core.http.HttpServerRequest)} of the router.
  * <p>
  * The same instance is passed to any matching request or failure handlers during the routing of the request or
  * failure.
  * <p>
- * The context provides access to the {@link io.vertx.core.http.HttpServerRequest} and {@link io.vertx.core.http.HttpServerResponse}
+ * The context provides access to the {@link  io.vertx.rxjava.core.http.HttpServerRequest} and {@link  io.vertx.rxjava.core.http.HttpServerResponse}
  * and allows you to maintain arbitrary data that lives for the lifetime of the context. Contexts are discarded once they
  * have been routed to the handler for the request.
  * <p>
- * The context also provides access to the {@link Session}, cookies and body for the request, given the correct handlers
+ * The context also provides access to the {@link  Session}, cookies and body for the request, given the correct handlers
  * in the application.
  *
- * @author <a href="http://tfox.org">Tim Fox</a>
- *
- * NOTE: This class has been automatically generated from the original non RX-ified interface using Vert.x codegen.
+ * <p/>
+ * NOTE: This class has been automatically generated from the {@link io.vertx.ext.apex.RoutingContext original} non RX-ified interface using Vert.x codegen.
  */
 
 public class RoutingContext {
@@ -62,6 +61,7 @@ public class RoutingContext {
 
   /**
    * @return the HTTP request object
+   * @return 
    */
   public HttpServerRequest request() { 
     if (cached_0 != null) {
@@ -74,6 +74,7 @@ public class RoutingContext {
 
   /**
    * @return the HTTP response object
+   * @return 
    */
   public HttpServerResponse response() { 
     if (cached_1 != null) {
@@ -101,8 +102,7 @@ public class RoutingContext {
    * <p>
    * This will cause the router to route the context to any matching failure handlers for the request. If no failure handlers
    * match a default failure response will be sent.
-   *
-   * @param statusCode  the HTTP status code
+   * @param statusCode the HTTP status code
    */
   public void fail(int statusCode) { 
     this.delegate.fail(statusCode);
@@ -110,9 +110,8 @@ public class RoutingContext {
 
   /**
    * Put some arbitrary data in the context. This will be available in any handlers that receive the context.
-   *
-   * @param key  the key for the data
-   * @param obj  the data
+   * @param key the key for the data
+   * @param obj the data
    * @return a reference to this, so the API can be used fluently
    */
   public RoutingContext put(String key, Object obj) { 
@@ -122,11 +121,8 @@ public class RoutingContext {
 
   /**
    * Get some data from the context. The data is available in any handlers that receive the context.
-   *
-   * @param key  the key for the data
-   * @param <T>  the type of the data
-   * @return  the data
-   * @throws java.lang.ClassCastException if the data is not of the expected type
+   * @param key the key for the data
+   * @return the data
    */
   public <T> T get(String key) { 
     T ret = (T) this.delegate.get(key);
@@ -134,7 +130,8 @@ public class RoutingContext {
   }
 
   /**
-   * @return the Vert.x instance associated to the initiating {@link io.vertx.ext.apex.Router} for this context
+   * @return the Vert.x instance associated to the initiating {@link  io.vertx.rxjava.ext.apex.Router} for this context
+   * @return 
    */
   public Vertx vertx() { 
     Vertx ret= Vertx.newInstance(this.delegate.vertx());
@@ -144,6 +141,7 @@ public class RoutingContext {
   /**
    * @return the mount point for this router. It will be null for a top level router. For a sub-router it will be the path
    * at which the subrouter was mounted.
+   * @return 
    */
   public String mountPoint() { 
     String ret = this.delegate.mountPoint();
@@ -152,6 +150,7 @@ public class RoutingContext {
 
   /**
    * @return the current route this context is being routed through.
+   * @return 
    */
   public Route currentRoute() { 
     Route ret= Route.newInstance(this.delegate.currentRoute());
@@ -168,9 +167,8 @@ public class RoutingContext {
    * The normalised path will also not contain any `..` character sequences to prevent resources being accessed outside
    * of the permitted area.
    * <p>
-   * It's recommended to always use the normalised path as opposed to {@link io.vertx.core.http.HttpServerRequest#path()}
+   * It's recommended to always use the normalised path as opposed to {@link  io.vertx.rxjava.core.http.HttpServerRequest#path()}
    * if accessing server resources requested by a client.
-   *
    * @return the normalised path
    */
   public String normalisedPath() { 
@@ -179,10 +177,9 @@ public class RoutingContext {
   }
 
   /**
-   * Get the cookie with the specified name. The context must have first been routed to a {@link io.vertx.ext.apex.handler.CookieHandler}
+   * Get the cookie with the specified name. The context must have first been routed to a {@link  io.vertx.rxjava.ext.apex.handler.CookieHandler}
    * for this to work.
-   *
-   * @param name  the cookie name
+   * @param name the cookie name
    * @return the cookie
    */
   public Cookie getCookie(String name) { 
@@ -192,9 +189,8 @@ public class RoutingContext {
 
   /**
    * Add a cookie. This will be sent back to the client in the response. The context must have first been routed
-   * to a {@link io.vertx.ext.apex.handler.CookieHandler} for this to work.
-   *
-   * @param cookie  the cookie
+   * to a {@link  io.vertx.rxjava.ext.apex.handler.CookieHandler} for this to work.
+   * @param cookie the cookie
    * @return a reference to this, so the API can be used fluently
    */
   public RoutingContext addCookie(Cookie cookie) { 
@@ -203,10 +199,9 @@ public class RoutingContext {
   }
 
   /**
-   * Remove a cookie. The context must have first been routed to a {@link io.vertx.ext.apex.handler.CookieHandler}
+   * Remove a cookie. The context must have first been routed to a {@link  io.vertx.rxjava.ext.apex.handler.CookieHandler}
    * for this to work.
-   *
-   * @param name  the name of the cookie
+   * @param name the name of the cookie
    * @return the cookie, if it existed, or null
    */
   public Cookie removeCookie(String name) { 
@@ -215,8 +210,9 @@ public class RoutingContext {
   }
 
   /**
-   * @return the number of cookies. The context must have first been routed to a {@link io.vertx.ext.apex.handler.CookieHandler}
+   * @return the number of cookies. The context must have first been routed to a {@link  io.vertx.rxjava.ext.apex.handler.CookieHandler}
    * for this to work.
+   * @return 
    */
   public int cookieCount() { 
     int ret = this.delegate.cookieCount();
@@ -224,8 +220,9 @@ public class RoutingContext {
   }
 
   /**
-   * @return a set of all the cookies. The context must have first been routed to a {@link io.vertx.ext.apex.handler.CookieHandler}
+   * @return a set of all the cookies. The context must have first been routed to a {@link  io.vertx.rxjava.ext.apex.handler.CookieHandler}
    * for this to be populated.
+   * @return 
    */
   public Set<Cookie> cookies() { 
     Set<Cookie> ret = this.delegate.cookies().stream().map(Cookie::newInstance).collect(java.util.stream.Collectors.toSet());
@@ -234,7 +231,8 @@ public class RoutingContext {
 
   /**
    * @return  the entire HTTP request body as a string, assuming UTF-8 encoding. The context must have first been routed to a
-   * {@link io.vertx.ext.apex.handler.BodyHandler} for this to be populated.
+   * {@link  io.vertx.rxjava.ext.apex.handler.BodyHandler} for this to be populated.
+   * @return 
    */
   public String getBodyAsString() { 
     String ret = this.delegate.getBodyAsString();
@@ -243,9 +241,8 @@ public class RoutingContext {
 
   /**
    * Get the entire HTTP request body as a string, assuming the specified encoding. The context must have first been routed to a
-   * {@link io.vertx.ext.apex.handler.BodyHandler} for this to be populated.
-   *
-   * @param encoding  the encoding, e.g. "UTF-16"
+   * {@link  io.vertx.rxjava.ext.apex.handler.BodyHandler} for this to be populated.
+   * @param encoding the encoding, e.g. "UTF-16"
    * @return the body
    */
   public String getBodyAsString(String encoding) { 
@@ -254,8 +251,9 @@ public class RoutingContext {
   }
 
   /**
-   * @return Get the entire HTTP request body as a {@link io.vertx.core.json.JsonObject}. The context must have first been routed to a
-   * {@link io.vertx.ext.apex.handler.BodyHandler} for this to be populated.
+   * @return Get the entire HTTP request body as a {@link  io.vertx.rxjava.core.json.JsonObject}. The context must have first been routed to a
+   * {@link  io.vertx.rxjava.ext.apex.handler.BodyHandler} for this to be populated.
+   * @return 
    */
   public JsonObject getBodyAsJson() { 
     JsonObject ret = this.delegate.getBodyAsJson();
@@ -263,8 +261,9 @@ public class RoutingContext {
   }
 
   /**
-   * @return Get the entire HTTP request body as a {@link io.vertx.core.buffer.Buffer}. The context must have first been routed to a
-   * {@link io.vertx.ext.apex.handler.BodyHandler} for this to be populated.
+   * @return Get the entire HTTP request body as a {@link  io.vertx.rxjava.core.buffer.Buffer}. The context must have first been routed to a
+   * {@link  io.vertx.rxjava.ext.apex.handler.BodyHandler} for this to be populated.
+   * @return 
    */
   public Buffer getBody() { 
     Buffer ret= Buffer.newInstance(this.delegate.getBody());
@@ -273,7 +272,8 @@ public class RoutingContext {
 
   /**
    * @return a set of fileuploads (if any) for the request. The context must have first been routed to a
-   * {@link io.vertx.ext.apex.handler.BodyHandler} for this to work.
+   * {@link  io.vertx.rxjava.ext.apex.handler.BodyHandler} for this to work.
+   * @return 
    */
   public Set<FileUpload> fileUploads() { 
     Set<FileUpload> ret = this.delegate.fileUploads().stream().map(FileUpload::newInstance).collect(java.util.stream.Collectors.toSet());
@@ -281,10 +281,10 @@ public class RoutingContext {
   }
 
   /**
-   * Get the session. The context must have first been routed to a {@link io.vertx.ext.apex.handler.SessionHandler}
+   * Get the session. The context must have first been routed to a {@link  io.vertx.rxjava.ext.apex.handler.SessionHandler}
    * for this to be populated.
    * Sessions live for a browser session, and are maintained by session cookies.
-   * @return  the session.
+   * @return the session.
    */
   public Session session() { 
     Session ret= Session.newInstance(this.delegate.session());
@@ -293,10 +293,9 @@ public class RoutingContext {
 
   /**
    * If the context is being routed to failure handlers after a failure has been triggered by calling
-   * {@link #fail(int)}  then this will return that status code.  It can be used by failure handlers to render a response,
+   * {@link  #fail(int)}  then this will return that status code.  It can be used by failure handlers to render a response,
    * e.g. create a failure response page.
-   *
-   * @return  the status code used when signalling failure
+   * @return the status code used when signalling failure
    */
   public int statusCode() { 
     if (cached_2 != null) {
@@ -310,8 +309,7 @@ public class RoutingContext {
   /**
    * If the route specifies produces matches, e.g. produces `text/html` and `text/plain`, and the `accept` header
    * matches one or more of these then this returns the most acceptable match.
-   *
-   * @return  the most acceptable content type.
+   * @return the most acceptable content type.
    */
   public String getAcceptableContentType() { 
     String ret = this.delegate.getAcceptableContentType();
@@ -321,9 +319,8 @@ public class RoutingContext {
   /**
    * Add a handler that will be called just before headers are written to the response. This gives you a hook where
    * you can write any extra headers before the response has been written when it will be too late.
-   *
-   * @param handler  the handler
-   * @return  the id of the handler. This can be used if you later want to remove the handler.
+   * @param handler the handler
+   * @return the id of the handler. This can be used if you later want to remove the handler.
    */
   public int addHeadersEndHandler(Handler<Void> handler) { 
     int ret = this.delegate.addHeadersEndHandler(handler);
@@ -332,8 +329,7 @@ public class RoutingContext {
 
   /**
    * Remove a headers end handler
-   *
-   * @param handlerID  the id as returned from {@link io.vertx.ext.apex.RoutingContext#addHeadersEndHandler(io.vertx.core.Handler)}.
+   * @param handlerID the id as returned from {@link io.vertx.ext.apex.RoutingContext#addHeadersEndHandler(io.vertx.core.Handler)}.
    * @return true if the handler existed and was removed, false otherwise
    */
   public boolean removeHeadersEndHandler(int handlerID) { 
@@ -344,9 +340,8 @@ public class RoutingContext {
   /**
    * Add a handler that will be called just before the response body has been completely written.
    * This gives you a hook where you can write any extra data to the response before it has ended when it will be too late.
-   *
-   * @param handler  the handler
-   * @return  the id of the handler. This can be used if you later want to remove the handler.
+   * @param handler the handler
+   * @return the id of the handler. This can be used if you later want to remove the handler.
    */
   public int addBodyEndHandler(Handler<Void> handler) { 
     int ret = this.delegate.addBodyEndHandler(handler);
@@ -355,8 +350,7 @@ public class RoutingContext {
 
   /**
    * Remove a body end handler
-   *
-   * @param handlerID  the id as returned from {@link io.vertx.ext.apex.RoutingContext#addBodyEndHandler(io.vertx.core.Handler)}.
+   * @param handlerID the id as returned from {@link io.vertx.ext.apex.RoutingContext#addBodyEndHandler(io.vertx.core.Handler)}.
    * @return true if the handler existed and was removed, false otherwise
    */
   public boolean removeBodyEndHandler(int handlerID) { 
@@ -366,6 +360,7 @@ public class RoutingContext {
 
   /**
    * @return true if the context is being routed to failure handlers.
+   * @return 
    */
   public boolean failed() { 
     boolean ret = this.delegate.failed();
@@ -373,18 +368,16 @@ public class RoutingContext {
   }
 
   /**
-   * Set the body. Used by the {@link io.vertx.ext.apex.handler.BodyHandler}. You will not normally call this method.
-   *
-   * @param body  the body
+   * Set the body. Used by the {@link  io.vertx.rxjava.ext.apex.handler.BodyHandler}. You will not normally call this method.
+   * @param body the body
    */
   public void setBody(Buffer body) { 
     this.delegate.setBody((io.vertx.core.buffer.Buffer) body.getDelegate());
   }
 
   /**
-   * Set the session. Used by the {@link io.vertx.ext.apex.handler.SessionHandler}. You will not normally call this method.
-   *
-   * @param session  the session
+   * Set the session. Used by the {@link  io.vertx.rxjava.ext.apex.handler.SessionHandler}. You will not normally call this method.
+   * @param session the session
    */
   public void setSession(Session session) { 
     this.delegate.setSession((io.vertx.ext.apex.Session) session.getDelegate());
@@ -392,7 +385,7 @@ public class RoutingContext {
 
   /**
    * Set the acceptable content type. Used by
-   * @param contentType  the content type
+   * @param contentType the content type
    */
   public void setAcceptableContentType(String contentType) { 
     this.delegate.setAcceptableContentType(contentType);

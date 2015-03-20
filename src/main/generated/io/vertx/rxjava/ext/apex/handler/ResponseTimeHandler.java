@@ -26,9 +26,8 @@ import io.vertx.core.Handler;
  * Handler which adds a header `x-response-time` in the response of matching requests containing the time taken
  * in ms to process the request.
  *
- * @author <a href="http://tfox.org">Tim Fox</a>
- *
- * NOTE: This class has been automatically generated from the original non RX-ified interface using Vert.x codegen.
+ * <p/>
+ * NOTE: This class has been automatically generated from the {@link io.vertx.ext.apex.handler.ResponseTimeHandler original} non RX-ified interface using Vert.x codegen.
  */
 
 public class ResponseTimeHandler implements Handler<RoutingContext> {
@@ -49,7 +48,6 @@ public class ResponseTimeHandler implements Handler<RoutingContext> {
 
   /**
    * Create a handler
-   *
    * @return the handler
    */
   public static ResponseTimeHandler create() { 

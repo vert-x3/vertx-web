@@ -32,12 +32,11 @@ import io.vertx.rxjava.ext.auth.AuthService;
  * <p>
  * Sessions can be used to maintain data for a browser session, e.g. a shopping basket.
  * <p>
- * The context must have first been routed to a {@link io.vertx.ext.apex.handler.SessionHandler}
+ * The context must have first been routed to a {@link  io.vertx.rxjava.ext.apex.handler.SessionHandler}
  * for sessions to be available.
  *
- * @author <a href="http://tfox.org">Tim Fox</a>
- *
- * NOTE: This class has been automatically generated from the original non RX-ified interface using Vert.x codegen.
+ * <p/>
+ * NOTE: This class has been automatically generated from the {@link io.vertx.ext.apex.Session original} non RX-ified interface using Vert.x codegen.
  */
 
 public class Session {
@@ -54,6 +53,7 @@ public class Session {
 
   /**
    * @return The unique ID of the session. This is generated using a random secure UUID.
+   * @return 
    */
   public String id() { 
     String ret = this.delegate.id();
@@ -62,9 +62,8 @@ public class Session {
 
   /**
    * Put some data in a session
-   *
-   * @param key  the key for the data
-   * @param obj  the data
+   * @param key the key for the data
+   * @param obj the data
    * @return a reference to this, so the API can be used fluently
    */
   public Session put(String key, Object obj) { 
@@ -74,9 +73,8 @@ public class Session {
 
   /**
    * Get some data from the session
-   *
-   * @param key  the key of the data
-   * @return  the data
+   * @param key the key of the data
+   * @return the data
    */
   public <T> T get(String key) { 
     T ret = (T) this.delegate.get(key);
@@ -85,9 +83,8 @@ public class Session {
 
   /**
    * Remove some data from the session
-   *
-   * @param key  the key of the data
-   * @return  the data that was there or null if none there
+   * @param key the key of the data
+   * @return the data that was there or null if none there
    */
   public <T> T remove(String key) { 
     T ret = (T) this.delegate.remove(key);
@@ -96,6 +93,7 @@ public class Session {
 
   /**
    * @return the time the session was last accessed
+   * @return 
    */
   public long lastAccessed() { 
     long ret = this.delegate.lastAccessed();
@@ -111,6 +109,7 @@ public class Session {
 
   /**
    * @return has the session been destroyed?
+   * @return 
    */
   public boolean isDestroyed() { 
     boolean ret = this.delegate.isDestroyed();
@@ -119,7 +118,8 @@ public class Session {
 
   /**
    * @return  the login ID of the logged in user (if any). Must be used in conjunction with a
-   * {@link io.vertx.ext.apex.handler.AuthHandler}.
+   * {@link  io.vertx.rxjava.ext.apex.handler.AuthHandler}.
+   * @return 
    */
   public String getLoginID() { 
     String ret = this.delegate.getLoginID();
@@ -128,6 +128,7 @@ public class Session {
 
   /**
    * @return  true if the user is logged in.
+   * @return 
    */
   public boolean isLoggedIn() { 
     boolean ret = this.delegate.isLoggedIn();
@@ -136,8 +137,7 @@ public class Session {
 
   /**
    * Does the logged in user have the specified role?  Information is cached for the lifetime of the session
-   *
-   * @param role  the role
+   * @param role the role
    * @param resultHandler will be called with a result true/false
    */
   public void hasRole(String role, Handler<AsyncResult<Boolean>> resultHandler) { 
@@ -146,9 +146,8 @@ public class Session {
 
   /**
    * Does the logged in user have the specified role?  Information is cached for the lifetime of the session
-   *
-   * @param role  the role
-   * @param resultHandler will be called with a result true/false
+   * @param role the role
+   * @return 
    */
   public Observable<Boolean> hasRoleObservable(String role) { 
     io.vertx.rx.java.ObservableFuture<Boolean> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
@@ -158,8 +157,7 @@ public class Session {
 
   /**
    * Does the logged in user have the specified permissions?  Information is cached for the lifetime of the session
-   *
-   * @param permission  the permission
+   * @param permission the permission
    * @param resultHandler will be called with a result true/false
    */
   public void hasPermission(String permission, Handler<AsyncResult<Boolean>> resultHandler) { 
@@ -168,9 +166,8 @@ public class Session {
 
   /**
    * Does the logged in user have the specified permissions?  Information is cached for the lifetime of the session
-   *
-   * @param permission  the permission
-   * @param resultHandler will be called with a result true/false
+   * @param permission the permission
+   * @return 
    */
   public Observable<Boolean> hasPermissionObservable(String permission) { 
     io.vertx.rx.java.ObservableFuture<Boolean> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
@@ -187,6 +184,7 @@ public class Session {
 
   /**
    * @return the amount of time in ms, after which the session will expire, if not accessed.
+   * @return 
    */
   public long timeout() { 
     long ret = this.delegate.timeout();
@@ -195,6 +193,7 @@ public class Session {
 
   /**
    * @return the store for the session
+   * @return 
    */
   public SessionStore sessionStore() { 
     SessionStore ret= SessionStore.newInstance(this.delegate.sessionStore());
@@ -203,8 +202,7 @@ public class Session {
 
   /**
    * Set the login ID for the session
-   *
-   * @param loginID  the login ID
+   * @param loginID the login ID
    */
   public void setLoginID(String loginID) { 
     this.delegate.setLoginID(loginID);
@@ -219,11 +217,19 @@ public class Session {
 
   /**
    * Set the auth service
-   *
-   * @param authService  the auth service
+   * @param authService the auth service
    */
   public void setAuthService(AuthService authService) { 
     this.delegate.setAuthService((io.vertx.ext.auth.AuthService) authService.getDelegate());
+  }
+
+  /**
+   * Get the auth service
+   * @return the auth service
+   */
+  public AuthService getAuthService() { 
+    AuthService ret= AuthService.newInstance(this.delegate.getAuthService());
+    return ret;
   }
 
 

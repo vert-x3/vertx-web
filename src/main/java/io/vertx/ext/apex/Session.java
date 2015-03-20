@@ -155,4 +155,11 @@ public interface Session {
    */
   void setAuthService(AuthService authService);
 
+  /**
+   * Get the auth service
+   *
+   * @return the auth service
+   */
+  AuthService getAuthService();
+
 }

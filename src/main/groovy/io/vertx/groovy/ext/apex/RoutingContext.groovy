@@ -57,7 +57,7 @@ public class RoutingContext {
     if (cached_0 != null) {
       return cached_0;
     }
-    def ret= HttpServerRequest.FACTORY.apply(this.delegate.request());
+    def ret= new io.vertx.groovy.core.http.HttpServerRequest(this.delegate.request());
     cached_0 = ret;
     return ret;
   }
@@ -69,7 +69,7 @@ public class RoutingContext {
     if (cached_1 != null) {
       return cached_1;
     }
-    def ret= HttpServerResponse.FACTORY.apply(this.delegate.response());
+    def ret= new io.vertx.groovy.core.http.HttpServerResponse(this.delegate.response());
     cached_1 = ret;
     return ret;
   }
@@ -119,7 +119,7 @@ public class RoutingContext {
    * @return 
    */
   public Vertx vertx() {
-    def ret= Vertx.FACTORY.apply(this.delegate.vertx());
+    def ret= new io.vertx.groovy.core.Vertx(this.delegate.vertx());
     return ret;
   }
   /**
@@ -136,7 +136,7 @@ public class RoutingContext {
    * @return 
    */
   public Route currentRoute() {
-    def ret= Route.FACTORY.apply(this.delegate.currentRoute());
+    def ret= new io.vertx.groovy.ext.apex.Route(this.delegate.currentRoute());
     return ret;
   }
   /**
@@ -164,7 +164,7 @@ public class RoutingContext {
    * @return the cookie
    */
   public Cookie getCookie(String name) {
-    def ret= Cookie.FACTORY.apply(this.delegate.getCookie(name));
+    def ret= new io.vertx.groovy.ext.apex.Cookie(this.delegate.getCookie(name));
     return ret;
   }
   /**
@@ -184,7 +184,7 @@ public class RoutingContext {
    * @return the cookie, if it existed, or null
    */
   public Cookie removeCookie(String name) {
-    def ret= Cookie.FACTORY.apply(this.delegate.removeCookie(name));
+    def ret= new io.vertx.groovy.ext.apex.Cookie(this.delegate.removeCookie(name));
     return ret;
   }
   /**
@@ -202,7 +202,7 @@ public class RoutingContext {
    * @return 
    */
   public Set<Cookie> cookies() {
-    def ret = this.delegate.cookies()?.collect({underpants -> Cookie.FACTORY.apply(underpants)}) as Set;
+    def ret = this.delegate.cookies()?.collect({underpants -> new io.vertx.groovy.ext.apex.Cookie(underpants)}) as Set;
     return ret;
   }
   /**
@@ -239,7 +239,7 @@ public class RoutingContext {
    * @return 
    */
   public Buffer getBody() {
-    def ret= Buffer.FACTORY.apply(this.delegate.getBody());
+    def ret= new io.vertx.groovy.core.buffer.Buffer(this.delegate.getBody());
     return ret;
   }
   /**
@@ -248,7 +248,7 @@ public class RoutingContext {
    * @return 
    */
   public Set<FileUpload> fileUploads() {
-    def ret = this.delegate.fileUploads()?.collect({underpants -> FileUpload.FACTORY.apply(underpants)}) as Set;
+    def ret = this.delegate.fileUploads()?.collect({underpants -> new io.vertx.groovy.ext.apex.FileUpload(underpants)}) as Set;
     return ret;
   }
   /**
@@ -258,7 +258,7 @@ public class RoutingContext {
    * @return the session.
    */
   public Session session() {
-    def ret= Session.FACTORY.apply(this.delegate.session());
+    def ret= new io.vertx.groovy.ext.apex.Session(this.delegate.session());
     return ret;
   }
   /**
@@ -354,8 +354,4 @@ public class RoutingContext {
   private HttpServerRequest cached_0;
   private HttpServerResponse cached_1;
   private int cached_2;
-
-  static final java.util.function.Function<io.vertx.ext.apex.RoutingContext, RoutingContext> FACTORY = io.vertx.lang.groovy.Factories.createFactory() {
-    io.vertx.ext.apex.RoutingContext arg -> new RoutingContext(arg);
-  };
 }

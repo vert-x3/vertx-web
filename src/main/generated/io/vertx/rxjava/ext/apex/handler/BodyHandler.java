@@ -23,13 +23,12 @@ import io.vertx.rxjava.ext.apex.RoutingContext;
 import io.vertx.core.Handler;
 
 /**
- * A handler which gathers the entire request body and sets it on the {@link io.vertx.ext.apex.RoutingContext}.
+ * A handler which gathers the entire request body and sets it on the {@link  io.vertx.rxjava.ext.apex.RoutingContext}.
  * <p>
  * It also handles HTTP file uploads and can be used to limit body sizes.
  *
- * @author <a href="http://tfox.org">Tim Fox</a>
- *
- * NOTE: This class has been automatically generated from the original non RX-ified interface using Vert.x codegen.
+ * <p/>
+ * NOTE: This class has been automatically generated from the {@link io.vertx.ext.apex.handler.BodyHandler original} non RX-ified interface using Vert.x codegen.
  */
 
 public class BodyHandler implements Handler<RoutingContext> {
@@ -50,7 +49,6 @@ public class BodyHandler implements Handler<RoutingContext> {
 
   /**
    * Create a body handler with defaults
-   *
    * @return the body handler
    */
   public static BodyHandler create() { 
@@ -60,8 +58,7 @@ public class BodyHandler implements Handler<RoutingContext> {
 
   /**
    * Set the maximum body size -1 means unlimited
-   *
-   * @param bodyLimit  the max size
+   * @param bodyLimit the max size
    * @return reference to this for fluency
    */
   public BodyHandler setBodyLimit(long bodyLimit) { 
@@ -71,8 +68,7 @@ public class BodyHandler implements Handler<RoutingContext> {
 
   /**
    * Set the uploads directory to use
-   *
-   * @param uploadsDirectory  the uploads directory
+   * @param uploadsDirectory the uploads directory
    * @return reference to this for fluency
    */
   public BodyHandler setUploadsDirectory(String uploadsDirectory) { 
@@ -82,8 +78,7 @@ public class BodyHandler implements Handler<RoutingContext> {
 
   /**
    * Set whether form attributes will be added to the request parameters
-   *
-   * @param mergeFormAttributes  true if they should be merged
+   * @param mergeFormAttributes true if they should be merged
    * @return reference to this for fluency
    */
   public BodyHandler setMergeFormAttributes(boolean mergeFormAttributes) { 

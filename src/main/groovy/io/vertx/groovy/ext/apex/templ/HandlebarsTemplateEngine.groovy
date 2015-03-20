@@ -35,7 +35,7 @@ public class HandlebarsTemplateEngine extends TemplateEngine {
    * @return the engine
    */
   public static HandlebarsTemplateEngine create() {
-    def ret= HandlebarsTemplateEngine.FACTORY.apply(io.vertx.ext.apex.templ.HandlebarsTemplateEngine.create());
+    def ret= new io.vertx.groovy.ext.apex.templ.HandlebarsTemplateEngine(io.vertx.ext.apex.templ.HandlebarsTemplateEngine.create());
     return ret;
   }
   /**
@@ -44,7 +44,7 @@ public class HandlebarsTemplateEngine extends TemplateEngine {
    * @return a reference to this for fluency
    */
   public HandlebarsTemplateEngine setExtension(String extension) {
-    def ret= HandlebarsTemplateEngine.FACTORY.apply(this.delegate.setExtension(extension));
+    def ret= new io.vertx.groovy.ext.apex.templ.HandlebarsTemplateEngine(this.delegate.setExtension(extension));
     return ret;
   }
   /**
@@ -53,11 +53,7 @@ public class HandlebarsTemplateEngine extends TemplateEngine {
    * @return a reference to this for fluency
    */
   public HandlebarsTemplateEngine setMaxCacheSize(int maxCacheSize) {
-    def ret= HandlebarsTemplateEngine.FACTORY.apply(this.delegate.setMaxCacheSize(maxCacheSize));
+    def ret= new io.vertx.groovy.ext.apex.templ.HandlebarsTemplateEngine(this.delegate.setMaxCacheSize(maxCacheSize));
     return ret;
   }
-
-  static final java.util.function.Function<io.vertx.ext.apex.templ.HandlebarsTemplateEngine, HandlebarsTemplateEngine> FACTORY = io.vertx.lang.groovy.Factories.createFactory() {
-    io.vertx.ext.apex.templ.HandlebarsTemplateEngine arg -> new HandlebarsTemplateEngine(arg);
-  };
 }

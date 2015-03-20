@@ -54,8 +54,4 @@ public class TemplateEngine {
       }
     });
   }
-
-  static final java.util.function.Function<io.vertx.ext.apex.templ.TemplateEngine, TemplateEngine> FACTORY = io.vertx.lang.groovy.Factories.createFactory() {
-    io.vertx.ext.apex.templ.TemplateEngine arg -> new TemplateEngine(arg);
-  };
 }

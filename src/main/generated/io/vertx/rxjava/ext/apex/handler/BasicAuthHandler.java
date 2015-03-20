@@ -26,9 +26,8 @@ import io.vertx.rxjava.ext.auth.AuthService;
 /**
  * An auth handler that provides HTTP Basic Authentication support.
  *
- * @author <a href="http://tfox.org">Tim Fox</a>
- *
- * NOTE: This class has been automatically generated from the original non RX-ified interface using Vert.x codegen.
+ * <p/>
+ * NOTE: This class has been automatically generated from the {@link io.vertx.ext.apex.handler.BasicAuthHandler original} non RX-ified interface using Vert.x codegen.
  */
 
 public class BasicAuthHandler implements AuthHandler {
@@ -49,8 +48,7 @@ public class BasicAuthHandler implements AuthHandler {
 
   /**
    * Add a required role for this auth handler
-   *
-   * @param role  the role
+   * @param role the role
    * @return a reference to this, so the API can be used fluently
    */
   public AuthHandler addRole(String role) { 
@@ -60,8 +58,7 @@ public class BasicAuthHandler implements AuthHandler {
 
   /**
    * Add a required permission for this auth handler
-   *
-   * @param permission  the permission
+   * @param permission the permission
    * @return a reference to this, so the API can be used fluently
    */
   public AuthHandler addPermission(String permission) { 
@@ -71,8 +68,7 @@ public class BasicAuthHandler implements AuthHandler {
 
   /**
    * Add a set of required roles for this auth handler
-   *
-   * @param roles  the set of roles
+   * @param roles the set of roles
    * @return a reference to this, so the API can be used fluently
    */
   public AuthHandler addRoles(Set<String> roles) { 
@@ -82,8 +78,7 @@ public class BasicAuthHandler implements AuthHandler {
 
   /**
    * Add a set of required permissions for this auth handler
-   *
-   * @param permissions  the set of permissions
+   * @param permissions the set of permissions
    * @return a reference to this, so the API can be used fluently
    */
   public AuthHandler addPermissions(Set<String> permissions) { 
@@ -93,8 +88,7 @@ public class BasicAuthHandler implements AuthHandler {
 
   /**
    * Create a basic auth handler
-   *
-   * @param authService  the auth service to use
+   * @param authService the auth service to use
    * @return the auth handler
    */
   public static AuthHandler create(AuthService authService) { 
@@ -104,9 +98,8 @@ public class BasicAuthHandler implements AuthHandler {
 
   /**
    * Create a basic auth handler, specifying realm
-   *
-   * @param authService  the auth service to use
-   * @param realm  the realm to use
+   * @param authService the auth service to use
+   * @param realm the realm to use
    * @return the auth handler
    */
   public static AuthHandler create(AuthService authService, String realm) { 

@@ -28,11 +28,10 @@ import io.vertx.core.Handler;
  * <p>
  * An auth handler allows your application to provide authentication/authorisation support.
  * <p>
- * Auth handler requires a {@link io.vertx.ext.apex.handler.SessionHandler} to be on the routing chain before it.
+ * Auth handler requires a {@link  io.vertx.rxjava.ext.apex.handler.SessionHandler} to be on the routing chain before it.
  *
- * @author <a href="http://tfox.org">Tim Fox</a>
- *
- * NOTE: This class has been automatically generated from the original non RX-ified interface using Vert.x codegen.
+ * <p/>
+ * NOTE: This class has been automatically generated from the {@link io.vertx.ext.apex.handler.AuthHandler original} non RX-ified interface using Vert.x codegen.
  */
 
 public interface AuthHandler extends Handler<RoutingContext> {
@@ -43,32 +42,28 @@ public interface AuthHandler extends Handler<RoutingContext> {
 
   /**
    * Add a required role for this auth handler
-   *
-   * @param role  the role
+   * @param role the role
    * @return a reference to this, so the API can be used fluently
    */
   public AuthHandler addRole(String role);
 
   /**
    * Add a required permission for this auth handler
-   *
-   * @param permission  the permission
+   * @param permission the permission
    * @return a reference to this, so the API can be used fluently
    */
   public AuthHandler addPermission(String permission);
 
   /**
    * Add a set of required roles for this auth handler
-   *
-   * @param roles  the set of roles
+   * @param roles the set of roles
    * @return a reference to this, so the API can be used fluently
    */
   public AuthHandler addRoles(Set<String> roles);
 
   /**
    * Add a set of required permissions for this auth handler
-   *
-   * @param permissions  the set of permissions
+   * @param permissions the set of permissions
    * @return a reference to this, so the API can be used fluently
    */
   public AuthHandler addPermissions(Set<String> permissions);
@@ -96,8 +91,7 @@ class AuthHandlerImpl implements AuthHandler {
 
   /**
    * Add a required role for this auth handler
-   *
-   * @param role  the role
+   * @param role the role
    * @return a reference to this, so the API can be used fluently
    */
   public AuthHandler addRole(String role) { 
@@ -107,8 +101,7 @@ class AuthHandlerImpl implements AuthHandler {
 
   /**
    * Add a required permission for this auth handler
-   *
-   * @param permission  the permission
+   * @param permission the permission
    * @return a reference to this, so the API can be used fluently
    */
   public AuthHandler addPermission(String permission) { 
@@ -118,8 +111,7 @@ class AuthHandlerImpl implements AuthHandler {
 
   /**
    * Add a set of required roles for this auth handler
-   *
-   * @param roles  the set of roles
+   * @param roles the set of roles
    * @return a reference to this, so the API can be used fluently
    */
   public AuthHandler addRoles(Set<String> roles) { 
@@ -129,8 +121,7 @@ class AuthHandlerImpl implements AuthHandler {
 
   /**
    * Add a set of required permissions for this auth handler
-   *
-   * @param permissions  the set of permissions
+   * @param permissions the set of permissions
    * @return a reference to this, so the API can be used fluently
    */
   public AuthHandler addPermissions(Set<String> permissions) { 

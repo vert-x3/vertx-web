@@ -26,10 +26,8 @@ import io.vertx.core.Handler;
 /**
  * A handler which logs request information to the Vert.x logger.
  *
- * @author <a href="http://tfox.org">Tim Fox</a>
- * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
- *
- * NOTE: This class has been automatically generated from the original non RX-ified interface using Vert.x codegen.
+ * <p/>
+ * NOTE: This class has been automatically generated from the {@link io.vertx.ext.apex.handler.LoggerHandler original} non RX-ified interface using Vert.x codegen.
  */
 
 public class LoggerHandler implements Handler<RoutingContext> {
@@ -50,7 +48,6 @@ public class LoggerHandler implements Handler<RoutingContext> {
 
   /**
    * Create a handler with default format
-   *
    * @return the handler
    */
   public static LoggerHandler create() { 
@@ -60,8 +57,7 @@ public class LoggerHandler implements Handler<RoutingContext> {
 
   /**
    * Create a handler with he specified format
-   *
-   * @param format  the format
+   * @param format the format
    * @return the handler
    */
   public static LoggerHandler create(Format format) { 
@@ -71,9 +67,8 @@ public class LoggerHandler implements Handler<RoutingContext> {
 
   /**
    * Create a handler with he specified format
-   *
-   * @param immediate  true if logging should occur as soon as request arrives
-   * @param format  the format
+   * @param immediate true if logging should occur as soon as request arrives
+   * @param format the format
    * @return the handler
    */
   public static LoggerHandler create(boolean immediate, Format format) { 

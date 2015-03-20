@@ -24,9 +24,8 @@ import rx.Observable;
  * Represents a file-upload from an HTTP multipart form submission.
  * <p>
  *
- * @author <a href="http://tfox.org">Tim Fox</a>
- *
- * NOTE: This class has been automatically generated from the original non RX-ified interface using Vert.x codegen.
+ * <p/>
+ * NOTE: This class has been automatically generated from the {@link io.vertx.ext.apex.FileUpload original} non RX-ified interface using Vert.x codegen.
  */
 
 public class FileUpload {
@@ -43,6 +42,7 @@ public class FileUpload {
 
   /**
    * @return the name of the upload as provided in the form submission
+   * @return 
    */
   public String name() { 
     String ret = this.delegate.name();
@@ -51,6 +51,7 @@ public class FileUpload {
 
   /**
    * @return the actual temporary file name on the server where the file was uploaded to.
+   * @return 
    */
   public String uploadedFileName() { 
     String ret = this.delegate.uploadedFileName();
@@ -59,6 +60,7 @@ public class FileUpload {
 
   /**
    * @return the file name of the upload as provided in the form submission
+   * @return 
    */
   public String fileName() { 
     String ret = this.delegate.fileName();
@@ -67,6 +69,7 @@ public class FileUpload {
 
   /**
    * @return the size of the upload, in bytes
+   * @return 
    */
   public long size() { 
     long ret = this.delegate.size();
@@ -75,6 +78,7 @@ public class FileUpload {
 
   /**
    * @return the content type (MIME type) of the upload
+   * @return 
    */
   public String contentType() { 
     String ret = this.delegate.contentType();
@@ -83,6 +87,7 @@ public class FileUpload {
 
   /**
    * @return the content transfer encoding of the upload - this describes how the upload was encoded in the form submission.
+   * @return 
    */
   public String contentTransferEncoding() { 
     String ret = this.delegate.contentTransferEncoding();
@@ -91,6 +96,7 @@ public class FileUpload {
 
   /**
    * @return the charset of the upload
+   * @return 
    */
   public String charSet() { 
     String ret = this.delegate.charSet();

@@ -36,6 +36,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.VoidHandler;
+import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.impl.StringEscapeUtils;
 import io.vertx.core.json.JsonArray;
@@ -153,16 +154,16 @@ class BaseTransport {
   }
 
   static void setCORS(RoutingContext rc) {
-    String origin = rc.request().getHeader("origin");
+    HttpServerRequest req = rc.request();
+    String origin = req.headers().get("origin");
     if (origin == null || "null".equals(origin)) {
       origin = "*";
-    } else {
-      rc.response().putHeader("Access-Control-Allow-Credentials", "true");
     }
-    rc.response().putHeader("Access-Control-Allow-Origin", origin);
-    String hdr = rc.request().getHeader("Access-Control-Request-Headers");
+    req.response().headers().set("Access-Control-Allow-Origin", origin);
+    req.response().headers().set("Access-Control-Allow-Credentials", "true");
+    String hdr = req.headers().get("Access-Control-Request-Headers");
     if (hdr != null) {
-      rc.response().putHeader("Access-Control-Allow-Headers", hdr);
+      req.response().headers().set("Access-Control-Allow-Headers", hdr);
     }
   }
 

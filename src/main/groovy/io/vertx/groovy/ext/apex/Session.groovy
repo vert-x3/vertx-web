@@ -153,7 +153,7 @@ public class Session {
    * @return 
    */
   public SessionStore sessionStore() {
-    def ret= SessionStore.FACTORY.apply(this.delegate.sessionStore());
+    def ret= new io.vertx.groovy.ext.apex.sstore.SessionStore(this.delegate.sessionStore());
     return ret;
   }
   /**
@@ -176,8 +176,12 @@ public class Session {
   public void setAuthService(AuthService authService) {
     this.delegate.setAuthService((io.vertx.ext.auth.AuthService)authService.getDelegate());
   }
-
-  static final java.util.function.Function<io.vertx.ext.apex.Session, Session> FACTORY = io.vertx.lang.groovy.Factories.createFactory() {
-    io.vertx.ext.apex.Session arg -> new Session(arg);
-  };
+  /**
+   * Get the auth service
+   * @return the auth service
+   */
+  public AuthService getAuthService() {
+    def ret= new io.vertx.groovy.ext.auth.AuthService(this.delegate.getAuthService());
+    return ret;
+  }
 }

@@ -48,18 +48,24 @@
 
 package io.vertx.ext.apex.handler;
 
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.impl.LoggerFactory;
 import io.vertx.ext.apex.ApexTestBase;
 import io.vertx.ext.apex.handler.sockjs.SockJSHandler;
 import org.junit.Test;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.InputStreamReader;
+
 /**
- * Port of https://github.com/sockjs/sockjs-protocol/blob/master/sockjs-protocol-0.3.3.py to Java
- *
- * TODO incomplete!
+ * SockJS protocol tests
  *
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 public class SockJSHandlerTest extends ApexTestBase {
+
+  private static final Logger log = LoggerFactory.getLogger(SockJSHandlerTest.class);
 
   @Override
   public void setUp() throws Exception {
@@ -108,7 +114,28 @@ public class SockJSHandlerTest extends ApexTestBase {
     });
   }
 
-  // TODO complete this
+  /*
+  We run the actual Python SockJS protocol tests - these are taken from the 0.3.3 branch of the sockjs-protocol repository:
+  https://github.com/sockjs/sockjs-protocol/tree/v0.3.3
+   */
+  @Test
+  public void testProtocol() throws Exception {
+    String[] envp = new String[] {"SOCKJS_URL=http://localhost:8080"};
+    File dir = new File("src/test/sockjs-protocol");
+    Process p = Runtime.getRuntime().exec("./venv/bin/python sockjs-protocol-0.3.3.py", envp, dir);
 
+    try (BufferedReader input = new BufferedReader(new InputStreamReader(p.getErrorStream()))) {
+      String line;
+      while ((line = input.readLine()) != null) {
+        log.info(line);
+      }
+    }
+
+    int res = p.waitFor();
+
+    // Make sure all tests pass
+    assertEquals("Protocol tests failed", 0, res);
+
+  }
 
 }

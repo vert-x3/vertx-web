@@ -40,11 +40,7 @@ public class CookieHandler implements Handler<RoutingContext> {
    * @return the cookie handler
    */
   public static CookieHandler create() {
-    def ret= CookieHandler.FACTORY.apply(io.vertx.ext.apex.handler.CookieHandler.create());
+    def ret= new io.vertx.groovy.ext.apex.handler.CookieHandler(io.vertx.ext.apex.handler.CookieHandler.create());
     return ret;
   }
-
-  static final java.util.function.Function<io.vertx.ext.apex.handler.CookieHandler, CookieHandler> FACTORY = io.vertx.lang.groovy.Factories.createFactory() {
-    io.vertx.ext.apex.handler.CookieHandler arg -> new CookieHandler(arg);
-  };
 }
