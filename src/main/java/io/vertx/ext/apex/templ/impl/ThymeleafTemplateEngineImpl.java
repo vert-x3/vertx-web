@@ -87,6 +87,11 @@ public class ThymeleafTemplateEngineImpl implements ThymeleafTemplateEngine {
     }
   }
 
+  @Override
+  public TemplateEngine getThymeleafTemplateEngine() {
+    return engine;
+  }
+
   /*
    We extend VariablesMap to avoid copying all context map data for each render
    We put the context data Map directly into the variable map and we also provide

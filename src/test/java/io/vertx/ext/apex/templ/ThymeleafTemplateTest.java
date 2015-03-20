@@ -72,4 +72,10 @@ public class ThymeleafTemplateTest extends ApexTestBase {
     testRequest(HttpMethod.GET, "/foo.html", 500, "Internal Server Error");
   }
 
+  @Test
+  public void testGetThymeLeafTemplateEngine() throws Exception {
+    ThymeleafTemplateEngine engine = ThymeleafTemplateEngine.create();
+    assertNotNull(engine.getThymeleafTemplateEngine());
+  }
+
 }
