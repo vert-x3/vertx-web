@@ -483,7 +483,7 @@
  * {@link examples.Examples#example24}
  * ----
  *
- * This means the REST API is not accessible via paths like: `/productsAPI/products/product1234`
+ * This means the REST API is now accessible via paths like: `/productsAPI/products/product1234`
  *
  * == Default 404 Handling
  *

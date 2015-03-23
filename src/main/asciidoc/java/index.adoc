@@ -774,7 +774,7 @@ We can now mount the sub router on the main router, against a mount point, in th
 mainRouter.mountSubRouter("/productsAPI", restAPI);
 ----
 
-This means the REST API is not accessible via paths like: `/productsAPI/products/product1234`
+This means the REST API is now accessible via paths like: `/productsAPI/products/product1234`
 
 == Default 404 Handling
 
