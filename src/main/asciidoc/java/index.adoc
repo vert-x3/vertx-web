@@ -1845,13 +1845,9 @@ Router router = Router.router(vertx);
 
 SockJSHandler sockJSHandler = SockJSHandler.create(vertx);
 
-BridgeOptions options = new BridgeOptions();
-
-// First let's define what we're going to allow from client -> server
 
 // Let through any messages sent to 'demo.orderMgr' from the client
 PermittedOptions inboundPermitted1 = new PermittedOptions().setAddress("demo.orderMgr");
-options.addInboundPermitted(inboundPermitted1);
 
 // Allow calls to the address 'demo.persistor' from the client as long as the messages
 // have an action field with value 'find' and a collection field with value
@@ -1859,21 +1855,25 @@ options.addInboundPermitted(inboundPermitted1);
 PermittedOptions inboundPermitted2 = new PermittedOptions().setAddress("demo.persistor")
     .setMatch(new JsonObject().put("action", "find")
         .put("collection", "albums"));
-options.addInboundPermitted(inboundPermitted2);
 
 // Allow through any message with a field `wibble` with value `foo`.
 PermittedOptions inboundPermitted3 = new PermittedOptions().setMatch(new JsonObject().put("wibble", "foo"));
-options.addInboundPermitted(inboundPermitted3);
 
 // First let's define what we're going to allow from server -> client
 
 // Let through any messages coming from address 'ticker.mystock'
 PermittedOptions outboundPermitted1 = new PermittedOptions().setAddress("ticker.mystock");
-options.addOutboundPermitted(outboundPermitted1);
 
 // Let through any messages from addresses starting with "news." (e.g. news.europe, news.usa, etc)
 PermittedOptions outboundPermitted2 = new PermittedOptions().setAddressRegex("news\\..+");
-options.addOutboundPermitted(outboundPermitted2);
+
+// Let's define what we're going to allow from client -> server
+BridgeOptions options = new BridgeOptions().
+    addInboundPermitted(inboundPermitted1).
+    addInboundPermitted(inboundPermitted1).
+    addInboundPermitted(inboundPermitted3).
+    addOutboundPermitted(outboundPermitted1).
+    addOutboundPermitted(outboundPermitted2);
 
 sockJSHandler.bridge(options);
 
@@ -1903,7 +1903,7 @@ PermittedOptions inboundPermitted = new PermittedOptions().setAddress("demo.admi
 // But only if the user is logged in and has the role "admin"
 inboundPermitted.setRequiredRole("admin");
 
-options.addInboundPermitted(inboundPermitted);
+BridgeOptions options = new BridgeOptions().addInboundPermitted(inboundPermitted);
 ----
 
 For the user to be authorised they must be first logged in and secondly have the required role.
@@ -1914,17 +1914,15 @@ To handle the login and actually auth you can configure the normal Vert.x auth h
 ----
 Router router = Router.router(vertx);
 
-SockJSHandler sockJSHandler = SockJSHandler.create(vertx);
-
-BridgeOptions options = new BridgeOptions();
-
 // Let through any messages sent to 'demo.orderMgr' from the client
 PermittedOptions inboundPermitted = new PermittedOptions().setAddress("demo.adminService");
 
 // But only if the user is logged in and has the role "admin"
 inboundPermitted.setRequiredRole("admin");
 
-options.addInboundPermitted(inboundPermitted);
+SockJSHandler sockJSHandler = SockJSHandler.create(vertx);
+sockJSHandler.bridge(new BridgeOptions().
+    addInboundPermitted(inboundPermitted));
 
 // Now set up some basic auth handling:
 

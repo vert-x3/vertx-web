@@ -14,65 +14,77 @@
  * under the License.
  */
 
-package io.vertx.groovy.ext.apex;
-import groovy.transform.CompileStatic
-import io.vertx.lang.groovy.InternalHelper
-import io.vertx.groovy.core.http.HttpServerRequest
-import io.vertx.groovy.core.Vertx
-import java.util.Set
-import io.vertx.groovy.core.buffer.Buffer
-import io.vertx.groovy.core.http.HttpServerResponse
-import io.vertx.core.json.JsonObject
-import io.vertx.core.Handler
+package io.vertx.rxjava.ext.apex;
+
+import java.util.Map;
+import io.vertx.lang.rxjava.InternalHelper;
+import rx.Observable;
+import io.vertx.rxjava.core.http.HttpServerRequest;
+import io.vertx.rxjava.core.Vertx;
+import java.util.Set;
+import io.vertx.rxjava.core.buffer.Buffer;
+import io.vertx.rxjava.core.http.HttpServerResponse;
+import io.vertx.core.json.JsonObject;
+import io.vertx.core.Handler;
+
 /**
  * Represents the context for the handling of a request in Apex.
  * <p>
  * A new instance is created for each HTTP request that is received in the
- * {@link io.vertx.groovy.ext.apex.Router#accept} of the router.
+ * {@link  io.vertx.rxjava.ext.apex.Router#accept(io.vertx.rxjava.core.http.HttpServerRequest)} of the router.
  * <p>
  * The same instance is passed to any matching request or failure handlers during the routing of the request or
  * failure.
  * <p>
- * The context provides access to the {@link io.vertx.groovy.core.http.HttpServerRequest} and {@link io.vertx.groovy.core.http.HttpServerResponse}
+ * The context provides access to the {@link  io.vertx.rxjava.core.http.HttpServerRequest} and {@link  io.vertx.rxjava.core.http.HttpServerResponse}
  * and allows you to maintain arbitrary data that lives for the lifetime of the context. Contexts are discarded once they
  * have been routed to the handler for the request.
  * <p>
- * The context also provides access to the {@link io.vertx.groovy.ext.apex.Session}, cookies and body for the request, given the correct handlers
+ * The context also provides access to the {@link  Session}, cookies and body for the request, given the correct handlers
  * in the application.
-*/
-@CompileStatic
+ *
+ * <p/>
+ * NOTE: This class has been automatically generated from the {@link io.vertx.ext.apex.RoutingContext original} non RX-ified interface using Vert.x codegen.
+ */
+
 public class RoutingContext {
-  final def io.vertx.ext.apex.RoutingContext delegate;
+
+  final io.vertx.ext.apex.RoutingContext delegate;
+
   public RoutingContext(io.vertx.ext.apex.RoutingContext delegate) {
     this.delegate = delegate;
   }
+
   public Object getDelegate() {
     return delegate;
   }
+
   /**
    * @return the HTTP request object
    * @return 
    */
-  public HttpServerRequest request() {
+  public HttpServerRequest request() { 
     if (cached_0 != null) {
       return cached_0;
     }
-    def ret= new io.vertx.groovy.core.http.HttpServerRequest(this.delegate.request());
+    HttpServerRequest ret= HttpServerRequest.newInstance(this.delegate.request());
     cached_0 = ret;
     return ret;
   }
+
   /**
    * @return the HTTP response object
    * @return 
    */
-  public HttpServerResponse response() {
+  public HttpServerResponse response() { 
     if (cached_1 != null) {
       return cached_1;
     }
-    def ret= new io.vertx.groovy.core.http.HttpServerResponse(this.delegate.response());
+    HttpServerResponse ret= HttpServerResponse.newInstance(this.delegate.response());
     cached_1 = ret;
     return ret;
   }
+
   /**
    * Tell the router to route this context to the next matching route (if any).
    * This method, if called, does not need to be called during the execution of the handler, it can be called
@@ -81,9 +93,10 @@ public class RoutingContext {
    * If next is not called for a handler then the handler should make sure it ends the response or no response
    * will be sent.
    */
-  public void next() {
+  public void next() { 
     this.delegate.next();
   }
+
   /**
    * Fail the context with the specified status code.
    * <p>
@@ -91,54 +104,59 @@ public class RoutingContext {
    * match a default failure response will be sent.
    * @param statusCode the HTTP status code
    */
-  public void fail(int statusCode) {
+  public void fail(int statusCode) { 
     this.delegate.fail(statusCode);
   }
+
   /**
    * Put some arbitrary data in the context. This will be available in any handlers that receive the context.
    * @param key the key for the data
    * @param obj the data
    * @return a reference to this, so the API can be used fluently
    */
-  public RoutingContext put(String key, Object obj) {
-    this.delegate.put(key, InternalHelper.unwrapObject(obj));
+  public RoutingContext put(String key, Object obj) { 
+    this.delegate.put(key, obj);
     return this;
   }
+
   /**
    * Get some data from the context. The data is available in any handlers that receive the context.
    * @param key the key for the data
    * @return the data
    */
-  public <T> T get(String key) {
-    // This cast is cleary flawed
-    def ret = (T) InternalHelper.wrapObject(this.delegate.get(key));
+  public <T> T get(String key) { 
+    T ret = (T) this.delegate.get(key);
     return ret;
   }
+
   /**
-   * @return the Vert.x instance associated to the initiating {@link io.vertx.groovy.ext.apex.Router} for this context
+   * @return the Vert.x instance associated to the initiating {@link  io.vertx.rxjava.ext.apex.Router} for this context
    * @return 
    */
-  public Vertx vertx() {
-    def ret= new io.vertx.groovy.core.Vertx(this.delegate.vertx());
+  public Vertx vertx() { 
+    Vertx ret= Vertx.newInstance(this.delegate.vertx());
     return ret;
   }
+
   /**
    * @return the mount point for this router. It will be null for a top level router. For a sub-router it will be the path
    * at which the subrouter was mounted.
    * @return 
    */
-  public String mountPoint() {
-    def ret = this.delegate.mountPoint();
+  public String mountPoint() { 
+    String ret = this.delegate.mountPoint();
     return ret;
   }
+
   /**
    * @return the current route this context is being routed through.
    * @return 
    */
-  public Route currentRoute() {
-    def ret= new io.vertx.groovy.ext.apex.Route(this.delegate.currentRoute());
+  public Route currentRoute() { 
+    Route ret= Route.newInstance(this.delegate.currentRoute());
     return ret;
   }
+
   /**
    * Return the normalised path for the request.
    * <p>
@@ -149,209 +167,235 @@ public class RoutingContext {
    * The normalised path will also not contain any `..` character sequences to prevent resources being accessed outside
    * of the permitted area.
    * <p>
-   * It's recommended to always use the normalised path as opposed to {@link io.vertx.groovy.core.http.HttpServerRequest#path}
+   * It's recommended to always use the normalised path as opposed to {@link  io.vertx.rxjava.core.http.HttpServerRequest#path()}
    * if accessing server resources requested by a client.
    * @return the normalised path
    */
-  public String normalisedPath() {
-    def ret = this.delegate.normalisedPath();
+  public String normalisedPath() { 
+    String ret = this.delegate.normalisedPath();
     return ret;
   }
+
   /**
-   * Get the cookie with the specified name. The context must have first been routed to a {@link io.vertx.groovy.ext.apex.handler.CookieHandler}
+   * Get the cookie with the specified name. The context must have first been routed to a {@link  io.vertx.rxjava.ext.apex.handler.CookieHandler}
    * for this to work.
    * @param name the cookie name
    * @return the cookie
    */
-  public Cookie getCookie(String name) {
-    def ret= new io.vertx.groovy.ext.apex.Cookie(this.delegate.getCookie(name));
+  public Cookie getCookie(String name) { 
+    Cookie ret= Cookie.newInstance(this.delegate.getCookie(name));
     return ret;
   }
+
   /**
    * Add a cookie. This will be sent back to the client in the response. The context must have first been routed
-   * to a {@link io.vertx.groovy.ext.apex.handler.CookieHandler} for this to work.
+   * to a {@link  io.vertx.rxjava.ext.apex.handler.CookieHandler} for this to work.
    * @param cookie the cookie
    * @return a reference to this, so the API can be used fluently
    */
-  public RoutingContext addCookie(Cookie cookie) {
-    this.delegate.addCookie((io.vertx.ext.apex.Cookie)cookie.getDelegate());
+  public RoutingContext addCookie(Cookie cookie) { 
+    this.delegate.addCookie((io.vertx.ext.apex.Cookie) cookie.getDelegate());
     return this;
   }
+
   /**
-   * Remove a cookie. The context must have first been routed to a {@link io.vertx.groovy.ext.apex.handler.CookieHandler}
+   * Remove a cookie. The context must have first been routed to a {@link  io.vertx.rxjava.ext.apex.handler.CookieHandler}
    * for this to work.
    * @param name the name of the cookie
    * @return the cookie, if it existed, or null
    */
-  public Cookie removeCookie(String name) {
-    def ret= new io.vertx.groovy.ext.apex.Cookie(this.delegate.removeCookie(name));
+  public Cookie removeCookie(String name) { 
+    Cookie ret= Cookie.newInstance(this.delegate.removeCookie(name));
     return ret;
   }
+
   /**
-   * @return the number of cookies. The context must have first been routed to a {@link io.vertx.groovy.ext.apex.handler.CookieHandler}
+   * @return the number of cookies. The context must have first been routed to a {@link  io.vertx.rxjava.ext.apex.handler.CookieHandler}
    * for this to work.
    * @return 
    */
-  public int cookieCount() {
-    def ret = this.delegate.cookieCount();
+  public int cookieCount() { 
+    int ret = this.delegate.cookieCount();
     return ret;
   }
+
   /**
-   * @return a set of all the cookies. The context must have first been routed to a {@link io.vertx.groovy.ext.apex.handler.CookieHandler}
+   * @return a set of all the cookies. The context must have first been routed to a {@link  io.vertx.rxjava.ext.apex.handler.CookieHandler}
    * for this to be populated.
    * @return 
    */
-  public Set<Cookie> cookies() {
-    def ret = this.delegate.cookies()?.collect({underpants -> new io.vertx.groovy.ext.apex.Cookie(underpants)}) as Set;
+  public Set<Cookie> cookies() { 
+    Set<Cookie> ret = this.delegate.cookies().stream().map(Cookie::newInstance).collect(java.util.stream.Collectors.toSet());
     return ret;
   }
+
   /**
    * @return  the entire HTTP request body as a string, assuming UTF-8 encoding. The context must have first been routed to a
-   * {@link io.vertx.groovy.ext.apex.handler.BodyHandler} for this to be populated.
+   * {@link  io.vertx.rxjava.ext.apex.handler.BodyHandler} for this to be populated.
    * @return 
    */
-  public String getBodyAsString() {
-    def ret = this.delegate.getBodyAsString();
+  public String getBodyAsString() { 
+    String ret = this.delegate.getBodyAsString();
     return ret;
   }
+
   /**
    * Get the entire HTTP request body as a string, assuming the specified encoding. The context must have first been routed to a
-   * {@link io.vertx.groovy.ext.apex.handler.BodyHandler} for this to be populated.
+   * {@link  io.vertx.rxjava.ext.apex.handler.BodyHandler} for this to be populated.
    * @param encoding the encoding, e.g. "UTF-16"
    * @return the body
    */
-  public String getBodyAsString(String encoding) {
-    def ret = this.delegate.getBodyAsString(encoding);
+  public String getBodyAsString(String encoding) { 
+    String ret = this.delegate.getBodyAsString(encoding);
     return ret;
   }
+
   /**
-   * @return Get the entire HTTP request body as a {@link io.vertx.core.json.JsonObject}. The context must have first been routed to a
-   * {@link io.vertx.groovy.ext.apex.handler.BodyHandler} for this to be populated.
+   * @return Get the entire HTTP request body as a {@link  io.vertx.rxjava.core.json.JsonObject}. The context must have first been routed to a
+   * {@link  io.vertx.rxjava.ext.apex.handler.BodyHandler} for this to be populated.
    * @return 
    */
-  public Map<String, Object> getBodyAsJson() {
-    def ret = this.delegate.getBodyAsJson()?.getMap();
+  public JsonObject getBodyAsJson() { 
+    JsonObject ret = this.delegate.getBodyAsJson();
     return ret;
   }
+
   /**
-   * @return Get the entire HTTP request body as a {@link io.vertx.groovy.core.buffer.Buffer}. The context must have first been routed to a
-   * {@link io.vertx.groovy.ext.apex.handler.BodyHandler} for this to be populated.
+   * @return Get the entire HTTP request body as a {@link  io.vertx.rxjava.core.buffer.Buffer}. The context must have first been routed to a
+   * {@link  io.vertx.rxjava.ext.apex.handler.BodyHandler} for this to be populated.
    * @return 
    */
-  public Buffer getBody() {
-    def ret= new io.vertx.groovy.core.buffer.Buffer(this.delegate.getBody());
+  public Buffer getBody() { 
+    Buffer ret= Buffer.newInstance(this.delegate.getBody());
     return ret;
   }
+
   /**
    * @return a set of fileuploads (if any) for the request. The context must have first been routed to a
-   * {@link io.vertx.groovy.ext.apex.handler.BodyHandler} for this to work.
+   * {@link  io.vertx.rxjava.ext.apex.handler.BodyHandler} for this to work.
    * @return 
    */
-  public Set<FileUpload> fileUploads() {
-    def ret = this.delegate.fileUploads()?.collect({underpants -> new io.vertx.groovy.ext.apex.FileUpload(underpants)}) as Set;
+  public Set<FileUpload> fileUploads() { 
+    Set<FileUpload> ret = this.delegate.fileUploads().stream().map(FileUpload::newInstance).collect(java.util.stream.Collectors.toSet());
     return ret;
   }
+
   /**
-   * Get the session. The context must have first been routed to a {@link io.vertx.groovy.ext.apex.handler.SessionHandler}
+   * Get the session. The context must have first been routed to a {@link  io.vertx.rxjava.ext.apex.handler.SessionHandler}
    * for this to be populated.
    * Sessions live for a browser session, and are maintained by session cookies.
    * @return the session.
    */
-  public Session session() {
-    def ret= new io.vertx.groovy.ext.apex.Session(this.delegate.session());
+  public Session session() { 
+    Session ret= Session.newInstance(this.delegate.session());
     return ret;
   }
+
   /**
    * If the context is being routed to failure handlers after a failure has been triggered by calling
-   * {@link io.vertx.groovy.ext.apex.RoutingContext#fail}  then this will return that status code.  It can be used by failure handlers to render a response,
+   * {@link  #fail(int)}  then this will return that status code.  It can be used by failure handlers to render a response,
    * e.g. create a failure response page.
    * @return the status code used when signalling failure
    */
-  public int statusCode() {
+  public int statusCode() { 
     if (cached_2 != null) {
       return cached_2;
     }
-    def ret = this.delegate.statusCode();
+    int ret = this.delegate.statusCode();
     cached_2 = ret;
     return ret;
   }
+
   /**
    * If the route specifies produces matches, e.g. produces `text/html` and `text/plain`, and the `accept` header
    * matches one or more of these then this returns the most acceptable match.
    * @return the most acceptable content type.
    */
-  public String getAcceptableContentType() {
-    def ret = this.delegate.getAcceptableContentType();
+  public String getAcceptableContentType() { 
+    String ret = this.delegate.getAcceptableContentType();
     return ret;
   }
+
   /**
    * Add a handler that will be called just before headers are written to the response. This gives you a hook where
    * you can write any extra headers before the response has been written when it will be too late.
    * @param handler the handler
    * @return the id of the handler. This can be used if you later want to remove the handler.
    */
-  public int addHeadersEndHandler(Handler<Void> handler) {
-    def ret = this.delegate.addHeadersEndHandler(handler);
+  public int addHeadersEndHandler(Handler<Void> handler) { 
+    int ret = this.delegate.addHeadersEndHandler(handler);
     return ret;
   }
+
   /**
    * Remove a headers end handler
    * @param handlerID the id as returned from {@link io.vertx.ext.apex.RoutingContext#addHeadersEndHandler(io.vertx.core.Handler)}.
    * @return true if the handler existed and was removed, false otherwise
    */
-  public boolean removeHeadersEndHandler(int handlerID) {
-    def ret = this.delegate.removeHeadersEndHandler(handlerID);
+  public boolean removeHeadersEndHandler(int handlerID) { 
+    boolean ret = this.delegate.removeHeadersEndHandler(handlerID);
     return ret;
   }
+
   /**
    * Add a handler that will be called just before the response body has been completely written.
    * This gives you a hook where you can write any extra data to the response before it has ended when it will be too late.
    * @param handler the handler
    * @return the id of the handler. This can be used if you later want to remove the handler.
    */
-  public int addBodyEndHandler(Handler<Void> handler) {
-    def ret = this.delegate.addBodyEndHandler(handler);
+  public int addBodyEndHandler(Handler<Void> handler) { 
+    int ret = this.delegate.addBodyEndHandler(handler);
     return ret;
   }
+
   /**
    * Remove a body end handler
    * @param handlerID the id as returned from {@link io.vertx.ext.apex.RoutingContext#addBodyEndHandler(io.vertx.core.Handler)}.
    * @return true if the handler existed and was removed, false otherwise
    */
-  public boolean removeBodyEndHandler(int handlerID) {
-    def ret = this.delegate.removeBodyEndHandler(handlerID);
+  public boolean removeBodyEndHandler(int handlerID) { 
+    boolean ret = this.delegate.removeBodyEndHandler(handlerID);
     return ret;
   }
+
   /**
    * @return true if the context is being routed to failure handlers.
    * @return 
    */
-  public boolean failed() {
-    def ret = this.delegate.failed();
+  public boolean failed() { 
+    boolean ret = this.delegate.failed();
     return ret;
   }
+
   /**
-   * Set the body. Used by the {@link io.vertx.groovy.ext.apex.handler.BodyHandler}. You will not normally call this method.
+   * Set the body. Used by the {@link  io.vertx.rxjava.ext.apex.handler.BodyHandler}. You will not normally call this method.
    * @param body the body
    */
-  public void setBody(Buffer body) {
-    this.delegate.setBody((io.vertx.core.buffer.Buffer)body.getDelegate());
+  public void setBody(Buffer body) { 
+    this.delegate.setBody((io.vertx.core.buffer.Buffer) body.getDelegate());
   }
+
   /**
-   * Set the session. Used by the {@link io.vertx.groovy.ext.apex.handler.SessionHandler}. You will not normally call this method.
+   * Set the session. Used by the {@link  io.vertx.rxjava.ext.apex.handler.SessionHandler}. You will not normally call this method.
    * @param session the session
    */
-  public void setSession(Session session) {
-    this.delegate.setSession((io.vertx.ext.apex.Session)session.getDelegate());
+  public void setSession(Session session) { 
+    this.delegate.setSession((io.vertx.ext.apex.Session) session.getDelegate());
   }
+
   /**
    * Set the acceptable content type. Used by
    * @param contentType the content type
    */
-  public void setAcceptableContentType(String contentType) {
+  public void setAcceptableContentType(String contentType) { 
     this.delegate.setAcceptableContentType(contentType);
   }
+
   private HttpServerRequest cached_0;
   private HttpServerResponse cached_1;
-  private int cached_2;
+  private java.lang.Integer cached_2;
+
+  public static RoutingContext newInstance(io.vertx.ext.apex.RoutingContext arg) {
+    return new RoutingContext(arg);
+  }
 }

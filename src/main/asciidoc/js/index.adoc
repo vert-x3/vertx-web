@@ -900,7 +900,41 @@ to be retrieved so the failure handler can use that to generate a failure respon
 
 [source,js]
 ----
-todo
+
+var route1 = router.get("/somepath/path1/");
+
+route1.handler(function (routingContext) {
+
+  // Let's say this throws a RuntimeException
+  throw "something happened!";
+
+});
+
+var route2 = router.get("/somepath/path2");
+
+route2.handler(function (routingContext) {
+
+  // This one deliberately fails the request passing in the status code
+  // E.g. 403 - Forbidden
+  routingContext.fail(403);
+
+});
+
+// Define a failure handler
+// This will get called for any failures in the above handlers
+var route3 = router.get("/somepath/");
+
+route3.failureHandler(function (failureRoutingContext) {
+
+  var statusCode = failureRoutingContext.statusCode();
+
+  // Status code will be 500 for the RuntimeException or 403 for the other failure
+  var response = failureRoutingContext.response();
+  response.setStatusCode(statusCode).end("Sorry! Not today");
+
+});
+
+
 ----
 
 == Request body handling
@@ -2014,7 +2048,66 @@ Here's an example:
 
 [source,js]
 ----
-todo
+var Router = require("vertx-apex-js/router");
+var SockJSHandler = require("vertx-apex-js/sock_js_handler");
+
+var router = Router.router(vertx);
+
+var sockJSHandler = SockJSHandler.create(vertx);
+
+
+// Let through any messages sent to 'demo.orderMgr' from the client
+var inboundPermitted1 = {
+  "address" : "demo.orderMgr"
+};
+
+// Allow calls to the address 'demo.persistor' from the client as long as the messages
+// have an action field with value 'find' and a collection field with value
+// 'albums'
+var inboundPermitted2 = {
+  "address" : "demo.persistor",
+  "match" : {
+    "action" : "find",
+    "collection" : "albums"
+  }
+};
+
+// Allow through any message with a field `wibble` with value `foo`.
+var inboundPermitted3 = {
+  "match" : {
+    "wibble" : "foo"
+  }
+};
+
+// First let's define what we're going to allow from server -> client
+
+// Let through any messages coming from address 'ticker.mystock'
+var outboundPermitted1 = {
+  "address" : "ticker.mystock"
+};
+
+// Let through any messages from addresses starting with "news." (e.g. news.europe, news.usa, etc)
+var outboundPermitted2 = {
+  "addressRegex" : "news\\..+"
+};
+
+// Let's define what we're going to allow from client -> server
+var options = {
+  "inboundPermitteds" : [
+    inboundPermitted1,
+    inboundPermitted1,
+    inboundPermitted3
+  ],
+  "outboundPermitteds" : [
+    outboundPermitted1,
+    outboundPermitted2
+  ]
+};
+
+sockJSHandler.bridge(options);
+
+router.route("/eventbus").handler(sockJSHandler.handle);
+
 ----
 
 === Requiring authorisation for messages
@@ -2035,7 +2128,21 @@ Here's an example:
 
 [source,js]
 ----
-todo
+
+// Let through any messages sent to 'demo.orderMgr' from the client
+var inboundPermitted = {
+  "address" : "demo.adminService"
+};
+
+// But only if the user is logged in and has the role "admin"
+inboundPermitted.requiredRole = "admin";
+
+var options = {
+  "inboundPermitteds" : [
+    inboundPermitted
+  ]
+};
+
 ----
 
 For the user to be authorised they must be first logged in and secondly have the required role.
@@ -2044,5 +2151,46 @@ To handle the login and actually auth you can configure the normal Vert.x auth h
 
 [source,js]
 ----
-todo
+var Router = require("vertx-apex-js/router");
+var SockJSHandler = require("vertx-apex-js/sock_js_handler");
+var CookieHandler = require("vertx-apex-js/cookie_handler");
+var SessionHandler = require("vertx-apex-js/session_handler");
+var LocalSessionStore = require("vertx-apex-js/local_session_store");
+var ShiroAuthService = require("vertx-auth-js/shiro_auth_service");
+var BasicAuthHandler = require("vertx-apex-js/basic_auth_handler");
+
+var router = Router.router(vertx);
+
+// Let through any messages sent to 'demo.orderMgr' from the client
+var inboundPermitted = {
+  "address" : "demo.adminService"
+};
+
+// But only if the user is logged in and has the role "admin"
+inboundPermitted.requiredRole = "admin";
+
+var sockJSHandler = SockJSHandler.create(vertx);
+sockJSHandler.bridge({
+  "inboundPermitteds" : [
+    inboundPermitted
+  ]
+});
+
+// Now set up some basic auth handling:
+
+router.route().handler(CookieHandler.create().handle);
+router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)).handle);
+
+var authConfig = {
+};
+authConfig.Java.type("io.vertx.ext.auth.shiro.PropertiesAuthRealmConstants").PROPERTIES_PROPS_PATH_FIELD = "classpath:test-auth.properties";
+var authService = ShiroAuthService.create(vertx, 'PROPERTIES', authConfig);
+var basicAuthHandler = BasicAuthHandler.create(authService);
+
+router.route("/eventbus/").handler(basicAuthHandler.handle);
+
+
+router.route("/eventbus/").handler(sockJSHandler.handle);
+
+
 ----
