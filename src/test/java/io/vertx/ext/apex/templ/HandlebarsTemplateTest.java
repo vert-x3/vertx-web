@@ -67,4 +67,10 @@ public class HandlebarsTemplateTest extends ApexTestBase {
     testRequest(HttpMethod.GET, "/foo.hbs", 500, "Internal Server Error");
   }
 
+  @Test
+  public void testGetHandlebars() throws Exception {
+    HandlebarsTemplateEngine engine = HandlebarsTemplateEngine.create();
+    assertNotNull(engine.getHandlebars());
+  }
+
 }

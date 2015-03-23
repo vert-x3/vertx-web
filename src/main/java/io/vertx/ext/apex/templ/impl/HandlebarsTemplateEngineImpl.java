@@ -71,6 +71,11 @@ public class HandlebarsTemplateEngineImpl extends CachingTemplateEngine<Template
     }
   }
 
+  @Override
+  public Handlebars getHandlebars() {
+    return handlebars;
+  }
+
   private class Loader implements TemplateLoader {
 
     private Vertx vertx;

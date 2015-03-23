@@ -50,7 +50,7 @@ public class ThymeleafTemplateEngineImpl implements ThymeleafTemplateEngine {
 
   @Override
   public ThymeleafTemplateEngine setMode(String mode) {
-    templateResolver.setTemplateMode(ThymeleafTemplateEngine.DEFAULT_TEMPLATE_MODE);
+    templateResolver.setTemplateMode(mode);
     return this;
   }
 
@@ -85,6 +85,11 @@ public class ThymeleafTemplateEngineImpl implements ThymeleafTemplateEngine {
     } catch (Exception ex) {
       handler.handle(Future.failedFuture(ex));
     }
+  }
+
+  @Override
+  public TemplateEngine getThymeleafTemplateEngine() {
+    return engine;
   }
 
   /*
@@ -144,8 +149,4 @@ public class ThymeleafTemplateEngineImpl implements ThymeleafTemplateEngine {
       }
     }
   }
-
-
-
-
 }

@@ -67,4 +67,10 @@ public class JadeTemplateTest extends ApexTestBase {
     testRequest(HttpMethod.GET, "/foo.jade", 500, "Internal Server Error");
   }
 
+  @Test
+  public void testGetJadeConfiguration() throws Exception {
+    JadeTemplateEngine engine = JadeTemplateEngine.create();
+    assertNotNull(engine.getJadeConfiguration());
+  }
+
 }
