@@ -67,13 +67,18 @@ public class ErrorHandlerImpl implements ErrorHandler {
     String mime = response.headers().get(HttpHeaders.CONTENT_TYPE);
 
     int errorCode;
-    String errorMessage;
+    String errorMessage = null;
     if (context.statusCode() != -1) {
       errorCode = context.statusCode();
       errorMessage = context.response().getStatusMessage();
     } else {
       errorCode = 500;
-      errorMessage = displayExceptionDetails ? context.failure().getMessage() : "Internal Server Error";
+      if (displayExceptionDetails) {
+        errorMessage = context.failure().getMessage();
+      }
+      if (errorMessage == null) {
+        errorMessage = "Internal Server Error";
+      }
       response.setStatusMessage(errorMessage);
     }
 
