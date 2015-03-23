@@ -266,7 +266,7 @@ With any path it can also be specified when creating the route:
 [source,groovy]
 ----
 
-def route = router.route("/some/path/")
+def route = router.route("/some/path/*")
 
 route.handler({ routingContext ->
   // This handler will be called same as previous example
@@ -842,7 +842,7 @@ import io.vertx.groovy.ext.apex.Router
 def mainRouter = Router.router(vertx)
 
 // Handle static resources
-mainRouter.route("/static").handler(myStaticHandler)
+mainRouter.route("/static/*").handler(myStaticHandler)
 
 mainRouter.route(".*\\.templ").handler(myTemplateHandler)
 
@@ -883,7 +883,7 @@ to paths that start with `/somepath/`:
 [source,groovy]
 ----
 
-def route = router.get("/somepath/")
+def route = router.get("/somepath/*")
 
 route.failureHandler({ frc ->
 
@@ -927,7 +927,7 @@ route2.handler({ routingContext ->
 
 // Define a failure handler
 // This will get called for any failures in the above handlers
-def route3 = router.get("/somepath/")
+def route3 = router.get("/somepath/*")
 
 route3.failureHandler({ failureRoutingContext ->
 
@@ -1351,7 +1351,7 @@ def authService = AuthService.createEventBusProxy(vertx, "acme.authservice")
 def basicAuthHandler = BasicAuthHandler.create(authService)
 
 // All requests to paths starting with '/private/' will be protected
-router.route("/private/").handler(basicAuthHandler)
+router.route("/private/*").handler(basicAuthHandler)
 
 router.route("/someotherpath").handler({ routingContext ->
 
@@ -1432,7 +1432,7 @@ def authService = AuthService.createEventBusProxy(vertx, "acme.authservice")
 def redirectAuthHandler = RedirectAuthHandler.create(authService)
 
 // All requests to paths starting with '/private/' will be protected
-router.route("/private/").handler(redirectAuthHandler)
+router.route("/private/*").handler(redirectAuthHandler)
 
 // Handle the actual login
 router.route("/login").handler(FormLoginHandler.create(authService))
@@ -1506,7 +1506,7 @@ In the following example all requests to paths starting with `/static/` will get
 ----
 import io.vertx.groovy.ext.apex.handler.StaticHandler
 
-router.route("/static/").handler(StaticHandler.create())
+router.route("/static/*").handler(StaticHandler.create())
 
 
 ----

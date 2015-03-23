@@ -250,7 +250,7 @@ With any path it can also be specified when creating the route:
 
 [source,java]
 ----
-Route route = router.route("/some/path/");
+Route route = router.route("/some/path/*");
 
 route.handler(routingContext -> {
   // This handler will be called same as previous example
@@ -762,7 +762,7 @@ However, let's say we already have a web-site as described by another router:
 Router mainRouter = Router.router(vertx);
 
 // Handle static resources
-mainRouter.route("/static").handler(myStaticHandler);
+mainRouter.route("/static/*").handler(myStaticHandler);
 
 mainRouter.route(".*\\.templ").handler(myTemplateHandler);
 ----
@@ -798,7 +798,7 @@ to paths that start with `/somepath/`:
 
 [source,java]
 ----
-Route route = router.get("/somepath/");
+Route route = router.get("/somepath/*");
 
 route.failureHandler(frc -> {
 
@@ -840,7 +840,7 @@ route2.handler(routingContext -> {
 
 // Define a failure handler
 // This will get called for any failures in the above handlers
-Route route3 = router.get("/somepath/");
+Route route3 = router.get("/somepath/*");
 
 route3.failureHandler(failureRoutingContext -> {
 
@@ -1193,7 +1193,7 @@ AuthService authService = AuthService.createEventBusProxy(vertx, "acme.authservi
 AuthHandler basicAuthHandler = BasicAuthHandler.create(authService);
 
 // All requests to paths starting with '/private/' will be protected
-router.route("/private/").handler(basicAuthHandler);
+router.route("/private/*").handler(basicAuthHandler);
 
 router.route("/someotherpath").handler(routingContext -> {
 
@@ -1265,7 +1265,7 @@ AuthService authService = AuthService.createEventBusProxy(vertx, "acme.authservi
 AuthHandler redirectAuthHandler = RedirectAuthHandler.create(authService);
 
 // All requests to paths starting with '/private/' will be protected
-router.route("/private/").handler(redirectAuthHandler);
+router.route("/private/*").handler(redirectAuthHandler);
 
 // Handle the actual login
 router.route("/login").handler(FormLoginHandler.create(authService));
@@ -1331,7 +1331,7 @@ In the following example all requests to paths starting with `/static/` will get
 
 [source,java]
 ----
-router.route("/static/").handler(StaticHandler.create());
+router.route("/static/*").handler(StaticHandler.create());
 ----
 
 For example, if there was a request with path `/static/css/mystyles.css` the static serve will look for a file in the
