@@ -107,7 +107,7 @@ public class Examples {
 
   public void example4(Router router) {
 
-    Route route = router.route("/some/path/");
+    Route route = router.route("/some/path/*");
 
     route.handler(routingContext -> {
       // This handler will be called same as previous example
@@ -471,7 +471,7 @@ public class Examples {
     Router mainRouter = Router.router(vertx);
 
     // Handle static resources
-    mainRouter.route("/static").handler(myStaticHandler);
+    mainRouter.route("/static/*").handler(myStaticHandler);
 
     mainRouter.route(".*\\.templ").handler(myTemplateHandler);
   }
@@ -484,7 +484,7 @@ public class Examples {
 
   public void example25(Router router) {
 
-    Route route = router.get("/somepath/");
+    Route route = router.get("/somepath/*");
 
     route.failureHandler(frc -> {
 
@@ -518,7 +518,7 @@ public class Examples {
 
     // Define a failure handler
     // This will get called for any failures in the above handlers
-    Route route3 = router.get("/somepath/");
+    Route route3 = router.get("/somepath/*");
 
     route3.failureHandler(failureRoutingContext -> {
 
@@ -699,7 +699,7 @@ public class Examples {
     AuthHandler basicAuthHandler = BasicAuthHandler.create(authService);
 
     // All requests to paths starting with '/private/' will be protected
-    router.route("/private/").handler(basicAuthHandler);
+    router.route("/private/*").handler(basicAuthHandler);
 
     router.route("/someotherpath").handler(routingContext -> {
 
@@ -726,7 +726,7 @@ public class Examples {
     AuthHandler redirectAuthHandler = RedirectAuthHandler.create(authService);
 
     // All requests to paths starting with '/private/' will be protected
-    router.route("/private/").handler(redirectAuthHandler);
+    router.route("/private/*").handler(redirectAuthHandler);
 
     // Handle the actual login
     router.route("/login").handler(FormLoginHandler.create(authService));
@@ -767,7 +767,7 @@ public class Examples {
 
   public void example41(Router router) {
 
-    router.route("/static/").handler(StaticHandler.create());
+    router.route("/static/*").handler(StaticHandler.create());
 
   }
   public void example41_0_1(Router router) {

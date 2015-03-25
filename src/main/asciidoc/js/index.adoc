@@ -266,7 +266,7 @@ With any path it can also be specified when creating the route:
 [source,js]
 ----
 
-var route = router.route("/some/path/");
+var route = router.route("/some/path/*");
 
 route.handler(function (routingContext) {
   // This handler will be called same as previous example
@@ -837,7 +837,7 @@ var Router = require("vertx-apex-js/router");
 var mainRouter = Router.router(vertx);
 
 // Handle static resources
-mainRouter.route("/static").handler(myStaticHandler);
+mainRouter.route("/static/*").handler(myStaticHandler);
 
 mainRouter.route(".*\\.templ").handler(myTemplateHandler);
 
@@ -853,7 +853,7 @@ mainRouter.mountSubRouter("/productsAPI", restAPI);
 
 ----
 
-This means the REST API is not accessible via paths like: `/productsAPI/products/product1234`
+This means the REST API is now accessible via paths like: `/productsAPI/products/product1234`
 
 == Default 404 Handling
 
@@ -878,7 +878,7 @@ to paths that start with `/somepath/`:
 [source,js]
 ----
 
-var route = router.get("/somepath/");
+var route = router.get("/somepath/*");
 
 route.failureHandler(function (frc) {
 
@@ -922,7 +922,7 @@ route2.handler(function (routingContext) {
 
 // Define a failure handler
 // This will get called for any failures in the above handlers
-var route3 = router.get("/somepath/");
+var route3 = router.get("/somepath/*");
 
 route3.failureHandler(function (failureRoutingContext) {
 
@@ -1346,7 +1346,7 @@ var authService = AuthService.createEventBusProxy(vertx, "acme.authservice");
 var basicAuthHandler = BasicAuthHandler.create(authService);
 
 // All requests to paths starting with '/private/' will be protected
-router.route("/private/").handler(basicAuthHandler.handle);
+router.route("/private/*").handler(basicAuthHandler.handle);
 
 router.route("/someotherpath").handler(function (routingContext) {
 
@@ -1427,7 +1427,7 @@ var authService = AuthService.createEventBusProxy(vertx, "acme.authservice");
 var redirectAuthHandler = RedirectAuthHandler.create(authService);
 
 // All requests to paths starting with '/private/' will be protected
-router.route("/private/").handler(redirectAuthHandler.handle);
+router.route("/private/*").handler(redirectAuthHandler.handle);
 
 // Handle the actual login
 router.route("/login").handler(FormLoginHandler.create(authService).handle);
@@ -1501,7 +1501,7 @@ In the following example all requests to paths starting with `/static/` will get
 ----
 var StaticHandler = require("vertx-apex-js/static_handler");
 
-router.route("/static/").handler(StaticHandler.create().handle);
+router.route("/static/*").handler(StaticHandler.create().handle);
 
 
 ----

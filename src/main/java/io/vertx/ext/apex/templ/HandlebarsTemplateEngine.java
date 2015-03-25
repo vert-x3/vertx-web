@@ -16,6 +16,8 @@
 
 package io.vertx.ext.apex.templ;
 
+import com.github.jknack.handlebars.Handlebars;
+import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.ext.apex.templ.impl.HandlebarsTemplateEngineImpl;
 
@@ -61,4 +63,14 @@ public interface HandlebarsTemplateEngine extends TemplateEngine {
    * @return a reference to this for fluency
    */
   HandlebarsTemplateEngine setMaxCacheSize(int maxCacheSize);
+
+  /**
+   * Get a reference to the internal Handlebars object so it
+   * can be configured.
+   *
+   * @return a reference to the internal Handlebars instance.
+   */
+  @GenIgnore
+  Handlebars getHandlebars();
+
 }

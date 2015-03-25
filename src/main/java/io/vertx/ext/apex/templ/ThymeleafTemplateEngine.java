@@ -16,8 +16,10 @@
 
 package io.vertx.ext.apex.templ;
 
+import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.ext.apex.templ.impl.ThymeleafTemplateEngineImpl;
+
 
 /**
  * A template engine that uses the Thymeleaf library.
@@ -46,4 +48,12 @@ public interface ThymeleafTemplateEngine extends TemplateEngine {
    */
   ThymeleafTemplateEngine setMode(String mode);
 
+  /**
+   * Get a reference to the internal Thymeleaf TemplateEngine object so it
+   * can be configured.
+   *
+   * @return a reference to the internal Thymeleaf TemplateEngine instance.
+   */
+  @GenIgnore
+  org.thymeleaf.TemplateEngine getThymeleafTemplateEngine();
 }

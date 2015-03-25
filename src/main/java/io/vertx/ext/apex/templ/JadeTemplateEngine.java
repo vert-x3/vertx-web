@@ -16,6 +16,8 @@
 
 package io.vertx.ext.apex.templ;
 
+import de.neuland.jade4j.JadeConfiguration;
+import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.ext.apex.templ.impl.JadeTemplateEngineImpl;
 
@@ -61,4 +63,14 @@ public interface JadeTemplateEngine extends TemplateEngine {
    * @return a reference to this for fluency
    */
   JadeTemplateEngine setMaxCacheSize(int maxCacheSize);
+
+  /**
+   * Get a reference to the internal JadeConfiguration object so it
+   * can be configured.
+   *
+   * @return a reference to the internal JadeConfiguration instance.
+   */
+  @GenIgnore
+  JadeConfiguration getJadeConfiguration();
+
 }
