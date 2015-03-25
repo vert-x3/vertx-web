@@ -41,7 +41,7 @@ var ResponseTimeHandler = function(j_val) {
   this.handle = function(arg0) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
-      j_responseTimeHandler.handle(arg0._jdel);
+      j_responseTimeHandler["handle(io.vertx.ext.apex.RoutingContext)"](arg0._jdel);
     } else utils.invalidArgs();
   };
 
@@ -61,7 +61,7 @@ var ResponseTimeHandler = function(j_val) {
 ResponseTimeHandler.create = function() {
   var __args = arguments;
   if (__args.length === 0) {
-    return new ResponseTimeHandler(JResponseTimeHandler.create());
+    return new ResponseTimeHandler(JResponseTimeHandler["create()"]());
   } else utils.invalidArgs();
 };
 

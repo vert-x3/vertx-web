@@ -40,7 +40,7 @@ var StaticHandler = function(j_val) {
   this.handle = function(arg0) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
-      j_staticHandler.handle(arg0._jdel);
+      j_staticHandler["handle(io.vertx.ext.apex.RoutingContext)"](arg0._jdel);
     } else utils.invalidArgs();
   };
 
@@ -54,7 +54,7 @@ var StaticHandler = function(j_val) {
   this.setWebRoot = function(webRoot) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      j_staticHandler.setWebRoot(webRoot);
+      j_staticHandler["setWebRoot(java.lang.String)"](webRoot);
       return that;
     } else utils.invalidArgs();
   };
@@ -69,7 +69,7 @@ var StaticHandler = function(j_val) {
   this.setFilesReadOnly = function(readOnly) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] ==='boolean') {
-      j_staticHandler.setFilesReadOnly(readOnly);
+      j_staticHandler["setFilesReadOnly(boolean)"](readOnly);
       return that;
     } else utils.invalidArgs();
   };
@@ -84,7 +84,7 @@ var StaticHandler = function(j_val) {
   this.setMaxAgeSeconds = function(maxAgeSeconds) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] ==='number') {
-      j_staticHandler.setMaxAgeSeconds(maxAgeSeconds);
+      j_staticHandler["setMaxAgeSeconds(long)"](maxAgeSeconds);
       return that;
     } else utils.invalidArgs();
   };
@@ -99,7 +99,7 @@ var StaticHandler = function(j_val) {
   this.setCachingEnabled = function(enabled) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] ==='boolean') {
-      j_staticHandler.setCachingEnabled(enabled);
+      j_staticHandler["setCachingEnabled(boolean)"](enabled);
       return that;
     } else utils.invalidArgs();
   };
@@ -114,7 +114,7 @@ var StaticHandler = function(j_val) {
   this.setDirectoryListing = function(directoryListing) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] ==='boolean') {
-      j_staticHandler.setDirectoryListing(directoryListing);
+      j_staticHandler["setDirectoryListing(boolean)"](directoryListing);
       return that;
     } else utils.invalidArgs();
   };
@@ -129,7 +129,7 @@ var StaticHandler = function(j_val) {
   this.setIncludeHidden = function(includeHidden) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] ==='boolean') {
-      j_staticHandler.setIncludeHidden(includeHidden);
+      j_staticHandler["setIncludeHidden(boolean)"](includeHidden);
       return that;
     } else utils.invalidArgs();
   };
@@ -144,7 +144,7 @@ var StaticHandler = function(j_val) {
   this.setCacheEntryTimeout = function(timeout) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] ==='number') {
-      j_staticHandler.setCacheEntryTimeout(timeout);
+      j_staticHandler["setCacheEntryTimeout(long)"](timeout);
       return that;
     } else utils.invalidArgs();
   };
@@ -159,7 +159,7 @@ var StaticHandler = function(j_val) {
   this.setIndexPage = function(indexPage) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      j_staticHandler.setIndexPage(indexPage);
+      j_staticHandler["setIndexPage(java.lang.String)"](indexPage);
       return that;
     } else utils.invalidArgs();
   };
@@ -174,7 +174,7 @@ var StaticHandler = function(j_val) {
   this.setMaxCacheSize = function(maxCacheSize) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] ==='number') {
-      j_staticHandler.setMaxCacheSize(maxCacheSize);
+      j_staticHandler["setMaxCacheSize(int)"](maxCacheSize);
       return that;
     } else utils.invalidArgs();
   };
@@ -189,7 +189,7 @@ var StaticHandler = function(j_val) {
   this.setAlwaysAsyncFS = function(alwaysAsyncFS) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] ==='boolean') {
-      j_staticHandler.setAlwaysAsyncFS(alwaysAsyncFS);
+      j_staticHandler["setAlwaysAsyncFS(boolean)"](alwaysAsyncFS);
       return that;
     } else utils.invalidArgs();
   };
@@ -204,7 +204,7 @@ var StaticHandler = function(j_val) {
   this.setEnableFSTuning = function(enableFSTuning) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] ==='boolean') {
-      j_staticHandler.setEnableFSTuning(enableFSTuning);
+      j_staticHandler["setEnableFSTuning(boolean)"](enableFSTuning);
       return that;
     } else utils.invalidArgs();
   };
@@ -219,7 +219,7 @@ var StaticHandler = function(j_val) {
   this.setMaxAvgServeTimeNs = function(maxAvgServeTimeNanoSeconds) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] ==='number') {
-      j_staticHandler.setMaxAvgServeTimeNs(maxAvgServeTimeNanoSeconds);
+      j_staticHandler["setMaxAvgServeTimeNs(long)"](maxAvgServeTimeNanoSeconds);
       return that;
     } else utils.invalidArgs();
   };
@@ -234,7 +234,7 @@ var StaticHandler = function(j_val) {
   this.setDirectoryTemplate = function(directoryTemplate) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      j_staticHandler.setDirectoryTemplate(directoryTemplate);
+      j_staticHandler["setDirectoryTemplate(java.lang.String)"](directoryTemplate);
       return that;
     } else utils.invalidArgs();
   };
@@ -255,9 +255,9 @@ var StaticHandler = function(j_val) {
 StaticHandler.create = function() {
   var __args = arguments;
   if (__args.length === 0) {
-    return new StaticHandler(JStaticHandler.create());
+    return new StaticHandler(JStaticHandler["create()"]());
   }else if (__args.length === 1 && typeof __args[0] === 'string') {
-    return new StaticHandler(JStaticHandler.create(__args[0]));
+    return new StaticHandler(JStaticHandler["create(java.lang.String)"](__args[0]));
   } else utils.invalidArgs();
 };
 

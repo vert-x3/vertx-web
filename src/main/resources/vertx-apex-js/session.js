@@ -48,7 +48,7 @@ var Session = function(j_val) {
   this.id = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return j_session.id();
+      return j_session["id()"]();
     } else utils.invalidArgs();
   };
 
@@ -63,7 +63,7 @@ var Session = function(j_val) {
   this.put = function(key, obj) {
     var __args = arguments;
     if (__args.length === 2 && typeof __args[0] === 'string' && true) {
-      j_session.put(key, utils.convParamTypeUnknown(obj));
+      j_session["put(java.lang.String,java.lang.Object)"](key, utils.convParamTypeUnknown(obj));
       return that;
     } else utils.invalidArgs();
   };
@@ -78,7 +78,7 @@ var Session = function(j_val) {
   this.get = function(key) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return utils.convReturnTypeUnknown(j_session.get(key));
+      return utils.convReturnTypeUnknown(j_session["get(java.lang.String)"](key));
     } else utils.invalidArgs();
   };
 
@@ -92,7 +92,7 @@ var Session = function(j_val) {
   this.remove = function(key) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return utils.convReturnTypeUnknown(j_session.remove(key));
+      return utils.convReturnTypeUnknown(j_session["remove(java.lang.String)"](key));
     } else utils.invalidArgs();
   };
 
@@ -106,7 +106,7 @@ var Session = function(j_val) {
   this.lastAccessed = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return j_session.lastAccessed();
+      return j_session["lastAccessed()"]();
     } else utils.invalidArgs();
   };
 
@@ -119,7 +119,7 @@ var Session = function(j_val) {
   this.destroy = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      j_session.destroy();
+      j_session["destroy()"]();
     } else utils.invalidArgs();
   };
 
@@ -133,7 +133,7 @@ var Session = function(j_val) {
   this.isDestroyed = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return j_session.isDestroyed();
+      return j_session["isDestroyed()"]();
     } else utils.invalidArgs();
   };
 
@@ -148,7 +148,7 @@ var Session = function(j_val) {
   this.getLoginID = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return j_session.getLoginID();
+      return j_session["getLoginID()"]();
     } else utils.invalidArgs();
   };
 
@@ -162,7 +162,7 @@ var Session = function(j_val) {
   this.isLoggedIn = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return j_session.isLoggedIn();
+      return j_session["isLoggedIn()"]();
     } else utils.invalidArgs();
   };
 
@@ -176,7 +176,7 @@ var Session = function(j_val) {
   this.hasRole = function(role, resultHandler) {
     var __args = arguments;
     if (__args.length === 2 && typeof __args[0] === 'string' && typeof __args[1] === 'function') {
-      j_session.hasRole(role, function(ar) {
+      j_session["hasRole(java.lang.String,io.vertx.core.Handler)"](role, function(ar) {
       if (ar.succeeded()) {
         resultHandler(ar.result(), null);
       } else {
@@ -196,7 +196,7 @@ var Session = function(j_val) {
   this.hasPermission = function(permission, resultHandler) {
     var __args = arguments;
     if (__args.length === 2 && typeof __args[0] === 'string' && typeof __args[1] === 'function') {
-      j_session.hasPermission(permission, function(ar) {
+      j_session["hasPermission(java.lang.String,io.vertx.core.Handler)"](permission, function(ar) {
       if (ar.succeeded()) {
         resultHandler(ar.result(), null);
       } else {
@@ -215,7 +215,7 @@ var Session = function(j_val) {
   this.logout = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      j_session.logout();
+      j_session["logout()"]();
     } else utils.invalidArgs();
   };
 
@@ -229,7 +229,7 @@ var Session = function(j_val) {
   this.timeout = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return j_session.timeout();
+      return j_session["timeout()"]();
     } else utils.invalidArgs();
   };
 
@@ -243,7 +243,7 @@ var Session = function(j_val) {
   this.sessionStore = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return new SessionStore(j_session.sessionStore());
+      return new SessionStore(j_session["sessionStore()"]());
     } else utils.invalidArgs();
   };
 
@@ -256,7 +256,7 @@ var Session = function(j_val) {
   this.setLoginID = function(loginID) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      j_session.setLoginID(loginID);
+      j_session["setLoginID(java.lang.String)"](loginID);
     } else utils.invalidArgs();
   };
 
@@ -269,7 +269,7 @@ var Session = function(j_val) {
   this.setAccessed = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      j_session.setAccessed();
+      j_session["setAccessed()"]();
     } else utils.invalidArgs();
   };
 
@@ -282,7 +282,7 @@ var Session = function(j_val) {
   this.setAuthService = function(authService) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
-      j_session.setAuthService(authService._jdel);
+      j_session["setAuthService(io.vertx.ext.auth.AuthService)"](authService._jdel);
     } else utils.invalidArgs();
   };
 
@@ -296,7 +296,7 @@ var Session = function(j_val) {
   this.getAuthService = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return new AuthService(j_session.getAuthService());
+      return new AuthService(j_session["getAuthService()"]());
     } else utils.invalidArgs();
   };
 

@@ -50,7 +50,7 @@ var RoutingContext = function(j_val) {
     var __args = arguments;
     if (__args.length === 0) {
       if (that.cachedrequest == null) {
-        that.cachedrequest = new HttpServerRequest(j_routingContext.request());
+        that.cachedrequest = new HttpServerRequest(j_routingContext["request()"]());
       }
       return that.cachedrequest;
     } else utils.invalidArgs();
@@ -67,7 +67,7 @@ var RoutingContext = function(j_val) {
     var __args = arguments;
     if (__args.length === 0) {
       if (that.cachedresponse == null) {
-        that.cachedresponse = new HttpServerResponse(j_routingContext.response());
+        that.cachedresponse = new HttpServerResponse(j_routingContext["response()"]());
       }
       return that.cachedresponse;
     } else utils.invalidArgs();
@@ -87,7 +87,7 @@ var RoutingContext = function(j_val) {
   this.next = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      j_routingContext.next();
+      j_routingContext["next()"]();
     } else utils.invalidArgs();
   };
 
@@ -103,7 +103,7 @@ var RoutingContext = function(j_val) {
   this.fail = function(statusCode) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] ==='number') {
-      j_routingContext.fail(statusCode);
+      j_routingContext["fail(int)"](statusCode);
     } else utils.invalidArgs();
   };
 
@@ -118,7 +118,7 @@ var RoutingContext = function(j_val) {
   this.put = function(key, obj) {
     var __args = arguments;
     if (__args.length === 2 && typeof __args[0] === 'string' && true) {
-      j_routingContext.put(key, utils.convParamTypeUnknown(obj));
+      j_routingContext["put(java.lang.String,java.lang.Object)"](key, utils.convParamTypeUnknown(obj));
       return that;
     } else utils.invalidArgs();
   };
@@ -133,7 +133,7 @@ var RoutingContext = function(j_val) {
   this.get = function(key) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return utils.convReturnTypeUnknown(j_routingContext.get(key));
+      return utils.convReturnTypeUnknown(j_routingContext["get(java.lang.String)"](key));
     } else utils.invalidArgs();
   };
 
@@ -147,7 +147,7 @@ var RoutingContext = function(j_val) {
   this.vertx = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return new Vertx(j_routingContext.vertx());
+      return new Vertx(j_routingContext["vertx()"]());
     } else utils.invalidArgs();
   };
 
@@ -162,7 +162,7 @@ var RoutingContext = function(j_val) {
   this.mountPoint = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return j_routingContext.mountPoint();
+      return j_routingContext["mountPoint()"]();
     } else utils.invalidArgs();
   };
 
@@ -176,7 +176,7 @@ var RoutingContext = function(j_val) {
   this.currentRoute = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return new Route(j_routingContext.currentRoute());
+      return new Route(j_routingContext["currentRoute()"]());
     } else utils.invalidArgs();
   };
 
@@ -200,7 +200,7 @@ var RoutingContext = function(j_val) {
   this.normalisedPath = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return j_routingContext.normalisedPath();
+      return j_routingContext["normalisedPath()"]();
     } else utils.invalidArgs();
   };
 
@@ -215,7 +215,7 @@ var RoutingContext = function(j_val) {
   this.getCookie = function(name) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return new Cookie(j_routingContext.getCookie(name));
+      return new Cookie(j_routingContext["getCookie(java.lang.String)"](name));
     } else utils.invalidArgs();
   };
 
@@ -230,7 +230,7 @@ var RoutingContext = function(j_val) {
   this.addCookie = function(cookie) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
-      j_routingContext.addCookie(cookie._jdel);
+      j_routingContext["addCookie(io.vertx.ext.apex.Cookie)"](cookie._jdel);
       return that;
     } else utils.invalidArgs();
   };
@@ -246,7 +246,7 @@ var RoutingContext = function(j_val) {
   this.removeCookie = function(name) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return new Cookie(j_routingContext.removeCookie(name));
+      return new Cookie(j_routingContext["removeCookie(java.lang.String)"](name));
     } else utils.invalidArgs();
   };
 
@@ -261,7 +261,7 @@ var RoutingContext = function(j_val) {
   this.cookieCount = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return j_routingContext.cookieCount();
+      return j_routingContext["cookieCount()"]();
     } else utils.invalidArgs();
   };
 
@@ -276,7 +276,7 @@ var RoutingContext = function(j_val) {
   this.cookies = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return utils.convReturnListSetVertxGen(j_routingContext.cookies(), Cookie);
+      return utils.convReturnListSetVertxGen(j_routingContext["cookies()"](), Cookie);
     } else utils.invalidArgs();
   };
 
@@ -291,9 +291,9 @@ var RoutingContext = function(j_val) {
   this.getBodyAsString = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return j_routingContext.getBodyAsString();
+      return j_routingContext["getBodyAsString()"]();
     }  else if (__args.length === 1 && typeof __args[0] === 'string') {
-      return j_routingContext.getBodyAsString(__args[0]);
+      return j_routingContext["getBodyAsString(java.lang.String)"](__args[0]);
     } else utils.invalidArgs();
   };
 
@@ -308,7 +308,7 @@ var RoutingContext = function(j_val) {
   this.getBodyAsJson = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return utils.convReturnJson(j_routingContext.getBodyAsJson());
+      return utils.convReturnJson(j_routingContext["getBodyAsJson()"]());
     } else utils.invalidArgs();
   };
 
@@ -323,7 +323,7 @@ var RoutingContext = function(j_val) {
   this.getBody = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return new Buffer(j_routingContext.getBody());
+      return new Buffer(j_routingContext["getBody()"]());
     } else utils.invalidArgs();
   };
 
@@ -338,7 +338,7 @@ var RoutingContext = function(j_val) {
   this.fileUploads = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return utils.convReturnListSetVertxGen(j_routingContext.fileUploads(), FileUpload);
+      return utils.convReturnListSetVertxGen(j_routingContext["fileUploads()"](), FileUpload);
     } else utils.invalidArgs();
   };
 
@@ -354,7 +354,7 @@ var RoutingContext = function(j_val) {
   this.session = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return new Session(j_routingContext.session());
+      return new Session(j_routingContext["session()"]());
     } else utils.invalidArgs();
   };
 
@@ -371,7 +371,7 @@ var RoutingContext = function(j_val) {
     var __args = arguments;
     if (__args.length === 0) {
       if (that.cachedstatusCode == null) {
-        that.cachedstatusCode = j_routingContext.statusCode();
+        that.cachedstatusCode = j_routingContext["statusCode()"]();
       }
       return that.cachedstatusCode;
     } else utils.invalidArgs();
@@ -388,7 +388,7 @@ var RoutingContext = function(j_val) {
   this.getAcceptableContentType = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return j_routingContext.getAcceptableContentType();
+      return j_routingContext["getAcceptableContentType()"]();
     } else utils.invalidArgs();
   };
 
@@ -403,7 +403,7 @@ var RoutingContext = function(j_val) {
   this.addHeadersEndHandler = function(handler) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'function') {
-      return j_routingContext.addHeadersEndHandler(handler);
+      return j_routingContext["addHeadersEndHandler(io.vertx.core.Handler)"](handler);
     } else utils.invalidArgs();
   };
 
@@ -417,7 +417,7 @@ var RoutingContext = function(j_val) {
   this.removeHeadersEndHandler = function(handlerID) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] ==='number') {
-      return j_routingContext.removeHeadersEndHandler(handlerID);
+      return j_routingContext["removeHeadersEndHandler(int)"](handlerID);
     } else utils.invalidArgs();
   };
 
@@ -432,7 +432,7 @@ var RoutingContext = function(j_val) {
   this.addBodyEndHandler = function(handler) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'function') {
-      return j_routingContext.addBodyEndHandler(handler);
+      return j_routingContext["addBodyEndHandler(io.vertx.core.Handler)"](handler);
     } else utils.invalidArgs();
   };
 
@@ -446,7 +446,7 @@ var RoutingContext = function(j_val) {
   this.removeBodyEndHandler = function(handlerID) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] ==='number') {
-      return j_routingContext.removeBodyEndHandler(handlerID);
+      return j_routingContext["removeBodyEndHandler(int)"](handlerID);
     } else utils.invalidArgs();
   };
 
@@ -460,7 +460,7 @@ var RoutingContext = function(j_val) {
   this.failed = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return j_routingContext.failed();
+      return j_routingContext["failed()"]();
     } else utils.invalidArgs();
   };
 
@@ -473,7 +473,7 @@ var RoutingContext = function(j_val) {
   this.setBody = function(body) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
-      j_routingContext.setBody(body._jdel);
+      j_routingContext["setBody(io.vertx.core.buffer.Buffer)"](body._jdel);
     } else utils.invalidArgs();
   };
 
@@ -486,7 +486,7 @@ var RoutingContext = function(j_val) {
   this.setSession = function(session) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
-      j_routingContext.setSession(session._jdel);
+      j_routingContext["setSession(io.vertx.ext.apex.Session)"](session._jdel);
     } else utils.invalidArgs();
   };
 
@@ -499,7 +499,7 @@ var RoutingContext = function(j_val) {
   this.setAcceptableContentType = function(contentType) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      j_routingContext.setAcceptableContentType(contentType);
+      j_routingContext["setAcceptableContentType(java.lang.String)"](contentType);
     } else utils.invalidArgs();
   };
 

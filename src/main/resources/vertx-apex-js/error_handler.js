@@ -40,7 +40,7 @@ var ErrorHandler = function(j_val) {
   this.handle = function(arg0) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
-      j_errorHandler.handle(arg0._jdel);
+      j_errorHandler["handle(io.vertx.ext.apex.RoutingContext)"](arg0._jdel);
     } else utils.invalidArgs();
   };
 
@@ -61,13 +61,13 @@ var ErrorHandler = function(j_val) {
 ErrorHandler.create = function() {
   var __args = arguments;
   if (__args.length === 0) {
-    return new ErrorHandler(JErrorHandler.create());
+    return new ErrorHandler(JErrorHandler["create()"]());
   }else if (__args.length === 1 && typeof __args[0] ==='boolean') {
-    return new ErrorHandler(JErrorHandler.create(__args[0]));
+    return new ErrorHandler(JErrorHandler["create(boolean)"](__args[0]));
   }else if (__args.length === 1 && typeof __args[0] === 'string') {
-    return new ErrorHandler(JErrorHandler.create(__args[0]));
+    return new ErrorHandler(JErrorHandler["create(java.lang.String)"](__args[0]));
   }else if (__args.length === 2 && typeof __args[0] === 'string' && typeof __args[1] ==='boolean') {
-    return new ErrorHandler(JErrorHandler.create(__args[0], __args[1]));
+    return new ErrorHandler(JErrorHandler["create(java.lang.String,boolean)"](__args[0], __args[1]));
   } else utils.invalidArgs();
 };
 

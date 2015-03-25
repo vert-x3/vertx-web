@@ -44,7 +44,7 @@ var Route = function(j_val) {
   this.method = function(method) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      j_route.method(io.vertx.core.http.HttpMethod.valueOf(__args[0]));
+      j_route["method(io.vertx.core.http.HttpMethod)"](io.vertx.core.http.HttpMethod.valueOf(__args[0]));
       return that;
     } else utils.invalidArgs();
   };
@@ -60,7 +60,7 @@ var Route = function(j_val) {
   this.path = function(path) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      j_route.path(path);
+      j_route["path(java.lang.String)"](path);
       return that;
     } else utils.invalidArgs();
   };
@@ -76,7 +76,7 @@ var Route = function(j_val) {
   this.pathRegex = function(path) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      j_route.pathRegex(path);
+      j_route["pathRegex(java.lang.String)"](path);
       return that;
     } else utils.invalidArgs();
   };
@@ -91,7 +91,7 @@ var Route = function(j_val) {
   this.produces = function(contentType) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return new Route(j_route.produces(contentType));
+      return new Route(j_route["produces(java.lang.String)"](contentType));
     } else utils.invalidArgs();
   };
 
@@ -105,7 +105,7 @@ var Route = function(j_val) {
   this.consumes = function(contentType) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      j_route.consumes(contentType);
+      j_route["consumes(java.lang.String)"](contentType);
       return that;
     } else utils.invalidArgs();
   };
@@ -120,7 +120,7 @@ var Route = function(j_val) {
   this.order = function(order) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] ==='number') {
-      j_route.order(order);
+      j_route["order(int)"](order);
       return that;
     } else utils.invalidArgs();
   };
@@ -135,7 +135,7 @@ var Route = function(j_val) {
   this.last = function(last) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] ==='boolean') {
-      j_route.last(last);
+      j_route["last(boolean)"](last);
       return that;
     } else utils.invalidArgs();
   };
@@ -152,7 +152,7 @@ var Route = function(j_val) {
   this.handler = function(requestHandler) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'function') {
-      j_route.handler(function(jVal) {
+      j_route["handler(io.vertx.core.Handler)"](function(jVal) {
       requestHandler(new RoutingContext(jVal));
     });
       return that;
@@ -171,7 +171,7 @@ var Route = function(j_val) {
   this.failureHandler = function(failureHandler) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'function') {
-      j_route.failureHandler(function(jVal) {
+      j_route["failureHandler(io.vertx.core.Handler)"](function(jVal) {
       failureHandler(new RoutingContext(jVal));
     });
       return that;
@@ -188,7 +188,7 @@ var Route = function(j_val) {
   this.remove = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      j_route.remove();
+      j_route["remove()"]();
       return that;
     } else utils.invalidArgs();
   };
@@ -203,7 +203,7 @@ var Route = function(j_val) {
   this.disable = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      j_route.disable();
+      j_route["disable()"]();
       return that;
     } else utils.invalidArgs();
   };
@@ -218,7 +218,7 @@ var Route = function(j_val) {
   this.enable = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      j_route.enable();
+      j_route["enable()"]();
       return that;
     } else utils.invalidArgs();
   };
@@ -234,7 +234,7 @@ var Route = function(j_val) {
   this.useNormalisedPath = function(useNormalisedPath) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] ==='boolean') {
-      j_route.useNormalisedPath(useNormalisedPath);
+      j_route["useNormalisedPath(boolean)"](useNormalisedPath);
       return that;
     } else utils.invalidArgs();
   };
@@ -249,7 +249,7 @@ var Route = function(j_val) {
   this.getPath = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return j_route.getPath();
+      return j_route["getPath()"]();
     } else utils.invalidArgs();
   };
 

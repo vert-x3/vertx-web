@@ -42,7 +42,7 @@ var SessionStore = function(j_val) {
   this.get = function(id, resultHandler) {
     var __args = arguments;
     if (__args.length === 2 && typeof __args[0] === 'string' && typeof __args[1] === 'function') {
-      j_sessionStore.get(id, function(ar) {
+      j_sessionStore["get(java.lang.String,io.vertx.core.Handler)"](id, function(ar) {
       if (ar.succeeded()) {
         resultHandler(new Session(ar.result()), null);
       } else {
@@ -62,7 +62,7 @@ var SessionStore = function(j_val) {
   this.delete = function(id, resultHandler) {
     var __args = arguments;
     if (__args.length === 2 && typeof __args[0] === 'string' && typeof __args[1] === 'function') {
-      j_sessionStore.delete(id, function(ar) {
+      j_sessionStore["delete(java.lang.String,io.vertx.core.Handler)"](id, function(ar) {
       if (ar.succeeded()) {
         resultHandler(ar.result(), null);
       } else {
@@ -83,7 +83,7 @@ var SessionStore = function(j_val) {
   this.put = function(session, timeout, resultHandler) {
     var __args = arguments;
     if (__args.length === 3 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] ==='number' && typeof __args[2] === 'function') {
-      j_sessionStore.put(session._jdel, timeout, function(ar) {
+      j_sessionStore["put(io.vertx.ext.apex.Session,long,io.vertx.core.Handler)"](session._jdel, timeout, function(ar) {
       if (ar.succeeded()) {
         resultHandler(ar.result(), null);
       } else {
@@ -102,7 +102,7 @@ var SessionStore = function(j_val) {
   this.clear = function(resultHandler) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'function') {
-      j_sessionStore.clear(function(ar) {
+      j_sessionStore["clear(io.vertx.core.Handler)"](function(ar) {
       if (ar.succeeded()) {
         resultHandler(ar.result(), null);
       } else {
@@ -121,7 +121,7 @@ var SessionStore = function(j_val) {
   this.size = function(resultHandler) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'function') {
-      j_sessionStore.size(function(ar) {
+      j_sessionStore["size(io.vertx.core.Handler)"](function(ar) {
       if (ar.succeeded()) {
         resultHandler(ar.result(), null);
       } else {
@@ -140,7 +140,7 @@ var SessionStore = function(j_val) {
   this.close = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      j_sessionStore.close();
+      j_sessionStore["close()"]();
     } else utils.invalidArgs();
   };
 

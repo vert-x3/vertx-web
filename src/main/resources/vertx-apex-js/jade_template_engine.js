@@ -43,7 +43,7 @@ var JadeTemplateEngine = function(j_val) {
   this.setExtension = function(extension) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return new JadeTemplateEngine(j_jadeTemplateEngine.setExtension(extension));
+      return new JadeTemplateEngine(j_jadeTemplateEngine["setExtension(java.lang.String)"](extension));
     } else utils.invalidArgs();
   };
 
@@ -57,7 +57,7 @@ var JadeTemplateEngine = function(j_val) {
   this.setMaxCacheSize = function(maxCacheSize) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] ==='number') {
-      return new JadeTemplateEngine(j_jadeTemplateEngine.setMaxCacheSize(maxCacheSize));
+      return new JadeTemplateEngine(j_jadeTemplateEngine["setMaxCacheSize(int)"](maxCacheSize));
     } else utils.invalidArgs();
   };
 
@@ -77,7 +77,7 @@ var JadeTemplateEngine = function(j_val) {
 JadeTemplateEngine.create = function() {
   var __args = arguments;
   if (__args.length === 0) {
-    return new JadeTemplateEngine(JJadeTemplateEngine.create());
+    return new JadeTemplateEngine(JJadeTemplateEngine["create()"]());
   } else utils.invalidArgs();
 };
 

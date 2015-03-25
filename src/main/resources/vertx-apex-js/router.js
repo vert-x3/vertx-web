@@ -44,7 +44,7 @@ var Router = function(j_val) {
   this.accept = function(request) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
-      j_router.accept(request._jdel);
+      j_router["accept(io.vertx.core.http.HttpServerRequest)"](request._jdel);
     } else utils.invalidArgs();
   };
 
@@ -59,11 +59,11 @@ var Router = function(j_val) {
   this.route = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return new Route(j_router.route());
+      return new Route(j_router["route()"]());
     }  else if (__args.length === 1 && typeof __args[0] === 'string') {
-      return new Route(j_router.route(__args[0]));
+      return new Route(j_router["route(java.lang.String)"](__args[0]));
     }  else if (__args.length === 2 && typeof __args[0] === 'string' && typeof __args[1] === 'string') {
-      return new Route(j_router.route(io.vertx.core.http.HttpMethod.valueOf(__args[0]), __args[1]));
+      return new Route(j_router["route(io.vertx.core.http.HttpMethod,java.lang.String)"](io.vertx.core.http.HttpMethod.valueOf(__args[0]), __args[1]));
     } else utils.invalidArgs();
   };
 
@@ -78,9 +78,9 @@ var Router = function(j_val) {
   this.routeWithRegex = function() {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return new Route(j_router.routeWithRegex(__args[0]));
+      return new Route(j_router["routeWithRegex(java.lang.String)"](__args[0]));
     }  else if (__args.length === 2 && typeof __args[0] === 'string' && typeof __args[1] === 'string') {
-      return new Route(j_router.routeWithRegex(io.vertx.core.http.HttpMethod.valueOf(__args[0]), __args[1]));
+      return new Route(j_router["routeWithRegex(io.vertx.core.http.HttpMethod,java.lang.String)"](io.vertx.core.http.HttpMethod.valueOf(__args[0]), __args[1]));
     } else utils.invalidArgs();
   };
 
@@ -94,9 +94,9 @@ var Router = function(j_val) {
   this.get = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return new Route(j_router.get());
+      return new Route(j_router["get()"]());
     }  else if (__args.length === 1 && typeof __args[0] === 'string') {
-      return new Route(j_router.get(__args[0]));
+      return new Route(j_router["get(java.lang.String)"](__args[0]));
     } else utils.invalidArgs();
   };
 
@@ -110,7 +110,7 @@ var Router = function(j_val) {
   this.getWithRegex = function(regex) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return new Route(j_router.getWithRegex(regex));
+      return new Route(j_router["getWithRegex(java.lang.String)"](regex));
     } else utils.invalidArgs();
   };
 
@@ -124,9 +124,9 @@ var Router = function(j_val) {
   this.head = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return new Route(j_router.head());
+      return new Route(j_router["head()"]());
     }  else if (__args.length === 1 && typeof __args[0] === 'string') {
-      return new Route(j_router.head(__args[0]));
+      return new Route(j_router["head(java.lang.String)"](__args[0]));
     } else utils.invalidArgs();
   };
 
@@ -140,7 +140,7 @@ var Router = function(j_val) {
   this.headWithRegex = function(regex) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return new Route(j_router.headWithRegex(regex));
+      return new Route(j_router["headWithRegex(java.lang.String)"](regex));
     } else utils.invalidArgs();
   };
 
@@ -154,9 +154,9 @@ var Router = function(j_val) {
   this.options = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return new Route(j_router.options());
+      return new Route(j_router["options()"]());
     }  else if (__args.length === 1 && typeof __args[0] === 'string') {
-      return new Route(j_router.options(__args[0]));
+      return new Route(j_router["options(java.lang.String)"](__args[0]));
     } else utils.invalidArgs();
   };
 
@@ -170,7 +170,7 @@ var Router = function(j_val) {
   this.optionsWithRegex = function(regex) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return new Route(j_router.optionsWithRegex(regex));
+      return new Route(j_router["optionsWithRegex(java.lang.String)"](regex));
     } else utils.invalidArgs();
   };
 
@@ -184,9 +184,9 @@ var Router = function(j_val) {
   this.put = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return new Route(j_router.put());
+      return new Route(j_router["put()"]());
     }  else if (__args.length === 1 && typeof __args[0] === 'string') {
-      return new Route(j_router.put(__args[0]));
+      return new Route(j_router["put(java.lang.String)"](__args[0]));
     } else utils.invalidArgs();
   };
 
@@ -200,7 +200,7 @@ var Router = function(j_val) {
   this.putWithRegex = function(regex) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return new Route(j_router.putWithRegex(regex));
+      return new Route(j_router["putWithRegex(java.lang.String)"](regex));
     } else utils.invalidArgs();
   };
 
@@ -214,9 +214,9 @@ var Router = function(j_val) {
   this.post = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return new Route(j_router.post());
+      return new Route(j_router["post()"]());
     }  else if (__args.length === 1 && typeof __args[0] === 'string') {
-      return new Route(j_router.post(__args[0]));
+      return new Route(j_router["post(java.lang.String)"](__args[0]));
     } else utils.invalidArgs();
   };
 
@@ -230,7 +230,7 @@ var Router = function(j_val) {
   this.postWithRegex = function(regex) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return new Route(j_router.postWithRegex(regex));
+      return new Route(j_router["postWithRegex(java.lang.String)"](regex));
     } else utils.invalidArgs();
   };
 
@@ -244,9 +244,9 @@ var Router = function(j_val) {
   this.delete = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return new Route(j_router.delete());
+      return new Route(j_router["delete()"]());
     }  else if (__args.length === 1 && typeof __args[0] === 'string') {
-      return new Route(j_router.delete(__args[0]));
+      return new Route(j_router["delete(java.lang.String)"](__args[0]));
     } else utils.invalidArgs();
   };
 
@@ -260,7 +260,7 @@ var Router = function(j_val) {
   this.deleteWithRegex = function(regex) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return new Route(j_router.deleteWithRegex(regex));
+      return new Route(j_router["deleteWithRegex(java.lang.String)"](regex));
     } else utils.invalidArgs();
   };
 
@@ -274,7 +274,7 @@ var Router = function(j_val) {
   this.getRoutes = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return utils.convReturnListSetVertxGen(j_router.getRoutes(), Route);
+      return utils.convReturnListSetVertxGen(j_router["getRoutes()"](), Route);
     } else utils.invalidArgs();
   };
 
@@ -288,7 +288,7 @@ var Router = function(j_val) {
   this.clear = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      j_router.clear();
+      j_router["clear()"]();
       return that;
     } else utils.invalidArgs();
   };
@@ -304,7 +304,7 @@ var Router = function(j_val) {
   this.mountSubRouter = function(mountPoint, subRouter) {
     var __args = arguments;
     if (__args.length === 2 && typeof __args[0] === 'string' && typeof __args[1] === 'object' && __args[1]._jdel) {
-      j_router.mountSubRouter(mountPoint, subRouter._jdel);
+      j_router["mountSubRouter(java.lang.String,io.vertx.ext.apex.Router)"](mountPoint, subRouter._jdel);
       return that;
     } else utils.invalidArgs();
   };
@@ -320,7 +320,7 @@ var Router = function(j_val) {
   this.exceptionHandler = function(exceptionHandler) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'function') {
-      j_router.exceptionHandler(function(jVal) {
+      j_router["exceptionHandler(io.vertx.core.Handler)"](function(jVal) {
       exceptionHandler(utils.convReturnTypeUnknown(jVal));
     });
       return that;
@@ -336,7 +336,7 @@ var Router = function(j_val) {
   this.handleContext = function(context) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
-      j_router.handleContext(context._jdel);
+      j_router["handleContext(io.vertx.ext.apex.RoutingContext)"](context._jdel);
     } else utils.invalidArgs();
   };
 
@@ -349,7 +349,7 @@ var Router = function(j_val) {
   this.handleFailure = function(context) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
-      j_router.handleFailure(context._jdel);
+      j_router["handleFailure(io.vertx.ext.apex.RoutingContext)"](context._jdel);
     } else utils.invalidArgs();
   };
 
@@ -369,7 +369,7 @@ var Router = function(j_val) {
 Router.router = function(vertx) {
   var __args = arguments;
   if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
-    return new Router(JRouter.router(vertx._jdel));
+    return new Router(JRouter["router(io.vertx.core.Vertx)"](vertx._jdel));
   } else utils.invalidArgs();
 };
 

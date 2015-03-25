@@ -43,7 +43,7 @@ var MVELTemplateEngine = function(j_val) {
   this.setExtension = function(extension) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return new MVELTemplateEngine(j_mVELTemplateEngine.setExtension(extension));
+      return new MVELTemplateEngine(j_mVELTemplateEngine["setExtension(java.lang.String)"](extension));
     } else utils.invalidArgs();
   };
 
@@ -57,7 +57,7 @@ var MVELTemplateEngine = function(j_val) {
   this.setMaxCacheSize = function(maxCacheSize) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] ==='number') {
-      return new MVELTemplateEngine(j_mVELTemplateEngine.setMaxCacheSize(maxCacheSize));
+      return new MVELTemplateEngine(j_mVELTemplateEngine["setMaxCacheSize(int)"](maxCacheSize));
     } else utils.invalidArgs();
   };
 
@@ -77,7 +77,7 @@ var MVELTemplateEngine = function(j_val) {
 MVELTemplateEngine.create = function() {
   var __args = arguments;
   if (__args.length === 0) {
-    return new MVELTemplateEngine(JMVELTemplateEngine.create());
+    return new MVELTemplateEngine(JMVELTemplateEngine["create()"]());
   } else utils.invalidArgs();
 };
 

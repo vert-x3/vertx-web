@@ -42,7 +42,7 @@ var AuthHandler = function(j_val) {
   this.handle = function(arg0) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
-      j_authHandler.handle(arg0._jdel);
+      j_authHandler["handle(io.vertx.ext.apex.RoutingContext)"](arg0._jdel);
     } else utils.invalidArgs();
   };
 
@@ -56,7 +56,7 @@ var AuthHandler = function(j_val) {
   this.addRole = function(role) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      j_authHandler.addRole(role);
+      j_authHandler["addRole(java.lang.String)"](role);
       return that;
     } else utils.invalidArgs();
   };
@@ -71,7 +71,7 @@ var AuthHandler = function(j_val) {
   this.addPermission = function(permission) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      j_authHandler.addPermission(permission);
+      j_authHandler["addPermission(java.lang.String)"](permission);
       return that;
     } else utils.invalidArgs();
   };
@@ -86,7 +86,7 @@ var AuthHandler = function(j_val) {
   this.addRoles = function(roles) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'object' && __args[0] instanceof Array) {
-      j_authHandler.addRoles(utils.convParamSetBasicOther(roles));
+      j_authHandler["addRoles(java.util.Set)"](utils.convParamSetBasicOther(roles));
       return that;
     } else utils.invalidArgs();
   };
@@ -101,7 +101,7 @@ var AuthHandler = function(j_val) {
   this.addPermissions = function(permissions) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'object' && __args[0] instanceof Array) {
-      j_authHandler.addPermissions(utils.convParamSetBasicOther(permissions));
+      j_authHandler["addPermissions(java.util.Set)"](utils.convParamSetBasicOther(permissions));
       return that;
     } else utils.invalidArgs();
   };

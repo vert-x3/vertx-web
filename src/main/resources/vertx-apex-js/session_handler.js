@@ -40,7 +40,7 @@ var SessionHandler = function(j_val) {
   this.handle = function(arg0) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
-      j_sessionHandler.handle(arg0._jdel);
+      j_sessionHandler["handle(io.vertx.ext.apex.RoutingContext)"](arg0._jdel);
     } else utils.invalidArgs();
   };
 
@@ -54,7 +54,7 @@ var SessionHandler = function(j_val) {
   this.setSessionTimeout = function(timeout) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] ==='number') {
-      j_sessionHandler.setSessionTimeout(timeout);
+      j_sessionHandler["setSessionTimeout(long)"](timeout);
       return that;
     } else utils.invalidArgs();
   };
@@ -70,7 +70,7 @@ var SessionHandler = function(j_val) {
   this.setNagHttps = function(nag) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] ==='boolean') {
-      j_sessionHandler.setNagHttps(nag);
+      j_sessionHandler["setNagHttps(boolean)"](nag);
       return that;
     } else utils.invalidArgs();
   };
@@ -85,7 +85,7 @@ var SessionHandler = function(j_val) {
   this.setSessionCookieName = function(sessionCookieName) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      j_sessionHandler.setSessionCookieName(sessionCookieName);
+      j_sessionHandler["setSessionCookieName(java.lang.String)"](sessionCookieName);
       return that;
     } else utils.invalidArgs();
   };
@@ -106,7 +106,7 @@ var SessionHandler = function(j_val) {
 SessionHandler.create = function(sessionStore) {
   var __args = arguments;
   if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
-    return new SessionHandler(JSessionHandler.create(sessionStore._jdel));
+    return new SessionHandler(JSessionHandler["create(io.vertx.ext.apex.sstore.SessionStore)"](sessionStore._jdel));
   } else utils.invalidArgs();
 };
 

@@ -43,7 +43,7 @@ var BasicAuthHandler = function(j_val) {
   this.handle = function(arg0) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
-      j_basicAuthHandler.handle(arg0._jdel);
+      j_basicAuthHandler["handle(io.vertx.ext.apex.RoutingContext)"](arg0._jdel);
     } else utils.invalidArgs();
   };
 
@@ -57,7 +57,7 @@ var BasicAuthHandler = function(j_val) {
   this.addRole = function(role) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      j_basicAuthHandler.addRole(role);
+      j_basicAuthHandler["addRole(java.lang.String)"](role);
       return that;
     } else utils.invalidArgs();
   };
@@ -72,7 +72,7 @@ var BasicAuthHandler = function(j_val) {
   this.addPermission = function(permission) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      j_basicAuthHandler.addPermission(permission);
+      j_basicAuthHandler["addPermission(java.lang.String)"](permission);
       return that;
     } else utils.invalidArgs();
   };
@@ -87,7 +87,7 @@ var BasicAuthHandler = function(j_val) {
   this.addRoles = function(roles) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'object' && __args[0] instanceof Array) {
-      j_basicAuthHandler.addRoles(utils.convParamSetBasicOther(roles));
+      j_basicAuthHandler["addRoles(java.util.Set)"](utils.convParamSetBasicOther(roles));
       return that;
     } else utils.invalidArgs();
   };
@@ -102,7 +102,7 @@ var BasicAuthHandler = function(j_val) {
   this.addPermissions = function(permissions) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'object' && __args[0] instanceof Array) {
-      j_basicAuthHandler.addPermissions(utils.convParamSetBasicOther(permissions));
+      j_basicAuthHandler["addPermissions(java.util.Set)"](utils.convParamSetBasicOther(permissions));
       return that;
     } else utils.invalidArgs();
   };
@@ -124,9 +124,9 @@ var BasicAuthHandler = function(j_val) {
 BasicAuthHandler.create = function() {
   var __args = arguments;
   if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
-    return new AuthHandler(JBasicAuthHandler.create(__args[0]._jdel));
+    return new AuthHandler(JBasicAuthHandler["create(io.vertx.ext.auth.AuthService)"](__args[0]._jdel));
   }else if (__args.length === 2 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'string') {
-    return new AuthHandler(JBasicAuthHandler.create(__args[0]._jdel, __args[1]));
+    return new AuthHandler(JBasicAuthHandler["create(io.vertx.ext.auth.AuthService,java.lang.String)"](__args[0]._jdel, __args[1]));
   } else utils.invalidArgs();
 };
 

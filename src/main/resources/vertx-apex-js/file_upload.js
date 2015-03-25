@@ -42,7 +42,7 @@ var FileUpload = function(j_val) {
   this.name = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return j_fileUpload.name();
+      return j_fileUpload["name()"]();
     } else utils.invalidArgs();
   };
 
@@ -56,7 +56,7 @@ var FileUpload = function(j_val) {
   this.uploadedFileName = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return j_fileUpload.uploadedFileName();
+      return j_fileUpload["uploadedFileName()"]();
     } else utils.invalidArgs();
   };
 
@@ -70,7 +70,7 @@ var FileUpload = function(j_val) {
   this.fileName = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return j_fileUpload.fileName();
+      return j_fileUpload["fileName()"]();
     } else utils.invalidArgs();
   };
 
@@ -84,7 +84,7 @@ var FileUpload = function(j_val) {
   this.size = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return j_fileUpload.size();
+      return j_fileUpload["size()"]();
     } else utils.invalidArgs();
   };
 
@@ -98,7 +98,7 @@ var FileUpload = function(j_val) {
   this.contentType = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return j_fileUpload.contentType();
+      return j_fileUpload["contentType()"]();
     } else utils.invalidArgs();
   };
 
@@ -112,7 +112,7 @@ var FileUpload = function(j_val) {
   this.contentTransferEncoding = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return j_fileUpload.contentTransferEncoding();
+      return j_fileUpload["contentTransferEncoding()"]();
     } else utils.invalidArgs();
   };
 
@@ -126,7 +126,7 @@ var FileUpload = function(j_val) {
   this.charSet = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return j_fileUpload.charSet();
+      return j_fileUpload["charSet()"]();
     } else utils.invalidArgs();
   };
 

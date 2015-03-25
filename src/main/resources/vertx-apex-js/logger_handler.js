@@ -40,7 +40,7 @@ var LoggerHandler = function(j_val) {
   this.handle = function(arg0) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
-      j_loggerHandler.handle(arg0._jdel);
+      j_loggerHandler["handle(io.vertx.ext.apex.RoutingContext)"](arg0._jdel);
     } else utils.invalidArgs();
   };
 
@@ -61,11 +61,11 @@ var LoggerHandler = function(j_val) {
 LoggerHandler.create = function() {
   var __args = arguments;
   if (__args.length === 0) {
-    return new LoggerHandler(JLoggerHandler.create());
+    return new LoggerHandler(JLoggerHandler["create()"]());
   }else if (__args.length === 1 && typeof __args[0] === 'string') {
-    return new LoggerHandler(JLoggerHandler.create(io.vertx.ext.apex.handler.LoggerHandler.Format.valueOf(__args[0])));
+    return new LoggerHandler(JLoggerHandler["create(io.vertx.ext.apex.handler.LoggerHandler.Format)"](io.vertx.ext.apex.handler.LoggerHandler.Format.valueOf(__args[0])));
   }else if (__args.length === 2 && typeof __args[0] ==='boolean' && typeof __args[1] === 'string') {
-    return new LoggerHandler(JLoggerHandler.create(__args[0], io.vertx.ext.apex.handler.LoggerHandler.Format.valueOf(__args[1])));
+    return new LoggerHandler(JLoggerHandler["create(boolean,io.vertx.ext.apex.handler.LoggerHandler.Format)"](__args[0], io.vertx.ext.apex.handler.LoggerHandler.Format.valueOf(__args[1])));
   } else utils.invalidArgs();
 };
 

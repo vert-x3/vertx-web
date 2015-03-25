@@ -41,7 +41,7 @@ var TimeoutHandler = function(j_val) {
   this.handle = function(arg0) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
-      j_timeoutHandler.handle(arg0._jdel);
+      j_timeoutHandler["handle(io.vertx.ext.apex.RoutingContext)"](arg0._jdel);
     } else utils.invalidArgs();
   };
 
@@ -61,9 +61,9 @@ var TimeoutHandler = function(j_val) {
 TimeoutHandler.create = function() {
   var __args = arguments;
   if (__args.length === 0) {
-    return new TimeoutHandler(JTimeoutHandler.create());
+    return new TimeoutHandler(JTimeoutHandler["create()"]());
   }else if (__args.length === 1 && typeof __args[0] ==='number') {
-    return new TimeoutHandler(JTimeoutHandler.create(__args[0]));
+    return new TimeoutHandler(JTimeoutHandler["create(long)"](__args[0]));
   } else utils.invalidArgs();
 };
 

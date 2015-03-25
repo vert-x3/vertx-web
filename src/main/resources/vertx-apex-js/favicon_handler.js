@@ -42,7 +42,7 @@ var FaviconHandler = function(j_val) {
   this.handle = function(arg0) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
-      j_faviconHandler.handle(arg0._jdel);
+      j_faviconHandler["handle(io.vertx.ext.apex.RoutingContext)"](arg0._jdel);
     } else utils.invalidArgs();
   };
 
@@ -63,13 +63,13 @@ var FaviconHandler = function(j_val) {
 FaviconHandler.create = function() {
   var __args = arguments;
   if (__args.length === 0) {
-    return new FaviconHandler(JFaviconHandler.create());
+    return new FaviconHandler(JFaviconHandler["create()"]());
   }else if (__args.length === 1 && typeof __args[0] === 'string') {
-    return new FaviconHandler(JFaviconHandler.create(__args[0]));
+    return new FaviconHandler(JFaviconHandler["create(java.lang.String)"](__args[0]));
   }else if (__args.length === 1 && typeof __args[0] ==='number') {
-    return new FaviconHandler(JFaviconHandler.create(__args[0]));
+    return new FaviconHandler(JFaviconHandler["create(long)"](__args[0]));
   }else if (__args.length === 2 && typeof __args[0] === 'string' && typeof __args[1] ==='number') {
-    return new FaviconHandler(JFaviconHandler.create(__args[0], __args[1]));
+    return new FaviconHandler(JFaviconHandler["create(java.lang.String,long)"](__args[0], __args[1]));
   } else utils.invalidArgs();
 };
 

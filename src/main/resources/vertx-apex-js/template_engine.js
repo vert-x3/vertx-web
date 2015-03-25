@@ -46,7 +46,7 @@ var TemplateEngine = function(j_val) {
   this.render = function(context, templateFileName, handler) {
     var __args = arguments;
     if (__args.length === 3 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'string' && typeof __args[2] === 'function') {
-      j_templateEngine.render(context._jdel, templateFileName, function(ar) {
+      j_templateEngine["render(io.vertx.ext.apex.RoutingContext,java.lang.String,io.vertx.core.Handler)"](context._jdel, templateFileName, function(ar) {
       if (ar.succeeded()) {
         handler(new Buffer(ar.result()), null);
       } else {

@@ -43,7 +43,7 @@ var RedirectAuthHandler = function(j_val) {
   this.handle = function(arg0) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
-      j_redirectAuthHandler.handle(arg0._jdel);
+      j_redirectAuthHandler["handle(io.vertx.ext.apex.RoutingContext)"](arg0._jdel);
     } else utils.invalidArgs();
   };
 
@@ -57,7 +57,7 @@ var RedirectAuthHandler = function(j_val) {
   this.addRole = function(role) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      j_redirectAuthHandler.addRole(role);
+      j_redirectAuthHandler["addRole(java.lang.String)"](role);
       return that;
     } else utils.invalidArgs();
   };
@@ -72,7 +72,7 @@ var RedirectAuthHandler = function(j_val) {
   this.addPermission = function(permission) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      j_redirectAuthHandler.addPermission(permission);
+      j_redirectAuthHandler["addPermission(java.lang.String)"](permission);
       return that;
     } else utils.invalidArgs();
   };
@@ -87,7 +87,7 @@ var RedirectAuthHandler = function(j_val) {
   this.addRoles = function(roles) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'object' && __args[0] instanceof Array) {
-      j_redirectAuthHandler.addRoles(utils.convParamSetBasicOther(roles));
+      j_redirectAuthHandler["addRoles(java.util.Set)"](utils.convParamSetBasicOther(roles));
       return that;
     } else utils.invalidArgs();
   };
@@ -102,7 +102,7 @@ var RedirectAuthHandler = function(j_val) {
   this.addPermissions = function(permissions) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'object' && __args[0] instanceof Array) {
-      j_redirectAuthHandler.addPermissions(utils.convParamSetBasicOther(permissions));
+      j_redirectAuthHandler["addPermissions(java.util.Set)"](utils.convParamSetBasicOther(permissions));
       return that;
     } else utils.invalidArgs();
   };
@@ -125,11 +125,11 @@ var RedirectAuthHandler = function(j_val) {
 RedirectAuthHandler.create = function() {
   var __args = arguments;
   if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
-    return new AuthHandler(JRedirectAuthHandler.create(__args[0]._jdel));
+    return new AuthHandler(JRedirectAuthHandler["create(io.vertx.ext.auth.AuthService)"](__args[0]._jdel));
   }else if (__args.length === 2 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'string') {
-    return new AuthHandler(JRedirectAuthHandler.create(__args[0]._jdel, __args[1]));
+    return new AuthHandler(JRedirectAuthHandler["create(io.vertx.ext.auth.AuthService,java.lang.String)"](__args[0]._jdel, __args[1]));
   }else if (__args.length === 3 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'string' && typeof __args[2] === 'string') {
-    return new AuthHandler(JRedirectAuthHandler.create(__args[0]._jdel, __args[1], __args[2]));
+    return new AuthHandler(JRedirectAuthHandler["create(io.vertx.ext.auth.AuthService,java.lang.String,java.lang.String)"](__args[0]._jdel, __args[1], __args[2]));
   } else utils.invalidArgs();
 };
 

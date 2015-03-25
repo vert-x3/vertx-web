@@ -71,7 +71,7 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
   private final long replyTimeout;
   private final Vertx vertx;
   private final EventBus eb;
-  private final Set<String> acceptedReplyAddresses = new HashSet<>();
+  private final Map<String, Message> messagesAwaitingReply = new HashMap<>();
   private final Map<String, Pattern> compiledREs = new HashMap<>();
   private EventBusBridgeHook hook;
 
@@ -194,7 +194,7 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
               authorise(curMatch, sock.apexSession(), res -> {
                 if (res.succeeded()) {
                   if (res.result()) {
-                    checkAddAccceptedReplyAddress(msg.replyAddress());
+                    checkAddAccceptedReplyAddress(msg);
                     deliverMessage(sock, address, msg);
                   } else {
                     if (debug) {
@@ -207,7 +207,7 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
               });
 
             } else {
-              checkAddAccceptedReplyAddress(msg.replyAddress());
+              checkAddAccceptedReplyAddress(msg);
               deliverMessage(sock, address, msg);
             }
           } else {
@@ -280,15 +280,19 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
     }
   }
 
-  private void checkAddAccceptedReplyAddress(final String replyAddress) {
+  private void checkAddAccceptedReplyAddress(Message message) {
+    String replyAddress = message.replyAddress();
     if (replyAddress != null) {
       // This message has a reply address
       // When the reply comes through we want to accept it irrespective of its address
       // Since all replies are implicitly accepted if the original message was accepted
       // So we cache the reply address, so we can check against it
-      acceptedReplyAddresses.add(replyAddress);
+      // We also need to cache the message so we can actually call reply() on it - we need the actual message
+      // as the original sender could be on a different node so we need the replyDest (serverID) too otherwise
+      // the message won't be routed to the node.
+      messagesAwaitingReply.put(replyAddress, message);
       // And we remove after timeout in case the reply never comes
-      vertx.setTimer(replyTimeout, id ->  acceptedReplyAddresses.remove(replyAddress));
+      vertx.setTimer(replyTimeout, tid -> messagesAwaitingReply.remove(replyAddress));
     }
   }
 
@@ -315,7 +319,13 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
     if (debug) {
       log.debug("Received msg from client in bridge. address:"  + address + " message:" + body);
     }
-    Match curMatch = checkMatches(true, address, body);
+    final Message awaitingReply = messagesAwaitingReply.remove(address);
+    Match curMatch;
+    if (awaitingReply != null) {
+      curMatch = new Match(true);
+    } else {
+      curMatch = checkMatches(true, address, body);
+    }
     if (curMatch.doesMatch) {
       if (curMatch.requiredPermission != null || curMatch.requiredRole != null) {
         Session apexSession = sock.apexSession();
@@ -326,7 +336,7 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
             authorise(curMatch, apexSession, res -> {
               if (res.succeeded()) {
                 if (res.result()) {
-                  checkAndSend(send, address, body, sock, replyAddress);
+                  checkAndSend(send, address, body, sock, replyAddress, null);
                 } else {
                   replyError(sock, "access_denied");
                   if (debug) {
@@ -348,7 +358,7 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
           }
         }
       } else {
-        checkAndSend(send, address, body, sock, replyAddress);
+        checkAndSend(send, address, body, sock, replyAddress, awaitingReply);
       }
     } else {
       // inbound match failed
@@ -361,7 +371,8 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
 
   private void checkAndSend(boolean send, String address, Object body,
                             SockJSSocket sock,
-                            String replyAddress) {
+                            String replyAddress,
+                            Message awaitingReply) {
     final SockInfo info = sockInfos.get(sock);
     if (replyAddress != null && !checkMaxHandlers(sock, info)) {
       return;
@@ -374,7 +385,10 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
           // Note we don't check outbound matches for replies
           // Replies are always let through if the original message
           // was approved
-          checkAddAccceptedReplyAddress(message.replyAddress());
+
+          // Now - the reply message might itself be waiting for a reply - which would be inbound -so we need
+          // to add the message to the messages awaiting reply so it can be let through
+          checkAddAccceptedReplyAddress(message);
           deliverMessage(sock, replyAddress, message);
         } else {
           ReplyException cause = (ReplyException) result.cause();
@@ -393,7 +407,11 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
       log.debug("Forwarding message to address " + address + " on event bus");
     }
     if (send) {
-      eb.send(address, body, new DeliveryOptions().setSendTimeout(replyTimeout), replyHandler);
+      if (awaitingReply != null) {
+        awaitingReply.reply(body, replyHandler);
+      } else {
+        eb.send(address, body, new DeliveryOptions().setSendTimeout(replyTimeout), replyHandler);
+      }
       if (replyAddress != null) {
         info.handlerCount++;
       }
@@ -430,11 +448,6 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
   this means that specifying one match with a JSON empty object means everything is accepted
    */
   private Match checkMatches(boolean inbound, String address, Object body) {
-
-    if (inbound && acceptedReplyAddresses.remove(address)) {
-      // This is an inbound reply, so we accept it
-      return new Match(true);
-    }
 
     List<PermittedOptions> matches = inbound ? inboundPermitted : outboundPermitted;
 

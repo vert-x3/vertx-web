@@ -43,7 +43,7 @@ var ThymeleafTemplateEngine = function(j_val) {
   this.setMode = function(mode) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return new ThymeleafTemplateEngine(j_thymeleafTemplateEngine.setMode(mode));
+      return new ThymeleafTemplateEngine(j_thymeleafTemplateEngine["setMode(java.lang.String)"](mode));
     } else utils.invalidArgs();
   };
 
@@ -63,7 +63,7 @@ var ThymeleafTemplateEngine = function(j_val) {
 ThymeleafTemplateEngine.create = function() {
   var __args = arguments;
   if (__args.length === 0) {
-    return new ThymeleafTemplateEngine(JThymeleafTemplateEngine.create());
+    return new ThymeleafTemplateEngine(JThymeleafTemplateEngine["create()"]());
   } else utils.invalidArgs();
 };
 

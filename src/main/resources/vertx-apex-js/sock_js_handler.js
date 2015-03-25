@@ -48,7 +48,7 @@ var SockJSHandler = function(j_val) {
   this.handle = function(arg0) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
-      j_sockJSHandler.handle(arg0._jdel);
+      j_sockJSHandler["handle(io.vertx.ext.apex.RoutingContext)"](arg0._jdel);
     } else utils.invalidArgs();
   };
 
@@ -63,7 +63,7 @@ var SockJSHandler = function(j_val) {
   this.socketHandler = function(handler) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'function') {
-      j_sockJSHandler.socketHandler(function(jVal) {
+      j_sockJSHandler["socketHandler(io.vertx.core.Handler)"](function(jVal) {
       handler(new SockJSSocket(jVal));
     });
       return that;
@@ -82,7 +82,7 @@ var SockJSHandler = function(j_val) {
   this.bridge = function(bridgeOptions) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'object') {
-      j_sockJSHandler.bridge(bridgeOptions != null ? new BridgeOptions(new JsonObject(JSON.stringify(bridgeOptions))) : null);
+      j_sockJSHandler["bridge(io.vertx.ext.apex.handler.sockjs.BridgeOptions)"](bridgeOptions != null ? new BridgeOptions(new JsonObject(JSON.stringify(bridgeOptions))) : null);
       return that;
     } else utils.invalidArgs();
   };
@@ -104,9 +104,9 @@ var SockJSHandler = function(j_val) {
 SockJSHandler.create = function() {
   var __args = arguments;
   if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
-    return new SockJSHandler(JSockJSHandler.create(__args[0]._jdel));
+    return new SockJSHandler(JSockJSHandler["create(io.vertx.core.Vertx)"](__args[0]._jdel));
   }else if (__args.length === 2 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'object') {
-    return new SockJSHandler(JSockJSHandler.create(__args[0]._jdel, __args[1] != null ? new SockJSHandlerOptions(new JsonObject(JSON.stringify(__args[1]))) : null));
+    return new SockJSHandler(JSockJSHandler["create(io.vertx.core.Vertx,io.vertx.ext.apex.handler.sockjs.SockJSHandlerOptions)"](__args[0]._jdel, __args[1] != null ? new SockJSHandlerOptions(new JsonObject(JSON.stringify(__args[1]))) : null));
   } else utils.invalidArgs();
 };
 
@@ -120,7 +120,7 @@ SockJSHandler.create = function() {
 SockJSHandler.installTestApplications = function(router, vertx) {
   var __args = arguments;
   if (__args.length === 2 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'object' && __args[1]._jdel) {
-    JSockJSHandler.installTestApplications(router._jdel, vertx._jdel);
+    JSockJSHandler["installTestApplications(io.vertx.ext.apex.Router,io.vertx.core.Vertx)"](router._jdel, vertx._jdel);
   } else utils.invalidArgs();
 };
 

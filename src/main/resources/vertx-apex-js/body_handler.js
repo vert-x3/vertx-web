@@ -39,7 +39,7 @@ var BodyHandler = function(j_val) {
   this.handle = function(arg0) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
-      j_bodyHandler.handle(arg0._jdel);
+      j_bodyHandler["handle(io.vertx.ext.apex.RoutingContext)"](arg0._jdel);
     } else utils.invalidArgs();
   };
 
@@ -53,7 +53,7 @@ var BodyHandler = function(j_val) {
   this.setBodyLimit = function(bodyLimit) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] ==='number') {
-      j_bodyHandler.setBodyLimit(bodyLimit);
+      j_bodyHandler["setBodyLimit(long)"](bodyLimit);
       return that;
     } else utils.invalidArgs();
   };
@@ -68,7 +68,7 @@ var BodyHandler = function(j_val) {
   this.setUploadsDirectory = function(uploadsDirectory) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      j_bodyHandler.setUploadsDirectory(uploadsDirectory);
+      j_bodyHandler["setUploadsDirectory(java.lang.String)"](uploadsDirectory);
       return that;
     } else utils.invalidArgs();
   };
@@ -83,7 +83,7 @@ var BodyHandler = function(j_val) {
   this.setMergeFormAttributes = function(mergeFormAttributes) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] ==='boolean') {
-      j_bodyHandler.setMergeFormAttributes(mergeFormAttributes);
+      j_bodyHandler["setMergeFormAttributes(boolean)"](mergeFormAttributes);
       return that;
     } else utils.invalidArgs();
   };
@@ -104,7 +104,7 @@ var BodyHandler = function(j_val) {
 BodyHandler.create = function() {
   var __args = arguments;
   if (__args.length === 0) {
-    return new BodyHandler(JBodyHandler.create());
+    return new BodyHandler(JBodyHandler["create()"]());
   } else utils.invalidArgs();
 };
 

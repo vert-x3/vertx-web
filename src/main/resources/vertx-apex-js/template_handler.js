@@ -43,7 +43,7 @@ var TemplateHandler = function(j_val) {
   this.handle = function(arg0) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
-      j_templateHandler.handle(arg0._jdel);
+      j_templateHandler["handle(io.vertx.ext.apex.RoutingContext)"](arg0._jdel);
     } else utils.invalidArgs();
   };
 
@@ -65,9 +65,9 @@ var TemplateHandler = function(j_val) {
 TemplateHandler.create = function() {
   var __args = arguments;
   if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
-    return new TemplateHandler(JTemplateHandler.create(__args[0]._jdel));
+    return new TemplateHandler(JTemplateHandler["create(io.vertx.ext.apex.templ.TemplateEngine)"](__args[0]._jdel));
   }else if (__args.length === 3 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'string' && typeof __args[2] === 'string') {
-    return new TemplateHandler(JTemplateHandler.create(__args[0]._jdel, __args[1], __args[2]));
+    return new TemplateHandler(JTemplateHandler["create(io.vertx.ext.apex.templ.TemplateEngine,java.lang.String,java.lang.String)"](__args[0]._jdel, __args[1], __args[2]));
   } else utils.invalidArgs();
 };
 

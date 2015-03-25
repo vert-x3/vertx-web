@@ -49,7 +49,7 @@ var SockJSSocket = function(j_val) {
   this.writeQueueFull = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return j_sockJSSocket.writeQueueFull();
+      return j_sockJSSocket["writeQueueFull()"]();
     } else utils.invalidArgs();
   };
 
@@ -62,7 +62,7 @@ var SockJSSocket = function(j_val) {
   this.exceptionHandler = function(handler) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'function') {
-      j_sockJSSocket.exceptionHandler(function(jVal) {
+      j_sockJSSocket["exceptionHandler(io.vertx.core.Handler)"](function(jVal) {
       handler(utils.convReturnTypeUnknown(jVal));
     });
       return that;
@@ -78,7 +78,7 @@ var SockJSSocket = function(j_val) {
   this.handler = function(handler) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'function') {
-      j_sockJSSocket.handler(function(jVal) {
+      j_sockJSSocket["handler(io.vertx.core.Handler)"](function(jVal) {
       handler(new Buffer(jVal));
     });
       return that;
@@ -94,7 +94,7 @@ var SockJSSocket = function(j_val) {
   this.pause = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      j_sockJSSocket.pause();
+      j_sockJSSocket["pause()"]();
       return that;
     } else utils.invalidArgs();
   };
@@ -108,7 +108,7 @@ var SockJSSocket = function(j_val) {
   this.resume = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      j_sockJSSocket.resume();
+      j_sockJSSocket["resume()"]();
       return that;
     } else utils.invalidArgs();
   };
@@ -122,7 +122,7 @@ var SockJSSocket = function(j_val) {
   this.endHandler = function(endHandler) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'function') {
-      j_sockJSSocket.endHandler(endHandler);
+      j_sockJSSocket["endHandler(io.vertx.core.Handler)"](endHandler);
       return that;
     } else utils.invalidArgs();
   };
@@ -136,7 +136,7 @@ var SockJSSocket = function(j_val) {
   this.write = function(data) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
-      j_sockJSSocket.write(data._jdel);
+      j_sockJSSocket["write(io.vertx.core.buffer.Buffer)"](data._jdel);
       return that;
     } else utils.invalidArgs();
   };
@@ -150,7 +150,7 @@ var SockJSSocket = function(j_val) {
   this.setWriteQueueMaxSize = function(maxSize) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] ==='number') {
-      j_sockJSSocket.setWriteQueueMaxSize(maxSize);
+      j_sockJSSocket["setWriteQueueMaxSize(int)"](maxSize);
       return that;
     } else utils.invalidArgs();
   };
@@ -164,7 +164,7 @@ var SockJSSocket = function(j_val) {
   this.drainHandler = function(handler) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'function') {
-      j_sockJSSocket.drainHandler(handler);
+      j_sockJSSocket["drainHandler(io.vertx.core.Handler)"](handler);
       return that;
     } else utils.invalidArgs();
   };
@@ -184,7 +184,7 @@ var SockJSSocket = function(j_val) {
   this.writeHandlerID = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return j_sockJSSocket.writeHandlerID();
+      return j_sockJSSocket["writeHandlerID()"]();
     } else utils.invalidArgs();
   };
 
@@ -197,7 +197,7 @@ var SockJSSocket = function(j_val) {
   this.close = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      j_sockJSSocket.close();
+      j_sockJSSocket["close()"]();
     } else utils.invalidArgs();
   };
 
@@ -211,7 +211,7 @@ var SockJSSocket = function(j_val) {
   this.remoteAddress = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return new SocketAddress(j_sockJSSocket.remoteAddress());
+      return new SocketAddress(j_sockJSSocket["remoteAddress()"]());
     } else utils.invalidArgs();
   };
 
@@ -225,7 +225,7 @@ var SockJSSocket = function(j_val) {
   this.localAddress = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return new SocketAddress(j_sockJSSocket.localAddress());
+      return new SocketAddress(j_sockJSSocket["localAddress()"]());
     } else utils.invalidArgs();
   };
 
@@ -240,7 +240,7 @@ var SockJSSocket = function(j_val) {
   this.headers = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return new MultiMap(j_sockJSSocket.headers());
+      return new MultiMap(j_sockJSSocket["headers()"]());
     } else utils.invalidArgs();
   };
 
@@ -254,7 +254,7 @@ var SockJSSocket = function(j_val) {
   this.uri = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return j_sockJSSocket.uri();
+      return j_sockJSSocket["uri()"]();
     } else utils.invalidArgs();
   };
 
@@ -268,7 +268,7 @@ var SockJSSocket = function(j_val) {
   this.apexSession = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return new Session(j_sockJSSocket.apexSession());
+      return new Session(j_sockJSSocket["apexSession()"]());
     } else utils.invalidArgs();
   };
 
