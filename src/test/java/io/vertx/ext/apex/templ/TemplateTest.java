@@ -62,11 +62,11 @@ public class TemplateTest extends ApexTestBase {
     }
     route.handler(TemplateHandler.create(engine, "somedir", "text/html"));
     String expected =
-      "<html>\n" +
-        "<body>\n" +
-        "<h1>Test template</h1>\n" +
-        "foo is badger bar is fox<br>\n" +
-        "</body>\n" +
+      "<html>" + Utils.LINE_SEPARATOR +
+        "<body>" + Utils.LINE_SEPARATOR +
+        "<h1>Test template</h1>" + Utils.LINE_SEPARATOR +
+        "foo is badger bar is fox<br>" + Utils.LINE_SEPARATOR +
+        "</body>" + Utils.LINE_SEPARATOR +
         "</html>";
     testRequest(HttpMethod.GET, pathPrefix != null ? pathPrefix + "/test-template.html" : "/test-template.html", 200, "OK", expected);
   }
@@ -98,11 +98,11 @@ public class TemplateTest extends ApexTestBase {
       });
     });
     String expected =
-      "<html>\n" +
-        "<body>\n" +
-        "<h1>Test template</h1>\n" +
-        "foo is badger bar is fox<br>\n" +
-        "</body>\n" +
+      "<html>" + Utils.LINE_SEPARATOR +
+        "<body>" + Utils.LINE_SEPARATOR +
+        "<h1>Test template</h1>" + Utils.LINE_SEPARATOR +
+        "foo is badger bar is fox<br>" + Utils.LINE_SEPARATOR +
+        "</body>" + Utils.LINE_SEPARATOR +
         "</html>";
     testRequest(HttpMethod.GET, "/", 200, "OK", expected);
   }
@@ -111,11 +111,11 @@ public class TemplateTest extends ApexTestBase {
   public void testRenderToBuffer() throws Exception {
     TemplateEngine engine = new TestEngine(false);
     String expected =
-      "<html>\n" +
-        "<body>\n" +
-        "<h1>Test template</h1>\n" +
-        "foo is badger bar is fox<br>\n" +
-        "</body>\n" +
+      "<html>" + Utils.LINE_SEPARATOR +
+        "<body>" + Utils.LINE_SEPARATOR +
+        "<h1>Test template</h1>" + Utils.LINE_SEPARATOR +
+        "foo is badger bar is fox<br>" + Utils.LINE_SEPARATOR +
+        "</body>" + Utils.LINE_SEPARATOR +
         "</html>";
     router.route().handler(context -> {
       context.put("foo", "badger");

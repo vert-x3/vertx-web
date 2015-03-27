@@ -103,7 +103,7 @@ public class BodyHandlerImpl implements BodyHandler {
       if (failed) {
         return;
       }
-      if (bodyLimit != -1 && body.length() > bodyLimit) {
+      if (bodyLimit != -1 && (body.length() + buff.length()) > bodyLimit) {
         failed = true;
         context.fail(413);
       } else {

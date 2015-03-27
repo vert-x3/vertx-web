@@ -156,8 +156,6 @@ public class StaticHandlerTest extends ApexTestBase {
       lastModifiedRef.set(lastModified);
       assertNotNull(cacheControl);
       assertNotNull(lastModified);
-      long diff = System.currentTimeMillis() - toDateTime(lastModified);
-      assertTrue(diff > 0 && diff < 2000);
       assertEquals("public, max-age=" + StaticHandler.DEFAULT_MAX_AGE_SECONDS, cacheControl);
     }, 200, "OK", "<html><body>Other page</body></html>");
     testRequest(HttpMethod.GET, "/otherpage.html", req -> {
@@ -191,8 +189,6 @@ public class StaticHandlerTest extends ApexTestBase {
       lastModifiedRef.set(lastModified);
       assertNotNull(cacheControl);
       assertNotNull(lastModified);
-      long diff = System.currentTimeMillis() - toDateTime(lastModified);
-      assertTrue(diff > 0 && diff < 2000);
       assertEquals("public, max-age=" + StaticHandler.DEFAULT_MAX_AGE_SECONDS, cacheControl);
     }, 200, "OK", "<html><body>Other page</body></html>");
     testRequest(HttpMethod.GET, "/otherpage.html", req -> {
@@ -235,7 +231,7 @@ public class StaticHandlerTest extends ApexTestBase {
   public void testCacheFilesNotReadOnly() throws Exception {
     stat.setFilesReadOnly(false);
     stat.setWebRoot("src/test/filesystemwebroot");
-    long modified = new File("src/test/filesystemwebroot", "fspage.html").lastModified();
+    long modified = Utils.secondsFactor(new File("src/test/filesystemwebroot", "fspage.html").lastModified());
     testRequest(HttpMethod.GET, "/fspage.html", null, res -> {
       String lastModified = res.headers().get("last-modified");
       assertEquals(modified, toDateTime(lastModified));
@@ -269,7 +265,7 @@ public class StaticHandlerTest extends ApexTestBase {
     stat.setWebRoot("src/test/filesystemwebroot");
     stat.setCacheEntryTimeout(2000);
     File resource = new File("src/test/filesystemwebroot", "fspage.html");
-    long modified = resource.lastModified();
+    long modified = Utils.secondsFactor(resource.lastModified());
     testRequest(HttpMethod.GET, "/fspage.html", null, res -> {
       String lastModified = res.headers().get("last-modified");
       assertEquals(modified, toDateTime(lastModified));
