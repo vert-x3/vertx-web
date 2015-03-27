@@ -32,7 +32,7 @@ import java.util.*;
  * @author <a href="http://tfox.org">Tim Fox</a>
  * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
  */
-public class Utils {
+public class Utils extends io.vertx.core.impl.Utils {
 
   public static String normalisePath(String path) {
     if (path == null || path.charAt(0) != '/') {
@@ -232,4 +232,8 @@ public class Utils {
       return 0;
     }
   };
+
+  public static long secondsFactor(long millis) {
+    return millis - (millis % 1000);
+  }
 }

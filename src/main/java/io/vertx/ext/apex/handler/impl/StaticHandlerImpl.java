@@ -30,6 +30,7 @@ import io.vertx.ext.apex.handler.StaticHandler;
 import io.vertx.ext.apex.impl.LRUCache;
 import io.vertx.ext.apex.impl.Utils;
 
+import java.io.File;
 import java.nio.file.NoSuchFileException;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -401,7 +402,7 @@ public class StaticHandlerImpl implements StaticHandler {
           Collections.sort(list);
 
           for (String s : list) {
-            file = s.substring(s.lastIndexOf('/') + 1);
+            file = s.substring(s.lastIndexOf(File.separatorChar) + 1);
             // skip dot files
             if (!includeHidden && file.charAt(0) == '.') {
               continue;
@@ -439,7 +440,7 @@ public class StaticHandlerImpl implements StaticHandler {
           JsonArray json = new JsonArray();
 
           for (String s : asyncResult.result()) {
-            file = s.substring(s.lastIndexOf('/') + 1);
+            file = s.substring(s.lastIndexOf(File.separatorChar) + 1);
             // skip dot files
             if (!includeHidden && file.charAt(0) == '.') {
               continue;
@@ -453,7 +454,7 @@ public class StaticHandlerImpl implements StaticHandler {
           StringBuilder buffer = new StringBuilder();
 
           for (String s : asyncResult.result()) {
-            file = s.substring(s.lastIndexOf('/') + 1);
+            file = s.substring(s.lastIndexOf(File.separatorChar) + 1);
             // skip dot files
             if (!includeHidden && file.charAt(0) == '.') {
               continue;
@@ -487,7 +488,7 @@ public class StaticHandlerImpl implements StaticHandler {
         return false;
       }
       Date ifModifiedSinceDate = parseDate(ifModifiedSince);
-      boolean modifiedSince = props.lastModifiedTime() > ifModifiedSinceDate.getTime();
+      boolean modifiedSince = Utils.secondsFactor(props.lastModifiedTime()) > ifModifiedSinceDate.getTime();
       return !modifiedSince;
     }
 
