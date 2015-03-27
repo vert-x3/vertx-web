@@ -38,7 +38,7 @@ public class TimeoutHandlerImpl implements TimeoutHandler {
     // We send a 408 response after timeout
     long tid = ctx.vertx().setTimer(timeout, t -> ctx.fail(408));
 
-    ctx.response().bodyEndHandler(v -> ctx.vertx().cancelTimer(tid));
+    ctx.addBodyEndHandler(v -> ctx.vertx().cancelTimer(tid));
 
     ctx.next();
   }
