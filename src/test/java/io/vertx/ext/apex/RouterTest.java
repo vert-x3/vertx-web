@@ -201,8 +201,7 @@ public class RouterTest extends ApexTestBase {
     testRequest(method, path + "wibble", 200, path + "wibble");
     if (path.endsWith("/")) {
       testRequest(method, path.substring(0, path.length() - 1) + "wibble", 404, "Not Found");
-      testRequest(method, path.substring(0, path.length() - 1) + "/wibble", 200,
-          path.substring(0, path.length() - 1) + "/wibble");
+      testRequest(method, path.substring(0, path.length() - 1) + "/wibble", 200, path.substring(0, path.length() - 1) + "/wibble");
     } else {
       testRequest(method, path + "/wibble", 200, path + "/wibble");
       testRequest(method, path + "/wibble/floob", 200, path + "/wibble/floob");
