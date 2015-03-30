@@ -114,6 +114,15 @@ public class RouterTest extends ApexTestBase {
     testPathBegin(path1);
     testPathBegin(path2);
   }
+  
+  @Test
+  public void testRoutePathWithTrailingSlashOnlyBegin() throws Exception {
+    String path = "/some/path/";
+    router.route(path + "*").handler(rc -> {
+      rc.response().setStatusCode(200).setStatusMessage(rc.request().path()).end();
+    });
+    testPathBegin(path);
+  }
 
   @Test
   public void testRoutePathBuilder() throws Exception {
@@ -190,9 +199,15 @@ public class RouterTest extends ApexTestBase {
   private void testPathBegin(HttpMethod method, String path) throws Exception {
     testRequest(method, path, 200, path);
     testRequest(method, path + "wibble", 200, path + "wibble");
-    testRequest(method, path + "/wibble", 200, path + "/wibble");
-    testRequest(method, path + "/wibble/floob", 200, path + "/wibble/floob");
-    testRequest(method, path.substring(0, path.length() - 1), 404, "Not Found");
+    if (path.endsWith("/")) {
+      testRequest(method, path.substring(0, path.length() - 1) + "wibble", 404, "Not Found");
+      testRequest(method, path.substring(0, path.length() - 1) + "/wibble", 200,
+          path.substring(0, path.length() - 1) + "/wibble");
+    } else {
+      testRequest(method, path + "/wibble", 200, path + "/wibble");
+      testRequest(method, path + "/wibble/floob", 200, path + "/wibble/floob");
+      testRequest(method, path.substring(0, path.length() - 1), 404, "Not Found");
+    }
     testRequest(method, "/", 404, "Not Found");
     testRequest(method, "/" + UUID.randomUUID().toString(), 404, "Not Found");
   }
