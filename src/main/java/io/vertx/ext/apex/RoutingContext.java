@@ -27,6 +27,7 @@ import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonObject;
 
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -321,5 +322,20 @@ public interface RoutingContext {
    * @param contentType  the content type
    */
   void setAcceptableContentType(String contentType);
+
+  /**
+   * @return Get the current locale {@link java.util.Locale}. The context must have first been routed to a
+   * {@link io.vertx.ext.apex.handler.LocaleHandler} for this to be populated.
+   */
+  Locale getLocale();
+  
+  /**
+   * Set the locale {@link java.util.Locale} to the specified value
+   *
+   * @param locale  the locale
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  RoutingContext setLocale(Locale locale);
 
 }
