@@ -333,7 +333,10 @@ public class RouteImpl implements Route {
     if (exactPath) {
       return pathMatchesExact(requestPath, thePath);
     } else {
-      return requestPath.startsWith(removeTrailing(thePath));
+      if (thePath.endsWith("/") && requestPath.equals(removeTrailing(thePath))) {
+        return true;
+      }
+      return requestPath.startsWith(thePath);
     }
   }
 
