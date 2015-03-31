@@ -36,6 +36,26 @@ public class TimeoutHandlerTest extends ApexTestBase {
   }
 
   @Test
+  public void testTimeoutWithCustomBodyEndHandler() throws Exception {
+    long timeout = 500;
+
+    final boolean[] ended = {false};
+    router.route().handler(routingContext -> {
+      routingContext.addBodyEndHandler(event -> ended[0] = true);
+      routingContext.next();
+    });
+
+    router.route().handler(TimeoutHandler.create(timeout));
+    router.route().handler(rc -> {
+      // Don't end it
+    });
+    testRequest(HttpMethod.GET, "/", 408, "Request Timeout");
+
+    assertTrue(ended[0]);
+  }
+
+
+  @Test
   public void testTimeoutCancelled() throws Exception {
     long timeout = 500;
     router.route().handler(TimeoutHandler.create(timeout));

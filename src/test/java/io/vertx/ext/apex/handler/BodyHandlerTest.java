@@ -17,12 +17,14 @@
 package io.vertx.ext.apex.handler;
 
 import io.vertx.core.MultiMap;
+import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.apex.FileUpload;
 import io.vertx.ext.apex.ApexTestBase;
 import io.vertx.test.core.TestUtils;
+import org.junit.AfterClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -44,12 +46,12 @@ public class BodyHandlerTest extends ApexTestBase {
     router.route().handler(BodyHandler.create());
   }
 
-  @Override
-  public void tearDown() throws Exception {
+  @AfterClass
+  public static void oneTimeTearDown() {
+    Vertx vertx = Vertx.vertx();
     if (vertx.fileSystem().existsBlocking(BodyHandler.DEFAULT_UPLOADS_DIRECTORY)) {
       vertx.fileSystem().deleteRecursiveBlocking(BodyHandler.DEFAULT_UPLOADS_DIRECTORY, true);
     }
-    super.tearDown();
   }
 
   @Test
@@ -138,6 +140,20 @@ public class BodyHandlerTest extends ApexTestBase {
   }
 
   @Test
+  public void testBodyTooBig2() throws Exception {
+    router.clear();
+    router.route().handler(BodyHandler.create().setBodyLimit(500));
+    Buffer buff = TestUtils.randomBuffer(1000);
+    router.route().handler(rc -> {
+      fail("Should not be called");
+    });
+    testRequest(HttpMethod.POST, "/", req -> {
+      req.setChunked(true);
+      req.write(buff);
+    }, 413, "Request Entity Too Large", null);
+  }
+
+  @Test
   public void testFileUploadSmallUpload() throws Exception {
     testFileUpload(BodyHandler.DEFAULT_UPLOADS_DIRECTORY, 50);
   }
@@ -182,7 +198,7 @@ public class BodyHandlerTest extends ApexTestBase {
       assertEquals("binary", upload.contentTransferEncoding());
       assertEquals(fileData.length(), upload.size());
       String uploadedFileName = upload.uploadedFileName();
-      assertTrue(uploadedFileName.startsWith(uploadsDir + "/"));
+      assertTrue(uploadedFileName.startsWith(uploadsDir + File.separator));
       Buffer uploaded = vertx.fileSystem().readFileBlocking(uploadedFileName);
       assertEquals(fileData, uploaded);
       // The body should be set too
