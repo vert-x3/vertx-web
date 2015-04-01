@@ -58,9 +58,9 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
   private static final byte TYPE_SERIALIZABLE = 12;
   private static final byte TYPE_CLUSTER_SERIALIZABLE = 13;
 
-  private final String id;
-  private final SessionStore sessionStore;
-  private final long timeout;
+  private String id;
+  private SessionStore sessionStore;
+  private long timeout;
   private Map<String, Object> data;
 
   private long lastAccessed;
@@ -69,6 +69,10 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
   private AuthService authService;
   private Set<String> roles = new HashSet<>();
   private Set<String> permissions = new HashSet<>();
+
+  public SessionImpl()
+  {
+  }
 
   public SessionImpl(String id, long timeout, SessionStore sessionStore) {
     this.id = id;
@@ -245,6 +249,9 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
   @Override
   public Buffer writeToBuffer() {
     Buffer buff = Buffer.buffer();
+    buff.appendInt(id.length());
+    buff.appendString(id);
+    buff.appendLong(timeout);
     buff.appendLong(lastAccessed);
     Buffer dataBuf = writeDataToBuffer();
     buff.appendInt(dataBuf.length());
@@ -255,9 +262,15 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
   @Override
   public void readFromBuffer(Buffer buffer) {
     int pos = 0;
+    int len = buffer.getInt(pos);
+    pos += 4;
+    id = buffer.getString(pos, pos + len);
+    pos += len;
+    timeout = buffer.getLong(pos);
+    pos += 8;
     lastAccessed = buffer.getLong(pos);
     pos += 8;
-    int len = buffer.getInt(pos);
+    len = buffer.getInt(pos);
     pos += 4;
     data = readDataFromBuffer(buffer, pos);
   }
