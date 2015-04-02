@@ -18,7 +18,7 @@
 var utils = require('vertx-js/util/utils');
 var AuthHandler = require('vertx-apex-js/auth_handler');
 var RoutingContext = require('vertx-apex-js/routing_context');
-var AuthService = require('vertx-auth-js/auth_service');
+var AuthProvider = require('vertx-auth-js/auth_provider');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
@@ -117,16 +117,16 @@ var BasicAuthHandler = function(j_val) {
  Create a basic auth handler, specifying realm
 
  @memberof module:vertx-apex-js/basic_auth_handler
- @param authService {AuthService} the auth service to use 
+ @param authProvider {AuthProvider} the auth service to use 
  @param realm {string} the realm to use 
  @return {AuthHandler} the auth handler
  */
 BasicAuthHandler.create = function() {
   var __args = arguments;
   if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
-    return new AuthHandler(JBasicAuthHandler["create(io.vertx.ext.auth.AuthService)"](__args[0]._jdel));
+    return new AuthHandler(JBasicAuthHandler["create(io.vertx.ext.auth.AuthProvider)"](__args[0]._jdel));
   }else if (__args.length === 2 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'string') {
-    return new AuthHandler(JBasicAuthHandler["create(io.vertx.ext.auth.AuthService,java.lang.String)"](__args[0]._jdel, __args[1]));
+    return new AuthHandler(JBasicAuthHandler["create(io.vertx.ext.auth.AuthProvider,java.lang.String)"](__args[0]._jdel, __args[1]));
   } else utils.invalidArgs();
 };
 

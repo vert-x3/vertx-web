@@ -18,7 +18,7 @@ package io.vertx.ext.apex.handler;
 
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.ext.apex.handler.impl.BasicAuthHandlerImpl;
-import io.vertx.ext.auth.AuthService;
+import io.vertx.ext.auth.AuthProvider;
 
 /**
  * An auth handler that provides HTTP Basic Authentication support.
@@ -36,21 +36,21 @@ public interface BasicAuthHandler extends AuthHandler {
   /**
    * Create a basic auth handler
    *
-   * @param authService  the auth service to use
+   * @param authProvider  the auth provider to use
    * @return the auth handler
    */
-  static AuthHandler create(AuthService authService) {
-    return new BasicAuthHandlerImpl(authService, DEFAULT_REALM);
+  static AuthHandler create(AuthProvider authProvider) {
+    return new BasicAuthHandlerImpl(authProvider, DEFAULT_REALM);
   }
 
   /**
    * Create a basic auth handler, specifying realm
    *
-   * @param authService  the auth service to use
+   * @param authProvider  the auth service to use
    * @param realm  the realm to use
    * @return the auth handler
    */
-  static AuthHandler create(AuthService authService, String realm) {
-    return new BasicAuthHandlerImpl(authService, realm);
+  static AuthHandler create(AuthProvider authProvider, String realm) {
+    return new BasicAuthHandlerImpl(authProvider, realm);
   }
 }

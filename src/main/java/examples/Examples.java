@@ -18,10 +18,11 @@ import io.vertx.ext.apex.sstore.LocalSessionStore;
 import io.vertx.ext.apex.sstore.SessionStore;
 import io.vertx.ext.apex.templ.HandlebarsTemplateEngine;
 import io.vertx.ext.apex.templ.TemplateEngine;
+import io.vertx.ext.auth.AuthProvider;
 import io.vertx.ext.auth.AuthService;
 import io.vertx.ext.auth.shiro.PropertiesAuthRealmConstants;
+import io.vertx.ext.auth.shiro.ShiroAuthProvider;
 import io.vertx.ext.auth.shiro.ShiroAuthRealmType;
-import io.vertx.ext.auth.shiro.ShiroAuthService;
 
 import java.util.Set;
 
@@ -666,37 +667,29 @@ public class Examples {
     JsonObject config = new JsonObject();
     config.put(PropertiesAuthRealmConstants.PROPERTIES_PROPS_PATH_FIELD,
                "classpath:test-auth.properties");
-    AuthService authService = ShiroAuthService.create(vertx, ShiroAuthRealmType.PROPERTIES, config);
 
-    AuthHandler basicAuthHandler = BasicAuthHandler.create(authService);
+    AuthProvider authProvider = ShiroAuthProvider.create(vertx, ShiroAuthRealmType.PROPERTIES, config);
+
+    AuthHandler basicAuthHandler = BasicAuthHandler.create(authProvider);
   }
 
-  public void example36(Vertx vertx) {
 
-    // Let's say you already have an auth service somewhere on your network listening on event bus address `acme.authservice`.
+  public void example37(Vertx vertx, AuthProvider authProvider, Router router) {
 
-    AuthService authService = AuthService.createEventBusProxy(vertx, "acme.authservice");
+    router.route().handler(CookieHandler.create());
+    router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
 
-    AuthHandler basicAuthHandler = BasicAuthHandler.create(authService);
+    AuthHandler basicAuthHandler = BasicAuthHandler.create(authProvider);
+
   }
 
-  public void example37(Vertx vertx, Router router) {
+  public void example38(Vertx vertx, AuthProvider authProvider, Router router) {
 
     router.route().handler(CookieHandler.create());
     router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
 
     AuthService authService = AuthService.createEventBusProxy(vertx, "acme.authservice");
-    AuthHandler basicAuthHandler = BasicAuthHandler.create(authService);
-
-  }
-
-  public void example38(Vertx vertx, Router router) {
-
-    router.route().handler(CookieHandler.create());
-    router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
-
-    AuthService authService = AuthService.createEventBusProxy(vertx, "acme.authservice");
-    AuthHandler basicAuthHandler = BasicAuthHandler.create(authService);
+    AuthHandler basicAuthHandler = BasicAuthHandler.create(authProvider);
 
     // All requests to paths starting with '/private/' will be protected
     router.route("/private/*").handler(basicAuthHandler);
@@ -717,19 +710,19 @@ public class Examples {
     });
   }
 
-  public void example39(Vertx vertx, Router router) {
+  public void example39(Vertx vertx, AuthProvider authProvider, Router router) {
 
     router.route().handler(CookieHandler.create());
     router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
 
     AuthService authService = AuthService.createEventBusProxy(vertx, "acme.authservice");
-    AuthHandler redirectAuthHandler = RedirectAuthHandler.create(authService);
+    AuthHandler redirectAuthHandler = RedirectAuthHandler.create(authProvider);
 
     // All requests to paths starting with '/private/' will be protected
     router.route("/private/*").handler(redirectAuthHandler);
 
     // Handle the actual login
-    router.route("/login").handler(FormLoginHandler.create(authService));
+    router.route("/login").handler(FormLoginHandler.create(authProvider));
 
     // Set a static server to serve static resources, e.g. the login page
     router.route().handler(StaticHandler.create());
@@ -749,15 +742,15 @@ public class Examples {
 
   }
 
-  public void example40(AuthService authService, Router router) {
+  public void example40(AuthProvider authProvider, Router router) {
 
-    AuthHandler managerAuthHandler = RedirectAuthHandler.create(authService);
+    AuthHandler managerAuthHandler = RedirectAuthHandler.create(authProvider);
     managerAuthHandler.addRole("manager").addRole("admin");
 
     // Roles "manager" and "admin" have access to /private/managers
     router.route("/private/managers").handler(managerAuthHandler);
 
-    AuthHandler settingsAuthHandler = RedirectAuthHandler.create(authService);
+    AuthHandler settingsAuthHandler = RedirectAuthHandler.create(authProvider);
     settingsAuthHandler.addRole("admin");
 
     // Only "admin" has access to /private/settings
@@ -940,8 +933,9 @@ public class Examples {
     JsonObject authConfig = new JsonObject();
     authConfig.put(PropertiesAuthRealmConstants.PROPERTIES_PROPS_PATH_FIELD,
       "classpath:test-auth.properties");
-    AuthService authService = ShiroAuthService.create(vertx, ShiroAuthRealmType.PROPERTIES, authConfig);
-    AuthHandler basicAuthHandler = BasicAuthHandler.create(authService);
+    AuthProvider authProvider = ShiroAuthProvider.create(vertx, ShiroAuthRealmType.PROPERTIES, authConfig);
+
+    AuthHandler basicAuthHandler = BasicAuthHandler.create(authProvider);
 
     router.route("/eventbus/").handler(basicAuthHandler);
 

@@ -21,7 +21,7 @@ import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.apex.RoutingContext;
 import io.vertx.ext.apex.Session;
-import io.vertx.ext.auth.AuthService;
+import io.vertx.ext.auth.AuthProvider;
 
 import java.util.Base64;
 
@@ -33,8 +33,8 @@ public class BasicAuthHandlerImpl extends AuthHandlerImpl {
 
   private final String realm;
 
-  public BasicAuthHandlerImpl(AuthService authService, String realm) {
-    super(authService);
+  public BasicAuthHandlerImpl(AuthProvider authProvider, String realm) {
+    super(authProvider);
     this.realm = realm;
   }
 
@@ -78,11 +78,11 @@ public class BasicAuthHandlerImpl extends AuthHandlerImpl {
           if (!"Basic".equals(scheme)) {
             context.fail(400);
           } else {
-            authService.login(new JsonObject().put("username", user).put("password", pass), res -> {
+            JsonObject principal = new JsonObject().put("username", user);
+            authProvider.login(principal, new JsonObject().put("password", pass), res -> {
               if (res.succeeded()) {
-                String loginID = res.result();
-                session.setLoginID(loginID);
-                session.setAuthService(authService);
+                session.setPrincipal(principal);
+                session.setAuthProvider(authProvider);
                 authorise(context);
               } else {
                 handle401(context);

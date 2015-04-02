@@ -17,7 +17,7 @@
 /** @module vertx-apex-js/form_login_handler */
 var utils = require('vertx-js/util/utils');
 var RoutingContext = require('vertx-apex-js/routing_context');
-var AuthService = require('vertx-auth-js/auth_service');
+var AuthProvider = require('vertx-auth-js/auth_provider');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
@@ -55,7 +55,7 @@ var FormLoginHandler = function(j_val) {
  Create a handler
 
  @memberof module:vertx-apex-js/form_login_handler
- @param authService {AuthService} the auth service to use 
+ @param authProvider {AuthProvider} the auth service to use 
  @param usernameParam {string} the value of the form attribute which will contain the username 
  @param passwordParam {string} the value of the form attribute which will contain the password 
  @param returnURLParam {string} the value of the form attribute which will contain the return url 
@@ -64,9 +64,9 @@ var FormLoginHandler = function(j_val) {
 FormLoginHandler.create = function() {
   var __args = arguments;
   if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
-    return new FormLoginHandler(JFormLoginHandler["create(io.vertx.ext.auth.AuthService)"](__args[0]._jdel));
+    return new FormLoginHandler(JFormLoginHandler["create(io.vertx.ext.auth.AuthProvider)"](__args[0]._jdel));
   }else if (__args.length === 4 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'string' && typeof __args[2] === 'string' && typeof __args[3] === 'string') {
-    return new FormLoginHandler(JFormLoginHandler["create(io.vertx.ext.auth.AuthService,java.lang.String,java.lang.String,java.lang.String)"](__args[0]._jdel, __args[1], __args[2], __args[3]));
+    return new FormLoginHandler(JFormLoginHandler["create(io.vertx.ext.auth.AuthProvider,java.lang.String,java.lang.String,java.lang.String)"](__args[0]._jdel, __args[1], __args[2], __args[3]));
   } else utils.invalidArgs();
 };
 

@@ -21,10 +21,12 @@ import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.apex.sstore.SessionStore;
-import io.vertx.ext.auth.AuthService;
+import io.vertx.ext.auth.AuthProvider;
 
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Represents a browser session.
@@ -95,15 +97,23 @@ public interface Session {
   boolean isDestroyed();
 
   /**
-   * @return  the login ID of the logged in user (if any). Must be used in conjunction with a
-   * {@link io.vertx.ext.apex.handler.AuthHandler}.
-   */
-  String getLoginID();
-
-  /**
    * @return  true if the user is logged in.
    */
   boolean isLoggedIn();
+
+  /**
+   * Set the principal (the unique user id) of the user -this signifies the user is logged in
+   *
+   * @param principal  the principal
+   */
+  void setPrincipal(JsonObject principal);
+
+  /**
+   * Get the principal
+   *
+   * @return  the principal or null if not logged in
+   */
+  JsonObject getPrincipal();
 
   /**
    * Does the logged in user have the specified role?  Information is cached for the lifetime of the session
@@ -122,6 +132,22 @@ public interface Session {
   void hasPermission(String permission, Handler<AsyncResult<Boolean>> resultHandler);
 
   /**
+   * Does the logged in user have the specified roles?  Information is cached for the lifetime of the session
+   *
+   * @param roles  the roles
+   * @param resultHandler will be called with a result true/false
+   */
+  void hasRoles(Set<String> roles, Handler<AsyncResult<Boolean>> resultHandler);
+
+  /**
+   * Does the logged in user have the specified permissions?  Information is cached for the lifetime of the session
+   *
+   * @param permissions  the permissions
+   * @param resultHandler will be called with a result true/false
+   */
+  void hasPermissions(Set<String> permissions, Handler<AsyncResult<Boolean>> resultHandler);
+
+  /**
    * Logout the user.
    */
   void logout();
@@ -137,29 +163,15 @@ public interface Session {
   SessionStore sessionStore();
 
   /**
-   * Set the login ID for the session
-   *
-   * @param loginID  the login ID
-   */
-  void setLoginID(String loginID);
-
-  /**
    * Mark the session as being accessed.
    */
   void setAccessed();
 
   /**
-   * Set the auth service
+   * Set the auth provider
    *
-   * @param authService  the auth service
+   * @param authProvider  the auth provider
    */
-  void setAuthService(AuthService authService);
-
-  /**
-   * Get the auth service
-   *
-   * @return the auth service
-   */
-  AuthService getAuthService();
+  void setAuthProvider(AuthProvider authProvider);
 
 }

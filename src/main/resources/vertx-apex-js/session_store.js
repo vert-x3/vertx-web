@@ -33,6 +33,20 @@ var SessionStore = function(j_val) {
   var that = this;
 
   /**
+   Create a new session
+
+   @public
+   @param timeout {number} - the session timeout, in ms 
+   @return {Session} the session
+   */
+  this.createSession = function(timeout) {
+    var __args = arguments;
+    if (__args.length === 1 && typeof __args[0] ==='number') {
+      return new Session(j_sessionStore["createSession(long)"](timeout));
+    } else utils.invalidArgs();
+  };
+
+  /**
    Get the session with the specified ID
 
    @public
@@ -77,13 +91,12 @@ var SessionStore = function(j_val) {
 
    @public
    @param session {Session} the session 
-   @param timeout {number} max time session will last without being accessed before getting expired 
    @param resultHandler {function} will be called with a result true/false, or a failure 
    */
-  this.put = function(session, timeout, resultHandler) {
+  this.put = function(session, resultHandler) {
     var __args = arguments;
-    if (__args.length === 3 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] ==='number' && typeof __args[2] === 'function') {
-      j_sessionStore["put(io.vertx.ext.apex.Session,long,io.vertx.core.Handler)"](session._jdel, timeout, function(ar) {
+    if (__args.length === 2 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'function') {
+      j_sessionStore["put(io.vertx.ext.apex.Session,io.vertx.core.Handler)"](session._jdel, function(ar) {
       if (ar.succeeded()) {
         resultHandler(ar.result(), null);
       } else {

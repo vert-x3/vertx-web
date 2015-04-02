@@ -14,27 +14,28 @@
  *  You may elect to redistribute this code under either of these licenses.
  */
 
-package io.vertx.ext.apex.impl;
+package io.vertx.ext.apex.sstore.impl;
 
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.VertxException;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.impl.LoggerFactory;
 import io.vertx.core.shareddata.Shareable;
 import io.vertx.core.shareddata.impl.ClusterSerializable;
 import io.vertx.ext.apex.Session;
+import io.vertx.ext.apex.impl.Utils;
 import io.vertx.ext.apex.sstore.SessionStore;
-import io.vertx.ext.auth.AuthService;
+import io.vertx.ext.auth.AuthProvider;
 
 import java.io.*;
 import java.nio.charset.Charset;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -60,18 +61,17 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
 
   private final String id;
   private final SessionStore sessionStore;
-  private final long timeout;
+  private long timeout;
   private Map<String, Object> data;
-
   private long lastAccessed;
   private boolean destroyed;
-  private String loginID;
-  private AuthService authService;
-  private Set<String> roles = new HashSet<>();
-  private Set<String> permissions = new HashSet<>();
+  private JsonObject principal;
+  private AuthProvider authProvider;
+  private Set<String> roles;
+  private Set<String> permissions;
 
-  public SessionImpl(String id, long timeout, SessionStore sessionStore) {
-    this.id = id;
+  SessionImpl(long timeout, SessionStore sessionStore) {
+    this.id = UUID.randomUUID().toString();
     this.sessionStore = sessionStore;
     this.timeout = timeout;
     this.lastAccessed = System.currentTimeMillis();
@@ -120,19 +120,13 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
   @Override
   public void setAccessed() {
     this.lastAccessed = System.currentTimeMillis();
-    if (authService != null && loginID != null) {
-      authService.refreshLoginSession(loginID, res -> {
-        if (res.failed()) {
-          log.error("Failed to refresh login", res.cause());
-        }
-      });
-    }
   }
 
   @Override
   public void destroy() {
     destroyed = true;
     data = null;
+    principal = null;
     sessionStore.delete(id, res -> {
       if (!res.succeeded()) {
         log.error("Failed to delete session", res.cause());
@@ -152,20 +146,20 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
 
   @Override
   public boolean isLoggedIn() {
-    return loginID != null;
+    return principal != null;
   }
 
   @Override
   public void hasRole(String role, Handler<AsyncResult<Boolean>> resultHandler) {
-    if (roles.contains(role)) {
+    if (getRoles().contains(role)) {
       resultHandler.handle(Future.succeededFuture(true));
     } else {
-      if (authService != null && loginID != null) {
-        authService.hasRole(loginID, role, res -> {
+      if (authProvider != null && principal != null) {
+        authProvider.hasRole(principal, role, res -> {
           if (res.succeeded()) {
             boolean has = res.result();
             if (has) {
-              roles.add(role);
+              getRoles().add(role);
               resultHandler.handle(Future.succeededFuture(true));
             } else {
               resultHandler.handle(Future.succeededFuture(false));
@@ -181,16 +175,32 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
   }
 
   @Override
+  public void hasRoles(Set<String> roles, Handler<AsyncResult<Boolean>> resultHandler) {
+    Handler<AsyncResult<Boolean>> wrapped = accumulatingHandler(roles.size(), resultHandler);
+    for (String role: roles) {
+      hasRole(role, wrapped);
+    }
+  }
+
+  @Override
+  public void hasPermissions(Set<String> permissions, Handler<AsyncResult<Boolean>> resultHandler) {
+    Handler<AsyncResult<Boolean>> wrapped = accumulatingHandler(permissions.size(), resultHandler);
+    for (String permission: permissions) {
+      hasPermission(permission, wrapped);
+    }
+  }
+
+  @Override
   public void hasPermission(String permission, Handler<AsyncResult<Boolean>> resultHandler) {
-    if (permissions.contains(permission)) {
+    if (getPermissions().contains(permission)) {
       resultHandler.handle(Future.succeededFuture(true));
     } else {
-      if (authService != null && loginID != null) {
-        authService.hasPermission(loginID, permission, res -> {
+      if (authProvider != null && principal != null) {
+        authProvider.hasPermission(principal, permission, res -> {
           if (res.succeeded()) {
             boolean has = res.result();
             if (has) {
-              permissions.add(permission);
+              getPermissions().add(permission);
               resultHandler.handle(Future.succeededFuture(true));
             } else {
               resultHandler.handle(Future.succeededFuture(false));
@@ -207,47 +217,52 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
 
   @Override
   public void logout() {
-    if (authService == null && loginID != null) {
+    if (authProvider == null && principal != null) {
       throw new IllegalStateException("No auth service");
     }
-    if (authService != null && loginID != null) {
-      authService.logout(loginID, res -> {
-        if (res.failed()) {
-          log.error("Failed to logout", res.cause());
-        }
-      });
+    this.principal = null;
+    if (roles != null) {
+      roles.clear();
     }
-    this.loginID = null;
-    roles.clear();
-    permissions.clear();
+    if (permissions != null) {
+      permissions.clear();
+    }
   }
 
   @Override
-  public void setLoginID(String loginID) {
-    this.loginID = loginID;
+  public void setPrincipal(JsonObject principal) {
+    this.principal = principal;
   }
 
   @Override
-  public String getLoginID() {
-    return loginID;
+  public JsonObject getPrincipal() {
+    return principal;
   }
 
   @Override
-  public void setAuthService(AuthService authService) {
-    this.authService = authService;
-  }
-
-  @Override
-  public AuthService getAuthService() {
-    return authService;
+  public void setAuthProvider(AuthProvider authProvider) {
+    this.authProvider = authProvider;
   }
 
   @Override
   public Buffer writeToBuffer() {
     Buffer buff = Buffer.buffer();
-    buff.appendLong(lastAccessed);
+
+    buff.appendLong(timeout);
+
+    if (principal != null) {
+      buff.appendByte((byte)1);
+      Buffer principalBuffer = principal.writeToBuffer();
+      buff.appendInt(principalBuffer.length());
+      buff.appendBuffer(principalBuffer);
+    } else {
+      buff.appendByte((byte)0);
+    }
+
+    writeStringSet(buff, roles);
+    writeStringSet(buff, permissions);
+
     Buffer dataBuf = writeDataToBuffer();
-    buff.appendInt(dataBuf.length());
     buff.appendBuffer(dataBuf);
     return buff;
   }
@@ -255,12 +270,64 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
   @Override
   public void readFromBuffer(Buffer buffer) {
     int pos = 0;
-    lastAccessed = buffer.getLong(pos);
+
+    timeout = buffer.getLong(pos);
     pos += 8;
-    int len = buffer.getInt(pos);
-    pos += 4;
+
+    boolean hasPrincipal = buffer.getByte(pos) == (byte)1;
+    pos ++;
+    if (hasPrincipal) {
+      int len = buffer.getInt(pos);
+      pos += 4;
+      Buffer principalBuffer = buffer.getBuffer(pos, pos + len);
+      pos += len;
+      principal = new JsonObject();
+      principal.readFromBuffer(principalBuffer);
+    }
+
+    pos = readStringSet(buffer, getRoles(), pos);
+    pos = readStringSet(buffer, getPermissions(), pos);
+
     data = readDataFromBuffer(buffer, pos);
   }
+
+  public Set<String> getRoles() {
+    if (roles == null) {
+      roles = new HashSet<>();
+    }
+    return roles;
+  }
+
+  public Set<String> getPermissions() {
+    if (permissions == null) {
+      permissions = new HashSet<>();
+    }
+    return permissions;
+  }
+
+  private void writeStringSet(Buffer buff, Set<String> set) {
+    buff.appendInt(set == null ? 0 : set.size());
+    if (set != null) {
+      for (String entry : set) {
+        byte[] bytes = entry.getBytes(UTF8);
+        buff.appendInt(bytes.length).appendBytes(bytes);
+      }
+    }
+  }
+
+  private int readStringSet(Buffer buffer, Set<String> set, int pos) {
+    int num = buffer.getInt(pos);
+    pos += 4;
+    for (int i = 0; i < num; i++) {
+      int len = buffer.getInt(pos);
+      pos += 4;
+      byte[] bytes = buffer.getBytes(pos, pos + len);
+      pos += len;
+      set.add(new String(bytes, UTF8));
+    }
+    return pos;
+  }
+
 
   private Map<String, Object> getData() {
     if (data == null) {
@@ -428,6 +495,32 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
     } catch (Exception e) {
       throw new VertxException(e);
     }
+  }
+
+  private Handler<AsyncResult<Boolean>> accumulatingHandler(int num, Handler<AsyncResult<Boolean>> resultHandler) {
+    AtomicInteger cnt = new AtomicInteger();
+    AtomicBoolean sent = new AtomicBoolean();
+    return res -> {
+      if (res.succeeded()) {
+        boolean bRes = res.result();
+        int count = cnt.incrementAndGet();
+        if (!bRes) {
+          if (sent.compareAndSet(false, true)) {
+            resultHandler.handle(Future.succeededFuture(false));
+          }
+        } else {
+          if (count == num) {
+            if (sent.compareAndSet(false, true)) {
+              resultHandler.handle(Future.succeededFuture(true));
+            }
+          }
+        }
+      } else {
+        if (sent.compareAndSet(false, true)) {
+          resultHandler.handle(Future.failedFuture(res.cause()));
+        }
+      }
+    };
   }
 
 }

@@ -20,10 +20,10 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.impl.LoggerFactory;
-import io.vertx.ext.apex.handler.AuthHandler;
 import io.vertx.ext.apex.RoutingContext;
 import io.vertx.ext.apex.Session;
-import io.vertx.ext.auth.AuthService;
+import io.vertx.ext.apex.handler.AuthHandler;
+import io.vertx.ext.auth.AuthProvider;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -37,12 +37,12 @@ public abstract class AuthHandlerImpl implements AuthHandler {
 
   private static final Logger log = LoggerFactory.getLogger(AuthHandlerImpl.class);
 
-  protected final AuthService authService;
+  protected final AuthProvider authProvider;
   protected final Set<String> roles = new HashSet<>();
   protected final Set<String> permissions = new HashSet<>();
 
-  public AuthHandlerImpl(AuthService authService) {
-    this.authService = authService;
+  public AuthHandlerImpl(AuthProvider authProvider) {
+    this.authProvider = authProvider;
   }
 
   @Override
@@ -94,10 +94,10 @@ public abstract class AuthHandlerImpl implements AuthHandler {
       };
 
       if (!permissions.isEmpty()) {
-        authService.hasPermissions(session.getLoginID(), permissions, authHandler);
+        session.hasPermissions(permissions, authHandler);
       }
       if (!roles.isEmpty()) {
-        authService.hasRoles(session.getLoginID(), roles, authHandler);
+        session.hasRoles(roles, authHandler);
       }
     } else {
       // No auth required
