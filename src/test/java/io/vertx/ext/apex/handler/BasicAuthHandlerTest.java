@@ -19,13 +19,13 @@ package io.vertx.ext.apex.handler;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.apex.sstore.LocalSessionStore;
 import io.vertx.ext.apex.RoutingContext;
 import io.vertx.ext.apex.Session;
+import io.vertx.ext.apex.sstore.LocalSessionStore;
 import io.vertx.ext.apex.sstore.SessionStore;
-import io.vertx.ext.auth.AuthService;
+import io.vertx.ext.auth.AuthProvider;
+import io.vertx.ext.auth.shiro.ShiroAuthProvider;
 import io.vertx.ext.auth.shiro.ShiroAuthRealmType;
-import io.vertx.ext.auth.shiro.ShiroAuthService;
 import org.junit.Test;
 
 import java.util.concurrent.atomic.AtomicReference;
@@ -61,8 +61,8 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
     SessionStore store = LocalSessionStore.create(vertx);
     router.route().handler(SessionHandler.create(store));
     JsonObject authConfig = new JsonObject().put("properties_path", "classpath:login/loginusers.properties");
-    AuthService authService = ShiroAuthService.create(vertx, ShiroAuthRealmType.PROPERTIES, authConfig);;
-    router.route("/protected/*").handler(BasicAuthHandler.create(authService, realm));
+    AuthProvider authProvider = ShiroAuthProvider.create(vertx, ShiroAuthRealmType.PROPERTIES, authConfig);
+    router.route("/protected/*").handler(BasicAuthHandler.create(authProvider, realm));
 
     router.route("/protected/somepage").handler(handler);
 
@@ -104,8 +104,8 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
     SessionStore store = LocalSessionStore.create(vertx);
     router.route().handler(SessionHandler.create(store));
     JsonObject authConfig = new JsonObject().put("properties_path", "classpath:login/loginusers.properties");
-    AuthService authService = ShiroAuthService.create(vertx, ShiroAuthRealmType.PROPERTIES, authConfig);
-    router.route("/protected/*").handler(BasicAuthHandler.create(authService));
+    AuthProvider authProvider = ShiroAuthProvider.create(vertx, ShiroAuthRealmType.PROPERTIES, authConfig);
+    router.route("/protected/*").handler(BasicAuthHandler.create(authProvider));
 
     router.route("/protected/somepage").handler(handler);
 
@@ -132,7 +132,7 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
   }
 
   @Override
-  protected AuthHandler createAuthHandler(AuthService authService) {
-    return BasicAuthHandler.create(authService);
+  protected AuthHandler createAuthHandler(AuthProvider authProvider) {
+    return BasicAuthHandler.create(authProvider);
   }
 }

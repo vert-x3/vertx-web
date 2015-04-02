@@ -1093,9 +1093,8 @@ Apex comes with two session store implementations out of the box, and you can al
 
 With this store, sessions are stored locally in memory and only available in this instance.
 
-
-This store is appropriate if you are using sticky sessions in your application and have configured your load balancer
-(if you have one) to always route HTTP requests to the same Vert.x instance.
+This store is appropriate if you have just a single Vert.x instance of you are using sticky sessions in your application
+and have configured your load balancer to always route HTTP requests to the same Vert.x instance.
 
 If you can't ensure your requests will all terminate on the same server then don't use this store as your
 requests might end up on a server which doesn't know about your session.
@@ -1248,12 +1247,23 @@ router.route("/somepath/blah").handler(function (routingContext) {
 
 ----
 
-Sessions are automatically written back to the store after after every response that has been routed through the
-session handler has been written.
+Sessions are automatically written back to the store after after responses are complete.
 
 You can manually destroy a session using `link:jsdoc/session-Session.html#destroy[destroy]`. This will remove the session
 from the context and the session store. Note that if there is no session a new one will be automatically created
 for the next request from the browser that's routed through the session handler.
+
+=== Session timeout
+
+Sessions will be automatically timed out if they are not accessed for a time greater than the timeout period. When
+a session is timed out, it is removed from the store.
+
+Sessions are automatically marked as accessed when a request arrives and the session is looked up and and when the
+response is complete and the session is stored back in the store.
+
+You can also use `link:jsdoc/session-Session.html#setAccessed[setAccessed]` to manually mark a session as accessed.
+
+The session timeout can be configured when creating the session handler. Default timeout is 30 minutes.
 
 == Authentication / authorisation
 
@@ -1262,9 +1272,9 @@ whether you have rights for some resource).
 
 === Creating an auth handler
 
-To create an auth handler you need an instance of `link:../../vertx-auth-service/js/jsdoc/auth_service-AuthService.html[AuthService]`. Auth service is
-(unsurprisingly) a Vert.x service that is used for authentication and authorisation of users. It uses a simple
-role/permission model and, by default, is backed by Apache Shiro. For full information on the auth service and how
+To create an auth handler you need an instance of `link:../../vertx-auth-service/js/jsdoc/auth_provider-AuthProvider.html[AuthProvider]`. Auth provider is
+used for authentication and authorisation of users. It uses a simple
+role/permission model and, by default, is backed by Apache Shiro. For full information on auth provider and how
 to use and configure it please consult the auth service documentation.
 
 Like many services in Vert.x they can be instantiated locally, or you can create a proxy to an existing auth service
@@ -1272,12 +1282,12 @@ deployed as a verticle somewhere on the network. The latter case is useful if yo
 that want to do auth and you don't want each verticle to have its own auth service instance, or perhaps you have a single
 auth service managed somewhere on your network and you want all auth request to go through that.
 
-Here's a simple example of creating a basic auth service that gets user data from a properties file and creating
-an auth handler from that, but it's the same principle whatever concrete auth service you use.
+Here's a simple example of creating a basic auth provider that gets user data from a properties file and creating
+an auth handler from that, but it's the same principle whatever concrete auth provider you use.
 
 [source,js]
 ----
-var ShiroAuthService = require("vertx-auth-js/shiro_auth_service");
+var ShiroAuthProvider = require("vertx-auth-js/shiro_auth_provider");
 var BasicAuthHandler = require("vertx-apex-js/basic_auth_handler");
 
 // Create a simple local auth service that gets user data from properties file
@@ -1286,24 +1296,10 @@ var BasicAuthHandler = require("vertx-apex-js/basic_auth_handler");
 var config = {
 };
 config.Java.type("io.vertx.ext.auth.shiro.PropertiesAuthRealmConstants").PROPERTIES_PROPS_PATH_FIELD = "classpath:test-auth.properties";
-var authService = ShiroAuthService.create(vertx, 'PROPERTIES', config);
 
-var basicAuthHandler = BasicAuthHandler.create(authService);
+var authProvider = ShiroAuthProvider.create(vertx, 'PROPERTIES', config);
 
-----
-
-And here's an example of creating an auth service proxy to an existing auth service that is deployed elsewhere:
-
-[source,js]
-----
-var AuthService = require("vertx-auth-js/auth_service");
-var BasicAuthHandler = require("vertx-apex-js/basic_auth_handler");
-
-// Let's say you already have an auth service somewhere on your network listening on event bus address `acme.authservice`.
-
-var authService = AuthService.createEventBusProxy(vertx, "acme.authservice");
-
-var basicAuthHandler = BasicAuthHandler.create(authService);
+var basicAuthHandler = BasicAuthHandler.create(authProvider);
 
 ----
 
@@ -1314,14 +1310,12 @@ You'll also need cookies and sessions enabled for auth handling to work:
 var CookieHandler = require("vertx-apex-js/cookie_handler");
 var SessionHandler = require("vertx-apex-js/session_handler");
 var LocalSessionStore = require("vertx-apex-js/local_session_store");
-var AuthService = require("vertx-auth-js/auth_service");
 var BasicAuthHandler = require("vertx-apex-js/basic_auth_handler");
 
 router.route().handler(CookieHandler.create().handle);
 router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)).handle);
 
-var authService = AuthService.createEventBusProxy(vertx, "acme.authservice");
-var basicAuthHandler = BasicAuthHandler.create(authService);
+var basicAuthHandler = BasicAuthHandler.create(authProvider);
 
 
 ----
@@ -1343,7 +1337,7 @@ router.route().handler(CookieHandler.create().handle);
 router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)).handle);
 
 var authService = AuthService.createEventBusProxy(vertx, "acme.authservice");
-var basicAuthHandler = BasicAuthHandler.create(authService);
+var basicAuthHandler = BasicAuthHandler.create(authProvider);
 
 // All requests to paths starting with '/private/' will be protected
 router.route("/private/*").handler(basicAuthHandler.handle);
@@ -1365,9 +1359,10 @@ router.route("/private/somepath").handler(function (routingContext) {
 
 ----
 
-If the auth handler has successfully authenticated and authorised the user it will set the login ID on the
-session object, and the session will be marked as logged in. You can query the logged in status and get the
-login ID with `link:jsdoc/session-Session.html#isLoggedIn[isLoggedIn]` and `link:jsdoc/session-Session.html#getLoginID[getLoginID]`.
+If the auth handler has successfully authenticated and authorised the user it will set the principal on the
+session object, and the session will be marked as logged in. You can query the login status with
+`link:jsdoc/session-Session.html#isLoggedIn[isLoggedIn]` and you can get the principal with
+`link:jsdoc/session-Session.html#getPrincipal[getPrincipal]`.
 
 If you want to cause the user to be logged out you can call `link:jsdoc/session-Session.html#logout[logout]`.
 
@@ -1386,7 +1381,7 @@ prompt the user to enter their username and password.
 The request is made to the resource again, this time with the `Authorization` header set, containing the username
 and password encoded in Base64.
 
-When the basic auth handler receives this information, it calls the configured `link:../../vertx-auth-service/js/jsdoc/auth_service-AuthService.html[auth service]`
+When the basic auth handler receives this information, it calls the configured `link:../../vertx-auth-service/js/jsdoc/auth_provider-AuthProvider.html[auth service]`
 with the username and password to authenticate the user. If the authentication is successful the handler attempts
 to authorise the user. If that is successful then the routing of the request is allowed to continue to the application
 handlers, otherwise a `403` response is returned to signify that access is denied.
@@ -1424,13 +1419,13 @@ router.route().handler(CookieHandler.create().handle);
 router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)).handle);
 
 var authService = AuthService.createEventBusProxy(vertx, "acme.authservice");
-var redirectAuthHandler = RedirectAuthHandler.create(authService);
+var redirectAuthHandler = RedirectAuthHandler.create(authProvider);
 
 // All requests to paths starting with '/private/' will be protected
 router.route("/private/*").handler(redirectAuthHandler.handle);
 
 // Handle the actual login
-router.route("/login").handler(FormLoginHandler.create(authService).handle);
+router.route("/login").handler(FormLoginHandler.create(authProvider).handle);
 
 // Set a static server to serve static resources, e.g. the login page
 router.route().handler(StaticHandler.create().handle);
@@ -1465,13 +1460,13 @@ app:
 ----
 var RedirectAuthHandler = require("vertx-apex-js/redirect_auth_handler");
 
-var managerAuthHandler = RedirectAuthHandler.create(authService);
+var managerAuthHandler = RedirectAuthHandler.create(authProvider);
 managerAuthHandler.addRole("manager").addRole("admin");
 
 // Roles "manager" and "admin" have access to /private/managers
 router.route("/private/managers").handler(managerAuthHandler.handle);
 
-var settingsAuthHandler = RedirectAuthHandler.create(authService);
+var settingsAuthHandler = RedirectAuthHandler.create(authProvider);
 settingsAuthHandler.addRole("admin");
 
 // Only "admin" has access to /private/settings
@@ -2156,7 +2151,7 @@ var SockJSHandler = require("vertx-apex-js/sock_js_handler");
 var CookieHandler = require("vertx-apex-js/cookie_handler");
 var SessionHandler = require("vertx-apex-js/session_handler");
 var LocalSessionStore = require("vertx-apex-js/local_session_store");
-var ShiroAuthService = require("vertx-auth-js/shiro_auth_service");
+var ShiroAuthProvider = require("vertx-auth-js/shiro_auth_provider");
 var BasicAuthHandler = require("vertx-apex-js/basic_auth_handler");
 
 var router = Router.router(vertx);
@@ -2184,8 +2179,9 @@ router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)).ha
 var authConfig = {
 };
 authConfig.Java.type("io.vertx.ext.auth.shiro.PropertiesAuthRealmConstants").PROPERTIES_PROPS_PATH_FIELD = "classpath:test-auth.properties";
-var authService = ShiroAuthService.create(vertx, 'PROPERTIES', authConfig);
-var basicAuthHandler = BasicAuthHandler.create(authService);
+var authProvider = ShiroAuthProvider.create(vertx, 'PROPERTIES', authConfig);
+
+var basicAuthHandler = BasicAuthHandler.create(authProvider);
 
 router.route("/eventbus/").handler(basicAuthHandler.handle);
 

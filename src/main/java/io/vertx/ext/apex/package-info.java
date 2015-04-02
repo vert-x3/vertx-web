@@ -643,9 +643,8 @@
  *
  * With this store, sessions are stored locally in memory and only available in this instance.
  *
- *
- * This store is appropriate if you are using sticky sessions in your application and have configured your load balancer
- * (if you have one) to always route HTTP requests to the same Vert.x instance.
+ * This store is appropriate if you have just a single Vert.x instance of you are using sticky sessions in your application
+ * and have configured your load balancer to always route HTTP requests to the same Vert.x instance.
  *
  * If you can't ensure your requests will all terminate on the same server then don't use this store as your
  * requests might end up on a server which doesn't know about your session.
@@ -717,12 +716,23 @@
  * {@link examples.Examples#example34}
  * ----
  *
- * Sessions are automatically written back to the store after after every response that has been routed through the
- * session handler has been written.
+ * Sessions are automatically written back to the store after after responses are complete.
  *
  * You can manually destroy a session using {@link io.vertx.ext.apex.Session#destroy()}. This will remove the session
  * from the context and the session store. Note that if there is no session a new one will be automatically created
  * for the next request from the browser that's routed through the session handler.
+ *
+ * === Session timeout
+ *
+ * Sessions will be automatically timed out if they are not accessed for a time greater than the timeout period. When
+ * a session is timed out, it is removed from the store.
+ *
+ * Sessions are automatically marked as accessed when a request arrives and the session is looked up and and when the
+ * response is complete and the session is stored back in the store.
+ *
+ * You can also use {@link io.vertx.ext.apex.Session#setAccessed()} to manually mark a session as accessed.
+ *
+ * The session timeout can be configured when creating the session handler. Default timeout is 30 minutes.
  *
  * == Authentication / authorisation
  *
@@ -731,9 +741,9 @@
  *
  * === Creating an auth handler
  *
- * To create an auth handler you need an instance of {@link io.vertx.ext.auth.AuthService}. Auth service is
- * (unsurprisingly) a Vert.x service that is used for authentication and authorisation of users. It uses a simple
- * role/permission model and, by default, is backed by Apache Shiro. For full information on the auth service and how
+ * To create an auth handler you need an instance of {@link io.vertx.ext.auth.AuthProvider}. Auth provider is
+ * used for authentication and authorisation of users. It uses a simple
+ * role/permission model and, by default, is backed by Apache Shiro. For full information on auth provider and how
  * to use and configure it please consult the auth service documentation.
  *
  * Like many services in Vert.x they can be instantiated locally, or you can create a proxy to an existing auth service
@@ -741,19 +751,12 @@
  * that want to do auth and you don't want each verticle to have its own auth service instance, or perhaps you have a single
  * auth service managed somewhere on your network and you want all auth request to go through that.
  *
- * Here's a simple example of creating a basic auth service that gets user data from a properties file and creating
- * an auth handler from that, but it's the same principle whatever concrete auth service you use.
+ * Here's a simple example of creating a basic auth provider that gets user data from a properties file and creating
+ * an auth handler from that, but it's the same principle whatever concrete auth provider you use.
  *
  * [source,$lang]
  * ----
  * {@link examples.Examples#example35}
- * ----
- *
- * And here's an example of creating an auth service proxy to an existing auth service that is deployed elsewhere:
- *
- * [source,$lang]
- * ----
- * {@link examples.Examples#example36}
  * ----
  *
  * You'll also need cookies and sessions enabled for auth handling to work:
@@ -773,9 +776,10 @@
  * {@link examples.Examples#example38}
  * ----
  *
- * If the auth handler has successfully authenticated and authorised the user it will set the login ID on the
- * session object, and the session will be marked as logged in. You can query the logged in status and get the
- * login ID with {@link io.vertx.ext.apex.Session#isLoggedIn()} and {@link io.vertx.ext.apex.Session#getLoginID()}.
+ * If the auth handler has successfully authenticated and authorised the user it will set the principal on the
+ * session object, and the session will be marked as logged in. You can query the login status with
+ * {@link io.vertx.ext.apex.Session#isLoggedIn} and you can get the principal with
+ * {@link io.vertx.ext.apex.Session#getPrincipal}.
  *
  * If you want to cause the user to be logged out you can call {@link io.vertx.ext.apex.Session#logout()}.
  *
@@ -794,7 +798,7 @@
  * The request is made to the resource again, this time with the `Authorization` header set, containing the username
  * and password encoded in Base64.
  *
- * When the basic auth handler receives this information, it calls the configured {@link io.vertx.ext.auth.AuthService auth service}
+ * When the basic auth handler receives this information, it calls the configured {@link io.vertx.ext.auth.AuthProvider auth service}
  * with the username and password to authenticate the user. If the authentication is successful the handler attempts
  * to authorise the user. If that is successful then the routing of the request is allowed to continue to the application
  * handlers, otherwise a `403` response is returned to signify that access is denied.

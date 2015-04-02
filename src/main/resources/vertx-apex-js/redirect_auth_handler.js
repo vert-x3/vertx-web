@@ -18,7 +18,7 @@
 var utils = require('vertx-js/util/utils');
 var AuthHandler = require('vertx-apex-js/auth_handler');
 var RoutingContext = require('vertx-apex-js/routing_context');
-var AuthService = require('vertx-auth-js/auth_service');
+var AuthProvider = require('vertx-auth-js/auth_provider');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
@@ -117,7 +117,7 @@ var RedirectAuthHandler = function(j_val) {
  Create a handler
 
  @memberof module:vertx-apex-js/redirect_auth_handler
- @param authService {AuthService} the auth service to use 
+ @param authProvider {AuthProvider} the auth service to use 
  @param loginRedirectURL {string} the url to redirect the user to 
  @param returnURLParam {string} the name of param used to store return url information in session 
  @return {AuthHandler} the handler
@@ -125,11 +125,11 @@ var RedirectAuthHandler = function(j_val) {
 RedirectAuthHandler.create = function() {
   var __args = arguments;
   if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
-    return new AuthHandler(JRedirectAuthHandler["create(io.vertx.ext.auth.AuthService)"](__args[0]._jdel));
+    return new AuthHandler(JRedirectAuthHandler["create(io.vertx.ext.auth.AuthProvider)"](__args[0]._jdel));
   }else if (__args.length === 2 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'string') {
-    return new AuthHandler(JRedirectAuthHandler["create(io.vertx.ext.auth.AuthService,java.lang.String)"](__args[0]._jdel, __args[1]));
+    return new AuthHandler(JRedirectAuthHandler["create(io.vertx.ext.auth.AuthProvider,java.lang.String)"](__args[0]._jdel, __args[1]));
   }else if (__args.length === 3 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'string' && typeof __args[2] === 'string') {
-    return new AuthHandler(JRedirectAuthHandler["create(io.vertx.ext.auth.AuthService,java.lang.String,java.lang.String)"](__args[0]._jdel, __args[1], __args[2]));
+    return new AuthHandler(JRedirectAuthHandler["create(io.vertx.ext.auth.AuthProvider,java.lang.String,java.lang.String)"](__args[0]._jdel, __args[1], __args[2]));
   } else utils.invalidArgs();
 };
 
