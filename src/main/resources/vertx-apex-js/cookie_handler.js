@@ -16,6 +16,7 @@
 
 /** @module vertx-apex-js/cookie_handler */
 var utils = require('vertx-js/util/utils');
+var Crypto = require('vertx-apex-js/crypto');
 var RoutingContext = require('vertx-apex-js/routing_context');
 
 var io = Packages.io;
@@ -50,16 +51,18 @@ var CookieHandler = function(j_val) {
 };
 
 /**
- Create a cookie handler
+ Create a cookie handler using the specified Codec to encrypt/decrypt the Cookie.
 
  @memberof module:vertx-apex-js/cookie_handler
-
+ @param codec {Crypto} the codec used to encrypt/decrypt cookies 
  @return {CookieHandler} the cookie handler
  */
 CookieHandler.create = function() {
   var __args = arguments;
   if (__args.length === 0) {
     return new CookieHandler(JCookieHandler["create()"]());
+  }else if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
+    return new CookieHandler(JCookieHandler["create(io.vertx.ext.apex.Crypto)"](__args[0]._jdel));
   } else utils.invalidArgs();
 };
 

@@ -16,31 +16,46 @@
 
 package io.vertx.ext.apex.handler.impl;
 
+import static io.vertx.core.http.HttpHeaders.COOKIE;
+import static io.vertx.core.http.HttpHeaders.SET_COOKIE;
 import io.netty.handler.codec.http.CookieDecoder;
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.impl.LoggerFactory;
 import io.vertx.ext.apex.Cookie;
-import io.vertx.ext.apex.impl.CookieImpl;
-import io.vertx.ext.apex.handler.CookieHandler;
+import io.vertx.ext.apex.Crypto;
 import io.vertx.ext.apex.RoutingContext;
+import io.vertx.ext.apex.handler.CookieHandler;
+import io.vertx.ext.apex.impl.CookieImpl;
 
+import java.util.Objects;
 import java.util.Set;
-
-import static io.vertx.core.http.HttpHeaders.*;
 
 /**
  * # CookieParser
  * <p>
- * Parse request cookies both signed or plain.
+ * Parse request cookies both encrypted or plain.
  * <p>
- * If a cooke value starts with *s:* it means that it is a signed cookie. In this case the value is expected to be
- * *s:&lt;cookie&gt;.&lt;signature&gt;*. The signature is *HMAC + SHA256*.
+ * If a codec is set then cookie values are encrypted/decrypted using the codec.
  * <p>
- * When the Cookie parser is initialized with a secret then that value is used to verify if a cookie is valid.
  *
  * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 public class CookieHandlerImpl implements CookieHandler {
 
+  private static final Logger logger = LoggerFactory.getLogger(CookieHandlerImpl.class);
+
+  private Crypto codec;
+
+  public CookieHandlerImpl() {
+  }
+  
+  public CookieHandlerImpl(Crypto codec) {
+    Objects.requireNonNull(codec);
+    
+    this.codec = codec;
+  }
+  
   @Override
   public void handle(RoutingContext context) {
     String cookieHeader = context.request().headers().get(COOKIE);
@@ -48,17 +63,23 @@ public class CookieHandlerImpl implements CookieHandler {
     if (cookieHeader != null) {
       Set<io.netty.handler.codec.http.Cookie> nettyCookies = CookieDecoder.decode(cookieHeader);
       for (io.netty.handler.codec.http.Cookie cookie : nettyCookies) {
-        Cookie apexCookie = new CookieImpl(cookie);
-        context.addCookie(apexCookie);
+        Cookie apexCookie = getDecryptedCookie(cookie);
+        // a cookie can be null in case something went wrong when decrypting its value
+        if (apexCookie!=null) {
+          context.addCookie(apexCookie);
+        }
       }
     }
 
     context.addHeadersEndHandler(v -> {
-      // save the cookies
+      // save cookies
       Set<Cookie> cookies = context.cookies();
       for (Cookie cookie: cookies) {
         if (cookie.isChanged()) {
-          context.response().headers().add(SET_COOKIE, cookie.encode());
+          String value = encryptValue(cookie.encode());
+          if (value!=null) {
+            context.response().headers().add(SET_COOKIE, value);
+          }
         }
       }
 
@@ -67,6 +88,35 @@ public class CookieHandlerImpl implements CookieHandler {
     context.next();
   }
 
+  private Cookie getDecryptedCookie(io.netty.handler.codec.http.Cookie nettyCookie) {
+    if (codec!=null) {
+      try {
+        // swap the value of the netty cookie with the decrypted value
+        nettyCookie.setValue(codec.decrypt(nettyCookie.getValue()));
+      }
+      catch (Exception e) {
+       // something went wrong when decrypting the cookie. It could be that someone modified the data.
+       // in any cases, we should ignore the cookie
+        logger.error("Could not decrypt cookie", e);
+        return null;
+      }
+    }
+    return new CookieImpl(nettyCookie) ;
+  }
 
-
+  private String encryptValue(String value) {
+    if (codec!=null) {
+      try {
+        // swap the value with the encoded value
+        value = codec.encrypt(value);
+      }
+      catch (Exception e) {
+       // something went wrong when encrypting the value
+        logger.error("Could not encrypt cookie", e);
+        return null;
+      }
+    }
+    return value;
+  }
+  
 }
