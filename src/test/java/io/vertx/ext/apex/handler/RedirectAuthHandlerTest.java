@@ -20,13 +20,13 @@ import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.apex.sstore.LocalSessionStore;
 import io.vertx.ext.apex.RoutingContext;
 import io.vertx.ext.apex.Session;
+import io.vertx.ext.apex.sstore.LocalSessionStore;
 import io.vertx.ext.apex.sstore.SessionStore;
-import io.vertx.ext.auth.AuthService;
+import io.vertx.ext.auth.AuthProvider;
+import io.vertx.ext.auth.shiro.ShiroAuthProvider;
 import io.vertx.ext.auth.shiro.ShiroAuthRealmType;
-import io.vertx.ext.auth.shiro.ShiroAuthService;
 import org.junit.Test;
 
 import java.util.Set;
@@ -65,6 +65,7 @@ public class RedirectAuthHandlerTest extends AuthHandlerTestBase {
       assertEquals(sessionCookie.get().substring(13, 49), sess.id());
       assertTrue(sess.isLoggedIn());
       sess.logout();
+      assertFalse(sess.isLoggedIn());
       rc.response().end("Welcome to the protected resource!");
     });
     testRequest(HttpMethod.GET, "/protected/somepage", req -> {
@@ -87,8 +88,8 @@ public class RedirectAuthHandlerTest extends AuthHandlerTestBase {
   }
 
   @Override
-  protected AuthHandler createAuthHandler(AuthService authService) {
-    return RedirectAuthHandler.create(authService);
+  protected AuthHandler createAuthHandler(AuthProvider authProvider) {
+    return RedirectAuthHandler.create(authProvider);
   }
 
   private void testLoginFail(boolean badUser) throws Exception {
@@ -139,8 +140,8 @@ public class RedirectAuthHandlerTest extends AuthHandlerTestBase {
     SessionStore store = LocalSessionStore.create(vertx);
     router.route().handler(SessionHandler.create(store));
     JsonObject authConfig = new JsonObject().put("properties_path", "classpath:login/loginusers.properties");
-    AuthService authService = ShiroAuthService.create(vertx, ShiroAuthRealmType.PROPERTIES, authConfig);
-    AuthHandler authHandler = RedirectAuthHandler.create(authService);
+    AuthProvider authProvider = ShiroAuthProvider.create(vertx, ShiroAuthRealmType.PROPERTIES, authConfig);
+    AuthHandler authHandler = RedirectAuthHandler.create(authProvider);
     if (roles != null) {
       authHandler.addRoles(roles);
     }
@@ -152,7 +153,7 @@ public class RedirectAuthHandlerTest extends AuthHandlerTestBase {
     router.route("/loginpage").handler(rc -> {
       rc.response().putHeader("content-type", "text/html").end(loginHTML);
     });
-    router.route("/login").handler(FormLoginHandler.create(authService));
+    router.route("/login").handler(FormLoginHandler.create(authProvider));
     testRequest(HttpMethod.GET, "/protected/somepage", null, resp -> {
       String location = resp.headers().get("location");
       assertNotNull(location);

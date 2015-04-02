@@ -30,6 +30,15 @@ import io.vertx.ext.apex.Session;
 public interface SessionStore {
 
   /**
+   * Create a new session
+   *
+   * @param timeout - the session timeout, in ms
+   *
+   * @return the session
+   */
+  Session createSession(long timeout);
+
+  /**
    * Get the session with the specified ID
    *
    * @param id  the unique ID of the session
@@ -49,10 +58,9 @@ public interface SessionStore {
    * Add a session with the specified ID
    *
    * @param session  the session
-   * @param timeout  max time session will last without being accessed before getting expired
    * @param resultHandler  will be called with a result true/false, or a failure
    */
-  void put(Session session, long timeout, Handler<AsyncResult<Boolean>> resultHandler);
+  void put(Session session, Handler<AsyncResult<Boolean>> resultHandler);
 
   /**
    * Remove all sessions from the store

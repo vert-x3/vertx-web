@@ -25,7 +25,7 @@ import io.vertx.core.logging.impl.LoggerFactory;
 import io.vertx.ext.apex.handler.FormLoginHandler;
 import io.vertx.ext.apex.RoutingContext;
 import io.vertx.ext.apex.Session;
-import io.vertx.ext.auth.AuthService;
+import io.vertx.ext.auth.AuthProvider;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -34,14 +34,14 @@ public class FormLoginHandlerImpl implements FormLoginHandler {
 
   private static final Logger log = LoggerFactory.getLogger(FormLoginHandlerImpl.class);
 
-  private final AuthService authService;
+  private final AuthProvider authProvider;
 
   private final String usernameParam;
   private final String passwordParam;
   private final String returnURLParam;
 
-  public FormLoginHandlerImpl(AuthService authService, String usernameParam, String passwordParam, String returnURLParam) {
-    this.authService = authService;
+  public FormLoginHandlerImpl(AuthProvider authProvider, String usernameParam, String passwordParam, String returnURLParam) {
+    this.authProvider = authProvider;
     this.usernameParam = usernameParam;
     this.passwordParam = passwordParam;
     this.returnURLParam = returnURLParam;
@@ -67,15 +67,14 @@ public class FormLoginHandlerImpl implements FormLoginHandler {
         if (session == null) {
           context.fail(new NullPointerException("No session - did you forget to include a SessionHandler?"));
         } else {
-          authService.login(new JsonObject().put("username", username).put("password", password), res -> {
+          JsonObject principal = new JsonObject().put("username", username);
+          authProvider.login(principal, new JsonObject().put("password", password), res -> {
             if (res.succeeded()) {
-              String loginID = res.result();
-              session.setLoginID(loginID);
-              session.setAuthService(authService);
+              session.setPrincipal(principal);
+              session.setAuthProvider(authProvider);
               String returnURL = session.remove(returnURLParam);
               if (returnURL == null) {
-                // Just return OK
-                req.response().end("Logged in OK, but no return URL");
+                context.fail(new IllegalStateException("Logged in OK, but no return URL"));
               } else {
                 // Now redirect back to the original url
                 req.response().putHeader("location", returnURL).setStatusCode(302).end();
