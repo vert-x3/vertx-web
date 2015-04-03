@@ -33,7 +33,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -60,7 +59,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   private Buffer body;
   private Set<FileUpload> fileUploads;
   private Session session;
-  private Locale locale;
+  private String locale;
   
   public RoutingContextImpl(String mountPoint, RouterImpl router, HttpServerRequest request, Iterator<RouteImpl> iter) {
     super(mountPoint, request, iter);
@@ -258,12 +257,12 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   }
 
   @Override
-  public Locale getLocale() {
+  public String getLocale() {
     return locale;
   }
 
   @Override
-  public RoutingContext setLocale(Locale locale) {
+  public RoutingContext setLocale(String locale) {
     this.locale = locale;
     return this;
   }

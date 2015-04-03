@@ -503,6 +503,36 @@ var RoutingContext = function(j_val) {
     } else utils.invalidArgs();
   };
 
+  /**
+   @return Get the current locale. The context must have first been routed to a
+   {@link LocaleHandler} for this to be populated.
+
+   @public
+
+   @return {string}
+   */
+  this.getLocale = function() {
+    var __args = arguments;
+    if (__args.length === 0) {
+      return j_routingContext["getLocale()"]();
+    } else utils.invalidArgs();
+  };
+
+  /**
+   Set the locale to the specified value
+
+   @public
+   @param locale {string} the locale 
+   @return {RoutingContext} a reference to this, so the API can be used fluently
+   */
+  this.setLocale = function(locale) {
+    var __args = arguments;
+    if (__args.length === 1 && typeof __args[0] === 'string') {
+      j_routingContext["setLocale(java.lang.String)"](locale);
+      return that;
+    } else utils.invalidArgs();
+  };
+
   // A reference to the underlying Java delegate
   // NOTE! This is an internal API and must not be used in user code.
   // If you rely on this property your code is likely to break if we change it / remove it without warning.

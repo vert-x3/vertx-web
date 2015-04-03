@@ -28,7 +28,6 @@ import io.vertx.ext.apex.RoutingContext;
 import io.vertx.ext.apex.Session;
 
 import java.util.Iterator;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -223,12 +222,12 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   }
 
   @Override
-  public Locale getLocale() {
+  public String getLocale() {
     return inner.getLocale();
   }
 
   @Override
-  public RoutingContext setLocale(Locale locale) {
+  public RoutingContext setLocale(String locale) {
     inner.setLocale(locale);
     return this;
   }

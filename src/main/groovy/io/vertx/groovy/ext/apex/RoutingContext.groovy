@@ -351,6 +351,24 @@ public class RoutingContext {
   public void setAcceptableContentType(String contentType) {
     this.delegate.setAcceptableContentType(contentType);
   }
+  /**
+   * @return Get the current locale. The context must have first been routed to a
+   * {@link io.vertx.groovy.ext.apex.handler.LocaleHandler} for this to be populated.
+   * @return 
+   */
+  public String getLocale() {
+    def ret = this.delegate.getLocale();
+    return ret;
+  }
+  /**
+   * Set the locale to the specified value
+   * @param locale the locale
+   * @return a reference to this, so the API can be used fluently
+   */
+  public RoutingContext setLocale(String locale) {
+    this.delegate.setLocale(locale);
+    return this;
+  }
   private HttpServerRequest cached_0;
   private HttpServerResponse cached_1;
   private int cached_2;
