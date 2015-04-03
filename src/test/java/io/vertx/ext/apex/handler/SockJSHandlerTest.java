@@ -56,6 +56,7 @@ import org.junit.Test;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStreamReader;
 
 /**
@@ -122,7 +123,17 @@ public class SockJSHandlerTest extends ApexTestBase {
   public void testProtocol() throws Exception {
     String[] envp = new String[] {"SOCKJS_URL=http://localhost:8080"};
     File dir = new File("src/test/sockjs-protocol");
-    Process p = Runtime.getRuntime().exec("./venv/bin/python sockjs-protocol-0.3.3.py", envp, dir);
+    Process p;
+    try {
+      p = Runtime.getRuntime().exec("./venv/bin/python sockjs-protocol-0.3.3.py", envp, dir);
+    } catch (IOException e) {
+      if (e.getMessage().contains("No such file or directory")) {
+        System.out.println("Skipping SockJS protocol tests : could not run them");
+        return;
+      } else {
+        throw e;
+      }
+    }
 
     try (BufferedReader input = new BufferedReader(new InputStreamReader(p.getErrorStream()))) {
       String line;
