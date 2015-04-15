@@ -20,9 +20,6 @@ import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.apex.ApexTestBase;
 
-import java.util.Arrays;
-import java.util.Locale;
-
 import org.junit.Test;
 
 /**
@@ -39,7 +36,7 @@ public class LocaleHandlerTest extends ApexTestBase {
 
   @Test
   public void test_noAcceptLanguage_noHandledLocales() throws Exception {
-    router.route().handler(LocaleHandler.create());
+    router.route().handler(LocaleHandler.create().addResolver(LocaleResolver.acceptLanguageHeaderResolver()));
     router.route().handler(rc -> { rc.response().end(); });
     testRequest(HttpMethod.GET, "/", 
       req -> {},
@@ -52,12 +49,16 @@ public class LocaleHandlerTest extends ApexTestBase {
 
   @Test
   public void test_noAcceptLanguage_handledLocales() throws Exception {
-    router.route().handler(LocaleHandler.create(Arrays.asList(Locale.FRENCH, Locale.ENGLISH)));
+    router.route().handler(LocaleHandler.create()
+                              .addResolver(LocaleResolver.acceptLanguageHeaderResolver())
+                              .addSupportedLocale("fr-ca")
+                              .addSupportedLocale("fr-fr")
+                              .addSupportedLocale("en-gb"));
     router.route().handler(rc -> { rc.response().end(); });
     testRequest(HttpMethod.GET, "/", 
       req -> {},
       resp -> { 
-        assertEquals("fr", resp.headers().get(HttpHeaders.CONTENT_LANGUAGE));
+        assertEquals("fr-CA", resp.headers().get(HttpHeaders.CONTENT_LANGUAGE));
       }, 
       200, "OK", null
     );
@@ -65,12 +66,12 @@ public class LocaleHandlerTest extends ApexTestBase {
 
   @Test
   public void test_acceptLanguage_noHandledLocales1() throws Exception {
-    router.route().handler(LocaleHandler.create());
+    router.route().handler(LocaleHandler.create().addResolver(LocaleResolver.acceptLanguageHeaderResolver()));
     router.route().handler(rc -> { rc.response().end(); });
     testRequest(HttpMethod.GET, "/", 
-      req -> req.putHeader("accept-language", "fr" ), 
+      req -> req.putHeader("accept-language", "fr-fr" ), 
       resp -> { 
-        assertEquals("fr", resp.headers().get(HttpHeaders.CONTENT_LANGUAGE));
+        assertEquals("fr-FR", resp.headers().get(HttpHeaders.CONTENT_LANGUAGE));
       }, 
       200, "OK", null
     );
@@ -78,12 +79,12 @@ public class LocaleHandlerTest extends ApexTestBase {
 
   @Test
   public void test_acceptLanguage_noHandledLocales2() throws Exception {
-    router.route().handler(LocaleHandler.create());
+    router.route().handler(LocaleHandler.create().addResolver(LocaleResolver.acceptLanguageHeaderResolver()));
     router.route().handler(rc -> { rc.response().end(); });
     testRequest(HttpMethod.GET, "/", 
-      req -> req.putHeader("accept-language", "en, fr" ), 
+      req -> req.putHeader("accept-language", "en-gb, fr-fr" ), 
       resp -> { 
-        assertEquals("en", resp.headers().get(HttpHeaders.CONTENT_LANGUAGE));
+        assertEquals("en-GB", resp.headers().get(HttpHeaders.CONTENT_LANGUAGE));
       }, 
       200, "OK", null
     );
@@ -91,12 +92,16 @@ public class LocaleHandlerTest extends ApexTestBase {
 
   @Test
   public void test_acceptLanguage_handledLocales1() throws Exception {
-    router.route().handler(LocaleHandler.create(Arrays.asList(Locale.FRENCH, Locale.ENGLISH)));
+    router.route().handler(LocaleHandler.create()
+                              .addResolver(LocaleResolver.acceptLanguageHeaderResolver())
+                              .addSupportedLocale("fr-ca")
+                              .addSupportedLocale("fr-fr")
+                              .addSupportedLocale("en-gb"));
     router.route().handler(rc -> { rc.response().end(); });
     testRequest(HttpMethod.GET, "/", 
-      req -> req.putHeader("accept-language", "en,fr" ), 
+      req -> req.putHeader("accept-language", "fr-be, en-gb"), 
       resp -> { 
-        assertEquals("en", resp.headers().get(HttpHeaders.CONTENT_LANGUAGE));
+        assertEquals("en-GB", resp.headers().get(HttpHeaders.CONTENT_LANGUAGE));
       }, 
       200, "OK", null
     );
@@ -104,12 +109,51 @@ public class LocaleHandlerTest extends ApexTestBase {
 
   @Test
   public void test_acceptLanguage_handledLocales2() throws Exception {
-    router.route().handler(LocaleHandler.create(Arrays.asList(Locale.FRENCH, Locale.ENGLISH)));
+    router.route().handler(LocaleHandler.create()
+                              .addResolver(LocaleResolver.acceptLanguageHeaderResolver())
+                              .addSupportedLocale("fr-ca")
+                              .addSupportedLocale("fr-fr")
+                              .addSupportedLocale("en-gb"));
     router.route().handler(rc -> { rc.response().end(); });
     testRequest(HttpMethod.GET, "/", 
       req -> req.putHeader("accept-language", "de" ), 
       resp -> { 
-        assertEquals("fr", resp.headers().get(HttpHeaders.CONTENT_LANGUAGE));
+        assertEquals("fr-CA", resp.headers().get(HttpHeaders.CONTENT_LANGUAGE));
+      }, 
+      200, "OK", null
+    );
+  }
+
+  @Test
+  public void test_acceptLanguage_handledLocales3() throws Exception {
+    router.route().handler(LocaleHandler.create()
+                              .addResolver(LocaleResolver.acceptLanguageHeaderResolver())
+                              .addSupportedLocale("fr_CA")
+                              .addSupportedLocale("fr_FR")
+                              .addSupportedLocale("en_GB"));
+    router.route().handler(rc -> { rc.response().end(); });
+    testRequest(HttpMethod.GET, "/", 
+      req -> req.putHeader("accept-language", "de" ), 
+      resp -> { 
+        assertEquals("fr-CA", resp.headers().get(HttpHeaders.CONTENT_LANGUAGE));
+      }, 
+      200, "OK", null
+    );
+  }
+
+  @Test
+  public void test_fallback1() throws Exception {
+    router.route().handler(LocaleHandler.create()
+                              .addResolver(LocaleResolver.acceptLanguageHeaderResolver())
+                              .addResolver(LocaleResolver.fallbackResolver("fr-fr"))
+                              .addSupportedLocale("fr_CA")
+                              .addSupportedLocale("fr_FR")
+                              .addSupportedLocale("en_GB"));
+    router.route().handler(rc -> { rc.response().end(); });
+    testRequest(HttpMethod.GET, "/", 
+      req -> {}, 
+      resp -> { 
+        assertEquals("fr-FR", resp.headers().get(HttpHeaders.CONTENT_LANGUAGE));
       }, 
       200, "OK", null
     );
