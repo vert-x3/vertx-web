@@ -1,6 +1,8 @@
 package io.vertx.ext.apex.handler;
 
 import io.vertx.codegen.annotations.VertxGen;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
 import io.vertx.ext.apex.RoutingContext;
 import io.vertx.ext.apex.handler.impl.AcceptLanguageLocaleResolver;
 import io.vertx.ext.apex.handler.impl.FallbackLocaleResolver;
@@ -18,10 +20,11 @@ public interface LocaleResolver {
    * Note that the value returned can contain multiple locales or languages and accept any values supported by the ACCEPT_LANGUAGE header (ie: * da, en-gb;q=0.8, en;q=0.7)
    * <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.4">See W3c Specification</a>
    * 
-   * @param context
-   * @return
+   * @param context - the RoutingContext
+   * @param resultHandler - the result handler
+   * 
    */
-  String resolve(RoutingContext context);
+  void resolve(RoutingContext context, Handler<AsyncResult<String>> resultHandler);
   
   static LocaleResolver acceptLanguageHeaderResolver() {
     return new AcceptLanguageLocaleResolver();

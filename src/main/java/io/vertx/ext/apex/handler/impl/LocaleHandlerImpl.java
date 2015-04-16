@@ -16,6 +16,9 @@
 
 package io.vertx.ext.apex.handler.impl;
 
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
+import io.vertx.core.Handler;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.ext.apex.RoutingContext;
 import io.vertx.ext.apex.handler.LocaleHandler;
@@ -23,6 +26,7 @@ import io.vertx.ext.apex.handler.LocaleResolver;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -41,21 +45,47 @@ public class LocaleHandlerImpl implements LocaleHandler {
   private Collection<String> supportedLanguages;
 
   public LocaleHandlerImpl() {
+    localeResolvers = new ArrayList<>();
+    supportedLanguages = new LinkedHashSet<>();
   }
     
   /**
    * get the first resolved locale
    * 
-   * @param context
-   * @return
+   * @param context - the RoutingContext
+   * @param resultHandler - the result handler
    */
-  protected String getResolvedLocale(RoutingContext context) {
-    if (localeResolvers!=null) {
-      for (LocaleResolver localeResolver: localeResolvers) {
-        String resolvedLocale = localeResolver.resolve(context);
-        if (resolvedLocale!=null) {
-          return resolvedLocale;
+  protected void getResolvedLocale(RoutingContext context, Handler<AsyncResult<String>> resultHandler) {
+    Iterator<LocaleResolver> it = localeResolvers.iterator();
+    while (it.hasNext()) {
+      LocaleResolver localeResolver = it.next();
+      localeResolver.resolve(context, lr -> { 
+        if (!lr.failed() && lr.result()!=null) {
+          resultHandler.handle(Future.succeededFuture(lr.result()));
         }
+        else if (!it.hasNext()){
+         // if this is the last element, return null
+          resultHandler.handle(Future.succeededFuture());
+        }
+      });
+    }
+  }
+  
+  private List<LanguageRange> getLanguageRange(String languageTagOrLocale) {
+    if (languageTagOrLocale!=null) {
+      try {
+        return LanguageRange.parse(languageTagOrLocale);
+      }
+      catch (Exception e) {
+      // ignore parsing exception
+      }
+    // we may have received a locale separated by '_' instead of '-'
+      languageTagOrLocale = languageTagOrLocale.replace('_', '-');
+      try {
+        return LanguageRange.parse(languageTagOrLocale);
+      }
+      catch (Exception e) {
+      // ignore parsing exception
       }
     }
     return null;
@@ -64,74 +94,58 @@ public class LocaleHandlerImpl implements LocaleHandler {
   /**
    * get a list of language range supported by the user
    * 
-   * @param context
-   * @return
+   * @param context - the RoutingContext
+   * @param resultHandler - the result handler
    */
-  protected List<LanguageRange> userLanguages(RoutingContext context) {
-    String resolvedLocale = getResolvedLocale(context);
-    if (resolvedLocale!=null) {
-      try {
-        return LanguageRange.parse(resolvedLocale);
-      }
-      catch (Exception e) {
-      // ignore parsing exception
-      }
-    // we may have received a locale separated by '_' instead of '-'
-      resolvedLocale = resolvedLocale.replace('_', '-');
-      try {
-        return LanguageRange.parse(resolvedLocale);
-      }
-      catch (Exception e) {
-      // ignore parsing exception
-      }
-    }
-    return null;
+  protected void userLanguages(RoutingContext context, Handler<AsyncResult<List<LanguageRange>>> resultHandler) {
+    getResolvedLocale(context, rl -> {
+      resultHandler.handle(Future.succeededFuture(getLanguageRange(rl.result())));
+    });
   }
 
   @Override
   public void handle(RoutingContext context) {
-    // by default, the locale is set to null
-    String bestMatchingLanguage = null;
-    List<LanguageRange> userLanguages = userLanguages(context);
- 
-    if (userLanguages!=null && supportedLanguages!=null) {
-      // return the best matching locale or if there is no match, the first locale handled on the server
-      bestMatchingLanguage = Locale.lookupTag(userLanguages, supportedLanguages);
-      if(bestMatchingLanguage==null) {
+    userLanguages(context, ul-> {
+      List<LanguageRange> userLanguages = ul.result();
+      // by default, the locale is set to null
+      String bestMatchingLanguage = null;
+   
+      if (userLanguages!=null && !supportedLanguages.isEmpty()) {
+        // return the best matching locale or if there is no match, the first locale handled on the server
+        bestMatchingLanguage = Locale.lookupTag(userLanguages, supportedLanguages);
+        if(bestMatchingLanguage==null) {
+          bestMatchingLanguage = supportedLanguages.iterator().next();
+        }
+      } else if (userLanguages!=null && supportedLanguages.isEmpty()) {
+        // return the first locale accepted by the browser
+        bestMatchingLanguage = userLanguages.get(0).getRange();
+      }
+      else if (userLanguages==null && !supportedLanguages.isEmpty()) {
+        // return the first supported locale
         bestMatchingLanguage = supportedLanguages.iterator().next();
       }
-    } else if (userLanguages!=null && supportedLanguages==null) {
-      // return the first locale accepted by the browser
-      bestMatchingLanguage = userLanguages.get(0).getRange();
-    }
-    else if (userLanguages==null && supportedLanguages!=null) {
-      // return the first supported locale
-      bestMatchingLanguage = supportedLanguages.iterator().next();
-    }
-    else if (userLanguages==null && supportedLanguages==null) {
-      // nothing to do, the computed locale is already null
-    }
-    
-    if (bestMatchingLanguage!=null) {
-      Locale bestMatchingLocale = Locale.forLanguageTag(bestMatchingLanguage);
-      if (bestMatchingLocale!=null) {
-        // we've got a valid Locale. lets convert it to a String
-        String bestMatchingLocaleAsString = bestMatchingLocale.toLanguageTag();
-        context.setLocale(bestMatchingLocaleAsString);
-        if (bestMatchingLocaleAsString!=null) {
-        // set the content-language header on the response
-        	context.response().headers().add(HttpHeaders.CONTENT_LANGUAGE, bestMatchingLocaleAsString);
+      else if (userLanguages==null && supportedLanguages.isEmpty()) {
+        // nothing to do, the computed locale is already null
+      }
+      
+      if (bestMatchingLanguage!=null) {
+        Locale bestMatchingLocale = Locale.forLanguageTag(bestMatchingLanguage);
+        if (bestMatchingLocale!=null) {
+          // we've got a valid Locale. lets convert it to a String
+          String bestMatchingLocaleAsString = bestMatchingLocale.toLanguageTag();
+          context.setLocale(bestMatchingLocaleAsString);
+          if (bestMatchingLocaleAsString!=null) {
+          // set the content-language header on the response
+            context.response().headers().add(HttpHeaders.CONTENT_LANGUAGE, bestMatchingLocaleAsString);
+          }
         }
       }
-    }
-    context.next();
+      context.next();
+    });
   }
 
   @Override
   public LocaleHandler addResolver(LocaleResolver resolver) {
-    if (localeResolvers==null) {
-      localeResolvers = new ArrayList<>();
-    }
     localeResolvers.add(resolver);
     return this;
   }
@@ -143,10 +157,6 @@ public class LocaleHandlerImpl implements LocaleHandler {
     locale = toLanguageTag(locale);
     if (locale==null) {
       throw new IllegalArgumentException("invalid locale or language: " + locale);
-    }
-    if (supportedLanguages==null) {
-      // use a linkedHashSet to preserve insertion order
-      supportedLanguages = new LinkedHashSet<>();
     }
     supportedLanguages.add(locale);
     return this;

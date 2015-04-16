@@ -37,13 +37,19 @@ var LocaleResolver = function(j_val) {
    <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.4">See W3c Specification</a>
 
    @public
-   @param context {RoutingContext} 
-   @return {string} 
+   @param context {RoutingContext} - the RoutingContext 
+   @param resultHandler {function} - the result handler 
    */
-  this.resolve = function(context) {
+  this.resolve = function(context, resultHandler) {
     var __args = arguments;
-    if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
-      return j_localeResolver["resolve(io.vertx.ext.apex.RoutingContext)"](context._jdel);
+    if (__args.length === 2 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'function') {
+      j_localeResolver["resolve(io.vertx.ext.apex.RoutingContext,io.vertx.core.Handler)"](context._jdel, function(ar) {
+      if (ar.succeeded()) {
+        resultHandler(ar.result(), null);
+      } else {
+        resultHandler(null, ar.cause());
+      }
+    });
     } else utils.invalidArgs();
   };
 
