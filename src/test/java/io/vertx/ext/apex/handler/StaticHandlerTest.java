@@ -52,11 +52,22 @@ public class StaticHandlerTest extends ApexTestBase {
   public void testGetDefaultIndex() throws Exception {
     testRequest(HttpMethod.GET, "/", 200, "OK", "<html><body>Index page</body></html>");
   }
+  
+  @Test
+  public void testGetSubdirectoryDefaultIndex() throws Exception {
+    testRequest(HttpMethod.GET, "/somedir", 200, "OK", "<html><body>somedir Index page</body></html>");
+  }
 
   @Test
   public void testGetOtherIndex() throws Exception {
     stat.setIndexPage("otherpage.html");
     testRequest(HttpMethod.GET, "/", 200, "OK", "<html><body>Other page</body></html>");
+  }
+  
+  @Test
+  public void testGetSubdirectoryOtherIndex() throws Exception {
+    stat.setIndexPage("otherpage.html");
+    testRequest(HttpMethod.GET, "/somedir", 200, "OK", "<html><body>somedir Other page</body></html>");
   }
 
   @Test

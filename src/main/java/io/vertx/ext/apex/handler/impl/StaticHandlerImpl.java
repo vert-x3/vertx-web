@@ -121,7 +121,7 @@ public class StaticHandlerImpl implements StaticHandler {
         return;
       }
 
-      if (!directoryListing && "/".equals(path)) {
+      if (!directoryListing && path != null && path.endsWith("/")) {
         path = indexPage;
       }
 
