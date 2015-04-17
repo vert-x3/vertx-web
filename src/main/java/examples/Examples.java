@@ -19,7 +19,6 @@ import io.vertx.ext.apex.sstore.SessionStore;
 import io.vertx.ext.apex.templ.HandlebarsTemplateEngine;
 import io.vertx.ext.apex.templ.TemplateEngine;
 import io.vertx.ext.auth.AuthProvider;
-import io.vertx.ext.auth.AuthService;
 import io.vertx.ext.auth.shiro.PropertiesAuthRealmConstants;
 import io.vertx.ext.auth.shiro.ShiroAuthProvider;
 import io.vertx.ext.auth.shiro.ShiroAuthRealmType;
@@ -661,9 +660,6 @@ public class Examples {
 
   public void example35(Vertx vertx) {
 
-    // Create a simple local auth service that gets user data from properties file
-    // See the AuthService documentation for how to configure the auth service
-
     JsonObject config = new JsonObject();
     config.put(PropertiesAuthRealmConstants.PROPERTIES_PROPS_PATH_FIELD,
                "classpath:test-auth.properties");
@@ -688,7 +684,6 @@ public class Examples {
     router.route().handler(CookieHandler.create());
     router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
 
-    AuthService authService = AuthService.createEventBusProxy(vertx, "acme.authservice");
     AuthHandler basicAuthHandler = BasicAuthHandler.create(authProvider);
 
     // All requests to paths starting with '/private/' will be protected
@@ -715,7 +710,6 @@ public class Examples {
     router.route().handler(CookieHandler.create());
     router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
 
-    AuthService authService = AuthService.createEventBusProxy(vertx, "acme.authservice");
     AuthHandler redirectAuthHandler = RedirectAuthHandler.create(authProvider);
 
     // All requests to paths starting with '/private/' will be protected

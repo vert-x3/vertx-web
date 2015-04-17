@@ -580,7 +580,7 @@ public class EventbusBridgeTest extends ApexTestBase {
   }
 
   @Test
-  public void testSendRequiresRoleNotAuthService() throws Exception {
+  public void testSendRequiresRoleNotAuthProvider() throws Exception {
     sockJSHandler.bridge(defaultOptions.addInboundPermitted(new PermittedOptions().setAddress(addr).setRequiredRole("admin")));
     router.clear();
     router.route().handler(CookieHandler.create());

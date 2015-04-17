@@ -1221,8 +1221,8 @@ you get data from the session with `link:groovydoc/io/vertx/groovy/ext/apex/Sess
 data from the session with `link:groovydoc/io/vertx/groovy/ext/apex/Session.html#remove(java.lang.String)[remove]`.
 
 The keys for items in the session are always strings. The values can be any type for a local session store, and for
-a clustered session store they can be any basic type, or `link:../../vertx-core/groovy/groovydoc/io/vertx/groovy/core/buffer/Buffer.html[Buffer]`, `link:../../vertx-core/groovy/groovydoc/io/vertx/groovy/core/json/JsonObject.html[JsonObject]`,
-`link:../../vertx-core/groovy/groovydoc/io/vertx/groovy/core/json/JsonArray.html[JsonArray]` or a serializable object, as the values have to serialized across the cluster.
+a clustered session store they can be any basic type, or `link:../../vertx-core/groovy/groovydoc/io/vertx/groovy/core/buffer/Buffer.html[Buffer]`, `JsonObject`,
+`JsonArray` or a serializable object, as the values have to serialized across the cluster.
 
 Here's an example of manipulating session data:
 
@@ -1296,9 +1296,6 @@ import io.vertx.groovy.ext.auth.shiro.ShiroAuthProvider
 import io.vertx.ext.auth.shiro.ShiroAuthRealmType
 import io.vertx.groovy.ext.apex.handler.BasicAuthHandler
 
-// Create a simple local auth service that gets user data from properties file
-// See the AuthService documentation for how to configure the auth service
-
 def config = [:]
 config.io.vertx.ext.auth.shiro.PropertiesAuthRealmConstants.PROPERTIES_PROPS_PATH_FIELD = "classpath:test-auth.properties"
 
@@ -1335,13 +1332,11 @@ your auth handler is before your application handlers on those paths:
 import io.vertx.groovy.ext.apex.handler.CookieHandler
 import io.vertx.groovy.ext.apex.handler.SessionHandler
 import io.vertx.groovy.ext.apex.sstore.LocalSessionStore
-import io.vertx.groovy.ext.auth.AuthService
 import io.vertx.groovy.ext.apex.handler.BasicAuthHandler
 
 router.route().handler(CookieHandler.create())
 router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)))
 
-def authService = AuthService.createEventBusProxy(vertx, "acme.authservice")
 def basicAuthHandler = BasicAuthHandler.create(authProvider)
 
 // All requests to paths starting with '/private/' will be protected
@@ -1415,7 +1410,6 @@ Here's an example of a simple app, using a redirect auth handler on the default 
 import io.vertx.groovy.ext.apex.handler.CookieHandler
 import io.vertx.groovy.ext.apex.handler.SessionHandler
 import io.vertx.groovy.ext.apex.sstore.LocalSessionStore
-import io.vertx.groovy.ext.auth.AuthService
 import io.vertx.groovy.ext.apex.handler.RedirectAuthHandler
 import io.vertx.groovy.ext.apex.handler.FormLoginHandler
 import io.vertx.groovy.ext.apex.handler.StaticHandler
@@ -1423,7 +1417,6 @@ import io.vertx.groovy.ext.apex.handler.StaticHandler
 router.route().handler(CookieHandler.create())
 router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)))
 
-def authService = AuthService.createEventBusProxy(vertx, "acme.authservice")
 def redirectAuthHandler = RedirectAuthHandler.create(authProvider)
 
 // All requests to paths starting with '/private/' will be protected

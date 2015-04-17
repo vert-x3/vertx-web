@@ -1216,8 +1216,8 @@ you get data from the session with `link:jsdoc/session-Session.html#get[get]`, a
 data from the session with `link:jsdoc/session-Session.html#remove[remove]`.
 
 The keys for items in the session are always strings. The values can be any type for a local session store, and for
-a clustered session store they can be any basic type, or `link:../../vertx-core/js/jsdoc/buffer-Buffer.html[Buffer]`, `link:../../vertx-core/js/jsdoc/json_object-JsonObject.html[JsonObject]`,
-`link:../../vertx-core/js/jsdoc/json_array-JsonArray.html[JsonArray]` or a serializable object, as the values have to serialized across the cluster.
+a clustered session store they can be any basic type, or `link:../../vertx-core/js/jsdoc/buffer-Buffer.html[Buffer]`, `JsonObject`,
+`JsonArray` or a serializable object, as the values have to serialized across the cluster.
 
 Here's an example of manipulating session data:
 
@@ -1290,9 +1290,6 @@ an auth handler from that, but it's the same principle whatever concrete auth pr
 var ShiroAuthProvider = require("vertx-auth-js/shiro_auth_provider");
 var BasicAuthHandler = require("vertx-apex-js/basic_auth_handler");
 
-// Create a simple local auth service that gets user data from properties file
-// See the AuthService documentation for how to configure the auth service
-
 var config = {
 };
 config.Java.type("io.vertx.ext.auth.shiro.PropertiesAuthRealmConstants").PROPERTIES_PROPS_PATH_FIELD = "classpath:test-auth.properties";
@@ -1330,13 +1327,11 @@ your auth handler is before your application handlers on those paths:
 var CookieHandler = require("vertx-apex-js/cookie_handler");
 var SessionHandler = require("vertx-apex-js/session_handler");
 var LocalSessionStore = require("vertx-apex-js/local_session_store");
-var AuthService = require("vertx-auth-js/auth_service");
 var BasicAuthHandler = require("vertx-apex-js/basic_auth_handler");
 
 router.route().handler(CookieHandler.create().handle);
 router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)).handle);
 
-var authService = AuthService.createEventBusProxy(vertx, "acme.authservice");
 var basicAuthHandler = BasicAuthHandler.create(authProvider);
 
 // All requests to paths starting with '/private/' will be protected
@@ -1410,7 +1405,6 @@ Here's an example of a simple app, using a redirect auth handler on the default 
 var CookieHandler = require("vertx-apex-js/cookie_handler");
 var SessionHandler = require("vertx-apex-js/session_handler");
 var LocalSessionStore = require("vertx-apex-js/local_session_store");
-var AuthService = require("vertx-auth-js/auth_service");
 var RedirectAuthHandler = require("vertx-apex-js/redirect_auth_handler");
 var FormLoginHandler = require("vertx-apex-js/form_login_handler");
 var StaticHandler = require("vertx-apex-js/static_handler");
@@ -1418,7 +1412,6 @@ var StaticHandler = require("vertx-apex-js/static_handler");
 router.route().handler(CookieHandler.create().handle);
 router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)).handle);
 
-var authService = AuthService.createEventBusProxy(vertx, "acme.authservice");
 var redirectAuthHandler = RedirectAuthHandler.create(authProvider);
 
 // All requests to paths starting with '/private/' will be protected

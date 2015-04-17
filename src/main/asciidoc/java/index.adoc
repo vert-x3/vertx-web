@@ -1190,7 +1190,6 @@ your auth handler is before your application handlers on those paths:
 router.route().handler(CookieHandler.create());
 router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
 
-AuthService authService = AuthService.createEventBusProxy(vertx, "acme.authservice");
 AuthHandler basicAuthHandler = BasicAuthHandler.create(authProvider);
 
 // All requests to paths starting with '/private/' will be protected
@@ -1263,7 +1262,6 @@ Here's an example of a simple app, using a redirect auth handler on the default 
 router.route().handler(CookieHandler.create());
 router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
 
-AuthService authService = AuthService.createEventBusProxy(vertx, "acme.authservice");
 AuthHandler redirectAuthHandler = RedirectAuthHandler.create(authProvider);
 
 // All requests to paths starting with '/private/' will be protected
