@@ -160,6 +160,26 @@ var Route = function(j_val) {
   };
 
   /**
+   Specify a blocking request handler for the route. 
+   This method works just like {@link Route#handler} excepted that it will run the blocking handler on a different thread
+   so that it won't block the event loop. Note that it's safe to call context.next() from the 
+   blocking handler as it will be executed on the event loop context (and not on the worker thread)
+
+   @public
+   @param requestHandler {function} the blocking request handler 
+   @return {Route} a reference to this, so the API can be used fluently
+   */
+  this.blockingHandler = function(requestHandler) {
+    var __args = arguments;
+    if (__args.length === 1 && typeof __args[0] === 'function') {
+      j_route["blockingHandler(io.vertx.core.Handler)"](function(jVal) {
+      requestHandler(new RoutingContext(jVal));
+    });
+      return that;
+    } else utils.invalidArgs();
+  };
+
+  /**
    Specify a failure handler for the route. The router routes failures to failurehandlers depending on whether the various
    criteria such as method, path, etc match. There can be only one failure handler for a route. If you set this more
    than once it will overwrite the previous handler.

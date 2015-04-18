@@ -1217,8 +1217,8 @@ you get data from the session with `link:jsdoc/session-Session.html#get[get]`, a
 data from the session with `link:jsdoc/session-Session.html#remove[remove]`.
 
 The keys for items in the session are always strings. The values can be any type for a local session store, and for
-a clustered session store they can be any basic type, or `link:../../vertx-core/js/jsdoc/buffer-Buffer.html[Buffer]`, `link:../../vertx-core/js/jsdoc/json_object-JsonObject.html[JsonObject]`,
-`link:../../vertx-core/js/jsdoc/json_array-JsonArray.html[JsonArray]` or a serializable object, as the values have to serialized across the cluster.
+a clustered session store they can be any basic type, or `link:../../vertx-core/js/jsdoc/buffer-Buffer.html[Buffer]`, `JsonObject`,
+`JsonArray` or a serializable object, as the values have to serialized across the cluster.
 
 Here's an example of manipulating session data:
 

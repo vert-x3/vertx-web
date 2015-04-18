@@ -1222,8 +1222,8 @@ you get data from the session with `link:groovydoc/io/vertx/groovy/ext/apex/Sess
 data from the session with `link:groovydoc/io/vertx/groovy/ext/apex/Session.html#remove(java.lang.String)[remove]`.
 
 The keys for items in the session are always strings. The values can be any type for a local session store, and for
-a clustered session store they can be any basic type, or `link:../../vertx-core/groovy/groovydoc/io/vertx/groovy/core/buffer/Buffer.html[Buffer]`, `link:../../vertx-core/groovy/groovydoc/io/vertx/groovy/core/json/JsonObject.html[JsonObject]`,
-`link:../../vertx-core/groovy/groovydoc/io/vertx/groovy/core/json/JsonArray.html[JsonArray]` or a serializable object, as the values have to serialized across the cluster.
+a clustered session store they can be any basic type, or `link:../../vertx-core/groovy/groovydoc/io/vertx/groovy/core/buffer/Buffer.html[Buffer]`, `JsonObject`,
+`JsonArray` or a serializable object, as the values have to serialized across the cluster.
 
 Here's an example of manipulating session data:
 
