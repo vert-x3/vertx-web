@@ -41,6 +41,11 @@ public class ClusteredSessionStoreImpl implements ClusteredSessionStore {
   }
 
   @Override
+  public Session createSession(long timeout) {
+    return new SessionImpl(timeout, this);
+  }
+
+  @Override
   public void get(String id, Handler<AsyncResult<Session>> resultHandler) {
     getMap(res -> {
       if (res.succeeded()) {
@@ -83,10 +88,10 @@ public class ClusteredSessionStoreImpl implements ClusteredSessionStore {
   }
 
   @Override
-  public void put(Session session, long timeout, Handler<AsyncResult<Boolean>> resultHandler) {
+  public void put(Session session, Handler<AsyncResult<Boolean>> resultHandler) {
     getMap(res -> {
       if (res.succeeded()) {
-        res.result().put(session.id(), session, timeout, res2 -> {
+        res.result().put(session.id(), session, session.timeout(), res2 -> {
           if (res2.succeeded()) {
             resultHandler.handle(Future.succeededFuture(res2.result() != null));
           } else {

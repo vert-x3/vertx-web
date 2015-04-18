@@ -21,7 +21,7 @@ import io.vertx.lang.rxjava.InternalHelper;
 import rx.Observable;
 import io.vertx.rxjava.ext.apex.RoutingContext;
 import io.vertx.core.Handler;
-import io.vertx.rxjava.ext.auth.AuthService;
+import io.vertx.rxjava.ext.auth.AuthProvider;
 
 /**
  * Handler that handles login from a form on a custom login page.
@@ -50,24 +50,24 @@ public class FormLoginHandler implements Handler<RoutingContext> {
 
   /**
    * Create a handler
-   * @param authService the auth service to use
+   * @param authProvider the auth service to use
    * @return the handler
    */
-  public static FormLoginHandler create(AuthService authService) { 
-    FormLoginHandler ret= FormLoginHandler.newInstance(io.vertx.ext.apex.handler.FormLoginHandler.create((io.vertx.ext.auth.AuthService) authService.getDelegate()));
+  public static FormLoginHandler create(AuthProvider authProvider) { 
+    FormLoginHandler ret= FormLoginHandler.newInstance(io.vertx.ext.apex.handler.FormLoginHandler.create((io.vertx.ext.auth.AuthProvider) authProvider.getDelegate()));
     return ret;
   }
 
   /**
    * Create a handler
-   * @param authService the auth service to use
+   * @param authProvider the auth service to use
    * @param usernameParam the value of the form attribute which will contain the username
    * @param passwordParam the value of the form attribute which will contain the password
    * @param returnURLParam the value of the form attribute which will contain the return url
    * @return the handler
    */
-  public static FormLoginHandler create(AuthService authService, String usernameParam, String passwordParam, String returnURLParam) { 
-    FormLoginHandler ret= FormLoginHandler.newInstance(io.vertx.ext.apex.handler.FormLoginHandler.create((io.vertx.ext.auth.AuthService) authService.getDelegate(), usernameParam, passwordParam, returnURLParam));
+  public static FormLoginHandler create(AuthProvider authProvider, String usernameParam, String passwordParam, String returnURLParam) { 
+    FormLoginHandler ret= FormLoginHandler.newInstance(io.vertx.ext.apex.handler.FormLoginHandler.create((io.vertx.ext.auth.AuthProvider) authProvider.getDelegate(), usernameParam, passwordParam, returnURLParam));
     return ret;
   }
 

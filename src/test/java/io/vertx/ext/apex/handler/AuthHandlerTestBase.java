@@ -18,12 +18,12 @@ package io.vertx.ext.apex.handler;
 
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.apex.ApexTestBase;
 import io.vertx.ext.apex.sstore.LocalSessionStore;
 import io.vertx.ext.apex.sstore.SessionStore;
-import io.vertx.ext.apex.ApexTestBase;
-import io.vertx.ext.auth.AuthService;
+import io.vertx.ext.auth.AuthProvider;
+import io.vertx.ext.auth.shiro.ShiroAuthProvider;
 import io.vertx.ext.auth.shiro.ShiroAuthRealmType;
-import io.vertx.ext.auth.shiro.ShiroAuthService;
 import org.junit.Test;
 
 import java.util.HashSet;
@@ -62,7 +62,7 @@ public abstract class AuthHandlerTestBase extends ApexTestBase {
     testAuthorisation("tim", true, null, perms);
   }
 
-  protected abstract AuthHandler createAuthHandler(AuthService authService);
+  protected abstract AuthHandler createAuthHandler(AuthProvider authProvider);
 
 
   protected void testAuthorisation(String username, boolean fail, Set<String> roles, Set<String> permissions) throws Exception {
@@ -71,8 +71,8 @@ public abstract class AuthHandlerTestBase extends ApexTestBase {
     SessionStore store = LocalSessionStore.create(vertx);
     router.route().handler(SessionHandler.create(store));
     JsonObject authConfig = new JsonObject().put("properties_path", "classpath:login/loginusers.properties");
-    AuthService authService = ShiroAuthService.create(vertx, ShiroAuthRealmType.PROPERTIES, authConfig);
-    AuthHandler authHandler = createAuthHandler(authService);
+    AuthProvider authProvider = ShiroAuthProvider.create(vertx, ShiroAuthRealmType.PROPERTIES, authConfig);
+    AuthHandler authHandler = createAuthHandler(authProvider);
     if (roles != null) {
       authHandler.addRoles(roles);
     }
@@ -82,10 +82,11 @@ public abstract class AuthHandlerTestBase extends ApexTestBase {
     router.route().handler(rc -> {
       // we need to be logged in
       if (!rc.session().isLoggedIn()) {
-        authService.login(new JsonObject().put("username", username).put("password", "sausages"), res -> {
+        JsonObject principal = new JsonObject().put("username", username);
+        authProvider.login(principal, new JsonObject().put("password", "sausages"), res -> {
           if (res.succeeded()) {
-            rc.session().setLoginID(res.result());
-            rc.session().setAuthService(authService);
+            rc.session().setPrincipal(principal);
+            rc.session().setAuthProvider(authProvider);
             rc.next();
           } else {
             rc.fail(res.cause());

@@ -19,7 +19,7 @@ import groovy.transform.CompileStatic
 import io.vertx.lang.groovy.InternalHelper
 import io.vertx.groovy.ext.apex.RoutingContext
 import io.vertx.core.Handler
-import io.vertx.groovy.ext.auth.AuthService
+import io.vertx.groovy.ext.auth.AuthProvider
 /**
  * Handler that handles login from a form on a custom login page.
  * <p>
@@ -39,23 +39,23 @@ public class FormLoginHandler implements Handler<RoutingContext> {
   }
   /**
    * Create a handler
-   * @param authService the auth service to use
+   * @param authProvider the auth service to use
    * @return the handler
    */
-  public static FormLoginHandler create(AuthService authService) {
-    def ret= new io.vertx.groovy.ext.apex.handler.FormLoginHandler(io.vertx.ext.apex.handler.FormLoginHandler.create((io.vertx.ext.auth.AuthService)authService.getDelegate()));
+  public static FormLoginHandler create(AuthProvider authProvider) {
+    def ret= new io.vertx.groovy.ext.apex.handler.FormLoginHandler(io.vertx.ext.apex.handler.FormLoginHandler.create((io.vertx.ext.auth.AuthProvider)authProvider.getDelegate()));
     return ret;
   }
   /**
    * Create a handler
-   * @param authService the auth service to use
+   * @param authProvider the auth service to use
    * @param usernameParam the value of the form attribute which will contain the username
    * @param passwordParam the value of the form attribute which will contain the password
    * @param returnURLParam the value of the form attribute which will contain the return url
    * @return the handler
    */
-  public static FormLoginHandler create(AuthService authService, String usernameParam, String passwordParam, String returnURLParam) {
-    def ret= new io.vertx.groovy.ext.apex.handler.FormLoginHandler(io.vertx.ext.apex.handler.FormLoginHandler.create((io.vertx.ext.auth.AuthService)authService.getDelegate(), usernameParam, passwordParam, returnURLParam));
+  public static FormLoginHandler create(AuthProvider authProvider, String usernameParam, String passwordParam, String returnURLParam) {
+    def ret= new io.vertx.groovy.ext.apex.handler.FormLoginHandler(io.vertx.ext.apex.handler.FormLoginHandler.create((io.vertx.ext.auth.AuthProvider)authProvider.getDelegate(), usernameParam, passwordParam, returnURLParam));
     return ret;
   }
 }

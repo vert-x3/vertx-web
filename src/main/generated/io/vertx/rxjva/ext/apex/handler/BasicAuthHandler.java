@@ -21,7 +21,7 @@ import io.vertx.lang.rxjava.InternalHelper;
 import rx.Observable;
 import io.vertx.rxjava.ext.apex.RoutingContext;
 import java.util.Set;
-import io.vertx.rxjava.ext.auth.AuthService;
+import io.vertx.rxjava.ext.auth.AuthProvider;
 
 /**
  * An auth handler that provides HTTP Basic Authentication support.
@@ -88,22 +88,22 @@ public class BasicAuthHandler implements AuthHandler {
 
   /**
    * Create a basic auth handler
-   * @param authService the auth service to use
+   * @param authProvider the auth provider to use
    * @return the auth handler
    */
-  public static AuthHandler create(AuthService authService) { 
-    AuthHandler ret= AuthHandler.newInstance(io.vertx.ext.apex.handler.BasicAuthHandler.create((io.vertx.ext.auth.AuthService) authService.getDelegate()));
+  public static AuthHandler create(AuthProvider authProvider) { 
+    AuthHandler ret= AuthHandler.newInstance(io.vertx.ext.apex.handler.BasicAuthHandler.create((io.vertx.ext.auth.AuthProvider) authProvider.getDelegate()));
     return ret;
   }
 
   /**
    * Create a basic auth handler, specifying realm
-   * @param authService the auth service to use
+   * @param authProvider the auth service to use
    * @param realm the realm to use
    * @return the auth handler
    */
-  public static AuthHandler create(AuthService authService, String realm) { 
-    AuthHandler ret= AuthHandler.newInstance(io.vertx.ext.apex.handler.BasicAuthHandler.create((io.vertx.ext.auth.AuthService) authService.getDelegate(), realm));
+  public static AuthHandler create(AuthProvider authProvider, String realm) { 
+    AuthHandler ret= AuthHandler.newInstance(io.vertx.ext.apex.handler.BasicAuthHandler.create((io.vertx.ext.auth.AuthProvider) authProvider.getDelegate(), realm));
     return ret;
   }
 

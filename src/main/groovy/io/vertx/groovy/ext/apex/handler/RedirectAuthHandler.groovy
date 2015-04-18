@@ -19,7 +19,7 @@ import groovy.transform.CompileStatic
 import io.vertx.lang.groovy.InternalHelper
 import io.vertx.groovy.ext.apex.RoutingContext
 import java.util.Set
-import io.vertx.groovy.ext.auth.AuthService
+import io.vertx.groovy.ext.auth.AuthProvider
 /**
  * An auth handler that's used to handle auth by redirecting user to a custom login page.
 */
@@ -73,32 +73,32 @@ public class RedirectAuthHandler implements AuthHandler {
   }
   /**
    * Create a handler
-   * @param authService the auth service to use
+   * @param authProvider the auth service to use
    * @return the handler
    */
-  public static AuthHandler create(AuthService authService) {
-    def ret= new io.vertx.groovy.ext.apex.handler.AuthHandlerImpl(io.vertx.ext.apex.handler.RedirectAuthHandler.create((io.vertx.ext.auth.AuthService)authService.getDelegate()));
+  public static AuthHandler create(AuthProvider authProvider) {
+    def ret= new io.vertx.groovy.ext.apex.handler.AuthHandlerImpl(io.vertx.ext.apex.handler.RedirectAuthHandler.create((io.vertx.ext.auth.AuthProvider)authProvider.getDelegate()));
     return ret;
   }
   /**
    * Create a handler
-   * @param authService the auth service to use
+   * @param authProvider the auth service to use
    * @param loginRedirectURL the url to redirect the user to
    * @return the handler
    */
-  public static AuthHandler create(AuthService authService, String loginRedirectURL) {
-    def ret= new io.vertx.groovy.ext.apex.handler.AuthHandlerImpl(io.vertx.ext.apex.handler.RedirectAuthHandler.create((io.vertx.ext.auth.AuthService)authService.getDelegate(), loginRedirectURL));
+  public static AuthHandler create(AuthProvider authProvider, String loginRedirectURL) {
+    def ret= new io.vertx.groovy.ext.apex.handler.AuthHandlerImpl(io.vertx.ext.apex.handler.RedirectAuthHandler.create((io.vertx.ext.auth.AuthProvider)authProvider.getDelegate(), loginRedirectURL));
     return ret;
   }
   /**
    * Create a handler
-   * @param authService the auth service to use
+   * @param authProvider the auth service to use
    * @param loginRedirectURL the url to redirect the user to
    * @param returnURLParam the name of param used to store return url information in session
    * @return the handler
    */
-  public static AuthHandler create(AuthService authService, String loginRedirectURL, String returnURLParam) {
-    def ret= new io.vertx.groovy.ext.apex.handler.AuthHandlerImpl(io.vertx.ext.apex.handler.RedirectAuthHandler.create((io.vertx.ext.auth.AuthService)authService.getDelegate(), loginRedirectURL, returnURLParam));
+  public static AuthHandler create(AuthProvider authProvider, String loginRedirectURL, String returnURLParam) {
+    def ret= new io.vertx.groovy.ext.apex.handler.AuthHandlerImpl(io.vertx.ext.apex.handler.RedirectAuthHandler.create((io.vertx.ext.auth.AuthProvider)authProvider.getDelegate(), loginRedirectURL, returnURLParam));
     return ret;
   }
 }

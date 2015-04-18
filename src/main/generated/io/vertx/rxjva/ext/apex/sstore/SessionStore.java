@@ -43,6 +43,16 @@ public class SessionStore {
   }
 
   /**
+   * Create a new session
+   * @param timeout - the session timeout, in ms
+   * @return the session
+   */
+  public Session createSession(long timeout) { 
+    Session ret= Session.newInstance(this.delegate.createSession(timeout));
+    return ret;
+  }
+
+  /**
    * Get the session with the specified ID
    * @param id the unique ID of the session
    * @param resultHandler will be called with a result holding the session, or a failure
@@ -95,22 +105,20 @@ public class SessionStore {
   /**
    * Add a session with the specified ID
    * @param session the session
-   * @param timeout max time session will last without being accessed before getting expired
    * @param resultHandler will be called with a result true/false, or a failure
    */
-  public void put(Session session, long timeout, Handler<AsyncResult<Boolean>> resultHandler) { 
-    this.delegate.put((io.vertx.ext.apex.Session) session.getDelegate(), timeout, resultHandler);
+  public void put(Session session, Handler<AsyncResult<Boolean>> resultHandler) { 
+    this.delegate.put((io.vertx.ext.apex.Session) session.getDelegate(), resultHandler);
   }
 
   /**
    * Add a session with the specified ID
    * @param session the session
-   * @param timeout max time session will last without being accessed before getting expired
    * @return 
    */
-  public Observable<Boolean> putObservable(Session session, long timeout) { 
+  public Observable<Boolean> putObservable(Session session) { 
     io.vertx.rx.java.ObservableFuture<Boolean> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
-    put(session, timeout, resultHandler.toHandler());
+    put(session, resultHandler.toHandler());
     return resultHandler;
   }
 

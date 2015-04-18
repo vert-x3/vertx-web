@@ -46,6 +46,11 @@ public class LocalSessionStoreImpl implements LocalSessionStore, Handler<Long> {
   }
 
   @Override
+  public Session createSession(long timeout) {
+    return new SessionImpl(timeout, this);
+  }
+
+  @Override
   public void get(String id, Handler<AsyncResult<Session>> resultHandler) {
     resultHandler.handle(Future.succeededFuture(localMap.get(id)));
   }
@@ -56,7 +61,7 @@ public class LocalSessionStoreImpl implements LocalSessionStore, Handler<Long> {
   }
 
   @Override
-  public void put(Session session, long timeout, Handler<AsyncResult<Boolean>> resultHandler) {
+  public void put(Session session, Handler<AsyncResult<Boolean>> resultHandler) {
     localMap.put(session.id(), session);
     resultHandler.handle(Future.succeededFuture(true));
   }

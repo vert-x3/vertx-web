@@ -20,7 +20,7 @@ import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.impl.LoggerFactory;
 import io.vertx.ext.apex.RoutingContext;
 import io.vertx.ext.apex.Session;
-import io.vertx.ext.auth.AuthService;
+import io.vertx.ext.auth.AuthProvider;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -32,8 +32,8 @@ public class RedirectAuthHandlerImpl extends AuthHandlerImpl {
   private final String loginRedirectURL;
   private final String returnURLParam;
 
-  public RedirectAuthHandlerImpl(AuthService authService, String loginRedirectURL, String returnURLParam) {
-    super (authService);
+  public RedirectAuthHandlerImpl(AuthProvider authProvider, String loginRedirectURL, String returnURLParam) {
+    super (authProvider);
     this.loginRedirectURL = loginRedirectURL;
     this.returnURLParam = returnURLParam;
   }

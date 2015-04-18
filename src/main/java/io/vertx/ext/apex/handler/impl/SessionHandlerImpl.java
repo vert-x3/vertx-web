@@ -18,14 +18,11 @@ package io.vertx.ext.apex.handler.impl;
 
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.impl.LoggerFactory;
-import io.vertx.ext.apex.handler.SessionHandler;
 import io.vertx.ext.apex.Cookie;
 import io.vertx.ext.apex.RoutingContext;
 import io.vertx.ext.apex.Session;
+import io.vertx.ext.apex.handler.SessionHandler;
 import io.vertx.ext.apex.sstore.SessionStore;
-import io.vertx.ext.apex.impl.SessionImpl;
-
-import java.util.UUID;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -87,7 +84,7 @@ public class SessionHandlerImpl implements SessionHandler {
             session.setAccessed();
             addStoreSessionHandler(context);
           } else {
-             // Cannot find session - either it timed out, or was explicitly destroyed at the server side on a
+            // Cannot find session - either it timed out, or was explicitly destroyed at the server side on a
             // previous request.
             // Either way, we create a new one.
             createNewSession(context);
@@ -108,7 +105,7 @@ public class SessionHandlerImpl implements SessionHandler {
       if (!context.session().isDestroyed()) {
         // Store the session
         context.session().setAccessed();
-        sessionStore.put(context.session(), sessionTimeout, res -> {
+        sessionStore.put(context.session(), res -> {
           if (res.succeeded()) {
             // FIXME ???
             // We need to wait for session to be persisted before returning response otherwise
@@ -123,11 +120,9 @@ public class SessionHandlerImpl implements SessionHandler {
   }
 
   private void createNewSession(RoutingContext context) {
-    // This is a cryptographically secure random UUID
-    String sessionID = UUID.randomUUID().toString();
-    Session session = new SessionImpl(sessionID, sessionTimeout, sessionStore);
+    Session session = sessionStore.createSession(sessionTimeout);
     context.setSession(session);
-    Cookie cookie = Cookie.cookie(sessionCookieName, sessionID);
+    Cookie cookie = Cookie.cookie(sessionCookieName, session.id());
     cookie.setPath("/");
     // Don't set max age - it's a session cookie
     context.addCookie(cookie);
