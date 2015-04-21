@@ -110,6 +110,7 @@ public class SessionHandlerImpl implements SessionHandler {
             // FIXME ???
             // We need to wait for session to be persisted before returning response otherwise
             // user can submit new request on session which could get processed before store is complete
+            // https://github.com/vert-x3/vertx-apex/issues/93
           } else {
             // Failed to store session
             context.fail(res.cause());

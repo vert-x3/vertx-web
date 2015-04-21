@@ -51,7 +51,7 @@ public class ClusteredSessionStoreImpl implements ClusteredSessionStore {
       if (res.succeeded()) {
         res.result().get(id, res2 -> {
           if (res2.succeeded()) {
-            resultHandler.handle(Future.succeededFuture(hasExpired(res2.result())));
+            resultHandler.handle(Future.succeededFuture(res2.result()));
           } else {
             resultHandler.handle(Future.failedFuture(res2.cause()));
           }
@@ -60,14 +60,6 @@ public class ClusteredSessionStoreImpl implements ClusteredSessionStore {
         resultHandler.handle(Future.failedFuture(res.cause()));
       }
     });
-  }
-
-  private Session hasExpired(Session session) {
-    if (session != null && System.currentTimeMillis() - session.lastAccessed() >= session.timeout()) {
-      return null;
-    } else {
-      return session;
-    }
   }
 
   @Override

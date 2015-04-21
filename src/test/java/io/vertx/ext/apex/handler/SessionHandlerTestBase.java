@@ -109,9 +109,11 @@ public abstract class SessionHandlerTestBase extends ApexTestBase {
       String setCookie = resp.headers().get("set-cookie");
       rSetCookie.set(setCookie);
     }, 200, "OK", null);
+    Thread.sleep(1000);
     testRequest(HttpMethod.GET, "/", req -> {
       req.putHeader("cookie", rSetCookie.get());
     }, null, 200, "OK", null);
+    Thread.sleep(1000);
     testRequest(HttpMethod.GET, "/", req -> {
       req.putHeader("cookie", rSetCookie.get());
     }, null, 200, "OK", null);

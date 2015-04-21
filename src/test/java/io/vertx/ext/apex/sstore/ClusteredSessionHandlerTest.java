@@ -18,18 +18,15 @@ package io.vertx.ext.apex.sstore;
 
 import io.vertx.core.VertxOptions;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.http.HttpClient;
-import io.vertx.core.http.HttpClientOptions;
-import io.vertx.core.http.HttpMethod;
-import io.vertx.core.http.HttpServer;
-import io.vertx.core.http.HttpServerOptions;
+import io.vertx.core.http.*;
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.spi.cluster.ClusterManager;
+import io.vertx.ext.apex.Router;
+import io.vertx.ext.apex.Session;
 import io.vertx.ext.apex.handler.CookieHandler;
 import io.vertx.ext.apex.handler.SessionHandler;
 import io.vertx.ext.apex.handler.SessionHandlerTestBase;
 import io.vertx.ext.apex.handler.SomeSerializable;
-import io.vertx.ext.apex.Router;
-import io.vertx.ext.apex.Session;
 import io.vertx.ext.apex.sstore.impl.SessionImpl;
 import io.vertx.test.core.TestUtils;
 import io.vertx.test.fakecluster.FakeClusterManager;
@@ -52,9 +49,14 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
     super.setUp();
     VertxOptions options = new VertxOptions();
     options.setClustered(true);
-    options.setClusterManager(new FakeClusterManager());
-    startNodes(numNodes);
+    options.setClusterManager(getClusterManager());
+    startNodes(numNodes, options);
     store = ClusteredSessionStore.create(vertices[0]);
+  }
+
+  @Override
+  protected ClusterManager getClusterManager() {
+    return new FakeClusterManager();
   }
 
   @Test
@@ -117,9 +119,14 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
       String setCookie = resp.headers().get("set-cookie");
       rSetCookie.set(setCookie);
     }, 200, "OK", null);
+    // FIXME - for now we do an artificial sleep because it's possible the session hasn't been stored properly before
+    // the next request hits the server
+    // https://github.com/vert-x3/vertx-apex/issues/93
+    Thread.sleep(1000);
     testRequestBuffer(client2, HttpMethod.GET, 8082, "/", req -> {
       req.putHeader("cookie", rSetCookie.get());
     }, null, 200, "OK", null);
+    Thread.sleep(1000);
     testRequestBuffer(client3, HttpMethod.GET, 8083, "/", req -> {
       req.putHeader("cookie", rSetCookie.get());
     }, null, 200, "OK", null);
@@ -139,6 +146,7 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
     session2.readFromBuffer(buffer);
     checkSession(session2);
     assertEquals(timeout, session2.timeout());
+    assertEquals(session.id(), session2.id());
     assertNull(session2.getPrincipal());
     assertTrue(session2.getRoles().isEmpty());
     assertTrue(session2.getPermissions().isEmpty());
@@ -156,6 +164,7 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
     SessionImpl session2 = (SessionImpl)store.createSession(0);
     session2.readFromBuffer(buffer);
     checkSession(session2);
+    assertEquals(session.id(), session2.id());
     assertEquals(timeout, session2.timeout());
     assertEquals(principal, session2.getPrincipal());
   }
@@ -176,6 +185,7 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
     SessionImpl session2 = (SessionImpl)store.createSession(0);
     session2.readFromBuffer(buffer);
     checkSession(session2);
+    assertEquals(session.id(), session2.id());
     assertEquals(timeout, session2.timeout());
     assertEquals(3, session2.getRoles().size());
     assertTrue(session2.getRoles().contains("role1"));

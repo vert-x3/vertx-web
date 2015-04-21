@@ -59,8 +59,8 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
   private static final byte TYPE_SERIALIZABLE = 12;
   private static final byte TYPE_CLUSTER_SERIALIZABLE = 13;
 
-  private final String id;
-  private final SessionStore sessionStore;
+  private String id;
+  private SessionStore sessionStore;
   private long timeout;
   private Map<String, Object> data;
   private long lastAccessed;
@@ -69,6 +69,9 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
   private AuthProvider authProvider;
   private Set<String> roles;
   private Set<String> permissions;
+
+  public SessionImpl() {
+  }
 
   SessionImpl(long timeout, SessionStore sessionStore) {
     this.id = UUID.randomUUID().toString();
@@ -248,6 +251,9 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
   public Buffer writeToBuffer() {
     Buffer buff = Buffer.buffer();
 
+    byte[] bytes = id.getBytes(UTF8);
+    buff.appendInt(bytes.length).appendBytes(bytes);
+
     buff.appendLong(timeout);
 
     if (principal != null) {
@@ -271,13 +277,19 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
   public void readFromBuffer(Buffer buffer) {
     int pos = 0;
 
+    int len = buffer.getInt(pos);
+    pos += 4;
+    byte[] bytes = buffer.getBytes(pos, pos + len);
+    pos += len;
+    id = new String(bytes, UTF8);
+
     timeout = buffer.getLong(pos);
     pos += 8;
 
     boolean hasPrincipal = buffer.getByte(pos) == (byte)1;
     pos ++;
     if (hasPrincipal) {
-      int len = buffer.getInt(pos);
+      len = buffer.getInt(pos);
       pos += 4;
       Buffer principalBuffer = buffer.getBuffer(pos, pos + len);
       pos += len;
