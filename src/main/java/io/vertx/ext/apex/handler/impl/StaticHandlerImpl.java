@@ -120,78 +120,103 @@ public class StaticHandlerImpl implements StaticHandler {
         context.fail(404);
         return;
       }
-
+  
+      // only root is known for sure to be a directory. all other directories must be identified as such.
       if (!directoryListing && "/".equals(path)) {
         path = indexPage;
       }
-
-      String file = null;
-
-      if (!includeHidden) {
-        file = getFile(path, context);
-        int idx = file.lastIndexOf('/');
-        String name = file.substring(idx + 1);
-        if (name.length() > 0 && name.charAt(0) == '.') {
-          context.fail(404);
+      
+      // can be called recursive for index pages
+      sendStatic(context, path);
+  
+    }
+  }
+  
+  private void sendStatic(RoutingContext context, String path) {
+    
+    String file = null;
+    
+    if (!includeHidden) {
+      file = getFile(path, context);
+      int idx = file.lastIndexOf('/');
+      String name = file.substring(idx + 1);
+      if (name.length() > 0 && name.charAt(0) == '.') {
+        context.fail(404);
+        return;
+      }
+    }
+    
+    // Look in cache
+    CacheEntry entry = null;
+    if (cachingEnabled) {
+      entry = propsCache().get(path);
+      if (entry != null) {
+        HttpServerRequest request = context.request();
+        if ((filesReadOnly || !entry.isOutOfDate()) && entry.shouldUseCached(request)) {
+          context.response().setStatusCode(304).end();
           return;
         }
       }
-
-      // Look in cache
-      CacheEntry entry = null;
-      if (cachingEnabled) {
-        entry = propsCache().get(path);
-        if (entry != null) {
-          if ((filesReadOnly || !entry.isOutOfDate()) && entry.shouldUseCached(request)) {
-            context.response().setStatusCode(304).end();
-            return;
+    }
+    
+    if (file == null) {
+      file = getFile(path, context);
+    }
+    
+    FileProps props;
+    if (filesReadOnly && entry != null) {
+      props = entry.props;
+      sendFile(context, file, props);
+    } else {
+      // Need to read the props from the filesystem
+      String spath = path;
+      String sfile = file;
+      getFileProps(context, file, res -> {
+        if (res.succeeded()) {
+          FileProps fprops = res.result();
+          if (fprops == null) {
+            // File does not exist
+            context.fail(404);
+          } else if (fprops.isDirectory()) {
+            sendDirectory(context, spath, sfile);
+          } else {
+            propsCache().put(spath, new CacheEntry(fprops, System.currentTimeMillis()));
+            sendFile(context, sfile, fprops);
+          }
+        } else {
+          if (res.cause() instanceof NoSuchFileException) {
+            context.fail(404);
+          } else {
+            context.fail(res.cause());
           }
         }
-      }
-
-      if (file == null) {
-        file = getFile(path, context);
-      }
-
-      FileProps props;
-      if (filesReadOnly && entry != null) {
-        props = entry.props;
-        sendFile(context, file, props);
-      } else {
-        // Need to read the props from the filesystem
-        String spath = path;
-        String sfile = file;
-        getFileProps(context, file, res -> {
-          if (res.succeeded()) {
-            FileProps fprops = res.result();
-            if (fprops == null) {
-              // File does not exist
-              context.fail(404);
-            } else if (fprops.isDirectory()) {
-              if (directoryListing) {
-                sendDirectory(sfile, context);
-              } else {
-                // Directory listing denied
-                context.fail(403);
-              }
-            } else {
-              propsCache().put(spath, new CacheEntry(fprops, System.currentTimeMillis()));
-              sendFile(context, sfile, fprops);
-            }
-          } else {
-            if (res.cause() instanceof NoSuchFileException) {
-              context.fail(404);
-            } else {
-              context.fail(res.cause());
-            }
-          }
-        });
-
-      }
+      });
 
     }
   }
+  
+  private void sendDirectory(RoutingContext context, String path, String file) {
+    if (directoryListing) {
+      sendDirectoryListing(file, context);
+    } else if (indexPage != null) {
+      // send index page
+      String indexPath;
+      if(path.endsWith("/") && indexPage.startsWith("/")){
+        indexPath = path + indexPage.substring(1);
+      } else if (!path.endsWith("/") && !indexPage.startsWith("/")){
+        indexPath = path +"/"+ indexPage.substring(1);
+      } else {
+        indexPath = path + indexPage;
+      }
+      // recursive call
+      sendStatic(context, indexPath);
 
+    } else {
+      // Directory listing denied
+      context.fail(403);
+    }
+  }
+  
   private synchronized void getFileProps(RoutingContext context, String file, Handler<AsyncResult<FileProps>> resultHandler) {
     FileSystem fs = context.vertx().fileSystem();
     if (alwaysAsyncFS  || useAsyncFS) {
@@ -375,7 +400,7 @@ public class StaticHandlerImpl implements StaticHandler {
     this.webRoot = webRoot;
   }
 
-  private void sendDirectory(String dir, RoutingContext context) {
+  private void sendDirectoryListing(String dir, RoutingContext context) {
     FileSystem fileSystem = context.vertx().fileSystem();
     HttpServerRequest request = context.request();
 
