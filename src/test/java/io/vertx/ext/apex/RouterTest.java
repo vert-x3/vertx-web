@@ -54,7 +54,7 @@ public class RouterTest extends ApexTestBase {
   }
   
   @Test
-  public void testGetPath() throws Exception {
+  public void testRouteGetPath() throws Exception {
     assertEquals("/foo", router.route("/foo").getPath());
     assertEquals("/foo/:id", router.route("/foo/:id").getPath());
   }
