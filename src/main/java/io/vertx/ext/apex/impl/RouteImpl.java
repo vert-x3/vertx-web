@@ -24,7 +24,11 @@ import io.vertx.core.logging.impl.LoggerFactory;
 import io.vertx.ext.apex.Route;
 import io.vertx.ext.apex.RoutingContext;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -139,6 +143,11 @@ public class RouteImpl implements Route {
     return this;
   }
 
+  @Override
+  public synchronized Route blockingHandler(Handler<RoutingContext> contextHandler) {
+    return handler(new BlockingHandlerDecorator(contextHandler));
+  }
+  
   @Override
   public synchronized Route failureHandler(Handler<RoutingContext> exceptionHandler) {
     if (this.failureHandler != null) {
