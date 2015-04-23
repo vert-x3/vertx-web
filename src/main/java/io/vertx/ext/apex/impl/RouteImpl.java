@@ -367,6 +367,7 @@ public class RouteImpl implements Route {
     // a regex for that
     if (path.indexOf(':') != -1) {
       createPatternRegex(path);
+      this.path = path;
     } else {
       if (path.charAt(path.length() - 1) != '*') {
         exactPath = true;
