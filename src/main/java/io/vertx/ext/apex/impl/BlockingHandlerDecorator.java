@@ -20,24 +20,15 @@ public class BlockingHandlerDecorator implements Handler<RoutingContext> {
   
   public BlockingHandlerDecorator(Handler<RoutingContext> decoratedHandler) {
     Objects.requireNonNull(decoratedHandler);
-
     this.decoratedHandler = decoratedHandler;
   }
   
   @Override
-  public void handle(RoutingContext event) {
-    event.vertx().executeBlocking(fut -> {
-        decoratedHandler.handle(new RoutingContextDecorator(event){
-          @Override
-          public void next() {
-            // make sure the next handler run on the correct context
-            event.vertx().runOnContext(future -> super.next());
-          }
-        });
-        fut.complete();
-      },
-      null
-    );
+  public void handle(RoutingContext context) {
+    context.vertx().executeBlocking(fut -> {
+      decoratedHandler.handle(new RoutingContextDecorator(context));
+      fut.complete();
+    }, null);
   }
 
 }

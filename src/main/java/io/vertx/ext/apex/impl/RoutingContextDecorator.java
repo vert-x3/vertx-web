@@ -28,7 +28,6 @@ public class RoutingContextDecorator implements RoutingContext {
   
   public RoutingContextDecorator(RoutingContext decoratedContext) {
     Objects.requireNonNull(decoratedContext);
-    
     this.decoratedContext = decoratedContext;
   }
 
@@ -69,12 +68,14 @@ public class RoutingContextDecorator implements RoutingContext {
 
   @Override
   public void fail(int statusCode) {
-    decoratedContext.fail(statusCode);
+    // make sure the fail handler run on the correct context
+    vertx().runOnContext(future -> decoratedContext.fail(statusCode));
   }
 
   @Override
   public void fail(Throwable throwable) {
-    decoratedContext.fail(throwable);
+    // make sure the fail handler run on the correct context
+    vertx().runOnContext(future -> decoratedContext.fail(throwable));
   }
 
   @Override
@@ -134,7 +135,8 @@ public class RoutingContextDecorator implements RoutingContext {
 
   @Override
   public void next() {
-    decoratedContext.next();
+    // make sure the next handler run on the correct context
+    vertx().runOnContext(future -> decoratedContext.next());
   }
 
   @Override

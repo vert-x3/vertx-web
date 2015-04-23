@@ -19,11 +19,10 @@ package io.vertx.ext.apex.handler;
 import io.vertx.core.Context;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.apex.ApexTestBase;
+import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import org.junit.Test;
 
 /**
  * @author <a href="mailto:stephane.bastian.dev@gmail.com">Stéphane Bastian</a>
@@ -76,5 +75,33 @@ public class BlockingHandlerTest extends ApexTestBase {
     });
     testRequest(HttpMethod.GET, "/", 200, "OK");
   }
-  
+
+  @Test
+  public void testBlockingHandlerFailure() throws Exception {
+    List<Thread> threads = new ArrayList<>();
+    List<Context> contexts = new ArrayList<>();
+    router.route().handler(rc -> {
+      System.out.println("route1 thread - " + Thread.currentThread());
+      System.out.println("route1 context - " + rc.vertx().getOrCreateContext());
+      threads.add(Thread.currentThread());
+      contexts.add(rc.vertx().getOrCreateContext());
+      rc.next();
+    });
+    router.route().blockingHandler(rc -> {
+      System.out.println("route2 thread - " + Thread.currentThread());
+      System.out.println("route2 context - " + rc.vertx().getOrCreateContext());
+      assertTrue(!threads.get(0).equals(Thread.currentThread()));
+      assertTrue(contexts.get(0).equals(rc.vertx().getOrCreateContext()));
+      rc.fail(501);
+    });
+    router.route().failureHandler(rc -> {
+      System.out.println("route5 thread - " + Thread.currentThread());
+      System.out.println("route5 context - " + rc.vertx().getOrCreateContext());
+      assertTrue(threads.get(0).equals(Thread.currentThread()));
+      assertTrue(contexts.get(0).equals(rc.vertx().getOrCreateContext()));
+      rc.response().setStatusCode(rc.statusCode()).end();
+    });
+    testRequest(HttpMethod.GET, "/", 501, "Not Implemented");
+  }
+
 }
