@@ -22,10 +22,10 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.apex.Session;
 import io.vertx.ext.apex.Cookie;
 import io.vertx.ext.apex.FileUpload;
 import io.vertx.ext.apex.RoutingContext;
+import io.vertx.ext.apex.Session;
 
 import java.util.Iterator;
 import java.util.Map;
@@ -219,6 +219,17 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   @Override
   public void setAcceptableContentType(String contentType) {
     inner.setAcceptableContentType(contentType);
+  }
+
+  @Override
+  public String getLocale() {
+    return inner.getLocale();
+  }
+
+  @Override
+  public RoutingContext setLocale(String locale) {
+    inner.setLocale(locale);
+    return this;
   }
 
 }

@@ -322,4 +322,19 @@ public interface RoutingContext {
    */
   void setAcceptableContentType(String contentType);
 
+  /**
+   * @return Get the current locale. The context must have first been routed to a
+   * {@link io.vertx.ext.apex.handler.LocaleHandler} for this to be populated.
+   */
+  String getLocale();
+  
+  /**
+   * Set the locale to the specified value
+   *
+   * @param locale  the locale
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  RoutingContext setLocale(String locale);
+
 }

@@ -59,7 +59,8 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   private Buffer body;
   private Set<FileUpload> fileUploads;
   private Session session;
-
+  private String locale;
+  
   public RoutingContextImpl(String mountPoint, RouterImpl router, HttpServerRequest request, Iterator<RouteImpl> iter) {
     super(mountPoint, request, iter);
     this.router = router;
@@ -253,6 +254,17 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   @Override
   public boolean removeBodyEndHandler(int handlerID) {
     return getBodyEndHandlers().remove(handlerID) != null;
+  }
+
+  @Override
+  public String getLocale() {
+    return locale;
+  }
+
+  @Override
+  public RoutingContext setLocale(String locale) {
+    this.locale = locale;
+    return this;
   }
 
   private Map<Integer, Handler<Void>> getHeadersEndHandlers() {
