@@ -850,7 +850,7 @@ public class Examples {
     BridgeOptions options = new BridgeOptions();
     sockJSHandler.bridge(options);
 
-    router.route("/eventbus").handler(sockJSHandler);
+    router.route("/eventbus/*").handler(sockJSHandler);
   }
 
   public void example46(Vertx vertx) {
@@ -891,7 +891,7 @@ public class Examples {
 
     sockJSHandler.bridge(options);
 
-    router.route("/eventbus").handler(sockJSHandler);
+    router.route("/eventbus/*").handler(sockJSHandler);
   }
 
   public void example47() {
@@ -931,10 +931,10 @@ public class Examples {
 
     AuthHandler basicAuthHandler = BasicAuthHandler.create(authProvider);
 
-    router.route("/eventbus/").handler(basicAuthHandler);
+    router.route("/eventbus/*").handler(basicAuthHandler);
 
 
-    router.route("/eventbus/").handler(sockJSHandler);
+    router.route("/eventbus/*").handler(sockJSHandler);
 
   }
 
