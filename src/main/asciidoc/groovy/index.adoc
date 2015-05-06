@@ -1949,7 +1949,7 @@ def sockJSHandler = SockJSHandler.create(vertx)
 def options = [:]
 sockJSHandler.bridge(options)
 
-router.route("/eventbus").handler(sockJSHandler)
+router.route("/eventbus/*").handler(sockJSHandler)
 
 ----
 
@@ -2099,7 +2099,7 @@ def options = [
 
 sockJSHandler.bridge(options)
 
-router.route("/eventbus").handler(sockJSHandler)
+router.route("/eventbus/*").handler(sockJSHandler)
 
 ----
 
@@ -2181,10 +2181,10 @@ def authProvider = ShiroAuthProvider.create(vertx, ShiroAuthRealmType.PROPERTIES
 
 def basicAuthHandler = BasicAuthHandler.create(authProvider)
 
-router.route("/eventbus/").handler(basicAuthHandler)
+router.route("/eventbus/*").handler(basicAuthHandler)
 
 
-router.route("/eventbus/").handler(sockJSHandler)
+router.route("/eventbus/*").handler(sockJSHandler)
 
 
 ----
