@@ -188,7 +188,7 @@ module VertxApex
     # @return [Set<::VertxApex::Cookie>]
     def cookies
       if !block_given?
-        return @j_del.java_method(:cookies, []).call().to_set.map! { |elt| ::VertxApex::Cookie.new(elt) }
+        return ::Vertx::Util::Utils.to_set(@j_del.java_method(:cookies, []).call()).map! { |elt| ::VertxApex::Cookie.new(elt) }
       end
       raise ArgumentError, "Invalid arguments when calling cookies()"
     end
@@ -227,7 +227,7 @@ module VertxApex
     # @return [Set<::VertxApex::FileUpload>]
     def file_uploads
       if !block_given?
-        return @j_del.java_method(:fileUploads, []).call().to_set.map! { |elt| ::VertxApex::FileUpload.new(elt) }
+        return ::Vertx::Util::Utils.to_set(@j_del.java_method(:fileUploads, []).call()).map! { |elt| ::VertxApex::FileUpload.new(elt) }
       end
       raise ArgumentError, "Invalid arguments when calling file_uploads()"
     end
