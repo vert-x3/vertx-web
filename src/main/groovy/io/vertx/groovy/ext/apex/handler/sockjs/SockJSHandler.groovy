@@ -94,4 +94,12 @@ public class SockJSHandler implements Handler<RoutingContext> {
     this.delegate.bridge(bridgeOptions != null ? new io.vertx.ext.apex.handler.sockjs.BridgeOptions(new io.vertx.core.json.JsonObject(bridgeOptions)) : null);
     return this;
   }
+  public SockJSHandler bridge(Map<String, Object> bridgeOptions = [:], Handler<BridgeEvent> bridgeEventHandler) {
+    this.delegate.bridge(bridgeOptions != null ? new io.vertx.ext.apex.handler.sockjs.BridgeOptions(new io.vertx.core.json.JsonObject(bridgeOptions)) : null, new Handler<io.vertx.ext.apex.handler.sockjs.BridgeEvent>() {
+      public void handle(io.vertx.ext.apex.handler.sockjs.BridgeEvent event) {
+        bridgeEventHandler.handle(new io.vertx.groovy.ext.apex.handler.sockjs.BridgeEvent(event));
+      }
+    });
+    return this;
+  }
 }

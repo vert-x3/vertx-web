@@ -18,12 +18,14 @@
 var utils = require('vertx-js/util/utils');
 var RoutingContext = require('vertx-apex-js/routing_context');
 var Router = require('vertx-apex-js/router');
+var BridgeEvent = require('vertx-apex-js/bridge_event');
 var SockJSSocket = require('vertx-apex-js/sock_js_socket');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
 var JSockJSHandler = io.vertx.ext.apex.handler.sockjs.SockJSHandler;
 var SockJSHandlerOptions = io.vertx.ext.apex.handler.sockjs.SockJSHandlerOptions;
+var BridgeOptions = io.vertx.ext.apex.handler.sockjs.BridgeOptions;
 var BridgeOptions = io.vertx.ext.apex.handler.sockjs.BridgeOptions;
 
 /**
@@ -71,18 +73,21 @@ var SockJSHandler = function(j_val) {
   };
 
   /**
-   Bridge the SockJS handler to the Vert.x event bus. This basically installs a built-in SockJS socket handler
-   which takes SockJS traffic and bridges it to the event bus, thus allowing you to extend the server-side
-   Vert.x event bus to browsers
 
    @public
-   @param bridgeOptions {Object} options to configure the bridge with 
-   @return {SockJSHandler} a reference to this, so the API can be used fluently
+   @param bridgeOptions {Object} 
+   @param bridgeEventHandler {function} 
+   @return {SockJSHandler}
    */
-  this.bridge = function(bridgeOptions) {
+  this.bridge = function() {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'object') {
-      j_sockJSHandler["bridge(io.vertx.ext.apex.handler.sockjs.BridgeOptions)"](bridgeOptions != null ? new BridgeOptions(new JsonObject(JSON.stringify(bridgeOptions))) : null);
+      j_sockJSHandler["bridge(io.vertx.ext.apex.handler.sockjs.BridgeOptions)"](__args[0] != null ? new BridgeOptions(new JsonObject(JSON.stringify(__args[0]))) : null);
+      return that;
+    }  else if (__args.length === 2 && typeof __args[0] === 'object' && typeof __args[1] === 'function') {
+      j_sockJSHandler["bridge(io.vertx.ext.apex.handler.sockjs.BridgeOptions,io.vertx.core.Handler)"](__args[0] != null ? new BridgeOptions(new JsonObject(JSON.stringify(__args[0]))) : null, function(jVal) {
+      __args[1](new BridgeEvent(jVal));
+    });
       return that;
     } else utils.invalidArgs();
   };

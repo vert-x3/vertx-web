@@ -1355,10 +1355,50 @@
  * {@link examples.Examples#example48}
  * ----
  *
+ * === Handling event bus bridge events
  *
+ * If you want to be notified when an event occurs on the bridge you can provide a handler when calling
+ * {@link io.vertx.ext.apex.handler.sockjs.SockJSHandler#bridge(io.vertx.ext.apex.handler.sockjs.BridgeOptions, io.vertx.core.Handler)}.
  *
+ * Whenever an event occurs on the bridge it will be passed to the handler. The event is described by an instance of
+ * {@link io.vertx.ext.apex.handler.sockjs.BridgeEvent}.
  *
+ * The event can be one of the following types:
  *
+ * SOCKET_CREATED:: This event will occur when a new SockJS socket is created.
+ * SOCKET_CLOSED:: This event will occur when a SockJS socket is closed.
+ * SEND:: This event will occur when a message is attempted to be sent from the client to the server.
+ * PUBLISH:: This event will occur when a message is attempted to be published from the client to the server.
+ * RECEIVE:: This event will occur when a message is attempted to be delivered from the server to the client.
+ * REGISTER. This event will occur when a client attempts to register a handler.
+ * UNREGISTER. This event will occur when a client attempts to unregister a handler.
+ *
+ * The event enables you to retrieve the type using {@link io.vertx.ext.apex.handler.sockjs.BridgeEvent#type()} and
+ * inspect the raw message of the event using {@link io.vertx.ext.apex.handler.sockjs.BridgeEvent#rawMessage()}.
+ *
+ * The raw message is a JSON object with the following structure:
+ *
+ * ----
+ * {
+ *   "type": "send"|"publish"|"receive"|"register"|"unregister",
+ *   "address": the event bus address being sent/published/registered/unregistered
+ *   "body": the body of the message
+ * }
+ * ----
+ *
+ * The event is also an instance of {@link io.vertx.core.Future}. When you are finished handling the event you can
+ * complete the future with `true` to enable further processing.
+ *
+ * If you don't want the event to be processed you can complete the future with `false`. This is a useful feature that
+ * enables you to do your own filtering on messages passing through the bridge, or perhaps apply some fine grained
+ * authorisation or metrics.
+ *
+ * Here's an example where we reject all messages flowing through the bridge if they contain the word "Armadillos".
+ *
+ * [source,$lang]
+ * ----
+ * {@link examples.Examples#example49}
+ * ----
  *
  */
 @Document(fileName = "index.adoc")
