@@ -26,16 +26,7 @@ import io.vertx.ext.apex.handler.sockjs.BridgeEvent.Type;
 /**
  * Represents an event that occurs on the event bus bridge.
  * <p>
- * The event is one of:
- * <ul>
- *   <li>SOCKET_CREATED. This event will occur when a new SockJS socket is created.</li>
- *   <li>SOCKET_CLOSED. This event will occur when a SockJS socket is closed.</li>
- *   <li>SEND. This event will occur when a message is attempted to be sent from the client to the server.</li>
- *   <li>PUBLISH. This event will occur when a message is attempted to be published from the client to the server.</li>
- *   <li>RECEIVE. This event will occur when a message is attempted to be delivered from the server to the client.</li>
- *   <li>REGISTER. This event will occur when a client attempts to register a handler.</li>
- *   <li>UNREGISTER. This event will occur when a client attempts to unregister a handler.</li>
- * </ul>
+ * Please consult the documentation for a full explanation.
  *
  * <p/>
  * NOTE: This class has been automatically generated from the {@link io.vertx.ext.apex.handler.sockjs.BridgeEvent original} non RX-ified interface using Vert.x codegen.

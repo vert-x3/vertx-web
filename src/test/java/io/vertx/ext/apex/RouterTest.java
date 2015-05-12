@@ -287,8 +287,6 @@ public class RouterTest extends ApexTestBase {
     router.route(path).handler(rc -> {
       rc.response().write("bananas");
       rc.response().end();
-      // An extra call to next shouldn't cause a problem
-      rc.next();
     });
     testRequest(HttpMethod.GET, path, 200, "OK", "applesorangesbananas");
   }
@@ -341,8 +339,6 @@ public class RouterTest extends ApexTestBase {
     router.route(path).order(2).handler(rc -> {
       rc.response().write("oranges");
       rc.response().end();
-      // An extra call to next shouldn't cause a problem
-      rc.next();
     });
     router.route(path).order(0).handler(rc -> {
       rc.response().setChunked(true);
@@ -369,7 +365,6 @@ public class RouterTest extends ApexTestBase {
     route.handler(rc -> {
       rc.response().write("apples");
       rc.response().end();
-      rc.next();
     });
     testRequest(HttpMethod.GET, path, 200, "OK", "orangesbananasapples");
   }
@@ -389,7 +384,6 @@ public class RouterTest extends ApexTestBase {
     Route route3 = router.route(path).handler(rc -> {
       rc.response().write("bananas");
       rc.response().end();
-      rc.next();
     });
 
     testRequest(HttpMethod.GET, path, 200, "OK", "applesorangesbananas");
@@ -420,7 +414,6 @@ public class RouterTest extends ApexTestBase {
     Route route3 = router.route(path).handler(rc -> {
       rc.response().write("bananas");
       rc.response().end();
-      rc.next();
     });
 
     testRequest(HttpMethod.GET, path, 200, "OK", "applesorangesbananas");
