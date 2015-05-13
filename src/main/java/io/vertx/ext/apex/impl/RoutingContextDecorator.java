@@ -25,9 +25,11 @@ import java.util.Set;
 public class RoutingContextDecorator implements RoutingContext {
 
   private RoutingContext decoratedContext;
+  private Route initialRoute;
   
-  public RoutingContextDecorator(RoutingContext decoratedContext) {
+  public RoutingContextDecorator(RoutingContext decoratedContext, Route initialRoute) {
     Objects.requireNonNull(decoratedContext);
+    this.initialRoute = initialRoute;
     this.decoratedContext = decoratedContext;
   }
 
@@ -58,7 +60,7 @@ public class RoutingContextDecorator implements RoutingContext {
 
   @Override
   public Route currentRoute() {
-    return decoratedContext.currentRoute();
+    return initialRoute!=null ? initialRoute : decoratedContext.currentRoute();
   }
 
   @Override
@@ -135,6 +137,8 @@ public class RoutingContextDecorator implements RoutingContext {
 
   @Override
   public void next() {
+    // important to set the intialRoute to null
+    initialRoute = null;
     // make sure the next handler run on the correct context
     vertx().runOnContext(future -> decoratedContext.next());
   }
