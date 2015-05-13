@@ -17,6 +17,7 @@ package io.vertx.ext.apex.handler;
 
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
+import io.vertx.ext.apex.Crypto;
 import io.vertx.ext.apex.RoutingContext;
 import io.vertx.ext.apex.handler.impl.CookieHandlerImpl;
 
@@ -36,6 +37,16 @@ public interface CookieHandler extends Handler<RoutingContext> {
    */
   static CookieHandler create() {
     return new CookieHandlerImpl();
+  }
+
+  /**
+   * Create a cookie handler using the specified Crypto to encrypt/decrypt the Cookie.
+   * 
+   * @param crypto the crypto used to encrypt/decrypt cookies
+   * @return the cookie handler
+   */
+  static CookieHandler create(Crypto crypto) {
+    return new CookieHandlerImpl(crypto);
   }
 
 }
