@@ -1,6 +1,7 @@
 package io.vertx.ext.apex.impl;
 
 import io.vertx.core.Handler;
+import io.vertx.ext.apex.Route;
 import io.vertx.ext.apex.RoutingContext;
 
 import java.util.Objects;
@@ -25,8 +26,9 @@ public class BlockingHandlerDecorator implements Handler<RoutingContext> {
   
   @Override
   public void handle(RoutingContext context) {
+    Route currentRoute = context.currentRoute();
     context.vertx().executeBlocking(fut -> {
-      decoratedHandler.handle(new RoutingContextDecorator(context));
+      decoratedHandler.handle(new RoutingContextDecorator(context, currentRoute));
       fut.complete();
     }, null);
   }
