@@ -37,6 +37,7 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.apex.ApexTestBase;
 import io.vertx.ext.apex.Router;
+import io.vertx.ext.apex.handler.sockjs.BridgeEvent;
 import io.vertx.ext.apex.handler.sockjs.BridgeOptions;
 import io.vertx.ext.apex.handler.sockjs.PermittedOptions;
 import io.vertx.ext.apex.handler.sockjs.SockJSHandler;
@@ -71,6 +72,235 @@ public class EventbusBridgeTest extends ApexTestBase {
     super.setUp();
     sockJSHandler = SockJSHandler.create(vertx);
     router.route("/eventbus/*").handler(sockJSHandler);
+  }
+
+  @Test
+  public void testHookCreateSocket() throws Exception {
+
+    sockJSHandler.bridge(allAccessOptions, be -> {
+      if (be.type() == BridgeEvent.Type.SOCKET_CREATED) {
+        assertNotNull(be.socket());
+        assertNull(be.rawMessage());
+        be.complete(true);
+        testComplete();
+      } else {
+        be.complete(true);
+      }
+    });
+    testSend("foobar");
+    await();
+  }
+
+  @Test
+  public void testHookCreateSocketRejected() throws Exception {
+
+    CountDownLatch latch = new CountDownLatch(2);
+
+    sockJSHandler.bridge(allAccessOptions, be -> {
+      if (be.type() == BridgeEvent.Type.SOCKET_CREATED) {
+        be.complete(false);
+        latch.countDown();
+      } else {
+        be.complete(true);
+      }
+    });
+
+    client.websocket(websocketURI, ws -> {
+      JsonObject msg = new JsonObject().put("type", "send").put("address", addr).put("body", "foobar");
+      ws.writeFrame(io.vertx.core.http.WebSocketFrame.textFrame(msg.encode(), true));
+      ws.closeHandler(v -> latch.countDown());
+    });
+
+    awaitLatch(latch);
+  }
+
+  @Test
+  public void testHookSocketClosed() throws Exception {
+
+    sockJSHandler.bridge(allAccessOptions, be -> {
+      if (be.type() == BridgeEvent.Type.SOCKET_CLOSED) {
+        assertNotNull(be.socket());
+        assertNull(be.rawMessage());
+        be.complete(true);
+        testComplete();
+      } else {
+        be.complete(true);
+      }
+    });
+    client.websocket(websocketURI, ws -> ws.close());
+    await();
+  }
+
+  @Test
+  public void testHookSend() throws Exception {
+
+    sockJSHandler.bridge(allAccessOptions, be -> {
+      if (be.type() == BridgeEvent.Type.SEND) {
+        assertNotNull(be.socket());
+        JsonObject raw = be.rawMessage();
+        assertEquals(addr, raw.getString("address"));
+        assertEquals("foobar", raw.getString("body"));
+        be.complete(true);
+        testComplete();
+      } else {
+        be.complete(true);
+      }
+    });
+    testSend("foobar");
+    await();
+  }
+
+  @Test
+  public void testHookSendRejected() throws Exception {
+
+    sockJSHandler.bridge(allAccessOptions, be -> {
+      if (be.type() == BridgeEvent.Type.SEND) {
+        be.complete(false);
+        testComplete();
+      } else {
+        be.complete(true);
+      }
+    });
+    testError(new JsonObject().put("type", "send").put("address", addr).put("body", "foobar"),
+      "rejected");
+    await();
+  }
+
+  @Test
+  public void testHookPublish() throws Exception {
+
+    sockJSHandler.bridge(allAccessOptions, be -> {
+      if (be.type() == BridgeEvent.Type.PUBLISH) {
+        assertNotNull(be.socket());
+        JsonObject raw = be.rawMessage();
+        assertEquals(addr, raw.getString("address"));
+        assertEquals("foobar", raw.getString("body"));
+        be.complete(true);
+        testComplete();
+      } else {
+        be.complete(true);
+      }
+    });
+    testPublish("foobar");
+    await();
+  }
+
+  @Test
+  public void testHookPubRejected() throws Exception {
+
+    sockJSHandler.bridge(allAccessOptions, be -> {
+      if (be.type() == BridgeEvent.Type.PUBLISH) {
+        be.complete(false);
+        testComplete();
+      } else {
+        be.complete(true);
+      }
+    });
+    testError(new JsonObject().put("type", "publish").put("address", addr).put("body", "foobar"),
+      "rejected");
+    await();
+  }
+
+  @Test
+  public void testHookRegister() throws Exception {
+
+    sockJSHandler.bridge(allAccessOptions, be -> {
+      if (be.type() == BridgeEvent.Type.REGISTER) {
+        assertNotNull(be.socket());
+        JsonObject raw = be.rawMessage();
+        assertEquals(addr, raw.getString("address"));
+        be.complete(true);
+        testComplete();
+      } else {
+        be.complete(true);
+      }
+    });
+    testReceive("foobar");
+    await();
+  }
+
+  @Test
+  public void testHookRegisterRejected() throws Exception {
+
+    sockJSHandler.bridge(allAccessOptions, be -> {
+      if (be.type() == BridgeEvent.Type.REGISTER) {
+        be.complete(false);
+        testComplete();
+      } else {
+        be.complete(true);
+      }
+    });
+    testError(new JsonObject().put("type", "register").put("address", addr),
+      "rejected");
+    await();
+  }
+
+  @Test
+  public void testHookReceive() throws Exception {
+
+    sockJSHandler.bridge(allAccessOptions, be -> {
+      if (be.type() == BridgeEvent.Type.RECEIVE) {
+        assertNotNull(be.socket());
+        JsonObject raw = be.rawMessage();
+        assertEquals(addr, raw.getString("address"));
+        assertEquals("foobar", raw.getString("body"));
+        be.complete(true);
+        testComplete();
+      } else {
+        be.complete(true);
+      }
+    });
+    testReceive("foobar");
+    await();
+  }
+
+  @Test
+  public void testHookReceiveRejected() throws Exception {
+
+    sockJSHandler.bridge(allAccessOptions, be -> {
+      if (be.type() == BridgeEvent.Type.RECEIVE) {
+        be.complete(false);
+        testComplete();
+      } else {
+        be.complete(true);
+      }
+    });
+    testReceiveFail(addr, "foobar");
+    await();
+  }
+
+  @Test
+  public void testHookUnregister() throws Exception {
+
+    sockJSHandler.bridge(allAccessOptions, be -> {
+      if (be.type() == BridgeEvent.Type.UNREGISTER) {
+        assertNotNull(be.socket());
+        JsonObject raw = be.rawMessage();
+        assertEquals(addr, raw.getString("address"));
+        be.complete(true);
+        testComplete();
+      } else {
+        be.complete(true);
+      }
+    });
+    testUnregister(addr);
+    await();
+  }
+
+  @Test
+  public void testHookUnregisterRejected() throws Exception {
+
+    sockJSHandler.bridge(allAccessOptions, be -> {
+      if (be.type() == BridgeEvent.Type.UNREGISTER) {
+        be.complete(false);
+        testComplete();
+      } else {
+        be.complete(true);
+      }
+    });
+    testError(new JsonObject().put("type", "unregister").put("address", addr),
+      "rejected");
+    await();
   }
 
   @Test

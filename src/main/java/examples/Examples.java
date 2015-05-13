@@ -9,10 +9,7 @@ import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.apex.*;
 import io.vertx.ext.apex.handler.*;
-import io.vertx.ext.apex.handler.sockjs.BridgeOptions;
-import io.vertx.ext.apex.handler.sockjs.PermittedOptions;
-import io.vertx.ext.apex.handler.sockjs.SockJSHandler;
-import io.vertx.ext.apex.handler.sockjs.SockJSHandlerOptions;
+import io.vertx.ext.apex.handler.sockjs.*;
 import io.vertx.ext.apex.sstore.ClusteredSessionStore;
 import io.vertx.ext.apex.sstore.LocalSessionStore;
 import io.vertx.ext.apex.sstore.SessionStore;
@@ -935,6 +932,32 @@ public class Examples {
 
 
     router.route("/eventbus/*").handler(sockJSHandler);
+
+  }
+
+  public void example49(Vertx vertx) {
+
+    Router router = Router.router(vertx);
+
+    // Let through any messages sent to 'demo.orderMgr' from the client
+    PermittedOptions inboundPermitted = new PermittedOptions().setAddress("demo.someService");
+
+    SockJSHandler sockJSHandler = SockJSHandler.create(vertx);
+    BridgeOptions options = new BridgeOptions().addInboundPermitted(inboundPermitted);
+
+    sockJSHandler.bridge(options, be -> {
+      if (be.type() == BridgeEvent.Type.PUBLISH || be.type() == BridgeEvent.Type.RECEIVE) {
+        if (be.rawMessage().getString("body").equals("armadillos")) {
+          // Reject it
+          be.complete(false);
+          return;
+        }
+      }
+      be.complete(true);
+    });
+
+    router.route("/eventbus").handler(sockJSHandler);
+
 
   }
 

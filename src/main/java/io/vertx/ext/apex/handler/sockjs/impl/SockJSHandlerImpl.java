@@ -63,7 +63,6 @@ public class SockJSHandlerImpl implements SockJSHandler, Handler<RoutingContext>
   private Router router;
   private LocalMap<String, SockJSSession> sessions;
   private SockJSHandlerOptions options;
-  private EventBusBridgeHook hook;
 
   public SockJSHandlerImpl(Vertx vertx, SockJSHandlerOptions options) {
     this.vertx = vertx;
@@ -81,14 +80,14 @@ public class SockJSHandlerImpl implements SockJSHandler, Handler<RoutingContext>
     router.handleContext(context);
   }
 
-  public SockJSHandlerImpl setHook(EventBusBridgeHook hook) {
-	  this.hook = hook;
-    return this;
+  @Override
+  public SockJSHandler bridge(BridgeOptions bridgeOptions) {
+    return bridge(bridgeOptions, null);
   }
 
   @Override
-  public SockJSHandler bridge(BridgeOptions bridgeOptions) {
-    socketHandler(new EventBusBridgeImpl(vertx, bridgeOptions));
+  public SockJSHandler bridge(BridgeOptions bridgeOptions, Handler<BridgeEvent> bridgeEventHandler) {
+    socketHandler(new EventBusBridgeImpl(vertx, bridgeOptions, bridgeEventHandler));
     return this;
   }
 

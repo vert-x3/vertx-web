@@ -43,19 +43,22 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.impl.LoggerFactory;
 import io.vertx.ext.apex.Session;
+import io.vertx.ext.apex.handler.sockjs.BridgeEvent;
 import io.vertx.ext.apex.handler.sockjs.BridgeOptions;
-import io.vertx.ext.apex.handler.sockjs.EventBusBridgeHook;
 import io.vertx.ext.apex.handler.sockjs.PermittedOptions;
 import io.vertx.ext.apex.handler.sockjs.SockJSSocket;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static io.vertx.core.buffer.Buffer.buffer;
 
 /**
- *
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 public class EventBusBridgeImpl implements Handler<SockJSSocket> {
@@ -73,9 +76,9 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
   private final EventBus eb;
   private final Map<String, Message> messagesAwaitingReply = new HashMap<>();
   private final Map<String, Pattern> compiledREs = new HashMap<>();
-  private EventBusBridgeHook hook;
+  private final Handler<BridgeEvent> bridgeEventHandler;
 
-  public EventBusBridgeImpl(Vertx vertx, BridgeOptions options) {
+  public EventBusBridgeImpl(Vertx vertx, BridgeOptions options, Handler<BridgeEvent> bridgeEventHandler) {
     this.vertx = vertx;
     this.eb = vertx.eventBus();
     this.inboundPermitted = options.getInboundPermitteds() == null ? new ArrayList<>() : options.getInboundPermitteds();
@@ -84,13 +87,15 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
     this.maxHandlersPerSocket = options.getMaxHandlersPerSocket();
     this.pingTimeout = options.getPingTimeout();
     this.replyTimeout = options.getReplyTimeout();
+    this.bridgeEventHandler = bridgeEventHandler;
   }
 
   private void handleSocketClosed(SockJSSocket sock, Map<String, MessageConsumer> registrations) {
     // On close unregister any handlers that haven't been unregistered
     registrations.entrySet().forEach(entry -> {
-      handleUnregister(sock, entry.getKey());
       entry.getValue().unregister();
+      checkCallHook(() -> new BridgeEventImpl(BridgeEvent.Type.UNREGISTER, null, sock),
+        null, null);
     });
 
     SockInfo info = sockInfos.remove(sock);
@@ -101,7 +106,8 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
       }
     }
 
-    handleSocketClosed(sock);
+    checkCallHook(() -> new BridgeEventImpl(BridgeEvent.Type.SOCKET_CLOSED, null, sock),
+      null, null);
   }
 
   private void handleSocketData(SockJSSocket sock, Buffer data, Map<String, MessageConsumer> registrations) {
@@ -136,10 +142,10 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
           internalHandleSendOrPub(sock, false, msg, address);
           break;
         case "register":
-          internalHandleRegister(sock, address, registrations);
+          internalHandleRegister(sock, address, msg, registrations);
           break;
         case "unregister":
-          internalHandleUnregister(sock, address, registrations);
+          internalHandleUnregister(sock, address, msg, registrations);
           break;
         default:
           log.error("Invalid type in incoming message: " + type);
@@ -149,18 +155,39 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
 
   }
 
-  private String getAddress(JsonObject msg, SockJSSocket sock) {
-    String address = msg.getString("address");
-    if (address == null) {
-      replyError(sock, "missing_address");
+  private void checkCallHook(Supplier<BridgeEventImpl> eventSupplier, Runnable okAction, Runnable rejectAction) {
+    if (bridgeEventHandler == null) {
+      if (okAction != null) {
+        okAction.run();
+      }
+    } else {
+      BridgeEventImpl event = eventSupplier.get();
+      Future<Boolean> fut = Future.future();
+      event.setFuture(fut);
+      bridgeEventHandler.handle(event);
+      fut.setHandler(res -> {
+        if (res.succeeded()) {
+          if (res.result()) {
+            if (okAction != null) {
+              okAction.run();
+            }
+          } else {
+            if (rejectAction != null) {
+              rejectAction.run();
+            } else {
+              log.debug("Bridge handler prevented send or pub");
+            }
+          }
+        } else {
+          log.error("Failure in bridge event handler", res.cause());
+        }
+      });
     }
-    return address;
   }
 
   private void internalHandleSendOrPub(SockJSSocket sock, boolean send, JsonObject msg, String address) {
-    if (handleSendOrPub(sock, send, msg, address)) {
-      doSendOrPub(send, sock, address, msg);
-    }
+    checkCallHook(() -> new BridgeEventImpl(send ? BridgeEvent.Type.SEND : BridgeEvent.Type.PUBLISH, msg, sock),
+      () -> doSendOrPub(send, sock, address, msg), () -> replyError(sock, "rejected"));
   }
 
   private boolean checkMaxHandlers(SockJSSocket sock, SockInfo info) {
@@ -173,7 +200,8 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
     }
   }
 
-  private void internalHandleRegister(SockJSSocket sock, String address, Map<String, MessageConsumer> registrations) {
+  private void internalHandleRegister(SockJSSocket sock, String address, JsonObject rawMsg,
+                                      Map<String, MessageConsumer> registrations) {
     if (address.length() > maxAddressLength) {
       log.warn("Refusing to register as address length > max_address_length");
       replyError(sock, "max_address_length_reached");
@@ -183,71 +211,72 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
     if (!checkMaxHandlers(sock, info)) {
       return;
     }
-    if (handlePreRegister(sock, address)) {
-      final boolean debug = log.isDebugEnabled();
-      Match match = checkMatches(false, address, null);
-      if (match.doesMatch) {
-        Handler<Message<Object>> handler = msg -> {
-          Match curMatch = checkMatches(false, address, msg.body());
-          if (curMatch.doesMatch) {
-            if (curMatch.requiredPermission != null || curMatch.requiredRole != null) {
-              authorise(curMatch, sock.apexSession(), res -> {
-                if (res.succeeded()) {
-                  if (res.result()) {
-                    checkAddAccceptedReplyAddress(msg);
-                    deliverMessage(sock, address, msg);
-                  } else {
-                    if (debug) {
-                      log.debug("Outbound message for address " + address + " rejected because auth is required and socket is not authed");
+    checkCallHook(() -> new BridgeEventImpl(BridgeEvent.Type.REGISTER, rawMsg, sock),
+      () -> {
+        final boolean debug = log.isDebugEnabled();
+        Match match = checkMatches(false, address, null);
+        if (match.doesMatch) {
+          Handler<Message<Object>> handler = msg -> {
+            Match curMatch = checkMatches(false, address, msg.body());
+            if (curMatch.doesMatch) {
+              if (curMatch.requiredPermission != null || curMatch.requiredRole != null) {
+                authorise(curMatch, sock.apexSession(), res -> {
+                  if (res.succeeded()) {
+                    if (res.result()) {
+                      checkAddAccceptedReplyAddress(msg);
+                      deliverMessage(sock, address, msg);
+                    } else {
+                      if (debug) {
+                        log.debug("Outbound message for address " + address + " rejected because auth is required and socket is not authed");
+                      }
                     }
+                  } else {
+                    log.error(res.cause());
                   }
-                } else {
-                  log.error(res.cause());
-                }
-              });
+                });
 
+              } else {
+                checkAddAccceptedReplyAddress(msg);
+                deliverMessage(sock, address, msg);
+              }
             } else {
-              checkAddAccceptedReplyAddress(msg);
-              deliverMessage(sock, address, msg);
+              // outbound match failed
+              if (debug) {
+                log.debug("Outbound message for address " + address + " rejected because there is no inbound match");
+              }
             }
-          } else {
-            // outbound match failed
-            if (debug) {
-              log.debug("Outbound message for address " + address + " rejected because there is no inbound match");
-            }
+          };
+          MessageConsumer reg = eb.consumer(address).handler(handler);
+          registrations.put(address, reg);
+          info.handlerCount++;
+        } else {
+          // inbound match failed
+          if (debug) {
+            log.debug("Cannot register handler for address " + address + " because there is no inbound match");
           }
-        };
-        MessageConsumer reg = eb.consumer(address).handler(handler);
-        registrations.put(address, reg);
-        handlePostRegister(sock, address);
-        info.handlerCount++;
-      } else {
-        // inbound match failed
-        if (debug) {
-          log.debug("Cannot register handler for address " + address + " because there is no inbound match");
+          replyError(sock, "access_denied");
         }
-        replyError(sock, "access_denied");
-      }
-    }
+      }, () -> replyError(sock, "rejected"));
   }
 
-  private void internalHandleUnregister(SockJSSocket sock, String address, Map<String, MessageConsumer> registrations) {
-    if (handleUnregister(sock, address)) {
-      Match match = checkMatches(false, address, null);
-      if (match.doesMatch) {
-        MessageConsumer reg = registrations.remove(address);
-        if (reg != null) {
-          reg.unregister();
-          SockInfo info = sockInfos.get(sock);
-          info.handlerCount--;
+  private void internalHandleUnregister(SockJSSocket sock, String address, JsonObject rawMsg, Map<String, MessageConsumer> registrations) {
+    checkCallHook(() -> new BridgeEventImpl(BridgeEvent.Type.UNREGISTER, rawMsg, sock),
+      () -> {
+        Match match = checkMatches(false, address, null);
+        if (match.doesMatch) {
+          MessageConsumer reg = registrations.remove(address);
+          if (reg != null) {
+            reg.unregister();
+            SockInfo info = sockInfos.get(sock);
+            info.handlerCount--;
+          }
+        } else {
+          if (log.isDebugEnabled()) {
+            log.debug("Cannot unregister handler for address " + address + " because there is no inbound match");
+          }
+          replyError(sock, "access_denied");
         }
-      } else {
-        if (log.isDebugEnabled()) {
-          log.debug("Cannot unregister handler for address " + address + " because there is no inbound match");
-        }
-        replyError(sock, "access_denied");
-      }
-    }
+      }, () -> replyError(sock, "rejected"));
   }
 
   private void internalHandlePing(final SockJSSocket sock) {
@@ -258,26 +287,30 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
   }
 
   public void handle(final SockJSSocket sock) {
-    if (!handleSocketCreated(sock)) {
-      sock.close();
-    } else {
-      final Map<String, MessageConsumer> registrations = new HashMap<>();
+    checkCallHook(() -> new BridgeEventImpl(BridgeEvent.Type.SOCKET_CREATED, null, sock),
+      () -> {
+        Map<String, MessageConsumer> registrations = new HashMap<>();
 
-      sock.endHandler(v ->  handleSocketClosed(sock, registrations));
-      sock.handler(data ->  handleSocketData(sock, data, registrations));
+        sock.endHandler(v -> handleSocketClosed(sock, registrations));
+        sock.handler(data -> handleSocketData(sock, data, registrations));
 
-      // Start a checker to check for pings
-      final PingInfo pingInfo = new PingInfo();
-      pingInfo.timerID = vertx.setPeriodic(pingTimeout, id -> {
-        if (System.currentTimeMillis() - pingInfo.lastPing >= pingTimeout) {
-          // We didn't receive a ping in time so close the socket
-          sock.close();
-        }
-      });
-      SockInfo sockInfo = new SockInfo();
-      sockInfo.pingInfo = pingInfo;
-      sockInfos.put(sock, sockInfo);
-    }
+        // Start a checker to check for pings
+        PingInfo pingInfo = new PingInfo();
+        pingInfo.timerID = vertx.setPeriodic(pingTimeout, id -> {
+          if (System.currentTimeMillis() - pingInfo.lastPing >= pingTimeout) {
+            // We didn't receive a ping in time so close the socket
+            sock.close();
+          }
+        });
+        SockInfo sockInfo = new SockInfo();
+        sockInfo.pingInfo = pingInfo;
+        sockInfos.put(sock, sockInfo);
+      }, () -> {
+        System.out.println("Closing sockjs socket");
+        sock.close();
+      }
+
+    );
   }
 
   private void checkAddAccceptedReplyAddress(Message message) {
@@ -296,12 +329,14 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
     }
   }
 
-  private static void deliverMessage(SockJSSocket sock, String address, Message message) {
+  private void deliverMessage(SockJSSocket sock, String address, Message message) {
     JsonObject envelope = new JsonObject().put("type", "rec").put("address", address).put("body", message.body());
     if (message.replyAddress() != null) {
       envelope.put("replyAddress", message.replyAddress());
     }
-    sock.write(buffer(envelope.encode()));
+    checkCallHook(() -> new BridgeEventImpl(BridgeEvent.Type.RECEIVE, envelope, sock),
+      () -> sock.write(buffer(envelope.encode())),
+      () -> log.debug("outbound message rejected by bridge event handler"));
   }
 
   private void doSendOrPub(boolean send, SockJSSocket sock, String address,
@@ -317,7 +352,7 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
     }
     final boolean debug = log.isDebugEnabled();
     if (debug) {
-      log.debug("Received msg from client in bridge. address:"  + address + " message:" + body);
+      log.debug("Received msg from client in bridge. address:" + address + " message:" + body);
     }
     final Message awaitingReply = messagesAwaitingReply.remove(address);
     Match curMatch;
@@ -354,7 +389,7 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
           replyError(sock, "no_session");
           if (debug) {
             log.debug("Inbound message for address " + address +
-                      " rejected because it requires auth and there is no apex session");
+              " rejected because it requires auth and there is no apex session");
           }
         }
       } else {
@@ -451,7 +486,7 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
 
     List<PermittedOptions> matches = inbound ? inboundPermitted : outboundPermitted;
 
-    for (PermittedOptions matchHolder: matches) {
+    for (PermittedOptions matchHolder : matches) {
       String matchAddress = matchHolder.getAddress();
       String matchRegex;
       if (matchAddress == null) {
@@ -541,107 +576,6 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
 
   }
 
-  // Hook
-  // ==============================
-
-  public void setHook(EventBusBridgeHook hook) {
-    this.hook = hook;
-  }
-  
-  public EventBusBridgeHook getHook() {
-    return hook;
-  }
-  
-  // Override these to get hooks into the bridge events
-  // ==================================================
-
-  /**
-   * The socket has been created
-   * @param sock The socket
-   */
-  protected boolean handleSocketCreated(SockJSSocket sock) {
-    if (hook != null) {
-      return hook.handleSocketCreated(sock);
-    } else {
-      return true;
-    }
-  }
-
-  /**
-   * The socket has been closed
-   * @param sock The socket
-   */
-  protected void handleSocketClosed(SockJSSocket sock) {
-    if (hook != null) {
-      hook.handleSocketClosed(sock);
-    }
-  }
-
-  /**
-   * Client is sending or publishing on the socket
-   * @param sock The sock
-   * @param send if true it's a send else it's a publish
-   * @param msg The message
-   * @param address The address the message is being sent/published to
-   * @return true To allow the send/publish to occur, false otherwise
-   */
-  protected boolean handleSendOrPub(SockJSSocket sock, boolean send, JsonObject msg, String address) {
-    if (hook != null) {
-      return hook.handleSendOrPub(sock, send, msg, address);
-    }
-    return true;
-  }
-
-  /**
-   * Client is about to register a handler
-   * @param sock The socket
-   * @param address The address
-   * @return true to let the registration occur, false otherwise
-   */
-  protected boolean handlePreRegister(SockJSSocket sock, String address) {
-    if (hook != null) {
-      return hook.handlePreRegister(sock, address);
-	  }
-    return true;
-  }
-
-  /**
-   * Called after client has registered
-   * @param sock The socket
-   * @param address The address
-   */
-  protected void handlePostRegister(SockJSSocket sock, String address) {
-    if (hook != null) {
-      hook.handlePostRegister(sock, address);
-    }
-  }
-
-  /**
-   * Client is unregistering a handler
-   * @param sock The socket
-   * @param address The address
-   */
-  protected boolean handleUnregister(SockJSSocket sock, String address) {
-    if (hook != null) {
-      return hook.handleUnregister(sock, address);
-    }
-    return true;
-  }
-
-  /**
-   * Called before authorisation
-   * You can use this to override default authorisation
-   * @return true to handle authorisation yourself
-   */
-  protected boolean handleAuthorise(JsonObject message, final String sessionID,
-                                    Handler<AsyncResult<Boolean>> handler) {
-    if (hook != null) {
-      return hook.handleAuthorise(message, sessionID, handler);
-    } else {
-      return false;
-    }
-  }
-
   private static final class PingInfo {
     long lastPing;
     long timerID;
@@ -651,4 +585,6 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
     int handlerCount;
     PingInfo pingInfo;
   }
+
+
 }

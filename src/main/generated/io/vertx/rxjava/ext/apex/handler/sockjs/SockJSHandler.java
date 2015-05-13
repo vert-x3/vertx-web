@@ -110,6 +110,15 @@ public class SockJSHandler implements Handler<RoutingContext> {
     return this;
   }
 
+  public SockJSHandler bridge(BridgeOptions bridgeOptions, Handler<BridgeEvent> bridgeEventHandler) { 
+    this.delegate.bridge(bridgeOptions, new Handler<io.vertx.ext.apex.handler.sockjs.BridgeEvent>() {
+      public void handle(io.vertx.ext.apex.handler.sockjs.BridgeEvent event) {
+        bridgeEventHandler.handle(new BridgeEvent(event));
+      }
+    });
+    return this;
+  }
+
 
   public static SockJSHandler newInstance(io.vertx.ext.apex.handler.sockjs.SockJSHandler arg) {
     return new SockJSHandler(arg);

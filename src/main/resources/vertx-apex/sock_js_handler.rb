@@ -1,5 +1,6 @@
 require 'vertx-apex/routing_context'
 require 'vertx-apex/router'
+require 'vertx-apex/bridge_event'
 require 'vertx-apex/sock_js_socket'
 require 'vertx/util/utils.rb'
 # Generated from io.vertx.ext.apex.handler.sockjs.SockJSHandler
@@ -61,14 +62,15 @@ module VertxApex
       end
       raise ArgumentError, "Invalid arguments when calling socket_handler()"
     end
-    #  Bridge the SockJS handler to the Vert.x event bus. This basically installs a built-in SockJS socket handler
-    #  which takes SockJS traffic and bridges it to the event bus, thus allowing you to extend the server-side
-    #  Vert.x event bus to browsers
-    # @param [Hash] bridgeOptions options to configure the bridge with
+    # @param [Hash] bridgeOptions
+    # @yield 
     # @return [self]
     def bridge(bridgeOptions=nil)
       if bridgeOptions.class == Hash && !block_given?
         @j_del.java_method(:bridge, [Java::IoVertxExtApexHandlerSockjs::BridgeOptions.java_class]).call(Java::IoVertxExtApexHandlerSockjs::BridgeOptions.new(::Vertx::Util::Utils.to_json_object(bridgeOptions)))
+        return self
+      elsif bridgeOptions.class == Hash && block_given?
+        @j_del.java_method(:bridge, [Java::IoVertxExtApexHandlerSockjs::BridgeOptions.java_class,Java::IoVertxCore::Handler.java_class]).call(Java::IoVertxExtApexHandlerSockjs::BridgeOptions.new(::Vertx::Util::Utils.to_json_object(bridgeOptions)),(Proc.new { |event| yield(::VertxApex::BridgeEvent.new(event)) }))
         return self
       end
       raise ArgumentError, "Invalid arguments when calling bridge(bridgeOptions)"
