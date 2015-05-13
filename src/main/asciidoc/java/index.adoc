@@ -1939,10 +1939,7 @@ AuthHandler basicAuthHandler = BasicAuthHandler.create(authProvider);
 router.route("/eventbus/*").handler(basicAuthHandler);
 
 
-<<<<<<< HEAD
 router.route("/eventbus/*").handler(sockJSHandler);
-=======
-router.route("/eventbus/").handler(sockJSHandler);
 ----
 
 === Handling event bus bridge events
@@ -2007,5 +2004,4 @@ sockJSHandler.bridge(options, be -> {
 });
 
 router.route("/eventbus").handler(sockJSHandler);
->>>>>>> Implemented event bus bridge events
 ----
