@@ -40,6 +40,7 @@ import io.vertx.core.net.SocketAddress;
 import io.vertx.core.streams.ReadStream;
 import io.vertx.core.streams.WriteStream;
 import io.vertx.ext.apex.Session;
+import io.vertx.ext.auth.User;
 
 /**
  *
@@ -119,4 +120,6 @@ public interface SockJSSocket extends ReadStream<Buffer>, WriteStream<Buffer> {
    * @return the Apex session corresponding to this socket
    */
   Session apexSession();
+
+  User apexUser();
 }

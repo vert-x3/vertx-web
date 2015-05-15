@@ -1267,40 +1267,31 @@ The session timeout can be configured when creating the session handler. Default
 
 == Authentication / authorisation
 
-Vert.x comes with some out of the box handlers for handling both authentication (login) and authorisation (seeing
-whether you have rights for some resource).
+Vert.x comes with some out-of-the-box handlers for handling both authentication and authorisation.
 
 === Creating an auth handler
 
-To create an auth handler you need an instance of `link:../../vertx-auth-service/ruby/yardoc/VertxAuth/AuthProvider.html[AuthProvider]`. Auth provider is
-used for authentication and authorisation of users. It uses a simple
-role/permission model and, by default, is backed by Apache Shiro. For full information on auth provider and how
-to use and configure it please consult the auth service documentation.
-
-Like many services in Vert.x they can be instantiated locally, or you can create a proxy to an existing auth service
-deployed as a verticle somewhere on the network. The latter case is useful if you have an app composed of many verticles
-that want to do auth and you don't want each verticle to have its own auth service instance, or perhaps you have a single
-auth service managed somewhere on your network and you want all auth request to go through that.
+To create an auth handler you need an instance of `link:../../vertx-auth/ruby/yardoc/VertxAuth/AuthProvider.html[AuthProvider]`. Auth provider is
+used for authentication and authorisation of users. It uses a simple role/permission mode. For full information on
+auth provider and how to use and configure it please consult the auth documentation.
 
 Here's a simple example of creating a basic auth provider that gets user data from a properties file and creating
 an auth handler from that, but it's the same principle whatever concrete auth provider you use.
 
 [source,ruby]
 ----
-require 'vertx-auth/shiro_auth_provider'
+require 'vertx-auth/shiro_auth'
 require 'vertx-apex/basic_auth_handler'
 
 config = {
 }
-config[Java::IoVertxExtAuthShiro::PropertiesAuthRealmConstants::PROPERTIES_PROPS_PATH_FIELD] = "classpath:test-auth.properties"
+config[Java::IoVertxExtAuthShiro::PropertiesProviderConstants::PROPERTIES_PROPS_PATH_FIELD] = "classpath:test-auth.properties"
 
-authProvider = VertxAuth::ShiroAuthProvider.create(vertx, :PROPERTIES, config)
+authProvider = VertxAuth::ShiroAuth.create(vertx, :PROPERTIES, config)
 
 basicAuthHandler = VertxApex::BasicAuthHandler.create(authProvider)
 
 ----
-
-You'll also need cookies and sessions enabled for auth handling to work:
 
 [source,ruby]
 ----
@@ -1348,18 +1339,19 @@ router.route("/private/somepath").handler() { |routingContext|
   # This will require a login
 
   # This will have the value true
-  isLoggedIn = routingContext.session().logged_in?()
+  isAuthenticated = routingContext.user() != nil
 
 }
 
 ----
 
-If the auth handler has successfully authenticated and authorised the user it will set the principal on the
-session object, and the session will be marked as logged in. You can query the login status with
-`link:yardoc/VertxApex/Session.html#is_logged_in-instance_method[isLoggedIn]` and you can get the principal with
-`link:yardoc/VertxApex/Session.html#get_principal-instance_method[getPrincipal]`.
+If the auth handler has successfully authenticated and authorised the user it will inject a `link:../../vertx-auth/ruby/yardoc/VertxAuth/User.html[User]`
+object into the `link:yardoc/VertxApex/RoutingContext.html[RoutingContext]` so it's available in your handlers with:
+`link:yardoc/VertxApex/RoutingContext.html#user-instance_method[user]`.
 
-If you want to cause the user to be logged out you can call `link:yardoc/VertxApex/Session.html#logout-instance_method[logout]`.
+Once you have your user object you can also programmatically use the methods on it to authorise the user.
+
+If you want to cause the user to be logged out you can set the user to null on the routing context.
 
 === HTTP Basic Authentication
 
@@ -1376,7 +1368,7 @@ prompt the user to enter their username and password.
 The request is made to the resource again, this time with the `Authorization` header set, containing the username
 and password encoded in Base64.
 
-When the basic auth handler receives this information, it calls the configured `link:../../vertx-auth-service/ruby/yardoc/VertxAuth/AuthProvider.html[auth service]`
+When the basic auth handler receives this information, it calls the configured `link:../../vertx-auth/ruby/yardoc/VertxAuth/AuthProvider.html[AuthProvider]`
 with the username and password to authenticate the user. If the authentication is successful the handler attempts
 to authorise the user. If that is successful then the routing of the request is allowed to continue to the application
 handlers, otherwise a `403` response is returned to signify that access is denied.
@@ -1432,7 +1424,7 @@ router.route("/private/somepath").handler() { |routingContext|
   # This will require a login
 
   # This will have the value true
-  isLoggedIn = routingContext.session().logged_in?()
+  isAuthenticated = routingContext.user() != nil
 
 }
 
@@ -2144,7 +2136,7 @@ require 'vertx-apex/sock_js_handler'
 require 'vertx-apex/cookie_handler'
 require 'vertx-apex/session_handler'
 require 'vertx-apex/local_session_store'
-require 'vertx-auth/shiro_auth_provider'
+require 'vertx-auth/shiro_auth'
 require 'vertx-apex/basic_auth_handler'
 
 router = VertxApex::Router.router(vertx)
@@ -2171,8 +2163,8 @@ router.route().handler(&VertxApex::SessionHandler.create(VertxApex::LocalSession
 
 authConfig = {
 }
-authConfig[Java::IoVertxExtAuthShiro::PropertiesAuthRealmConstants::PROPERTIES_PROPS_PATH_FIELD] = "classpath:test-auth.properties"
-authProvider = VertxAuth::ShiroAuthProvider.create(vertx, :PROPERTIES, authConfig)
+authConfig[Java::IoVertxExtAuthShiro::PropertiesProviderConstants::PROPERTIES_PROPS_PATH_FIELD] = "classpath:test-auth.properties"
+authProvider = VertxAuth::ShiroAuth.create(vertx, :PROPERTIES, authConfig)
 
 basicAuthHandler = VertxApex::BasicAuthHandler.create(authProvider)
 

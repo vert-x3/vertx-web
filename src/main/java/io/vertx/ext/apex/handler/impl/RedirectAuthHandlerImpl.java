@@ -21,6 +21,7 @@ import io.vertx.core.logging.impl.LoggerFactory;
 import io.vertx.ext.apex.RoutingContext;
 import io.vertx.ext.apex.Session;
 import io.vertx.ext.auth.AuthProvider;
+import io.vertx.ext.auth.User;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -42,9 +43,10 @@ public class RedirectAuthHandlerImpl extends AuthHandlerImpl {
   public void handle(RoutingContext context) {
     Session session = context.session();
     if (session != null) {
-      if (session.isLoggedIn()) {
+      User user = UserHolder.getUser(authProvider, context);
+      if (user != null) {
         // Already logged in, just authorise
-        authorise(context);
+        authorise(user, context);
       } else {
         // Now redirect to the login url - we'll get redirected back here after successful login
         session.put(returnURLParam, context.request().path());

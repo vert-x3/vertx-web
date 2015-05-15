@@ -102,15 +102,25 @@ public class SessionHandlerImpl implements SessionHandler {
 
   private void addStoreSessionHandler(RoutingContext context) {
     context.addHeadersEndHandler(v -> {
-      if (!context.session().isDestroyed()) {
+      Session session = context.session();
+      if (!session.isDestroyed()) {
         // Store the session
-        context.session().setAccessed();
-        sessionStore.put(context.session(), res -> {
+        session.setAccessed();
+        sessionStore.put(session, res -> {
           if (res.succeeded()) {
             // FIXME ???
             // We need to wait for session to be persisted before returning response otherwise
             // user can submit new request on session which could get processed before store is complete
             // https://github.com/vert-x3/vertx-apex/issues/93
+          } else {
+            // Failed to store session
+            context.fail(res.cause());
+          }
+        });
+      } else {
+        sessionStore.delete(session.id(), res -> {
+          if (res.succeeded()) {
+            // FIXME ???
           } else {
             // Failed to store session
             context.fail(res.cause());

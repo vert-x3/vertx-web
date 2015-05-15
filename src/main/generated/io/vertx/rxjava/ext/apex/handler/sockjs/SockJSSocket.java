@@ -19,6 +19,7 @@ package io.vertx.rxjava.ext.apex.handler.sockjs;
 import java.util.Map;
 import io.vertx.lang.rxjava.InternalHelper;
 import rx.Observable;
+import io.vertx.rxjava.ext.auth.User;
 import io.vertx.rxjava.core.buffer.Buffer;
 import io.vertx.rxjava.core.streams.WriteStream;
 import io.vertx.rxjava.core.streams.ReadStream;
@@ -176,6 +177,11 @@ public class SockJSSocket implements ReadStream<Buffer>,  WriteStream<Buffer> {
    */
   public Session apexSession() { 
     Session ret= Session.newInstance(this.delegate.apexSession());
+    return ret;
+  }
+
+  public User apexUser() { 
+    User ret= User.newInstance(this.delegate.apexUser());
     return ret;
   }
 

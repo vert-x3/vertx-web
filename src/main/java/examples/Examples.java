@@ -16,8 +16,8 @@ import io.vertx.ext.apex.sstore.SessionStore;
 import io.vertx.ext.apex.templ.HandlebarsTemplateEngine;
 import io.vertx.ext.apex.templ.TemplateEngine;
 import io.vertx.ext.auth.AuthProvider;
-import io.vertx.ext.auth.shiro.PropertiesAuthRealmConstants;
-import io.vertx.ext.auth.shiro.ShiroAuthProvider;
+import io.vertx.ext.auth.shiro.PropertiesProviderConstants;
+import io.vertx.ext.auth.shiro.ShiroAuth;
 import io.vertx.ext.auth.shiro.ShiroAuthRealmType;
 
 import java.util.Set;
@@ -658,10 +658,10 @@ public class Examples {
   public void example35(Vertx vertx) {
 
     JsonObject config = new JsonObject();
-    config.put(PropertiesAuthRealmConstants.PROPERTIES_PROPS_PATH_FIELD,
+    config.put(PropertiesProviderConstants.PROPERTIES_PROPS_PATH_FIELD,
                "classpath:test-auth.properties");
 
-    AuthProvider authProvider = ShiroAuthProvider.create(vertx, ShiroAuthRealmType.PROPERTIES, config);
+    AuthProvider authProvider = ShiroAuth.create(vertx, ShiroAuthRealmType.PROPERTIES, config);
 
     AuthHandler basicAuthHandler = BasicAuthHandler.create(authProvider);
   }
@@ -697,7 +697,7 @@ public class Examples {
       // This will require a login
 
       // This will have the value true
-      boolean isLoggedIn = routingContext.session().isLoggedIn();
+      boolean isAuthenticated = routingContext.user() != null;
 
     });
   }
@@ -727,7 +727,7 @@ public class Examples {
       // This will require a login
 
       // This will have the value true
-      boolean isLoggedIn = routingContext.session().isLoggedIn();
+      boolean isAuthenticated = routingContext.user() != null;
 
     });
 
@@ -922,9 +922,9 @@ public class Examples {
     router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
 
     JsonObject authConfig = new JsonObject();
-    authConfig.put(PropertiesAuthRealmConstants.PROPERTIES_PROPS_PATH_FIELD,
+    authConfig.put(PropertiesProviderConstants.PROPERTIES_PROPS_PATH_FIELD,
       "classpath:test-auth.properties");
-    AuthProvider authProvider = ShiroAuthProvider.create(vertx, ShiroAuthRealmType.PROPERTIES, authConfig);
+    AuthProvider authProvider = ShiroAuth.create(vertx, ShiroAuthRealmType.PROPERTIES, authConfig);
 
     AuthHandler basicAuthHandler = BasicAuthHandler.create(authProvider);
 

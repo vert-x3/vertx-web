@@ -20,8 +20,8 @@ import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.apex.RoutingContext;
-import io.vertx.ext.apex.Session;
 import io.vertx.ext.auth.AuthProvider;
+import io.vertx.ext.auth.User;
 
 import java.util.Base64;
 
@@ -40,55 +40,50 @@ public class BasicAuthHandlerImpl extends AuthHandlerImpl {
 
   @Override
   public void handle(RoutingContext context) {
-
-    Session session = context.session();
-    if (session == null) {
-      context.fail(new NullPointerException("No session - did you forget to include a SessionHandler?"));
+    User user = UserHolder.getUser(authProvider, context);
+    if (user != null) {
+      // Already authenticated in, just authorise
+      authorise(user, context);
     } else {
-      if (session.isLoggedIn()) {
-        // Already logged in, just authorise
-        authorise(context);
+      HttpServerRequest request = context.request();
+      String authorization = request.headers().get(HttpHeaders.AUTHORIZATION);
+
+      if (authorization == null) {
+        handle401(context);
       } else {
-        HttpServerRequest request = context.request();
-        String authorization = request.headers().get(HttpHeaders.AUTHORIZATION);
+        String suser;
+        String spass;
+        String sscheme;
 
-        if (authorization == null) {
+        try {
+          String[] parts = authorization.split(" ");
+          sscheme = parts[0];
+          String[] credentials = new String(Base64.getDecoder().decode(parts[1])).split(":");
+          suser = credentials[0];
+          // when the header is: "user:"
+          spass = credentials.length > 1 ? credentials[1] : null;
+        } catch (ArrayIndexOutOfBoundsException e) {
           handle401(context);
+          return;
+        } catch (IllegalArgumentException | NullPointerException e) {
+          // IllegalArgumentException includes PatternSyntaxException
+          context.fail(e);
+          return;
+        }
+
+        if (!"Basic".equals(sscheme)) {
+          context.fail(400);
         } else {
-          String user;
-          String pass;
-          String scheme;
-
-          try {
-            String[] parts = authorization.split(" ");
-            scheme = parts[0];
-            String[] credentials = new String(Base64.getDecoder().decode(parts[1])).split(":");
-            user = credentials[0];
-            // when the header is: "user:"
-            pass = credentials.length > 1 ? credentials[1] : null;
-          } catch (ArrayIndexOutOfBoundsException e) {
-            handle401(context);
-            return;
-          } catch (IllegalArgumentException | NullPointerException e) {
-            // IllegalArgumentException includes PatternSyntaxException
-            context.fail(e);
-            return;
-          }
-
-          if (!"Basic".equals(scheme)) {
-            context.fail(400);
-          } else {
-            JsonObject principal = new JsonObject().put("username", user);
-            authProvider.login(principal, new JsonObject().put("password", pass), res -> {
-              if (res.succeeded()) {
-                session.setPrincipal(principal);
-                session.setAuthProvider(authProvider);
-                authorise(context);
-              } else {
-                handle401(context);
-              }
-            });
-          }
+          JsonObject authInfo = new JsonObject().put("username", suser).put("password", spass);
+          authProvider.authenticate(authInfo, res -> {
+            if (res.succeeded()) {
+              User user2 = res.result();
+              UserHolder.setUser(context, user2);
+              authorise(user2, context);
+            } else {
+              handle401(context);
+            }
+          });
         }
       }
     }

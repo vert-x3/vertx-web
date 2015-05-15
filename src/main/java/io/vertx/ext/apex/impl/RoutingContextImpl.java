@@ -28,13 +28,9 @@ import io.vertx.ext.apex.Cookie;
 import io.vertx.ext.apex.FileUpload;
 import io.vertx.ext.apex.RoutingContext;
 import io.vertx.ext.apex.Session;
+import io.vertx.ext.auth.User;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -59,6 +55,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   private Buffer body;
   private Set<FileUpload> fileUploads;
   private Session session;
+  private User user;
 
   public RoutingContextImpl(String mountPoint, RouterImpl router, HttpServerRequest request, Iterator<RouteImpl> iter) {
     super(mountPoint, request, iter);
@@ -219,6 +216,16 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   @Override
   public Session session() {
     return session;
+  }
+
+  @Override
+  public User user() {
+    return user;
+  }
+
+  @Override
+  public void setUser(User user) {
+    this.user = user;
   }
 
   @Override

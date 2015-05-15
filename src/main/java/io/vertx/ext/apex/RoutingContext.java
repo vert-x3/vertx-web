@@ -26,6 +26,7 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.auth.User;
 
 import java.util.Map;
 import java.util.Set;
@@ -235,6 +236,12 @@ public interface RoutingContext {
   Session session();
 
   /**
+   * Get the authenticated user (if any). This will usually be injected by an auth handler if authentication if successful.
+   * @return  the user, or null if the current user is not authenticated.
+   */
+  User user();
+
+  /**
    * If the context is being routed to failure handlers after a failure has been triggered by calling
    * {@link #fail(Throwable)} then this will return that throwable. It can be used by failure handlers to render a response,
    * e.g. create a failure response page.
@@ -315,6 +322,13 @@ public interface RoutingContext {
    * @param session  the session
    */
   void setSession(Session session);
+
+  /**
+   * Set the user. Usually used by auth handlers to inject a User. You will not normally call this method.
+   *
+   * @param user  the user
+   */
+  void setUser(User user);
 
   /**
    * Set the acceptable content type. Used by

@@ -19,14 +19,8 @@ package io.vertx.ext.apex;
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Handler;
-import io.vertx.core.json.JsonObject;
-import io.vertx.ext.apex.sstore.SessionStore;
-import io.vertx.ext.auth.AuthProvider;
 
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Represents a browser session.
@@ -97,81 +91,13 @@ public interface Session {
   boolean isDestroyed();
 
   /**
-   * @return  true if the user is logged in.
-   */
-  boolean isLoggedIn();
-
-  /**
-   * Set the principal (the unique user id) of the user -this signifies the user is logged in
-   *
-   * @param principal  the principal
-   */
-  void setPrincipal(JsonObject principal);
-
-  /**
-   * Get the principal
-   *
-   * @return  the principal or null if not logged in
-   */
-  JsonObject getPrincipal();
-
-  /**
-   * Does the logged in user have the specified role?  Information is cached for the lifetime of the session
-   *
-   * @param role  the role
-   * @param resultHandler will be called with a result true/false
-   */
-  void hasRole(String role, Handler<AsyncResult<Boolean>> resultHandler);
-
-  /**
-   * Does the logged in user have the specified permissions?  Information is cached for the lifetime of the session
-   *
-   * @param permission  the permission
-   * @param resultHandler will be called with a result true/false
-   */
-  void hasPermission(String permission, Handler<AsyncResult<Boolean>> resultHandler);
-
-  /**
-   * Does the logged in user have the specified roles?  Information is cached for the lifetime of the session
-   *
-   * @param roles  the roles
-   * @param resultHandler will be called with a result true/false
-   */
-  void hasRoles(Set<String> roles, Handler<AsyncResult<Boolean>> resultHandler);
-
-  /**
-   * Does the logged in user have the specified permissions?  Information is cached for the lifetime of the session
-   *
-   * @param permissions  the permissions
-   * @param resultHandler will be called with a result true/false
-   */
-  void hasPermissions(Set<String> permissions, Handler<AsyncResult<Boolean>> resultHandler);
-
-  /**
-   * Logout the user.
-   */
-  void logout();
-
-  /**
    * @return the amount of time in ms, after which the session will expire, if not accessed.
    */
   long timeout();
 
   /**
-   * @return the store for the session
-   */
-  SessionStore sessionStore();
-
-  /**
    * Mark the session as being accessed.
    */
   void setAccessed();
-
-  /**
-   * Set the auth provider
-   *
-   * @param authProvider  the auth provider
-   */
-  void setAuthProvider(AuthProvider authProvider);
 
 }

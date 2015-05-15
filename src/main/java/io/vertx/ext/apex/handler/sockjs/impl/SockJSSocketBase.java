@@ -39,6 +39,7 @@ import io.vertx.core.eventbus.Message;
 import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.ext.apex.Session;
 import io.vertx.ext.apex.handler.sockjs.SockJSSocket;
+import io.vertx.ext.auth.User;
 
 import java.util.UUID;
 
@@ -47,6 +48,7 @@ public abstract class SockJSSocketBase implements SockJSSocket {
   private final MessageConsumer<Buffer> registration;
   protected final Vertx vertx;
   protected Session apexSession;
+  protected User apexUser;
 
   /**
    * When a {@code SockJSSocket} is created it automatically registers an event handler with the event bus, the ID of that
@@ -61,9 +63,10 @@ public abstract class SockJSSocketBase implements SockJSSocket {
   @Override
   public abstract SockJSSocket exceptionHandler(Handler<Throwable> handler);
 
-  protected SockJSSocketBase(Vertx vertx, Session apexSession) {
+  protected SockJSSocketBase(Vertx vertx, Session apexSession, User apexUser) {
     this.vertx = vertx;
     this.apexSession = apexSession;
+    this.apexUser = apexUser;
     Handler<Message<Buffer>> writeHandler = buff -> write(buff.body());
     this.writeHandlerID = UUID.randomUUID().toString();
     this.registration = vertx.eventBus().<Buffer>consumer(writeHandlerID).handler(writeHandler);
@@ -82,5 +85,10 @@ public abstract class SockJSSocketBase implements SockJSSocket {
   @Override
   public Session apexSession() {
     return apexSession;
+  }
+
+  @Override
+  public User apexUser() {
+    return apexUser;
   }
 }

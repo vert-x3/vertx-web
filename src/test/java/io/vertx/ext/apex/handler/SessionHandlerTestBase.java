@@ -62,7 +62,6 @@ public abstract class SessionHandlerTestBase extends ApexTestBase {
       assertNotNull(sess.id());
       rid.set(sess.id());
       assertFalse(sess.isDestroyed());
-      assertSame(store, sess.sessionStore());
       assertEquals(SessionHandler.DEFAULT_SESSION_TIMEOUT, sess.timeout());
       rc.response().end();
     });

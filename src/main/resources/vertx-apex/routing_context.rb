@@ -1,5 +1,6 @@
 require 'vertx-apex/file_upload'
 require 'vertx/http_server_request'
+require 'vertx-auth/user'
 require 'vertx-apex/route'
 require 'vertx/buffer'
 require 'vertx/http_server_response'
@@ -241,6 +242,14 @@ module VertxApex
       end
       raise ArgumentError, "Invalid arguments when calling session()"
     end
+    #  Get the authenticated user (if any). This will usually be injected by an auth handler if authentication if successful.
+    # @return [::VertxAuth::User] the user, or null if the current user is not authenticated.
+    def user
+      if !block_given?
+        return ::VertxAuth::User.new(@j_del.java_method(:user, []).call())
+      end
+      raise ArgumentError, "Invalid arguments when calling user()"
+    end
     #  If the context is being routed to failure handlers after a failure has been triggered by calling
     #  {::VertxApex::RoutingContext#fail}  then this will return that status code.  It can be used by failure handlers to render a response,
     #  e.g. create a failure response page.
@@ -326,6 +335,15 @@ module VertxApex
         return @j_del.java_method(:setSession, [Java::IoVertxExtApex::Session.java_class]).call(session.j_del)
       end
       raise ArgumentError, "Invalid arguments when calling set_session(session)"
+    end
+    #  Set the user. Usually used by auth handlers to inject a User. You will not normally call this method.
+    # @param [::VertxAuth::User] user the user
+    # @return [void]
+    def set_user(user=nil)
+      if user.class.method_defined?(:j_del) && !block_given?
+        return @j_del.java_method(:setUser, [Java::IoVertxExtAuth::User.java_class]).call(user.j_del)
+      end
+      raise ArgumentError, "Invalid arguments when calling set_user(user)"
     end
     #  Set the acceptable content type. Used by
     # @param [String] contentType the content type

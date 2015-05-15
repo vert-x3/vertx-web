@@ -93,7 +93,7 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
 
   SockJSSession(Vertx vertx, LocalMap<String, SockJSSession> sessions, RoutingContext rc, String id, long timeout, long heartbeatPeriod,
                 Handler<SockJSSocket> sockHandler) {
-    super(vertx, rc.session());
+    super(vertx, rc.session(), rc.user());
     this.sessions = sessions;
     this.id = id;
     this.timeout = timeout;
@@ -183,7 +183,6 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
   // Yes, SockJS is weird, but it's hard to work out expected server behaviour when there's no spec
   @Override
   public synchronized void close() {
-    System.out.println("Closing sockjs socket");
     if (endHandler != null) {
       endHandler.handle(null);
     }
