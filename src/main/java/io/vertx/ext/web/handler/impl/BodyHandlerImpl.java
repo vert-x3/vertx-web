@@ -28,6 +28,7 @@ import io.vertx.ext.web.RoutingContext;
 import java.io.File;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  *
@@ -82,6 +83,8 @@ public class BodyHandlerImpl implements BodyHandler {
     RoutingContext context;
     Buffer body = Buffer.buffer();
     boolean failed;
+    AtomicInteger uploadCount = new AtomicInteger();
+    boolean ended;
 
     private BHandler(RoutingContext context) {
       this.context = context;
@@ -90,11 +93,13 @@ public class BodyHandlerImpl implements BodyHandler {
       context.request().exceptionHandler(context::fail);
       context.request().uploadHandler(upload -> {
         // We actually upload to a file with a generated filename
+        uploadCount.incrementAndGet();
         String uploadedFileName = new File(uploadsDir, UUID.randomUUID().toString()).getPath();
         upload.streamToFileSystem(uploadedFileName);
         FileUploadImpl fileUpload = new FileUploadImpl(uploadedFileName, upload);
         fileUploads.add(fileUpload);
         upload.exceptionHandler(context::fail);
+        upload.endHandler(v -> uploadEnded());
       });
     }
 
@@ -111,10 +116,24 @@ public class BodyHandlerImpl implements BodyHandler {
       }
     }
 
+    void uploadEnded() {
+      int count = uploadCount.decrementAndGet();
+      if (count == 0) {
+        doEnd();
+      }
+    }
+
     void end() {
-      if (failed) {
+      if (uploadCount.get() == 0) {
+        doEnd();
+      }
+    }
+
+    void doEnd() {
+      if (failed || ended) {
         return;
       }
+      ended = true;
       HttpServerRequest req = context.request();
       if (mergeFormAttributes && req.isExpectMultipart()) {
         req.params().addAll(req.formAttributes());
