@@ -1,7 +1,7 @@
-= Apex
+= Vert.x-Web
 :toc: left
 
-Apex is a set of building blocks for building web applications with Vert.x.
+Vert.x-Web is a set of building blocks for building web applications with Vert.x.
 
 Think of it as a Swiss Army Knife for building
 modern, scalable, web apps.
@@ -9,22 +9,22 @@ modern, scalable, web apps.
 Vert.x core provides a fairly low level set of functionality for handling HTTP, and for some applications
 that will be sufficient.
 
-Vert.x Apex builds on Vert.x core to provide a richer set of functionality for building real web applications, more
+VVert.x-Web builds on Vert.x core to provide a richer set of functionality for building real web applications, more
 easily.
 
 It's the successor to http://pmlopes.github.io/yoke/[Yoke] in Vert.x 2.x, and takes inspiration from projects such
 as http://expressjs.com/[Express] in the Node.js world and http://www.sinatrarb.com/[Sinatra] in the Ruby world.
 
-Apex is designed to be powerful, un-opionated and fully embeddable. You just use the parts you want and nothing more.
-Apex is not a container.
+Vert.x-Web is designed to be powerful, un-opionated and fully embeddable. You just use the parts you want and nothing more.
+Vert.x-Web is not a container.
 
-You can use Apex to create classic server-side web applications, RESTful web applications, 'real-time' (server push)
-web applications, or any other kind of web application you can think of. Apex doesn't care. It's up to you to chose
-the type of app you prefer, not Apex.
+You can use Vert.x-Web to create classic server-side web applications, RESTful web applications, 'real-time' (server push)
+web applications, or any other kind of web application you can think of. Vert.x-Web doesn't care. It's up to you to chose
+the type of app you prefer, not Vert.x-Web.
 
-Apex is a great fit for writing *RESTful HTTP micro-services*, but we don't *force* you to write apps like that.
+Vert.x-Web is a great fit for writing *RESTful HTTP micro-services*, but we don't *force* you to write apps like that.
 
-Some of the key features of Apex include:
+Some of the key features of Vert.x-Web include:
 
 * Routing (based on method, path, etc)
 * Regular expression pattern matching for paths
@@ -54,19 +54,19 @@ Some of the key features of Apex include:
 * SockJS support
 * Event-bus bridge
 
-Most features in Apex are implemented as handlers so you can always write your own. We envisage many more being written
+Most features in Vert.x-Web are implemented as handlers so you can always write your own. We envisage many more being written
 over time.
 
 We'll discuss all these features in this manual.
 
 == Re-cap on Vert.x core HTTP servers
 
-Apex uses and exposes the API from Vert.x core, so it's well worth getting familiar with the basic concepts of writing
+Vert.x-Web uses and exposes the API from Vert.x core, so it's well worth getting familiar with the basic concepts of writing
 HTTP servers using Vert.x core, if you're not already.
 
 The Vert.x core HTTP documentation goes into a lot of detail on this.
 
-Here's a hello world web server written using Vert.x core. At this point there is no Apex involved:
+Here's a hello world web server written using Vert.x core. At this point there is no Vert.x-Web involved:
 
 [source,java]
 ----
@@ -96,11 +96,11 @@ We then tell the server to listen at port `8080` (default host is `localhost`).
 
 You can run this, and point your browser at `http://localhost:8080` to verify that it works as expected.
 
-== Basic Apex concepts
+== Basic Vert.x-Web concepts
 
 Here's the 10000 foot view:
 
-A `link:jsdoc/router-Router.html[Router]` is one of the core concepts of Apex. It's an object which maintains zero or more
+A `link:jsdoc/router-Router.html[Router]` is one of the core concepts of Vert.x-Web. It's an object which maintains zero or more
 `link:jsdoc/route-Route.html[Routes]` .
 
 A router takes an HTTP request and finds the first matching route for that request, and passes the request to that route.
@@ -112,7 +112,7 @@ Here's a simple router example:
 
 [source,js]
 ----
-var Router = require("vertx-apex-js/router");
+var Router = require("vertx-web-js/router");
 var server = vertx.createHttpServer();
 
 var router = Router.router(vertx);
@@ -124,7 +124,7 @@ router.route().handler(function (routingContext) {
   response.putHeader("content-type", "text/plain");
 
   // Write to the response and end it
-  response.end("Hello World from Apex!");
+  response.end("Hello World from Vert.x-Web!");
 });
 
 server.requestHandler(router.accept).listen(8080);
@@ -133,7 +133,7 @@ server.requestHandler(router.accept).listen(8080);
 ----
 
 It basically does the same thing as the Vert.x Core HTTP server hello world example from the previous section,
-but this time using Apex.
+but this time using Vert.x-Web.
 
 We create an HTTP server as before, then we create a router. Once we've done that we create a simple route with
 no matching criteria so it will match _all_ requests that arrive on the server.
@@ -142,7 +142,7 @@ We then specify a handler for that route. That handler will be called for all re
 
 The object that gets passed into the handler is a `link:jsdoc/routing_context-RoutingContext.html[RoutingContext]` - this contains
 the standard Vert.x `link:../../vertx-core/js/jsdoc/http_server_request-HttpServerRequest.html[HttpServerRequest]` and `link:../../vertx-core/js/jsdoc/http_server_response-HttpServerResponse.html[HttpServerResponse]`
-but also various other useful stuff that makes working with Apex simpler.
+but also various other useful stuff that makes working with Vert.x-Web simpler.
 
 For every request that is routed there is a unique routing context instance, and the same instance is passed to
 all handlers for that request.
@@ -154,7 +154,7 @@ So, that's the basics. Now we'll look at things in more detail:
 
 == Handling requests and calling the next handler
 
-When Apex decides to route a request to a matching route, it calls the handler of the route passing in an instance
+When Vert.x-Web decides to route a request to a matching route, it calls the handler of the route passing in an instance
 of `link:jsdoc/routing_context-RoutingContext.html[RoutingContext]`.
 
 If you don't end the response in your handler, you should call `link:jsdoc/routing_context-RoutingContext.html#next[next]` so another
@@ -799,7 +799,7 @@ Here's the sub-router:
 
 [source,js]
 ----
-var Router = require("vertx-apex-js/router");
+var Router = require("vertx-web-js/router");
 
 var restAPI = Router.router(vertx);
 
@@ -833,7 +833,7 @@ However, let's say we already have a web-site as described by another router:
 
 [source,js]
 ----
-var Router = require("vertx-apex-js/router");
+var Router = require("vertx-web-js/router");
 var mainRouter = Router.router(vertx);
 
 // Handle static resources
@@ -857,10 +857,10 @@ This means the REST API is now accessible via paths like: `/productsAPI/products
 
 == Default 404 Handling
 
-If no routes match for any particular request, Apex will signal a 404 error.
+If no routes match for any particular request, Vert.x-Web will signal a 404 error.
 
 This can then be handled by your own error handler, or perhaps the augmented error handler that we supply to use,
-or if no error handler is provided Apex will send back a basic 404 (Not Found) response.
+or if no error handler is provided Vert.x-Web will send back a basic 404 (Not Found) response.
 
 == Error handling
 
@@ -946,7 +946,7 @@ You should make sure a body handler is on a matching route for any requests that
 
 [source,js]
 ----
-var BodyHandler = require("vertx-apex-js/body_handler");
+var BodyHandler = require("vertx-web-js/body_handler");
 
 // This body handler will be called for all routes
 router.route().handler(BodyHandler.create().handle);
@@ -989,7 +989,7 @@ Here's an example:
 
 [source,js]
 ----
-var BodyHandler = require("vertx-apex-js/body_handler");
+var BodyHandler = require("vertx-web-js/body_handler");
 
 router.route().handler(BodyHandler.create().handle);
 
@@ -1007,13 +1007,13 @@ such as the name, file-name and size to be accessed.
 
 == Handling cookies
 
-Apex has cookies support using the `link:jsdoc/cookie_handler-CookieHandler.html[CookieHandler]`.
+Vert.x-Web has cookies support using the `link:jsdoc/cookie_handler-CookieHandler.html[CookieHandler]`.
 
 You should make sure a cookie handler is on a matching route for any requests that require this functionality.
 
 [source,js]
 ----
-var CookieHandler = require("vertx-apex-js/cookie_handler");
+var CookieHandler = require("vertx-web-js/cookie_handler");
 
 // This cookie handler will be called for all routes
 router.route().handler(CookieHandler.create().handle);
@@ -1040,8 +1040,8 @@ Here's an example of querying and adding cookies:
 
 [source,js]
 ----
-var CookieHandler = require("vertx-apex-js/cookie_handler");
-var Cookie = require("vertx-apex-js/cookie");
+var CookieHandler = require("vertx-web-js/cookie_handler");
+var Cookie = require("vertx-web-js/cookie");
 
 // This cookie handler will be called for all routes
 router.route().handler(CookieHandler.create().handle);
@@ -1061,12 +1061,12 @@ router.route("some/path/").handler(function (routingContext) {
 
 == Handling sessions
 
-Apex provides out of the box support for sessions.
+Vert.x-Web provides out of the box support for sessions.
 
 Sessions last between HTTP requests for the length of a browser session and give you a place where you can add
 session-scope information, such as a shopping basket.
 
-Apex uses session cookies to identify a session. The session cookie is temporary and will be deleted by your browser
+Vert.x-Web uses session cookies to identify a session. The session cookie is temporary and will be deleted by your browser
 when it's closed.
 
 We don't put the actual data of your session in the session cookie - the cookie simply uses an identifier to look-up
@@ -1087,7 +1087,7 @@ that yourself.
 To create a session handler you need to have a session store instance. The session store is the object that
 holds the actual sessions for your application.
 
-Apex comes with two session store implementations out of the box, and you can also write your own if you prefer.
+Vert.x-Web comes with two session store implementations out of the box, and you can also write your own if you prefer.
 
 ==== Local session store
 
@@ -1108,7 +1108,7 @@ Here are some examples of creating a `link:jsdoc/local_session_store-LocalSessio
 
 [source,js]
 ----
-var LocalSessionStore = require("vertx-apex-js/local_session_store");
+var LocalSessionStore = require("vertx-web-js/local_session_store");
 
 // Create a local session store using defaults
 var store1 = LocalSessionStore.create(vertx);
@@ -1141,7 +1141,7 @@ Here are some examples of creating a `link:jsdoc/clustered_session_store-Cluster
 [source,js]
 ----
 var Vertx = require("vertx-js/vertx");
-var ClusteredSessionStore = require("vertx-apex-js/clustered_session_store");
+var ClusteredSessionStore = require("vertx-web-js/clustered_session_store");
 
 // a clustered Vert.x
 Vertx.clusteredVertx({
@@ -1174,10 +1174,10 @@ Here's an example:
 
 [source,js]
 ----
-var Router = require("vertx-apex-js/router");
-var CookieHandler = require("vertx-apex-js/cookie_handler");
-var ClusteredSessionStore = require("vertx-apex-js/clustered_session_store");
-var SessionHandler = require("vertx-apex-js/session_handler");
+var Router = require("vertx-web-js/router");
+var CookieHandler = require("vertx-web-js/cookie_handler");
+var ClusteredSessionStore = require("vertx-web-js/clustered_session_store");
+var SessionHandler = require("vertx-web-js/session_handler");
 
 var router = Router.router(vertx);
 
@@ -1223,7 +1223,7 @@ Here's an example of manipulating session data:
 
 [source,js]
 ----
-var CookieHandler = require("vertx-apex-js/cookie_handler");
+var CookieHandler = require("vertx-web-js/cookie_handler");
 
 router.route().handler(CookieHandler.create().handle);
 router.route().handler(sessionHandler.handle);
@@ -1281,7 +1281,7 @@ an auth handler from that, but it's the same principle whatever concrete auth pr
 [source,js]
 ----
 var ShiroAuth = require("vertx-auth-js/shiro_auth");
-var BasicAuthHandler = require("vertx-apex-js/basic_auth_handler");
+var BasicAuthHandler = require("vertx-web-js/basic_auth_handler");
 
 var config = {
 };
@@ -1295,10 +1295,10 @@ var basicAuthHandler = BasicAuthHandler.create(authProvider);
 
 [source,js]
 ----
-var CookieHandler = require("vertx-apex-js/cookie_handler");
-var SessionHandler = require("vertx-apex-js/session_handler");
-var LocalSessionStore = require("vertx-apex-js/local_session_store");
-var BasicAuthHandler = require("vertx-apex-js/basic_auth_handler");
+var CookieHandler = require("vertx-web-js/cookie_handler");
+var SessionHandler = require("vertx-web-js/session_handler");
+var LocalSessionStore = require("vertx-web-js/local_session_store");
+var BasicAuthHandler = require("vertx-web-js/basic_auth_handler");
 
 router.route().handler(CookieHandler.create().handle);
 router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)).handle);
@@ -1315,10 +1315,10 @@ your auth handler is before your application handlers on those paths:
 
 [source,js]
 ----
-var CookieHandler = require("vertx-apex-js/cookie_handler");
-var SessionHandler = require("vertx-apex-js/session_handler");
-var LocalSessionStore = require("vertx-apex-js/local_session_store");
-var BasicAuthHandler = require("vertx-apex-js/basic_auth_handler");
+var CookieHandler = require("vertx-web-js/cookie_handler");
+var SessionHandler = require("vertx-web-js/session_handler");
+var LocalSessionStore = require("vertx-web-js/local_session_store");
+var BasicAuthHandler = require("vertx-web-js/basic_auth_handler");
 
 router.route().handler(CookieHandler.create().handle);
 router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)).handle);
@@ -1394,12 +1394,12 @@ Here's an example of a simple app, using a redirect auth handler on the default 
 
 [source,js]
 ----
-var CookieHandler = require("vertx-apex-js/cookie_handler");
-var SessionHandler = require("vertx-apex-js/session_handler");
-var LocalSessionStore = require("vertx-apex-js/local_session_store");
-var RedirectAuthHandler = require("vertx-apex-js/redirect_auth_handler");
-var FormLoginHandler = require("vertx-apex-js/form_login_handler");
-var StaticHandler = require("vertx-apex-js/static_handler");
+var CookieHandler = require("vertx-web-js/cookie_handler");
+var SessionHandler = require("vertx-web-js/session_handler");
+var LocalSessionStore = require("vertx-web-js/local_session_store");
+var RedirectAuthHandler = require("vertx-web-js/redirect_auth_handler");
+var FormLoginHandler = require("vertx-web-js/form_login_handler");
+var StaticHandler = require("vertx-web-js/static_handler");
 
 router.route().handler(CookieHandler.create().handle);
 router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)).handle);
@@ -1443,7 +1443,7 @@ app:
 
 [source,js]
 ----
-var RedirectAuthHandler = require("vertx-apex-js/redirect_auth_handler");
+var RedirectAuthHandler = require("vertx-web-js/redirect_auth_handler");
 
 var managerAuthHandler = RedirectAuthHandler.create(authProvider);
 managerAuthHandler.addRole("manager").addRole("admin");
@@ -1466,7 +1466,7 @@ TODO
 
 == Serving static resources
 
-Apex comes with an out of the box handler for serving static web resources so you can write static web servers
+Vert.x-Web comes with an out of the box handler for serving static web resources so you can write static web servers
 very easily.
 
 To serve static resources such as `.html`, `.css`, `.js` or any other static resource, you use an instance of
@@ -1479,7 +1479,7 @@ In the following example all requests to paths starting with `/static/` will get
 
 [source,js]
 ----
-var StaticHandler = require("vertx-apex-js/static_handler");
+var StaticHandler = require("vertx-web-js/static_handler");
 
 router.route("/static/*").handler(StaticHandler.create().handle);
 
@@ -1499,7 +1499,7 @@ on disk so it doesn't have to do this each time.
 
 By default the static handler will set cache headers to enable browsers to effectively cache files.
 
-Apex sets the headers `cache-control`,`last-modified`, and `date`.
+Vert.x-Web sets the headers `cache-control`,`last-modified`, and `date`.
 
 `cache-control` is set to `max-age=86400` by default. This corresponds to one day. This can be configured with
 `link:jsdoc/static_handler-StaticHandler.html#setMaxAgeSeconds[setMaxAgeSeconds]` if required.
@@ -1509,7 +1509,7 @@ since that date, a `304` status is returned which tells the browser to use its l
 
 If handling of cache headers is not required, it can be disabled with `link:jsdoc/static_handler-StaticHandler.html#setCachingEnabled[setCachingEnabled]`.
 
-When cache handling is enabled Apex will cache the last modified date of resources in memory, this avoids a disk hit
+When cache handling is enabled Vert.x-Web will cache the last modified date of resources in memory, this avoids a disk hit
 to check the actual last modified date every time.
 
 Entries in the cache have an expiry time, and after that time, the file on disk will be checked again and the cache
@@ -1557,13 +1557,13 @@ For `text/html` directory listing, the template used to render the directory lis
 http://en.wikipedia.org/wiki/Cross-origin_resource_sharing[Cross Origin Resource Sharing] is a safe mechanism for
 allowing resources to be requested from one domain and served from another.
 
-Apex includes a handler `link:jsdoc/cors_handler-CorsHandler.html[CorsHandler]` that handles the CORS protocol for you.
+Vert.x-Web includes a handler `link:jsdoc/cors_handler-CorsHandler.html[CorsHandler]` that handles the CORS protocol for you.
 
 Here's an example:
 
 [source,js]
 ----
-var CorsHandler = require("vertx-apex-js/cors_handler");
+var CorsHandler = require("vertx-web-js/cors_handler");
 
 // Will only accept GET requests from origin "vertx.io"
 router.route().handler(CorsHandler.create("vertx\\.io").allowedMethod('GET').handle);
@@ -1580,7 +1580,7 @@ TODO more CORS docs
 
 == Templates
 
-Apex includes dynamic page generation capabilities by including out of the box support for several popular template
+Vert.x-Web includes dynamic page generation capabilities by including out of the box support for several popular template
 engines. You can also easily add your own.
 
 Template engines are described by `link:jsdoc/template_engine-TemplateEngine.html[TemplateEngine]`. In order to render a template
@@ -1600,8 +1600,8 @@ Here are some examples
 
 [source,js]
 ----
-var HandlebarsTemplateEngine = require("vertx-apex-js/handlebars_template_engine");
-var TemplateHandler = require("vertx-apex-js/template_handler");
+var HandlebarsTemplateEngine = require("vertx-web-js/handlebars_template_engine");
+var TemplateHandler = require("vertx-web-js/template_handler");
 
 var engine = HandlebarsTemplateEngine.create();
 var handler = TemplateHandler.create(engine);
@@ -1675,8 +1675,8 @@ add it the context data in a handler before the template handler. For example:
 
 [source,js]
 ----
-var HandlebarsTemplateEngine = require("vertx-apex-js/handlebars_template_engine");
-var TemplateHandler = require("vertx-apex-js/template_handler");
+var HandlebarsTemplateEngine = require("vertx-web-js/handlebars_template_engine");
+var TemplateHandler = require("vertx-web-js/template_handler");
 
 var engine = HandlebarsTemplateEngine.create();
 var handler = TemplateHandler.create(engine);
@@ -1723,7 +1723,7 @@ Thymeleaf templates.
 
 == Error handler
 
-You can render your own errors using a template handler or otherwise but Apex also includes an out of the boxy
+You can render your own errors using a template handler or otherwise but Vert.x-Web also includes an out of the boxy
 "pretty" error handler that can render error pages for you.
 
 The handler is `link:jsdoc/error_handler-ErrorHandler.html[ErrorHandler]`. To use the error handler just set it as a
@@ -1731,21 +1731,21 @@ failure handler for any paths that you want covered.
 
 == Request logger
 
-Apex includes a handler `link:jsdoc/logger_handler-LoggerHandler.html[LoggerHandler]` that you can use to log HTTP requests.
+Vert.x-Web includes a handler `link:jsdoc/logger_handler-LoggerHandler.html[LoggerHandler]` that you can use to log HTTP requests.
 
 
 By default requests are logged to the Vert.x logger which can be configured to use JUL logging, log4j or SLF4J.
 
 == Serving favicons
 
-Apex includes the handler `link:jsdoc/favicon_handler-FaviconHandler.html[FaviconHandler]` especially for serving favicons.
+Vert.x-Web includes the handler `link:jsdoc/favicon_handler-FaviconHandler.html[FaviconHandler]` especially for serving favicons.
 
-Favicons can be specified using a path to the filesystem, or by default Apex will look for a file on the classpath
+Favicons can be specified using a path to the filesystem, or by default Vert.x-Web will look for a file on the classpath
 with the name `favicon.ico`. This means you bundle the favicon in the jar of your application.
 
 == Timeout handler
 
-Apex includes a timeout handler that you can use to timeout requests if they take too long to process.
+Vert.x-Web includes a timeout handler that you can use to timeout requests if they take too long to process.
 
 This is configured using an instance of `link:jsdoc/timeout_handler-TimeoutHandler.html[TimeoutHandler]`.
 
@@ -1756,7 +1756,7 @@ seconds:
 
 [source,js]
 ----
-var TimeoutHandler = require("vertx-apex-js/timeout_handler");
+var TimeoutHandler = require("vertx-web-js/timeout_handler");
 
 router.route("/foo/").handler(TimeoutHandler.create(5000).handle);
 
@@ -1785,7 +1785,7 @@ Please see the https://github.com/sockjs/sockjs-client[SockJS website] for more 
 === SockJS handler
 
 Vert.x provides an out of the box handler called `link:jsdoc/sock_js_handler-SockJSHandler.html[SockJSHandler]` for
-using SockJS in your Apex applications.
+using SockJS in your Vert.x-Web applications.
 
 You should create one handler per SockJS application using `link:jsdoc/sock_js_handler-SockJSHandler.html#create[SockJSHandler.create]`.
 You can also specify configuration options when creating the instance. The configuration options are described with
@@ -1793,8 +1793,8 @@ an instance of `link:../cheatsheet/SockJSHandlerOptions.html[SockJSHandlerOption
 
 [source,js]
 ----
-var Router = require("vertx-apex-js/router");
-var SockJSHandler = require("vertx-apex-js/sock_js_handler");
+var Router = require("vertx-web-js/router");
+var SockJSHandler = require("vertx-web-js/sock_js_handler");
 
 var router = Router.router(vertx);
 
@@ -1822,8 +1822,8 @@ Here's an example of a simple SockJS handler that simply echoes back any back an
 
 [source,js]
 ----
-var Router = require("vertx-apex-js/router");
-var SockJSHandler = require("vertx-apex-js/sock_js_handler");
+var Router = require("vertx-web-js/router");
+var SockJSHandler = require("vertx-web-js/sock_js_handler");
 
 var router = Router.router(vertx);
 
@@ -1901,7 +1901,7 @@ WEBSOCKET, EVENT_SOURCE, HTML_FILE, JSON_P, XHR.
 
 == SockJS event bus bridge
 
-Apex comes with a built-in SockJS socket handler called the event bus bridge which effectively extends the server-side
+Vert.x-Web comes with a built-in SockJS socket handler called the event bus bridge which effectively extends the server-side
 Vert.x event bus into client side JavaScript.
 
 This creates a distributed event bus which not only spans multiple Vert.x instances on the server side, but includes
@@ -1926,8 +1926,8 @@ SockJS handler.
 
 [source,js]
 ----
-var Router = require("vertx-apex-js/router");
-var SockJSHandler = require("vertx-apex-js/sock_js_handler");
+var Router = require("vertx-web-js/router");
+var SockJSHandler = require("vertx-web-js/sock_js_handler");
 
 var router = Router.router(vertx);
 
@@ -2007,11 +2007,11 @@ based on a regular expression you use this field. If the `address` field is spec
 `link:../cheatsheet/PermittedOptions.html#match[match]`:: This allows you to allow messages based on their structure. Any fields in the match must exist in the
 message with the same values for them to be allowed. This currently only works with JSON messages.
 
-If a message is _in-bound_ (i.e. being sent from client side JavaScript to the server) when it is received Apex
+If a message is _in-bound_ (i.e. being sent from client side JavaScript to the server) when it is received Vert.x-Web
 will look through any inbound permitted matches. If any match, it will be allowed through.
 
 If a message is _out-bound_ (i.e. being sent from the server to client side JavaScript) before it is sent to the client
-Apex will look through any inbound permitted matches. If any match, it will be allowed through.
+Vert.x-Web will look through any inbound permitted matches. If any match, it will be allowed through.
 
 The actual matching works as follows:
 
@@ -2028,8 +2028,8 @@ Here's an example:
 
 [source,js]
 ----
-var Router = require("vertx-apex-js/router");
-var SockJSHandler = require("vertx-apex-js/sock_js_handler");
+var Router = require("vertx-web-js/router");
+var SockJSHandler = require("vertx-web-js/sock_js_handler");
 
 var router = Router.router(vertx);
 
@@ -2092,7 +2092,7 @@ router.route("/eventbus/*").handler(sockJSHandler.handle);
 
 === Requiring authorisation for messages
 
-The event bus bridge can also be configured to use the Apex authorisation functionality to require
+The event bus bridge can also be configured to use the Vert.x-Web authorisation functionality to require
 authorisation for messages, either in-bound or out-bound on the bridge.
 
 To do this, you can add extra fields to the match described in the previous section that determine what role and/or
@@ -2131,13 +2131,13 @@ To handle the login and actually auth you can configure the normal Vert.x auth h
 
 [source,js]
 ----
-var Router = require("vertx-apex-js/router");
-var SockJSHandler = require("vertx-apex-js/sock_js_handler");
-var CookieHandler = require("vertx-apex-js/cookie_handler");
-var SessionHandler = require("vertx-apex-js/session_handler");
-var LocalSessionStore = require("vertx-apex-js/local_session_store");
+var Router = require("vertx-web-js/router");
+var SockJSHandler = require("vertx-web-js/sock_js_handler");
+var CookieHandler = require("vertx-web-js/cookie_handler");
+var SessionHandler = require("vertx-web-js/session_handler");
+var LocalSessionStore = require("vertx-web-js/local_session_store");
 var ShiroAuth = require("vertx-auth-js/shiro_auth");
-var BasicAuthHandler = require("vertx-apex-js/basic_auth_handler");
+var BasicAuthHandler = require("vertx-web-js/basic_auth_handler");
 
 var router = Router.router(vertx);
 

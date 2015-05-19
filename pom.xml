@@ -11,7 +11,7 @@
 
   <modelVersion>4.0.0</modelVersion>
 
-  <artifactId>vertx-apex</artifactId>
+  <artifactId>vertx-web</artifactId>
   <version>3.0.0-SNAPSHOT</version>
 
   <properties>
@@ -79,7 +79,7 @@
     </dependency>
 
     <!--
-    These should be optional so they're not dragged into apex applications unless they're explicitly declared
+    These should be optional so they're not dragged into web applications unless they're explicitly declared
      -->
     <dependency>
       <groupId>io.vertx</groupId>

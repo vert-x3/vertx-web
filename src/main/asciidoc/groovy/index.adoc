@@ -1,7 +1,7 @@
-= Apex
+= Vert.x-Web
 :toc: left
 
-Apex is a set of building blocks for building web applications with Vert.x.
+Vert.x-Web is a set of building blocks for building web applications with Vert.x.
 
 Think of it as a Swiss Army Knife for building
 modern, scalable, web apps.
@@ -9,22 +9,22 @@ modern, scalable, web apps.
 Vert.x core provides a fairly low level set of functionality for handling HTTP, and for some applications
 that will be sufficient.
 
-Vert.x Apex builds on Vert.x core to provide a richer set of functionality for building real web applications, more
+VVert.x-Web builds on Vert.x core to provide a richer set of functionality for building real web applications, more
 easily.
 
 It's the successor to http://pmlopes.github.io/yoke/[Yoke] in Vert.x 2.x, and takes inspiration from projects such
 as http://expressjs.com/[Express] in the Node.js world and http://www.sinatrarb.com/[Sinatra] in the Ruby world.
 
-Apex is designed to be powerful, un-opionated and fully embeddable. You just use the parts you want and nothing more.
-Apex is not a container.
+Vert.x-Web is designed to be powerful, un-opionated and fully embeddable. You just use the parts you want and nothing more.
+Vert.x-Web is not a container.
 
-You can use Apex to create classic server-side web applications, RESTful web applications, 'real-time' (server push)
-web applications, or any other kind of web application you can think of. Apex doesn't care. It's up to you to chose
-the type of app you prefer, not Apex.
+You can use Vert.x-Web to create classic server-side web applications, RESTful web applications, 'real-time' (server push)
+web applications, or any other kind of web application you can think of. Vert.x-Web doesn't care. It's up to you to chose
+the type of app you prefer, not Vert.x-Web.
 
-Apex is a great fit for writing *RESTful HTTP micro-services*, but we don't *force* you to write apps like that.
+Vert.x-Web is a great fit for writing *RESTful HTTP micro-services*, but we don't *force* you to write apps like that.
 
-Some of the key features of Apex include:
+Some of the key features of Vert.x-Web include:
 
 * Routing (based on method, path, etc)
 * Regular expression pattern matching for paths
@@ -54,19 +54,19 @@ Some of the key features of Apex include:
 * SockJS support
 * Event-bus bridge
 
-Most features in Apex are implemented as handlers so you can always write your own. We envisage many more being written
+Most features in Vert.x-Web are implemented as handlers so you can always write your own. We envisage many more being written
 over time.
 
 We'll discuss all these features in this manual.
 
 == Re-cap on Vert.x core HTTP servers
 
-Apex uses and exposes the API from Vert.x core, so it's well worth getting familiar with the basic concepts of writing
+Vert.x-Web uses and exposes the API from Vert.x core, so it's well worth getting familiar with the basic concepts of writing
 HTTP servers using Vert.x core, if you're not already.
 
 The Vert.x core HTTP documentation goes into a lot of detail on this.
 
-Here's a hello world web server written using Vert.x core. At this point there is no Apex involved:
+Here's a hello world web server written using Vert.x core. At this point there is no Vert.x-Web involved:
 
 [source,java]
 ----
@@ -96,12 +96,12 @@ We then tell the server to listen at port `8080` (default host is `localhost`).
 
 You can run this, and point your browser at `http://localhost:8080` to verify that it works as expected.
 
-== Basic Apex concepts
+== Basic Vert.x-Web concepts
 
 Here's the 10000 foot view:
 
-A `link:groovydoc/io/vertx/groovy/ext/apex/Router.html[Router]` is one of the core concepts of Apex. It's an object which maintains zero or more
-`link:groovydoc/io/vertx/groovy/ext/apex/Route.html[Routes]` .
+A `link:groovydoc/io/vertx/groovy/ext/web/Router.html[Router]` is one of the core concepts of Vert.x-Web. It's an object which maintains zero or more
+`link:groovydoc/io/vertx/groovy/ext/web/Route.html[Routes]` .
 
 A router takes an HTTP request and finds the first matching route for that request, and passes the request to that route.
 
@@ -112,7 +112,7 @@ Here's a simple router example:
 
 [source,groovy]
 ----
-import io.vertx.groovy.ext.apex.Router
+import io.vertx.groovy.ext.web.Router
 def server = vertx.createHttpServer()
 
 def router = Router.router(vertx)
@@ -124,7 +124,7 @@ router.route().handler({ routingContext ->
   response.putHeader("content-type", "text/plain")
 
   // Write to the response and end it
-  response.end("Hello World from Apex!")
+  response.end("Hello World from Vert.x-Web!")
 })
 
 server.requestHandler(router.&accept).listen(8080)
@@ -133,34 +133,34 @@ server.requestHandler(router.&accept).listen(8080)
 ----
 
 It basically does the same thing as the Vert.x Core HTTP server hello world example from the previous section,
-but this time using Apex.
+but this time using Vert.x-Web.
 
 We create an HTTP server as before, then we create a router. Once we've done that we create a simple route with
 no matching criteria so it will match _all_ requests that arrive on the server.
 
 We then specify a handler for that route. That handler will be called for all requests that arrive on the server.
 
-The object that gets passed into the handler is a `link:groovydoc/io/vertx/groovy/ext/apex/RoutingContext.html[RoutingContext]` - this contains
+The object that gets passed into the handler is a `link:groovydoc/io/vertx/groovy/ext/web/RoutingContext.html[RoutingContext]` - this contains
 the standard Vert.x `link:../../vertx-core/groovy/groovydoc/io/vertx/groovy/core/http/HttpServerRequest.html[HttpServerRequest]` and `link:../../vertx-core/groovy/groovydoc/io/vertx/groovy/core/http/HttpServerResponse.html[HttpServerResponse]`
-but also various other useful stuff that makes working with Apex simpler.
+but also various other useful stuff that makes working with Vert.x-Web simpler.
 
 For every request that is routed there is a unique routing context instance, and the same instance is passed to
 all handlers for that request.
 
 Once we've set up the handler, we set the request handler of the HTTP server to pass all incoming requests
-to `link:groovydoc/io/vertx/groovy/ext/apex/Router.html#accept(io.vertx.core.http.HttpServerRequest)[accept]`.
+to `link:groovydoc/io/vertx/groovy/ext/web/Router.html#accept(io.vertx.core.http.HttpServerRequest)[accept]`.
 
 So, that's the basics. Now we'll look at things in more detail:
 
 == Handling requests and calling the next handler
 
-When Apex decides to route a request to a matching route, it calls the handler of the route passing in an instance
-of `link:groovydoc/io/vertx/groovy/ext/apex/RoutingContext.html[RoutingContext]`.
+When Vert.x-Web decides to route a request to a matching route, it calls the handler of the route passing in an instance
+of `link:groovydoc/io/vertx/groovy/ext/web/RoutingContext.html[RoutingContext]`.
 
-If you don't end the response in your handler, you should call `link:groovydoc/io/vertx/groovy/ext/apex/RoutingContext.html#next()[next]` so another
+If you don't end the response in your handler, you should call `link:groovydoc/io/vertx/groovy/ext/web/RoutingContext.html#next()[next]` so another
 matching route can handle the request (if any).
 
-You don't have to call `link:groovydoc/io/vertx/groovy/ext/apex/RoutingContext.html#next()[next]` before the handler has finished executing.
+You don't have to call `link:groovydoc/io/vertx/groovy/ext/web/RoutingContext.html#next()[next]` before the handler has finished executing.
 You can do this some time later, if you want:
 
 [source,groovy]
@@ -379,7 +379,7 @@ Captures are denoted in regular expressions with capture groups (i.e. surroundin
 
 By default a route will match all HTTP methods.
 
-If you want a route to only match for a specific HTTP method you can use `link:groovydoc/io/vertx/groovy/ext/apex/Route.html#method(io.vertx.core.http.HttpMethod)[method]`
+If you want a route to only match for a specific HTTP method you can use `link:groovydoc/io/vertx/groovy/ext/web/Route.html#method(io.vertx.core.http.HttpMethod)[method]`
 
 [source,groovy]
 ----
@@ -413,8 +413,8 @@ route.handler({ routingContext ->
 
 ----
 
-If you want to route for a specific HTTP method you can also use the methods such as `link:groovydoc/io/vertx/groovy/ext/apex/Router.html#get()[get]`,
-`link:groovydoc/io/vertx/groovy/ext/apex/Router.html#post()[post]` and `link:groovydoc/io/vertx/groovy/ext/apex/Router.html#put()[put]` named after the HTTP
+If you want to route for a specific HTTP method you can also use the methods such as `link:groovydoc/io/vertx/groovy/ext/web/Router.html#get()[get]`,
+`link:groovydoc/io/vertx/groovy/ext/web/Router.html#post()[post]` and `link:groovydoc/io/vertx/groovy/ext/web/Router.html#put()[put]` named after the HTTP
 method name. For example:
 
 [source,groovy]
@@ -445,7 +445,7 @@ router.getWithRegex(".*foo").handler({ routingContext ->
 
 ----
 
-If you want to specify a route will match for more than HTTP method you can call `link:groovydoc/io/vertx/groovy/ext/apex/Route.html#method(io.vertx.core.http.HttpMethod)[method]`
+If you want to specify a route will match for more than HTTP method you can call `link:groovydoc/io/vertx/groovy/ext/web/Route.html#method(io.vertx.core.http.HttpMethod)[method]`
 multiple times:
 
 [source,groovy]
@@ -470,7 +470,7 @@ By default routes are matched in the order they are added to the router.
 When a request arrives the router will step through each route and check if it matches, if it matches then
 the handler for that route will be called.
 
-If the handler subsequently calls `link:groovydoc/io/vertx/groovy/ext/apex/RoutingContext.html#next()[next]` the handler for the next
+If the handler subsequently calls `link:groovydoc/io/vertx/groovy/ext/web/RoutingContext.html#next()[next]` the handler for the next
 matching route (if any) will be called. And so on.
 
 Here's an example to illustrate this:
@@ -518,7 +518,7 @@ route3
 
 As the routes have been called in that order for any request that starts with `/some/path`.
 
-If you want to override the default ordering for routes, you can do so using `link:groovydoc/io/vertx/groovy/ext/apex/Route.html#order(int)[order]`,
+If you want to override the default ordering for routes, you can do so using `link:groovydoc/io/vertx/groovy/ext/web/Route.html#order(int)[order]`,
 specifying an integer value.
 
 Routes are assigned an order at creation time corresponding to the order in which they were added to the router, with
@@ -574,14 +574,14 @@ route3
 
 If two matching routes have the same value of order, then they will be called in the order they were added.
 
-You can also specify that a route is handled last, with `link:groovydoc/io/vertx/groovy/ext/apex/Route.html#last(boolean)[last]`
+You can also specify that a route is handled last, with `link:groovydoc/io/vertx/groovy/ext/web/Route.html#last(boolean)[last]`
 
 == Routing based on MIME type of request
 
-You can specify that a route will match against matching request MIME types using `link:groovydoc/io/vertx/groovy/ext/apex/Route.html#consumes(java.lang.String)[consumes]`.
+You can specify that a route will match against matching request MIME types using `link:groovydoc/io/vertx/groovy/ext/web/Route.html#consumes(java.lang.String)[consumes]`.
 
 In this case, the request will contain a `content-type` header specifying the MIME type of the request body.
-This will be matched against the value specified in `link:groovydoc/io/vertx/groovy/ext/apex/Route.html#consumes(java.lang.String)[consumes]`.
+This will be matched against the value specified in `link:groovydoc/io/vertx/groovy/ext/web/Route.html#consumes(java.lang.String)[consumes]`.
 
 Basically, `consumes` is describing which MIME types the handler can _consume_.
 
@@ -672,7 +672,7 @@ With the following the client will accept `text/plain` or `text/html` but prefer
 
 If the server can provide both text/plain and text/html it should provide the text/html in this case.
 
-By using `link:groovydoc/io/vertx/groovy/ext/apex/Route.html#produces(java.lang.String)[produces]` you define which MIME type(s) the route produces, e.g. the
+By using `link:groovydoc/io/vertx/groovy/ext/web/Route.html#produces(java.lang.String)[produces]` you define which MIME type(s) the route produces, e.g. the
 following handler produces a response with MIME type `application/json`.
 
 [source,java]
@@ -698,7 +698,7 @@ Here are some examples of `accept` headers that will match:
  Accept: application/json;q=0.7, text/html;q=0.8, text/plain
 
 You can also mark your route as producing more than one MIME type. If this is the case, then you use
-`link:groovydoc/io/vertx/groovy/ext/apex/RoutingContext.html#getAcceptableContentType()[getAcceptableContentType]` to find out the actual MIME type that
+`link:groovydoc/io/vertx/groovy/ext/web/RoutingContext.html#getAcceptableContentType()[getAcceptableContentType]` to find out the actual MIME type that
 was accepted.
 
 [source,groovy]
@@ -748,19 +748,19 @@ route.handler({ routingContext ->
 
 == Enabling and disabling routes
 
-You can disable a route with `link:groovydoc/io/vertx/groovy/ext/apex/Route.html#disable()[disable]`. A disabled route will be ignored when matching.
+You can disable a route with `link:groovydoc/io/vertx/groovy/ext/web/Route.html#disable()[disable]`. A disabled route will be ignored when matching.
 
-You can re-enable a disabled route with `link:groovydoc/io/vertx/groovy/ext/apex/Route.html#enable()[enable]`
+You can re-enable a disabled route with `link:groovydoc/io/vertx/groovy/ext/web/Route.html#enable()[enable]`
 
 == Context data
 
-You can use the context data in the `link:groovydoc/io/vertx/groovy/ext/apex/RoutingContext.html[RoutingContext]` to maintain any data that you
+You can use the context data in the `link:groovydoc/io/vertx/groovy/ext/web/RoutingContext.html[RoutingContext]` to maintain any data that you
 want to share between handlers for the lifetime of the request.
 
 Here's an example where one handler sets some data in the context data and a subsequent handler retrieves it:
 
-You can use the `link:groovydoc/io/vertx/groovy/ext/apex/RoutingContext.html#put(java.lang.String,%20java.lang.Object)[put]` to put any object, and
-`link:groovydoc/io/vertx/groovy/ext/apex/RoutingContext.html#get(java.lang.String)[get]` to retrieve any object from the context data.
+You can use the `link:groovydoc/io/vertx/groovy/ext/web/RoutingContext.html#put(java.lang.String,%20java.lang.Object)[put]` to put any object, and
+`link:groovydoc/io/vertx/groovy/ext/web/RoutingContext.html#get(java.lang.String)[get]` to retrieve any object from the context data.
 
 A request sent to path `/some/path/other` will match both routes.
 
@@ -785,7 +785,7 @@ router.get("/some/path/other").handler({ routingContext ->
 
 ----
 
-Alternatively you can access the entire context data map with `link:groovydoc/io/vertx/groovy/ext/apex/RoutingContext.html#data()[data]`.
+Alternatively you can access the entire context data map with `link:groovydoc/io/vertx/groovy/ext/web/RoutingContext.html#data()[data]`.
 
 == Sub-routers
 
@@ -804,7 +804,7 @@ Here's the sub-router:
 
 [source,groovy]
 ----
-import io.vertx.groovy.ext.apex.Router
+import io.vertx.groovy.ext.web.Router
 
 def restAPI = Router.router(vertx)
 
@@ -838,7 +838,7 @@ However, let's say we already have a web-site as described by another router:
 
 [source,groovy]
 ----
-import io.vertx.groovy.ext.apex.Router
+import io.vertx.groovy.ext.web.Router
 def mainRouter = Router.router(vertx)
 
 // Handle static resources
@@ -862,10 +862,10 @@ This means the REST API is now accessible via paths like: `/productsAPI/products
 
 == Default 404 Handling
 
-If no routes match for any particular request, Apex will signal a 404 error.
+If no routes match for any particular request, Vert.x-Web will signal a 404 error.
 
 This can then be handled by your own error handler, or perhaps the augmented error handler that we supply to use,
-or if no error handler is provided Apex will send back a basic 404 (Not Found) response.
+or if no error handler is provided Vert.x-Web will send back a basic 404 (Not Found) response.
 
 == Error handling
 
@@ -896,7 +896,7 @@ route.failureHandler({ frc ->
 ----
 
 Failure routing will occur if a handler throws an exception, or if a handler calls
-`link:groovydoc/io/vertx/groovy/ext/apex/RoutingContext.html#fail(int)[fail]` specifying an HTTP status code to deliberately signal a failure.
+`link:groovydoc/io/vertx/groovy/ext/web/RoutingContext.html#fail(int)[fail]` specifying an HTTP status code to deliberately signal a failure.
 
 If an exception is caught from a handler this will result in a failure with status code `500` being signalled.
 
@@ -944,14 +944,14 @@ route3.failureHandler({ failureRoutingContext ->
 
 == Request body handling
 
-The `link:groovydoc/io/vertx/groovy/ext/apex/handler/BodyHandler.html[BodyHandler]` allows you to retrieve request bodies, limit body sizes and handle
+The `link:groovydoc/io/vertx/groovy/ext/web/handler/BodyHandler.html[BodyHandler]` allows you to retrieve request bodies, limit body sizes and handle
 file uploads.
 
 You should make sure a body handler is on a matching route for any requests that require this functionality.
 
 [source,groovy]
 ----
-import io.vertx.groovy.ext.apex.handler.BodyHandler
+import io.vertx.groovy.ext.web.handler.BodyHandler
 
 // This body handler will be called for all routes
 router.route().handler(BodyHandler.create())
@@ -961,13 +961,13 @@ router.route().handler(BodyHandler.create())
 
 === Getting the request body
 
-If you know the request body is JSON, then you can use `link:groovydoc/io/vertx/groovy/ext/apex/RoutingContext.html#getBodyAsJson()[getBodyAsJson]`,
-if you know it's a string you can use `link:groovydoc/io/vertx/groovy/ext/apex/RoutingContext.html#getBodyAsString()[getBodyAsString]`, or to
-retrieve it as a buffer use `link:groovydoc/io/vertx/groovy/ext/apex/RoutingContext.html#getBody()[getBody]`.
+If you know the request body is JSON, then you can use `link:groovydoc/io/vertx/groovy/ext/web/RoutingContext.html#getBodyAsJson()[getBodyAsJson]`,
+if you know it's a string you can use `link:groovydoc/io/vertx/groovy/ext/web/RoutingContext.html#getBodyAsString()[getBodyAsString]`, or to
+retrieve it as a buffer use `link:groovydoc/io/vertx/groovy/ext/web/RoutingContext.html#getBody()[getBody]`.
 
 === Limiting body size
 
-To limit the size of a request body, create the body handler then use `link:groovydoc/io/vertx/groovy/ext/apex/handler/BodyHandler.html#setBodyLimit(long)[setBodyLimit]`
+To limit the size of a request body, create the body handler then use `link:groovydoc/io/vertx/groovy/ext/web/handler/BodyHandler.html#setBodyLimit(long)[setBodyLimit]`
 to specifying the maximum body size, in bytes. This is useful to avoid running out of memory with very large bodies.
 
 If an attempt to send a body greater than the maximum size is made, an HTTP status code of 413 - `Request Entity Too Large`,
@@ -978,7 +978,7 @@ There is no body limit by default.
 === Merging form attributes
 
 By default, the body handler will merge any form attributes into the request parameters. If you don't want this behaviour
-you can use disable it with `link:groovydoc/io/vertx/groovy/ext/apex/handler/BodyHandler.html#setMergeFormAttributes(boolean)[setMergeFormAttributes]`.
+you can use disable it with `link:groovydoc/io/vertx/groovy/ext/web/handler/BodyHandler.html#setMergeFormAttributes(boolean)[setMergeFormAttributes]`.
 
 === Handling file uploads
 
@@ -988,13 +988,13 @@ If a body handler is on a matching route for the request, any file uploads will 
 uploads directory, which is `file-uploads` by default.
 
 Each file will be given an automatically generated file name, and the file uploads will be available on the routing
-context with `link:groovydoc/io/vertx/groovy/ext/apex/RoutingContext.html#fileUploads()[fileUploads]`.
+context with `link:groovydoc/io/vertx/groovy/ext/web/RoutingContext.html#fileUploads()[fileUploads]`.
 
 Here's an example:
 
 [source,groovy]
 ----
-import io.vertx.groovy.ext.apex.handler.BodyHandler
+import io.vertx.groovy.ext.web.handler.BodyHandler
 
 router.route().handler(BodyHandler.create())
 
@@ -1007,18 +1007,18 @@ router.post("/some/path/uploads").handler({ routingContext ->
 
 ----
 
-Each file upload is described by a `link:groovydoc/io/vertx/groovy/ext/apex/FileUpload.html[FileUpload]` instance, which allows various properties
+Each file upload is described by a `link:groovydoc/io/vertx/groovy/ext/web/FileUpload.html[FileUpload]` instance, which allows various properties
 such as the name, file-name and size to be accessed.
 
 == Handling cookies
 
-Apex has cookies support using the `link:groovydoc/io/vertx/groovy/ext/apex/handler/CookieHandler.html[CookieHandler]`.
+Vert.x-Web has cookies support using the `link:groovydoc/io/vertx/groovy/ext/web/handler/CookieHandler.html[CookieHandler]`.
 
 You should make sure a cookie handler is on a matching route for any requests that require this functionality.
 
 [source,groovy]
 ----
-import io.vertx.groovy.ext.apex.handler.CookieHandler
+import io.vertx.groovy.ext.web.handler.CookieHandler
 
 // This cookie handler will be called for all routes
 router.route().handler(CookieHandler.create())
@@ -1028,25 +1028,25 @@ router.route().handler(CookieHandler.create())
 
 === Manipulating cookies
 
-You use `link:groovydoc/io/vertx/groovy/ext/apex/RoutingContext.html#getCookie(java.lang.String)[getCookie]` to retrieve
-a cookie by name, or use `link:groovydoc/io/vertx/groovy/ext/apex/RoutingContext.html#cookies()[cookies]` to retrieve the entire set.
+You use `link:groovydoc/io/vertx/groovy/ext/web/RoutingContext.html#getCookie(java.lang.String)[getCookie]` to retrieve
+a cookie by name, or use `link:groovydoc/io/vertx/groovy/ext/web/RoutingContext.html#cookies()[cookies]` to retrieve the entire set.
 
-To remove a cookie, use `link:groovydoc/io/vertx/groovy/ext/apex/RoutingContext.html#removeCookie(java.lang.String)[removeCookie]`.
+To remove a cookie, use `link:groovydoc/io/vertx/groovy/ext/web/RoutingContext.html#removeCookie(java.lang.String)[removeCookie]`.
 
-To add a cookie use `link:groovydoc/io/vertx/groovy/ext/apex/RoutingContext.html#addCookie(io.vertx.ext.apex.Cookie)[addCookie]`.
+To add a cookie use `link:groovydoc/io/vertx/groovy/ext/web/RoutingContext.html#addCookie(io.vertx.ext.web.Cookie)[addCookie]`.
 
 The set of cookies will be written back in the response automatically when the response headers are written so the
 browser can store them.
 
-Cookies are described by instances of `link:groovydoc/io/vertx/groovy/ext/apex/Cookie.html[Cookie]`. This allows you to retrieve the name,
+Cookies are described by instances of `link:groovydoc/io/vertx/groovy/ext/web/Cookie.html[Cookie]`. This allows you to retrieve the name,
 value, domain, path and other normal cookie properties.
 
 Here's an example of querying and adding cookies:
 
 [source,groovy]
 ----
-import io.vertx.groovy.ext.apex.handler.CookieHandler
-import io.vertx.groovy.ext.apex.Cookie
+import io.vertx.groovy.ext.web.handler.CookieHandler
+import io.vertx.groovy.ext.web.Cookie
 
 // This cookie handler will be called for all routes
 router.route().handler(CookieHandler.create())
@@ -1066,12 +1066,12 @@ router.route("some/path/").handler({ routingContext ->
 
 == Handling sessions
 
-Apex provides out of the box support for sessions.
+Vert.x-Web provides out of the box support for sessions.
 
 Sessions last between HTTP requests for the length of a browser session and give you a place where you can add
 session-scope information, such as a shopping basket.
 
-Apex uses session cookies to identify a session. The session cookie is temporary and will be deleted by your browser
+Vert.x-Web uses session cookies to identify a session. The session cookie is temporary and will be deleted by your browser
 when it's closed.
 
 We don't put the actual data of your session in the session cookie - the cookie simply uses an identifier to look-up
@@ -1081,7 +1081,7 @@ be effectively unguessable.
 Cookies are passed across the wire in HTTP requests and responses so it's always wise to make sure you are using
 HTTPS when sessions are being used. Vert.x will warn you if you attempt to use sessions over straight HTTP.
 
-To enable sessions in your application you must have a `link:groovydoc/io/vertx/groovy/ext/apex/handler/SessionHandler.html[SessionHandler]`
+To enable sessions in your application you must have a `link:groovydoc/io/vertx/groovy/ext/web/handler/SessionHandler.html[SessionHandler]`
 on a matching route before your application logic.
 
 The session handler handles the creation of session cookies and the lookup of the session so you don't have to do
@@ -1092,7 +1092,7 @@ that yourself.
 To create a session handler you need to have a session store instance. The session store is the object that
 holds the actual sessions for your application.
 
-Apex comes with two session store implementations out of the box, and you can also write your own if you prefer.
+Vert.x-Web comes with two session store implementations out of the box, and you can also write your own if you prefer.
 
 ==== Local session store
 
@@ -1107,13 +1107,13 @@ requests might end up on a server which doesn't know about your session.
 Local session stores are implemented by using a shared local map, and have a reaper which clears out expired sessions.
 
 The reaper period can be configured with
-`link:groovydoc/io/vertx/groovy/ext/apex/sstore/LocalSessionStore.html#create(io.vertx.core.Vertx,%20java.lang.String,%20long)[LocalSessionStore.create]`.
+`link:groovydoc/io/vertx/groovy/ext/web/sstore/LocalSessionStore.html#create(io.vertx.core.Vertx,%20java.lang.String,%20long)[LocalSessionStore.create]`.
 
-Here are some examples of creating a `link:groovydoc/io/vertx/groovy/ext/apex/sstore/LocalSessionStore.html[LocalSessionStore]`
+Here are some examples of creating a `link:groovydoc/io/vertx/groovy/ext/web/sstore/LocalSessionStore.html[LocalSessionStore]`
 
 [source,groovy]
 ----
-import io.vertx.groovy.ext.apex.sstore.LocalSessionStore
+import io.vertx.groovy.ext.web.sstore.LocalSessionStore
 
 // Create a local session store using defaults
 def store1 = LocalSessionStore.create(vertx)
@@ -1141,12 +1141,12 @@ Your session is accessible from any node in the cluster using this store.
 
 To you use a clustered session store you should make sure your Vert.x instance is clustered.
 
-Here are some examples of creating a `link:groovydoc/io/vertx/groovy/ext/apex/sstore/ClusteredSessionStore.html[ClusteredSessionStore]`
+Here are some examples of creating a `link:groovydoc/io/vertx/groovy/ext/web/sstore/ClusteredSessionStore.html[ClusteredSessionStore]`
 
 [source,groovy]
 ----
 import io.vertx.groovy.core.Vertx
-import io.vertx.groovy.ext.apex.sstore.ClusteredSessionStore
+import io.vertx.groovy.ext.web.sstore.ClusteredSessionStore
 
 // a clustered Vert.x
 Vertx.clusteredVertx([
@@ -1172,17 +1172,17 @@ Vertx.clusteredVertx([
 Once you've created a session store you can create a session handler, and add it to a route. You should make sure
 your session handler is routed to before your application handlers.
 
-You'll also need to include a `link:groovydoc/io/vertx/groovy/ext/apex/handler/CookieHandler.html[CookieHandler]` as the session handler uses cookies to
+You'll also need to include a `link:groovydoc/io/vertx/groovy/ext/web/handler/CookieHandler.html[CookieHandler]` as the session handler uses cookies to
 lookup the session. The cookie handler should be before the session handler when routing.
 
 Here's an example:
 
 [source,groovy]
 ----
-import io.vertx.groovy.ext.apex.Router
-import io.vertx.groovy.ext.apex.handler.CookieHandler
-import io.vertx.groovy.ext.apex.sstore.ClusteredSessionStore
-import io.vertx.groovy.ext.apex.handler.SessionHandler
+import io.vertx.groovy.ext.web.Router
+import io.vertx.groovy.ext.web.handler.CookieHandler
+import io.vertx.groovy.ext.web.sstore.ClusteredSessionStore
+import io.vertx.groovy.ext.web.handler.SessionHandler
 
 def router = Router.router(vertx)
 
@@ -1214,11 +1214,11 @@ from the session store and set on the routing context before it gets to your app
 
 === Using the session
 
-In your handlers you an access the session instance with `link:groovydoc/io/vertx/groovy/ext/apex/RoutingContext.html#session()[session]`.
+In your handlers you an access the session instance with `link:groovydoc/io/vertx/groovy/ext/web/RoutingContext.html#session()[session]`.
 
-You put data into the session with `link:groovydoc/io/vertx/groovy/ext/apex/Session.html#put(java.lang.String,%20java.lang.Object)[put]`,
-you get data from the session with `link:groovydoc/io/vertx/groovy/ext/apex/Session.html#get(java.lang.String)[get]`, and you remove
-data from the session with `link:groovydoc/io/vertx/groovy/ext/apex/Session.html#remove(java.lang.String)[remove]`.
+You put data into the session with `link:groovydoc/io/vertx/groovy/ext/web/Session.html#put(java.lang.String,%20java.lang.Object)[put]`,
+you get data from the session with `link:groovydoc/io/vertx/groovy/ext/web/Session.html#get(java.lang.String)[get]`, and you remove
+data from the session with `link:groovydoc/io/vertx/groovy/ext/web/Session.html#remove(java.lang.String)[remove]`.
 
 The keys for items in the session are always strings. The values can be any type for a local session store, and for
 a clustered session store they can be any basic type, or `link:../../vertx-core/groovy/groovydoc/io/vertx/groovy/core/buffer/Buffer.html[Buffer]`, `JsonObject`,
@@ -1228,7 +1228,7 @@ Here's an example of manipulating session data:
 
 [source,groovy]
 ----
-import io.vertx.groovy.ext.apex.handler.CookieHandler
+import io.vertx.groovy.ext.web.handler.CookieHandler
 
 router.route().handler(CookieHandler.create())
 router.route().handler(sessionHandler)
@@ -1254,7 +1254,7 @@ router.route("/somepath/blah").handler({ routingContext ->
 
 Sessions are automatically written back to the store after after responses are complete.
 
-You can manually destroy a session using `link:groovydoc/io/vertx/groovy/ext/apex/Session.html#destroy()[destroy]`. This will remove the session
+You can manually destroy a session using `link:groovydoc/io/vertx/groovy/ext/web/Session.html#destroy()[destroy]`. This will remove the session
 from the context and the session store. Note that if there is no session a new one will be automatically created
 for the next request from the browser that's routed through the session handler.
 
@@ -1266,7 +1266,7 @@ a session is timed out, it is removed from the store.
 Sessions are automatically marked as accessed when a request arrives and the session is looked up and and when the
 response is complete and the session is stored back in the store.
 
-You can also use `link:groovydoc/io/vertx/groovy/ext/apex/Session.html#setAccessed()[setAccessed]` to manually mark a session as accessed.
+You can also use `link:groovydoc/io/vertx/groovy/ext/web/Session.html#setAccessed()[setAccessed]` to manually mark a session as accessed.
 
 The session timeout can be configured when creating the session handler. Default timeout is 30 minutes.
 
@@ -1287,7 +1287,7 @@ an auth handler from that, but it's the same principle whatever concrete auth pr
 ----
 import io.vertx.groovy.ext.auth.shiro.ShiroAuth
 import io.vertx.ext.auth.shiro.ShiroAuthRealmType
-import io.vertx.groovy.ext.apex.handler.BasicAuthHandler
+import io.vertx.groovy.ext.web.handler.BasicAuthHandler
 
 def config = [:]
 config.io.vertx.ext.auth.shiro.PropertiesProviderConstants.PROPERTIES_PROPS_PATH_FIELD = "classpath:test-auth.properties"
@@ -1300,10 +1300,10 @@ def basicAuthHandler = BasicAuthHandler.create(authProvider)
 
 [source,groovy]
 ----
-import io.vertx.groovy.ext.apex.handler.CookieHandler
-import io.vertx.groovy.ext.apex.handler.SessionHandler
-import io.vertx.groovy.ext.apex.sstore.LocalSessionStore
-import io.vertx.groovy.ext.apex.handler.BasicAuthHandler
+import io.vertx.groovy.ext.web.handler.CookieHandler
+import io.vertx.groovy.ext.web.handler.SessionHandler
+import io.vertx.groovy.ext.web.sstore.LocalSessionStore
+import io.vertx.groovy.ext.web.handler.BasicAuthHandler
 
 router.route().handler(CookieHandler.create())
 router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)))
@@ -1320,10 +1320,10 @@ your auth handler is before your application handlers on those paths:
 
 [source,groovy]
 ----
-import io.vertx.groovy.ext.apex.handler.CookieHandler
-import io.vertx.groovy.ext.apex.handler.SessionHandler
-import io.vertx.groovy.ext.apex.sstore.LocalSessionStore
-import io.vertx.groovy.ext.apex.handler.BasicAuthHandler
+import io.vertx.groovy.ext.web.handler.CookieHandler
+import io.vertx.groovy.ext.web.handler.SessionHandler
+import io.vertx.groovy.ext.web.sstore.LocalSessionStore
+import io.vertx.groovy.ext.web.handler.BasicAuthHandler
 
 router.route().handler(CookieHandler.create())
 router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)))
@@ -1351,8 +1351,8 @@ router.route("/private/somepath").handler({ routingContext ->
 ----
 
 If the auth handler has successfully authenticated and authorised the user it will inject a `link:../../vertx-auth/groovy/groovydoc/io/vertx/groovy/ext/auth/User.html[User]`
-object into the `link:groovydoc/io/vertx/groovy/ext/apex/RoutingContext.html[RoutingContext]` so it's available in your handlers with:
-`link:groovydoc/io/vertx/groovy/ext/apex/RoutingContext.html#user()[user]`.
+object into the `link:groovydoc/io/vertx/groovy/ext/web/RoutingContext.html[RoutingContext]` so it's available in your handlers with:
+`link:groovydoc/io/vertx/groovy/ext/web/RoutingContext.html#user()[user]`.
 
 Once you have your user object you can also programmatically use the methods on it to authorise the user.
 
@@ -1389,22 +1389,22 @@ a protected resource and they are not logged in.
 The user then fills in the login form and submits it. This is handled by the server which authenticates
 the user and, if authenticated redirects the user back to the original resource.
 
-To use redirect auth you configure an instance of `link:groovydoc/io/vertx/groovy/ext/apex/handler/RedirectAuthHandler.html[RedirectAuthHandler]` instead of a
+To use redirect auth you configure an instance of `link:groovydoc/io/vertx/groovy/ext/web/handler/RedirectAuthHandler.html[RedirectAuthHandler]` instead of a
 basic auth handler.
 
 You will also need to setup handlers to serve your actual login page, and a handler to handle the actual login itself.
-To handle the login we provide a prebuilt handler `link:groovydoc/io/vertx/groovy/ext/apex/handler/FormLoginHandler.html[FormLoginHandler]` for the purpose.
+To handle the login we provide a prebuilt handler `link:groovydoc/io/vertx/groovy/ext/web/handler/FormLoginHandler.html[FormLoginHandler]` for the purpose.
 
 Here's an example of a simple app, using a redirect auth handler on the default redirect url `/loginpage`.
 
 [source,groovy]
 ----
-import io.vertx.groovy.ext.apex.handler.CookieHandler
-import io.vertx.groovy.ext.apex.handler.SessionHandler
-import io.vertx.groovy.ext.apex.sstore.LocalSessionStore
-import io.vertx.groovy.ext.apex.handler.RedirectAuthHandler
-import io.vertx.groovy.ext.apex.handler.FormLoginHandler
-import io.vertx.groovy.ext.apex.handler.StaticHandler
+import io.vertx.groovy.ext.web.handler.CookieHandler
+import io.vertx.groovy.ext.web.handler.SessionHandler
+import io.vertx.groovy.ext.web.sstore.LocalSessionStore
+import io.vertx.groovy.ext.web.handler.RedirectAuthHandler
+import io.vertx.groovy.ext.web.handler.FormLoginHandler
+import io.vertx.groovy.ext.web.handler.StaticHandler
 
 router.route().handler(CookieHandler.create())
 router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)))
@@ -1448,7 +1448,7 @@ app:
 
 [source,groovy]
 ----
-import io.vertx.groovy.ext.apex.handler.RedirectAuthHandler
+import io.vertx.groovy.ext.web.handler.RedirectAuthHandler
 
 def managerAuthHandler = RedirectAuthHandler.create(authProvider)
 managerAuthHandler.addRole("manager").addRole("admin")
@@ -1471,11 +1471,11 @@ TODO
 
 == Serving static resources
 
-Apex comes with an out of the box handler for serving static web resources so you can write static web servers
+Vert.x-Web comes with an out of the box handler for serving static web resources so you can write static web servers
 very easily.
 
 To serve static resources such as `.html`, `.css`, `.js` or any other static resource, you use an instance of
-`link:groovydoc/io/vertx/groovy/ext/apex/handler/StaticHandler.html[StaticHandler]`.
+`link:groovydoc/io/vertx/groovy/ext/web/handler/StaticHandler.html[StaticHandler]`.
 
 Any requests to paths handled by the static handler will result in files being served from a directory on the file system
 or from the classpath. The default static file directory is `webroot` but this can be configured.
@@ -1484,7 +1484,7 @@ In the following example all requests to paths starting with `/static/` will get
 
 [source,groovy]
 ----
-import io.vertx.groovy.ext.apex.handler.StaticHandler
+import io.vertx.groovy.ext.web.handler.StaticHandler
 
 router.route("/static/*").handler(StaticHandler.create())
 
@@ -1504,17 +1504,17 @@ on disk so it doesn't have to do this each time.
 
 By default the static handler will set cache headers to enable browsers to effectively cache files.
 
-Apex sets the headers `cache-control`,`last-modified`, and `date`.
+Vert.x-Web sets the headers `cache-control`,`last-modified`, and `date`.
 
 `cache-control` is set to `max-age=86400` by default. This corresponds to one day. This can be configured with
-`link:groovydoc/io/vertx/groovy/ext/apex/handler/StaticHandler.html#setMaxAgeSeconds(long)[setMaxAgeSeconds]` if required.
+`link:groovydoc/io/vertx/groovy/ext/web/handler/StaticHandler.html#setMaxAgeSeconds(long)[setMaxAgeSeconds]` if required.
 
 If a browser sends a GET or a HEAD request with an `if-modified-since` header and the resource has not been modified
 since that date, a `304` status is returned which tells the browser to use its locally cached resource.
 
-If handling of cache headers is not required, it can be disabled with `link:groovydoc/io/vertx/groovy/ext/apex/handler/StaticHandler.html#setCachingEnabled(boolean)[setCachingEnabled]`.
+If handling of cache headers is not required, it can be disabled with `link:groovydoc/io/vertx/groovy/ext/web/handler/StaticHandler.html#setCachingEnabled(boolean)[setCachingEnabled]`.
 
-When cache handling is enabled Apex will cache the last modified date of resources in memory, this avoids a disk hit
+When cache handling is enabled Vert.x-Web will cache the last modified date of resources in memory, this avoids a disk hit
 to check the actual last modified date every time.
 
 Entries in the cache have an expiry time, and after that time, the file on disk will be checked again and the cache
@@ -1524,51 +1524,51 @@ If you know that your files never change on disk, then the cache entry will effe
 default.
 
 If you know that your files might change on disk when the server is running then you can set files read only to false with
-`link:groovydoc/io/vertx/groovy/ext/apex/handler/StaticHandler.html#setFilesReadOnly(boolean)[setFilesReadOnly]`.
+`link:groovydoc/io/vertx/groovy/ext/web/handler/StaticHandler.html#setFilesReadOnly(boolean)[setFilesReadOnly]`.
 
 To enable the maximum number of entries that can be cached in memory at any one time you can use
-`link:groovydoc/io/vertx/groovy/ext/apex/handler/StaticHandler.html#setMaxCacheSize(int)[setMaxCacheSize]`.
+`link:groovydoc/io/vertx/groovy/ext/web/handler/StaticHandler.html#setMaxCacheSize(int)[setMaxCacheSize]`.
 
-To configure the expiry time of cache entries you can use `link:groovydoc/io/vertx/groovy/ext/apex/handler/StaticHandler.html#setCacheEntryTimeout(long)[setCacheEntryTimeout]`.
+To configure the expiry time of cache entries you can use `link:groovydoc/io/vertx/groovy/ext/web/handler/StaticHandler.html#setCacheEntryTimeout(long)[setCacheEntryTimeout]`.
 
 === Configuring the index page
 
 Any requests to the root path `/` will cause the index page to be served. By default the index page is `index.html`.
-This can be configured with `link:groovydoc/io/vertx/groovy/ext/apex/handler/StaticHandler.html#setIndexPage(java.lang.String)[setIndexPage]`.
+This can be configured with `link:groovydoc/io/vertx/groovy/ext/web/handler/StaticHandler.html#setIndexPage(java.lang.String)[setIndexPage]`.
 
 === Changing the web root
 
 By default static resources will be served from the directory `webroot`. To configure this use
-`link:groovydoc/io/vertx/groovy/ext/apex/handler/StaticHandler.html#setWebRoot(java.lang.String)[setWebRoot]`.
+`link:groovydoc/io/vertx/groovy/ext/web/handler/StaticHandler.html#setWebRoot(java.lang.String)[setWebRoot]`.
 
 === Serving hidden files
 
 By default the serve will serve hidden files (files starting with `.`).
 
-If you do not want hidden files to be served you can configure it with `link:groovydoc/io/vertx/groovy/ext/apex/handler/StaticHandler.html#setIncludeHidden(boolean)[setIncludeHidden]`.
+If you do not want hidden files to be served you can configure it with `link:groovydoc/io/vertx/groovy/ext/web/handler/StaticHandler.html#setIncludeHidden(boolean)[setIncludeHidden]`.
 
 === Directory listing
 
 The server can also perform directory listing. By default directory listing is disabled. To enabled it use
-`link:groovydoc/io/vertx/groovy/ext/apex/handler/StaticHandler.html#setDirectoryListing(boolean)[setDirectoryListing]`.
+`link:groovydoc/io/vertx/groovy/ext/web/handler/StaticHandler.html#setDirectoryListing(boolean)[setDirectoryListing]`.
 
 When directory listing is enabled the content returned depends on the content type in the `accept` header.
 
 For `text/html` directory listing, the template used to render the directory listing page can be configured with
-`link:groovydoc/io/vertx/groovy/ext/apex/handler/StaticHandler.html#setDirectoryTemplate(java.lang.String)[setDirectoryTemplate]`.
+`link:groovydoc/io/vertx/groovy/ext/web/handler/StaticHandler.html#setDirectoryTemplate(java.lang.String)[setDirectoryTemplate]`.
 
 == CORS handling
 
 http://en.wikipedia.org/wiki/Cross-origin_resource_sharing[Cross Origin Resource Sharing] is a safe mechanism for
 allowing resources to be requested from one domain and served from another.
 
-Apex includes a handler `link:groovydoc/io/vertx/groovy/ext/apex/handler/CorsHandler.html[CorsHandler]` that handles the CORS protocol for you.
+Vert.x-Web includes a handler `link:groovydoc/io/vertx/groovy/ext/web/handler/CorsHandler.html[CorsHandler]` that handles the CORS protocol for you.
 
 Here's an example:
 
 [source,groovy]
 ----
-import io.vertx.groovy.ext.apex.handler.CorsHandler
+import io.vertx.groovy.ext.web.handler.CorsHandler
 import io.vertx.core.http.HttpMethod
 
 // Will only accept GET requests from origin "vertx.io"
@@ -1586,14 +1586,14 @@ TODO more CORS docs
 
 == Templates
 
-Apex includes dynamic page generation capabilities by including out of the box support for several popular template
+Vert.x-Web includes dynamic page generation capabilities by including out of the box support for several popular template
 engines. You can also easily add your own.
 
-Template engines are described by `link:groovydoc/io/vertx/groovy/ext/apex/templ/TemplateEngine.html[TemplateEngine]`. In order to render a template
-`link:groovydoc/io/vertx/groovy/ext/apex/templ/TemplateEngine.html#render(io.vertx.ext.apex.RoutingContext,%20java.lang.String,%20io.vertx.core.Handler)[render]` is used.
+Template engines are described by `link:groovydoc/io/vertx/groovy/ext/web/templ/TemplateEngine.html[TemplateEngine]`. In order to render a template
+`link:groovydoc/io/vertx/groovy/ext/web/templ/TemplateEngine.html#render(io.vertx.ext.web.RoutingContext,%20java.lang.String,%20io.vertx.core.Handler)[render]` is used.
 
 The simplest way to use templates is not to call the template engine directly but to use the
-`link:groovydoc/io/vertx/groovy/ext/apex/handler/TemplateHandler.html[TemplateHandler]`.
+`link:groovydoc/io/vertx/groovy/ext/web/handler/TemplateHandler.html[TemplateHandler]`.
 This handler calls the template engine for you based on the path in the HTTP request.
 
 By default the template handler will look for templates in a directory called `templates`. This can be configured.
@@ -1606,8 +1606,8 @@ Here are some examples
 
 [source,groovy]
 ----
-import io.vertx.groovy.ext.apex.templ.HandlebarsTemplateEngine
-import io.vertx.groovy.ext.apex.handler.TemplateHandler
+import io.vertx.groovy.ext.web.templ.HandlebarsTemplateEngine
+import io.vertx.groovy.ext.web.handler.TemplateHandler
 
 def engine = HandlebarsTemplateEngine.create()
 def handler = TemplateHandler.create(engine)
@@ -1624,10 +1624,10 @@ router.getWithRegex(".+\\.hbs").handler(handler)
 
 === MVEL template engine
 
-When using the `link:groovydoc/io/vertx/groovy/ext/apex/templ/MVELTemplateEngine.html[MVEL template engine]`, it will by default look for
+When using the `link:groovydoc/io/vertx/groovy/ext/web/templ/MVELTemplateEngine.html[MVEL template engine]`, it will by default look for
 templates with the `.templ` extension if no extension is specified in the file name.
 
-The routing context `link:groovydoc/io/vertx/groovy/ext/apex/RoutingContext.html[RoutingContext]` is available
+The routing context `link:groovydoc/io/vertx/groovy/ext/web/RoutingContext.html[RoutingContext]` is available
 in the MVEL template as the `context` variable, this means you can render the template based on anything in the context
 including the request, response, session or context data.
 
@@ -1646,10 +1646,10 @@ MVEL templates.
 
 === Jade template engine
 
-When using the `link:groovydoc/io/vertx/groovy/ext/apex/templ/JadeTemplateEngine.html[Jade template engine]`, it will by default look for
+When using the `link:groovydoc/io/vertx/groovy/ext/web/templ/JadeTemplateEngine.html[Jade template engine]`, it will by default look for
 templates with the `.jade` extension if no extension is specified in the file name.
 
-The routing context `link:groovydoc/io/vertx/groovy/ext/apex/RoutingContext.html[RoutingContext]` is available
+The routing context `link:groovydoc/io/vertx/groovy/ext/web/RoutingContext.html[RoutingContext]` is available
 in the Jade template as the `context` variable, this means you can render the template based on anything in the context
 including the request, response, session or context data.
 
@@ -1668,21 +1668,21 @@ Jade templates.
 
 === Handlebars template engine
 
-When using the `link:groovydoc/io/vertx/groovy/ext/apex/templ/HandlebarsTemplateEngine.html[Handlebars template engine]`, it will by default look for
+When using the `link:groovydoc/io/vertx/groovy/ext/web/templ/HandlebarsTemplateEngine.html[Handlebars template engine]`, it will by default look for
 templates with the `.hbs` extension if no extension is specified in the file name.
 
 Handlebars templates are not able to call arbitrary methods in objects so we can't just pass the routing context
 into the template and let the template introspect it like we can with other template engines.
 
-Instead, the context `link:groovydoc/io/vertx/groovy/ext/apex/RoutingContext.html#data()[data]` is available in the template.
+Instead, the context `link:groovydoc/io/vertx/groovy/ext/web/RoutingContext.html#data()[data]` is available in the template.
 
 If you want to have access to other data like the request path, request params or session data you should
 add it the context data in a handler before the template handler. For example:
 
 [source,groovy]
 ----
-import io.vertx.groovy.ext.apex.templ.HandlebarsTemplateEngine
-import io.vertx.groovy.ext.apex.handler.TemplateHandler
+import io.vertx.groovy.ext.web.templ.HandlebarsTemplateEngine
+import io.vertx.groovy.ext.web.handler.TemplateHandler
 
 def engine = HandlebarsTemplateEngine.create()
 def handler = TemplateHandler.create(engine)
@@ -1705,10 +1705,10 @@ handlebars templates.
 
 === Thymeleaf template engine
 
-When using the `link:groovydoc/io/vertx/groovy/ext/apex/templ/ThymeleafTemplateEngine.html[Thymeleaf template engine]`, it will by default look for
+When using the `link:groovydoc/io/vertx/groovy/ext/web/templ/ThymeleafTemplateEngine.html[Thymeleaf template engine]`, it will by default look for
 templates with the `.html` extension if no extension is specified in the file name.
 
-The routing context `link:groovydoc/io/vertx/groovy/ext/apex/RoutingContext.html[RoutingContext]` is available
+The routing context `link:groovydoc/io/vertx/groovy/ext/web/RoutingContext.html[RoutingContext]` is available
 in the Thymeleaf template as the `context` variable, this means you can render the template based on anything in the context
 including the request, response, session or context data.
 
@@ -1729,31 +1729,31 @@ Thymeleaf templates.
 
 == Error handler
 
-You can render your own errors using a template handler or otherwise but Apex also includes an out of the boxy
+You can render your own errors using a template handler or otherwise but Vert.x-Web also includes an out of the boxy
 "pretty" error handler that can render error pages for you.
 
-The handler is `link:groovydoc/io/vertx/groovy/ext/apex/handler/ErrorHandler.html[ErrorHandler]`. To use the error handler just set it as a
+The handler is `link:groovydoc/io/vertx/groovy/ext/web/handler/ErrorHandler.html[ErrorHandler]`. To use the error handler just set it as a
 failure handler for any paths that you want covered.
 
 == Request logger
 
-Apex includes a handler `link:groovydoc/io/vertx/groovy/ext/apex/handler/LoggerHandler.html[LoggerHandler]` that you can use to log HTTP requests.
+Vert.x-Web includes a handler `link:groovydoc/io/vertx/groovy/ext/web/handler/LoggerHandler.html[LoggerHandler]` that you can use to log HTTP requests.
 
 
 By default requests are logged to the Vert.x logger which can be configured to use JUL logging, log4j or SLF4J.
 
 == Serving favicons
 
-Apex includes the handler `link:groovydoc/io/vertx/groovy/ext/apex/handler/FaviconHandler.html[FaviconHandler]` especially for serving favicons.
+Vert.x-Web includes the handler `link:groovydoc/io/vertx/groovy/ext/web/handler/FaviconHandler.html[FaviconHandler]` especially for serving favicons.
 
-Favicons can be specified using a path to the filesystem, or by default Apex will look for a file on the classpath
+Favicons can be specified using a path to the filesystem, or by default Vert.x-Web will look for a file on the classpath
 with the name `favicon.ico`. This means you bundle the favicon in the jar of your application.
 
 == Timeout handler
 
-Apex includes a timeout handler that you can use to timeout requests if they take too long to process.
+Vert.x-Web includes a timeout handler that you can use to timeout requests if they take too long to process.
 
-This is configured using an instance of `link:groovydoc/io/vertx/groovy/ext/apex/handler/TimeoutHandler.html[TimeoutHandler]`.
+This is configured using an instance of `link:groovydoc/io/vertx/groovy/ext/web/handler/TimeoutHandler.html[TimeoutHandler]`.
 
 If a request times out before the response is written a `408` response will be returned to the client.
 
@@ -1762,7 +1762,7 @@ seconds:
 
 [source,groovy]
 ----
-import io.vertx.groovy.ext.apex.handler.TimeoutHandler
+import io.vertx.groovy.ext.web.handler.TimeoutHandler
 
 router.route("/foo/").handler(TimeoutHandler.create(5000))
 
@@ -1790,17 +1790,17 @@ Please see the https://github.com/sockjs/sockjs-client[SockJS website] for more 
 
 === SockJS handler
 
-Vert.x provides an out of the box handler called `link:groovydoc/io/vertx/groovy/ext/apex/handler/sockjs/SockJSHandler.html[SockJSHandler]` for
-using SockJS in your Apex applications.
+Vert.x provides an out of the box handler called `link:groovydoc/io/vertx/groovy/ext/web/handler/sockjs/SockJSHandler.html[SockJSHandler]` for
+using SockJS in your Vert.x-Web applications.
 
-You should create one handler per SockJS application using `link:groovydoc/io/vertx/groovy/ext/apex/handler/sockjs/SockJSHandler.html#create(io.vertx.core.Vertx)[SockJSHandler.create]`.
+You should create one handler per SockJS application using `link:groovydoc/io/vertx/groovy/ext/web/handler/sockjs/SockJSHandler.html#create(io.vertx.core.Vertx)[SockJSHandler.create]`.
 You can also specify configuration options when creating the instance. The configuration options are described with
 an instance of `link:../cheatsheet/SockJSHandlerOptions.html[SockJSHandlerOptions]`.
 
 [source,groovy]
 ----
-import io.vertx.groovy.ext.apex.Router
-import io.vertx.groovy.ext.apex.handler.sockjs.SockJSHandler
+import io.vertx.groovy.ext.web.Router
+import io.vertx.groovy.ext.web.handler.sockjs.SockJSHandler
 
 def router = Router.router(vertx)
 
@@ -1819,7 +1819,7 @@ router.route("/myapp").handler(sockJSHandler)
 On the server-side you set a handler on the SockJS handler, and
 this will be called every time a SockJS connection is made from a client:
 
-The object passed into the handler is a `link:groovydoc/io/vertx/groovy/ext/apex/handler/sockjs/SockJSSocket.html[SockJSSocket]`. This has a familiar
+The object passed into the handler is a `link:groovydoc/io/vertx/groovy/ext/web/handler/sockjs/SockJSSocket.html[SockJSSocket]`. This has a familiar
 socket-like interface which you can read and write to similarly to a `link:../../vertx-core/groovy/groovydoc/io/vertx/groovy/core/net/NetSocket.html[NetSocket]` or
 a `link:../../vertx-core/groovy/groovydoc/io/vertx/groovy/core/http/WebSocket.html[WebSocket]`. It also implements `link:../../vertx-core/groovy/groovydoc/io/vertx/groovy/core/streams/ReadStream.html[ReadStream]` and
 `link:../../vertx-core/groovy/groovydoc/io/vertx/groovy/core/streams/WriteStream.html[WriteStream]` so you can pump it to and from other read and write streams.
@@ -1828,8 +1828,8 @@ Here's an example of a simple SockJS handler that simply echoes back any back an
 
 [source,groovy]
 ----
-import io.vertx.groovy.ext.apex.Router
-import io.vertx.groovy.ext.apex.handler.sockjs.SockJSHandler
+import io.vertx.groovy.ext.web.Router
+import io.vertx.groovy.ext.web.handler.sockjs.SockJSHandler
 
 def router = Router.router(vertx)
 
@@ -1907,7 +1907,7 @@ WEBSOCKET, EVENT_SOURCE, HTML_FILE, JSON_P, XHR.
 
 == SockJS event bus bridge
 
-Apex comes with a built-in SockJS socket handler called the event bus bridge which effectively extends the server-side
+Vert.x-Web comes with a built-in SockJS socket handler called the event bus bridge which effectively extends the server-side
 Vert.x event bus into client side JavaScript.
 
 This creates a distributed event bus which not only spans multiple Vert.x instances on the server side, but includes
@@ -1921,19 +1921,19 @@ very similar to the server-side Vert.x event-bus API, which allows you to send a
 and register handlers to receive messages.
 
 This JavaScript library uses the JavaScript SockJS client to tunnel the event bus traffic over SockJS connections
-terminating at at a `link:groovydoc/io/vertx/groovy/ext/apex/handler/sockjs/SockJSHandler.html[SockJSHandler]` on the server-side.
+terminating at at a `link:groovydoc/io/vertx/groovy/ext/web/handler/sockjs/SockJSHandler.html[SockJSHandler]` on the server-side.
 
-A special SockJS socket handler is then installed on the `link:groovydoc/io/vertx/groovy/ext/apex/handler/sockjs/SockJSHandler.html[SockJSHandler]` which
+A special SockJS socket handler is then installed on the `link:groovydoc/io/vertx/groovy/ext/web/handler/sockjs/SockJSHandler.html[SockJSHandler]` which
 handles the SockJS data and bridges it to and from the server side event bus.
 
 To activate the bridge you simply call
-`link:groovydoc/io/vertx/groovy/ext/apex/handler/sockjs/SockJSHandler.html#bridge(io.vertx.ext.apex.handler.sockjs.BridgeOptions)[bridge]` on the
+`link:groovydoc/io/vertx/groovy/ext/web/handler/sockjs/SockJSHandler.html#bridge(io.vertx.ext.web.handler.sockjs.BridgeOptions)[bridge]` on the
 SockJS handler.
 
 [source,groovy]
 ----
-import io.vertx.groovy.ext.apex.Router
-import io.vertx.groovy.ext.apex.handler.sockjs.SockJSHandler
+import io.vertx.groovy.ext.web.Router
+import io.vertx.groovy.ext.web.handler.sockjs.SockJSHandler
 
 def router = Router.router(vertx)
 
@@ -2012,11 +2012,11 @@ based on a regular expression you use this field. If the `address` field is spec
 `link:../cheatsheet/PermittedOptions.html#match[match]`:: This allows you to allow messages based on their structure. Any fields in the match must exist in the
 message with the same values for them to be allowed. This currently only works with JSON messages.
 
-If a message is _in-bound_ (i.e. being sent from client side JavaScript to the server) when it is received Apex
+If a message is _in-bound_ (i.e. being sent from client side JavaScript to the server) when it is received Vert.x-Web
 will look through any inbound permitted matches. If any match, it will be allowed through.
 
 If a message is _out-bound_ (i.e. being sent from the server to client side JavaScript) before it is sent to the client
-Apex will look through any inbound permitted matches. If any match, it will be allowed through.
+Vert.x-Web will look through any inbound permitted matches. If any match, it will be allowed through.
 
 The actual matching works as follows:
 
@@ -2033,8 +2033,8 @@ Here's an example:
 
 [source,groovy]
 ----
-import io.vertx.groovy.ext.apex.Router
-import io.vertx.groovy.ext.apex.handler.sockjs.SockJSHandler
+import io.vertx.groovy.ext.web.Router
+import io.vertx.groovy.ext.web.handler.sockjs.SockJSHandler
 
 def router = Router.router(vertx)
 
@@ -2097,7 +2097,7 @@ router.route("/eventbus/*").handler(sockJSHandler)
 
 === Requiring authorisation for messages
 
-The event bus bridge can also be configured to use the Apex authorisation functionality to require
+The event bus bridge can also be configured to use the Vert.x-Web authorisation functionality to require
 authorisation for messages, either in-bound or out-bound on the bridge.
 
 To do this, you can add extra fields to the match described in the previous section that determine what role and/or
@@ -2136,14 +2136,14 @@ To handle the login and actually auth you can configure the normal Vert.x auth h
 
 [source,groovy]
 ----
-import io.vertx.groovy.ext.apex.Router
-import io.vertx.groovy.ext.apex.handler.sockjs.SockJSHandler
-import io.vertx.groovy.ext.apex.handler.CookieHandler
-import io.vertx.groovy.ext.apex.handler.SessionHandler
-import io.vertx.groovy.ext.apex.sstore.LocalSessionStore
+import io.vertx.groovy.ext.web.Router
+import io.vertx.groovy.ext.web.handler.sockjs.SockJSHandler
+import io.vertx.groovy.ext.web.handler.CookieHandler
+import io.vertx.groovy.ext.web.handler.SessionHandler
+import io.vertx.groovy.ext.web.sstore.LocalSessionStore
 import io.vertx.groovy.ext.auth.shiro.ShiroAuth
 import io.vertx.ext.auth.shiro.ShiroAuthRealmType
-import io.vertx.groovy.ext.apex.handler.BasicAuthHandler
+import io.vertx.groovy.ext.web.handler.BasicAuthHandler
 
 def router = Router.router(vertx)
 
@@ -2184,10 +2184,10 @@ router.route("/eventbus/*").handler(sockJSHandler)
 === Handling event bus bridge events
 
 If you want to be notified when an event occurs on the bridge you can provide a handler when calling
-`link:groovydoc/io/vertx/groovy/ext/apex/handler/sockjs/SockJSHandler.html#bridge(io.vertx.ext.apex.handler.sockjs.BridgeOptions,%20io.vertx.core.Handler)[bridge]`.
+`link:groovydoc/io/vertx/groovy/ext/web/handler/sockjs/SockJSHandler.html#bridge(io.vertx.ext.web.handler.sockjs.BridgeOptions,%20io.vertx.core.Handler)[bridge]`.
 
 Whenever an event occurs on the bridge it will be passed to the handler. The event is described by an instance of
-`link:groovydoc/io/vertx/groovy/ext/apex/handler/sockjs/BridgeEvent.html[BridgeEvent]`.
+`link:groovydoc/io/vertx/groovy/ext/web/handler/sockjs/BridgeEvent.html[BridgeEvent]`.
 
 The event can be one of the following types:
 
@@ -2199,8 +2199,8 @@ RECEIVE:: This event will occur when a message is attempted to be delivered from
 REGISTER. This event will occur when a client attempts to register a handler.
 UNREGISTER. This event will occur when a client attempts to unregister a handler.
 
-The event enables you to retrieve the type using `link:groovydoc/io/vertx/groovy/ext/apex/handler/sockjs/BridgeEvent.html#type()[type]` and
-inspect the raw message of the event using `link:groovydoc/io/vertx/groovy/ext/apex/handler/sockjs/BridgeEvent.html#rawMessage()[rawMessage]`.
+The event enables you to retrieve the type using `link:groovydoc/io/vertx/groovy/ext/web/handler/sockjs/BridgeEvent.html#type()[type]` and
+inspect the raw message of the event using `link:groovydoc/io/vertx/groovy/ext/web/handler/sockjs/BridgeEvent.html#rawMessage()[rawMessage]`.
 
 The raw message is a JSON object with the following structure:
 

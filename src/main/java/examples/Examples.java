@@ -7,14 +7,14 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.apex.*;
-import io.vertx.ext.apex.handler.*;
-import io.vertx.ext.apex.handler.sockjs.*;
-import io.vertx.ext.apex.sstore.ClusteredSessionStore;
-import io.vertx.ext.apex.sstore.LocalSessionStore;
-import io.vertx.ext.apex.sstore.SessionStore;
-import io.vertx.ext.apex.templ.HandlebarsTemplateEngine;
-import io.vertx.ext.apex.templ.TemplateEngine;
+import io.vertx.ext.web.*;
+import io.vertx.ext.web.handler.*;
+import io.vertx.ext.web.handler.sockjs.*;
+import io.vertx.ext.web.sstore.ClusteredSessionStore;
+import io.vertx.ext.web.sstore.LocalSessionStore;
+import io.vertx.ext.web.sstore.SessionStore;
+import io.vertx.ext.web.templ.HandlebarsTemplateEngine;
+import io.vertx.ext.web.templ.TemplateEngine;
 import io.vertx.ext.auth.AuthProvider;
 import io.vertx.ext.auth.shiro.PropertiesProviderConstants;
 import io.vertx.ext.auth.shiro.ShiroAuth;
@@ -59,7 +59,7 @@ public class Examples {
       response.putHeader("content-type", "text/plain");
 
       // Write to the response and end it
-      response.end("Hello World from Apex!");
+      response.end("Hello World from Vert.x-Web!");
     });
 
     server.requestHandler(router::accept).listen(8080);

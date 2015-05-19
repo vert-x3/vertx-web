@@ -1,7 +1,7 @@
-= Apex
+= Vert.x-Web
 :toc: left
 
-Apex is a set of building blocks for building web applications with Vert.x.
+Vert.x-Web is a set of building blocks for building web applications with Vert.x.
 
 Think of it as a Swiss Army Knife for building
 modern, scalable, web apps.
@@ -9,22 +9,22 @@ modern, scalable, web apps.
 Vert.x core provides a fairly low level set of functionality for handling HTTP, and for some applications
 that will be sufficient.
 
-Vert.x Apex builds on Vert.x core to provide a richer set of functionality for building real web applications, more
+VVert.x-Web builds on Vert.x core to provide a richer set of functionality for building real web applications, more
 easily.
 
 It's the successor to http://pmlopes.github.io/yoke/[Yoke] in Vert.x 2.x, and takes inspiration from projects such
 as http://expressjs.com/[Express] in the Node.js world and http://www.sinatrarb.com/[Sinatra] in the Ruby world.
 
-Apex is designed to be powerful, un-opionated and fully embeddable. You just use the parts you want and nothing more.
-Apex is not a container.
+Vert.x-Web is designed to be powerful, un-opionated and fully embeddable. You just use the parts you want and nothing more.
+Vert.x-Web is not a container.
 
-You can use Apex to create classic server-side web applications, RESTful web applications, 'real-time' (server push)
-web applications, or any other kind of web application you can think of. Apex doesn't care. It's up to you to chose
-the type of app you prefer, not Apex.
+You can use Vert.x-Web to create classic server-side web applications, RESTful web applications, 'real-time' (server push)
+web applications, or any other kind of web application you can think of. Vert.x-Web doesn't care. It's up to you to chose
+the type of app you prefer, not Vert.x-Web.
 
-Apex is a great fit for writing *RESTful HTTP micro-services*, but we don't *force* you to write apps like that.
+Vert.x-Web is a great fit for writing *RESTful HTTP micro-services*, but we don't *force* you to write apps like that.
 
-Some of the key features of Apex include:
+Some of the key features of Vert.x-Web include:
 
 * Routing (based on method, path, etc)
 * Regular expression pattern matching for paths
@@ -54,19 +54,19 @@ Some of the key features of Apex include:
 * SockJS support
 * Event-bus bridge
 
-Most features in Apex are implemented as handlers so you can always write your own. We envisage many more being written
+Most features in Vert.x-Web are implemented as handlers so you can always write your own. We envisage many more being written
 over time.
 
 We'll discuss all these features in this manual.
 
 == Re-cap on Vert.x core HTTP servers
 
-Apex uses and exposes the API from Vert.x core, so it's well worth getting familiar with the basic concepts of writing
+Vert.x-Web uses and exposes the API from Vert.x core, so it's well worth getting familiar with the basic concepts of writing
 HTTP servers using Vert.x core, if you're not already.
 
 The Vert.x core HTTP documentation goes into a lot of detail on this.
 
-Here's a hello world web server written using Vert.x core. At this point there is no Apex involved:
+Here's a hello world web server written using Vert.x core. At this point there is no Vert.x-Web involved:
 
 [source,java]
 ----
@@ -96,12 +96,12 @@ We then tell the server to listen at port `8080` (default host is `localhost`).
 
 You can run this, and point your browser at `http://localhost:8080` to verify that it works as expected.
 
-== Basic Apex concepts
+== Basic Vert.x-Web concepts
 
 Here's the 10000 foot view:
 
-A `link:yardoc/VertxApex/Router.html[Router]` is one of the core concepts of Apex. It's an object which maintains zero or more
-`link:yardoc/VertxApex/Route.html[Routes]` .
+A `link:yardoc/VertxWeb/Router.html[Router]` is one of the core concepts of Vert.x-Web. It's an object which maintains zero or more
+`link:yardoc/VertxWeb/Route.html[Routes]` .
 
 A router takes an HTTP request and finds the first matching route for that request, and passes the request to that route.
 
@@ -112,10 +112,10 @@ Here's a simple router example:
 
 [source,ruby]
 ----
-require 'vertx-apex/router'
+require 'vertx-web/router'
 server = vertx.create_http_server()
 
-router = VertxApex::Router.router(vertx)
+router = VertxWeb::Router.router(vertx)
 
 router.route().handler() { |routingContext|
 
@@ -124,7 +124,7 @@ router.route().handler() { |routingContext|
   response.put_header("content-type", "text/plain")
 
   # Write to the response and end it
-  response.end("Hello World from Apex!")
+  response.end("Hello World from Vert.x-Web!")
 }
 
 server.request_handler(&router.method(:accept)).listen(8080)
@@ -133,34 +133,34 @@ server.request_handler(&router.method(:accept)).listen(8080)
 ----
 
 It basically does the same thing as the Vert.x Core HTTP server hello world example from the previous section,
-but this time using Apex.
+but this time using Vert.x-Web.
 
 We create an HTTP server as before, then we create a router. Once we've done that we create a simple route with
 no matching criteria so it will match _all_ requests that arrive on the server.
 
 We then specify a handler for that route. That handler will be called for all requests that arrive on the server.
 
-The object that gets passed into the handler is a `link:yardoc/VertxApex/RoutingContext.html[RoutingContext]` - this contains
+The object that gets passed into the handler is a `link:yardoc/VertxWeb/RoutingContext.html[RoutingContext]` - this contains
 the standard Vert.x `link:../../vertx-core/ruby/yardoc/Vertx/HttpServerRequest.html[HttpServerRequest]` and `link:../../vertx-core/ruby/yardoc/Vertx/HttpServerResponse.html[HttpServerResponse]`
-but also various other useful stuff that makes working with Apex simpler.
+but also various other useful stuff that makes working with Vert.x-Web simpler.
 
 For every request that is routed there is a unique routing context instance, and the same instance is passed to
 all handlers for that request.
 
 Once we've set up the handler, we set the request handler of the HTTP server to pass all incoming requests
-to `link:yardoc/VertxApex/Router.html#accept-instance_method[accept]`.
+to `link:yardoc/VertxWeb/Router.html#accept-instance_method[accept]`.
 
 So, that's the basics. Now we'll look at things in more detail:
 
 == Handling requests and calling the next handler
 
-When Apex decides to route a request to a matching route, it calls the handler of the route passing in an instance
-of `link:yardoc/VertxApex/RoutingContext.html[RoutingContext]`.
+When Vert.x-Web decides to route a request to a matching route, it calls the handler of the route passing in an instance
+of `link:yardoc/VertxWeb/RoutingContext.html[RoutingContext]`.
 
-If you don't end the response in your handler, you should call `link:yardoc/VertxApex/RoutingContext.html#next-instance_method[next]` so another
+If you don't end the response in your handler, you should call `link:yardoc/VertxWeb/RoutingContext.html#next-instance_method[next]` so another
 matching route can handle the request (if any).
 
-You don't have to call `link:yardoc/VertxApex/RoutingContext.html#next-instance_method[next]` before the handler has finished executing.
+You don't have to call `link:yardoc/VertxWeb/RoutingContext.html#next-instance_method[next]` before the handler has finished executing.
 You can do this some time later, if you want:
 
 [source,ruby]
@@ -378,7 +378,7 @@ Captures are denoted in regular expressions with capture groups (i.e. surroundin
 
 By default a route will match all HTTP methods.
 
-If you want a route to only match for a specific HTTP method you can use `link:yardoc/VertxApex/Route.html#method-instance_method[method]`
+If you want a route to only match for a specific HTTP method you can use `link:yardoc/VertxWeb/Route.html#method-instance_method[method]`
 
 [source,ruby]
 ----
@@ -410,8 +410,8 @@ route.handler() { |routingContext|
 
 ----
 
-If you want to route for a specific HTTP method you can also use the methods such as `link:yardoc/VertxApex/Router.html#get-instance_method[get]`,
-`link:yardoc/VertxApex/Router.html#post-instance_method[post]` and `link:yardoc/VertxApex/Router.html#put-instance_method[put]` named after the HTTP
+If you want to route for a specific HTTP method you can also use the methods such as `link:yardoc/VertxWeb/Router.html#get-instance_method[get]`,
+`link:yardoc/VertxWeb/Router.html#post-instance_method[post]` and `link:yardoc/VertxWeb/Router.html#put-instance_method[put]` named after the HTTP
 method name. For example:
 
 [source,ruby]
@@ -442,7 +442,7 @@ router.get_with_regex(".*foo").handler() { |routingContext|
 
 ----
 
-If you want to specify a route will match for more than HTTP method you can call `link:yardoc/VertxApex/Route.html#method-instance_method[method]`
+If you want to specify a route will match for more than HTTP method you can call `link:yardoc/VertxWeb/Route.html#method-instance_method[method]`
 multiple times:
 
 [source,ruby]
@@ -466,7 +466,7 @@ By default routes are matched in the order they are added to the router.
 When a request arrives the router will step through each route and check if it matches, if it matches then
 the handler for that route will be called.
 
-If the handler subsequently calls `link:yardoc/VertxApex/RoutingContext.html#next-instance_method[next]` the handler for the next
+If the handler subsequently calls `link:yardoc/VertxWeb/RoutingContext.html#next-instance_method[next]` the handler for the next
 matching route (if any) will be called. And so on.
 
 Here's an example to illustrate this:
@@ -514,7 +514,7 @@ route3
 
 As the routes have been called in that order for any request that starts with `/some/path`.
 
-If you want to override the default ordering for routes, you can do so using `link:yardoc/VertxApex/Route.html#order-instance_method[order]`,
+If you want to override the default ordering for routes, you can do so using `link:yardoc/VertxWeb/Route.html#order-instance_method[order]`,
 specifying an integer value.
 
 Routes are assigned an order at creation time corresponding to the order in which they were added to the router, with
@@ -570,14 +570,14 @@ route3
 
 If two matching routes have the same value of order, then they will be called in the order they were added.
 
-You can also specify that a route is handled last, with `link:yardoc/VertxApex/Route.html#last-instance_method[last]`
+You can also specify that a route is handled last, with `link:yardoc/VertxWeb/Route.html#last-instance_method[last]`
 
 == Routing based on MIME type of request
 
-You can specify that a route will match against matching request MIME types using `link:yardoc/VertxApex/Route.html#consumes-instance_method[consumes]`.
+You can specify that a route will match against matching request MIME types using `link:yardoc/VertxWeb/Route.html#consumes-instance_method[consumes]`.
 
 In this case, the request will contain a `content-type` header specifying the MIME type of the request body.
-This will be matched against the value specified in `link:yardoc/VertxApex/Route.html#consumes-instance_method[consumes]`.
+This will be matched against the value specified in `link:yardoc/VertxWeb/Route.html#consumes-instance_method[consumes]`.
 
 Basically, `consumes` is describing which MIME types the handler can _consume_.
 
@@ -668,7 +668,7 @@ With the following the client will accept `text/plain` or `text/html` but prefer
 
 If the server can provide both text/plain and text/html it should provide the text/html in this case.
 
-By using `link:yardoc/VertxApex/Route.html#produces-instance_method[produces]` you define which MIME type(s) the route produces, e.g. the
+By using `link:yardoc/VertxWeb/Route.html#produces-instance_method[produces]` you define which MIME type(s) the route produces, e.g. the
 following handler produces a response with MIME type `application/json`.
 
 [source,java]
@@ -694,7 +694,7 @@ Here are some examples of `accept` headers that will match:
  Accept: application/json;q=0.7, text/html;q=0.8, text/plain
 
 You can also mark your route as producing more than one MIME type. If this is the case, then you use
-`link:yardoc/VertxApex/RoutingContext.html#get_acceptable_content_type-instance_method[getAcceptableContentType]` to find out the actual MIME type that
+`link:yardoc/VertxWeb/RoutingContext.html#get_acceptable_content_type-instance_method[getAcceptableContentType]` to find out the actual MIME type that
 was accepted.
 
 [source,ruby]
@@ -743,19 +743,19 @@ route.handler() { |routingContext|
 
 == Enabling and disabling routes
 
-You can disable a route with `link:yardoc/VertxApex/Route.html#disable-instance_method[disable]`. A disabled route will be ignored when matching.
+You can disable a route with `link:yardoc/VertxWeb/Route.html#disable-instance_method[disable]`. A disabled route will be ignored when matching.
 
-You can re-enable a disabled route with `link:yardoc/VertxApex/Route.html#enable-instance_method[enable]`
+You can re-enable a disabled route with `link:yardoc/VertxWeb/Route.html#enable-instance_method[enable]`
 
 == Context data
 
-You can use the context data in the `link:yardoc/VertxApex/RoutingContext.html[RoutingContext]` to maintain any data that you
+You can use the context data in the `link:yardoc/VertxWeb/RoutingContext.html[RoutingContext]` to maintain any data that you
 want to share between handlers for the lifetime of the request.
 
 Here's an example where one handler sets some data in the context data and a subsequent handler retrieves it:
 
-You can use the `link:yardoc/VertxApex/RoutingContext.html#put-instance_method[put]` to put any object, and
-`link:yardoc/VertxApex/RoutingContext.html#get-instance_method[get]` to retrieve any object from the context data.
+You can use the `link:yardoc/VertxWeb/RoutingContext.html#put-instance_method[put]` to put any object, and
+`link:yardoc/VertxWeb/RoutingContext.html#get-instance_method[get]` to retrieve any object from the context data.
 
 A request sent to path `/some/path/other` will match both routes.
 
@@ -780,7 +780,7 @@ router.get("/some/path/other").handler() { |routingContext|
 
 ----
 
-Alternatively you can access the entire context data map with `link:yardoc/VertxApex/RoutingContext.html#data-instance_method[data]`.
+Alternatively you can access the entire context data map with `link:yardoc/VertxWeb/RoutingContext.html#data-instance_method[data]`.
 
 == Sub-routers
 
@@ -799,9 +799,9 @@ Here's the sub-router:
 
 [source,ruby]
 ----
-require 'vertx-apex/router'
+require 'vertx-web/router'
 
-restAPI = VertxApex::Router.router(vertx)
+restAPI = VertxWeb::Router.router(vertx)
 
 restAPI.get("/products/:productID").handler() { |rc|
 
@@ -833,8 +833,8 @@ However, let's say we already have a web-site as described by another router:
 
 [source,ruby]
 ----
-require 'vertx-apex/router'
-mainRouter = VertxApex::Router.router(vertx)
+require 'vertx-web/router'
+mainRouter = VertxWeb::Router.router(vertx)
 
 # Handle static resources
 mainRouter.route("/static/*").handler(&myStaticHandler)
@@ -857,10 +857,10 @@ This means the REST API is now accessible via paths like: `/productsAPI/products
 
 == Default 404 Handling
 
-If no routes match for any particular request, Apex will signal a 404 error.
+If no routes match for any particular request, Vert.x-Web will signal a 404 error.
 
 This can then be handled by your own error handler, or perhaps the augmented error handler that we supply to use,
-or if no error handler is provided Apex will send back a basic 404 (Not Found) response.
+or if no error handler is provided Vert.x-Web will send back a basic 404 (Not Found) response.
 
 == Error handling
 
@@ -891,7 +891,7 @@ route.failure_handler() { |frc|
 ----
 
 Failure routing will occur if a handler throws an exception, or if a handler calls
-`link:yardoc/VertxApex/RoutingContext.html#fail-instance_method[fail]` specifying an HTTP status code to deliberately signal a failure.
+`link:yardoc/VertxWeb/RoutingContext.html#fail-instance_method[fail]` specifying an HTTP status code to deliberately signal a failure.
 
 If an exception is caught from a handler this will result in a failure with status code `500` being signalled.
 
@@ -939,30 +939,30 @@ route3.failure_handler() { |failureRoutingContext|
 
 == Request body handling
 
-The `link:yardoc/VertxApex/BodyHandler.html[BodyHandler]` allows you to retrieve request bodies, limit body sizes and handle
+The `link:yardoc/VertxWeb/BodyHandler.html[BodyHandler]` allows you to retrieve request bodies, limit body sizes and handle
 file uploads.
 
 You should make sure a body handler is on a matching route for any requests that require this functionality.
 
 [source,ruby]
 ----
-require 'vertx-apex/body_handler'
+require 'vertx-web/body_handler'
 
 # This body handler will be called for all routes
-router.route().handler(&VertxApex::BodyHandler.create().method(:handle))
+router.route().handler(&VertxWeb::BodyHandler.create().method(:handle))
 
 
 ----
 
 === Getting the request body
 
-If you know the request body is JSON, then you can use `link:yardoc/VertxApex/RoutingContext.html#get_body_as_json-instance_method[getBodyAsJson]`,
-if you know it's a string you can use `link:yardoc/VertxApex/RoutingContext.html#get_body_as_string-instance_method[getBodyAsString]`, or to
-retrieve it as a buffer use `link:yardoc/VertxApex/RoutingContext.html#get_body-instance_method[getBody]`.
+If you know the request body is JSON, then you can use `link:yardoc/VertxWeb/RoutingContext.html#get_body_as_json-instance_method[getBodyAsJson]`,
+if you know it's a string you can use `link:yardoc/VertxWeb/RoutingContext.html#get_body_as_string-instance_method[getBodyAsString]`, or to
+retrieve it as a buffer use `link:yardoc/VertxWeb/RoutingContext.html#get_body-instance_method[getBody]`.
 
 === Limiting body size
 
-To limit the size of a request body, create the body handler then use `link:yardoc/VertxApex/BodyHandler.html#set_body_limit-instance_method[setBodyLimit]`
+To limit the size of a request body, create the body handler then use `link:yardoc/VertxWeb/BodyHandler.html#set_body_limit-instance_method[setBodyLimit]`
 to specifying the maximum body size, in bytes. This is useful to avoid running out of memory with very large bodies.
 
 If an attempt to send a body greater than the maximum size is made, an HTTP status code of 413 - `Request Entity Too Large`,
@@ -973,7 +973,7 @@ There is no body limit by default.
 === Merging form attributes
 
 By default, the body handler will merge any form attributes into the request parameters. If you don't want this behaviour
-you can use disable it with `link:yardoc/VertxApex/BodyHandler.html#set_merge_form_attributes-instance_method[setMergeFormAttributes]`.
+you can use disable it with `link:yardoc/VertxWeb/BodyHandler.html#set_merge_form_attributes-instance_method[setMergeFormAttributes]`.
 
 === Handling file uploads
 
@@ -983,15 +983,15 @@ If a body handler is on a matching route for the request, any file uploads will 
 uploads directory, which is `file-uploads` by default.
 
 Each file will be given an automatically generated file name, and the file uploads will be available on the routing
-context with `link:yardoc/VertxApex/RoutingContext.html#file_uploads-instance_method[fileUploads]`.
+context with `link:yardoc/VertxWeb/RoutingContext.html#file_uploads-instance_method[fileUploads]`.
 
 Here's an example:
 
 [source,ruby]
 ----
-require 'vertx-apex/body_handler'
+require 'vertx-web/body_handler'
 
-router.route().handler(&VertxApex::BodyHandler.create().method(:handle))
+router.route().handler(&VertxWeb::BodyHandler.create().method(:handle))
 
 router.post("/some/path/uploads").handler() { |routingContext|
 
@@ -1002,49 +1002,49 @@ router.post("/some/path/uploads").handler() { |routingContext|
 
 ----
 
-Each file upload is described by a `link:yardoc/VertxApex/FileUpload.html[FileUpload]` instance, which allows various properties
+Each file upload is described by a `link:yardoc/VertxWeb/FileUpload.html[FileUpload]` instance, which allows various properties
 such as the name, file-name and size to be accessed.
 
 == Handling cookies
 
-Apex has cookies support using the `link:yardoc/VertxApex/CookieHandler.html[CookieHandler]`.
+Vert.x-Web has cookies support using the `link:yardoc/VertxWeb/CookieHandler.html[CookieHandler]`.
 
 You should make sure a cookie handler is on a matching route for any requests that require this functionality.
 
 [source,ruby]
 ----
-require 'vertx-apex/cookie_handler'
+require 'vertx-web/cookie_handler'
 
 # This cookie handler will be called for all routes
-router.route().handler(&VertxApex::CookieHandler.create().method(:handle))
+router.route().handler(&VertxWeb::CookieHandler.create().method(:handle))
 
 
 ----
 
 === Manipulating cookies
 
-You use `link:yardoc/VertxApex/RoutingContext.html#get_cookie-instance_method[getCookie]` to retrieve
-a cookie by name, or use `link:yardoc/VertxApex/RoutingContext.html#cookies-instance_method[cookies]` to retrieve the entire set.
+You use `link:yardoc/VertxWeb/RoutingContext.html#get_cookie-instance_method[getCookie]` to retrieve
+a cookie by name, or use `link:yardoc/VertxWeb/RoutingContext.html#cookies-instance_method[cookies]` to retrieve the entire set.
 
-To remove a cookie, use `link:yardoc/VertxApex/RoutingContext.html#remove_cookie-instance_method[removeCookie]`.
+To remove a cookie, use `link:yardoc/VertxWeb/RoutingContext.html#remove_cookie-instance_method[removeCookie]`.
 
-To add a cookie use `link:yardoc/VertxApex/RoutingContext.html#add_cookie-instance_method[addCookie]`.
+To add a cookie use `link:yardoc/VertxWeb/RoutingContext.html#add_cookie-instance_method[addCookie]`.
 
 The set of cookies will be written back in the response automatically when the response headers are written so the
 browser can store them.
 
-Cookies are described by instances of `link:yardoc/VertxApex/Cookie.html[Cookie]`. This allows you to retrieve the name,
+Cookies are described by instances of `link:yardoc/VertxWeb/Cookie.html[Cookie]`. This allows you to retrieve the name,
 value, domain, path and other normal cookie properties.
 
 Here's an example of querying and adding cookies:
 
 [source,ruby]
 ----
-require 'vertx-apex/cookie_handler'
-require 'vertx-apex/cookie'
+require 'vertx-web/cookie_handler'
+require 'vertx-web/cookie'
 
 # This cookie handler will be called for all routes
-router.route().handler(&VertxApex::CookieHandler.create().method(:handle))
+router.route().handler(&VertxWeb::CookieHandler.create().method(:handle))
 
 router.route("some/path/").handler() { |routingContext|
 
@@ -1054,19 +1054,19 @@ router.route("some/path/").handler() { |routingContext|
   # Do something with cookie...
 
   # Add a cookie - this will get written back in the response automatically
-  routingContext.add_cookie(VertxApex::Cookie.cookie("othercookie", "somevalue"))
+  routingContext.add_cookie(VertxWeb::Cookie.cookie("othercookie", "somevalue"))
 }
 
 ----
 
 == Handling sessions
 
-Apex provides out of the box support for sessions.
+Vert.x-Web provides out of the box support for sessions.
 
 Sessions last between HTTP requests for the length of a browser session and give you a place where you can add
 session-scope information, such as a shopping basket.
 
-Apex uses session cookies to identify a session. The session cookie is temporary and will be deleted by your browser
+Vert.x-Web uses session cookies to identify a session. The session cookie is temporary and will be deleted by your browser
 when it's closed.
 
 We don't put the actual data of your session in the session cookie - the cookie simply uses an identifier to look-up
@@ -1076,7 +1076,7 @@ be effectively unguessable.
 Cookies are passed across the wire in HTTP requests and responses so it's always wise to make sure you are using
 HTTPS when sessions are being used. Vert.x will warn you if you attempt to use sessions over straight HTTP.
 
-To enable sessions in your application you must have a `link:yardoc/VertxApex/SessionHandler.html[SessionHandler]`
+To enable sessions in your application you must have a `link:yardoc/VertxWeb/SessionHandler.html[SessionHandler]`
 on a matching route before your application logic.
 
 The session handler handles the creation of session cookies and the lookup of the session so you don't have to do
@@ -1087,7 +1087,7 @@ that yourself.
 To create a session handler you need to have a session store instance. The session store is the object that
 holds the actual sessions for your application.
 
-Apex comes with two session store implementations out of the box, and you can also write your own if you prefer.
+Vert.x-Web comes with two session store implementations out of the box, and you can also write your own if you prefer.
 
 ==== Local session store
 
@@ -1102,25 +1102,25 @@ requests might end up on a server which doesn't know about your session.
 Local session stores are implemented by using a shared local map, and have a reaper which clears out expired sessions.
 
 The reaper period can be configured with
-`link:yardoc/VertxApex/LocalSessionStore.html#create-class_method[LocalSessionStore.create]`.
+`link:yardoc/VertxWeb/LocalSessionStore.html#create-class_method[LocalSessionStore.create]`.
 
-Here are some examples of creating a `link:yardoc/VertxApex/LocalSessionStore.html[LocalSessionStore]`
+Here are some examples of creating a `link:yardoc/VertxWeb/LocalSessionStore.html[LocalSessionStore]`
 
 [source,ruby]
 ----
-require 'vertx-apex/local_session_store'
+require 'vertx-web/local_session_store'
 
 # Create a local session store using defaults
-store1 = VertxApex::LocalSessionStore.create(vertx)
+store1 = VertxWeb::LocalSessionStore.create(vertx)
 
 # Create a local session store specifying the local shared map name to use
 # This might be useful if you have more than one application in the same
 # Vert.x instance and want to use different maps for different applications
-store2 = VertxApex::LocalSessionStore.create(vertx, "myapp3.sessionmap")
+store2 = VertxWeb::LocalSessionStore.create(vertx, "myapp3.sessionmap")
 
 # Create a local session store specifying the local shared map name to use and
 # setting the reaper period for expired sessions to 10 seconds
-store3 = VertxApex::LocalSessionStore.create(vertx, "myapp3.sessionmap", 10000)
+store3 = VertxWeb::LocalSessionStore.create(vertx, "myapp3.sessionmap", 10000)
 
 
 ----
@@ -1136,12 +1136,12 @@ Your session is accessible from any node in the cluster using this store.
 
 To you use a clustered session store you should make sure your Vert.x instance is clustered.
 
-Here are some examples of creating a `link:yardoc/VertxApex/ClusteredSessionStore.html[ClusteredSessionStore]`
+Here are some examples of creating a `link:yardoc/VertxWeb/ClusteredSessionStore.html[ClusteredSessionStore]`
 
 [source,ruby]
 ----
 require 'vertx/vertx'
-require 'vertx-apex/clustered_session_store'
+require 'vertx-web/clustered_session_store'
 
 # a clustered Vert.x
 Vertx::Vertx.clustered_vertx({
@@ -1151,12 +1151,12 @@ Vertx::Vertx.clustered_vertx({
   vertx = res
 
   # Create a clustered session store using defaults
-  store1 = VertxApex::ClusteredSessionStore.create(vertx)
+  store1 = VertxWeb::ClusteredSessionStore.create(vertx)
 
   # Create a clustered session store specifying the distributed map name to use
   # This might be useful if you have more than one application in the cluster
   # and want to use different maps for different applications
-  store2 = VertxApex::ClusteredSessionStore.create(vertx, "myclusteredapp3.sessionmap")
+  store2 = VertxWeb::ClusteredSessionStore.create(vertx, "myclusteredapp3.sessionmap")
 }
 
 
@@ -1167,27 +1167,27 @@ Vertx::Vertx.clustered_vertx({
 Once you've created a session store you can create a session handler, and add it to a route. You should make sure
 your session handler is routed to before your application handlers.
 
-You'll also need to include a `link:yardoc/VertxApex/CookieHandler.html[CookieHandler]` as the session handler uses cookies to
+You'll also need to include a `link:yardoc/VertxWeb/CookieHandler.html[CookieHandler]` as the session handler uses cookies to
 lookup the session. The cookie handler should be before the session handler when routing.
 
 Here's an example:
 
 [source,ruby]
 ----
-require 'vertx-apex/router'
-require 'vertx-apex/cookie_handler'
-require 'vertx-apex/clustered_session_store'
-require 'vertx-apex/session_handler'
+require 'vertx-web/router'
+require 'vertx-web/cookie_handler'
+require 'vertx-web/clustered_session_store'
+require 'vertx-web/session_handler'
 
-router = VertxApex::Router.router(vertx)
+router = VertxWeb::Router.router(vertx)
 
 # We need a cookie handler first
-router.route().handler(&VertxApex::CookieHandler.create().method(:handle))
+router.route().handler(&VertxWeb::CookieHandler.create().method(:handle))
 
 # Create a clustered session store using defaults
-store = VertxApex::ClusteredSessionStore.create(vertx)
+store = VertxWeb::ClusteredSessionStore.create(vertx)
 
-sessionHandler = VertxApex::SessionHandler.create(store)
+sessionHandler = VertxWeb::SessionHandler.create(store)
 
 # Make sure all requests are routed through the session handler too
 router.route().handler(&sessionHandler.method(:handle))
@@ -1209,11 +1209,11 @@ from the session store and set on the routing context before it gets to your app
 
 === Using the session
 
-In your handlers you an access the session instance with `link:yardoc/VertxApex/RoutingContext.html#session-instance_method[session]`.
+In your handlers you an access the session instance with `link:yardoc/VertxWeb/RoutingContext.html#session-instance_method[session]`.
 
-You put data into the session with `link:yardoc/VertxApex/Session.html#put-instance_method[put]`,
-you get data from the session with `link:yardoc/VertxApex/Session.html#get-instance_method[get]`, and you remove
-data from the session with `link:yardoc/VertxApex/Session.html#remove-instance_method[remove]`.
+You put data into the session with `link:yardoc/VertxWeb/Session.html#put-instance_method[put]`,
+you get data from the session with `link:yardoc/VertxWeb/Session.html#get-instance_method[get]`, and you remove
+data from the session with `link:yardoc/VertxWeb/Session.html#remove-instance_method[remove]`.
 
 The keys for items in the session are always strings. The values can be any type for a local session store, and for
 a clustered session store they can be any basic type, or `link:../../vertx-core/ruby/yardoc/Vertx/Buffer.html[Buffer]`, `link:unavailable[JsonObject]`,
@@ -1223,9 +1223,9 @@ Here's an example of manipulating session data:
 
 [source,ruby]
 ----
-require 'vertx-apex/cookie_handler'
+require 'vertx-web/cookie_handler'
 
-router.route().handler(&VertxApex::CookieHandler.create().method(:handle))
+router.route().handler(&VertxWeb::CookieHandler.create().method(:handle))
 router.route().handler(&sessionHandler.method(:handle))
 
 # Now your application handlers
@@ -1249,7 +1249,7 @@ router.route("/somepath/blah").handler() { |routingContext|
 
 Sessions are automatically written back to the store after after responses are complete.
 
-You can manually destroy a session using `link:yardoc/VertxApex/Session.html#destroy-instance_method[destroy]`. This will remove the session
+You can manually destroy a session using `link:yardoc/VertxWeb/Session.html#destroy-instance_method[destroy]`. This will remove the session
 from the context and the session store. Note that if there is no session a new one will be automatically created
 for the next request from the browser that's routed through the session handler.
 
@@ -1261,7 +1261,7 @@ a session is timed out, it is removed from the store.
 Sessions are automatically marked as accessed when a request arrives and the session is looked up and and when the
 response is complete and the session is stored back in the store.
 
-You can also use `link:yardoc/VertxApex/Session.html#set_accessed-instance_method[setAccessed]` to manually mark a session as accessed.
+You can also use `link:yardoc/VertxWeb/Session.html#set_accessed-instance_method[setAccessed]` to manually mark a session as accessed.
 
 The session timeout can be configured when creating the session handler. Default timeout is 30 minutes.
 
@@ -1281,7 +1281,7 @@ an auth handler from that, but it's the same principle whatever concrete auth pr
 [source,ruby]
 ----
 require 'vertx-auth/shiro_auth'
-require 'vertx-apex/basic_auth_handler'
+require 'vertx-web/basic_auth_handler'
 
 config = {
 }
@@ -1289,21 +1289,21 @@ config[Java::IoVertxExtAuthShiro::PropertiesProviderConstants::PROPERTIES_PROPS_
 
 authProvider = VertxAuth::ShiroAuth.create(vertx, :PROPERTIES, config)
 
-basicAuthHandler = VertxApex::BasicAuthHandler.create(authProvider)
+basicAuthHandler = VertxWeb::BasicAuthHandler.create(authProvider)
 
 ----
 
 [source,ruby]
 ----
-require 'vertx-apex/cookie_handler'
-require 'vertx-apex/session_handler'
-require 'vertx-apex/local_session_store'
-require 'vertx-apex/basic_auth_handler'
+require 'vertx-web/cookie_handler'
+require 'vertx-web/session_handler'
+require 'vertx-web/local_session_store'
+require 'vertx-web/basic_auth_handler'
 
-router.route().handler(&VertxApex::CookieHandler.create().method(:handle))
-router.route().handler(&VertxApex::SessionHandler.create(VertxApex::LocalSessionStore.create(vertx)).method(:handle))
+router.route().handler(&VertxWeb::CookieHandler.create().method(:handle))
+router.route().handler(&VertxWeb::SessionHandler.create(VertxWeb::LocalSessionStore.create(vertx)).method(:handle))
 
-basicAuthHandler = VertxApex::BasicAuthHandler.create(authProvider)
+basicAuthHandler = VertxWeb::BasicAuthHandler.create(authProvider)
 
 
 ----
@@ -1315,15 +1315,15 @@ your auth handler is before your application handlers on those paths:
 
 [source,ruby]
 ----
-require 'vertx-apex/cookie_handler'
-require 'vertx-apex/session_handler'
-require 'vertx-apex/local_session_store'
-require 'vertx-apex/basic_auth_handler'
+require 'vertx-web/cookie_handler'
+require 'vertx-web/session_handler'
+require 'vertx-web/local_session_store'
+require 'vertx-web/basic_auth_handler'
 
-router.route().handler(&VertxApex::CookieHandler.create().method(:handle))
-router.route().handler(&VertxApex::SessionHandler.create(VertxApex::LocalSessionStore.create(vertx)).method(:handle))
+router.route().handler(&VertxWeb::CookieHandler.create().method(:handle))
+router.route().handler(&VertxWeb::SessionHandler.create(VertxWeb::LocalSessionStore.create(vertx)).method(:handle))
 
-basicAuthHandler = VertxApex::BasicAuthHandler.create(authProvider)
+basicAuthHandler = VertxWeb::BasicAuthHandler.create(authProvider)
 
 # All requests to paths starting with '/private/' will be protected
 router.route("/private/*").handler(&basicAuthHandler.method(:handle))
@@ -1346,8 +1346,8 @@ router.route("/private/somepath").handler() { |routingContext|
 ----
 
 If the auth handler has successfully authenticated and authorised the user it will inject a `link:../../vertx-auth/ruby/yardoc/VertxAuth/User.html[User]`
-object into the `link:yardoc/VertxApex/RoutingContext.html[RoutingContext]` so it's available in your handlers with:
-`link:yardoc/VertxApex/RoutingContext.html#user-instance_method[user]`.
+object into the `link:yardoc/VertxWeb/RoutingContext.html[RoutingContext]` so it's available in your handlers with:
+`link:yardoc/VertxWeb/RoutingContext.html#user-instance_method[user]`.
 
 Once you have your user object you can also programmatically use the methods on it to authorise the user.
 
@@ -1384,36 +1384,36 @@ a protected resource and they are not logged in.
 The user then fills in the login form and submits it. This is handled by the server which authenticates
 the user and, if authenticated redirects the user back to the original resource.
 
-To use redirect auth you configure an instance of `link:yardoc/VertxApex/RedirectAuthHandler.html[RedirectAuthHandler]` instead of a
+To use redirect auth you configure an instance of `link:yardoc/VertxWeb/RedirectAuthHandler.html[RedirectAuthHandler]` instead of a
 basic auth handler.
 
 You will also need to setup handlers to serve your actual login page, and a handler to handle the actual login itself.
-To handle the login we provide a prebuilt handler `link:yardoc/VertxApex/FormLoginHandler.html[FormLoginHandler]` for the purpose.
+To handle the login we provide a prebuilt handler `link:yardoc/VertxWeb/FormLoginHandler.html[FormLoginHandler]` for the purpose.
 
 Here's an example of a simple app, using a redirect auth handler on the default redirect url `/loginpage`.
 
 [source,ruby]
 ----
-require 'vertx-apex/cookie_handler'
-require 'vertx-apex/session_handler'
-require 'vertx-apex/local_session_store'
-require 'vertx-apex/redirect_auth_handler'
-require 'vertx-apex/form_login_handler'
-require 'vertx-apex/static_handler'
+require 'vertx-web/cookie_handler'
+require 'vertx-web/session_handler'
+require 'vertx-web/local_session_store'
+require 'vertx-web/redirect_auth_handler'
+require 'vertx-web/form_login_handler'
+require 'vertx-web/static_handler'
 
-router.route().handler(&VertxApex::CookieHandler.create().method(:handle))
-router.route().handler(&VertxApex::SessionHandler.create(VertxApex::LocalSessionStore.create(vertx)).method(:handle))
+router.route().handler(&VertxWeb::CookieHandler.create().method(:handle))
+router.route().handler(&VertxWeb::SessionHandler.create(VertxWeb::LocalSessionStore.create(vertx)).method(:handle))
 
-redirectAuthHandler = VertxApex::RedirectAuthHandler.create(authProvider)
+redirectAuthHandler = VertxWeb::RedirectAuthHandler.create(authProvider)
 
 # All requests to paths starting with '/private/' will be protected
 router.route("/private/*").handler(&redirectAuthHandler.method(:handle))
 
 # Handle the actual login
-router.route("/login").handler(&VertxApex::FormLoginHandler.create(authProvider).method(:handle))
+router.route("/login").handler(&VertxWeb::FormLoginHandler.create(authProvider).method(:handle))
 
 # Set a static server to serve static resources, e.g. the login page
-router.route().handler(&VertxApex::StaticHandler.create().method(:handle))
+router.route().handler(&VertxWeb::StaticHandler.create().method(:handle))
 
 router.route("/someotherpath").handler() { |routingContext|
   # This will be public access - no login required
@@ -1443,15 +1443,15 @@ app:
 
 [source,ruby]
 ----
-require 'vertx-apex/redirect_auth_handler'
+require 'vertx-web/redirect_auth_handler'
 
-managerAuthHandler = VertxApex::RedirectAuthHandler.create(authProvider)
+managerAuthHandler = VertxWeb::RedirectAuthHandler.create(authProvider)
 managerAuthHandler.add_role("manager").add_role("admin")
 
 # Roles "manager" and "admin" have access to /private/managers
 router.route("/private/managers").handler(&managerAuthHandler.method(:handle))
 
-settingsAuthHandler = VertxApex::RedirectAuthHandler.create(authProvider)
+settingsAuthHandler = VertxWeb::RedirectAuthHandler.create(authProvider)
 settingsAuthHandler.add_role("admin")
 
 # Only "admin" has access to /private/settings
@@ -1466,11 +1466,11 @@ TODO
 
 == Serving static resources
 
-Apex comes with an out of the box handler for serving static web resources so you can write static web servers
+Vert.x-Web comes with an out of the box handler for serving static web resources so you can write static web servers
 very easily.
 
 To serve static resources such as `.html`, `.css`, `.js` or any other static resource, you use an instance of
-`link:yardoc/VertxApex/StaticHandler.html[StaticHandler]`.
+`link:yardoc/VertxWeb/StaticHandler.html[StaticHandler]`.
 
 Any requests to paths handled by the static handler will result in files being served from a directory on the file system
 or from the classpath. The default static file directory is `webroot` but this can be configured.
@@ -1479,9 +1479,9 @@ In the following example all requests to paths starting with `/static/` will get
 
 [source,ruby]
 ----
-require 'vertx-apex/static_handler'
+require 'vertx-web/static_handler'
 
-router.route("/static/*").handler(&VertxApex::StaticHandler.create().method(:handle))
+router.route("/static/*").handler(&VertxWeb::StaticHandler.create().method(:handle))
 
 
 ----
@@ -1499,17 +1499,17 @@ on disk so it doesn't have to do this each time.
 
 By default the static handler will set cache headers to enable browsers to effectively cache files.
 
-Apex sets the headers `cache-control`,`last-modified`, and `date`.
+Vert.x-Web sets the headers `cache-control`,`last-modified`, and `date`.
 
 `cache-control` is set to `max-age=86400` by default. This corresponds to one day. This can be configured with
-`link:yardoc/VertxApex/StaticHandler.html#set_max_age_seconds-instance_method[setMaxAgeSeconds]` if required.
+`link:yardoc/VertxWeb/StaticHandler.html#set_max_age_seconds-instance_method[setMaxAgeSeconds]` if required.
 
 If a browser sends a GET or a HEAD request with an `if-modified-since` header and the resource has not been modified
 since that date, a `304` status is returned which tells the browser to use its locally cached resource.
 
-If handling of cache headers is not required, it can be disabled with `link:yardoc/VertxApex/StaticHandler.html#set_caching_enabled-instance_method[setCachingEnabled]`.
+If handling of cache headers is not required, it can be disabled with `link:yardoc/VertxWeb/StaticHandler.html#set_caching_enabled-instance_method[setCachingEnabled]`.
 
-When cache handling is enabled Apex will cache the last modified date of resources in memory, this avoids a disk hit
+When cache handling is enabled Vert.x-Web will cache the last modified date of resources in memory, this avoids a disk hit
 to check the actual last modified date every time.
 
 Entries in the cache have an expiry time, and after that time, the file on disk will be checked again and the cache
@@ -1519,54 +1519,54 @@ If you know that your files never change on disk, then the cache entry will effe
 default.
 
 If you know that your files might change on disk when the server is running then you can set files read only to false with
-`link:yardoc/VertxApex/StaticHandler.html#set_files_read_only-instance_method[setFilesReadOnly]`.
+`link:yardoc/VertxWeb/StaticHandler.html#set_files_read_only-instance_method[setFilesReadOnly]`.
 
 To enable the maximum number of entries that can be cached in memory at any one time you can use
-`link:yardoc/VertxApex/StaticHandler.html#set_max_cache_size-instance_method[setMaxCacheSize]`.
+`link:yardoc/VertxWeb/StaticHandler.html#set_max_cache_size-instance_method[setMaxCacheSize]`.
 
-To configure the expiry time of cache entries you can use `link:yardoc/VertxApex/StaticHandler.html#set_cache_entry_timeout-instance_method[setCacheEntryTimeout]`.
+To configure the expiry time of cache entries you can use `link:yardoc/VertxWeb/StaticHandler.html#set_cache_entry_timeout-instance_method[setCacheEntryTimeout]`.
 
 === Configuring the index page
 
 Any requests to the root path `/` will cause the index page to be served. By default the index page is `index.html`.
-This can be configured with `link:yardoc/VertxApex/StaticHandler.html#set_index_page-instance_method[setIndexPage]`.
+This can be configured with `link:yardoc/VertxWeb/StaticHandler.html#set_index_page-instance_method[setIndexPage]`.
 
 === Changing the web root
 
 By default static resources will be served from the directory `webroot`. To configure this use
-`link:yardoc/VertxApex/StaticHandler.html#set_web_root-instance_method[setWebRoot]`.
+`link:yardoc/VertxWeb/StaticHandler.html#set_web_root-instance_method[setWebRoot]`.
 
 === Serving hidden files
 
 By default the serve will serve hidden files (files starting with `.`).
 
-If you do not want hidden files to be served you can configure it with `link:yardoc/VertxApex/StaticHandler.html#set_include_hidden-instance_method[setIncludeHidden]`.
+If you do not want hidden files to be served you can configure it with `link:yardoc/VertxWeb/StaticHandler.html#set_include_hidden-instance_method[setIncludeHidden]`.
 
 === Directory listing
 
 The server can also perform directory listing. By default directory listing is disabled. To enabled it use
-`link:yardoc/VertxApex/StaticHandler.html#set_directory_listing-instance_method[setDirectoryListing]`.
+`link:yardoc/VertxWeb/StaticHandler.html#set_directory_listing-instance_method[setDirectoryListing]`.
 
 When directory listing is enabled the content returned depends on the content type in the `accept` header.
 
 For `text/html` directory listing, the template used to render the directory listing page can be configured with
-`link:yardoc/VertxApex/StaticHandler.html#set_directory_template-instance_method[setDirectoryTemplate]`.
+`link:yardoc/VertxWeb/StaticHandler.html#set_directory_template-instance_method[setDirectoryTemplate]`.
 
 == CORS handling
 
 http://en.wikipedia.org/wiki/Cross-origin_resource_sharing[Cross Origin Resource Sharing] is a safe mechanism for
 allowing resources to be requested from one domain and served from another.
 
-Apex includes a handler `link:yardoc/VertxApex/CorsHandler.html[CorsHandler]` that handles the CORS protocol for you.
+Vert.x-Web includes a handler `link:yardoc/VertxWeb/CorsHandler.html[CorsHandler]` that handles the CORS protocol for you.
 
 Here's an example:
 
 [source,ruby]
 ----
-require 'vertx-apex/cors_handler'
+require 'vertx-web/cors_handler'
 
 # Will only accept GET requests from origin "vertx.io"
-router.route().handler(&VertxApex::CorsHandler.create("vertx\\.io").allowed_method(:GET).method(:handle))
+router.route().handler(&VertxWeb::CorsHandler.create("vertx\\.io").allowed_method(:GET).method(:handle))
 
 router.route().handler() { |routingContext|
 
@@ -1580,14 +1580,14 @@ TODO more CORS docs
 
 == Templates
 
-Apex includes dynamic page generation capabilities by including out of the box support for several popular template
+Vert.x-Web includes dynamic page generation capabilities by including out of the box support for several popular template
 engines. You can also easily add your own.
 
-Template engines are described by `link:yardoc/VertxApex/TemplateEngine.html[TemplateEngine]`. In order to render a template
-`link:yardoc/VertxApex/TemplateEngine.html#render-instance_method[render]` is used.
+Template engines are described by `link:yardoc/VertxWeb/TemplateEngine.html[TemplateEngine]`. In order to render a template
+`link:yardoc/VertxWeb/TemplateEngine.html#render-instance_method[render]` is used.
 
 The simplest way to use templates is not to call the template engine directly but to use the
-`link:yardoc/VertxApex/TemplateHandler.html[TemplateHandler]`.
+`link:yardoc/VertxWeb/TemplateHandler.html[TemplateHandler]`.
 This handler calls the template engine for you based on the path in the HTTP request.
 
 By default the template handler will look for templates in a directory called `templates`. This can be configured.
@@ -1600,11 +1600,11 @@ Here are some examples
 
 [source,ruby]
 ----
-require 'vertx-apex/handlebars_template_engine'
-require 'vertx-apex/template_handler'
+require 'vertx-web/handlebars_template_engine'
+require 'vertx-web/template_handler'
 
-engine = VertxApex::HandlebarsTemplateEngine.create()
-handler = VertxApex::TemplateHandler.create(engine)
+engine = VertxWeb::HandlebarsTemplateEngine.create()
+handler = VertxWeb::TemplateHandler.create(engine)
 
 # This will route all GET requests starting with /dynamic/ to the template handler
 # E.g. /dynamic/graph.hbs will look for a template in /templates/dynamic/graph.hbs
@@ -1618,10 +1618,10 @@ router.get_with_regex(".+\\.hbs").handler(&handler.method(:handle))
 
 === MVEL template engine
 
-When using the `link:yardoc/VertxApex/MVELTemplateEngine.html[MVEL template engine]`, it will by default look for
+When using the `link:yardoc/VertxWeb/MVELTemplateEngine.html[MVEL template engine]`, it will by default look for
 templates with the `.templ` extension if no extension is specified in the file name.
 
-The routing context `link:yardoc/VertxApex/RoutingContext.html[RoutingContext]` is available
+The routing context `link:yardoc/VertxWeb/RoutingContext.html[RoutingContext]` is available
 in the MVEL template as the `context` variable, this means you can render the template based on anything in the context
 including the request, response, session or context data.
 
@@ -1640,10 +1640,10 @@ MVEL templates.
 
 === Jade template engine
 
-When using the `link:yardoc/VertxApex/JadeTemplateEngine.html[Jade template engine]`, it will by default look for
+When using the `link:yardoc/VertxWeb/JadeTemplateEngine.html[Jade template engine]`, it will by default look for
 templates with the `.jade` extension if no extension is specified in the file name.
 
-The routing context `link:yardoc/VertxApex/RoutingContext.html[RoutingContext]` is available
+The routing context `link:yardoc/VertxWeb/RoutingContext.html[RoutingContext]` is available
 in the Jade template as the `context` variable, this means you can render the template based on anything in the context
 including the request, response, session or context data.
 
@@ -1662,24 +1662,24 @@ Jade templates.
 
 === Handlebars template engine
 
-When using the `link:yardoc/VertxApex/HandlebarsTemplateEngine.html[Handlebars template engine]`, it will by default look for
+When using the `link:yardoc/VertxWeb/HandlebarsTemplateEngine.html[Handlebars template engine]`, it will by default look for
 templates with the `.hbs` extension if no extension is specified in the file name.
 
 Handlebars templates are not able to call arbitrary methods in objects so we can't just pass the routing context
 into the template and let the template introspect it like we can with other template engines.
 
-Instead, the context `link:yardoc/VertxApex/RoutingContext.html#data-instance_method[data]` is available in the template.
+Instead, the context `link:yardoc/VertxWeb/RoutingContext.html#data-instance_method[data]` is available in the template.
 
 If you want to have access to other data like the request path, request params or session data you should
 add it the context data in a handler before the template handler. For example:
 
 [source,ruby]
 ----
-require 'vertx-apex/handlebars_template_engine'
-require 'vertx-apex/template_handler'
+require 'vertx-web/handlebars_template_engine'
+require 'vertx-web/template_handler'
 
-engine = VertxApex::HandlebarsTemplateEngine.create()
-handler = VertxApex::TemplateHandler.create(engine)
+engine = VertxWeb::HandlebarsTemplateEngine.create()
+handler = VertxWeb::TemplateHandler.create(engine)
 
 router.get("/dynamic").handler() { |routingContext|
 
@@ -1699,10 +1699,10 @@ handlebars templates.
 
 === Thymeleaf template engine
 
-When using the `link:yardoc/VertxApex/ThymeleafTemplateEngine.html[Thymeleaf template engine]`, it will by default look for
+When using the `link:yardoc/VertxWeb/ThymeleafTemplateEngine.html[Thymeleaf template engine]`, it will by default look for
 templates with the `.html` extension if no extension is specified in the file name.
 
-The routing context `link:yardoc/VertxApex/RoutingContext.html[RoutingContext]` is available
+The routing context `link:yardoc/VertxWeb/RoutingContext.html[RoutingContext]` is available
 in the Thymeleaf template as the `context` variable, this means you can render the template based on anything in the context
 including the request, response, session or context data.
 
@@ -1723,31 +1723,31 @@ Thymeleaf templates.
 
 == Error handler
 
-You can render your own errors using a template handler or otherwise but Apex also includes an out of the boxy
+You can render your own errors using a template handler or otherwise but Vert.x-Web also includes an out of the boxy
 "pretty" error handler that can render error pages for you.
 
-The handler is `link:yardoc/VertxApex/ErrorHandler.html[ErrorHandler]`. To use the error handler just set it as a
+The handler is `link:yardoc/VertxWeb/ErrorHandler.html[ErrorHandler]`. To use the error handler just set it as a
 failure handler for any paths that you want covered.
 
 == Request logger
 
-Apex includes a handler `link:yardoc/VertxApex/LoggerHandler.html[LoggerHandler]` that you can use to log HTTP requests.
+Vert.x-Web includes a handler `link:yardoc/VertxWeb/LoggerHandler.html[LoggerHandler]` that you can use to log HTTP requests.
 
 
 By default requests are logged to the Vert.x logger which can be configured to use JUL logging, log4j or SLF4J.
 
 == Serving favicons
 
-Apex includes the handler `link:yardoc/VertxApex/FaviconHandler.html[FaviconHandler]` especially for serving favicons.
+Vert.x-Web includes the handler `link:yardoc/VertxWeb/FaviconHandler.html[FaviconHandler]` especially for serving favicons.
 
-Favicons can be specified using a path to the filesystem, or by default Apex will look for a file on the classpath
+Favicons can be specified using a path to the filesystem, or by default Vert.x-Web will look for a file on the classpath
 with the name `favicon.ico`. This means you bundle the favicon in the jar of your application.
 
 == Timeout handler
 
-Apex includes a timeout handler that you can use to timeout requests if they take too long to process.
+Vert.x-Web includes a timeout handler that you can use to timeout requests if they take too long to process.
 
-This is configured using an instance of `link:yardoc/VertxApex/TimeoutHandler.html[TimeoutHandler]`.
+This is configured using an instance of `link:yardoc/VertxWeb/TimeoutHandler.html[TimeoutHandler]`.
 
 If a request times out before the response is written a `408` response will be returned to the client.
 
@@ -1756,9 +1756,9 @@ seconds:
 
 [source,ruby]
 ----
-require 'vertx-apex/timeout_handler'
+require 'vertx-web/timeout_handler'
 
-router.route("/foo/").handler(&VertxApex::TimeoutHandler.create(5000).method(:handle))
+router.route("/foo/").handler(&VertxWeb::TimeoutHandler.create(5000).method(:handle))
 
 
 ----
@@ -1784,25 +1784,25 @@ Please see the https://github.com/sockjs/sockjs-client[SockJS website] for more 
 
 === SockJS handler
 
-Vert.x provides an out of the box handler called `link:yardoc/VertxApex/SockJSHandler.html[SockJSHandler]` for
-using SockJS in your Apex applications.
+Vert.x provides an out of the box handler called `link:yardoc/VertxWeb/SockJSHandler.html[SockJSHandler]` for
+using SockJS in your Vert.x-Web applications.
 
-You should create one handler per SockJS application using `link:yardoc/VertxApex/SockJSHandler.html#create-class_method[SockJSHandler.create]`.
+You should create one handler per SockJS application using `link:yardoc/VertxWeb/SockJSHandler.html#create-class_method[SockJSHandler.create]`.
 You can also specify configuration options when creating the instance. The configuration options are described with
 an instance of `link:../cheatsheet/SockJSHandlerOptions.html[SockJSHandlerOptions]`.
 
 [source,ruby]
 ----
-require 'vertx-apex/router'
-require 'vertx-apex/sock_js_handler'
+require 'vertx-web/router'
+require 'vertx-web/sock_js_handler'
 
-router = VertxApex::Router.router(vertx)
+router = VertxWeb::Router.router(vertx)
 
 options = {
   'heartbeatPeriod' => 2000
 }
 
-sockJSHandler = VertxApex::SockJSHandler.create(vertx, options)
+sockJSHandler = VertxWeb::SockJSHandler.create(vertx, options)
 
 router.route("/myapp").handler(&sockJSHandler.method(:handle))
 
@@ -1813,7 +1813,7 @@ router.route("/myapp").handler(&sockJSHandler.method(:handle))
 On the server-side you set a handler on the SockJS handler, and
 this will be called every time a SockJS connection is made from a client:
 
-The object passed into the handler is a `link:yardoc/VertxApex/SockJSSocket.html[SockJSSocket]`. This has a familiar
+The object passed into the handler is a `link:yardoc/VertxWeb/SockJSSocket.html[SockJSSocket]`. This has a familiar
 socket-like interface which you can read and write to similarly to a `link:../../vertx-core/ruby/yardoc/Vertx/NetSocket.html[NetSocket]` or
 a `link:../../vertx-core/ruby/yardoc/Vertx/WebSocket.html[WebSocket]`. It also implements `link:../../vertx-core/ruby/yardoc/Vertx/ReadStream.html[ReadStream]` and
 `link:../../vertx-core/ruby/yardoc/Vertx/WriteStream.html[WriteStream]` so you can pump it to and from other read and write streams.
@@ -1822,16 +1822,16 @@ Here's an example of a simple SockJS handler that simply echoes back any back an
 
 [source,ruby]
 ----
-require 'vertx-apex/router'
-require 'vertx-apex/sock_js_handler'
+require 'vertx-web/router'
+require 'vertx-web/sock_js_handler'
 
-router = VertxApex::Router.router(vertx)
+router = VertxWeb::Router.router(vertx)
 
 options = {
   'heartbeatPeriod' => 2000
 }
 
-sockJSHandler = VertxApex::SockJSHandler.create(vertx, options)
+sockJSHandler = VertxWeb::SockJSHandler.create(vertx, options)
 
 sockJSHandler.socket_handler() { |sockJSSocket|
 
@@ -1901,7 +1901,7 @@ WEBSOCKET, EVENT_SOURCE, HTML_FILE, JSON_P, XHR.
 
 == SockJS event bus bridge
 
-Apex comes with a built-in SockJS socket handler called the event bus bridge which effectively extends the server-side
+Vert.x-Web comes with a built-in SockJS socket handler called the event bus bridge which effectively extends the server-side
 Vert.x event bus into client side JavaScript.
 
 This creates a distributed event bus which not only spans multiple Vert.x instances on the server side, but includes
@@ -1915,23 +1915,23 @@ very similar to the server-side Vert.x event-bus API, which allows you to send a
 and register handlers to receive messages.
 
 This JavaScript library uses the JavaScript SockJS client to tunnel the event bus traffic over SockJS connections
-terminating at at a `link:yardoc/VertxApex/SockJSHandler.html[SockJSHandler]` on the server-side.
+terminating at at a `link:yardoc/VertxWeb/SockJSHandler.html[SockJSHandler]` on the server-side.
 
-A special SockJS socket handler is then installed on the `link:yardoc/VertxApex/SockJSHandler.html[SockJSHandler]` which
+A special SockJS socket handler is then installed on the `link:yardoc/VertxWeb/SockJSHandler.html[SockJSHandler]` which
 handles the SockJS data and bridges it to and from the server side event bus.
 
 To activate the bridge you simply call
-`link:yardoc/VertxApex/SockJSHandler.html#bridge-instance_method[bridge]` on the
+`link:yardoc/VertxWeb/SockJSHandler.html#bridge-instance_method[bridge]` on the
 SockJS handler.
 
 [source,ruby]
 ----
-require 'vertx-apex/router'
-require 'vertx-apex/sock_js_handler'
+require 'vertx-web/router'
+require 'vertx-web/sock_js_handler'
 
-router = VertxApex::Router.router(vertx)
+router = VertxWeb::Router.router(vertx)
 
-sockJSHandler = VertxApex::SockJSHandler.create(vertx)
+sockJSHandler = VertxWeb::SockJSHandler.create(vertx)
 options = {
 }
 sockJSHandler.bridge(options)
@@ -2007,11 +2007,11 @@ based on a regular expression you use this field. If the `address` field is spec
 `link:../cheatsheet/PermittedOptions.html#match[match]`:: This allows you to allow messages based on their structure. Any fields in the match must exist in the
 message with the same values for them to be allowed. This currently only works with JSON messages.
 
-If a message is _in-bound_ (i.e. being sent from client side JavaScript to the server) when it is received Apex
+If a message is _in-bound_ (i.e. being sent from client side JavaScript to the server) when it is received Vert.x-Web
 will look through any inbound permitted matches. If any match, it will be allowed through.
 
 If a message is _out-bound_ (i.e. being sent from the server to client side JavaScript) before it is sent to the client
-Apex will look through any inbound permitted matches. If any match, it will be allowed through.
+Vert.x-Web will look through any inbound permitted matches. If any match, it will be allowed through.
 
 The actual matching works as follows:
 
@@ -2028,12 +2028,12 @@ Here's an example:
 
 [source,ruby]
 ----
-require 'vertx-apex/router'
-require 'vertx-apex/sock_js_handler'
+require 'vertx-web/router'
+require 'vertx-web/sock_js_handler'
 
-router = VertxApex::Router.router(vertx)
+router = VertxWeb::Router.router(vertx)
 
-sockJSHandler = VertxApex::SockJSHandler.create(vertx)
+sockJSHandler = VertxWeb::SockJSHandler.create(vertx)
 
 
 # Let through any messages sent to 'demo.orderMgr' from the client
@@ -2092,7 +2092,7 @@ router.route("/eventbus/*").handler(&sockJSHandler.method(:handle))
 
 === Requiring authorisation for messages
 
-The event bus bridge can also be configured to use the Apex authorisation functionality to require
+The event bus bridge can also be configured to use the Vert.x-Web authorisation functionality to require
 authorisation for messages, either in-bound or out-bound on the bridge.
 
 To do this, you can add extra fields to the match described in the previous section that determine what role and/or
@@ -2131,15 +2131,15 @@ To handle the login and actually auth you can configure the normal Vert.x auth h
 
 [source,ruby]
 ----
-require 'vertx-apex/router'
-require 'vertx-apex/sock_js_handler'
-require 'vertx-apex/cookie_handler'
-require 'vertx-apex/session_handler'
-require 'vertx-apex/local_session_store'
+require 'vertx-web/router'
+require 'vertx-web/sock_js_handler'
+require 'vertx-web/cookie_handler'
+require 'vertx-web/session_handler'
+require 'vertx-web/local_session_store'
 require 'vertx-auth/shiro_auth'
-require 'vertx-apex/basic_auth_handler'
+require 'vertx-web/basic_auth_handler'
 
-router = VertxApex::Router.router(vertx)
+router = VertxWeb::Router.router(vertx)
 
 # Let through any messages sent to 'demo.orderMgr' from the client
 inboundPermitted = {
@@ -2149,7 +2149,7 @@ inboundPermitted = {
 # But only if the user is logged in and has the role "admin"
 inboundPermitted['requiredRole'] = "admin"
 
-sockJSHandler = VertxApex::SockJSHandler.create(vertx)
+sockJSHandler = VertxWeb::SockJSHandler.create(vertx)
 sockJSHandler.bridge({
   'inboundPermitteds' => [
     inboundPermitted
@@ -2158,15 +2158,15 @@ sockJSHandler.bridge({
 
 # Now set up some basic auth handling:
 
-router.route().handler(&VertxApex::CookieHandler.create().method(:handle))
-router.route().handler(&VertxApex::SessionHandler.create(VertxApex::LocalSessionStore.create(vertx)).method(:handle))
+router.route().handler(&VertxWeb::CookieHandler.create().method(:handle))
+router.route().handler(&VertxWeb::SessionHandler.create(VertxWeb::LocalSessionStore.create(vertx)).method(:handle))
 
 authConfig = {
 }
 authConfig[Java::IoVertxExtAuthShiro::PropertiesProviderConstants::PROPERTIES_PROPS_PATH_FIELD] = "classpath:test-auth.properties"
 authProvider = VertxAuth::ShiroAuth.create(vertx, :PROPERTIES, authConfig)
 
-basicAuthHandler = VertxApex::BasicAuthHandler.create(authProvider)
+basicAuthHandler = VertxWeb::BasicAuthHandler.create(authProvider)
 
 router.route("/eventbus/*").handler(&basicAuthHandler.method(:handle))
 
@@ -2179,10 +2179,10 @@ router.route("/eventbus/*").handler(&sockJSHandler.method(:handle))
 === Handling event bus bridge events
 
 If you want to be notified when an event occurs on the bridge you can provide a handler when calling
-`link:yardoc/VertxApex/SockJSHandler.html#bridge-instance_method[bridge]`.
+`link:yardoc/VertxWeb/SockJSHandler.html#bridge-instance_method[bridge]`.
 
 Whenever an event occurs on the bridge it will be passed to the handler. The event is described by an instance of
-`link:yardoc/VertxApex/BridgeEvent.html[BridgeEvent]`.
+`link:yardoc/VertxWeb/BridgeEvent.html[BridgeEvent]`.
 
 The event can be one of the following types:
 
@@ -2194,8 +2194,8 @@ RECEIVE:: This event will occur when a message is attempted to be delivered from
 REGISTER. This event will occur when a client attempts to register a handler.
 UNREGISTER. This event will occur when a client attempts to unregister a handler.
 
-The event enables you to retrieve the type using `link:yardoc/VertxApex/BridgeEvent.html#type-instance_method[type]` and
-inspect the raw message of the event using `link:yardoc/VertxApex/BridgeEvent.html#raw_message-instance_method[rawMessage]`.
+The event enables you to retrieve the type using `link:yardoc/VertxWeb/BridgeEvent.html#type-instance_method[type]` and
+inspect the raw message of the event using `link:yardoc/VertxWeb/BridgeEvent.html#raw_message-instance_method[rawMessage]`.
 
 The raw message is a JSON object with the following structure:
 
