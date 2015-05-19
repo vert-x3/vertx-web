@@ -1,5 +1,3 @@
-require 'vertx-apex/session_store'
-require 'vertx-auth/auth_provider'
 require 'vertx/util/utils.rb'
 # Generated from io.vertx.ext.apex.Session
 module VertxApex
@@ -84,79 +82,6 @@ module VertxApex
       end
       raise ArgumentError, "Invalid arguments when calling destroyed?()"
     end
-    #  @return  true if the user is logged in.
-    # @return [true,false]
-    def logged_in?
-      if !block_given?
-        return @j_del.java_method(:isLoggedIn, []).call()
-      end
-      raise ArgumentError, "Invalid arguments when calling logged_in?()"
-    end
-    #  Set the principal (the unique user id) of the user -this signifies the user is logged in
-    # @param [Hash{String => Object}] principal the principal
-    # @return [void]
-    def set_principal(principal=nil)
-      if principal.class == Hash && !block_given?
-        return @j_del.java_method(:setPrincipal, [Java::IoVertxCoreJson::JsonObject.java_class]).call(::Vertx::Util::Utils.to_json_object(principal))
-      end
-      raise ArgumentError, "Invalid arguments when calling set_principal(principal)"
-    end
-    #  Get the principal
-    # @return [Hash{String => Object}] the principal or null if not logged in
-    def get_principal
-      if !block_given?
-        return @j_del.java_method(:getPrincipal, []).call() != nil ? JSON.parse(@j_del.java_method(:getPrincipal, []).call().encode) : nil
-      end
-      raise ArgumentError, "Invalid arguments when calling get_principal()"
-    end
-    #  Does the logged in user have the specified role?  Information is cached for the lifetime of the session
-    # @param [String] role the role
-    # @yield will be called with a result true/false
-    # @return [void]
-    def has_role(role=nil)
-      if role.class == String && block_given?
-        return @j_del.java_method(:hasRole, [Java::java.lang.String.java_class,Java::IoVertxCore::Handler.java_class]).call(role,(Proc.new { |ar| yield(ar.failed ? ar.cause : nil, ar.succeeded ? ar.result : nil) }))
-      end
-      raise ArgumentError, "Invalid arguments when calling has_role(role)"
-    end
-    #  Does the logged in user have the specified permissions?  Information is cached for the lifetime of the session
-    # @param [String] permission the permission
-    # @yield will be called with a result true/false
-    # @return [void]
-    def has_permission(permission=nil)
-      if permission.class == String && block_given?
-        return @j_del.java_method(:hasPermission, [Java::java.lang.String.java_class,Java::IoVertxCore::Handler.java_class]).call(permission,(Proc.new { |ar| yield(ar.failed ? ar.cause : nil, ar.succeeded ? ar.result : nil) }))
-      end
-      raise ArgumentError, "Invalid arguments when calling has_permission(permission)"
-    end
-    #  Does the logged in user have the specified roles?  Information is cached for the lifetime of the session
-    # @param [Set<String>] roles the roles
-    # @yield will be called with a result true/false
-    # @return [void]
-    def has_roles(roles=nil)
-      if roles.class == Set && block_given?
-        return @j_del.java_method(:hasRoles, [Java::JavaUtil::Set.java_class,Java::IoVertxCore::Handler.java_class]).call(Java::JavaUtil::LinkedHashSet.new(roles.map { |element| element }),(Proc.new { |ar| yield(ar.failed ? ar.cause : nil, ar.succeeded ? ar.result : nil) }))
-      end
-      raise ArgumentError, "Invalid arguments when calling has_roles(roles)"
-    end
-    #  Does the logged in user have the specified permissions?  Information is cached for the lifetime of the session
-    # @param [Set<String>] permissions the permissions
-    # @yield will be called with a result true/false
-    # @return [void]
-    def has_permissions(permissions=nil)
-      if permissions.class == Set && block_given?
-        return @j_del.java_method(:hasPermissions, [Java::JavaUtil::Set.java_class,Java::IoVertxCore::Handler.java_class]).call(Java::JavaUtil::LinkedHashSet.new(permissions.map { |element| element }),(Proc.new { |ar| yield(ar.failed ? ar.cause : nil, ar.succeeded ? ar.result : nil) }))
-      end
-      raise ArgumentError, "Invalid arguments when calling has_permissions(permissions)"
-    end
-    #  Logout the user.
-    # @return [void]
-    def logout
-      if !block_given?
-        return @j_del.java_method(:logout, []).call()
-      end
-      raise ArgumentError, "Invalid arguments when calling logout()"
-    end
     #  @return the amount of time in ms, after which the session will expire, if not accessed.
     # @return [Fixnum]
     def timeout
@@ -165,14 +90,6 @@ module VertxApex
       end
       raise ArgumentError, "Invalid arguments when calling timeout()"
     end
-    #  @return the store for the session
-    # @return [::VertxApex::SessionStore]
-    def session_store
-      if !block_given?
-        return ::VertxApex::SessionStore.new(@j_del.java_method(:sessionStore, []).call())
-      end
-      raise ArgumentError, "Invalid arguments when calling session_store()"
-    end
     #  Mark the session as being accessed.
     # @return [void]
     def set_accessed
@@ -180,15 +97,6 @@ module VertxApex
         return @j_del.java_method(:setAccessed, []).call()
       end
       raise ArgumentError, "Invalid arguments when calling set_accessed()"
-    end
-    #  Set the auth provider
-    # @param [::VertxAuth::AuthProvider] authProvider the auth provider
-    # @return [void]
-    def set_auth_provider(authProvider=nil)
-      if authProvider.class.method_defined?(:j_del) && !block_given?
-        return @j_del.java_method(:setAuthProvider, [Java::IoVertxExtAuth::AuthProvider.java_class]).call(authProvider.j_del)
-      end
-      raise ArgumentError, "Invalid arguments when calling set_auth_provider(authProvider)"
     end
   end
 end

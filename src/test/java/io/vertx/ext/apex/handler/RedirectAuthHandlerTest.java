@@ -25,7 +25,7 @@ import io.vertx.ext.apex.Session;
 import io.vertx.ext.apex.sstore.LocalSessionStore;
 import io.vertx.ext.apex.sstore.SessionStore;
 import io.vertx.ext.auth.AuthProvider;
-import io.vertx.ext.auth.shiro.ShiroAuthProvider;
+import io.vertx.ext.auth.shiro.ShiroAuth;
 import io.vertx.ext.auth.shiro.ShiroAuthRealmType;
 import org.junit.Test;
 
@@ -46,7 +46,7 @@ public class RedirectAuthHandlerTest extends AuthHandlerTestBase {
       Session sess = rc.session();
       assertNotNull(sess);
       assertEquals(sessionCookie.get().substring(13, 49), sess.id());
-      assertTrue(sess.isLoggedIn());
+      assertNotNull(rc.user());
       rc.response().end("Welcome to the protected resource!");
     });
     // And request it again
@@ -54,27 +54,6 @@ public class RedirectAuthHandlerTest extends AuthHandlerTestBase {
       req.putHeader("cookie", sessionCookie.get());
     }, resp -> {
     }, 200, "OK", "Welcome to the protected resource!");
-  }
-
-  @Test
-  public void testLoginThenLogout() throws Exception {
-
-    doLogin(rc -> {
-      Session sess = rc.session();
-      assertNotNull(sess);
-      assertEquals(sessionCookie.get().substring(13, 49), sess.id());
-      assertTrue(sess.isLoggedIn());
-      sess.logout();
-      assertFalse(sess.isLoggedIn());
-      rc.response().end("Welcome to the protected resource!");
-    });
-    testRequest(HttpMethod.GET, "/protected/somepage", req -> {
-      req.putHeader("cookie", sessionCookie.get());
-    }, resp -> {
-      String location = resp.headers().get("location");
-      assertNotNull(location);
-      assertEquals("/loginpage", location);
-    }, 302, "Found", null);
   }
 
   @Test
@@ -92,13 +71,18 @@ public class RedirectAuthHandlerTest extends AuthHandlerTestBase {
     return RedirectAuthHandler.create(authProvider);
   }
 
+  @Override
+  protected boolean requiresSession() {
+    return true;
+  }
+
   private void testLoginFail(boolean badUser) throws Exception {
 
     doLoginFail(badUser, rc -> {
       Session sess = rc.session();
       assertNotNull(sess);
       assertEquals(sessionCookie.get().substring(13, 49), sess.id());
-      assertTrue(sess.isLoggedIn());
+      assertNotNull(rc.user());
       rc.response().end("Welcome to the protected resource!");
     });
   }
@@ -140,7 +124,7 @@ public class RedirectAuthHandlerTest extends AuthHandlerTestBase {
     SessionStore store = LocalSessionStore.create(vertx);
     router.route().handler(SessionHandler.create(store));
     JsonObject authConfig = new JsonObject().put("properties_path", "classpath:login/loginusers.properties");
-    AuthProvider authProvider = ShiroAuthProvider.create(vertx, ShiroAuthRealmType.PROPERTIES, authConfig);
+    AuthProvider authProvider = ShiroAuth.create(vertx, ShiroAuthRealmType.PROPERTIES, authConfig);
     AuthHandler authHandler = RedirectAuthHandler.create(authProvider);
     if (roles != null) {
       authHandler.addRoles(roles);

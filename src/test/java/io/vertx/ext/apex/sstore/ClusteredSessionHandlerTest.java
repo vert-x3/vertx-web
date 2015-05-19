@@ -137,64 +137,15 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
   public void testSessionSerializationNullPrincipal() {
     long timeout = 123;
     SessionImpl session = (SessionImpl)store.createSession(timeout);
-    assertTrue(session.getRoles().isEmpty());
-    assertTrue(session.getPermissions().isEmpty());
     stuffSession(session);
     checkSession(session);
-    Buffer buffer = session.writeToBuffer();
+    Buffer buffer = Buffer.buffer();
+    session.writeToBuffer(buffer);
     SessionImpl session2 = (SessionImpl)store.createSession(0);
-    session2.readFromBuffer(buffer);
+    session2.readFromBuffer(0, buffer);
     checkSession(session2);
     assertEquals(timeout, session2.timeout());
     assertEquals(session.id(), session2.id());
-    assertNull(session2.getPrincipal());
-    assertTrue(session2.getRoles().isEmpty());
-    assertTrue(session2.getPermissions().isEmpty());
-  }
-
-  @Test
-  public void testSessionSerializationWithPrincipal() {
-    long timeout = 123;
-    SessionImpl session = (SessionImpl)store.createSession(timeout);
-    JsonObject principal = new JsonObject().put("foo", "bar").put("blah", 123);
-    session.setPrincipal(principal);
-    stuffSession(session);
-    checkSession(session);
-    Buffer buffer = session.writeToBuffer();
-    SessionImpl session2 = (SessionImpl)store.createSession(0);
-    session2.readFromBuffer(buffer);
-    checkSession(session2);
-    assertEquals(session.id(), session2.id());
-    assertEquals(timeout, session2.timeout());
-    assertEquals(principal, session2.getPrincipal());
-  }
-
-  @Test
-  public void testSessionSerializationWithRolesAndPermissions() {
-    long timeout = 123;
-    SessionImpl session = (SessionImpl)store.createSession(timeout);
-    session.getRoles().add("role1");
-    session.getRoles().add("role2");
-    session.getRoles().add("role3");
-    session.getPermissions().add("perm1");
-    session.getPermissions().add("perm2");
-    session.getPermissions().add("perm3");
-    stuffSession(session);
-    checkSession(session);
-    Buffer buffer = session.writeToBuffer();
-    SessionImpl session2 = (SessionImpl)store.createSession(0);
-    session2.readFromBuffer(buffer);
-    checkSession(session2);
-    assertEquals(session.id(), session2.id());
-    assertEquals(timeout, session2.timeout());
-    assertEquals(3, session2.getRoles().size());
-    assertTrue(session2.getRoles().contains("role1"));
-    assertTrue(session2.getRoles().contains("role2"));
-    assertTrue(session2.getRoles().contains("role3"));
-    assertEquals(3, session2.getPermissions().size());
-    assertTrue(session2.getPermissions().contains("perm1"));
-    assertTrue(session2.getPermissions().contains("perm2"));
-    assertTrue(session2.getPermissions().contains("perm3"));
   }
 
   private void stuffSession(Session session) {

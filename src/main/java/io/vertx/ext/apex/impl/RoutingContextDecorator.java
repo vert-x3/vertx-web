@@ -6,11 +6,8 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.apex.Cookie;
-import io.vertx.ext.apex.FileUpload;
-import io.vertx.ext.apex.Route;
-import io.vertx.ext.apex.RoutingContext;
-import io.vertx.ext.apex.Session;
+import io.vertx.ext.apex.*;
+import io.vertx.ext.auth.User;
 
 import java.util.Map;
 import java.util.Objects;
@@ -175,6 +172,11 @@ public class RoutingContextDecorator implements RoutingContext {
   }
 
   @Override
+  public User user() {
+    return decoratedContext.user();
+  }
+
+  @Override
   public Session session() {
     return decoratedContext.session();
   }
@@ -192,6 +194,11 @@ public class RoutingContextDecorator implements RoutingContext {
   @Override
   public void setSession(Session session) {
     decoratedContext.setSession(session);
+  }
+
+  @Override
+  public void setUser(User user) {
+    decoratedContext.setUser(user);
   }
 
   @Override

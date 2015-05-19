@@ -22,6 +22,7 @@ import rx.Observable;
 import io.vertx.rxjava.core.http.HttpServerRequest;
 import io.vertx.rxjava.core.Vertx;
 import java.util.Set;
+import io.vertx.rxjava.ext.auth.User;
 import io.vertx.rxjava.core.buffer.Buffer;
 import io.vertx.rxjava.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonObject;
@@ -292,6 +293,15 @@ public class RoutingContext {
   }
 
   /**
+   * Get the authenticated user (if any). This will usually be injected by an auth handler if authentication if successful.
+   * @return the user, or null if the current user is not authenticated.
+   */
+  public User user() { 
+    User ret= User.newInstance(this.delegate.user());
+    return ret;
+  }
+
+  /**
    * If the context is being routed to failure handlers after a failure has been triggered by calling
    * {@link  #fail(int)}  then this will return that status code.  It can be used by failure handlers to render a response,
    * e.g. create a failure response page.
@@ -381,6 +391,14 @@ public class RoutingContext {
    */
   public void setSession(Session session) { 
     this.delegate.setSession((io.vertx.ext.apex.Session) session.getDelegate());
+  }
+
+  /**
+   * Set the user. Usually used by auth handlers to inject a User. You will not normally call this method.
+   * @param user the user
+   */
+  public void setUser(User user) { 
+    this.delegate.setUser((io.vertx.ext.auth.User) user.getDelegate());
   }
 
   /**

@@ -22,10 +22,11 @@ import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.impl.LoggerFactory;
-import io.vertx.ext.apex.handler.FormLoginHandler;
 import io.vertx.ext.apex.RoutingContext;
 import io.vertx.ext.apex.Session;
+import io.vertx.ext.apex.handler.FormLoginHandler;
 import io.vertx.ext.auth.AuthProvider;
+import io.vertx.ext.auth.User;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -67,11 +68,11 @@ public class FormLoginHandlerImpl implements FormLoginHandler {
         if (session == null) {
           context.fail(new NullPointerException("No session - did you forget to include a SessionHandler?"));
         } else {
-          JsonObject principal = new JsonObject().put("username", username);
-          authProvider.login(principal, new JsonObject().put("password", password), res -> {
+          JsonObject authInfo = new JsonObject().put("username", username).put("password", password);
+          authProvider.authenticate(authInfo, res -> {
             if (res.succeeded()) {
-              session.setPrincipal(principal);
-              session.setAuthProvider(authProvider);
+              User user = res.result();
+              UserHolder.setUser(context, user);
               String returnURL = session.remove(returnURLParam);
               if (returnURL == null) {
                 context.fail(new IllegalStateException("Logged in OK, but no return URL"));

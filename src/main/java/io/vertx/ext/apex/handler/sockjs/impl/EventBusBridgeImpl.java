@@ -42,11 +42,11 @@ import io.vertx.core.json.DecodeException;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.impl.LoggerFactory;
-import io.vertx.ext.apex.Session;
 import io.vertx.ext.apex.handler.sockjs.BridgeEvent;
 import io.vertx.ext.apex.handler.sockjs.BridgeOptions;
 import io.vertx.ext.apex.handler.sockjs.PermittedOptions;
 import io.vertx.ext.apex.handler.sockjs.SockJSSocket;
+import io.vertx.ext.auth.User;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -220,7 +220,7 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
             Match curMatch = checkMatches(false, address, msg.body());
             if (curMatch.doesMatch) {
               if (curMatch.requiredPermission != null || curMatch.requiredRole != null) {
-                authorise(curMatch, sock.apexSession(), res -> {
+                authorise(curMatch, sock.apexUser(), res -> {
                   if (res.succeeded()) {
                     if (res.result()) {
                       checkAddAccceptedReplyAddress(msg);
@@ -306,7 +306,6 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
         sockInfo.pingInfo = pingInfo;
         sockInfos.put(sock, sockInfo);
       }, () -> {
-        System.out.println("Closing sockjs socket");
         sock.close();
       }
 
@@ -363,33 +362,29 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
     }
     if (curMatch.doesMatch) {
       if (curMatch.requiredPermission != null || curMatch.requiredRole != null) {
-        Session apexSession = sock.apexSession();
-        if (apexSession != null) {
-          if (!apexSession.isLoggedIn()) {
-            replyError(sock, "not_logged_in");
-          } else {
-            authorise(curMatch, apexSession, res -> {
-              if (res.succeeded()) {
-                if (res.result()) {
-                  checkAndSend(send, address, body, sock, replyAddress, null);
-                } else {
-                  replyError(sock, "access_denied");
-                  if (debug) {
-                    log.debug("Inbound message for address " + address + " rejected because is not authorised");
-                  }
-                }
+        User apexUser = sock.apexUser();
+        if (apexUser != null) {
+          authorise(curMatch, apexUser, res -> {
+            if (res.succeeded()) {
+              if (res.result()) {
+                checkAndSend(send, address, body, sock, replyAddress, null);
               } else {
-                replyError(sock, "auth_error");
-                log.error("Error in performing authorisation", res.cause());
+                replyError(sock, "access_denied");
+                if (debug) {
+                  log.debug("Inbound message for address " + address + " rejected because is not authorised");
+                }
               }
-            });
-          }
+            } else {
+              replyError(sock, "auth_error");
+              log.error("Error in performing authorisation", res.cause());
+            }
+          });
         } else {
           // no apex session
-          replyError(sock, "no_session");
+          replyError(sock, "not_logged_in");
           if (debug) {
             log.debug("Inbound message for address " + address +
-              " rejected because it requires auth and there is no apex session");
+              " rejected because it requires auth and user is not authenticated");
           }
         }
       } else {
@@ -455,11 +450,11 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
     }
   }
 
-  private void authorise(Match curMatch, Session apexSession,
+  private void authorise(Match curMatch, User apexUser,
                          Handler<AsyncResult<Boolean>> handler) {
 
     if (curMatch.requiredPermission != null) {
-      apexSession.hasPermission(curMatch.requiredPermission, res -> {
+      apexUser.hasPermission(curMatch.requiredPermission, res -> {
         if (res.succeeded()) {
           handler.handle(Future.succeededFuture(res.result()));
         } else {
@@ -467,7 +462,7 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
         }
       });
     } else {
-      apexSession.hasRole(curMatch.requiredRole, res -> {
+      apexUser.hasRole(curMatch.requiredRole, res -> {
         if (res.succeeded()) {
           handler.handle(Future.succeededFuture(res.result()));
         } else {

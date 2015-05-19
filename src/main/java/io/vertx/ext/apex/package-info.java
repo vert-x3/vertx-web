@@ -736,20 +736,13 @@
  *
  * == Authentication / authorisation
  *
- * Vert.x comes with some out of the box handlers for handling both authentication (login) and authorisation (seeing
- * whether you have rights for some resource).
+ * Vert.x comes with some out-of-the-box handlers for handling both authentication and authorisation.
  *
  * === Creating an auth handler
  *
  * To create an auth handler you need an instance of {@link io.vertx.ext.auth.AuthProvider}. Auth provider is
- * used for authentication and authorisation of users. It uses a simple
- * role/permission model and, by default, is backed by Apache Shiro. For full information on auth provider and how
- * to use and configure it please consult the auth service documentation.
- *
- * Like many services in Vert.x they can be instantiated locally, or you can create a proxy to an existing auth service
- * deployed as a verticle somewhere on the network. The latter case is useful if you have an app composed of many verticles
- * that want to do auth and you don't want each verticle to have its own auth service instance, or perhaps you have a single
- * auth service managed somewhere on your network and you want all auth request to go through that.
+ * used for authentication and authorisation of users. It uses a simple role/permission mode. For full information on
+ * auth provider and how to use and configure it please consult the auth documentation.
  *
  * Here's a simple example of creating a basic auth provider that gets user data from a properties file and creating
  * an auth handler from that, but it's the same principle whatever concrete auth provider you use.
@@ -758,8 +751,6 @@
  * ----
  * {@link examples.Examples#example35}
  * ----
- *
- * You'll also need cookies and sessions enabled for auth handling to work:
  *
  * [source,$lang]
  * ----
@@ -776,12 +767,13 @@
  * {@link examples.Examples#example38}
  * ----
  *
- * If the auth handler has successfully authenticated and authorised the user it will set the principal on the
- * session object, and the session will be marked as logged in. You can query the login status with
- * {@link io.vertx.ext.apex.Session#isLoggedIn} and you can get the principal with
- * {@link io.vertx.ext.apex.Session#getPrincipal}.
+ * If the auth handler has successfully authenticated and authorised the user it will inject a {@link io.vertx.ext.auth.User}
+ * object into the {@link io.vertx.ext.apex.RoutingContext} so it's available in your handlers with:
+ * {@link io.vertx.ext.apex.RoutingContext#user()}.
  *
- * If you want to cause the user to be logged out you can call {@link io.vertx.ext.apex.Session#logout()}.
+ * Once you have your user object you can also programmatically use the methods on it to authorise the user.
+ *
+ * If you want to cause the user to be logged out you can set the user to null on the routing context.
  *
  * === HTTP Basic Authentication
  *
@@ -798,7 +790,7 @@
  * The request is made to the resource again, this time with the `Authorization` header set, containing the username
  * and password encoded in Base64.
  *
- * When the basic auth handler receives this information, it calls the configured {@link io.vertx.ext.auth.AuthProvider auth service}
+ * When the basic auth handler receives this information, it calls the configured {@link io.vertx.ext.auth.AuthProvider}
  * with the username and password to authenticate the user. If the authentication is successful the handler attempts
  * to authorise the user. If that is successful then the routing of the request is allowed to continue to the application
  * handlers, otherwise a `403` response is returned to signify that access is denied.

@@ -19,12 +19,6 @@ package io.vertx.rxjava.ext.apex;
 import java.util.Map;
 import io.vertx.lang.rxjava.InternalHelper;
 import rx.Observable;
-import io.vertx.rxjava.ext.apex.sstore.SessionStore;
-import java.util.Set;
-import io.vertx.core.json.JsonObject;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Handler;
-import io.vertx.rxjava.ext.auth.AuthProvider;
 
 /**
  * Represents a browser session.
@@ -119,119 +113,6 @@ public class Session {
   }
 
   /**
-   * @return  true if the user is logged in.
-   * @return 
-   */
-  public boolean isLoggedIn() { 
-    boolean ret = this.delegate.isLoggedIn();
-    return ret;
-  }
-
-  /**
-   * Set the principal (the unique user id) of the user -this signifies the user is logged in
-   * @param principal the principal
-   */
-  public void setPrincipal(JsonObject principal) { 
-    this.delegate.setPrincipal(principal);
-  }
-
-  /**
-   * Get the principal
-   * @return the principal or null if not logged in
-   */
-  public JsonObject getPrincipal() { 
-    JsonObject ret = this.delegate.getPrincipal();
-    return ret;
-  }
-
-  /**
-   * Does the logged in user have the specified role?  Information is cached for the lifetime of the session
-   * @param role the role
-   * @param resultHandler will be called with a result true/false
-   */
-  public void hasRole(String role, Handler<AsyncResult<Boolean>> resultHandler) { 
-    this.delegate.hasRole(role, resultHandler);
-  }
-
-  /**
-   * Does the logged in user have the specified role?  Information is cached for the lifetime of the session
-   * @param role the role
-   * @return 
-   */
-  public Observable<Boolean> hasRoleObservable(String role) { 
-    io.vertx.rx.java.ObservableFuture<Boolean> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
-    hasRole(role, resultHandler.toHandler());
-    return resultHandler;
-  }
-
-  /**
-   * Does the logged in user have the specified permissions?  Information is cached for the lifetime of the session
-   * @param permission the permission
-   * @param resultHandler will be called with a result true/false
-   */
-  public void hasPermission(String permission, Handler<AsyncResult<Boolean>> resultHandler) { 
-    this.delegate.hasPermission(permission, resultHandler);
-  }
-
-  /**
-   * Does the logged in user have the specified permissions?  Information is cached for the lifetime of the session
-   * @param permission the permission
-   * @return 
-   */
-  public Observable<Boolean> hasPermissionObservable(String permission) { 
-    io.vertx.rx.java.ObservableFuture<Boolean> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
-    hasPermission(permission, resultHandler.toHandler());
-    return resultHandler;
-  }
-
-  /**
-   * Does the logged in user have the specified roles?  Information is cached for the lifetime of the session
-   * @param roles the roles
-   * @param resultHandler will be called with a result true/false
-   */
-  public void hasRoles(Set<String> roles, Handler<AsyncResult<Boolean>> resultHandler) { 
-    this.delegate.hasRoles(roles, resultHandler);
-  }
-
-  /**
-   * Does the logged in user have the specified roles?  Information is cached for the lifetime of the session
-   * @param roles the roles
-   * @return 
-   */
-  public Observable<Boolean> hasRolesObservable(Set<String> roles) { 
-    io.vertx.rx.java.ObservableFuture<Boolean> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
-    hasRoles(roles, resultHandler.toHandler());
-    return resultHandler;
-  }
-
-  /**
-   * Does the logged in user have the specified permissions?  Information is cached for the lifetime of the session
-   * @param permissions the permissions
-   * @param resultHandler will be called with a result true/false
-   */
-  public void hasPermissions(Set<String> permissions, Handler<AsyncResult<Boolean>> resultHandler) { 
-    this.delegate.hasPermissions(permissions, resultHandler);
-  }
-
-  /**
-   * Does the logged in user have the specified permissions?  Information is cached for the lifetime of the session
-   * @param permissions the permissions
-   * @return 
-   */
-  public Observable<Boolean> hasPermissionsObservable(Set<String> permissions) { 
-    io.vertx.rx.java.ObservableFuture<Boolean> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
-    hasPermissions(permissions, resultHandler.toHandler());
-    return resultHandler;
-  }
-
-  /**
-   * Logout the user.
-   */
-  public void logout() { 
-    this.delegate.logout();
-  }
-
-  /**
    * @return the amount of time in ms, after which the session will expire, if not accessed.
    * @return 
    */
@@ -241,27 +122,10 @@ public class Session {
   }
 
   /**
-   * @return the store for the session
-   * @return 
-   */
-  public SessionStore sessionStore() { 
-    SessionStore ret= SessionStore.newInstance(this.delegate.sessionStore());
-    return ret;
-  }
-
-  /**
    * Mark the session as being accessed.
    */
   public void setAccessed() { 
     this.delegate.setAccessed();
-  }
-
-  /**
-   * Set the auth provider
-   * @param authProvider the auth provider
-   */
-  public void setAuthProvider(AuthProvider authProvider) { 
-    this.delegate.setAuthProvider((io.vertx.ext.auth.AuthProvider) authProvider.getDelegate());
   }
 
 

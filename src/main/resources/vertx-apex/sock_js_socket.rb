@@ -1,3 +1,4 @@
+require 'vertx-auth/user'
 require 'vertx/buffer'
 require 'vertx/write_stream'
 require 'vertx/read_stream'
@@ -165,6 +166,13 @@ module VertxApex
         return ::VertxApex::Session.new(@j_del.java_method(:apexSession, []).call())
       end
       raise ArgumentError, "Invalid arguments when calling apex_session()"
+    end
+    # @return [::VertxAuth::User]
+    def apex_user
+      if !block_given?
+        return ::VertxAuth::User.new(@j_del.java_method(:apexUser, []).call())
+      end
+      raise ArgumentError, "Invalid arguments when calling apex_user()"
     end
   end
 end

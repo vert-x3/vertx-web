@@ -18,6 +18,7 @@
 var utils = require('vertx-js/util/utils');
 var FileUpload = require('vertx-apex-js/file_upload');
 var HttpServerRequest = require('vertx-js/http_server_request');
+var User = require('vertx-auth-js/user');
 var Route = require('vertx-apex-js/route');
 var Buffer = require('vertx-js/buffer');
 var HttpServerResponse = require('vertx-js/http_server_response');
@@ -359,6 +360,20 @@ var RoutingContext = function(j_val) {
   };
 
   /**
+   Get the authenticated user (if any). This will usually be injected by an auth handler if authentication if successful.
+
+   @public
+
+   @return {User} the user, or null if the current user is not authenticated.
+   */
+  this.user = function() {
+    var __args = arguments;
+    if (__args.length === 0) {
+      return new User(j_routingContext["user()"]());
+    } else utils.invalidArgs();
+  };
+
+  /**
    If the context is being routed to failure handlers after a failure has been triggered by calling
    {@link RoutingContext#fail}  then this will return that status code.  It can be used by failure handlers to render a response,
    e.g. create a failure response page.
@@ -487,6 +502,19 @@ var RoutingContext = function(j_val) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
       j_routingContext["setSession(io.vertx.ext.apex.Session)"](session._jdel);
+    } else utils.invalidArgs();
+  };
+
+  /**
+   Set the user. Usually used by auth handlers to inject a User. You will not normally call this method.
+
+   @public
+   @param user {User} the user 
+   */
+  this.setUser = function(user) {
+    var __args = arguments;
+    if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
+      j_routingContext["setUser(io.vertx.ext.auth.User)"](user._jdel);
     } else utils.invalidArgs();
   };
 

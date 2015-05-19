@@ -43,6 +43,7 @@ import io.vertx.core.net.SocketAddress;
 import io.vertx.ext.apex.Router;
 import io.vertx.ext.apex.Session;
 import io.vertx.ext.apex.handler.sockjs.SockJSSocket;
+import io.vertx.ext.auth.User;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -56,8 +57,8 @@ class RawWebSocketTransport {
     ServerWebSocket ws;
     MultiMap headers;
 
-    RawWSSockJSSocket(Vertx vertx, Session apexSession, ServerWebSocket ws) {
-      super(vertx, apexSession);
+    RawWSSockJSSocket(Vertx vertx, Session apexSession, User apexUser, ServerWebSocket ws) {
+      super(vertx, apexSession, apexUser);
       this.ws = ws;
       ws.closeHandler(v -> {
         // Make sure the writeHandler gets unregistered
@@ -145,7 +146,7 @@ class RawWebSocketTransport {
 
     router.get(wsRE).handler(rc -> {
       ServerWebSocket ws = rc.request().upgrade();
-      SockJSSocket sock = new RawWSSockJSSocket(vertx, rc.session(), ws);
+      SockJSSocket sock = new RawWSSockJSSocket(vertx, rc.session(), rc.user(), ws);
       sockHandler.handle(sock);
     });
 

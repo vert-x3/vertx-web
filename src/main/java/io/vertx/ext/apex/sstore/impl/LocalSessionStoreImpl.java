@@ -47,7 +47,7 @@ public class LocalSessionStoreImpl implements LocalSessionStore, Handler<Long> {
 
   @Override
   public Session createSession(long timeout) {
-    return new SessionImpl(timeout, this);
+    return new SessionImpl(timeout);
   }
 
   @Override

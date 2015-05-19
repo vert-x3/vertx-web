@@ -16,6 +16,7 @@
 
 /** @module vertx-apex-js/sock_js_socket */
 var utils = require('vertx-js/util/utils');
+var User = require('vertx-auth-js/user');
 var Buffer = require('vertx-js/buffer');
 var WriteStream = require('vertx-js/write_stream');
 var ReadStream = require('vertx-js/read_stream');
@@ -269,6 +270,19 @@ var SockJSSocket = function(j_val) {
     var __args = arguments;
     if (__args.length === 0) {
       return new Session(j_sockJSSocket["apexSession()"]());
+    } else utils.invalidArgs();
+  };
+
+  /**
+
+   @public
+
+   @return {User}
+   */
+  this.apexUser = function() {
+    var __args = arguments;
+    if (__args.length === 0) {
+      return new User(j_sockJSSocket["apexUser()"]());
     } else utils.invalidArgs();
   };
 

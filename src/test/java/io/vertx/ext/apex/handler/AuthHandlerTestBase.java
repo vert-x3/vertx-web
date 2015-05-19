@@ -22,7 +22,7 @@ import io.vertx.ext.apex.ApexTestBase;
 import io.vertx.ext.apex.sstore.LocalSessionStore;
 import io.vertx.ext.apex.sstore.SessionStore;
 import io.vertx.ext.auth.AuthProvider;
-import io.vertx.ext.auth.shiro.ShiroAuthProvider;
+import io.vertx.ext.auth.shiro.ShiroAuth;
 import io.vertx.ext.auth.shiro.ShiroAuthRealmType;
 import org.junit.Test;
 
@@ -64,14 +64,23 @@ public abstract class AuthHandlerTestBase extends ApexTestBase {
 
   protected abstract AuthHandler createAuthHandler(AuthProvider authProvider);
 
+  protected boolean requiresSession() {
+    return false;
+  }
+
+  protected SessionStore getSessionStore() {
+    return LocalSessionStore.create(vertx);
+  }
 
   protected void testAuthorisation(String username, boolean fail, Set<String> roles, Set<String> permissions) throws Exception {
-    router.route().handler(BodyHandler.create());
-    router.route().handler(CookieHandler.create());
-    SessionStore store = LocalSessionStore.create(vertx);
-    router.route().handler(SessionHandler.create(store));
+    if (requiresSession()) {
+      router.route().handler(BodyHandler.create());
+      router.route().handler(CookieHandler.create());
+      SessionStore store = getSessionStore();
+      router.route().handler(SessionHandler.create(store));
+    }
     JsonObject authConfig = new JsonObject().put("properties_path", "classpath:login/loginusers.properties");
-    AuthProvider authProvider = ShiroAuthProvider.create(vertx, ShiroAuthRealmType.PROPERTIES, authConfig);
+    AuthProvider authProvider = ShiroAuth.create(vertx, ShiroAuthRealmType.PROPERTIES, authConfig);
     AuthHandler authHandler = createAuthHandler(authProvider);
     if (roles != null) {
       authHandler.addRoles(roles);
@@ -81,12 +90,11 @@ public abstract class AuthHandlerTestBase extends ApexTestBase {
     }
     router.route().handler(rc -> {
       // we need to be logged in
-      if (!rc.session().isLoggedIn()) {
-        JsonObject principal = new JsonObject().put("username", username);
-        authProvider.login(principal, new JsonObject().put("password", "sausages"), res -> {
+      if (rc.user() == null) {
+        JsonObject authInfo = new JsonObject().put("username", username).put("password", "sausages");
+        authProvider.authenticate(authInfo, res -> {
           if (res.succeeded()) {
-            rc.session().setPrincipal(principal);
-            rc.session().setAuthProvider(authProvider);
+            rc.setUser(res.result());
             rc.next();
           } else {
             rc.fail(res.cause());

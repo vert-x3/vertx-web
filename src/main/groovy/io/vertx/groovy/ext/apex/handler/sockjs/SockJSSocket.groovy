@@ -17,6 +17,7 @@
 package io.vertx.groovy.ext.apex.handler.sockjs;
 import groovy.transform.CompileStatic
 import io.vertx.lang.groovy.InternalHelper
+import io.vertx.groovy.ext.auth.User
 import io.vertx.groovy.core.buffer.Buffer
 import io.vertx.groovy.core.streams.WriteStream
 import io.vertx.groovy.core.streams.ReadStream
@@ -140,6 +141,10 @@ public class SockJSSocket implements ReadStream<Buffer>,  WriteStream<Buffer> {
    */
   public Session apexSession() {
     def ret= new io.vertx.groovy.ext.apex.Session(this.delegate.apexSession());
+    return ret;
+  }
+  public User apexUser() {
+    def ret= new io.vertx.groovy.ext.auth.User(this.delegate.apexUser());
     return ret;
   }
 }

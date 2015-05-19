@@ -16,26 +16,31 @@
 
 package io.vertx.ext.apex.handler;
 
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
 import io.vertx.core.Handler;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.shareddata.impl.ClusterSerializable;
 import io.vertx.ext.apex.RoutingContext;
 import io.vertx.ext.apex.Session;
-import io.vertx.ext.apex.sstore.LocalSessionStore;
 import io.vertx.ext.apex.sstore.SessionStore;
+import io.vertx.ext.apex.sstore.impl.SessionImpl;
 import io.vertx.ext.auth.AuthProvider;
-import io.vertx.ext.auth.shiro.ShiroAuthProvider;
+import io.vertx.ext.auth.shiro.ShiroAuth;
 import io.vertx.ext.auth.shiro.ShiroAuthRealmType;
 import org.junit.Test;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 public class BasicAuthHandlerTest extends AuthHandlerTestBase {
-
-  protected AtomicReference<String> sessionCookie = new AtomicReference<>();
 
   @Test
   public void testLoginDefaultRealm() throws Exception {
@@ -50,26 +55,18 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
   private void doLogin(String realm) throws Exception {
 
     Handler<RoutingContext> handler = rc -> {
-      Session sess = rc.session();
-      assertNotNull(sess);
-      assertTrue(sess.isLoggedIn());
+      assertNotNull(rc.user());
+      assertEquals("tim", rc.user().principal().getString("username"));
       rc.response().end("Welcome to the protected resource!");
     };
 
-    router.route().handler(BodyHandler.create());
-    router.route().handler(CookieHandler.create());
-    SessionStore store = LocalSessionStore.create(vertx);
-    router.route().handler(SessionHandler.create(store));
     JsonObject authConfig = new JsonObject().put("properties_path", "classpath:login/loginusers.properties");
-    AuthProvider authProvider = ShiroAuthProvider.create(vertx, ShiroAuthRealmType.PROPERTIES, authConfig);
+    AuthProvider authProvider = ShiroAuth.create(vertx, ShiroAuthRealmType.PROPERTIES, authConfig);
     router.route("/protected/*").handler(BasicAuthHandler.create(authProvider, realm));
 
     router.route("/protected/somepage").handler(handler);
 
     testRequest(HttpMethod.GET, "/protected/somepage", null, resp -> {
-      String setCookie = resp.headers().get("set-cookie");
-      assertNotNull(setCookie);
-      sessionCookie.set(setCookie);
       String wwwAuth = resp.headers().get("WWW-Authenticate");
       assertNotNull(wwwAuth);
       assertEquals("Basic realm=\"" + realm + "\"", wwwAuth);
@@ -77,13 +74,92 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
 
     // Now try again with credentials
     testRequest(HttpMethod.GET, "/protected/somepage", req -> {
-      req.putHeader("cookie", sessionCookie.get());
       req.putHeader("Authorization", "Basic dGltOnNhdXNhZ2Vz");
     }, resp -> {
       String wwwAuth = resp.headers().get("WWW-Authenticate");
       assertNull(wwwAuth);
-
     }, 200, "OK", "Welcome to the protected resource!");
+
+  }
+
+  @Test
+  public void testWithSessions() throws Exception {
+    router.route().handler(BodyHandler.create());
+    router.route().handler(CookieHandler.create());
+    SessionStore store = new SerializingSessionStore();
+    router.route().handler(SessionHandler.create(store));
+
+    JsonObject authConfig = new JsonObject().put("properties_path", "classpath:login/loginusers.properties");
+    AuthProvider authProvider = ShiroAuth.create(vertx, ShiroAuthRealmType.PROPERTIES, authConfig);
+    router.route("/protected/*").handler(BasicAuthHandler.create(authProvider));
+
+    AtomicReference<String> sessionID = new AtomicReference<>();
+    AtomicInteger count = new AtomicInteger();
+
+    Handler<RoutingContext> handler = rc -> {
+      int c = count.incrementAndGet();
+      assertNotNull(rc.session());
+      String sessID = sessionID.get();
+      if (sessID != null) {
+        assertEquals(sessID, rc.session().id());
+      }
+      assertNotNull(rc.user());
+      assertEquals("tim", rc.user().principal().getString("username"));
+      assertTrue(rc.user().isClusterable());
+      if (c == 7) {
+        rc.setUser(null);
+      }
+      rc.response().end("Welcome to the protected resource!");
+    };
+
+    router.route("/protected/somepage").handler(handler);
+
+    AtomicReference<String> sessionCookie = new AtomicReference<>();
+
+    testRequest(HttpMethod.GET, "/protected/somepage", null, resp -> {
+      String wwwAuth = resp.headers().get("WWW-Authenticate");
+      assertNotNull(wwwAuth);
+      assertEquals("Basic realm=\"" + BasicAuthHandler.DEFAULT_REALM + "\"", wwwAuth);
+      String setCookie = resp.headers().get("set-cookie");
+      assertNotNull(setCookie);
+      sessionCookie.set(setCookie);
+    }, 401, "Unauthorized", null);
+
+    // Now try again with credentials
+    testRequest(HttpMethod.GET, "/protected/somepage", req -> {
+      req.putHeader("Authorization", "Basic dGltOnNhdXNhZ2Vz");
+      req.putHeader("cookie", sessionCookie.get());
+    }, resp -> {
+      String wwwAuth = resp.headers().get("WWW-Authenticate");
+      assertNull(wwwAuth);
+    }, 200, "OK", "Welcome to the protected resource!");
+
+    // And try again a few times we should be logged in with user stored in the session
+    for (int i = 0; i < 5; i++) {
+      testRequest(HttpMethod.GET, "/protected/somepage", req -> {
+        req.putHeader("cookie", sessionCookie.get());
+      }, resp -> {
+        String wwwAuth = resp.headers().get("WWW-Authenticate");
+        assertNull(wwwAuth);
+      }, 200, "OK", "Welcome to the protected resource!");
+    }
+
+    // Now set the user to null, this effectively logs him out
+
+    testRequest(HttpMethod.GET, "/protected/somepage", null, resp -> {
+      String wwwAuth = resp.headers().get("WWW-Authenticate");
+      assertNotNull(wwwAuth);
+      assertEquals("Basic realm=\"" + BasicAuthHandler.DEFAULT_REALM + "\"", wwwAuth);
+    }, 401, "Unauthorized", null);
+
+    // And login again
+    testRequest(HttpMethod.GET, "/protected/somepage", req -> {
+      req.putHeader("Authorization", "Basic dGltOnNhdXNhZ2Vz");
+    }, resp -> {
+      String wwwAuth = resp.headers().get("WWW-Authenticate");
+      assertNull(wwwAuth);
+    }, 200, "OK", "Welcome to the protected resource!");
+
 
   }
 
@@ -93,26 +169,17 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
     String realm = "apex";
 
     Handler<RoutingContext> handler = rc -> {
-      Session sess = rc.session();
-      assertNotNull(sess);
-      assertTrue(sess.isLoggedIn());
+      fail("should not get here");
       rc.response().end("Welcome to the protected resource!");
     };
 
-    router.route().handler(BodyHandler.create());
-    router.route().handler(CookieHandler.create());
-    SessionStore store = LocalSessionStore.create(vertx);
-    router.route().handler(SessionHandler.create(store));
     JsonObject authConfig = new JsonObject().put("properties_path", "classpath:login/loginusers.properties");
-    AuthProvider authProvider = ShiroAuthProvider.create(vertx, ShiroAuthRealmType.PROPERTIES, authConfig);
+    AuthProvider authProvider = ShiroAuth.create(vertx, ShiroAuthRealmType.PROPERTIES, authConfig);
     router.route("/protected/*").handler(BasicAuthHandler.create(authProvider));
 
     router.route("/protected/somepage").handler(handler);
 
     testRequest(HttpMethod.GET, "/protected/somepage", null, resp -> {
-      String setCookie = resp.headers().get("set-cookie");
-      assertNotNull(setCookie);
-      sessionCookie.set(setCookie);
       String wwwAuth = resp.headers().get("WWW-Authenticate");
       assertNotNull(wwwAuth);
       assertEquals("Basic realm=\"" + realm + "\"", wwwAuth);
@@ -120,7 +187,6 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
 
     // Now try again with bad credentials
     testRequest(HttpMethod.GET, "/protected/somepage", req -> {
-      req.putHeader("cookie", sessionCookie.get());
       req.putHeader("Authorization", "Basic dGltOn5hdXdhZ2Vz");
     }, resp -> {
       String wwwAuth = resp.headers().get("WWW-Authenticate");
@@ -135,4 +201,59 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
   protected AuthHandler createAuthHandler(AuthProvider authProvider) {
     return BasicAuthHandler.create(authProvider);
   }
+
+  private class SerializingSessionStore implements SessionStore {
+
+    private Map<String, Buffer> sessions = new ConcurrentHashMap<>();
+
+    @Override
+    public Session createSession(long timeout) {
+      return new SessionImpl(timeout);
+    }
+
+    @Override
+    public void get(String id, Handler<AsyncResult<Session>> resultHandler) {
+      Buffer buff = sessions.get(id);
+      SessionImpl sess;
+      if (buff != null) {
+        sess = new SessionImpl();
+        sess.readFromBuffer(0, buff);
+      } else {
+        sess = null;
+      }
+      vertx.runOnContext(v -> resultHandler.handle(Future.succeededFuture(sess)));
+    }
+
+    @Override
+    public void delete(String id, Handler<AsyncResult<Boolean>> resultHandler) {
+      boolean deleted = sessions.remove(id) != null;
+      vertx.runOnContext(v -> resultHandler.handle(Future.succeededFuture(deleted)));
+    }
+
+    @Override
+    public void put(Session session, Handler<AsyncResult<Boolean>> resultHandler) {
+      ClusterSerializable cs = (ClusterSerializable)session;
+      Buffer buff = Buffer.buffer();
+      cs.writeToBuffer(buff);
+      sessions.put(session.id(), buff);
+      vertx.runOnContext(v -> resultHandler.handle(Future.succeededFuture(true)));
+    }
+
+    @Override
+    public void clear(Handler<AsyncResult<Boolean>> resultHandler) {
+      sessions.clear();
+      vertx.runOnContext(v -> resultHandler.handle(Future.succeededFuture(true)));
+    }
+
+    @Override
+    public void size(Handler<AsyncResult<Integer>> resultHandler) {
+      vertx.runOnContext(v -> resultHandler.handle(Future.succeededFuture(sessions.size())));
+    }
+
+    @Override
+    public void close() {
+      sessions.clear();
+    }
+  }
+
 }
