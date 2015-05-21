@@ -106,7 +106,6 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
       }
       assertNotNull(rc.user());
       assertEquals("tim", rc.user().principal().getString("username"));
-      assertTrue(rc.user().isClusterable());
       if (c == 7) {
         rc.setUser(null);
       }

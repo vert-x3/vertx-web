@@ -16,7 +16,6 @@
 
 package io.vertx.ext.web.handler.impl;
 
-import io.vertx.core.buffer.Buffer;
 import io.vertx.ext.auth.AuthProvider;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.web.RoutingContext;
@@ -47,11 +46,11 @@ public class UserSessionHandlerImpl implements UserSessionHandler {
         RoutingContext prevContext = holder.context;
         if (prevContext != null) {
           user = prevContext.user();
-        } else if (holder.buff != null) {
-          Buffer buffer = holder.buff;
-          holder.buff = null;
+        } else if (holder.user != null) {
+          user = holder.user;
+          user.setAuthProvider(authProvider);
           holder.context = routingContext;
-          user = authProvider.fromBuffer(buffer);
+          holder.user = null;
         }
         holder.context = routingContext;
       } else {
