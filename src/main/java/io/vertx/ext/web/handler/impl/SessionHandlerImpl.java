@@ -63,6 +63,7 @@ public class SessionHandlerImpl implements SessionHandler {
 
   @Override
   public void handle(RoutingContext context) {
+    context.response().ended();
 
     if (nagHttps) {
       String uri = context.request().absoluteURI();

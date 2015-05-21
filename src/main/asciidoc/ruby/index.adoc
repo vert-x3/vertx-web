@@ -1318,10 +1318,12 @@ your auth handler is before your application handlers on those paths:
 require 'vertx-web/cookie_handler'
 require 'vertx-web/session_handler'
 require 'vertx-web/local_session_store'
+require 'vertx-web/user_session_handler'
 require 'vertx-web/basic_auth_handler'
 
 router.route().handler(&VertxWeb::CookieHandler.create().method(:handle))
 router.route().handler(&VertxWeb::SessionHandler.create(VertxWeb::LocalSessionStore.create(vertx)).method(:handle))
+router.route().handler(&VertxWeb::UserSessionHandler.create(authProvider).method(:handle))
 
 basicAuthHandler = VertxWeb::BasicAuthHandler.create(authProvider)
 
@@ -1348,6 +1350,10 @@ router.route("/private/somepath").handler() { |routingContext|
 If the auth handler has successfully authenticated and authorised the user it will inject a `link:../../vertx-auth/ruby/yardoc/VertxAuth/User.html[User]`
 object into the `link:yardoc/VertxWeb/RoutingContext.html[RoutingContext]` so it's available in your handlers with:
 `link:yardoc/VertxWeb/RoutingContext.html#user-instance_method[user]`.
+
+If you want your User object to be stored in the session so it's available between requests so you don't have to
+authenticate on each request, then you should make sure you have a session handler and a user session handler on matching
+routes before the auth handler.
 
 Once you have your user object you can also programmatically use the methods on it to authorise the user.
 
@@ -1397,12 +1403,14 @@ Here's an example of a simple app, using a redirect auth handler on the default 
 require 'vertx-web/cookie_handler'
 require 'vertx-web/session_handler'
 require 'vertx-web/local_session_store'
+require 'vertx-web/user_session_handler'
 require 'vertx-web/redirect_auth_handler'
 require 'vertx-web/form_login_handler'
 require 'vertx-web/static_handler'
 
 router.route().handler(&VertxWeb::CookieHandler.create().method(:handle))
 router.route().handler(&VertxWeb::SessionHandler.create(VertxWeb::LocalSessionStore.create(vertx)).method(:handle))
+router.route().handler(&VertxWeb::UserSessionHandler.create(authProvider).method(:handle))
 
 redirectAuthHandler = VertxWeb::RedirectAuthHandler.create(authProvider)
 

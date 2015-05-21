@@ -18,10 +18,8 @@ package io.vertx.ext.web.handler.impl;
 
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.shareddata.impl.ClusterSerializable;
-import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.Session;
-import io.vertx.ext.auth.AuthProvider;
 import io.vertx.ext.auth.User;
+import io.vertx.ext.web.RoutingContext;
 
 /**
  * Helper class for getting the User object internally in Vert.x-Web
@@ -30,65 +28,14 @@ import io.vertx.ext.auth.User;
  */
 public class UserHolder implements ClusterSerializable {
 
-  static final String SESSION_USER_KEY = "__vertx.user";
-
-  static User getUser(AuthProvider authProvider, RoutingContext context) {
-    // First look on the context
-    User user = context.user();
-    if (user != null) {
-      return user;
-    } else {
-      // It may be serialized in the session
-      Session session = context.session();
-      if (session != null) {
-        UserHolder holder = session.get(SESSION_USER_KEY);
-        if (holder != null) {
-          user = holder.getUser0(authProvider, context);
-          if (user != null) {
-            context.setUser(user);
-            return user;
-          } else {
-            // routingcontext user set to null on last route
-            session.remove(SESSION_USER_KEY);
-          }
-        }
-      }
-      return null;
-    }
-  }
-
-  static void setUser(RoutingContext context, User user) {
-    context.setUser(user);
-    Session session = context.session();
-    if (session != null && user.isClusterable()) {
-      session.put(SESSION_USER_KEY, new UserHolder(context));
-    }
-  }
-
-  private RoutingContext context;
-  private Buffer buff;
+  public RoutingContext context;
+  public Buffer buff;
 
   public UserHolder() {
   }
 
   public UserHolder(RoutingContext context) {
     this.context = context;
-  }
-
-  User getUser0(AuthProvider provider, RoutingContext newContext) {
-    try {
-      if (buff != null) {
-        User user = provider.fromBuffer(buff);
-        buff = null;
-        return user;
-      } else if (context != null) {
-        return context.user();
-      } else {
-        return null;
-      }
-    } finally {
-      this.context = newContext;
-    }
   }
 
   @Override

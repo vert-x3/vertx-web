@@ -54,6 +54,23 @@ public class RedirectAuthHandlerTest extends AuthHandlerTestBase {
       req.putHeader("cookie", sessionCookie.get());
     }, resp -> {
     }, 200, "OK", "Welcome to the protected resource!");
+    // Now logout
+    router.route("/logout").handler(rc -> {
+      System.out.println("Logging out");
+      rc.setUser(null);
+      rc.response().end("logged out");
+    });
+    testRequest(HttpMethod.GET, "/logout", req -> {
+      req.putHeader("cookie", sessionCookie.get());
+    }, resp -> {
+    }, 200, "OK", "logged out");
+    testRequest(HttpMethod.GET, "/protected/somepage", req -> {
+      req.putHeader("cookie", sessionCookie.get());
+    }, resp -> {
+      String location = resp.headers().get("location");
+      assertNotNull(location);
+      assertEquals("/loginpage", location);
+    }, 302, "Found", null);
   }
 
   @Test
@@ -125,6 +142,7 @@ public class RedirectAuthHandlerTest extends AuthHandlerTestBase {
     router.route().handler(SessionHandler.create(store));
     JsonObject authConfig = new JsonObject().put("properties_path", "classpath:login/loginusers.properties");
     AuthProvider authProvider = ShiroAuth.create(vertx, ShiroAuthRealmType.PROPERTIES, authConfig);
+    router.route().handler(UserSessionHandler.create(authProvider));
     AuthHandler authHandler = RedirectAuthHandler.create(authProvider);
     if (roles != null) {
       authHandler.addRoles(roles);

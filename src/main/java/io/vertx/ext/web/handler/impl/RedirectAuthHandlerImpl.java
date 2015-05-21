@@ -43,7 +43,8 @@ public class RedirectAuthHandlerImpl extends AuthHandlerImpl {
   public void handle(RoutingContext context) {
     Session session = context.session();
     if (session != null) {
-      User user = UserHolder.getUser(authProvider, context);
+      User user = context.user();
+      System.out.println(context.normalisedPath() + " in rd auth handler, user is " + user);
       if (user != null) {
         // Already logged in, just authorise
         authorise(user, context);
