@@ -72,7 +72,7 @@ public class FormLoginHandlerImpl implements FormLoginHandler {
           authProvider.authenticate(authInfo, res -> {
             if (res.succeeded()) {
               User user = res.result();
-              UserHolder.setUser(context, user);
+              context.setUser(user);
               String returnURL = session.remove(returnURLParam);
               if (returnURL == null) {
                 context.fail(new IllegalStateException("Logged in OK, but no return URL"));

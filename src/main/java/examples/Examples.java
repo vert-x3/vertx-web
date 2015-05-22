@@ -680,6 +680,7 @@ public class Examples {
 
     router.route().handler(CookieHandler.create());
     router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
+    router.route().handler(UserSessionHandler.create(authProvider));
 
     AuthHandler basicAuthHandler = BasicAuthHandler.create(authProvider);
 
@@ -706,6 +707,7 @@ public class Examples {
 
     router.route().handler(CookieHandler.create());
     router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
+    router.route().handler(UserSessionHandler.create(authProvider));
 
     AuthHandler redirectAuthHandler = RedirectAuthHandler.create(authProvider);
 

@@ -1318,10 +1318,12 @@ your auth handler is before your application handlers on those paths:
 var CookieHandler = require("vertx-web-js/cookie_handler");
 var SessionHandler = require("vertx-web-js/session_handler");
 var LocalSessionStore = require("vertx-web-js/local_session_store");
+var UserSessionHandler = require("vertx-web-js/user_session_handler");
 var BasicAuthHandler = require("vertx-web-js/basic_auth_handler");
 
 router.route().handler(CookieHandler.create().handle);
 router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)).handle);
+router.route().handler(UserSessionHandler.create(authProvider).handle);
 
 var basicAuthHandler = BasicAuthHandler.create(authProvider);
 
@@ -1348,6 +1350,10 @@ router.route("/private/somepath").handler(function (routingContext) {
 If the auth handler has successfully authenticated and authorised the user it will inject a `link:../../vertx-auth/js/jsdoc/user-User.html[User]`
 object into the `link:jsdoc/routing_context-RoutingContext.html[RoutingContext]` so it's available in your handlers with:
 `link:jsdoc/routing_context-RoutingContext.html#user[user]`.
+
+If you want your User object to be stored in the session so it's available between requests so you don't have to
+authenticate on each request, then you should make sure you have a session handler and a user session handler on matching
+routes before the auth handler.
 
 Once you have your user object you can also programmatically use the methods on it to authorise the user.
 
@@ -1397,12 +1403,14 @@ Here's an example of a simple app, using a redirect auth handler on the default 
 var CookieHandler = require("vertx-web-js/cookie_handler");
 var SessionHandler = require("vertx-web-js/session_handler");
 var LocalSessionStore = require("vertx-web-js/local_session_store");
+var UserSessionHandler = require("vertx-web-js/user_session_handler");
 var RedirectAuthHandler = require("vertx-web-js/redirect_auth_handler");
 var FormLoginHandler = require("vertx-web-js/form_login_handler");
 var StaticHandler = require("vertx-web-js/static_handler");
 
 router.route().handler(CookieHandler.create().handle);
 router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)).handle);
+router.route().handler(UserSessionHandler.create(authProvider).handle);
 
 var redirectAuthHandler = RedirectAuthHandler.create(authProvider);
 
