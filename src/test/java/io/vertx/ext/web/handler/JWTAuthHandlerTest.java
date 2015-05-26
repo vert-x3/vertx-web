@@ -1,0 +1,108 @@
+/*
+ * Copyright 2014 Red Hat, Inc.
+ *
+ *  All rights reserved. This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License v1.0
+ *  and Apache License v2.0 which accompanies this distribution.
+ *
+ *  The Eclipse Public License is available at
+ *  http://www.eclipse.org/legal/epl-v10.html
+ *
+ *  The Apache License v2.0 is available at
+ *  http://www.opensource.org/licenses/apache2.0.php
+ *
+ *  You may elect to redistribute this code under either of these licenses.
+ */
+
+package io.vertx.ext.web.handler;
+
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
+import io.vertx.core.Handler;
+import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.HttpMethod;
+import io.vertx.core.json.JsonObject;
+import io.vertx.core.shareddata.impl.ClusterSerializable;
+import io.vertx.ext.auth.jwt.JWTAuth;
+import io.vertx.ext.auth.jwt.JWTOptions;
+import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.Session;
+import io.vertx.ext.web.sstore.SessionStore;
+import io.vertx.ext.web.sstore.impl.SessionImpl;
+import io.vertx.ext.auth.AuthProvider;
+import io.vertx.ext.auth.shiro.ShiroAuth;
+import io.vertx.ext.auth.shiro.ShiroAuthRealmType;
+import org.junit.Test;
+
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+/**
+ * @author Paulo Lopes
+ */
+public class JWTAuthHandlerTest extends AuthHandlerTestBase {
+
+  @Test
+  public void testLogin() throws Exception {
+
+    Handler<RoutingContext> handler = rc -> {
+      assertNotNull(rc.user());
+      assertEquals("paulo", rc.user().principal().getString("sub"));
+      rc.response().end("Welcome to the protected resource!");
+    };
+
+    JsonObject authConfig = new JsonObject()
+        .put("keyStoreType", "jceks")
+        .put("keyStoreURI", "classpath:///keystore.jceks")
+        .put("keyStorePassword", "secret");
+
+    JWTAuth authProvider = JWTAuth.create(authConfig);
+    router.route("/protected/*").handler(JWTAuthHandler.create(authProvider));
+
+    router.route("/protected/somepage").handler(handler);
+
+    testRequest(HttpMethod.GET, "/protected/somepage", null, resp -> {
+    }, 401, "Unauthorized", null);
+
+    // Now try again with credentials
+    testRequest(HttpMethod.GET, "/protected/somepage", req -> {
+      req.putHeader("Authorization", "Bearer " + authProvider.generateToken(new JsonObject().put("sub", "paulo"), new JWTOptions()));
+    }, 200, "OK", "Welcome to the protected resource!");
+
+  }
+
+  @Test
+  public void testLoginFail() throws Exception {
+
+    Handler<RoutingContext> handler = rc -> {
+      fail("should not get here");
+      rc.response().end("Welcome to the protected resource!");
+    };
+
+    JsonObject authConfig = new JsonObject()
+            .put("keyStoreType", "jceks")
+            .put("keyStoreURI", "classpath:///keystore.jceks")
+            .put("keyStorePassword", "secret");
+
+    JWTAuth authProvider = JWTAuth.create(authConfig);
+
+    router.route("/protected/*").handler(JWTAuthHandler.create(authProvider));
+
+    router.route("/protected/somepage").handler(handler);
+
+    testRequest(HttpMethod.GET, "/protected/somepage", null, 401, "Unauthorized", null);
+
+    // Now try again with bad token
+    final String token = authProvider.generateToken(new JsonObject().put("sub", "paulo"), new JWTOptions());
+
+    testRequest(HttpMethod.GET, "/protected/somepage", req -> {
+      req.putHeader("Authorization", "Bearer x" + token);
+    }, 401, "Unauthorized", null);
+
+  }
+
+  @Override
+  protected AuthHandler createAuthHandler(AuthProvider authProvider) {
+    return JWTAuthHandler.create(authProvider);
+  }
+}

@@ -18,6 +18,7 @@ package io.vertx.ext.web.handler;
 
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
+import io.vertx.ext.auth.jwt.JWTAuth;
 import io.vertx.ext.web.handler.impl.BasicAuthHandlerImpl;
 import io.vertx.ext.auth.AuthProvider;
 import io.vertx.ext.web.handler.impl.JWTAuthHandlerImpl;
@@ -32,32 +33,32 @@ import java.util.List;
 @VertxGen
 public interface JWTAuthHandler extends AuthHandler {
 
-    /**
-     * Create a basic auth handler
-     *
-     * @param authProvider  the auth provider to use
-     * @return the auth handler
-     */
-    static JWTAuthHandler create(AuthProvider authProvider) {
-        return new JWTAuthHandlerImpl(authProvider, null);
-    }
+  /**
+   * Create a basic auth handler
+   *
+   * @param authProvider  the auth provider to use
+   * @return the auth handler
+   */
+  static JWTAuthHandler create(AuthProvider authProvider) {
+    return new JWTAuthHandlerImpl(authProvider, null);
+  }
 
-    /**
-     * Create a basic auth handler
-     *
-     * @param authProvider  the auth provider to use.
-     * @return the auth handler
-     */
-    static JWTAuthHandler create(AuthProvider authProvider, String skip) {
-        return new JWTAuthHandlerImpl(authProvider, skip);
-    }
+  /**
+   * Create a basic auth handler
+   *
+   * @param authProvider  the auth provider to use.
+   * @return the auth handler
+   */
+  static JWTAuthHandler create(AuthProvider authProvider, String skip) {
+    return new JWTAuthHandlerImpl(authProvider, skip);
+  }
 
-    @Fluent
-    JWTAuthHandler setAudience(List<String> audience);
+  @Fluent
+  JWTAuthHandler setAudience(List<String> audience);
 
-    @Fluent
-    JWTAuthHandler setIssuer(String issuer);
+  @Fluent
+  JWTAuthHandler setIssuer(String issuer);
 
-    @Fluent
-    JWTAuthHandler setIgnoreExpiration(boolean ignoreExpiration);
+  @Fluent
+  JWTAuthHandler setIgnoreExpiration(boolean ignoreExpiration);
 }

@@ -69,7 +69,7 @@ public class JWTAuthHandlerImpl extends AuthHandlerImpl implements JWTAuthHandle
 
     @Override
     public void handle(RoutingContext context) {
-        User user = UserHolder.getUser(authProvider, context);
+        User user = context.user();
         if (user != null) {
             // Already authenticated in, just authorise
             authorise(user, context);
@@ -120,7 +120,7 @@ public class JWTAuthHandlerImpl extends AuthHandlerImpl implements JWTAuthHandle
             authProvider.authenticate(authInfo, res -> {
                 if (res.succeeded()) {
                     final User user2 = res.result();
-                    UserHolder.setUser(context, user2);
+                    context.setUser(user2);
                     authorise(user2, context);
                 } else {
                     log.warn("JWT decode failure");
