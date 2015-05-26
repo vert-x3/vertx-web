@@ -57,6 +57,7 @@ import org.junit.Test;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
+import java.util.Locale;
 
 /**
  * SockJS protocol tests
@@ -120,11 +121,25 @@ public class SockJSHandlerTest extends WebTestBase {
    */
   @Test
   public void testProtocol() throws Exception {
-    String[] envp = new String[] {"SOCKJS_URL=http://localhost:8080"};
+    String sockjsenv = "SOCKJS_URL=http://localhost:8080";
     File dir = new File("src/test/sockjs-protocol");
+    String OS = System.getProperty("os.name", "generic").toLowerCase(Locale.ENGLISH);
     Process p;
-   // try {
+    if (OS.contains("mac") || OS.contains("darwin")) {
+      // Use default python installation on OSX
+      String[] envp = {
+          sockjsenv,
+          "PYTHONPATH=" + new File("src/test/sockjs-protocol/venv/lib/python2.7/site-packages").getAbsolutePath()
+      };
+      p = Runtime.getRuntime().exec("python sockjs-protocol-0.3.3.py", envp, dir);
+    } else {
+      String[] envp = {
+          "PYTHONPATH=" + new File("src/test/sockjs-protocol/venv/lib/python2.7/site-packages").getAbsolutePath()
+      };
       p = Runtime.getRuntime().exec("./venv/bin/python sockjs-protocol-0.3.3.py", envp, dir);
+    }
+
+    // try {
 //    } catch (IOException e) {
 //      if (e.getMessage().contains("No such file or directory")) {
 //        System.out.println("Skipping SockJS protocol tests : could not run them");
@@ -134,6 +149,7 @@ public class SockJSHandlerTest extends WebTestBase {
 //      }
 //    }
 
+    log.info("--------------------------------");
     try (BufferedReader input = new BufferedReader(new InputStreamReader(p.getErrorStream()))) {
       String line;
       while ((line = input.readLine()) != null) {
