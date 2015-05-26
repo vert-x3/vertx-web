@@ -116,7 +116,10 @@ public class CorsHandlerImpl implements CorsHandler {
     HttpServerRequest request = context.request();
     HttpServerResponse response = context.response();
     String origin = context.request().headers().get(ORIGIN);
-    if (isValidOrigin(origin)) {
+    if (origin == null) {
+      // Not a CORS request - we don't set any headers and just call the next handler
+      context.next();
+    } else if (isValidOrigin(origin)) {
       String accessControlRequestMethod = request.headers().get(ACCESS_CONTROL_REQUEST_METHOD);
       if (request.method() == HttpMethod.OPTIONS && accessControlRequestMethod != null) {
         // Pre-flight request
@@ -162,9 +165,6 @@ public class CorsHandlerImpl implements CorsHandler {
     if (allowedOrigin == null) {
       // Null means accept all origins
       return true;
-    }
-    if (origin == null) {
-      return false;
     }
     return allowedOrigin.matcher(origin).matches();
   }

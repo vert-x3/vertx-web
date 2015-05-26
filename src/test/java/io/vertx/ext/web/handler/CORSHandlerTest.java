@@ -36,6 +36,20 @@ public class CORSHandlerTest extends WebTestBase {
     CorsHandler.create(null);
   }
 
+  /*
+  If there is no origin then its not a CORS request so the CORS handler should just call the next handler without
+  adding any headers to the response
+   */
+  @Test
+  public void testNotCORSRequest() throws Exception {
+    router.route().handler(CorsHandler.create("vertx\\.io"));
+    router.route().handler(context -> {
+      context.response().end();
+    });
+    testRequest(HttpMethod.GET, "/", null, resp -> {
+      checkHeaders(resp, null, null, null, null);
+    }, 200, "OK", null);
+  }
 
   @Test
   public void testAcceptAllAllowedOrigin() throws Exception {
@@ -46,17 +60,6 @@ public class CORSHandlerTest extends WebTestBase {
     testRequest(HttpMethod.GET, "/", req -> {
       req.headers().add("origin", "vertx.io");
     }, resp -> {
-      checkHeaders(resp, "*", null, null, null);
-    }, 200, "OK", null);
-  }
-
-  @Test
-  public void testAcceptAllAllowedOriginNoOriginHeader() throws Exception {
-    router.route().handler(CorsHandler.create("*"));
-    router.route().handler(context -> {
-      context.response().end();
-    });
-    testRequest(HttpMethod.GET, "/", null, resp -> {
       checkHeaders(resp, "*", null, null, null);
     }, 200, "OK", null);
   }
@@ -97,17 +100,6 @@ public class CORSHandlerTest extends WebTestBase {
       // Make sure the '.' doesn't match like a regex
       req.headers().add("origin", "fooxio");
     }, resp -> {
-      checkHeaders(resp, null, null, null, null);
-    }, 403, "CORS Rejected - Invalid origin", null);
-  }
-
-  @Test
-  public void testAcceptConstantOriginNoOriginHeaderDenied() throws Exception {
-    router.route().handler(CorsHandler.create("vertx\\.io"));
-    router.route().handler(context -> {
-      context.response().end();
-    });
-    testRequest(HttpMethod.GET, "/", null, resp -> {
       checkHeaders(resp, null, null, null, null);
     }, 403, "CORS Rejected - Invalid origin", null);
   }

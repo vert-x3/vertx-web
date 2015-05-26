@@ -16,12 +16,14 @@
 
 package io.vertx.ext.web.handler.impl;
 
+import io.vertx.core.VertxException;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.shareddata.impl.ClusterSerializable;
-import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.Session;
-import io.vertx.ext.auth.AuthProvider;
 import io.vertx.ext.auth.User;
+import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.impl.Utils;
+
+import java.nio.charset.StandardCharsets;
 
 /**
  * Helper class for getting the User object internally in Vert.x-Web
@@ -30,43 +32,8 @@ import io.vertx.ext.auth.User;
  */
 public class UserHolder implements ClusterSerializable {
 
-  static final String SESSION_USER_KEY = "__vertx.user";
-
-  static User getUser(AuthProvider authProvider, RoutingContext context) {
-    // First look on the context
-    User user = context.user();
-    if (user != null) {
-      return user;
-    } else {
-      // It may be serialized in the session
-      Session session = context.session();
-      if (session != null) {
-        UserHolder holder = session.get(SESSION_USER_KEY);
-        if (holder != null) {
-          user = holder.getUser0(authProvider, context);
-          if (user != null) {
-            context.setUser(user);
-            return user;
-          } else {
-            // routingcontext user set to null on last route
-            session.remove(SESSION_USER_KEY);
-          }
-        }
-      }
-      return null;
-    }
-  }
-
-  static void setUser(RoutingContext context, User user) {
-    context.setUser(user);
-    Session session = context.session();
-    if (session != null && user.isClusterable()) {
-      session.put(SESSION_USER_KEY, new UserHolder(context));
-    }
-  }
-
-  private RoutingContext context;
-  private Buffer buff;
+  public RoutingContext context;
+  public User user;
 
   public UserHolder() {
   }
@@ -75,50 +42,44 @@ public class UserHolder implements ClusterSerializable {
     this.context = context;
   }
 
-  User getUser0(AuthProvider provider, RoutingContext newContext) {
-    try {
-      if (buff != null) {
-        User user = provider.fromBuffer(buff);
-        buff = null;
-        return user;
-      } else if (context != null) {
-        return context.user();
-      } else {
-        return null;
-      }
-    } finally {
-      this.context = newContext;
-    }
-  }
-
   @Override
   public void writeToBuffer(Buffer buffer) {
     User user = context.user();
-    if (user != null) {
-      if (user instanceof ClusterSerializable) {
-        ClusterSerializable cs = (ClusterSerializable)user;
-        Buffer buff = Buffer.buffer();
-        cs.writeToBuffer(buff);
-        buffer.appendInt(buff.length());
-        buffer.appendBuffer(buff);
-        cs.writeToBuffer(buffer);
-      } else {
-        throw new IllegalArgumentException("User is not a ClusterSerializable");
+    if (user != null && user instanceof ClusterSerializable) {
+      buffer.appendByte((byte)1);
+      String className = user.getClass().getCanonicalName();
+      if (className == null) {
+        throw new IllegalStateException("Cannot serialize " + user.getClass().getName());
       }
+      byte[] bytes = className.getBytes(StandardCharsets.UTF_8);
+      buffer.appendInt(bytes.length);
+      buffer.appendBytes(bytes);
+      ClusterSerializable cs = (ClusterSerializable)user;
+      cs.writeToBuffer(buffer);
     } else {
-      buffer.appendInt(0);
+      buffer.appendByte((byte)0);
     }
   }
 
   @Override
   public int readFromBuffer(int pos, Buffer buffer) {
-    int len = buffer.getInt(pos);
-    pos += 4;
-    if (len != 0) {
-      buff = buffer.getBuffer(pos, pos + len);
+    byte b = buffer.getByte(pos++);
+    if (b == (byte)1) {
+      int len = buffer.getInt(pos);
+      pos += 4;
+      byte[] bytes = buffer.getBytes(pos, pos + len);
       pos += len;
+      String className = new String(bytes, StandardCharsets.UTF_8);
+      try {
+        Class clazz = Utils.getClassLoader().loadClass(className);
+        ClusterSerializable obj = (ClusterSerializable) clazz.newInstance();
+        pos = obj.readFromBuffer(pos, buffer);
+        user = (User) obj;
+      } catch (Exception e) {
+        throw new VertxException(e);
+      }
     } else {
-      buff = null;
+      user = null;
     }
     return pos;
   }

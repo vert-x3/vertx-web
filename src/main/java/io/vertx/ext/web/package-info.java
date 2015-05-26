@@ -771,6 +771,10 @@
  * object into the {@link io.vertx.ext.web.RoutingContext} so it's available in your handlers with:
  * {@link io.vertx.ext.web.RoutingContext#user()}.
  *
+ * If you want your User object to be stored in the session so it's available between requests so you don't have to
+ * authenticate on each request, then you should make sure you have a session handler and a user session handler on matching
+ * routes before the auth handler.
+ *
  * Once you have your user object you can also programmatically use the methods on it to authorise the user.
  *
  * If you want to cause the user to be logged out you can set the user to null on the routing context.

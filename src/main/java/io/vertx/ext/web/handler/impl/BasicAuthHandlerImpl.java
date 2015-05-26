@@ -40,7 +40,7 @@ public class BasicAuthHandlerImpl extends AuthHandlerImpl {
 
   @Override
   public void handle(RoutingContext context) {
-    User user = UserHolder.getUser(authProvider, context);
+    User user = context.user();
     if (user != null) {
       // Already authenticated in, just authorise
       authorise(user, context);
@@ -77,9 +77,9 @@ public class BasicAuthHandlerImpl extends AuthHandlerImpl {
           JsonObject authInfo = new JsonObject().put("username", suser).put("password", spass);
           authProvider.authenticate(authInfo, res -> {
             if (res.succeeded()) {
-              User user2 = res.result();
-              UserHolder.setUser(context, user2);
-              authorise(user2, context);
+              User authenticated = res.result();
+              context.setUser(authenticated);
+              authorise(authenticated, context);
             } else {
               handle401(context);
             }
