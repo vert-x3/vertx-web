@@ -16,6 +16,8 @@
 
 package io.vertx.ext.web.handler;
 
+import io.vertx.core.MultiMap;
+import io.vertx.core.http.CaseInsensitiveHeaders;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.impl.LoggerFactory;
 import io.vertx.ext.web.WebTestBase;
@@ -81,6 +83,28 @@ public class SockJSHandlerTest extends WebTestBase {
       assertEquals(404, resp.statusCode());
       complete();
     });
+  }
+
+  @Test
+  public void testCookiesRemoved() throws Exception {
+    router.route("/cookiesremoved/*").handler(SockJSHandler.create(vertx)
+          .socketHandler(sock -> {
+            MultiMap headers = sock.headers();
+            String cookieHeader = headers.get("cookie");
+            assertNotNull(cookieHeader);
+            assertEquals("JSESSIONID=wibble", cookieHeader);
+            testComplete();
+          }));
+    MultiMap headers = new CaseInsensitiveHeaders();
+    headers.add("cookie", "JSESSIONID=wibble");
+    headers.add("cookie", "flibble=floob");
+
+    client.websocket("/cookiesremoved/websocket", headers, ws -> {
+      String frame = "foo";
+      ws.writeFrame(io.vertx.core.http.WebSocketFrame.textFrame(frame, true));
+    });
+
+    await();
   }
 
   /*

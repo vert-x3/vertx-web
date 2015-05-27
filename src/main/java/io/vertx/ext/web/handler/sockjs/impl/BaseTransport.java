@@ -32,6 +32,9 @@
 
 package io.vertx.ext.web.handler.sockjs.impl;
 
+import io.netty.handler.codec.http.Cookie;
+import io.netty.handler.codec.http.CookieDecoder;
+import io.netty.handler.codec.http.ServerCookieEncoder;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
@@ -52,6 +55,9 @@ import io.vertx.ext.web.handler.sockjs.Transport;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Random;
+import java.util.Set;
+
+import static io.vertx.core.http.HttpHeaders.COOKIE;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -212,19 +218,17 @@ class BaseTransport {
   // Authorisation
   static MultiMap removeCookieHeaders(MultiMap headers) {
     // We don't want to remove the JSESSION cookie.
-    String jsessionid = null;
-    for (String cookie : headers.getAll("cookie")) {
-      if (cookie.startsWith("JSESSIONID=")) {
-        jsessionid = cookie;
+    String cookieHeader = headers.get(COOKIE);
+    if (cookieHeader != null) {
+      headers.remove(COOKIE);
+      Set<Cookie> nettyCookies = CookieDecoder.decode(cookieHeader);
+      for (Cookie cookie: nettyCookies) {
+        if (cookie.getName().equals("JSESSIONID")) {
+          headers.add(COOKIE, ServerCookieEncoder.encode(cookie));
+          break;
+        }
       }
     }
-    headers.remove("cookie");
-
-    // Add back jsessionid cookie header
-    if (jsessionid != null) {
-      headers.add("cookie", jsessionid);
-    }
-
     return headers;
   }
 }
