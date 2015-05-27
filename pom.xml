@@ -187,6 +187,27 @@
         </plugins>
       </build>
     </profile>
+
+    <profile>
+      <!-- Disable SockJS protocol tests on CI as CI doesn't like python stuff -->
+      <id>CI-tests</id>
+
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+              <excludes>
+                <exclude>**/SockJSProtocolTest.java</exclude>
+                <exclude>**/HazelcastClusteredSessionHandlerTest.java</exclude>
+              </excludes>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
   </profiles>
+
+
 
 </project>
