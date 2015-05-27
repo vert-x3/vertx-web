@@ -838,10 +838,6 @@
  * {@link examples.Examples#example40}
  * ----
  *
- * === OAuth
- *
- * TODO
- *
  * == Serving static resources
  *
  * Vert.x-Web comes with an out of the box handler for serving static web resources so you can write static web servers
@@ -925,6 +921,19 @@
  *
  * For `text/html` directory listing, the template used to render the directory listing page can be configured with
  * {@link io.vertx.ext.web.handler.StaticHandler#setDirectoryTemplate(java.lang.String)}.
+ *
+ * === Disabling file caching on disk
+ *
+ * By default, Vert.x will cache files that are served from the classpath into a file on disk in a sub-directory of a
+ * directory called `.vertx` in the current working directory. This is mainly useful when deploying services as
+ * fatjars in production where serving a file from the classpath every time can be slow.
+ *
+ * In development this can cause a problem, as if you update your static content while the server is running, the
+ * cached file will be served not the updated file.
+ *
+ * To disable file caching you can provide the system property `vertx.disableFileCaching` with the value `true`. E.g. you
+ * could set up a run configuration in your IDE to set this when runnning your main class.
+ *
  *
  * == CORS handling
  *

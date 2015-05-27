@@ -83,7 +83,7 @@
      -->
     <dependency>
       <groupId>io.vertx</groupId>
-      <artifactId>vertx-auth</artifactId>
+      <artifactId>vertx-auth-common</artifactId>
       <optional>true</optional>
     </dependency>
     <dependency>
