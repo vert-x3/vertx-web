@@ -1,5 +1,5 @@
 require 'vertx-web/routing_context'
-require 'vertx-auth/auth_provider'
+require 'vertx-auth-common/auth_provider'
 require 'vertx/util/utils.rb'
 # Generated from io.vertx.ext.web.handler.FormLoginHandler
 module VertxWeb
@@ -26,7 +26,7 @@ module VertxWeb
       raise ArgumentError, "Invalid arguments when calling handle(arg0)"
     end
     #  Create a handler
-    # @param [::VertxAuth::AuthProvider] authProvider the auth service to use
+    # @param [::VertxAuthCommon::AuthProvider] authProvider the auth service to use
     # @param [String] usernameParam the value of the form attribute which will contain the username
     # @param [String] passwordParam the value of the form attribute which will contain the password
     # @param [String] returnURLParam the value of the form attribute which will contain the return url

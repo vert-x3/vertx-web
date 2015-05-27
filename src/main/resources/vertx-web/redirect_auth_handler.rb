@@ -1,6 +1,6 @@
 require 'vertx-web/auth_handler'
 require 'vertx-web/routing_context'
-require 'vertx-auth/auth_provider'
+require 'vertx-auth-common/auth_provider'
 require 'vertx/util/utils.rb'
 # Generated from io.vertx.ext.web.handler.RedirectAuthHandler
 module VertxWeb
@@ -66,7 +66,7 @@ module VertxWeb
       raise ArgumentError, "Invalid arguments when calling add_permissions(permissions)"
     end
     #  Create a handler
-    # @param [::VertxAuth::AuthProvider] authProvider the auth service to use
+    # @param [::VertxAuthCommon::AuthProvider] authProvider the auth service to use
     # @param [String] loginRedirectURL the url to redirect the user to
     # @param [String] returnURLParam the name of param used to store return url information in session
     # @return [::VertxWeb::AuthHandler] the handler

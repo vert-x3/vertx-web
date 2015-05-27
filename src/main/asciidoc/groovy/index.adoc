@@ -1276,27 +1276,12 @@ Vert.x comes with some out-of-the-box handlers for handling both authentication 
 
 === Creating an auth handler
 
-To create an auth handler you need an instance of `link:../../vertx-auth/groovy/groovydoc/io/vertx/groovy/ext/auth/AuthProvider.html[AuthProvider]`. Auth provider is
-used for authentication and authorisation of users. It uses a simple role/permission mode. For full information on
-auth provider and how to use and configure it please consult the auth documentation.
+To create an auth handler you need an instance of `link:../../vertx-auth-common/groovy/groovydoc/io/vertx/groovy/ext/auth/AuthProvider.html[AuthProvider]`. Auth provider is
+used for authentication and authorisation of users. Vert.x provides several auth provider instances out of the box
+in the vertx-auth project. For full information on auth providers and how to use and configure them
+please consult the auth documentation.
 
-Here's a simple example of creating a basic auth provider that gets user data from a properties file and creating
-an auth handler from that, but it's the same principle whatever concrete auth provider you use.
-
-[source,groovy]
-----
-import io.vertx.groovy.ext.auth.shiro.ShiroAuth
-import io.vertx.ext.auth.shiro.ShiroAuthRealmType
-import io.vertx.groovy.ext.web.handler.BasicAuthHandler
-
-def config = [:]
-config.io.vertx.ext.auth.shiro.PropertiesProviderConstants.PROPERTIES_PROPS_PATH_FIELD = "classpath:test-auth.properties"
-
-def authProvider = ShiroAuth.create(vertx, ShiroAuthRealmType.PROPERTIES, config)
-
-def basicAuthHandler = BasicAuthHandler.create(authProvider)
-
-----
+Here's a simple example of creating a basic auth handler given an auth provider.
 
 [source,groovy]
 ----
@@ -1309,7 +1294,6 @@ router.route().handler(CookieHandler.create())
 router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)))
 
 def basicAuthHandler = BasicAuthHandler.create(authProvider)
-
 
 ----
 
@@ -1352,7 +1336,7 @@ router.route("/private/somepath").handler({ routingContext ->
 
 ----
 
-If the auth handler has successfully authenticated and authorised the user it will inject a `link:../../vertx-auth/groovy/groovydoc/io/vertx/groovy/ext/auth/User.html[User]`
+If the auth handler has successfully authenticated and authorised the user it will inject a `link:../../vertx-auth-common/groovy/groovydoc/io/vertx/groovy/ext/auth/User.html[User]`
 object into the `link:groovydoc/io/vertx/groovy/ext/web/RoutingContext.html[RoutingContext]` so it's available in your handlers with:
 `link:groovydoc/io/vertx/groovy/ext/web/RoutingContext.html#user()[user]`.
 
@@ -1379,7 +1363,7 @@ prompt the user to enter their username and password.
 The request is made to the resource again, this time with the `Authorization` header set, containing the username
 and password encoded in Base64.
 
-When the basic auth handler receives this information, it calls the configured `link:../../vertx-auth/groovy/groovydoc/io/vertx/groovy/ext/auth/AuthProvider.html[AuthProvider]`
+When the basic auth handler receives this information, it calls the configured `link:../../vertx-auth-common/groovy/groovydoc/io/vertx/groovy/ext/auth/AuthProvider.html[AuthProvider]`
 with the username and password to authenticate the user. If the authentication is successful the handler attempts
 to authorise the user. If that is successful then the routing of the request is allowed to continue to the application
 handlers, otherwise a `403` response is returned to signify that access is denied.
@@ -1473,10 +1457,6 @@ router.route("/private/settings").handler(settingsAuthHandler)
 
 ----
 
-=== OAuth
-
-TODO
-
 == Serving static resources
 
 Vert.x-Web comes with an out of the box handler for serving static web resources so you can write static web servers
@@ -1564,6 +1544,19 @@ When directory listing is enabled the content returned depends on the content ty
 
 For `text/html` directory listing, the template used to render the directory listing page can be configured with
 `link:groovydoc/io/vertx/groovy/ext/web/handler/StaticHandler.html#setDirectoryTemplate(java.lang.String)[setDirectoryTemplate]`.
+
+=== Disabling file caching on disk
+
+By default, Vert.x will cache files that are served from the classpath into a file on disk in a sub-directory of a
+directory called `.vertx` in the current working directory. This is mainly useful when deploying services as
+fatjars in production where serving a file from the classpath every time can be slow.
+
+In development this can cause a problem, as if you update your static content while the server is running, the
+cached file will be served not the updated file.
+
+To disable file caching you can provide the system property `vertx.disableFileCaching` with the value `true`. E.g. you
+could set up a run configuration in your IDE to set this when runnning your main class.
+
 
 == CORS handling
 
@@ -2149,8 +2142,6 @@ import io.vertx.groovy.ext.web.handler.sockjs.SockJSHandler
 import io.vertx.groovy.ext.web.handler.CookieHandler
 import io.vertx.groovy.ext.web.handler.SessionHandler
 import io.vertx.groovy.ext.web.sstore.LocalSessionStore
-import io.vertx.groovy.ext.auth.shiro.ShiroAuth
-import io.vertx.ext.auth.shiro.ShiroAuthRealmType
 import io.vertx.groovy.ext.web.handler.BasicAuthHandler
 
 def router = Router.router(vertx)
@@ -2174,10 +2165,6 @@ sockJSHandler.bridge([
 
 router.route().handler(CookieHandler.create())
 router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)))
-
-def authConfig = [:]
-authConfig.io.vertx.ext.auth.shiro.PropertiesProviderConstants.PROPERTIES_PROPS_PATH_FIELD = "classpath:test-auth.properties"
-def authProvider = ShiroAuth.create(vertx, ShiroAuthRealmType.PROPERTIES, authConfig)
 
 def basicAuthHandler = BasicAuthHandler.create(authProvider)
 

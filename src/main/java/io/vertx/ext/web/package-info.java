@@ -741,16 +741,11 @@
  * === Creating an auth handler
  *
  * To create an auth handler you need an instance of {@link io.vertx.ext.auth.AuthProvider}. Auth provider is
- * used for authentication and authorisation of users. It uses a simple role/permission mode. For full information on
- * auth provider and how to use and configure it please consult the auth documentation.
+ * used for authentication and authorisation of users. Vert.x provides several auth provider instances out of the box
+ * in the vertx-auth project. For full information on auth providers and how to use and configure them
+ * please consult the auth documentation.
  *
- * Here's a simple example of creating a basic auth provider that gets user data from a properties file and creating
- * an auth handler from that, but it's the same principle whatever concrete auth provider you use.
- *
- * [source,$lang]
- * ----
- * {@link examples.Examples#example35}
- * ----
+ * Here's a simple example of creating a basic auth handler given an auth provider.
  *
  * [source,$lang]
  * ----

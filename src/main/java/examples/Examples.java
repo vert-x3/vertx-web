@@ -7,6 +7,7 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.auth.AuthProvider;
 import io.vertx.ext.web.*;
 import io.vertx.ext.web.handler.*;
 import io.vertx.ext.web.handler.sockjs.*;
@@ -15,10 +16,6 @@ import io.vertx.ext.web.sstore.LocalSessionStore;
 import io.vertx.ext.web.sstore.SessionStore;
 import io.vertx.ext.web.templ.HandlebarsTemplateEngine;
 import io.vertx.ext.web.templ.TemplateEngine;
-import io.vertx.ext.auth.AuthProvider;
-import io.vertx.ext.auth.shiro.PropertiesProviderConstants;
-import io.vertx.ext.auth.shiro.ShiroAuth;
-import io.vertx.ext.auth.shiro.ShiroAuthRealmType;
 
 import java.util.Set;
 
@@ -655,17 +652,6 @@ public class Examples {
 
   }
 
-  public void example35(Vertx vertx) {
-
-    JsonObject config = new JsonObject();
-    config.put(PropertiesProviderConstants.PROPERTIES_PROPS_PATH_FIELD,
-               "classpath:test-auth.properties");
-
-    AuthProvider authProvider = ShiroAuth.create(vertx, ShiroAuthRealmType.PROPERTIES, config);
-
-    AuthHandler basicAuthHandler = BasicAuthHandler.create(authProvider);
-  }
-
 
   public void example37(Vertx vertx, AuthProvider authProvider, Router router) {
 
@@ -673,7 +659,6 @@ public class Examples {
     router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
 
     AuthHandler basicAuthHandler = BasicAuthHandler.create(authProvider);
-
   }
 
   public void example38(Vertx vertx, AuthProvider authProvider, Router router) {
@@ -904,7 +889,7 @@ public class Examples {
     BridgeOptions options = new BridgeOptions().addInboundPermitted(inboundPermitted);
   }
 
-  public void example48(Vertx vertx) {
+  public void example48(Vertx vertx, AuthProvider authProvider) {
 
     Router router = Router.router(vertx);
 
@@ -922,11 +907,6 @@ public class Examples {
 
     router.route().handler(CookieHandler.create());
     router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
-
-    JsonObject authConfig = new JsonObject();
-    authConfig.put(PropertiesProviderConstants.PROPERTIES_PROPS_PATH_FIELD,
-      "classpath:test-auth.properties");
-    AuthProvider authProvider = ShiroAuth.create(vertx, ShiroAuthRealmType.PROPERTIES, authConfig);
 
     AuthHandler basicAuthHandler = BasicAuthHandler.create(authProvider);
 

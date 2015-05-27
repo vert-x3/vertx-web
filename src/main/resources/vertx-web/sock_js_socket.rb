@@ -1,5 +1,5 @@
 require 'vertx-web/session'
-require 'vertx-auth/user'
+require 'vertx-auth-common/user'
 require 'vertx/buffer'
 require 'vertx/write_stream'
 require 'vertx/read_stream'
@@ -168,10 +168,10 @@ module VertxWeb
       raise ArgumentError, "Invalid arguments when calling web_session()"
     end
     #   @return the Vert.x-Web user corresponding to this socket
-    # @return [::VertxAuth::User]
+    # @return [::VertxAuthCommon::User]
     def web_user
       if !block_given?
-        return ::VertxAuth::User.new(@j_del.java_method(:webUser, []).call())
+        return ::VertxAuthCommon::User.new(@j_del.java_method(:webUser, []).call())
       end
       raise ArgumentError, "Invalid arguments when calling web_user()"
     end

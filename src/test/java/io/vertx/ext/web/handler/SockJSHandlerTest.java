@@ -14,38 +14,6 @@
  *  You may elect to redistribute this code under either of these licenses.
  */
 
-/*
- * Copyright 2014 Red Hat, Inc.
- *
- *  All rights reserved. This program and the accompanying materials
- *  are made available under the terms of the Eclipse Public License v1.0
- *  and Apache License v2.0 which accompanies this distribution.
- *
- *  The Eclipse Public License is available at
- *  http://www.eclipse.org/legal/epl-v10.html
- *
- *  The Apache License v2.0 is available at
- *  http://www.opensource.org/licenses/apache2.0.php
- *
- *  You may elect to redistribute this code under either of these licenses.
- */
-
-/*
- * Copyright 2014 Red Hat, Inc.
- *
- *  All rights reserved. This program and the accompanying materials
- *  are made available under the terms of the Eclipse Public License v1.0
- *  and Apache License v2.0 which accompanies this distribution.
- *
- *  The Eclipse Public License is available at
- *  http://www.eclipse.org/legal/epl-v10.html
- *
- *  The Apache License v2.0 is available at
- *  http://www.opensource.org/licenses/apache2.0.php
- *
- *  You may elect to redistribute this code under either of these licenses.
- */
-
 package io.vertx.ext.web.handler;
 
 import io.vertx.core.logging.Logger;
@@ -133,21 +101,9 @@ public class SockJSHandlerTest extends WebTestBase {
       };
       p = Runtime.getRuntime().exec("python sockjs-protocol-0.3.3.py", envp, dir);
     } else {
-      String[] envp = {
-          "PYTHONPATH=" + new File("src/test/sockjs-protocol/venv/lib/python2.7/site-packages").getAbsolutePath()
-      };
+      String[] envp = new String[] {"SOCKJS_URL=http://localhost:8080"};
       p = Runtime.getRuntime().exec("./venv/bin/python sockjs-protocol-0.3.3.py", envp, dir);
     }
-
-    // try {
-//    } catch (IOException e) {
-//      if (e.getMessage().contains("No such file or directory")) {
-//        System.out.println("Skipping SockJS protocol tests : could not run them");
-//        return;
-//      } else {
-//        throw e;
-//      }
-//    }
 
     log.info("--------------------------------");
     try (BufferedReader input = new BufferedReader(new InputStreamReader(p.getErrorStream()))) {

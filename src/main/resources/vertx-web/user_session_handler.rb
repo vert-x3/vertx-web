@@ -1,5 +1,5 @@
 require 'vertx-web/routing_context'
-require 'vertx-auth/auth_provider'
+require 'vertx-auth-common/auth_provider'
 require 'vertx/util/utils.rb'
 # Generated from io.vertx.ext.web.handler.UserSessionHandler
 module VertxWeb
@@ -31,7 +31,7 @@ module VertxWeb
       raise ArgumentError, "Invalid arguments when calling handle(arg0)"
     end
     #  Create a new handler
-    # @param [::VertxAuth::AuthProvider] authProvider The auth provider to use
+    # @param [::VertxAuthCommon::AuthProvider] authProvider The auth provider to use
     # @return [::VertxWeb::UserSessionHandler] the handler
     def self.create(authProvider=nil)
       if authProvider.class.method_defined?(:j_del) && !block_given?
