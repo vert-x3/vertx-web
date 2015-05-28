@@ -919,6 +919,30 @@ public class Examples {
 
   }
 
+  public void example48_1(Vertx vertx) {
+
+    Router router = Router.router(vertx);
+
+    // Let through any messages sent to 'demo.orderService' from the client
+    PermittedOptions inboundPermitted = new PermittedOptions().setAddress("demo.orderService");
+
+    SockJSHandler sockJSHandler = SockJSHandler.create(vertx);
+    BridgeOptions options = new BridgeOptions().addInboundPermitted(inboundPermitted);
+
+    sockJSHandler.bridge(options, be -> {
+      if (be.type() == BridgeEvent.Type.PUBLISH || be.type() == BridgeEvent.Type.SEND) {
+        // Add some headers
+        JsonObject headers = new JsonObject().put("header1", "val").put("header2", "val2");
+        be.rawMessage().put("headers", headers);
+      }
+      be.complete(true);
+    });
+
+    router.route("/eventbus").handler(sockJSHandler);
+
+
+  }
+
   public void example49(Vertx vertx) {
 
     Router router = Router.router(vertx);

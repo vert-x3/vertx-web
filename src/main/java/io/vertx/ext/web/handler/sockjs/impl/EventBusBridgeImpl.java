@@ -32,21 +32,19 @@
 
 package io.vertx.ext.web.handler.sockjs.impl;
 
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Future;
-import io.vertx.core.Handler;
-import io.vertx.core.Vertx;
+import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.eventbus.*;
+import io.vertx.core.http.CaseInsensitiveHeaders;
 import io.vertx.core.json.DecodeException;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.impl.LoggerFactory;
+import io.vertx.ext.auth.User;
 import io.vertx.ext.web.handler.sockjs.BridgeEvent;
 import io.vertx.ext.web.handler.sockjs.BridgeOptions;
 import io.vertx.ext.web.handler.sockjs.PermittedOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSSocket;
-import io.vertx.ext.auth.User;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -340,8 +338,9 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
 
   private void doSendOrPub(boolean send, SockJSSocket sock, String address,
                            JsonObject message) {
-    final Object body = message.getValue("body");
-    final String replyAddress = message.getString("replyAddress");
+    Object body = message.getValue("body");
+    JsonObject headers = message.getJsonObject("headers");
+    String replyAddress = message.getString("replyAddress");
     // Sanity check reply address is not too big, to avoid DoS
     if (replyAddress != null && replyAddress.length() > 36) {
       // vertxbus.js ids are always 36 chars
@@ -367,7 +366,7 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
           authorise(curMatch, webUser, res -> {
             if (res.succeeded()) {
               if (res.result()) {
-                checkAndSend(send, address, body, sock, replyAddress, null);
+                checkAndSend(send, address, body, headers, sock, replyAddress, null);
               } else {
                 replyError(sock, "access_denied");
                 if (debug) {
@@ -388,7 +387,7 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
           }
         }
       } else {
-        checkAndSend(send, address, body, sock, replyAddress, awaitingReply);
+        checkAndSend(send, address, body, headers, sock, replyAddress, awaitingReply);
       }
     } else {
       // inbound match failed
@@ -400,14 +399,15 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
   }
 
   private void checkAndSend(boolean send, String address, Object body,
+                            JsonObject headers,
                             SockJSSocket sock,
                             String replyAddress,
                             Message awaitingReply) {
-    final SockInfo info = sockInfos.get(sock);
+    SockInfo info = sockInfos.get(sock);
     if (replyAddress != null && !checkMaxHandlers(sock, info)) {
       return;
     }
-    final Handler<AsyncResult<Message<Object>>> replyHandler;
+    Handler<AsyncResult<Message<Object>>> replyHandler;
     if (replyAddress != null) {
       replyHandler = result -> {
         if (result.succeeded()) {
@@ -436,17 +436,24 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
     if (log.isDebugEnabled()) {
       log.debug("Forwarding message to address " + address + " on event bus");
     }
+    MultiMap mHeaders;
+    if (headers != null) {
+      mHeaders = new CaseInsensitiveHeaders();
+      headers.forEach(entry-> mHeaders.add(entry.getKey(), entry.getValue().toString()));
+    } else {
+      mHeaders = null;
+    }
     if (send) {
       if (awaitingReply != null) {
         awaitingReply.reply(body, replyHandler);
       } else {
-        eb.send(address, body, new DeliveryOptions().setSendTimeout(replyTimeout), replyHandler);
+        eb.send(address, body, new DeliveryOptions().setSendTimeout(replyTimeout).setHeaders(mHeaders), replyHandler);
       }
       if (replyAddress != null) {
         info.handlerCount++;
       }
     } else {
-      eb.publish(address, body);
+      eb.publish(address, body, new DeliveryOptions().setHeaders(mHeaders));
     }
   }
 

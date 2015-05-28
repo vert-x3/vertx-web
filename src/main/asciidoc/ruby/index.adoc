@@ -2322,3 +2322,11 @@ Here's an example where we reject all messages flowing through the bridge if the
 ----
 Code not translatable
 ----
+
+You can also amend the raw message, e.g. change the body. For messages that are flowing in from the client you can
+also add headers to the message, here's an example:
+
+[source,ruby]
+----
+Code not translatable
+----

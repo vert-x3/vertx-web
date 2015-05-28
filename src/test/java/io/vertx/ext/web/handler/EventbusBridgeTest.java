@@ -32,20 +32,21 @@
 
 package io.vertx.ext.web.handler;
 
+import io.vertx.core.eventbus.Message;
 import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.web.WebTestBase;
+import io.vertx.ext.auth.AuthProvider;
+import io.vertx.ext.auth.shiro.ShiroAuth;
+import io.vertx.ext.auth.shiro.ShiroAuthRealmType;
 import io.vertx.ext.web.Router;
+import io.vertx.ext.web.WebTestBase;
 import io.vertx.ext.web.handler.sockjs.BridgeEvent;
 import io.vertx.ext.web.handler.sockjs.BridgeOptions;
 import io.vertx.ext.web.handler.sockjs.PermittedOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSHandler;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import io.vertx.ext.web.sstore.SessionStore;
-import io.vertx.ext.auth.AuthProvider;
-import io.vertx.ext.auth.shiro.ShiroAuth;
-import io.vertx.ext.auth.shiro.ShiroAuthRealmType;
 import io.vertx.test.core.TestUtils;
 import org.junit.Test;
 
@@ -151,6 +152,26 @@ public class EventbusBridgeTest extends WebTestBase {
   }
 
   @Test
+  public void testHookSendHeaders() throws Exception {
+
+    sockJSHandler.bridge(allAccessOptions, be -> {
+      if (be.type() == BridgeEvent.Type.SEND) {
+        assertNotNull(be.socket());
+        JsonObject raw = be.rawMessage();
+        assertEquals(addr, raw.getString("address"));
+        assertEquals("foobar", raw.getString("body"));
+        raw.put("headers", new JsonObject().put("hdr1", "val1").put("hdr2", "val2"));
+        be.complete(true);
+        testComplete();
+      } else {
+        be.complete(true);
+      }
+    });
+    testSend(addr, "foobar", true);
+    await();
+  }
+
+  @Test
   public void testHookSendRejected() throws Exception {
 
     sockJSHandler.bridge(allAccessOptions, be -> {
@@ -182,6 +203,26 @@ public class EventbusBridgeTest extends WebTestBase {
       }
     });
     testPublish("foobar");
+    await();
+  }
+
+  @Test
+  public void testHookPublishHeaders() throws Exception {
+
+    sockJSHandler.bridge(allAccessOptions, be -> {
+      if (be.type() == BridgeEvent.Type.PUBLISH) {
+        assertNotNull(be.socket());
+        JsonObject raw = be.rawMessage();
+        assertEquals(addr, raw.getString("address"));
+        assertEquals("foobar", raw.getString("body"));
+        raw.put("headers", new JsonObject().put("hdr1", "val1").put("hdr2", "val2"));
+        be.complete(true);
+        testComplete();
+      } else {
+        be.complete(true);
+      }
+    });
+    testPublish(addr, "foobar", true);
     await();
   }
 
@@ -936,6 +977,10 @@ public class EventbusBridgeTest extends WebTestBase {
   }
 
   private void testSend(String address, Object body) throws Exception {
+    testSend(address, body, false);
+  }
+
+  private void testSend(String address, Object body, boolean headers) throws Exception {
 
     CountDownLatch latch = new CountDownLatch(1);
 
@@ -946,6 +991,9 @@ public class EventbusBridgeTest extends WebTestBase {
       consumer.handler(msg -> {
         Object receivedBody = msg.body();
         assertEquals(body, receivedBody);
+        if (headers) {
+          checkHeaders(msg);
+        }
         consumer.unregister(v -> latch.countDown());
       });
 
@@ -963,6 +1011,15 @@ public class EventbusBridgeTest extends WebTestBase {
   }
 
   private void testPublish(String address, Object body) throws Exception {
+    testPublish(address, body, false);
+  }
+
+  private void checkHeaders(Message msg) {
+    assertEquals("val1", msg.headers().get("hdr1"));
+    assertEquals("val2", msg.headers().get("hdr2"));
+  }
+
+  private void testPublish(String address, Object body, boolean headers) throws Exception {
     CountDownLatch latch = new CountDownLatch(2);
 
     client.websocket(websocketURI, ws -> {
@@ -970,12 +1027,18 @@ public class EventbusBridgeTest extends WebTestBase {
       vertx.eventBus().consumer(address, msg -> {
         Object receivedBody = msg.body();
         assertEquals(body, receivedBody);
+        if (headers) {
+          checkHeaders(msg);
+        }
         latch.countDown();
       });
 
       vertx.eventBus().consumer(address, msg -> {
         Object receivedBody = msg.body();
         assertEquals(body, receivedBody);
+        if (headers) {
+          checkHeaders(msg);
+        }
         latch.countDown();
       });
 

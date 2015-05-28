@@ -1444,6 +1444,14 @@
  * {@link examples.Examples#example49}
  * ----
  *
+ * You can also amend the raw message, e.g. change the body. For messages that are flowing in from the client you can
+ * also add headers to the message, here's an example:
+ *
+ * [source,$lang]
+ * ----
+ * {@link examples.Examples#example48_1}
+ * ----
+ *
  */
 @Document(fileName = "index.adoc")
 @GenModule(name = "vertx-web")
