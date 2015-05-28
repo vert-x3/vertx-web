@@ -60,6 +60,15 @@ public class RouterTest extends WebTestBase {
   }
 
   @Test
+  public void testRouteGetPathWithParamsInHandler() throws Exception {
+    router.route("/foo/:id").handler(rc -> {
+      assertEquals("/foo/123", rc.normalisedPath());
+      rc.response().end();
+    });
+    testRequest(HttpMethod.GET, "/foo/123", 200, "OK");
+  }
+
+  @Test
   public void testRoutePathAndMethod() throws Exception {
     for (HttpMethod meth: METHODS) {
       testRoutePathAndMethod(meth, true);
