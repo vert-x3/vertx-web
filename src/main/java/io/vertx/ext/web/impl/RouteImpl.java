@@ -232,7 +232,7 @@ public class RouteImpl implements Route {
     if (!methods.isEmpty() && !methods.contains(request.method())) {
       return false;
     }
-    if (path != null && !pathMatches(mountPoint, context)) {
+    if (path != null && pattern == null && !pathMatches(mountPoint, context)) {
       return false;
     }
     if (pattern != null) {
@@ -367,6 +367,7 @@ public class RouteImpl implements Route {
     // a regex for that
     if (path.indexOf(':') != -1) {
       createPatternRegex(path);
+      this.path = path;
     } else {
       if (path.charAt(path.length() - 1) != '*') {
         exactPath = true;
