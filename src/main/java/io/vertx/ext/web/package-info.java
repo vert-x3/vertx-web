@@ -819,6 +819,50 @@
  * {@link examples.Examples#example39}
  * ----
  *
+ * === JWT authorisation
+ *
+ * With JWT authorisation resources can be protected by means of permissions and users without enough rights are denied
+ * access.
+ *
+ * To use this handler there are 2 steps involved:
+ *
+ * * Setup an handler to issue tokens (or rely on a 3rd party)
+ * * Setup the handler to filter the requests
+ *
+ * Please note that these 2 handlers should be only available on HTTPS, not doing so allows sniffing the tokens in
+ * transit which leads to session hijacking attacks.
+ *
+ * Here's an example on how to issue tokens:
+ *
+ * [source,$lang]
+ * ----
+ * {@link examples.Examples#example50}
+ * ----
+ *
+ * Now that your client has a token all it is required is that for *all* consequent request the HTTP header
+ * `Authorization` is filled with: `Bearer &lt;token&gt;` e.g.:
+ *
+ * [source,$lang]
+ * ----
+ * {@link examples.Examples#example51}
+ * ----
+ *
+ * JWT allows you to add any information you like to the token itself. By doing this there is no state in the server
+ * which allows you to scale your applications without need for clustered session data. In order to add data to the
+ * token, during the creation of the token just add data to the JsonObject parameter:
+ *
+ * [source,$lang]
+ * ----
+ * {@link examples.Examples#example52}
+ * ----
+ *
+ * And the same when consuming:
+ *
+ * [source,$lang]
+ * ----
+ * {@link examples.Examples#example53}
+ * ----
+ *
  * === Configuring required roles and permissions
  *
  * With any auth handler you can also configure required roles and permissions to access the resource.

@@ -1,6 +1,6 @@
 require 'vertx-web/auth_handler'
 require 'vertx-web/routing_context'
-require 'vertx-auth/auth_provider'
+require 'vertx-auth-common/auth_provider'
 require 'vertx/util/utils.rb'
 # Generated from io.vertx.ext.web.handler.JWTAuthHandler
 module VertxWeb
@@ -66,7 +66,7 @@ module VertxWeb
       raise ArgumentError, "Invalid arguments when calling add_permissions(permissions)"
     end
     #  Create a basic auth handler
-    # @param [::VertxAuth::AuthProvider] authProvider the auth provider to use.
+    # @param [::VertxAuthCommon::AuthProvider] authProvider the auth provider to use.
     # @param [String] skip
     # @return [::VertxWeb::JWTAuthHandler] the auth handler
     def self.create(authProvider=nil,skip=nil)

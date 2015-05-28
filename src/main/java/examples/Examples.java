@@ -8,6 +8,8 @@ import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.AuthProvider;
+import io.vertx.ext.auth.jwt.JWTAuth;
+import io.vertx.ext.auth.jwt.JWTOptions;
 import io.vertx.ext.web.*;
 import io.vertx.ext.web.handler.*;
 import io.vertx.ext.web.handler.sockjs.*;
@@ -901,7 +903,7 @@ public class Examples {
 
     SockJSHandler sockJSHandler = SockJSHandler.create(vertx);
     sockJSHandler.bridge(new BridgeOptions().
-        addInboundPermitted(inboundPermitted));
+            addInboundPermitted(inboundPermitted));
 
     // Now set up some basic auth handling:
 
@@ -943,8 +945,64 @@ public class Examples {
 
   }
 
+  public void example50(Vertx vertx) {
 
+    Router router = Router.router(vertx);
 
+    JsonObject authConfig = new JsonObject()
+        .put("keyStoreType", "jceks")
+        .put("keyStoreURI", "classpath:///keystore.jceks")
+        .put("keyStorePassword", "secret");
+
+    JWTAuth authProvider = JWTAuth.create(authConfig);
+
+    router.route("/login").handler(ctx -> {
+      // this is an example, authentication should be done with another provider...
+      if ("paulo".equals(ctx.request().getParam("username")) && "secret".equals(ctx.request().getParam("password"))) {
+        ctx.response().end(authProvider.generateToken(new JsonObject().put("sub", "paulo"), new JWTOptions()));
+      } else {
+        ctx.fail(401);
+      }
+    });
+  }
+
+  public void example51(Vertx vertx) {
+
+    Router router = Router.router(vertx);
+
+    JsonObject authConfig = new JsonObject()
+        .put("keyStoreType", "jceks")
+        .put("keyStoreURI", "classpath:///keystore.jceks")
+        .put("keyStorePassword", "secret");
+
+    JWTAuth authProvider = JWTAuth.create(authConfig);
+
+    router.route("/protected/*").handler(JWTAuthHandler.create(authProvider));
+
+    router.route("/protected/somepage").handler(ctx -> {
+      // some handle code...
+    });
+  }
+
+  public void example52(Vertx vertx) {
+
+    JsonObject authConfig = new JsonObject()
+        .put("keyStoreType", "jceks")
+        .put("keyStoreURI", "classpath:///keystore.jceks")
+        .put("keyStorePassword", "secret");
+
+    JWTAuth authProvider = JWTAuth.create(authConfig);
+
+    authProvider.generateToken(new JsonObject().put("sub", "paulo").put("someKey", "some value"), new JWTOptions());
+  }
+
+  public void example53(Vertx vertx) {
+
+    Handler<RoutingContext> handler = rc -> {
+      String theSubject = rc.user().principal().getString("sub");
+      String someKey = rc.user().principal().getString("someKey");
+    };
+  }
 
 }
 

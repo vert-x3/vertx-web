@@ -41,6 +41,7 @@ Some of the key features of Vert.x-Web include:
 * Error page handler
 * Basic Authentication
 * Redirect based authentication
+* JWT based authorization
 * User/role/permission authorisation
 * Favicon handling
 * Template support for server side rendering, including support for the following template engines out of the box:
@@ -1420,6 +1421,110 @@ router.route("/private/somepath").handler(function (routingContext) {
 
 });
 
+
+----
+
+=== JWT authorisation
+
+With JWT authorisation resources can be protected by means of permissions and users without enough rights are denied
+access.
+
+To use this handler there are 2 steps involved:
+
+* Setup an handler to issue tokens (or rely on a 3rd party)
+* Setup the handler to filter the requests
+
+Here's an example on how to issue tokens:
+
+[source,js]
+----
+var Router = require("vertx-web-js/router");
+var JWTAuth = require("vertx-auth-jwt-js/jwt_auth");
+
+var router = Router.router(vertx);
+
+var authConfig = {
+  "keyStoreType" : "jceks",
+  "keyStoreURI" : "classpath:///keystore.jceks",
+  "keyStorePassword" : "secret"
+};
+
+var authProvider = JWTAuth.create(authConfig);
+
+router.route("/login").handler(function (ctx) {
+  // this is an example, authentication should be done with another provider...
+  if ("paulo" == ctx.request().getParam("username") && "secret" == ctx.request().getParam("password")) {
+    ctx.response().end(authProvider.generateToken({
+      "sub" : "paulo"
+    }, {
+    }));
+  } else {
+    ctx.fail(401);
+  };
+});
+
+----
+
+Now that your client has a token all it is required is that for *all* consequent request the HTTP header
+`Authorization` is filled with: `Bearer token` e.g.:
+
+[source,js]
+----
+var Router = require("vertx-web-js/router");
+var JWTAuth = require("vertx-auth-jwt-js/jwt_auth");
+var JWTAuthHandler = require("vertx-web-js/jwt_auth_handler");
+
+var router = Router.router(vertx);
+
+var authConfig = {
+  "keyStoreType" : "jceks",
+  "keyStoreURI" : "classpath:///keystore.jceks",
+  "keyStorePassword" : "secret"
+};
+
+var authProvider = JWTAuth.create(authConfig);
+
+router.route("/protected/*").handler(JWTAuthHandler.create(authProvider).handle);
+
+router.route("/protected/somepage").handler(function (ctx) {
+  // some handle code...
+});
+
+----
+
+JWT allows you to add any information you like to the token itself. By doing this there is no state in the server
+which allows you to scale your applications without need for clustered session data. In order to add data to the
+token, during the creation of the token just add data to the JsonObject parameter:
+
+[source,js]
+----
+var JWTAuth = require("vertx-auth-jwt-js/jwt_auth");
+
+var authConfig = {
+  "keyStoreType" : "jceks",
+  "keyStoreURI" : "classpath:///keystore.jceks",
+  "keyStorePassword" : "secret"
+};
+
+var authProvider = JWTAuth.create(authConfig);
+
+authProvider.generateToken({
+  "sub" : "paulo",
+  "someKey" : "some value"
+}, {
+});
+
+----
+
+And the same when consuming:
+
+[source,js]
+----
+
+var handler = function (rc) {
+  var theSubject = rc.user().principal()."sub";
+  var someKey = rc.user().principal()."someKey";
+};
 
 ----
 

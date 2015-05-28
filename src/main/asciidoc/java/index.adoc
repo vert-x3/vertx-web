@@ -41,6 +41,7 @@ Some of the key features of Vert.x-Web include:
 * Error page handler
 * Basic Authentication
 * Redirect based authentication
+* JWT based authorization
 * User/role/permission authorisation
 * Favicon handling
 * Template support for server side rendering, including support for the following template engines out of the box:
@@ -1274,6 +1275,86 @@ router.route("/private/somepath").handler(routingContext -> {
 });
 ----
 
+=== JWT authorisation
+
+With JWT authorisation resources can be protected by means of permissions and users without enough rights are denied
+access.
+
+To use this handler there are 2 steps involved:
+
+* Setup an handler to issue tokens (or rely on a 3rd party)
+* Setup the handler to filter the requests
+
+Here's an example on how to issue tokens:
+
+[source,java]
+----
+Router router = Router.router(vertx);
+
+JsonObject authConfig = new JsonObject()
+    .put("keyStoreType", "jceks")
+    .put("keyStoreURI", "classpath:///keystore.jceks")
+    .put("keyStorePassword", "secret");
+
+JWTAuth authProvider = JWTAuth.create(authConfig);
+
+router.route("/login").handler(ctx -> {
+  // this is an example, authentication should be done with another provider...
+  if ("paulo".equals(ctx.request().getParam("username")) && "secret".equals(ctx.request().getParam("password"))) {
+    ctx.response().end(authProvider.generateToken(new JsonObject().put("sub", "paulo"), new JWTOptions()));
+  } else {
+    ctx.fail(401);
+  }
+});
+----
+
+Now that your client has a token all it is required is that for *all* consequent request the HTTP header
+`Authorization` is filled with: `Bearer token` e.g.:
+
+[source,java]
+----
+Router router = Router.router(vertx);
+
+JsonObject authConfig = new JsonObject()
+    .put("keyStoreType", "jceks")
+    .put("keyStoreURI", "classpath:///keystore.jceks")
+    .put("keyStorePassword", "secret");
+
+JWTAuth authProvider = JWTAuth.create(authConfig);
+
+router.route("/protected/*").handler(JWTAuthHandler.create(authProvider));
+
+router.route("/protected/somepage").handler(ctx -> {
+  // some handle code...
+});
+----
+
+JWT allows you to add any information you like to the token itself. By doing this there is no state in the server
+which allows you to scale your applications without need for clustered session data. In order to add data to the
+token, during the creation of the token just add data to the JsonObject parameter:
+
+[source,java]
+----
+JsonObject authConfig = new JsonObject()
+    .put("keyStoreType", "jceks")
+    .put("keyStoreURI", "classpath:///keystore.jceks")
+    .put("keyStorePassword", "secret");
+
+JWTAuth authProvider = JWTAuth.create(authConfig);
+
+authProvider.generateToken(new JsonObject().put("sub", "paulo").put("someKey", "some value"), new JWTOptions());
+----
+
+And the same when consuming:
+
+[source,java]
+----
+Handler<RoutingContext> handler = rc -> {
+  String theSubject = rc.user().principal().getString("sub");
+  String someKey = rc.user().principal().getString("someKey");
+};
+----
+
 === Configuring required roles and permissions
 
 With any auth handler you can also configure required roles and permissions to access the resource.
@@ -1918,7 +1999,7 @@ inboundPermitted.setRequiredRole("admin");
 
 SockJSHandler sockJSHandler = SockJSHandler.create(vertx);
 sockJSHandler.bridge(new BridgeOptions().
-    addInboundPermitted(inboundPermitted));
+        addInboundPermitted(inboundPermitted));
 
 // Now set up some basic auth handling:
 
