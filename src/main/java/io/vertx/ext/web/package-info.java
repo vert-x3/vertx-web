@@ -40,6 +40,7 @@
  * * Error page handler
  * * Basic Authentication
  * * Redirect based authentication
+ * * JWT based authorization
  * * User/role/permission authorisation
  * * Favicon handling
  * * Template support for server side rendering, including support for the following template engines out of the box:

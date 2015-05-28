@@ -36,97 +36,97 @@ import java.util.regex.Pattern;
  */
 public class JWTAuthHandlerImpl extends AuthHandlerImpl implements JWTAuthHandler {
 
-    private static final Logger log = LoggerFactory.getLogger(JWTAuthHandlerImpl.class);
+  private static final Logger log = LoggerFactory.getLogger(JWTAuthHandlerImpl.class);
 
-    private static final Pattern BEARER = Pattern.compile("^Bearer$", Pattern.CASE_INSENSITIVE);
+  private static final Pattern BEARER = Pattern.compile("^Bearer$", Pattern.CASE_INSENSITIVE);
 
-    private final String skip;
-    private final JsonObject options;
+  private final String skip;
+  private final JsonObject options;
 
-    public JWTAuthHandlerImpl(AuthProvider authProvider, String skip) {
-        super(authProvider);
-        this.skip = skip;
-        options = new JsonObject();
-    }
+  public JWTAuthHandlerImpl(AuthProvider authProvider, String skip) {
+    super(authProvider);
+    this.skip = skip;
+    options = new JsonObject();
+  }
 
-    @Override
-    public JWTAuthHandler setAudience(List<String> audience) {
-        options.put("audience", new JsonArray(audience));
-        return this;
-    }
+  @Override
+  public JWTAuthHandler setAudience(List<String> audience) {
+    options.put("audience", new JsonArray(audience));
+    return this;
+  }
 
-    @Override
-    public JWTAuthHandler setIssuer(String issuer) {
-        options.put("issuer", issuer);
-        return this;
-    }
+  @Override
+  public JWTAuthHandler setIssuer(String issuer) {
+    options.put("issuer", issuer);
+    return this;
+  }
 
-    @Override
-    public JWTAuthHandler setIgnoreExpiration(boolean ignoreExpiration) {
-        options.put("ignoreExpiration", ignoreExpiration);
-        return this;
-    }
+  @Override
+  public JWTAuthHandler setIgnoreExpiration(boolean ignoreExpiration) {
+    options.put("ignoreExpiration", ignoreExpiration);
+    return this;
+  }
 
-    @Override
-    public void handle(RoutingContext context) {
-        User user = context.user();
-        if (user != null) {
-            // Already authenticated in, just authorise
-            authorise(user, context);
-        } else {
-            final HttpServerRequest request = context.request();
+  @Override
+  public void handle(RoutingContext context) {
+    User user = context.user();
+    if (user != null) {
+      // Already authenticated in, just authorise
+      authorise(user, context);
+    } else {
+      final HttpServerRequest request = context.request();
 
-            String token = null;
+      String token = null;
 
-            if (request.method() == HttpMethod.OPTIONS && request.headers().get(HttpHeaders.ACCESS_CONTROL_REQUEST_HEADERS) != null) {
-                for (String ctrlReq : request.headers().get(HttpHeaders.ACCESS_CONTROL_REQUEST_HEADERS).split(",")) {
-                    if (ctrlReq.equalsIgnoreCase("authorization")) {
-                        // this request has auth in access control
-                        context.next();
-                        return;
-                    }
-                }
-            }
-
-            if (skip != null && skip.contains(request.path())) {
-                context.next();
-                return;
-            }
-
-            final String authorization = request.headers().get(HttpHeaders.AUTHORIZATION);
-
-            if (authorization != null) {
-                String[] parts = authorization.split(" ");
-                if (parts.length == 2) {
-                    final String scheme = parts[0],
-                            credentials = parts[1];
-
-                    if (BEARER.matcher(scheme).matches()) {
-                        token = credentials;
-                    }
-                } else {
-                    log.warn("Format is Authorization: Bearer [token]");
-                    context.fail(401);
-                    return;
-                }
-            } else {
-                log.warn("No Authorization header was found");
-                context.fail(401);
-                return;
-            }
-
-            JsonObject authInfo = new JsonObject().put("jwt", token).put("options", options);
-
-            authProvider.authenticate(authInfo, res -> {
-                if (res.succeeded()) {
-                    final User user2 = res.result();
-                    context.setUser(user2);
-                    authorise(user2, context);
-                } else {
-                    log.warn("JWT decode failure");
-                    context.fail(401);
-                }
-            });
+      if (request.method() == HttpMethod.OPTIONS && request.headers().get(HttpHeaders.ACCESS_CONTROL_REQUEST_HEADERS) != null) {
+        for (String ctrlReq : request.headers().get(HttpHeaders.ACCESS_CONTROL_REQUEST_HEADERS).split(",")) {
+          if (ctrlReq.equalsIgnoreCase("authorization")) {
+            // this request has auth in access control
+            context.next();
+            return;
+          }
         }
+      }
+
+      if (skip != null && skip.contains(request.path())) {
+        context.next();
+        return;
+      }
+
+      final String authorization = request.headers().get(HttpHeaders.AUTHORIZATION);
+
+      if (authorization != null) {
+        String[] parts = authorization.split(" ");
+        if (parts.length == 2) {
+          final String scheme = parts[0],
+              credentials = parts[1];
+
+          if (BEARER.matcher(scheme).matches()) {
+            token = credentials;
+          }
+        } else {
+          log.warn("Format is Authorization: Bearer [token]");
+          context.fail(401);
+          return;
+        }
+      } else {
+        log.warn("No Authorization header was found");
+        context.fail(401);
+        return;
+      }
+
+      JsonObject authInfo = new JsonObject().put("jwt", token).put("options", options);
+
+      authProvider.authenticate(authInfo, res -> {
+        if (res.succeeded()) {
+          final User user2 = res.result();
+          context.setUser(user2);
+          authorise(user2, context);
+        } else {
+          log.warn("JWT decode failure");
+          context.fail(401);
+        }
+      });
     }
+  }
 }
