@@ -1,6 +1,7 @@
 package io.vertx.ext.web.impl;
 
 import io.vertx.core.Handler;
+import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
 
 import java.util.Objects;
@@ -25,10 +26,16 @@ public class BlockingHandlerDecorator implements Handler<RoutingContext> {
   
   @Override
   public void handle(RoutingContext context) {
+    Route currentRoute = context.currentRoute();
     context.vertx().executeBlocking(fut -> {
-      decoratedHandler.handle(new RoutingContextDecorator(context));
+      decoratedHandler.handle(new RoutingContextDecorator(currentRoute, context));
       fut.complete();
-    }, null);
+    }, res -> {
+      if (res.failed()) {
+        // This means an exception was thrown from the blocking handler
+        context.fail(res.cause());
+      }
+    });
   }
 
 }

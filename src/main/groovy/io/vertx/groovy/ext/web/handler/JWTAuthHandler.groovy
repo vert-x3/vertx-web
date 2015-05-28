@@ -14,10 +14,13 @@
  * under the License.
  */
 
-package io.vertx.groovy.ext.web.handler
+package io.vertx.groovy.ext.web.handler;
 import groovy.transform.CompileStatic
-import io.vertx.groovy.ext.auth.AuthProvider
+import io.vertx.lang.groovy.InternalHelper
+import java.util.List
+import java.util.Set
 import io.vertx.groovy.ext.web.RoutingContext
+import io.vertx.groovy.ext.auth.AuthProvider
 /**
  * An auth handler that provides JWT Authentication support.
 */

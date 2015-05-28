@@ -39,41 +39,42 @@ public class BlockingHandlerTest extends WebTestBase {
     List<Thread> threads = new ArrayList<>();
     List<Context> contexts = new ArrayList<>();
     router.route().handler(rc -> {
-      System.out.println("route1 thread - " + Thread.currentThread());
-      System.out.println("route1 context - " + rc.vertx().getOrCreateContext());
       threads.add(Thread.currentThread());
       contexts.add(rc.vertx().getOrCreateContext());
+      assertTrue(rc.currentRoute() != null);
+      rc.response().setChunked(true);
+      rc.response().write("A");
       rc.next();
     });
     router.route().blockingHandler(rc -> {
-      System.out.println("route2 thread - " + Thread.currentThread());
-      System.out.println("route2 context - " + rc.vertx().getOrCreateContext());
       assertTrue(!threads.get(0).equals(Thread.currentThread()));
       assertTrue(contexts.get(0).equals(rc.vertx().getOrCreateContext()));
+      assertTrue(rc.currentRoute()!=null);
+      rc.response().write("B");
       rc.next();
     });
     router.route().blockingHandler(rc -> {
-      System.out.println("route3 thread - " + Thread.currentThread());
-      System.out.println("route3 context - " + rc.vertx().getOrCreateContext());
       assertTrue(!threads.get(0).equals(Thread.currentThread()));
       assertTrue(contexts.get(0).equals(rc.vertx().getOrCreateContext()));
+      assertTrue(rc.currentRoute()!=null);
+      rc.response().write("C");
       rc.next();
     });
     router.route().handler(rc -> {
-      System.out.println("route4 thread - " + Thread.currentThread());
-      System.out.println("route4 context - " + rc.vertx().getOrCreateContext());
       assertTrue(threads.get(0).equals(Thread.currentThread()));
       assertTrue(contexts.get(0).equals(rc.vertx().getOrCreateContext()));
+      assertTrue(rc.currentRoute()!=null);
+      rc.response().write("D");
       rc.next();
     });
     router.route().handler(rc -> {
-      System.out.println("route5 thread - " + Thread.currentThread());
-      System.out.println("route5 context - " + rc.vertx().getOrCreateContext());
       assertTrue(threads.get(0).equals(Thread.currentThread()));
       assertTrue(contexts.get(0).equals(rc.vertx().getOrCreateContext()));
+      assertTrue(rc.currentRoute()!=null);
+      rc.response().write("E");
       rc.response().end();
     });
-    testRequest(HttpMethod.GET, "/", 200, "OK");
+    testRequest(HttpMethod.GET, "/", 200, "OK", "ABCDE");
   }
 
   @Test
@@ -81,27 +82,52 @@ public class BlockingHandlerTest extends WebTestBase {
     List<Thread> threads = new ArrayList<>();
     List<Context> contexts = new ArrayList<>();
     router.route().handler(rc -> {
-      System.out.println("route1 thread - " + Thread.currentThread());
-      System.out.println("route1 context - " + rc.vertx().getOrCreateContext());
+      threads.add(Thread.currentThread());
+      contexts.add(rc.vertx().getOrCreateContext());
+      rc.response().setChunked(true);
+      rc.next();
+    });
+    router.route().blockingHandler(rc -> {
+      assertTrue(!threads.get(0).equals(Thread.currentThread()));
+      assertTrue(contexts.get(0).equals(rc.vertx().getOrCreateContext()));
+      assertTrue(rc.currentRoute()!=null);
+      rc.fail(501);
+    });
+    router.route().failureHandler(rc -> {
+      assertTrue(threads.get(0).equals(Thread.currentThread()));
+      assertTrue(contexts.get(0).equals(rc.vertx().getOrCreateContext()));
+      assertTrue(rc.currentRoute()!=null);
+      rc.response().setStatusCode(rc.statusCode()).end();
+    });
+    testRequest(HttpMethod.GET, "/", 501, "Not Implemented");
+  }
+
+  @Test
+  public void testBlockingHandlerFailureThrowException() throws Exception {
+    List<Thread> threads = new ArrayList<>();
+    List<Context> contexts = new ArrayList<>();
+    router.route().handler(rc -> {
       threads.add(Thread.currentThread());
       contexts.add(rc.vertx().getOrCreateContext());
       rc.next();
     });
     router.route().blockingHandler(rc -> {
-      System.out.println("route2 thread - " + Thread.currentThread());
-      System.out.println("route2 context - " + rc.vertx().getOrCreateContext());
       assertTrue(!threads.get(0).equals(Thread.currentThread()));
       assertTrue(contexts.get(0).equals(rc.vertx().getOrCreateContext()));
-      rc.fail(501);
+      assertTrue(rc.currentRoute()!=null);
+      throw new RuntimeException("foo");
     });
     router.route().failureHandler(rc -> {
-      System.out.println("route5 thread - " + Thread.currentThread());
-      System.out.println("route5 context - " + rc.vertx().getOrCreateContext());
       assertTrue(threads.get(0).equals(Thread.currentThread()));
       assertTrue(contexts.get(0).equals(rc.vertx().getOrCreateContext()));
-      rc.response().setStatusCode(rc.statusCode()).end();
+      assertTrue(rc.currentRoute()!=null);
+      Throwable t = rc.failure();
+      assertNotNull(t);
+      assertTrue(t instanceof RuntimeException);
+      assertEquals("foo", t.getMessage());
+      rc.response().setStatusCode(500).end();
     });
-    testRequest(HttpMethod.GET, "/", 501, "Not Implemented");
+    testRequest(HttpMethod.GET, "/", 500, "Internal Server Error");
   }
 
 }
