@@ -83,7 +83,7 @@
      -->
     <dependency>
       <groupId>io.vertx</groupId>
-      <artifactId>vertx-auth</artifactId>
+      <artifactId>vertx-auth-common</artifactId>
       <optional>true</optional>
     </dependency>
     <dependency>
@@ -122,6 +122,11 @@
       <groupId>io.vertx</groupId>
       <artifactId>vertx-core</artifactId>
       <type>test-jar</type>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-auth-shiro</artifactId>
       <scope>test</scope>
     </dependency>
 
@@ -182,6 +187,27 @@
         </plugins>
       </build>
     </profile>
+
+    <profile>
+      <!-- Disable SockJS protocol tests on CI as CI doesn't like python stuff -->
+      <id>CI-tests</id>
+
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+              <excludes>
+                <exclude>**/SockJSProtocolTest.java</exclude>
+                <exclude>**/HazelcastClusteredSessionHandlerTest.java</exclude>
+              </excludes>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
   </profiles>
+
+
 
 </project>

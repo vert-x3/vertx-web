@@ -55,18 +55,18 @@ public class BodyHandlerTest extends WebTestBase {
   }
 
   @Test
-  public void testGETNoBody() throws Exception {
+  public void testGETWithBody() throws Exception {
     router.route().handler(rc -> {
-      assertNull(rc.getBody());
+      assertNotNull(rc.getBody());
       rc.response().end();
     });
     testRequest(HttpMethod.GET, "/", 200, "OK");
   }
 
   @Test
-  public void testHEADNoBody() throws Exception {
+  public void testHEADWithBody() throws Exception {
     router.route().handler(rc -> {
-      assertNull(rc.getBody());
+      assertNotNull(rc.getBody());
       rc.response().end();
     });
     testRequest(HttpMethod.HEAD, "/", 200, "OK");

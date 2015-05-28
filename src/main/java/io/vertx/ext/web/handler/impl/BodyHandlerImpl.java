@@ -18,7 +18,6 @@ package io.vertx.ext.web.handler.impl;
 
 import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.ext.web.impl.FileUploadImpl;
 import io.vertx.ext.web.handler.BodyHandler;
@@ -47,14 +46,9 @@ public class BodyHandlerImpl implements BodyHandler {
   @Override
   public void handle(RoutingContext context) {
     HttpServerRequest request = context.request();
-    if (request.method() == HttpMethod.GET || request.method() == HttpMethod.HEAD) {
-      // Don't have bodies
-      context.next();
-    } else {
-      BHandler handler = new BHandler(context);
-      request.handler(handler);
-      request.endHandler(v -> handler.end());
-    }
+    BHandler handler = new BHandler(context);
+    request.handler(handler);
+    request.endHandler(v -> handler.end());
   }
 
   @Override

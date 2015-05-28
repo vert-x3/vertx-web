@@ -17,7 +17,7 @@
 /** @module vertx-web-js/form_login_handler */
 var utils = require('vertx-js/util/utils');
 var RoutingContext = require('vertx-web-js/routing_context');
-var AuthProvider = require('vertx-auth-js/auth_provider');
+var AuthProvider = require('vertx-auth-common-js/auth_provider');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;

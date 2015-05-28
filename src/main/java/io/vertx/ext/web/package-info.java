@@ -742,16 +742,11 @@
  * === Creating an auth handler
  *
  * To create an auth handler you need an instance of {@link io.vertx.ext.auth.AuthProvider}. Auth provider is
- * used for authentication and authorisation of users. It uses a simple role/permission mode. For full information on
- * auth provider and how to use and configure it please consult the auth documentation.
+ * used for authentication and authorisation of users. Vert.x provides several auth provider instances out of the box
+ * in the vertx-auth project. For full information on auth providers and how to use and configure them
+ * please consult the auth documentation.
  *
- * Here's a simple example of creating a basic auth provider that gets user data from a properties file and creating
- * an auth handler from that, but it's the same principle whatever concrete auth provider you use.
- *
- * [source,$lang]
- * ----
- * {@link examples.Examples#example35}
- * ----
+ * Here's a simple example of creating a basic auth handler given an auth provider.
  *
  * [source,$lang]
  * ----
@@ -839,10 +834,6 @@
  * {@link examples.Examples#example40}
  * ----
  *
- * === OAuth
- *
- * TODO
- *
  * == Serving static resources
  *
  * Vert.x-Web comes with an out of the box handler for serving static web resources so you can write static web servers
@@ -926,6 +917,19 @@
  *
  * For `text/html` directory listing, the template used to render the directory listing page can be configured with
  * {@link io.vertx.ext.web.handler.StaticHandler#setDirectoryTemplate(java.lang.String)}.
+ *
+ * === Disabling file caching on disk
+ *
+ * By default, Vert.x will cache files that are served from the classpath into a file on disk in a sub-directory of a
+ * directory called `.vertx` in the current working directory. This is mainly useful when deploying services as
+ * fatjars in production where serving a file from the classpath every time can be slow.
+ *
+ * In development this can cause a problem, as if you update your static content while the server is running, the
+ * cached file will be served not the updated file.
+ *
+ * To disable file caching you can provide the system property `vertx.disableFileCaching` with the value `true`. E.g. you
+ * could set up a run configuration in your IDE to set this when runnning your main class.
+ *
  *
  * == CORS handling
  *

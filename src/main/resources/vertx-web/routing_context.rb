@@ -3,7 +3,7 @@ require 'vertx-web/cookie'
 require 'vertx-web/file_upload'
 require 'vertx/http_server_request'
 require 'vertx-web/session'
-require 'vertx-auth/user'
+require 'vertx-auth-common/user'
 require 'vertx/buffer'
 require 'vertx/http_server_response'
 require 'vertx/util/utils.rb'
@@ -243,10 +243,10 @@ module VertxWeb
       raise ArgumentError, "Invalid arguments when calling session()"
     end
     #  Get the authenticated user (if any). This will usually be injected by an auth handler if authentication if successful.
-    # @return [::VertxAuth::User] the user, or null if the current user is not authenticated.
+    # @return [::VertxAuthCommon::User] the user, or null if the current user is not authenticated.
     def user
       if !block_given?
-        return ::VertxAuth::User.new(@j_del.java_method(:user, []).call())
+        return ::VertxAuthCommon::User.new(@j_del.java_method(:user, []).call())
       end
       raise ArgumentError, "Invalid arguments when calling user()"
     end
@@ -337,7 +337,7 @@ module VertxWeb
       raise ArgumentError, "Invalid arguments when calling set_session(session)"
     end
     #  Set the user. Usually used by auth handlers to inject a User. You will not normally call this method.
-    # @param [::VertxAuth::User] user the user
+    # @param [::VertxAuthCommon::User] user the user
     # @return [void]
     def set_user(user=nil)
       if user.class.method_defined?(:j_del) && !block_given?

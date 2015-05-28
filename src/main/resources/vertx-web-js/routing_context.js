@@ -21,7 +21,7 @@ var Cookie = require('vertx-web-js/cookie');
 var FileUpload = require('vertx-web-js/file_upload');
 var HttpServerRequest = require('vertx-js/http_server_request');
 var Session = require('vertx-web-js/session');
-var User = require('vertx-auth-js/user');
+var User = require('vertx-auth-common-js/user');
 var Buffer = require('vertx-js/buffer');
 var HttpServerResponse = require('vertx-js/http_server_response');
 

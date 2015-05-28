@@ -14,49 +14,15 @@
  *  You may elect to redistribute this code under either of these licenses.
  */
 
-/*
- * Copyright 2014 Red Hat, Inc.
- *
- *  All rights reserved. This program and the accompanying materials
- *  are made available under the terms of the Eclipse Public License v1.0
- *  and Apache License v2.0 which accompanies this distribution.
- *
- *  The Eclipse Public License is available at
- *  http://www.eclipse.org/legal/epl-v10.html
- *
- *  The Apache License v2.0 is available at
- *  http://www.opensource.org/licenses/apache2.0.php
- *
- *  You may elect to redistribute this code under either of these licenses.
- */
-
-/*
- * Copyright 2014 Red Hat, Inc.
- *
- *  All rights reserved. This program and the accompanying materials
- *  are made available under the terms of the Eclipse Public License v1.0
- *  and Apache License v2.0 which accompanies this distribution.
- *
- *  The Eclipse Public License is available at
- *  http://www.eclipse.org/legal/epl-v10.html
- *
- *  The Apache License v2.0 is available at
- *  http://www.opensource.org/licenses/apache2.0.php
- *
- *  You may elect to redistribute this code under either of these licenses.
- */
-
 package io.vertx.ext.web.handler;
 
+import io.vertx.core.MultiMap;
+import io.vertx.core.http.CaseInsensitiveHeaders;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.impl.LoggerFactory;
 import io.vertx.ext.web.WebTestBase;
 import io.vertx.ext.web.handler.sockjs.SockJSHandler;
 import org.junit.Test;
-
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.InputStreamReader;
 
 /**
  * SockJS protocol tests
@@ -114,38 +80,26 @@ public class SockJSHandlerTest extends WebTestBase {
     });
   }
 
-  /*
-  We run the actual Python SockJS protocol tests - these are taken from the 0.3.3 branch of the sockjs-protocol repository:
-  https://github.com/sockjs/sockjs-protocol/tree/v0.3.3
-   */
   @Test
-  public void testProtocol() throws Exception {
-    String[] envp = new String[] {"SOCKJS_URL=http://localhost:8080"};
-    File dir = new File("src/test/sockjs-protocol");
-    Process p;
-   // try {
-      p = Runtime.getRuntime().exec("./venv/bin/python sockjs-protocol-0.3.3.py", envp, dir);
-//    } catch (IOException e) {
-//      if (e.getMessage().contains("No such file or directory")) {
-//        System.out.println("Skipping SockJS protocol tests : could not run them");
-//        return;
-//      } else {
-//        throw e;
-//      }
-//    }
+  public void testCookiesRemoved() throws Exception {
+    router.route("/cookiesremoved/*").handler(SockJSHandler.create(vertx)
+          .socketHandler(sock -> {
+            MultiMap headers = sock.headers();
+            String cookieHeader = headers.get("cookie");
+            assertNotNull(cookieHeader);
+            assertEquals("JSESSIONID=wibble", cookieHeader);
+            testComplete();
+          }));
+    MultiMap headers = new CaseInsensitiveHeaders();
+    headers.add("cookie", "JSESSIONID=wibble");
+    headers.add("cookie", "flibble=floob");
 
-    try (BufferedReader input = new BufferedReader(new InputStreamReader(p.getErrorStream()))) {
-      String line;
-      while ((line = input.readLine()) != null) {
-        log.info(line);
-      }
-    }
+    client.websocket("/cookiesremoved/websocket", headers, ws -> {
+      String frame = "foo";
+      ws.writeFrame(io.vertx.core.http.WebSocketFrame.textFrame(frame, true));
+    });
 
-    int res = p.waitFor();
-
-    // Make sure all tests pass
-    assertEquals("Protocol tests failed", 0, res);
-
+    await();
   }
 
 }
