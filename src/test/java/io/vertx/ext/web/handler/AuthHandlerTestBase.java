@@ -35,31 +35,17 @@ import java.util.Set;
 public abstract class AuthHandlerTestBase extends WebTestBase {
 
   @Test
-  public void testAuthRoles() throws Exception {
-    Set<String> roles = new HashSet<>();
-    roles.add("morris_dancer");
-    testAuthorisation("tim", false, roles, null);
+  public void testAuthAuthorities() throws Exception {
+    Set<String> authorities = new HashSet<>();
+    authorities.add("dance");
+    testAuthorisation("tim", false, authorities);
   }
 
   @Test
-  public void testAuthRolesFail() throws Exception {
-    Set<String> roles = new HashSet<>();
-    roles.add("knitter");
-    testAuthorisation("tim", true, roles, null);
-  }
-
-  @Test
-  public void testAuthPermissions() throws Exception {
-    Set<String> perms = new HashSet<>();
-    perms.add("do_actual_work");
-    testAuthorisation("tim", false, null, perms);
-  }
-
-  @Test
-  public void testAuthPermissionsFail() throws Exception {
-    Set<String> perms = new HashSet<>();
-    perms.add("eat_biscuit");
-    testAuthorisation("tim", true, null, perms);
+  public void testAuthAuthoritiesFail() throws Exception {
+    Set<String> authorities = new HashSet<>();
+    authorities.add("knitter");
+    testAuthorisation("tim", true, authorities);
   }
 
   protected abstract AuthHandler createAuthHandler(AuthProvider authProvider);
@@ -72,7 +58,7 @@ public abstract class AuthHandlerTestBase extends WebTestBase {
     return LocalSessionStore.create(vertx);
   }
 
-  protected void testAuthorisation(String username, boolean fail, Set<String> roles, Set<String> permissions) throws Exception {
+  protected void testAuthorisation(String username, boolean fail, Set<String> authorities) throws Exception {
     if (requiresSession()) {
       router.route().handler(BodyHandler.create());
       router.route().handler(CookieHandler.create());
@@ -82,11 +68,8 @@ public abstract class AuthHandlerTestBase extends WebTestBase {
     JsonObject authConfig = new JsonObject().put("properties_path", "classpath:login/loginusers.properties");
     AuthProvider authProvider = ShiroAuth.create(vertx, ShiroAuthRealmType.PROPERTIES, authConfig);
     AuthHandler authHandler = createAuthHandler(authProvider);
-    if (roles != null) {
-      authHandler.addRoles(roles);
-    }
-    if (permissions != null) {
-      authHandler.addPermissions(permissions);
+    if (authorities != null) {
+      authHandler.addAuthorities(authorities);
     }
     router.route().handler(rc -> {
       // we need to be logged in

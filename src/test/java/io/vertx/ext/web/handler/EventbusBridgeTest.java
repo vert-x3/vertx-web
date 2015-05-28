@@ -787,26 +787,14 @@ public class EventbusBridgeTest extends WebTestBase {
   }
 
   @Test
-  public void testSendRequiresPermissionNotLoggedIn() throws Exception {
-    sockJSHandler.bridge(defaultOptions.addInboundPermitted(new PermittedOptions().setAddress(addr).setRequiredPermission("admin")));
+  public void testSendRequiresAuthorityNotLoggedIn() throws Exception {
+    sockJSHandler.bridge(defaultOptions.addInboundPermitted(new PermittedOptions().setAddress(addr).setRequiredAuthority("admin")));
     testError(new JsonObject().put("type", "send").put("address", addr).put("body", "foo"), "not_logged_in");
   }
 
   @Test
-  public void testSendRequiresRoleNotLoggedIn() throws Exception {
-    sockJSHandler.bridge(defaultOptions.addInboundPermitted(new PermittedOptions().setAddress(addr).setRequiredRole("admin")));
-    router.clear();
-    router.route().handler(CookieHandler.create());
-    SessionStore store = LocalSessionStore.create(vertx);
-    router.route().handler(SessionHandler.create(store));
-    router.route("/eventbus/*").handler(sockJSHandler);
-    testError(new JsonObject().put("type", "send").put("address", addr).put("body", "foo"), "not_logged_in");
-  }
-
-
-  @Test
-  public void testSendRequiresRoleHasRole() throws Exception {
-    sockJSHandler.bridge(defaultOptions.addInboundPermitted(new PermittedOptions().setAddress(addr).setRequiredRole("morris_dancer")));
+  public void testSendRequiresAuthorityHasAuthority() throws Exception {
+    sockJSHandler.bridge(defaultOptions.addInboundPermitted(new PermittedOptions().setAddress(addr).setRequiredAuthority("bang_sticks")));
     router.clear();
     router.route().handler(CookieHandler.create());
     SessionStore store = LocalSessionStore.create(vertx);
@@ -819,22 +807,8 @@ public class EventbusBridgeTest extends WebTestBase {
   }
 
   @Test
-  public void testSendRequiresPermissionHasPermission() throws Exception {
-    sockJSHandler.bridge(defaultOptions.addInboundPermitted(new PermittedOptions().setAddress(addr).setRequiredPermission("bang_sticks")));
-    router.clear();
-    router.route().handler(CookieHandler.create());
-    SessionStore store = LocalSessionStore.create(vertx);
-    router.route().handler(SessionHandler.create(store));
-    JsonObject authConfig = new JsonObject().put("properties_path", "classpath:login/loginusers.properties");
-    AuthProvider authProvider = ShiroAuth.create(vertx, ShiroAuthRealmType.PROPERTIES, authConfig);
-    addLoginHandler(router, authProvider);
-    router.route("/eventbus/*").handler(sockJSHandler);
-    testSend("foo");
-  }
-
-  @Test
-  public void testSendRequiresRoleHasnotRole() throws Exception {
-    sockJSHandler.bridge(defaultOptions.addInboundPermitted(new PermittedOptions().setAddress(addr).setRequiredRole("cheesemaker")));
+  public void testSendRequiresAuthorityHasnotAuthority() throws Exception {
+    sockJSHandler.bridge(defaultOptions.addInboundPermitted(new PermittedOptions().setAddress(addr).setRequiredAuthority("pick_nose")));
     router.clear();
     router.route().handler(CookieHandler.create());
     SessionStore store = LocalSessionStore.create(vertx);
@@ -864,20 +838,6 @@ public class EventbusBridgeTest extends WebTestBase {
   }
 
   @Test
-  public void testSendRequiresRoleHasnotPermission() throws Exception {
-    sockJSHandler.bridge(defaultOptions.addInboundPermitted(new PermittedOptions().setAddress(addr).setRequiredRole("nosepicker")));
-    router.clear();
-    router.route().handler(CookieHandler.create());
-    SessionStore store = LocalSessionStore.create(vertx);
-    router.route().handler(SessionHandler.create(store));
-    JsonObject authConfig = new JsonObject().put("properties_path", "classpath:login/loginusers.properties");
-    AuthProvider authProvider = ShiroAuth.create(vertx, ShiroAuthRealmType.PROPERTIES, authConfig);
-    addLoginHandler(router, authProvider);
-    router.route("/eventbus/*").handler(sockJSHandler);
-    testError(new JsonObject().put("type", "send").put("address", addr).put("body", "foo"), "access_denied");
-  }
-
-  @Test
   public void testInvalidClientReplyAddress() throws Exception {
     sockJSHandler.bridge(allAccessOptions);
     testError(new JsonObject().put("type", "send").put("address", addr).put("body", "foo")
@@ -896,64 +856,54 @@ public class EventbusBridgeTest extends WebTestBase {
   }
 
   @Test
-  public void testPermissionOptions() {
+  public void testPermittedOptions() {
     PermittedOptions options = new PermittedOptions();
     assertEquals(PermittedOptions.DEFAULT_ADDRESS, options.getAddress());
     assertEquals(PermittedOptions.DEFAULT_ADDRESS_REGEX, options.getAddressRegex());
-    assertEquals(PermittedOptions.DEFAULT_REQUIRED_PERMISSION, options.getRequiredPermission());
-    assertEquals(PermittedOptions.DEFAULT_REQUIRED_ROLE, options.getRequiredRole());
+    assertEquals(PermittedOptions.DEFAULT_REQUIRED_AUTHORITY, options.getRequiredAuthority());
     assertEquals(PermittedOptions.DEFAULT_MATCH, options.getMatch());
     String address = TestUtils.randomAlphaString(10);
     String addressRegex = TestUtils.randomAlphaString(10);
-    String requiredPermission = TestUtils.randomAlphaString(10);
-    String requiredRole = TestUtils.randomAlphaString(10);
+    String requiredAuthority = TestUtils.randomAlphaString(10);
     JsonObject match = new JsonObject().put(TestUtils.randomAlphaString(10), TestUtils.randomAlphaString(10));
     assertSame(options, options.setAddress(address));
     assertSame(options, options.setAddressRegex(addressRegex));
-    assertSame(options, options.setRequiredPermission(requiredPermission));
-    assertSame(options, options.setRequiredRole(requiredRole));
+    assertSame(options, options.setRequiredAuthority(requiredAuthority));
     assertSame(options, options.setMatch(match));
     assertEquals(address, options.getAddress());
     assertEquals(addressRegex, options.getAddressRegex());
-    assertEquals(requiredPermission, options.getRequiredPermission());
-    assertEquals(requiredRole, options.getRequiredRole());
+    assertEquals(requiredAuthority, options.getRequiredAuthority());
     assertEquals(match, options.getMatch());
     PermittedOptions copy = new PermittedOptions(options);
     assertEquals(address, copy.getAddress());
     assertEquals(addressRegex, copy.getAddressRegex());
-    assertEquals(requiredPermission, copy.getRequiredPermission());
-    assertEquals(requiredRole, copy.getRequiredRole());
+    assertEquals(requiredAuthority, copy.getRequiredAuthority());
     assertEquals(match, copy.getMatch());
     assertSame(copy, copy.setAddress(TestUtils.randomAlphaString(10)));
     assertSame(copy, copy.setAddressRegex(TestUtils.randomAlphaString(10)));
-    assertSame(copy, copy.setRequiredPermission(TestUtils.randomAlphaString(10)));
-    assertSame(copy, copy.setRequiredRole(TestUtils.randomAlphaString(10)));
+    assertSame(copy, copy.setRequiredAuthority(TestUtils.randomAlphaString(10)));
     assertSame(copy, copy.setMatch(new JsonObject().put(TestUtils.randomAlphaString(10), TestUtils.randomAlphaString(10))));
     assertSame(options, options.setAddress(address));
     assertSame(options, options.setAddressRegex(addressRegex));
-    assertSame(options, options.setRequiredPermission(requiredPermission));
-    assertSame(options, options.setRequiredRole(requiredRole));
+    assertSame(options, options.setRequiredAuthority(requiredAuthority));
     assertSame(options, options.setMatch(match));
   }
 
   @Test
-  public void testPermissionsOptionsJson() {
+  public void testPermittedOptionsJson() {
     String address = TestUtils.randomAlphaString(10);
     String addressRegex = TestUtils.randomAlphaString(10);
-    String requiredPermission = TestUtils.randomAlphaString(10);
-    String requiredRole = TestUtils.randomAlphaString(10);
+    String requiredAuthority = TestUtils.randomAlphaString(10);
     JsonObject match = new JsonObject().put(TestUtils.randomAlphaString(10), TestUtils.randomAlphaString(10));
     JsonObject json = new JsonObject().
         put("address", address).
         put("addressRegex", addressRegex).
-        put("requiredPermission", requiredPermission).
-        put("requiredRole", requiredRole).
+        put("requiredAuthority", requiredAuthority).
         put("match", match);
     PermittedOptions options = new PermittedOptions(json);
     assertEquals(address, options.getAddress());
     assertEquals(addressRegex, options.getAddressRegex());
-    assertEquals(requiredPermission, options.getRequiredPermission());
-    assertEquals(requiredRole, options.getRequiredRole());
+    assertEquals(requiredAuthority, options.getRequiredAuthority());
     assertEquals(match, options.getMatch());
   }
 

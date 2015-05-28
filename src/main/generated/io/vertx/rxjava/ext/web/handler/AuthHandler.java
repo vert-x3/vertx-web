@@ -41,32 +41,18 @@ public interface AuthHandler extends Handler<RoutingContext> {
   public void handle(RoutingContext arg0);
 
   /**
-   * Add a required role for this auth handler
-   * @param role the role
+   * Add a required authority for this auth handler
+   * @param authority the authority
    * @return a reference to this, so the API can be used fluently
    */
-  public AuthHandler addRole(String role);
+  public AuthHandler addAuthority(String authority);
 
   /**
-   * Add a required permission for this auth handler
-   * @param permission the permission
+   * Add a set of required authorities for this auth handler
+   * @param authorities the set of authorities
    * @return a reference to this, so the API can be used fluently
    */
-  public AuthHandler addPermission(String permission);
-
-  /**
-   * Add a set of required roles for this auth handler
-   * @param roles the set of roles
-   * @return a reference to this, so the API can be used fluently
-   */
-  public AuthHandler addRoles(Set<String> roles);
-
-  /**
-   * Add a set of required permissions for this auth handler
-   * @param permissions the set of permissions
-   * @return a reference to this, so the API can be used fluently
-   */
-  public AuthHandler addPermissions(Set<String> permissions);
+  public AuthHandler addAuthorities(Set<String> authorities);
 
 
   public static AuthHandler newInstance(io.vertx.ext.web.handler.AuthHandler arg) {
@@ -90,42 +76,22 @@ class AuthHandlerImpl implements AuthHandler {
   }
 
   /**
-   * Add a required role for this auth handler
-   * @param role the role
+   * Add a required authority for this auth handler
+   * @param authority the authority
    * @return a reference to this, so the API can be used fluently
    */
-  public AuthHandler addRole(String role) { 
-    this.delegate.addRole(role);
+  public AuthHandler addAuthority(String authority) { 
+    this.delegate.addAuthority(authority);
     return this;
   }
 
   /**
-   * Add a required permission for this auth handler
-   * @param permission the permission
+   * Add a set of required authorities for this auth handler
+   * @param authorities the set of authorities
    * @return a reference to this, so the API can be used fluently
    */
-  public AuthHandler addPermission(String permission) { 
-    this.delegate.addPermission(permission);
-    return this;
-  }
-
-  /**
-   * Add a set of required roles for this auth handler
-   * @param roles the set of roles
-   * @return a reference to this, so the API can be used fluently
-   */
-  public AuthHandler addRoles(Set<String> roles) { 
-    this.delegate.addRoles(roles);
-    return this;
-  }
-
-  /**
-   * Add a set of required permissions for this auth handler
-   * @param permissions the set of permissions
-   * @return a reference to this, so the API can be used fluently
-   */
-  public AuthHandler addPermissions(Set<String> permissions) { 
-    this.delegate.addPermissions(permissions);
+  public AuthHandler addAuthorities(Set<String> authorities) { 
+    this.delegate.addAuthorities(authorities);
     return this;
   }
 

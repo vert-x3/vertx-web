@@ -219,7 +219,7 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
           Handler<Message<Object>> handler = msg -> {
             Match curMatch = checkMatches(false, address, msg.body());
             if (curMatch.doesMatch) {
-              if (curMatch.requiredPermission != null || curMatch.requiredRole != null) {
+              if (curMatch.requiredAuthority != null) {
                 authorise(curMatch, sock.webUser(), res -> {
                   if (res.succeeded()) {
                     if (res.result()) {
@@ -361,7 +361,7 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
       curMatch = checkMatches(true, address, body);
     }
     if (curMatch.doesMatch) {
-      if (curMatch.requiredPermission != null || curMatch.requiredRole != null) {
+      if (curMatch.requiredAuthority != null) {
         User webUser = sock.webUser();
         if (webUser != null) {
           authorise(curMatch, webUser, res -> {
@@ -453,16 +453,8 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
   private void authorise(Match curMatch, User webUser,
                          Handler<AsyncResult<Boolean>> handler) {
 
-    if (curMatch.requiredPermission != null) {
-      webUser.hasPermission(curMatch.requiredPermission, res -> {
-        if (res.succeeded()) {
-          handler.handle(Future.succeededFuture(res.result()));
-        } else {
-          log.error(res.cause());
-        }
-      });
-    } else {
-      webUser.hasRole(curMatch.requiredRole, res -> {
+    if (curMatch.requiredAuthority != null) {
+      webUser.isAuthorised(curMatch.requiredAuthority, res -> {
         if (res.succeeded()) {
           handler.handle(Future.succeededFuture(res.result()));
         } else {
@@ -504,9 +496,8 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
       if (addressOK) {
         boolean matched = structureMatches(matchHolder.getMatch(), body);
         if (matched) {
-          String requiredRole = matchHolder.getRequiredRole();
-          String requiredPermission = matchHolder.getRequiredPermission();
-          return new Match(true, requiredRole, requiredPermission);
+          String requiredAuthority = matchHolder.getRequiredAuthority();
+          return new Match(true, requiredAuthority);
         }
       }
     }
@@ -554,19 +545,16 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
 
   private static class Match {
     public final boolean doesMatch;
-    public final String requiredRole;
-    public final String requiredPermission;
+    public final String requiredAuthority;
 
-    Match(boolean doesMatch, String requiredRole, String requiredPermission) {
+    Match(boolean doesMatch, String requiredAuthority) {
       this.doesMatch = doesMatch;
-      this.requiredRole = requiredRole;
-      this.requiredPermission = requiredPermission;
+      this.requiredAuthority = requiredAuthority;
     }
 
     Match(boolean doesMatch) {
       this.doesMatch = doesMatch;
-      this.requiredRole = null;
-      this.requiredPermission = null;
+      this.requiredAuthority = null;
     }
 
   }

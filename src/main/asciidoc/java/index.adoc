@@ -41,7 +41,7 @@ Some of the key features of Vert.x-Web include:
 * Error page handler
 * Basic Authentication
 * Redirect based authentication
-* User/role/permission authorisation
+* Authorisation handlers
 * Favicon handling
 * Template support for server side rendering, including support for the following template engines out of the box:
 ** Handlebars
@@ -1224,7 +1224,7 @@ with the username and password to authenticate the user. If the authentication i
 to authorise the user. If that is successful then the routing of the request is allowed to continue to the application
 handlers, otherwise a `403` response is returned to signify that access is denied.
 
-The auth handler can be set-up with a set of permissions and/or roles that are required for access to the resources to
+The auth handler can be set-up with a set of authorities that are required for access to the resources to
 be granted.
 
 === Redirect auth handler
@@ -1274,29 +1274,30 @@ router.route("/private/somepath").handler(routingContext -> {
 });
 ----
 
-=== Configuring required roles and permissions
+=== Configuring required authorities
 
-With any auth handler you can also configure required roles and permissions to access the resource.
+With any auth handler you can also configure required authorities to access the resource.
 
-By default, if no roles/permissions are configured then it is sufficient to be logged in to access the resource, otherwise
-the user must be both logged in (authenticated) and have the required roles/permissions.
+By default, if no authorities are configured then it is sufficient to be logged in to access the resource, otherwise
+the user must be both logged in (authenticated) and have the required authorities.
 
-Here's an example of configuring an app so that different roles/permissions are required for different parts of the
-app:
+Here's an example of configuring an app so that different authorities are required for different parts of the
+app. Note that the meaning of the authorities is determined by the underlying auth provider that you use. E.g. some
+may support a role/permission based model but others might use another model.
 
 [source,java]
 ----
-AuthHandler managerAuthHandler = RedirectAuthHandler.create(authProvider);
-managerAuthHandler.addRole("manager").addRole("admin");
+AuthHandler listProductsAuthHandler = RedirectAuthHandler.create(authProvider);
+listProductsAuthHandler.addAuthority("list_products");
 
-// Roles "manager" and "admin" have access to /private/managers
-router.route("/private/managers").handler(managerAuthHandler);
+// Need "list_products" authority to list products
+router.route("/listproducts/*").handler(listProductsAuthHandler);
 
 AuthHandler settingsAuthHandler = RedirectAuthHandler.create(authProvider);
-settingsAuthHandler.addRole("admin");
+settingsAuthHandler.addAuthority("role:admin");
 
 // Only "admin" has access to /private/settings
-router.route("/private/settings").handler(settingsAuthHandler);
+router.route("/private/settings/*").handler(settingsAuthHandler);
 ----
 
 == Serving static resources
@@ -1881,28 +1882,25 @@ router.route("/eventbus/*").handler(sockJSHandler);
 The event bus bridge can also be configured to use the Vert.x-Web authorisation functionality to require
 authorisation for messages, either in-bound or out-bound on the bridge.
 
-To do this, you can add extra fields to the match described in the previous section that determine what role and/or
-permission is required for the match.
+To do this, you can add extra fields to the match described in the previous section that determine what authority is
+required for the match.
 
-To declare that a specific role for the logged-in user is required in order to access allow the messages you use the
-`link:../../apidocs/io/vertx/ext/web/handler/sockjs/PermittedOptions.html#setRequiredRole-java.lang.String-[setRequiredRole]` field.
-
-To declare that a specific permission for the logged-in user is required in order to access allow the messages you use the
-`link:../../apidocs/io/vertx/ext/web/handler/sockjs/PermittedOptions.html#setRequiredPermission-java.lang.String-[setRequiredPermission]` field.
+To declare that a specific authority for the logged-in user is required in order to access allow the messages you use the
+`link:../../apidocs/io/vertx/ext/web/handler/sockjs/PermittedOptions.html#setRequiredAuthority-java.lang.String-[setRequiredAuthority]` field.
 
 Here's an example:
 
 [source,java]
 ----
-PermittedOptions inboundPermitted = new PermittedOptions().setAddress("demo.adminService");
+PermittedOptions inboundPermitted = new PermittedOptions().setAddress("demo.orderService");
 
-// But only if the user is logged in and has the role "admin"
-inboundPermitted.setRequiredRole("admin");
+// But only if the user is logged in and has the authority "place_orders"
+inboundPermitted.setRequiredAuthority("place_orders");
 
 BridgeOptions options = new BridgeOptions().addInboundPermitted(inboundPermitted);
 ----
 
-For the user to be authorised they must be first logged in and secondly have the required role.
+For the user to be authorised they must be first logged in and secondly have the required authority.
 
 To handle the login and actually auth you can configure the normal Vert.x auth handlers. For example:
 
@@ -1910,11 +1908,11 @@ To handle the login and actually auth you can configure the normal Vert.x auth h
 ----
 Router router = Router.router(vertx);
 
-// Let through any messages sent to 'demo.orderMgr' from the client
-PermittedOptions inboundPermitted = new PermittedOptions().setAddress("demo.adminService");
+// Let through any messages sent to 'demo.orderService' from the client
+PermittedOptions inboundPermitted = new PermittedOptions().setAddress("demo.orderService");
 
-// But only if the user is logged in and has the role "admin"
-inboundPermitted.setRequiredRole("admin");
+// But only if the user is logged in and has the authority "place_orders"
+inboundPermitted.setRequiredAuthority("place_orders");
 
 SockJSHandler sockJSHandler = SockJSHandler.create(vertx);
 sockJSHandler.bridge(new BridgeOptions().

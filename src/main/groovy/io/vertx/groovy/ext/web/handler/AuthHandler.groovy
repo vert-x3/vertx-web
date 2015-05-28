@@ -31,10 +31,8 @@ import io.vertx.core.Handler
 public interface AuthHandler extends Handler<RoutingContext> {
   public Object getDelegate();
   void handle(RoutingContext arg0);
-  AuthHandler addRole(String role);
-  AuthHandler addPermission(String permission);
-  AuthHandler addRoles(Set<String> roles);
-  AuthHandler addPermissions(Set<String> permissions);
+  AuthHandler addAuthority(String authority);
+  AuthHandler addAuthorities(Set<String> authorities);
 }
 
 @CompileStatic
@@ -50,39 +48,21 @@ class AuthHandlerImpl implements AuthHandler {
     ((io.vertx.core.Handler) this.delegate).handle((io.vertx.ext.web.RoutingContext)arg0.getDelegate());
   }
   /**
-   * Add a required role for this auth handler
-   * @param role the role
+   * Add a required authority for this auth handler
+   * @param authority the authority
    * @return a reference to this, so the API can be used fluently
    */
-  public AuthHandler addRole(String role) {
-    ((io.vertx.ext.web.handler.AuthHandler) this.delegate).addRole(role);
+  public AuthHandler addAuthority(String authority) {
+    ((io.vertx.ext.web.handler.AuthHandler) this.delegate).addAuthority(authority);
     return this;
   }
   /**
-   * Add a required permission for this auth handler
-   * @param permission the permission
+   * Add a set of required authorities for this auth handler
+   * @param authorities the set of authorities
    * @return a reference to this, so the API can be used fluently
    */
-  public AuthHandler addPermission(String permission) {
-    ((io.vertx.ext.web.handler.AuthHandler) this.delegate).addPermission(permission);
-    return this;
-  }
-  /**
-   * Add a set of required roles for this auth handler
-   * @param roles the set of roles
-   * @return a reference to this, so the API can be used fluently
-   */
-  public AuthHandler addRoles(Set<String> roles) {
-    ((io.vertx.ext.web.handler.AuthHandler) this.delegate).addRoles(roles);
-    return this;
-  }
-  /**
-   * Add a set of required permissions for this auth handler
-   * @param permissions the set of permissions
-   * @return a reference to this, so the API can be used fluently
-   */
-  public AuthHandler addPermissions(Set<String> permissions) {
-    ((io.vertx.ext.web.handler.AuthHandler) this.delegate).addPermissions(permissions);
+  public AuthHandler addAuthorities(Set<String> authorities) {
+    ((io.vertx.ext.web.handler.AuthHandler) this.delegate).addAuthorities(authorities);
     return this;
   }
 }

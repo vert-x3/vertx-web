@@ -13,34 +13,29 @@ import io.vertx.core.json.JsonObject;
 public class PermittedOptions {
 
   /**
-   * The default permission address : {@code null}.
+   * The default permitted address : {@code null}.
    */
   public static String DEFAULT_ADDRESS = null;
 
   /**
-   * The default permission address regex : {@code null}.
+   * The default permitted address regex : {@code null}.
    */
   public static String DEFAULT_ADDRESS_REGEX = null;
 
   /**
-   * The default permission required role : {@code null}.
+   * The default permitted required authority : {@code null}.
    */
-  public static String DEFAULT_REQUIRED_ROLE = null;
+  public static String DEFAULT_REQUIRED_AUTHORITY = null;
 
   /**
-   * The default permission required permission : {@code null}.
-   */
-  public static String DEFAULT_REQUIRED_PERMISSION = null;
-
-  /**
-   * The default permission match : {@code null}.
+   * The default permitted match : {@code null}.
    */
   public static JsonObject DEFAULT_MATCH = null;
 
   private String address;
   private String addressRegex;
-  private String requiredRole;
-  private String requiredPermission;
+  private String requiredAuthority;
+
   private JsonObject match;
 
   public PermittedOptions() {
@@ -49,16 +44,14 @@ public class PermittedOptions {
   public PermittedOptions(PermittedOptions that) {
     address = that.address;
     addressRegex = that.addressRegex;
-    requiredRole = that.requiredRole;
-    requiredPermission = that.requiredPermission;
+    requiredAuthority = that.requiredAuthority;
     match = that.match != null ? new JsonObject(that.match.encode()) : null;
   }
 
   public PermittedOptions(JsonObject json) {
     address = json.getString("address", DEFAULT_ADDRESS);
     addressRegex = json.getString("addressRegex", DEFAULT_ADDRESS_REGEX);
-    requiredRole = json.getString("requiredRole", DEFAULT_REQUIRED_ROLE);
-    requiredPermission = json.getString("requiredPermission", DEFAULT_REQUIRED_PERMISSION);
+    requiredAuthority = json.getString("requiredAuthority", DEFAULT_REQUIRED_AUTHORITY);
     match = json.getJsonObject("match", DEFAULT_MATCH);
   }
 
@@ -95,33 +88,18 @@ public class PermittedOptions {
     return this;
   }
 
-  public String getRequiredRole() {
-    return requiredRole;
+  public String getRequiredAuthority() {
+    return requiredAuthority;
   }
 
   /**
-   * Declare a specific role for the logged-in user is required in order to access allow the messages.
+   * Declare a specific authority that user must have in order to allow messages
    *
-   * @param requiredRole the role
+   * @param requiredAuthority the authority
    * @return a reference to this, so the API can be used fluently
    */
-  public PermittedOptions setRequiredRole(String requiredRole) {
-    this.requiredRole = requiredRole;
-    return this;
-  }
-
-  public String getRequiredPermission() {
-    return requiredPermission;
-  }
-
-  /**
-   * Declare a specific permission for the logged-in user is required in order to access allow the messages;
-   *
-   * @param requiredPermission the permission
-   * @return a reference to this, so the API can be used fluently
-   */
-  public PermittedOptions setRequiredPermission(String requiredPermission) {
-    this.requiredPermission = requiredPermission;
+  public PermittedOptions setRequiredAuthority(String requiredAuthority) {
+    this.requiredAuthority = requiredAuthority;
     return this;
   }
 

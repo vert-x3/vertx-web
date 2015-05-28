@@ -37,41 +37,27 @@ public abstract class AuthHandlerImpl implements AuthHandler {
 
   private static final Logger log = LoggerFactory.getLogger(AuthHandlerImpl.class);
 
-
   protected final AuthProvider authProvider;
-  protected final Set<String> roles = new HashSet<>();
-  protected final Set<String> permissions = new HashSet<>();
+  protected final Set<String> authorities = new HashSet<>();
 
   public AuthHandlerImpl(AuthProvider authProvider) {
     this.authProvider = authProvider;
   }
 
   @Override
-  public AuthHandler addRole(String role) {
-    roles.add(role);
+  public AuthHandler addAuthority(String authority) {
+    authorities.add(authority);
     return this;
   }
 
   @Override
-  public AuthHandler addPermission(String permission) {
-    permissions.add(permission);
-    return null;
-  }
-
-  @Override
-  public AuthHandler addRoles(Set<String> roles) {
-    this.roles.addAll(roles);
-    return this;
-  }
-
-  @Override
-  public AuthHandler addPermissions(Set<String> permissions) {
-    this.permissions.addAll(permissions);
+  public AuthHandler addAuthorities(Set<String> authorities) {
+    this.authorities.addAll(authorities);
     return this;
   }
 
   protected void authorise(User user, RoutingContext context) {
-    int requiredcount = (!permissions .isEmpty() ? 1 : 0) + (!roles.isEmpty() ? 1: 0);
+    int requiredcount = authorities.size();
     if (requiredcount > 0) {
       AtomicInteger count = new AtomicInteger();
       AtomicBoolean sentFailure = new AtomicBoolean();
@@ -80,7 +66,7 @@ public abstract class AuthHandlerImpl implements AuthHandler {
         if (res.succeeded()) {
           if (res.result()) {
             if (count.incrementAndGet() == requiredcount) {
-              // Has all required roles and permissions
+              // Has all required authorities
               context.next();
             }
           } else {
@@ -92,12 +78,8 @@ public abstract class AuthHandlerImpl implements AuthHandler {
           context.fail(res.cause());
         }
       };
-
-      if (!permissions.isEmpty()) {
-        user.hasPermissions(permissions, authHandler);
-      }
-      if (!roles.isEmpty()) {
-        user.hasRoles(roles, authHandler);
+      for (String authority: authorities) {
+        user.isAuthorised(authority, authHandler);
       }
     } else {
       // No auth required

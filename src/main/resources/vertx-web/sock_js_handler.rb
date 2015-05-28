@@ -62,8 +62,10 @@ module VertxWeb
       end
       raise ArgumentError, "Invalid arguments when calling socket_handler()"
     end
-    # @param [Hash] bridgeOptions
-    # @yield 
+    #  Like {::VertxWeb::SockJSHandler#bridge} but specifying a handler
+    #  that will receive bridge events.
+    # @param [Hash] bridgeOptions options to configure the bridge with
+    # @yield handler to receive bridge events
     # @return [self]
     def bridge(bridgeOptions=nil)
       if bridgeOptions.class == Hash && !block_given?

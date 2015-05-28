@@ -73,11 +73,13 @@ var SockJSHandler = function(j_val) {
   };
 
   /**
+   Like {@link SockJSHandler#bridge} but specifying a handler
+   that will receive bridge events.
 
    @public
-   @param bridgeOptions {Object} 
-   @param bridgeEventHandler {function} 
-   @return {SockJSHandler}
+   @param bridgeOptions {Object} options to configure the bridge with 
+   @param bridgeEventHandler {function} handler to receive bridge events 
+   @return {SockJSHandler} a reference to this, so the API can be used fluently
    */
   this.bridge = function() {
     var __args = arguments;

@@ -25,45 +25,25 @@ module VertxWeb
       end
       raise ArgumentError, "Invalid arguments when calling handle(arg0)"
     end
-    #  Add a required role for this auth handler
-    # @param [String] role the role
+    #  Add a required authority for this auth handler
+    # @param [String] authority the authority
     # @return [self]
-    def add_role(role=nil)
-      if role.class == String && !block_given?
-        @j_del.java_method(:addRole, [Java::java.lang.String.java_class]).call(role)
+    def add_authority(authority=nil)
+      if authority.class == String && !block_given?
+        @j_del.java_method(:addAuthority, [Java::java.lang.String.java_class]).call(authority)
         return self
       end
-      raise ArgumentError, "Invalid arguments when calling add_role(role)"
+      raise ArgumentError, "Invalid arguments when calling add_authority(authority)"
     end
-    #  Add a required permission for this auth handler
-    # @param [String] permission the permission
+    #  Add a set of required authorities for this auth handler
+    # @param [Set<String>] authorities the set of authorities
     # @return [self]
-    def add_permission(permission=nil)
-      if permission.class == String && !block_given?
-        @j_del.java_method(:addPermission, [Java::java.lang.String.java_class]).call(permission)
+    def add_authorities(authorities=nil)
+      if authorities.class == Set && !block_given?
+        @j_del.java_method(:addAuthorities, [Java::JavaUtil::Set.java_class]).call(Java::JavaUtil::LinkedHashSet.new(authorities.map { |element| element }))
         return self
       end
-      raise ArgumentError, "Invalid arguments when calling add_permission(permission)"
-    end
-    #  Add a set of required roles for this auth handler
-    # @param [Set<String>] roles the set of roles
-    # @return [self]
-    def add_roles(roles=nil)
-      if roles.class == Set && !block_given?
-        @j_del.java_method(:addRoles, [Java::JavaUtil::Set.java_class]).call(Java::JavaUtil::LinkedHashSet.new(roles.map { |element| element }))
-        return self
-      end
-      raise ArgumentError, "Invalid arguments when calling add_roles(roles)"
-    end
-    #  Add a set of required permissions for this auth handler
-    # @param [Set<String>] permissions the set of permissions
-    # @return [self]
-    def add_permissions(permissions=nil)
-      if permissions.class == Set && !block_given?
-        @j_del.java_method(:addPermissions, [Java::JavaUtil::Set.java_class]).call(Java::JavaUtil::LinkedHashSet.new(permissions.map { |element| element }))
-        return self
-      end
-      raise ArgumentError, "Invalid arguments when calling add_permissions(permissions)"
+      raise ArgumentError, "Invalid arguments when calling add_authorities(authorities)"
     end
     #  Create a basic auth handler, specifying realm
     # @param [::VertxAuthCommon::AuthProvider] authProvider the auth service to use

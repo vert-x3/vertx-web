@@ -722,17 +722,17 @@ public class Examples {
 
   public void example40(AuthProvider authProvider, Router router) {
 
-    AuthHandler managerAuthHandler = RedirectAuthHandler.create(authProvider);
-    managerAuthHandler.addRole("manager").addRole("admin");
+    AuthHandler listProductsAuthHandler = RedirectAuthHandler.create(authProvider);
+    listProductsAuthHandler.addAuthority("list_products");
 
-    // Roles "manager" and "admin" have access to /private/managers
-    router.route("/private/managers").handler(managerAuthHandler);
+    // Need "list_products" authority to list products
+    router.route("/listproducts/*").handler(listProductsAuthHandler);
 
     AuthHandler settingsAuthHandler = RedirectAuthHandler.create(authProvider);
-    settingsAuthHandler.addRole("admin");
+    settingsAuthHandler.addAuthority("role:admin");
 
     // Only "admin" has access to /private/settings
-    router.route("/private/settings").handler(settingsAuthHandler);
+    router.route("/private/settings/*").handler(settingsAuthHandler);
 
   }
 
@@ -880,11 +880,11 @@ public class Examples {
 
   public void example47() {
 
-    // Let through any messages sent to 'demo.orderMgr' from the client
-    PermittedOptions inboundPermitted = new PermittedOptions().setAddress("demo.adminService");
+    // Let through any messages sent to 'demo.orderService' from the client
+    PermittedOptions inboundPermitted = new PermittedOptions().setAddress("demo.orderService");
 
-    // But only if the user is logged in and has the role "admin"
-    inboundPermitted.setRequiredRole("admin");
+    // But only if the user is logged in and has the authority "place_orders"
+    inboundPermitted.setRequiredAuthority("place_orders");
 
     BridgeOptions options = new BridgeOptions().addInboundPermitted(inboundPermitted);
   }
@@ -893,11 +893,11 @@ public class Examples {
 
     Router router = Router.router(vertx);
 
-    // Let through any messages sent to 'demo.orderMgr' from the client
-    PermittedOptions inboundPermitted = new PermittedOptions().setAddress("demo.adminService");
+    // Let through any messages sent to 'demo.orderService' from the client
+    PermittedOptions inboundPermitted = new PermittedOptions().setAddress("demo.orderService");
 
-    // But only if the user is logged in and has the role "admin"
-    inboundPermitted.setRequiredRole("admin");
+    // But only if the user is logged in and has the authority "place_orders"
+    inboundPermitted.setRequiredAuthority("place_orders");
 
     SockJSHandler sockJSHandler = SockJSHandler.create(vertx);
     sockJSHandler.bridge(new BridgeOptions().

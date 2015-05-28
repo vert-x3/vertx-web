@@ -24,13 +24,8 @@ A regular expression that will be matched against the address. If you want to al
  based on a regular expression you use this field. If the link value is specified
  this will be ignored.+++
 
-|[[requiredRole]]`requiredRole`
+|[[requiredAuthority]]`requiredAuthority`
 |`String`
 |+++
-Declare a specific role for the logged-in user is required in order to access allow the messages.+++
-
-|[[requiredPermission]]`requiredPermission`
-|`String`
-|+++
-Declare a specific permission for the logged-in user is required in order to access allow the messages;+++
+Declare a specific authority that user must have in order to allow messages+++
 |===

@@ -132,10 +132,10 @@ public class RedirectAuthHandlerTest extends AuthHandlerTestBase {
   }
 
   private void doLoginCommon(Handler<RoutingContext> handler) throws Exception {
-    doLoginCommon(handler, null, null);
+    doLoginCommon(handler, null);
   }
 
-  private void doLoginCommon(Handler<RoutingContext> handler, Set<String> roles, Set<String> permissions) throws Exception {
+  private void doLoginCommon(Handler<RoutingContext> handler, Set<String> authorities) throws Exception {
     router.route().handler(BodyHandler.create());
     router.route().handler(CookieHandler.create());
     SessionStore store = LocalSessionStore.create(vertx);
@@ -144,11 +144,8 @@ public class RedirectAuthHandlerTest extends AuthHandlerTestBase {
     AuthProvider authProvider = ShiroAuth.create(vertx, ShiroAuthRealmType.PROPERTIES, authConfig);
     router.route().handler(UserSessionHandler.create(authProvider));
     AuthHandler authHandler = RedirectAuthHandler.create(authProvider);
-    if (roles != null) {
-      authHandler.addRoles(roles);
-    }
-    if (permissions != null) {
-      authHandler.addPermissions(permissions);
+    if (authorities != null) {
+      authHandler.addAuthorities(authorities);
     }
     router.route("/protected/*").handler(authHandler);
     router.route("/protected/somepage").handler(handler);

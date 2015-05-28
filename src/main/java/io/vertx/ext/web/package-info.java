@@ -40,7 +40,7 @@
  * * Error page handler
  * * Basic Authentication
  * * Redirect based authentication
- * * User/role/permission authorisation
+ * * Authorisation handlers
  * * Favicon handling
  * * Template support for server side rendering, including support for the following template engines out of the box:
  * ** Handlebars
@@ -794,7 +794,7 @@
  * to authorise the user. If that is successful then the routing of the request is allowed to continue to the application
  * handlers, otherwise a `403` response is returned to signify that access is denied.
  *
- * The auth handler can be set-up with a set of permissions and/or roles that are required for access to the resources to
+ * The auth handler can be set-up with a set of authorities that are required for access to the resources to
  * be granted.
  *
  * === Redirect auth handler
@@ -818,15 +818,16 @@
  * {@link examples.Examples#example39}
  * ----
  *
- * === Configuring required roles and permissions
+ * === Configuring required authorities
  *
- * With any auth handler you can also configure required roles and permissions to access the resource.
+ * With any auth handler you can also configure required authorities to access the resource.
  *
- * By default, if no roles/permissions are configured then it is sufficient to be logged in to access the resource, otherwise
- * the user must be both logged in (authenticated) and have the required roles/permissions.
+ * By default, if no authorities are configured then it is sufficient to be logged in to access the resource, otherwise
+ * the user must be both logged in (authenticated) and have the required authorities.
  *
- * Here's an example of configuring an app so that different roles/permissions are required for different parts of the
- * app:
+ * Here's an example of configuring an app so that different authorities are required for different parts of the
+ * app. Note that the meaning of the authorities is determined by the underlying auth provider that you use. E.g. some
+ * may support a role/permission based model but others might use another model.
  *
  * [source,$lang]
  * ----
@@ -1330,14 +1331,11 @@
  * The event bus bridge can also be configured to use the Vert.x-Web authorisation functionality to require
  * authorisation for messages, either in-bound or out-bound on the bridge.
  *
- * To do this, you can add extra fields to the match described in the previous section that determine what role and/or
- * permission is required for the match.
+ * To do this, you can add extra fields to the match described in the previous section that determine what authority is
+ * required for the match.
  *
- * To declare that a specific role for the logged-in user is required in order to access allow the messages you use the
- * {@link io.vertx.ext.web.handler.sockjs.PermittedOptions#setRequiredRole} field.
- *
- * To declare that a specific permission for the logged-in user is required in order to access allow the messages you use the
- * {@link io.vertx.ext.web.handler.sockjs.PermittedOptions#setRequiredPermission} field.
+ * To declare that a specific authority for the logged-in user is required in order to access allow the messages you use the
+ * {@link io.vertx.ext.web.handler.sockjs.PermittedOptions#setRequiredAuthority(java.lang.String)} field.
  *
  * Here's an example:
  *
@@ -1346,7 +1344,7 @@
  * {@link examples.Examples#example47}
  * ----
  *
- * For the user to be authorised they must be first logged in and secondly have the required role.
+ * For the user to be authorised they must be first logged in and secondly have the required authority.
  *
  * To handle the login and actually auth you can configure the normal Vert.x auth handlers. For example:
  *

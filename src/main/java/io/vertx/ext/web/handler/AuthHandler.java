@@ -36,38 +36,20 @@ import java.util.Set;
 public interface AuthHandler extends Handler<RoutingContext> {
 
   /**
-   * Add a required role for this auth handler
+   * Add a required authority for this auth handler
    *
-   * @param role  the role
+   * @param authority  the authority
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
-  AuthHandler addRole(String role);
+  AuthHandler addAuthority(String authority);
 
   /**
-   * Add a required permission for this auth handler
+   * Add a set of required authorities for this auth handler
    *
-   * @param permission  the permission
+   * @param authorities  the set of authorities
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
-  AuthHandler addPermission(String permission);
-
-  /**
-   * Add a set of required roles for this auth handler
-   *
-   * @param roles  the set of roles
-   * @return a reference to this, so the API can be used fluently
-   */
-  @Fluent
-  AuthHandler addRoles(Set<String> roles);
-
-  /**
-   * Add a set of required permissions for this auth handler
-   *
-   * @param permissions  the set of permissions
-   * @return a reference to this, so the API can be used fluently
-   */
-  @Fluent
-  AuthHandler addPermissions(Set<String> permissions);
+  AuthHandler addAuthorities(Set<String> authorities);
 }

@@ -47,61 +47,31 @@ var AuthHandler = function(j_val) {
   };
 
   /**
-   Add a required role for this auth handler
+   Add a required authority for this auth handler
 
    @public
-   @param role {string} the role 
+   @param authority {string} the authority 
    @return {AuthHandler} a reference to this, so the API can be used fluently
    */
-  this.addRole = function(role) {
+  this.addAuthority = function(authority) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      j_authHandler["addRole(java.lang.String)"](role);
+      j_authHandler["addAuthority(java.lang.String)"](authority);
       return that;
     } else utils.invalidArgs();
   };
 
   /**
-   Add a required permission for this auth handler
+   Add a set of required authorities for this auth handler
 
    @public
-   @param permission {string} the permission 
+   @param authorities {Array.<string>} the set of authorities 
    @return {AuthHandler} a reference to this, so the API can be used fluently
    */
-  this.addPermission = function(permission) {
-    var __args = arguments;
-    if (__args.length === 1 && typeof __args[0] === 'string') {
-      j_authHandler["addPermission(java.lang.String)"](permission);
-      return that;
-    } else utils.invalidArgs();
-  };
-
-  /**
-   Add a set of required roles for this auth handler
-
-   @public
-   @param roles {Array.<string>} the set of roles 
-   @return {AuthHandler} a reference to this, so the API can be used fluently
-   */
-  this.addRoles = function(roles) {
+  this.addAuthorities = function(authorities) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'object' && __args[0] instanceof Array) {
-      j_authHandler["addRoles(java.util.Set)"](utils.convParamSetBasicOther(roles));
-      return that;
-    } else utils.invalidArgs();
-  };
-
-  /**
-   Add a set of required permissions for this auth handler
-
-   @public
-   @param permissions {Array.<string>} the set of permissions 
-   @return {AuthHandler} a reference to this, so the API can be used fluently
-   */
-  this.addPermissions = function(permissions) {
-    var __args = arguments;
-    if (__args.length === 1 && typeof __args[0] === 'object' && __args[0] instanceof Array) {
-      j_authHandler["addPermissions(java.util.Set)"](utils.convParamSetBasicOther(permissions));
+      j_authHandler["addAuthorities(java.util.Set)"](utils.convParamSetBasicOther(authorities));
       return that;
     } else utils.invalidArgs();
   };

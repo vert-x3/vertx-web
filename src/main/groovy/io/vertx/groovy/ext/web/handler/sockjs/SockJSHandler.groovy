@@ -94,6 +94,13 @@ public class SockJSHandler implements Handler<RoutingContext> {
     this.delegate.bridge(bridgeOptions != null ? new io.vertx.ext.web.handler.sockjs.BridgeOptions(new io.vertx.core.json.JsonObject(bridgeOptions)) : null);
     return this;
   }
+  /**
+   * Like {@link io.vertx.groovy.ext.web.handler.sockjs.SockJSHandler#bridge} but specifying a handler
+   * that will receive bridge events.
+   * @param bridgeOptions options to configure the bridge with (see <a href="../../../../../../../../../cheatsheet/BridgeOptions.html">BridgeOptions</a>)
+   * @param bridgeEventHandler handler to receive bridge events
+   * @return a reference to this, so the API can be used fluently
+   */
   public SockJSHandler bridge(Map<String, Object> bridgeOptions = [:], Handler<BridgeEvent> bridgeEventHandler) {
     this.delegate.bridge(bridgeOptions != null ? new io.vertx.ext.web.handler.sockjs.BridgeOptions(new io.vertx.core.json.JsonObject(bridgeOptions)) : null, new Handler<io.vertx.ext.web.handler.sockjs.BridgeEvent>() {
       public void handle(io.vertx.ext.web.handler.sockjs.BridgeEvent event) {

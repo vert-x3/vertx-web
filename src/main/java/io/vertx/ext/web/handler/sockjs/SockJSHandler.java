@@ -88,6 +88,13 @@ public interface SockJSHandler extends Handler<RoutingContext> {
   @Fluent
   SockJSHandler bridge(BridgeOptions bridgeOptions);
 
+  /**
+   * Like {@link io.vertx.ext.web.handler.sockjs.SockJSHandler#bridge(BridgeOptions)} but specifying a handler
+   * that will receive bridge events.
+   * @param bridgeOptions  options to configure the bridge with
+   * @param bridgeEventHandler  handler to receive bridge events
+   * @return a reference to this, so the API can be used fluently
+   */
   @Fluent
   SockJSHandler bridge(BridgeOptions bridgeOptions, Handler<BridgeEvent> bridgeEventHandler);
 
