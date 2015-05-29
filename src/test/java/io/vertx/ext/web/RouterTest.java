@@ -16,6 +16,7 @@
 
 package io.vertx.ext.web;
 
+import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpMethod;
@@ -1015,20 +1016,23 @@ public class RouterTest extends WebTestBase {
   @Test
   public void testHeadersEndHandler() throws Exception {
     router.route().handler(rc -> {
-      rc.addHeadersEndHandler(v -> {
+      rc.addHeadersEndHandler(f -> {
         rc.response().putHeader("header1", "foo");
+        f.complete();
       });
       rc.next();
     });
     router.route().handler(rc -> {
-      rc.addHeadersEndHandler(v -> {
+      rc.addHeadersEndHandler(f -> {
         rc.response().putHeader("header2", "foo");
+        f.complete();
       });
       rc.next();
     });
     router.route().handler(rc -> {
-      rc.addHeadersEndHandler(v -> {
+      rc.addHeadersEndHandler(f -> {
         rc.response().putHeader("header3", "foo");
+        f.complete();
       });
       rc.response().end();
     });
@@ -1043,14 +1047,16 @@ public class RouterTest extends WebTestBase {
   @Test
   public void testHeadersEndHandlerRemoveHandler() throws Exception {
     router.route().handler(rc -> {
-      rc.addHeadersEndHandler(v -> {
+      rc.addHeadersEndHandler(f -> {
         rc.response().putHeader("header1", "foo");
+        f.complete();
       });
       rc.next();
     });
     router.route().handler(rc -> {
-      Handler<Void> handler = v -> {
+      Handler<Future> handler = fut -> {
         rc.response().putHeader("header2", "foo");
+        fut.complete();
       };
       int handlerID = rc.addHeadersEndHandler(handler);
       vertx.setTimer(1, tid -> {

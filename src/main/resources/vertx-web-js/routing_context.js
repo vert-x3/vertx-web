@@ -24,6 +24,7 @@ var Session = require('vertx-web-js/session');
 var User = require('vertx-auth-common-js/user');
 var Buffer = require('vertx-js/buffer');
 var HttpServerResponse = require('vertx-js/http_server_response');
+var Future = require('vertx-js/future');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
@@ -410,6 +411,8 @@ var RoutingContext = function(j_val) {
   /**
    Add a handler that will be called just before headers are written to the response. This gives you a hook where
    you can write any extra headers before the response has been written when it will be too late.
+   The handler will be passed a future, when you've completed the work you want to do you should complete (or fail)
+   the future. This can be done after the handler has returned.
 
    @public
    @param handler {function} the handler 
@@ -418,7 +421,9 @@ var RoutingContext = function(j_val) {
   this.addHeadersEndHandler = function(handler) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'function') {
-      return j_routingContext["addHeadersEndHandler(io.vertx.core.Handler)"](handler);
+      return j_routingContext["addHeadersEndHandler(io.vertx.core.Handler)"](function(jVal) {
+      handler(new Future(jVal));
+    });
     } else utils.invalidArgs();
   };
 

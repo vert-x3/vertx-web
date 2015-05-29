@@ -16,6 +16,7 @@
 
 package io.vertx.ext.web.impl;
 
+import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
@@ -43,7 +44,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   private final RouterImpl router;
   private Map<String, Object> data;
   private AtomicInteger handlerSeq = new AtomicInteger();
-  private Map<Integer, Handler<Void>> headersEndHandlers;
+  private Map<Integer, Handler<Future>> headersEndHandlers;
   private Map<Integer, Handler<Void>> bodyEndHandlers;
   private Throwable failure;
   private int statusCode = -1;
@@ -239,7 +240,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   }
 
   @Override
-  public int addHeadersEndHandler(Handler<Void> handler) {
+  public int addHeadersEndHandler(Handler<Future> handler) {
     int seq = nextHandlerSeq();
     getHeadersEndHandlers().put(seq, handler);
     return seq;
@@ -262,12 +263,32 @@ public class RoutingContextImpl extends RoutingContextImplBase {
     return getBodyEndHandlers().remove(handlerID) != null;
   }
 
-  private Map<Integer, Handler<Void>> getHeadersEndHandlers() {
+  private Map<Integer, Handler<Future>> getHeadersEndHandlers() {
     if (headersEndHandlers == null) {
       headersEndHandlers = new LinkedHashMap<>();
-      response().headersEndHandler(v -> headersEndHandlers.values().forEach(handler -> handler.handle(null)));
+      response().headersEndHandler(fut -> {
+        Iterator<Handler<Future>> iter = headersEndHandlers.values().iterator();
+        callNextHeadersEndHandler(fut, iter);
+      });
     }
     return headersEndHandlers;
+  }
+
+  private void callNextHeadersEndHandler(Future endFut, Iterator<Handler<Future>> iter) {
+    if (iter.hasNext()) {
+      Handler<Future> handler = iter.next();
+      Future<?> fut = Future.future();
+      fut.setHandler(res -> {
+        if (res.succeeded()) {
+          callNextHeadersEndHandler(endFut, iter);
+        } else {
+          endFut.fail(res.cause());
+        }
+      });
+      handler.handle(fut);
+    } else {
+      endFut.complete();
+    }
   }
 
   private Map<Integer, Handler<Void>> getBodyEndHandlers() {

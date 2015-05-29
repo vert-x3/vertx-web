@@ -22,6 +22,7 @@ import rx.Observable;
 import io.vertx.rxjava.core.http.HttpServerRequest;
 import io.vertx.rxjava.core.Vertx;
 import java.util.Set;
+import io.vertx.rxjava.core.Future;
 import io.vertx.rxjava.ext.auth.User;
 import io.vertx.rxjava.core.buffer.Buffer;
 import io.vertx.rxjava.core.http.HttpServerResponse;
@@ -329,11 +330,17 @@ public class RoutingContext {
   /**
    * Add a handler that will be called just before headers are written to the response. This gives you a hook where
    * you can write any extra headers before the response has been written when it will be too late.
+   * The handler will be passed a future, when you've completed the work you want to do you should complete (or fail)
+   * the future. This can be done after the handler has returned.
    * @param handler the handler
    * @return the id of the handler. This can be used if you later want to remove the handler.
    */
-  public int addHeadersEndHandler(Handler<Void> handler) { 
-    int ret = this.delegate.addHeadersEndHandler(handler);
+  public int addHeadersEndHandler(Handler<Future> handler) { 
+    int ret = this.delegate.addHeadersEndHandler(new Handler<io.vertx.core.Future>() {
+      public void handle(io.vertx.core.Future event) {
+        handler.handle(new Future(event));
+      }
+    });
     return ret;
   }
 

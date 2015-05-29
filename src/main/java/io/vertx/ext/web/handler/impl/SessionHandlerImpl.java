@@ -102,17 +102,14 @@ public class SessionHandlerImpl implements SessionHandler {
   }
 
   private void addStoreSessionHandler(RoutingContext context) {
-    context.addHeadersEndHandler(v -> {
+    context.addHeadersEndHandler(fut -> {
       Session session = context.session();
       if (!session.isDestroyed()) {
         // Store the session
         session.setAccessed();
         sessionStore.put(session, res -> {
           if (res.succeeded()) {
-            // FIXME ???
-            // We need to wait for session to be persisted before returning response otherwise
-            // user can submit new request on session which could get processed before store is complete
-            // https://github.com/vert-x3/vertx-web/issues/93
+            fut.complete();
           } else {
             // Failed to store session
             context.fail(res.cause());
@@ -121,7 +118,7 @@ public class SessionHandlerImpl implements SessionHandler {
       } else {
         sessionStore.delete(session.id(), res -> {
           if (res.succeeded()) {
-            // FIXME ???
+            fut.complete();
           } else {
             // Failed to store session
             context.fail(res.cause());

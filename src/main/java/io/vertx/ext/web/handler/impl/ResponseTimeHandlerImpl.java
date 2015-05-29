@@ -27,9 +27,10 @@ public class ResponseTimeHandlerImpl implements ResponseTimeHandler {
   @Override
   public void handle(RoutingContext ctx) {
     long start = System.currentTimeMillis();
-    ctx.addHeadersEndHandler(v -> {
+    ctx.addHeadersEndHandler(fut -> {
       long duration = System.currentTimeMillis() - start;
       ctx.response().putHeader("x-response-time", duration + "ms");
+      fut.complete();
     });
     ctx.next();
   }

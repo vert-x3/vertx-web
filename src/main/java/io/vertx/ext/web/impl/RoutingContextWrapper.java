@@ -16,17 +16,18 @@
 
 package io.vertx.ext.web.impl;
 
+import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.auth.User;
 import io.vertx.ext.web.Cookie;
 import io.vertx.ext.web.FileUpload;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
-import io.vertx.ext.auth.User;
 
 import java.util.Iterator;
 import java.util.Map;
@@ -94,7 +95,7 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   }
 
   @Override
-  public int addHeadersEndHandler(Handler<Void> handler) {
+  public int addHeadersEndHandler(Handler<Future> handler) {
     return inner.addHeadersEndHandler(handler);
   }
 

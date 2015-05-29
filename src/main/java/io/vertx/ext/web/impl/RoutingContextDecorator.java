@@ -1,5 +1,6 @@
 package io.vertx.ext.web.impl;
 
+import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
@@ -42,7 +43,7 @@ public class RoutingContextDecorator implements RoutingContext {
   }
 
   @Override
-  public int addHeadersEndHandler(Handler<Void> handler) {
+  public int addHeadersEndHandler(Handler<Future> handler) {
     return decoratedContext.addHeadersEndHandler(handler);
   }
 
