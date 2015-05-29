@@ -63,8 +63,8 @@ var vertx = vertx || {};
     that.onopen = null;
     that.onclose = null;
 
-    that.send = function(address, message, replyHandler) {
-      sendOrPub("send", address, message, replyHandler)
+    that.send = function(address, message, replyHandler, failureHandler) {
+      sendOrPub("send", address, message, replyHandler, failureHandler)
     }
   
     that.publish = function(address, message) {
@@ -144,6 +144,10 @@ var vertx = vertx || {};
         return;
       }
       var body = json.body;
+      var failure = null;
+      if (body === undefined && json.hasOwnProperty('failureCode')) {
+        failure = { failureCode: json.failureCode, failureType: json.failureType, message: json.message }
+      }
       var replyAddress = json.replyAddress;
       var address = json.address;
       var replyHandler;
@@ -163,10 +167,17 @@ var vertx = vertx || {};
         }
       } else {
         // Might be a reply message
-        var handler = replyHandlers[address];
-        if (handler) {
+        var handlers = replyHandlers[address];
+        if (handlers) {
           delete replyHandlers[address];
-          handler(body, replyHandler);
+          var handler = handlers.replyHandler;
+          if (handler) {
+            handler(body, replyHandler);
+          }
+          var failureHandler = handlers.failureHandler;
+          if (failure && failureHandler) {
+            failureHandler(failure)
+          }
         }
       }
     }
@@ -178,17 +189,18 @@ var vertx = vertx || {};
       sockJSConn.send(JSON.stringify(msg));
     }
   
-    function sendOrPub(sendOrPub, address, message, replyHandler) {
+    function sendOrPub(sendOrPub, address, message, replyHandler, failureHandler) {
       checkSpecified("address", 'string', address);
       checkSpecified("replyHandler", 'function', replyHandler, true);
+      checkSpecified("failureHandler", 'function', failureHandler, true);
       checkOpen();
       var envelope = { type : sendOrPub,
                        address: address,
                        body: message };
-      if (replyHandler) {
+      if (replyHandler || failureHandler) {
         var replyAddress = makeUUID();
         envelope.replyAddress = replyAddress;
-        replyHandlers[replyAddress] = replyHandler;
+        replyHandlers[replyAddress] = { replyHandler: replyHandler, failureHandler: failureHandler };
       }
       var str = JSON.stringify(envelope);
       sockJSConn.send(str);
