@@ -186,7 +186,6 @@ public class BodyHandlerTest extends WebTestBase {
     String name = "somename";
     String fileName = "somefile.dat";
     String contentType = "application/octet-stream";
-    System.out.println("size is " + size);
     Buffer fileData = TestUtils.randomBuffer(size);
     router.route().handler(rc -> {
       Set<FileUpload> fileUploads = rc.fileUploads();
@@ -201,7 +200,6 @@ public class BodyHandlerTest extends WebTestBase {
       String uploadedFileName = upload.uploadedFileName();
       assertTrue(uploadedFileName.startsWith(uploadsDir + File.separator));
       Buffer uploaded = vertx.fileSystem().readFileBlocking(uploadedFileName);
-      System.out.println("Uploaded size is "+  uploaded.length());
       assertEquals(fileData, uploaded);
       // The body should be set too
       Buffer rawBody = rc.getBody();
