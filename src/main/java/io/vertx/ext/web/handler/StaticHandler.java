@@ -33,67 +33,67 @@ public interface StaticHandler extends Handler<RoutingContext> {
   /**
    * Default value of the web-root, where files are served from
    */
-  static final String DEFAULT_WEB_ROOT = "webroot";
+  String DEFAULT_WEB_ROOT = "webroot";
 
   /**
    * Default value of whether files are read -only and never will be updated
    */
-  static final boolean DEFAULT_FILES_READ_ONLY = true;
+  boolean DEFAULT_FILES_READ_ONLY = true;
 
   /**
    * Default max age for cache headers
    */
-  static final long DEFAULT_MAX_AGE_SECONDS = 86400; // One day
+  long DEFAULT_MAX_AGE_SECONDS = 86400; // One day
 
   /**
    * Default of whether cache header handling is enabled
    */
-  static final boolean DEFAULT_CACHING_ENABLED = true;
+  boolean DEFAULT_CACHING_ENABLED = true;
 
   /**
    * Default of whether directory listing is enabled
    */
-  static final boolean DEFAULT_DIRECTORY_LISTING = false;
+  boolean DEFAULT_DIRECTORY_LISTING = false;
 
   /**
    * Default template file to use for directory listing
    */
-  static final String DEFAULT_DIRECTORY_TEMPLATE = "vertx-web-directory.html";
+  String DEFAULT_DIRECTORY_TEMPLATE = "vertx-web-directory.html";
 
   /**
    * Default of whether hidden files can be served
    */
-  static final boolean DEFAULT_INCLUDE_HIDDEN = true;
+  boolean DEFAULT_INCLUDE_HIDDEN = true;
 
   /**
    * Default cache entry timeout, when caching
    */
-  static final long DEFAULT_CACHE_ENTRY_TIMEOUT = 30000; // 30 seconds
+  long DEFAULT_CACHE_ENTRY_TIMEOUT = 30000; // 30 seconds
 
   /**
    * The default index page
    */
-  static final String DEFAULT_INDEX_PAGE = "/index.html";
+  String DEFAULT_INDEX_PAGE = "/index.html";
 
   /**
    * The default max cache size
    */
-  static final int DEFAULT_MAX_CACHE_SIZE = 10000;
+  int DEFAULT_MAX_CACHE_SIZE = 10000;
 
   /**
    * Default of whether async filesystem access should always be used
    */
-  static final boolean DEFAULT_ALWAYS_ASYNC_FS = false;
+  boolean DEFAULT_ALWAYS_ASYNC_FS = false;
 
   /**
    * Default of whether fs async/sync tuning should be used
    */
-  static final boolean DEFAULT_ENABLE_FS_TUNING = true;
+  boolean DEFAULT_ENABLE_FS_TUNING = true;
 
   /**
    * Default max avg serve time, in ns, over which serving will be considered slow
    */
-  static final long DEFAULT_MAX_AVG_SERVE_TIME_NS = 1000000; // 1ms
+  long DEFAULT_MAX_AVG_SERVE_TIME_NS = 1000000; // 1ms
 
   /**
    * Create a handler using defaults

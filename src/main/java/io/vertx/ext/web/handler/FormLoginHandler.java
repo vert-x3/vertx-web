@@ -35,17 +35,17 @@ public interface FormLoginHandler extends Handler<RoutingContext> {
   /**
    * The default value of the form attribute which will contain the username
    */
-  static final String DEFAULT_USERNAME_PARAM = "username";
+  String DEFAULT_USERNAME_PARAM = "username";
 
   /**
    * The default value of the form attribute which will contain the password
    */
-  static final String DEFAULT_PASSWORD_PARAM = "password";
+  String DEFAULT_PASSWORD_PARAM = "password";
 
   /**
    * The default value of the form attribute which will contain the return url
    */
-  static final String DEFAULT_RETURN_URL_PARAM = "return_url";
+  String DEFAULT_RETURN_URL_PARAM = "return_url";
 
   /**
    * Create a handler

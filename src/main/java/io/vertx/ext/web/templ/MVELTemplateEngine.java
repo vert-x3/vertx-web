@@ -30,12 +30,12 @@ public interface MVELTemplateEngine extends TemplateEngine {
   /**
    * Default max number of templates to cache
    */
-  static final int DEFAULT_MAX_CACHE_SIZE = 10000;
+  int DEFAULT_MAX_CACHE_SIZE = 10000;
 
   /**
    * Default template extension
    */
-  static final String DEFAULT_TEMPLATE_EXTENSION = "templ";
+  String DEFAULT_TEMPLATE_EXTENSION = "templ";
 
   /**
    * Create a template engine using defaults

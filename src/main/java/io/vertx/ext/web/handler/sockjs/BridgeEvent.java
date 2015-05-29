@@ -31,7 +31,7 @@ import io.vertx.core.json.JsonObject;
 @VertxGen
 public interface BridgeEvent extends Future<Boolean> {
 
-  static enum Type {
+  enum Type {
     SOCKET_CREATED, SOCKET_CLOSED, SEND, PUBLISH, RECEIVE, REGISTER, UNREGISTER
   }
 

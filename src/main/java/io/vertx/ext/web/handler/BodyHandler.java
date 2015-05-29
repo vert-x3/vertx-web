@@ -35,17 +35,17 @@ public interface BodyHandler extends Handler<RoutingContext> {
   /**
    * Default max size for a request body. -1 means unlimited
    */
-  static final long DEFAULT_BODY_LIMIT = -1;
+  long DEFAULT_BODY_LIMIT = -1;
 
   /**
    * Default uploads directory on server for file uploads
    */
-  static final String DEFAULT_UPLOADS_DIRECTORY = "file-uploads";
+  String DEFAULT_UPLOADS_DIRECTORY = "file-uploads";
 
   /**
    * Default value of whether form attributes should be merged into request params
    */
-  static final boolean DEFAULT_MERGE_FORM_ATTRIBUTES = true;
+  boolean DEFAULT_MERGE_FORM_ATTRIBUTES = true;
 
   /**
    * Create a body handler with defaults

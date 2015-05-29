@@ -33,12 +33,12 @@ public interface LocalSessionStore extends SessionStore {
   /**
    * Default of how often, in ms, to check for expired sessions
    */
-  static final long DEFAULT_REAPER_PERIOD = 1000;
+  long DEFAULT_REAPER_PERIOD = 1000;
 
   /**
    * Default name for map used to store sessions
    */
-  static final String DEFAULT_SESSION_MAP_NAME = "vertx-web.sessions";
+  String DEFAULT_SESSION_MAP_NAME = "vertx-web.sessions";
 
   /**
    * Create a session store

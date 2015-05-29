@@ -31,12 +31,12 @@ public interface RedirectAuthHandler extends AuthHandler {
   /**
    * Default path the user will be redirected to
    */
-  static final String DEFAULT_LOGIN_REDIRECT_URL = "/loginpage";
+  String DEFAULT_LOGIN_REDIRECT_URL = "/loginpage";
 
   /**
    * Default name of param used to store return url information in session
    */
-  static final String DEFAULT_RETURN_URL_PARAM = "return_url";
+  String DEFAULT_RETURN_URL_PARAM = "return_url";
 
   /**
    * Create a handler

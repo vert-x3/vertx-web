@@ -31,7 +31,7 @@ public interface BasicAuthHandler extends AuthHandler {
   /**
    * The default realm to use
    */
-  static final String DEFAULT_REALM = "vertx-web";
+  String DEFAULT_REALM = "vertx-web";
 
   /**
    * Create a basic auth handler

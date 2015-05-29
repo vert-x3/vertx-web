@@ -41,18 +41,18 @@ public interface SessionHandler extends Handler<RoutingContext> {
   /**
    * Default name of session cookie
    */
-  static final String DEFAULT_SESSION_COOKIE_NAME = "vertx-web.session";
+  String DEFAULT_SESSION_COOKIE_NAME = "vertx-web.session";
 
   /**
    * Default time, in ms, that a session lasts for without being accessed before expiring.
    */
-  static final long DEFAULT_SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutes
+  long DEFAULT_SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutes
 
   /**
    * Default of whether a nagging log warning should be written if the session handler is accessed over HTTP, not
    * HTTPS
    */
-  static final boolean DEFAULT_NAG_HTTPS = true;
+  boolean DEFAULT_NAG_HTTPS = true;
 
   /**
    * Create a session handler

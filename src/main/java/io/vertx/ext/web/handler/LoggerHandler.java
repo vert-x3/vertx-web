@@ -30,7 +30,7 @@ import io.vertx.ext.web.RoutingContext;
 @VertxGen
 public interface LoggerHandler extends Handler<RoutingContext> {
 
-  static final Format DEFAULT_FORMAT = Format.DEFAULT;
+  Format DEFAULT_FORMAT = Format.DEFAULT;
 
   /**
    * Create a handler with default format

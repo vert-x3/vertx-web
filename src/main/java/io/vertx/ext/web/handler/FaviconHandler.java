@@ -34,7 +34,7 @@ public interface FaviconHandler extends Handler<RoutingContext> {
   /**
    * The default max age in seconds as set in the cache-control header
    */
-  public static final long DEFAULT_MAX_AGE_SECONDS = 86400;
+  long DEFAULT_MAX_AGE_SECONDS = 86400;
 
   /**
    * Create a handler with defaults

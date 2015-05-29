@@ -29,7 +29,7 @@ import io.vertx.ext.web.templ.impl.ThymeleafTemplateEngineImpl;
 @VertxGen
 public interface ThymeleafTemplateEngine extends TemplateEngine {
 
-  static final String DEFAULT_TEMPLATE_MODE = "XHTML";
+  String DEFAULT_TEMPLATE_MODE = "XHTML";
 
   /**
    * Create a template engine using defaults

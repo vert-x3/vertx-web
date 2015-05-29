@@ -32,12 +32,12 @@ public interface ErrorHandler extends Handler<RoutingContext> {
   /**
    * The default template to use for rendering
    */
-  public static final String DEFAULT_ERROR_HANDLER_TEMPLATE = "vertx-web-error.html";
+  String DEFAULT_ERROR_HANDLER_TEMPLATE = "vertx-web-error.html";
 
   /**
    * Should exception details be displayed by default?
    */
-  public static final boolean DEFAULT_DISPLAY_EXCEPTION_DETAILS = true;
+  boolean DEFAULT_DISPLAY_EXCEPTION_DETAILS = true;
 
   /**
    * Create an error handler using defaults

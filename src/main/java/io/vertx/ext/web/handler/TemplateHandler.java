@@ -51,12 +51,12 @@ public interface TemplateHandler extends Handler<RoutingContext> {
   /**
    * The default directory where templates will be looked for
    */
-  static final String DEFAULT_TEMPLATE_DIRECTORY = "templates";
+  String DEFAULT_TEMPLATE_DIRECTORY = "templates";
 
   /**
    * The default content type header to be used in the response
    */
-  static final String DEFAULT_CONTENT_TYPE = "text/html";
+  String DEFAULT_CONTENT_TYPE = "text/html";
 
   /**
    * Create a handler

@@ -33,7 +33,7 @@ public interface TimeoutHandler extends Handler<RoutingContext> {
   /**
    * The default timeout, in ms
    */
-  static final long DEFAULT_TIMEOUT = 5000;
+  long DEFAULT_TIMEOUT = 5000;
 
   /**
    * Create a handler

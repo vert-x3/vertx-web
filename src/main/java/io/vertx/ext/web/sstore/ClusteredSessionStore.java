@@ -31,7 +31,7 @@ public interface ClusteredSessionStore extends SessionStore {
   /**
    * The default name used for the session map
    */
-  static final String DEFAULT_SESSION_MAP_NAME = "vertx-web.sessions";
+  String DEFAULT_SESSION_MAP_NAME = "vertx-web.sessions";
 
   /**
    * Create a session store
