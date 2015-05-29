@@ -17,11 +17,13 @@
 package io.vertx.ext.web.handler;
 
 import io.vertx.core.MultiMap;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.CaseInsensitiveHeaders;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.impl.LoggerFactory;
 import io.vertx.ext.web.WebTestBase;
 import io.vertx.ext.web.handler.sockjs.SockJSHandler;
+import io.vertx.test.core.TestUtils;
 import org.junit.Test;
 
 /**
@@ -69,6 +71,34 @@ public class SockJSHandlerTest extends WebTestBase {
     testNotFound("/echo/a/");
     testNotFound("/echo//");
     testNotFound("/echo///");
+
+    await();
+  }
+
+  // https://github.com/vert-x3/vertx-web/issues/77
+  @Test
+  public void testSendWebsocketContinuationFrames() {
+    // Use raw websocket transport
+    client.websocket("/echo/websocket", ws -> {
+
+      int size = 65535;
+
+      Buffer buffer1 = TestUtils.randomBuffer(size);
+      Buffer buffer2 = TestUtils.randomBuffer(size);
+
+      ws.writeFrame(io.vertx.core.http.WebSocketFrame.binaryFrame(buffer1, false));
+      ws.writeFrame(io.vertx.core.http.WebSocketFrame.continuationFrame(buffer2, true));
+
+      Buffer received=  Buffer.buffer();
+
+      ws.handler(buff -> {
+        received.appendBuffer(buff);
+        if (received.length() == size * 2) {
+          testComplete();
+        }
+      });
+
+    });
 
     await();
   }

@@ -14,16 +14,18 @@
  * under the License.
  */
 
-package io.vertx.groovy.ext.web
+package io.vertx.groovy.ext.web;
 import groovy.transform.CompileStatic
-import io.vertx.core.Handler
-import io.vertx.groovy.core.Future
-import io.vertx.groovy.core.Vertx
-import io.vertx.groovy.core.buffer.Buffer
-import io.vertx.groovy.core.http.HttpServerRequest
-import io.vertx.groovy.core.http.HttpServerResponse
-import io.vertx.groovy.ext.auth.User
 import io.vertx.lang.groovy.InternalHelper
+import io.vertx.groovy.core.http.HttpServerRequest
+import io.vertx.groovy.core.Vertx
+import java.util.Set
+import io.vertx.groovy.core.Future
+import io.vertx.groovy.ext.auth.User
+import io.vertx.groovy.core.buffer.Buffer
+import io.vertx.groovy.core.http.HttpServerResponse
+import io.vertx.core.json.JsonObject
+import io.vertx.core.Handler
 /**
  * Represents the context for the handling of a request in Vert.x-Web.
  * <p>
