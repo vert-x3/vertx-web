@@ -166,6 +166,11 @@ You can do this some time later, if you want:
 Route route1 = router.route("/some/path/").handler(routingContext -> {
 
   HttpServerResponse response = routingContext.response();
+  // enable chunked responses because we will be adding data as
+  // we execute over other handlers. This is only required once and
+  // only if several handlers do output.
+  response.setChunked(true);
+
   response.write("route1\n");
 
   // Call the next matching route after a 5 second delay
