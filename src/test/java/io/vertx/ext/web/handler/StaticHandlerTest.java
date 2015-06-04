@@ -285,7 +285,7 @@ public class StaticHandlerTest extends WebTestBase {
   @Test
   public void testDirectoryListingText() throws Exception {
     stat.setDirectoryListing(true);
-    Set<String> expected = new HashSet<>(Arrays.asList(".hidden.html", "foo.json", "index.html", "otherpage.html", "somedir", "somedir2", "file with spaces.html"));
+    Set<String> expected = new HashSet<>(Arrays.asList(".hidden.html", "a", "foo.json", "index.html", "otherpage.html", "somedir", "somedir2", "file with spaces.html"));
     testRequest(HttpMethod.GET, "/", null, resp -> {
       resp.bodyHandler(buff -> {
         String sBuff = buff.toString();
@@ -302,7 +302,7 @@ public class StaticHandlerTest extends WebTestBase {
   public void testDirectoryListingTextNoHidden() throws Exception {
     stat.setDirectoryListing(true);
     stat.setIncludeHidden(false);
-    Set<String> expected = new HashSet<>(Arrays.asList("foo.json", "index.html", "otherpage.html", "somedir", "somedir2", "file with spaces.html"));
+    Set<String> expected = new HashSet<>(Arrays.asList("foo.json", "a", "index.html", "otherpage.html", "somedir", "somedir2", "file with spaces.html"));
     testRequest(HttpMethod.GET, "/", null, resp -> {
       resp.bodyHandler(buff -> {
         assertEquals("text/plain", resp.headers().get("content-type"));
@@ -319,7 +319,7 @@ public class StaticHandlerTest extends WebTestBase {
   @Test
   public void testDirectoryListingJson() throws Exception {
     stat.setDirectoryListing(true);
-    Set<String> expected = new HashSet<>(Arrays.asList(".hidden.html", "foo.json", "index.html", "otherpage.html", "somedir", "somedir2", "file with spaces.html"));
+    Set<String> expected = new HashSet<>(Arrays.asList(".hidden.html", "foo.json", "index.html", "otherpage.html", "a", "somedir", "somedir2", "file with spaces.html"));
     testRequest(HttpMethod.GET, "/", req -> {
       req.putHeader("accept", "application/json");
     }, resp -> {
@@ -341,7 +341,7 @@ public class StaticHandlerTest extends WebTestBase {
   public void testDirectoryListingJsonNoHidden() throws Exception {
     stat.setDirectoryListing(true);
     stat.setIncludeHidden(false);
-    Set<String> expected = new HashSet<>(Arrays.asList("foo.json", "index.html", "otherpage.html", "somedir", "somedir2", "file with spaces.html"));
+    Set<String> expected = new HashSet<>(Arrays.asList("foo.json", "a", "index.html", "otherpage.html", "somedir", "somedir2", "file with spaces.html"));
     testRequest(HttpMethod.GET, "/", req -> {
       req.putHeader("accept", "application/json");
     }, resp -> {
@@ -381,7 +381,7 @@ public class StaticHandlerTest extends WebTestBase {
 
     String directoryTemplate = Utils.readResourceToBuffer(dirTemplateFile).toString();
 
-    String parentLink = "<a href=\"/" + "webroot/" + "\">..</a>";
+    String parentLink = "<a href=\"/\">..</a>";
     String files = "<ul id=\"files\"><li><a href=\"/somedir2/foo2.json\" title=\"foo2.json\">foo2.json</a></li>" +
       "<li><a href=\"/somedir2/somepage.html\" title=\"somepage.html\">somepage.html</a></li>" +
       "<li><a href=\"/somedir2/somepage2.html\" title=\"somepage2.html\">somepage2.html</a></li></ul>";
