@@ -73,14 +73,13 @@
       <optional>true</optional>
     </dependency>
 
-    <!--
-    These should be optional so they're not dragged into web applications unless they're explicitly declared
-     -->
     <dependency>
       <groupId>io.vertx</groupId>
       <artifactId>vertx-auth-common</artifactId>
-      <optional>true</optional>
     </dependency>
+    <!--
+    These should be optional so they're not dragged into web applications unless they're explicitly declared
+     -->
     <dependency>
       <groupId>io.vertx</groupId>
       <artifactId>vertx-auth-jwt</artifactId>
