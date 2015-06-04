@@ -421,14 +421,14 @@ public class StaticHandlerImpl implements StaticHandler {
 
           // link to parent dir
           int slashPos = 0;
-          for (int i = dir.length() - 2; i > 0; i--) {
-            if (dir.charAt(i) == '/') {
+          for (int i = normalizedDir.length() - 2; i > 0; i--) {
+            if (normalizedDir.charAt(i) == '/') {
               slashPos = i;
               break;
             }
           }
 
-          String parent = "<a href=\"/" + dir.substring(0, slashPos + 1) + "\">..</a>";
+          String parent = "<a href=\"" + normalizedDir.substring(0, slashPos + 1) + "\">..</a>";
 
           request.response().putHeader("content-type", "text/html");
           request.response().end(
