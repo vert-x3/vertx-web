@@ -26,7 +26,7 @@ import io.vertx.rxjava.ext.auth.AuthProvider;
 /**
  * Handler that handles login from a form on a custom login page.
  * <p>
- * Used in conjunction with the {@link  io.vertx.rxjava.ext.web.handler.RedirectAuthHandler}.
+ * Used in conjunction with the {@link io.vertx.rxjava.ext.web.handler.RedirectAuthHandler}.
  *
  * <p/>
  * NOTE: This class has been automatically generated from the {@link io.vertx.ext.web.handler.FormLoginHandler original} non RX-ified interface using Vert.x codegen.

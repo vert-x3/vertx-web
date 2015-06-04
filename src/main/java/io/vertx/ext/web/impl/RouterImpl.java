@@ -177,6 +177,51 @@ public class RouterImpl implements Router {
   }
 
   @Override
+  public Route trace() {
+    return route().method(HttpMethod.TRACE);
+  }
+
+  @Override
+  public Route trace(String path) {
+    return route(HttpMethod.TRACE, path);
+  }
+
+  @Override
+  public Route traceWithRegex(String path) {
+    return route().method(HttpMethod.TRACE).pathRegex(path);
+  }
+
+  @Override
+  public Route connect() {
+    return route().method(HttpMethod.CONNECT);
+  }
+
+  @Override
+  public Route connect(String path) {
+    return route(HttpMethod.CONNECT, path);
+  }
+
+  @Override
+  public Route connectWithRegex(String path) {
+    return route().method(HttpMethod.CONNECT).pathRegex(path);
+  }
+
+  @Override
+  public Route patch() {
+    return route().method(HttpMethod.PATCH);
+  }
+
+  @Override
+  public Route patch(String path) {
+    return route(HttpMethod.PATCH, path);
+  }
+
+  @Override
+  public Route patchWithRegex(String path) {
+    return route().method(HttpMethod.PATCH).pathRegex(path);
+  }
+
+  @Override
   public List<Route> getRoutes() {
     return new ArrayList<>(routes);
   }

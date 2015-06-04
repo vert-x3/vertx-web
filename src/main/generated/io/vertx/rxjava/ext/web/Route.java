@@ -133,7 +133,7 @@ public class Route {
 
   /**
    * Specify a blocking request handler for the route. 
-   * This method works just like {@link  #handler(Handler)} excepted that it will run the blocking handler on a different thread
+   * This method works just like {@link io.vertx.rxjava.ext.web.Route#handler} excepted that it will run the blocking handler on a different thread
    * so that it won't block the event loop. Note that it's safe to call context.next() from the 
    * blocking handler as it will be executed on the event loop context (and not on the worker thread)
    * @param requestHandler the blocking request handler

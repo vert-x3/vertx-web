@@ -312,7 +312,7 @@ public class RoutingContext {
   }
   /**
    * Remove a headers end handler
-   * @param handlerID the id as returned from {@link io.vertx.ext.web.RoutingContext#addHeadersEndHandler(io.vertx.core.Handler)}.
+   * @param handlerID the id as returned from {@link io.vertx.groovy.ext.web.RoutingContext#addHeadersEndHandler}.
    * @return true if the handler existed and was removed, false otherwise
    */
   public boolean removeHeadersEndHandler(int handlerID) {
@@ -331,7 +331,7 @@ public class RoutingContext {
   }
   /**
    * Remove a body end handler
-   * @param handlerID the id as returned from {@link io.vertx.ext.web.RoutingContext#addBodyEndHandler(io.vertx.core.Handler)}.
+   * @param handlerID the id as returned from {@link io.vertx.groovy.ext.web.RoutingContext#addBodyEndHandler}.
    * @return true if the handler existed and was removed, false otherwise
    */
   public boolean removeBodyEndHandler(int handlerID) {

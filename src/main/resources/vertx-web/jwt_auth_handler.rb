@@ -17,7 +17,7 @@ module VertxWeb
     def j_del
       @j_del
     end
-    # @param [::VertxWeb::RoutingContext] arg0
+    # @param [::VertxWeb::RoutingContext] arg0 
     # @return [void]
     def handle(arg0=nil)
       if arg0.class.method_defined?(:j_del) && !block_given?
@@ -47,7 +47,7 @@ module VertxWeb
     end
     #  Create a JWT auth handler
     # @param [::VertxAuthCommon::AuthProvider] authProvider the auth provider to use.
-    # @param [String] skip
+    # @param [String] skip 
     # @return [::VertxWeb::JWTAuthHandler] the auth handler
     def self.create(authProvider=nil,skip=nil)
       if authProvider.class.method_defined?(:j_del) && !block_given? && skip == nil

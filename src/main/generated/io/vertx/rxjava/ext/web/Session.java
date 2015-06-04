@@ -28,7 +28,7 @@ import rx.Observable;
  * <p>
  * Sessions can be used to maintain data for a browser session, e.g. a shopping basket.
  * <p>
- * The context must have first been routed to a {@link  io.vertx.rxjava.ext.web.handler.SessionHandler}
+ * The context must have first been routed to a {@link io.vertx.rxjava.ext.web.handler.SessionHandler}
  * for sessions to be available.
  *
  * <p/>

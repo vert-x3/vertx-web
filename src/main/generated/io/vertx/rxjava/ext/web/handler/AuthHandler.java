@@ -28,7 +28,7 @@ import io.vertx.core.Handler;
  * <p>
  * An auth handler allows your application to provide authentication/authorisation support.
  * <p>
- * Auth handler requires a {@link  io.vertx.rxjava.ext.web.handler.SessionHandler} to be on the routing chain before it.
+ * Auth handler requires a {@link io.vertx.rxjava.ext.web.handler.SessionHandler} to be on the routing chain before it.
  *
  * <p/>
  * NOTE: This class has been automatically generated from the {@link io.vertx.ext.web.handler.AuthHandler original} non RX-ified interface using Vert.x codegen.
