@@ -485,6 +485,11 @@ Here's an example to illustrate this:
 def route1 = router.route("/some/path/").handler({ routingContext ->
 
   def response = routingContext.response()
+  // enable chunked responses because we will be adding data as
+  // we execute over other handlers. This is only required once and
+  // only if several handlers do output.
+  response.setChunked(true)
+
   response.write("route1\n")
 
   // Now call the next matching route
@@ -548,6 +553,11 @@ def route1 = router.route("/some/path/").handler({ routingContext ->
 def route2 = router.route("/some/path/").handler({ routingContext ->
 
   def response = routingContext.response()
+  // enable chunked responses because we will be adding data as
+  // we execute over other handlers. This is only required once and
+  // only if several handlers do output.
+  response.setChunked(true)
+
   response.write("route2\n")
 
   // Now call the next matching route

@@ -242,6 +242,11 @@ public class Examples {
     Route route1 = router.route("/some/path/").handler(routingContext -> {
 
       HttpServerResponse response = routingContext.response();
+      // enable chunked responses because we will be adding data as
+      // we execute over other handlers. This is only required once and
+      // only if several handlers do output.
+      response.setChunked(true);
+
       response.write("route1\n");
 
       // Now call the next matching route
@@ -282,6 +287,11 @@ public class Examples {
     Route route2 = router.route("/some/path/").handler(routingContext -> {
 
       HttpServerResponse response = routingContext.response();
+      // enable chunked responses because we will be adding data as
+      // we execute over other handlers. This is only required once and
+      // only if several handlers do output.
+      response.setChunked(true);
+
       response.write("route2\n");
 
       // Now call the next matching route
