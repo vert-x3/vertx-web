@@ -105,7 +105,7 @@ public class Cookie {
    * Sets the maximum age of this cookie in seconds.
    * If an age of <code>0</code> is specified, this cookie will be
    * automatically removed by browser because it will expire immediately.
-   * If  is specified, this cookie will be removed when the
+   * If {@link java.lang.Long} is specified, this cookie will be removed when the
    * browser is closed.
    * If you don't set this the cookie will be a session cookie and be removed when the browser is closed.
    * @param maxAge The maximum age of this cookie in seconds

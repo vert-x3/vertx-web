@@ -23,7 +23,7 @@ import io.vertx.rxjava.ext.web.RoutingContext;
 import io.vertx.core.Handler;
 
 /**
- * A handler which gathers the entire request body and sets it on the {@link  io.vertx.rxjava.ext.web.RoutingContext}.
+ * A handler which gathers the entire request body and sets it on the {@link io.vertx.rxjava.ext.web.RoutingContext}.
  * <p>
  * It also handles HTTP file uploads and can be used to limit body sizes.
  *

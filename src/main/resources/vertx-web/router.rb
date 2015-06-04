@@ -192,6 +192,66 @@ module VertxWeb
       end
       raise ArgumentError, "Invalid arguments when calling delete_with_regex(regex)"
     end
+    #  Add a route that matches a HTTP TRACE request and the specified path
+    # @param [String] path URI paths that begin with this path will match
+    # @return [::VertxWeb::Route] the route
+    def trace(path=nil)
+      if !block_given? && path == nil
+        return ::VertxWeb::Route.new(@j_del.java_method(:trace, []).call())
+      elsif path.class == String && !block_given?
+        return ::VertxWeb::Route.new(@j_del.java_method(:trace, [Java::java.lang.String.java_class]).call(path))
+      end
+      raise ArgumentError, "Invalid arguments when calling trace(path)"
+    end
+    #  Add a route that matches a HTTP TRACE request and the specified path regex
+    # @param [String] regex URI paths that begin with a match for this regex will match
+    # @return [::VertxWeb::Route] the route
+    def trace_with_regex(regex=nil)
+      if regex.class == String && !block_given?
+        return ::VertxWeb::Route.new(@j_del.java_method(:traceWithRegex, [Java::java.lang.String.java_class]).call(regex))
+      end
+      raise ArgumentError, "Invalid arguments when calling trace_with_regex(regex)"
+    end
+    #  Add a route that matches a HTTP CONNECT request and the specified path
+    # @param [String] path URI paths that begin with this path will match
+    # @return [::VertxWeb::Route] the route
+    def connect(path=nil)
+      if !block_given? && path == nil
+        return ::VertxWeb::Route.new(@j_del.java_method(:connect, []).call())
+      elsif path.class == String && !block_given?
+        return ::VertxWeb::Route.new(@j_del.java_method(:connect, [Java::java.lang.String.java_class]).call(path))
+      end
+      raise ArgumentError, "Invalid arguments when calling connect(path)"
+    end
+    #  Add a route that matches a HTTP CONNECT request and the specified path regex
+    # @param [String] regex URI paths that begin with a match for this regex will match
+    # @return [::VertxWeb::Route] the route
+    def connect_with_regex(regex=nil)
+      if regex.class == String && !block_given?
+        return ::VertxWeb::Route.new(@j_del.java_method(:connectWithRegex, [Java::java.lang.String.java_class]).call(regex))
+      end
+      raise ArgumentError, "Invalid arguments when calling connect_with_regex(regex)"
+    end
+    #  Add a route that matches a HTTP PATCH request and the specified path
+    # @param [String] path URI paths that begin with this path will match
+    # @return [::VertxWeb::Route] the route
+    def patch(path=nil)
+      if !block_given? && path == nil
+        return ::VertxWeb::Route.new(@j_del.java_method(:patch, []).call())
+      elsif path.class == String && !block_given?
+        return ::VertxWeb::Route.new(@j_del.java_method(:patch, [Java::java.lang.String.java_class]).call(path))
+      end
+      raise ArgumentError, "Invalid arguments when calling patch(path)"
+    end
+    #  Add a route that matches a HTTP PATCH request and the specified path regex
+    # @param [String] regex URI paths that begin with a match for this regex will match
+    # @return [::VertxWeb::Route] the route
+    def patch_with_regex(regex=nil)
+      if regex.class == String && !block_given?
+        return ::VertxWeb::Route.new(@j_del.java_method(:patchWithRegex, [Java::java.lang.String.java_class]).call(regex))
+      end
+      raise ArgumentError, "Invalid arguments when calling patch_with_regex(regex)"
+    end
     #  @return a list of all the routes on this router
     # @return [Array<::VertxWeb::Route>]
     def get_routes

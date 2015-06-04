@@ -23,7 +23,7 @@ import io.vertx.rxjava.ext.web.RoutingContext;
 import io.vertx.core.Handler;
 
 /**
- * A handler which decodes cookies from the request, makes them available in the {@link  io.vertx.rxjava.ext.web.RoutingContext}
+ * A handler which decodes cookies from the request, makes them available in the {@link io.vertx.rxjava.ext.web.RoutingContext}
  * and writes them back in the response.
  *
  * <p/>

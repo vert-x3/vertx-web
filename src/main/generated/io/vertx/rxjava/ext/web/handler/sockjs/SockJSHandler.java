@@ -111,7 +111,7 @@ public class SockJSHandler implements Handler<RoutingContext> {
   }
 
   /**
-   * Like {@link  io.vertx.rxjava.ext.web.handler.sockjs.SockJSHandler#bridge(BridgeOptions)} but specifying a handler
+   * Like {@link io.vertx.rxjava.ext.web.handler.sockjs.SockJSHandler#bridge} but specifying a handler
    * that will receive bridge events.
    * @param bridgeOptions options to configure the bridge with
    * @param bridgeEventHandler handler to receive bridge events

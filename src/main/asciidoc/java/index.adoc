@@ -1313,7 +1313,7 @@ router.route("/login").handler(ctx -> {
 ----
 
 Now that your client has a token all it is required is that for *all* consequent request the HTTP header
-`Authorization` is filled with: `Bearer token` e.g.:
+`Authorization` is filled with: `Bearer &lt;token&gt;` e.g.:
 
 [source,java]
 ----
@@ -1626,11 +1626,11 @@ Here are some examples:
 
 ----
 [snip]
-p th:text="${context.get('foo')}"/p
-p th:text="${context.get('bar')}"/p
-p th:text="${context.normalisedPath()}"/p
-p th:text="${context.request().params().get('param1')}"/p
-p th:text="${context.request().params().get('param2')}"/p
+&lt;p th:text="${context.get('foo')}"&gt;&lt;/p&gt;
+&lt;p th:text="${context.get('bar')}"&gt;&lt;/p&gt;
+&lt;p th:text="${context.normalisedPath()}"&gt;&lt;/p&gt;
+&lt;p th:text="${context.request().params().get('param1')}"&gt;&lt;/p&gt;
+&lt;p th:text="${context.request().params().get('param2')}"&gt;&lt;/p&gt;
 [snip]
 ----
 

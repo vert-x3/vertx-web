@@ -24,14 +24,14 @@ import io.vertx.rxjava.ext.web.RoutingContext;
 import io.vertx.core.Handler;
 
 /**
- * A handler that maintains a {@link  io.vertx.rxjava.ext.web.Session} for each browser session.
+ * A handler that maintains a {@link io.vertx.rxjava.ext.web.Session} for each browser session.
  * <p>
  * It looks up the session for each request based on a session cookie which contains a session ID. It stores the session
  * when the response is ended in the session store.
  * <p>
- * The session is available on the routing context with {@link  io.vertx.rxjava.ext.web.RoutingContext#session()}.
+ * The session is available on the routing context with {@link io.vertx.rxjava.ext.web.RoutingContext#session}.
  * <p>
- * The session handler requires a {@link  io.vertx.rxjava.ext.web.handler.CookieHandler} to be on the routing chain before it.
+ * The session handler requires a {@link io.vertx.rxjava.ext.web.handler.CookieHandler} to be on the routing chain before it.
  *
  * <p/>
  * NOTE: This class has been automatically generated from the {@link io.vertx.ext.web.handler.SessionHandler original} non RX-ified interface using Vert.x codegen.

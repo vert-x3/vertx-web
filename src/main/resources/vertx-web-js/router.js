@@ -265,6 +265,96 @@ var Router = function(j_val) {
   };
 
   /**
+   Add a route that matches a HTTP TRACE request and the specified path
+
+   @public
+   @param path {string} URI paths that begin with this path will match 
+   @return {Route} the route
+   */
+  this.trace = function() {
+    var __args = arguments;
+    if (__args.length === 0) {
+      return new Route(j_router["trace()"]());
+    }  else if (__args.length === 1 && typeof __args[0] === 'string') {
+      return new Route(j_router["trace(java.lang.String)"](__args[0]));
+    } else utils.invalidArgs();
+  };
+
+  /**
+   Add a route that matches a HTTP TRACE request and the specified path regex
+
+   @public
+   @param regex {string} URI paths that begin with a match for this regex will match 
+   @return {Route} the route
+   */
+  this.traceWithRegex = function(regex) {
+    var __args = arguments;
+    if (__args.length === 1 && typeof __args[0] === 'string') {
+      return new Route(j_router["traceWithRegex(java.lang.String)"](regex));
+    } else utils.invalidArgs();
+  };
+
+  /**
+   Add a route that matches a HTTP CONNECT request and the specified path
+
+   @public
+   @param path {string} URI paths that begin with this path will match 
+   @return {Route} the route
+   */
+  this.connect = function() {
+    var __args = arguments;
+    if (__args.length === 0) {
+      return new Route(j_router["connect()"]());
+    }  else if (__args.length === 1 && typeof __args[0] === 'string') {
+      return new Route(j_router["connect(java.lang.String)"](__args[0]));
+    } else utils.invalidArgs();
+  };
+
+  /**
+   Add a route that matches a HTTP CONNECT request and the specified path regex
+
+   @public
+   @param regex {string} URI paths that begin with a match for this regex will match 
+   @return {Route} the route
+   */
+  this.connectWithRegex = function(regex) {
+    var __args = arguments;
+    if (__args.length === 1 && typeof __args[0] === 'string') {
+      return new Route(j_router["connectWithRegex(java.lang.String)"](regex));
+    } else utils.invalidArgs();
+  };
+
+  /**
+   Add a route that matches a HTTP PATCH request and the specified path
+
+   @public
+   @param path {string} URI paths that begin with this path will match 
+   @return {Route} the route
+   */
+  this.patch = function() {
+    var __args = arguments;
+    if (__args.length === 0) {
+      return new Route(j_router["patch()"]());
+    }  else if (__args.length === 1 && typeof __args[0] === 'string') {
+      return new Route(j_router["patch(java.lang.String)"](__args[0]));
+    } else utils.invalidArgs();
+  };
+
+  /**
+   Add a route that matches a HTTP PATCH request and the specified path regex
+
+   @public
+   @param regex {string} URI paths that begin with a match for this regex will match 
+   @return {Route} the route
+   */
+  this.patchWithRegex = function(regex) {
+    var __args = arguments;
+    if (__args.length === 1 && typeof __args[0] === 'string') {
+      return new Route(j_router["patchWithRegex(java.lang.String)"](regex));
+    } else utils.invalidArgs();
+  };
+
+  /**
    @return a list of all the routes on this router
 
    @public

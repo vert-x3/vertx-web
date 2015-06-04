@@ -26,8 +26,8 @@ import io.vertx.rxjava.core.Vertx;
 import io.vertx.core.Handler;
 
 /**
- * A router receives request from an {@link  io.vertx.rxjava.core.http.HttpServer} and routes it to the first matching
- * {@link  io.vertx.rxjava.ext.web.Route} that it contains. A router can contain many routes.
+ * A router receives request from an {@link io.vertx.rxjava.core.http.HttpServer} and routes it to the first matching
+ * {@link io.vertx.rxjava.ext.web.Route} that it contains. A router can contain many routes.
  * <p>
  * Routers are also used for routing failures.
  *
@@ -59,7 +59,7 @@ public class Router {
 
   /**
    * This method is used to provide a request to the router. Usually you take request from the
-   * {@link  io.vertx.rxjava.core.http.HttpServer#requestHandler(io.vertx.rxjava.core.Handler)} and pass it to this method. The
+   * {@link io.vertx.rxjava.core.http.HttpServer#requestHandler} and pass it to this method. The
    * router then routes it to matching routes.
    * @param request the request
    */
@@ -289,6 +289,93 @@ public class Router {
    */
   public Route deleteWithRegex(String regex) { 
     Route ret= Route.newInstance(this.delegate.deleteWithRegex(regex));
+    return ret;
+  }
+
+  /**
+   * Add a route that matches any HTTP TRACE request
+   * @return the route
+   */
+  public Route trace() { 
+    Route ret= Route.newInstance(this.delegate.trace());
+    return ret;
+  }
+
+  /**
+   * Add a route that matches a HTTP TRACE request and the specified path
+   * @param path URI paths that begin with this path will match
+   * @return the route
+   */
+  public Route trace(String path) { 
+    Route ret= Route.newInstance(this.delegate.trace(path));
+    return ret;
+  }
+
+  /**
+   * Add a route that matches a HTTP TRACE request and the specified path regex
+   * @param regex URI paths that begin with a match for this regex will match
+   * @return the route
+   */
+  public Route traceWithRegex(String regex) { 
+    Route ret= Route.newInstance(this.delegate.traceWithRegex(regex));
+    return ret;
+  }
+
+  /**
+   * Add a route that matches any HTTP CONNECT request
+   * @return the route
+   */
+  public Route connect() { 
+    Route ret= Route.newInstance(this.delegate.connect());
+    return ret;
+  }
+
+  /**
+   * Add a route that matches a HTTP CONNECT request and the specified path
+   * @param path URI paths that begin with this path will match
+   * @return the route
+   */
+  public Route connect(String path) { 
+    Route ret= Route.newInstance(this.delegate.connect(path));
+    return ret;
+  }
+
+  /**
+   * Add a route that matches a HTTP CONNECT request and the specified path regex
+   * @param regex URI paths that begin with a match for this regex will match
+   * @return the route
+   */
+  public Route connectWithRegex(String regex) { 
+    Route ret= Route.newInstance(this.delegate.connectWithRegex(regex));
+    return ret;
+  }
+
+  /**
+   * Add a route that matches any HTTP PATCH request
+   * @return the route
+   */
+  public Route patch() { 
+    Route ret= Route.newInstance(this.delegate.patch());
+    return ret;
+  }
+
+  /**
+   * Add a route that matches a HTTP PATCH request and the specified path
+   * @param path URI paths that begin with this path will match
+   * @return the route
+   */
+  public Route patch(String path) { 
+    Route ret= Route.newInstance(this.delegate.patch(path));
+    return ret;
+  }
+
+  /**
+   * Add a route that matches a HTTP PATCH request and the specified path regex
+   * @param regex URI paths that begin with a match for this regex will match
+   * @return the route
+   */
+  public Route patchWithRegex(String regex) { 
+    Route ret= Route.newInstance(this.delegate.patchWithRegex(regex));
     return ret;
   }
 

@@ -431,7 +431,7 @@ var RoutingContext = function(j_val) {
    Remove a headers end handler
 
    @public
-   @param handlerID {number} the id as returned from {@link io.vertx.ext.web.RoutingContext#addHeadersEndHandler(io.vertx.core.Handler)}. 
+   @param handlerID {number} the id as returned from {@link RoutingContext#addHeadersEndHandler}. 
    @return {boolean} true if the handler existed and was removed, false otherwise
    */
   this.removeHeadersEndHandler = function(handlerID) {
@@ -460,7 +460,7 @@ var RoutingContext = function(j_val) {
    Remove a body end handler
 
    @public
-   @param handlerID {number} the id as returned from {@link io.vertx.ext.web.RoutingContext#addBodyEndHandler(io.vertx.core.Handler)}. 
+   @param handlerID {number} the id as returned from {@link RoutingContext#addBodyEndHandler}. 
    @return {boolean} true if the handler existed and was removed, false otherwise
    */
   this.removeBodyEndHandler = function(handlerID) {

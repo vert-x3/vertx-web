@@ -22,7 +22,7 @@ module VertxWeb
     def j_del
       @j_del
     end
-    # @param [::VertxWeb::RoutingContext] arg0
+    # @param [::VertxWeb::RoutingContext] arg0 
     # @return [void]
     def handle(arg0=nil)
       if arg0.class.method_defined?(:j_del) && !block_given?

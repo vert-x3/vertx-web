@@ -252,6 +252,81 @@ public interface Router {
   Route deleteWithRegex(String regex);
 
   /**
+   * Add a route that matches any HTTP TRACE request
+   *
+   * @return the route
+   */
+  Route trace();
+
+  /**
+   * Add a route that matches a HTTP TRACE request and the specified path
+   *
+   * @param path  URI paths that begin with this path will match
+   *
+   * @return the route
+   */
+  Route trace(String path);
+
+  /**
+   * Add a route that matches a HTTP TRACE request and the specified path regex
+   *
+   * @param regex  URI paths that begin with a match for this regex will match
+   *
+   * @return the route
+   */
+  Route traceWithRegex(String regex);
+
+  /**
+   * Add a route that matches any HTTP CONNECT request
+   *
+   * @return the route
+   */
+  Route connect();
+
+  /**
+   * Add a route that matches a HTTP CONNECT request and the specified path
+   *
+   * @param path  URI paths that begin with this path will match
+   *
+   * @return the route
+   */
+  Route connect(String path);
+
+  /**
+   * Add a route that matches a HTTP CONNECT request and the specified path regex
+   *
+   * @param regex  URI paths that begin with a match for this regex will match
+   *
+   * @return the route
+   */
+  Route connectWithRegex(String regex);
+
+  /**
+   * Add a route that matches any HTTP PATCH request
+   *
+   * @return the route
+   */
+  Route patch();
+
+  /**
+   * Add a route that matches a HTTP PATCH request and the specified path
+   *
+   * @param path  URI paths that begin with this path will match
+   *
+   * @return the route
+   */
+  Route patch(String path);
+
+  /**
+   * Add a route that matches a HTTP PATCH request and the specified path regex
+   *
+   * @param regex  URI paths that begin with a match for this regex will match
+   *
+   * @return the route
+   */
+  Route patchWithRegex(String regex);
+
+  /**
    * @return a list of all the routes on this router
    */
   List<Route> getRoutes();

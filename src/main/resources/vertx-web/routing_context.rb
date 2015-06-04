@@ -206,7 +206,7 @@ module VertxWeb
       end
       raise ArgumentError, "Invalid arguments when calling get_body_as_string(encoding)"
     end
-    #  @return Get the entire HTTP request body as a {::Vertx::JsonObject}. The context must have first been routed to a
+    #  @return Get the entire HTTP request body as a {Hash{String => Object}}. The context must have first been routed to a
     #  {::VertxWeb::BodyHandler} for this to be populated.
     # @return [Hash{String => Object}]
     def get_body_as_json
@@ -286,7 +286,7 @@ module VertxWeb
       raise ArgumentError, "Invalid arguments when calling add_headers_end_handler()"
     end
     #  Remove a headers end handler
-    # @param [Fixnum] handlerID the id as returned from {@link io.vertx.ext.web.RoutingContext#addHeadersEndHandler(io.vertx.core.Handler)}.
+    # @param [Fixnum] handlerID the id as returned from {::VertxWeb::RoutingContext#add_headers_end_handler}.
     # @return [true,false] true if the handler existed and was removed, false otherwise
     def remove_headers_end_handler?(handlerID=nil)
       if handlerID.class == Fixnum && !block_given?
@@ -305,7 +305,7 @@ module VertxWeb
       raise ArgumentError, "Invalid arguments when calling add_body_end_handler()"
     end
     #  Remove a body end handler
-    # @param [Fixnum] handlerID the id as returned from {@link io.vertx.ext.web.RoutingContext#addBodyEndHandler(io.vertx.core.Handler)}.
+    # @param [Fixnum] handlerID the id as returned from {::VertxWeb::RoutingContext#add_body_end_handler}.
     # @return [true,false] true if the handler existed and was removed, false otherwise
     def remove_body_end_handler?(handlerID=nil)
       if handlerID.class == Fixnum && !block_given?

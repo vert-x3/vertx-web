@@ -258,6 +258,84 @@ public class Router {
     return ret;
   }
   /**
+   * Add a route that matches any HTTP TRACE request
+   * @return the route
+   */
+  public Route trace() {
+    def ret= new io.vertx.groovy.ext.web.Route(this.delegate.trace());
+    return ret;
+  }
+  /**
+   * Add a route that matches a HTTP TRACE request and the specified path
+   * @param path URI paths that begin with this path will match
+   * @return the route
+   */
+  public Route trace(String path) {
+    def ret= new io.vertx.groovy.ext.web.Route(this.delegate.trace(path));
+    return ret;
+  }
+  /**
+   * Add a route that matches a HTTP TRACE request and the specified path regex
+   * @param regex URI paths that begin with a match for this regex will match
+   * @return the route
+   */
+  public Route traceWithRegex(String regex) {
+    def ret= new io.vertx.groovy.ext.web.Route(this.delegate.traceWithRegex(regex));
+    return ret;
+  }
+  /**
+   * Add a route that matches any HTTP CONNECT request
+   * @return the route
+   */
+  public Route connect() {
+    def ret= new io.vertx.groovy.ext.web.Route(this.delegate.connect());
+    return ret;
+  }
+  /**
+   * Add a route that matches a HTTP CONNECT request and the specified path
+   * @param path URI paths that begin with this path will match
+   * @return the route
+   */
+  public Route connect(String path) {
+    def ret= new io.vertx.groovy.ext.web.Route(this.delegate.connect(path));
+    return ret;
+  }
+  /**
+   * Add a route that matches a HTTP CONNECT request and the specified path regex
+   * @param regex URI paths that begin with a match for this regex will match
+   * @return the route
+   */
+  public Route connectWithRegex(String regex) {
+    def ret= new io.vertx.groovy.ext.web.Route(this.delegate.connectWithRegex(regex));
+    return ret;
+  }
+  /**
+   * Add a route that matches any HTTP PATCH request
+   * @return the route
+   */
+  public Route patch() {
+    def ret= new io.vertx.groovy.ext.web.Route(this.delegate.patch());
+    return ret;
+  }
+  /**
+   * Add a route that matches a HTTP PATCH request and the specified path
+   * @param path URI paths that begin with this path will match
+   * @return the route
+   */
+  public Route patch(String path) {
+    def ret= new io.vertx.groovy.ext.web.Route(this.delegate.patch(path));
+    return ret;
+  }
+  /**
+   * Add a route that matches a HTTP PATCH request and the specified path regex
+   * @param regex URI paths that begin with a match for this regex will match
+   * @return the route
+   */
+  public Route patchWithRegex(String regex) {
+    def ret= new io.vertx.groovy.ext.web.Route(this.delegate.patchWithRegex(regex));
+    return ret;
+  }
+  /**
    * @return a list of all the routes on this router
    * @return 
    */
