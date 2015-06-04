@@ -381,7 +381,7 @@ public class StaticHandlerTest extends WebTestBase {
 
     String directoryTemplate = Utils.readResourceToBuffer(dirTemplateFile).toString();
 
-    String parentLink = "<a href=\"/" + "webroot/" + "\">..</a>";
+    String parentLink = "<a href=\"/\">..</a>";
     String files = "<ul id=\"files\"><li><a href=\"/somedir2/foo2.json\" title=\"foo2.json\">foo2.json</a></li>" +
       "<li><a href=\"/somedir2/somepage.html\" title=\"somepage.html\">somepage.html</a></li>" +
       "<li><a href=\"/somedir2/somepage2.html\" title=\"somepage2.html\">somepage2.html</a></li></ul>";
