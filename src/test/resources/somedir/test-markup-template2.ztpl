@@ -1,0 +1,3 @@
+html {
+    body('ztpl:' + context.get('bar'))
+}
