@@ -144,6 +144,24 @@
  *
  * Note, all this happens without any thread blocking.
  *
+ * == Using blocking handlers
+ *
+ * Sometimes, you might have to do something in a handler that might block the event loop for some time, e.g. call
+ * a legacy blocking API or do some intensive calculation.
+ *
+ * You can't do that in a normal handler, so we provide the ability to set blocking handlers on a route.
+ *
+ * A blocking handler looks just like a normal handler but it's called by Vert.x using a thread from the worker pool
+ * not using an event loop.
+ *
+ * You set a blocking handler on a route with {@link io.vertx.ext.web.Route#blockingHandler(io.vertx.core.Handler)}.
+ * Here's an example:
+ *
+ * [source,$lang]
+ * ----
+ * {@link examples.Examples#example20_1}
+ * ----
+ *
  * == Routing by exact path
  *
  * A route can be set-up to match the path from the request URI. In this case it will match any request which has a path

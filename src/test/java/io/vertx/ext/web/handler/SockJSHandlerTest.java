@@ -20,7 +20,7 @@ import io.vertx.core.MultiMap;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.CaseInsensitiveHeaders;
 import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.impl.LoggerFactory;
+import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.WebTestBase;
 import io.vertx.ext.web.handler.sockjs.SockJSHandler;
 import io.vertx.test.core.TestUtils;

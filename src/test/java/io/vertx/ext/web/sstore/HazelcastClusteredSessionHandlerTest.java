@@ -17,7 +17,7 @@
 package io.vertx.ext.web.sstore;
 
 import io.vertx.core.spi.cluster.ClusterManager;
-import io.vertx.spi.cluster.impl.hazelcast.HazelcastClusterManager;
+import io.vertx.spi.cluster.hazelcast.HazelcastClusterManager;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>

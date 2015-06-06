@@ -33,7 +33,7 @@
 package io.vertx.ext.web.handler;
 
 import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.impl.LoggerFactory;
+import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.WebTestBase;
 import io.vertx.ext.web.handler.sockjs.SockJSHandler;
 import org.junit.Test;

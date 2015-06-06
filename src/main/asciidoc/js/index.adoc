@@ -212,6 +212,34 @@ then 5 seconds later `route3` is written to the response and the response is end
 
 Note, all this happens without any thread blocking.
 
+== Using blocking handlers
+
+Sometimes, you might have to do something in a handler that might block the event loop for some time, e.g. call
+a legacy blocking API or do some intensive calculation.
+
+You can't do that in a normal handler, so we provide the ability to set blocking handlers on a route.
+
+A blocking handler looks just like a normal handler but it's called by Vert.x using a thread from the worker pool
+not using an event loop.
+
+You set a blocking handler on a route with `link:jsdoc/route-Route.html#blockingHandler[blockingHandler]`.
+Here's an example:
+
+[source,js]
+----
+
+router.route().blockingHandler(function (routingContext) {
+
+  // Do something that might take some time synchronously
+  service.doSomethingThatBlocks();
+
+  // Now call the next handler
+  routingContext.next();
+
+});
+
+----
+
 == Routing by exact path
 
 A route can be set-up to match the path from the request URI. In this case it will match any request which has a path

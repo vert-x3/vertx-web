@@ -433,6 +433,24 @@ public class Examples {
 
   }
 
+  public void example20_1(Router router, SomeLegacyService service) {
+
+    router.route().blockingHandler(routingContext -> {
+
+      // Do something that might take some time synchronously
+      service.doSomethingThatBlocks();
+
+      // Now call the next handler
+      routingContext.next();
+
+    });
+  }
+
+  interface SomeLegacyService {
+
+    void doSomethingThatBlocks();
+  }
+
   public void example21(Router router) {
 
     router.get("/some/path").handler(routingContext -> {
