@@ -206,6 +206,11 @@ public class RoutingContextDecorator implements RoutingContext {
   }
 
   @Override
+  public void clearUser() {
+    decoratedContext.clearUser();
+  }
+
+  @Override
   public int statusCode() {
     return decoratedContext.statusCode();
   }

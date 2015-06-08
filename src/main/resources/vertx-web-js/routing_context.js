@@ -524,6 +524,19 @@ var RoutingContext = function(j_val) {
   };
 
   /**
+   Clear the current user object.
+
+   @public
+
+   */
+  this.clearUser = function() {
+    var __args = arguments;
+    if (__args.length === 0) {
+      j_routingContext["clearUser()"]();
+    } else utils.invalidArgs();
+  };
+
+  /**
    Set the acceptable content type. Used by
 
    @public

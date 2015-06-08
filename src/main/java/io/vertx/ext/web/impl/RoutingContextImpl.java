@@ -230,6 +230,11 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   }
 
   @Override
+  public void clearUser() {
+    this.user = null;
+  }
+
+  @Override
   public String getAcceptableContentType() {
     return acceptableContentType;
   }

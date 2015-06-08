@@ -130,6 +130,11 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   }
 
   @Override
+  public void clearUser() {
+    inner.clearUser();
+  }
+
+  @Override
   public User user() {
     return inner.user();
   }

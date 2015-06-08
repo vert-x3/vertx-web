@@ -334,6 +334,11 @@ public interface RoutingContext {
   void setUser(User user);
 
   /**
+   * Clear the current user object.
+   */
+  void clearUser();
+
+  /**
    * Set the acceptable content type. Used by
    * @param contentType  the content type
    */
