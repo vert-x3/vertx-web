@@ -368,6 +368,12 @@ public class RoutingContext {
     this.delegate.setUser((io.vertx.ext.auth.User)user.getDelegate());
   }
   /**
+   * Clear the current user object.
+   */
+  public void clearUser() {
+    this.delegate.clearUser();
+  }
+  /**
    * Set the acceptable content type. Used by
    * @param contentType the content type
    */

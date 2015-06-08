@@ -1187,8 +1187,8 @@ Here are some examples of creating a `link:yardoc/VertxWeb/ClusteredSessionStore
 
 [source,ruby]
 ----
-require 'vertx/vertx'
 require 'vertx-web/clustered_session_store'
+require 'vertx/vertx'
 
 # a clustered Vert.x
 Vertx::Vertx.clustered_vertx({
@@ -1328,8 +1328,8 @@ Here's a simple example of creating a basic auth handler given an auth provider.
 [source,ruby]
 ----
 require 'vertx-web/cookie_handler'
-require 'vertx-web/session_handler'
 require 'vertx-web/local_session_store'
+require 'vertx-web/session_handler'
 require 'vertx-web/basic_auth_handler'
 
 router.route().handler(&VertxWeb::CookieHandler.create().method(:handle))
@@ -1347,8 +1347,8 @@ your auth handler is before your application handlers on those paths:
 [source,ruby]
 ----
 require 'vertx-web/cookie_handler'
-require 'vertx-web/session_handler'
 require 'vertx-web/local_session_store'
+require 'vertx-web/session_handler'
 require 'vertx-web/user_session_handler'
 require 'vertx-web/basic_auth_handler'
 
@@ -1432,8 +1432,8 @@ Here's an example of a simple app, using a redirect auth handler on the default 
 [source,ruby]
 ----
 require 'vertx-web/cookie_handler'
-require 'vertx-web/session_handler'
 require 'vertx-web/local_session_store'
+require 'vertx-web/session_handler'
 require 'vertx-web/user_session_handler'
 require 'vertx-web/redirect_auth_handler'
 require 'vertx-web/form_login_handler'
@@ -1571,8 +1571,8 @@ And the same when consuming:
 ----
 
 handler = lambda { |rc|
-  theSubject = rc.user().principal()["sub"]
-  someKey = rc.user().principal()["someKey"]
+  theSubject = rc.user().principal()['sub']
+  someKey = rc.user().principal()['someKey']
 }
 
 ----
@@ -2287,8 +2287,8 @@ To handle the login and actually auth you can configure the normal Vert.x auth h
 require 'vertx-web/router'
 require 'vertx-web/sock_js_handler'
 require 'vertx-web/cookie_handler'
-require 'vertx-web/session_handler'
 require 'vertx-web/local_session_store'
+require 'vertx-web/session_handler'
 require 'vertx-web/basic_auth_handler'
 
 router = VertxWeb::Router.router(vertx)
@@ -2365,7 +2365,39 @@ Here's an example where we reject all messages flowing through the bridge if the
 
 [source,ruby]
 ----
-Code not translatable
+require 'vertx-web/router'
+require 'vertx-web/sock_js_handler'
+require 'vertx-web/bridge_event'
+
+router = VertxWeb::Router.router(vertx)
+
+# Let through any messages sent to 'demo.orderMgr' from the client
+inboundPermitted = {
+  'address' => "demo.someService"
+}
+
+sockJSHandler = VertxWeb::SockJSHandler.create(vertx)
+options = {
+  'inboundPermitteds' => [
+    inboundPermitted
+  ]
+}
+
+sockJSHandler.bridge(options) { |be|
+  if (be.type() == VertxWeb::BridgeEvent::Type::PUBLISH || be.type() == VertxWeb::BridgeEvent::Type::RECEIVE)
+    if (be.raw_message()['body'].==("armadillos"))
+      # Reject it
+      be.complete(false)
+      return
+    end
+  end
+  be.complete(true)
+}
+
+router.route("/eventbus").handler(&sockJSHandler.method(:handle))
+
+
+
 ----
 
 You can also amend the raw message, e.g. change the body. For messages that are flowing in from the client you can
@@ -2373,5 +2405,38 @@ also add headers to the message, here's an example:
 
 [source,ruby]
 ----
-Code not translatable
+require 'vertx-web/router'
+require 'vertx-web/sock_js_handler'
+require 'vertx-web/bridge_event'
+
+router = VertxWeb::Router.router(vertx)
+
+# Let through any messages sent to 'demo.orderService' from the client
+inboundPermitted = {
+  'address' => "demo.orderService"
+}
+
+sockJSHandler = VertxWeb::SockJSHandler.create(vertx)
+options = {
+  'inboundPermitteds' => [
+    inboundPermitted
+  ]
+}
+
+sockJSHandler.bridge(options) { |be|
+  if (be.type() == VertxWeb::BridgeEvent::Type::PUBLISH || be.type() == VertxWeb::BridgeEvent::Type::SEND)
+    # Add some headers
+    headers = {
+      'header1' => "val",
+      'header2' => "val2"
+    }
+    be.raw_message()['headers'] = headers
+  end
+  be.complete(true)
+}
+
+router.route("/eventbus").handler(&sockJSHandler.method(:handle))
+
+
+
 ----

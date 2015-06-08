@@ -1187,8 +1187,8 @@ Here are some examples of creating a `link:jsdoc/clustered_session_store-Cluster
 
 [source,js]
 ----
-var Vertx = require("vertx-js/vertx");
 var ClusteredSessionStore = require("vertx-web-js/clustered_session_store");
+var Vertx = require("vertx-js/vertx");
 
 // a clustered Vert.x
 Vertx.clusteredVertx({
@@ -1328,8 +1328,8 @@ Here's a simple example of creating a basic auth handler given an auth provider.
 [source,js]
 ----
 var CookieHandler = require("vertx-web-js/cookie_handler");
-var SessionHandler = require("vertx-web-js/session_handler");
 var LocalSessionStore = require("vertx-web-js/local_session_store");
+var SessionHandler = require("vertx-web-js/session_handler");
 var BasicAuthHandler = require("vertx-web-js/basic_auth_handler");
 
 router.route().handler(CookieHandler.create().handle);
@@ -1347,8 +1347,8 @@ your auth handler is before your application handlers on those paths:
 [source,js]
 ----
 var CookieHandler = require("vertx-web-js/cookie_handler");
-var SessionHandler = require("vertx-web-js/session_handler");
 var LocalSessionStore = require("vertx-web-js/local_session_store");
+var SessionHandler = require("vertx-web-js/session_handler");
 var UserSessionHandler = require("vertx-web-js/user_session_handler");
 var BasicAuthHandler = require("vertx-web-js/basic_auth_handler");
 
@@ -1432,8 +1432,8 @@ Here's an example of a simple app, using a redirect auth handler on the default 
 [source,js]
 ----
 var CookieHandler = require("vertx-web-js/cookie_handler");
-var SessionHandler = require("vertx-web-js/session_handler");
 var LocalSessionStore = require("vertx-web-js/local_session_store");
+var SessionHandler = require("vertx-web-js/session_handler");
 var UserSessionHandler = require("vertx-web-js/user_session_handler");
 var RedirectAuthHandler = require("vertx-web-js/redirect_auth_handler");
 var FormLoginHandler = require("vertx-web-js/form_login_handler");
@@ -1571,8 +1571,8 @@ And the same when consuming:
 ----
 
 var handler = function (rc) {
-  var theSubject = rc.user().principal()."sub";
-  var someKey = rc.user().principal()."someKey";
+  var theSubject = rc.user().principal().sub;
+  var someKey = rc.user().principal().someKey;
 };
 
 ----
@@ -2287,8 +2287,8 @@ To handle the login and actually auth you can configure the normal Vert.x auth h
 var Router = require("vertx-web-js/router");
 var SockJSHandler = require("vertx-web-js/sock_js_handler");
 var CookieHandler = require("vertx-web-js/cookie_handler");
-var SessionHandler = require("vertx-web-js/session_handler");
 var LocalSessionStore = require("vertx-web-js/local_session_store");
+var SessionHandler = require("vertx-web-js/session_handler");
 var BasicAuthHandler = require("vertx-web-js/basic_auth_handler");
 
 var router = Router.router(vertx);
@@ -2365,7 +2365,39 @@ Here's an example where we reject all messages flowing through the bridge if the
 
 [source,js]
 ----
-Code not translatable
+var Router = require("vertx-web-js/router");
+var SockJSHandler = require("vertx-web-js/sock_js_handler");
+var BridgeEvent = require("vertx-web-js/bridge_event");
+
+var router = Router.router(vertx);
+
+// Let through any messages sent to 'demo.orderMgr' from the client
+var inboundPermitted = {
+  "address" : "demo.someService"
+};
+
+var sockJSHandler = SockJSHandler.create(vertx);
+var options = {
+  "inboundPermitteds" : [
+    inboundPermitted
+  ]
+};
+
+sockJSHandler.bridge(options, function (be) {
+  if (be.type() === BridgeEvent.Type.PUBLISH || be.type() === BridgeEvent.Type.RECEIVE) {
+    if (be.rawMessage().body == "armadillos") {
+      // Reject it
+      be.complete(false);
+      return
+    }
+  }
+  be.complete(true);
+});
+
+router.route("/eventbus").handler(sockJSHandler.handle);
+
+
+
 ----
 
 You can also amend the raw message, e.g. change the body. For messages that are flowing in from the client you can
@@ -2373,5 +2405,38 @@ also add headers to the message, here's an example:
 
 [source,js]
 ----
-Code not translatable
+var Router = require("vertx-web-js/router");
+var SockJSHandler = require("vertx-web-js/sock_js_handler");
+var BridgeEvent = require("vertx-web-js/bridge_event");
+
+var router = Router.router(vertx);
+
+// Let through any messages sent to 'demo.orderService' from the client
+var inboundPermitted = {
+  "address" : "demo.orderService"
+};
+
+var sockJSHandler = SockJSHandler.create(vertx);
+var options = {
+  "inboundPermitteds" : [
+    inboundPermitted
+  ]
+};
+
+sockJSHandler.bridge(options, function (be) {
+  if (be.type() === BridgeEvent.Type.PUBLISH || be.type() === BridgeEvent.Type.SEND) {
+    // Add some headers
+    var headers = {
+      "header1" : "val",
+      "header2" : "val2"
+    };
+    be.rawMessage().headers = headers;
+  }
+  be.complete(true);
+});
+
+router.route("/eventbus").handler(sockJSHandler.handle);
+
+
+
 ----

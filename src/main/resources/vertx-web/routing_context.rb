@@ -348,6 +348,14 @@ module VertxWeb
       end
       raise ArgumentError, "Invalid arguments when calling set_user(user)"
     end
+    #  Clear the current user object.
+    # @return [void]
+    def clear_user
+      if !block_given?
+        return @j_del.java_method(:clearUser, []).call()
+      end
+      raise ArgumentError, "Invalid arguments when calling clear_user()"
+    end
     #  Set the acceptable content type. Used by
     # @param [String] contentType the content type
     # @return [void]

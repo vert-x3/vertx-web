@@ -334,6 +334,12 @@ public interface RoutingContext {
   void setUser(User user);
 
   /**
+   * Clear the current user object in the context. This usually is used for implementing a log out feature, since the
+   * current user is unbounded from the routing context.
+   */
+  void clearUser();
+
+  /**
    * Set the acceptable content type. Used by
    * @param contentType  the content type
    */

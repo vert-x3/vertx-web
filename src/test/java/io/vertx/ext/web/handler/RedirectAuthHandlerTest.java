@@ -56,7 +56,7 @@ public class RedirectAuthHandlerTest extends AuthHandlerTestBase {
     }, 200, "OK", "Welcome to the protected resource!");
     // Now logout
     router.route("/logout").handler(rc -> {
-      rc.setUser(null);
+      rc.clearUser();
       rc.response().end("logged out");
     });
     testRequest(HttpMethod.GET, "/logout", req -> {

@@ -107,7 +107,7 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
       assertNotNull(rc.user());
       assertEquals("tim", rc.user().principal().getString("username"));
       if (c == 7) {
-        rc.setUser(null);
+        rc.clearUser();
       }
       rc.response().end("Welcome to the protected resource!");
     };

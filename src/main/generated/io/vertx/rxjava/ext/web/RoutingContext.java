@@ -409,6 +409,13 @@ public class RoutingContext {
   }
 
   /**
+   * Clear the current user object.
+   */
+  public void clearUser() { 
+    this.delegate.clearUser();
+  }
+
+  /**
    * Set the acceptable content type. Used by
    * @param contentType the content type
    */
