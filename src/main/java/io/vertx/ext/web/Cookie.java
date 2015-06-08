@@ -132,16 +132,6 @@ public interface Cookie {
   Cookie setHttpOnly(boolean httpOnly);
 
   /**
-   * Set the version of the cookie
-   *
-   * @param version 0 or 1
-   * @return a reference to this, so the API can be used fluently
-   */
-  @Fluent
-  Cookie setVersion(int version);
-
-
-  /**
    * Encode the cookie to a string. This is what is used in the Set-Cookie header
    *
    * @return  the encoded cookie

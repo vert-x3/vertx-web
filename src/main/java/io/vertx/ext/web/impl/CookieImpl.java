@@ -16,9 +16,10 @@
 
 package io.vertx.ext.web.impl;
 
-import io.netty.handler.codec.http.DefaultCookie;
-import io.netty.handler.codec.http.ServerCookieEncoder;
+import io.netty.handler.codec.http.cookie.ServerCookieEncoder;
+import io.netty.handler.codec.http.cookie.DefaultCookie;
 import io.vertx.ext.web.Cookie;
+
 
 /**
  * Vert.x-Web cookie implementation
@@ -28,7 +29,7 @@ import io.vertx.ext.web.Cookie;
  */
 public class CookieImpl implements Cookie {
 
-  private final io.netty.handler.codec.http.Cookie nettyCookie;
+  private final io.netty.handler.codec.http.cookie.Cookie nettyCookie;
   private boolean changed;
 
   public CookieImpl(String name, String value) {
@@ -36,13 +37,13 @@ public class CookieImpl implements Cookie {
     this.changed = true;
   }
 
-  public CookieImpl(io.netty.handler.codec.http.Cookie nettyCookie) {
+  public CookieImpl(io.netty.handler.codec.http.cookie.Cookie nettyCookie) {
     this.nettyCookie = nettyCookie;
   }
 
   @Override
   public String getValue() {
-    return nettyCookie.getValue();
+    return nettyCookie.value();
   }
 
   @Override
@@ -54,7 +55,7 @@ public class CookieImpl implements Cookie {
 
   @Override
   public String getName() {
-    return nettyCookie.getName();
+    return nettyCookie.name();
   }
 
   @Override
@@ -66,7 +67,7 @@ public class CookieImpl implements Cookie {
 
   @Override
   public String getDomain() {
-    return nettyCookie.getDomain();
+    return nettyCookie.domain();
   }
 
   @Override
@@ -78,7 +79,7 @@ public class CookieImpl implements Cookie {
 
   @Override
   public String getPath() {
-    return nettyCookie.getPath();
+    return nettyCookie.path();
   }
 
   @Override
@@ -103,15 +104,8 @@ public class CookieImpl implements Cookie {
   }
 
   @Override
-  public Cookie setVersion(int version) {
-    nettyCookie.setVersion(version);
-    this.changed = true;
-    return this;
-  }
-
-  @Override
   public String encode() {
-    return ServerCookieEncoder.encode(nettyCookie);
+    return ServerCookieEncoder.STRICT.encode(nettyCookie);
   }
 
   @Override
