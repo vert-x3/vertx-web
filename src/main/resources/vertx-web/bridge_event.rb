@@ -48,7 +48,7 @@ module VertxWeb
         if @cached_socket != nil
           return @cached_socket
         end
-        return @cached_socket = ::VertxWeb::SockJSSocket.new(@j_del.java_method(:socket, []).call())
+        return @cached_socket = ::Vertx::Util::Utils.safe_create(@j_del.java_method(:socket, []).call(),::VertxWeb::SockJSSocket)
       end
       raise ArgumentError, "Invalid arguments when calling socket()"
     end

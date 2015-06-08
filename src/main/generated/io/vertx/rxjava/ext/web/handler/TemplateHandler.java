@@ -72,6 +72,6 @@ public class TemplateHandler implements Handler<RoutingContext> {
 
 
   public static TemplateHandler newInstance(io.vertx.ext.web.handler.TemplateHandler arg) {
-    return new TemplateHandler(arg);
+    return arg != null ? new TemplateHandler(arg) : null;
   }
 }

@@ -21,9 +21,9 @@ module VertxWeb
     # @return [::VertxWeb::ClusteredSessionStore] the session store
     def self.create(vertx=nil,sessionMapName=nil)
       if vertx.class.method_defined?(:j_del) && !block_given? && sessionMapName == nil
-        return ::VertxWeb::ClusteredSessionStore.new(Java::IoVertxExtWebSstore::ClusteredSessionStore.java_method(:create, [Java::IoVertxCore::Vertx.java_class]).call(vertx.j_del))
+        return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebSstore::ClusteredSessionStore.java_method(:create, [Java::IoVertxCore::Vertx.java_class]).call(vertx.j_del),::VertxWeb::ClusteredSessionStore)
       elsif vertx.class.method_defined?(:j_del) && sessionMapName.class == String && !block_given?
-        return ::VertxWeb::ClusteredSessionStore.new(Java::IoVertxExtWebSstore::ClusteredSessionStore.java_method(:create, [Java::IoVertxCore::Vertx.java_class,Java::java.lang.String.java_class]).call(vertx.j_del,sessionMapName))
+        return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebSstore::ClusteredSessionStore.java_method(:create, [Java::IoVertxCore::Vertx.java_class,Java::java.lang.String.java_class]).call(vertx.j_del,sessionMapName),::VertxWeb::ClusteredSessionStore)
       end
       raise ArgumentError, "Invalid arguments when calling create(vertx,sessionMapName)"
     end

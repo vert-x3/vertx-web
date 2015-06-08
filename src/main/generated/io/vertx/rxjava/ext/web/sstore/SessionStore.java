@@ -167,6 +167,6 @@ public class SessionStore {
 
 
   public static SessionStore newInstance(io.vertx.ext.web.sstore.SessionStore arg) {
-    return new SessionStore(arg);
+    return arg != null ? new SessionStore(arg) : null;
   }
 }

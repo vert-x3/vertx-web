@@ -33,9 +33,9 @@ module VertxWeb
     # @return [::VertxWeb::FormLoginHandler] the handler
     def self.create(authProvider=nil,usernameParam=nil,passwordParam=nil,returnURLParam=nil)
       if authProvider.class.method_defined?(:j_del) && !block_given? && usernameParam == nil && passwordParam == nil && returnURLParam == nil
-        return ::VertxWeb::FormLoginHandler.new(Java::IoVertxExtWebHandler::FormLoginHandler.java_method(:create, [Java::IoVertxExtAuth::AuthProvider.java_class]).call(authProvider.j_del))
+        return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebHandler::FormLoginHandler.java_method(:create, [Java::IoVertxExtAuth::AuthProvider.java_class]).call(authProvider.j_del),::VertxWeb::FormLoginHandler)
       elsif authProvider.class.method_defined?(:j_del) && usernameParam.class == String && passwordParam.class == String && returnURLParam.class == String && !block_given?
-        return ::VertxWeb::FormLoginHandler.new(Java::IoVertxExtWebHandler::FormLoginHandler.java_method(:create, [Java::IoVertxExtAuth::AuthProvider.java_class,Java::java.lang.String.java_class,Java::java.lang.String.java_class,Java::java.lang.String.java_class]).call(authProvider.j_del,usernameParam,passwordParam,returnURLParam))
+        return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebHandler::FormLoginHandler.java_method(:create, [Java::IoVertxExtAuth::AuthProvider.java_class,Java::java.lang.String.java_class,Java::java.lang.String.java_class,Java::java.lang.String.java_class]).call(authProvider.j_del,usernameParam,passwordParam,returnURLParam),::VertxWeb::FormLoginHandler)
       end
       raise ArgumentError, "Invalid arguments when calling create(authProvider,usernameParam,passwordParam,returnURLParam)"
     end

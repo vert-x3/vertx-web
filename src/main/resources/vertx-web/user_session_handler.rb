@@ -35,7 +35,7 @@ module VertxWeb
     # @return [::VertxWeb::UserSessionHandler] the handler
     def self.create(authProvider=nil)
       if authProvider.class.method_defined?(:j_del) && !block_given?
-        return ::VertxWeb::UserSessionHandler.new(Java::IoVertxExtWebHandler::UserSessionHandler.java_method(:create, [Java::IoVertxExtAuth::AuthProvider.java_class]).call(authProvider.j_del))
+        return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebHandler::UserSessionHandler.java_method(:create, [Java::IoVertxExtAuth::AuthProvider.java_class]).call(authProvider.j_del),::VertxWeb::UserSessionHandler)
       end
       raise ArgumentError, "Invalid arguments when calling create(authProvider)"
     end

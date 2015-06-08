@@ -27,9 +27,9 @@ module VertxWeb
     # @return [::VertxWeb::StaticHandler] the handler
     def self.create(root=nil)
       if !block_given? && root == nil
-        return ::VertxWeb::StaticHandler.new(Java::IoVertxExtWebHandler::StaticHandler.java_method(:create, []).call())
+        return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebHandler::StaticHandler.java_method(:create, []).call(),::VertxWeb::StaticHandler)
       elsif root.class == String && !block_given?
-        return ::VertxWeb::StaticHandler.new(Java::IoVertxExtWebHandler::StaticHandler.java_method(:create, [Java::java.lang.String.java_class]).call(root))
+        return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebHandler::StaticHandler.java_method(:create, [Java::java.lang.String.java_class]).call(root),::VertxWeb::StaticHandler)
       end
       raise ArgumentError, "Invalid arguments when calling create(root)"
     end

@@ -56,7 +56,7 @@ public interface AuthHandler extends Handler<RoutingContext> {
 
 
   public static AuthHandler newInstance(io.vertx.ext.web.handler.AuthHandler arg) {
-    return new AuthHandlerImpl(arg);
+    return arg != null ? new AuthHandlerImpl(arg) : null;
   }
 }
 

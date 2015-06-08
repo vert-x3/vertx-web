@@ -64,6 +64,6 @@ public class ClusteredSessionStore extends SessionStore {
 
 
   public static ClusteredSessionStore newInstance(io.vertx.ext.web.sstore.ClusteredSessionStore arg) {
-    return new ClusteredSessionStore(arg);
+    return arg != null ? new ClusteredSessionStore(arg) : null;
   }
 }

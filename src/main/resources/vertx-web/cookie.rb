@@ -23,7 +23,7 @@ module VertxWeb
     # @return [::VertxWeb::Cookie] the cookie
     def self.cookie(name=nil,value=nil)
       if name.class == String && value.class == String && !block_given?
-        return ::VertxWeb::Cookie.new(Java::IoVertxExtWeb::Cookie.java_method(:cookie, [Java::java.lang.String.java_class,Java::java.lang.String.java_class]).call(name,value))
+        return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWeb::Cookie.java_method(:cookie, [Java::java.lang.String.java_class,Java::java.lang.String.java_class]).call(name,value),::VertxWeb::Cookie)
       end
       raise ArgumentError, "Invalid arguments when calling cookie(name,value)"
     end
@@ -98,7 +98,7 @@ module VertxWeb
     # @return [::VertxWeb::Cookie]
     def set_max_age(maxAge=nil)
       if maxAge.class == Fixnum && !block_given?
-        return ::VertxWeb::Cookie.new(@j_del.java_method(:setMaxAge, [Java::long.java_class]).call(maxAge))
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:setMaxAge, [Java::long.java_class]).call(maxAge),::VertxWeb::Cookie)
       end
       raise ArgumentError, "Invalid arguments when calling set_max_age(maxAge)"
     end
@@ -121,7 +121,7 @@ module VertxWeb
     # @return [::VertxWeb::Cookie]
     def set_http_only(httpOnly=nil)
       if (httpOnly.class == TrueClass || httpOnly.class == FalseClass) && !block_given?
-        return ::VertxWeb::Cookie.new(@j_del.java_method(:setHttpOnly, [Java::boolean.java_class]).call(httpOnly))
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:setHttpOnly, [Java::boolean.java_class]).call(httpOnly),::VertxWeb::Cookie)
       end
       raise ArgumentError, "Invalid arguments when calling set_http_only(httpOnly)"
     end

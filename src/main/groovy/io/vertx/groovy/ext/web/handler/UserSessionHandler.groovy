@@ -48,7 +48,7 @@ public class UserSessionHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static UserSessionHandler create(AuthProvider authProvider) {
-    def ret= new io.vertx.groovy.ext.web.handler.UserSessionHandler(io.vertx.ext.web.handler.UserSessionHandler.create((io.vertx.ext.auth.AuthProvider)authProvider.getDelegate()));
+    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.UserSessionHandler.create((io.vertx.ext.auth.AuthProvider)authProvider.getDelegate()), io.vertx.ext.web.handler.UserSessionHandler.class, io.vertx.groovy.ext.web.handler.UserSessionHandler.class);
     return ret;
   }
 }

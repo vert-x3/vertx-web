@@ -196,6 +196,6 @@ public class StaticHandler implements Handler<RoutingContext> {
 
 
   public static StaticHandler newInstance(io.vertx.ext.web.handler.StaticHandler arg) {
-    return new StaticHandler(arg);
+    return arg != null ? new StaticHandler(arg) : null;
   }
 }

@@ -96,6 +96,6 @@ public class SessionHandler implements Handler<RoutingContext> {
 
 
   public static SessionHandler newInstance(io.vertx.ext.web.handler.SessionHandler arg) {
-    return new SessionHandler(arg);
+    return arg != null ? new SessionHandler(arg) : null;
   }
 }

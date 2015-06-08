@@ -213,6 +213,6 @@ public class Route {
 
 
   public static Route newInstance(io.vertx.ext.web.Route arg) {
-    return new Route(arg);
+    return arg != null ? new Route(arg) : null;
   }
 }

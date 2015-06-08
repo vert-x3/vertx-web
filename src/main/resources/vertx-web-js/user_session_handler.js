@@ -68,7 +68,7 @@ var UserSessionHandler = function(j_val) {
 UserSessionHandler.create = function(authProvider) {
   var __args = arguments;
   if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
-    return new UserSessionHandler(JUserSessionHandler["create(io.vertx.ext.auth.AuthProvider)"](authProvider._jdel));
+    return utils.convReturnVertxGen(JUserSessionHandler["create(io.vertx.ext.auth.AuthProvider)"](authProvider._jdel), UserSessionHandler);
   } else utils.invalidArgs();
 };
 

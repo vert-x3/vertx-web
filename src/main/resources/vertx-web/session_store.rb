@@ -19,7 +19,7 @@ module VertxWeb
     # @return [::VertxWeb::Session] the session
     def create_session(timeout=nil)
       if timeout.class == Fixnum && !block_given?
-        return ::VertxWeb::Session.new(@j_del.java_method(:createSession, [Java::long.java_class]).call(timeout))
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:createSession, [Java::long.java_class]).call(timeout),::VertxWeb::Session)
       end
       raise ArgumentError, "Invalid arguments when calling create_session(timeout)"
     end
@@ -29,7 +29,7 @@ module VertxWeb
     # @return [void]
     def get(id=nil)
       if id.class == String && block_given?
-        return @j_del.java_method(:get, [Java::java.lang.String.java_class,Java::IoVertxCore::Handler.java_class]).call(id,(Proc.new { |ar| yield(ar.failed ? ar.cause : nil, ar.succeeded ? ::VertxWeb::Session.new(ar.result) : nil) }))
+        return @j_del.java_method(:get, [Java::java.lang.String.java_class,Java::IoVertxCore::Handler.java_class]).call(id,(Proc.new { |ar| yield(ar.failed ? ar.cause : nil, ar.succeeded ? ::Vertx::Util::Utils.safe_create(ar.result,::VertxWeb::Session) : nil) }))
       end
       raise ArgumentError, "Invalid arguments when calling get(id)"
     end

@@ -61,9 +61,9 @@ var TimeoutHandler = function(j_val) {
 TimeoutHandler.create = function() {
   var __args = arguments;
   if (__args.length === 0) {
-    return new TimeoutHandler(JTimeoutHandler["create()"]());
+    return utils.convReturnVertxGen(JTimeoutHandler["create()"](), TimeoutHandler);
   }else if (__args.length === 1 && typeof __args[0] ==='number') {
-    return new TimeoutHandler(JTimeoutHandler["create(long)"](__args[0]));
+    return utils.convReturnVertxGen(JTimeoutHandler["create(long)"](__args[0]), TimeoutHandler);
   } else utils.invalidArgs();
 };
 

@@ -89,6 +89,6 @@ public class FaviconHandler implements Handler<RoutingContext> {
 
 
   public static FaviconHandler newInstance(io.vertx.ext.web.handler.FaviconHandler arg) {
-    return new FaviconHandler(arg);
+    return arg != null ? new FaviconHandler(arg) : null;
   }
 }

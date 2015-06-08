@@ -43,7 +43,7 @@ var HandlebarsTemplateEngine = function(j_val) {
   this.setExtension = function(extension) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return new HandlebarsTemplateEngine(j_handlebarsTemplateEngine["setExtension(java.lang.String)"](extension));
+      return utils.convReturnVertxGen(j_handlebarsTemplateEngine["setExtension(java.lang.String)"](extension), HandlebarsTemplateEngine);
     } else utils.invalidArgs();
   };
 
@@ -57,7 +57,7 @@ var HandlebarsTemplateEngine = function(j_val) {
   this.setMaxCacheSize = function(maxCacheSize) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] ==='number') {
-      return new HandlebarsTemplateEngine(j_handlebarsTemplateEngine["setMaxCacheSize(int)"](maxCacheSize));
+      return utils.convReturnVertxGen(j_handlebarsTemplateEngine["setMaxCacheSize(int)"](maxCacheSize), HandlebarsTemplateEngine);
     } else utils.invalidArgs();
   };
 
@@ -77,7 +77,7 @@ var HandlebarsTemplateEngine = function(j_val) {
 HandlebarsTemplateEngine.create = function() {
   var __args = arguments;
   if (__args.length === 0) {
-    return new HandlebarsTemplateEngine(JHandlebarsTemplateEngine["create()"]());
+    return utils.convReturnVertxGen(JHandlebarsTemplateEngine["create()"](), HandlebarsTemplateEngine);
   } else utils.invalidArgs();
 };
 

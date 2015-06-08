@@ -79,6 +79,6 @@ public class TemplateEngine {
 
 
   public static TemplateEngine newInstance(io.vertx.ext.web.templ.TemplateEngine arg) {
-    return new TemplateEngine(arg);
+    return arg != null ? new TemplateEngine(arg) : null;
   }
 }

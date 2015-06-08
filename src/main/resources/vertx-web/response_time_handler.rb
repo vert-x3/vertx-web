@@ -27,7 +27,7 @@ module VertxWeb
     # @return [::VertxWeb::ResponseTimeHandler] the handler
     def self.create
       if !block_given?
-        return ::VertxWeb::ResponseTimeHandler.new(Java::IoVertxExtWebHandler::ResponseTimeHandler.java_method(:create, []).call())
+        return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebHandler::ResponseTimeHandler.java_method(:create, []).call(),::VertxWeb::ResponseTimeHandler)
       end
       raise ArgumentError, "Invalid arguments when calling create()"
     end

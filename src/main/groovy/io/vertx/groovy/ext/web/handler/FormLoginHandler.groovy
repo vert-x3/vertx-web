@@ -43,7 +43,7 @@ public class FormLoginHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static FormLoginHandler create(AuthProvider authProvider) {
-    def ret= new io.vertx.groovy.ext.web.handler.FormLoginHandler(io.vertx.ext.web.handler.FormLoginHandler.create((io.vertx.ext.auth.AuthProvider)authProvider.getDelegate()));
+    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.FormLoginHandler.create((io.vertx.ext.auth.AuthProvider)authProvider.getDelegate()), io.vertx.ext.web.handler.FormLoginHandler.class, io.vertx.groovy.ext.web.handler.FormLoginHandler.class);
     return ret;
   }
   /**
@@ -55,7 +55,7 @@ public class FormLoginHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static FormLoginHandler create(AuthProvider authProvider, String usernameParam, String passwordParam, String returnURLParam) {
-    def ret= new io.vertx.groovy.ext.web.handler.FormLoginHandler(io.vertx.ext.web.handler.FormLoginHandler.create((io.vertx.ext.auth.AuthProvider)authProvider.getDelegate(), usernameParam, passwordParam, returnURLParam));
+    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.FormLoginHandler.create((io.vertx.ext.auth.AuthProvider)authProvider.getDelegate(), usernameParam, passwordParam, returnURLParam), io.vertx.ext.web.handler.FormLoginHandler.class, io.vertx.groovy.ext.web.handler.FormLoginHandler.class);
     return ret;
   }
 }

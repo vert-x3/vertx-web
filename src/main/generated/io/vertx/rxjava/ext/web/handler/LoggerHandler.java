@@ -78,6 +78,6 @@ public class LoggerHandler implements Handler<RoutingContext> {
 
 
   public static LoggerHandler newInstance(io.vertx.ext.web.handler.LoggerHandler arg) {
-    return new LoggerHandler(arg);
+    return arg != null ? new LoggerHandler(arg) : null;
   }
 }

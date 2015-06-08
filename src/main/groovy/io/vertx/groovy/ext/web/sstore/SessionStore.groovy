@@ -38,7 +38,7 @@ public class SessionStore {
    * @return the session
    */
   public Session createSession(long timeout) {
-    def ret= new io.vertx.groovy.ext.web.Session(this.delegate.createSession(timeout));
+    def ret= InternalHelper.safeCreate(this.delegate.createSession(timeout), io.vertx.ext.web.Session.class, io.vertx.groovy.ext.web.Session.class);
     return ret;
   }
   /**

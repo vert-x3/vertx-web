@@ -71,6 +71,6 @@ public class MVELTemplateEngine extends TemplateEngine {
 
 
   public static MVELTemplateEngine newInstance(io.vertx.ext.web.templ.MVELTemplateEngine arg) {
-    return new MVELTemplateEngine(arg);
+    return arg != null ? new MVELTemplateEngine(arg) : null;
   }
 }

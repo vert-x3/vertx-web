@@ -52,7 +52,7 @@ var RoutingContext = function(j_val) {
     var __args = arguments;
     if (__args.length === 0) {
       if (that.cachedrequest == null) {
-        that.cachedrequest = new HttpServerRequest(j_routingContext["request()"]());
+        that.cachedrequest = utils.convReturnVertxGen(j_routingContext["request()"](), HttpServerRequest);
       }
       return that.cachedrequest;
     } else utils.invalidArgs();
@@ -69,7 +69,7 @@ var RoutingContext = function(j_val) {
     var __args = arguments;
     if (__args.length === 0) {
       if (that.cachedresponse == null) {
-        that.cachedresponse = new HttpServerResponse(j_routingContext["response()"]());
+        that.cachedresponse = utils.convReturnVertxGen(j_routingContext["response()"](), HttpServerResponse);
       }
       return that.cachedresponse;
     } else utils.invalidArgs();
@@ -149,7 +149,7 @@ var RoutingContext = function(j_val) {
   this.vertx = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return new Vertx(j_routingContext["vertx()"]());
+      return utils.convReturnVertxGen(j_routingContext["vertx()"](), Vertx);
     } else utils.invalidArgs();
   };
 
@@ -178,7 +178,7 @@ var RoutingContext = function(j_val) {
   this.currentRoute = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return new Route(j_routingContext["currentRoute()"]());
+      return utils.convReturnVertxGen(j_routingContext["currentRoute()"](), Route);
     } else utils.invalidArgs();
   };
 
@@ -217,7 +217,7 @@ var RoutingContext = function(j_val) {
   this.getCookie = function(name) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return new Cookie(j_routingContext["getCookie(java.lang.String)"](name));
+      return utils.convReturnVertxGen(j_routingContext["getCookie(java.lang.String)"](name), Cookie);
     } else utils.invalidArgs();
   };
 
@@ -248,7 +248,7 @@ var RoutingContext = function(j_val) {
   this.removeCookie = function(name) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return new Cookie(j_routingContext["removeCookie(java.lang.String)"](name));
+      return utils.convReturnVertxGen(j_routingContext["removeCookie(java.lang.String)"](name), Cookie);
     } else utils.invalidArgs();
   };
 
@@ -325,7 +325,7 @@ var RoutingContext = function(j_val) {
   this.getBody = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return new Buffer(j_routingContext["getBody()"]());
+      return utils.convReturnVertxGen(j_routingContext["getBody()"](), Buffer);
     } else utils.invalidArgs();
   };
 
@@ -356,7 +356,7 @@ var RoutingContext = function(j_val) {
   this.session = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return new Session(j_routingContext["session()"]());
+      return utils.convReturnVertxGen(j_routingContext["session()"](), Session);
     } else utils.invalidArgs();
   };
 
@@ -370,7 +370,7 @@ var RoutingContext = function(j_val) {
   this.user = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return new User(j_routingContext["user()"]());
+      return utils.convReturnVertxGen(j_routingContext["user()"](), User);
     } else utils.invalidArgs();
   };
 
@@ -422,7 +422,7 @@ var RoutingContext = function(j_val) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'function') {
       return j_routingContext["addHeadersEndHandler(io.vertx.core.Handler)"](function(jVal) {
-      handler(new Future(jVal));
+      handler(utils.convReturnVertxGen(jVal, Future));
     });
     } else utils.invalidArgs();
   };

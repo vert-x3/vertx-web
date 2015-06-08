@@ -48,7 +48,7 @@ module VertxWeb
     # @return [self]
     def handler
       if block_given?
-        @j_del.java_method(:handler, [Java::IoVertxCore::Handler.java_class]).call((Proc.new { |event| yield(::Vertx::Buffer.new(event)) }))
+        @j_del.java_method(:handler, [Java::IoVertxCore::Handler.java_class]).call((Proc.new { |event| yield(::Vertx::Util::Utils.safe_create(event,::Vertx::Buffer)) }))
         return self
       end
       raise ArgumentError, "Invalid arguments when calling handler()"
@@ -130,7 +130,7 @@ module VertxWeb
     # @return [::Vertx::SocketAddress]
     def remote_address
       if !block_given?
-        return ::Vertx::SocketAddress.new(@j_del.java_method(:remoteAddress, []).call())
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:remoteAddress, []).call(),::Vertx::SocketAddress)
       end
       raise ArgumentError, "Invalid arguments when calling remote_address()"
     end
@@ -138,7 +138,7 @@ module VertxWeb
     # @return [::Vertx::SocketAddress]
     def local_address
       if !block_given?
-        return ::Vertx::SocketAddress.new(@j_del.java_method(:localAddress, []).call())
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:localAddress, []).call(),::Vertx::SocketAddress)
       end
       raise ArgumentError, "Invalid arguments when calling local_address()"
     end
@@ -147,7 +147,7 @@ module VertxWeb
     # @return [::Vertx::MultiMap]
     def headers
       if !block_given?
-        return ::Vertx::MultiMap.new(@j_del.java_method(:headers, []).call())
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:headers, []).call(),::Vertx::MultiMap)
       end
       raise ArgumentError, "Invalid arguments when calling headers()"
     end
@@ -163,7 +163,7 @@ module VertxWeb
     # @return [::VertxWeb::Session]
     def web_session
       if !block_given?
-        return ::VertxWeb::Session.new(@j_del.java_method(:webSession, []).call())
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:webSession, []).call(),::VertxWeb::Session)
       end
       raise ArgumentError, "Invalid arguments when calling web_session()"
     end
@@ -171,7 +171,7 @@ module VertxWeb
     # @return [::VertxAuthCommon::User]
     def web_user
       if !block_given?
-        return ::VertxAuthCommon::User.new(@j_del.java_method(:webUser, []).call())
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:webUser, []).call(),::VertxAuthCommon::User)
       end
       raise ArgumentError, "Invalid arguments when calling web_user()"
     end

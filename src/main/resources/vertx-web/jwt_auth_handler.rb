@@ -51,9 +51,9 @@ module VertxWeb
     # @return [::VertxWeb::JWTAuthHandler] the auth handler
     def self.create(authProvider=nil,skip=nil)
       if authProvider.class.method_defined?(:j_del) && !block_given? && skip == nil
-        return ::VertxWeb::JWTAuthHandler.new(Java::IoVertxExtWebHandler::JWTAuthHandler.java_method(:create, [Java::IoVertxExtAuth::AuthProvider.java_class]).call(authProvider.j_del))
+        return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebHandler::JWTAuthHandler.java_method(:create, [Java::IoVertxExtAuth::AuthProvider.java_class]).call(authProvider.j_del),::VertxWeb::JWTAuthHandler)
       elsif authProvider.class.method_defined?(:j_del) && skip.class == String && !block_given?
-        return ::VertxWeb::JWTAuthHandler.new(Java::IoVertxExtWebHandler::JWTAuthHandler.java_method(:create, [Java::IoVertxExtAuth::AuthProvider.java_class,Java::java.lang.String.java_class]).call(authProvider.j_del,skip))
+        return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebHandler::JWTAuthHandler.java_method(:create, [Java::IoVertxExtAuth::AuthProvider.java_class,Java::java.lang.String.java_class]).call(authProvider.j_del,skip),::VertxWeb::JWTAuthHandler)
       end
       raise ArgumentError, "Invalid arguments when calling create(authProvider,skip)"
     end

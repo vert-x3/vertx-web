@@ -36,13 +36,13 @@ module VertxWeb
     # @return [::VertxWeb::FaviconHandler] the handler
     def self.create(param_1=nil,param_2=nil)
       if !block_given? && param_1 == nil && param_2 == nil
-        return ::VertxWeb::FaviconHandler.new(Java::IoVertxExtWebHandler::FaviconHandler.java_method(:create, []).call())
+        return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebHandler::FaviconHandler.java_method(:create, []).call(),::VertxWeb::FaviconHandler)
       elsif param_1.class == String && !block_given? && param_2 == nil
-        return ::VertxWeb::FaviconHandler.new(Java::IoVertxExtWebHandler::FaviconHandler.java_method(:create, [Java::java.lang.String.java_class]).call(param_1))
+        return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebHandler::FaviconHandler.java_method(:create, [Java::java.lang.String.java_class]).call(param_1),::VertxWeb::FaviconHandler)
       elsif param_1.class == Fixnum && !block_given? && param_2 == nil
-        return ::VertxWeb::FaviconHandler.new(Java::IoVertxExtWebHandler::FaviconHandler.java_method(:create, [Java::long.java_class]).call(param_1))
+        return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebHandler::FaviconHandler.java_method(:create, [Java::long.java_class]).call(param_1),::VertxWeb::FaviconHandler)
       elsif param_1.class == String && param_2.class == Fixnum && !block_given?
-        return ::VertxWeb::FaviconHandler.new(Java::IoVertxExtWebHandler::FaviconHandler.java_method(:create, [Java::java.lang.String.java_class,Java::long.java_class]).call(param_1,param_2))
+        return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebHandler::FaviconHandler.java_method(:create, [Java::java.lang.String.java_class,Java::long.java_class]).call(param_1,param_2),::VertxWeb::FaviconHandler)
       end
       raise ArgumentError, "Invalid arguments when calling create(param_1,param_2)"
     end

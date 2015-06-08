@@ -42,7 +42,7 @@ var SessionStore = function(j_val) {
   this.createSession = function(timeout) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] ==='number') {
-      return new Session(j_sessionStore["createSession(long)"](timeout));
+      return utils.convReturnVertxGen(j_sessionStore["createSession(long)"](timeout), Session);
     } else utils.invalidArgs();
   };
 
@@ -58,7 +58,7 @@ var SessionStore = function(j_val) {
     if (__args.length === 2 && typeof __args[0] === 'string' && typeof __args[1] === 'function') {
       j_sessionStore["get(java.lang.String,io.vertx.core.Handler)"](id, function(ar) {
       if (ar.succeeded()) {
-        resultHandler(new Session(ar.result()), null);
+        resultHandler(utils.convReturnVertxGen(ar.result(), Session), null);
       } else {
         resultHandler(null, ar.cause());
       }

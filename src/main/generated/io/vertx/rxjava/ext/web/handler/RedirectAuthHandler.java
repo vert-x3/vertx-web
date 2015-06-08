@@ -101,6 +101,6 @@ public class RedirectAuthHandler implements AuthHandler {
 
 
   public static RedirectAuthHandler newInstance(io.vertx.ext.web.handler.RedirectAuthHandler arg) {
-    return new RedirectAuthHandler(arg);
+    return arg != null ? new RedirectAuthHandler(arg) : null;
   }
 }

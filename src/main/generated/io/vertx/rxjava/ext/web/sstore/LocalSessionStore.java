@@ -78,6 +78,6 @@ public class LocalSessionStore extends SessionStore {
 
 
   public static LocalSessionStore newInstance(io.vertx.ext.web.sstore.LocalSessionStore arg) {
-    return new LocalSessionStore(arg);
+    return arg != null ? new LocalSessionStore(arg) : null;
   }
 }

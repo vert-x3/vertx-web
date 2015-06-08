@@ -35,7 +35,7 @@ public class JadeTemplateEngine extends TemplateEngine {
    * @return the engine
    */
   public static JadeTemplateEngine create() {
-    def ret= new io.vertx.groovy.ext.web.templ.JadeTemplateEngine(io.vertx.ext.web.templ.JadeTemplateEngine.create());
+    def ret= InternalHelper.safeCreate(io.vertx.ext.web.templ.JadeTemplateEngine.create(), io.vertx.ext.web.templ.JadeTemplateEngine.class, io.vertx.groovy.ext.web.templ.JadeTemplateEngine.class);
     return ret;
   }
   /**
@@ -44,7 +44,7 @@ public class JadeTemplateEngine extends TemplateEngine {
    * @return a reference to this for fluency
    */
   public JadeTemplateEngine setExtension(String extension) {
-    def ret= new io.vertx.groovy.ext.web.templ.JadeTemplateEngine(this.delegate.setExtension(extension));
+    def ret= InternalHelper.safeCreate(this.delegate.setExtension(extension), io.vertx.ext.web.templ.JadeTemplateEngine.class, io.vertx.groovy.ext.web.templ.JadeTemplateEngine.class);
     return ret;
   }
   /**
@@ -53,7 +53,7 @@ public class JadeTemplateEngine extends TemplateEngine {
    * @return a reference to this for fluency
    */
   public JadeTemplateEngine setMaxCacheSize(int maxCacheSize) {
-    def ret= new io.vertx.groovy.ext.web.templ.JadeTemplateEngine(this.delegate.setMaxCacheSize(maxCacheSize));
+    def ret= InternalHelper.safeCreate(this.delegate.setMaxCacheSize(maxCacheSize), io.vertx.ext.web.templ.JadeTemplateEngine.class, io.vertx.groovy.ext.web.templ.JadeTemplateEngine.class);
     return ret;
   }
 }

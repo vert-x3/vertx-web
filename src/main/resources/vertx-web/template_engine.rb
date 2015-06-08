@@ -24,7 +24,7 @@ module VertxWeb
     # @return [void]
     def render(context=nil,templateFileName=nil)
       if context.class.method_defined?(:j_del) && templateFileName.class == String && block_given?
-        return @j_del.java_method(:render, [Java::IoVertxExtWeb::RoutingContext.java_class,Java::java.lang.String.java_class,Java::IoVertxCore::Handler.java_class]).call(context.j_del,templateFileName,(Proc.new { |ar| yield(ar.failed ? ar.cause : nil, ar.succeeded ? ::Vertx::Buffer.new(ar.result) : nil) }))
+        return @j_del.java_method(:render, [Java::IoVertxExtWeb::RoutingContext.java_class,Java::java.lang.String.java_class,Java::IoVertxCore::Handler.java_class]).call(context.j_del,templateFileName,(Proc.new { |ar| yield(ar.failed ? ar.cause : nil, ar.succeeded ? ::Vertx::Util::Utils.safe_create(ar.result,::Vertx::Buffer) : nil) }))
       end
       raise ArgumentError, "Invalid arguments when calling render(context,templateFileName)"
     end

@@ -128,6 +128,6 @@ public class SockJSHandler implements Handler<RoutingContext> {
 
 
   public static SockJSHandler newInstance(io.vertx.ext.web.handler.sockjs.SockJSHandler arg) {
-    return new SockJSHandler(arg);
+    return arg != null ? new SockJSHandler(arg) : null;
   }
 }

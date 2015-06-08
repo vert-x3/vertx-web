@@ -61,7 +61,7 @@ var ResponseTimeHandler = function(j_val) {
 ResponseTimeHandler.create = function() {
   var __args = arguments;
   if (__args.length === 0) {
-    return new ResponseTimeHandler(JResponseTimeHandler["create()"]());
+    return utils.convReturnVertxGen(JResponseTimeHandler["create()"](), ResponseTimeHandler);
   } else utils.invalidArgs();
 };
 

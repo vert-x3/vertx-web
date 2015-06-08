@@ -59,7 +59,7 @@ var CookieHandler = function(j_val) {
 CookieHandler.create = function() {
   var __args = arguments;
   if (__args.length === 0) {
-    return new CookieHandler(JCookieHandler["create()"]());
+    return utils.convReturnVertxGen(JCookieHandler["create()"](), CookieHandler);
   } else utils.invalidArgs();
 };
 

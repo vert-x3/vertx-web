@@ -57,6 +57,6 @@ public class CookieHandler implements Handler<RoutingContext> {
 
 
   public static CookieHandler newInstance(io.vertx.ext.web.handler.CookieHandler arg) {
-    return new CookieHandler(arg);
+    return arg != null ? new CookieHandler(arg) : null;
   }
 }

@@ -61,11 +61,11 @@ var LoggerHandler = function(j_val) {
 LoggerHandler.create = function() {
   var __args = arguments;
   if (__args.length === 0) {
-    return new LoggerHandler(JLoggerHandler["create()"]());
+    return utils.convReturnVertxGen(JLoggerHandler["create()"](), LoggerHandler);
   }else if (__args.length === 1 && typeof __args[0] === 'string') {
-    return new LoggerHandler(JLoggerHandler["create(io.vertx.ext.web.handler.LoggerHandler.Format)"](io.vertx.ext.web.handler.LoggerHandler.Format.valueOf(__args[0])));
+    return utils.convReturnVertxGen(JLoggerHandler["create(io.vertx.ext.web.handler.LoggerHandler.Format)"](io.vertx.ext.web.handler.LoggerHandler.Format.valueOf(__args[0])), LoggerHandler);
   }else if (__args.length === 2 && typeof __args[0] ==='boolean' && typeof __args[1] === 'string') {
-    return new LoggerHandler(JLoggerHandler["create(boolean,io.vertx.ext.web.handler.LoggerHandler.Format)"](__args[0], io.vertx.ext.web.handler.LoggerHandler.Format.valueOf(__args[1])));
+    return utils.convReturnVertxGen(JLoggerHandler["create(boolean,io.vertx.ext.web.handler.LoggerHandler.Format)"](__args[0], io.vertx.ext.web.handler.LoggerHandler.Format.valueOf(__args[1])), LoggerHandler);
   } else utils.invalidArgs();
 };
 

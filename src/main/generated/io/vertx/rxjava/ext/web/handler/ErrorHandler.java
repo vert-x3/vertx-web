@@ -87,6 +87,6 @@ public class ErrorHandler implements Handler<RoutingContext> {
 
 
   public static ErrorHandler newInstance(io.vertx.ext.web.handler.ErrorHandler arg) {
-    return new ErrorHandler(arg);
+    return arg != null ? new ErrorHandler(arg) : null;
   }
 }

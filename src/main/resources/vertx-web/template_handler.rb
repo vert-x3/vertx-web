@@ -32,9 +32,9 @@ module VertxWeb
     # @return [::VertxWeb::TemplateHandler] the handler
     def self.create(engine=nil,templateDirectory=nil,contentType=nil)
       if engine.class.method_defined?(:j_del) && !block_given? && templateDirectory == nil && contentType == nil
-        return ::VertxWeb::TemplateHandler.new(Java::IoVertxExtWebHandler::TemplateHandler.java_method(:create, [Java::IoVertxExtWebTempl::TemplateEngine.java_class]).call(engine.j_del))
+        return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebHandler::TemplateHandler.java_method(:create, [Java::IoVertxExtWebTempl::TemplateEngine.java_class]).call(engine.j_del),::VertxWeb::TemplateHandler)
       elsif engine.class.method_defined?(:j_del) && templateDirectory.class == String && contentType.class == String && !block_given?
-        return ::VertxWeb::TemplateHandler.new(Java::IoVertxExtWebHandler::TemplateHandler.java_method(:create, [Java::IoVertxExtWebTempl::TemplateEngine.java_class,Java::java.lang.String.java_class,Java::java.lang.String.java_class]).call(engine.j_del,templateDirectory,contentType))
+        return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebHandler::TemplateHandler.java_method(:create, [Java::IoVertxExtWebTempl::TemplateEngine.java_class,Java::java.lang.String.java_class,Java::java.lang.String.java_class]).call(engine.j_del,templateDirectory,contentType),::VertxWeb::TemplateHandler)
       end
       raise ArgumentError, "Invalid arguments when calling create(engine,templateDirectory,contentType)"
     end

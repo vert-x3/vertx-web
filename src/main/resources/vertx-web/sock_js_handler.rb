@@ -35,9 +35,9 @@ module VertxWeb
     # @return [::VertxWeb::SockJSHandler] the handler
     def self.create(vertx=nil,options=nil)
       if vertx.class.method_defined?(:j_del) && !block_given? && options == nil
-        return ::VertxWeb::SockJSHandler.new(Java::IoVertxExtWebHandlerSockjs::SockJSHandler.java_method(:create, [Java::IoVertxCore::Vertx.java_class]).call(vertx.j_del))
+        return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebHandlerSockjs::SockJSHandler.java_method(:create, [Java::IoVertxCore::Vertx.java_class]).call(vertx.j_del),::VertxWeb::SockJSHandler)
       elsif vertx.class.method_defined?(:j_del) && options.class == Hash && !block_given?
-        return ::VertxWeb::SockJSHandler.new(Java::IoVertxExtWebHandlerSockjs::SockJSHandler.java_method(:create, [Java::IoVertxCore::Vertx.java_class,Java::IoVertxExtWebHandlerSockjs::SockJSHandlerOptions.java_class]).call(vertx.j_del,Java::IoVertxExtWebHandlerSockjs::SockJSHandlerOptions.new(::Vertx::Util::Utils.to_json_object(options))))
+        return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebHandlerSockjs::SockJSHandler.java_method(:create, [Java::IoVertxCore::Vertx.java_class,Java::IoVertxExtWebHandlerSockjs::SockJSHandlerOptions.java_class]).call(vertx.j_del,Java::IoVertxExtWebHandlerSockjs::SockJSHandlerOptions.new(::Vertx::Util::Utils.to_json_object(options))),::VertxWeb::SockJSHandler)
       end
       raise ArgumentError, "Invalid arguments when calling create(vertx,options)"
     end
@@ -57,7 +57,7 @@ module VertxWeb
     # @return [self]
     def socket_handler
       if block_given?
-        @j_del.java_method(:socketHandler, [Java::IoVertxCore::Handler.java_class]).call((Proc.new { |event| yield(::VertxWeb::SockJSSocket.new(event)) }))
+        @j_del.java_method(:socketHandler, [Java::IoVertxCore::Handler.java_class]).call((Proc.new { |event| yield(::Vertx::Util::Utils.safe_create(event,::VertxWeb::SockJSSocket)) }))
         return self
       end
       raise ArgumentError, "Invalid arguments when calling socket_handler()"
@@ -72,7 +72,7 @@ module VertxWeb
         @j_del.java_method(:bridge, [Java::IoVertxExtWebHandlerSockjs::BridgeOptions.java_class]).call(Java::IoVertxExtWebHandlerSockjs::BridgeOptions.new(::Vertx::Util::Utils.to_json_object(bridgeOptions)))
         return self
       elsif bridgeOptions.class == Hash && block_given?
-        @j_del.java_method(:bridge, [Java::IoVertxExtWebHandlerSockjs::BridgeOptions.java_class,Java::IoVertxCore::Handler.java_class]).call(Java::IoVertxExtWebHandlerSockjs::BridgeOptions.new(::Vertx::Util::Utils.to_json_object(bridgeOptions)),(Proc.new { |event| yield(::VertxWeb::BridgeEvent.new(event)) }))
+        @j_del.java_method(:bridge, [Java::IoVertxExtWebHandlerSockjs::BridgeOptions.java_class,Java::IoVertxCore::Handler.java_class]).call(Java::IoVertxExtWebHandlerSockjs::BridgeOptions.new(::Vertx::Util::Utils.to_json_object(bridgeOptions)),(Proc.new { |event| yield(::Vertx::Util::Utils.safe_create(event,::VertxWeb::BridgeEvent)) }))
         return self
       end
       raise ArgumentError, "Invalid arguments when calling bridge(bridgeOptions)"

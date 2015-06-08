@@ -59,11 +59,11 @@ var Router = function(j_val) {
   this.route = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return new Route(j_router["route()"]());
+      return utils.convReturnVertxGen(j_router["route()"](), Route);
     }  else if (__args.length === 1 && typeof __args[0] === 'string') {
-      return new Route(j_router["route(java.lang.String)"](__args[0]));
+      return utils.convReturnVertxGen(j_router["route(java.lang.String)"](__args[0]), Route);
     }  else if (__args.length === 2 && typeof __args[0] === 'string' && typeof __args[1] === 'string') {
-      return new Route(j_router["route(io.vertx.core.http.HttpMethod,java.lang.String)"](io.vertx.core.http.HttpMethod.valueOf(__args[0]), __args[1]));
+      return utils.convReturnVertxGen(j_router["route(io.vertx.core.http.HttpMethod,java.lang.String)"](io.vertx.core.http.HttpMethod.valueOf(__args[0]), __args[1]), Route);
     } else utils.invalidArgs();
   };
 
@@ -78,9 +78,9 @@ var Router = function(j_val) {
   this.routeWithRegex = function() {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return new Route(j_router["routeWithRegex(java.lang.String)"](__args[0]));
+      return utils.convReturnVertxGen(j_router["routeWithRegex(java.lang.String)"](__args[0]), Route);
     }  else if (__args.length === 2 && typeof __args[0] === 'string' && typeof __args[1] === 'string') {
-      return new Route(j_router["routeWithRegex(io.vertx.core.http.HttpMethod,java.lang.String)"](io.vertx.core.http.HttpMethod.valueOf(__args[0]), __args[1]));
+      return utils.convReturnVertxGen(j_router["routeWithRegex(io.vertx.core.http.HttpMethod,java.lang.String)"](io.vertx.core.http.HttpMethod.valueOf(__args[0]), __args[1]), Route);
     } else utils.invalidArgs();
   };
 
@@ -94,9 +94,9 @@ var Router = function(j_val) {
   this.get = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return new Route(j_router["get()"]());
+      return utils.convReturnVertxGen(j_router["get()"](), Route);
     }  else if (__args.length === 1 && typeof __args[0] === 'string') {
-      return new Route(j_router["get(java.lang.String)"](__args[0]));
+      return utils.convReturnVertxGen(j_router["get(java.lang.String)"](__args[0]), Route);
     } else utils.invalidArgs();
   };
 
@@ -110,7 +110,7 @@ var Router = function(j_val) {
   this.getWithRegex = function(regex) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return new Route(j_router["getWithRegex(java.lang.String)"](regex));
+      return utils.convReturnVertxGen(j_router["getWithRegex(java.lang.String)"](regex), Route);
     } else utils.invalidArgs();
   };
 
@@ -124,9 +124,9 @@ var Router = function(j_val) {
   this.head = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return new Route(j_router["head()"]());
+      return utils.convReturnVertxGen(j_router["head()"](), Route);
     }  else if (__args.length === 1 && typeof __args[0] === 'string') {
-      return new Route(j_router["head(java.lang.String)"](__args[0]));
+      return utils.convReturnVertxGen(j_router["head(java.lang.String)"](__args[0]), Route);
     } else utils.invalidArgs();
   };
 
@@ -140,7 +140,7 @@ var Router = function(j_val) {
   this.headWithRegex = function(regex) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return new Route(j_router["headWithRegex(java.lang.String)"](regex));
+      return utils.convReturnVertxGen(j_router["headWithRegex(java.lang.String)"](regex), Route);
     } else utils.invalidArgs();
   };
 
@@ -154,9 +154,9 @@ var Router = function(j_val) {
   this.options = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return new Route(j_router["options()"]());
+      return utils.convReturnVertxGen(j_router["options()"](), Route);
     }  else if (__args.length === 1 && typeof __args[0] === 'string') {
-      return new Route(j_router["options(java.lang.String)"](__args[0]));
+      return utils.convReturnVertxGen(j_router["options(java.lang.String)"](__args[0]), Route);
     } else utils.invalidArgs();
   };
 
@@ -170,7 +170,7 @@ var Router = function(j_val) {
   this.optionsWithRegex = function(regex) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return new Route(j_router["optionsWithRegex(java.lang.String)"](regex));
+      return utils.convReturnVertxGen(j_router["optionsWithRegex(java.lang.String)"](regex), Route);
     } else utils.invalidArgs();
   };
 
@@ -184,9 +184,9 @@ var Router = function(j_val) {
   this.put = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return new Route(j_router["put()"]());
+      return utils.convReturnVertxGen(j_router["put()"](), Route);
     }  else if (__args.length === 1 && typeof __args[0] === 'string') {
-      return new Route(j_router["put(java.lang.String)"](__args[0]));
+      return utils.convReturnVertxGen(j_router["put(java.lang.String)"](__args[0]), Route);
     } else utils.invalidArgs();
   };
 
@@ -200,7 +200,7 @@ var Router = function(j_val) {
   this.putWithRegex = function(regex) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return new Route(j_router["putWithRegex(java.lang.String)"](regex));
+      return utils.convReturnVertxGen(j_router["putWithRegex(java.lang.String)"](regex), Route);
     } else utils.invalidArgs();
   };
 
@@ -214,9 +214,9 @@ var Router = function(j_val) {
   this.post = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return new Route(j_router["post()"]());
+      return utils.convReturnVertxGen(j_router["post()"](), Route);
     }  else if (__args.length === 1 && typeof __args[0] === 'string') {
-      return new Route(j_router["post(java.lang.String)"](__args[0]));
+      return utils.convReturnVertxGen(j_router["post(java.lang.String)"](__args[0]), Route);
     } else utils.invalidArgs();
   };
 
@@ -230,7 +230,7 @@ var Router = function(j_val) {
   this.postWithRegex = function(regex) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return new Route(j_router["postWithRegex(java.lang.String)"](regex));
+      return utils.convReturnVertxGen(j_router["postWithRegex(java.lang.String)"](regex), Route);
     } else utils.invalidArgs();
   };
 
@@ -244,9 +244,9 @@ var Router = function(j_val) {
   this.delete = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return new Route(j_router["delete()"]());
+      return utils.convReturnVertxGen(j_router["delete()"](), Route);
     }  else if (__args.length === 1 && typeof __args[0] === 'string') {
-      return new Route(j_router["delete(java.lang.String)"](__args[0]));
+      return utils.convReturnVertxGen(j_router["delete(java.lang.String)"](__args[0]), Route);
     } else utils.invalidArgs();
   };
 
@@ -260,7 +260,7 @@ var Router = function(j_val) {
   this.deleteWithRegex = function(regex) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return new Route(j_router["deleteWithRegex(java.lang.String)"](regex));
+      return utils.convReturnVertxGen(j_router["deleteWithRegex(java.lang.String)"](regex), Route);
     } else utils.invalidArgs();
   };
 
@@ -274,9 +274,9 @@ var Router = function(j_val) {
   this.trace = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return new Route(j_router["trace()"]());
+      return utils.convReturnVertxGen(j_router["trace()"](), Route);
     }  else if (__args.length === 1 && typeof __args[0] === 'string') {
-      return new Route(j_router["trace(java.lang.String)"](__args[0]));
+      return utils.convReturnVertxGen(j_router["trace(java.lang.String)"](__args[0]), Route);
     } else utils.invalidArgs();
   };
 
@@ -290,7 +290,7 @@ var Router = function(j_val) {
   this.traceWithRegex = function(regex) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return new Route(j_router["traceWithRegex(java.lang.String)"](regex));
+      return utils.convReturnVertxGen(j_router["traceWithRegex(java.lang.String)"](regex), Route);
     } else utils.invalidArgs();
   };
 
@@ -304,9 +304,9 @@ var Router = function(j_val) {
   this.connect = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return new Route(j_router["connect()"]());
+      return utils.convReturnVertxGen(j_router["connect()"](), Route);
     }  else if (__args.length === 1 && typeof __args[0] === 'string') {
-      return new Route(j_router["connect(java.lang.String)"](__args[0]));
+      return utils.convReturnVertxGen(j_router["connect(java.lang.String)"](__args[0]), Route);
     } else utils.invalidArgs();
   };
 
@@ -320,7 +320,7 @@ var Router = function(j_val) {
   this.connectWithRegex = function(regex) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return new Route(j_router["connectWithRegex(java.lang.String)"](regex));
+      return utils.convReturnVertxGen(j_router["connectWithRegex(java.lang.String)"](regex), Route);
     } else utils.invalidArgs();
   };
 
@@ -334,9 +334,9 @@ var Router = function(j_val) {
   this.patch = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return new Route(j_router["patch()"]());
+      return utils.convReturnVertxGen(j_router["patch()"](), Route);
     }  else if (__args.length === 1 && typeof __args[0] === 'string') {
-      return new Route(j_router["patch(java.lang.String)"](__args[0]));
+      return utils.convReturnVertxGen(j_router["patch(java.lang.String)"](__args[0]), Route);
     } else utils.invalidArgs();
   };
 
@@ -350,7 +350,7 @@ var Router = function(j_val) {
   this.patchWithRegex = function(regex) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return new Route(j_router["patchWithRegex(java.lang.String)"](regex));
+      return utils.convReturnVertxGen(j_router["patchWithRegex(java.lang.String)"](regex), Route);
     } else utils.invalidArgs();
   };
 
@@ -459,7 +459,7 @@ var Router = function(j_val) {
 Router.router = function(vertx) {
   var __args = arguments;
   if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
-    return new Router(JRouter["router(io.vertx.core.Vertx)"](vertx._jdel));
+    return utils.convReturnVertxGen(JRouter["router(io.vertx.core.Vertx)"](vertx._jdel), Router);
   } else utils.invalidArgs();
 };
 

@@ -42,7 +42,7 @@ module VertxWeb
         if @cached_request != nil
           return @cached_request
         end
-        return @cached_request = ::Vertx::HttpServerRequest.new(@j_del.java_method(:request, []).call())
+        return @cached_request = ::Vertx::Util::Utils.safe_create(@j_del.java_method(:request, []).call(),::Vertx::HttpServerRequest)
       end
       raise ArgumentError, "Invalid arguments when calling request()"
     end
@@ -53,7 +53,7 @@ module VertxWeb
         if @cached_response != nil
           return @cached_response
         end
-        return @cached_response = ::Vertx::HttpServerResponse.new(@j_del.java_method(:response, []).call())
+        return @cached_response = ::Vertx::Util::Utils.safe_create(@j_del.java_method(:response, []).call(),::Vertx::HttpServerResponse)
       end
       raise ArgumentError, "Invalid arguments when calling response()"
     end
@@ -106,7 +106,7 @@ module VertxWeb
     # @return [::Vertx::Vertx]
     def vertx
       if !block_given?
-        return ::Vertx::Vertx.new(@j_del.java_method(:vertx, []).call())
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:vertx, []).call(),::Vertx::Vertx)
       end
       raise ArgumentError, "Invalid arguments when calling vertx()"
     end
@@ -123,7 +123,7 @@ module VertxWeb
     # @return [::VertxWeb::Route]
     def current_route
       if !block_given?
-        return ::VertxWeb::Route.new(@j_del.java_method(:currentRoute, []).call())
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:currentRoute, []).call(),::VertxWeb::Route)
       end
       raise ArgumentError, "Invalid arguments when calling current_route()"
     end
@@ -151,7 +151,7 @@ module VertxWeb
     # @return [::VertxWeb::Cookie] the cookie
     def get_cookie(name=nil)
       if name.class == String && !block_given?
-        return ::VertxWeb::Cookie.new(@j_del.java_method(:getCookie, [Java::java.lang.String.java_class]).call(name))
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:getCookie, [Java::java.lang.String.java_class]).call(name),::VertxWeb::Cookie)
       end
       raise ArgumentError, "Invalid arguments when calling get_cookie(name)"
     end
@@ -172,7 +172,7 @@ module VertxWeb
     # @return [::VertxWeb::Cookie] the cookie, if it existed, or null
     def remove_cookie(name=nil)
       if name.class == String && !block_given?
-        return ::VertxWeb::Cookie.new(@j_del.java_method(:removeCookie, [Java::java.lang.String.java_class]).call(name))
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:removeCookie, [Java::java.lang.String.java_class]).call(name),::VertxWeb::Cookie)
       end
       raise ArgumentError, "Invalid arguments when calling remove_cookie(name)"
     end
@@ -190,7 +190,7 @@ module VertxWeb
     # @return [Set<::VertxWeb::Cookie>]
     def cookies
       if !block_given?
-        return ::Vertx::Util::Utils.to_set(@j_del.java_method(:cookies, []).call()).map! { |elt| ::VertxWeb::Cookie.new(elt) }
+        return ::Vertx::Util::Utils.to_set(@j_del.java_method(:cookies, []).call()).map! { |elt| ::Vertx::Util::Utils.safe_create(elt,::VertxWeb::Cookie) }
       end
       raise ArgumentError, "Invalid arguments when calling cookies()"
     end
@@ -220,7 +220,7 @@ module VertxWeb
     # @return [::Vertx::Buffer]
     def get_body
       if !block_given?
-        return ::Vertx::Buffer.new(@j_del.java_method(:getBody, []).call())
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:getBody, []).call(),::Vertx::Buffer)
       end
       raise ArgumentError, "Invalid arguments when calling get_body()"
     end
@@ -229,7 +229,7 @@ module VertxWeb
     # @return [Set<::VertxWeb::FileUpload>]
     def file_uploads
       if !block_given?
-        return ::Vertx::Util::Utils.to_set(@j_del.java_method(:fileUploads, []).call()).map! { |elt| ::VertxWeb::FileUpload.new(elt) }
+        return ::Vertx::Util::Utils.to_set(@j_del.java_method(:fileUploads, []).call()).map! { |elt| ::Vertx::Util::Utils.safe_create(elt,::VertxWeb::FileUpload) }
       end
       raise ArgumentError, "Invalid arguments when calling file_uploads()"
     end
@@ -239,7 +239,7 @@ module VertxWeb
     # @return [::VertxWeb::Session] the session.
     def session
       if !block_given?
-        return ::VertxWeb::Session.new(@j_del.java_method(:session, []).call())
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:session, []).call(),::VertxWeb::Session)
       end
       raise ArgumentError, "Invalid arguments when calling session()"
     end
@@ -247,7 +247,7 @@ module VertxWeb
     # @return [::VertxAuthCommon::User] the user, or null if the current user is not authenticated.
     def user
       if !block_given?
-        return ::VertxAuthCommon::User.new(@j_del.java_method(:user, []).call())
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:user, []).call(),::VertxAuthCommon::User)
       end
       raise ArgumentError, "Invalid arguments when calling user()"
     end
@@ -281,7 +281,7 @@ module VertxWeb
     # @return [Fixnum] the id of the handler. This can be used if you later want to remove the handler.
     def add_headers_end_handler
       if block_given?
-        return @j_del.java_method(:addHeadersEndHandler, [Java::IoVertxCore::Handler.java_class]).call((Proc.new { |event| yield(::Vertx::Future.new(event)) }))
+        return @j_del.java_method(:addHeadersEndHandler, [Java::IoVertxCore::Handler.java_class]).call((Proc.new { |event| yield(::Vertx::Util::Utils.safe_create(event,::Vertx::Future)) }))
       end
       raise ArgumentError, "Invalid arguments when calling add_headers_end_handler()"
     end

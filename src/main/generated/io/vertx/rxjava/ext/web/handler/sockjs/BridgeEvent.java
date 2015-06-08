@@ -90,6 +90,6 @@ public class BridgeEvent extends Future<Boolean> {
   private SockJSSocket cached_2;
 
   public static BridgeEvent newInstance(io.vertx.ext.web.handler.sockjs.BridgeEvent arg) {
-    return new BridgeEvent(arg);
+    return arg != null ? new BridgeEvent(arg) : null;
   }
 }

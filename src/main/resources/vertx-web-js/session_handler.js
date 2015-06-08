@@ -106,7 +106,7 @@ var SessionHandler = function(j_val) {
 SessionHandler.create = function(sessionStore) {
   var __args = arguments;
   if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
-    return new SessionHandler(JSessionHandler["create(io.vertx.ext.web.sstore.SessionStore)"](sessionStore._jdel));
+    return utils.convReturnVertxGen(JSessionHandler["create(io.vertx.ext.web.sstore.SessionStore)"](sessionStore._jdel), SessionHandler);
   } else utils.invalidArgs();
 };
 

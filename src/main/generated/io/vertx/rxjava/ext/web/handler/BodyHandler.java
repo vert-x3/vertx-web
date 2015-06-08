@@ -88,6 +88,6 @@ public class BodyHandler implements Handler<RoutingContext> {
 
 
   public static BodyHandler newInstance(io.vertx.ext.web.handler.BodyHandler arg) {
-    return new BodyHandler(arg);
+    return arg != null ? new BodyHandler(arg) : null;
   }
 }

@@ -71,6 +71,6 @@ public class JadeTemplateEngine extends TemplateEngine {
 
 
   public static JadeTemplateEngine newInstance(io.vertx.ext.web.templ.JadeTemplateEngine arg) {
-    return new JadeTemplateEngine(arg);
+    return arg != null ? new JadeTemplateEngine(arg) : null;
   }
 }

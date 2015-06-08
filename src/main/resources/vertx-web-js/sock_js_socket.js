@@ -80,7 +80,7 @@ var SockJSSocket = function(j_val) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'function') {
       j_sockJSSocket["handler(io.vertx.core.Handler)"](function(jVal) {
-      handler(new Buffer(jVal));
+      handler(utils.convReturnVertxGen(jVal, Buffer));
     });
       return that;
     } else utils.invalidArgs();
@@ -212,7 +212,7 @@ var SockJSSocket = function(j_val) {
   this.remoteAddress = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return new SocketAddress(j_sockJSSocket["remoteAddress()"]());
+      return utils.convReturnVertxGen(j_sockJSSocket["remoteAddress()"](), SocketAddress);
     } else utils.invalidArgs();
   };
 
@@ -226,7 +226,7 @@ var SockJSSocket = function(j_val) {
   this.localAddress = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return new SocketAddress(j_sockJSSocket["localAddress()"]());
+      return utils.convReturnVertxGen(j_sockJSSocket["localAddress()"](), SocketAddress);
     } else utils.invalidArgs();
   };
 
@@ -241,7 +241,7 @@ var SockJSSocket = function(j_val) {
   this.headers = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return new MultiMap(j_sockJSSocket["headers()"]());
+      return utils.convReturnVertxGen(j_sockJSSocket["headers()"](), MultiMap);
     } else utils.invalidArgs();
   };
 
@@ -269,7 +269,7 @@ var SockJSSocket = function(j_val) {
   this.webSession = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return new Session(j_sockJSSocket["webSession()"]());
+      return utils.convReturnVertxGen(j_sockJSSocket["webSession()"](), Session);
     } else utils.invalidArgs();
   };
 
@@ -283,7 +283,7 @@ var SockJSSocket = function(j_val) {
   this.webUser = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return new User(j_sockJSSocket["webUser()"]());
+      return utils.convReturnVertxGen(j_sockJSSocket["webUser()"](), User);
     } else utils.invalidArgs();
   };
 

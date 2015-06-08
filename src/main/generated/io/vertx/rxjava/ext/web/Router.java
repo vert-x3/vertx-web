@@ -437,6 +437,6 @@ public class Router {
 
 
   public static Router newInstance(io.vertx.ext.web.Router arg) {
-    return new Router(arg);
+    return arg != null ? new Router(arg) : null;
   }
 }

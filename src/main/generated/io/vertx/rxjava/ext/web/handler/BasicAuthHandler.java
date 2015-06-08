@@ -89,6 +89,6 @@ public class BasicAuthHandler implements AuthHandler {
 
 
   public static BasicAuthHandler newInstance(io.vertx.ext.web.handler.BasicAuthHandler arg) {
-    return new BasicAuthHandler(arg);
+    return arg != null ? new BasicAuthHandler(arg) : null;
   }
 }

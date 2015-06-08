@@ -73,6 +73,6 @@ public class FormLoginHandler implements Handler<RoutingContext> {
 
 
   public static FormLoginHandler newInstance(io.vertx.ext.web.handler.FormLoginHandler arg) {
-    return new FormLoginHandler(arg);
+    return arg != null ? new FormLoginHandler(arg) : null;
   }
 }

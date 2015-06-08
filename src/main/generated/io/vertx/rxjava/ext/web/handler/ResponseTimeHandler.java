@@ -57,6 +57,6 @@ public class ResponseTimeHandler implements Handler<RoutingContext> {
 
 
   public static ResponseTimeHandler newInstance(io.vertx.ext.web.handler.ResponseTimeHandler arg) {
-    return new ResponseTimeHandler(arg);
+    return arg != null ? new ResponseTimeHandler(arg) : null;
   }
 }

@@ -60,7 +60,7 @@ public class JWTAuthHandler implements AuthHandler {
    * @return the auth handler
    */
   public static JWTAuthHandler create(AuthProvider authProvider) {
-    def ret= new io.vertx.groovy.ext.web.handler.JWTAuthHandler(io.vertx.ext.web.handler.JWTAuthHandler.create((io.vertx.ext.auth.AuthProvider)authProvider.getDelegate()));
+    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.JWTAuthHandler.create((io.vertx.ext.auth.AuthProvider)authProvider.getDelegate()), io.vertx.ext.web.handler.JWTAuthHandler.class, io.vertx.groovy.ext.web.handler.JWTAuthHandler.class);
     return ret;
   }
   /**
@@ -70,7 +70,7 @@ public class JWTAuthHandler implements AuthHandler {
    * @return the auth handler
    */
   public static JWTAuthHandler create(AuthProvider authProvider, String skip) {
-    def ret= new io.vertx.groovy.ext.web.handler.JWTAuthHandler(io.vertx.ext.web.handler.JWTAuthHandler.create((io.vertx.ext.auth.AuthProvider)authProvider.getDelegate(), skip));
+    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.JWTAuthHandler.create((io.vertx.ext.auth.AuthProvider)authProvider.getDelegate(), skip), io.vertx.ext.web.handler.JWTAuthHandler.class, io.vertx.groovy.ext.web.handler.JWTAuthHandler.class);
     return ret;
   }
   /**

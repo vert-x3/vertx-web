@@ -19,7 +19,7 @@ module VertxWeb
     # @return [::VertxWeb::MVELTemplateEngine] the engine
     def self.create
       if !block_given?
-        return ::VertxWeb::MVELTemplateEngine.new(Java::IoVertxExtWebTempl::MVELTemplateEngine.java_method(:create, []).call())
+        return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebTempl::MVELTemplateEngine.java_method(:create, []).call(),::VertxWeb::MVELTemplateEngine)
       end
       raise ArgumentError, "Invalid arguments when calling create()"
     end
@@ -28,7 +28,7 @@ module VertxWeb
     # @return [::VertxWeb::MVELTemplateEngine] a reference to this for fluency
     def set_extension(extension=nil)
       if extension.class == String && !block_given?
-        return ::VertxWeb::MVELTemplateEngine.new(@j_del.java_method(:setExtension, [Java::java.lang.String.java_class]).call(extension))
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:setExtension, [Java::java.lang.String.java_class]).call(extension),::VertxWeb::MVELTemplateEngine)
       end
       raise ArgumentError, "Invalid arguments when calling set_extension(extension)"
     end
@@ -37,7 +37,7 @@ module VertxWeb
     # @return [::VertxWeb::MVELTemplateEngine] a reference to this for fluency
     def set_max_cache_size(maxCacheSize=nil)
       if maxCacheSize.class == Fixnum && !block_given?
-        return ::VertxWeb::MVELTemplateEngine.new(@j_del.java_method(:setMaxCacheSize, [Java::int.java_class]).call(maxCacheSize))
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:setMaxCacheSize, [Java::int.java_class]).call(maxCacheSize),::VertxWeb::MVELTemplateEngine)
       end
       raise ArgumentError, "Invalid arguments when calling set_max_cache_size(maxCacheSize)"
     end

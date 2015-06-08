@@ -59,7 +59,7 @@ public class BasicAuthHandler implements AuthHandler {
    * @return the auth handler
    */
   public static AuthHandler create(AuthProvider authProvider) {
-    def ret= new io.vertx.groovy.ext.web.handler.AuthHandlerImpl(io.vertx.ext.web.handler.BasicAuthHandler.create((io.vertx.ext.auth.AuthProvider)authProvider.getDelegate()));
+    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.BasicAuthHandler.create((io.vertx.ext.auth.AuthProvider)authProvider.getDelegate()), io.vertx.ext.web.handler.AuthHandler.class, io.vertx.groovy.ext.web.handler.AuthHandlerImpl.class);
     return ret;
   }
   /**
@@ -69,7 +69,7 @@ public class BasicAuthHandler implements AuthHandler {
    * @return the auth handler
    */
   public static AuthHandler create(AuthProvider authProvider, String realm) {
-    def ret= new io.vertx.groovy.ext.web.handler.AuthHandlerImpl(io.vertx.ext.web.handler.BasicAuthHandler.create((io.vertx.ext.auth.AuthProvider)authProvider.getDelegate(), realm));
+    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.BasicAuthHandler.create((io.vertx.ext.auth.AuthProvider)authProvider.getDelegate(), realm), io.vertx.ext.web.handler.AuthHandler.class, io.vertx.groovy.ext.web.handler.AuthHandlerImpl.class);
     return ret;
   }
 }

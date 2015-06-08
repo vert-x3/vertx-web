@@ -40,7 +40,7 @@ public class LoggerHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static LoggerHandler create() {
-    def ret= new io.vertx.groovy.ext.web.handler.LoggerHandler(io.vertx.ext.web.handler.LoggerHandler.create());
+    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.LoggerHandler.create(), io.vertx.ext.web.handler.LoggerHandler.class, io.vertx.groovy.ext.web.handler.LoggerHandler.class);
     return ret;
   }
   /**
@@ -49,7 +49,7 @@ public class LoggerHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static LoggerHandler create(Format format) {
-    def ret= new io.vertx.groovy.ext.web.handler.LoggerHandler(io.vertx.ext.web.handler.LoggerHandler.create(format));
+    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.LoggerHandler.create(format), io.vertx.ext.web.handler.LoggerHandler.class, io.vertx.groovy.ext.web.handler.LoggerHandler.class);
     return ret;
   }
   /**
@@ -59,7 +59,7 @@ public class LoggerHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static LoggerHandler create(boolean immediate, Format format) {
-    def ret= new io.vertx.groovy.ext.web.handler.LoggerHandler(io.vertx.ext.web.handler.LoggerHandler.create(immediate, format));
+    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.LoggerHandler.create(immediate, format), io.vertx.ext.web.handler.LoggerHandler.class, io.vertx.groovy.ext.web.handler.LoggerHandler.class);
     return ret;
   }
 }

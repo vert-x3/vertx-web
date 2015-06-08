@@ -65,9 +65,9 @@ var TemplateHandler = function(j_val) {
 TemplateHandler.create = function() {
   var __args = arguments;
   if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
-    return new TemplateHandler(JTemplateHandler["create(io.vertx.ext.web.templ.TemplateEngine)"](__args[0]._jdel));
+    return utils.convReturnVertxGen(JTemplateHandler["create(io.vertx.ext.web.templ.TemplateEngine)"](__args[0]._jdel), TemplateHandler);
   }else if (__args.length === 3 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'string' && typeof __args[2] === 'string') {
-    return new TemplateHandler(JTemplateHandler["create(io.vertx.ext.web.templ.TemplateEngine,java.lang.String,java.lang.String)"](__args[0]._jdel, __args[1], __args[2]));
+    return utils.convReturnVertxGen(JTemplateHandler["create(io.vertx.ext.web.templ.TemplateEngine,java.lang.String,java.lang.String)"](__args[0]._jdel, __args[1], __args[2]), TemplateHandler);
   } else utils.invalidArgs();
 };
 

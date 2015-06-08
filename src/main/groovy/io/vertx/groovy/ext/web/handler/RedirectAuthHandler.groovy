@@ -59,7 +59,7 @@ public class RedirectAuthHandler implements AuthHandler {
    * @return the handler
    */
   public static AuthHandler create(AuthProvider authProvider) {
-    def ret= new io.vertx.groovy.ext.web.handler.AuthHandlerImpl(io.vertx.ext.web.handler.RedirectAuthHandler.create((io.vertx.ext.auth.AuthProvider)authProvider.getDelegate()));
+    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.RedirectAuthHandler.create((io.vertx.ext.auth.AuthProvider)authProvider.getDelegate()), io.vertx.ext.web.handler.AuthHandler.class, io.vertx.groovy.ext.web.handler.AuthHandlerImpl.class);
     return ret;
   }
   /**
@@ -69,7 +69,7 @@ public class RedirectAuthHandler implements AuthHandler {
    * @return the handler
    */
   public static AuthHandler create(AuthProvider authProvider, String loginRedirectURL) {
-    def ret= new io.vertx.groovy.ext.web.handler.AuthHandlerImpl(io.vertx.ext.web.handler.RedirectAuthHandler.create((io.vertx.ext.auth.AuthProvider)authProvider.getDelegate(), loginRedirectURL));
+    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.RedirectAuthHandler.create((io.vertx.ext.auth.AuthProvider)authProvider.getDelegate(), loginRedirectURL), io.vertx.ext.web.handler.AuthHandler.class, io.vertx.groovy.ext.web.handler.AuthHandlerImpl.class);
     return ret;
   }
   /**
@@ -80,7 +80,7 @@ public class RedirectAuthHandler implements AuthHandler {
    * @return the handler
    */
   public static AuthHandler create(AuthProvider authProvider, String loginRedirectURL, String returnURLParam) {
-    def ret= new io.vertx.groovy.ext.web.handler.AuthHandlerImpl(io.vertx.ext.web.handler.RedirectAuthHandler.create((io.vertx.ext.auth.AuthProvider)authProvider.getDelegate(), loginRedirectURL, returnURLParam));
+    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.RedirectAuthHandler.create((io.vertx.ext.auth.AuthProvider)authProvider.getDelegate(), loginRedirectURL, returnURLParam), io.vertx.ext.web.handler.AuthHandler.class, io.vertx.groovy.ext.web.handler.AuthHandlerImpl.class);
     return ret;
   }
 }

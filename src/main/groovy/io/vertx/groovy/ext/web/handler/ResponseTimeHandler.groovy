@@ -40,7 +40,7 @@ public class ResponseTimeHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static ResponseTimeHandler create() {
-    def ret= new io.vertx.groovy.ext.web.handler.ResponseTimeHandler(io.vertx.ext.web.handler.ResponseTimeHandler.create());
+    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.ResponseTimeHandler.create(), io.vertx.ext.web.handler.ResponseTimeHandler.class, io.vertx.groovy.ext.web.handler.ResponseTimeHandler.class);
     return ret;
   }
 }

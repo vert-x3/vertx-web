@@ -104,7 +104,7 @@ var BodyHandler = function(j_val) {
 BodyHandler.create = function() {
   var __args = arguments;
   if (__args.length === 0) {
-    return new BodyHandler(JBodyHandler["create()"]());
+    return utils.convReturnVertxGen(JBodyHandler["create()"](), BodyHandler);
   } else utils.invalidArgs();
 };
 

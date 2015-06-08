@@ -165,7 +165,7 @@ var CorsHandler = function(j_val) {
 CorsHandler.create = function(allowedOriginPattern) {
   var __args = arguments;
   if (__args.length === 1 && typeof __args[0] === 'string') {
-    return new CorsHandler(JCorsHandler["create(java.lang.String)"](allowedOriginPattern));
+    return utils.convReturnVertxGen(JCorsHandler["create(java.lang.String)"](allowedOriginPattern), CorsHandler);
   } else utils.invalidArgs();
 };
 

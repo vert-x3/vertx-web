@@ -35,7 +35,7 @@ public class MVELTemplateEngine extends TemplateEngine {
    * @return the engine
    */
   public static MVELTemplateEngine create() {
-    def ret= new io.vertx.groovy.ext.web.templ.MVELTemplateEngine(io.vertx.ext.web.templ.MVELTemplateEngine.create());
+    def ret= InternalHelper.safeCreate(io.vertx.ext.web.templ.MVELTemplateEngine.create(), io.vertx.ext.web.templ.MVELTemplateEngine.class, io.vertx.groovy.ext.web.templ.MVELTemplateEngine.class);
     return ret;
   }
   /**
@@ -44,7 +44,7 @@ public class MVELTemplateEngine extends TemplateEngine {
    * @return a reference to this for fluency
    */
   public MVELTemplateEngine setExtension(String extension) {
-    def ret= new io.vertx.groovy.ext.web.templ.MVELTemplateEngine(this.delegate.setExtension(extension));
+    def ret= InternalHelper.safeCreate(this.delegate.setExtension(extension), io.vertx.ext.web.templ.MVELTemplateEngine.class, io.vertx.groovy.ext.web.templ.MVELTemplateEngine.class);
     return ret;
   }
   /**
@@ -53,7 +53,7 @@ public class MVELTemplateEngine extends TemplateEngine {
    * @return a reference to this for fluency
    */
   public MVELTemplateEngine setMaxCacheSize(int maxCacheSize) {
-    def ret= new io.vertx.groovy.ext.web.templ.MVELTemplateEngine(this.delegate.setMaxCacheSize(maxCacheSize));
+    def ret= InternalHelper.safeCreate(this.delegate.setMaxCacheSize(maxCacheSize), io.vertx.ext.web.templ.MVELTemplateEngine.class, io.vertx.groovy.ext.web.templ.MVELTemplateEngine.class);
     return ret;
   }
 }

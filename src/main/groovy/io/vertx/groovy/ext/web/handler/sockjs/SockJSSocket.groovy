@@ -107,7 +107,7 @@ public class SockJSSocket implements ReadStream<Buffer>,  WriteStream<Buffer> {
    * @return 
    */
   public SocketAddress remoteAddress() {
-    def ret= new io.vertx.groovy.core.net.SocketAddress(this.delegate.remoteAddress());
+    def ret= InternalHelper.safeCreate(this.delegate.remoteAddress(), io.vertx.core.net.SocketAddress.class, io.vertx.groovy.core.net.SocketAddress.class);
     return ret;
   }
   /**
@@ -115,7 +115,7 @@ public class SockJSSocket implements ReadStream<Buffer>,  WriteStream<Buffer> {
    * @return 
    */
   public SocketAddress localAddress() {
-    def ret= new io.vertx.groovy.core.net.SocketAddress(this.delegate.localAddress());
+    def ret= InternalHelper.safeCreate(this.delegate.localAddress(), io.vertx.core.net.SocketAddress.class, io.vertx.groovy.core.net.SocketAddress.class);
     return ret;
   }
   /**
@@ -124,7 +124,7 @@ public class SockJSSocket implements ReadStream<Buffer>,  WriteStream<Buffer> {
    * @return 
    */
   public MultiMap headers() {
-    def ret= new io.vertx.groovy.core.MultiMap(this.delegate.headers());
+    def ret= InternalHelper.safeCreate(this.delegate.headers(), io.vertx.core.MultiMap.class, io.vertx.groovy.core.MultiMap.class);
     return ret;
   }
   /**
@@ -140,7 +140,7 @@ public class SockJSSocket implements ReadStream<Buffer>,  WriteStream<Buffer> {
    * @return 
    */
   public Session webSession() {
-    def ret= new io.vertx.groovy.ext.web.Session(this.delegate.webSession());
+    def ret= InternalHelper.safeCreate(this.delegate.webSession(), io.vertx.ext.web.Session.class, io.vertx.groovy.ext.web.Session.class);
     return ret;
   }
   /**
@@ -148,7 +148,7 @@ public class SockJSSocket implements ReadStream<Buffer>,  WriteStream<Buffer> {
    * @return 
    */
   public User webUser() {
-    def ret= new io.vertx.groovy.ext.auth.User(this.delegate.webUser());
+    def ret= InternalHelper.safeCreate(this.delegate.webUser(), io.vertx.ext.auth.User.class, io.vertx.groovy.ext.auth.User.class);
     return ret;
   }
 }

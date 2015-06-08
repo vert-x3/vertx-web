@@ -42,7 +42,7 @@ public class CorsHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static CorsHandler create(String allowedOriginPattern) {
-    def ret= new io.vertx.groovy.ext.web.handler.CorsHandler(io.vertx.ext.web.handler.CorsHandler.create(allowedOriginPattern));
+    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.CorsHandler.create(allowedOriginPattern), io.vertx.ext.web.handler.CorsHandler.class, io.vertx.groovy.ext.web.handler.CorsHandler.class);
     return ret;
   }
   /**

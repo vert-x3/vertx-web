@@ -191,6 +191,6 @@ public class SockJSSocket implements ReadStream<Buffer>,  WriteStream<Buffer> {
 
 
   public static SockJSSocket newInstance(io.vertx.ext.web.handler.sockjs.SockJSSocket arg) {
-    return new SockJSSocket(arg);
+    return arg != null ? new SockJSSocket(arg) : null;
   }
 }

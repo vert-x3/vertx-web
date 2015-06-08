@@ -91,7 +91,7 @@ var Route = function(j_val) {
   this.produces = function(contentType) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return new Route(j_route["produces(java.lang.String)"](contentType));
+      return utils.convReturnVertxGen(j_route["produces(java.lang.String)"](contentType), Route);
     } else utils.invalidArgs();
   };
 
@@ -153,7 +153,7 @@ var Route = function(j_val) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'function') {
       j_route["handler(io.vertx.core.Handler)"](function(jVal) {
-      requestHandler(new RoutingContext(jVal));
+      requestHandler(utils.convReturnVertxGen(jVal, RoutingContext));
     });
       return that;
     } else utils.invalidArgs();
@@ -173,7 +173,7 @@ var Route = function(j_val) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'function') {
       j_route["blockingHandler(io.vertx.core.Handler)"](function(jVal) {
-      requestHandler(new RoutingContext(jVal));
+      requestHandler(utils.convReturnVertxGen(jVal, RoutingContext));
     });
       return that;
     } else utils.invalidArgs();
@@ -192,7 +192,7 @@ var Route = function(j_val) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'function') {
       j_route["failureHandler(io.vertx.core.Handler)"](function(jVal) {
-      failureHandler(new RoutingContext(jVal));
+      failureHandler(utils.convReturnVertxGen(jVal, RoutingContext));
     });
       return that;
     } else utils.invalidArgs();

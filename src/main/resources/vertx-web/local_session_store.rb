@@ -24,11 +24,11 @@ module VertxWeb
     # @return [::VertxWeb::LocalSessionStore] the session store
     def self.create(vertx=nil,sessionMapName=nil,reaperPeriod=nil)
       if vertx.class.method_defined?(:j_del) && !block_given? && sessionMapName == nil && reaperPeriod == nil
-        return ::VertxWeb::LocalSessionStore.new(Java::IoVertxExtWebSstore::LocalSessionStore.java_method(:create, [Java::IoVertxCore::Vertx.java_class]).call(vertx.j_del))
+        return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebSstore::LocalSessionStore.java_method(:create, [Java::IoVertxCore::Vertx.java_class]).call(vertx.j_del),::VertxWeb::LocalSessionStore)
       elsif vertx.class.method_defined?(:j_del) && sessionMapName.class == String && !block_given? && reaperPeriod == nil
-        return ::VertxWeb::LocalSessionStore.new(Java::IoVertxExtWebSstore::LocalSessionStore.java_method(:create, [Java::IoVertxCore::Vertx.java_class,Java::java.lang.String.java_class]).call(vertx.j_del,sessionMapName))
+        return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebSstore::LocalSessionStore.java_method(:create, [Java::IoVertxCore::Vertx.java_class,Java::java.lang.String.java_class]).call(vertx.j_del,sessionMapName),::VertxWeb::LocalSessionStore)
       elsif vertx.class.method_defined?(:j_del) && sessionMapName.class == String && reaperPeriod.class == Fixnum && !block_given?
-        return ::VertxWeb::LocalSessionStore.new(Java::IoVertxExtWebSstore::LocalSessionStore.java_method(:create, [Java::IoVertxCore::Vertx.java_class,Java::java.lang.String.java_class,Java::long.java_class]).call(vertx.j_del,sessionMapName,reaperPeriod))
+        return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebSstore::LocalSessionStore.java_method(:create, [Java::IoVertxCore::Vertx.java_class,Java::java.lang.String.java_class,Java::long.java_class]).call(vertx.j_del,sessionMapName,reaperPeriod),::VertxWeb::LocalSessionStore)
       end
       raise ArgumentError, "Invalid arguments when calling create(vertx,sessionMapName,reaperPeriod)"
     end

@@ -255,9 +255,9 @@ var StaticHandler = function(j_val) {
 StaticHandler.create = function() {
   var __args = arguments;
   if (__args.length === 0) {
-    return new StaticHandler(JStaticHandler["create()"]());
+    return utils.convReturnVertxGen(JStaticHandler["create()"](), StaticHandler);
   }else if (__args.length === 1 && typeof __args[0] === 'string') {
-    return new StaticHandler(JStaticHandler["create(java.lang.String)"](__args[0]));
+    return utils.convReturnVertxGen(JStaticHandler["create(java.lang.String)"](__args[0]), StaticHandler);
   } else utils.invalidArgs();
 };
 

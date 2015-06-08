@@ -48,7 +48,7 @@ var TemplateEngine = function(j_val) {
     if (__args.length === 3 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'string' && typeof __args[2] === 'function') {
       j_templateEngine["render(io.vertx.ext.web.RoutingContext,java.lang.String,io.vertx.core.Handler)"](context._jdel, templateFileName, function(ar) {
       if (ar.succeeded()) {
-        handler(new Buffer(ar.result()), null);
+        handler(utils.convReturnVertxGen(ar.result(), Buffer), null);
       } else {
         handler(null, ar.cause());
       }

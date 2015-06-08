@@ -52,11 +52,11 @@ module VertxWeb
     # @return [::VertxWeb::AuthHandler] the handler
     def self.create(authProvider=nil,loginRedirectURL=nil,returnURLParam=nil)
       if authProvider.class.method_defined?(:j_del) && !block_given? && loginRedirectURL == nil && returnURLParam == nil
-        return ::VertxWeb::AuthHandlerImpl.new(Java::IoVertxExtWebHandler::RedirectAuthHandler.java_method(:create, [Java::IoVertxExtAuth::AuthProvider.java_class]).call(authProvider.j_del))
+        return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebHandler::RedirectAuthHandler.java_method(:create, [Java::IoVertxExtAuth::AuthProvider.java_class]).call(authProvider.j_del),::VertxWeb::AuthHandlerImpl)
       elsif authProvider.class.method_defined?(:j_del) && loginRedirectURL.class == String && !block_given? && returnURLParam == nil
-        return ::VertxWeb::AuthHandlerImpl.new(Java::IoVertxExtWebHandler::RedirectAuthHandler.java_method(:create, [Java::IoVertxExtAuth::AuthProvider.java_class,Java::java.lang.String.java_class]).call(authProvider.j_del,loginRedirectURL))
+        return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebHandler::RedirectAuthHandler.java_method(:create, [Java::IoVertxExtAuth::AuthProvider.java_class,Java::java.lang.String.java_class]).call(authProvider.j_del,loginRedirectURL),::VertxWeb::AuthHandlerImpl)
       elsif authProvider.class.method_defined?(:j_del) && loginRedirectURL.class == String && returnURLParam.class == String && !block_given?
-        return ::VertxWeb::AuthHandlerImpl.new(Java::IoVertxExtWebHandler::RedirectAuthHandler.java_method(:create, [Java::IoVertxExtAuth::AuthProvider.java_class,Java::java.lang.String.java_class,Java::java.lang.String.java_class]).call(authProvider.j_del,loginRedirectURL,returnURLParam))
+        return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebHandler::RedirectAuthHandler.java_method(:create, [Java::IoVertxExtAuth::AuthProvider.java_class,Java::java.lang.String.java_class,Java::java.lang.String.java_class]).call(authProvider.j_del,loginRedirectURL,returnURLParam),::VertxWeb::AuthHandlerImpl)
       end
       raise ArgumentError, "Invalid arguments when calling create(authProvider,loginRedirectURL,returnURLParam)"
     end

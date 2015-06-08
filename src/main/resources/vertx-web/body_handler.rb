@@ -28,7 +28,7 @@ module VertxWeb
     # @return [::VertxWeb::BodyHandler] the body handler
     def self.create
       if !block_given?
-        return ::VertxWeb::BodyHandler.new(Java::IoVertxExtWebHandler::BodyHandler.java_method(:create, []).call())
+        return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebHandler::BodyHandler.java_method(:create, []).call(),::VertxWeb::BodyHandler)
       end
       raise ArgumentError, "Invalid arguments when calling create()"
     end

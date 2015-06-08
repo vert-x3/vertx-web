@@ -71,6 +71,6 @@ public class HandlebarsTemplateEngine extends TemplateEngine {
 
 
   public static HandlebarsTemplateEngine newInstance(io.vertx.ext.web.templ.HandlebarsTemplateEngine arg) {
-    return new HandlebarsTemplateEngine(arg);
+    return arg != null ? new HandlebarsTemplateEngine(arg) : null;
   }
 }

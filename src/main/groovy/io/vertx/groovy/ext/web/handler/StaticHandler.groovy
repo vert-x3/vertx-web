@@ -39,7 +39,7 @@ public class StaticHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static StaticHandler create() {
-    def ret= new io.vertx.groovy.ext.web.handler.StaticHandler(io.vertx.ext.web.handler.StaticHandler.create());
+    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.StaticHandler.create(), io.vertx.ext.web.handler.StaticHandler.class, io.vertx.groovy.ext.web.handler.StaticHandler.class);
     return ret;
   }
   /**
@@ -48,7 +48,7 @@ public class StaticHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static StaticHandler create(String root) {
-    def ret= new io.vertx.groovy.ext.web.handler.StaticHandler(io.vertx.ext.web.handler.StaticHandler.create(root));
+    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.StaticHandler.create(root), io.vertx.ext.web.handler.StaticHandler.class, io.vertx.groovy.ext.web.handler.StaticHandler.class);
     return ret;
   }
   /**

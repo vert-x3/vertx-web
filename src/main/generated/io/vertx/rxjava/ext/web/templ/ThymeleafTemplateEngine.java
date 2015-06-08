@@ -61,6 +61,6 @@ public class ThymeleafTemplateEngine extends TemplateEngine {
 
 
   public static ThymeleafTemplateEngine newInstance(io.vertx.ext.web.templ.ThymeleafTemplateEngine arg) {
-    return new ThymeleafTemplateEngine(arg);
+    return arg != null ? new ThymeleafTemplateEngine(arg) : null;
   }
 }

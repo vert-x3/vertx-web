@@ -82,7 +82,7 @@ var BridgeEvent = function(j_val) {
     var __args = arguments;
     if (__args.length === 0) {
       if (that.cachedsocket == null) {
-        that.cachedsocket = new SockJSSocket(j_bridgeEvent["socket()"]());
+        that.cachedsocket = utils.convReturnVertxGen(j_bridgeEvent["socket()"](), SockJSSocket);
       }
       return that.cachedsocket;
     } else utils.invalidArgs();

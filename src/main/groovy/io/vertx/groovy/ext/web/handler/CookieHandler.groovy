@@ -40,7 +40,7 @@ public class CookieHandler implements Handler<RoutingContext> {
    * @return the cookie handler
    */
   public static CookieHandler create() {
-    def ret= new io.vertx.groovy.ext.web.handler.CookieHandler(io.vertx.ext.web.handler.CookieHandler.create());
+    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.CookieHandler.create(), io.vertx.ext.web.handler.CookieHandler.class, io.vertx.groovy.ext.web.handler.CookieHandler.class);
     return ret;
   }
 }

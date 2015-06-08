@@ -130,6 +130,6 @@ public class Session {
 
 
   public static Session newInstance(io.vertx.ext.web.Session arg) {
-    return new Session(arg);
+    return arg != null ? new Session(arg) : null;
   }
 }

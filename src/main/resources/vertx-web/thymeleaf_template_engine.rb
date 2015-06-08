@@ -19,7 +19,7 @@ module VertxWeb
     # @return [::VertxWeb::ThymeleafTemplateEngine] the engine
     def self.create
       if !block_given?
-        return ::VertxWeb::ThymeleafTemplateEngine.new(Java::IoVertxExtWebTempl::ThymeleafTemplateEngine.java_method(:create, []).call())
+        return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebTempl::ThymeleafTemplateEngine.java_method(:create, []).call(),::VertxWeb::ThymeleafTemplateEngine)
       end
       raise ArgumentError, "Invalid arguments when calling create()"
     end
@@ -28,7 +28,7 @@ module VertxWeb
     # @return [::VertxWeb::ThymeleafTemplateEngine] a reference to this for fluency
     def set_mode(mode=nil)
       if mode.class == String && !block_given?
-        return ::VertxWeb::ThymeleafTemplateEngine.new(@j_del.java_method(:setMode, [Java::java.lang.String.java_class]).call(mode))
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:setMode, [Java::java.lang.String.java_class]).call(mode),::VertxWeb::ThymeleafTemplateEngine)
       end
       raise ArgumentError, "Invalid arguments when calling set_mode(mode)"
     end

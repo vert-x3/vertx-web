@@ -120,6 +120,6 @@ public class JWTAuthHandler implements AuthHandler {
 
 
   public static JWTAuthHandler newInstance(io.vertx.ext.web.handler.JWTAuthHandler arg) {
-    return new JWTAuthHandler(arg);
+    return arg != null ? new JWTAuthHandler(arg) : null;
   }
 }

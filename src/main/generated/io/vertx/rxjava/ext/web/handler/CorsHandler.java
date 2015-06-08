@@ -129,6 +129,6 @@ public class CorsHandler implements Handler<RoutingContext> {
 
 
   public static CorsHandler newInstance(io.vertx.ext.web.handler.CorsHandler arg) {
-    return new CorsHandler(arg);
+    return arg != null ? new CorsHandler(arg) : null;
   }
 }

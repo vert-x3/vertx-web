@@ -105,6 +105,6 @@ public class FileUpload {
 
 
   public static FileUpload newInstance(io.vertx.ext.web.FileUpload arg) {
-    return new FileUpload(arg);
+    return arg != null ? new FileUpload(arg) : null;
   }
 }

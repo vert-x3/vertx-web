@@ -27,7 +27,7 @@ module VertxWeb
     # @return [::VertxWeb::CorsHandler] the handler
     def self.create(allowedOriginPattern=nil)
       if allowedOriginPattern.class == String && !block_given?
-        return ::VertxWeb::CorsHandler.new(Java::IoVertxExtWebHandler::CorsHandler.java_method(:create, [Java::java.lang.String.java_class]).call(allowedOriginPattern))
+        return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebHandler::CorsHandler.java_method(:create, [Java::java.lang.String.java_class]).call(allowedOriginPattern),::VertxWeb::CorsHandler)
       end
       raise ArgumentError, "Invalid arguments when calling create(allowedOriginPattern)"
     end

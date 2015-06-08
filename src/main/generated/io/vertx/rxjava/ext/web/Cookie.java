@@ -197,6 +197,6 @@ public class Cookie {
 
 
   public static Cookie newInstance(io.vertx.ext.web.Cookie arg) {
-    return new Cookie(arg);
+    return arg != null ? new Cookie(arg) : null;
   }
 }

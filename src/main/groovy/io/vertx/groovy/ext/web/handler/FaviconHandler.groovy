@@ -41,7 +41,7 @@ public class FaviconHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static FaviconHandler create() {
-    def ret= new io.vertx.groovy.ext.web.handler.FaviconHandler(io.vertx.ext.web.handler.FaviconHandler.create());
+    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.FaviconHandler.create(), io.vertx.ext.web.handler.FaviconHandler.class, io.vertx.groovy.ext.web.handler.FaviconHandler.class);
     return ret;
   }
   /**
@@ -50,7 +50,7 @@ public class FaviconHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static FaviconHandler create(String path) {
-    def ret= new io.vertx.groovy.ext.web.handler.FaviconHandler(io.vertx.ext.web.handler.FaviconHandler.create(path));
+    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.FaviconHandler.create(path), io.vertx.ext.web.handler.FaviconHandler.class, io.vertx.groovy.ext.web.handler.FaviconHandler.class);
     return ret;
   }
   /**
@@ -60,7 +60,7 @@ public class FaviconHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static FaviconHandler create(String path, long maxAgeSeconds) {
-    def ret= new io.vertx.groovy.ext.web.handler.FaviconHandler(io.vertx.ext.web.handler.FaviconHandler.create(path, maxAgeSeconds));
+    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.FaviconHandler.create(path, maxAgeSeconds), io.vertx.ext.web.handler.FaviconHandler.class, io.vertx.groovy.ext.web.handler.FaviconHandler.class);
     return ret;
   }
   /**
@@ -69,7 +69,7 @@ public class FaviconHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static FaviconHandler create(long maxAgeSeconds) {
-    def ret= new io.vertx.groovy.ext.web.handler.FaviconHandler(io.vertx.ext.web.handler.FaviconHandler.create(maxAgeSeconds));
+    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.FaviconHandler.create(maxAgeSeconds), io.vertx.ext.web.handler.FaviconHandler.class, io.vertx.groovy.ext.web.handler.FaviconHandler.class);
     return ret;
   }
 }

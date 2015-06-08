@@ -61,13 +61,13 @@ var ErrorHandler = function(j_val) {
 ErrorHandler.create = function() {
   var __args = arguments;
   if (__args.length === 0) {
-    return new ErrorHandler(JErrorHandler["create()"]());
+    return utils.convReturnVertxGen(JErrorHandler["create()"](), ErrorHandler);
   }else if (__args.length === 1 && typeof __args[0] ==='boolean') {
-    return new ErrorHandler(JErrorHandler["create(boolean)"](__args[0]));
+    return utils.convReturnVertxGen(JErrorHandler["create(boolean)"](__args[0]), ErrorHandler);
   }else if (__args.length === 1 && typeof __args[0] === 'string') {
-    return new ErrorHandler(JErrorHandler["create(java.lang.String)"](__args[0]));
+    return utils.convReturnVertxGen(JErrorHandler["create(java.lang.String)"](__args[0]), ErrorHandler);
   }else if (__args.length === 2 && typeof __args[0] === 'string' && typeof __args[1] ==='boolean') {
-    return new ErrorHandler(JErrorHandler["create(java.lang.String,boolean)"](__args[0], __args[1]));
+    return utils.convReturnVertxGen(JErrorHandler["create(java.lang.String,boolean)"](__args[0], __args[1]), ErrorHandler);
   } else utils.invalidArgs();
 };
 

@@ -421,6 +421,6 @@ public class RoutingContext {
   private java.lang.Integer cached_2;
 
   public static RoutingContext newInstance(io.vertx.ext.web.RoutingContext arg) {
-    return new RoutingContext(arg);
+    return arg != null ? new RoutingContext(arg) : null;
   }
 }

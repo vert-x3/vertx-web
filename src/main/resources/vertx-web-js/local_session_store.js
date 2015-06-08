@@ -53,11 +53,11 @@ var LocalSessionStore = function(j_val) {
 LocalSessionStore.create = function() {
   var __args = arguments;
   if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
-    return new LocalSessionStore(JLocalSessionStore["create(io.vertx.core.Vertx)"](__args[0]._jdel));
+    return utils.convReturnVertxGen(JLocalSessionStore["create(io.vertx.core.Vertx)"](__args[0]._jdel), LocalSessionStore);
   }else if (__args.length === 2 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'string') {
-    return new LocalSessionStore(JLocalSessionStore["create(io.vertx.core.Vertx,java.lang.String)"](__args[0]._jdel, __args[1]));
+    return utils.convReturnVertxGen(JLocalSessionStore["create(io.vertx.core.Vertx,java.lang.String)"](__args[0]._jdel, __args[1]), LocalSessionStore);
   }else if (__args.length === 3 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'string' && typeof __args[2] ==='number') {
-    return new LocalSessionStore(JLocalSessionStore["create(io.vertx.core.Vertx,java.lang.String,long)"](__args[0]._jdel, __args[1], __args[2]));
+    return utils.convReturnVertxGen(JLocalSessionStore["create(io.vertx.core.Vertx,java.lang.String,long)"](__args[0]._jdel, __args[1], __args[2]), LocalSessionStore);
   } else utils.invalidArgs();
 };
 

@@ -40,7 +40,7 @@ public class TimeoutHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static TimeoutHandler create() {
-    def ret= new io.vertx.groovy.ext.web.handler.TimeoutHandler(io.vertx.ext.web.handler.TimeoutHandler.create());
+    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.TimeoutHandler.create(), io.vertx.ext.web.handler.TimeoutHandler.class, io.vertx.groovy.ext.web.handler.TimeoutHandler.class);
     return ret;
   }
   /**
@@ -49,7 +49,7 @@ public class TimeoutHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static TimeoutHandler create(long timeout) {
-    def ret= new io.vertx.groovy.ext.web.handler.TimeoutHandler(io.vertx.ext.web.handler.TimeoutHandler.create(timeout));
+    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.TimeoutHandler.create(timeout), io.vertx.ext.web.handler.TimeoutHandler.class, io.vertx.groovy.ext.web.handler.TimeoutHandler.class);
     return ret;
   }
 }

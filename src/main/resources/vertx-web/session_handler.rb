@@ -35,7 +35,7 @@ module VertxWeb
     # @return [::VertxWeb::SessionHandler] the handler
     def self.create(sessionStore=nil)
       if sessionStore.class.method_defined?(:j_del) && !block_given?
-        return ::VertxWeb::SessionHandler.new(Java::IoVertxExtWebHandler::SessionHandler.java_method(:create, [Java::IoVertxExtWebSstore::SessionStore.java_class]).call(sessionStore.j_del))
+        return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebHandler::SessionHandler.java_method(:create, [Java::IoVertxExtWebSstore::SessionStore.java_class]).call(sessionStore.j_del),::VertxWeb::SessionHandler)
       end
       raise ArgumentError, "Invalid arguments when calling create(sessionStore)"
     end

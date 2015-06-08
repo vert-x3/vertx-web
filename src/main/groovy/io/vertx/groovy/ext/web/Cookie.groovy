@@ -40,7 +40,7 @@ public class Cookie {
    * @return the cookie
    */
   public static Cookie cookie(String name, String value) {
-    def ret= new io.vertx.groovy.ext.web.Cookie(io.vertx.ext.web.Cookie.cookie(name, value));
+    def ret= InternalHelper.safeCreate(io.vertx.ext.web.Cookie.cookie(name, value), io.vertx.ext.web.Cookie.class, io.vertx.groovy.ext.web.Cookie.class);
     return ret;
   }
   /**
@@ -112,7 +112,7 @@ public class Cookie {
    * @return 
    */
   public Cookie setMaxAge(long maxAge) {
-    def ret= new io.vertx.groovy.ext.web.Cookie(this.delegate.setMaxAge(maxAge));
+    def ret= InternalHelper.safeCreate(this.delegate.setMaxAge(maxAge), io.vertx.ext.web.Cookie.class, io.vertx.groovy.ext.web.Cookie.class);
     return ret;
   }
   /**
@@ -134,7 +134,7 @@ public class Cookie {
    * @return 
    */
   public Cookie setHttpOnly(boolean httpOnly) {
-    def ret= new io.vertx.groovy.ext.web.Cookie(this.delegate.setHttpOnly(httpOnly));
+    def ret= InternalHelper.safeCreate(this.delegate.setHttpOnly(httpOnly), io.vertx.ext.web.Cookie.class, io.vertx.groovy.ext.web.Cookie.class);
     return ret;
   }
   /**

@@ -41,7 +41,7 @@ public class BodyHandler implements Handler<RoutingContext> {
    * @return the body handler
    */
   public static BodyHandler create() {
-    def ret= new io.vertx.groovy.ext.web.handler.BodyHandler(io.vertx.ext.web.handler.BodyHandler.create());
+    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.BodyHandler.create(), io.vertx.ext.web.handler.BodyHandler.class, io.vertx.groovy.ext.web.handler.BodyHandler.class);
     return ret;
   }
   /**

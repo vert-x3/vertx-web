@@ -53,7 +53,7 @@ module VertxWeb
     # @return [::VertxWeb::Route] a reference to this, so the API can be used fluently
     def produces(contentType=nil)
       if contentType.class == String && !block_given?
-        return ::VertxWeb::Route.new(@j_del.java_method(:produces, [Java::java.lang.String.java_class]).call(contentType))
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:produces, [Java::java.lang.String.java_class]).call(contentType),::VertxWeb::Route)
       end
       raise ArgumentError, "Invalid arguments when calling produces(contentType)"
     end
@@ -94,7 +94,7 @@ module VertxWeb
     # @return [self]
     def handler
       if block_given?
-        @j_del.java_method(:handler, [Java::IoVertxCore::Handler.java_class]).call((Proc.new { |event| yield(::VertxWeb::RoutingContext.new(event)) }))
+        @j_del.java_method(:handler, [Java::IoVertxCore::Handler.java_class]).call((Proc.new { |event| yield(::Vertx::Util::Utils.safe_create(event,::VertxWeb::RoutingContext)) }))
         return self
       end
       raise ArgumentError, "Invalid arguments when calling handler()"
@@ -107,7 +107,7 @@ module VertxWeb
     # @return [self]
     def blocking_handler
       if block_given?
-        @j_del.java_method(:blockingHandler, [Java::IoVertxCore::Handler.java_class]).call((Proc.new { |event| yield(::VertxWeb::RoutingContext.new(event)) }))
+        @j_del.java_method(:blockingHandler, [Java::IoVertxCore::Handler.java_class]).call((Proc.new { |event| yield(::Vertx::Util::Utils.safe_create(event,::VertxWeb::RoutingContext)) }))
         return self
       end
       raise ArgumentError, "Invalid arguments when calling blocking_handler()"
@@ -119,7 +119,7 @@ module VertxWeb
     # @return [self]
     def failure_handler
       if block_given?
-        @j_del.java_method(:failureHandler, [Java::IoVertxCore::Handler.java_class]).call((Proc.new { |event| yield(::VertxWeb::RoutingContext.new(event)) }))
+        @j_del.java_method(:failureHandler, [Java::IoVertxCore::Handler.java_class]).call((Proc.new { |event| yield(::Vertx::Util::Utils.safe_create(event,::VertxWeb::RoutingContext)) }))
         return self
       end
       raise ArgumentError, "Invalid arguments when calling failure_handler()"

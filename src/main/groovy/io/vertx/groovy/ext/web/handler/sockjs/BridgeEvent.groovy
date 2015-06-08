@@ -68,7 +68,7 @@ public class BridgeEvent extends Future<Boolean> {
     if (cached_2 != null) {
       return cached_2;
     }
-    def ret= new io.vertx.groovy.ext.web.handler.sockjs.SockJSSocket(this.delegate.socket());
+    def ret= InternalHelper.safeCreate(this.delegate.socket(), io.vertx.ext.web.handler.sockjs.SockJSSocket.class, io.vertx.groovy.ext.web.handler.sockjs.SockJSSocket.class);
     cached_2 = ret;
     return ret;
   }

@@ -51,9 +51,9 @@ module VertxWeb
     # @return [::VertxWeb::AuthHandler] the auth handler
     def self.create(authProvider=nil,realm=nil)
       if authProvider.class.method_defined?(:j_del) && !block_given? && realm == nil
-        return ::VertxWeb::AuthHandlerImpl.new(Java::IoVertxExtWebHandler::BasicAuthHandler.java_method(:create, [Java::IoVertxExtAuth::AuthProvider.java_class]).call(authProvider.j_del))
+        return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebHandler::BasicAuthHandler.java_method(:create, [Java::IoVertxExtAuth::AuthProvider.java_class]).call(authProvider.j_del),::VertxWeb::AuthHandlerImpl)
       elsif authProvider.class.method_defined?(:j_del) && realm.class == String && !block_given?
-        return ::VertxWeb::AuthHandlerImpl.new(Java::IoVertxExtWebHandler::BasicAuthHandler.java_method(:create, [Java::IoVertxExtAuth::AuthProvider.java_class,Java::java.lang.String.java_class]).call(authProvider.j_del,realm))
+        return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebHandler::BasicAuthHandler.java_method(:create, [Java::IoVertxExtAuth::AuthProvider.java_class,Java::java.lang.String.java_class]).call(authProvider.j_del,realm),::VertxWeb::AuthHandlerImpl)
       end
       raise ArgumentError, "Invalid arguments when calling create(authProvider,realm)"
     end

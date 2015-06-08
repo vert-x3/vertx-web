@@ -34,13 +34,13 @@ module VertxWeb
     # @return [::VertxWeb::ErrorHandler] the handler
     def self.create(param_1=nil,param_2=nil)
       if !block_given? && param_1 == nil && param_2 == nil
-        return ::VertxWeb::ErrorHandler.new(Java::IoVertxExtWebHandler::ErrorHandler.java_method(:create, []).call())
+        return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebHandler::ErrorHandler.java_method(:create, []).call(),::VertxWeb::ErrorHandler)
       elsif (param_1.class == TrueClass || param_1.class == FalseClass) && !block_given? && param_2 == nil
-        return ::VertxWeb::ErrorHandler.new(Java::IoVertxExtWebHandler::ErrorHandler.java_method(:create, [Java::boolean.java_class]).call(param_1))
+        return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebHandler::ErrorHandler.java_method(:create, [Java::boolean.java_class]).call(param_1),::VertxWeb::ErrorHandler)
       elsif param_1.class == String && !block_given? && param_2 == nil
-        return ::VertxWeb::ErrorHandler.new(Java::IoVertxExtWebHandler::ErrorHandler.java_method(:create, [Java::java.lang.String.java_class]).call(param_1))
+        return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebHandler::ErrorHandler.java_method(:create, [Java::java.lang.String.java_class]).call(param_1),::VertxWeb::ErrorHandler)
       elsif param_1.class == String && (param_2.class == TrueClass || param_2.class == FalseClass) && !block_given?
-        return ::VertxWeb::ErrorHandler.new(Java::IoVertxExtWebHandler::ErrorHandler.java_method(:create, [Java::java.lang.String.java_class,Java::boolean.java_class]).call(param_1,param_2))
+        return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebHandler::ErrorHandler.java_method(:create, [Java::java.lang.String.java_class,Java::boolean.java_class]).call(param_1,param_2),::VertxWeb::ErrorHandler)
       end
       raise ArgumentError, "Invalid arguments when calling create(param_1,param_2)"
     end

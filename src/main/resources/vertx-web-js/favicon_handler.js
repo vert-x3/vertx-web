@@ -63,13 +63,13 @@ var FaviconHandler = function(j_val) {
 FaviconHandler.create = function() {
   var __args = arguments;
   if (__args.length === 0) {
-    return new FaviconHandler(JFaviconHandler["create()"]());
+    return utils.convReturnVertxGen(JFaviconHandler["create()"](), FaviconHandler);
   }else if (__args.length === 1 && typeof __args[0] === 'string') {
-    return new FaviconHandler(JFaviconHandler["create(java.lang.String)"](__args[0]));
+    return utils.convReturnVertxGen(JFaviconHandler["create(java.lang.String)"](__args[0]), FaviconHandler);
   }else if (__args.length === 1 && typeof __args[0] ==='number') {
-    return new FaviconHandler(JFaviconHandler["create(long)"](__args[0]));
+    return utils.convReturnVertxGen(JFaviconHandler["create(long)"](__args[0]), FaviconHandler);
   }else if (__args.length === 2 && typeof __args[0] === 'string' && typeof __args[1] ==='number') {
-    return new FaviconHandler(JFaviconHandler["create(java.lang.String,long)"](__args[0], __args[1]));
+    return utils.convReturnVertxGen(JFaviconHandler["create(java.lang.String,long)"](__args[0], __args[1]), FaviconHandler);
   } else utils.invalidArgs();
 };
 

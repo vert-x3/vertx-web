@@ -39,7 +39,7 @@ public class LocalSessionStore extends SessionStore {
    * @return the session store
    */
   public static LocalSessionStore create(Vertx vertx) {
-    def ret= new io.vertx.groovy.ext.web.sstore.LocalSessionStore(io.vertx.ext.web.sstore.LocalSessionStore.create((io.vertx.core.Vertx)vertx.getDelegate()));
+    def ret= InternalHelper.safeCreate(io.vertx.ext.web.sstore.LocalSessionStore.create((io.vertx.core.Vertx)vertx.getDelegate()), io.vertx.ext.web.sstore.LocalSessionStore.class, io.vertx.groovy.ext.web.sstore.LocalSessionStore.class);
     return ret;
   }
   /**
@@ -49,7 +49,7 @@ public class LocalSessionStore extends SessionStore {
    * @return the session store
    */
   public static LocalSessionStore create(Vertx vertx, String sessionMapName) {
-    def ret= new io.vertx.groovy.ext.web.sstore.LocalSessionStore(io.vertx.ext.web.sstore.LocalSessionStore.create((io.vertx.core.Vertx)vertx.getDelegate(), sessionMapName));
+    def ret= InternalHelper.safeCreate(io.vertx.ext.web.sstore.LocalSessionStore.create((io.vertx.core.Vertx)vertx.getDelegate(), sessionMapName), io.vertx.ext.web.sstore.LocalSessionStore.class, io.vertx.groovy.ext.web.sstore.LocalSessionStore.class);
     return ret;
   }
   /**
@@ -60,7 +60,7 @@ public class LocalSessionStore extends SessionStore {
    * @return the session store
    */
   public static LocalSessionStore create(Vertx vertx, String sessionMapName, long reaperPeriod) {
-    def ret= new io.vertx.groovy.ext.web.sstore.LocalSessionStore(io.vertx.ext.web.sstore.LocalSessionStore.create((io.vertx.core.Vertx)vertx.getDelegate(), sessionMapName, reaperPeriod));
+    def ret= InternalHelper.safeCreate(io.vertx.ext.web.sstore.LocalSessionStore.create((io.vertx.core.Vertx)vertx.getDelegate(), sessionMapName, reaperPeriod), io.vertx.ext.web.sstore.LocalSessionStore.class, io.vertx.groovy.ext.web.sstore.LocalSessionStore.class);
     return ret;
   }
 }

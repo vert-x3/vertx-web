@@ -95,11 +95,11 @@ var RedirectAuthHandler = function(j_val) {
 RedirectAuthHandler.create = function() {
   var __args = arguments;
   if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
-    return new AuthHandler(JRedirectAuthHandler["create(io.vertx.ext.auth.AuthProvider)"](__args[0]._jdel));
+    return utils.convReturnVertxGen(JRedirectAuthHandler["create(io.vertx.ext.auth.AuthProvider)"](__args[0]._jdel), AuthHandler);
   }else if (__args.length === 2 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'string') {
-    return new AuthHandler(JRedirectAuthHandler["create(io.vertx.ext.auth.AuthProvider,java.lang.String)"](__args[0]._jdel, __args[1]));
+    return utils.convReturnVertxGen(JRedirectAuthHandler["create(io.vertx.ext.auth.AuthProvider,java.lang.String)"](__args[0]._jdel, __args[1]), AuthHandler);
   }else if (__args.length === 3 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'string' && typeof __args[2] === 'string') {
-    return new AuthHandler(JRedirectAuthHandler["create(io.vertx.ext.auth.AuthProvider,java.lang.String,java.lang.String)"](__args[0]._jdel, __args[1], __args[2]));
+    return utils.convReturnVertxGen(JRedirectAuthHandler["create(io.vertx.ext.auth.AuthProvider,java.lang.String,java.lang.String)"](__args[0]._jdel, __args[1], __args[2]), AuthHandler);
   } else utils.invalidArgs();
 };
 

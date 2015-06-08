@@ -27,7 +27,7 @@ module VertxWeb
     # @return [::VertxWeb::CookieHandler] the cookie handler
     def self.create
       if !block_given?
-        return ::VertxWeb::CookieHandler.new(Java::IoVertxExtWebHandler::CookieHandler.java_method(:create, []).call())
+        return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebHandler::CookieHandler.java_method(:create, []).call(),::VertxWeb::CookieHandler)
       end
       raise ArgumentError, "Invalid arguments when calling create()"
     end

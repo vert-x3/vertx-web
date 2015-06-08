@@ -150,7 +150,7 @@ var Cookie = function(j_val) {
   this.setMaxAge = function(maxAge) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] ==='number') {
-      return new Cookie(j_cookie["setMaxAge(long)"](maxAge));
+      return utils.convReturnVertxGen(j_cookie["setMaxAge(long)"](maxAge), Cookie);
     } else utils.invalidArgs();
   };
 
@@ -183,7 +183,7 @@ var Cookie = function(j_val) {
   this.setHttpOnly = function(httpOnly) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] ==='boolean') {
-      return new Cookie(j_cookie["setHttpOnly(boolean)"](httpOnly));
+      return utils.convReturnVertxGen(j_cookie["setHttpOnly(boolean)"](httpOnly), Cookie);
     } else utils.invalidArgs();
   };
 
@@ -261,7 +261,7 @@ var Cookie = function(j_val) {
 Cookie.cookie = function(name, value) {
   var __args = arguments;
   if (__args.length === 2 && typeof __args[0] === 'string' && typeof __args[1] === 'string') {
-    return new Cookie(JCookie["cookie(java.lang.String,java.lang.String)"](name, value));
+    return utils.convReturnVertxGen(JCookie["cookie(java.lang.String,java.lang.String)"](name, value), Cookie);
   } else utils.invalidArgs();
 };
 
