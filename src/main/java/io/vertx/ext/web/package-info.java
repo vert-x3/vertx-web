@@ -792,7 +792,8 @@
  *
  * Once you have your user object you can also programmatically use the methods on it to authorise the user.
  *
- * If you want to cause the user to be logged out you can set the user to null on the routing context.
+ * If you want to cause the user to be logged out you can call {@link io.vertx.ext.web.RoutingContext#clearUser()}
+ * on the routing context.
  *
  * === HTTP Basic Authentication
  *
