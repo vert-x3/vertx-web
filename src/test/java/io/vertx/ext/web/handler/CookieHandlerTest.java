@@ -23,9 +23,7 @@ import io.vertx.ext.web.WebTestBase;
 import org.junit.Test;
 
 import java.text.DateFormat;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>

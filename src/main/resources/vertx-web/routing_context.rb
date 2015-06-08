@@ -348,7 +348,8 @@ module VertxWeb
       end
       raise ArgumentError, "Invalid arguments when calling set_user(user)"
     end
-    #  Clear the current user object.
+    #  Clear the current user object in the context. This usually is used for implementing a log out feature, since the
+    #  current user is unbounded from the routing context.
     # @return [void]
     def clear_user
       if !block_given?

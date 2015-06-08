@@ -409,7 +409,8 @@ public class RoutingContext {
   }
 
   /**
-   * Clear the current user object.
+   * Clear the current user object in the context. This usually is used for implementing a log out feature, since the
+   * current user is unbounded from the routing context.
    */
   public void clearUser() { 
     this.delegate.clearUser();
