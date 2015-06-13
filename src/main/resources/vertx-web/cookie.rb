@@ -125,16 +125,6 @@ module VertxWeb
       end
       raise ArgumentError, "Invalid arguments when calling set_http_only(httpOnly)"
     end
-    #  Set the version of the cookie
-    # @param [Fixnum] version 0 or 1
-    # @return [self]
-    def set_version(version=nil)
-      if version.class == Fixnum && !block_given?
-        @j_del.java_method(:setVersion, [Java::int.java_class]).call(version)
-        return self
-      end
-      raise ArgumentError, "Invalid arguments when calling set_version(version)"
-    end
     #  Encode the cookie to a string. This is what is used in the Set-Cookie header
     # @return [String] the encoded cookie
     def encode

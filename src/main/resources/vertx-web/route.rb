@@ -99,18 +99,26 @@ module VertxWeb
       end
       raise ArgumentError, "Invalid arguments when calling handler()"
     end
-    #  Specify a blocking request handler for the route. 
-    #  This method works just like {::VertxWeb::Route#handler} excepted that it will run the blocking handler on a different thread
-    #  so that it won't block the event loop. Note that it's safe to call context.next() from the 
-    #  blocking handler as it will be executed on the event loop context (and not on the worker thread)
-    # @yield the blocking request handler
+    #  Specify a blocking request handler for the route.
+    #  This method works just like {::VertxWeb::Route#handler} excepted that it will run the blocking handler on a worker thread
+    #  so that it won't block the event loop. Note that it's safe to call context.next() from the
+    #  blocking handler as it will be executed on the event loop context (and not on the worker thread.
+    # 
+    #  If the blocking handler is ordered it means that any blocking handlers for the same context are never executed
+    #  concurrently but always in the order they were called. The default value of ordered is true. If you do not want this
+    #  behaviour and don't mind if your blocking handlers are executed in parallel you can set ordered to false.
+    # @param [Proc] requestHandler the blocking request handler
+    # @param [true,false] ordered 
     # @return [self]
-    def blocking_handler
-      if block_given?
+    def blocking_handler(requestHandler=nil,ordered=nil)
+      if block_given? && requestHandler == nil && ordered == nil
         @j_del.java_method(:blockingHandler, [Java::IoVertxCore::Handler.java_class]).call((Proc.new { |event| yield(::Vertx::Util::Utils.safe_create(event,::VertxWeb::RoutingContext)) }))
         return self
+      elsif requestHandler.class == Proc && (ordered.class == TrueClass || ordered.class == FalseClass) && !block_given?
+        @j_del.java_method(:blockingHandler, [Java::IoVertxCore::Handler.java_class,Java::boolean.java_class]).call((Proc.new { |event| requestHandler.call(::Vertx::Util::Utils.safe_create(event,::VertxWeb::RoutingContext)) }),ordered)
+        return self
       end
-      raise ArgumentError, "Invalid arguments when calling blocking_handler()"
+      raise ArgumentError, "Invalid arguments when calling blocking_handler(requestHandler,ordered)"
     end
     #  Specify a failure handler for the route. The router routes failures to failurehandlers depending on whether the various
     #  criteria such as method, path, etc match. There can be only one failure handler for a route. If you set this more

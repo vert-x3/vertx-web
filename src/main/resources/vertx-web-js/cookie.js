@@ -188,21 +188,6 @@ var Cookie = function(j_val) {
   };
 
   /**
-   Set the version of the cookie
-
-   @public
-   @param version {number} 0 or 1 
-   @return {Cookie} a reference to this, so the API can be used fluently
-   */
-  this.setVersion = function(version) {
-    var __args = arguments;
-    if (__args.length === 1 && typeof __args[0] ==='number') {
-      j_cookie["setVersion(int)"](version);
-      return that;
-    } else utils.invalidArgs();
-  };
-
-  /**
    Encode the cookie to a string. This is what is used in the Set-Cookie header
 
    @public

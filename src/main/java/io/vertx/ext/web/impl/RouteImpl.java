@@ -144,8 +144,13 @@ public class RouteImpl implements Route {
   }
 
   @Override
-  public synchronized Route blockingHandler(Handler<RoutingContext> contextHandler) {
-    return handler(new BlockingHandlerDecorator(contextHandler));
+  public Route blockingHandler(Handler<RoutingContext> contextHandler) {
+    return blockingHandler(contextHandler, true);
+  }
+
+  @Override
+  public synchronized Route blockingHandler(Handler<RoutingContext> contextHandler, boolean ordered) {
+    return handler(new BlockingHandlerDecorator(contextHandler, ordered));
   }
   
   @Override
