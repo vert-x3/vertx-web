@@ -1505,11 +1505,11 @@ def router = Router.router(vertx)
 
 def authConfig = [
   keyStoreType:"jceks",
-  keyStoreURI:"classpath:///keystore.jceks",
+  keyStore:"keystore.jceks",
   keyStorePassword:"secret"
 ]
 
-def authProvider = JWTAuth.create(authConfig)
+def authProvider = JWTAuth.create(vertx, authConfig)
 
 router.route("/login").handler({ ctx ->
   // this is an example, authentication should be done with another provider...
@@ -1537,11 +1537,11 @@ def router = Router.router(vertx)
 
 def authConfig = [
   keyStoreType:"jceks",
-  keyStoreURI:"classpath:///keystore.jceks",
+  keyStore:"keystore.jceks",
   keyStorePassword:"secret"
 ]
 
-def authProvider = JWTAuth.create(authConfig)
+def authProvider = JWTAuth.create(vertx, authConfig)
 
 router.route("/protected/*").handler(JWTAuthHandler.create(authProvider))
 
@@ -1561,11 +1561,11 @@ import io.vertx.groovy.ext.auth.jwt.JWTAuth
 
 def authConfig = [
   keyStoreType:"jceks",
-  keyStoreURI:"classpath:///keystore.jceks",
+  keyStore:"keystore.jceks",
   keyStorePassword:"secret"
 ]
 
-def authProvider = JWTAuth.create(authConfig)
+def authProvider = JWTAuth.create(vertx, authConfig)
 
 authProvider.generateToken([
   sub:"paulo",

@@ -1198,7 +1198,7 @@ require 'vertx/vertx'
 # a clustered Vert.x
 Vertx::Vertx.clustered_vertx({
   'clustered' => true
-}) { |res,res_err|
+}) { |res_err,res|
 
   vertx = res
 
@@ -1500,11 +1500,11 @@ router = VertxWeb::Router.router(vertx)
 
 authConfig = {
   'keyStoreType' => "jceks",
-  'keyStoreURI' => "classpath:///keystore.jceks",
+  'keyStore' => "keystore.jceks",
   'keyStorePassword' => "secret"
 }
 
-authProvider = VertxAuthJwt::JWTAuth.create(authConfig)
+authProvider = VertxAuthJwt::JWTAuth.create(vertx, authConfig)
 
 router.route("/login").handler() { |ctx|
   # this is an example, authentication should be done with another provider...
@@ -1533,11 +1533,11 @@ router = VertxWeb::Router.router(vertx)
 
 authConfig = {
   'keyStoreType' => "jceks",
-  'keyStoreURI' => "classpath:///keystore.jceks",
+  'keyStore' => "keystore.jceks",
   'keyStorePassword' => "secret"
 }
 
-authProvider = VertxAuthJwt::JWTAuth.create(authConfig)
+authProvider = VertxAuthJwt::JWTAuth.create(vertx, authConfig)
 
 router.route("/protected/*").handler(&VertxWeb::JWTAuthHandler.create(authProvider).method(:handle))
 
@@ -1557,11 +1557,11 @@ require 'vertx-auth-jwt/jwt_auth'
 
 authConfig = {
   'keyStoreType' => "jceks",
-  'keyStoreURI' => "classpath:///keystore.jceks",
+  'keyStore' => "keystore.jceks",
   'keyStorePassword' => "secret"
 }
 
-authProvider = VertxAuthJwt::JWTAuth.create(authConfig)
+authProvider = VertxAuthJwt::JWTAuth.create(vertx, authConfig)
 
 authProvider.generate_token({
   'sub' => "paulo",

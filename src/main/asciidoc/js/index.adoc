@@ -1500,11 +1500,11 @@ var router = Router.router(vertx);
 
 var authConfig = {
   "keyStoreType" : "jceks",
-  "keyStoreURI" : "classpath:///keystore.jceks",
+  "keyStore" : "keystore.jceks",
   "keyStorePassword" : "secret"
 };
 
-var authProvider = JWTAuth.create(authConfig);
+var authProvider = JWTAuth.create(vertx, authConfig);
 
 router.route("/login").handler(function (ctx) {
   // this is an example, authentication should be done with another provider...
@@ -1533,11 +1533,11 @@ var router = Router.router(vertx);
 
 var authConfig = {
   "keyStoreType" : "jceks",
-  "keyStoreURI" : "classpath:///keystore.jceks",
+  "keyStore" : "keystore.jceks",
   "keyStorePassword" : "secret"
 };
 
-var authProvider = JWTAuth.create(authConfig);
+var authProvider = JWTAuth.create(vertx, authConfig);
 
 router.route("/protected/*").handler(JWTAuthHandler.create(authProvider).handle);
 
@@ -1557,11 +1557,11 @@ var JWTAuth = require("vertx-auth-jwt-js/jwt_auth");
 
 var authConfig = {
   "keyStoreType" : "jceks",
-  "keyStoreURI" : "classpath:///keystore.jceks",
+  "keyStore" : "keystore.jceks",
   "keyStorePassword" : "secret"
 };
 
-var authProvider = JWTAuth.create(authConfig);
+var authProvider = JWTAuth.create(vertx, authConfig);
 
 authProvider.generateToken({
   "sub" : "paulo",

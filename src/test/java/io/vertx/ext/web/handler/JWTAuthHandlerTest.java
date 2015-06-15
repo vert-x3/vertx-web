@@ -41,10 +41,10 @@ public class JWTAuthHandlerTest extends AuthHandlerTestBase {
 
     JsonObject authConfig = new JsonObject()
         .put("keyStoreType", "jceks")
-        .put("keyStoreURI", "classpath:///keystore.jceks")
+        .put("keyStore", "keystore.jceks")
         .put("keyStorePassword", "secret");
 
-    JWTAuth authProvider = JWTAuth.create(authConfig);
+    JWTAuth authProvider = JWTAuth.create(vertx, authConfig);
     router.route("/protected/*").handler(JWTAuthHandler.create(authProvider));
 
     router.route("/protected/somepage").handler(handler);
@@ -69,10 +69,10 @@ public class JWTAuthHandlerTest extends AuthHandlerTestBase {
 
     JsonObject authConfig = new JsonObject()
             .put("keyStoreType", "jceks")
-            .put("keyStoreURI", "classpath:///keystore.jceks")
+            .put("keyStore", "keystore.jceks")
             .put("keyStorePassword", "secret");
 
-    JWTAuth authProvider = JWTAuth.create(authConfig);
+    JWTAuth authProvider = JWTAuth.create(vertx, authConfig);
 
     router.route("/protected/*").handler(JWTAuthHandler.create(authProvider));
 

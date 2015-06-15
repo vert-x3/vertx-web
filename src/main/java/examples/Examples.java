@@ -1008,10 +1008,10 @@ public class Examples {
 
     JsonObject authConfig = new JsonObject()
         .put("keyStoreType", "jceks")
-        .put("keyStoreURI", "classpath:///keystore.jceks")
+        .put("keyStore", "keystore.jceks")
         .put("keyStorePassword", "secret");
 
-    JWTAuth authProvider = JWTAuth.create(authConfig);
+    JWTAuth authProvider = JWTAuth.create(vertx, authConfig);
 
     router.route("/login").handler(ctx -> {
       // this is an example, authentication should be done with another provider...
@@ -1029,10 +1029,10 @@ public class Examples {
 
     JsonObject authConfig = new JsonObject()
         .put("keyStoreType", "jceks")
-        .put("keyStoreURI", "classpath:///keystore.jceks")
+        .put("keyStore", "keystore.jceks")
         .put("keyStorePassword", "secret");
 
-    JWTAuth authProvider = JWTAuth.create(authConfig);
+    JWTAuth authProvider = JWTAuth.create(vertx, authConfig);
 
     router.route("/protected/*").handler(JWTAuthHandler.create(authProvider));
 
@@ -1045,10 +1045,10 @@ public class Examples {
 
     JsonObject authConfig = new JsonObject()
         .put("keyStoreType", "jceks")
-        .put("keyStoreURI", "classpath:///keystore.jceks")
+        .put("keyStore", "keystore.jceks")
         .put("keyStorePassword", "secret");
 
-    JWTAuth authProvider = JWTAuth.create(authConfig);
+    JWTAuth authProvider = JWTAuth.create(vertx, authConfig);
 
     authProvider.generateToken(new JsonObject().put("sub", "paulo").put("someKey", "some value"), new JWTOptions());
   }
