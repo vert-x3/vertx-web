@@ -17,11 +17,12 @@
 package io.vertx.ext.web;
 
 import io.vertx.ext.web.impl.Utils;
+import org.junit.Test;
 
 import java.util.List;
 
-import static org.junit.Assert.*;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -106,6 +107,21 @@ public class UtilsTest {
   @Test
   public void testDodgyPathEncoded() throws Exception {
     assertEquals("/blah", Utils.normalisePath("/%2E%2E%2Fblah"));
+  }
+
+  @Test
+  public void testTrailingSlash() throws Exception {
+    assertEquals("/blah/", Utils.normalisePath("/blah/"));
+  }
+
+  @Test
+  public void testMultipleTrailingSlashes1() throws Exception {
+    assertEquals("/blah/", Utils.normalisePath("/blah//"));
+  }
+
+  @Test
+  public void testMultipleTrailingSlashes2() throws Exception {
+    assertEquals("/blah/", Utils.normalisePath("/blah///"));
   }
 
   @Test

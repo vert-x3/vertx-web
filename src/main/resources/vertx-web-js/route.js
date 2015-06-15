@@ -160,21 +160,31 @@ var Route = function(j_val) {
   };
 
   /**
-   Specify a blocking request handler for the route. 
-   This method works just like {@link Route#handler} excepted that it will run the blocking handler on a different thread
-   so that it won't block the event loop. Note that it's safe to call context.next() from the 
-   blocking handler as it will be executed on the event loop context (and not on the worker thread)
+   Specify a blocking request handler for the route.
+   This method works just like {@link Route#handler} excepted that it will run the blocking handler on a worker thread
+   so that it won't block the event loop. Note that it's safe to call context.next() from the
+   blocking handler as it will be executed on the event loop context (and not on the worker thread.
+  
+   If the blocking handler is ordered it means that any blocking handlers for the same context are never executed
+   concurrently but always in the order they were called. The default value of ordered is true. If you do not want this
+   behaviour and don't mind if your blocking handlers are executed in parallel you can set ordered to false.
 
    @public
    @param requestHandler {function} the blocking request handler 
+   @param ordered {boolean} 
    @return {Route} a reference to this, so the API can be used fluently
    */
-  this.blockingHandler = function(requestHandler) {
+  this.blockingHandler = function() {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'function') {
       j_route["blockingHandler(io.vertx.core.Handler)"](function(jVal) {
-      requestHandler(utils.convReturnVertxGen(jVal, RoutingContext));
+      __args[0](utils.convReturnVertxGen(jVal, RoutingContext));
     });
+      return that;
+    }  else if (__args.length === 2 && typeof __args[0] === 'function' && typeof __args[1] ==='boolean') {
+      j_route["blockingHandler(io.vertx.core.Handler,boolean)"](function(jVal) {
+      __args[0](utils.convReturnVertxGen(jVal, RoutingContext));
+    }, __args[1]);
       return that;
     } else utils.invalidArgs();
   };

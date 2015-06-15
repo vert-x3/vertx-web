@@ -17,11 +17,13 @@ import java.util.Objects;
  */
 public class BlockingHandlerDecorator implements Handler<RoutingContext> {
 
-  private Handler<RoutingContext> decoratedHandler;
+  private boolean ordered;
+  private final Handler<RoutingContext> decoratedHandler;
   
-  public BlockingHandlerDecorator(Handler<RoutingContext> decoratedHandler) {
+  public BlockingHandlerDecorator(Handler<RoutingContext> decoratedHandler, boolean ordered) {
     Objects.requireNonNull(decoratedHandler);
     this.decoratedHandler = decoratedHandler;
+    this.ordered = ordered;
   }
   
   @Override
@@ -30,7 +32,7 @@ public class BlockingHandlerDecorator implements Handler<RoutingContext> {
     context.vertx().executeBlocking(fut -> {
       decoratedHandler.handle(new RoutingContextDecorator(currentRoute, context));
       fut.complete();
-    }, res -> {
+    }, ordered, res -> {
       if (res.failed()) {
         // This means an exception was thrown from the blocking handler
         context.fail(res.cause());

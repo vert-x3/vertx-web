@@ -162,6 +162,11 @@
  * {@link examples.Examples#example20_1}
  * ----
  *
+ * By default, any blocking handlers executed on the same context (e.g. the same verticle instance) are _ordered_ - this
+ * means the next one won't be executed until the previous one has completed. If you don't care about orderering and
+ * don't mind your blocking handlers executing in parallel you can set the blocking handler specifying `ordered` as
+ * false using {@link io.vertx.ext.web.Route#blockingHandler(io.vertx.core.Handler, boolean)}.
+ *
  * == Routing by exact path
  *
  * A route can be set-up to match the path from the request URI. In this case it will match any request which has a path

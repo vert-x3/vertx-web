@@ -23,6 +23,7 @@ import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * @author <a href="mailto:stephane.bastian.dev@gmail.com">Stéphane Bastian</a>
@@ -128,6 +129,38 @@ public class BlockingHandlerTest extends WebTestBase {
       rc.response().setStatusCode(500).end();
     });
     testRequest(HttpMethod.GET, "/", 500, "Internal Server Error");
+  }
+
+  @Test
+  public void testExecuteBlockingParallel() throws Exception {
+
+    long start = System.currentTimeMillis();
+    int numExecBlocking = 5;
+    long pause = 1000;
+
+    router.route().blockingHandler(rc -> {
+      System.out.println("In blocking handler");
+      try {
+        Thread.sleep(pause);
+      } catch (Exception ignore) {
+      }
+      rc.response().end();
+    }, false);
+
+    CountDownLatch latch = new CountDownLatch(numExecBlocking);
+    for (int i = 0; i < numExecBlocking; i++) {
+      client.getNow("/", resp -> {
+        assertEquals(200, resp.statusCode());
+        assertEquals("OK", resp.statusMessage());
+        latch.countDown();
+      });
+    }
+
+    awaitLatch(latch);
+
+    long now = System.currentTimeMillis();
+    long leeway = 1000;
+    assertTrue(now - start < pause + leeway);
   }
 
 }

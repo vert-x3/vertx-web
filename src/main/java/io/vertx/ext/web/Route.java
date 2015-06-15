@@ -106,17 +106,29 @@ public interface Route {
   @Fluent
   Route handler(Handler<RoutingContext> requestHandler);
 
+
   /**
-   * Specify a blocking request handler for the route. 
-   * This method works just like {@link #handler(Handler)} excepted that it will run the blocking handler on a different thread
-   * so that it won't block the event loop. Note that it's safe to call context.next() from the 
-   * blocking handler as it will be executed on the event loop context (and not on the worker thread)
-   *
-   * @param requestHandler  the blocking request handler
-   * @return a reference to this, so the API can be used fluently
+   * Like {@link io.vertx.ext.web.Route#blockingHandler(io.vertx.core.Handler, boolean)} called with ordered = true
    */
   @Fluent
   Route blockingHandler(Handler<RoutingContext> requestHandler);
+
+  /**
+   * Specify a blocking request handler for the route.
+   * This method works just like {@link #handler(Handler)} excepted that it will run the blocking handler on a worker thread
+   * so that it won't block the event loop. Note that it's safe to call context.next() from the
+   * blocking handler as it will be executed on the event loop context (and not on the worker thread.
+   *
+   * If the blocking handler is ordered it means that any blocking handlers for the same context are never executed
+   * concurrently but always in the order they were called. The default value of ordered is true. If you do not want this
+   * behaviour and don't mind if your blocking handlers are executed in parallel you can set ordered to false.
+   *
+   * @param requestHandler  the blocking request handler
+   * @param ordered
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  Route blockingHandler(Handler<RoutingContext> requestHandler, boolean ordered);
 
   /**
    * Specify a failure handler for the route. The router routes failures to failurehandlers depending on whether the various
