@@ -1499,9 +1499,11 @@ var JWTAuth = require("vertx-auth-jwt-js/jwt_auth");
 var router = Router.router(vertx);
 
 var authConfig = {
-  "keyStoreType" : "jceks",
-  "keyStore" : "keystore.jceks",
-  "keyStorePassword" : "secret"
+  "keyStore" : {
+    "type" : "jceks",
+    "path" : "keystore.jceks",
+    "password" : "secret"
+  }
 };
 
 var authProvider = JWTAuth.create(vertx, authConfig);
@@ -1532,9 +1534,11 @@ var JWTAuthHandler = require("vertx-web-js/jwt_auth_handler");
 var router = Router.router(vertx);
 
 var authConfig = {
-  "keyStoreType" : "jceks",
-  "keyStore" : "keystore.jceks",
-  "keyStorePassword" : "secret"
+  "keyStore" : {
+    "type" : "jceks",
+    "path" : "keystore.jceks",
+    "password" : "secret"
+  }
 };
 
 var authProvider = JWTAuth.create(vertx, authConfig);
@@ -1556,9 +1560,11 @@ token, during the creation of the token just add data to the JsonObject paramete
 var JWTAuth = require("vertx-auth-jwt-js/jwt_auth");
 
 var authConfig = {
-  "keyStoreType" : "jceks",
-  "keyStore" : "keystore.jceks",
-  "keyStorePassword" : "secret"
+  "keyStore" : {
+    "type" : "jceks",
+    "path" : "keystore.jceks",
+    "password" : "secret"
+  }
 };
 
 var authProvider = JWTAuth.create(vertx, authConfig);

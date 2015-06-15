@@ -1006,10 +1006,10 @@ public class Examples {
 
     Router router = Router.router(vertx);
 
-    JsonObject authConfig = new JsonObject()
-        .put("keyStoreType", "jceks")
-        .put("keyStore", "keystore.jceks")
-        .put("keyStorePassword", "secret");
+    JsonObject authConfig = new JsonObject().put("keyStore", new JsonObject()
+        .put("type", "jceks")
+        .put("path", "keystore.jceks")
+        .put("password", "secret"));
 
     JWTAuth authProvider = JWTAuth.create(vertx, authConfig);
 
@@ -1027,10 +1027,10 @@ public class Examples {
 
     Router router = Router.router(vertx);
 
-    JsonObject authConfig = new JsonObject()
-        .put("keyStoreType", "jceks")
-        .put("keyStore", "keystore.jceks")
-        .put("keyStorePassword", "secret");
+    JsonObject authConfig = new JsonObject().put("keyStore", new JsonObject()
+        .put("type", "jceks")
+        .put("path", "keystore.jceks")
+        .put("password", "secret"));
 
     JWTAuth authProvider = JWTAuth.create(vertx, authConfig);
 
@@ -1043,10 +1043,10 @@ public class Examples {
 
   public void example52(Vertx vertx) {
 
-    JsonObject authConfig = new JsonObject()
-        .put("keyStoreType", "jceks")
-        .put("keyStore", "keystore.jceks")
-        .put("keyStorePassword", "secret");
+    JsonObject authConfig = new JsonObject().put("keyStore", new JsonObject()
+        .put("type", "jceks")
+        .put("path", "keystore.jceks")
+        .put("password", "secret"));
 
     JWTAuth authProvider = JWTAuth.create(vertx, authConfig);
 

@@ -1499,9 +1499,11 @@ require 'vertx-auth-jwt/jwt_auth'
 router = VertxWeb::Router.router(vertx)
 
 authConfig = {
-  'keyStoreType' => "jceks",
-  'keyStore' => "keystore.jceks",
-  'keyStorePassword' => "secret"
+  'keyStore' => {
+    'type' => "jceks",
+    'path' => "keystore.jceks",
+    'password' => "secret"
+  }
 }
 
 authProvider = VertxAuthJwt::JWTAuth.create(vertx, authConfig)
@@ -1532,9 +1534,11 @@ require 'vertx-web/jwt_auth_handler'
 router = VertxWeb::Router.router(vertx)
 
 authConfig = {
-  'keyStoreType' => "jceks",
-  'keyStore' => "keystore.jceks",
-  'keyStorePassword' => "secret"
+  'keyStore' => {
+    'type' => "jceks",
+    'path' => "keystore.jceks",
+    'password' => "secret"
+  }
 }
 
 authProvider = VertxAuthJwt::JWTAuth.create(vertx, authConfig)
@@ -1556,9 +1560,11 @@ token, during the creation of the token just add data to the JsonObject paramete
 require 'vertx-auth-jwt/jwt_auth'
 
 authConfig = {
-  'keyStoreType' => "jceks",
-  'keyStore' => "keystore.jceks",
-  'keyStorePassword' => "secret"
+  'keyStore' => {
+    'type' => "jceks",
+    'path' => "keystore.jceks",
+    'password' => "secret"
+  }
 }
 
 authProvider = VertxAuthJwt::JWTAuth.create(vertx, authConfig)

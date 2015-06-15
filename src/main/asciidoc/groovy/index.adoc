@@ -1504,9 +1504,11 @@ import io.vertx.groovy.ext.auth.jwt.JWTAuth
 def router = Router.router(vertx)
 
 def authConfig = [
-  keyStoreType:"jceks",
-  keyStore:"keystore.jceks",
-  keyStorePassword:"secret"
+  keyStore:[
+    type:"jceks",
+    path:"keystore.jceks",
+    password:"secret"
+  ]
 ]
 
 def authProvider = JWTAuth.create(vertx, authConfig)
@@ -1536,9 +1538,11 @@ import io.vertx.groovy.ext.web.handler.JWTAuthHandler
 def router = Router.router(vertx)
 
 def authConfig = [
-  keyStoreType:"jceks",
-  keyStore:"keystore.jceks",
-  keyStorePassword:"secret"
+  keyStore:[
+    type:"jceks",
+    path:"keystore.jceks",
+    password:"secret"
+  ]
 ]
 
 def authProvider = JWTAuth.create(vertx, authConfig)
@@ -1560,9 +1564,11 @@ token, during the creation of the token just add data to the JsonObject paramete
 import io.vertx.groovy.ext.auth.jwt.JWTAuth
 
 def authConfig = [
-  keyStoreType:"jceks",
-  keyStore:"keystore.jceks",
-  keyStorePassword:"secret"
+  keyStore:[
+    type:"jceks",
+    path:"keystore.jceks",
+    password:"secret"
+  ]
 ]
 
 def authProvider = JWTAuth.create(vertx, authConfig)

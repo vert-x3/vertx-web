@@ -1342,10 +1342,10 @@ Here's an example on how to issue tokens:
 ----
 Router router = Router.router(vertx);
 
-JsonObject authConfig = new JsonObject()
-    .put("keyStoreType", "jceks")
-    .put("keyStore", "keystore.jceks")
-    .put("keyStorePassword", "secret");
+JsonObject authConfig = new JsonObject().put("keyStore", new JsonObject()
+    .put("type", "jceks")
+    .put("path", "keystore.jceks")
+    .put("password", "secret"));
 
 JWTAuth authProvider = JWTAuth.create(vertx, authConfig);
 
@@ -1366,10 +1366,10 @@ Now that your client has a token all it is required is that for *all* consequent
 ----
 Router router = Router.router(vertx);
 
-JsonObject authConfig = new JsonObject()
-    .put("keyStoreType", "jceks")
-    .put("keyStore", "keystore.jceks")
-    .put("keyStorePassword", "secret");
+JsonObject authConfig = new JsonObject().put("keyStore", new JsonObject()
+    .put("type", "jceks")
+    .put("path", "keystore.jceks")
+    .put("password", "secret"));
 
 JWTAuth authProvider = JWTAuth.create(vertx, authConfig);
 
@@ -1386,10 +1386,10 @@ token, during the creation of the token just add data to the JsonObject paramete
 
 [source,java]
 ----
-JsonObject authConfig = new JsonObject()
-    .put("keyStoreType", "jceks")
-    .put("keyStore", "keystore.jceks")
-    .put("keyStorePassword", "secret");
+JsonObject authConfig = new JsonObject().put("keyStore", new JsonObject()
+    .put("type", "jceks")
+    .put("path", "keystore.jceks")
+    .put("password", "secret"));
 
 JWTAuth authProvider = JWTAuth.create(vertx, authConfig);
 
