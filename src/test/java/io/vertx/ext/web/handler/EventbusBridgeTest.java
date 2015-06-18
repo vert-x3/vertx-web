@@ -741,6 +741,102 @@ public class EventbusBridgeTest extends WebTestBase {
 
     awaitLatch(latch);
   }
+  
+  @Test
+  public void testReplyToClientTimeout() throws Exception {
+
+    sockJSHandler.bridge(allAccessOptions.setReplyTimeout(200));
+
+    CountDownLatch latch = new CountDownLatch(1);
+
+    client.websocket(websocketURI, ws -> {
+
+      MessageConsumer<Object> consumer = vertx.eventBus().consumer(addr);
+
+      consumer.handler(msg -> {
+        Object receivedBody = msg.body();
+        assertEquals("foobar", receivedBody);
+        vertx.setTimer(500, tid -> {
+		  msg.reply("barfoo");
+		  consumer.unregister();
+		});
+      });
+
+      String replyAddress = UUID.randomUUID().toString();
+
+      JsonObject msg = new JsonObject().put("type", "send").put("address", addr).put("replyAddress", replyAddress).put("body", "foobar");
+
+      ws.writeFrame(io.vertx.core.http.WebSocketFrame.textFrame(msg.encode(), true));
+
+      ws.handler(buff -> {
+        String str = buff.toString();
+        JsonObject received = new JsonObject(str);
+        Object rec = received.getValue("failureType");
+        assertEquals("TIMEOUT", rec);
+        ws.closeHandler(v -> latch.countDown());
+        ws.close();
+      });
+
+    });
+
+    awaitLatch(latch);
+  }
+  
+  @Test
+  public void testAwaitingReplyToClientTimeout() throws Exception {
+
+    sockJSHandler.bridge(allAccessOptions.setReplyTimeout(200));
+
+    CountDownLatch latch = new CountDownLatch(1);
+
+    client.websocket(websocketURI, ws -> {
+
+      MessageConsumer<Object> consumer = vertx.eventBus().consumer(addr);
+
+      consumer.handler(msg -> {
+        Object receivedBody = msg.body();
+        assertEquals("one", receivedBody);
+		msg.reply("two", rep -> {
+			assertTrue(rep.succeeded());
+		    Object repReceivedBody = rep.result().body();
+		    assertEquals("three", repReceivedBody);
+		    vertx.setTimer(500, tid -> {
+		      rep.result().reply("four");
+		      consumer.unregister();
+		  });
+		});
+      });
+
+      String replyAddress = UUID.randomUUID().toString();
+
+      JsonObject msg = new JsonObject().put("type", "send").put("address", addr).put("replyAddress", replyAddress).put("body", "one");
+
+      ws.writeFrame(io.vertx.core.http.WebSocketFrame.textFrame(msg.encode(), true));
+
+      ws.handler(buff -> {
+        String str = buff.toString();
+        JsonObject received = new JsonObject(str);
+        Object rec = received.getValue("body");
+        assertEquals("two", rec);
+		
+		String secondReplyAddress = UUID.randomUUID().toString();
+		JsonObject rep_msg = new JsonObject().put("type", "send").put("address", received.getValue("replyAddress")).put("replyAddress", secondReplyAddress).put("body", "three");
+        ws.writeFrame(io.vertx.core.http.WebSocketFrame.textFrame(rep_msg.encode(), true));
+
+	    ws.handler(repBuff -> {
+		  String repStr = repBuff.toString();
+		  JsonObject repReceived = new JsonObject(repStr);
+		  Object repRec = repReceived.getValue("failureType");
+		  assertEquals("TIMEOUT", repRec);
+		  ws.closeHandler(v -> latch.countDown());
+		  ws.close();
+	    });
+      });
+
+    });
+
+    awaitLatch(latch);
+  }
 
   @Test
   public void testRegisterNotPermittedDefaultOptions() throws Exception {
