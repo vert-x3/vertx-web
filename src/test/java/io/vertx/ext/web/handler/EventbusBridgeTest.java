@@ -55,7 +55,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- *
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 public class EventbusBridgeTest extends WebTestBase {
@@ -423,31 +422,31 @@ public class EventbusBridgeTest extends WebTestBase {
   }
 
   @Test
-  public void testReceiveJsonObjectAllAccess() throws Exception  {
+  public void testReceiveJsonObjectAllAccess() throws Exception {
     sockJSHandler.bridge(allAccessOptions);
     testReceive(new JsonObject().put("foo", "bar").put("blah", 123));
   }
 
   @Test
-  public void testReceiveJsonArrayAllAccess() throws Exception  {
+  public void testReceiveJsonArrayAllAccess() throws Exception {
     sockJSHandler.bridge(allAccessOptions);
     testReceive(new JsonArray().add("foo").add(1456));
   }
 
   @Test
-  public void testReceiveNumberAllAccess() throws Exception  {
+  public void testReceiveNumberAllAccess() throws Exception {
     sockJSHandler.bridge(allAccessOptions);
     testReceive(13456);
   }
 
   @Test
-  public void testReceiveBooleanTrueAllAccess() throws Exception  {
+  public void testReceiveBooleanTrueAllAccess() throws Exception {
     sockJSHandler.bridge(allAccessOptions);
     testReceive(true);
   }
 
   @Test
-  public void testReceiveBooleanFalseAllAccess() throws Exception  {
+  public void testReceiveBooleanFalseAllAccess() throws Exception {
     sockJSHandler.bridge(allAccessOptions);
     testReceive(false);
   }
@@ -486,7 +485,7 @@ public class EventbusBridgeTest extends WebTestBase {
   public void testSendNotPermittedDefaultOptions() throws Exception {
     sockJSHandler.bridge(defaultOptions);
     testError(new JsonObject().put("type", "send").put("address", addr).put("body", "hello world"),
-              "access_denied");
+      "access_denied");
   }
 
   @Test
@@ -513,7 +512,7 @@ public class EventbusBridgeTest extends WebTestBase {
     String addr1 = "allow1";
     String addr2 = "allow2";
     sockJSHandler.bridge(defaultOptions.addInboundPermitted(new PermittedOptions().setAddress(addr1)).
-        addInboundPermitted(new PermittedOptions().setAddress(addr2)));
+      addInboundPermitted(new PermittedOptions().setAddress(addr2)));
     testSend("allow1", "foobar");
     testSend("allow2", "foobar");
     testError(new JsonObject().put("type", "send").put("address", "allow3").put("body", "blah"),
@@ -525,7 +524,7 @@ public class EventbusBridgeTest extends WebTestBase {
     String addr1 = "allo.+";
     String addr2 = "ballo.+";
     sockJSHandler.bridge(defaultOptions.addInboundPermitted(new PermittedOptions().setAddressRegex(addr1)).
-        addInboundPermitted(new PermittedOptions().setAddressRegex(addr2)));
+      addInboundPermitted(new PermittedOptions().setAddressRegex(addr2)));
     testSend("allow1", "foobar");
     testSend("allow2", "foobar");
     testSend("ballow1", "foobar");
@@ -539,7 +538,7 @@ public class EventbusBridgeTest extends WebTestBase {
     String addr1 = "allow1";
     String addr2 = "ballo.+";
     sockJSHandler.bridge(defaultOptions.addInboundPermitted(new PermittedOptions().setAddress(addr1)).
-        addInboundPermitted(new PermittedOptions().setAddressRegex(addr2)));
+      addInboundPermitted(new PermittedOptions().setAddressRegex(addr2)));
     testSend("allow1", "foobar");
     testSend("ballow1", "foobar");
     testSend("ballow2", "foobar");
@@ -578,7 +577,7 @@ public class EventbusBridgeTest extends WebTestBase {
   }
 
   @Test
-  public void testRegisterPermittedAllowAddress() throws Exception  {
+  public void testRegisterPermittedAllowAddress() throws Exception {
     String addr = "allow1";
     sockJSHandler.bridge(defaultOptions.addOutboundPermitted(new PermittedOptions().setAddress(addr)));
     testReceive(addr, "foobar");
@@ -587,7 +586,7 @@ public class EventbusBridgeTest extends WebTestBase {
   }
 
   @Test
-  public void testRegisterPermittedAllowAddressRe() throws Exception  {
+  public void testRegisterPermittedAllowAddressRe() throws Exception {
     String addr = "allo.+";
     sockJSHandler.bridge(defaultOptions.addOutboundPermitted(new PermittedOptions().setAddressRegex(addr)));
     testReceive("allow1", "foobar");
@@ -597,11 +596,11 @@ public class EventbusBridgeTest extends WebTestBase {
   }
 
   @Test
-  public void testRegisterPermittedMultipleAddresses() throws Exception  {
+  public void testRegisterPermittedMultipleAddresses() throws Exception {
     String addr1 = "allow1";
     String addr2 = "allow2";
     sockJSHandler.bridge(defaultOptions.addOutboundPermitted(new PermittedOptions().setAddress(addr1)).
-        addOutboundPermitted(new PermittedOptions().setAddress(addr2)));
+      addOutboundPermitted(new PermittedOptions().setAddress(addr2)));
     testReceive("allow1", "foobar");
     testReceive("allow2", "foobar");
     testError(new JsonObject().put("type", "register").put("address", "allow3").put("body", "blah"),
@@ -609,11 +608,11 @@ public class EventbusBridgeTest extends WebTestBase {
   }
 
   @Test
-  public void testRegisterPermittedMultipleAddressRe() throws Exception  {
+  public void testRegisterPermittedMultipleAddressRe() throws Exception {
     String addr1 = "allo.+";
     String addr2 = "ballo.+";
     sockJSHandler.bridge(defaultOptions.addOutboundPermitted(new PermittedOptions().setAddressRegex(addr1)).
-        addOutboundPermitted(new PermittedOptions().setAddressRegex(addr2)));
+      addOutboundPermitted(new PermittedOptions().setAddressRegex(addr2)));
     testReceive("allow1", "foobar");
     testReceive("allow2", "foobar");
     testReceive("ballow1", "foobar");
@@ -623,11 +622,11 @@ public class EventbusBridgeTest extends WebTestBase {
   }
 
   @Test
-  public void testRegisterPermittedMixedAddressRe() throws Exception  {
+  public void testRegisterPermittedMixedAddressRe() throws Exception {
     String addr1 = "allow1";
     String addr2 = "ballo.+";
     sockJSHandler.bridge(defaultOptions.addOutboundPermitted(new PermittedOptions().setAddress(addr1)).
-        addOutboundPermitted(new PermittedOptions().setAddressRegex(addr2)));
+      addOutboundPermitted(new PermittedOptions().setAddressRegex(addr2)));
     testReceive("allow1", "foobar");
     testReceive("ballow1", "foobar");
     testReceive("ballow2", "foobar");
@@ -638,7 +637,7 @@ public class EventbusBridgeTest extends WebTestBase {
   }
 
   @Test
-  public void testRegisterPermittedStructureMatch() throws Exception  {
+  public void testRegisterPermittedStructureMatch() throws Exception {
     JsonObject match = new JsonObject().put("fib", "wib").put("oop", 12);
     sockJSHandler.bridge(defaultOptions.addOutboundPermitted(new PermittedOptions().setMatch(match)));
     testReceive(addr, match);
@@ -652,7 +651,7 @@ public class EventbusBridgeTest extends WebTestBase {
 
 
   @Test
-  public void testRegisterPermittedStructureMatchWithAddress() throws Exception  {
+  public void testRegisterPermittedStructureMatchWithAddress() throws Exception {
     JsonObject match = new JsonObject().put("fib", "wib").put("oop", 12);
     sockJSHandler.bridge(defaultOptions.addOutboundPermitted(new PermittedOptions().setMatch(match).setAddress(addr)));
     testReceive(addr, match);
@@ -741,7 +740,7 @@ public class EventbusBridgeTest extends WebTestBase {
 
     awaitLatch(latch);
   }
-  
+
   @Test
   public void testReplyToClientTimeout() throws Exception {
 
@@ -757,9 +756,9 @@ public class EventbusBridgeTest extends WebTestBase {
         Object receivedBody = msg.body();
         assertEquals("foobar", receivedBody);
         vertx.setTimer(500, tid -> {
-		  msg.reply("barfoo");
-		  consumer.unregister();
-		});
+          msg.reply("barfoo");
+          consumer.unregister();
+        });
       });
 
       String replyAddress = UUID.randomUUID().toString();
@@ -781,7 +780,7 @@ public class EventbusBridgeTest extends WebTestBase {
 
     awaitLatch(latch);
   }
-  
+
   @Test
   public void testAwaitingReplyToClientTimeout() throws Exception {
 
@@ -796,15 +795,15 @@ public class EventbusBridgeTest extends WebTestBase {
       consumer.handler(msg -> {
         Object receivedBody = msg.body();
         assertEquals("one", receivedBody);
-		msg.reply("two", rep -> {
-			assertTrue(rep.succeeded());
-		    Object repReceivedBody = rep.result().body();
-		    assertEquals("three", repReceivedBody);
-		    vertx.setTimer(500, tid -> {
-		      rep.result().reply("four");
-		      consumer.unregister();
-		  });
-		});
+        msg.reply("two", rep -> {
+          assertTrue(rep.succeeded());
+          Object repReceivedBody = rep.result().body();
+          assertEquals("three", repReceivedBody);
+          vertx.setTimer(500, tid -> {
+            rep.result().reply("four");
+            consumer.unregister();
+          });
+        });
       });
 
       String replyAddress = UUID.randomUUID().toString();
@@ -818,19 +817,19 @@ public class EventbusBridgeTest extends WebTestBase {
         JsonObject received = new JsonObject(str);
         Object rec = received.getValue("body");
         assertEquals("two", rec);
-		
-		String secondReplyAddress = UUID.randomUUID().toString();
-		JsonObject rep_msg = new JsonObject().put("type", "send").put("address", received.getValue("replyAddress")).put("replyAddress", secondReplyAddress).put("body", "three");
+
+        String secondReplyAddress = UUID.randomUUID().toString();
+        JsonObject rep_msg = new JsonObject().put("type", "send").put("address", received.getValue("replyAddress")).put("replyAddress", secondReplyAddress).put("body", "three");
         ws.writeFrame(io.vertx.core.http.WebSocketFrame.textFrame(rep_msg.encode(), true));
 
-	    ws.handler(repBuff -> {
-		  String repStr = repBuff.toString();
-		  JsonObject repReceived = new JsonObject(repStr);
-		  Object repRec = repReceived.getValue("failureType");
-		  assertEquals("TIMEOUT", repRec);
-		  ws.closeHandler(v -> latch.countDown());
-		  ws.close();
-	    });
+        ws.handler(repBuff -> {
+          String repStr = repBuff.toString();
+          JsonObject repReceived = new JsonObject(repStr);
+          Object repRec = repReceived.getValue("failureType");
+          assertEquals("TIMEOUT", repRec);
+          ws.closeHandler(v -> latch.countDown());
+          ws.close();
+        });
       });
 
     });
@@ -849,7 +848,7 @@ public class EventbusBridgeTest extends WebTestBase {
   public void testUnregisterNotPermittedDefaultOptions() throws Exception {
     sockJSHandler.bridge(defaultOptions);
     testError(new JsonObject().put("type", "unregister").put("address", addr),
-        "access_denied");
+      "access_denied");
   }
 
   @Test
@@ -1033,10 +1032,10 @@ public class EventbusBridgeTest extends WebTestBase {
     String requiredAuthority = TestUtils.randomAlphaString(10);
     JsonObject match = new JsonObject().put(TestUtils.randomAlphaString(10), TestUtils.randomAlphaString(10));
     JsonObject json = new JsonObject().
-        put("address", address).
-        put("addressRegex", addressRegex).
-        put("requiredAuthority", requiredAuthority).
-        put("match", match);
+      put("address", address).
+      put("addressRegex", addressRegex).
+      put("requiredAuthority", requiredAuthority).
+      put("match", match);
     PermittedOptions options = new PermittedOptions(json);
     assertEquals(address, options.getAddress());
     assertEquals(addressRegex, options.getAddressRegex());
@@ -1234,7 +1233,6 @@ public class EventbusBridgeTest extends WebTestBase {
 
     awaitLatch(latch);
   }
-
 
 
 }
