@@ -120,22 +120,22 @@ public class StaticHandlerImpl implements StaticHandler {
         context.fail(404);
         return;
       }
-  
+
       // only root is known for sure to be a directory. all other directories must be identified as such.
       if (!directoryListing && "/".equals(path)) {
         path = indexPage;
       }
-      
+
       // can be called recursive for index pages
       sendStatic(context, path);
-  
+
     }
   }
-  
+
   private void sendStatic(RoutingContext context, String path) {
-    
+
     String file = null;
-    
+
     if (!includeHidden) {
       file = getFile(path, context);
       int idx = file.lastIndexOf('/');
@@ -145,7 +145,7 @@ public class StaticHandlerImpl implements StaticHandler {
         return;
       }
     }
-    
+
     // Look in cache
     CacheEntry entry = null;
     if (cachingEnabled) {
@@ -158,18 +158,17 @@ public class StaticHandlerImpl implements StaticHandler {
         }
       }
     }
-    
+
     if (file == null) {
       file = getFile(path, context);
     }
-    
+
     FileProps props;
     if (filesReadOnly && entry != null) {
       props = entry.props;
       sendFile(context, file, props);
     } else {
       // Need to read the props from the filesystem
-      String spath = path;
       String sfile = file;
       getFileProps(context, file, res -> {
         if (res.succeeded()) {
@@ -178,9 +177,9 @@ public class StaticHandlerImpl implements StaticHandler {
             // File does not exist
             context.fail(404);
           } else if (fprops.isDirectory()) {
-            sendDirectory(context, spath, sfile);
+            sendDirectory(context, path, sfile);
           } else {
-            propsCache().put(spath, new CacheEntry(fprops, System.currentTimeMillis()));
+            propsCache().put(path, new CacheEntry(fprops, System.currentTimeMillis()));
             sendFile(context, sfile, fprops);
           }
         } else {
@@ -194,17 +193,17 @@ public class StaticHandlerImpl implements StaticHandler {
 
     }
   }
-  
+
   private void sendDirectory(RoutingContext context, String path, String file) {
     if (directoryListing) {
       sendDirectoryListing(file, context);
     } else if (indexPage != null) {
       // send index page
       String indexPath;
-      if(path.endsWith("/") && indexPage.startsWith("/")){
+      if (path.endsWith("/") && indexPage.startsWith("/")) {
         indexPath = path + indexPage.substring(1);
-      } else if (!path.endsWith("/") && !indexPage.startsWith("/")){
-        indexPath = path +"/"+ indexPage.substring(1);
+      } else if (!path.endsWith("/") && !indexPage.startsWith("/")) {
+        indexPath = path + "/" + indexPage.substring(1);
       } else {
         indexPath = path + indexPage;
       }
@@ -216,10 +215,10 @@ public class StaticHandlerImpl implements StaticHandler {
       context.fail(403);
     }
   }
-  
+
   private synchronized void getFileProps(RoutingContext context, String file, Handler<AsyncResult<FileProps>> resultHandler) {
     FileSystem fs = context.vertx().fileSystem();
-    if (alwaysAsyncFS  || useAsyncFS) {
+    if (alwaysAsyncFS || useAsyncFS) {
       fs.props(file, resultHandler);
     } else {
       // Use synchronous access - it might well be faster!
