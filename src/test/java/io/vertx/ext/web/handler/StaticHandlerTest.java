@@ -54,16 +54,33 @@ public class StaticHandlerTest extends WebTestBase {
   }
 
   @Test
+  public void testGetSubdirectorySlashDefaultIndex() throws Exception {
+    testRequest(HttpMethod.GET, "/somedir/", 200, "OK", "<html><body>Subdirectory index page</body></html>");
+  }
+
+  @Test
   public void testGetOtherIndex() throws Exception {
     stat.setIndexPage("otherpage.html");
     testRequest(HttpMethod.GET, "/", 200, "OK", "<html><body>Other page</body></html>");
+  }
+  
+  @Test
+  public void testGetSubdirectoryOtherIndex() throws Exception {
+    stat.setIndexPage("otherpage.html");
+    testRequest(HttpMethod.GET, "/somedir", 200, "OK", "<html><body>Subdirectory other page</body></html>");
+  }
+  
+  @Test
+  public void testGetSubdirectorySlashOtherIndex() throws Exception {
+    stat.setIndexPage("otherpage.html");
+    testRequest(HttpMethod.GET, "/somedir", 200, "OK", "<html><body>Subdirectory other page</body></html>");
   }
 
   @Test
   public void testGetFileWithSpaces() throws Exception {
     testRequest(HttpMethod.GET, "/file%20with%20spaces.html", 200, "OK", "<html><body>File with spaces</body></html>");
   }
-
+  
   @Test
   public void testGetOtherPage() throws Exception {
     testRequest(HttpMethod.GET, "/otherpage.html", 200, "OK", "<html><body>Other page</body></html>");
@@ -159,6 +176,22 @@ public class StaticHandlerTest extends WebTestBase {
       assertEquals("public, max-age=" + StaticHandler.DEFAULT_MAX_AGE_SECONDS, cacheControl);
     }, 200, "OK", "<html><body>Other page</body></html>");
     testRequest(HttpMethod.GET, "/otherpage.html", req -> {
+      req.putHeader("if-modified-since", lastModifiedRef.get());
+    }, null, 304, "Not Modified", null);
+  }
+  
+  @Test
+  public void testCacheIndexPageReturnFromCache() throws Exception {
+    AtomicReference<String> lastModifiedRef = new AtomicReference<>();
+    testRequest(HttpMethod.GET, "/somedir", null, res -> {
+      String cacheControl = res.headers().get("cache-control");
+      String lastModified = res.headers().get("last-modified");
+      lastModifiedRef.set(lastModified);
+      assertNotNull(cacheControl);
+      assertNotNull(lastModified);
+      assertEquals("public, max-age=" + StaticHandler.DEFAULT_MAX_AGE_SECONDS, cacheControl);
+    }, 200, "OK", "<html><body>Subdirectory index page</body></html>");
+    testRequest(HttpMethod.GET, "/somedir", req -> {
       req.putHeader("if-modified-since", lastModifiedRef.get());
     }, null, 304, "Not Modified", null);
   }
