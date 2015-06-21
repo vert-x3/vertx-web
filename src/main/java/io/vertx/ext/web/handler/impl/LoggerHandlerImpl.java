@@ -39,7 +39,7 @@ import java.util.Date;
  * The logging depends on Vert.x logger settings and the severity of the error, so for errors with status greater or
  * equal to 500 the fatal severity is used, for status greater or equal to 400 the error severity is used, for status
  * greater or equal to 300 warn is used and for status above 100 info is used.
- * 
+ *
  * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
  */
 public class LoggerHandlerImpl implements LoggerHandler {
@@ -88,6 +88,15 @@ public class LoggerHandlerImpl implements LoggerHandler {
         contentLength = Long.parseLong(obj.toString());
       }
     }
+    String versionFormatted = "-";
+    switch (version){
+      case HTTP_1_0:
+        versionFormatted = "HTTP/1.0";
+        break;
+      case HTTP_1_1:
+        versionFormatted = "HTTP/1.1";
+        break;
+    }
 
     int status = request.response().getStatusCode();
     String message = null;
@@ -96,13 +105,15 @@ public class LoggerHandlerImpl implements LoggerHandler {
       case DEFAULT:
         String referrer = request.headers().get("referrer");
         String userAgent = request.headers().get("user-agent");
+        referrer = referrer == null ? "-" : referrer;
+        userAgent = userAgent == null ? "-" : userAgent;
 
         message = String.format("%s - - [%s] \"%s %s %s\" %d %d \"%s\" \"%s\"",
           remoteClient,
           dateTimeFormat.format(new Date(timestamp)),
           method,
           uri,
-          version,
+          versionFormatted,
           status,
           contentLength,
           referrer,
@@ -113,7 +124,7 @@ public class LoggerHandlerImpl implements LoggerHandler {
           remoteClient,
           method,
           uri,
-          version,
+          versionFormatted,
           status,
           contentLength,
           (System.currentTimeMillis() - timestamp));
@@ -139,7 +150,7 @@ public class LoggerHandlerImpl implements LoggerHandler {
       logger.info(message);
     }
   }
-  
+
   @Override
   public void handle(RoutingContext context) {
     // common logging data
@@ -158,6 +169,6 @@ public class LoggerHandlerImpl implements LoggerHandler {
     }
 
     context.next();
-    
+
   }
 }
