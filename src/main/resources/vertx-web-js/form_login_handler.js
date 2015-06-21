@@ -45,6 +45,63 @@ var FormLoginHandler = function(j_val) {
     } else utils.invalidArgs();
   };
 
+  /**
+   Set the name of the form param used to submit the username
+
+   @public
+   @param usernameParam {string} the name of the param 
+   @return {FormLoginHandler} a reference to this for a fluent API
+   */
+  this.setUsernameParam = function(usernameParam) {
+    var __args = arguments;
+    if (__args.length === 1 && typeof __args[0] === 'string') {
+      return utils.convReturnVertxGen(j_formLoginHandler["setUsernameParam(java.lang.String)"](usernameParam), FormLoginHandler);
+    } else utils.invalidArgs();
+  };
+
+  /**
+   Set the name of the form param used to submit the password
+
+   @public
+   @param passwordParam {string} the name of the param 
+   @return {FormLoginHandler} a reference to this for a fluent API
+   */
+  this.setPasswordParam = function(passwordParam) {
+    var __args = arguments;
+    if (__args.length === 1 && typeof __args[0] === 'string') {
+      return utils.convReturnVertxGen(j_formLoginHandler["setPasswordParam(java.lang.String)"](passwordParam), FormLoginHandler);
+    } else utils.invalidArgs();
+  };
+
+  /**
+   Set the name of the session attrioute used to specify the return url
+
+   @public
+   @param returnURLParam {string} the name of the param 
+   @return {FormLoginHandler} a reference to this for a fluent API
+   */
+  this.setReturnURLParam = function(returnURLParam) {
+    var __args = arguments;
+    if (__args.length === 1 && typeof __args[0] === 'string') {
+      return utils.convReturnVertxGen(j_formLoginHandler["setReturnURLParam(java.lang.String)"](returnURLParam), FormLoginHandler);
+    } else utils.invalidArgs();
+  };
+
+  /**
+   Set the url to redirect to if the user logs in directly at the url of the form login handler
+   without being redirected here first
+
+   @public
+   @param directLoggedInOKURL {string} the URL to redirect to 
+   @return {FormLoginHandler} a reference to this for a fluent API
+   */
+  this.setDirectLoggedInOKURL = function(directLoggedInOKURL) {
+    var __args = arguments;
+    if (__args.length === 1 && typeof __args[0] === 'string') {
+      return utils.convReturnVertxGen(j_formLoginHandler["setDirectLoggedInOKURL(java.lang.String)"](directLoggedInOKURL), FormLoginHandler);
+    } else utils.invalidArgs();
+  };
+
   // A reference to the underlying Java delegate
   // NOTE! This is an internal API and must not be used in user code.
   // If you rely on this property your code is likely to break if we change it / remove it without warning.
@@ -58,15 +115,16 @@ var FormLoginHandler = function(j_val) {
  @param authProvider {AuthProvider} the auth service to use 
  @param usernameParam {string} the value of the form attribute which will contain the username 
  @param passwordParam {string} the value of the form attribute which will contain the password 
- @param returnURLParam {string} the value of the form attribute which will contain the return url 
+ @param returnURLParam {string} the value of the session attribute which will contain the return url 
+ @param directLoggedInOKURL {string} a url to redirect to if the user logs in directly at the url of the form login handler without being redirected here first 
  @return {FormLoginHandler} the handler
  */
 FormLoginHandler.create = function() {
   var __args = arguments;
   if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
     return utils.convReturnVertxGen(JFormLoginHandler["create(io.vertx.ext.auth.AuthProvider)"](__args[0]._jdel), FormLoginHandler);
-  }else if (__args.length === 4 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'string' && typeof __args[2] === 'string' && typeof __args[3] === 'string') {
-    return utils.convReturnVertxGen(JFormLoginHandler["create(io.vertx.ext.auth.AuthProvider,java.lang.String,java.lang.String,java.lang.String)"](__args[0]._jdel, __args[1], __args[2], __args[3]), FormLoginHandler);
+  }else if (__args.length === 5 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'string' && typeof __args[2] === 'string' && typeof __args[3] === 'string' && typeof __args[4] === 'string') {
+    return utils.convReturnVertxGen(JFormLoginHandler["create(io.vertx.ext.auth.AuthProvider,java.lang.String,java.lang.String,java.lang.String,java.lang.String)"](__args[0]._jdel, __args[1], __args[2], __args[3], __args[4]), FormLoginHandler);
   } else utils.invalidArgs();
 };
 

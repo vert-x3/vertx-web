@@ -63,11 +63,53 @@ public class FormLoginHandler implements Handler<RoutingContext> {
    * @param authProvider the auth service to use
    * @param usernameParam the value of the form attribute which will contain the username
    * @param passwordParam the value of the form attribute which will contain the password
-   * @param returnURLParam the value of the form attribute which will contain the return url
+   * @param returnURLParam the value of the session attribute which will contain the return url
+   * @param directLoggedInOKURL a url to redirect to if the user logs in directly at the url of the form login handler without being redirected here first
    * @return the handler
    */
-  public static FormLoginHandler create(AuthProvider authProvider, String usernameParam, String passwordParam, String returnURLParam) { 
-    FormLoginHandler ret= FormLoginHandler.newInstance(io.vertx.ext.web.handler.FormLoginHandler.create((io.vertx.ext.auth.AuthProvider) authProvider.getDelegate(), usernameParam, passwordParam, returnURLParam));
+  public static FormLoginHandler create(AuthProvider authProvider, String usernameParam, String passwordParam, String returnURLParam, String directLoggedInOKURL) { 
+    FormLoginHandler ret= FormLoginHandler.newInstance(io.vertx.ext.web.handler.FormLoginHandler.create((io.vertx.ext.auth.AuthProvider) authProvider.getDelegate(), usernameParam, passwordParam, returnURLParam, directLoggedInOKURL));
+    return ret;
+  }
+
+  /**
+   * Set the name of the form param used to submit the username
+   * @param usernameParam the name of the param
+   * @return a reference to this for a fluent API
+   */
+  public FormLoginHandler setUsernameParam(String usernameParam) { 
+    FormLoginHandler ret= FormLoginHandler.newInstance(this.delegate.setUsernameParam(usernameParam));
+    return ret;
+  }
+
+  /**
+   * Set the name of the form param used to submit the password
+   * @param passwordParam the name of the param
+   * @return a reference to this for a fluent API
+   */
+  public FormLoginHandler setPasswordParam(String passwordParam) { 
+    FormLoginHandler ret= FormLoginHandler.newInstance(this.delegate.setPasswordParam(passwordParam));
+    return ret;
+  }
+
+  /**
+   * Set the name of the session attrioute used to specify the return url
+   * @param returnURLParam the name of the param
+   * @return a reference to this for a fluent API
+   */
+  public FormLoginHandler setReturnURLParam(String returnURLParam) { 
+    FormLoginHandler ret= FormLoginHandler.newInstance(this.delegate.setReturnURLParam(returnURLParam));
+    return ret;
+  }
+
+  /**
+   * Set the url to redirect to if the user logs in directly at the url of the form login handler
+   * without being redirected here first
+   * @param directLoggedInOKURL the URL to redirect to
+   * @return a reference to this for a fluent API
+   */
+  public FormLoginHandler setDirectLoggedInOKURL(String directLoggedInOKURL) { 
+    FormLoginHandler ret= FormLoginHandler.newInstance(this.delegate.setDirectLoggedInOKURL(directLoggedInOKURL));
     return ret;
   }
 
