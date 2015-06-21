@@ -51,11 +51,49 @@ public class FormLoginHandler implements Handler<RoutingContext> {
    * @param authProvider the auth service to use
    * @param usernameParam the value of the form attribute which will contain the username
    * @param passwordParam the value of the form attribute which will contain the password
-   * @param returnURLParam the value of the form attribute which will contain the return url
+   * @param returnURLParam the value of the session attribute which will contain the return url
+   * @param directLoggedInOKURL a url to redirect to if the user logs in directly at the url of the form login handler without being redirected here first
    * @return the handler
    */
-  public static FormLoginHandler create(AuthProvider authProvider, String usernameParam, String passwordParam, String returnURLParam) {
-    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.FormLoginHandler.create((io.vertx.ext.auth.AuthProvider)authProvider.getDelegate(), usernameParam, passwordParam, returnURLParam), io.vertx.ext.web.handler.FormLoginHandler.class, io.vertx.groovy.ext.web.handler.FormLoginHandler.class);
+  public static FormLoginHandler create(AuthProvider authProvider, String usernameParam, String passwordParam, String returnURLParam, String directLoggedInOKURL) {
+    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.FormLoginHandler.create((io.vertx.ext.auth.AuthProvider)authProvider.getDelegate(), usernameParam, passwordParam, returnURLParam, directLoggedInOKURL), io.vertx.ext.web.handler.FormLoginHandler.class, io.vertx.groovy.ext.web.handler.FormLoginHandler.class);
+    return ret;
+  }
+  /**
+   * Set the name of the form param used to submit the username
+   * @param usernameParam the name of the param
+   * @return a reference to this for a fluent API
+   */
+  public FormLoginHandler setUsernameParam(String usernameParam) {
+    def ret= InternalHelper.safeCreate(this.delegate.setUsernameParam(usernameParam), io.vertx.ext.web.handler.FormLoginHandler.class, io.vertx.groovy.ext.web.handler.FormLoginHandler.class);
+    return ret;
+  }
+  /**
+   * Set the name of the form param used to submit the password
+   * @param passwordParam the name of the param
+   * @return a reference to this for a fluent API
+   */
+  public FormLoginHandler setPasswordParam(String passwordParam) {
+    def ret= InternalHelper.safeCreate(this.delegate.setPasswordParam(passwordParam), io.vertx.ext.web.handler.FormLoginHandler.class, io.vertx.groovy.ext.web.handler.FormLoginHandler.class);
+    return ret;
+  }
+  /**
+   * Set the name of the session attrioute used to specify the return url
+   * @param returnURLParam the name of the param
+   * @return a reference to this for a fluent API
+   */
+  public FormLoginHandler setReturnURLParam(String returnURLParam) {
+    def ret= InternalHelper.safeCreate(this.delegate.setReturnURLParam(returnURLParam), io.vertx.ext.web.handler.FormLoginHandler.class, io.vertx.groovy.ext.web.handler.FormLoginHandler.class);
+    return ret;
+  }
+  /**
+   * Set the url to redirect to if the user logs in directly at the url of the form login handler
+   * without being redirected here first
+   * @param directLoggedInOKURL the URL to redirect to
+   * @return a reference to this for a fluent API
+   */
+  public FormLoginHandler setDirectLoggedInOKURL(String directLoggedInOKURL) {
+    def ret= InternalHelper.safeCreate(this.delegate.setDirectLoggedInOKURL(directLoggedInOKURL), io.vertx.ext.web.handler.FormLoginHandler.class, io.vertx.groovy.ext.web.handler.FormLoginHandler.class);
     return ret;
   }
 }

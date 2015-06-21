@@ -18,19 +18,21 @@ package io.vertx.ext.web.handler;
 
 import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.auth.AuthProvider;
+import io.vertx.ext.auth.shiro.ShiroAuth;
+import io.vertx.ext.auth.shiro.ShiroAuthRealmType;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import io.vertx.ext.web.sstore.SessionStore;
-import io.vertx.ext.auth.AuthProvider;
-import io.vertx.ext.auth.shiro.ShiroAuth;
-import io.vertx.ext.auth.shiro.ShiroAuthRealmType;
 import org.junit.Test;
 
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -38,6 +40,19 @@ import java.util.concurrent.atomic.AtomicReference;
 public class RedirectAuthHandlerTest extends AuthHandlerTestBase {
 
   protected AtomicReference<String> sessionCookie = new AtomicReference<>();
+  protected FormLoginHandler formLoginHandler;
+  protected AuthProvider authProvider;
+  protected String usernameParam;
+  protected String passwordParam;
+
+  @Override
+  public void setUp() throws Exception {
+    super.setUp();
+    JsonObject authConfig = new JsonObject().put("properties_path", "classpath:login/loginusers.properties");
+    authProvider  = ShiroAuth.create(vertx, ShiroAuthRealmType.PROPERTIES, authConfig);
+    usernameParam = FormLoginHandler.DEFAULT_USERNAME_PARAM;
+    passwordParam = FormLoginHandler.DEFAULT_PASSWORD_PARAM;
+  }
 
   @Test
   public void testLogin() throws Exception {
@@ -73,6 +88,67 @@ public class RedirectAuthHandlerTest extends AuthHandlerTestBase {
   }
 
   @Test
+  public void testLoginChangeFormLoginHandlerParams() throws Exception {
+    formLoginHandler = FormLoginHandler.create(authProvider);
+    usernameParam = "username2";
+    passwordParam ="password2";
+    formLoginHandler.setUsernameParam(usernameParam).setPasswordParam(passwordParam);
+    testLogin();
+  }
+
+  @Test
+  public void testFormLoginHandlerDirectDefaultResponse() throws Exception {
+    formLoginHandler = FormLoginHandler.create(authProvider);
+    usernameParam = "username2";
+    passwordParam ="password2";
+    formLoginHandler.setUsernameParam(usernameParam).setPasswordParam(passwordParam);
+    router.route().handler(LoggerHandler.create());
+    router.route().handler(BodyHandler.create());
+    router.route().handler(CookieHandler.create());
+    router.route("/login").handler(formLoginHandler);
+    testRequest(HttpMethod.POST, "/login", sendLoginRequestConsumer(), resp -> {
+    }, 200, "OK", "<html><body><h1>Login successful</h1></body></html>");
+  }
+
+  @Test
+  public void testFormLoginHandlerDirectSpecifyLoggedInURL() throws Exception {
+    formLoginHandler = FormLoginHandler.create(authProvider);
+    usernameParam = "username2";
+    passwordParam ="password2";
+    String loggedInDirectOKPage = "/youloggedinokpage.html";
+    formLoginHandler.setUsernameParam(usernameParam).setPasswordParam(passwordParam).setDirectLoggedInOKURL(loggedInDirectOKPage);
+    router.route().handler(LoggerHandler.create());
+    router.route().handler(BodyHandler.create());
+    router.route().handler(CookieHandler.create());
+    router.route("/login").handler(formLoginHandler);
+    testRequest(HttpMethod.POST, "/login", sendLoginRequestConsumer(), resp -> {
+      String location = resp.headers().get("location");
+      assertNotNull(location);
+      assertEquals(loggedInDirectOKPage, location);
+    }, 302, "Found", null);
+  }
+
+  private Consumer<HttpClientRequest> sendLoginRequestConsumer() {
+    return req -> {
+      String boundary = "dLV9Wyq26L_-JQxk6ferf-RT153LhOO";
+      Buffer buffer = Buffer.buffer();
+      String str =
+        "--" + boundary + "\r\n" +
+          "Content-Disposition: form-data; name=\"" + usernameParam + "\"\r\n\r\ntim\r\n" +
+          "--" + boundary + "\r\n" +
+          "Content-Disposition: form-data; name=\"" + passwordParam + "\"\r\n\r\nsausages\r\n" +
+          "--" + boundary + "--\r\n";
+      buffer.appendString(str);
+      req.putHeader("content-length", String.valueOf(buffer.length()));
+      req.putHeader("content-type", "multipart/form-data; boundary=" + boundary);
+      if (sessionCookie.get() != null) {
+        req.putHeader("cookie", sessionCookie.get());
+      }
+      req.write(buffer);
+    };
+  }
+
+  @Test
   public void testLoginFailBadUser() throws Exception {
     testLoginFail(true);
   }
@@ -105,21 +181,7 @@ public class RedirectAuthHandlerTest extends AuthHandlerTestBase {
 
   private void doLogin(Handler<RoutingContext> handler) throws Exception {
     doLoginCommon(handler);
-    testRequest(HttpMethod.POST, "/login", req -> {
-      String boundary = "dLV9Wyq26L_-JQxk6ferf-RT153LhOO";
-      Buffer buffer = Buffer.buffer();
-      String str =
-        "--" + boundary + "\r\n" +
-          "Content-Disposition: form-data; name=\"username\"\r\n\r\ntim\r\n" +
-          "--" + boundary + "\r\n" +
-          "Content-Disposition: form-data; name=\"password\"\r\n\r\nsausages\r\n" +
-          "--" + boundary + "--\r\n";
-      buffer.appendString(str);
-      req.putHeader("content-length", String.valueOf(buffer.length()));
-      req.putHeader("content-type", "multipart/form-data; boundary=" + boundary);
-      req.putHeader("cookie", sessionCookie.get());
-      req.write(buffer);
-    }, resp -> {
+    testRequest(HttpMethod.POST, "/login", sendLoginRequestConsumer(), resp -> {
       String location = resp.headers().get("location");
       assertNotNull(location);
       assertEquals("/protected/somepage", location);
@@ -139,8 +201,6 @@ public class RedirectAuthHandlerTest extends AuthHandlerTestBase {
     router.route().handler(CookieHandler.create());
     SessionStore store = LocalSessionStore.create(vertx);
     router.route().handler(SessionHandler.create(store));
-    JsonObject authConfig = new JsonObject().put("properties_path", "classpath:login/loginusers.properties");
-    AuthProvider authProvider = ShiroAuth.create(vertx, ShiroAuthRealmType.PROPERTIES, authConfig);
     router.route().handler(UserSessionHandler.create(authProvider));
     AuthHandler authHandler = RedirectAuthHandler.create(authProvider);
     if (authorities != null) {
@@ -148,10 +208,14 @@ public class RedirectAuthHandlerTest extends AuthHandlerTestBase {
     }
     router.route("/protected/*").handler(authHandler);
     router.route("/protected/somepage").handler(handler);
+    String loginHTML = createloginHTML();
     router.route("/loginpage").handler(rc -> {
       rc.response().putHeader("content-type", "text/html").end(loginHTML);
     });
-    router.route("/login").handler(FormLoginHandler.create(authProvider));
+    if (formLoginHandler == null) {
+      formLoginHandler = FormLoginHandler.create(authProvider);
+    }
+    router.route("/login").handler(formLoginHandler);
     testRequest(HttpMethod.GET, "/protected/somepage", null, resp -> {
       String location = resp.headers().get("location");
       assertNotNull(location);
@@ -195,22 +259,24 @@ public class RedirectAuthHandlerTest extends AuthHandlerTestBase {
     }, 302, "Found", null);
   }
 
-  String loginHTML = "<html>\n" +
-    "<body>\n" +
-    "<h2>Please login {{foo}}</h2><br>\n" +
-    "<form action=\"/login\" method=\"post\">\n" +
-    "  <div>\n" +
-    "    <label>Username:</label>\n" +
-    "    <input type=\"text\" name=\"username\"/>\n" +
-    "  </div>\n" +
-    "  <div>\n" +
-    "    <label>Password:</label>\n" +
-    "    <input type=\"password\" name=\"password\"/>\n" +
-    "  </div>\n" +
-    "  <div>\n" +
-    "    <input type=\"submit\" value=\"Log In\"/>\n" +
-    "  </div>\n" +
-    "</form>\n" +
-    "</body>\n" +
-    "</html>";
+  protected String createloginHTML() {
+    return "<html>\n" +
+      "<body>\n" +
+      "<h2>Please login {{foo}}</h2><br>\n" +
+      "<form action=\"/login\" method=\"post\">\n" +
+      "  <div>\n" +
+      "    <label>Username:</label>\n" +
+      "    <input type=\"text\" name=\"" + usernameParam + "\"/>\n" +
+      "  </div>\n" +
+      "  <div>\n" +
+      "    <label>Password:</label>\n" +
+      "    <input type=\"password\" name=\"" + passwordParam + "\"/>\n" +
+      "  </div>\n" +
+      "  <div>\n" +
+      "    <input type=\"submit\" value=\"Log In\"/>\n" +
+      "  </div>\n" +
+      "</form>\n" +
+      "</body>\n" +
+      "</html>";
+  }
 }

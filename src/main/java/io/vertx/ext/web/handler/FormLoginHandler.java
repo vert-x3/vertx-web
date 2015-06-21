@@ -54,7 +54,8 @@ public interface FormLoginHandler extends Handler<RoutingContext> {
    * @return the handler
    */
   static FormLoginHandler create(AuthProvider authProvider) {
-    return new FormLoginHandlerImpl(authProvider, DEFAULT_USERNAME_PARAM, DEFAULT_PASSWORD_PARAM, DEFAULT_RETURN_URL_PARAM);
+    return new FormLoginHandlerImpl(authProvider, DEFAULT_USERNAME_PARAM, DEFAULT_PASSWORD_PARAM,
+      DEFAULT_RETURN_URL_PARAM, null);
   }
 
   /**
@@ -63,13 +64,47 @@ public interface FormLoginHandler extends Handler<RoutingContext> {
    * @param authProvider  the auth service to use
    * @param usernameParam   the value of the form attribute which will contain the username
    * @param passwordParam   the value of the form attribute which will contain the password
-   * @param returnURLParam   the value of the form attribute which will contain the return url
+   * @param returnURLParam   the value of the session attribute which will contain the return url
+   * @param directLoggedInOKURL a url to redirect to if the user logs in directly at the url of the form login handler
+   *                            without being redirected here first
    *
    * @return the handler
    */
   static FormLoginHandler create(AuthProvider authProvider, String usernameParam, String passwordParam,
-                                 String returnURLParam) {
-    return new FormLoginHandlerImpl(authProvider, usernameParam, passwordParam, returnURLParam);
+                                 String returnURLParam, String directLoggedInOKURL) {
+    return new FormLoginHandlerImpl(authProvider, usernameParam, passwordParam, returnURLParam, directLoggedInOKURL);
   }
 
+  /**
+   * Set the name of the form param used to submit the username
+   * @param usernameParam  the name of the param
+   * @return a reference to this for a fluent API
+   */
+  FormLoginHandler setUsernameParam(String usernameParam);
+
+  /**
+   * Set the name of the form param used to submit the password
+   * @param passwordParam  the name of the param
+   * @return a reference to this for a fluent API
+   */
+  FormLoginHandler setPasswordParam(String passwordParam);
+
+  /**
+   * Set the name of the session attrioute used to specify the return url
+   * @param returnURLParam  the name of the param
+   * @return a reference to this for a fluent API
+   */
+  FormLoginHandler setReturnURLParam(String returnURLParam);
+
+  /**
+   * Set the url to redirect to if the user logs in directly at the url of the form login handler
+   * without being redirected here first
+   * @param directLoggedInOKURL  the URL to redirect to
+   * @return a reference to this for a fluent API
+   */
+  FormLoginHandler setDirectLoggedInOKURL(String directLoggedInOKURL);
+
+
 }
+
+
