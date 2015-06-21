@@ -68,11 +68,11 @@ public class LocalSessionStore extends SessionStore {
    * Create a session store
    * @param vertx the Vert.x instance
    * @param sessionMapName name for map used to store sessions
-   * @param reaperPeriod how often, in ms, to check for expired sessions
+   * @param reaperInterval how often, in ms, to check for expired sessions
    * @return the session store
    */
-  public static LocalSessionStore create(Vertx vertx, String sessionMapName, long reaperPeriod) { 
-    LocalSessionStore ret= LocalSessionStore.newInstance(io.vertx.ext.web.sstore.LocalSessionStore.create((io.vertx.core.Vertx) vertx.getDelegate(), sessionMapName, reaperPeriod));
+  public static LocalSessionStore create(Vertx vertx, String sessionMapName, long reaperInterval) { 
+    LocalSessionStore ret= LocalSessionStore.newInstance(io.vertx.ext.web.sstore.LocalSessionStore.create((io.vertx.core.Vertx) vertx.getDelegate(), sessionMapName, reaperInterval));
     return ret;
   }
 

@@ -80,11 +80,11 @@ class BaseTransport {
     this.options = options;
   }
 
-  protected SockJSSession getSession(RoutingContext rc, long timeout, long heartbeatPeriod, String sessionID,
+  protected SockJSSession getSession(RoutingContext rc, long timeout, long heartbeatInterval, String sessionID,
                                      Handler<SockJSSocket> sockHandler) {
     SockJSSession session = sessions.get(sessionID);
     if (session == null) {
-      session = new SockJSSession(vertx, sessions, rc, sessionID, timeout, heartbeatPeriod, sockHandler);
+      session = new SockJSSession(vertx, sessions, rc, sessionID, timeout, heartbeatInterval, sockHandler);
       sessions.put(sessionID, session);
     }
     return session;

@@ -47,7 +47,7 @@ var LocalSessionStore = function(j_val) {
  @memberof module:vertx-web-js/local_session_store
  @param vertx {Vertx} the Vert.x instance 
  @param sessionMapName {string} name for map used to store sessions 
- @param reaperPeriod {number} how often, in ms, to check for expired sessions 
+ @param reaperInterval {number} how often, in ms, to check for expired sessions 
  @return {LocalSessionStore} the session store
  */
 LocalSessionStore.create = function() {

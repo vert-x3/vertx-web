@@ -1158,7 +1158,7 @@ requests might end up on a server which doesn't know about your session.
 
 Local session stores are implemented by using a shared local map, and have a reaper which clears out expired sessions.
 
-The reaper period can be configured with
+The reaper interval can be configured with
 `link:groovydoc/io/vertx/groovy/ext/web/sstore/LocalSessionStore.html#create(io.vertx.core.Vertx,%20java.lang.String,%20long)[LocalSessionStore.create]`.
 
 Here are some examples of creating a `link:groovydoc/io/vertx/groovy/ext/web/sstore/LocalSessionStore.html[LocalSessionStore]`
@@ -1176,7 +1176,7 @@ def store1 = LocalSessionStore.create(vertx)
 def store2 = LocalSessionStore.create(vertx, "myapp3.sessionmap")
 
 // Create a local session store specifying the local shared map name to use and
-// setting the reaper period for expired sessions to 10 seconds
+// setting the reaper interval for expired sessions to 10 seconds
 def store3 = LocalSessionStore.create(vertx, "myapp3.sessionmap", 10000)
 
 
@@ -1971,7 +1971,7 @@ import io.vertx.groovy.ext.web.handler.sockjs.SockJSHandler
 def router = Router.router(vertx)
 
 def options = [
-  heartbeatPeriod:2000
+  heartbeatInterval:2000
 ]
 
 def sockJSHandler = SockJSHandler.create(vertx, options)
@@ -2000,7 +2000,7 @@ import io.vertx.groovy.ext.web.handler.sockjs.SockJSHandler
 def router = Router.router(vertx)
 
 def options = [
-  heartbeatPeriod:2000
+  heartbeatInterval:2000
 ]
 
 def sockJSHandler = SockJSHandler.create(vertx, options)
@@ -2054,7 +2054,7 @@ are always routed to the correct server. Default is `true`.
 `sessionTimeout`:: The server sends a `close` event when a client receiving connection have not been seen for a while.
 This delay is configured by this setting. By default the `close` event will be emitted when a receiving
 connection wasn't seen for 5 seconds.
-`heartbeaPperiod`:: In order to keep proxies and load balancers from closing long running http
+`heartbeatInterval`:: In order to keep proxies and load balancers from closing long running http
 requests we need to pretend that the connection is active and send a heartbeat packet once in a while.
 This setting controls how often this is done. By default a heartbeat packet is sent every 25 seconds.
 `maxBytesStreaming`:: Most streaming transports save responses on the client side and don't free memory used

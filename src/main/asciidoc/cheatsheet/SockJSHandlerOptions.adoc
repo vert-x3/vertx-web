@@ -16,7 +16,7 @@
 |[[insertJSESSIONID]]`insertJSESSIONID`
 |`Boolean`
 |-
-|[[heartbeatPeriod]]`heartbeatPeriod`
+|[[heartbeatInterval]]`heartbeatInterval`
 |`Number`
 |-
 |[[maxBytesStreaming]]`maxBytesStreaming`

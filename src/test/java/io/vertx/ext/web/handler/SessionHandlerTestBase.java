@@ -148,7 +148,7 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
       String setCookie = resp.headers().get("set-cookie");
       rSetCookie.set(setCookie);
     }, 200, "OK", null);
-    Thread.sleep(2 * (LocalSessionStore.DEFAULT_REAPER_PERIOD + timeout));
+    Thread.sleep(2 * (LocalSessionStore.DEFAULT_REAPER_INTERVAL + timeout));
     testRequest(HttpMethod.GET, "/", req -> {
       req.putHeader("cookie", rSetCookie.get());
     }, null, 200, "OK", null);
@@ -159,7 +159,7 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
       latch1.countDown();
     }));
     awaitLatch(latch1);
-    Thread.sleep(2 * (LocalSessionStore.DEFAULT_REAPER_PERIOD + timeout));
+    Thread.sleep(2 * (LocalSessionStore.DEFAULT_REAPER_INTERVAL + timeout));
     CountDownLatch latch2 = new CountDownLatch(1);
     store.size(onSuccess(res -> {
       assertEquals(0, res.intValue());

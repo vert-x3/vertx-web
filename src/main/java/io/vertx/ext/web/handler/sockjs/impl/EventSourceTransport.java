@@ -62,7 +62,7 @@ class EventSourceTransport extends BaseTransport {
     router.getWithRegex(eventSourceRE).handler(rc -> {
       if (log.isTraceEnabled()) log.trace("EventSource transport, get: " + rc.request().uri());
       String sessionID = rc.request().getParam("param0");
-      SockJSSession session = getSession(rc, options.getSessionTimeout(), options.getHeartbeatPeriod(), sessionID, sockHandler);
+      SockJSSession session = getSession(rc, options.getSessionTimeout(), options.getHeartbeatInterval(), sessionID, sockHandler);
       HttpServerRequest req = rc.request();
       session.setInfo(req.localAddress(), req.remoteAddress(), req.uri(), req.headers());
       session.register(new EventSourceListener(options.getMaxBytesStreaming(), rc, session));

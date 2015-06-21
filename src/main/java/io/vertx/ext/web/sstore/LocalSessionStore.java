@@ -33,7 +33,7 @@ public interface LocalSessionStore extends SessionStore {
   /**
    * Default of how often, in ms, to check for expired sessions
    */
-  long DEFAULT_REAPER_PERIOD = 1000;
+  long DEFAULT_REAPER_INTERVAL = 1000;
 
   /**
    * Default name for map used to store sessions
@@ -47,7 +47,7 @@ public interface LocalSessionStore extends SessionStore {
    * @return the session store
    */
   static LocalSessionStore create(Vertx vertx) {
-    return new LocalSessionStoreImpl(vertx, DEFAULT_SESSION_MAP_NAME, DEFAULT_REAPER_PERIOD);
+    return new LocalSessionStoreImpl(vertx, DEFAULT_SESSION_MAP_NAME, DEFAULT_REAPER_INTERVAL);
   }
 
   /**
@@ -58,7 +58,7 @@ public interface LocalSessionStore extends SessionStore {
    * @return the session store
    */
   static LocalSessionStore create(Vertx vertx, String sessionMapName) {
-    return new LocalSessionStoreImpl(vertx, sessionMapName, DEFAULT_REAPER_PERIOD);
+    return new LocalSessionStoreImpl(vertx, sessionMapName, DEFAULT_REAPER_INTERVAL);
   }
 
   /**
@@ -66,10 +66,10 @@ public interface LocalSessionStore extends SessionStore {
    *
    * @param vertx  the Vert.x instance
    * @param sessionMapName  name for map used to store sessions
-   * @param reaperPeriod  how often, in ms, to check for expired sessions
+   * @param reaperInterval  how often, in ms, to check for expired sessions
    * @return the session store
    */
-  static LocalSessionStore create(Vertx vertx, String sessionMapName, long reaperPeriod) {
-    return new LocalSessionStoreImpl(vertx, sessionMapName, reaperPeriod);
+  static LocalSessionStore create(Vertx vertx, String sessionMapName, long reaperInterval) {
+    return new LocalSessionStoreImpl(vertx, sessionMapName, reaperInterval);
   }
 }

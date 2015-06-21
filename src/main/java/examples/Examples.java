@@ -615,7 +615,7 @@ public class Examples {
     SessionStore store2 = LocalSessionStore.create(vertx, "myapp3.sessionmap");
 
     // Create a local session store specifying the local shared map name to use and
-    // setting the reaper period for expired sessions to 10 seconds
+    // setting the reaper interval for expired sessions to 10 seconds
     SessionStore store3 = LocalSessionStore.create(vertx, "myapp3.sessionmap", 10000);
 
   }
@@ -837,7 +837,7 @@ public class Examples {
 
     Router router = Router.router(vertx);
 
-    SockJSHandlerOptions options = new SockJSHandlerOptions().setHeartbeatPeriod(2000);
+    SockJSHandlerOptions options = new SockJSHandlerOptions().setHeartbeatInterval(2000);
 
     SockJSHandler sockJSHandler = SockJSHandler.create(vertx, options);
 
@@ -848,7 +848,7 @@ public class Examples {
 
     Router router = Router.router(vertx);
 
-    SockJSHandlerOptions options = new SockJSHandlerOptions().setHeartbeatPeriod(2000);
+    SockJSHandlerOptions options = new SockJSHandlerOptions().setHeartbeatInterval(2000);
 
     SockJSHandler sockJSHandler = SockJSHandler.create(vertx, options);
 

@@ -86,12 +86,12 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
   private String uri;
   private MultiMap headers;
 
-  SockJSSession(Vertx vertx, LocalMap<String, SockJSSession> sessions, RoutingContext rc, long heartbeatPeriod,
+  SockJSSession(Vertx vertx, LocalMap<String, SockJSSession> sessions, RoutingContext rc, long heartbeatInterval,
                 Handler<SockJSSocket> sockHandler) {
-    this(vertx, sessions, rc, null, -1, heartbeatPeriod, sockHandler);
+    this(vertx, sessions, rc, null, -1, heartbeatInterval, sockHandler);
   }
 
-  SockJSSession(Vertx vertx, LocalMap<String, SockJSSession> sessions, RoutingContext rc, String id, long timeout, long heartbeatPeriod,
+  SockJSSession(Vertx vertx, LocalMap<String, SockJSSession> sessions, RoutingContext rc, String id, long timeout, long heartbeatInterval,
                 Handler<SockJSSocket> sockHandler) {
     super(vertx, rc.session(), rc.user());
     this.sessions = sessions;
@@ -101,7 +101,7 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
 
     // Start a heartbeat
 
-    heartbeatID = vertx.setPeriodic(heartbeatPeriod, tid -> {
+    heartbeatID = vertx.setPeriodic(heartbeatInterval, tid -> {
       if (listener != null) {
         listener.sendFrame("h");
       }

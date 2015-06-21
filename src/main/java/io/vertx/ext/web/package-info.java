@@ -676,7 +676,7 @@
  *
  * Local session stores are implemented by using a shared local map, and have a reaper which clears out expired sessions.
  *
- * The reaper period can be configured with
+ * The reaper interval can be configured with
  * {@link io.vertx.ext.web.sstore.LocalSessionStore#create(io.vertx.core.Vertx, java.lang.String, long)}.
  *
  * Here are some examples of creating a {@link io.vertx.ext.web.sstore.LocalSessionStore}
@@ -1258,7 +1258,7 @@
  * `sessionTimeout`:: The server sends a `close` event when a client receiving connection have not been seen for a while.
  * This delay is configured by this setting. By default the `close` event will be emitted when a receiving
  * connection wasn't seen for 5 seconds.
- * `heartbeaPperiod`:: In order to keep proxies and load balancers from closing long running http
+ * `heartbeatInterval`:: In order to keep proxies and load balancers from closing long running http
  * requests we need to pretend that the connection is active and send a heartbeat packet once in a while.
  * This setting controls how often this is done. By default a heartbeat packet is sent every 25 seconds.
  * `maxBytesStreaming`:: Most streaming transports save responses on the client side and don't free memory used

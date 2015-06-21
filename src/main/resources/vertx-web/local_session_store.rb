@@ -20,17 +20,17 @@ module VertxWeb
     #  Create a session store
     # @param [::Vertx::Vertx] vertx the Vert.x instance
     # @param [String] sessionMapName name for map used to store sessions
-    # @param [Fixnum] reaperPeriod how often, in ms, to check for expired sessions
+    # @param [Fixnum] reaperInterval how often, in ms, to check for expired sessions
     # @return [::VertxWeb::LocalSessionStore] the session store
-    def self.create(vertx=nil,sessionMapName=nil,reaperPeriod=nil)
-      if vertx.class.method_defined?(:j_del) && !block_given? && sessionMapName == nil && reaperPeriod == nil
+    def self.create(vertx=nil,sessionMapName=nil,reaperInterval=nil)
+      if vertx.class.method_defined?(:j_del) && !block_given? && sessionMapName == nil && reaperInterval == nil
         return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebSstore::LocalSessionStore.java_method(:create, [Java::IoVertxCore::Vertx.java_class]).call(vertx.j_del),::VertxWeb::LocalSessionStore)
-      elsif vertx.class.method_defined?(:j_del) && sessionMapName.class == String && !block_given? && reaperPeriod == nil
+      elsif vertx.class.method_defined?(:j_del) && sessionMapName.class == String && !block_given? && reaperInterval == nil
         return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebSstore::LocalSessionStore.java_method(:create, [Java::IoVertxCore::Vertx.java_class,Java::java.lang.String.java_class]).call(vertx.j_del,sessionMapName),::VertxWeb::LocalSessionStore)
-      elsif vertx.class.method_defined?(:j_del) && sessionMapName.class == String && reaperPeriod.class == Fixnum && !block_given?
-        return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebSstore::LocalSessionStore.java_method(:create, [Java::IoVertxCore::Vertx.java_class,Java::java.lang.String.java_class,Java::long.java_class]).call(vertx.j_del,sessionMapName,reaperPeriod),::VertxWeb::LocalSessionStore)
+      elsif vertx.class.method_defined?(:j_del) && sessionMapName.class == String && reaperInterval.class == Fixnum && !block_given?
+        return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebSstore::LocalSessionStore.java_method(:create, [Java::IoVertxCore::Vertx.java_class,Java::java.lang.String.java_class,Java::long.java_class]).call(vertx.j_del,sessionMapName,reaperInterval),::VertxWeb::LocalSessionStore)
       end
-      raise ArgumentError, "Invalid arguments when calling create(vertx,sessionMapName,reaperPeriod)"
+      raise ArgumentError, "Invalid arguments when calling create(vertx,sessionMapName,reaperInterval)"
     end
   end
 end

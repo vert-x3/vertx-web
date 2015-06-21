@@ -34,13 +34,13 @@ public class LocalSessionStoreImpl implements LocalSessionStore, Handler<Long> {
 
   protected final Vertx vertx;
   protected final LocalMap<String, Session> localMap;
-  private final long reaperPeriod;
+  private final long reaperInterval;
   private long timerID = -1;
   private boolean closed;
 
-  public LocalSessionStoreImpl(Vertx vertx, String sessionMapName, long reaperPeriod) {
+  public LocalSessionStoreImpl(Vertx vertx, String sessionMapName, long reaperInterval) {
     this.vertx = vertx;
-    this.reaperPeriod = reaperPeriod;
+    this.reaperInterval = reaperInterval;
     localMap = vertx.sharedData().getLocalMap(sessionMapName);
     setTimer();
   }
@@ -104,8 +104,8 @@ public class LocalSessionStoreImpl implements LocalSessionStore, Handler<Long> {
   }
 
   private void setTimer() {
-    if (reaperPeriod != 0) {
-      timerID = vertx.setTimer(reaperPeriod, this);
+    if (reaperInterval != 0) {
+      timerID = vertx.setTimer(reaperInterval, this);
     }
   }
 

@@ -48,13 +48,13 @@ public class SockJSHandlerOptions {
 
   public static final long DEFAULT_SESSION_TIMEOUT = 5l * 1000;
   public static final boolean DEFAULT_INSERT_JSESSIONID = true;
-  public static final long DEFAULT_HEARTBEAT_PERIOD = 25l * 1000;
+  public static final long DEFAULT_HEARTBEAT_INTERVAL = 25l * 1000;
   public static final int DEFAULT_MAX_BYTES_STREAMING = 128 * 1024;
   public static final String DEFAULT_LIBRARY_URL = "http://cdn.sockjs.org/sockjs-0.3.4.min.js";
 
   private long sessionTimeout = 5l * 1000;
   private boolean insertJSESSIONID = true;
-  private long heartbeatPeriod = 25l * 1000;
+  private long heartbeatInterval = 25l * 1000;
   private int maxBytesStreaming = 128 * 1024;
   private String libraryURL = "http://cdn.sockjs.org/sockjs-0.3.4.min.js";
   private Set<String> disabledTransports = new HashSet<>();
@@ -66,7 +66,7 @@ public class SockJSHandlerOptions {
   public SockJSHandlerOptions() {
     this.sessionTimeout = DEFAULT_SESSION_TIMEOUT;
     this.insertJSESSIONID = DEFAULT_INSERT_JSESSIONID;
-    this.heartbeatPeriod = DEFAULT_HEARTBEAT_PERIOD;
+    this.heartbeatInterval = DEFAULT_HEARTBEAT_INTERVAL;
     this.maxBytesStreaming = DEFAULT_MAX_BYTES_STREAMING;
     this.libraryURL = DEFAULT_LIBRARY_URL;
   }
@@ -74,7 +74,7 @@ public class SockJSHandlerOptions {
   public SockJSHandlerOptions(JsonObject json) {
     this.sessionTimeout = json.getLong("sessionTimeout", DEFAULT_SESSION_TIMEOUT);
     this.insertJSESSIONID = json.getBoolean("insertJSESSIONID", DEFAULT_INSERT_JSESSIONID);
-    this.heartbeatPeriod = json.getLong("heartbeatPeriod", DEFAULT_HEARTBEAT_PERIOD);
+    this.heartbeatInterval = json.getLong("heartbeatInterval", DEFAULT_HEARTBEAT_INTERVAL);
     this.maxBytesStreaming = json.getInteger("maxBytesStreaming", DEFAULT_MAX_BYTES_STREAMING);
     this.libraryURL = json.getString("libraryURL", DEFAULT_LIBRARY_URL);
     JsonArray arr = json.getJsonArray("disabledTransports");
@@ -111,15 +111,15 @@ public class SockJSHandlerOptions {
     return this;
   }
 
-  public long getHeartbeatPeriod() {
-    return heartbeatPeriod;
+  public long getHeartbeatInterval() {
+    return heartbeatInterval;
   }
 
-  public SockJSHandlerOptions setHeartbeatPeriod(long heartbeatPeriod) {
-    if (heartbeatPeriod < 1) {
-      throw new IllegalArgumentException("heartbeatPeriod must be > 0");
+  public SockJSHandlerOptions setHeartbeatInterval(long heartbeatInterval) {
+    if (heartbeatInterval < 1) {
+      throw new IllegalArgumentException("heartbeatInterval must be > 0");
     }
-    this.heartbeatPeriod = heartbeatPeriod;
+    this.heartbeatInterval = heartbeatInterval;
     return this;
   }
 
