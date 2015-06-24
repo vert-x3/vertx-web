@@ -1972,7 +1972,7 @@ var options = {
 
 var sockJSHandler = SockJSHandler.create(vertx, options);
 
-router.route("/myapp").handler(sockJSHandler.handle);
+router.route("/myapp/*").handler(sockJSHandler.handle);
 
 ----
 
@@ -2007,7 +2007,7 @@ sockJSHandler.socketHandler(function (sockJSSocket) {
   sockJSSocket.handler(sockJSSocket.write);
 });
 
-router.route("/myapp").handler(sockJSHandler.handle);
+router.route("/myapp/*").handler(sockJSHandler.handle);
 
 ----
 

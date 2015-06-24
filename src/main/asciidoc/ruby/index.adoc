@@ -1972,7 +1972,7 @@ options = {
 
 sockJSHandler = VertxWeb::SockJSHandler.create(vertx, options)
 
-router.route("/myapp").handler(&sockJSHandler.method(:handle))
+router.route("/myapp/*").handler(&sockJSHandler.method(:handle))
 
 ----
 
@@ -2007,7 +2007,7 @@ sockJSHandler.socket_handler() { |sockJSSocket|
   sockJSSocket.handler(&sockJSSocket.method(:write))
 }
 
-router.route("/myapp").handler(&sockJSHandler.method(:handle))
+router.route("/myapp/*").handler(&sockJSHandler.method(:handle))
 
 ----
 

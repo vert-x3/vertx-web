@@ -841,7 +841,7 @@ public class Examples {
 
     SockJSHandler sockJSHandler = SockJSHandler.create(vertx, options);
 
-    router.route("/myapp").handler(sockJSHandler);
+    router.route("/myapp/*").handler(sockJSHandler);
   }
 
   public void example44(Vertx vertx) {
@@ -858,7 +858,7 @@ public class Examples {
       sockJSSocket.handler(sockJSSocket::write);
     });
 
-    router.route("/myapp").handler(sockJSHandler);
+    router.route("/myapp/*").handler(sockJSHandler);
   }
 
   public void example45(Vertx vertx) {

@@ -1976,7 +1976,7 @@ def options = [
 
 def sockJSHandler = SockJSHandler.create(vertx, options)
 
-router.route("/myapp").handler(sockJSHandler)
+router.route("/myapp/*").handler(sockJSHandler)
 
 ----
 
@@ -2011,7 +2011,7 @@ sockJSHandler.socketHandler({ sockJSSocket ->
   sockJSSocket.handler(sockJSSocket.&write)
 })
 
-router.route("/myapp").handler(sockJSHandler)
+router.route("/myapp/*").handler(sockJSHandler)
 
 ----
 

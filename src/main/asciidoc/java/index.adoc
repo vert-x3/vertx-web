@@ -1758,7 +1758,7 @@ SockJSHandlerOptions options = new SockJSHandlerOptions().setHeartbeatInterval(2
 
 SockJSHandler sockJSHandler = SockJSHandler.create(vertx, options);
 
-router.route("/myapp").handler(sockJSHandler);
+router.route("/myapp/*").handler(sockJSHandler);
 ----
 
 === Handling SockJS sockets
@@ -1787,7 +1787,7 @@ sockJSHandler.socketHandler(sockJSSocket -> {
   sockJSSocket.handler(sockJSSocket::write);
 });
 
-router.route("/myapp").handler(sockJSHandler);
+router.route("/myapp/*").handler(sockJSHandler);
 ----
 
 === The client side
