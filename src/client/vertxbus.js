@@ -48,12 +48,12 @@ var vertx = vertx || {};
     that.onclose = null;
     that.onerror = null;
 
-    that.send = function(address, message, replyHandler, failureHandler) {
-      sendOrPub("send", address, message, replyHandler, failureHandler)
+    that.send = function(address, message, headers, replyHandler, failureHandler) {
+      sendOrPub("send", address, message, headers, replyHandler, failureHandler)
     };
   
-    that.publish = function(address, message) {
-      sendOrPub("publish", address, message, null)
+    that.publish = function(address, message, headers) {
+      sendOrPub("publish", address, message, headers, null)
     };
   
     that.registerHandler = function(address, handler) {
@@ -177,13 +177,14 @@ var vertx = vertx || {};
       sockJSConn.send(JSON.stringify(msg));
     }
   
-    function sendOrPub(sendOrPub, address, message, replyHandler, failureHandler) {
+    function sendOrPub(sendOrPub, address, message, headers, replyHandler, failureHandler) {
       checkSpecified("address", 'string', address);
       checkSpecified("replyHandler", 'function', replyHandler, true);
       checkSpecified("failureHandler", 'function', failureHandler, true);
       checkOpen();
       var envelope = { type : sendOrPub,
                        address: address,
+                       headers: headers,
                        body: message };
       if (replyHandler || failureHandler) {
         var replyAddress = makeUUID();
