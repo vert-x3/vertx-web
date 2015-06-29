@@ -147,5 +147,5 @@ public class CookieHandlerTest extends WebTestBase {
     assertEquals("foo=bar; Path=/somepath; Domain=foo.com; Secure; HTTPOnly", cookie.encode());
   }
 
-  private final DateFormat dateTimeFormat = Utils.createISODateTimeFormatter();
+  private final DateFormat dateTimeFormat = Utils.createRFC1123DateTimeFormatter();
 }

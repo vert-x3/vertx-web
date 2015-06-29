@@ -47,7 +47,7 @@ public class StaticHandlerImpl implements StaticHandler {
 
   private static final Logger log = LoggerFactory.getLogger(StaticHandlerImpl.class);
 
-  private final DateFormat dateTimeFormatter = Utils.createISODateTimeFormatter();
+  private final DateFormat dateTimeFormatter = Utils.createRFC1123DateTimeFormatter();
   private Map<String, CacheEntry> propsCache;
   private String webRoot = DEFAULT_WEB_ROOT;
   private long maxAgeSeconds = DEFAULT_MAX_AGE_SECONDS; // One day

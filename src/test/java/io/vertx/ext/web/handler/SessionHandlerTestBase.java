@@ -243,6 +243,6 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
     assertTrue(rid.get().lastAccessed() - System.currentTimeMillis() < 500);
   }
 
-  private final DateFormat dateTimeFormatter = Utils.createISODateTimeFormatter();
+  private final DateFormat dateTimeFormatter = Utils.createRFC1123DateTimeFormatter();
 
 }

@@ -48,7 +48,7 @@ public class LoggerHandlerImpl implements LoggerHandler {
 
   /** The Date formatter (UTC JS compatible format)
    */
-  private final DateFormat dateTimeFormat = Utils.createISODateTimeFormatter();
+  private final DateFormat dateTimeFormat = Utils.createRFC1123DateTimeFormatter();
 
   /** log before request or after
    */

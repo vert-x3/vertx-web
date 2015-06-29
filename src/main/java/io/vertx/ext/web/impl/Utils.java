@@ -184,7 +184,7 @@ public class Utils extends io.vertx.core.impl.Utils {
     return list;
   }
 
-  public static DateFormat createISODateTimeFormatter() {
+  public static DateFormat createRFC1123DateTimeFormatter() {
     DateFormat dtf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.ENGLISH);
     dtf.setTimeZone(TimeZone.getTimeZone("UTC"));
     return dtf;

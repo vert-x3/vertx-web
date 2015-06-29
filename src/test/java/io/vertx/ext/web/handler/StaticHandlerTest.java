@@ -37,7 +37,7 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public class StaticHandlerTest extends WebTestBase {
 
-  private final DateFormat dateTimeFormatter = Utils.createISODateTimeFormatter();
+  private final DateFormat dateTimeFormatter = Utils.createRFC1123DateTimeFormatter();
 
   protected StaticHandler stat;
 
