@@ -60,6 +60,29 @@
  *
  * We'll discuss all these features in this manual.
  *
+ * == Using Vert.x Web
+ *
+ * To use vert.x web, add the following dependency to the _dependencies_ section of your build descriptor:
+ *
+ * * Maven (in your `pom.xml`):
+ *
+ * [source,xml,subs="+attributes"]
+ * ----
+ * <dependency>
+ *   <groupId>{maven-groupId}</groupId>
+ *   <artifactId>{maven-artifactId}</artifactId>
+ *   <version>{maven-version}</version>
+ * </dependency>
+ * ----
+ *
+ * * Gradle (in your `build.gradle` file):
+ *
+ * [source,groovy,subs="+attributes"]
+ * ----
+ * compile {maven-groupId}:{maven-artifactId}:{maven-version}
+ * ----
+ *
+ *
  * == Re-cap on Vert.x core HTTP servers
  *
  * Vert.x-Web uses and exposes the API from Vert.x core, so it's well worth getting familiar with the basic concepts of writing
