@@ -152,6 +152,13 @@
   </dependencies>
 
   <build>
+    <resources>
+      <resource>
+        <directory>${project.basedir}/src/client</directory>
+        <filtering>true</filtering>
+        <targetPath>${project.build.directory}/client</targetPath>
+      </resource>
+    </resources>
     <pluginManagement>
       <plugins>
         <plugin>
@@ -183,6 +190,38 @@
                   <type>js</type>
                 </artifact>
               </artifacts>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>com.github.eirslett</groupId>
+        <artifactId>frontend-maven-plugin</artifactId>
+        <version>0.0.24</version>
+        <executions>
+          <execution>
+            <id>install-node-and-npm</id>
+            <goals>
+              <goal>install-node-and-npm</goal>
+            </goals>
+            <phase>generate-resources</phase>
+            <configuration>
+              <nodeVersion>v0.12.6</nodeVersion>
+              <npmVersion>2.12.1</npmVersion>
+              <workingDirectory>${project.build.directory}/client</workingDirectory>
+              <installDirectory>${project.build.directory}/node</installDirectory>
+            </configuration>
+          </execution>
+          <execution>
+            <id>npm-install</id>
+            <goals>
+              <goal>npm</goal>
+            </goals>
+            <phase>process-resources</phase>
+            <configuration>
+              <arguments>install</arguments>
+              <workingDirectory>${project.build.directory}/client</workingDirectory>
             </configuration>
           </execution>
         </executions>
@@ -228,7 +267,5 @@
       </build>
     </profile>
   </profiles>
-
-
 
 </project>
