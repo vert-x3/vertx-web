@@ -22,10 +22,10 @@ import io.vertx.lang.groovy.InternalHelper
 */
 @CompileStatic
 public class HandlebarsTemplateEngine extends TemplateEngine {
-  final def io.vertx.ext.web.templ.HandlebarsTemplateEngine delegate;
-  public HandlebarsTemplateEngine(io.vertx.ext.web.templ.HandlebarsTemplateEngine delegate) {
-    super(delegate);
-    this.delegate = delegate;
+  private final def io.vertx.ext.web.templ.HandlebarsTemplateEngine delegate;
+  public HandlebarsTemplateEngine(Object delegate) {
+    super((io.vertx.ext.web.templ.HandlebarsTemplateEngine) delegate);
+    this.delegate = (io.vertx.ext.web.templ.HandlebarsTemplateEngine) delegate;
   }
   public Object getDelegate() {
     return delegate;
@@ -35,7 +35,7 @@ public class HandlebarsTemplateEngine extends TemplateEngine {
    * @return the engine
    */
   public static HandlebarsTemplateEngine create() {
-    def ret= InternalHelper.safeCreate(io.vertx.ext.web.templ.HandlebarsTemplateEngine.create(), io.vertx.ext.web.templ.HandlebarsTemplateEngine.class, io.vertx.groovy.ext.web.templ.HandlebarsTemplateEngine.class);
+    def ret= InternalHelper.safeCreate(io.vertx.ext.web.templ.HandlebarsTemplateEngine.create(), io.vertx.groovy.ext.web.templ.HandlebarsTemplateEngine.class);
     return ret;
   }
   /**
@@ -44,7 +44,7 @@ public class HandlebarsTemplateEngine extends TemplateEngine {
    * @return a reference to this for fluency
    */
   public HandlebarsTemplateEngine setExtension(String extension) {
-    def ret= InternalHelper.safeCreate(this.delegate.setExtension(extension), io.vertx.ext.web.templ.HandlebarsTemplateEngine.class, io.vertx.groovy.ext.web.templ.HandlebarsTemplateEngine.class);
+    def ret= InternalHelper.safeCreate(this.delegate.setExtension(extension), io.vertx.groovy.ext.web.templ.HandlebarsTemplateEngine.class);
     return ret;
   }
   /**
@@ -53,7 +53,7 @@ public class HandlebarsTemplateEngine extends TemplateEngine {
    * @return a reference to this for fluency
    */
   public HandlebarsTemplateEngine setMaxCacheSize(int maxCacheSize) {
-    def ret= InternalHelper.safeCreate(this.delegate.setMaxCacheSize(maxCacheSize), io.vertx.ext.web.templ.HandlebarsTemplateEngine.class, io.vertx.groovy.ext.web.templ.HandlebarsTemplateEngine.class);
+    def ret= InternalHelper.safeCreate(this.delegate.setMaxCacheSize(maxCacheSize), io.vertx.groovy.ext.web.templ.HandlebarsTemplateEngine.class);
     return ret;
   }
 }

@@ -30,9 +30,9 @@ import io.vertx.lang.groovy.InternalHelper
 */
 @CompileStatic
 public class Session {
-  final def io.vertx.ext.web.Session delegate;
-  public Session(io.vertx.ext.web.Session delegate) {
-    this.delegate = delegate;
+  private final def io.vertx.ext.web.Session delegate;
+  public Session(Object delegate) {
+    this.delegate = (io.vertx.ext.web.Session) delegate;
   }
   public Object getDelegate() {
     return delegate;

@@ -26,9 +26,9 @@ import io.vertx.core.Handler
 */
 @CompileStatic
 public class BodyHandler implements Handler<RoutingContext> {
-  final def io.vertx.ext.web.handler.BodyHandler delegate;
-  public BodyHandler(io.vertx.ext.web.handler.BodyHandler delegate) {
-    this.delegate = delegate;
+  private final def io.vertx.ext.web.handler.BodyHandler delegate;
+  public BodyHandler(Object delegate) {
+    this.delegate = (io.vertx.ext.web.handler.BodyHandler) delegate;
   }
   public Object getDelegate() {
     return delegate;
@@ -41,7 +41,7 @@ public class BodyHandler implements Handler<RoutingContext> {
    * @return the body handler
    */
   public static BodyHandler create() {
-    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.BodyHandler.create(), io.vertx.ext.web.handler.BodyHandler.class, io.vertx.groovy.ext.web.handler.BodyHandler.class);
+    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.BodyHandler.create(), io.vertx.groovy.ext.web.handler.BodyHandler.class);
     return ret;
   }
   /**

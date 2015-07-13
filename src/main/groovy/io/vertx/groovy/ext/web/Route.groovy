@@ -25,9 +25,9 @@ import io.vertx.core.Handler
 */
 @CompileStatic
 public class Route {
-  final def io.vertx.ext.web.Route delegate;
-  public Route(io.vertx.ext.web.Route delegate) {
-    this.delegate = delegate;
+  private final def io.vertx.ext.web.Route delegate;
+  public Route(Object delegate) {
+    this.delegate = (io.vertx.ext.web.Route) delegate;
   }
   public Object getDelegate() {
     return delegate;
@@ -68,7 +68,7 @@ public class Route {
    * @return a reference to this, so the API can be used fluently
    */
   public Route produces(String contentType) {
-    def ret= InternalHelper.safeCreate(this.delegate.produces(contentType), io.vertx.ext.web.Route.class, io.vertx.groovy.ext.web.Route.class);
+    def ret= InternalHelper.safeCreate(this.delegate.produces(contentType), io.vertx.groovy.ext.web.Route.class);
     return ret;
   }
   /**

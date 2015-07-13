@@ -25,9 +25,9 @@ import io.vertx.core.Handler
 */
 @CompileStatic
 public class CookieHandler implements Handler<RoutingContext> {
-  final def io.vertx.ext.web.handler.CookieHandler delegate;
-  public CookieHandler(io.vertx.ext.web.handler.CookieHandler delegate) {
-    this.delegate = delegate;
+  private final def io.vertx.ext.web.handler.CookieHandler delegate;
+  public CookieHandler(Object delegate) {
+    this.delegate = (io.vertx.ext.web.handler.CookieHandler) delegate;
   }
   public Object getDelegate() {
     return delegate;
@@ -40,7 +40,7 @@ public class CookieHandler implements Handler<RoutingContext> {
    * @return the cookie handler
    */
   public static CookieHandler create() {
-    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.CookieHandler.create(), io.vertx.ext.web.handler.CookieHandler.class, io.vertx.groovy.ext.web.handler.CookieHandler.class);
+    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.CookieHandler.create(), io.vertx.groovy.ext.web.handler.CookieHandler.class);
     return ret;
   }
 }

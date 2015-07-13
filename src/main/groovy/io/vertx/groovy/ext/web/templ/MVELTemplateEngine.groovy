@@ -22,10 +22,10 @@ import io.vertx.lang.groovy.InternalHelper
 */
 @CompileStatic
 public class MVELTemplateEngine extends TemplateEngine {
-  final def io.vertx.ext.web.templ.MVELTemplateEngine delegate;
-  public MVELTemplateEngine(io.vertx.ext.web.templ.MVELTemplateEngine delegate) {
-    super(delegate);
-    this.delegate = delegate;
+  private final def io.vertx.ext.web.templ.MVELTemplateEngine delegate;
+  public MVELTemplateEngine(Object delegate) {
+    super((io.vertx.ext.web.templ.MVELTemplateEngine) delegate);
+    this.delegate = (io.vertx.ext.web.templ.MVELTemplateEngine) delegate;
   }
   public Object getDelegate() {
     return delegate;
@@ -35,7 +35,7 @@ public class MVELTemplateEngine extends TemplateEngine {
    * @return the engine
    */
   public static MVELTemplateEngine create() {
-    def ret= InternalHelper.safeCreate(io.vertx.ext.web.templ.MVELTemplateEngine.create(), io.vertx.ext.web.templ.MVELTemplateEngine.class, io.vertx.groovy.ext.web.templ.MVELTemplateEngine.class);
+    def ret= InternalHelper.safeCreate(io.vertx.ext.web.templ.MVELTemplateEngine.create(), io.vertx.groovy.ext.web.templ.MVELTemplateEngine.class);
     return ret;
   }
   /**
@@ -44,7 +44,7 @@ public class MVELTemplateEngine extends TemplateEngine {
    * @return a reference to this for fluency
    */
   public MVELTemplateEngine setExtension(String extension) {
-    def ret= InternalHelper.safeCreate(this.delegate.setExtension(extension), io.vertx.ext.web.templ.MVELTemplateEngine.class, io.vertx.groovy.ext.web.templ.MVELTemplateEngine.class);
+    def ret= InternalHelper.safeCreate(this.delegate.setExtension(extension), io.vertx.groovy.ext.web.templ.MVELTemplateEngine.class);
     return ret;
   }
   /**
@@ -53,7 +53,7 @@ public class MVELTemplateEngine extends TemplateEngine {
    * @return a reference to this for fluency
    */
   public MVELTemplateEngine setMaxCacheSize(int maxCacheSize) {
-    def ret= InternalHelper.safeCreate(this.delegate.setMaxCacheSize(maxCacheSize), io.vertx.ext.web.templ.MVELTemplateEngine.class, io.vertx.groovy.ext.web.templ.MVELTemplateEngine.class);
+    def ret= InternalHelper.safeCreate(this.delegate.setMaxCacheSize(maxCacheSize), io.vertx.groovy.ext.web.templ.MVELTemplateEngine.class);
     return ret;
   }
 }

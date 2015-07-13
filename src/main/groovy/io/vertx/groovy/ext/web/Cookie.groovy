@@ -26,9 +26,9 @@ import io.vertx.lang.groovy.InternalHelper
 */
 @CompileStatic
 public class Cookie {
-  final def io.vertx.ext.web.Cookie delegate;
-  public Cookie(io.vertx.ext.web.Cookie delegate) {
-    this.delegate = delegate;
+  private final def io.vertx.ext.web.Cookie delegate;
+  public Cookie(Object delegate) {
+    this.delegate = (io.vertx.ext.web.Cookie) delegate;
   }
   public Object getDelegate() {
     return delegate;
@@ -40,7 +40,7 @@ public class Cookie {
    * @return the cookie
    */
   public static Cookie cookie(String name, String value) {
-    def ret= InternalHelper.safeCreate(io.vertx.ext.web.Cookie.cookie(name, value), io.vertx.ext.web.Cookie.class, io.vertx.groovy.ext.web.Cookie.class);
+    def ret= InternalHelper.safeCreate(io.vertx.ext.web.Cookie.cookie(name, value), io.vertx.groovy.ext.web.Cookie.class);
     return ret;
   }
   /**
@@ -112,7 +112,7 @@ public class Cookie {
    * @return 
    */
   public Cookie setMaxAge(long maxAge) {
-    def ret= InternalHelper.safeCreate(this.delegate.setMaxAge(maxAge), io.vertx.ext.web.Cookie.class, io.vertx.groovy.ext.web.Cookie.class);
+    def ret= InternalHelper.safeCreate(this.delegate.setMaxAge(maxAge), io.vertx.groovy.ext.web.Cookie.class);
     return ret;
   }
   /**
@@ -134,7 +134,7 @@ public class Cookie {
    * @return 
    */
   public Cookie setHttpOnly(boolean httpOnly) {
-    def ret= InternalHelper.safeCreate(this.delegate.setHttpOnly(httpOnly), io.vertx.ext.web.Cookie.class, io.vertx.groovy.ext.web.Cookie.class);
+    def ret= InternalHelper.safeCreate(this.delegate.setHttpOnly(httpOnly), io.vertx.groovy.ext.web.Cookie.class);
     return ret;
   }
   /**

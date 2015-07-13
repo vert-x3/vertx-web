@@ -32,9 +32,9 @@ import io.vertx.ext.web.handler.sockjs.BridgeOptions
 */
 @CompileStatic
 public class SockJSHandler implements Handler<RoutingContext> {
-  final def io.vertx.ext.web.handler.sockjs.SockJSHandler delegate;
-  public SockJSHandler(io.vertx.ext.web.handler.sockjs.SockJSHandler delegate) {
-    this.delegate = delegate;
+  private final def io.vertx.ext.web.handler.sockjs.SockJSHandler delegate;
+  public SockJSHandler(Object delegate) {
+    this.delegate = (io.vertx.ext.web.handler.sockjs.SockJSHandler) delegate;
   }
   public Object getDelegate() {
     return delegate;
@@ -48,7 +48,7 @@ public class SockJSHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static SockJSHandler create(Vertx vertx) {
-    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.sockjs.SockJSHandler.create((io.vertx.core.Vertx)vertx.getDelegate()), io.vertx.ext.web.handler.sockjs.SockJSHandler.class, io.vertx.groovy.ext.web.handler.sockjs.SockJSHandler.class);
+    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.sockjs.SockJSHandler.create((io.vertx.core.Vertx)vertx.getDelegate()), io.vertx.groovy.ext.web.handler.sockjs.SockJSHandler.class);
     return ret;
   }
   /**
@@ -58,7 +58,7 @@ public class SockJSHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static SockJSHandler create(Vertx vertx, Map<String, Object> options) {
-    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.sockjs.SockJSHandler.create((io.vertx.core.Vertx)vertx.getDelegate(), options != null ? new io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions(new io.vertx.core.json.JsonObject(options)) : null), io.vertx.ext.web.handler.sockjs.SockJSHandler.class, io.vertx.groovy.ext.web.handler.sockjs.SockJSHandler.class);
+    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.sockjs.SockJSHandler.create((io.vertx.core.Vertx)vertx.getDelegate(), options != null ? new io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions(new io.vertx.core.json.JsonObject(options)) : null), io.vertx.groovy.ext.web.handler.sockjs.SockJSHandler.class);
     return ret;
   }
   /**

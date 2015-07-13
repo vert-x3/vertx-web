@@ -70,12 +70,12 @@ public class SockJSSocket implements ReadStream<Buffer>,  WriteStream<Buffer> {
   }
 
   public SockJSSocket exceptionHandler(Handler<Throwable> handler) { 
-    this.delegate.exceptionHandler(handler);
+    ( /* Work around for https://jira.codehaus.org/browse/GROOVY-6970 */ (io.vertx.ext.web.handler.sockjs.SockJSSocket) delegate).exceptionHandler(handler);
     return this;
   }
 
   public SockJSSocket handler(Handler<Buffer> handler) { 
-    this.delegate.handler(new Handler<io.vertx.core.buffer.Buffer>() {
+    ( /* Work around for https://jira.codehaus.org/browse/GROOVY-6970 */ (io.vertx.ext.web.handler.sockjs.SockJSSocket) delegate).handler(new Handler<io.vertx.core.buffer.Buffer>() {
       public void handle(io.vertx.core.buffer.Buffer event) {
         handler.handle(new Buffer(event));
       }
@@ -84,32 +84,32 @@ public class SockJSSocket implements ReadStream<Buffer>,  WriteStream<Buffer> {
   }
 
   public SockJSSocket pause() { 
-    this.delegate.pause();
+    ( /* Work around for https://jira.codehaus.org/browse/GROOVY-6970 */ (io.vertx.ext.web.handler.sockjs.SockJSSocket) delegate).pause();
     return this;
   }
 
   public SockJSSocket resume() { 
-    this.delegate.resume();
+    ( /* Work around for https://jira.codehaus.org/browse/GROOVY-6970 */ (io.vertx.ext.web.handler.sockjs.SockJSSocket) delegate).resume();
     return this;
   }
 
   public SockJSSocket endHandler(Handler<Void> endHandler) { 
-    this.delegate.endHandler(endHandler);
+    ( /* Work around for https://jira.codehaus.org/browse/GROOVY-6970 */ (io.vertx.ext.web.handler.sockjs.SockJSSocket) delegate).endHandler(endHandler);
     return this;
   }
 
   public SockJSSocket write(Buffer data) { 
-    this.delegate.write((io.vertx.core.buffer.Buffer) data.getDelegate());
+    ( /* Work around for https://jira.codehaus.org/browse/GROOVY-6970 */ (io.vertx.ext.web.handler.sockjs.SockJSSocket) delegate).write((io.vertx.core.buffer.Buffer) data.getDelegate());
     return this;
   }
 
   public SockJSSocket setWriteQueueMaxSize(int maxSize) { 
-    this.delegate.setWriteQueueMaxSize(maxSize);
+    ( /* Work around for https://jira.codehaus.org/browse/GROOVY-6970 */ (io.vertx.ext.web.handler.sockjs.SockJSSocket) delegate).setWriteQueueMaxSize(maxSize);
     return this;
   }
 
   public SockJSSocket drainHandler(Handler<Void> handler) { 
-    this.delegate.drainHandler(handler);
+    ( /* Work around for https://jira.codehaus.org/browse/GROOVY-6970 */ (io.vertx.ext.web.handler.sockjs.SockJSSocket) delegate).drainHandler(handler);
     return this;
   }
 

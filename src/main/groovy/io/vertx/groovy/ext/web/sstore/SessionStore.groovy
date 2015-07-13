@@ -25,9 +25,9 @@ import io.vertx.core.Handler
 */
 @CompileStatic
 public class SessionStore {
-  final def io.vertx.ext.web.sstore.SessionStore delegate;
-  public SessionStore(io.vertx.ext.web.sstore.SessionStore delegate) {
-    this.delegate = delegate;
+  private final def io.vertx.ext.web.sstore.SessionStore delegate;
+  public SessionStore(Object delegate) {
+    this.delegate = (io.vertx.ext.web.sstore.SessionStore) delegate;
   }
   public Object getDelegate() {
     return delegate;
@@ -38,7 +38,7 @@ public class SessionStore {
    * @return the session
    */
   public Session createSession(long timeout) {
-    def ret= InternalHelper.safeCreate(this.delegate.createSession(timeout), io.vertx.ext.web.Session.class, io.vertx.groovy.ext.web.Session.class);
+    def ret= InternalHelper.safeCreate(this.delegate.createSession(timeout), io.vertx.groovy.ext.web.Session.class);
     return ret;
   }
   /**

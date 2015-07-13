@@ -24,9 +24,9 @@ import io.vertx.core.Handler
 */
 @CompileStatic
 public class StaticHandler implements Handler<RoutingContext> {
-  final def io.vertx.ext.web.handler.StaticHandler delegate;
-  public StaticHandler(io.vertx.ext.web.handler.StaticHandler delegate) {
-    this.delegate = delegate;
+  private final def io.vertx.ext.web.handler.StaticHandler delegate;
+  public StaticHandler(Object delegate) {
+    this.delegate = (io.vertx.ext.web.handler.StaticHandler) delegate;
   }
   public Object getDelegate() {
     return delegate;
@@ -39,7 +39,7 @@ public class StaticHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static StaticHandler create() {
-    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.StaticHandler.create(), io.vertx.ext.web.handler.StaticHandler.class, io.vertx.groovy.ext.web.handler.StaticHandler.class);
+    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.StaticHandler.create(), io.vertx.groovy.ext.web.handler.StaticHandler.class);
     return ret;
   }
   /**
@@ -48,7 +48,7 @@ public class StaticHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static StaticHandler create(String root) {
-    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.StaticHandler.create(root), io.vertx.ext.web.handler.StaticHandler.class, io.vertx.groovy.ext.web.handler.StaticHandler.class);
+    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.StaticHandler.create(root), io.vertx.groovy.ext.web.handler.StaticHandler.class);
     return ret;
   }
   /**

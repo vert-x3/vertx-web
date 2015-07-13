@@ -23,9 +23,9 @@ import io.vertx.lang.groovy.InternalHelper
 */
 @CompileStatic
 public class FileUpload {
-  final def io.vertx.ext.web.FileUpload delegate;
-  public FileUpload(io.vertx.ext.web.FileUpload delegate) {
-    this.delegate = delegate;
+  private final def io.vertx.ext.web.FileUpload delegate;
+  public FileUpload(Object delegate) {
+    this.delegate = (io.vertx.ext.web.FileUpload) delegate;
   }
   public Object getDelegate() {
     return delegate;

@@ -27,10 +27,10 @@ import io.vertx.groovy.core.Future
 */
 @CompileStatic
 public class BridgeEvent extends Future<Boolean> {
-  final def io.vertx.ext.web.handler.sockjs.BridgeEvent delegate;
-  public BridgeEvent(io.vertx.ext.web.handler.sockjs.BridgeEvent delegate) {
-    super(delegate);
-    this.delegate = delegate;
+  private final def io.vertx.ext.web.handler.sockjs.BridgeEvent delegate;
+  public BridgeEvent(Object delegate) {
+    super((io.vertx.ext.web.handler.sockjs.BridgeEvent) delegate);
+    this.delegate = (io.vertx.ext.web.handler.sockjs.BridgeEvent) delegate;
   }
   public Object getDelegate() {
     return delegate;
@@ -68,7 +68,7 @@ public class BridgeEvent extends Future<Boolean> {
     if (cached_2 != null) {
       return cached_2;
     }
-    def ret= InternalHelper.safeCreate(this.delegate.socket(), io.vertx.ext.web.handler.sockjs.SockJSSocket.class, io.vertx.groovy.ext.web.handler.sockjs.SockJSSocket.class);
+    def ret= InternalHelper.safeCreate(this.delegate.socket(), io.vertx.groovy.ext.web.handler.sockjs.SockJSSocket.class);
     cached_2 = ret;
     return ret;
   }

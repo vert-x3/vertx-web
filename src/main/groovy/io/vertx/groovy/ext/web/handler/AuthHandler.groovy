@@ -37,9 +37,9 @@ public interface AuthHandler extends Handler<RoutingContext> {
 
 @CompileStatic
 class AuthHandlerImpl implements AuthHandler {
-  final def io.vertx.ext.web.handler.AuthHandler delegate;
-  public AuthHandlerImpl(io.vertx.ext.web.handler.AuthHandler delegate) {
-    this.delegate = delegate;
+  private final def io.vertx.ext.web.handler.AuthHandler delegate;
+  public AuthHandlerImpl(Object delegate) {
+    this.delegate = (io.vertx.ext.web.handler.AuthHandler) delegate;
   }
   public Object getDelegate() {
     return delegate;

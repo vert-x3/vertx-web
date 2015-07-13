@@ -51,12 +51,12 @@ public class StaticDirectoryListHandlerTest extends WebTestBase {
     testRequest(HttpMethod.GET, "/a/b/", req -> {
       req.putHeader("Accept", "text/html");
     }, null, 200, "OK", "<html>\n" +
-      "<body>\n" +
-      "<h1>Custom Index of /a/b/</h1>\n" +
-      "<a href=\"/a/\">..</a>\n" +
-      "<ul id=\"files\"><li><a href=\"/a/b/test.txt\" title=\"test.txt\">test.txt</a></li></ul>\n" +
-      "</body>\n" +
-      "</html>");
+        "<body>\n" +
+        "<h1>Custom Index of /a/b/</h1>\n" +
+        "<a href=\"/a/\">..</a>\n" +
+        "<ul id=\"files\"><li><a href=\"/a/b/test.txt\" title=\"test.txt\">test.txt</a></li></ul>\n" +
+        "</body>\n" +
+        "</html>");
   }
 
   @Test
@@ -64,11 +64,37 @@ public class StaticDirectoryListHandlerTest extends WebTestBase {
     testRequest(HttpMethod.GET, "/", req -> {
       req.putHeader("Accept", "text/html");
     }, null, 200, "OK", "<html>\n" +
-      "<body>\n" +
-      "<h1>Custom Index of /</h1>\n" +
-      "<a href=\"/\">..</a>\n" +
-      "<ul id=\"files\"><li><a href=\"/.hidden.html\" title=\".hidden.html\">.hidden.html</a></li><li><a href=\"/a\" title=\"a\">a</a></li><li><a href=\"/file with spaces.html\" title=\"file with spaces.html\">file with spaces.html</a></li><li><a href=\"/foo.json\" title=\"foo.json\">foo.json</a></li><li><a href=\"/index.html\" title=\"index.html\">index.html</a></li><li><a href=\"/otherpage.html\" title=\"otherpage.html\">otherpage.html</a></li><li><a href=\"/somedir\" title=\"somedir\">somedir</a></li><li><a href=\"/somedir2\" title=\"somedir2\">somedir2</a></li></ul>\n" +
-      "</body>\n" +
-      "</html>");
+        "<body>\n" +
+        "<h1>Custom Index of /</h1>\n" +
+        "<a href=\"/\">..</a>\n" +
+        "<ul id=\"files\"><li><a href=\"/.hidden.html\" title=\".hidden.html\">.hidden.html</a></li><li><a href=\"/a\" title=\"a\">a</a></li><li><a href=\"/file with spaces.html\" title=\"file with spaces.html\">file with spaces.html</a></li><li><a href=\"/foo.json\" title=\"foo.json\">foo.json</a></li><li><a href=\"/index.html\" title=\"index.html\">index.html</a></li><li><a href=\"/otherpage.html\" title=\"otherpage.html\">otherpage.html</a></li><li><a href=\"/somedir\" title=\"somedir\">somedir</a></li><li><a href=\"/somedir2\" title=\"somedir2\">somedir2</a></li></ul>\n" +
+        "</body>\n" +
+        "</html>");
+  }
+
+  @Test
+  public void testGetDirectoryOnSubdirMount() throws Exception {
+    router.clear();
+    router.route("/c/*").handler(stat);
+
+    testRequest(HttpMethod.GET, "/c/a/b/", req -> {
+      req.putHeader("Accept", "text/html");
+    }, null, 200, "OK", "<html>\n" +
+        "<body>\n" +
+        "<h1>Custom Index of /a/b/</h1>\n" +
+        "<a href=\"/a/\">..</a>\n" +
+        "<ul id=\"files\"><li><a href=\"/a/b/test.txt\" title=\"test.txt\">test.txt</a></li></ul>\n" +
+        "</body>\n" +
+        "</html>");
+  }
+
+  @Test
+  public void testGetDirectoryOnPrefixMount() throws Exception {
+    router.clear();
+    router.route("/c*").handler(stat);
+
+    testRequest(HttpMethod.GET, "/c/a/b/", req -> {
+      req.putHeader("Accept", "text/html");
+    }, null, 404, "Not Found", null);
   }
 }

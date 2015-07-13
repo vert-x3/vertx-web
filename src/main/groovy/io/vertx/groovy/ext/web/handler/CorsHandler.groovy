@@ -26,9 +26,9 @@ import io.vertx.core.Handler
 */
 @CompileStatic
 public class CorsHandler implements Handler<RoutingContext> {
-  final def io.vertx.ext.web.handler.CorsHandler delegate;
-  public CorsHandler(io.vertx.ext.web.handler.CorsHandler delegate) {
-    this.delegate = delegate;
+  private final def io.vertx.ext.web.handler.CorsHandler delegate;
+  public CorsHandler(Object delegate) {
+    this.delegate = (io.vertx.ext.web.handler.CorsHandler) delegate;
   }
   public Object getDelegate() {
     return delegate;
@@ -42,7 +42,7 @@ public class CorsHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static CorsHandler create(String allowedOriginPattern) {
-    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.CorsHandler.create(allowedOriginPattern), io.vertx.ext.web.handler.CorsHandler.class, io.vertx.groovy.ext.web.handler.CorsHandler.class);
+    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.CorsHandler.create(allowedOriginPattern), io.vertx.groovy.ext.web.handler.CorsHandler.class);
     return ret;
   }
   /**

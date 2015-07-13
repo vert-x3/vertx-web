@@ -25,9 +25,9 @@ import io.vertx.core.Handler
 */
 @CompileStatic
 public class ResponseTimeHandler implements Handler<RoutingContext> {
-  final def io.vertx.ext.web.handler.ResponseTimeHandler delegate;
-  public ResponseTimeHandler(io.vertx.ext.web.handler.ResponseTimeHandler delegate) {
-    this.delegate = delegate;
+  private final def io.vertx.ext.web.handler.ResponseTimeHandler delegate;
+  public ResponseTimeHandler(Object delegate) {
+    this.delegate = (io.vertx.ext.web.handler.ResponseTimeHandler) delegate;
   }
   public Object getDelegate() {
     return delegate;
@@ -40,7 +40,7 @@ public class ResponseTimeHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static ResponseTimeHandler create() {
-    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.ResponseTimeHandler.create(), io.vertx.ext.web.handler.ResponseTimeHandler.class, io.vertx.groovy.ext.web.handler.ResponseTimeHandler.class);
+    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.ResponseTimeHandler.create(), io.vertx.groovy.ext.web.handler.ResponseTimeHandler.class);
     return ret;
   }
 }

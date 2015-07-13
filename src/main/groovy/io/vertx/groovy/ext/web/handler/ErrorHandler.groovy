@@ -24,9 +24,9 @@ import io.vertx.core.Handler
 */
 @CompileStatic
 public class ErrorHandler implements Handler<RoutingContext> {
-  final def io.vertx.ext.web.handler.ErrorHandler delegate;
-  public ErrorHandler(io.vertx.ext.web.handler.ErrorHandler delegate) {
-    this.delegate = delegate;
+  private final def io.vertx.ext.web.handler.ErrorHandler delegate;
+  public ErrorHandler(Object delegate) {
+    this.delegate = (io.vertx.ext.web.handler.ErrorHandler) delegate;
   }
   public Object getDelegate() {
     return delegate;
@@ -39,7 +39,7 @@ public class ErrorHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static ErrorHandler create() {
-    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.ErrorHandler.create(), io.vertx.ext.web.handler.ErrorHandler.class, io.vertx.groovy.ext.web.handler.ErrorHandler.class);
+    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.ErrorHandler.create(), io.vertx.groovy.ext.web.handler.ErrorHandler.class);
     return ret;
   }
   /**
@@ -49,7 +49,7 @@ public class ErrorHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static ErrorHandler create(String errorTemplateName, boolean displayExceptionDetails) {
-    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.ErrorHandler.create(errorTemplateName, displayExceptionDetails), io.vertx.ext.web.handler.ErrorHandler.class, io.vertx.groovy.ext.web.handler.ErrorHandler.class);
+    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.ErrorHandler.create(errorTemplateName, displayExceptionDetails), io.vertx.groovy.ext.web.handler.ErrorHandler.class);
     return ret;
   }
   /**
@@ -58,7 +58,7 @@ public class ErrorHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static ErrorHandler create(boolean displayExceptionDetails) {
-    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.ErrorHandler.create(displayExceptionDetails), io.vertx.ext.web.handler.ErrorHandler.class, io.vertx.groovy.ext.web.handler.ErrorHandler.class);
+    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.ErrorHandler.create(displayExceptionDetails), io.vertx.groovy.ext.web.handler.ErrorHandler.class);
     return ret;
   }
   /**
@@ -67,7 +67,7 @@ public class ErrorHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static ErrorHandler create(String errorTemplateName) {
-    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.ErrorHandler.create(errorTemplateName), io.vertx.ext.web.handler.ErrorHandler.class, io.vertx.groovy.ext.web.handler.ErrorHandler.class);
+    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.ErrorHandler.create(errorTemplateName), io.vertx.groovy.ext.web.handler.ErrorHandler.class);
     return ret;
   }
 }

@@ -25,9 +25,9 @@ import io.vertx.core.Handler
 */
 @CompileStatic
 public class LoggerHandler implements Handler<RoutingContext> {
-  final def io.vertx.ext.web.handler.LoggerHandler delegate;
-  public LoggerHandler(io.vertx.ext.web.handler.LoggerHandler delegate) {
-    this.delegate = delegate;
+  private final def io.vertx.ext.web.handler.LoggerHandler delegate;
+  public LoggerHandler(Object delegate) {
+    this.delegate = (io.vertx.ext.web.handler.LoggerHandler) delegate;
   }
   public Object getDelegate() {
     return delegate;
@@ -40,7 +40,7 @@ public class LoggerHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static LoggerHandler create() {
-    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.LoggerHandler.create(), io.vertx.ext.web.handler.LoggerHandler.class, io.vertx.groovy.ext.web.handler.LoggerHandler.class);
+    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.LoggerHandler.create(), io.vertx.groovy.ext.web.handler.LoggerHandler.class);
     return ret;
   }
   /**
@@ -49,7 +49,7 @@ public class LoggerHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static LoggerHandler create(Format format) {
-    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.LoggerHandler.create(format), io.vertx.ext.web.handler.LoggerHandler.class, io.vertx.groovy.ext.web.handler.LoggerHandler.class);
+    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.LoggerHandler.create(format), io.vertx.groovy.ext.web.handler.LoggerHandler.class);
     return ret;
   }
   /**
@@ -59,7 +59,7 @@ public class LoggerHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static LoggerHandler create(boolean immediate, Format format) {
-    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.LoggerHandler.create(immediate, format), io.vertx.ext.web.handler.LoggerHandler.class, io.vertx.groovy.ext.web.handler.LoggerHandler.class);
+    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.LoggerHandler.create(immediate, format), io.vertx.groovy.ext.web.handler.LoggerHandler.class);
     return ret;
   }
 }

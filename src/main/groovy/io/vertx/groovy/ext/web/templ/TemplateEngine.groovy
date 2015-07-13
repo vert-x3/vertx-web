@@ -28,9 +28,9 @@ import io.vertx.core.Handler
 */
 @CompileStatic
 public class TemplateEngine {
-  final def io.vertx.ext.web.templ.TemplateEngine delegate;
-  public TemplateEngine(io.vertx.ext.web.templ.TemplateEngine delegate) {
-    this.delegate = delegate;
+  private final def io.vertx.ext.web.templ.TemplateEngine delegate;
+  public TemplateEngine(Object delegate) {
+    this.delegate = (io.vertx.ext.web.templ.TemplateEngine) delegate;
   }
   public Object getDelegate() {
     return delegate;

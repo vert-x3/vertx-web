@@ -27,9 +27,9 @@ import io.vertx.core.Handler
 */
 @CompileStatic
 public class TemplateHandler implements Handler<RoutingContext> {
-  final def io.vertx.ext.web.handler.TemplateHandler delegate;
-  public TemplateHandler(io.vertx.ext.web.handler.TemplateHandler delegate) {
-    this.delegate = delegate;
+  private final def io.vertx.ext.web.handler.TemplateHandler delegate;
+  public TemplateHandler(Object delegate) {
+    this.delegate = (io.vertx.ext.web.handler.TemplateHandler) delegate;
   }
   public Object getDelegate() {
     return delegate;
@@ -43,7 +43,7 @@ public class TemplateHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static TemplateHandler create(TemplateEngine engine) {
-    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.TemplateHandler.create((io.vertx.ext.web.templ.TemplateEngine)engine.getDelegate()), io.vertx.ext.web.handler.TemplateHandler.class, io.vertx.groovy.ext.web.handler.TemplateHandler.class);
+    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.TemplateHandler.create((io.vertx.ext.web.templ.TemplateEngine)engine.getDelegate()), io.vertx.groovy.ext.web.handler.TemplateHandler.class);
     return ret;
   }
   /**
@@ -54,7 +54,7 @@ public class TemplateHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static TemplateHandler create(TemplateEngine engine, String templateDirectory, String contentType) {
-    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.TemplateHandler.create((io.vertx.ext.web.templ.TemplateEngine)engine.getDelegate(), templateDirectory, contentType), io.vertx.ext.web.handler.TemplateHandler.class, io.vertx.groovy.ext.web.handler.TemplateHandler.class);
+    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.TemplateHandler.create((io.vertx.ext.web.templ.TemplateEngine)engine.getDelegate(), templateDirectory, contentType), io.vertx.groovy.ext.web.handler.TemplateHandler.class);
     return ret;
   }
 }

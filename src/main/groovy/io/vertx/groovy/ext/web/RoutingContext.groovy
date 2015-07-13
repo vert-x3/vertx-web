@@ -44,9 +44,9 @@ import io.vertx.core.Handler
 */
 @CompileStatic
 public class RoutingContext {
-  final def io.vertx.ext.web.RoutingContext delegate;
-  public RoutingContext(io.vertx.ext.web.RoutingContext delegate) {
-    this.delegate = delegate;
+  private final def io.vertx.ext.web.RoutingContext delegate;
+  public RoutingContext(Object delegate) {
+    this.delegate = (io.vertx.ext.web.RoutingContext) delegate;
   }
   public Object getDelegate() {
     return delegate;
@@ -59,7 +59,7 @@ public class RoutingContext {
     if (cached_0 != null) {
       return cached_0;
     }
-    def ret= InternalHelper.safeCreate(this.delegate.request(), io.vertx.core.http.HttpServerRequest.class, io.vertx.groovy.core.http.HttpServerRequest.class);
+    def ret= InternalHelper.safeCreate(this.delegate.request(), io.vertx.groovy.core.http.HttpServerRequest.class);
     cached_0 = ret;
     return ret;
   }
@@ -71,7 +71,7 @@ public class RoutingContext {
     if (cached_1 != null) {
       return cached_1;
     }
-    def ret= InternalHelper.safeCreate(this.delegate.response(), io.vertx.core.http.HttpServerResponse.class, io.vertx.groovy.core.http.HttpServerResponse.class);
+    def ret= InternalHelper.safeCreate(this.delegate.response(), io.vertx.groovy.core.http.HttpServerResponse.class);
     cached_1 = ret;
     return ret;
   }
@@ -121,7 +121,7 @@ public class RoutingContext {
    * @return 
    */
   public Vertx vertx() {
-    def ret= InternalHelper.safeCreate(this.delegate.vertx(), io.vertx.core.Vertx.class, io.vertx.groovy.core.Vertx.class);
+    def ret= InternalHelper.safeCreate(this.delegate.vertx(), io.vertx.groovy.core.Vertx.class);
     return ret;
   }
   /**
@@ -138,7 +138,7 @@ public class RoutingContext {
    * @return 
    */
   public Route currentRoute() {
-    def ret= InternalHelper.safeCreate(this.delegate.currentRoute(), io.vertx.ext.web.Route.class, io.vertx.groovy.ext.web.Route.class);
+    def ret= InternalHelper.safeCreate(this.delegate.currentRoute(), io.vertx.groovy.ext.web.Route.class);
     return ret;
   }
   /**
@@ -166,7 +166,7 @@ public class RoutingContext {
    * @return the cookie
    */
   public Cookie getCookie(String name) {
-    def ret= InternalHelper.safeCreate(this.delegate.getCookie(name), io.vertx.ext.web.Cookie.class, io.vertx.groovy.ext.web.Cookie.class);
+    def ret= InternalHelper.safeCreate(this.delegate.getCookie(name), io.vertx.groovy.ext.web.Cookie.class);
     return ret;
   }
   /**
@@ -186,7 +186,7 @@ public class RoutingContext {
    * @return the cookie, if it existed, or null
    */
   public Cookie removeCookie(String name) {
-    def ret= InternalHelper.safeCreate(this.delegate.removeCookie(name), io.vertx.ext.web.Cookie.class, io.vertx.groovy.ext.web.Cookie.class);
+    def ret= InternalHelper.safeCreate(this.delegate.removeCookie(name), io.vertx.groovy.ext.web.Cookie.class);
     return ret;
   }
   /**
@@ -241,7 +241,7 @@ public class RoutingContext {
    * @return 
    */
   public Buffer getBody() {
-    def ret= InternalHelper.safeCreate(this.delegate.getBody(), io.vertx.core.buffer.Buffer.class, io.vertx.groovy.core.buffer.Buffer.class);
+    def ret= InternalHelper.safeCreate(this.delegate.getBody(), io.vertx.groovy.core.buffer.Buffer.class);
     return ret;
   }
   /**
@@ -260,7 +260,7 @@ public class RoutingContext {
    * @return the session.
    */
   public Session session() {
-    def ret= InternalHelper.safeCreate(this.delegate.session(), io.vertx.ext.web.Session.class, io.vertx.groovy.ext.web.Session.class);
+    def ret= InternalHelper.safeCreate(this.delegate.session(), io.vertx.groovy.ext.web.Session.class);
     return ret;
   }
   /**
@@ -268,7 +268,7 @@ public class RoutingContext {
    * @return the user, or null if the current user is not authenticated.
    */
   public User user() {
-    def ret= InternalHelper.safeCreate(this.delegate.user(), io.vertx.ext.auth.User.class, io.vertx.groovy.ext.auth.User.class);
+    def ret= InternalHelper.safeCreate(this.delegate.user(), io.vertx.groovy.ext.auth.User.class);
     return ret;
   }
   /**

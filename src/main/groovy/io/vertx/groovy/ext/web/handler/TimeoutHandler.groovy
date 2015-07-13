@@ -25,9 +25,9 @@ import io.vertx.core.Handler
 */
 @CompileStatic
 public class TimeoutHandler implements Handler<RoutingContext> {
-  final def io.vertx.ext.web.handler.TimeoutHandler delegate;
-  public TimeoutHandler(io.vertx.ext.web.handler.TimeoutHandler delegate) {
-    this.delegate = delegate;
+  private final def io.vertx.ext.web.handler.TimeoutHandler delegate;
+  public TimeoutHandler(Object delegate) {
+    this.delegate = (io.vertx.ext.web.handler.TimeoutHandler) delegate;
   }
   public Object getDelegate() {
     return delegate;
@@ -40,7 +40,7 @@ public class TimeoutHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static TimeoutHandler create() {
-    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.TimeoutHandler.create(), io.vertx.ext.web.handler.TimeoutHandler.class, io.vertx.groovy.ext.web.handler.TimeoutHandler.class);
+    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.TimeoutHandler.create(), io.vertx.groovy.ext.web.handler.TimeoutHandler.class);
     return ret;
   }
   /**
@@ -49,7 +49,7 @@ public class TimeoutHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static TimeoutHandler create(long timeout) {
-    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.TimeoutHandler.create(timeout), io.vertx.ext.web.handler.TimeoutHandler.class, io.vertx.groovy.ext.web.handler.TimeoutHandler.class);
+    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.TimeoutHandler.create(timeout), io.vertx.groovy.ext.web.handler.TimeoutHandler.class);
     return ret;
   }
 }

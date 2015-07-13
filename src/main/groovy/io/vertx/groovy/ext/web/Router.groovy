@@ -30,9 +30,9 @@ import io.vertx.core.Handler
 */
 @CompileStatic
 public class Router {
-  final def io.vertx.ext.web.Router delegate;
-  public Router(io.vertx.ext.web.Router delegate) {
-    this.delegate = delegate;
+  private final def io.vertx.ext.web.Router delegate;
+  public Router(Object delegate) {
+    this.delegate = (io.vertx.ext.web.Router) delegate;
   }
   public Object getDelegate() {
     return delegate;
@@ -43,7 +43,7 @@ public class Router {
    * @return the router
    */
   public static Router router(Vertx vertx) {
-    def ret= InternalHelper.safeCreate(io.vertx.ext.web.Router.router((io.vertx.core.Vertx)vertx.getDelegate()), io.vertx.ext.web.Router.class, io.vertx.groovy.ext.web.Router.class);
+    def ret= InternalHelper.safeCreate(io.vertx.ext.web.Router.router((io.vertx.core.Vertx)vertx.getDelegate()), io.vertx.groovy.ext.web.Router.class);
     return ret;
   }
   /**
@@ -60,7 +60,7 @@ public class Router {
    * @return the route
    */
   public Route route() {
-    def ret= InternalHelper.safeCreate(this.delegate.route(), io.vertx.ext.web.Route.class, io.vertx.groovy.ext.web.Route.class);
+    def ret= InternalHelper.safeCreate(this.delegate.route(), io.vertx.groovy.ext.web.Route.class);
     return ret;
   }
   /**
@@ -70,7 +70,7 @@ public class Router {
    * @return the route
    */
   public Route route(HttpMethod method, String path) {
-    def ret= InternalHelper.safeCreate(this.delegate.route(method, path), io.vertx.ext.web.Route.class, io.vertx.groovy.ext.web.Route.class);
+    def ret= InternalHelper.safeCreate(this.delegate.route(method, path), io.vertx.groovy.ext.web.Route.class);
     return ret;
   }
   /**
@@ -79,7 +79,7 @@ public class Router {
    * @return the route
    */
   public Route route(String path) {
-    def ret= InternalHelper.safeCreate(this.delegate.route(path), io.vertx.ext.web.Route.class, io.vertx.groovy.ext.web.Route.class);
+    def ret= InternalHelper.safeCreate(this.delegate.route(path), io.vertx.groovy.ext.web.Route.class);
     return ret;
   }
   /**
@@ -89,7 +89,7 @@ public class Router {
    * @return the route
    */
   public Route routeWithRegex(HttpMethod method, String regex) {
-    def ret= InternalHelper.safeCreate(this.delegate.routeWithRegex(method, regex), io.vertx.ext.web.Route.class, io.vertx.groovy.ext.web.Route.class);
+    def ret= InternalHelper.safeCreate(this.delegate.routeWithRegex(method, regex), io.vertx.groovy.ext.web.Route.class);
     return ret;
   }
   /**
@@ -98,7 +98,7 @@ public class Router {
    * @return the route
    */
   public Route routeWithRegex(String regex) {
-    def ret= InternalHelper.safeCreate(this.delegate.routeWithRegex(regex), io.vertx.ext.web.Route.class, io.vertx.groovy.ext.web.Route.class);
+    def ret= InternalHelper.safeCreate(this.delegate.routeWithRegex(regex), io.vertx.groovy.ext.web.Route.class);
     return ret;
   }
   /**
@@ -106,7 +106,7 @@ public class Router {
    * @return the route
    */
   public Route get() {
-    def ret= InternalHelper.safeCreate(this.delegate.get(), io.vertx.ext.web.Route.class, io.vertx.groovy.ext.web.Route.class);
+    def ret= InternalHelper.safeCreate(this.delegate.get(), io.vertx.groovy.ext.web.Route.class);
     return ret;
   }
   /**
@@ -115,7 +115,7 @@ public class Router {
    * @return the route
    */
   public Route get(String path) {
-    def ret= InternalHelper.safeCreate(this.delegate.get(path), io.vertx.ext.web.Route.class, io.vertx.groovy.ext.web.Route.class);
+    def ret= InternalHelper.safeCreate(this.delegate.get(path), io.vertx.groovy.ext.web.Route.class);
     return ret;
   }
   /**
@@ -124,7 +124,7 @@ public class Router {
    * @return the route
    */
   public Route getWithRegex(String regex) {
-    def ret= InternalHelper.safeCreate(this.delegate.getWithRegex(regex), io.vertx.ext.web.Route.class, io.vertx.groovy.ext.web.Route.class);
+    def ret= InternalHelper.safeCreate(this.delegate.getWithRegex(regex), io.vertx.groovy.ext.web.Route.class);
     return ret;
   }
   /**
@@ -132,7 +132,7 @@ public class Router {
    * @return the route
    */
   public Route head() {
-    def ret= InternalHelper.safeCreate(this.delegate.head(), io.vertx.ext.web.Route.class, io.vertx.groovy.ext.web.Route.class);
+    def ret= InternalHelper.safeCreate(this.delegate.head(), io.vertx.groovy.ext.web.Route.class);
     return ret;
   }
   /**
@@ -141,7 +141,7 @@ public class Router {
    * @return the route
    */
   public Route head(String path) {
-    def ret= InternalHelper.safeCreate(this.delegate.head(path), io.vertx.ext.web.Route.class, io.vertx.groovy.ext.web.Route.class);
+    def ret= InternalHelper.safeCreate(this.delegate.head(path), io.vertx.groovy.ext.web.Route.class);
     return ret;
   }
   /**
@@ -150,7 +150,7 @@ public class Router {
    * @return the route
    */
   public Route headWithRegex(String regex) {
-    def ret= InternalHelper.safeCreate(this.delegate.headWithRegex(regex), io.vertx.ext.web.Route.class, io.vertx.groovy.ext.web.Route.class);
+    def ret= InternalHelper.safeCreate(this.delegate.headWithRegex(regex), io.vertx.groovy.ext.web.Route.class);
     return ret;
   }
   /**
@@ -158,7 +158,7 @@ public class Router {
    * @return the route
    */
   public Route options() {
-    def ret= InternalHelper.safeCreate(this.delegate.options(), io.vertx.ext.web.Route.class, io.vertx.groovy.ext.web.Route.class);
+    def ret= InternalHelper.safeCreate(this.delegate.options(), io.vertx.groovy.ext.web.Route.class);
     return ret;
   }
   /**
@@ -167,7 +167,7 @@ public class Router {
    * @return the route
    */
   public Route options(String path) {
-    def ret= InternalHelper.safeCreate(this.delegate.options(path), io.vertx.ext.web.Route.class, io.vertx.groovy.ext.web.Route.class);
+    def ret= InternalHelper.safeCreate(this.delegate.options(path), io.vertx.groovy.ext.web.Route.class);
     return ret;
   }
   /**
@@ -176,7 +176,7 @@ public class Router {
    * @return the route
    */
   public Route optionsWithRegex(String regex) {
-    def ret= InternalHelper.safeCreate(this.delegate.optionsWithRegex(regex), io.vertx.ext.web.Route.class, io.vertx.groovy.ext.web.Route.class);
+    def ret= InternalHelper.safeCreate(this.delegate.optionsWithRegex(regex), io.vertx.groovy.ext.web.Route.class);
     return ret;
   }
   /**
@@ -184,7 +184,7 @@ public class Router {
    * @return the route
    */
   public Route put() {
-    def ret= InternalHelper.safeCreate(this.delegate.put(), io.vertx.ext.web.Route.class, io.vertx.groovy.ext.web.Route.class);
+    def ret= InternalHelper.safeCreate(this.delegate.put(), io.vertx.groovy.ext.web.Route.class);
     return ret;
   }
   /**
@@ -193,7 +193,7 @@ public class Router {
    * @return the route
    */
   public Route put(String path) {
-    def ret= InternalHelper.safeCreate(this.delegate.put(path), io.vertx.ext.web.Route.class, io.vertx.groovy.ext.web.Route.class);
+    def ret= InternalHelper.safeCreate(this.delegate.put(path), io.vertx.groovy.ext.web.Route.class);
     return ret;
   }
   /**
@@ -202,7 +202,7 @@ public class Router {
    * @return the route
    */
   public Route putWithRegex(String regex) {
-    def ret= InternalHelper.safeCreate(this.delegate.putWithRegex(regex), io.vertx.ext.web.Route.class, io.vertx.groovy.ext.web.Route.class);
+    def ret= InternalHelper.safeCreate(this.delegate.putWithRegex(regex), io.vertx.groovy.ext.web.Route.class);
     return ret;
   }
   /**
@@ -210,7 +210,7 @@ public class Router {
    * @return the route
    */
   public Route post() {
-    def ret= InternalHelper.safeCreate(this.delegate.post(), io.vertx.ext.web.Route.class, io.vertx.groovy.ext.web.Route.class);
+    def ret= InternalHelper.safeCreate(this.delegate.post(), io.vertx.groovy.ext.web.Route.class);
     return ret;
   }
   /**
@@ -219,7 +219,7 @@ public class Router {
    * @return the route
    */
   public Route post(String path) {
-    def ret= InternalHelper.safeCreate(this.delegate.post(path), io.vertx.ext.web.Route.class, io.vertx.groovy.ext.web.Route.class);
+    def ret= InternalHelper.safeCreate(this.delegate.post(path), io.vertx.groovy.ext.web.Route.class);
     return ret;
   }
   /**
@@ -228,7 +228,7 @@ public class Router {
    * @return the route
    */
   public Route postWithRegex(String regex) {
-    def ret= InternalHelper.safeCreate(this.delegate.postWithRegex(regex), io.vertx.ext.web.Route.class, io.vertx.groovy.ext.web.Route.class);
+    def ret= InternalHelper.safeCreate(this.delegate.postWithRegex(regex), io.vertx.groovy.ext.web.Route.class);
     return ret;
   }
   /**
@@ -236,7 +236,7 @@ public class Router {
    * @return the route
    */
   public Route delete() {
-    def ret= InternalHelper.safeCreate(this.delegate.delete(), io.vertx.ext.web.Route.class, io.vertx.groovy.ext.web.Route.class);
+    def ret= InternalHelper.safeCreate(this.delegate.delete(), io.vertx.groovy.ext.web.Route.class);
     return ret;
   }
   /**
@@ -245,7 +245,7 @@ public class Router {
    * @return the route
    */
   public Route delete(String path) {
-    def ret= InternalHelper.safeCreate(this.delegate.delete(path), io.vertx.ext.web.Route.class, io.vertx.groovy.ext.web.Route.class);
+    def ret= InternalHelper.safeCreate(this.delegate.delete(path), io.vertx.groovy.ext.web.Route.class);
     return ret;
   }
   /**
@@ -254,7 +254,7 @@ public class Router {
    * @return the route
    */
   public Route deleteWithRegex(String regex) {
-    def ret= InternalHelper.safeCreate(this.delegate.deleteWithRegex(regex), io.vertx.ext.web.Route.class, io.vertx.groovy.ext.web.Route.class);
+    def ret= InternalHelper.safeCreate(this.delegate.deleteWithRegex(regex), io.vertx.groovy.ext.web.Route.class);
     return ret;
   }
   /**
@@ -262,7 +262,7 @@ public class Router {
    * @return the route
    */
   public Route trace() {
-    def ret= InternalHelper.safeCreate(this.delegate.trace(), io.vertx.ext.web.Route.class, io.vertx.groovy.ext.web.Route.class);
+    def ret= InternalHelper.safeCreate(this.delegate.trace(), io.vertx.groovy.ext.web.Route.class);
     return ret;
   }
   /**
@@ -271,7 +271,7 @@ public class Router {
    * @return the route
    */
   public Route trace(String path) {
-    def ret= InternalHelper.safeCreate(this.delegate.trace(path), io.vertx.ext.web.Route.class, io.vertx.groovy.ext.web.Route.class);
+    def ret= InternalHelper.safeCreate(this.delegate.trace(path), io.vertx.groovy.ext.web.Route.class);
     return ret;
   }
   /**
@@ -280,7 +280,7 @@ public class Router {
    * @return the route
    */
   public Route traceWithRegex(String regex) {
-    def ret= InternalHelper.safeCreate(this.delegate.traceWithRegex(regex), io.vertx.ext.web.Route.class, io.vertx.groovy.ext.web.Route.class);
+    def ret= InternalHelper.safeCreate(this.delegate.traceWithRegex(regex), io.vertx.groovy.ext.web.Route.class);
     return ret;
   }
   /**
@@ -288,7 +288,7 @@ public class Router {
    * @return the route
    */
   public Route connect() {
-    def ret= InternalHelper.safeCreate(this.delegate.connect(), io.vertx.ext.web.Route.class, io.vertx.groovy.ext.web.Route.class);
+    def ret= InternalHelper.safeCreate(this.delegate.connect(), io.vertx.groovy.ext.web.Route.class);
     return ret;
   }
   /**
@@ -297,7 +297,7 @@ public class Router {
    * @return the route
    */
   public Route connect(String path) {
-    def ret= InternalHelper.safeCreate(this.delegate.connect(path), io.vertx.ext.web.Route.class, io.vertx.groovy.ext.web.Route.class);
+    def ret= InternalHelper.safeCreate(this.delegate.connect(path), io.vertx.groovy.ext.web.Route.class);
     return ret;
   }
   /**
@@ -306,7 +306,7 @@ public class Router {
    * @return the route
    */
   public Route connectWithRegex(String regex) {
-    def ret= InternalHelper.safeCreate(this.delegate.connectWithRegex(regex), io.vertx.ext.web.Route.class, io.vertx.groovy.ext.web.Route.class);
+    def ret= InternalHelper.safeCreate(this.delegate.connectWithRegex(regex), io.vertx.groovy.ext.web.Route.class);
     return ret;
   }
   /**
@@ -314,7 +314,7 @@ public class Router {
    * @return the route
    */
   public Route patch() {
-    def ret= InternalHelper.safeCreate(this.delegate.patch(), io.vertx.ext.web.Route.class, io.vertx.groovy.ext.web.Route.class);
+    def ret= InternalHelper.safeCreate(this.delegate.patch(), io.vertx.groovy.ext.web.Route.class);
     return ret;
   }
   /**
@@ -323,7 +323,7 @@ public class Router {
    * @return the route
    */
   public Route patch(String path) {
-    def ret= InternalHelper.safeCreate(this.delegate.patch(path), io.vertx.ext.web.Route.class, io.vertx.groovy.ext.web.Route.class);
+    def ret= InternalHelper.safeCreate(this.delegate.patch(path), io.vertx.groovy.ext.web.Route.class);
     return ret;
   }
   /**
@@ -332,7 +332,7 @@ public class Router {
    * @return the route
    */
   public Route patchWithRegex(String regex) {
-    def ret= InternalHelper.safeCreate(this.delegate.patchWithRegex(regex), io.vertx.ext.web.Route.class, io.vertx.groovy.ext.web.Route.class);
+    def ret= InternalHelper.safeCreate(this.delegate.patchWithRegex(regex), io.vertx.groovy.ext.web.Route.class);
     return ret;
   }
   /**

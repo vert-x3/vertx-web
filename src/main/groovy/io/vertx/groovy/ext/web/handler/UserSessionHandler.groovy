@@ -32,9 +32,9 @@ import io.vertx.groovy.ext.auth.AuthProvider
 */
 @CompileStatic
 public class UserSessionHandler implements Handler<RoutingContext> {
-  final def io.vertx.ext.web.handler.UserSessionHandler delegate;
-  public UserSessionHandler(io.vertx.ext.web.handler.UserSessionHandler delegate) {
-    this.delegate = delegate;
+  private final def io.vertx.ext.web.handler.UserSessionHandler delegate;
+  public UserSessionHandler(Object delegate) {
+    this.delegate = (io.vertx.ext.web.handler.UserSessionHandler) delegate;
   }
   public Object getDelegate() {
     return delegate;
@@ -48,7 +48,7 @@ public class UserSessionHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static UserSessionHandler create(AuthProvider authProvider) {
-    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.UserSessionHandler.create((io.vertx.ext.auth.AuthProvider)authProvider.getDelegate()), io.vertx.ext.web.handler.UserSessionHandler.class, io.vertx.groovy.ext.web.handler.UserSessionHandler.class);
+    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.UserSessionHandler.create((io.vertx.ext.auth.AuthProvider)authProvider.getDelegate()), io.vertx.groovy.ext.web.handler.UserSessionHandler.class);
     return ret;
   }
 }

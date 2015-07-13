@@ -32,9 +32,9 @@ import io.vertx.core.Handler
 */
 @CompileStatic
 public class SessionHandler implements Handler<RoutingContext> {
-  final def io.vertx.ext.web.handler.SessionHandler delegate;
-  public SessionHandler(io.vertx.ext.web.handler.SessionHandler delegate) {
-    this.delegate = delegate;
+  private final def io.vertx.ext.web.handler.SessionHandler delegate;
+  public SessionHandler(Object delegate) {
+    this.delegate = (io.vertx.ext.web.handler.SessionHandler) delegate;
   }
   public Object getDelegate() {
     return delegate;
@@ -48,7 +48,7 @@ public class SessionHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static SessionHandler create(SessionStore sessionStore) {
-    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.SessionHandler.create((io.vertx.ext.web.sstore.SessionStore)sessionStore.getDelegate()), io.vertx.ext.web.handler.SessionHandler.class, io.vertx.groovy.ext.web.handler.SessionHandler.class);
+    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.SessionHandler.create((io.vertx.ext.web.sstore.SessionStore)sessionStore.getDelegate()), io.vertx.groovy.ext.web.handler.SessionHandler.class);
     return ret;
   }
   /**
