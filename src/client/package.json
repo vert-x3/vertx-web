@@ -1,0 +1,13 @@
+{
+  "name": "vertx3-eventbus-client",
+  "author": "The Vert.x Team",
+  "version": "${project.version}",
+  "keywords": ["websockets", "websocket", "sockjs", "vert.x"],
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/vert-x3/vertx-web.git"
+  },
+  "main": "./vertxbus.js",
+  "description": "Vert.x 3 Event Bus Client as NPM",
+  "license": "Apache-2.0"
+}
