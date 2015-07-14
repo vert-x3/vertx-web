@@ -414,7 +414,7 @@ public class StaticHandlerImpl implements StaticHandler {
         }
 
         if (accept.contains("html")) {
-          String normalizedDir = dir.substring(webRoot.length());
+          String normalizedDir = context.normalisedPath();
           if (!normalizedDir.endsWith("/")) {
             normalizedDir += "/";
           }

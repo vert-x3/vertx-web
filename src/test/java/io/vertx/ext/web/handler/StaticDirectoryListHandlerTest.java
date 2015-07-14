@@ -81,9 +81,9 @@ public class StaticDirectoryListHandlerTest extends WebTestBase {
       req.putHeader("Accept", "text/html");
     }, null, 200, "OK", "<html>\n" +
         "<body>\n" +
-        "<h1>Custom Index of /a/b/</h1>\n" +
-        "<a href=\"/a/\">..</a>\n" +
-        "<ul id=\"files\"><li><a href=\"/a/b/test.txt\" title=\"test.txt\">test.txt</a></li></ul>\n" +
+        "<h1>Custom Index of /c/a/b/</h1>\n" +
+        "<a href=\"/c/a/\">..</a>\n" +
+        "<ul id=\"files\"><li><a href=\"/c/a/b/test.txt\" title=\"test.txt\">test.txt</a></li></ul>\n" +
         "</body>\n" +
         "</html>");
   }
