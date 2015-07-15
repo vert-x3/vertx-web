@@ -377,7 +377,7 @@ public class RouterTest extends WebTestBase {
       rc.response().write("bananas");
       rc.next();
     });
-    route.last(true);
+    route.last();
     route.handler(rc -> {
       rc.response().write("apples");
       rc.response().end();

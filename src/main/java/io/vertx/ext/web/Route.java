@@ -87,13 +87,12 @@ public interface Route {
   Route order(int order);
 
   /**
-   * Specify whether this is the last route for the router.
+   * Specify this is the last route for the router.
    *
-   * @param last  true if last
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
-  Route last(boolean last);
+  Route last();
 
   /**
    * Specify a request handler for the route. The router routes requests to handlers depending on whether the various
