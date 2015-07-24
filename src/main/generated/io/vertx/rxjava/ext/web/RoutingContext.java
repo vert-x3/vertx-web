@@ -111,6 +111,17 @@ public class RoutingContext {
   }
 
   /**
+   * Fail the context with the specified throwable.
+   * <p>
+   * This will cause the router to route the context to any matching failure handlers for the request. If no failure handlers
+   * match a default failure response with status code 500 will be sent.
+   * @param throwable a throwable representing the failure
+   */
+  public void fail(Throwable throwable) { 
+    this.delegate.fail(throwable);
+  }
+
+  /**
    * Put some arbitrary data in the context. This will be available in any handlers that receive the context.
    * @param key the key for the data
    * @param obj the data

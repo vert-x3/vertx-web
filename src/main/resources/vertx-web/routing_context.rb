@@ -6,6 +6,7 @@ require 'vertx-web/session'
 require 'vertx-auth-common/user'
 require 'vertx/buffer'
 require 'vertx/http_server_response'
+require 'vertx/vertx'
 require 'vertx/future'
 require 'vertx/util/utils.rb'
 # Generated from io.vertx.ext.web.RoutingContext
@@ -70,17 +71,22 @@ module VertxWeb
       end
       raise ArgumentError, "Invalid arguments when calling next()"
     end
-    #  Fail the context with the specified status code.
+    #  Fail the context with the specified throwable.
     #  <p>
     #  This will cause the router to route the context to any matching failure handlers for the request. If no failure handlers
-    #  match a default failure response will be sent.
-    # @param [Fixnum] statusCode the HTTP status code
+    #  match a default failure response with status code 500 will be sent.
+    # @overload fail(statusCode)
+    #   @param [Fixnum] statusCode the HTTP status code
+    # @overload fail(throwable)
+    #   @param [Exception] throwable a throwable representing the failure
     # @return [void]
-    def fail(statusCode=nil)
-      if statusCode.class == Fixnum && !block_given?
-        return @j_del.java_method(:fail, [Java::int.java_class]).call(statusCode)
+    def fail(param_1=nil)
+      if param_1.class == Fixnum && !block_given?
+        return @j_del.java_method(:fail, [Java::int.java_class]).call(param_1)
+      elsif param_1.is_a?(Exception) && !block_given?
+        return @j_del.java_method(:fail, [Java::JavaLang::Throwable.java_class]).call(::Vertx::Util::Utils.to_throwable(param_1))
       end
-      raise ArgumentError, "Invalid arguments when calling fail(statusCode)"
+      raise ArgumentError, "Invalid arguments when calling fail(param_1)"
     end
     #  Put some arbitrary data in the context. This will be available in any handlers that receive the context.
     # @param [String] key the key for the data

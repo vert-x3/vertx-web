@@ -93,7 +93,6 @@ public interface RoutingContext {
    *
    * @param throwable  a throwable representing the failure
    */
-  @GenIgnore
   void fail(Throwable throwable);
 
   /**

@@ -24,6 +24,7 @@ var Session = require('vertx-web-js/session');
 var User = require('vertx-auth-common-js/user');
 var Buffer = require('vertx-js/buffer');
 var HttpServerResponse = require('vertx-js/http_server_response');
+var Vertx = require('vertx-js/vertx');
 var Future = require('vertx-js/future');
 
 var io = Packages.io;
@@ -94,18 +95,20 @@ var RoutingContext = function(j_val) {
   };
 
   /**
-   Fail the context with the specified status code.
+   Fail the context with the specified throwable.
    <p>
    This will cause the router to route the context to any matching failure handlers for the request. If no failure handlers
-   match a default failure response will be sent.
+   match a default failure response with status code 500 will be sent.
 
    @public
-   @param statusCode {number} the HTTP status code 
+   @param throwable {todo} a throwable representing the failure 
    */
-  this.fail = function(statusCode) {
+  this.fail = function() {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] ==='number') {
-      j_routingContext["fail(int)"](statusCode);
+      j_routingContext["fail(int)"](__args[0]);
+    }  else if (__args.length === 1 && typeof __args[0] === 'object') {
+      j_routingContext["fail(java.lang.Throwable)"](utils.convParamThrowable(__args[0]));
     } else utils.invalidArgs();
   };
 
