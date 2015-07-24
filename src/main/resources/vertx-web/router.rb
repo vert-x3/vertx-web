@@ -1,5 +1,6 @@
 require 'vertx-web/route'
 require 'vertx/http_server_request'
+require 'vertx/vertx'
 require 'vertx-web/routing_context'
 require 'vertx/util/utils.rb'
 # Generated from io.vertx.ext.web.Router
@@ -286,7 +287,7 @@ module VertxWeb
     # @return [self]
     def exception_handler
       if block_given?
-        @j_del.java_method(:exceptionHandler, [Java::IoVertxCore::Handler.java_class]).call((Proc.new { |event| yield(event) }))
+        @j_del.java_method(:exceptionHandler, [Java::IoVertxCore::Handler.java_class]).call((Proc.new { |event| yield(::Vertx::Util::Utils.from_throwable(event)) }))
         return self
       end
       raise ArgumentError, "Invalid arguments when calling exception_handler()"

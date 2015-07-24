@@ -19,9 +19,9 @@ package io.vertx.rxjava.ext.web.handler;
 import java.util.Map;
 import io.vertx.lang.rxjava.InternalHelper;
 import rx.Observable;
-import io.vertx.ext.web.handler.LoggerHandler.Format;
 import io.vertx.rxjava.ext.web.RoutingContext;
 import io.vertx.core.Handler;
+import io.vertx.ext.web.handler.LoggerFormat;
 
 /**
  * A handler which logs request information to the Vert.x logger.
@@ -60,7 +60,7 @@ public class LoggerHandler implements Handler<RoutingContext> {
    * @param format the format
    * @return the handler
    */
-  public static LoggerHandler create(Format format) { 
+  public static LoggerHandler create(LoggerFormat format) { 
     LoggerHandler ret= LoggerHandler.newInstance(io.vertx.ext.web.handler.LoggerHandler.create(format));
     return ret;
   }
@@ -71,7 +71,7 @@ public class LoggerHandler implements Handler<RoutingContext> {
    * @param format the format
    * @return the handler
    */
-  public static LoggerHandler create(boolean immediate, Format format) { 
+  public static LoggerHandler create(boolean immediate, LoggerFormat format) { 
     LoggerHandler ret= LoggerHandler.newInstance(io.vertx.ext.web.handler.LoggerHandler.create(immediate, format));
     return ret;
   }

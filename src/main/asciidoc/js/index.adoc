@@ -2402,7 +2402,6 @@ Here's an example where we reject all messages flowing through the bridge if the
 ----
 var Router = require("vertx-web-js/router");
 var SockJSHandler = require("vertx-web-js/sock_js_handler");
-var BridgeEvent = require("vertx-web-js/bridge_event");
 
 var router = Router.router(vertx);
 
@@ -2419,7 +2418,7 @@ var options = {
 };
 
 sockJSHandler.bridge(options, function (be) {
-  if (be.type() === BridgeEvent.Type.PUBLISH || be.type() === BridgeEvent.Type.RECEIVE) {
+  if (be.type() === 'PUBLISH' || be.type() === 'RECEIVE') {
     if (be.rawMessage().body == "armadillos") {
       // Reject it
       be.complete(false);
@@ -2442,7 +2441,6 @@ also add headers to the message, here's an example:
 ----
 var Router = require("vertx-web-js/router");
 var SockJSHandler = require("vertx-web-js/sock_js_handler");
-var BridgeEvent = require("vertx-web-js/bridge_event");
 
 var router = Router.router(vertx);
 
@@ -2459,7 +2457,7 @@ var options = {
 };
 
 sockJSHandler.bridge(options, function (be) {
-  if (be.type() === BridgeEvent.Type.PUBLISH || be.type() === BridgeEvent.Type.SEND) {
+  if (be.type() === 'PUBLISH' || be.type() === 'SEND') {
     // Add some headers
     var headers = {
       "header1" : "val",

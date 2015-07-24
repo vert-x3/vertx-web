@@ -17,7 +17,7 @@
 package io.vertx.groovy.ext.web.handler.sockjs;
 import groovy.transform.CompileStatic
 import io.vertx.lang.groovy.InternalHelper
-import io.vertx.ext.web.handler.sockjs.BridgeEvent.Type
+import io.vertx.ext.web.handler.sockjs.BridgeEventType
 import io.vertx.core.json.JsonObject
 import io.vertx.groovy.core.Future
 /**
@@ -39,7 +39,7 @@ public class BridgeEvent extends Future<Boolean> {
    * @return  the type of the event
    * @return 
    */
-  public Type type() {
+  public BridgeEventType type() {
     if (cached_0 != null) {
       return cached_0;
     }
@@ -72,7 +72,7 @@ public class BridgeEvent extends Future<Boolean> {
     cached_2 = ret;
     return ret;
   }
-  private io.vertx.ext.web.handler.sockjs.BridgeEvent.Type cached_0;
+  private io.vertx.ext.web.handler.sockjs.BridgeEventType cached_0;
   private Map<String, Object> cached_1;
   private SockJSSocket cached_2;
 }

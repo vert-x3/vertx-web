@@ -21,25 +21,26 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.handler.sockjs.BridgeEvent;
+import io.vertx.ext.web.handler.sockjs.BridgeEventType;
 import io.vertx.ext.web.handler.sockjs.SockJSSocket;
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 class BridgeEventImpl implements BridgeEvent {
 
-  private final Type type;
+  private final BridgeEventType type;
   private final JsonObject rawMessage;
   private final SockJSSocket socket;
   private Future<Boolean> future;
 
-  public BridgeEventImpl(Type type, JsonObject rawMessage, SockJSSocket socket) {
+  public BridgeEventImpl(BridgeEventType type, JsonObject rawMessage, SockJSSocket socket) {
     this.type = type;
     this.rawMessage = rawMessage;
     this.socket = socket;
   }
 
   @Override
-  public Type type() {
+  public BridgeEventType type() {
     return type;
   }
 

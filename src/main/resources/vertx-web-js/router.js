@@ -18,6 +18,7 @@
 var utils = require('vertx-js/util/utils');
 var Route = require('vertx-web-js/route');
 var HttpServerRequest = require('vertx-js/http_server_request');
+var Vertx = require('vertx-js/vertx');
 var RoutingContext = require('vertx-web-js/routing_context');
 
 var io = Packages.io;
@@ -411,7 +412,7 @@ var Router = function(j_val) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'function') {
       j_router["exceptionHandler(io.vertx.core.Handler)"](function(jVal) {
-      exceptionHandler(utils.convReturnTypeUnknown(jVal));
+      exceptionHandler(utils.convReturnThrowable(jVal));
     });
       return that;
     } else utils.invalidArgs();

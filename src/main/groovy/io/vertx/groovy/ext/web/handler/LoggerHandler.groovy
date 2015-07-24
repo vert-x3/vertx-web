@@ -17,9 +17,9 @@
 package io.vertx.groovy.ext.web.handler;
 import groovy.transform.CompileStatic
 import io.vertx.lang.groovy.InternalHelper
-import io.vertx.ext.web.handler.LoggerHandler.Format
 import io.vertx.groovy.ext.web.RoutingContext
 import io.vertx.core.Handler
+import io.vertx.ext.web.handler.LoggerFormat
 /**
  * A handler which logs request information to the Vert.x logger.
 */
@@ -48,7 +48,7 @@ public class LoggerHandler implements Handler<RoutingContext> {
    * @param format the format
    * @return the handler
    */
-  public static LoggerHandler create(Format format) {
+  public static LoggerHandler create(LoggerFormat format) {
     def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.LoggerHandler.create(format), io.vertx.groovy.ext.web.handler.LoggerHandler.class);
     return ret;
   }
@@ -58,7 +58,7 @@ public class LoggerHandler implements Handler<RoutingContext> {
    * @param format the format
    * @return the handler
    */
-  public static LoggerHandler create(boolean immediate, Format format) {
+  public static LoggerHandler create(boolean immediate, LoggerFormat format) {
     def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.LoggerHandler.create(immediate, format), io.vertx.groovy.ext.web.handler.LoggerHandler.class);
     return ret;
   }

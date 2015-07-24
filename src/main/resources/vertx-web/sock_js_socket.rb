@@ -39,7 +39,7 @@ module VertxWeb
     # @return [self]
     def exception_handler
       if block_given?
-        @j_del.java_method(:exceptionHandler, [Java::IoVertxCore::Handler.java_class]).call((Proc.new { |event| yield(event) }))
+        @j_del.java_method(:exceptionHandler, [Java::IoVertxCore::Handler.java_class]).call((Proc.new { |event| yield(::Vertx::Util::Utils.from_throwable(event)) }))
         return self
       end
       raise ArgumentError, "Invalid arguments when calling exception_handler()"

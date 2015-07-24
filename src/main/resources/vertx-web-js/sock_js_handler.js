@@ -17,6 +17,7 @@
 /** @module vertx-web-js/sock_js_handler */
 var utils = require('vertx-js/util/utils');
 var SockJSSocket = require('vertx-web-js/sock_js_socket');
+var Vertx = require('vertx-js/vertx');
 var Router = require('vertx-web-js/router');
 var RoutingContext = require('vertx-web-js/routing_context');
 var BridgeEvent = require('vertx-web-js/bridge_event');
@@ -25,7 +26,6 @@ var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
 var JSockJSHandler = io.vertx.ext.web.handler.sockjs.SockJSHandler;
 var SockJSHandlerOptions = io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
-var BridgeOptions = io.vertx.ext.web.handler.sockjs.BridgeOptions;
 var BridgeOptions = io.vertx.ext.web.handler.sockjs.BridgeOptions;
 
 /**

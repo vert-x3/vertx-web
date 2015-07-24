@@ -963,7 +963,7 @@ public class Examples {
     BridgeOptions options = new BridgeOptions().addInboundPermitted(inboundPermitted);
 
     sockJSHandler.bridge(options, be -> {
-      if (be.type() == BridgeEvent.Type.PUBLISH || be.type() == BridgeEvent.Type.SEND) {
+      if (be.type() == BridgeEventType.PUBLISH || be.type() == BridgeEventType.SEND) {
         // Add some headers
         JsonObject headers = new JsonObject().put("header1", "val").put("header2", "val2");
         be.rawMessage().put("headers", headers);
@@ -987,7 +987,7 @@ public class Examples {
     BridgeOptions options = new BridgeOptions().addInboundPermitted(inboundPermitted);
 
     sockJSHandler.bridge(options, be -> {
-      if (be.type() == BridgeEvent.Type.PUBLISH || be.type() == BridgeEvent.Type.RECEIVE) {
+      if (be.type() == BridgeEventType.PUBLISH || be.type() == BridgeEventType.RECEIVE) {
         if (be.rawMessage().getString("body").equals("armadillos")) {
           // Reject it
           be.complete(false);

@@ -2402,7 +2402,6 @@ Here's an example where we reject all messages flowing through the bridge if the
 ----
 require 'vertx-web/router'
 require 'vertx-web/sock_js_handler'
-require 'vertx-web/bridge_event'
 
 router = VertxWeb::Router.router(vertx)
 
@@ -2419,7 +2418,7 @@ options = {
 }
 
 sockJSHandler.bridge(options) { |be|
-  if (be.type() == VertxWeb::BridgeEvent::Type::PUBLISH || be.type() == VertxWeb::BridgeEvent::Type::RECEIVE)
+  if (be.type() == :PUBLISH || be.type() == :RECEIVE)
     if (be.raw_message()['body'].==("armadillos"))
       # Reject it
       be.complete(false)
@@ -2442,7 +2441,6 @@ also add headers to the message, here's an example:
 ----
 require 'vertx-web/router'
 require 'vertx-web/sock_js_handler'
-require 'vertx-web/bridge_event'
 
 router = VertxWeb::Router.router(vertx)
 
@@ -2459,7 +2457,7 @@ options = {
 }
 
 sockJSHandler.bridge(options) { |be|
-  if (be.type() == VertxWeb::BridgeEvent::Type::PUBLISH || be.type() == VertxWeb::BridgeEvent::Type::SEND)
+  if (be.type() == :PUBLISH || be.type() == :SEND)
     # Add some headers
     headers = {
       'header1' => "val",

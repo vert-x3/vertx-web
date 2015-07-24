@@ -13,7 +13,6 @@
  *
  *  You may elect to redistribute this code under either of these licenses.
  */
-
 package io.vertx.ext.web.handler;
 
 import io.vertx.codegen.annotations.VertxGen;
@@ -25,12 +24,12 @@ import io.vertx.ext.web.RoutingContext;
  * A handler which logs request information to the Vert.x logger.
  *
  * @author <a href="http://tfox.org">Tim Fox</a>
- * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
+ * @author <a href="mailto:pmlopes@gmail.com">Paulo Lopes</a>
  */
 @VertxGen
 public interface LoggerHandler extends Handler<RoutingContext> {
 
-  Format DEFAULT_FORMAT = Format.DEFAULT;
+  LoggerFormat DEFAULT_FORMAT = LoggerFormat.DEFAULT;
 
   /**
    * Create a handler with default format
@@ -47,7 +46,7 @@ public interface LoggerHandler extends Handler<RoutingContext> {
    * @param format  the format
    * @return the handler
    */
-  static LoggerHandler create(Format format) {
+  static LoggerHandler create(LoggerFormat format) {
     return new LoggerHandlerImpl(format);
   }
 
@@ -58,16 +57,7 @@ public interface LoggerHandler extends Handler<RoutingContext> {
    * @param format  the format
    * @return the handler
    */
-  static LoggerHandler create(boolean immediate, Format format) {
+  static LoggerHandler create(boolean immediate, LoggerFormat format) {
     return new LoggerHandlerImpl(immediate, format);
-  }
-
-  /**
-   * The possible out of the box formats.
-   */
-  public enum Format {
-    DEFAULT,
-    SHORT,
-    TINY
   }
 }

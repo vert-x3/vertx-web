@@ -19,7 +19,7 @@ package io.vertx.rxjava.ext.web.handler.sockjs;
 import java.util.Map;
 import io.vertx.lang.rxjava.InternalHelper;
 import rx.Observable;
-import io.vertx.ext.web.handler.sockjs.BridgeEvent.Type;
+import io.vertx.ext.web.handler.sockjs.BridgeEventType;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava.core.Future;
 
@@ -49,11 +49,11 @@ public class BridgeEvent extends Future<Boolean> {
    * @return  the type of the event
    * @return 
    */
-  public Type type() { 
+  public BridgeEventType type() { 
     if (cached_0 != null) {
       return cached_0;
     }
-    Type ret = this.delegate.type();
+    BridgeEventType ret = this.delegate.type();
     cached_0 = ret;
     return ret;
   }
@@ -85,7 +85,7 @@ public class BridgeEvent extends Future<Boolean> {
     return ret;
   }
 
-  private io.vertx.ext.web.handler.sockjs.BridgeEvent.Type cached_0;
+  private io.vertx.ext.web.handler.sockjs.BridgeEventType cached_0;
   private io.vertx.core.json.JsonObject cached_1;
   private SockJSSocket cached_2;
 

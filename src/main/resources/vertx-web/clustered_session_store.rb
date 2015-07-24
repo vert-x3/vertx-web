@@ -1,4 +1,5 @@
 require 'vertx-web/session_store'
+require 'vertx/vertx'
 require 'vertx/util/utils.rb'
 # Generated from io.vertx.ext.web.sstore.ClusteredSessionStore
 module VertxWeb

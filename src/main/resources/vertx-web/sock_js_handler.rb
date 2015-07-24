@@ -1,4 +1,5 @@
 require 'vertx-web/sock_js_socket'
+require 'vertx/vertx'
 require 'vertx-web/router'
 require 'vertx-web/routing_context'
 require 'vertx-web/bridge_event'

@@ -21,6 +21,7 @@ import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpVersion;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.core.net.SocketAddress;
+import io.vertx.ext.web.handler.LoggerFormat;
 import io.vertx.ext.web.handler.LoggerHandler;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.impl.Utils;
@@ -56,14 +57,14 @@ public class LoggerHandlerImpl implements LoggerHandler {
 
   /** the current choosen format
    */
-  private final Format format;
+  private final LoggerFormat format;
 
-  public LoggerHandlerImpl(boolean immediate, Format format) {
+  public LoggerHandlerImpl(boolean immediate, LoggerFormat format) {
     this.immediate = immediate;
     this.format = format;
   }
 
-  public LoggerHandlerImpl(Format format) {
+  public LoggerHandlerImpl(LoggerFormat format) {
     this(false, format);
   }
 
@@ -163,9 +164,7 @@ public class LoggerHandlerImpl implements LoggerHandler {
     if (immediate) {
       log(context, timestamp, remoteClient, version, method, uri);
     } else {
-      context.addBodyEndHandler(v -> {
-        log(context, timestamp, remoteClient, version, method, uri);
-      });
+      context.addBodyEndHandler(v -> log(context, timestamp, remoteClient, version, method, uri));
     }
 
     context.next();

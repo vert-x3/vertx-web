@@ -41,10 +41,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.auth.User;
-import io.vertx.ext.web.handler.sockjs.BridgeEvent;
-import io.vertx.ext.web.handler.sockjs.BridgeOptions;
-import io.vertx.ext.web.handler.sockjs.PermittedOptions;
-import io.vertx.ext.web.handler.sockjs.SockJSSocket;
+import io.vertx.ext.web.handler.sockjs.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -92,7 +89,7 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
     // On close unregister any handlers that haven't been unregistered
     registrations.entrySet().forEach(entry -> {
       entry.getValue().unregister();
-      checkCallHook(() -> new BridgeEventImpl(BridgeEvent.Type.UNREGISTER, null, sock),
+      checkCallHook(() -> new BridgeEventImpl(BridgeEventType.UNREGISTER, null, sock),
         null, null);
     });
 
@@ -104,7 +101,7 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
       }
     }
 
-    checkCallHook(() -> new BridgeEventImpl(BridgeEvent.Type.SOCKET_CLOSED, null, sock),
+    checkCallHook(() -> new BridgeEventImpl(BridgeEventType.SOCKET_CLOSED, null, sock),
       null, null);
   }
 
@@ -184,7 +181,7 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
   }
 
   private void internalHandleSendOrPub(SockJSSocket sock, boolean send, JsonObject msg, String address) {
-    checkCallHook(() -> new BridgeEventImpl(send ? BridgeEvent.Type.SEND : BridgeEvent.Type.PUBLISH, msg, sock),
+    checkCallHook(() -> new BridgeEventImpl(send ? BridgeEventType.SEND : BridgeEventType.PUBLISH, msg, sock),
       () -> doSendOrPub(send, sock, address, msg), () -> replyError(sock, "rejected"));
   }
 
@@ -209,7 +206,7 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
     if (!checkMaxHandlers(sock, info)) {
       return;
     }
-    checkCallHook(() -> new BridgeEventImpl(BridgeEvent.Type.REGISTER, rawMsg, sock),
+    checkCallHook(() -> new BridgeEventImpl(BridgeEventType.REGISTER, rawMsg, sock),
       () -> {
         final boolean debug = log.isDebugEnabled();
         Match match = checkMatches(false, address, null);
@@ -258,7 +255,7 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
   }
 
   private void internalHandleUnregister(SockJSSocket sock, String address, JsonObject rawMsg, Map<String, MessageConsumer> registrations) {
-    checkCallHook(() -> new BridgeEventImpl(BridgeEvent.Type.UNREGISTER, rawMsg, sock),
+    checkCallHook(() -> new BridgeEventImpl(BridgeEventType.UNREGISTER, rawMsg, sock),
       () -> {
         Match match = checkMatches(false, address, null);
         if (match.doesMatch) {
@@ -285,7 +282,7 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
   }
 
   public void handle(final SockJSSocket sock) {
-    checkCallHook(() -> new BridgeEventImpl(BridgeEvent.Type.SOCKET_CREATED, null, sock),
+    checkCallHook(() -> new BridgeEventImpl(BridgeEventType.SOCKET_CREATED, null, sock),
       () -> {
         Map<String, MessageConsumer> registrations = new HashMap<>();
 
@@ -331,7 +328,7 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
     if (message.replyAddress() != null) {
       envelope.put("replyAddress", message.replyAddress());
     }
-    checkCallHook(() -> new BridgeEventImpl(BridgeEvent.Type.RECEIVE, envelope, sock),
+    checkCallHook(() -> new BridgeEventImpl(BridgeEventType.RECEIVE, envelope, sock),
       () -> sock.write(buffer(envelope.encode())),
       () -> log.debug("outbound message rejected by bridge event handler"));
   }

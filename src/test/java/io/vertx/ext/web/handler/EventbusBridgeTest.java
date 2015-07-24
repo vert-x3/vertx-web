@@ -24,10 +24,7 @@ import io.vertx.ext.auth.shiro.ShiroAuth;
 import io.vertx.ext.auth.shiro.ShiroAuthRealmType;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.WebTestBase;
-import io.vertx.ext.web.handler.sockjs.BridgeEvent;
-import io.vertx.ext.web.handler.sockjs.BridgeOptions;
-import io.vertx.ext.web.handler.sockjs.PermittedOptions;
-import io.vertx.ext.web.handler.sockjs.SockJSHandler;
+import io.vertx.ext.web.handler.sockjs.*;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import io.vertx.ext.web.sstore.SessionStore;
 import io.vertx.test.core.TestUtils;
@@ -61,7 +58,7 @@ public class EventbusBridgeTest extends WebTestBase {
   public void testHookCreateSocket() throws Exception {
 
     sockJSHandler.bridge(allAccessOptions, be -> {
-      if (be.type() == BridgeEvent.Type.SOCKET_CREATED) {
+      if (be.type() == BridgeEventType.SOCKET_CREATED) {
         assertNotNull(be.socket());
         assertNull(be.rawMessage());
         be.complete(true);
@@ -80,7 +77,7 @@ public class EventbusBridgeTest extends WebTestBase {
     CountDownLatch latch = new CountDownLatch(2);
 
     sockJSHandler.bridge(allAccessOptions, be -> {
-      if (be.type() == BridgeEvent.Type.SOCKET_CREATED) {
+      if (be.type() == BridgeEventType.SOCKET_CREATED) {
         be.complete(false);
         latch.countDown();
       } else {
@@ -101,7 +98,7 @@ public class EventbusBridgeTest extends WebTestBase {
   public void testHookSocketClosed() throws Exception {
 
     sockJSHandler.bridge(allAccessOptions, be -> {
-      if (be.type() == BridgeEvent.Type.SOCKET_CLOSED) {
+      if (be.type() == BridgeEventType.SOCKET_CLOSED) {
         assertNotNull(be.socket());
         assertNull(be.rawMessage());
         be.complete(true);
@@ -118,7 +115,7 @@ public class EventbusBridgeTest extends WebTestBase {
   public void testHookSend() throws Exception {
 
     sockJSHandler.bridge(allAccessOptions, be -> {
-      if (be.type() == BridgeEvent.Type.SEND) {
+      if (be.type() == BridgeEventType.SEND) {
         assertNotNull(be.socket());
         JsonObject raw = be.rawMessage();
         assertEquals(addr, raw.getString("address"));
@@ -137,7 +134,7 @@ public class EventbusBridgeTest extends WebTestBase {
   public void testHookSendHeaders() throws Exception {
 
     sockJSHandler.bridge(allAccessOptions, be -> {
-      if (be.type() == BridgeEvent.Type.SEND) {
+      if (be.type() == BridgeEventType.SEND) {
         assertNotNull(be.socket());
         JsonObject raw = be.rawMessage();
         assertEquals(addr, raw.getString("address"));
@@ -157,7 +154,7 @@ public class EventbusBridgeTest extends WebTestBase {
   public void testHookSendRejected() throws Exception {
 
     sockJSHandler.bridge(allAccessOptions, be -> {
-      if (be.type() == BridgeEvent.Type.SEND) {
+      if (be.type() == BridgeEventType.SEND) {
         be.complete(false);
         testComplete();
       } else {
@@ -173,7 +170,7 @@ public class EventbusBridgeTest extends WebTestBase {
   public void testHookPublish() throws Exception {
 
     sockJSHandler.bridge(allAccessOptions, be -> {
-      if (be.type() == BridgeEvent.Type.PUBLISH) {
+      if (be.type() == BridgeEventType.PUBLISH) {
         assertNotNull(be.socket());
         JsonObject raw = be.rawMessage();
         assertEquals(addr, raw.getString("address"));
@@ -192,7 +189,7 @@ public class EventbusBridgeTest extends WebTestBase {
   public void testHookPublishHeaders() throws Exception {
 
     sockJSHandler.bridge(allAccessOptions, be -> {
-      if (be.type() == BridgeEvent.Type.PUBLISH) {
+      if (be.type() == BridgeEventType.PUBLISH) {
         assertNotNull(be.socket());
         JsonObject raw = be.rawMessage();
         assertEquals(addr, raw.getString("address"));
@@ -212,7 +209,7 @@ public class EventbusBridgeTest extends WebTestBase {
   public void testHookPubRejected() throws Exception {
 
     sockJSHandler.bridge(allAccessOptions, be -> {
-      if (be.type() == BridgeEvent.Type.PUBLISH) {
+      if (be.type() == BridgeEventType.PUBLISH) {
         be.complete(false);
         testComplete();
       } else {
@@ -228,7 +225,7 @@ public class EventbusBridgeTest extends WebTestBase {
   public void testHookRegister() throws Exception {
 
     sockJSHandler.bridge(allAccessOptions, be -> {
-      if (be.type() == BridgeEvent.Type.REGISTER) {
+      if (be.type() == BridgeEventType.REGISTER) {
         assertNotNull(be.socket());
         JsonObject raw = be.rawMessage();
         assertEquals(addr, raw.getString("address"));
@@ -246,7 +243,7 @@ public class EventbusBridgeTest extends WebTestBase {
   public void testHookRegisterRejected() throws Exception {
 
     sockJSHandler.bridge(allAccessOptions, be -> {
-      if (be.type() == BridgeEvent.Type.REGISTER) {
+      if (be.type() == BridgeEventType.REGISTER) {
         be.complete(false);
         testComplete();
       } else {
@@ -262,7 +259,7 @@ public class EventbusBridgeTest extends WebTestBase {
   public void testHookReceive() throws Exception {
 
     sockJSHandler.bridge(allAccessOptions, be -> {
-      if (be.type() == BridgeEvent.Type.RECEIVE) {
+      if (be.type() == BridgeEventType.RECEIVE) {
         assertNotNull(be.socket());
         JsonObject raw = be.rawMessage();
         assertEquals(addr, raw.getString("address"));
@@ -281,7 +278,7 @@ public class EventbusBridgeTest extends WebTestBase {
   public void testHookReceiveRejected() throws Exception {
 
     sockJSHandler.bridge(allAccessOptions, be -> {
-      if (be.type() == BridgeEvent.Type.RECEIVE) {
+      if (be.type() == BridgeEventType.RECEIVE) {
         be.complete(false);
         testComplete();
       } else {
@@ -296,7 +293,7 @@ public class EventbusBridgeTest extends WebTestBase {
   public void testHookUnregister() throws Exception {
 
     sockJSHandler.bridge(allAccessOptions, be -> {
-      if (be.type() == BridgeEvent.Type.UNREGISTER) {
+      if (be.type() == BridgeEventType.UNREGISTER) {
         assertNotNull(be.socket());
         JsonObject raw = be.rawMessage();
         assertEquals(addr, raw.getString("address"));
@@ -314,7 +311,7 @@ public class EventbusBridgeTest extends WebTestBase {
   public void testHookUnregisterRejected() throws Exception {
 
     sockJSHandler.bridge(allAccessOptions, be -> {
-      if (be.type() == BridgeEvent.Type.UNREGISTER) {
+      if (be.type() == BridgeEventType.UNREGISTER) {
         be.complete(false);
         testComplete();
       } else {

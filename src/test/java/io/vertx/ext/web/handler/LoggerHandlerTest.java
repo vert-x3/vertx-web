@@ -42,13 +42,13 @@ public class LoggerHandlerTest extends WebTestBase {
 
   @Test
   public void testLogger2() throws Exception {
-    LoggerHandler logger = LoggerHandler.create(LoggerHandler.Format.TINY);
+    LoggerHandler logger = LoggerHandler.create(LoggerFormat.TINY);
     testLogger(logger);
   }
 
   @Test
   public void testLogger3() throws Exception {
-    LoggerHandler logger = LoggerHandler.create(true, LoggerHandler.Format.TINY);
+    LoggerHandler logger = LoggerHandler.create(true, LoggerFormat.TINY);
     testLogger(logger);
   }
 

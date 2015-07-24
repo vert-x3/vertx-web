@@ -31,15 +31,11 @@ import io.vertx.core.json.JsonObject;
 @VertxGen
 public interface BridgeEvent extends Future<Boolean> {
 
-  enum Type {
-    SOCKET_CREATED, SOCKET_CLOSED, SEND, PUBLISH, RECEIVE, REGISTER, UNREGISTER
-  }
-
   /**
    * @return  the type of the event
    */
   @CacheReturn
-  Type type();
+  BridgeEventType type();
 
   /**
    * Get the raw JSON message for the event. This will be null for SOCKET_CREATED or SOCKET_CLOSED events as there is

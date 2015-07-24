@@ -17,6 +17,7 @@
 /** @module vertx-web-js/clustered_session_store */
 var utils = require('vertx-js/util/utils');
 var SessionStore = require('vertx-web-js/session_store');
+var Vertx = require('vertx-js/vertx');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;

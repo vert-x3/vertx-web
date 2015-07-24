@@ -2405,7 +2405,7 @@ Here's an example where we reject all messages flowing through the bridge if the
 ----
 import io.vertx.groovy.ext.web.Router
 import io.vertx.groovy.ext.web.handler.sockjs.SockJSHandler
-import io.vertx.groovy.ext.web.handler.sockjs.BridgeEvent
+import io.vertx.ext.web.handler.sockjs.BridgeEventType
 
 def router = Router.router(vertx)
 
@@ -2422,7 +2422,7 @@ def options = [
 ]
 
 sockJSHandler.bridge(options, { be ->
-  if (be.type() == BridgeEvent.Type.PUBLISH || be.type() == BridgeEvent.Type.RECEIVE) {
+  if (be.type() == BridgeEventType.PUBLISH || be.type() == BridgeEventType.RECEIVE) {
     if (be.rawMessage().body == "armadillos") {
       // Reject it
       be.complete(false)
@@ -2445,7 +2445,7 @@ also add headers to the message, here's an example:
 ----
 import io.vertx.groovy.ext.web.Router
 import io.vertx.groovy.ext.web.handler.sockjs.SockJSHandler
-import io.vertx.groovy.ext.web.handler.sockjs.BridgeEvent
+import io.vertx.ext.web.handler.sockjs.BridgeEventType
 
 def router = Router.router(vertx)
 
@@ -2462,7 +2462,7 @@ def options = [
 ]
 
 sockJSHandler.bridge(options, { be ->
-  if (be.type() == BridgeEvent.Type.PUBLISH || be.type() == BridgeEvent.Type.SEND) {
+  if (be.type() == BridgeEventType.PUBLISH || be.type() == BridgeEventType.SEND) {
     // Add some headers
     def headers = [
       header1:"val",
