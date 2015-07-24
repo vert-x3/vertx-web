@@ -54,6 +54,7 @@
  * * Request timeout support
  * * SockJS support
  * * Event-bus bridge
+ * * CSRF Cross Site Request Forgery
  *
  * Most features in Vert.x-Web are implemented as handlers so you can always write your own. We envisage many more being written
  * over time.
@@ -1497,6 +1498,21 @@
  * [source,$lang]
  * ----
  * {@link examples.Examples#example48_1}
+ * ----
+ *
+ * == CSRF Cross Site Request Forgery
+ *
+ * CSRF or sometimes also known as XSRF is a technique by which an unauthorized site can gain your user's private data.
+ * Vert.x-Web includes a handler {@link io.vertx.ext.web.handler.CSRFHandler} that you can use to prevent cross site
+ * request forgery requests.
+ *
+ * On each get request under this handler a cookie is added to the response with a unique token. Clients are then
+ * expected to return this token back in a header. Since cookies are sent it is required that the cookie handler is also
+ * present on the router.
+ *
+ * [source,$lang]
+ * ----
+ * {@link examples.Examples#example54}
  * ----
  *
  */
