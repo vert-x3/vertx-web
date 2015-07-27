@@ -58,7 +58,7 @@ public class RouterImpl implements Router {
   public void accept(HttpServerRequest request) {
     if (log.isTraceEnabled()) log.trace("Router: " + System.identityHashCode(this) +
       " accepting request " + request.method() + " " + request.absoluteURI());
-    new RoutingContextImpl(null, this, request, routes.iterator()).next();
+    new RoutingContextImpl(null, this, request, routes).next();
   }
 
   @Override
@@ -234,12 +234,12 @@ public class RouterImpl implements Router {
 
   @Override
   public void handleContext(RoutingContext ctx) {
-    new RoutingContextWrapper(getAndCheckRoutePath(ctx), ctx.request(), routes.iterator(), ctx).next();
+    new RoutingContextWrapper(getAndCheckRoutePath(ctx), ctx.request(), routes, ctx).next();
   }
 
   @Override
   public void handleFailure(RoutingContext ctx) {
-    new RoutingContextWrapper(getAndCheckRoutePath(ctx), ctx.request(), routes.iterator(), ctx).next();
+    new RoutingContextWrapper(getAndCheckRoutePath(ctx), ctx.request(), routes, ctx).next();
   }
 
   @Override

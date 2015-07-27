@@ -24,6 +24,7 @@ import io.vertx.groovy.core.Future
 import io.vertx.groovy.ext.auth.User
 import io.vertx.groovy.core.buffer.Buffer
 import io.vertx.groovy.core.http.HttpServerResponse
+import io.vertx.core.http.HttpMethod
 import io.vertx.core.json.JsonObject
 import io.vertx.core.Handler
 /**
@@ -390,6 +391,9 @@ public class RoutingContext {
    */
   public void setAcceptableContentType(String contentType) {
     this.delegate.setAcceptableContentType(contentType);
+  }
+  public void reroute(HttpMethod method, String path) {
+    this.delegate.reroute(method, path);
   }
   private HttpServerRequest cached_0;
   private HttpServerResponse cached_1;

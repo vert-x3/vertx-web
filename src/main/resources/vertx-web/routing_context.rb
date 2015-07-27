@@ -372,5 +372,14 @@ module VertxWeb
       end
       raise ArgumentError, "Invalid arguments when calling set_acceptable_content_type(contentType)"
     end
+    # @param [:OPTIONS,:GET,:HEAD,:POST,:PUT,:DELETE,:TRACE,:CONNECT,:PATCH] method 
+    # @param [String] path 
+    # @return [void]
+    def reroute(method=nil,path=nil)
+      if method.class == Symbol && path.class == String && !block_given?
+        return @j_del.java_method(:reroute, [Java::IoVertxCoreHttp::HttpMethod.java_class,Java::java.lang.String.java_class]).call(Java::IoVertxCoreHttp::HttpMethod.valueOf(method),path)
+      end
+      raise ArgumentError, "Invalid arguments when calling reroute(method,path)"
+    end
   end
 end
