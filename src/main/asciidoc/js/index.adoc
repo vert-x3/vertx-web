@@ -1285,7 +1285,7 @@ from the session store and set on the routing context before it gets to your app
 
 === Using the session
 
-In your handlers you an access the session instance with `link:jsdoc/routing_context-RoutingContext.html#session[session]`.
+In your handlers you can access the session instance with `link:jsdoc/routing_context-RoutingContext.html#session[session]`.
 
 You put data into the session with `link:jsdoc/session-Session.html#put[put]`,
 you get data from the session with `link:jsdoc/session-Session.html#get[get]`, and you remove

@@ -1285,7 +1285,7 @@ from the session store and set on the routing context before it gets to your app
 
 === Using the session
 
-In your handlers you an access the session instance with `link:yardoc/VertxWeb/RoutingContext.html#session-instance_method[session]`.
+In your handlers you can access the session instance with `link:yardoc/VertxWeb/RoutingContext.html#session-instance_method[session]`.
 
 You put data into the session with `link:yardoc/VertxWeb/Session.html#put-instance_method[put]`,
 you get data from the session with `link:yardoc/VertxWeb/Session.html#get-instance_method[get]`, and you remove
