@@ -748,7 +748,7 @@
  *
  * === Using the session
  *
- * In your handlers you an access the session instance with {@link io.vertx.ext.web.RoutingContext#session()}.
+ * In your handlers you can access the session instance with {@link io.vertx.ext.web.RoutingContext#session()}.
  *
  * You put data into the session with {@link io.vertx.ext.web.Session#put(java.lang.String, java.lang.Object)},
  * you get data from the session with {@link io.vertx.ext.web.Session#get(java.lang.String)}, and you remove
