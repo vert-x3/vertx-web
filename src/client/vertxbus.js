@@ -24,6 +24,22 @@ var vertx = vertx || {};
     define('vertxbus', ['sockjs'], factory);
   } else {
     // No AMD-compliant loader
+    var root = this;
+    // Verify if there is a require function (maybe Node)
+    var has_require = typeof require !== 'undefined';
+    // Verify if SockJS is already in the global context
+    var SockJS = root.SockJS;
+
+    if (typeof SockJS === 'undefined') {
+      if (has_require) {
+        // try to load on Node or RequireJS
+        SockJS = require('sockjs-client');
+      } else {
+        // cannot continue
+        throw new Error('vertxbus.js requires sockjs-client, see http://sockjs.org');
+      }
+    }
+
     factory(SockJS);
   }
 }(function (SockJS) {
@@ -58,15 +74,15 @@ var vertx = vertx || {};
      */
     that.send = function (address, message, headers, replyHandler, failureHandler) {
       var arity = arguments.length;
-      
+
       if (arity < 2) {
         throw new Error('At least 2 arguments [address, message] are required!');
       }
-      
+
       if (arity === 2) {
         return sendOrPub('send', arguments[0], arguments[1])
       }
-      
+
       if (arity === 3) {
         if (isFunction(arguments[2])) {
           return sendOrPub('send', arguments[0], arguments[1], null, arguments[2]);
@@ -210,7 +226,7 @@ var vertx = vertx || {};
         if (handlers) {
           delete replyHandlers[address];
           var handler = handlers.replyHandler;
-          if (body !== undefined && body !== null) {
+          if (body) {
             handler(body, replyHandler);
           } else if (typeof json.failureCode != 'undefined') {
             // Check for failure
@@ -288,6 +304,13 @@ var vertx = vertx || {};
   vertx.EventBus.CLOSING = 2;
   vertx.EventBus.CLOSED = 3;
 
-  return vertx.EventBus;
-
+  if (typeof exports !== 'undefined') {
+    if (typeof module !== 'undefined' && module.exports) {
+      exports = module.exports = vertx.EventBus;
+    } else {
+      exports.EventBus = vertx.EventBus;
+    }
+  } else {
+    return vertx.EventBus;
+  }
 });
