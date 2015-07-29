@@ -1070,5 +1070,23 @@ public class Examples {
     });
   }
 
+  public void example55(Router router) {
+
+    router.get("/some/path").handler(routingContext -> {
+
+      routingContext.put("foo", "bar");
+      routingContext.next();
+
+    });
+
+    router.get("/some/path/B").handler(routingContext -> {
+      routingContext.response().end();
+    });
+
+    router.get("/some/path").handler(routingContext -> {
+      routingContext.reroute("/some/path/B");
+    });
+
+  }
 }
 

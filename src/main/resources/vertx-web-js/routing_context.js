@@ -554,10 +554,12 @@ var RoutingContext = function(j_val) {
   };
 
   /**
+   Restarts the current router with a new method and path. All path parameters are then parsed and available on the
+   params list.
 
    @public
-   @param method {Object} 
-   @param path {string} 
+   @param method {Object} the new http request 
+   @param path {string} the new http path. 
    */
   this.reroute = function(method, path) {
     var __args = arguments;

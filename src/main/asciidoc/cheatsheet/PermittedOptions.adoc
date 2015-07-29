@@ -24,6 +24,12 @@ A regular expression that will be matched against the address. If you want to al
  based on a regular expression you use this field. If the link value is specified
  this will be ignored.+++
 
+|[[match]]`match`
+|`Json object`
+|+++
+This allows you to allow messages based on their structure. Any fields in the match must exist in the
+ message with the same values for them to be allowed. This currently only works with JSON messages.+++
+
 |[[requiredAuthority]]`requiredAuthority`
 |`String`
 |+++

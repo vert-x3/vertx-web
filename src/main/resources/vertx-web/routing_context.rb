@@ -372,8 +372,10 @@ module VertxWeb
       end
       raise ArgumentError, "Invalid arguments when calling set_acceptable_content_type(contentType)"
     end
-    # @param [:OPTIONS,:GET,:HEAD,:POST,:PUT,:DELETE,:TRACE,:CONNECT,:PATCH] method 
-    # @param [String] path 
+    #  Restarts the current router with a new method and path. All path parameters are then parsed and available on the
+    #  params list.
+    # @param [:OPTIONS,:GET,:HEAD,:POST,:PUT,:DELETE,:TRACE,:CONNECT,:PATCH] method the new http request
+    # @param [String] path the new http path.
     # @return [void]
     def reroute(method=nil,path=nil)
       if method.class == Symbol && path.class == String && !block_given?
