@@ -14,7 +14,7 @@
 |`Array of String`
 |-
 |[[heartbeatInterval]]`heartbeatInterval`
-|`Number`
+|`Number (long)`
 |-
 |[[insertJSESSIONID]]`insertJSESSIONID`
 |`Boolean`
@@ -23,8 +23,8 @@
 |`String`
 |-
 |[[maxBytesStreaming]]`maxBytesStreaming`
-|`Number`
+|`Number (int)`
 |-
 |[[sessionTimeout]]`sessionTimeout`
-|`Number`
+|`Number (long)`
 |-|===

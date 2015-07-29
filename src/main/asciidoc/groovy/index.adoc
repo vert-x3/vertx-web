@@ -56,6 +56,7 @@ Some of the key features of Vert.x-Web include:
 * SockJS support
 * Event-bus bridge
 * CSRF Cross Site Request Forgery
+* VirtualHost
 
 Most features in Vert.x-Web are implemented as handlers so you can always write your own. We envisage many more being written
 over time.
@@ -2500,5 +2501,22 @@ router.route().handler(CSRFHandler.create("abracadabra"))
 router.route().handler({ rc ->
 
 })
+
+----
+
+== VirtualHost Handler
+
+The Virtual Host Handler will verify the request hostname and if it matches it will send the request to the
+registered handler, otherwise will continue inside the normal handlers chain.
+
+Request are checked against the `Host` header to a match and patterns allow the usage of `*` wildcards, as for
+example `*.vertx.io` or fully domain names as `www.vertx.io`.
+
+[source,groovy]
+----
+import io.vertx.groovy.ext.web.handler.VirtualHostHandler
+router.route().handler(VirtualHostHandler.create("*.vertx.io", { routingContext ->
+  // do something if the request is for *.vertx.io
+}))
 
 ----
