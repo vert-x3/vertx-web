@@ -1291,7 +1291,7 @@ from the session store and set on the routing context before it gets to your app
 
 === Using the session
 
-In your handlers you an access the session instance with `link:groovydoc/io/vertx/groovy/ext/web/RoutingContext.html#session()[session]`.
+In your handlers you can access the session instance with `link:groovydoc/io/vertx/groovy/ext/web/RoutingContext.html#session()[session]`.
 
 You put data into the session with `link:groovydoc/io/vertx/groovy/ext/web/Session.html#put(java.lang.String,%20java.lang.Object)[put]`,
 you get data from the session with `link:groovydoc/io/vertx/groovy/ext/web/Session.html#get(java.lang.String)[get]`, and you remove
