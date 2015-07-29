@@ -17,10 +17,10 @@
 |`Array of link:PermittedOptions.html[PermittedOptions]`
 |-
 |[[maxAddressLength]]`maxAddressLength`
-|`Number`
+|`Number (int)`
 |-
 |[[maxHandlersPerSocket]]`maxHandlersPerSocket`
-|`Number`
+|`Number (int)`
 |-
 |[[outboundPermitted]]`outboundPermitted`
 |`Array of link:PermittedOptions.html[PermittedOptions]`
@@ -29,8 +29,8 @@
 |`Array of link:PermittedOptions.html[PermittedOptions]`
 |-
 |[[pingTimeout]]`pingTimeout`
-|`Number`
+|`Number (long)`
 |-
 |[[replyTimeout]]`replyTimeout`
-|`Number`
+|`Number (long)`
 |-|===

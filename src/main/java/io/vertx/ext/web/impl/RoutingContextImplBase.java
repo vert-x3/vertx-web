@@ -23,6 +23,7 @@ import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
 
 import java.util.Iterator;
+import java.util.Set;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -31,15 +32,18 @@ public abstract class RoutingContextImplBase implements RoutingContext {
 
   private static final Logger log = LoggerFactory.getLogger(RoutingContextImplBase.class);
 
+  private final Set<RouteImpl> routes;
+
   protected final String mountPoint;
   protected final HttpServerRequest request;
   protected Iterator<RouteImpl> iter;
   protected RouteImpl currentRoute;
 
-  protected RoutingContextImplBase(String mountPoint, HttpServerRequest request, Iterator<RouteImpl> iter) {
+  protected RoutingContextImplBase(String mountPoint, HttpServerRequest request, Set<RouteImpl> routes) {
     this.mountPoint = mountPoint;
-    this.request = request;
-    this.iter = iter;
+    this.request = new HttpServerRequestWrapper(request);
+    this.routes = routes;
+    this.iter = routes.iterator();
   }
 
   @Override
@@ -50,6 +54,12 @@ public abstract class RoutingContextImplBase implements RoutingContext {
   @Override
   public Route currentRoute() {
     return currentRoute;
+  }
+
+  protected void restart() {
+    this.iter = routes.iterator();
+    currentRoute = null;
+    next();
   }
 
   protected boolean iterateNext() {

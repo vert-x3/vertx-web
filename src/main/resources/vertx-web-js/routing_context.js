@@ -553,6 +553,21 @@ var RoutingContext = function(j_val) {
     } else utils.invalidArgs();
   };
 
+  /**
+   Restarts the current router with a new method and path. All path parameters are then parsed and available on the
+   params list.
+
+   @public
+   @param method {Object} the new http request 
+   @param path {string} the new http path. 
+   */
+  this.reroute = function(method, path) {
+    var __args = arguments;
+    if (__args.length === 2 && typeof __args[0] === 'string' && typeof __args[1] === 'string') {
+      j_routingContext["reroute(io.vertx.core.http.HttpMethod,java.lang.String)"](io.vertx.core.http.HttpMethod.valueOf(__args[0]), path);
+    } else utils.invalidArgs();
+  };
+
   // A reference to the underlying Java delegate
   // NOTE! This is an internal API and must not be used in user code.
   // If you rely on this property your code is likely to break if we change it / remove it without warning.

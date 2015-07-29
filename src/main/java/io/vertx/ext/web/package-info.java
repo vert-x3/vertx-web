@@ -495,6 +495,24 @@
  *
  * Alternatively you can access the entire context data map with {@link io.vertx.ext.web.RoutingContext#data}.
  *
+ * == Reroute
+ *
+ * Until now all routing mechanism allow you to handle your requests in a sequential way, however there might be times
+ * where you will want to go back. Since the context does not expose any information about the previous or next handler,
+ * mostly because this information is dynamic there is a way to restart the whole routing from the start of the current
+ * Router.
+ *
+ * [source,$lang]
+ * ----
+ * {@link examples.Examples#example55}
+ * ----
+ *
+ * So from the code you can see that if a request arrives at `/some/path` if first add a value to the context, then
+ * moves to the next handler that re routes the request to `/some/path/B` which terminates the request.
+ *
+ * You can reroute based on a new path or based on a new path and method. Note however that rerouting based on method
+ * might introduce security issues since for example a usually safe GET request can become a DELETE.
+ *
  * == Sub-routers
  *
  * Sometimes if you have a lot of handlers it can make sense to split them up into multiple routers. This is also useful

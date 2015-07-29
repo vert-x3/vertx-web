@@ -24,6 +24,7 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonObject;
@@ -344,4 +345,22 @@ public interface RoutingContext {
    */
   void setAcceptableContentType(String contentType);
 
+  /**
+   * Restarts the current router with a new path and reusing the original method. All path parameters are then parsed
+   * and available on the params list.
+   *
+   * @param path the new http path.
+   */
+  default void reroute(String path) {
+    reroute(request().method(), path);
+  }
+
+  /**
+   * Restarts the current router with a new method and path. All path parameters are then parsed and available on the
+   * params list.
+   *
+   * @param method the new http request
+   * @param path the new http path.
+   */
+  void reroute(HttpMethod method, String path);
 }
