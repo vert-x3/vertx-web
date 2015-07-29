@@ -20,6 +20,7 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonObject;
@@ -39,8 +40,6 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class RoutingContextImpl extends RoutingContextImplBase {
 
-  private static final Logger log = LoggerFactory.getLogger(RoutingContextImpl.class);
-
   private final RouterImpl router;
   private Map<String, Object> data;
   private AtomicInteger handlerSeq = new AtomicInteger();
@@ -58,8 +57,8 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   private Session session;
   private User user;
 
-  public RoutingContextImpl(String mountPoint, RouterImpl router, HttpServerRequest request, Iterator<RouteImpl> iter) {
-    super(mountPoint, request, iter);
+  public RoutingContextImpl(String mountPoint, RouterImpl router, HttpServerRequest request, Set<RouteImpl> routes) {
+    super(mountPoint, request, routes);
     this.router = router;
     if (request.path().charAt(0) != '/') {
       fail(404);
@@ -266,6 +265,13 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   @Override
   public boolean removeBodyEndHandler(int handlerID) {
     return getBodyEndHandlers().remove(handlerID) != null;
+  }
+
+  @Override
+  public void reroute(HttpMethod method, String path) {
+    ((HttpServerRequestWrapper) request).setMethod(method);
+    ((HttpServerRequestWrapper) request).setPath(path);
+    restart();
   }
 
   private Map<Integer, Handler<Future>> getHeadersEndHandlers() {

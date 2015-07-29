@@ -26,6 +26,7 @@ import io.vertx.rxjava.core.Future;
 import io.vertx.rxjava.ext.auth.User;
 import io.vertx.rxjava.core.buffer.Buffer;
 import io.vertx.rxjava.core.http.HttpServerResponse;
+import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.Handler;
 
@@ -433,6 +434,16 @@ public class RoutingContext {
    */
   public void setAcceptableContentType(String contentType) { 
     this.delegate.setAcceptableContentType(contentType);
+  }
+
+  /**
+   * Restarts the current router with a new method and path. All path parameters are then parsed and available on the
+   * params list.
+   * @param method the new http request
+   * @param path the new http path.
+   */
+  public void reroute(HttpMethod method, String path) { 
+    this.delegate.reroute(method, path);
   }
 
   private HttpServerRequest cached_0;

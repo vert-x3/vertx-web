@@ -4,6 +4,7 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonObject;
@@ -188,6 +189,11 @@ public class RoutingContextDecorator implements RoutingContext {
   @Override
   public void setAcceptableContentType(String contentType) {
     decoratedContext.setAcceptableContentType(contentType);
+  }
+
+  @Override
+  public void reroute(HttpMethod method, String path) {
+    decoratedContext.reroute(method, path);
   }
 
   @Override

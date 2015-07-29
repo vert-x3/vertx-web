@@ -20,6 +20,7 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonObject;
@@ -29,7 +30,6 @@ import io.vertx.ext.web.FileUpload;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -41,7 +41,7 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   protected final RoutingContext inner;
   private final String mountPoint;
 
-  public RoutingContextWrapper(String mountPoint, HttpServerRequest request, Iterator<RouteImpl> iter,
+  public RoutingContextWrapper(String mountPoint, HttpServerRequest request, Set<RouteImpl> iter,
                                RoutingContext inner) {
     super(mountPoint, request, iter);
     this.inner = inner;
@@ -236,6 +236,11 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   @Override
   public void setAcceptableContentType(String contentType) {
     inner.setAcceptableContentType(contentType);
+  }
+
+  @Override
+  public void reroute(HttpMethod method, String path) {
+    inner.reroute(method, path);
   }
 
 }

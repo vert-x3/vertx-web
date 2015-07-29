@@ -1070,6 +1070,24 @@ public class Examples {
     });
   }
 
+  public void example55(Router router) {
+
+    router.get("/some/path").handler(routingContext -> {
+
+      routingContext.put("foo", "bar");
+      routingContext.next();
+
+    });
+
+    router.get("/some/path/B").handler(routingContext -> {
+      routingContext.response().end();
+    });
+
+    router.get("/some/path").handler(routingContext -> {
+      routingContext.reroute("/some/path/B");
+    });
+
+  }
   public void example56(Router router) {
     router.route().handler(VirtualHostHandler.create("*.vertx.io", routingContext -> {
       // do something if the request is for *.vertx.io
