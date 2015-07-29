@@ -55,6 +55,7 @@
  * * SockJS support
  * * Event-bus bridge
  * * CSRF Cross Site Request Forgery
+ * * VirtualHost
  *
  * Most features in Vert.x-Web are implemented as handlers so you can always write your own. We envisage many more being written
  * over time.
@@ -1533,6 +1534,18 @@
  * {@link examples.Examples#example54}
  * ----
  *
+ * == VirtualHost Handler
+ *
+ * The Virtual Host Handler will verify the request hostname and if it matches it will send the request to the
+ * registered handler, otherwise will continue inside the normal handlers chain.
+ *
+ * Request are checked against the `Host` header to a match and patterns allow the usage of `*` wildcards, as for
+ * example `*.vertx.io` or fully domain names as `www.vertx.io`.
+ *
+ * [source,$lang]
+ * ----
+ * {@link examples.Examples#example56}
+ * ----
  */
 @Document(fileName = "index.adoc")
 @GenModule(name = "vertx-web")

@@ -1088,5 +1088,10 @@ public class Examples {
     });
 
   }
+  public void example56(Router router) {
+    router.route().handler(VirtualHostHandler.create("*.vertx.io", routingContext -> {
+      // do something if the request is for *.vertx.io
+    }));
+  }
 }
 
