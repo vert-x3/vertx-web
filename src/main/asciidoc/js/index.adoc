@@ -857,7 +857,7 @@ router.get("/some/path/other").handler(function (routingContext) {
 
 ----
 
-Alternatively you can access the entire context data map with `link:jsdoc/routing_context-RoutingContext.html#data[data]`.
+
 
 == Reroute
 

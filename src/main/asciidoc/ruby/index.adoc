@@ -857,7 +857,7 @@ router.get("/some/path/other").handler() { |routingContext|
 
 ----
 
-Alternatively you can access the entire context data map with `link:yardoc/VertxWeb/RoutingContext.html#data-instance_method[data]`.
+
 
 == Reroute
 

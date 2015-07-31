@@ -494,6 +494,7 @@
  * {@link examples.Examples#example21}
  * ----
  *
+ * [language, java]
  * Alternatively you can access the entire context data map with {@link io.vertx.ext.web.RoutingContext#data}.
  *
  * == Reroute
