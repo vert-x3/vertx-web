@@ -407,7 +407,7 @@ public class RouteImpl implements Route {
   }
 
   private void checkPath(String path) {
-    if (path.charAt(0) != '/') {
+    if ("".equals(path) || path.charAt(0) != '/') {
       throw new IllegalArgumentException("Path must start with /");
     }
   }

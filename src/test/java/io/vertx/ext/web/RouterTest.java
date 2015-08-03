@@ -1492,6 +1492,21 @@ public class RouterTest extends WebTestBase {
     testRequest(HttpMethod.GET, "///", 200, "pants");
   }
 
+  @Test
+  public void testIssue170() throws Exception {
+    try {
+      router.route("").handler(rc -> rc.response().end());
+    } catch (IllegalArgumentException e) {
+      testComplete();
+      return;
+    }
 
+    fail("Should fail");
+  }
 
+  @Test
+  public void testIssue170b() throws Exception {
+    router.route("/").handler(rc -> rc.response().end());
+    testRequest(HttpMethod.GET, "/", 200, "OK");
+  }
 }
