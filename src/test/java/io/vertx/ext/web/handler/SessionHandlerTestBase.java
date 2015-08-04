@@ -243,6 +243,20 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
     assertTrue(rid.get().lastAccessed() - System.currentTimeMillis() < 500);
   }
 
+  @Test
+  public void testIssue172_setnull() throws Exception {
+    router.route().handler(CookieHandler.create());
+    router.route().handler(SessionHandler.create(store));
+    AtomicReference<Session> rid = new AtomicReference<>();
+
+    router.route().handler(rc -> {
+      rid.set(rc.session());
+      rc.session().put("foo", null);
+      vertx.setTimer(1000, tid -> rc.response().end());
+    });
+    testRequest(HttpMethod.GET, "/", 200, "OK");
+  }
+
   private final DateFormat dateTimeFormatter = Utils.createRFC1123DateTimeFormatter();
 
 }

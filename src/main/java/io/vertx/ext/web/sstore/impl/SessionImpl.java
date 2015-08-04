@@ -202,7 +202,9 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
           buffer.appendInt(classNameBytes.length).appendBytes(classNameBytes);
           ((ClusterSerializable)val).writeToBuffer(buffer);
         } else {
-          throw new IllegalStateException("Invalid type for data in session: " + val.getClass());
+          if (val != null) {
+            throw new IllegalStateException("Invalid type for data in session: " + val.getClass());
+          }
         }
       }
       return buffer;
