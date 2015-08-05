@@ -89,8 +89,8 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
     // On close unregister any handlers that haven't been unregistered
     registrations.entrySet().forEach(entry -> {
       entry.getValue().unregister();
-      checkCallHook(() -> new BridgeEventImpl(BridgeEventType.UNREGISTER, null, sock),
-        null, null);
+      checkCallHook(() -> new BridgeEventImpl(BridgeEventType.UNREGISTER,
+              new JsonObject().put("type", "unregister").put("address", entry.getValue().address()), sock), null, null);
     });
 
     SockInfo info = sockInfos.remove(sock);
