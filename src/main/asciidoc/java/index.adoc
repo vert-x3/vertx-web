@@ -593,7 +593,7 @@ route3
 
 If two matching routes have the same value of order, then they will be called in the order they were added.
 
-You can also specify that a route is handled last, with `link:../../apidocs/io/vertx/ext/web/Route.html#last-boolean-[last]`
+You can also specify that a route is handled last, with `link:../../apidocs/io/vertx/ext/web/Route.html#last--[last]`
 
 == Routing based on MIME type of request
 

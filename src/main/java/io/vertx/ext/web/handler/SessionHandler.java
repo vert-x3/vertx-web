@@ -55,13 +55,25 @@ public interface SessionHandler extends Handler<RoutingContext> {
   boolean DEFAULT_NAG_HTTPS = true;
 
   /**
+   * Default of whether the cookie has the HttpOnly flag set
+   * More info: https://www.owasp.org/index.php/HttpOnly
+   */
+  boolean DEFAULT_COOKIE_HTTP_ONLY_FLAG = false;
+
+  /**
+   * Default of whether the cookie has the 'secure' flag set to allow transmission over https only.
+   * More info: https://www.owasp.org/index.php/SecureFlag
+   */
+  boolean DEFAULT_COOKIE_SECURE_FLAG = false;
+
+  /**
    * Create a session handler
    *
    * @param sessionStore  the session store
    * @return the handler
    */
   static SessionHandler create(SessionStore sessionStore) {
-    return new SessionHandlerImpl(DEFAULT_SESSION_COOKIE_NAME, DEFAULT_SESSION_TIMEOUT, DEFAULT_NAG_HTTPS, sessionStore);
+    return new SessionHandlerImpl(DEFAULT_SESSION_COOKIE_NAME, DEFAULT_SESSION_TIMEOUT, DEFAULT_NAG_HTTPS, DEFAULT_COOKIE_SECURE_FLAG, DEFAULT_COOKIE_HTTP_ONLY_FLAG, sessionStore);
   }
 
   /**
@@ -81,6 +93,26 @@ public interface SessionHandler extends Handler<RoutingContext> {
    */
   @Fluent
   SessionHandler setNagHttps(boolean nag);
+
+  /**
+   * Sets whether the 'secure' flag should be set for the session cookie. When set this flag instructs browsers to only
+   * send the cookie over HTTPS. Note that this will probably stop your sessions working if used without HTTPS (e.g. in development).
+   *
+   * @param secure true to set the secure flag on the cookie
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  SessionHandler setCookieSecureFlag(boolean secure);
+
+  /**
+   * Sets whether the 'HttpOnly' flag should be set for the session cookie. When set this flag instructs browsers to
+   * prevent Javascript access to the the cookie. Used as a line of defence against the most common XSS attacks.
+   *
+   * @param httpOnly true to set the HttpOnly flag on the cookie
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  SessionHandler setCookieHttpOnlyFlag(boolean httpOnly);
 
   /**
    * Set the session cookie name

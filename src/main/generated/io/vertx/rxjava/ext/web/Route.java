@@ -106,12 +106,11 @@ public class Route {
   }
 
   /**
-   * Specify whether this is the last route for the router.
-   * @param last true if last
+   * Specify this is the last route for the router.
    * @return a reference to this, so the API can be used fluently
    */
-  public Route last(boolean last) { 
-    this.delegate.last(last);
+  public Route last() { 
+    this.delegate.last();
     return this;
   }
 

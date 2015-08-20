@@ -35,12 +35,16 @@ public class SessionHandlerImpl implements SessionHandler {
   private String sessionCookieName;
   private long sessionTimeout;
   private boolean nagHttps;
+  private boolean sessionCookieSecure;
+  private boolean sessionCookieHttpOnly;
 
-  public SessionHandlerImpl(String sessionCookieName, long sessionTimeout, boolean nagHttps, SessionStore sessionStore) {
+  public SessionHandlerImpl(String sessionCookieName, long sessionTimeout, boolean nagHttps, boolean sessionCookieSecure, boolean sessionCookieHttpOnly, SessionStore sessionStore) {
     this.sessionCookieName = sessionCookieName;
     this.sessionTimeout = sessionTimeout;
     this.nagHttps = nagHttps;
     this.sessionStore = sessionStore;
+    this.sessionCookieSecure = sessionCookieSecure;
+    this.sessionCookieHttpOnly = sessionCookieHttpOnly;
   }
 
   @Override
@@ -52,6 +56,18 @@ public class SessionHandlerImpl implements SessionHandler {
   @Override
   public SessionHandler setNagHttps(boolean nag) {
     this.nagHttps = nag;
+    return this;
+  }
+
+  @Override
+  public SessionHandler setCookieSecureFlag(boolean secure) {
+    this.sessionCookieSecure = secure;
+    return this;
+  }
+
+  @Override
+  public SessionHandler setCookieHttpOnlyFlag(boolean httpOnly) {
+    this.sessionCookieHttpOnly = httpOnly;
     return this;
   }
 
@@ -133,6 +149,8 @@ public class SessionHandlerImpl implements SessionHandler {
     context.setSession(session);
     Cookie cookie = Cookie.cookie(sessionCookieName, session.id());
     cookie.setPath("/");
+    cookie.setSecure(sessionCookieSecure);
+    cookie.setHttpOnly(sessionCookieHttpOnly);
     // Don't set max age - it's a session cookie
     context.addCookie(cookie);
     addStoreSessionHandler(context);
