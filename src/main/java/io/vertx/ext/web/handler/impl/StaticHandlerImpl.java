@@ -35,6 +35,8 @@ import java.nio.file.NoSuchFileException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Static web server
@@ -260,18 +262,75 @@ public class StaticHandlerImpl implements StaticHandler {
     numServesBlocking = 0;
   }
 
+  private static final Pattern RANGE = Pattern.compile("^bytes=(\\d+)-(\\d*)$");
+
   private void sendFile(RoutingContext context, String file, FileProps fileProps) {
     HttpServerRequest request = context.request();
+
+    // check if the client is making a range request
+    String range = request.getHeader("Range");
+    // parse it
+    Long offset = null;
+    // end byte is length - 1
+    Long end = fileProps.size() - 1;
+
+    if (range != null) {
+      Matcher m = RANGE.matcher(range);
+      if (m.matches()) {
+        try {
+          String part = m.group(1);
+          // offset cannot be empty
+          offset = Long.parseLong(part);
+          // offset must fall inside the limits of the file
+          if (offset < 0 || offset >= fileProps.size()) {
+            throw new IndexOutOfBoundsException();
+          }
+          // length can be empty
+          part = m.group(2);
+          if (part != null && part.length() > 0) {
+            // ranges are inclusive
+            end = Long.parseLong(part);
+            // offset must fall inside the limits of the file
+            if (end < offset || end >= fileProps.size()) {
+              throw new IndexOutOfBoundsException();
+            }
+          }
+        } catch (NumberFormatException | IndexOutOfBoundsException e) {
+          context.fail(416);
+          return;
+        }
+      }
+    }
+
     writeCacheHeaders(request, fileProps);
+
+    // notify client we support range requests
+    MultiMap headers = request.response().headers();
+    headers.set("Accept-Ranges", "bytes");
+    // send the content length even for HEAD requests
+    headers.set("Content-Length", Long.toString(end + 1 - (offset == null ? 0 : offset)));
 
     if (request.method() == HttpMethod.HEAD) {
       request.response().end();
     } else {
-      request.response().sendFile(file, res2 -> {
-        if (res2.failed()) {
-          context.fail(res2.cause());
-        }
-      });
+      if (offset != null) {
+        // must return content range
+        headers.set("Content-Range", "bytes " + offset + "-" + end + "/" + fileProps.size());
+        // return a partial response
+        request.response().setStatusCode(206);
+
+        request.response().sendFile(file, offset, end + 1, res2 -> {
+          if (res2.failed()) {
+            context.fail(res2.cause());
+          }
+        });
+      } else {
+        request.response().sendFile(file, res2 -> {
+          if (res2.failed()) {
+            context.fail(res2.cause());
+          }
+        });
+      }
     }
   }
 
