@@ -76,6 +76,38 @@ var SessionHandler = function(j_val) {
   };
 
   /**
+   Sets whether the 'secure' flag should be set for the session cookie. When set this flag instructs browsers to only
+   send the cookie over HTTPS.
+
+   @public
+   @param secure {boolean} true to set the secure flag on the cookie 
+   @return {SessionHandler} a reference to this, so the API can be used fluently
+   */
+  this.setCookieSecureFlag = function(secure) {
+    var __args = arguments;
+    if (__args.length === 1 && typeof __args[0] ==='boolean') {
+      j_sessionHandler["setCookieSecureFlag(boolean)"](secure);
+      return that;
+    } else utils.invalidArgs();
+  };
+
+  /**
+   Sets whether the 'HttpOnly' flag should be set for the session cookie. When set this flag instructs browsers to
+   prevent Javascript access to the the cookie. Used as a line of defence against the most common XSS attacks.
+
+   @public
+   @param httpOnly {boolean} true to set the HttpOnly flag on the cookie 
+   @return {SessionHandler} a reference to this, so the API can be used fluently
+   */
+  this.setCookieHttpOnlyFlag = function(httpOnly) {
+    var __args = arguments;
+    if (__args.length === 1 && typeof __args[0] ==='boolean') {
+      j_sessionHandler["setCookieHttpOnlyFlag(boolean)"](httpOnly);
+      return that;
+    } else utils.invalidArgs();
+  };
+
+  /**
    Set the session cookie name
 
    @public

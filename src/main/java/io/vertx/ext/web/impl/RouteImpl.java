@@ -129,7 +129,7 @@ public class RouteImpl implements Route {
   }
 
   @Override
-  public synchronized Route last(boolean last) {
+  public synchronized Route last() {
     return order(Integer.MAX_VALUE);
   }
 

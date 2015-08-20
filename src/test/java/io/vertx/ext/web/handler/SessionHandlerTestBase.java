@@ -51,6 +51,52 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
   }
 
   @Test
+  public void testSessionCookieHttpOnlyFlag() throws Exception {
+    router.route().handler(CookieHandler.create());
+    router.route().handler(SessionHandler.create(store).setCookieHttpOnlyFlag(true));
+    router.route().handler(rc -> {
+      rc.response().end();
+    });
+
+    testRequest(HttpMethod.GET, "/", null, resp -> {
+      String setCookie = resp.headers().get("set-cookie");
+
+      assertTrue(setCookie.indexOf("; HTTPOnly") != -1);
+    }, 200, "OK", null);
+  }
+
+  @Test
+  public void testSessionCookieSecureFlag() throws Exception {
+    router.route().handler(CookieHandler.create());
+    router.route().handler(SessionHandler.create(store).setCookieSecureFlag(true));
+    router.route().handler(rc -> {
+      rc.response().end();
+    });
+
+    testRequest(HttpMethod.GET, "/", null, resp -> {
+      String setCookie = resp.headers().get("set-cookie");
+
+      assertTrue(setCookie.indexOf("; Secure") != -1);
+    }, 200, "OK", null);
+  }
+
+  @Test
+  public void testSessionCookieSecureFlagAndHttpOnlyFlags() throws Exception {
+    router.route().handler(CookieHandler.create());
+    router.route().handler(SessionHandler.create(store).setCookieSecureFlag(true).setCookieHttpOnlyFlag(true));
+    router.route().handler(rc -> {
+      rc.response().end();
+    });
+
+    testRequest(HttpMethod.GET, "/", null, resp -> {
+      String setCookie = resp.headers().get("set-cookie");
+
+      assertTrue(setCookie.indexOf("; Secure") != -1);
+      assertTrue(setCookie.indexOf("; HTTPOnly") != -1);
+    }, 200, "OK", null);
+  }
+
+  @Test
   public void testSessionFields() throws Exception {
     router.route().handler(CookieHandler.create());
     router.route().handler(SessionHandler.create(store));

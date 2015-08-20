@@ -60,6 +60,28 @@ module VertxWeb
       end
       raise ArgumentError, "Invalid arguments when calling set_nag_https(nag)"
     end
+    #  Sets whether the 'secure' flag should be set for the session cookie. When set this flag instructs browsers to only
+    #  send the cookie over HTTPS.
+    # @param [true,false] secure true to set the secure flag on the cookie
+    # @return [self]
+    def set_cookie_secure_flag(secure=nil)
+      if (secure.class == TrueClass || secure.class == FalseClass) && !block_given?
+        @j_del.java_method(:setCookieSecureFlag, [Java::boolean.java_class]).call(secure)
+        return self
+      end
+      raise ArgumentError, "Invalid arguments when calling set_cookie_secure_flag(secure)"
+    end
+    #  Sets whether the 'HttpOnly' flag should be set for the session cookie. When set this flag instructs browsers to
+    #  prevent Javascript access to the the cookie. Used as a line of defence against the most common XSS attacks.
+    # @param [true,false] httpOnly true to set the HttpOnly flag on the cookie
+    # @return [self]
+    def set_cookie_http_only_flag(httpOnly=nil)
+      if (httpOnly.class == TrueClass || httpOnly.class == FalseClass) && !block_given?
+        @j_del.java_method(:setCookieHttpOnlyFlag, [Java::boolean.java_class]).call(httpOnly)
+        return self
+      end
+      raise ArgumentError, "Invalid arguments when calling set_cookie_http_only_flag(httpOnly)"
+    end
     #  Set the session cookie name
     # @param [String] sessionCookieName the session cookie name
     # @return [self]

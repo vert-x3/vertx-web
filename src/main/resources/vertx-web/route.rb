@@ -77,15 +77,14 @@ module VertxWeb
       end
       raise ArgumentError, "Invalid arguments when calling order(order)"
     end
-    #  Specify whether this is the last route for the router.
-    # @param [true,false] last true if last
+    #  Specify this is the last route for the router.
     # @return [self]
-    def last(last=nil)
-      if (last.class == TrueClass || last.class == FalseClass) && !block_given?
-        @j_del.java_method(:last, [Java::boolean.java_class]).call(last)
+    def last
+      if !block_given?
+        @j_del.java_method(:last, []).call()
         return self
       end
-      raise ArgumentError, "Invalid arguments when calling last(last)"
+      raise ArgumentError, "Invalid arguments when calling last()"
     end
     #  Specify a request handler for the route. The router routes requests to handlers depending on whether the various
     #  criteria such as method, path, etc match. There can be only one request handler for a route. If you set this more

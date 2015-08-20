@@ -126,16 +126,16 @@ var Route = function(j_val) {
   };
 
   /**
-   Specify whether this is the last route for the router.
+   Specify this is the last route for the router.
 
    @public
-   @param last {boolean} true if last 
+
    @return {Route} a reference to this, so the API can be used fluently
    */
-  this.last = function(last) {
+  this.last = function() {
     var __args = arguments;
-    if (__args.length === 1 && typeof __args[0] ==='boolean') {
-      j_route["last(boolean)"](last);
+    if (__args.length === 0) {
+      j_route["last()"]();
       return that;
     } else utils.invalidArgs();
   };

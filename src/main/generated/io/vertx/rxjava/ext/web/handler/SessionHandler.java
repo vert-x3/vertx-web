@@ -85,6 +85,28 @@ public class SessionHandler implements Handler<RoutingContext> {
   }
 
   /**
+   * Sets whether the 'secure' flag should be set for the session cookie. When set this flag instructs browsers to only
+   * send the cookie over HTTPS.
+   * @param secure true to set the secure flag on the cookie
+   * @return a reference to this, so the API can be used fluently
+   */
+  public SessionHandler setCookieSecureFlag(boolean secure) { 
+    this.delegate.setCookieSecureFlag(secure);
+    return this;
+  }
+
+  /**
+   * Sets whether the 'HttpOnly' flag should be set for the session cookie. When set this flag instructs browsers to
+   * prevent Javascript access to the the cookie. Used as a line of defence against the most common XSS attacks.
+   * @param httpOnly true to set the HttpOnly flag on the cookie
+   * @return a reference to this, so the API can be used fluently
+   */
+  public SessionHandler setCookieHttpOnlyFlag(boolean httpOnly) { 
+    this.delegate.setCookieHttpOnlyFlag(httpOnly);
+    return this;
+  }
+
+  /**
    * Set the session cookie name
    * @param sessionCookieName the session cookie name
    * @return a reference to this, so the API can be used fluently
