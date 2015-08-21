@@ -97,6 +97,11 @@ class HttpServerRequestWrapper implements HttpServerRequest {
   }
 
   @Override
+  public String getHeader(CharSequence charSequence) {
+    return delegate.getHeader(charSequence);
+  }
+
+  @Override
   public MultiMap params() {
     return delegate.params();
   }
