@@ -62,6 +62,7 @@ public class StaticHandlerImpl implements StaticHandler {
   private long cacheEntryTimeout = DEFAULT_CACHE_ENTRY_TIMEOUT;
   private String indexPage = DEFAULT_INDEX_PAGE;
   private int maxCacheSize = DEFAULT_MAX_CACHE_SIZE;
+  private boolean rangeSupport = DEFAULT_RANGE_SUPPORT;
 
   // These members are all related to auto tuning of synchronous vs asynchronous file system access
   private static int NUM_SERVES_TUNING_FS_ACCESS = 1000;
@@ -267,53 +268,57 @@ public class StaticHandlerImpl implements StaticHandler {
   private void sendFile(RoutingContext context, String file, FileProps fileProps) {
     HttpServerRequest request = context.request();
 
-    // check if the client is making a range request
-    String range = request.getHeader("Range");
-    // parse it
     Long offset = null;
-    // end byte is length - 1
-    Long end = fileProps.size() - 1;
+    Long end = null;
+    MultiMap headers = null;
 
-    if (range != null) {
-      Matcher m = RANGE.matcher(range);
-      if (m.matches()) {
-        try {
-          String part = m.group(1);
-          // offset cannot be empty
-          offset = Long.parseLong(part);
-          // offset must fall inside the limits of the file
-          if (offset < 0 || offset >= fileProps.size()) {
-            throw new IndexOutOfBoundsException();
-          }
-          // length can be empty
-          part = m.group(2);
-          if (part != null && part.length() > 0) {
-            // ranges are inclusive
-            end = Long.parseLong(part);
+    if (rangeSupport) {
+      // check if the client is making a range request
+      String range = request.getHeader("Range");
+      // end byte is length - 1
+      end = fileProps.size() - 1;
+
+      if (range != null) {
+        Matcher m = RANGE.matcher(range);
+        if (m.matches()) {
+          try {
+            String part = m.group(1);
+            // offset cannot be empty
+            offset = Long.parseLong(part);
             // offset must fall inside the limits of the file
-            if (end < offset || end >= fileProps.size()) {
+            if (offset < 0 || offset >= fileProps.size()) {
               throw new IndexOutOfBoundsException();
             }
+            // length can be empty
+            part = m.group(2);
+            if (part != null && part.length() > 0) {
+              // ranges are inclusive
+              end = Long.parseLong(part);
+              // offset must fall inside the limits of the file
+              if (end < offset || end >= fileProps.size()) {
+                throw new IndexOutOfBoundsException();
+              }
+            }
+          } catch (NumberFormatException | IndexOutOfBoundsException e) {
+            context.fail(416);
+            return;
           }
-        } catch (NumberFormatException | IndexOutOfBoundsException e) {
-          context.fail(416);
-          return;
         }
       }
+
+      // notify client we support range requests
+      headers = request.response().headers();
+      headers.set("Accept-Ranges", "bytes");
+      // send the content length even for HEAD requests
+      headers.set("Content-Length", Long.toString(end + 1 - (offset == null ? 0 : offset)));
     }
 
     writeCacheHeaders(request, fileProps);
 
-    // notify client we support range requests
-    MultiMap headers = request.response().headers();
-    headers.set("Accept-Ranges", "bytes");
-    // send the content length even for HEAD requests
-    headers.set("Content-Length", Long.toString(end + 1 - (offset == null ? 0 : offset)));
-
     if (request.method() == HttpMethod.HEAD) {
       request.response().end();
     } else {
-      if (offset != null) {
+      if (rangeSupport && offset != null) {
         // must return content range
         headers.set("Content-Range", "bytes " + offset + "-" + end + "/" + fileProps.size());
         // return a partial response
@@ -380,6 +385,12 @@ public class StaticHandlerImpl implements StaticHandler {
   public StaticHandler setDirectoryTemplate(String directoryTemplate) {
     this.directoryTemplateResource = directoryTemplate;
     this.directoryTemplate = null;
+    return this;
+  }
+
+  @Override
+  public StaticHandler setEnableRangeSupport(boolean enableRangeSupport) {
+    this.rangeSupport = enableRangeSupport;
     return this;
   }
 

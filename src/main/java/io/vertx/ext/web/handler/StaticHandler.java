@@ -96,6 +96,11 @@ public interface StaticHandler extends Handler<RoutingContext> {
   long DEFAULT_MAX_AVG_SERVE_TIME_NS = 1000000; // 1ms
 
   /**
+   * Default of whether Range request handling support should be used
+   */
+  boolean DEFAULT_RANGE_SUPPORT = true;
+
+  /**
    * Create a handler using defaults
    *
    * @return the handler
@@ -230,5 +235,14 @@ public interface StaticHandler extends Handler<RoutingContext> {
    */
   @Fluent
   StaticHandler setDirectoryTemplate(String directoryTemplate);
+
+  /**
+   * Set whether range requests (resumable downloads; media streaming) should be enabled.
+   *
+   * @param enableRangeSupport true to enable range support
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  StaticHandler setEnableRangeSupport(boolean enableRangeSupport);
 
 }

@@ -466,6 +466,7 @@ public class StaticHandlerTest extends WebTestBase {
 
   @Test
   public void testRangeAwareRequestHeaders() throws Exception {
+    stat.setEnableRangeSupport(true);
     // this is a 3 step test
     // 1. request a head to a static image, this should tell us the server supports ranges
     // 2. make a request of the 1st 1000 bytes
@@ -495,6 +496,7 @@ public class StaticHandlerTest extends WebTestBase {
 
   @Test
   public void testRangeAwareRequestBody() throws Exception {
+    stat.setEnableRangeSupport(true);
     testRequest(HttpMethod.GET, "/a/b/range.jpg", req -> {
       req.headers().set("Range", "bytes=0-999");
     }, res -> {
@@ -507,6 +509,23 @@ public class StaticHandlerTest extends WebTestBase {
         testComplete();
       });
     }, 206, "Partial Content", null);
+    await();
+  }
+
+  @Test
+  public void testRangeAwareRequestBodyForDisabledRangeSupport() throws Exception {
+    stat.setEnableRangeSupport(false);
+    testRequest(HttpMethod.GET, "/a/b/range.jpg", req -> {
+      req.headers().set("Range", "bytes=0-999");
+    }, res -> {
+      res.bodyHandler(buff -> {
+        assertNull(res.headers().get("Accept-Ranges"));
+        assertNotSame("1000", res.headers().get("Content-Length"));
+
+        assertNotSame(1000, buff.length());
+        testComplete();
+      });
+    }, 200, "OK", null);
     await();
   }
 
