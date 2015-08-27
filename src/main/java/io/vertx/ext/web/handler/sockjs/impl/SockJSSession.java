@@ -232,15 +232,13 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
   private void setTimer() {
     if (timeout != -1) {
       cancelTimer();
-      timeoutTimerID = vertx.setTimer(timeout, new Handler<Long>() {
-        public void handle(Long id) {
-          vertx.cancelTimer(heartbeatID);
-          if (listener == null) {
-            shutdown();
-          }
-          if (listener != null) {
-            listener.close();
-          }
+      timeoutTimerID = vertx.setTimer(timeout, id1 -> {
+        vertx.cancelTimer(heartbeatID);
+        if (listener == null) {
+          shutdown();
+        }
+        if (listener != null) {
+          listener.close();
         }
       });
     }

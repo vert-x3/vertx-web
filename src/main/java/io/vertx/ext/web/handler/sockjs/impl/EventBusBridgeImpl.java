@@ -300,11 +300,7 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
         SockInfo sockInfo = new SockInfo();
         sockInfo.pingInfo = pingInfo;
         sockInfos.put(sock, sockInfo);
-      }, () -> {
-        sock.close();
-      }
-
-    );
+      }, sock::close);
   }
 
   private void checkAddAccceptedReplyAddress(Message message) {

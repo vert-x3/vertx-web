@@ -253,7 +253,7 @@ public class SockJSHandlerImpl implements SockJSHandler, Handler<RoutingContext>
     }
   }
 
-  private static String IFRAME_TEMPLATE =
+  private static final String IFRAME_TEMPLATE =
       "<!DOCTYPE html>\n" +
       "<html>\n" +
       "<head>\n" +
@@ -275,50 +275,51 @@ public class SockJSHandlerImpl implements SockJSHandler, Handler<RoutingContext>
 
     // These applications are required by the SockJS protocol and QUnit tests
 
-    router.route("/echo/*").handler(SockJSHandler.create(vertx, new SockJSHandlerOptions().setMaxBytesStreaming(4096)).socketHandler(
-      sock -> sock.handler(sock::write)));
-    router.route("/close/*").handler(SockJSHandler.create(vertx, new SockJSHandlerOptions().setMaxBytesStreaming(4096)).socketHandler(
-      sock -> sock.close()));
+    router.route("/echo/*").handler(SockJSHandler.create(vertx,
+        new SockJSHandlerOptions().setMaxBytesStreaming(4096)).socketHandler(sock -> sock.handler(sock::write)));
+    router.route("/close/*").handler(SockJSHandler.create(vertx,
+        new SockJSHandlerOptions().setMaxBytesStreaming(4096)).socketHandler(SockJSSocket::close));
     router.route("/disabled_websocket_echo/*").handler(SockJSHandler.create(vertx, new SockJSHandlerOptions()
       .setMaxBytesStreaming(4096).addDisabledTransport("WEBSOCKET")).socketHandler(sock -> sock.handler(sock::write)));
-    router.route("/ticker/*").handler(SockJSHandler.create(vertx, new SockJSHandlerOptions().setMaxBytesStreaming(4096)).socketHandler(sock -> {
-      long timerID = vertx.setPeriodic(1000, tid -> sock.write(buffer("tick!")));
-      sock.endHandler(v -> vertx.cancelTimer(timerID));
-    }));
-    router.route("/amplify/*").handler(SockJSHandler.create(vertx, new SockJSHandlerOptions().setMaxBytesStreaming(4096)).socketHandler(
-      sock -> {
-        sock.handler(data -> {
-          String str = data.toString();
-          int n = Integer.valueOf(str);
-          if (n < 0 || n > 19) {
-            n = 1;
-          }
-          int num = (int) Math.pow(2, n);
-          Buffer buff = buffer(num);
-          for (int i = 0; i < num; i++) {
-            buff.appendByte((byte) 'x');
-          }
-          sock.write(buff);
-        });
-      }));
-    router.route("/broadcast/*").handler(SockJSHandler.create(vertx, new SockJSHandlerOptions().setMaxBytesStreaming(4096)).socketHandler(
-      new Handler<SockJSSocket>() {
-        Set<String> connections = new HashSet<>();
-
-        public void handle(SockJSSocket sock) {
-          connections.add(sock.writeHandlerID());
-          sock.handler(buffer -> {
-            for (String actorID : connections) {
-              vertx.eventBus().publish(actorID, buffer);
+    router.route("/ticker/*").handler(SockJSHandler.create(vertx,
+        new SockJSHandlerOptions().setMaxBytesStreaming(4096)).socketHandler(sock -> {
+          long timerID = vertx.setPeriodic(1000, tid -> sock.write(buffer("tick!")));
+          sock.endHandler(v -> vertx.cancelTimer(timerID));
+        }));
+    router.route("/amplify/*").handler(SockJSHandler.create(vertx,
+        new SockJSHandlerOptions().setMaxBytesStreaming(4096)).socketHandler(sock -> {
+          sock.handler(data -> {
+            String str = data.toString();
+            int n = Integer.valueOf(str);
+            if (n < 0 || n > 19) {
+              n = 1;
             }
+            int num = (int) Math.pow(2, n);
+            Buffer buff = buffer(num);
+            for (int i = 0; i < num; i++) {
+              buff.appendByte((byte) 'x');
+            }
+            sock.write(buff);
           });
-          sock.endHandler(new VoidHandler() {
-            public void handle() {
+      }));
+    router.route("/broadcast/*").handler(SockJSHandler.create(vertx,
+        new SockJSHandlerOptions().setMaxBytesStreaming(4096)).socketHandler(new Handler<SockJSSocket>() {
+          Set<String> connections = new HashSet<>();
+
+          public void handle(SockJSSocket sock) {
+            connections.add(sock.writeHandlerID());
+            sock.handler(buffer -> {
+              for (String actorID : connections) {
+                vertx.eventBus().publish(actorID, buffer);
+              }
+            });
+            sock.endHandler(new VoidHandler() {
+              public void handle() {
               connections.remove(sock.writeHandlerID());
             }
-          });
-        }
-      }));
+            });
+          }
+        }));
     router.route("/cookie_needed_echo/*").handler(SockJSHandler.create(vertx, new SockJSHandlerOptions().
       setMaxBytesStreaming(4096).setInsertJSESSIONID(true)).socketHandler(sock -> sock.handler(sock::write)));
   }
@@ -331,11 +332,7 @@ public class SockJSHandlerImpl implements SockJSHandler, Handler<RoutingContext>
     HttpServer server = vertx.createHttpServer();
     Router router = Router.router(vertx);
     installTestApplications(router, vertx);
-    server.requestHandler(req -> {
-      router.accept(req);
-    }).listen(8081);
+    server.requestHandler(router::accept).listen(8081);
   }
-
-
 }
 
