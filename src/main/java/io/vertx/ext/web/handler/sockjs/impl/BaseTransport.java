@@ -32,9 +32,9 @@
 
 package io.vertx.ext.web.handler.sockjs.impl;
 
-import io.netty.handler.codec.http.Cookie;
-import io.netty.handler.codec.http.CookieDecoder;
-import io.netty.handler.codec.http.ServerCookieEncoder;
+import io.netty.handler.codec.http.cookie.Cookie;
+import io.netty.handler.codec.http.cookie.ServerCookieDecoder;
+import io.netty.handler.codec.http.cookie.ServerCookieEncoder;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
@@ -221,10 +221,10 @@ class BaseTransport {
     String cookieHeader = headers.get(COOKIE);
     if (cookieHeader != null) {
       headers.remove(COOKIE);
-      Set<Cookie> nettyCookies = CookieDecoder.decode(cookieHeader);
+      Set<Cookie> nettyCookies = ServerCookieDecoder.STRICT.decode(cookieHeader);
       for (Cookie cookie: nettyCookies) {
-        if (cookie.getName().equals("JSESSIONID")) {
-          headers.add(COOKIE, ServerCookieEncoder.encode(cookie));
+        if (cookie.name().equals("JSESSIONID")) {
+          headers.add(COOKIE, ServerCookieEncoder.STRICT.encode(cookie));
           break;
         }
       }

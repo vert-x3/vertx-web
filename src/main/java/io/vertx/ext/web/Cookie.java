@@ -47,7 +47,7 @@ public interface Cookie {
    * @return the cookie
    */
   @GenIgnore
-  static Cookie cookie(io.netty.handler.codec.http.Cookie nettyCookie) {
+  static Cookie cookie(io.netty.handler.codec.http.cookie.Cookie nettyCookie) {
     return new CookieImpl(nettyCookie);
   }
 

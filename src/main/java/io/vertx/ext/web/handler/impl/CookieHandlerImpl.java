@@ -16,7 +16,7 @@
 
 package io.vertx.ext.web.handler.impl;
 
-import io.netty.handler.codec.http.CookieDecoder;
+import io.netty.handler.codec.http.cookie.ServerCookieDecoder;
 import io.vertx.ext.web.Cookie;
 import io.vertx.ext.web.impl.CookieImpl;
 import io.vertx.ext.web.handler.CookieHandler;
@@ -46,8 +46,8 @@ public class CookieHandlerImpl implements CookieHandler {
     String cookieHeader = context.request().headers().get(COOKIE);
 
     if (cookieHeader != null) {
-      Set<io.netty.handler.codec.http.Cookie> nettyCookies = CookieDecoder.decode(cookieHeader);
-      for (io.netty.handler.codec.http.Cookie cookie : nettyCookies) {
+      Set<io.netty.handler.codec.http.cookie.Cookie> nettyCookies = ServerCookieDecoder.STRICT.decode(cookieHeader);
+      for (io.netty.handler.codec.http.cookie.Cookie cookie : nettyCookies) {
         Cookie ourCookie = new CookieImpl(cookie);
         context.addCookie(ourCookie);
       }

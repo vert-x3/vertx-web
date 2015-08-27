@@ -77,7 +77,7 @@ var SessionHandler = function(j_val) {
 
   /**
    Sets whether the 'secure' flag should be set for the session cookie. When set this flag instructs browsers to only
-   send the cookie over HTTPS.
+   send the cookie over HTTPS. Note that this will probably stop your sessions working if used without HTTPS (e.g. in development).
 
    @public
    @param secure {boolean} true to set the secure flag on the cookie 

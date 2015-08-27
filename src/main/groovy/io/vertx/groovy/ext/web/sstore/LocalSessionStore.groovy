@@ -17,6 +17,7 @@
 package io.vertx.groovy.ext.web.sstore;
 import groovy.transform.CompileStatic
 import io.vertx.lang.groovy.InternalHelper
+import io.vertx.core.json.JsonObject
 import io.vertx.groovy.core.Vertx
 /**
  * A session store which is only available on a single node.

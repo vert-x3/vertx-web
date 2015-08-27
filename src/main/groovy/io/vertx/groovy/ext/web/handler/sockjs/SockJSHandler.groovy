@@ -17,6 +17,7 @@
 package io.vertx.groovy.ext.web.handler.sockjs;
 import groovy.transform.CompileStatic
 import io.vertx.lang.groovy.InternalHelper
+import io.vertx.core.json.JsonObject
 import io.vertx.groovy.core.Vertx
 import io.vertx.groovy.ext.web.Router
 import io.vertx.groovy.ext.web.RoutingContext

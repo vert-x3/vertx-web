@@ -17,6 +17,7 @@
 package io.vertx.groovy.ext.web.handler;
 import groovy.transform.CompileStatic
 import io.vertx.lang.groovy.InternalHelper
+import io.vertx.core.json.JsonObject
 import java.util.Set
 import io.vertx.groovy.ext.web.RoutingContext
 import io.vertx.groovy.ext.auth.AuthProvider

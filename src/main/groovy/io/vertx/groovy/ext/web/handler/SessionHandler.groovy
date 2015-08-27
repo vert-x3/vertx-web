@@ -17,6 +17,7 @@
 package io.vertx.groovy.ext.web.handler;
 import groovy.transform.CompileStatic
 import io.vertx.lang.groovy.InternalHelper
+import io.vertx.core.json.JsonObject
 import io.vertx.groovy.ext.web.sstore.SessionStore
 import io.vertx.groovy.ext.web.RoutingContext
 import io.vertx.core.Handler
@@ -72,7 +73,7 @@ public class SessionHandler implements Handler<RoutingContext> {
   }
   /**
    * Sets whether the 'secure' flag should be set for the session cookie. When set this flag instructs browsers to only
-   * send the cookie over HTTPS.
+   * send the cookie over HTTPS. Note that this will probably stop your sessions working if used without HTTPS (e.g. in development).
    * @param secure true to set the secure flag on the cookie
    * @return a reference to this, so the API can be used fluently
    */

@@ -17,6 +17,7 @@
 package io.vertx.groovy.ext.web;
 import groovy.transform.CompileStatic
 import io.vertx.lang.groovy.InternalHelper
+import io.vertx.core.json.JsonObject
 /**
  * Represents a browser session.
  * <p>
