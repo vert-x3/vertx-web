@@ -86,8 +86,8 @@ public class FaviconHandlerImpl implements FaviconHandler {
    * yoke.use(new Favicon("/icons/icon.ico", 1000));
    * </pre>
    *
-   * @param path
-   * @param maxAgeSeconds
+   * @param path file path to icon
+   * @param maxAgeSeconds max allowed time to be cached in seconds
    */
   public FaviconHandlerImpl(String path, long maxAgeSeconds) {
     this.path = path;
@@ -105,7 +105,7 @@ public class FaviconHandlerImpl implements FaviconHandler {
    * yoke.use(new Favicon("/icons/icon.ico", 1000));
    * </pre>
    *
-   * @param maxAgeSeconds
+   * @param maxAgeSeconds max allowed time to be cached in seconds
    */
   public FaviconHandlerImpl(long maxAgeSeconds) {
     this(null, maxAgeSeconds);
@@ -119,7 +119,7 @@ public class FaviconHandlerImpl implements FaviconHandler {
    * yoke.use(new Favicon("/icons/icon.ico"));
    * </pre>
    *
-   * @param path
+   * @param path file path to icon
    */
   public FaviconHandlerImpl(String path) {
     this(path, DEFAULT_MAX_AGE_SECONDS);

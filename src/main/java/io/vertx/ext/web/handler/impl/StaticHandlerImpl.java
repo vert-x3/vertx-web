@@ -88,8 +88,8 @@ public class StaticHandlerImpl implements StaticHandler {
   /**
    * Create all required header so content can be cache by Caching servers or Browsers
    *
-   * @param request
-   * @param props
+   * @param request base HttpServerRequest
+   * @param props file properties
    */
   private void writeCacheHeaders(HttpServerRequest request, FileProps props) {
 

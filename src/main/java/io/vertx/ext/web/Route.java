@@ -123,7 +123,7 @@ public interface Route {
    * behaviour and don't mind if your blocking handlers are executed in parallel you can set ordered to false.
    *
    * @param requestHandler  the blocking request handler
-   * @param ordered
+   * @param ordered if true handlers are executed in sequence, otherwise are run in parallel
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
