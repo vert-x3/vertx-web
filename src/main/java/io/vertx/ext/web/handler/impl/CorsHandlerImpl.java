@@ -173,7 +173,7 @@ public class CorsHandlerImpl implements CorsHandler {
     return allowedOrigin == null ? "*" : origin;
   }
 
-  private String join(Collection<? extends Object> ss) {
+  private String join(Collection<?> ss) {
     if (ss == null || ss.isEmpty()) {
       return null;
     }
