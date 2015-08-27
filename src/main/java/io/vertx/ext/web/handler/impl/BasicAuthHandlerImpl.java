@@ -40,7 +40,6 @@ public class BasicAuthHandlerImpl extends AuthHandlerImpl {
 
   @Override
   public void handle(RoutingContext context) {
-    String uri = context.request().absoluteURI();
     User user = context.user();
     if (user != null) {
       // Already authenticated in, just authorise
