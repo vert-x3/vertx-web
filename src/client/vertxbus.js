@@ -53,8 +53,10 @@ var vertx = vertx || {};
     var state = vertx.EventBus.CONNECTING;
     var pingTimerID = null;
     var pingInterval = null;
+    var ticket = null;
     if (options) {
       pingInterval = options['vertxbus_ping_interval'];
+      ticket = options['ticket'];
     }
     if (!pingInterval) {
       pingInterval = 5000;
@@ -135,6 +137,9 @@ var vertx = vertx || {};
           type: 'register',
           address: address
         };
+        if ( ticket != null ) {
+            msg['ticket'] = ticket;
+        }
         sockJSConn.send(JSON.stringify(msg));
       } else {
         handlers[handlers.length] = handler;
@@ -156,6 +161,10 @@ var vertx = vertx || {};
             type: 'unregister',
             address: address
           };
+          if ( ticket != null ) {
+            msg['ticket'] = ticket;
+          }
+
           sockJSConn.send(JSON.stringify(msg));
           delete handlerMap[address];
         }
@@ -257,6 +266,9 @@ var vertx = vertx || {};
         address: address,
         body: message
       };
+      if ( ticket != null ) {
+        envelope['ticket'] = ticket;
+      }
 
       if (headers) {
         envelope.headers = headers;
