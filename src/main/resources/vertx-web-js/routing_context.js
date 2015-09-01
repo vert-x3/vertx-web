@@ -18,6 +18,7 @@
 var utils = require('vertx-js/util/utils');
 var Route = require('vertx-web-js/route');
 var Cookie = require('vertx-web-js/cookie');
+var Locale = require('vertx-web-js/locale');
 var FileUpload = require('vertx-web-js/file_upload');
 var HttpServerRequest = require('vertx-js/http_server_request');
 var Session = require('vertx-web-js/session');
@@ -565,6 +566,19 @@ var RoutingContext = function(j_val) {
     var __args = arguments;
     if (__args.length === 2 && typeof __args[0] === 'string' && typeof __args[1] === 'string') {
       j_routingContext["reroute(io.vertx.core.http.HttpMethod,java.lang.String)"](io.vertx.core.http.HttpMethod.valueOf(__args[0]), path);
+    } else utils.invalidArgs();
+  };
+
+  /**
+
+   @public
+
+   @return {Locale}
+   */
+  this.locale = function() {
+    var __args = arguments;
+    if (__args.length === 0) {
+      return utils.convReturnVertxGen(j_routingContext["locale()"](), Locale);
     } else utils.invalidArgs();
   };
 

@@ -1,5 +1,6 @@
 require 'vertx-web/route'
 require 'vertx-web/cookie'
+require 'vertx-web/locale'
 require 'vertx-web/file_upload'
 require 'vertx/http_server_request'
 require 'vertx-web/session'
@@ -382,6 +383,13 @@ module VertxWeb
         return @j_del.java_method(:reroute, [Java::IoVertxCoreHttp::HttpMethod.java_class,Java::java.lang.String.java_class]).call(Java::IoVertxCoreHttp::HttpMethod.valueOf(method),path)
       end
       raise ArgumentError, "Invalid arguments when calling reroute(method,path)"
+    end
+    # @return [::VertxWeb::Locale]
+    def locale
+      if !block_given?
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:locale, []).call(),::VertxWeb::Locale)
+      end
+      raise ArgumentError, "Invalid arguments when calling locale()"
     end
   end
 end

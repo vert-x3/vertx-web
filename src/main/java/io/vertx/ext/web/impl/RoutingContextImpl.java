@@ -24,11 +24,9 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.web.Cookie;
-import io.vertx.ext.web.FileUpload;
-import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.Session;
+import io.vertx.ext.web.*;
 import io.vertx.ext.auth.User;
+import io.vertx.ext.web.Locale;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -270,6 +268,30 @@ public class RoutingContextImpl extends RoutingContextImplBase {
     ((HttpServerRequestWrapper) request).setMethod(method);
     ((HttpServerRequestWrapper) request).setPath(path);
     restart();
+  }
+
+  @Override
+  public Locale locale() {
+    String languages = request.getHeader("Accept-Language");
+    if (languages != null) {
+      List<String> acceptLanguages = Utils.getSortedAcceptableMimeTypes(languages);
+      String bestLanguage = acceptLanguages.get(0);
+
+      int idx = bestLanguage.indexOf(';');
+
+      if (idx != -1) {
+        bestLanguage = bestLanguage.substring(0, idx).trim();
+      }
+
+      String[] parts = bestLanguage.split("_|-");
+      switch (parts.length) {
+        case 3: return Locale.create(parts[0], parts[1], parts[2]);
+        case 2: return Locale.create(parts[0], parts[1]);
+        case 1: return Locale.create(parts[0]);
+      }
+    }
+
+    return Locale.create();
   }
 
   private Map<Integer, Handler<Future>> getHeadersEndHandlers() {

@@ -197,6 +197,11 @@ public class RoutingContextDecorator implements RoutingContext {
   }
 
   @Override
+  public Locale locale() {
+    return decoratedContext.locale();
+  }
+
+  @Override
   public void setBody(Buffer body) {
     decoratedContext.setBody(body);
   }

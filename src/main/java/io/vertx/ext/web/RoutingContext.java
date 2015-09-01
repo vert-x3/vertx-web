@@ -363,4 +363,13 @@ public interface RoutingContext {
    * @param path the new http path.
    */
   void reroute(HttpMethod method, String path);
+
+  /**
+   * Returns the locale for the current request. The locale is determined from the `accept-languages` header and the one
+   * with the best quality is chosen as the best match.
+   *
+   * @return the best matched locale for the request
+   */
+  @CacheReturn
+  Locale locale();
 }

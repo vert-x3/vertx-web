@@ -66,7 +66,7 @@ public class ThymeleafTemplateEngineImpl implements ThymeleafTemplateEngine {
       synchronized (this) {
         resolver.setVertx(context.vertx());
 
-        engine.process(templateFileName, new WebIContext(data), new Writer() {
+        engine.process(templateFileName, new WebIContext(data, context.locale()), new Writer() {
           @Override
           public void write(char[] cbuf, int off, int len) throws IOException {
             buffer.appendString(new String(cbuf, off, len));
@@ -103,9 +103,11 @@ public class ThymeleafTemplateEngineImpl implements ThymeleafTemplateEngine {
   private static class WebIContext implements IContext  {
 
     private final VariablesMap<String, Object> data;
+    private final Locale locale;
 
-    private WebIContext(VariablesMap<String, Object> data) {
+    private WebIContext(VariablesMap<String, Object> data, io.vertx.ext.web.Locale locale) {
       this.data = data;
+      this.locale = new Locale(locale.language(), locale.country(), locale.variant());
     }
 
     @Override
@@ -115,7 +117,7 @@ public class ThymeleafTemplateEngineImpl implements ThymeleafTemplateEngine {
 
     @Override
     public Locale getLocale() {
-      return Locale.getDefault();
+      return locale;
     }
 
     @Override

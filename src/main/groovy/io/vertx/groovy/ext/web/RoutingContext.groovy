@@ -239,7 +239,7 @@ public class RoutingContext {
     return ret;
   }
   /**
-   * @return Get the entire HTTP request body as a {@link io.vertx.core.json.JsonObject}. The context must have first been routed to a
+   * @return Get the entire HTTP request body as a {@link io.vertx.groovy.core.json.JsonObject}. The context must have first been routed to a
    * {@link io.vertx.groovy.ext.web.handler.BodyHandler} for this to be populated.
    * @return 
    */
@@ -401,6 +401,10 @@ public class RoutingContext {
    */
   public void reroute(HttpMethod method, String path) {
     this.delegate.reroute(method, path);
+  }
+  public Locale locale() {
+    def ret= InternalHelper.safeCreate(this.delegate.locale(), io.vertx.groovy.ext.web.Locale.class);
+    return ret;
   }
   private HttpServerRequest cached_0;
   private HttpServerResponse cached_1;

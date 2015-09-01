@@ -446,6 +446,11 @@ public class RoutingContext {
     this.delegate.reroute(method, path);
   }
 
+  public Locale locale() { 
+    Locale ret= Locale.newInstance(this.delegate.locale());
+    return ret;
+  }
+
   private HttpServerRequest cached_0;
   private HttpServerResponse cached_1;
   private java.lang.Integer cached_2;

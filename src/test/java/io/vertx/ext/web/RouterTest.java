@@ -1509,4 +1509,36 @@ public class RouterTest extends WebTestBase {
     router.route("/").handler(rc -> rc.response().end());
     testRequest(HttpMethod.GET, "/", 200, "OK");
   }
+
+  @Test
+  public void testLocaleWithCountry() throws Exception {
+    router.route().handler(rc -> {
+      assertEquals("da", rc.locale().language());
+      assertEquals("DK", rc.locale().country());
+      rc.response().end();
+    });
+
+    testRequest(HttpMethod.GET, "/foo", req -> req.putHeader("Accept-Language", "en-gb;q=0.8, en;q=0.7, da_DK;q=0.9"), 200, "OK", null);
+  }
+
+  @Test
+  public void testLocaleSimple() throws Exception {
+    router.route().handler(rc -> {
+      assertEquals("da", rc.locale().language());
+      rc.response().end();
+    });
+
+    testRequest(HttpMethod.GET, "/foo", req -> req.putHeader("Accept-Language", "da, en-gb;q=0.8, en;q=0.7"), 200, "OK", null);
+  }
+
+  @Test
+  public void testLocaleWithoutQuality() throws Exception {
+    router.route().handler(rc -> {
+      assertEquals("en", rc.locale().language());
+      assertEquals("GB", rc.locale().country());
+      rc.response().end();
+    });
+
+    testRequest(HttpMethod.GET, "/foo", req -> req.putHeader("Accept-Language", "en-gb"), 200, "OK", null);
+  }
 }

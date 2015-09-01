@@ -154,7 +154,7 @@ public class Route {
    * concurrently but always in the order they were called. The default value of ordered is true. If you do not want this
    * behaviour and don't mind if your blocking handlers are executed in parallel you can set ordered to false.
    * @param requestHandler the blocking request handler
-   * @param ordered 
+   * @param ordered if true handlers are executed in sequence, otherwise are run in parallel
    * @return a reference to this, so the API can be used fluently
    */
   public Route blockingHandler(Handler<RoutingContext> requestHandler, boolean ordered) { 
