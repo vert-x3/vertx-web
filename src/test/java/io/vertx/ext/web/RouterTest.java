@@ -1509,4 +1509,27 @@ public class RouterTest extends WebTestBase {
     router.route("/").handler(rc -> rc.response().end());
     testRequest(HttpMethod.GET, "/", 200, "OK");
   }
+
+  @Test
+  public void testIssue176() throws Exception {
+    router.route().order(0).handler(context -> {
+      context.response().headers().add("X-Here-1", "1");
+      context.next();
+    });
+    router.route().order(0).handler(context -> {
+      context.response().headers().add("X-Here-2", "2");
+      context.next();
+    });
+    router.route().handler(context -> {
+      context.response().headers().add("X-Here-3", "3");
+      context.response().end();
+    });
+
+    testRequest(HttpMethod.GET, "/", null, resp -> {
+      MultiMap headers = resp.headers();
+      assertTrue(headers.contains("X-Here-1"));
+      assertTrue(headers.contains("X-Here-2"));
+      assertTrue(headers.contains("X-Here-3"));
+    }, 200, "OK", null);
+  }
 }
