@@ -26,10 +26,7 @@ import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -41,11 +38,32 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class RouterImpl implements Router {
 
+  private static final Comparator<RouteImpl> routeComparator = (RouteImpl o1, RouteImpl o2) -> {
+    // we keep a set of handlers ordered by its "order" property
+    final int compare = Integer.compare(o1.order(), o2.order());
+    // since we are defining the comparator to order the set we must be careful because the set
+    // will use the comparator to compare the identify of the handlers and if they are the same order
+    // are assumed to be the same comparator and therefore removed from the set.
+
+    // if the 2 routes being compared by its order have the same order property value,
+    // then do a more expensive equality check and if and only if the are the same we
+    // do return 0, meaning same order and same identity.
+    if (compare == 0) {
+      if (o1.equals(o2)) {
+        return 0;
+      }
+      // otherwise we return higher so if 2 routes have the same order the second one will be considered
+      // higher so it is added after the first.
+      return 1;
+    }
+    return compare;
+  };
+
+
   private static final Logger log = LoggerFactory.getLogger(RouterImpl.class);
 
   private final Vertx vertx;
-  private final Set<RouteImpl> routes =
-    new ConcurrentSkipListSet<>((RouteImpl o1, RouteImpl o2) -> Integer.compare(o1.order(), o2.order()));
+  private final Set<RouteImpl> routes = new ConcurrentSkipListSet<>(routeComparator);
 
   public RouterImpl(Vertx vertx) {
     this.vertx = vertx;
