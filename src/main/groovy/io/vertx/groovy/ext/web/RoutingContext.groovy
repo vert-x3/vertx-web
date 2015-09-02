@@ -402,11 +402,25 @@ public class RoutingContext {
   public void reroute(HttpMethod method, String path) {
     this.delegate.reroute(method, path);
   }
+  /**
+   * Returns the locale for the current request. The locale is determined from the `accept-languages` header and the one
+   * with the best quality is chosen as the best match.
+   *
+   * When 2 or more entries have the same quality then the order used to return the best match is based on the lowest
+   * index on the original list. For example if a user has en-US and en-GB with same quality and this order the best
+   * match will be en-US because it was declared as first entry by the client.
+   * @return the best matched locale for the request
+   */
   public Locale locale() {
+    if (cached_3 != null) {
+      return cached_3;
+    }
     def ret= InternalHelper.safeCreate(this.delegate.locale(), io.vertx.groovy.ext.web.Locale.class);
+    cached_3 = ret;
     return ret;
   }
   private HttpServerRequest cached_0;
   private HttpServerResponse cached_1;
   private int cached_2;
+  private Locale cached_3;
 }

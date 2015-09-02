@@ -368,6 +368,10 @@ public interface RoutingContext {
    * Returns the locale for the current request. The locale is determined from the `accept-languages` header and the one
    * with the best quality is chosen as the best match.
    *
+   * When 2 or more entries have the same quality then the order used to return the best match is based on the lowest
+   * index on the original list. For example if a user has en-US and en-GB with same quality and this order the best
+   * match will be en-US because it was declared as first entry by the client.
+   *
    * @return the best matched locale for the request
    */
   @CacheReturn
