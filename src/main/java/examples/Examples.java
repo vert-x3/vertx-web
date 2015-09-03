@@ -1093,5 +1093,32 @@ public class Examples {
       // do something if the request is for *.vertx.io
     }));
   }
+
+  public void example57(Router router) {
+
+    Route route = router.get("/localized").handler( rc -> {
+      // although it might seem strange by running a loop with a switch we
+      // make sure that the locale order of preference is preserved when
+      // replying in the users language.
+      for (Locale locale : rc.acceptableLocales()) {
+        switch (locale.language()) {
+          case "en":
+            rc.response().end("Hello!");
+            return;
+          case "fr":
+            rc.response().end("Bonjour!");
+            return;
+          case "pt":
+            rc.response().end("Olá!");
+            return;
+          case "es":
+            rc.response().end("Hola!");
+            return;
+        }
+      }
+      // we do not know the user language so lets just inform that back:
+      rc.response().end("Sorry we don't speak: " + rc.preferredLocale());
+    });
+  }
 }
 

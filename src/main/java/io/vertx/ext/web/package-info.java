@@ -554,6 +554,21 @@
  *
  * This means the REST API is now accessible via paths like: `/productsAPI/products/product1234`
  *
+ * == Localization
+ *
+ * Vert.x Web parses the `Accept-Language` header and provides some helper methods to identify which is the preferred
+ * locale for a client or the sorted list of preferred locales by quality.
+ *
+ * [source,$lang]
+ * ----
+ * {@link examples.Examples#example57}
+ * ----
+ *
+ * The main method {@link io.vertx.ext.web.RoutingContext#acceptableLocales} will return the ordered list of locales the
+ * user understands, if you're only interested in the user prefered locale then the helper:
+ * {@link io.vertx.ext.web.RoutingContext#preferredLocale} will return the 1st element of the list or `null` if no
+ * locale was provided by the user.
+ *
  * == Default 404 Handling
  *
  * If no routes match for any particular request, Vert.x-Web will signal a 404 error.

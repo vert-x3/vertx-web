@@ -570,8 +570,8 @@ var RoutingContext = function(j_val) {
   };
 
   /**
-   Returns the locale for the current request. The locale is determined from the `accept-languages` header and the one
-   with the best quality is chosen as the best match.
+   Returns the locales for the current request. The locales are determined from the `accept-languages` header and
+   sorted on quality.
   
    When 2 or more entries have the same quality then the order used to return the best match is based on the lowest
    index on the original list. For example if a user has en-US and en-GB with same quality and this order the best
@@ -579,15 +579,15 @@ var RoutingContext = function(j_val) {
 
    @public
 
-   @return {Locale} the best matched locale for the request
+   @return {Array.<Locale>} the best matched locale for the request
    */
-  this.locale = function() {
+  this.acceptableLocales = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      if (that.cachedlocale == null) {
-        that.cachedlocale = utils.convReturnVertxGen(j_routingContext["locale()"](), Locale);
+      if (that.cachedacceptableLocales == null) {
+        that.cachedacceptableLocales = utils.convReturnListSetVertxGen(j_routingContext["acceptableLocales()"](), Locale);
       }
-      return that.cachedlocale;
+      return that.cachedacceptableLocales;
     } else utils.invalidArgs();
   };
 

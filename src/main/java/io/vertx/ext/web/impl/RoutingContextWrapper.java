@@ -27,6 +27,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.web.*;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -241,8 +242,8 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   }
 
   @Override
-  public Locale locale() {
-    return inner.locale();
+  public List<Locale> acceptableLocales() {
+    return inner.acceptableLocales();
   }
 
 }

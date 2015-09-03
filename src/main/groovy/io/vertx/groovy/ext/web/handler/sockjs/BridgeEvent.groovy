@@ -73,7 +73,7 @@ public class BridgeEvent extends Future<Boolean> {
     cached_2 = ret;
     return ret;
   }
-  private io.vertx.ext.web.handler.sockjs.BridgeEventType cached_0;
+  private BridgeEventType cached_0;
   private Map<String, Object> cached_1;
   private SockJSSocket cached_2;
 }

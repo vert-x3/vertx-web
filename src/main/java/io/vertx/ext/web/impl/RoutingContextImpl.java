@@ -271,27 +271,38 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   }
 
   @Override
-  public Locale locale() {
+  public List<Locale> acceptableLocales() {
     String languages = request.getHeader("Accept-Language");
     if (languages != null) {
       List<String> acceptLanguages = Utils.getSortedAcceptableMimeTypes(languages);
-      String bestLanguage = acceptLanguages.get(0);
 
-      int idx = bestLanguage.indexOf(';');
+      final List<Locale> locales = new ArrayList<>(acceptLanguages.size());
 
-      if (idx != -1) {
-        bestLanguage = bestLanguage.substring(0, idx).trim();
+      for (String lang : acceptLanguages) {
+        int idx = lang.indexOf(';');
+
+        if (idx != -1) {
+          lang = lang.substring(0, idx).trim();
+        }
+
+        String[] parts = lang.split("_|-");
+        switch (parts.length) {
+          case 3:
+            locales.add(Locale.create(parts[0], parts[1], parts[2]));
+            break;
+          case 2:
+            locales.add(Locale.create(parts[0], parts[1]));
+            break;
+          case 1:
+            locales.add(Locale.create(parts[0]));
+            break;
+        }
       }
 
-      String[] parts = bestLanguage.split("_|-");
-      switch (parts.length) {
-        case 3: return Locale.create(parts[0], parts[1], parts[2]);
-        case 2: return Locale.create(parts[0], parts[1]);
-        case 1: return Locale.create(parts[0]);
-      }
+      return locales;
     }
 
-    return Locale.create();
+    return Collections.emptyList();
   }
 
   private Map<Integer, Handler<Future>> getHeadersEndHandlers() {

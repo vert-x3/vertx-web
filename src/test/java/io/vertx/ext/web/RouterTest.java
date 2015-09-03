@@ -1536,8 +1536,9 @@ public class RouterTest extends WebTestBase {
   @Test
   public void testLocaleWithCountry() throws Exception {
     router.route().handler(rc -> {
-      assertEquals("da", rc.locale().language());
-      assertEquals("DK", rc.locale().country());
+      assertEquals(3, rc.acceptableLocales().size());
+      assertEquals("da", rc.preferredLocale().language());
+      assertEquals("DK", rc.preferredLocale().country());
       rc.response().end();
     });
 
@@ -1547,7 +1548,8 @@ public class RouterTest extends WebTestBase {
   @Test
   public void testLocaleSimple() throws Exception {
     router.route().handler(rc -> {
-      assertEquals("da", rc.locale().language());
+      assertEquals(3, rc.acceptableLocales().size());
+      assertEquals("da", rc.preferredLocale().language());
       rc.response().end();
     });
 
@@ -1557,8 +1559,9 @@ public class RouterTest extends WebTestBase {
   @Test
   public void testLocaleWithoutQuality() throws Exception {
     router.route().handler(rc -> {
-      assertEquals("en", rc.locale().language());
-      assertEquals("GB", rc.locale().country());
+      assertEquals(1, rc.acceptableLocales().size());
+      assertEquals("en", rc.preferredLocale().language());
+      assertEquals("GB", rc.preferredLocale().country());
       rc.response().end();
     });
 
@@ -1568,7 +1571,8 @@ public class RouterTest extends WebTestBase {
   @Test
   public void testLocaleSameQuality() throws Exception {
     router.route().handler(rc -> {
-      assertEquals("pt", rc.locale().language());
+      assertEquals(2, rc.acceptableLocales().size());
+      assertEquals("pt", rc.preferredLocale().language());
       rc.response().end();
     });
 

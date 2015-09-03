@@ -384,21 +384,21 @@ module VertxWeb
       end
       raise ArgumentError, "Invalid arguments when calling reroute(method,path)"
     end
-    #  Returns the locale for the current request. The locale is determined from the `accept-languages` header and the one
-    #  with the best quality is chosen as the best match.
+    #  Returns the locales for the current request. The locales are determined from the `accept-languages` header and
+    #  sorted on quality.
     # 
     #  When 2 or more entries have the same quality then the order used to return the best match is based on the lowest
     #  index on the original list. For example if a user has en-US and en-GB with same quality and this order the best
     #  match will be en-US because it was declared as first entry by the client.
-    # @return [::VertxWeb::Locale] the best matched locale for the request
-    def locale
+    # @return [Array<::VertxWeb::Locale>] the best matched locale for the request
+    def acceptable_locales
       if !block_given?
-        if @cached_locale != nil
-          return @cached_locale
+        if @cached_acceptable_locales != nil
+          return @cached_acceptable_locales
         end
-        return @cached_locale = ::Vertx::Util::Utils.safe_create(@j_del.java_method(:locale, []).call(),::VertxWeb::Locale)
+        return @cached_acceptable_locales = @j_del.java_method(:acceptableLocales, []).call().to_a.map { |elt| ::Vertx::Util::Utils.safe_create(elt,::VertxWeb::Locale) }
       end
-      raise ArgumentError, "Invalid arguments when calling locale()"
+      raise ArgumentError, "Invalid arguments when calling acceptable_locales()"
     end
   end
 end
