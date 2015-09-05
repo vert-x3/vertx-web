@@ -16,6 +16,7 @@
 
 package io.vertx.ext.web;
 
+import io.vertx.core.MultiMap;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.*;
 import io.vertx.test.core.VertxTestBase;
@@ -108,12 +109,18 @@ public class WebTestBase extends VertxTestBase {
   protected void testRequestBuffer(HttpMethod method, String path, Consumer<HttpClientRequest> requestAction, Consumer<HttpClientResponse> responseAction,
                                    int statusCode, String statusMessage,
                                    Buffer responseBodyBuffer) throws Exception {
-    testRequestBuffer(client, method, 8080, path, requestAction, responseAction, statusCode, statusMessage, responseBodyBuffer);
+    testRequestBuffer(client, method, 8080, path, requestAction, responseAction, statusCode, statusMessage, responseBodyBuffer, null);
   }
 
   protected void testRequestBuffer(HttpClient client, HttpMethod method, int port, String path, Consumer<HttpClientRequest> requestAction, Consumer<HttpClientResponse> responseAction,
                                    int statusCode, String statusMessage,
                                    Buffer responseBodyBuffer) throws Exception {
+    testRequestBuffer(client, method, 8080, path, requestAction, responseAction, statusCode, statusMessage, responseBodyBuffer, null);
+  }
+
+  protected void testRequestBuffer(HttpClient client, HttpMethod method, int port, String path, Consumer<HttpClientRequest> requestAction, Consumer<HttpClientResponse> responseAction,
+                                   int statusCode, String statusMessage,
+                                   Buffer responseBodyBuffer, MultiMap headers) throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
     HttpClientRequest req = client.request(method, port, "localhost", path, resp -> {
       assertEquals(statusCode, resp.statusCode());
@@ -132,6 +139,9 @@ public class WebTestBase extends VertxTestBase {
     });
     if (requestAction != null) {
       requestAction.accept(req);
+    }
+    if (headers != null && headers.size() > 0){
+      req.headers().addAll(headers);
     }
     req.end();
     awaitLatch(latch);
