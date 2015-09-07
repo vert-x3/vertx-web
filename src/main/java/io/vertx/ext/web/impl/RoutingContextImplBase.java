@@ -16,6 +16,7 @@
 
 package io.vertx.ext.web.impl;
 
+import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
@@ -106,7 +107,14 @@ public abstract class RoutingContextImplBase implements RoutingContext {
       }
     }
     if (!response().ended()) {
-      response().setStatusCode(code);
+      try {
+        response().setStatusCode(code);
+      } catch (IllegalArgumentException e) {
+        // means that there are invalid chars in the status message
+        response()
+            .setStatusMessage(HttpResponseStatus.valueOf(code).reasonPhrase())
+            .setStatusCode(code);
+      }
       response().end(response().getStatusMessage());
     }
   }

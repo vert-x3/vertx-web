@@ -527,6 +527,26 @@ public class RouterTest extends WebTestBase {
   }
 
   @Test
+  public void testFailureUsingInvalidCharsInStatus() throws Exception {
+    String path = "/blah";
+    router.route(path).handler(rc -> {
+      rc.response().setStatusMessage("Hello\nWorld!").end();
+    });
+    testRequest(HttpMethod.GET, path, 500, "Internal Server Error");
+  }
+
+  @Test
+  public void testFailureinHandlingFailureWithInvalidStatusMessage() throws Exception {
+    String path = "/blah";
+    router.route(path).handler(rc -> {
+      throw new RuntimeException("ouch!");
+    }).failureHandler(frc -> {
+      frc.response().setStatusMessage("Hello\nWorld").end();
+    });
+    testRequest(HttpMethod.GET, path, 500, "Internal Server Error");
+  }
+
+  @Test
   public void testSetExceptionHandler() throws Exception {
     String path = "/blah";
     router.route(path).handler(rc -> {

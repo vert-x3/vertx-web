@@ -107,7 +107,7 @@ module VertxWeb
     #  concurrently but always in the order they were called. The default value of ordered is true. If you do not want this
     #  behaviour and don't mind if your blocking handlers are executed in parallel you can set ordered to false.
     # @param [Proc] requestHandler the blocking request handler
-    # @param [true,false] ordered 
+    # @param [true,false] ordered if true handlers are executed in sequence, otherwise are run in parallel
     # @return [self]
     def blocking_handler(requestHandler=nil,ordered=nil)
       if block_given? && requestHandler == nil && ordered == nil
