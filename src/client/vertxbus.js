@@ -226,7 +226,7 @@ var vertx = vertx || {};
         if (handlers) {
           delete replyHandlers[address];
           var handler = handlers.replyHandler;
-          if (body) {
+          if (typeof body != 'undefined') {
             handler(body, replyHandler);
           } else if (typeof json.failureCode != 'undefined') {
             // Check for failure
