@@ -1549,8 +1549,8 @@
  * ----
  */
 @Document(fileName = "index.adoc")
-@GenModule(name = "vertx-web")
+@ModuleGen(name = "vertx-web", groupPackage = "io.vertx")
 package io.vertx.ext.web;
 
-import io.vertx.codegen.annotations.GenModule;
+import io.vertx.codegen.annotations.ModuleGen;
 import io.vertx.docgen.Document;
