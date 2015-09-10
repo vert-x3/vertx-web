@@ -592,6 +592,11 @@
  * {@link examples.Examples#example26}
  * ----
  *
+ * For the eventuality that an error occurs when running the error handler related usage of not allowed characters in
+ * status message header, then the original status message will be changed to the default message from the error code.
+ * This is a tradeoff to keep the semantics of the HTTP protocol working instead of abruptly creash and close the socket
+ * without properly completing the protocol.
+ *
  * == Request body handling
  *
  * The {@link io.vertx.ext.web.handler.BodyHandler} allows you to retrieve request bodies, limit body sizes and handle
