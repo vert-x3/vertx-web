@@ -980,6 +980,11 @@
  * When Vert.x finds a resource on the classpath for the first time it extracts it and caches it in a temporary directory
  * on disk so it doesn't have to do this each time.
  *
+ * The handler will handle range aware requests. When a client makes a request to a static resource, the handler will
+ * notify that it can handle range aware request by stating the unit on the `Accept-Ranges` header. Further requests
+ * that contain the `Range` header with the correct unit and start and end indexes will then receive partial responses
+ * with the correct `Content-Range` header.
+ *
  * === Configuring caching
  *
  * By default the static handler will set cache headers to enable browsers to effectively cache files.

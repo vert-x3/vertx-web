@@ -35,7 +35,10 @@ import java.nio.file.NoSuchFileException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import static io.netty.handler.codec.http.HttpResponseStatus.*;
 /**
  * Static web server
  * Parts derived from Yoke
@@ -60,6 +63,7 @@ public class StaticHandlerImpl implements StaticHandler {
   private long cacheEntryTimeout = DEFAULT_CACHE_ENTRY_TIMEOUT;
   private String indexPage = DEFAULT_INDEX_PAGE;
   private int maxCacheSize = DEFAULT_MAX_CACHE_SIZE;
+  private boolean rangeSupport = DEFAULT_RANGE_SUPPORT;
 
   // These members are all related to auto tuning of synchronous vs asynchronous file system access
   private static int NUM_SERVES_TUNING_FS_ACCESS = 1000;
@@ -117,7 +121,7 @@ public class StaticHandlerImpl implements StaticHandler {
       // if the normalized path is null it cannot be resolved
       if (path == null) {
         log.warn("Invalid path: " + context.request().path() + " so returning 404");
-        context.fail(404);
+        context.fail(NOT_FOUND.code());
         return;
       }
 
@@ -141,7 +145,7 @@ public class StaticHandlerImpl implements StaticHandler {
       int idx = file.lastIndexOf('/');
       String name = file.substring(idx + 1);
       if (name.length() > 0 && name.charAt(0) == '.') {
-        context.fail(404);
+        context.fail(NOT_FOUND.code());
         return;
       }
     }
@@ -153,7 +157,7 @@ public class StaticHandlerImpl implements StaticHandler {
       if (entry != null) {
         HttpServerRequest request = context.request();
         if ((filesReadOnly || !entry.isOutOfDate()) && entry.shouldUseCached(request)) {
-          context.response().setStatusCode(304).end();
+          context.response().setStatusCode(NOT_MODIFIED.code()).end();
           return;
         }
       }
@@ -175,7 +179,7 @@ public class StaticHandlerImpl implements StaticHandler {
           FileProps fprops = res.result();
           if (fprops == null) {
             // File does not exist
-            context.fail(404);
+            context.fail(NOT_FOUND.code());
           } else if (fprops.isDirectory()) {
             sendDirectory(context, path, sfile);
           } else {
@@ -184,7 +188,7 @@ public class StaticHandlerImpl implements StaticHandler {
           }
         } else {
           if (res.cause() instanceof NoSuchFileException) {
-            context.fail(404);
+            context.fail(NOT_FOUND.code());
           } else {
             context.fail(res.cause());
           }
@@ -212,7 +216,7 @@ public class StaticHandlerImpl implements StaticHandler {
 
     } else {
       // Directory listing denied
-      context.fail(403);
+      context.fail(FORBIDDEN.code());
     }
   }
 
@@ -260,18 +264,79 @@ public class StaticHandlerImpl implements StaticHandler {
     numServesBlocking = 0;
   }
 
+  private static final Pattern RANGE = Pattern.compile("^bytes=(\\d+)-(\\d*)$");
+
   private void sendFile(RoutingContext context, String file, FileProps fileProps) {
     HttpServerRequest request = context.request();
+
+    Long offset = null;
+    Long end = null;
+    MultiMap headers = null;
+
+    if (rangeSupport) {
+      // check if the client is making a range request
+      String range = request.getHeader("Range");
+      // end byte is length - 1
+      end = fileProps.size() - 1;
+
+      if (range != null) {
+        Matcher m = RANGE.matcher(range);
+        if (m.matches()) {
+          try {
+            String part = m.group(1);
+            // offset cannot be empty
+            offset = Long.parseLong(part);
+            // offset must fall inside the limits of the file
+            if (offset < 0 || offset >= fileProps.size()) {
+              throw new IndexOutOfBoundsException();
+            }
+            // length can be empty
+            part = m.group(2);
+            if (part != null && part.length() > 0) {
+              // ranges are inclusive
+              end = Long.parseLong(part);
+              // offset must fall inside the limits of the file
+              if (end < offset || end >= fileProps.size()) {
+                throw new IndexOutOfBoundsException();
+              }
+            }
+          } catch (NumberFormatException | IndexOutOfBoundsException e) {
+            context.fail(REQUESTED_RANGE_NOT_SATISFIABLE.code());
+            return;
+          }
+        }
+      }
+
+      // notify client we support range requests
+      headers = request.response().headers();
+      headers.set("Accept-Ranges", "bytes");
+      // send the content length even for HEAD requests
+      headers.set("Content-Length", Long.toString(end + 1 - (offset == null ? 0 : offset)));
+    }
+
     writeCacheHeaders(request, fileProps);
 
     if (request.method() == HttpMethod.HEAD) {
       request.response().end();
     } else {
-      request.response().sendFile(file, res2 -> {
-        if (res2.failed()) {
-          context.fail(res2.cause());
-        }
-      });
+      if (rangeSupport && offset != null) {
+        // must return content range
+        headers.set("Content-Range", "bytes " + offset + "-" + end + "/" + fileProps.size());
+        // return a partial response
+        request.response().setStatusCode(PARTIAL_CONTENT.code());
+
+        request.response().sendFile(file, offset, end + 1, res2 -> {
+          if (res2.failed()) {
+            context.fail(res2.cause());
+          }
+        });
+      } else {
+        request.response().sendFile(file, res2 -> {
+          if (res2.failed()) {
+            context.fail(res2.cause());
+          }
+        });
+      }
     }
   }
 
@@ -321,6 +386,12 @@ public class StaticHandlerImpl implements StaticHandler {
   public StaticHandler setDirectoryTemplate(String directoryTemplate) {
     this.directoryTemplateResource = directoryTemplate;
     this.directoryTemplate = null;
+    return this;
+  }
+
+  @Override
+  public StaticHandler setEnableRangeSupport(boolean enableRangeSupport) {
+    this.rangeSupport = enableRangeSupport;
     return this;
   }
 
