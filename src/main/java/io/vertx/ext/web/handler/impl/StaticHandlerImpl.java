@@ -38,6 +38,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static io.netty.handler.codec.http.HttpResponseStatus.*;
 /**
  * Static web server
  * Parts derived from Yoke
@@ -120,7 +121,7 @@ public class StaticHandlerImpl implements StaticHandler {
       // if the normalized path is null it cannot be resolved
       if (path == null) {
         log.warn("Invalid path: " + context.request().path() + " so returning 404");
-        context.fail(404);
+        context.fail(NOT_FOUND.code());
         return;
       }
 
@@ -144,7 +145,7 @@ public class StaticHandlerImpl implements StaticHandler {
       int idx = file.lastIndexOf('/');
       String name = file.substring(idx + 1);
       if (name.length() > 0 && name.charAt(0) == '.') {
-        context.fail(404);
+        context.fail(NOT_FOUND.code());
         return;
       }
     }
@@ -156,7 +157,7 @@ public class StaticHandlerImpl implements StaticHandler {
       if (entry != null) {
         HttpServerRequest request = context.request();
         if ((filesReadOnly || !entry.isOutOfDate()) && entry.shouldUseCached(request)) {
-          context.response().setStatusCode(304).end();
+          context.response().setStatusCode(NOT_MODIFIED.code()).end();
           return;
         }
       }
@@ -178,7 +179,7 @@ public class StaticHandlerImpl implements StaticHandler {
           FileProps fprops = res.result();
           if (fprops == null) {
             // File does not exist
-            context.fail(404);
+            context.fail(NOT_FOUND.code());
           } else if (fprops.isDirectory()) {
             sendDirectory(context, path, sfile);
           } else {
@@ -187,7 +188,7 @@ public class StaticHandlerImpl implements StaticHandler {
           }
         } else {
           if (res.cause() instanceof NoSuchFileException) {
-            context.fail(404);
+            context.fail(NOT_FOUND.code());
           } else {
             context.fail(res.cause());
           }
@@ -215,7 +216,7 @@ public class StaticHandlerImpl implements StaticHandler {
 
     } else {
       // Directory listing denied
-      context.fail(403);
+      context.fail(FORBIDDEN.code());
     }
   }
 
@@ -300,7 +301,7 @@ public class StaticHandlerImpl implements StaticHandler {
               }
             }
           } catch (NumberFormatException | IndexOutOfBoundsException e) {
-            context.fail(416);
+            context.fail(REQUESTED_RANGE_NOT_SATISFIABLE.code());
             return;
           }
         }
@@ -322,7 +323,7 @@ public class StaticHandlerImpl implements StaticHandler {
         // must return content range
         headers.set("Content-Range", "bytes " + offset + "-" + end + "/" + fileProps.size());
         // return a partial response
-        request.response().setStatusCode(206);
+        request.response().setStatusCode(PARTIAL_CONTENT.code());
 
         request.response().sendFile(file, offset, end + 1, res2 -> {
           if (res2.failed()) {
