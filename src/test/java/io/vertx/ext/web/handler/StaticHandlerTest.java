@@ -472,12 +472,12 @@ public class StaticHandlerTest extends WebTestBase {
     // 2. make a request of the 1st 1000 bytes
     // 3. request all bytes after 1000
 
-    testRequest(HttpMethod.HEAD, "/a/b/range.jpg", null, res -> {
+    testRequest(HttpMethod.HEAD, "/somedir/range.jpg", null, res -> {
       assertEquals("bytes", res.headers().get("Accept-Ranges"));
       assertEquals("15783", res.headers().get("Content-Length"));
     }, 200, "OK", null);
 
-    testRequest(HttpMethod.GET, "/a/b/range.jpg", req -> {
+    testRequest(HttpMethod.GET, "/somedir/range.jpg", req -> {
       req.headers().set("Range", "bytes=0-999");
     }, res -> {
       assertEquals("bytes", res.headers().get("Accept-Ranges"));
@@ -485,7 +485,7 @@ public class StaticHandlerTest extends WebTestBase {
       assertEquals("bytes 0-999/15783", res.headers().get("Content-Range"));
     }, 206, "Partial Content", null);
 
-    testRequest(HttpMethod.GET, "/a/b/range.jpg", req -> {
+    testRequest(HttpMethod.GET, "/somedir/range.jpg", req -> {
       req.headers().set("Range", "bytes=1000-");
     }, res -> {
       assertEquals("bytes", res.headers().get("Accept-Ranges"));
@@ -497,7 +497,7 @@ public class StaticHandlerTest extends WebTestBase {
   @Test
   public void testRangeAwareRequestBody() throws Exception {
     stat.setEnableRangeSupport(true);
-    testRequest(HttpMethod.GET, "/a/b/range.jpg", req -> {
+    testRequest(HttpMethod.GET, "/somedir/range.jpg", req -> {
       req.headers().set("Range", "bytes=0-999");
     }, res -> {
       res.bodyHandler(buff -> {
@@ -515,7 +515,7 @@ public class StaticHandlerTest extends WebTestBase {
   @Test
   public void testRangeAwareRequestBodyForDisabledRangeSupport() throws Exception {
     stat.setEnableRangeSupport(false);
-    testRequest(HttpMethod.GET, "/a/b/range.jpg", req -> {
+    testRequest(HttpMethod.GET, "/somedir/range.jpg", req -> {
       req.headers().set("Range", "bytes=0-999");
     }, res -> {
       res.bodyHandler(buff -> {
