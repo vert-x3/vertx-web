@@ -957,6 +957,11 @@ route3.failureHandler(failureRoutingContext -> {
 });
 ----
 
+For the eventuality that an error occurs when running the error handler related usage of not allowed characters in
+status message header, then the original status message will be changed to the default message from the error code.
+This is a tradeoff to keep the semantics of the HTTP protocol working instead of abruptly creash and close the socket
+without properly completing the protocol.
+
 == Request body handling
 
 The `link:../../apidocs/io/vertx/ext/web/handler/BodyHandler.html[BodyHandler]` allows you to retrieve request bodies, limit body sizes and handle
@@ -1514,6 +1519,11 @@ static resources into a jar file (or fatjar) and distribute them like that.
 
 When Vert.x finds a resource on the classpath for the first time it extracts it and caches it in a temporary directory
 on disk so it doesn't have to do this each time.
+
+The handler will handle range aware requests. When a client makes a request to a static resource, the handler will
+notify that it can handle range aware request by stating the unit on the `Accept-Ranges` header. Further requests
+that contain the `Range` header with the correct unit and start and end indexes will then receive partial responses
+with the correct `Content-Range` header.
 
 === Configuring caching
 

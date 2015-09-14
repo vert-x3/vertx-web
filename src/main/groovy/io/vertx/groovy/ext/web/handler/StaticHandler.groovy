@@ -169,4 +169,13 @@ public class StaticHandler implements Handler<RoutingContext> {
     this.delegate.setDirectoryTemplate(directoryTemplate);
     return this;
   }
+  /**
+   * Set whether range requests (resumable downloads; media streaming) should be enabled.
+   * @param enableRangeSupport true to enable range support
+   * @return a reference to this, so the API can be used fluently
+   */
+  public StaticHandler setEnableRangeSupport(boolean enableRangeSupport) {
+    this.delegate.setEnableRangeSupport(enableRangeSupport);
+    return this;
+  }
 }

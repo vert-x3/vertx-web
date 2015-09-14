@@ -163,5 +163,15 @@ module VertxWeb
       end
       raise ArgumentError, "Invalid arguments when calling set_directory_template(directoryTemplate)"
     end
+    #  Set whether range requests (resumable downloads; media streaming) should be enabled.
+    # @param [true,false] enableRangeSupport true to enable range support
+    # @return [self]
+    def set_enable_range_support(enableRangeSupport=nil)
+      if (enableRangeSupport.class == TrueClass || enableRangeSupport.class == FalseClass) && !block_given?
+        @j_del.java_method(:setEnableRangeSupport, [Java::boolean.java_class]).call(enableRangeSupport)
+        return self
+      end
+      raise ArgumentError, "Invalid arguments when calling set_enable_range_support(enableRangeSupport)"
+    end
   end
 end
