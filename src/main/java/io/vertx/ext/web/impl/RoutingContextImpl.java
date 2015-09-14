@@ -103,7 +103,12 @@ public class RoutingContextImpl extends RoutingContextImplBase {
     } else {
       // Send back default 404
       response().setStatusCode(404);
-      response().end(DEFAULT_404);
+      if (request().method() == HttpMethod.HEAD) {
+        // HEAD responses don't have a body
+        response().end();
+      } else {
+        response().end(DEFAULT_404);
+      }
     }
   }
 
