@@ -239,6 +239,21 @@ var StaticHandler = function(j_val) {
     } else utils.invalidArgs();
   };
 
+  /**
+   Set whether range requests (resumable downloads; media streaming) should be enabled.
+
+   @public
+   @param enableRangeSupport {boolean} true to enable range support 
+   @return {StaticHandler} a reference to this, so the API can be used fluently
+   */
+  this.setEnableRangeSupport = function(enableRangeSupport) {
+    var __args = arguments;
+    if (__args.length === 1 && typeof __args[0] ==='boolean') {
+      j_staticHandler["setEnableRangeSupport(boolean)"](enableRangeSupport);
+      return that;
+    } else utils.invalidArgs();
+  };
+
   // A reference to the underlying Java delegate
   // NOTE! This is an internal API and must not be used in user code.
   // If you rely on this property your code is likely to break if we change it / remove it without warning.

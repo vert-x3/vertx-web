@@ -24,6 +24,8 @@ import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -241,10 +243,19 @@ public class RouteImpl implements Route {
       return false;
     }
     if (pattern != null) {
-      String path  = request.path();
+      String path = request.path();
       if (mountPoint != null) {
         path = path.substring(mountPoint.length());
       }
+
+      // decode the path as it could contain escaped chars.
+      try {
+        path = URLDecoder.decode(path, "UTF-8");
+      } catch (UnsupportedEncodingException e) {
+        context.fail(e);
+        return false;
+      }
+
       Matcher m = pattern.matcher(path);
       if (m.matches()) {
         if (m.groupCount() > 0) {
