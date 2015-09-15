@@ -15,13 +15,28 @@
  */
 package io.vertx.ext.web.handler;
 
+import io.vertx.codegen.annotations.VertxGen;
+
 /**
  * The possible out of the box formats.
  *
  * @author <a href="mailto:pmlopes@gmail.com">Paulo Lopes</a>
  */
+@VertxGen
 public enum LoggerFormat {
+
+  /**
+   * <i>remote-client</i> - - [<i>timestamp</i>] "<i>method</i> <i>uri</i> <i>version</i>" <i>status</i> <i>content-length</i> "<i>referrer</i>" "<i>user-agent</i>"
+   */
   DEFAULT,
+
+  /**
+   * <i>remote-client</i> - <i>method</i> <i>uri</i> <i>version</i> <i>status</i> <i>content-length</i> <i>duration</i> ms
+   */
   SHORT,
+
+  /**
+   * <i>method</i> <i>uri</i> <i>status</i> - <i>content-length</i> <i>duration</i>
+   */
   TINY
 }

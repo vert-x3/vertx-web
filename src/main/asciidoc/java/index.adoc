@@ -1755,6 +1755,8 @@ Vert.x-Web includes a handler `link:../../apidocs/io/vertx/ext/web/handler/Logge
 
 By default requests are logged to the Vert.x logger which can be configured to use JUL logging, log4j or SLF4J.
 
+See `link:../../apidocs/io/vertx/ext/web/handler/LoggerFormat.html[LoggerFormat]`.
+
 == Serving favicons
 
 Vert.x-Web includes the handler `link:../../apidocs/io/vertx/ext/web/handler/FaviconHandler.html[FaviconHandler]` especially for serving favicons.

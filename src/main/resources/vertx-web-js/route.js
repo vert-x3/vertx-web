@@ -171,7 +171,7 @@ var Route = function(j_val) {
 
    @public
    @param requestHandler {function} the blocking request handler 
-   @param ordered {boolean} 
+   @param ordered {boolean} if true handlers are executed in sequence, otherwise are run in parallel 
    @return {Route} a reference to this, so the API can be used fluently
    */
   this.blockingHandler = function() {
