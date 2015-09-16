@@ -1973,6 +1973,8 @@ Vert.x-Web includes a handler `link:jsdoc/logger_handler-LoggerHandler.html[Logg
 
 By default requests are logged to the Vert.x logger which can be configured to use JUL logging, log4j or SLF4J.
 
+See `LoggerFormat`.
+
 == Serving favicons
 
 Vert.x-Web includes the handler `link:jsdoc/favicon_handler-FaviconHandler.html[FaviconHandler]` especially for serving favicons.

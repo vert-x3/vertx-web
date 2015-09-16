@@ -1200,6 +1200,8 @@
  *
  * By default requests are logged to the Vert.x logger which can be configured to use JUL logging, log4j or SLF4J.
  *
+ * See {@link io.vertx.ext.web.handler.LoggerFormat}.
+ *
  * == Serving favicons
  *
  * Vert.x-Web includes the handler {@link io.vertx.ext.web.handler.FaviconHandler} especially for serving favicons.
