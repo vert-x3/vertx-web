@@ -274,13 +274,11 @@ public interface RoutingContext {
   /**
    * Add a handler that will be called just before headers are written to the response. This gives you a hook where
    * you can write any extra headers before the response has been written when it will be too late.
-   * The handler will be passed a future, when you've completed the work you want to do you should complete (or fail)
-   * the future. This can be done after the handler has returned.
    *
    * @param handler  the handler
    * @return  the id of the handler. This can be used if you later want to remove the handler.
    */
-  int addHeadersEndHandler(Handler<Future> handler);
+  int addHeadersEndHandler(Handler<Void> handler);
 
   /**
    * Remove a headers end handler

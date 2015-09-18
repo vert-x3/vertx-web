@@ -16,6 +16,9 @@
 
 package io.vertx.ext.web.handler.impl;
 
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
+import io.vertx.core.Vertx;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.Cookie;
@@ -30,6 +33,8 @@ import io.vertx.ext.web.sstore.SessionStore;
 public class SessionHandlerImpl implements SessionHandler {
 
   private static final Logger log = LoggerFactory.getLogger(SessionHandlerImpl.class);
+
+  private static final long GET_SESSION_TIMEOUT = 5000;
 
   private final SessionStore sessionStore;
   private String sessionCookieName;
@@ -93,7 +98,7 @@ public class SessionHandlerImpl implements SessionHandler {
     if (cookie != null) {
       // Look up session
       String sessionID = cookie.getValue();
-      sessionStore.get(sessionID, res -> {
+      getSession(context.vertx(), sessionID, res -> {
         if (res.succeeded()) {
           Session session = res.result();
           if (session != null) {
@@ -117,27 +122,42 @@ public class SessionHandlerImpl implements SessionHandler {
     }
   }
 
+  private void getSession(Vertx vertx, String sessionID, Handler<AsyncResult<Session>> resultHandler) {
+    doGetSession(vertx, System.currentTimeMillis(), sessionID, resultHandler);
+  }
+
+  private void doGetSession(Vertx vertx, long startTime, String sessionID, Handler<AsyncResult<Session>> resultHandler) {
+    sessionStore.get(sessionID, res -> {
+      if (res.succeeded()) {
+        if (res.result() == null) {
+          // Can't find it so retry. This is necessary for clustered sessions as it can take sometime for the session
+          // to propagate across the cluster so if the next request for the session comes in quickly at a different
+          // node there is a possibility it isn't available yet.
+          if (System.currentTimeMillis() - startTime < GET_SESSION_TIMEOUT) {
+            vertx.setTimer(5, v -> doGetSession(vertx, startTime, sessionID, resultHandler));
+            return;
+          }
+        }
+      }
+      resultHandler.handle(res);
+    });
+  }
+
   private void addStoreSessionHandler(RoutingContext context) {
-    context.addHeadersEndHandler(fut -> {
+    context.addHeadersEndHandler(v -> {
       Session session = context.session();
       if (!session.isDestroyed()) {
         // Store the session
         session.setAccessed();
         sessionStore.put(session, res -> {
-          if (res.succeeded()) {
-            fut.complete();
-          } else {
-            // Failed to store session
-            context.fail(res.cause());
+          if (res.failed()) {
+            log.error("Failed to store session", res.cause());
           }
         });
       } else {
         sessionStore.delete(session.id(), res -> {
-          if (res.succeeded()) {
-            fut.complete();
-          } else {
-            // Failed to store session
-            context.fail(res.cause());
+          if (res.failed()) {
+            log.error("Failed to delete session", res.cause());
           }
         });
       }

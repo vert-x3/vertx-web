@@ -53,7 +53,7 @@ public class CookieHandlerImpl implements CookieHandler {
       }
     }
 
-    context.addHeadersEndHandler(fut -> {
+    context.addHeadersEndHandler(v -> {
       // save the cookies
       Set<Cookie> cookies = context.cookies();
       for (Cookie cookie: cookies) {
@@ -61,7 +61,6 @@ public class CookieHandlerImpl implements CookieHandler {
           context.response().headers().add(SET_COOKIE, cookie.encode());
         }
       }
-      fut.complete();
     });
 
     context.next();
