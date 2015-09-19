@@ -51,7 +51,7 @@ public class HandlebarsTemplateEngineImpl extends CachingTemplateEngine<Template
   @Override
   public HandlebarsTemplateEngine setMaxCacheSize(int maxCacheSize) {
     this.cache.setMaxSize(maxCacheSize);
-    return null;
+    return this;
   }
 
   @Override
