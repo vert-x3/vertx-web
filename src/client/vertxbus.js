@@ -53,6 +53,7 @@ var vertx = vertx || {};
     var state = vertx.EventBus.CONNECTING;
     var pingTimerID = null;
     var pingInterval = null;
+    var defaultHeaders = null;
     if (options) {
       pingInterval = options['vertxbus_ping_interval'];
     }
@@ -64,6 +65,14 @@ var vertx = vertx || {};
     that.onclose = null;
     that.onerror = null;
 
+    /**
+     * Sets default headers, which apply to all requests
+     * @param {Object} [headers]
+     */
+    that.setDefaultHeaders = function (headers) {
+      defaultHeaders = headers;
+    };
+    
     /**
      * Send a message
      * @param {String} address
@@ -135,6 +144,10 @@ var vertx = vertx || {};
           type: 'register',
           address: address
         };
+        if(defaultHeaders)
+        {
+          msg.headers = defaultHeaders;
+        }
         sockJSConn.send(JSON.stringify(msg));
       } else {
         handlers[handlers.length] = handler;
@@ -156,6 +169,10 @@ var vertx = vertx || {};
             type: 'unregister',
             address: address
           };
+          if(defaultHeaders)
+          {
+            msg.headers = defaultHeaders;
+          }
           sockJSConn.send(JSON.stringify(msg));
           delete handlerMap[address];
         }
@@ -258,10 +275,10 @@ var vertx = vertx || {};
         body: message
       };
 
-      if (headers) {
-        envelope.headers = headers;
+      if(defaultHeaders || headers)
+      {
+        envelope.headers = mergeHeaders(headers);
       }
-
       if (replyHandler || failureHandler) {
         var replyAddress = makeUUID();
         envelope.replyAddress = replyAddress;
@@ -296,7 +313,18 @@ var vertx = vertx || {};
           return b = Math.random() * 16, (a == 'y' ? b & 3 | 8 : b | 0).toString(16)
         })
     }
-
+    
+    function mergeHeaders(headers) {
+      if (defaultHeaders) {
+        if(!headers) {
+          headers = {};
+        }
+        for (var headerName in defaultHeaders) { 
+          headers[headerName] = defaultHeaders[headerName]; 
+        }
+      }
+      return headers;
+    }
   };
 
   vertx.EventBus.CONNECTING = 0;
