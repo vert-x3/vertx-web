@@ -374,14 +374,19 @@ module VertxWeb
     end
     #  Restarts the current router with a new method and path. All path parameters are then parsed and available on the
     #  params list.
-    # @param [:OPTIONS,:GET,:HEAD,:POST,:PUT,:DELETE,:TRACE,:CONNECT,:PATCH] method the new http request
-    # @param [String] path the new http path.
+    # @overload reroute(path)
+    #   @param [String] path the new http path.
+    # @overload reroute(method,path)
+    #   @param [:OPTIONS,:GET,:HEAD,:POST,:PUT,:DELETE,:TRACE,:CONNECT,:PATCH] method the new http request
+    #   @param [String] path the new http path.
     # @return [void]
-    def reroute(method=nil,path=nil)
-      if method.class == Symbol && path.class == String && !block_given?
-        return @j_del.java_method(:reroute, [Java::IoVertxCoreHttp::HttpMethod.java_class,Java::java.lang.String.java_class]).call(Java::IoVertxCoreHttp::HttpMethod.valueOf(method),path)
+    def reroute(param_1=nil,param_2=nil)
+      if param_1.class == String && !block_given? && param_2 == nil
+        return @j_del.java_method(:reroute, [Java::java.lang.String.java_class]).call(param_1)
+      elsif param_1.class == Symbol && param_2.class == String && !block_given?
+        return @j_del.java_method(:reroute, [Java::IoVertxCoreHttp::HttpMethod.java_class,Java::java.lang.String.java_class]).call(Java::IoVertxCoreHttp::HttpMethod.valueOf(param_1),param_2)
       end
-      raise ArgumentError, "Invalid arguments when calling reroute(method,path)"
+      raise ArgumentError, "Invalid arguments when calling reroute(param_1,param_2)"
     end
   end
 end
