@@ -437,6 +437,15 @@ public class RoutingContext {
   }
 
   /**
+   * Restarts the current router with a new path and reusing the original method. All path parameters are then parsed
+   * and available on the params list.
+   * @param path the new http path.
+   */
+  public void reroute(String path) { 
+    this.delegate.reroute(path);
+  }
+
+  /**
    * Restarts the current router with a new method and path. All path parameters are then parsed and available on the
    * params list.
    * @param method the new http request

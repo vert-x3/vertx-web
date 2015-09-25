@@ -561,10 +561,12 @@ var RoutingContext = function(j_val) {
    @param method {Object} the new http request 
    @param path {string} the new http path. 
    */
-  this.reroute = function(method, path) {
+  this.reroute = function() {
     var __args = arguments;
-    if (__args.length === 2 && typeof __args[0] === 'string' && typeof __args[1] === 'string') {
-      j_routingContext["reroute(io.vertx.core.http.HttpMethod,java.lang.String)"](io.vertx.core.http.HttpMethod.valueOf(__args[0]), path);
+    if (__args.length === 1 && typeof __args[0] === 'string') {
+      j_routingContext["reroute(java.lang.String)"](__args[0]);
+    }  else if (__args.length === 2 && typeof __args[0] === 'string' && typeof __args[1] === 'string') {
+      j_routingContext["reroute(io.vertx.core.http.HttpMethod,java.lang.String)"](io.vertx.core.http.HttpMethod.valueOf(__args[0]), __args[1]);
     } else utils.invalidArgs();
   };
 
