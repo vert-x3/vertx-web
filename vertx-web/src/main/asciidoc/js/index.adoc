@@ -1060,6 +1060,9 @@ file uploads.
 
 You should make sure a body handler is on a matching route for any requests that require this functionality.
 
+The usage of this handler requires that it is installed as soon as possible in the router since it needs
+to install handlers to consume the HTTP request body and this must be done before executing any async call.
+
 [source,js]
 ----
 var BodyHandler = require("vertx-web-js/body_handler");
