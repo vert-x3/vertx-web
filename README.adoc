@@ -9,6 +9,10 @@ Please see the in source asciidoc documentation or the main documentation on the
 of Vert.x-Web:
 
 * Web-site docs
-* link:src/main/asciidoc/java/index.adoc[Java in-source docs]
-* link:src/main/asciidoc/js/index.adoc[JavaScript in-source docs]
-* link:src/main/asciidoc/groovy/index.adoc[Groovy in-source docs]
+* link:vertx-web/src/main/asciidoc/java/index.adoc[Java in-source docs]
+* link:vertx-web/src/main/asciidoc/js/index.adoc[JavaScript in-source docs]
+* link:vertx-web/src/main/asciidoc/groovy/index.adoc[Groovy in-source docs]
+
+== Template engines
+
+Template engine implementations are in the template engine sub-project.
