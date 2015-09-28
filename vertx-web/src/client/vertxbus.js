@@ -17,30 +17,28 @@
 var vertx = vertx || {};
 
 !function (factory) {
-  if (typeof define === 'function' && define.amd) {
+  if (typeof require === 'function') {
+    // Even if it is in the global namespace,
+    // prefer the CommonJS loader
+    var SockJS = require('sockjs-client');
+    if(!SockJS) {
+      throw new Error('vertxbus.js requires sockjs-client, see http://sockjs.org');
+    }
+    factory(SockJS);
+  } else if (typeof define === 'function' && define.amd) {
     // Expose as an AMD module with SockJS dependency.
     // 'vertxbus' and 'sockjs' names are used because
     // AMD module names are derived from file names.
     define('vertxbus', ['sockjs'], factory);
   } else {
-    // No AMD-compliant loader
-    var root = this;
-    // Verify if there is a require function (maybe Node)
-    var has_require = typeof require !== 'undefined';
+    // No AMD or commonJS compliant loader
     // Verify if SockJS is already in the global context
-    var SockJS = root.SockJS;
-
-    if (typeof SockJS === 'undefined') {
-      if (has_require) {
-        // try to load on Node or RequireJS
-        SockJS = require('sockjs-client');
-      } else {
-        // cannot continue
-        throw new Error('vertxbus.js requires sockjs-client, see http://sockjs.org');
-      }
+    if (typeof this.SockJS === 'undefined') {
+      // cannot continue
+      throw new Error('vertxbus.js requires sockjs-client, see http://sockjs.org');
     }
 
-    factory(SockJS);
+    factory(this.SockJS);
   }
 }(function (SockJS) {
 
