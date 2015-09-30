@@ -51,7 +51,7 @@
                 <includes>
                   <include>*:handlebars</include>
                   <include>org.apache.commons:commons-lang3</include>
-                  <include>*:org.antlr</include>
+                  <include>org.antlr:*</include>
                   <!-- run in no-rhino mode (do not include rhino) -->
                 </includes>
               </artifactSet>
