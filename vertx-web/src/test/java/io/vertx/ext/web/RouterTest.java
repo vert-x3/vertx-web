@@ -640,6 +640,14 @@ public class RouterTest extends WebTestBase {
   }
 
   @Test
+  public void testParamEscape() throws Exception {
+    router.route("/demo/:abc").handler(rc -> {
+      rc.response().end(rc.request().params().get("abc"));
+    });
+    testRequest(HttpMethod.GET, "/demo/Hello%20World!", 200, "OK", "Hello World!");
+  }
+
+  @Test
   public void testPattern1WithMethod() throws Exception {
     router.route(HttpMethod.GET, "/:abc").handler(rc -> {
       rc.response().setStatusMessage(rc.request().params().get("abc")).end();
