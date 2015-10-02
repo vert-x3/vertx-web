@@ -14,28 +14,23 @@
  *   You may elect to redistribute this code under either of these licenses.
  */
 !function (factory) {
-  if (typeof require === 'function') {
-    // Even if it is in the global namespace,
-    // prefer the CommonJS loader
+  if (typeof require === 'function' && typeof module !== 'undefined') {
+    // CommonJS loader
     var SockJS = require('sockjs-client');
     if(!SockJS) {
       throw new Error('vertxbus.js requires sockjs-client, see http://sockjs.org');
     }
     factory(SockJS);
   } else if (typeof define === 'function' && define.amd) {
-    // Expose as an AMD module with SockJS dependency.
-    // 'vertxbus' and 'sockjs' names are used because
-    // AMD module names are derived from file names.
+    // AMD loader
     define('vertxbus', ['sockjs'], factory);
   } else {
-    // No AMD or commonJS compliant loader
-    // Verify if SockJS is already in the global context
+    // plain old include
     if (typeof this.SockJS === 'undefined') {
-      // cannot continue
       throw new Error('vertxbus.js requires sockjs-client, see http://sockjs.org');
     }
 
-    factory(this.SockJS);
+    EventBus = factory(this.SockJS);
   }
 }(function (SockJS) {
 
@@ -106,7 +101,7 @@
           if (json.type === 'err') {
             handlers[i](json.body);
           } else {
-            handlers[i](null, json);
+            handlers[i](null, json.body);
           }
         }
       } else if (self.replyHandlers[json.address]) {
@@ -116,7 +111,7 @@
         if (json.type === 'err') {
           handler({failureCode: json.failureCode, failureType: json.failureType, message: json.message});
         } else {
-          handler(null, json);
+          handler(null, json.body);
         }
       } else {
         if (json.type === 'err') {
@@ -243,7 +238,7 @@
    * Closes the connection to the EvenBus Bridge.
    */
   EventBus.prototype.close = function () {
-    state = vertx.EventBus.CLOSING;
+    this.state = vertx.EventBus.CLOSING;
     this.sockJSConn.close();
   };
 
