@@ -71,9 +71,9 @@
  * [source,xml,subs="+attributes"]
  * ----
  * <dependency>
- *   <groupId>{maven-groupId}</groupId>
- *   <artifactId>{maven-artifactId}</artifactId>
- *   <version>{maven-version}</version>
+ *   <groupId>${maven.groupId}</groupId>
+ *   <artifactId>${maven.artifactId}</artifactId>
+ *   <version>${maven.version}</version>
  * </dependency>
  * ----
  *
@@ -81,7 +81,7 @@
  *
  * [source,groovy,subs="+attributes"]
  * ----
- * compile {maven-groupId}:{maven-artifactId}:{maven-version}
+ * compile ${maven.groupId}:${maven.artifactId}:${maven.version}
  * ----
  *
  *
@@ -1176,7 +1176,7 @@
  * === MVEL template engine
  *
  * To use MVEL, you need to add the following _dependency_ to your project:
- * `{maven-groupId}:vertx-web-templ-mvel:{maven-version}`. Create an instance of the MVEL template engine using:
+ * `${maven.groupId}:vertx-web-templ-mvel:${maven.version}`. Create an instance of the MVEL template engine using:
  * `io.vertx.ext.web.templ.MVELTemplateEngine#create()`
  *
  * When using the MVEL template engine, it will by default look for
@@ -1202,7 +1202,7 @@
  * === Jade template engine
  *
  * To use the Jade template engine, you need to add the following _dependency_ to your project:
- * `{maven-groupId}:vertx-web-templ-jade:{maven-version}`. Create an instance of the Jade template engine using:
+ * `${maven.groupId}:vertx-web-templ-jade:${maven.version}`. Create an instance of the Jade template engine using:
  * `io.vertx.ext.web.templ.JadeTemplateEngine#create()`.
  *
  * When using the Jade template engine, it will by default look for
@@ -1228,7 +1228,7 @@
  * === Handlebars template engine
  *
  * To use Handlebars, you need to add the following _dependency_ to your project:
- * `{maven-groupId}:vertx-web-templ-handlebars:{maven-version}`. Create an instance of the Handlebars template engine
+ * `${maven.groupId}:vertx-web-templ-handlebars:${maven.version}`. Create an instance of the Handlebars template engine
  * using: `io.vertx.ext.web.templ.HandlebarsTemplateEngine#create()`.
  *
  * When using the Handlebars template engine, it will by default look for
@@ -1253,7 +1253,7 @@
  * === Thymeleaf template engine
  *
  * To use Thymeleaf, you need to add the following _dependency_ to your project:
- * `{maven-groupId}:vertx-web-templ-thymeleaf:{maven-version}`. Create an instance of the Thymeleaf template engine
+ * `${maven.groupId}:vertx-web-templ-thymeleaf:${maven.version}`. Create an instance of the Thymeleaf template engine
  * using: `io.vertx.ext.web.templ.ThymeleafTemplateEngine#create()`.
  * 
  * When using the Thymeleaf template engine, it will by default look for
