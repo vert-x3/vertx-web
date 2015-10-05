@@ -24,9 +24,11 @@ import io.vertx.ext.web.RoutingContext;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.regex.Pattern;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -34,12 +36,16 @@ import java.util.*;
  */
 public class Utils extends io.vertx.core.impl.Utils {
 
+  private static final Pattern COMMA_SPLITTER = Pattern.compile(" *, *");
+  private static final Pattern SEMICOLON_SPLITTER = Pattern.compile(" *; *");
+  private static final Pattern EQUAL_SPLITTER = Pattern.compile(" *= *");
+
   public static String normalisePath(String path) {
     if (path == null || path.charAt(0) != '/') {
       return null;
     }
     try {
-      StringBuilder result = new StringBuilder();
+      StringBuilder result = new StringBuilder(path.length());
 
       for (int i = 0; i < path.length(); i++) {
         char c = path.charAt(i);
@@ -95,7 +101,7 @@ public class Utils extends io.vertx.core.impl.Utils {
       i += 3;
     } while (i < path.length() && path.charAt(i) == '%');
 
-    String escapedSeq = new String(buf.getBytes(), "UTF-8");
+    String escapedSeq = new String(buf.getBytes(), StandardCharsets.UTF_8);
 
     for (int j = 0; j < escapedSeq.length(); j++) {
       char c = escapedSeq.charAt(j);
@@ -164,7 +170,7 @@ public class Utils extends io.vertx.core.impl.Utils {
     }
 
     // parse
-    String[] items = acceptHeader.split(" *, *");
+    String[] items = COMMA_SPLITTER.split(acceptHeader);
     // sort on quality
     Arrays.sort(items, ACCEPT_X_COMPARATOR);
 
@@ -209,9 +215,9 @@ public class Utils extends io.vertx.core.impl.Utils {
         return 0;
       }
 
-      String[] params = s.split(" *; *");
+      String[] params = SEMICOLON_SPLITTER.split(s);
       for (int i = 1; i < params.length; i++) {
-        String[] q = params[1].split(" *= *");
+        String[] q = EQUAL_SPLITTER.split(params[1]);
         if ("q".equals(q[0])) {
           return Float.parseFloat(q[1]);
         }
