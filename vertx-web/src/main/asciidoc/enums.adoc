@@ -1,0 +1,105 @@
+= Enums
+
+[[BridgeEventType]]
+== BridgeEventType
+
+++++
+ Bridge Event Types.
+++++
+'''
+
+[cols=">25%,75%"]
+[frame="topbot"]
+|===
+^|Name | Description
+|[[SOCKET_CREATED]]`SOCKET_CREATED`|
++++
+This event will occur when a new SockJS socket is created.
++++
+|[[SOCKET_CLOSED]]`SOCKET_CLOSED`|
++++
+This event will occur when a SockJS socket is closed.
++++
+|[[SEND]]`SEND`|
++++
+This event will occur when a message is attempted to be sent from the client to the server.
++++
+|[[PUBLISH]]`PUBLISH`|
++++
+This event will occur when a message is attempted to be published from the client to the server.
++++
+|[[RECEIVE]]`RECEIVE`|
++++
+This event will occur when a message is attempted to be delivered from the server to the client.
++++
+|[[REGISTER]]`REGISTER`|
++++
+This event will occur when a client attempts to register a handler.
++++
+|[[UNREGISTER]]`UNREGISTER`|
++++
+This event will occur when a client attempts to unregister a handler.
++++
+|===
+
+[[Transport]]
+== Transport
+
+++++
+ The available SockJS transports
+++++
+'''
+
+[cols=">25%,75%"]
+[frame="topbot"]
+|===
+^|Name | Description
+|[[WEBSOCKET]]`WEBSOCKET`|
++++
+<a href="http://www.rfc-editor.org/rfc/rfc6455.txt">rfc 6455</a>
++++
+|[[EVENT_SOURCE]]`EVENT_SOURCE`|
++++
+<a href="http://dev.w3.org/html5/eventsource/">Event source</a>
++++
+|[[HTML_FILE]]`HTML_FILE`|
++++
+<a href="http://cometdaily.com/2007/11/18/ie-activexhtmlfile-transport-part-ii/">HtmlFile</a>.
++++
+|[[JSON_P]]`JSON_P`|
++++
+Slow and old fashioned <a hred="https://developer.mozilla.org/en/DOM/window.postMessage">JSONP polling</a>.
+ This transport will show "busy indicator" (aka: "spinning wheel") when sending data.
++++
+|[[XHR]]`XHR`|
++++
+Long-polling using <a hred="https://secure.wikimedia.org/wikipedia/en/wiki/XMLHttpRequest#Cross-domain_requests">cross domain XHR</a>
++++
+|===
+
+[[LoggerFormat]]
+== LoggerFormat
+
+++++
+ The possible out of the box formats.
+++++
+'''
+
+[cols=">25%,75%"]
+[frame="topbot"]
+|===
+^|Name | Description
+|[[DEFAULT]]`DEFAULT`|
++++
+<i>remote-client</i> - - [<i>timestamp</i>] "<i>method</i> <i>uri</i> <i>version</i>" <i>status</i> <i>content-length</i> "<i>referrer</i>" "<i>user-agent</i>"
++++
+|[[SHORT]]`SHORT`|
++++
+<i>remote-client</i> - <i>method</i> <i>uri</i> <i>version</i> <i>status</i> <i>content-length</i> <i>duration</i> ms
++++
+|[[TINY]]`TINY`|
++++
+<i>method</i> <i>uri</i> <i>status</i> - <i>content-length</i> <i>duration</i>
++++
+|===
+
