@@ -7,7 +7,6 @@ require 'vertx-auth-common/user'
 require 'vertx/buffer'
 require 'vertx/http_server_response'
 require 'vertx/vertx'
-require 'vertx/future'
 require 'vertx/util/utils.rb'
 # Generated from io.vertx.ext.web.RoutingContext
 module VertxWeb
@@ -281,13 +280,11 @@ module VertxWeb
     end
     #  Add a handler that will be called just before headers are written to the response. This gives you a hook where
     #  you can write any extra headers before the response has been written when it will be too late.
-    #  The handler will be passed a future, when you've completed the work you want to do you should complete (or fail)
-    #  the future. This can be done after the handler has returned.
     # @yield the handler
     # @return [Fixnum] the id of the handler. This can be used if you later want to remove the handler.
     def add_headers_end_handler
       if block_given?
-        return @j_del.java_method(:addHeadersEndHandler, [Java::IoVertxCore::Handler.java_class]).call((Proc.new { |event| yield(::Vertx::Util::Utils.safe_create(event,::Vertx::Future)) }))
+        return @j_del.java_method(:addHeadersEndHandler, [Java::IoVertxCore::Handler.java_class]).call(Proc.new { yield })
       end
       raise ArgumentError, "Invalid arguments when calling add_headers_end_handler()"
     end

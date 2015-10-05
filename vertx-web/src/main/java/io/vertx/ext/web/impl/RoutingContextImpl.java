@@ -279,25 +279,9 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   private Map<Integer, Handler<Void>> getHeadersEndHandlers() {
     if (headersEndHandlers == null) {
       headersEndHandlers = new LinkedHashMap<>();
-      response().headersEndHandler(v -> {
-        Iterator<Handler<Future>> iter = headersEndHandlers.values().iterator();
-        callNextHeadersEndHandler(iter);
-      });
+      response().headersEndHandler(v -> headersEndHandlers.values().forEach(handler -> handler.handle(null)));
     }
     return headersEndHandlers;
-  }
-
-  private void callNextHeadersEndHandler(Iterator<Handler<Future>> iter) {
-    if (iter.hasNext()) {
-      Handler<Future> handler = iter.next();
-      Future<?> fut = Future.future();
-      fut.setHandler(res -> {
-        if (res.succeeded()) {
-          callNextHeadersEndHandler(iter);
-        }
-      });
-      handler.handle(fut);
-    }
   }
 
   private Map<Integer, Handler<Void>> getBodyEndHandlers() {
