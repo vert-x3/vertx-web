@@ -26,6 +26,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.web.Cookie;
 import io.vertx.ext.web.FileUpload;
+import io.vertx.ext.web.Locale;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 

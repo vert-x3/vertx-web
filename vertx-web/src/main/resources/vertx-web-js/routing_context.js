@@ -585,7 +585,22 @@ var RoutingContext = function(j_val) {
         that.cachedacceptableLocales = utils.convReturnListSetVertxGen(j_routingContext["acceptableLocales()"](), Locale);
       }
       return that.cachedacceptableLocales;
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
+  };
+
+  /**
+   Helper to return the user preferred locale. It is the same action as returning the first element of the acceptable
+   locales.
+
+   @public
+
+   @return {Locale} the users preferred locale.
+   */
+  this.preferredLocale = function() {
+    var __args = arguments;
+    if (__args.length === 0) {
+      return utils.convReturnVertxGen(j_routingContext["preferredLocale()"](), Locale);
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   // A reference to the underlying Java delegate

@@ -402,5 +402,14 @@ module VertxWeb
       end
       raise ArgumentError, "Invalid arguments when calling acceptable_locales()"
     end
+    #  Helper to return the user preferred locale. It is the same action as returning the first element of the acceptable
+    #  locales.
+    # @return [::VertxWeb::Locale] the users preferred locale.
+    def preferred_locale
+      if !block_given?
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:preferredLocale, []).call(),::VertxWeb::Locale)
+      end
+      raise ArgumentError, "Invalid arguments when calling preferred_locale()"
+    end
   end
 end

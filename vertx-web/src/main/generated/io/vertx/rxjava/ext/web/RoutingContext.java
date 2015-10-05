@@ -22,6 +22,7 @@ import rx.Observable;
 import io.vertx.rxjava.core.http.HttpServerRequest;
 import io.vertx.rxjava.core.Vertx;
 import java.util.Set;
+import java.util.List;
 import io.vertx.rxjava.ext.auth.User;
 import io.vertx.rxjava.core.buffer.Buffer;
 import io.vertx.rxjava.core.http.HttpServerResponse;
@@ -463,6 +464,16 @@ public class RoutingContext {
     }
     List<Locale> ret = this.delegate.acceptableLocales().stream().map(Locale::newInstance).collect(java.util.stream.Collectors.toList());
     cached_3 = ret;
+    return ret;
+  }
+
+  /**
+   * Helper to return the user preferred locale. It is the same action as returning the first element of the acceptable
+   * locales.
+   * @return the users preferred locale.
+   */
+  public Locale preferredLocale() { 
+    Locale ret= Locale.newInstance(this.delegate.preferredLocale());
     return ret;
   }
 

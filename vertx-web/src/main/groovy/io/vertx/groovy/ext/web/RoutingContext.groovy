@@ -21,6 +21,7 @@ import io.vertx.core.json.JsonObject
 import io.vertx.groovy.core.http.HttpServerRequest
 import io.vertx.groovy.core.Vertx
 import java.util.Set
+import java.util.List
 import io.vertx.groovy.ext.auth.User
 import io.vertx.groovy.core.buffer.Buffer
 import io.vertx.groovy.core.http.HttpServerResponse
@@ -418,6 +419,15 @@ public class RoutingContext {
     }
     def ret = this.delegate.acceptableLocales()?.collect({underpants -> new io.vertx.groovy.ext.web.Locale(underpants)});
       cached_3 = ret;
+    return ret;
+  }
+  /**
+   * Helper to return the user preferred locale. It is the same action as returning the first element of the acceptable
+   * locales.
+   * @return the users preferred locale.
+   */
+  public Locale preferredLocale() {
+    def ret= InternalHelper.safeCreate(this.delegate.preferredLocale(), io.vertx.groovy.ext.web.Locale.class);
     return ret;
   }
   private HttpServerRequest cached_0;

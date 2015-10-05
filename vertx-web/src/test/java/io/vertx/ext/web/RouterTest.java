@@ -1600,4 +1600,14 @@ public class RouterTest extends WebTestBase {
 
     testRequest(HttpMethod.GET, "/foo", req -> req.putHeader("Accept-Language", "pt;q=0.9, en-gb;q=0.9"), 200, "OK", null);
   }
+
+  @Test
+  public void testLocaleNoHeaderFromClient() throws Exception {
+    router.route().handler(rc -> {
+      assertEquals(0, rc.acceptableLocales().size());
+      rc.response().end();
+    });
+
+    testRequest(HttpMethod.GET, "/foo", 200, "OK");
+  }
 }
