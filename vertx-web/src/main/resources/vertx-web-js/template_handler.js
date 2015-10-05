@@ -44,7 +44,7 @@ var TemplateHandler = function(j_val) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
       j_templateHandler["handle(io.vertx.ext.web.RoutingContext)"](arg0._jdel);
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   // A reference to the underlying Java delegate
@@ -68,7 +68,7 @@ TemplateHandler.create = function() {
     return utils.convReturnVertxGen(JTemplateHandler["create(io.vertx.ext.web.templ.TemplateEngine)"](__args[0]._jdel), TemplateHandler);
   }else if (__args.length === 3 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'string' && typeof __args[2] === 'string') {
     return utils.convReturnVertxGen(JTemplateHandler["create(io.vertx.ext.web.templ.TemplateEngine,java.lang.String,java.lang.String)"](__args[0]._jdel, __args[1], __args[2]), TemplateHandler);
-  } else utils.invalidArgs();
+  } else throw new TypeError('function invoked with invalid arguments');
 };
 
 // We export the Constructor function

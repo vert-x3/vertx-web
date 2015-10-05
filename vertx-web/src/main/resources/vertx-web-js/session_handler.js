@@ -41,7 +41,7 @@ var SessionHandler = function(j_val) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
       j_sessionHandler["handle(io.vertx.ext.web.RoutingContext)"](arg0._jdel);
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -56,7 +56,7 @@ var SessionHandler = function(j_val) {
     if (__args.length === 1 && typeof __args[0] ==='number') {
       j_sessionHandler["setSessionTimeout(long)"](timeout);
       return that;
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -72,7 +72,7 @@ var SessionHandler = function(j_val) {
     if (__args.length === 1 && typeof __args[0] ==='boolean') {
       j_sessionHandler["setNagHttps(boolean)"](nag);
       return that;
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -88,7 +88,7 @@ var SessionHandler = function(j_val) {
     if (__args.length === 1 && typeof __args[0] ==='boolean') {
       j_sessionHandler["setCookieSecureFlag(boolean)"](secure);
       return that;
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -104,7 +104,7 @@ var SessionHandler = function(j_val) {
     if (__args.length === 1 && typeof __args[0] ==='boolean') {
       j_sessionHandler["setCookieHttpOnlyFlag(boolean)"](httpOnly);
       return that;
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -119,7 +119,7 @@ var SessionHandler = function(j_val) {
     if (__args.length === 1 && typeof __args[0] === 'string') {
       j_sessionHandler["setSessionCookieName(java.lang.String)"](sessionCookieName);
       return that;
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   // A reference to the underlying Java delegate
@@ -139,7 +139,7 @@ SessionHandler.create = function(sessionStore) {
   var __args = arguments;
   if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
     return utils.convReturnVertxGen(JSessionHandler["create(io.vertx.ext.web.sstore.SessionStore)"](sessionStore._jdel), SessionHandler);
-  } else utils.invalidArgs();
+  } else throw new TypeError('function invoked with invalid arguments');
 };
 
 // We export the Constructor function

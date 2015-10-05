@@ -44,7 +44,7 @@ var BasicAuthHandler = function(j_val) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
       j_basicAuthHandler["handle(io.vertx.ext.web.RoutingContext)"](arg0._jdel);
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -59,7 +59,7 @@ var BasicAuthHandler = function(j_val) {
     if (__args.length === 1 && typeof __args[0] === 'string') {
       j_basicAuthHandler["addAuthority(java.lang.String)"](authority);
       return that;
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -74,7 +74,7 @@ var BasicAuthHandler = function(j_val) {
     if (__args.length === 1 && typeof __args[0] === 'object' && __args[0] instanceof Array) {
       j_basicAuthHandler["addAuthorities(java.util.Set)"](utils.convParamSetBasicOther(authorities));
       return that;
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   // A reference to the underlying Java delegate
@@ -97,7 +97,7 @@ BasicAuthHandler.create = function() {
     return utils.convReturnVertxGen(JBasicAuthHandler["create(io.vertx.ext.auth.AuthProvider)"](__args[0]._jdel), AuthHandler);
   }else if (__args.length === 2 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'string') {
     return utils.convReturnVertxGen(JBasicAuthHandler["create(io.vertx.ext.auth.AuthProvider,java.lang.String)"](__args[0]._jdel, __args[1]), AuthHandler);
-  } else utils.invalidArgs();
+  } else throw new TypeError('function invoked with invalid arguments');
 };
 
 // We export the Constructor function
