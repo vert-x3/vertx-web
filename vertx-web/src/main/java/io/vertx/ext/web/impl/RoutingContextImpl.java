@@ -16,7 +16,6 @@
 
 package io.vertx.ext.web.impl;
 
-import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
@@ -24,11 +23,11 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.auth.User;
 import io.vertx.ext.web.Cookie;
 import io.vertx.ext.web.FileUpload;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
-import io.vertx.ext.auth.User;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -41,7 +40,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   private final RouterImpl router;
   private Map<String, Object> data;
   private AtomicInteger handlerSeq = new AtomicInteger();
-  private Map<Integer, Handler<Future>> headersEndHandlers;
+  private Map<Integer, Handler<Void>> headersEndHandlers;
   private Map<Integer, Handler<Void>> bodyEndHandlers;
   private Throwable failure;
   private int statusCode = -1;
@@ -247,7 +246,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   }
 
   @Override
-  public int addHeadersEndHandler(Handler<Future> handler) {
+  public int addHeadersEndHandler(Handler<Void> handler) {
     int seq = nextHandlerSeq();
     getHeadersEndHandlers().put(seq, handler);
     return seq;
@@ -277,7 +276,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
     restart();
   }
 
-  private Map<Integer, Handler<Future>> getHeadersEndHandlers() {
+  private Map<Integer, Handler<Void>> getHeadersEndHandlers() {
     if (headersEndHandlers == null) {
       headersEndHandlers = new LinkedHashMap<>();
       response().headersEndHandler(v -> {
