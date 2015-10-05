@@ -966,6 +966,32 @@ mainRouter.mount_sub_router("/productsAPI", restAPI)
 
 This means the REST API is now accessible via paths like: `/productsAPI/products/product1234`
 
+== Localization
+
+Vert.x Web parses the `Accept-Language` header and provides some helper methods to identify which is the preferred
+locale for a client or the sorted list of preferred locales by quality.
+
+[source,ruby]
+----
+
+route = router.get("/localized").handler() { |rc|
+  # although it might seem strange by running a loop with a switch we
+  # make sure that the locale order of preference is preserved when
+  # replying in the users language.
+  rc.acceptable_locales().each do |locale|
+    return
+  end
+  # we do not know the user language so lets just inform that back:
+  rc.response().end("Sorry we don't speak: #{rc.preferred_locale()}")
+}
+
+----
+
+The main method `link:yardoc/VertxWeb/RoutingContext.html#acceptable_locales-instance_method[acceptableLocales]` will return the ordered list of locales the
+user understands, if you're only interested in the user prefered locale then the helper:
+`link:yardoc/VertxWeb/RoutingContext.html#preferred_locale-instance_method[preferredLocale]` will return the 1st element of the list or `null` if no
+locale was provided by the user.
+
 == Default 404 Handling
 
 If no routes match for any particular request, Vert.x-Web will signal a 404 error.

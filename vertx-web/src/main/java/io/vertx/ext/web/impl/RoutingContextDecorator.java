@@ -10,6 +10,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.web.*;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -193,6 +194,11 @@ public class RoutingContextDecorator implements RoutingContext {
   @Override
   public void reroute(HttpMethod method, String path) {
     decoratedContext.reroute(method, path);
+  }
+
+  @Override
+  public List<Locale> acceptableLocales() {
+    return decoratedContext.acceptableLocales();
   }
 
   @Override

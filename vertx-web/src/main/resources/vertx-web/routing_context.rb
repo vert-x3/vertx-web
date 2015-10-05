@@ -1,5 +1,6 @@
 require 'vertx-web/route'
 require 'vertx-web/cookie'
+require 'vertx-web/locale'
 require 'vertx-web/file_upload'
 require 'vertx/http_server_request'
 require 'vertx-web/session'
@@ -384,6 +385,31 @@ module VertxWeb
         return @j_del.java_method(:reroute, [Java::IoVertxCoreHttp::HttpMethod.java_class,Java::java.lang.String.java_class]).call(Java::IoVertxCoreHttp::HttpMethod.valueOf(param_1),param_2)
       end
       raise ArgumentError, "Invalid arguments when calling reroute(param_1,param_2)"
+    end
+    #  Returns the locales for the current request. The locales are determined from the `accept-languages` header and
+    #  sorted on quality.
+    # 
+    #  When 2 or more entries have the same quality then the order used to return the best match is based on the lowest
+    #  index on the original list. For example if a user has en-US and en-GB with same quality and this order the best
+    #  match will be en-US because it was declared as first entry by the client.
+    # @return [Array<::VertxWeb::Locale>] the best matched locale for the request
+    def acceptable_locales
+      if !block_given?
+        if @cached_acceptable_locales != nil
+          return @cached_acceptable_locales
+        end
+        return @cached_acceptable_locales = @j_del.java_method(:acceptableLocales, []).call().to_a.map { |elt| ::Vertx::Util::Utils.safe_create(elt,::VertxWeb::Locale) }
+      end
+      raise ArgumentError, "Invalid arguments when calling acceptable_locales()"
+    end
+    #  Helper to return the user preferred locale. It is the same action as returning the first element of the acceptable
+    #  locales.
+    # @return [::VertxWeb::Locale] the users preferred locale.
+    def preferred_locale
+      if !block_given?
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:preferredLocale, []).call(),::VertxWeb::Locale)
+      end
+      raise ArgumentError, "Invalid arguments when calling preferred_locale()"
     end
   end
 end

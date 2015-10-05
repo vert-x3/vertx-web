@@ -18,6 +18,7 @@
 var utils = require('vertx-js/util/utils');
 var Route = require('vertx-web-js/route');
 var Cookie = require('vertx-web-js/cookie');
+var Locale = require('vertx-web-js/locale');
 var FileUpload = require('vertx-web-js/file_upload');
 var HttpServerRequest = require('vertx-js/http_server_request');
 var Session = require('vertx-web-js/session');
@@ -562,6 +563,43 @@ var RoutingContext = function(j_val) {
       j_routingContext["reroute(java.lang.String)"](__args[0]);
     }  else if (__args.length === 2 && typeof __args[0] === 'string' && typeof __args[1] === 'string') {
       j_routingContext["reroute(io.vertx.core.http.HttpMethod,java.lang.String)"](io.vertx.core.http.HttpMethod.valueOf(__args[0]), __args[1]);
+    } else throw new TypeError('function invoked with invalid arguments');
+  };
+
+  /**
+   Returns the locales for the current request. The locales are determined from the `accept-languages` header and
+   sorted on quality.
+  
+   When 2 or more entries have the same quality then the order used to return the best match is based on the lowest
+   index on the original list. For example if a user has en-US and en-GB with same quality and this order the best
+   match will be en-US because it was declared as first entry by the client.
+
+   @public
+
+   @return {Array.<Locale>} the best matched locale for the request
+   */
+  this.acceptableLocales = function() {
+    var __args = arguments;
+    if (__args.length === 0) {
+      if (that.cachedacceptableLocales == null) {
+        that.cachedacceptableLocales = utils.convReturnListSetVertxGen(j_routingContext["acceptableLocales()"](), Locale);
+      }
+      return that.cachedacceptableLocales;
+    } else throw new TypeError('function invoked with invalid arguments');
+  };
+
+  /**
+   Helper to return the user preferred locale. It is the same action as returning the first element of the acceptable
+   locales.
+
+   @public
+
+   @return {Locale} the users preferred locale.
+   */
+  this.preferredLocale = function() {
+    var __args = arguments;
+    if (__args.length === 0) {
+      return utils.convReturnVertxGen(j_routingContext["preferredLocale()"](), Locale);
     } else throw new TypeError('function invoked with invalid arguments');
   };
 

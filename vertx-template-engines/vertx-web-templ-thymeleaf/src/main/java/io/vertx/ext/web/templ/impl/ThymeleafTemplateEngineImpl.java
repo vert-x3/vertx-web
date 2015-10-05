@@ -29,6 +29,7 @@ import org.thymeleaf.resourceresolver.IResourceResolver;
 import org.thymeleaf.templateresolver.TemplateResolver;
 
 import java.io.*;
+import java.util.List;
 import java.util.Locale;
 
 /**
@@ -66,7 +67,18 @@ public class ThymeleafTemplateEngineImpl implements ThymeleafTemplateEngine {
       synchronized (this) {
         resolver.setVertx(context.vertx());
 
-        engine.process(templateFileName, new WebIContext(data), new Writer() {
+        final List<io.vertx.ext.web.Locale> acceptableLocales = context.acceptableLocales();
+
+        io.vertx.ext.web.Locale locale;
+
+        if (acceptableLocales.size() == 0) {
+          locale = io.vertx.ext.web.Locale.create();
+        } else {
+          // this is the users preferred locale
+          locale = acceptableLocales.get(0);
+        }
+
+        engine.process(templateFileName, new WebIContext(data, locale), new Writer() {
           @Override
           public void write(char[] cbuf, int off, int len) throws IOException {
             buffer.appendString(new String(cbuf, off, len));
@@ -103,9 +115,11 @@ public class ThymeleafTemplateEngineImpl implements ThymeleafTemplateEngine {
   private static class WebIContext implements IContext  {
 
     private final VariablesMap<String, Object> data;
+    private final Locale locale;
 
-    private WebIContext(VariablesMap<String, Object> data) {
+    private WebIContext(VariablesMap<String, Object> data, io.vertx.ext.web.Locale locale) {
       this.data = data;
+      this.locale = new Locale(locale.language(), locale.country(), locale.variant());
     }
 
     @Override
@@ -115,7 +129,7 @@ public class ThymeleafTemplateEngineImpl implements ThymeleafTemplateEngine {
 
     @Override
     public Locale getLocale() {
-      return Locale.getDefault();
+      return locale;
     }
 
     @Override
@@ -142,8 +156,7 @@ public class ThymeleafTemplateEngineImpl implements ThymeleafTemplateEngine {
       String str = Utils.readFileToString(vertx, resourceName);
       try {
         ByteArrayInputStream bis = new ByteArrayInputStream(str.getBytes("UTF-8"));
-        BufferedInputStream buis = new BufferedInputStream(bis);
-        return buis;
+        return new BufferedInputStream(bis);
       } catch (UnsupportedEncodingException e) {
         throw new VertxException(e);
       }

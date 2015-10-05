@@ -30,6 +30,7 @@ import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -361,4 +362,28 @@ public interface RoutingContext {
    * @param path the new http path.
    */
   void reroute(HttpMethod method, String path);
+
+  /**
+   * Returns the locales for the current request. The locales are determined from the `accept-languages` header and
+   * sorted on quality.
+   *
+   * When 2 or more entries have the same quality then the order used to return the best match is based on the lowest
+   * index on the original list. For example if a user has en-US and en-GB with same quality and this order the best
+   * match will be en-US because it was declared as first entry by the client.
+   *
+   * @return the best matched locale for the request
+   */
+  @CacheReturn
+  List<Locale> acceptableLocales();
+
+  /**
+   * Helper to return the user preferred locale. It is the same action as returning the first element of the acceptable
+   * locales.
+   *
+   * @return the users preferred locale.
+   */
+  default Locale preferredLocale() {
+    final List<Locale> acceptableLocales = acceptableLocales();
+    return acceptableLocales.size() > 0 ? acceptableLocales.get(0) : null;
+  }
 }

@@ -24,11 +24,9 @@ import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
-import io.vertx.ext.web.Cookie;
-import io.vertx.ext.web.FileUpload;
-import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.Session;
+import io.vertx.ext.web.*;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -240,6 +238,11 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   @Override
   public void reroute(HttpMethod method, String path) {
     inner.reroute(method, path);
+  }
+
+  @Override
+  public List<Locale> acceptableLocales() {
+    return inner.acceptableLocales();
   }
 
 }

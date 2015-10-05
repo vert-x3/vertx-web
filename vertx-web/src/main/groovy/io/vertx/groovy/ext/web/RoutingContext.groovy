@@ -21,6 +21,7 @@ import io.vertx.core.json.JsonObject
 import io.vertx.groovy.core.http.HttpServerRequest
 import io.vertx.groovy.core.Vertx
 import java.util.Set
+import java.util.List
 import io.vertx.groovy.ext.auth.User
 import io.vertx.groovy.core.buffer.Buffer
 import io.vertx.groovy.core.http.HttpServerResponse
@@ -403,7 +404,34 @@ public class RoutingContext {
   public void reroute(HttpMethod method, String path) {
     this.delegate.reroute(method, path);
   }
+  /**
+   * Returns the locales for the current request. The locales are determined from the `accept-languages` header and
+   * sorted on quality.
+   *
+   * When 2 or more entries have the same quality then the order used to return the best match is based on the lowest
+   * index on the original list. For example if a user has en-US and en-GB with same quality and this order the best
+   * match will be en-US because it was declared as first entry by the client.
+   * @return the best matched locale for the request
+   */
+  public List<Locale> acceptableLocales() {
+    if (cached_3 != null) {
+      return cached_3;
+    }
+    def ret = this.delegate.acceptableLocales()?.collect({underpants -> new io.vertx.groovy.ext.web.Locale(underpants)});
+      cached_3 = ret;
+    return ret;
+  }
+  /**
+   * Helper to return the user preferred locale. It is the same action as returning the first element of the acceptable
+   * locales.
+   * @return the users preferred locale.
+   */
+  public Locale preferredLocale() {
+    def ret= InternalHelper.safeCreate(this.delegate.preferredLocale(), io.vertx.groovy.ext.web.Locale.class);
+    return ret;
+  }
   private HttpServerRequest cached_0;
   private HttpServerResponse cached_1;
   private int cached_2;
+  private List<Locale> cached_3;
 }

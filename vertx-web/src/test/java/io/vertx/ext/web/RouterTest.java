@@ -1554,4 +1554,60 @@ public class RouterTest extends WebTestBase {
       assertTrue(headers.contains("X-Here-3"));
     }, 200, "OK", null);
   }
+
+  @Test
+  public void testLocaleWithCountry() throws Exception {
+    router.route().handler(rc -> {
+      assertEquals(3, rc.acceptableLocales().size());
+      assertEquals("da", rc.preferredLocale().language());
+      assertEquals("DK", rc.preferredLocale().country());
+      rc.response().end();
+    });
+
+    testRequest(HttpMethod.GET, "/foo", req -> req.putHeader("Accept-Language", "en-gb;q=0.8, en;q=0.7, da_DK;q=0.9"), 200, "OK", null);
+  }
+
+  @Test
+  public void testLocaleSimple() throws Exception {
+    router.route().handler(rc -> {
+      assertEquals(3, rc.acceptableLocales().size());
+      assertEquals("da", rc.preferredLocale().language());
+      rc.response().end();
+    });
+
+    testRequest(HttpMethod.GET, "/foo", req -> req.putHeader("Accept-Language", "da, en-gb;q=0.8, en;q=0.7"), 200, "OK", null);
+  }
+
+  @Test
+  public void testLocaleWithoutQuality() throws Exception {
+    router.route().handler(rc -> {
+      assertEquals(1, rc.acceptableLocales().size());
+      assertEquals("en", rc.preferredLocale().language());
+      assertEquals("GB", rc.preferredLocale().country());
+      rc.response().end();
+    });
+
+    testRequest(HttpMethod.GET, "/foo", req -> req.putHeader("Accept-Language", "en-gb"), 200, "OK", null);
+  }
+
+  @Test
+  public void testLocaleSameQuality() throws Exception {
+    router.route().handler(rc -> {
+      assertEquals(2, rc.acceptableLocales().size());
+      assertEquals("pt", rc.preferredLocale().language());
+      rc.response().end();
+    });
+
+    testRequest(HttpMethod.GET, "/foo", req -> req.putHeader("Accept-Language", "pt;q=0.9, en-gb;q=0.9"), 200, "OK", null);
+  }
+
+  @Test
+  public void testLocaleNoHeaderFromClient() throws Exception {
+    router.route().handler(rc -> {
+      assertEquals(0, rc.acceptableLocales().size());
+      rc.response().end();
+    });
+
+    testRequest(HttpMethod.GET, "/foo", 200, "OK");
+  }
 }
