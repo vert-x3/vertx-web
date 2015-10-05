@@ -56,7 +56,8 @@
       }
     }
 
-    return headers;
+    // headers are required to be a object
+    return headers || {};
   }
 
   /**
