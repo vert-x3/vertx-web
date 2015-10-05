@@ -43,7 +43,7 @@ var AuthHandler = function(j_val) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
       j_authHandler["handle(io.vertx.ext.web.RoutingContext)"](arg0._jdel);
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -58,7 +58,7 @@ var AuthHandler = function(j_val) {
     if (__args.length === 1 && typeof __args[0] === 'string') {
       j_authHandler["addAuthority(java.lang.String)"](authority);
       return that;
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -73,7 +73,7 @@ var AuthHandler = function(j_val) {
     if (__args.length === 1 && typeof __args[0] === 'object' && __args[0] instanceof Array) {
       j_authHandler["addAuthorities(java.util.Set)"](utils.convParamSetBasicOther(authorities));
       return that;
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   // A reference to the underlying Java delegate

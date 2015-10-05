@@ -56,7 +56,7 @@ var RoutingContext = function(j_val) {
         that.cachedrequest = utils.convReturnVertxGen(j_routingContext["request()"](), HttpServerRequest);
       }
       return that.cachedrequest;
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -73,7 +73,7 @@ var RoutingContext = function(j_val) {
         that.cachedresponse = utils.convReturnVertxGen(j_routingContext["response()"](), HttpServerResponse);
       }
       return that.cachedresponse;
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -91,7 +91,7 @@ var RoutingContext = function(j_val) {
     var __args = arguments;
     if (__args.length === 0) {
       j_routingContext["next()"]();
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -109,7 +109,7 @@ var RoutingContext = function(j_val) {
       j_routingContext["fail(int)"](__args[0]);
     }  else if (__args.length === 1 && typeof __args[0] === 'object') {
       j_routingContext["fail(java.lang.Throwable)"](utils.convParamThrowable(__args[0]));
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -125,7 +125,7 @@ var RoutingContext = function(j_val) {
     if (__args.length === 2 && typeof __args[0] === 'string' && true) {
       j_routingContext["put(java.lang.String,java.lang.Object)"](key, utils.convParamTypeUnknown(obj));
       return that;
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -139,7 +139,7 @@ var RoutingContext = function(j_val) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
       return utils.convReturnTypeUnknown(j_routingContext["get(java.lang.String)"](key));
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -153,7 +153,7 @@ var RoutingContext = function(j_val) {
     var __args = arguments;
     if (__args.length === 0) {
       return utils.convReturnVertxGen(j_routingContext["vertx()"](), Vertx);
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -168,7 +168,7 @@ var RoutingContext = function(j_val) {
     var __args = arguments;
     if (__args.length === 0) {
       return j_routingContext["mountPoint()"]();
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -182,7 +182,7 @@ var RoutingContext = function(j_val) {
     var __args = arguments;
     if (__args.length === 0) {
       return utils.convReturnVertxGen(j_routingContext["currentRoute()"](), Route);
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -206,7 +206,7 @@ var RoutingContext = function(j_val) {
     var __args = arguments;
     if (__args.length === 0) {
       return j_routingContext["normalisedPath()"]();
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -221,7 +221,7 @@ var RoutingContext = function(j_val) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
       return utils.convReturnVertxGen(j_routingContext["getCookie(java.lang.String)"](name), Cookie);
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -237,7 +237,7 @@ var RoutingContext = function(j_val) {
     if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
       j_routingContext["addCookie(io.vertx.ext.web.Cookie)"](cookie._jdel);
       return that;
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -252,7 +252,7 @@ var RoutingContext = function(j_val) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
       return utils.convReturnVertxGen(j_routingContext["removeCookie(java.lang.String)"](name), Cookie);
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -267,7 +267,7 @@ var RoutingContext = function(j_val) {
     var __args = arguments;
     if (__args.length === 0) {
       return j_routingContext["cookieCount()"]();
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -282,7 +282,7 @@ var RoutingContext = function(j_val) {
     var __args = arguments;
     if (__args.length === 0) {
       return utils.convReturnListSetVertxGen(j_routingContext["cookies()"](), Cookie);
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -299,7 +299,7 @@ var RoutingContext = function(j_val) {
       return j_routingContext["getBodyAsString()"]();
     }  else if (__args.length === 1 && typeof __args[0] === 'string') {
       return j_routingContext["getBodyAsString(java.lang.String)"](__args[0]);
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -314,7 +314,7 @@ var RoutingContext = function(j_val) {
     var __args = arguments;
     if (__args.length === 0) {
       return utils.convReturnJson(j_routingContext["getBodyAsJson()"]());
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -329,7 +329,7 @@ var RoutingContext = function(j_val) {
     var __args = arguments;
     if (__args.length === 0) {
       return utils.convReturnVertxGen(j_routingContext["getBody()"](), Buffer);
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -344,7 +344,7 @@ var RoutingContext = function(j_val) {
     var __args = arguments;
     if (__args.length === 0) {
       return utils.convReturnListSetVertxGen(j_routingContext["fileUploads()"](), FileUpload);
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -360,7 +360,7 @@ var RoutingContext = function(j_val) {
     var __args = arguments;
     if (__args.length === 0) {
       return utils.convReturnVertxGen(j_routingContext["session()"](), Session);
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -374,7 +374,7 @@ var RoutingContext = function(j_val) {
     var __args = arguments;
     if (__args.length === 0) {
       return utils.convReturnVertxGen(j_routingContext["user()"](), User);
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -393,7 +393,7 @@ var RoutingContext = function(j_val) {
         that.cachedstatusCode = j_routingContext["statusCode()"]();
       }
       return that.cachedstatusCode;
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -408,7 +408,7 @@ var RoutingContext = function(j_val) {
     var __args = arguments;
     if (__args.length === 0) {
       return j_routingContext["getAcceptableContentType()"]();
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -427,7 +427,7 @@ var RoutingContext = function(j_val) {
       return j_routingContext["addHeadersEndHandler(io.vertx.core.Handler)"](function(jVal) {
       handler(utils.convReturnVertxGen(jVal, Future));
     });
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -441,7 +441,7 @@ var RoutingContext = function(j_val) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] ==='number') {
       return j_routingContext["removeHeadersEndHandler(int)"](handlerID);
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -456,7 +456,7 @@ var RoutingContext = function(j_val) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'function') {
       return j_routingContext["addBodyEndHandler(io.vertx.core.Handler)"](handler);
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -470,7 +470,7 @@ var RoutingContext = function(j_val) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] ==='number') {
       return j_routingContext["removeBodyEndHandler(int)"](handlerID);
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -484,7 +484,7 @@ var RoutingContext = function(j_val) {
     var __args = arguments;
     if (__args.length === 0) {
       return j_routingContext["failed()"]();
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -497,7 +497,7 @@ var RoutingContext = function(j_val) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
       j_routingContext["setBody(io.vertx.core.buffer.Buffer)"](body._jdel);
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -510,7 +510,7 @@ var RoutingContext = function(j_val) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
       j_routingContext["setSession(io.vertx.ext.web.Session)"](session._jdel);
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -523,7 +523,7 @@ var RoutingContext = function(j_val) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
       j_routingContext["setUser(io.vertx.ext.auth.User)"](user._jdel);
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -537,7 +537,7 @@ var RoutingContext = function(j_val) {
     var __args = arguments;
     if (__args.length === 0) {
       j_routingContext["clearUser()"]();
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -550,7 +550,7 @@ var RoutingContext = function(j_val) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
       j_routingContext["setAcceptableContentType(java.lang.String)"](contentType);
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -567,7 +567,7 @@ var RoutingContext = function(j_val) {
       j_routingContext["reroute(java.lang.String)"](__args[0]);
     }  else if (__args.length === 2 && typeof __args[0] === 'string' && typeof __args[1] === 'string') {
       j_routingContext["reroute(io.vertx.core.http.HttpMethod,java.lang.String)"](io.vertx.core.http.HttpMethod.valueOf(__args[0]), __args[1]);
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   // A reference to the underlying Java delegate

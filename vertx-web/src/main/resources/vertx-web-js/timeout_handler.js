@@ -42,7 +42,7 @@ var TimeoutHandler = function(j_val) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
       j_timeoutHandler["handle(io.vertx.ext.web.RoutingContext)"](arg0._jdel);
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   // A reference to the underlying Java delegate
@@ -64,7 +64,7 @@ TimeoutHandler.create = function() {
     return utils.convReturnVertxGen(JTimeoutHandler["create()"](), TimeoutHandler);
   }else if (__args.length === 1 && typeof __args[0] ==='number') {
     return utils.convReturnVertxGen(JTimeoutHandler["create(long)"](__args[0]), TimeoutHandler);
-  } else utils.invalidArgs();
+  } else throw new TypeError('function invoked with invalid arguments');
 };
 
 // We export the Constructor function

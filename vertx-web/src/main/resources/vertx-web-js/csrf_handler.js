@@ -46,7 +46,7 @@ var CSRFHandler = function(j_val) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
       j_cSRFHandler["handle(io.vertx.ext.web.RoutingContext)"](arg0._jdel);
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -62,7 +62,7 @@ var CSRFHandler = function(j_val) {
     if (__args.length === 1 && typeof __args[0] === 'string') {
       j_cSRFHandler["setCookieName(java.lang.String)"](name);
       return that;
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -78,7 +78,7 @@ var CSRFHandler = function(j_val) {
     if (__args.length === 1 && typeof __args[0] === 'string') {
       j_cSRFHandler["setHeaderName(java.lang.String)"](name);
       return that;
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -93,7 +93,7 @@ var CSRFHandler = function(j_val) {
     if (__args.length === 1 && typeof __args[0] ==='boolean') {
       j_cSRFHandler["setNagHttps(boolean)"](nag);
       return that;
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -108,7 +108,7 @@ var CSRFHandler = function(j_val) {
     if (__args.length === 1 && typeof __args[0] ==='number') {
       j_cSRFHandler["setTimeout(long)"](timeout);
       return that;
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   // A reference to the underlying Java delegate
@@ -132,7 +132,7 @@ CSRFHandler.create = function(secret) {
   var __args = arguments;
   if (__args.length === 1 && typeof __args[0] === 'string') {
     return utils.convReturnVertxGen(JCSRFHandler["create(java.lang.String)"](secret), CSRFHandler);
-  } else utils.invalidArgs();
+  } else throw new TypeError('function invoked with invalid arguments');
 };
 
 // We export the Constructor function

@@ -51,7 +51,7 @@ var SockJSSocket = function(j_val) {
     var __args = arguments;
     if (__args.length === 0) {
       return j_sockJSSocket["writeQueueFull()"]();
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -67,7 +67,7 @@ var SockJSSocket = function(j_val) {
       handler(utils.convReturnThrowable(jVal));
     });
       return that;
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -83,7 +83,7 @@ var SockJSSocket = function(j_val) {
       handler(utils.convReturnVertxGen(jVal, Buffer));
     });
       return that;
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -97,7 +97,7 @@ var SockJSSocket = function(j_val) {
     if (__args.length === 0) {
       j_sockJSSocket["pause()"]();
       return that;
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -111,7 +111,7 @@ var SockJSSocket = function(j_val) {
     if (__args.length === 0) {
       j_sockJSSocket["resume()"]();
       return that;
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -125,7 +125,7 @@ var SockJSSocket = function(j_val) {
     if (__args.length === 1 && typeof __args[0] === 'function') {
       j_sockJSSocket["endHandler(io.vertx.core.Handler)"](endHandler);
       return that;
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -139,7 +139,7 @@ var SockJSSocket = function(j_val) {
     if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
       j_sockJSSocket["write(io.vertx.core.buffer.Buffer)"](data._jdel);
       return that;
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -153,7 +153,7 @@ var SockJSSocket = function(j_val) {
     if (__args.length === 1 && typeof __args[0] ==='number') {
       j_sockJSSocket["setWriteQueueMaxSize(int)"](maxSize);
       return that;
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -167,7 +167,7 @@ var SockJSSocket = function(j_val) {
     if (__args.length === 1 && typeof __args[0] === 'function') {
       j_sockJSSocket["drainHandler(io.vertx.core.Handler)"](handler);
       return that;
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -186,7 +186,7 @@ var SockJSSocket = function(j_val) {
     var __args = arguments;
     if (__args.length === 0) {
       return j_sockJSSocket["writeHandlerID()"]();
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -199,7 +199,7 @@ var SockJSSocket = function(j_val) {
     var __args = arguments;
     if (__args.length === 0) {
       j_sockJSSocket["close()"]();
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -213,7 +213,7 @@ var SockJSSocket = function(j_val) {
     var __args = arguments;
     if (__args.length === 0) {
       return utils.convReturnVertxGen(j_sockJSSocket["remoteAddress()"](), SocketAddress);
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -227,7 +227,7 @@ var SockJSSocket = function(j_val) {
     var __args = arguments;
     if (__args.length === 0) {
       return utils.convReturnVertxGen(j_sockJSSocket["localAddress()"](), SocketAddress);
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -242,7 +242,7 @@ var SockJSSocket = function(j_val) {
     var __args = arguments;
     if (__args.length === 0) {
       return utils.convReturnVertxGen(j_sockJSSocket["headers()"](), MultiMap);
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -256,7 +256,7 @@ var SockJSSocket = function(j_val) {
     var __args = arguments;
     if (__args.length === 0) {
       return j_sockJSSocket["uri()"]();
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -270,7 +270,7 @@ var SockJSSocket = function(j_val) {
     var __args = arguments;
     if (__args.length === 0) {
       return utils.convReturnVertxGen(j_sockJSSocket["webSession()"](), Session);
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -284,7 +284,7 @@ var SockJSSocket = function(j_val) {
     var __args = arguments;
     if (__args.length === 0) {
       return utils.convReturnVertxGen(j_sockJSSocket["webUser()"](), User);
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   // A reference to the underlying Java delegate

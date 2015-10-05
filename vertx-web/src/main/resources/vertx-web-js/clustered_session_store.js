@@ -54,7 +54,7 @@ ClusteredSessionStore.create = function() {
     return utils.convReturnVertxGen(JClusteredSessionStore["create(io.vertx.core.Vertx)"](__args[0]._jdel), ClusteredSessionStore);
   }else if (__args.length === 2 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'string') {
     return utils.convReturnVertxGen(JClusteredSessionStore["create(io.vertx.core.Vertx,java.lang.String)"](__args[0]._jdel, __args[1]), ClusteredSessionStore);
-  } else utils.invalidArgs();
+  } else throw new TypeError('function invoked with invalid arguments');
 };
 
 // We export the Constructor function

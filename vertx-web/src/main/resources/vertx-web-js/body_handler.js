@@ -40,7 +40,7 @@ var BodyHandler = function(j_val) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
       j_bodyHandler["handle(io.vertx.ext.web.RoutingContext)"](arg0._jdel);
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -55,7 +55,7 @@ var BodyHandler = function(j_val) {
     if (__args.length === 1 && typeof __args[0] ==='number') {
       j_bodyHandler["setBodyLimit(long)"](bodyLimit);
       return that;
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -70,7 +70,7 @@ var BodyHandler = function(j_val) {
     if (__args.length === 1 && typeof __args[0] === 'string') {
       j_bodyHandler["setUploadsDirectory(java.lang.String)"](uploadsDirectory);
       return that;
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -85,7 +85,7 @@ var BodyHandler = function(j_val) {
     if (__args.length === 1 && typeof __args[0] ==='boolean') {
       j_bodyHandler["setMergeFormAttributes(boolean)"](mergeFormAttributes);
       return that;
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   // A reference to the underlying Java delegate
@@ -105,7 +105,7 @@ BodyHandler.create = function() {
   var __args = arguments;
   if (__args.length === 0) {
     return utils.convReturnVertxGen(JBodyHandler["create()"](), BodyHandler);
-  } else utils.invalidArgs();
+  } else throw new TypeError('function invoked with invalid arguments');
 };
 
 // We export the Constructor function

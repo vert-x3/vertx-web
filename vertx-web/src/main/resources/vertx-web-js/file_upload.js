@@ -43,7 +43,7 @@ var FileUpload = function(j_val) {
     var __args = arguments;
     if (__args.length === 0) {
       return j_fileUpload["name()"]();
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -57,7 +57,7 @@ var FileUpload = function(j_val) {
     var __args = arguments;
     if (__args.length === 0) {
       return j_fileUpload["uploadedFileName()"]();
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -71,7 +71,7 @@ var FileUpload = function(j_val) {
     var __args = arguments;
     if (__args.length === 0) {
       return j_fileUpload["fileName()"]();
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -85,7 +85,7 @@ var FileUpload = function(j_val) {
     var __args = arguments;
     if (__args.length === 0) {
       return j_fileUpload["size()"]();
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -99,7 +99,7 @@ var FileUpload = function(j_val) {
     var __args = arguments;
     if (__args.length === 0) {
       return j_fileUpload["contentType()"]();
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -113,7 +113,7 @@ var FileUpload = function(j_val) {
     var __args = arguments;
     if (__args.length === 0) {
       return j_fileUpload["contentTransferEncoding()"]();
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -127,7 +127,7 @@ var FileUpload = function(j_val) {
     var __args = arguments;
     if (__args.length === 0) {
       return j_fileUpload["charSet()"]();
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   // A reference to the underlying Java delegate

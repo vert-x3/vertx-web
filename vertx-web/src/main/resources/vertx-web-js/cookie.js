@@ -46,7 +46,7 @@ var Cookie = function(j_val) {
     var __args = arguments;
     if (__args.length === 0) {
       return j_cookie["getName()"]();
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -60,7 +60,7 @@ var Cookie = function(j_val) {
     var __args = arguments;
     if (__args.length === 0) {
       return j_cookie["getValue()"]();
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -75,7 +75,7 @@ var Cookie = function(j_val) {
     if (__args.length === 1 && typeof __args[0] === 'string') {
       j_cookie["setValue(java.lang.String)"](value);
       return that;
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -90,7 +90,7 @@ var Cookie = function(j_val) {
     if (__args.length === 1 && typeof __args[0] === 'string') {
       j_cookie["setDomain(java.lang.String)"](domain);
       return that;
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -104,7 +104,7 @@ var Cookie = function(j_val) {
     var __args = arguments;
     if (__args.length === 0) {
       return j_cookie["getDomain()"]();
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -119,7 +119,7 @@ var Cookie = function(j_val) {
     if (__args.length === 1 && typeof __args[0] === 'string') {
       j_cookie["setPath(java.lang.String)"](path);
       return that;
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -132,7 +132,7 @@ var Cookie = function(j_val) {
     var __args = arguments;
     if (__args.length === 0) {
       return j_cookie["getPath()"]();
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -151,7 +151,7 @@ var Cookie = function(j_val) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] ==='number') {
       return utils.convReturnVertxGen(j_cookie["setMaxAge(long)"](maxAge), Cookie);
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -166,7 +166,7 @@ var Cookie = function(j_val) {
     if (__args.length === 1 && typeof __args[0] ==='boolean') {
       j_cookie["setSecure(boolean)"](secure);
       return that;
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -184,7 +184,7 @@ var Cookie = function(j_val) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] ==='boolean') {
       return utils.convReturnVertxGen(j_cookie["setHttpOnly(boolean)"](httpOnly), Cookie);
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -198,7 +198,7 @@ var Cookie = function(j_val) {
     var __args = arguments;
     if (__args.length === 0) {
       return j_cookie["encode()"]();
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -212,7 +212,7 @@ var Cookie = function(j_val) {
     var __args = arguments;
     if (__args.length === 0) {
       return j_cookie["isChanged()"]();
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -226,7 +226,7 @@ var Cookie = function(j_val) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] ==='boolean') {
       j_cookie["setChanged(boolean)"](changed);
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   // A reference to the underlying Java delegate
@@ -247,7 +247,7 @@ Cookie.cookie = function(name, value) {
   var __args = arguments;
   if (__args.length === 2 && typeof __args[0] === 'string' && typeof __args[1] === 'string') {
     return utils.convReturnVertxGen(JCookie["cookie(java.lang.String,java.lang.String)"](name, value), Cookie);
-  } else utils.invalidArgs();
+  } else throw new TypeError('function invoked with invalid arguments');
 };
 
 // We export the Constructor function

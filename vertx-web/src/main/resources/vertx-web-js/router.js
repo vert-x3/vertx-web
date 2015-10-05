@@ -46,7 +46,7 @@ var Router = function(j_val) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
       j_router["accept(io.vertx.core.http.HttpServerRequest)"](request._jdel);
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -65,7 +65,7 @@ var Router = function(j_val) {
       return utils.convReturnVertxGen(j_router["route(java.lang.String)"](__args[0]), Route);
     }  else if (__args.length === 2 && typeof __args[0] === 'string' && typeof __args[1] === 'string') {
       return utils.convReturnVertxGen(j_router["route(io.vertx.core.http.HttpMethod,java.lang.String)"](io.vertx.core.http.HttpMethod.valueOf(__args[0]), __args[1]), Route);
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -82,7 +82,7 @@ var Router = function(j_val) {
       return utils.convReturnVertxGen(j_router["routeWithRegex(java.lang.String)"](__args[0]), Route);
     }  else if (__args.length === 2 && typeof __args[0] === 'string' && typeof __args[1] === 'string') {
       return utils.convReturnVertxGen(j_router["routeWithRegex(io.vertx.core.http.HttpMethod,java.lang.String)"](io.vertx.core.http.HttpMethod.valueOf(__args[0]), __args[1]), Route);
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -98,7 +98,7 @@ var Router = function(j_val) {
       return utils.convReturnVertxGen(j_router["get()"](), Route);
     }  else if (__args.length === 1 && typeof __args[0] === 'string') {
       return utils.convReturnVertxGen(j_router["get(java.lang.String)"](__args[0]), Route);
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -112,7 +112,7 @@ var Router = function(j_val) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
       return utils.convReturnVertxGen(j_router["getWithRegex(java.lang.String)"](regex), Route);
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -128,7 +128,7 @@ var Router = function(j_val) {
       return utils.convReturnVertxGen(j_router["head()"](), Route);
     }  else if (__args.length === 1 && typeof __args[0] === 'string') {
       return utils.convReturnVertxGen(j_router["head(java.lang.String)"](__args[0]), Route);
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -142,7 +142,7 @@ var Router = function(j_val) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
       return utils.convReturnVertxGen(j_router["headWithRegex(java.lang.String)"](regex), Route);
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -158,7 +158,7 @@ var Router = function(j_val) {
       return utils.convReturnVertxGen(j_router["options()"](), Route);
     }  else if (__args.length === 1 && typeof __args[0] === 'string') {
       return utils.convReturnVertxGen(j_router["options(java.lang.String)"](__args[0]), Route);
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -172,7 +172,7 @@ var Router = function(j_val) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
       return utils.convReturnVertxGen(j_router["optionsWithRegex(java.lang.String)"](regex), Route);
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -188,7 +188,7 @@ var Router = function(j_val) {
       return utils.convReturnVertxGen(j_router["put()"](), Route);
     }  else if (__args.length === 1 && typeof __args[0] === 'string') {
       return utils.convReturnVertxGen(j_router["put(java.lang.String)"](__args[0]), Route);
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -202,7 +202,7 @@ var Router = function(j_val) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
       return utils.convReturnVertxGen(j_router["putWithRegex(java.lang.String)"](regex), Route);
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -218,7 +218,7 @@ var Router = function(j_val) {
       return utils.convReturnVertxGen(j_router["post()"](), Route);
     }  else if (__args.length === 1 && typeof __args[0] === 'string') {
       return utils.convReturnVertxGen(j_router["post(java.lang.String)"](__args[0]), Route);
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -232,7 +232,7 @@ var Router = function(j_val) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
       return utils.convReturnVertxGen(j_router["postWithRegex(java.lang.String)"](regex), Route);
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -248,7 +248,7 @@ var Router = function(j_val) {
       return utils.convReturnVertxGen(j_router["delete()"](), Route);
     }  else if (__args.length === 1 && typeof __args[0] === 'string') {
       return utils.convReturnVertxGen(j_router["delete(java.lang.String)"](__args[0]), Route);
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -262,7 +262,7 @@ var Router = function(j_val) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
       return utils.convReturnVertxGen(j_router["deleteWithRegex(java.lang.String)"](regex), Route);
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -278,7 +278,7 @@ var Router = function(j_val) {
       return utils.convReturnVertxGen(j_router["trace()"](), Route);
     }  else if (__args.length === 1 && typeof __args[0] === 'string') {
       return utils.convReturnVertxGen(j_router["trace(java.lang.String)"](__args[0]), Route);
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -292,7 +292,7 @@ var Router = function(j_val) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
       return utils.convReturnVertxGen(j_router["traceWithRegex(java.lang.String)"](regex), Route);
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -308,7 +308,7 @@ var Router = function(j_val) {
       return utils.convReturnVertxGen(j_router["connect()"](), Route);
     }  else if (__args.length === 1 && typeof __args[0] === 'string') {
       return utils.convReturnVertxGen(j_router["connect(java.lang.String)"](__args[0]), Route);
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -322,7 +322,7 @@ var Router = function(j_val) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
       return utils.convReturnVertxGen(j_router["connectWithRegex(java.lang.String)"](regex), Route);
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -338,7 +338,7 @@ var Router = function(j_val) {
       return utils.convReturnVertxGen(j_router["patch()"](), Route);
     }  else if (__args.length === 1 && typeof __args[0] === 'string') {
       return utils.convReturnVertxGen(j_router["patch(java.lang.String)"](__args[0]), Route);
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -352,7 +352,7 @@ var Router = function(j_val) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
       return utils.convReturnVertxGen(j_router["patchWithRegex(java.lang.String)"](regex), Route);
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -366,7 +366,7 @@ var Router = function(j_val) {
     var __args = arguments;
     if (__args.length === 0) {
       return utils.convReturnListSetVertxGen(j_router["getRoutes()"](), Route);
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -381,7 +381,7 @@ var Router = function(j_val) {
     if (__args.length === 0) {
       j_router["clear()"]();
       return that;
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -397,7 +397,7 @@ var Router = function(j_val) {
     if (__args.length === 2 && typeof __args[0] === 'string' && typeof __args[1] === 'object' && __args[1]._jdel) {
       j_router["mountSubRouter(java.lang.String,io.vertx.ext.web.Router)"](mountPoint, subRouter._jdel);
       return that;
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -415,7 +415,7 @@ var Router = function(j_val) {
       exceptionHandler(utils.convReturnThrowable(jVal));
     });
       return that;
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -428,7 +428,7 @@ var Router = function(j_val) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
       j_router["handleContext(io.vertx.ext.web.RoutingContext)"](context._jdel);
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -441,7 +441,7 @@ var Router = function(j_val) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
       j_router["handleFailure(io.vertx.ext.web.RoutingContext)"](context._jdel);
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   // A reference to the underlying Java delegate
@@ -461,7 +461,7 @@ Router.router = function(vertx) {
   var __args = arguments;
   if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
     return utils.convReturnVertxGen(JRouter["router(io.vertx.core.Vertx)"](vertx._jdel), Router);
-  } else utils.invalidArgs();
+  } else throw new TypeError('function invoked with invalid arguments');
 };
 
 // We export the Constructor function

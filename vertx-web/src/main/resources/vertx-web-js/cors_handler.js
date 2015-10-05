@@ -41,7 +41,7 @@ var CorsHandler = function(j_val) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
       j_corsHandler["handle(io.vertx.ext.web.RoutingContext)"](arg0._jdel);
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -56,7 +56,7 @@ var CorsHandler = function(j_val) {
     if (__args.length === 1 && typeof __args[0] === 'string') {
       j_corsHandler["allowedMethod(io.vertx.core.http.HttpMethod)"](io.vertx.core.http.HttpMethod.valueOf(__args[0]));
       return that;
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -71,7 +71,7 @@ var CorsHandler = function(j_val) {
     if (__args.length === 1 && typeof __args[0] === 'string') {
       j_corsHandler["allowedHeader(java.lang.String)"](headerName);
       return that;
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -86,7 +86,7 @@ var CorsHandler = function(j_val) {
     if (__args.length === 1 && typeof __args[0] === 'object' && __args[0] instanceof Array) {
       j_corsHandler["allowedHeaders(java.util.Set)"](utils.convParamSetBasicOther(headerNames));
       return that;
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -101,7 +101,7 @@ var CorsHandler = function(j_val) {
     if (__args.length === 1 && typeof __args[0] === 'string') {
       j_corsHandler["exposedHeader(java.lang.String)"](headerName);
       return that;
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -116,7 +116,7 @@ var CorsHandler = function(j_val) {
     if (__args.length === 1 && typeof __args[0] === 'object' && __args[0] instanceof Array) {
       j_corsHandler["exposedHeaders(java.util.Set)"](utils.convParamSetBasicOther(headerNames));
       return that;
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -131,7 +131,7 @@ var CorsHandler = function(j_val) {
     if (__args.length === 1 && typeof __args[0] ==='boolean') {
       j_corsHandler["allowCredentials(boolean)"](allow);
       return that;
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -146,7 +146,7 @@ var CorsHandler = function(j_val) {
     if (__args.length === 1 && typeof __args[0] ==='number') {
       j_corsHandler["maxAgeSeconds(int)"](maxAgeSeconds);
       return that;
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   // A reference to the underlying Java delegate
@@ -166,7 +166,7 @@ CorsHandler.create = function(allowedOriginPattern) {
   var __args = arguments;
   if (__args.length === 1 && typeof __args[0] === 'string') {
     return utils.convReturnVertxGen(JCorsHandler["create(java.lang.String)"](allowedOriginPattern), CorsHandler);
-  } else utils.invalidArgs();
+  } else throw new TypeError('function invoked with invalid arguments');
 };
 
 // We export the Constructor function

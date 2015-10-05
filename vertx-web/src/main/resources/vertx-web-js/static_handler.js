@@ -41,7 +41,7 @@ var StaticHandler = function(j_val) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
       j_staticHandler["handle(io.vertx.ext.web.RoutingContext)"](arg0._jdel);
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -56,7 +56,7 @@ var StaticHandler = function(j_val) {
     if (__args.length === 1 && typeof __args[0] === 'string') {
       j_staticHandler["setWebRoot(java.lang.String)"](webRoot);
       return that;
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -71,7 +71,7 @@ var StaticHandler = function(j_val) {
     if (__args.length === 1 && typeof __args[0] ==='boolean') {
       j_staticHandler["setFilesReadOnly(boolean)"](readOnly);
       return that;
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -86,7 +86,7 @@ var StaticHandler = function(j_val) {
     if (__args.length === 1 && typeof __args[0] ==='number') {
       j_staticHandler["setMaxAgeSeconds(long)"](maxAgeSeconds);
       return that;
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -101,7 +101,7 @@ var StaticHandler = function(j_val) {
     if (__args.length === 1 && typeof __args[0] ==='boolean') {
       j_staticHandler["setCachingEnabled(boolean)"](enabled);
       return that;
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -116,7 +116,7 @@ var StaticHandler = function(j_val) {
     if (__args.length === 1 && typeof __args[0] ==='boolean') {
       j_staticHandler["setDirectoryListing(boolean)"](directoryListing);
       return that;
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -131,7 +131,7 @@ var StaticHandler = function(j_val) {
     if (__args.length === 1 && typeof __args[0] ==='boolean') {
       j_staticHandler["setIncludeHidden(boolean)"](includeHidden);
       return that;
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -146,7 +146,7 @@ var StaticHandler = function(j_val) {
     if (__args.length === 1 && typeof __args[0] ==='number') {
       j_staticHandler["setCacheEntryTimeout(long)"](timeout);
       return that;
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -161,7 +161,7 @@ var StaticHandler = function(j_val) {
     if (__args.length === 1 && typeof __args[0] === 'string') {
       j_staticHandler["setIndexPage(java.lang.String)"](indexPage);
       return that;
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -176,7 +176,7 @@ var StaticHandler = function(j_val) {
     if (__args.length === 1 && typeof __args[0] ==='number') {
       j_staticHandler["setMaxCacheSize(int)"](maxCacheSize);
       return that;
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -191,7 +191,7 @@ var StaticHandler = function(j_val) {
     if (__args.length === 1 && typeof __args[0] ==='boolean') {
       j_staticHandler["setAlwaysAsyncFS(boolean)"](alwaysAsyncFS);
       return that;
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -206,7 +206,7 @@ var StaticHandler = function(j_val) {
     if (__args.length === 1 && typeof __args[0] ==='boolean') {
       j_staticHandler["setEnableFSTuning(boolean)"](enableFSTuning);
       return that;
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -221,7 +221,7 @@ var StaticHandler = function(j_val) {
     if (__args.length === 1 && typeof __args[0] ==='number') {
       j_staticHandler["setMaxAvgServeTimeNs(long)"](maxAvgServeTimeNanoSeconds);
       return that;
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -236,7 +236,7 @@ var StaticHandler = function(j_val) {
     if (__args.length === 1 && typeof __args[0] === 'string') {
       j_staticHandler["setDirectoryTemplate(java.lang.String)"](directoryTemplate);
       return that;
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -251,7 +251,7 @@ var StaticHandler = function(j_val) {
     if (__args.length === 1 && typeof __args[0] ==='boolean') {
       j_staticHandler["setEnableRangeSupport(boolean)"](enableRangeSupport);
       return that;
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   // A reference to the underlying Java delegate
@@ -273,7 +273,7 @@ StaticHandler.create = function() {
     return utils.convReturnVertxGen(JStaticHandler["create()"](), StaticHandler);
   }else if (__args.length === 1 && typeof __args[0] === 'string') {
     return utils.convReturnVertxGen(JStaticHandler["create(java.lang.String)"](__args[0]), StaticHandler);
-  } else utils.invalidArgs();
+  } else throw new TypeError('function invoked with invalid arguments');
 };
 
 // We export the Constructor function

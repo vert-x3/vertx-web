@@ -47,7 +47,7 @@ var Session = function(j_val) {
     var __args = arguments;
     if (__args.length === 0) {
       return j_session["id()"]();
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -63,7 +63,7 @@ var Session = function(j_val) {
     if (__args.length === 2 && typeof __args[0] === 'string' && true) {
       j_session["put(java.lang.String,java.lang.Object)"](key, utils.convParamTypeUnknown(obj));
       return that;
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -77,7 +77,7 @@ var Session = function(j_val) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
       return utils.convReturnTypeUnknown(j_session["get(java.lang.String)"](key));
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -91,7 +91,7 @@ var Session = function(j_val) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
       return utils.convReturnTypeUnknown(j_session["remove(java.lang.String)"](key));
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -105,7 +105,7 @@ var Session = function(j_val) {
     var __args = arguments;
     if (__args.length === 0) {
       return j_session["lastAccessed()"]();
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -118,7 +118,7 @@ var Session = function(j_val) {
     var __args = arguments;
     if (__args.length === 0) {
       j_session["destroy()"]();
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -132,7 +132,7 @@ var Session = function(j_val) {
     var __args = arguments;
     if (__args.length === 0) {
       return j_session["isDestroyed()"]();
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -146,7 +146,7 @@ var Session = function(j_val) {
     var __args = arguments;
     if (__args.length === 0) {
       return j_session["timeout()"]();
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -159,7 +159,7 @@ var Session = function(j_val) {
     var __args = arguments;
     if (__args.length === 0) {
       j_session["setAccessed()"]();
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   // A reference to the underlying Java delegate

@@ -44,7 +44,7 @@ var JWTAuthHandler = function(j_val) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
       j_jWTAuthHandler["handle(io.vertx.ext.web.RoutingContext)"](arg0._jdel);
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -59,7 +59,7 @@ var JWTAuthHandler = function(j_val) {
     if (__args.length === 1 && typeof __args[0] === 'string') {
       j_jWTAuthHandler["addAuthority(java.lang.String)"](authority);
       return that;
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -74,7 +74,7 @@ var JWTAuthHandler = function(j_val) {
     if (__args.length === 1 && typeof __args[0] === 'object' && __args[0] instanceof Array) {
       j_jWTAuthHandler["addAuthorities(java.util.Set)"](utils.convParamSetBasicOther(authorities));
       return that;
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -89,7 +89,7 @@ var JWTAuthHandler = function(j_val) {
     if (__args.length === 1 && typeof __args[0] === 'object' && __args[0] instanceof Array) {
       j_jWTAuthHandler["setAudience(java.util.List)"](audience);
       return that;
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -104,7 +104,7 @@ var JWTAuthHandler = function(j_val) {
     if (__args.length === 1 && typeof __args[0] === 'string') {
       j_jWTAuthHandler["setIssuer(java.lang.String)"](issuer);
       return that;
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -119,7 +119,7 @@ var JWTAuthHandler = function(j_val) {
     if (__args.length === 1 && typeof __args[0] ==='boolean') {
       j_jWTAuthHandler["setIgnoreExpiration(boolean)"](ignoreExpiration);
       return that;
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   // A reference to the underlying Java delegate
@@ -142,7 +142,7 @@ JWTAuthHandler.create = function() {
     return utils.convReturnVertxGen(JJWTAuthHandler["create(io.vertx.ext.auth.AuthProvider)"](__args[0]._jdel), JWTAuthHandler);
   }else if (__args.length === 2 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'string') {
     return utils.convReturnVertxGen(JJWTAuthHandler["create(io.vertx.ext.auth.AuthProvider,java.lang.String)"](__args[0]._jdel, __args[1]), JWTAuthHandler);
-  } else utils.invalidArgs();
+  } else throw new TypeError('function invoked with invalid arguments');
 };
 
 // We export the Constructor function

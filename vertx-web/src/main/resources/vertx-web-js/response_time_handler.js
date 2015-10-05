@@ -42,7 +42,7 @@ var ResponseTimeHandler = function(j_val) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
       j_responseTimeHandler["handle(io.vertx.ext.web.RoutingContext)"](arg0._jdel);
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   // A reference to the underlying Java delegate
@@ -62,7 +62,7 @@ ResponseTimeHandler.create = function() {
   var __args = arguments;
   if (__args.length === 0) {
     return utils.convReturnVertxGen(JResponseTimeHandler["create()"](), ResponseTimeHandler);
-  } else utils.invalidArgs();
+  } else throw new TypeError('function invoked with invalid arguments');
 };
 
 // We export the Constructor function

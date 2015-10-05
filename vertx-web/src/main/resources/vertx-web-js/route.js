@@ -46,7 +46,7 @@ var Route = function(j_val) {
     if (__args.length === 1 && typeof __args[0] === 'string') {
       j_route["method(io.vertx.core.http.HttpMethod)"](io.vertx.core.http.HttpMethod.valueOf(__args[0]));
       return that;
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -62,7 +62,7 @@ var Route = function(j_val) {
     if (__args.length === 1 && typeof __args[0] === 'string') {
       j_route["path(java.lang.String)"](path);
       return that;
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -78,7 +78,7 @@ var Route = function(j_val) {
     if (__args.length === 1 && typeof __args[0] === 'string') {
       j_route["pathRegex(java.lang.String)"](path);
       return that;
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -92,7 +92,7 @@ var Route = function(j_val) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
       return utils.convReturnVertxGen(j_route["produces(java.lang.String)"](contentType), Route);
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -107,7 +107,7 @@ var Route = function(j_val) {
     if (__args.length === 1 && typeof __args[0] === 'string') {
       j_route["consumes(java.lang.String)"](contentType);
       return that;
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -122,7 +122,7 @@ var Route = function(j_val) {
     if (__args.length === 1 && typeof __args[0] ==='number') {
       j_route["order(int)"](order);
       return that;
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -137,7 +137,7 @@ var Route = function(j_val) {
     if (__args.length === 0) {
       j_route["last()"]();
       return that;
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -156,7 +156,7 @@ var Route = function(j_val) {
       requestHandler(utils.convReturnVertxGen(jVal, RoutingContext));
     });
       return that;
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -186,7 +186,7 @@ var Route = function(j_val) {
       __args[0](utils.convReturnVertxGen(jVal, RoutingContext));
     }, __args[1]);
       return that;
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -205,7 +205,7 @@ var Route = function(j_val) {
       failureHandler(utils.convReturnVertxGen(jVal, RoutingContext));
     });
       return that;
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -220,7 +220,7 @@ var Route = function(j_val) {
     if (__args.length === 0) {
       j_route["remove()"]();
       return that;
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -235,7 +235,7 @@ var Route = function(j_val) {
     if (__args.length === 0) {
       j_route["disable()"]();
       return that;
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -250,7 +250,7 @@ var Route = function(j_val) {
     if (__args.length === 0) {
       j_route["enable()"]();
       return that;
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -266,7 +266,7 @@ var Route = function(j_val) {
     if (__args.length === 1 && typeof __args[0] ==='boolean') {
       j_route["useNormalisedPath(boolean)"](useNormalisedPath);
       return that;
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -280,7 +280,7 @@ var Route = function(j_val) {
     var __args = arguments;
     if (__args.length === 0) {
       return j_route["getPath()"]();
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   // A reference to the underlying Java delegate

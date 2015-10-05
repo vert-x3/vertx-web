@@ -42,7 +42,7 @@ var FormLoginHandler = function(j_val) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
       j_formLoginHandler["handle(io.vertx.ext.web.RoutingContext)"](arg0._jdel);
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -56,7 +56,7 @@ var FormLoginHandler = function(j_val) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
       return utils.convReturnVertxGen(j_formLoginHandler["setUsernameParam(java.lang.String)"](usernameParam), FormLoginHandler);
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -70,7 +70,7 @@ var FormLoginHandler = function(j_val) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
       return utils.convReturnVertxGen(j_formLoginHandler["setPasswordParam(java.lang.String)"](passwordParam), FormLoginHandler);
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -84,7 +84,7 @@ var FormLoginHandler = function(j_val) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
       return utils.convReturnVertxGen(j_formLoginHandler["setReturnURLParam(java.lang.String)"](returnURLParam), FormLoginHandler);
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -99,7 +99,7 @@ var FormLoginHandler = function(j_val) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
       return utils.convReturnVertxGen(j_formLoginHandler["setDirectLoggedInOKURL(java.lang.String)"](directLoggedInOKURL), FormLoginHandler);
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   // A reference to the underlying Java delegate
@@ -125,7 +125,7 @@ FormLoginHandler.create = function() {
     return utils.convReturnVertxGen(JFormLoginHandler["create(io.vertx.ext.auth.AuthProvider)"](__args[0]._jdel), FormLoginHandler);
   }else if (__args.length === 5 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'string' && typeof __args[2] === 'string' && typeof __args[3] === 'string' && typeof __args[4] === 'string') {
     return utils.convReturnVertxGen(JFormLoginHandler["create(io.vertx.ext.auth.AuthProvider,java.lang.String,java.lang.String,java.lang.String,java.lang.String)"](__args[0]._jdel, __args[1], __args[2], __args[3], __args[4]), FormLoginHandler);
-  } else utils.invalidArgs();
+  } else throw new TypeError('function invoked with invalid arguments');
 };
 
 // We export the Constructor function

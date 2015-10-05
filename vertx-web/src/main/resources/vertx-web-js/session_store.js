@@ -43,7 +43,7 @@ var SessionStore = function(j_val) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] ==='number') {
       return utils.convReturnVertxGen(j_sessionStore["createSession(long)"](timeout), Session);
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -63,7 +63,7 @@ var SessionStore = function(j_val) {
         resultHandler(null, ar.cause());
       }
     });
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -83,7 +83,7 @@ var SessionStore = function(j_val) {
         resultHandler(null, ar.cause());
       }
     });
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -103,7 +103,7 @@ var SessionStore = function(j_val) {
         resultHandler(null, ar.cause());
       }
     });
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -122,7 +122,7 @@ var SessionStore = function(j_val) {
         resultHandler(null, ar.cause());
       }
     });
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -141,7 +141,7 @@ var SessionStore = function(j_val) {
         resultHandler(null, ar.cause());
       }
     });
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -154,7 +154,7 @@ var SessionStore = function(j_val) {
     var __args = arguments;
     if (__args.length === 0) {
       j_sessionStore["close()"]();
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   // A reference to the underlying Java delegate

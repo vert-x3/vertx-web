@@ -44,7 +44,7 @@ var JadeTemplateEngine = function(j_val) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
       return utils.convReturnVertxGen(j_jadeTemplateEngine["setExtension(java.lang.String)"](extension), JadeTemplateEngine);
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -58,7 +58,7 @@ var JadeTemplateEngine = function(j_val) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] ==='number') {
       return utils.convReturnVertxGen(j_jadeTemplateEngine["setMaxCacheSize(int)"](maxCacheSize), JadeTemplateEngine);
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   // A reference to the underlying Java delegate
@@ -78,7 +78,7 @@ JadeTemplateEngine.create = function() {
   var __args = arguments;
   if (__args.length === 0) {
     return utils.convReturnVertxGen(JJadeTemplateEngine["create()"](), JadeTemplateEngine);
-  } else utils.invalidArgs();
+  } else throw new TypeError('function invoked with invalid arguments');
 };
 
 // We export the Constructor function

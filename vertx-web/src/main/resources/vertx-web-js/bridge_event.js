@@ -50,7 +50,7 @@ var BridgeEvent = function(j_val) {
         that.cachedtype = (j_bridgeEvent["type()"]()).toString();
       }
       return that.cachedtype;
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -68,7 +68,7 @@ var BridgeEvent = function(j_val) {
         that.cachedrawMessage = utils.convReturnJson(j_bridgeEvent["rawMessage()"]());
       }
       return that.cachedrawMessage;
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
@@ -85,7 +85,7 @@ var BridgeEvent = function(j_val) {
         that.cachedsocket = utils.convReturnVertxGen(j_bridgeEvent["socket()"](), SockJSSocket);
       }
       return that.cachedsocket;
-    } else utils.invalidArgs();
+    } else throw new TypeError('function invoked with invalid arguments');
   };
 
   // A reference to the underlying Java delegate
