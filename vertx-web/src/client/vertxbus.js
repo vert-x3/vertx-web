@@ -111,7 +111,7 @@
         if (json.type === 'err') {
           handler({failureCode: json.failureCode, failureType: json.failureType, message: json.message});
         } else {
-          handler(null, json.body);
+          handler(null, json);
         }
       } else {
         if (json.type === 'err') {
