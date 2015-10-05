@@ -17,6 +17,7 @@
 package io.vertx.ext.web.handler;
 
 import io.vertx.codegen.annotations.Fluent;
+import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
 import io.vertx.ext.web.RoutingContext;
@@ -112,17 +113,29 @@ public interface StaticHandler extends Handler<RoutingContext> {
   /**
    * Create a handler, specifying web-root
    *
-   * @param root  the web-root
+   * @param root the web-root
    * @return the handler
    */
   static StaticHandler create(String root) {
-    return new StaticHandlerImpl(root);
+    return new StaticHandlerImpl(root, null);
+  }
+
+  /**
+   * Create a handler, specifying web-root and a classloader used to load the resources.
+   *
+   * @param root        the web-root
+   * @param classLoader the classloader used to load the resource
+   * @return the handler
+   */
+  @GenIgnore
+  static StaticHandler create(String root, ClassLoader classLoader) {
+    return new StaticHandlerImpl(root, classLoader);
   }
 
   /**
    * Set the web root
    *
-   * @param webRoot  the web root
+   * @param webRoot the web root
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
@@ -131,7 +144,7 @@ public interface StaticHandler extends Handler<RoutingContext> {
   /**
    * Set whether files are read-only and will never change
    *
-   * @param readOnly  whether files are read-only
+   * @param readOnly whether files are read-only
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
@@ -140,7 +153,7 @@ public interface StaticHandler extends Handler<RoutingContext> {
   /**
    * Set value for max age in caching headers
    *
-   * @param maxAgeSeconds  maximum time for browser to cache, in seconds
+   * @param maxAgeSeconds maximum time for browser to cache, in seconds
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
@@ -149,7 +162,7 @@ public interface StaticHandler extends Handler<RoutingContext> {
   /**
    * Set whether cache header handling is enabled
    *
-   * @param enabled  true if enabled
+   * @param enabled true if enabled
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
@@ -158,7 +171,7 @@ public interface StaticHandler extends Handler<RoutingContext> {
   /**
    * Set whether directory listing is enabled
    *
-   * @param directoryListing  true if enabled
+   * @param directoryListing true if enabled
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
@@ -167,7 +180,7 @@ public interface StaticHandler extends Handler<RoutingContext> {
   /**
    * Set whether hidden files should be served
    *
-   * @param includeHidden  true if hidden files should be served
+   * @param includeHidden true if hidden files should be served
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
@@ -176,7 +189,7 @@ public interface StaticHandler extends Handler<RoutingContext> {
   /**
    * Set the server cache entry timeout when caching is enabled
    *
-   * @param timeout  the timeout, in ms
+   * @param timeout the timeout, in ms
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
@@ -185,7 +198,7 @@ public interface StaticHandler extends Handler<RoutingContext> {
   /**
    * Set the index page
    *
-   * @param indexPage  the index page
+   * @param indexPage the index page
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
@@ -194,7 +207,7 @@ public interface StaticHandler extends Handler<RoutingContext> {
   /**
    * Set the max cache size, when caching is enabled
    *
-   * @param maxCacheSize  the max cache size
+   * @param maxCacheSize the max cache size
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
@@ -203,7 +216,7 @@ public interface StaticHandler extends Handler<RoutingContext> {
   /**
    * Set whether async filesystem access should always be used
    *
-   * @param alwaysAsyncFS  true for always async FS access
+   * @param alwaysAsyncFS true for always async FS access
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
@@ -212,7 +225,7 @@ public interface StaticHandler extends Handler<RoutingContext> {
   /**
    * Set whether async/sync filesystem tuning should enabled
    *
-   * @param enableFSTuning  true to enabled FS tuning
+   * @param enableFSTuning true to enabled FS tuning
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
@@ -221,7 +234,7 @@ public interface StaticHandler extends Handler<RoutingContext> {
   /**
    * Set the max serve time in ns, above which serves are considered slow
    *
-   * @param maxAvgServeTimeNanoSeconds  max serve time, in ns
+   * @param maxAvgServeTimeNanoSeconds max serve time, in ns
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
@@ -230,7 +243,7 @@ public interface StaticHandler extends Handler<RoutingContext> {
   /**
    * Set the directory template to be used when directory listing
    *
-   * @param directoryTemplate  the directory template
+   * @param directoryTemplate the directory template
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent

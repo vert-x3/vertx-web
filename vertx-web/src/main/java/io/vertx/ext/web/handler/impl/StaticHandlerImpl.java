@@ -75,11 +75,15 @@ public class StaticHandlerImpl implements StaticHandler {
   private boolean useAsyncFS;
   private long nextAvgCheck = NUM_SERVES_TUNING_FS_ACCESS;
 
-  public StaticHandlerImpl(String root) {
+  private final ClassLoader classLoader;
+
+  public StaticHandlerImpl(String root, ClassLoader classLoader) {
+    this.classLoader = classLoader;
     setRoot(root);
   }
 
   public StaticHandlerImpl() {
+    classLoader = null;
   }
 
   private String directoryTemplate(Vertx vertx) {
@@ -325,17 +329,37 @@ public class StaticHandlerImpl implements StaticHandler {
         // return a partial response
         request.response().setStatusCode(PARTIAL_CONTENT.code());
 
-        request.response().sendFile(file, offset, end + 1, res2 -> {
-          if (res2.failed()) {
-            context.fail(res2.cause());
+        // Wrap the sendFile operation into a TCCL switch, so the file resolver would find the file from the set
+        // classloader (if any).
+        final ClassLoader orig = Thread.currentThread().getContextClassLoader();
+        try {
+          if (classLoader != null) {
+            Thread.currentThread().setContextClassLoader(classLoader);
           }
-        });
+          request.response().sendFile(file, offset, end + 1, res2 -> {
+            if (res2.failed()) {
+              context.fail(res2.cause());
+            }
+          });
+        } finally {
+          Thread.currentThread().setContextClassLoader(orig);
+        }
       } else {
-        request.response().sendFile(file, res2 -> {
-          if (res2.failed()) {
-            context.fail(res2.cause());
+        // Wrap the sendFile operation into a TCCL switch, so the file resolver would find the file from the set
+        // classloader (if any).
+        final ClassLoader orig = Thread.currentThread().getContextClassLoader();
+        try {
+          if (classLoader != null) {
+            Thread.currentThread().setContextClassLoader(classLoader);
           }
-        });
+          request.response().sendFile(file, res2 -> {
+            if (res2.failed()) {
+              context.fail(res2.cause());
+            }
+          });
+        } finally {
+          Thread.currentThread().setContextClassLoader(orig);
+        }
       }
     }
   }
