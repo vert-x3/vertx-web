@@ -40,6 +40,25 @@
     });
   }
 
+  function mergeHeaders(defaultHeaders, headers) {
+    if (defaultHeaders) {
+      if(!headers) {
+        return defaultHeaders;
+      }
+
+      for (var headerName in defaultHeaders) {
+        if (defaultHeaders.hasOwnProperty(headerName)) {
+          // user can overwrite the default headers
+          if (typeof headers[headerName] === 'undefined') {
+            headers[headerName] = defaultHeaders[headerName];
+          }
+        }
+      }
+    }
+
+    return headers;
+  }
+
   /**
    * EventBus
    *
@@ -60,6 +79,7 @@
     this.state = EventBus.CONNECTING;
     this.handlers = {};
     this.replyHandlers = {};
+    this.defaultHeaders = null;
 
     // default event handlers
     this.onerror = console.error;
@@ -145,7 +165,7 @@
     var envelope = {
       type: 'send',
       address: address,
-      headers: headers || {},
+      headers: mergeHeaders(this.defaultHeaders, headers),
       body: message
     };
 
@@ -174,7 +194,7 @@
     this.sockJSConn.send(JSON.stringify({
       type: 'publish',
       address: address,
-      headers: headers || {},
+      headers: mergeHeaders(this.defaultHeaders, headers),
       body: message
     }));
   };
