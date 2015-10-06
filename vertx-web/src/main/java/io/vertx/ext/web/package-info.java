@@ -1087,7 +1087,9 @@
  * {@link examples.Examples#example41_0_1}
  * ----
  *
+ * ////
  * TODO more CORS docs
+ * ////
  *
  * == Templates
  *
@@ -1504,6 +1506,34 @@
  *
  * You can't actually do anything with the connection until it is opened. When it is open the `onopen` handler will be called.
  *
+ * You can retrieve the client library using a dependency manager:
+ *
+ * * Maven (in your `pom.xml`):
+ *
+ * [source,xml,subs="+attributes"]
+ * ----
+ * <dependency>
+ *   <groupId>${maven.groupId}</groupId>
+ *   <artifactId>${maven.artifactId}</artifactId>
+ *   <version>${maven.version}</version>
+ *   <classifier>client</classifier>
+ * </dependency>
+ * ----
+ *
+ * * Gradle (in your `build.gradle` file):
+ *
+ * [source,groovy,subs="+attributes"]
+ * ----
+ * compile ${maven.groupId}:${maven.artifactId}:${maven.version}:client
+ * ----
+ *
+ * The library is also available on https://www.npmjs.com/package/vertx3-eventbus-client[NPM] and on
+ * https://github.com/vert-x3/vertx-bus-bower[Bower]
+ *
+ * Notice that the API has changed between the 3.0.0 and 3.1.0 version. Please check the changelog. The previous client
+ * is still compatible and can still be used, but the new client offers more feature and is closer to the vert.x
+ * event bus API.
+  *
  * === Securing the Bridge
  *
  * If you started a bridge like in the above example without securing it, and attempted to send messages through
