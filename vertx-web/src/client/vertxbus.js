@@ -204,20 +204,28 @@
    * Register a new handler
    *
    * @param {String} address
+   * @param {Object} [headers]
    * @param {Function} callback
    */
-  EventBus.prototype.registerHandler = function (address, callback) {
+  EventBus.prototype.registerHandler = function (address, headers, callback) {
     // are we ready?
     if (this.state != EventBus.OPEN) {
       throw new Error('INVALID_STATE_ERR');
     }
+
+    if (typeof headers === 'function') {
+      callback = headers;
+      headers = {};
+    }
+
     // ensure it is an array
     if (!this.handlers[address]) {
       this.handlers[address] = [];
       // First handler for this address so we should register the connection
       this.sockJSConn.send(JSON.stringify({
         type: 'register',
-        address: address
+        address: address,
+        headers: mergeHeaders(this.defaultHeaders, headers)
       }));
     }
 
@@ -228,9 +236,10 @@
    * Unregister a handler
    *
    * @param {String} address
+   * @param {Object} [headers]
    * @param {Function} callback
    */
-  EventBus.prototype.unregisterHandler = function (address, callback) {
+  EventBus.prototype.unregisterHandler = function (address, headers, callback) {
     // are we ready?
     if (this.state != EventBus.OPEN) {
       throw new Error('INVALID_STATE_ERR');
@@ -238,7 +247,13 @@
 
     var handlers = this.handlers[address];
 
-    if (!handlers) {
+    if (handlers) {
+
+      if (typeof headers === 'function') {
+        callback = headers;
+        headers = {};
+      }
+
       var idx = handlers.indexOf(callback);
       if (idx != -1) {
         handlers.splice(idx, 1);
@@ -246,7 +261,8 @@
           // No more local handlers so we should unregister the connection
           this.sockJSConn.send(JSON.stringify({
             type: 'unregister',
-            address: address
+            address: address,
+            headers: mergeHeaders(this.defaultHeaders, headers)
           }));
 
           delete this.handlers[address];
