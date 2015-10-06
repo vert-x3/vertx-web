@@ -1478,7 +1478,7 @@
  *
  * <script>
  *
- * var eb = new vertx.EventBus('http://localhost:8080/eventbus');
+ * var eb = new EventBus('http://localhost:8080/eventbus');
  *
  * eb.onopen = function() {
  *
@@ -1497,7 +1497,7 @@
  *
  * The first thing the example does is to create a instance of the event bus
  *
- *  var eb = new vertx.EventBus('http://localhost:8080/eventbus');
+ *  var eb = new EventBus('http://localhost:8080/eventbus');
  *
  * The parameter to the constructor is the URI where to connect to the event bus. Since we create our bridge with
  * the prefix `eventbus` we will connect there.
