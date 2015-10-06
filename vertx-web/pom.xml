@@ -87,7 +87,7 @@
             <configuration>
               <artifacts>
                 <artifact>
-                  <file>${basedir}/src/client/vertxbus.js</file>
+                  <file>${basedir}/src/client/vertx-eventbus.js</file>
                   <classifier>client</classifier>
                   <type>js</type>
                 </artifact>

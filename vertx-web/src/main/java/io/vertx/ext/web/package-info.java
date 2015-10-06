@@ -1450,7 +1450,7 @@
  * We can therefore create a huge distributed bus encompassing many browsers and servers. The browsers don't have to
  * be connected to the same server as long as the servers are connected.
  *
- * This is done by providing a simple client side JavaScript library called `vertxbus.js` which provides an API
+ * This is done by providing a simple client side JavaScript library called `vertx-eventbus.js` which provides an API
  * very similar to the server-side Vert.x event-bus API, which allows you to send and publish messages to the event bus
  * and register handlers to receive messages.
  *
@@ -1469,16 +1469,16 @@
  * {@link examples.Examples#example45}
  * ----
  *
- * In client side JavaScript you use the 'vertxbus.js` library to create connections to the event bus and to send
+ * In client side JavaScript you use the 'vertx-eventbus.js` library to create connections to the event bus and to send
  * and receive messages:
  *
  * ----
  * <script src="http://cdn.sockjs.org/sockjs-0.3.4.min.js"></script>
- * <script src='vertxbus.js'></script>
+ * <script src='vertx-eventbus.js'></script>
  *
  * <script>
  *
- * var eb = new vertx.EventBus('http://localhost:8080/eventbus');
+ * var eb = new EventBus('http://localhost:8080/eventbus');
  *
  * eb.onopen = function() {
  *
@@ -1497,7 +1497,7 @@
  *
  * The first thing the example does is to create a instance of the event bus
  *
- *  var eb = new vertx.EventBus('http://localhost:8080/eventbus');
+ *  var eb = new EventBus('http://localhost:8080/eventbus');
  *
  * The parameter to the constructor is the URI where to connect to the event bus. Since we create our bridge with
  * the prefix `eventbus` we will connect there.
