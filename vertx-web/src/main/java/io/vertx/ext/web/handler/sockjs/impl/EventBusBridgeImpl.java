@@ -336,7 +336,7 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
     String replyAddress = message.getString("replyAddress");
     // Sanity check reply address is not too big, to avoid DoS
     if (replyAddress != null && replyAddress.length() > 36) {
-      // vertx3bus.js ids are always 36 chars
+      // vertx-eventbus.js ids are always 36 chars
       log.error("Will not send message, reply address is > 36 chars");
       replyError(sock, "invalid_reply_address");
       return;

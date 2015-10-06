@@ -18,7 +18,7 @@
     // CommonJS loader
     var SockJS = require('sockjs-client');
     if(!SockJS) {
-      throw new Error('vertx3bus.js requires sockjs-client, see http://sockjs.org');
+      throw new Error('vertx-eventbus.js requires sockjs-client, see http://sockjs.org');
     }
     factory(SockJS);
   } else if (typeof define === 'function' && define.amd) {
@@ -27,7 +27,7 @@
   } else {
     // plain old include
     if (typeof this.SockJS === 'undefined') {
-      throw new Error('vertx3bus.js requires sockjs-client, see http://sockjs.org');
+      throw new Error('vertx-eventbus.js requires sockjs-client, see http://sockjs.org');
     }
 
     EventBus = factory(this.SockJS);

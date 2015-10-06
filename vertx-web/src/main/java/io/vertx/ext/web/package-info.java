@@ -1450,7 +1450,7 @@
  * We can therefore create a huge distributed bus encompassing many browsers and servers. The browsers don't have to
  * be connected to the same server as long as the servers are connected.
  *
- * This is done by providing a simple client side JavaScript library called `vertx3bus.js` which provides an API
+ * This is done by providing a simple client side JavaScript library called `vertx-eventbus.js` which provides an API
  * very similar to the server-side Vert.x event-bus API, which allows you to send and publish messages to the event bus
  * and register handlers to receive messages.
  *
@@ -1469,12 +1469,12 @@
  * {@link examples.Examples#example45}
  * ----
  *
- * In client side JavaScript you use the 'vertx3bus.js` library to create connections to the event bus and to send
+ * In client side JavaScript you use the 'vertx-eventbus.js` library to create connections to the event bus and to send
  * and receive messages:
  *
  * ----
  * <script src="http://cdn.sockjs.org/sockjs-0.3.4.min.js"></script>
- * <script src='vertx3bus.js'></script>
+ * <script src='vertx-eventbus.js'></script>
  *
  * <script>
  *
