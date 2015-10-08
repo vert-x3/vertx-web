@@ -23,7 +23,7 @@
     factory(SockJS);
   } else if (typeof define === 'function' && define.amd) {
     // AMD loader
-    define('vertx3bus', ['sockjs'], factory);
+    define('vertx-eventbus', ['sockjs'], factory);
   } else {
     // plain old include
     if (typeof this.SockJS === 'undefined') {
