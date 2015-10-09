@@ -18,6 +18,7 @@ package io.vertx.ext.web.handler.impl;
 
 import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.file.FileSystem;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.ext.web.impl.FileUploadImpl;
 import io.vertx.ext.web.handler.BodyHandler;
@@ -36,7 +37,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class BodyHandlerImpl implements BodyHandler {
 
   private long bodyLimit = DEFAULT_BODY_LIMIT;
-  private File uploadsDir;
+  private String uploadsDir;
   private boolean mergeFormAttributes = DEFAULT_MERGE_FORM_ATTRIBUTES;
 
   public BodyHandlerImpl() {
@@ -59,10 +60,7 @@ public class BodyHandlerImpl implements BodyHandler {
 
   @Override
   public BodyHandler setUploadsDirectory(String uploadsDirectory) {
-    this.uploadsDir = new File(uploadsDirectory);
-    if (!uploadsDir.exists()) {
-      uploadsDir.mkdirs();
-    }
+    this.uploadsDir = uploadsDirectory;
     return this;
   }
 
@@ -80,9 +78,11 @@ public class BodyHandlerImpl implements BodyHandler {
     AtomicInteger uploadCount = new AtomicInteger();
     boolean ended;
 
-    private BHandler(RoutingContext context) {
+    public BHandler(RoutingContext context) {
       this.context = context;
       Set<FileUpload> fileUploads = context.fileUploads();
+      makeUploadDir(context.vertx().fileSystem());
+
       context.request().setExpectMultipart(true);
       context.request().exceptionHandler(context::fail);
       context.request().uploadHandler(upload -> {
@@ -95,6 +95,12 @@ public class BodyHandlerImpl implements BodyHandler {
         upload.exceptionHandler(context::fail);
         upload.endHandler(v -> uploadEnded());
       });
+    }
+
+    private void makeUploadDir(FileSystem fileSystem) {
+      if (!fileSystem.existsBlocking(uploadsDir)) {
+        fileSystem.mkdirsBlocking(uploadsDir);
+      }
     }
 
     @Override
