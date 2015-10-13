@@ -64,6 +64,7 @@ public class StaticHandlerImpl implements StaticHandler {
   private String indexPage = DEFAULT_INDEX_PAGE;
   private int maxCacheSize = DEFAULT_MAX_CACHE_SIZE;
   private boolean rangeSupport = DEFAULT_RANGE_SUPPORT;
+  private boolean allowRootFileSystemAccess = DEFAULT_ROOT_FILESYSTEM_ACCESS;
 
   // These members are all related to auto tuning of synchronous vs asynchronous file system access
   private static int NUM_SERVES_TUNING_FS_ACCESS = 1000;
@@ -365,6 +366,12 @@ public class StaticHandlerImpl implements StaticHandler {
   }
 
   @Override
+  public StaticHandler setAllowRootFileSystemAccess(boolean allowRootFileSystemAccess) {
+    this.allowRootFileSystemAccess = allowRootFileSystemAccess;
+    return this;
+  }
+
+  @Override
   public StaticHandler setWebRoot(String webRoot) {
     setRoot(webRoot);
     return this;
@@ -488,7 +495,7 @@ public class StaticHandlerImpl implements StaticHandler {
 
   private void setRoot(String webRoot) {
     Objects.requireNonNull(webRoot);
-    if (webRoot.startsWith("/")) {
+    if (webRoot.startsWith("/") && !allowRootFileSystemAccess) {
       throw new IllegalArgumentException("root cannot start with '/'");
     }
     this.webRoot = webRoot;
