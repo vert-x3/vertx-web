@@ -16,6 +16,7 @@
 
 package io.vertx.ext.web.handler;
 
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.WebTestBase;
 import org.junit.Test;
@@ -65,7 +66,6 @@ public class CSRFHandlerTest extends WebTestBase {
       List<String> cookies = resp.headers().getAll("set-cookie");
       String cookie = cookies.get(0);
       tmpCookie = cookie.substring(cookie.indexOf('=') + 1);
-      System.out.println(tmpCookie);
     }, 200, "OK", null);
 
     testRequest(HttpMethod.POST, "/", req -> {
@@ -83,5 +83,35 @@ public class CSRFHandlerTest extends WebTestBase {
       req.putHeader(CSRFHandler.DEFAULT_HEADER_NAME,
           "4CYp9vQsr2VSQEsi/oVsMu35Ho9TlR0EovcYovlbiBw=.1437037602082.41jwU0FPl/n7ZNZAZEA07GyIUnpKSTKQ8Eju7Nicb34=");
     }, null, 403, "Forbidden", null);
+  }
+
+  @Test
+  public void testPostWithFormAttribute() throws Exception {
+
+    // since we are working with forms we need the body handler to be present
+    router.route().handler(BodyHandler.create());
+    router.route().handler(CookieHandler.create());
+    router.route().handler(CSRFHandler.create("Abracadabra"));
+    router.route().handler(rc -> rc.response().end());
+
+    testRequest(HttpMethod.GET, "/", null, resp -> {
+      List<String> cookies = resp.headers().getAll("set-cookie");
+      String cookie = cookies.get(0);
+      tmpCookie = cookie.substring(cookie.indexOf('=') + 1);
+    }, 200, "OK", null);
+
+    testRequest(HttpMethod.POST, "/", req -> {
+      // create a HTTP form
+      String boundary = "dLV9Wyq26L_-JQxk6ferf-RT153LhOO";
+      Buffer buffer = Buffer.buffer();
+      String str =
+          "--" + boundary + "\r\n" +
+          "Content-Disposition: form-data; name=\"" + CSRFHandler.DEFAULT_HEADER_NAME + "\"\r\n\r\n" + tmpCookie + "\r\n" +
+          "--" + boundary + "--\r\n";
+      buffer.appendString(str);
+      req.headers().set("content-length", String.valueOf(buffer.length()));
+      req.headers().set("content-type", "multipart/form-data; boundary=" + boundary);
+      req.write(buffer);
+    }, null, 200, "OK", null);
   }
 }

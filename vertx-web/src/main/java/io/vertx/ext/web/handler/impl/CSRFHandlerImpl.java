@@ -138,7 +138,8 @@ public class CSRFHandlerImpl implements CSRFHandler {
       case PUT:
       case DELETE:
       case PATCH:
-        if (validateToken(ctx.request().getHeader(headerName))) {
+        String header = ctx.request().getHeader(headerName);
+        if (validateToken(header == null ? ctx.request().getFormAttribute(headerName) : header)) {
           ctx.next();
         } else {
           ctx.fail(403);

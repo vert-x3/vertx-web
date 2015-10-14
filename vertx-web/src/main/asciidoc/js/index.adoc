@@ -74,7 +74,7 @@ To use vert.x web, add the following dependency to the _dependencies_ section of
 <dependency>
   <groupId>io.vertx</groupId>
   <artifactId>vertx-web</artifactId>
-  <version>3.1.0</version>
+  <version>3.2.0-SNAPSHOT</version>
 </dependency>
 ----
 
@@ -82,7 +82,7 @@ To use vert.x web, add the following dependency to the _dependencies_ section of
 
 [source,groovy,subs="+attributes"]
 ----
-compile io.vertx:vertx-web:3.1.0
+compile io.vertx:vertx-web:3.2.0-SNAPSHOT
 ----
 
 
@@ -1898,7 +1898,7 @@ router.getWithRegex(".+\\.hbs").handler(handler.handle);
 === MVEL template engine
 
 To use MVEL, you need to add the following _dependency_ to your project:
-`io.vertx:vertx-web-templ-mvel:3.1.0`. Create an instance of the MVEL template engine using:
+`io.vertx:vertx-web-templ-mvel:3.2.0-SNAPSHOT`. Create an instance of the MVEL template engine using:
 `io.vertx.ext.web.templ.MVELTemplateEngine#create()`
 
 When using the MVEL template engine, it will by default look for
@@ -1924,7 +1924,7 @@ MVEL templates.
 === Jade template engine
 
 To use the Jade template engine, you need to add the following _dependency_ to your project:
-`io.vertx:vertx-web-templ-jade:3.1.0`. Create an instance of the Jade template engine using:
+`io.vertx:vertx-web-templ-jade:3.2.0-SNAPSHOT`. Create an instance of the Jade template engine using:
 `io.vertx.ext.web.templ.JadeTemplateEngine#create()`.
 
 When using the Jade template engine, it will by default look for
@@ -1950,7 +1950,7 @@ Jade templates.
 === Handlebars template engine
 
 To use Handlebars, you need to add the following _dependency_ to your project:
-`io.vertx:vertx-web-templ-handlebars:3.1.0`. Create an instance of the Handlebars template engine
+`io.vertx:vertx-web-templ-handlebars:3.2.0-SNAPSHOT`. Create an instance of the Handlebars template engine
 using: `io.vertx.ext.web.templ.HandlebarsTemplateEngine#create()`.
 
 When using the Handlebars template engine, it will by default look for
@@ -1989,7 +1989,7 @@ handlebars templates.
 === Thymeleaf template engine
 
 To use Thymeleaf, you need to add the following _dependency_ to your project:
-`io.vertx:vertx-web-templ-thymeleaf:3.1.0`. Create an instance of the Thymeleaf template engine
+`io.vertx:vertx-web-templ-thymeleaf:3.2.0-SNAPSHOT`. Create an instance of the Thymeleaf template engine
 using: `io.vertx.ext.web.templ.ThymeleafTemplateEngine#create()`.
 
 When using the Thymeleaf template engine, it will by default look for
@@ -2279,7 +2279,7 @@ You can retrieve the client library using a dependency manager:
 <dependency>
   <groupId>io.vertx</groupId>
   <artifactId>vertx-web</artifactId>
-  <version>3.1.0</version>
+  <version>3.2.0-SNAPSHOT</version>
   <classifier>client</classifier>
 </dependency>
 ----
@@ -2288,7 +2288,7 @@ You can retrieve the client library using a dependency manager:
 
 [source,groovy,subs="+attributes"]
 ----
-compile io.vertx:vertx-web:3.1.0:client
+compile io.vertx:vertx-web:3.2.0-SNAPSHOT:client
 ----
 
 The library is also available on https://www.npmjs.com/package/vertx3-eventbus-client[NPM] and on
@@ -2615,6 +2615,19 @@ request forgery requests.
 On each get request under this handler a cookie is added to the response with a unique token. Clients are then
 expected to return this token back in a header. Since cookies are sent it is required that the cookie handler is also
 present on the router.
+
+When developing non single page applications that rely on the User-Agent to perform the `POST` action, Headers cannot
+be specified on HTML Forms. In order to solve this problem the header value will also be checked if and only if no
+header was present in the Form attributes under the same name as the header, e.g.:
+
+[source,html]
+---
+<form action="/submit" method="POST">
+<input type="hidden" name="X-XSRF-TOKEN" value="abracadabra">
+</form>
+---
+
+It is the responsability of the user to fill in the right value for the form field.
 
 [source,js]
 ----
