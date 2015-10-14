@@ -22,6 +22,7 @@ import io.vertx.ext.web.WebTestBase;
 import org.junit.Test;
 
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * @author <a href="mailto:pmlopes@gmail.com">Paulo Lopes</a>
@@ -108,6 +109,53 @@ public class CSRFHandlerTest extends WebTestBase {
           "--" + boundary + "\r\n" +
           "Content-Disposition: form-data; name=\"" + CSRFHandler.DEFAULT_HEADER_NAME + "\"\r\n\r\n" + tmpCookie + "\r\n" +
           "--" + boundary + "--\r\n";
+      buffer.appendString(str);
+      req.headers().set("content-length", String.valueOf(buffer.length()));
+      req.headers().set("content-type", "multipart/form-data; boundary=" + boundary);
+      req.write(buffer);
+    }, null, 200, "OK", null);
+  }
+
+  @Test
+  public void testPostWithFormAttributeWithoutCookies() throws Exception {
+
+    // since we are working with forms we need the body handler to be present
+    router.route().handler(BodyHandler.create());
+    router.route().handler(CSRFHandler.create("Abracadabra"));
+    router.route().handler(rc -> {
+      String token = rc.get(CSRFHandler.DEFAULT_HEADER_NAME);
+      if (token != null) {
+        rc.response().end(token);
+      } else {
+        rc.response().end();
+      }
+    });
+
+    // we need to wait parsing the response body
+    CountDownLatch latch = new CountDownLatch(1);
+
+    testRequest(HttpMethod.GET, "/", null, resp -> {
+      resp.bodyHandler(buffer -> {
+        tmpCookie = buffer.toString();
+        latch.countDown();
+      });
+
+      List<String> cookies = resp.headers().getAll("set-cookie");
+
+      assertEquals(0, cookies.size());
+    }, 200, "OK", null);
+
+    // response body is known
+    latch.await();
+
+    testRequest(HttpMethod.POST, "/", req -> {
+      // create a HTTP form
+      String boundary = "dLV9Wyq26L_-JQxk6ferf-RT153LhOO";
+      Buffer buffer = Buffer.buffer();
+      String str =
+          "--" + boundary + "\r\n" +
+              "Content-Disposition: form-data; name=\"" + CSRFHandler.DEFAULT_HEADER_NAME + "\"\r\n\r\n" + tmpCookie + "\r\n" +
+              "--" + boundary + "--\r\n";
       buffer.appendString(str);
       req.headers().set("content-length", String.valueOf(buffer.length()));
       req.headers().set("content-type", "multipart/form-data; boundary=" + boundary);

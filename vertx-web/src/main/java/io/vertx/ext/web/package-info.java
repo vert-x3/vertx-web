@@ -1691,7 +1691,9 @@
  * </form>
  * ---
  *
- * It is the responsability of the user to fill in the right value for the form field.
+ * It is the responsibility of the user to fill in the right value for the form field. Users who prefer to use an HTML
+ * only solution can fill this value by fetching the the token value from the routing context under the key `X-XSRF-TOKEN`
+ * or the header name they have chosen during the instantiation of the `CSRFHandler` object.
  *
  * [source,$lang]
  * ----
