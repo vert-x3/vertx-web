@@ -28,6 +28,7 @@
       <artifactId>vertx-web</artifactId>
       <type>test-jar</type>
       <version>${project.version}</version>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 
