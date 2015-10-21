@@ -275,7 +275,7 @@
    * Closes the connection to the EvenBus Bridge.
    */
   EventBus.prototype.close = function () {
-    this.state = vertx.EventBus.CLOSING;
+    this.state = EventBus.CLOSING;
     this.sockJSConn.close();
   };
 
