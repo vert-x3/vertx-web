@@ -17,6 +17,8 @@ package io.vertx.ext.web.impl;
 
 import io.vertx.ext.web.Locale;
 
+import java.util.Objects;
+
 /**
  * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
@@ -26,10 +28,10 @@ public class LocaleImpl implements Locale {
   private final String country;
   private final String variant;
 
-  public LocaleImpl(String language, String country, String variant) {
-    this.language = language.toLowerCase();
-    this.country = country != null ? country.toUpperCase() : null;
-    this.variant = variant != null ? variant.toUpperCase() : null;
+  public LocaleImpl(String language, String country, String variant) {;
+    this.language = Objects.requireNonNull(language).toLowerCase();
+    this.country = country != null ? country.toUpperCase() : "";
+    this.variant = variant != null ? variant.toUpperCase() : "";
   }
 
   @Override
@@ -52,10 +54,10 @@ public class LocaleImpl implements Locale {
     StringBuilder sb = new StringBuilder();
 
     sb.append(language);
-    if (country != null) {
+    if (country.length() > 0) {
       sb.append("-").append(country);
     }
-    if (variant != null) {
+    if (variant.length() > 0) {
       sb.append("-").append(variant);
     }
 

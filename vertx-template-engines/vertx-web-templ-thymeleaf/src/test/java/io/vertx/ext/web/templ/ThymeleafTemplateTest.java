@@ -73,6 +73,21 @@ public class ThymeleafTemplateTest extends WebTestBase {
   }
 
   @Test
+  public void testWithLocale() throws Exception {
+    TemplateEngine engine = ThymeleafTemplateEngine.create();
+
+    router.route().handler(context -> {
+      context.put("foo", "badger");
+      context.put("bar", "fox");
+      context.next();
+    });
+    router.route().handler(TemplateHandler.create(engine, "somedir", "text/html"));
+
+    testRequest(HttpMethod.GET, "/test-thymeleaf-template2.html?param1=blah&param2=wibble", req -> req.putHeader("Accept-Language", "en-gb"), 200, "OK", null);
+  }
+
+
+  @Test
   public void testGetThymeLeafTemplateEngine() throws Exception {
     ThymeleafTemplateEngine engine = ThymeleafTemplateEngine.create();
     assertNotNull(engine.getThymeleafTemplateEngine());
