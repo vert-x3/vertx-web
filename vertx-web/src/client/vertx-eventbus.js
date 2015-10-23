@@ -83,7 +83,9 @@
     this.defaultHeaders = null;
 
     // default event handlers
-    this.onerror = console.error;
+    this.onerror = function (err) {
+      console.error(err);
+    };
 
     var sendPing = function () {
       self.sockJSConn.send(JSON.stringify({type: 'ping'}));
