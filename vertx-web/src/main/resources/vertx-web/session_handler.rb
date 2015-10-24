@@ -92,5 +92,15 @@ module VertxWeb
       end
       raise ArgumentError, "Invalid arguments when calling set_session_cookie_name(sessionCookieName)"
     end
+    #  Set whether the handler should retry once to get session after a first return is null.
+    # @param [true,false] sessionGetRetry true to set SessionHandler retry once get session
+    # @return [self]
+    def set_session_get_retry(sessionGetRetry=nil)
+      if (sessionGetRetry.class == TrueClass || sessionGetRetry.class == FalseClass) && !block_given?
+        @j_del.java_method(:setSessionGetRetry, [Java::boolean.java_class]).call(sessionGetRetry)
+        return self
+      end
+      raise ArgumentError, "Invalid arguments when calling set_session_get_retry(sessionGetRetry)"
+    end
   end
 end

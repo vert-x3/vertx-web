@@ -116,6 +116,16 @@ public class SessionHandler implements Handler<RoutingContext> {
     return this;
   }
 
+  /**
+   * Set whether the handler should retry once to get session after a first return is null.
+   * @param sessionGetRetry true to set SessionHandler retry once get session
+   * @return a reference to this, so the API can be used fluently
+   */
+  public SessionHandler setSessionGetRetry(boolean sessionGetRetry) { 
+    this.delegate.setSessionGetRetry(sessionGetRetry);
+    return this;
+  }
+
 
   public static SessionHandler newInstance(io.vertx.ext.web.handler.SessionHandler arg) {
     return arg != null ? new SessionHandler(arg) : null;
