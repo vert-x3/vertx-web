@@ -379,6 +379,25 @@ var RoutingContext = function(j_val) {
 
   /**
    If the context is being routed to failure handlers after a failure has been triggered by calling
+   {@link RoutingContext#fail} then this will return that throwable. It can be used by failure handlers to render a response,
+   e.g. create a failure response page.
+
+   @public
+
+   @return {todo} the throwable used when signalling failure
+   */
+  this.failure = function() {
+    var __args = arguments;
+    if (__args.length === 0) {
+      if (that.cachedfailure == null) {
+        that.cachedfailure = utils.convReturnThrowable(j_routingContext["failure()"]());
+      }
+      return that.cachedfailure;
+    } else throw new TypeError('function invoked with invalid arguments');
+  };
+
+  /**
+   If the context is being routed to failure handlers after a failure has been triggered by calling
    {@link RoutingContext#fail}  then this will return that status code.  It can be used by failure handlers to render a response,
    e.g. create a failure response page.
 

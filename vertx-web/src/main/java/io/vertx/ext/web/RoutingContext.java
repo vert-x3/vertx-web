@@ -250,7 +250,6 @@ public interface RoutingContext {
    *
    * @return  the throwable used when signalling failure
    */
-  @GenIgnore
   @CacheReturn
   Throwable failure();
 

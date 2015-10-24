@@ -285,16 +285,30 @@ public class RoutingContext {
   }
   /**
    * If the context is being routed to failure handlers after a failure has been triggered by calling
+   * {@link io.vertx.groovy.ext.web.RoutingContext#fail} then this will return that throwable. It can be used by failure handlers to render a response,
+   * e.g. create a failure response page.
+   * @return the throwable used when signalling failure
+   */
+  public Throwable failure() {
+    if (cached_2 != null) {
+      return cached_2;
+    }
+    def ret = this.delegate.failure();
+    cached_2 = ret;
+    return ret;
+  }
+  /**
+   * If the context is being routed to failure handlers after a failure has been triggered by calling
    * {@link io.vertx.groovy.ext.web.RoutingContext#fail}  then this will return that status code.  It can be used by failure handlers to render a response,
    * e.g. create a failure response page.
    * @return the status code used when signalling failure
    */
   public int statusCode() {
-    if (cached_2 != null) {
-      return cached_2;
+    if (cached_3 != null) {
+      return cached_3;
     }
     def ret = this.delegate.statusCode();
-    cached_2 = ret;
+    cached_3 = ret;
     return ret;
   }
   /**
@@ -414,11 +428,11 @@ public class RoutingContext {
    * @return the best matched locale for the request
    */
   public List<Locale> acceptableLocales() {
-    if (cached_3 != null) {
-      return cached_3;
+    if (cached_4 != null) {
+      return cached_4;
     }
     def ret = this.delegate.acceptableLocales()?.collect({underpants -> new io.vertx.groovy.ext.web.Locale(underpants)});
-      cached_3 = ret;
+      cached_4 = ret;
     return ret;
   }
   /**
@@ -432,6 +446,7 @@ public class RoutingContext {
   }
   private HttpServerRequest cached_0;
   private HttpServerResponse cached_1;
-  private int cached_2;
-  private List<Locale> cached_3;
+  private Throwable cached_2;
+  private int cached_3;
+  private List<Locale> cached_4;
 }
