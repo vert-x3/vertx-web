@@ -877,6 +877,7 @@ public class RouterTest extends WebTestBase {
     testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html", 200, "OK");
     testRequestWithAccepts(HttpMethod.GET, "/foo", "text/json", 404, "Not Found");
     testRequestWithAccepts(HttpMethod.GET, "/foo", "something/html", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/foo", 200, "OK");
   }
 
   @Test
