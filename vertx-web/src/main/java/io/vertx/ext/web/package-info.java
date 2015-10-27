@@ -1697,6 +1697,16 @@
  * ----
  * {@link examples.Examples#example56}
  * ----
+ *
+ * == OAuth2AuthHandler Handler
+ *
+ * The `OAuth2AuthHandler` allows quick setup of secure routes using the OAuth2 protocol. This handler simplifies the
+ * authCode flow. An example of using it to protect some resouce and authenticate with GitHub can be implemented as:
+ *
+ * [source,$lang]
+ * ----
+ * {@link examples.Examples#example58}
+ * ----
  */
 @Document(fileName = "index.adoc")
 @ModuleGen(name = "vertx-web", groupPackage = "io.vertx")

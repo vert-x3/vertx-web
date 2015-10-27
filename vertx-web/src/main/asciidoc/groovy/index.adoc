@@ -2650,3 +2650,43 @@ router.route().handler(VirtualHostHandler.create("*.vertx.io", { routingContext 
 }))
 
 ----
+
+== OAuth2AuthHandler Handler
+
+The `OAuth2AuthHandler` allows quick setup of secure routes using the OAuth2 protocol. This handler simplifies the
+authCode flow. An example of using it to protect some resouce and authenticate with GitHub can be implemented as:
+
+[source,groovy]
+----
+import io.vertx.ext.auth.oauth2.OAuth2FlowType
+import io.vertx.groovy.ext.auth.oauth2.OAuth2Auth
+import io.vertx.groovy.ext.web.handler.OAuth2AuthHandler
+
+// create an OAuth2 provider, clientID and clientSecret should be requested to github
+def authProvider = OAuth2Auth.create(vertx, OAuth2FlowType.AUTH_CODE, [
+  clientID:"CLIENT_ID",
+  clientSecret:"CLIENT_SECRET",
+  site:"https://github.com/login",
+  tokenPath:"/oauth/access_token",
+  authorizationPath:"/oauth/authorize"
+])
+
+// create a oauth2 handler on our domain: "http://localhost:8080"
+def oauth2 = OAuth2AuthHandler.create(authProvider, "http://localhost:8080")
+
+// setup the callback handler for receiving the GitHub callback
+oauth2.setupCallback(router.get("/callback"))
+
+// protect everything under /protected
+router.route("/protected/*").handler(oauth2)
+// mount some handler under the protected zone
+router.route("/protected/somepage").handler({ rc ->
+  rc.response().end("Welcome to the protected resource!")
+})
+
+// welcome page
+router.get("/").handler({ ctx ->
+  ctx.response().putHeader("content-type", "text/html").end("Hello<br><a href=\"/protected/somepage\">Protected by Github</a>")
+})
+
+----

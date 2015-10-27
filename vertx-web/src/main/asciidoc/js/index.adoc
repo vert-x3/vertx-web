@@ -2645,3 +2645,42 @@ router.route().handler(VirtualHostHandler.create("*.vertx.io", function (routing
 }).handle);
 
 ----
+
+== OAuth2AuthHandler Handler
+
+The `OAuth2AuthHandler` allows quick setup of secure routes using the OAuth2 protocol. This handler simplifies the
+authCode flow. An example of using it to protect some resouce and authenticate with GitHub can be implemented as:
+
+[source,js]
+----
+var OAuth2Auth = require("vertx-auth-jwt-js/o_auth2_auth");
+var OAuth2AuthHandler = require("vertx-web-js/o_auth2_auth_handler");
+
+// create an OAuth2 provider, clientID and clientSecret should be requested to github
+var authProvider = OAuth2Auth.create(vertx, 'AUTH_CODE', {
+  "clientID" : "CLIENT_ID",
+  "clientSecret" : "CLIENT_SECRET",
+  "site" : "https://github.com/login",
+  "tokenPath" : "/oauth/access_token",
+  "authorizationPath" : "/oauth/authorize"
+});
+
+// create a oauth2 handler on our domain: "http://localhost:8080"
+var oauth2 = OAuth2AuthHandler.create(authProvider, "http://localhost:8080");
+
+// setup the callback handler for receiving the GitHub callback
+oauth2.setupCallback(router.get("/callback"));
+
+// protect everything under /protected
+router.route("/protected/*").handler(oauth2.handle);
+// mount some handler under the protected zone
+router.route("/protected/somepage").handler(function (rc) {
+  rc.response().end("Welcome to the protected resource!");
+});
+
+// welcome page
+router.get("/").handler(function (ctx) {
+  ctx.response().putHeader("content-type", "text/html").end("Hello<br><a href=\"/protected/somepage\">Protected by Github</a>");
+});
+
+----
