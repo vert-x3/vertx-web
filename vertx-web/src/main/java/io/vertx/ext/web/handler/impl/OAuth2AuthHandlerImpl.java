@@ -90,17 +90,18 @@ public class OAuth2AuthHandlerImpl extends AuthHandlerImpl implements OAuth2Auth
     this.callback = route;
 
     route.handler(ctx -> {
-
       // Handle the callback of the flow
       final String code = ctx.request().getParam("code");
-      final String redirect_uri = ctx.request().getParam("redirect_uri");
+      final String relative_redirect_uri = ctx.request().getParam("redirect_uri");
+      // for google the redirect uri must match the registered urls
+      final String redirect_uri = host + callback.getPath() + "?redirect_uri=" + relative_redirect_uri;
 
       ((OAuth2Auth) authProvider).getToken(new JsonObject().put("code", code).put("redirect_uri", redirect_uri), res -> {
         if (res.failed()) {
           ctx.fail(res.cause());
         } else {
           ctx.setUser(res.result());
-          ctx.reroute(redirect_uri);
+          ctx.reroute(relative_redirect_uri);
         }
       });
     });
