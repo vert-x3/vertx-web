@@ -1707,6 +1707,21 @@
  * ----
  * {@link examples.Examples#example58}
  * ----
+ *
+ * Due to the nature of OAuth2 spec there are slight changes required in order to use other OAuth2 providers, for
+ * example, if you are planning to use Google Auth you implement it as:
+ *
+ * [source,$lang]
+ * ----
+ * {@link examples.Examples#example59}
+ * ----
+ *
+ * The changes are only on the configuration, note that the token uri must now be a full URL since it is generated from
+ * a different server than the authorization one.
+ *
+ * Important to note that for google OAuth you must register all your callback URLs in the developer console, so for the
+ * current example you would need to register `http://localhost:8080/callback?redirect_uri=/protected/somepage`.
+ *
  */
 @Document(fileName = "index.adoc")
 @ModuleGen(name = "vertx-web", groupPackage = "io.vertx")
