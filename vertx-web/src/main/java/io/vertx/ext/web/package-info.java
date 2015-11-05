@@ -1722,6 +1722,14 @@
  * Important to note that for google OAuth you must register all your callback URLs in the developer console, so for the
  * current example you would need to register `http://localhost:8080/callback?redirect_uri=/protected/somepage`.
  *
+ * If you're looking to integrate with LinkedIn then your config should be:
+ *
+ * [source,$lang]
+ * ----
+ * {@link examples.Examples#example60}
+ * ----
+ *
+ *
  */
 @Document(fileName = "index.adoc")
 @ModuleGen(name = "vertx-web", groupPackage = "io.vertx")

@@ -1138,7 +1138,7 @@ public class Examples {
 
   public void example59(Vertx vertx, Router router) {
 
-    // create an OAuth2 provider, clientID and clientSecret should be requested to github
+    // create an OAuth2 provider, clientID and clientSecret should be requested to Google
     OAuth2Auth authProvider = OAuth2Auth.create(vertx, OAuth2FlowType.AUTH_CODE, new JsonObject()
         .put("clientID", "CLIENT_ID")
         .put("clientSecret", "CLIENT_SECRET")
@@ -1152,7 +1152,7 @@ public class Examples {
     // these are the scopes
     oauth2.addAuthority("profile");
 
-    // setup the callback handler for receiving the GitHub callback
+    // setup the callback handler for receiving the Google callback
     oauth2.setupCallback(router.get("/callback"));
 
     // protect everything under /protected
@@ -1164,7 +1164,39 @@ public class Examples {
 
     // welcome page
     router.get("/").handler(ctx -> {
-      ctx.response().putHeader("content-type", "text/html").end("Hello<br><a href=\"/protected/somepage\">Protected by Github</a>");
+      ctx.response().putHeader("content-type", "text/html").end("Hello<br><a href=\"/protected/somepage\">Protected by Google</a>");
+    });
+  }
+
+  public void example60(Vertx vertx, Router router) {
+
+    // create an OAuth2 provider, clientID and clientSecret should be requested to LinkedIn
+    OAuth2Auth authProvider = OAuth2Auth.create(vertx, OAuth2FlowType.AUTH_CODE, new JsonObject()
+        .put("clientID", "CLIENT_ID")
+        .put("clientSecret", "CLIENT_SECRET")
+        .put("site", "https://www.linkedin.com")
+        .put("authorizationPath", "/uas/oauth2/authorization")
+        .put("tokenPath", "/uas/oauth2/accessToken"));
+
+    // create a oauth2 handler on our domain: "http://localhost:8080"
+    OAuth2AuthHandler oauth2 = OAuth2AuthHandler.create(authProvider, "http://localhost:8080");
+
+    // these are the scopes
+    oauth2.addAuthority("r_basicprofile");
+
+    // setup the callback handler for receiving the LinkedIn callback
+    oauth2.setupCallback(router.get("/callback"));
+
+    // protect everything under /protected
+    router.route("/protected/*").handler(oauth2);
+    // mount some handler under the protected zone
+    router.route("/protected/somepage").handler(rc -> {
+      rc.response().end("Welcome to the protected resource!");
+    });
+
+    // welcome page
+    router.get("/").handler(ctx -> {
+      ctx.response().putHeader("content-type", "text/html").end("Hello<br><a href=\"/protected/somepage\">Protected by LinkedIn</a>");
     });
   }
 }
