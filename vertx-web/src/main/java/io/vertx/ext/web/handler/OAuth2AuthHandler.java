@@ -17,16 +17,10 @@
 package io.vertx.ext.web.handler;
 
 import io.vertx.codegen.annotations.Fluent;
-import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.core.Handler;
 import io.vertx.ext.auth.AuthProvider;
 import io.vertx.ext.web.Route;
-import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.handler.impl.JWTAuthHandlerImpl;
 import io.vertx.ext.web.handler.impl.OAuth2AuthHandlerImpl;
-
-import java.util.List;
 
 /**
  * An auth handler that provides OAuth2 Authentication support. This handler is suitable for AuthCode flows.
@@ -50,9 +44,10 @@ public interface OAuth2AuthHandler extends AuthHandler {
    * Build the authorization URL.
    *
    * @param redirectURL where is the callback mounted.
+   * @param state state opaque token to avoid forged requests
    * @return the redirect URL
    */
-  String authURI(String redirectURL);
+  String authURI(String redirectURL, String state);
 
   /**
    * add the callback handler to a given route.

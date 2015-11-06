@@ -83,12 +83,13 @@ var OAuth2AuthHandler = function(j_val) {
 
    @public
    @param redirectURL {string} where is the callback mounted. 
+   @param state {string} state opaque token to avoid forged requests 
    @return {string} the redirect URL
    */
-  this.authURI = function(redirectURL) {
+  this.authURI = function(redirectURL, state) {
     var __args = arguments;
-    if (__args.length === 1 && typeof __args[0] === 'string') {
-      return j_oAuth2AuthHandler["authURI(java.lang.String)"](redirectURL);
+    if (__args.length === 2 && typeof __args[0] === 'string' && typeof __args[1] === 'string') {
+      return j_oAuth2AuthHandler["authURI(java.lang.String,java.lang.String)"](redirectURL, state);
     } else throw new TypeError('function invoked with invalid arguments');
   };
 

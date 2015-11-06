@@ -81,10 +81,11 @@ public class OAuth2AuthHandler implements AuthHandler {
   /**
    * Build the authorization URL.
    * @param redirectURL where is the callback mounted.
+   * @param state state opaque token to avoid forged requests
    * @return the redirect URL
    */
-  public String authURI(String redirectURL) { 
-    String ret = this.delegate.authURI(redirectURL);
+  public String authURI(String redirectURL, String state) { 
+    String ret = this.delegate.authURI(redirectURL, state);
     return ret;
   }
 

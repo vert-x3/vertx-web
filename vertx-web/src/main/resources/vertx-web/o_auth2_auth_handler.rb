@@ -58,12 +58,13 @@ module VertxWeb
     end
     #  Build the authorization URL.
     # @param [String] redirectURL where is the callback mounted.
+    # @param [String] state state opaque token to avoid forged requests
     # @return [String] the redirect URL
-    def auth_uri(redirectURL=nil)
-      if redirectURL.class == String && !block_given?
-        return @j_del.java_method(:authURI, [Java::java.lang.String.java_class]).call(redirectURL)
+    def auth_uri(redirectURL=nil,state=nil)
+      if redirectURL.class == String && state.class == String && !block_given?
+        return @j_del.java_method(:authURI, [Java::java.lang.String.java_class,Java::java.lang.String.java_class]).call(redirectURL,state)
       end
-      raise ArgumentError, "Invalid arguments when calling auth_uri(redirectURL)"
+      raise ArgumentError, "Invalid arguments when calling auth_uri(redirectURL,state)"
     end
     #  add the callback handler to a given route.
     # @param [::VertxWeb::Route] route a given route e.g.: `/callback`

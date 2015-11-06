@@ -50,14 +50,14 @@ public class OAuth2AuthHandlerImpl extends AuthHandlerImpl implements OAuth2Auth
     } else {
       // redirect request to the oauth2 server
       ctx.response()
-          .putHeader("Location", authURI(ctx.normalisedPath()))
+          .putHeader("Location", authURI(ctx.normalisedPath(), ctx.get("state")))
           .setStatusCode(302)
           .end();
     }
   }
 
   @Override
-  public String authURI(String redirectURL) {
+  public String authURI(String redirectURL, String state) {
     if (callback == null) {
       throw new NullPointerException("callback is null");
     }
@@ -81,7 +81,7 @@ public class OAuth2AuthHandlerImpl extends AuthHandlerImpl implements OAuth2Auth
     return ((OAuth2Auth) authProvider).authorizeURL(new JsonObject()
           .put("redirect_uri", host + callback.getPath() + "?redirect_uri=" + redirectURL)
           .put("scope", scopes.toString())
-          .put("state", "3(#0/!~"));
+          .put("state", state));
   }
 
   @Override
