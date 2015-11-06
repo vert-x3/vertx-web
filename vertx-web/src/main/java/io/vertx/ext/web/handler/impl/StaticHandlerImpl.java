@@ -35,10 +35,12 @@ import java.nio.file.NoSuchFileException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.util.*;
+import java.util.concurrent.Callable;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static io.netty.handler.codec.http.HttpResponseStatus.*;
+
 /**
  * Static web server
  * Parts derived from Yoke
@@ -224,10 +226,28 @@ public class StaticHandlerImpl implements StaticHandler {
     }
   }
 
+  private <T> T wrapInTCCLSwitch(Callable<T> callable) {
+    try {
+      if (classLoader == null) {
+        return callable.call();
+      } else {
+        final ClassLoader original = Thread.currentThread().getContextClassLoader();
+        try {
+          Thread.currentThread().setContextClassLoader(classLoader);
+          return callable.call();
+        } finally {
+          Thread.currentThread().setContextClassLoader(original);
+        }
+      }
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
   private synchronized void getFileProps(RoutingContext context, String file, Handler<AsyncResult<FileProps>> resultHandler) {
     FileSystem fs = context.vertx().fileSystem();
     if (alwaysAsyncFS || useAsyncFS) {
-      fs.props(file, resultHandler);
+      wrapInTCCLSwitch(() -> fs.props(file, resultHandler));
     } else {
       // Use synchronous access - it might well be faster!
       long start = 0;
@@ -235,7 +255,8 @@ public class StaticHandlerImpl implements StaticHandler {
         start = System.nanoTime();
       }
       try {
-        FileProps props = fs.propsBlocking(file);
+        FileProps props = wrapInTCCLSwitch(() -> fs.propsBlocking(file));
+
         if (tuning) {
           long end = System.nanoTime();
           long dur = end - start;
@@ -331,35 +352,25 @@ public class StaticHandlerImpl implements StaticHandler {
 
         // Wrap the sendFile operation into a TCCL switch, so the file resolver would find the file from the set
         // classloader (if any).
-        final ClassLoader orig = Thread.currentThread().getContextClassLoader();
-        try {
-          if (classLoader != null) {
-            Thread.currentThread().setContextClassLoader(classLoader);
-          }
-          request.response().sendFile(file, offset, end + 1, res2 -> {
-            if (res2.failed()) {
-              context.fail(res2.cause());
-            }
-          });
-        } finally {
-          Thread.currentThread().setContextClassLoader(orig);
-        }
+        final Long finalOffset = offset;
+        final Long finalEnd = end;
+        wrapInTCCLSwitch(() ->
+            request.response().sendFile(file, finalOffset, finalEnd + 1, res2 -> {
+              if (res2.failed()) {
+                context.fail(res2.cause());
+              }
+            })
+        );
       } else {
         // Wrap the sendFile operation into a TCCL switch, so the file resolver would find the file from the set
         // classloader (if any).
-        final ClassLoader orig = Thread.currentThread().getContextClassLoader();
-        try {
-          if (classLoader != null) {
-            Thread.currentThread().setContextClassLoader(classLoader);
-          }
-          request.response().sendFile(file, res2 -> {
-            if (res2.failed()) {
-              context.fail(res2.cause());
-            }
-          });
-        } finally {
-          Thread.currentThread().setContextClassLoader(orig);
-        }
+        wrapInTCCLSwitch(() ->
+            request.response().sendFile(file, res2 -> {
+              if (res2.failed()) {
+                context.fail(res2.cause());
+              }
+            })
+        );
       }
     }
   }
