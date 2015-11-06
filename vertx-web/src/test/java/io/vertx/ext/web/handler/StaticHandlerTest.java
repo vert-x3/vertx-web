@@ -529,6 +529,12 @@ public class StaticHandlerTest extends WebTestBase {
     await();
   }
 
+  @Test
+  public void testAsyncExceptionIssue231() throws Exception {
+    stat.setAlwaysAsyncFS(true);
+    testRequest(HttpMethod.GET, "/non_existing.html", 404, "Not Found");
+  }
+
   // TODO
   // 1.Test all the params including invalid values
   // 2. Make sure exists isn't being called too many times

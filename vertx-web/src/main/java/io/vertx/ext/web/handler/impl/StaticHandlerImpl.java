@@ -191,7 +191,7 @@ public class StaticHandlerImpl implements StaticHandler {
             sendFile(context, sfile, fprops);
           }
         } else {
-          if (res.cause() instanceof NoSuchFileException) {
+          if (res.cause() instanceof NoSuchFileException || (res.cause().getCause() != null && res.cause().getCause() instanceof NoSuchFileException)) {
             context.fail(NOT_FOUND.code());
           } else {
             context.fail(res.cause());
