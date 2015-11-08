@@ -99,7 +99,7 @@ public class StaticHandlerImpl implements StaticHandler {
    * Create all required header so content can be cache by Caching servers or Browsers
    *
    * @param request base HttpServerRequest
-   * @param props file properties
+   * @param props   file properties
    */
   private void writeCacheHeaders(HttpServerRequest request, FileProps props) {
 
@@ -226,7 +226,7 @@ public class StaticHandlerImpl implements StaticHandler {
     }
   }
 
-  private <T> T wrapInTCCLSwitch(Callable<T> callable) {
+  private <T> T wrapInTCCLSwitch(Callable<T> callable, Handler<AsyncResult<FileProps>> resultHandler) {
     try {
       if (classLoader == null) {
         return callable.call();
@@ -240,14 +240,19 @@ public class StaticHandlerImpl implements StaticHandler {
         }
       }
     } catch (Exception e) {
-      throw new RuntimeException(e);
+      if (resultHandler != null) {
+        resultHandler.handle(Future.failedFuture(e.getCause()));
+        return null;
+      } else {
+        throw new RuntimeException(e);
+      }
     }
   }
 
   private synchronized void getFileProps(RoutingContext context, String file, Handler<AsyncResult<FileProps>> resultHandler) {
     FileSystem fs = context.vertx().fileSystem();
     if (alwaysAsyncFS || useAsyncFS) {
-      wrapInTCCLSwitch(() -> fs.props(file, resultHandler));
+      wrapInTCCLSwitch(() -> fs.props(file, resultHandler), resultHandler);
     } else {
       // Use synchronous access - it might well be faster!
       long start = 0;
@@ -255,7 +260,7 @@ public class StaticHandlerImpl implements StaticHandler {
         start = System.nanoTime();
       }
       try {
-        FileProps props = wrapInTCCLSwitch(() -> fs.propsBlocking(file));
+        FileProps props = wrapInTCCLSwitch(() -> fs.propsBlocking(file), resultHandler);
 
         if (tuning) {
           long end = System.nanoTime();
@@ -359,8 +364,7 @@ public class StaticHandlerImpl implements StaticHandler {
               if (res2.failed()) {
                 context.fail(res2.cause());
               }
-            })
-        );
+            }), null);
       } else {
         // Wrap the sendFile operation into a TCCL switch, so the file resolver would find the file from the set
         // classloader (if any).
@@ -369,8 +373,8 @@ public class StaticHandlerImpl implements StaticHandler {
               if (res2.failed()) {
                 context.fail(res2.cause());
               }
-            })
-        );
+            }
+        ), null);
       }
     }
   }
@@ -562,9 +566,9 @@ public class StaticHandlerImpl implements StaticHandler {
 
           request.response().putHeader("content-type", "text/html");
           request.response().end(
-            directoryTemplate(context.vertx()).replace("{directory}", normalizedDir)
-              .replace("{parent}", parent)
-              .replace("{files}", files.toString()));
+              directoryTemplate(context.vertx()).replace("{directory}", normalizedDir)
+                  .replace("{parent}", parent)
+                  .replace("{files}", files.toString()));
         } else if (accept.contains("json")) {
           String file;
           JsonArray json = new JsonArray();
