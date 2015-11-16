@@ -18,6 +18,7 @@ package io.vertx.ext.web;
 
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.GenIgnore;
+import io.vertx.codegen.annotations.Nullable;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.ext.web.impl.CookieImpl;
 
@@ -77,11 +78,12 @@ public interface Cookie {
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
-  Cookie setDomain(String domain);
+  Cookie setDomain(@Nullable String domain);
 
   /**
    * @return  the domain for the cookie
    */
+  @Nullable
   String getDomain();
 
   /**
@@ -91,12 +93,13 @@ public interface Cookie {
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
-  Cookie setPath(String path);
+  Cookie setPath(@Nullable String path);
 
   /**
    *
    * @return the path for this cookie
    */
+  @Nullable
   String getPath();
 
   /**
@@ -109,6 +112,7 @@ public interface Cookie {
    *
    * @param maxAge The maximum age of this cookie in seconds
    */
+  @Fluent
   Cookie setMaxAge(long maxAge);
 
   /**
@@ -129,6 +133,7 @@ public interface Cookie {
    *
    * @param httpOnly True if the cookie is HTTP only, otherwise false.
    */
+  @Fluent
   Cookie setHttpOnly(boolean httpOnly);
 
   /**

@@ -66,8 +66,8 @@ public class FormLoginHandler implements Handler<RoutingContext> {
    * @return a reference to this for a fluent API
    */
   public FormLoginHandler setUsernameParam(String usernameParam) {
-    def ret= InternalHelper.safeCreate(this.delegate.setUsernameParam(usernameParam), io.vertx.groovy.ext.web.handler.FormLoginHandler.class);
-    return ret;
+    this.delegate.setUsernameParam(usernameParam);
+    return this;
   }
   /**
    * Set the name of the form param used to submit the password
@@ -75,8 +75,8 @@ public class FormLoginHandler implements Handler<RoutingContext> {
    * @return a reference to this for a fluent API
    */
   public FormLoginHandler setPasswordParam(String passwordParam) {
-    def ret= InternalHelper.safeCreate(this.delegate.setPasswordParam(passwordParam), io.vertx.groovy.ext.web.handler.FormLoginHandler.class);
-    return ret;
+    this.delegate.setPasswordParam(passwordParam);
+    return this;
   }
   /**
    * Set the name of the session attrioute used to specify the return url
@@ -84,8 +84,8 @@ public class FormLoginHandler implements Handler<RoutingContext> {
    * @return a reference to this for a fluent API
    */
   public FormLoginHandler setReturnURLParam(String returnURLParam) {
-    def ret= InternalHelper.safeCreate(this.delegate.setReturnURLParam(returnURLParam), io.vertx.groovy.ext.web.handler.FormLoginHandler.class);
-    return ret;
+    this.delegate.setReturnURLParam(returnURLParam);
+    return this;
   }
   /**
    * Set the url to redirect to if the user logs in directly at the url of the form login handler
@@ -94,7 +94,7 @@ public class FormLoginHandler implements Handler<RoutingContext> {
    * @return a reference to this for a fluent API
    */
   public FormLoginHandler setDirectLoggedInOKURL(String directLoggedInOKURL) {
-    def ret= InternalHelper.safeCreate(this.delegate.setDirectLoggedInOKURL(directLoggedInOKURL), io.vertx.groovy.ext.web.handler.FormLoginHandler.class);
-    return ret;
+    this.delegate.setDirectLoggedInOKURL(directLoggedInOKURL);
+    return this;
   }
 }

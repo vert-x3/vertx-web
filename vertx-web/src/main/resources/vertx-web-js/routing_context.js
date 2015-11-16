@@ -563,7 +563,7 @@ var RoutingContext = function(j_val) {
    */
   this.setAcceptableContentType = function(contentType) {
     var __args = arguments;
-    if (__args.length === 1 && typeof __args[0] === 'string') {
+    if (__args.length === 1 && (typeof __args[0] === 'string' || __args[0] == null)) {
       j_routingContext["setAcceptableContentType(java.lang.String)"](contentType);
     } else throw new TypeError('function invoked with invalid arguments');
   };
