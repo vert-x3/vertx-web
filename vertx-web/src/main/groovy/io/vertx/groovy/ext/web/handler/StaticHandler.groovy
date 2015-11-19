@@ -53,6 +53,15 @@ public class StaticHandler implements Handler<RoutingContext> {
     return ret;
   }
   /**
+   * Enable/Disable access to the root of the filesystem
+   * @param allowRootFileSystemAccess whether root access is allowed
+   * @return a reference to this, so the API can be used fluently
+   */
+  public StaticHandler setAllowRootFileSystemAccess(boolean allowRootFileSystemAccess) {
+    this.delegate.setAllowRootFileSystemAccess(allowRootFileSystemAccess);
+    return this;
+  }
+  /**
    * Set the web root
    * @param webRoot the web root
    * @return a reference to this, so the API can be used fluently
