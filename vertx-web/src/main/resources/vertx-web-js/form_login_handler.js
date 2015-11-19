@@ -55,7 +55,8 @@ var FormLoginHandler = function(j_val) {
   this.setUsernameParam = function(usernameParam) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return utils.convReturnVertxGen(j_formLoginHandler["setUsernameParam(java.lang.String)"](usernameParam), FormLoginHandler);
+      j_formLoginHandler["setUsernameParam(java.lang.String)"](usernameParam);
+      return that;
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -69,7 +70,8 @@ var FormLoginHandler = function(j_val) {
   this.setPasswordParam = function(passwordParam) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return utils.convReturnVertxGen(j_formLoginHandler["setPasswordParam(java.lang.String)"](passwordParam), FormLoginHandler);
+      j_formLoginHandler["setPasswordParam(java.lang.String)"](passwordParam);
+      return that;
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -83,7 +85,8 @@ var FormLoginHandler = function(j_val) {
   this.setReturnURLParam = function(returnURLParam) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return utils.convReturnVertxGen(j_formLoginHandler["setReturnURLParam(java.lang.String)"](returnURLParam), FormLoginHandler);
+      j_formLoginHandler["setReturnURLParam(java.lang.String)"](returnURLParam);
+      return that;
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -98,7 +101,8 @@ var FormLoginHandler = function(j_val) {
   this.setDirectLoggedInOKURL = function(directLoggedInOKURL) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return utils.convReturnVertxGen(j_formLoginHandler["setDirectLoggedInOKURL(java.lang.String)"](directLoggedInOKURL), FormLoginHandler);
+      j_formLoginHandler["setDirectLoggedInOKURL(java.lang.String)"](directLoggedInOKURL);
+      return that;
     } else throw new TypeError('function invoked with invalid arguments');
   };
 

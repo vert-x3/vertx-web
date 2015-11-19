@@ -102,6 +102,12 @@ public interface StaticHandler extends Handler<RoutingContext> {
   boolean DEFAULT_RANGE_SUPPORT = true;
 
   /**
+   * Default of whether access to the root of the file system should be allowed or just allow from the current working
+   * directory.
+   */
+  boolean DEFAULT_ROOT_FILESYSTEM_ACCESS = false;
+
+  /**
    * Create a handler using defaults
    *
    * @return the handler
@@ -131,6 +137,15 @@ public interface StaticHandler extends Handler<RoutingContext> {
   static StaticHandler create(String root, ClassLoader classLoader) {
     return new StaticHandlerImpl(root, classLoader);
   }
+
+  /**
+   * Enable/Disable access to the root of the filesystem
+   *
+   * @param allowRootFileSystemAccess whether root access is allowed
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  StaticHandler setAllowRootFileSystemAccess(boolean allowRootFileSystemAccess);
 
   /**
    * Set the web root

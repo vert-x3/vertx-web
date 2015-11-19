@@ -82,7 +82,10 @@ To use vert.x web, add the following dependency to the _dependencies_ section of
 
 [source,groovy,subs="+attributes"]
 ----
-compile io.vertx:vertx-web:3.2.0-SNAPSHOT
+dependencies {
+  compile 'io.vertx:vertx-web:3.2.0-SNAPSHOT'
+  // (...)
+}
 ----
 
 
@@ -2350,110 +2353,4 @@ example `*.vertx.io` or fully domain names as `www.vertx.io`.
 router.route().handler(VirtualHostHandler.create("*.vertx.io", routingContext -> {
   // do something if the request is for *.vertx.io
 }));
-----
-
-== OAuth2AuthHandler Handler
-
-The `OAuth2AuthHandler` allows quick setup of secure routes using the OAuth2 protocol. This handler simplifies the
-authCode flow. An example of using it to protect some resouce and authenticate with GitHub can be implemented as:
-
-[source,java]
-----
-OAuth2Auth authProvider = OAuth2Auth.create(vertx, OAuth2FlowType.AUTH_CODE, new JsonObject()
-    .put("clientID", "CLIENT_ID")
-    .put("clientSecret", "CLIENT_SECRET")
-    .put("site", "https://github.com/login")
-    .put("tokenPath", "/oauth/access_token")
-    .put("authorizationPath", "/oauth/authorize"));
-
-// create a oauth2 handler on our domain: "http://localhost:8080"
-OAuth2AuthHandler oauth2 = OAuth2AuthHandler.create(authProvider, "http://localhost:8080");
-
-// setup the callback handler for receiving the GitHub callback
-oauth2.setupCallback(router.get("/callback"));
-
-// protect everything under /protected
-router.route("/protected/*").handler(oauth2);
-// mount some handler under the protected zone
-router.route("/protected/somepage").handler(rc -> {
-  rc.response().end("Welcome to the protected resource!");
-});
-
-// welcome page
-router.get("/").handler(ctx -> {
-  ctx.response().putHeader("content-type", "text/html").end("Hello<br><a href=\"/protected/somepage\">Protected by Github</a>");
-});
-----
-
-Due to the nature of OAuth2 spec there are slight changes required in order to use other OAuth2 providers, for
-example, if you are planning to use Google Auth you implement it as:
-
-[source,java]
-----
-OAuth2Auth authProvider = OAuth2Auth.create(vertx, OAuth2FlowType.AUTH_CODE, new JsonObject()
-    .put("clientID", "CLIENT_ID")
-    .put("clientSecret", "CLIENT_SECRET")
-    .put("site", "https://accounts.google.com")
-    .put("tokenPath", "https://www.googleapis.com/oauth2/v3/token")
-    .put("authorizationPath", "/o/oauth2/auth"));
-
-// create a oauth2 handler on our domain: "http://localhost:8080"
-OAuth2AuthHandler oauth2 = OAuth2AuthHandler.create(authProvider, "http://localhost:8080");
-
-// these are the scopes
-oauth2.addAuthority("profile");
-
-// setup the callback handler for receiving the Google callback
-oauth2.setupCallback(router.get("/callback"));
-
-// protect everything under /protected
-router.route("/protected/*").handler(oauth2);
-// mount some handler under the protected zone
-router.route("/protected/somepage").handler(rc -> {
-  rc.response().end("Welcome to the protected resource!");
-});
-
-// welcome page
-router.get("/").handler(ctx -> {
-  ctx.response().putHeader("content-type", "text/html").end("Hello<br><a href=\"/protected/somepage\">Protected by Google</a>");
-});
-----
-
-The changes are only on the configuration, note that the token uri must now be a full URL since it is generated from
-a different server than the authorization one.
-
-Important to note that for google OAuth you must register all your callback URLs in the developer console, so for the
-current example you would need to register `http://localhost:8080/callback?redirect_uri=/protected/somepage`.
-
-If you're looking to integrate with LinkedIn then your config should be:
-
-[source,java]
-----
-OAuth2Auth authProvider = OAuth2Auth.create(vertx, OAuth2FlowType.AUTH_CODE, new JsonObject()
-    .put("clientID", "CLIENT_ID")
-    .put("clientSecret", "CLIENT_SECRET")
-    .put("site", "https://www.linkedin.com")
-    .put("authorizationPath", "/uas/oauth2/authorization")
-    .put("tokenPath", "/uas/oauth2/accessToken"));
-
-// create a oauth2 handler on our domain: "http://localhost:8080"
-OAuth2AuthHandler oauth2 = OAuth2AuthHandler.create(authProvider, "http://localhost:8080");
-
-// these are the scopes
-oauth2.addAuthority("r_basicprofile");
-
-// setup the callback handler for receiving the LinkedIn callback
-oauth2.setupCallback(router.get("/callback"));
-
-// protect everything under /protected
-router.route("/protected/*").handler(oauth2);
-// mount some handler under the protected zone
-router.route("/protected/somepage").handler(rc -> {
-  rc.response().end("Welcome to the protected resource!");
-});
-
-// welcome page
-router.get("/").handler(ctx -> {
-  ctx.response().putHeader("content-type", "text/html").end("Hello<br><a href=\"/protected/somepage\">Protected by LinkedIn</a>");
-});
 ----

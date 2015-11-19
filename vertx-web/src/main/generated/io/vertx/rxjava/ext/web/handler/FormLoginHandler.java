@@ -78,8 +78,8 @@ public class FormLoginHandler implements Handler<RoutingContext> {
    * @return a reference to this for a fluent API
    */
   public FormLoginHandler setUsernameParam(String usernameParam) { 
-    FormLoginHandler ret= FormLoginHandler.newInstance(this.delegate.setUsernameParam(usernameParam));
-    return ret;
+    this.delegate.setUsernameParam(usernameParam);
+    return this;
   }
 
   /**
@@ -88,8 +88,8 @@ public class FormLoginHandler implements Handler<RoutingContext> {
    * @return a reference to this for a fluent API
    */
   public FormLoginHandler setPasswordParam(String passwordParam) { 
-    FormLoginHandler ret= FormLoginHandler.newInstance(this.delegate.setPasswordParam(passwordParam));
-    return ret;
+    this.delegate.setPasswordParam(passwordParam);
+    return this;
   }
 
   /**
@@ -98,8 +98,8 @@ public class FormLoginHandler implements Handler<RoutingContext> {
    * @return a reference to this for a fluent API
    */
   public FormLoginHandler setReturnURLParam(String returnURLParam) { 
-    FormLoginHandler ret= FormLoginHandler.newInstance(this.delegate.setReturnURLParam(returnURLParam));
-    return ret;
+    this.delegate.setReturnURLParam(returnURLParam);
+    return this;
   }
 
   /**
@@ -109,8 +109,8 @@ public class FormLoginHandler implements Handler<RoutingContext> {
    * @return a reference to this for a fluent API
    */
   public FormLoginHandler setDirectLoggedInOKURL(String directLoggedInOKURL) { 
-    FormLoginHandler ret= FormLoginHandler.newInstance(this.delegate.setDirectLoggedInOKURL(directLoggedInOKURL));
-    return ret;
+    this.delegate.setDirectLoggedInOKURL(directLoggedInOKURL);
+    return this;
   }
 
 

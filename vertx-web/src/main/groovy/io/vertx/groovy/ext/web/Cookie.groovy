@@ -113,8 +113,8 @@ public class Cookie {
    * @return 
    */
   public Cookie setMaxAge(long maxAge) {
-    def ret= InternalHelper.safeCreate(this.delegate.setMaxAge(maxAge), io.vertx.groovy.ext.web.Cookie.class);
-    return ret;
+    this.delegate.setMaxAge(maxAge);
+    return this;
   }
   /**
    * Sets the security getStatus of this cookie
@@ -135,8 +135,8 @@ public class Cookie {
    * @return 
    */
   public Cookie setHttpOnly(boolean httpOnly) {
-    def ret= InternalHelper.safeCreate(this.delegate.setHttpOnly(httpOnly), io.vertx.groovy.ext.web.Cookie.class);
-    return ret;
+    this.delegate.setHttpOnly(httpOnly);
+    return this;
   }
   /**
    * Encode the cookie to a string. This is what is used in the Set-Cookie header

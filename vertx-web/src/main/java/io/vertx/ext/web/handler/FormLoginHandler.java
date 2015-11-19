@@ -16,6 +16,7 @@
 
 package io.vertx.ext.web.handler;
 
+import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
 import io.vertx.ext.web.handler.impl.FormLoginHandlerImpl;
@@ -80,6 +81,7 @@ public interface FormLoginHandler extends Handler<RoutingContext> {
    * @param usernameParam  the name of the param
    * @return a reference to this for a fluent API
    */
+  @Fluent
   FormLoginHandler setUsernameParam(String usernameParam);
 
   /**
@@ -87,6 +89,7 @@ public interface FormLoginHandler extends Handler<RoutingContext> {
    * @param passwordParam  the name of the param
    * @return a reference to this for a fluent API
    */
+  @Fluent
   FormLoginHandler setPasswordParam(String passwordParam);
 
   /**
@@ -94,6 +97,7 @@ public interface FormLoginHandler extends Handler<RoutingContext> {
    * @param returnURLParam  the name of the param
    * @return a reference to this for a fluent API
    */
+  @Fluent
   FormLoginHandler setReturnURLParam(String returnURLParam);
 
   /**
@@ -102,6 +106,7 @@ public interface FormLoginHandler extends Handler<RoutingContext> {
    * @param directLoggedInOKURL  the URL to redirect to
    * @return a reference to this for a fluent API
    */
+  @Fluent
   FormLoginHandler setDirectLoggedInOKURL(String directLoggedInOKURL);
 
 
