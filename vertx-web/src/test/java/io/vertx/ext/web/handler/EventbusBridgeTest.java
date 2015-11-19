@@ -714,11 +714,11 @@ public class EventbusBridgeTest extends WebTestBase {
         JsonObject received = new JsonObject(str);
         Object rec = received.getValue("body");
         assertEquals("barfoo", rec);
-		JsonObject headers = received.getJsonObject("headers");
-		assertNotNull(headers);
-		assertEquals("headbar", headers.getString("headfoo"));
-		assertTrue(headers.getJsonArray("multi").contains("m1"));
-		assertTrue(headers.getJsonArray("multi").contains("m2"));
+				JsonObject headers = received.getJsonObject("headers");
+				assertNotNull(headers);
+				assertEquals("headbar", headers.getString("headfoo"));
+				assertTrue(headers.getJsonArray("multi").contains("m1"));
+				assertTrue(headers.getJsonArray("multi").contains("m2"));
         ws.closeHandler(v -> latch.countDown());
         ws.close();
       });
