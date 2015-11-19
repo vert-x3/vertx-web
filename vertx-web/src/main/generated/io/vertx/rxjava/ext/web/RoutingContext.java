@@ -316,16 +316,31 @@ public class RoutingContext {
 
   /**
    * If the context is being routed to failure handlers after a failure has been triggered by calling
-   * {@link io.vertx.rxjava.ext.web.RoutingContext#fail}  then this will return that status code.  It can be used by failure handlers to render a response,
+   * {@link io.vertx.rxjava.ext.web.RoutingContext#fail} then this will return that throwable. It can be used by failure handlers to render a response,
+   * e.g. create a failure response page.
+   * @return the throwable used when signalling failure
+   */
+  public Throwable failure() { 
+    if (cached_2 != null) {
+      return cached_2;
+    }
+    Throwable ret = this.delegate.failure();
+    cached_2 = ret;
+    return ret;
+  }
+
+  /**
+   * If the context is being routed to failure handlers after a failure has been triggered by calling
+   * {@link io.vertx.ext.web.RoutingContext}  then this will return that status code.  It can be used by failure handlers to render a response,
    * e.g. create a failure response page.
    * @return the status code used when signalling failure
    */
   public int statusCode() { 
-    if (cached_2 != null) {
-      return cached_2;
+    if (cached_3 != null) {
+      return cached_3;
     }
     int ret = this.delegate.statusCode();
-    cached_2 = ret;
+    cached_3 = ret;
     return ret;
   }
 
@@ -459,11 +474,11 @@ public class RoutingContext {
    * @return the best matched locale for the request
    */
   public List<Locale> acceptableLocales() { 
-    if (cached_3 != null) {
-      return cached_3;
+    if (cached_4 != null) {
+      return cached_4;
     }
     List<Locale> ret = this.delegate.acceptableLocales().stream().map(Locale::newInstance).collect(java.util.stream.Collectors.toList());
-    cached_3 = ret;
+    cached_4 = ret;
     return ret;
   }
 
@@ -479,8 +494,9 @@ public class RoutingContext {
 
   private HttpServerRequest cached_0;
   private HttpServerResponse cached_1;
-  private java.lang.Integer cached_2;
-  private List<Locale> cached_3;
+  private java.lang.Throwable cached_2;
+  private java.lang.Integer cached_3;
+  private List<Locale> cached_4;
 
   public static RoutingContext newInstance(io.vertx.ext.web.RoutingContext arg) {
     return arg != null ? new RoutingContext(arg) : null;

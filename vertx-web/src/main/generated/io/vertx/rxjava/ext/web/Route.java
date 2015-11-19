@@ -81,8 +81,8 @@ public class Route {
    * @return a reference to this, so the API can be used fluently
    */
   public Route produces(String contentType) { 
-    Route ret= Route.newInstance(this.delegate.produces(contentType));
-    return ret;
+    this.delegate.produces(contentType);
+    return this;
   }
 
   /**

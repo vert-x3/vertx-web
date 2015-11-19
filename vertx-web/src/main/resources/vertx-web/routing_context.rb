@@ -258,6 +258,19 @@ module VertxWeb
       raise ArgumentError, "Invalid arguments when calling user()"
     end
     #  If the context is being routed to failure handlers after a failure has been triggered by calling
+    #  {::VertxWeb::RoutingContext#fail} then this will return that throwable. It can be used by failure handlers to render a response,
+    #  e.g. create a failure response page.
+    # @return [Exception] the throwable used when signalling failure
+    def failure
+      if !block_given?
+        if @cached_failure != nil
+          return @cached_failure
+        end
+        return @cached_failure = ::Vertx::Util::Utils.from_throwable(@j_del.java_method(:failure, []).call())
+      end
+      raise ArgumentError, "Invalid arguments when calling failure()"
+    end
+    #  If the context is being routed to failure handlers after a failure has been triggered by calling
     #  {::VertxWeb::RoutingContext#fail}  then this will return that status code.  It can be used by failure handlers to render a response,
     #  e.g. create a failure response page.
     # @return [Fixnum] the status code used when signalling failure

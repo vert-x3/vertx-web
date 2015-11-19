@@ -69,8 +69,8 @@ public class Route {
    * @return a reference to this, so the API can be used fluently
    */
   public Route produces(String contentType) {
-    def ret= InternalHelper.safeCreate(this.delegate.produces(contentType), io.vertx.groovy.ext.web.Route.class);
-    return ret;
+    this.delegate.produces(contentType);
+    return this;
   }
   /**
    * Add a content type consumed by this route. Used for content based routing.

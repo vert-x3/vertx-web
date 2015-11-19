@@ -95,10 +95,11 @@ module VertxWeb
     #  browser is closed.
     #  If you don't set this the cookie will be a session cookie and be removed when the browser is closed.
     # @param [Fixnum] maxAge The maximum age of this cookie in seconds
-    # @return [::VertxWeb::Cookie]
+    # @return [self]
     def set_max_age(maxAge=nil)
       if maxAge.class == Fixnum && !block_given?
-        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:setMaxAge, [Java::long.java_class]).call(maxAge),::VertxWeb::Cookie)
+        @j_del.java_method(:setMaxAge, [Java::long.java_class]).call(maxAge)
+        return self
       end
       raise ArgumentError, "Invalid arguments when calling set_max_age(maxAge)"
     end
@@ -118,10 +119,11 @@ module VertxWeb
     #  For for information, please look
     #  <a href="http://www.owasp.org/index.php/HTTPOnly">here</a>.
     # @param [true,false] httpOnly True if the cookie is HTTP only, otherwise false.
-    # @return [::VertxWeb::Cookie]
+    # @return [self]
     def set_http_only(httpOnly=nil)
       if (httpOnly.class == TrueClass || httpOnly.class == FalseClass) && !block_given?
-        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:setHttpOnly, [Java::boolean.java_class]).call(httpOnly),::VertxWeb::Cookie)
+        @j_del.java_method(:setHttpOnly, [Java::boolean.java_class]).call(httpOnly)
+        return self
       end
       raise ArgumentError, "Invalid arguments when calling set_http_only(httpOnly)"
     end

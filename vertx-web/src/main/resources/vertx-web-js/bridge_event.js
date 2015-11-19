@@ -47,7 +47,7 @@ var BridgeEvent = function(j_val) {
     var __args = arguments;
     if (__args.length === 0) {
       if (that.cachedtype == null) {
-        that.cachedtype = (j_bridgeEvent["type()"]()).toString();
+        that.cachedtype = utils.convReturnEnum(j_bridgeEvent["type()"]());
       }
       return that.cachedtype;
     } else throw new TypeError('function invoked with invalid arguments');

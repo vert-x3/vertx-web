@@ -17,6 +17,7 @@
 package io.vertx.ext.web;
 
 import io.vertx.codegen.annotations.Fluent;
+import io.vertx.codegen.annotations.Nullable;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
@@ -357,7 +358,7 @@ public interface Router {
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
-  Router exceptionHandler(Handler<Throwable> exceptionHandler);
+  Router exceptionHandler(@Nullable Handler<Throwable> exceptionHandler);
 
   /**
    * Used to route a context to the router. Used for sub-routers. You wouldn't normally call this method directly.

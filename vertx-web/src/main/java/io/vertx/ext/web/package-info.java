@@ -81,7 +81,9 @@
  *
  * [source,groovy,subs="+attributes"]
  * ----
- * compile ${maven.groupId}:${maven.artifactId}:${maven.version}
+ * dependencies {
+ *   compile '${maven.groupId}:${maven.artifactId}:${maven.version}'
+ * }
  * ----
  *
  *
@@ -1272,7 +1274,7 @@
  * To use Thymeleaf, you need to add the following _dependency_ to your project:
  * `${maven.groupId}:vertx-web-templ-thymeleaf:${maven.version}`. Create an instance of the Thymeleaf template engine
  * using: `io.vertx.ext.web.templ.ThymeleafTemplateEngine#create()`.
- * 
+ *
  * When using the Thymeleaf template engine, it will by default look for
  * templates with the `.html` extension if no extension is specified in the file name.
  *
