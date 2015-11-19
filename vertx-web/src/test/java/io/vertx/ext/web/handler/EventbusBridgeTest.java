@@ -15,6 +15,7 @@
  */
 package io.vertx.ext.web.handler;
 
+import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.json.JsonArray;
@@ -28,6 +29,7 @@ import io.vertx.ext.web.handler.sockjs.*;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import io.vertx.ext.web.sstore.SessionStore;
 import io.vertx.test.core.TestUtils;
+import java.util.Map;
 import org.junit.Test;
 
 import java.util.UUID;
@@ -673,6 +675,50 @@ public class EventbusBridgeTest extends WebTestBase {
         JsonObject received = new JsonObject(str);
         Object rec = received.getValue("body");
         assertEquals("barfoo", rec);
+        ws.closeHandler(v -> latch.countDown());
+        ws.close();
+      });
+
+    });
+
+    awaitLatch(latch);
+  }
+
+  @Test
+  public void testReplyMessagesInboundWithHeaders() throws Exception {
+
+    // Only allow inbound address, reply message should still get through though
+    sockJSHandler.bridge(defaultOptions.addInboundPermitted(new PermittedOptions().setAddress(addr)));
+
+    CountDownLatch latch = new CountDownLatch(1);
+
+    client.websocket(websocketURI, ws -> {
+
+      MessageConsumer<Object> consumer = vertx.eventBus().consumer(addr);
+
+      consumer.handler(msg -> {
+        Object receivedBody = msg.body();
+        assertEquals("foobar", receivedBody);
+        msg.reply("barfoo",new DeliveryOptions().addHeader("headfoo", "headbar").addHeader("multi", "m1").addHeader("multi", "m2") );
+        consumer.unregister();
+      });
+
+      String replyAddress = UUID.randomUUID().toString();
+
+      JsonObject msg = new JsonObject().put("type", "send").put("address", addr).put("replyAddress", replyAddress).put("body", "foobar");
+
+      ws.writeFrame(io.vertx.core.http.WebSocketFrame.textFrame(msg.encode(), true));
+
+      ws.handler(buff -> {
+        String str = buff.toString();
+        JsonObject received = new JsonObject(str);
+        Object rec = received.getValue("body");
+        assertEquals("barfoo", rec);
+		JsonObject headers = received.getJsonObject("headers");
+		assertNotNull(headers);
+		assertEquals("headbar", headers.getString("headfoo"));
+		assertTrue(headers.getJsonArray("multi").contains("m1"));
+		assertTrue(headers.getJsonArray("multi").contains("m2"));
         ws.closeHandler(v -> latch.countDown());
         ws.close();
       });
