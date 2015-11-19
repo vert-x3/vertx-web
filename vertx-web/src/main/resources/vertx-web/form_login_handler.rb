@@ -42,38 +42,42 @@ module VertxWeb
     end
     #  Set the name of the form param used to submit the username
     # @param [String] usernameParam the name of the param
-    # @return [::VertxWeb::FormLoginHandler] a reference to this for a fluent API
+    # @return [self]
     def set_username_param(usernameParam=nil)
       if usernameParam.class == String && !block_given?
-        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:setUsernameParam, [Java::java.lang.String.java_class]).call(usernameParam),::VertxWeb::FormLoginHandler)
+        @j_del.java_method(:setUsernameParam, [Java::java.lang.String.java_class]).call(usernameParam)
+        return self
       end
       raise ArgumentError, "Invalid arguments when calling set_username_param(usernameParam)"
     end
     #  Set the name of the form param used to submit the password
     # @param [String] passwordParam the name of the param
-    # @return [::VertxWeb::FormLoginHandler] a reference to this for a fluent API
+    # @return [self]
     def set_password_param(passwordParam=nil)
       if passwordParam.class == String && !block_given?
-        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:setPasswordParam, [Java::java.lang.String.java_class]).call(passwordParam),::VertxWeb::FormLoginHandler)
+        @j_del.java_method(:setPasswordParam, [Java::java.lang.String.java_class]).call(passwordParam)
+        return self
       end
       raise ArgumentError, "Invalid arguments when calling set_password_param(passwordParam)"
     end
     #  Set the name of the session attrioute used to specify the return url
     # @param [String] returnURLParam the name of the param
-    # @return [::VertxWeb::FormLoginHandler] a reference to this for a fluent API
+    # @return [self]
     def set_return_url_param(returnURLParam=nil)
       if returnURLParam.class == String && !block_given?
-        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:setReturnURLParam, [Java::java.lang.String.java_class]).call(returnURLParam),::VertxWeb::FormLoginHandler)
+        @j_del.java_method(:setReturnURLParam, [Java::java.lang.String.java_class]).call(returnURLParam)
+        return self
       end
       raise ArgumentError, "Invalid arguments when calling set_return_url_param(returnURLParam)"
     end
     #  Set the url to redirect to if the user logs in directly at the url of the form login handler
     #  without being redirected here first
     # @param [String] directLoggedInOKURL the URL to redirect to
-    # @return [::VertxWeb::FormLoginHandler] a reference to this for a fluent API
+    # @return [self]
     def set_direct_logged_in_okurl(directLoggedInOKURL=nil)
       if directLoggedInOKURL.class == String && !block_given?
-        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:setDirectLoggedInOKURL, [Java::java.lang.String.java_class]).call(directLoggedInOKURL),::VertxWeb::FormLoginHandler)
+        @j_del.java_method(:setDirectLoggedInOKURL, [Java::java.lang.String.java_class]).call(directLoggedInOKURL)
+        return self
       end
       raise ArgumentError, "Invalid arguments when calling set_direct_logged_in_okurl(directLoggedInOKURL)"
     end

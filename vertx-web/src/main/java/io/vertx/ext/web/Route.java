@@ -17,6 +17,7 @@
 package io.vertx.ext.web;
 
 import io.vertx.codegen.annotations.Fluent;
+import io.vertx.codegen.annotations.Nullable;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;
@@ -66,6 +67,7 @@ public interface Route {
    * @param contentType  the content type
    * @return a reference to this, so the API can be used fluently
    */
+  @Fluent
   Route produces(String contentType);
 
   /**
@@ -177,6 +179,7 @@ public interface Route {
   /**
    * @return the path prefix (if any) for this route
    */
+  @Nullable
   String getPath();
 
 }

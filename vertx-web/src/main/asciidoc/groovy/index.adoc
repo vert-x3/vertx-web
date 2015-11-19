@@ -82,7 +82,10 @@ To use vert.x web, add the following dependency to the _dependencies_ section of
 
 [source,groovy,subs="+attributes"]
 ----
-compile io.vertx:vertx-web:3.2.0-SNAPSHOT
+dependencies {
+  compile 'io.vertx:vertx-web:3.2.0-SNAPSHOT'
+  // (...)
+}
 ----
 
 

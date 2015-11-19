@@ -50,10 +50,11 @@ module VertxWeb
     end
     #  Add a content type produced by this route. Used for content based routing.
     # @param [String] contentType the content type
-    # @return [::VertxWeb::Route] a reference to this, so the API can be used fluently
+    # @return [self]
     def produces(contentType=nil)
       if contentType.class == String && !block_given?
-        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:produces, [Java::java.lang.String.java_class]).call(contentType),::VertxWeb::Route)
+        @j_del.java_method(:produces, [Java::java.lang.String.java_class]).call(contentType)
+        return self
       end
       raise ArgumentError, "Invalid arguments when calling produces(contentType)"
     end

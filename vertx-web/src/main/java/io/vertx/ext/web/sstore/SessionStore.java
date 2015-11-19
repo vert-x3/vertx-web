@@ -16,6 +16,7 @@
 
 package io.vertx.ext.web.sstore;
 
+import io.vertx.codegen.annotations.Nullable;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
@@ -44,7 +45,7 @@ public interface SessionStore {
    * @param id  the unique ID of the session
    * @param resultHandler  will be called with a result holding the session, or a failure
    */
-  void get(String id, Handler<AsyncResult<Session>> resultHandler);
+  void get(String id, Handler<AsyncResult<@Nullable Session>> resultHandler);
 
   /**
    * Delete the session with the specified ID

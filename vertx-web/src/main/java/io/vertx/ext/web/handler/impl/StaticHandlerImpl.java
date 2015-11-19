@@ -35,10 +35,12 @@ import java.nio.file.NoSuchFileException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.util.*;
+import java.util.concurrent.Callable;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static io.netty.handler.codec.http.HttpResponseStatus.*;
+
 /**
  * Static web server
  * Parts derived from Yoke
@@ -64,6 +66,7 @@ public class StaticHandlerImpl implements StaticHandler {
   private String indexPage = DEFAULT_INDEX_PAGE;
   private int maxCacheSize = DEFAULT_MAX_CACHE_SIZE;
   private boolean rangeSupport = DEFAULT_RANGE_SUPPORT;
+  private boolean allowRootFileSystemAccess = DEFAULT_ROOT_FILESYSTEM_ACCESS;
 
   // These members are all related to auto tuning of synchronous vs asynchronous file system access
   private static int NUM_SERVES_TUNING_FS_ACCESS = 1000;
@@ -97,7 +100,7 @@ public class StaticHandlerImpl implements StaticHandler {
    * Create all required header so content can be cache by Caching servers or Browsers
    *
    * @param request base HttpServerRequest
-   * @param props file properties
+   * @param props   file properties
    */
   private void writeCacheHeaders(HttpServerRequest request, FileProps props) {
 
@@ -224,10 +227,33 @@ public class StaticHandlerImpl implements StaticHandler {
     }
   }
 
+  private <T> T wrapInTCCLSwitch(Callable<T> callable, Handler<AsyncResult<FileProps>> resultHandler) {
+    try {
+      if (classLoader == null) {
+        return callable.call();
+      } else {
+        final ClassLoader original = Thread.currentThread().getContextClassLoader();
+        try {
+          Thread.currentThread().setContextClassLoader(classLoader);
+          return callable.call();
+        } finally {
+          Thread.currentThread().setContextClassLoader(original);
+        }
+      }
+    } catch (Exception e) {
+      if (resultHandler != null) {
+        resultHandler.handle(Future.failedFuture(e.getCause()));
+        return null;
+      } else {
+        throw new RuntimeException(e);
+      }
+    }
+  }
+
   private synchronized void getFileProps(RoutingContext context, String file, Handler<AsyncResult<FileProps>> resultHandler) {
     FileSystem fs = context.vertx().fileSystem();
     if (alwaysAsyncFS || useAsyncFS) {
-      fs.props(file, resultHandler);
+      wrapInTCCLSwitch(() -> fs.props(file, resultHandler), resultHandler);
     } else {
       // Use synchronous access - it might well be faster!
       long start = 0;
@@ -235,7 +261,8 @@ public class StaticHandlerImpl implements StaticHandler {
         start = System.nanoTime();
       }
       try {
-        FileProps props = fs.propsBlocking(file);
+        FileProps props = wrapInTCCLSwitch(() -> fs.propsBlocking(file), resultHandler);
+
         if (tuning) {
           long end = System.nanoTime();
           long dur = end - start;
@@ -331,37 +358,32 @@ public class StaticHandlerImpl implements StaticHandler {
 
         // Wrap the sendFile operation into a TCCL switch, so the file resolver would find the file from the set
         // classloader (if any).
-        final ClassLoader orig = Thread.currentThread().getContextClassLoader();
-        try {
-          if (classLoader != null) {
-            Thread.currentThread().setContextClassLoader(classLoader);
-          }
-          request.response().sendFile(file, offset, end + 1, res2 -> {
-            if (res2.failed()) {
-              context.fail(res2.cause());
-            }
-          });
-        } finally {
-          Thread.currentThread().setContextClassLoader(orig);
-        }
+        final Long finalOffset = offset;
+        final Long finalEnd = end;
+        wrapInTCCLSwitch(() ->
+            request.response().sendFile(file, finalOffset, finalEnd + 1, res2 -> {
+              if (res2.failed()) {
+                context.fail(res2.cause());
+              }
+            }), null);
       } else {
         // Wrap the sendFile operation into a TCCL switch, so the file resolver would find the file from the set
         // classloader (if any).
-        final ClassLoader orig = Thread.currentThread().getContextClassLoader();
-        try {
-          if (classLoader != null) {
-            Thread.currentThread().setContextClassLoader(classLoader);
-          }
-          request.response().sendFile(file, res2 -> {
-            if (res2.failed()) {
-              context.fail(res2.cause());
+        wrapInTCCLSwitch(() ->
+            request.response().sendFile(file, res2 -> {
+              if (res2.failed()) {
+                context.fail(res2.cause());
+              }
             }
-          });
-        } finally {
-          Thread.currentThread().setContextClassLoader(orig);
-        }
+        ), null);
       }
     }
+  }
+
+  @Override
+  public StaticHandler setAllowRootFileSystemAccess(boolean allowRootFileSystemAccess) {
+    this.allowRootFileSystemAccess = allowRootFileSystemAccess;
+    return this;
   }
 
   @Override
@@ -488,7 +510,7 @@ public class StaticHandlerImpl implements StaticHandler {
 
   private void setRoot(String webRoot) {
     Objects.requireNonNull(webRoot);
-    if (webRoot.startsWith("/")) {
+    if (webRoot.startsWith("/") && !allowRootFileSystemAccess) {
       throw new IllegalArgumentException("root cannot start with '/'");
     }
     this.webRoot = webRoot;
@@ -551,9 +573,9 @@ public class StaticHandlerImpl implements StaticHandler {
 
           request.response().putHeader("content-type", "text/html");
           request.response().end(
-            directoryTemplate(context.vertx()).replace("{directory}", normalizedDir)
-              .replace("{parent}", parent)
-              .replace("{files}", files.toString()));
+              directoryTemplate(context.vertx()).replace("{directory}", normalizedDir)
+                  .replace("{parent}", parent)
+                  .replace("{files}", files.toString()));
         } else if (accept.contains("json")) {
           String file;
           JsonArray json = new JsonArray();

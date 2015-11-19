@@ -410,8 +410,8 @@ var Router = function(j_val) {
    */
   this.exceptionHandler = function(exceptionHandler) {
     var __args = arguments;
-    if (__args.length === 1 && typeof __args[0] === 'function') {
-      j_router["exceptionHandler(io.vertx.core.Handler)"](function(jVal) {
+    if (__args.length === 1 && (typeof __args[0] === 'function' || __args[0] == null)) {
+      j_router["exceptionHandler(io.vertx.core.Handler)"](exceptionHandler == null ? null : function(jVal) {
       exceptionHandler(utils.convReturnThrowable(jVal));
     });
       return that;

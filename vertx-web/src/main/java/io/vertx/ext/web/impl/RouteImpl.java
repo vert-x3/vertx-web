@@ -28,6 +28,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -49,8 +50,8 @@ public class RouteImpl implements Route {
 
   private final RouterImpl router;
   private final Set<HttpMethod> methods = new HashSet<>();
-  private final Set<String> consumes = new HashSet<>();
-  private final Set<String> produces = new HashSet<>();
+  private final Set<String> consumes = new LinkedHashSet<>();
+  private final Set<String> produces = new LinkedHashSet<>();
   private String path;
   private int order;
   private boolean enabled = true;
@@ -154,7 +155,7 @@ public class RouteImpl implements Route {
   public synchronized Route blockingHandler(Handler<RoutingContext> contextHandler, boolean ordered) {
     return handler(new BlockingHandlerDecorator(contextHandler, ordered));
   }
-  
+
   @Override
   public synchronized Route failureHandler(Handler<RoutingContext> exceptionHandler) {
     if (this.failureHandler != null) {
@@ -303,6 +304,11 @@ public class RouteImpl implements Route {
             }
           }
         }
+      } else {
+        // According to rfc2616-sec14,
+        // If no Accept header field is present, then it is assumed that the client accepts all media types.
+        context.setAcceptableContentType(produces.iterator().next());
+        return true;
       }
       return false;
     }

@@ -535,6 +535,27 @@ public class StaticHandlerTest extends WebTestBase {
     testRequest(HttpMethod.GET, "/non_existing.html", 404, "Not Found");
   }
 
+  @Test
+  public void testServerFileSystemPath() throws Exception {
+    router.clear();
+
+    File file = File.createTempFile("vertx", "tmp");
+    file.deleteOnExit();
+
+    // remap stat to the temp dir
+    try {
+      stat = StaticHandler.create(file.getParent());
+      fail();
+    } catch (IllegalArgumentException e) {
+      // expected
+    }
+
+    stat = StaticHandler.create().setAllowRootFileSystemAccess(true).setWebRoot(file.getParent());
+    router.route().handler(stat);
+
+    testRequest(HttpMethod.GET, "/" + file.getName(), 200, "OK", "");
+  }
+
   // TODO
   // 1.Test all the params including invalid values
   // 2. Make sure exists isn't being called too many times
@@ -548,7 +569,4 @@ public class StaticHandlerTest extends WebTestBase {
       return -1;
     }
   }
-
-
-
 }

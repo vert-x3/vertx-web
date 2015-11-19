@@ -130,8 +130,8 @@ public class Cookie {
    * @return 
    */
   public Cookie setMaxAge(long maxAge) { 
-    Cookie ret= Cookie.newInstance(this.delegate.setMaxAge(maxAge));
-    return ret;
+    this.delegate.setMaxAge(maxAge);
+    return this;
   }
 
   /**
@@ -154,8 +154,8 @@ public class Cookie {
    * @return 
    */
   public Cookie setHttpOnly(boolean httpOnly) { 
-    Cookie ret= Cookie.newInstance(this.delegate.setHttpOnly(httpOnly));
-    return ret;
+    this.delegate.setHttpOnly(httpOnly);
+    return this;
   }
 
   /**

@@ -484,11 +484,7 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
 
       boolean addressOK;
       if (matchAddress == null) {
-        if (matchRegex == null) {
-          addressOK = true;
-        } else {
-          addressOK = regexMatches(matchRegex, address);
-        }
+        addressOK = matchRegex == null || regexMatches(matchRegex, address);
       } else {
         addressOK = matchAddress.equals(address);
       }
