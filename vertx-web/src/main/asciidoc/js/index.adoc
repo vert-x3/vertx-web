@@ -84,7 +84,6 @@ To use vert.x web, add the following dependency to the _dependencies_ section of
 ----
 dependencies {
   compile 'io.vertx:vertx-web:3.2.0-SNAPSHOT'
-  // (...)
 }
 ----
 
