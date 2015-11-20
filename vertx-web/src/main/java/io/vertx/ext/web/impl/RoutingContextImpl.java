@@ -274,6 +274,8 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   public void reroute(HttpMethod method, String path) {
     ((HttpServerRequestWrapper) request).setMethod(method);
     ((HttpServerRequestWrapper) request).setPath(path);
+    // we need to reset the normalized path
+    normalisedPath = null;
     restart();
   }
 

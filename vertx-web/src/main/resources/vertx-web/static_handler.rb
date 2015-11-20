@@ -33,6 +33,16 @@ module VertxWeb
       end
       raise ArgumentError, "Invalid arguments when calling create(root)"
     end
+    #  Enable/Disable access to the root of the filesystem
+    # @param [true,false] allowRootFileSystemAccess whether root access is allowed
+    # @return [self]
+    def set_allow_root_file_system_access(allowRootFileSystemAccess=nil)
+      if (allowRootFileSystemAccess.class == TrueClass || allowRootFileSystemAccess.class == FalseClass) && !block_given?
+        @j_del.java_method(:setAllowRootFileSystemAccess, [Java::boolean.java_class]).call(allowRootFileSystemAccess)
+        return self
+      end
+      raise ArgumentError, "Invalid arguments when calling set_allow_root_file_system_access(allowRootFileSystemAccess)"
+    end
     #  Set the web root
     # @param [String] webRoot the web root
     # @return [self]
