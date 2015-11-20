@@ -530,6 +530,12 @@ public class StaticHandlerTest extends WebTestBase {
   }
 
   @Test
+  public void testAsyncExceptionIssue231() throws Exception {
+    stat.setAlwaysAsyncFS(true);
+    testRequest(HttpMethod.GET, "/non_existing.html", 404, "Not Found");
+  }
+
+  @Test
   public void testServerFileSystemPath() throws Exception {
     router.clear();
 

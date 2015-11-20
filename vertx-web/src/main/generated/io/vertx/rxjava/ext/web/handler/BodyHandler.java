@@ -57,6 +57,16 @@ public class BodyHandler implements Handler<RoutingContext> {
   }
 
   /**
+   * Create a body handler and use the given upload directory.
+   * @param uploadDirectory the uploads directory
+   * @return the body handler
+   */
+  public static BodyHandler create(String uploadDirectory) { 
+    BodyHandler ret= BodyHandler.newInstance(io.vertx.ext.web.handler.BodyHandler.create(uploadDirectory));
+    return ret;
+  }
+
+  /**
    * Set the maximum body size -1 means unlimited
    * @param bodyLimit the max size
    * @return reference to this for fluency

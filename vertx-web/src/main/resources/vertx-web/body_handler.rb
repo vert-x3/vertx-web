@@ -24,13 +24,16 @@ module VertxWeb
       end
       raise ArgumentError, "Invalid arguments when calling handle(arg0)"
     end
-    #  Create a body handler with defaults
+    #  Create a body handler and use the given upload directory.
+    # @param [String] uploadDirectory the uploads directory
     # @return [::VertxWeb::BodyHandler] the body handler
-    def self.create
-      if !block_given?
+    def self.create(uploadDirectory=nil)
+      if !block_given? && uploadDirectory == nil
         return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebHandler::BodyHandler.java_method(:create, []).call(),::VertxWeb::BodyHandler)
+      elsif uploadDirectory.class == String && !block_given?
+        return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebHandler::BodyHandler.java_method(:create, [Java::java.lang.String.java_class]).call(uploadDirectory),::VertxWeb::BodyHandler)
       end
-      raise ArgumentError, "Invalid arguments when calling create()"
+      raise ArgumentError, "Invalid arguments when calling create(uploadDirectory)"
     end
     #  Set the maximum body size -1 means unlimited
     # @param [Fixnum] bodyLimit the max size
