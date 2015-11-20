@@ -2647,3 +2647,127 @@ router.route().handler(&VertxWeb::VirtualHostHandler.create("*.vertx.io") { |rou
 }.method(:handle))
 
 ----
+
+== OAuth2AuthHandler Handler
+
+The `OAuth2AuthHandler` allows quick setup of secure routes using the OAuth2 protocol. This handler simplifies the
+authCode flow. An example of using it to protect some resouce and authenticate with GitHub can be implemented as:
+
+[source,ruby]
+----
+require 'vertx-auth-jwt/o_auth2_auth'
+require 'vertx-web/o_auth2_auth_handler'
+
+# create an OAuth2 provider, clientID and clientSecret should be requested to github
+authProvider = VertxAuthJwt::OAuth2Auth.create(vertx, :AUTH_CODE, {
+  'clientID' => "CLIENT_ID",
+  'clientSecret' => "CLIENT_SECRET",
+  'site' => "https://github.com/login",
+  'tokenPath' => "/oauth/access_token",
+  'authorizationPath' => "/oauth/authorize"
+})
+
+# create a oauth2 handler on our domain: "http://localhost:8080"
+oauth2 = VertxWeb::OAuth2AuthHandler.create(authProvider, "http://localhost:8080")
+
+# setup the callback handler for receiving the GitHub callback
+oauth2.setup_callback(router.get("/callback"))
+
+# protect everything under /protected
+router.route("/protected/*").handler(&oauth2.method(:handle))
+# mount some handler under the protected zone
+router.route("/protected/somepage").handler() { |rc|
+  rc.response().end("Welcome to the protected resource!")
+}
+
+# welcome page
+router.get("/").handler() { |ctx|
+  ctx.response().put_header("content-type", "text/html").end("Hello<br><a href=\"/protected/somepage\">Protected by Github</a>")
+}
+
+----
+
+Due to the nature of OAuth2 spec there are slight changes required in order to use other OAuth2 providers, for
+example, if you are planning to use Google Auth you implement it as:
+
+[source,ruby]
+----
+require 'vertx-auth-jwt/o_auth2_auth'
+require 'vertx-web/o_auth2_auth_handler'
+
+# create an OAuth2 provider, clientID and clientSecret should be requested to Google
+authProvider = VertxAuthJwt::OAuth2Auth.create(vertx, :AUTH_CODE, {
+  'clientID' => "CLIENT_ID",
+  'clientSecret' => "CLIENT_SECRET",
+  'site' => "https://accounts.google.com",
+  'tokenPath' => "https://www.googleapis.com/oauth2/v3/token",
+  'authorizationPath' => "/o/oauth2/auth"
+})
+
+# create a oauth2 handler on our domain: "http://localhost:8080"
+oauth2 = VertxWeb::OAuth2AuthHandler.create(authProvider, "http://localhost:8080")
+
+# these are the scopes
+oauth2.add_authority("profile")
+
+# setup the callback handler for receiving the Google callback
+oauth2.setup_callback(router.get("/callback"))
+
+# protect everything under /protected
+router.route("/protected/*").handler(&oauth2.method(:handle))
+# mount some handler under the protected zone
+router.route("/protected/somepage").handler() { |rc|
+  rc.response().end("Welcome to the protected resource!")
+}
+
+# welcome page
+router.get("/").handler() { |ctx|
+  ctx.response().put_header("content-type", "text/html").end("Hello<br><a href=\"/protected/somepage\">Protected by Google</a>")
+}
+
+----
+
+The changes are only on the configuration, note that the token uri must now be a full URL since it is generated from
+a different server than the authorization one.
+
+Important to note that for google OAuth you must register all your callback URLs in the developer console, so for the
+current example you would need to register `http://localhost:8080/callback?redirect_uri=/protected/somepage`.
+
+If you're looking to integrate with LinkedIn then your config should be:
+
+[source,ruby]
+----
+require 'vertx-auth-jwt/o_auth2_auth'
+require 'vertx-web/o_auth2_auth_handler'
+
+# create an OAuth2 provider, clientID and clientSecret should be requested to LinkedIn
+authProvider = VertxAuthJwt::OAuth2Auth.create(vertx, :AUTH_CODE, {
+  'clientID' => "CLIENT_ID",
+  'clientSecret' => "CLIENT_SECRET",
+  'site' => "https://www.linkedin.com",
+  'authorizationPath' => "/uas/oauth2/authorization",
+  'tokenPath' => "/uas/oauth2/accessToken"
+})
+
+# create a oauth2 handler on our domain: "http://localhost:8080"
+oauth2 = VertxWeb::OAuth2AuthHandler.create(authProvider, "http://localhost:8080")
+
+# these are the scopes
+oauth2.add_authority("r_basicprofile")
+
+# setup the callback handler for receiving the LinkedIn callback
+oauth2.setup_callback(router.get("/callback"))
+
+# protect everything under /protected
+router.route("/protected/*").handler(&oauth2.method(:handle))
+# mount some handler under the protected zone
+router.route("/protected/somepage").handler() { |rc|
+  rc.response().end("Welcome to the protected resource!")
+}
+
+# welcome page
+router.get("/").handler() { |ctx|
+  ctx.response().put_header("content-type", "text/html").end("Hello<br><a href=\"/protected/somepage\">Protected by LinkedIn</a>")
+}
+
+----

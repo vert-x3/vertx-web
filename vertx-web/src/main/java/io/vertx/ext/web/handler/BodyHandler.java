@@ -57,6 +57,16 @@ public interface BodyHandler extends Handler<RoutingContext> {
   }
 
   /**
+   * Create a body handler and use the given upload directory.
+   *
+   * @param uploadDirectory  the uploads directory
+   * @return the body handler
+   */
+  static BodyHandler create(String uploadDirectory) {
+    return new BodyHandlerImpl(uploadDirectory);
+  }
+
+  /**
    * Set the maximum body size -1 means unlimited
    *
    * @param bodyLimit  the max size

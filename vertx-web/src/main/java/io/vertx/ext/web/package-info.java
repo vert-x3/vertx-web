@@ -1699,6 +1699,49 @@
  * ----
  * {@link examples.Examples#example56}
  * ----
+ *
+ * == OAuth2AuthHandler Handler
+ *
+ * The `OAuth2AuthHandler` allows quick setup of secure routes using the OAuth2 protocol. This handler simplifies the
+ * authCode flow. An example of using it to protect some resouce and authenticate with GitHub can be implemented as:
+ *
+ * [source,$lang]
+ * ----
+ * {@link examples.Examples#example58}
+ * ----
+ *
+ * Due to the nature of OAuth2 spec there are slight changes required in order to use other OAuth2 providers, for
+ * example, if you are planning to use Google Auth you implement it as:
+ *
+ * [source,$lang]
+ * ----
+ * {@link examples.Examples#example59}
+ * ----
+ *
+ * The changes are only on the configuration, note that the token uri must now be a full URL since it is generated from
+ * a different server than the authorization one.
+ *
+ * Important to note that for google OAuth you must register all your callback URLs in the developer console, so for the
+ * current example you would need to register `http://localhost:8080/callback?redirect_uri=/protected/somepage`.
+ *
+ * If you're looking to integrate with LinkedIn then your config should be:
+ *
+ * [source,$lang]
+ * ----
+ * {@link examples.Examples#example60}
+ * ----
+ *
+ * As it can be seen from the examples all you need to know is 2 urls, the authorization path and the token path. You
+ * will find all these configurations on your provider documentation we have also listed on the auth project examples
+ * for:
+ *
+ * * google
+ * * twitter
+ * * github
+ * * linkedin
+ * * facebook
+ * * keycloak
+ *
  */
 @Document(fileName = "index.adoc")
 @ModuleGen(name = "vertx-web", groupPackage = "io.vertx")

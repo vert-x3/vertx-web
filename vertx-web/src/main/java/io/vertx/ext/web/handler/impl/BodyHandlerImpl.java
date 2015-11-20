@@ -44,6 +44,10 @@ public class BodyHandlerImpl implements BodyHandler {
     setUploadsDirectory(DEFAULT_UPLOADS_DIRECTORY);
   }
 
+  public BodyHandlerImpl(String uploadDirectory) {
+    setUploadsDirectory(uploadDirectory);
+  }
+
   @Override
   public void handle(RoutingContext context) {
     HttpServerRequest request = context.request();
