@@ -95,16 +95,18 @@ var BodyHandler = function(j_val) {
 };
 
 /**
- Create a body handler with defaults
+ Create a body handler and use the given upload directory.
 
  @memberof module:vertx-web-js/body_handler
-
+ @param uploadDirectory {string} the uploads directory 
  @return {BodyHandler} the body handler
  */
 BodyHandler.create = function() {
   var __args = arguments;
   if (__args.length === 0) {
     return utils.convReturnVertxGen(JBodyHandler["create()"](), BodyHandler);
+  }else if (__args.length === 1 && typeof __args[0] === 'string') {
+    return utils.convReturnVertxGen(JBodyHandler["create(java.lang.String)"](__args[0]), BodyHandler);
   } else throw new TypeError('function invoked with invalid arguments');
 };
 
