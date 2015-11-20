@@ -1731,6 +1731,16 @@
  * {@link examples.Examples#example60}
  * ----
  *
+ * As it can be seen from the examples all you need to know is 2 urls, the authorization path and the token path. You
+ * will find all these configurations on your provider documentation we have also listed on the auth project examples
+ * for:
+ *
+ * * google
+ * * twitter
+ * * github
+ * * linkedin
+ * * facebook
+ * * keycloak
  *
  */
 @Document(fileName = "index.adoc")
