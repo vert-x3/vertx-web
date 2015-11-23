@@ -36,6 +36,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class BodyHandlerImpl implements BodyHandler {
 
+  private static final String BODY_HANDLED = "__body-handled";
+
   private long bodyLimit = DEFAULT_BODY_LIMIT;
   private String uploadsDir;
   private boolean mergeFormAttributes = DEFAULT_MERGE_FORM_ATTRIBUTES;
@@ -51,9 +53,16 @@ public class BodyHandlerImpl implements BodyHandler {
   @Override
   public void handle(RoutingContext context) {
     HttpServerRequest request = context.request();
-    BHandler handler = new BHandler(context);
-    request.handler(handler);
-    request.endHandler(v -> handler.end());
+    // we need to keep state since we can be called again on reroute
+    Boolean handled = context.get(BODY_HANDLED);
+    if (handled == null || !handled) {
+      BHandler handler = new BHandler(context);
+      request.handler(handler);
+      request.endHandler(v -> handler.end());
+      context.put(BODY_HANDLED, true);
+    } else {
+      context.next();
+    }
   }
 
   @Override
