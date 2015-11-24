@@ -244,7 +244,7 @@ public class RouteImpl implements Route {
       return false;
     }
     if (pattern != null) {
-      String path = request.path();
+      String path = useNormalisedPath ? context.normalisedPath() : context.request().path();
       if (mountPoint != null) {
         path = path.substring(mountPoint.length());
       }
