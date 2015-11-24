@@ -98,7 +98,7 @@
  *
  * [source,java]
  * ----
- * {@link examples.Examples#example1}
+ * {@link examples.WebExamples#example1}
  * ----
  *
  * We create an HTTP server instance, and we set a request handler on it. The request handler will be called whenever
@@ -127,7 +127,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example2}
+ * {@link examples.WebExamples#example2}
  * ----
  *
  * It basically does the same thing as the Vert.x Core HTTP server hello world example from the previous section,
@@ -163,7 +163,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example20}
+ * {@link examples.WebExamples#example20}
  * ----
  *
  * In the above example `route1` is written to the response, then 5 seconds later `route2` is written to the response,
@@ -186,7 +186,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example20_1}
+ * {@link examples.WebExamples#example20_1}
  * ----
  *
  * By default, any blocking handlers executed on the same context (e.g. the same verticle instance) are _ordered_ - this
@@ -204,7 +204,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example3}
+ * {@link examples.WebExamples#example3}
  * ----
  *
  * == Routing by paths that begin with something
@@ -219,14 +219,14 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example3_1}
+ * {@link examples.WebExamples#example3_1}
  * ----
  *
  * With any path it can also be specified when creating the route:
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example4}
+ * {@link examples.WebExamples#example4}
  * ----
  *
  * == Capturing path parameters
@@ -238,7 +238,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example4_1}
+ * {@link examples.WebExamples#example4_1}
  * ----
  *
  * The placeholders consist of `:` followed by the parameter name. Parameter names consist of any alphabetic character,
@@ -253,14 +253,14 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example5}
+ * {@link examples.WebExamples#example5}
  * ----
  *
  * Alternatively the regex can be specified when creating the route:
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example6}
+ * {@link examples.WebExamples#example6}
  * ----
  *
  * == Capturing path parameters with regular expressions
@@ -269,7 +269,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example6_1}
+ * {@link examples.WebExamples#example6_1}
  * ----
  *
  * In the above example, if a request is made to path: `/tools/drill123/` then the route will match
@@ -285,14 +285,14 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example7}
+ * {@link examples.WebExamples#example7}
  * ----
  *
  * Or you can specify this with a path when creating the route:
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example8}
+ * {@link examples.WebExamples#example8}
  * ----
  *
  * If you want to route for a specific HTTP method you can also use the methods such as {@link io.vertx.ext.web.Router#get},
@@ -301,7 +301,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example8_1}
+ * {@link examples.WebExamples#example8_1}
  * ----
  *
  * If you want to specify a route will match for more than HTTP method you can call {@link io.vertx.ext.web.Route#method}
@@ -309,7 +309,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example9}
+ * {@link examples.WebExamples#example9}
  * ----
  *
  * == Route order
@@ -326,7 +326,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example10}
+ * {@link examples.WebExamples#example10}
  * ----
  *
  * In the above example the response will contain:
@@ -352,7 +352,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example11}
+ * {@link examples.WebExamples#example11}
  * ----
  *
  * then the response will now contain:
@@ -380,28 +380,28 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example12}
+ * {@link examples.WebExamples#example12}
  * ----
  *
  * Multiple exact matches can also be specified:
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example13}
+ * {@link examples.WebExamples#example13}
  * ----
  *
  * Matching on wildcards for the sub-type is supported:
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example14}
+ * {@link examples.WebExamples#example14}
  * ----
  *
  * And you can also match on the top level type
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example15}
+ * {@link examples.WebExamples#example15}
  * ----
  *
  * If you don't specify a `/` in the consumers, it will assume you meant the sub-type.
@@ -436,7 +436,7 @@
  *
  * [source,java]
  * ----
- * {@link examples.Examples#example16}
+ * {@link examples.WebExamples#example16}
  * ----
  *
  * In this case the route will match with any request with an `accept` header that matches `application/json`.
@@ -454,7 +454,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example17}
+ * {@link examples.WebExamples#example17}
  * ----
  *
  * In the above example, if you sent a request with the following `accept` header:
@@ -470,7 +470,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example18}
+ * {@link examples.WebExamples#example18}
  * ----
  *
  * == Enabling and disabling routes
@@ -493,7 +493,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example21}
+ * {@link examples.WebExamples#example21}
  * ----
  *
  * [language, java]
@@ -508,7 +508,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example55}
+ * {@link examples.WebExamples#example55}
  * ----
  *
  * So from the code you can see that if a request arrives at `/some/path` if first add a value to the context, then
@@ -534,7 +534,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example22}
+ * {@link examples.WebExamples#example22}
  * ----
  *
  * If this router was used as a top level router, then GET/PUT/DELETE requests to urls like `/products/product1234`
@@ -544,14 +544,14 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example23}
+ * {@link examples.WebExamples#example23}
  * ----
  *
  * We can now mount the sub router on the main router, against a mount point, in this case `/productsAPI`
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example24}
+ * {@link examples.WebExamples#example24}
  * ----
  *
  * This means the REST API is now accessible via paths like: `/productsAPI/products/product1234`
@@ -563,7 +563,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example57}
+ * {@link examples.WebExamples#example57}
  * ----
  *
  * The main method {@link io.vertx.ext.web.RoutingContext#acceptableLocales} will return the ordered list of locales the
@@ -593,7 +593,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example25}
+ * {@link examples.WebExamples#example25}
  * ----
  *
  * Failure routing will occur if a handler throws an exception, or if a handler calls
@@ -606,7 +606,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example26}
+ * {@link examples.WebExamples#example26}
  * ----
  *
  * For the eventuality that an error occurs when running the error handler related usage of not allowed characters in
@@ -626,7 +626,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example27}
+ * {@link examples.WebExamples#example27}
  * ----
  *
  * === Getting the request body
@@ -664,7 +664,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example28}
+ * {@link examples.WebExamples#example28}
  * ----
  *
  * Each file upload is described by a {@link io.vertx.ext.web.FileUpload} instance, which allows various properties
@@ -678,7 +678,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example29}
+ * {@link examples.WebExamples#example29}
  * ----
  *
  * === Manipulating cookies
@@ -700,7 +700,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example30}
+ * {@link examples.WebExamples#example30}
  * ----
  *
  * == Handling sessions
@@ -752,7 +752,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example31}
+ * {@link examples.WebExamples#example31}
  * ----
  *
  * ==== Clustered session store
@@ -770,7 +770,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example32}
+ * {@link examples.WebExamples#example32}
  * ----
  *
  * === Creating the session handler
@@ -785,7 +785,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example33}
+ * {@link examples.WebExamples#example33}
  * ----
  *
  * The session handler will ensure that your session is automatically looked up (or created if no session exists)
@@ -807,7 +807,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example34}
+ * {@link examples.WebExamples#example34}
  * ----
  *
  * Sessions are automatically written back to the store after after responses are complete.
@@ -843,7 +843,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example37}
+ * {@link examples.WebExamples#example37}
  * ----
  *
  * === Handling auth in your application
@@ -853,7 +853,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example38}
+ * {@link examples.WebExamples#example38}
  * ----
  *
  * If the auth handler has successfully authenticated and authorised the user it will inject a {@link io.vertx.ext.auth.User}
@@ -910,7 +910,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example39}
+ * {@link examples.WebExamples#example39}
  * ----
  *
  * === JWT authorisation
@@ -930,7 +930,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example50}
+ * {@link examples.WebExamples#example50}
  * ----
  *
  * Now that your client has a token all it is required is that for *all* consequent request the HTTP header
@@ -938,7 +938,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example51}
+ * {@link examples.WebExamples#example51}
  * ----
  *
  * JWT allows you to add any information you like to the token itself. By doing this there is no state in the server
@@ -947,14 +947,14 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example52}
+ * {@link examples.WebExamples#example52}
  * ----
  *
  * And the same when consuming:
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example53}
+ * {@link examples.WebExamples#example53}
  * ----
  *
  * === Configuring required authorities
@@ -970,7 +970,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example40}
+ * {@link examples.WebExamples#example40}
  * ----
  *
  * == Serving static resources
@@ -988,7 +988,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example41}
+ * {@link examples.WebExamples#example41}
  * ----
  *
  * For example, if there was a request with path `/static/css/mystyles.css` the static serve will look for a file in the
@@ -1086,7 +1086,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example41_0_1}
+ * {@link examples.WebExamples#example41_0_1}
  * ----
  *
  * ////
@@ -1263,7 +1263,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example41_2}
+ * {@link examples.WebExamples#example41_2}
  * ----
  *
  * Please consult the https://github.com/jknack/handlebars.java[Handlebars Java port documentation] for how to write
@@ -1334,7 +1334,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example42}
+ * {@link examples.WebExamples#example42}
  * ----
  *
  * == Response time handler
@@ -1367,7 +1367,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example43}
+ * {@link examples.WebExamples#example43}
  * ----
  *
  * === Handling SockJS sockets
@@ -1384,7 +1384,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example44}
+ * {@link examples.WebExamples#example44}
  * ----
  *
  * === The client side
@@ -1470,7 +1470,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example45}
+ * {@link examples.WebExamples#example45}
  * ----
  *
  * In client side JavaScript you use the 'vertx-eventbus.js` library to create connections to the event bus and to send
@@ -1589,7 +1589,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example46}
+ * {@link examples.WebExamples#example46}
  * ----
  *
  * === Requiring authorisation for messages
@@ -1607,7 +1607,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example47}
+ * {@link examples.WebExamples#example47}
  * ----
  *
  * For the user to be authorised they must be first logged in and secondly have the required authority.
@@ -1616,7 +1616,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example48}
+ * {@link examples.WebExamples#example48}
  * ----
  *
  * === Handling event bus bridge events
@@ -1661,7 +1661,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example49}
+ * {@link examples.WebExamples#example49}
  * ----
  *
  * You can also amend the raw message, e.g. change the body. For messages that are flowing in from the client you can
@@ -1669,7 +1669,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example48_1}
+ * {@link examples.WebExamples#example48_1}
  * ----
  *
  * == CSRF Cross Site Request Forgery
@@ -1684,7 +1684,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example54}
+ * {@link examples.WebExamples#example54}
  * ----
  *
  * == VirtualHost Handler
@@ -1697,7 +1697,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example56}
+ * {@link examples.WebExamples#example56}
  * ----
  *
  * == OAuth2AuthHandler Handler
@@ -1707,7 +1707,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example58}
+ * {@link examples.WebExamples#example58}
  * ----
  *
  * Due to the nature of OAuth2 spec there are slight changes required in order to use other OAuth2 providers, for
@@ -1715,7 +1715,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example59}
+ * {@link examples.WebExamples#example59}
  * ----
  *
  * The changes are only on the configuration, note that the token uri must now be a full URL since it is generated from
@@ -1728,7 +1728,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example60}
+ * {@link examples.WebExamples#example60}
  * ----
  *
  * As it can be seen from the examples all you need to know is 2 urls, the authorization path and the token path. You

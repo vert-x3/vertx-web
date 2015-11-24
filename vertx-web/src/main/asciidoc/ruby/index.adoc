@@ -2655,11 +2655,11 @@ authCode flow. An example of using it to protect some resouce and authenticate w
 
 [source,ruby]
 ----
-require 'vertx-auth-jwt/o_auth2_auth'
+require 'vertx-auth-oauth2/o_auth2_auth'
 require 'vertx-web/o_auth2_auth_handler'
 
 # create an OAuth2 provider, clientID and clientSecret should be requested to github
-authProvider = VertxAuthJwt::OAuth2Auth.create(vertx, :AUTH_CODE, {
+authProvider = VertxAuthOauth2::OAuth2Auth.create(vertx, :AUTH_CODE, {
   'clientID' => "CLIENT_ID",
   'clientSecret' => "CLIENT_SECRET",
   'site' => "https://github.com/login",
@@ -2692,11 +2692,11 @@ example, if you are planning to use Google Auth you implement it as:
 
 [source,ruby]
 ----
-require 'vertx-auth-jwt/o_auth2_auth'
+require 'vertx-auth-oauth2/o_auth2_auth'
 require 'vertx-web/o_auth2_auth_handler'
 
 # create an OAuth2 provider, clientID and clientSecret should be requested to Google
-authProvider = VertxAuthJwt::OAuth2Auth.create(vertx, :AUTH_CODE, {
+authProvider = VertxAuthOauth2::OAuth2Auth.create(vertx, :AUTH_CODE, {
   'clientID' => "CLIENT_ID",
   'clientSecret' => "CLIENT_SECRET",
   'site' => "https://accounts.google.com",
@@ -2737,11 +2737,11 @@ If you're looking to integrate with LinkedIn then your config should be:
 
 [source,ruby]
 ----
-require 'vertx-auth-jwt/o_auth2_auth'
+require 'vertx-auth-oauth2/o_auth2_auth'
 require 'vertx-web/o_auth2_auth_handler'
 
 # create an OAuth2 provider, clientID and clientSecret should be requested to LinkedIn
-authProvider = VertxAuthJwt::OAuth2Auth.create(vertx, :AUTH_CODE, {
+authProvider = VertxAuthOauth2::OAuth2Auth.create(vertx, :AUTH_CODE, {
   'clientID' => "CLIENT_ID",
   'clientSecret' => "CLIENT_SECRET",
   'site' => "https://www.linkedin.com",

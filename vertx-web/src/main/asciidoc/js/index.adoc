@@ -2655,7 +2655,7 @@ authCode flow. An example of using it to protect some resouce and authenticate w
 
 [source,js]
 ----
-var OAuth2Auth = require("vertx-auth-jwt-js/o_auth2_auth");
+var OAuth2Auth = require("vertx-auth-oauth2-js/o_auth2_auth");
 var OAuth2AuthHandler = require("vertx-web-js/o_auth2_auth_handler");
 
 // create an OAuth2 provider, clientID and clientSecret should be requested to github
@@ -2692,7 +2692,7 @@ example, if you are planning to use Google Auth you implement it as:
 
 [source,js]
 ----
-var OAuth2Auth = require("vertx-auth-jwt-js/o_auth2_auth");
+var OAuth2Auth = require("vertx-auth-oauth2-js/o_auth2_auth");
 var OAuth2AuthHandler = require("vertx-web-js/o_auth2_auth_handler");
 
 // create an OAuth2 provider, clientID and clientSecret should be requested to Google
@@ -2737,7 +2737,7 @@ If you're looking to integrate with LinkedIn then your config should be:
 
 [source,js]
 ----
-var OAuth2Auth = require("vertx-auth-jwt-js/o_auth2_auth");
+var OAuth2Auth = require("vertx-auth-oauth2-js/o_auth2_auth");
 var OAuth2AuthHandler = require("vertx-web-js/o_auth2_auth_handler");
 
 // create an OAuth2 provider, clientID and clientSecret should be requested to LinkedIn

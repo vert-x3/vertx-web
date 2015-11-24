@@ -29,7 +29,7 @@ import java.util.Set;
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public class Examples {
+public class WebExamples {
 
   public void example1(Vertx vertx) {
     HttpServer server = vertx.createHttpServer();
