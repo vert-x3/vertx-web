@@ -666,6 +666,15 @@ public class RouterTest extends WebTestBase {
   }
 
   @Test
+  public void testParamEscape4() throws Exception {
+    router.route("/:var").handler(rc -> {
+      assertEquals("/ping", rc.request().params().get("var"));
+      rc.response().end(rc.request().params().get("var"));
+    });
+    testRequest(HttpMethod.GET, "/%2Fping", 200, "OK", "/ping");
+  }
+
+  @Test
   public void testPattern1WithMethod() throws Exception {
     router.route(HttpMethod.GET, "/:abc").handler(rc -> {
       rc.response().setStatusMessage(rc.request().params().get("abc")).end();
