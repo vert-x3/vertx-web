@@ -641,9 +641,28 @@ public class RouterTest extends WebTestBase {
   @Test
   public void testParamEscape() throws Exception {
     router.route("/demo/:abc").handler(rc -> {
+      assertEquals("Hello World!", rc.request().params().get("abc"));
       rc.response().end(rc.request().params().get("abc"));
     });
     testRequest(HttpMethod.GET, "/demo/Hello%20World!", 200, "OK", "Hello World!");
+  }
+
+  @Test
+  public void testParamEscape2() throws Exception {
+    router.route("/demo/:abc").handler(rc -> {
+      assertEquals("Hello/World!", rc.request().params().get("abc"));
+      rc.response().end(rc.request().params().get("abc"));
+    });
+    testRequest(HttpMethod.GET, "/demo/Hello%2FWorld!", 200, "OK", "Hello/World!");
+  }
+
+  @Test
+  public void testParamEscape3() throws Exception {
+    router.route("/demo/:abc").handler(rc -> {
+      assertEquals("http://www.google.com", rc.request().params().get("abc"));
+      rc.response().end(rc.request().params().get("abc"));
+    });
+    testRequest(HttpMethod.GET, "/demo/http%3A%2F%2Fwww.google.com", 200, "OK", "http://www.google.com");
   }
 
   @Test

@@ -244,17 +244,9 @@ public class RouteImpl implements Route {
       return false;
     }
     if (pattern != null) {
-      String path = useNormalisedPath ? context.normalisedPath() : context.request().path();
+      String path = useNormalisedPath ? Utils.normalisePath(context.request().path(), false) : context.request().path();
       if (mountPoint != null) {
         path = path.substring(mountPoint.length());
-      }
-
-      // decode the path as it could contain escaped chars.
-      try {
-        path = URLDecoder.decode(path, "UTF-8");
-      } catch (UnsupportedEncodingException e) {
-        context.fail(e);
-        return false;
       }
 
       Matcher m = pattern.matcher(path);
@@ -263,13 +255,25 @@ public class RouteImpl implements Route {
           Map<String, String> params = new HashMap<>(m.groupCount());
           if (groups != null) {
             // Pattern - named params
-            for (String param : groups) {
-              params.put(param, m.group(param));
+            // decode the path as it could contain escaped chars.
+            try {
+              for (String param : groups) {
+                params.put(param, URLDecoder.decode(m.group(param), "UTF-8"));
+              }
+            } catch (UnsupportedEncodingException e) {
+              context.fail(e);
+              return false;
             }
           } else {
             // Straight regex - un-named params
-            for (int i = 0; i < m.groupCount(); i++) {
-              params.put("param" + i, m.group(i + 1));
+            // decode the path as it could contain escaped chars.
+            try {
+              for (int i = 0; i < m.groupCount(); i++) {
+                params.put("param" + i, URLDecoder.decode(m.group(i + 1), "UTF-8"));
+              }
+            } catch (UnsupportedEncodingException e) {
+              context.fail(e);
+              return false;
             }
           }
           request.params().addAll(params);
@@ -360,7 +364,7 @@ public class RouteImpl implements Route {
 
   private boolean pathMatches(String mountPoint, RoutingContext ctx) {
     String thePath = mountPoint == null ? path : mountPoint + path;
-    String requestPath = useNormalisedPath ? ctx.normalisedPath() : ctx.request().path();
+    String requestPath = useNormalisedPath ? Utils.normalisePath(ctx.request().path(), false) : ctx.request().path();
     if (exactPath) {
       return pathMatchesExact(requestPath, thePath);
     } else {
