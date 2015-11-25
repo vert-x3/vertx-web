@@ -2330,21 +2330,6 @@ On each get request under this handler a cookie is added to the response with a 
 expected to return this token back in a header. Since cookies are sent it is required that the cookie handler is also
 present on the router.
 
-When developing non single page applications that rely on the User-Agent to perform the `POST` action, Headers cannot
-be specified on HTML Forms. In order to solve this problem the header value will also be checked if and only if no
-header was present in the Form attributes under the same name as the header, e.g.:
-
-[source,html]
----
-<form action="/submit" method="POST">
-<input type="hidden" name="X-XSRF-TOKEN" value="abracadabra">
-</form>
----
-
-It is the responsibility of the user to fill in the right value for the form field. Users who prefer to use an HTML
-only solution can fill this value by fetching the the token value from the routing context under the key `X-XSRF-TOKEN`
-or the header name they have chosen during the instantiation of the `CSRFHandler` object.
-
 [source,java]
 ----
 router.route().handler(CookieHandler.create());
@@ -2368,3 +2353,120 @@ router.route().handler(VirtualHostHandler.create("*.vertx.io", routingContext ->
   // do something if the request is for *.vertx.io
 }));
 ----
+
+== OAuth2AuthHandler Handler
+
+The `OAuth2AuthHandler` allows quick setup of secure routes using the OAuth2 protocol. This handler simplifies the
+authCode flow. An example of using it to protect some resouce and authenticate with GitHub can be implemented as:
+
+[source,java]
+----
+OAuth2Auth authProvider = OAuth2Auth.create(vertx, OAuth2FlowType.AUTH_CODE, new JsonObject()
+    .put("clientID", "CLIENT_ID")
+    .put("clientSecret", "CLIENT_SECRET")
+    .put("site", "https://github.com/login")
+    .put("tokenPath", "/oauth/access_token")
+    .put("authorizationPath", "/oauth/authorize"));
+
+// create a oauth2 handler on our domain: "http://localhost:8080"
+OAuth2AuthHandler oauth2 = OAuth2AuthHandler.create(authProvider, "http://localhost:8080");
+
+// setup the callback handler for receiving the GitHub callback
+oauth2.setupCallback(router.get("/callback"));
+
+// protect everything under /protected
+router.route("/protected/*").handler(oauth2);
+// mount some handler under the protected zone
+router.route("/protected/somepage").handler(rc -> {
+  rc.response().end("Welcome to the protected resource!");
+});
+
+// welcome page
+router.get("/").handler(ctx -> {
+  ctx.response().putHeader("content-type", "text/html").end("Hello<br><a href=\"/protected/somepage\">Protected by Github</a>");
+});
+----
+
+Due to the nature of OAuth2 spec there are slight changes required in order to use other OAuth2 providers, for
+example, if you are planning to use Google Auth you implement it as:
+
+[source,java]
+----
+OAuth2Auth authProvider = OAuth2Auth.create(vertx, OAuth2FlowType.AUTH_CODE, new JsonObject()
+    .put("clientID", "CLIENT_ID")
+    .put("clientSecret", "CLIENT_SECRET")
+    .put("site", "https://accounts.google.com")
+    .put("tokenPath", "https://www.googleapis.com/oauth2/v3/token")
+    .put("authorizationPath", "/o/oauth2/auth"));
+
+// create a oauth2 handler on our domain: "http://localhost:8080"
+OAuth2AuthHandler oauth2 = OAuth2AuthHandler.create(authProvider, "http://localhost:8080");
+
+// these are the scopes
+oauth2.addAuthority("profile");
+
+// setup the callback handler for receiving the Google callback
+oauth2.setupCallback(router.get("/callback"));
+
+// protect everything under /protected
+router.route("/protected/*").handler(oauth2);
+// mount some handler under the protected zone
+router.route("/protected/somepage").handler(rc -> {
+  rc.response().end("Welcome to the protected resource!");
+});
+
+// welcome page
+router.get("/").handler(ctx -> {
+  ctx.response().putHeader("content-type", "text/html").end("Hello<br><a href=\"/protected/somepage\">Protected by Google</a>");
+});
+----
+
+The changes are only on the configuration, note that the token uri must now be a full URL since it is generated from
+a different server than the authorization one.
+
+Important to note that for google OAuth you must register all your callback URLs in the developer console, so for the
+current example you would need to register `http://localhost:8080/callback?redirect_uri=/protected/somepage`.
+
+If you're looking to integrate with LinkedIn then your config should be:
+
+[source,java]
+----
+OAuth2Auth authProvider = OAuth2Auth.create(vertx, OAuth2FlowType.AUTH_CODE, new JsonObject()
+    .put("clientID", "CLIENT_ID")
+    .put("clientSecret", "CLIENT_SECRET")
+    .put("site", "https://www.linkedin.com")
+    .put("authorizationPath", "/uas/oauth2/authorization")
+    .put("tokenPath", "/uas/oauth2/accessToken"));
+
+// create a oauth2 handler on our domain: "http://localhost:8080"
+OAuth2AuthHandler oauth2 = OAuth2AuthHandler.create(authProvider, "http://localhost:8080");
+
+// these are the scopes
+oauth2.addAuthority("r_basicprofile");
+
+// setup the callback handler for receiving the LinkedIn callback
+oauth2.setupCallback(router.get("/callback"));
+
+// protect everything under /protected
+router.route("/protected/*").handler(oauth2);
+// mount some handler under the protected zone
+router.route("/protected/somepage").handler(rc -> {
+  rc.response().end("Welcome to the protected resource!");
+});
+
+// welcome page
+router.get("/").handler(ctx -> {
+  ctx.response().putHeader("content-type", "text/html").end("Hello<br><a href=\"/protected/somepage\">Protected by LinkedIn</a>");
+});
+----
+
+As it can be seen from the examples all you need to know is 2 urls, the authorization path and the token path. You
+will find all these configurations on your provider documentation we have also listed on the auth project examples
+for:
+
+* google
+* twitter
+* github
+* linkedin
+* facebook
+* keycloak

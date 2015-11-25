@@ -256,4 +256,20 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
     }
   }
 
+  @Test
+  public void testSecurityBypass() throws Exception {
+
+    Handler<RoutingContext> handler = rc -> {
+      fail("should not get here");
+      rc.response().end("Welcome to the protected resource!");
+    };
+
+    JsonObject authConfig = new JsonObject().put("properties_path", "classpath:login/loginusers.properties");
+    AuthProvider authProvider = ShiroAuth.create(vertx, ShiroAuthRealmType.PROPERTIES, authConfig);
+    router.route().pathRegex("/api/.*").handler(BasicAuthHandler.create(authProvider));
+
+    router.route("/api/v1/standard-job-profiles").handler(handler);
+
+    testRequest(HttpMethod.GET, "//api/v1/standard-job-profiles", 401, "Unauthorized");
+  }
 }

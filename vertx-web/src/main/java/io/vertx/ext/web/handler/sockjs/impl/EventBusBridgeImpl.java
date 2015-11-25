@@ -324,6 +324,18 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
     if (message.replyAddress() != null) {
       envelope.put("replyAddress", message.replyAddress());
     }
+    if ( message.headers() != null && !message.headers().isEmpty()) {
+      JsonObject headersCopy = new JsonObject();
+      for (String name : message.headers().names()) {
+      List<String> values = message.headers().getAll(name);
+        if ( values.size() == 1) {
+          headersCopy.put(name, values.get(0));
+        } else {
+          headersCopy.put(name, values);
+        }
+      }
+      envelope.put("headers", headersCopy);
+    }
     checkCallHook(() -> new BridgeEventImpl(BridgeEventType.RECEIVE, envelope, sock),
       () -> sock.write(buffer(envelope.encode())),
       () -> log.debug("outbound message rejected by bridge event handler"));

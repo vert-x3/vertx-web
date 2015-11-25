@@ -10,6 +10,8 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.AuthProvider;
 import io.vertx.ext.auth.jwt.JWTAuth;
 import io.vertx.ext.auth.jwt.JWTOptions;
+import io.vertx.ext.auth.oauth2.OAuth2Auth;
+import io.vertx.ext.auth.oauth2.OAuth2FlowType;
 import io.vertx.ext.web.*;
 import io.vertx.ext.web.handler.*;
 import io.vertx.ext.web.handler.sockjs.*;
@@ -27,7 +29,7 @@ import java.util.Set;
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public class Examples {
+public class WebExamples {
 
   public void example1(Vertx vertx) {
     HttpServer server = vertx.createHttpServer();
@@ -1102,6 +1104,99 @@ public class Examples {
       }
       // we do not know the user language so lets just inform that back:
       rc.response().end("Sorry we don't speak: " + rc.preferredLocale());
+    });
+  }
+
+  public void example58(Vertx vertx, Router router) {
+
+    // create an OAuth2 provider, clientID and clientSecret should be requested to github
+    OAuth2Auth authProvider = OAuth2Auth.create(vertx, OAuth2FlowType.AUTH_CODE, new JsonObject()
+        .put("clientID", "CLIENT_ID")
+        .put("clientSecret", "CLIENT_SECRET")
+        .put("site", "https://github.com/login")
+        .put("tokenPath", "/oauth/access_token")
+        .put("authorizationPath", "/oauth/authorize"));
+
+    // create a oauth2 handler on our domain: "http://localhost:8080"
+    OAuth2AuthHandler oauth2 = OAuth2AuthHandler.create(authProvider, "http://localhost:8080");
+
+    // setup the callback handler for receiving the GitHub callback
+    oauth2.setupCallback(router.get("/callback"));
+
+    // protect everything under /protected
+    router.route("/protected/*").handler(oauth2);
+    // mount some handler under the protected zone
+    router.route("/protected/somepage").handler(rc -> {
+      rc.response().end("Welcome to the protected resource!");
+    });
+
+    // welcome page
+    router.get("/").handler(ctx -> {
+      ctx.response().putHeader("content-type", "text/html").end("Hello<br><a href=\"/protected/somepage\">Protected by Github</a>");
+    });
+  }
+
+  public void example59(Vertx vertx, Router router) {
+
+    // create an OAuth2 provider, clientID and clientSecret should be requested to Google
+    OAuth2Auth authProvider = OAuth2Auth.create(vertx, OAuth2FlowType.AUTH_CODE, new JsonObject()
+        .put("clientID", "CLIENT_ID")
+        .put("clientSecret", "CLIENT_SECRET")
+        .put("site", "https://accounts.google.com")
+        .put("tokenPath", "https://www.googleapis.com/oauth2/v3/token")
+        .put("authorizationPath", "/o/oauth2/auth"));
+
+    // create a oauth2 handler on our domain: "http://localhost:8080"
+    OAuth2AuthHandler oauth2 = OAuth2AuthHandler.create(authProvider, "http://localhost:8080");
+
+    // these are the scopes
+    oauth2.addAuthority("profile");
+
+    // setup the callback handler for receiving the Google callback
+    oauth2.setupCallback(router.get("/callback"));
+
+    // protect everything under /protected
+    router.route("/protected/*").handler(oauth2);
+    // mount some handler under the protected zone
+    router.route("/protected/somepage").handler(rc -> {
+      rc.response().end("Welcome to the protected resource!");
+    });
+
+    // welcome page
+    router.get("/").handler(ctx -> {
+      ctx.response().putHeader("content-type", "text/html").end("Hello<br><a href=\"/protected/somepage\">Protected by Google</a>");
+    });
+  }
+
+  public void example60(Vertx vertx, Router router) {
+
+    // create an OAuth2 provider, clientID and clientSecret should be requested to LinkedIn
+    OAuth2Auth authProvider = OAuth2Auth.create(vertx, OAuth2FlowType.AUTH_CODE, new JsonObject()
+        .put("clientID", "CLIENT_ID")
+        .put("clientSecret", "CLIENT_SECRET")
+        .put("site", "https://www.linkedin.com")
+        .put("authorizationPath", "/uas/oauth2/authorization")
+        .put("tokenPath", "/uas/oauth2/accessToken"));
+
+    // create a oauth2 handler on our domain: "http://localhost:8080"
+    OAuth2AuthHandler oauth2 = OAuth2AuthHandler.create(authProvider, "http://localhost:8080");
+
+    // these are the scopes
+    oauth2.addAuthority("r_basicprofile");
+
+    // setup the callback handler for receiving the LinkedIn callback
+    oauth2.setupCallback(router.get("/callback"));
+
+    // protect everything under /protected
+    router.route("/protected/*").handler(oauth2);
+    // mount some handler under the protected zone
+    router.route("/protected/somepage").handler(rc -> {
+      rc.response().end("Welcome to the protected resource!");
+    });
+
+    // welcome page
+    router.get("/").handler(ctx -> {
+      ctx.response().putHeader("content-type", "text/html").end("Hello<br><a href=\"/protected/somepage\">Protected by LinkedIn</a>");
     });
   }
 }
