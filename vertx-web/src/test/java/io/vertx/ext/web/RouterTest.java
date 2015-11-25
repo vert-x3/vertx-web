@@ -641,9 +641,37 @@ public class RouterTest extends WebTestBase {
   @Test
   public void testParamEscape() throws Exception {
     router.route("/demo/:abc").handler(rc -> {
+      assertEquals("Hello World!", rc.request().params().get("abc"));
       rc.response().end(rc.request().params().get("abc"));
     });
     testRequest(HttpMethod.GET, "/demo/Hello%20World!", 200, "OK", "Hello World!");
+  }
+
+  @Test
+  public void testParamEscape2() throws Exception {
+    router.route("/demo/:abc").handler(rc -> {
+      assertEquals("Hello/World!", rc.request().params().get("abc"));
+      rc.response().end(rc.request().params().get("abc"));
+    });
+    testRequest(HttpMethod.GET, "/demo/Hello%2FWorld!", 200, "OK", "Hello/World!");
+  }
+
+  @Test
+  public void testParamEscape3() throws Exception {
+    router.route("/demo/:abc").handler(rc -> {
+      assertEquals("http://www.google.com", rc.request().params().get("abc"));
+      rc.response().end(rc.request().params().get("abc"));
+    });
+    testRequest(HttpMethod.GET, "/demo/http%3A%2F%2Fwww.google.com", 200, "OK", "http://www.google.com");
+  }
+
+  @Test
+  public void testParamEscape4() throws Exception {
+    router.route("/:var").handler(rc -> {
+      assertEquals("/ping", rc.request().params().get("var"));
+      rc.response().end(rc.request().params().get("var"));
+    });
+    testRequest(HttpMethod.GET, "/%2Fping", 200, "OK", "/ping");
   }
 
   @Test

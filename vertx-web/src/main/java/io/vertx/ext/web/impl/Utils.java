@@ -41,6 +41,10 @@ public class Utils extends io.vertx.core.impl.Utils {
   private static final Pattern EQUAL_SPLITTER = Pattern.compile(" *= *");
 
   public static String normalisePath(String path) {
+    return normalisePath(path, true);
+  }
+
+  public static String normalisePath(String path, boolean urldecode) {
     if (path == null || path.charAt(0) != '/') {
       return null;
     }
@@ -55,7 +59,7 @@ public class Utils extends io.vertx.core.impl.Utils {
         } else if (c == '/') {
           if (i == 0 || result.charAt(result.length() - 1) != '/')
             result.append(c);
-        } else if (c == '%') {
+        } else if (urldecode && c == '%') {
           i = processEscapeSequence(path, result, i);
         } else if (c == '.') {
           if (i == 0 || result.charAt(result.length() - 1) != '.')
