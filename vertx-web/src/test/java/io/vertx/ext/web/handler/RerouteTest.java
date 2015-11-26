@@ -75,20 +75,4 @@ public class RerouteTest extends WebTestBase {
       req.write("Test HTTP Body");
     }, 200, "OK", null);
   }
-
-//  @Test
-//  public void testRerouteWithBody() throws Exception {
-//    router.route("/test/*").handler(BodyHandler.create());
-//    router.route("/test/v1").handler(ctx -> {
-//      ctx.reroute("/test/v2");
-//    });
-//    router.route("/test/v2").handler(ctx -> {
-//      ctx.response().end();
-//    });
-//
-//    testRequest(HttpMethod.POST, "/test/v1", req -> {
-//      req.setChunked(true);
-//      req.write("Test HTTP Body");
-//    }, 200, "OK", null);
-//  }
 }
