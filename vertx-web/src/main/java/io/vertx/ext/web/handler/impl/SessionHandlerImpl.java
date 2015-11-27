@@ -42,14 +42,16 @@ public class SessionHandlerImpl implements SessionHandler {
   private boolean nagHttps;
   private boolean sessionCookieSecure;
   private boolean sessionCookieHttpOnly;
+  private boolean sessionGetRetry;
 
-  public SessionHandlerImpl(String sessionCookieName, long sessionTimeout, boolean nagHttps, boolean sessionCookieSecure, boolean sessionCookieHttpOnly, SessionStore sessionStore) {
+  public SessionHandlerImpl(String sessionCookieName, long sessionTimeout, boolean nagHttps, boolean sessionCookieSecure, boolean sessionCookieHttpOnly, boolean sessionGetRetry, SessionStore sessionStore) {
     this.sessionCookieName = sessionCookieName;
     this.sessionTimeout = sessionTimeout;
     this.nagHttps = nagHttps;
     this.sessionStore = sessionStore;
     this.sessionCookieSecure = sessionCookieSecure;
     this.sessionCookieHttpOnly = sessionCookieHttpOnly;
+    this.sessionGetRetry = sessionGetRetry;
   }
 
   @Override
@@ -79,6 +81,12 @@ public class SessionHandlerImpl implements SessionHandler {
   @Override
   public SessionHandler setSessionCookieName(String sessionCookieName) {
     this.sessionCookieName = sessionCookieName;
+    return this;
+  }
+
+  @Override
+  public SessionHandler setSessionGetRetry(boolean sessionGetRetry) {
+    this.sessionGetRetry = sessionGetRetry;
     return this;
   }
 
@@ -129,7 +137,7 @@ public class SessionHandlerImpl implements SessionHandler {
   private void doGetSession(Vertx vertx, long startTime, String sessionID, Handler<AsyncResult<Session>> resultHandler) {
     sessionStore.get(sessionID, res -> {
       if (res.succeeded()) {
-        if (res.result() == null) {
+        if (res.result() == null && sessionGetRetry) {
           // Can't find it so retry. This is necessary for clustered sessions as it can take sometime for the session
           // to propagate across the cluster so if the next request for the session comes in quickly at a different
           // node there is a possibility it isn't available yet.

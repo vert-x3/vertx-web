@@ -55,6 +55,11 @@ public interface SessionHandler extends Handler<RoutingContext> {
   boolean DEFAULT_NAG_HTTPS = true;
 
   /**
+   * Default of whether the handler should retry once to get session if a first return is null.
+   */
+  boolean DEFAULT_SESSION_GET_RETRY = true;
+
+  /**
    * Default of whether the cookie has the HttpOnly flag set
    * More info: https://www.owasp.org/index.php/HttpOnly
    */
@@ -73,7 +78,7 @@ public interface SessionHandler extends Handler<RoutingContext> {
    * @return the handler
    */
   static SessionHandler create(SessionStore sessionStore) {
-    return new SessionHandlerImpl(DEFAULT_SESSION_COOKIE_NAME, DEFAULT_SESSION_TIMEOUT, DEFAULT_NAG_HTTPS, DEFAULT_COOKIE_SECURE_FLAG, DEFAULT_COOKIE_HTTP_ONLY_FLAG, sessionStore);
+    return new SessionHandlerImpl(DEFAULT_SESSION_COOKIE_NAME, DEFAULT_SESSION_TIMEOUT, DEFAULT_NAG_HTTPS, DEFAULT_COOKIE_SECURE_FLAG, DEFAULT_COOKIE_HTTP_ONLY_FLAG, DEFAULT_SESSION_GET_RETRY, sessionStore);
   }
 
   /**
@@ -123,4 +128,12 @@ public interface SessionHandler extends Handler<RoutingContext> {
   @Fluent
   SessionHandler setSessionCookieName(String sessionCookieName);
 
+  /**
+   * Set whether the handler should retry once to get session after a first return is null.
+   *
+   * @param sessionGetRetry  true to set SessionHandler retry once get session
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  SessionHandler setSessionGetRetry(boolean sessionGetRetry);
 }

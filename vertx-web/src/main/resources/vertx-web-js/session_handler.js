@@ -122,6 +122,21 @@ var SessionHandler = function(j_val) {
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
+  /**
+   Set whether the handler should retry once to get session after a first return is null.
+
+   @public
+   @param sessionGetRetry {boolean} true to set SessionHandler retry once get session 
+   @return {SessionHandler} a reference to this, so the API can be used fluently
+   */
+  this.setSessionGetRetry = function(sessionGetRetry) {
+    var __args = arguments;
+    if (__args.length === 1 && typeof __args[0] ==='boolean') {
+      j_sessionHandler["setSessionGetRetry(boolean)"](sessionGetRetry);
+      return that;
+    } else throw new TypeError('function invoked with invalid arguments');
+  };
+
   // A reference to the underlying Java delegate
   // NOTE! This is an internal API and must not be used in user code.
   // If you rely on this property your code is likely to break if we change it / remove it without warning.
