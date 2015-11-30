@@ -51,6 +51,11 @@ public class LocalSessionStoreImpl implements LocalSessionStore, Handler<Long> {
   }
 
   @Override
+  public long retryTimeout() {
+    return 0;
+  }
+
+  @Override
   public void get(String id, Handler<AsyncResult<Session>> resultHandler) {
     resultHandler.handle(Future.succeededFuture(localMap.get(id)));
   }

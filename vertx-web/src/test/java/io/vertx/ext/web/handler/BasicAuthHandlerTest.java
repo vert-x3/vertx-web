@@ -207,6 +207,11 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
     private Map<String, Buffer> sessions = new ConcurrentHashMap<>();
 
     @Override
+    public long retryTimeout() {
+      return 0L;
+    }
+
+    @Override
     public Session createSession(long timeout) {
       return new SessionImpl(timeout);
     }

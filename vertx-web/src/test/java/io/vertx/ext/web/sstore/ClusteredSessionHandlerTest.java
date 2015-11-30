@@ -51,7 +51,7 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
     options.setClustered(true);
     options.setClusterManager(getClusterManager());
     startNodes(numNodes, options);
-    store = ClusteredSessionStore.create(vertices[0]);
+    store = ClusteredSessionStore.create(vertices[0], 3000);
   }
 
   @Override
@@ -151,8 +151,8 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
   private void stuffSession(Session session) {
     session.put("somelong", 123456l);
     session.put("someint", 1234);
-    session.put("someshort", (short)123);
-    session.put("somebyte", (byte)12);
+    session.put("someshort", (short) 123);
+    session.put("somebyte", (byte) 12);
     session.put("somedouble", 123.456d);
     session.put("somefloat", 123.456f);
     session.put("somechar", 'X');
@@ -166,13 +166,13 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
   }
 
   private void checkSession(Session session) {
-    assertEquals(123456l, (long)session.get("somelong"));
-    assertEquals(1234, (int)session.get("someint"));
-    assertEquals((short)123, (short)session.get("someshort"));
-    assertEquals((byte)12, (byte)session.get("somebyte"));
-    assertEquals(123.456d, (double)session.get("somedouble"), 0);
-    assertEquals(123.456f, (float)session.get("somefloat"), 0);
-    assertEquals('X', (char)session.get("somechar"));
+    assertEquals(123456l, (long) session.get("somelong"));
+    assertEquals(1234, (int) session.get("someint"));
+    assertEquals((short) 123, (short) session.get("someshort"));
+    assertEquals((byte) 12, (byte) session.get("somebyte"));
+    assertEquals(123.456d, (double) session.get("somedouble"), 0);
+    assertEquals(123.456f, (float) session.get("somefloat"), 0);
+    assertEquals('X', (char) session.get("somechar"));
     assertTrue(session.get("somebooleantrue"));
     assertFalse(session.get("somebooleanfalse"));
     assertEquals("wibble", session.get("somestring"));
@@ -181,6 +181,12 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
     JsonObject json = session.get("someclusterserializable");
     assertNotNull(json);
     assertEquals("bar", json.getString("foo"));
+  }
+
+  @Test
+  public void testRetryTimeout() throws Exception {
+    long val = doTestSessionRetryTimeout();
+    assertTrue(val >= 3000 && val < 5000);
   }
 
 }

@@ -14,6 +14,16 @@ module VertxWeb
     def j_del
       @j_del
     end
+    #  The retry timeout value in milli seconds used by the session handler when it retrieves a value from the store.<p/>
+    # 
+    #  A non positive value means there is no retry at all.
+    # @return [Fixnum] the timeout value, in ms
+    def retry_timeout
+      if !block_given?
+        return @j_del.java_method(:retryTimeout, []).call()
+      end
+      raise ArgumentError, "Invalid arguments when calling retry_timeout()"
+    end
     #  Create a new session
     # @param [Fixnum] timeout - the session timeout, in ms
     # @return [::VertxWeb::Session] the session

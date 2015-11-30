@@ -34,6 +34,16 @@ public class SessionStore {
     return delegate;
   }
   /**
+   * The retry timeout value in milli seconds used by the session handler when it retrieves a value from the store.<p/>
+   *
+   * A non positive value means there is no retry at all.
+   * @return the timeout value, in ms
+   */
+  public long retryTimeout() {
+    def ret = this.delegate.retryTimeout();
+    return ret;
+  }
+  /**
    * Create a new session
    * @param timeout - the session timeout, in ms
    * @return the session
