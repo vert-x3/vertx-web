@@ -17,6 +17,7 @@
 package io.vertx.ext.web.sstore;
 
 import io.vertx.ext.web.handler.SessionHandlerTestBase;
+import org.junit.Test;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -29,4 +30,8 @@ public class LocalSessionHandlerTest extends SessionHandlerTestBase {
     store = LocalSessionStore.create(vertx);
   }
 
+  @Test
+  public void testRetryTimeout() throws Exception {
+    assertTrue(doTestSessionRetryTimeout() < 3000);
+  }
 }

@@ -305,4 +305,41 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
 
   private final DateFormat dateTimeFormatter = Utils.createRFC1123DateTimeFormatter();
 
+  protected long doTestSessionRetryTimeout() throws Exception {
+    router.route().handler(CookieHandler.create());
+    router.route().handler(SessionHandler.create(store));
+    AtomicReference<Session> rid = new AtomicReference<>();
+
+    router.get("/0").handler(rc -> {
+      rid.set(rc.session());
+      rc.session().put("foo", "foo_value");
+      rc.response().end();
+    });
+    router.get("/1").handler(rc -> {
+      rid.set(rc.session());
+      assertEquals("foo_value", rc.session().get("foo"));
+      rc.session().destroy();
+      rc.response().end();
+    });
+    router.get("/2").handler(rc -> {
+      rid.set(rc.session());
+      assertEquals(null, rc.session().<String>get("foo"));
+      rc.response().end();
+    });
+
+    AtomicReference<String> sessionID = new AtomicReference<>();
+    testRequest(HttpMethod.GET, "/0", req -> {}, resp -> {
+      String setCookie = resp.headers().get("set-cookie");
+      sessionID.set(setCookie);
+    }, 200, "OK", null);
+    testRequest(HttpMethod.GET, "/1", req -> {
+      req.putHeader("cookie", sessionID.get());
+    }, 200, "OK", null);
+    long now = System.currentTimeMillis();
+    testRequest(HttpMethod.GET, "/2", req -> {
+      req.putHeader("cookie", sessionID.get());
+    }, 200, "OK", null);
+    return System.currentTimeMillis() - now;
+  }
+
 }

@@ -34,8 +34,6 @@ public class SessionHandlerImpl implements SessionHandler {
 
   private static final Logger log = LoggerFactory.getLogger(SessionHandlerImpl.class);
 
-  private static final long GET_SESSION_TIMEOUT = 5000;
-
   private final SessionStore sessionStore;
   private String sessionCookieName;
   private long sessionTimeout;
@@ -133,7 +131,8 @@ public class SessionHandlerImpl implements SessionHandler {
           // Can't find it so retry. This is necessary for clustered sessions as it can take sometime for the session
           // to propagate across the cluster so if the next request for the session comes in quickly at a different
           // node there is a possibility it isn't available yet.
-          if (System.currentTimeMillis() - startTime < GET_SESSION_TIMEOUT) {
+          long retryTimeout = sessionStore.retryTimeout();
+          if (retryTimeout > 0 && System.currentTimeMillis() - startTime < retryTimeout) {
             vertx.setTimer(5, v -> doGetSession(vertx, startTime, sessionID, resultHandler));
             return;
           }

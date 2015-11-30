@@ -31,13 +31,20 @@ public class ClusteredSessionStoreImpl implements ClusteredSessionStore {
 
   private final Vertx vertx;
   private final String sessionMapName;
+  private final long retryTimeout;
 
   // Clustered Map
   private volatile AsyncMap<String, Session> sessionMap;
 
-  public ClusteredSessionStoreImpl(Vertx vertx, String sessionMapName) {
+  public ClusteredSessionStoreImpl(Vertx vertx, String sessionMapName, long retryTimeout) {
     this.vertx = vertx;
     this.sessionMapName = sessionMapName;
+    this.retryTimeout = retryTimeout;
+  }
+
+  @Override
+  public long retryTimeout() {
+    return retryTimeout;
   }
 
   @Override

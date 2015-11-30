@@ -34,6 +34,11 @@ public interface ClusteredSessionStore extends SessionStore {
   String DEFAULT_SESSION_MAP_NAME = "vertx-web.sessions";
 
   /**
+   * Default retry time out, in ms, for a session not found in this store.
+   */
+  long DEFAULT_RETRY_TIMEOUT = 5 * 1000; // 5 seconds
+
+  /**
    * Create a session store
    *
    * @param vertx  the Vert.x instance
@@ -41,7 +46,18 @@ public interface ClusteredSessionStore extends SessionStore {
    * @return the session store
    */
   static ClusteredSessionStore create(Vertx vertx, String sessionMapName) {
-    return new ClusteredSessionStoreImpl(vertx, sessionMapName);
+    return new ClusteredSessionStoreImpl(vertx, sessionMapName, DEFAULT_RETRY_TIMEOUT);
+  }
+
+  /**
+   * Create a session store
+   *
+   * @param vertx  the Vert.x instance
+   * @param sessionMapName  the session map name
+   * @return the session store
+   */
+  static ClusteredSessionStore create(Vertx vertx, String sessionMapName, long retryTimeout) {
+    return new ClusteredSessionStoreImpl(vertx, sessionMapName, retryTimeout);
   }
 
   /**
@@ -51,7 +67,16 @@ public interface ClusteredSessionStore extends SessionStore {
    * @return the session store
    */
   static ClusteredSessionStore create(Vertx vertx) {
-    return new ClusteredSessionStoreImpl(vertx, DEFAULT_SESSION_MAP_NAME);
+    return new ClusteredSessionStoreImpl(vertx, DEFAULT_SESSION_MAP_NAME, DEFAULT_RETRY_TIMEOUT);
   }
 
+  /**
+   * Create a session store
+   *
+   * @param vertx  the Vert.x instance
+   * @return the session store
+   */
+  static ClusteredSessionStore create(Vertx vertx, long retryTimeout) {
+    return new ClusteredSessionStoreImpl(vertx, DEFAULT_SESSION_MAP_NAME, retryTimeout);
+  }
 }

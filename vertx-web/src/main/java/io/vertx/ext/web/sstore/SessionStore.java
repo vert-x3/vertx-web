@@ -31,6 +31,15 @@ import io.vertx.ext.web.Session;
 public interface SessionStore {
 
   /**
+   * The retry timeout value in milli seconds used by the session handler when it retrieves a value from the store.<p/>
+   *
+   * A non positive value means there is no retry at all.
+   *
+   * @return the timeout value, in ms
+   */
+  long retryTimeout();
+
+  /**
    * Create a new session
    *
    * @param timeout - the session timeout, in ms
