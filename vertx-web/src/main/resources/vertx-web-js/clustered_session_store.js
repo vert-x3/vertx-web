@@ -41,12 +41,15 @@ var ClusteredSessionStore = function(j_val) {
 };
 
 /**
- Create a session store
+ Create a session store.<p/>
+
+ The retry timeout value, configures how long the session handler will retry to get a session from the store
+ when it is not found.
 
  @memberof module:vertx-web-js/clustered_session_store
  @param vertx {Vertx} the Vert.x instance 
  @param sessionMapName {string} the session map name 
- @param retryTimeout {number} 
+ @param retryTimeout {number} the store retry timeout, in ms 
  @return {ClusteredSessionStore} the session store
  */
 ClusteredSessionStore.create = function() {

@@ -92,6 +92,12 @@ public interface SockJSSocket extends ReadStream<Buffer>, WriteStream<Buffer> {
   String writeHandlerID();
 
   /**
+   * Call {@link #end()}.
+   */
+  @Override
+  void end();
+
+  /**
    * Close it
    */
   void close();

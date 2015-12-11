@@ -16,7 +16,10 @@ module VertxWeb
     def j_del
       @j_del
     end
-    #  Create a session store
+    #  Create a session store.<p/>
+    # 
+    #  The retry timeout value, configures how long the session handler will retry to get a session from the store
+    #  when it is not found.
     # @overload create(vertx)
     #   @param [::Vertx::Vertx] vertx the Vert.x instance
     # @overload create(vertx,sessionMapName)
@@ -24,11 +27,11 @@ module VertxWeb
     #   @param [String] sessionMapName the session map name
     # @overload create(vertx,retryTimeout)
     #   @param [::Vertx::Vertx] vertx the Vert.x instance
-    #   @param [Fixnum] retryTimeout 
+    #   @param [Fixnum] retryTimeout the store retry timeout, in ms
     # @overload create(vertx,sessionMapName,retryTimeout)
     #   @param [::Vertx::Vertx] vertx the Vert.x instance
     #   @param [String] sessionMapName the session map name
-    #   @param [Fixnum] retryTimeout 
+    #   @param [Fixnum] retryTimeout the store retry timeout, in ms
     # @return [::VertxWeb::ClusteredSessionStore] the session store
     def self.create(param_1=nil,param_2=nil,param_3=nil)
       if param_1.class.method_defined?(:j_del) && !block_given? && param_2 == nil && param_3 == nil

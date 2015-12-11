@@ -78,6 +78,11 @@ public abstract class SockJSSocketBase implements SockJSSocket {
   }
 
   @Override
+  public void end() {
+    close();
+  }
+
+  @Override
   public void close() {
     registration.unregister();
   }

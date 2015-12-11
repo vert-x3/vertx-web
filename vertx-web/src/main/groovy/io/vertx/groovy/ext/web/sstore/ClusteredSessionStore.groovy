@@ -43,10 +43,13 @@ public class ClusteredSessionStore extends SessionStore {
     return ret;
   }
   /**
-   * Create a session store
+   * Create a session store.<p/>
+   *
+   * The retry timeout value, configures how long the session handler will retry to get a session from the store
+   * when it is not found.
    * @param vertx the Vert.x instance
    * @param sessionMapName the session map name
-   * @param retryTimeout 
+   * @param retryTimeout the store retry timeout, in ms
    * @return the session store
    */
   public static ClusteredSessionStore create(Vertx vertx, String sessionMapName, long retryTimeout) {
@@ -63,9 +66,12 @@ public class ClusteredSessionStore extends SessionStore {
     return ret;
   }
   /**
-   * Create a session store
+   * Create a session store.<p/>
+   *
+   * The retry timeout value, configures how long the session handler will retry to get a session from the store
+   * when it is not found.
    * @param vertx the Vert.x instance
-   * @param retryTimeout 
+   * @param retryTimeout the store retry timeout, in ms
    * @return the session store
    */
   public static ClusteredSessionStore create(Vertx vertx, long retryTimeout) {

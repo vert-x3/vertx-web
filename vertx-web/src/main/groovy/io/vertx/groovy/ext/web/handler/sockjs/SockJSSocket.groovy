@@ -44,6 +44,12 @@ public class SockJSSocket implements ReadStream<Buffer>,  WriteStream<Buffer> {
   public Object getDelegate() {
     return delegate;
   }
+  public void end() {
+    ((io.vertx.core.streams.WriteStream) this.delegate).end();
+  }
+  public void end(Buffer t) {
+    ((io.vertx.core.streams.WriteStream) this.delegate).end((io.vertx.core.buffer.Buffer)t.getDelegate());
+  }
   public boolean writeQueueFull() {
     def ret = ((io.vertx.core.streams.WriteStream) this.delegate).writeQueueFull();
     return ret;
