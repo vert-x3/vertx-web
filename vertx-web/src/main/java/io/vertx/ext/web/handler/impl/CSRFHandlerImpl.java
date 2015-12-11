@@ -131,14 +131,18 @@ public class CSRFHandlerImpl implements CSRFHandler {
 
     switch (method) {
       case GET:
-        ctx.addCookie(Cookie.cookie(cookieName, generateToken()));
+        final String token = generateToken();
+        // put the token in the context for users who prefer to render the token directly on the HTML
+        ctx.put(headerName, token);
+        ctx.addCookie(Cookie.cookie(cookieName, token));
         ctx.next();
         break;
       case POST:
       case PUT:
       case DELETE:
       case PATCH:
-        if (validateToken(ctx.request().getHeader(headerName))) {
+        final String header = ctx.request().getHeader(headerName);
+        if (validateToken(header == null ? ctx.request().getFormAttribute(headerName) : header)) {
           ctx.next();
         } else {
           ctx.fail(403);

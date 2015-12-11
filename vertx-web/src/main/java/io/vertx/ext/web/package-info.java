@@ -1682,6 +1682,21 @@
  * expected to return this token back in a header. Since cookies are sent it is required that the cookie handler is also
  * present on the router.
  *
+ * When developing non single page applications that rely on the User-Agent to perform the `POST` action, Headers cannot
+ * be specified on HTML Forms. In order to solve this problem the header value will also be checked if and only if no
+ * header was present in the Form attributes under the same name as the header, e.g.:
+ *
+ * [source,html]
+ * ---
+ * <form action="/submit" method="POST">
+ * <input type="hidden" name="X-XSRF-TOKEN" value="abracadabra">
+ * </form>
+ * ---
+ *
+ * It is the responsibility of the user to fill in the right value for the form field. Users who prefer to use an HTML
+ * only solution can fill this value by fetching the the token value from the routing context under the key `X-XSRF-TOKEN`
+ * or the header name they have chosen during the instantiation of the `CSRFHandler` object.
+ *
  * [source,$lang]
  * ----
  * {@link examples.WebExamples#example54}
