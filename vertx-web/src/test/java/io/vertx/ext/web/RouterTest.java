@@ -631,6 +631,33 @@ public class RouterTest extends WebTestBase {
   }
 
   @Test
+  public void testFailureWithThrowable() throws Exception {
+    String path = "/blah";
+    Throwable failure = new Throwable();
+    router.route(path).handler(rc -> {
+      rc.fail(failure);
+    }).failureHandler(frc -> {
+      assertEquals(-1, frc.statusCode());
+      assertSame(failure, frc.failure());
+      frc.response().setStatusCode(500).setStatusMessage("Internal Server Error").end();
+    });
+    testRequest(HttpMethod.GET, path, 500, "Internal Server Error");
+  }
+
+  @Test
+  public void testFailureWithNullThrowable() throws Exception {
+    String path = "/blah";
+    router.route(path).handler(rc -> {
+      rc.fail(null);
+    }).failureHandler(frc -> {
+      assertEquals(-1, frc.statusCode());
+      assertTrue(frc.failure() instanceof NullPointerException);
+      frc.response().setStatusCode(500).setStatusMessage("Internal Server Error").end();
+    });
+    testRequest(HttpMethod.GET, path, 500, "Internal Server Error");
+  }
+
+  @Test
   public void testPattern1() throws Exception {
     router.route("/:abc").handler(rc -> {
       rc.response().setStatusMessage(rc.request().params().get("abc")).end();

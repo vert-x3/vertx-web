@@ -44,9 +44,6 @@ public class SockJSSocket implements ReadStream<Buffer>,  WriteStream<Buffer> {
   public Object getDelegate() {
     return delegate;
   }
-  public void end() {
-    ((io.vertx.core.streams.WriteStream) this.delegate).end();
-  }
   public void end(Buffer t) {
     ((io.vertx.core.streams.WriteStream) this.delegate).end((io.vertx.core.buffer.Buffer)t.getDelegate());
   }
@@ -102,6 +99,12 @@ public class SockJSSocket implements ReadStream<Buffer>,  WriteStream<Buffer> {
   public String writeHandlerID() {
     def ret = this.delegate.writeHandlerID();
     return ret;
+  }
+  /**
+   * Call {@link io.vertx.groovy.ext.web.handler.sockjs.SockJSSocket#end}.
+   */
+  public void end() {
+    ( /* Work around for https://jira.codehaus.org/browse/GROOVY-6970 */ (io.vertx.ext.web.handler.sockjs.SockJSSocket) this.delegate).end();
   }
   /**
    * Close it

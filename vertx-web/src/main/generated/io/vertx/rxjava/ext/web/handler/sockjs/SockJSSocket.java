@@ -64,10 +64,6 @@ public class SockJSSocket implements ReadStream<Buffer>,  WriteStream<Buffer> {
     return observable;
   }
 
-  public void end() { 
-    this.delegate.end();
-  }
-
   public void end(Buffer t) { 
     this.delegate.end((io.vertx.core.buffer.Buffer) t.getDelegate());
   }
@@ -133,6 +129,13 @@ public class SockJSSocket implements ReadStream<Buffer>,  WriteStream<Buffer> {
   public String writeHandlerID() { 
     String ret = this.delegate.writeHandlerID();
     return ret;
+  }
+
+  /**
+   * Call {@link io.vertx.ext.web.handler.sockjs.SockJSSocket}.
+   */
+  public void end() { 
+    ( /* Work around for https://jira.codehaus.org/browse/GROOVY-6970 */ (io.vertx.ext.web.handler.sockjs.SockJSSocket) delegate).end();
   }
 
   /**

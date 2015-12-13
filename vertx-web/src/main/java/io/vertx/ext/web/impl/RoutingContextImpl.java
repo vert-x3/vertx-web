@@ -120,7 +120,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
 
   @Override
   public void fail(Throwable t) {
-    this.failure = t;
+    this.failure = t == null ? new NullPointerException() : t;
     doFail();
   }
 
