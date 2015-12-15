@@ -2036,7 +2036,7 @@ var eb = new EventBus('http://localhost:8080/eventbus');
 eb.onopen = function() {
 
   // set a handler to receive a message
-  eb.registerHandler('some-address', function(message) {
+  eb.registerHandler('some-address', function(err, message) {
     console.log('received a message: ' + JSON.stringify(message);
   });
 
