@@ -93,6 +93,7 @@
   <modules>
     <module>vertx-web</module>
     <module>vertx-template-engines</module>
+    <module>vertx-sockjs-service-proxy</module>
   </modules>
 
 </project>
