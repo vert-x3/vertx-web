@@ -323,6 +323,21 @@ var RoutingContext = function(j_val) {
 
    @public
 
+   @return {todo}
+   */
+  this.getBodyAsJsonArray = function() {
+    var __args = arguments;
+    if (__args.length === 0) {
+      return utils.convReturnJson(j_routingContext["getBodyAsJsonArray()"]());
+    } else throw new TypeError('function invoked with invalid arguments');
+  };
+
+  /**
+   @return Get the entire HTTP request body as a . The context must have first been routed to a
+   {@link BodyHandler} for this to be populated.
+
+   @public
+
    @return {Buffer}
    */
   this.getBody = function() {

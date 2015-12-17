@@ -21,6 +21,7 @@ import io.vertx.core.json.JsonObject
 import io.vertx.groovy.core.http.HttpServerRequest
 import io.vertx.groovy.core.Vertx
 import java.util.Set
+import io.vertx.core.json.JsonArray
 import java.util.List
 import io.vertx.groovy.ext.auth.User
 import io.vertx.groovy.core.buffer.Buffer
@@ -245,6 +246,15 @@ public class RoutingContext {
    */
   public Map<String, Object> getBodyAsJson() {
     def ret = (Map<String, Object>)InternalHelper.wrapObject(this.delegate.getBodyAsJson());
+    return ret;
+  }
+  /**
+   * @return Get the entire HTTP request body as a . The context must have first been routed to a
+   * {@link io.vertx.groovy.ext.web.handler.BodyHandler} for this to be populated.
+   * @return 
+   */
+  public List<Object> getBodyAsJsonArray() {
+    def ret = (List<Object>)InternalHelper.wrapObject(this.delegate.getBodyAsJsonArray());
     return ret;
   }
   /**

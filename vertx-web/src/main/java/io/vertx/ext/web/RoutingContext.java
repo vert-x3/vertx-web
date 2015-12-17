@@ -28,6 +28,7 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
 
@@ -217,6 +218,12 @@ public interface RoutingContext {
    * {@link io.vertx.ext.web.handler.BodyHandler} for this to be populated.
    */
   @Nullable JsonObject getBodyAsJson();
+
+  /**
+   * @return Get the entire HTTP request body as a {@link JsonArray}. The context must have first been routed to a
+   * {@link io.vertx.ext.web.handler.BodyHandler} for this to be populated.
+   */
+  @Nullable JsonArray getBodyAsJsonArray();
 
   /**
    * @return Get the entire HTTP request body as a {@link Buffer}. The context must have first been routed to a

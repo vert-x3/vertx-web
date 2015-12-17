@@ -223,6 +223,15 @@ module VertxWeb
     end
     #  @return Get the entire HTTP request body as a . The context must have first been routed to a
     #  {::VertxWeb::BodyHandler} for this to be populated.
+    # @return [Array<String,Object>]
+    def get_body_as_json_array
+      if !block_given?
+        return @j_del.java_method(:getBodyAsJsonArray, []).call() != nil ? JSON.parse(@j_del.java_method(:getBodyAsJsonArray, []).call().encode) : nil
+      end
+      raise ArgumentError, "Invalid arguments when calling get_body_as_json_array()"
+    end
+    #  @return Get the entire HTTP request body as a . The context must have first been routed to a
+    #  {::VertxWeb::BodyHandler} for this to be populated.
     # @return [::Vertx::Buffer]
     def get_body
       if !block_given?
