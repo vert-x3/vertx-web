@@ -22,6 +22,7 @@ import rx.Observable;
 import io.vertx.rxjava.core.http.HttpServerRequest;
 import io.vertx.rxjava.core.Vertx;
 import java.util.Set;
+import io.vertx.core.json.JsonArray;
 import java.util.List;
 import io.vertx.rxjava.ext.auth.User;
 import io.vertx.rxjava.core.buffer.Buffer;
@@ -271,6 +272,16 @@ public class RoutingContext {
    */
   public JsonObject getBodyAsJson() { 
     JsonObject ret = this.delegate.getBodyAsJson();
+    return ret;
+  }
+
+  /**
+   * @return Get the entire HTTP request body as a . The context must have first been routed to a
+   * {@link io.vertx.ext.web.handler.BodyHandler} for this to be populated.
+   * @return 
+   */
+  public JsonArray getBodyAsJsonArray() { 
+    JsonArray ret = this.delegate.getBodyAsJsonArray();
     return ret;
   }
 

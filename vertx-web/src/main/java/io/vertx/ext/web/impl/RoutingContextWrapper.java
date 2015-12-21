@@ -22,6 +22,7 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.web.*;
@@ -208,6 +209,11 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   @Override
   public JsonObject getBodyAsJson() {
     return inner.getBodyAsJson();
+  }
+
+  @Override
+  public JsonArray getBodyAsJsonArray() {
+    return inner.getBodyAsJsonArray();
   }
 
   @Override
