@@ -39,7 +39,7 @@ import io.vertx.ext.web.impl.Utils;
 import io.vertx.ext.web.templ.PebbleTemplateEngine;
 
 /**
- * @author Dan Kristensen</a>
+ * @author Dan Kristensen
  */
 public class PebbleTemplateEngineImpl extends CachingTemplateEngine<PebbleTemplate> implements PebbleTemplateEngine {
 

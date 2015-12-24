@@ -21,17 +21,17 @@ import io.vertx.lang.rxjava.InternalHelper;
 import rx.Observable;
 
 /**
- * A template engine that uses the Handlebars library.
+ * A template engine that uses the Pebble library.
  *
  * <p/>
- * NOTE: This class has been automatically generated from the {@link io.vertx.ext.web.templ.MVELTemplateEngine original} non RX-ified interface using Vert.x codegen.
+ * NOTE: This class has been automatically generated from the {@link io.vertx.ext.web.templ.PebbleTemplateEngine original} non RX-ified interface using Vert.x codegen.
  */
 
-public class MVELTemplateEngine extends TemplateEngine {
+public class PebbleTemplateEngine extends TemplateEngine {
 
-  final io.vertx.ext.web.templ.MVELTemplateEngine delegate;
+  final io.vertx.ext.web.templ.PebbleTemplateEngine delegate;
 
-  public MVELTemplateEngine(io.vertx.ext.web.templ.MVELTemplateEngine delegate) {
+  public PebbleTemplateEngine(io.vertx.ext.web.templ.PebbleTemplateEngine delegate) {
     super(delegate);
     this.delegate = delegate;
   }
@@ -44,8 +44,8 @@ public class MVELTemplateEngine extends TemplateEngine {
    * Create a template engine using defaults
    * @return the engine
    */
-  public static MVELTemplateEngine create() { 
-    MVELTemplateEngine ret= MVELTemplateEngine.newInstance(io.vertx.ext.web.templ.MVELTemplateEngine.create());
+  public static PebbleTemplateEngine create() { 
+    PebbleTemplateEngine ret= PebbleTemplateEngine.newInstance(io.vertx.ext.web.templ.PebbleTemplateEngine.create());
     return ret;
   }
 
@@ -54,8 +54,8 @@ public class MVELTemplateEngine extends TemplateEngine {
    * @param extension the extension
    * @return a reference to this for fluency
    */
-  public MVELTemplateEngine setExtension(String extension) { 
-    MVELTemplateEngine ret= MVELTemplateEngine.newInstance(this.delegate.setExtension(extension));
+  public PebbleTemplateEngine setExtension(String extension) { 
+    PebbleTemplateEngine ret= PebbleTemplateEngine.newInstance(this.delegate.setExtension(extension));
     return ret;
   }
 
@@ -64,13 +64,13 @@ public class MVELTemplateEngine extends TemplateEngine {
    * @param maxCacheSize the maxCacheSize
    * @return a reference to this for fluency
    */
-  public MVELTemplateEngine setMaxCacheSize(int maxCacheSize) { 
-    MVELTemplateEngine ret= MVELTemplateEngine.newInstance(this.delegate.setMaxCacheSize(maxCacheSize));
+  public PebbleTemplateEngine setMaxCacheSize(int maxCacheSize) { 
+    PebbleTemplateEngine ret= PebbleTemplateEngine.newInstance(this.delegate.setMaxCacheSize(maxCacheSize));
     return ret;
   }
 
 
-  public static MVELTemplateEngine newInstance(io.vertx.ext.web.templ.MVELTemplateEngine arg) {
-    return arg != null ? new MVELTemplateEngine(arg) : null;
+  public static PebbleTemplateEngine newInstance(io.vertx.ext.web.templ.PebbleTemplateEngine arg) {
+    return arg != null ? new PebbleTemplateEngine(arg) : null;
   }
 }

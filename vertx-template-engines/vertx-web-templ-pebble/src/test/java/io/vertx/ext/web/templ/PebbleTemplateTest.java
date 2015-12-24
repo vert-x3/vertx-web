@@ -23,7 +23,7 @@ import io.vertx.ext.web.WebTestBase;
 import io.vertx.ext.web.handler.TemplateHandler;
 
 /**
- * @author <a href="http://tfox.org">Tim Fox</a>
+ * @author Dan Kristensen
  */
 public class PebbleTemplateTest extends WebTestBase {
 
