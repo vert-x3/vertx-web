@@ -1487,8 +1487,8 @@
  * eb.onopen = function() {
  *
  *   // set a handler to receive a message
- *   eb.registerHandler('some-address', function(message) {
- *     console.log('received a message: ' + JSON.stringify(message);
+ *   eb.registerHandler('some-address', function(error, message) {
+ *     console.log('received a message: ' + JSON.stringify(message));
  *   });
  *
  *   // send a message
