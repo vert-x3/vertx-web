@@ -195,4 +195,8 @@ class HttpServerRequestWrapper implements HttpServerRequest {
   public boolean isEnded() {
     return delegate.isEnded();
   }
+
+  public boolean isSSL() {
+    return delegate.isSSL();
+  }
 }
