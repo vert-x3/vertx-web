@@ -2514,7 +2514,7 @@ REGISTER. This event will occur when a client attempts to register a handler.
 UNREGISTER. This event will occur when a client attempts to unregister a handler.
 
 The event enables you to retrieve the type using `link:../../groovydoc/io/vertx/groovy/ext/web/handler/sockjs/BridgeEvent.html#type()[type]` and
-inspect the raw message of the event using `link:../../groovydoc/io/vertx/groovy/ext/web/handler/sockjs/BridgeEvent.html#rawMessage()[rawMessage]`.
+inspect the raw message of the event using `link:../../groovydoc/io/vertx/groovy/ext/web/handler/sockjs/BridgeEvent.html#getRawMessage()[getRawMessage]`.
 
 The raw message is a JSON object with the following structure:
 
@@ -2557,7 +2557,7 @@ def options = [
 
 sockJSHandler.bridge(options, { be ->
   if (be.type() == BridgeEventType.PUBLISH || be.type() == BridgeEventType.RECEIVE) {
-    if (be.rawMessage().body == "armadillos") {
+    if (be.getRawMessage().body == "armadillos") {
       // Reject it
       be.complete(false)
       return
@@ -2602,7 +2602,9 @@ sockJSHandler.bridge(options, { be ->
       header1:"val",
       header2:"val2"
     ]
-    be.rawMessage().headers = headers
+    def rawMessage = be.getRawMessage()
+    rawMessage.headers = headers
+    be.setRawMessage(rawMessage)
   }
   be.complete(true)
 })

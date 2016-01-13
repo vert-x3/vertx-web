@@ -50,6 +50,19 @@ class BridgeEventImpl implements BridgeEvent {
   }
 
   @Override
+  public JsonObject getRawMessage() {
+    return rawMessage;
+  }
+
+  @Override
+  public BridgeEvent setRawMessage(JsonObject message) {
+    if (message != rawMessage) {
+      rawMessage.clear().mergeIn(message);
+    }
+    return this;
+  }
+
+  @Override
   public SockJSSocket socket() {
     return socket;
   }
