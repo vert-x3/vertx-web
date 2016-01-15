@@ -28,13 +28,15 @@ public abstract class CachingTemplateEngine<T> implements TemplateEngine {
 
   protected final ConcurrentLRUCache<String, T> cache;
   protected String extension;
+  protected String path;
 
-  protected CachingTemplateEngine(String ext, int maxCacheSize) {
+  protected CachingTemplateEngine(String path, String ext, int maxCacheSize) {
     Objects.requireNonNull(ext);
     if (maxCacheSize < 1) {
       throw new IllegalArgumentException("maxCacheSize must be >= 1");
     }
     doSetExtension(ext);
+    doSetPath(path);
     this.cache = new ConcurrentLRUCache<>(maxCacheSize);
   }
 
@@ -48,5 +50,11 @@ public abstract class CachingTemplateEngine<T> implements TemplateEngine {
   protected void doSetExtension(String ext) {
     this.extension = ext.charAt(0) == '.' ? ext : "." + ext;
   }
+
+  protected void doSetPath(String path) {
+    this.path = path;
+  }
+
+
 
 }

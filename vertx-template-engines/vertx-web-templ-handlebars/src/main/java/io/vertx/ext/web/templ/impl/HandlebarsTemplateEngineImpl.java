@@ -38,13 +38,21 @@ public class HandlebarsTemplateEngineImpl extends CachingTemplateEngine<Template
   private final Loader loader = new Loader();
 
   public HandlebarsTemplateEngineImpl() {
-    super(HandlebarsTemplateEngine.DEFAULT_TEMPLATE_EXTENSION, HandlebarsTemplateEngine.DEFAULT_MAX_CACHE_SIZE);
+    super(HandlebarsTemplateEngine.DEFAULT_TEMPLATE_EXTENSION,
+            HandlebarsTemplateEngine.DEFAULT_TEMPLATE_PATH,
+            HandlebarsTemplateEngine.DEFAULT_MAX_CACHE_SIZE);
     handlebars = new Handlebars(loader);
   }
 
   @Override
   public HandlebarsTemplateEngine setExtension(String extension) {
     doSetExtension(extension);
+    return this;
+  }
+
+  @Override
+  public HandlebarsTemplateEngine setPath(String path) {
+    doSetPath(path);
     return this;
   }
 
@@ -122,7 +130,7 @@ public class HandlebarsTemplateEngineImpl extends CachingTemplateEngine<Template
 
     @Override
     public String getPrefix() {
-      return null;
+      return path;
     }
 
     @Override
@@ -132,7 +140,7 @@ public class HandlebarsTemplateEngineImpl extends CachingTemplateEngine<Template
 
     @Override
     public void setPrefix(String prefix) {
-      // does nothing since TemplateLoader handles the prefix
+      path = prefix;
     }
 
     @Override
