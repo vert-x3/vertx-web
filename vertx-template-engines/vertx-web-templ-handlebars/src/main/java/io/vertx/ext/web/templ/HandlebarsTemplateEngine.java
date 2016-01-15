@@ -41,8 +41,9 @@ public interface HandlebarsTemplateEngine extends TemplateEngine {
 
   /**
    * Default template path
+   * //TODO move this to appropriate place
    */
-  String DEFAULT_TEMPLATE_PATH = "tempates";
+  String DEFAULT_TEMPLATE_PATH = "templates";
 
   /**
    * Create a template engine using defaults
