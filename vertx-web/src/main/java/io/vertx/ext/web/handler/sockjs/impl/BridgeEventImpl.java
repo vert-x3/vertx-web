@@ -64,8 +64,9 @@ class BridgeEventImpl implements BridgeEvent {
   }
 
   @Override
-  public void setHandler(Handler<AsyncResult<Boolean>> handler) {
+  public Future<Boolean> setHandler(Handler<AsyncResult<Boolean>> handler) {
     future.setHandler(handler);
+    return this;
   }
 
   @Override
