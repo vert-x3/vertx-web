@@ -952,7 +952,9 @@ public class WebExamples {
       if (be.type() == BridgeEventType.PUBLISH || be.type() == BridgeEventType.SEND) {
         // Add some headers
         JsonObject headers = new JsonObject().put("header1", "val").put("header2", "val2");
-        be.rawMessage().put("headers", headers);
+        JsonObject rawMessage = be.getRawMessage();
+        rawMessage.put("headers", headers);
+        be.setRawMessage(rawMessage);
       }
       be.complete(true);
     });
@@ -974,7 +976,7 @@ public class WebExamples {
 
     sockJSHandler.bridge(options, be -> {
       if (be.type() == BridgeEventType.PUBLISH || be.type() == BridgeEventType.RECEIVE) {
-        if (be.rawMessage().getString("body").equals("armadillos")) {
+        if (be.getRawMessage().getString("body").equals("armadillos")) {
           // Reject it
           be.complete(false);
           return;

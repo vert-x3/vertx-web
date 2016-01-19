@@ -59,9 +59,8 @@ public class BridgeEvent extends Future<Boolean> {
   }
 
   /**
-   * Get the raw JSON message for the event. This will be null for SOCKET_CREATED or SOCKET_CLOSED events as there is
-   * no message involved.
-   * @return the raw JSON message for the event
+   * Use {@link io.vertx.ext.web.handler.sockjs.BridgeEvent} instead, will be removed in 3.3
+   * @return 
    */
   public JsonObject rawMessage() { 
     if (cached_1 != null) {
@@ -70,6 +69,28 @@ public class BridgeEvent extends Future<Boolean> {
     JsonObject ret = this.delegate.rawMessage();
     cached_1 = ret;
     return ret;
+  }
+
+  /**
+   * Get the raw JSON message for the event. This will be null for SOCKET_CREATED or SOCKET_CLOSED events as there is
+   * no message involved. If the returned message is modified, {@link io.vertx.ext.web.handler.sockjs.BridgeEvent} should be called with the
+   * new message.
+   * @return the raw JSON message for the event
+   */
+  public JsonObject getRawMessage() { 
+    JsonObject ret = this.delegate.getRawMessage();
+    return ret;
+  }
+
+  /**
+   * Get the raw JSON message for the event. This will be null for SOCKET_CREATED or SOCKET_CLOSED events as there is
+   * no message involved.
+   * @param message the raw message
+   * @return this reference, so it can be used fluently
+   */
+  public BridgeEvent setRawMessage(JsonObject message) { 
+    this.delegate.setRawMessage(message);
+    return this;
   }
 
   /**

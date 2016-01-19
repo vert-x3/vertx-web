@@ -2511,7 +2511,7 @@ REGISTER. This event will occur when a client attempts to register a handler.
 UNREGISTER. This event will occur when a client attempts to unregister a handler.
 
 The event enables you to retrieve the type using `link:../../jsdoc/bridge_event-BridgeEvent.html#type[type]` and
-inspect the raw message of the event using `link:../../jsdoc/bridge_event-BridgeEvent.html#rawMessage[rawMessage]`.
+inspect the raw message of the event using `link:../../jsdoc/bridge_event-BridgeEvent.html#getRawMessage[getRawMessage]`.
 
 The raw message is a JSON object with the following structure:
 
@@ -2553,7 +2553,7 @@ var options = {
 
 sockJSHandler.bridge(options, function (be) {
   if (be.type() === 'PUBLISH' || be.type() === 'RECEIVE') {
-    if (be.rawMessage().body == "armadillos") {
+    if (be.getRawMessage().body == "armadillos") {
       // Reject it
       be.complete(false);
       return
@@ -2597,7 +2597,9 @@ sockJSHandler.bridge(options, function (be) {
       "header1" : "val",
       "header2" : "val2"
     };
-    be.rawMessage().headers = headers;
+    var rawMessage = be.getRawMessage();
+    rawMessage.headers = headers;
+    be.setRawMessage(rawMessage);
   }
   be.complete(true);
 });
