@@ -26,12 +26,7 @@ import io.vertx.ext.web.RoutingContext;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -59,7 +54,7 @@ public class RouteImpl implements Route {
   private Handler<RoutingContext> failureHandler;
   private boolean added;
   private Pattern pattern;
-  private Set<String> groups;
+  private List<String> groups;
   private boolean useNormalisedPath = true;
 
   RouteImpl(RouterImpl router, int order) {
@@ -257,8 +252,8 @@ public class RouteImpl implements Route {
             // Pattern - named params
             // decode the path as it could contain escaped chars.
             try {
-              for (String param : groups) {
-                params.put(param, URLDecoder.decode(m.group(param), "UTF-8"));
+              for (int i = 0; i < groups.size(); i++) {
+                params.put(groups.get(i), URLDecoder.decode(m.group("p" + i), "UTF-8"));
               }
             } catch (UnsupportedEncodingException e) {
               context.fail(e);
@@ -413,14 +408,17 @@ public class RouteImpl implements Route {
     // We need to search for any :<token name> tokens in the String and replace them with named capture groups
     Matcher m =  Pattern.compile(":([A-Za-z][A-Za-z0-9_]*)").matcher(path);
     StringBuffer sb = new StringBuffer();
-    groups = new HashSet<>();
+    groups = new ArrayList<>();
+    int index = 0;
     while (m.find()) {
+      String param = "p" + index;
       String group = m.group().substring(1);
       if (groups.contains(group)) {
         throw new IllegalArgumentException("Cannot use identifier " + group + " more than once in pattern string");
       }
-      m.appendReplacement(sb, "(?<$1>[^/]+)");
+      m.appendReplacement(sb, "(?<" + param + ">[^/]+)");
       groups.add(group);
+      index++;
     }
     m.appendTail(sb);
     path = sb.toString();
