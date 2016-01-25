@@ -84,10 +84,7 @@ public class LoggerHandlerImpl implements LoggerHandler {
         contentLength = Long.parseLong(obj.toString());
       }
     } else {
-      Object obj = request.response().headers().get("content-length");
-      if (obj != null) {
-        contentLength = Long.parseLong(obj.toString());
-      }
+      contentLength  = request.response().bytesWritten();
     }
     String versionFormatted = "-";
     switch (version){
