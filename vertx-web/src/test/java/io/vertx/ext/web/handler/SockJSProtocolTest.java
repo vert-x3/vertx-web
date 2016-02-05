@@ -48,7 +48,7 @@ public class SockJSProtocolTest extends WebTestBase {
   @Test
   public void testProtocol() throws Exception {
     String sockjsenv = "SOCKJS_URL=http://localhost:8080";
-    File dir = new File("src/test/sockjs-protocol");
+    File dir = new File("/home/plopes/Projects/sockjs/sockjs-protocol");
     String OS = System.getProperty("os.name", "generic").toLowerCase(Locale.ENGLISH);
     Process p;
     if (OS.contains("mac") || OS.contains("darwin")) {
@@ -60,7 +60,7 @@ public class SockJSProtocolTest extends WebTestBase {
       p = Runtime.getRuntime().exec("python sockjs-protocol-0.3.3.py", envp, dir);
     } else {
       String[] envp = new String[] {"SOCKJS_URL=http://localhost:8080"};
-      p = Runtime.getRuntime().exec("./venv/bin/python sockjs-protocol-0.3.3.py", envp, dir);
+      p = Runtime.getRuntime().exec("python sockjs-protocol-0.3.3.py", envp, dir);
     }
 
     log.info("--------------------------------");
