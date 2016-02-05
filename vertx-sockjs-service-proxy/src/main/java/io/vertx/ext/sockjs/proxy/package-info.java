@@ -43,7 +43,7 @@
  * require to re-compile the sources to regenerate the code.
  *
  * Before going further you should check how to use `vertx-service-proxies` from the
- * http://vertx.io/docs/vertx-service-proxy/[documentation page].
+ * http://vertx.io/docs/vertx-service-proxy/java[documentation page].
  *
  * == Consuming your service from a browser or from Node.js
  *
