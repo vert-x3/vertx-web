@@ -269,7 +269,10 @@ public class RouteImpl implements Route {
             // decode the path as it could contain escaped chars.
             try {
               for (int i = 0; i < m.groupCount(); i++) {
-                params.put("param" + i, URLDecoder.decode(m.group(i + 1), "UTF-8"));
+                String group = m.group(i + 1);
+                if(group != null) {
+                  params.put("param" + i, URLDecoder.decode(group, "UTF-8"));
+                }
               }
             } catch (UnsupportedEncodingException e) {
               context.fail(e);
