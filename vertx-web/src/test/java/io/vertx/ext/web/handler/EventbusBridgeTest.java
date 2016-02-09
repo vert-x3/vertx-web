@@ -101,7 +101,7 @@ public class EventbusBridgeTest extends WebTestBase {
     sockJSHandler.bridge(allAccessOptions, be -> {
       if (be.type() == BridgeEventType.SOCKET_CLOSED) {
         assertNotNull(be.socket());
-        assertNull(be.rawMessage());
+        assertNull(be.getRawMessage());
         be.complete(true);
         testComplete();
       } else {
@@ -118,7 +118,7 @@ public class EventbusBridgeTest extends WebTestBase {
     sockJSHandler.bridge(allAccessOptions, be -> {
       if (be.type() == BridgeEventType.SEND) {
         assertNotNull(be.socket());
-        JsonObject raw = be.rawMessage();
+        JsonObject raw = be.getRawMessage();
         assertEquals(addr, raw.getString("address"));
         assertEquals("foobar", raw.getString("body"));
         be.complete(true);
@@ -137,10 +137,11 @@ public class EventbusBridgeTest extends WebTestBase {
     sockJSHandler.bridge(allAccessOptions, be -> {
       if (be.type() == BridgeEventType.SEND) {
         assertNotNull(be.socket());
-        JsonObject raw = be.rawMessage();
+        JsonObject raw = be.getRawMessage();
         assertEquals(addr, raw.getString("address"));
         assertEquals("foobar", raw.getString("body"));
         raw.put("headers", new JsonObject().put("hdr1", "val1").put("hdr2", "val2"));
+        be.setRawMessage(raw);
         be.complete(true);
         testComplete();
       } else {
@@ -173,7 +174,7 @@ public class EventbusBridgeTest extends WebTestBase {
     sockJSHandler.bridge(allAccessOptions, be -> {
       if (be.type() == BridgeEventType.PUBLISH) {
         assertNotNull(be.socket());
-        JsonObject raw = be.rawMessage();
+        JsonObject raw = be.getRawMessage();
         assertEquals(addr, raw.getString("address"));
         assertEquals("foobar", raw.getString("body"));
         be.complete(true);
@@ -192,10 +193,11 @@ public class EventbusBridgeTest extends WebTestBase {
     sockJSHandler.bridge(allAccessOptions, be -> {
       if (be.type() == BridgeEventType.PUBLISH) {
         assertNotNull(be.socket());
-        JsonObject raw = be.rawMessage();
+        JsonObject raw = be.getRawMessage();
         assertEquals(addr, raw.getString("address"));
         assertEquals("foobar", raw.getString("body"));
         raw.put("headers", new JsonObject().put("hdr1", "val1").put("hdr2", "val2"));
+        be.setRawMessage(raw);
         be.complete(true);
         testComplete();
       } else {
@@ -228,7 +230,7 @@ public class EventbusBridgeTest extends WebTestBase {
     sockJSHandler.bridge(allAccessOptions, be -> {
       if (be.type() == BridgeEventType.REGISTER) {
         assertNotNull(be.socket());
-        JsonObject raw = be.rawMessage();
+        JsonObject raw = be.getRawMessage();
         assertEquals(addr, raw.getString("address"));
         be.complete(true);
         testComplete();
@@ -262,7 +264,7 @@ public class EventbusBridgeTest extends WebTestBase {
     sockJSHandler.bridge(allAccessOptions, be -> {
       if (be.type() == BridgeEventType.RECEIVE) {
         assertNotNull(be.socket());
-        JsonObject raw = be.rawMessage();
+        JsonObject raw = be.getRawMessage();
         assertEquals(addr, raw.getString("address"));
         assertEquals("foobar", raw.getString("body"));
         be.complete(true);
@@ -296,7 +298,7 @@ public class EventbusBridgeTest extends WebTestBase {
     sockJSHandler.bridge(allAccessOptions, be -> {
       if (be.type() == BridgeEventType.UNREGISTER) {
         assertNotNull(be.socket());
-        JsonObject raw = be.rawMessage();
+        JsonObject raw = be.getRawMessage();
         assertEquals(addr, raw.getString("address"));
         be.complete(true);
         testComplete();

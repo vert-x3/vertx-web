@@ -1,0 +1,115 @@
+= Vert.x SockJS Service Proxy
+:toc: left
+
+When you compose a vert.x application, you may want to isolate a functionality somewhere and make it available to
+the rest of your application.
+
+That's the main purpose of service proxies. It lets you expose a _service_ on the
+event bus, so, any other vert.x component can consume it, as soon as they know the _address_ on which the service
+is published. This is achieved by the vert.x service proxies. However, vert.x service clients, form the bare vert
+.x service proxies, cannot be consumed from your browser or from node.js. Vert.x SockJS Service Proxy generates
+service clients that you can use from your browser or from a node.js application. These clients rely on the
+SockJS bridge that propagate events from the vert.x event bus to / from SockJS.
+
+== Using Vert.x SockJS Service Proxy
+
+To use the Vert.x SockJS Service Proxy, add the following dependencies to the _dependencies_ section of
+your build descriptor:
+
+* Maven (in your `pom.xml`):
+
+[source,xml,subs="+attributes"]
+----
+<dependency>
+  <groupId>io.vertx</groupId>
+  <artifactId>vertx-sockjs-service-proxy</artifactId>
+  <version>3.2.1</version>
+</dependency>
+<dependency>
+  <groupId>io.vertx</groupId>
+  <artifactId>vertx-service-proxy</artifactId>
+  <version>3.2.1</version>
+</dependency>
+----
+
+* Gradle (in your `build.gradle` file):
+
+[source,groovy,subs="+attributes"]
+----
+compile 'io.vertx:vertx-sockjs-service-proxy:3.2.1'
+compile 'io.vertx:vertx-service-proxy:3.2.1'
+----
+
+Be aware that as the service proxy mechanism relies on code generation, so modifications to the _service interface_
+require to re-compile the sources to regenerate the code.
+
+Before going further you should check how to use `vertx-service-proxies` from the
+http://vertx.io/docs/vertx-service-proxy/java[documentation page].
+
+== Consuming your service from a browser or from Node.js
+
+The previous section has shown how you can create a service proxy in Java. However, you can consume your service
+directly from your browser or from a node.js application using a SockJS-based proxy.
+
+First, you need to configure the SockJS bridge, in order to let the proxy communicate with the service. You will
+find more details about the SockJS bridge in
+<a href="http://vertx.io/docs/vertx-web/java/#_sockjs_event_bus_bridge">vertx-web</a>:
+
+[source, java]
+----
+SomeDatabaseService service = new SomeDatabaseServiceImpl();
+ProxyHelper.registerService(SomeDatabaseService.class, vertx, service,
+    "database-service-address");
+
+
+Router router = Router.router(vertx);
+// Allow events for the designated addresses in/out of the event bus bridge
+BridgeOptions opts = new BridgeOptions()
+    .addInboundPermitted(new PermittedOptions()
+        .setAddress("database-service-address"))
+    .addOutboundPermitted(new PermittedOptions()
+        .setAddress("database-service-address"));
+
+// Create the event bus bridge and add it to the router.
+SockJSHandler ebHandler = SockJSHandler.create(vertx).bridge(opts);
+router.route("/eventbus/*").handler(ebHandler);
+
+vertx.createHttpServer().requestHandler(router::accept).listen(8080);
+----
+
+Once you have the sockJS bridge configured, other applications developed in JavaScript can interact with your
+service directly. During the service compilation, a JS proxy module is generated, and is named as follows:
+`module_name-js/server-interface_simple_name` + `-proxy.js`. So for instance, if your interface is named `MyService`,
+the proxy module is named `my_service-proxy.js`. Again, this proxy is usable from your browser or from node.js.
+
+The generated proxy is a JavaScript module compatible with CommonJS, AMD and Webpack. The proxy then just needs to
+  instantiated with the EventBus bridge and the service EventBus address:
+
+[source, js]
+----
+<script src="http://cdn.sockjs.org/sockjs-0.3.4.min.js"></script>
+<script src="vertx-eventbus.js"></script>
+<script>
+  var eb = new EventBus('http://localhost:8080/eventbus');
+  eb.onopen = function() {
+    var SomeDatabaseService =
+      require('vertx-database-js/some_database_service-proxy.js');
+    var svc = new SomeDatabaseService(eb, "database-service-address");
+    // use the service
+  };
+</script>
+----
+
+For node.js application, it would be used as follows:
+
+[source,js]
+----
+var EventBus = require('vertx3-eventbus-client');
+var SomeDatabaseService = require('../../some_database_service-proxy');
+
+var eb = new EventBus('http://localhost:8080/eventbus/');
+eb.onopen = function () {
+ var svc = new SomeDatabaseService(eb, "database-service-address");
+ // use the service
+};
+----

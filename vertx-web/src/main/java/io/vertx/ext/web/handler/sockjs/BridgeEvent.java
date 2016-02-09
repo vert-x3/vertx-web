@@ -17,6 +17,7 @@
 package io.vertx.ext.web.handler.sockjs;
 
 import io.vertx.codegen.annotations.CacheReturn;
+import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
@@ -38,13 +39,30 @@ public interface BridgeEvent extends Future<Boolean> {
   BridgeEventType type();
 
   /**
+   * Use {@link #getRawMessage()} instead, will be removed in 3.3
+   */
+  @Deprecated
+  @CacheReturn
+  JsonObject rawMessage();
+
+  /**
    * Get the raw JSON message for the event. This will be null for SOCKET_CREATED or SOCKET_CLOSED events as there is
-   * no message involved.
+   * no message involved. If the returned message is modified, {@link #setRawMessage} should be called with the
+   * new message.
    *
    * @return the raw JSON message for the event
    */
-  @CacheReturn
-  JsonObject rawMessage();
+  JsonObject getRawMessage();
+
+  /**
+   * Get the raw JSON message for the event. This will be null for SOCKET_CREATED or SOCKET_CLOSED events as there is
+   * no message involved.
+   *
+   * @param message the raw message
+   * @return this reference, so it can be used fluently
+   */
+  @Fluent
+  BridgeEvent setRawMessage(JsonObject message);
 
   /**
    * Get the SockJSSocket instance corresponding to the event

@@ -75,7 +75,7 @@ To use vert.x web, add the following dependency to the _dependencies_ section of
 <dependency>
   <groupId>io.vertx</groupId>
   <artifactId>vertx-web</artifactId>
-  <version>3.3.0-SNAPSHOT</version>
+  <version>3.2.1</version>
 </dependency>
 ----
 
@@ -84,7 +84,7 @@ To use vert.x web, add the following dependency to the _dependencies_ section of
 [source,groovy,subs="+attributes"]
 ----
 dependencies {
-  compile 'io.vertx:vertx-web:3.3.0-SNAPSHOT'
+  compile 'io.vertx:vertx-web:3.2.1'
 }
 ----
 
@@ -1711,7 +1711,7 @@ router.getWithRegex(".+\\.hbs").handler(handler);
 === MVEL template engine
 
 To use MVEL, you need to add the following _dependency_ to your project:
-`io.vertx:vertx-web-templ-mvel:3.3.0-SNAPSHOT`. Create an instance of the MVEL template engine using:
+`io.vertx:vertx-web-templ-mvel:3.2.1`. Create an instance of the MVEL template engine using:
 `io.vertx.ext.web.templ.MVELTemplateEngine#create()`
 
 When using the MVEL template engine, it will by default look for
@@ -1737,7 +1737,7 @@ MVEL templates.
 === Jade template engine
 
 To use the Jade template engine, you need to add the following _dependency_ to your project:
-`io.vertx:vertx-web-templ-jade:3.3.0-SNAPSHOT`. Create an instance of the Jade template engine using:
+`io.vertx:vertx-web-templ-jade:3.2.1`. Create an instance of the Jade template engine using:
 `io.vertx.ext.web.templ.JadeTemplateEngine#create()`.
 
 When using the Jade template engine, it will by default look for
@@ -1763,7 +1763,7 @@ Jade templates.
 === Handlebars template engine
 
 To use Handlebars, you need to add the following _dependency_ to your project:
-`io.vertx:vertx-web-templ-handlebars:3.3.0-SNAPSHOT`. Create an instance of the Handlebars template engine
+`io.vertx:vertx-web-templ-handlebars:3.2.1`. Create an instance of the Handlebars template engine
 using: `io.vertx.ext.web.templ.HandlebarsTemplateEngine#create()`.
 
 When using the Handlebars template engine, it will by default look for
@@ -1798,7 +1798,7 @@ handlebars templates.
 === Thymeleaf template engine
 
 To use Thymeleaf, you need to add the following _dependency_ to your project:
-`io.vertx:vertx-web-templ-thymeleaf:3.3.0-SNAPSHOT`. Create an instance of the Thymeleaf template engine
+`io.vertx:vertx-web-templ-thymeleaf:3.2.1`. Create an instance of the Thymeleaf template engine
 using: `io.vertx.ext.web.templ.ThymeleafTemplateEngine#create()`.
 
 When using the Thymeleaf template engine, it will by default look for
@@ -2095,7 +2095,7 @@ You can retrieve the client library using a dependency manager:
 <dependency>
   <groupId>io.vertx</groupId>
   <artifactId>vertx-web</artifactId>
-  <version>3.3.0-SNAPSHOT</version>
+  <version>3.2.1</version>
   <classifier>client</classifier>
 </dependency>
 ----
@@ -2104,7 +2104,7 @@ You can retrieve the client library using a dependency manager:
 
 [source,groovy,subs="+attributes"]
 ----
-compile io.vertx:vertx-web:3.3.0-SNAPSHOT:client
+compile io.vertx:vertx-web:3.2.1:client
 ----
 
 The library is also available on https://www.npmjs.com/package/vertx3-eventbus-client[NPM] and on
@@ -2279,7 +2279,7 @@ REGISTER. This event will occur when a client attempts to register a handler.
 UNREGISTER. This event will occur when a client attempts to unregister a handler.
 
 The event enables you to retrieve the type using `link:../../apidocs/io/vertx/ext/web/handler/sockjs/BridgeEvent.html#type--[type]` and
-inspect the raw message of the event using `link:../../apidocs/io/vertx/ext/web/handler/sockjs/BridgeEvent.html#rawMessage--[rawMessage]`.
+inspect the raw message of the event using `link:../../apidocs/io/vertx/ext/web/handler/sockjs/BridgeEvent.html#getRawMessage--[getRawMessage]`.
 
 The raw message is a JSON object with the following structure:
 
@@ -2312,7 +2312,7 @@ BridgeOptions options = new BridgeOptions().addInboundPermitted(inboundPermitted
 
 sockJSHandler.bridge(options, be -> {
   if (be.type() == BridgeEventType.PUBLISH || be.type() == BridgeEventType.RECEIVE) {
-    if (be.rawMessage().getString("body").equals("armadillos")) {
+    if (be.getRawMessage().getString("body").equals("armadillos")) {
       // Reject it
       be.complete(false);
       return;
@@ -2341,7 +2341,9 @@ sockJSHandler.bridge(options, be -> {
   if (be.type() == BridgeEventType.PUBLISH || be.type() == BridgeEventType.SEND) {
     // Add some headers
     JsonObject headers = new JsonObject().put("header1", "val").put("header2", "val2");
-    be.rawMessage().put("headers", headers);
+    JsonObject rawMessage = be.getRawMessage();
+    rawMessage.put("headers", headers);
+    be.setRawMessage(rawMessage);
   }
   be.complete(true);
 });

@@ -67,7 +67,7 @@
                 <generatedSourcesDirectory>${project.basedir}/target/generated-for-docs</generatedSourcesDirectory>
                 <compilerArgs>
                   <arg>-AoutputDirectory=${project.basedir}/target/generated-for-docs</arg>
-                  <arg>-Adocgen.output=${asciidoc.dir}</arg>
+                  <arg>-Adocgen.output=${asciidoc.dir}/$lang</arg>
 
                   <arg>-Amaven.groupId=${project.groupId}</arg>
                   <arg>-Amaven.artifactId=${project.artifactId}</arg>

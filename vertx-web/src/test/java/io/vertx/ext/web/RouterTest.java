@@ -1666,4 +1666,14 @@ public class RouterTest extends WebTestBase {
 
     testRequest(HttpMethod.GET, "/foo", 200, "OK");
   }
+
+  @Test
+  public void testUnderscoreOnRoutePath() throws Exception {
+    router.route("/:account_id").handler(rc -> {
+      assertEquals("foo", rc.request().params().get("account_id"));
+      rc.response().end();
+    });
+
+    testRequest(HttpMethod.GET, "/foo", 200, "OK");
+  }
 }

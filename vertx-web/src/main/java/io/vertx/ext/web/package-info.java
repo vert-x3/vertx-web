@@ -1667,7 +1667,7 @@
  * UNREGISTER. This event will occur when a client attempts to unregister a handler.
  *
  * The event enables you to retrieve the type using {@link io.vertx.ext.web.handler.sockjs.BridgeEvent#type()} and
- * inspect the raw message of the event using {@link io.vertx.ext.web.handler.sockjs.BridgeEvent#rawMessage()}.
+ * inspect the raw message of the event using {@link io.vertx.ext.web.handler.sockjs.BridgeEvent#getRawMessage()}.
  *
  * The raw message is a JSON object with the following structure:
  *

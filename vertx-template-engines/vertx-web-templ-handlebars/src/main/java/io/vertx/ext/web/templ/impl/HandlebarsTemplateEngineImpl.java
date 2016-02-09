@@ -129,6 +129,16 @@ public class HandlebarsTemplateEngineImpl extends CachingTemplateEngine<Template
     public String getSuffix() {
       return extension;
     }
+
+    @Override
+    public void setPrefix(String prefix) {
+      // does nothing since TemplateLoader handles the prefix
+    }
+
+    @Override
+    public void setSuffix(String suffix) {
+      extension = suffix;
+    }
   }
 
 

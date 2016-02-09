@@ -29,9 +29,8 @@ module VertxWeb
       end
       raise ArgumentError, "Invalid arguments when calling type()"
     end
-    #  Get the raw JSON message for the event. This will be null for SOCKET_CREATED or SOCKET_CLOSED events as there is
-    #  no message involved.
-    # @return [Hash{String => Object}] the raw JSON message for the event
+    #  Use {::VertxWeb::BridgeEvent#get_raw_message} instead, will be removed in 3.3
+    # @return [Hash{String => Object}]
     def raw_message
       if !block_given?
         if @cached_raw_message != nil
@@ -40,6 +39,27 @@ module VertxWeb
         return @cached_raw_message = @j_del.java_method(:rawMessage, []).call() != nil ? JSON.parse(@j_del.java_method(:rawMessage, []).call().encode) : nil
       end
       raise ArgumentError, "Invalid arguments when calling raw_message()"
+    end
+    #  Get the raw JSON message for the event. This will be null for SOCKET_CREATED or SOCKET_CLOSED events as there is
+    #  no message involved. If the returned message is modified, {::VertxWeb::BridgeEvent#set_raw_message} should be called with the
+    #  new message.
+    # @return [Hash{String => Object}] the raw JSON message for the event
+    def get_raw_message
+      if !block_given?
+        return @j_del.java_method(:getRawMessage, []).call() != nil ? JSON.parse(@j_del.java_method(:getRawMessage, []).call().encode) : nil
+      end
+      raise ArgumentError, "Invalid arguments when calling get_raw_message()"
+    end
+    #  Get the raw JSON message for the event. This will be null for SOCKET_CREATED or SOCKET_CLOSED events as there is
+    #  no message involved.
+    # @param [Hash{String => Object}] message the raw message
+    # @return [self]
+    def set_raw_message(message=nil)
+      if message.class == Hash && !block_given?
+        @j_del.java_method(:setRawMessage, [Java::IoVertxCoreJson::JsonObject.java_class]).call(::Vertx::Util::Utils.to_json_object(message))
+        return self
+      end
+      raise ArgumentError, "Invalid arguments when calling set_raw_message(message)"
     end
     #  Get the SockJSSocket instance corresponding to the event
     # @return [::VertxWeb::SockJSSocket] the SockJSSocket instance

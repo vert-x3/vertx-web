@@ -49,9 +49,8 @@ public class BridgeEvent extends Future<Boolean> {
     return ret;
   }
   /**
-   * Get the raw JSON message for the event. This will be null for SOCKET_CREATED or SOCKET_CLOSED events as there is
-   * no message involved.
-   * @return the raw JSON message for the event
+   * Use {@link io.vertx.groovy.ext.web.handler.sockjs.BridgeEvent#getRawMessage} instead, will be removed in 3.3
+   * @return 
    */
   public Map<String, Object> rawMessage() {
     if (cached_1 != null) {
@@ -60,6 +59,26 @@ public class BridgeEvent extends Future<Boolean> {
     def ret = (Map<String, Object>)InternalHelper.wrapObject(this.delegate.rawMessage());
     cached_1 = ret;
     return ret;
+  }
+  /**
+   * Get the raw JSON message for the event. This will be null for SOCKET_CREATED or SOCKET_CLOSED events as there is
+   * no message involved. If the returned message is modified, {@link io.vertx.groovy.ext.web.handler.sockjs.BridgeEvent#setRawMessage} should be called with the
+   * new message.
+   * @return the raw JSON message for the event
+   */
+  public Map<String, Object> getRawMessage() {
+    def ret = (Map<String, Object>)InternalHelper.wrapObject(this.delegate.getRawMessage());
+    return ret;
+  }
+  /**
+   * Get the raw JSON message for the event. This will be null for SOCKET_CREATED or SOCKET_CLOSED events as there is
+   * no message involved.
+   * @param message the raw message
+   * @return this reference, so it can be used fluently
+   */
+  public BridgeEvent setRawMessage(Map<String, Object> message) {
+    this.delegate.setRawMessage(message != null ? new io.vertx.core.json.JsonObject(message) : null);
+    return this;
   }
   /**
    * Get the SockJSSocket instance corresponding to the event
