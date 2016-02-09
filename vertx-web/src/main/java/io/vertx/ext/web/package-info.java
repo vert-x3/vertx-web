@@ -49,6 +49,7 @@
  * ** Jade,
  * ** MVEL
  * ** Thymeleaf
+ * ** Apache FreeMarker
  * * Response time handler
  * * Static file serving, including caching logic and directory listing.
  * * Request timeout support
@@ -1296,6 +1297,34 @@
  *
  * Please consult the http://www.thymeleaf.org/[Thymeleaf documentation] for how to write
  * Thymeleaf templates.
+ *
+ * === Apache FreeMarker template engine
+ *
+ * To use Apache FreeMarker, you need to add the following _dependency_ to your project:
+ * `${maven.groupId}:vertx-web-templ-freemarker:${maven.version}`. Create an instance of the Apache FreeMarker template engine
+ * using: `io.vertx.ext.web.templ.FreeMarkerTemplateEngine#create()`.
+ *
+ * When using the Apache FreeMarker template engine, it will by default look for
+ * templates with the `.ftl` extension if no extension is specified in the file name.
+ *
+ * The routing context {@link io.vertx.ext.web.RoutingContext} is available
+ * in the Apache FreeMarker template as the `context` variable, this means you can render the template based on anything in the context
+ * including the request, response, session or context data.
+ *
+ * Here are some examples:
+ *
+ * ----
+ * [snip]
+ * &lt;p th:text="${context.foo}"&gt;&lt;/p&gt;
+ * &lt;p th:text="${context.bar}"&gt;&lt;/p&gt;
+ * &lt;p th:text="${context.normalisedPath()}"&gt;&lt;/p&gt;
+ * &lt;p th:text="${context.request().params().param1}"&gt;&lt;/p&gt;
+ * &lt;p th:text="${context.request().params().param2}"&gt;&lt;/p&gt;
+ * [snip]
+ * ----
+ *
+ * Please consult the http://www.freemarker.org/[Apache FreeMarker documentation] for how to write
+ * Apache FreeMarker templates.
  *
  * == Error handler
  *
