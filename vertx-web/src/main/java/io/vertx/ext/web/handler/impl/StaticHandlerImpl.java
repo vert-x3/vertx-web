@@ -167,6 +167,9 @@ public class StaticHandlerImpl implements StaticHandler {
           context.response().setStatusCode(NOT_MODIFIED.code()).end();
           return;
         }
+
+        // Toss entry so we don't use it for anything
+        entry = null;
       }
     }
 
