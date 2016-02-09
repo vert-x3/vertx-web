@@ -1471,7 +1471,7 @@ class Http10(Test):
         # Transfer-encoding is not allowed in http/1.0.
         self.assertFalse(r.headers.get('transfer-encoding'))
         # Content-length is not allowed - we don't know it yet.
-        self.assertFalse(r.headers.get('content-length'))
+        self.assertEqual(int(r.headers.get('content-length')), 0)
 
         # `Connection` should be not set or be `close`. On the other
         # hand, if it is set to `Keep-Alive`, it won't really hurt, as
