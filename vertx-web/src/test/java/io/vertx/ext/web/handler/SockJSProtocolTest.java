@@ -46,23 +46,29 @@ public class SockJSProtocolTest extends WebTestBase {
    */
   @Test
   public void testProtocol() throws Exception {
-    File dir = new File("src/test/sockjs-protocol");
-    Process p = Runtime
-        .getRuntime()
-        .exec("python sockjs-protocol-0.3.3.py", new String[]{"SOCKJS_URL=http://localhost:8080"}, dir);
-
-    try (BufferedReader input = new BufferedReader(new InputStreamReader(p.getErrorStream()))) {
-      String line;
-      while ((line = input.readLine()) != null) {
-        log.info(line);
-      }
-    }
-
+    // does this system have python?
+    Process p = Runtime.getRuntime().exec("python --version");
     int res = p.waitFor();
 
-    // Make sure all tests pass
-    assertEquals("Protocol tests failed", 0, res);
+    if (res == 0) {
+      File dir = new File("src/test/sockjs-protocol");
+      p = Runtime
+          .getRuntime()
+          .exec("python sockjs-protocol-0.3.3.py", new String[]{"SOCKJS_URL=http://localhost:8080"}, dir);
 
+      try (BufferedReader input = new BufferedReader(new InputStreamReader(p.getErrorStream()))) {
+        String line;
+        while ((line = input.readLine()) != null) {
+          log.info(line);
+        }
+      }
+
+      res = p.waitFor();
+
+      // Make sure all tests pass
+      assertEquals("Protocol tests failed", 0, res);
+    } else {
+      System.err.println("*** No Python runtime sockjs tests will be skiped!!!");
+    }
   }
-
 }
