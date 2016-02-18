@@ -48,6 +48,11 @@ public interface BodyHandler extends Handler<RoutingContext> {
   boolean DEFAULT_MERGE_FORM_ATTRIBUTES = true;
 
   /**
+   * Default value of whether uploaded files should be removed after handling the request
+   */
+  boolean DEFAULT_DELETE_UPLOADED_FILES_ON_END = false;
+
+  /**
    * Create a body handler with defaults
    *
    * @return the body handler
@@ -92,5 +97,14 @@ public interface BodyHandler extends Handler<RoutingContext> {
    */
   @Fluent
   BodyHandler setMergeFormAttributes(boolean mergeFormAttributes);
+
+  /**
+   * Set whether uploaded files should be removed after handling the request
+   *
+   * @param deleteUploadedFilesOnEnd  true if uploaded files should be removed after handling the request
+   * @return reference to this for fluency
+   */
+  @Fluent
+  BodyHandler setDeleteUploadedFilesOnEnd(boolean deleteUploadedFilesOnEnd);
 
 }

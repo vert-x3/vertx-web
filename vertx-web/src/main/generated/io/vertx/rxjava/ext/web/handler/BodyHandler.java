@@ -16,11 +16,8 @@
 
 package io.vertx.rxjava.ext.web.handler;
 
-import java.util.Map;
-import io.vertx.lang.rxjava.InternalHelper;
-import rx.Observable;
-import io.vertx.rxjava.ext.web.RoutingContext;
 import io.vertx.core.Handler;
+import io.vertx.rxjava.ext.web.RoutingContext;
 
 /**
  * A handler which gathers the entire request body and sets it on the .
@@ -93,6 +90,16 @@ public class BodyHandler implements Handler<RoutingContext> {
    */
   public BodyHandler setMergeFormAttributes(boolean mergeFormAttributes) { 
     this.delegate.setMergeFormAttributes(mergeFormAttributes);
+    return this;
+  }
+
+  /**
+   * Set whether uploaded files should be removed after handling the request
+   * @param deleteUploadedFilesOnEnd true if uploaded files should be removed after handling the request
+   * @return reference to this for fluency
+   */
+  public BodyHandler setDeleteUploadedFilesOnEnd(boolean deleteUploadedFilesOnEnd) { 
+    this.delegate.setDeleteUploadedFilesOnEnd(deleteUploadedFilesOnEnd);
     return this;
   }
 

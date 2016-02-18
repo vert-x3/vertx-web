@@ -20,6 +20,8 @@ import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.file.FileSystem;
 import io.vertx.core.http.HttpServerRequest;
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.impl.FileUploadImpl;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.FileUpload;
@@ -36,11 +38,14 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class BodyHandlerImpl implements BodyHandler {
 
+  private static final Logger log = LoggerFactory.getLogger(BodyHandlerImpl.class);
+
   private static final String BODY_HANDLED = "__body-handled";
 
   private long bodyLimit = DEFAULT_BODY_LIMIT;
   private String uploadsDir;
   private boolean mergeFormAttributes = DEFAULT_MERGE_FORM_ATTRIBUTES;
+  private boolean deleteUploadedFilesOnEnd = DEFAULT_DELETE_UPLOADED_FILES_ON_END;
 
   public BodyHandlerImpl() {
     setUploadsDirectory(DEFAULT_UPLOADS_DIRECTORY);
@@ -80,6 +85,12 @@ public class BodyHandlerImpl implements BodyHandler {
   @Override
   public BodyHandler setMergeFormAttributes(boolean mergeFormAttributes) {
     this.mergeFormAttributes = mergeFormAttributes;
+    return this;
+  }
+
+  @Override
+  public BodyHandler setDeleteUploadedFilesOnEnd(boolean deleteUploadedFilesOnEnd) {
+    this.deleteUploadedFilesOnEnd = deleteUploadedFilesOnEnd;
     return this;
   }
 
@@ -143,6 +154,14 @@ public class BodyHandlerImpl implements BodyHandler {
     }
 
     void doEnd() {
+      if (deleteUploadedFilesOnEnd) {
+        if (failed) {
+          deleteFileUploads();
+        } else {
+          context.addBodyEndHandler(x -> deleteFileUploads());
+        }
+      }
+
       if (failed || ended) {
         return;
       }
@@ -153,6 +172,16 @@ public class BodyHandlerImpl implements BodyHandler {
       }
       context.setBody(body);
       context.next();
+    }
+
+    private void deleteFileUploads() {
+      for (FileUpload fileUpload : context.fileUploads()) {
+        context.vertx().fileSystem().delete(fileUpload.uploadedFileName(), result -> {
+          if (result.failed()) {
+            log.warn("Delete of file '{}' failed", fileUpload.uploadedFileName());
+          }
+        });
+      }
     }
   }
 
