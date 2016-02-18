@@ -935,7 +935,7 @@
  * ----
  *
  * Now that your client has a token all it is required is that for *all* consequent request the HTTP header
- * `Authorization` is filled with: `Bearer &lt;token&gt;` e.g.:
+ * `Authorization` is filled with: `Bearer <token>` e.g.:
  *
  * [source,$lang]
  * ----
@@ -1287,11 +1287,11 @@
  *
  * ----
  * [snip]
- * &lt;p th:text="${context.get('foo')}"&gt;&lt;/p&gt;
- * &lt;p th:text="${context.get('bar')}"&gt;&lt;/p&gt;
- * &lt;p th:text="${context.normalisedPath()}"&gt;&lt;/p&gt;
- * &lt;p th:text="${context.request().params().get('param1')}"&gt;&lt;/p&gt;
- * &lt;p th:text="${context.request().params().get('param2')}"&gt;&lt;/p&gt;
+ * <p th:text="${context.get('foo')}"></p>
+ * <p th:text="${context.get('bar')}"></p>
+ * <p th:text="${context.normalisedPath()}"></p>
+ * <p th:text="${context.request().params().get('param1')}"></p>
+ * <p th:text="${context.request().params().get('param2')}"></p>
  * [snip]
  * ----
  *
@@ -1315,11 +1315,11 @@
  *
  * ----
  * [snip]
- * &lt;p th:text="${context.foo}"&gt;&lt;/p&gt;
- * &lt;p th:text="${context.bar}"&gt;&lt;/p&gt;
- * &lt;p th:text="${context.normalisedPath()}"&gt;&lt;/p&gt;
- * &lt;p th:text="${context.request().params().param1}"&gt;&lt;/p&gt;
- * &lt;p th:text="${context.request().params().param2}"&gt;&lt;/p&gt;
+ * <p th:text="${context.foo}"></p>
+ * <p th:text="${context.bar}"></p>
+ * <p th:text="${context.normalisedPath()}"></p>
+ * <p th:text="${context.request().params().param1}"></p>
+ * <p th:text="${context.request().params().param2}"></p>
  * [snip]
  * ----
  *
@@ -1555,7 +1555,7 @@
  *
  * [source,groovy,subs="+attributes"]
  * ----
- * compile ${maven.groupId}:${maven.artifactId}:${maven.version}:client
+ * compile '${maven.groupId}:${maven.artifactId}:${maven.version}:client'
  * ----
  *
  * The library is also available on https://www.npmjs.com/package/vertx3-eventbus-client[NPM] and on

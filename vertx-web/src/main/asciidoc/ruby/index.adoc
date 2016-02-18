@@ -75,7 +75,7 @@ To use vert.x web, add the following dependency to the _dependencies_ section of
 <dependency>
   <groupId>io.vertx</groupId>
   <artifactId>vertx-web</artifactId>
-  <version>3.2.1</version>
+  <version>3.3.0-SNAPSHOT</version>
 </dependency>
 ----
 
@@ -84,7 +84,7 @@ To use vert.x web, add the following dependency to the _dependencies_ section of
 [source,groovy,subs="+attributes"]
 ----
 dependencies {
-  compile 'io.vertx:vertx-web:3.2.1'
+  compile 'io.vertx:vertx-web:3.3.0-SNAPSHOT'
 }
 ----
 
@@ -1619,7 +1619,7 @@ router.route("/login").handler() { |ctx|
 ----
 
 Now that your client has a token all it is required is that for *all* consequent request the HTTP header
-`Authorization` is filled with: `Bearer &lt;token&gt;` e.g.:
+`Authorization` is filled with: `Bearer <token>` e.g.:
 
 [source,ruby]
 ----
@@ -1901,7 +1901,7 @@ router.get_with_regex(".+\\.hbs").handler(&handler.method(:handle))
 === MVEL template engine
 
 To use MVEL, you need to add the following _dependency_ to your project:
-`io.vertx:vertx-web-templ-mvel:3.2.1`. Create an instance of the MVEL template engine using:
+`io.vertx:vertx-web-templ-mvel:3.3.0-SNAPSHOT`. Create an instance of the MVEL template engine using:
 `io.vertx.ext.web.templ.MVELTemplateEngine#create()`
 
 When using the MVEL template engine, it will by default look for
@@ -1927,7 +1927,7 @@ MVEL templates.
 === Jade template engine
 
 To use the Jade template engine, you need to add the following _dependency_ to your project:
-`io.vertx:vertx-web-templ-jade:3.2.1`. Create an instance of the Jade template engine using:
+`io.vertx:vertx-web-templ-jade:3.3.0-SNAPSHOT`. Create an instance of the Jade template engine using:
 `io.vertx.ext.web.templ.JadeTemplateEngine#create()`.
 
 When using the Jade template engine, it will by default look for
@@ -1953,7 +1953,7 @@ Jade templates.
 === Handlebars template engine
 
 To use Handlebars, you need to add the following _dependency_ to your project:
-`io.vertx:vertx-web-templ-handlebars:3.2.1`. Create an instance of the Handlebars template engine
+`io.vertx:vertx-web-templ-handlebars:3.3.0-SNAPSHOT`. Create an instance of the Handlebars template engine
 using: `io.vertx.ext.web.templ.HandlebarsTemplateEngine#create()`.
 
 When using the Handlebars template engine, it will by default look for
@@ -1992,7 +1992,7 @@ handlebars templates.
 === Thymeleaf template engine
 
 To use Thymeleaf, you need to add the following _dependency_ to your project:
-`io.vertx:vertx-web-templ-thymeleaf:3.2.1`. Create an instance of the Thymeleaf template engine
+`io.vertx:vertx-web-templ-thymeleaf:3.3.0-SNAPSHOT`. Create an instance of the Thymeleaf template engine
 using: `io.vertx.ext.web.templ.ThymeleafTemplateEngine#create()`.
 
 When using the Thymeleaf template engine, it will by default look for
@@ -2006,11 +2006,11 @@ Here are some examples:
 
 ----
 [snip]
-&lt;p th:text="${context.get('foo')}"&gt;&lt;/p&gt;
-&lt;p th:text="${context.get('bar')}"&gt;&lt;/p&gt;
-&lt;p th:text="${context.normalisedPath()}"&gt;&lt;/p&gt;
-&lt;p th:text="${context.request().params().get('param1')}"&gt;&lt;/p&gt;
-&lt;p th:text="${context.request().params().get('param2')}"&gt;&lt;/p&gt;
+<p th:text="${context.get('foo')}"></p>
+<pth:text="${context.get('bar')}"></p>
+<p th:text="${context.normalisedPath()}"></p>
+<p th:text="${context.request().params().get('param1')}"></p>
+<p th:text="${context.request().params().get('param2')}"></p>
 [snip]
 ----
 
@@ -2034,11 +2034,11 @@ Here are some examples:
 
 ----
 [snip]
-&lt;p th:text="${context.foo}"&gt;&lt;/p&gt;
-&lt;p th:text="${context.bar}"&gt;&lt;/p&gt;
-&lt;p th:text="${context.normalisedPath()}"&gt;&lt;/p&gt;
-&lt;p th:text="${context.request().params().param1}"&gt;&lt;/p&gt;
-&lt;p th:text="${context.request().params().param2}"&gt;&lt;/p&gt;
+<p th:text="${context.foo}"></p>
+<p th:text="${context.bar}"></p>
+<p th:text="${context.normalisedPath()}"></p>
+<p th:text="${context.request().params().param1}"></p>
+<p th:text="${context.request().params().param2}"></p>
 [snip]
 ----
 
@@ -2310,7 +2310,7 @@ You can retrieve the client library using a dependency manager:
 <dependency>
   <groupId>io.vertx</groupId>
   <artifactId>vertx-web</artifactId>
-  <version>3.2.1</version>
+  <version>3.3.0-SNAPSHOT</version>
   <classifier>client</classifier>
 </dependency>
 ----
@@ -2319,7 +2319,7 @@ You can retrieve the client library using a dependency manager:
 
 [source,groovy,subs="+attributes"]
 ----
-compile io.vertx:vertx-web:3.2.1:client
+compile 'io.vertx:vertx-web:3.3.0-SNAPSHOT:client'
 ----
 
 The library is also available on https://www.npmjs.com/package/vertx3-eventbus-client[NPM] and on
