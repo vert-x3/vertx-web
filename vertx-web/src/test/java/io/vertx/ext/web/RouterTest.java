@@ -1676,4 +1676,12 @@ public class RouterTest extends WebTestBase {
 
     testRequest(HttpMethod.GET, "/foo", 200, "OK");
   }
+
+  @Test
+  public void testSubRouterNPE() throws Exception {
+    Router subRouter = Router.router(vertx);
+    router.mountSubRouter("/", subRouter);
+
+    testRequest(HttpMethod.GET, "foo", 404, "Not Found");
+  }
 }
