@@ -16,8 +16,11 @@
 
 package io.vertx.rxjava.ext.web.handler;
 
-import io.vertx.core.Handler;
+import java.util.Map;
+import io.vertx.lang.rxjava.InternalHelper;
+import rx.Observable;
 import io.vertx.rxjava.ext.web.RoutingContext;
+import io.vertx.core.Handler;
 
 /**
  * A handler which gathers the entire request body and sets it on the .

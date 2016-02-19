@@ -253,6 +253,14 @@ public class BodyHandlerTest extends WebTestBase {
     }, true, 500, "Internal Server Error");
   }
 
+  @Test
+  public void testFileUploadFileRemovalIfAlreadyRemoved() throws Exception {
+    testFileUploadFileRemoval(rc -> {
+      vertx.fileSystem().deleteBlocking(rc.fileUploads().iterator().next().uploadedFileName());
+      rc.response().end();
+    }, true, 200, "OK");
+  }
+
   private void testFileUploadFileRemoval(Handler<RoutingContext> requestHandler, boolean deletedUploadedFilesOnEnd,
                                          int statusCode, String statusMessage) throws Exception {
     String uploadsDirectory = tempUploads.newFolder().getPath();

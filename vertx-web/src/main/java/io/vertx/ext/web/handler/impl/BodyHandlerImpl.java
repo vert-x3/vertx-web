@@ -176,9 +176,17 @@ public class BodyHandlerImpl implements BodyHandler {
 
     private void deleteFileUploads() {
       for (FileUpload fileUpload : context.fileUploads()) {
-        context.vertx().fileSystem().delete(fileUpload.uploadedFileName(), result -> {
-          if (result.failed()) {
-            log.warn("Delete of file '{}' failed", fileUpload.uploadedFileName());
+        FileSystem fileSystem = context.vertx().fileSystem();
+        String uploadedFileName = fileUpload.uploadedFileName();
+        fileSystem.exists(uploadedFileName, existResult -> {
+          if (existResult.failed()) {
+            log.warn("Could not detect if uploaded file exists, not deleting: " + uploadedFileName, existResult.cause());
+          } else if (existResult.result()) {
+            fileSystem.delete(uploadedFileName, deleteResult -> {
+              if (deleteResult.failed()) {
+                log.warn("Delete of uploaded file failed: " + uploadedFileName, deleteResult.cause());
+              }
+            });
           }
         });
       }
