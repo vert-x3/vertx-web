@@ -22,6 +22,7 @@ import io.vertx.core.http.HttpMethod;
 import org.junit.Test;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -1675,5 +1676,16 @@ public class RouterTest extends WebTestBase {
     });
 
     testRequest(HttpMethod.GET, "/foo", 200, "OK");
+  }
+
+  @Test
+  public void testDuplicateParams() throws Exception {
+    router.route("/test/:p").handler(RoutingContext::next);
+    router.route("/test/:p").handler(RoutingContext::next);
+    router.route("/test/:p").handler(routingContext -> {
+      assertEquals(1, routingContext.request().params().getAll("p").size());
+      routingContext.response().end();
+    });
+    testRequest(HttpMethod.GET, "/test/abc", 200, "OK");
   }
 }
