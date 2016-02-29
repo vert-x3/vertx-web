@@ -88,6 +88,21 @@ var BodyHandler = function(j_val) {
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
+  /**
+   Set whether uploaded files should be removed after handling the request
+
+   @public
+   @param deleteUploadedFilesOnEnd {boolean} true if uploaded files should be removed after handling the request 
+   @return {BodyHandler} reference to this for fluency
+   */
+  this.setDeleteUploadedFilesOnEnd = function(deleteUploadedFilesOnEnd) {
+    var __args = arguments;
+    if (__args.length === 1 && typeof __args[0] ==='boolean') {
+      j_bodyHandler["setDeleteUploadedFilesOnEnd(boolean)"](deleteUploadedFilesOnEnd);
+      return that;
+    } else throw new TypeError('function invoked with invalid arguments');
+  };
+
   // A reference to the underlying Java delegate
   // NOTE! This is an internal API and must not be used in user code.
   // If you rely on this property your code is likely to break if we change it / remove it without warning.

@@ -81,4 +81,13 @@ public class BodyHandler implements Handler<RoutingContext> {
     this.delegate.setMergeFormAttributes(mergeFormAttributes);
     return this;
   }
+  /**
+   * Set whether uploaded files should be removed after handling the request
+   * @param deleteUploadedFilesOnEnd true if uploaded files should be removed after handling the request
+   * @return reference to this for fluency
+   */
+  public BodyHandler setDeleteUploadedFilesOnEnd(boolean deleteUploadedFilesOnEnd) {
+    this.delegate.setDeleteUploadedFilesOnEnd(deleteUploadedFilesOnEnd);
+    return this;
+  }
 }
