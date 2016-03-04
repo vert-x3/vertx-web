@@ -2,7 +2,7 @@ require 'vertx-web/template_engine'
 require 'vertx/util/utils.rb'
 # Generated from io.vertx.ext.web.templ.PebbleTemplateEngine
 module VertxWeb
-  #  A template engine that uses the Handlebars library.
+  #  A template engine that uses the Pebble library.
   class PebbleTemplateEngine < ::VertxWeb::TemplateEngine
     # @private
     # @param j_del [::VertxWeb::PebbleTemplateEngine] the java delegate
