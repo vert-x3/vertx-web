@@ -1813,7 +1813,7 @@ Here are some examples:
 ----
 [snip]
 <p th:text="${context.get('foo')}"></p>
-<pth:text="${context.get('bar')}"></p>
+<p th:text="${context.get('bar')}"></p>
 <p th:text="${context.normalisedPath()}"></p>
 <p th:text="${context.request().params().get('param1')}"></p>
 <p th:text="${context.request().params().get('param2')}"></p>
@@ -2407,12 +2407,12 @@ authCode flow. An example of using it to protect some resouce and authenticate w
 
 [source,java]
 ----
-OAuth2Auth authProvider = OAuth2Auth.create(vertx, OAuth2FlowType.AUTH_CODE, new JsonObject()
-    .put("clientID", "CLIENT_ID")
-    .put("clientSecret", "CLIENT_SECRET")
-    .put("site", "https://github.com/login")
-    .put("tokenPath", "/oauth/access_token")
-    .put("authorizationPath", "/oauth/authorize"));
+OAuth2Auth authProvider = OAuth2Auth.create(vertx, OAuth2FlowType.AUTH_CODE, new OAuth2ClientOptions()
+    .setClientID("CLIENT_ID")
+    .setClientSecret("CLIENT_SECRET")
+    .setSite("https://github.com/login")
+    .setTokenPath("/oauth/access_token")
+    .setAuthorizationPath("/oauth/authorize"));
 
 // create a oauth2 handler on our domain: "http://localhost:8080"
 OAuth2AuthHandler oauth2 = OAuth2AuthHandler.create(authProvider, "http://localhost:8080");
@@ -2438,12 +2438,12 @@ example, if you are planning to use Google Auth you implement it as:
 
 [source,java]
 ----
-OAuth2Auth authProvider = OAuth2Auth.create(vertx, OAuth2FlowType.AUTH_CODE, new JsonObject()
-    .put("clientID", "CLIENT_ID")
-    .put("clientSecret", "CLIENT_SECRET")
-    .put("site", "https://accounts.google.com")
-    .put("tokenPath", "https://www.googleapis.com/oauth2/v3/token")
-    .put("authorizationPath", "/o/oauth2/auth"));
+OAuth2Auth authProvider = OAuth2Auth.create(vertx, OAuth2FlowType.AUTH_CODE, new OAuth2ClientOptions()
+    .setClientID("CLIENT_ID")
+    .setClientSecret("CLIENT_SECRET")
+    .setSite("https://accounts.google.com")
+    .setTokenPath("https://www.googleapis.com/oauth2/v3/token")
+    .setAuthorizationPath("/o/oauth2/auth"));
 
 // create a oauth2 handler on our domain: "http://localhost:8080"
 OAuth2AuthHandler oauth2 = OAuth2AuthHandler.create(authProvider, "http://localhost:8080");
@@ -2477,12 +2477,12 @@ If you're looking to integrate with LinkedIn then your config should be:
 
 [source,java]
 ----
-OAuth2Auth authProvider = OAuth2Auth.create(vertx, OAuth2FlowType.AUTH_CODE, new JsonObject()
-    .put("clientID", "CLIENT_ID")
-    .put("clientSecret", "CLIENT_SECRET")
-    .put("site", "https://www.linkedin.com")
-    .put("authorizationPath", "/uas/oauth2/authorization")
-    .put("tokenPath", "/uas/oauth2/accessToken"));
+OAuth2Auth authProvider = OAuth2Auth.create(vertx, OAuth2FlowType.AUTH_CODE, new OAuth2ClientOptions()
+    .setClientID("CLIENT_ID")
+    .setClientSecret("CLIENT_SECRET")
+    .setSite("https://www.linkedin.com")
+    .setAuthorizationPath("/uas/oauth2/authorization")
+    .setTokenPath("/uas/oauth2/accessToken"));
 
 // create a oauth2 handler on our domain: "http://localhost:8080"
 OAuth2AuthHandler oauth2 = OAuth2AuthHandler.create(authProvider, "http://localhost:8080");
