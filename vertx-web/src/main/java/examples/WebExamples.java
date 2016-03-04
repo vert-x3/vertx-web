@@ -11,6 +11,7 @@ import io.vertx.ext.auth.AuthProvider;
 import io.vertx.ext.auth.jwt.JWTAuth;
 import io.vertx.ext.auth.jwt.JWTOptions;
 import io.vertx.ext.auth.oauth2.OAuth2Auth;
+import io.vertx.ext.auth.oauth2.OAuth2ClientOptions;
 import io.vertx.ext.auth.oauth2.OAuth2FlowType;
 import io.vertx.ext.web.*;
 import io.vertx.ext.web.handler.*;
@@ -1112,12 +1113,12 @@ public class WebExamples {
   public void example58(Vertx vertx, Router router) {
 
     // create an OAuth2 provider, clientID and clientSecret should be requested to github
-    OAuth2Auth authProvider = OAuth2Auth.create(vertx, OAuth2FlowType.AUTH_CODE, new JsonObject()
-        .put("clientID", "CLIENT_ID")
-        .put("clientSecret", "CLIENT_SECRET")
-        .put("site", "https://github.com/login")
-        .put("tokenPath", "/oauth/access_token")
-        .put("authorizationPath", "/oauth/authorize"));
+    OAuth2Auth authProvider = OAuth2Auth.create(vertx, OAuth2FlowType.AUTH_CODE, new OAuth2ClientOptions()
+            .setClientID("CLIENT_ID")
+            .setClientSecret("CLIENT_SECRET")
+            .setSite("https://github.com/login")
+            .setTokenPath("/oauth/access_token")
+            .setAuthorizationPath("/oauth/authorize"));
 
     // create a oauth2 handler on our domain: "http://localhost:8080"
     OAuth2AuthHandler oauth2 = OAuth2AuthHandler.create(authProvider, "http://localhost:8080");
@@ -1141,12 +1142,12 @@ public class WebExamples {
   public void example59(Vertx vertx, Router router) {
 
     // create an OAuth2 provider, clientID and clientSecret should be requested to Google
-    OAuth2Auth authProvider = OAuth2Auth.create(vertx, OAuth2FlowType.AUTH_CODE, new JsonObject()
-        .put("clientID", "CLIENT_ID")
-        .put("clientSecret", "CLIENT_SECRET")
-        .put("site", "https://accounts.google.com")
-        .put("tokenPath", "https://www.googleapis.com/oauth2/v3/token")
-        .put("authorizationPath", "/o/oauth2/auth"));
+    OAuth2Auth authProvider = OAuth2Auth.create(vertx, OAuth2FlowType.AUTH_CODE, new OAuth2ClientOptions()
+            .setClientID("CLIENT_ID")
+            .setClientSecret("CLIENT_SECRET")
+            .setSite("https://accounts.google.com")
+            .setTokenPath("https://www.googleapis.com/oauth2/v3/token")
+            .setAuthorizationPath("/o/oauth2/auth"));
 
     // create a oauth2 handler on our domain: "http://localhost:8080"
     OAuth2AuthHandler oauth2 = OAuth2AuthHandler.create(authProvider, "http://localhost:8080");
@@ -1173,12 +1174,12 @@ public class WebExamples {
   public void example60(Vertx vertx, Router router) {
 
     // create an OAuth2 provider, clientID and clientSecret should be requested to LinkedIn
-    OAuth2Auth authProvider = OAuth2Auth.create(vertx, OAuth2FlowType.AUTH_CODE, new JsonObject()
-        .put("clientID", "CLIENT_ID")
-        .put("clientSecret", "CLIENT_SECRET")
-        .put("site", "https://www.linkedin.com")
-        .put("authorizationPath", "/uas/oauth2/authorization")
-        .put("tokenPath", "/uas/oauth2/accessToken"));
+    OAuth2Auth authProvider = OAuth2Auth.create(vertx, OAuth2FlowType.AUTH_CODE, new OAuth2ClientOptions()
+            .setClientID("CLIENT_ID")
+            .setClientSecret("CLIENT_SECRET")
+            .setSite("https://www.linkedin.com")
+            .setTokenPath("/uas/oauth2/authorization")
+            .setAuthorizationPath("/uas/oauth2/accessToken"));
 
     // create a oauth2 handler on our domain: "http://localhost:8080"
     OAuth2AuthHandler oauth2 = OAuth2AuthHandler.create(authProvider, "http://localhost:8080");
