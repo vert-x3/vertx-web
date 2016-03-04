@@ -253,7 +253,10 @@ public class RouteImpl implements Route {
             // decode the path as it could contain escaped chars.
             try {
               for (int i = 0; i < groups.size(); i++) {
-                params.put(groups.get(i), URLDecoder.decode(m.group("p" + i), "UTF-8"));
+                final String k = groups.get(i);
+                if (!request.params().contains(k)) {
+                  params.put(k, URLDecoder.decode(m.group("p" + i), "UTF-8"));
+                }
               }
             } catch (UnsupportedEncodingException e) {
               context.fail(e);
@@ -266,7 +269,10 @@ public class RouteImpl implements Route {
               for (int i = 0; i < m.groupCount(); i++) {
                 String group = m.group(i + 1);
                 if(group != null) {
-                  params.put("param" + i, URLDecoder.decode(group, "UTF-8"));
+                  final String k = "param" + i;
+                  if (!request.params().contains(k)) {
+                    params.put(k, URLDecoder.decode(group, "UTF-8"));
+                  }
                 }
               }
             } catch (UnsupportedEncodingException e) {
