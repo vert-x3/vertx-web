@@ -65,5 +65,15 @@ module VertxWeb
       end
       raise ArgumentError, "Invalid arguments when calling set_merge_form_attributes(mergeFormAttributes)"
     end
+    #  Set whether uploaded files should be removed after handling the request
+    # @param [true,false] deleteUploadedFilesOnEnd true if uploaded files should be removed after handling the request
+    # @return [self]
+    def set_delete_uploaded_files_on_end(deleteUploadedFilesOnEnd=nil)
+      if (deleteUploadedFilesOnEnd.class == TrueClass || deleteUploadedFilesOnEnd.class == FalseClass) && !block_given?
+        @j_del.java_method(:setDeleteUploadedFilesOnEnd, [Java::boolean.java_class]).call(deleteUploadedFilesOnEnd)
+        return self
+      end
+      raise ArgumentError, "Invalid arguments when calling set_delete_uploaded_files_on_end(deleteUploadedFilesOnEnd)"
+    end
   end
 end

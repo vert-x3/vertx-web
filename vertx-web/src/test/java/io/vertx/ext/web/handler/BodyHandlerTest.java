@@ -16,12 +16,14 @@
 
 package io.vertx.ext.web.handler;
 
+import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.FileUpload;
+import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.WebTestBase;
 import io.vertx.test.core.TestUtils;
 import org.junit.AfterClass;
@@ -232,6 +234,47 @@ public class BodyHandlerTest extends WebTestBase {
       fail("Should not be called");
     });
     sendFileUploadRequest(fileData, 413, "Request Entity Too Large");
+  }
+
+  @Test
+  public void testFileUploadNoFileRemovalOnEnd() throws Exception {
+    testFileUploadFileRemoval(rc -> rc.response().end(), false, 200, "OK");
+  }
+
+  @Test
+  public void testFileUploadFileRemovalOnEnd() throws Exception {
+    testFileUploadFileRemoval(rc -> rc.response().end(), true, 200, "OK");
+  }
+
+  @Test
+  public void testFileUploadFileRemovalOnError() throws Exception {
+    testFileUploadFileRemoval(rc -> {
+      throw new IllegalStateException();
+    }, true, 500, "Internal Server Error");
+  }
+
+  @Test
+  public void testFileUploadFileRemovalIfAlreadyRemoved() throws Exception {
+    testFileUploadFileRemoval(rc -> {
+      vertx.fileSystem().deleteBlocking(rc.fileUploads().iterator().next().uploadedFileName());
+      rc.response().end();
+    }, true, 200, "OK");
+  }
+
+  private void testFileUploadFileRemoval(Handler<RoutingContext> requestHandler, boolean deletedUploadedFilesOnEnd,
+                                         int statusCode, String statusMessage) throws Exception {
+    String uploadsDirectory = tempUploads.newFolder().getPath();
+    router.clear();
+    router.route().handler(BodyHandler.create()
+            .setDeleteUploadedFilesOnEnd(deletedUploadedFilesOnEnd)
+            .setUploadsDirectory(uploadsDirectory));
+    router.route().handler(requestHandler);
+
+    sendFileUploadRequest(TestUtils.randomBuffer(50), statusCode, statusMessage);
+
+    Thread.sleep(100); // wait until file is removed
+    int uploadedFilesAfterEnd = deletedUploadedFilesOnEnd ? 0 : 1;
+    assertEquals(uploadedFilesAfterEnd, vertx.fileSystem().readDirBlocking(uploadsDirectory).size());
   }
 
   private void sendFileUploadRequest(Buffer fileData,

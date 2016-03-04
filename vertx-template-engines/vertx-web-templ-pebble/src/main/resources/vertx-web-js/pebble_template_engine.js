@@ -29,7 +29,7 @@ var JPebbleTemplateEngine = io.vertx.ext.web.templ.PebbleTemplateEngine;
 */
 var PebbleTemplateEngine = function(j_val) {
 
-  var j_pEBBLETemplateEngine = j_val;
+  var j_pebbleTemplateEngine = j_val;
   var that = this;
   TemplateEngine.call(this, j_val);
 
@@ -43,7 +43,7 @@ var PebbleTemplateEngine = function(j_val) {
   this.setExtension = function(extension) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return utils.convReturnVertxGen(j_pEBBLETemplateEngine["setExtension(java.lang.String)"](extension), PebbleTemplateEngine);
+      return utils.convReturnVertxGen(j_pebbleTemplateEngine["setExtension(java.lang.String)"](extension), PebbleTemplateEngine);
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -57,14 +57,14 @@ var PebbleTemplateEngine = function(j_val) {
   this.setMaxCacheSize = function(maxCacheSize) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] ==='number') {
-      return utils.convReturnVertxGen(j_pEBBLETemplateEngine["setMaxCacheSize(int)"](maxCacheSize), PebbleTemplateEngine);
+      return utils.convReturnVertxGen(j_pebbleTemplateEngine["setMaxCacheSize(int)"](maxCacheSize), PebbleTemplateEngine);
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
   // A reference to the underlying Java delegate
   // NOTE! This is an internal API and must not be used in user code.
   // If you rely on this property your code is likely to break if we change it / remove it without warning.
-  this._jdel = j_pEBBLETemplateEngine;
+  this._jdel = j_pebbleTemplateEngine;
 };
 
 /**

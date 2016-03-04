@@ -513,8 +513,12 @@ public class StaticHandlerImpl implements StaticHandler {
 
   private void setRoot(String webRoot) {
     Objects.requireNonNull(webRoot);
-    if (webRoot.startsWith("/") && !allowRootFileSystemAccess) {
-      throw new IllegalArgumentException("root cannot start with '/'");
+    if (!allowRootFileSystemAccess) {
+      for (File root : File.listRoots()) {
+        if (webRoot.startsWith(root.getAbsolutePath())) {
+          throw new IllegalArgumentException("root cannot start with '" + root.getAbsolutePath() + "'");
+        }
+      }
     }
     this.webRoot = webRoot;
   }

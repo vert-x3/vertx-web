@@ -24,7 +24,6 @@ import org.junit.Test;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
-import java.util.Locale;
 
 /**
  * SockJS protocol tests
@@ -47,35 +46,29 @@ public class SockJSProtocolTest extends WebTestBase {
    */
   @Test
   public void testProtocol() throws Exception {
-    String sockjsenv = "SOCKJS_URL=http://localhost:8080";
-    File dir = new File("src/test/sockjs-protocol");
-    String OS = System.getProperty("os.name", "generic").toLowerCase(Locale.ENGLISH);
-    Process p;
-    if (OS.contains("mac") || OS.contains("darwin")) {
-      // Use default python installation on OSX
-      String[] envp = {
-          sockjsenv,
-          "PYTHONPATH=" + new File("src/test/sockjs-protocol/venv/lib/python2.7/site-packages").getAbsolutePath()
-      };
-      p = Runtime.getRuntime().exec("python sockjs-protocol-0.3.3.py", envp, dir);
-    } else {
-      String[] envp = new String[] {"SOCKJS_URL=http://localhost:8080"};
-      p = Runtime.getRuntime().exec("./venv/bin/python sockjs-protocol-0.3.3.py", envp, dir);
-    }
-
-    log.info("--------------------------------");
-    try (BufferedReader input = new BufferedReader(new InputStreamReader(p.getErrorStream()))) {
-      String line;
-      while ((line = input.readLine()) != null) {
-        log.info(line);
-      }
-    }
-
+    // does this system have python?
+    Process p = Runtime.getRuntime().exec("python --version");
     int res = p.waitFor();
 
-    // Make sure all tests pass
-    assertEquals("Protocol tests failed", 0, res);
+    if (res == 0) {
+      File dir = new File("src/test/sockjs-protocol");
+      p = Runtime
+          .getRuntime()
+          .exec("python sockjs-protocol-0.3.3.py", new String[]{"SOCKJS_URL=http://localhost:8080"}, dir);
 
+      try (BufferedReader input = new BufferedReader(new InputStreamReader(p.getErrorStream()))) {
+        String line;
+        while ((line = input.readLine()) != null) {
+          log.info(line);
+        }
+      }
+
+      res = p.waitFor();
+
+      // Make sure all tests pass
+      assertEquals("Protocol tests failed", 0, res);
+    } else {
+      System.err.println("*** No Python runtime sockjs tests will be skiped!!!");
+    }
   }
-
 }

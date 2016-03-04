@@ -225,7 +225,6 @@
             <artifactId>maven-surefire-plugin</artifactId>
             <configuration>
               <excludes>
-                <exclude>**/SockJSProtocolTest.java</exclude>
                 <exclude>**/HazelcastClusteredSessionHandlerTest.java</exclude>
               </excludes>
             </configuration>
@@ -234,6 +233,5 @@
       </build>
     </profile>
   </profiles>
-
 
 </project>

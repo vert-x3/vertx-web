@@ -556,6 +556,17 @@ public class StaticHandlerTest extends WebTestBase {
     testRequest(HttpMethod.GET, "/" + file.getName(), 200, "OK", "");
   }
 
+  @Test(expected = IllegalArgumentException.class)
+  public void testAccessToRootPath() throws Exception {
+    router.clear();
+
+    File file = File.createTempFile("vertx", "tmp");
+    file.deleteOnExit();
+
+    // remap stat to the temp dir
+    stat = StaticHandler.create().setWebRoot(file.getParent());
+  }
+
   // TODO
   // 1.Test all the params including invalid values
   // 2. Make sure exists isn't being called too many times
