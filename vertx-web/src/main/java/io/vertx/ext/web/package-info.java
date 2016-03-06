@@ -1548,6 +1548,7 @@
  *   <artifactId>${maven.artifactId}</artifactId>
  *   <version>${maven.version}</version>
  *   <classifier>client</classifier>
+ *   <type>js</type>
  * </dependency>
  * ----
  *

@@ -2315,6 +2315,7 @@ You can retrieve the client library using a dependency manager:
   <artifactId>vertx-web</artifactId>
   <version>3.3.0-SNAPSHOT</version>
   <classifier>client</classifier>
+  <type>js</type>
 </dependency>
 ----
 
