@@ -10,7 +10,7 @@
     <version>3.3.0-SNAPSHOT</version>
   </parent>
 
-  <artifactId>vertx-web-templ-freemaker</artifactId>
+  <artifactId>vertx-web-templ-freemarker</artifactId>
 
   <dependencies>
     <dependency>
