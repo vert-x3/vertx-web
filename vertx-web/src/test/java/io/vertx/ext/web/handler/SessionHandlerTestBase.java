@@ -303,6 +303,20 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
     testRequest(HttpMethod.GET, "/", 200, "OK");
   }
 
+  @Test
+  public void testSessionCookieAttack() throws Exception {
+    router.route().handler(CookieHandler.create());
+    router.route().handler(SessionHandler.create(store));
+    // faking that there was some auth error
+    router.route().handler(rc -> {
+      rc.fail(401);
+    });
+
+    testRequest(HttpMethod.GET, "/", null, resp -> {
+      assertNull(resp.headers().get("set-cookie"));
+    }, 401, "Unauthorized", null);
+  }
+
   private final DateFormat dateTimeFormatter = Utils.createRFC1123DateTimeFormatter();
 
   protected long doTestSessionRetryTimeout() throws Exception {

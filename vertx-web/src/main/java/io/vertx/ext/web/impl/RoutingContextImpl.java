@@ -322,7 +322,8 @@ public class RoutingContextImpl extends RoutingContextImplBase {
 
   private Map<Integer, Handler<Void>> getHeadersEndHandlers() {
     if (headersEndHandlers == null) {
-      headersEndHandlers = new LinkedHashMap<>();
+      // order is important we we should traverse backwards
+      headersEndHandlers = new TreeMap<>(Collections.reverseOrder());
       response().headersEndHandler(v -> headersEndHandlers.values().forEach(handler -> handler.handle(null)));
     }
     return headersEndHandlers;
@@ -330,7 +331,8 @@ public class RoutingContextImpl extends RoutingContextImplBase {
 
   private Map<Integer, Handler<Void>> getBodyEndHandlers() {
     if (bodyEndHandlers == null) {
-      bodyEndHandlers = new LinkedHashMap<>();
+      // order is important we we should traverse backwards
+      bodyEndHandlers = new TreeMap<>(Collections.reverseOrder());
       response().bodyEndHandler(v -> bodyEndHandlers.values().forEach(handler -> handler.handle(null)));
     }
     return bodyEndHandlers;
