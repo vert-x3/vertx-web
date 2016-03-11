@@ -61,7 +61,13 @@ public class BasicAuthHandlerImpl extends AuthHandlerImpl {
           String[] credentials = new String(Base64.getDecoder().decode(parts[1])).split(":");
           suser = credentials[0];
           // when the header is: "user:"
-          spass = credentials.length > 1 ? credentials[1] : null;
+          if( credentials.length == 2)
+              spass = credentials[1];
+          else if( credentials.length >2) {
+              spass = joinCredentials(credentials);
+          } else {
+              spass = null;
+          }
         } catch (ArrayIndexOutOfBoundsException e) {
           handle401(context);
           return;
@@ -93,4 +99,13 @@ public class BasicAuthHandlerImpl extends AuthHandlerImpl {
     context.response().putHeader("WWW-Authenticate", "Basic realm=\"" + realm + "\"");
     context.fail(401);
   }
+  
+    private static String joinCredentials(String[] credentials) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 1; i < credentials.length -1; i++) {
+            sb.append(credentials[i]).append(":");
+        }
+        sb.append(credentials[credentials.length-1]);
+        return sb.toString();        
+    }         
 }
