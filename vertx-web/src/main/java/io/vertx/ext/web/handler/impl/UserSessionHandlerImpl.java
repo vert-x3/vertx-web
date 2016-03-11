@@ -54,7 +54,11 @@ public class UserSessionHandlerImpl implements UserSessionHandler {
         }
         holder.context = routingContext;
       } else {
-        session.put(SESSION_USER_HOLDER_KEY, new UserHolder(routingContext));
+        routingContext.addHeadersEndHandler(v -> {
+          if (routingContext.user() != null) {
+            session.put(SESSION_USER_HOLDER_KEY, new UserHolder(routingContext));
+          }
+        });
       }
       if (user != null) {
         routingContext.setUser(user);

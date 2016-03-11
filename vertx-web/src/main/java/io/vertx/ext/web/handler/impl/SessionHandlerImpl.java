@@ -146,13 +146,15 @@ public class SessionHandlerImpl implements SessionHandler {
     context.addHeadersEndHandler(v -> {
       Session session = context.session();
       if (!session.isDestroyed()) {
-        // Store the session
-        session.setAccessed();
-        sessionStore.put(session, res -> {
-          if (res.failed()) {
-            log.error("Failed to store session", res.cause());
-          }
-        });
+        if (session.hasContent()) {
+          // Store the session
+          session.setAccessed();
+          sessionStore.put(session, res -> {
+            if (res.failed()) {
+              log.error("Failed to store session", res.cause());
+            }
+          });
+        }
       } else {
         sessionStore.delete(session.id(), res -> {
           if (res.failed()) {
