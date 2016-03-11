@@ -58,16 +58,15 @@ public class BasicAuthHandlerImpl extends AuthHandlerImpl {
         try {
           String[] parts = authorization.split(" ");
           sscheme = parts[0];
-          String[] credentials = new String(Base64.getDecoder().decode(parts[1])).split(":");
-          suser = credentials[0];
-          // when the header is: "user:"
-          if( credentials.length == 2)
-              spass = credentials[1];
-          else if( credentials.length >2) {
-              spass = joinCredentials(credentials);
+          String decoded = new String(Base64.getDecoder().decode(parts[1]));          
+          int colonIdx = decoded.indexOf(":");
+          if(colonIdx!=-1) {
+              suser = decoded.substring(0,colonIdx);
+              spass = decoded.substring(colonIdx+1);
           } else {
-              spass = null;
-          }
+              suser = decoded;
+              spass = null;                      
+          }          
         } catch (ArrayIndexOutOfBoundsException e) {
           handle401(context);
           return;
@@ -98,14 +97,5 @@ public class BasicAuthHandlerImpl extends AuthHandlerImpl {
   private void handle401(RoutingContext context) {
     context.response().putHeader("WWW-Authenticate", "Basic realm=\"" + realm + "\"");
     context.fail(401);
-  }
-  
-    private static String joinCredentials(String[] credentials) {
-        StringBuilder sb = new StringBuilder();
-        for (int i = 1; i < credentials.length -1; i++) {
-            sb.append(credentials[i]).append(":");
-        }
-        sb.append(credentials[credentials.length-1]);
-        return sb.toString();        
-    }         
+  }  
 }
