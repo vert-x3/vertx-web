@@ -21,7 +21,7 @@ import io.vertx.core.json.JsonObject
 import java.util.List
 import java.util.Set
 import io.vertx.groovy.ext.web.RoutingContext
-import io.vertx.groovy.ext.auth.AuthProvider
+import io.vertx.groovy.ext.auth.jwt.JWTAuth
 /**
  * An auth handler that provides JWT Authentication support.
 */
@@ -60,8 +60,8 @@ public class JWTAuthHandler implements AuthHandler {
    * @param authProvider the auth provider to use
    * @return the auth handler
    */
-  public static JWTAuthHandler create(AuthProvider authProvider) {
-    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.JWTAuthHandler.create((io.vertx.ext.auth.AuthProvider)authProvider.getDelegate()), io.vertx.groovy.ext.web.handler.JWTAuthHandler.class);
+  public static JWTAuthHandler create(JWTAuth authProvider) {
+    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.JWTAuthHandler.create((io.vertx.ext.auth.jwt.JWTAuth)authProvider.getDelegate()), io.vertx.groovy.ext.web.handler.JWTAuthHandler.class);
     return ret;
   }
   /**
@@ -70,8 +70,8 @@ public class JWTAuthHandler implements AuthHandler {
    * @param skip 
    * @return the auth handler
    */
-  public static JWTAuthHandler create(AuthProvider authProvider, String skip) {
-    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.JWTAuthHandler.create((io.vertx.ext.auth.AuthProvider)authProvider.getDelegate(), skip), io.vertx.groovy.ext.web.handler.JWTAuthHandler.class);
+  public static JWTAuthHandler create(JWTAuth authProvider, String skip) {
+    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.JWTAuthHandler.create((io.vertx.ext.auth.jwt.JWTAuth)authProvider.getDelegate(), skip), io.vertx.groovy.ext.web.handler.JWTAuthHandler.class);
     return ret;
   }
   /**

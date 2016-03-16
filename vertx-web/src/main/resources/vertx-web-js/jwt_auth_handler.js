@@ -18,7 +18,7 @@
 var utils = require('vertx-js/util/utils');
 var AuthHandler = require('vertx-web-js/auth_handler');
 var RoutingContext = require('vertx-web-js/routing_context');
-var AuthProvider = require('vertx-auth-common-js/auth_provider');
+var JWTAuth = require('vertx-auth-jwt-js/jwt_auth');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
@@ -132,16 +132,16 @@ var JWTAuthHandler = function(j_val) {
  Create a JWT auth handler
 
  @memberof module:vertx-web-js/jwt_auth_handler
- @param authProvider {AuthProvider} the auth provider to use. 
+ @param authProvider {JWTAuth} the auth provider to use. 
  @param skip {string} 
  @return {JWTAuthHandler} the auth handler
  */
 JWTAuthHandler.create = function() {
   var __args = arguments;
   if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
-    return utils.convReturnVertxGen(JJWTAuthHandler["create(io.vertx.ext.auth.AuthProvider)"](__args[0]._jdel), JWTAuthHandler);
+    return utils.convReturnVertxGen(JJWTAuthHandler["create(io.vertx.ext.auth.jwt.JWTAuth)"](__args[0]._jdel), JWTAuthHandler);
   }else if (__args.length === 2 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'string') {
-    return utils.convReturnVertxGen(JJWTAuthHandler["create(io.vertx.ext.auth.AuthProvider,java.lang.String)"](__args[0]._jdel, __args[1]), JWTAuthHandler);
+    return utils.convReturnVertxGen(JJWTAuthHandler["create(io.vertx.ext.auth.jwt.JWTAuth,java.lang.String)"](__args[0]._jdel, __args[1]), JWTAuthHandler);
   } else throw new TypeError('function invoked with invalid arguments');
 };
 

@@ -1787,6 +1787,15 @@
  * * facebook
  * * keycloak
  *
+ * For keycloak we have a slighter easier setup, just export the json file from the keycloak admin console and load it
+ * into the handler. Keycloak has some differences from the other providers in the sense that it can also use the token
+ * to specify grants. You can validate against these grants like this:
+ *
+ * [source,$lang]
+ * ----
+ * {@link examples.WebExamples#example61}
+ * ----
+ *
  */
 @Document(fileName = "index.adoc")
 @ModuleGen(name = "vertx-web", groupPackage = "io.vertx")

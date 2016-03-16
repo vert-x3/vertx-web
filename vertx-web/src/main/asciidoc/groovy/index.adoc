@@ -2837,3 +2837,43 @@ for:
 * linkedin
 * facebook
 * keycloak
+
+For keycloak we have a slighter easier setup, just export the json file from the keycloak admin console and load it
+into the handler. Keycloak has some differences from the other providers in the sense that it can also use the token
+to specify grants. You can validate against these grants like this:
+
+[source,groovy]
+----
+import io.vertx.ext.auth.oauth2.OAuth2FlowType
+import io.vertx.groovy.ext.auth.oauth2.OAuth2Auth
+import io.vertx.groovy.ext.web.handler.OAuth2AuthHandler
+// create an OAuth2 provider for keycloak
+def authProvider = OAuth2Auth.createKeycloak(vertx, OAuth2FlowType.AUTH_CODE, [:])
+
+// create a oauth2 handler on our domain: "http://localhost:8000"
+def oauth2 = OAuth2AuthHandler.create(authProvider, "http://localhost:8000")
+
+// setup the callback handler for receiving the keycloak callback
+oauth2.setupCallback(router.get("/callback"))
+
+// protect everything under /protected
+router.route("/protected/*").handler(oauth2)
+
+// mount some handler under the protected zone
+router.route("/protected/somepage").handler({ rc ->
+  // you can now do authZ based on keycloak grants
+  rc.user().isAuthorised("account:manage-account", { manageAccount ->
+    if (manageAccount.result()) {
+      rc.response().end("Welcome to the protected resource and you can manage your account!")
+    } else {
+      rc.response().end("Welcome to the protected resource but you cannot manage your account!")
+    }
+  })
+})
+
+// welcome page
+router.get("/").handler({ ctx ->
+  ctx.response().putHeader("content-type", "text/html").end("Hello<br><a href=\"/protected/somepage\">Protected by keycloak</a>")
+})
+
+----
