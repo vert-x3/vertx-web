@@ -1664,8 +1664,8 @@
  * SEND:: This event will occur when a message is attempted to be sent from the client to the server.
  * PUBLISH:: This event will occur when a message is attempted to be published from the client to the server.
  * RECEIVE:: This event will occur when a message is attempted to be delivered from the server to the client.
- * REGISTER. This event will occur when a client attempts to register a handler.
- * UNREGISTER. This event will occur when a client attempts to unregister a handler.
+ * REGISTER:: This event will occur when a client attempts to register a handler.
+ * UNREGISTER:: This event will occur when a client attempts to unregister a handler.
  *
  * The event enables you to retrieve the type using {@link io.vertx.ext.web.handler.sockjs.BridgeEvent#type()} and
  * inspect the raw message of the event using {@link io.vertx.ext.web.handler.sockjs.BridgeEvent#getRawMessage()}.
