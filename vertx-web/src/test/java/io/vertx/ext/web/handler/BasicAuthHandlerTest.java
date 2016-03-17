@@ -121,17 +121,20 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
       assertNotNull(wwwAuth);
       assertEquals("Basic realm=\"" + BasicAuthHandler.DEFAULT_REALM + "\"", wwwAuth);
       String setCookie = resp.headers().get("set-cookie");
-      assertNotNull(setCookie);
-      sessionCookie.set(setCookie);
+      // auth failed you should not get a session cookie!!!
+      assertNull(setCookie);
     }, 401, "Unauthorized", null);
 
     // Now try again with credentials
     testRequest(HttpMethod.GET, "/protected/somepage", req -> {
       req.putHeader("Authorization", "Basic dGltOmRlbGljaW91czpzYXVzYWdlcw==");
-      req.putHeader("cookie", sessionCookie.get());
     }, resp -> {
       String wwwAuth = resp.headers().get("WWW-Authenticate");
       assertNull(wwwAuth);
+      // auth is success, we should get a cookie!!!
+      String setCookie = resp.headers().get("set-cookie");
+      assertNotNull(setCookie);
+      sessionCookie.set(setCookie);
     }, 200, "OK", "Welcome to the protected resource!");
 
     // And try again a few times we should be logged in with user stored in the session
