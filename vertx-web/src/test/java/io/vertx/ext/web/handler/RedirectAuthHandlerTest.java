@@ -136,7 +136,7 @@ public class RedirectAuthHandlerTest extends AuthHandlerTestBase {
         "--" + boundary + "\r\n" +
           "Content-Disposition: form-data; name=\"" + usernameParam + "\"\r\n\r\ntim\r\n" +
           "--" + boundary + "\r\n" +
-          "Content-Disposition: form-data; name=\"" + passwordParam + "\"\r\n\r\nsausages\r\n" +
+          "Content-Disposition: form-data; name=\"" + passwordParam + "\"\r\n\r\ndelicious:sausages\r\n" +
           "--" + boundary + "--\r\n";
       buffer.appendString(str);
       req.putHeader("content-length", String.valueOf(buffer.length()));
@@ -236,7 +236,7 @@ public class RedirectAuthHandlerTest extends AuthHandlerTestBase {
       String boundary = "dLV9Wyq26L_-JQxk6ferf-RT153LhOO";
       Buffer buffer = Buffer.buffer();
       String username = badUser ? "jim" : "tim";
-      String password = badUser ? "sausages" : "fishfingers";
+      String password = badUser ? "delicious:sausages" : "fishfingers";
       String str =
         "--" + boundary + "\r\n" +
           "Content-Disposition: form-data; name=\"username\"\r\n\r\n" + username + "\r\n" +

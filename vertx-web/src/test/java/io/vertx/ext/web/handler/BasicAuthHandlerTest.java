@@ -74,7 +74,7 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
 
     // Now try again with credentials
     testRequest(HttpMethod.GET, "/protected/somepage", req -> {
-      req.putHeader("Authorization", "Basic dGltOnNhdXNhZ2Vz");
+      req.putHeader("Authorization", "Basic dGltOmRlbGljaW91czpzYXVzYWdlcw==");
     }, resp -> {
       String wwwAuth = resp.headers().get("WWW-Authenticate");
       assertNull(wwwAuth);
@@ -127,7 +127,7 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
 
     // Now try again with credentials
     testRequest(HttpMethod.GET, "/protected/somepage", req -> {
-      req.putHeader("Authorization", "Basic dGltOnNhdXNhZ2Vz");
+      req.putHeader("Authorization", "Basic dGltOmRlbGljaW91czpzYXVzYWdlcw==");
     }, resp -> {
       String wwwAuth = resp.headers().get("WWW-Authenticate");
       assertNull(wwwAuth);
@@ -157,7 +157,7 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
 
     // And login again
     testRequest(HttpMethod.GET, "/protected/somepage", req -> {
-      req.putHeader("Authorization", "Basic dGltOnNhdXNhZ2Vz");
+      req.putHeader("Authorization", "Basic dGltOmRlbGljaW91czpzYXVzYWdlcw==");
     }, resp -> {
       String wwwAuth = resp.headers().get("WWW-Authenticate");
       assertNull(wwwAuth);
