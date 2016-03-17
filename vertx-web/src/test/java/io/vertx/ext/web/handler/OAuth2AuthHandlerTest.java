@@ -45,11 +45,13 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     super.tearDown();
   }
 
+  private String redirectURL = null;
+
   @Test
   public void testHappyFlow() throws Exception {
 
     // lets mock a oauth2 server using code auth code flow
-    OAuth2Auth oauth21 = OAuth2Auth.create(vertx, OAuth2FlowType.AUTH_CODE, new OAuth2ClientOptions()
+    OAuth2Auth oauth2 = OAuth2Auth.create(vertx, OAuth2FlowType.AUTH_CODE, new OAuth2ClientOptions()
         .setClientID("client-id")
         .setClientSecret("client-secret")
         .setSite("http://localhost:10000"));
@@ -79,25 +81,28 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     latch.await();
 
     // create a oauth2 handler on our domain: "http://localhost:8080"
-    OAuth2AuthHandler oauth2 = OAuth2AuthHandler.create(oauth21, "http://localhost:8080");
+    OAuth2AuthHandler oauth2Handler = OAuth2AuthHandler.create(oauth2, "http://localhost:8080");
 
     // setup the callback handler for receiving the callback
-    oauth2.setupCallback(router.get("/callback"));
+    oauth2Handler.setupCallback(router.get("/callback"));
 
     // protect everything under /protected
-    router.route("/protected/*").handler(oauth2);
+    router.route("/protected/*").handler(oauth2Handler);
     // mount some handler under the protected zone
     router.route("/protected/somepage").handler(rc -> {
       assertNotNull(rc.user());
       rc.response().end("Welcome to the protected resource!");
     });
 
+
     testRequest(HttpMethod.GET, "/protected/somepage", null, resp -> {
       // in this case we should get a redirect
+      redirectURL = resp.getHeader("Location");
+      assertNotNull(redirectURL);
     }, 302, "Found", null);
 
     // fake the redirect
-    testRequest(HttpMethod.GET, "/callback?redirect_uri=/protected/somepage", null, resp -> {
+    testRequest(HttpMethod.GET, "/callback?redirect_uri=/protected/somepage&code=1", null, resp -> {
     }, 200, "OK", "Welcome to the protected resource!");
 
     server.close();
