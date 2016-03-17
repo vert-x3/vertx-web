@@ -322,7 +322,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
 
   private Map<Integer, Handler<Void>> getHeadersEndHandlers() {
     if (headersEndHandlers == null) {
-      headersEndHandlers = new LinkedHashMap<>();
+      headersEndHandlers = new TreeMap<>(Collections.reverseOrder());
       response().headersEndHandler(v -> headersEndHandlers.values().forEach(handler -> handler.handle(null)));
     }
     return headersEndHandlers;

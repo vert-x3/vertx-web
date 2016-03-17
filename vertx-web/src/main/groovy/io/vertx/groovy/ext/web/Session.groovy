@@ -47,6 +47,14 @@ public class Session {
     return ret;
   }
   /**
+   * @return true if data has been written to this session
+   * @return 
+   */
+  public boolean hasContent() {
+    def ret = this.delegate.hasContent();
+    return ret;
+  }
+  /**
    * Put some data in a session
    * @param key the key for the data
    * @param obj the data

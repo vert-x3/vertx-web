@@ -132,6 +132,9 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
     }, resp -> {
       String wwwAuth = resp.headers().get("WWW-Authenticate");
       assertNull(wwwAuth);
+      String setCookie = resp.headers().get("set-cookie");
+      assertNotNull(setCookie);
+      sessionCookie.set(setCookie);
     }, 200, "OK", "Welcome to the protected resource!");
 
     // And try again a few times we should be logged in with user stored in the session
