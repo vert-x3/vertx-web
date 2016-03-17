@@ -1126,6 +1126,66 @@ public class RouterTest extends WebTestBase {
   }
 
   @Test
+  public void testHeadersEndHandlerCalledBackwards() throws Exception {
+
+    final AtomicInteger cnt = new AtomicInteger(0);
+
+    router.route().handler(rc -> {
+      final int val = cnt.incrementAndGet();
+      rc.addHeadersEndHandler(v -> {
+        assertEquals(val, cnt.getAndDecrement());
+      });
+      rc.next();
+    });
+    router.route().handler(rc -> {
+      final int val = cnt.incrementAndGet();
+      rc.addHeadersEndHandler(v -> {
+        assertEquals(val, cnt.getAndDecrement());
+      });
+      rc.next();
+    });
+    router.route().handler(rc -> {
+      final int val = cnt.incrementAndGet();
+      rc.addHeadersEndHandler(v -> {
+        assertEquals(val, cnt.getAndDecrement());
+      });
+      rc.response().end();
+    });
+
+    testRequest(HttpMethod.GET, "/", 200, "OK");
+  }
+
+  @Test
+  public void testHeadersEndHandlerCalledBackwards2() throws Exception {
+
+    final AtomicInteger cnt = new AtomicInteger(0);
+
+    router.route().handler(rc -> {
+      final int val = cnt.incrementAndGet();
+      rc.addBodyEndHandler(v -> {
+        assertEquals(val, cnt.getAndDecrement());
+      });
+      rc.next();
+    });
+    router.route().handler(rc -> {
+      final int val = cnt.incrementAndGet();
+      rc.addBodyEndHandler(v -> {
+        assertEquals(val, cnt.getAndDecrement());
+      });
+      rc.next();
+    });
+    router.route().handler(rc -> {
+      final int val = cnt.incrementAndGet();
+      rc.addBodyEndHandler(v -> {
+        assertEquals(val, cnt.getAndDecrement());
+      });
+      rc.response().end();
+    });
+
+    testRequest(HttpMethod.GET, "/", 200, "OK");
+  }
+
+  @Test
   public void testHeadersEndHandlerRemoveHandler() throws Exception {
     router.route().handler(rc -> {
       rc.addHeadersEndHandler(v -> {
