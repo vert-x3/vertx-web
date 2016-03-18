@@ -142,12 +142,18 @@ public class BodyHandlerImpl implements BodyHandler {
 
     void uploadEnded() {
       int count = uploadCount.decrementAndGet();
-      if (count == 0) {
+      // only if parsing is done and count is 0 then all files have been processed
+      if (ended && count == 0) {
         doEnd();
       }
     }
 
     void end() {
+      // this marks the end of body parsing, calling doEnd should
+      // only be possible from this moment onwards
+      ended = true;
+
+      // only if parsing is done and count is 0 then all files have been processed
       if (uploadCount.get() == 0) {
         doEnd();
       }
@@ -162,10 +168,10 @@ public class BodyHandlerImpl implements BodyHandler {
         }
       }
 
-      if (failed || ended) {
+      if (failed) {
         return;
       }
-      ended = true;
+
       HttpServerRequest req = context.request();
       if (mergeFormAttributes && req.isExpectMultipart()) {
         req.params().addAll(req.formAttributes());
