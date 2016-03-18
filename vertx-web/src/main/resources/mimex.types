@@ -1,0 +1,17 @@
+# Google Chrome Extension
+application/x-chrome-extension  crx
+# OTF Message Silencer
+font/opentype  otf
+# HTC support
+text/x-component  htc
+# HTML5 application cache manifest
+text/cache-manifest  appcache manifest
+# node binary buffer format
+application/octet-stream  buffer
+# The "protected" MP-4 formats used by iTunes.
+application/mp4  m4p
+audio/mp4  m4a
+# Music playlist format (http://en.wikipedia.org/wiki/M3U)
+application/x-mpegURL  m3u8
+# Video format, Part of RFC1890
+video/MP2T  ts

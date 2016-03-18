@@ -363,22 +363,45 @@ public class StaticHandlerImpl implements StaticHandler {
         // classloader (if any).
         final Long finalOffset = offset;
         final Long finalEnd = end;
-        wrapInTCCLSwitch(() ->
-            request.response().sendFile(file, finalOffset, finalEnd + 1, res2 -> {
-              if (res2.failed()) {
-                context.fail(res2.cause());
-              }
-            }), null);
+        wrapInTCCLSwitch(() -> {
+          // guess content type
+          String contentType = MimeType.getMime(file);
+          if (contentType != null) {
+            String charset = MimeType.getCharset(contentType);
+            if (charset != null) {
+              request.response().putHeader("Content-Type", contentType + ";charset=" + charset);
+            } else {
+              request.response().putHeader("Content-Type", contentType);
+            }
+          }
+
+          return request.response().sendFile(file, finalOffset, finalEnd + 1, res2 -> {
+            if (res2.failed()) {
+              context.fail(res2.cause());
+            }
+          });
+        }, null);
       } else {
         // Wrap the sendFile operation into a TCCL switch, so the file resolver would find the file from the set
         // classloader (if any).
-        wrapInTCCLSwitch(() ->
-            request.response().sendFile(file, res2 -> {
-              if (res2.failed()) {
-                context.fail(res2.cause());
-              }
+        wrapInTCCLSwitch(() -> {
+          // guess content type
+          String contentType = MimeType.getMime(file);
+          if (contentType != null) {
+            String charset = MimeType.getCharset(contentType);
+            if (charset != null) {
+              request.response().putHeader("Content-Type", contentType + ";charset=" + charset);
+            } else {
+              request.response().putHeader("Content-Type", contentType);
             }
-        ), null);
+          }
+
+          return request.response().sendFile(file, res2 -> {
+            if (res2.failed()) {
+              context.fail(res2.cause());
+            }
+          });
+        }, null);
       }
     }
   }
