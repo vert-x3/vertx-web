@@ -1,7 +1,7 @@
 require 'vertx-web/route'
 require 'vertx-web/auth_handler'
 require 'vertx-web/routing_context'
-require 'vertx-auth-common/auth_provider'
+require 'vertx-auth-oauth2/o_auth2_auth'
 require 'vertx/util/utils.rb'
 # Generated from io.vertx.ext.web.handler.OAuth2AuthHandler
 module VertxWeb
@@ -46,13 +46,13 @@ module VertxWeb
       end
       raise ArgumentError, "Invalid arguments when calling add_authorities(authorities)"
     end
-    #  Create a JWT auth handler
-    # @param [::VertxAuthCommon::AuthProvider] authProvider the auth provider to use
+    #  Create a OAuth2 auth handler
+    # @param [::VertxAuthOauth2::OAuth2Auth] authProvider the auth provider to use
     # @param [String] uri 
     # @return [::VertxWeb::OAuth2AuthHandler] the auth handler
     def self.create(authProvider=nil,uri=nil)
       if authProvider.class.method_defined?(:j_del) && uri.class == String && !block_given?
-        return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebHandler::OAuth2AuthHandler.java_method(:create, [Java::IoVertxExtAuth::AuthProvider.java_class,Java::java.lang.String.java_class]).call(authProvider.j_del,uri),::VertxWeb::OAuth2AuthHandler)
+        return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebHandler::OAuth2AuthHandler.java_method(:create, [Java::IoVertxExtAuthOauth2::OAuth2Auth.java_class,Java::java.lang.String.java_class]).call(authProvider.j_del,uri),::VertxWeb::OAuth2AuthHandler)
       end
       raise ArgumentError, "Invalid arguments when calling create(authProvider,uri)"
     end

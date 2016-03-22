@@ -1,6 +1,6 @@
 require 'vertx-web/auth_handler'
 require 'vertx-web/routing_context'
-require 'vertx-auth-common/auth_provider'
+require 'vertx-auth-jwt/jwt_auth'
 require 'vertx/util/utils.rb'
 # Generated from io.vertx.ext.web.handler.JWTAuthHandler
 module VertxWeb
@@ -46,14 +46,14 @@ module VertxWeb
       raise ArgumentError, "Invalid arguments when calling add_authorities(authorities)"
     end
     #  Create a JWT auth handler
-    # @param [::VertxAuthCommon::AuthProvider] authProvider the auth provider to use.
+    # @param [::VertxAuthJwt::JWTAuth] authProvider the auth provider to use.
     # @param [String] skip 
     # @return [::VertxWeb::JWTAuthHandler] the auth handler
     def self.create(authProvider=nil,skip=nil)
       if authProvider.class.method_defined?(:j_del) && !block_given? && skip == nil
-        return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebHandler::JWTAuthHandler.java_method(:create, [Java::IoVertxExtAuth::AuthProvider.java_class]).call(authProvider.j_del),::VertxWeb::JWTAuthHandler)
+        return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebHandler::JWTAuthHandler.java_method(:create, [Java::IoVertxExtAuthJwt::JWTAuth.java_class]).call(authProvider.j_del),::VertxWeb::JWTAuthHandler)
       elsif authProvider.class.method_defined?(:j_del) && skip.class == String && !block_given?
-        return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebHandler::JWTAuthHandler.java_method(:create, [Java::IoVertxExtAuth::AuthProvider.java_class,Java::java.lang.String.java_class]).call(authProvider.j_del,skip),::VertxWeb::JWTAuthHandler)
+        return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebHandler::JWTAuthHandler.java_method(:create, [Java::IoVertxExtAuthJwt::JWTAuth.java_class,Java::java.lang.String.java_class]).call(authProvider.j_del,skip),::VertxWeb::JWTAuthHandler)
       end
       raise ArgumentError, "Invalid arguments when calling create(authProvider,skip)"
     end

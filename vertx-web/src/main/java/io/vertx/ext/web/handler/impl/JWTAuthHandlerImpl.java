@@ -23,6 +23,7 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
+import io.vertx.ext.auth.jwt.JWTAuth;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.auth.AuthProvider;
 import io.vertx.ext.auth.User;
@@ -43,7 +44,7 @@ public class JWTAuthHandlerImpl extends AuthHandlerImpl implements JWTAuthHandle
   private final String skip;
   private final JsonObject options;
 
-  public JWTAuthHandlerImpl(AuthProvider authProvider, String skip) {
+  public JWTAuthHandlerImpl(JWTAuth authProvider, String skip) {
     super(authProvider);
     this.skip = skip;
     options = new JsonObject();
