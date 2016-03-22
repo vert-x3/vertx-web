@@ -30,6 +30,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -566,6 +567,29 @@ public class StaticHandlerTest extends WebTestBase {
     // remap stat to the temp dir
     stat = StaticHandler.create().setWebRoot(file.getParent());
   }
+
+  @Test
+  public void testDoubleException() throws Exception {
+    router.clear();
+
+    final AtomicInteger cnt = new AtomicInteger(0);
+
+    router.route("/static/*")
+        .handler(stat)
+        .failureHandler(ctx -> {
+          if (cnt.incrementAndGet() == 1) {
+            vertx.setTimer(100, v -> {
+              ctx.response().end();
+            });
+          }
+
+          System.out.println("HERE!");
+        });
+
+    testRequest(HttpMethod.GET, "/static/non-existent-file.txt", 200, "OK");
+    assertEquals(1, cnt.get());
+  }
+
 
   // TODO
   // 1.Test all the params including invalid values
