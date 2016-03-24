@@ -170,28 +170,38 @@
           </execution>
         </executions>
       </plugin>
+
       <plugin>
-        <groupId>org.apache.felix</groupId>
-        <artifactId>maven-bundle-plugin</artifactId>
-        <version>3.0.0</version>
+        <groupId>biz.aQute.bnd</groupId>
+        <artifactId>bnd-maven-plugin</artifactId>
+        <version>3.2.0-SNAPSHOT</version>
+
         <executions>
           <execution>
-            <id>bundle-manifest</id>
-            <phase>process-classes</phase>
+            <id>default-bnd-process</id>
             <goals>
-              <goal>manifest</goal>
+              <goal>bnd-process</goal>
             </goals>
-            <configuration>
-              <instructions>
-                <Export-Package>io.vertx.ext.web*</Export-Package>
-                <Private-Package>!examples*</Private-Package>
-                <Import-Package>
-                  io.vertx.groovy.*;resolution:=optional, io.vertx.rxjava.*;resolution:=optional, *
-                </Import-Package>
-              </instructions>
-            </configuration>
           </execution>
         </executions>
+        <configuration>
+          <bnd><![CDATA[
+          Import-Package: \
+            groovy.lang.*;resolution:=optional,\
+            org.codehaus.groovy.*;resolution:=optional,\
+            io.vertx.groovy.*;resolution:=optional,\
+            io.vertx.ext.auth.*;resolution:=optional,\
+            io.vertx.lang.rxjava.*;resolution:=optional,\
+            io.vertx.lang.groovy.*;resolution:=optional,\
+            io.vertx.codegen.annotations;resolution:=optional,\
+            io.vertx.rx.java;resolution:=optional,\
+            io.vertx.rxjava.core.*;resolution:=optional,\
+            io.vertx.rxjava.ext.auth.*;resolution:=optional,\
+            rx.*;resolution:=optional,\
+            *
+          -exportcontents: !*impl, !examples, *
+          ]]></bnd>
+        </configuration>
       </plugin>
     </plugins>
   </build>
