@@ -74,7 +74,7 @@ public abstract class AuthHandlerTestBase extends WebTestBase {
     router.route().handler(rc -> {
       // we need to be logged in
       if (rc.user() == null) {
-        JsonObject authInfo = new JsonObject().put("username", username).put("password", "sausages");
+        JsonObject authInfo = new JsonObject().put("username", username).put("password", "delicious:sausages");
         authProvider.authenticate(authInfo, res -> {
           if (res.succeeded()) {
             rc.setUser(res.result());

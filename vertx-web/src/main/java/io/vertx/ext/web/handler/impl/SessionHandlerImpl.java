@@ -146,13 +146,19 @@ public class SessionHandlerImpl implements SessionHandler {
     context.addHeadersEndHandler(v -> {
       Session session = context.session();
       if (!session.isDestroyed()) {
-        // Store the session
-        session.setAccessed();
-        sessionStore.put(session, res -> {
-          if (res.failed()) {
-            log.error("Failed to store session", res.cause());
-          }
-        });
+        final int currentStatusCode = context.response().getStatusCode();
+        // Store the session (only and only if there was no error)
+        if (currentStatusCode >= 200 && currentStatusCode < 400) {
+          session.setAccessed();
+          sessionStore.put(session, res -> {
+            if (res.failed()) {
+              log.error("Failed to store session", res.cause());
+            }
+          });
+        } else {
+          // don't send a cookie if status is not 2xx or 3xx
+          context.removeCookie(sessionCookieName);
+        }
       } else {
         sessionStore.delete(session.id(), res -> {
           if (res.failed()) {

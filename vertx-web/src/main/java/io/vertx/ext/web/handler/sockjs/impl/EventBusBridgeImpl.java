@@ -428,9 +428,12 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
         } else {
           ReplyException cause = (ReplyException) result.cause();
           JsonObject envelope =
-            new JsonObject().put("address", replyAddress).put("failureCode",
-              cause.failureCode()).put("failureType", cause.failureType().name())
-              .put("message", cause.getMessage());
+            new JsonObject()
+                .put("type", "err")
+                .put("address", replyAddress)
+                .put("failureCode", cause.failureCode())
+                .put("failureType", cause.failureType().name())
+                .put("message", cause.getMessage());
           sock.write(buffer(envelope.encode()));
         }
         info.handlerCount--;
