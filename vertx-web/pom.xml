@@ -190,6 +190,7 @@
             groovy.lang.*;resolution:=optional,\
             org.codehaus.groovy.*;resolution:=optional,\
             io.vertx.groovy.*;resolution:=optional,\
+            io.vertx.ext.auth,\
             io.vertx.ext.auth.*;resolution:=optional,\
             io.vertx.lang.rxjava.*;resolution:=optional,\
             io.vertx.lang.groovy.*;resolution:=optional,\
