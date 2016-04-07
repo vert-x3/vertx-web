@@ -1744,6 +1744,22 @@ public class RouterTest extends WebTestBase {
     router.route("/test/:p").handler(RoutingContext::next);
     router.route("/test/:p").handler(routingContext -> {
       assertEquals(1, routingContext.request().params().getAll("p").size());
+      assertEquals("abc", routingContext.request().getParam("p"));
+      routingContext.response().end();
+    });
+    testRequest(HttpMethod.GET, "/test/abc", 200, "OK");
+  }
+
+  @Test
+  public void testDuplicateParams2() throws Exception {
+    router.route("/test/:p").handler(RoutingContext::next);
+    router.route("/test/:p").handler(ctx -> {
+      ctx.reroute("/done/abc/cde");
+    });
+
+    router.route("/done/:a/:p").handler(routingContext -> {
+      assertEquals(1, routingContext.request().params().getAll("p").size());
+      assertEquals("cde", routingContext.request().getParam("p"));
       routingContext.response().end();
     });
     testRequest(HttpMethod.GET, "/test/abc", 200, "OK");
