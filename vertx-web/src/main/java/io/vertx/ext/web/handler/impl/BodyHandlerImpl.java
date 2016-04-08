@@ -66,6 +66,11 @@ public class BodyHandlerImpl implements BodyHandler {
       request.endHandler(v -> handler.end());
       context.put(BODY_HANDLED, true);
     } else {
+      // on reroute we need to re-merge the form params is that was desired
+      if (mergeFormAttributes && request.isExpectMultipart()) {
+        request.params().addAll(request.formAttributes());
+      }
+
       context.next();
     }
   }
