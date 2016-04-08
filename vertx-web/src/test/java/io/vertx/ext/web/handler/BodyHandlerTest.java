@@ -203,10 +203,9 @@ public class BodyHandlerTest extends WebTestBase {
       assertTrue(uploadedFileName.startsWith(uploadsDir + File.separator));
       Buffer uploaded = vertx.fileSystem().readFileBlocking(uploadedFileName);
       assertEquals(fileData, uploaded);
-      // The body should be set too
+      // the data is upload as HTML form, so the body should be empty
       Buffer rawBody = rc.getBody();
-      assertNotNull(rawBody);
-      assertTrue(rawBody.length() > fileData.length());
+      assertEquals(0, rawBody.length());
       rc.response().end();
     });
     sendFileUploadRequest(fileData, 200, "OK");
@@ -375,6 +374,42 @@ public class BodyHandlerTest extends WebTestBase {
       req.headers().set("content-type", "multipart/form-data; boundary=" + boundary);
       req.write(buffer);
     }, 200, "OK", null);
+  }
+
+  @Test
+  public void testMixedUploadAndForm() throws Exception {
+
+    String uploadsDirectory = tempUploads.newFolder().getPath();
+
+    router.clear();
+    router.route().handler(BodyHandler.create()
+        .setUploadsDirectory(uploadsDirectory));
+    router.route().handler(ctx -> {
+      assertEquals(0, ctx.getBody().length());
+      assertEquals(1, ctx.fileUploads().size());
+      ctx.response().end();
+    });
+
+    String name = "somename";
+    String fileName = "somefile.dat";
+    String contentType = "application/octet-stream";
+    testRequest(HttpMethod.POST, "/", req -> {
+      String boundary = "dLV9Wyq26L_-JQxk6ferf-RT153LhOO";
+      Buffer buffer = Buffer.buffer();
+      String header =
+          "--" + boundary + "\r\n" +
+              "Content-Disposition: form-data; name=\"" + name + "\"; filename=\"" + fileName + "\"\r\n" +
+              "Content-Type: " + contentType + "\r\n" +
+              "Content-Transfer-Encoding: binary\r\n" +
+              "\r\n";
+      buffer.appendString(header);
+      buffer.appendBuffer(TestUtils.randomBuffer(50));
+      String footer = "\r\n--" + boundary + "--\r\n";
+      buffer.appendString(footer);
+      req.headers().set("content-length", String.valueOf(buffer.length()));
+      req.headers().set("content-type", "multipart/form-data; boundary=" + boundary);
+      req.write(buffer);
+    }, 200, "OK", "");
   }
 
 }
