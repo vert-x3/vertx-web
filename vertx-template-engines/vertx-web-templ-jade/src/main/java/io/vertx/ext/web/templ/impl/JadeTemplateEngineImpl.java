@@ -102,7 +102,8 @@ public class JadeTemplateEngineImpl extends CachingTemplateEngine<JadeTemplate> 
 
     @Override
     public Reader getReader(String name) throws IOException {
-      name = adjustLocation(name);
+      // the internal loader will always resolve with .jade extension
+      name = adjustLocation(name.endsWith(".jade") ? name.substring(0, name.length() - 5) : name);
       String templ = Utils.readFileToString(vertx, name);
       if (templ == null) {
         throw new IllegalArgumentException("Cannot find resource " + name);
