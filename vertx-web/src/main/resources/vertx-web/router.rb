@@ -45,7 +45,7 @@ module VertxWeb
     # @overload route(path)
     #   @param [String] path URI paths that begin with this path will match
     # @overload route(method,path)
-    #   @param [:OPTIONS,:GET,:HEAD,:POST,:PUT,:DELETE,:TRACE,:CONNECT,:PATCH] method the HTTP method to match
+    #   @param [:OPTIONS,:GET,:HEAD,:POST,:PUT,:DELETE,:TRACE,:CONNECT,:PATCH,:UNKNOWN] method the HTTP method to match
     #   @param [String] path URI paths that begin with this path will match
     # @return [::VertxWeb::Route] the route
     def route(param_1=nil,param_2=nil)
@@ -62,7 +62,7 @@ module VertxWeb
     # @overload routeWithRegex(regex)
     #   @param [String] regex URI paths that begin with a match for this regex will match
     # @overload routeWithRegex(method,regex)
-    #   @param [:OPTIONS,:GET,:HEAD,:POST,:PUT,:DELETE,:TRACE,:CONNECT,:PATCH] method the HTTP method to match
+    #   @param [:OPTIONS,:GET,:HEAD,:POST,:PUT,:DELETE,:TRACE,:CONNECT,:PATCH,:UNKNOWN] method the HTTP method to match
     #   @param [String] regex URI paths that begin with a match for this regex will match
     # @return [::VertxWeb::Route] the route
     def route_with_regex(param_1=nil,param_2=nil)
