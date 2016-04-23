@@ -396,4 +396,20 @@ public interface RoutingContext {
     final List<Locale> acceptableLocales = acceptableLocales();
     return acceptableLocales.size() > 0 ? acceptableLocales.get(0) : null;
   }
+
+  /**
+   * Returns a map of named parameters as defined in path declaration with their actual values
+   *
+   * @return the map of named parameters
+   */
+  Map<String, String> pathParams();
+
+  /**
+   * Gets the value of a single path parameter
+   *
+   * @param name the name of parameter as defined in path declaration
+   * @return the actual value of the parameter or null if it doesn't exist
+   */
+  @Nullable
+  String pathParam(String name);
 }

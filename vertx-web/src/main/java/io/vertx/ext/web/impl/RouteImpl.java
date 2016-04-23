@@ -281,6 +281,7 @@ public class RouteImpl implements Route {
             }
           }
           request.params().addAll(params);
+          context.pathParams().putAll(params);
         }
       } else {
         return false;

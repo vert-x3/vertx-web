@@ -16,6 +16,7 @@
 
 package io.vertx.ext.web.impl;
 
+import io.vertx.codegen.annotations.Nullable;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
@@ -41,6 +42,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
 
   private final RouterImpl router;
   private Map<String, Object> data;
+  private Map<String, String> pathParams;
   private AtomicInteger handlerSeq = new AtomicInteger();
   private Map<Integer, Handler<Void>> headersEndHandlers;
   private Map<Integer, Handler<Void>> bodyEndHandlers;
@@ -318,6 +320,23 @@ public class RoutingContextImpl extends RoutingContextImplBase {
     }
 
     return Collections.emptyList();
+  }
+
+  @Override
+  public Map<String, String> pathParams() {
+    return getPathParams();
+  }
+
+  @Override
+  public @Nullable String pathParam(String name) {
+    return getPathParams().get(name);
+  }
+
+  private Map<String, String> getPathParams() {
+    if (pathParams == null) {
+      pathParams = new HashMap<>();
+    }
+    return pathParams;
   }
 
   private Map<Integer, Handler<Void>> getHeadersEndHandlers() {

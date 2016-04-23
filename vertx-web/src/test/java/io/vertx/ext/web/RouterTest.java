@@ -770,6 +770,15 @@ public class RouterTest extends WebTestBase {
     testPattern("/blah/tim/quux/julien/eep/nick", "timjuliennick");
   }
 
+  @Test
+  public void testPathParamsAreFulfilled() throws Exception {
+    router.route("/blah/:abc/quux/:def/eep/:ghi").handler(rc -> {
+      Map<String, String> params = rc.pathParams();
+      rc.response().setStatusMessage(params.get("abc") + params.get("def") + params.get("ghi")).end();
+    });
+    testPattern("/blah/tim/quux/julien/eep/nick", "timjuliennick");
+  }
+
   private void testPattern(String pathRoot, String expected) throws Exception {
     testRequest(HttpMethod.GET, pathRoot, 200, expected);
     testRequest(HttpMethod.GET, pathRoot + "/", 404, "Not Found");
