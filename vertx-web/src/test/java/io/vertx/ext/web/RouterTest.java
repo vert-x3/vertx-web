@@ -800,6 +800,21 @@ public class RouterTest extends WebTestBase {
             pathParamValue + "|" + queryParamValue1 + sep + queryParamValue2);
   }
 
+  @Test
+  public void testPathParamsWithReroute() throws Exception {
+    String paramName = "param";
+    String firstParamValue = "fpv";
+    String secondParamValue = "secondParamValue";
+    router.route("/first/:" + paramName + "/route").handler(rc -> {
+      assertEquals(firstParamValue, rc.pathParam(paramName));
+      rc.reroute(HttpMethod.GET, "/second/" + secondParamValue + "/route");
+    });
+    router.route("/second/:" + paramName + "/route").handler(rc -> {
+       rc.response().setStatusMessage(rc.pathParam(paramName)).end();
+    });
+    testRequest(HttpMethod.GET, "/first/" + firstParamValue + "/route", 200, secondParamValue);
+  }
+
   private void testPattern(String pathRoot, String expected) throws Exception {
     testRequest(HttpMethod.GET, pathRoot, 200, expected);
     testRequest(HttpMethod.GET, pathRoot + "/", 404, "Not Found");
