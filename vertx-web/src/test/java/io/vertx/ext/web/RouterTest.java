@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -777,6 +778,26 @@ public class RouterTest extends WebTestBase {
       rc.response().setStatusMessage(params.get("abc") + params.get("def") + params.get("ghi")).end();
     });
     testPattern("/blah/tim/quux/julien/eep/nick", "timjuliennick");
+  }
+
+  @Test
+  public void testPathParamsDoesNotOverrideQueryParam() throws Exception {
+    final String paramName = "param";
+    final String pathParamValue = "pathParamValue";
+    final String queryParamValue1 = "queryParamValue1";
+    final String queryParamValue2 = "queryParamValue2";
+    final String sep = ",";
+    router.route("/blah/:" + paramName + "/test").handler(rc -> {
+      Map<String, String> params = rc.pathParams();
+      MultiMap queryParams = rc.request().params();
+      List<String> values = queryParams.getAll(paramName);
+      String qValue = values.stream().collect(Collectors.joining(sep));
+      rc.response().setStatusMessage(params.get(paramName) + "|" + qValue).end();
+    });
+    testRequest(HttpMethod.GET,
+            "/blah/" + pathParamValue + "/test?" + paramName + "=" + queryParamValue1 + "&" + paramName + "=" + queryParamValue2,
+            200,
+            pathParamValue + "|" + queryParamValue1 + sep + queryParamValue2);
   }
 
   private void testPattern(String pathRoot, String expected) throws Exception {
