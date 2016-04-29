@@ -69,6 +69,11 @@ class HttpServerRequestWrapper implements HttpServerRequest {
   }
 
   @Override
+  public String rawMethod() {
+    return delegate.rawMethod();
+  }
+
+  @Override
   public String uri() {
     return uri;
   }

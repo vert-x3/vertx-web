@@ -17,7 +17,6 @@
 package io.vertx.rxjava.ext.web.handler;
 
 import java.util.Map;
-import io.vertx.lang.rxjava.InternalHelper;
 import rx.Observable;
 import io.vertx.rxjava.ext.web.RoutingContext;
 import io.vertx.core.Handler;
@@ -43,7 +42,7 @@ public class TimeoutHandler implements Handler<RoutingContext> {
   }
 
   public void handle(RoutingContext arg0) { 
-    this.delegate.handle((io.vertx.ext.web.RoutingContext) arg0.getDelegate());
+    delegate.handle((io.vertx.ext.web.RoutingContext)arg0.getDelegate());
   }
 
   /**
@@ -51,7 +50,7 @@ public class TimeoutHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static TimeoutHandler create() { 
-    TimeoutHandler ret= TimeoutHandler.newInstance(io.vertx.ext.web.handler.TimeoutHandler.create());
+    TimeoutHandler ret = TimeoutHandler.newInstance(io.vertx.ext.web.handler.TimeoutHandler.create());
     return ret;
   }
 
@@ -61,7 +60,7 @@ public class TimeoutHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static TimeoutHandler create(long timeout) { 
-    TimeoutHandler ret= TimeoutHandler.newInstance(io.vertx.ext.web.handler.TimeoutHandler.create(timeout));
+    TimeoutHandler ret = TimeoutHandler.newInstance(io.vertx.ext.web.handler.TimeoutHandler.create(timeout));
     return ret;
   }
 

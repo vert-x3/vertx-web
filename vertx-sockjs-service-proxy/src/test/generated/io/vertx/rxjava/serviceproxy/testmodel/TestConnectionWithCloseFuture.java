@@ -17,7 +17,6 @@
 package io.vertx.rxjava.serviceproxy.testmodel;
 
 import java.util.Map;
-import io.vertx.lang.rxjava.InternalHelper;
 import rx.Observable;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
@@ -42,7 +41,15 @@ public class TestConnectionWithCloseFuture {
   }
 
   public void close(Handler<AsyncResult<Void>> handler) { 
-    this.delegate.close(handler);
+    delegate.close(new Handler<AsyncResult<java.lang.Void>>() {
+      public void handle(AsyncResult<java.lang.Void> ar) {
+        if (ar.succeeded()) {
+          handler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          handler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    });
   }
 
   public Observable<Void> closeObservable() { 
@@ -52,7 +59,15 @@ public class TestConnectionWithCloseFuture {
   }
 
   public void someMethod(Handler<AsyncResult<String>> resultHandler) { 
-    this.delegate.someMethod(resultHandler);
+    delegate.someMethod(new Handler<AsyncResult<java.lang.String>>() {
+      public void handle(AsyncResult<java.lang.String> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    });
   }
 
   public Observable<String> someMethodObservable() { 

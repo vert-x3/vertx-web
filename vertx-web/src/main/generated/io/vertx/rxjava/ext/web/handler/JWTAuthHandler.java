@@ -17,7 +17,6 @@
 package io.vertx.rxjava.ext.web.handler;
 
 import java.util.Map;
-import io.vertx.lang.rxjava.InternalHelper;
 import rx.Observable;
 import java.util.List;
 import java.util.Set;
@@ -44,7 +43,7 @@ public class JWTAuthHandler implements AuthHandler {
   }
 
   public void handle(RoutingContext arg0) { 
-    this.delegate.handle((io.vertx.ext.web.RoutingContext) arg0.getDelegate());
+    delegate.handle((io.vertx.ext.web.RoutingContext)arg0.getDelegate());
   }
 
   /**
@@ -53,7 +52,7 @@ public class JWTAuthHandler implements AuthHandler {
    * @return a reference to this, so the API can be used fluently
    */
   public AuthHandler addAuthority(String authority) { 
-    this.delegate.addAuthority(authority);
+    delegate.addAuthority(authority);
     return this;
   }
 
@@ -63,7 +62,7 @@ public class JWTAuthHandler implements AuthHandler {
    * @return a reference to this, so the API can be used fluently
    */
   public AuthHandler addAuthorities(Set<String> authorities) { 
-    this.delegate.addAuthorities(authorities);
+    delegate.addAuthorities(authorities);
     return this;
   }
 
@@ -73,7 +72,7 @@ public class JWTAuthHandler implements AuthHandler {
    * @return the auth handler
    */
   public static JWTAuthHandler create(JWTAuth authProvider) { 
-    JWTAuthHandler ret= JWTAuthHandler.newInstance(io.vertx.ext.web.handler.JWTAuthHandler.create((io.vertx.ext.auth.jwt.JWTAuth) authProvider.getDelegate()));
+    JWTAuthHandler ret = JWTAuthHandler.newInstance(io.vertx.ext.web.handler.JWTAuthHandler.create((io.vertx.ext.auth.jwt.JWTAuth)authProvider.getDelegate()));
     return ret;
   }
 
@@ -84,7 +83,7 @@ public class JWTAuthHandler implements AuthHandler {
    * @return the auth handler
    */
   public static JWTAuthHandler create(JWTAuth authProvider, String skip) { 
-    JWTAuthHandler ret= JWTAuthHandler.newInstance(io.vertx.ext.web.handler.JWTAuthHandler.create((io.vertx.ext.auth.jwt.JWTAuth) authProvider.getDelegate(), skip));
+    JWTAuthHandler ret = JWTAuthHandler.newInstance(io.vertx.ext.web.handler.JWTAuthHandler.create((io.vertx.ext.auth.jwt.JWTAuth)authProvider.getDelegate(), skip));
     return ret;
   }
 
@@ -94,7 +93,7 @@ public class JWTAuthHandler implements AuthHandler {
    * @return a reference to this for fluency
    */
   public JWTAuthHandler setAudience(List<String> audience) { 
-    this.delegate.setAudience(audience);
+    delegate.setAudience(audience);
     return this;
   }
 
@@ -104,7 +103,7 @@ public class JWTAuthHandler implements AuthHandler {
    * @return a reference to this for fluency
    */
   public JWTAuthHandler setIssuer(String issuer) { 
-    this.delegate.setIssuer(issuer);
+    delegate.setIssuer(issuer);
     return this;
   }
 
@@ -114,7 +113,7 @@ public class JWTAuthHandler implements AuthHandler {
    * @return a reference to this for fluency
    */
   public JWTAuthHandler setIgnoreExpiration(boolean ignoreExpiration) { 
-    this.delegate.setIgnoreExpiration(ignoreExpiration);
+    delegate.setIgnoreExpiration(ignoreExpiration);
     return this;
   }
 

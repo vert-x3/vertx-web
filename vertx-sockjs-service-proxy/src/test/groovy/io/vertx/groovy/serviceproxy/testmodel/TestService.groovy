@@ -41,404 +41,500 @@ public class TestService {
     return delegate;
   }
   public static TestService create(Vertx vertx) {
-    def ret= InternalHelper.safeCreate(io.vertx.serviceproxy.testmodel.TestService.create((io.vertx.core.Vertx)vertx.getDelegate()), io.vertx.groovy.serviceproxy.testmodel.TestService.class);
+    def ret = InternalHelper.safeCreate(io.vertx.serviceproxy.testmodel.TestService.create(vertx != null ? (io.vertx.core.Vertx)vertx.getDelegate() : null), io.vertx.groovy.serviceproxy.testmodel.TestService.class);
     return ret;
   }
   public static TestService createProxy(Vertx vertx, String address) {
-    def ret= InternalHelper.safeCreate(io.vertx.serviceproxy.testmodel.TestService.createProxy((io.vertx.core.Vertx)vertx.getDelegate(), address), io.vertx.groovy.serviceproxy.testmodel.TestService.class);
+    def ret = InternalHelper.safeCreate(io.vertx.serviceproxy.testmodel.TestService.createProxy(vertx != null ? (io.vertx.core.Vertx)vertx.getDelegate() : null, address), io.vertx.groovy.serviceproxy.testmodel.TestService.class);
     return ret;
   }
   public static TestService createProxyLongDelivery(Vertx vertx, String address) {
-    def ret= InternalHelper.safeCreate(io.vertx.serviceproxy.testmodel.TestService.createProxyLongDelivery((io.vertx.core.Vertx)vertx.getDelegate(), address), io.vertx.groovy.serviceproxy.testmodel.TestService.class);
+    def ret = InternalHelper.safeCreate(io.vertx.serviceproxy.testmodel.TestService.createProxyLongDelivery(vertx != null ? (io.vertx.core.Vertx)vertx.getDelegate() : null, address), io.vertx.groovy.serviceproxy.testmodel.TestService.class);
     return ret;
   }
   public void longDeliverySuccess(Handler<AsyncResult<String>> resultHandler) {
-    this.delegate.longDeliverySuccess(resultHandler);
+    delegate.longDeliverySuccess(resultHandler);
   }
   public void longDeliveryFailed(Handler<AsyncResult<String>> resultHandler) {
-    this.delegate.longDeliveryFailed(resultHandler);
+    delegate.longDeliveryFailed(resultHandler);
   }
   public void createConnection(String str, Handler<AsyncResult<TestConnection>> resultHandler) {
-    this.delegate.createConnection(str, new Handler<AsyncResult<io.vertx.serviceproxy.testmodel.TestConnection>>() {
-      public void handle(AsyncResult<io.vertx.serviceproxy.testmodel.TestConnection> event) {
-        AsyncResult<TestConnection> f
-        if (event.succeeded()) {
-          f = InternalHelper.<TestConnection>result(new TestConnection(event.result()))
+    delegate.createConnection(str, resultHandler != null ? new Handler<AsyncResult<io.vertx.serviceproxy.testmodel.TestConnection>>() {
+      public void handle(AsyncResult<io.vertx.serviceproxy.testmodel.TestConnection> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(InternalHelper.safeCreate(ar.result(), io.vertx.groovy.serviceproxy.testmodel.TestConnection.class)));
         } else {
-          f = InternalHelper.<TestConnection>failure(event.cause())
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
         }
-        resultHandler.handle(f)
       }
-    });
+    } : null);
   }
   public void createConnectionWithCloseFuture(Handler<AsyncResult<TestConnectionWithCloseFuture>> resultHandler) {
-    this.delegate.createConnectionWithCloseFuture(new Handler<AsyncResult<io.vertx.serviceproxy.testmodel.TestConnectionWithCloseFuture>>() {
-      public void handle(AsyncResult<io.vertx.serviceproxy.testmodel.TestConnectionWithCloseFuture> event) {
-        AsyncResult<TestConnectionWithCloseFuture> f
-        if (event.succeeded()) {
-          f = InternalHelper.<TestConnectionWithCloseFuture>result(new TestConnectionWithCloseFuture(event.result()))
+    delegate.createConnectionWithCloseFuture(resultHandler != null ? new Handler<AsyncResult<io.vertx.serviceproxy.testmodel.TestConnectionWithCloseFuture>>() {
+      public void handle(AsyncResult<io.vertx.serviceproxy.testmodel.TestConnectionWithCloseFuture> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(InternalHelper.safeCreate(ar.result(), io.vertx.groovy.serviceproxy.testmodel.TestConnectionWithCloseFuture.class)));
         } else {
-          f = InternalHelper.<TestConnectionWithCloseFuture>failure(event.cause())
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
         }
-        resultHandler.handle(f)
       }
-    });
+    } : null);
   }
   public void noParams() {
-    this.delegate.noParams();
+    delegate.noParams();
   }
   public void basicTypes(String str, byte b, short s, int i, long l, float f, double d, char c, boolean bool) {
-    this.delegate.basicTypes(str, b, s, i, l, f, d, c, bool);
+    delegate.basicTypes(str, b, s, i, l, f, d, c, bool);
   }
   public void basicBoxedTypes(String str, Byte b, Short s, Integer i, Long l, Float f, Double d, Character c, Boolean bool) {
-    this.delegate.basicBoxedTypes(str, b, s, i, l, f, d, c, bool);
+    delegate.basicBoxedTypes(str, b, s, i, l, f, d, c, bool);
   }
   public void basicBoxedTypesNull(String str, Byte b, Short s, Integer i, Long l, Float f, Double d, Character c, Boolean bool) {
-    this.delegate.basicBoxedTypesNull(str, b, s, i, l, f, d, c, bool);
+    delegate.basicBoxedTypesNull(str, b, s, i, l, f, d, c, bool);
   }
   public void jsonTypes(Map<String, Object> jsonObject, List<Object> jsonArray) {
-    this.delegate.jsonTypes(jsonObject != null ? new io.vertx.core.json.JsonObject(jsonObject) : null, jsonArray != null ? new io.vertx.core.json.JsonArray(jsonArray) : null);
+    delegate.jsonTypes(jsonObject != null ? new io.vertx.core.json.JsonObject(jsonObject) : null, jsonArray != null ? new io.vertx.core.json.JsonArray(jsonArray) : null);
   }
   public void jsonTypesNull(Map<String, Object> jsonObject, List<Object> jsonArray) {
-    this.delegate.jsonTypesNull(jsonObject != null ? new io.vertx.core.json.JsonObject(jsonObject) : null, jsonArray != null ? new io.vertx.core.json.JsonArray(jsonArray) : null);
+    delegate.jsonTypesNull(jsonObject != null ? new io.vertx.core.json.JsonObject(jsonObject) : null, jsonArray != null ? new io.vertx.core.json.JsonArray(jsonArray) : null);
   }
   public void enumType(SomeEnum someEnum) {
-    this.delegate.enumType(someEnum);
+    delegate.enumType(someEnum);
   }
   public void enumTypeNull(SomeEnum someEnum) {
-    this.delegate.enumTypeNull(someEnum);
+    delegate.enumTypeNull(someEnum);
   }
   public void enumTypeAsResult(Handler<AsyncResult<SomeEnum>> someEnum) {
-    this.delegate.enumTypeAsResult(null /* Handler<AsyncResult<io.vertx.serviceproxy.testmodel.SomeEnum>> with kind ENUM not yet implemented */);
+    delegate.enumTypeAsResult(someEnum);
   }
   public void enumTypeAsResultNull(Handler<AsyncResult<SomeEnum>> someEnum) {
-    this.delegate.enumTypeAsResultNull(null /* Handler<AsyncResult<io.vertx.serviceproxy.testmodel.SomeEnum>> with kind ENUM not yet implemented */);
+    delegate.enumTypeAsResultNull(someEnum);
   }
   public void dataObjectType(Map<String, Object> options = [:]) {
-    this.delegate.dataObjectType(options != null ? new io.vertx.serviceproxy.testmodel.TestDataObject(new io.vertx.core.json.JsonObject(options)) : null);
+    delegate.dataObjectType(options != null ? new io.vertx.serviceproxy.testmodel.TestDataObject(new io.vertx.core.json.JsonObject(options)) : null);
   }
   public void dataObjectTypeNull(Map<String, Object> options = [:]) {
-    this.delegate.dataObjectTypeNull(options != null ? new io.vertx.serviceproxy.testmodel.TestDataObject(new io.vertx.core.json.JsonObject(options)) : null);
+    delegate.dataObjectTypeNull(options != null ? new io.vertx.serviceproxy.testmodel.TestDataObject(new io.vertx.core.json.JsonObject(options)) : null);
   }
   public void listParams(List<String> listString, List<Byte> listByte, List<Short> listShort, List<Integer> listInt, List<Long> listLong, List<Map<String, Object>> listJsonObject, List<List<Object>> listJsonArray, List<Map<String, Object>> listDataObject) {
-    this.delegate.listParams(listString, listByte, listShort, listInt, listLong, listJsonObject.collect({underpants -> new JsonObject(underpants)}), listJsonArray.collect({underpants -> new JsonArray(underpants)}), listDataObject.collect({underpants -> new TestDataObject(new JsonObject(underpants))}));
+    delegate.listParams(listString != null ? (List)listString.collect({it}) : null, listByte != null ? (List)listByte.collect({it}) : null, listShort != null ? (List)listShort.collect({it}) : null, listInt != null ? (List)listInt.collect({it}) : null, listLong != null ? (List)listLong.collect({it}) : null, listJsonObject != null ? (List)listJsonObject.collect({new io.vertx.core.json.JsonObject(it)}) : null, listJsonArray != null ? (List)listJsonArray.collect({new io.vertx.core.json.JsonArray(it)}) : null, listDataObject != null ? (List)listDataObject.collect({new io.vertx.serviceproxy.testmodel.TestDataObject(new io.vertx.core.json.JsonObject(it))}) : null);
   }
   public void setParams(Set<String> setString, Set<Byte> setByte, Set<Short> setShort, Set<Integer> setInt, Set<Long> setLong, Set<Map<String, Object>> setJsonObject, Set<List<Object>> setJsonArray, Set<Map<String, Object>> setDataObject) {
-    this.delegate.setParams(setString, setByte, setShort, setInt, setLong, setJsonObject.collect({underpants -> new JsonObject(underpants)}) as Set, setJsonArray.collect({underpants -> new JsonArray(underpants)}) as Set, setDataObject.collect({underpants -> new TestDataObject(new JsonObject(underpants))}) as Set);
+    delegate.setParams(setString != null ? (Set)setString.collect({it}) as Set : null, setByte != null ? (Set)setByte.collect({it}) as Set : null, setShort != null ? (Set)setShort.collect({it}) as Set : null, setInt != null ? (Set)setInt.collect({it}) as Set : null, setLong != null ? (Set)setLong.collect({it}) as Set : null, setJsonObject != null ? (Set)setJsonObject.collect({new io.vertx.core.json.JsonObject(it)}) as Set : null, setJsonArray != null ? (Set)setJsonArray.collect({new io.vertx.core.json.JsonArray(it)}) as Set : null, setDataObject != null ? (Set)setDataObject.collect({new io.vertx.serviceproxy.testmodel.TestDataObject(new io.vertx.core.json.JsonObject(it))}) as Set : null);
   }
-  public void mapParams(Map<String,String> mapString, Map<String,Byte> mapByte, Map<String,Short> mapShort, Map<String,Integer> mapInt, Map<String,Long> mapLong, Map<String, Map<String, Object>> mapJsonObject, Map<String, List<Object>> mapJsonArray) {
-    this.delegate.mapParams(mapString, mapByte, mapShort, mapInt, mapLong, (Map<String, io.vertx.core.json.JsonObject>)(mapJsonObject.collectEntries({k, v -> [k, new JsonObject(v)]})), (Map<String, io.vertx.core.json.JsonArray>)(mapJsonArray.collectEntries({k, v -> [k, new JsonArray(v)]})));
+  public void mapParams(Map<String, String> mapString, Map<String, Byte> mapByte, Map<String, Short> mapShort, Map<String, Integer> mapInt, Map<String, Long> mapLong, Map<String, Map<String, Object>> mapJsonObject, Map<String, List<Object>> mapJsonArray) {
+    delegate.mapParams(mapString != null ? (Map)mapString.collectEntries({[it.key,it.value]}) : null, mapByte != null ? (Map)mapByte.collectEntries({[it.key,it.value]}) : null, mapShort != null ? (Map)mapShort.collectEntries({[it.key,it.value]}) : null, mapInt != null ? (Map)mapInt.collectEntries({[it.key,it.value]}) : null, mapLong != null ? (Map)mapLong.collectEntries({[it.key,it.value]}) : null, mapJsonObject != null ? (Map)mapJsonObject.collectEntries({[it.key,new io.vertx.core.json.JsonObject(it.value)]}) : null, mapJsonArray != null ? (Map)mapJsonArray.collectEntries({[it.key,new io.vertx.core.json.JsonArray(it.value)]}) : null);
   }
   public void stringHandler(Handler<AsyncResult<String>> resultHandler) {
-    this.delegate.stringHandler(resultHandler);
+    delegate.stringHandler(resultHandler);
   }
   public void stringNullHandler(Handler<AsyncResult<String>> resultHandler) {
-    this.delegate.stringNullHandler(resultHandler);
+    delegate.stringNullHandler(resultHandler);
   }
   public void byteHandler(Handler<AsyncResult<Byte>> resultHandler) {
-    this.delegate.byteHandler(resultHandler);
+    delegate.byteHandler(resultHandler);
   }
   public void byteNullHandler(Handler<AsyncResult<Byte>> resultHandler) {
-    this.delegate.byteNullHandler(resultHandler);
+    delegate.byteNullHandler(resultHandler);
   }
   public void shortHandler(Handler<AsyncResult<Short>> resultHandler) {
-    this.delegate.shortHandler(resultHandler);
+    delegate.shortHandler(resultHandler);
   }
   public void shortNullHandler(Handler<AsyncResult<Short>> resultHandler) {
-    this.delegate.shortNullHandler(resultHandler);
+    delegate.shortNullHandler(resultHandler);
   }
   public void intHandler(Handler<AsyncResult<Integer>> resultHandler) {
-    this.delegate.intHandler(resultHandler);
+    delegate.intHandler(resultHandler);
   }
   public void intNullHandler(Handler<AsyncResult<Integer>> resultHandler) {
-    this.delegate.intNullHandler(resultHandler);
+    delegate.intNullHandler(resultHandler);
   }
   public void longHandler(Handler<AsyncResult<Long>> resultHandler) {
-    this.delegate.longHandler(resultHandler);
+    delegate.longHandler(resultHandler);
   }
   public void longNullHandler(Handler<AsyncResult<Long>> resultHandler) {
-    this.delegate.longNullHandler(resultHandler);
+    delegate.longNullHandler(resultHandler);
   }
   public void floatHandler(Handler<AsyncResult<Float>> resultHandler) {
-    this.delegate.floatHandler(resultHandler);
+    delegate.floatHandler(resultHandler);
   }
   public void floatNullHandler(Handler<AsyncResult<Float>> resultHandler) {
-    this.delegate.floatNullHandler(resultHandler);
+    delegate.floatNullHandler(resultHandler);
   }
   public void doubleHandler(Handler<AsyncResult<Double>> resultHandler) {
-    this.delegate.doubleHandler(resultHandler);
+    delegate.doubleHandler(resultHandler);
   }
   public void doubleNullHandler(Handler<AsyncResult<Double>> resultHandler) {
-    this.delegate.doubleNullHandler(resultHandler);
+    delegate.doubleNullHandler(resultHandler);
   }
   public void charHandler(Handler<AsyncResult<Character>> resultHandler) {
-    this.delegate.charHandler(resultHandler);
+    delegate.charHandler(resultHandler);
   }
   public void charNullHandler(Handler<AsyncResult<Character>> resultHandler) {
-    this.delegate.charNullHandler(resultHandler);
+    delegate.charNullHandler(resultHandler);
   }
   public void booleanHandler(Handler<AsyncResult<Boolean>> resultHandler) {
-    this.delegate.booleanHandler(resultHandler);
+    delegate.booleanHandler(resultHandler);
   }
   public void booleanNullHandler(Handler<AsyncResult<Boolean>> resultHandler) {
-    this.delegate.booleanNullHandler(resultHandler);
+    delegate.booleanNullHandler(resultHandler);
   }
   public void jsonObjectHandler(Handler<AsyncResult<Map<String, Object>>> resultHandler) {
-    this.delegate.jsonObjectHandler(new Handler<AsyncResult<io.vertx.core.json.JsonObject>>() {
-      public void handle(AsyncResult<io.vertx.core.json.JsonObject> event) {
-        AsyncResult<Map<String, Object>> f
-        if (event.succeeded()) {
-          f = InternalHelper.<Map<String, Object>>result((Map<String, Object>)InternalHelper.wrapObject(event.result()))
+    delegate.jsonObjectHandler(resultHandler != null ? new Handler<AsyncResult<io.vertx.core.json.JsonObject>>() {
+      public void handle(AsyncResult<io.vertx.core.json.JsonObject> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture((Map<String, Object>)InternalHelper.wrapObject(ar.result())));
         } else {
-          f = InternalHelper.<Map<String, Object>>failure(event.cause())
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
         }
-        resultHandler.handle(f)
       }
-    });
+    } : null);
   }
   public void jsonObjectNullHandler(Handler<AsyncResult<Map<String, Object>>> resultHandler) {
-    this.delegate.jsonObjectNullHandler(new Handler<AsyncResult<io.vertx.core.json.JsonObject>>() {
-      public void handle(AsyncResult<io.vertx.core.json.JsonObject> event) {
-        AsyncResult<Map<String, Object>> f
-        if (event.succeeded()) {
-          f = InternalHelper.<Map<String, Object>>result((Map<String, Object>)InternalHelper.wrapObject(event.result()))
+    delegate.jsonObjectNullHandler(resultHandler != null ? new Handler<AsyncResult<io.vertx.core.json.JsonObject>>() {
+      public void handle(AsyncResult<io.vertx.core.json.JsonObject> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture((Map<String, Object>)InternalHelper.wrapObject(ar.result())));
         } else {
-          f = InternalHelper.<Map<String, Object>>failure(event.cause())
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
         }
-        resultHandler.handle(f)
       }
-    });
+    } : null);
   }
   public void jsonArrayHandler(Handler<AsyncResult<List<Object>>> resultHandler) {
-    this.delegate.jsonArrayHandler(new Handler<AsyncResult<io.vertx.core.json.JsonArray>>() {
-      public void handle(AsyncResult<io.vertx.core.json.JsonArray> event) {
-        AsyncResult<List<Object>> f
-        if (event.succeeded()) {
-          f = InternalHelper.<List<Object>>result((List<Object>)InternalHelper.wrapObject(event.result()))
+    delegate.jsonArrayHandler(resultHandler != null ? new Handler<AsyncResult<io.vertx.core.json.JsonArray>>() {
+      public void handle(AsyncResult<io.vertx.core.json.JsonArray> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture((List<Object>)InternalHelper.wrapObject(ar.result())));
         } else {
-          f = InternalHelper.<List<Object>>failure(event.cause())
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
         }
-        resultHandler.handle(f)
       }
-    });
+    } : null);
   }
   public void jsonArrayNullHandler(Handler<AsyncResult<List<Object>>> resultHandler) {
-    this.delegate.jsonArrayNullHandler(new Handler<AsyncResult<io.vertx.core.json.JsonArray>>() {
-      public void handle(AsyncResult<io.vertx.core.json.JsonArray> event) {
-        AsyncResult<List<Object>> f
-        if (event.succeeded()) {
-          f = InternalHelper.<List<Object>>result((List<Object>)InternalHelper.wrapObject(event.result()))
+    delegate.jsonArrayNullHandler(resultHandler != null ? new Handler<AsyncResult<io.vertx.core.json.JsonArray>>() {
+      public void handle(AsyncResult<io.vertx.core.json.JsonArray> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture((List<Object>)InternalHelper.wrapObject(ar.result())));
         } else {
-          f = InternalHelper.<List<Object>>failure(event.cause())
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
         }
-        resultHandler.handle(f)
       }
-    });
+    } : null);
   }
   public void dataObjectHandler(Handler<AsyncResult<Map<String, Object>>> resultHandler) {
-    this.delegate.dataObjectHandler(new Handler<AsyncResult<io.vertx.serviceproxy.testmodel.TestDataObject>>() {
-      public void handle(AsyncResult<io.vertx.serviceproxy.testmodel.TestDataObject> event) {
-        AsyncResult<Map<String, Object>> f
-        if (event.succeeded()) {
-          f = InternalHelper.<Map<String, Object>>result((Map<String, Object>)InternalHelper.wrapObject(event.result()?.toJson()))
+    delegate.dataObjectHandler(resultHandler != null ? new Handler<AsyncResult<io.vertx.serviceproxy.testmodel.TestDataObject>>() {
+      public void handle(AsyncResult<io.vertx.serviceproxy.testmodel.TestDataObject> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture((Map<String, Object>)InternalHelper.wrapObject(ar.result()?.toJson())));
         } else {
-          f = InternalHelper.<Map<String, Object>>failure(event.cause())
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
         }
-        resultHandler.handle(f)
       }
-    });
+    } : null);
   }
   public void dataObjectNullHandler(Handler<AsyncResult<Map<String, Object>>> resultHandler) {
-    this.delegate.dataObjectNullHandler(new Handler<AsyncResult<io.vertx.serviceproxy.testmodel.TestDataObject>>() {
-      public void handle(AsyncResult<io.vertx.serviceproxy.testmodel.TestDataObject> event) {
-        AsyncResult<Map<String, Object>> f
-        if (event.succeeded()) {
-          f = InternalHelper.<Map<String, Object>>result((Map<String, Object>)InternalHelper.wrapObject(event.result()?.toJson()))
+    delegate.dataObjectNullHandler(resultHandler != null ? new Handler<AsyncResult<io.vertx.serviceproxy.testmodel.TestDataObject>>() {
+      public void handle(AsyncResult<io.vertx.serviceproxy.testmodel.TestDataObject> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture((Map<String, Object>)InternalHelper.wrapObject(ar.result()?.toJson())));
         } else {
-          f = InternalHelper.<Map<String, Object>>failure(event.cause())
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
         }
-        resultHandler.handle(f)
       }
-    });
+    } : null);
   }
   public void voidHandler(Handler<AsyncResult<Void>> resultHandler) {
-    this.delegate.voidHandler(resultHandler);
+    delegate.voidHandler(resultHandler);
   }
   public TestService fluentMethod(String str, Handler<AsyncResult<String>> resultHandler) {
-    this.delegate.fluentMethod(str, resultHandler);
+    delegate.fluentMethod(str, resultHandler);
     return this;
   }
   public TestService fluentNoParams() {
-    this.delegate.fluentNoParams();
+    delegate.fluentNoParams();
     return this;
   }
   public void failingMethod(Handler<AsyncResult<Map<String, Object>>> resultHandler) {
-    this.delegate.failingMethod(new Handler<AsyncResult<io.vertx.core.json.JsonObject>>() {
-      public void handle(AsyncResult<io.vertx.core.json.JsonObject> event) {
-        AsyncResult<Map<String, Object>> f
-        if (event.succeeded()) {
-          f = InternalHelper.<Map<String, Object>>result((Map<String, Object>)InternalHelper.wrapObject(event.result()))
+    delegate.failingMethod(resultHandler != null ? new Handler<AsyncResult<io.vertx.core.json.JsonObject>>() {
+      public void handle(AsyncResult<io.vertx.core.json.JsonObject> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture((Map<String, Object>)InternalHelper.wrapObject(ar.result())));
         } else {
-          f = InternalHelper.<Map<String, Object>>failure(event.cause())
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
         }
-        resultHandler.handle(f)
       }
-    });
+    } : null);
   }
   public void invokeWithMessage(Map<String, Object> object, String str, int i, char chr, SomeEnum senum, Handler<AsyncResult<String>> resultHandler) {
-    this.delegate.invokeWithMessage(object != null ? new io.vertx.core.json.JsonObject(object) : null, str, i, chr, senum, resultHandler);
+    delegate.invokeWithMessage(object != null ? new io.vertx.core.json.JsonObject(object) : null, str, i, chr, senum, resultHandler);
   }
   public void listStringHandler(Handler<AsyncResult<List<String>>> resultHandler) {
-    this.delegate.listStringHandler(resultHandler);
+    delegate.listStringHandler(resultHandler != null ? new Handler<AsyncResult<java.util.List<java.lang.String>>>() {
+      public void handle(AsyncResult<java.util.List<java.lang.String>> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    } : null);
   }
   public void listByteHandler(Handler<AsyncResult<List<Byte>>> resultHandler) {
-    this.delegate.listByteHandler(resultHandler);
+    delegate.listByteHandler(resultHandler != null ? new Handler<AsyncResult<java.util.List<java.lang.Byte>>>() {
+      public void handle(AsyncResult<java.util.List<java.lang.Byte>> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    } : null);
   }
   public void listShortHandler(Handler<AsyncResult<List<Short>>> resultHandler) {
-    this.delegate.listShortHandler(resultHandler);
+    delegate.listShortHandler(resultHandler != null ? new Handler<AsyncResult<java.util.List<java.lang.Short>>>() {
+      public void handle(AsyncResult<java.util.List<java.lang.Short>> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    } : null);
   }
   public void listIntHandler(Handler<AsyncResult<List<Integer>>> resultHandler) {
-    this.delegate.listIntHandler(resultHandler);
+    delegate.listIntHandler(resultHandler != null ? new Handler<AsyncResult<java.util.List<java.lang.Integer>>>() {
+      public void handle(AsyncResult<java.util.List<java.lang.Integer>> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    } : null);
   }
   public void listLongHandler(Handler<AsyncResult<List<Long>>> resultHandler) {
-    this.delegate.listLongHandler(resultHandler);
+    delegate.listLongHandler(resultHandler != null ? new Handler<AsyncResult<java.util.List<java.lang.Long>>>() {
+      public void handle(AsyncResult<java.util.List<java.lang.Long>> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    } : null);
   }
   public void listFloatHandler(Handler<AsyncResult<List<Float>>> resultHandler) {
-    this.delegate.listFloatHandler(resultHandler);
+    delegate.listFloatHandler(resultHandler != null ? new Handler<AsyncResult<java.util.List<java.lang.Float>>>() {
+      public void handle(AsyncResult<java.util.List<java.lang.Float>> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    } : null);
   }
   public void listDoubleHandler(Handler<AsyncResult<List<Double>>> resultHandler) {
-    this.delegate.listDoubleHandler(resultHandler);
+    delegate.listDoubleHandler(resultHandler != null ? new Handler<AsyncResult<java.util.List<java.lang.Double>>>() {
+      public void handle(AsyncResult<java.util.List<java.lang.Double>> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    } : null);
   }
   public void listCharHandler(Handler<AsyncResult<List<Character>>> resultHandler) {
-    this.delegate.listCharHandler(resultHandler);
+    delegate.listCharHandler(resultHandler != null ? new Handler<AsyncResult<java.util.List<java.lang.Character>>>() {
+      public void handle(AsyncResult<java.util.List<java.lang.Character>> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    } : null);
   }
   public void listBoolHandler(Handler<AsyncResult<List<Boolean>>> resultHandler) {
-    this.delegate.listBoolHandler(resultHandler);
+    delegate.listBoolHandler(resultHandler != null ? new Handler<AsyncResult<java.util.List<java.lang.Boolean>>>() {
+      public void handle(AsyncResult<java.util.List<java.lang.Boolean>> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    } : null);
   }
   public void listJsonObjectHandler(Handler<AsyncResult<List<Map<String, Object>>>> resultHandler) {
-    this.delegate.listJsonObjectHandler(new Handler<AsyncResult<List<JsonObject>>>() {
-      public void handle(AsyncResult<List<JsonObject>> event) {
-        AsyncResult<List<Map<String, Object>>> f
-        if (event.succeeded()) {
-          f = InternalHelper.<List<Map<String, Object>>>result(event.result().collect({
-            io.vertx.core.json.JsonObject element ->
-            InternalHelper.wrapObject(element)
-          }) as List)
+    delegate.listJsonObjectHandler(resultHandler != null ? new Handler<AsyncResult<java.util.List<io.vertx.core.json.JsonObject>>>() {
+      public void handle(AsyncResult<java.util.List<io.vertx.core.json.JsonObject>> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture((List)ar.result()?.collect({(Map<String, Object>)InternalHelper.wrapObject(it)})));
         } else {
-          f = InternalHelper.<List<Map<String, Object>>>failure(event.cause())
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
         }
-        resultHandler.handle(f)
       }
-    });
+    } : null);
   }
   public void listJsonArrayHandler(Handler<AsyncResult<List<List<Object>>>> resultHandler) {
-    this.delegate.listJsonArrayHandler(new Handler<AsyncResult<List<JsonArray>>>() {
-      public void handle(AsyncResult<List<JsonArray>> event) {
-        AsyncResult<List<List<Object>>> f
-        if (event.succeeded()) {
-          f = InternalHelper.<List<List<Object>>>result(event.result().collect({
-            io.vertx.core.json.JsonArray element ->
-            InternalHelper.wrapObject(element)
-          }) as List)
+    delegate.listJsonArrayHandler(resultHandler != null ? new Handler<AsyncResult<java.util.List<io.vertx.core.json.JsonArray>>>() {
+      public void handle(AsyncResult<java.util.List<io.vertx.core.json.JsonArray>> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture((List)ar.result()?.collect({(List<Object>)InternalHelper.wrapObject(it)})));
         } else {
-          f = InternalHelper.<List<List<Object>>>failure(event.cause())
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
         }
-        resultHandler.handle(f)
       }
-    });
+    } : null);
   }
   public void listDataObjectHandler(Handler<AsyncResult<List<Map<String, Object>>>> resultHandler) {
-    this.delegate.listDataObjectHandler(new Handler<AsyncResult<List<TestDataObject>>>() {
-      public void handle(AsyncResult<List<TestDataObject>> event) {
-        AsyncResult<List<Map<String, Object>>> f
-        if (event.succeeded()) {
-          f = InternalHelper.<List<Map<String, Object>>>result(event.result().collect({
-            io.vertx.serviceproxy.testmodel.TestDataObject element ->
-            (Map<String, Object>)InternalHelper.wrapObject(element?.toJson())
-          }) as List)
+    delegate.listDataObjectHandler(resultHandler != null ? new Handler<AsyncResult<java.util.List<io.vertx.serviceproxy.testmodel.TestDataObject>>>() {
+      public void handle(AsyncResult<java.util.List<io.vertx.serviceproxy.testmodel.TestDataObject>> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture((List)ar.result()?.collect({(Map<String, Object>)InternalHelper.wrapObject(it?.toJson())})));
         } else {
-          f = InternalHelper.<List<Map<String, Object>>>failure(event.cause())
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
         }
-        resultHandler.handle(f)
       }
-    });
+    } : null);
   }
   public void setStringHandler(Handler<AsyncResult<Set<String>>> resultHandler) {
-    this.delegate.setStringHandler(resultHandler);
+    delegate.setStringHandler(resultHandler != null ? new Handler<AsyncResult<java.util.Set<java.lang.String>>>() {
+      public void handle(AsyncResult<java.util.Set<java.lang.String>> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    } : null);
   }
   public void setByteHandler(Handler<AsyncResult<Set<Byte>>> resultHandler) {
-    this.delegate.setByteHandler(resultHandler);
+    delegate.setByteHandler(resultHandler != null ? new Handler<AsyncResult<java.util.Set<java.lang.Byte>>>() {
+      public void handle(AsyncResult<java.util.Set<java.lang.Byte>> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    } : null);
   }
   public void setShortHandler(Handler<AsyncResult<Set<Short>>> resultHandler) {
-    this.delegate.setShortHandler(resultHandler);
+    delegate.setShortHandler(resultHandler != null ? new Handler<AsyncResult<java.util.Set<java.lang.Short>>>() {
+      public void handle(AsyncResult<java.util.Set<java.lang.Short>> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    } : null);
   }
   public void setIntHandler(Handler<AsyncResult<Set<Integer>>> resultHandler) {
-    this.delegate.setIntHandler(resultHandler);
+    delegate.setIntHandler(resultHandler != null ? new Handler<AsyncResult<java.util.Set<java.lang.Integer>>>() {
+      public void handle(AsyncResult<java.util.Set<java.lang.Integer>> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    } : null);
   }
   public void setLongHandler(Handler<AsyncResult<Set<Long>>> resultHandler) {
-    this.delegate.setLongHandler(resultHandler);
+    delegate.setLongHandler(resultHandler != null ? new Handler<AsyncResult<java.util.Set<java.lang.Long>>>() {
+      public void handle(AsyncResult<java.util.Set<java.lang.Long>> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    } : null);
   }
   public void setFloatHandler(Handler<AsyncResult<Set<Float>>> resultHandler) {
-    this.delegate.setFloatHandler(resultHandler);
+    delegate.setFloatHandler(resultHandler != null ? new Handler<AsyncResult<java.util.Set<java.lang.Float>>>() {
+      public void handle(AsyncResult<java.util.Set<java.lang.Float>> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    } : null);
   }
   public void setDoubleHandler(Handler<AsyncResult<Set<Double>>> resultHandler) {
-    this.delegate.setDoubleHandler(resultHandler);
+    delegate.setDoubleHandler(resultHandler != null ? new Handler<AsyncResult<java.util.Set<java.lang.Double>>>() {
+      public void handle(AsyncResult<java.util.Set<java.lang.Double>> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    } : null);
   }
   public void setCharHandler(Handler<AsyncResult<Set<Character>>> resultHandler) {
-    this.delegate.setCharHandler(resultHandler);
+    delegate.setCharHandler(resultHandler != null ? new Handler<AsyncResult<java.util.Set<java.lang.Character>>>() {
+      public void handle(AsyncResult<java.util.Set<java.lang.Character>> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    } : null);
   }
   public void setBoolHandler(Handler<AsyncResult<Set<Boolean>>> resultHandler) {
-    this.delegate.setBoolHandler(resultHandler);
+    delegate.setBoolHandler(resultHandler != null ? new Handler<AsyncResult<java.util.Set<java.lang.Boolean>>>() {
+      public void handle(AsyncResult<java.util.Set<java.lang.Boolean>> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    } : null);
   }
   public void setJsonObjectHandler(Handler<AsyncResult<Set<Map<String, Object>>>> resultHandler) {
-    this.delegate.setJsonObjectHandler(new Handler<AsyncResult<Set<JsonObject>>>() {
-      public void handle(AsyncResult<Set<JsonObject>> event) {
-        AsyncResult<Set<Map<String, Object>>> f
-        if (event.succeeded()) {
-          f = InternalHelper.<Set<Map<String, Object>>>result(event.result().collect({
-            io.vertx.core.json.JsonObject element ->
-            InternalHelper.wrapObject(element)
-          }) as Set)
+    delegate.setJsonObjectHandler(resultHandler != null ? new Handler<AsyncResult<java.util.Set<io.vertx.core.json.JsonObject>>>() {
+      public void handle(AsyncResult<java.util.Set<io.vertx.core.json.JsonObject>> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture((Set)ar.result()?.collect({(Map<String, Object>)InternalHelper.wrapObject(it)}) as Set));
         } else {
-          f = InternalHelper.<Set<Map<String, Object>>>failure(event.cause())
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
         }
-        resultHandler.handle(f)
       }
-    });
+    } : null);
   }
   public void setJsonArrayHandler(Handler<AsyncResult<Set<List<Object>>>> resultHandler) {
-    this.delegate.setJsonArrayHandler(new Handler<AsyncResult<Set<JsonArray>>>() {
-      public void handle(AsyncResult<Set<JsonArray>> event) {
-        AsyncResult<Set<List<Object>>> f
-        if (event.succeeded()) {
-          f = InternalHelper.<Set<List<Object>>>result(event.result().collect({
-            io.vertx.core.json.JsonArray element ->
-            InternalHelper.wrapObject(element)
-          }) as Set)
+    delegate.setJsonArrayHandler(resultHandler != null ? new Handler<AsyncResult<java.util.Set<io.vertx.core.json.JsonArray>>>() {
+      public void handle(AsyncResult<java.util.Set<io.vertx.core.json.JsonArray>> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture((Set)ar.result()?.collect({(List<Object>)InternalHelper.wrapObject(it)}) as Set));
         } else {
-          f = InternalHelper.<Set<List<Object>>>failure(event.cause())
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
         }
-        resultHandler.handle(f)
       }
-    });
+    } : null);
   }
   public void setDataObjectHandler(Handler<AsyncResult<Set<Map<String, Object>>>> resultHandler) {
-    this.delegate.setDataObjectHandler(new Handler<AsyncResult<Set<TestDataObject>>>() {
-      public void handle(AsyncResult<Set<TestDataObject>> event) {
-        AsyncResult<Set<Map<String, Object>>> f
-        if (event.succeeded()) {
-          f = InternalHelper.<Set<Map<String, Object>>>result(event.result().collect({
-            io.vertx.serviceproxy.testmodel.TestDataObject element ->
-            (Map<String, Object>)InternalHelper.wrapObject(element?.toJson())
-          }) as Set)
+    delegate.setDataObjectHandler(resultHandler != null ? new Handler<AsyncResult<java.util.Set<io.vertx.serviceproxy.testmodel.TestDataObject>>>() {
+      public void handle(AsyncResult<java.util.Set<io.vertx.serviceproxy.testmodel.TestDataObject>> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture((Set)ar.result()?.collect({(Map<String, Object>)InternalHelper.wrapObject(it?.toJson())}) as Set));
         } else {
-          f = InternalHelper.<Set<Map<String, Object>>>failure(event.cause())
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
         }
-        resultHandler.handle(f)
       }
-    });
+    } : null);
   }
   public void ignoredMethod() {
-    this.delegate.ignoredMethod();
+    delegate.ignoredMethod();
   }
 }

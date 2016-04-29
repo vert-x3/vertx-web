@@ -17,7 +17,6 @@
 package io.vertx.rxjava.ext.web.handler;
 
 import java.util.Map;
-import io.vertx.lang.rxjava.InternalHelper;
 import rx.Observable;
 import io.vertx.rxjava.ext.web.RoutingContext;
 import io.vertx.core.Handler;
@@ -45,7 +44,7 @@ public class FormLoginHandler implements Handler<RoutingContext> {
   }
 
   public void handle(RoutingContext arg0) { 
-    this.delegate.handle((io.vertx.ext.web.RoutingContext) arg0.getDelegate());
+    delegate.handle((io.vertx.ext.web.RoutingContext)arg0.getDelegate());
   }
 
   /**
@@ -54,7 +53,7 @@ public class FormLoginHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static FormLoginHandler create(AuthProvider authProvider) { 
-    FormLoginHandler ret= FormLoginHandler.newInstance(io.vertx.ext.web.handler.FormLoginHandler.create((io.vertx.ext.auth.AuthProvider) authProvider.getDelegate()));
+    FormLoginHandler ret = FormLoginHandler.newInstance(io.vertx.ext.web.handler.FormLoginHandler.create((io.vertx.ext.auth.AuthProvider)authProvider.getDelegate()));
     return ret;
   }
 
@@ -68,7 +67,7 @@ public class FormLoginHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static FormLoginHandler create(AuthProvider authProvider, String usernameParam, String passwordParam, String returnURLParam, String directLoggedInOKURL) { 
-    FormLoginHandler ret= FormLoginHandler.newInstance(io.vertx.ext.web.handler.FormLoginHandler.create((io.vertx.ext.auth.AuthProvider) authProvider.getDelegate(), usernameParam, passwordParam, returnURLParam, directLoggedInOKURL));
+    FormLoginHandler ret = FormLoginHandler.newInstance(io.vertx.ext.web.handler.FormLoginHandler.create((io.vertx.ext.auth.AuthProvider)authProvider.getDelegate(), usernameParam, passwordParam, returnURLParam, directLoggedInOKURL));
     return ret;
   }
 
@@ -78,7 +77,7 @@ public class FormLoginHandler implements Handler<RoutingContext> {
    * @return a reference to this for a fluent API
    */
   public FormLoginHandler setUsernameParam(String usernameParam) { 
-    this.delegate.setUsernameParam(usernameParam);
+    delegate.setUsernameParam(usernameParam);
     return this;
   }
 
@@ -88,7 +87,7 @@ public class FormLoginHandler implements Handler<RoutingContext> {
    * @return a reference to this for a fluent API
    */
   public FormLoginHandler setPasswordParam(String passwordParam) { 
-    this.delegate.setPasswordParam(passwordParam);
+    delegate.setPasswordParam(passwordParam);
     return this;
   }
 
@@ -98,7 +97,7 @@ public class FormLoginHandler implements Handler<RoutingContext> {
    * @return a reference to this for a fluent API
    */
   public FormLoginHandler setReturnURLParam(String returnURLParam) { 
-    this.delegate.setReturnURLParam(returnURLParam);
+    delegate.setReturnURLParam(returnURLParam);
     return this;
   }
 
@@ -109,7 +108,7 @@ public class FormLoginHandler implements Handler<RoutingContext> {
    * @return a reference to this for a fluent API
    */
   public FormLoginHandler setDirectLoggedInOKURL(String directLoggedInOKURL) { 
-    this.delegate.setDirectLoggedInOKURL(directLoggedInOKURL);
+    delegate.setDirectLoggedInOKURL(directLoggedInOKURL);
     return this;
   }
 

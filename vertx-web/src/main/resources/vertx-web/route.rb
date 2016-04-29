@@ -17,7 +17,7 @@ module VertxWeb
     end
     #  Add an HTTP method for this route. By default a route will match all HTTP methods. If any are specified then the route
     #  will only match any of the specified methods
-    # @param [:OPTIONS,:GET,:HEAD,:POST,:PUT,:DELETE,:TRACE,:CONNECT,:PATCH,:UNKNOWN] method the HTTP method to add
+    # @param [:OPTIONS,:GET,:HEAD,:POST,:PUT,:DELETE,:TRACE,:CONNECT,:PATCH,:OTHER] method the HTTP method to add
     # @return [self]
     def method(method=nil)
       if method.class == Symbol && !block_given?

@@ -17,7 +17,6 @@
 package io.vertx.rxjava.serviceproxy.testmodel;
 
 import java.util.Map;
-import io.vertx.lang.rxjava.InternalHelper;
 import rx.Observable;
 
 /**
@@ -40,7 +39,7 @@ public class TestBaseImportsService {
   }
 
   public void m() { 
-    this.delegate.m();
+    delegate.m();
   }
 
 

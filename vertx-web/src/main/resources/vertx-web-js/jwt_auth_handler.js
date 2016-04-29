@@ -87,7 +87,7 @@ var JWTAuthHandler = function(j_val) {
   this.setAudience = function(audience) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'object' && __args[0] instanceof Array) {
-      j_jWTAuthHandler["setAudience(java.util.List)"](audience);
+      j_jWTAuthHandler["setAudience(java.util.List)"](utils.convParamListBasicOther(audience));
       return that;
     } else throw new TypeError('function invoked with invalid arguments');
   };

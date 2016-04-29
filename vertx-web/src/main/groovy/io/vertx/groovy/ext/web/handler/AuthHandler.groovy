@@ -46,7 +46,7 @@ class AuthHandlerImpl implements AuthHandler {
     return delegate;
   }
   public void handle(RoutingContext arg0) {
-    ((io.vertx.core.Handler) this.delegate).handle((io.vertx.ext.web.RoutingContext)arg0.getDelegate());
+    ((io.vertx.core.Handler) delegate).handle(arg0 != null ? (io.vertx.ext.web.RoutingContext)arg0.getDelegate() : null);
   }
   /**
    * Add a required authority for this auth handler
@@ -54,7 +54,7 @@ class AuthHandlerImpl implements AuthHandler {
    * @return a reference to this, so the API can be used fluently
    */
   public AuthHandler addAuthority(String authority) {
-    ((io.vertx.ext.web.handler.AuthHandler) this.delegate).addAuthority(authority);
+    ((io.vertx.ext.web.handler.AuthHandler) delegate).addAuthority(authority);
     return this;
   }
   /**
@@ -63,7 +63,7 @@ class AuthHandlerImpl implements AuthHandler {
    * @return a reference to this, so the API can be used fluently
    */
   public AuthHandler addAuthorities(Set<String> authorities) {
-    ((io.vertx.ext.web.handler.AuthHandler) this.delegate).addAuthorities(authorities);
+    ((io.vertx.ext.web.handler.AuthHandler) delegate).addAuthorities(authorities != null ? (Set)authorities.collect({it}) as Set : null);
     return this;
   }
 }

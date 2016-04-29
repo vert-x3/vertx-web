@@ -17,7 +17,6 @@
 package io.vertx.rxjava.ext.web.templ;
 
 import java.util.Map;
-import io.vertx.lang.rxjava.InternalHelper;
 import rx.Observable;
 
 /**
@@ -45,7 +44,7 @@ public class FreeMarkerTemplateEngine extends TemplateEngine {
    * @return the engine
    */
   public static FreeMarkerTemplateEngine create() { 
-    FreeMarkerTemplateEngine ret= FreeMarkerTemplateEngine.newInstance(io.vertx.ext.web.templ.FreeMarkerTemplateEngine.create());
+    FreeMarkerTemplateEngine ret = FreeMarkerTemplateEngine.newInstance(io.vertx.ext.web.templ.FreeMarkerTemplateEngine.create());
     return ret;
   }
 
@@ -55,7 +54,7 @@ public class FreeMarkerTemplateEngine extends TemplateEngine {
    * @return a reference to this for fluency
    */
   public FreeMarkerTemplateEngine setExtension(String extension) { 
-    FreeMarkerTemplateEngine ret= FreeMarkerTemplateEngine.newInstance(this.delegate.setExtension(extension));
+    FreeMarkerTemplateEngine ret = FreeMarkerTemplateEngine.newInstance(delegate.setExtension(extension));
     return ret;
   }
 
@@ -65,7 +64,7 @@ public class FreeMarkerTemplateEngine extends TemplateEngine {
    * @return a reference to this for fluency
    */
   public FreeMarkerTemplateEngine setMaxCacheSize(int maxCacheSize) { 
-    FreeMarkerTemplateEngine ret= FreeMarkerTemplateEngine.newInstance(this.delegate.setMaxCacheSize(maxCacheSize));
+    FreeMarkerTemplateEngine ret = FreeMarkerTemplateEngine.newInstance(delegate.setMaxCacheSize(maxCacheSize));
     return ret;
   }
 

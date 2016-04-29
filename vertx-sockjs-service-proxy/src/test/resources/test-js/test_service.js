@@ -155,7 +155,7 @@ var TestService = function(j_val) {
   this.basicBoxedTypes = function(str, b, s, i, l, f, d, c, bool) {
     var __args = arguments;
     if (__args.length === 9 && typeof __args[0] === 'string' && typeof __args[1] ==='number' && typeof __args[2] ==='number' && typeof __args[3] ==='number' && typeof __args[4] ==='number' && typeof __args[5] ==='number' && typeof __args[6] ==='number' && typeof __args[7] ==='string' && typeof __args[8] ==='boolean') {
-      j_testService["basicBoxedTypes(java.lang.String,java.lang.Byte,java.lang.Short,java.lang.Integer,java.lang.Long,java.lang.Float,java.lang.Double,java.lang.Character,java.lang.Boolean)"](str, b, s, i, l, f, d, c, bool);
+      j_testService["basicBoxedTypes(java.lang.String,java.lang.Byte,java.lang.Short,java.lang.Integer,java.lang.Long,java.lang.Float,java.lang.Double,java.lang.Character,java.lang.Boolean)"](str, utils.convParamByte(b), utils.convParamShort(s), utils.convParamInteger(i), utils.convParamLong(l), utils.convParamFloat(f), utils.convParamDouble(d), utils.convParamCharacter(c), bool);
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -175,7 +175,7 @@ var TestService = function(j_val) {
   this.basicBoxedTypesNull = function(str, b, s, i, l, f, d, c, bool) {
     var __args = arguments;
     if (__args.length === 9 && typeof __args[0] === 'string' && typeof __args[1] ==='number' && typeof __args[2] ==='number' && typeof __args[3] ==='number' && typeof __args[4] ==='number' && typeof __args[5] ==='number' && typeof __args[6] ==='number' && typeof __args[7] ==='string' && typeof __args[8] ==='boolean') {
-      j_testService["basicBoxedTypesNull(java.lang.String,java.lang.Byte,java.lang.Short,java.lang.Integer,java.lang.Long,java.lang.Float,java.lang.Double,java.lang.Character,java.lang.Boolean)"](str, b, s, i, l, f, d, c, bool);
+      j_testService["basicBoxedTypesNull(java.lang.String,java.lang.Byte,java.lang.Short,java.lang.Integer,java.lang.Long,java.lang.Float,java.lang.Double,java.lang.Character,java.lang.Boolean)"](str, utils.convParamByte(b), utils.convParamShort(s), utils.convParamInteger(i), utils.convParamLong(l), utils.convParamFloat(f), utils.convParamDouble(d), utils.convParamCharacter(c), bool);
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -213,7 +213,7 @@ var TestService = function(j_val) {
   this.enumType = function(someEnum) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      j_testService["enumType(io.vertx.serviceproxy.testmodel.SomeEnum)"](io.vertx.serviceproxy.testmodel.SomeEnum.valueOf(__args[0]));
+      j_testService["enumType(io.vertx.serviceproxy.testmodel.SomeEnum)"](io.vertx.serviceproxy.testmodel.SomeEnum.valueOf(someEnum));
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -225,7 +225,7 @@ var TestService = function(j_val) {
   this.enumTypeNull = function(someEnum) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      j_testService["enumTypeNull(io.vertx.serviceproxy.testmodel.SomeEnum)"](io.vertx.serviceproxy.testmodel.SomeEnum.valueOf(__args[0]));
+      j_testService["enumTypeNull(io.vertx.serviceproxy.testmodel.SomeEnum)"](io.vertx.serviceproxy.testmodel.SomeEnum.valueOf(someEnum));
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -304,7 +304,7 @@ var TestService = function(j_val) {
   this.listParams = function(listString, listByte, listShort, listInt, listLong, listJsonObject, listJsonArray, listDataObject) {
     var __args = arguments;
     if (__args.length === 8 && typeof __args[0] === 'object' && __args[0] instanceof Array && typeof __args[1] === 'object' && __args[1] instanceof Array && typeof __args[2] === 'object' && __args[2] instanceof Array && typeof __args[3] === 'object' && __args[3] instanceof Array && typeof __args[4] === 'object' && __args[4] instanceof Array && typeof __args[5] === 'object' && __args[5] instanceof Array && typeof __args[6] === 'object' && __args[6] instanceof Array && typeof __args[7] === 'object' && __args[7] instanceof Array) {
-      j_testService["listParams(java.util.List,java.util.List,java.util.List,java.util.List,java.util.List,java.util.List,java.util.List,java.util.List)"](listString, utils.convParamListByte(listByte), utils.convParamListShort(listShort), listInt, utils.convParamListLong(listLong), utils.convParamListJsonObject(listJsonObject), utils.convParamListJsonArray(listJsonArray), utils.convParamListDataObject(listDataObject, function(json) { return new TestDataObject(json); }));
+      j_testService["listParams(java.util.List,java.util.List,java.util.List,java.util.List,java.util.List,java.util.List,java.util.List,java.util.List)"](utils.convParamListBasicOther(listString), utils.convParamListByte(listByte), utils.convParamListShort(listShort), utils.convParamListBasicOther(listInt), utils.convParamListLong(listLong), utils.convParamListJsonObject(listJsonObject), utils.convParamListJsonArray(listJsonArray), utils.convParamListDataObject(listDataObject, function(json) { return new TestDataObject(json); }));
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -861,7 +861,7 @@ var TestService = function(j_val) {
   this.invokeWithMessage = function(object, str, i, chr, senum, resultHandler) {
     var __args = arguments;
     if (__args.length === 6 && (typeof __args[0] === 'object' && __args[0] != null) && typeof __args[1] === 'string' && typeof __args[2] ==='number' && typeof __args[3] ==='string' && typeof __args[4] === 'string' && typeof __args[5] === 'function') {
-      j_testService["invokeWithMessage(io.vertx.core.json.JsonObject,java.lang.String,int,char,io.vertx.serviceproxy.testmodel.SomeEnum,io.vertx.core.Handler)"](utils.convParamJsonObject(object), str, i, chr, io.vertx.serviceproxy.testmodel.SomeEnum.valueOf(__args[4]), function(ar) {
+      j_testService["invokeWithMessage(io.vertx.core.json.JsonObject,java.lang.String,int,char,io.vertx.serviceproxy.testmodel.SomeEnum,io.vertx.core.Handler)"](utils.convParamJsonObject(object), str, i, chr, io.vertx.serviceproxy.testmodel.SomeEnum.valueOf(senum), function(ar) {
       if (ar.succeeded()) {
         resultHandler(ar.result(), null);
       } else {

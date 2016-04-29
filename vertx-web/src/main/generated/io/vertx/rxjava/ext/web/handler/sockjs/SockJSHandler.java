@@ -17,7 +17,6 @@
 package io.vertx.rxjava.ext.web.handler.sockjs;
 
 import java.util.Map;
-import io.vertx.lang.rxjava.InternalHelper;
 import rx.Observable;
 import io.vertx.rxjava.core.Vertx;
 import io.vertx.rxjava.ext.web.Router;
@@ -50,7 +49,7 @@ public class SockJSHandler implements Handler<RoutingContext> {
   }
 
   public void handle(RoutingContext arg0) { 
-    this.delegate.handle((io.vertx.ext.web.RoutingContext) arg0.getDelegate());
+    delegate.handle((io.vertx.ext.web.RoutingContext)arg0.getDelegate());
   }
 
   /**
@@ -59,7 +58,7 @@ public class SockJSHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static SockJSHandler create(Vertx vertx) { 
-    SockJSHandler ret= SockJSHandler.newInstance(io.vertx.ext.web.handler.sockjs.SockJSHandler.create((io.vertx.core.Vertx) vertx.getDelegate()));
+    SockJSHandler ret = SockJSHandler.newInstance(io.vertx.ext.web.handler.sockjs.SockJSHandler.create((io.vertx.core.Vertx)vertx.getDelegate()));
     return ret;
   }
 
@@ -70,7 +69,7 @@ public class SockJSHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static SockJSHandler create(Vertx vertx, SockJSHandlerOptions options) { 
-    SockJSHandler ret= SockJSHandler.newInstance(io.vertx.ext.web.handler.sockjs.SockJSHandler.create((io.vertx.core.Vertx) vertx.getDelegate(), options));
+    SockJSHandler ret = SockJSHandler.newInstance(io.vertx.ext.web.handler.sockjs.SockJSHandler.create((io.vertx.core.Vertx)vertx.getDelegate(), options));
     return ret;
   }
 
@@ -80,7 +79,7 @@ public class SockJSHandler implements Handler<RoutingContext> {
    * @param vertx the Vert.x instance
    */
   public static void installTestApplications(Router router, Vertx vertx) { 
-    io.vertx.ext.web.handler.sockjs.SockJSHandler.installTestApplications((io.vertx.ext.web.Router) router.getDelegate(), (io.vertx.core.Vertx) vertx.getDelegate());
+    io.vertx.ext.web.handler.sockjs.SockJSHandler.installTestApplications((io.vertx.ext.web.Router)router.getDelegate(), (io.vertx.core.Vertx)vertx.getDelegate());
   }
 
   /**
@@ -90,9 +89,9 @@ public class SockJSHandler implements Handler<RoutingContext> {
    * @return a reference to this, so the API can be used fluently
    */
   public SockJSHandler socketHandler(Handler<SockJSSocket> handler) { 
-    this.delegate.socketHandler(new Handler<io.vertx.ext.web.handler.sockjs.SockJSSocket>() {
+    delegate.socketHandler(new Handler<io.vertx.ext.web.handler.sockjs.SockJSSocket>() {
       public void handle(io.vertx.ext.web.handler.sockjs.SockJSSocket event) {
-        handler.handle(new SockJSSocket(event));
+        handler.handle(SockJSSocket.newInstance(event));
       }
     });
     return this;
@@ -106,7 +105,7 @@ public class SockJSHandler implements Handler<RoutingContext> {
    * @return a reference to this, so the API can be used fluently
    */
   public SockJSHandler bridge(BridgeOptions bridgeOptions) { 
-    this.delegate.bridge(bridgeOptions);
+    delegate.bridge(bridgeOptions);
     return this;
   }
 
@@ -118,9 +117,9 @@ public class SockJSHandler implements Handler<RoutingContext> {
    * @return a reference to this, so the API can be used fluently
    */
   public SockJSHandler bridge(BridgeOptions bridgeOptions, Handler<BridgeEvent> bridgeEventHandler) { 
-    this.delegate.bridge(bridgeOptions, new Handler<io.vertx.ext.web.handler.sockjs.BridgeEvent>() {
+    delegate.bridge(bridgeOptions, new Handler<io.vertx.ext.web.handler.sockjs.BridgeEvent>() {
       public void handle(io.vertx.ext.web.handler.sockjs.BridgeEvent event) {
-        bridgeEventHandler.handle(new BridgeEvent(event));
+        bridgeEventHandler.handle(BridgeEvent.newInstance(event));
       }
     });
     return this;

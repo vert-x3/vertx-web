@@ -32,7 +32,7 @@ module VertxWeb
       raise ArgumentError, "Invalid arguments when calling create(allowedOriginPattern)"
     end
     #  Add an allowed method
-    # @param [:OPTIONS,:GET,:HEAD,:POST,:PUT,:DELETE,:TRACE,:CONNECT,:PATCH,:UNKNOWN] method the method to add
+    # @param [:OPTIONS,:GET,:HEAD,:POST,:PUT,:DELETE,:TRACE,:CONNECT,:PATCH,:OTHER] method the method to add
     # @return [self]
     def allowed_method(method=nil)
       if method.class == Symbol && !block_given?

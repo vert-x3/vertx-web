@@ -34,14 +34,14 @@ public class LoggerHandler implements Handler<RoutingContext> {
     return delegate;
   }
   public void handle(RoutingContext arg0) {
-    ((io.vertx.core.Handler) this.delegate).handle((io.vertx.ext.web.RoutingContext)arg0.getDelegate());
+    ((io.vertx.core.Handler) delegate).handle(arg0 != null ? (io.vertx.ext.web.RoutingContext)arg0.getDelegate() : null);
   }
   /**
    * Create a handler with default format
    * @return the handler
    */
   public static LoggerHandler create() {
-    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.LoggerHandler.create(), io.vertx.groovy.ext.web.handler.LoggerHandler.class);
+    def ret = InternalHelper.safeCreate(io.vertx.ext.web.handler.LoggerHandler.create(), io.vertx.groovy.ext.web.handler.LoggerHandler.class);
     return ret;
   }
   /**
@@ -50,7 +50,7 @@ public class LoggerHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static LoggerHandler create(LoggerFormat format) {
-    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.LoggerHandler.create(format), io.vertx.groovy.ext.web.handler.LoggerHandler.class);
+    def ret = InternalHelper.safeCreate(io.vertx.ext.web.handler.LoggerHandler.create(format), io.vertx.groovy.ext.web.handler.LoggerHandler.class);
     return ret;
   }
   /**
@@ -60,7 +60,7 @@ public class LoggerHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static LoggerHandler create(boolean immediate, LoggerFormat format) {
-    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.LoggerHandler.create(immediate, format), io.vertx.groovy.ext.web.handler.LoggerHandler.class);
+    def ret = InternalHelper.safeCreate(io.vertx.ext.web.handler.LoggerHandler.create(immediate, format), io.vertx.groovy.ext.web.handler.LoggerHandler.class);
     return ret;
   }
 }

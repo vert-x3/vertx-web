@@ -34,14 +34,14 @@ public class CookieHandler implements Handler<RoutingContext> {
     return delegate;
   }
   public void handle(RoutingContext arg0) {
-    ((io.vertx.core.Handler) this.delegate).handle((io.vertx.ext.web.RoutingContext)arg0.getDelegate());
+    ((io.vertx.core.Handler) delegate).handle(arg0 != null ? (io.vertx.ext.web.RoutingContext)arg0.getDelegate() : null);
   }
   /**
    * Create a cookie handler
    * @return the cookie handler
    */
   public static CookieHandler create() {
-    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.CookieHandler.create(), io.vertx.groovy.ext.web.handler.CookieHandler.class);
+    def ret = InternalHelper.safeCreate(io.vertx.ext.web.handler.CookieHandler.create(), io.vertx.groovy.ext.web.handler.CookieHandler.class);
     return ret;
   }
 }

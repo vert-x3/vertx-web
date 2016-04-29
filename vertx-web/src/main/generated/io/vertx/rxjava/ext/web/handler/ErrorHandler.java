@@ -17,7 +17,6 @@
 package io.vertx.rxjava.ext.web.handler;
 
 import java.util.Map;
-import io.vertx.lang.rxjava.InternalHelper;
 import rx.Observable;
 import io.vertx.rxjava.ext.web.RoutingContext;
 import io.vertx.core.Handler;
@@ -42,7 +41,7 @@ public class ErrorHandler implements Handler<RoutingContext> {
   }
 
   public void handle(RoutingContext arg0) { 
-    this.delegate.handle((io.vertx.ext.web.RoutingContext) arg0.getDelegate());
+    delegate.handle((io.vertx.ext.web.RoutingContext)arg0.getDelegate());
   }
 
   /**
@@ -50,7 +49,7 @@ public class ErrorHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static ErrorHandler create() { 
-    ErrorHandler ret= ErrorHandler.newInstance(io.vertx.ext.web.handler.ErrorHandler.create());
+    ErrorHandler ret = ErrorHandler.newInstance(io.vertx.ext.web.handler.ErrorHandler.create());
     return ret;
   }
 
@@ -61,7 +60,7 @@ public class ErrorHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static ErrorHandler create(String errorTemplateName, boolean displayExceptionDetails) { 
-    ErrorHandler ret= ErrorHandler.newInstance(io.vertx.ext.web.handler.ErrorHandler.create(errorTemplateName, displayExceptionDetails));
+    ErrorHandler ret = ErrorHandler.newInstance(io.vertx.ext.web.handler.ErrorHandler.create(errorTemplateName, displayExceptionDetails));
     return ret;
   }
 
@@ -71,7 +70,7 @@ public class ErrorHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static ErrorHandler create(boolean displayExceptionDetails) { 
-    ErrorHandler ret= ErrorHandler.newInstance(io.vertx.ext.web.handler.ErrorHandler.create(displayExceptionDetails));
+    ErrorHandler ret = ErrorHandler.newInstance(io.vertx.ext.web.handler.ErrorHandler.create(displayExceptionDetails));
     return ret;
   }
 
@@ -81,7 +80,7 @@ public class ErrorHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static ErrorHandler create(String errorTemplateName) { 
-    ErrorHandler ret= ErrorHandler.newInstance(io.vertx.ext.web.handler.ErrorHandler.create(errorTemplateName));
+    ErrorHandler ret = ErrorHandler.newInstance(io.vertx.ext.web.handler.ErrorHandler.create(errorTemplateName));
     return ret;
   }
 

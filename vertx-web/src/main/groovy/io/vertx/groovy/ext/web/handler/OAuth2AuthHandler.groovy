@@ -35,7 +35,7 @@ public class OAuth2AuthHandler implements AuthHandler {
     return delegate;
   }
   public void handle(RoutingContext arg0) {
-    ((io.vertx.core.Handler) this.delegate).handle((io.vertx.ext.web.RoutingContext)arg0.getDelegate());
+    ((io.vertx.core.Handler) delegate).handle(arg0 != null ? (io.vertx.ext.web.RoutingContext)arg0.getDelegate() : null);
   }
   /**
    * Add a required authority for this auth handler
@@ -43,7 +43,7 @@ public class OAuth2AuthHandler implements AuthHandler {
    * @return a reference to this, so the API can be used fluently
    */
   public AuthHandler addAuthority(String authority) {
-    ((io.vertx.ext.web.handler.AuthHandler) this.delegate).addAuthority(authority);
+    ((io.vertx.ext.web.handler.AuthHandler) delegate).addAuthority(authority);
     return this;
   }
   /**
@@ -52,7 +52,7 @@ public class OAuth2AuthHandler implements AuthHandler {
    * @return a reference to this, so the API can be used fluently
    */
   public AuthHandler addAuthorities(Set<String> authorities) {
-    ((io.vertx.ext.web.handler.AuthHandler) this.delegate).addAuthorities(authorities);
+    ((io.vertx.ext.web.handler.AuthHandler) delegate).addAuthorities(authorities != null ? (Set)authorities.collect({it}) as Set : null);
     return this;
   }
   /**
@@ -62,7 +62,7 @@ public class OAuth2AuthHandler implements AuthHandler {
    * @return the auth handler
    */
   public static OAuth2AuthHandler create(OAuth2Auth authProvider, String uri) {
-    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.OAuth2AuthHandler.create((io.vertx.ext.auth.oauth2.OAuth2Auth)authProvider.getDelegate(), uri), io.vertx.groovy.ext.web.handler.OAuth2AuthHandler.class);
+    def ret = InternalHelper.safeCreate(io.vertx.ext.web.handler.OAuth2AuthHandler.create(authProvider != null ? (io.vertx.ext.auth.oauth2.OAuth2Auth)authProvider.getDelegate() : null, uri), io.vertx.groovy.ext.web.handler.OAuth2AuthHandler.class);
     return ret;
   }
   /**
@@ -72,7 +72,7 @@ public class OAuth2AuthHandler implements AuthHandler {
    * @return the redirect URL
    */
   public String authURI(String redirectURL, String state) {
-    def ret = this.delegate.authURI(redirectURL, state);
+    def ret = delegate.authURI(redirectURL, state);
     return ret;
   }
   /**
@@ -81,7 +81,7 @@ public class OAuth2AuthHandler implements AuthHandler {
    * @return self
    */
   public OAuth2AuthHandler setupCallback(Route route) {
-    this.delegate.setupCallback((io.vertx.ext.web.Route)route.getDelegate());
+    delegate.setupCallback(route != null ? (io.vertx.ext.web.Route)route.getDelegate() : null);
     return this;
   }
 }

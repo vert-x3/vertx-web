@@ -17,7 +17,6 @@
 package io.vertx.rxjava.ext.web.handler;
 
 import java.util.Map;
-import io.vertx.lang.rxjava.InternalHelper;
 import rx.Observable;
 import io.vertx.rxjava.ext.web.sstore.SessionStore;
 import io.vertx.rxjava.ext.web.RoutingContext;
@@ -50,7 +49,7 @@ public class SessionHandler implements Handler<RoutingContext> {
   }
 
   public void handle(RoutingContext arg0) { 
-    this.delegate.handle((io.vertx.ext.web.RoutingContext) arg0.getDelegate());
+    delegate.handle((io.vertx.ext.web.RoutingContext)arg0.getDelegate());
   }
 
   /**
@@ -59,7 +58,7 @@ public class SessionHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static SessionHandler create(SessionStore sessionStore) { 
-    SessionHandler ret= SessionHandler.newInstance(io.vertx.ext.web.handler.SessionHandler.create((io.vertx.ext.web.sstore.SessionStore) sessionStore.getDelegate()));
+    SessionHandler ret = SessionHandler.newInstance(io.vertx.ext.web.handler.SessionHandler.create((io.vertx.ext.web.sstore.SessionStore)sessionStore.getDelegate()));
     return ret;
   }
 
@@ -69,7 +68,7 @@ public class SessionHandler implements Handler<RoutingContext> {
    * @return a reference to this, so the API can be used fluently
    */
   public SessionHandler setSessionTimeout(long timeout) { 
-    this.delegate.setSessionTimeout(timeout);
+    delegate.setSessionTimeout(timeout);
     return this;
   }
 
@@ -80,7 +79,7 @@ public class SessionHandler implements Handler<RoutingContext> {
    * @return a reference to this, so the API can be used fluently
    */
   public SessionHandler setNagHttps(boolean nag) { 
-    this.delegate.setNagHttps(nag);
+    delegate.setNagHttps(nag);
     return this;
   }
 
@@ -91,7 +90,7 @@ public class SessionHandler implements Handler<RoutingContext> {
    * @return a reference to this, so the API can be used fluently
    */
   public SessionHandler setCookieSecureFlag(boolean secure) { 
-    this.delegate.setCookieSecureFlag(secure);
+    delegate.setCookieSecureFlag(secure);
     return this;
   }
 
@@ -102,7 +101,7 @@ public class SessionHandler implements Handler<RoutingContext> {
    * @return a reference to this, so the API can be used fluently
    */
   public SessionHandler setCookieHttpOnlyFlag(boolean httpOnly) { 
-    this.delegate.setCookieHttpOnlyFlag(httpOnly);
+    delegate.setCookieHttpOnlyFlag(httpOnly);
     return this;
   }
 
@@ -112,7 +111,7 @@ public class SessionHandler implements Handler<RoutingContext> {
    * @return a reference to this, so the API can be used fluently
    */
   public SessionHandler setSessionCookieName(String sessionCookieName) { 
-    this.delegate.setSessionCookieName(sessionCookieName);
+    delegate.setSessionCookieName(sessionCookieName);
     return this;
   }
 

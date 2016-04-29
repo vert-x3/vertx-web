@@ -39,7 +39,7 @@ public class ClusteredSessionStore extends SessionStore {
    * @return the session store
    */
   public static ClusteredSessionStore create(Vertx vertx, String sessionMapName) {
-    def ret= InternalHelper.safeCreate(io.vertx.ext.web.sstore.ClusteredSessionStore.create((io.vertx.core.Vertx)vertx.getDelegate(), sessionMapName), io.vertx.groovy.ext.web.sstore.ClusteredSessionStore.class);
+    def ret = InternalHelper.safeCreate(io.vertx.ext.web.sstore.ClusteredSessionStore.create(vertx != null ? (io.vertx.core.Vertx)vertx.getDelegate() : null, sessionMapName), io.vertx.groovy.ext.web.sstore.ClusteredSessionStore.class);
     return ret;
   }
   /**
@@ -53,7 +53,7 @@ public class ClusteredSessionStore extends SessionStore {
    * @return the session store
    */
   public static ClusteredSessionStore create(Vertx vertx, String sessionMapName, long retryTimeout) {
-    def ret= InternalHelper.safeCreate(io.vertx.ext.web.sstore.ClusteredSessionStore.create((io.vertx.core.Vertx)vertx.getDelegate(), sessionMapName, retryTimeout), io.vertx.groovy.ext.web.sstore.ClusteredSessionStore.class);
+    def ret = InternalHelper.safeCreate(io.vertx.ext.web.sstore.ClusteredSessionStore.create(vertx != null ? (io.vertx.core.Vertx)vertx.getDelegate() : null, sessionMapName, retryTimeout), io.vertx.groovy.ext.web.sstore.ClusteredSessionStore.class);
     return ret;
   }
   /**
@@ -62,7 +62,7 @@ public class ClusteredSessionStore extends SessionStore {
    * @return the session store
    */
   public static ClusteredSessionStore create(Vertx vertx) {
-    def ret= InternalHelper.safeCreate(io.vertx.ext.web.sstore.ClusteredSessionStore.create((io.vertx.core.Vertx)vertx.getDelegate()), io.vertx.groovy.ext.web.sstore.ClusteredSessionStore.class);
+    def ret = InternalHelper.safeCreate(io.vertx.ext.web.sstore.ClusteredSessionStore.create(vertx != null ? (io.vertx.core.Vertx)vertx.getDelegate() : null), io.vertx.groovy.ext.web.sstore.ClusteredSessionStore.class);
     return ret;
   }
   /**
@@ -75,7 +75,7 @@ public class ClusteredSessionStore extends SessionStore {
    * @return the session store
    */
   public static ClusteredSessionStore create(Vertx vertx, long retryTimeout) {
-    def ret= InternalHelper.safeCreate(io.vertx.ext.web.sstore.ClusteredSessionStore.create((io.vertx.core.Vertx)vertx.getDelegate(), retryTimeout), io.vertx.groovy.ext.web.sstore.ClusteredSessionStore.class);
+    def ret = InternalHelper.safeCreate(io.vertx.ext.web.sstore.ClusteredSessionStore.create(vertx != null ? (io.vertx.core.Vertx)vertx.getDelegate() : null, retryTimeout), io.vertx.groovy.ext.web.sstore.ClusteredSessionStore.class);
     return ret;
   }
 }

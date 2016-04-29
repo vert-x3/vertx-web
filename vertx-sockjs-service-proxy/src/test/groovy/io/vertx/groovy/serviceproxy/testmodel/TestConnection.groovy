@@ -34,22 +34,22 @@ public class TestConnection {
     return delegate;
   }
   public TestConnection startTransaction(Handler<AsyncResult<String>> resultHandler) {
-    this.delegate.startTransaction(resultHandler);
+    delegate.startTransaction(resultHandler);
     return this;
   }
   public TestConnection insert(String name, Map<String, Object> data, Handler<AsyncResult<String>> resultHandler) {
-    this.delegate.insert(name, data != null ? new io.vertx.core.json.JsonObject(data) : null, resultHandler);
+    delegate.insert(name, data != null ? new io.vertx.core.json.JsonObject(data) : null, resultHandler);
     return this;
   }
   public TestConnection commit(Handler<AsyncResult<String>> resultHandler) {
-    this.delegate.commit(resultHandler);
+    delegate.commit(resultHandler);
     return this;
   }
   public TestConnection rollback(Handler<AsyncResult<String>> resultHandler) {
-    this.delegate.rollback(resultHandler);
+    delegate.rollback(resultHandler);
     return this;
   }
   public void close() {
-    this.delegate.close();
+    delegate.close();
   }
 }
