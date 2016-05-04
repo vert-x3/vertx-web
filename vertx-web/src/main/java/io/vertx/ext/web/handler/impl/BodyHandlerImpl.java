@@ -19,6 +19,7 @@ package io.vertx.ext.web.handler.impl;
 import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.file.FileSystem;
+import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
@@ -106,11 +107,20 @@ public class BodyHandlerImpl implements BodyHandler {
     boolean failed;
     AtomicInteger uploadCount = new AtomicInteger();
     boolean ended;
+    long uploadSize = 0L;
+
+    final boolean isMultipart;
+    final boolean isUrlEncoded;
 
     public BHandler(RoutingContext context) {
       this.context = context;
       Set<FileUpload> fileUploads = context.fileUploads();
       makeUploadDir(context.vertx().fileSystem());
+
+      final String contentType = context.request().getHeader(HttpHeaders.CONTENT_TYPE);
+
+      isMultipart = contentType != null && contentType.contains("multipart/form-data");
+      isUrlEncoded = contentType != null && contentType.contains("application/x-www-form-urlencoded");
 
       context.request().setExpectMultipart(true);
       context.request().exceptionHandler(context::fail);
@@ -137,11 +147,14 @@ public class BodyHandlerImpl implements BodyHandler {
       if (failed) {
         return;
       }
-      if (bodyLimit != -1 && (body.length() + buff.length()) > bodyLimit) {
+      uploadSize += buff.length();
+      if (bodyLimit != -1 && uploadSize > bodyLimit) {
         failed = true;
         context.fail(413);
       } else {
-        body.appendBuffer(buff);
+        if (!isMultipart && !isUrlEncoded) {
+          body.appendBuffer(buff);
+        }
       }
     }
 
