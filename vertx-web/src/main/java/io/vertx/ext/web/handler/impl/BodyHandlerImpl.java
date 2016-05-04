@@ -104,8 +104,8 @@ public class BodyHandlerImpl implements BodyHandler {
     boolean ended;
     long uploadSize = 0L;
 
-    final boolean isMULTIPART;
-    final boolean isURLENCODED;
+    final boolean isMultipart;
+    final boolean isUrlEncoded;
 
     public BHandler(RoutingContext context) {
       this.context = context;
@@ -114,8 +114,8 @@ public class BodyHandlerImpl implements BodyHandler {
 
       final String contentType = context.request().getHeader(HttpHeaders.CONTENT_TYPE);
 
-      isMULTIPART = contentType != null && contentType.contains("multipart/form-data");
-      isURLENCODED = contentType != null && contentType.contains("application/x-www-form-urlencoded");
+      isMultipart = contentType != null && contentType.contains("multipart/form-data");
+      isUrlEncoded = contentType != null && contentType.contains("application/x-www-form-urlencoded");
 
       context.request().setExpectMultipart(true);
       context.request().exceptionHandler(context::fail);
@@ -147,7 +147,7 @@ public class BodyHandlerImpl implements BodyHandler {
         failed = true;
         context.fail(413);
       } else {
-        if (!isMULTIPART && !isURLENCODED) {
+        if (!isMultipart && !isUrlEncoded) {
           body.appendBuffer(buff);
         }
       }
