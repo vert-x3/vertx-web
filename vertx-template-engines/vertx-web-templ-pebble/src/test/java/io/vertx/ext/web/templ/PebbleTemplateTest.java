@@ -67,6 +67,15 @@ public class PebbleTemplateTest extends WebTestBase {
 	}
 
 	@Test
+	public void testTemplateComplex() throws Exception {
+
+		String expected = "Hello.Hi fox.Hi badger!Footer - badger";
+
+		final TemplateEngine engine = PebbleTemplateEngine.create();
+		testTemplateHandler(engine, "src/test/filesystemtemplates", "test-pebble-complex.peb", expected);
+	}
+
+	@Test
 	public void testTemplateHandlerNoExtension() throws Exception {
 		final TemplateEngine engine = PebbleTemplateEngine.create();
 		testTemplateHandler(engine, "somedir", "test-pebble-template2", "Hello badger and foxRequest path is /test-pebble-template2");
