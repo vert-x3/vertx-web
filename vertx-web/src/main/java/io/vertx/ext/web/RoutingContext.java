@@ -267,6 +267,8 @@ public interface RoutingContext {
    * {@link #fail(int)}  then this will return that status code.  It can be used by failure handlers to render a response,
    * e.g. create a failure response page.
    *
+   * When the status code has not been set yet (it is undefined) its value will be -1.
+   *
    * @return  the status code used when signalling failure
    */
   @CacheReturn

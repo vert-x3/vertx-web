@@ -22,7 +22,7 @@ import rx.Observable;
 import io.vertx.rxjava.ext.web.Route;
 import java.util.Set;
 import io.vertx.rxjava.ext.web.RoutingContext;
-import io.vertx.rxjava.ext.auth.AuthProvider;
+import io.vertx.rxjava.ext.auth.oauth2.OAuth2Auth;
 
 /**
  * An auth handler that provides OAuth2 Authentication support. This handler is suitable for AuthCode flows.
@@ -68,13 +68,13 @@ public class OAuth2AuthHandler implements AuthHandler {
   }
 
   /**
-   * Create a JWT auth handler
+   * Create a OAuth2 auth handler
    * @param authProvider the auth provider to use
    * @param uri 
    * @return the auth handler
    */
-  public static OAuth2AuthHandler create(AuthProvider authProvider, String uri) { 
-    OAuth2AuthHandler ret= OAuth2AuthHandler.newInstance(io.vertx.ext.web.handler.OAuth2AuthHandler.create((io.vertx.ext.auth.AuthProvider) authProvider.getDelegate(), uri));
+  public static OAuth2AuthHandler create(OAuth2Auth authProvider, String uri) { 
+    OAuth2AuthHandler ret= OAuth2AuthHandler.newInstance(io.vertx.ext.web.handler.OAuth2AuthHandler.create((io.vertx.ext.auth.oauth2.OAuth2Auth) authProvider.getDelegate(), uri));
     return ret;
   }
 

@@ -17,7 +17,6 @@
 package io.vertx.ext.web.handler.impl;
 
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.auth.AuthProvider;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.auth.oauth2.OAuth2Auth;
 import io.vertx.ext.web.Route;
@@ -36,7 +35,7 @@ public class OAuth2AuthHandlerImpl extends AuthHandlerImpl implements OAuth2Auth
 
   private Route callback;
 
-  public OAuth2AuthHandlerImpl(AuthProvider authProvider, String host) {
+  public OAuth2AuthHandlerImpl(OAuth2Auth authProvider, String host) {
     super(authProvider);
     this.host = host;
   }
@@ -45,8 +44,16 @@ public class OAuth2AuthHandlerImpl extends AuthHandlerImpl implements OAuth2Auth
   public void handle(RoutingContext ctx) {
     User user = ctx.user();
     if (user != null) {
-      // Already authenticated in, just authorise
-      authorise(user, ctx);
+      // Already authenticated.
+
+      // if this provider support JWT authorize
+      if (((OAuth2Auth) authProvider).hasJWTToken()) {
+        authorise(user, ctx);
+      } else {
+        // oauth2 used only for authentication (with or without scopes)
+        ctx.next();
+      }
+
     } else {
       // redirect request to the oauth2 server
       ctx.response()
@@ -92,6 +99,13 @@ public class OAuth2AuthHandlerImpl extends AuthHandlerImpl implements OAuth2Auth
     route.handler(ctx -> {
       // Handle the callback of the flow
       final String code = ctx.request().getParam("code");
+
+      // code is a require value
+      if (code == null) {
+        ctx.fail(400);
+        return;
+      }
+
       final String relative_redirect_uri = ctx.request().getParam("redirect_uri");
       // for google the redirect uri must match the registered urls
       final String redirect_uri = host + callback.getPath() + "?redirect_uri=" + relative_redirect_uri;

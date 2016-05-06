@@ -21,7 +21,7 @@ import io.vertx.core.json.JsonObject
 import io.vertx.groovy.ext.web.Route
 import java.util.Set
 import io.vertx.groovy.ext.web.RoutingContext
-import io.vertx.groovy.ext.auth.AuthProvider
+import io.vertx.groovy.ext.auth.oauth2.OAuth2Auth
 /**
  * An auth handler that provides OAuth2 Authentication support. This handler is suitable for AuthCode flows.
 */
@@ -56,13 +56,13 @@ public class OAuth2AuthHandler implements AuthHandler {
     return this;
   }
   /**
-   * Create a JWT auth handler
+   * Create a OAuth2 auth handler
    * @param authProvider the auth provider to use
    * @param uri 
    * @return the auth handler
    */
-  public static OAuth2AuthHandler create(AuthProvider authProvider, String uri) {
-    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.OAuth2AuthHandler.create((io.vertx.ext.auth.AuthProvider)authProvider.getDelegate(), uri), io.vertx.groovy.ext.web.handler.OAuth2AuthHandler.class);
+  public static OAuth2AuthHandler create(OAuth2Auth authProvider, String uri) {
+    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.OAuth2AuthHandler.create((io.vertx.ext.auth.oauth2.OAuth2Auth)authProvider.getDelegate(), uri), io.vertx.groovy.ext.web.handler.OAuth2AuthHandler.class);
     return ret;
   }
   /**

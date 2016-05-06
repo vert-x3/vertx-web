@@ -397,7 +397,7 @@ module VertxWeb
     # @overload reroute(path)
     #   @param [String] path the new http path.
     # @overload reroute(method,path)
-    #   @param [:OPTIONS,:GET,:HEAD,:POST,:PUT,:DELETE,:TRACE,:CONNECT,:PATCH] method the new http request
+    #   @param [:OPTIONS,:GET,:HEAD,:POST,:PUT,:DELETE,:TRACE,:CONNECT,:PATCH,:UNKNOWN] method the new http request
     #   @param [String] path the new http path.
     # @return [void]
     def reroute(param_1=nil,param_2=nil)

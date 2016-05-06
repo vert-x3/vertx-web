@@ -19,7 +19,7 @@ var utils = require('vertx-js/util/utils');
 var Route = require('vertx-web-js/route');
 var AuthHandler = require('vertx-web-js/auth_handler');
 var RoutingContext = require('vertx-web-js/routing_context');
-var AuthProvider = require('vertx-auth-common-js/auth_provider');
+var OAuth2Auth = require('vertx-auth-oauth2-js/o_auth2_auth');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
@@ -115,17 +115,17 @@ var OAuth2AuthHandler = function(j_val) {
 };
 
 /**
- Create a JWT auth handler
+ Create a OAuth2 auth handler
 
  @memberof module:vertx-web-js/o_auth2_auth_handler
- @param authProvider {AuthProvider} the auth provider to use 
+ @param authProvider {OAuth2Auth} the auth provider to use 
  @param uri {string} 
  @return {OAuth2AuthHandler} the auth handler
  */
 OAuth2AuthHandler.create = function(authProvider, uri) {
   var __args = arguments;
   if (__args.length === 2 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'string') {
-    return utils.convReturnVertxGen(JOAuth2AuthHandler["create(io.vertx.ext.auth.AuthProvider,java.lang.String)"](authProvider._jdel, uri), OAuth2AuthHandler);
+    return utils.convReturnVertxGen(JOAuth2AuthHandler["create(io.vertx.ext.auth.oauth2.OAuth2Auth,java.lang.String)"](authProvider._jdel, uri), OAuth2AuthHandler);
   } else throw new TypeError('function invoked with invalid arguments');
 };
 
