@@ -59,15 +59,7 @@ public class TestConnectionWithCloseFuture {
   }
 
   public void someMethod(Handler<AsyncResult<String>> resultHandler) { 
-    delegate.someMethod(new Handler<AsyncResult<java.lang.String>>() {
-      public void handle(AsyncResult<java.lang.String> ar) {
-        if (ar.succeeded()) {
-          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
-        } else {
-          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
-        }
-      }
-    });
+    delegate.someMethod(resultHandler);
   }
 
   public Observable<String> someMethodObservable() { 

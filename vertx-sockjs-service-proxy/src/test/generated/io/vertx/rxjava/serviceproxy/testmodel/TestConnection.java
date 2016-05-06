@@ -42,15 +42,7 @@ public class TestConnection {
   }
 
   public TestConnection startTransaction(Handler<AsyncResult<String>> resultHandler) { 
-    delegate.startTransaction(new Handler<AsyncResult<java.lang.String>>() {
-      public void handle(AsyncResult<java.lang.String> ar) {
-        if (ar.succeeded()) {
-          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
-        } else {
-          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
-        }
-      }
-    });
+    delegate.startTransaction(resultHandler);
     return this;
   }
 
@@ -61,15 +53,7 @@ public class TestConnection {
   }
 
   public TestConnection insert(String name, JsonObject data, Handler<AsyncResult<String>> resultHandler) { 
-    delegate.insert(name, data, new Handler<AsyncResult<java.lang.String>>() {
-      public void handle(AsyncResult<java.lang.String> ar) {
-        if (ar.succeeded()) {
-          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
-        } else {
-          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
-        }
-      }
-    });
+    delegate.insert(name, data, resultHandler);
     return this;
   }
 
@@ -80,15 +64,7 @@ public class TestConnection {
   }
 
   public TestConnection commit(Handler<AsyncResult<String>> resultHandler) { 
-    delegate.commit(new Handler<AsyncResult<java.lang.String>>() {
-      public void handle(AsyncResult<java.lang.String> ar) {
-        if (ar.succeeded()) {
-          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
-        } else {
-          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
-        }
-      }
-    });
+    delegate.commit(resultHandler);
     return this;
   }
 
@@ -99,15 +75,7 @@ public class TestConnection {
   }
 
   public TestConnection rollback(Handler<AsyncResult<String>> resultHandler) { 
-    delegate.rollback(new Handler<AsyncResult<java.lang.String>>() {
-      public void handle(AsyncResult<java.lang.String> ar) {
-        if (ar.succeeded()) {
-          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
-        } else {
-          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
-        }
-      }
-    });
+    delegate.rollback(resultHandler);
     return this;
   }
 
