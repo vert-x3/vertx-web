@@ -17,7 +17,6 @@
 package io.vertx.rxjava.serviceproxy.testmodel;
 
 import java.util.Map;
-import io.vertx.lang.rxjava.InternalHelper;
 import rx.Observable;
 import io.vertx.serviceproxy.testmodel.SomeEnum;
 import io.vertx.rxjava.core.Vertx;
@@ -50,22 +49,30 @@ public class TestService {
   }
 
   public static TestService create(Vertx vertx) { 
-    TestService ret= TestService.newInstance(io.vertx.serviceproxy.testmodel.TestService.create((io.vertx.core.Vertx) vertx.getDelegate()));
+    TestService ret = TestService.newInstance(io.vertx.serviceproxy.testmodel.TestService.create((io.vertx.core.Vertx)vertx.getDelegate()));
     return ret;
   }
 
   public static TestService createProxy(Vertx vertx, String address) { 
-    TestService ret= TestService.newInstance(io.vertx.serviceproxy.testmodel.TestService.createProxy((io.vertx.core.Vertx) vertx.getDelegate(), address));
+    TestService ret = TestService.newInstance(io.vertx.serviceproxy.testmodel.TestService.createProxy((io.vertx.core.Vertx)vertx.getDelegate(), address));
     return ret;
   }
 
   public static TestService createProxyLongDelivery(Vertx vertx, String address) { 
-    TestService ret= TestService.newInstance(io.vertx.serviceproxy.testmodel.TestService.createProxyLongDelivery((io.vertx.core.Vertx) vertx.getDelegate(), address));
+    TestService ret = TestService.newInstance(io.vertx.serviceproxy.testmodel.TestService.createProxyLongDelivery((io.vertx.core.Vertx)vertx.getDelegate(), address));
     return ret;
   }
 
   public void longDeliverySuccess(Handler<AsyncResult<String>> resultHandler) { 
-    this.delegate.longDeliverySuccess(resultHandler);
+    delegate.longDeliverySuccess(new Handler<AsyncResult<java.lang.String>>() {
+      public void handle(AsyncResult<java.lang.String> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    });
   }
 
   public Observable<String> longDeliverySuccessObservable() { 
@@ -75,7 +82,15 @@ public class TestService {
   }
 
   public void longDeliveryFailed(Handler<AsyncResult<String>> resultHandler) { 
-    this.delegate.longDeliveryFailed(resultHandler);
+    delegate.longDeliveryFailed(new Handler<AsyncResult<java.lang.String>>() {
+      public void handle(AsyncResult<java.lang.String> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    });
   }
 
   public Observable<String> longDeliveryFailedObservable() { 
@@ -85,15 +100,13 @@ public class TestService {
   }
 
   public void createConnection(String str, Handler<AsyncResult<TestConnection>> resultHandler) { 
-    this.delegate.createConnection(str, new Handler<AsyncResult<io.vertx.serviceproxy.testmodel.TestConnection>>() {
-      public void handle(AsyncResult<io.vertx.serviceproxy.testmodel.TestConnection> event) {
-        AsyncResult<TestConnection> f;
-        if (event.succeeded()) {
-          f = InternalHelper.<TestConnection>result(new TestConnection(event.result()));
+    delegate.createConnection(str, new Handler<AsyncResult<io.vertx.serviceproxy.testmodel.TestConnection>>() {
+      public void handle(AsyncResult<io.vertx.serviceproxy.testmodel.TestConnection> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(TestConnection.newInstance(ar.result())));
         } else {
-          f = InternalHelper.<TestConnection>failure(event.cause());
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
         }
-        resultHandler.handle(f);
       }
     });
   }
@@ -105,15 +118,13 @@ public class TestService {
   }
 
   public void createConnectionWithCloseFuture(Handler<AsyncResult<TestConnectionWithCloseFuture>> resultHandler) { 
-    this.delegate.createConnectionWithCloseFuture(new Handler<AsyncResult<io.vertx.serviceproxy.testmodel.TestConnectionWithCloseFuture>>() {
-      public void handle(AsyncResult<io.vertx.serviceproxy.testmodel.TestConnectionWithCloseFuture> event) {
-        AsyncResult<TestConnectionWithCloseFuture> f;
-        if (event.succeeded()) {
-          f = InternalHelper.<TestConnectionWithCloseFuture>result(new TestConnectionWithCloseFuture(event.result()));
+    delegate.createConnectionWithCloseFuture(new Handler<AsyncResult<io.vertx.serviceproxy.testmodel.TestConnectionWithCloseFuture>>() {
+      public void handle(AsyncResult<io.vertx.serviceproxy.testmodel.TestConnectionWithCloseFuture> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(TestConnectionWithCloseFuture.newInstance(ar.result())));
         } else {
-          f = InternalHelper.<TestConnectionWithCloseFuture>failure(event.cause());
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
         }
-        resultHandler.handle(f);
       }
     });
   }
@@ -125,39 +136,47 @@ public class TestService {
   }
 
   public void noParams() { 
-    this.delegate.noParams();
+    delegate.noParams();
   }
 
   public void basicTypes(String str, byte b, short s, int i, long l, float f, double d, char c, boolean bool) { 
-    this.delegate.basicTypes(str, b, s, i, l, f, d, c, bool);
+    delegate.basicTypes(str, b, s, i, l, f, d, c, bool);
   }
 
   public void basicBoxedTypes(String str, Byte b, Short s, Integer i, Long l, Float f, Double d, Character c, Boolean bool) { 
-    this.delegate.basicBoxedTypes(str, b, s, i, l, f, d, c, bool);
+    delegate.basicBoxedTypes(str, b, s, i, l, f, d, c, bool);
   }
 
   public void basicBoxedTypesNull(String str, Byte b, Short s, Integer i, Long l, Float f, Double d, Character c, Boolean bool) { 
-    this.delegate.basicBoxedTypesNull(str, b, s, i, l, f, d, c, bool);
+    delegate.basicBoxedTypesNull(str, b, s, i, l, f, d, c, bool);
   }
 
   public void jsonTypes(JsonObject jsonObject, JsonArray jsonArray) { 
-    this.delegate.jsonTypes(jsonObject, jsonArray);
+    delegate.jsonTypes(jsonObject, jsonArray);
   }
 
   public void jsonTypesNull(JsonObject jsonObject, JsonArray jsonArray) { 
-    this.delegate.jsonTypesNull(jsonObject, jsonArray);
+    delegate.jsonTypesNull(jsonObject, jsonArray);
   }
 
   public void enumType(SomeEnum someEnum) { 
-    this.delegate.enumType(someEnum);
+    delegate.enumType(someEnum);
   }
 
   public void enumTypeNull(SomeEnum someEnum) { 
-    this.delegate.enumTypeNull(someEnum);
+    delegate.enumTypeNull(someEnum);
   }
 
   public void enumTypeAsResult(Handler<AsyncResult<SomeEnum>> someEnum) { 
-    this.delegate.enumTypeAsResult(null /* Handler<AsyncResult<io.vertx.serviceproxy.testmodel.SomeEnum>> with kind ENUM not yet implemented */);
+    delegate.enumTypeAsResult(new Handler<AsyncResult<io.vertx.serviceproxy.testmodel.SomeEnum>>() {
+      public void handle(AsyncResult<io.vertx.serviceproxy.testmodel.SomeEnum> ar) {
+        if (ar.succeeded()) {
+          someEnum.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          someEnum.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    });
   }
 
   public Observable<SomeEnum> enumTypeAsResultObservable() { 
@@ -167,7 +186,15 @@ public class TestService {
   }
 
   public void enumTypeAsResultNull(Handler<AsyncResult<SomeEnum>> someEnum) { 
-    this.delegate.enumTypeAsResultNull(null /* Handler<AsyncResult<io.vertx.serviceproxy.testmodel.SomeEnum>> with kind ENUM not yet implemented */);
+    delegate.enumTypeAsResultNull(new Handler<AsyncResult<io.vertx.serviceproxy.testmodel.SomeEnum>>() {
+      public void handle(AsyncResult<io.vertx.serviceproxy.testmodel.SomeEnum> ar) {
+        if (ar.succeeded()) {
+          someEnum.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          someEnum.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    });
   }
 
   public Observable<SomeEnum> enumTypeAsResultNullObservable() { 
@@ -177,27 +204,35 @@ public class TestService {
   }
 
   public void dataObjectType(TestDataObject options) { 
-    this.delegate.dataObjectType(options);
+    delegate.dataObjectType(options);
   }
 
   public void dataObjectTypeNull(TestDataObject options) { 
-    this.delegate.dataObjectTypeNull(options);
+    delegate.dataObjectTypeNull(options);
   }
 
   public void listParams(List<String> listString, List<Byte> listByte, List<Short> listShort, List<Integer> listInt, List<Long> listLong, List<JsonObject> listJsonObject, List<JsonArray> listJsonArray, List<TestDataObject> listDataObject) { 
-    this.delegate.listParams(listString, listByte, listShort, listInt, listLong, listJsonObject, listJsonArray, listDataObject);
+    delegate.listParams(listString, listByte, listShort, listInt, listLong, listJsonObject, listJsonArray, listDataObject);
   }
 
   public void setParams(Set<String> setString, Set<Byte> setByte, Set<Short> setShort, Set<Integer> setInt, Set<Long> setLong, Set<JsonObject> setJsonObject, Set<JsonArray> setJsonArray, Set<TestDataObject> setDataObject) { 
-    this.delegate.setParams(setString, setByte, setShort, setInt, setLong, setJsonObject, setJsonArray, setDataObject);
+    delegate.setParams(setString, setByte, setShort, setInt, setLong, setJsonObject, setJsonArray, setDataObject);
   }
 
   public void mapParams(Map<String,String> mapString, Map<String,Byte> mapByte, Map<String,Short> mapShort, Map<String,Integer> mapInt, Map<String,Long> mapLong, Map<String,JsonObject> mapJsonObject, Map<String,JsonArray> mapJsonArray) { 
-    this.delegate.mapParams(mapString, mapByte, mapShort, mapInt, mapLong, mapJsonObject, mapJsonArray);
+    delegate.mapParams(mapString, mapByte, mapShort, mapInt, mapLong, mapJsonObject, mapJsonArray);
   }
 
   public void stringHandler(Handler<AsyncResult<String>> resultHandler) { 
-    this.delegate.stringHandler(resultHandler);
+    delegate.stringHandler(new Handler<AsyncResult<java.lang.String>>() {
+      public void handle(AsyncResult<java.lang.String> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    });
   }
 
   public Observable<String> stringHandlerObservable() { 
@@ -207,7 +242,15 @@ public class TestService {
   }
 
   public void stringNullHandler(Handler<AsyncResult<String>> resultHandler) { 
-    this.delegate.stringNullHandler(resultHandler);
+    delegate.stringNullHandler(new Handler<AsyncResult<java.lang.String>>() {
+      public void handle(AsyncResult<java.lang.String> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    });
   }
 
   public Observable<String> stringNullHandlerObservable() { 
@@ -217,7 +260,15 @@ public class TestService {
   }
 
   public void byteHandler(Handler<AsyncResult<Byte>> resultHandler) { 
-    this.delegate.byteHandler(resultHandler);
+    delegate.byteHandler(new Handler<AsyncResult<java.lang.Byte>>() {
+      public void handle(AsyncResult<java.lang.Byte> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    });
   }
 
   public Observable<Byte> byteHandlerObservable() { 
@@ -227,7 +278,15 @@ public class TestService {
   }
 
   public void byteNullHandler(Handler<AsyncResult<Byte>> resultHandler) { 
-    this.delegate.byteNullHandler(resultHandler);
+    delegate.byteNullHandler(new Handler<AsyncResult<java.lang.Byte>>() {
+      public void handle(AsyncResult<java.lang.Byte> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    });
   }
 
   public Observable<Byte> byteNullHandlerObservable() { 
@@ -237,7 +296,15 @@ public class TestService {
   }
 
   public void shortHandler(Handler<AsyncResult<Short>> resultHandler) { 
-    this.delegate.shortHandler(resultHandler);
+    delegate.shortHandler(new Handler<AsyncResult<java.lang.Short>>() {
+      public void handle(AsyncResult<java.lang.Short> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    });
   }
 
   public Observable<Short> shortHandlerObservable() { 
@@ -247,7 +314,15 @@ public class TestService {
   }
 
   public void shortNullHandler(Handler<AsyncResult<Short>> resultHandler) { 
-    this.delegate.shortNullHandler(resultHandler);
+    delegate.shortNullHandler(new Handler<AsyncResult<java.lang.Short>>() {
+      public void handle(AsyncResult<java.lang.Short> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    });
   }
 
   public Observable<Short> shortNullHandlerObservable() { 
@@ -257,7 +332,15 @@ public class TestService {
   }
 
   public void intHandler(Handler<AsyncResult<Integer>> resultHandler) { 
-    this.delegate.intHandler(resultHandler);
+    delegate.intHandler(new Handler<AsyncResult<java.lang.Integer>>() {
+      public void handle(AsyncResult<java.lang.Integer> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    });
   }
 
   public Observable<Integer> intHandlerObservable() { 
@@ -267,7 +350,15 @@ public class TestService {
   }
 
   public void intNullHandler(Handler<AsyncResult<Integer>> resultHandler) { 
-    this.delegate.intNullHandler(resultHandler);
+    delegate.intNullHandler(new Handler<AsyncResult<java.lang.Integer>>() {
+      public void handle(AsyncResult<java.lang.Integer> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    });
   }
 
   public Observable<Integer> intNullHandlerObservable() { 
@@ -277,7 +368,15 @@ public class TestService {
   }
 
   public void longHandler(Handler<AsyncResult<Long>> resultHandler) { 
-    this.delegate.longHandler(resultHandler);
+    delegate.longHandler(new Handler<AsyncResult<java.lang.Long>>() {
+      public void handle(AsyncResult<java.lang.Long> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    });
   }
 
   public Observable<Long> longHandlerObservable() { 
@@ -287,7 +386,15 @@ public class TestService {
   }
 
   public void longNullHandler(Handler<AsyncResult<Long>> resultHandler) { 
-    this.delegate.longNullHandler(resultHandler);
+    delegate.longNullHandler(new Handler<AsyncResult<java.lang.Long>>() {
+      public void handle(AsyncResult<java.lang.Long> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    });
   }
 
   public Observable<Long> longNullHandlerObservable() { 
@@ -297,7 +404,15 @@ public class TestService {
   }
 
   public void floatHandler(Handler<AsyncResult<Float>> resultHandler) { 
-    this.delegate.floatHandler(resultHandler);
+    delegate.floatHandler(new Handler<AsyncResult<java.lang.Float>>() {
+      public void handle(AsyncResult<java.lang.Float> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    });
   }
 
   public Observable<Float> floatHandlerObservable() { 
@@ -307,7 +422,15 @@ public class TestService {
   }
 
   public void floatNullHandler(Handler<AsyncResult<Float>> resultHandler) { 
-    this.delegate.floatNullHandler(resultHandler);
+    delegate.floatNullHandler(new Handler<AsyncResult<java.lang.Float>>() {
+      public void handle(AsyncResult<java.lang.Float> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    });
   }
 
   public Observable<Float> floatNullHandlerObservable() { 
@@ -317,7 +440,15 @@ public class TestService {
   }
 
   public void doubleHandler(Handler<AsyncResult<Double>> resultHandler) { 
-    this.delegate.doubleHandler(resultHandler);
+    delegate.doubleHandler(new Handler<AsyncResult<java.lang.Double>>() {
+      public void handle(AsyncResult<java.lang.Double> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    });
   }
 
   public Observable<Double> doubleHandlerObservable() { 
@@ -327,7 +458,15 @@ public class TestService {
   }
 
   public void doubleNullHandler(Handler<AsyncResult<Double>> resultHandler) { 
-    this.delegate.doubleNullHandler(resultHandler);
+    delegate.doubleNullHandler(new Handler<AsyncResult<java.lang.Double>>() {
+      public void handle(AsyncResult<java.lang.Double> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    });
   }
 
   public Observable<Double> doubleNullHandlerObservable() { 
@@ -337,7 +476,15 @@ public class TestService {
   }
 
   public void charHandler(Handler<AsyncResult<Character>> resultHandler) { 
-    this.delegate.charHandler(resultHandler);
+    delegate.charHandler(new Handler<AsyncResult<java.lang.Character>>() {
+      public void handle(AsyncResult<java.lang.Character> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    });
   }
 
   public Observable<Character> charHandlerObservable() { 
@@ -347,7 +494,15 @@ public class TestService {
   }
 
   public void charNullHandler(Handler<AsyncResult<Character>> resultHandler) { 
-    this.delegate.charNullHandler(resultHandler);
+    delegate.charNullHandler(new Handler<AsyncResult<java.lang.Character>>() {
+      public void handle(AsyncResult<java.lang.Character> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    });
   }
 
   public Observable<Character> charNullHandlerObservable() { 
@@ -357,7 +512,15 @@ public class TestService {
   }
 
   public void booleanHandler(Handler<AsyncResult<Boolean>> resultHandler) { 
-    this.delegate.booleanHandler(resultHandler);
+    delegate.booleanHandler(new Handler<AsyncResult<java.lang.Boolean>>() {
+      public void handle(AsyncResult<java.lang.Boolean> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    });
   }
 
   public Observable<Boolean> booleanHandlerObservable() { 
@@ -367,7 +530,15 @@ public class TestService {
   }
 
   public void booleanNullHandler(Handler<AsyncResult<Boolean>> resultHandler) { 
-    this.delegate.booleanNullHandler(resultHandler);
+    delegate.booleanNullHandler(new Handler<AsyncResult<java.lang.Boolean>>() {
+      public void handle(AsyncResult<java.lang.Boolean> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    });
   }
 
   public Observable<Boolean> booleanNullHandlerObservable() { 
@@ -377,7 +548,15 @@ public class TestService {
   }
 
   public void jsonObjectHandler(Handler<AsyncResult<JsonObject>> resultHandler) { 
-    this.delegate.jsonObjectHandler(resultHandler);
+    delegate.jsonObjectHandler(new Handler<AsyncResult<io.vertx.core.json.JsonObject>>() {
+      public void handle(AsyncResult<io.vertx.core.json.JsonObject> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    });
   }
 
   public Observable<JsonObject> jsonObjectHandlerObservable() { 
@@ -387,7 +566,15 @@ public class TestService {
   }
 
   public void jsonObjectNullHandler(Handler<AsyncResult<JsonObject>> resultHandler) { 
-    this.delegate.jsonObjectNullHandler(resultHandler);
+    delegate.jsonObjectNullHandler(new Handler<AsyncResult<io.vertx.core.json.JsonObject>>() {
+      public void handle(AsyncResult<io.vertx.core.json.JsonObject> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    });
   }
 
   public Observable<JsonObject> jsonObjectNullHandlerObservable() { 
@@ -397,7 +584,15 @@ public class TestService {
   }
 
   public void jsonArrayHandler(Handler<AsyncResult<JsonArray>> resultHandler) { 
-    this.delegate.jsonArrayHandler(resultHandler);
+    delegate.jsonArrayHandler(new Handler<AsyncResult<io.vertx.core.json.JsonArray>>() {
+      public void handle(AsyncResult<io.vertx.core.json.JsonArray> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    });
   }
 
   public Observable<JsonArray> jsonArrayHandlerObservable() { 
@@ -407,7 +602,15 @@ public class TestService {
   }
 
   public void jsonArrayNullHandler(Handler<AsyncResult<JsonArray>> resultHandler) { 
-    this.delegate.jsonArrayNullHandler(resultHandler);
+    delegate.jsonArrayNullHandler(new Handler<AsyncResult<io.vertx.core.json.JsonArray>>() {
+      public void handle(AsyncResult<io.vertx.core.json.JsonArray> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    });
   }
 
   public Observable<JsonArray> jsonArrayNullHandlerObservable() { 
@@ -417,7 +620,15 @@ public class TestService {
   }
 
   public void dataObjectHandler(Handler<AsyncResult<TestDataObject>> resultHandler) { 
-    this.delegate.dataObjectHandler(resultHandler);
+    delegate.dataObjectHandler(new Handler<AsyncResult<io.vertx.serviceproxy.testmodel.TestDataObject>>() {
+      public void handle(AsyncResult<io.vertx.serviceproxy.testmodel.TestDataObject> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    });
   }
 
   public Observable<TestDataObject> dataObjectHandlerObservable() { 
@@ -427,7 +638,15 @@ public class TestService {
   }
 
   public void dataObjectNullHandler(Handler<AsyncResult<TestDataObject>> resultHandler) { 
-    this.delegate.dataObjectNullHandler(resultHandler);
+    delegate.dataObjectNullHandler(new Handler<AsyncResult<io.vertx.serviceproxy.testmodel.TestDataObject>>() {
+      public void handle(AsyncResult<io.vertx.serviceproxy.testmodel.TestDataObject> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    });
   }
 
   public Observable<TestDataObject> dataObjectNullHandlerObservable() { 
@@ -437,7 +656,15 @@ public class TestService {
   }
 
   public void voidHandler(Handler<AsyncResult<Void>> resultHandler) { 
-    this.delegate.voidHandler(resultHandler);
+    delegate.voidHandler(new Handler<AsyncResult<java.lang.Void>>() {
+      public void handle(AsyncResult<java.lang.Void> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    });
   }
 
   public Observable<Void> voidHandlerObservable() { 
@@ -447,7 +674,15 @@ public class TestService {
   }
 
   public TestService fluentMethod(String str, Handler<AsyncResult<String>> resultHandler) { 
-    this.delegate.fluentMethod(str, resultHandler);
+    delegate.fluentMethod(str, new Handler<AsyncResult<java.lang.String>>() {
+      public void handle(AsyncResult<java.lang.String> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    });
     return this;
   }
 
@@ -458,12 +693,20 @@ public class TestService {
   }
 
   public TestService fluentNoParams() { 
-    this.delegate.fluentNoParams();
+    delegate.fluentNoParams();
     return this;
   }
 
   public void failingMethod(Handler<AsyncResult<JsonObject>> resultHandler) { 
-    this.delegate.failingMethod(resultHandler);
+    delegate.failingMethod(new Handler<AsyncResult<io.vertx.core.json.JsonObject>>() {
+      public void handle(AsyncResult<io.vertx.core.json.JsonObject> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    });
   }
 
   public Observable<JsonObject> failingMethodObservable() { 
@@ -473,7 +716,15 @@ public class TestService {
   }
 
   public void invokeWithMessage(JsonObject object, String str, int i, char chr, SomeEnum senum, Handler<AsyncResult<String>> resultHandler) { 
-    this.delegate.invokeWithMessage(object, str, i, chr, senum, resultHandler);
+    delegate.invokeWithMessage(object, str, i, chr, senum, new Handler<AsyncResult<java.lang.String>>() {
+      public void handle(AsyncResult<java.lang.String> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    });
   }
 
   public Observable<String> invokeWithMessageObservable(JsonObject object, String str, int i, char chr, SomeEnum senum) { 
@@ -483,7 +734,15 @@ public class TestService {
   }
 
   public void listStringHandler(Handler<AsyncResult<List<String>>> resultHandler) { 
-    this.delegate.listStringHandler(resultHandler);
+    delegate.listStringHandler(new Handler<AsyncResult<java.util.List<java.lang.String>>>() {
+      public void handle(AsyncResult<java.util.List<java.lang.String>> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    });
   }
 
   public Observable<List<String>> listStringHandlerObservable() { 
@@ -493,7 +752,15 @@ public class TestService {
   }
 
   public void listByteHandler(Handler<AsyncResult<List<Byte>>> resultHandler) { 
-    this.delegate.listByteHandler(resultHandler);
+    delegate.listByteHandler(new Handler<AsyncResult<java.util.List<java.lang.Byte>>>() {
+      public void handle(AsyncResult<java.util.List<java.lang.Byte>> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    });
   }
 
   public Observable<List<Byte>> listByteHandlerObservable() { 
@@ -503,7 +770,15 @@ public class TestService {
   }
 
   public void listShortHandler(Handler<AsyncResult<List<Short>>> resultHandler) { 
-    this.delegate.listShortHandler(resultHandler);
+    delegate.listShortHandler(new Handler<AsyncResult<java.util.List<java.lang.Short>>>() {
+      public void handle(AsyncResult<java.util.List<java.lang.Short>> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    });
   }
 
   public Observable<List<Short>> listShortHandlerObservable() { 
@@ -513,7 +788,15 @@ public class TestService {
   }
 
   public void listIntHandler(Handler<AsyncResult<List<Integer>>> resultHandler) { 
-    this.delegate.listIntHandler(resultHandler);
+    delegate.listIntHandler(new Handler<AsyncResult<java.util.List<java.lang.Integer>>>() {
+      public void handle(AsyncResult<java.util.List<java.lang.Integer>> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    });
   }
 
   public Observable<List<Integer>> listIntHandlerObservable() { 
@@ -523,7 +806,15 @@ public class TestService {
   }
 
   public void listLongHandler(Handler<AsyncResult<List<Long>>> resultHandler) { 
-    this.delegate.listLongHandler(resultHandler);
+    delegate.listLongHandler(new Handler<AsyncResult<java.util.List<java.lang.Long>>>() {
+      public void handle(AsyncResult<java.util.List<java.lang.Long>> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    });
   }
 
   public Observable<List<Long>> listLongHandlerObservable() { 
@@ -533,7 +824,15 @@ public class TestService {
   }
 
   public void listFloatHandler(Handler<AsyncResult<List<Float>>> resultHandler) { 
-    this.delegate.listFloatHandler(resultHandler);
+    delegate.listFloatHandler(new Handler<AsyncResult<java.util.List<java.lang.Float>>>() {
+      public void handle(AsyncResult<java.util.List<java.lang.Float>> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    });
   }
 
   public Observable<List<Float>> listFloatHandlerObservable() { 
@@ -543,7 +842,15 @@ public class TestService {
   }
 
   public void listDoubleHandler(Handler<AsyncResult<List<Double>>> resultHandler) { 
-    this.delegate.listDoubleHandler(resultHandler);
+    delegate.listDoubleHandler(new Handler<AsyncResult<java.util.List<java.lang.Double>>>() {
+      public void handle(AsyncResult<java.util.List<java.lang.Double>> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    });
   }
 
   public Observable<List<Double>> listDoubleHandlerObservable() { 
@@ -553,7 +860,15 @@ public class TestService {
   }
 
   public void listCharHandler(Handler<AsyncResult<List<Character>>> resultHandler) { 
-    this.delegate.listCharHandler(resultHandler);
+    delegate.listCharHandler(new Handler<AsyncResult<java.util.List<java.lang.Character>>>() {
+      public void handle(AsyncResult<java.util.List<java.lang.Character>> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    });
   }
 
   public Observable<List<Character>> listCharHandlerObservable() { 
@@ -563,7 +878,15 @@ public class TestService {
   }
 
   public void listBoolHandler(Handler<AsyncResult<List<Boolean>>> resultHandler) { 
-    this.delegate.listBoolHandler(resultHandler);
+    delegate.listBoolHandler(new Handler<AsyncResult<java.util.List<java.lang.Boolean>>>() {
+      public void handle(AsyncResult<java.util.List<java.lang.Boolean>> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    });
   }
 
   public Observable<List<Boolean>> listBoolHandlerObservable() { 
@@ -573,7 +896,15 @@ public class TestService {
   }
 
   public void listJsonObjectHandler(Handler<AsyncResult<List<JsonObject>>> resultHandler) { 
-    this.delegate.listJsonObjectHandler(resultHandler);
+    delegate.listJsonObjectHandler(new Handler<AsyncResult<java.util.List<io.vertx.core.json.JsonObject>>>() {
+      public void handle(AsyncResult<java.util.List<io.vertx.core.json.JsonObject>> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    });
   }
 
   public Observable<List<JsonObject>> listJsonObjectHandlerObservable() { 
@@ -583,7 +914,15 @@ public class TestService {
   }
 
   public void listJsonArrayHandler(Handler<AsyncResult<List<JsonArray>>> resultHandler) { 
-    this.delegate.listJsonArrayHandler(resultHandler);
+    delegate.listJsonArrayHandler(new Handler<AsyncResult<java.util.List<io.vertx.core.json.JsonArray>>>() {
+      public void handle(AsyncResult<java.util.List<io.vertx.core.json.JsonArray>> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    });
   }
 
   public Observable<List<JsonArray>> listJsonArrayHandlerObservable() { 
@@ -593,7 +932,15 @@ public class TestService {
   }
 
   public void listDataObjectHandler(Handler<AsyncResult<List<TestDataObject>>> resultHandler) { 
-    this.delegate.listDataObjectHandler(resultHandler);
+    delegate.listDataObjectHandler(new Handler<AsyncResult<java.util.List<io.vertx.serviceproxy.testmodel.TestDataObject>>>() {
+      public void handle(AsyncResult<java.util.List<io.vertx.serviceproxy.testmodel.TestDataObject>> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    });
   }
 
   public Observable<List<TestDataObject>> listDataObjectHandlerObservable() { 
@@ -603,7 +950,15 @@ public class TestService {
   }
 
   public void setStringHandler(Handler<AsyncResult<Set<String>>> resultHandler) { 
-    this.delegate.setStringHandler(resultHandler);
+    delegate.setStringHandler(new Handler<AsyncResult<java.util.Set<java.lang.String>>>() {
+      public void handle(AsyncResult<java.util.Set<java.lang.String>> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    });
   }
 
   public Observable<Set<String>> setStringHandlerObservable() { 
@@ -613,7 +968,15 @@ public class TestService {
   }
 
   public void setByteHandler(Handler<AsyncResult<Set<Byte>>> resultHandler) { 
-    this.delegate.setByteHandler(resultHandler);
+    delegate.setByteHandler(new Handler<AsyncResult<java.util.Set<java.lang.Byte>>>() {
+      public void handle(AsyncResult<java.util.Set<java.lang.Byte>> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    });
   }
 
   public Observable<Set<Byte>> setByteHandlerObservable() { 
@@ -623,7 +986,15 @@ public class TestService {
   }
 
   public void setShortHandler(Handler<AsyncResult<Set<Short>>> resultHandler) { 
-    this.delegate.setShortHandler(resultHandler);
+    delegate.setShortHandler(new Handler<AsyncResult<java.util.Set<java.lang.Short>>>() {
+      public void handle(AsyncResult<java.util.Set<java.lang.Short>> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    });
   }
 
   public Observable<Set<Short>> setShortHandlerObservable() { 
@@ -633,7 +1004,15 @@ public class TestService {
   }
 
   public void setIntHandler(Handler<AsyncResult<Set<Integer>>> resultHandler) { 
-    this.delegate.setIntHandler(resultHandler);
+    delegate.setIntHandler(new Handler<AsyncResult<java.util.Set<java.lang.Integer>>>() {
+      public void handle(AsyncResult<java.util.Set<java.lang.Integer>> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    });
   }
 
   public Observable<Set<Integer>> setIntHandlerObservable() { 
@@ -643,7 +1022,15 @@ public class TestService {
   }
 
   public void setLongHandler(Handler<AsyncResult<Set<Long>>> resultHandler) { 
-    this.delegate.setLongHandler(resultHandler);
+    delegate.setLongHandler(new Handler<AsyncResult<java.util.Set<java.lang.Long>>>() {
+      public void handle(AsyncResult<java.util.Set<java.lang.Long>> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    });
   }
 
   public Observable<Set<Long>> setLongHandlerObservable() { 
@@ -653,7 +1040,15 @@ public class TestService {
   }
 
   public void setFloatHandler(Handler<AsyncResult<Set<Float>>> resultHandler) { 
-    this.delegate.setFloatHandler(resultHandler);
+    delegate.setFloatHandler(new Handler<AsyncResult<java.util.Set<java.lang.Float>>>() {
+      public void handle(AsyncResult<java.util.Set<java.lang.Float>> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    });
   }
 
   public Observable<Set<Float>> setFloatHandlerObservable() { 
@@ -663,7 +1058,15 @@ public class TestService {
   }
 
   public void setDoubleHandler(Handler<AsyncResult<Set<Double>>> resultHandler) { 
-    this.delegate.setDoubleHandler(resultHandler);
+    delegate.setDoubleHandler(new Handler<AsyncResult<java.util.Set<java.lang.Double>>>() {
+      public void handle(AsyncResult<java.util.Set<java.lang.Double>> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    });
   }
 
   public Observable<Set<Double>> setDoubleHandlerObservable() { 
@@ -673,7 +1076,15 @@ public class TestService {
   }
 
   public void setCharHandler(Handler<AsyncResult<Set<Character>>> resultHandler) { 
-    this.delegate.setCharHandler(resultHandler);
+    delegate.setCharHandler(new Handler<AsyncResult<java.util.Set<java.lang.Character>>>() {
+      public void handle(AsyncResult<java.util.Set<java.lang.Character>> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    });
   }
 
   public Observable<Set<Character>> setCharHandlerObservable() { 
@@ -683,7 +1094,15 @@ public class TestService {
   }
 
   public void setBoolHandler(Handler<AsyncResult<Set<Boolean>>> resultHandler) { 
-    this.delegate.setBoolHandler(resultHandler);
+    delegate.setBoolHandler(new Handler<AsyncResult<java.util.Set<java.lang.Boolean>>>() {
+      public void handle(AsyncResult<java.util.Set<java.lang.Boolean>> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    });
   }
 
   public Observable<Set<Boolean>> setBoolHandlerObservable() { 
@@ -693,7 +1112,15 @@ public class TestService {
   }
 
   public void setJsonObjectHandler(Handler<AsyncResult<Set<JsonObject>>> resultHandler) { 
-    this.delegate.setJsonObjectHandler(resultHandler);
+    delegate.setJsonObjectHandler(new Handler<AsyncResult<java.util.Set<io.vertx.core.json.JsonObject>>>() {
+      public void handle(AsyncResult<java.util.Set<io.vertx.core.json.JsonObject>> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    });
   }
 
   public Observable<Set<JsonObject>> setJsonObjectHandlerObservable() { 
@@ -703,7 +1130,15 @@ public class TestService {
   }
 
   public void setJsonArrayHandler(Handler<AsyncResult<Set<JsonArray>>> resultHandler) { 
-    this.delegate.setJsonArrayHandler(resultHandler);
+    delegate.setJsonArrayHandler(new Handler<AsyncResult<java.util.Set<io.vertx.core.json.JsonArray>>>() {
+      public void handle(AsyncResult<java.util.Set<io.vertx.core.json.JsonArray>> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    });
   }
 
   public Observable<Set<JsonArray>> setJsonArrayHandlerObservable() { 
@@ -713,7 +1148,15 @@ public class TestService {
   }
 
   public void setDataObjectHandler(Handler<AsyncResult<Set<TestDataObject>>> resultHandler) { 
-    this.delegate.setDataObjectHandler(resultHandler);
+    delegate.setDataObjectHandler(new Handler<AsyncResult<java.util.Set<io.vertx.serviceproxy.testmodel.TestDataObject>>>() {
+      public void handle(AsyncResult<java.util.Set<io.vertx.serviceproxy.testmodel.TestDataObject>> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    });
   }
 
   public Observable<Set<TestDataObject>> setDataObjectHandlerObservable() { 
@@ -723,7 +1166,7 @@ public class TestService {
   }
 
   public void ignoredMethod() { 
-    this.delegate.ignoredMethod();
+    delegate.ignoredMethod();
   }
 
 

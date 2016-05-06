@@ -17,7 +17,6 @@
 package io.vertx.rxjava.ext.web;
 
 import java.util.Map;
-import io.vertx.lang.rxjava.InternalHelper;
 import rx.Observable;
 
 /**
@@ -45,7 +44,7 @@ public class FileUpload {
    * @return 
    */
   public String name() { 
-    String ret = this.delegate.name();
+    String ret = delegate.name();
     return ret;
   }
 
@@ -54,7 +53,7 @@ public class FileUpload {
    * @return 
    */
   public String uploadedFileName() { 
-    String ret = this.delegate.uploadedFileName();
+    String ret = delegate.uploadedFileName();
     return ret;
   }
 
@@ -63,7 +62,7 @@ public class FileUpload {
    * @return 
    */
   public String fileName() { 
-    String ret = this.delegate.fileName();
+    String ret = delegate.fileName();
     return ret;
   }
 
@@ -72,7 +71,7 @@ public class FileUpload {
    * @return 
    */
   public long size() { 
-    long ret = this.delegate.size();
+    long ret = delegate.size();
     return ret;
   }
 
@@ -81,7 +80,7 @@ public class FileUpload {
    * @return 
    */
   public String contentType() { 
-    String ret = this.delegate.contentType();
+    String ret = delegate.contentType();
     return ret;
   }
 
@@ -90,7 +89,7 @@ public class FileUpload {
    * @return 
    */
   public String contentTransferEncoding() { 
-    String ret = this.delegate.contentTransferEncoding();
+    String ret = delegate.contentTransferEncoding();
     return ret;
   }
 
@@ -99,7 +98,7 @@ public class FileUpload {
    * @return 
    */
   public String charSet() { 
-    String ret = this.delegate.charSet();
+    String ret = delegate.charSet();
     return ret;
   }
 

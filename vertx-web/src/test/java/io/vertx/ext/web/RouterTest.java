@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -768,6 +769,50 @@ public class RouterTest extends WebTestBase {
       rc.response().setStatusMessage(params.get("abc") + params.get("def") + params.get("ghi")).end();
     });
     testPattern("/blah/tim/quux/julien/eep/nick", "timjuliennick");
+  }
+
+  @Test
+  public void testPathParamsAreFulfilled() throws Exception {
+    router.route("/blah/:abc/quux/:def/eep/:ghi").handler(rc -> {
+      Map<String, String> params = rc.pathParams();
+      rc.response().setStatusMessage(params.get("abc") + params.get("def") + params.get("ghi")).end();
+    });
+    testPattern("/blah/tim/quux/julien/eep/nick", "timjuliennick");
+  }
+
+  @Test
+  public void testPathParamsDoesNotOverrideQueryParam() throws Exception {
+    final String paramName = "param";
+    final String pathParamValue = "pathParamValue";
+    final String queryParamValue1 = "queryParamValue1";
+    final String queryParamValue2 = "queryParamValue2";
+    final String sep = ",";
+    router.route("/blah/:" + paramName + "/test").handler(rc -> {
+      Map<String, String> params = rc.pathParams();
+      MultiMap queryParams = rc.request().params();
+      List<String> values = queryParams.getAll(paramName);
+      String qValue = values.stream().collect(Collectors.joining(sep));
+      rc.response().setStatusMessage(params.get(paramName) + "|" + qValue).end();
+    });
+    testRequest(HttpMethod.GET,
+            "/blah/" + pathParamValue + "/test?" + paramName + "=" + queryParamValue1 + "&" + paramName + "=" + queryParamValue2,
+            200,
+            pathParamValue + "|" + queryParamValue1 + sep + queryParamValue2);
+  }
+
+  @Test
+  public void testPathParamsWithReroute() throws Exception {
+    String paramName = "param";
+    String firstParamValue = "fpv";
+    String secondParamValue = "secondParamValue";
+    router.route("/first/:" + paramName + "/route").handler(rc -> {
+      assertEquals(firstParamValue, rc.pathParam(paramName));
+      rc.reroute(HttpMethod.GET, "/second/" + secondParamValue + "/route");
+    });
+    router.route("/second/:" + paramName + "/route").handler(rc -> {
+       rc.response().setStatusMessage(rc.pathParam(paramName)).end();
+    });
+    testRequest(HttpMethod.GET, "/first/" + firstParamValue + "/route", 200, secondParamValue);
   }
 
   private void testPattern(String pathRoot, String expected) throws Exception {
@@ -1744,8 +1789,32 @@ public class RouterTest extends WebTestBase {
     router.route("/test/:p").handler(RoutingContext::next);
     router.route("/test/:p").handler(routingContext -> {
       assertEquals(1, routingContext.request().params().getAll("p").size());
+      assertEquals("abc", routingContext.request().getParam("p"));
       routingContext.response().end();
     });
     testRequest(HttpMethod.GET, "/test/abc", 200, "OK");
+  }
+
+  @Test
+  public void testDuplicateParams2() throws Exception {
+    router.route("/test/:p").handler(RoutingContext::next);
+    router.route("/test/:p").handler(ctx -> {
+      ctx.reroute("/done/abc/cde");
+    });
+
+    router.route("/done/:a/:p").handler(routingContext -> {
+      assertEquals(1, routingContext.request().params().getAll("p").size());
+      assertEquals("cde", routingContext.request().getParam("p"));
+      routingContext.response().end();
+    });
+    testRequest(HttpMethod.GET, "/test/abc", 200, "OK");
+  }
+
+  @Test
+  public void testSubRouterNPE() throws Exception {
+    Router subRouter = Router.router(vertx);
+    router.mountSubRouter("/", subRouter);
+
+    testRequest(HttpMethod.GET, "foo", 404, "Not Found");
   }
 }

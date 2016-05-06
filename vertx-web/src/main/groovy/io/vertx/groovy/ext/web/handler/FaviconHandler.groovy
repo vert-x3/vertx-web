@@ -35,14 +35,14 @@ public class FaviconHandler implements Handler<RoutingContext> {
     return delegate;
   }
   public void handle(RoutingContext arg0) {
-    ((io.vertx.core.Handler) this.delegate).handle((io.vertx.ext.web.RoutingContext)arg0.getDelegate());
+    ((io.vertx.core.Handler) delegate).handle(arg0 != null ? (io.vertx.ext.web.RoutingContext)arg0.getDelegate() : null);
   }
   /**
    * Create a handler with defaults
    * @return the handler
    */
   public static FaviconHandler create() {
-    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.FaviconHandler.create(), io.vertx.groovy.ext.web.handler.FaviconHandler.class);
+    def ret = InternalHelper.safeCreate(io.vertx.ext.web.handler.FaviconHandler.create(), io.vertx.groovy.ext.web.handler.FaviconHandler.class);
     return ret;
   }
   /**
@@ -51,7 +51,7 @@ public class FaviconHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static FaviconHandler create(String path) {
-    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.FaviconHandler.create(path), io.vertx.groovy.ext.web.handler.FaviconHandler.class);
+    def ret = InternalHelper.safeCreate(io.vertx.ext.web.handler.FaviconHandler.create(path), io.vertx.groovy.ext.web.handler.FaviconHandler.class);
     return ret;
   }
   /**
@@ -61,7 +61,7 @@ public class FaviconHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static FaviconHandler create(String path, long maxAgeSeconds) {
-    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.FaviconHandler.create(path, maxAgeSeconds), io.vertx.groovy.ext.web.handler.FaviconHandler.class);
+    def ret = InternalHelper.safeCreate(io.vertx.ext.web.handler.FaviconHandler.create(path, maxAgeSeconds), io.vertx.groovy.ext.web.handler.FaviconHandler.class);
     return ret;
   }
   /**
@@ -70,7 +70,7 @@ public class FaviconHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static FaviconHandler create(long maxAgeSeconds) {
-    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.FaviconHandler.create(maxAgeSeconds), io.vertx.groovy.ext.web.handler.FaviconHandler.class);
+    def ret = InternalHelper.safeCreate(io.vertx.ext.web.handler.FaviconHandler.create(maxAgeSeconds), io.vertx.groovy.ext.web.handler.FaviconHandler.class);
     return ret;
   }
 }

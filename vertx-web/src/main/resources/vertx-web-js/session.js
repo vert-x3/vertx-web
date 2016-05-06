@@ -60,7 +60,7 @@ var Session = function(j_val) {
    */
   this.put = function(key, obj) {
     var __args = arguments;
-    if (__args.length === 2 && typeof __args[0] === 'string' && true) {
+    if (__args.length === 2 && typeof __args[0] === 'string' && typeof __args[1] !== 'function') {
       j_session["put(java.lang.String,java.lang.Object)"](key, utils.convParamTypeUnknown(obj));
       return that;
     } else throw new TypeError('function invoked with invalid arguments');

@@ -17,7 +17,6 @@
 package io.vertx.rxjava.ext.web.sstore;
 
 import java.util.Map;
-import io.vertx.lang.rxjava.InternalHelper;
 import rx.Observable;
 import io.vertx.rxjava.ext.web.Session;
 import io.vertx.core.AsyncResult;
@@ -49,7 +48,7 @@ public class SessionStore {
    * @return the timeout value, in ms
    */
   public long retryTimeout() { 
-    long ret = this.delegate.retryTimeout();
+    long ret = delegate.retryTimeout();
     return ret;
   }
 
@@ -59,7 +58,7 @@ public class SessionStore {
    * @return the session
    */
   public Session createSession(long timeout) { 
-    Session ret= Session.newInstance(this.delegate.createSession(timeout));
+    Session ret = Session.newInstance(delegate.createSession(timeout));
     return ret;
   }
 
@@ -69,15 +68,13 @@ public class SessionStore {
    * @param resultHandler will be called with a result holding the session, or a failure
    */
   public void get(String id, Handler<AsyncResult<Session>> resultHandler) { 
-    this.delegate.get(id, new Handler<AsyncResult<io.vertx.ext.web.Session>>() {
-      public void handle(AsyncResult<io.vertx.ext.web.Session> event) {
-        AsyncResult<Session> f;
-        if (event.succeeded()) {
-          f = InternalHelper.<Session>result(new Session(event.result()));
+    delegate.get(id, new Handler<AsyncResult<io.vertx.ext.web.Session>>() {
+      public void handle(AsyncResult<io.vertx.ext.web.Session> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(Session.newInstance(ar.result())));
         } else {
-          f = InternalHelper.<Session>failure(event.cause());
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
         }
-        resultHandler.handle(f);
       }
     });
   }
@@ -99,7 +96,15 @@ public class SessionStore {
    * @param resultHandler will be called with a result true/false, or a failure
    */
   public void delete(String id, Handler<AsyncResult<Boolean>> resultHandler) { 
-    this.delegate.delete(id, resultHandler);
+    delegate.delete(id, new Handler<AsyncResult<java.lang.Boolean>>() {
+      public void handle(AsyncResult<java.lang.Boolean> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    });
   }
 
   /**
@@ -119,7 +124,15 @@ public class SessionStore {
    * @param resultHandler will be called with a result true/false, or a failure
    */
   public void put(Session session, Handler<AsyncResult<Boolean>> resultHandler) { 
-    this.delegate.put((io.vertx.ext.web.Session) session.getDelegate(), resultHandler);
+    delegate.put((io.vertx.ext.web.Session)session.getDelegate(), new Handler<AsyncResult<java.lang.Boolean>>() {
+      public void handle(AsyncResult<java.lang.Boolean> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    });
   }
 
   /**
@@ -138,7 +151,15 @@ public class SessionStore {
    * @param resultHandler will be called with a result true/false, or a failure
    */
   public void clear(Handler<AsyncResult<Boolean>> resultHandler) { 
-    this.delegate.clear(resultHandler);
+    delegate.clear(new Handler<AsyncResult<java.lang.Boolean>>() {
+      public void handle(AsyncResult<java.lang.Boolean> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    });
   }
 
   /**
@@ -156,7 +177,15 @@ public class SessionStore {
    * @param resultHandler will be called with the number, or a failure
    */
   public void size(Handler<AsyncResult<Integer>> resultHandler) { 
-    this.delegate.size(resultHandler);
+    delegate.size(new Handler<AsyncResult<java.lang.Integer>>() {
+      public void handle(AsyncResult<java.lang.Integer> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    });
   }
 
   /**
@@ -173,7 +202,7 @@ public class SessionStore {
    * Close the store
    */
   public void close() { 
-    this.delegate.close();
+    delegate.close();
   }
 
 

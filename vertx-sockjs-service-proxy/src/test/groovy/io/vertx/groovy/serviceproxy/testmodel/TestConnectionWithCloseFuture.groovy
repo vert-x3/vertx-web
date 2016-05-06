@@ -33,9 +33,9 @@ public class TestConnectionWithCloseFuture {
     return delegate;
   }
   public void close(Handler<AsyncResult<Void>> handler) {
-    this.delegate.close(handler);
+    delegate.close(handler);
   }
   public void someMethod(Handler<AsyncResult<String>> resultHandler) {
-    this.delegate.someMethod(resultHandler);
+    delegate.someMethod(resultHandler);
   }
 }

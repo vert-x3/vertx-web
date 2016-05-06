@@ -1202,5 +1202,36 @@ public class WebExamples {
       ctx.response().putHeader("content-type", "text/html").end("Hello<br><a href=\"/protected/somepage\">Protected by LinkedIn</a>");
     });
   }
+
+  public void example61(Vertx vertx, Router router) {
+    // create an OAuth2 provider for keycloak
+    OAuth2Auth authProvider = OAuth2Auth.createKeycloak(vertx, OAuth2FlowType.AUTH_CODE, new JsonObject());
+
+    // create a oauth2 handler on our domain: "http://localhost:8000"
+    OAuth2AuthHandler oauth2 = OAuth2AuthHandler.create(authProvider, "http://localhost:8000");
+
+    // setup the callback handler for receiving the keycloak callback
+    oauth2.setupCallback(router.get("/callback"));
+
+    // protect everything under /protected
+    router.route("/protected/*").handler(oauth2);
+
+    // mount some handler under the protected zone
+    router.route("/protected/somepage").handler(rc -> {
+      // you can now do authZ based on keycloak grants
+      rc.user().isAuthorised("account:manage-account", manageAccount -> {
+        if (manageAccount.result()) {
+          rc.response().end("Welcome to the protected resource and you can manage your account!");
+        } else {
+          rc.response().end("Welcome to the protected resource but you cannot manage your account!");
+        }
+      });
+    });
+
+    // welcome page
+    router.get("/").handler(ctx -> {
+      ctx.response().putHeader("content-type", "text/html").end("Hello<br><a href=\"/protected/somepage\">Protected by keycloak</a>");
+    });
+  }
 }
 

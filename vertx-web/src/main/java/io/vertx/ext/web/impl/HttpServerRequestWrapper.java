@@ -69,6 +69,11 @@ class HttpServerRequestWrapper implements HttpServerRequest {
   }
 
   @Override
+  public String rawMethod() {
+    return delegate.rawMethod();
+  }
+
+  @Override
   public String uri() {
     return uri;
   }
@@ -149,6 +154,27 @@ class HttpServerRequestWrapper implements HttpServerRequest {
     }
 
     return absoluteURI;
+  }
+
+  @Override
+  public String scheme() {
+    return delegate.scheme();
+  }
+
+  @Override
+  public String host() {
+    return delegate.host();
+  }
+
+  @Override
+  public HttpServerRequest unknownFrameHandler(Handler<HttpFrame> handler) {
+    delegate.unknownFrameHandler(handler);
+    return this;
+  }
+
+  @Override
+  public HttpConnection connection() {
+    return delegate.connection();
   }
 
   @Override

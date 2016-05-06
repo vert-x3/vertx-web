@@ -35,14 +35,14 @@ public class BodyHandler implements Handler<RoutingContext> {
     return delegate;
   }
   public void handle(RoutingContext arg0) {
-    ((io.vertx.core.Handler) this.delegate).handle((io.vertx.ext.web.RoutingContext)arg0.getDelegate());
+    ((io.vertx.core.Handler) delegate).handle(arg0 != null ? (io.vertx.ext.web.RoutingContext)arg0.getDelegate() : null);
   }
   /**
    * Create a body handler with defaults
    * @return the body handler
    */
   public static BodyHandler create() {
-    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.BodyHandler.create(), io.vertx.groovy.ext.web.handler.BodyHandler.class);
+    def ret = InternalHelper.safeCreate(io.vertx.ext.web.handler.BodyHandler.create(), io.vertx.groovy.ext.web.handler.BodyHandler.class);
     return ret;
   }
   /**
@@ -51,7 +51,7 @@ public class BodyHandler implements Handler<RoutingContext> {
    * @return the body handler
    */
   public static BodyHandler create(String uploadDirectory) {
-    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.BodyHandler.create(uploadDirectory), io.vertx.groovy.ext.web.handler.BodyHandler.class);
+    def ret = InternalHelper.safeCreate(io.vertx.ext.web.handler.BodyHandler.create(uploadDirectory), io.vertx.groovy.ext.web.handler.BodyHandler.class);
     return ret;
   }
   /**
@@ -60,7 +60,7 @@ public class BodyHandler implements Handler<RoutingContext> {
    * @return reference to this for fluency
    */
   public BodyHandler setBodyLimit(long bodyLimit) {
-    this.delegate.setBodyLimit(bodyLimit);
+    delegate.setBodyLimit(bodyLimit);
     return this;
   }
   /**
@@ -69,7 +69,7 @@ public class BodyHandler implements Handler<RoutingContext> {
    * @return reference to this for fluency
    */
   public BodyHandler setUploadsDirectory(String uploadsDirectory) {
-    this.delegate.setUploadsDirectory(uploadsDirectory);
+    delegate.setUploadsDirectory(uploadsDirectory);
     return this;
   }
   /**
@@ -78,7 +78,7 @@ public class BodyHandler implements Handler<RoutingContext> {
    * @return reference to this for fluency
    */
   public BodyHandler setMergeFormAttributes(boolean mergeFormAttributes) {
-    this.delegate.setMergeFormAttributes(mergeFormAttributes);
+    delegate.setMergeFormAttributes(mergeFormAttributes);
     return this;
   }
   /**
@@ -87,7 +87,7 @@ public class BodyHandler implements Handler<RoutingContext> {
    * @return reference to this for fluency
    */
   public BodyHandler setDeleteUploadedFilesOnEnd(boolean deleteUploadedFilesOnEnd) {
-    this.delegate.setDeleteUploadedFilesOnEnd(deleteUploadedFilesOnEnd);
+    delegate.setDeleteUploadedFilesOnEnd(deleteUploadedFilesOnEnd);
     return this;
   }
 }

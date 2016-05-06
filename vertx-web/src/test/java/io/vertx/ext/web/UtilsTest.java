@@ -22,7 +22,6 @@ import org.junit.Test;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -31,12 +30,12 @@ public class UtilsTest {
 
   @Test
   public void testNoLeadingSlash() throws Exception {
-    assertNull(Utils.normalisePath("path/with/no/leading/slash"));
+    assertEquals("/path/with/no/leading/slash", Utils.normalisePath("path/with/no/leading/slash"));
   }
 
   @Test
   public void testNullPath() throws Exception {
-    assertNull(Utils.normalisePath(null));
+    assertEquals("/", Utils.normalisePath(null));
   }
 
   @Test
