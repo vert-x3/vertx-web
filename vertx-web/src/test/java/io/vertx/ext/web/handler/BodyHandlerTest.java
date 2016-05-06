@@ -339,6 +339,40 @@ public class BodyHandlerTest extends WebTestBase {
     testFormMultipartFormData(false);
   }
 
+  @Test
+  public void testMultiFileUpload() throws Exception {
+
+    int uploads = 1000;
+
+    router.route().handler(rc -> {
+      assertEquals(uploads, rc.fileUploads().size());
+      rc.response().end();
+    });
+
+    testRequest(HttpMethod.POST, "/", req -> {
+      String boundary = "dLV9Wyq26L_-JQxk6ferf-RT153LhOO";
+      Buffer buffer = Buffer.buffer();
+
+      for (int i = 0; i < uploads; i++) {
+        String header =
+            "--" + boundary + "\r\n" +
+                "Content-Disposition: form-data; name=\"file" + i + "\"; filename=\"file" + i + "\"\r\n" +
+                "Content-Type: application/octet-stream\r\n" +
+                "Content-Transfer-Encoding: binary\r\n" +
+                "\r\n";
+        buffer.appendString(header);
+        buffer.appendBuffer(TestUtils.randomBuffer(4096*16));
+        buffer.appendString("\r\n");
+      }
+      buffer.appendString("--" + boundary + "\r\n");
+
+      req.headers().set("content-length", String.valueOf(buffer.length()));
+      req.headers().set("content-type", "multipart/form-data; boundary=" + boundary);
+      req.write(buffer);
+
+    }, 200, "OK", null);
+  }
+
   private void testFormMultipartFormData(boolean mergeAttributes) throws Exception {
     router.route().handler(rc -> {
       MultiMap attrs = rc.request().formAttributes();
