@@ -45,46 +45,46 @@ public class SockJSSocket implements ReadStream<Buffer>,  WriteStream<Buffer> {
     return delegate;
   }
   public void end(Buffer t) {
-    ((io.vertx.core.streams.WriteStream) this.delegate).end((io.vertx.core.buffer.Buffer)t.getDelegate());
+    ((io.vertx.core.streams.WriteStream) delegate).end(t != null ? (io.vertx.core.buffer.Buffer)t.getDelegate() : null);
   }
   public boolean writeQueueFull() {
-    def ret = ((io.vertx.core.streams.WriteStream) this.delegate).writeQueueFull();
+    def ret = ((io.vertx.core.streams.WriteStream) delegate).writeQueueFull();
     return ret;
   }
   public SockJSSocket exceptionHandler(Handler<Throwable> handler) {
-    ( /* Work around for https://jira.codehaus.org/browse/GROOVY-6970 */ (io.vertx.ext.web.handler.sockjs.SockJSSocket) this.delegate).exceptionHandler(handler);
+    ((io.vertx.ext.web.handler.sockjs.SockJSSocket) delegate).exceptionHandler(handler);
     return this;
   }
   public SockJSSocket handler(Handler<Buffer> handler) {
-    ( /* Work around for https://jira.codehaus.org/browse/GROOVY-6970 */ (io.vertx.ext.web.handler.sockjs.SockJSSocket) this.delegate).handler(new Handler<io.vertx.core.buffer.Buffer>() {
+    ((io.vertx.ext.web.handler.sockjs.SockJSSocket) delegate).handler(handler != null ? new Handler<io.vertx.core.buffer.Buffer>(){
       public void handle(io.vertx.core.buffer.Buffer event) {
-        handler.handle(new io.vertx.groovy.core.buffer.Buffer(event));
+        handler.handle(InternalHelper.safeCreate(event, io.vertx.groovy.core.buffer.Buffer.class));
       }
-    });
+    } : null);
     return this;
   }
   public SockJSSocket pause() {
-    ( /* Work around for https://jira.codehaus.org/browse/GROOVY-6970 */ (io.vertx.ext.web.handler.sockjs.SockJSSocket) this.delegate).pause();
+    ((io.vertx.ext.web.handler.sockjs.SockJSSocket) delegate).pause();
     return this;
   }
   public SockJSSocket resume() {
-    ( /* Work around for https://jira.codehaus.org/browse/GROOVY-6970 */ (io.vertx.ext.web.handler.sockjs.SockJSSocket) this.delegate).resume();
+    ((io.vertx.ext.web.handler.sockjs.SockJSSocket) delegate).resume();
     return this;
   }
   public SockJSSocket endHandler(Handler<Void> endHandler) {
-    ( /* Work around for https://jira.codehaus.org/browse/GROOVY-6970 */ (io.vertx.ext.web.handler.sockjs.SockJSSocket) this.delegate).endHandler(endHandler);
+    ((io.vertx.ext.web.handler.sockjs.SockJSSocket) delegate).endHandler(endHandler);
     return this;
   }
   public SockJSSocket write(Buffer data) {
-    ( /* Work around for https://jira.codehaus.org/browse/GROOVY-6970 */ (io.vertx.ext.web.handler.sockjs.SockJSSocket) this.delegate).write((io.vertx.core.buffer.Buffer)data.getDelegate());
+    ((io.vertx.ext.web.handler.sockjs.SockJSSocket) delegate).write(data != null ? (io.vertx.core.buffer.Buffer)data.getDelegate() : null);
     return this;
   }
   public SockJSSocket setWriteQueueMaxSize(int maxSize) {
-    ( /* Work around for https://jira.codehaus.org/browse/GROOVY-6970 */ (io.vertx.ext.web.handler.sockjs.SockJSSocket) this.delegate).setWriteQueueMaxSize(maxSize);
+    ((io.vertx.ext.web.handler.sockjs.SockJSSocket) delegate).setWriteQueueMaxSize(maxSize);
     return this;
   }
   public SockJSSocket drainHandler(Handler<Void> handler) {
-    ( /* Work around for https://jira.codehaus.org/browse/GROOVY-6970 */ (io.vertx.ext.web.handler.sockjs.SockJSSocket) this.delegate).drainHandler(handler);
+    ((io.vertx.ext.web.handler.sockjs.SockJSSocket) delegate).drainHandler(handler);
     return this;
   }
   /**
@@ -97,27 +97,27 @@ public class SockJSSocket implements ReadStream<Buffer>,  WriteStream<Buffer> {
    * @return 
    */
   public String writeHandlerID() {
-    def ret = this.delegate.writeHandlerID();
+    def ret = delegate.writeHandlerID();
     return ret;
   }
   /**
    * Call {@link io.vertx.groovy.ext.web.handler.sockjs.SockJSSocket#end}.
    */
   public void end() {
-    ( /* Work around for https://jira.codehaus.org/browse/GROOVY-6970 */ (io.vertx.ext.web.handler.sockjs.SockJSSocket) this.delegate).end();
+    ((io.vertx.ext.web.handler.sockjs.SockJSSocket) delegate).end();
   }
   /**
    * Close it
    */
   public void close() {
-    this.delegate.close();
+    delegate.close();
   }
   /**
    * Return the remote address for this socket
    * @return 
    */
   public SocketAddress remoteAddress() {
-    def ret= InternalHelper.safeCreate(this.delegate.remoteAddress(), io.vertx.groovy.core.net.SocketAddress.class);
+    def ret = InternalHelper.safeCreate(delegate.remoteAddress(), io.vertx.groovy.core.net.SocketAddress.class);
     return ret;
   }
   /**
@@ -125,7 +125,7 @@ public class SockJSSocket implements ReadStream<Buffer>,  WriteStream<Buffer> {
    * @return 
    */
   public SocketAddress localAddress() {
-    def ret= InternalHelper.safeCreate(this.delegate.localAddress(), io.vertx.groovy.core.net.SocketAddress.class);
+    def ret = InternalHelper.safeCreate(delegate.localAddress(), io.vertx.groovy.core.net.SocketAddress.class);
     return ret;
   }
   /**
@@ -134,7 +134,7 @@ public class SockJSSocket implements ReadStream<Buffer>,  WriteStream<Buffer> {
    * @return 
    */
   public MultiMap headers() {
-    def ret= InternalHelper.safeCreate(this.delegate.headers(), io.vertx.groovy.core.MultiMap.class);
+    def ret = InternalHelper.safeCreate(delegate.headers(), io.vertx.groovy.core.MultiMap.class);
     return ret;
   }
   /**
@@ -142,7 +142,7 @@ public class SockJSSocket implements ReadStream<Buffer>,  WriteStream<Buffer> {
    * @return 
    */
   public String uri() {
-    def ret = this.delegate.uri();
+    def ret = delegate.uri();
     return ret;
   }
   /**
@@ -150,7 +150,7 @@ public class SockJSSocket implements ReadStream<Buffer>,  WriteStream<Buffer> {
    * @return 
    */
   public Session webSession() {
-    def ret= InternalHelper.safeCreate(this.delegate.webSession(), io.vertx.groovy.ext.web.Session.class);
+    def ret = InternalHelper.safeCreate(delegate.webSession(), io.vertx.groovy.ext.web.Session.class);
     return ret;
   }
   /**
@@ -158,7 +158,7 @@ public class SockJSSocket implements ReadStream<Buffer>,  WriteStream<Buffer> {
    * @return 
    */
   public User webUser() {
-    def ret= InternalHelper.safeCreate(this.delegate.webUser(), io.vertx.groovy.ext.auth.User.class);
+    def ret = InternalHelper.safeCreate(delegate.webUser(), io.vertx.groovy.ext.auth.User.class);
     return ret;
   }
 }

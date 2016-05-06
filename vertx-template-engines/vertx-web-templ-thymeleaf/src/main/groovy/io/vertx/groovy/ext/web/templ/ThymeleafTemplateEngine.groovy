@@ -36,7 +36,7 @@ public class ThymeleafTemplateEngine extends TemplateEngine {
    * @return the engine
    */
   public static ThymeleafTemplateEngine create() {
-    def ret= InternalHelper.safeCreate(io.vertx.ext.web.templ.ThymeleafTemplateEngine.create(), io.vertx.groovy.ext.web.templ.ThymeleafTemplateEngine.class);
+    def ret = InternalHelper.safeCreate(io.vertx.ext.web.templ.ThymeleafTemplateEngine.create(), io.vertx.groovy.ext.web.templ.ThymeleafTemplateEngine.class);
     return ret;
   }
   /**
@@ -45,7 +45,7 @@ public class ThymeleafTemplateEngine extends TemplateEngine {
    * @return a reference to this for fluency
    */
   public ThymeleafTemplateEngine setMode(String mode) {
-    def ret= InternalHelper.safeCreate(this.delegate.setMode(mode), io.vertx.groovy.ext.web.templ.ThymeleafTemplateEngine.class);
+    def ret = InternalHelper.safeCreate(delegate.setMode(mode), io.vertx.groovy.ext.web.templ.ThymeleafTemplateEngine.class);
     return ret;
   }
 }

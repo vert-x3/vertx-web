@@ -158,6 +158,58 @@ public class RedirectAuthHandlerTest extends AuthHandlerTestBase {
     testLoginFail(false);
   }
 
+  @Test
+  public void testRedirectWithParams() throws Exception {
+    router.route().handler(BodyHandler.create());
+    router.route().handler(CookieHandler.create());
+    SessionStore store = LocalSessionStore.create(vertx);
+    router.route().handler(SessionHandler.create(store));
+    router.route().handler(UserSessionHandler.create(authProvider));
+    AuthHandler authHandler = RedirectAuthHandler.create(authProvider);
+
+    router.route("/protected/*").handler(authHandler);
+
+    router.route("/protected/somepage").handler(ctx -> {
+      assertEquals("1", ctx.request().getParam("param"));
+      ctx.response().end("Welcome to the protected resource!");
+    });
+
+    router.route("/loginpage").handler(rc -> {
+      rc.response().putHeader("content-type", "text/html").end(createloginHTML());
+    });
+
+    router.route("/login").handler(FormLoginHandler.create(authProvider));
+
+    // request protected resource, expect redirect to login
+    testRequest(HttpMethod.GET, "/protected/somepage?param=1", null, resp -> {
+      String location = resp.headers().get("location");
+      assertNotNull(location);
+      assertEquals("/loginpage", location);
+      String setCookie = resp.headers().get("set-cookie");
+      assertNotNull(setCookie);
+      sessionCookie.set(setCookie);
+    }, 302, "Found", null);
+
+    // get login
+    testRequest(HttpMethod.GET, "/loginpage", req -> {
+      req.putHeader("cookie", sessionCookie.get());
+    }, resp -> {
+    }, 200, "OK", createloginHTML());
+
+    // do post with credentials
+    testRequest(HttpMethod.POST, "/login", sendLoginRequestConsumer(), resp -> {
+      String location = resp.headers().get("location");
+      assertNotNull(location);
+      assertEquals("/protected/somepage?param=1", location);
+    }, 302, "Found", null);
+
+    // fetch the resource
+    testRequest(HttpMethod.GET, "/protected/somepage?param=1", req -> {
+      req.putHeader("cookie", sessionCookie.get());
+    }, resp -> {
+    }, 200, "OK", "Welcome to the protected resource!");
+  }
+
   @Override
   protected AuthHandler createAuthHandler(AuthProvider authProvider) {
     return RedirectAuthHandler.create(authProvider);

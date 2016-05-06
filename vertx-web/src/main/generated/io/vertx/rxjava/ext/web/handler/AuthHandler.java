@@ -17,7 +17,6 @@
 package io.vertx.rxjava.ext.web.handler;
 
 import java.util.Map;
-import io.vertx.lang.rxjava.InternalHelper;
 import rx.Observable;
 import java.util.Set;
 import io.vertx.rxjava.ext.web.RoutingContext;
@@ -72,7 +71,7 @@ class AuthHandlerImpl implements AuthHandler {
   }
 
   public void handle(RoutingContext arg0) { 
-    this.delegate.handle((io.vertx.ext.web.RoutingContext) arg0.getDelegate());
+    delegate.handle((io.vertx.ext.web.RoutingContext)arg0.getDelegate());
   }
 
   /**
@@ -81,7 +80,7 @@ class AuthHandlerImpl implements AuthHandler {
    * @return a reference to this, so the API can be used fluently
    */
   public AuthHandler addAuthority(String authority) { 
-    this.delegate.addAuthority(authority);
+    delegate.addAuthority(authority);
     return this;
   }
 
@@ -91,7 +90,7 @@ class AuthHandlerImpl implements AuthHandler {
    * @return a reference to this, so the API can be used fluently
    */
   public AuthHandler addAuthorities(Set<String> authorities) { 
-    this.delegate.addAuthorities(authorities);
+    delegate.addAuthorities(authorities);
     return this;
   }
 

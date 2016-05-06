@@ -43,16 +43,14 @@ public class TemplateEngine {
    * @param handler the handler that will be called with a result containing the buffer or a failure.
    */
   public void render(RoutingContext context, String templateFileName, Handler<AsyncResult<Buffer>> handler) {
-    this.delegate.render((io.vertx.ext.web.RoutingContext)context.getDelegate(), templateFileName, new Handler<AsyncResult<io.vertx.core.buffer.Buffer>>() {
-      public void handle(AsyncResult<io.vertx.core.buffer.Buffer> event) {
-        AsyncResult<Buffer> f
-        if (event.succeeded()) {
-          f = InternalHelper.<Buffer>result(new Buffer(event.result()))
+    delegate.render(context != null ? (io.vertx.ext.web.RoutingContext)context.getDelegate() : null, templateFileName, handler != null ? new Handler<AsyncResult<io.vertx.core.buffer.Buffer>>() {
+      public void handle(AsyncResult<io.vertx.core.buffer.Buffer> ar) {
+        if (ar.succeeded()) {
+          handler.handle(io.vertx.core.Future.succeededFuture(InternalHelper.safeCreate(ar.result(), io.vertx.groovy.core.buffer.Buffer.class)));
         } else {
-          f = InternalHelper.<Buffer>failure(event.cause())
+          handler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
         }
-        handler.handle(f)
       }
-    });
+    } : null);
   }
 }

@@ -17,7 +17,6 @@
 package io.vertx.rxjava.ext.web.templ;
 
 import java.util.Map;
-import io.vertx.lang.rxjava.InternalHelper;
 import rx.Observable;
 import io.vertx.rxjava.core.buffer.Buffer;
 import io.vertx.rxjava.ext.web.RoutingContext;
@@ -52,15 +51,13 @@ public class TemplateEngine {
    * @param handler the handler that will be called with a result containing the buffer or a failure.
    */
   public void render(RoutingContext context, String templateFileName, Handler<AsyncResult<Buffer>> handler) { 
-    this.delegate.render((io.vertx.ext.web.RoutingContext) context.getDelegate(), templateFileName, new Handler<AsyncResult<io.vertx.core.buffer.Buffer>>() {
-      public void handle(AsyncResult<io.vertx.core.buffer.Buffer> event) {
-        AsyncResult<Buffer> f;
-        if (event.succeeded()) {
-          f = InternalHelper.<Buffer>result(new Buffer(event.result()));
+    delegate.render((io.vertx.ext.web.RoutingContext)context.getDelegate(), templateFileName, new Handler<AsyncResult<io.vertx.core.buffer.Buffer>>() {
+      public void handle(AsyncResult<io.vertx.core.buffer.Buffer> ar) {
+        if (ar.succeeded()) {
+          handler.handle(io.vertx.core.Future.succeededFuture(Buffer.newInstance(ar.result())));
         } else {
-          f = InternalHelper.<Buffer>failure(event.cause());
+          handler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
         }
-        handler.handle(f);
       }
     });
   }

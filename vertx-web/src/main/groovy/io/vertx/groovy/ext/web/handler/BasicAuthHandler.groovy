@@ -34,7 +34,7 @@ public class BasicAuthHandler implements AuthHandler {
     return delegate;
   }
   public void handle(RoutingContext arg0) {
-    ((io.vertx.core.Handler) this.delegate).handle((io.vertx.ext.web.RoutingContext)arg0.getDelegate());
+    ((io.vertx.core.Handler) delegate).handle(arg0 != null ? (io.vertx.ext.web.RoutingContext)arg0.getDelegate() : null);
   }
   /**
    * Add a required authority for this auth handler
@@ -42,7 +42,7 @@ public class BasicAuthHandler implements AuthHandler {
    * @return a reference to this, so the API can be used fluently
    */
   public AuthHandler addAuthority(String authority) {
-    ((io.vertx.ext.web.handler.AuthHandler) this.delegate).addAuthority(authority);
+    ((io.vertx.ext.web.handler.AuthHandler) delegate).addAuthority(authority);
     return this;
   }
   /**
@@ -51,7 +51,7 @@ public class BasicAuthHandler implements AuthHandler {
    * @return a reference to this, so the API can be used fluently
    */
   public AuthHandler addAuthorities(Set<String> authorities) {
-    ((io.vertx.ext.web.handler.AuthHandler) this.delegate).addAuthorities(authorities);
+    ((io.vertx.ext.web.handler.AuthHandler) delegate).addAuthorities(authorities != null ? (Set)authorities.collect({it}) as Set : null);
     return this;
   }
   /**
@@ -60,7 +60,7 @@ public class BasicAuthHandler implements AuthHandler {
    * @return the auth handler
    */
   public static AuthHandler create(AuthProvider authProvider) {
-    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.BasicAuthHandler.create((io.vertx.ext.auth.AuthProvider)authProvider.getDelegate()), io.vertx.groovy.ext.web.handler.AuthHandlerImpl.class);
+    def ret = InternalHelper.safeCreate(io.vertx.ext.web.handler.BasicAuthHandler.create(authProvider != null ? (io.vertx.ext.auth.AuthProvider)authProvider.getDelegate() : null), io.vertx.groovy.ext.web.handler.AuthHandlerImpl.class);
     return ret;
   }
   /**
@@ -70,7 +70,7 @@ public class BasicAuthHandler implements AuthHandler {
    * @return the auth handler
    */
   public static AuthHandler create(AuthProvider authProvider, String realm) {
-    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.BasicAuthHandler.create((io.vertx.ext.auth.AuthProvider)authProvider.getDelegate(), realm), io.vertx.groovy.ext.web.handler.AuthHandlerImpl.class);
+    def ret = InternalHelper.safeCreate(io.vertx.ext.web.handler.BasicAuthHandler.create(authProvider != null ? (io.vertx.ext.auth.AuthProvider)authProvider.getDelegate() : null, realm), io.vertx.groovy.ext.web.handler.AuthHandlerImpl.class);
     return ret;
   }
 }

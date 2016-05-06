@@ -17,7 +17,6 @@
 package io.vertx.rxjava.ext.web.handler;
 
 import java.util.Map;
-import io.vertx.lang.rxjava.InternalHelper;
 import rx.Observable;
 import io.vertx.rxjava.ext.web.RoutingContext;
 import io.vertx.core.Handler;
@@ -44,7 +43,7 @@ public class FaviconHandler implements Handler<RoutingContext> {
   }
 
   public void handle(RoutingContext arg0) { 
-    this.delegate.handle((io.vertx.ext.web.RoutingContext) arg0.getDelegate());
+    delegate.handle((io.vertx.ext.web.RoutingContext)arg0.getDelegate());
   }
 
   /**
@@ -52,7 +51,7 @@ public class FaviconHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static FaviconHandler create() { 
-    FaviconHandler ret= FaviconHandler.newInstance(io.vertx.ext.web.handler.FaviconHandler.create());
+    FaviconHandler ret = FaviconHandler.newInstance(io.vertx.ext.web.handler.FaviconHandler.create());
     return ret;
   }
 
@@ -62,7 +61,7 @@ public class FaviconHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static FaviconHandler create(String path) { 
-    FaviconHandler ret= FaviconHandler.newInstance(io.vertx.ext.web.handler.FaviconHandler.create(path));
+    FaviconHandler ret = FaviconHandler.newInstance(io.vertx.ext.web.handler.FaviconHandler.create(path));
     return ret;
   }
 
@@ -73,7 +72,7 @@ public class FaviconHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static FaviconHandler create(String path, long maxAgeSeconds) { 
-    FaviconHandler ret= FaviconHandler.newInstance(io.vertx.ext.web.handler.FaviconHandler.create(path, maxAgeSeconds));
+    FaviconHandler ret = FaviconHandler.newInstance(io.vertx.ext.web.handler.FaviconHandler.create(path, maxAgeSeconds));
     return ret;
   }
 
@@ -83,7 +82,7 @@ public class FaviconHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static FaviconHandler create(long maxAgeSeconds) { 
-    FaviconHandler ret= FaviconHandler.newInstance(io.vertx.ext.web.handler.FaviconHandler.create(maxAgeSeconds));
+    FaviconHandler ret = FaviconHandler.newInstance(io.vertx.ext.web.handler.FaviconHandler.create(maxAgeSeconds));
     return ret;
   }
 

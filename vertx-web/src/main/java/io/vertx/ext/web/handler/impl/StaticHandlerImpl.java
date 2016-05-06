@@ -167,9 +167,6 @@ public class StaticHandlerImpl implements StaticHandler {
           context.response().setStatusCode(NOT_MODIFIED.code()).end();
           return;
         }
-
-        // Toss entry so we don't use it for anything
-        entry = null;
       }
     }
 
@@ -177,35 +174,29 @@ public class StaticHandlerImpl implements StaticHandler {
       file = getFile(path, context);
     }
 
-    FileProps props;
-    if (filesReadOnly && entry != null) {
-      props = entry.props;
-      sendFile(context, file, props);
-    } else {
-      // Need to read the props from the filesystem
-      String sfile = file;
-      getFileProps(context, file, res -> {
-        if (res.succeeded()) {
-          FileProps fprops = res.result();
-          if (fprops == null) {
-            // File does not exist
-            context.fail(NOT_FOUND.code());
-          } else if (fprops.isDirectory()) {
-            sendDirectory(context, path, sfile);
-          } else {
-            propsCache().put(path, new CacheEntry(fprops, System.currentTimeMillis()));
-            sendFile(context, sfile, fprops);
-          }
-        } else {
-          if (res.cause() instanceof NoSuchFileException || (res.cause().getCause() != null && res.cause().getCause() instanceof NoSuchFileException)) {
-            context.fail(NOT_FOUND.code());
-          } else {
-            context.fail(res.cause());
-          }
-        }
-      });
+    String sfile = file;
 
-    }
+    // Need to read the props from the filesystem
+    getFileProps(context, file, res -> {
+      if (res.succeeded()) {
+        FileProps fprops = res.result();
+        if (fprops == null) {
+          // File does not exist
+          context.fail(NOT_FOUND.code());
+        } else if (fprops.isDirectory()) {
+          sendDirectory(context, path, sfile);
+        } else {
+          propsCache().put(path, new CacheEntry(fprops, System.currentTimeMillis()));
+          sendFile(context, sfile, fprops);
+        }
+      } else {
+        if (res.cause() instanceof NoSuchFileException || (res.cause().getCause() != null && res.cause().getCause() instanceof NoSuchFileException)) {
+          context.fail(NOT_FOUND.code());
+        } else {
+          context.fail(res.cause());
+        }
+      }
+    });
   }
 
   private void sendDirectory(RoutingContext context, String path, String file) {

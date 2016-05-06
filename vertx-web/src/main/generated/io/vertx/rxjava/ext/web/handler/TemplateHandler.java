@@ -17,7 +17,6 @@
 package io.vertx.rxjava.ext.web.handler;
 
 import java.util.Map;
-import io.vertx.lang.rxjava.InternalHelper;
 import rx.Observable;
 import io.vertx.rxjava.ext.web.templ.TemplateEngine;
 import io.vertx.rxjava.ext.web.RoutingContext;
@@ -45,7 +44,7 @@ public class TemplateHandler implements Handler<RoutingContext> {
   }
 
   public void handle(RoutingContext arg0) { 
-    this.delegate.handle((io.vertx.ext.web.RoutingContext) arg0.getDelegate());
+    delegate.handle((io.vertx.ext.web.RoutingContext)arg0.getDelegate());
   }
 
   /**
@@ -54,7 +53,7 @@ public class TemplateHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static TemplateHandler create(TemplateEngine engine) { 
-    TemplateHandler ret= TemplateHandler.newInstance(io.vertx.ext.web.handler.TemplateHandler.create((io.vertx.ext.web.templ.TemplateEngine) engine.getDelegate()));
+    TemplateHandler ret = TemplateHandler.newInstance(io.vertx.ext.web.handler.TemplateHandler.create((io.vertx.ext.web.templ.TemplateEngine)engine.getDelegate()));
     return ret;
   }
 
@@ -66,7 +65,7 @@ public class TemplateHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static TemplateHandler create(TemplateEngine engine, String templateDirectory, String contentType) { 
-    TemplateHandler ret= TemplateHandler.newInstance(io.vertx.ext.web.handler.TemplateHandler.create((io.vertx.ext.web.templ.TemplateEngine) engine.getDelegate(), templateDirectory, contentType));
+    TemplateHandler ret = TemplateHandler.newInstance(io.vertx.ext.web.handler.TemplateHandler.create((io.vertx.ext.web.templ.TemplateEngine)engine.getDelegate(), templateDirectory, contentType));
     return ret;
   }
 

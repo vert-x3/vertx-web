@@ -267,6 +267,8 @@ public interface RoutingContext {
    * {@link #fail(int)}  then this will return that status code.  It can be used by failure handlers to render a response,
    * e.g. create a failure response page.
    *
+   * When the status code has not been set yet (it is undefined) its value will be -1.
+   *
    * @return  the status code used when signalling failure
    */
   @CacheReturn
@@ -394,4 +396,20 @@ public interface RoutingContext {
     final List<Locale> acceptableLocales = acceptableLocales();
     return acceptableLocales.size() > 0 ? acceptableLocales.get(0) : null;
   }
+
+  /**
+   * Returns a map of named parameters as defined in path declaration with their actual values
+   *
+   * @return the map of named parameters
+   */
+  Map<String, String> pathParams();
+
+  /**
+   * Gets the value of a single path parameter
+   *
+   * @param name the name of parameter as defined in path declaration
+   * @return the actual value of the parameter or null if it doesn't exist
+   */
+  @Nullable
+  String pathParam(String name);
 }

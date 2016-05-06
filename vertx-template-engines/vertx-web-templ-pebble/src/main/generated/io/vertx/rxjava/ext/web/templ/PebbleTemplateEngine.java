@@ -17,7 +17,6 @@
 package io.vertx.rxjava.ext.web.templ;
 
 import java.util.Map;
-import io.vertx.lang.rxjava.InternalHelper;
 import rx.Observable;
 
 /**
@@ -45,7 +44,7 @@ public class PebbleTemplateEngine extends TemplateEngine {
    * @return the engine
    */
   public static PebbleTemplateEngine create() { 
-    PebbleTemplateEngine ret= PebbleTemplateEngine.newInstance(io.vertx.ext.web.templ.PebbleTemplateEngine.create());
+    PebbleTemplateEngine ret = PebbleTemplateEngine.newInstance(io.vertx.ext.web.templ.PebbleTemplateEngine.create());
     return ret;
   }
 
@@ -55,7 +54,7 @@ public class PebbleTemplateEngine extends TemplateEngine {
    * @return a reference to this for fluency
    */
   public PebbleTemplateEngine setExtension(String extension) { 
-    PebbleTemplateEngine ret= PebbleTemplateEngine.newInstance(this.delegate.setExtension(extension));
+    PebbleTemplateEngine ret = PebbleTemplateEngine.newInstance(delegate.setExtension(extension));
     return ret;
   }
 
@@ -65,7 +64,7 @@ public class PebbleTemplateEngine extends TemplateEngine {
    * @return a reference to this for fluency
    */
   public PebbleTemplateEngine setMaxCacheSize(int maxCacheSize) { 
-    PebbleTemplateEngine ret= PebbleTemplateEngine.newInstance(this.delegate.setMaxCacheSize(maxCacheSize));
+    PebbleTemplateEngine ret = PebbleTemplateEngine.newInstance(delegate.setMaxCacheSize(maxCacheSize));
     return ret;
   }
 

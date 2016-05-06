@@ -17,7 +17,6 @@
 package io.vertx.rxjava.ext.web.handler;
 
 import java.util.Map;
-import io.vertx.lang.rxjava.InternalHelper;
 import rx.Observable;
 import io.vertx.rxjava.ext.web.RoutingContext;
 import io.vertx.core.Handler;
@@ -50,7 +49,7 @@ public class UserSessionHandler implements Handler<RoutingContext> {
   }
 
   public void handle(RoutingContext arg0) { 
-    this.delegate.handle((io.vertx.ext.web.RoutingContext) arg0.getDelegate());
+    delegate.handle((io.vertx.ext.web.RoutingContext)arg0.getDelegate());
   }
 
   /**
@@ -59,7 +58,7 @@ public class UserSessionHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static UserSessionHandler create(AuthProvider authProvider) { 
-    UserSessionHandler ret= UserSessionHandler.newInstance(io.vertx.ext.web.handler.UserSessionHandler.create((io.vertx.ext.auth.AuthProvider) authProvider.getDelegate()));
+    UserSessionHandler ret = UserSessionHandler.newInstance(io.vertx.ext.web.handler.UserSessionHandler.create((io.vertx.ext.auth.AuthProvider)authProvider.getDelegate()));
     return ret;
   }
 

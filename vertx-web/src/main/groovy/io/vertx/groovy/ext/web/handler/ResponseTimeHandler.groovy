@@ -34,14 +34,14 @@ public class ResponseTimeHandler implements Handler<RoutingContext> {
     return delegate;
   }
   public void handle(RoutingContext arg0) {
-    ((io.vertx.core.Handler) this.delegate).handle((io.vertx.ext.web.RoutingContext)arg0.getDelegate());
+    ((io.vertx.core.Handler) delegate).handle(arg0 != null ? (io.vertx.ext.web.RoutingContext)arg0.getDelegate() : null);
   }
   /**
    * Create a handler
    * @return the handler
    */
   public static ResponseTimeHandler create() {
-    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.ResponseTimeHandler.create(), io.vertx.groovy.ext.web.handler.ResponseTimeHandler.class);
+    def ret = InternalHelper.safeCreate(io.vertx.ext.web.handler.ResponseTimeHandler.create(), io.vertx.groovy.ext.web.handler.ResponseTimeHandler.class);
     return ret;
   }
 }

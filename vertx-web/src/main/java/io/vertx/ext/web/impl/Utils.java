@@ -45,9 +45,14 @@ public class Utils extends io.vertx.core.impl.Utils {
   }
 
   public static String normalisePath(String path, boolean urldecode) {
-    if (path == null || path.charAt(0) != '/') {
-      return null;
+    if (path == null) {
+      return "/";
     }
+
+    if (path.charAt(0) != '/') {
+      path = "/" + path;
+    }
+
     try {
       StringBuilder result = new StringBuilder(path.length());
 

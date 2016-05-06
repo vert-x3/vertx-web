@@ -16,6 +16,7 @@
 
 package io.vertx.ext.web.impl;
 
+import io.vertx.codegen.annotations.Nullable;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
@@ -249,6 +250,16 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   @Override
   public List<Locale> acceptableLocales() {
     return inner.acceptableLocales();
+  }
+
+  @Override
+  public Map<String, String> pathParams() {
+    return inner.pathParams();
+  }
+
+  @Override
+  public @Nullable String pathParam(String name) {
+    return inner.pathParam(name);
   }
 
 }

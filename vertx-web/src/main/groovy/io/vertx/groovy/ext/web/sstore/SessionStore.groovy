@@ -40,7 +40,7 @@ public class SessionStore {
    * @return the timeout value, in ms
    */
   public long retryTimeout() {
-    def ret = this.delegate.retryTimeout();
+    def ret = delegate.retryTimeout();
     return ret;
   }
   /**
@@ -49,7 +49,7 @@ public class SessionStore {
    * @return the session
    */
   public Session createSession(long timeout) {
-    def ret= InternalHelper.safeCreate(this.delegate.createSession(timeout), io.vertx.groovy.ext.web.Session.class);
+    def ret = InternalHelper.safeCreate(delegate.createSession(timeout), io.vertx.groovy.ext.web.Session.class);
     return ret;
   }
   /**
@@ -58,17 +58,15 @@ public class SessionStore {
    * @param resultHandler will be called with a result holding the session, or a failure
    */
   public void get(String id, Handler<AsyncResult<Session>> resultHandler) {
-    this.delegate.get(id, new Handler<AsyncResult<io.vertx.ext.web.Session>>() {
-      public void handle(AsyncResult<io.vertx.ext.web.Session> event) {
-        AsyncResult<Session> f
-        if (event.succeeded()) {
-          f = InternalHelper.<Session>result(new Session(event.result()))
+    delegate.get(id, resultHandler != null ? new Handler<AsyncResult<io.vertx.ext.web.Session>>() {
+      public void handle(AsyncResult<io.vertx.ext.web.Session> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(InternalHelper.safeCreate(ar.result(), io.vertx.groovy.ext.web.Session.class)));
         } else {
-          f = InternalHelper.<Session>failure(event.cause())
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
         }
-        resultHandler.handle(f)
       }
-    });
+    } : null);
   }
   /**
    * Delete the session with the specified ID
@@ -76,7 +74,7 @@ public class SessionStore {
    * @param resultHandler will be called with a result true/false, or a failure
    */
   public void delete(String id, Handler<AsyncResult<Boolean>> resultHandler) {
-    this.delegate.delete(id, resultHandler);
+    delegate.delete(id, resultHandler);
   }
   /**
    * Add a session with the specified ID
@@ -84,26 +82,26 @@ public class SessionStore {
    * @param resultHandler will be called with a result true/false, or a failure
    */
   public void put(Session session, Handler<AsyncResult<Boolean>> resultHandler) {
-    this.delegate.put((io.vertx.ext.web.Session)session.getDelegate(), resultHandler);
+    delegate.put(session != null ? (io.vertx.ext.web.Session)session.getDelegate() : null, resultHandler);
   }
   /**
    * Remove all sessions from the store
    * @param resultHandler will be called with a result true/false, or a failure
    */
   public void clear(Handler<AsyncResult<Boolean>> resultHandler) {
-    this.delegate.clear(resultHandler);
+    delegate.clear(resultHandler);
   }
   /**
    * Get the number of sessions in the store
    * @param resultHandler will be called with the number, or a failure
    */
   public void size(Handler<AsyncResult<Integer>> resultHandler) {
-    this.delegate.size(resultHandler);
+    delegate.size(resultHandler);
   }
   /**
    * Close the store
    */
   public void close() {
-    this.delegate.close();
+    delegate.close();
   }
 }

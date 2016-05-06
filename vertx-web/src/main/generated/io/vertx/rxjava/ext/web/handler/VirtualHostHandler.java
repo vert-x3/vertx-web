@@ -17,7 +17,6 @@
 package io.vertx.rxjava.ext.web.handler;
 
 import java.util.Map;
-import io.vertx.lang.rxjava.InternalHelper;
 import rx.Observable;
 import io.vertx.rxjava.ext.web.RoutingContext;
 import io.vertx.core.Handler;
@@ -42,7 +41,7 @@ public class VirtualHostHandler implements Handler<RoutingContext> {
   }
 
   public void handle(RoutingContext arg0) { 
-    this.delegate.handle((io.vertx.ext.web.RoutingContext) arg0.getDelegate());
+    delegate.handle((io.vertx.ext.web.RoutingContext)arg0.getDelegate());
   }
 
   /**
@@ -52,9 +51,9 @@ public class VirtualHostHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static VirtualHostHandler create(String hostname, Handler<RoutingContext> handler) { 
-    VirtualHostHandler ret= VirtualHostHandler.newInstance(io.vertx.ext.web.handler.VirtualHostHandler.create(hostname, new Handler<io.vertx.ext.web.RoutingContext>() {
+    VirtualHostHandler ret = VirtualHostHandler.newInstance(io.vertx.ext.web.handler.VirtualHostHandler.create(hostname, new Handler<io.vertx.ext.web.RoutingContext>() {
       public void handle(io.vertx.ext.web.RoutingContext event) {
-        handler.handle(new RoutingContext(event));
+        handler.handle(RoutingContext.newInstance(event));
       }
     }));
     return ret;
