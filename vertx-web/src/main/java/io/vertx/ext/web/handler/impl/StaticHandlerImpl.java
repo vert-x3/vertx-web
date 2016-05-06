@@ -22,6 +22,7 @@ import io.vertx.core.file.FileSystem;
 import io.vertx.core.file.FileSystemException;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
+import io.vertx.core.http.impl.MimeMapping;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
@@ -31,6 +32,7 @@ import io.vertx.ext.web.impl.LRUCache;
 import io.vertx.ext.web.impl.Utils;
 
 import java.io.File;
+import java.nio.charset.Charset;
 import java.nio.file.NoSuchFileException;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -51,6 +53,7 @@ import static io.netty.handler.codec.http.HttpResponseStatus.*;
 public class StaticHandlerImpl implements StaticHandler {
 
   private static final Logger log = LoggerFactory.getLogger(StaticHandlerImpl.class);
+  private static final String defaultContentEncoding = Charset.defaultCharset().name();
 
   private final DateFormat dateTimeFormatter = Utils.createRFC1123DateTimeFormatter();
   private Map<String, CacheEntry> propsCache;
@@ -158,7 +161,7 @@ public class StaticHandlerImpl implements StaticHandler {
     }
 
     // Look in cache
-    CacheEntry entry = null;
+    CacheEntry entry;
     if (cachingEnabled) {
       entry = propsCache().get(path);
       if (entry != null) {
@@ -356,11 +359,10 @@ public class StaticHandlerImpl implements StaticHandler {
         final Long finalEnd = end;
         wrapInTCCLSwitch(() -> {
           // guess content type
-          String contentType = MimeType.getMime(file);
+          String contentType = MimeMapping.getMimeTypeForFilename(file);
           if (contentType != null) {
-            String charset = MimeType.getCharset(contentType);
-            if (charset != null) {
-              request.response().putHeader("Content-Type", contentType + ";charset=" + charset);
+            if (contentType.startsWith("text")) {
+              request.response().putHeader("Content-Type", contentType + ";charset=" + defaultContentEncoding);
             } else {
               request.response().putHeader("Content-Type", contentType);
             }
@@ -377,11 +379,10 @@ public class StaticHandlerImpl implements StaticHandler {
         // classloader (if any).
         wrapInTCCLSwitch(() -> {
           // guess content type
-          String contentType = MimeType.getMime(file);
+          String contentType = MimeMapping.getMimeTypeForFilename(file);
           if (contentType != null) {
-            String charset = MimeType.getCharset(contentType);
-            if (charset != null) {
-              request.response().putHeader("Content-Type", contentType + ";charset=" + charset);
+            if (contentType.startsWith("text")) {
+              request.response().putHeader("Content-Type", contentType + ";charset=" + defaultContentEncoding);
             } else {
               request.response().putHeader("Content-Type", contentType);
             }
@@ -655,8 +656,7 @@ public class StaticHandlerImpl implements StaticHandler {
     }
 
     boolean isOutOfDate() {
-      boolean outOfDate = System.currentTimeMillis() - createDate > cacheEntryTimeout;
-      return outOfDate;
+      return System.currentTimeMillis() - createDate > cacheEntryTimeout;
     }
 
   }
