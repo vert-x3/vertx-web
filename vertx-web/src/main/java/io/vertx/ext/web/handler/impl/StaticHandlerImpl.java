@@ -19,7 +19,6 @@ package io.vertx.ext.web.handler.impl;
 import io.vertx.core.*;
 import io.vertx.core.file.FileProps;
 import io.vertx.core.file.FileSystem;
-import io.vertx.core.file.FileSystemException;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.impl.MimeMapping;
@@ -387,7 +386,8 @@ public class StaticHandlerImpl implements StaticHandler {
             if (res2.failed()) {
               context.fail(res2.cause());
             }
-        ));
+          });
+        });
       }
     }
   }
