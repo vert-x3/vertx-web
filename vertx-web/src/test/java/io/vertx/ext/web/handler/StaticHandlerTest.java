@@ -144,7 +144,7 @@ public class StaticHandlerTest extends WebTestBase {
     testRequest(HttpMethod.GET, "/otherpage.html", null, res -> {
       String contentType = res.headers().get("content-type");
       String contentLength = res.headers().get("content-length");
-      assertEquals("text/html", contentType);
+      assertEquals("text/html;charset=UTF-8", contentType);
       assertEquals(36, Integer.valueOf(contentLength).intValue());
     }, 200, "OK", null);
     testRequest(HttpMethod.GET, "/foo.json", null, res -> {
@@ -526,6 +526,17 @@ public class StaticHandlerTest extends WebTestBase {
         assertNotSame(1000, buff.length());
         testComplete();
       });
+    }, 200, "OK", null);
+    await();
+  }
+
+  @Test
+  public void testContentTypeSupport() throws Exception {
+    testRequest(HttpMethod.GET, "/somedir/range.jpg", req -> {
+    }, res -> {
+      assertNotNull(res.getHeader("Content-Type"));
+      assertEquals("image/jpeg", res.getHeader("Content-Type"));
+      testComplete();
     }, 200, "OK", null);
     await();
   }

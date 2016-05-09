@@ -9,7 +9,7 @@ eb.onopen = function () {
   testService.longDeliveryFailed(function (err, res) {
     if (res != null) {
       vertx.eventBus().send("testaddress", "was expecting null result");
-    } else if (err.message != 'Timed out waiting for a reply') {
+    } else if (err.message.indexOf('Timed out ') != 0) {
       vertx.eventBus().send("testaddress", "unexpected error message <" + err.message + ">");
     } else {
       vertx.eventBus().send("testaddress", "ok");
