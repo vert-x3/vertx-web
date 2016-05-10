@@ -16,7 +16,7 @@
     <dependency>
       <groupId>org.thymeleaf</groupId>
       <artifactId>thymeleaf</artifactId>
-      <version>3.0.0.BETA03</version>
+      <version>3.0.0.RELEASE</version>
     </dependency>
     <dependency>
       <groupId>io.vertx</groupId>
