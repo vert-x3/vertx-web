@@ -92,4 +92,10 @@ public class ThymeleafTemplateTest extends WebTestBase {
     assertNotNull(engine.getThymeleafTemplateEngine());
   }
 
+  @Test
+  public void testFragmentedTemplates() throws Exception {
+    TemplateEngine engine = Thymeleaf3TemplateEngine.create();
+    testTemplateHandler(engine, "somedir", "test-thymeleaf3-fragmented.html");
+  }
+
 }
