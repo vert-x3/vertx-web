@@ -18,6 +18,7 @@ package io.vertx.groovy.ext.web.templ;
 import groovy.transform.CompileStatic
 import io.vertx.lang.groovy.InternalHelper
 import io.vertx.core.json.JsonObject
+import org.thymeleaf.templatemode.TemplateMode
 /**
  * A template engine that uses the Thymeleaf library.
 */
@@ -44,7 +45,7 @@ public class ThymeleafTemplateEngine extends TemplateEngine {
    * @param mode the mode
    * @return a reference to this for fluency
    */
-  public ThymeleafTemplateEngine setMode(String mode) {
+  public ThymeleafTemplateEngine setMode(TemplateMode mode) {
     def ret = InternalHelper.safeCreate(delegate.setMode(mode), io.vertx.groovy.ext.web.templ.ThymeleafTemplateEngine.class);
     return ret;
   }

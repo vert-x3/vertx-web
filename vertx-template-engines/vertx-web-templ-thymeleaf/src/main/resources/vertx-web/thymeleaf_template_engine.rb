@@ -24,11 +24,11 @@ module VertxWeb
       raise ArgumentError, "Invalid arguments when calling create()"
     end
     #  Set the mode for the engine
-    # @param [String] mode the mode
+    # @param [:HTML,:XML,:TEXT,:JAVASCRIPT,:CSS,:RAW,:HTML5,:LEGACYHTML5,:XHTML,:VALIDXHTML,:VALIDXML] mode the mode
     # @return [::VertxWeb::ThymeleafTemplateEngine] a reference to this for fluency
     def set_mode(mode=nil)
-      if mode.class == String && !block_given?
-        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:setMode, [Java::java.lang.String.java_class]).call(mode),::VertxWeb::ThymeleafTemplateEngine)
+      if mode.class == Symbol && !block_given?
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:setMode, [Java::OrgThymeleafTemplatemode::TemplateMode.java_class]).call(Java::OrgThymeleafTemplatemode::TemplateMode.valueOf(mode)),::VertxWeb::ThymeleafTemplateEngine)
       end
       raise ArgumentError, "Invalid arguments when calling set_mode(mode)"
     end

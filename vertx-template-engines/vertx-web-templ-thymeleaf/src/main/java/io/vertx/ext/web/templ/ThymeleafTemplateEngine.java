@@ -19,7 +19,7 @@ package io.vertx.ext.web.templ;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.ext.web.templ.impl.ThymeleafTemplateEngineImpl;
-
+import org.thymeleaf.templatemode.TemplateMode;
 
 /**
  * A template engine that uses the Thymeleaf library.
@@ -28,32 +28,31 @@ import io.vertx.ext.web.templ.impl.ThymeleafTemplateEngineImpl;
  */
 @VertxGen
 public interface ThymeleafTemplateEngine extends TemplateEngine {
+    TemplateMode DEFAULT_TEMPLATE_MODE = TemplateMode.HTML;
 
-  String DEFAULT_TEMPLATE_MODE = "XHTML";
+    /**
+     * Create a template engine using defaults
+     *
+     * @return  the engine
+     */
+    static ThymeleafTemplateEngine create() {
+        return new ThymeleafTemplateEngineImpl();
+    }
 
-  /**
-   * Create a template engine using defaults
-   *
-   * @return  the engine
-   */
-  static ThymeleafTemplateEngine create() {
-    return new ThymeleafTemplateEngineImpl();
-  }
+    /**
+     * Set the mode for the engine
+     *
+     * @param mode  the mode
+     * @return a reference to this for fluency
+     */
+    ThymeleafTemplateEngine setMode(TemplateMode mode);
 
-  /**
-   * Set the mode for the engine
-   *
-   * @param mode  the mode
-   * @return a reference to this for fluency
-   */
-  ThymeleafTemplateEngine setMode(String mode);
-
-  /**
-   * Get a reference to the internal Thymeleaf TemplateEngine object so it
-   * can be configured.
-   *
-   * @return a reference to the internal Thymeleaf TemplateEngine instance.
-   */
-  @GenIgnore
-  org.thymeleaf.TemplateEngine getThymeleafTemplateEngine();
+    /**
+     * Get a reference to the internal Thymeleaf TemplateEngine object so it
+     * can be configured.
+     *
+     * @return a reference to the internal Thymeleaf TemplateEngine instance.
+     */
+    @GenIgnore
+    org.thymeleaf.TemplateEngine getThymeleafTemplateEngine();
 }

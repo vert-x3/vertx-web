@@ -16,150 +16,149 @@
 
 package io.vertx.ext.web.templ.impl;
 
-import io.vertx.core.*;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
+import io.vertx.core.Handler;
+import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.ext.web.Locale;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.impl.Utils;
 import io.vertx.ext.web.templ.ThymeleafTemplateEngine;
+import org.thymeleaf.IEngineConfiguration;
 import org.thymeleaf.TemplateEngine;
-import org.thymeleaf.TemplateProcessingParameters;
 import org.thymeleaf.context.IContext;
-import org.thymeleaf.context.VariablesMap;
-import org.thymeleaf.resourceresolver.IResourceResolver;
-import org.thymeleaf.templateresolver.TemplateResolver;
+import org.thymeleaf.templatemode.TemplateMode;
+import org.thymeleaf.templateresolver.StringTemplateResolver;
+import org.thymeleaf.templateresource.ITemplateResource;
+import org.thymeleaf.templateresource.StringTemplateResource;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.Writer;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
  * @author <a href="http://tfox.org">Tim Fox</a>
+ * @author <a href="http://matty.io">Matty Southall</a>
  */
 public class ThymeleafTemplateEngineImpl implements ThymeleafTemplateEngine {
+    private final TemplateEngine templateEngine = new TemplateEngine();
+    private ResourceTemplateResolver templateResolver;
 
-  private final TemplateEngine engine = new TemplateEngine();
-  private final TemplateResolver templateResolver;
-  private final ResourceResolver resolver = new ResourceResolver();
+    public ThymeleafTemplateEngineImpl() {
+        ResourceTemplateResolver templateResolver = new ResourceTemplateResolver();
+        templateResolver.setTemplateMode(ThymeleafTemplateEngine.DEFAULT_TEMPLATE_MODE);
 
-  public ThymeleafTemplateEngineImpl() {
-    templateResolver = new TemplateResolver();
-    templateResolver.setTemplateMode(ThymeleafTemplateEngine.DEFAULT_TEMPLATE_MODE);
-    templateResolver.setResourceResolver(resolver);
-    engine.setTemplateResolver(templateResolver);
-  }
+        this.templateResolver = templateResolver;
+        this.templateEngine.setTemplateResolver(templateResolver);
+    }
 
-  @Override
-  public ThymeleafTemplateEngine setMode(String mode) {
-    templateResolver.setTemplateMode(mode);
-    return this;
-  }
+    @Override
+    public ThymeleafTemplateEngine setMode(TemplateMode mode) {
+        templateResolver.setTemplateMode(TemplateMode.HTML);
+        return this;
+    }
 
-  @Override
-  public void render(RoutingContext context, String templateFileName, Handler<AsyncResult<Buffer>> handler) {
-    Buffer buffer = Buffer.buffer();
-    try {
-      // Not very happy making a copy here... and it seems Thymeleaf copies the data again internally as well...
-      VariablesMap<String, Object> data = new VariablesMap<>();
-      data.put("context", context);
+    @Override
+    public TemplateEngine getThymeleafTemplateEngine() {
+        return this.templateEngine;
+    }
 
-      // Need to synchronized to make sure right Vert.x is used!
-      synchronized (this) {
-        resolver.setVertx(context.vertx());
+    @Override
+    public void render(RoutingContext context, String templateFileName, Handler<AsyncResult<Buffer>> handler) {
+        Buffer buffer = Buffer.buffer();
 
-        final List<io.vertx.ext.web.Locale> acceptableLocales = context.acceptableLocales();
+        try {
+            Map<String, Object> data = new HashMap<>();
+            data.put("context", context);
+            data.putAll(context.data());
 
-        io.vertx.ext.web.Locale locale;
+            synchronized (this) {
+                templateResolver.setVertx(context.vertx());
 
-        if (acceptableLocales.size() == 0) {
-          locale = io.vertx.ext.web.Locale.create();
-        } else {
-          // this is the users preferred locale
-          locale = acceptableLocales.get(0);
+                final List<Locale> acceptableLocales = context.acceptableLocales();
+
+                io.vertx.ext.web.Locale locale;
+
+                if (acceptableLocales.size() == 0) {
+                    locale = io.vertx.ext.web.Locale.create();
+                } else {
+                    // this is the users preferred locale
+                    locale = acceptableLocales.get(0);
+                }
+
+                templateEngine.process(templateFileName, new WebIContext(data, locale), new Writer() {
+                    @Override
+                    public void write(char[] cbuf, int off, int len) throws IOException {
+                        buffer.appendString(new String(cbuf, off, len));
+                    }
+
+                    @Override
+                    public void flush() throws IOException {
+                    }
+
+                    @Override
+                    public void close() throws IOException {
+                    }
+                });
+            }
+
+            handler.handle(Future.succeededFuture(buffer));
+        } catch (Exception ex) {
+            handler.handle(Future.failedFuture(ex));
+        }
+    }
+
+    private static class WebIContext implements IContext {
+        private final Map<String, Object> data;
+        private final java.util.Locale locale;
+
+        private WebIContext(Map<String, Object> data, io.vertx.ext.web.Locale locale) {
+            this.data = data;
+            this.locale = new java.util.Locale(locale.language(), locale.country(), locale.variant());
         }
 
-        engine.process(templateFileName, new WebIContext(data, locale), new Writer() {
-          @Override
-          public void write(char[] cbuf, int off, int len) throws IOException {
-            buffer.appendString(new String(cbuf, off, len));
-          }
+        @Override
+        public java.util.Locale getLocale() {
+            return locale;
+        }
 
-          @Override
-          public void flush() throws IOException {
-          }
+        @Override
+        public boolean containsVariable(String name) {
+            return data.containsKey(name);
+        }
 
-          @Override
-          public void close() throws IOException {
-          }
-        });
-      }
-      handler.handle(Future.succeededFuture(buffer));
-    } catch (Exception ex) {
-      handler.handle(Future.failedFuture(ex));
-    }
-  }
+        @Override
+        public Set<String> getVariableNames() {
+            return data.keySet();
+        }
 
-  @Override
-  public TemplateEngine getThymeleafTemplateEngine() {
-    return engine;
-  }
-
-  /*
-   We extend VariablesMap to avoid copying all context map data for each render
-   We put the context data Map directly into the variable map and we also provide
-   variables called:
-   _context - this is the routing context itself
-   _request - this is the HttpServerRequest object
-   _response - this is the HttpServerResponse object
-    */
-  private static class WebIContext implements IContext  {
-
-    private final VariablesMap<String, Object> data;
-    private final Locale locale;
-
-    private WebIContext(VariablesMap<String, Object> data, io.vertx.ext.web.Locale locale) {
-      this.data = data;
-      this.locale = new Locale(locale.language(), locale.country(), locale.variant());
+        @Override
+        public Object getVariable(String name) {
+            return data.get(name);
+        }
     }
 
-    @Override
-    public VariablesMap<String, Object> getVariables() {
-      return data;
+    private static class ResourceTemplateResolver extends StringTemplateResolver {
+        private Vertx vertx;
+
+        public ResourceTemplateResolver() {
+            super();
+            setName("vertx-web/Thymeleaf3");
+        }
+
+        void setVertx(Vertx vertx) {
+            this.vertx = vertx;
+        }
+
+        @Override
+        protected ITemplateResource computeTemplateResource(IEngineConfiguration configuration, String ownerTemplate, String template, Map<String, Object> templateResolutionAttributes) {
+            String str = Utils.readFileToString(vertx, template);
+            return new StringTemplateResource(str);
+        }
     }
-
-    @Override
-    public Locale getLocale() {
-      return locale;
-    }
-
-    @Override
-    public void addContextExecutionInfo(String templateName) {
-    }
-
-  }
-
-  private static class ResourceResolver implements IResourceResolver {
-
-    private Vertx vertx;
-
-    void setVertx(Vertx vertx) {
-      this.vertx = vertx;
-    }
-
-    @Override
-    public String getName() {
-      return "vertx-web/Thymeleaf";
-    }
-
-    @Override
-    public InputStream getResourceAsStream(TemplateProcessingParameters templateProcessingParameters, String resourceName) {
-      String str = Utils.readFileToString(vertx, resourceName);
-      try {
-        ByteArrayInputStream bis = new ByteArrayInputStream(str.getBytes("UTF-8"));
-        return new BufferedInputStream(bis);
-      } catch (UnsupportedEncodingException e) {
-        throw new VertxException(e);
-      }
-    }
-  }
 }

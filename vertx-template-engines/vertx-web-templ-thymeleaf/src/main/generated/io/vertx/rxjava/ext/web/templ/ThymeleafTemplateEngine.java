@@ -18,6 +18,7 @@ package io.vertx.rxjava.ext.web.templ;
 
 import java.util.Map;
 import rx.Observable;
+import org.thymeleaf.templatemode.TemplateMode;
 
 /**
  * A template engine that uses the Thymeleaf library.
@@ -53,7 +54,7 @@ public class ThymeleafTemplateEngine extends TemplateEngine {
    * @param mode the mode
    * @return a reference to this for fluency
    */
-  public ThymeleafTemplateEngine setMode(String mode) { 
+  public ThymeleafTemplateEngine setMode(TemplateMode mode) { 
     ThymeleafTemplateEngine ret = ThymeleafTemplateEngine.newInstance(delegate.setMode(mode));
     return ret;
   }
