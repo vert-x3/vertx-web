@@ -14,22 +14,22 @@
  * under the License.
  */
 
-/** @module vertx-web-js/thymeleaf3_template_engine */
+/** @module vertx-web-js/thymeleaf_template_engine */
 var utils = require('vertx-js/util/utils');
 var TemplateEngine = require('vertx-web-js/template_engine');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
-var JThymeleaf3TemplateEngine = io.vertx.ext.web.templ.Thymeleaf3TemplateEngine;
+var JThymeleafTemplateEngine = io.vertx.ext.web.templ.ThymeleafTemplateEngine;
 
 /**
  A template engine that uses the Thymeleaf library.
 
  @class
 */
-var Thymeleaf3TemplateEngine = function(j_val) {
+var ThymeleafTemplateEngine = function(j_val) {
 
-  var j_thymeleaf3TemplateEngine = j_val;
+  var j_thymeleafTemplateEngine = j_val;
   var that = this;
   TemplateEngine.call(this, j_val);
 
@@ -38,34 +38,34 @@ var Thymeleaf3TemplateEngine = function(j_val) {
 
    @public
    @param mode {Object} the mode 
-   @return {Thymeleaf3TemplateEngine} a reference to this for fluency
+   @return {ThymeleafTemplateEngine} a reference to this for fluency
    */
   this.setMode = function(mode) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return utils.convReturnVertxGen(j_thymeleaf3TemplateEngine["setMode(org.thymeleaf.templatemode.TemplateMode)"](org.thymeleaf.templatemode.TemplateMode.valueOf(__args[0])), Thymeleaf3TemplateEngine);
+      return utils.convReturnVertxGen(j_thymeleafTemplateEngine["setMode(org.thymeleaf.templatemode.TemplateMode)"](org.thymeleaf.templatemode.TemplateMode.valueOf(mode)), ThymeleafTemplateEngine);
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
   // A reference to the underlying Java delegate
   // NOTE! This is an internal API and must not be used in user code.
   // If you rely on this property your code is likely to break if we change it / remove it without warning.
-  this._jdel = j_thymeleaf3TemplateEngine;
+  this._jdel = j_thymeleafTemplateEngine;
 };
 
 /**
  Create a template engine using defaults
 
- @memberof module:vertx-web-js/thymeleaf3_template_engine
+ @memberof module:vertx-web-js/thymeleaf_template_engine
 
- @return {Thymeleaf3TemplateEngine} the engine
+ @return {ThymeleafTemplateEngine} the engine
  */
-Thymeleaf3TemplateEngine.create = function() {
+ThymeleafTemplateEngine.create = function() {
   var __args = arguments;
   if (__args.length === 0) {
-    return utils.convReturnVertxGen(JThymeleaf3TemplateEngine["create()"](), Thymeleaf3TemplateEngine);
+    return utils.convReturnVertxGen(JThymeleafTemplateEngine["create()"](), ThymeleafTemplateEngine);
   } else throw new TypeError('function invoked with invalid arguments');
 };
 
 // We export the Constructor function
-module.exports = Thymeleaf3TemplateEngine;
+module.exports = ThymeleafTemplateEngine;

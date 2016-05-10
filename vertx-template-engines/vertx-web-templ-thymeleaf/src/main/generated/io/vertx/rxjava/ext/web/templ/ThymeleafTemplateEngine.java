@@ -17,7 +17,6 @@
 package io.vertx.rxjava.ext.web.templ;
 
 import java.util.Map;
-import io.vertx.lang.rxjava.InternalHelper;
 import rx.Observable;
 import org.thymeleaf.templatemode.TemplateMode;
 
@@ -25,14 +24,14 @@ import org.thymeleaf.templatemode.TemplateMode;
  * A template engine that uses the Thymeleaf library.
  *
  * <p/>
- * NOTE: This class has been automatically generated from the {@link io.vertx.ext.web.templ.Thymeleaf3TemplateEngine original} non RX-ified interface using Vert.x codegen.
+ * NOTE: This class has been automatically generated from the {@link io.vertx.ext.web.templ.ThymeleafTemplateEngine original} non RX-ified interface using Vert.x codegen.
  */
 
-public class Thymeleaf3TemplateEngine extends TemplateEngine {
+public class ThymeleafTemplateEngine extends TemplateEngine {
 
-  final io.vertx.ext.web.templ.Thymeleaf3TemplateEngine delegate;
+  final io.vertx.ext.web.templ.ThymeleafTemplateEngine delegate;
 
-  public Thymeleaf3TemplateEngine(io.vertx.ext.web.templ.Thymeleaf3TemplateEngine delegate) {
+  public ThymeleafTemplateEngine(io.vertx.ext.web.templ.ThymeleafTemplateEngine delegate) {
     super(delegate);
     this.delegate = delegate;
   }
@@ -45,8 +44,8 @@ public class Thymeleaf3TemplateEngine extends TemplateEngine {
    * Create a template engine using defaults
    * @return the engine
    */
-  public static Thymeleaf3TemplateEngine create() { 
-    Thymeleaf3TemplateEngine ret= Thymeleaf3TemplateEngine.newInstance(io.vertx.ext.web.templ.Thymeleaf3TemplateEngine.create());
+  public static ThymeleafTemplateEngine create() { 
+    ThymeleafTemplateEngine ret = ThymeleafTemplateEngine.newInstance(io.vertx.ext.web.templ.ThymeleafTemplateEngine.create());
     return ret;
   }
 
@@ -55,13 +54,13 @@ public class Thymeleaf3TemplateEngine extends TemplateEngine {
    * @param mode the mode
    * @return a reference to this for fluency
    */
-  public Thymeleaf3TemplateEngine setMode(TemplateMode mode) { 
-    Thymeleaf3TemplateEngine ret= Thymeleaf3TemplateEngine.newInstance(this.delegate.setMode(mode));
+  public ThymeleafTemplateEngine setMode(TemplateMode mode) { 
+    ThymeleafTemplateEngine ret = ThymeleafTemplateEngine.newInstance(delegate.setMode(mode));
     return ret;
   }
 
 
-  public static Thymeleaf3TemplateEngine newInstance(io.vertx.ext.web.templ.Thymeleaf3TemplateEngine arg) {
-    return arg != null ? new Thymeleaf3TemplateEngine(arg) : null;
+  public static ThymeleafTemplateEngine newInstance(io.vertx.ext.web.templ.ThymeleafTemplateEngine arg) {
+    return arg != null ? new ThymeleafTemplateEngine(arg) : null;
   }
 }
