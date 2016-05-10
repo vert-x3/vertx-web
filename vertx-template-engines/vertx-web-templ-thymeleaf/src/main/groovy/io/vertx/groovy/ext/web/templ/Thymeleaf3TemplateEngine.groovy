@@ -16,17 +16,19 @@
 
 package io.vertx.groovy.ext.web.templ;
 import groovy.transform.CompileStatic
+import io.vertx.ext.web.templ.ThymeleafTemplateEngine
 import io.vertx.lang.groovy.InternalHelper
 import io.vertx.core.json.JsonObject
+import org.thymeleaf.templatemode.TemplateMode
 /**
  * A template engine that uses the Thymeleaf library.
 */
 @CompileStatic
-public class ThymeleafTemplateEngine extends TemplateEngine {
-  private final def io.vertx.ext.web.templ.ThymeleafTemplateEngine delegate;
-  public ThymeleafTemplateEngine(Object delegate) {
-    super((io.vertx.ext.web.templ.ThymeleafTemplateEngine) delegate);
-    this.delegate = (io.vertx.ext.web.templ.ThymeleafTemplateEngine) delegate;
+public class Thymeleaf3TemplateEngine extends TemplateEngine {
+  private final def ThymeleafTemplateEngine delegate;
+  public Thymeleaf3TemplateEngine(Object delegate) {
+    super((ThymeleafTemplateEngine) delegate);
+    this.delegate = (ThymeleafTemplateEngine) delegate;
   }
   public Object getDelegate() {
     return delegate;
@@ -35,8 +37,8 @@ public class ThymeleafTemplateEngine extends TemplateEngine {
    * Create a template engine using defaults
    * @return the engine
    */
-  public static ThymeleafTemplateEngine create() {
-    def ret = InternalHelper.safeCreate(io.vertx.ext.web.templ.ThymeleafTemplateEngine.create(), io.vertx.groovy.ext.web.templ.ThymeleafTemplateEngine.class);
+  public static Thymeleaf3TemplateEngine create() {
+    def ret= InternalHelper.safeCreate(ThymeleafTemplateEngine.create(), io.vertx.groovy.ext.web.templ.Thymeleaf3TemplateEngine.class);
     return ret;
   }
   /**
@@ -44,8 +46,8 @@ public class ThymeleafTemplateEngine extends TemplateEngine {
    * @param mode the mode
    * @return a reference to this for fluency
    */
-  public ThymeleafTemplateEngine setMode(String mode) {
-    def ret = InternalHelper.safeCreate(delegate.setMode(mode), io.vertx.groovy.ext.web.templ.ThymeleafTemplateEngine.class);
+  public Thymeleaf3TemplateEngine setMode(TemplateMode mode) {
+    def ret= InternalHelper.safeCreate(this.delegate.setMode(mode), io.vertx.groovy.ext.web.templ.Thymeleaf3TemplateEngine.class);
     return ret;
   }
 }
