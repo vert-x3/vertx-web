@@ -282,6 +282,8 @@ module VertxWeb
     #  If the context is being routed to failure handlers after a failure has been triggered by calling
     #  {::VertxWeb::RoutingContext#fail}  then this will return that status code.  It can be used by failure handlers to render a response,
     #  e.g. create a failure response page.
+    # 
+    #  When the status code has not been set yet (it is undefined) its value will be -1.
     # @return [Fixnum] the status code used when signalling failure
     def status_code
       if !block_given?
@@ -397,7 +399,7 @@ module VertxWeb
     # @overload reroute(path)
     #   @param [String] path the new http path.
     # @overload reroute(method,path)
-    #   @param [:OPTIONS,:GET,:HEAD,:POST,:PUT,:DELETE,:TRACE,:CONNECT,:PATCH,:UNKNOWN] method the new http request
+    #   @param [:OPTIONS,:GET,:HEAD,:POST,:PUT,:DELETE,:TRACE,:CONNECT,:PATCH,:OTHER] method the new http request
     #   @param [String] path the new http path.
     # @return [void]
     def reroute(param_1=nil,param_2=nil)

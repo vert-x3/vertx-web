@@ -122,7 +122,7 @@ var RoutingContext = function(j_val) {
    */
   this.put = function(key, obj) {
     var __args = arguments;
-    if (__args.length === 2 && typeof __args[0] === 'string' && true) {
+    if (__args.length === 2 && typeof __args[0] === 'string' && typeof __args[1] !== 'function') {
       j_routingContext["put(java.lang.String,java.lang.Object)"](key, utils.convParamTypeUnknown(obj));
       return that;
     } else throw new TypeError('function invoked with invalid arguments');
@@ -415,6 +415,8 @@ var RoutingContext = function(j_val) {
    If the context is being routed to failure handlers after a failure has been triggered by calling
    {@link RoutingContext#fail}  then this will return that status code.  It can be used by failure handlers to render a response,
    e.g. create a failure response page.
+  
+   When the status code has not been set yet (it is undefined) its value will be -1.
 
    @public
 

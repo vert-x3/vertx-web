@@ -31,6 +31,6 @@ public class TestBaseImportsService {
     return delegate;
   }
   public void m() {
-    this.delegate.m();
+    delegate.m();
   }
 }

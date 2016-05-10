@@ -17,7 +17,6 @@
 package io.vertx.rxjava.ext.web.handler;
 
 import java.util.Map;
-import io.vertx.lang.rxjava.InternalHelper;
 import rx.Observable;
 import io.vertx.rxjava.ext.web.Route;
 import java.util.Set;
@@ -44,7 +43,7 @@ public class OAuth2AuthHandler implements AuthHandler {
   }
 
   public void handle(RoutingContext arg0) { 
-    this.delegate.handle((io.vertx.ext.web.RoutingContext) arg0.getDelegate());
+    delegate.handle((io.vertx.ext.web.RoutingContext)arg0.getDelegate());
   }
 
   /**
@@ -53,7 +52,7 @@ public class OAuth2AuthHandler implements AuthHandler {
    * @return a reference to this, so the API can be used fluently
    */
   public AuthHandler addAuthority(String authority) { 
-    this.delegate.addAuthority(authority);
+    delegate.addAuthority(authority);
     return this;
   }
 
@@ -63,7 +62,7 @@ public class OAuth2AuthHandler implements AuthHandler {
    * @return a reference to this, so the API can be used fluently
    */
   public AuthHandler addAuthorities(Set<String> authorities) { 
-    this.delegate.addAuthorities(authorities);
+    delegate.addAuthorities(authorities);
     return this;
   }
 
@@ -74,7 +73,7 @@ public class OAuth2AuthHandler implements AuthHandler {
    * @return the auth handler
    */
   public static OAuth2AuthHandler create(OAuth2Auth authProvider, String uri) { 
-    OAuth2AuthHandler ret= OAuth2AuthHandler.newInstance(io.vertx.ext.web.handler.OAuth2AuthHandler.create((io.vertx.ext.auth.oauth2.OAuth2Auth) authProvider.getDelegate(), uri));
+    OAuth2AuthHandler ret = OAuth2AuthHandler.newInstance(io.vertx.ext.web.handler.OAuth2AuthHandler.create((io.vertx.ext.auth.oauth2.OAuth2Auth)authProvider.getDelegate(), uri));
     return ret;
   }
 
@@ -85,7 +84,7 @@ public class OAuth2AuthHandler implements AuthHandler {
    * @return the redirect URL
    */
   public String authURI(String redirectURL, String state) { 
-    String ret = this.delegate.authURI(redirectURL, state);
+    String ret = delegate.authURI(redirectURL, state);
     return ret;
   }
 
@@ -95,7 +94,7 @@ public class OAuth2AuthHandler implements AuthHandler {
    * @return self
    */
   public OAuth2AuthHandler setupCallback(Route route) { 
-    this.delegate.setupCallback((io.vertx.ext.web.Route) route.getDelegate());
+    delegate.setupCallback((io.vertx.ext.web.Route)route.getDelegate());
     return this;
   }
 

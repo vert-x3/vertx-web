@@ -94,7 +94,7 @@ module Test
     # @return [void]
     def basic_types(str=nil,b=nil,s=nil,i=nil,l=nil,f=nil,d=nil,c=nil,bool=nil)
       if str.class == String && b.class == Fixnum && s.class == Fixnum && i.class == Fixnum && l.class == Fixnum && f.class == Float && d.class == Float && c.class == Fixnum && (bool.class == TrueClass || bool.class == FalseClass) && !block_given?
-        return @j_del.java_method(:basicTypes, [Java::java.lang.String.java_class,Java::byte.java_class,Java::short.java_class,Java::int.java_class,Java::long.java_class,Java::float.java_class,Java::double.java_class,Java::char.java_class,Java::boolean.java_class]).call(str,::Vertx::Util::Utils.to_byte(b),::Vertx::Util::Utils.to_short(s),i,l,::Vertx::Util::Utils.to_float(f),::Vertx::Util::Utils.to_double(d),c,bool)
+        return @j_del.java_method(:basicTypes, [Java::java.lang.String.java_class,Java::byte.java_class,Java::short.java_class,Java::int.java_class,Java::long.java_class,Java::float.java_class,Java::double.java_class,Java::char.java_class,Java::boolean.java_class]).call(str,::Vertx::Util::Utils.to_byte(b),::Vertx::Util::Utils.to_short(s),i,l,::Vertx::Util::Utils.to_float(f),::Vertx::Util::Utils.to_double(d),::Vertx::Util::Utils.to_character(c),bool)
       end
       raise ArgumentError, "Invalid arguments when calling basic_types(str,b,s,i,l,f,d,c,bool)"
     end
@@ -110,7 +110,7 @@ module Test
     # @return [void]
     def basic_boxed_types(str=nil,b=nil,s=nil,i=nil,l=nil,f=nil,d=nil,c=nil,bool=nil)
       if str.class == String && b.class == Fixnum && s.class == Fixnum && i.class == Fixnum && l.class == Fixnum && f.class == Float && d.class == Float && c.class == Fixnum && (bool.class == TrueClass || bool.class == FalseClass) && !block_given?
-        return @j_del.java_method(:basicBoxedTypes, [Java::java.lang.String.java_class,Java::JavaLang::Byte.java_class,Java::JavaLang::Short.java_class,Java::JavaLang::Integer.java_class,Java::JavaLang::Long.java_class,Java::JavaLang::Float.java_class,Java::JavaLang::Double.java_class,Java::JavaLang::Character.java_class,Java::JavaLang::Boolean.java_class]).call(str,::Vertx::Util::Utils.to_byte(b),::Vertx::Util::Utils.to_short(s),::Vertx::Util::Utils.to_integer(i),l,::Vertx::Util::Utils.to_float(f),::Vertx::Util::Utils.to_double(d),c,bool)
+        return @j_del.java_method(:basicBoxedTypes, [Java::java.lang.String.java_class,Java::JavaLang::Byte.java_class,Java::JavaLang::Short.java_class,Java::JavaLang::Integer.java_class,Java::JavaLang::Long.java_class,Java::JavaLang::Float.java_class,Java::JavaLang::Double.java_class,Java::JavaLang::Character.java_class,Java::JavaLang::Boolean.java_class]).call(str,::Vertx::Util::Utils.to_byte(b),::Vertx::Util::Utils.to_short(s),::Vertx::Util::Utils.to_integer(i),l,::Vertx::Util::Utils.to_float(f),::Vertx::Util::Utils.to_double(d),::Vertx::Util::Utils.to_character(c),bool)
       end
       raise ArgumentError, "Invalid arguments when calling basic_boxed_types(str,b,s,i,l,f,d,c,bool)"
     end
@@ -126,7 +126,7 @@ module Test
     # @return [void]
     def basic_boxed_types_null(str=nil,b=nil,s=nil,i=nil,l=nil,f=nil,d=nil,c=nil,bool=nil)
       if str.class == String && b.class == Fixnum && s.class == Fixnum && i.class == Fixnum && l.class == Fixnum && f.class == Float && d.class == Float && c.class == Fixnum && (bool.class == TrueClass || bool.class == FalseClass) && !block_given?
-        return @j_del.java_method(:basicBoxedTypesNull, [Java::java.lang.String.java_class,Java::JavaLang::Byte.java_class,Java::JavaLang::Short.java_class,Java::JavaLang::Integer.java_class,Java::JavaLang::Long.java_class,Java::JavaLang::Float.java_class,Java::JavaLang::Double.java_class,Java::JavaLang::Character.java_class,Java::JavaLang::Boolean.java_class]).call(str,::Vertx::Util::Utils.to_byte(b),::Vertx::Util::Utils.to_short(s),::Vertx::Util::Utils.to_integer(i),l,::Vertx::Util::Utils.to_float(f),::Vertx::Util::Utils.to_double(d),c,bool)
+        return @j_del.java_method(:basicBoxedTypesNull, [Java::java.lang.String.java_class,Java::JavaLang::Byte.java_class,Java::JavaLang::Short.java_class,Java::JavaLang::Integer.java_class,Java::JavaLang::Long.java_class,Java::JavaLang::Float.java_class,Java::JavaLang::Double.java_class,Java::JavaLang::Character.java_class,Java::JavaLang::Boolean.java_class]).call(str,::Vertx::Util::Utils.to_byte(b),::Vertx::Util::Utils.to_short(s),::Vertx::Util::Utils.to_integer(i),l,::Vertx::Util::Utils.to_float(f),::Vertx::Util::Utils.to_double(d),::Vertx::Util::Utils.to_character(c),bool)
       end
       raise ArgumentError, "Invalid arguments when calling basic_boxed_types_null(str,b,s,i,l,f,d,c,bool)"
     end
@@ -475,7 +475,7 @@ module Test
     # @return [void]
     def invoke_with_message(object=nil,str=nil,i=nil,chr=nil,senum=nil)
       if object.class == Hash && str.class == String && i.class == Fixnum && chr.class == Fixnum && senum.class == Symbol && block_given?
-        return @j_del.java_method(:invokeWithMessage, [Java::IoVertxCoreJson::JsonObject.java_class,Java::java.lang.String.java_class,Java::int.java_class,Java::char.java_class,Java::IoVertxServiceproxyTestmodel::SomeEnum.java_class,Java::IoVertxCore::Handler.java_class]).call(::Vertx::Util::Utils.to_json_object(object),str,i,chr,Java::IoVertxServiceproxyTestmodel::SomeEnum.valueOf(senum),(Proc.new { |ar| yield(ar.failed ? ar.cause : nil, ar.succeeded ? ar.result : nil) }))
+        return @j_del.java_method(:invokeWithMessage, [Java::IoVertxCoreJson::JsonObject.java_class,Java::java.lang.String.java_class,Java::int.java_class,Java::char.java_class,Java::IoVertxServiceproxyTestmodel::SomeEnum.java_class,Java::IoVertxCore::Handler.java_class]).call(::Vertx::Util::Utils.to_json_object(object),str,i,::Vertx::Util::Utils.to_character(chr),Java::IoVertxServiceproxyTestmodel::SomeEnum.valueOf(senum),(Proc.new { |ar| yield(ar.failed ? ar.cause : nil, ar.succeeded ? ar.result : nil) }))
       end
       raise ArgumentError, "Invalid arguments when calling invoke_with_message(object,str,i,chr,senum)"
     end

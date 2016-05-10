@@ -41,7 +41,7 @@ public class UserSessionHandler implements Handler<RoutingContext> {
     return delegate;
   }
   public void handle(RoutingContext arg0) {
-    ((io.vertx.core.Handler) this.delegate).handle((io.vertx.ext.web.RoutingContext)arg0.getDelegate());
+    ((io.vertx.core.Handler) delegate).handle(arg0 != null ? (io.vertx.ext.web.RoutingContext)arg0.getDelegate() : null);
   }
   /**
    * Create a new handler
@@ -49,7 +49,7 @@ public class UserSessionHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static UserSessionHandler create(AuthProvider authProvider) {
-    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.UserSessionHandler.create((io.vertx.ext.auth.AuthProvider)authProvider.getDelegate()), io.vertx.groovy.ext.web.handler.UserSessionHandler.class);
+    def ret = InternalHelper.safeCreate(io.vertx.ext.web.handler.UserSessionHandler.create(authProvider != null ? (io.vertx.ext.auth.AuthProvider)authProvider.getDelegate() : null), io.vertx.groovy.ext.web.handler.UserSessionHandler.class);
     return ret;
   }
 }

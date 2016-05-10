@@ -54,7 +54,7 @@ var CorsHandler = function(j_val) {
   this.allowedMethod = function(method) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      j_corsHandler["allowedMethod(io.vertx.core.http.HttpMethod)"](io.vertx.core.http.HttpMethod.valueOf(__args[0]));
+      j_corsHandler["allowedMethod(io.vertx.core.http.HttpMethod)"](io.vertx.core.http.HttpMethod.valueOf(method));
       return that;
     } else throw new TypeError('function invoked with invalid arguments');
   };

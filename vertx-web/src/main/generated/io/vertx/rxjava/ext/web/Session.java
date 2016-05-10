@@ -17,7 +17,6 @@
 package io.vertx.rxjava.ext.web;
 
 import java.util.Map;
-import io.vertx.lang.rxjava.InternalHelper;
 import rx.Observable;
 
 /**
@@ -52,7 +51,7 @@ public class Session {
    * @return 
    */
   public String id() { 
-    String ret = this.delegate.id();
+    String ret = delegate.id();
     return ret;
   }
 
@@ -63,7 +62,7 @@ public class Session {
    * @return a reference to this, so the API can be used fluently
    */
   public Session put(String key, Object obj) { 
-    this.delegate.put(key, obj);
+    delegate.put(key, obj);
     return this;
   }
 
@@ -73,7 +72,7 @@ public class Session {
    * @return the data
    */
   public <T> T get(String key) { 
-    T ret = (T) this.delegate.get(key);
+    T ret = (T) delegate.get(key);
     return ret;
   }
 
@@ -83,7 +82,7 @@ public class Session {
    * @return the data that was there or null if none there
    */
   public <T> T remove(String key) { 
-    T ret = (T) this.delegate.remove(key);
+    T ret = (T) delegate.remove(key);
     return ret;
   }
 
@@ -92,7 +91,7 @@ public class Session {
    * @return 
    */
   public long lastAccessed() { 
-    long ret = this.delegate.lastAccessed();
+    long ret = delegate.lastAccessed();
     return ret;
   }
 
@@ -100,7 +99,7 @@ public class Session {
    * Destroy the session
    */
   public void destroy() { 
-    this.delegate.destroy();
+    delegate.destroy();
   }
 
   /**
@@ -108,7 +107,7 @@ public class Session {
    * @return 
    */
   public boolean isDestroyed() { 
-    boolean ret = this.delegate.isDestroyed();
+    boolean ret = delegate.isDestroyed();
     return ret;
   }
 
@@ -117,7 +116,7 @@ public class Session {
    * @return 
    */
   public long timeout() { 
-    long ret = this.delegate.timeout();
+    long ret = delegate.timeout();
     return ret;
   }
 
@@ -125,7 +124,7 @@ public class Session {
    * Mark the session as being accessed.
    */
   public void setAccessed() { 
-    this.delegate.setAccessed();
+    delegate.setAccessed();
   }
 
 

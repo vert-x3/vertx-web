@@ -17,7 +17,6 @@
 package io.vertx.rxjava.ext.web;
 
 import java.util.Map;
-import io.vertx.lang.rxjava.InternalHelper;
 import rx.Observable;
 
 
@@ -34,22 +33,22 @@ public class Locale {
   }
 
   public static Locale create() { 
-    Locale ret= Locale.newInstance(io.vertx.ext.web.Locale.create());
+    Locale ret = Locale.newInstance(io.vertx.ext.web.Locale.create());
     return ret;
   }
 
   public static Locale create(String language) { 
-    Locale ret= Locale.newInstance(io.vertx.ext.web.Locale.create(language));
+    Locale ret = Locale.newInstance(io.vertx.ext.web.Locale.create(language));
     return ret;
   }
 
   public static Locale create(String language, String country) { 
-    Locale ret= Locale.newInstance(io.vertx.ext.web.Locale.create(language, country));
+    Locale ret = Locale.newInstance(io.vertx.ext.web.Locale.create(language, country));
     return ret;
   }
 
   public static Locale create(String language, String country, String variant) { 
-    Locale ret= Locale.newInstance(io.vertx.ext.web.Locale.create(language, country, variant));
+    Locale ret = Locale.newInstance(io.vertx.ext.web.Locale.create(language, country, variant));
     return ret;
   }
 
@@ -58,7 +57,7 @@ public class Locale {
    * @return language
    */
   public String language() { 
-    String ret = this.delegate.language();
+    String ret = delegate.language();
     return ret;
   }
 
@@ -67,7 +66,7 @@ public class Locale {
    * @return variant
    */
   public String country() { 
-    String ret = this.delegate.country();
+    String ret = delegate.country();
     return ret;
   }
 
@@ -76,7 +75,7 @@ public class Locale {
    * @return variant
    */
   public String variant() { 
-    String ret = this.delegate.variant();
+    String ret = delegate.variant();
     return ret;
   }
 

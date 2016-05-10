@@ -17,7 +17,6 @@
 package io.vertx.rxjava.ext.web.handler;
 
 import java.util.Map;
-import io.vertx.lang.rxjava.InternalHelper;
 import rx.Observable;
 import io.vertx.rxjava.ext.web.RoutingContext;
 import io.vertx.core.Handler;
@@ -47,7 +46,7 @@ public class CSRFHandler implements Handler<RoutingContext> {
   }
 
   public void handle(RoutingContext arg0) { 
-    this.delegate.handle((io.vertx.ext.web.RoutingContext) arg0.getDelegate());
+    delegate.handle((io.vertx.ext.web.RoutingContext)arg0.getDelegate());
   }
 
   /**
@@ -60,7 +59,7 @@ public class CSRFHandler implements Handler<RoutingContext> {
    * @return 
    */
   public static CSRFHandler create(String secret) { 
-    CSRFHandler ret= CSRFHandler.newInstance(io.vertx.ext.web.handler.CSRFHandler.create(secret));
+    CSRFHandler ret = CSRFHandler.newInstance(io.vertx.ext.web.handler.CSRFHandler.create(secret));
     return ret;
   }
 
@@ -71,7 +70,7 @@ public class CSRFHandler implements Handler<RoutingContext> {
    * @return fluent
    */
   public CSRFHandler setCookieName(String name) { 
-    this.delegate.setCookieName(name);
+    delegate.setCookieName(name);
     return this;
   }
 
@@ -82,7 +81,7 @@ public class CSRFHandler implements Handler<RoutingContext> {
    * @return fluent
    */
   public CSRFHandler setHeaderName(String name) { 
-    this.delegate.setHeaderName(name);
+    delegate.setHeaderName(name);
     return this;
   }
 
@@ -92,7 +91,7 @@ public class CSRFHandler implements Handler<RoutingContext> {
    * @return fluent
    */
   public CSRFHandler setNagHttps(boolean nag) { 
-    this.delegate.setNagHttps(nag);
+    delegate.setNagHttps(nag);
     return this;
   }
 
@@ -102,7 +101,7 @@ public class CSRFHandler implements Handler<RoutingContext> {
    * @return fluent
    */
   public CSRFHandler setTimeout(long timeout) { 
-    this.delegate.setTimeout(timeout);
+    delegate.setTimeout(timeout);
     return this;
   }
 

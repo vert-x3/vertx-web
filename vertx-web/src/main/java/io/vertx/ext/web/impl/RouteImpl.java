@@ -254,8 +254,11 @@ public class RouteImpl implements Route {
             try {
               for (int i = 0; i < groups.size(); i++) {
                 final String k = groups.get(i);
+                final String value = URLDecoder.decode(URLDecoder.decode(m.group("p" + i), "UTF-8"), "UTF-8");
                 if (!request.params().contains(k)) {
-                  params.put(k, URLDecoder.decode(m.group("p" + i), "UTF-8"));
+                  params.put(k, value);
+                } else {
+                  context.pathParams().put(k, value);
                 }
               }
             } catch (UnsupportedEncodingException e) {
@@ -270,8 +273,11 @@ public class RouteImpl implements Route {
                 String group = m.group(i + 1);
                 if(group != null) {
                   final String k = "param" + i;
+                  final String value = URLDecoder.decode(group, "UTF-8");
                   if (!request.params().contains(k)) {
-                    params.put(k, URLDecoder.decode(group, "UTF-8"));
+                    params.put(k, value);
+                  } else {
+                    context.pathParams().put(k, value);
                   }
                 }
               }
@@ -281,6 +287,7 @@ public class RouteImpl implements Route {
             }
           }
           request.params().addAll(params);
+          context.pathParams().putAll(params);
         }
       } else {
         return false;

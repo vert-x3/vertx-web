@@ -17,7 +17,6 @@
 package io.vertx.rxjava.serviceproxy.testmodel;
 
 import java.util.Map;
-import io.vertx.lang.rxjava.InternalHelper;
 import rx.Observable;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.AsyncResult;
@@ -43,7 +42,15 @@ public class TestConnection {
   }
 
   public TestConnection startTransaction(Handler<AsyncResult<String>> resultHandler) { 
-    this.delegate.startTransaction(resultHandler);
+    delegate.startTransaction(new Handler<AsyncResult<java.lang.String>>() {
+      public void handle(AsyncResult<java.lang.String> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    });
     return this;
   }
 
@@ -54,7 +61,15 @@ public class TestConnection {
   }
 
   public TestConnection insert(String name, JsonObject data, Handler<AsyncResult<String>> resultHandler) { 
-    this.delegate.insert(name, data, resultHandler);
+    delegate.insert(name, data, new Handler<AsyncResult<java.lang.String>>() {
+      public void handle(AsyncResult<java.lang.String> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    });
     return this;
   }
 
@@ -65,7 +80,15 @@ public class TestConnection {
   }
 
   public TestConnection commit(Handler<AsyncResult<String>> resultHandler) { 
-    this.delegate.commit(resultHandler);
+    delegate.commit(new Handler<AsyncResult<java.lang.String>>() {
+      public void handle(AsyncResult<java.lang.String> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    });
     return this;
   }
 
@@ -76,7 +99,15 @@ public class TestConnection {
   }
 
   public TestConnection rollback(Handler<AsyncResult<String>> resultHandler) { 
-    this.delegate.rollback(resultHandler);
+    delegate.rollback(new Handler<AsyncResult<java.lang.String>>() {
+      public void handle(AsyncResult<java.lang.String> ar) {
+        if (ar.succeeded()) {
+          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    });
     return this;
   }
 
@@ -87,7 +118,7 @@ public class TestConnection {
   }
 
   public void close() { 
-    this.delegate.close();
+    delegate.close();
   }
 
 

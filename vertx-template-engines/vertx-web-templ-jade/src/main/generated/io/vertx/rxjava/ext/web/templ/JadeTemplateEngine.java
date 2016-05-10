@@ -17,7 +17,6 @@
 package io.vertx.rxjava.ext.web.templ;
 
 import java.util.Map;
-import io.vertx.lang.rxjava.InternalHelper;
 import rx.Observable;
 
 /**
@@ -45,7 +44,7 @@ public class JadeTemplateEngine extends TemplateEngine {
    * @return the engine
    */
   public static JadeTemplateEngine create() { 
-    JadeTemplateEngine ret= JadeTemplateEngine.newInstance(io.vertx.ext.web.templ.JadeTemplateEngine.create());
+    JadeTemplateEngine ret = JadeTemplateEngine.newInstance(io.vertx.ext.web.templ.JadeTemplateEngine.create());
     return ret;
   }
 
@@ -55,7 +54,7 @@ public class JadeTemplateEngine extends TemplateEngine {
    * @return a reference to this for fluency
    */
   public JadeTemplateEngine setExtension(String extension) { 
-    JadeTemplateEngine ret= JadeTemplateEngine.newInstance(this.delegate.setExtension(extension));
+    JadeTemplateEngine ret = JadeTemplateEngine.newInstance(delegate.setExtension(extension));
     return ret;
   }
 
@@ -65,7 +64,7 @@ public class JadeTemplateEngine extends TemplateEngine {
    * @return a reference to this for fluency
    */
   public JadeTemplateEngine setMaxCacheSize(int maxCacheSize) { 
-    JadeTemplateEngine ret= JadeTemplateEngine.newInstance(this.delegate.setMaxCacheSize(maxCacheSize));
+    JadeTemplateEngine ret = JadeTemplateEngine.newInstance(delegate.setMaxCacheSize(maxCacheSize));
     return ret;
   }
 

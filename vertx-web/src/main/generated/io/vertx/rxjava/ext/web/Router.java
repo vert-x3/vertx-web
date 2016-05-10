@@ -17,7 +17,6 @@
 package io.vertx.rxjava.ext.web;
 
 import java.util.Map;
-import io.vertx.lang.rxjava.InternalHelper;
 import rx.Observable;
 import io.vertx.rxjava.core.http.HttpServerRequest;
 import java.util.List;
@@ -53,7 +52,7 @@ public class Router {
    * @return the router
    */
   public static Router router(Vertx vertx) { 
-    Router ret= Router.newInstance(io.vertx.ext.web.Router.router((io.vertx.core.Vertx) vertx.getDelegate()));
+    Router ret = Router.newInstance(io.vertx.ext.web.Router.router((io.vertx.core.Vertx)vertx.getDelegate()));
     return ret;
   }
 
@@ -64,7 +63,7 @@ public class Router {
    * @param request the request
    */
   public void accept(HttpServerRequest request) { 
-    this.delegate.accept((io.vertx.core.http.HttpServerRequest) request.getDelegate());
+    delegate.accept((io.vertx.core.http.HttpServerRequest)request.getDelegate());
   }
 
   /**
@@ -72,7 +71,7 @@ public class Router {
    * @return the route
    */
   public Route route() { 
-    Route ret= Route.newInstance(this.delegate.route());
+    Route ret = Route.newInstance(delegate.route());
     return ret;
   }
 
@@ -83,7 +82,7 @@ public class Router {
    * @return the route
    */
   public Route route(HttpMethod method, String path) { 
-    Route ret= Route.newInstance(this.delegate.route(method, path));
+    Route ret = Route.newInstance(delegate.route(method, path));
     return ret;
   }
 
@@ -93,7 +92,7 @@ public class Router {
    * @return the route
    */
   public Route route(String path) { 
-    Route ret= Route.newInstance(this.delegate.route(path));
+    Route ret = Route.newInstance(delegate.route(path));
     return ret;
   }
 
@@ -104,7 +103,7 @@ public class Router {
    * @return the route
    */
   public Route routeWithRegex(HttpMethod method, String regex) { 
-    Route ret= Route.newInstance(this.delegate.routeWithRegex(method, regex));
+    Route ret = Route.newInstance(delegate.routeWithRegex(method, regex));
     return ret;
   }
 
@@ -114,7 +113,7 @@ public class Router {
    * @return the route
    */
   public Route routeWithRegex(String regex) { 
-    Route ret= Route.newInstance(this.delegate.routeWithRegex(regex));
+    Route ret = Route.newInstance(delegate.routeWithRegex(regex));
     return ret;
   }
 
@@ -123,7 +122,7 @@ public class Router {
    * @return the route
    */
   public Route get() { 
-    Route ret= Route.newInstance(this.delegate.get());
+    Route ret = Route.newInstance(delegate.get());
     return ret;
   }
 
@@ -133,7 +132,7 @@ public class Router {
    * @return the route
    */
   public Route get(String path) { 
-    Route ret= Route.newInstance(this.delegate.get(path));
+    Route ret = Route.newInstance(delegate.get(path));
     return ret;
   }
 
@@ -143,7 +142,7 @@ public class Router {
    * @return the route
    */
   public Route getWithRegex(String regex) { 
-    Route ret= Route.newInstance(this.delegate.getWithRegex(regex));
+    Route ret = Route.newInstance(delegate.getWithRegex(regex));
     return ret;
   }
 
@@ -152,7 +151,7 @@ public class Router {
    * @return the route
    */
   public Route head() { 
-    Route ret= Route.newInstance(this.delegate.head());
+    Route ret = Route.newInstance(delegate.head());
     return ret;
   }
 
@@ -162,7 +161,7 @@ public class Router {
    * @return the route
    */
   public Route head(String path) { 
-    Route ret= Route.newInstance(this.delegate.head(path));
+    Route ret = Route.newInstance(delegate.head(path));
     return ret;
   }
 
@@ -172,7 +171,7 @@ public class Router {
    * @return the route
    */
   public Route headWithRegex(String regex) { 
-    Route ret= Route.newInstance(this.delegate.headWithRegex(regex));
+    Route ret = Route.newInstance(delegate.headWithRegex(regex));
     return ret;
   }
 
@@ -181,7 +180,7 @@ public class Router {
    * @return the route
    */
   public Route options() { 
-    Route ret= Route.newInstance(this.delegate.options());
+    Route ret = Route.newInstance(delegate.options());
     return ret;
   }
 
@@ -191,7 +190,7 @@ public class Router {
    * @return the route
    */
   public Route options(String path) { 
-    Route ret= Route.newInstance(this.delegate.options(path));
+    Route ret = Route.newInstance(delegate.options(path));
     return ret;
   }
 
@@ -201,7 +200,7 @@ public class Router {
    * @return the route
    */
   public Route optionsWithRegex(String regex) { 
-    Route ret= Route.newInstance(this.delegate.optionsWithRegex(regex));
+    Route ret = Route.newInstance(delegate.optionsWithRegex(regex));
     return ret;
   }
 
@@ -210,7 +209,7 @@ public class Router {
    * @return the route
    */
   public Route put() { 
-    Route ret= Route.newInstance(this.delegate.put());
+    Route ret = Route.newInstance(delegate.put());
     return ret;
   }
 
@@ -220,7 +219,7 @@ public class Router {
    * @return the route
    */
   public Route put(String path) { 
-    Route ret= Route.newInstance(this.delegate.put(path));
+    Route ret = Route.newInstance(delegate.put(path));
     return ret;
   }
 
@@ -230,7 +229,7 @@ public class Router {
    * @return the route
    */
   public Route putWithRegex(String regex) { 
-    Route ret= Route.newInstance(this.delegate.putWithRegex(regex));
+    Route ret = Route.newInstance(delegate.putWithRegex(regex));
     return ret;
   }
 
@@ -239,7 +238,7 @@ public class Router {
    * @return the route
    */
   public Route post() { 
-    Route ret= Route.newInstance(this.delegate.post());
+    Route ret = Route.newInstance(delegate.post());
     return ret;
   }
 
@@ -249,7 +248,7 @@ public class Router {
    * @return the route
    */
   public Route post(String path) { 
-    Route ret= Route.newInstance(this.delegate.post(path));
+    Route ret = Route.newInstance(delegate.post(path));
     return ret;
   }
 
@@ -259,7 +258,7 @@ public class Router {
    * @return the route
    */
   public Route postWithRegex(String regex) { 
-    Route ret= Route.newInstance(this.delegate.postWithRegex(regex));
+    Route ret = Route.newInstance(delegate.postWithRegex(regex));
     return ret;
   }
 
@@ -268,7 +267,7 @@ public class Router {
    * @return the route
    */
   public Route delete() { 
-    Route ret= Route.newInstance(this.delegate.delete());
+    Route ret = Route.newInstance(delegate.delete());
     return ret;
   }
 
@@ -278,7 +277,7 @@ public class Router {
    * @return the route
    */
   public Route delete(String path) { 
-    Route ret= Route.newInstance(this.delegate.delete(path));
+    Route ret = Route.newInstance(delegate.delete(path));
     return ret;
   }
 
@@ -288,7 +287,7 @@ public class Router {
    * @return the route
    */
   public Route deleteWithRegex(String regex) { 
-    Route ret= Route.newInstance(this.delegate.deleteWithRegex(regex));
+    Route ret = Route.newInstance(delegate.deleteWithRegex(regex));
     return ret;
   }
 
@@ -297,7 +296,7 @@ public class Router {
    * @return the route
    */
   public Route trace() { 
-    Route ret= Route.newInstance(this.delegate.trace());
+    Route ret = Route.newInstance(delegate.trace());
     return ret;
   }
 
@@ -307,7 +306,7 @@ public class Router {
    * @return the route
    */
   public Route trace(String path) { 
-    Route ret= Route.newInstance(this.delegate.trace(path));
+    Route ret = Route.newInstance(delegate.trace(path));
     return ret;
   }
 
@@ -317,7 +316,7 @@ public class Router {
    * @return the route
    */
   public Route traceWithRegex(String regex) { 
-    Route ret= Route.newInstance(this.delegate.traceWithRegex(regex));
+    Route ret = Route.newInstance(delegate.traceWithRegex(regex));
     return ret;
   }
 
@@ -326,7 +325,7 @@ public class Router {
    * @return the route
    */
   public Route connect() { 
-    Route ret= Route.newInstance(this.delegate.connect());
+    Route ret = Route.newInstance(delegate.connect());
     return ret;
   }
 
@@ -336,7 +335,7 @@ public class Router {
    * @return the route
    */
   public Route connect(String path) { 
-    Route ret= Route.newInstance(this.delegate.connect(path));
+    Route ret = Route.newInstance(delegate.connect(path));
     return ret;
   }
 
@@ -346,7 +345,7 @@ public class Router {
    * @return the route
    */
   public Route connectWithRegex(String regex) { 
-    Route ret= Route.newInstance(this.delegate.connectWithRegex(regex));
+    Route ret = Route.newInstance(delegate.connectWithRegex(regex));
     return ret;
   }
 
@@ -355,7 +354,7 @@ public class Router {
    * @return the route
    */
   public Route patch() { 
-    Route ret= Route.newInstance(this.delegate.patch());
+    Route ret = Route.newInstance(delegate.patch());
     return ret;
   }
 
@@ -365,7 +364,7 @@ public class Router {
    * @return the route
    */
   public Route patch(String path) { 
-    Route ret= Route.newInstance(this.delegate.patch(path));
+    Route ret = Route.newInstance(delegate.patch(path));
     return ret;
   }
 
@@ -375,7 +374,7 @@ public class Router {
    * @return the route
    */
   public Route patchWithRegex(String regex) { 
-    Route ret= Route.newInstance(this.delegate.patchWithRegex(regex));
+    Route ret = Route.newInstance(delegate.patchWithRegex(regex));
     return ret;
   }
 
@@ -384,7 +383,7 @@ public class Router {
    * @return 
    */
   public List<Route> getRoutes() { 
-    List<Route> ret = this.delegate.getRoutes().stream().map(Route::newInstance).collect(java.util.stream.Collectors.toList());
+    List<Route> ret = delegate.getRoutes().stream().map(elt -> Route.newInstance(elt)).collect(java.util.stream.Collectors.toList());
     return ret;
   }
 
@@ -393,7 +392,7 @@ public class Router {
    * @return a reference to this, so the API can be used fluently
    */
   public Router clear() { 
-    this.delegate.clear();
+    delegate.clear();
     return this;
   }
 
@@ -404,7 +403,7 @@ public class Router {
    * @return a reference to this, so the API can be used fluently
    */
   public Router mountSubRouter(String mountPoint, Router subRouter) { 
-    this.delegate.mountSubRouter(mountPoint, (io.vertx.ext.web.Router) subRouter.getDelegate());
+    delegate.mountSubRouter(mountPoint, (io.vertx.ext.web.Router)subRouter.getDelegate());
     return this;
   }
 
@@ -415,7 +414,7 @@ public class Router {
    * @return a reference to this, so the API can be used fluently
    */
   public Router exceptionHandler(Handler<Throwable> exceptionHandler) { 
-    this.delegate.exceptionHandler(exceptionHandler);
+    delegate.exceptionHandler(exceptionHandler);
     return this;
   }
 
@@ -424,7 +423,7 @@ public class Router {
    * @param context the routing context
    */
   public void handleContext(RoutingContext context) { 
-    this.delegate.handleContext((io.vertx.ext.web.RoutingContext) context.getDelegate());
+    delegate.handleContext((io.vertx.ext.web.RoutingContext)context.getDelegate());
   }
 
   /**
@@ -432,7 +431,7 @@ public class Router {
    * @param context the routing context
    */
   public void handleFailure(RoutingContext context) { 
-    this.delegate.handleFailure((io.vertx.ext.web.RoutingContext) context.getDelegate());
+    delegate.handleFailure((io.vertx.ext.web.RoutingContext)context.getDelegate());
   }
 
 

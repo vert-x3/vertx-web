@@ -44,7 +44,7 @@ public class BridgeEvent extends Future<Boolean> {
     if (cached_0 != null) {
       return cached_0;
     }
-    def ret = this.delegate.type();
+    def ret = delegate.type();
     cached_0 = ret;
     return ret;
   }
@@ -56,7 +56,7 @@ public class BridgeEvent extends Future<Boolean> {
     if (cached_1 != null) {
       return cached_1;
     }
-    def ret = (Map<String, Object>)InternalHelper.wrapObject(this.delegate.rawMessage());
+    def ret = (Map<String, Object>)InternalHelper.wrapObject(delegate.rawMessage());
     cached_1 = ret;
     return ret;
   }
@@ -67,7 +67,7 @@ public class BridgeEvent extends Future<Boolean> {
    * @return the raw JSON message for the event
    */
   public Map<String, Object> getRawMessage() {
-    def ret = (Map<String, Object>)InternalHelper.wrapObject(this.delegate.getRawMessage());
+    def ret = (Map<String, Object>)InternalHelper.wrapObject(delegate.getRawMessage());
     return ret;
   }
   /**
@@ -77,7 +77,7 @@ public class BridgeEvent extends Future<Boolean> {
    * @return this reference, so it can be used fluently
    */
   public BridgeEvent setRawMessage(Map<String, Object> message) {
-    this.delegate.setRawMessage(message != null ? new io.vertx.core.json.JsonObject(message) : null);
+    delegate.setRawMessage(message != null ? new io.vertx.core.json.JsonObject(message) : null);
     return this;
   }
   /**
@@ -88,7 +88,7 @@ public class BridgeEvent extends Future<Boolean> {
     if (cached_2 != null) {
       return cached_2;
     }
-    def ret= InternalHelper.safeCreate(this.delegate.socket(), io.vertx.groovy.ext.web.handler.sockjs.SockJSSocket.class);
+    def ret = InternalHelper.safeCreate(delegate.socket(), io.vertx.groovy.ext.web.handler.sockjs.SockJSSocket.class);
     cached_2 = ret;
     return ret;
   }

@@ -17,7 +17,6 @@
 package io.vertx.rxjava.ext.web.sstore;
 
 import java.util.Map;
-import io.vertx.lang.rxjava.InternalHelper;
 import rx.Observable;
 import io.vertx.rxjava.core.Vertx;
 
@@ -48,7 +47,7 @@ public class ClusteredSessionStore extends SessionStore {
    * @return the session store
    */
   public static ClusteredSessionStore create(Vertx vertx, String sessionMapName) { 
-    ClusteredSessionStore ret= ClusteredSessionStore.newInstance(io.vertx.ext.web.sstore.ClusteredSessionStore.create((io.vertx.core.Vertx) vertx.getDelegate(), sessionMapName));
+    ClusteredSessionStore ret = ClusteredSessionStore.newInstance(io.vertx.ext.web.sstore.ClusteredSessionStore.create((io.vertx.core.Vertx)vertx.getDelegate(), sessionMapName));
     return ret;
   }
 
@@ -63,7 +62,7 @@ public class ClusteredSessionStore extends SessionStore {
    * @return the session store
    */
   public static ClusteredSessionStore create(Vertx vertx, String sessionMapName, long retryTimeout) { 
-    ClusteredSessionStore ret= ClusteredSessionStore.newInstance(io.vertx.ext.web.sstore.ClusteredSessionStore.create((io.vertx.core.Vertx) vertx.getDelegate(), sessionMapName, retryTimeout));
+    ClusteredSessionStore ret = ClusteredSessionStore.newInstance(io.vertx.ext.web.sstore.ClusteredSessionStore.create((io.vertx.core.Vertx)vertx.getDelegate(), sessionMapName, retryTimeout));
     return ret;
   }
 
@@ -73,7 +72,7 @@ public class ClusteredSessionStore extends SessionStore {
    * @return the session store
    */
   public static ClusteredSessionStore create(Vertx vertx) { 
-    ClusteredSessionStore ret= ClusteredSessionStore.newInstance(io.vertx.ext.web.sstore.ClusteredSessionStore.create((io.vertx.core.Vertx) vertx.getDelegate()));
+    ClusteredSessionStore ret = ClusteredSessionStore.newInstance(io.vertx.ext.web.sstore.ClusteredSessionStore.create((io.vertx.core.Vertx)vertx.getDelegate()));
     return ret;
   }
 
@@ -87,7 +86,7 @@ public class ClusteredSessionStore extends SessionStore {
    * @return the session store
    */
   public static ClusteredSessionStore create(Vertx vertx, long retryTimeout) { 
-    ClusteredSessionStore ret= ClusteredSessionStore.newInstance(io.vertx.ext.web.sstore.ClusteredSessionStore.create((io.vertx.core.Vertx) vertx.getDelegate(), retryTimeout));
+    ClusteredSessionStore ret = ClusteredSessionStore.newInstance(io.vertx.ext.web.sstore.ClusteredSessionStore.create((io.vertx.core.Vertx)vertx.getDelegate(), retryTimeout));
     return ret;
   }
 
