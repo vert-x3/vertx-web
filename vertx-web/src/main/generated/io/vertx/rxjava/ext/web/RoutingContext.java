@@ -27,6 +27,7 @@ import io.vertx.rxjava.ext.auth.User;
 import io.vertx.rxjava.core.buffer.Buffer;
 import io.vertx.rxjava.core.http.HttpServerResponse;
 import io.vertx.core.http.HttpMethod;
+import java.util.Map;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.Handler;
 
@@ -509,6 +510,25 @@ public class RoutingContext {
    */
   public Locale preferredLocale() { 
     Locale ret = Locale.newInstance(delegate.preferredLocale());
+    return ret;
+  }
+
+  /**
+   * Returns a map of named parameters as defined in path declaration with their actual values
+   * @return the map of named parameters
+   */
+  public Map<String,String> pathParams() { 
+    Map<String,String> ret = delegate.pathParams();
+    return ret;
+  }
+
+  /**
+   * Gets the value of a single path parameter
+   * @param name the name of parameter as defined in path declaration
+   * @return the actual value of the parameter or null if it doesn't exist
+   */
+  public String pathParam(String name) { 
+    String ret = delegate.pathParam(name);
     return ret;
   }
 

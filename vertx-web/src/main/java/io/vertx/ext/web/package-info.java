@@ -518,6 +518,15 @@
  * You can reroute based on a new path or based on a new path and method. Note however that rerouting based on method
  * might introduce security issues since for example a usually safe GET request can become a DELETE.
  *
+ * Reroute is also allowed on the failure handler, however due to the nature of re router when called the current status
+ * code and failure reason are reset. In order the rerouted handler should generate the correct status code if needed,
+ * for example:
+ *
+ * [source,$lang]
+ * ----
+ * {@link examples.WebExamples#example55b}
+ * ----
+ *
  * == Sub-routers
  *
  * Sometimes if you have a lot of handlers it can make sense to split them up into multiple routers. This is also useful

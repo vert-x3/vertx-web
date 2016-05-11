@@ -1077,6 +1077,24 @@ public class WebExamples {
     });
 
   }
+
+  public void example55b(Router router) {
+
+    router.get("/my-pretty-notfound-handler").handler(ctx -> {
+      ctx.response()
+              .setStatusCode(404)
+              .end("NOT FOUND fancy html here!!!");
+    });
+
+    router.get().failureHandler(ctx -> {
+      if (ctx.statusCode() == 404) {
+        ctx.reroute("/my-pretty-notfound-handler");
+      } else {
+        ctx.next();
+      }
+    });
+  }
+
   public void example56(Router router) {
     router.route().handler(VirtualHostHandler.create("*.vertx.io", routingContext -> {
       // do something if the request is for *.vertx.io
