@@ -74,14 +74,14 @@ public class TemplateTest extends WebTestBase {
   @Test
   public void testTemplateHandlerSingleRoute() throws Exception {
     TemplateEngine engine = new TestEngine(false);
-    router.route("/test-template")
+    router.route("/test-template.html")
              .handler(context -> {
                context.put("foo", "badger");
                context.put("bar", "fox");
                context.next();
              });
     
-    router.route("/test-template").handler(TemplateHandler.create(engine, "somedir", "text/html"));
+    router.route("/test-template.html").handler(TemplateHandler.create(engine, "somedir", "text/html"));
 
     // we assume test-template is going to be
     // mapped to {somedir}/test-template.html and
@@ -94,7 +94,7 @@ public class TemplateTest extends WebTestBase {
         "</body>\n" +
         "</html>";
 
-    testRequest(HttpMethod.GET, "/test-template", 200, "OK", expected);
+    testRequest(HttpMethod.GET, "/test-template.html", 200, "OK", expected);
   }
 
   @Test

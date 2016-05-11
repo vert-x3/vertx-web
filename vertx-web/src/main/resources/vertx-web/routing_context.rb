@@ -435,5 +435,22 @@ module VertxWeb
       end
       raise ArgumentError, "Invalid arguments when calling preferred_locale()"
     end
+    #  Returns a map of named parameters as defined in path declaration with their actual values
+    # @return [Hash{String => String}] the map of named parameters
+    def path_params
+      if !block_given?
+        return Java::IoVertxLangRuby::Helper.adaptingMap(@j_del.java_method(:pathParams, []).call(), Proc.new { |val| ::Vertx::Util::Utils.from_object(val) }, Proc.new { |val| ::Vertx::Util::Utils.to_string(val) })
+      end
+      raise ArgumentError, "Invalid arguments when calling path_params()"
+    end
+    #  Gets the value of a single path parameter
+    # @param [String] name the name of parameter as defined in path declaration
+    # @return [String] the actual value of the parameter or null if it doesn't exist
+    def path_param(name=nil)
+      if name.class == String && !block_given?
+        return @j_del.java_method(:pathParam, [Java::java.lang.String.java_class]).call(name)
+      end
+      raise ArgumentError, "Invalid arguments when calling path_param(name)"
+    end
   end
 end

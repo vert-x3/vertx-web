@@ -213,7 +213,10 @@ public class Utils extends io.vertx.core.impl.Utils {
     }
     String routePath = context.currentRoute().getPath();
     if (routePath != null) {
-      prefixLen += routePath.length() - 1;
+      // if resource is directory, strip until slash
+      if (routePath.charAt(routePath.length() - 1) == '/') {
+        prefixLen += routePath.length() - 1;
+      }
     }
     return prefixLen != 0 ? path.substring(prefixLen) : path;
   }

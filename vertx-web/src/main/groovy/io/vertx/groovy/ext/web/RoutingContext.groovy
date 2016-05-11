@@ -27,6 +27,7 @@ import io.vertx.groovy.ext.auth.User
 import io.vertx.groovy.core.buffer.Buffer
 import io.vertx.groovy.core.http.HttpServerResponse
 import io.vertx.core.http.HttpMethod
+import java.util.Map
 import io.vertx.core.json.JsonObject
 import io.vertx.core.Handler
 /**
@@ -453,6 +454,23 @@ public class RoutingContext {
    */
   public Locale preferredLocale() {
     def ret = InternalHelper.safeCreate(delegate.preferredLocale(), io.vertx.groovy.ext.web.Locale.class);
+    return ret;
+  }
+  /**
+   * Returns a map of named parameters as defined in path declaration with their actual values
+   * @return the map of named parameters
+   */
+  public Map<String, String> pathParams() {
+    def ret = delegate.pathParams();
+    return ret;
+  }
+  /**
+   * Gets the value of a single path parameter
+   * @param name the name of parameter as defined in path declaration
+   * @return the actual value of the parameter or null if it doesn't exist
+   */
+  public String pathParam(String name) {
+    def ret = delegate.pathParam(name);
     return ret;
   }
   private HttpServerRequest cached_0;
