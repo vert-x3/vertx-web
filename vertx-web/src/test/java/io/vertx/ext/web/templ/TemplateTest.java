@@ -23,10 +23,10 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.Route;
-import io.vertx.ext.web.handler.TemplateHandler;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.impl.Utils;
 import io.vertx.ext.web.WebTestBase;
+import io.vertx.ext.web.handler.TemplateHandler;
+import io.vertx.ext.web.impl.Utils;
 import org.junit.Test;
 
 /**
@@ -69,6 +69,32 @@ public class TemplateTest extends WebTestBase {
         "</body>\n" +
         "</html>";
     testRequest(HttpMethod.GET, pathPrefix != null ? pathPrefix + "/test-template.html" : "/test-template.html", 200, "OK", expected);
+  }
+
+  @Test
+  public void testTemplateHandlerSingleRoute() throws Exception {
+    TemplateEngine engine = new TestEngine(false);
+    router.route("/test-template")
+             .handler(context -> {
+               context.put("foo", "badger");
+               context.put("bar", "fox");
+               context.next();
+             });
+    
+    router.route("/test-template").handler(TemplateHandler.create(engine, "somedir", "text/html"));
+
+    // we assume test-template is going to be
+    // mapped to {somedir}/test-template.html and
+    // rendered correctly with pre-setup context variables
+    String expected =
+      "<html>\n" +
+        "<body>\n" +
+        "<h1>Test template</h1>\n" +
+        "foo is badger bar is fox<br>\n" +
+        "</body>\n" +
+        "</html>";
+
+    testRequest(HttpMethod.GET, "/test-template", 200, "OK", expected);
   }
 
   @Test
