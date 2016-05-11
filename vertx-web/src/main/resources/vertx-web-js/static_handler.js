@@ -269,6 +269,21 @@ var StaticHandler = function(j_val) {
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
+  /**
+   Set HTTP2 push mapping be used for accelerate content delivery.
+
+   @public
+   @param http2PushMapping {Object} dependency mapping 
+   @return {StaticHandler} a reference to this, so the API can be used fluently
+   */
+  this.setHTTP2PushMapping = function(http2PushMapping) {
+    var __args = arguments;
+    if (__args.length === 1 && (typeof __args[0] === 'object' && __args[0] != null)) {
+      j_staticHandler["setHTTP2PushMapping(io.vertx.core.json.JsonObject)"](utils.convParamJsonObject(http2PushMapping));
+      return that;
+    } else throw new TypeError('function invoked with invalid arguments');
+  };
+
   // A reference to the underlying Java delegate
   // NOTE! This is an internal API and must not be used in user code.
   // If you rely on this property your code is likely to break if we change it / remove it without warning.

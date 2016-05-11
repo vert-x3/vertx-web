@@ -639,6 +639,34 @@ var RoutingContext = function(j_val) {
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
+  /**
+   Returns a map of named parameters as defined in path declaration with their actual values
+
+   @public
+
+   @return {Array.<string>} the map of named parameters
+   */
+  this.pathParams = function() {
+    var __args = arguments;
+    if (__args.length === 0) {
+      return utils.convReturnMap(j_routingContext["pathParams()"]());
+    } else throw new TypeError('function invoked with invalid arguments');
+  };
+
+  /**
+   Gets the value of a single path parameter
+
+   @public
+   @param name {string} the name of parameter as defined in path declaration 
+   @return {string} the actual value of the parameter or null if it doesn't exist
+   */
+  this.pathParam = function(name) {
+    var __args = arguments;
+    if (__args.length === 1 && typeof __args[0] === 'string') {
+      return j_routingContext["pathParam(java.lang.String)"](name);
+    } else throw new TypeError('function invoked with invalid arguments');
+  };
+
   // A reference to the underlying Java delegate
   // NOTE! This is an internal API and must not be used in user code.
   // If you rely on this property your code is likely to break if we change it / remove it without warning.

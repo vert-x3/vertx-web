@@ -22,8 +22,11 @@ import io.vertx.core.file.FileSystem;
 import io.vertx.core.file.FileSystemException;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
+import io.vertx.core.http.HttpServerResponse;
+import io.vertx.core.http.HttpVersion;
 import io.vertx.core.http.impl.MimeMapping;
 import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.RoutingContext;
@@ -69,6 +72,7 @@ public class StaticHandlerImpl implements StaticHandler {
   private String indexPage = DEFAULT_INDEX_PAGE;
   private int maxCacheSize = DEFAULT_MAX_CACHE_SIZE;
   private boolean rangeSupport = DEFAULT_RANGE_SUPPORT;
+  private JsonObject http2PushMapping = null;
   private boolean allowRootFileSystemAccess = DEFAULT_ROOT_FILESYSTEM_ACCESS;
 
   // These members are all related to auto tuning of synchronous vs asynchronous file system access
@@ -102,12 +106,12 @@ public class StaticHandlerImpl implements StaticHandler {
   /**
    * Create all required header so content can be cache by Caching servers or Browsers
    *
-   * @param request base HttpServerRequest
+   * @param response base HttpServerResponse
    * @param props   file properties
    */
-  private void writeCacheHeaders(HttpServerRequest request, FileProps props) {
+  private void writeCacheHeaders(HttpServerResponse response, FileProps props) {
 
-    MultiMap headers = request.response().headers();
+    MultiMap headers = response.headers();
 
     if (cachingEnabled) {
       // We use cache-control and last-modified
@@ -180,7 +184,7 @@ public class StaticHandlerImpl implements StaticHandler {
     String sfile = file;
 
     // Need to read the props from the filesystem
-    getFileProps(context, file, res -> {
+    getFileProps(context.vertx().fileSystem(), file, res -> {
       if (res.succeeded()) {
         FileProps fprops = res.result();
         if (fprops == null) {
@@ -247,8 +251,7 @@ public class StaticHandlerImpl implements StaticHandler {
     }
   }
 
-  private synchronized void getFileProps(RoutingContext context, String file, Handler<AsyncResult<FileProps>> resultHandler) {
-    FileSystem fs = context.vertx().fileSystem();
+  private synchronized void getFileProps(FileSystem fs, String file, Handler<AsyncResult<FileProps>> resultHandler) {
     if (alwaysAsyncFS || useAsyncFS) {
       wrapInTCCLSwitch(() -> fs.props(file, resultHandler), resultHandler);
     } else {
@@ -295,7 +298,9 @@ public class StaticHandlerImpl implements StaticHandler {
   private static final Pattern RANGE = Pattern.compile("^bytes=(\\d+)-(\\d*)$");
 
   private void sendFile(RoutingContext context, String file, FileProps fileProps) {
-    HttpServerRequest request = context.request();
+    final HttpServerRequest request = context.request();
+    final HttpServerResponse response = request.response();
+    final Vertx vertx = context.vertx();
 
     Long offset = null;
     Long end = null;
@@ -336,22 +341,22 @@ public class StaticHandlerImpl implements StaticHandler {
       }
 
       // notify client we support range requests
-      headers = request.response().headers();
+      headers = response.headers();
       headers.set("Accept-Ranges", "bytes");
       // send the content length even for HEAD requests
       headers.set("Content-Length", Long.toString(end + 1 - (offset == null ? 0 : offset)));
     }
 
-    writeCacheHeaders(request, fileProps);
+    writeCacheHeaders(response, fileProps);
 
     if (request.method() == HttpMethod.HEAD) {
-      request.response().end();
+      response.end();
     } else {
       if (rangeSupport && offset != null) {
         // must return content range
         headers.set("Content-Range", "bytes " + offset + "-" + end + "/" + fileProps.size());
         // return a partial response
-        request.response().setStatusCode(PARTIAL_CONTENT.code());
+        response.setStatusCode(PARTIAL_CONTENT.code());
 
         // Wrap the sendFile operation into a TCCL switch, so the file resolver would find the file from the set
         // classloader (if any).
@@ -362,13 +367,13 @@ public class StaticHandlerImpl implements StaticHandler {
           String contentType = MimeMapping.getMimeTypeForFilename(file);
           if (contentType != null) {
             if (contentType.startsWith("text")) {
-              request.response().putHeader("Content-Type", contentType + ";charset=" + defaultContentEncoding);
+              response.putHeader("Content-Type", contentType + ";charset=" + defaultContentEncoding);
             } else {
-              request.response().putHeader("Content-Type", contentType);
+              response.putHeader("Content-Type", contentType);
             }
           }
 
-          return request.response().sendFile(file, finalOffset, finalEnd + 1, res2 -> {
+          return response.sendFile(file, finalOffset, finalEnd + 1, res2 -> {
             if (res2.failed()) {
               context.fail(res2.cause());
             }
@@ -382,13 +387,106 @@ public class StaticHandlerImpl implements StaticHandler {
           String contentType = MimeMapping.getMimeTypeForFilename(file);
           if (contentType != null) {
             if (contentType.startsWith("text")) {
-              request.response().putHeader("Content-Type", contentType + ";charset=" + defaultContentEncoding);
+              response.putHeader("Content-Type", contentType + ";charset=" + defaultContentEncoding);
             } else {
-              request.response().putHeader("Content-Type", contentType);
+              response.putHeader("Content-Type", contentType);
             }
           }
 
-          return request.response().sendFile(file, res2 -> {
+          // http2 pushing support
+          if (context.request().version() == HttpVersion.HTTP_2 && http2PushMapping != null) {
+            System.out.println("looking up " + file.substring(webRoot.length() + 1));
+            JsonArray dependencies = http2PushMapping.getJsonArray(file.substring(webRoot.length() + 1));
+            if (dependencies != null) {
+//              final AtomicInteger counter = new AtomicInteger(dependencies.size());
+//
+//              new Handler<Integer>() {
+//                @Override
+//                public void handle(Integer i) {
+//                  if (i == -1) {
+//                    // terminal state
+//                    response.sendFile(file, res2 -> {
+//                      if (res2.failed()) {
+//                        context.fail(res2.cause());
+//                      }
+//                    });
+//                    return;
+//                  }
+//
+//                  final Handler<Integer> self = this;
+//                  final String dep = webRoot + "/" + dependencies.getString(i);
+//                  // get the file props
+//                  System.out.println("looking up props for " + dep);
+//                  getFileProps(vertx.fileSystem(), dep, filePropsAsyncResult -> {
+//                    if (filePropsAsyncResult.succeeded()) {
+//                      // push
+//                      System.out.println("pushing /" + dependencies.getString(i));
+//                      response.push(HttpMethod.GET, "/" + dependencies.getString(i), pushAsyncResult -> {
+//                        if (pushAsyncResult.succeeded()) {
+//                          final HttpServerResponse res = pushAsyncResult.result();
+//
+//                          writeCacheHeaders(res, filePropsAsyncResult.result());
+//                          // guess content type
+//                          final String depContentType = MimeMapping.getMimeTypeForFilename(file);
+//
+//                          if (depContentType != null) {
+//                            if (depContentType.startsWith("text")) {
+//                              res.putHeader("Content-Type", contentType + ";charset=" + defaultContentEncoding);
+//                            } else {
+//                              res.putHeader("Content-Type", contentType);
+//                            }
+//                          }
+//                          // start pushing data
+//                          res.sendFile(dep, sendFileAsyncResult -> {
+//                            if (sendFileAsyncResult.failed()) {
+//                              // skip the rest
+//                              self.handle(-1);
+//                              return;
+//                            }
+//                            // push the next one
+//                            self.handle(counter.decrementAndGet());
+//                          });
+//                        }
+//                      });
+//                    }
+//                  });
+//                }
+//              }.handle(counter.decrementAndGet());
+
+              for (Object dependency : dependencies) {
+                final String dep = webRoot + "/" + dependency;
+                // get the file props
+                System.out.println("looking up props for " + dep);
+                getFileProps(vertx.fileSystem(), dep, filePropsAsyncResult -> {
+                  if (filePropsAsyncResult.succeeded()) {
+                    // push
+                    System.out.println("pushing /" + dependency);
+                    response.push(HttpMethod.GET, "/" + dependency, pushAsyncResult -> {
+                      if (pushAsyncResult.succeeded()) {
+                        final HttpServerResponse res = pushAsyncResult.result();
+
+                        writeCacheHeaders(res, filePropsAsyncResult.result());
+                        // guess content type
+                        final String depContentType = MimeMapping.getMimeTypeForFilename(file);
+
+                        if (depContentType != null) {
+                          if (depContentType.startsWith("text")) {
+                            res.putHeader("Content-Type", contentType + ";charset=" + defaultContentEncoding);
+                          } else {
+                            res.putHeader("Content-Type", contentType);
+                          }
+                        }
+                        // start pushing data
+                        res.sendFile(dep);
+                      }
+                    });
+                  }
+                });
+              }
+            }
+          }
+
+          return response.sendFile(file, res2 -> {
             if (res2.failed()) {
               context.fail(res2.cause());
             }
@@ -456,6 +554,12 @@ public class StaticHandlerImpl implements StaticHandler {
   @Override
   public StaticHandler setEnableRangeSupport(boolean enableRangeSupport) {
     this.rangeSupport = enableRangeSupport;
+    return this;
+  }
+
+  @Override
+  public StaticHandler setHTTP2PushMapping(JsonObject http2PushMapping) {
+    this.http2PushMapping = http2PushMapping;
     return this;
   }
 

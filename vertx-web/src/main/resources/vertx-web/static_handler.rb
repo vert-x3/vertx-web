@@ -183,5 +183,15 @@ module VertxWeb
       end
       raise ArgumentError, "Invalid arguments when calling set_enable_range_support(enableRangeSupport)"
     end
+    #  Set HTTP2 push mapping be used for accelerate content delivery.
+    # @param [Hash{String => Object}] http2PushMapping dependency mapping
+    # @return [self]
+    def set_http2_push_mapping(http2PushMapping=nil)
+      if http2PushMapping.class == Hash && !block_given?
+        @j_del.java_method(:setHTTP2PushMapping, [Java::IoVertxCoreJson::JsonObject.java_class]).call(::Vertx::Util::Utils.to_json_object(http2PushMapping))
+        return self
+      end
+      raise ArgumentError, "Invalid arguments when calling set_http2_push_mapping(http2PushMapping)"
+    end
   end
 end
