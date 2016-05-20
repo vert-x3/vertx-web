@@ -19,7 +19,6 @@ package io.vertx.ext.web.handler.impl;
 import io.vertx.core.*;
 import io.vertx.core.file.FileProps;
 import io.vertx.core.file.FileSystem;
-import io.vertx.core.file.FileSystemException;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.impl.MimeMapping;
@@ -224,7 +223,7 @@ public class StaticHandlerImpl implements StaticHandler {
     }
   }
 
-  private <T> T wrapInTCCLSwitch(Callable<T> callable, Handler<AsyncResult<FileProps>> resultHandler) {
+  private <T> T wrapInTCCLSwitch(Callable<T> callable) {
     try {
       if (classLoader == null) {
         return callable.call();
@@ -238,19 +237,14 @@ public class StaticHandlerImpl implements StaticHandler {
         }
       }
     } catch (Exception e) {
-      if (resultHandler != null) {
-        resultHandler.handle(Future.failedFuture(e.getCause()));
-        return null;
-      } else {
-        throw new RuntimeException(e);
-      }
+      throw new RuntimeException(e);
     }
   }
 
   private synchronized void getFileProps(RoutingContext context, String file, Handler<AsyncResult<FileProps>> resultHandler) {
     FileSystem fs = context.vertx().fileSystem();
     if (alwaysAsyncFS || useAsyncFS) {
-      wrapInTCCLSwitch(() -> fs.props(file, resultHandler), resultHandler);
+      wrapInTCCLSwitch(() -> fs.props(file, resultHandler));
     } else {
       // Use synchronous access - it might well be faster!
       long start = 0;
@@ -258,7 +252,7 @@ public class StaticHandlerImpl implements StaticHandler {
         start = System.nanoTime();
       }
       try {
-        FileProps props = wrapInTCCLSwitch(() -> fs.propsBlocking(file), resultHandler);
+        FileProps props = wrapInTCCLSwitch(() -> fs.propsBlocking(file));
 
         if (tuning) {
           long end = System.nanoTime();
@@ -279,7 +273,7 @@ public class StaticHandlerImpl implements StaticHandler {
           }
         }
         resultHandler.handle(Future.succeededFuture(props));
-      } catch (FileSystemException e) {
+      } catch (RuntimeException e) {
         resultHandler.handle(Future.failedFuture(e.getCause()));
       }
     }
@@ -373,7 +367,7 @@ public class StaticHandlerImpl implements StaticHandler {
               context.fail(res2.cause());
             }
           });
-        }, null);
+        });
       } else {
         // Wrap the sendFile operation into a TCCL switch, so the file resolver would find the file from the set
         // classloader (if any).
@@ -393,7 +387,7 @@ public class StaticHandlerImpl implements StaticHandler {
               context.fail(res2.cause());
             }
           });
-        }, null);
+        });
       }
     }
   }

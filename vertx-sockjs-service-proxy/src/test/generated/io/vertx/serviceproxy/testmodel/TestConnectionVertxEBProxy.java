@@ -30,6 +30,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.function.Function;
 import io.vertx.serviceproxy.ProxyHelper;
+import io.vertx.serviceproxy.ServiceException;
+import io.vertx.serviceproxy.ServiceExceptionMessageCodec;
 import io.vertx.core.json.JsonObject;
 import io.vertx.serviceproxy.testmodel.TestConnection;
 import io.vertx.core.AsyncResult;
@@ -54,6 +56,10 @@ public class TestConnectionVertxEBProxy implements TestConnection {
     this._vertx = vertx;
     this._address = address;
     this._options = options;
+    try {
+      this._vertx.eventBus().registerDefaultCodec(ServiceException.class,
+          new ServiceExceptionMessageCodec());
+    } catch (IllegalStateException ex) {}
   }
 
   public TestConnection startTransaction(Handler<AsyncResult<String>> resultHandler) {
