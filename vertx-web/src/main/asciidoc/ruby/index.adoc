@@ -896,6 +896,27 @@ moves to the next handler that re routes the request to `/some/path/B` which ter
 You can reroute based on a new path or based on a new path and method. Note however that rerouting based on method
 might introduce security issues since for example a usually safe GET request can become a DELETE.
 
+Reroute is also allowed on the failure handler, however due to the nature of re router when called the current status
+code and failure reason are reset. In order the rerouted handler should generate the correct status code if needed,
+for example:
+
+[source,ruby]
+----
+
+router.get("/my-pretty-notfound-handler").handler() { |ctx|
+  ctx.response().set_status_code(404).end("NOT FOUND fancy html here!!!")
+}
+
+router.get().failure_handler() { |ctx|
+  if (ctx.status_code() == 404)
+    ctx.reroute("/my-pretty-notfound-handler")
+  else
+    ctx.next()
+  end
+}
+
+----
+
 == Sub-routers
 
 Sometimes if you have a lot of handlers it can make sense to split them up into multiple routers. This is also useful

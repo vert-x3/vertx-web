@@ -285,6 +285,9 @@ public class RoutingContextImpl extends RoutingContextImplBase {
     request.params().clear();
     // we need to reset the normalized path
     normalisedPath = null;
+    // we also need to reset any previous status
+    statusCode = -1;
+    failure = null;
     restart();
   }
 

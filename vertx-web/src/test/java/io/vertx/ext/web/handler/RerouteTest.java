@@ -75,4 +75,25 @@ public class RerouteTest extends WebTestBase {
       req.write("Test HTTP Body");
     }, 200, "OK", null);
   }
+
+  @Test
+  public void testRerouteFailure() throws Exception {
+    router.get("/error/400").handler(ctx -> {
+      ctx.response()
+              .setStatusCode(400)
+              .end("/error/400");
+    });
+    router.get("/me").handler(ctx -> {
+      ctx.fail(400);
+    });
+    router.get().failureHandler(ctx -> {
+      if (ctx.statusCode() == 400) {
+        ctx.reroute("/error/400");
+      } else {
+        ctx.next();
+      }
+    });
+
+    testRequest(HttpMethod.GET, "/me", 400, "Bad Request", "/error/400");
+  }
 }
