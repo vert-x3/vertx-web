@@ -67,7 +67,7 @@ public class BodyHandlerImpl implements BodyHandler {
       request.endHandler(v -> handler.end());
       context.put(BODY_HANDLED, true);
     } else {
-      // on reroute we need to re-merge the form params is that was desired
+      // on reroute we need to re-merge the form params if that was desired
       if (mergeFormAttributes && request.isExpectMultipart()) {
         request.params().addAll(request.formAttributes());
       }
@@ -115,25 +115,26 @@ public class BodyHandlerImpl implements BodyHandler {
     public BHandler(RoutingContext context) {
       this.context = context;
       Set<FileUpload> fileUploads = context.fileUploads();
-      makeUploadDir(context.vertx().fileSystem());
 
       final String contentType = context.request().getHeader(HttpHeaders.CONTENT_TYPE);
-
       isMultipart = contentType != null && contentType.contains("multipart/form-data");
       isUrlEncoded = contentType != null && contentType.contains("application/x-www-form-urlencoded");
 
-      context.request().setExpectMultipart(true);
+      if (isMultipart || isUrlEncoded) {
+        makeUploadDir(context.vertx().fileSystem());
+        context.request().setExpectMultipart(true);
+        context.request().uploadHandler(upload -> {
+          // we actually upload to a file with a generated filename
+          uploadCount.incrementAndGet();
+          String uploadedFileName = new File(uploadsDir, UUID.randomUUID().toString()).getPath();
+          upload.streamToFileSystem(uploadedFileName);
+          FileUploadImpl fileUpload = new FileUploadImpl(uploadedFileName, upload);
+          fileUploads.add(fileUpload);
+          upload.exceptionHandler(context::fail);
+          upload.endHandler(v -> uploadEnded());
+        });
+      }
       context.request().exceptionHandler(context::fail);
-      context.request().uploadHandler(upload -> {
-        // We actually upload to a file with a generated filename
-        uploadCount.incrementAndGet();
-        String uploadedFileName = new File(uploadsDir, UUID.randomUUID().toString()).getPath();
-        upload.streamToFileSystem(uploadedFileName);
-        FileUploadImpl fileUpload = new FileUploadImpl(uploadedFileName, upload);
-        fileUploads.add(fileUpload);
-        upload.exceptionHandler(context::fail);
-        upload.endHandler(v -> uploadEnded());
-      });
     }
 
     private void makeUploadDir(FileSystem fileSystem) {
