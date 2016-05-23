@@ -169,6 +169,20 @@ public class EventbusBridgeTest extends WebTestBase {
   }
 
   @Test
+  public void testHookSendMissingAddress() throws Exception {
+    sockJSHandler.bridge(allAccessOptions, be -> {
+      if (be.type() == BridgeEventType.SEND) {
+        be.getRawMessage().remove("address");
+        testComplete();
+      }
+      be.complete(true);
+    });
+    testError(new JsonObject().put("type", "send").put("address", addr).put("body", "foobar"),
+      "missing_address");
+    await();
+  }
+
+  @Test
   public void testHookPublish() throws Exception {
 
     sockJSHandler.bridge(allAccessOptions, be -> {
@@ -225,6 +239,20 @@ public class EventbusBridgeTest extends WebTestBase {
   }
 
   @Test
+  public void testHookPublishMissingAddress() throws Exception {
+    sockJSHandler.bridge(allAccessOptions, be -> {
+      if (be.type() == BridgeEventType.PUBLISH) {
+        be.getRawMessage().remove("address");
+        testComplete();
+      }
+      be.complete(true);
+    });
+    testError(new JsonObject().put("type", "publish").put("address", addr).put("body", "foobar"),
+      "missing_address");
+    await();
+  }
+
+  @Test
   public void testHookRegister() throws Exception {
 
     sockJSHandler.bridge(allAccessOptions, be -> {
@@ -255,6 +283,20 @@ public class EventbusBridgeTest extends WebTestBase {
     });
     testError(new JsonObject().put("type", "register").put("address", addr),
       "rejected");
+    await();
+  }
+
+  @Test
+  public void testHookRegisterMissingAddress() throws Exception {
+    sockJSHandler.bridge(allAccessOptions, be -> {
+      if (be.type() == BridgeEventType.REGISTER) {
+        be.getRawMessage().remove("address");
+        testComplete();
+      }
+      be.complete(true);
+    });
+    testError(new JsonObject().put("type", "register").put("address", addr).put("body", "foobar"),
+      "missing_address");
     await();
   }
 
@@ -323,6 +365,20 @@ public class EventbusBridgeTest extends WebTestBase {
     });
     testError(new JsonObject().put("type", "unregister").put("address", addr),
       "rejected");
+    await();
+  }
+
+  @Test
+  public void testHookUnregisterMissingAddress() throws Exception {
+    sockJSHandler.bridge(allAccessOptions, be -> {
+      if (be.type() == BridgeEventType.UNREGISTER) {
+        be.getRawMessage().remove("address");
+        testComplete();
+      }
+      be.complete(true);
+    });
+    testError(new JsonObject().put("type", "unregister").put("address", addr).put("body", "foobar"),
+      "missing_address");
     await();
   }
 
