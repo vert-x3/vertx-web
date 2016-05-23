@@ -2719,7 +2719,7 @@ router.route().handler(&VertxWeb::VirtualHostHandler.create("*.vertx.io") { |rou
 == OAuth2AuthHandler Handler
 
 The `OAuth2AuthHandler` allows quick setup of secure routes using the OAuth2 protocol. This handler simplifies the
-authCode flow. An example of using it to protect some resouce and authenticate with GitHub can be implemented as:
+authCode flow. An example of using it to protect some resource and authenticate with GitHub can be implemented as:
 
 [source,ruby]
 ----
@@ -2754,6 +2754,15 @@ router.get("/").handler() { |ctx|
 }
 
 ----
+
+The OAuth2AuthHandler will setup a proper callback OAuth2 handler so the user does not need to deal with validation
+of the authority server response. It is quite important to know that authority server responses are only valid once,
+this means that if a client issues a reload of the callback URL it will be asserted as a invalid request since the
+validation will fail.
+
+A rule of thumb is once a valid callback is executed issue a client side redirect to a protected resource. This
+redirect should also create a session cookie (or other session mechanism) so the user is not required to authenticate
+for every request.
 
 Due to the nature of OAuth2 spec there are slight changes required in order to use other OAuth2 providers, for
 example, if you are planning to use Google Auth you implement it as:
