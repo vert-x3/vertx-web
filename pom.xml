@@ -6,7 +6,7 @@
   <parent>
     <groupId>io.vertx</groupId>
     <artifactId>vertx-ext-parent</artifactId>
-    <version>19</version>
+    <version>20</version>
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
