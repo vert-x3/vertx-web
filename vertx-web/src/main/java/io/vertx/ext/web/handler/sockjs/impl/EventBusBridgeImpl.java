@@ -41,6 +41,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.auth.User;
+import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.sockjs.*;
 
 import java.util.ArrayList;
@@ -131,16 +132,16 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
       }
       switch (type) {
         case "send":
-          internalHandleSendOrPub(sock, true, msg, address);
+          internalHandleSendOrPub(sock, true, msg);
           break;
         case "publish":
-          internalHandleSendOrPub(sock, false, msg, address);
+          internalHandleSendOrPub(sock, false, msg);
           break;
         case "register":
-          internalHandleRegister(sock, address, msg, registrations);
+          internalHandleRegister(sock, msg, registrations);
           break;
         case "unregister":
-          internalHandleUnregister(sock, address, msg, registrations);
+          internalHandleUnregister(sock, msg, registrations);
           break;
         default:
           log.error("Invalid type in incoming message: " + type);
@@ -180,9 +181,16 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
     }
   }
 
-  private void internalHandleSendOrPub(SockJSSocket sock, boolean send, JsonObject msg, String address) {
+  private void internalHandleSendOrPub(SockJSSocket sock, boolean send, JsonObject msg) {
     checkCallHook(() -> new BridgeEventImpl(send ? BridgeEventType.SEND : BridgeEventType.PUBLISH, msg, sock),
-      () -> doSendOrPub(send, sock, address, msg), () -> replyError(sock, "rejected"));
+      () -> {
+        String address = msg.getString("address");
+        if (address == null) {
+          replyError(sock, "missing_address");
+          return;
+        }
+        doSendOrPub(send, sock, address, msg);
+      }, () -> replyError(sock, "rejected"));
   }
 
   private boolean checkMaxHandlers(SockJSSocket sock, SockInfo info) {
@@ -195,13 +203,7 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
     }
   }
 
-  private void internalHandleRegister(SockJSSocket sock, String address, JsonObject rawMsg,
-                                      Map<String, MessageConsumer> registrations) {
-    if (address.length() > maxAddressLength) {
-      log.warn("Refusing to register as address length > max_address_length");
-      replyError(sock, "max_address_length_reached");
-      return;
-    }
+  private void internalHandleRegister(SockJSSocket sock, JsonObject rawMsg, Map<String, MessageConsumer> registrations) {
     final SockInfo info = sockInfos.get(sock);
     if (!checkMaxHandlers(sock, info)) {
       return;
@@ -209,6 +211,15 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
     checkCallHook(() -> new BridgeEventImpl(BridgeEventType.REGISTER, rawMsg, sock),
       () -> {
         final boolean debug = log.isDebugEnabled();
+        final String address = rawMsg.getString("address");
+        if (address == null) {
+          replyError(sock, "missing_address");
+          return;
+        } else if (address.length() > maxAddressLength) {
+          log.warn("Refusing to register as address length > max_address_length");
+          replyError(sock, "max_address_length_reached");
+          return;
+        }
         Match match = checkMatches(false, address, null);
         if (match.doesMatch) {
           Handler<Message<Object>> handler = msg -> {
@@ -254,9 +265,14 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
       }, () -> replyError(sock, "rejected"));
   }
 
-  private void internalHandleUnregister(SockJSSocket sock, String address, JsonObject rawMsg, Map<String, MessageConsumer> registrations) {
+  private void internalHandleUnregister(SockJSSocket sock, JsonObject rawMsg, Map<String, MessageConsumer> registrations) {
     checkCallHook(() -> new BridgeEventImpl(BridgeEventType.UNREGISTER, rawMsg, sock),
       () -> {
+        String address = rawMsg.getString("address");
+        if (address == null) {
+          replyError(sock, "missing_address");
+          return;
+        }
         Match match = checkMatches(false, address, null);
         if (match.doesMatch) {
           MessageConsumer reg = registrations.remove(address);
@@ -275,6 +291,10 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
   }
 
   private void internalHandlePing(final SockJSSocket sock) {
+    Session webSession = sock.webSession();
+    if (webSession != null) {
+      webSession.setAccessed();
+    }
     SockInfo info = sockInfos.get(sock);
     if (info != null) {
       info.pingInfo.lastPing = System.currentTimeMillis();
@@ -324,11 +344,11 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
     if (message.replyAddress() != null) {
       envelope.put("replyAddress", message.replyAddress());
     }
-    if ( message.headers() != null && !message.headers().isEmpty()) {
+    if (message.headers() != null && !message.headers().isEmpty()) {
       JsonObject headersCopy = new JsonObject();
       for (String name : message.headers().names()) {
-      List<String> values = message.headers().getAll(name);
-        if ( values.size() == 1) {
+        List<String> values = message.headers().getAll(name);
+        if (values.size() == 1) {
           headersCopy.put(name, values.get(0));
         } else {
           headersCopy.put(name, values);
@@ -447,7 +467,7 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
     MultiMap mHeaders;
     if (headers != null) {
       mHeaders = new CaseInsensitiveHeaders();
-      headers.forEach(entry-> mHeaders.add(entry.getKey(), entry.getValue().toString()));
+      headers.forEach(entry -> mHeaders.add(entry.getKey(), entry.getValue().toString()));
     } else {
       mHeaders = null;
     }
