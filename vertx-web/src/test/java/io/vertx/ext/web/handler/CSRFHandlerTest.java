@@ -16,9 +16,11 @@
 
 package io.vertx.ext.web.handler;
 
+import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.WebTestBase;
+import org.junit.AfterClass;
 import org.junit.Test;
 
 import java.util.List;
@@ -28,6 +30,14 @@ import java.util.concurrent.CountDownLatch;
  * @author <a href="mailto:pmlopes@gmail.com">Paulo Lopes</a>
  */
 public class CSRFHandlerTest extends WebTestBase {
+
+  @AfterClass
+  public static void oneTimeTearDown() {
+    Vertx vertx = Vertx.vertx();
+    if (vertx.fileSystem().existsBlocking(BodyHandler.DEFAULT_UPLOADS_DIRECTORY)) {
+      vertx.fileSystem().deleteRecursiveBlocking(BodyHandler.DEFAULT_UPLOADS_DIRECTORY, true);
+    }
+  }
 
   @Test
   public void testGetCookie() throws Exception {

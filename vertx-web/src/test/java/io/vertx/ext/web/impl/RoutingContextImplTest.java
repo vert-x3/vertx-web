@@ -1,18 +1,28 @@
 package io.vertx.ext.web.impl;
 
 import io.netty.handler.codec.http.HttpResponseStatus;
+import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.*;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.WebTestBase;
 import io.vertx.ext.web.handler.BodyHandler;
+import org.junit.AfterClass;
 import org.junit.Test;
 
 import java.util.Collections;
 
 
 public class RoutingContextImplTest extends WebTestBase {
+
+    @AfterClass
+    public static void oneTimeTearDown() {
+        Vertx vertx = Vertx.vertx();
+        if (vertx.fileSystem().existsBlocking(BodyHandler.DEFAULT_UPLOADS_DIRECTORY)) {
+            vertx.fileSystem().deleteRecursiveBlocking(BodyHandler.DEFAULT_UPLOADS_DIRECTORY, true);
+        }
+    }
 
     @Override
     public void setUp() throws Exception {
