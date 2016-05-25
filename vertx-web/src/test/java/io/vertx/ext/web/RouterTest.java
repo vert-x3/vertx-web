@@ -393,7 +393,7 @@ public class RouterTest extends WebTestBase {
       rc.response().setChunked(true);
       rc.response().write("apples");
       rc.next();
-    });;
+    });
     Route route2 = router.route(path).handler(rc -> {
       rc.response().write("oranges");
       rc.next();
@@ -423,7 +423,7 @@ public class RouterTest extends WebTestBase {
       rc.response().setChunked(true);
       rc.response().write("apples");
       rc.next();
-    });;
+    });
     Route route2 = router.route(path).handler(rc -> {
       rc.response().write("oranges");
       rc.next();

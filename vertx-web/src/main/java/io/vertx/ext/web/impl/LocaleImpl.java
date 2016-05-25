@@ -28,7 +28,7 @@ public class LocaleImpl implements Locale {
   private final String country;
   private final String variant;
 
-  public LocaleImpl(String language, String country, String variant) {;
+  public LocaleImpl(String language, String country, String variant) {
     this.language = Objects.requireNonNull(language).toLowerCase();
     this.country = country != null ? country.toUpperCase() : "";
     this.variant = variant != null ? variant.toUpperCase() : "";

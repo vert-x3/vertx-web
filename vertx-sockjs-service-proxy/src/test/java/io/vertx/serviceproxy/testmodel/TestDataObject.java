@@ -87,9 +87,8 @@ public class TestDataObject {
 
     if (bool != that.bool) return false;
     if (number != that.number) return false;
-    if (!string.equals(that.string)) return false;
+    return string.equals(that.string);
 
-    return true;
   }
 
   @Override

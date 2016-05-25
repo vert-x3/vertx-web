@@ -170,8 +170,8 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
     assertEquals(1234, (int) session.get("someint"));
     assertEquals((short) 123, (short) session.get("someshort"));
     assertEquals((byte) 12, (byte) session.get("somebyte"));
-    assertEquals(123.456d, (double) session.get("somedouble"), 0);
-    assertEquals(123.456f, (float) session.get("somefloat"), 0);
+    assertEquals(123.456d, session.get("somedouble"), 0);
+    assertEquals(123.456f, session.get("somefloat"), 0);
     assertEquals('X', (char) session.get("somechar"));
     assertTrue(session.get("somebooleantrue"));
     assertFalse(session.get("somebooleanfalse"));
