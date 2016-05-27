@@ -167,8 +167,8 @@ class HttpServerRequestWrapper implements HttpServerRequest {
   }
 
   @Override
-  public HttpServerRequest customFrameHandler(Handler<HttpFrame> handler) {
-    delegate.customFrameHandler(handler);
+  public HttpServerRequest unknownFrameHandler(Handler<HttpFrame> handler) {
+    delegate.unknownFrameHandler(handler);
     return this;
   }
 
