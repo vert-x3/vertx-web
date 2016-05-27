@@ -24,7 +24,7 @@ var JTimeoutHandler = io.vertx.ext.web.handler.TimeoutHandler;
 
 /**
  Handler that will timeout requests if the response has not been written after a certain time.
- Timeout requests will be ended with an HTTP status code `408`.
+ Timeout requests will be ended with an HTTP status code `503`.
 
  @class
 */

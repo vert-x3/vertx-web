@@ -23,7 +23,7 @@ import io.vertx.ext.web.handler.impl.TimeoutHandlerImpl;
 
 /**
  * Handler that will timeout requests if the response has not been written after a certain time.
- * Timeout requests will be ended with an HTTP status code `408`.
+ * Timeout requests will be ended with an HTTP status code `503`.
  *
  * @author <a href="http://tfox.org">Tim Fox</a>
  */

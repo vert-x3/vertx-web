@@ -1902,7 +1902,7 @@ Vert.x-Web includes a timeout handler that you can use to timeout requests if th
 
 This is configured using an instance of `link:../../apidocs/io/vertx/ext/web/handler/TimeoutHandler.html[TimeoutHandler]`.
 
-If a request times out before the response is written a `408` response will be returned to the client.
+If a request times out before the response is written a `503` response will be returned to the client.
 
 Here's an example of using a timeout handler which will timeout all requests to paths starting with `/foo` after 5
 seconds:

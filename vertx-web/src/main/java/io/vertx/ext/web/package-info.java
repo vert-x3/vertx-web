@@ -1365,7 +1365,7 @@
  *
  * This is configured using an instance of {@link io.vertx.ext.web.handler.TimeoutHandler}.
  *
- * If a request times out before the response is written a `408` response will be returned to the client.
+ * If a request times out before the response is written a `503` response will be returned to the client.
  *
  * Here's an example of using a timeout handler which will timeout all requests to paths starting with `/foo` after 5
  * seconds:

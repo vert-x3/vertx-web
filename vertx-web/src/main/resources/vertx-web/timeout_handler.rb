@@ -3,7 +3,7 @@ require 'vertx/util/utils.rb'
 # Generated from io.vertx.ext.web.handler.TimeoutHandler
 module VertxWeb
   #  Handler that will timeout requests if the response has not been written after a certain time.
-  #  Timeout requests will be ended with an HTTP status code `408`.
+  #  Timeout requests will be ended with an HTTP status code `503`.
   class TimeoutHandler
     # @private
     # @param j_del [::VertxWeb::TimeoutHandler] the java delegate

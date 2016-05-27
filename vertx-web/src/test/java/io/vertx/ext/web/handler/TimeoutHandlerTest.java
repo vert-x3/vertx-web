@@ -32,7 +32,7 @@ public class TimeoutHandlerTest extends WebTestBase {
     router.route().handler(rc -> {
       // Don't end it
     });
-    testRequest(HttpMethod.GET, "/", 408, "Request Timeout");
+    testRequest(HttpMethod.GET, "/", 503, "Service Unavailable");
   }
 
   @Test
@@ -49,7 +49,7 @@ public class TimeoutHandlerTest extends WebTestBase {
     router.route().handler(rc -> {
       // Don't end it
     });
-    testRequest(HttpMethod.GET, "/", 408, "Request Timeout");
+    testRequest(HttpMethod.GET, "/", 503, "Service Unavailable");
 
     assertTrue(ended[0]);
   }
