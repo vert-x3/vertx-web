@@ -17,6 +17,7 @@
 package io.vertx.ext.web.templ;
 
 import io.vertx.codegen.annotations.VertxGen;
+import io.vertx.core.Vertx;
 import io.vertx.ext.web.templ.impl.PebbleTemplateEngineImpl;
 
 /**
@@ -42,8 +43,8 @@ public interface PebbleTemplateEngine extends TemplateEngine {
 	 *
 	 * @return the engine
 	 */
-	static PebbleTemplateEngine create() {
-		return new PebbleTemplateEngineImpl();
+	static PebbleTemplateEngine create(Vertx vertx) {
+		return new PebbleTemplateEngineImpl(vertx);
 	}
 
 	/**

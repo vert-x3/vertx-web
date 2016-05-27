@@ -29,27 +29,27 @@ public class PebbleTemplateTest extends WebTestBase {
 
 	@Test
 	public void testTemplateHandlerOnClasspath() throws Exception {
-		final TemplateEngine engine = PebbleTemplateEngine.create();
+		final TemplateEngine engine = PebbleTemplateEngine.create(vertx);
 		testTemplateHandler(engine, "somedir", "test-pebble-template2.peb",
 		        "Hello badger and foxRequest path is /test-pebble-template2.peb");
 	}
 
 	@Test
 	public void testTemplateHandlerOnFileSystem() throws Exception {
-		final TemplateEngine engine = PebbleTemplateEngine.create();
+		final TemplateEngine engine = PebbleTemplateEngine.create(vertx);
 		testTemplateHandler(engine, "src/test/filesystemtemplates", "test-pebble-template3.peb",
 		        "Hello badger and foxRequest path is /test-pebble-template3.peb");
 	}
 
 	@Test
 	public void testTemplateHandlerNoExtension() throws Exception {
-		final TemplateEngine engine = PebbleTemplateEngine.create();
+		final TemplateEngine engine = PebbleTemplateEngine.create(vertx);
 		testTemplateHandler(engine, "somedir", "test-pebble-template2", "Hello badger and foxRequest path is /test-pebble-template2");
 	}
 
 	@Test
 	public void testTemplateHandlerChangeExtension() throws Exception {
-		final TemplateEngine engine = PebbleTemplateEngine.create().setExtension("beb");
+		final TemplateEngine engine = PebbleTemplateEngine.create(vertx).setExtension("beb");
 		testTemplateHandler(engine, "somedir", "test-pebble-template2", "Cheerio badger and foxRequest path is /test-pebble-template2");
 	}
 
@@ -65,9 +65,17 @@ public class PebbleTemplateTest extends WebTestBase {
 
 	@Test
 	public void testNoSuchTemplate() throws Exception {
-		final TemplateEngine engine = PebbleTemplateEngine.create();
+		final TemplateEngine engine = PebbleTemplateEngine.create(vertx);
 		router.route().handler(TemplateHandler.create(engine, "nosuchtemplate.peb", "text/plain"));
 		testRequest(HttpMethod.GET, "/foo.peb", 500, "Internal Server Error");
 	}
 
+	@Test
+	public void testTemplateComplex() throws Exception {
+
+		String expected = "Hello.Hi fox.\nHi badger!Footer - badger";
+
+		final TemplateEngine engine = PebbleTemplateEngine.create(vertx);
+		testTemplateHandler(engine, "src/test/filesystemtemplates", "test-pebble-complex.peb", expected);
+	}
 }
