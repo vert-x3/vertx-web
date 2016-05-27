@@ -1429,8 +1429,7 @@
  *
  * In client side JavaScript you use the SockJS client side library to make connections.
  *
- * You can find that http://cdn.sockjs.org/sockjs-0.3.4.js[here].
- * The minified version is http://cdn.sockjs.org/sockjs-0.3.4.min.js[here].
+ * You can find that http://cdn.jsdelivr.net/sockjs/0.3.4/sockjs.min.js[here].
  *
  * Full details for using the SockJS JavaScript client are on the https://github.com/sockjs/sockjs-client[SockJS website],
  * but in summary you use it something like this:
@@ -1477,7 +1476,7 @@
  * invisible iframe. Code run from this iframe doesn't need to worry about cross-domain issues, as it's being run from
  * domain local to the SockJS server. This iframe also does need to load SockJS javascript client library, and this option
  * lets you specify its url (if you're unsure, point it to the latest minified SockJS client release, this is the default).
- * The default value is `http://cdn.sockjs.org/sockjs-0.3.4.min.js`
+ * The default value is `http://cdn.jsdelivr.net/sockjs/0.3.4/sockjs.min.js`
  * `disabledTransports`:: This is a list of transports that you want to disable. Possible values are
  * WEBSOCKET, EVENT_SOURCE, HTML_FILE, JSON_P, XHR.
  *
@@ -1515,7 +1514,7 @@
  * and receive messages:
  *
  * ----
- * <script src="http://cdn.sockjs.org/sockjs-0.3.4.min.js"></script>
+ * <script src="http://cdn.jsdelivr.net/sockjs/0.3.4/sockjs.min.js"></script>
  * <script src='vertx-eventbus.js'></script>
  *
  * <script>
