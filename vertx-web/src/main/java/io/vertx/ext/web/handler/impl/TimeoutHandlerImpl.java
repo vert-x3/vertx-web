@@ -35,8 +35,8 @@ public class TimeoutHandlerImpl implements TimeoutHandler {
   @Override
   public void handle(RoutingContext ctx) {
 
-    // We send a 408 response after timeout
-    long tid = ctx.vertx().setTimer(timeout, t -> ctx.fail(408));
+    // We send a 503 response after timeout
+    long tid = ctx.vertx().setTimer(timeout, t -> ctx.fail(503));
 
     ctx.addBodyEndHandler(v -> ctx.vertx().cancelTimer(tid));
 
