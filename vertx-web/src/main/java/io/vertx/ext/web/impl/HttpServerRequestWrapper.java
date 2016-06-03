@@ -9,17 +9,23 @@ import io.vertx.core.net.SocketAddress;
 
 import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.security.cert.X509Certificate;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 class HttpServerRequestWrapper implements HttpServerRequest {
 
   private final HttpServerRequest delegate;
   private HttpMethod method;
   private String path;
+  private String uri;
+  private String absoluteURI;
 
   HttpServerRequestWrapper(HttpServerRequest request) {
     delegate = request;
     method = request.method();
     path = request.path();
+    uri = request.uri();
+    absoluteURI = null;
   }
 
   @Override
@@ -63,12 +69,20 @@ class HttpServerRequestWrapper implements HttpServerRequest {
   }
 
   @Override
+  public String rawMethod() {
+    return delegate.rawMethod();
+  }
+
+  @Override
   public String uri() {
-    return delegate.uri();
+    return uri;
   }
 
   void setPath(String path) {
     this.path = path;
+    // when overriding the path we also need to rewrite the uri and absoluteURI
+    uri = path;
+    absoluteURI = null;
   }
 
   @Override
@@ -128,7 +142,39 @@ class HttpServerRequestWrapper implements HttpServerRequest {
 
   @Override
   public String absoluteURI() {
-    return delegate.absoluteURI();
+    if (absoluteURI == null) {
+      try {
+        URL url = new URL(delegate.absoluteURI());
+        URL newUrl = new URL(url.getProtocol(), url.getHost(), url.getPort(), uri);
+
+        absoluteURI = newUrl.toExternalForm();
+      } catch (MalformedURLException e) {
+        throw new RuntimeException(e);
+      }
+    }
+
+    return absoluteURI;
+  }
+
+  @Override
+  public String scheme() {
+    return delegate.scheme();
+  }
+
+  @Override
+  public String host() {
+    return delegate.host();
+  }
+
+  @Override
+  public HttpServerRequest customFrameHandler(Handler<HttpFrame> handler) {
+    delegate.customFrameHandler(handler);
+    return this;
+  }
+
+  @Override
+  public HttpConnection connection() {
+    return delegate.connection();
   }
 
   @Override
@@ -174,5 +220,9 @@ class HttpServerRequestWrapper implements HttpServerRequest {
   @Override
   public boolean isEnded() {
     return delegate.isEnded();
+  }
+
+  public boolean isSSL() {
+    return delegate.isSSL();
   }
 }

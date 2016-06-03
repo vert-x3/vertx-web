@@ -47,19 +47,18 @@ var BridgeEvent = function(j_val) {
     var __args = arguments;
     if (__args.length === 0) {
       if (that.cachedtype == null) {
-        that.cachedtype = (j_bridgeEvent["type()"]()).toString();
+        that.cachedtype = utils.convReturnEnum(j_bridgeEvent["type()"]());
       }
       return that.cachedtype;
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
-   Get the raw JSON message for the event. This will be null for SOCKET_CREATED or SOCKET_CLOSED events as there is
-   no message involved.
+   Use {@link BridgeEvent#getRawMessage} instead, will be removed in 3.3
 
    @public
 
-   @return {Object} the raw JSON message for the event
+   @return {Object}
    */
   this.rawMessage = function() {
     var __args = arguments;
@@ -68,6 +67,38 @@ var BridgeEvent = function(j_val) {
         that.cachedrawMessage = utils.convReturnJson(j_bridgeEvent["rawMessage()"]());
       }
       return that.cachedrawMessage;
+    } else throw new TypeError('function invoked with invalid arguments');
+  };
+
+  /**
+   Get the raw JSON message for the event. This will be null for SOCKET_CREATED or SOCKET_CLOSED events as there is
+   no message involved. If the returned message is modified, {@link BridgeEvent#setRawMessage} should be called with the
+   new message.
+
+   @public
+
+   @return {Object} the raw JSON message for the event
+   */
+  this.getRawMessage = function() {
+    var __args = arguments;
+    if (__args.length === 0) {
+      return utils.convReturnJson(j_bridgeEvent["getRawMessage()"]());
+    } else throw new TypeError('function invoked with invalid arguments');
+  };
+
+  /**
+   Get the raw JSON message for the event. This will be null for SOCKET_CREATED or SOCKET_CLOSED events as there is
+   no message involved.
+
+   @public
+   @param message {Object} the raw message 
+   @return {BridgeEvent} this reference, so it can be used fluently
+   */
+  this.setRawMessage = function(message) {
+    var __args = arguments;
+    if (__args.length === 1 && (typeof __args[0] === 'object' && __args[0] != null)) {
+      j_bridgeEvent["setRawMessage(io.vertx.core.json.JsonObject)"](utils.convParamJsonObject(message));
+      return that;
     } else throw new TypeError('function invoked with invalid arguments');
   };
 

@@ -223,6 +223,15 @@ module VertxWeb
     end
     #  @return Get the entire HTTP request body as a . The context must have first been routed to a
     #  {::VertxWeb::BodyHandler} for this to be populated.
+    # @return [Array<String,Object>]
+    def get_body_as_json_array
+      if !block_given?
+        return @j_del.java_method(:getBodyAsJsonArray, []).call() != nil ? JSON.parse(@j_del.java_method(:getBodyAsJsonArray, []).call().encode) : nil
+      end
+      raise ArgumentError, "Invalid arguments when calling get_body_as_json_array()"
+    end
+    #  @return Get the entire HTTP request body as a . The context must have first been routed to a
+    #  {::VertxWeb::BodyHandler} for this to be populated.
     # @return [::Vertx::Buffer]
     def get_body
       if !block_given?
@@ -258,8 +267,23 @@ module VertxWeb
       raise ArgumentError, "Invalid arguments when calling user()"
     end
     #  If the context is being routed to failure handlers after a failure has been triggered by calling
+    #  {::VertxWeb::RoutingContext#fail} then this will return that throwable. It can be used by failure handlers to render a response,
+    #  e.g. create a failure response page.
+    # @return [Exception] the throwable used when signalling failure
+    def failure
+      if !block_given?
+        if @cached_failure != nil
+          return @cached_failure
+        end
+        return @cached_failure = ::Vertx::Util::Utils.from_throwable(@j_del.java_method(:failure, []).call())
+      end
+      raise ArgumentError, "Invalid arguments when calling failure()"
+    end
+    #  If the context is being routed to failure handlers after a failure has been triggered by calling
     #  {::VertxWeb::RoutingContext#fail}  then this will return that status code.  It can be used by failure handlers to render a response,
     #  e.g. create a failure response page.
+    # 
+    #  When the status code has not been set yet (it is undefined) its value will be -1.
     # @return [Fixnum] the status code used when signalling failure
     def status_code
       if !block_given?
@@ -375,7 +399,7 @@ module VertxWeb
     # @overload reroute(path)
     #   @param [String] path the new http path.
     # @overload reroute(method,path)
-    #   @param [:OPTIONS,:GET,:HEAD,:POST,:PUT,:DELETE,:TRACE,:CONNECT,:PATCH] method the new http request
+    #   @param [:OPTIONS,:GET,:HEAD,:POST,:PUT,:DELETE,:TRACE,:CONNECT,:PATCH,:OTHER] method the new http request
     #   @param [String] path the new http path.
     # @return [void]
     def reroute(param_1=nil,param_2=nil)
@@ -410,6 +434,23 @@ module VertxWeb
         return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:preferredLocale, []).call(),::VertxWeb::Locale)
       end
       raise ArgumentError, "Invalid arguments when calling preferred_locale()"
+    end
+    #  Returns a map of named parameters as defined in path declaration with their actual values
+    # @return [Hash{String => String}] the map of named parameters
+    def path_params
+      if !block_given?
+        return Java::IoVertxLangRuby::Helper.adaptingMap(@j_del.java_method(:pathParams, []).call(), Proc.new { |val| ::Vertx::Util::Utils.from_object(val) }, Proc.new { |val| ::Vertx::Util::Utils.to_string(val) })
+      end
+      raise ArgumentError, "Invalid arguments when calling path_params()"
+    end
+    #  Gets the value of a single path parameter
+    # @param [String] name the name of parameter as defined in path declaration
+    # @return [String] the actual value of the parameter or null if it doesn't exist
+    def path_param(name=nil)
+      if name.class == String && !block_given?
+        return @j_del.java_method(:pathParam, [Java::java.lang.String.java_class]).call(name)
+      end
+      raise ArgumentError, "Invalid arguments when calling path_param(name)"
     end
   end
 end

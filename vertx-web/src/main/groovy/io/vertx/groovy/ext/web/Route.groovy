@@ -40,7 +40,7 @@ public class Route {
    * @return a reference to this, so the API can be used fluently
    */
   public Route method(HttpMethod method) {
-    this.delegate.method(method);
+    delegate.method(method);
     return this;
   }
   /**
@@ -50,7 +50,7 @@ public class Route {
    * @return a reference to this, so the API can be used fluently
    */
   public Route path(String path) {
-    this.delegate.path(path);
+    delegate.path(path);
     return this;
   }
   /**
@@ -60,7 +60,7 @@ public class Route {
    * @return a reference to this, so the API can be used fluently
    */
   public Route pathRegex(String path) {
-    this.delegate.pathRegex(path);
+    delegate.pathRegex(path);
     return this;
   }
   /**
@@ -69,8 +69,8 @@ public class Route {
    * @return a reference to this, so the API can be used fluently
    */
   public Route produces(String contentType) {
-    def ret= InternalHelper.safeCreate(this.delegate.produces(contentType), io.vertx.groovy.ext.web.Route.class);
-    return ret;
+    delegate.produces(contentType);
+    return this;
   }
   /**
    * Add a content type consumed by this route. Used for content based routing.
@@ -78,7 +78,7 @@ public class Route {
    * @return a reference to this, so the API can be used fluently
    */
   public Route consumes(String contentType) {
-    this.delegate.consumes(contentType);
+    delegate.consumes(contentType);
     return this;
   }
   /**
@@ -87,7 +87,7 @@ public class Route {
    * @return a reference to this, so the API can be used fluently
    */
   public Route order(int order) {
-    this.delegate.order(order);
+    delegate.order(order);
     return this;
   }
   /**
@@ -95,7 +95,7 @@ public class Route {
    * @return a reference to this, so the API can be used fluently
    */
   public Route last() {
-    this.delegate.last();
+    delegate.last();
     return this;
   }
   /**
@@ -106,11 +106,11 @@ public class Route {
    * @return a reference to this, so the API can be used fluently
    */
   public Route handler(Handler<RoutingContext> requestHandler) {
-    this.delegate.handler(new Handler<io.vertx.ext.web.RoutingContext>() {
+    delegate.handler(requestHandler != null ? new Handler<io.vertx.ext.web.RoutingContext>(){
       public void handle(io.vertx.ext.web.RoutingContext event) {
-        requestHandler.handle(new io.vertx.groovy.ext.web.RoutingContext(event));
+        requestHandler.handle(InternalHelper.safeCreate(event, io.vertx.groovy.ext.web.RoutingContext.class));
       }
-    });
+    } : null);
     return this;
   }
   /**
@@ -119,11 +119,11 @@ public class Route {
    * @return 
    */
   public Route blockingHandler(Handler<RoutingContext> requestHandler) {
-    this.delegate.blockingHandler(new Handler<io.vertx.ext.web.RoutingContext>() {
+    delegate.blockingHandler(requestHandler != null ? new Handler<io.vertx.ext.web.RoutingContext>(){
       public void handle(io.vertx.ext.web.RoutingContext event) {
-        requestHandler.handle(new io.vertx.groovy.ext.web.RoutingContext(event));
+        requestHandler.handle(InternalHelper.safeCreate(event, io.vertx.groovy.ext.web.RoutingContext.class));
       }
-    });
+    } : null);
     return this;
   }
   /**
@@ -140,11 +140,11 @@ public class Route {
    * @return a reference to this, so the API can be used fluently
    */
   public Route blockingHandler(Handler<RoutingContext> requestHandler, boolean ordered) {
-    this.delegate.blockingHandler(new Handler<io.vertx.ext.web.RoutingContext>() {
+    delegate.blockingHandler(requestHandler != null ? new Handler<io.vertx.ext.web.RoutingContext>(){
       public void handle(io.vertx.ext.web.RoutingContext event) {
-        requestHandler.handle(new io.vertx.groovy.ext.web.RoutingContext(event));
+        requestHandler.handle(InternalHelper.safeCreate(event, io.vertx.groovy.ext.web.RoutingContext.class));
       }
-    }, ordered);
+    } : null, ordered);
     return this;
   }
   /**
@@ -155,11 +155,11 @@ public class Route {
    * @return a reference to this, so the API can be used fluently
    */
   public Route failureHandler(Handler<RoutingContext> failureHandler) {
-    this.delegate.failureHandler(new Handler<io.vertx.ext.web.RoutingContext>() {
+    delegate.failureHandler(failureHandler != null ? new Handler<io.vertx.ext.web.RoutingContext>(){
       public void handle(io.vertx.ext.web.RoutingContext event) {
-        failureHandler.handle(new io.vertx.groovy.ext.web.RoutingContext(event));
+        failureHandler.handle(InternalHelper.safeCreate(event, io.vertx.groovy.ext.web.RoutingContext.class));
       }
-    });
+    } : null);
     return this;
   }
   /**
@@ -167,7 +167,7 @@ public class Route {
    * @return a reference to this, so the API can be used fluently
    */
   public Route remove() {
-    this.delegate.remove();
+    delegate.remove();
     return this;
   }
   /**
@@ -175,7 +175,7 @@ public class Route {
    * @return a reference to this, so the API can be used fluently
    */
   public Route disable() {
-    this.delegate.disable();
+    delegate.disable();
     return this;
   }
   /**
@@ -183,7 +183,7 @@ public class Route {
    * @return a reference to this, so the API can be used fluently
    */
   public Route enable() {
-    this.delegate.enable();
+    delegate.enable();
     return this;
   }
   /**
@@ -193,7 +193,7 @@ public class Route {
    * @return a reference to this, so the API can be used fluently
    */
   public Route useNormalisedPath(boolean useNormalisedPath) {
-    this.delegate.useNormalisedPath(useNormalisedPath);
+    delegate.useNormalisedPath(useNormalisedPath);
     return this;
   }
   /**
@@ -201,7 +201,7 @@ public class Route {
    * @return 
    */
   public String getPath() {
-    def ret = this.delegate.getPath();
+    def ret = delegate.getPath();
     return ret;
   }
 }

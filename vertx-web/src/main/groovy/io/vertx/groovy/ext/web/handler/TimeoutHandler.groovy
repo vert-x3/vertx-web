@@ -22,7 +22,7 @@ import io.vertx.groovy.ext.web.RoutingContext
 import io.vertx.core.Handler
 /**
  * Handler that will timeout requests if the response has not been written after a certain time.
- * Timeout requests will be ended with an HTTP status code `408`.
+ * Timeout requests will be ended with an HTTP status code `503`.
 */
 @CompileStatic
 public class TimeoutHandler implements Handler<RoutingContext> {
@@ -34,14 +34,14 @@ public class TimeoutHandler implements Handler<RoutingContext> {
     return delegate;
   }
   public void handle(RoutingContext arg0) {
-    ((io.vertx.core.Handler) this.delegate).handle((io.vertx.ext.web.RoutingContext)arg0.getDelegate());
+    ((io.vertx.core.Handler) delegate).handle(arg0 != null ? (io.vertx.ext.web.RoutingContext)arg0.getDelegate() : null);
   }
   /**
    * Create a handler
    * @return the handler
    */
   public static TimeoutHandler create() {
-    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.TimeoutHandler.create(), io.vertx.groovy.ext.web.handler.TimeoutHandler.class);
+    def ret = InternalHelper.safeCreate(io.vertx.ext.web.handler.TimeoutHandler.create(), io.vertx.groovy.ext.web.handler.TimeoutHandler.class);
     return ret;
   }
   /**
@@ -50,7 +50,7 @@ public class TimeoutHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static TimeoutHandler create(long timeout) {
-    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.TimeoutHandler.create(timeout), io.vertx.groovy.ext.web.handler.TimeoutHandler.class);
+    def ret = InternalHelper.safeCreate(io.vertx.ext.web.handler.TimeoutHandler.create(timeout), io.vertx.groovy.ext.web.handler.TimeoutHandler.class);
     return ret;
   }
 }

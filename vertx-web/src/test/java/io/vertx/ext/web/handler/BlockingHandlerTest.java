@@ -159,7 +159,9 @@ public class BlockingHandlerTest extends WebTestBase {
     awaitLatch(latch);
 
     long now = System.currentTimeMillis();
-    long leeway = 1000;
+    // we sleep for 5 seconds and we expect to be done within 2 + 1 seconds
+    // this proves we run in parallel
+    long leeway = 2000;
     assertTrue(now - start < pause + leeway);
   }
 

@@ -1,0 +1,19 @@
+= Cheatsheets
+
+[[TestDataObject]]
+== TestDataObject
+
+++++
+ @author <a href="mailto:nscavell@redhat.com">Nick Scavelli</a>
+++++
+'''
+
+[cols=">25%,^25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[bool]]`bool`|`Boolean`|-
+|[[number]]`number`|`Number (int)`|-
+|[[string]]`string`|`String`|-
+|===
+

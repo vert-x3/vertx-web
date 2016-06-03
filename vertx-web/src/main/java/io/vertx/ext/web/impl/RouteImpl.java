@@ -26,11 +26,7 @@ import io.vertx.ext.web.RoutingContext;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -49,8 +45,8 @@ public class RouteImpl implements Route {
 
   private final RouterImpl router;
   private final Set<HttpMethod> methods = new HashSet<>();
-  private final Set<String> consumes = new HashSet<>();
-  private final Set<String> produces = new HashSet<>();
+  private final Set<String> consumes = new LinkedHashSet<>();
+  private final Set<String> produces = new LinkedHashSet<>();
   private String path;
   private int order;
   private boolean enabled = true;
@@ -58,7 +54,7 @@ public class RouteImpl implements Route {
   private Handler<RoutingContext> failureHandler;
   private boolean added;
   private Pattern pattern;
-  private Set<String> groups;
+  private List<String> groups;
   private boolean useNormalisedPath = true;
 
   RouteImpl(RouterImpl router, int order) {
@@ -154,7 +150,7 @@ public class RouteImpl implements Route {
   public synchronized Route blockingHandler(Handler<RoutingContext> contextHandler, boolean ordered) {
     return handler(new BlockingHandlerDecorator(contextHandler, ordered));
   }
-  
+
   @Override
   public synchronized Route failureHandler(Handler<RoutingContext> exceptionHandler) {
     if (this.failureHandler != null) {
@@ -243,17 +239,9 @@ public class RouteImpl implements Route {
       return false;
     }
     if (pattern != null) {
-      String path = request.path();
+      String path = useNormalisedPath ? Utils.normalisePath(context.request().path(), false) : context.request().path();
       if (mountPoint != null) {
         path = path.substring(mountPoint.length());
-      }
-
-      // decode the path as it could contain escaped chars.
-      try {
-        path = URLDecoder.decode(path, "UTF-8");
-      } catch (UnsupportedEncodingException e) {
-        context.fail(e);
-        return false;
       }
 
       Matcher m = pattern.matcher(path);
@@ -262,16 +250,44 @@ public class RouteImpl implements Route {
           Map<String, String> params = new HashMap<>(m.groupCount());
           if (groups != null) {
             // Pattern - named params
-            for (String param : groups) {
-              params.put(param, m.group(param));
+            // decode the path as it could contain escaped chars.
+            try {
+              for (int i = 0; i < groups.size(); i++) {
+                final String k = groups.get(i);
+                final String value = URLDecoder.decode(URLDecoder.decode(m.group("p" + i), "UTF-8"), "UTF-8");
+                if (!request.params().contains(k)) {
+                  params.put(k, value);
+                } else {
+                  context.pathParams().put(k, value);
+                }
+              }
+            } catch (UnsupportedEncodingException e) {
+              context.fail(e);
+              return false;
             }
           } else {
             // Straight regex - un-named params
-            for (int i = 0; i < m.groupCount(); i++) {
-              params.put("param" + i, m.group(i + 1));
+            // decode the path as it could contain escaped chars.
+            try {
+              for (int i = 0; i < m.groupCount(); i++) {
+                String group = m.group(i + 1);
+                if(group != null) {
+                  final String k = "param" + i;
+                  final String value = URLDecoder.decode(group, "UTF-8");
+                  if (!request.params().contains(k)) {
+                    params.put(k, value);
+                  } else {
+                    context.pathParams().put(k, value);
+                  }
+                }
+              }
+            } catch (UnsupportedEncodingException e) {
+              context.fail(e);
+              return false;
             }
           }
           request.params().addAll(params);
+          context.pathParams().putAll(params);
         }
       } else {
         return false;
@@ -303,6 +319,11 @@ public class RouteImpl implements Route {
             }
           }
         }
+      } else {
+        // According to rfc2616-sec14,
+        // If no Accept header field is present, then it is assumed that the client accepts all media types.
+        context.setAcceptableContentType(produces.iterator().next());
+        return true;
       }
       return false;
     }
@@ -354,7 +375,7 @@ public class RouteImpl implements Route {
 
   private boolean pathMatches(String mountPoint, RoutingContext ctx) {
     String thePath = mountPoint == null ? path : mountPoint + path;
-    String requestPath = useNormalisedPath ? ctx.normalisedPath() : ctx.request().path();
+    String requestPath = useNormalisedPath ? Utils.normalisePath(ctx.request().path(), false) : ctx.request().path();
     if (exactPath) {
       return pathMatchesExact(requestPath, thePath);
     } else {
@@ -403,14 +424,17 @@ public class RouteImpl implements Route {
     // We need to search for any :<token name> tokens in the String and replace them with named capture groups
     Matcher m =  Pattern.compile(":([A-Za-z][A-Za-z0-9_]*)").matcher(path);
     StringBuffer sb = new StringBuffer();
-    groups = new HashSet<>();
+    groups = new ArrayList<>();
+    int index = 0;
     while (m.find()) {
+      String param = "p" + index;
       String group = m.group().substring(1);
       if (groups.contains(group)) {
         throw new IllegalArgumentException("Cannot use identifier " + group + " more than once in pattern string");
       }
-      m.appendReplacement(sb, "(?<$1>[^/]+)");
+      m.appendReplacement(sb, "(?<" + param + ">[^/]+)");
       groups.add(group);
+      index++;
     }
     m.appendTail(sb);
     path = sb.toString();

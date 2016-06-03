@@ -17,7 +17,6 @@
 package io.vertx.rxjava.ext.web.handler;
 
 import java.util.Map;
-import io.vertx.lang.rxjava.InternalHelper;
 import rx.Observable;
 import io.vertx.rxjava.ext.web.RoutingContext;
 import io.vertx.core.Handler;
@@ -43,7 +42,7 @@ public class CookieHandler implements Handler<RoutingContext> {
   }
 
   public void handle(RoutingContext arg0) { 
-    this.delegate.handle((io.vertx.ext.web.RoutingContext) arg0.getDelegate());
+    delegate.handle((io.vertx.ext.web.RoutingContext)arg0.getDelegate());
   }
 
   /**
@@ -51,7 +50,7 @@ public class CookieHandler implements Handler<RoutingContext> {
    * @return the cookie handler
    */
   public static CookieHandler create() { 
-    CookieHandler ret= CookieHandler.newInstance(io.vertx.ext.web.handler.CookieHandler.create());
+    CookieHandler ret = CookieHandler.newInstance(io.vertx.ext.web.handler.CookieHandler.create());
     return ret;
   }
 

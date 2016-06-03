@@ -16,17 +16,34 @@ module VertxWeb
     def j_del
       @j_del
     end
-    #  Create a session store
-    # @param [::Vertx::Vertx] vertx the Vert.x instance
-    # @param [String] sessionMapName the session map name
+    #  Create a session store.<p/>
+    # 
+    #  The retry timeout value, configures how long the session handler will retry to get a session from the store
+    #  when it is not found.
+    # @overload create(vertx)
+    #   @param [::Vertx::Vertx] vertx the Vert.x instance
+    # @overload create(vertx,sessionMapName)
+    #   @param [::Vertx::Vertx] vertx the Vert.x instance
+    #   @param [String] sessionMapName the session map name
+    # @overload create(vertx,retryTimeout)
+    #   @param [::Vertx::Vertx] vertx the Vert.x instance
+    #   @param [Fixnum] retryTimeout the store retry timeout, in ms
+    # @overload create(vertx,sessionMapName,retryTimeout)
+    #   @param [::Vertx::Vertx] vertx the Vert.x instance
+    #   @param [String] sessionMapName the session map name
+    #   @param [Fixnum] retryTimeout the store retry timeout, in ms
     # @return [::VertxWeb::ClusteredSessionStore] the session store
-    def self.create(vertx=nil,sessionMapName=nil)
-      if vertx.class.method_defined?(:j_del) && !block_given? && sessionMapName == nil
-        return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebSstore::ClusteredSessionStore.java_method(:create, [Java::IoVertxCore::Vertx.java_class]).call(vertx.j_del),::VertxWeb::ClusteredSessionStore)
-      elsif vertx.class.method_defined?(:j_del) && sessionMapName.class == String && !block_given?
-        return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebSstore::ClusteredSessionStore.java_method(:create, [Java::IoVertxCore::Vertx.java_class,Java::java.lang.String.java_class]).call(vertx.j_del,sessionMapName),::VertxWeb::ClusteredSessionStore)
+    def self.create(param_1=nil,param_2=nil,param_3=nil)
+      if param_1.class.method_defined?(:j_del) && !block_given? && param_2 == nil && param_3 == nil
+        return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebSstore::ClusteredSessionStore.java_method(:create, [Java::IoVertxCore::Vertx.java_class]).call(param_1.j_del),::VertxWeb::ClusteredSessionStore)
+      elsif param_1.class.method_defined?(:j_del) && param_2.class == String && !block_given? && param_3 == nil
+        return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebSstore::ClusteredSessionStore.java_method(:create, [Java::IoVertxCore::Vertx.java_class,Java::java.lang.String.java_class]).call(param_1.j_del,param_2),::VertxWeb::ClusteredSessionStore)
+      elsif param_1.class.method_defined?(:j_del) && param_2.class == Fixnum && !block_given? && param_3 == nil
+        return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebSstore::ClusteredSessionStore.java_method(:create, [Java::IoVertxCore::Vertx.java_class,Java::long.java_class]).call(param_1.j_del,param_2),::VertxWeb::ClusteredSessionStore)
+      elsif param_1.class.method_defined?(:j_del) && param_2.class == String && param_3.class == Fixnum && !block_given?
+        return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebSstore::ClusteredSessionStore.java_method(:create, [Java::IoVertxCore::Vertx.java_class,Java::java.lang.String.java_class,Java::long.java_class]).call(param_1.j_del,param_2,param_3),::VertxWeb::ClusteredSessionStore)
       end
-      raise ArgumentError, "Invalid arguments when calling create(vertx,sessionMapName)"
+      raise ArgumentError, "Invalid arguments when calling create(param_1,param_2,param_3)"
     end
   end
 end

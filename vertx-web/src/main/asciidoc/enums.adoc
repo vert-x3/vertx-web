@@ -42,6 +42,32 @@ This event will occur when a client attempts to unregister a handler.
 +++
 |===
 
+[[LoggerFormat]]
+== LoggerFormat
+
+++++
+ The possible out of the box formats.
+++++
+'''
+
+[cols=">25%,75%"]
+[frame="topbot"]
+|===
+^|Name | Description
+|[[DEFAULT]]`DEFAULT`|
++++
+<i>remote-client</i> - - [<i>timestamp</i>] "<i>method</i> <i>uri</i> <i>version</i>" <i>status</i> <i>content-length</i> "<i>referrer</i>" "<i>user-agent</i>"
++++
+|[[SHORT]]`SHORT`|
++++
+<i>remote-client</i> - <i>method</i> <i>uri</i> <i>version</i> <i>status</i> <i>content-length</i> <i>duration</i> ms
++++
+|[[TINY]]`TINY`|
++++
+<i>method</i> <i>uri</i> <i>status</i> - <i>content-length</i> <i>duration</i>
++++
+|===
+
 [[Transport]]
 == Transport
 
@@ -74,32 +100,6 @@ Slow and old fashioned <a hred="https://developer.mozilla.org/en/DOM/window.post
 |[[XHR]]`XHR`|
 +++
 Long-polling using <a hred="https://secure.wikimedia.org/wikipedia/en/wiki/XMLHttpRequest#Cross-domain_requests">cross domain XHR</a>
-+++
-|===
-
-[[LoggerFormat]]
-== LoggerFormat
-
-++++
- The possible out of the box formats.
-++++
-'''
-
-[cols=">25%,75%"]
-[frame="topbot"]
-|===
-^|Name | Description
-|[[DEFAULT]]`DEFAULT`|
-+++
-<i>remote-client</i> - - [<i>timestamp</i>] "<i>method</i> <i>uri</i> <i>version</i>" <i>status</i> <i>content-length</i> "<i>referrer</i>" "<i>user-agent</i>"
-+++
-|[[SHORT]]`SHORT`|
-+++
-<i>remote-client</i> - <i>method</i> <i>uri</i> <i>version</i> <i>status</i> <i>content-length</i> <i>duration</i> ms
-+++
-|[[TINY]]`TINY`|
-+++
-<i>method</i> <i>uri</i> <i>status</i> - <i>content-length</i> <i>duration</i>
 +++
 |===
 

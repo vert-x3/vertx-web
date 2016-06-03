@@ -79,7 +79,8 @@ public class ErrorHandlerImpl implements ErrorHandler {
       if (errorMessage == null) {
         errorMessage = "Internal Server Error";
       }
-      response.setStatusMessage(errorMessage);
+      // no new lines are allowed in the status message
+      response.setStatusMessage(errorMessage.replaceAll("\\r|\\n", " "));
     }
 
     if (mime != null) {

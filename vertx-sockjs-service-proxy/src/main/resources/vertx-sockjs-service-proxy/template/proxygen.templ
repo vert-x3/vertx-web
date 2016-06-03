@@ -1,0 +1,173 @@
+@comment{"Generate a call to a Java API method"}
+@comment{"===================================="}
+
+@declare{'genMethodCall'}
+	@code{params = method.params}
+	@code{psize = params.size()}
+	@code{lastParam = psize > 0 ? params[psize - 1] : null}
+	@code{hasResultHandler = (lastParam != null) && (lastParam.type.kind == CLASS_HANDLER) && (lastParam.type.args[0].kind == CLASS_ASYNC_RESULT)}
+	@if{hasResultHandler}
+		@code{(psize--)}
+	@end{}
+	j_eb.send(j_address, {
+	@foreach{pcnt : psize}
+		@code{param=method.params[pcnt]}
+		"@{param.name}":
+		@if{param.type.name == 'java.lang.Character' || param.type.name == 'char'}
+		__args[@{(pcnt)}].charCodeAt(0)
+		@else{}
+		__args[@{(pcnt)}]
+		@end{}
+	@end{", "}
+	}, {"action":"@{method.name}"}
+	@if{hasResultHandler}
+		, function(err, result) { __args[@{psize}](err, result &&
+		@code{resultType=lastParam.type.args[0].args[0]}
+		@if{resultType.kind==CLASS_API}
+		new @{resultType.simpleName}(j_eb, result.headers.proxyaddr)
+		@else{(resultType.kind==CLASS_LIST || resultType.kind==CLASS_SET) && resultType.args[0].name=='java.lang.Character'}
+		convCharCollection(result.body)
+		@else{}
+		result.body
+		@end{}
+		); }
+	@end{})
+@end{}
+
+@declare{'convReturn'}
+	@includeNamed{templ}
+@end{}
+
+@declare{'genMethodAdapter'}
+@{ind}    if (closed) {\n
+@{ind}      throw new Error('Proxy is closed');\n
+@{ind}    }\n
+@{ind}    @includeNamed{'genMethodCall'};\n
+@if{method.proxyClose}
+@{ind}    closed = true;\n
+@end{}
+@if{method.fluent}
+@{ind}    return that;\n
+@else{}
+@{ind}    return;\n
+@end{}
+@end{}
+
+@includeNamed{"/vertx-js/template/common.templ"}
+
+
+@comment{"This is where the generation starts"}
+@comment{"==================================="}
+
+/*\n
+ * Copyright 2014 Red Hat, Inc.\n
+ *\n
+ * Red Hat licenses this file to you under the Apache License, version 2.0\n
+ * (the "License"); you may not use this file except in compliance with the\n
+ * License.  You may obtain a copy of the License at:\n
+ *\n
+ * http://www.apache.org/licenses/LICENSE-2.0\n
+ *\n
+ * Unless required by applicable law or agreed to in writing, software\n
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT\n
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the\n
+ * License for the specific language governing permissions and limitations\n
+ * under the License.\n
+ */\n\n
+
+/** @module @{genModuleName(type)} */\n
+
+@code{ifaceName = helper.decapitaliseFirstLetter(ifaceSimpleName)}
+
+@comment{"Generate the module loader shim"}
+
+!function (factory) {\n
+  if (typeof require === 'function' && typeof module !== 'undefined') {\n
+    factory();\n
+  } else if (typeof define === 'function' && define.amd) {\n
+    // AMD loader\n
+    define('@{genModuleName(type)}-proxy', [], factory);\n
+  } else {\n
+    // plain old include\n
+    @{ifaceSimpleName} = factory();\n
+  }\n
+}(function () {\n
+
+@comment{"Generate the requires"}
+
+@foreach{referencedType : referencedTypes}
+	@if{referencedType.proxyGen}
+		@code{refedType=referencedType.simpleName;}
+  var @{refedType} = require('@{genModuleName(referencedType)}-proxy');\n
+	@end{}
+@end{}
+\n
+
+@comment{"The main comment"}
+
+  /**\n
+@if{ifaceComment != null}
+@{helper.removeTags(ifaceComment)}\n
+@end{}
+ @class\n
+  */\n
+
+@comment{"The constructor"}
+
+  var @{ifaceSimpleName} = function(eb, address) {\n\n
+    var j_eb = eb;\n
+    var j_address = address;\n
+    var closed = false;\n
+    var that = this;\n
+    var convCharCollection = function(coll) {\n
+      var ret = [];\n
+      for (var i = 0;i < coll.length;i++) {\n
+        ret.push(String.fromCharCode(coll[i]));\n
+      }\n
+      return ret;\n
+    };\n
+
+@comment{"Apply any supertypes"}
+
+@foreach{superType: superTypes}
+  @{superType.raw.simpleName}.call(this, j_val);\n
+@end{}
+\n
+
+@code{
+  def methodFilter(method) {
+    return !method.proxyIgnore;
+  }
+}
+
+@comment{"Now iterate through each unique method"}
+
+@foreach{methodName:methodsByName.keySet()}
+
+@comment{"Call out to actually generate the method, we only consider non static methods here"}
+@code{methods}
+@includeNamed{'genMethod';static=false;ind="    "}
+
+@end{}
+  };\n
+\n
+
+@comment{"Iterate through the methods again, this time only considering the static ones"}
+
+@foreach{methodName:methodsByName.keySet()}
+
+@comment{"Call out to generate the static method"}
+@includeNamed{'genMethod';static=true;ind="  "}
+
+@end{}
+
+  if (typeof exports !== 'undefined') {\n
+    if (typeof module !== 'undefined' && module.exports) {\n
+      exports = module.exports = @{ifaceSimpleName};\n
+    } else {\n
+      exports.@{ifaceSimpleName} = @{ifaceSimpleName};\n
+    }\n
+  } else {\n
+    return @{ifaceSimpleName};\n
+  }\n
+});

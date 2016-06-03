@@ -88,6 +88,21 @@ var BodyHandler = function(j_val) {
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
+  /**
+   Set whether uploaded files should be removed after handling the request
+
+   @public
+   @param deleteUploadedFilesOnEnd {boolean} true if uploaded files should be removed after handling the request 
+   @return {BodyHandler} reference to this for fluency
+   */
+  this.setDeleteUploadedFilesOnEnd = function(deleteUploadedFilesOnEnd) {
+    var __args = arguments;
+    if (__args.length === 1 && typeof __args[0] ==='boolean') {
+      j_bodyHandler["setDeleteUploadedFilesOnEnd(boolean)"](deleteUploadedFilesOnEnd);
+      return that;
+    } else throw new TypeError('function invoked with invalid arguments');
+  };
+
   // A reference to the underlying Java delegate
   // NOTE! This is an internal API and must not be used in user code.
   // If you rely on this property your code is likely to break if we change it / remove it without warning.
@@ -95,16 +110,18 @@ var BodyHandler = function(j_val) {
 };
 
 /**
- Create a body handler with defaults
+ Create a body handler and use the given upload directory.
 
  @memberof module:vertx-web-js/body_handler
-
+ @param uploadDirectory {string} the uploads directory 
  @return {BodyHandler} the body handler
  */
 BodyHandler.create = function() {
   var __args = arguments;
   if (__args.length === 0) {
     return utils.convReturnVertxGen(JBodyHandler["create()"](), BodyHandler);
+  }else if (__args.length === 1 && typeof __args[0] === 'string') {
+    return utils.convReturnVertxGen(JBodyHandler["create(java.lang.String)"](__args[0]), BodyHandler);
   } else throw new TypeError('function invoked with invalid arguments');
 };
 

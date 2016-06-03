@@ -43,7 +43,7 @@ public class Session {
    * @return 
    */
   public String id() {
-    def ret = this.delegate.id();
+    def ret = delegate.id();
     return ret;
   }
   /**
@@ -53,7 +53,7 @@ public class Session {
    * @return a reference to this, so the API can be used fluently
    */
   public Session put(String key, Object obj) {
-    this.delegate.put(key, InternalHelper.unwrapObject(obj));
+    delegate.put(key, obj != null ? InternalHelper.unwrapObject(obj) : null);
     return this;
   }
   /**
@@ -62,8 +62,7 @@ public class Session {
    * @return the data
    */
   public <T> T get(String key) {
-    // This cast is cleary flawed
-    def ret = (T) InternalHelper.wrapObject(this.delegate.get(key));
+    def ret = (T) InternalHelper.wrapObject(delegate.get(key));
     return ret;
   }
   /**
@@ -72,8 +71,7 @@ public class Session {
    * @return the data that was there or null if none there
    */
   public <T> T remove(String key) {
-    // This cast is cleary flawed
-    def ret = (T) InternalHelper.wrapObject(this.delegate.remove(key));
+    def ret = (T) InternalHelper.wrapObject(delegate.remove(key));
     return ret;
   }
   /**
@@ -81,21 +79,21 @@ public class Session {
    * @return 
    */
   public long lastAccessed() {
-    def ret = this.delegate.lastAccessed();
+    def ret = delegate.lastAccessed();
     return ret;
   }
   /**
    * Destroy the session
    */
   public void destroy() {
-    this.delegate.destroy();
+    delegate.destroy();
   }
   /**
    * @return has the session been destroyed?
    * @return 
    */
   public boolean isDestroyed() {
-    def ret = this.delegate.isDestroyed();
+    def ret = delegate.isDestroyed();
     return ret;
   }
   /**
@@ -103,13 +101,13 @@ public class Session {
    * @return 
    */
   public long timeout() {
-    def ret = this.delegate.timeout();
+    def ret = delegate.timeout();
     return ret;
   }
   /**
    * Mark the session as being accessed.
    */
   public void setAccessed() {
-    this.delegate.setAccessed();
+    delegate.setAccessed();
   }
 }

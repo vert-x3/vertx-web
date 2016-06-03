@@ -7,7 +7,7 @@
   <parent>
     <groupId>io.vertx</groupId>
     <artifactId>vertx-web-parent</artifactId>
-    <version>3.2.0-SNAPSHOT</version>
+    <version>3.3.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>vertx-template-engines</artifactId>
@@ -22,6 +22,8 @@
     <module>vertx-web-templ-mvel</module>
     <module>vertx-web-templ-handlebars</module>
     <module>vertx-web-templ-thymeleaf</module>
+    <module>vertx-web-templ-freemarker</module>
+    <module>vertx-web-templ-pebble</module>
   </modules>
 
 </project>

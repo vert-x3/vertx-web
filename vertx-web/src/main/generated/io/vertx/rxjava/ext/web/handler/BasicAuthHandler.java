@@ -17,7 +17,6 @@
 package io.vertx.rxjava.ext.web.handler;
 
 import java.util.Map;
-import io.vertx.lang.rxjava.InternalHelper;
 import rx.Observable;
 import java.util.Set;
 import io.vertx.rxjava.ext.web.RoutingContext;
@@ -43,7 +42,7 @@ public class BasicAuthHandler implements AuthHandler {
   }
 
   public void handle(RoutingContext arg0) { 
-    this.delegate.handle((io.vertx.ext.web.RoutingContext) arg0.getDelegate());
+    delegate.handle((io.vertx.ext.web.RoutingContext)arg0.getDelegate());
   }
 
   /**
@@ -52,7 +51,7 @@ public class BasicAuthHandler implements AuthHandler {
    * @return a reference to this, so the API can be used fluently
    */
   public AuthHandler addAuthority(String authority) { 
-    this.delegate.addAuthority(authority);
+    delegate.addAuthority(authority);
     return this;
   }
 
@@ -62,7 +61,7 @@ public class BasicAuthHandler implements AuthHandler {
    * @return a reference to this, so the API can be used fluently
    */
   public AuthHandler addAuthorities(Set<String> authorities) { 
-    this.delegate.addAuthorities(authorities);
+    delegate.addAuthorities(authorities);
     return this;
   }
 
@@ -72,7 +71,7 @@ public class BasicAuthHandler implements AuthHandler {
    * @return the auth handler
    */
   public static AuthHandler create(AuthProvider authProvider) { 
-    AuthHandler ret= AuthHandler.newInstance(io.vertx.ext.web.handler.BasicAuthHandler.create((io.vertx.ext.auth.AuthProvider) authProvider.getDelegate()));
+    AuthHandler ret = AuthHandler.newInstance(io.vertx.ext.web.handler.BasicAuthHandler.create((io.vertx.ext.auth.AuthProvider)authProvider.getDelegate()));
     return ret;
   }
 
@@ -83,7 +82,7 @@ public class BasicAuthHandler implements AuthHandler {
    * @return the auth handler
    */
   public static AuthHandler create(AuthProvider authProvider, String realm) { 
-    AuthHandler ret= AuthHandler.newInstance(io.vertx.ext.web.handler.BasicAuthHandler.create((io.vertx.ext.auth.AuthProvider) authProvider.getDelegate(), realm));
+    AuthHandler ret = AuthHandler.newInstance(io.vertx.ext.web.handler.BasicAuthHandler.create((io.vertx.ext.auth.AuthProvider)authProvider.getDelegate(), realm));
     return ret;
   }
 

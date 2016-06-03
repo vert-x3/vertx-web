@@ -17,7 +17,6 @@
 package io.vertx.rxjava.ext.web.handler;
 
 import java.util.Map;
-import io.vertx.lang.rxjava.InternalHelper;
 import rx.Observable;
 import io.vertx.rxjava.ext.web.RoutingContext;
 import io.vertx.core.Handler;
@@ -42,7 +41,7 @@ public class StaticHandler implements Handler<RoutingContext> {
   }
 
   public void handle(RoutingContext arg0) { 
-    this.delegate.handle((io.vertx.ext.web.RoutingContext) arg0.getDelegate());
+    delegate.handle((io.vertx.ext.web.RoutingContext)arg0.getDelegate());
   }
 
   /**
@@ -50,7 +49,7 @@ public class StaticHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static StaticHandler create() { 
-    StaticHandler ret= StaticHandler.newInstance(io.vertx.ext.web.handler.StaticHandler.create());
+    StaticHandler ret = StaticHandler.newInstance(io.vertx.ext.web.handler.StaticHandler.create());
     return ret;
   }
 
@@ -60,8 +59,18 @@ public class StaticHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static StaticHandler create(String root) { 
-    StaticHandler ret= StaticHandler.newInstance(io.vertx.ext.web.handler.StaticHandler.create(root));
+    StaticHandler ret = StaticHandler.newInstance(io.vertx.ext.web.handler.StaticHandler.create(root));
     return ret;
+  }
+
+  /**
+   * Enable/Disable access to the root of the filesystem
+   * @param allowRootFileSystemAccess whether root access is allowed
+   * @return a reference to this, so the API can be used fluently
+   */
+  public StaticHandler setAllowRootFileSystemAccess(boolean allowRootFileSystemAccess) { 
+    delegate.setAllowRootFileSystemAccess(allowRootFileSystemAccess);
+    return this;
   }
 
   /**
@@ -70,7 +79,7 @@ public class StaticHandler implements Handler<RoutingContext> {
    * @return a reference to this, so the API can be used fluently
    */
   public StaticHandler setWebRoot(String webRoot) { 
-    this.delegate.setWebRoot(webRoot);
+    delegate.setWebRoot(webRoot);
     return this;
   }
 
@@ -80,7 +89,7 @@ public class StaticHandler implements Handler<RoutingContext> {
    * @return a reference to this, so the API can be used fluently
    */
   public StaticHandler setFilesReadOnly(boolean readOnly) { 
-    this.delegate.setFilesReadOnly(readOnly);
+    delegate.setFilesReadOnly(readOnly);
     return this;
   }
 
@@ -90,7 +99,7 @@ public class StaticHandler implements Handler<RoutingContext> {
    * @return a reference to this, so the API can be used fluently
    */
   public StaticHandler setMaxAgeSeconds(long maxAgeSeconds) { 
-    this.delegate.setMaxAgeSeconds(maxAgeSeconds);
+    delegate.setMaxAgeSeconds(maxAgeSeconds);
     return this;
   }
 
@@ -100,7 +109,7 @@ public class StaticHandler implements Handler<RoutingContext> {
    * @return a reference to this, so the API can be used fluently
    */
   public StaticHandler setCachingEnabled(boolean enabled) { 
-    this.delegate.setCachingEnabled(enabled);
+    delegate.setCachingEnabled(enabled);
     return this;
   }
 
@@ -110,7 +119,7 @@ public class StaticHandler implements Handler<RoutingContext> {
    * @return a reference to this, so the API can be used fluently
    */
   public StaticHandler setDirectoryListing(boolean directoryListing) { 
-    this.delegate.setDirectoryListing(directoryListing);
+    delegate.setDirectoryListing(directoryListing);
     return this;
   }
 
@@ -120,7 +129,7 @@ public class StaticHandler implements Handler<RoutingContext> {
    * @return a reference to this, so the API can be used fluently
    */
   public StaticHandler setIncludeHidden(boolean includeHidden) { 
-    this.delegate.setIncludeHidden(includeHidden);
+    delegate.setIncludeHidden(includeHidden);
     return this;
   }
 
@@ -130,7 +139,7 @@ public class StaticHandler implements Handler<RoutingContext> {
    * @return a reference to this, so the API can be used fluently
    */
   public StaticHandler setCacheEntryTimeout(long timeout) { 
-    this.delegate.setCacheEntryTimeout(timeout);
+    delegate.setCacheEntryTimeout(timeout);
     return this;
   }
 
@@ -140,7 +149,7 @@ public class StaticHandler implements Handler<RoutingContext> {
    * @return a reference to this, so the API can be used fluently
    */
   public StaticHandler setIndexPage(String indexPage) { 
-    this.delegate.setIndexPage(indexPage);
+    delegate.setIndexPage(indexPage);
     return this;
   }
 
@@ -150,7 +159,7 @@ public class StaticHandler implements Handler<RoutingContext> {
    * @return a reference to this, so the API can be used fluently
    */
   public StaticHandler setMaxCacheSize(int maxCacheSize) { 
-    this.delegate.setMaxCacheSize(maxCacheSize);
+    delegate.setMaxCacheSize(maxCacheSize);
     return this;
   }
 
@@ -160,7 +169,7 @@ public class StaticHandler implements Handler<RoutingContext> {
    * @return a reference to this, so the API can be used fluently
    */
   public StaticHandler setAlwaysAsyncFS(boolean alwaysAsyncFS) { 
-    this.delegate.setAlwaysAsyncFS(alwaysAsyncFS);
+    delegate.setAlwaysAsyncFS(alwaysAsyncFS);
     return this;
   }
 
@@ -170,7 +179,7 @@ public class StaticHandler implements Handler<RoutingContext> {
    * @return a reference to this, so the API can be used fluently
    */
   public StaticHandler setEnableFSTuning(boolean enableFSTuning) { 
-    this.delegate.setEnableFSTuning(enableFSTuning);
+    delegate.setEnableFSTuning(enableFSTuning);
     return this;
   }
 
@@ -180,7 +189,7 @@ public class StaticHandler implements Handler<RoutingContext> {
    * @return a reference to this, so the API can be used fluently
    */
   public StaticHandler setMaxAvgServeTimeNs(long maxAvgServeTimeNanoSeconds) { 
-    this.delegate.setMaxAvgServeTimeNs(maxAvgServeTimeNanoSeconds);
+    delegate.setMaxAvgServeTimeNs(maxAvgServeTimeNanoSeconds);
     return this;
   }
 
@@ -190,7 +199,7 @@ public class StaticHandler implements Handler<RoutingContext> {
    * @return a reference to this, so the API can be used fluently
    */
   public StaticHandler setDirectoryTemplate(String directoryTemplate) { 
-    this.delegate.setDirectoryTemplate(directoryTemplate);
+    delegate.setDirectoryTemplate(directoryTemplate);
     return this;
   }
 
@@ -200,7 +209,7 @@ public class StaticHandler implements Handler<RoutingContext> {
    * @return a reference to this, so the API can be used fluently
    */
   public StaticHandler setEnableRangeSupport(boolean enableRangeSupport) { 
-    this.delegate.setEnableRangeSupport(enableRangeSupport);
+    delegate.setEnableRangeSupport(enableRangeSupport);
     return this;
   }
 

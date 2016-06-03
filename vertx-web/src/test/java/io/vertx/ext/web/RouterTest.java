@@ -22,9 +22,11 @@ import io.vertx.core.http.HttpMethod;
 import org.junit.Test;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -391,7 +393,7 @@ public class RouterTest extends WebTestBase {
       rc.response().setChunked(true);
       rc.response().write("apples");
       rc.next();
-    });;
+    });
     Route route2 = router.route(path).handler(rc -> {
       rc.response().write("oranges");
       rc.next();
@@ -421,7 +423,7 @@ public class RouterTest extends WebTestBase {
       rc.response().setChunked(true);
       rc.response().write("apples");
       rc.next();
-    });;
+    });
     Route route2 = router.route(path).handler(rc -> {
       rc.response().write("oranges");
       rc.next();
@@ -631,6 +633,33 @@ public class RouterTest extends WebTestBase {
   }
 
   @Test
+  public void testFailureWithThrowable() throws Exception {
+    String path = "/blah";
+    Throwable failure = new Throwable();
+    router.route(path).handler(rc -> {
+      rc.fail(failure);
+    }).failureHandler(frc -> {
+      assertEquals(-1, frc.statusCode());
+      assertSame(failure, frc.failure());
+      frc.response().setStatusCode(500).setStatusMessage("Internal Server Error").end();
+    });
+    testRequest(HttpMethod.GET, path, 500, "Internal Server Error");
+  }
+
+  @Test
+  public void testFailureWithNullThrowable() throws Exception {
+    String path = "/blah";
+    router.route(path).handler(rc -> {
+      rc.fail(null);
+    }).failureHandler(frc -> {
+      assertEquals(-1, frc.statusCode());
+      assertTrue(frc.failure() instanceof NullPointerException);
+      frc.response().setStatusCode(500).setStatusMessage("Internal Server Error").end();
+    });
+    testRequest(HttpMethod.GET, path, 500, "Internal Server Error");
+  }
+
+  @Test
   public void testPattern1() throws Exception {
     router.route("/:abc").handler(rc -> {
       rc.response().setStatusMessage(rc.request().params().get("abc")).end();
@@ -641,9 +670,37 @@ public class RouterTest extends WebTestBase {
   @Test
   public void testParamEscape() throws Exception {
     router.route("/demo/:abc").handler(rc -> {
+      assertEquals("Hello World!", rc.request().params().get("abc"));
       rc.response().end(rc.request().params().get("abc"));
     });
     testRequest(HttpMethod.GET, "/demo/Hello%20World!", 200, "OK", "Hello World!");
+  }
+
+  @Test
+  public void testParamEscape2() throws Exception {
+    router.route("/demo/:abc").handler(rc -> {
+      assertEquals("Hello/World!", rc.request().params().get("abc"));
+      rc.response().end(rc.request().params().get("abc"));
+    });
+    testRequest(HttpMethod.GET, "/demo/Hello%2FWorld!", 200, "OK", "Hello/World!");
+  }
+
+  @Test
+  public void testParamEscape3() throws Exception {
+    router.route("/demo/:abc").handler(rc -> {
+      assertEquals("http://www.google.com", rc.request().params().get("abc"));
+      rc.response().end(rc.request().params().get("abc"));
+    });
+    testRequest(HttpMethod.GET, "/demo/http%3A%2F%2Fwww.google.com", 200, "OK", "http://www.google.com");
+  }
+
+  @Test
+  public void testParamEscape4() throws Exception {
+    router.route("/:var").handler(rc -> {
+      assertEquals("/ping", rc.request().params().get("var"));
+      rc.response().end(rc.request().params().get("var"));
+    });
+    testRequest(HttpMethod.GET, "/%2Fping", 200, "OK", "/ping");
   }
 
   @Test
@@ -712,6 +769,50 @@ public class RouterTest extends WebTestBase {
       rc.response().setStatusMessage(params.get("abc") + params.get("def") + params.get("ghi")).end();
     });
     testPattern("/blah/tim/quux/julien/eep/nick", "timjuliennick");
+  }
+
+  @Test
+  public void testPathParamsAreFulfilled() throws Exception {
+    router.route("/blah/:abc/quux/:def/eep/:ghi").handler(rc -> {
+      Map<String, String> params = rc.pathParams();
+      rc.response().setStatusMessage(params.get("abc") + params.get("def") + params.get("ghi")).end();
+    });
+    testPattern("/blah/tim/quux/julien/eep/nick", "timjuliennick");
+  }
+
+  @Test
+  public void testPathParamsDoesNotOverrideQueryParam() throws Exception {
+    final String paramName = "param";
+    final String pathParamValue = "pathParamValue";
+    final String queryParamValue1 = "queryParamValue1";
+    final String queryParamValue2 = "queryParamValue2";
+    final String sep = ",";
+    router.route("/blah/:" + paramName + "/test").handler(rc -> {
+      Map<String, String> params = rc.pathParams();
+      MultiMap queryParams = rc.request().params();
+      List<String> values = queryParams.getAll(paramName);
+      String qValue = values.stream().collect(Collectors.joining(sep));
+      rc.response().setStatusMessage(params.get(paramName) + "|" + qValue).end();
+    });
+    testRequest(HttpMethod.GET,
+            "/blah/" + pathParamValue + "/test?" + paramName + "=" + queryParamValue1 + "&" + paramName + "=" + queryParamValue2,
+            200,
+            pathParamValue + "|" + queryParamValue1 + sep + queryParamValue2);
+  }
+
+  @Test
+  public void testPathParamsWithReroute() throws Exception {
+    String paramName = "param";
+    String firstParamValue = "fpv";
+    String secondParamValue = "secondParamValue";
+    router.route("/first/:" + paramName + "/route").handler(rc -> {
+      assertEquals(firstParamValue, rc.pathParam(paramName));
+      rc.reroute(HttpMethod.GET, "/second/" + secondParamValue + "/route");
+    });
+    router.route("/second/:" + paramName + "/route").handler(rc -> {
+       rc.response().setStatusMessage(rc.pathParam(paramName)).end();
+    });
+    testRequest(HttpMethod.GET, "/first/" + firstParamValue + "/route", 200, secondParamValue);
   }
 
   private void testPattern(String pathRoot, String expected) throws Exception {
@@ -877,6 +978,7 @@ public class RouterTest extends WebTestBase {
     testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html", 200, "OK");
     testRequestWithAccepts(HttpMethod.GET, "/foo", "text/json", 404, "Not Found");
     testRequestWithAccepts(HttpMethod.GET, "/foo", "something/html", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/foo", 200, "OK");
   }
 
   @Test
@@ -1066,6 +1168,66 @@ public class RouterTest extends WebTestBase {
       assertTrue(headers.contains("header2"));
       assertTrue(headers.contains("header3"));
     }, 200, "OK", null);
+  }
+
+  @Test
+  public void testHeadersEndHandlerCalledBackwards() throws Exception {
+
+    final AtomicInteger cnt = new AtomicInteger(0);
+
+    router.route().handler(rc -> {
+      final int val = cnt.incrementAndGet();
+      rc.addHeadersEndHandler(v -> {
+        assertEquals(val, cnt.getAndDecrement());
+      });
+      rc.next();
+    });
+    router.route().handler(rc -> {
+      final int val = cnt.incrementAndGet();
+      rc.addHeadersEndHandler(v -> {
+        assertEquals(val, cnt.getAndDecrement());
+      });
+      rc.next();
+    });
+    router.route().handler(rc -> {
+      final int val = cnt.incrementAndGet();
+      rc.addHeadersEndHandler(v -> {
+        assertEquals(val, cnt.getAndDecrement());
+      });
+      rc.response().end();
+    });
+
+    testRequest(HttpMethod.GET, "/", 200, "OK");
+  }
+
+  @Test
+  public void testHeadersEndHandlerCalledBackwards2() throws Exception {
+
+    final AtomicInteger cnt = new AtomicInteger(0);
+
+    router.route().handler(rc -> {
+      final int val = cnt.incrementAndGet();
+      rc.addBodyEndHandler(v -> {
+        assertEquals(val, cnt.getAndDecrement());
+      });
+      rc.next();
+    });
+    router.route().handler(rc -> {
+      final int val = cnt.incrementAndGet();
+      rc.addBodyEndHandler(v -> {
+        assertEquals(val, cnt.getAndDecrement());
+      });
+      rc.next();
+    });
+    router.route().handler(rc -> {
+      final int val = cnt.incrementAndGet();
+      rc.addBodyEndHandler(v -> {
+        assertEquals(val, cnt.getAndDecrement());
+      });
+      rc.response().end();
+    });
+
+    testRequest(HttpMethod.GET, "/", 200, "OK");
   }
 
   @Test
@@ -1609,5 +1771,50 @@ public class RouterTest extends WebTestBase {
     });
 
     testRequest(HttpMethod.GET, "/foo", 200, "OK");
+  }
+
+  @Test
+  public void testUnderscoreOnRoutePath() throws Exception {
+    router.route("/:account_id").handler(rc -> {
+      assertEquals("foo", rc.request().params().get("account_id"));
+      rc.response().end();
+    });
+
+    testRequest(HttpMethod.GET, "/foo", 200, "OK");
+  }
+
+  @Test
+  public void testDuplicateParams() throws Exception {
+    router.route("/test/:p").handler(RoutingContext::next);
+    router.route("/test/:p").handler(RoutingContext::next);
+    router.route("/test/:p").handler(routingContext -> {
+      assertEquals(1, routingContext.request().params().getAll("p").size());
+      assertEquals("abc", routingContext.request().getParam("p"));
+      routingContext.response().end();
+    });
+    testRequest(HttpMethod.GET, "/test/abc", 200, "OK");
+  }
+
+  @Test
+  public void testDuplicateParams2() throws Exception {
+    router.route("/test/:p").handler(RoutingContext::next);
+    router.route("/test/:p").handler(ctx -> {
+      ctx.reroute("/done/abc/cde");
+    });
+
+    router.route("/done/:a/:p").handler(routingContext -> {
+      assertEquals(1, routingContext.request().params().getAll("p").size());
+      assertEquals("cde", routingContext.request().getParam("p"));
+      routingContext.response().end();
+    });
+    testRequest(HttpMethod.GET, "/test/abc", 200, "OK");
+  }
+
+  @Test
+  public void testSubRouterNPE() throws Exception {
+    Router subRouter = Router.router(vertx);
+    router.mountSubRouter("/", subRouter);
+
+    testRequest(HttpMethod.GET, "foo", 404, "Not Found");
   }
 }

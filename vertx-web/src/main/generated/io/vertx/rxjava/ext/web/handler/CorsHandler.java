@@ -17,7 +17,6 @@
 package io.vertx.rxjava.ext.web.handler;
 
 import java.util.Map;
-import io.vertx.lang.rxjava.InternalHelper;
 import rx.Observable;
 import io.vertx.core.http.HttpMethod;
 import java.util.Set;
@@ -44,7 +43,7 @@ public class CorsHandler implements Handler<RoutingContext> {
   }
 
   public void handle(RoutingContext arg0) { 
-    this.delegate.handle((io.vertx.ext.web.RoutingContext) arg0.getDelegate());
+    delegate.handle((io.vertx.ext.web.RoutingContext)arg0.getDelegate());
   }
 
   /**
@@ -53,7 +52,7 @@ public class CorsHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static CorsHandler create(String allowedOriginPattern) { 
-    CorsHandler ret= CorsHandler.newInstance(io.vertx.ext.web.handler.CorsHandler.create(allowedOriginPattern));
+    CorsHandler ret = CorsHandler.newInstance(io.vertx.ext.web.handler.CorsHandler.create(allowedOriginPattern));
     return ret;
   }
 
@@ -63,7 +62,7 @@ public class CorsHandler implements Handler<RoutingContext> {
    * @return a reference to this, so the API can be used fluently
    */
   public CorsHandler allowedMethod(HttpMethod method) { 
-    this.delegate.allowedMethod(method);
+    delegate.allowedMethod(method);
     return this;
   }
 
@@ -73,7 +72,7 @@ public class CorsHandler implements Handler<RoutingContext> {
    * @return a reference to this, so the API can be used fluently
    */
   public CorsHandler allowedHeader(String headerName) { 
-    this.delegate.allowedHeader(headerName);
+    delegate.allowedHeader(headerName);
     return this;
   }
 
@@ -83,7 +82,7 @@ public class CorsHandler implements Handler<RoutingContext> {
    * @return a reference to this, so the API can be used fluently
    */
   public CorsHandler allowedHeaders(Set<String> headerNames) { 
-    this.delegate.allowedHeaders(headerNames);
+    delegate.allowedHeaders(headerNames);
     return this;
   }
 
@@ -93,7 +92,7 @@ public class CorsHandler implements Handler<RoutingContext> {
    * @return a reference to this, so the API can be used fluently
    */
   public CorsHandler exposedHeader(String headerName) { 
-    this.delegate.exposedHeader(headerName);
+    delegate.exposedHeader(headerName);
     return this;
   }
 
@@ -103,7 +102,7 @@ public class CorsHandler implements Handler<RoutingContext> {
    * @return a reference to this, so the API can be used fluently
    */
   public CorsHandler exposedHeaders(Set<String> headerNames) { 
-    this.delegate.exposedHeaders(headerNames);
+    delegate.exposedHeaders(headerNames);
     return this;
   }
 
@@ -113,7 +112,7 @@ public class CorsHandler implements Handler<RoutingContext> {
    * @return a reference to this, so the API can be used fluently
    */
   public CorsHandler allowCredentials(boolean allow) { 
-    this.delegate.allowCredentials(allow);
+    delegate.allowCredentials(allow);
     return this;
   }
 
@@ -123,7 +122,7 @@ public class CorsHandler implements Handler<RoutingContext> {
    * @return a reference to this, so the API can be used fluently
    */
   public CorsHandler maxAgeSeconds(int maxAgeSeconds) { 
-    this.delegate.maxAgeSeconds(maxAgeSeconds);
+    delegate.maxAgeSeconds(maxAgeSeconds);
     return this;
   }
 

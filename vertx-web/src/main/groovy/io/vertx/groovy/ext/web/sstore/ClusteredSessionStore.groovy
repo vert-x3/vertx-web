@@ -39,7 +39,21 @@ public class ClusteredSessionStore extends SessionStore {
    * @return the session store
    */
   public static ClusteredSessionStore create(Vertx vertx, String sessionMapName) {
-    def ret= InternalHelper.safeCreate(io.vertx.ext.web.sstore.ClusteredSessionStore.create((io.vertx.core.Vertx)vertx.getDelegate(), sessionMapName), io.vertx.groovy.ext.web.sstore.ClusteredSessionStore.class);
+    def ret = InternalHelper.safeCreate(io.vertx.ext.web.sstore.ClusteredSessionStore.create(vertx != null ? (io.vertx.core.Vertx)vertx.getDelegate() : null, sessionMapName), io.vertx.groovy.ext.web.sstore.ClusteredSessionStore.class);
+    return ret;
+  }
+  /**
+   * Create a session store.<p/>
+   *
+   * The retry timeout value, configures how long the session handler will retry to get a session from the store
+   * when it is not found.
+   * @param vertx the Vert.x instance
+   * @param sessionMapName the session map name
+   * @param retryTimeout the store retry timeout, in ms
+   * @return the session store
+   */
+  public static ClusteredSessionStore create(Vertx vertx, String sessionMapName, long retryTimeout) {
+    def ret = InternalHelper.safeCreate(io.vertx.ext.web.sstore.ClusteredSessionStore.create(vertx != null ? (io.vertx.core.Vertx)vertx.getDelegate() : null, sessionMapName, retryTimeout), io.vertx.groovy.ext.web.sstore.ClusteredSessionStore.class);
     return ret;
   }
   /**
@@ -48,7 +62,20 @@ public class ClusteredSessionStore extends SessionStore {
    * @return the session store
    */
   public static ClusteredSessionStore create(Vertx vertx) {
-    def ret= InternalHelper.safeCreate(io.vertx.ext.web.sstore.ClusteredSessionStore.create((io.vertx.core.Vertx)vertx.getDelegate()), io.vertx.groovy.ext.web.sstore.ClusteredSessionStore.class);
+    def ret = InternalHelper.safeCreate(io.vertx.ext.web.sstore.ClusteredSessionStore.create(vertx != null ? (io.vertx.core.Vertx)vertx.getDelegate() : null), io.vertx.groovy.ext.web.sstore.ClusteredSessionStore.class);
+    return ret;
+  }
+  /**
+   * Create a session store.<p/>
+   *
+   * The retry timeout value, configures how long the session handler will retry to get a session from the store
+   * when it is not found.
+   * @param vertx the Vert.x instance
+   * @param retryTimeout the store retry timeout, in ms
+   * @return the session store
+   */
+  public static ClusteredSessionStore create(Vertx vertx, long retryTimeout) {
+    def ret = InternalHelper.safeCreate(io.vertx.ext.web.sstore.ClusteredSessionStore.create(vertx != null ? (io.vertx.core.Vertx)vertx.getDelegate() : null, retryTimeout), io.vertx.groovy.ext.web.sstore.ClusteredSessionStore.class);
     return ret;
   }
 }

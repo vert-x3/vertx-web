@@ -24,13 +24,16 @@ module VertxWeb
       end
       raise ArgumentError, "Invalid arguments when calling handle(arg0)"
     end
-    #  Create a body handler with defaults
+    #  Create a body handler and use the given upload directory.
+    # @param [String] uploadDirectory the uploads directory
     # @return [::VertxWeb::BodyHandler] the body handler
-    def self.create
-      if !block_given?
+    def self.create(uploadDirectory=nil)
+      if !block_given? && uploadDirectory == nil
         return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebHandler::BodyHandler.java_method(:create, []).call(),::VertxWeb::BodyHandler)
+      elsif uploadDirectory.class == String && !block_given?
+        return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebHandler::BodyHandler.java_method(:create, [Java::java.lang.String.java_class]).call(uploadDirectory),::VertxWeb::BodyHandler)
       end
-      raise ArgumentError, "Invalid arguments when calling create()"
+      raise ArgumentError, "Invalid arguments when calling create(uploadDirectory)"
     end
     #  Set the maximum body size -1 means unlimited
     # @param [Fixnum] bodyLimit the max size
@@ -61,6 +64,16 @@ module VertxWeb
         return self
       end
       raise ArgumentError, "Invalid arguments when calling set_merge_form_attributes(mergeFormAttributes)"
+    end
+    #  Set whether uploaded files should be removed after handling the request
+    # @param [true,false] deleteUploadedFilesOnEnd true if uploaded files should be removed after handling the request
+    # @return [self]
+    def set_delete_uploaded_files_on_end(deleteUploadedFilesOnEnd=nil)
+      if (deleteUploadedFilesOnEnd.class == TrueClass || deleteUploadedFilesOnEnd.class == FalseClass) && !block_given?
+        @j_del.java_method(:setDeleteUploadedFilesOnEnd, [Java::boolean.java_class]).call(deleteUploadedFilesOnEnd)
+        return self
+      end
+      raise ArgumentError, "Invalid arguments when calling set_delete_uploaded_files_on_end(deleteUploadedFilesOnEnd)"
     end
   end
 end

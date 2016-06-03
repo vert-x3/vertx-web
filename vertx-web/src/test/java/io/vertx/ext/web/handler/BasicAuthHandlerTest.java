@@ -74,7 +74,7 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
 
     // Now try again with credentials
     testRequest(HttpMethod.GET, "/protected/somepage", req -> {
-      req.putHeader("Authorization", "Basic dGltOnNhdXNhZ2Vz");
+      req.putHeader("Authorization", "Basic dGltOmRlbGljaW91czpzYXVzYWdlcw==");
     }, resp -> {
       String wwwAuth = resp.headers().get("WWW-Authenticate");
       assertNull(wwwAuth);
@@ -121,17 +121,20 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
       assertNotNull(wwwAuth);
       assertEquals("Basic realm=\"" + BasicAuthHandler.DEFAULT_REALM + "\"", wwwAuth);
       String setCookie = resp.headers().get("set-cookie");
-      assertNotNull(setCookie);
-      sessionCookie.set(setCookie);
+      // auth failed you should not get a session cookie!!!
+      assertNull(setCookie);
     }, 401, "Unauthorized", null);
 
     // Now try again with credentials
     testRequest(HttpMethod.GET, "/protected/somepage", req -> {
-      req.putHeader("Authorization", "Basic dGltOnNhdXNhZ2Vz");
-      req.putHeader("cookie", sessionCookie.get());
+      req.putHeader("Authorization", "Basic dGltOmRlbGljaW91czpzYXVzYWdlcw==");
     }, resp -> {
       String wwwAuth = resp.headers().get("WWW-Authenticate");
       assertNull(wwwAuth);
+      // auth is success, we should get a cookie!!!
+      String setCookie = resp.headers().get("set-cookie");
+      assertNotNull(setCookie);
+      sessionCookie.set(setCookie);
     }, 200, "OK", "Welcome to the protected resource!");
 
     // And try again a few times we should be logged in with user stored in the session
@@ -154,7 +157,7 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
 
     // And login again
     testRequest(HttpMethod.GET, "/protected/somepage", req -> {
-      req.putHeader("Authorization", "Basic dGltOnNhdXNhZ2Vz");
+      req.putHeader("Authorization", "Basic dGltOmRlbGljaW91czpzYXVzYWdlcw==");
     }, resp -> {
       String wwwAuth = resp.headers().get("WWW-Authenticate");
       assertNull(wwwAuth);
@@ -207,6 +210,11 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
     private Map<String, Buffer> sessions = new ConcurrentHashMap<>();
 
     @Override
+    public long retryTimeout() {
+      return 0L;
+    }
+
+    @Override
     public Session createSession(long timeout) {
       return new SessionImpl(timeout);
     }
@@ -256,4 +264,20 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
     }
   }
 
+  @Test
+  public void testSecurityBypass() throws Exception {
+
+    Handler<RoutingContext> handler = rc -> {
+      fail("should not get here");
+      rc.response().end("Welcome to the protected resource!");
+    };
+
+    JsonObject authConfig = new JsonObject().put("properties_path", "classpath:login/loginusers.properties");
+    AuthProvider authProvider = ShiroAuth.create(vertx, ShiroAuthRealmType.PROPERTIES, authConfig);
+    router.route().pathRegex("/api/.*").handler(BasicAuthHandler.create(authProvider));
+
+    router.route("/api/v1/standard-job-profiles").handler(handler);
+
+    testRequest(HttpMethod.GET, "//api/v1/standard-job-profiles", 401, "Unauthorized");
+  }
 }

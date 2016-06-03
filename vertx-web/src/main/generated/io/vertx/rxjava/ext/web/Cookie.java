@@ -17,7 +17,6 @@
 package io.vertx.rxjava.ext.web;
 
 import java.util.Map;
-import io.vertx.lang.rxjava.InternalHelper;
 import rx.Observable;
 
 /**
@@ -50,7 +49,7 @@ public class Cookie {
    * @return the cookie
    */
   public static Cookie cookie(String name, String value) { 
-    Cookie ret= Cookie.newInstance(io.vertx.ext.web.Cookie.cookie(name, value));
+    Cookie ret = Cookie.newInstance(io.vertx.ext.web.Cookie.cookie(name, value));
     return ret;
   }
 
@@ -59,7 +58,7 @@ public class Cookie {
    * @return 
    */
   public String getName() { 
-    String ret = this.delegate.getName();
+    String ret = delegate.getName();
     return ret;
   }
 
@@ -68,7 +67,7 @@ public class Cookie {
    * @return 
    */
   public String getValue() { 
-    String ret = this.delegate.getValue();
+    String ret = delegate.getValue();
     return ret;
   }
 
@@ -78,7 +77,7 @@ public class Cookie {
    * @return a reference to this, so the API can be used fluently
    */
   public Cookie setValue(String value) { 
-    this.delegate.setValue(value);
+    delegate.setValue(value);
     return this;
   }
 
@@ -88,7 +87,7 @@ public class Cookie {
    * @return a reference to this, so the API can be used fluently
    */
   public Cookie setDomain(String domain) { 
-    this.delegate.setDomain(domain);
+    delegate.setDomain(domain);
     return this;
   }
 
@@ -97,7 +96,7 @@ public class Cookie {
    * @return 
    */
   public String getDomain() { 
-    String ret = this.delegate.getDomain();
+    String ret = delegate.getDomain();
     return ret;
   }
 
@@ -107,7 +106,7 @@ public class Cookie {
    * @return a reference to this, so the API can be used fluently
    */
   public Cookie setPath(String path) { 
-    this.delegate.setPath(path);
+    delegate.setPath(path);
     return this;
   }
 
@@ -115,7 +114,7 @@ public class Cookie {
    * @return the path for this cookie
    */
   public String getPath() { 
-    String ret = this.delegate.getPath();
+    String ret = delegate.getPath();
     return ret;
   }
 
@@ -130,8 +129,8 @@ public class Cookie {
    * @return 
    */
   public Cookie setMaxAge(long maxAge) { 
-    Cookie ret= Cookie.newInstance(this.delegate.setMaxAge(maxAge));
-    return ret;
+    delegate.setMaxAge(maxAge);
+    return this;
   }
 
   /**
@@ -140,7 +139,7 @@ public class Cookie {
    * @return a reference to this, so the API can be used fluently
    */
   public Cookie setSecure(boolean secure) { 
-    this.delegate.setSecure(secure);
+    delegate.setSecure(secure);
     return this;
   }
 
@@ -154,8 +153,8 @@ public class Cookie {
    * @return 
    */
   public Cookie setHttpOnly(boolean httpOnly) { 
-    Cookie ret= Cookie.newInstance(this.delegate.setHttpOnly(httpOnly));
-    return ret;
+    delegate.setHttpOnly(httpOnly);
+    return this;
   }
 
   /**
@@ -163,7 +162,7 @@ public class Cookie {
    * @return the encoded cookie
    */
   public String encode() { 
-    String ret = this.delegate.encode();
+    String ret = delegate.encode();
     return ret;
   }
 
@@ -172,7 +171,7 @@ public class Cookie {
    * @return true if changed
    */
   public boolean isChanged() { 
-    boolean ret = this.delegate.isChanged();
+    boolean ret = delegate.isChanged();
     return ret;
   }
 
@@ -182,7 +181,7 @@ public class Cookie {
    * @param changed true if changed
    */
   public void setChanged(boolean changed) { 
-    this.delegate.setChanged(changed);
+    delegate.setChanged(changed);
   }
 
 

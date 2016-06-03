@@ -36,7 +36,7 @@ public class HandlebarsTemplateEngine extends TemplateEngine {
    * @return the engine
    */
   public static HandlebarsTemplateEngine create() {
-    def ret= InternalHelper.safeCreate(io.vertx.ext.web.templ.HandlebarsTemplateEngine.create(), io.vertx.groovy.ext.web.templ.HandlebarsTemplateEngine.class);
+    def ret = InternalHelper.safeCreate(io.vertx.ext.web.templ.HandlebarsTemplateEngine.create(), io.vertx.groovy.ext.web.templ.HandlebarsTemplateEngine.class);
     return ret;
   }
   /**
@@ -45,7 +45,7 @@ public class HandlebarsTemplateEngine extends TemplateEngine {
    * @return a reference to this for fluency
    */
   public HandlebarsTemplateEngine setExtension(String extension) {
-    def ret= InternalHelper.safeCreate(this.delegate.setExtension(extension), io.vertx.groovy.ext.web.templ.HandlebarsTemplateEngine.class);
+    def ret = InternalHelper.safeCreate(delegate.setExtension(extension), io.vertx.groovy.ext.web.templ.HandlebarsTemplateEngine.class);
     return ret;
   }
   /**
@@ -54,7 +54,7 @@ public class HandlebarsTemplateEngine extends TemplateEngine {
    * @return a reference to this for fluency
    */
   public HandlebarsTemplateEngine setMaxCacheSize(int maxCacheSize) {
-    def ret= InternalHelper.safeCreate(this.delegate.setMaxCacheSize(maxCacheSize), io.vertx.groovy.ext.web.templ.HandlebarsTemplateEngine.class);
+    def ret = InternalHelper.safeCreate(delegate.setMaxCacheSize(maxCacheSize), io.vertx.groovy.ext.web.templ.HandlebarsTemplateEngine.class);
     return ret;
   }
 }

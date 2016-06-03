@@ -30,6 +30,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -143,7 +144,7 @@ public class StaticHandlerTest extends WebTestBase {
     testRequest(HttpMethod.GET, "/otherpage.html", null, res -> {
       String contentType = res.headers().get("content-type");
       String contentLength = res.headers().get("content-length");
-      assertEquals("text/html", contentType);
+      assertEquals("text/html;charset=UTF-8", contentType);
       assertEquals(36, Integer.valueOf(contentLength).intValue());
     }, 200, "OK", null);
     testRequest(HttpMethod.GET, "/foo.json", null, res -> {
@@ -529,6 +530,78 @@ public class StaticHandlerTest extends WebTestBase {
     await();
   }
 
+  @Test
+  public void testContentTypeSupport() throws Exception {
+    testRequest(HttpMethod.GET, "/somedir/range.jpg", req -> {
+    }, res -> {
+      assertNotNull(res.getHeader("Content-Type"));
+      assertEquals("image/jpeg", res.getHeader("Content-Type"));
+      testComplete();
+    }, 200, "OK", null);
+    await();
+  }
+
+  @Test
+  public void testAsyncExceptionIssue231() throws Exception {
+    stat.setAlwaysAsyncFS(true);
+    testRequest(HttpMethod.GET, "/non_existing.html", 404, "Not Found");
+  }
+
+  @Test
+  public void testServerFileSystemPath() throws Exception {
+    router.clear();
+
+    File file = File.createTempFile("vertx", "tmp");
+    file.deleteOnExit();
+
+    // remap stat to the temp dir
+    try {
+      stat = StaticHandler.create(file.getParent());
+      fail();
+    } catch (IllegalArgumentException e) {
+      // expected
+    }
+
+    stat = StaticHandler.create().setAllowRootFileSystemAccess(true).setWebRoot(file.getParent());
+    router.route().handler(stat);
+
+    testRequest(HttpMethod.GET, "/" + file.getName(), 200, "OK", "");
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testAccessToRootPath() throws Exception {
+    router.clear();
+
+    File file = File.createTempFile("vertx", "tmp");
+    file.deleteOnExit();
+
+    // remap stat to the temp dir
+    stat = StaticHandler.create().setWebRoot(file.getParent());
+  }
+
+  @Test
+  public void testDoubleException() throws Exception {
+    router.clear();
+
+    final AtomicInteger cnt = new AtomicInteger(0);
+
+    router.route("/static/*")
+        .handler(stat)
+        .failureHandler(ctx -> {
+          if (cnt.incrementAndGet() == 1) {
+            vertx.setTimer(100, v -> {
+              ctx.response().end();
+            });
+          }
+
+          System.out.println("HERE!");
+        });
+
+    testRequest(HttpMethod.GET, "/static/non-existent-file.txt", 200, "OK");
+    assertEquals(1, cnt.get());
+  }
+
+
   // TODO
   // 1.Test all the params including invalid values
   // 2. Make sure exists isn't being called too many times
@@ -542,7 +615,4 @@ public class StaticHandlerTest extends WebTestBase {
       return -1;
     }
   }
-
-
-
 }

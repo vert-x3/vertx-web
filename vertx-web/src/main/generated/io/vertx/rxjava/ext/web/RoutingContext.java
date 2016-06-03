@@ -17,16 +17,17 @@
 package io.vertx.rxjava.ext.web;
 
 import java.util.Map;
-import io.vertx.lang.rxjava.InternalHelper;
 import rx.Observable;
 import io.vertx.rxjava.core.http.HttpServerRequest;
 import io.vertx.rxjava.core.Vertx;
 import java.util.Set;
+import io.vertx.core.json.JsonArray;
 import java.util.List;
 import io.vertx.rxjava.ext.auth.User;
 import io.vertx.rxjava.core.buffer.Buffer;
 import io.vertx.rxjava.core.http.HttpServerResponse;
 import io.vertx.core.http.HttpMethod;
+import java.util.Map;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.Handler;
 
@@ -70,7 +71,7 @@ public class RoutingContext {
     if (cached_0 != null) {
       return cached_0;
     }
-    HttpServerRequest ret= HttpServerRequest.newInstance(this.delegate.request());
+    HttpServerRequest ret = HttpServerRequest.newInstance(delegate.request());
     cached_0 = ret;
     return ret;
   }
@@ -83,7 +84,7 @@ public class RoutingContext {
     if (cached_1 != null) {
       return cached_1;
     }
-    HttpServerResponse ret= HttpServerResponse.newInstance(this.delegate.response());
+    HttpServerResponse ret = HttpServerResponse.newInstance(delegate.response());
     cached_1 = ret;
     return ret;
   }
@@ -97,7 +98,7 @@ public class RoutingContext {
    * will be sent.
    */
   public void next() { 
-    this.delegate.next();
+    delegate.next();
   }
 
   /**
@@ -108,7 +109,7 @@ public class RoutingContext {
    * @param statusCode the HTTP status code
    */
   public void fail(int statusCode) { 
-    this.delegate.fail(statusCode);
+    delegate.fail(statusCode);
   }
 
   /**
@@ -119,7 +120,7 @@ public class RoutingContext {
    * @param throwable a throwable representing the failure
    */
   public void fail(Throwable throwable) { 
-    this.delegate.fail(throwable);
+    delegate.fail(throwable);
   }
 
   /**
@@ -129,7 +130,7 @@ public class RoutingContext {
    * @return a reference to this, so the API can be used fluently
    */
   public RoutingContext put(String key, Object obj) { 
-    this.delegate.put(key, obj);
+    delegate.put(key, obj);
     return this;
   }
 
@@ -139,16 +140,16 @@ public class RoutingContext {
    * @return the data
    */
   public <T> T get(String key) { 
-    T ret = (T) this.delegate.get(key);
+    T ret = (T) delegate.get(key);
     return ret;
   }
 
   /**
-   * @return the Vert.x instance associated to the initiating {@link io.vertx.ext.web.Router} for this context
+   * @return the Vert.x instance associated to the initiating {@link io.vertx.rxjava.ext.web.Router} for this context
    * @return 
    */
   public Vertx vertx() { 
-    Vertx ret= Vertx.newInstance(this.delegate.vertx());
+    Vertx ret = Vertx.newInstance(delegate.vertx());
     return ret;
   }
 
@@ -158,7 +159,7 @@ public class RoutingContext {
    * @return 
    */
   public String mountPoint() { 
-    String ret = this.delegate.mountPoint();
+    String ret = delegate.mountPoint();
     return ret;
   }
 
@@ -167,7 +168,7 @@ public class RoutingContext {
    * @return 
    */
   public Route currentRoute() { 
-    Route ret= Route.newInstance(this.delegate.currentRoute());
+    Route ret = Route.newInstance(delegate.currentRoute());
     return ret;
   }
 
@@ -186,18 +187,18 @@ public class RoutingContext {
    * @return the normalised path
    */
   public String normalisedPath() { 
-    String ret = this.delegate.normalisedPath();
+    String ret = delegate.normalisedPath();
     return ret;
   }
 
   /**
-   * Get the cookie with the specified name. The context must have first been routed to a {@link io.vertx.ext.web.handler.CookieHandler}
+   * Get the cookie with the specified name. The context must have first been routed to a {@link io.vertx.rxjava.ext.web.handler.CookieHandler}
    * for this to work.
    * @param name the cookie name
    * @return the cookie
    */
   public Cookie getCookie(String name) { 
-    Cookie ret= Cookie.newInstance(this.delegate.getCookie(name));
+    Cookie ret = Cookie.newInstance(delegate.getCookie(name));
     return ret;
   }
 
@@ -208,7 +209,7 @@ public class RoutingContext {
    * @return a reference to this, so the API can be used fluently
    */
   public RoutingContext addCookie(Cookie cookie) { 
-    this.delegate.addCookie((io.vertx.ext.web.Cookie) cookie.getDelegate());
+    delegate.addCookie((io.vertx.ext.web.Cookie)cookie.getDelegate());
     return this;
   }
 
@@ -219,7 +220,7 @@ public class RoutingContext {
    * @return the cookie, if it existed, or null
    */
   public Cookie removeCookie(String name) { 
-    Cookie ret= Cookie.newInstance(this.delegate.removeCookie(name));
+    Cookie ret = Cookie.newInstance(delegate.removeCookie(name));
     return ret;
   }
 
@@ -229,58 +230,68 @@ public class RoutingContext {
    * @return 
    */
   public int cookieCount() { 
-    int ret = this.delegate.cookieCount();
+    int ret = delegate.cookieCount();
     return ret;
   }
 
   /**
-   * @return a set of all the cookies. The context must have first been routed to a {@link io.vertx.ext.web.handler.CookieHandler}
+   * @return a set of all the cookies. The context must have first been routed to a {@link io.vertx.rxjava.ext.web.handler.CookieHandler}
    * for this to be populated.
    * @return 
    */
   public Set<Cookie> cookies() { 
-    Set<Cookie> ret = this.delegate.cookies().stream().map(Cookie::newInstance).collect(java.util.stream.Collectors.toSet());
+    Set<Cookie> ret = delegate.cookies().stream().map(elt -> Cookie.newInstance(elt)).collect(java.util.stream.Collectors.toSet());
     return ret;
   }
 
   /**
    * @return  the entire HTTP request body as a string, assuming UTF-8 encoding. The context must have first been routed to a
-   * {@link io.vertx.ext.web.handler.BodyHandler} for this to be populated.
+   * {@link io.vertx.rxjava.ext.web.handler.BodyHandler} for this to be populated.
    * @return 
    */
   public String getBodyAsString() { 
-    String ret = this.delegate.getBodyAsString();
+    String ret = delegate.getBodyAsString();
     return ret;
   }
 
   /**
    * Get the entire HTTP request body as a string, assuming the specified encoding. The context must have first been routed to a
-   * {@link io.vertx.ext.web.handler.BodyHandler} for this to be populated.
+   * {@link io.vertx.rxjava.ext.web.handler.BodyHandler} for this to be populated.
    * @param encoding the encoding, e.g. "UTF-16"
    * @return the body
    */
   public String getBodyAsString(String encoding) { 
-    String ret = this.delegate.getBodyAsString(encoding);
+    String ret = delegate.getBodyAsString(encoding);
     return ret;
   }
 
   /**
    * @return Get the entire HTTP request body as a . The context must have first been routed to a
-   * {@link io.vertx.ext.web.handler.BodyHandler} for this to be populated.
+   * {@link io.vertx.rxjava.ext.web.handler.BodyHandler} for this to be populated.
    * @return 
    */
   public JsonObject getBodyAsJson() { 
-    JsonObject ret = this.delegate.getBodyAsJson();
+    JsonObject ret = delegate.getBodyAsJson();
     return ret;
   }
 
   /**
    * @return Get the entire HTTP request body as a . The context must have first been routed to a
-   * {@link io.vertx.ext.web.handler.BodyHandler} for this to be populated.
+   * {@link io.vertx.rxjava.ext.web.handler.BodyHandler} for this to be populated.
+   * @return 
+   */
+  public JsonArray getBodyAsJsonArray() { 
+    JsonArray ret = delegate.getBodyAsJsonArray();
+    return ret;
+  }
+
+  /**
+   * @return Get the entire HTTP request body as a . The context must have first been routed to a
+   * {@link io.vertx.rxjava.ext.web.handler.BodyHandler} for this to be populated.
    * @return 
    */
   public Buffer getBody() { 
-    Buffer ret= Buffer.newInstance(this.delegate.getBody());
+    Buffer ret = Buffer.newInstance(delegate.getBody());
     return ret;
   }
 
@@ -290,18 +301,18 @@ public class RoutingContext {
    * @return 
    */
   public Set<FileUpload> fileUploads() { 
-    Set<FileUpload> ret = this.delegate.fileUploads().stream().map(FileUpload::newInstance).collect(java.util.stream.Collectors.toSet());
+    Set<FileUpload> ret = delegate.fileUploads().stream().map(elt -> FileUpload.newInstance(elt)).collect(java.util.stream.Collectors.toSet());
     return ret;
   }
 
   /**
-   * Get the session. The context must have first been routed to a {@link io.vertx.ext.web.handler.SessionHandler}
+   * Get the session. The context must have first been routed to a {@link io.vertx.rxjava.ext.web.handler.SessionHandler}
    * for this to be populated.
    * Sessions live for a browser session, and are maintained by session cookies.
    * @return the session.
    */
   public Session session() { 
-    Session ret= Session.newInstance(this.delegate.session());
+    Session ret = Session.newInstance(delegate.session());
     return ret;
   }
 
@@ -310,7 +321,22 @@ public class RoutingContext {
    * @return the user, or null if the current user is not authenticated.
    */
   public User user() { 
-    User ret= User.newInstance(this.delegate.user());
+    User ret = User.newInstance(delegate.user());
+    return ret;
+  }
+
+  /**
+   * If the context is being routed to failure handlers after a failure has been triggered by calling
+   * {@link io.vertx.rxjava.ext.web.RoutingContext#fail} then this will return that throwable. It can be used by failure handlers to render a response,
+   * e.g. create a failure response page.
+   * @return the throwable used when signalling failure
+   */
+  public Throwable failure() { 
+    if (cached_2 != null) {
+      return cached_2;
+    }
+    Throwable ret = delegate.failure();
+    cached_2 = ret;
     return ret;
   }
 
@@ -318,14 +344,16 @@ public class RoutingContext {
    * If the context is being routed to failure handlers after a failure has been triggered by calling
    * {@link io.vertx.rxjava.ext.web.RoutingContext#fail}  then this will return that status code.  It can be used by failure handlers to render a response,
    * e.g. create a failure response page.
+   *
+   * When the status code has not been set yet (it is undefined) its value will be -1.
    * @return the status code used when signalling failure
    */
   public int statusCode() { 
-    if (cached_2 != null) {
-      return cached_2;
+    if (cached_3 != null) {
+      return cached_3;
     }
-    int ret = this.delegate.statusCode();
-    cached_2 = ret;
+    int ret = delegate.statusCode();
+    cached_3 = ret;
     return ret;
   }
 
@@ -335,7 +363,7 @@ public class RoutingContext {
    * @return the most acceptable content type.
    */
   public String getAcceptableContentType() { 
-    String ret = this.delegate.getAcceptableContentType();
+    String ret = delegate.getAcceptableContentType();
     return ret;
   }
 
@@ -346,17 +374,21 @@ public class RoutingContext {
    * @return the id of the handler. This can be used if you later want to remove the handler.
    */
   public int addHeadersEndHandler(Handler<Void> handler) { 
-    int ret = this.delegate.addHeadersEndHandler(handler);
+    int ret = delegate.addHeadersEndHandler(new Handler<java.lang.Void>() {
+      public void handle(java.lang.Void event) {
+        handler.handle(event);
+      }
+    });
     return ret;
   }
 
   /**
    * Remove a headers end handler
-   * @param handlerID the id as returned from {@link io.vertx.ext.web.RoutingContext}.
+   * @param handlerID the id as returned from {@link io.vertx.rxjava.ext.web.RoutingContext#addHeadersEndHandler}.
    * @return true if the handler existed and was removed, false otherwise
    */
   public boolean removeHeadersEndHandler(int handlerID) { 
-    boolean ret = this.delegate.removeHeadersEndHandler(handlerID);
+    boolean ret = delegate.removeHeadersEndHandler(handlerID);
     return ret;
   }
 
@@ -367,17 +399,21 @@ public class RoutingContext {
    * @return the id of the handler. This can be used if you later want to remove the handler.
    */
   public int addBodyEndHandler(Handler<Void> handler) { 
-    int ret = this.delegate.addBodyEndHandler(handler);
+    int ret = delegate.addBodyEndHandler(new Handler<java.lang.Void>() {
+      public void handle(java.lang.Void event) {
+        handler.handle(event);
+      }
+    });
     return ret;
   }
 
   /**
    * Remove a body end handler
-   * @param handlerID the id as returned from {@link io.vertx.ext.web.RoutingContext}.
+   * @param handlerID the id as returned from {@link io.vertx.rxjava.ext.web.RoutingContext#addBodyEndHandler}.
    * @return true if the handler existed and was removed, false otherwise
    */
   public boolean removeBodyEndHandler(int handlerID) { 
-    boolean ret = this.delegate.removeBodyEndHandler(handlerID);
+    boolean ret = delegate.removeBodyEndHandler(handlerID);
     return ret;
   }
 
@@ -386,24 +422,24 @@ public class RoutingContext {
    * @return 
    */
   public boolean failed() { 
-    boolean ret = this.delegate.failed();
+    boolean ret = delegate.failed();
     return ret;
   }
 
   /**
-   * Set the body. Used by the {@link io.vertx.ext.web.handler.BodyHandler}. You will not normally call this method.
+   * Set the body. Used by the {@link io.vertx.rxjava.ext.web.handler.BodyHandler}. You will not normally call this method.
    * @param body the body
    */
   public void setBody(Buffer body) { 
-    this.delegate.setBody((io.vertx.core.buffer.Buffer) body.getDelegate());
+    delegate.setBody((io.vertx.core.buffer.Buffer)body.getDelegate());
   }
 
   /**
-   * Set the session. Used by the {@link io.vertx.ext.web.handler.SessionHandler}. You will not normally call this method.
+   * Set the session. Used by the {@link io.vertx.rxjava.ext.web.handler.SessionHandler}. You will not normally call this method.
    * @param session the session
    */
   public void setSession(Session session) { 
-    this.delegate.setSession((io.vertx.ext.web.Session) session.getDelegate());
+    delegate.setSession((io.vertx.ext.web.Session)session.getDelegate());
   }
 
   /**
@@ -411,7 +447,7 @@ public class RoutingContext {
    * @param user the user
    */
   public void setUser(User user) { 
-    this.delegate.setUser((io.vertx.ext.auth.User) user.getDelegate());
+    delegate.setUser((io.vertx.ext.auth.User)user.getDelegate());
   }
 
   /**
@@ -419,7 +455,7 @@ public class RoutingContext {
    * current user is unbounded from the routing context.
    */
   public void clearUser() { 
-    this.delegate.clearUser();
+    delegate.clearUser();
   }
 
   /**
@@ -427,7 +463,7 @@ public class RoutingContext {
    * @param contentType the content type
    */
   public void setAcceptableContentType(String contentType) { 
-    this.delegate.setAcceptableContentType(contentType);
+    delegate.setAcceptableContentType(contentType);
   }
 
   /**
@@ -436,7 +472,7 @@ public class RoutingContext {
    * @param path the new http path.
    */
   public void reroute(String path) { 
-    this.delegate.reroute(path);
+    delegate.reroute(path);
   }
 
   /**
@@ -446,7 +482,7 @@ public class RoutingContext {
    * @param path the new http path.
    */
   public void reroute(HttpMethod method, String path) { 
-    this.delegate.reroute(method, path);
+    delegate.reroute(method, path);
   }
 
   /**
@@ -459,11 +495,11 @@ public class RoutingContext {
    * @return the best matched locale for the request
    */
   public List<Locale> acceptableLocales() { 
-    if (cached_3 != null) {
-      return cached_3;
+    if (cached_4 != null) {
+      return cached_4;
     }
-    List<Locale> ret = this.delegate.acceptableLocales().stream().map(Locale::newInstance).collect(java.util.stream.Collectors.toList());
-    cached_3 = ret;
+    List<Locale> ret = delegate.acceptableLocales().stream().map(elt -> Locale.newInstance(elt)).collect(java.util.stream.Collectors.toList());
+    cached_4 = ret;
     return ret;
   }
 
@@ -473,14 +509,34 @@ public class RoutingContext {
    * @return the users preferred locale.
    */
   public Locale preferredLocale() { 
-    Locale ret= Locale.newInstance(this.delegate.preferredLocale());
+    Locale ret = Locale.newInstance(delegate.preferredLocale());
+    return ret;
+  }
+
+  /**
+   * Returns a map of named parameters as defined in path declaration with their actual values
+   * @return the map of named parameters
+   */
+  public Map<String,String> pathParams() { 
+    Map<String,String> ret = delegate.pathParams();
+    return ret;
+  }
+
+  /**
+   * Gets the value of a single path parameter
+   * @param name the name of parameter as defined in path declaration
+   * @return the actual value of the parameter or null if it doesn't exist
+   */
+  public String pathParam(String name) { 
+    String ret = delegate.pathParam(name);
     return ret;
   }
 
   private HttpServerRequest cached_0;
   private HttpServerResponse cached_1;
-  private java.lang.Integer cached_2;
-  private List<Locale> cached_3;
+  private Throwable cached_2;
+  private java.lang.Integer cached_3;
+  private List<Locale> cached_4;
 
   public static RoutingContext newInstance(io.vertx.ext.web.RoutingContext arg) {
     return arg != null ? new RoutingContext(arg) : null;

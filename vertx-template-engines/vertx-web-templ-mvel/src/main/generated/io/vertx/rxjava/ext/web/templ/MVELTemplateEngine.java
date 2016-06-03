@@ -17,7 +17,6 @@
 package io.vertx.rxjava.ext.web.templ;
 
 import java.util.Map;
-import io.vertx.lang.rxjava.InternalHelper;
 import rx.Observable;
 
 /**
@@ -45,7 +44,7 @@ public class MVELTemplateEngine extends TemplateEngine {
    * @return the engine
    */
   public static MVELTemplateEngine create() { 
-    MVELTemplateEngine ret= MVELTemplateEngine.newInstance(io.vertx.ext.web.templ.MVELTemplateEngine.create());
+    MVELTemplateEngine ret = MVELTemplateEngine.newInstance(io.vertx.ext.web.templ.MVELTemplateEngine.create());
     return ret;
   }
 
@@ -55,7 +54,7 @@ public class MVELTemplateEngine extends TemplateEngine {
    * @return a reference to this for fluency
    */
   public MVELTemplateEngine setExtension(String extension) { 
-    MVELTemplateEngine ret= MVELTemplateEngine.newInstance(this.delegate.setExtension(extension));
+    MVELTemplateEngine ret = MVELTemplateEngine.newInstance(delegate.setExtension(extension));
     return ret;
   }
 
@@ -65,7 +64,7 @@ public class MVELTemplateEngine extends TemplateEngine {
    * @return a reference to this for fluency
    */
   public MVELTemplateEngine setMaxCacheSize(int maxCacheSize) { 
-    MVELTemplateEngine ret= MVELTemplateEngine.newInstance(this.delegate.setMaxCacheSize(maxCacheSize));
+    MVELTemplateEngine ret = MVELTemplateEngine.newInstance(delegate.setMaxCacheSize(maxCacheSize));
     return ret;
   }
 

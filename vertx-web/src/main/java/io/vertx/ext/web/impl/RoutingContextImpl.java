@@ -16,12 +16,14 @@
 
 package io.vertx.ext.web.impl;
 
+import io.vertx.codegen.annotations.Nullable;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.web.Cookie;
@@ -40,6 +42,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
 
   private final RouterImpl router;
   private Map<String, Object> data;
+  private Map<String, String> pathParams;
   private AtomicInteger handlerSeq = new AtomicInteger();
   private Map<Integer, Handler<Void>> headersEndHandlers;
   private Map<Integer, Handler<Void>> bodyEndHandlers;
@@ -120,7 +123,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
 
   @Override
   public void fail(Throwable t) {
-    this.failure = t;
+    this.failure = t == null ? new NullPointerException() : t;
     doFail();
   }
 
@@ -194,6 +197,11 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   @Override
   public JsonObject getBodyAsJson() {
     return body != null ? new JsonObject(body.toString()) : null;
+  }
+
+  @Override
+  public JsonArray getBodyAsJsonArray() {
+    return body != null ? new JsonArray(body.toString()) : null;
   }
 
   @Override
@@ -274,6 +282,12 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   public void reroute(HttpMethod method, String path) {
     ((HttpServerRequestWrapper) request).setMethod(method);
     ((HttpServerRequestWrapper) request).setPath(path);
+    request.params().clear();
+    // we need to reset the normalized path
+    normalisedPath = null;
+    // we also need to reset any previous status
+    statusCode = -1;
+    failure = null;
     restart();
   }
 
@@ -312,9 +326,27 @@ public class RoutingContextImpl extends RoutingContextImplBase {
     return Collections.emptyList();
   }
 
+  @Override
+  public Map<String, String> pathParams() {
+    return getPathParams();
+  }
+
+  @Override
+  public @Nullable String pathParam(String name) {
+    return getPathParams().get(name);
+  }
+
+  private Map<String, String> getPathParams() {
+    if (pathParams == null) {
+      pathParams = new HashMap<>();
+    }
+    return pathParams;
+  }
+
   private Map<Integer, Handler<Void>> getHeadersEndHandlers() {
     if (headersEndHandlers == null) {
-      headersEndHandlers = new LinkedHashMap<>();
+      // order is important we we should traverse backwards
+      headersEndHandlers = new TreeMap<>(Collections.reverseOrder());
       response().headersEndHandler(v -> headersEndHandlers.values().forEach(handler -> handler.handle(null)));
     }
     return headersEndHandlers;
@@ -322,7 +354,8 @@ public class RoutingContextImpl extends RoutingContextImplBase {
 
   private Map<Integer, Handler<Void>> getBodyEndHandlers() {
     if (bodyEndHandlers == null) {
-      bodyEndHandlers = new LinkedHashMap<>();
+      // order is important we we should traverse backwards
+      bodyEndHandlers = new TreeMap<>(Collections.reverseOrder());
       response().bodyEndHandler(v -> bodyEndHandlers.values().forEach(handler -> handler.handle(null)));
     }
     return bodyEndHandlers;

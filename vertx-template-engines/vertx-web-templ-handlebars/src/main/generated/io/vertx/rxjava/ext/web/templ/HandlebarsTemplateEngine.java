@@ -17,7 +17,6 @@
 package io.vertx.rxjava.ext.web.templ;
 
 import java.util.Map;
-import io.vertx.lang.rxjava.InternalHelper;
 import rx.Observable;
 
 /**
@@ -45,7 +44,7 @@ public class HandlebarsTemplateEngine extends TemplateEngine {
    * @return the engine
    */
   public static HandlebarsTemplateEngine create() { 
-    HandlebarsTemplateEngine ret= HandlebarsTemplateEngine.newInstance(io.vertx.ext.web.templ.HandlebarsTemplateEngine.create());
+    HandlebarsTemplateEngine ret = HandlebarsTemplateEngine.newInstance(io.vertx.ext.web.templ.HandlebarsTemplateEngine.create());
     return ret;
   }
 
@@ -55,7 +54,7 @@ public class HandlebarsTemplateEngine extends TemplateEngine {
    * @return a reference to this for fluency
    */
   public HandlebarsTemplateEngine setExtension(String extension) { 
-    HandlebarsTemplateEngine ret= HandlebarsTemplateEngine.newInstance(this.delegate.setExtension(extension));
+    HandlebarsTemplateEngine ret = HandlebarsTemplateEngine.newInstance(delegate.setExtension(extension));
     return ret;
   }
 
@@ -65,7 +64,7 @@ public class HandlebarsTemplateEngine extends TemplateEngine {
    * @return a reference to this for fluency
    */
   public HandlebarsTemplateEngine setMaxCacheSize(int maxCacheSize) { 
-    HandlebarsTemplateEngine ret= HandlebarsTemplateEngine.newInstance(this.delegate.setMaxCacheSize(maxCacheSize));
+    HandlebarsTemplateEngine ret = HandlebarsTemplateEngine.newInstance(delegate.setMaxCacheSize(maxCacheSize));
     return ret;
   }
 

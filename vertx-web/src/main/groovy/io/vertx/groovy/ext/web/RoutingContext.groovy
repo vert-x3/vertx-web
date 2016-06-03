@@ -21,11 +21,13 @@ import io.vertx.core.json.JsonObject
 import io.vertx.groovy.core.http.HttpServerRequest
 import io.vertx.groovy.core.Vertx
 import java.util.Set
+import io.vertx.core.json.JsonArray
 import java.util.List
 import io.vertx.groovy.ext.auth.User
 import io.vertx.groovy.core.buffer.Buffer
 import io.vertx.groovy.core.http.HttpServerResponse
 import io.vertx.core.http.HttpMethod
+import java.util.Map
 import io.vertx.core.json.JsonObject
 import io.vertx.core.Handler
 /**
@@ -61,7 +63,7 @@ public class RoutingContext {
     if (cached_0 != null) {
       return cached_0;
     }
-    def ret= InternalHelper.safeCreate(this.delegate.request(), io.vertx.groovy.core.http.HttpServerRequest.class);
+    def ret = InternalHelper.safeCreate(delegate.request(), io.vertx.groovy.core.http.HttpServerRequest.class);
     cached_0 = ret;
     return ret;
   }
@@ -73,7 +75,7 @@ public class RoutingContext {
     if (cached_1 != null) {
       return cached_1;
     }
-    def ret= InternalHelper.safeCreate(this.delegate.response(), io.vertx.groovy.core.http.HttpServerResponse.class);
+    def ret = InternalHelper.safeCreate(delegate.response(), io.vertx.groovy.core.http.HttpServerResponse.class);
     cached_1 = ret;
     return ret;
   }
@@ -86,7 +88,7 @@ public class RoutingContext {
    * will be sent.
    */
   public void next() {
-    this.delegate.next();
+    delegate.next();
   }
   /**
    * Fail the context with the specified status code.
@@ -96,7 +98,7 @@ public class RoutingContext {
    * @param statusCode the HTTP status code
    */
   public void fail(int statusCode) {
-    this.delegate.fail(statusCode);
+    delegate.fail(statusCode);
   }
   /**
    * Fail the context with the specified throwable.
@@ -106,7 +108,7 @@ public class RoutingContext {
    * @param throwable a throwable representing the failure
    */
   public void fail(Throwable throwable) {
-    this.delegate.fail(throwable);
+    delegate.fail(throwable);
   }
   /**
    * Put some arbitrary data in the context. This will be available in any handlers that receive the context.
@@ -115,7 +117,7 @@ public class RoutingContext {
    * @return a reference to this, so the API can be used fluently
    */
   public RoutingContext put(String key, Object obj) {
-    this.delegate.put(key, InternalHelper.unwrapObject(obj));
+    delegate.put(key, obj != null ? InternalHelper.unwrapObject(obj) : null);
     return this;
   }
   /**
@@ -124,8 +126,7 @@ public class RoutingContext {
    * @return the data
    */
   public <T> T get(String key) {
-    // This cast is cleary flawed
-    def ret = (T) InternalHelper.wrapObject(this.delegate.get(key));
+    def ret = (T) InternalHelper.wrapObject(delegate.get(key));
     return ret;
   }
   /**
@@ -133,7 +134,7 @@ public class RoutingContext {
    * @return 
    */
   public Vertx vertx() {
-    def ret= InternalHelper.safeCreate(this.delegate.vertx(), io.vertx.groovy.core.Vertx.class);
+    def ret = InternalHelper.safeCreate(delegate.vertx(), io.vertx.groovy.core.Vertx.class);
     return ret;
   }
   /**
@@ -142,7 +143,7 @@ public class RoutingContext {
    * @return 
    */
   public String mountPoint() {
-    def ret = this.delegate.mountPoint();
+    def ret = delegate.mountPoint();
     return ret;
   }
   /**
@@ -150,7 +151,7 @@ public class RoutingContext {
    * @return 
    */
   public Route currentRoute() {
-    def ret= InternalHelper.safeCreate(this.delegate.currentRoute(), io.vertx.groovy.ext.web.Route.class);
+    def ret = InternalHelper.safeCreate(delegate.currentRoute(), io.vertx.groovy.ext.web.Route.class);
     return ret;
   }
   /**
@@ -168,7 +169,7 @@ public class RoutingContext {
    * @return the normalised path
    */
   public String normalisedPath() {
-    def ret = this.delegate.normalisedPath();
+    def ret = delegate.normalisedPath();
     return ret;
   }
   /**
@@ -178,7 +179,7 @@ public class RoutingContext {
    * @return the cookie
    */
   public Cookie getCookie(String name) {
-    def ret= InternalHelper.safeCreate(this.delegate.getCookie(name), io.vertx.groovy.ext.web.Cookie.class);
+    def ret = InternalHelper.safeCreate(delegate.getCookie(name), io.vertx.groovy.ext.web.Cookie.class);
     return ret;
   }
   /**
@@ -188,7 +189,7 @@ public class RoutingContext {
    * @return a reference to this, so the API can be used fluently
    */
   public RoutingContext addCookie(Cookie cookie) {
-    this.delegate.addCookie((io.vertx.ext.web.Cookie)cookie.getDelegate());
+    delegate.addCookie(cookie != null ? (io.vertx.ext.web.Cookie)cookie.getDelegate() : null);
     return this;
   }
   /**
@@ -198,7 +199,7 @@ public class RoutingContext {
    * @return the cookie, if it existed, or null
    */
   public Cookie removeCookie(String name) {
-    def ret= InternalHelper.safeCreate(this.delegate.removeCookie(name), io.vertx.groovy.ext.web.Cookie.class);
+    def ret = InternalHelper.safeCreate(delegate.removeCookie(name), io.vertx.groovy.ext.web.Cookie.class);
     return ret;
   }
   /**
@@ -207,7 +208,7 @@ public class RoutingContext {
    * @return 
    */
   public int cookieCount() {
-    def ret = this.delegate.cookieCount();
+    def ret = delegate.cookieCount();
     return ret;
   }
   /**
@@ -216,7 +217,7 @@ public class RoutingContext {
    * @return 
    */
   public Set<Cookie> cookies() {
-    def ret = this.delegate.cookies()?.collect({underpants -> new io.vertx.groovy.ext.web.Cookie(underpants)}) as Set;
+    def ret = (Set)delegate.cookies()?.collect({InternalHelper.safeCreate(it, io.vertx.groovy.ext.web.Cookie.class)}) as Set;
     return ret;
   }
   /**
@@ -225,7 +226,7 @@ public class RoutingContext {
    * @return 
    */
   public String getBodyAsString() {
-    def ret = this.delegate.getBodyAsString();
+    def ret = delegate.getBodyAsString();
     return ret;
   }
   /**
@@ -235,7 +236,7 @@ public class RoutingContext {
    * @return the body
    */
   public String getBodyAsString(String encoding) {
-    def ret = this.delegate.getBodyAsString(encoding);
+    def ret = delegate.getBodyAsString(encoding);
     return ret;
   }
   /**
@@ -244,7 +245,16 @@ public class RoutingContext {
    * @return 
    */
   public Map<String, Object> getBodyAsJson() {
-    def ret = (Map<String, Object>)InternalHelper.wrapObject(this.delegate.getBodyAsJson());
+    def ret = (Map<String, Object>)InternalHelper.wrapObject(delegate.getBodyAsJson());
+    return ret;
+  }
+  /**
+   * @return Get the entire HTTP request body as a . The context must have first been routed to a
+   * {@link io.vertx.groovy.ext.web.handler.BodyHandler} for this to be populated.
+   * @return 
+   */
+  public List<Object> getBodyAsJsonArray() {
+    def ret = (List<Object>)InternalHelper.wrapObject(delegate.getBodyAsJsonArray());
     return ret;
   }
   /**
@@ -253,7 +263,7 @@ public class RoutingContext {
    * @return 
    */
   public Buffer getBody() {
-    def ret= InternalHelper.safeCreate(this.delegate.getBody(), io.vertx.groovy.core.buffer.Buffer.class);
+    def ret = InternalHelper.safeCreate(delegate.getBody(), io.vertx.groovy.core.buffer.Buffer.class);
     return ret;
   }
   /**
@@ -262,7 +272,7 @@ public class RoutingContext {
    * @return 
    */
   public Set<FileUpload> fileUploads() {
-    def ret = this.delegate.fileUploads()?.collect({underpants -> new io.vertx.groovy.ext.web.FileUpload(underpants)}) as Set;
+    def ret = (Set)delegate.fileUploads()?.collect({InternalHelper.safeCreate(it, io.vertx.groovy.ext.web.FileUpload.class)}) as Set;
     return ret;
   }
   /**
@@ -272,7 +282,7 @@ public class RoutingContext {
    * @return the session.
    */
   public Session session() {
-    def ret= InternalHelper.safeCreate(this.delegate.session(), io.vertx.groovy.ext.web.Session.class);
+    def ret = InternalHelper.safeCreate(delegate.session(), io.vertx.groovy.ext.web.Session.class);
     return ret;
   }
   /**
@@ -280,21 +290,37 @@ public class RoutingContext {
    * @return the user, or null if the current user is not authenticated.
    */
   public User user() {
-    def ret= InternalHelper.safeCreate(this.delegate.user(), io.vertx.groovy.ext.auth.User.class);
+    def ret = InternalHelper.safeCreate(delegate.user(), io.vertx.groovy.ext.auth.User.class);
+    return ret;
+  }
+  /**
+   * If the context is being routed to failure handlers after a failure has been triggered by calling
+   * {@link io.vertx.groovy.ext.web.RoutingContext#fail} then this will return that throwable. It can be used by failure handlers to render a response,
+   * e.g. create a failure response page.
+   * @return the throwable used when signalling failure
+   */
+  public Throwable failure() {
+    if (cached_2 != null) {
+      return cached_2;
+    }
+    def ret = delegate.failure();
+    cached_2 = ret;
     return ret;
   }
   /**
    * If the context is being routed to failure handlers after a failure has been triggered by calling
    * {@link io.vertx.groovy.ext.web.RoutingContext#fail}  then this will return that status code.  It can be used by failure handlers to render a response,
    * e.g. create a failure response page.
+   *
+   * When the status code has not been set yet (it is undefined) its value will be -1.
    * @return the status code used when signalling failure
    */
   public int statusCode() {
-    if (cached_2 != null) {
-      return cached_2;
+    if (cached_3 != null) {
+      return cached_3;
     }
-    def ret = this.delegate.statusCode();
-    cached_2 = ret;
+    def ret = delegate.statusCode();
+    cached_3 = ret;
     return ret;
   }
   /**
@@ -303,7 +329,7 @@ public class RoutingContext {
    * @return the most acceptable content type.
    */
   public String getAcceptableContentType() {
-    def ret = this.delegate.getAcceptableContentType();
+    def ret = delegate.getAcceptableContentType();
     return ret;
   }
   /**
@@ -313,7 +339,7 @@ public class RoutingContext {
    * @return the id of the handler. This can be used if you later want to remove the handler.
    */
   public int addHeadersEndHandler(Handler<Void> handler) {
-    def ret = this.delegate.addHeadersEndHandler(handler);
+    def ret = delegate.addHeadersEndHandler(handler);
     return ret;
   }
   /**
@@ -322,7 +348,7 @@ public class RoutingContext {
    * @return true if the handler existed and was removed, false otherwise
    */
   public boolean removeHeadersEndHandler(int handlerID) {
-    def ret = this.delegate.removeHeadersEndHandler(handlerID);
+    def ret = delegate.removeHeadersEndHandler(handlerID);
     return ret;
   }
   /**
@@ -332,7 +358,7 @@ public class RoutingContext {
    * @return the id of the handler. This can be used if you later want to remove the handler.
    */
   public int addBodyEndHandler(Handler<Void> handler) {
-    def ret = this.delegate.addBodyEndHandler(handler);
+    def ret = delegate.addBodyEndHandler(handler);
     return ret;
   }
   /**
@@ -341,7 +367,7 @@ public class RoutingContext {
    * @return true if the handler existed and was removed, false otherwise
    */
   public boolean removeBodyEndHandler(int handlerID) {
-    def ret = this.delegate.removeBodyEndHandler(handlerID);
+    def ret = delegate.removeBodyEndHandler(handlerID);
     return ret;
   }
   /**
@@ -349,7 +375,7 @@ public class RoutingContext {
    * @return 
    */
   public boolean failed() {
-    def ret = this.delegate.failed();
+    def ret = delegate.failed();
     return ret;
   }
   /**
@@ -357,35 +383,35 @@ public class RoutingContext {
    * @param body the body
    */
   public void setBody(Buffer body) {
-    this.delegate.setBody((io.vertx.core.buffer.Buffer)body.getDelegate());
+    delegate.setBody(body != null ? (io.vertx.core.buffer.Buffer)body.getDelegate() : null);
   }
   /**
    * Set the session. Used by the {@link io.vertx.groovy.ext.web.handler.SessionHandler}. You will not normally call this method.
    * @param session the session
    */
   public void setSession(Session session) {
-    this.delegate.setSession((io.vertx.ext.web.Session)session.getDelegate());
+    delegate.setSession(session != null ? (io.vertx.ext.web.Session)session.getDelegate() : null);
   }
   /**
    * Set the user. Usually used by auth handlers to inject a User. You will not normally call this method.
    * @param user the user
    */
   public void setUser(User user) {
-    this.delegate.setUser((io.vertx.ext.auth.User)user.getDelegate());
+    delegate.setUser(user != null ? (io.vertx.ext.auth.User)user.getDelegate() : null);
   }
   /**
    * Clear the current user object in the context. This usually is used for implementing a log out feature, since the
    * current user is unbounded from the routing context.
    */
   public void clearUser() {
-    this.delegate.clearUser();
+    delegate.clearUser();
   }
   /**
    * Set the acceptable content type. Used by
    * @param contentType the content type
    */
   public void setAcceptableContentType(String contentType) {
-    this.delegate.setAcceptableContentType(contentType);
+    delegate.setAcceptableContentType(contentType);
   }
   /**
    * Restarts the current router with a new path and reusing the original method. All path parameters are then parsed
@@ -393,7 +419,7 @@ public class RoutingContext {
    * @param path the new http path.
    */
   public void reroute(String path) {
-    this.delegate.reroute(path);
+    delegate.reroute(path);
   }
   /**
    * Restarts the current router with a new method and path. All path parameters are then parsed and available on the
@@ -402,7 +428,7 @@ public class RoutingContext {
    * @param path the new http path.
    */
   public void reroute(HttpMethod method, String path) {
-    this.delegate.reroute(method, path);
+    delegate.reroute(method, path);
   }
   /**
    * Returns the locales for the current request. The locales are determined from the `accept-languages` header and
@@ -414,11 +440,11 @@ public class RoutingContext {
    * @return the best matched locale for the request
    */
   public List<Locale> acceptableLocales() {
-    if (cached_3 != null) {
-      return cached_3;
+    if (cached_4 != null) {
+      return cached_4;
     }
-    def ret = this.delegate.acceptableLocales()?.collect({underpants -> new io.vertx.groovy.ext.web.Locale(underpants)});
-      cached_3 = ret;
+    def ret = (List)delegate.acceptableLocales()?.collect({InternalHelper.safeCreate(it, io.vertx.groovy.ext.web.Locale.class)});
+    cached_4 = ret;
     return ret;
   }
   /**
@@ -427,11 +453,29 @@ public class RoutingContext {
    * @return the users preferred locale.
    */
   public Locale preferredLocale() {
-    def ret= InternalHelper.safeCreate(this.delegate.preferredLocale(), io.vertx.groovy.ext.web.Locale.class);
+    def ret = InternalHelper.safeCreate(delegate.preferredLocale(), io.vertx.groovy.ext.web.Locale.class);
+    return ret;
+  }
+  /**
+   * Returns a map of named parameters as defined in path declaration with their actual values
+   * @return the map of named parameters
+   */
+  public Map<String, String> pathParams() {
+    def ret = delegate.pathParams();
+    return ret;
+  }
+  /**
+   * Gets the value of a single path parameter
+   * @param name the name of parameter as defined in path declaration
+   * @return the actual value of the parameter or null if it doesn't exist
+   */
+  public String pathParam(String name) {
+    def ret = delegate.pathParam(name);
     return ret;
   }
   private HttpServerRequest cached_0;
   private HttpServerResponse cached_1;
-  private int cached_2;
-  private List<Locale> cached_3;
+  private Throwable cached_2;
+  private int cached_3;
+  private List<Locale> cached_4;
 }

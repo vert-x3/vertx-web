@@ -15,6 +15,7 @@
  */
 package io.vertx.ext.web.handler;
 
+import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.json.JsonArray;
@@ -100,7 +101,7 @@ public class EventbusBridgeTest extends WebTestBase {
     sockJSHandler.bridge(allAccessOptions, be -> {
       if (be.type() == BridgeEventType.SOCKET_CLOSED) {
         assertNotNull(be.socket());
-        assertNull(be.rawMessage());
+        assertNull(be.getRawMessage());
         be.complete(true);
         testComplete();
       } else {
@@ -117,7 +118,7 @@ public class EventbusBridgeTest extends WebTestBase {
     sockJSHandler.bridge(allAccessOptions, be -> {
       if (be.type() == BridgeEventType.SEND) {
         assertNotNull(be.socket());
-        JsonObject raw = be.rawMessage();
+        JsonObject raw = be.getRawMessage();
         assertEquals(addr, raw.getString("address"));
         assertEquals("foobar", raw.getString("body"));
         be.complete(true);
@@ -136,10 +137,11 @@ public class EventbusBridgeTest extends WebTestBase {
     sockJSHandler.bridge(allAccessOptions, be -> {
       if (be.type() == BridgeEventType.SEND) {
         assertNotNull(be.socket());
-        JsonObject raw = be.rawMessage();
+        JsonObject raw = be.getRawMessage();
         assertEquals(addr, raw.getString("address"));
         assertEquals("foobar", raw.getString("body"));
         raw.put("headers", new JsonObject().put("hdr1", "val1").put("hdr2", "val2"));
+        be.setRawMessage(raw);
         be.complete(true);
         testComplete();
       } else {
@@ -167,12 +169,26 @@ public class EventbusBridgeTest extends WebTestBase {
   }
 
   @Test
+  public void testHookSendMissingAddress() throws Exception {
+    sockJSHandler.bridge(allAccessOptions, be -> {
+      if (be.type() == BridgeEventType.SEND) {
+        be.getRawMessage().remove("address");
+        testComplete();
+      }
+      be.complete(true);
+    });
+    testError(new JsonObject().put("type", "send").put("address", addr).put("body", "foobar"),
+      "missing_address");
+    await();
+  }
+
+  @Test
   public void testHookPublish() throws Exception {
 
     sockJSHandler.bridge(allAccessOptions, be -> {
       if (be.type() == BridgeEventType.PUBLISH) {
         assertNotNull(be.socket());
-        JsonObject raw = be.rawMessage();
+        JsonObject raw = be.getRawMessage();
         assertEquals(addr, raw.getString("address"));
         assertEquals("foobar", raw.getString("body"));
         be.complete(true);
@@ -191,10 +207,11 @@ public class EventbusBridgeTest extends WebTestBase {
     sockJSHandler.bridge(allAccessOptions, be -> {
       if (be.type() == BridgeEventType.PUBLISH) {
         assertNotNull(be.socket());
-        JsonObject raw = be.rawMessage();
+        JsonObject raw = be.getRawMessage();
         assertEquals(addr, raw.getString("address"));
         assertEquals("foobar", raw.getString("body"));
         raw.put("headers", new JsonObject().put("hdr1", "val1").put("hdr2", "val2"));
+        be.setRawMessage(raw);
         be.complete(true);
         testComplete();
       } else {
@@ -222,12 +239,26 @@ public class EventbusBridgeTest extends WebTestBase {
   }
 
   @Test
+  public void testHookPublishMissingAddress() throws Exception {
+    sockJSHandler.bridge(allAccessOptions, be -> {
+      if (be.type() == BridgeEventType.PUBLISH) {
+        be.getRawMessage().remove("address");
+        testComplete();
+      }
+      be.complete(true);
+    });
+    testError(new JsonObject().put("type", "publish").put("address", addr).put("body", "foobar"),
+      "missing_address");
+    await();
+  }
+
+  @Test
   public void testHookRegister() throws Exception {
 
     sockJSHandler.bridge(allAccessOptions, be -> {
       if (be.type() == BridgeEventType.REGISTER) {
         assertNotNull(be.socket());
-        JsonObject raw = be.rawMessage();
+        JsonObject raw = be.getRawMessage();
         assertEquals(addr, raw.getString("address"));
         be.complete(true);
         testComplete();
@@ -256,12 +287,26 @@ public class EventbusBridgeTest extends WebTestBase {
   }
 
   @Test
+  public void testHookRegisterMissingAddress() throws Exception {
+    sockJSHandler.bridge(allAccessOptions, be -> {
+      if (be.type() == BridgeEventType.REGISTER) {
+        be.getRawMessage().remove("address");
+        testComplete();
+      }
+      be.complete(true);
+    });
+    testError(new JsonObject().put("type", "register").put("address", addr).put("body", "foobar"),
+      "missing_address");
+    await();
+  }
+
+  @Test
   public void testHookReceive() throws Exception {
 
     sockJSHandler.bridge(allAccessOptions, be -> {
       if (be.type() == BridgeEventType.RECEIVE) {
         assertNotNull(be.socket());
-        JsonObject raw = be.rawMessage();
+        JsonObject raw = be.getRawMessage();
         assertEquals(addr, raw.getString("address"));
         assertEquals("foobar", raw.getString("body"));
         be.complete(true);
@@ -295,7 +340,7 @@ public class EventbusBridgeTest extends WebTestBase {
     sockJSHandler.bridge(allAccessOptions, be -> {
       if (be.type() == BridgeEventType.UNREGISTER) {
         assertNotNull(be.socket());
-        JsonObject raw = be.rawMessage();
+        JsonObject raw = be.getRawMessage();
         assertEquals(addr, raw.getString("address"));
         be.complete(true);
         testComplete();
@@ -320,6 +365,20 @@ public class EventbusBridgeTest extends WebTestBase {
     });
     testError(new JsonObject().put("type", "unregister").put("address", addr),
       "rejected");
+    await();
+  }
+
+  @Test
+  public void testHookUnregisterMissingAddress() throws Exception {
+    sockJSHandler.bridge(allAccessOptions, be -> {
+      if (be.type() == BridgeEventType.UNREGISTER) {
+        be.getRawMessage().remove("address");
+        testComplete();
+      }
+      be.complete(true);
+    });
+    testError(new JsonObject().put("type", "unregister").put("address", addr).put("body", "foobar"),
+      "missing_address");
     await();
   }
 
@@ -683,6 +742,50 @@ public class EventbusBridgeTest extends WebTestBase {
   }
 
   @Test
+  public void testReplyMessagesInboundWithHeaders() throws Exception {
+
+    // Only allow inbound address, reply message should still get through though
+    sockJSHandler.bridge(defaultOptions.addInboundPermitted(new PermittedOptions().setAddress(addr)));
+
+    CountDownLatch latch = new CountDownLatch(1);
+
+    client.websocket(websocketURI, ws -> {
+
+      MessageConsumer<Object> consumer = vertx.eventBus().consumer(addr);
+
+      consumer.handler(msg -> {
+        Object receivedBody = msg.body();
+        assertEquals("foobar", receivedBody);
+        msg.reply("barfoo",new DeliveryOptions().addHeader("headfoo", "headbar").addHeader("multi", "m1").addHeader("multi", "m2") );
+        consumer.unregister();
+      });
+
+      String replyAddress = UUID.randomUUID().toString();
+
+      JsonObject msg = new JsonObject().put("type", "send").put("address", addr).put("replyAddress", replyAddress).put("body", "foobar");
+
+      ws.writeFrame(io.vertx.core.http.WebSocketFrame.textFrame(msg.encode(), true));
+
+      ws.handler(buff -> {
+        String str = buff.toString();
+        JsonObject received = new JsonObject(str);
+        Object rec = received.getValue("body");
+        assertEquals("barfoo", rec);
+        JsonObject headers = received.getJsonObject("headers");
+        assertNotNull(headers);
+        assertEquals("headbar", headers.getString("headfoo"));
+        assertTrue(headers.getJsonArray("multi").contains("m1"));
+        assertTrue(headers.getJsonArray("multi").contains("m2"));
+        ws.closeHandler(v -> latch.countDown());
+        ws.close();
+      });
+
+    });
+
+    awaitLatch(latch);
+  }
+
+  @Test
   public void testReplyMessagesOutbound() throws Exception {
 
     // Only allow outbound address, reply message should still get through though
@@ -940,7 +1043,7 @@ public class EventbusBridgeTest extends WebTestBase {
     router.route("/eventbus/*").handler(rc -> {
       // we need to be logged in
       if (rc.user() == null) {
-        JsonObject authInfo = new JsonObject().put("username", "tim").put("password", "sausages");
+        JsonObject authInfo = new JsonObject().put("username", "tim").put("password", "delicious:sausages");
         authProvider.authenticate(authInfo, res -> {
           if (res.succeeded()) {
             rc.setUser(res.result());

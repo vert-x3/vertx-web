@@ -33,6 +33,22 @@ var SessionStore = function(j_val) {
   var that = this;
 
   /**
+   The retry timeout value in milli seconds used by the session handler when it retrieves a value from the store.<p/>
+  
+   A non positive value means there is no retry at all.
+
+   @public
+
+   @return {number} the timeout value, in ms
+   */
+  this.retryTimeout = function() {
+    var __args = arguments;
+    if (__args.length === 0) {
+      return j_sessionStore["retryTimeout()"]();
+    } else throw new TypeError('function invoked with invalid arguments');
+  };
+
+  /**
    Create a new session
 
    @public

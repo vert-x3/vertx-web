@@ -49,6 +49,7 @@
  * ** Jade,
  * ** MVEL
  * ** Thymeleaf
+ * ** Apache FreeMarker
  * * Response time handler
  * * Static file serving, including caching logic and directory listing.
  * * Request timeout support
@@ -81,7 +82,9 @@
  *
  * [source,groovy,subs="+attributes"]
  * ----
- * compile ${maven.groupId}:${maven.artifactId}:${maven.version}
+ * dependencies {
+ *   compile '${maven.groupId}:${maven.artifactId}:${maven.version}'
+ * }
  * ----
  *
  *
@@ -96,7 +99,7 @@
  *
  * [source,java]
  * ----
- * {@link examples.Examples#example1}
+ * {@link examples.WebExamples#example1}
  * ----
  *
  * We create an HTTP server instance, and we set a request handler on it. The request handler will be called whenever
@@ -125,7 +128,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example2}
+ * {@link examples.WebExamples#example2}
  * ----
  *
  * It basically does the same thing as the Vert.x Core HTTP server hello world example from the previous section,
@@ -161,7 +164,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example20}
+ * {@link examples.WebExamples#example20}
  * ----
  *
  * In the above example `route1` is written to the response, then 5 seconds later `route2` is written to the response,
@@ -184,7 +187,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example20_1}
+ * {@link examples.WebExamples#example20_1}
  * ----
  *
  * By default, any blocking handlers executed on the same context (e.g. the same verticle instance) are _ordered_ - this
@@ -202,7 +205,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example3}
+ * {@link examples.WebExamples#example3}
  * ----
  *
  * == Routing by paths that begin with something
@@ -217,14 +220,14 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example3_1}
+ * {@link examples.WebExamples#example3_1}
  * ----
  *
  * With any path it can also be specified when creating the route:
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example4}
+ * {@link examples.WebExamples#example4}
  * ----
  *
  * == Capturing path parameters
@@ -236,7 +239,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example4_1}
+ * {@link examples.WebExamples#example4_1}
  * ----
  *
  * The placeholders consist of `:` followed by the parameter name. Parameter names consist of any alphabetic character,
@@ -251,14 +254,14 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example5}
+ * {@link examples.WebExamples#example5}
  * ----
  *
  * Alternatively the regex can be specified when creating the route:
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example6}
+ * {@link examples.WebExamples#example6}
  * ----
  *
  * == Capturing path parameters with regular expressions
@@ -267,7 +270,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example6_1}
+ * {@link examples.WebExamples#example6_1}
  * ----
  *
  * In the above example, if a request is made to path: `/tools/drill123/` then the route will match
@@ -283,14 +286,14 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example7}
+ * {@link examples.WebExamples#example7}
  * ----
  *
  * Or you can specify this with a path when creating the route:
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example8}
+ * {@link examples.WebExamples#example8}
  * ----
  *
  * If you want to route for a specific HTTP method you can also use the methods such as {@link io.vertx.ext.web.Router#get},
@@ -299,7 +302,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example8_1}
+ * {@link examples.WebExamples#example8_1}
  * ----
  *
  * If you want to specify a route will match for more than HTTP method you can call {@link io.vertx.ext.web.Route#method}
@@ -307,7 +310,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example9}
+ * {@link examples.WebExamples#example9}
  * ----
  *
  * == Route order
@@ -324,7 +327,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example10}
+ * {@link examples.WebExamples#example10}
  * ----
  *
  * In the above example the response will contain:
@@ -350,7 +353,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example11}
+ * {@link examples.WebExamples#example11}
  * ----
  *
  * then the response will now contain:
@@ -378,28 +381,28 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example12}
+ * {@link examples.WebExamples#example12}
  * ----
  *
  * Multiple exact matches can also be specified:
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example13}
+ * {@link examples.WebExamples#example13}
  * ----
  *
  * Matching on wildcards for the sub-type is supported:
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example14}
+ * {@link examples.WebExamples#example14}
  * ----
  *
  * And you can also match on the top level type
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example15}
+ * {@link examples.WebExamples#example15}
  * ----
  *
  * If you don't specify a `/` in the consumers, it will assume you meant the sub-type.
@@ -434,7 +437,7 @@
  *
  * [source,java]
  * ----
- * {@link examples.Examples#example16}
+ * {@link examples.WebExamples#example16}
  * ----
  *
  * In this case the route will match with any request with an `accept` header that matches `application/json`.
@@ -452,7 +455,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example17}
+ * {@link examples.WebExamples#example17}
  * ----
  *
  * In the above example, if you sent a request with the following `accept` header:
@@ -468,7 +471,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example18}
+ * {@link examples.WebExamples#example18}
  * ----
  *
  * == Enabling and disabling routes
@@ -491,7 +494,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example21}
+ * {@link examples.WebExamples#example21}
  * ----
  *
  * [language, java]
@@ -506,7 +509,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example55}
+ * {@link examples.WebExamples#example55}
  * ----
  *
  * So from the code you can see that if a request arrives at `/some/path` if first add a value to the context, then
@@ -514,6 +517,15 @@
  *
  * You can reroute based on a new path or based on a new path and method. Note however that rerouting based on method
  * might introduce security issues since for example a usually safe GET request can become a DELETE.
+ *
+ * Reroute is also allowed on the failure handler, however due to the nature of re router when called the current status
+ * code and failure reason are reset. In order the rerouted handler should generate the correct status code if needed,
+ * for example:
+ *
+ * [source,$lang]
+ * ----
+ * {@link examples.WebExamples#example55b}
+ * ----
  *
  * == Sub-routers
  *
@@ -532,7 +544,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example22}
+ * {@link examples.WebExamples#example22}
  * ----
  *
  * If this router was used as a top level router, then GET/PUT/DELETE requests to urls like `/products/product1234`
@@ -542,14 +554,14 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example23}
+ * {@link examples.WebExamples#example23}
  * ----
  *
  * We can now mount the sub router on the main router, against a mount point, in this case `/productsAPI`
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example24}
+ * {@link examples.WebExamples#example24}
  * ----
  *
  * This means the REST API is now accessible via paths like: `/productsAPI/products/product1234`
@@ -561,7 +573,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example57}
+ * {@link examples.WebExamples#example57}
  * ----
  *
  * The main method {@link io.vertx.ext.web.RoutingContext#acceptableLocales} will return the ordered list of locales the
@@ -591,7 +603,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example25}
+ * {@link examples.WebExamples#example25}
  * ----
  *
  * Failure routing will occur if a handler throws an exception, or if a handler calls
@@ -604,7 +616,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example26}
+ * {@link examples.WebExamples#example26}
  * ----
  *
  * For the eventuality that an error occurs when running the error handler related usage of not allowed characters in
@@ -624,7 +636,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example27}
+ * {@link examples.WebExamples#example27}
  * ----
  *
  * === Getting the request body
@@ -662,7 +674,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example28}
+ * {@link examples.WebExamples#example28}
  * ----
  *
  * Each file upload is described by a {@link io.vertx.ext.web.FileUpload} instance, which allows various properties
@@ -676,7 +688,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example29}
+ * {@link examples.WebExamples#example29}
  * ----
  *
  * === Manipulating cookies
@@ -698,7 +710,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example30}
+ * {@link examples.WebExamples#example30}
  * ----
  *
  * == Handling sessions
@@ -750,7 +762,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example31}
+ * {@link examples.WebExamples#example31}
  * ----
  *
  * ==== Clustered session store
@@ -768,7 +780,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example32}
+ * {@link examples.WebExamples#example32}
  * ----
  *
  * === Creating the session handler
@@ -783,7 +795,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example33}
+ * {@link examples.WebExamples#example33}
  * ----
  *
  * The session handler will ensure that your session is automatically looked up (or created if no session exists)
@@ -805,7 +817,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example34}
+ * {@link examples.WebExamples#example34}
  * ----
  *
  * Sessions are automatically written back to the store after after responses are complete.
@@ -841,7 +853,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example37}
+ * {@link examples.WebExamples#example37}
  * ----
  *
  * === Handling auth in your application
@@ -851,7 +863,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example38}
+ * {@link examples.WebExamples#example38}
  * ----
  *
  * If the auth handler has successfully authenticated and authorised the user it will inject a {@link io.vertx.ext.auth.User}
@@ -908,7 +920,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example39}
+ * {@link examples.WebExamples#example39}
  * ----
  *
  * === JWT authorisation
@@ -928,15 +940,15 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example50}
+ * {@link examples.WebExamples#example50}
  * ----
  *
  * Now that your client has a token all it is required is that for *all* consequent request the HTTP header
- * `Authorization` is filled with: `Bearer &lt;token&gt;` e.g.:
+ * `Authorization` is filled with: `Bearer <token>` e.g.:
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example51}
+ * {@link examples.WebExamples#example51}
  * ----
  *
  * JWT allows you to add any information you like to the token itself. By doing this there is no state in the server
@@ -945,14 +957,14 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example52}
+ * {@link examples.WebExamples#example52}
  * ----
  *
  * And the same when consuming:
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example53}
+ * {@link examples.WebExamples#example53}
  * ----
  *
  * === Configuring required authorities
@@ -968,7 +980,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example40}
+ * {@link examples.WebExamples#example40}
  * ----
  *
  * == Serving static resources
@@ -986,7 +998,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example41}
+ * {@link examples.WebExamples#example41}
  * ----
  *
  * For example, if there was a request with path `/static/css/mystyles.css` the static serve will look for a file in the
@@ -1084,7 +1096,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example41_0_1}
+ * {@link examples.WebExamples#example41_0_1}
  * ----
  *
  * ////
@@ -1261,7 +1273,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example41_2}
+ * {@link examples.WebExamples#example41_2}
  * ----
  *
  * Please consult the https://github.com/jknack/handlebars.java[Handlebars Java port documentation] for how to write
@@ -1272,7 +1284,7 @@
  * To use Thymeleaf, you need to add the following _dependency_ to your project:
  * `${maven.groupId}:vertx-web-templ-thymeleaf:${maven.version}`. Create an instance of the Thymeleaf template engine
  * using: `io.vertx.ext.web.templ.ThymeleafTemplateEngine#create()`.
- * 
+ *
  * When using the Thymeleaf template engine, it will by default look for
  * templates with the `.html` extension if no extension is specified in the file name.
  *
@@ -1284,16 +1296,44 @@
  *
  * ----
  * [snip]
- * &lt;p th:text="${context.get('foo')}"&gt;&lt;/p&gt;
- * &lt;p th:text="${context.get('bar')}"&gt;&lt;/p&gt;
- * &lt;p th:text="${context.normalisedPath()}"&gt;&lt;/p&gt;
- * &lt;p th:text="${context.request().params().get('param1')}"&gt;&lt;/p&gt;
- * &lt;p th:text="${context.request().params().get('param2')}"&gt;&lt;/p&gt;
+ * <p th:text="${context.get('foo')}"></p>
+ * <p th:text="${context.get('bar')}"></p>
+ * <p th:text="${context.normalisedPath()}"></p>
+ * <p th:text="${context.request().params().get('param1')}"></p>
+ * <p th:text="${context.request().params().get('param2')}"></p>
  * [snip]
  * ----
  *
  * Please consult the http://www.thymeleaf.org/[Thymeleaf documentation] for how to write
  * Thymeleaf templates.
+ *
+ * === Apache FreeMarker template engine
+ *
+ * To use Apache FreeMarker, you need to add the following _dependency_ to your project:
+ * `${maven.groupId}:vertx-web-templ-freemarker:${maven.version}`. Create an instance of the Apache FreeMarker template engine
+ * using: `io.vertx.ext.web.templ.FreeMarkerTemplateEngine#create()`.
+ *
+ * When using the Apache FreeMarker template engine, it will by default look for
+ * templates with the `.ftl` extension if no extension is specified in the file name.
+ *
+ * The routing context {@link io.vertx.ext.web.RoutingContext} is available
+ * in the Apache FreeMarker template as the `context` variable, this means you can render the template based on anything in the context
+ * including the request, response, session or context data.
+ *
+ * Here are some examples:
+ *
+ * ----
+ * [snip]
+ * <p th:text="${context.foo}"></p>
+ * <p th:text="${context.bar}"></p>
+ * <p th:text="${context.normalisedPath()}"></p>
+ * <p th:text="${context.request().params().param1}"></p>
+ * <p th:text="${context.request().params().param2}"></p>
+ * [snip]
+ * ----
+ *
+ * Please consult the http://www.freemarker.org/[Apache FreeMarker documentation] for how to write
+ * Apache FreeMarker templates.
  *
  * == Error handler
  *
@@ -1325,14 +1365,14 @@
  *
  * This is configured using an instance of {@link io.vertx.ext.web.handler.TimeoutHandler}.
  *
- * If a request times out before the response is written a `408` response will be returned to the client.
+ * If a request times out before the response is written a `503` response will be returned to the client.
  *
  * Here's an example of using a timeout handler which will timeout all requests to paths starting with `/foo` after 5
  * seconds:
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example42}
+ * {@link examples.WebExamples#example42}
  * ----
  *
  * == Response time handler
@@ -1365,7 +1405,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example43}
+ * {@link examples.WebExamples#example43}
  * ----
  *
  * === Handling SockJS sockets
@@ -1382,15 +1422,14 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example44}
+ * {@link examples.WebExamples#example44}
  * ----
  *
  * === The client side
  *
  * In client side JavaScript you use the SockJS client side library to make connections.
  *
- * You can find that http://cdn.sockjs.org/sockjs-0.3.4.js[here].
- * The minified version is http://cdn.sockjs.org/sockjs-0.3.4.min.js[here].
+ * You can find that http://cdn.jsdelivr.net/sockjs/0.3.4/sockjs.min.js[here].
  *
  * Full details for using the SockJS JavaScript client are on the https://github.com/sockjs/sockjs-client[SockJS website],
  * but in summary you use it something like this:
@@ -1437,7 +1476,7 @@
  * invisible iframe. Code run from this iframe doesn't need to worry about cross-domain issues, as it's being run from
  * domain local to the SockJS server. This iframe also does need to load SockJS javascript client library, and this option
  * lets you specify its url (if you're unsure, point it to the latest minified SockJS client release, this is the default).
- * The default value is `http://cdn.sockjs.org/sockjs-0.3.4.min.js`
+ * The default value is `http://cdn.jsdelivr.net/sockjs/0.3.4/sockjs.min.js`
  * `disabledTransports`:: This is a list of transports that you want to disable. Possible values are
  * WEBSOCKET, EVENT_SOURCE, HTML_FILE, JSON_P, XHR.
  *
@@ -1468,14 +1507,14 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example45}
+ * {@link examples.WebExamples#example45}
  * ----
  *
  * In client side JavaScript you use the 'vertx-eventbus.js` library to create connections to the event bus and to send
  * and receive messages:
  *
  * ----
- * <script src="http://cdn.sockjs.org/sockjs-0.3.4.min.js"></script>
+ * <script src="http://cdn.jsdelivr.net/sockjs/0.3.4/sockjs.min.js"></script>
  * <script src='vertx-eventbus.js'></script>
  *
  * <script>
@@ -1485,8 +1524,8 @@
  * eb.onopen = function() {
  *
  *   // set a handler to receive a message
- *   eb.registerHandler('some-address', function(message) {
- *     console.log('received a message: ' + JSON.stringify(message);
+ *   eb.registerHandler('some-address', function(error, message) {
+ *     console.log('received a message: ' + JSON.stringify(message));
  *   });
  *
  *   // send a message
@@ -1517,6 +1556,7 @@
  *   <artifactId>${maven.artifactId}</artifactId>
  *   <version>${maven.version}</version>
  *   <classifier>client</classifier>
+ *   <type>js</type>
  * </dependency>
  * ----
  *
@@ -1524,7 +1564,7 @@
  *
  * [source,groovy,subs="+attributes"]
  * ----
- * compile ${maven.groupId}:${maven.artifactId}:${maven.version}:client
+ * compile '${maven.groupId}:${maven.artifactId}:${maven.version}:client'
  * ----
  *
  * The library is also available on https://www.npmjs.com/package/vertx3-eventbus-client[NPM] and on
@@ -1587,7 +1627,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example46}
+ * {@link examples.WebExamples#example46}
  * ----
  *
  * === Requiring authorisation for messages
@@ -1605,7 +1645,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example47}
+ * {@link examples.WebExamples#example47}
  * ----
  *
  * For the user to be authorised they must be first logged in and secondly have the required authority.
@@ -1614,7 +1654,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example48}
+ * {@link examples.WebExamples#example48}
  * ----
  *
  * === Handling event bus bridge events
@@ -1632,11 +1672,11 @@
  * SEND:: This event will occur when a message is attempted to be sent from the client to the server.
  * PUBLISH:: This event will occur when a message is attempted to be published from the client to the server.
  * RECEIVE:: This event will occur when a message is attempted to be delivered from the server to the client.
- * REGISTER. This event will occur when a client attempts to register a handler.
- * UNREGISTER. This event will occur when a client attempts to unregister a handler.
+ * REGISTER:: This event will occur when a client attempts to register a handler.
+ * UNREGISTER:: This event will occur when a client attempts to unregister a handler.
  *
  * The event enables you to retrieve the type using {@link io.vertx.ext.web.handler.sockjs.BridgeEvent#type()} and
- * inspect the raw message of the event using {@link io.vertx.ext.web.handler.sockjs.BridgeEvent#rawMessage()}.
+ * inspect the raw message of the event using {@link io.vertx.ext.web.handler.sockjs.BridgeEvent#getRawMessage()}.
  *
  * The raw message is a JSON object with the following structure:
  *
@@ -1659,7 +1699,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example49}
+ * {@link examples.WebExamples#example49}
  * ----
  *
  * You can also amend the raw message, e.g. change the body. For messages that are flowing in from the client you can
@@ -1667,7 +1707,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example48_1}
+ * {@link examples.WebExamples#example48_1}
  * ----
  *
  * == CSRF Cross Site Request Forgery
@@ -1680,9 +1720,24 @@
  * expected to return this token back in a header. Since cookies are sent it is required that the cookie handler is also
  * present on the router.
  *
+ * When developing non single page applications that rely on the User-Agent to perform the `POST` action, Headers cannot
+ * be specified on HTML Forms. In order to solve this problem the header value will also be checked if and only if no
+ * header was present in the Form attributes under the same name as the header, e.g.:
+ *
+ * [source,html]
+ * ---
+ * <form action="/submit" method="POST">
+ * <input type="hidden" name="X-XSRF-TOKEN" value="abracadabra">
+ * </form>
+ * ---
+ *
+ * It is the responsibility of the user to fill in the right value for the form field. Users who prefer to use an HTML
+ * only solution can fill this value by fetching the the token value from the routing context under the key `X-XSRF-TOKEN`
+ * or the header name they have chosen during the instantiation of the `CSRFHandler` object.
+ *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example54}
+ * {@link examples.WebExamples#example54}
  * ----
  *
  * == VirtualHost Handler
@@ -1695,8 +1750,69 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.Examples#example56}
+ * {@link examples.WebExamples#example56}
  * ----
+ *
+ * == OAuth2AuthHandler Handler
+ *
+ * The `OAuth2AuthHandler` allows quick setup of secure routes using the OAuth2 protocol. This handler simplifies the
+ * authCode flow. An example of using it to protect some resource and authenticate with GitHub can be implemented as:
+ *
+ * [source,$lang]
+ * ----
+ * {@link examples.WebExamples#example58}
+ * ----
+ *
+ * The OAuth2AuthHandler will setup a proper callback OAuth2 handler so the user does not need to deal with validation
+ * of the authority server response. It is quite important to know that authority server responses are only valid once,
+ * this means that if a client issues a reload of the callback URL it will be asserted as a invalid request since the
+ * validation will fail.
+ *
+ * A rule of thumb is once a valid callback is executed issue a client side redirect to a protected resource. This
+ * redirect should also create a session cookie (or other session mechanism) so the user is not required to authenticate
+ * for every request.
+ *
+ * Due to the nature of OAuth2 spec there are slight changes required in order to use other OAuth2 providers, for
+ * example, if you are planning to use Google Auth you implement it as:
+ *
+ * [source,$lang]
+ * ----
+ * {@link examples.WebExamples#example59}
+ * ----
+ *
+ * The changes are only on the configuration, note that the token uri must now be a full URL since it is generated from
+ * a different server than the authorization one.
+ *
+ * Important to note that for google OAuth you must register all your callback URLs in the developer console, so for the
+ * current example you would need to register `http://localhost:8080/callback?redirect_uri=/protected/somepage`.
+ *
+ * If you're looking to integrate with LinkedIn then your config should be:
+ *
+ * [source,$lang]
+ * ----
+ * {@link examples.WebExamples#example60}
+ * ----
+ *
+ * As it can be seen from the examples all you need to know is 2 urls, the authorization path and the token path. You
+ * will find all these configurations on your provider documentation we have also listed on the auth project examples
+ * for:
+ *
+ * * google
+ * * twitter
+ * * github
+ * * linkedin
+ * * facebook
+ * * keycloak
+ *
+ * For keycloak we have a slighter easier setup, just export the json file from the keycloak admin console and load it
+ * into the handler. Keycloak has some differences from the other providers in the sense that it can also use the token
+ * to specify grants. You can validate against these grants like this:
+ *
+ * [source,$lang]
+ * ----
+ * {@link examples.WebExamples#example61}
+ * ----
+ *
  */
 @Document(fileName = "index.adoc")
 @ModuleGen(name = "vertx-web", groupPackage = "io.vertx")

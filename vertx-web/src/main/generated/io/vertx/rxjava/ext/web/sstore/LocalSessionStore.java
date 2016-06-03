@@ -17,7 +17,6 @@
 package io.vertx.rxjava.ext.web.sstore;
 
 import java.util.Map;
-import io.vertx.lang.rxjava.InternalHelper;
 import rx.Observable;
 import io.vertx.rxjava.core.Vertx;
 
@@ -49,7 +48,7 @@ public class LocalSessionStore extends SessionStore {
    * @return the session store
    */
   public static LocalSessionStore create(Vertx vertx) { 
-    LocalSessionStore ret= LocalSessionStore.newInstance(io.vertx.ext.web.sstore.LocalSessionStore.create((io.vertx.core.Vertx) vertx.getDelegate()));
+    LocalSessionStore ret = LocalSessionStore.newInstance(io.vertx.ext.web.sstore.LocalSessionStore.create((io.vertx.core.Vertx)vertx.getDelegate()));
     return ret;
   }
 
@@ -60,7 +59,7 @@ public class LocalSessionStore extends SessionStore {
    * @return the session store
    */
   public static LocalSessionStore create(Vertx vertx, String sessionMapName) { 
-    LocalSessionStore ret= LocalSessionStore.newInstance(io.vertx.ext.web.sstore.LocalSessionStore.create((io.vertx.core.Vertx) vertx.getDelegate(), sessionMapName));
+    LocalSessionStore ret = LocalSessionStore.newInstance(io.vertx.ext.web.sstore.LocalSessionStore.create((io.vertx.core.Vertx)vertx.getDelegate(), sessionMapName));
     return ret;
   }
 
@@ -72,7 +71,7 @@ public class LocalSessionStore extends SessionStore {
    * @return the session store
    */
   public static LocalSessionStore create(Vertx vertx, String sessionMapName, long reaperInterval) { 
-    LocalSessionStore ret= LocalSessionStore.newInstance(io.vertx.ext.web.sstore.LocalSessionStore.create((io.vertx.core.Vertx) vertx.getDelegate(), sessionMapName, reaperInterval));
+    LocalSessionStore ret = LocalSessionStore.newInstance(io.vertx.ext.web.sstore.LocalSessionStore.create((io.vertx.core.Vertx)vertx.getDelegate(), sessionMapName, reaperInterval));
     return ret;
   }
 

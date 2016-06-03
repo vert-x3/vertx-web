@@ -50,6 +50,19 @@ class BridgeEventImpl implements BridgeEvent {
   }
 
   @Override
+  public JsonObject getRawMessage() {
+    return rawMessage;
+  }
+
+  @Override
+  public BridgeEvent setRawMessage(JsonObject message) {
+    if (message != rawMessage) {
+      rawMessage.clear().mergeIn(message);
+    }
+    return this;
+  }
+
+  @Override
   public SockJSSocket socket() {
     return socket;
   }
@@ -64,8 +77,9 @@ class BridgeEventImpl implements BridgeEvent {
   }
 
   @Override
-  public void setHandler(Handler<AsyncResult<Boolean>> handler) {
+  public Future<Boolean> setHandler(Handler<AsyncResult<Boolean>> handler) {
     future.setHandler(handler);
+    return this;
   }
 
   @Override

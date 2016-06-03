@@ -16,6 +16,7 @@
 
 package io.vertx.ext.web.sstore;
 
+import io.vertx.codegen.annotations.Nullable;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
@@ -28,6 +29,15 @@ import io.vertx.ext.web.Session;
  */
 @VertxGen
 public interface SessionStore {
+
+  /**
+   * The retry timeout value in milli seconds used by the session handler when it retrieves a value from the store.<p/>
+   *
+   * A non positive value means there is no retry at all.
+   *
+   * @return the timeout value, in ms
+   */
+  long retryTimeout();
 
   /**
    * Create a new session
@@ -44,7 +54,7 @@ public interface SessionStore {
    * @param id  the unique ID of the session
    * @param resultHandler  will be called with a result holding the session, or a failure
    */
-  void get(String id, Handler<AsyncResult<Session>> resultHandler);
+  void get(String id, Handler<AsyncResult<@Nullable Session>> resultHandler);
 
   /**
    * Delete the session with the specified ID

@@ -41,7 +41,7 @@ public class SockJSHandler implements Handler<RoutingContext> {
     return delegate;
   }
   public void handle(RoutingContext arg0) {
-    ((io.vertx.core.Handler) this.delegate).handle((io.vertx.ext.web.RoutingContext)arg0.getDelegate());
+    ((io.vertx.core.Handler) delegate).handle(arg0 != null ? (io.vertx.ext.web.RoutingContext)arg0.getDelegate() : null);
   }
   /**
    * Create a SockJS handler
@@ -49,7 +49,7 @@ public class SockJSHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static SockJSHandler create(Vertx vertx) {
-    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.sockjs.SockJSHandler.create((io.vertx.core.Vertx)vertx.getDelegate()), io.vertx.groovy.ext.web.handler.sockjs.SockJSHandler.class);
+    def ret = InternalHelper.safeCreate(io.vertx.ext.web.handler.sockjs.SockJSHandler.create(vertx != null ? (io.vertx.core.Vertx)vertx.getDelegate() : null), io.vertx.groovy.ext.web.handler.sockjs.SockJSHandler.class);
     return ret;
   }
   /**
@@ -59,7 +59,7 @@ public class SockJSHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static SockJSHandler create(Vertx vertx, Map<String, Object> options) {
-    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.sockjs.SockJSHandler.create((io.vertx.core.Vertx)vertx.getDelegate(), options != null ? new io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions(new io.vertx.core.json.JsonObject(options)) : null), io.vertx.groovy.ext.web.handler.sockjs.SockJSHandler.class);
+    def ret = InternalHelper.safeCreate(io.vertx.ext.web.handler.sockjs.SockJSHandler.create(vertx != null ? (io.vertx.core.Vertx)vertx.getDelegate() : null, options != null ? new io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions(new io.vertx.core.json.JsonObject(options)) : null), io.vertx.groovy.ext.web.handler.sockjs.SockJSHandler.class);
     return ret;
   }
   /**
@@ -68,7 +68,7 @@ public class SockJSHandler implements Handler<RoutingContext> {
    * @param vertx the Vert.x instance
    */
   public static void installTestApplications(Router router, Vertx vertx) {
-    io.vertx.ext.web.handler.sockjs.SockJSHandler.installTestApplications((io.vertx.ext.web.Router)router.getDelegate(), (io.vertx.core.Vertx)vertx.getDelegate());
+    io.vertx.ext.web.handler.sockjs.SockJSHandler.installTestApplications(router != null ? (io.vertx.ext.web.Router)router.getDelegate() : null, vertx != null ? (io.vertx.core.Vertx)vertx.getDelegate() : null);
   }
   /**
    * Set a SockJS socket handler. This handler will be called with a SockJS socket whenever a SockJS connection
@@ -77,11 +77,11 @@ public class SockJSHandler implements Handler<RoutingContext> {
    * @return a reference to this, so the API can be used fluently
    */
   public SockJSHandler socketHandler(Handler<SockJSSocket> handler) {
-    this.delegate.socketHandler(new Handler<io.vertx.ext.web.handler.sockjs.SockJSSocket>() {
+    delegate.socketHandler(handler != null ? new Handler<io.vertx.ext.web.handler.sockjs.SockJSSocket>(){
       public void handle(io.vertx.ext.web.handler.sockjs.SockJSSocket event) {
-        handler.handle(new io.vertx.groovy.ext.web.handler.sockjs.SockJSSocket(event));
+        handler.handle(InternalHelper.safeCreate(event, io.vertx.groovy.ext.web.handler.sockjs.SockJSSocket.class));
       }
-    });
+    } : null);
     return this;
   }
   /**
@@ -92,7 +92,7 @@ public class SockJSHandler implements Handler<RoutingContext> {
    * @return a reference to this, so the API can be used fluently
    */
   public SockJSHandler bridge(Map<String, Object> bridgeOptions = [:]) {
-    this.delegate.bridge(bridgeOptions != null ? new io.vertx.ext.web.handler.sockjs.BridgeOptions(new io.vertx.core.json.JsonObject(bridgeOptions)) : null);
+    delegate.bridge(bridgeOptions != null ? new io.vertx.ext.web.handler.sockjs.BridgeOptions(new io.vertx.core.json.JsonObject(bridgeOptions)) : null);
     return this;
   }
   /**
@@ -103,11 +103,11 @@ public class SockJSHandler implements Handler<RoutingContext> {
    * @return a reference to this, so the API can be used fluently
    */
   public SockJSHandler bridge(Map<String, Object> bridgeOptions = [:], Handler<BridgeEvent> bridgeEventHandler) {
-    this.delegate.bridge(bridgeOptions != null ? new io.vertx.ext.web.handler.sockjs.BridgeOptions(new io.vertx.core.json.JsonObject(bridgeOptions)) : null, new Handler<io.vertx.ext.web.handler.sockjs.BridgeEvent>() {
+    delegate.bridge(bridgeOptions != null ? new io.vertx.ext.web.handler.sockjs.BridgeOptions(new io.vertx.core.json.JsonObject(bridgeOptions)) : null, bridgeEventHandler != null ? new Handler<io.vertx.ext.web.handler.sockjs.BridgeEvent>(){
       public void handle(io.vertx.ext.web.handler.sockjs.BridgeEvent event) {
-        bridgeEventHandler.handle(new io.vertx.groovy.ext.web.handler.sockjs.BridgeEvent(event));
+        bridgeEventHandler.handle(InternalHelper.safeCreate(event, io.vertx.groovy.ext.web.handler.sockjs.BridgeEvent.class));
       }
-    });
+    } : null);
     return this;
   }
 }

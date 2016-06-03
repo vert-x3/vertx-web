@@ -19,9 +19,9 @@ package io.vertx.ext.web.handler.impl;
 import io.vertx.core.*;
 import io.vertx.core.file.FileProps;
 import io.vertx.core.file.FileSystem;
-import io.vertx.core.file.FileSystemException;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
+import io.vertx.core.http.impl.MimeMapping;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
@@ -31,14 +31,17 @@ import io.vertx.ext.web.impl.LRUCache;
 import io.vertx.ext.web.impl.Utils;
 
 import java.io.File;
+import java.nio.charset.Charset;
 import java.nio.file.NoSuchFileException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.util.*;
+import java.util.concurrent.Callable;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static io.netty.handler.codec.http.HttpResponseStatus.*;
+
 /**
  * Static web server
  * Parts derived from Yoke
@@ -49,6 +52,7 @@ import static io.netty.handler.codec.http.HttpResponseStatus.*;
 public class StaticHandlerImpl implements StaticHandler {
 
   private static final Logger log = LoggerFactory.getLogger(StaticHandlerImpl.class);
+  private static final String defaultContentEncoding = Charset.defaultCharset().name();
 
   private final DateFormat dateTimeFormatter = Utils.createRFC1123DateTimeFormatter();
   private Map<String, CacheEntry> propsCache;
@@ -64,6 +68,7 @@ public class StaticHandlerImpl implements StaticHandler {
   private String indexPage = DEFAULT_INDEX_PAGE;
   private int maxCacheSize = DEFAULT_MAX_CACHE_SIZE;
   private boolean rangeSupport = DEFAULT_RANGE_SUPPORT;
+  private boolean allowRootFileSystemAccess = DEFAULT_ROOT_FILESYSTEM_ACCESS;
 
   // These members are all related to auto tuning of synchronous vs asynchronous file system access
   private static int NUM_SERVES_TUNING_FS_ACCESS = 1000;
@@ -97,7 +102,7 @@ public class StaticHandlerImpl implements StaticHandler {
    * Create all required header so content can be cache by Caching servers or Browsers
    *
    * @param request base HttpServerRequest
-   * @param props file properties
+   * @param props   file properties
    */
   private void writeCacheHeaders(HttpServerRequest request, FileProps props) {
 
@@ -155,7 +160,7 @@ public class StaticHandlerImpl implements StaticHandler {
     }
 
     // Look in cache
-    CacheEntry entry = null;
+    CacheEntry entry;
     if (cachingEnabled) {
       entry = propsCache().get(path);
       if (entry != null) {
@@ -171,35 +176,29 @@ public class StaticHandlerImpl implements StaticHandler {
       file = getFile(path, context);
     }
 
-    FileProps props;
-    if (filesReadOnly && entry != null) {
-      props = entry.props;
-      sendFile(context, file, props);
-    } else {
-      // Need to read the props from the filesystem
-      String sfile = file;
-      getFileProps(context, file, res -> {
-        if (res.succeeded()) {
-          FileProps fprops = res.result();
-          if (fprops == null) {
-            // File does not exist
-            context.fail(NOT_FOUND.code());
-          } else if (fprops.isDirectory()) {
-            sendDirectory(context, path, sfile);
-          } else {
-            propsCache().put(path, new CacheEntry(fprops, System.currentTimeMillis()));
-            sendFile(context, sfile, fprops);
-          }
-        } else {
-          if (res.cause() instanceof NoSuchFileException) {
-            context.fail(NOT_FOUND.code());
-          } else {
-            context.fail(res.cause());
-          }
-        }
-      });
+    String sfile = file;
 
-    }
+    // Need to read the props from the filesystem
+    getFileProps(context, file, res -> {
+      if (res.succeeded()) {
+        FileProps fprops = res.result();
+        if (fprops == null) {
+          // File does not exist
+          context.fail(NOT_FOUND.code());
+        } else if (fprops.isDirectory()) {
+          sendDirectory(context, path, sfile);
+        } else {
+          propsCache().put(path, new CacheEntry(fprops, System.currentTimeMillis()));
+          sendFile(context, sfile, fprops);
+        }
+      } else {
+        if (res.cause() instanceof NoSuchFileException || (res.cause().getCause() != null && res.cause().getCause() instanceof NoSuchFileException)) {
+          context.fail(NOT_FOUND.code());
+        } else {
+          context.fail(res.cause());
+        }
+      }
+    });
   }
 
   private void sendDirectory(RoutingContext context, String path, String file) {
@@ -224,10 +223,28 @@ public class StaticHandlerImpl implements StaticHandler {
     }
   }
 
+  private <T> T wrapInTCCLSwitch(Callable<T> callable) {
+    try {
+      if (classLoader == null) {
+        return callable.call();
+      } else {
+        final ClassLoader original = Thread.currentThread().getContextClassLoader();
+        try {
+          Thread.currentThread().setContextClassLoader(classLoader);
+          return callable.call();
+        } finally {
+          Thread.currentThread().setContextClassLoader(original);
+        }
+      }
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
   private synchronized void getFileProps(RoutingContext context, String file, Handler<AsyncResult<FileProps>> resultHandler) {
     FileSystem fs = context.vertx().fileSystem();
     if (alwaysAsyncFS || useAsyncFS) {
-      fs.props(file, resultHandler);
+      wrapInTCCLSwitch(() -> fs.props(file, resultHandler));
     } else {
       // Use synchronous access - it might well be faster!
       long start = 0;
@@ -235,7 +252,8 @@ public class StaticHandlerImpl implements StaticHandler {
         start = System.nanoTime();
       }
       try {
-        FileProps props = fs.propsBlocking(file);
+        FileProps props = wrapInTCCLSwitch(() -> fs.propsBlocking(file));
+
         if (tuning) {
           long end = System.nanoTime();
           long dur = end - start;
@@ -255,7 +273,7 @@ public class StaticHandlerImpl implements StaticHandler {
           }
         }
         resultHandler.handle(Future.succeededFuture(props));
-      } catch (FileSystemException e) {
+      } catch (RuntimeException e) {
         resultHandler.handle(Future.failedFuture(e.getCause()));
       }
     }
@@ -331,37 +349,53 @@ public class StaticHandlerImpl implements StaticHandler {
 
         // Wrap the sendFile operation into a TCCL switch, so the file resolver would find the file from the set
         // classloader (if any).
-        final ClassLoader orig = Thread.currentThread().getContextClassLoader();
-        try {
-          if (classLoader != null) {
-            Thread.currentThread().setContextClassLoader(classLoader);
+        final Long finalOffset = offset;
+        final Long finalEnd = end;
+        wrapInTCCLSwitch(() -> {
+          // guess content type
+          String contentType = MimeMapping.getMimeTypeForFilename(file);
+          if (contentType != null) {
+            if (contentType.startsWith("text")) {
+              request.response().putHeader("Content-Type", contentType + ";charset=" + defaultContentEncoding);
+            } else {
+              request.response().putHeader("Content-Type", contentType);
+            }
           }
-          request.response().sendFile(file, offset, end + 1, res2 -> {
+
+          return request.response().sendFile(file, finalOffset, finalEnd + 1, res2 -> {
             if (res2.failed()) {
               context.fail(res2.cause());
             }
           });
-        } finally {
-          Thread.currentThread().setContextClassLoader(orig);
-        }
+        });
       } else {
         // Wrap the sendFile operation into a TCCL switch, so the file resolver would find the file from the set
         // classloader (if any).
-        final ClassLoader orig = Thread.currentThread().getContextClassLoader();
-        try {
-          if (classLoader != null) {
-            Thread.currentThread().setContextClassLoader(classLoader);
+        wrapInTCCLSwitch(() -> {
+          // guess content type
+          String contentType = MimeMapping.getMimeTypeForFilename(file);
+          if (contentType != null) {
+            if (contentType.startsWith("text")) {
+              request.response().putHeader("Content-Type", contentType + ";charset=" + defaultContentEncoding);
+            } else {
+              request.response().putHeader("Content-Type", contentType);
+            }
           }
-          request.response().sendFile(file, res2 -> {
+
+          return request.response().sendFile(file, res2 -> {
             if (res2.failed()) {
               context.fail(res2.cause());
             }
           });
-        } finally {
-          Thread.currentThread().setContextClassLoader(orig);
-        }
+        });
       }
     }
+  }
+
+  @Override
+  public StaticHandler setAllowRootFileSystemAccess(boolean allowRootFileSystemAccess) {
+    this.allowRootFileSystemAccess = allowRootFileSystemAccess;
+    return this;
   }
 
   @Override
@@ -488,8 +522,12 @@ public class StaticHandlerImpl implements StaticHandler {
 
   private void setRoot(String webRoot) {
     Objects.requireNonNull(webRoot);
-    if (webRoot.startsWith("/")) {
-      throw new IllegalArgumentException("root cannot start with '/'");
+    if (!allowRootFileSystemAccess) {
+      for (File root : File.listRoots()) {
+        if (webRoot.startsWith(root.getAbsolutePath())) {
+          throw new IllegalArgumentException("root cannot start with '" + root.getAbsolutePath() + "'");
+        }
+      }
     }
     this.webRoot = webRoot;
   }
@@ -551,9 +589,9 @@ public class StaticHandlerImpl implements StaticHandler {
 
           request.response().putHeader("content-type", "text/html");
           request.response().end(
-            directoryTemplate(context.vertx()).replace("{directory}", normalizedDir)
-              .replace("{parent}", parent)
-              .replace("{files}", files.toString()));
+              directoryTemplate(context.vertx()).replace("{directory}", normalizedDir)
+                  .replace("{parent}", parent)
+                  .replace("{files}", files.toString()));
         } else if (accept.contains("json")) {
           String file;
           JsonArray json = new JsonArray();
@@ -612,8 +650,7 @@ public class StaticHandlerImpl implements StaticHandler {
     }
 
     boolean isOutOfDate() {
-      boolean outOfDate = System.currentTimeMillis() - createDate > cacheEntryTimeout;
-      return outOfDate;
+      return System.currentTimeMillis() - createDate > cacheEntryTimeout;
     }
 
   }

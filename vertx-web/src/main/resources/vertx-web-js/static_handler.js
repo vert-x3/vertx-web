@@ -45,6 +45,21 @@ var StaticHandler = function(j_val) {
   };
 
   /**
+   Enable/Disable access to the root of the filesystem
+
+   @public
+   @param allowRootFileSystemAccess {boolean} whether root access is allowed 
+   @return {StaticHandler} a reference to this, so the API can be used fluently
+   */
+  this.setAllowRootFileSystemAccess = function(allowRootFileSystemAccess) {
+    var __args = arguments;
+    if (__args.length === 1 && typeof __args[0] ==='boolean') {
+      j_staticHandler["setAllowRootFileSystemAccess(boolean)"](allowRootFileSystemAccess);
+      return that;
+    } else throw new TypeError('function invoked with invalid arguments');
+  };
+
+  /**
    Set the web root
 
    @public

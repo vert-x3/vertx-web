@@ -28,19 +28,19 @@ public class Locale {
     return delegate;
   }
   public static Locale create() {
-    def ret= InternalHelper.safeCreate(io.vertx.ext.web.Locale.create(), io.vertx.groovy.ext.web.Locale.class);
+    def ret = InternalHelper.safeCreate(io.vertx.ext.web.Locale.create(), io.vertx.groovy.ext.web.Locale.class);
     return ret;
   }
   public static Locale create(String language) {
-    def ret= InternalHelper.safeCreate(io.vertx.ext.web.Locale.create(language), io.vertx.groovy.ext.web.Locale.class);
+    def ret = InternalHelper.safeCreate(io.vertx.ext.web.Locale.create(language), io.vertx.groovy.ext.web.Locale.class);
     return ret;
   }
   public static Locale create(String language, String country) {
-    def ret= InternalHelper.safeCreate(io.vertx.ext.web.Locale.create(language, country), io.vertx.groovy.ext.web.Locale.class);
+    def ret = InternalHelper.safeCreate(io.vertx.ext.web.Locale.create(language, country), io.vertx.groovy.ext.web.Locale.class);
     return ret;
   }
   public static Locale create(String language, String country, String variant) {
-    def ret= InternalHelper.safeCreate(io.vertx.ext.web.Locale.create(language, country, variant), io.vertx.groovy.ext.web.Locale.class);
+    def ret = InternalHelper.safeCreate(io.vertx.ext.web.Locale.create(language, country, variant), io.vertx.groovy.ext.web.Locale.class);
     return ret;
   }
   /**
@@ -48,7 +48,7 @@ public class Locale {
    * @return language
    */
   public String language() {
-    def ret = this.delegate.language();
+    def ret = delegate.language();
     return ret;
   }
   /**
@@ -56,7 +56,7 @@ public class Locale {
    * @return variant
    */
   public String country() {
-    def ret = this.delegate.country();
+    def ret = delegate.country();
     return ret;
   }
   /**
@@ -64,7 +64,7 @@ public class Locale {
    * @return variant
    */
   public String variant() {
-    def ret = this.delegate.variant();
+    def ret = delegate.variant();
     return ret;
   }
 }

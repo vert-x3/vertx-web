@@ -44,22 +44,41 @@ public class BridgeEvent extends Future<Boolean> {
     if (cached_0 != null) {
       return cached_0;
     }
-    def ret = this.delegate.type();
+    def ret = delegate.type();
     cached_0 = ret;
     return ret;
   }
   /**
-   * Get the raw JSON message for the event. This will be null for SOCKET_CREATED or SOCKET_CLOSED events as there is
-   * no message involved.
-   * @return the raw JSON message for the event
+   * Use {@link io.vertx.groovy.ext.web.handler.sockjs.BridgeEvent#getRawMessage} instead, will be removed in 3.3
+   * @return 
    */
   public Map<String, Object> rawMessage() {
     if (cached_1 != null) {
       return cached_1;
     }
-    def ret = (Map<String, Object>)InternalHelper.wrapObject(this.delegate.rawMessage());
+    def ret = (Map<String, Object>)InternalHelper.wrapObject(delegate.rawMessage());
     cached_1 = ret;
     return ret;
+  }
+  /**
+   * Get the raw JSON message for the event. This will be null for SOCKET_CREATED or SOCKET_CLOSED events as there is
+   * no message involved. If the returned message is modified, {@link io.vertx.groovy.ext.web.handler.sockjs.BridgeEvent#setRawMessage} should be called with the
+   * new message.
+   * @return the raw JSON message for the event
+   */
+  public Map<String, Object> getRawMessage() {
+    def ret = (Map<String, Object>)InternalHelper.wrapObject(delegate.getRawMessage());
+    return ret;
+  }
+  /**
+   * Get the raw JSON message for the event. This will be null for SOCKET_CREATED or SOCKET_CLOSED events as there is
+   * no message involved.
+   * @param message the raw message
+   * @return this reference, so it can be used fluently
+   */
+  public BridgeEvent setRawMessage(Map<String, Object> message) {
+    delegate.setRawMessage(message != null ? new io.vertx.core.json.JsonObject(message) : null);
+    return this;
   }
   /**
    * Get the SockJSSocket instance corresponding to the event
@@ -69,7 +88,7 @@ public class BridgeEvent extends Future<Boolean> {
     if (cached_2 != null) {
       return cached_2;
     }
-    def ret= InternalHelper.safeCreate(this.delegate.socket(), io.vertx.groovy.ext.web.handler.sockjs.SockJSSocket.class);
+    def ret = InternalHelper.safeCreate(delegate.socket(), io.vertx.groovy.ext.web.handler.sockjs.SockJSSocket.class);
     cached_2 = ret;
     return ret;
   }

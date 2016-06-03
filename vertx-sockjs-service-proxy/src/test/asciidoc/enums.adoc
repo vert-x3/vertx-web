@@ -1,0 +1,19 @@
+= Enums
+
+[[SomeVertxEnum]]
+== SomeVertxEnum
+
+++++
+ @author <a href="http://tfox.org">Tim Fox</a>
+++++
+'''
+
+[cols=">25%,75%"]
+[frame="topbot"]
+|===
+^|Name | Description
+|[[FOO]]`FOO`|-
+|[[BAR]]`BAR`|-
+|[[WIBBLE]]`WIBBLE`|-
+|===
+

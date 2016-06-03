@@ -23,12 +23,26 @@ import io.vertx.ext.auth.AuthProvider;
 import io.vertx.ext.auth.jwt.JWTAuth;
 import io.vertx.ext.auth.jwt.JWTOptions;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.WebTestBase;
+import org.junit.Before;
 import org.junit.Test;
 
 /**
  * @author Paulo Lopes
  */
-public class JWTAuthHandlerTest extends AuthHandlerTestBase {
+public class JWTAuthHandlerTest extends WebTestBase {
+
+  JWTAuth authProvider;
+
+  @Before
+  public void setup() throws Exception {
+    JsonObject authConfig = new JsonObject().put("keyStore", new JsonObject()
+        .put("type", "jceks")
+        .put("path", "keystore.jceks")
+        .put("password", "secret"));
+
+    authProvider = JWTAuth.create(vertx, authConfig);
+  }
 
   @Test
   public void testLogin() throws Exception {
@@ -39,12 +53,6 @@ public class JWTAuthHandlerTest extends AuthHandlerTestBase {
       rc.response().end("Welcome to the protected resource!");
     };
 
-    JsonObject authConfig = new JsonObject().put("keyStore", new JsonObject()
-        .put("type", "jceks")
-        .put("path", "keystore.jceks")
-        .put("password", "secret"));
-
-    JWTAuth authProvider = JWTAuth.create(vertx, authConfig);
     router.route("/protected/*").handler(JWTAuthHandler.create(authProvider));
 
     router.route("/protected/somepage").handler(handler);
@@ -67,13 +75,6 @@ public class JWTAuthHandlerTest extends AuthHandlerTestBase {
       rc.response().end("Welcome to the protected resource!");
     };
 
-    JsonObject authConfig = new JsonObject().put("keyStore", new JsonObject()
-        .put("type", "jceks")
-        .put("path", "keystore.jceks")
-        .put("password", "secret"));
-
-    JWTAuth authProvider = JWTAuth.create(vertx, authConfig);
-
     router.route("/protected/*").handler(JWTAuthHandler.create(authProvider));
 
     router.route("/protected/somepage").handler(handler);
@@ -87,10 +88,5 @@ public class JWTAuthHandlerTest extends AuthHandlerTestBase {
       req.putHeader("Authorization", "Bearer x" + token);
     }, 401, "Unauthorized", null);
 
-  }
-
-  @Override
-  protected AuthHandler createAuthHandler(AuthProvider authProvider) {
-    return JWTAuthHandler.create(authProvider);
   }
 }

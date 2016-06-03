@@ -32,6 +32,7 @@
 
 package io.vertx.ext.web.handler.sockjs;
 
+import io.vertx.codegen.annotations.Nullable;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
@@ -91,6 +92,12 @@ public interface SockJSSocket extends ReadStream<Buffer>, WriteStream<Buffer> {
   String writeHandlerID();
 
   /**
+   * Call {@link #end()}.
+   */
+  @Override
+  void end();
+
+  /**
    * Close it
    */
   void close();
@@ -119,10 +126,12 @@ public interface SockJSSocket extends ReadStream<Buffer>, WriteStream<Buffer> {
   /**
    * @return the Vert.x-Web session corresponding to this socket
    */
+  @Nullable
   Session webSession();
 
   /**
    *  @return the Vert.x-Web user corresponding to this socket
    */
+  @Nullable
   User webUser();
 }

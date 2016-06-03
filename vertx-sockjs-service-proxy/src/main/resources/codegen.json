@@ -1,0 +1,10 @@
+{
+  "name": "sockjs-service-proxies",
+  "generators": [
+    {
+      "kind": "proxy",
+      "fileName": "'resources/' + type.raw.moduleName + '-js/' + helper.convertCamelCaseToUnderscores(type.raw.simpleName) + '-proxy.js'",
+      "templateFileName": "vertx-sockjs-service-proxy/template/proxygen.templ"
+    }
+  ]
+}

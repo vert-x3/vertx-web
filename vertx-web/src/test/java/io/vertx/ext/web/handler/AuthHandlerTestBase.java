@@ -16,6 +16,7 @@
 
 package io.vertx.ext.web.handler;
 
+import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.WebTestBase;
@@ -24,6 +25,7 @@ import io.vertx.ext.web.sstore.SessionStore;
 import io.vertx.ext.auth.AuthProvider;
 import io.vertx.ext.auth.shiro.ShiroAuth;
 import io.vertx.ext.auth.shiro.ShiroAuthRealmType;
+import org.junit.AfterClass;
 import org.junit.Test;
 
 import java.util.HashSet;
@@ -33,6 +35,14 @@ import java.util.Set;
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 public abstract class AuthHandlerTestBase extends WebTestBase {
+
+  @AfterClass
+  public static void oneTimeTearDown() {
+    Vertx vertx = Vertx.vertx();
+    if (vertx.fileSystem().existsBlocking(BodyHandler.DEFAULT_UPLOADS_DIRECTORY)) {
+      vertx.fileSystem().deleteRecursiveBlocking(BodyHandler.DEFAULT_UPLOADS_DIRECTORY, true);
+    }
+  }
 
   @Test
   public void testAuthAuthorities() throws Exception {
@@ -74,7 +84,7 @@ public abstract class AuthHandlerTestBase extends WebTestBase {
     router.route().handler(rc -> {
       // we need to be logged in
       if (rc.user() == null) {
-        JsonObject authInfo = new JsonObject().put("username", username).put("password", "sausages");
+        JsonObject authInfo = new JsonObject().put("username", username).put("password", "delicious:sausages");
         authProvider.authenticate(authInfo, res -> {
           if (res.succeeded()) {
             rc.setUser(res.result());

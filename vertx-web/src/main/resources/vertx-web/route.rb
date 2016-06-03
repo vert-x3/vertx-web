@@ -17,7 +17,7 @@ module VertxWeb
     end
     #  Add an HTTP method for this route. By default a route will match all HTTP methods. If any are specified then the route
     #  will only match any of the specified methods
-    # @param [:OPTIONS,:GET,:HEAD,:POST,:PUT,:DELETE,:TRACE,:CONNECT,:PATCH] method the HTTP method to add
+    # @param [:OPTIONS,:GET,:HEAD,:POST,:PUT,:DELETE,:TRACE,:CONNECT,:PATCH,:OTHER] method the HTTP method to add
     # @return [self]
     def method(method=nil)
       if method.class == Symbol && !block_given?
@@ -50,10 +50,11 @@ module VertxWeb
     end
     #  Add a content type produced by this route. Used for content based routing.
     # @param [String] contentType the content type
-    # @return [::VertxWeb::Route] a reference to this, so the API can be used fluently
+    # @return [self]
     def produces(contentType=nil)
       if contentType.class == String && !block_given?
-        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:produces, [Java::java.lang.String.java_class]).call(contentType),::VertxWeb::Route)
+        @j_del.java_method(:produces, [Java::java.lang.String.java_class]).call(contentType)
+        return self
       end
       raise ArgumentError, "Invalid arguments when calling produces(contentType)"
     end

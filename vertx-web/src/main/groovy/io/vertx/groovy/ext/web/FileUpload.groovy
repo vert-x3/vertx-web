@@ -36,7 +36,7 @@ public class FileUpload {
    * @return 
    */
   public String name() {
-    def ret = this.delegate.name();
+    def ret = delegate.name();
     return ret;
   }
   /**
@@ -44,7 +44,7 @@ public class FileUpload {
    * @return 
    */
   public String uploadedFileName() {
-    def ret = this.delegate.uploadedFileName();
+    def ret = delegate.uploadedFileName();
     return ret;
   }
   /**
@@ -52,7 +52,7 @@ public class FileUpload {
    * @return 
    */
   public String fileName() {
-    def ret = this.delegate.fileName();
+    def ret = delegate.fileName();
     return ret;
   }
   /**
@@ -60,7 +60,7 @@ public class FileUpload {
    * @return 
    */
   public long size() {
-    def ret = this.delegate.size();
+    def ret = delegate.size();
     return ret;
   }
   /**
@@ -68,7 +68,7 @@ public class FileUpload {
    * @return 
    */
   public String contentType() {
-    def ret = this.delegate.contentType();
+    def ret = delegate.contentType();
     return ret;
   }
   /**
@@ -76,7 +76,7 @@ public class FileUpload {
    * @return 
    */
   public String contentTransferEncoding() {
-    def ret = this.delegate.contentTransferEncoding();
+    def ret = delegate.contentTransferEncoding();
     return ret;
   }
   /**
@@ -84,7 +84,7 @@ public class FileUpload {
    * @return 
    */
   public String charSet() {
-    def ret = this.delegate.charSet();
+    def ret = delegate.charSet();
     return ret;
   }
 }

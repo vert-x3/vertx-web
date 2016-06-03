@@ -17,7 +17,6 @@
 package io.vertx.rxjava.ext.web.handler.sockjs;
 
 import java.util.Map;
-import io.vertx.lang.rxjava.InternalHelper;
 import rx.Observable;
 import io.vertx.ext.web.handler.sockjs.BridgeEventType;
 import io.vertx.core.json.JsonObject;
@@ -53,23 +52,44 @@ public class BridgeEvent extends Future<Boolean> {
     if (cached_0 != null) {
       return cached_0;
     }
-    BridgeEventType ret = this.delegate.type();
+    BridgeEventType ret = delegate.type();
     cached_0 = ret;
+    return ret;
+  }
+
+  /**
+   * Use {@link io.vertx.rxjava.ext.web.handler.sockjs.BridgeEvent#getRawMessage} instead, will be removed in 3.3
+   * @return 
+   */
+  public JsonObject rawMessage() { 
+    if (cached_1 != null) {
+      return cached_1;
+    }
+    JsonObject ret = delegate.rawMessage();
+    cached_1 = ret;
+    return ret;
+  }
+
+  /**
+   * Get the raw JSON message for the event. This will be null for SOCKET_CREATED or SOCKET_CLOSED events as there is
+   * no message involved. If the returned message is modified, {@link io.vertx.rxjava.ext.web.handler.sockjs.BridgeEvent#setRawMessage} should be called with the
+   * new message.
+   * @return the raw JSON message for the event
+   */
+  public JsonObject getRawMessage() { 
+    JsonObject ret = delegate.getRawMessage();
     return ret;
   }
 
   /**
    * Get the raw JSON message for the event. This will be null for SOCKET_CREATED or SOCKET_CLOSED events as there is
    * no message involved.
-   * @return the raw JSON message for the event
+   * @param message the raw message
+   * @return this reference, so it can be used fluently
    */
-  public JsonObject rawMessage() { 
-    if (cached_1 != null) {
-      return cached_1;
-    }
-    JsonObject ret = this.delegate.rawMessage();
-    cached_1 = ret;
-    return ret;
+  public BridgeEvent setRawMessage(JsonObject message) { 
+    delegate.setRawMessage(message);
+    return this;
   }
 
   /**
@@ -80,13 +100,13 @@ public class BridgeEvent extends Future<Boolean> {
     if (cached_2 != null) {
       return cached_2;
     }
-    SockJSSocket ret= SockJSSocket.newInstance(this.delegate.socket());
+    SockJSSocket ret = SockJSSocket.newInstance(delegate.socket());
     cached_2 = ret;
     return ret;
   }
 
-  private io.vertx.ext.web.handler.sockjs.BridgeEventType cached_0;
-  private io.vertx.core.json.JsonObject cached_1;
+  private BridgeEventType cached_0;
+  private JsonObject cached_1;
   private SockJSSocket cached_2;
 
   public static BridgeEvent newInstance(io.vertx.ext.web.handler.sockjs.BridgeEvent arg) {

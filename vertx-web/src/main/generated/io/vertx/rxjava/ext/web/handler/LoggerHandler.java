@@ -17,7 +17,6 @@
 package io.vertx.rxjava.ext.web.handler;
 
 import java.util.Map;
-import io.vertx.lang.rxjava.InternalHelper;
 import rx.Observable;
 import io.vertx.rxjava.ext.web.RoutingContext;
 import io.vertx.core.Handler;
@@ -43,7 +42,7 @@ public class LoggerHandler implements Handler<RoutingContext> {
   }
 
   public void handle(RoutingContext arg0) { 
-    this.delegate.handle((io.vertx.ext.web.RoutingContext) arg0.getDelegate());
+    delegate.handle((io.vertx.ext.web.RoutingContext)arg0.getDelegate());
   }
 
   /**
@@ -51,7 +50,7 @@ public class LoggerHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static LoggerHandler create() { 
-    LoggerHandler ret= LoggerHandler.newInstance(io.vertx.ext.web.handler.LoggerHandler.create());
+    LoggerHandler ret = LoggerHandler.newInstance(io.vertx.ext.web.handler.LoggerHandler.create());
     return ret;
   }
 
@@ -61,7 +60,7 @@ public class LoggerHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static LoggerHandler create(LoggerFormat format) { 
-    LoggerHandler ret= LoggerHandler.newInstance(io.vertx.ext.web.handler.LoggerHandler.create(format));
+    LoggerHandler ret = LoggerHandler.newInstance(io.vertx.ext.web.handler.LoggerHandler.create(format));
     return ret;
   }
 
@@ -72,7 +71,7 @@ public class LoggerHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static LoggerHandler create(boolean immediate, LoggerFormat format) { 
-    LoggerHandler ret= LoggerHandler.newInstance(io.vertx.ext.web.handler.LoggerHandler.create(immediate, format));
+    LoggerHandler ret = LoggerHandler.newInstance(io.vertx.ext.web.handler.LoggerHandler.create(immediate, format));
     return ret;
   }
 

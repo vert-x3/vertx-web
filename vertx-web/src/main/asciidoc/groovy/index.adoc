@@ -50,6 +50,7 @@ Some of the key features of Vert.x-Web include:
 ** Jade,
 ** MVEL
 ** Thymeleaf
+** Apache FreeMarker
 * Response time handler
 * Static file serving, including caching logic and directory listing.
 * Request timeout support
@@ -74,7 +75,7 @@ To use vert.x web, add the following dependency to the _dependencies_ section of
 <dependency>
   <groupId>io.vertx</groupId>
   <artifactId>vertx-web</artifactId>
-  <version>3.1.0</version>
+  <version>3.3.0-SNAPSHOT</version>
 </dependency>
 ----
 
@@ -82,7 +83,9 @@ To use vert.x web, add the following dependency to the _dependencies_ section of
 
 [source,groovy,subs="+attributes"]
 ----
-compile io.vertx:vertx-web:3.1.0
+dependencies {
+  compile 'io.vertx:vertx-web:3.3.0-SNAPSHOT'
+}
 ----
 
 
@@ -127,8 +130,8 @@ You can run this, and point your browser at `http://localhost:8080` to verify th
 
 Here's the 10000 foot view:
 
-A `link:groovydoc/io/vertx/groovy/ext/web/Router.html[Router]` is one of the core concepts of Vert.x-Web. It's an object which maintains zero or more
-`link:groovydoc/io/vertx/groovy/ext/web/Route.html[Routes]` .
+A `link:../../groovydoc/io/vertx/groovy/ext/web/Router.html[Router]` is one of the core concepts of Vert.x-Web. It's an object which maintains zero or more
+`link:../../groovydoc/io/vertx/groovy/ext/web/Route.html[Routes]` .
 
 A router takes an HTTP request and finds the first matching route for that request, and passes the request to that route.
 
@@ -167,27 +170,27 @@ no matching criteria so it will match _all_ requests that arrive on the server.
 
 We then specify a handler for that route. That handler will be called for all requests that arrive on the server.
 
-The object that gets passed into the handler is a `link:groovydoc/io/vertx/groovy/ext/web/RoutingContext.html[RoutingContext]` - this contains
-the standard Vert.x `link:../../vertx-core/groovy/groovydoc/io/vertx/groovy/core/http/HttpServerRequest.html[HttpServerRequest]` and `link:../../vertx-core/groovy/groovydoc/io/vertx/groovy/core/http/HttpServerResponse.html[HttpServerResponse]`
+The object that gets passed into the handler is a `link:../../groovydoc/io/vertx/groovy/ext/web/RoutingContext.html[RoutingContext]` - this contains
+the standard Vert.x `link:../../groovydoc/io/vertx/groovy/core/http/HttpServerRequest.html[HttpServerRequest]` and `link:../../groovydoc/io/vertx/groovy/core/http/HttpServerResponse.html[HttpServerResponse]`
 but also various other useful stuff that makes working with Vert.x-Web simpler.
 
 For every request that is routed there is a unique routing context instance, and the same instance is passed to
 all handlers for that request.
 
 Once we've set up the handler, we set the request handler of the HTTP server to pass all incoming requests
-to `link:groovydoc/io/vertx/groovy/ext/web/Router.html#accept(io.vertx.core.http.HttpServerRequest)[accept]`.
+to `link:../../groovydoc/io/vertx/groovy/ext/web/Router.html#accept(io.vertx.core.http.HttpServerRequest)[accept]`.
 
 So, that's the basics. Now we'll look at things in more detail:
 
 == Handling requests and calling the next handler
 
 When Vert.x-Web decides to route a request to a matching route, it calls the handler of the route passing in an instance
-of `link:groovydoc/io/vertx/groovy/ext/web/RoutingContext.html[RoutingContext]`.
+of `link:../../groovydoc/io/vertx/groovy/ext/web/RoutingContext.html[RoutingContext]`.
 
-If you don't end the response in your handler, you should call `link:groovydoc/io/vertx/groovy/ext/web/RoutingContext.html#next()[next]` so another
+If you don't end the response in your handler, you should call `link:../../groovydoc/io/vertx/groovy/ext/web/RoutingContext.html#next()[next]` so another
 matching route can handle the request (if any).
 
-You don't have to call `link:groovydoc/io/vertx/groovy/ext/web/RoutingContext.html#next()[next]` before the handler has finished executing.
+You don't have to call `link:../../groovydoc/io/vertx/groovy/ext/web/RoutingContext.html#next()[next]` before the handler has finished executing.
 You can do this some time later, if you want:
 
 [source,groovy]
@@ -247,7 +250,7 @@ You can't do that in a normal handler, so we provide the ability to set blocking
 A blocking handler looks just like a normal handler but it's called by Vert.x using a thread from the worker pool
 not using an event loop.
 
-You set a blocking handler on a route with `link:groovydoc/io/vertx/groovy/ext/web/Route.html#blockingHandler(io.vertx.core.Handler)[blockingHandler]`.
+You set a blocking handler on a route with `link:../../groovydoc/io/vertx/groovy/ext/web/Route.html#blockingHandler(io.vertx.core.Handler)[blockingHandler]`.
 Here's an example:
 
 [source,groovy]
@@ -268,7 +271,7 @@ router.route().blockingHandler({ routingContext ->
 By default, any blocking handlers executed on the same context (e.g. the same verticle instance) are _ordered_ - this
 means the next one won't be executed until the previous one has completed. If you don't care about orderering and
 don't mind your blocking handlers executing in parallel you can set the blocking handler specifying `ordered` as
-false using `link:groovydoc/io/vertx/groovy/ext/web/Route.html#blockingHandler(io.vertx.core.Handler,%20boolean)[blockingHandler]`.
+false using `link:../../groovydoc/io/vertx/groovy/ext/web/Route.html#blockingHandler(io.vertx.core.Handler,%20boolean)[blockingHandler]`.
 
 == Routing by exact path
 
@@ -345,7 +348,7 @@ route.handler({ routingContext ->
 == Capturing path parameters
 
 It's possible to match paths using placeholders for parameters which are then available in the request
-`link:../../vertx-core/groovy/groovydoc/io/vertx/groovy/core/http/HttpServerRequest.html#params()[params]`.
+`link:../../groovydoc/io/vertx/groovy/core/http/HttpServerRequest.html#params()[params]`.
 
 Here's an example
 
@@ -446,7 +449,7 @@ Captures are denoted in regular expressions with capture groups (i.e. surroundin
 
 By default a route will match all HTTP methods.
 
-If you want a route to only match for a specific HTTP method you can use `link:groovydoc/io/vertx/groovy/ext/web/Route.html#method(io.vertx.core.http.HttpMethod)[method]`
+If you want a route to only match for a specific HTTP method you can use `link:../../groovydoc/io/vertx/groovy/ext/web/Route.html#method(io.vertx.core.http.HttpMethod)[method]`
 
 [source,groovy]
 ----
@@ -480,8 +483,8 @@ route.handler({ routingContext ->
 
 ----
 
-If you want to route for a specific HTTP method you can also use the methods such as `link:groovydoc/io/vertx/groovy/ext/web/Router.html#get()[get]`,
-`link:groovydoc/io/vertx/groovy/ext/web/Router.html#post()[post]` and `link:groovydoc/io/vertx/groovy/ext/web/Router.html#put()[put]` named after the HTTP
+If you want to route for a specific HTTP method you can also use the methods such as `link:../../groovydoc/io/vertx/groovy/ext/web/Router.html#get()[get]`,
+`link:../../groovydoc/io/vertx/groovy/ext/web/Router.html#post()[post]` and `link:../../groovydoc/io/vertx/groovy/ext/web/Router.html#put()[put]` named after the HTTP
 method name. For example:
 
 [source,groovy]
@@ -512,7 +515,7 @@ router.getWithRegex(".*foo").handler({ routingContext ->
 
 ----
 
-If you want to specify a route will match for more than HTTP method you can call `link:groovydoc/io/vertx/groovy/ext/web/Route.html#method(io.vertx.core.http.HttpMethod)[method]`
+If you want to specify a route will match for more than HTTP method you can call `link:../../groovydoc/io/vertx/groovy/ext/web/Route.html#method(io.vertx.core.http.HttpMethod)[method]`
 multiple times:
 
 [source,groovy]
@@ -537,7 +540,7 @@ By default routes are matched in the order they are added to the router.
 When a request arrives the router will step through each route and check if it matches, if it matches then
 the handler for that route will be called.
 
-If the handler subsequently calls `link:groovydoc/io/vertx/groovy/ext/web/RoutingContext.html#next()[next]` the handler for the next
+If the handler subsequently calls `link:../../groovydoc/io/vertx/groovy/ext/web/RoutingContext.html#next()[next]` the handler for the next
 matching route (if any) will be called. And so on.
 
 Here's an example to illustrate this:
@@ -590,7 +593,7 @@ route3
 
 As the routes have been called in that order for any request that starts with `/some/path`.
 
-If you want to override the default ordering for routes, you can do so using `link:groovydoc/io/vertx/groovy/ext/web/Route.html#order(int)[order]`,
+If you want to override the default ordering for routes, you can do so using `link:../../groovydoc/io/vertx/groovy/ext/web/Route.html#order(int)[order]`,
 specifying an integer value.
 
 Routes are assigned an order at creation time corresponding to the order in which they were added to the router, with
@@ -651,14 +654,14 @@ route3
 
 If two matching routes have the same value of order, then they will be called in the order they were added.
 
-You can also specify that a route is handled last, with `link:groovydoc/io/vertx/groovy/ext/web/Route.html#last()[last]`
+You can also specify that a route is handled last, with `link:../../groovydoc/io/vertx/groovy/ext/web/Route.html#last()[last]`
 
 == Routing based on MIME type of request
 
-You can specify that a route will match against matching request MIME types using `link:groovydoc/io/vertx/groovy/ext/web/Route.html#consumes(java.lang.String)[consumes]`.
+You can specify that a route will match against matching request MIME types using `link:../../groovydoc/io/vertx/groovy/ext/web/Route.html#consumes(java.lang.String)[consumes]`.
 
 In this case, the request will contain a `content-type` header specifying the MIME type of the request body.
-This will be matched against the value specified in `link:groovydoc/io/vertx/groovy/ext/web/Route.html#consumes(java.lang.String)[consumes]`.
+This will be matched against the value specified in `link:../../groovydoc/io/vertx/groovy/ext/web/Route.html#consumes(java.lang.String)[consumes]`.
 
 Basically, `consumes` is describing which MIME types the handler can _consume_.
 
@@ -749,7 +752,7 @@ With the following the client will accept `text/plain` or `text/html` but prefer
 
 If the server can provide both text/plain and text/html it should provide the text/html in this case.
 
-By using `link:groovydoc/io/vertx/groovy/ext/web/Route.html#produces(java.lang.String)[produces]` you define which MIME type(s) the route produces, e.g. the
+By using `link:../../groovydoc/io/vertx/groovy/ext/web/Route.html#produces(java.lang.String)[produces]` you define which MIME type(s) the route produces, e.g. the
 following handler produces a response with MIME type `application/json`.
 
 [source,java]
@@ -775,7 +778,7 @@ Here are some examples of `accept` headers that will match:
  Accept: application/json;q=0.7, text/html;q=0.8, text/plain
 
 You can also mark your route as producing more than one MIME type. If this is the case, then you use
-`link:groovydoc/io/vertx/groovy/ext/web/RoutingContext.html#getAcceptableContentType()[getAcceptableContentType]` to find out the actual MIME type that
+`link:../../groovydoc/io/vertx/groovy/ext/web/RoutingContext.html#getAcceptableContentType()[getAcceptableContentType]` to find out the actual MIME type that
 was accepted.
 
 [source,groovy]
@@ -825,19 +828,19 @@ route.handler({ routingContext ->
 
 == Enabling and disabling routes
 
-You can disable a route with `link:groovydoc/io/vertx/groovy/ext/web/Route.html#disable()[disable]`. A disabled route will be ignored when matching.
+You can disable a route with `link:../../groovydoc/io/vertx/groovy/ext/web/Route.html#disable()[disable]`. A disabled route will be ignored when matching.
 
-You can re-enable a disabled route with `link:groovydoc/io/vertx/groovy/ext/web/Route.html#enable()[enable]`
+You can re-enable a disabled route with `link:../../groovydoc/io/vertx/groovy/ext/web/Route.html#enable()[enable]`
 
 == Context data
 
-You can use the context data in the `link:groovydoc/io/vertx/groovy/ext/web/RoutingContext.html[RoutingContext]` to maintain any data that you
+You can use the context data in the `link:../../groovydoc/io/vertx/groovy/ext/web/RoutingContext.html[RoutingContext]` to maintain any data that you
 want to share between handlers for the lifetime of the request.
 
 Here's an example where one handler sets some data in the context data and a subsequent handler retrieves it:
 
-You can use the `link:groovydoc/io/vertx/groovy/ext/web/RoutingContext.html#put(java.lang.String,%20java.lang.Object)[put]` to put any object, and
-`link:groovydoc/io/vertx/groovy/ext/web/RoutingContext.html#get(java.lang.String)[get]` to retrieve any object from the context data.
+You can use the `link:../../groovydoc/io/vertx/groovy/ext/web/RoutingContext.html#put(java.lang.String,%20java.lang.Object)[put]` to put any object, and
+`link:../../groovydoc/io/vertx/groovy/ext/web/RoutingContext.html#get(java.lang.String)[get]` to retrieve any object from the context data.
 
 A request sent to path `/some/path/other` will match both routes.
 
@@ -897,6 +900,27 @@ moves to the next handler that re routes the request to `/some/path/B` which ter
 
 You can reroute based on a new path or based on a new path and method. Note however that rerouting based on method
 might introduce security issues since for example a usually safe GET request can become a DELETE.
+
+Reroute is also allowed on the failure handler, however due to the nature of re router when called the current status
+code and failure reason are reset. In order the rerouted handler should generate the correct status code if needed,
+for example:
+
+[source,groovy]
+----
+
+router.get("/my-pretty-notfound-handler").handler({ ctx ->
+  ctx.response().setStatusCode(404).end("NOT FOUND fancy html here!!!")
+})
+
+router.get().failureHandler({ ctx ->
+  if (ctx.statusCode() == 404) {
+    ctx.reroute("/my-pretty-notfound-handler")
+  } else {
+    ctx.next()
+  }
+})
+
+----
 
 == Sub-routers
 
@@ -992,9 +1016,9 @@ def route = router.get("/localized").handler({ rc ->
 
 ----
 
-The main method `link:groovydoc/io/vertx/groovy/ext/web/RoutingContext.html#acceptableLocales()[acceptableLocales]` will return the ordered list of locales the
+The main method `link:../../groovydoc/io/vertx/groovy/ext/web/RoutingContext.html#acceptableLocales()[acceptableLocales]` will return the ordered list of locales the
 user understands, if you're only interested in the user prefered locale then the helper:
-`link:groovydoc/io/vertx/groovy/ext/web/RoutingContext.html#preferredLocale()[preferredLocale]` will return the 1st element of the list or `null` if no
+`link:../../groovydoc/io/vertx/groovy/ext/web/RoutingContext.html#preferredLocale()[preferredLocale]` will return the 1st element of the list or `null` if no
 locale was provided by the user.
 
 == Default 404 Handling
@@ -1033,7 +1057,7 @@ route.failureHandler({ frc ->
 ----
 
 Failure routing will occur if a handler throws an exception, or if a handler calls
-`link:groovydoc/io/vertx/groovy/ext/web/RoutingContext.html#fail(int)[fail]` specifying an HTTP status code to deliberately signal a failure.
+`link:../../groovydoc/io/vertx/groovy/ext/web/RoutingContext.html#fail(int)[fail]` specifying an HTTP status code to deliberately signal a failure.
 
 If an exception is caught from a handler this will result in a failure with status code `500` being signalled.
 
@@ -1086,7 +1110,7 @@ without properly completing the protocol.
 
 == Request body handling
 
-The `link:groovydoc/io/vertx/groovy/ext/web/handler/BodyHandler.html[BodyHandler]` allows you to retrieve request bodies, limit body sizes and handle
+The `link:../../groovydoc/io/vertx/groovy/ext/web/handler/BodyHandler.html[BodyHandler]` allows you to retrieve request bodies, limit body sizes and handle
 file uploads.
 
 You should make sure a body handler is on a matching route for any requests that require this functionality.
@@ -1106,13 +1130,13 @@ router.route().handler(BodyHandler.create())
 
 === Getting the request body
 
-If you know the request body is JSON, then you can use `link:groovydoc/io/vertx/groovy/ext/web/RoutingContext.html#getBodyAsJson()[getBodyAsJson]`,
-if you know it's a string you can use `link:groovydoc/io/vertx/groovy/ext/web/RoutingContext.html#getBodyAsString()[getBodyAsString]`, or to
-retrieve it as a buffer use `link:groovydoc/io/vertx/groovy/ext/web/RoutingContext.html#getBody()[getBody]`.
+If you know the request body is JSON, then you can use `link:../../groovydoc/io/vertx/groovy/ext/web/RoutingContext.html#getBodyAsJson()[getBodyAsJson]`,
+if you know it's a string you can use `link:../../groovydoc/io/vertx/groovy/ext/web/RoutingContext.html#getBodyAsString()[getBodyAsString]`, or to
+retrieve it as a buffer use `link:../../groovydoc/io/vertx/groovy/ext/web/RoutingContext.html#getBody()[getBody]`.
 
 === Limiting body size
 
-To limit the size of a request body, create the body handler then use `link:groovydoc/io/vertx/groovy/ext/web/handler/BodyHandler.html#setBodyLimit(long)[setBodyLimit]`
+To limit the size of a request body, create the body handler then use `link:../../groovydoc/io/vertx/groovy/ext/web/handler/BodyHandler.html#setBodyLimit(long)[setBodyLimit]`
 to specifying the maximum body size, in bytes. This is useful to avoid running out of memory with very large bodies.
 
 If an attempt to send a body greater than the maximum size is made, an HTTP status code of 413 - `Request Entity Too Large`,
@@ -1123,7 +1147,7 @@ There is no body limit by default.
 === Merging form attributes
 
 By default, the body handler will merge any form attributes into the request parameters. If you don't want this behaviour
-you can use disable it with `link:groovydoc/io/vertx/groovy/ext/web/handler/BodyHandler.html#setMergeFormAttributes(boolean)[setMergeFormAttributes]`.
+you can use disable it with `link:../../groovydoc/io/vertx/groovy/ext/web/handler/BodyHandler.html#setMergeFormAttributes(boolean)[setMergeFormAttributes]`.
 
 === Handling file uploads
 
@@ -1133,7 +1157,7 @@ If a body handler is on a matching route for the request, any file uploads will 
 uploads directory, which is `file-uploads` by default.
 
 Each file will be given an automatically generated file name, and the file uploads will be available on the routing
-context with `link:groovydoc/io/vertx/groovy/ext/web/RoutingContext.html#fileUploads()[fileUploads]`.
+context with `link:../../groovydoc/io/vertx/groovy/ext/web/RoutingContext.html#fileUploads()[fileUploads]`.
 
 Here's an example:
 
@@ -1152,12 +1176,12 @@ router.post("/some/path/uploads").handler({ routingContext ->
 
 ----
 
-Each file upload is described by a `link:groovydoc/io/vertx/groovy/ext/web/FileUpload.html[FileUpload]` instance, which allows various properties
+Each file upload is described by a `link:../../groovydoc/io/vertx/groovy/ext/web/FileUpload.html[FileUpload]` instance, which allows various properties
 such as the name, file-name and size to be accessed.
 
 == Handling cookies
 
-Vert.x-Web has cookies support using the `link:groovydoc/io/vertx/groovy/ext/web/handler/CookieHandler.html[CookieHandler]`.
+Vert.x-Web has cookies support using the `link:../../groovydoc/io/vertx/groovy/ext/web/handler/CookieHandler.html[CookieHandler]`.
 
 You should make sure a cookie handler is on a matching route for any requests that require this functionality.
 
@@ -1173,17 +1197,17 @@ router.route().handler(CookieHandler.create())
 
 === Manipulating cookies
 
-You use `link:groovydoc/io/vertx/groovy/ext/web/RoutingContext.html#getCookie(java.lang.String)[getCookie]` to retrieve
-a cookie by name, or use `link:groovydoc/io/vertx/groovy/ext/web/RoutingContext.html#cookies()[cookies]` to retrieve the entire set.
+You use `link:../../groovydoc/io/vertx/groovy/ext/web/RoutingContext.html#getCookie(java.lang.String)[getCookie]` to retrieve
+a cookie by name, or use `link:../../groovydoc/io/vertx/groovy/ext/web/RoutingContext.html#cookies()[cookies]` to retrieve the entire set.
 
-To remove a cookie, use `link:groovydoc/io/vertx/groovy/ext/web/RoutingContext.html#removeCookie(java.lang.String)[removeCookie]`.
+To remove a cookie, use `link:../../groovydoc/io/vertx/groovy/ext/web/RoutingContext.html#removeCookie(java.lang.String)[removeCookie]`.
 
-To add a cookie use `link:groovydoc/io/vertx/groovy/ext/web/RoutingContext.html#addCookie(io.vertx.ext.web.Cookie)[addCookie]`.
+To add a cookie use `link:../../groovydoc/io/vertx/groovy/ext/web/RoutingContext.html#addCookie(io.vertx.ext.web.Cookie)[addCookie]`.
 
 The set of cookies will be written back in the response automatically when the response headers are written so the
 browser can store them.
 
-Cookies are described by instances of `link:groovydoc/io/vertx/groovy/ext/web/Cookie.html[Cookie]`. This allows you to retrieve the name,
+Cookies are described by instances of `link:../../groovydoc/io/vertx/groovy/ext/web/Cookie.html[Cookie]`. This allows you to retrieve the name,
 value, domain, path and other normal cookie properties.
 
 Here's an example of querying and adding cookies:
@@ -1226,7 +1250,7 @@ be effectively unguessable.
 Cookies are passed across the wire in HTTP requests and responses so it's always wise to make sure you are using
 HTTPS when sessions are being used. Vert.x will warn you if you attempt to use sessions over straight HTTP.
 
-To enable sessions in your application you must have a `link:groovydoc/io/vertx/groovy/ext/web/handler/SessionHandler.html[SessionHandler]`
+To enable sessions in your application you must have a `link:../../groovydoc/io/vertx/groovy/ext/web/handler/SessionHandler.html[SessionHandler]`
 on a matching route before your application logic.
 
 The session handler handles the creation of session cookies and the lookup of the session so you don't have to do
@@ -1252,9 +1276,9 @@ requests might end up on a server which doesn't know about your session.
 Local session stores are implemented by using a shared local map, and have a reaper which clears out expired sessions.
 
 The reaper interval can be configured with
-`link:groovydoc/io/vertx/groovy/ext/web/sstore/LocalSessionStore.html#create(io.vertx.core.Vertx,%20java.lang.String,%20long)[LocalSessionStore.create]`.
+`link:../../groovydoc/io/vertx/groovy/ext/web/sstore/LocalSessionStore.html#create(io.vertx.core.Vertx,%20java.lang.String,%20long)[LocalSessionStore.create]`.
 
-Here are some examples of creating a `link:groovydoc/io/vertx/groovy/ext/web/sstore/LocalSessionStore.html[LocalSessionStore]`
+Here are some examples of creating a `link:../../groovydoc/io/vertx/groovy/ext/web/sstore/LocalSessionStore.html[LocalSessionStore]`
 
 [source,groovy]
 ----
@@ -1286,7 +1310,7 @@ Your session is accessible from any node in the cluster using this store.
 
 To you use a clustered session store you should make sure your Vert.x instance is clustered.
 
-Here are some examples of creating a `link:groovydoc/io/vertx/groovy/ext/web/sstore/ClusteredSessionStore.html[ClusteredSessionStore]`
+Here are some examples of creating a `link:../../groovydoc/io/vertx/groovy/ext/web/sstore/ClusteredSessionStore.html[ClusteredSessionStore]`
 
 [source,groovy]
 ----
@@ -1317,7 +1341,7 @@ Vertx.clusteredVertx([
 Once you've created a session store you can create a session handler, and add it to a route. You should make sure
 your session handler is routed to before your application handlers.
 
-You'll also need to include a `link:groovydoc/io/vertx/groovy/ext/web/handler/CookieHandler.html[CookieHandler]` as the session handler uses cookies to
+You'll also need to include a `link:../../groovydoc/io/vertx/groovy/ext/web/handler/CookieHandler.html[CookieHandler]` as the session handler uses cookies to
 lookup the session. The cookie handler should be before the session handler when routing.
 
 Here's an example:
@@ -1359,14 +1383,14 @@ from the session store and set on the routing context before it gets to your app
 
 === Using the session
 
-In your handlers you can access the session instance with `link:groovydoc/io/vertx/groovy/ext/web/RoutingContext.html#session()[session]`.
+In your handlers you can access the session instance with `link:../../groovydoc/io/vertx/groovy/ext/web/RoutingContext.html#session()[session]`.
 
-You put data into the session with `link:groovydoc/io/vertx/groovy/ext/web/Session.html#put(java.lang.String,%20java.lang.Object)[put]`,
-you get data from the session with `link:groovydoc/io/vertx/groovy/ext/web/Session.html#get(java.lang.String)[get]`, and you remove
-data from the session with `link:groovydoc/io/vertx/groovy/ext/web/Session.html#remove(java.lang.String)[remove]`.
+You put data into the session with `link:../../groovydoc/io/vertx/groovy/ext/web/Session.html#put(java.lang.String,%20java.lang.Object)[put]`,
+you get data from the session with `link:../../groovydoc/io/vertx/groovy/ext/web/Session.html#get(java.lang.String)[get]`, and you remove
+data from the session with `link:../../groovydoc/io/vertx/groovy/ext/web/Session.html#remove(java.lang.String)[remove]`.
 
 The keys for items in the session are always strings. The values can be any type for a local session store, and for
-a clustered session store they can be any basic type, or `link:../../vertx-core/groovy/groovydoc/io/vertx/groovy/core/buffer/Buffer.html[Buffer]`, `JsonObject`,
+a clustered session store they can be any basic type, or `link:../../groovydoc/io/vertx/groovy/core/buffer/Buffer.html[Buffer]`, `JsonObject`,
 `JsonArray` or a serializable object, as the values have to serialized across the cluster.
 
 Here's an example of manipulating session data:
@@ -1399,7 +1423,7 @@ router.route("/somepath/blah").handler({ routingContext ->
 
 Sessions are automatically written back to the store after after responses are complete.
 
-You can manually destroy a session using `link:groovydoc/io/vertx/groovy/ext/web/Session.html#destroy()[destroy]`. This will remove the session
+You can manually destroy a session using `link:../../groovydoc/io/vertx/groovy/ext/web/Session.html#destroy()[destroy]`. This will remove the session
 from the context and the session store. Note that if there is no session a new one will be automatically created
 for the next request from the browser that's routed through the session handler.
 
@@ -1411,7 +1435,7 @@ a session is timed out, it is removed from the store.
 Sessions are automatically marked as accessed when a request arrives and the session is looked up and and when the
 response is complete and the session is stored back in the store.
 
-You can also use `link:groovydoc/io/vertx/groovy/ext/web/Session.html#setAccessed()[setAccessed]` to manually mark a session as accessed.
+You can also use `link:../../groovydoc/io/vertx/groovy/ext/web/Session.html#setAccessed()[setAccessed]` to manually mark a session as accessed.
 
 The session timeout can be configured when creating the session handler. Default timeout is 30 minutes.
 
@@ -1421,7 +1445,7 @@ Vert.x comes with some out-of-the-box handlers for handling both authentication 
 
 === Creating an auth handler
 
-To create an auth handler you need an instance of `link:../../vertx-auth-common/groovy/groovydoc/io/vertx/groovy/ext/auth/AuthProvider.html[AuthProvider]`. Auth provider is
+To create an auth handler you need an instance of `link:../../groovydoc/io/vertx/groovy/ext/auth/AuthProvider.html[AuthProvider]`. Auth provider is
 used for authentication and authorisation of users. Vert.x provides several auth provider instances out of the box
 in the vertx-auth project. For full information on auth providers and how to use and configure them
 please consult the auth documentation.
@@ -1481,9 +1505,9 @@ router.route("/private/somepath").handler({ routingContext ->
 
 ----
 
-If the auth handler has successfully authenticated and authorised the user it will inject a `link:../../vertx-auth-common/groovy/groovydoc/io/vertx/groovy/ext/auth/User.html[User]`
-object into the `link:groovydoc/io/vertx/groovy/ext/web/RoutingContext.html[RoutingContext]` so it's available in your handlers with:
-`link:groovydoc/io/vertx/groovy/ext/web/RoutingContext.html#user()[user]`.
+If the auth handler has successfully authenticated and authorised the user it will inject a `link:../../groovydoc/io/vertx/groovy/ext/auth/User.html[User]`
+object into the `link:../../groovydoc/io/vertx/groovy/ext/web/RoutingContext.html[RoutingContext]` so it's available in your handlers with:
+`link:../../groovydoc/io/vertx/groovy/ext/web/RoutingContext.html#user()[user]`.
 
 If you want your User object to be stored in the session so it's available between requests so you don't have to
 authenticate on each request, then you should make sure you have a session handler and a user session handler on matching
@@ -1491,7 +1515,7 @@ routes before the auth handler.
 
 Once you have your user object you can also programmatically use the methods on it to authorise the user.
 
-If you want to cause the user to be logged out you can call `link:groovydoc/io/vertx/groovy/ext/web/RoutingContext.html#clearUser()[clearUser]`
+If you want to cause the user to be logged out you can call `link:../../groovydoc/io/vertx/groovy/ext/web/RoutingContext.html#clearUser()[clearUser]`
 on the routing context.
 
 === HTTP Basic Authentication
@@ -1509,7 +1533,7 @@ prompt the user to enter their username and password.
 The request is made to the resource again, this time with the `Authorization` header set, containing the username
 and password encoded in Base64.
 
-When the basic auth handler receives this information, it calls the configured `link:../../vertx-auth-common/groovy/groovydoc/io/vertx/groovy/ext/auth/AuthProvider.html[AuthProvider]`
+When the basic auth handler receives this information, it calls the configured `link:../../groovydoc/io/vertx/groovy/ext/auth/AuthProvider.html[AuthProvider]`
 with the username and password to authenticate the user. If the authentication is successful the handler attempts
 to authorise the user. If that is successful then the routing of the request is allowed to continue to the application
 handlers, otherwise a `403` response is returned to signify that access is denied.
@@ -1525,11 +1549,11 @@ a protected resource and they are not logged in.
 The user then fills in the login form and submits it. This is handled by the server which authenticates
 the user and, if authenticated redirects the user back to the original resource.
 
-To use redirect auth you configure an instance of `link:groovydoc/io/vertx/groovy/ext/web/handler/RedirectAuthHandler.html[RedirectAuthHandler]` instead of a
+To use redirect auth you configure an instance of `link:../../groovydoc/io/vertx/groovy/ext/web/handler/RedirectAuthHandler.html[RedirectAuthHandler]` instead of a
 basic auth handler.
 
 You will also need to setup handlers to serve your actual login page, and a handler to handle the actual login itself.
-To handle the login we provide a prebuilt handler `link:groovydoc/io/vertx/groovy/ext/web/handler/FormLoginHandler.html[FormLoginHandler]` for the purpose.
+To handle the login we provide a prebuilt handler `link:../../groovydoc/io/vertx/groovy/ext/web/handler/FormLoginHandler.html[FormLoginHandler]` for the purpose.
 
 Here's an example of a simple app, using a redirect auth handler on the default redirect url `/loginpage`.
 
@@ -1620,7 +1644,7 @@ router.route("/login").handler({ ctx ->
 ----
 
 Now that your client has a token all it is required is that for *all* consequent request the HTTP header
-`Authorization` is filled with: `Bearer &lt;token&gt;` e.g.:
+`Authorization` is filled with: `Bearer <token>` e.g.:
 
 [source,groovy]
 ----
@@ -1721,7 +1745,7 @@ Vert.x-Web comes with an out of the box handler for serving static web resources
 very easily.
 
 To serve static resources such as `.html`, `.css`, `.js` or any other static resource, you use an instance of
-`link:groovydoc/io/vertx/groovy/ext/web/handler/StaticHandler.html[StaticHandler]`.
+`link:../../groovydoc/io/vertx/groovy/ext/web/handler/StaticHandler.html[StaticHandler]`.
 
 Any requests to paths handled by the static handler will result in files being served from a directory on the file system
 or from the classpath. The default static file directory is `webroot` but this can be configured.
@@ -1758,12 +1782,12 @@ By default the static handler will set cache headers to enable browsers to effec
 Vert.x-Web sets the headers `cache-control`,`last-modified`, and `date`.
 
 `cache-control` is set to `max-age=86400` by default. This corresponds to one day. This can be configured with
-`link:groovydoc/io/vertx/groovy/ext/web/handler/StaticHandler.html#setMaxAgeSeconds(long)[setMaxAgeSeconds]` if required.
+`link:../../groovydoc/io/vertx/groovy/ext/web/handler/StaticHandler.html#setMaxAgeSeconds(long)[setMaxAgeSeconds]` if required.
 
 If a browser sends a GET or a HEAD request with an `if-modified-since` header and the resource has not been modified
 since that date, a `304` status is returned which tells the browser to use its locally cached resource.
 
-If handling of cache headers is not required, it can be disabled with `link:groovydoc/io/vertx/groovy/ext/web/handler/StaticHandler.html#setCachingEnabled(boolean)[setCachingEnabled]`.
+If handling of cache headers is not required, it can be disabled with `link:../../groovydoc/io/vertx/groovy/ext/web/handler/StaticHandler.html#setCachingEnabled(boolean)[setCachingEnabled]`.
 
 When cache handling is enabled Vert.x-Web will cache the last modified date of resources in memory, this avoids a disk hit
 to check the actual last modified date every time.
@@ -1775,38 +1799,38 @@ If you know that your files never change on disk, then the cache entry will effe
 default.
 
 If you know that your files might change on disk when the server is running then you can set files read only to false with
-`link:groovydoc/io/vertx/groovy/ext/web/handler/StaticHandler.html#setFilesReadOnly(boolean)[setFilesReadOnly]`.
+`link:../../groovydoc/io/vertx/groovy/ext/web/handler/StaticHandler.html#setFilesReadOnly(boolean)[setFilesReadOnly]`.
 
 To enable the maximum number of entries that can be cached in memory at any one time you can use
-`link:groovydoc/io/vertx/groovy/ext/web/handler/StaticHandler.html#setMaxCacheSize(int)[setMaxCacheSize]`.
+`link:../../groovydoc/io/vertx/groovy/ext/web/handler/StaticHandler.html#setMaxCacheSize(int)[setMaxCacheSize]`.
 
-To configure the expiry time of cache entries you can use `link:groovydoc/io/vertx/groovy/ext/web/handler/StaticHandler.html#setCacheEntryTimeout(long)[setCacheEntryTimeout]`.
+To configure the expiry time of cache entries you can use `link:../../groovydoc/io/vertx/groovy/ext/web/handler/StaticHandler.html#setCacheEntryTimeout(long)[setCacheEntryTimeout]`.
 
 === Configuring the index page
 
 Any requests to the root path `/` will cause the index page to be served. By default the index page is `index.html`.
-This can be configured with `link:groovydoc/io/vertx/groovy/ext/web/handler/StaticHandler.html#setIndexPage(java.lang.String)[setIndexPage]`.
+This can be configured with `link:../../groovydoc/io/vertx/groovy/ext/web/handler/StaticHandler.html#setIndexPage(java.lang.String)[setIndexPage]`.
 
 === Changing the web root
 
 By default static resources will be served from the directory `webroot`. To configure this use
-`link:groovydoc/io/vertx/groovy/ext/web/handler/StaticHandler.html#setWebRoot(java.lang.String)[setWebRoot]`.
+`link:../../groovydoc/io/vertx/groovy/ext/web/handler/StaticHandler.html#setWebRoot(java.lang.String)[setWebRoot]`.
 
 === Serving hidden files
 
 By default the serve will serve hidden files (files starting with `.`).
 
-If you do not want hidden files to be served you can configure it with `link:groovydoc/io/vertx/groovy/ext/web/handler/StaticHandler.html#setIncludeHidden(boolean)[setIncludeHidden]`.
+If you do not want hidden files to be served you can configure it with `link:../../groovydoc/io/vertx/groovy/ext/web/handler/StaticHandler.html#setIncludeHidden(boolean)[setIncludeHidden]`.
 
 === Directory listing
 
 The server can also perform directory listing. By default directory listing is disabled. To enabled it use
-`link:groovydoc/io/vertx/groovy/ext/web/handler/StaticHandler.html#setDirectoryListing(boolean)[setDirectoryListing]`.
+`link:../../groovydoc/io/vertx/groovy/ext/web/handler/StaticHandler.html#setDirectoryListing(boolean)[setDirectoryListing]`.
 
 When directory listing is enabled the content returned depends on the content type in the `accept` header.
 
 For `text/html` directory listing, the template used to render the directory listing page can be configured with
-`link:groovydoc/io/vertx/groovy/ext/web/handler/StaticHandler.html#setDirectoryTemplate(java.lang.String)[setDirectoryTemplate]`.
+`link:../../groovydoc/io/vertx/groovy/ext/web/handler/StaticHandler.html#setDirectoryTemplate(java.lang.String)[setDirectoryTemplate]`.
 
 === Disabling file caching on disk
 
@@ -1826,7 +1850,7 @@ could set up a run configuration in your IDE to set this when runnning your main
 http://en.wikipedia.org/wiki/Cross-origin_resource_sharing[Cross Origin Resource Sharing] is a safe mechanism for
 allowing resources to be requested from one domain and served from another.
 
-Vert.x-Web includes a handler `link:groovydoc/io/vertx/groovy/ext/web/handler/CorsHandler.html[CorsHandler]` that handles the CORS protocol for you.
+Vert.x-Web includes a handler `link:../../groovydoc/io/vertx/groovy/ext/web/handler/CorsHandler.html[CorsHandler]` that handles the CORS protocol for you.
 
 Here's an example:
 
@@ -1855,11 +1879,11 @@ TODO more CORS docs
 Vert.x-Web includes dynamic page generation capabilities by including out of the box support for several popular template
 engines. You can also easily add your own.
 
-Template engines are described by `link:groovydoc/io/vertx/groovy/ext/web/templ/TemplateEngine.html[TemplateEngine]`. In order to render a template
-`link:groovydoc/io/vertx/groovy/ext/web/templ/TemplateEngine.html#render(io.vertx.ext.web.RoutingContext,%20java.lang.String,%20io.vertx.core.Handler)[render]` is used.
+Template engines are described by `link:../../groovydoc/io/vertx/groovy/ext/web/templ/TemplateEngine.html[TemplateEngine]`. In order to render a template
+`link:../../groovydoc/io/vertx/groovy/ext/web/templ/TemplateEngine.html#render(io.vertx.ext.web.RoutingContext,%20java.lang.String,%20io.vertx.core.Handler)[render]` is used.
 
 The simplest way to use templates is not to call the template engine directly but to use the
-`link:groovydoc/io/vertx/groovy/ext/web/handler/TemplateHandler.html[TemplateHandler]`.
+`link:../../groovydoc/io/vertx/groovy/ext/web/handler/TemplateHandler.html[TemplateHandler]`.
 This handler calls the template engine for you based on the path in the HTTP request.
 
 By default the template handler will look for templates in a directory called `templates`. This can be configured.
@@ -1902,13 +1926,13 @@ router.getWithRegex(".+\\.hbs").handler(handler)
 === MVEL template engine
 
 To use MVEL, you need to add the following _dependency_ to your project:
-`io.vertx:vertx-web-templ-mvel:3.1.0`. Create an instance of the MVEL template engine using:
+`io.vertx:vertx-web-templ-mvel:3.3.0-SNAPSHOT`. Create an instance of the MVEL template engine using:
 `io.vertx.ext.web.templ.MVELTemplateEngine#create()`
 
 When using the MVEL template engine, it will by default look for
 templates with the `.templ` extension if no extension is specified in the file name.
 
-The routing context `link:groovydoc/io/vertx/groovy/ext/web/RoutingContext.html[RoutingContext]` is available
+The routing context `link:../../groovydoc/io/vertx/groovy/ext/web/RoutingContext.html[RoutingContext]` is available
 in the MVEL template as the `context` variable, this means you can render the template based on anything in the context
 including the request, response, session or context data.
 
@@ -1928,13 +1952,13 @@ MVEL templates.
 === Jade template engine
 
 To use the Jade template engine, you need to add the following _dependency_ to your project:
-`io.vertx:vertx-web-templ-jade:3.1.0`. Create an instance of the Jade template engine using:
+`io.vertx:vertx-web-templ-jade:3.3.0-SNAPSHOT`. Create an instance of the Jade template engine using:
 `io.vertx.ext.web.templ.JadeTemplateEngine#create()`.
 
 When using the Jade template engine, it will by default look for
 templates with the `.jade` extension if no extension is specified in the file name.
 
-The routing context `link:groovydoc/io/vertx/groovy/ext/web/RoutingContext.html[RoutingContext]` is available
+The routing context `link:../../groovydoc/io/vertx/groovy/ext/web/RoutingContext.html[RoutingContext]` is available
 in the Jade template as the `context` variable, this means you can render the template based on anything in the context
 including the request, response, session or context data.
 
@@ -1954,7 +1978,7 @@ Jade templates.
 === Handlebars template engine
 
 To use Handlebars, you need to add the following _dependency_ to your project:
-`io.vertx:vertx-web-templ-handlebars:3.1.0`. Create an instance of the Handlebars template engine
+`io.vertx:vertx-web-templ-handlebars:3.3.0-SNAPSHOT`. Create an instance of the Handlebars template engine
 using: `io.vertx.ext.web.templ.HandlebarsTemplateEngine#create()`.
 
 When using the Handlebars template engine, it will by default look for
@@ -1963,7 +1987,7 @@ templates with the `.hbs` extension if no extension is specified in the file nam
 Handlebars templates are not able to call arbitrary methods in objects so we can't just pass the routing context
 into the template and let the template introspect it like we can with other template engines.
 
-Instead, the context `link:groovydoc/io/vertx/groovy/ext/web/RoutingContext.html#data()[data]` is available in the template.
+Instead, the context `link:../../groovydoc/io/vertx/groovy/ext/web/RoutingContext.html#data()[data]` is available in the template.
 
 If you want to have access to other data like the request path, request params or session data you should
 add it the context data in a handler before the template handler. For example:
@@ -1993,13 +2017,13 @@ handlebars templates.
 === Thymeleaf template engine
 
 To use Thymeleaf, you need to add the following _dependency_ to your project:
-`io.vertx:vertx-web-templ-thymeleaf:3.1.0`. Create an instance of the Thymeleaf template engine
+`io.vertx:vertx-web-templ-thymeleaf:3.3.0-SNAPSHOT`. Create an instance of the Thymeleaf template engine
 using: `io.vertx.ext.web.templ.ThymeleafTemplateEngine#create()`.
 
 When using the Thymeleaf template engine, it will by default look for
 templates with the `.html` extension if no extension is specified in the file name.
 
-The routing context `link:groovydoc/io/vertx/groovy/ext/web/RoutingContext.html[RoutingContext]` is available
+The routing context `link:../../groovydoc/io/vertx/groovy/ext/web/RoutingContext.html[RoutingContext]` is available
 in the Thymeleaf template as the `context` variable, this means you can render the template based on anything in the context
 including the request, response, session or context data.
 
@@ -2007,28 +2031,56 @@ Here are some examples:
 
 ----
 [snip]
-&lt;p th:text="${context.get('foo')}"&gt;&lt;/p&gt;
-&lt;p th:text="${context.get('bar')}"&gt;&lt;/p&gt;
-&lt;p th:text="${context.normalisedPath()}"&gt;&lt;/p&gt;
-&lt;p th:text="${context.request().params().get('param1')}"&gt;&lt;/p&gt;
-&lt;p th:text="${context.request().params().get('param2')}"&gt;&lt;/p&gt;
+<p th:text="${context.get('foo')}"></p>
+<p th:text="${context.get('bar')}"></p>
+<p th:text="${context.normalisedPath()}"></p>
+<p th:text="${context.request().params().get('param1')}"></p>
+<p th:text="${context.request().params().get('param2')}"></p>
 [snip]
 ----
 
 Please consult the http://www.thymeleaf.org/[Thymeleaf documentation] for how to write
 Thymeleaf templates.
 
+=== Apache FreeMarker template engine
+
+To use Apache FreeMarker, you need to add the following _dependency_ to your project:
+`io.vertx:vertx-web-templ-freemarker:3.3.0-SNAPSHOT`. Create an instance of the Apache FreeMarker template engine
+using: `io.vertx.ext.web.templ.FreeMarkerTemplateEngine#create()`.
+
+When using the Apache FreeMarker template engine, it will by default look for
+templates with the `.ftl` extension if no extension is specified in the file name.
+
+The routing context `link:../../groovydoc/io/vertx/groovy/ext/web/RoutingContext.html[RoutingContext]` is available
+in the Apache FreeMarker template as the `context` variable, this means you can render the template based on anything in the context
+including the request, response, session or context data.
+
+Here are some examples:
+
+----
+[snip]
+<p th:text="${context.foo}"></p>
+<p th:text="${context.bar}"></p>
+<p th:text="${context.normalisedPath()}"></p>
+<p th:text="${context.request().params().param1}"></p>
+<p th:text="${context.request().params().param2}"></p>
+[snip]
+----
+
+Please consult the http://www.freemarker.org/[Apache FreeMarker documentation] for how to write
+Apache FreeMarker templates.
+
 == Error handler
 
 You can render your own errors using a template handler or otherwise but Vert.x-Web also includes an out of the boxy
 "pretty" error handler that can render error pages for you.
 
-The handler is `link:groovydoc/io/vertx/groovy/ext/web/handler/ErrorHandler.html[ErrorHandler]`. To use the error handler just set it as a
+The handler is `link:../../groovydoc/io/vertx/groovy/ext/web/handler/ErrorHandler.html[ErrorHandler]`. To use the error handler just set it as a
 failure handler for any paths that you want covered.
 
 == Request logger
 
-Vert.x-Web includes a handler `link:groovydoc/io/vertx/groovy/ext/web/handler/LoggerHandler.html[LoggerHandler]` that you can use to log HTTP requests.
+Vert.x-Web includes a handler `link:../../groovydoc/io/vertx/groovy/ext/web/handler/LoggerHandler.html[LoggerHandler]` that you can use to log HTTP requests.
 
 
 By default requests are logged to the Vert.x logger which can be configured to use JUL logging, log4j or SLF4J.
@@ -2037,7 +2089,7 @@ See `link:../enums.html#LoggerFormat[LoggerFormat]`.
 
 == Serving favicons
 
-Vert.x-Web includes the handler `link:groovydoc/io/vertx/groovy/ext/web/handler/FaviconHandler.html[FaviconHandler]` especially for serving favicons.
+Vert.x-Web includes the handler `link:../../groovydoc/io/vertx/groovy/ext/web/handler/FaviconHandler.html[FaviconHandler]` especially for serving favicons.
 
 Favicons can be specified using a path to the filesystem, or by default Vert.x-Web will look for a file on the classpath
 with the name `favicon.ico`. This means you bundle the favicon in the jar of your application.
@@ -2046,9 +2098,9 @@ with the name `favicon.ico`. This means you bundle the favicon in the jar of you
 
 Vert.x-Web includes a timeout handler that you can use to timeout requests if they take too long to process.
 
-This is configured using an instance of `link:groovydoc/io/vertx/groovy/ext/web/handler/TimeoutHandler.html[TimeoutHandler]`.
+This is configured using an instance of `link:../../groovydoc/io/vertx/groovy/ext/web/handler/TimeoutHandler.html[TimeoutHandler]`.
 
-If a request times out before the response is written a `408` response will be returned to the client.
+If a request times out before the response is written a `503` response will be returned to the client.
 
 Here's an example of using a timeout handler which will timeout all requests to paths starting with `/foo` after 5
 seconds:
@@ -2083,10 +2135,10 @@ Please see the https://github.com/sockjs/sockjs-client[SockJS website] for more 
 
 === SockJS handler
 
-Vert.x provides an out of the box handler called `link:groovydoc/io/vertx/groovy/ext/web/handler/sockjs/SockJSHandler.html[SockJSHandler]` for
+Vert.x provides an out of the box handler called `link:../../groovydoc/io/vertx/groovy/ext/web/handler/sockjs/SockJSHandler.html[SockJSHandler]` for
 using SockJS in your Vert.x-Web applications.
 
-You should create one handler per SockJS application using `link:groovydoc/io/vertx/groovy/ext/web/handler/sockjs/SockJSHandler.html#create(io.vertx.core.Vertx)[SockJSHandler.create]`.
+You should create one handler per SockJS application using `link:../../groovydoc/io/vertx/groovy/ext/web/handler/sockjs/SockJSHandler.html#create(io.vertx.core.Vertx)[SockJSHandler.create]`.
 You can also specify configuration options when creating the instance. The configuration options are described with
 an instance of `link:../dataobjects.html#SockJSHandlerOptions[SockJSHandlerOptions]`.
 
@@ -2112,10 +2164,10 @@ router.route("/myapp/*").handler(sockJSHandler)
 On the server-side you set a handler on the SockJS handler, and
 this will be called every time a SockJS connection is made from a client:
 
-The object passed into the handler is a `link:groovydoc/io/vertx/groovy/ext/web/handler/sockjs/SockJSSocket.html[SockJSSocket]`. This has a familiar
-socket-like interface which you can read and write to similarly to a `link:../../vertx-core/groovy/groovydoc/io/vertx/groovy/core/net/NetSocket.html[NetSocket]` or
-a `link:../../vertx-core/groovy/groovydoc/io/vertx/groovy/core/http/WebSocket.html[WebSocket]`. It also implements `link:../../vertx-core/groovy/groovydoc/io/vertx/groovy/core/streams/ReadStream.html[ReadStream]` and
-`link:../../vertx-core/groovy/groovydoc/io/vertx/groovy/core/streams/WriteStream.html[WriteStream]` so you can pump it to and from other read and write streams.
+The object passed into the handler is a `link:../../groovydoc/io/vertx/groovy/ext/web/handler/sockjs/SockJSSocket.html[SockJSSocket]`. This has a familiar
+socket-like interface which you can read and write to similarly to a `link:../../groovydoc/io/vertx/groovy/core/net/NetSocket.html[NetSocket]` or
+a `link:../../groovydoc/io/vertx/groovy/core/http/WebSocket.html[WebSocket]`. It also implements `link:../../groovydoc/io/vertx/groovy/core/streams/ReadStream.html[ReadStream]` and
+`link:../../groovydoc/io/vertx/groovy/core/streams/WriteStream.html[WriteStream]` so you can pump it to and from other read and write streams.
 
 Here's an example of a simple SockJS handler that simply echoes back any back any data that it reads:
 
@@ -2146,8 +2198,7 @@ router.route("/myapp/*").handler(sockJSHandler)
 
 In client side JavaScript you use the SockJS client side library to make connections.
 
-You can find that http://cdn.sockjs.org/sockjs-0.3.4.js[here].
-The minified version is http://cdn.sockjs.org/sockjs-0.3.4.min.js[here].
+You can find that http://cdn.jsdelivr.net/sockjs/0.3.4/sockjs.min.js[here].
 
 Full details for using the SockJS JavaScript client are on the https://github.com/sockjs/sockjs-client[SockJS website],
 but in summary you use it something like this:
@@ -2194,7 +2245,7 @@ use an iframe trick. A simple page is served from the SockJS server (using its f
 invisible iframe. Code run from this iframe doesn't need to worry about cross-domain issues, as it's being run from
 domain local to the SockJS server. This iframe also does need to load SockJS javascript client library, and this option
 lets you specify its url (if you're unsure, point it to the latest minified SockJS client release, this is the default).
-The default value is `http://cdn.sockjs.org/sockjs-0.3.4.min.js`
+The default value is `http://cdn.jsdelivr.net/sockjs/0.3.4/sockjs.min.js`
 `disabledTransports`:: This is a list of transports that you want to disable. Possible values are
 WEBSOCKET, EVENT_SOURCE, HTML_FILE, JSON_P, XHR.
 
@@ -2214,13 +2265,13 @@ very similar to the server-side Vert.x event-bus API, which allows you to send a
 and register handlers to receive messages.
 
 This JavaScript library uses the JavaScript SockJS client to tunnel the event bus traffic over SockJS connections
-terminating at at a `link:groovydoc/io/vertx/groovy/ext/web/handler/sockjs/SockJSHandler.html[SockJSHandler]` on the server-side.
+terminating at at a `link:../../groovydoc/io/vertx/groovy/ext/web/handler/sockjs/SockJSHandler.html[SockJSHandler]` on the server-side.
 
-A special SockJS socket handler is then installed on the `link:groovydoc/io/vertx/groovy/ext/web/handler/sockjs/SockJSHandler.html[SockJSHandler]` which
+A special SockJS socket handler is then installed on the `link:../../groovydoc/io/vertx/groovy/ext/web/handler/sockjs/SockJSHandler.html[SockJSHandler]` which
 handles the SockJS data and bridges it to and from the server side event bus.
 
 To activate the bridge you simply call
-`link:groovydoc/io/vertx/groovy/ext/web/handler/sockjs/SockJSHandler.html#bridge(io.vertx.ext.web.handler.sockjs.BridgeOptions)[bridge]` on the
+`link:../../groovydoc/io/vertx/groovy/ext/web/handler/sockjs/SockJSHandler.html#bridge(io.vertx.ext.web.handler.sockjs.BridgeOptions)[bridge]` on the
 SockJS handler.
 
 [source,groovy]
@@ -2242,7 +2293,7 @@ In client side JavaScript you use the 'vertx-eventbus.js` library to create conn
 and receive messages:
 
 ----
-<script src="http://cdn.sockjs.org/sockjs-0.3.4.min.js"></script>
+<script src="http://cdn.jsdelivr.net/sockjs/0.3.4/sockjs.min.js"></script>
 <script src='vertx-eventbus.js'></script>
 
 <script>
@@ -2252,8 +2303,8 @@ var eb = new EventBus('http://localhost:8080/eventbus');
 eb.onopen = function() {
 
   // set a handler to receive a message
-  eb.registerHandler('some-address', function(message) {
-    console.log('received a message: ' + JSON.stringify(message);
+  eb.registerHandler('some-address', function(error, message) {
+    console.log('received a message: ' + JSON.stringify(message));
   });
 
   // send a message
@@ -2282,8 +2333,9 @@ You can retrieve the client library using a dependency manager:
 <dependency>
   <groupId>io.vertx</groupId>
   <artifactId>vertx-web</artifactId>
-  <version>3.1.0</version>
+  <version>3.3.0-SNAPSHOT</version>
   <classifier>client</classifier>
+  <type>js</type>
 </dependency>
 ----
 
@@ -2291,7 +2343,7 @@ You can retrieve the client library using a dependency manager:
 
 [source,groovy,subs="+attributes"]
 ----
-compile io.vertx:vertx-web:3.1.0:client
+compile 'io.vertx:vertx-web:3.3.0-SNAPSHOT:client'
 ----
 
 The library is also available on https://www.npmjs.com/package/vertx3-eventbus-client[NPM] and on
@@ -2496,10 +2548,10 @@ router.route("/eventbus/*").handler(sockJSHandler)
 === Handling event bus bridge events
 
 If you want to be notified when an event occurs on the bridge you can provide a handler when calling
-`link:groovydoc/io/vertx/groovy/ext/web/handler/sockjs/SockJSHandler.html#bridge(io.vertx.ext.web.handler.sockjs.BridgeOptions,%20io.vertx.core.Handler)[bridge]`.
+`link:../../groovydoc/io/vertx/groovy/ext/web/handler/sockjs/SockJSHandler.html#bridge(io.vertx.ext.web.handler.sockjs.BridgeOptions,%20io.vertx.core.Handler)[bridge]`.
 
 Whenever an event occurs on the bridge it will be passed to the handler. The event is described by an instance of
-`link:groovydoc/io/vertx/groovy/ext/web/handler/sockjs/BridgeEvent.html[BridgeEvent]`.
+`link:../../groovydoc/io/vertx/groovy/ext/web/handler/sockjs/BridgeEvent.html[BridgeEvent]`.
 
 The event can be one of the following types:
 
@@ -2508,11 +2560,11 @@ SOCKET_CLOSED:: This event will occur when a SockJS socket is closed.
 SEND:: This event will occur when a message is attempted to be sent from the client to the server.
 PUBLISH:: This event will occur when a message is attempted to be published from the client to the server.
 RECEIVE:: This event will occur when a message is attempted to be delivered from the server to the client.
-REGISTER. This event will occur when a client attempts to register a handler.
-UNREGISTER. This event will occur when a client attempts to unregister a handler.
+REGISTER:: This event will occur when a client attempts to register a handler.
+UNREGISTER:: This event will occur when a client attempts to unregister a handler.
 
-The event enables you to retrieve the type using `link:groovydoc/io/vertx/groovy/ext/web/handler/sockjs/BridgeEvent.html#type()[type]` and
-inspect the raw message of the event using `link:groovydoc/io/vertx/groovy/ext/web/handler/sockjs/BridgeEvent.html#rawMessage()[rawMessage]`.
+The event enables you to retrieve the type using `link:../../groovydoc/io/vertx/groovy/ext/web/handler/sockjs/BridgeEvent.html#type()[type]` and
+inspect the raw message of the event using `link:../../groovydoc/io/vertx/groovy/ext/web/handler/sockjs/BridgeEvent.html#getRawMessage()[getRawMessage]`.
 
 The raw message is a JSON object with the following structure:
 
@@ -2524,7 +2576,7 @@ The raw message is a JSON object with the following structure:
 }
 ----
 
-The event is also an instance of `link:../../vertx-core/groovy/groovydoc/io/vertx/groovy/core/Future.html[Future]`. When you are finished handling the event you can
+The event is also an instance of `link:../../groovydoc/io/vertx/groovy/core/Future.html[Future]`. When you are finished handling the event you can
 complete the future with `true` to enable further processing.
 
 If you don't want the event to be processed you can complete the future with `false`. This is a useful feature that
@@ -2555,7 +2607,7 @@ def options = [
 
 sockJSHandler.bridge(options, { be ->
   if (be.type() == BridgeEventType.PUBLISH || be.type() == BridgeEventType.RECEIVE) {
-    if (be.rawMessage().body == "armadillos") {
+    if (be.getRawMessage().body == "armadillos") {
       // Reject it
       be.complete(false)
       return
@@ -2600,7 +2652,9 @@ sockJSHandler.bridge(options, { be ->
       header1:"val",
       header2:"val2"
     ]
-    be.rawMessage().headers = headers
+    def rawMessage = be.getRawMessage()
+    rawMessage.headers = headers
+    be.setRawMessage(rawMessage)
   }
   be.complete(true)
 })
@@ -2614,12 +2668,27 @@ router.route("/eventbus").handler(sockJSHandler)
 == CSRF Cross Site Request Forgery
 
 CSRF or sometimes also known as XSRF is a technique by which an unauthorized site can gain your user's private data.
-Vert.x-Web includes a handler `link:groovydoc/io/vertx/groovy/ext/web/handler/CSRFHandler.html[CSRFHandler]` that you can use to prevent cross site
+Vert.x-Web includes a handler `link:../../groovydoc/io/vertx/groovy/ext/web/handler/CSRFHandler.html[CSRFHandler]` that you can use to prevent cross site
 request forgery requests.
 
 On each get request under this handler a cookie is added to the response with a unique token. Clients are then
 expected to return this token back in a header. Since cookies are sent it is required that the cookie handler is also
 present on the router.
+
+When developing non single page applications that rely on the User-Agent to perform the `POST` action, Headers cannot
+be specified on HTML Forms. In order to solve this problem the header value will also be checked if and only if no
+header was present in the Form attributes under the same name as the header, e.g.:
+
+[source,html]
+---
+<form action="/submit" method="POST">
+<input type="hidden" name="X-XSRF-TOKEN" value="abracadabra">
+</form>
+---
+
+It is the responsibility of the user to fill in the right value for the form field. Users who prefer to use an HTML
+only solution can fill this value by fetching the the token value from the routing context under the key `X-XSRF-TOKEN`
+or the header name they have chosen during the instantiation of the `CSRFHandler` object.
 
 [source,groovy]
 ----
@@ -2648,5 +2717,192 @@ import io.vertx.groovy.ext.web.handler.VirtualHostHandler
 router.route().handler(VirtualHostHandler.create("*.vertx.io", { routingContext ->
   // do something if the request is for *.vertx.io
 }))
+
+----
+
+== OAuth2AuthHandler Handler
+
+The `OAuth2AuthHandler` allows quick setup of secure routes using the OAuth2 protocol. This handler simplifies the
+authCode flow. An example of using it to protect some resource and authenticate with GitHub can be implemented as:
+
+[source,groovy]
+----
+import io.vertx.ext.auth.oauth2.OAuth2FlowType
+import io.vertx.groovy.ext.auth.oauth2.OAuth2Auth
+import io.vertx.groovy.ext.web.handler.OAuth2AuthHandler
+
+// create an OAuth2 provider, clientID and clientSecret should be requested to github
+def authProvider = OAuth2Auth.create(vertx, OAuth2FlowType.AUTH_CODE, [
+  clientID:"CLIENT_ID",
+  clientSecret:"CLIENT_SECRET",
+  site:"https://github.com/login",
+  tokenPath:"/oauth/access_token",
+  authorizationPath:"/oauth/authorize"
+])
+
+// create a oauth2 handler on our domain: "http://localhost:8080"
+def oauth2 = OAuth2AuthHandler.create(authProvider, "http://localhost:8080")
+
+// setup the callback handler for receiving the GitHub callback
+oauth2.setupCallback(router.get("/callback"))
+
+// protect everything under /protected
+router.route("/protected/*").handler(oauth2)
+// mount some handler under the protected zone
+router.route("/protected/somepage").handler({ rc ->
+  rc.response().end("Welcome to the protected resource!")
+})
+
+// welcome page
+router.get("/").handler({ ctx ->
+  ctx.response().putHeader("content-type", "text/html").end("Hello<br><a href=\"/protected/somepage\">Protected by Github</a>")
+})
+
+----
+
+The OAuth2AuthHandler will setup a proper callback OAuth2 handler so the user does not need to deal with validation
+of the authority server response. It is quite important to know that authority server responses are only valid once,
+this means that if a client issues a reload of the callback URL it will be asserted as a invalid request since the
+validation will fail.
+
+A rule of thumb is once a valid callback is executed issue a client side redirect to a protected resource. This
+redirect should also create a session cookie (or other session mechanism) so the user is not required to authenticate
+for every request.
+
+Due to the nature of OAuth2 spec there are slight changes required in order to use other OAuth2 providers, for
+example, if you are planning to use Google Auth you implement it as:
+
+[source,groovy]
+----
+import io.vertx.ext.auth.oauth2.OAuth2FlowType
+import io.vertx.groovy.ext.auth.oauth2.OAuth2Auth
+import io.vertx.groovy.ext.web.handler.OAuth2AuthHandler
+
+// create an OAuth2 provider, clientID and clientSecret should be requested to Google
+def authProvider = OAuth2Auth.create(vertx, OAuth2FlowType.AUTH_CODE, [
+  clientID:"CLIENT_ID",
+  clientSecret:"CLIENT_SECRET",
+  site:"https://accounts.google.com",
+  tokenPath:"https://www.googleapis.com/oauth2/v3/token",
+  authorizationPath:"/o/oauth2/auth"
+])
+
+// create a oauth2 handler on our domain: "http://localhost:8080"
+def oauth2 = OAuth2AuthHandler.create(authProvider, "http://localhost:8080")
+
+// these are the scopes
+oauth2.addAuthority("profile")
+
+// setup the callback handler for receiving the Google callback
+oauth2.setupCallback(router.get("/callback"))
+
+// protect everything under /protected
+router.route("/protected/*").handler(oauth2)
+// mount some handler under the protected zone
+router.route("/protected/somepage").handler({ rc ->
+  rc.response().end("Welcome to the protected resource!")
+})
+
+// welcome page
+router.get("/").handler({ ctx ->
+  ctx.response().putHeader("content-type", "text/html").end("Hello<br><a href=\"/protected/somepage\">Protected by Google</a>")
+})
+
+----
+
+The changes are only on the configuration, note that the token uri must now be a full URL since it is generated from
+a different server than the authorization one.
+
+Important to note that for google OAuth you must register all your callback URLs in the developer console, so for the
+current example you would need to register `http://localhost:8080/callback?redirect_uri=/protected/somepage`.
+
+If you're looking to integrate with LinkedIn then your config should be:
+
+[source,groovy]
+----
+import io.vertx.ext.auth.oauth2.OAuth2FlowType
+import io.vertx.groovy.ext.auth.oauth2.OAuth2Auth
+import io.vertx.groovy.ext.web.handler.OAuth2AuthHandler
+
+// create an OAuth2 provider, clientID and clientSecret should be requested to LinkedIn
+def authProvider = OAuth2Auth.create(vertx, OAuth2FlowType.AUTH_CODE, [
+  clientID:"CLIENT_ID",
+  clientSecret:"CLIENT_SECRET",
+  site:"https://www.linkedin.com",
+  authorizationPath:"/uas/oauth2/authorization",
+  tokenPath:"/uas/oauth2/accessToken"
+])
+
+// create a oauth2 handler on our domain: "http://localhost:8080"
+def oauth2 = OAuth2AuthHandler.create(authProvider, "http://localhost:8080")
+
+// these are the scopes
+oauth2.addAuthority("r_basicprofile")
+
+// setup the callback handler for receiving the LinkedIn callback
+oauth2.setupCallback(router.get("/callback"))
+
+// protect everything under /protected
+router.route("/protected/*").handler(oauth2)
+// mount some handler under the protected zone
+router.route("/protected/somepage").handler({ rc ->
+  rc.response().end("Welcome to the protected resource!")
+})
+
+// welcome page
+router.get("/").handler({ ctx ->
+  ctx.response().putHeader("content-type", "text/html").end("Hello<br><a href=\"/protected/somepage\">Protected by LinkedIn</a>")
+})
+
+----
+
+As it can be seen from the examples all you need to know is 2 urls, the authorization path and the token path. You
+will find all these configurations on your provider documentation we have also listed on the auth project examples
+for:
+
+* google
+* twitter
+* github
+* linkedin
+* facebook
+* keycloak
+
+For keycloak we have a slighter easier setup, just export the json file from the keycloak admin console and load it
+into the handler. Keycloak has some differences from the other providers in the sense that it can also use the token
+to specify grants. You can validate against these grants like this:
+
+[source,groovy]
+----
+import io.vertx.ext.auth.oauth2.OAuth2FlowType
+import io.vertx.groovy.ext.auth.oauth2.OAuth2Auth
+import io.vertx.groovy.ext.web.handler.OAuth2AuthHandler
+// create an OAuth2 provider for keycloak
+def authProvider = OAuth2Auth.createKeycloak(vertx, OAuth2FlowType.AUTH_CODE, [:])
+
+// create a oauth2 handler on our domain: "http://localhost:8000"
+def oauth2 = OAuth2AuthHandler.create(authProvider, "http://localhost:8000")
+
+// setup the callback handler for receiving the keycloak callback
+oauth2.setupCallback(router.get("/callback"))
+
+// protect everything under /protected
+router.route("/protected/*").handler(oauth2)
+
+// mount some handler under the protected zone
+router.route("/protected/somepage").handler({ rc ->
+  // you can now do authZ based on keycloak grants
+  rc.user().isAuthorised("account:manage-account", { manageAccount ->
+    if (manageAccount.result()) {
+      rc.response().end("Welcome to the protected resource and you can manage your account!")
+    } else {
+      rc.response().end("Welcome to the protected resource but you cannot manage your account!")
+    }
+  })
+})
+
+// welcome page
+router.get("/").handler({ ctx ->
+  ctx.response().putHeader("content-type", "text/html").end("Hello<br><a href=\"/protected/somepage\">Protected by keycloak</a>")
+})
 
 ----

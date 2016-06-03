@@ -37,13 +37,13 @@ var ThymeleafTemplateEngine = function(j_val) {
    Set the mode for the engine
 
    @public
-   @param mode {string} the mode 
+   @param mode {Object} the mode 
    @return {ThymeleafTemplateEngine} a reference to this for fluency
    */
   this.setMode = function(mode) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return utils.convReturnVertxGen(j_thymeleafTemplateEngine["setMode(java.lang.String)"](mode), ThymeleafTemplateEngine);
+      return utils.convReturnVertxGen(j_thymeleafTemplateEngine["setMode(org.thymeleaf.templatemode.TemplateMode)"](org.thymeleaf.templatemode.TemplateMode.valueOf(mode)), ThymeleafTemplateEngine);
     } else throw new TypeError('function invoked with invalid arguments');
   };
 

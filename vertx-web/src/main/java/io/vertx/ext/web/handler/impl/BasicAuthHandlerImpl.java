@@ -58,10 +58,15 @@ public class BasicAuthHandlerImpl extends AuthHandlerImpl {
         try {
           String[] parts = authorization.split(" ");
           sscheme = parts[0];
-          String[] credentials = new String(Base64.getDecoder().decode(parts[1])).split(":");
-          suser = credentials[0];
-          // when the header is: "user:"
-          spass = credentials.length > 1 ? credentials[1] : null;
+          String decoded = new String(Base64.getDecoder().decode(parts[1]));          
+          int colonIdx = decoded.indexOf(":");
+          if(colonIdx!=-1) {
+              suser = decoded.substring(0,colonIdx);
+              spass = decoded.substring(colonIdx+1);
+          } else {
+              suser = decoded;
+              spass = null;                      
+          }          
         } catch (ArrayIndexOutOfBoundsException e) {
           handle401(context);
           return;
@@ -92,5 +97,5 @@ public class BasicAuthHandlerImpl extends AuthHandlerImpl {
   private void handle401(RoutingContext context) {
     context.response().putHeader("WWW-Authenticate", "Basic realm=\"" + realm + "\"");
     context.fail(401);
-  }
+  }  
 }

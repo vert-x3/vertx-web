@@ -15,14 +15,24 @@
  */
 package io.vertx.ext.web.handler;
 
+import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.WebTestBase;
+import org.junit.AfterClass;
 import org.junit.Test;
 
 /**
  * @author Paulo Lopes
  */
 public class RerouteTest extends WebTestBase {
+
+  @AfterClass
+  public static void oneTimeTearDown() {
+    Vertx vertx = Vertx.vertx();
+    if (vertx.fileSystem().existsBlocking(BodyHandler.DEFAULT_UPLOADS_DIRECTORY)) {
+      vertx.fileSystem().deleteRecursiveBlocking(BodyHandler.DEFAULT_UPLOADS_DIRECTORY, true);
+    }
+  }
 
   @Test
   public void testReroute() throws Exception {
@@ -58,5 +68,42 @@ public class RerouteTest extends WebTestBase {
     });
 
     testRequest(HttpMethod.GET, "/me", 200, "OK", "POST");
+  }
+
+  @Test
+  public void testRerouteWithBody() throws Exception {
+    router.route("/test/*").handler(BodyHandler.create());
+    router.route("/test/v1").handler(ctx -> {
+      ctx.reroute("/test/v2");
+    });
+    router.route("/test/v2").handler(ctx -> {
+      ctx.response().end();
+    });
+
+    testRequest(HttpMethod.POST, "/test/v1", req -> {
+      req.setChunked(true);
+      req.write("Test HTTP Body");
+    }, 200, "OK", null);
+  }
+
+  @Test
+  public void testRerouteFailure() throws Exception {
+    router.get("/error/400").handler(ctx -> {
+      ctx.response()
+              .setStatusCode(400)
+              .end("/error/400");
+    });
+    router.get("/me").handler(ctx -> {
+      ctx.fail(400);
+    });
+    router.get().failureHandler(ctx -> {
+      if (ctx.statusCode() == 400) {
+        ctx.reroute("/error/400");
+      } else {
+        ctx.next();
+      }
+    });
+
+    testRequest(HttpMethod.GET, "/me", 400, "Bad Request", "/error/400");
   }
 }

@@ -81,13 +81,15 @@ public class LoggerHandlerImpl implements LoggerHandler {
     if (immediate) {
       Object obj = request.headers().get("content-length");
       if (obj != null) {
-        contentLength = Long.parseLong(obj.toString());
+        try {
+          contentLength = Long.parseLong(obj.toString());
+        } catch (NumberFormatException e) {
+          // ignore it and continue
+          contentLength = 0;
+        }
       }
     } else {
-      Object obj = request.response().headers().get("content-length");
-      if (obj != null) {
-        contentLength = Long.parseLong(obj.toString());
-      }
+      contentLength  = request.response().bytesWritten();
     }
     String versionFormatted = "-";
     switch (version){

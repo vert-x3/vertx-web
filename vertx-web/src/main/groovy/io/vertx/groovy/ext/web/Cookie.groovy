@@ -41,7 +41,7 @@ public class Cookie {
    * @return the cookie
    */
   public static Cookie cookie(String name, String value) {
-    def ret= InternalHelper.safeCreate(io.vertx.ext.web.Cookie.cookie(name, value), io.vertx.groovy.ext.web.Cookie.class);
+    def ret = InternalHelper.safeCreate(io.vertx.ext.web.Cookie.cookie(name, value), io.vertx.groovy.ext.web.Cookie.class);
     return ret;
   }
   /**
@@ -49,7 +49,7 @@ public class Cookie {
    * @return 
    */
   public String getName() {
-    def ret = this.delegate.getName();
+    def ret = delegate.getName();
     return ret;
   }
   /**
@@ -57,7 +57,7 @@ public class Cookie {
    * @return 
    */
   public String getValue() {
-    def ret = this.delegate.getValue();
+    def ret = delegate.getValue();
     return ret;
   }
   /**
@@ -66,7 +66,7 @@ public class Cookie {
    * @return a reference to this, so the API can be used fluently
    */
   public Cookie setValue(String value) {
-    this.delegate.setValue(value);
+    delegate.setValue(value);
     return this;
   }
   /**
@@ -75,7 +75,7 @@ public class Cookie {
    * @return a reference to this, so the API can be used fluently
    */
   public Cookie setDomain(String domain) {
-    this.delegate.setDomain(domain);
+    delegate.setDomain(domain);
     return this;
   }
   /**
@@ -83,7 +83,7 @@ public class Cookie {
    * @return 
    */
   public String getDomain() {
-    def ret = this.delegate.getDomain();
+    def ret = delegate.getDomain();
     return ret;
   }
   /**
@@ -92,14 +92,14 @@ public class Cookie {
    * @return a reference to this, so the API can be used fluently
    */
   public Cookie setPath(String path) {
-    this.delegate.setPath(path);
+    delegate.setPath(path);
     return this;
   }
   /**
    * @return the path for this cookie
    */
   public String getPath() {
-    def ret = this.delegate.getPath();
+    def ret = delegate.getPath();
     return ret;
   }
   /**
@@ -113,8 +113,8 @@ public class Cookie {
    * @return 
    */
   public Cookie setMaxAge(long maxAge) {
-    def ret= InternalHelper.safeCreate(this.delegate.setMaxAge(maxAge), io.vertx.groovy.ext.web.Cookie.class);
-    return ret;
+    delegate.setMaxAge(maxAge);
+    return this;
   }
   /**
    * Sets the security getStatus of this cookie
@@ -122,7 +122,7 @@ public class Cookie {
    * @return a reference to this, so the API can be used fluently
    */
   public Cookie setSecure(boolean secure) {
-    this.delegate.setSecure(secure);
+    delegate.setSecure(secure);
     return this;
   }
   /**
@@ -135,15 +135,15 @@ public class Cookie {
    * @return 
    */
   public Cookie setHttpOnly(boolean httpOnly) {
-    def ret= InternalHelper.safeCreate(this.delegate.setHttpOnly(httpOnly), io.vertx.groovy.ext.web.Cookie.class);
-    return ret;
+    delegate.setHttpOnly(httpOnly);
+    return this;
   }
   /**
    * Encode the cookie to a string. This is what is used in the Set-Cookie header
    * @return the encoded cookie
    */
   public String encode() {
-    def ret = this.delegate.encode();
+    def ret = delegate.encode();
     return ret;
   }
   /**
@@ -151,7 +151,7 @@ public class Cookie {
    * @return true if changed
    */
   public boolean isChanged() {
-    def ret = this.delegate.isChanged();
+    def ret = delegate.isChanged();
     return ret;
   }
   /**
@@ -160,6 +160,6 @@ public class Cookie {
    * @param changed true if changed
    */
   public void setChanged(boolean changed) {
-    this.delegate.setChanged(changed);
+    delegate.setChanged(changed);
   }
 }

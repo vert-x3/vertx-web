@@ -33,7 +33,7 @@ public class VirtualHostHandler implements Handler<RoutingContext> {
     return delegate;
   }
   public void handle(RoutingContext arg0) {
-    ((io.vertx.core.Handler) this.delegate).handle((io.vertx.ext.web.RoutingContext)arg0.getDelegate());
+    ((io.vertx.core.Handler) delegate).handle(arg0 != null ? (io.vertx.ext.web.RoutingContext)arg0.getDelegate() : null);
   }
   /**
    * Create a handler
@@ -42,11 +42,11 @@ public class VirtualHostHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static VirtualHostHandler create(String hostname, Handler<RoutingContext> handler) {
-    def ret= InternalHelper.safeCreate(io.vertx.ext.web.handler.VirtualHostHandler.create(hostname, new Handler<io.vertx.ext.web.RoutingContext>() {
+    def ret = InternalHelper.safeCreate(io.vertx.ext.web.handler.VirtualHostHandler.create(hostname, handler != null ? new Handler<io.vertx.ext.web.RoutingContext>(){
       public void handle(io.vertx.ext.web.RoutingContext event) {
-        handler.handle(new io.vertx.groovy.ext.web.RoutingContext(event));
+        handler.handle(InternalHelper.safeCreate(event, io.vertx.groovy.ext.web.RoutingContext.class));
       }
-    }), io.vertx.groovy.ext.web.handler.VirtualHostHandler.class);
+    } : null), io.vertx.groovy.ext.web.handler.VirtualHostHandler.class);
     return ret;
   }
 }

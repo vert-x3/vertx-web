@@ -83,10 +83,10 @@ var SockJSHandler = function(j_val) {
    */
   this.bridge = function() {
     var __args = arguments;
-    if (__args.length === 1 && typeof __args[0] === 'object') {
+    if (__args.length === 1 && (typeof __args[0] === 'object' && __args[0] != null)) {
       j_sockJSHandler["bridge(io.vertx.ext.web.handler.sockjs.BridgeOptions)"](__args[0] != null ? new BridgeOptions(new JsonObject(JSON.stringify(__args[0]))) : null);
       return that;
-    }  else if (__args.length === 2 && typeof __args[0] === 'object' && typeof __args[1] === 'function') {
+    }  else if (__args.length === 2 && (typeof __args[0] === 'object' && __args[0] != null) && typeof __args[1] === 'function') {
       j_sockJSHandler["bridge(io.vertx.ext.web.handler.sockjs.BridgeOptions,io.vertx.core.Handler)"](__args[0] != null ? new BridgeOptions(new JsonObject(JSON.stringify(__args[0]))) : null, function(jVal) {
       __args[1](utils.convReturnVertxGen(jVal, BridgeEvent));
     });
@@ -112,7 +112,7 @@ SockJSHandler.create = function() {
   var __args = arguments;
   if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
     return utils.convReturnVertxGen(JSockJSHandler["create(io.vertx.core.Vertx)"](__args[0]._jdel), SockJSHandler);
-  }else if (__args.length === 2 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'object') {
+  }else if (__args.length === 2 && typeof __args[0] === 'object' && __args[0]._jdel && (typeof __args[1] === 'object' && __args[1] != null)) {
     return utils.convReturnVertxGen(JSockJSHandler["create(io.vertx.core.Vertx,io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions)"](__args[0]._jdel, __args[1] != null ? new SockJSHandlerOptions(new JsonObject(JSON.stringify(__args[1]))) : null), SockJSHandler);
   } else throw new TypeError('function invoked with invalid arguments');
 };

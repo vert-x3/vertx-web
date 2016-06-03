@@ -17,7 +17,6 @@
 package io.vertx.rxjava.ext.web.handler.sockjs;
 
 import java.util.Map;
-import io.vertx.lang.rxjava.InternalHelper;
 import rx.Observable;
 import io.vertx.rxjava.ext.web.Session;
 import io.vertx.rxjava.ext.auth.User;
@@ -64,52 +63,64 @@ public class SockJSSocket implements ReadStream<Buffer>,  WriteStream<Buffer> {
     return observable;
   }
 
+  public void end(Buffer t) { 
+    delegate.end((io.vertx.core.buffer.Buffer)t.getDelegate());
+  }
+
   public boolean writeQueueFull() { 
-    boolean ret = this.delegate.writeQueueFull();
+    boolean ret = delegate.writeQueueFull();
     return ret;
   }
 
   public SockJSSocket exceptionHandler(Handler<Throwable> handler) { 
-    ( /* Work around for https://jira.codehaus.org/browse/GROOVY-6970 */ (io.vertx.ext.web.handler.sockjs.SockJSSocket) delegate).exceptionHandler(handler);
+    ((io.vertx.ext.web.handler.sockjs.SockJSSocket) delegate).exceptionHandler(handler);
     return this;
   }
 
   public SockJSSocket handler(Handler<Buffer> handler) { 
-    ( /* Work around for https://jira.codehaus.org/browse/GROOVY-6970 */ (io.vertx.ext.web.handler.sockjs.SockJSSocket) delegate).handler(new Handler<io.vertx.core.buffer.Buffer>() {
+    ((io.vertx.ext.web.handler.sockjs.SockJSSocket) delegate).handler(new Handler<io.vertx.core.buffer.Buffer>() {
       public void handle(io.vertx.core.buffer.Buffer event) {
-        handler.handle(new Buffer(event));
+        handler.handle(Buffer.newInstance(event));
       }
     });
     return this;
   }
 
   public SockJSSocket pause() { 
-    ( /* Work around for https://jira.codehaus.org/browse/GROOVY-6970 */ (io.vertx.ext.web.handler.sockjs.SockJSSocket) delegate).pause();
+    ((io.vertx.ext.web.handler.sockjs.SockJSSocket) delegate).pause();
     return this;
   }
 
   public SockJSSocket resume() { 
-    ( /* Work around for https://jira.codehaus.org/browse/GROOVY-6970 */ (io.vertx.ext.web.handler.sockjs.SockJSSocket) delegate).resume();
+    ((io.vertx.ext.web.handler.sockjs.SockJSSocket) delegate).resume();
     return this;
   }
 
   public SockJSSocket endHandler(Handler<Void> endHandler) { 
-    ( /* Work around for https://jira.codehaus.org/browse/GROOVY-6970 */ (io.vertx.ext.web.handler.sockjs.SockJSSocket) delegate).endHandler(endHandler);
+    ((io.vertx.ext.web.handler.sockjs.SockJSSocket) delegate).endHandler(new Handler<java.lang.Void>() {
+      public void handle(java.lang.Void event) {
+        endHandler.handle(event);
+      }
+    });
     return this;
   }
 
   public SockJSSocket write(Buffer data) { 
-    ( /* Work around for https://jira.codehaus.org/browse/GROOVY-6970 */ (io.vertx.ext.web.handler.sockjs.SockJSSocket) delegate).write((io.vertx.core.buffer.Buffer) data.getDelegate());
+    ((io.vertx.ext.web.handler.sockjs.SockJSSocket) delegate).write((io.vertx.core.buffer.Buffer)data.getDelegate());
     return this;
   }
 
   public SockJSSocket setWriteQueueMaxSize(int maxSize) { 
-    ( /* Work around for https://jira.codehaus.org/browse/GROOVY-6970 */ (io.vertx.ext.web.handler.sockjs.SockJSSocket) delegate).setWriteQueueMaxSize(maxSize);
+    ((io.vertx.ext.web.handler.sockjs.SockJSSocket) delegate).setWriteQueueMaxSize(maxSize);
     return this;
   }
 
   public SockJSSocket drainHandler(Handler<Void> handler) { 
-    ( /* Work around for https://jira.codehaus.org/browse/GROOVY-6970 */ (io.vertx.ext.web.handler.sockjs.SockJSSocket) delegate).drainHandler(handler);
+    ((io.vertx.ext.web.handler.sockjs.SockJSSocket) delegate).drainHandler(new Handler<java.lang.Void>() {
+      public void handle(java.lang.Void event) {
+        handler.handle(event);
+      }
+    });
     return this;
   }
 
@@ -123,15 +134,22 @@ public class SockJSSocket implements ReadStream<Buffer>,  WriteStream<Buffer> {
    * @return 
    */
   public String writeHandlerID() { 
-    String ret = this.delegate.writeHandlerID();
+    String ret = delegate.writeHandlerID();
     return ret;
+  }
+
+  /**
+   * Call {@link io.vertx.rxjava.ext.web.handler.sockjs.SockJSSocket#end}.
+   */
+  public void end() { 
+    ((io.vertx.ext.web.handler.sockjs.SockJSSocket) delegate).end();
   }
 
   /**
    * Close it
    */
   public void close() { 
-    this.delegate.close();
+    delegate.close();
   }
 
   /**
@@ -139,7 +157,7 @@ public class SockJSSocket implements ReadStream<Buffer>,  WriteStream<Buffer> {
    * @return 
    */
   public SocketAddress remoteAddress() { 
-    SocketAddress ret= SocketAddress.newInstance(this.delegate.remoteAddress());
+    SocketAddress ret = SocketAddress.newInstance(delegate.remoteAddress());
     return ret;
   }
 
@@ -148,7 +166,7 @@ public class SockJSSocket implements ReadStream<Buffer>,  WriteStream<Buffer> {
    * @return 
    */
   public SocketAddress localAddress() { 
-    SocketAddress ret= SocketAddress.newInstance(this.delegate.localAddress());
+    SocketAddress ret = SocketAddress.newInstance(delegate.localAddress());
     return ret;
   }
 
@@ -158,7 +176,7 @@ public class SockJSSocket implements ReadStream<Buffer>,  WriteStream<Buffer> {
    * @return 
    */
   public MultiMap headers() { 
-    MultiMap ret= MultiMap.newInstance(this.delegate.headers());
+    MultiMap ret = MultiMap.newInstance(delegate.headers());
     return ret;
   }
 
@@ -167,7 +185,7 @@ public class SockJSSocket implements ReadStream<Buffer>,  WriteStream<Buffer> {
    * @return 
    */
   public String uri() { 
-    String ret = this.delegate.uri();
+    String ret = delegate.uri();
     return ret;
   }
 
@@ -176,7 +194,7 @@ public class SockJSSocket implements ReadStream<Buffer>,  WriteStream<Buffer> {
    * @return 
    */
   public Session webSession() { 
-    Session ret= Session.newInstance(this.delegate.webSession());
+    Session ret = Session.newInstance(delegate.webSession());
     return ret;
   }
 
@@ -185,7 +203,7 @@ public class SockJSSocket implements ReadStream<Buffer>,  WriteStream<Buffer> {
    * @return 
    */
   public User webUser() { 
-    User ret= User.newInstance(this.delegate.webUser());
+    User ret = User.newInstance(delegate.webUser());
     return ret;
   }
 

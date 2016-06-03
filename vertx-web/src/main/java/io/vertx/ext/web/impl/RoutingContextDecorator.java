@@ -1,11 +1,13 @@
 package io.vertx.ext.web.impl;
 
+import io.vertx.codegen.annotations.Nullable;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.web.*;
@@ -116,6 +118,11 @@ public class RoutingContextDecorator implements RoutingContext {
   }
 
   @Override
+  public JsonArray getBodyAsJsonArray() {
+    return decoratedContext.getBodyAsJsonArray();
+  }
+
+  @Override
   public String getBodyAsString() {
     return decoratedContext.getBodyAsString();
   }
@@ -199,6 +206,16 @@ public class RoutingContextDecorator implements RoutingContext {
   @Override
   public List<Locale> acceptableLocales() {
     return decoratedContext.acceptableLocales();
+  }
+
+  @Override
+  public Map<String, String> pathParams() {
+    return decoratedContext.pathParams();
+  }
+
+  @Override
+  public @Nullable String pathParam(String name) {
+    return decoratedContext.pathParam(name);
   }
 
   @Override

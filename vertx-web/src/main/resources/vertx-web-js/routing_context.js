@@ -122,7 +122,7 @@ var RoutingContext = function(j_val) {
    */
   this.put = function(key, obj) {
     var __args = arguments;
-    if (__args.length === 2 && typeof __args[0] === 'string' && true) {
+    if (__args.length === 2 && typeof __args[0] === 'string' && typeof __args[1] !== 'function') {
       j_routingContext["put(java.lang.String,java.lang.Object)"](key, utils.convParamTypeUnknown(obj));
       return that;
     } else throw new TypeError('function invoked with invalid arguments');
@@ -323,6 +323,21 @@ var RoutingContext = function(j_val) {
 
    @public
 
+   @return {todo}
+   */
+  this.getBodyAsJsonArray = function() {
+    var __args = arguments;
+    if (__args.length === 0) {
+      return utils.convReturnJson(j_routingContext["getBodyAsJsonArray()"]());
+    } else throw new TypeError('function invoked with invalid arguments');
+  };
+
+  /**
+   @return Get the entire HTTP request body as a . The context must have first been routed to a
+   {@link BodyHandler} for this to be populated.
+
+   @public
+
    @return {Buffer}
    */
   this.getBody = function() {
@@ -379,8 +394,29 @@ var RoutingContext = function(j_val) {
 
   /**
    If the context is being routed to failure handlers after a failure has been triggered by calling
+   {@link RoutingContext#fail} then this will return that throwable. It can be used by failure handlers to render a response,
+   e.g. create a failure response page.
+
+   @public
+
+   @return {todo} the throwable used when signalling failure
+   */
+  this.failure = function() {
+    var __args = arguments;
+    if (__args.length === 0) {
+      if (that.cachedfailure == null) {
+        that.cachedfailure = utils.convReturnThrowable(j_routingContext["failure()"]());
+      }
+      return that.cachedfailure;
+    } else throw new TypeError('function invoked with invalid arguments');
+  };
+
+  /**
+   If the context is being routed to failure handlers after a failure has been triggered by calling
    {@link RoutingContext#fail}  then this will return that status code.  It can be used by failure handlers to render a response,
    e.g. create a failure response page.
+  
+   When the status code has not been set yet (it is undefined) its value will be -1.
 
    @public
 
@@ -544,7 +580,7 @@ var RoutingContext = function(j_val) {
    */
   this.setAcceptableContentType = function(contentType) {
     var __args = arguments;
-    if (__args.length === 1 && typeof __args[0] === 'string') {
+    if (__args.length === 1 && (typeof __args[0] === 'string' || __args[0] == null)) {
       j_routingContext["setAcceptableContentType(java.lang.String)"](contentType);
     } else throw new TypeError('function invoked with invalid arguments');
   };
@@ -600,6 +636,34 @@ var RoutingContext = function(j_val) {
     var __args = arguments;
     if (__args.length === 0) {
       return utils.convReturnVertxGen(j_routingContext["preferredLocale()"](), Locale);
+    } else throw new TypeError('function invoked with invalid arguments');
+  };
+
+  /**
+   Returns a map of named parameters as defined in path declaration with their actual values
+
+   @public
+
+   @return {Array.<string>} the map of named parameters
+   */
+  this.pathParams = function() {
+    var __args = arguments;
+    if (__args.length === 0) {
+      return utils.convReturnMap(j_routingContext["pathParams()"]());
+    } else throw new TypeError('function invoked with invalid arguments');
+  };
+
+  /**
+   Gets the value of a single path parameter
+
+   @public
+   @param name {string} the name of parameter as defined in path declaration 
+   @return {string} the actual value of the parameter or null if it doesn't exist
+   */
+  this.pathParam = function(name) {
+    var __args = arguments;
+    if (__args.length === 1 && typeof __args[0] === 'string') {
+      return j_routingContext["pathParam(java.lang.String)"](name);
     } else throw new TypeError('function invoked with invalid arguments');
   };
 

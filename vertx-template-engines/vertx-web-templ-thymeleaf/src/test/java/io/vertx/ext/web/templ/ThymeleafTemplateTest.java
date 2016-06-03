@@ -47,11 +47,10 @@ public class ThymeleafTemplateTest extends WebTestBase {
     });
     router.route().handler(TemplateHandler.create(engine, directoryName, "text/html"));
     String expected =
-      "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">\n" +
-        "\n" +
+      "<!doctype html>\n" +
         "<html xmlns=\"http://www.w3.org/1999/xhtml\">\n" +
         "<head>\n" +
-        "  <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" />\n" +
+        "  <meta charset=\"utf-8\">\n" +
         "</head>\n" +
         "<body>\n" +
         "<p>badger</p>\n" +
@@ -73,9 +72,30 @@ public class ThymeleafTemplateTest extends WebTestBase {
   }
 
   @Test
+  public void testWithLocale() throws Exception {
+    TemplateEngine engine = ThymeleafTemplateEngine.create();
+
+    router.route().handler(context -> {
+      context.put("foo", "badger");
+      context.put("bar", "fox");
+      context.next();
+    });
+    router.route().handler(TemplateHandler.create(engine, "somedir", "text/html"));
+
+    testRequest(HttpMethod.GET, "/test-thymeleaf-template2.html?param1=blah&param2=wibble", req -> req.putHeader("Accept-Language", "en-gb"), 200, "OK", null);
+  }
+
+
+  @Test
   public void testGetThymeLeafTemplateEngine() throws Exception {
     ThymeleafTemplateEngine engine = ThymeleafTemplateEngine.create();
     assertNotNull(engine.getThymeleafTemplateEngine());
+  }
+
+  @Test
+  public void testFragmentedTemplates() throws Exception {
+    TemplateEngine engine = ThymeleafTemplateEngine.create();
+    testTemplateHandler(engine, "somedir", "test-thymeleaf-fragmented.html");
   }
 
 }

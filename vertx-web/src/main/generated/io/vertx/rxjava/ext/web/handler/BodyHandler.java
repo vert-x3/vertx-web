@@ -17,7 +17,6 @@
 package io.vertx.rxjava.ext.web.handler;
 
 import java.util.Map;
-import io.vertx.lang.rxjava.InternalHelper;
 import rx.Observable;
 import io.vertx.rxjava.ext.web.RoutingContext;
 import io.vertx.core.Handler;
@@ -44,7 +43,7 @@ public class BodyHandler implements Handler<RoutingContext> {
   }
 
   public void handle(RoutingContext arg0) { 
-    this.delegate.handle((io.vertx.ext.web.RoutingContext) arg0.getDelegate());
+    delegate.handle((io.vertx.ext.web.RoutingContext)arg0.getDelegate());
   }
 
   /**
@@ -52,7 +51,17 @@ public class BodyHandler implements Handler<RoutingContext> {
    * @return the body handler
    */
   public static BodyHandler create() { 
-    BodyHandler ret= BodyHandler.newInstance(io.vertx.ext.web.handler.BodyHandler.create());
+    BodyHandler ret = BodyHandler.newInstance(io.vertx.ext.web.handler.BodyHandler.create());
+    return ret;
+  }
+
+  /**
+   * Create a body handler and use the given upload directory.
+   * @param uploadDirectory the uploads directory
+   * @return the body handler
+   */
+  public static BodyHandler create(String uploadDirectory) { 
+    BodyHandler ret = BodyHandler.newInstance(io.vertx.ext.web.handler.BodyHandler.create(uploadDirectory));
     return ret;
   }
 
@@ -62,7 +71,7 @@ public class BodyHandler implements Handler<RoutingContext> {
    * @return reference to this for fluency
    */
   public BodyHandler setBodyLimit(long bodyLimit) { 
-    this.delegate.setBodyLimit(bodyLimit);
+    delegate.setBodyLimit(bodyLimit);
     return this;
   }
 
@@ -72,7 +81,7 @@ public class BodyHandler implements Handler<RoutingContext> {
    * @return reference to this for fluency
    */
   public BodyHandler setUploadsDirectory(String uploadsDirectory) { 
-    this.delegate.setUploadsDirectory(uploadsDirectory);
+    delegate.setUploadsDirectory(uploadsDirectory);
     return this;
   }
 
@@ -82,7 +91,17 @@ public class BodyHandler implements Handler<RoutingContext> {
    * @return reference to this for fluency
    */
   public BodyHandler setMergeFormAttributes(boolean mergeFormAttributes) { 
-    this.delegate.setMergeFormAttributes(mergeFormAttributes);
+    delegate.setMergeFormAttributes(mergeFormAttributes);
+    return this;
+  }
+
+  /**
+   * Set whether uploaded files should be removed after handling the request
+   * @param deleteUploadedFilesOnEnd true if uploaded files should be removed after handling the request
+   * @return reference to this for fluency
+   */
+  public BodyHandler setDeleteUploadedFilesOnEnd(boolean deleteUploadedFilesOnEnd) { 
+    delegate.setDeleteUploadedFilesOnEnd(deleteUploadedFilesOnEnd);
     return this;
   }
 

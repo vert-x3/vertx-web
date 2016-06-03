@@ -87,7 +87,7 @@ var Cookie = function(j_val) {
    */
   this.setDomain = function(domain) {
     var __args = arguments;
-    if (__args.length === 1 && typeof __args[0] === 'string') {
+    if (__args.length === 1 && (typeof __args[0] === 'string' || __args[0] == null)) {
       j_cookie["setDomain(java.lang.String)"](domain);
       return that;
     } else throw new TypeError('function invoked with invalid arguments');
@@ -116,7 +116,7 @@ var Cookie = function(j_val) {
    */
   this.setPath = function(path) {
     var __args = arguments;
-    if (__args.length === 1 && typeof __args[0] === 'string') {
+    if (__args.length === 1 && (typeof __args[0] === 'string' || __args[0] == null)) {
       j_cookie["setPath(java.lang.String)"](path);
       return that;
     } else throw new TypeError('function invoked with invalid arguments');
@@ -150,7 +150,8 @@ var Cookie = function(j_val) {
   this.setMaxAge = function(maxAge) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] ==='number') {
-      return utils.convReturnVertxGen(j_cookie["setMaxAge(long)"](maxAge), Cookie);
+      j_cookie["setMaxAge(long)"](maxAge);
+      return that;
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -183,7 +184,8 @@ var Cookie = function(j_val) {
   this.setHttpOnly = function(httpOnly) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] ==='boolean') {
-      return utils.convReturnVertxGen(j_cookie["setHttpOnly(boolean)"](httpOnly), Cookie);
+      j_cookie["setHttpOnly(boolean)"](httpOnly);
+      return that;
     } else throw new TypeError('function invoked with invalid arguments');
   };
 

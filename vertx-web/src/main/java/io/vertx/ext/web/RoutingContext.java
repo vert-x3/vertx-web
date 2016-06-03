@@ -19,6 +19,7 @@ package io.vertx.ext.web;
 import io.vertx.codegen.annotations.CacheReturn;
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.GenIgnore;
+import io.vertx.codegen.annotations.Nullable;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
@@ -27,6 +28,7 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
 
@@ -132,7 +134,7 @@ public interface RoutingContext {
    * @return the mount point for this router. It will be null for a top level router. For a sub-router it will be the path
    * at which the subrouter was mounted.
    */
-  String mountPoint();
+  @Nullable String mountPoint();
 
   /**
    * @return the current route this context is being routed through.
@@ -163,7 +165,7 @@ public interface RoutingContext {
    * @param name  the cookie name
    * @return the cookie
    */
-  Cookie getCookie(String name);
+  @Nullable Cookie getCookie(String name);
 
   /**
    * Add a cookie. This will be sent back to the client in the response. The context must have first been routed
@@ -182,7 +184,7 @@ public interface RoutingContext {
    * @param name  the name of the cookie
    * @return the cookie, if it existed, or null
    */
-  Cookie removeCookie(String name);
+  @Nullable Cookie removeCookie(String name);
 
   /**
    * @return the number of cookies. The context must have first been routed to a {@link io.vertx.ext.web.handler.CookieHandler}
@@ -200,7 +202,7 @@ public interface RoutingContext {
    * @return  the entire HTTP request body as a string, assuming UTF-8 encoding. The context must have first been routed to a
    * {@link io.vertx.ext.web.handler.BodyHandler} for this to be populated.
    */
-  String getBodyAsString();
+  @Nullable String getBodyAsString();
 
   /**
    * Get the entire HTTP request body as a string, assuming the specified encoding. The context must have first been routed to a
@@ -209,19 +211,25 @@ public interface RoutingContext {
    * @param encoding  the encoding, e.g. "UTF-16"
    * @return the body
    */
-  String getBodyAsString(String encoding);
+  @Nullable String getBodyAsString(String encoding);
 
   /**
    * @return Get the entire HTTP request body as a {@link JsonObject}. The context must have first been routed to a
    * {@link io.vertx.ext.web.handler.BodyHandler} for this to be populated.
    */
-  JsonObject getBodyAsJson();
+  @Nullable JsonObject getBodyAsJson();
+
+  /**
+   * @return Get the entire HTTP request body as a {@link JsonArray}. The context must have first been routed to a
+   * {@link io.vertx.ext.web.handler.BodyHandler} for this to be populated.
+   */
+  @Nullable JsonArray getBodyAsJsonArray();
 
   /**
    * @return Get the entire HTTP request body as a {@link Buffer}. The context must have first been routed to a
    * {@link io.vertx.ext.web.handler.BodyHandler} for this to be populated.
    */
-  Buffer getBody();
+  @Nullable Buffer getBody();
 
   /**
    * @return a set of fileuploads (if any) for the request. The context must have first been routed to a
@@ -235,13 +243,13 @@ public interface RoutingContext {
    * Sessions live for a browser session, and are maintained by session cookies.
    * @return  the session.
    */
-  Session session();
+  @Nullable Session session();
 
   /**
    * Get the authenticated user (if any). This will usually be injected by an auth handler if authentication if successful.
    * @return  the user, or null if the current user is not authenticated.
    */
-  User user();
+  @Nullable User user();
 
   /**
    * If the context is being routed to failure handlers after a failure has been triggered by calling
@@ -250,14 +258,16 @@ public interface RoutingContext {
    *
    * @return  the throwable used when signalling failure
    */
-  @GenIgnore
   @CacheReturn
+  @Nullable
   Throwable failure();
 
   /**
    * If the context is being routed to failure handlers after a failure has been triggered by calling
    * {@link #fail(int)}  then this will return that status code.  It can be used by failure handlers to render a response,
    * e.g. create a failure response page.
+   *
+   * When the status code has not been set yet (it is undefined) its value will be -1.
    *
    * @return  the status code used when signalling failure
    */
@@ -270,7 +280,7 @@ public interface RoutingContext {
    *
    * @return  the most acceptable content type.
    */
-  String getAcceptableContentType();
+  @Nullable String getAcceptableContentType();
 
   /**
    * Add a handler that will be called just before headers are written to the response. This gives you a hook where
@@ -342,7 +352,7 @@ public interface RoutingContext {
    * Set the acceptable content type. Used by
    * @param contentType  the content type
    */
-  void setAcceptableContentType(String contentType);
+  void setAcceptableContentType(@Nullable String contentType);
 
   /**
    * Restarts the current router with a new path and reusing the original method. All path parameters are then parsed
@@ -386,4 +396,20 @@ public interface RoutingContext {
     final List<Locale> acceptableLocales = acceptableLocales();
     return acceptableLocales.size() > 0 ? acceptableLocales.get(0) : null;
   }
+
+  /**
+   * Returns a map of named parameters as defined in path declaration with their actual values
+   *
+   * @return the map of named parameters
+   */
+  Map<String, String> pathParams();
+
+  /**
+   * Gets the value of a single path parameter
+   *
+   * @param name the name of parameter as defined in path declaration
+   * @return the actual value of the parameter or null if it doesn't exist
+   */
+  @Nullable
+  String pathParam(String name);
 }
