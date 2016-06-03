@@ -1,4 +1,5 @@
 require 'vertx-web/template_engine'
+require 'vertx/vertx'
 require 'vertx/util/utils.rb'
 # Generated from io.vertx.ext.web.templ.PebbleTemplateEngine
 module VertxWeb
@@ -16,12 +17,13 @@ module VertxWeb
       @j_del
     end
     #  Create a template engine using defaults
+    # @param [::Vertx::Vertx] vertx 
     # @return [::VertxWeb::PebbleTemplateEngine] the engine
-    def self.create
-      if !block_given?
-        return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebTempl::PebbleTemplateEngine.java_method(:create, []).call(),::VertxWeb::PebbleTemplateEngine)
+    def self.create(vertx=nil)
+      if vertx.class.method_defined?(:j_del) && !block_given?
+        return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebTempl::PebbleTemplateEngine.java_method(:create, [Java::IoVertxCore::Vertx.java_class]).call(vertx.j_del),::VertxWeb::PebbleTemplateEngine)
       end
-      raise ArgumentError, "Invalid arguments when calling create()"
+      raise ArgumentError, "Invalid arguments when calling create(vertx)"
     end
     #  Set the extension for the engine
     # @param [String] extension the extension

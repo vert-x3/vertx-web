@@ -17,6 +17,7 @@
 /** @module vertx-web-js/pebble_template_engine */
 var utils = require('vertx-js/util/utils');
 var TemplateEngine = require('vertx-web-js/template_engine');
+var Vertx = require('vertx-js/vertx');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
@@ -71,13 +72,13 @@ var PebbleTemplateEngine = function(j_val) {
  Create a template engine using defaults
 
  @memberof module:vertx-web-js/pebble_template_engine
-
+ @param vertx {Vertx} 
  @return {PebbleTemplateEngine} the engine
  */
-PebbleTemplateEngine.create = function() {
+PebbleTemplateEngine.create = function(vertx) {
   var __args = arguments;
-  if (__args.length === 0) {
-    return utils.convReturnVertxGen(JPebbleTemplateEngine["create()"](), PebbleTemplateEngine);
+  if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
+    return utils.convReturnVertxGen(JPebbleTemplateEngine["create(io.vertx.core.Vertx)"](vertx._jdel), PebbleTemplateEngine);
   } else throw new TypeError('function invoked with invalid arguments');
 };
 

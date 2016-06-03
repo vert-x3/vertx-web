@@ -21,7 +21,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.mitchellbosecke.pebble.PebbleEngine;
-import com.mitchellbosecke.pebble.loader.Loader;
 import com.mitchellbosecke.pebble.template.PebbleTemplate;
 
 import io.vertx.core.AsyncResult;
@@ -30,7 +29,6 @@ import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.impl.Utils;
 import io.vertx.ext.web.templ.PebbleTemplateEngine;
 
 /**
@@ -39,20 +37,15 @@ import io.vertx.ext.web.templ.PebbleTemplateEngine;
 public class PebbleTemplateEngineImpl extends CachingTemplateEngine<PebbleTemplate> implements PebbleTemplateEngine {
 
   private final PebbleEngine pebbleEngine;
-  private final Loader<String> loader;
 
   public PebbleTemplateEngineImpl(Vertx vertx) {
     super(DEFAULT_TEMPLATE_EXTENSION, DEFAULT_MAX_CACHE_SIZE);
-    loader = new PebbleVertxLoader(vertx);
-    loader.setSuffix(DEFAULT_TEMPLATE_EXTENSION);
-
-    pebbleEngine = new PebbleEngine.Builder().loader(loader).build();
+    pebbleEngine = new PebbleEngine.Builder().loader(new PebbleVertxLoader(vertx)).build();
   }
 
   @Override
   public PebbleTemplateEngine setExtension(String extension) {
     doSetExtension(extension);
-    loader.setSuffix(extension);
     return this;
   }
 

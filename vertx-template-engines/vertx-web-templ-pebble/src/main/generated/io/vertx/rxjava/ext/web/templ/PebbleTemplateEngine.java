@@ -18,6 +18,7 @@ package io.vertx.rxjava.ext.web.templ;
 
 import java.util.Map;
 import rx.Observable;
+import io.vertx.rxjava.core.Vertx;
 
 /**
  * A template engine that uses the Pebble library.
@@ -41,10 +42,11 @@ public class PebbleTemplateEngine extends TemplateEngine {
 
   /**
    * Create a template engine using defaults
+   * @param vertx 
    * @return the engine
    */
-  public static PebbleTemplateEngine create() { 
-    PebbleTemplateEngine ret = PebbleTemplateEngine.newInstance(io.vertx.ext.web.templ.PebbleTemplateEngine.create());
+  public static PebbleTemplateEngine create(Vertx vertx) { 
+    PebbleTemplateEngine ret = PebbleTemplateEngine.newInstance(io.vertx.ext.web.templ.PebbleTemplateEngine.create((io.vertx.core.Vertx)vertx.getDelegate()));
     return ret;
   }
 
