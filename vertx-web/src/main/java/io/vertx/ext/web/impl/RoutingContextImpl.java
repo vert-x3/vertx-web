@@ -16,6 +16,7 @@
 
 package io.vertx.ext.web.impl;
 
+import io.netty.handler.codec.http.HttpHeaderNames;
 import io.vertx.codegen.annotations.Nullable;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
@@ -26,11 +27,8 @@ import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
-import io.vertx.ext.web.Cookie;
-import io.vertx.ext.web.FileUpload;
+import io.vertx.ext.web.*;
 import io.vertx.ext.web.Locale;
-import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.Session;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -110,7 +108,9 @@ public class RoutingContextImpl extends RoutingContextImplBase {
         // HEAD responses don't have a body
         response().end();
       } else {
-        response().end(DEFAULT_404);
+        response()
+                .putHeader(HttpHeaderNames.CONTENT_TYPE, "text/html; charset=utf-8")
+                .end(DEFAULT_404);
       }
     }
   }
