@@ -18,6 +18,7 @@ package io.vertx.groovy.ext.web.templ;
 import groovy.transform.CompileStatic
 import io.vertx.lang.groovy.InternalHelper
 import io.vertx.core.json.JsonObject
+import io.vertx.groovy.core.Vertx
 /**
  * A template engine that uses the Pebble library.
 */
@@ -33,10 +34,11 @@ public class PebbleTemplateEngine extends TemplateEngine {
   }
   /**
    * Create a template engine using defaults
+   * @param vertx 
    * @return the engine
    */
-  public static PebbleTemplateEngine create() {
-    def ret = InternalHelper.safeCreate(io.vertx.ext.web.templ.PebbleTemplateEngine.create(), io.vertx.groovy.ext.web.templ.PebbleTemplateEngine.class);
+  public static PebbleTemplateEngine create(Vertx vertx) {
+    def ret = InternalHelper.safeCreate(io.vertx.ext.web.templ.PebbleTemplateEngine.create(vertx != null ? (io.vertx.core.Vertx)vertx.getDelegate() : null), io.vertx.groovy.ext.web.templ.PebbleTemplateEngine.class);
     return ret;
   }
   /**

@@ -17,25 +17,18 @@
 package io.vertx.ext.web.templ.impl;
 
 import java.io.StringWriter;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import com.mitchellbosecke.pebble.PebbleEngine;
-import com.mitchellbosecke.pebble.loader.ClasspathLoader;
-import com.mitchellbosecke.pebble.loader.DelegatingLoader;
-import com.mitchellbosecke.pebble.loader.FileLoader;
-import com.mitchellbosecke.pebble.loader.Loader;
-import com.mitchellbosecke.pebble.loader.StringLoader;
 import com.mitchellbosecke.pebble.template.PebbleTemplate;
 
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
+import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.impl.Utils;
 import io.vertx.ext.web.templ.PebbleTemplateEngine;
 
 /**
@@ -43,61 +36,43 @@ import io.vertx.ext.web.templ.PebbleTemplateEngine;
  */
 public class PebbleTemplateEngineImpl extends CachingTemplateEngine<PebbleTemplate> implements PebbleTemplateEngine {
 
-	private final PebbleEngine pebbleEngine;
-	private final FileLoader fileLoader;
-	private final ClasspathLoader classpathLoader;
+  private final PebbleEngine pebbleEngine;
 
-	public PebbleTemplateEngineImpl() {
-		super(DEFAULT_TEMPLATE_EXTENSION, DEFAULT_MAX_CACHE_SIZE);
+  public PebbleTemplateEngineImpl(Vertx vertx) {
+    super(DEFAULT_TEMPLATE_EXTENSION, DEFAULT_MAX_CACHE_SIZE);
+    pebbleEngine = new PebbleEngine.Builder().loader(new PebbleVertxLoader(vertx)).build();
+  }
 
-		final List<Loader<?>> loaders = new ArrayList<>();
-		classpathLoader = new ClasspathLoader();
-		classpathLoader.setSuffix(DEFAULT_TEMPLATE_EXTENSION);
-		fileLoader = new FileLoader();
-		fileLoader.setSuffix(DEFAULT_TEMPLATE_EXTENSION);
-		loaders.add(classpathLoader);
-		loaders.add(fileLoader);
-		loaders.add(new StringLoader());
+  @Override
+  public PebbleTemplateEngine setExtension(String extension) {
+    doSetExtension(extension);
+    return this;
+  }
 
-		pebbleEngine = new PebbleEngine.Builder().loader(new DelegatingLoader(loaders)).build();
-	}
+  @Override
+  public PebbleTemplateEngine setMaxCacheSize(int maxCacheSize) {
+    this.cache.setMaxSize(maxCacheSize);
+    return this;
+  }
 
-	@Override
-	public PebbleTemplateEngine setExtension(String extension) {
-		doSetExtension(extension);
-		fileLoader.setSuffix(extension);
-		classpathLoader.setSuffix(extension);
-		return this;
-	}
-
-	@Override
-	public PebbleTemplateEngine setMaxCacheSize(int maxCacheSize) {
-		this.cache.setMaxSize(maxCacheSize);
-		return this;
-	}
-
-	@Override
-	public void render(RoutingContext context, String templateFileName, Handler<AsyncResult<Buffer>> handler) {
-		try {
-			PebbleTemplate template = cache.get(templateFileName);
-			if (template == null) {
-				// real compile
-				final String loc = adjustLocation(templateFileName);
-				final String templateText = Utils.readFileToString(context.vertx(), loc);
-				if (templateText == null) {
-					throw new IllegalArgumentException("Cannot find template " + loc);
-				}
-				template = pebbleEngine.getTemplate(templateText);
-				cache.put(templateFileName, template);
-			}
-			final Map<String, Object> variables = new HashMap<>(1);
-			variables.put("context", context);
-			final StringWriter stringWriter = new StringWriter();
-			template.evaluate(stringWriter, variables);
-			handler.handle(Future.succeededFuture(Buffer.buffer(stringWriter.toString())));
-		} catch (final Exception ex) {
-			handler.handle(Future.failedFuture(ex));
-		}
-	}
+  @Override
+  public void render(RoutingContext context, String templateFileName, Handler<AsyncResult<Buffer>> handler) {
+    try {
+      PebbleTemplate template = cache.get(templateFileName);
+      if (template == null) {
+        // real compile
+        final String loc = adjustLocation(templateFileName);
+        template = pebbleEngine.getTemplate(loc);
+        cache.put(templateFileName, template);
+      }
+      final Map<String, Object> variables = new HashMap<>(1);
+      variables.put("context", context);
+      final StringWriter stringWriter = new StringWriter();
+      template.evaluate(stringWriter, variables);
+      handler.handle(Future.succeededFuture(Buffer.buffer(stringWriter.toString())));
+    } catch (final Exception ex) {
+      handler.handle(Future.failedFuture(ex));
+    }
+  }
 
 }
