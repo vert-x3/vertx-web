@@ -53,4 +53,14 @@ public class TimeoutHandler implements Handler<RoutingContext> {
     def ret = InternalHelper.safeCreate(io.vertx.ext.web.handler.TimeoutHandler.create(timeout), io.vertx.groovy.ext.web.handler.TimeoutHandler.class);
     return ret;
   }
+  /**
+   * Create a handler
+   * @param timeout the timeout, in ms
+   * @param errorCode 
+   * @return the handler
+   */
+  public static TimeoutHandler create(long timeout, int errorCode) {
+    def ret = InternalHelper.safeCreate(io.vertx.ext.web.handler.TimeoutHandler.create(timeout, errorCode), io.vertx.groovy.ext.web.handler.TimeoutHandler.class);
+    return ret;
+  }
 }

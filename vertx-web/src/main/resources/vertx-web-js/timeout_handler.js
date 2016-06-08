@@ -56,6 +56,7 @@ var TimeoutHandler = function(j_val) {
 
  @memberof module:vertx-web-js/timeout_handler
  @param timeout {number} the timeout, in ms 
+ @param errorCode {number} 
  @return {TimeoutHandler} the handler
  */
 TimeoutHandler.create = function() {
@@ -64,6 +65,8 @@ TimeoutHandler.create = function() {
     return utils.convReturnVertxGen(JTimeoutHandler["create()"](), TimeoutHandler);
   }else if (__args.length === 1 && typeof __args[0] ==='number') {
     return utils.convReturnVertxGen(JTimeoutHandler["create(long)"](__args[0]), TimeoutHandler);
+  }else if (__args.length === 2 && typeof __args[0] ==='number' && typeof __args[1] ==='number') {
+    return utils.convReturnVertxGen(JTimeoutHandler["create(long,int)"](__args[0], __args[1]), TimeoutHandler);
   } else throw new TypeError('function invoked with invalid arguments');
 };
 

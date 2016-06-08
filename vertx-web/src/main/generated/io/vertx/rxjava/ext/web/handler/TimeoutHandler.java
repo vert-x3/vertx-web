@@ -64,6 +64,17 @@ public class TimeoutHandler implements Handler<RoutingContext> {
     return ret;
   }
 
+  /**
+   * Create a handler
+   * @param timeout the timeout, in ms
+   * @param errorCode 
+   * @return the handler
+   */
+  public static TimeoutHandler create(long timeout, int errorCode) { 
+    TimeoutHandler ret = TimeoutHandler.newInstance(io.vertx.ext.web.handler.TimeoutHandler.create(timeout, errorCode));
+    return ret;
+  }
+
 
   public static TimeoutHandler newInstance(io.vertx.ext.web.handler.TimeoutHandler arg) {
     return arg != null ? new TimeoutHandler(arg) : null;

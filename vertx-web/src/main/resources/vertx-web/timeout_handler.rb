@@ -25,14 +25,17 @@ module VertxWeb
     end
     #  Create a handler
     # @param [Fixnum] timeout the timeout, in ms
+    # @param [Fixnum] errorCode 
     # @return [::VertxWeb::TimeoutHandler] the handler
-    def self.create(timeout=nil)
-      if !block_given? && timeout == nil
+    def self.create(timeout=nil,errorCode=nil)
+      if !block_given? && timeout == nil && errorCode == nil
         return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebHandler::TimeoutHandler.java_method(:create, []).call(),::VertxWeb::TimeoutHandler)
-      elsif timeout.class == Fixnum && !block_given?
+      elsif timeout.class == Fixnum && !block_given? && errorCode == nil
         return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebHandler::TimeoutHandler.java_method(:create, [Java::long.java_class]).call(timeout),::VertxWeb::TimeoutHandler)
+      elsif timeout.class == Fixnum && errorCode.class == Fixnum && !block_given?
+        return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebHandler::TimeoutHandler.java_method(:create, [Java::long.java_class,Java::int.java_class]).call(timeout,errorCode),::VertxWeb::TimeoutHandler)
       end
-      raise ArgumentError, "Invalid arguments when calling create(timeout)"
+      raise ArgumentError, "Invalid arguments when calling create(timeout,errorCode)"
     end
   end
 end

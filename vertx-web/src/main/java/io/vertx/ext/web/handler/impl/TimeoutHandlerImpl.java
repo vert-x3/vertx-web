@@ -27,16 +27,18 @@ import io.vertx.ext.web.handler.TimeoutHandler;
 public class TimeoutHandlerImpl implements TimeoutHandler {
 
   private final long timeout;
+  private final int errorCode;
 
-  public TimeoutHandlerImpl(long timeout) {
+  public TimeoutHandlerImpl(long timeout, int errorCode) {
     this.timeout = timeout;
+    this.errorCode = errorCode;
   }
 
   @Override
   public void handle(RoutingContext ctx) {
 
-    // We send a 503 response after timeout
-    long tid = ctx.vertx().setTimer(timeout, t -> ctx.fail(503));
+    // We send a error response after timeout
+    long tid = ctx.vertx().setTimer(timeout, t -> ctx.fail(errorCode));
 
     ctx.addBodyEndHandler(v -> ctx.vertx().cancelTimer(tid));
 

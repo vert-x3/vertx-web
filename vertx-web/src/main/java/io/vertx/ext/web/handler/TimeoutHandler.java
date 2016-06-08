@@ -36,12 +36,17 @@ public interface TimeoutHandler extends Handler<RoutingContext> {
   long DEFAULT_TIMEOUT = 5000;
 
   /**
+   * The default error code
+   */
+  int DEFAULT_ERRORCODE = 503;
+
+  /**
    * Create a handler
    *
    * @return the handler
    */
   static TimeoutHandler create() {
-    return new TimeoutHandlerImpl(DEFAULT_TIMEOUT);
+    return new TimeoutHandlerImpl(DEFAULT_TIMEOUT, DEFAULT_ERRORCODE);
   }
 
   /**
@@ -51,7 +56,16 @@ public interface TimeoutHandler extends Handler<RoutingContext> {
    * @return the handler
    */
   static TimeoutHandler create(long timeout) {
-    return new TimeoutHandlerImpl(timeout);
+    return new TimeoutHandlerImpl(timeout, DEFAULT_ERRORCODE);
   }
 
+  /**
+   * Create a handler
+   *
+   * @param timeout  the timeout, in ms
+   * @return the handler
+   */
+  static TimeoutHandler create(long timeout, int errorCode) {
+    return new TimeoutHandlerImpl(timeout, errorCode);
+  }
 }
