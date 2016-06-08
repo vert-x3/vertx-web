@@ -29,11 +29,12 @@ import com.mitchellbosecke.pebble.loader.FileLoader;
 import com.mitchellbosecke.pebble.loader.Loader;
 import com.mitchellbosecke.pebble.loader.StringLoader;
 import com.mitchellbosecke.pebble.template.PebbleTemplate;
-
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.impl.Utils;
 import io.vertx.ext.web.templ.PebbleTemplateEngine;
@@ -42,6 +43,8 @@ import io.vertx.ext.web.templ.PebbleTemplateEngine;
  * @author Dan Kristensen
  */
 public class PebbleTemplateEngineImpl extends CachingTemplateEngine<PebbleTemplate> implements PebbleTemplateEngine {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(PebbleTemplateEngineImpl.class);
 
 	private final PebbleEngine pebbleEngine;
 	private final FileLoader fileLoader;
@@ -90,8 +93,14 @@ public class PebbleTemplateEngineImpl extends CachingTemplateEngine<PebbleTempla
 				template = pebbleEngine.getTemplate(templateText);
 				cache.put(templateFileName, template);
 			}
-			final Map<String, Object> variables = new HashMap<>(1);
+			final Map<String, Object> variables = new HashMap<>(context.data());
+
+			if (variables.containsKey("context")) {
+			  LOGGER.warn("Template variable <context> reserved for RoutingContext");
+			}
+
 			variables.put("context", context);
+
 			final StringWriter stringWriter = new StringWriter();
 			template.evaluate(stringWriter, variables);
 			handler.handle(Future.succeededFuture(Buffer.buffer(stringWriter.toString())));

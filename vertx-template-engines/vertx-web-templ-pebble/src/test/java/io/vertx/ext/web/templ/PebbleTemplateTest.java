@@ -16,11 +16,10 @@
 
 package io.vertx.ext.web.templ;
 
-import org.junit.Test;
-
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.WebTestBase;
 import io.vertx.ext.web.handler.TemplateHandler;
+import org.junit.Test;
 
 /**
  * @author Dan Kristensen
@@ -31,14 +30,40 @@ public class PebbleTemplateTest extends WebTestBase {
 	public void testTemplateHandlerOnClasspath() throws Exception {
 		final TemplateEngine engine = PebbleTemplateEngine.create();
 		testTemplateHandler(engine, "somedir", "test-pebble-template2.peb",
-		        "Hello badger and foxRequest path is /test-pebble-template2.peb");
+				"Hello badger and foxRequest path is /test-pebble-template2.peb");
 	}
 
 	@Test
 	public void testTemplateHandlerOnFileSystem() throws Exception {
 		final TemplateEngine engine = PebbleTemplateEngine.create();
 		testTemplateHandler(engine, "src/test/filesystemtemplates", "test-pebble-template3.peb",
-		        "Hello badger and foxRequest path is /test-pebble-template3.peb");
+				"Hello badger and foxRequest path is /test-pebble-template3.peb");
+	}
+
+
+	@Test
+	public void testTemplateContextVariables() throws Exception {
+		final TemplateEngine engine = PebbleTemplateEngine.create();
+		testTemplateHandler(engine, "src/test/filesystemtemplates", "test-pebble-context-variables.peb",
+				"Hello badger and foxRequest path is /test-pebble-context-variables.peb");
+	}
+
+	@Test
+	public void testTemplateContextVariables_contextOverride() throws Exception {
+		final TemplateEngine engine = PebbleTemplateEngine.create();
+
+		router.route().handler(context -> {
+			context.put("foo", "badger");
+			context.put("bar", "fox");
+			context.put("context", "NOT GONNA BE USED!");
+
+			context.next();
+		});
+		router.route().handler(TemplateHandler.create(engine, "src/test/filesystemtemplates", "text/plain"));
+
+		String expected = "Hello badger and foxRequest path is /test-pebble-context-variables.peb";
+
+		testRequest(HttpMethod.GET, "/test-pebble-context-variables.peb", 200, "OK", expected);
 	}
 
 	@Test
