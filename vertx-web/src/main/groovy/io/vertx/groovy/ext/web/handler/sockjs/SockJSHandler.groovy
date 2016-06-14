@@ -59,7 +59,7 @@ public class SockJSHandler implements Handler<RoutingContext> {
    * @return the handler
    */
   public static SockJSHandler create(Vertx vertx, Map<String, Object> options) {
-    def ret = InternalHelper.safeCreate(io.vertx.ext.web.handler.sockjs.SockJSHandler.create(vertx != null ? (io.vertx.core.Vertx)vertx.getDelegate() : null, options != null ? new io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions(new io.vertx.core.json.JsonObject(options)) : null), io.vertx.groovy.ext.web.handler.sockjs.SockJSHandler.class);
+    def ret = InternalHelper.safeCreate(io.vertx.ext.web.handler.sockjs.SockJSHandler.create(vertx != null ? (io.vertx.core.Vertx)vertx.getDelegate() : null, options != null ? new io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions(io.vertx.lang.groovy.InternalHelper.toJsonObject(options)) : null), io.vertx.groovy.ext.web.handler.sockjs.SockJSHandler.class);
     return ret;
   }
   /**
@@ -92,7 +92,7 @@ public class SockJSHandler implements Handler<RoutingContext> {
    * @return a reference to this, so the API can be used fluently
    */
   public SockJSHandler bridge(Map<String, Object> bridgeOptions = [:]) {
-    delegate.bridge(bridgeOptions != null ? new io.vertx.ext.web.handler.sockjs.BridgeOptions(new io.vertx.core.json.JsonObject(bridgeOptions)) : null);
+    delegate.bridge(bridgeOptions != null ? new io.vertx.ext.web.handler.sockjs.BridgeOptions(io.vertx.lang.groovy.InternalHelper.toJsonObject(bridgeOptions)) : null);
     return this;
   }
   /**
@@ -103,7 +103,7 @@ public class SockJSHandler implements Handler<RoutingContext> {
    * @return a reference to this, so the API can be used fluently
    */
   public SockJSHandler bridge(Map<String, Object> bridgeOptions = [:], Handler<BridgeEvent> bridgeEventHandler) {
-    delegate.bridge(bridgeOptions != null ? new io.vertx.ext.web.handler.sockjs.BridgeOptions(new io.vertx.core.json.JsonObject(bridgeOptions)) : null, bridgeEventHandler != null ? new Handler<io.vertx.ext.web.handler.sockjs.BridgeEvent>(){
+    delegate.bridge(bridgeOptions != null ? new io.vertx.ext.web.handler.sockjs.BridgeOptions(io.vertx.lang.groovy.InternalHelper.toJsonObject(bridgeOptions)) : null, bridgeEventHandler != null ? new Handler<io.vertx.ext.web.handler.sockjs.BridgeEvent>(){
       public void handle(io.vertx.ext.web.handler.sockjs.BridgeEvent event) {
         bridgeEventHandler.handle(InternalHelper.safeCreate(event, io.vertx.groovy.ext.web.handler.sockjs.BridgeEvent.class));
       }
