@@ -89,7 +89,7 @@ public class JWTAuthHandlerImpl extends AuthHandlerImpl implements JWTAuthHandle
         }
       }
 
-      if (skip != null && skip.contains(request.path())) {
+      if (skip != null && context.normalisedPath().startsWith(skip)) {
         context.next();
         return;
       }
