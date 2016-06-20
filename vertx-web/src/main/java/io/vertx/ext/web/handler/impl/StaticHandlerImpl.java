@@ -69,6 +69,7 @@ public class StaticHandlerImpl implements StaticHandler {
   private int maxCacheSize = DEFAULT_MAX_CACHE_SIZE;
   private boolean rangeSupport = DEFAULT_RANGE_SUPPORT;
   private boolean allowRootFileSystemAccess = DEFAULT_ROOT_FILESYSTEM_ACCESS;
+  private boolean sendVaryHeader = DEFAULT_SEND_VARY_HEADER;
 
   // These members are all related to auto tuning of synchronous vs asynchronous file system access
   private static int NUM_SERVES_TUNING_FS_ACCESS = 1000;
@@ -113,6 +114,11 @@ public class StaticHandlerImpl implements StaticHandler {
       // We *do not use* etags and expires (since they do the same thing - redundant)
       headers.set("cache-control", "public, max-age=" + maxAgeSeconds);
       headers.set("last-modified", dateTimeFormatter.format(props.lastModifiedTime()));
+      // We send the vary header (for intermediate caches)
+      // (assumes that most will turn on compression when using static handler)
+      if (sendVaryHeader && request.headers().contains("accept-encoding")) {
+        headers.set("vary", "accept-encoding");
+      }
     }
 
     // date header is mandatory
@@ -496,6 +502,12 @@ public class StaticHandlerImpl implements StaticHandler {
   @Override
   public StaticHandler setMaxAvgServeTimeNs(long maxAvgServeTimeNanoSeconds) {
     this.maxAvgServeTimeNanoSeconds = maxAvgServeTimeNanoSeconds;
+    return this;
+  }
+  
+  @Override
+  public StaticHandler setSendVaryHeader(boolean sendVaryHeader) {
+    this.sendVaryHeader = sendVaryHeader;
     return this;
   }
 

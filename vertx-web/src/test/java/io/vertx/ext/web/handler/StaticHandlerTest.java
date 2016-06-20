@@ -230,6 +230,25 @@ public class StaticHandlerTest extends WebTestBase {
     }, res -> {
     }, 200, "OK", "<html><body>Other page</body></html>");
   }
+  
+  @Test
+  public void testSendVaryAcceptEncodingHeader() throws Exception {
+    testRequest(HttpMethod.GET, "/otherpage.html", req -> {
+      req.putHeader("accept-encoding", "gzip");
+    }, res -> {
+      String vary = res.headers().get("vary");
+      assertNotNull(vary);
+      assertEquals("accept-encoding", vary);
+    }, 200, "OK", "<html><body>Other page</body></html>");
+  }
+  
+  @Test
+  public void testNoSendingOfVaryAcceptEncodingHeader() throws Exception {
+    testRequest(HttpMethod.GET, "/otherpage.html", null, res -> {
+      String vary = res.headers().get("vary");
+      assertNull(vary);
+    }, 200, "OK", "<html><body>Other page</body></html>");
+  }
 
   @Test
   public void testSetMaxAge() throws Exception {
