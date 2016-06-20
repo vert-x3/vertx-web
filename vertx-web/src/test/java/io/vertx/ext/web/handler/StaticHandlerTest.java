@@ -601,6 +601,13 @@ public class StaticHandlerTest extends WebTestBase {
     assertEquals(1, cnt.get());
   }
 
+  @Test
+  public void testLastModifiedInGMT() throws Exception {
+    testRequest(HttpMethod.GET, "/otherpage.html", null, res -> {
+      String lastModified = res.headers().get("last-modified");
+      assertTrue(lastModified.endsWith("GMT"));
+    }, 200, "OK", "<html><body>Other page</body></html>");
+  }
 
   // TODO
   // 1.Test all the params including invalid values
