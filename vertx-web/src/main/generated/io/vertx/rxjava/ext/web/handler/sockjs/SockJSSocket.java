@@ -97,11 +97,7 @@ public class SockJSSocket implements ReadStream<Buffer>,  WriteStream<Buffer> {
   }
 
   public SockJSSocket endHandler(Handler<Void> endHandler) { 
-    ((io.vertx.ext.web.handler.sockjs.SockJSSocket) delegate).endHandler(new Handler<java.lang.Void>() {
-      public void handle(java.lang.Void event) {
-        endHandler.handle(event);
-      }
-    });
+    ((io.vertx.ext.web.handler.sockjs.SockJSSocket) delegate).endHandler(endHandler);
     return this;
   }
 
@@ -116,11 +112,7 @@ public class SockJSSocket implements ReadStream<Buffer>,  WriteStream<Buffer> {
   }
 
   public SockJSSocket drainHandler(Handler<Void> handler) { 
-    ((io.vertx.ext.web.handler.sockjs.SockJSSocket) delegate).drainHandler(new Handler<java.lang.Void>() {
-      public void handle(java.lang.Void event) {
-        handler.handle(event);
-      }
-    });
+    ((io.vertx.ext.web.handler.sockjs.SockJSSocket) delegate).drainHandler(handler);
     return this;
   }
 

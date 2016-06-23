@@ -374,11 +374,7 @@ public class RoutingContext {
    * @return the id of the handler. This can be used if you later want to remove the handler.
    */
   public int addHeadersEndHandler(Handler<Void> handler) { 
-    int ret = delegate.addHeadersEndHandler(new Handler<java.lang.Void>() {
-      public void handle(java.lang.Void event) {
-        handler.handle(event);
-      }
-    });
+    int ret = delegate.addHeadersEndHandler(handler);
     return ret;
   }
 
@@ -399,11 +395,7 @@ public class RoutingContext {
    * @return the id of the handler. This can be used if you later want to remove the handler.
    */
   public int addBodyEndHandler(Handler<Void> handler) { 
-    int ret = delegate.addBodyEndHandler(new Handler<java.lang.Void>() {
-      public void handle(java.lang.Void event) {
-        handler.handle(event);
-      }
-    });
+    int ret = delegate.addBodyEndHandler(handler);
     return ret;
   }
 

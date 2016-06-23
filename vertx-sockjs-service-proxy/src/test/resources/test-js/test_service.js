@@ -499,7 +499,7 @@ var TestService = function(j_val) {
     if (__args.length === 1 && typeof __args[0] === 'function') {
       j_testService["longHandler(io.vertx.core.Handler)"](function(ar) {
       if (ar.succeeded()) {
-        resultHandler(ar.result(), null);
+        resultHandler(utils.convReturnLong(ar.result()), null);
       } else {
         resultHandler(null, ar.cause());
       }
@@ -517,7 +517,7 @@ var TestService = function(j_val) {
     if (__args.length === 1 && typeof __args[0] === 'function') {
       j_testService["longNullHandler(io.vertx.core.Handler)"](function(ar) {
       if (ar.succeeded()) {
-        resultHandler(ar.result(), null);
+        resultHandler(utils.convReturnLong(ar.result()), null);
       } else {
         resultHandler(null, ar.cause());
       }
@@ -953,7 +953,7 @@ var TestService = function(j_val) {
     if (__args.length === 1 && typeof __args[0] === 'function') {
       j_testService["listLongHandler(io.vertx.core.Handler)"](function(ar) {
       if (ar.succeeded()) {
-        resultHandler(ar.result(), null);
+        resultHandler(utils.convReturnListSetLong(ar.result()), null);
       } else {
         resultHandler(null, ar.cause());
       }
@@ -1169,7 +1169,7 @@ var TestService = function(j_val) {
     if (__args.length === 1 && typeof __args[0] === 'function') {
       j_testService["setLongHandler(io.vertx.core.Handler)"](function(ar) {
       if (ar.succeeded()) {
-        resultHandler(utils.convReturnSet(ar.result()), null);
+        resultHandler(utils.convReturnListSetLong(ar.result()), null);
       } else {
         resultHandler(null, ar.cause());
       }

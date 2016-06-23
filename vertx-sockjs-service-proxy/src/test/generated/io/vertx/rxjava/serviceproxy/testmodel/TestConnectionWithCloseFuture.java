@@ -41,15 +41,7 @@ public class TestConnectionWithCloseFuture {
   }
 
   public void close(Handler<AsyncResult<Void>> handler) { 
-    delegate.close(new Handler<AsyncResult<java.lang.Void>>() {
-      public void handle(AsyncResult<java.lang.Void> ar) {
-        if (ar.succeeded()) {
-          handler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
-        } else {
-          handler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
-        }
-      }
-    });
+    delegate.close(handler);
   }
 
   public Observable<Void> closeObservable() { 

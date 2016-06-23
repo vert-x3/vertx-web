@@ -432,15 +432,7 @@ public class TestService {
   }
 
   public void voidHandler(Handler<AsyncResult<Void>> resultHandler) { 
-    delegate.voidHandler(new Handler<AsyncResult<java.lang.Void>>() {
-      public void handle(AsyncResult<java.lang.Void> ar) {
-        if (ar.succeeded()) {
-          resultHandler.handle(io.vertx.core.Future.succeededFuture(ar.result()));
-        } else {
-          resultHandler.handle(io.vertx.core.Future.failedFuture(ar.cause()));
-        }
-      }
-    });
+    delegate.voidHandler(resultHandler);
   }
 
   public Observable<Void> voidHandlerObservable() { 
