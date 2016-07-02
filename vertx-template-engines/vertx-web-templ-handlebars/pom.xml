@@ -34,6 +34,50 @@
 
   <build>
     <plugins>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <configuration>
+          <useDefaultManifestFile>true</useDefaultManifestFile>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>biz.aQute.bnd</groupId>
+        <artifactId>bnd-maven-plugin</artifactId>
+        <version>3.2.0</version>
+
+        <executions>
+          <execution>
+            <id>default-bnd-process</id>
+            <goals>
+              <goal>bnd-process</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <bnd><![CDATA[
+          Fragment-Host: vertx-web
+          Import-Package: \
+            groovy.lang.*;resolution:=optional,\
+            org.codehaus.groovy.*;resolution:=optional,\
+            io.vertx.groovy.*;resolution:=optional,\
+            io.vertx.ext.auth.*;resolution:=optional,\
+            io.vertx.lang.rxjava.*;resolution:=optional,\
+            io.vertx.lang.groovy.*;resolution:=optional,\
+            io.vertx.codegen.annotations;resolution:=optional,\
+            io.vertx.rx.java;resolution:=optional,\
+            io.vertx.rxjava.core.*;resolution:=optional,\
+            io.vertx.rxjava.ext.auth.*;resolution:=optional,\
+            rx.*;resolution:=optional,\
+            !io.vertx.ext.web.impl,\
+            *
+          -exportcontents: !*impl, !examples, *
+          ]]></bnd>
+        </configuration>
+      </plugin>
+
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
