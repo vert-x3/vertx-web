@@ -39,6 +39,11 @@
     <!-- Testing -->
     <dependency>
       <groupId>io.vertx</groupId>
+      <artifactId>vertx-unit</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
       <artifactId>vertx-auth-shiro</artifactId>
       <scope>test</scope>
     </dependency>
