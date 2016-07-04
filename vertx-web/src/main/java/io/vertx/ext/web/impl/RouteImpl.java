@@ -420,7 +420,16 @@ public class RouteImpl implements Route {
     pattern = Pattern.compile(regex);
   }
 
+  // intersection of regex chars and https://tools.ietf.org/html/rfc3986#section-3.3
+  private static final Pattern RE_OPERATORS_NO_STAR = Pattern.compile("([\\(\\)\\$\\+\\.])");
+
   private void createPatternRegex(String path) {
+    // escape path from any regex special chars
+    path = RE_OPERATORS_NO_STAR.matcher(path).replaceAll("\\\\$1");
+    // allow usage of * at the end as per documentation
+    if (path.charAt(path.length() - 1) == '*') {
+      path = path.substring(0, path.length() - 1) + ".*";
+    }
     // We need to search for any :<token name> tokens in the String and replace them with named capture groups
     Matcher m =  Pattern.compile(":([A-Za-z][A-Za-z0-9_]*)").matcher(path);
     StringBuffer sb = new StringBuffer();
