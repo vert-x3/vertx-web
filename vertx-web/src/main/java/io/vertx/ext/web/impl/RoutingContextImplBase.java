@@ -87,8 +87,6 @@ public abstract class RoutingContextImplBase implements RoutingContext {
             if (log.isTraceEnabled()) log.trace("Failure in handling failure");
             unhandledFailure(-1, t, route.router());
           }
-        } finally {
-          currentRoute = null;
         }
         return true;
       }
