@@ -1817,4 +1817,22 @@ public class RouterTest extends WebTestBase {
 
     testRequest(HttpMethod.GET, "foo", 404, "Not Found");
   }
+
+  @Test
+  public void testParamFirst() throws Exception {
+    router.route("/:p/*").handler(context -> {
+      context.response().headers().add("X-Here-1", "1");
+      context.next();
+    });
+    router.route("/:p/test").handler(context -> {
+      context.response().headers().add("X-Here-2", "2");
+      context.response().end();
+    });
+
+    testRequest(HttpMethod.GET, "/abc/test", null, resp -> {
+      MultiMap headers = resp.headers();
+      assertTrue(headers.contains("X-Here-1"));
+      assertTrue(headers.contains("X-Here-2"));
+    }, 200, "OK", null);
+  }
 }
