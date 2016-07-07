@@ -153,7 +153,10 @@ public class BodyHandlerImpl implements BodyHandler {
         failed = true;
         context.fail(413);
       } else {
-        if (!isMultipart && !isUrlEncoded) {
+        // multipart requests will not end up in the request body
+        // url encoded should also not, however jQuery by default
+        // post in urlencoded even if the payload is something else
+        if (!isMultipart /* && !isUrlEncoded */) {
           body.appendBuffer(buff);
         }
       }
