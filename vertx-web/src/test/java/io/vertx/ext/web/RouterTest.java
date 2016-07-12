@@ -772,6 +772,15 @@ public class RouterTest extends WebTestBase {
   }
 
   @Test
+  public void testPercentEncoding() throws Exception {
+    router.route("/blah/:percenttext").handler(rc -> {
+      MultiMap params = rc.request().params();
+      rc.response().setStatusMessage(params.get("percenttext")).end();
+    });
+    testPattern("/blah/abc%25xyz", "abc%xyz");
+  }
+
+  @Test
   public void testPathParamsAreFulfilled() throws Exception {
     router.route("/blah/:abc/quux/:def/eep/:ghi").handler(rc -> {
       Map<String, String> params = rc.pathParams();

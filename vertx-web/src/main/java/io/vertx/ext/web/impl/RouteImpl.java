@@ -254,7 +254,7 @@ public class RouteImpl implements Route {
             try {
               for (int i = 0; i < groups.size(); i++) {
                 final String k = groups.get(i);
-                final String value = URLDecoder.decode(URLDecoder.decode(m.group("p" + i), "UTF-8"), "UTF-8");
+                final String value = URLDecoder.decode(m.group("p" + i), "UTF-8");
                 if (!request.params().contains(k)) {
                   params.put(k, value);
                 } else {
