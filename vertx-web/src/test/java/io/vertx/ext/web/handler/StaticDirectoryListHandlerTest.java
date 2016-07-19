@@ -93,7 +93,9 @@ public class StaticDirectoryListHandlerTest extends WebTestBase {
     router.clear();
     router.route("/c*").handler(stat);
 
-    testRequest(HttpMethod.GET, "/c/a/b/", req -> {
+    // even though the prefix is matched only the prefix is ignored from the file system match
+    // webroot/annot/a/b will not be found
+    testRequest(HttpMethod.GET, "/cannot/a/b/", req -> {
       req.putHeader("Accept", "text/html");
     }, null, 404, "Not Found", null);
   }

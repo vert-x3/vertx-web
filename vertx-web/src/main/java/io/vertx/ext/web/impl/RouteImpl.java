@@ -375,7 +375,19 @@ public class RouteImpl implements Route {
 
   private boolean pathMatches(String mountPoint, RoutingContext ctx) {
     String thePath = mountPoint == null ? path : mountPoint + path;
-    String requestPath = useNormalisedPath ? Utils.normalisePath(ctx.request().path(), false) : ctx.request().path();
+    String requestPath;
+
+    if (useNormalisedPath) {
+      // never null
+      requestPath = Utils.normalisePath(ctx.request().path(), false);
+    } else {
+      requestPath = ctx.request().path();
+      // can be null
+      if (requestPath == null) {
+        requestPath = "/";
+      }
+    }
+
     if (exactPath) {
       return pathMatchesExact(requestPath, thePath);
     } else {
