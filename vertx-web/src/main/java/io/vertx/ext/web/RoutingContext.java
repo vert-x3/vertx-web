@@ -199,6 +199,16 @@ public interface RoutingContext {
   Set<Cookie> cookies();
 
   /**
+   * @return true if HTTP request body as {@link JsonObject}, false otherwise
+   */
+  boolean isBodyAsJson();
+
+  /**
+   * @return true if HTTP request body as {@link JsonArray}, false otherwise
+   */
+  boolean isBodyAsJsonArray();
+
+  /**
    * @return  the entire HTTP request body as a string, assuming UTF-8 encoding. The context must have first been routed to a
    * {@link io.vertx.ext.web.handler.BodyHandler} for this to be populated.
    */
