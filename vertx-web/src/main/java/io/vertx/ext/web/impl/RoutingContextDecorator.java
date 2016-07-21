@@ -61,6 +61,16 @@ public class RoutingContextDecorator implements RoutingContext {
   }
 
   @Override
+  public boolean isBodyAsJson() {
+    return decoratedContext.isBodyAsJson();
+  }
+
+  @Override
+  public boolean isBodyAsJsonArray() {
+    return decoratedContext.isBodyAsJsonArray();
+  }
+
+  @Override
   public Route currentRoute() {
     return currentRoute;
   }
