@@ -8,7 +8,7 @@
  * Vert.x core provides a fairly low level set of functionality for handling HTTP, and for some applications
  * that will be sufficient.
  *
- * VVert.x-Web builds on Vert.x core to provide a richer set of functionality for building real web applications, more
+ * Vert.x-Web builds on Vert.x core to provide a richer set of functionality for building real web applications, more
  * easily.
  *
  * It's the successor to http://pmlopes.github.io/yoke/[Yoke] in Vert.x 2.x, and takes inspiration from projects such
