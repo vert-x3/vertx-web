@@ -1610,7 +1610,7 @@
  * will look through any inbound permitted matches. If any match, it will be allowed through.
  *
  * If a message is _out-bound_ (i.e. being sent from the server to client side JavaScript) before it is sent to the client
- * Vert.x-Web will look through any inbound permitted matches. If any match, it will be allowed through.
+ * Vert.x-Web will look through any outbound permitted matches. If any match, it will be allowed through.
  *
  * The actual matching works as follows:
  *
