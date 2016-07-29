@@ -1138,7 +1138,7 @@
  *
  * // This will route all GET requests starting with /dynamic/ to the template handler
  * // E.g. /dynamic/graph.hbs will look for a template in /templates/dynamic/graph.hbs
- * router.get("/dynamic/").handler(handler);
+ * router.get("/dynamic/*").handler(handler);
  *
  * // Route all GET requests for resource ending in .hbs to the template handler
  * router.getWithRegex(".+\\.hbs").handler(handler);
@@ -1157,7 +1157,7 @@
  *
  * // This will route all GET requests starting with /dynamic/ to the template handler
  * // E.g. /dynamic/graph.hbs will look for a template in /templates/dynamic/graph.hbs
- * router.get("/dynamic/").handler(handler)
+ * router.get("/dynamic/*").handler(handler)
  *
  * // Route all GET requests for resource ending in .hbs to the template handler
  * router.getWithRegex(".+\\.hbs").handler(handler)
@@ -1176,7 +1176,7 @@
  *
  * # This will route all GET requests starting with /dynamic/ to the template handler
  * # E.g. /dynamic/graph.hbs will look for a template in /templates/dynamic/graph.hbs
- * router.get("/dynamic/").handler(&handler.method(:handle))
+ * router.get("/dynamic/*").handler(&handler.method(:handle))
  *
  * # Route all GET requests for resource ending in .hbs to the template handler
  * router.get_with_regex(".+\\.hbs").handler(&handler.method(:handle))
@@ -1195,7 +1195,7 @@
  *
  * // This will route all GET requests starting with /dynamic/ to the template handler
  * // E.g. /dynamic/graph.hbs will look for a template in /templates/dynamic/graph.hbs
- * router.get("/dynamic/").handler(handler.handle);
+ * router.get("/dynamic/*").handler(handler.handle);
  *
  * // Route all GET requests for resource ending in .hbs to the template handler
  * router.getWithRegex(".+\\.hbs").handler(handler.handle);
