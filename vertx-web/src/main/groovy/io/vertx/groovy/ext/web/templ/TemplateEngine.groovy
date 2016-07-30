@@ -53,4 +53,13 @@ public class TemplateEngine {
       }
     } : null);
   }
+  /**
+   * Returns true if the template engine caches template files. If false, then template files are freshly loaded each
+   * time they are used.
+   * @return True if template files are cached; otherwise, false.
+   */
+  public boolean isCachingEnabled() {
+    def ret = delegate.isCachingEnabled();
+    return ret;
+  }
 }

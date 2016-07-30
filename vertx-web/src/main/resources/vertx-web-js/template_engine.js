@@ -56,6 +56,21 @@ var TemplateEngine = function(j_val) {
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
+  /**
+   Returns true if the template engine caches template files. If false, then template files are freshly loaded each
+   time they are used.
+
+   @public
+
+   @return {boolean} True if template files are cached; otherwise, false.
+   */
+  this.isCachingEnabled = function() {
+    var __args = arguments;
+    if (__args.length === 0) {
+      return j_templateEngine["isCachingEnabled()"]();
+    } else throw new TypeError('function invoked with invalid arguments');
+  };
+
   // A reference to the underlying Java delegate
   // NOTE! This is an internal API and must not be used in user code.
   // If you rely on this property your code is likely to break if we change it / remove it without warning.

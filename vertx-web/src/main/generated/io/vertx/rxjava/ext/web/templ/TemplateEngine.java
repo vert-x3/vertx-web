@@ -74,6 +74,16 @@ public class TemplateEngine {
     return handler;
   }
 
+  /**
+   * Returns true if the template engine caches template files. If false, then template files are freshly loaded each
+   * time they are used.
+   * @return True if template files are cached; otherwise, false.
+   */
+  public boolean isCachingEnabled() { 
+    boolean ret = delegate.isCachingEnabled();
+    return ret;
+  }
+
 
   public static TemplateEngine newInstance(io.vertx.ext.web.templ.TemplateEngine arg) {
     return arg != null ? new TemplateEngine(arg) : null;

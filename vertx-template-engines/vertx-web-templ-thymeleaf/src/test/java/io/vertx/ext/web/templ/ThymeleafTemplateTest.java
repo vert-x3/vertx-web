@@ -19,6 +19,7 @@ package io.vertx.ext.web.templ;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.handler.TemplateHandler;
 import io.vertx.ext.web.WebTestBase;
+import io.vertx.ext.web.templ.impl.CachingTemplateEngine;
 import org.junit.Test;
 
 /**
@@ -37,6 +38,12 @@ public class ThymeleafTemplateTest extends WebTestBase {
   public void testTemplateHandlerOnFileSystem() throws Exception {
     TemplateEngine engine = ThymeleafTemplateEngine.create();
     testTemplateHandler(engine, "src/test/filesystemtemplates", "test-thymeleaf-template3.html");
+  }
+
+  @Test
+  public void testTemplateHandlerOnClasspathDisableCaching() throws Exception {
+    System.setProperty(CachingTemplateEngine.DISABLE_TEMPL_CACHING_PROP_NAME, "true");
+    testTemplateHandlerOnClasspath();
   }
 
   private void testTemplateHandler(TemplateEngine engine, String directoryName, String templateName) throws Exception {

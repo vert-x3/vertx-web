@@ -63,7 +63,7 @@ public class JadeTemplateEngineImpl extends CachingTemplateEngine<JadeTemplate> 
   @Override
   public void render(RoutingContext context, String templateFileName, Handler<AsyncResult<Buffer>> handler) {
     try {
-      JadeTemplate template = cache.get(templateFileName);
+      JadeTemplate template = isCachingEnabled() ? cache.get(templateFileName) : null;
 
       if (template == null) {
         synchronized (this) {
@@ -71,7 +71,9 @@ public class JadeTemplateEngineImpl extends CachingTemplateEngine<JadeTemplate> 
           // Compile
           template = config.getTemplate(templateFileName);
         }
-        cache.put(templateFileName, template);
+        if (isCachingEnabled()) {
+          cache.put(templateFileName, template);
+        }
       }
       Map<String, Object> variables = new HashMap<>(1);
       variables.put("context", context);

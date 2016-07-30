@@ -28,5 +28,14 @@ module VertxWeb
       end
       raise ArgumentError, "Invalid arguments when calling render(context,templateFileName)"
     end
+    #  Returns true if the template engine caches template files. If false, then template files are freshly loaded each
+    #  time they are used.
+    # @return [true,false] True if template files are cached; otherwise, false.
+    def caching_enabled?
+      if !block_given?
+        return @j_del.java_method(:isCachingEnabled, []).call()
+      end
+      raise ArgumentError, "Invalid arguments when calling caching_enabled?()"
+    end
   end
 end

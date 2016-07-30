@@ -19,6 +19,7 @@ package io.vertx.ext.web.templ;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.handler.TemplateHandler;
 import io.vertx.ext.web.WebTestBase;
+import io.vertx.ext.web.templ.impl.CachingTemplateEngine;
 import org.junit.Test;
 
 /**
@@ -36,6 +37,12 @@ public class JadeTemplateTest extends WebTestBase {
   public void testTemplateHandlerOnFileSystem() throws Exception {
     TemplateEngine engine = JadeTemplateEngine.create();
     testTemplateHandler(engine, "src/test/filesystemtemplates", "test-jade-template3.jade", "<!DOCTYPE html><html><head><title>badger/test-jade-template3.jade</title></head><body></body></html>");
+  }
+
+  @Test
+  public void testTemplateHandlerOnClasspathDisableCaching() throws Exception {
+    System.setProperty(CachingTemplateEngine.DISABLE_TEMPL_CACHING_PROP_NAME, "true");
+    testTemplateHandlerOnClasspath();
   }
 
   @Test

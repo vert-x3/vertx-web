@@ -21,6 +21,7 @@ import org.junit.Test;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.WebTestBase;
 import io.vertx.ext.web.handler.TemplateHandler;
+import io.vertx.ext.web.templ.impl.CachingTemplateEngine;
 
 /**
  * @author Dan Kristensen
@@ -39,6 +40,12 @@ public class PebbleTemplateTest extends WebTestBase {
 		final TemplateEngine engine = PebbleTemplateEngine.create(vertx);
 		testTemplateHandler(engine, "src/test/filesystemtemplates", "test-pebble-template3.peb",
 		        "Hello badger and foxRequest path is /test-pebble-template3.peb");
+	}
+
+	@Test
+	public void testTemplateHandlerOnClasspathDisableCaching() throws Exception {
+		System.setProperty(CachingTemplateEngine.DISABLE_TEMPL_CACHING_PROP_NAME, "true");
+		testTemplateHandlerOnClasspath();
 	}
 
 	@Test
