@@ -306,7 +306,7 @@ public interface RoutingContext {
    * such as resource cleanup.
    *
    * @param handler  the handler
-   * @return a reference to this, so the API can be used fluently
+   * @return  the id of the handler. This can be used if you later want to remove the handler.
    */
   int addBodyEndHandler(Handler<Void> handler);
 
