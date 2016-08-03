@@ -300,8 +300,10 @@ public interface RoutingContext {
   boolean removeHeadersEndHandler(int handlerID);
 
   /**
-   * Add a handler that will be called just before the response body has been completely written.
-   * This gives you a hook where you can write any extra data to the response before it has ended when it will be too late.
+   * Provides a handler that will be called after the last part of the body is written to the wire.
+   * The handler is called asynchronously of when the response has been received by the client.
+   * This provides a hook allowing you to do more operations once the request has been sent over the wire
+   * such as resource cleanup.
    *
    * @param handler  the handler
    * @return  the id of the handler. This can be used if you later want to remove the handler.
