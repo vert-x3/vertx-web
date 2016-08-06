@@ -16,6 +16,8 @@
 
 package io.vertx.ext.web.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.vertx.codegen.annotations.Nullable;
 import io.vertx.core.Handler;
@@ -27,10 +29,21 @@ import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
-import io.vertx.ext.web.*;
+import io.vertx.ext.web.Cookie;
+import io.vertx.ext.web.FileUpload;
 import io.vertx.ext.web.Locale;
+import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.Session;
 
-import java.util.*;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -48,6 +61,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   private int statusCode = -1;
   private String normalisedPath;
   private String acceptableContentType;
+  private final ObjectMapper objectMapper = new ObjectMapper();
 
   // We use Cookie as the key too so we can return keySet in cookies() without copying
   private Map<String, Cookie> cookies;
@@ -182,6 +196,32 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   @Override
   public Set<Cookie> cookies() {
     return new HashSet<>(cookiesMap().values());
+  }
+
+  @Override
+  public boolean isBodyAsJson() {
+    if(body == null)
+      return false;
+    try {
+      return objectMapper.readTree(body.toString()).isObject();
+    } catch (JsonProcessingException jpe) {
+      return false;
+    } catch (IOException ioe) {
+      return false;
+    }
+  }
+
+  @Override
+  public boolean isBodyAsJsonArray() {
+    if(body == null)
+      return false;
+    try {
+      return objectMapper.readTree(body.toString()).isArray();
+    } catch (JsonProcessingException jpe) {
+      return false;
+    } catch (IOException ioe) {
+      return false;
+    }
   }
 
   @Override

@@ -198,6 +198,16 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   }
 
   @Override
+  public boolean isBodyAsJson() {
+    return inner.isBodyAsJson();
+  }
+
+  @Override
+  public boolean isBodyAsJsonArray() {
+    return inner.isBodyAsJsonArray();
+  }
+
+  @Override
   public String getBodyAsString() {
     return inner.getBodyAsString();
   }

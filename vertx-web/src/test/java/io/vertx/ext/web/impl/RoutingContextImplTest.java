@@ -83,4 +83,51 @@ public class RoutingContextImplTest extends WebTestBase {
         }, HttpResponseStatus.OK.code(), HttpResponseStatus.OK.reasonPhrase(), null);
     }
 
+    @Test
+    public void test_is_body_as_json_object() throws Exception {
+        router.route().handler(event -> {
+            assertEquals(true, event.isBodyAsJson());
+            event.response().end();
+        });
+        testRequest(HttpMethod.POST, "/", req -> {
+            req.setChunked(true);
+            req.write(Buffer.buffer("{ \"vertx\": \"is awesome!\" }"));
+        }, HttpResponseStatus.OK.code(), HttpResponseStatus.OK.reasonPhrase(), null);
+    }
+
+    @Test
+    public void test_is_body_as_json_array() throws Exception {
+        router.route().handler(event -> {
+            assertEquals(true, event.isBodyAsJsonArray());
+            event.response().end();
+        });
+        testRequest(HttpMethod.POST, "/", req -> {
+            req.setChunked(true);
+            req.write(Buffer.buffer("[{ \"vertx\": \"is awesome!\" }]"));
+        }, HttpResponseStatus.OK.code(), HttpResponseStatus.OK.reasonPhrase(), null);
+    }
+
+    @Test
+    public void test_is_body_string_as_json_object() throws Exception {
+        router.route().handler(event -> {
+            assertEquals(false, event.isBodyAsJson());
+            event.response().end();
+        });
+        testRequest(HttpMethod.POST, "/", req -> {
+            req.setChunked(true);
+            req.write(Buffer.buffer("{vertx is awesome}"));
+        }, HttpResponseStatus.OK.code(), HttpResponseStatus.OK.reasonPhrase(), null);
+    }
+
+    @Test
+    public void test_is_body_string_as_json_array() throws Exception {
+        router.route().handler(event -> {
+            assertEquals(false, event.isBodyAsJsonArray());
+            event.response().end();
+        });
+        testRequest(HttpMethod.POST, "/", req -> {
+            req.setChunked(true);
+            req.write(Buffer.buffer("[vertx is awesome]"));
+        }, HttpResponseStatus.OK.code(), HttpResponseStatus.OK.reasonPhrase(), null);
+    }
 }
