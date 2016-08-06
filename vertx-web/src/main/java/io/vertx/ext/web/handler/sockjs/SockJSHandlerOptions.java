@@ -34,7 +34,7 @@ public class SockJSHandlerOptions {
   public static final boolean DEFAULT_INSERT_JSESSIONID = true;
   public static final long DEFAULT_HEARTBEAT_INTERVAL = 25l * 1000;
   public static final int DEFAULT_MAX_BYTES_STREAMING = 128 * 1024;
-  public static final String DEFAULT_LIBRARY_URL = "http://cdn.jsdelivr.net/sockjs/0.3.4/sockjs.min.js";
+  public static final String DEFAULT_LIBRARY_URL = "//cdn.jsdelivr.net/sockjs/0.3.4/sockjs.min.js";
 
   private long sessionTimeout;
   private boolean insertJSESSIONID;

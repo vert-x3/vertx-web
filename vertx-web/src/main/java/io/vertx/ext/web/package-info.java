@@ -8,7 +8,7 @@
  * Vert.x core provides a fairly low level set of functionality for handling HTTP, and for some applications
  * that will be sufficient.
  *
- * VVert.x-Web builds on Vert.x core to provide a richer set of functionality for building real web applications, more
+ * Vert.x-Web builds on Vert.x core to provide a richer set of functionality for building real web applications, more
  * easily.
  *
  * It's the successor to http://pmlopes.github.io/yoke/[Yoke] in Vert.x 2.x, and takes inspiration from projects such
@@ -1138,7 +1138,7 @@
  *
  * // This will route all GET requests starting with /dynamic/ to the template handler
  * // E.g. /dynamic/graph.hbs will look for a template in /templates/dynamic/graph.hbs
- * router.get("/dynamic/").handler(handler);
+ * router.get("/dynamic/*").handler(handler);
  *
  * // Route all GET requests for resource ending in .hbs to the template handler
  * router.getWithRegex(".+\\.hbs").handler(handler);
@@ -1157,7 +1157,7 @@
  *
  * // This will route all GET requests starting with /dynamic/ to the template handler
  * // E.g. /dynamic/graph.hbs will look for a template in /templates/dynamic/graph.hbs
- * router.get("/dynamic/").handler(handler)
+ * router.get("/dynamic/*").handler(handler)
  *
  * // Route all GET requests for resource ending in .hbs to the template handler
  * router.getWithRegex(".+\\.hbs").handler(handler)
@@ -1176,7 +1176,7 @@
  *
  * # This will route all GET requests starting with /dynamic/ to the template handler
  * # E.g. /dynamic/graph.hbs will look for a template in /templates/dynamic/graph.hbs
- * router.get("/dynamic/").handler(&handler.method(:handle))
+ * router.get("/dynamic/*").handler(&handler.method(:handle))
  *
  * # Route all GET requests for resource ending in .hbs to the template handler
  * router.get_with_regex(".+\\.hbs").handler(&handler.method(:handle))
@@ -1195,7 +1195,7 @@
  *
  * // This will route all GET requests starting with /dynamic/ to the template handler
  * // E.g. /dynamic/graph.hbs will look for a template in /templates/dynamic/graph.hbs
- * router.get("/dynamic/").handler(handler.handle);
+ * router.get("/dynamic/*").handler(handler.handle);
  *
  * // Route all GET requests for resource ending in .hbs to the template handler
  * router.getWithRegex(".+\\.hbs").handler(handler.handle);
@@ -1610,7 +1610,7 @@
  * will look through any inbound permitted matches. If any match, it will be allowed through.
  *
  * If a message is _out-bound_ (i.e. being sent from the server to client side JavaScript) before it is sent to the client
- * Vert.x-Web will look through any inbound permitted matches. If any match, it will be allowed through.
+ * Vert.x-Web will look through any outbound permitted matches. If any match, it will be allowed through.
  *
  * The actual matching works as follows:
  *
