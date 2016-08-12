@@ -83,4 +83,20 @@ public class RoutingContextImplTest extends WebTestBase {
         }, HttpResponseStatus.OK.code(), HttpResponseStatus.OK.reasonPhrase(), null);
     }
 
+    @Test
+    public void test_remove_data() throws Exception {
+        router.route().handler(event -> {
+            String foo = event.getBodyAsJson().encode();
+            event.put("foo", foo);
+            String removedFoo = event.remove("foo");
+            assertEquals(removedFoo, foo);
+            assertNull(event.get("foo"));
+            event.response().end();
+        });
+        testRequest(HttpMethod.POST, "/", req -> {
+            req.setChunked(true);
+            req.write(Buffer.buffer("{ \"foo\": \"bar\" }"));
+        }, HttpResponseStatus.OK.code(), HttpResponseStatus.OK.reasonPhrase(), null);
+    }
+
 }

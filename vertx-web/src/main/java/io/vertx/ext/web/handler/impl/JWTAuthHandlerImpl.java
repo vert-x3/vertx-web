@@ -124,7 +124,7 @@ public class JWTAuthHandlerImpl extends AuthHandlerImpl implements JWTAuthHandle
           context.setUser(user2);
           authorise(user2, context);
         } else {
-          log.warn("JWT decode failure");
+          log.warn("JWT decode failure", res.cause());
           context.fail(401);
         }
       });

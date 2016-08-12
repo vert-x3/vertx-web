@@ -84,6 +84,11 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   }
 
   @Override
+  public <T> T remove(String key) {
+    return inner.remove(key);
+  }
+
+  @Override
   public Map<String, Object> data() {
     return inner.data();
   }

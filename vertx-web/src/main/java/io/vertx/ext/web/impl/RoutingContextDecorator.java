@@ -103,6 +103,11 @@ public class RoutingContextDecorator implements RoutingContext {
   }
 
   @Override
+  public <T> T remove(String key) {
+    return decoratedContext.remove(key);
+  }
+
+  @Override
   public String getAcceptableContentType() {
     return decoratedContext.getAcceptableContentType();
   }
