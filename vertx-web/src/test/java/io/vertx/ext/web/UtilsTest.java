@@ -19,6 +19,7 @@ package io.vertx.ext.web;
 import io.vertx.ext.web.impl.Utils;
 import org.junit.Test;
 
+import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
@@ -39,8 +40,12 @@ public class UtilsTest {
   }
 
   @Test
-  public void testPathWithSpaces1() throws Exception {
-    assertEquals("/foo blah/eek", Utils.normalisePath("/foo+blah/eek"));
+  public void testPathSubDelims() throws Exception {
+    List<String> subDelims = Arrays.asList("!", "$", "&", "'", "(", ")", "*", "+", ",", ";", "=");
+    for(String character : subDelims) {
+      String path = "/foo" + character + "blah/eek";
+      assertEquals(path, Utils.normalisePath(path));
+    }
   }
 
   @Test
