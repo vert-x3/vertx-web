@@ -27,16 +27,14 @@ module VertxWeb
       end
       raise ArgumentError, "Invalid arguments when calling cookie(name,value)"
     end
-    #  @return the name of this cookie
-    # @return [String]
+    # @return [String] the name of this cookie
     def get_name
       if !block_given?
         return @j_del.java_method(:getName, []).call()
       end
       raise ArgumentError, "Invalid arguments when calling get_name()"
     end
-    #  @return the value of this cookie
-    # @return [String]
+    # @return [String] the value of this cookie
     def get_value
       if !block_given?
         return @j_del.java_method(:getValue, []).call()
@@ -63,8 +61,7 @@ module VertxWeb
       end
       raise ArgumentError, "Invalid arguments when calling set_domain(domain)"
     end
-    #  @return  the domain for the cookie
-    # @return [String]
+    # @return [String] the domain for the cookie
     def get_domain
       if !block_given?
         return @j_del.java_method(:getDomain, []).call()

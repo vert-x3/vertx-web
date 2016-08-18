@@ -4,7 +4,6 @@
 == SomeVertxEnum
 
 ++++
- @author <a href="http://tfox.org">Tim Fox</a>
 ++++
 '''
 

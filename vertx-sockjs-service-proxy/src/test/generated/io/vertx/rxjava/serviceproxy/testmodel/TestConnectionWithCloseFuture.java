@@ -22,7 +22,6 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 
 /**
- * @author <a href="http://tfox.org">Tim Fox</a>
  *
  * <p/>
  * NOTE: This class has been automatically generated from the {@link io.vertx.serviceproxy.testmodel.TestConnectionWithCloseFuture original} non RX-ified interface using Vert.x codegen.

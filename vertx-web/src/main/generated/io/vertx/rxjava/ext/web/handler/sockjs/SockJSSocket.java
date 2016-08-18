@@ -183,7 +183,6 @@ public class SockJSSocket implements ReadStream<Buffer>,  WriteStream<Buffer> {
 
   /**
    * @return the Vert.x-Web session corresponding to this socket
-   * @return 
    */
   public Session webSession() { 
     Session ret = Session.newInstance(delegate.webSession());
@@ -191,8 +190,7 @@ public class SockJSSocket implements ReadStream<Buffer>,  WriteStream<Buffer> {
   }
 
   /**
-   *  @return the Vert.x-Web user corresponding to this socket
-   * @return 
+   * @return the Vert.x-Web user corresponding to this socket
    */
   public User webUser() { 
     User ret = User.newInstance(delegate.webUser());

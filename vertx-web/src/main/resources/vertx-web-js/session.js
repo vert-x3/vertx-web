@@ -37,11 +37,10 @@ var Session = function(j_val) {
   var that = this;
 
   /**
-   @return The unique ID of the session. This is generated using a random secure UUID.
 
    @public
 
-   @return {string}
+   @return {string} The unique ID of the session. This is generated using a random secure UUID.
    */
   this.id = function() {
     var __args = arguments;
@@ -95,11 +94,10 @@ var Session = function(j_val) {
   };
 
   /**
-   @return the time the session was last accessed
 
    @public
 
-   @return {number}
+   @return {number} the time the session was last accessed
    */
   this.lastAccessed = function() {
     var __args = arguments;
@@ -122,11 +120,10 @@ var Session = function(j_val) {
   };
 
   /**
-   @return has the session been destroyed?
 
    @public
 
-   @return {boolean}
+   @return {boolean} has the session been destroyed?
    */
   this.isDestroyed = function() {
     var __args = arguments;
@@ -136,11 +133,10 @@ var Session = function(j_val) {
   };
 
   /**
-   @return the amount of time in ms, after which the session will expire, if not accessed.
 
    @public
 
-   @return {number}
+   @return {number} the amount of time in ms, after which the session will expire, if not accessed.
    */
   this.timeout = function() {
     var __args = arguments;

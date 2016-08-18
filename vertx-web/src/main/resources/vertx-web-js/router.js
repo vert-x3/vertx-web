@@ -356,11 +356,10 @@ var Router = function(j_val) {
   };
 
   /**
-   @return a list of all the routes on this router
 
    @public
 
-   @return {Array.<Route>}
+   @return {Array.<Route>} a list of all the routes on this router
    */
   this.getRoutes = function() {
     var __args = arguments;

@@ -221,7 +221,6 @@ public class Route {
 
   /**
    * @return the path prefix (if any) for this route
-   * @return 
    */
   public String getPath() { 
     String ret = delegate.getPath();

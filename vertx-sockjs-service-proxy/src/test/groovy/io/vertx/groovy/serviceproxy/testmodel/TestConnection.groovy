@@ -22,7 +22,6 @@ import io.vertx.core.json.JsonObject
 import io.vertx.core.AsyncResult
 import io.vertx.core.Handler
 /**
- * @author <a href="http://tfox.org">Tim Fox</a>
 */
 @CompileStatic
 public class TestConnection {

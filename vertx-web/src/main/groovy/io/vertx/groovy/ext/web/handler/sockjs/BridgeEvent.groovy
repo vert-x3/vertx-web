@@ -37,8 +37,7 @@ public class BridgeEvent extends Future<Boolean> {
     return delegate;
   }
   /**
-   * @return  the type of the event
-   * @return 
+   * @return the type of the event
    */
   public BridgeEventType type() {
     if (cached_0 != null) {

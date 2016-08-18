@@ -57,7 +57,6 @@ public class RoutingContext {
   }
   /**
    * @return the HTTP request object
-   * @return 
    */
   public HttpServerRequest request() {
     if (cached_0 != null) {
@@ -69,7 +68,6 @@ public class RoutingContext {
   }
   /**
    * @return the HTTP response object
-   * @return 
    */
   public HttpServerResponse response() {
     if (cached_1 != null) {
@@ -131,16 +129,13 @@ public class RoutingContext {
   }
   /**
    * @return the Vert.x instance associated to the initiating {@link io.vertx.groovy.ext.web.Router} for this context
-   * @return 
    */
   public Vertx vertx() {
     def ret = InternalHelper.safeCreate(delegate.vertx(), io.vertx.groovy.core.Vertx.class);
     return ret;
   }
   /**
-   * @return the mount point for this router. It will be null for a top level router. For a sub-router it will be the path
-   * at which the subrouter was mounted.
-   * @return 
+   * @return the mount point for this router. It will be null for a top level router. For a sub-router it will be the path at which the subrouter was mounted.
    */
   public String mountPoint() {
     def ret = delegate.mountPoint();
@@ -148,7 +143,6 @@ public class RoutingContext {
   }
   /**
    * @return the current route this context is being routed through.
-   * @return 
    */
   public Route currentRoute() {
     def ret = InternalHelper.safeCreate(delegate.currentRoute(), io.vertx.groovy.ext.web.Route.class);
@@ -203,27 +197,21 @@ public class RoutingContext {
     return ret;
   }
   /**
-   * @return the number of cookies. The context must have first been routed to a {@link io.vertx.groovy.ext.web.handler.CookieHandler}
-   * for this to work.
-   * @return 
+   * @return the number of cookies. The context must have first been routed to a {@link io.vertx.groovy.ext.web.handler.CookieHandler} for this to work.
    */
   public int cookieCount() {
     def ret = delegate.cookieCount();
     return ret;
   }
   /**
-   * @return a set of all the cookies. The context must have first been routed to a {@link io.vertx.groovy.ext.web.handler.CookieHandler}
-   * for this to be populated.
-   * @return 
+   * @return a set of all the cookies. The context must have first been routed to a {@link io.vertx.groovy.ext.web.handler.CookieHandler} for this to be populated.
    */
   public Set<Cookie> cookies() {
     def ret = (Set)delegate.cookies()?.collect({InternalHelper.safeCreate(it, io.vertx.groovy.ext.web.Cookie.class)}) as Set;
     return ret;
   }
   /**
-   * @return  the entire HTTP request body as a string, assuming UTF-8 encoding. The context must have first been routed to a
-   * {@link io.vertx.groovy.ext.web.handler.BodyHandler} for this to be populated.
-   * @return 
+   * @return the entire HTTP request body as a string, assuming UTF-8 encoding. The context must have first been routed to a {@link io.vertx.groovy.ext.web.handler.BodyHandler} for this to be populated.
    */
   public String getBodyAsString() {
     def ret = delegate.getBodyAsString();
@@ -240,36 +228,28 @@ public class RoutingContext {
     return ret;
   }
   /**
-   * @return Get the entire HTTP request body as a . The context must have first been routed to a
-   * {@link io.vertx.groovy.ext.web.handler.BodyHandler} for this to be populated.
-   * @return 
+   * @return Get the entire HTTP request body as a . The context must have first been routed to a {@link io.vertx.groovy.ext.web.handler.BodyHandler} for this to be populated.
    */
   public Map<String, Object> getBodyAsJson() {
     def ret = (Map<String, Object>)InternalHelper.wrapObject(delegate.getBodyAsJson());
     return ret;
   }
   /**
-   * @return Get the entire HTTP request body as a . The context must have first been routed to a
-   * {@link io.vertx.groovy.ext.web.handler.BodyHandler} for this to be populated.
-   * @return 
+   * @return Get the entire HTTP request body as a . The context must have first been routed to a {@link io.vertx.groovy.ext.web.handler.BodyHandler} for this to be populated.
    */
   public List<Object> getBodyAsJsonArray() {
     def ret = (List<Object>)InternalHelper.wrapObject(delegate.getBodyAsJsonArray());
     return ret;
   }
   /**
-   * @return Get the entire HTTP request body as a . The context must have first been routed to a
-   * {@link io.vertx.groovy.ext.web.handler.BodyHandler} for this to be populated.
-   * @return 
+   * @return Get the entire HTTP request body as a . The context must have first been routed to a {@link io.vertx.groovy.ext.web.handler.BodyHandler} for this to be populated.
    */
   public Buffer getBody() {
     def ret = InternalHelper.safeCreate(delegate.getBody(), io.vertx.groovy.core.buffer.Buffer.class);
     return ret;
   }
   /**
-   * @return a set of fileuploads (if any) for the request. The context must have first been routed to a
-   * {@link io.vertx.groovy.ext.web.handler.BodyHandler} for this to work.
-   * @return 
+   * @return a set of fileuploads (if any) for the request. The context must have first been routed to a {@link io.vertx.groovy.ext.web.handler.BodyHandler} for this to work.
    */
   public Set<FileUpload> fileUploads() {
     def ret = (Set)delegate.fileUploads()?.collect({InternalHelper.safeCreate(it, io.vertx.groovy.ext.web.FileUpload.class)}) as Set;
@@ -352,8 +332,10 @@ public class RoutingContext {
     return ret;
   }
   /**
-   * Add a handler that will be called just before the response body has been completely written.
-   * This gives you a hook where you can write any extra data to the response before it has ended when it will be too late.
+   * Provides a handler that will be called after the last part of the body is written to the wire.
+   * The handler is called asynchronously of when the response has been received by the client.
+   * This provides a hook allowing you to do more operations once the request has been sent over the wire
+   * such as resource cleanup.
    * @param handler the handler
    * @return the id of the handler. This can be used if you later want to remove the handler.
    */
@@ -372,7 +354,6 @@ public class RoutingContext {
   }
   /**
    * @return true if the context is being routed to failure handlers.
-   * @return 
    */
   public boolean failed() {
     def ret = delegate.failed();
@@ -476,6 +457,6 @@ public class RoutingContext {
   private HttpServerRequest cached_0;
   private HttpServerResponse cached_1;
   private Throwable cached_2;
-  private int cached_3;
+  private Integer cached_3;
   private List<Locale> cached_4;
 }

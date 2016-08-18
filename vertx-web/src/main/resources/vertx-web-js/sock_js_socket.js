@@ -274,11 +274,10 @@ var SockJSSocket = function(j_val) {
   };
 
   /**
-   @return the Vert.x-Web session corresponding to this socket
 
    @public
 
-   @return {Session}
+   @return {Session} the Vert.x-Web session corresponding to this socket
    */
   this.webSession = function() {
     var __args = arguments;
@@ -288,11 +287,10 @@ var SockJSSocket = function(j_val) {
   };
 
   /**
-    @return the Vert.x-Web user corresponding to this socket
 
    @public
 
-   @return {User}
+   @return {User} the Vert.x-Web user corresponding to this socket
    */
   this.webUser = function() {
     var __args = arguments;

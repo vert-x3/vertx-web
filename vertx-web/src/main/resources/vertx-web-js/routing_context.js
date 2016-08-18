@@ -43,11 +43,10 @@ var RoutingContext = function(j_val) {
   var that = this;
 
   /**
-   @return the HTTP request object
 
    @public
 
-   @return {HttpServerRequest}
+   @return {HttpServerRequest} the HTTP request object
    */
   this.request = function() {
     var __args = arguments;
@@ -60,11 +59,10 @@ var RoutingContext = function(j_val) {
   };
 
   /**
-   @return the HTTP response object
 
    @public
 
-   @return {HttpServerResponse}
+   @return {HttpServerResponse} the HTTP response object
    */
   this.response = function() {
     var __args = arguments;
@@ -143,11 +141,10 @@ var RoutingContext = function(j_val) {
   };
 
   /**
-   @return the Vert.x instance associated to the initiating {@link Router} for this context
 
    @public
 
-   @return {Vertx}
+   @return {Vertx} the Vert.x instance associated to the initiating {@link Router} for this context
    */
   this.vertx = function() {
     var __args = arguments;
@@ -157,12 +154,10 @@ var RoutingContext = function(j_val) {
   };
 
   /**
-   @return the mount point for this router. It will be null for a top level router. For a sub-router it will be the path
-   at which the subrouter was mounted.
 
    @public
 
-   @return {string}
+   @return {string} the mount point for this router. It will be null for a top level router. For a sub-router it will be the path at which the subrouter was mounted.
    */
   this.mountPoint = function() {
     var __args = arguments;
@@ -172,11 +167,10 @@ var RoutingContext = function(j_val) {
   };
 
   /**
-   @return the current route this context is being routed through.
 
    @public
 
-   @return {Route}
+   @return {Route} the current route this context is being routed through.
    */
   this.currentRoute = function() {
     var __args = arguments;
@@ -256,12 +250,10 @@ var RoutingContext = function(j_val) {
   };
 
   /**
-   @return the number of cookies. The context must have first been routed to a {@link CookieHandler}
-   for this to work.
 
    @public
 
-   @return {number}
+   @return {number} the number of cookies. The context must have first been routed to a {@link CookieHandler} for this to work.
    */
   this.cookieCount = function() {
     var __args = arguments;
@@ -271,12 +263,10 @@ var RoutingContext = function(j_val) {
   };
 
   /**
-   @return a set of all the cookies. The context must have first been routed to a {@link CookieHandler}
-   for this to be populated.
 
    @public
 
-   @return {Array.<Cookie>}
+   @return {Array.<Cookie>} a set of all the cookies. The context must have first been routed to a {@link CookieHandler} for this to be populated.
    */
   this.cookies = function() {
     var __args = arguments;
@@ -303,12 +293,10 @@ var RoutingContext = function(j_val) {
   };
 
   /**
-   @return Get the entire HTTP request body as a . The context must have first been routed to a
-   {@link BodyHandler} for this to be populated.
 
    @public
 
-   @return {Object}
+   @return {Object} Get the entire HTTP request body as a . The context must have first been routed to a {@link BodyHandler} for this to be populated.
    */
   this.getBodyAsJson = function() {
     var __args = arguments;
@@ -318,12 +306,10 @@ var RoutingContext = function(j_val) {
   };
 
   /**
-   @return Get the entire HTTP request body as a . The context must have first been routed to a
-   {@link BodyHandler} for this to be populated.
 
    @public
 
-   @return {todo}
+   @return {todo} Get the entire HTTP request body as a . The context must have first been routed to a {@link BodyHandler} for this to be populated.
    */
   this.getBodyAsJsonArray = function() {
     var __args = arguments;
@@ -333,12 +319,10 @@ var RoutingContext = function(j_val) {
   };
 
   /**
-   @return Get the entire HTTP request body as a . The context must have first been routed to a
-   {@link BodyHandler} for this to be populated.
 
    @public
 
-   @return {Buffer}
+   @return {Buffer} Get the entire HTTP request body as a . The context must have first been routed to a {@link BodyHandler} for this to be populated.
    */
   this.getBody = function() {
     var __args = arguments;
@@ -348,12 +332,10 @@ var RoutingContext = function(j_val) {
   };
 
   /**
-   @return a set of fileuploads (if any) for the request. The context must have first been routed to a
-   {@link BodyHandler} for this to work.
 
    @public
 
-   @return {Array.<FileUpload>}
+   @return {Array.<FileUpload>} a set of fileuploads (if any) for the request. The context must have first been routed to a {@link BodyHandler} for this to work.
    */
   this.fileUploads = function() {
     var __args = arguments;
@@ -477,8 +459,10 @@ var RoutingContext = function(j_val) {
   };
 
   /**
-   Add a handler that will be called just before the response body has been completely written.
-   This gives you a hook where you can write any extra data to the response before it has ended when it will be too late.
+   Provides a handler that will be called after the last part of the body is written to the wire.
+   The handler is called asynchronously of when the response has been received by the client.
+   This provides a hook allowing you to do more operations once the request has been sent over the wire
+   such as resource cleanup.
 
    @public
    @param handler {function} the handler 
@@ -506,11 +490,10 @@ var RoutingContext = function(j_val) {
   };
 
   /**
-   @return true if the context is being routed to failure handlers.
 
    @public
 
-   @return {boolean}
+   @return {boolean} true if the context is being routed to failure handlers.
    */
   this.failed = function() {
     var __args = arguments;

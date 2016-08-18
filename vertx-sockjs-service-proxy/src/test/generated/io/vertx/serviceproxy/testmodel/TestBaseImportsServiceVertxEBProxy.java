@@ -37,6 +37,7 @@ import io.vertx.serviceproxy.ServiceExceptionMessageCodec;
   Generated Proxy code - DO NOT EDIT
   @author Roger the Robot
 */
+@SuppressWarnings({"unchecked", "rawtypes"})
 public class TestBaseImportsServiceVertxEBProxy implements TestBaseImportsService {
 
   private Vertx _vertx;

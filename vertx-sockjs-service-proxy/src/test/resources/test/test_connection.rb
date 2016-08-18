@@ -1,7 +1,6 @@
 require 'vertx/util/utils.rb'
 # Generated from io.vertx.serviceproxy.testmodel.TestConnection
 module Test
-  #  @author <a href="http://tfox.org">Tim Fox</a>
   class TestConnection
     # @private
     # @param j_del [::Test::TestConnection] the java delegate

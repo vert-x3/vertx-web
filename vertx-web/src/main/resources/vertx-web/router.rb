@@ -253,8 +253,7 @@ module VertxWeb
       end
       raise ArgumentError, "Invalid arguments when calling patch_with_regex(regex)"
     end
-    #  @return a list of all the routes on this router
-    # @return [Array<::VertxWeb::Route>]
+    # @return [Array<::VertxWeb::Route>] a list of all the routes on this router
     def get_routes
       if !block_given?
         return @j_del.java_method(:getRoutes, []).call().to_a.map { |elt| ::Vertx::Util::Utils.safe_create(elt,::VertxWeb::Route) }

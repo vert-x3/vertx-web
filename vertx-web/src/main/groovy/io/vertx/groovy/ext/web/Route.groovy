@@ -198,7 +198,6 @@ public class Route {
   }
   /**
    * @return the path prefix (if any) for this route
-   * @return 
    */
   public String getPath() {
     def ret = delegate.getPath();

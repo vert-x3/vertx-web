@@ -48,7 +48,6 @@ public class Session {
 
   /**
    * @return The unique ID of the session. This is generated using a random secure UUID.
-   * @return 
    */
   public String id() { 
     String ret = delegate.id();
@@ -88,7 +87,6 @@ public class Session {
 
   /**
    * @return the time the session was last accessed
-   * @return 
    */
   public long lastAccessed() { 
     long ret = delegate.lastAccessed();
@@ -104,7 +102,6 @@ public class Session {
 
   /**
    * @return has the session been destroyed?
-   * @return 
    */
   public boolean isDestroyed() { 
     boolean ret = delegate.isDestroyed();
@@ -113,7 +110,6 @@ public class Session {
 
   /**
    * @return the amount of time in ms, after which the session will expire, if not accessed.
-   * @return 
    */
   public long timeout() { 
     long ret = delegate.timeout();

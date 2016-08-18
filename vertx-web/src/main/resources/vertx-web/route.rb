@@ -170,8 +170,7 @@ module VertxWeb
       end
       raise ArgumentError, "Invalid arguments when calling use_normalised_path(useNormalisedPath)"
     end
-    #  @return the path prefix (if any) for this route
-    # @return [String]
+    # @return [String] the path prefix (if any) for this route
     def get_path
       if !block_given?
         return @j_del.java_method(:getPath, []).call()

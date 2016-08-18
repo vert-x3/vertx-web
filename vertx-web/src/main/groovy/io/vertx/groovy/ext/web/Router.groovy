@@ -338,7 +338,6 @@ public class Router {
   }
   /**
    * @return a list of all the routes on this router
-   * @return 
    */
   public List<Route> getRoutes() {
     def ret = (List)delegate.getRoutes()?.collect({InternalHelper.safeCreate(it, io.vertx.groovy.ext.web.Route.class)});

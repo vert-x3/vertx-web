@@ -147,15 +147,13 @@ public class SockJSSocket implements ReadStream<Buffer>,  WriteStream<Buffer> {
   }
   /**
    * @return the Vert.x-Web session corresponding to this socket
-   * @return 
    */
   public Session webSession() {
     def ret = InternalHelper.safeCreate(delegate.webSession(), io.vertx.groovy.ext.web.Session.class);
     return ret;
   }
   /**
-   *  @return the Vert.x-Web user corresponding to this socket
-   * @return 
+   * @return the Vert.x-Web user corresponding to this socket
    */
   public User webUser() {
     def ret = InternalHelper.safeCreate(delegate.webUser(), io.vertx.groovy.ext.auth.User.class);

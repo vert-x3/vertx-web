@@ -4,7 +4,6 @@ require 'test/test_connection_with_close_future'
 require 'vertx/util/utils.rb'
 # Generated from io.vertx.serviceproxy.testmodel.TestService
 module Test
-  #  @author <a href="http://tfox.org">Tim Fox</a>
   class TestService
     # @private
     # @param j_del [::Test::TestService] the java delegate

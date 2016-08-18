@@ -21,8 +21,7 @@ module VertxWeb
     def j_del
       @j_del
     end
-    #  @return The unique ID of the session. This is generated using a random secure UUID.
-    # @return [String]
+    # @return [String] The unique ID of the session. This is generated using a random secure UUID.
     def id
       if !block_given?
         return @j_del.java_method(:id, []).call()
@@ -58,8 +57,7 @@ module VertxWeb
       end
       raise ArgumentError, "Invalid arguments when calling remove(key)"
     end
-    #  @return the time the session was last accessed
-    # @return [Fixnum]
+    # @return [Fixnum] the time the session was last accessed
     def last_accessed
       if !block_given?
         return @j_del.java_method(:lastAccessed, []).call()
@@ -74,16 +72,14 @@ module VertxWeb
       end
       raise ArgumentError, "Invalid arguments when calling destroy()"
     end
-    #  @return has the session been destroyed?
-    # @return [true,false]
+    # @return [true,false] has the session been destroyed?
     def destroyed?
       if !block_given?
         return @j_del.java_method(:isDestroyed, []).call()
       end
       raise ArgumentError, "Invalid arguments when calling destroyed?()"
     end
-    #  @return the amount of time in ms, after which the session will expire, if not accessed.
-    # @return [Fixnum]
+    # @return [Fixnum] the amount of time in ms, after which the session will expire, if not accessed.
     def timeout
       if !block_given?
         return @j_del.java_method(:timeout, []).call()

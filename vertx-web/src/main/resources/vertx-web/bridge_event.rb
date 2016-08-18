@@ -18,8 +18,7 @@ module VertxWeb
     def j_del
       @j_del
     end
-    #  @return  the type of the event
-    # @return [:SOCKET_CREATED,:SOCKET_CLOSED,:SEND,:PUBLISH,:RECEIVE,:REGISTER,:UNREGISTER]
+    # @return [:SOCKET_CREATED,:SOCKET_CLOSED,:SEND,:PUBLISH,:RECEIVE,:REGISTER,:UNREGISTER] the type of the event
     def type
       if !block_given?
         if @cached_type != nil

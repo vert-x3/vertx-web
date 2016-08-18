@@ -55,7 +55,6 @@ public class Cookie {
 
   /**
    * @return the name of this cookie
-   * @return 
    */
   public String getName() { 
     String ret = delegate.getName();
@@ -64,7 +63,6 @@ public class Cookie {
 
   /**
    * @return the value of this cookie
-   * @return 
    */
   public String getValue() { 
     String ret = delegate.getValue();
@@ -92,8 +90,7 @@ public class Cookie {
   }
 
   /**
-   * @return  the domain for the cookie
-   * @return 
+   * @return the domain for the cookie
    */
   public String getDomain() { 
     String ret = delegate.getDomain();

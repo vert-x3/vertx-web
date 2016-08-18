@@ -380,7 +380,6 @@ public class Router {
 
   /**
    * @return a list of all the routes on this router
-   * @return 
    */
   public List<Route> getRoutes() { 
     List<Route> ret = delegate.getRoutes().stream().map(elt -> Route.newInstance(elt)).collect(java.util.stream.Collectors.toList());

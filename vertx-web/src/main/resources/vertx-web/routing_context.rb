@@ -36,8 +36,7 @@ module VertxWeb
     def j_del
       @j_del
     end
-    #  @return the HTTP request object
-    # @return [::Vertx::HttpServerRequest]
+    # @return [::Vertx::HttpServerRequest] the HTTP request object
     def request
       if !block_given?
         if @cached_request != nil
@@ -47,8 +46,7 @@ module VertxWeb
       end
       raise ArgumentError, "Invalid arguments when calling request()"
     end
-    #  @return the HTTP response object
-    # @return [::Vertx::HttpServerResponse]
+    # @return [::Vertx::HttpServerResponse] the HTTP response object
     def response
       if !block_given?
         if @cached_response != nil
@@ -108,25 +106,21 @@ module VertxWeb
       end
       raise ArgumentError, "Invalid arguments when calling get(key)"
     end
-    #  @return the Vert.x instance associated to the initiating {::VertxWeb::Router} for this context
-    # @return [::Vertx::Vertx]
+    # @return [::Vertx::Vertx] the Vert.x instance associated to the initiating {::VertxWeb::Router} for this context
     def vertx
       if !block_given?
         return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:vertx, []).call(),::Vertx::Vertx)
       end
       raise ArgumentError, "Invalid arguments when calling vertx()"
     end
-    #  @return the mount point for this router. It will be null for a top level router. For a sub-router it will be the path
-    #  at which the subrouter was mounted.
-    # @return [String]
+    # @return [String] the mount point for this router. It will be null for a top level router. For a sub-router it will be the path at which the subrouter was mounted.
     def mount_point
       if !block_given?
         return @j_del.java_method(:mountPoint, []).call()
       end
       raise ArgumentError, "Invalid arguments when calling mount_point()"
     end
-    #  @return the current route this context is being routed through.
-    # @return [::VertxWeb::Route]
+    # @return [::VertxWeb::Route] the current route this context is being routed through.
     def current_route
       if !block_given?
         return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:currentRoute, []).call(),::VertxWeb::Route)
@@ -182,18 +176,14 @@ module VertxWeb
       end
       raise ArgumentError, "Invalid arguments when calling remove_cookie(name)"
     end
-    #  @return the number of cookies. The context must have first been routed to a {::VertxWeb::CookieHandler}
-    #  for this to work.
-    # @return [Fixnum]
+    # @return [Fixnum] the number of cookies. The context must have first been routed to a {::VertxWeb::CookieHandler} for this to work.
     def cookie_count
       if !block_given?
         return @j_del.java_method(:cookieCount, []).call()
       end
       raise ArgumentError, "Invalid arguments when calling cookie_count()"
     end
-    #  @return a set of all the cookies. The context must have first been routed to a {::VertxWeb::CookieHandler}
-    #  for this to be populated.
-    # @return [Set<::VertxWeb::Cookie>]
+    # @return [Set<::VertxWeb::Cookie>] a set of all the cookies. The context must have first been routed to a {::VertxWeb::CookieHandler} for this to be populated.
     def cookies
       if !block_given?
         return ::Vertx::Util::Utils.to_set(@j_del.java_method(:cookies, []).call()).map! { |elt| ::Vertx::Util::Utils.safe_create(elt,::VertxWeb::Cookie) }
@@ -212,36 +202,28 @@ module VertxWeb
       end
       raise ArgumentError, "Invalid arguments when calling get_body_as_string(encoding)"
     end
-    #  @return Get the entire HTTP request body as a . The context must have first been routed to a
-    #  {::VertxWeb::BodyHandler} for this to be populated.
-    # @return [Hash{String => Object}]
+    # @return [Hash{String => Object}] Get the entire HTTP request body as a . The context must have first been routed to a {::VertxWeb::BodyHandler} for this to be populated.
     def get_body_as_json
       if !block_given?
         return @j_del.java_method(:getBodyAsJson, []).call() != nil ? JSON.parse(@j_del.java_method(:getBodyAsJson, []).call().encode) : nil
       end
       raise ArgumentError, "Invalid arguments when calling get_body_as_json()"
     end
-    #  @return Get the entire HTTP request body as a . The context must have first been routed to a
-    #  {::VertxWeb::BodyHandler} for this to be populated.
-    # @return [Array<String,Object>]
+    # @return [Array<String,Object>] Get the entire HTTP request body as a . The context must have first been routed to a {::VertxWeb::BodyHandler} for this to be populated.
     def get_body_as_json_array
       if !block_given?
         return @j_del.java_method(:getBodyAsJsonArray, []).call() != nil ? JSON.parse(@j_del.java_method(:getBodyAsJsonArray, []).call().encode) : nil
       end
       raise ArgumentError, "Invalid arguments when calling get_body_as_json_array()"
     end
-    #  @return Get the entire HTTP request body as a . The context must have first been routed to a
-    #  {::VertxWeb::BodyHandler} for this to be populated.
-    # @return [::Vertx::Buffer]
+    # @return [::Vertx::Buffer] Get the entire HTTP request body as a . The context must have first been routed to a {::VertxWeb::BodyHandler} for this to be populated.
     def get_body
       if !block_given?
         return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:getBody, []).call(),::Vertx::Buffer)
       end
       raise ArgumentError, "Invalid arguments when calling get_body()"
     end
-    #  @return a set of fileuploads (if any) for the request. The context must have first been routed to a
-    #  {::VertxWeb::BodyHandler} for this to work.
-    # @return [Set<::VertxWeb::FileUpload>]
+    # @return [Set<::VertxWeb::FileUpload>] a set of fileuploads (if any) for the request. The context must have first been routed to a {::VertxWeb::BodyHandler} for this to work.
     def file_uploads
       if !block_given?
         return ::Vertx::Util::Utils.to_set(@j_del.java_method(:fileUploads, []).call()).map! { |elt| ::Vertx::Util::Utils.safe_create(elt,::VertxWeb::FileUpload) }
@@ -322,8 +304,10 @@ module VertxWeb
       end
       raise ArgumentError, "Invalid arguments when calling remove_headers_end_handler?(handlerID)"
     end
-    #  Add a handler that will be called just before the response body has been completely written.
-    #  This gives you a hook where you can write any extra data to the response before it has ended when it will be too late.
+    #  Provides a handler that will be called after the last part of the body is written to the wire.
+    #  The handler is called asynchronously of when the response has been received by the client.
+    #  This provides a hook allowing you to do more operations once the request has been sent over the wire
+    #  such as resource cleanup.
     # @yield the handler
     # @return [Fixnum] the id of the handler. This can be used if you later want to remove the handler.
     def add_body_end_handler
@@ -341,8 +325,7 @@ module VertxWeb
       end
       raise ArgumentError, "Invalid arguments when calling remove_body_end_handler?(handlerID)"
     end
-    #  @return true if the context is being routed to failure handlers.
-    # @return [true,false]
+    # @return [true,false] true if the context is being routed to failure handlers.
     def failed?
       if !block_given?
         return @j_del.java_method(:failed, []).call()

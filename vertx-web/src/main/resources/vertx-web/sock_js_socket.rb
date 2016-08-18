@@ -169,16 +169,14 @@ module VertxWeb
       end
       raise ArgumentError, "Invalid arguments when calling uri()"
     end
-    #  @return the Vert.x-Web session corresponding to this socket
-    # @return [::VertxWeb::Session]
+    # @return [::VertxWeb::Session] the Vert.x-Web session corresponding to this socket
     def web_session
       if !block_given?
         return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:webSession, []).call(),::VertxWeb::Session)
       end
       raise ArgumentError, "Invalid arguments when calling web_session()"
     end
-    #   @return the Vert.x-Web user corresponding to this socket
-    # @return [::VertxAuthCommon::User]
+    # @return [::VertxAuthCommon::User] the Vert.x-Web user corresponding to this socket
     def web_user
       if !block_given?
         return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:webUser, []).call(),::VertxAuthCommon::User)

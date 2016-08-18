@@ -271,11 +271,10 @@ var Route = function(j_val) {
   };
 
   /**
-   @return the path prefix (if any) for this route
 
    @public
 
-   @return {string}
+   @return {string} the path prefix (if any) for this route
    */
   this.getPath = function() {
     var __args = arguments;

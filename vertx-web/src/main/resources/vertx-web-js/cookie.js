@@ -36,11 +36,10 @@ var Cookie = function(j_val) {
   var that = this;
 
   /**
-   @return the name of this cookie
 
    @public
 
-   @return {string}
+   @return {string} the name of this cookie
    */
   this.getName = function() {
     var __args = arguments;
@@ -50,11 +49,10 @@ var Cookie = function(j_val) {
   };
 
   /**
-   @return the value of this cookie
 
    @public
 
-   @return {string}
+   @return {string} the value of this cookie
    */
   this.getValue = function() {
     var __args = arguments;
@@ -94,11 +92,10 @@ var Cookie = function(j_val) {
   };
 
   /**
-   @return  the domain for the cookie
 
    @public
 
-   @return {string}
+   @return {string} the domain for the cookie
    */
   this.getDomain = function() {
     var __args = arguments;

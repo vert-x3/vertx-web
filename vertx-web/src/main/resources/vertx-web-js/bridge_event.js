@@ -37,11 +37,10 @@ var BridgeEvent = function(j_val) {
   Future.call(this, j_val);
 
   /**
-   @return  the type of the event
 
    @public
 
-   @return {Object}
+   @return {Object} the type of the event
    */
   this.type = function() {
     var __args = arguments;

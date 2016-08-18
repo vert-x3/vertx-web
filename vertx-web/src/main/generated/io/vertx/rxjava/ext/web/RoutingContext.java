@@ -65,7 +65,6 @@ public class RoutingContext {
 
   /**
    * @return the HTTP request object
-   * @return 
    */
   public HttpServerRequest request() { 
     if (cached_0 != null) {
@@ -78,7 +77,6 @@ public class RoutingContext {
 
   /**
    * @return the HTTP response object
-   * @return 
    */
   public HttpServerResponse response() { 
     if (cached_1 != null) {
@@ -146,7 +144,6 @@ public class RoutingContext {
 
   /**
    * @return the Vert.x instance associated to the initiating {@link io.vertx.rxjava.ext.web.Router} for this context
-   * @return 
    */
   public Vertx vertx() { 
     Vertx ret = Vertx.newInstance(delegate.vertx());
@@ -154,9 +151,7 @@ public class RoutingContext {
   }
 
   /**
-   * @return the mount point for this router. It will be null for a top level router. For a sub-router it will be the path
-   * at which the subrouter was mounted.
-   * @return 
+   * @return the mount point for this router. It will be null for a top level router. For a sub-router it will be the path at which the subrouter was mounted.
    */
   public String mountPoint() { 
     String ret = delegate.mountPoint();
@@ -165,7 +160,6 @@ public class RoutingContext {
 
   /**
    * @return the current route this context is being routed through.
-   * @return 
    */
   public Route currentRoute() { 
     Route ret = Route.newInstance(delegate.currentRoute());
@@ -225,9 +219,7 @@ public class RoutingContext {
   }
 
   /**
-   * @return the number of cookies. The context must have first been routed to a {@link io.vertx.rxjava.ext.web.handler.CookieHandler}
-   * for this to work.
-   * @return 
+   * @return the number of cookies. The context must have first been routed to a {@link io.vertx.rxjava.ext.web.handler.CookieHandler} for this to work.
    */
   public int cookieCount() { 
     int ret = delegate.cookieCount();
@@ -235,9 +227,7 @@ public class RoutingContext {
   }
 
   /**
-   * @return a set of all the cookies. The context must have first been routed to a {@link io.vertx.rxjava.ext.web.handler.CookieHandler}
-   * for this to be populated.
-   * @return 
+   * @return a set of all the cookies. The context must have first been routed to a {@link io.vertx.rxjava.ext.web.handler.CookieHandler} for this to be populated.
    */
   public Set<Cookie> cookies() { 
     Set<Cookie> ret = delegate.cookies().stream().map(elt -> Cookie.newInstance(elt)).collect(java.util.stream.Collectors.toSet());
@@ -245,9 +235,7 @@ public class RoutingContext {
   }
 
   /**
-   * @return  the entire HTTP request body as a string, assuming UTF-8 encoding. The context must have first been routed to a
-   * {@link io.vertx.rxjava.ext.web.handler.BodyHandler} for this to be populated.
-   * @return 
+   * @return the entire HTTP request body as a string, assuming UTF-8 encoding. The context must have first been routed to a {@link io.vertx.rxjava.ext.web.handler.BodyHandler} for this to be populated.
    */
   public String getBodyAsString() { 
     String ret = delegate.getBodyAsString();
@@ -266,9 +254,7 @@ public class RoutingContext {
   }
 
   /**
-   * @return Get the entire HTTP request body as a . The context must have first been routed to a
-   * {@link io.vertx.rxjava.ext.web.handler.BodyHandler} for this to be populated.
-   * @return 
+   * @return Get the entire HTTP request body as a . The context must have first been routed to a {@link io.vertx.rxjava.ext.web.handler.BodyHandler} for this to be populated.
    */
   public JsonObject getBodyAsJson() { 
     JsonObject ret = delegate.getBodyAsJson();
@@ -276,9 +262,7 @@ public class RoutingContext {
   }
 
   /**
-   * @return Get the entire HTTP request body as a . The context must have first been routed to a
-   * {@link io.vertx.rxjava.ext.web.handler.BodyHandler} for this to be populated.
-   * @return 
+   * @return Get the entire HTTP request body as a . The context must have first been routed to a {@link io.vertx.rxjava.ext.web.handler.BodyHandler} for this to be populated.
    */
   public JsonArray getBodyAsJsonArray() { 
     JsonArray ret = delegate.getBodyAsJsonArray();
@@ -286,9 +270,7 @@ public class RoutingContext {
   }
 
   /**
-   * @return Get the entire HTTP request body as a . The context must have first been routed to a
-   * {@link io.vertx.rxjava.ext.web.handler.BodyHandler} for this to be populated.
-   * @return 
+   * @return Get the entire HTTP request body as a . The context must have first been routed to a {@link io.vertx.rxjava.ext.web.handler.BodyHandler} for this to be populated.
    */
   public Buffer getBody() { 
     Buffer ret = Buffer.newInstance(delegate.getBody());
@@ -296,9 +278,7 @@ public class RoutingContext {
   }
 
   /**
-   * @return a set of fileuploads (if any) for the request. The context must have first been routed to a
-   * {@link io.vertx.rxjava.ext.web.handler.BodyHandler} for this to work.
-   * @return 
+   * @return a set of fileuploads (if any) for the request. The context must have first been routed to a {@link io.vertx.rxjava.ext.web.handler.BodyHandler} for this to work.
    */
   public Set<FileUpload> fileUploads() { 
     Set<FileUpload> ret = delegate.fileUploads().stream().map(elt -> FileUpload.newInstance(elt)).collect(java.util.stream.Collectors.toSet());
@@ -389,8 +369,10 @@ public class RoutingContext {
   }
 
   /**
-   * Add a handler that will be called just before the response body has been completely written.
-   * This gives you a hook where you can write any extra data to the response before it has ended when it will be too late.
+   * Provides a handler that will be called after the last part of the body is written to the wire.
+   * The handler is called asynchronously of when the response has been received by the client.
+   * This provides a hook allowing you to do more operations once the request has been sent over the wire
+   * such as resource cleanup.
    * @param handler the handler
    * @return the id of the handler. This can be used if you later want to remove the handler.
    */
@@ -411,7 +393,6 @@ public class RoutingContext {
 
   /**
    * @return true if the context is being routed to failure handlers.
-   * @return 
    */
   public boolean failed() { 
     boolean ret = delegate.failed();
