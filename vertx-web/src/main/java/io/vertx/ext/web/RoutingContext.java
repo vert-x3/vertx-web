@@ -120,6 +120,16 @@ public interface RoutingContext {
   <T> T get(String key);
 
   /**
+   * Remove some data from the context. The data is available in any handlers that receive the context.
+   *
+   * @param key  the key for the data
+   * @param <T>  the type of the data
+   * @return  the previous data associated with the key
+   * @throws ClassCastException if the data is not of the expected type
+   */
+  <T> T remove(String key);
+
+  /**
    * @return all the context data as a map
    */
   @GenIgnore

@@ -146,6 +146,13 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   }
 
   @Override
+  @SuppressWarnings("unchecked")
+  public <T> T remove(String key) {
+    Object obj = getData().remove(key);
+    return (T)obj;
+  }
+
+  @Override
   public Map<String, Object> data() {
     return getData();
   }
