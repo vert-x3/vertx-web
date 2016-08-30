@@ -531,6 +531,20 @@ public class StaticHandlerTest extends WebTestBase {
   }
 
   @Test
+  public void testOutOfRangeRequestBody() throws Exception {
+    stat.setEnableRangeSupport(true);
+    testRequest(HttpMethod.GET, "/somedir/range.jpg", req -> {
+      req.headers().set("Range", "bytes=15783-");
+    }, res -> {
+      res.bodyHandler(buff -> {
+        assertEquals("bytes */15783", res.headers().get("Content-Range"));
+        testComplete();
+      });
+    }, 416, "Requested Range Not Satisfiable", null);
+    await();
+  }
+
+  @Test
   public void testContentTypeSupport() throws Exception {
     testRequest(HttpMethod.GET, "/somedir/range.jpg", req -> {
     }, res -> {
