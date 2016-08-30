@@ -59,9 +59,9 @@ public class Utils extends io.vertx.core.impl.Utils {
       for (int i = 0; i < path.length(); i++) {
         char c = path.charAt(i);
 
-        if (c == '+') {
-          result.append(' ');
-        } else if (c == '/') {
+        // we explicitly ignore the + sign as it should not be translated to
+        // space within a path as per RFC3986 we only consider percent encoded values
+        if (c == '/') {
           if (i == 0 || result.charAt(result.length() - 1) != '/')
             result.append(c);
         } else if (urldecode && c == '%') {

@@ -16,6 +16,7 @@
 
 package io.vertx.ext.web.impl;
 
+import io.netty.handler.codec.http.QueryStringDecoder;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
@@ -24,8 +25,6 @@ import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -251,39 +250,29 @@ public class RouteImpl implements Route {
           if (groups != null) {
             // Pattern - named params
             // decode the path as it could contain escaped chars.
-            try {
-              for (int i = 0; i < groups.size(); i++) {
-                final String k = groups.get(i);
-                final String value = URLDecoder.decode(m.group("p" + i), "UTF-8");
+            for (int i = 0; i < groups.size(); i++) {
+              final String k = groups.get(i);
+              final String value = QueryStringDecoder.decodeComponent(m.group("p" + i).replace("+", "%2b"));
+              if (!request.params().contains(k)) {
+                params.put(k, value);
+              } else {
+                context.pathParams().put(k, value);
+              }
+            }
+          } else {
+            // Straight regex - un-named params
+            // decode the path as it could contain escaped chars.
+            for (int i = 0; i < m.groupCount(); i++) {
+              String group = m.group(i + 1);
+              if(group != null) {
+                final String k = "param" + i;
+                final String value = QueryStringDecoder.decodeComponent(group.replace("+", "%2b"));
                 if (!request.params().contains(k)) {
                   params.put(k, value);
                 } else {
                   context.pathParams().put(k, value);
                 }
               }
-            } catch (UnsupportedEncodingException e) {
-              context.fail(e);
-              return false;
-            }
-          } else {
-            // Straight regex - un-named params
-            // decode the path as it could contain escaped chars.
-            try {
-              for (int i = 0; i < m.groupCount(); i++) {
-                String group = m.group(i + 1);
-                if(group != null) {
-                  final String k = "param" + i;
-                  final String value = URLDecoder.decode(group, "UTF-8");
-                  if (!request.params().contains(k)) {
-                    params.put(k, value);
-                  } else {
-                    context.pathParams().put(k, value);
-                  }
-                }
-              }
-            } catch (UnsupportedEncodingException e) {
-              context.fail(e);
-              return false;
             }
           }
           request.params().addAll(params);
