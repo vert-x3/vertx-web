@@ -323,6 +323,7 @@ public class StaticHandlerImpl implements StaticHandler {
               }
             }
           } catch (NumberFormatException | IndexOutOfBoundsException e) {
+            context.response().putHeader("Content-Range", "bytes */" + fileProps.size());
             context.fail(REQUESTED_RANGE_NOT_SATISFIABLE.code());
             return;
           }
