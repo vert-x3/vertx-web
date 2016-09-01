@@ -8,6 +8,14 @@ public class ParsedWeightedMIME extends ParsedMIME implements Comparable<ParsedM
     super(mimeComponent, mimeSubComponent);
     this.weight = weight;
   }
+  
+  public ParsedWeightedMIME weight(double weight) {
+    this.weight = weight;
+    return this;
+  }
+  public double weight() {
+    return weight;
+  }
 
   @Override
   public int compareTo(ParsedMIME otherObj) {
