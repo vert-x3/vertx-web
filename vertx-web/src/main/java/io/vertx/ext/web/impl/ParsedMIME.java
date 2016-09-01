@@ -28,7 +28,7 @@ public class ParsedMIME implements Comparable<ParsedMIME>{
   public ParsedMIME addParameter(String key, String value) {
     ensureParameterExists();
     
-    parameter.put(key, EMPTY);
+    parameter.put(key, value);
     return this;
   }
   
