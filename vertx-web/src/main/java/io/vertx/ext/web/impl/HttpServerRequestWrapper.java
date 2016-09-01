@@ -1,5 +1,6 @@
 package io.vertx.ext.web.impl;
 
+import io.vertx.codegen.annotations.Nullable;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.buffer.Buffer;
@@ -11,6 +12,9 @@ import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.security.cert.X509Certificate;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 class HttpServerRequestWrapper implements HttpServerRequest {
 
@@ -19,14 +23,49 @@ class HttpServerRequestWrapper implements HttpServerRequest {
   private String path;
   private String uri;
   private String absoluteURI;
+  private ParsedMIMES parsedHeaders;
 
+  static class ParsedMIMES{
+    public final List<ParsedMIME> accept;
+    public final ParsedMIME contentType;
+    public ParsedMIMES(List<ParsedMIME> accept, ParsedMIME contentType) {
+      this.accept = accept;
+      this.contentType = contentType;
+    }
+  }
+  
   HttpServerRequestWrapper(HttpServerRequest request) {
     delegate = request;
     method = request.method();
     path = request.path();
     uri = request.uri();
     absoluteURI = null;
+    
+    // MYTODO for POC convenience, this is calculated here. In reality, it should be lazy
+    processHeaders(delegate.headers());
   }
+ 
+  
+  private void processHeaders(MultiMap source) {
+    
+    @Nullable
+    String acceptHeader = source.get("Accept");
+    String contentType = source.get("Content-Type");
+    
+    if(acceptHeader == null){
+      acceptHeader = "*/*";
+    }
+    if(contentType == null){
+      contentType = "*/*";
+    }
+    
+    parsedHeaders = new ParsedMIMES(
+        MIMEParser.parseMIMETypes(acceptHeader),
+        MIMEParser.parseMIMEType(contentType)
+    );
+    
+  }
+  
 
   @Override
   public HttpServerRequest exceptionHandler(Handler<Throwable> handler) {
@@ -103,6 +142,10 @@ class HttpServerRequestWrapper implements HttpServerRequest {
   @Override
   public MultiMap headers() {
     return delegate.headers();
+  }
+  
+  public ParsedMIMES parsedHeaders() {
+    return parsedHeaders;
   }
 
   @Override
