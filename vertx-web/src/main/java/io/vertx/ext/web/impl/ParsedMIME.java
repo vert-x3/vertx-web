@@ -26,6 +26,14 @@ public class ParsedMIME implements Comparable<ParsedMIME>{
     this.subComponent = mimeSubComponent.equals(STAR) ? STAR : mimeSubComponent;
   }
   
+  /**
+   * Import a ParsedMIME
+   */
+  protected ParsedMIME(ParsedMIME mime) {
+    this(mime.component, mime.subComponent);
+    parameter = mime.parameter;
+  }
+
   @Fluent
   public ParsedMIME addParameter(String key, String value) {
     ensureParameterExists();
