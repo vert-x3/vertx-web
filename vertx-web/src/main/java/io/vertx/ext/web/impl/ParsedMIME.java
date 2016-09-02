@@ -68,7 +68,6 @@ public class ParsedMIME implements Comparable<ParsedMIME>{
     
     if (matchTry.parameter == null) {
       return true;
-      
     }
     if (parameter == null) {
       return false;
