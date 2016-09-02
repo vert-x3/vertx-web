@@ -12,7 +12,7 @@ public class MIMEParser {
   // TODO investigate if something more complex is required as this only follows the RFC partly
   private static final Pattern COMMA_SPLITTER = Pattern.compile(" *, *");
   private static final Pattern PARAMETER_FINDER =
-      Pattern.compile("\\s*;\\s*(?<key>[a-zA-Z0-9]+)\\s*(?:=\\s*(?<value>(?:[a-zA-Z0-9.@#%]|\"[^\"]+\")+))?");
+      Pattern.compile("\\s*;\\s*(?<key>[a-zA-Z0-9]+)\\s*(?:=\\s*(?<value>(?:[a-zA-Z0-9.@#%-_]|\"[^\"]+\")+))?");
   
   public static ParsedMIME parseMIMEType(String unparsedMIME){
     int slashIndex = unparsedMIME.indexOf('/');
