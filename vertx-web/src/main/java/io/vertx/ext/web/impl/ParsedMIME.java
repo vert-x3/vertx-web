@@ -111,7 +111,7 @@ public class ParsedMIME implements Comparable<ParsedMIME>{
   
   @Override
   /**
-   * This still has a long way to optimization. As long as reducing each class to 1 number, if needed
+   * MYTODO This still has a long way to optimization. As long as reducing each class to 1 number, if needed
    */
   public int compareTo(ParsedMIME other) {
     // The most specific is always the most relevant

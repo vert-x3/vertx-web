@@ -297,6 +297,7 @@ public class RouteImpl implements Route {
     }
     if (!consumes.isEmpty()) {
       // Can this route consume the specified content type
+      // MYTODO How should this be? Cast or add to interface?
       ParsedMIME contentType = ((HttpServerRequestWrapper) request).parsedHeaders().contentType;
       Optional<ParsedMIME> consumal = contentType.findMatchedBy(consumes);
       return consumal.isPresent();
