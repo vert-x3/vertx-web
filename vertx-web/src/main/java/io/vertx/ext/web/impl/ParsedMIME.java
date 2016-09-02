@@ -59,10 +59,10 @@ public class ParsedMIME implements Comparable<ParsedMIME>{
    */
   public boolean isMatchedBy(ParsedMIME matchTry) {
 
-    if (component != STAR && !component.equals(matchTry.component)) {
+    if (component != STAR && matchTry.component != STAR && !component.equals(matchTry.component)) {
       return false;
     }
-    if (subComponent != STAR && !subComponent.equals(matchTry.subComponent)) {
+    if (subComponent != STAR && matchTry.subComponent != STAR && !subComponent.equals(matchTry.subComponent)) {
       return false;
     }
     
