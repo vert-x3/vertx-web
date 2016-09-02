@@ -14,6 +14,12 @@ public class MIMEParser {
   private static final Pattern PARAMETER_FINDER =
       Pattern.compile("\\s*;\\s*(?<key>[a-zA-Z0-9]+)\\s*(?:=\\s*(?<value>(?:[a-zA-Z0-9.@#%-_]|\"[^\"]+\")+))?");
   
+  /**
+   * This method is designed to parse any single-valued HTTP header with a MIME type but
+   * it is only tested to parse a value of <code>Accept</code> header or the <code>Content-Type</code> header. 
+   * 
+   * @return
+   */
   public static ParsedMIME parseMIMEType(String unparsedMIME){
     int slashIndex = unparsedMIME.indexOf('/');
     int paramIndex = unparsedMIME.indexOf(';');
@@ -56,6 +62,12 @@ public class MIMEParser {
     
   }
   
+  /**
+   * This method is designed to parse any multi-valued HTTP header of MIME types but
+   * it is only tested to parse the <code>Accept</code> header. 
+   * 
+   * @return
+   */
   public static List<ParsedMIME> parseMIMETypes(String unparsedMIMEs){
     
     String[] listedMIMEs = COMMA_SPLITTER.split(unparsedMIMEs);
