@@ -22,7 +22,7 @@ public class MIMEParser {
     String subcomponent; 
 
     if(paramIndex < 0){
-      subcomponent = unparsedMIME.substring(slashIndex);
+      subcomponent = unparsedMIME.substring(slashIndex + 1);
     } else {
       subcomponent = unparsedMIME.substring(slashIndex + 1, paramIndex);
     }
