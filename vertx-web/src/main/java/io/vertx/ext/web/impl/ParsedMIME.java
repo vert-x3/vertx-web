@@ -87,7 +87,7 @@ public class ParsedMIME implements Comparable<ParsedMIME>{
     return true;
   }
   
-  public Optional<ParsedMIME> findMatchedBy(Iterable<ParsedMIME> matchTries) {
+  public Optional<ParsedMIME> findMatchedBy(Iterable<? extends ParsedMIME> matchTries) {
     
     for (ParsedMIME matchTry : matchTries) {
       if(isMatchedBy(matchTry)){
