@@ -16,12 +16,14 @@ public class ParsedMIME implements Comparable<ParsedMIME>{
   private String subComponent;
   
   private Map<String, String> parameter;
-  
+
+  private static final String STAR = "*";
   private static final String EMPTY = "";
   
   public ParsedMIME(String mimeComponent, String mimeSubComponent) {
-    this.component = mimeComponent;
-    this.subComponent = mimeSubComponent;
+    
+    this.component = mimeComponent.equals(STAR) ? STAR : mimeComponent;
+    this.subComponent = mimeSubComponent.equals(STAR) ? STAR : mimeSubComponent;
   }
   
   @Fluent
