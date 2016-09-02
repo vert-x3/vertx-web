@@ -287,6 +287,20 @@ public class RoutingContextImpl extends RoutingContextImplBase {
     normalisedPath = null;
     // we also need to reset any previous status
     statusCode = -1;
+    // we need to reset any response headers
+    response().headers().clear();
+    // special header case cookies are parsed and cached
+    if (cookies != null) {
+      cookies.clear();
+    }
+    // reset the end handlers
+    if (headersEndHandlers != null) {
+      headersEndHandlers.clear();
+    }
+    if (bodyEndHandlers != null) {
+      bodyEndHandlers.clear();
+    }
+
     failure = null;
     restart();
   }
