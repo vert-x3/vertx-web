@@ -1,6 +1,7 @@
 package io.vertx.ext.web.impl;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -77,7 +78,7 @@ public class MIMEParser {
     for (String listedMIME : listedMIMEs) {
       parsedMIMEs.add(parseMIMEType(listedMIME));
     }
-    
+    Collections.sort(parsedMIMEs);
     return parsedMIMEs;
   }
   
