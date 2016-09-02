@@ -25,8 +25,14 @@ public class MIMEParser {
     int slashIndex = unparsedMIME.indexOf('/');
     int paramIndex = unparsedMIME.indexOf(';');
     
-    String component = unparsedMIME.substring(0, slashIndex);
-    String subcomponent; 
+    String component;
+    String subcomponent;
+    
+    if(slashIndex < 0){
+      component = "*";
+    } else {
+      component = unparsedMIME.substring(0, slashIndex);
+    }
 
     if(paramIndex < 0){
       subcomponent = unparsedMIME.substring(slashIndex + 1);
