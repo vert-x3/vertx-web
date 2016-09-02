@@ -5,7 +5,10 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.TreeSet;
 
 import io.vertx.codegen.annotations.Fluent;
@@ -48,6 +51,50 @@ public class ParsedMIME implements Comparable<ParsedMIME>{
     
     parameter.put(key, EMPTY);
     return this;
+  }
+  
+  /**
+   * Tests if this MIME complies with matchTry MIME
+   * @return
+   */
+  public boolean isMatchedBy(ParsedMIME matchTry) {
+
+    if (component != STAR && !component.equals(matchTry.component)) {
+      return false;
+    }
+    if (subComponent != STAR && !subComponent.equals(matchTry.subComponent)) {
+      return false;
+    }
+    
+    if (matchTry.parameter == null) {
+      return true;
+      
+    }
+    if (parameter == null) {
+      return false;
+    }
+      
+    for (Entry<String, String> requiredParameter : matchTry.parameter.entrySet()) {
+      String parameterValueToTest = parameter.get(requiredParameter.getKey());
+      String requiredParamVal = requiredParameter.getValue();
+      
+      if (parameterValueToTest == null || (
+          requiredParamVal != null && !requiredParamVal.equals(parameterValueToTest))
+         ){
+        return false;
+      }
+    }
+    return true;
+  }
+  
+  public Optional<ParsedMIME> findMatchedBy(Iterable<ParsedMIME> matchTries) {
+    
+    for (ParsedMIME matchTry : matchTries) {
+      if(isMatchedBy(matchTry)){
+        return Optional.of(matchTry);
+      }
+    }
+    return Optional.empty();
   }
   
   private void ensureParameterExists() {
