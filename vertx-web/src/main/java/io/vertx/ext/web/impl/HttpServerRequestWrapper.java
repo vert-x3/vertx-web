@@ -56,9 +56,8 @@ class HttpServerRequestWrapper implements HttpServerRequest {
       acceptHeader = "*/*";
     }
     if(contentType == null){
-      // although this doesn't make sense according to the RFC, it does algorithmically
-      // MYTODO check behaviors that use this in multiple requests
-      contentType = "*/*";
+      // If no contentType is set, then only the "*" may match it
+      contentType = "\0";
     }
     
     parsedHeaders = new ParsedMIMES(
