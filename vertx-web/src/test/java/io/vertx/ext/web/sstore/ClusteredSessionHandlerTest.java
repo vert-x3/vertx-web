@@ -137,6 +137,8 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
   public void testSessionSerializationNullPrincipal() {
     long timeout = 123;
     SessionImpl session = (SessionImpl)store.createSession(timeout);
+    session.setAccessed();
+    long lastAccessed = session.lastAccessed();    
     stuffSession(session);
     checkSession(session);
     Buffer buffer = Buffer.buffer();
@@ -145,6 +147,7 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
     session2.readFromBuffer(0, buffer);
     checkSession(session2);
     assertEquals(timeout, session2.timeout());
+    assertEquals(lastAccessed, session2.lastAccessed());
     assertEquals(session.id(), session2.id());
   }
 
