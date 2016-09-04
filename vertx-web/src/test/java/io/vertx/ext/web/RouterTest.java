@@ -1844,4 +1844,15 @@ public class RouterTest extends WebTestBase {
       assertTrue(headers.contains("X-Here-2"));
     }, 200, "OK", null);
   }
+
+  @Test
+  public void testGetWithPlusPath2() throws Exception {
+    router.get("/:param1").useNormalisedPath(false).handler(rc -> {
+      assertEquals("/some+path",rc.normalisedPath());
+      assertEquals("some+path",rc.pathParam("param1"));
+      assertEquals("some query",rc.request().getParam("q1"));
+      rc.response().setStatusMessage("foo").end();
+    });
+    testRequest(HttpMethod.GET, "/some+path?q1=some+query", 200, "foo");
+  }
 }

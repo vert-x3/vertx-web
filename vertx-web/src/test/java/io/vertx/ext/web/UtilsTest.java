@@ -40,7 +40,8 @@ public class UtilsTest {
 
   @Test
   public void testPathWithSpaces1() throws Exception {
-    assertEquals("/foo blah/eek", Utils.normalisePath("/foo+blah/eek"));
+    // this is a special case since only percent encoded values should be unescaped from the path
+    assertEquals("/foo+blah/eek", Utils.normalisePath("/foo+blah/eek"));
   }
 
   @Test

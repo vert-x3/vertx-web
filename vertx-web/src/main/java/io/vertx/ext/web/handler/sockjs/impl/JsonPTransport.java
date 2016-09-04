@@ -32,6 +32,7 @@
 
 package io.vertx.ext.web.handler.sockjs.impl;
 
+import io.netty.handler.codec.http.QueryStringDecoder;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServerRequest;
@@ -42,9 +43,6 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSSocket;
-
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -116,12 +114,7 @@ class JsonPTransport extends BaseTransport {
       }
 
       if (urlEncoded) {
-        try {
-          body = URLDecoder.decode(body, "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-          throw new IllegalStateException("No UTF-8!");
-        }
-        body = body.substring(2);
+        body = QueryStringDecoder.decodeComponent(body).substring(2);
       }
 
       if (!session.handleMessages(body)) {
