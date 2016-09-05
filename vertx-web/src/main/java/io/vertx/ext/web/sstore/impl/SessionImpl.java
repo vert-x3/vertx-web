@@ -129,6 +129,7 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
     byte[] bytes = id.getBytes(UTF8);
     buff.appendInt(bytes.length).appendBytes(bytes);
     buff.appendLong(timeout);
+    buff.appendLong(lastAccessed);
     Buffer dataBuf = writeDataToBuffer();
     buff.appendBuffer(dataBuf);
   }
@@ -141,6 +142,8 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
     pos += len;
     id = new String(bytes, UTF8);
     timeout = buffer.getLong(pos);
+    pos += 8;
+    lastAccessed = buffer.getLong(pos);
     pos += 8;
     pos = readDataFromBuffer(pos, buffer);
     return pos;
