@@ -273,6 +273,18 @@ means the next one won't be executed until the previous one has completed. If yo
 don't mind your blocking handlers executing in parallel you can set the blocking handler specifying `ordered` as
 false using `link:../../yardoc/VertxWeb/Route.html#blocking_handler-instance_method[blockingHandler]`.
 
+IMPORTANT: When using blockingHandler in combination with multipart forms, you must add an additional async handler BEFORE the blockingHandler
+           in order to call `setEnableMultipart(true). This is demonstrated below:
+[source,ruby]
+----
+router.route("/post/path").handler(lambda { |ctx|
+    ctx.set_enable_multipart(true); // Set enable multipart processing
+    ctx.next();                     // Tell vertx-web/Router to continue processing other handler (like our blockingHandler)
+}).blocking_handler(lambda { |ctx|
+    blocking_handler(ctx)
+})
+----
+
 == Routing by exact path
 
 A route can be set-up to match the path from the request URI. In this case it will match any request which has a path

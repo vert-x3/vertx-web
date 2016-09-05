@@ -260,6 +260,16 @@ means the next one won't be executed until the previous one has completed. If yo
 don't mind your blocking handlers executing in parallel you can set the blocking handler specifying `ordered` as
 false using `link:../../apidocs/io/vertx/ext/web/Route.html#blockingHandler-io.vertx.core.Handler-boolean-[blockingHandler]`.
 
+IMPORTANT: When using blockingHandler in combination with multipart forms, you must add an additional async handler BEFORE the blockingHandler 
+           in order to call `setEnableMultipart(true). This is demonstrated below:
+[source,java]
+----
+router.route("/post/path").handler(ctx -> {
+    ctx.setEnableMultipart(true); // Set enable multipart processing
+    ctx.next();                   // Tell vertx-web/Router to continue processing other handler (like our blockingHandler)
+}).blockingHandler(this::blockingHandler);
+----
+
 == Routing by exact path
 
 A route can be set-up to match the path from the request URI. In this case it will match any request which has a path
