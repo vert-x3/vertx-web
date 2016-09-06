@@ -274,12 +274,13 @@ don't mind your blocking handlers executing in parallel you can set the blocking
 false using `link:../../yardoc/VertxWeb/Route.html#blocking_handler-instance_method[blockingHandler]`.
 
 Note, if you need to process multipart form data from a blocking handler, you MUST use a non-blocking handler
-      FIRST in order to call `setExpectMultipart(true)`
+      FIRST in order to call `setExpectMultipart(true)`. Here is an example:
 
 [source,ruby]
 ----
 router.post("/some/endpoint").handler() { |ctx|
   ctx.request().set_expect_multipart(true)
+  ctx.next()
 }.blocking_handler() { |ctx|
   # ... Do some blocking operation
 }

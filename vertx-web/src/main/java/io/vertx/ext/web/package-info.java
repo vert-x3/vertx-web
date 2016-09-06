@@ -196,7 +196,7 @@
  * false using {@link io.vertx.ext.web.Route#blockingHandler(io.vertx.core.Handler, boolean)}.
  *
  * Note, if you need to process multipart form data from a blocking handler, you MUST use a non-blocking handler
- *       FIRST in order to call {@code setExpectMultipart(true)}
+ *       FIRST in order to call {@code setExpectMultipart(true)}. Here is an example:
  *
  * [source,$lang]
  * ----
