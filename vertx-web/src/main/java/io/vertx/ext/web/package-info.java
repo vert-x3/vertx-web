@@ -195,6 +195,14 @@
  * don't mind your blocking handlers executing in parallel you can set the blocking handler specifying `ordered` as
  * false using {@link io.vertx.ext.web.Route#blockingHandler(io.vertx.core.Handler, boolean)}.
  *
+ * Note, if you need to process multipart form data from a blocking handler, you MUST use a non-blocking handler
+ *       FIRST in order to call {@code setExpectMultipart(true)}. Here is an example:
+ *
+ * [source,$lang]
+ * ----
+ * {@link examples.WebExamples#example20_2}
+ * ----
+ *
  * == Routing by exact path
  *
  * A route can be set-up to match the path from the request URI. In this case it will match any request which has a path

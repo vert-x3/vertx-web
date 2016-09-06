@@ -448,6 +448,15 @@ public class WebExamples {
     });
   }
 
+  public void example20_2(Router router) {
+    router.post("/some/endpoint").handler(ctx -> {
+      ctx.request().setExpectMultipart(true);
+      ctx.next();
+    }).blockingHandler(ctx -> {
+      // ... Do some blocking operation
+    });
+  }
+
   interface SomeLegacyService {
 
     void doSomethingThatBlocks();
