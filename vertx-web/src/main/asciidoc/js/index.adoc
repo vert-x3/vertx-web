@@ -273,6 +273,19 @@ means the next one won't be executed until the previous one has completed. If yo
 don't mind your blocking handlers executing in parallel you can set the blocking handler specifying `ordered` as
 false using `link:../../jsdoc/module-vertx-web-js_route-Route.html#blockingHandler[blockingHandler]`.
 
+Note, if you need to process multipart form data from a blocking handler, you MUST use a non-blocking handler
+      FIRST in order to call `setExpectMultipart(true)`
+
+[source,js]
+----
+router.post("/some/endpoint").handler(function (ctx) {
+  ctx.request().setExpectMultipart(true);
+}).blockingHandler(function (ctx) {
+  // ... Do some blocking operation
+});
+
+----
+
 == Routing by exact path
 
 A route can be set-up to match the path from the request URI. In this case it will match any request which has a path

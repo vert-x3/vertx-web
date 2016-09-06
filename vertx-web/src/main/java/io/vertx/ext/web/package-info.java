@@ -200,7 +200,7 @@
  *
  * [source,$lang]
  * ----
- * {@link example.WebExamples#example20_2}
+ * {@link examples.WebExamples#example20_2}
  * ----
  *
  * == Routing by exact path
