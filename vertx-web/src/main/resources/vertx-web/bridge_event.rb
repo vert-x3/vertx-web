@@ -18,6 +18,110 @@ module VertxWeb
     def j_del
       @j_del
     end
+    # @return [true,false]
+    def complete?
+      if !block_given?
+        return @j_del.java_method(:isComplete, []).call()
+      end
+      raise ArgumentError, "Invalid arguments when calling complete?()"
+    end
+    # @yield 
+    # @return [self]
+    def set_handler
+      if block_given?
+        @j_del.java_method(:setHandler, [Java::IoVertxCore::Handler.java_class]).call((Proc.new { |ar| yield(ar.failed ? ar.cause : nil, ar.succeeded ? ar.result : nil) }))
+        return self
+      end
+      raise ArgumentError, "Invalid arguments when calling set_handler()"
+    end
+    # @param [true,false] arg0 
+    # @return [void]
+    def complete(arg0=nil)
+      if !block_given? && arg0 == nil
+        return @j_del.java_method(:complete, []).call()
+      elsif (arg0.class == TrueClass || arg0.class == FalseClass) && !block_given?
+        return @j_del.java_method(:complete, [Java::JavaLang::Boolean.java_class]).call(arg0)
+      end
+      raise ArgumentError, "Invalid arguments when calling complete(arg0)"
+    end
+    # @overload fail(arg0)
+    #   @param [Exception] arg0 
+    # @overload fail(arg0)
+    #   @param [String] arg0 
+    # @return [void]
+    def fail(param_1=nil)
+      if param_1.is_a?(Exception) && !block_given?
+        return @j_del.java_method(:fail, [Java::JavaLang::Throwable.java_class]).call(::Vertx::Util::Utils.to_throwable(param_1))
+      elsif param_1.class == String && !block_given?
+        return @j_del.java_method(:fail, [Java::java.lang.String.java_class]).call(param_1)
+      end
+      raise ArgumentError, "Invalid arguments when calling fail(param_1)"
+    end
+    # @return [true,false]
+    def result?
+      if !block_given?
+        return @j_del.java_method(:result, []).call()
+      end
+      raise ArgumentError, "Invalid arguments when calling result?()"
+    end
+    # @return [Exception]
+    def cause
+      if !block_given?
+        return ::Vertx::Util::Utils.from_throwable(@j_del.java_method(:cause, []).call())
+      end
+      raise ArgumentError, "Invalid arguments when calling cause()"
+    end
+    # @return [true,false]
+    def succeeded?
+      if !block_given?
+        return @j_del.java_method(:succeeded, []).call()
+      end
+      raise ArgumentError, "Invalid arguments when calling succeeded?()"
+    end
+    # @return [true,false]
+    def failed?
+      if !block_given?
+        return @j_del.java_method(:failed, []).call()
+      end
+      raise ArgumentError, "Invalid arguments when calling failed?()"
+    end
+    # @overload compose(mapper)
+    #   @yield 
+    # @overload compose(handler,next)
+    #   @param [Proc] handler 
+    #   @param [::Vertx::Future] _next 
+    # @return [::Vertx::Future]
+    def compose(param_1=nil,param_2=nil)
+      if block_given? && param_1 == nil && param_2 == nil
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:compose, [Java::JavaUtilFunction::Function.java_class]).call((Proc.new { |event| yield(event).j_del })),::Vertx::Future)
+      elsif param_1.class == Proc && param_2.class.method_defined?(:j_del) && !block_given?
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:compose, [Java::IoVertxCore::Handler.java_class,Java::IoVertxCore::Future.java_class]).call((Proc.new { |event| param_1.call(event) }),param_2.j_del),::Vertx::Future)
+      end
+      raise ArgumentError, "Invalid arguments when calling compose(param_1,param_2)"
+    end
+    # @overload map(mapper)
+    #   @yield 
+    # @overload map(value)
+    #   @param [Object] value 
+    # @return [::Vertx::Future]
+    def map(param_1=nil)
+      if block_given? && param_1 == nil
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:map, [Java::JavaUtilFunction::Function.java_class]).call((Proc.new { |event| ::Vertx::Util::Utils.to_object(yield(event)) })),::Vertx::Future)
+      elsif (param_1.class == String  || param_1.class == Hash || param_1.class == Array || param_1.class == NilClass || param_1.class == TrueClass || param_1.class == FalseClass || param_1.class == Fixnum || param_1.class == Float) && !block_given?
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:map, [Java::java.lang.Object.java_class]).call(::Vertx::Util::Utils.to_object(param_1)),::Vertx::Future)
+      end
+      raise ArgumentError, "Invalid arguments when calling map(param_1)"
+    end
+    # @return [Proc]
+    def completer
+      if !block_given?
+        if @cached_completer != nil
+          return @cached_completer
+        end
+        return @cached_completer = ::Vertx::Util::Utils.to_async_result_handler_proc(@j_del.java_method(:completer, []).call()) { |val| val }
+      end
+      raise ArgumentError, "Invalid arguments when calling completer()"
+    end
     # @return [:SOCKET_CREATED,:SOCKET_CLOSED,:SEND,:PUBLISH,:RECEIVE,:REGISTER,:UNREGISTER] the type of the event
     def type
       if !block_given?

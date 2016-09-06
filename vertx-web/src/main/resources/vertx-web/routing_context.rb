@@ -106,6 +106,15 @@ module VertxWeb
       end
       raise ArgumentError, "Invalid arguments when calling get(key)"
     end
+    #  Remove some data from the context. The data is available in any handlers that receive the context.
+    # @param [String] key the key for the data
+    # @return [Object] the previous data associated with the key
+    def remove(key=nil)
+      if key.class == String && !block_given?
+        return ::Vertx::Util::Utils.from_object(@j_del.java_method(:remove, [Java::java.lang.String.java_class]).call(key))
+      end
+      raise ArgumentError, "Invalid arguments when calling remove(key)"
+    end
     # @return [::Vertx::Vertx] the Vert.x instance associated to the initiating {::VertxWeb::Router} for this context
     def vertx
       if !block_given?
