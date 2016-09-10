@@ -17,15 +17,11 @@ import java.util.regex.Pattern;
 public class HeaderParser {
   
   
-  private static Pattern COMMA_SPLITTER = Pattern.compile(" *, *");
+  private static Pattern COMMA_SPLITTER = Pattern.compile(",(?=(?:(?<!\\\\)\"(?:(?!(?<!\\\\)\").)*(?<!\\\\)\"|\\\\.|[^\"])*$)");
   private static final Pattern HYPHEN_SPLITTER = Pattern.compile("-");
   private static final Pattern PARAMETER_FINDER =
       Pattern.compile("\\s*;\\s*(?<key>[a-zA-Z0-9]+)\\s*" +
           "(?:=\\s*(?:(?<value1>[a-zA-Z0-9.@#\\-%_]+)|\"(?<value2>(?:[^\\\\\"]*(?:\\\\.)?)*)\"+))?");
-  
-  public static void stricterCommaSplitter(){
-    COMMA_SPLITTER = Pattern.compile(",(?=(?:(?<!\\\\)\"(?:(?!(?<!\\\\)\").)*(?<!\\\\)\"|\\\\.|[^\"])*$)");
-  }
   
   /**
    * Transforms each header value into the given ParsableHeaderValue
