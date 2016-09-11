@@ -1,7 +1,5 @@
 package io.vertx.ext.web.impl;
 
-import io.vertx.codegen.annotations.Nullable;
-import io.vertx.ext.web.LanguageHeader;
 import io.vertx.ext.web.MIMEHeader;
 
 public class ParsableMIMEValue extends ParsableHeaderValue implements MIMEHeader{
@@ -39,6 +37,11 @@ public class ParsableMIMEValue extends ParsableHeaderValue implements MIMEHeader
       orderWeight = STAR == component ? 0 : 1;
       orderWeight += STAR == subComponent ? 0 : 2;
     }
+  }
+  
+  public ParsableMIMEValue forceParse(){
+    ensureHeaderProcessed();
+    return this;
   }
   
   private void setComponent(String component) {

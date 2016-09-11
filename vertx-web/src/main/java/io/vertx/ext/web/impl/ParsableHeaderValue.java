@@ -73,6 +73,11 @@ public class ParsableHeaderValue implements ParsedHeaderValue {
     }
   }
   
+  public ParsableHeaderValue forceParse(){
+    ensureHeaderProcessed();
+    return this;
+  }
+  
   private void setValue(String value) {
     this.value = value;
   }
