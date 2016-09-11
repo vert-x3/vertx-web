@@ -291,6 +291,21 @@ public interface RoutingContext {
    * @return  the most acceptable content type.
    */
   @Nullable String getAcceptableContentType();
+  
+  /**
+   * The headers:
+   * <ol>
+   * <li>Accept</li>
+   * <li>Accept-Charset</li>
+   * <li>Accept-Encoding</li>
+   * <li>Accept-Language</li>
+   * <li>Content-Type</li>
+   * </ol>
+   * Parsed into {@link ParsedHeaderValue}
+   * @return A container with the parsed headers.
+   */
+  @CacheReturn
+  ParsedHeaderValues parsedHeaders();
 
   /**
    * Add a handler that will be called just before headers are written to the response. This gives you a hook where
