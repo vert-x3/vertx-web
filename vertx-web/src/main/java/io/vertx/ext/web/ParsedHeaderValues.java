@@ -18,7 +18,7 @@ public interface ParsedHeaderValues {
   List<MIMEHeader> accept();
   List<ParsedHeaderValue> acceptCharset();
   List<ParsedHeaderValue> acceptEncoding();
-  List<ParsedHeaderValue> acceptLanguage();
+  List<LanguageHeader> acceptLanguage();
   
   MIMEHeader contentType();
 }
