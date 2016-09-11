@@ -23,9 +23,13 @@ package io.vertx.ext.web;
  */
 
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.ext.web.impl.LocaleImpl;
+import io.vertx.ext.web.impl.ParsableLanguageValue;
 
+/**
+ * @deprecated Use {@link LanguageHeader} instead
+ */
 @VertxGen
+@Deprecated
 public interface Locale {
 
   static Locale create() {
@@ -48,21 +52,27 @@ public interface Locale {
   /**
    * Returns the language as reported by the HTTP client.
    *
+   * @deprecated Use {@link LanguageHeader#tag()} instead
    * @return language
    */
+  @Deprecated
   String language();
 
   /**
    * Returns the country as reported by the HTTP client.
    *
+   * @deprecated Use {@link LanguageHeader#subtag()} instead
    * @return variant
    */
+  @Deprecated
   String country();
 
   /**
    * Returns the variant as reported by the HTTP client.
    *
+   * @deprecated Use {@link LanguageHeader#subtag(2)} instead
    * @return variant
    */
+  @Deprecated
   String variant();
 }
