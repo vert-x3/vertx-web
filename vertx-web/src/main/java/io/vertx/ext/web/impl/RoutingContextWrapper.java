@@ -243,6 +243,11 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   }
 
   @Override
+  public ParsedHeaderValues parsedHeaders() {
+    return inner.parsedHeaders();
+  }
+
+  @Override
   public void setAcceptableContentType(String contentType) {
     inner.setAcceptableContentType(contentType);
   }

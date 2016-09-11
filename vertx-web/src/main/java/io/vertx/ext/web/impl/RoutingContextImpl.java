@@ -48,6 +48,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   private int statusCode = -1;
   private String normalisedPath;
   private String acceptableContentType;
+  private ParsableHeaderValuesContainer parsedHeaders;
 
   // We use Cookie as the key too so we can return keySet in cookies() without copying
   private Map<String, Cookie> cookies;
@@ -259,6 +260,11 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   @Override
   public void setAcceptableContentType(String contentType) {
     this.acceptableContentType = contentType;
+  }
+  
+  @Override
+  public ParsableHeaderValuesContainer parsedHeaders() {
+    return parsedHeaders;
   }
 
   @Override
