@@ -99,5 +99,29 @@ public class ParsableHeaderValue implements ParsedHeaderValue {
   protected int weightedOrderPart2(){
     return 0;
   }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(headerContent);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (obj == null || !(obj instanceof ParsableHeaderValue)) {
+      return false;
+    }
+    ParsableHeaderValue other = (ParsableHeaderValue) obj;
+    if (headerContent == null) {
+      if (other.headerContent != null) {
+        return false;
+      }
+    } else if (!headerContent.equals(other.headerContent)) {
+      return false;
+    }
+    return true;
+  }
   
 }
