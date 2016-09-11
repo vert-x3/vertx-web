@@ -19,16 +19,14 @@ public interface LanguageHeader extends ParsedHeaderValue, Locale{
    * Equivalent to {@link #subtag(int) subtag(1)}
    * @return
    */
-  @Nullable
-  String subtag();
+  @Nullable String subtag();
   /**
    * A subtag of this language header.<br>
    * + info: <a href="https://tools.ietf.org/html/rfc7231#section-3.1.3.1">rfc7231#section-3.1.3.1</a>
    * 
    * @return
    */
-  @Nullable
-  String subtag(int level);
+  @Nullable String subtag(int level);
   
   /**
    * The number of subtags this value has.
