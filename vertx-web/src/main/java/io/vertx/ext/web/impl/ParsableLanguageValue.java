@@ -2,8 +2,9 @@ package io.vertx.ext.web.impl;
 
 import io.vertx.codegen.annotations.Nullable;
 import io.vertx.ext.web.LanguageHeader;
+import io.vertx.ext.web.Locale;
 
-public class ParsableLanguageValue extends ParsableHeaderValue implements LanguageHeader{
+public class ParsableLanguageValue extends ParsableHeaderValue implements LanguageHeader, Locale{
 
   private String[] parsedValues;
   
@@ -16,12 +17,27 @@ public class ParsableLanguageValue extends ParsableHeaderValue implements Langua
   public String tag() {
     return subtag(0);
   }
+  
+  @Override
+  public String language() {
+    return tag();
+  }
 
   @Override
   public @Nullable String subtag() {
     return subtag(1);
   }
 
+  @Override
+  public String country() {
+    return subtag(1);
+  }
+
+  @Override
+  public String variant() {
+    return subtag(2);
+  }
+  
   @Override
   public @Nullable String subtag(int level) {
     ensureHeaderProcessed();

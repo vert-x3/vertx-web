@@ -34,19 +34,19 @@ public interface Locale {
 
   static Locale create() {
     final java.util.Locale locale = java.util.Locale.getDefault();
-    return new LocaleImpl(locale.getLanguage(), locale.getCountry(), locale.getVariant());
+    return new ParsableLanguageValue(locale.getLanguage() + "-" + locale.getCountry() + "-" + locale.getVariant());
   }
 
   static Locale create(String language) {
-    return new LocaleImpl(language, null, null);
+    return new ParsableLanguageValue(language);
   }
 
   static Locale create(String language, String country) {
-    return new LocaleImpl(language, country, null);
+    return new ParsableLanguageValue(language + "-" + country);
   }
 
   static Locale create(String language, String country, String variant) {
-    return new LocaleImpl(language, country, variant);
+    return new ParsableLanguageValue(language + "-" + country + "-" + variant);
   }
 
   /**
