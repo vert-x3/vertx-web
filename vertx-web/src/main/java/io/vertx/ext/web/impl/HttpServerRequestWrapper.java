@@ -23,16 +23,6 @@ class HttpServerRequestWrapper implements HttpServerRequest {
   private String path;
   private String uri;
   private String absoluteURI;
-  private ParsedMIMES parsedHeaders;
-
-  static class ParsedMIMES{
-    public final List<ParsedMIME> accept;
-    public final ParsedMIME contentType;
-    public ParsedMIMES(List<ParsedMIME> accept, ParsedMIME contentType) {
-      this.accept = accept;
-      this.contentType = contentType;
-    }
-  }
   
   HttpServerRequestWrapper(HttpServerRequest request) {
     delegate = request;
@@ -59,12 +49,6 @@ class HttpServerRequestWrapper implements HttpServerRequest {
       // If no contentType is set, then only the "*" may match it
       contentType = "\0";
     }
-    
-    parsedHeaders = new ParsedMIMES(
-        MIMEParser.parseMIMETypes(acceptHeader),
-        MIMEParser.parseMIMEType(contentType)
-    );
-    
   }
   
 
@@ -143,10 +127,6 @@ class HttpServerRequestWrapper implements HttpServerRequest {
   @Override
   public MultiMap headers() {
     return delegate.headers();
-  }
-  
-  public ParsedMIMES parsedHeaders() {
-    return parsedHeaders;
   }
 
   @Override
