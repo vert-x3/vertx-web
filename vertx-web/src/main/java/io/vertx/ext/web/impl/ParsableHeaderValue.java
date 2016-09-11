@@ -3,6 +3,7 @@ package io.vertx.ext.web.impl;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import io.vertx.ext.web.ParsedHeaderValue;
 
@@ -19,6 +20,7 @@ public class ParsableHeaderValue implements ParsedHeaderValue {
   
   
   public ParsableHeaderValue(String headerContent) {
+    Objects.requireNonNull(headerContent, "headerContent must not be null");
     this.headerContent = headerContent;
     value = null;
     weight = -1;
