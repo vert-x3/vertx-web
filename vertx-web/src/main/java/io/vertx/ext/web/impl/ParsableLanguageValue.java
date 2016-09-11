@@ -4,7 +4,7 @@ import io.vertx.codegen.annotations.Nullable;
 import io.vertx.ext.web.LanguageHeader;
 import io.vertx.ext.web.Locale;
 
-public class ParsableLanguageValue extends ParsableHeaderValue implements LanguageHeader, Locale{
+public class ParsableLanguageValue extends ParsableHeaderValue implements LanguageHeader{
 
   private String[] parsedValues;
   

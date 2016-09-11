@@ -4,7 +4,7 @@ import java.util.Map;
 
 import io.vertx.codegen.annotations.Nullable;
 
-public interface LanguageHeader extends ParsedHeaderValue{
+public interface LanguageHeader extends ParsedHeaderValue, Locale{
   
   /**
    * The tag of the language as specified by 
