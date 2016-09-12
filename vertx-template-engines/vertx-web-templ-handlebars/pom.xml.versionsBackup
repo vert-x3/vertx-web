@@ -7,17 +7,17 @@
   <parent>
     <groupId>io.vertx</groupId>
     <artifactId>vertx-template-engines</artifactId>
-    <version>3.3.3</version>
+    <version>3.4.0-SNAPSHOT</version>
   </parent>
 
-  <artifactId>vertx-web-templ-pebble</artifactId>
+  <artifactId>vertx-web-templ-handlebars</artifactId>
 
   <dependencies>
-<dependency>
-	<groupId>com.mitchellbosecke</groupId>
-	<artifactId>pebble</artifactId>
-	<version>2.0.0</version>
-</dependency>
+    <dependency>
+      <groupId>com.github.jknack</groupId>
+      <artifactId>handlebars</artifactId>
+      <version>4.0.3</version>
+    </dependency>
     <dependency>
       <groupId>io.vertx</groupId>
       <artifactId>vertx-web</artifactId>
@@ -34,6 +34,7 @@
 
   <build>
     <plugins>
+
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
@@ -62,7 +63,7 @@
             groovy.lang.*;resolution:=optional,\
             org.codehaus.groovy.*;resolution:=optional,\
             io.vertx.groovy.*;resolution:=optional,\
-            io.vertx.ext.auth.*,\
+            io.vertx.ext.auth.*;resolution:=optional,\
             io.vertx.lang.rxjava.*;resolution:=optional,\
             io.vertx.lang.groovy.*;resolution:=optional,\
             io.vertx.codegen.annotations;resolution:=optional,\
@@ -72,6 +73,7 @@
             rx.*;resolution:=optional,\
             !io.vertx.ext.web.impl,\
             *
+          -exportcontents: !*impl, !examples, *
           ]]></bnd>
         </configuration>
       </plugin>
@@ -92,7 +94,10 @@
               <shadedClassifierName>shaded</shadedClassifierName>
               <artifactSet>
                 <includes>
-                  <include>com.mitchellbosecke:pebble</include>
+                  <include>*:handlebars</include>
+                  <include>org.apache.commons:commons-lang3</include>
+                  <include>org.antlr:*</include>
+                  <!-- run in no-rhino mode (do not include rhino) -->
                 </includes>
               </artifactSet>
             </configuration>

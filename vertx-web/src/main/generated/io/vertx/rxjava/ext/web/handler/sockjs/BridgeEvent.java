@@ -20,7 +20,10 @@ import java.util.Map;
 import rx.Observable;
 import io.vertx.ext.web.handler.sockjs.BridgeEventType;
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
 import io.vertx.rxjava.core.Future;
+import java.util.function.Function;
 
 /**
  * Represents an event that occurs on the event bus bridge.
@@ -44,15 +47,77 @@ public class BridgeEvent extends Future<Boolean> {
     return delegate;
   }
 
+  public Future<Boolean> setHandler(Handler<AsyncResult<Boolean>> arg0) { 
+    delegate.setHandler(arg0);
+    return this;
+  }
+
+  public Observable<Boolean> setHandlerObservable() { 
+    io.vertx.rx.java.ObservableFuture<Boolean> arg0 = io.vertx.rx.java.RxHelper.observableFuture();
+    setHandler(arg0.toHandler());
+    return arg0;
+  }
+
+  public void complete(Boolean arg0) { 
+    delegate.complete(arg0);
+  }
+
+  public Boolean result() { 
+    Boolean ret = delegate.result();
+    return ret;
+  }
+
+  public <U> Future<U> compose(Handler<Boolean> handler, Future<U> next) { 
+    Future<U> ret = Future.newInstance(delegate.compose(handler, (io.vertx.core.Future<U>)next.getDelegate()));
+    return ret;
+  }
+
+  public <U> Future<U> compose(Function<Boolean,Future<U>> mapper) { 
+    Future<U> ret = Future.newInstance(delegate.compose(new java.util.function.Function<java.lang.Boolean,io.vertx.core.Future<U>>() {
+      public io.vertx.core.Future<U> apply(java.lang.Boolean arg) {
+        Future<U> ret = mapper.apply(arg);
+        return (io.vertx.core.Future<U>)ret.getDelegate();
+      }
+    }));
+    return ret;
+  }
+
+  public <U> Future<U> map(Function<Boolean,U> mapper) { 
+    Future<U> ret = Future.newInstance(delegate.map(new java.util.function.Function<java.lang.Boolean,U>() {
+      public U apply(java.lang.Boolean arg) {
+        U ret = mapper.apply(arg);
+        return ret;
+      }
+    }));
+    return ret;
+  }
+
+  public Handler<AsyncResult<Boolean>> completer() { 
+    if (cached_0 != null) {
+      return cached_0;
+    }
+    Handler<AsyncResult<Boolean>> ret = new Handler<AsyncResult<Boolean>>() {
+      public void handle(AsyncResult<Boolean> ar) {
+        if (ar.succeeded()) {
+          delegate.completer().handle(io.vertx.core.Future.succeededFuture(ar.result()));
+        } else {
+          delegate.completer().handle(io.vertx.core.Future.failedFuture(ar.cause()));
+        }
+      }
+    };
+    cached_0 = ret;
+    return ret;
+  }
+
   /**
    * @return the type of the event
    */
   public BridgeEventType type() { 
-    if (cached_0 != null) {
-      return cached_0;
+    if (cached_1 != null) {
+      return cached_1;
     }
     BridgeEventType ret = delegate.type();
-    cached_0 = ret;
+    cached_1 = ret;
     return ret;
   }
 
@@ -61,11 +126,11 @@ public class BridgeEvent extends Future<Boolean> {
    * @return 
    */
   public JsonObject rawMessage() { 
-    if (cached_1 != null) {
-      return cached_1;
+    if (cached_2 != null) {
+      return cached_2;
     }
     JsonObject ret = delegate.rawMessage();
-    cached_1 = ret;
+    cached_2 = ret;
     return ret;
   }
 
@@ -96,17 +161,18 @@ public class BridgeEvent extends Future<Boolean> {
    * @return the SockJSSocket instance
    */
   public SockJSSocket socket() { 
-    if (cached_2 != null) {
-      return cached_2;
+    if (cached_3 != null) {
+      return cached_3;
     }
     SockJSSocket ret = SockJSSocket.newInstance(delegate.socket());
-    cached_2 = ret;
+    cached_3 = ret;
     return ret;
   }
 
-  private BridgeEventType cached_0;
-  private JsonObject cached_1;
-  private SockJSSocket cached_2;
+  private Handler<AsyncResult<Boolean>> cached_0;
+  private BridgeEventType cached_1;
+  private JsonObject cached_2;
+  private SockJSSocket cached_3;
 
   public static BridgeEvent newInstance(io.vertx.ext.web.handler.sockjs.BridgeEvent arg) {
     return arg != null ? new BridgeEvent(arg) : null;

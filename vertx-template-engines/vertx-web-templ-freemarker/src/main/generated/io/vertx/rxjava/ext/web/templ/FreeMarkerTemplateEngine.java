@@ -18,6 +18,10 @@ package io.vertx.rxjava.ext.web.templ;
 
 import java.util.Map;
 import rx.Observable;
+import io.vertx.rxjava.core.buffer.Buffer;
+import io.vertx.rxjava.ext.web.RoutingContext;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
 
 /**
  * A template engine that uses the FreeMarker library.

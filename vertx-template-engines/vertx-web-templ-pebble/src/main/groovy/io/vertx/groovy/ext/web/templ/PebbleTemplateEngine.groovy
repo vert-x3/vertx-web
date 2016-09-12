@@ -18,7 +18,11 @@ package io.vertx.groovy.ext.web.templ;
 import groovy.transform.CompileStatic
 import io.vertx.lang.groovy.InternalHelper
 import io.vertx.core.json.JsonObject
+import io.vertx.groovy.core.buffer.Buffer
 import io.vertx.groovy.core.Vertx
+import io.vertx.groovy.ext.web.RoutingContext
+import io.vertx.core.AsyncResult
+import io.vertx.core.Handler
 /**
  * A template engine that uses the Pebble library.
 */

@@ -141,6 +141,20 @@ var RoutingContext = function(j_val) {
   };
 
   /**
+   Remove some data from the context. The data is available in any handlers that receive the context.
+
+   @public
+   @param key {string} the key for the data 
+   @return {Object} the previous data associated with the key
+   */
+  this.remove = function(key) {
+    var __args = arguments;
+    if (__args.length === 1 && typeof __args[0] === 'string') {
+      return utils.convReturnTypeUnknown(j_routingContext["remove(java.lang.String)"](key));
+    } else throw new TypeError('function invoked with invalid arguments');
+  };
+
+  /**
 
    @public
 

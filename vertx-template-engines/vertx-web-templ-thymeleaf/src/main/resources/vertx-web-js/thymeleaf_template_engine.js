@@ -16,7 +16,9 @@
 
 /** @module vertx-web-js/thymeleaf_template_engine */
 var utils = require('vertx-js/util/utils');
+var Buffer = require('vertx-js/buffer');
 var TemplateEngine = require('vertx-web-js/template_engine');
+var RoutingContext = require('vertx-web-js/routing_context');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
@@ -32,6 +34,26 @@ var ThymeleafTemplateEngine = function(j_val) {
   var j_thymeleafTemplateEngine = j_val;
   var that = this;
   TemplateEngine.call(this, j_val);
+
+  /**
+
+   @public
+   @param arg0 {RoutingContext} 
+   @param arg1 {string} 
+   @param arg2 {function} 
+   */
+  this.render = function(arg0, arg1, arg2) {
+    var __args = arguments;
+    if (__args.length === 3 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'string' && typeof __args[2] === 'function') {
+      j_thymeleafTemplateEngine["render(io.vertx.ext.web.RoutingContext,java.lang.String,io.vertx.core.Handler)"](arg0._jdel, arg1, function(ar) {
+      if (ar.succeeded()) {
+        arg2(utils.convReturnVertxGen(ar.result(), Buffer), null);
+      } else {
+        arg2(null, ar.cause());
+      }
+    });
+    } else throw new TypeError('function invoked with invalid arguments');
+  };
 
   /**
    Set the mode for the engine
