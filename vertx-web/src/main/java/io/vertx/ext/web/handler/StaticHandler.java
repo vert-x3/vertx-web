@@ -106,6 +106,11 @@ public interface StaticHandler extends Handler<RoutingContext> {
    * directory.
    */
   boolean DEFAULT_ROOT_FILESYSTEM_ACCESS = false;
+  
+  /**
+   * Default of whether vary header should be sent.
+   */
+  boolean DEFAULT_SEND_VARY_HEADER = true;
 
   /**
    * Create a handler using defaults
@@ -272,5 +277,14 @@ public interface StaticHandler extends Handler<RoutingContext> {
    */
   @Fluent
   StaticHandler setEnableRangeSupport(boolean enableRangeSupport);
+  
+  /**
+   * Set whether vary header should be sent with response.
+   *
+   * @param varyHeader true to sent vary header
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  StaticHandler setSendVaryHeader(boolean varyHeader);
 
 }
