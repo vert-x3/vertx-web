@@ -2,6 +2,8 @@ package io.vertx.ext.web.impl;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -9,6 +11,7 @@ import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import io.vertx.codegen.annotations.Fluent;
 import io.vertx.ext.web.ParsedHeaderValue;
 
 /**
@@ -24,6 +27,9 @@ public class HeaderParser {
   private static final Pattern PARAMETER_FINDER =
       Pattern.compile("\\s*;\\s*(?<key>[a-zA-Z0-9]+)\\s*" +
           "(?:=\\s*(?:(?<value1>[a-zA-Z0-9.@#\\-%_]+)|\"(?<value2>(?:[^\\\\\"]*(?:\\\\.)?)*)\"+))?");
+  
+  private static final Comparator<ParsedHeaderValue> HEADER_SORTER =
+      (ParsedHeaderValue left, ParsedHeaderValue right) -> right.weightedOrder() - left.weightedOrder();
   
   /**
    * Transforms each header value into the given ParsableHeaderValue
@@ -41,6 +47,17 @@ public class HeaderParser {
       parsedMIMEs.add(objectCreator.apply(quotesRemover(listedMIME)));
     }
     return parsedMIMEs;
+  }
+  
+  /**
+   * In-place sorting of the headers list
+   * @param headers
+   * @return The same object as inserted
+   */
+  @Fluent
+  public static <T extends ParsedHeaderValue> List<T> sort(List<T> headers){
+    Collections.sort(headers, HEADER_SORTER);
+    return headers;
   }
   
   static String quotesRemover(String val){

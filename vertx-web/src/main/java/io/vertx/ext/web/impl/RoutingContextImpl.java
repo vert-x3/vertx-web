@@ -63,6 +63,28 @@ public class RoutingContextImpl extends RoutingContextImplBase {
     if (request.path().charAt(0) != '/') {
       fail(404);
     }
+    fillParsedHeaders(request);
+  }
+
+  private String ensureNotNull(String string){
+    return string == null ? "" : string;
+  }
+  
+  private void fillParsedHeaders(HttpServerRequest request) {
+    String accept = ensureNotNull(request.getHeader("Accept"));
+    String acceptCharset = ensureNotNull(request.getHeader ("Accept-Charset"));
+    String acceptEncoding = ensureNotNull(request.getHeader("Accept-Encoding"));
+    String acceptLanguage = ensureNotNull(request.getHeader("Accept-Language"));
+    String contentType = ensureNotNull(request.getHeader("Content-Type"));
+
+    parsedHeaders = new ParsableHeaderValuesContainer(
+        HeaderParser.sort(HeaderParser.convertToParsableHeaderValues(accept, ParsableMIMEValue::new)),
+        HeaderParser.sort(HeaderParser.convertToParsableHeaderValues(acceptCharset, ParsableHeaderValue::new)),
+        HeaderParser.sort(HeaderParser.convertToParsableHeaderValues(acceptEncoding, ParsableHeaderValue::new)),
+        HeaderParser.sort(HeaderParser.convertToParsableHeaderValues(acceptLanguage, ParsableLanguageValue::new)),
+        new ParsableMIMEValue(contentType)
+    );
+    
   }
 
   @Override
