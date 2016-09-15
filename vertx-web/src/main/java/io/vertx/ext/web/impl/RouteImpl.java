@@ -21,6 +21,7 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
+import io.vertx.ext.web.MIMEHeader;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
 
@@ -45,8 +46,8 @@ public class RouteImpl implements Route {
 
   private final RouterImpl router;
   private final Set<HttpMethod> methods = new HashSet<>();
-  private final Set<UserParsedMIME> consumes = new LinkedHashSet<>();
-  private final Set<UserParsedMIME> produces = new LinkedHashSet<>();
+  private final Set<MIMEHeader> consumes = new LinkedHashSet<>();
+  private final Set<MIMEHeader> produces = new LinkedHashSet<>();
   private String path;
   private int order;
   private boolean enabled = true;
@@ -107,15 +108,15 @@ public class RouteImpl implements Route {
 
   @Override
   public synchronized Route produces(String contentType) {
-    ParsedMIME parsed = MIMEParser.parseMIMEType(contentType);
-    produces.add(new UserParsedMIME(parsed, contentType));
+    ParsableMIMEValue value = new ParsableMIMEValue(contentType).forceParse();
+    produces.add(value);
     return this;
   }
 
   @Override
   public synchronized Route consumes(String contentType) {
-    ParsedMIME parsed = MIMEParser.parseMIMEType(contentType);
-    consumes.add(new UserParsedMIME(parsed, contentType));
+    ParsableMIMEValue value = new ParsableMIMEValue(contentType).forceParse();
+    consumes.add(value);
     return this;
   }
 
@@ -297,17 +298,16 @@ public class RouteImpl implements Route {
     }
     if (!consumes.isEmpty()) {
       // Can this route consume the specified content type
-      // MYTODO How should this be? Cast or add to interface?
-      ParsedMIME contentType = ((HttpServerRequestWrapper) request).parsedHeaders().contentType;
-      Optional<ParsedMIME> consumal = contentType.findMatchedBy(consumes);
+      MIMEHeader contentType = context.parsedHeaders().contentType();
+      Optional<MIMEHeader> consumal = contentType.findMatchedBy(consumes);
       return consumal.isPresent();
     }
     if (!produces.isEmpty()) {
-      List<ParsedMIME> acceptableTypes = ((HttpServerRequestWrapper) request).parsedHeaders().accept;
-      for (ParsedMIME acceptableType: acceptableTypes) {
-        Optional<ParsedMIME> acceptedType = acceptableType.findMatchedBy(produces);
+      List<MIMEHeader> acceptableTypes = context.parsedHeaders().accept();
+      for (MIMEHeader acceptableType: acceptableTypes) {
+        Optional<MIMEHeader> acceptedType = acceptableType.findMatchedBy(produces);
         if(acceptedType.isPresent()){
-          context.setAcceptableContentType(((UserParsedMIME) acceptedType.get()).original());
+          context.setAcceptableContentType(acceptedType.get().value());
           return true;
         }
       }
