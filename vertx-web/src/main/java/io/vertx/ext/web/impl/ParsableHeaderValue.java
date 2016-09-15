@@ -53,6 +53,31 @@ public class ParsableHeaderValue implements ParsedHeaderValue {
     return Collections.unmodifiableMap(parameter);
   }
   
+  public final boolean isMatchedBy(ParsableHeaderValue matchTry){
+    return this.headerContent.equals(matchTry.headerContent) || isMatchedBy2(matchTry);
+  }
+  
+  protected boolean isMatchedBy2(ParsableHeaderValue matchTry){
+    if (matchTry.parameter == null) {
+      return true;
+    }
+    if (parameter == null) {
+      return false;
+    }
+      
+    for (Entry<String, String> requiredParameter : matchTry.parameter.entrySet()) {
+      String parameterValueToTest = parameter.get(requiredParameter.getKey());
+      String requiredParamVal = requiredParameter.getValue();
+      
+      if (parameterValueToTest == null || (
+          requiredParamVal != null && !requiredParamVal.equals(parameterValueToTest))
+         ){
+        return false;
+      }
+    }
+    return true;
+    
+  }
   
   private void ensureParameterIsHashMap() {
     if(parameter.isEmpty()){

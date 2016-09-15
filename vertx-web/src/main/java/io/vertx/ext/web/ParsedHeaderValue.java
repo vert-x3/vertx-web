@@ -1,8 +1,12 @@
 package io.vertx.ext.web;
 
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 import io.vertx.codegen.annotations.Nullable;
+import io.vertx.ext.web.impl.ParsableHeaderValue;
+import io.vertx.ext.web.impl.ParsableMIMEValue;
 
 public interface ParsedHeaderValue {
 
@@ -53,5 +57,12 @@ public interface ParsedHeaderValue {
    * @return
    */
   boolean isPermitted();
+  
+  /**
+   * Test if this header is matched by matchTry header 
+   * @param matchTry The header to be matched from
+   * @return true if this header represents a subset of matchTry, otherwise, false
+   */
+  boolean isMatchedBy(ParsableHeaderValue matchTry);
 }
 

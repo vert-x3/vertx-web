@@ -52,6 +52,17 @@ public class ParsableLanguageValue extends ParsableHeaderValue implements Langua
     return parsedValues.length;
   }
   
+  protected boolean isMatchedBy2(ParsableLanguageValue matchTry) {
+    for (int i = 0; i < matchTry.parsedValues.length; i++) {
+      String match = matchTry.parsedValues[i];
+      String against = this.parsedValues[i];
+      if(!match.equals(against)){
+        return false;
+      }
+    }
+    return super.isMatchedBy2(matchTry);
+  }
+  
   @Override
   protected void ensureHeaderProcessed() {
     super.ensureHeaderProcessed();
