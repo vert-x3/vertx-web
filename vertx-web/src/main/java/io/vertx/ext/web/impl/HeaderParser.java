@@ -38,7 +38,7 @@ public class HeaderParser {
    * @param objectCreator The type to instantiate for each header
    * @return The list of (unparsed) parsable header value
    */
-  public static <T extends ParsedHeaderValue> List<T> convertToParsableHeaderValues(String unparsedHeaderValue,
+  public static <T extends ParsedHeaderValue> List<T> convertToParsedHeaderValues(String unparsedHeaderValue,
       Function<String, T> objectCreator){
     
     String[] listedMIMEs = COMMA_SPLITTER.split(unparsedHeaderValue);

@@ -78,10 +78,10 @@ public class RoutingContextImpl extends RoutingContextImplBase {
     String contentType = ensureNotNull(request.getHeader("Content-Type"));
 
     parsedHeaders = new ParsableHeaderValuesContainer(
-        HeaderParser.sort(HeaderParser.convertToParsableHeaderValues(accept, ParsableMIMEValue::new)),
-        HeaderParser.sort(HeaderParser.convertToParsableHeaderValues(acceptCharset, ParsableHeaderValue::new)),
-        HeaderParser.sort(HeaderParser.convertToParsableHeaderValues(acceptEncoding, ParsableHeaderValue::new)),
-        HeaderParser.sort(HeaderParser.convertToParsableHeaderValues(acceptLanguage, ParsableLanguageValue::new)),
+        HeaderParser.sort(HeaderParser.convertToParsedHeaderValues(accept, ParsableMIMEValue::new)),
+        HeaderParser.sort(HeaderParser.convertToParsedHeaderValues(acceptCharset, ParsableHeaderValue::new)),
+        HeaderParser.sort(HeaderParser.convertToParsedHeaderValues(acceptEncoding, ParsableHeaderValue::new)),
+        HeaderParser.sort(HeaderParser.convertToParsedHeaderValues(acceptLanguage, ParsableLanguageValue::new)),
         new ParsableMIMEValue(contentType)
     );
     
