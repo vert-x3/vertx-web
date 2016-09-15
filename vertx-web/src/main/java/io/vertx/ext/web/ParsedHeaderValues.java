@@ -2,6 +2,8 @@ package io.vertx.ext.web;
 
 import java.util.List;
 
+import io.vertx.ext.web.impl.ParsableMIMEValue;
+
 /**
  * A container with the request's headers that are meaningful enough to be parsed
  * Contains:
