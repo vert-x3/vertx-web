@@ -64,5 +64,14 @@ public interface ParsedHeaderValue {
    * @return true if this header represents a subset of matchTry, otherwise, false
    */
   boolean isMatchedBy(ParsableHeaderValue matchTry);
+  
+  /**
+   * Finds the first ParsedHeaderValue in the list that matches with this header value.
+   * Will return an empty Optional if none match. 
+   * 
+   * @param matchTries A list of parsed headers to match from this header value
+   * @return Optional potentially with the first matched header
+   */
+  <T extends ParsedHeaderValue> Optional<T> findMatchedBy(Iterable<T> matchTries);
 }
 

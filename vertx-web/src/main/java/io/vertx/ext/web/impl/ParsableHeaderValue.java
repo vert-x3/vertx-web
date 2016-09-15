@@ -3,7 +3,9 @@ package io.vertx.ext.web.impl;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Optional;
 
 import io.vertx.ext.web.ParsedHeaderValue;
 
@@ -77,6 +79,17 @@ public class ParsableHeaderValue implements ParsedHeaderValue {
     }
     return true;
     
+  }
+  
+  @Override
+  public <T extends ParsedHeaderValue> Optional<T> findMatchedBy(Iterable<T> matchTries) {
+    
+    for (T matchTry : matchTries) {
+      if(isMatchedBy((ParsableHeaderValue) matchTry)){
+        return Optional.of(matchTry);
+      }
+    }
+    return Optional.empty();
   }
   
   private void ensureParameterIsHashMap() {
