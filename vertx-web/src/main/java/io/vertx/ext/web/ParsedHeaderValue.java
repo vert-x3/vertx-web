@@ -73,5 +73,10 @@ public interface ParsedHeaderValue {
    * @return Optional potentially with the first matched header
    */
   <T extends ParsedHeaderValue> Optional<T> findMatchedBy(Iterable<T> matchTries);
+  
+  /**
+   * An integer that represents the absolute order position of this header
+   */
+  int weightedOrder();
 }
 

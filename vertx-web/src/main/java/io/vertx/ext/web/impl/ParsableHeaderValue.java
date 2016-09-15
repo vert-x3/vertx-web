@@ -136,7 +136,7 @@ public class ParsableHeaderValue implements ParsedHeaderValue {
     this.weight = (int)((Math.max(0, Math.min(1, weight)) * 100) / 100); 
   }
   
-  final int weightedOrder(){
+  public final int weightedOrder(){
     ensureHeaderProcessed();
     return (int)(weight() * 1000) + (weightedOrderPart2() * 10) + paramsWeight;
   }
