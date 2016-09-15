@@ -9,6 +9,8 @@ import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import io.vertx.ext.web.ParsedHeaderValue;
+
 /**
  * Build with the intent of following 
  * <a href="https://tools.ietf.org/html/rfc7231#section-5.3.1">rfc7231,section-5.3.1</a>'s specification.<br>
@@ -30,11 +32,11 @@ public class HeaderParser {
    * @param objectCreator The type to instantiate for each header
    * @return The list of (unparsed) parsable header value
    */
-  public static List<ParsableHeaderValue> convertToParsableHeaderValues(String unparsedHeaderValue,
-      Function<String, ParsableHeaderValue> objectCreator){
+  public static <T extends ParsedHeaderValue> List<T> convertToParsableHeaderValues(String unparsedHeaderValue,
+      Function<String, T> objectCreator){
     
     String[] listedMIMEs = COMMA_SPLITTER.split(unparsedHeaderValue);
-    List<ParsableHeaderValue> parsedMIMEs = new ArrayList<>(listedMIMEs.length);
+    List<T> parsedMIMEs = new ArrayList<>(listedMIMEs.length);
     for (String listedMIME : listedMIMEs) {
       parsedMIMEs.add(objectCreator.apply(quotesRemover(listedMIME)));
     }
