@@ -30,27 +30,7 @@ class HttpServerRequestWrapper implements HttpServerRequest {
     path = request.path();
     uri = request.uri();
     absoluteURI = null;
-    
-    // MYTODO for POC convenience, this is calculated here. In reality, it should be lazy
-    processHeaders(delegate.headers());
   }
- 
-  
-  private void processHeaders(MultiMap source) {
-    
-    @Nullable
-    String acceptHeader = source.get("Accept");
-    String contentType = source.get("Content-Type");
-    
-    if(acceptHeader == null){
-      acceptHeader = "*/*";
-    }
-    if(contentType == null){
-      // If no contentType is set, then only the "*" may match it
-      contentType = "\0";
-    }
-  }
-  
 
   @Override
   public HttpServerRequest exceptionHandler(Handler<Throwable> handler) {
