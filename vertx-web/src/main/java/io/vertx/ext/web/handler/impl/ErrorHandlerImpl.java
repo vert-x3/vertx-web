@@ -16,10 +16,8 @@
 
 package io.vertx.ext.web.handler.impl;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpServerRequest;
@@ -29,7 +27,6 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.MIMEHeader;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.ErrorHandler;
-import io.vertx.ext.web.impl.ParsableMIMEValue;
 import io.vertx.ext.web.impl.Utils;
 
 /**
@@ -38,12 +35,6 @@ import io.vertx.ext.web.impl.Utils;
  */
 public class ErrorHandlerImpl implements ErrorHandler {
 
-  private static final List<MIMEHeader> ERROR_MIMES = Arrays.asList(
-        new ParsableMIMEValue("text/html"),
-        new ParsableMIMEValue("application/json"),
-        new ParsableMIMEValue("text/plain")
-      );
-  
   /**
    * Flag to enable/disable printing the full stack trace of exceptions.
    */
@@ -103,9 +94,7 @@ public class ErrorHandlerImpl implements ErrorHandler {
     List<MIMEHeader> acceptableMimes = context.parsedHeaders().accept();
 
     for (MIMEHeader accept : acceptableMimes) {
-      Optional<MIMEHeader> matchedHeader = accept.findMatchedBy(ERROR_MIMES);
-      if (matchedHeader.isPresent()) {
-        sendError(context, matchedHeader.get().value(), errorCode, errorMessage);
+      if (sendError(context, accept.value(), errorCode, errorMessage)) {
         return;
       }
     }
