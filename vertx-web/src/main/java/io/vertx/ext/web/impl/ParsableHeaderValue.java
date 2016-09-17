@@ -138,7 +138,7 @@ public class ParsableHeaderValue implements ParsedHeaderValue {
   }
   private void setWeight(float weight) {
     // Keep between 0 and 1 while dropping after the 3rd digit to the right (rfc7231#section-5.3.1)
-    this.weight = (int)((Math.max(0, Math.min(1, weight)) * 100) / 100); 
+    this.weight = ((int)((Math.max(0, Math.min(1, weight)) * 100)) / 100.0f);
   }
   
   public final int weightedOrder(){
