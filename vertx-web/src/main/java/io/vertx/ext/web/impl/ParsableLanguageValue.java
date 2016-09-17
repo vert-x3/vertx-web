@@ -73,7 +73,7 @@ public class ParsableLanguageValue extends ParsableHeaderValue implements Langua
   @Override
   protected void ensureHeaderProcessed() {
     super.ensureHeaderProcessed();
-    parsedValues = HeaderParser.parseLanguageValue(value());
+    parsedValues = HeaderParser.parseLanguageValue(value);
   }
     
 }

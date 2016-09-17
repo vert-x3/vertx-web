@@ -44,7 +44,7 @@ public class ParsableMIMEValue extends ParsableHeaderValue implements MIMEHeader
     super.ensureHeaderProcessed();
     if(component == null){
       HeaderParser.parseMIME(
-            value(),
+            value,
             this::setComponent,
             this::setSubComponent
           );

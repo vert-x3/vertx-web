@@ -13,7 +13,7 @@ public class ParsableHeaderValue implements ParsedHeaderValue {
   
   private String headerContent;
   
-  private String value;
+  protected String value;
   private float weight;
 
   private Map<String, String> parameter;
@@ -36,6 +36,7 @@ public class ParsableHeaderValue implements ParsedHeaderValue {
   
   @Override
   public String value() {
+    ensureHeaderProcessed();
     return value;
   }
   
@@ -113,7 +114,6 @@ public class ParsableHeaderValue implements ParsedHeaderValue {
           this::setWeight,
           this::addParameter
       );
-      
       paramsWeight = parameter.isEmpty() ? 0 : 1;
     }
   }
