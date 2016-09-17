@@ -41,6 +41,9 @@ public class HeaderParser {
   public static <T extends ParsedHeaderValue> List<T> convertToParsedHeaderValues(String unparsedHeaderValue,
       Function<String, T> objectCreator){
     
+    if(unparsedHeaderValue == null){
+      return Collections.emptyList();
+    }
     String[] listedMIMEs = COMMA_SPLITTER.split(unparsedHeaderValue);
     List<T> parsedMIMEs = new ArrayList<>(listedMIMEs.length);
     for (String listedMIME : listedMIMEs) {

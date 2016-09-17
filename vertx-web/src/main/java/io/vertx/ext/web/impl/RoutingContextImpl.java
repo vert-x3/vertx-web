@@ -71,10 +71,10 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   }
   
   private void fillParsedHeaders(HttpServerRequest request) {
-    String accept = ensureNotNull(request.getHeader("Accept"));
-    String acceptCharset = ensureNotNull(request.getHeader ("Accept-Charset"));
-    String acceptEncoding = ensureNotNull(request.getHeader("Accept-Encoding"));
-    String acceptLanguage = ensureNotNull(request.getHeader("Accept-Language"));
+    String accept = request.getHeader("Accept");
+    String acceptCharset = request.getHeader ("Accept-Charset");
+    String acceptEncoding = request.getHeader("Accept-Encoding");
+    String acceptLanguage = request.getHeader("Accept-Language");
     String contentType = ensureNotNull(request.getHeader("Content-Type"));
 
     parsedHeaders = new ParsableHeaderValuesContainer(
