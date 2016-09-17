@@ -60,10 +60,10 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   public RoutingContextImpl(String mountPoint, RouterImpl router, HttpServerRequest request, Set<RouteImpl> routes) {
     super(mountPoint, request, routes);
     this.router = router;
+    fillParsedHeaders(request);
     if (request.path().charAt(0) != '/') {
       fail(404);
     }
-    fillParsedHeaders(request);
   }
 
   private String ensureNotNull(String string){
