@@ -302,15 +302,13 @@ public class RouteImpl implements Route {
       Optional<MIMEHeader> consumal = contentType.findMatchedBy(consumes);
       return consumal.isPresent();
     }
-    if (!produces.isEmpty()) {
-      List<MIMEHeader> acceptableTypes = context.parsedHeaders().accept();
-      for (MIMEHeader acceptableType: acceptableTypes) {
-        Optional<MIMEHeader> acceptedType = acceptableType.findMatchedBy(produces);
-        if(acceptedType.isPresent()){
-          context.setAcceptableContentType(acceptedType.get().value());
+    List<MIMEHeader> acceptableTypes = context.parsedHeaders().accept();
+    if (!produces.isEmpty() && !acceptableTypes.isEmpty()) {
+      Optional<MIMEHeader> selectedAccept = context.parsedHeaders().findBestUserAcceptedIn(acceptableTypes, produces);
+        if(selectedAccept.isPresent()){
+          context.setAcceptableContentType(selectedAccept.get().rawValue());
           return true;
         }
-      }
       return false;
     }
     return true;

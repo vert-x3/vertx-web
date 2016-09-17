@@ -1,8 +1,7 @@
 package io.vertx.ext.web;
 
 import java.util.List;
-
-import io.vertx.ext.web.impl.ParsableMIMEValue;
+import java.util.Optional;
 
 /**
  * A container with the request's headers that are meaningful enough to be parsed
@@ -23,4 +22,13 @@ public interface ParsedHeaderValues {
   List<LanguageHeader> acceptLanguage();
   
   MIMEHeader contentType();
+  
+  /**
+   * Given the sorted list of parsed header values the user has sent and an Iterable of acceptable values:
+   * It finds the first accepted header that matches any inside the Iterable.
+   * @param accepted The sorted list of headers to find the best one.
+   * @param in The headers to match against.
+   * @return The first header that matched, otherwise empty if none matched
+   */
+  <T extends ParsedHeaderValue> Optional<T> findBestUserAcceptedIn(List<T> accepted, Iterable<T> in);
 }

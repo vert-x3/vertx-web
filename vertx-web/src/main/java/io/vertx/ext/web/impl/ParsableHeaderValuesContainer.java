@@ -1,6 +1,7 @@
 package io.vertx.ext.web.impl;
 
 import java.util.List;
+import java.util.Optional;
 
 import io.vertx.ext.web.LanguageHeader;
 import io.vertx.ext.web.MIMEHeader;
@@ -44,5 +45,16 @@ public class ParsableHeaderValuesContainer implements ParsedHeaderValues {
   @Override
   public ParsableMIMEValue contentType() {
     return contentType;
+  }
+  
+  @Override
+  public <T extends ParsedHeaderValue> Optional<T> findBestUserAcceptedIn(List<T> userAccepted, Iterable<T> in) {
+    for (T acceptableType: userAccepted) {
+      Optional<T> acceptedType = acceptableType.findMatchedBy(in);
+      if(acceptedType.isPresent()){
+        return acceptedType;
+      }
+    }
+    return Optional.empty();
   }
 }
