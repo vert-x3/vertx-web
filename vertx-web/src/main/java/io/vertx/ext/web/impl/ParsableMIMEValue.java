@@ -25,14 +25,19 @@ public class ParsableMIMEValue extends ParsableHeaderValue implements MIMEHeader
     return subComponent;
   }
   
-  protected boolean isMatchedBy2(ParsableMIMEValue matchTry) {
-    if (component != STAR && matchTry.component != STAR && !component.equals(matchTry.component)) {
+  @Override
+  protected boolean isMatchedBy2(ParsableHeaderValue matchTry) {
+    ParsableMIMEValue myMatchTry = (ParsableMIMEValue) matchTry;
+    ensureHeaderProcessed();
+    
+    System.out.println(component + "/" + subComponent);
+    if (component != STAR && myMatchTry.component != STAR && !component.equals(myMatchTry.component)) {
       return false;
     }
-    if (subComponent != STAR && matchTry.subComponent != STAR && !subComponent.equals(matchTry.subComponent)) {
+    if (subComponent != STAR && myMatchTry.subComponent != STAR && !subComponent.equals(myMatchTry.subComponent)) {
       return false;
     }
-    return super.isMatchedBy2(matchTry);
+    return super.isMatchedBy2(myMatchTry);
   }
   
   @Override
