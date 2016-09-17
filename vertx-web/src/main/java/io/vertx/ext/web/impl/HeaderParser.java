@@ -24,6 +24,8 @@ import io.vertx.ext.web.ParsedHeaderValue;
 public class HeaderParser {
   private static final Logger log = LoggerFactory.getLogger(HeaderParser.class);
   
+  static final int MAX_HEADER_SIZE = 200;
+  
   private static Pattern COMMA_SPLITTER = Pattern.compile(",(?=(?:(?<!\\\\)\"(?:(?!(?<!\\\\)\").)*(?<!\\\\)\"|\\\\.|[^\"])*$)");
   private static final Pattern HYPHEN_SPLITTER = Pattern.compile("-");
   private static final Pattern PARAMETER_FINDER =
@@ -46,6 +48,8 @@ public class HeaderParser {
     
     if(unparsedHeaderValue == null){
       return Collections.emptyList();
+    } else if(unparsedHeaderValue.length() > MAX_HEADER_SIZE){
+      throw new HeaderTooLongException("Header longer than " + MAX_HEADER_SIZE + " characters");
     }
     String[] listedMIMEs = COMMA_SPLITTER.split(unparsedHeaderValue);
     List<T> parsedMIMEs = new ArrayList<>(listedMIMEs.length);
