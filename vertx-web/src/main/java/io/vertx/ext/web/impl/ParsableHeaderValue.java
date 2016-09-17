@@ -30,6 +30,11 @@ public class ParsableHeaderValue implements ParsedHeaderValue {
   }
   
   @Override
+  public String rawValue() {
+    return headerContent;
+  }
+  
+  @Override
   public String value() {
     return value;
   }

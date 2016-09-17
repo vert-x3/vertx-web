@@ -17,6 +17,11 @@ public interface ParsedHeaderValue {
 
   String STAR = "*";
   String EMPTY = new String("");// unique string object reference
+
+  /**
+   * Contains the raw value that was received from the user agent 
+   */
+  String rawValue();
   
   /**
    * Holds the unparsed value of the header.<br>
