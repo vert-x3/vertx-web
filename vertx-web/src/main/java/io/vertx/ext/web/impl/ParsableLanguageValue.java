@@ -20,7 +20,8 @@ public class ParsableLanguageValue extends ParsableHeaderValue implements Langua
   
   @Override
   public String language() {
-    return tag();
+    String value =  tag();
+    return value == null ? null : value.toLowerCase();
   }
 
   @Override
@@ -29,13 +30,15 @@ public class ParsableLanguageValue extends ParsableHeaderValue implements Langua
   }
 
   @Override
-  public String country() {
-    return subtag(1);
+  public @Nullable String country() {
+    String value = subtag(1);
+    return value == null ? null : value.toUpperCase();
   }
 
   @Override
-  public String variant() {
-    return subtag(2);
+  public @Nullable String variant() {
+    String value = subtag(2);
+    return value == null ? null : value.toUpperCase();
   }
   
   @Override
