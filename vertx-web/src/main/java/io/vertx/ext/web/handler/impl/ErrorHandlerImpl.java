@@ -16,17 +16,21 @@
 
 package io.vertx.ext.web.handler.impl;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.web.handler.ErrorHandler;
+import io.vertx.ext.web.MIMEHeader;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.handler.ErrorHandler;
+import io.vertx.ext.web.impl.ParsableMIMEValue;
 import io.vertx.ext.web.impl.Utils;
-
-import java.util.List;
-import java.util.Objects;
 
 /**
  * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
@@ -34,6 +38,12 @@ import java.util.Objects;
  */
 public class ErrorHandlerImpl implements ErrorHandler {
 
+  private static final List<MIMEHeader> ERROR_MIMES = Arrays.asList(
+        new ParsableMIMEValue("text/html"),
+        new ParsableMIMEValue("application/json"),
+        new ParsableMIMEValue("text/plain")
+      );
+  
   /**
    * Flag to enable/disable printing the full stack trace of exceptions.
    */
@@ -88,12 +98,14 @@ public class ErrorHandlerImpl implements ErrorHandler {
         return;
       }
     }
-
+    
     // respect the client accept order
-    List<String> acceptedMimes = Utils.getSortedAcceptableMimeTypes(request.headers().get(HttpHeaders.ACCEPT));
+    List<MIMEHeader> acceptableMimes = context.parsedHeaders().accept();
 
-    for (String accept : acceptedMimes) {
-      if (sendError(context, accept, errorCode, errorMessage)) {
+    for (MIMEHeader accept : acceptableMimes) {
+      Optional<MIMEHeader> matchedHeader = accept.findMatchedBy(ERROR_MIMES);
+      if (matchedHeader.isPresent()) {
+        sendError(context, matchedHeader.get().value(), errorCode, errorMessage);
         return;
       }
     }
