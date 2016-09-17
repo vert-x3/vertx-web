@@ -12,6 +12,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import io.vertx.codegen.annotations.Fluent;
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.ParsedHeaderValue;
 
 /**
@@ -20,7 +22,7 @@ import io.vertx.ext.web.ParsedHeaderValue;
  * 
  */
 public class HeaderParser {
-  
+  private static final Logger log = LoggerFactory.getLogger(HeaderParser.class);
   
   private static Pattern COMMA_SPLITTER = Pattern.compile(",(?=(?:(?<!\\\\)\"(?:(?!(?<!\\\\)\").)*(?<!\\\\)\"|\\\\.|[^\"])*$)");
   private static final Pattern HYPHEN_SPLITTER = Pattern.compile("-");
@@ -107,7 +109,7 @@ public class HeaderParser {
           try{
             weightCallback.accept(Float.parseFloat(value));
           }catch(NumberFormatException e){
-            // MYTODO Log as info this happened
+            log.info("Found a \"q\" parameter with value \"{}\" which was unparsable", value);
           }
         } else {
           parameterCallback.accept(key, value);
