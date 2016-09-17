@@ -27,8 +27,9 @@ public class HeaderParser {
   private static Pattern COMMA_SPLITTER = Pattern.compile(",(?=(?:(?<!\\\\)\"(?:(?!(?<!\\\\)\").)*(?<!\\\\)\"|\\\\.|[^\"])*$)");
   private static final Pattern HYPHEN_SPLITTER = Pattern.compile("-");
   private static final Pattern PARAMETER_FINDER =
-      Pattern.compile("\\s*;\\s*(?<key>[a-zA-Z0-9]+)\\s*" +
-          "(?:=\\s*(?:(?<value1>[a-zA-Z0-9.@#\\-%_]+)|\"(?<value2>(?:[^\\\\\"]*(?:\\\\.)?)*)\"+))?");
+      Pattern.compile("\\s*+;\\s*+(?<key>[a-zA-Z0-9]++)\\s*+" +
+          "(?:=\\s*(?:(?<value1>[a-zA-Z0-9.@#\\-%_]++)|\"(?<value2>(?:[^\\\\\"]*+(?:\\\\.)?)*+)\"))?+");
+  
   
   private static final Comparator<ParsedHeaderValue> HEADER_SORTER =
       (ParsedHeaderValue left, ParsedHeaderValue right) -> right.weightedOrder() - left.weightedOrder();
