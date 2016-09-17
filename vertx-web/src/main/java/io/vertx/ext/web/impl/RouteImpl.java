@@ -300,7 +300,9 @@ public class RouteImpl implements Route {
       // Can this route consume the specified content type
       MIMEHeader contentType = context.parsedHeaders().contentType();
       Optional<MIMEHeader> consumal = contentType.findMatchedBy(consumes);
-      return consumal.isPresent();
+      if(!consumal.isPresent()){
+        return false;
+      }
     }
     List<MIMEHeader> acceptableTypes = context.parsedHeaders().accept();
     if (!produces.isEmpty() && !acceptableTypes.isEmpty()) {
