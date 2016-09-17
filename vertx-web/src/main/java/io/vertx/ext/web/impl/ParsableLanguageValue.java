@@ -75,10 +75,5 @@ public class ParsableLanguageValue extends ParsableHeaderValue implements Langua
     super.ensureHeaderProcessed();
     parsedValues = HeaderParser.parseLanguageValue(value());
   }
-  
-  protected int weightedOrderPart2() {
-    return parsedValues.length;
-  }
-  
-  
+    
 }
