@@ -21,6 +21,7 @@ import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpMethod;
 import org.junit.Test;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -657,6 +658,23 @@ public class RouterTest extends WebTestBase {
       frc.response().setStatusCode(500).setStatusMessage("Internal Server Error").end();
     });
     testRequest(HttpMethod.GET, path, 500, "Internal Server Error");
+  }
+
+  @Test
+  public void testFailureWithKnownHeaderTooLongThrowable() throws Exception {
+    char[] longChars = new char[201];
+    Arrays.fill(longChars, 'a');
+    String testHeaderValue = new String(longChars);
+    String path = "/blah";
+    
+    router.route(path).handler(rc -> {
+      rc.response().end();
+    });
+    testRequest(HttpMethod.GET, path, req -> req.putHeader("Accept", testHeaderValue), 400, "Bad Request", null);
+    testRequest(HttpMethod.GET, path, req -> req.putHeader("Accept-Charset", testHeaderValue), 400, "Bad Request", null);
+    testRequest(HttpMethod.GET, path, req -> req.putHeader("Accept-Encoding", testHeaderValue), 400, "Bad Request", null);
+    testRequest(HttpMethod.GET, path, req -> req.putHeader("Accept-Language", testHeaderValue), 400, "Bad Request", null);
+    testRequest(HttpMethod.GET, path, req -> req.putHeader("Content-Type", testHeaderValue), 400, "Bad Request", null);
   }
 
   @Test
