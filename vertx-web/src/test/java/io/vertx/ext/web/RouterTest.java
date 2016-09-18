@@ -933,6 +933,45 @@ public class RouterTest extends WebTestBase {
   }
 
   @Test
+  public void testConsumesWithParameterKey() throws Exception {
+    router.route().consumes("text/html;boo").handler(rc -> rc.response().end());
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=ya;itWorks=4real", 200, "OK");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo;itWorks", 200, "OK");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=ya", 200, "OK");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo", 200, "OK");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 404, "Not Found");
+  }
+
+  @Test
+  public void testConsumesWithParameter() throws Exception {
+    router.route().consumes("text/html;boo=ya").handler(rc -> rc.response().end());
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=ya", 200, "OK");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo", 404, "Not Found");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 404, "Not Found");
+  }
+
+  @Test
+  public void testConsumesWithQuotedParameterWithComma() throws Exception {
+    router.route().consumes("text/html;boo=\"yeah,right\"").handler(rc -> rc.response().end());
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=\"yeah,right\";itWorks=4real", 200, "OK");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=\"yeah,right\"", 200, "OK");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=\"yeah,right;itWorks=4real\"", 404, "Not Found");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=yeah,right", 404, "Not Found");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo", 404, "Not Found");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 404, "Not Found");
+  }
+
+  @Test
+  public void testConsumesWithQuotedParameterWithQuotes() throws Exception {
+    router.route().consumes("text/html;boo=\"yeah\\\"right\"").handler(rc -> rc.response().end());
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=\"yeah\\\"right\"", 200, "OK");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=\"yeah,right\"", 404, "Not Found");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=yeah,right", 404, "Not Found");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo", 404, "Not Found");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 404, "Not Found");
+  }
+
+  @Test
   public void testConsumesMultiple() throws Exception {
     router.route().consumes("text/html").consumes("application/json").handler(rc -> rc.response().end());
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 200, "OK");
@@ -941,6 +980,18 @@ public class RouterTest extends WebTestBase {
     testRequestWithContentType(HttpMethod.GET, "/foo", "something/html", 404, "Not Found");
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/json", 404, "Not Found");
     testRequestWithContentType(HttpMethod.GET, "/foo", "application/blah", 404, "Not Found");
+  }
+
+  @Test
+  public void testConsumesVariableParameters() throws Exception {
+    router.route().consumes("text/html;boo").consumes("text/html;works").handler(rc -> rc.response().end());
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo", 200, "OK");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;works", 200, "OK");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo;works", 200, "OK");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=done;it=works", 200, "OK");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;yes=no;right", 404, "Not Found");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/book;boo", 404, "Not Found");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/book;works=aright", 404, "Not Found");
   }
 
   @Test
