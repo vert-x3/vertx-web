@@ -66,6 +66,8 @@ public class ParsableHeaderValue implements ParsedHeaderValue {
   }
   
   protected boolean isMatchedBy2(ParsableHeaderValue matchTry){
+    ensureHeaderProcessed();
+    
     if (matchTry.parameter == null) {
       return true;
     }
@@ -76,9 +78,8 @@ public class ParsableHeaderValue implements ParsedHeaderValue {
     for (Entry<String, String> requiredParameter : matchTry.parameter.entrySet()) {
       String parameterValueToTest = parameter.get(requiredParameter.getKey());
       String requiredParamVal = requiredParameter.getValue();
-      
       if (parameterValueToTest == null || (
-          requiredParamVal != null && !requiredParamVal.equals(parameterValueToTest))
+          requiredParamVal != EMPTY && !requiredParamVal.equals(parameterValueToTest))
          ){
         return false;
       }
