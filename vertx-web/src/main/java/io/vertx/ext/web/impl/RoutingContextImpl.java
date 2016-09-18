@@ -76,7 +76,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
 
   private static void assertHeaderSmallEnough(String name, String content){
     if(content != null && content.length() > HeaderParser.MAX_HEADER_SIZE){
-      throw new HeaderTooLongException("Header:'" + name + "' too long");
+      throw new HeaderTooLongException("Header '" + name + "' too long");
     }
   }
   
