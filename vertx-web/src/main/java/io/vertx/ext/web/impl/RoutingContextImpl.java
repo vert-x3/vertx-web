@@ -73,6 +73,12 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   private String ensureNotNull(String string){
     return string == null ? "" : string;
   }
+
+  private static void assertHeaderSmallEnough(String name, String content){
+    if(content != null && content.length() > HeaderParser.MAX_HEADER_SIZE){
+      throw new HeaderTooLongException("Header:'" + name + "' too long");
+    }
+  }
   
   private void fillParsedHeaders(HttpServerRequest request) {
     String accept = request.getHeader("Accept");
@@ -80,6 +86,12 @@ public class RoutingContextImpl extends RoutingContextImplBase {
     String acceptEncoding = request.getHeader("Accept-Encoding");
     String acceptLanguage = request.getHeader("Accept-Language");
     String contentType = ensureNotNull(request.getHeader("Content-Type"));
+
+    assertHeaderSmallEnough("Accept", accept);
+    assertHeaderSmallEnough("Accept-Charset",  acceptCharset);
+    assertHeaderSmallEnough("Accept-Encoding", acceptEncoding);
+    assertHeaderSmallEnough("Accept-Language", acceptLanguage);
+    assertHeaderSmallEnough("Content-Type", contentType);
 
     parsedHeaders = new ParsableHeaderValuesContainer(
         HeaderParser.sort(HeaderParser.convertToParsedHeaderValues(accept, ParsableMIMEValue::new)),
