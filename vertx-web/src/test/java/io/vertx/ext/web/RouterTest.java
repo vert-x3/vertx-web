@@ -1232,6 +1232,28 @@ public class RouterTest extends WebTestBase {
 
   @Test
   public void testAcceptsMultiple8() throws Exception {
+    router.route().produces("application/json").produces("text/html").handler(rc -> {
+      rc.response().setStatusMessage(rc.getAcceptableContentType());
+      rc.response().end();
+    });
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html,text/plain;q=0.9,application/json;q=1.0", 200, "text/html");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html,text/plain;q=0.9;b,application/json;q=1.0", 200, "text/html");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html,text/plain;q=0.9;b,application/json;q=1.0;a", 200, "application/json");
+  }
+
+  @Test
+  public void testAcceptsMultiple9() throws Exception {
+    router.route().produces("application/json").produces("text/plain").handler(rc -> {
+      rc.response().setStatusMessage(rc.getAcceptableContentType());
+      rc.response().end();
+    });
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html,text/plain;q=0.9,application/json;q=0.8", 200, "text/plain");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html,text/plain;q=0.9;d,application/json;q=0.8", 200, "text/plain");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html,text/plain;q=0.9,application/json;q=0.8;s", 200, "text/plain");
+  }
+  
+  @Test
+  public void testAcceptsMultipleWithParams() throws Exception {
     router.route().produces("application/json").produces("text/plain").handler(rc -> {
       rc.response().setStatusMessage(rc.getAcceptableContentType());
       rc.response().end();
