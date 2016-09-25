@@ -22,6 +22,7 @@ import io.vertx.rxjava.core.http.HttpServerRequest;
 import java.util.List;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.rxjava.core.Vertx;
+import java.util.Set;
 import io.vertx.core.Handler;
 
 /**
@@ -83,6 +84,17 @@ public class Router {
    */
   public Route route(HttpMethod method, String path) { 
     Route ret = Route.newInstance(delegate.route(method, path));
+    return ret;
+  }
+
+  /**
+   * Add a route that matches the specified HTTP methods and path
+   * @param methods the HTTP methods to match
+   * @param path URI paths that begin with this path will match
+   * @return the route
+   */
+  public Route routes(Set<HttpMethod> methods, String path) { 
+    Route ret = Route.newInstance(delegate.routes(methods, path));
     return ret;
   }
 

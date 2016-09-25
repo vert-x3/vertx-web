@@ -213,6 +213,16 @@ public class StaticHandler implements Handler<RoutingContext> {
     return this;
   }
 
+  /**
+   * Set whether vary header should be sent with response.
+   * @param varyHeader true to sent vary header
+   * @return a reference to this, so the API can be used fluently
+   */
+  public StaticHandler setSendVaryHeader(boolean varyHeader) { 
+    delegate.setSendVaryHeader(varyHeader);
+    return this;
+  }
+
 
   public static StaticHandler newInstance(io.vertx.ext.web.handler.StaticHandler arg) {
     return arg != null ? new StaticHandler(arg) : null;

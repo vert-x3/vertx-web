@@ -58,6 +58,16 @@ module VertxWeb
       end
       raise ArgumentError, "Invalid arguments when calling route(param_1,param_2)"
     end
+    #  Add a route that matches the specified HTTP methods and path
+    # @param [Set<:OPTIONS,:GET,:HEAD,:POST,:PUT,:DELETE,:TRACE,:CONNECT,:PATCH,:OTHER>] methods the HTTP methods to match
+    # @param [String] path URI paths that begin with this path will match
+    # @return [::VertxWeb::Route] the route
+    def routes(methods=nil,path=nil)
+      if methods.class == Set && path.class == String && !block_given?
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:routes, [Java::JavaUtil::Set.java_class,Java::java.lang.String.java_class]).call(Java::JavaUtil::LinkedHashSet.new(methods.map { |element| Java::IoVertxCoreHttp::HttpMethod.valueOf(element) }),path),::VertxWeb::Route)
+      end
+      raise ArgumentError, "Invalid arguments when calling routes(methods,path)"
+    end
     #  Add a route that matches the specified HTTP method and path regex
     # @overload routeWithRegex(regex)
     #   @param [String] regex URI paths that begin with a match for this regex will match

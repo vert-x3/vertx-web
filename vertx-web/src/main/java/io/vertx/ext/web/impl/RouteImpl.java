@@ -68,6 +68,13 @@ public class RouteImpl implements Route {
     setPath(path);
   }
 
+  RouteImpl(RouterImpl router, int order, Collection<HttpMethod> methods, String path) {
+    this(router, order);
+    this.methods.addAll(methods);
+    checkPath(path);
+    setPath(path);
+  }
+
   RouteImpl(RouterImpl router, int order, String path) {
     this(router, order);
     checkPath(path);
@@ -176,6 +183,11 @@ public class RouteImpl implements Route {
   public synchronized Route enable() {
     enabled = true;
     return this;
+  }
+
+  @Override
+  public synchronized Route then(Handler<RoutingContext> handler) {
+    return router.routes(this.path, this.methods.toArray(new HttpMethod[0])).handler(handler);
   }
 
   @Override

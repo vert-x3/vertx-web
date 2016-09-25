@@ -18,9 +18,11 @@ package io.vertx.ext.web;
 
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import org.junit.Test;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -1855,4 +1857,24 @@ public class RouterTest extends WebTestBase {
     });
     testRequest(HttpMethod.GET, "/some+path?q1=some+query", 200, "foo");
   }
+
+  @Test
+  public void testMultipleRoutes() throws Exception {
+    router.routes("/multipleRoutes", HttpMethod.GET, HttpMethod.POST).handler(rc -> rc.response().end("multiple"));
+    testRequests(Arrays.asList(HttpMethod.GET, HttpMethod.POST), "/multipleRoutes", 200, "OK", Buffer.buffer("multiple"));
+  }
+
+  @Test
+  public void testRouteComposition() throws Exception {
+    router.route("/composed").handler(rc -> {
+      rc.response().setChunked(true);
+      rc.response().write(Buffer.buffer("firstHandler "));
+      rc.next();
+    }).then(rc -> {
+      rc.response().end("secondHandler");
+    });
+    testRequest(HttpMethod.GET, "/composed", 200, "OK", Buffer.buffer("firstHandler secondHandler"));
+  }
+
+
 }

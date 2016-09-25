@@ -159,6 +159,14 @@ module VertxWeb
       end
       raise ArgumentError, "Invalid arguments when calling enable()"
     end
+    # @yield 
+    # @return [::VertxWeb::Route]
+    def then
+      if block_given?
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:then, [Java::IoVertxCore::Handler.java_class]).call((Proc.new { |event| yield(::Vertx::Util::Utils.safe_create(event,::VertxWeb::RoutingContext)) })),::VertxWeb::Route)
+      end
+      raise ArgumentError, "Invalid arguments when calling then()"
+    end
     #  If true then the normalised request path will be used when routing (e.g. removing duplicate /)
     #  Default is true
     # @param [true,false] useNormalisedPath use normalised path for routing?

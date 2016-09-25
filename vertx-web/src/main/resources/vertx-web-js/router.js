@@ -69,6 +69,21 @@ var Router = function(j_val) {
   };
 
   /**
+   Add a route that matches the specified HTTP methods and path
+
+   @public
+   @param methods {Array.<Object>} the HTTP methods to match 
+   @param path {string} URI paths that begin with this path will match 
+   @return {Route} the route
+   */
+  this.routes = function(methods, path) {
+    var __args = arguments;
+    if (__args.length === 2 && typeof __args[0] === 'object' && __args[0] instanceof Array && typeof __args[1] === 'string') {
+      return utils.convReturnVertxGen(j_router["routes(java.util.Set,java.lang.String)"](utils.convParamSetEnum(methods, function(val) { return Packages.io.vertx.core.http.HttpMethod.valueOf(val); }), path), Route);
+    } else throw new TypeError('function invoked with invalid arguments');
+  };
+
+  /**
    Add a route that matches the specified HTTP method and path regex
 
    @public
