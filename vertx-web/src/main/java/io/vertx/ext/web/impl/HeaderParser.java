@@ -112,7 +112,9 @@ public class HeaderParser {
         // If "q" doesn't have a double as a value, it is ignored on purpose!
         if("q".equalsIgnoreCase(key)){
           try{
-            weightCallback.accept(Float.parseFloat(value));
+            if(value != null){
+              weightCallback.accept(Float.parseFloat(value));
+            }
           }catch(NumberFormatException e){
             log.info("Found a \"q\" parameter with value \"{}\" which was unparsable", value);
           }

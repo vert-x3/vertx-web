@@ -67,11 +67,10 @@ public class ParsableHeaderValue implements ParsedHeaderValue {
   
   protected boolean isMatchedBy2(ParsableHeaderValue matchTry){
     ensureHeaderProcessed();
-    
-    if (matchTry.parameter == null) {
+    if (matchTry.parameter.isEmpty()) {
       return true;
     }
-    if (parameter == null) {
+    if (parameter.isEmpty()) {
       return false;
     }
       
