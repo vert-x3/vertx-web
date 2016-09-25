@@ -972,6 +972,14 @@ public class RouterTest extends WebTestBase {
   }
 
   @Test
+  public void testConsumesWithQParameterIgnored() throws Exception {
+    router.route().consumes("text/html;q").consumes("text/html;q=0.1").handler(rc -> rc.response().end());
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo", 200, "OK");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 200, "OK");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=yeah,right", 200, "OK");
+  }
+
+  @Test
   public void testConsumesMultiple() throws Exception {
     router.route().consumes("text/html").consumes("application/json").handler(rc -> rc.response().end());
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 200, "OK");
@@ -1088,6 +1096,15 @@ public class RouterTest extends WebTestBase {
     testRequestWithAccepts(HttpMethod.GET, "/foo", "application/blah", 404, "Not Found");
   }
 
+  @Test
+  public void testProducesWithQParameterIgnored() throws Exception {
+    router.route().produces("text/html;q").produces("text/html;q=0.1").handler(rc -> rc.response().end());
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html", 200, "OK");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html;a", 200, "OK");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html;q=2", 200, "OK");
+    testRequest(HttpMethod.GET, "/foo", 200, "OK");
+  }
+  
   @Test
   public void testProducesMissingSlash() throws Exception {
     // will assume "*/json"
