@@ -1161,6 +1161,7 @@ public class RouterTest extends WebTestBase {
       rc.response().end();
     });
     testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html,application/json,text/plain", 200, "application/json");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html,application/json;b,text/plain", 200, "application/json");
   }
 
   @Test
@@ -1170,6 +1171,7 @@ public class RouterTest extends WebTestBase {
       rc.response().end();
     });
     testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html,application/*,text/plain", 200, "application/json");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html;a,application/*,text/plain", 200, "application/json");
   }
 
   @Test
@@ -1179,6 +1181,9 @@ public class RouterTest extends WebTestBase {
       rc.response().end();
     });
     testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html,application/json,text/plain", 200, "application/json");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html,application/json;a,text/plain", 200, "application/json");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html,application/json,text/plain;a", 200, "text/plain");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html,application/json;c,text/plain;a", 200, "application/json");
   }
 
   @Test
@@ -1188,6 +1193,8 @@ public class RouterTest extends WebTestBase {
       rc.response().end();
     });
     testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html,text/plain,application/json", 200, "text/plain");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html,text/plain;a,application/json", 200, "text/plain");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html,text/plain,application/json;a", 200, "application/json");
   }
 
   @Test
@@ -1197,6 +1204,9 @@ public class RouterTest extends WebTestBase {
       rc.response().end();
     });
     testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html,text/plain,application/json;q=0.9", 200, "text/plain");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html,text/plain,application/json;q=0.9;a", 200, "text/plain");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html,text/plain,application/json;a;q=0.9", 200, "text/plain");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html,text/plain;a,application/json;q=0.9", 200, "text/plain");
   }
 
   @Test
@@ -1206,6 +1216,8 @@ public class RouterTest extends WebTestBase {
       rc.response().end();
     });
     testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html,text/plain;q=0.9,application/json", 200, "application/json");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html,text/plain;q=0.9,application/json;a", 200, "application/json");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html,text/plain;q=0.9;a,application/json", 200, "application/json");
   }
 
   @Test
@@ -1215,6 +1227,7 @@ public class RouterTest extends WebTestBase {
       rc.response().end();
     });
     testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html,text/plain;q=0.9,application/json;q=1.0", 200, "application/json");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html,text/plain;q=0.9;a,application/json;q=1.0", 200, "application/json");
   }
 
   @Test
