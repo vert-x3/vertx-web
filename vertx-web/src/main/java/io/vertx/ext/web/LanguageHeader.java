@@ -3,7 +3,9 @@ package io.vertx.ext.web;
 import java.util.Map;
 
 import io.vertx.codegen.annotations.Nullable;
+import io.vertx.codegen.annotations.VertxGen;
 
+@VertxGen
 public interface LanguageHeader extends ParsedHeaderValue, Locale{
   
   /**

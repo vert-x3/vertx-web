@@ -7,8 +7,10 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 
+import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.ext.web.ParsedHeaderValue;
 
+@VertxGen
 public class ParsableHeaderValue implements ParsedHeaderValue {
   
   private String headerContent;

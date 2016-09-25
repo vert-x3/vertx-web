@@ -3,6 +3,8 @@ package io.vertx.ext.web;
 import java.util.List;
 import java.util.Optional;
 
+import io.vertx.codegen.annotations.VertxGen;
+
 /**
  * A container with the request's headers that are meaningful enough to be parsed
  * Contains:
@@ -15,6 +17,7 @@ import java.util.Optional;
  * </ul>
  *
  */
+@VertxGen
 public interface ParsedHeaderValues {
   List<MIMEHeader> accept();
   List<ParsedHeaderValue> acceptCharset();

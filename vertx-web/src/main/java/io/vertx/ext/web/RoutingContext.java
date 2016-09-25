@@ -413,6 +413,7 @@ public interface RoutingContext {
    * @return the best matched locale for the request
    */
   @Deprecated
+  @CacheReturn
   List<Locale> acceptableLocales();
   
   /**
@@ -425,6 +426,7 @@ public interface RoutingContext {
    *
    * @return The best matched language for the request
    */
+  @CacheReturn
   default List<LanguageHeader> acceptableLanguages(){
     return parsedHeaders().acceptLanguage();
   }
@@ -436,6 +438,7 @@ public interface RoutingContext {
    * @deprecated Use {@link #preferredLanguage()} instead
    * @return the users preferred locale.
    */
+  @CacheReturn
   @Deprecated
   default Locale preferredLocale() {
     return preferredLanguage();
@@ -447,6 +450,7 @@ public interface RoutingContext {
    *
    * @return the users preferred locale.
    */
+  @CacheReturn
   default LanguageHeader preferredLanguage() {
     List<? extends LanguageHeader> acceptableLanguages = acceptableLanguages();
     return acceptableLanguages.size() > 0 ? acceptableLanguages.get(0) : null;

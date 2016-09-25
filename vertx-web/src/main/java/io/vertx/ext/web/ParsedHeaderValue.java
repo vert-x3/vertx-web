@@ -5,9 +5,11 @@ import java.util.Optional;
 import java.util.Set;
 
 import io.vertx.codegen.annotations.Nullable;
+import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.ext.web.impl.ParsableHeaderValue;
 import io.vertx.ext.web.impl.ParsableMIMEValue;
 
+@VertxGen
 public interface ParsedHeaderValue {
 
   /**

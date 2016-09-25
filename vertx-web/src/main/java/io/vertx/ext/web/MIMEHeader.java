@@ -1,5 +1,8 @@
 package io.vertx.ext.web;
 
+import io.vertx.codegen.annotations.VertxGen;
+
+@VertxGen
 public interface MIMEHeader extends ParsedHeaderValue{
   
   /**
