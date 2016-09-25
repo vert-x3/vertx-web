@@ -27,7 +27,8 @@ public class HeaderParser {
   static final int MAX_HEADER_SIZE = 200;
   
   private static Pattern COMMA_SPLITTER = Pattern.compile(",(?=(?:(?<!\\\\)\"(?:(?!(?<!\\\\)\").)*(?<!\\\\)\"|\\\\.|[^\"])*$)");
-  private static final Pattern HYPHEN_SPLITTER = Pattern.compile("-");
+  // The underscore is accepted due to some jdk locale implementations not using the hyphen (https://github.com/vert-x3/vertx-web/pull/446#discussion_r79402250) 
+  private static final Pattern HYPHEN_SPLITTER = Pattern.compile("-|_");
   private static final Pattern PARAMETER_FINDER =
       Pattern.compile("\\s*+;\\s*+(?<key>[a-zA-Z0-9]++)\\s*+" +
           "(?:=\\s*+(?:(?<value1>[a-zA-Z0-9.@#\\-%_]++)|\"(?<value2>(?:[^\\\\\"]*+(?:\\\\.)?)*+)\"))?+");
