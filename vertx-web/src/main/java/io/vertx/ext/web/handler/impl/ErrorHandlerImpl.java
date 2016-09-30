@@ -21,6 +21,7 @@ import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import io.vertx.core.Handler;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
@@ -47,15 +48,11 @@ public class ErrorHandlerImpl implements ErrorHandler {
    * Cached template for rendering the html errors
    */
   private final String errorTemplate;
-  
-  private final Timer answerDelayTimer;
 
   public ErrorHandlerImpl(String errorTemplateName, boolean displayExceptionDetails) {
     Objects.requireNonNull(errorTemplateName);
     this.displayExceptionDetails = displayExceptionDetails;
     this.errorTemplate = Utils.readResourceToBuffer(errorTemplateName).toString();
-    
-    answerDelayTimer = new Timer("answer delayer", true);
   }
 
   @Override
@@ -95,9 +92,11 @@ public class ErrorHandlerImpl implements ErrorHandler {
     
     if(failure instanceof HeaderTooLongException){
       // Math.random is random enough for this purpose. Will wait between 1 ms and 11ms
-      answerDelayTimer.schedule(
-          new DelayedAnswer(context, 400, "A header was too long to process"), 1 + (long)(Math.random() * 10)
+      
+      context.vertx().setTimer(1 + (long)(Math.random() * 10), 
+          new DelayedAnswer(context, 400, "A header was too long to process")
       );
+          
       return true;
     }
     return false;
@@ -193,7 +192,7 @@ public class ErrorHandlerImpl implements ErrorHandler {
    * This class is used to delay the answer to a potential attacker<br>
    * In practice, this simulates heavy duty work while, in reality, it was just waiting.
    */
-  private class DelayedAnswer extends TimerTask{
+  private class DelayedAnswer implements Handler<Long>{
     
     RoutingContext context;
     int errorCode;
@@ -204,7 +203,7 @@ public class ErrorHandlerImpl implements ErrorHandler {
       this.errorMessage = errorMessage;
     }
     @Override
-    public void run() {
+    public void handle(Long arg0) {
       ErrorHandlerImpl.this.answerWithError(context, errorCode, errorMessage);
     }
   }
