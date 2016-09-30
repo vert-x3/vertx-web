@@ -232,6 +232,7 @@ public class RouteImpl implements Route {
     }
     HttpServerRequest request = context.request();
     if (!methods.isEmpty() && !methods.contains(request.method())) {
+      ((RoutingContextImplBase) context).setDefaultErrorCode(405);
       return false;
     }
     if (path != null && pattern == null && !pathMatches(mountPoint, context)) {
@@ -293,6 +294,7 @@ public class RouteImpl implements Route {
         }
       }
       if (!matches) {
+        ((RoutingContextImplBase) context).setDefaultErrorCode(415);
         return false;
       }
     }
@@ -314,6 +316,7 @@ public class RouteImpl implements Route {
         context.setAcceptableContentType(produces.iterator().next());
         return true;
       }
+      ((RoutingContextImplBase) context).setDefaultErrorCode(406);
       return false;
     }
     return true;

@@ -33,12 +33,14 @@ public abstract class RoutingContextImplBase implements RoutingContext {
 
   private static final Logger log = LoggerFactory.getLogger(RoutingContextImplBase.class);
 
+  private static final int DEFAULT_ERROR_CODE = 404;
   private final Set<RouteImpl> routes;
 
   protected final String mountPoint;
   protected final HttpServerRequest request;
   protected Iterator<RouteImpl> iter;
   protected RouteImpl currentRoute;
+  protected int defaultErrorCode = DEFAULT_ERROR_CODE;
 
   protected RoutingContextImplBase(String mountPoint, HttpServerRequest request, Set<RouteImpl> routes) {
     this.mountPoint = mountPoint;
@@ -57,6 +59,10 @@ public abstract class RoutingContextImplBase implements RoutingContext {
     return currentRoute;
   }
 
+  protected void setDefaultErrorCode(int errorCode) {
+    defaultErrorCode = errorCode;
+  }
+
   protected void restart() {
     this.iter = routes.iterator();
     currentRoute = null;
@@ -67,6 +73,7 @@ public abstract class RoutingContextImplBase implements RoutingContext {
     boolean failed = failed();
     while (iter.hasNext()) {
       RouteImpl route = iter.next();
+      defaultErrorCode = DEFAULT_ERROR_CODE;
       if (route.matches(this, mountPoint(), failed)) {
         if (log.isTraceEnabled()) log.trace("Route matches: " + route);
         try {

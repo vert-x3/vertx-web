@@ -97,7 +97,7 @@ public class RouterTest extends WebTestBase {
     }
     for (HttpMethod meth: METHODS) {
       if (meth != method) {
-        testRequest(meth, path, 404, "Not Found");
+        testRequest(meth, path, 405, "Method Not Allowed");
       }
     }
   }
@@ -166,7 +166,7 @@ public class RouterTest extends WebTestBase {
       rc.response().setStatusCode(200).setStatusMessage(rc.request().path()).end();
     });
     testPathExact(HttpMethod.GET, path);
-    testRequest(HttpMethod.POST, path, 404, "Not Found");
+    testRequest(HttpMethod.POST, path, 405, "Method Not Allowed");
   }
 
   @Test
@@ -176,7 +176,7 @@ public class RouterTest extends WebTestBase {
       rc.response().setStatusCode(200).setStatusMessage(rc.request().path()).end();
     });
     testPathBegin(HttpMethod.GET, path);
-    testRequest(HttpMethod.POST, path, 404, "Not Found");
+    testRequest(HttpMethod.POST, path, 405, "Method Not Allowed");
   }
 
   @Test
@@ -187,7 +187,7 @@ public class RouterTest extends WebTestBase {
     });
     testPathExact(HttpMethod.GET, path);
     testPathExact(HttpMethod.POST, path);
-    testRequest(HttpMethod.PUT, path, 404, "Not Found");
+    testRequest(HttpMethod.PUT, path, 405, "Method Not Allowed");
   }
 
   @Test
@@ -198,7 +198,7 @@ public class RouterTest extends WebTestBase {
     });
     testPathBegin(HttpMethod.GET, path);
     testPathBegin(HttpMethod.POST, path);
-    testRequest(HttpMethod.PUT, path, 404, "Not Found");
+    testRequest(HttpMethod.PUT, path, 405, "Method Not Allowed");
   }
 
   private void testPathBegin(String path) throws Exception {
@@ -277,7 +277,7 @@ public class RouterTest extends WebTestBase {
     testNoPath(meth);
     for (HttpMethod m: METHODS) {
       if (m != meth) {
-        testRequest(m, "/whatever", 404, "Not Found");
+        testRequest(m, "/whatever", 405, "Method Not Allowed");
       }
     }
   }
@@ -709,7 +709,7 @@ public class RouterTest extends WebTestBase {
       rc.response().setStatusMessage(rc.request().params().get("abc")).end();
     });
     testPattern("/tim", "tim");
-    testRequest(HttpMethod.POST, "/tim", 404, "Not Found");
+    testRequest(HttpMethod.POST, "/tim", 405, "Method Not Allowed");
   }
 
   @Test
@@ -884,7 +884,7 @@ public class RouterTest extends WebTestBase {
       rc.response().setStatusMessage(params.get("param0") + params.get("param1")).end();
     });
     testPattern("/dog/cat", "dogcat");
-    testRequest(HttpMethod.POST, "/dog/cat", 404, "Not Found");
+    testRequest(HttpMethod.POST, "/dog/cat", 405, "Method Not Allowed");
   }
 
   @Test
@@ -910,8 +910,8 @@ public class RouterTest extends WebTestBase {
   public void testConsumes() throws Exception {
     router.route().consumes("text/html").handler(rc -> rc.response().end());
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 200, "OK");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/json", 404, "Not Found");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "something/html", 404, "Not Found");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/json", 415, "Unsupported Media Type");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "something/html", 415, "Unsupported Media Type");
   }
 
   @Test
@@ -919,10 +919,10 @@ public class RouterTest extends WebTestBase {
     router.route().consumes("text/html").consumes("application/json").handler(rc -> rc.response().end());
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 200, "OK");
     testRequestWithContentType(HttpMethod.GET, "/foo", "application/json", 200, "OK");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/json", 404, "Not Found");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "something/html", 404, "Not Found");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/json", 404, "Not Found");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "application/blah", 404, "Not Found");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/json", 415, "Unsupported Media Type");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "something/html", 415, "Unsupported Media Type");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/json", 415, "Unsupported Media Type");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "application/blah", 415, "Unsupported Media Type");
   }
 
   @Test
@@ -932,7 +932,7 @@ public class RouterTest extends WebTestBase {
     testRequestWithContentType(HttpMethod.GET, "/foo", "application/json", 200, "OK");
     testRequestWithContentType(HttpMethod.GET, "/foo", "application/json", 200, "OK");
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/json", 200, "OK");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 404, "Not Found");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 415, "Unsupported Media Type");
   }
 
   @Test
@@ -940,7 +940,7 @@ public class RouterTest extends WebTestBase {
     router.route().consumes("text/*").handler(rc -> rc.response().end());
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 200, "OK");
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/json", 200, "OK");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "application/json", 404, "Not Found");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "application/json", 415, "Unsupported Media Type");
   }
 
   @Test
@@ -948,7 +948,7 @@ public class RouterTest extends WebTestBase {
     router.route().consumes("*/json").handler(rc -> rc.response().end());
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/json", 200, "OK");
     testRequestWithContentType(HttpMethod.GET, "/foo", "application/json", 200, "OK");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "application/html", 404, "Not Found");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "application/html", 415, "Unsupported Media Type");
   }
 
   @Test
@@ -978,15 +978,15 @@ public class RouterTest extends WebTestBase {
   @Test
   public void testConsumesNoContentType() throws Exception {
     router.route().consumes("text/html").handler(rc -> rc.response().end());
-    testRequest(HttpMethod.GET, "/foo", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/foo", 415, "Unsupported Media Type");
   }
 
   @Test
   public void testProduces() throws Exception {
     router.route().produces("text/html").handler(rc -> rc.response().end());
     testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html", 200, "OK");
-    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/json", 404, "Not Found");
-    testRequestWithAccepts(HttpMethod.GET, "/foo", "something/html", 404, "Not Found");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/json", 406, "Not Acceptable");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "something/html", 406, "Not Acceptable");
     testRequest(HttpMethod.GET, "/foo", 200, "OK");
   }
 
@@ -995,10 +995,10 @@ public class RouterTest extends WebTestBase {
     router.route().produces("text/html").produces("application/json").handler(rc -> rc.response().end());
     testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html", 200, "OK");
     testRequestWithAccepts(HttpMethod.GET, "/foo", "application/json", 200, "OK");
-    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/json", 404, "Not Found");
-    testRequestWithAccepts(HttpMethod.GET, "/foo", "something/html", 404, "Not Found");
-    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/json", 404, "Not Found");
-    testRequestWithAccepts(HttpMethod.GET, "/foo", "application/blah", 404, "Not Found");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/json", 406, "Not Acceptable");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "something/html", 406, "Not Acceptable");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/json", 406, "Not Acceptable");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "application/blah", 406, "Not Acceptable");
   }
 
   @Test
@@ -1009,7 +1009,7 @@ public class RouterTest extends WebTestBase {
       rc.response().end();
     });
     testRequestWithAccepts(HttpMethod.GET, "/foo", "json", 200, "application/json");
-    testRequestWithAccepts(HttpMethod.GET, "/foo", "text", 404, "Not Found");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text", 406, "Not Acceptable");
   }
 
   @Test
@@ -1019,7 +1019,7 @@ public class RouterTest extends WebTestBase {
       rc.response().end();
     });
     testRequestWithAccepts(HttpMethod.GET, "/foo", "text/*", 200, "text/html");
-    testRequestWithAccepts(HttpMethod.GET, "/foo", "application/*", 404, "Not Found");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "application/*", 406, "Not Acceptable");
   }
 
   @Test
@@ -1029,7 +1029,7 @@ public class RouterTest extends WebTestBase {
       rc.response().end();
     });
     testRequestWithAccepts(HttpMethod.GET, "/foo", "*/json", 200, "application/json");
-    testRequestWithAccepts(HttpMethod.GET, "/foo", "*/html", 404, "Not Found");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "*/html", 406, "Not Acceptable");
   }
 
   @Test
@@ -1327,11 +1327,11 @@ public class RouterTest extends WebTestBase {
       rc.response().setStatusMessage("foo").end();
     });
     testRequest(HttpMethod.GET, "/whatever", 200, "foo");
-    testRequest(HttpMethod.POST, "/whatever", 404, "Not Found");
-    testRequest(HttpMethod.PUT, "/whatever", 404, "Not Found");
-    testRequest(HttpMethod.DELETE, "/whatever", 404, "Not Found");
-    testRequest(HttpMethod.OPTIONS, "/whatever", 404, "Not Found");
-    testRequest(HttpMethod.HEAD, "/whatever", 404, "Not Found");
+    testRequest(HttpMethod.POST, "/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.PUT, "/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.DELETE, "/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.OPTIONS, "/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.HEAD, "/whatever", 405, "Method Not Allowed");
   }
 
   @Test
@@ -1341,11 +1341,11 @@ public class RouterTest extends WebTestBase {
     });
     testRequest(HttpMethod.GET, "/somepath/", 200, "foo");
     testRequest(HttpMethod.GET, "/otherpath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.POST, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.PUT, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.DELETE, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.HEAD, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.POST, "/somepath/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.PUT, "/somepath/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.DELETE, "/somepath/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.HEAD, "/somepath/whatever", 405, "Method Not Allowed");
   }
 
   @Test
@@ -1355,11 +1355,11 @@ public class RouterTest extends WebTestBase {
     });
     testRequest(HttpMethod.GET, "/somepath/whatever", 200, "foo");
     testRequest(HttpMethod.GET, "/otherpath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.POST, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.PUT, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.DELETE, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.HEAD, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.POST, "/somepath/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.PUT, "/somepath/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.DELETE, "/somepath/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.HEAD, "/somepath/whatever", 405, "Method Not Allowed");
   }
 
   @Test
@@ -1369,11 +1369,11 @@ public class RouterTest extends WebTestBase {
     });
     testRequest(HttpMethod.GET, "/somepath/whatever", 200, "foo");
     testRequest(HttpMethod.GET, "/otherpath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.POST, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.PUT, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.DELETE, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.HEAD, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.POST, "/somepath/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.PUT, "/somepath/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.DELETE, "/somepath/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.HEAD, "/somepath/whatever", 405, "Method Not Allowed");
   }
 
   @Test
@@ -1382,11 +1382,11 @@ public class RouterTest extends WebTestBase {
       rc.response().setStatusMessage("foo").end();
     });
     testRequest(HttpMethod.POST, "/whatever", 200, "foo");
-    testRequest(HttpMethod.GET, "/whatever", 404, "Not Found");
-    testRequest(HttpMethod.PUT, "/whatever", 404, "Not Found");
-    testRequest(HttpMethod.DELETE, "/whatever", 404, "Not Found");
-    testRequest(HttpMethod.OPTIONS, "/whatever", 404, "Not Found");
-    testRequest(HttpMethod.HEAD, "/whatever", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.PUT, "/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.DELETE, "/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.OPTIONS, "/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.HEAD, "/whatever", 405, "Method Not Allowed");
   }
 
   @Test
@@ -1396,11 +1396,11 @@ public class RouterTest extends WebTestBase {
     });
     testRequest(HttpMethod.POST, "/somepath/", 200, "foo");
     testRequest(HttpMethod.POST, "/otherpath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.GET, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.PUT, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.DELETE, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.HEAD, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/somepath/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.PUT, "/somepath/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.DELETE, "/somepath/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.HEAD, "/somepath/whatever", 405, "Method Not Allowed");
   }
 
   @Test
@@ -1410,11 +1410,11 @@ public class RouterTest extends WebTestBase {
     });
     testRequest(HttpMethod.POST, "/somepath/whatever", 200, "foo");
     testRequest(HttpMethod.POST, "/otherpath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.GET, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.PUT, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.DELETE, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.HEAD, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/somepath/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.PUT, "/somepath/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.DELETE, "/somepath/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.HEAD, "/somepath/whatever", 405, "Method Not Allowed");
   }
 
   @Test
@@ -1424,11 +1424,11 @@ public class RouterTest extends WebTestBase {
     });
     testRequest(HttpMethod.POST, "/somepath/whatever", 200, "foo");
     testRequest(HttpMethod.POST, "/otherpath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.GET, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.PUT, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.DELETE, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.HEAD, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/somepath/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.PUT, "/somepath/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.DELETE, "/somepath/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.HEAD, "/somepath/whatever", 405, "Method Not Allowed");
   }
 
   @Test
@@ -1437,11 +1437,11 @@ public class RouterTest extends WebTestBase {
       rc.response().setStatusMessage("foo").end();
     });
     testRequest(HttpMethod.PUT, "/whatever", 200, "foo");
-    testRequest(HttpMethod.GET, "/whatever", 404, "Not Found");
-    testRequest(HttpMethod.POST, "/whatever", 404, "Not Found");
-    testRequest(HttpMethod.DELETE, "/whatever", 404, "Not Found");
-    testRequest(HttpMethod.OPTIONS, "/whatever", 404, "Not Found");
-    testRequest(HttpMethod.HEAD, "/whatever", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.POST, "/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.DELETE, "/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.OPTIONS, "/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.HEAD, "/whatever", 405, "Method Not Allowed");
   }
 
   @Test
@@ -1451,11 +1451,11 @@ public class RouterTest extends WebTestBase {
     });
     testRequest(HttpMethod.PUT, "/somepath/", 200, "foo");
     testRequest(HttpMethod.PUT, "/otherpath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.GET, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.POST, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.DELETE, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.HEAD, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/somepath/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.POST, "/somepath/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.DELETE, "/somepath/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.HEAD, "/somepath/whatever", 405, "Method Not Allowed");
   }
 
   @Test
@@ -1465,11 +1465,11 @@ public class RouterTest extends WebTestBase {
     });
     testRequest(HttpMethod.PUT, "/somepath/whatever", 200, "foo");
     testRequest(HttpMethod.PUT, "/otherpath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.GET, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.POST, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.DELETE, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.HEAD, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/somepath/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.POST, "/somepath/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.DELETE, "/somepath/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.HEAD, "/somepath/whatever", 405, "Method Not Allowed");
   }
 
   @Test
@@ -1479,11 +1479,11 @@ public class RouterTest extends WebTestBase {
     });
     testRequest(HttpMethod.PUT, "/somepath/whatever", 200, "foo");
     testRequest(HttpMethod.PUT, "/otherpath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.GET, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.POST, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.DELETE, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.HEAD, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/somepath/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.POST, "/somepath/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.DELETE, "/somepath/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.HEAD, "/somepath/whatever", 405, "Method Not Allowed");
   }
 
   @Test
@@ -1492,11 +1492,11 @@ public class RouterTest extends WebTestBase {
       rc.response().setStatusMessage("foo").end();
     });
     testRequest(HttpMethod.DELETE, "/whatever", 200, "foo");
-    testRequest(HttpMethod.GET, "/whatever", 404, "Not Found");
-    testRequest(HttpMethod.POST, "/whatever", 404, "Not Found");
-    testRequest(HttpMethod.PUT, "/whatever", 404, "Not Found");
-    testRequest(HttpMethod.OPTIONS, "/whatever", 404, "Not Found");
-    testRequest(HttpMethod.HEAD, "/whatever", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.POST, "/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.PUT, "/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.OPTIONS, "/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.HEAD, "/whatever", 405, "Method Not Allowed");
   }
 
   @Test
@@ -1506,11 +1506,11 @@ public class RouterTest extends WebTestBase {
     });
     testRequest(HttpMethod.DELETE, "/somepath/", 200, "foo");
     testRequest(HttpMethod.DELETE, "/otherpath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.GET, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.POST, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.PUT, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.HEAD, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/somepath/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.POST, "/somepath/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.PUT, "/somepath/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.HEAD, "/somepath/whatever", 405, "Method Not Allowed");
   }
 
   @Test
@@ -1520,11 +1520,11 @@ public class RouterTest extends WebTestBase {
     });
     testRequest(HttpMethod.DELETE, "/somepath/whatever", 200, "foo");
     testRequest(HttpMethod.DELETE, "/otherpath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.GET, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.POST, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.PUT, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.HEAD, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/somepath/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.POST, "/somepath/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.PUT, "/somepath/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.HEAD, "/somepath/whatever", 405, "Method Not Allowed");
   }
 
   @Test
@@ -1534,11 +1534,11 @@ public class RouterTest extends WebTestBase {
     });
     testRequest(HttpMethod.DELETE, "/somepath/whatever", 200, "foo");
     testRequest(HttpMethod.DELETE, "/otherpath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.GET, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.POST, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.PUT, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.HEAD, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/somepath/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.POST, "/somepath/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.PUT, "/somepath/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.HEAD, "/somepath/whatever", 405, "Method Not Allowed");
   }
 
   @Test
@@ -1547,11 +1547,11 @@ public class RouterTest extends WebTestBase {
       rc.response().setStatusMessage("foo").end();
     });
     testRequest(HttpMethod.OPTIONS, "/whatever", 200, "foo");
-    testRequest(HttpMethod.GET, "/whatever", 404, "Not Found");
-    testRequest(HttpMethod.POST, "/whatever", 404, "Not Found");
-    testRequest(HttpMethod.PUT, "/whatever", 404, "Not Found");
-    testRequest(HttpMethod.DELETE, "/whatever", 404, "Not Found");
-    testRequest(HttpMethod.HEAD, "/whatever", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.POST, "/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.PUT, "/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.DELETE, "/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.HEAD, "/whatever", 405, "Method Not Allowed");
   }
 
   @Test
@@ -1561,11 +1561,11 @@ public class RouterTest extends WebTestBase {
     });
     testRequest(HttpMethod.OPTIONS, "/somepath/", 200, "foo");
     testRequest(HttpMethod.OPTIONS, "/otherpath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.GET, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.POST, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.PUT, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.DELETE, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.HEAD, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/somepath/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.POST, "/somepath/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.PUT, "/somepath/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.DELETE, "/somepath/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.HEAD, "/somepath/whatever", 405, "Method Not Allowed");
   }
 
   @Test
@@ -1575,11 +1575,11 @@ public class RouterTest extends WebTestBase {
     });
     testRequest(HttpMethod.OPTIONS, "/somepath/whatever", 200, "foo");
     testRequest(HttpMethod.OPTIONS, "/otherpath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.GET, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.POST, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.PUT, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.DELETE, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.HEAD, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/somepath/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.POST, "/somepath/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.PUT, "/somepath/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.DELETE, "/somepath/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.HEAD, "/somepath/whatever", 405, "Method Not Allowed");
   }
 
   @Test
@@ -1589,11 +1589,11 @@ public class RouterTest extends WebTestBase {
     });
     testRequest(HttpMethod.OPTIONS, "/somepath/whatever", 200, "foo");
     testRequest(HttpMethod.OPTIONS, "/otherpath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.GET, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.POST, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.PUT, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.DELETE, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.HEAD, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/somepath/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.POST, "/somepath/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.PUT, "/somepath/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.DELETE, "/somepath/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.HEAD, "/somepath/whatever", 405, "Method Not Allowed");
   }
 
   @Test
@@ -1602,11 +1602,11 @@ public class RouterTest extends WebTestBase {
       rc.response().setStatusMessage("foo").end();
     });
     testRequest(HttpMethod.HEAD, "/whatever", 200, "foo");
-    testRequest(HttpMethod.GET, "/whatever", 404, "Not Found");
-    testRequest(HttpMethod.POST, "/whatever", 404, "Not Found");
-    testRequest(HttpMethod.PUT, "/whatever", 404, "Not Found");
-    testRequest(HttpMethod.OPTIONS, "/whatever", 404, "Not Found");
-    testRequest(HttpMethod.DELETE, "/whatever", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.POST, "/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.PUT, "/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.OPTIONS, "/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.DELETE, "/whatever", 405, "Method Not Allowed");
   }
 
   @Test
@@ -1616,11 +1616,11 @@ public class RouterTest extends WebTestBase {
     });
     testRequest(HttpMethod.HEAD, "/somepath/", 200, "foo");
     testRequest(HttpMethod.HEAD, "/otherpath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.GET, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.POST, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.PUT, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.DELETE, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/somepath/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.POST, "/somepath/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.PUT, "/somepath/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.DELETE, "/somepath/whatever", 405, "Method Not Allowed");
   }
 
   @Test
@@ -1630,11 +1630,11 @@ public class RouterTest extends WebTestBase {
     });
     testRequest(HttpMethod.HEAD, "/somepath/whatever", 200, "foo");
     testRequest(HttpMethod.HEAD, "/otherpath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.GET, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.POST, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.PUT, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.DELETE, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/somepath/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.POST, "/somepath/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.PUT, "/somepath/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.DELETE, "/somepath/whatever", 405, "Method Not Allowed");
   }
 
   @Test
@@ -1644,11 +1644,11 @@ public class RouterTest extends WebTestBase {
     });
     testRequest(HttpMethod.HEAD, "/somepath/whatever", 200, "foo");
     testRequest(HttpMethod.HEAD, "/otherpath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.GET, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.POST, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.PUT, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", 404, "Not Found");
-    testRequest(HttpMethod.DELETE, "/somepath/whatever", 404, "Not Found");
+    testRequest(HttpMethod.GET, "/somepath/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.POST, "/somepath/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.PUT, "/somepath/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.OPTIONS, "/somepath/whatever", 405, "Method Not Allowed");
+    testRequest(HttpMethod.DELETE, "/somepath/whatever", 405, "Method Not Allowed");
   }
 
   @Test

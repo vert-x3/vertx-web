@@ -17,6 +17,7 @@
 package io.vertx.ext.web.impl;
 
 import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.codegen.annotations.Nullable;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
@@ -102,15 +103,15 @@ public class RoutingContextImpl extends RoutingContextImplBase {
       // Send back FAILURE
       unhandledFailure(statusCode, failure, router);
     } else {
-      // Send back default 404
-      response().setStatusCode(404);
+      // Send back default error code
+      response().setStatusCode(defaultErrorCode);
       if (request().method() == HttpMethod.HEAD) {
         // HEAD responses don't have a body
         response().end();
       } else {
         response()
                 .putHeader(HttpHeaderNames.CONTENT_TYPE, "text/html; charset=utf-8")
-                .end(DEFAULT_404);
+                .end(String.format(DEFAULT_ERROR_MESSAGE, HttpResponseStatus.valueOf(defaultErrorCode).reasonPhrase()));
       }
     }
   }
@@ -402,7 +403,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
     return seq;
   }
 
-  private static final String DEFAULT_404 =
-    "<html><body><h1>Resource not found</h1></body></html>";
+  private static final String DEFAULT_ERROR_MESSAGE =
+    "<html><body><h1>%s</h1></body></html>";
 
 }
