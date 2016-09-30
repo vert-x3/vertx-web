@@ -50,15 +50,15 @@ public interface ParsedHeaderValue {
    * @return 
    */
   @Nullable
-  String getParameter(String key);
+  String parameter(String key);
   
   /**
    * The parameters specified in this header value.
    * <b>Note:</b> The <code>q</code> parameter is never present.
-   * @see {@link #getParameter(String)}
+   * @see {@link #parameter(String)}
    * @return Unmodifiable Map of parameters of this header value
    */
-  Map<String, String> getParameters();
+  Map<String, String> parameters();
   
   /**
    * Is this an allowed operation as specified by the corresponding header?

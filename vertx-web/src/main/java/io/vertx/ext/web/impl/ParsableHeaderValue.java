@@ -53,11 +53,11 @@ public class ParsableHeaderValue implements ParsedHeaderValue {
     return weight < 0.001;
   }
   
-  public String getParameter(String key) {
+  public String parameter(String key) {
     return parameter.get(key);
   }
   
-  public Map<String, String> getParameters() {
+  public Map<String, String> parameters() {
     return Collections.unmodifiableMap(parameter);
   }
   
