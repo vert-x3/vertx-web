@@ -128,6 +128,15 @@ public class RoutingContext {
     return ret;
   }
   /**
+   * Remove some data from the context. The data is available in any handlers that receive the context.
+   * @param key the key for the data
+   * @return the previous data associated with the key
+   */
+  public <T> T remove(String key) {
+    def ret = (T) InternalHelper.wrapObject(delegate.remove(key));
+    return ret;
+  }
+  /**
    * @return the Vert.x instance associated to the initiating {@link io.vertx.groovy.ext.web.Router} for this context
    */
   public Vertx vertx() {
@@ -313,6 +322,26 @@ public class RoutingContext {
     return ret;
   }
   /**
+   * The headers:
+   * <ol>
+   * <li>Accept</li>
+   * <li>Accept-Charset</li>
+   * <li>Accept-Encoding</li>
+   * <li>Accept-Language</li>
+   * <li>Content-Type</li>
+   * </ol>
+   * Parsed into {@link io.vertx.groovy.ext.web.ParsedHeaderValue}
+   * @return A container with the parsed headers.
+   */
+  public ParsedHeaderValues parsedHeaders() {
+    if (cached_4 != null) {
+      return cached_4;
+    }
+    def ret = InternalHelper.safeCreate(delegate.parsedHeaders(), io.vertx.groovy.ext.web.ParsedHeaderValues.class);
+    cached_4 = ret;
+    return ret;
+  }
+  /**
    * Add a handler that will be called just before headers are written to the response. This gives you a hook where
    * you can write any extra headers before the response has been written when it will be too late.
    * @param handler the handler
@@ -421,11 +450,28 @@ public class RoutingContext {
    * @return the best matched locale for the request
    */
   public List<Locale> acceptableLocales() {
-    if (cached_4 != null) {
-      return cached_4;
+    if (cached_5 != null) {
+      return cached_5;
     }
     def ret = (List)delegate.acceptableLocales()?.collect({InternalHelper.safeCreate(it, io.vertx.groovy.ext.web.Locale.class)});
-    cached_4 = ret;
+    cached_5 = ret;
+    return ret;
+  }
+  /**
+   * Returns the languages for the current request. The languages are determined from the <code>Accept-Language</code>
+   * header and sorted on quality.
+   *
+   * When 2 or more entries have the same quality then the order used to return the best match is based on the lowest
+   * index on the original list. For example if a user has en-US and en-GB with same quality and this order the best
+   * match will be en-US because it was declared as first entry by the client.
+   * @return The best matched language for the request
+   */
+  public List<LanguageHeader> acceptableLanguages() {
+    if (cached_6 != null) {
+      return cached_6;
+    }
+    def ret = (List)delegate.acceptableLanguages()?.collect({InternalHelper.safeCreate(it, io.vertx.groovy.ext.web.LanguageHeader.class)});
+    cached_6 = ret;
     return ret;
   }
   /**
@@ -434,7 +480,24 @@ public class RoutingContext {
    * @return the users preferred locale.
    */
   public Locale preferredLocale() {
+    if (cached_7 != null) {
+      return cached_7;
+    }
     def ret = InternalHelper.safeCreate(delegate.preferredLocale(), io.vertx.groovy.ext.web.Locale.class);
+    cached_7 = ret;
+    return ret;
+  }
+  /**
+   * Helper to return the user preferred language.
+   * It is the same action as returning the first element of the acceptable languages.
+   * @return the users preferred locale.
+   */
+  public LanguageHeader preferredLanguage() {
+    if (cached_8 != null) {
+      return cached_8;
+    }
+    def ret = InternalHelper.safeCreate(delegate.preferredLanguage(), io.vertx.groovy.ext.web.LanguageHeader.class);
+    cached_8 = ret;
     return ret;
   }
   /**
@@ -458,5 +521,9 @@ public class RoutingContext {
   private HttpServerResponse cached_1;
   private Throwable cached_2;
   private Integer cached_3;
-  private List<Locale> cached_4;
+  private ParsedHeaderValues cached_4;
+  private List<Locale> cached_5;
+  private List<LanguageHeader> cached_6;
+  private Locale cached_7;
+  private LanguageHeader cached_8;
 }

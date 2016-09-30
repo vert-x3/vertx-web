@@ -1002,7 +1002,7 @@ var route = router.get("/localized").handler(function (rc) {
   // although it might seem strange by running a loop with a switch we
   // make sure that the locale order of preference is preserved when
   // replying in the users language.
-  Array.prototype.forEach.call(rc.acceptableLocales(), function(locale) {
+  Array.prototype.forEach.call(rc.acceptableLanguages(), function(language) {
     return
   });
   // we do not know the user language so lets just inform that back:

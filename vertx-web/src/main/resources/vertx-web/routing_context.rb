@@ -8,6 +8,8 @@ require 'vertx-auth-common/user'
 require 'vertx/buffer'
 require 'vertx/http_server_response'
 require 'vertx/vertx'
+require 'vertx-web/parsed_header_values'
+require 'vertx-web/language_header'
 require 'vertx/util/utils.rb'
 # Generated from io.vertx.ext.web.RoutingContext
 module VertxWeb
@@ -105,6 +107,15 @@ module VertxWeb
         return ::Vertx::Util::Utils.from_object(@j_del.java_method(:get, [Java::java.lang.String.java_class]).call(key))
       end
       raise ArgumentError, "Invalid arguments when calling get(key)"
+    end
+    #  Remove some data from the context. The data is available in any handlers that receive the context.
+    # @param [String] key the key for the data
+    # @return [Object] the previous data associated with the key
+    def remove(key=nil)
+      if key.class == String && !block_given?
+        return ::Vertx::Util::Utils.from_object(@j_del.java_method(:remove, [Java::java.lang.String.java_class]).call(key))
+      end
+      raise ArgumentError, "Invalid arguments when calling remove(key)"
     end
     # @return [::Vertx::Vertx] the Vert.x instance associated to the initiating {::VertxWeb::Router} for this context
     def vertx
@@ -285,6 +296,25 @@ module VertxWeb
       end
       raise ArgumentError, "Invalid arguments when calling get_acceptable_content_type()"
     end
+    #  The headers:
+    #  <ol>
+    #  <li>Accept</li>
+    #  <li>Accept-Charset</li>
+    #  <li>Accept-Encoding</li>
+    #  <li>Accept-Language</li>
+    #  <li>Content-Type</li>
+    #  </ol>
+    #  Parsed into {::VertxWeb::ParsedHeaderValue}
+    # @return [::VertxWeb::ParsedHeaderValues] A container with the parsed headers.
+    def parsed_headers
+      if !block_given?
+        if @cached_parsed_headers != nil
+          return @cached_parsed_headers
+        end
+        return @cached_parsed_headers = ::Vertx::Util::Utils.safe_create(@j_del.java_method(:parsedHeaders, []).call(),::VertxWeb::ParsedHeaderValues)
+      end
+      raise ArgumentError, "Invalid arguments when calling parsed_headers()"
+    end
     #  Add a handler that will be called just before headers are written to the response. This gives you a hook where
     #  you can write any extra headers before the response has been written when it will be too late.
     # @yield the handler
@@ -409,14 +439,45 @@ module VertxWeb
       end
       raise ArgumentError, "Invalid arguments when calling acceptable_locales()"
     end
+    #  Returns the languages for the current request. The languages are determined from the <code>Accept-Language</code>
+    #  header and sorted on quality.
+    # 
+    #  When 2 or more entries have the same quality then the order used to return the best match is based on the lowest
+    #  index on the original list. For example if a user has en-US and en-GB with same quality and this order the best
+    #  match will be en-US because it was declared as first entry by the client.
+    # @return [Array<::VertxWeb::LanguageHeader>] The best matched language for the request
+    def acceptable_languages
+      if !block_given?
+        if @cached_acceptable_languages != nil
+          return @cached_acceptable_languages
+        end
+        return @cached_acceptable_languages = @j_del.java_method(:acceptableLanguages, []).call().to_a.map { |elt| ::Vertx::Util::Utils.safe_create(elt,::VertxWeb::LanguageHeader) }
+      end
+      raise ArgumentError, "Invalid arguments when calling acceptable_languages()"
+    end
     #  Helper to return the user preferred locale. It is the same action as returning the first element of the acceptable
     #  locales.
     # @return [::VertxWeb::Locale] the users preferred locale.
     def preferred_locale
       if !block_given?
-        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:preferredLocale, []).call(),::VertxWeb::Locale)
+        if @cached_preferred_locale != nil
+          return @cached_preferred_locale
+        end
+        return @cached_preferred_locale = ::Vertx::Util::Utils.safe_create(@j_del.java_method(:preferredLocale, []).call(),::VertxWeb::Locale)
       end
       raise ArgumentError, "Invalid arguments when calling preferred_locale()"
+    end
+    #  Helper to return the user preferred language.
+    #  It is the same action as returning the first element of the acceptable languages.
+    # @return [::VertxWeb::LanguageHeader] the users preferred locale.
+    def preferred_language
+      if !block_given?
+        if @cached_preferred_language != nil
+          return @cached_preferred_language
+        end
+        return @cached_preferred_language = ::Vertx::Util::Utils.safe_create(@j_del.java_method(:preferredLanguage, []).call(),::VertxWeb::LanguageHeader)
+      end
+      raise ArgumentError, "Invalid arguments when calling preferred_language()"
     end
     #  Returns a map of named parameters as defined in path declaration with their actual values
     # @return [Hash{String => String}] the map of named parameters

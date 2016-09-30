@@ -3,6 +3,7 @@ package io.vertx.ext.web;
 import java.util.List;
 import java.util.Optional;
 
+import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
 
 /**
@@ -33,5 +34,6 @@ public interface ParsedHeaderValues {
    * @param in The headers to match against.
    * @return The first header that matched, otherwise empty if none matched
    */
+  @GenIgnore
   <T extends ParsedHeaderValue> Optional<T> findBestUserAcceptedIn(List<T> accepted, Iterable<T> in);
 }

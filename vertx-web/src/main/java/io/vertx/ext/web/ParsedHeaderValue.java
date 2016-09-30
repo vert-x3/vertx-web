@@ -4,12 +4,13 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.Nullable;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.ext.web.impl.ParsableHeaderValue;
 import io.vertx.ext.web.impl.ParsableMIMEValue;
 
-@VertxGen
+@VertxGen(concrete = false)
 public interface ParsedHeaderValue {
 
   /**
@@ -70,7 +71,7 @@ public interface ParsedHeaderValue {
    * @param matchTry The header to be matched from
    * @return true if this header represents a subset of matchTry, otherwise, false
    */
-  boolean isMatchedBy(ParsableHeaderValue matchTry);
+  boolean isMatchedBy(ParsedHeaderValue matchTry);
   
   /**
    * Finds the first ParsedHeaderValue in the list that matches with this header value.
@@ -79,8 +80,9 @@ public interface ParsedHeaderValue {
    * @param matchTries A list of parsed headers to match from this header value
    * @return Optional potentially with the first matched header
    */
+  @GenIgnore
   <T extends ParsedHeaderValue> Optional<T> findMatchedBy(Iterable<T> matchTries);
-  
+
   /**
    * An integer that represents the absolute order position of this header
    */

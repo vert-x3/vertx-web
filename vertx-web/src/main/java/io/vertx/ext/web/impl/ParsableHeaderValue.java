@@ -10,7 +10,6 @@ import java.util.Optional;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.ext.web.ParsedHeaderValue;
 
-@VertxGen
 public class ParsableHeaderValue implements ParsedHeaderValue {
   
   private String headerContent;
@@ -63,8 +62,9 @@ public class ParsableHeaderValue implements ParsedHeaderValue {
     return Collections.unmodifiableMap(parameter);
   }
   
-  public final boolean isMatchedBy(ParsableHeaderValue matchTry){
-    return this.headerContent.equals(matchTry.headerContent) || isMatchedBy2(matchTry);
+  public final boolean isMatchedBy(ParsedHeaderValue matchTry){
+    ParsableHeaderValue impl = (ParsableHeaderValue) matchTry;
+    return this.headerContent.equals(impl.headerContent) || isMatchedBy2(impl);
   }
   
   protected boolean isMatchedBy2(ParsableHeaderValue matchTry){

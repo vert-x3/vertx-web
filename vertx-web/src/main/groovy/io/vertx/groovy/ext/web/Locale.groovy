@@ -18,6 +18,8 @@ package io.vertx.groovy.ext.web;
 import groovy.transform.CompileStatic
 import io.vertx.lang.groovy.InternalHelper
 import io.vertx.core.json.JsonObject
+/**
+*/
 @CompileStatic
 public class Locale {
   private final def io.vertx.ext.web.Locale delegate;

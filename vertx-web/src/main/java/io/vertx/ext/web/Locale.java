@@ -28,7 +28,7 @@ import io.vertx.ext.web.impl.ParsableLanguageValue;
 /**
  * @deprecated Use {@link LanguageHeader} instead
  */
-@VertxGen
+@VertxGen()
 @Deprecated
 public interface Locale {
 

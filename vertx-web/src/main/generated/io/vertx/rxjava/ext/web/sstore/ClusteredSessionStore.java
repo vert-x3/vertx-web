@@ -18,7 +18,10 @@ package io.vertx.rxjava.ext.web.sstore;
 
 import java.util.Map;
 import rx.Observable;
+import io.vertx.rxjava.ext.web.Session;
 import io.vertx.rxjava.core.Vertx;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
 
 /**
  * A session store which stores sessions in a distributed map so they are available across the cluster.
