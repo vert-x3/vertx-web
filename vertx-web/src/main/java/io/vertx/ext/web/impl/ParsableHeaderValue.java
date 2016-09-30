@@ -1,13 +1,12 @@
 package io.vertx.ext.web.impl;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
-import java.util.Optional;
 
-import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.ext.web.ParsedHeaderValue;
 
 public class ParsableHeaderValue implements ParsedHeaderValue {
@@ -80,7 +79,7 @@ public class ParsableHeaderValue implements ParsedHeaderValue {
       String parameterValueToTest = parameter.get(requiredParameter.getKey());
       String requiredParamVal = requiredParameter.getValue();
       if (parameterValueToTest == null || (
-          requiredParamVal != EMPTY && !requiredParamVal.equals(parameterValueToTest))
+          !requiredParamVal.isEmpty() && !requiredParamVal.equals(parameterValueToTest))
          ){
         return false;
       }
@@ -88,16 +87,16 @@ public class ParsableHeaderValue implements ParsedHeaderValue {
     return true;
     
   }
-  
+
   @Override
-  public <T extends ParsedHeaderValue> Optional<T> findMatchedBy(Iterable<T> matchTries) {
-    
+  public <T extends ParsedHeaderValue> T findMatchedBy(Collection<T> matchTries) {
+
     for (T matchTry : matchTries) {
       if(isMatchedBy((ParsableHeaderValue) matchTry)){
-        return Optional.of(matchTry);
+        return matchTry;
       }
     }
-    return Optional.empty();
+    return null;
   }
   
   private void ensureParameterIsHashMap() {
@@ -131,7 +130,7 @@ public class ParsableHeaderValue implements ParsedHeaderValue {
   private void addParameter(String key, String value) {
     ensureParameterIsHashMap();
     if(value == null){
-      value = EMPTY;
+      value = "";
       paramsWeight = Math.max(1, paramsWeight);
     } else {
       paramsWeight = Math.max(2, paramsWeight);

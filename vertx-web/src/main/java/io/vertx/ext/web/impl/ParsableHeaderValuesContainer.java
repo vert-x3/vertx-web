@@ -1,5 +1,6 @@
 package io.vertx.ext.web.impl;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -46,15 +47,15 @@ public class ParsableHeaderValuesContainer implements ParsedHeaderValues {
   public ParsableMIMEValue contentType() {
     return contentType;
   }
-  
+
   @Override
-  public <T extends ParsedHeaderValue> Optional<T> findBestUserAcceptedIn(List<T> userAccepted, Iterable<T> in) {
+  public <T extends ParsedHeaderValue> T findBestUserAcceptedIn(List<T> userAccepted, Collection<T> in) {
     for (T acceptableType: userAccepted) {
-      Optional<T> acceptedType = acceptableType.findMatchedBy(in);
-      if(acceptedType.isPresent()){
+      T acceptedType = acceptableType.findMatchedBy(in);
+      if(acceptedType != null){
         return acceptedType;
       }
     }
-    return Optional.empty();
+    return null;
   }
 }
