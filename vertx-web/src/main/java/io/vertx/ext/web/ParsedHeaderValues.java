@@ -21,18 +21,34 @@ import io.vertx.codegen.annotations.VertxGen;
  */
 @VertxGen
 public interface ParsedHeaderValues {
+  /**
+   * @return List of MIME values in the {@code Accept} header
+   */
   List<MIMEHeader> accept();
+  /**
+   * @return List of charset values in the {@code Accept-Charset} header
+   */
   List<ParsedHeaderValue> acceptCharset();
+  /**
+   * @return List of encofing values in the {@code Accept-Encoding} header
+   */
   List<ParsedHeaderValue> acceptEncoding();
+  /**
+   * @return List of languages in the {@code Accept-Language} header
+   */
   List<LanguageHeader> acceptLanguage();
   
+  /**
+   * @return MIME value in the {@code Content-Type} header
+   */
   MIMEHeader contentType();
   
   /**
    * Given the sorted list of parsed header values the user has sent and an Iterable of acceptable values:
    * It finds the first accepted header that matches any inside the Iterable.
-   * <p/>
-   * This method is intended for internal usage.
+   * <p>
+   *  <b>Note:</b> This method is intended for internal usage.
+   * </p>
    *
    * @param accepted The sorted list of headers to find the best one.
    * @param in The headers to match against.
