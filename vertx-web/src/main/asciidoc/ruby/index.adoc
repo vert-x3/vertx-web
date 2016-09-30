@@ -1002,7 +1002,7 @@ route = router.get("/localized").handler() { |rc|
   # although it might seem strange by running a loop with a switch we
   # make sure that the locale order of preference is preserved when
   # replying in the users language.
-  rc.acceptable_locales().each do |locale|
+  rc.acceptable_languages().each do |language|
     return
   end
   # we do not know the user language so lets just inform that back:

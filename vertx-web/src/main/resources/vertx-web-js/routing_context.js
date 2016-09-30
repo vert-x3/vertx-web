@@ -26,6 +26,8 @@ var User = require('vertx-auth-common-js/user');
 var Buffer = require('vertx-js/buffer');
 var HttpServerResponse = require('vertx-js/http_server_response');
 var Vertx = require('vertx-js/vertx');
+var ParsedHeaderValues = require('vertx-web-js/parsed_header_values');
+var LanguageHeader = require('vertx-web-js/language_header');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
@@ -137,6 +139,20 @@ var RoutingContext = function(j_val) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
       return utils.convReturnTypeUnknown(j_routingContext["get(java.lang.String)"](key));
+    } else throw new TypeError('function invoked with invalid arguments');
+  };
+
+  /**
+   Remove some data from the context. The data is available in any handlers that receive the context.
+
+   @public
+   @param key {string} the key for the data 
+   @return {Object} the previous data associated with the key
+   */
+  this.remove = function(key) {
+    var __args = arguments;
+    if (__args.length === 1 && typeof __args[0] === 'string') {
+      return utils.convReturnTypeUnknown(j_routingContext["remove(java.lang.String)"](key));
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -430,6 +446,31 @@ var RoutingContext = function(j_val) {
   };
 
   /**
+   The headers:
+   <ol>
+   <li>Accept</li>
+   <li>Accept-Charset</li>
+   <li>Accept-Encoding</li>
+   <li>Accept-Language</li>
+   <li>Content-Type</li>
+   </ol>
+   Parsed into {@link ParsedHeaderValue}
+
+   @public
+
+   @return {ParsedHeaderValues} A container with the parsed headers.
+   */
+  this.parsedHeaders = function() {
+    var __args = arguments;
+    if (__args.length === 0) {
+      if (that.cachedparsedHeaders == null) {
+        that.cachedparsedHeaders = utils.convReturnVertxGen(j_routingContext["parsedHeaders()"](), ParsedHeaderValues);
+      }
+      return that.cachedparsedHeaders;
+    } else throw new TypeError('function invoked with invalid arguments');
+  };
+
+  /**
    Add a handler that will be called just before headers are written to the response. This gives you a hook where
    you can write any extra headers before the response has been written when it will be too late.
 
@@ -608,6 +649,28 @@ var RoutingContext = function(j_val) {
   };
 
   /**
+   Returns the languages for the current request. The languages are determined from the <code>Accept-Language</code>
+   header and sorted on quality.
+  
+   When 2 or more entries have the same quality then the order used to return the best match is based on the lowest
+   index on the original list. For example if a user has en-US and en-GB with same quality and this order the best
+   match will be en-US because it was declared as first entry by the client.
+
+   @public
+
+   @return {Array.<LanguageHeader>} The best matched language for the request
+   */
+  this.acceptableLanguages = function() {
+    var __args = arguments;
+    if (__args.length === 0) {
+      if (that.cachedacceptableLanguages == null) {
+        that.cachedacceptableLanguages = utils.convReturnListSetVertxGen(j_routingContext["acceptableLanguages()"](), LanguageHeader);
+      }
+      return that.cachedacceptableLanguages;
+    } else throw new TypeError('function invoked with invalid arguments');
+  };
+
+  /**
    Helper to return the user preferred locale. It is the same action as returning the first element of the acceptable
    locales.
 
@@ -618,7 +681,28 @@ var RoutingContext = function(j_val) {
   this.preferredLocale = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return utils.convReturnVertxGen(j_routingContext["preferredLocale()"](), Locale);
+      if (that.cachedpreferredLocale == null) {
+        that.cachedpreferredLocale = utils.convReturnVertxGen(j_routingContext["preferredLocale()"](), Locale);
+      }
+      return that.cachedpreferredLocale;
+    } else throw new TypeError('function invoked with invalid arguments');
+  };
+
+  /**
+   Helper to return the user preferred language.
+   It is the same action as returning the first element of the acceptable languages.
+
+   @public
+
+   @return {LanguageHeader} the users preferred locale.
+   */
+  this.preferredLanguage = function() {
+    var __args = arguments;
+    if (__args.length === 0) {
+      if (that.cachedpreferredLanguage == null) {
+        that.cachedpreferredLanguage = utils.convReturnVertxGen(j_routingContext["preferredLanguage()"](), LanguageHeader);
+      }
+      return that.cachedpreferredLanguage;
     } else throw new TypeError('function invoked with invalid arguments');
   };
 

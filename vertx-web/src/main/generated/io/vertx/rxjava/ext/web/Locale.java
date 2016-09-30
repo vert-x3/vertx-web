@@ -19,6 +19,11 @@ package io.vertx.rxjava.ext.web;
 import java.util.Map;
 import rx.Observable;
 
+/**
+ *
+ * <p/>
+ * NOTE: This class has been automatically generated from the {@link io.vertx.ext.web.Locale original} non RX-ified interface using Vert.x codegen.
+ */
 
 public class Locale {
 

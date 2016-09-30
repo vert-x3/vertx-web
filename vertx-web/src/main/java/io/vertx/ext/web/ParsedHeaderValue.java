@@ -1,15 +1,17 @@
 package io.vertx.ext.web;
 
+import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.Nullable;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.ext.web.impl.ParsableHeaderValue;
 import io.vertx.ext.web.impl.ParsableMIMEValue;
 
-@VertxGen
+@VertxGen(concrete = false)
 public interface ParsedHeaderValue {
 
   /**
@@ -18,7 +20,6 @@ public interface ParsedHeaderValue {
   float DEFAULT_WEIGHT = 1;
 
   String STAR = "*";
-  String EMPTY = new String("");// unique string object reference
 
   /**
    * Contains the raw value that was received from the user agent 
@@ -70,17 +71,20 @@ public interface ParsedHeaderValue {
    * @param matchTry The header to be matched from
    * @return true if this header represents a subset of matchTry, otherwise, false
    */
-  boolean isMatchedBy(ParsableHeaderValue matchTry);
+  boolean isMatchedBy(ParsedHeaderValue matchTry);
   
   /**
    * Finds the first ParsedHeaderValue in the list that matches with this header value.
-   * Will return an empty Optional if none match. 
-   * 
+   * Will return an empty Optional if none match.
+   * <p/>
+   * This method is intended for internal usage.
+   *
    * @param matchTries A list of parsed headers to match from this header value
    * @return Optional potentially with the first matched header
    */
-  <T extends ParsedHeaderValue> Optional<T> findMatchedBy(Iterable<T> matchTries);
-  
+  @GenIgnore
+  <T extends ParsedHeaderValue> T findMatchedBy(Collection<T> matchTries);
+
   /**
    * An integer that represents the absolute order position of this header
    */
