@@ -65,7 +65,6 @@ public class HeaderParser {
    * @param headers
    * @return The same object as inserted
    */
-  @Fluent
   public static <T extends ParsedHeaderValue> List<T> sort(List<T> headers){
     Collections.sort(headers, HEADER_SORTER);
     return headers;
