@@ -132,7 +132,7 @@ public class HeaderParser {
       ){
 
     int slashIndex = headerContent.indexOf('/');
-    int paramIndex = headerContent.indexOf(';', slashIndex);
+    int paramIndex = headerContent.indexOf(';', slashIndex + 1);
     
     if(slashIndex < 0){
       componentCallback.accept("*");
