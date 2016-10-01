@@ -19,8 +19,6 @@ public interface ParsedHeaderValue {
    */
   float DEFAULT_WEIGHT = 1;
 
-  String STAR = "*";
-
   /**
    * Contains the raw value that was received from the user agent 
    */

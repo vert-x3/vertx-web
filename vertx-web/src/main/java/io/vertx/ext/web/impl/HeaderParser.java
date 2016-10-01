@@ -135,7 +135,7 @@ public class HeaderParser {
     int paramIndex = headerContent.indexOf(';', slashIndex);
     
     if(slashIndex < 0){
-      componentCallback.accept(ParsedHeaderValue.STAR);
+      componentCallback.accept("*");
     } else {
       componentCallback.accept(headerContent.substring(0, slashIndex));
     }

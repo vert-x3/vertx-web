@@ -63,7 +63,7 @@ public class ParsableLanguageValue extends ParsableHeaderValue implements Langua
     for (int i = 0; i < myMatchTry.parsedValues.length; i++) {
       String match = myMatchTry.parsedValues[i];
       String against = this.parsedValues[i];
-      if(match != STAR && !match.equalsIgnoreCase(against)){
+      if(!"*".equals(match) && !match.equalsIgnoreCase(against)){
         return false;
       }
     }

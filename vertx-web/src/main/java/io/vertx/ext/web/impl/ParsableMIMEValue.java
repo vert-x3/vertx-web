@@ -30,10 +30,10 @@ public class ParsableMIMEValue extends ParsableHeaderValue implements MIMEHeader
     ParsableMIMEValue myMatchTry = (ParsableMIMEValue) matchTry;
     ensureHeaderProcessed();
     
-    if (component != STAR && myMatchTry.component != STAR && !component.equals(myMatchTry.component)) {
+    if (!"*".equals(component) && !"*".equals(myMatchTry.component) && !component.equals(myMatchTry.component)) {
       return false;
     }
-    if (subComponent != STAR && myMatchTry.subComponent != STAR && !subComponent.equals(myMatchTry.subComponent)) {
+    if (!"*".equals(subComponent) && !"*".equals(myMatchTry.subComponent) && !subComponent.equals(myMatchTry.subComponent)) {
       return false;
     }
     return super.isMatchedBy2(myMatchTry);
@@ -48,8 +48,8 @@ public class ParsableMIMEValue extends ParsableHeaderValue implements MIMEHeader
             this::setComponent,
             this::setSubComponent
           );
-      orderWeight = STAR == component ? 0 : 1;
-      orderWeight += STAR == subComponent ? 0 : 2;
+      orderWeight = "*".equals(component) ? 0 : 1;
+      orderWeight += "*".equals(subComponent) ? 0 : 2;
     }
   }
   
@@ -59,11 +59,11 @@ public class ParsableMIMEValue extends ParsableHeaderValue implements MIMEHeader
   }
   
   private void setComponent(String component) {
-    this.component = STAR.equals(component) ? STAR : component;
+    this.component = "*".equals(component) ? "*" : component;
   }
   
   private void setSubComponent(String subComponent) {
-    this.subComponent = STAR.equals(subComponent) ? STAR : subComponent;
+    this.subComponent = "*".equals(subComponent) ? "*" : subComponent;
   }
     
   @Override
