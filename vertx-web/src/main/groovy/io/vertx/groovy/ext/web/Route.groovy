@@ -20,6 +20,10 @@ import io.vertx.lang.groovy.InternalHelper
 import io.vertx.core.json.JsonObject
 import io.vertx.core.http.HttpMethod
 import io.vertx.core.Handler
+/**
+ * A route is a holder for a set of criteria which determine whether an HTTP request or failure should be routed
+ * to a handler.
+*/
 @CompileStatic
 public class Route {
   private final def io.vertx.ext.web.Route delegate;
@@ -29,82 +33,172 @@ public class Route {
   public Object getDelegate() {
     return delegate;
   }
-  public Route method(HttpMethod arg0) {
-    delegate.method(arg0);
+  /**
+   * Add an HTTP method for this route. By default a route will match all HTTP methods. If any are specified then the route
+   * will only match any of the specified methods
+   * @param method the HTTP method to add
+   * @return a reference to this, so the API can be used fluently
+   */
+  public Route method(HttpMethod method) {
+    delegate.method(method);
     return this;
   }
-  public Route path(String arg0) {
-    delegate.path(arg0);
+  /**
+   * Set the path prefix for this route. If set then this route will only match request URI paths which start with this
+   * path prefix. Only a single path or path regex can be set for a route.
+   * @param path the path prefix
+   * @return a reference to this, so the API can be used fluently
+   */
+  public Route path(String path) {
+    delegate.path(path);
     return this;
   }
-  public Route pathRegex(String arg0) {
-    delegate.pathRegex(arg0);
+  /**
+   * Set the path prefix as a regular expression. If set then this route will only match request URI paths, the beginning
+   * of which match the regex. Only a single path or path regex can be set for a route.
+   * @param path the path regex
+   * @return a reference to this, so the API can be used fluently
+   */
+  public Route pathRegex(String path) {
+    delegate.pathRegex(path);
     return this;
   }
-  public Route produces(String arg0) {
-    delegate.produces(arg0);
+  /**
+   * Add a content type produced by this route. Used for content based routing.
+   * @param contentType the content type
+   * @return a reference to this, so the API can be used fluently
+   */
+  public Route produces(String contentType) {
+    delegate.produces(contentType);
     return this;
   }
-  public Route consumes(String arg0) {
-    delegate.consumes(arg0);
+  /**
+   * Add a content type consumed by this route. Used for content based routing.
+   * @param contentType the content type
+   * @return a reference to this, so the API can be used fluently
+   */
+  public Route consumes(String contentType) {
+    delegate.consumes(contentType);
     return this;
   }
-  public Route order(int arg0) {
-    delegate.order(arg0);
+  /**
+   * Specify the order for this route. The router tests routes in that order.
+   * @param order the order
+   * @return a reference to this, so the API can be used fluently
+   */
+  public Route order(int order) {
+    delegate.order(order);
     return this;
   }
+  /**
+   * Specify this is the last route for the router.
+   * @return a reference to this, so the API can be used fluently
+   */
   public Route last() {
     delegate.last();
     return this;
   }
-  public Route handler(Handler<RoutingContext> arg0) {
-    delegate.handler(arg0 != null ? new Handler<io.vertx.ext.web.RoutingContext>(){
+  /**
+   * Specify a request handler for the route. The router routes requests to handlers depending on whether the various
+   * criteria such as method, path, etc match. There can be only one request handler for a route. If you set this more
+   * than once it will overwrite the previous handler.
+   * @param requestHandler the request handler
+   * @return a reference to this, so the API can be used fluently
+   */
+  public Route handler(Handler<RoutingContext> requestHandler) {
+    delegate.handler(requestHandler != null ? new Handler<io.vertx.ext.web.RoutingContext>(){
       public void handle(io.vertx.ext.web.RoutingContext event) {
-        arg0.handle(InternalHelper.safeCreate(event, io.vertx.groovy.ext.web.RoutingContext.class));
+        requestHandler.handle(InternalHelper.safeCreate(event, io.vertx.groovy.ext.web.RoutingContext.class));
       }
     } : null);
     return this;
   }
-  public Route blockingHandler(Handler<RoutingContext> arg0) {
-    delegate.blockingHandler(arg0 != null ? new Handler<io.vertx.ext.web.RoutingContext>(){
+  /**
+   * Like {@link io.vertx.groovy.ext.web.Route#blockingHandler} called with ordered = true
+   * @param requestHandler 
+   * @return 
+   */
+  public Route blockingHandler(Handler<RoutingContext> requestHandler) {
+    delegate.blockingHandler(requestHandler != null ? new Handler<io.vertx.ext.web.RoutingContext>(){
       public void handle(io.vertx.ext.web.RoutingContext event) {
-        arg0.handle(InternalHelper.safeCreate(event, io.vertx.groovy.ext.web.RoutingContext.class));
+        requestHandler.handle(InternalHelper.safeCreate(event, io.vertx.groovy.ext.web.RoutingContext.class));
       }
     } : null);
     return this;
   }
-  public Route blockingHandler(Handler<RoutingContext> arg0, boolean arg1) {
-    delegate.blockingHandler(arg0 != null ? new Handler<io.vertx.ext.web.RoutingContext>(){
+  /**
+   * Specify a blocking request handler for the route.
+   * This method works just like {@link io.vertx.groovy.ext.web.Route#handler} excepted that it will run the blocking handler on a worker thread
+   * so that it won't block the event loop. Note that it's safe to call context.next() from the
+   * blocking handler as it will be executed on the event loop context (and not on the worker thread.
+   *
+   * If the blocking handler is ordered it means that any blocking handlers for the same context are never executed
+   * concurrently but always in the order they were called. The default value of ordered is true. If you do not want this
+   * behaviour and don't mind if your blocking handlers are executed in parallel you can set ordered to false.
+   * @param requestHandler the blocking request handler
+   * @param ordered if true handlers are executed in sequence, otherwise are run in parallel
+   * @return a reference to this, so the API can be used fluently
+   */
+  public Route blockingHandler(Handler<RoutingContext> requestHandler, boolean ordered) {
+    delegate.blockingHandler(requestHandler != null ? new Handler<io.vertx.ext.web.RoutingContext>(){
       public void handle(io.vertx.ext.web.RoutingContext event) {
-        arg0.handle(InternalHelper.safeCreate(event, io.vertx.groovy.ext.web.RoutingContext.class));
+        requestHandler.handle(InternalHelper.safeCreate(event, io.vertx.groovy.ext.web.RoutingContext.class));
       }
-    } : null, arg1);
+    } : null, ordered);
     return this;
   }
-  public Route failureHandler(Handler<RoutingContext> arg0) {
-    delegate.failureHandler(arg0 != null ? new Handler<io.vertx.ext.web.RoutingContext>(){
+  /**
+   * Specify a failure handler for the route. The router routes failures to failurehandlers depending on whether the various
+   * criteria such as method, path, etc match. There can be only one failure handler for a route. If you set this more
+   * than once it will overwrite the previous handler.
+   * @param failureHandler the request handler
+   * @return a reference to this, so the API can be used fluently
+   */
+  public Route failureHandler(Handler<RoutingContext> failureHandler) {
+    delegate.failureHandler(failureHandler != null ? new Handler<io.vertx.ext.web.RoutingContext>(){
       public void handle(io.vertx.ext.web.RoutingContext event) {
-        arg0.handle(InternalHelper.safeCreate(event, io.vertx.groovy.ext.web.RoutingContext.class));
+        failureHandler.handle(InternalHelper.safeCreate(event, io.vertx.groovy.ext.web.RoutingContext.class));
       }
     } : null);
     return this;
   }
+  /**
+   * Remove this route from the router
+   * @return a reference to this, so the API can be used fluently
+   */
   public Route remove() {
     delegate.remove();
     return this;
   }
+  /**
+   * Disable this route. While disabled the router will not route any requests or failures to it.
+   * @return a reference to this, so the API can be used fluently
+   */
   public Route disable() {
     delegate.disable();
     return this;
   }
+  /**
+   * Enable this route.
+   * @return a reference to this, so the API can be used fluently
+   */
   public Route enable() {
     delegate.enable();
     return this;
   }
-  public Route useNormalisedPath(boolean arg0) {
-    delegate.useNormalisedPath(arg0);
+  /**
+   * If true then the normalised request path will be used when routing (e.g. removing duplicate /)
+   * Default is true
+   * @param useNormalisedPath use normalised path for routing?
+   * @return a reference to this, so the API can be used fluently
+   */
+  public Route useNormalisedPath(boolean useNormalisedPath) {
+    delegate.useNormalisedPath(useNormalisedPath);
     return this;
   }
+  /**
+   * @return the path prefix (if any) for this route
+   */
   public String getPath() {
     def ret = delegate.getPath();
     return ret;

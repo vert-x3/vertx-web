@@ -18,7 +18,10 @@ package io.vertx.groovy.ext.web.sstore;
 import groovy.transform.CompileStatic
 import io.vertx.lang.groovy.InternalHelper
 import io.vertx.core.json.JsonObject
+import io.vertx.groovy.ext.web.Session
 import io.vertx.groovy.core.Vertx
+import io.vertx.core.AsyncResult
+import io.vertx.core.Handler
 /**
  * A session store which is only available on a single node.
  * <p>
