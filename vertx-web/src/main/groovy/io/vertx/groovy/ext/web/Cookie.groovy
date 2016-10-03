@@ -18,13 +18,6 @@ package io.vertx.groovy.ext.web;
 import groovy.transform.CompileStatic
 import io.vertx.lang.groovy.InternalHelper
 import io.vertx.core.json.JsonObject
-/**
- * Represents an HTTP Cookie.
- * <p>
- * All cookies must have a name and a value and can optionally have other fields set such as path, domain, etc.
- * <p>
- * (Derived from io.netty.handler.codec.http.Cookie)
-*/
 @CompileStatic
 public class Cookie {
   private final def io.vertx.ext.web.Cookie delegate;
@@ -34,129 +27,59 @@ public class Cookie {
   public Object getDelegate() {
     return delegate;
   }
-  /**
-   * Create a new cookie
-   * @param name the name of the cookie
-   * @param value the cookie value
-   * @return the cookie
-   */
   public static Cookie cookie(String name, String value) {
     def ret = InternalHelper.safeCreate(io.vertx.ext.web.Cookie.cookie(name, value), io.vertx.groovy.ext.web.Cookie.class);
     return ret;
   }
-  /**
-   * @return the name of this cookie
-   */
   public String getName() {
     def ret = delegate.getName();
     return ret;
   }
-  /**
-   * @return the value of this cookie
-   */
   public String getValue() {
     def ret = delegate.getValue();
     return ret;
   }
-  /**
-   * Sets the value of this cookie
-   * @param value The value to set
-   * @return a reference to this, so the API can be used fluently
-   */
-  public Cookie setValue(String value) {
-    delegate.setValue(value);
+  public Cookie setValue(String arg0) {
+    delegate.setValue(arg0);
     return this;
   }
-  /**
-   * Sets the domain of this cookie
-   * @param domain The domain to use
-   * @return a reference to this, so the API can be used fluently
-   */
-  public Cookie setDomain(String domain) {
-    delegate.setDomain(domain);
+  public Cookie setDomain(String arg0) {
+    delegate.setDomain(arg0);
     return this;
   }
-  /**
-   * @return the domain for the cookie
-   */
   public String getDomain() {
     def ret = delegate.getDomain();
     return ret;
   }
-  /**
-   * Sets the path of this cookie.
-   * @param path The path to use for this cookie
-   * @return a reference to this, so the API can be used fluently
-   */
-  public Cookie setPath(String path) {
-    delegate.setPath(path);
+  public Cookie setPath(String arg0) {
+    delegate.setPath(arg0);
     return this;
   }
-  /**
-   * @return the path for this cookie
-   */
   public String getPath() {
     def ret = delegate.getPath();
     return ret;
   }
-  /**
-   * Sets the maximum age of this cookie in seconds.
-   * If an age of <code>0</code> is specified, this cookie will be
-   * automatically removed by browser because it will expire immediately.
-   * If {@link java.lang.Long} is specified, this cookie will be removed when the
-   * browser is closed.
-   * If you don't set this the cookie will be a session cookie and be removed when the browser is closed.
-   * @param maxAge The maximum age of this cookie in seconds
-   * @return 
-   */
-  public Cookie setMaxAge(long maxAge) {
-    delegate.setMaxAge(maxAge);
+  public Cookie setMaxAge(long arg0) {
+    delegate.setMaxAge(arg0);
     return this;
   }
-  /**
-   * Sets the security getStatus of this cookie
-   * @param secure True if this cookie is to be secure, otherwise false
-   * @return a reference to this, so the API can be used fluently
-   */
-  public Cookie setSecure(boolean secure) {
-    delegate.setSecure(secure);
+  public Cookie setSecure(boolean arg0) {
+    delegate.setSecure(arg0);
     return this;
   }
-  /**
-   * Determines if this cookie is HTTP only.
-   * If set to true, this cookie cannot be accessed by a client
-   * side script. However, this works only if the browser supports it.
-   * For for information, please look
-   * <a href="http://www.owasp.org/index.php/HTTPOnly">here</a>.
-   * @param httpOnly True if the cookie is HTTP only, otherwise false.
-   * @return 
-   */
-  public Cookie setHttpOnly(boolean httpOnly) {
-    delegate.setHttpOnly(httpOnly);
+  public Cookie setHttpOnly(boolean arg0) {
+    delegate.setHttpOnly(arg0);
     return this;
   }
-  /**
-   * Encode the cookie to a string. This is what is used in the Set-Cookie header
-   * @return the encoded cookie
-   */
   public String encode() {
     def ret = delegate.encode();
     return ret;
   }
-  /**
-   * Has the cookie been changed? Changed cookies will be saved out in the response and sent to the browser.
-   * @return true if changed
-   */
   public boolean isChanged() {
     def ret = delegate.isChanged();
     return ret;
   }
-  /**
-   * Set the cookie as being changed. Changed will be true for a cookie just created, false by default if just
-   * read from the request
-   * @param changed true if changed
-   */
-  public void setChanged(boolean changed) {
-    delegate.setChanged(changed);
+  public void setChanged(boolean arg0) {
+    delegate.setChanged(arg0);
   }
 }

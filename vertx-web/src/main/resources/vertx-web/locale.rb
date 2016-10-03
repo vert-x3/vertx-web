@@ -28,24 +28,21 @@ module VertxWeb
       end
       raise ArgumentError, "Invalid arguments when calling create(language,country,variant)"
     end
-    #  Returns the language as reported by the HTTP client.
-    # @return [String] language
+    # @return [String]
     def language
       if !block_given?
         return @j_del.java_method(:language, []).call()
       end
       raise ArgumentError, "Invalid arguments when calling language()"
     end
-    #  Returns the country as reported by the HTTP client.
-    # @return [String] variant
+    # @return [String]
     def country
       if !block_given?
         return @j_del.java_method(:country, []).call()
       end
       raise ArgumentError, "Invalid arguments when calling country()"
     end
-    #  Returns the variant as reported by the HTTP client.
-    # @return [String] variant
+    # @return [String]
     def variant
       if !block_given?
         return @j_del.java_method(:variant, []).call()

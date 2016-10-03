@@ -2081,7 +2081,7 @@ Vert.x-Web includes a handler `link:../../jsdoc/module-vertx-web-js_logger_handl
 
 By default requests are logged to the Vert.x logger which can be configured to use JUL logging, log4j or SLF4J.
 
-See `link:../enums.html#LoggerFormat[LoggerFormat]`.
+See `link:../../null/enums.html#LoggerFormat[LoggerFormat]`.
 
 == Serving favicons
 
@@ -2136,7 +2136,7 @@ using SockJS in your Vert.x-Web applications.
 
 You should create one handler per SockJS application using `link:../../jsdoc/module-vertx-web-js_sock_js_handler-SockJSHandler.html#create[SockJSHandler.create]`.
 You can also specify configuration options when creating the instance. The configuration options are described with
-an instance of `link:../dataobjects.html#SockJSHandlerOptions[SockJSHandlerOptions]`.
+an instance of `link:../../null/dataobjects.html#SockJSHandlerOptions[SockJSHandlerOptions]`.
 
 [source,js]
 ----
@@ -2221,7 +2221,7 @@ sock.close();
 
 === Configuring the SockJS handler
 
-The handler can be configured with various options using `link:../dataobjects.html#SockJSHandlerOptions[SockJSHandlerOptions]`.
+The handler can be configured with various options using `link:../../null/dataobjects.html#SockJSHandlerOptions[SockJSHandlerOptions]`.
 
 `insertJSESSIONID`:: Insert a JSESSIONID cookie so load-balancers ensure requests for a specific SockJS session
 are always routed to the correct server. Default is `true`.
@@ -2371,15 +2371,15 @@ In other words the bridge acts like a kind of firewall which has a default _deny
 Configuring the bridge to tell it what messages it should pass through is easy.
 
 You can specify which _matches_ you want to allow for inbound and outbound traffic using the
-`link:../dataobjects.html#BridgeOptions[BridgeOptions]` that you pass in when calling bridge.
+`link:../../null/dataobjects.html#BridgeOptions[BridgeOptions]` that you pass in when calling bridge.
 
-Each match is a `link:../dataobjects.html#PermittedOptions[PermittedOptions]` object:
+Each match is a `link:../../null/dataobjects.html#PermittedOptions[PermittedOptions]` object:
 
-`link:../dataobjects.html#PermittedOptions#setAddress[address]`:: This represents the exact address the message is being sent to. If you want to allow messages based on
+`link:../../null/dataobjects.html#PermittedOptions#setAddress[address]`:: This represents the exact address the message is being sent to. If you want to allow messages based on
 an exact address you use this field.
-`link:../dataobjects.html#PermittedOptions#setAddressRegex[addressRegex]`:: This is a regular expression that will be matched against the address. If you want to allow messages
+`link:../../null/dataobjects.html#PermittedOptions#setAddressRegex[addressRegex]`:: This is a regular expression that will be matched against the address. If you want to allow messages
 based on a regular expression you use this field. If the `address` field is specified this field will be ignored.
-`link:../dataobjects.html#PermittedOptions#setMatch[match]`:: This allows you to allow messages based on their structure. Any fields in the match must exist in the
+`link:../../null/dataobjects.html#PermittedOptions#setMatch[match]`:: This allows you to allow messages based on their structure. Any fields in the match must exist in the
 message with the same values for them to be allowed. This currently only works with JSON messages.
 
 If a message is _in-bound_ (i.e. being sent from client side JavaScript to the server) when it is received Vert.x-Web
@@ -2474,7 +2474,7 @@ To do this, you can add extra fields to the match described in the previous sect
 required for the match.
 
 To declare that a specific authority for the logged-in user is required in order to access allow the messages you use the
-`link:../dataobjects.html#PermittedOptions#setRequiredAuthority[requiredAuthority]` field.
+`link:../../null/dataobjects.html#PermittedOptions#setRequiredAuthority[requiredAuthority]` field.
 
 Here's an example:
 
