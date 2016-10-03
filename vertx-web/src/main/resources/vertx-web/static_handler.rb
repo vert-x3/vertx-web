@@ -183,7 +183,7 @@ module VertxWeb
       end
       raise ArgumentError, "Invalid arguments when calling set_enable_range_support(enableRangeSupport)"
     end
-    #  Set whether vary header should be sent with response.
+    #  Set whether vary header should be send with response.
     # @param [true,false] varyHeader true to sent vary header
     # @return [self]
     def set_send_vary_header(varyHeader=nil)

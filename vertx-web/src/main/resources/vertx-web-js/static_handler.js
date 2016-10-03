@@ -270,7 +270,7 @@ var StaticHandler = function(j_val) {
   };
 
   /**
-   Set whether vary header should be sent with response.
+   Set whether vary header should be send with response.
 
    @public
    @param varyHeader {boolean} true to sent vary header 

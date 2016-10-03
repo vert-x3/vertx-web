@@ -188,7 +188,7 @@ public class StaticHandler implements Handler<RoutingContext> {
     return this;
   }
   /**
-   * Set whether vary header should be sent with response.
+   * Set whether vary header should be send with response.
    * @param varyHeader true to sent vary header
    * @return a reference to this, so the API can be used fluently
    */
