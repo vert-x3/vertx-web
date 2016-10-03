@@ -17,6 +17,7 @@ package io.vertx.ext.web.handler;
 
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.ext.web.Cookie;
 import io.vertx.ext.web.WebTestBase;
 import org.junit.AfterClass;
 import org.junit.Test;
@@ -105,5 +106,54 @@ public class RerouteTest extends WebTestBase {
     });
 
     testRequest(HttpMethod.GET, "/me", 400, "Bad Request", "/error/400");
+  }
+
+  @Test
+  public void testRerouteClearHeader() throws Exception {
+    router.get("/users/:name").handler(ctx -> {
+      ctx.response().end("/users/:name");
+    });
+    router.get("/me").handler(ctx -> {
+      ctx.response().putHeader("X-woop", "durp");
+      ctx.reroute("/users/paulo");
+    });
+
+    testRequest(HttpMethod.GET, "/me", null, res -> {
+      assertNull(res.getHeader("X-woop"));
+    }, 200, "OK", "/users/:name");
+  }
+
+  @Test
+  public void testRerouteClearHeader2() throws Exception {
+    router.get("/users/:name").handler(ctx -> {
+      ctx.response().putHeader("X-woop", "durp2");
+      ctx.response().end("/users/:name");
+    });
+    router.get("/me").handler(ctx -> {
+      ctx.response().putHeader("X-woop", "durp");
+      ctx.reroute("/users/paulo");
+    });
+
+    testRequest(HttpMethod.GET, "/me", null, res -> {
+      assertEquals("durp2", res.getHeader("X-woop"));
+    }, 200, "OK", "/users/:name");
+  }
+
+  @Test
+  public void testRerouteClearHeader3() throws Exception {
+    router.route().handler(CookieHandler.create());
+    router.get("/users/:name").handler(ctx -> {
+      ctx.response().putHeader("X-woop", "durp2");
+      ctx.response().end("/users/:name");
+    });
+    router.get("/me").handler(ctx -> {
+      ctx.response().putHeader("X-woop", "durp");
+      ctx.reroute("/users/paulo");
+    });
+
+    testRequest(HttpMethod.GET, "/me", null, res -> {
+      assertEquals("durp2", res.getHeader("X-woop"));
+      assertNull(res.getHeader("Cookie"));
+    }, 200, "OK", "/users/:name");
   }
 }
