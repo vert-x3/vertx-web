@@ -24,6 +24,9 @@ var JsonObject = io.vertx.core.json.JsonObject;
 var JLanguageHeader = io.vertx.ext.web.LanguageHeader;
 
 /**
+ A parsed language header.
+ Delivers a more direct access to the individual elements of the header it represents
+
  @class
 */
 var LanguageHeader = function(j_val) {
@@ -91,10 +94,10 @@ var LanguageHeader = function(j_val) {
    @param key {string} 
    @return {string} 
    */
-  this.getParameter = function(key) {
+  this.parameter = function(key) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return j_languageHeader["getParameter(java.lang.String)"](key);
+      return j_languageHeader["parameter(java.lang.String)"](key);
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -106,10 +109,10 @@ var LanguageHeader = function(j_val) {
 
    @return {Array.<string>} Unmodifiable Map of parameters of this header value
    */
-  this.getParameters = function() {
+  this.parameters = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return utils.convReturnMap(j_languageHeader["getParameters()"]());
+      return utils.convReturnMap(j_languageHeader["parameters()"]());
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -204,7 +207,7 @@ var LanguageHeader = function(j_val) {
 
    @public
 
-   @return {string} 
+   @return {string} The language tag
    */
   this.tag = function() {
     var __args = arguments;
@@ -219,7 +222,7 @@ var LanguageHeader = function(j_val) {
 
    @public
    @param level {number} 
-   @return {string} 
+   @return {string} The language subtag at specified position
    */
   this.subtag = function() {
     var __args = arguments;
@@ -231,11 +234,10 @@ var LanguageHeader = function(j_val) {
   };
 
   /**
-   The number of subtags this value has.
 
    @public
 
-   @return {number}
+   @return {number} the number of subtags this value has
    */
   this.subtagCount = function() {
     var __args = arguments;

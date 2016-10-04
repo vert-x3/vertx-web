@@ -66,8 +66,8 @@ public class MIMEHeader implements ParsedHeaderValue {
    * @param key 
    * @return 
    */
-  public String getParameter(String key) {
-    def ret = ((io.vertx.ext.web.ParsedHeaderValue) delegate).getParameter(key);
+  public String parameter(String key) {
+    def ret = ((io.vertx.ext.web.ParsedHeaderValue) delegate).parameter(key);
     return ret;
   }
   /**
@@ -75,8 +75,8 @@ public class MIMEHeader implements ParsedHeaderValue {
    * <b>Note:</b> The <code>q</code> parameter is never present.
    * @return Unmodifiable Map of parameters of this header value
    */
-  public Map<String, String> getParameters() {
-    def ret = ((io.vertx.ext.web.ParsedHeaderValue) delegate).getParameters();
+  public Map<String, String> parameters() {
+    def ret = ((io.vertx.ext.web.ParsedHeaderValue) delegate).parameters();
     return ret;
   }
   /**
@@ -105,7 +105,8 @@ public class MIMEHeader implements ParsedHeaderValue {
     return ret;
   }
   /**
-   * Gets the parsed component part of the MIME. This is the string between the beginning and the first '/' of the MIME
+   * Gets the parsed component part of the MIME. This is the string between the beginning and the first @{code '/'}
+   * of the MIME
    * @return The component of the MIME this represents
    */
   public String component() {
@@ -113,8 +114,7 @@ public class MIMEHeader implements ParsedHeaderValue {
     return ret;
   }
   /**
-   * Gets the parsed subcomponent part of the MIME. This is the string between the first '/' and the ';'
-   * or the end of the MIME
+   * Gets the parsed subcomponent part of the MIME. This is the string between the first @{code '/'} and the
    * @return The subcomponent of the MIME this represents
    */
   public String subComponent() {

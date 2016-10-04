@@ -50,20 +50,20 @@ module VertxWeb
     #  <b>Note:</b> The <code>q</code> parameter is never present.
     # @param [String] key 
     # @return [String] 
-    def get_parameter(key=nil)
+    def parameter(key=nil)
       if key.class == String && !block_given?
-        return @j_del.java_method(:getParameter, [Java::java.lang.String.java_class]).call(key)
+        return @j_del.java_method(:parameter, [Java::java.lang.String.java_class]).call(key)
       end
-      raise ArgumentError, "Invalid arguments when calling get_parameter(key)"
+      raise ArgumentError, "Invalid arguments when calling parameter(key)"
     end
     #  The parameters specified in this header value.
     #  <b>Note:</b> The <code>q</code> parameter is never present.
     # @return [Hash{String => String}] Unmodifiable Map of parameters of this header value
-    def get_parameters
+    def parameters
       if !block_given?
-        return Java::IoVertxLangRuby::Helper.adaptingMap(@j_del.java_method(:getParameters, []).call(), Proc.new { |val| ::Vertx::Util::Utils.from_object(val) }, Proc.new { |val| ::Vertx::Util::Utils.to_string(val) })
+        return Java::IoVertxLangRuby::Helper.adaptingMap(@j_del.java_method(:parameters, []).call(), Proc.new { |val| ::Vertx::Util::Utils.from_object(val) }, Proc.new { |val| ::Vertx::Util::Utils.to_string(val) })
       end
-      raise ArgumentError, "Invalid arguments when calling get_parameters()"
+      raise ArgumentError, "Invalid arguments when calling parameters()"
     end
     #  Is this an allowed operation as specified by the corresponding header?
     # @return [true,false] 
@@ -90,7 +90,8 @@ module VertxWeb
       end
       raise ArgumentError, "Invalid arguments when calling weighted_order()"
     end
-    #  Gets the parsed component part of the MIME. This is the string between the beginning and the first '/' of the MIME
+    #  Gets the parsed component part of the MIME. This is the string between the beginning and the first @{code '/'}
+    #  of the MIME
     # @return [String] The component of the MIME this represents
     def component
       if !block_given?
@@ -98,8 +99,7 @@ module VertxWeb
       end
       raise ArgumentError, "Invalid arguments when calling component()"
     end
-    #  Gets the parsed subcomponent part of the MIME. This is the string between the first '/' and the ';'
-    #  or the end of the MIME
+    #  Gets the parsed subcomponent part of the MIME. This is the string between the first @{code '/'} and the
     # @return [String] The subcomponent of the MIME this represents
     def sub_component
       if !block_given?

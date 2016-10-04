@@ -47,7 +47,7 @@ var ParsedHeaderValues = function(j_val) {
 
    @public
 
-   @return {Array.<MIMEHeader>}
+   @return {Array.<MIMEHeader>} List of MIME values in the <code>Accept</code> header
    */
   this.accept = function() {
     var __args = arguments;
@@ -60,7 +60,7 @@ var ParsedHeaderValues = function(j_val) {
 
    @public
 
-   @return {Array.<ParsedHeaderValue>}
+   @return {Array.<ParsedHeaderValue>} List of charset values in the <code>Accept-Charset</code> header
    */
   this.acceptCharset = function() {
     var __args = arguments;
@@ -73,7 +73,7 @@ var ParsedHeaderValues = function(j_val) {
 
    @public
 
-   @return {Array.<ParsedHeaderValue>}
+   @return {Array.<ParsedHeaderValue>} List of encofing values in the <code>Accept-Encoding</code> header
    */
   this.acceptEncoding = function() {
     var __args = arguments;
@@ -86,7 +86,7 @@ var ParsedHeaderValues = function(j_val) {
 
    @public
 
-   @return {Array.<LanguageHeader>}
+   @return {Array.<LanguageHeader>} List of languages in the <code>Accept-Language</code> header
    */
   this.acceptLanguage = function() {
     var __args = arguments;
@@ -99,7 +99,7 @@ var ParsedHeaderValues = function(j_val) {
 
    @public
 
-   @return {MIMEHeader}
+   @return {MIMEHeader} MIME value in the <code>Content-Type</code> header
    */
   this.contentType = function() {
     var __args = arguments;

@@ -25,35 +25,35 @@ module VertxWeb
     def j_del
       @j_del
     end
-    # @return [Array<::VertxWeb::MIMEHeader>]
+    # @return [Array<::VertxWeb::MIMEHeader>] List of MIME values in the <code>Accept</code> header
     def accept
       if !block_given?
         return @j_del.java_method(:accept, []).call().to_a.map { |elt| ::Vertx::Util::Utils.safe_create(elt,::VertxWeb::MIMEHeader) }
       end
       raise ArgumentError, "Invalid arguments when calling accept()"
     end
-    # @return [Array<::VertxWeb::ParsedHeaderValue>]
+    # @return [Array<::VertxWeb::ParsedHeaderValue>] List of charset values in the <code>Accept-Charset</code> header
     def accept_charset
       if !block_given?
         return @j_del.java_method(:acceptCharset, []).call().to_a.map { |elt| ::Vertx::Util::Utils.safe_create(elt,::VertxWeb::ParsedHeaderValueImpl) }
       end
       raise ArgumentError, "Invalid arguments when calling accept_charset()"
     end
-    # @return [Array<::VertxWeb::ParsedHeaderValue>]
+    # @return [Array<::VertxWeb::ParsedHeaderValue>] List of encofing values in the <code>Accept-Encoding</code> header
     def accept_encoding
       if !block_given?
         return @j_del.java_method(:acceptEncoding, []).call().to_a.map { |elt| ::Vertx::Util::Utils.safe_create(elt,::VertxWeb::ParsedHeaderValueImpl) }
       end
       raise ArgumentError, "Invalid arguments when calling accept_encoding()"
     end
-    # @return [Array<::VertxWeb::LanguageHeader>]
+    # @return [Array<::VertxWeb::LanguageHeader>] List of languages in the <code>Accept-Language</code> header
     def accept_language
       if !block_given?
         return @j_del.java_method(:acceptLanguage, []).call().to_a.map { |elt| ::Vertx::Util::Utils.safe_create(elt,::VertxWeb::LanguageHeader) }
       end
       raise ArgumentError, "Invalid arguments when calling accept_language()"
     end
-    # @return [::VertxWeb::MIMEHeader]
+    # @return [::VertxWeb::MIMEHeader] MIME value in the <code>Content-Type</code> header
     def content_type
       if !block_given?
         return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:contentType, []).call(),::VertxWeb::MIMEHeader)

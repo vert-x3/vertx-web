@@ -3,6 +3,8 @@ require 'vertx-web/locale'
 require 'vertx/util/utils.rb'
 # Generated from io.vertx.ext.web.LanguageHeader
 module VertxWeb
+  #  A parsed language header.
+  #  Delivers a more direct access to the individual elements of the header it represents
   class LanguageHeader < ::VertxWeb::Locale
     include ::VertxWeb::ParsedHeaderValue
     # @private
@@ -52,20 +54,20 @@ module VertxWeb
     #  <b>Note:</b> The <code>q</code> parameter is never present.
     # @param [String] key 
     # @return [String] 
-    def get_parameter(key=nil)
+    def parameter(key=nil)
       if key.class == String && !block_given?
-        return @j_del.java_method(:getParameter, [Java::java.lang.String.java_class]).call(key)
+        return @j_del.java_method(:parameter, [Java::java.lang.String.java_class]).call(key)
       end
-      raise ArgumentError, "Invalid arguments when calling get_parameter(key)"
+      raise ArgumentError, "Invalid arguments when calling parameter(key)"
     end
     #  The parameters specified in this header value.
     #  <b>Note:</b> The <code>q</code> parameter is never present.
     # @return [Hash{String => String}] Unmodifiable Map of parameters of this header value
-    def get_parameters
+    def parameters
       if !block_given?
-        return Java::IoVertxLangRuby::Helper.adaptingMap(@j_del.java_method(:getParameters, []).call(), Proc.new { |val| ::Vertx::Util::Utils.from_object(val) }, Proc.new { |val| ::Vertx::Util::Utils.to_string(val) })
+        return Java::IoVertxLangRuby::Helper.adaptingMap(@j_del.java_method(:parameters, []).call(), Proc.new { |val| ::Vertx::Util::Utils.from_object(val) }, Proc.new { |val| ::Vertx::Util::Utils.to_string(val) })
       end
-      raise ArgumentError, "Invalid arguments when calling get_parameters()"
+      raise ArgumentError, "Invalid arguments when calling parameters()"
     end
     #  Is this an allowed operation as specified by the corresponding header?
     # @return [true,false] 
@@ -119,7 +121,7 @@ module VertxWeb
     #  The tag of the language as specified by 
     #  <a href="https://tools.ietf.org/html/rfc7231#section-3.1.3.1">rfc7231#section-3.1.3.1</a>.<br>
     #  Equivalent to 
-    # @return [String] 
+    # @return [String] The language tag
     def tag
       if !block_given?
         return @j_del.java_method(:tag, []).call()
@@ -129,7 +131,7 @@ module VertxWeb
     #  A subtag of this language header.<br>
     #  + info: <a href="https://tools.ietf.org/html/rfc7231#section-3.1.3.1">rfc7231#section-3.1.3.1</a>
     # @param [Fixnum] level 
-    # @return [String] 
+    # @return [String] The language subtag at specified position
     def subtag(level=nil)
       if !block_given? && level == nil
         return @j_del.java_method(:subtag, []).call()
@@ -138,8 +140,7 @@ module VertxWeb
       end
       raise ArgumentError, "Invalid arguments when calling subtag(level)"
     end
-    #  The number of subtags this value has.
-    # @return [Fixnum]
+    # @return [Fixnum] the number of subtags this value has
     def subtag_count
       if !block_given?
         return @j_del.java_method(:subtagCount, []).call()

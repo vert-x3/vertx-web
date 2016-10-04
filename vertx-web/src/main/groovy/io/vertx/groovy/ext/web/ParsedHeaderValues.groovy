@@ -40,22 +40,37 @@ public class ParsedHeaderValues {
   public Object getDelegate() {
     return delegate;
   }
+  /**
+   * @return List of MIME values in the <code>Accept</code> header
+   */
   public List<MIMEHeader> accept() {
     def ret = (List)delegate.accept()?.collect({InternalHelper.safeCreate(it, io.vertx.groovy.ext.web.MIMEHeader.class)});
     return ret;
   }
+  /**
+   * @return List of charset values in the <code>Accept-Charset</code> header
+   */
   public List<ParsedHeaderValue> acceptCharset() {
     def ret = (List)delegate.acceptCharset()?.collect({InternalHelper.safeCreate(it, io.vertx.groovy.ext.web.ParsedHeaderValueImpl.class)});
     return ret;
   }
+  /**
+   * @return List of encofing values in the <code>Accept-Encoding</code> header
+   */
   public List<ParsedHeaderValue> acceptEncoding() {
     def ret = (List)delegate.acceptEncoding()?.collect({InternalHelper.safeCreate(it, io.vertx.groovy.ext.web.ParsedHeaderValueImpl.class)});
     return ret;
   }
+  /**
+   * @return List of languages in the <code>Accept-Language</code> header
+   */
   public List<LanguageHeader> acceptLanguage() {
     def ret = (List)delegate.acceptLanguage()?.collect({InternalHelper.safeCreate(it, io.vertx.groovy.ext.web.LanguageHeader.class)});
     return ret;
   }
+  /**
+   * @return MIME value in the <code>Content-Type</code> header
+   */
   public MIMEHeader contentType() {
     def ret = InternalHelper.safeCreate(delegate.contentType(), io.vertx.groovy.ext.web.MIMEHeader.class);
     return ret;

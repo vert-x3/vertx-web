@@ -74,8 +74,8 @@ public class MIMEHeader implements ParsedHeaderValue {
    * @param key 
    * @return 
    */
-  public String getParameter(String key) { 
-    String ret = delegate.getParameter(key);
+  public String parameter(String key) { 
+    String ret = delegate.parameter(key);
     return ret;
   }
 
@@ -84,8 +84,8 @@ public class MIMEHeader implements ParsedHeaderValue {
    * <b>Note:</b> The <code>q</code> parameter is never present.
    * @return Unmodifiable Map of parameters of this header value
    */
-  public Map<String,String> getParameters() { 
-    Map<String,String> ret = delegate.getParameters();
+  public Map<String,String> parameters() { 
+    Map<String,String> ret = delegate.parameters();
     return ret;
   }
 
@@ -118,7 +118,8 @@ public class MIMEHeader implements ParsedHeaderValue {
   }
 
   /**
-   * Gets the parsed component part of the MIME. This is the string between the beginning and the first '/' of the MIME
+   * Gets the parsed component part of the MIME. This is the string between the beginning and the first @{code '/'}
+   * of the MIME
    * @return The component of the MIME this represents
    */
   public String component() { 
@@ -127,8 +128,7 @@ public class MIMEHeader implements ParsedHeaderValue {
   }
 
   /**
-   * Gets the parsed subcomponent part of the MIME. This is the string between the first '/' and the ';'
-   * or the end of the MIME
+   * Gets the parsed subcomponent part of the MIME. This is the string between the first @{code '/'} and the
    * @return The subcomponent of the MIME this represents
    */
   public String subComponent() { 

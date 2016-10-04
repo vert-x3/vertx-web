@@ -57,14 +57,14 @@ public interface ParsedHeaderValue {
    * @param key 
    * @return 
    */
-  public String getParameter(String key);
+  public String parameter(String key);
 
   /**
    * The parameters specified in this header value.
    * <b>Note:</b> The <code>q</code> parameter is never present.
    * @return Unmodifiable Map of parameters of this header value
    */
-  public Map<String,String> getParameters();
+  public Map<String,String> parameters();
 
   /**
    * Is this an allowed operation as specified by the corresponding header?
@@ -143,8 +143,8 @@ class ParsedHeaderValueImpl implements ParsedHeaderValue {
    * @param key 
    * @return 
    */
-  public String getParameter(String key) { 
-    String ret = delegate.getParameter(key);
+  public String parameter(String key) { 
+    String ret = delegate.parameter(key);
     return ret;
   }
 
@@ -153,8 +153,8 @@ class ParsedHeaderValueImpl implements ParsedHeaderValue {
    * <b>Note:</b> The <code>q</code> parameter is never present.
    * @return Unmodifiable Map of parameters of this header value
    */
-  public Map<String,String> getParameters() { 
-    Map<String,String> ret = delegate.getParameters();
+  public Map<String,String> parameters() { 
+    Map<String,String> ret = delegate.parameters();
     return ret;
   }
 

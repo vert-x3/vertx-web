@@ -19,6 +19,10 @@ import groovy.transform.CompileStatic
 import io.vertx.lang.groovy.InternalHelper
 import io.vertx.core.json.JsonObject
 import java.util.Map
+/**
+ * A parsed language header.
+ * Delivers a more direct access to the individual elements of the header it represents
+*/
 @CompileStatic
 public class LanguageHeader extends Locale implements ParsedHeaderValue {
   private final def io.vertx.ext.web.LanguageHeader delegate;
@@ -67,8 +71,8 @@ public class LanguageHeader extends Locale implements ParsedHeaderValue {
    * @param key 
    * @return 
    */
-  public String getParameter(String key) {
-    def ret = ((io.vertx.ext.web.ParsedHeaderValue) delegate).getParameter(key);
+  public String parameter(String key) {
+    def ret = ((io.vertx.ext.web.ParsedHeaderValue) delegate).parameter(key);
     return ret;
   }
   /**
@@ -76,8 +80,8 @@ public class LanguageHeader extends Locale implements ParsedHeaderValue {
    * <b>Note:</b> The <code>q</code> parameter is never present.
    * @return Unmodifiable Map of parameters of this header value
    */
-  public Map<String, String> getParameters() {
-    def ret = ((io.vertx.ext.web.ParsedHeaderValue) delegate).getParameters();
+  public Map<String, String> parameters() {
+    def ret = ((io.vertx.ext.web.ParsedHeaderValue) delegate).parameters();
     return ret;
   }
   /**
@@ -109,7 +113,7 @@ public class LanguageHeader extends Locale implements ParsedHeaderValue {
    * The tag of the language as specified by 
    * <a href="https://tools.ietf.org/html/rfc7231#section-3.1.3.1">rfc7231#section-3.1.3.1</a>.<br>
    * Equivalent to 
-   * @return 
+   * @return The language tag
    */
   public String tag() {
     def ret = delegate.tag();
@@ -119,7 +123,7 @@ public class LanguageHeader extends Locale implements ParsedHeaderValue {
    * The subtag of the language as specified by 
    * <a href="https://tools.ietf.org/html/rfc7231#section-3.1.3.1">rfc7231#section-3.1.3.1</a>.<br>
    * Equivalent to 
-   * @return 
+   * @return The language subtag
    */
   public String subtag() {
     def ret = delegate.subtag();
@@ -129,15 +133,14 @@ public class LanguageHeader extends Locale implements ParsedHeaderValue {
    * A subtag of this language header.<br>
    * + info: <a href="https://tools.ietf.org/html/rfc7231#section-3.1.3.1">rfc7231#section-3.1.3.1</a>
    * @param level 
-   * @return 
+   * @return The language subtag at specified position
    */
   public String subtag(int level) {
     def ret = delegate.subtag(level);
     return ret;
   }
   /**
-   * The number of subtags this value has.
-   * @return 
+   * @return the number of subtags this value has
    */
   public int subtagCount() {
     def ret = delegate.subtagCount();

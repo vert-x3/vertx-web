@@ -89,10 +89,10 @@ var MIMEHeader = function(j_val) {
    @param key {string} 
    @return {string} 
    */
-  this.getParameter = function(key) {
+  this.parameter = function(key) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return j_mIMEHeader["getParameter(java.lang.String)"](key);
+      return j_mIMEHeader["parameter(java.lang.String)"](key);
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -104,10 +104,10 @@ var MIMEHeader = function(j_val) {
 
    @return {Array.<string>} Unmodifiable Map of parameters of this header value
    */
-  this.getParameters = function() {
+  this.parameters = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return utils.convReturnMap(j_mIMEHeader["getParameters()"]());
+      return utils.convReturnMap(j_mIMEHeader["parameters()"]());
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -154,7 +154,8 @@ var MIMEHeader = function(j_val) {
   };
 
   /**
-   Gets the parsed component part of the MIME. This is the string between the beginning and the first '/' of the MIME
+   Gets the parsed component part of the MIME. This is the string between the beginning and the first @{code '/'}
+   of the MIME
 
    @public
 
@@ -168,8 +169,7 @@ var MIMEHeader = function(j_val) {
   };
 
   /**
-   Gets the parsed subcomponent part of the MIME. This is the string between the first '/' and the ';'
-   or the end of the MIME
+   Gets the parsed subcomponent part of the MIME. This is the string between the first @{code '/'} and the
 
    @public
 

@@ -25,8 +25,8 @@ public interface ParsedHeaderValue {
   String rawValue();
   String value();
   float weight();
-  String getParameter(String key);
-  Map<String,String> getParameters();
+  String parameter(String key);
+  Map<String,String> parameters();
   boolean isPermitted();
   boolean isMatchedBy(ParsedHeaderValue matchTry);
   int weightedOrder();
@@ -79,8 +79,8 @@ class ParsedHeaderValueImpl implements ParsedHeaderValue {
    * @param key 
    * @return 
    */
-  public String getParameter(String key) {
-    def ret = ((io.vertx.ext.web.ParsedHeaderValue) delegate).getParameter(key);
+  public String parameter(String key) {
+    def ret = ((io.vertx.ext.web.ParsedHeaderValue) delegate).parameter(key);
     return ret;
   }
   /**
@@ -88,8 +88,8 @@ class ParsedHeaderValueImpl implements ParsedHeaderValue {
    * <b>Note:</b> The <code>q</code> parameter is never present.
    * @return Unmodifiable Map of parameters of this header value
    */
-  public Map<String, String> getParameters() {
-    def ret = ((io.vertx.ext.web.ParsedHeaderValue) delegate).getParameters();
+  public Map<String, String> parameters() {
+    def ret = ((io.vertx.ext.web.ParsedHeaderValue) delegate).parameters();
     return ret;
   }
   /**

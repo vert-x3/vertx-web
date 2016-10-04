@@ -48,26 +48,41 @@ public class ParsedHeaderValues {
     return delegate;
   }
 
+  /**
+   * @return List of MIME values in the <code>Accept</code> header
+   */
   public List<MIMEHeader> accept() { 
     List<MIMEHeader> ret = delegate.accept().stream().map(elt -> MIMEHeader.newInstance(elt)).collect(java.util.stream.Collectors.toList());
     return ret;
   }
 
+  /**
+   * @return List of charset values in the <code>Accept-Charset</code> header
+   */
   public List<ParsedHeaderValue> acceptCharset() { 
     List<ParsedHeaderValue> ret = delegate.acceptCharset().stream().map(elt -> ParsedHeaderValue.newInstance(elt)).collect(java.util.stream.Collectors.toList());
     return ret;
   }
 
+  /**
+   * @return List of encofing values in the <code>Accept-Encoding</code> header
+   */
   public List<ParsedHeaderValue> acceptEncoding() { 
     List<ParsedHeaderValue> ret = delegate.acceptEncoding().stream().map(elt -> ParsedHeaderValue.newInstance(elt)).collect(java.util.stream.Collectors.toList());
     return ret;
   }
 
+  /**
+   * @return List of languages in the <code>Accept-Language</code> header
+   */
   public List<LanguageHeader> acceptLanguage() { 
     List<LanguageHeader> ret = delegate.acceptLanguage().stream().map(elt -> LanguageHeader.newInstance(elt)).collect(java.util.stream.Collectors.toList());
     return ret;
   }
 
+  /**
+   * @return MIME value in the <code>Content-Type</code> header
+   */
   public MIMEHeader contentType() { 
     MIMEHeader ret = MIMEHeader.newInstance(delegate.contentType());
     return ret;

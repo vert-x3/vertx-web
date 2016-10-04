@@ -87,10 +87,10 @@ var ParsedHeaderValue = function(j_val) {
    @param key {string} 
    @return {string} 
    */
-  this.getParameter = function(key) {
+  this.parameter = function(key) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return j_parsedHeaderValue["getParameter(java.lang.String)"](key);
+      return j_parsedHeaderValue["parameter(java.lang.String)"](key);
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -102,10 +102,10 @@ var ParsedHeaderValue = function(j_val) {
 
    @return {Array.<string>} Unmodifiable Map of parameters of this header value
    */
-  this.getParameters = function() {
+  this.parameters = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return utils.convReturnMap(j_parsedHeaderValue["getParameters()"]());
+      return utils.convReturnMap(j_parsedHeaderValue["parameters()"]());
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
