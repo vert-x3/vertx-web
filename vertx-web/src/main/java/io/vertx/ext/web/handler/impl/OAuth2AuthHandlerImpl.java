@@ -34,6 +34,7 @@ public class OAuth2AuthHandlerImpl extends AuthHandlerImpl implements OAuth2Auth
   private final String host;
 
   private Route callback;
+  private JsonObject extraParams = new JsonObject();
 
   public OAuth2AuthHandlerImpl(OAuth2Auth authProvider, String host) {
     super(authProvider);
@@ -57,14 +58,13 @@ public class OAuth2AuthHandlerImpl extends AuthHandlerImpl implements OAuth2Auth
     } else {
       // redirect request to the oauth2 server
       ctx.response()
-          .putHeader("Location", authURI(ctx.normalisedPath(), ctx.get("state")))
+          .putHeader("Location", authURI(ctx.normalisedPath()))
           .setStatusCode(302)
           .end();
     }
   }
 
-  @Override
-  public String authURI(String redirectURL, String state) {
+  private String authURI(String redirectURL) {
     if (callback == null) {
       throw new NullPointerException("callback is null");
     }
@@ -86,9 +86,15 @@ public class OAuth2AuthHandlerImpl extends AuthHandlerImpl implements OAuth2Auth
     }
 
     return ((OAuth2Auth) authProvider).authorizeURL(new JsonObject()
-          .put("redirect_uri", host + callback.getPath() + "?redirect_uri=" + redirectURL)
+          .put("redirect_uri", host + callback.getPath())
           .put("scope", scopes.toString())
-          .put("state", state));
+          .put("state", redirectURL));
+  }
+
+  @Override
+  public OAuth2AuthHandler extraParams(JsonObject extraParams) {
+    this.extraParams = extraParams;
+    return this;
   }
 
   @Override
@@ -106,16 +112,14 @@ public class OAuth2AuthHandlerImpl extends AuthHandlerImpl implements OAuth2Auth
         return;
       }
 
-      final String relative_redirect_uri = ctx.request().getParam("redirect_uri");
-      // for google the redirect uri must match the registered urls
-      final String redirect_uri = host + callback.getPath() + "?redirect_uri=" + relative_redirect_uri;
+      final String state = ctx.request().getParam("state");
 
-      ((OAuth2Auth) authProvider).getToken(new JsonObject().put("code", code).put("redirect_uri", redirect_uri), res -> {
+      ((OAuth2Auth) authProvider).getToken(new JsonObject().put("code", code).put("redirect_uri", host + callback.getPath()).mergeIn(extraParams), res -> {
         if (res.failed()) {
           ctx.fail(res.cause());
         } else {
           ctx.setUser(res.result());
-          ctx.reroute(relative_redirect_uri);
+          ctx.reroute(state);
         }
       });
     });
