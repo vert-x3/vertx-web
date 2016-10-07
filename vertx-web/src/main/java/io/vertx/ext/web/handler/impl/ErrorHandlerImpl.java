@@ -18,12 +18,9 @@ package io.vertx.ext.web.handler.impl;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpHeaders;
-import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -58,7 +55,6 @@ public class ErrorHandlerImpl implements ErrorHandler {
   @Override
   public void handle(RoutingContext context) {
 
-    HttpServerRequest request = context.request();
     HttpServerResponse response = context.response();
 
     Throwable failure = context.failure();
@@ -91,12 +87,7 @@ public class ErrorHandlerImpl implements ErrorHandler {
     Throwable failure = context.failure();
     
     if(failure instanceof HeaderTooLongException){
-      // Math.random is random enough for this purpose. Will wait between 1 ms and 11ms
-      
-      context.vertx().setTimer(1 + (long)(Math.random() * 10), 
-          new DelayedAnswer(context, 400, "A header was too long to process")
-      );
-          
+      answerWithError(context, 400, "A header was too long to process");
       return true;
     }
     return false;
@@ -186,25 +177,5 @@ public class ErrorHandlerImpl implements ErrorHandler {
     }
 
     return false;
-  }
-  
-  /**
-   * This class is used to delay the answer to a potential attacker<br>
-   * In practice, this simulates heavy duty work while, in reality, it was just waiting.
-   */
-  private class DelayedAnswer implements Handler<Long>{
-    
-    RoutingContext context;
-    int errorCode;
-    String errorMessage;
-    private DelayedAnswer(RoutingContext context, int errorCode, String errorMessage) {
-      this.context = context;
-      this.errorCode = errorCode;
-      this.errorMessage = errorMessage;
-    }
-    @Override
-    public void handle(Long arg0) {
-      ErrorHandlerImpl.this.answerWithError(context, errorCode, errorMessage);
-    }
   }
 }
