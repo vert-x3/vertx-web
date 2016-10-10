@@ -18,6 +18,7 @@ package io.vertx.ext.web.impl;
 
 import io.netty.handler.codec.http.QueryStringDecoder;
 import io.vertx.core.Handler;
+import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.logging.Logger;
@@ -232,6 +233,18 @@ public class RouteImpl implements Route {
     }
     HttpServerRequest request = context.request();
     if (!methods.isEmpty() && !methods.contains(request.method())) {
+      context.response().putHeader(HttpHeaders.ALLOW, String.join(", ", () -> new Iterator<CharSequence>() {
+        final Iterator<HttpMethod> it = methods.iterator();
+        @Override
+        public boolean hasNext() {
+          return it.hasNext();
+        }
+
+        @Override
+        public CharSequence next() {
+          return it.next().name();
+        }
+      }));
       ((RoutingContextImplBase) context).setDefaultErrorCode(405);
       return false;
     }

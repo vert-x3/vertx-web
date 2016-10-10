@@ -26,7 +26,6 @@ var JsonObject = io.vertx.core.json.JsonObject;
 var JRouter = io.vertx.ext.web.Router;
 
 /**
-
  @class
 */
 var Router = function(j_val) {
@@ -35,27 +34,23 @@ var Router = function(j_val) {
   var that = this;
 
   /**
-   This method is used to provide a request to the router. Usually you take request from the
-   {@link HttpServer#requestHandler} and pass it to this method. The
-   router then routes it to matching routes.
 
    @public
-   @param request {HttpServerRequest} the request 
+   @param arg0 {HttpServerRequest} 
    */
-  this.accept = function(request) {
+  this.accept = function(arg0) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
-      j_router["accept(io.vertx.core.http.HttpServerRequest)"](request._jdel);
+      j_router["accept(io.vertx.core.http.HttpServerRequest)"](arg0._jdel);
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
-   Add a route that matches the specified HTTP method and path
 
    @public
-   @param method {Object} the HTTP method to match 
-   @param path {string} URI paths that begin with this path will match 
-   @return {Route} the route
+   @param arg0 {Object} 
+   @param arg1 {string} 
+   @return {Route}
    */
   this.route = function() {
     var __args = arguments;
@@ -69,12 +64,11 @@ var Router = function(j_val) {
   };
 
   /**
-   Add a route that matches the specified HTTP method and path regex
 
    @public
-   @param method {Object} the HTTP method to match 
-   @param regex {string} URI paths that begin with a match for this regex will match 
-   @return {Route} the route
+   @param arg0 {Object} 
+   @param arg1 {string} 
+   @return {Route}
    */
   this.routeWithRegex = function() {
     var __args = arguments;
@@ -86,11 +80,10 @@ var Router = function(j_val) {
   };
 
   /**
-   Add a route that matches a HTTP GET request and the specified path
 
    @public
-   @param path {string} URI paths that begin with this path will match 
-   @return {Route} the route
+   @param arg0 {string} 
+   @return {Route}
    */
   this.get = function() {
     var __args = arguments;
@@ -102,25 +95,23 @@ var Router = function(j_val) {
   };
 
   /**
-   Add a route that matches a HTTP GET request and the specified path regex
 
    @public
-   @param regex {string} URI paths that begin with a match for this regex will match 
-   @return {Route} the route
+   @param arg0 {string} 
+   @return {Route}
    */
-  this.getWithRegex = function(regex) {
+  this.getWithRegex = function(arg0) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return utils.convReturnVertxGen(j_router["getWithRegex(java.lang.String)"](regex), Route);
+      return utils.convReturnVertxGen(j_router["getWithRegex(java.lang.String)"](arg0), Route);
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
-   Add a route that matches a HTTP HEAD request and the specified path
 
    @public
-   @param path {string} URI paths that begin with this path will match 
-   @return {Route} the route
+   @param arg0 {string} 
+   @return {Route}
    */
   this.head = function() {
     var __args = arguments;
@@ -132,25 +123,23 @@ var Router = function(j_val) {
   };
 
   /**
-   Add a route that matches a HTTP HEAD request and the specified path regex
 
    @public
-   @param regex {string} URI paths that begin with a match for this regex will match 
-   @return {Route} the route
+   @param arg0 {string} 
+   @return {Route}
    */
-  this.headWithRegex = function(regex) {
+  this.headWithRegex = function(arg0) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return utils.convReturnVertxGen(j_router["headWithRegex(java.lang.String)"](regex), Route);
+      return utils.convReturnVertxGen(j_router["headWithRegex(java.lang.String)"](arg0), Route);
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
-   Add a route that matches a HTTP OPTIONS request and the specified path
 
    @public
-   @param path {string} URI paths that begin with this path will match 
-   @return {Route} the route
+   @param arg0 {string} 
+   @return {Route}
    */
   this.options = function() {
     var __args = arguments;
@@ -162,25 +151,23 @@ var Router = function(j_val) {
   };
 
   /**
-   Add a route that matches a HTTP OPTIONS request and the specified path regex
 
    @public
-   @param regex {string} URI paths that begin with a match for this regex will match 
-   @return {Route} the route
+   @param arg0 {string} 
+   @return {Route}
    */
-  this.optionsWithRegex = function(regex) {
+  this.optionsWithRegex = function(arg0) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return utils.convReturnVertxGen(j_router["optionsWithRegex(java.lang.String)"](regex), Route);
+      return utils.convReturnVertxGen(j_router["optionsWithRegex(java.lang.String)"](arg0), Route);
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
-   Add a route that matches a HTTP PUT request and the specified path
 
    @public
-   @param path {string} URI paths that begin with this path will match 
-   @return {Route} the route
+   @param arg0 {string} 
+   @return {Route}
    */
   this.put = function() {
     var __args = arguments;
@@ -192,25 +179,23 @@ var Router = function(j_val) {
   };
 
   /**
-   Add a route that matches a HTTP PUT request and the specified path regex
 
    @public
-   @param regex {string} URI paths that begin with a match for this regex will match 
-   @return {Route} the route
+   @param arg0 {string} 
+   @return {Route}
    */
-  this.putWithRegex = function(regex) {
+  this.putWithRegex = function(arg0) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return utils.convReturnVertxGen(j_router["putWithRegex(java.lang.String)"](regex), Route);
+      return utils.convReturnVertxGen(j_router["putWithRegex(java.lang.String)"](arg0), Route);
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
-   Add a route that matches a HTTP POST request and the specified path
 
    @public
-   @param path {string} URI paths that begin with this path will match 
-   @return {Route} the route
+   @param arg0 {string} 
+   @return {Route}
    */
   this.post = function() {
     var __args = arguments;
@@ -222,25 +207,23 @@ var Router = function(j_val) {
   };
 
   /**
-   Add a route that matches a HTTP POST request and the specified path regex
 
    @public
-   @param regex {string} URI paths that begin with a match for this regex will match 
-   @return {Route} the route
+   @param arg0 {string} 
+   @return {Route}
    */
-  this.postWithRegex = function(regex) {
+  this.postWithRegex = function(arg0) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return utils.convReturnVertxGen(j_router["postWithRegex(java.lang.String)"](regex), Route);
+      return utils.convReturnVertxGen(j_router["postWithRegex(java.lang.String)"](arg0), Route);
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
-   Add a route that matches a HTTP DELETE request and the specified path
 
    @public
-   @param path {string} URI paths that begin with this path will match 
-   @return {Route} the route
+   @param arg0 {string} 
+   @return {Route}
    */
   this.delete = function() {
     var __args = arguments;
@@ -252,25 +235,23 @@ var Router = function(j_val) {
   };
 
   /**
-   Add a route that matches a HTTP DELETE request and the specified path regex
 
    @public
-   @param regex {string} URI paths that begin with a match for this regex will match 
-   @return {Route} the route
+   @param arg0 {string} 
+   @return {Route}
    */
-  this.deleteWithRegex = function(regex) {
+  this.deleteWithRegex = function(arg0) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return utils.convReturnVertxGen(j_router["deleteWithRegex(java.lang.String)"](regex), Route);
+      return utils.convReturnVertxGen(j_router["deleteWithRegex(java.lang.String)"](arg0), Route);
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
-   Add a route that matches a HTTP TRACE request and the specified path
 
    @public
-   @param path {string} URI paths that begin with this path will match 
-   @return {Route} the route
+   @param arg0 {string} 
+   @return {Route}
    */
   this.trace = function() {
     var __args = arguments;
@@ -282,25 +263,23 @@ var Router = function(j_val) {
   };
 
   /**
-   Add a route that matches a HTTP TRACE request and the specified path regex
 
    @public
-   @param regex {string} URI paths that begin with a match for this regex will match 
-   @return {Route} the route
+   @param arg0 {string} 
+   @return {Route}
    */
-  this.traceWithRegex = function(regex) {
+  this.traceWithRegex = function(arg0) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return utils.convReturnVertxGen(j_router["traceWithRegex(java.lang.String)"](regex), Route);
+      return utils.convReturnVertxGen(j_router["traceWithRegex(java.lang.String)"](arg0), Route);
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
-   Add a route that matches a HTTP CONNECT request and the specified path
 
    @public
-   @param path {string} URI paths that begin with this path will match 
-   @return {Route} the route
+   @param arg0 {string} 
+   @return {Route}
    */
   this.connect = function() {
     var __args = arguments;
@@ -312,25 +291,23 @@ var Router = function(j_val) {
   };
 
   /**
-   Add a route that matches a HTTP CONNECT request and the specified path regex
 
    @public
-   @param regex {string} URI paths that begin with a match for this regex will match 
-   @return {Route} the route
+   @param arg0 {string} 
+   @return {Route}
    */
-  this.connectWithRegex = function(regex) {
+  this.connectWithRegex = function(arg0) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return utils.convReturnVertxGen(j_router["connectWithRegex(java.lang.String)"](regex), Route);
+      return utils.convReturnVertxGen(j_router["connectWithRegex(java.lang.String)"](arg0), Route);
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
-   Add a route that matches a HTTP PATCH request and the specified path
 
    @public
-   @param path {string} URI paths that begin with this path will match 
-   @return {Route} the route
+   @param arg0 {string} 
+   @return {Route}
    */
   this.patch = function() {
     var __args = arguments;
@@ -342,16 +319,15 @@ var Router = function(j_val) {
   };
 
   /**
-   Add a route that matches a HTTP PATCH request and the specified path regex
 
    @public
-   @param regex {string} URI paths that begin with a match for this regex will match 
-   @return {Route} the route
+   @param arg0 {string} 
+   @return {Route}
    */
-  this.patchWithRegex = function(regex) {
+  this.patchWithRegex = function(arg0) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return utils.convReturnVertxGen(j_router["patchWithRegex(java.lang.String)"](regex), Route);
+      return utils.convReturnVertxGen(j_router["patchWithRegex(java.lang.String)"](arg0), Route);
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -359,7 +335,7 @@ var Router = function(j_val) {
 
    @public
 
-   @return {Array.<Route>} a list of all the routes on this router
+   @return {Array.<Route>}
    */
   this.getRoutes = function() {
     var __args = arguments;
@@ -369,11 +345,10 @@ var Router = function(j_val) {
   };
 
   /**
-   Remove all the routes from this router
 
    @public
 
-   @return {Router} a reference to this, so the API can be used fluently
+   @return {Router}
    */
   this.clear = function() {
     var __args = arguments;
@@ -384,62 +359,57 @@ var Router = function(j_val) {
   };
 
   /**
-   Mount a sub router on this router
 
    @public
-   @param mountPoint {string} the mount point (path prefix) to mount it on 
-   @param subRouter {Router} the router to mount as a sub router 
-   @return {Router} a reference to this, so the API can be used fluently
+   @param arg0 {string} 
+   @param arg1 {Router} 
+   @return {Router}
    */
-  this.mountSubRouter = function(mountPoint, subRouter) {
+  this.mountSubRouter = function(arg0, arg1) {
     var __args = arguments;
     if (__args.length === 2 && typeof __args[0] === 'string' && typeof __args[1] === 'object' && __args[1]._jdel) {
-      j_router["mountSubRouter(java.lang.String,io.vertx.ext.web.Router)"](mountPoint, subRouter._jdel);
+      j_router["mountSubRouter(java.lang.String,io.vertx.ext.web.Router)"](arg0, arg1._jdel);
       return that;
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
-   Specify a handler for any unhandled exceptions on this router. The handler will be called for exceptions thrown
-   from handlers. This does not affect the normal failure routing logic.
 
    @public
-   @param exceptionHandler {function} the exception handler 
-   @return {Router} a reference to this, so the API can be used fluently
+   @param arg0 {function} 
+   @return {Router}
    */
-  this.exceptionHandler = function(exceptionHandler) {
+  this.exceptionHandler = function(arg0) {
     var __args = arguments;
-    if (__args.length === 1 && (typeof __args[0] === 'function' || __args[0] == null)) {
-      j_router["exceptionHandler(io.vertx.core.Handler)"](exceptionHandler == null ? null : function(jVal) {
-      exceptionHandler(utils.convReturnThrowable(jVal));
+    if (__args.length === 1 && typeof __args[0] === 'function') {
+      j_router["exceptionHandler(io.vertx.core.Handler)"](function(jVal) {
+      arg0(utils.convReturnThrowable(jVal));
     });
       return that;
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
-   Used to route a context to the router. Used for sub-routers. You wouldn't normally call this method directly.
 
    @public
-   @param context {RoutingContext} the routing context 
+   @param arg0 {RoutingContext} 
    */
-  this.handleContext = function(context) {
+  this.handleContext = function(arg0) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
-      j_router["handleContext(io.vertx.ext.web.RoutingContext)"](context._jdel);
+      j_router["handleContext(io.vertx.ext.web.RoutingContext)"](arg0._jdel);
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
-   Used to route a failure to the router. Used for sub-routers. You wouldn't normally call this method directly.
 
    @public
-   @param context {RoutingContext} the routing context 
+   @param arg0 {RoutingContext} 
    */
-  this.handleFailure = function(context) {
+  this.handleFailure = function(arg0) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
-      j_router["handleFailure(io.vertx.ext.web.RoutingContext)"](context._jdel);
+      j_router["handleFailure(io.vertx.ext.web.RoutingContext)"](arg0._jdel);
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -450,11 +420,10 @@ var Router = function(j_val) {
 };
 
 /**
- Create a router
 
  @memberof module:vertx-web-js/router
- @param vertx {Vertx} the Vert.x instance 
- @return {Router} the router
+ @param vertx {Vertx} 
+ @return {Router}
  */
 Router.router = function(vertx) {
   var __args = arguments;

@@ -23,9 +23,6 @@ var JsonObject = io.vertx.core.json.JsonObject;
 var JRoute = io.vertx.ext.web.Route;
 
 /**
- A route is a holder for a set of criteria which determine whether an HTTP request or failure should be routed
- to a handler.
-
  @class
 */
 var Route = function(j_val) {
@@ -34,104 +31,94 @@ var Route = function(j_val) {
   var that = this;
 
   /**
-   Add an HTTP method for this route. By default a route will match all HTTP methods. If any are specified then the route
-   will only match any of the specified methods
 
    @public
-   @param method {Object} the HTTP method to add 
-   @return {Route} a reference to this, so the API can be used fluently
+   @param arg0 {Object} 
+   @return {Route}
    */
-  this.method = function(method) {
+  this.method = function(arg0) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      j_route["method(io.vertx.core.http.HttpMethod)"](io.vertx.core.http.HttpMethod.valueOf(method));
+      j_route["method(io.vertx.core.http.HttpMethod)"](io.vertx.core.http.HttpMethod.valueOf(arg0));
       return that;
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
-   Set the path prefix for this route. If set then this route will only match request URI paths which start with this
-   path prefix. Only a single path or path regex can be set for a route.
 
    @public
-   @param path {string} the path prefix 
-   @return {Route} a reference to this, so the API can be used fluently
+   @param arg0 {string} 
+   @return {Route}
    */
-  this.path = function(path) {
+  this.path = function(arg0) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      j_route["path(java.lang.String)"](path);
+      j_route["path(java.lang.String)"](arg0);
       return that;
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
-   Set the path prefix as a regular expression. If set then this route will only match request URI paths, the beginning
-   of which match the regex. Only a single path or path regex can be set for a route.
 
    @public
-   @param path {string} the path regex 
-   @return {Route} a reference to this, so the API can be used fluently
+   @param arg0 {string} 
+   @return {Route}
    */
-  this.pathRegex = function(path) {
+  this.pathRegex = function(arg0) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      j_route["pathRegex(java.lang.String)"](path);
+      j_route["pathRegex(java.lang.String)"](arg0);
       return that;
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
-   Add a content type produced by this route. Used for content based routing.
 
    @public
-   @param contentType {string} the content type 
-   @return {Route} a reference to this, so the API can be used fluently
+   @param arg0 {string} 
+   @return {Route}
    */
-  this.produces = function(contentType) {
+  this.produces = function(arg0) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      j_route["produces(java.lang.String)"](contentType);
+      j_route["produces(java.lang.String)"](arg0);
       return that;
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
-   Add a content type consumed by this route. Used for content based routing.
 
    @public
-   @param contentType {string} the content type 
-   @return {Route} a reference to this, so the API can be used fluently
+   @param arg0 {string} 
+   @return {Route}
    */
-  this.consumes = function(contentType) {
+  this.consumes = function(arg0) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      j_route["consumes(java.lang.String)"](contentType);
+      j_route["consumes(java.lang.String)"](arg0);
       return that;
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
-   Specify the order for this route. The router tests routes in that order.
 
    @public
-   @param order {number} the order 
-   @return {Route} a reference to this, so the API can be used fluently
+   @param arg0 {number} 
+   @return {Route}
    */
-  this.order = function(order) {
+  this.order = function(arg0) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] ==='number') {
-      j_route["order(int)"](order);
+      j_route["order(int)"](arg0);
       return that;
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
-   Specify this is the last route for the router.
 
    @public
 
-   @return {Route} a reference to this, so the API can be used fluently
+   @return {Route}
    */
   this.last = function() {
     var __args = arguments;
@@ -142,38 +129,27 @@ var Route = function(j_val) {
   };
 
   /**
-   Specify a request handler for the route. The router routes requests to handlers depending on whether the various
-   criteria such as method, path, etc match. There can be only one request handler for a route. If you set this more
-   than once it will overwrite the previous handler.
 
    @public
-   @param requestHandler {function} the request handler 
-   @return {Route} a reference to this, so the API can be used fluently
+   @param arg0 {function} 
+   @return {Route}
    */
-  this.handler = function(requestHandler) {
+  this.handler = function(arg0) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'function') {
       j_route["handler(io.vertx.core.Handler)"](function(jVal) {
-      requestHandler(utils.convReturnVertxGen(jVal, RoutingContext));
+      arg0(utils.convReturnVertxGen(jVal, RoutingContext));
     });
       return that;
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
-   Specify a blocking request handler for the route.
-   This method works just like {@link Route#handler} excepted that it will run the blocking handler on a worker thread
-   so that it won't block the event loop. Note that it's safe to call context.next() from the
-   blocking handler as it will be executed on the event loop context (and not on the worker thread.
-  
-   If the blocking handler is ordered it means that any blocking handlers for the same context are never executed
-   concurrently but always in the order they were called. The default value of ordered is true. If you do not want this
-   behaviour and don't mind if your blocking handlers are executed in parallel you can set ordered to false.
 
    @public
-   @param requestHandler {function} the blocking request handler 
-   @param ordered {boolean} if true handlers are executed in sequence, otherwise are run in parallel 
-   @return {Route} a reference to this, so the API can be used fluently
+   @param arg0 {function} 
+   @param arg1 {boolean} 
+   @return {Route}
    */
   this.blockingHandler = function() {
     var __args = arguments;
@@ -191,30 +167,26 @@ var Route = function(j_val) {
   };
 
   /**
-   Specify a failure handler for the route. The router routes failures to failurehandlers depending on whether the various
-   criteria such as method, path, etc match. There can be only one failure handler for a route. If you set this more
-   than once it will overwrite the previous handler.
 
    @public
-   @param failureHandler {function} the request handler 
-   @return {Route} a reference to this, so the API can be used fluently
+   @param arg0 {function} 
+   @return {Route}
    */
-  this.failureHandler = function(failureHandler) {
+  this.failureHandler = function(arg0) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'function') {
       j_route["failureHandler(io.vertx.core.Handler)"](function(jVal) {
-      failureHandler(utils.convReturnVertxGen(jVal, RoutingContext));
+      arg0(utils.convReturnVertxGen(jVal, RoutingContext));
     });
       return that;
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
-   Remove this route from the router
 
    @public
 
-   @return {Route} a reference to this, so the API can be used fluently
+   @return {Route}
    */
   this.remove = function() {
     var __args = arguments;
@@ -225,11 +197,10 @@ var Route = function(j_val) {
   };
 
   /**
-   Disable this route. While disabled the router will not route any requests or failures to it.
 
    @public
 
-   @return {Route} a reference to this, so the API can be used fluently
+   @return {Route}
    */
   this.disable = function() {
     var __args = arguments;
@@ -240,11 +211,10 @@ var Route = function(j_val) {
   };
 
   /**
-   Enable this route.
 
    @public
 
-   @return {Route} a reference to this, so the API can be used fluently
+   @return {Route}
    */
   this.enable = function() {
     var __args = arguments;
@@ -255,17 +225,15 @@ var Route = function(j_val) {
   };
 
   /**
-   If true then the normalised request path will be used when routing (e.g. removing duplicate /)
-   Default is true
 
    @public
-   @param useNormalisedPath {boolean} use normalised path for routing? 
-   @return {Route} a reference to this, so the API can be used fluently
+   @param arg0 {boolean} 
+   @return {Route}
    */
-  this.useNormalisedPath = function(useNormalisedPath) {
+  this.useNormalisedPath = function(arg0) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] ==='boolean') {
-      j_route["useNormalisedPath(boolean)"](useNormalisedPath);
+      j_route["useNormalisedPath(boolean)"](arg0);
       return that;
     } else throw new TypeError('function invoked with invalid arguments');
   };
@@ -274,7 +242,7 @@ var Route = function(j_val) {
 
    @public
 
-   @return {string} the path prefix (if any) for this route
+   @return {string}
    */
   this.getPath = function() {
     var __args = arguments;

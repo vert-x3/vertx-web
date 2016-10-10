@@ -49,31 +49,29 @@ var OAuth2AuthHandler = function(j_val) {
   };
 
   /**
-   Add a required authority for this auth handler
 
    @public
-   @param authority {string} the authority 
-   @return {AuthHandler} a reference to this, so the API can be used fluently
+   @param arg0 {string} 
+   @return {AuthHandler}
    */
-  this.addAuthority = function(authority) {
+  this.addAuthority = function(arg0) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      j_oAuth2AuthHandler["addAuthority(java.lang.String)"](authority);
+      j_oAuth2AuthHandler["addAuthority(java.lang.String)"](arg0);
       return that;
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
-   Add a set of required authorities for this auth handler
 
    @public
-   @param authorities {Array.<string>} the set of authorities 
-   @return {AuthHandler} a reference to this, so the API can be used fluently
+   @param arg0 {Array.<string>} 
+   @return {AuthHandler}
    */
-  this.addAuthorities = function(authorities) {
+  this.addAuthorities = function(arg0) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'object' && __args[0] instanceof Array) {
-      j_oAuth2AuthHandler["addAuthorities(java.util.Set)"](utils.convParamSetBasicOther(authorities));
+      j_oAuth2AuthHandler["addAuthorities(java.util.Set)"](utils.convParamSetBasicOther(arg0));
       return that;
     } else throw new TypeError('function invoked with invalid arguments');
   };

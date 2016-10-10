@@ -26,25 +26,23 @@ module VertxWeb
       end
       raise ArgumentError, "Invalid arguments when calling handle(arg0)"
     end
-    #  Add a required authority for this auth handler
-    # @param [String] authority the authority
+    # @param [String] arg0 
     # @return [self]
-    def add_authority(authority=nil)
-      if authority.class == String && !block_given?
-        @j_del.java_method(:addAuthority, [Java::java.lang.String.java_class]).call(authority)
+    def add_authority(arg0=nil)
+      if arg0.class == String && !block_given?
+        @j_del.java_method(:addAuthority, [Java::java.lang.String.java_class]).call(arg0)
         return self
       end
-      raise ArgumentError, "Invalid arguments when calling add_authority(authority)"
+      raise ArgumentError, "Invalid arguments when calling add_authority(arg0)"
     end
-    #  Add a set of required authorities for this auth handler
-    # @param [Set<String>] authorities the set of authorities
+    # @param [Set<String>] arg0 
     # @return [self]
-    def add_authorities(authorities=nil)
-      if authorities.class == Set && !block_given?
-        @j_del.java_method(:addAuthorities, [Java::JavaUtil::Set.java_class]).call(Java::JavaUtil::LinkedHashSet.new(authorities.map { |element| element }))
+    def add_authorities(arg0=nil)
+      if arg0.class == Set && !block_given?
+        @j_del.java_method(:addAuthorities, [Java::JavaUtil::Set.java_class]).call(Java::JavaUtil::LinkedHashSet.new(arg0.map { |element| element }))
         return self
       end
-      raise ArgumentError, "Invalid arguments when calling add_authorities(authorities)"
+      raise ArgumentError, "Invalid arguments when calling add_authorities(arg0)"
     end
     #  Create a OAuth2 auth handler
     # @param [::VertxAuthOauth2::OAuth2Auth] authProvider the auth provider to use

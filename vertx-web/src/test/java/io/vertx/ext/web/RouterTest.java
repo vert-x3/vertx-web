@@ -1855,4 +1855,32 @@ public class RouterTest extends WebTestBase {
     });
     testRequest(HttpMethod.GET, "/some+path?q1=some+query", 200, "foo");
   }
+
+  @Test
+  public void testMethodNotAllowed() throws Exception {
+    router.get("/abc").handler(context -> {
+      fail("Should fail!");
+    });
+
+    testRequest(HttpMethod.POST, "/abc", null, resp -> {
+      assertEquals(405, resp.statusCode());
+      MultiMap headers = resp.headers();
+      assertTrue(headers.contains("Allow"));
+      assertEquals("GET", headers.get("Allow"));
+    }, 405, "Method Not Allowed", null);
+  }
+
+  @Test
+  public void testMethodNotAllowed2() throws Exception {
+    router.route().path("/abc").method(HttpMethod.GET).method(HttpMethod.PUT).handler(context -> {
+      fail("Should fail!");
+    });
+
+    testRequest(HttpMethod.POST, "/abc", null, resp -> {
+      assertEquals(405, resp.statusCode());
+      MultiMap headers = resp.headers();
+      assertTrue(headers.contains("Allow"));
+      assertEquals("GET, PUT", headers.get("Allow"));
+    }, 405, "Method Not Allowed", null);
+  }
 }
