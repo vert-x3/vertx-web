@@ -22,6 +22,9 @@ var JsonObject = io.vertx.core.json.JsonObject;
 var JFileUpload = io.vertx.ext.web.FileUpload;
 
 /**
+ Represents a file-upload from an HTTP multipart form submission.
+ <p>
+
  @class
 */
 var FileUpload = function(j_val) {
@@ -33,7 +36,7 @@ var FileUpload = function(j_val) {
 
    @public
 
-   @return {string}
+   @return {string} the name of the upload as provided in the form submission
    */
   this.name = function() {
     var __args = arguments;
@@ -46,7 +49,7 @@ var FileUpload = function(j_val) {
 
    @public
 
-   @return {string}
+   @return {string} the actual temporary file name on the server where the file was uploaded to.
    */
   this.uploadedFileName = function() {
     var __args = arguments;
@@ -59,7 +62,7 @@ var FileUpload = function(j_val) {
 
    @public
 
-   @return {string}
+   @return {string} the file name of the upload as provided in the form submission
    */
   this.fileName = function() {
     var __args = arguments;
@@ -72,7 +75,7 @@ var FileUpload = function(j_val) {
 
    @public
 
-   @return {number}
+   @return {number} the size of the upload, in bytes
    */
   this.size = function() {
     var __args = arguments;
@@ -85,7 +88,7 @@ var FileUpload = function(j_val) {
 
    @public
 
-   @return {string}
+   @return {string} the content type (MIME type) of the upload
    */
   this.contentType = function() {
     var __args = arguments;
@@ -98,7 +101,7 @@ var FileUpload = function(j_val) {
 
    @public
 
-   @return {string}
+   @return {string} the content transfer encoding of the upload - this describes how the upload was encoded in the form submission.
    */
   this.contentTransferEncoding = function() {
     var __args = arguments;
@@ -111,7 +114,7 @@ var FileUpload = function(j_val) {
 
    @public
 
-   @return {string}
+   @return {string} the charset of the upload
    */
   this.charSet = function() {
     var __args = arguments;

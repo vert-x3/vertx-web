@@ -22,6 +22,13 @@ var JsonObject = io.vertx.core.json.JsonObject;
 var JSession = io.vertx.ext.web.Session;
 
 /**
+ Represents a browser session.
+ <p>
+ Sessions persist between HTTP requests for a single browser session. They are deleted when the browser is closed, or
+ they time-out. Session cookies are used to maintain sessions using a secure UUID.
+ <p>
+ Sessions can be used to maintain data for a browser session, e.g. a shopping basket.
+ <p>
  @class
 */
 var Session = function(j_val) {
@@ -33,7 +40,7 @@ var Session = function(j_val) {
 
    @public
 
-   @return {string}
+   @return {string} The unique ID of the session. This is generated using a random secure UUID.
    */
   this.id = function() {
     var __args = arguments;
@@ -43,51 +50,54 @@ var Session = function(j_val) {
   };
 
   /**
+   Put some data in a session
 
    @public
-   @param arg0 {string} 
-   @param arg1 {Object} 
-   @return {Session}
+   @param key {string} the key for the data 
+   @param obj {Object} the data 
+   @return {Session} a reference to this, so the API can be used fluently
    */
-  this.put = function(arg0, arg1) {
+  this.put = function(key, obj) {
     var __args = arguments;
     if (__args.length === 2 && typeof __args[0] === 'string' && typeof __args[1] !== 'function') {
-      j_session["put(java.lang.String,java.lang.Object)"](arg0, utils.convParamTypeUnknown(arg1));
+      j_session["put(java.lang.String,java.lang.Object)"](key, utils.convParamTypeUnknown(obj));
       return that;
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
+   Get some data from the session
 
    @public
-   @param arg0 {string} 
-   @return {Object}
+   @param key {string} the key of the data 
+   @return {Object} the data
    */
-  this.get = function(arg0) {
+  this.get = function(key) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return utils.convReturnTypeUnknown(j_session["get(java.lang.String)"](arg0));
+      return utils.convReturnTypeUnknown(j_session["get(java.lang.String)"](key));
+    } else throw new TypeError('function invoked with invalid arguments');
+  };
+
+  /**
+   Remove some data from the session
+
+   @public
+   @param key {string} the key of the data 
+   @return {Object} the data that was there or null if none there
+   */
+  this.remove = function(key) {
+    var __args = arguments;
+    if (__args.length === 1 && typeof __args[0] === 'string') {
+      return utils.convReturnTypeUnknown(j_session["remove(java.lang.String)"](key));
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
 
    @public
-   @param arg0 {string} 
-   @return {Object}
-   */
-  this.remove = function(arg0) {
-    var __args = arguments;
-    if (__args.length === 1 && typeof __args[0] === 'string') {
-      return utils.convReturnTypeUnknown(j_session["remove(java.lang.String)"](arg0));
-    } else throw new TypeError('function invoked with invalid arguments');
-  };
 
-  /**
-
-   @public
-
-   @return {number}
+   @return {number} the time the session was last accessed
    */
   this.lastAccessed = function() {
     var __args = arguments;
@@ -97,6 +107,7 @@ var Session = function(j_val) {
   };
 
   /**
+   Destroy the session
 
    @public
 
@@ -112,7 +123,7 @@ var Session = function(j_val) {
 
    @public
 
-   @return {boolean}
+   @return {boolean} has the session been destroyed?
    */
   this.isDestroyed = function() {
     var __args = arguments;
@@ -125,7 +136,7 @@ var Session = function(j_val) {
 
    @public
 
-   @return {number}
+   @return {number} the amount of time in ms, after which the session will expire, if not accessed.
    */
   this.timeout = function() {
     var __args = arguments;
@@ -135,6 +146,7 @@ var Session = function(j_val) {
   };
 
   /**
+   Mark the session as being accessed.
 
    @public
 

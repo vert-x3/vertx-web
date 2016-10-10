@@ -43,14 +43,26 @@ public class Locale {
     def ret = InternalHelper.safeCreate(io.vertx.ext.web.Locale.create(language, country, variant), io.vertx.groovy.ext.web.Locale.class);
     return ret;
   }
+  /**
+   * Returns the language as reported by the HTTP client.
+   * @return language
+   */
   public String language() {
     def ret = delegate.language();
     return ret;
   }
+  /**
+   * Returns the country as reported by the HTTP client.
+   * @return variant
+   */
   public String country() {
     def ret = delegate.country();
     return ret;
   }
+  /**
+   * Returns the variant as reported by the HTTP client.
+   * @return variant
+   */
   public String variant() {
     def ret = delegate.variant();
     return ret;

@@ -30,10 +30,11 @@ var Locale = function(j_val) {
   var that = this;
 
   /**
+   Returns the language as reported by the HTTP client.
 
    @public
 
-   @return {string}
+   @return {string} language
    */
   this.language = function() {
     var __args = arguments;
@@ -43,10 +44,11 @@ var Locale = function(j_val) {
   };
 
   /**
+   Returns the country as reported by the HTTP client.
 
    @public
 
-   @return {string}
+   @return {string} variant
    */
   this.country = function() {
     var __args = arguments;
@@ -56,10 +58,11 @@ var Locale = function(j_val) {
   };
 
   /**
+   Returns the variant as reported by the HTTP client.
 
    @public
 
-   @return {string}
+   @return {string} variant
    */
   this.variant = function() {
     var __args = arguments;

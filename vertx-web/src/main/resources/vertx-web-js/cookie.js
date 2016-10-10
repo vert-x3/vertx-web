@@ -22,6 +22,12 @@ var JsonObject = io.vertx.core.json.JsonObject;
 var JCookie = io.vertx.ext.web.Cookie;
 
 /**
+ Represents an HTTP Cookie.
+ <p>
+ All cookies must have a name and a value and can optionally have other fields set such as path, domain, etc.
+ <p>
+ (Derived from io.netty.handler.codec.http.Cookie)
+
  @class
 */
 var Cookie = function(j_val) {
@@ -33,7 +39,7 @@ var Cookie = function(j_val) {
 
    @public
 
-   @return {string}
+   @return {string} the name of this cookie
    */
   this.getName = function() {
     var __args = arguments;
@@ -46,7 +52,7 @@ var Cookie = function(j_val) {
 
    @public
 
-   @return {string}
+   @return {string} the value of this cookie
    */
   this.getValue = function() {
     var __args = arguments;
@@ -56,15 +62,31 @@ var Cookie = function(j_val) {
   };
 
   /**
+   Sets the value of this cookie
 
    @public
-   @param arg0 {string} 
-   @return {Cookie}
+   @param value {string} The value to set 
+   @return {Cookie} a reference to this, so the API can be used fluently
    */
-  this.setValue = function(arg0) {
+  this.setValue = function(value) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      j_cookie["setValue(java.lang.String)"](arg0);
+      j_cookie["setValue(java.lang.String)"](value);
+      return that;
+    } else throw new TypeError('function invoked with invalid arguments');
+  };
+
+  /**
+   Sets the domain of this cookie
+
+   @public
+   @param domain {string} The domain to use 
+   @return {Cookie} a reference to this, so the API can be used fluently
+   */
+  this.setDomain = function(domain) {
+    var __args = arguments;
+    if (__args.length === 1 && (typeof __args[0] === 'string' || __args[0] == null)) {
+      j_cookie["setDomain(java.lang.String)"](domain);
       return that;
     } else throw new TypeError('function invoked with invalid arguments');
   };
@@ -72,22 +94,8 @@ var Cookie = function(j_val) {
   /**
 
    @public
-   @param arg0 {string} 
-   @return {Cookie}
-   */
-  this.setDomain = function(arg0) {
-    var __args = arguments;
-    if (__args.length === 1 && typeof __args[0] === 'string') {
-      j_cookie["setDomain(java.lang.String)"](arg0);
-      return that;
-    } else throw new TypeError('function invoked with invalid arguments');
-  };
 
-  /**
-
-   @public
-
-   @return {string}
+   @return {string} the domain for the cookie
    */
   this.getDomain = function() {
     var __args = arguments;
@@ -97,15 +105,16 @@ var Cookie = function(j_val) {
   };
 
   /**
+   Sets the path of this cookie.
 
    @public
-   @param arg0 {string} 
-   @return {Cookie}
+   @param path {string} The path to use for this cookie 
+   @return {Cookie} a reference to this, so the API can be used fluently
    */
-  this.setPath = function(arg0) {
+  this.setPath = function(path) {
     var __args = arguments;
-    if (__args.length === 1 && typeof __args[0] === 'string') {
-      j_cookie["setPath(java.lang.String)"](arg0);
+    if (__args.length === 1 && (typeof __args[0] === 'string' || __args[0] == null)) {
+      j_cookie["setPath(java.lang.String)"](path);
       return that;
     } else throw new TypeError('function invoked with invalid arguments');
   };
@@ -114,7 +123,7 @@ var Cookie = function(j_val) {
 
    @public
 
-   @return {string}
+   @return {string} the path for this cookie
    */
   this.getPath = function() {
     var __args = arguments;
@@ -124,52 +133,65 @@ var Cookie = function(j_val) {
   };
 
   /**
+   Sets the maximum age of this cookie in seconds.
+   If an age of <code>0</code> is specified, this cookie will be
+   automatically removed by browser because it will expire immediately.
+   If MIN_VALUE is specified, this cookie will be removed when the
+   browser is closed.
+   If you don't set this the cookie will be a session cookie and be removed when the browser is closed.
 
    @public
-   @param arg0 {number} 
+   @param maxAge {number} The maximum age of this cookie in seconds 
    @return {Cookie}
    */
-  this.setMaxAge = function(arg0) {
+  this.setMaxAge = function(maxAge) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] ==='number') {
-      j_cookie["setMaxAge(long)"](arg0);
+      j_cookie["setMaxAge(long)"](maxAge);
       return that;
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
+   Sets the security getStatus of this cookie
 
    @public
-   @param arg0 {boolean} 
-   @return {Cookie}
+   @param secure {boolean} True if this cookie is to be secure, otherwise false 
+   @return {Cookie} a reference to this, so the API can be used fluently
    */
-  this.setSecure = function(arg0) {
+  this.setSecure = function(secure) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] ==='boolean') {
-      j_cookie["setSecure(boolean)"](arg0);
+      j_cookie["setSecure(boolean)"](secure);
       return that;
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
+   Determines if this cookie is HTTP only.
+   If set to true, this cookie cannot be accessed by a client
+   side script. However, this works only if the browser supports it.
+   For for information, please look
+   <a href="http://www.owasp.org/index.php/HTTPOnly">here</a>.
 
    @public
-   @param arg0 {boolean} 
+   @param httpOnly {boolean} True if the cookie is HTTP only, otherwise false. 
    @return {Cookie}
    */
-  this.setHttpOnly = function(arg0) {
+  this.setHttpOnly = function(httpOnly) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] ==='boolean') {
-      j_cookie["setHttpOnly(boolean)"](arg0);
+      j_cookie["setHttpOnly(boolean)"](httpOnly);
       return that;
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
+   Encode the cookie to a string. This is what is used in the Set-Cookie header
 
    @public
 
-   @return {string}
+   @return {string} the encoded cookie
    */
   this.encode = function() {
     var __args = arguments;
@@ -179,10 +201,11 @@ var Cookie = function(j_val) {
   };
 
   /**
+   Has the cookie been changed? Changed cookies will be saved out in the response and sent to the browser.
 
    @public
 
-   @return {boolean}
+   @return {boolean} true if changed
    */
   this.isChanged = function() {
     var __args = arguments;
@@ -192,14 +215,16 @@ var Cookie = function(j_val) {
   };
 
   /**
+   Set the cookie as being changed. Changed will be true for a cookie just created, false by default if just
+   read from the request
 
    @public
-   @param arg0 {boolean} 
+   @param changed {boolean} true if changed 
    */
-  this.setChanged = function(arg0) {
+  this.setChanged = function(changed) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] ==='boolean') {
-      j_cookie["setChanged(boolean)"](arg0);
+      j_cookie["setChanged(boolean)"](changed);
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -210,11 +235,12 @@ var Cookie = function(j_val) {
 };
 
 /**
+ Create a new cookie
 
  @memberof module:vertx-web-js/cookie
- @param name {string} 
- @param value {string} 
- @return {Cookie}
+ @param name {string} the name of the cookie 
+ @param value {string} the cookie value 
+ @return {Cookie} the cookie
  */
 Cookie.cookie = function(name, value) {
   var __args = arguments;

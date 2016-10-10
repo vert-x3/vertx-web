@@ -37,12 +37,22 @@ public class OAuth2AuthHandler implements AuthHandler {
   public void handle(RoutingContext arg0) {
     ((io.vertx.core.Handler) delegate).handle(arg0 != null ? (io.vertx.ext.web.RoutingContext)arg0.getDelegate() : null);
   }
-  public AuthHandler addAuthority(String arg0) {
-    ((io.vertx.ext.web.handler.AuthHandler) delegate).addAuthority(arg0);
+  /**
+   * Add a required authority for this auth handler
+   * @param authority the authority
+   * @return a reference to this, so the API can be used fluently
+   */
+  public AuthHandler addAuthority(String authority) {
+    ((io.vertx.ext.web.handler.AuthHandler) delegate).addAuthority(authority);
     return this;
   }
-  public AuthHandler addAuthorities(Set<String> arg0) {
-    ((io.vertx.ext.web.handler.AuthHandler) delegate).addAuthorities(arg0 != null ? (Set)arg0.collect({it}) as Set : null);
+  /**
+   * Add a set of required authorities for this auth handler
+   * @param authorities the set of authorities
+   * @return a reference to this, so the API can be used fluently
+   */
+  public AuthHandler addAuthorities(Set<String> authorities) {
+    ((io.vertx.ext.web.handler.AuthHandler) delegate).addAuthorities(authorities != null ? (Set)authorities.collect({it}) as Set : null);
     return this;
   }
   /**

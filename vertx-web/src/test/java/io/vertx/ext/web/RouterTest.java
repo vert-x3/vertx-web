@@ -21,6 +21,7 @@ import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpMethod;
 import org.junit.Test;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -1872,6 +1873,7 @@ public class RouterTest extends WebTestBase {
 
   @Test
   public void testMethodNotAllowed2() throws Exception {
+    router.clear();
     router.route().path("/abc").method(HttpMethod.GET).method(HttpMethod.PUT).handler(context -> {
       fail("Should fail!");
     });
@@ -1880,7 +1882,9 @@ public class RouterTest extends WebTestBase {
       assertEquals(405, resp.statusCode());
       MultiMap headers = resp.headers();
       assertTrue(headers.contains("Allow"));
-      assertEquals("GET, PUT", headers.get("Allow"));
+      List<String> items = Arrays.asList(headers.get("Allow").split(", "));
+      assertTrue(items.contains("GET"));
+      assertTrue(items.contains("PUT"));
     }, 405, "Method Not Allowed", null);
   }
 }
