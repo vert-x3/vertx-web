@@ -183,5 +183,15 @@ module VertxWeb
       end
       raise ArgumentError, "Invalid arguments when calling set_enable_range_support(enableRangeSupport)"
     end
+    #  Set whether vary header should be sent with response.
+    # @param [true,false] varyHeader true to sent vary header
+    # @return [self]
+    def set_send_vary_header(varyHeader=nil)
+      if (varyHeader.class == TrueClass || varyHeader.class == FalseClass) && !block_given?
+        @j_del.java_method(:setSendVaryHeader, [Java::boolean.java_class]).call(varyHeader)
+        return self
+      end
+      raise ArgumentError, "Invalid arguments when calling set_send_vary_header(varyHeader)"
+    end
   end
 end

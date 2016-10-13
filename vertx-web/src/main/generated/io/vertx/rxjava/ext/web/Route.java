@@ -208,6 +208,15 @@ public class Route {
     return this;
   }
 
+  public Route then(Handler<RoutingContext> handler) { 
+    Route ret = Route.newInstance(delegate.then(new Handler<io.vertx.ext.web.RoutingContext>() {
+      public void handle(io.vertx.ext.web.RoutingContext event) {
+        handler.handle(RoutingContext.newInstance(event));
+      }
+    }));
+    return ret;
+  }
+
   /**
    * If true then the normalised request path will be used when routing (e.g. removing duplicate /)
    * Default is true

@@ -17,6 +17,7 @@
 package io.vertx.ext.web;
 
 import io.vertx.codegen.annotations.Fluent;
+import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.Nullable;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
@@ -26,6 +27,7 @@ import io.vertx.core.http.HttpServerRequest;
 import io.vertx.ext.web.impl.RouterImpl;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * A router receives request from an {@link io.vertx.core.http.HttpServer} and routes it to the first matching
@@ -73,6 +75,28 @@ public interface Router {
    * @return the route
    */
   Route route(HttpMethod method, String path);
+
+  /**
+   * Add a route that matches the specified HTTP methods and path
+   *
+   * @param methods the HTTP methods to match
+   * @param path  URI paths that begin with this path will match
+   *
+   * @return the route
+   */
+  Route routes(Set<HttpMethod> methods, String path);
+
+  /**
+   * Add a route that matches the specified HTTP methods and path
+   * (utility function for java users)
+   *
+   * @param methods the HTTP methods to match
+   * @param path  URI paths that begin with this path will match
+   *
+   * @return the route
+   */
+  @GenIgnore
+  Route routes(String path, HttpMethod... methods);
 
   /**
    * Add a route that matches the specified path

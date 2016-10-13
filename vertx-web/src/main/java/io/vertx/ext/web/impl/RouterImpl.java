@@ -90,6 +90,16 @@ public class RouterImpl implements Router {
   }
 
   @Override
+  public Route routes(String path, HttpMethod... methods) {
+    return new RouteImpl(this, orderSequence.getAndIncrement(), Arrays.asList(methods), path);
+  }
+
+  @Override
+  public Route routes(Set<HttpMethod> methods, String path) {
+    return new RouteImpl(this, orderSequence.getAndIncrement(), methods, path);
+  }
+
+  @Override
   public Route route(String path) {
     return new RouteImpl(this, orderSequence.getAndIncrement(), path);
   }

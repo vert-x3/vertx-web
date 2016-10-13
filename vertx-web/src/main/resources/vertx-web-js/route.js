@@ -255,6 +255,21 @@ var Route = function(j_val) {
   };
 
   /**
+
+   @public
+   @param handler {function} 
+   @return {Route}
+   */
+  this.then = function(handler) {
+    var __args = arguments;
+    if (__args.length === 1 && typeof __args[0] === 'function') {
+      return utils.convReturnVertxGen(j_route["then(io.vertx.core.Handler)"](function(jVal) {
+      handler(utils.convReturnVertxGen(jVal, RoutingContext));
+    }), Route);
+    } else throw new TypeError('function invoked with invalid arguments');
+  };
+
+  /**
    If true then the normalised request path will be used when routing (e.g. removing duplicate /)
    Default is true
 

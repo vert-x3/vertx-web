@@ -22,6 +22,7 @@ import io.vertx.groovy.core.http.HttpServerRequest
 import java.util.List
 import io.vertx.core.http.HttpMethod
 import io.vertx.groovy.core.Vertx
+import java.util.Set
 import io.vertx.core.Handler
 /**
  * A router receives request from an {@link io.vertx.groovy.core.http.HttpServer} and routes it to the first matching
@@ -72,6 +73,16 @@ public class Router {
    */
   public Route route(HttpMethod method, String path) {
     def ret = InternalHelper.safeCreate(delegate.route(method, path), io.vertx.groovy.ext.web.Route.class);
+    return ret;
+  }
+  /**
+   * Add a route that matches the specified HTTP methods and path
+   * @param methods the HTTP methods to match
+   * @param path URI paths that begin with this path will match
+   * @return the route
+   */
+  public Route routes(Set<HttpMethod> methods, String path) {
+    def ret = InternalHelper.safeCreate(delegate.routes(methods != null ? (Set)methods.collect({it}) as Set : null, path), io.vertx.groovy.ext.web.Route.class);
     return ret;
   }
   /**

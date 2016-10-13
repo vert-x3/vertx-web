@@ -186,6 +186,14 @@ public class Route {
     delegate.enable();
     return this;
   }
+  public Route then(Handler<RoutingContext> handler) {
+    def ret = InternalHelper.safeCreate(delegate.then(handler != null ? new Handler<io.vertx.ext.web.RoutingContext>(){
+      public void handle(io.vertx.ext.web.RoutingContext event) {
+        handler.handle(InternalHelper.safeCreate(event, io.vertx.groovy.ext.web.RoutingContext.class));
+      }
+    } : null), io.vertx.groovy.ext.web.Route.class);
+    return ret;
+  }
   /**
    * If true then the normalised request path will be used when routing (e.g. removing duplicate /)
    * Default is true

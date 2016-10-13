@@ -166,6 +166,8 @@ public interface Route {
   @Fluent
   Route enable();
 
+  Route then(Handler<RoutingContext> handler);
+
   /**
    * If true then the normalised request path will be used when routing (e.g. removing duplicate /)
    * Default is true
