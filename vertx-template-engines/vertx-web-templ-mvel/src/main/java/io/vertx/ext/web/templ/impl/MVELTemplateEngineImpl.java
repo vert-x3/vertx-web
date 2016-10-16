@@ -36,60 +36,50 @@ import java.util.Map;
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public class MVELTemplateEngineImpl extends CachingTemplateEngine<CompiledTemplate> implements MVELTemplateEngine
-{
+public class MVELTemplateEngineImpl extends CachingTemplateEngine<CompiledTemplate> implements MVELTemplateEngine {
 
-   public MVELTemplateEngineImpl()
-   {
-      super(DEFAULT_TEMPLATE_EXTENSION, DEFAULT_MAX_CACHE_SIZE);
-   }
+  public MVELTemplateEngineImpl() {
+    super(DEFAULT_TEMPLATE_EXTENSION, DEFAULT_MAX_CACHE_SIZE);
+  }
 
-   @Override
-   public MVELTemplateEngine setExtension(String extension)
-   {
-      doSetExtension(extension);
-      return this;
-   }
+  @Override
+  public MVELTemplateEngine setExtension(String extension) {
+    doSetExtension(extension);
+    return this;
+  }
 
-   @Override
-   public MVELTemplateEngine setMaxCacheSize(int maxCacheSize)
-   {
-      this.cache.setMaxSize(maxCacheSize);
-      return this;
-   }
+  @Override
+  public MVELTemplateEngine setMaxCacheSize(int maxCacheSize) {
+    this.cache.setMaxSize(maxCacheSize);
+    return this;
+  }
 
-   @Override
-   public void render(RoutingContext context, String templateFileName, Handler<AsyncResult<Buffer>> handler)
-   {
-      try
-      {
-         CompiledTemplate template = cache.get(templateFileName);
-         if (template == null)
-         {
-            // real compile
-            String loc = adjustLocation(templateFileName);
-            String templateText = Utils.readFileToString(context.vertx(), loc);
-            if (templateText == null)
-            {
-               throw new IllegalArgumentException("Cannot find template " + loc);
-            }
-            template = TemplateCompiler.compileTemplate(templateText);
-            cache.put(templateFileName, template);
-         }
-         Map<String, RoutingContext> variables = new HashMap<>(1);
-         variables.put("context", context);
-         String directoryName = Paths.get(templateFileName).getParent().toAbsolutePath().toString();
-         handler.handle(Future.succeededFuture(
-                  Buffer.buffer(
-                           (String) new TemplateRuntime(template.getTemplate(), null, template.getRoot(), directoryName)
-                                    .execute(new StringAppender(), variables, new ImmutableDefaultFactory())
-                  )
-         ));
+  @Override
+  public void render(RoutingContext context, String templateFileName, Handler<AsyncResult<Buffer>> handler) {
+    try {
+      CompiledTemplate template = cache.get(templateFileName);
+      if (template == null) {
+        // real compile
+        String loc = adjustLocation(templateFileName);
+        String templateText = Utils.readFileToString(context.vertx(), loc);
+        if (templateText == null) {
+          throw new IllegalArgumentException("Cannot find template " + loc);
+        }
+        template = TemplateCompiler.compileTemplate(templateText);
+        cache.put(templateFileName, template);
       }
-      catch (Exception ex)
-      {
-         handler.handle(Future.failedFuture(ex));
-      }
-   }
+      Map<String, RoutingContext> variables = new HashMap<>(1);
+      variables.put("context", context);
+      String directoryName = Paths.get(templateFileName).getParent().toAbsolutePath().toString();
+      handler.handle(Future.succeededFuture(
+        Buffer.buffer(
+          (String) new TemplateRuntime(template.getTemplate(), null, template.getRoot(), directoryName)
+            .execute(new StringAppender(), variables, new ImmutableDefaultFactory())
+        )
+      ));
+    } catch (Exception ex) {
+      handler.handle(Future.failedFuture(ex));
+    }
+  }
 
 }
