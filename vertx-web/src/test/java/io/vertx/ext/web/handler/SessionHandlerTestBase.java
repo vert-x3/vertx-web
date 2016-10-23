@@ -184,6 +184,7 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
         case 1:
           assertFalse(rid.get().equals(sess.id())); // New session
           assertNull(sess.get("foo"));
+          sess.put("baz", "bar");
           break;
       }
       requestCount.incrementAndGet();

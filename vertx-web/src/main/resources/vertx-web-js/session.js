@@ -50,6 +50,20 @@ var Session = function(j_val) {
   };
 
   /**
+   @return true if data has been written to this session
+
+   @public
+
+   @return {boolean}
+   */
+  this.hasContent = function() {
+    var __args = arguments;
+    if (__args.length === 0) {
+      return j_session["hasContent()"]();
+    } else throw new TypeError('function invoked with invalid arguments');
+  };
+
+  /**
    Put some data in a session
 
    @public

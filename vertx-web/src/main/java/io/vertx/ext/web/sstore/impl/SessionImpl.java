@@ -27,9 +27,10 @@ import io.vertx.ext.web.impl.Utils;
 
 import java.io.*;
 import java.nio.charset.Charset;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -55,9 +56,10 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
 
   private String id;
   private long timeout;
-  private Map<String, Object> data;
+  private final AtomicReference<Map<String, Object>> data = new AtomicReference<>();
   private long lastAccessed;
   private boolean destroyed;
+  private boolean hasContent;
 
   public SessionImpl() {
   }
@@ -74,6 +76,11 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
   }
 
   @Override
+  public boolean hasContent() {
+    return hasContent;
+  }
+
+  @Override
   public long timeout() {
     return timeout;
   }
@@ -87,7 +94,11 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
 
   @Override
   public Session put(String key, Object obj) {
-    getData().put(key, obj);
+    if (obj == null)
+      getData().remove(key);
+    else
+      getData().put(key, obj);
+    hasContent = true;
     return this;
   }
 
@@ -95,6 +106,7 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
   @SuppressWarnings("unchecked")
   public <T> T remove(String key) {
     Object obj = getData().remove(key);
+    hasContent = true;
     return (T)obj;
   }
 
@@ -116,7 +128,7 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
   @Override
   public void destroy() {
     destroyed = true;
-    data = null;
+    data.set(null);
   }
 
   @Override
@@ -150,10 +162,16 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
   }
 
   private Map<String, Object> getData() {
-    if (data == null) {
-      data = new HashMap<>();
+    while (true) {
+      Map<String, Object> map = data.get();
+      if (map != null)
+        return map;
+
+
+      Map<String, Object> newMap = new ConcurrentHashMap<>();
+      if (data.compareAndSet(null, newMap))
+        return newMap;
     }
-    return data;
   }
 
   private Buffer writeDataToBuffer() {
@@ -220,7 +238,7 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
     try {
       int entries = buffer.getInt(pos);
       pos +=4;
-      data = new HashMap<>(entries);
+      Map<String, Object> data = new ConcurrentHashMap<>();
       for (int i = 0; i < entries; i++) {
         int keylen = buffer.getInt(pos);
         pos += 4;
@@ -307,8 +325,11 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
           default:
             throw new IllegalStateException("Invalid serialized type: " + type);
         }
-        data.put(key, val);
+        if (val != null)
+          data.put(key, val);
       }
+      hasContent = true;
+      this.data.set(data); // we assume this is not called concurrently
       return pos;
     } catch (Exception e) {
       throw new VertxException(e);

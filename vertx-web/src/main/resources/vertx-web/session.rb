@@ -28,6 +28,14 @@ module VertxWeb
       end
       raise ArgumentError, "Invalid arguments when calling id()"
     end
+    #  @return true if data has been written to this session
+    # @return [true,false]
+    def has_content?
+      if !block_given?
+        return @j_del.java_method(:hasContent, []).call()
+      end
+      raise ArgumentError, "Invalid arguments when calling has_content?()"
+    end
     #  Put some data in a session
     # @param [String] key the key for the data
     # @param [Object] obj the data
