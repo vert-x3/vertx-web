@@ -18,6 +18,7 @@ package io.vertx.groovy.ext.web.handler;
 import groovy.transform.CompileStatic
 import io.vertx.lang.groovy.InternalHelper
 import io.vertx.core.json.JsonObject
+import io.vertx.core.json.JsonObject
 import io.vertx.groovy.ext.web.RoutingContext
 import io.vertx.core.Handler
 /**
@@ -185,6 +186,15 @@ public class StaticHandler implements Handler<RoutingContext> {
    */
   public StaticHandler setEnableRangeSupport(boolean enableRangeSupport) {
     delegate.setEnableRangeSupport(enableRangeSupport);
+    return this;
+  }
+  /**
+   * Set HTTP2 push mapping be used for accelerate content delivery.
+   * @param http2PushMapping dependency mapping
+   * @return a reference to this, so the API can be used fluently
+   */
+  public StaticHandler setHTTP2PushMapping(Map<String, Object> http2PushMapping) {
+    delegate.setHTTP2PushMapping(http2PushMapping != null ? new io.vertx.core.json.JsonObject(http2PushMapping) : null);
     return this;
   }
 }

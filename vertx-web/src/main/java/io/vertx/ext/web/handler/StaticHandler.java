@@ -20,6 +20,7 @@ import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.impl.StaticHandlerImpl;
 
@@ -286,5 +287,14 @@ public interface StaticHandler extends Handler<RoutingContext> {
    */
   @Fluent
   StaticHandler setSendVaryHeader(boolean varyHeader);
+
+  /**
+   * Set HTTP2 push mapping be used for accelerate content delivery.
+   *
+   * @param http2PushMapping dependency mapping
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  StaticHandler setHTTP2PushMapping(JsonObject http2PushMapping);
 
 }
