@@ -72,10 +72,9 @@
 
     options = options || {};
 
-    var pingInterval = options.vertxbus_ping_interval || 5000;
-    var pingTimerID;
-
     // attributes
+    this.pingInterval = options.vertxbus_ping_interval || 5000;
+    this.pingTimerID = null;
     this.sockJSConn = new SockJS(url, null, options);
     this.state = EventBus.CONNECTING;
     this.handlers = {};
@@ -91,21 +90,15 @@
       }
     };
 
-    var sendPing = function () {
-      self.sockJSConn.send(JSON.stringify({type: 'ping'}));
-    };
-
     this.sockJSConn.onopen = function () {
-      // Send the first ping then send a ping every pingInterval milliseconds
-      sendPing();
-      pingTimerID = setInterval(sendPing, pingInterval);
+      self.pingEnabled(true);
       self.state = EventBus.OPEN;
       self.onopen && self.onopen();
     };
 
     this.sockJSConn.onclose = function (e) {
       self.state = EventBus.CLOSED;
-      if (pingTimerID) clearInterval(pingTimerID);
+      if (self.pingTimerID) clearInterval(self.pingTimerID);
       self.onclose && self.onclose(e);
     };
 
@@ -293,6 +286,27 @@
   EventBus.OPEN = 1;
   EventBus.CLOSING = 2;
   EventBus.CLOSED = 3;
+
+  EventBus.prototype.pingEnabled = function (enable) {
+    var self = this;
+
+    if (enable) {
+      var sendPing = function () {
+        self.sockJSConn.send(JSON.stringify({type: 'ping'}));
+      };
+
+      if (self.pingInterval > 0) {
+        // Send the first ping then send a ping every pingInterval milliseconds
+        sendPing();
+        self.pingTimerID = setInterval(sendPing, self.pingInterval);
+      }
+    } else {
+      if (self.pingTimerID) {
+        clearInterval(self.pingTimerID);
+        self.pingTimerID = null;
+      }
+    }
+  };
 
   if (typeof exports !== 'undefined') {
     if (typeof module !== 'undefined' && module.exports) {
