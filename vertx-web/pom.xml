@@ -60,20 +60,6 @@
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
-
-    <dependency>
-      <groupId>com.hazelcast</groupId>
-      <artifactId>hazelcast</artifactId>
-      <version>3.4</version>
-      <exclusions>
-        <exclusion>
-          <groupId>net.sourceforge.findbugs</groupId>
-          <artifactId>annotations</artifactId>
-        </exclusion>
-      </exclusions>
-      <scope>test</scope>
-    </dependency>
-
   </dependencies>
 
   <build>
