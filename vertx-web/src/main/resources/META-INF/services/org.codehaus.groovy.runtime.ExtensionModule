@@ -1,0 +1,4 @@
+moduleName = vertx-web-module
+moduleVersion = 1.0
+extensionClasses = io.vertx.groovy.ext.web.GroovyExtension
+staticExtensionClasses = io.vertx.groovy.ext.web.GroovyStaticExtension
