@@ -1,0 +1,4 @@
+moduleName = test-module
+moduleVersion = 1.0
+extensionClasses = io.vertx.groovy.serviceproxy.testmodel.GroovyExtension
+staticExtensionClasses = io.vertx.groovy.serviceproxy.testmodel.GroovyStaticExtension
