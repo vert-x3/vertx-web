@@ -13,11 +13,22 @@
   <artifactId>vertx-web-templ-pebble</artifactId>
 
   <dependencies>
-<dependency>
-	<groupId>com.mitchellbosecke</groupId>
-	<artifactId>pebble</artifactId>
-	<version>2.0.0</version>
-</dependency>
+    <dependency>
+	    <groupId>com.mitchellbosecke</groupId>
+	    <artifactId>pebble</artifactId>
+	    <version>2.0.0</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-api</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>1.7.12</version>
+    </dependency>
     <dependency>
       <groupId>io.vertx</groupId>
       <artifactId>vertx-web</artifactId>
