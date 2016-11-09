@@ -140,7 +140,7 @@ public class WebExamples {
       // /some/path/foo
       // /foo
       // /foo/bar/wibble/foo
-      // /foo/bar
+      // /bar/foo
 
       // But not:
       // /bar/wibble
