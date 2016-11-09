@@ -115,7 +115,7 @@ public class WebExamples {
 
   public void example4_1(Router router) {
 
-    Route route = router.route(HttpMethod.POST, "/catalogue/products/:productype/:productid/");
+    Route route = router.route(HttpMethod.POST, "/catalogue/products/:producttype/:productid/");
 
     route.handler(routingContext -> {
 
