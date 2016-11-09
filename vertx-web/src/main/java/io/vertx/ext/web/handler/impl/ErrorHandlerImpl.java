@@ -16,17 +16,19 @@
 
 package io.vertx.ext.web.handler.impl;
 
+import java.util.List;
+import java.util.Objects;
+
+import io.vertx.core.Handler;
 import io.vertx.core.http.HttpHeaders;
-import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.web.handler.ErrorHandler;
+import io.vertx.ext.web.MIMEHeader;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.handler.ErrorHandler;
+import io.vertx.ext.web.impl.HeaderTooLongException;
 import io.vertx.ext.web.impl.Utils;
-
-import java.util.List;
-import java.util.Objects;
 
 /**
  * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
@@ -53,28 +55,23 @@ public class ErrorHandlerImpl implements ErrorHandler {
   @Override
   public void handle(RoutingContext context) {
 
-    HttpServerRequest request = context.request();
     HttpServerResponse response = context.response();
 
-    if (context.statusCode() != -1) {
-      response.setStatusCode(context.statusCode());
-    } else {
-      // Internal error
-      response.setStatusCode(500);
+    Throwable failure = context.failure();
+    
+    if(answerWithKnownFailure(context)){
+      return;
     }
-
-    // does the response already set the mime type?
-    String mime = response.headers().get(HttpHeaders.CONTENT_TYPE);
-
-    int errorCode;
+    
+    int errorCode = context.statusCode();
     String errorMessage = null;
-    if (context.statusCode() != -1) {
-      errorCode = context.statusCode();
+    if (errorCode != -1) {
+      context.response().setStatusCode(errorCode);
       errorMessage = context.response().getStatusMessage();
     } else {
       errorCode = 500;
       if (displayExceptionDetails) {
-        errorMessage = context.failure().getMessage();
+        errorMessage = failure.getMessage();
       }
       if (errorMessage == null) {
         errorMessage = "Internal Server Error";
@@ -82,24 +79,47 @@ public class ErrorHandlerImpl implements ErrorHandler {
       // no new lines are allowed in the status message
       response.setStatusMessage(errorMessage.replaceAll("\\r|\\n", " "));
     }
-
-    if (mime != null) {
-      if (sendError(context, mime, errorCode, errorMessage)) {
-        return;
-      }
+    
+    answerWithError(context, errorCode, errorMessage);
+  }
+  
+  private boolean answerWithKnownFailure(RoutingContext context) {
+    Throwable failure = context.failure();
+    
+    if(failure instanceof HeaderTooLongException){
+      answerWithError(context, 400, "A header was too long to process");
+      return true;
     }
+    return false;
+  }
 
+  private void answerWithError(RoutingContext context, int errorCode, String errorMessage){
+    context.response().setStatusCode(errorCode);
+    if( !sendErrorResponseMIME(context, errorCode, errorMessage) &&
+        !sendErrorAcceptMIME(context, errorCode, errorMessage)
+      ){
+      // fallback plain/text
+      sendError(context, "text/plain", errorCode, errorMessage);
+    }
+  }
+  
+  private boolean sendErrorResponseMIME(RoutingContext context, int errorCode, String errorMessage){
+    // does the response already set the mime type?
+    String mime = context.response().headers().get(HttpHeaders.CONTENT_TYPE);
+    
+    return mime != null && sendError(context, mime, errorCode, errorMessage);
+  }
+  
+  private boolean sendErrorAcceptMIME(RoutingContext context, int errorCode, String errorMessage){
     // respect the client accept order
-    List<String> acceptedMimes = Utils.getSortedAcceptableMimeTypes(request.headers().get(HttpHeaders.ACCEPT));
+    List<MIMEHeader> acceptableMimes = context.parsedHeaders().accept();
 
-    for (String accept : acceptedMimes) {
-      if (sendError(context, accept, errorCode, errorMessage)) {
-        return;
+    for (MIMEHeader accept : acceptableMimes) {
+      if (sendError(context, accept.value(), errorCode, errorMessage)) {
+        return true;
       }
     }
-
-    // fall back plain/text
-    sendError(context, "text/plain", errorCode, errorMessage);
+    return false;
   }
 
   private boolean sendError(RoutingContext context, String mime, int errorCode, String errorMessage) {
@@ -158,5 +178,4 @@ public class ErrorHandlerImpl implements ErrorHandler {
 
     return false;
   }
-
 }

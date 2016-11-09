@@ -172,33 +172,6 @@ public class Utils extends io.vertx.core.impl.Utils {
     }
   }
 
-  public static List<String> getSortedAcceptableMimeTypes(String acceptHeader) {
-    // accept anything when accept is not present
-    if (acceptHeader == null) {
-      return Collections.emptyList();
-    }
-
-    // parse
-    String[] items = COMMA_SPLITTER.split(acceptHeader);
-    // sort on quality
-    Arrays.sort(items, ACCEPT_X_COMPARATOR);
-
-    List<String> list = new ArrayList<>(items.length);
-
-    for (String item : items) {
-      // find any ; e.g.: "application/json;q=0.8"
-      int space = item.indexOf(';');
-
-      if (space != -1) {
-        list.add(item.substring(0, space));
-      } else {
-        list.add(item);
-      }
-    }
-
-    return list;
-  }
-
   public static DateFormat createRFC1123DateTimeFormatter() {
     DateFormat dtf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.ENGLISH);
     dtf.setTimeZone(TimeZone.getTimeZone("GMT"));

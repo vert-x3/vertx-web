@@ -199,6 +199,11 @@ public class RoutingContextDecorator implements RoutingContext {
   }
 
   @Override
+  public ParsedHeaderValues parsedHeaders() {
+    return decoratedContext.parsedHeaders();
+  }
+  
+  @Override
   public void setAcceptableContentType(String contentType) {
     decoratedContext.setAcceptableContentType(contentType);
   }

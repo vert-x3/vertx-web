@@ -48,6 +48,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   private int statusCode = -1;
   private String normalisedPath;
   private String acceptableContentType;
+  private ParsableHeaderValuesContainer parsedHeaders;
 
   // We use Cookie as the key too so we can return keySet in cookies() without copying
   private Map<String, Cookie> cookies;
@@ -59,9 +60,47 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   public RoutingContextImpl(String mountPoint, RouterImpl router, HttpServerRequest request, Set<RouteImpl> routes) {
     super(mountPoint, request, routes);
     this.router = router;
-    if (request.path().charAt(0) != '/') {
-      fail(404);
+    try{
+      fillParsedHeaders(request);
+      if (request.path().charAt(0) != '/') {
+        fail(404);
+      }
+    } catch (HeaderTooLongException e){
+      fail(e);
     }
+  }
+
+  private String ensureNotNull(String string){
+    return string == null ? "" : string;
+  }
+
+  private static void assertHeaderSmallEnough(String name, String content){
+    if(content != null && content.length() > HeaderParser.MAX_HEADER_SIZE){
+      throw new HeaderTooLongException("Header '" + name + "' too long");
+    }
+  }
+  
+  private void fillParsedHeaders(HttpServerRequest request) {
+    String accept = request.getHeader("Accept");
+    String acceptCharset = request.getHeader ("Accept-Charset");
+    String acceptEncoding = request.getHeader("Accept-Encoding");
+    String acceptLanguage = request.getHeader("Accept-Language");
+    String contentType = ensureNotNull(request.getHeader("Content-Type"));
+
+    assertHeaderSmallEnough("Accept", accept);
+    assertHeaderSmallEnough("Accept-Charset",  acceptCharset);
+    assertHeaderSmallEnough("Accept-Encoding", acceptEncoding);
+    assertHeaderSmallEnough("Accept-Language", acceptLanguage);
+    assertHeaderSmallEnough("Content-Type", contentType);
+
+    parsedHeaders = new ParsableHeaderValuesContainer(
+        HeaderParser.sort(HeaderParser.convertToParsedHeaderValues(accept, ParsableMIMEValue::new)),
+        HeaderParser.sort(HeaderParser.convertToParsedHeaderValues(acceptCharset, ParsableHeaderValue::new)),
+        HeaderParser.sort(HeaderParser.convertToParsedHeaderValues(acceptEncoding, ParsableHeaderValue::new)),
+        HeaderParser.sort(HeaderParser.convertToParsedHeaderValues(acceptLanguage, ParsableLanguageValue::new)),
+        new ParsableMIMEValue(contentType)
+    );
+    
   }
 
   @Override
@@ -260,6 +299,11 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   public void setAcceptableContentType(String contentType) {
     this.acceptableContentType = contentType;
   }
+  
+  @Override
+  public ParsableHeaderValuesContainer parsedHeaders() {
+    return parsedHeaders;
+  }
 
   @Override
   public int addHeadersEndHandler(Handler<Void> handler) {
@@ -312,39 +356,17 @@ public class RoutingContextImpl extends RoutingContextImplBase {
     restart();
   }
 
+  /**
+   * <h5>Notes about the dangerous cast and suppression:</h5><br>
+   * I know for sure that <code>List&lt;Locale></code> will contain only <code>List&lt;LanguageHeader></code>.<br>
+   * Currently, LanguageHeader is the only one that extends Locale.<br>
+   * Locale does not extend LanguageHeader because I want full backwards compatibility to the previous vertx version<br>
+   * Also, Locale is being deprecated and the type of objects that extend it inside vertx should not change.
+   */
+  @SuppressWarnings({"rawtypes", "unchecked" })
   @Override
   public List<Locale> acceptableLocales() {
-    String languages = request.getHeader("Accept-Language");
-    if (languages != null) {
-      List<String> acceptLanguages = Utils.getSortedAcceptableMimeTypes(languages);
-
-      final List<Locale> locales = new ArrayList<>(acceptLanguages.size());
-
-      for (String lang : acceptLanguages) {
-        int idx = lang.indexOf(';');
-
-        if (idx != -1) {
-          lang = lang.substring(0, idx).trim();
-        }
-
-        String[] parts = lang.split("_|-");
-        switch (parts.length) {
-          case 3:
-            locales.add(Locale.create(parts[0], parts[1], parts[2]));
-            break;
-          case 2:
-            locales.add(Locale.create(parts[0], parts[1]));
-            break;
-          case 1:
-            locales.add(Locale.create(parts[0]));
-            break;
-        }
-      }
-
-      return locales;
-    }
-
-    return Collections.emptyList();
+    return (List)parsedHeaders.acceptLanguage();
   }
 
   @Override
