@@ -18,6 +18,30 @@ module VertxWeb
     def j_del
       @j_del
     end
+    #  Returns the language as reported by the HTTP client.
+    # @return [String] language
+    def language
+      if !block_given?
+        return @j_del.java_method(:language, []).call()
+      end
+      raise ArgumentError, "Invalid arguments when calling language()"
+    end
+    #  Returns the country as reported by the HTTP client.
+    # @return [String] variant
+    def country
+      if !block_given?
+        return @j_del.java_method(:country, []).call()
+      end
+      raise ArgumentError, "Invalid arguments when calling country()"
+    end
+    #  Returns the variant as reported by the HTTP client.
+    # @return [String] variant
+    def variant
+      if !block_given?
+        return @j_del.java_method(:variant, []).call()
+      end
+      raise ArgumentError, "Invalid arguments when calling variant()"
+    end
     #  Contains the raw value that was received from the user agent 
     # @return [String]
     def raw_value
@@ -93,30 +117,6 @@ module VertxWeb
         return @j_del.java_method(:weightedOrder, []).call()
       end
       raise ArgumentError, "Invalid arguments when calling weighted_order()"
-    end
-    #  Returns the language as reported by the HTTP client.
-    # @return [String] language
-    def language
-      if !block_given?
-        return @j_del.java_method(:language, []).call()
-      end
-      raise ArgumentError, "Invalid arguments when calling language()"
-    end
-    #  Returns the country as reported by the HTTP client.
-    # @return [String] variant
-    def country
-      if !block_given?
-        return @j_del.java_method(:country, []).call()
-      end
-      raise ArgumentError, "Invalid arguments when calling country()"
-    end
-    #  Returns the variant as reported by the HTTP client.
-    # @return [String] variant
-    def variant
-      if !block_given?
-        return @j_del.java_method(:variant, []).call()
-      end
-      raise ArgumentError, "Invalid arguments when calling variant()"
     end
     #  The tag of the language as specified by 
     #  <a href="https://tools.ietf.org/html/rfc7231#section-3.1.3.1">rfc7231#section-3.1.3.1</a>.<br>

@@ -37,6 +37,48 @@ var LanguageHeader = function(j_val) {
   Locale.call(this, j_val);
 
   /**
+   Returns the language as reported by the HTTP client.
+
+   @public
+
+   @return {string} language
+   */
+  this.language = function() {
+    var __args = arguments;
+    if (__args.length === 0) {
+      return j_languageHeader["language()"]();
+    } else throw new TypeError('function invoked with invalid arguments');
+  };
+
+  /**
+   Returns the country as reported by the HTTP client.
+
+   @public
+
+   @return {string} variant
+   */
+  this.country = function() {
+    var __args = arguments;
+    if (__args.length === 0) {
+      return j_languageHeader["country()"]();
+    } else throw new TypeError('function invoked with invalid arguments');
+  };
+
+  /**
+   Returns the variant as reported by the HTTP client.
+
+   @public
+
+   @return {string} variant
+   */
+  this.variant = function() {
+    var __args = arguments;
+    if (__args.length === 0) {
+      return j_languageHeader["variant()"]();
+    } else throw new TypeError('function invoked with invalid arguments');
+  };
+
+  /**
    Contains the raw value that was received from the user agent 
 
    @public
@@ -155,48 +197,6 @@ var LanguageHeader = function(j_val) {
     var __args = arguments;
     if (__args.length === 0) {
       return j_languageHeader["weightedOrder()"]();
-    } else throw new TypeError('function invoked with invalid arguments');
-  };
-
-  /**
-   Returns the language as reported by the HTTP client.
-
-   @public
-
-   @return {string} language
-   */
-  this.language = function() {
-    var __args = arguments;
-    if (__args.length === 0) {
-      return j_languageHeader["language()"]();
-    } else throw new TypeError('function invoked with invalid arguments');
-  };
-
-  /**
-   Returns the country as reported by the HTTP client.
-
-   @public
-
-   @return {string} variant
-   */
-  this.country = function() {
-    var __args = arguments;
-    if (__args.length === 0) {
-      return j_languageHeader["country()"]();
-    } else throw new TypeError('function invoked with invalid arguments');
-  };
-
-  /**
-   Returns the variant as reported by the HTTP client.
-
-   @public
-
-   @return {string} variant
-   */
-  this.variant = function() {
-    var __args = arguments;
-    if (__args.length === 0) {
-      return j_languageHeader["variant()"]();
     } else throw new TypeError('function invoked with invalid arguments');
   };
 

@@ -377,7 +377,7 @@ route.handler(routingContext -> {
   // /some/path/foo
   // /foo
   // /foo/bar/wibble/foo
-  // /foo/bar
+  // /bar/foo
 
   // But not:
   // /bar/wibble

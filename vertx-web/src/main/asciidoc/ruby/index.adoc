@@ -369,7 +369,7 @@ Here's an example
 [source,ruby]
 ----
 
-route = router.route(:POST, "/catalogue/products/:productype/:productid/")
+route = router.route(:POST, "/catalogue/products/:producttype/:productid/")
 
 route.handler() { |routingContext|
 
@@ -405,7 +405,7 @@ route.handler() { |routingContext|
   # /some/path/foo
   # /foo
   # /foo/bar/wibble/foo
-  # /foo/bar
+  # /bar/foo
 
   # But not:
   # /bar/wibble

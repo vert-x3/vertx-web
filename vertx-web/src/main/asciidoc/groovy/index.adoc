@@ -370,7 +370,7 @@ Here's an example
 ----
 import io.vertx.core.http.HttpMethod
 
-def route = router.route(HttpMethod.POST, "/catalogue/products/:productype/:productid/")
+def route = router.route(HttpMethod.POST, "/catalogue/products/:producttype/:productid/")
 
 route.handler({ routingContext ->
 
@@ -406,7 +406,7 @@ route.handler({ routingContext ->
   // /some/path/foo
   // /foo
   // /foo/bar/wibble/foo
-  // /foo/bar
+  // /bar/foo
 
   // But not:
   // /bar/wibble

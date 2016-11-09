@@ -21,8 +21,10 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.ext.web.LanguageHeader;
 import io.vertx.ext.web.Locale;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.impl.ParsableLanguageValue;
 import io.vertx.ext.web.impl.Utils;
 import io.vertx.ext.web.templ.ThymeleafTemplateEngine;
 import org.thymeleaf.IEngineConfiguration;
@@ -80,13 +82,11 @@ public class ThymeleafTemplateEngineImpl implements ThymeleafTemplateEngine {
             synchronized (this) {
                 templateResolver.setVertx(context.vertx());
 
-                final List<Locale> acceptableLocales = context.acceptableLocales();
+                final List<LanguageHeader> acceptableLocales = context.acceptableLanguages();
 
-                io.vertx.ext.web.Locale locale;
+              LanguageHeader locale = null;
 
-                if (acceptableLocales.size() == 0) {
-                    locale = io.vertx.ext.web.Locale.create();
-                } else {
+                if (acceptableLocales.size() > 0) {
                     // this is the users preferred locale
                     locale = acceptableLocales.get(0);
                 }
@@ -117,9 +117,10 @@ public class ThymeleafTemplateEngineImpl implements ThymeleafTemplateEngine {
         private final Map<String, Object> data;
         private final java.util.Locale locale;
 
-        private WebIContext(Map<String, Object> data, io.vertx.ext.web.Locale locale) {
+        private WebIContext(Map<String, Object> data, LanguageHeader locale) {
+            String variant;
             this.data = data;
-            this.locale = new java.util.Locale(locale.language(), locale.country(), locale.variant());
+            this.locale = locale == null ? java.util.Locale.getDefault() : new java.util.Locale(locale.tag(), locale.subtag(), (variant = locale.subtag(2)) == null ? "" : variant);
         }
 
         @Override
