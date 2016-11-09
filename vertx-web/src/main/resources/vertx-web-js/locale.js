@@ -22,6 +22,7 @@ var JsonObject = io.vertx.core.json.JsonObject;
 var JLocale = io.vertx.ext.web.Locale;
 
 /**
+
  @class
 */
 var Locale = function(j_val) {

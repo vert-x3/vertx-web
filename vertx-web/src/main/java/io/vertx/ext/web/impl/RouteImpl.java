@@ -22,6 +22,7 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
+import io.vertx.ext.web.MIMEHeader;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
 
@@ -44,8 +45,8 @@ public class RouteImpl implements Route {
 
   private final RouterImpl router;
   private final Set<HttpMethod> methods = new HashSet<>();
-  private final Set<String> consumes = new LinkedHashSet<>();
-  private final Set<String> produces = new LinkedHashSet<>();
+  private final Set<MIMEHeader> consumes = new LinkedHashSet<>();
+  private final Set<MIMEHeader> produces = new LinkedHashSet<>();
   private String path;
   private int order;
   private boolean enabled = true;
@@ -106,13 +107,15 @@ public class RouteImpl implements Route {
 
   @Override
   public synchronized Route produces(String contentType) {
-    produces.add(contentType);
+    ParsableMIMEValue value = new ParsableMIMEValue(contentType).forceParse();
+    produces.add(value);
     return this;
   }
 
   @Override
   public synchronized Route consumes(String contentType) {
-    consumes.add(contentType);
+    ParsableMIMEValue value = new ParsableMIMEValue(contentType).forceParse();
+    consumes.add(value);
     return this;
   }
 
@@ -284,36 +287,19 @@ public class RouteImpl implements Route {
     }
     if (!consumes.isEmpty()) {
       // Can this route consume the specified content type
-      String contentType = request.headers().get("content-type");
-      boolean matches = false;
-      for (String ct: consumes) {
-        if (ctMatches(contentType, ct)) {
-          matches = true;
-          break;
-        }
-      }
-      if (!matches) {
+      MIMEHeader contentType = context.parsedHeaders().contentType();
+      MIMEHeader consumal = contentType.findMatchedBy(consumes);
+      if(consumal == null){
         return false;
       }
     }
-    if (!produces.isEmpty()) {
-      String accept = request.headers().get("accept");
-      if (accept != null) {
-        List<String> acceptableTypes = Utils.getSortedAcceptableMimeTypes(accept);
-        for (String acceptable: acceptableTypes) {
-          for (String produce : produces) {
-            if (ctMatches(produce, acceptable)) {
-              context.setAcceptableContentType(produce);
-              return true;
-            }
-          }
+    List<MIMEHeader> acceptableTypes = context.parsedHeaders().accept();
+    if (!produces.isEmpty() && !acceptableTypes.isEmpty()) {
+      MIMEHeader selectedAccept = context.parsedHeaders().findBestUserAcceptedIn(acceptableTypes, produces);
+        if(selectedAccept != null){
+          context.setAcceptableContentType(selectedAccept.rawValue());
+          return true;
         }
-      } else {
-        // According to rfc2616-sec14,
-        // If no Accept header field is present, then it is assumed that the client accepts all media types.
-        context.setAcceptableContentType(produces.iterator().next());
-        return true;
-      }
       return false;
     }
     return true;
@@ -321,45 +307,6 @@ public class RouteImpl implements Route {
 
   RouterImpl router() {
     return router;
-  }
-
-  /*
-  E.g.
-  "text/html", "text/*"  - returns true
-  "text/html", "html" - returns true
-  "application/json", "json" - returns true
-  "application/*", "json" - returns true
-  TODO - don't parse consumes types on each request - they can be preparsed!
-   */
-  private boolean ctMatches(String actualCT, String allowsCT) {
-
-    if (allowsCT.equals("*") || allowsCT.equals("*/*")) {
-      return true;
-    }
-
-    if (actualCT == null) {
-      return false;
-    }
-    
-    // get the content type only (exclude charset)
-    actualCT = actualCT.split(";")[0];
-
-    // if we received an incomplete CT
-    if (allowsCT.indexOf('/') == -1) {
-      // when the content is incomplete we assume */type, e.g.:
-      // json -> */json
-      allowsCT = "*/" + allowsCT;
-    }
-
-    // process wildcards
-    if (allowsCT.contains("*")) {
-      String[] consumesParts = allowsCT.split("/");
-      String[] requestParts = actualCT.split("/");
-      return "*".equals(consumesParts[0]) && consumesParts[1].equals(requestParts[1]) ||
-             "*".equals(consumesParts[1]) && consumesParts[0].equals(requestParts[0]);
-    }
-
-    return actualCT.contains(allowsCT);
   }
 
   private boolean pathMatches(String mountPoint, RoutingContext ctx) {

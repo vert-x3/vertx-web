@@ -1116,8 +1116,8 @@ public class WebExamples {
       // although it might seem strange by running a loop with a switch we
       // make sure that the locale order of preference is preserved when
       // replying in the users language.
-      for (Locale locale : rc.acceptableLocales()) {
-        switch (locale.language()) {
+      for (LanguageHeader language : rc.acceptableLanguages()) {
+        switch (language.tag()) {
           case "en":
             rc.response().end("Hello!");
             return;

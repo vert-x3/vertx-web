@@ -21,6 +21,8 @@ import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.WebTestBase;
+import io.vertx.ext.web.impl.HeaderTooLongException;
+
 import org.junit.Test;
 
 /**
@@ -172,6 +174,25 @@ public class ErrorHandlerTest extends WebTestBase {
     }, statusCode, statusMessage, null);
     await();
   }
+  @Test
+  public void testFailWithKnownException() throws Exception {
+    int statusCode = 400;
+    String responseMessage = "A header was too long to process";
+    String statusMessage = "Bad Request";
+    Exception e = new HeaderTooLongException("A header was longer than 150 characters");
+    
+    router.route().handler(rc -> {
+      rc.response().putHeader(HttpHeaders.CONTENT_TYPE, "text/html");
+      rc.fail(e);
+    });
+    testRequest(HttpMethod.GET, "/", null, resp -> {
+      resp.bodyHandler(buff -> {
+        checkHtmlResponse(buff, resp, statusCode, responseMessage, e);
+        testComplete();
+      });
+    }, statusCode, statusMessage, null);
+    await();
+  }
 
   @Test
   public void testFailWithExceptionNoExceptionDetails() throws Exception {
@@ -192,6 +213,7 @@ public class ErrorHandlerTest extends WebTestBase {
     }, statusCode, "Internal Server Error", null);
     await();
   }
+  
 
   @Test
   public void testSpecifyTemplate() throws Exception {
