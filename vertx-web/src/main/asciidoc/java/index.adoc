@@ -345,7 +345,7 @@ Here's an example
 
 [source,java]
 ----
-Route route = router.route(HttpMethod.POST, "/catalogue/products/:productype/:productid/");
+Route route = router.route(HttpMethod.POST, "/catalogue/products/:producttype/:productid/");
 
 route.handler(routingContext -> {
 
