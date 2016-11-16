@@ -67,13 +67,19 @@ public interface SessionHandler extends Handler<RoutingContext> {
   boolean DEFAULT_COOKIE_SECURE_FLAG = false;
 
   /**
+   * Default min length for a session id.
+   * More info: https://www.owasp.org/index.php/Session_Management_Cheat_Sheet
+   */
+  int DEFAULT_SESSIONID_MIN_LENGTH = 16;
+
+  /**
    * Create a session handler
    *
    * @param sessionStore  the session store
    * @return the handler
    */
   static SessionHandler create(SessionStore sessionStore) {
-    return new SessionHandlerImpl(DEFAULT_SESSION_COOKIE_NAME, DEFAULT_SESSION_TIMEOUT, DEFAULT_NAG_HTTPS, DEFAULT_COOKIE_SECURE_FLAG, DEFAULT_COOKIE_HTTP_ONLY_FLAG, sessionStore);
+    return new SessionHandlerImpl(DEFAULT_SESSION_COOKIE_NAME, DEFAULT_SESSION_TIMEOUT, DEFAULT_NAG_HTTPS, DEFAULT_COOKIE_SECURE_FLAG, DEFAULT_COOKIE_HTTP_ONLY_FLAG, DEFAULT_SESSIONID_MIN_LENGTH, sessionStore);
   }
 
   /**
@@ -123,4 +129,12 @@ public interface SessionHandler extends Handler<RoutingContext> {
   @Fluent
   SessionHandler setSessionCookieName(String sessionCookieName);
 
+  /**
+   * Set the session cookie name
+   *
+   * @param minLength  the session id minimal length
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  SessionHandler setMinLength(int minLength);
 }

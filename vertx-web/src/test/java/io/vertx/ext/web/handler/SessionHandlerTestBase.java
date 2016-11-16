@@ -356,4 +356,47 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
     return System.currentTimeMillis() - now;
   }
 
+  @Test
+  public void testSessionFixation() throws Exception {
+
+    final AtomicReference<String> sessionId = new AtomicReference<>();
+
+    router.route().handler(CookieHandler.create());
+    router.route().handler(SessionHandler.create(store));
+    // call #0 anonymous a random id should be returned
+    router.route("/0").handler(rc -> {
+      sessionId.set(rc.session().id());
+      rc.response().end();
+    });
+    // call #1 fake auth security upgrade is done so session id must change
+    router.route("/1").handler(rc -> {
+      // previous id must match
+      assertEquals(sessionId.get(), rc.session().id());
+      rc.session().regenerateId();
+      rc.response().end();
+    });
+
+    testRequest(HttpMethod.GET, "/0", null, resp -> {
+      String setCookie = resp.headers().get("set-cookie");
+      assertNotNull(setCookie);
+    }, 200, "OK", null);
+
+    testRequest(HttpMethod.GET, "/1", req -> {
+      req.putHeader("cookie", "vertx-web.session=" + sessionId.get() + "; Path=/");
+    }, resp -> {
+      String setCookie = resp.headers().get("set-cookie");
+      assertNotNull(setCookie);
+      assertFalse(("vertx-web.session=" + sessionId.get() + "; Path=/").equals(setCookie));
+    }, 200, "OK", null);
+
+    CountDownLatch latch = new CountDownLatch(1);
+    // after the id is regenerated the old id must not be valid anymore
+    store.get(sessionId.get(), get -> {
+      assertTrue(get.succeeded());
+      assertNull(get.result());
+      latch.countDown();
+    });
+
+    awaitLatch(latch);
+  }
 }

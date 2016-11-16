@@ -36,7 +36,6 @@ import java.util.UUID;
  */
 public class SessionImpl implements Session, ClusterSerializable, Shareable {
 
-  private static final Logger log = LoggerFactory.getLogger(SessionImpl.class);
   private static final Charset UTF8 = Charset.forName("UTF-8");
 
   private static final byte TYPE_LONG = 1;
@@ -57,7 +56,10 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
   private long timeout;
   private Map<String, Object> data;
   private long lastAccessed;
+  // state management
   private boolean destroyed;
+  private boolean renewed;
+  private String oldId;
 
   public SessionImpl() {
   }
@@ -71,6 +73,18 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
   @Override
   public String id() {
     return id;
+  }
+
+  @Override
+  public Session regenerateId() {
+    if (oldId == null) {
+      // keep track of just the first one since the
+      // regeneration during the remaining lifecycle are ephemeral
+      oldId = id;
+    }
+    id = UUID.randomUUID().toString();
+    renewed = true;
+    return this;
   }
 
   @Override
@@ -122,6 +136,16 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
   @Override
   public boolean isDestroyed() {
     return destroyed;
+  }
+
+  @Override
+  public boolean isRegenerated() {
+    return renewed;
+  }
+
+  @Override
+  public String oldId() {
+    return oldId;
   }
 
   @Override
