@@ -491,6 +491,7 @@ public class StaticHandlerTest extends WebTestBase {
     // 1. request a head to a static image, this should tell us the server supports ranges
     // 2. make a request of the 1st 1000 bytes
     // 3. request all bytes after 1000
+    // 4. request bytes from 1000 up to 5000000 if available (which isn't)
 
     testRequest(HttpMethod.HEAD, "/somedir/range.jpg", null, res -> {
       assertEquals("bytes", res.headers().get("Accept-Ranges"));
@@ -507,6 +508,13 @@ public class StaticHandlerTest extends WebTestBase {
 
     testRequest(HttpMethod.GET, "/somedir/range.jpg", req -> {
       req.headers().set("Range", "bytes=1000-");
+    }, res -> {
+      assertEquals("bytes", res.headers().get("Accept-Ranges"));
+      assertEquals("14783", res.headers().get("Content-Length"));
+      assertEquals("bytes 1000-15782/15783", res.headers().get("Content-Range"));
+    }, 206, "Partial Content", null);
+    testRequest(HttpMethod.GET, "/somedir/range.jpg", req -> {
+      req.headers().set("Range", "bytes=1000-5000000");
     }, res -> {
       assertEquals("bytes", res.headers().get("Accept-Ranges"));
       assertEquals("14783", res.headers().get("Content-Length"));
