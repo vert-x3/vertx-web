@@ -322,9 +322,9 @@ public class StaticHandlerImpl implements StaticHandler {
             part = m.group(2);
             if (part != null && part.length() > 0) {
               // ranges are inclusive
-              end = Long.parseLong(part);
-              // offset must fall inside the limits of the file
-              if (end < offset || end >= fileProps.size()) {
+              end = Math.min(end, Long.parseLong(part));
+              // end offset must not be smaller than start offset
+              if (end < offset) {
                 throw new IndexOutOfBoundsException();
               }
             }
