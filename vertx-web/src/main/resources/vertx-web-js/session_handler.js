@@ -122,6 +122,21 @@ var SessionHandler = function(j_val) {
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
+  /**
+   Set the session cookie name
+
+   @public
+   @param minLength {number} the session id minimal length 
+   @return {SessionHandler} a reference to this, so the API can be used fluently
+   */
+  this.setMinLength = function(minLength) {
+    var __args = arguments;
+    if (__args.length === 1 && typeof __args[0] ==='number') {
+      j_sessionHandler["setMinLength(int)"](minLength);
+      return that;
+    } else throw new TypeError('function invoked with invalid arguments');
+  };
+
   // A reference to the underlying Java delegate
   // NOTE! This is an internal API and must not be used in user code.
   // If you rely on this property your code is likely to break if we change it / remove it without warning.
