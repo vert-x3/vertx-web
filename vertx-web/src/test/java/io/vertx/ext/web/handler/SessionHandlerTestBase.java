@@ -399,4 +399,24 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
 
     awaitLatch(latch);
   }
+
+  @Test
+  public void testSessionIdLength() throws Exception {
+
+    router.route().handler(CookieHandler.create());
+    router.route().handler(SessionHandler.create(store));
+
+    router.route("/1").handler(rc -> {
+      // previous id must match
+      assertFalse("abc".equals(rc.session().id()));
+      rc.response().end();
+    });
+
+    testRequest(HttpMethod.GET, "/1", req -> {
+      req.putHeader("cookie", "vertx-web.session=abc; Path=/");
+    }, resp -> {
+      String setCookie = resp.headers().get("set-cookie");
+      assertNotNull(setCookie);
+    }, 200, "OK", null);
+  }
 }
