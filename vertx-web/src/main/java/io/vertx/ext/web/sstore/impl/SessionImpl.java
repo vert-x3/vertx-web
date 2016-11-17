@@ -54,6 +54,7 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
   private long timeout;
   private Map<String, Object> data;
   private long lastAccessed;
+  private int version;
   // state management
   private boolean destroyed;
   private boolean renewed;
@@ -154,12 +155,21 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
     return oldId;
   }
 
+  public int version() {
+    return version;
+  }
+
+  public int incrementVersion() {
+    return ++version;
+  }
+
   @Override
   public void writeToBuffer(Buffer buff) {
     byte[] bytes = id.getBytes(UTF8);
     buff.appendInt(bytes.length).appendBytes(bytes);
     buff.appendLong(timeout);
     buff.appendLong(lastAccessed);
+    buff.appendInt(version);
     Buffer dataBuf = writeDataToBuffer();
     buff.appendBuffer(dataBuf);
   }
@@ -175,6 +185,8 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
     pos += 8;
     lastAccessed = buffer.getLong(pos);
     pos += 8;
+    version = buffer.getInt(pos);
+    pos += 4;
     pos = readDataFromBuffer(pos, buffer);
     return pos;
   }
