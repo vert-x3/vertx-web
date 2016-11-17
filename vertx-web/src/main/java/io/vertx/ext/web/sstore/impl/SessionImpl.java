@@ -25,9 +25,9 @@ import io.vertx.ext.web.impl.Utils;
 
 import java.io.*;
 import java.nio.charset.Charset;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -99,7 +99,13 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
 
   @Override
   public Session put(String key, Object obj) {
-    getData().put(key, obj);
+    final Map<String, Object> data = getData();
+    // nulls are handled as remove actions
+    if (obj == null) {
+      data.remove(key);
+    } else {
+      data.put(key, obj);
+    }
     return this;
   }
 
@@ -127,8 +133,10 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
 
   @Override
   public void destroy() {
-    destroyed = true;
-    data = null;
+    synchronized (this) {
+      destroyed = true;
+      data = null;
+    }
   }
 
   @Override
@@ -173,7 +181,17 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
 
   private Map<String, Object> getData() {
     if (data == null) {
-      data = new HashMap<>();
+      synchronized (this) {
+        // double check since there could already been someone in the lock
+        if (data == null) {
+          data = new ConcurrentHashMap<>();
+          if (destroyed) {
+            // pretty much should behave as a regeneration
+            regenerateId();
+            destroyed = false;
+          }
+        }
+      }
     }
     return data;
   }
@@ -242,7 +260,7 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
     try {
       int entries = buffer.getInt(pos);
       pos +=4;
-      data = new HashMap<>(entries);
+      data = new ConcurrentHashMap<>(entries);
       for (int i = 0; i < entries; i++) {
         int keylen = buffer.getInt(pos);
         pos += 4;
