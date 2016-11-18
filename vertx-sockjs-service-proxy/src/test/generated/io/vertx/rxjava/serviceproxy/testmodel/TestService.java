@@ -37,28 +37,33 @@ import io.vertx.core.Handler;
 
 public class TestService {
 
-  final io.vertx.serviceproxy.testmodel.TestService delegate;
+  public static final io.vertx.lang.rxjava.TypeArg<TestService> arg = new io.vertx.lang.rxjava.TypeArg<>(
+    obj -> new TestService((io.vertx.serviceproxy.testmodel.TestService) obj),
+    TestService::getDelegate
+  );
 
+  final io.vertx.serviceproxy.testmodel.TestService delegate;
+  
   public TestService(io.vertx.serviceproxy.testmodel.TestService delegate) {
     this.delegate = delegate;
   }
 
-  public Object getDelegate() {
+  public io.vertx.serviceproxy.testmodel.TestService getDelegate() {
     return delegate;
   }
 
   public static TestService create(Vertx vertx) { 
-    TestService ret = TestService.newInstance(io.vertx.serviceproxy.testmodel.TestService.create((io.vertx.core.Vertx)vertx.getDelegate()));
+    TestService ret = TestService.newInstance(io.vertx.serviceproxy.testmodel.TestService.create(vertx.getDelegate()));
     return ret;
   }
 
   public static TestService createProxy(Vertx vertx, String address) { 
-    TestService ret = TestService.newInstance(io.vertx.serviceproxy.testmodel.TestService.createProxy((io.vertx.core.Vertx)vertx.getDelegate(), address));
+    TestService ret = TestService.newInstance(io.vertx.serviceproxy.testmodel.TestService.createProxy(vertx.getDelegate(), address));
     return ret;
   }
 
   public static TestService createProxyLongDelivery(Vertx vertx, String address) { 
-    TestService ret = TestService.newInstance(io.vertx.serviceproxy.testmodel.TestService.createProxyLongDelivery((io.vertx.core.Vertx)vertx.getDelegate(), address));
+    TestService ret = TestService.newInstance(io.vertx.serviceproxy.testmodel.TestService.createProxyLongDelivery(vertx.getDelegate(), address));
     return ret;
   }
 

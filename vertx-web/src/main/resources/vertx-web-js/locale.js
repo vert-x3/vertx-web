@@ -78,6 +78,25 @@ var Locale = function(j_val) {
   this._jdel = j_locale;
 };
 
+Locale._jclass = utils.getJavaClass("io.vertx.ext.web.Locale");
+Locale._jtype = {
+  accept: function(obj) {
+    return Locale._jclass.isInstance(obj._jdel);
+  },
+  wrap: function(jdel) {
+    var obj = Object.create(Locale.prototype, {});
+    Locale.apply(obj, arguments);
+    return obj;
+  },
+  unwrap: function(obj) {
+    return obj._jdel;
+  }
+};
+Locale._create = function(jdel) {
+  var obj = Object.create(Locale.prototype, {});
+  Locale.apply(obj, arguments);
+  return obj;
+}
 /**
 
  @memberof module:vertx-web-js/locale
@@ -89,15 +108,14 @@ var Locale = function(j_val) {
 Locale.create = function() {
   var __args = arguments;
   if (__args.length === 0) {
-    return utils.convReturnVertxGen(JLocale["create()"](), Locale);
+    return utils.convReturnVertxGen(Locale, JLocale["create()"]());
   }else if (__args.length === 1 && typeof __args[0] === 'string') {
-    return utils.convReturnVertxGen(JLocale["create(java.lang.String)"](__args[0]), Locale);
+    return utils.convReturnVertxGen(Locale, JLocale["create(java.lang.String)"](__args[0]));
   }else if (__args.length === 2 && typeof __args[0] === 'string' && typeof __args[1] === 'string') {
-    return utils.convReturnVertxGen(JLocale["create(java.lang.String,java.lang.String)"](__args[0], __args[1]), Locale);
+    return utils.convReturnVertxGen(Locale, JLocale["create(java.lang.String,java.lang.String)"](__args[0], __args[1]));
   }else if (__args.length === 3 && typeof __args[0] === 'string' && typeof __args[1] === 'string' && typeof __args[2] === 'string') {
-    return utils.convReturnVertxGen(JLocale["create(java.lang.String,java.lang.String,java.lang.String)"](__args[0], __args[1], __args[2]), Locale);
+    return utils.convReturnVertxGen(Locale, JLocale["create(java.lang.String,java.lang.String,java.lang.String)"](__args[0], __args[1], __args[2]));
   } else throw new TypeError('function invoked with invalid arguments');
 };
 
-// We export the Constructor function
 module.exports = Locale;

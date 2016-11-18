@@ -20,6 +20,22 @@ module VertxWeb
     def j_del
       @j_del
     end
+    @@j_api_type = Object.new
+    def @@j_api_type.accept?(obj)
+      obj.class == Router
+    end
+    def @@j_api_type.wrap(obj)
+      Router.new(obj)
+    end
+    def @@j_api_type.unwrap(obj)
+      obj.j_del
+    end
+    def self.j_api_type
+      @@j_api_type
+    end
+    def self.j_class
+      Java::IoVertxExtWeb::Router.java_class
+    end
     #  Create a router
     # @param [::Vertx::Vertx] vertx the Vert.x instance
     # @return [::VertxWeb::Router] the router
@@ -27,7 +43,7 @@ module VertxWeb
       if vertx.class.method_defined?(:j_del) && !block_given?
         return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWeb::Router.java_method(:router, [Java::IoVertxCore::Vertx.java_class]).call(vertx.j_del),::VertxWeb::Router)
       end
-      raise ArgumentError, "Invalid arguments when calling router(vertx)"
+      raise ArgumentError, "Invalid arguments when calling router(#{vertx})"
     end
     #  This method is used to provide a request to the router. Usually you take request from the
     #  {::Vertx::HttpServer#request_handler} and pass it to this method. The
@@ -38,7 +54,7 @@ module VertxWeb
       if request.class.method_defined?(:j_del) && !block_given?
         return @j_del.java_method(:accept, [Java::IoVertxCoreHttp::HttpServerRequest.java_class]).call(request.j_del)
       end
-      raise ArgumentError, "Invalid arguments when calling accept(request)"
+      raise ArgumentError, "Invalid arguments when calling accept(#{request})"
     end
     #  Add a route that matches the specified HTTP method and path
     # @overload route()
@@ -56,7 +72,7 @@ module VertxWeb
       elsif param_1.class == Symbol && param_2.class == String && !block_given?
         return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:route, [Java::IoVertxCoreHttp::HttpMethod.java_class,Java::java.lang.String.java_class]).call(Java::IoVertxCoreHttp::HttpMethod.valueOf(param_1),param_2),::VertxWeb::Route)
       end
-      raise ArgumentError, "Invalid arguments when calling route(param_1,param_2)"
+      raise ArgumentError, "Invalid arguments when calling route(#{param_1},#{param_2})"
     end
     #  Add a route that matches the specified HTTP method and path regex
     # @overload routeWithRegex(regex)
@@ -71,7 +87,7 @@ module VertxWeb
       elsif param_1.class == Symbol && param_2.class == String && !block_given?
         return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:routeWithRegex, [Java::IoVertxCoreHttp::HttpMethod.java_class,Java::java.lang.String.java_class]).call(Java::IoVertxCoreHttp::HttpMethod.valueOf(param_1),param_2),::VertxWeb::Route)
       end
-      raise ArgumentError, "Invalid arguments when calling route_with_regex(param_1,param_2)"
+      raise ArgumentError, "Invalid arguments when calling route_with_regex(#{param_1},#{param_2})"
     end
     #  Add a route that matches a HTTP GET request and the specified path
     # @param [String] path URI paths that begin with this path will match
@@ -82,7 +98,7 @@ module VertxWeb
       elsif path.class == String && !block_given?
         return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:get, [Java::java.lang.String.java_class]).call(path),::VertxWeb::Route)
       end
-      raise ArgumentError, "Invalid arguments when calling get(path)"
+      raise ArgumentError, "Invalid arguments when calling get(#{path})"
     end
     #  Add a route that matches a HTTP GET request and the specified path regex
     # @param [String] regex URI paths that begin with a match for this regex will match
@@ -91,7 +107,7 @@ module VertxWeb
       if regex.class == String && !block_given?
         return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:getWithRegex, [Java::java.lang.String.java_class]).call(regex),::VertxWeb::Route)
       end
-      raise ArgumentError, "Invalid arguments when calling get_with_regex(regex)"
+      raise ArgumentError, "Invalid arguments when calling get_with_regex(#{regex})"
     end
     #  Add a route that matches a HTTP HEAD request and the specified path
     # @param [String] path URI paths that begin with this path will match
@@ -102,7 +118,7 @@ module VertxWeb
       elsif path.class == String && !block_given?
         return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:head, [Java::java.lang.String.java_class]).call(path),::VertxWeb::Route)
       end
-      raise ArgumentError, "Invalid arguments when calling head(path)"
+      raise ArgumentError, "Invalid arguments when calling head(#{path})"
     end
     #  Add a route that matches a HTTP HEAD request and the specified path regex
     # @param [String] regex URI paths that begin with a match for this regex will match
@@ -111,7 +127,7 @@ module VertxWeb
       if regex.class == String && !block_given?
         return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:headWithRegex, [Java::java.lang.String.java_class]).call(regex),::VertxWeb::Route)
       end
-      raise ArgumentError, "Invalid arguments when calling head_with_regex(regex)"
+      raise ArgumentError, "Invalid arguments when calling head_with_regex(#{regex})"
     end
     #  Add a route that matches a HTTP OPTIONS request and the specified path
     # @param [String] path URI paths that begin with this path will match
@@ -122,7 +138,7 @@ module VertxWeb
       elsif path.class == String && !block_given?
         return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:options, [Java::java.lang.String.java_class]).call(path),::VertxWeb::Route)
       end
-      raise ArgumentError, "Invalid arguments when calling options(path)"
+      raise ArgumentError, "Invalid arguments when calling options(#{path})"
     end
     #  Add a route that matches a HTTP OPTIONS request and the specified path regex
     # @param [String] regex URI paths that begin with a match for this regex will match
@@ -131,7 +147,7 @@ module VertxWeb
       if regex.class == String && !block_given?
         return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:optionsWithRegex, [Java::java.lang.String.java_class]).call(regex),::VertxWeb::Route)
       end
-      raise ArgumentError, "Invalid arguments when calling options_with_regex(regex)"
+      raise ArgumentError, "Invalid arguments when calling options_with_regex(#{regex})"
     end
     #  Add a route that matches a HTTP PUT request and the specified path
     # @param [String] path URI paths that begin with this path will match
@@ -142,7 +158,7 @@ module VertxWeb
       elsif path.class == String && !block_given?
         return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:put, [Java::java.lang.String.java_class]).call(path),::VertxWeb::Route)
       end
-      raise ArgumentError, "Invalid arguments when calling put(path)"
+      raise ArgumentError, "Invalid arguments when calling put(#{path})"
     end
     #  Add a route that matches a HTTP PUT request and the specified path regex
     # @param [String] regex URI paths that begin with a match for this regex will match
@@ -151,7 +167,7 @@ module VertxWeb
       if regex.class == String && !block_given?
         return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:putWithRegex, [Java::java.lang.String.java_class]).call(regex),::VertxWeb::Route)
       end
-      raise ArgumentError, "Invalid arguments when calling put_with_regex(regex)"
+      raise ArgumentError, "Invalid arguments when calling put_with_regex(#{regex})"
     end
     #  Add a route that matches a HTTP POST request and the specified path
     # @param [String] path URI paths that begin with this path will match
@@ -162,7 +178,7 @@ module VertxWeb
       elsif path.class == String && !block_given?
         return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:post, [Java::java.lang.String.java_class]).call(path),::VertxWeb::Route)
       end
-      raise ArgumentError, "Invalid arguments when calling post(path)"
+      raise ArgumentError, "Invalid arguments when calling post(#{path})"
     end
     #  Add a route that matches a HTTP POST request and the specified path regex
     # @param [String] regex URI paths that begin with a match for this regex will match
@@ -171,7 +187,7 @@ module VertxWeb
       if regex.class == String && !block_given?
         return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:postWithRegex, [Java::java.lang.String.java_class]).call(regex),::VertxWeb::Route)
       end
-      raise ArgumentError, "Invalid arguments when calling post_with_regex(regex)"
+      raise ArgumentError, "Invalid arguments when calling post_with_regex(#{regex})"
     end
     #  Add a route that matches a HTTP DELETE request and the specified path
     # @param [String] path URI paths that begin with this path will match
@@ -182,7 +198,7 @@ module VertxWeb
       elsif path.class == String && !block_given?
         return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:delete, [Java::java.lang.String.java_class]).call(path),::VertxWeb::Route)
       end
-      raise ArgumentError, "Invalid arguments when calling delete(path)"
+      raise ArgumentError, "Invalid arguments when calling delete(#{path})"
     end
     #  Add a route that matches a HTTP DELETE request and the specified path regex
     # @param [String] regex URI paths that begin with a match for this regex will match
@@ -191,7 +207,7 @@ module VertxWeb
       if regex.class == String && !block_given?
         return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:deleteWithRegex, [Java::java.lang.String.java_class]).call(regex),::VertxWeb::Route)
       end
-      raise ArgumentError, "Invalid arguments when calling delete_with_regex(regex)"
+      raise ArgumentError, "Invalid arguments when calling delete_with_regex(#{regex})"
     end
     #  Add a route that matches a HTTP TRACE request and the specified path
     # @param [String] path URI paths that begin with this path will match
@@ -202,7 +218,7 @@ module VertxWeb
       elsif path.class == String && !block_given?
         return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:trace, [Java::java.lang.String.java_class]).call(path),::VertxWeb::Route)
       end
-      raise ArgumentError, "Invalid arguments when calling trace(path)"
+      raise ArgumentError, "Invalid arguments when calling trace(#{path})"
     end
     #  Add a route that matches a HTTP TRACE request and the specified path regex
     # @param [String] regex URI paths that begin with a match for this regex will match
@@ -211,7 +227,7 @@ module VertxWeb
       if regex.class == String && !block_given?
         return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:traceWithRegex, [Java::java.lang.String.java_class]).call(regex),::VertxWeb::Route)
       end
-      raise ArgumentError, "Invalid arguments when calling trace_with_regex(regex)"
+      raise ArgumentError, "Invalid arguments when calling trace_with_regex(#{regex})"
     end
     #  Add a route that matches a HTTP CONNECT request and the specified path
     # @param [String] path URI paths that begin with this path will match
@@ -222,7 +238,7 @@ module VertxWeb
       elsif path.class == String && !block_given?
         return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:connect, [Java::java.lang.String.java_class]).call(path),::VertxWeb::Route)
       end
-      raise ArgumentError, "Invalid arguments when calling connect(path)"
+      raise ArgumentError, "Invalid arguments when calling connect(#{path})"
     end
     #  Add a route that matches a HTTP CONNECT request and the specified path regex
     # @param [String] regex URI paths that begin with a match for this regex will match
@@ -231,7 +247,7 @@ module VertxWeb
       if regex.class == String && !block_given?
         return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:connectWithRegex, [Java::java.lang.String.java_class]).call(regex),::VertxWeb::Route)
       end
-      raise ArgumentError, "Invalid arguments when calling connect_with_regex(regex)"
+      raise ArgumentError, "Invalid arguments when calling connect_with_regex(#{regex})"
     end
     #  Add a route that matches a HTTP PATCH request and the specified path
     # @param [String] path URI paths that begin with this path will match
@@ -242,7 +258,7 @@ module VertxWeb
       elsif path.class == String && !block_given?
         return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:patch, [Java::java.lang.String.java_class]).call(path),::VertxWeb::Route)
       end
-      raise ArgumentError, "Invalid arguments when calling patch(path)"
+      raise ArgumentError, "Invalid arguments when calling patch(#{path})"
     end
     #  Add a route that matches a HTTP PATCH request and the specified path regex
     # @param [String] regex URI paths that begin with a match for this regex will match
@@ -251,7 +267,7 @@ module VertxWeb
       if regex.class == String && !block_given?
         return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:patchWithRegex, [Java::java.lang.String.java_class]).call(regex),::VertxWeb::Route)
       end
-      raise ArgumentError, "Invalid arguments when calling patch_with_regex(regex)"
+      raise ArgumentError, "Invalid arguments when calling patch_with_regex(#{regex})"
     end
     # @return [Array<::VertxWeb::Route>] a list of all the routes on this router
     def get_routes
@@ -278,7 +294,7 @@ module VertxWeb
         @j_del.java_method(:mountSubRouter, [Java::java.lang.String.java_class,Java::IoVertxExtWeb::Router.java_class]).call(mountPoint,subRouter.j_del)
         return self
       end
-      raise ArgumentError, "Invalid arguments when calling mount_sub_router(mountPoint,subRouter)"
+      raise ArgumentError, "Invalid arguments when calling mount_sub_router(#{mountPoint},#{subRouter})"
     end
     #  Specify a handler for any unhandled exceptions on this router. The handler will be called for exceptions thrown
     #  from handlers. This does not affect the normal failure routing logic.
@@ -298,7 +314,7 @@ module VertxWeb
       if context.class.method_defined?(:j_del) && !block_given?
         return @j_del.java_method(:handleContext, [Java::IoVertxExtWeb::RoutingContext.java_class]).call(context.j_del)
       end
-      raise ArgumentError, "Invalid arguments when calling handle_context(context)"
+      raise ArgumentError, "Invalid arguments when calling handle_context(#{context})"
     end
     #  Used to route a failure to the router. Used for sub-routers. You wouldn't normally call this method directly.
     # @param [::VertxWeb::RoutingContext] context the routing context
@@ -307,7 +323,7 @@ module VertxWeb
       if context.class.method_defined?(:j_del) && !block_given?
         return @j_del.java_method(:handleFailure, [Java::IoVertxExtWeb::RoutingContext.java_class]).call(context.j_del)
       end
-      raise ArgumentError, "Invalid arguments when calling handle_failure(context)"
+      raise ArgumentError, "Invalid arguments when calling handle_failure(#{context})"
     end
   end
 end

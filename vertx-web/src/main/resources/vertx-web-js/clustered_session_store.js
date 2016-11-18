@@ -61,7 +61,7 @@ var ClusteredSessionStore = function(j_val) {
   this.createSession = function(timeout) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] ==='number') {
-      return utils.convReturnVertxGen(j_clusteredSessionStore["createSession(long)"](timeout), Session);
+      return utils.convReturnVertxGen(Session, j_clusteredSessionStore["createSession(long)"](timeout));
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -77,7 +77,7 @@ var ClusteredSessionStore = function(j_val) {
     if (__args.length === 2 && typeof __args[0] === 'string' && typeof __args[1] === 'function') {
       j_clusteredSessionStore["get(java.lang.String,io.vertx.core.Handler)"](id, function(ar) {
       if (ar.succeeded()) {
-        resultHandler(utils.convReturnVertxGen(ar.result(), Session), null);
+        resultHandler(utils.convReturnVertxGen(Session, ar.result()), null);
       } else {
         resultHandler(null, ar.cause());
       }
@@ -182,6 +182,25 @@ var ClusteredSessionStore = function(j_val) {
   this._jdel = j_clusteredSessionStore;
 };
 
+ClusteredSessionStore._jclass = utils.getJavaClass("io.vertx.ext.web.sstore.ClusteredSessionStore");
+ClusteredSessionStore._jtype = {
+  accept: function(obj) {
+    return ClusteredSessionStore._jclass.isInstance(obj._jdel);
+  },
+  wrap: function(jdel) {
+    var obj = Object.create(ClusteredSessionStore.prototype, {});
+    ClusteredSessionStore.apply(obj, arguments);
+    return obj;
+  },
+  unwrap: function(obj) {
+    return obj._jdel;
+  }
+};
+ClusteredSessionStore._create = function(jdel) {
+  var obj = Object.create(ClusteredSessionStore.prototype, {});
+  ClusteredSessionStore.apply(obj, arguments);
+  return obj;
+}
 /**
  Create a session store.<p/>
 
@@ -197,15 +216,14 @@ var ClusteredSessionStore = function(j_val) {
 ClusteredSessionStore.create = function() {
   var __args = arguments;
   if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
-    return utils.convReturnVertxGen(JClusteredSessionStore["create(io.vertx.core.Vertx)"](__args[0]._jdel), ClusteredSessionStore);
+    return utils.convReturnVertxGen(ClusteredSessionStore, JClusteredSessionStore["create(io.vertx.core.Vertx)"](__args[0]._jdel));
   }else if (__args.length === 2 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'string') {
-    return utils.convReturnVertxGen(JClusteredSessionStore["create(io.vertx.core.Vertx,java.lang.String)"](__args[0]._jdel, __args[1]), ClusteredSessionStore);
+    return utils.convReturnVertxGen(ClusteredSessionStore, JClusteredSessionStore["create(io.vertx.core.Vertx,java.lang.String)"](__args[0]._jdel, __args[1]));
   }else if (__args.length === 2 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] ==='number') {
-    return utils.convReturnVertxGen(JClusteredSessionStore["create(io.vertx.core.Vertx,long)"](__args[0]._jdel, __args[1]), ClusteredSessionStore);
+    return utils.convReturnVertxGen(ClusteredSessionStore, JClusteredSessionStore["create(io.vertx.core.Vertx,long)"](__args[0]._jdel, __args[1]));
   }else if (__args.length === 3 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'string' && typeof __args[2] ==='number') {
-    return utils.convReturnVertxGen(JClusteredSessionStore["create(io.vertx.core.Vertx,java.lang.String,long)"](__args[0]._jdel, __args[1], __args[2]), ClusteredSessionStore);
+    return utils.convReturnVertxGen(ClusteredSessionStore, JClusteredSessionStore["create(io.vertx.core.Vertx,java.lang.String,long)"](__args[0]._jdel, __args[1], __args[2]));
   } else throw new TypeError('function invoked with invalid arguments');
 };
 
-// We export the Constructor function
 module.exports = ClusteredSessionStore;

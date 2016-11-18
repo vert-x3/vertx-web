@@ -48,7 +48,7 @@ var TemplateEngine = function(j_val) {
     if (__args.length === 3 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'string' && typeof __args[2] === 'function') {
       j_templateEngine["render(io.vertx.ext.web.RoutingContext,java.lang.String,io.vertx.core.Handler)"](context._jdel, templateFileName, function(ar) {
       if (ar.succeeded()) {
-        handler(utils.convReturnVertxGen(ar.result(), Buffer), null);
+        handler(utils.convReturnVertxGen(Buffer, ar.result()), null);
       } else {
         handler(null, ar.cause());
       }
@@ -62,5 +62,23 @@ var TemplateEngine = function(j_val) {
   this._jdel = j_templateEngine;
 };
 
-// We export the Constructor function
+TemplateEngine._jclass = utils.getJavaClass("io.vertx.ext.web.templ.TemplateEngine");
+TemplateEngine._jtype = {
+  accept: function(obj) {
+    return TemplateEngine._jclass.isInstance(obj._jdel);
+  },
+  wrap: function(jdel) {
+    var obj = Object.create(TemplateEngine.prototype, {});
+    TemplateEngine.apply(obj, arguments);
+    return obj;
+  },
+  unwrap: function(obj) {
+    return obj._jdel;
+  }
+};
+TemplateEngine._create = function(jdel) {
+  var obj = Object.create(TemplateEngine.prototype, {});
+  TemplateEngine.apply(obj, arguments);
+  return obj;
+}
 module.exports = TemplateEngine;

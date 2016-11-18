@@ -50,6 +50,25 @@ var VirtualHostHandler = function(j_val) {
   this._jdel = j_virtualHostHandler;
 };
 
+VirtualHostHandler._jclass = utils.getJavaClass("io.vertx.ext.web.handler.VirtualHostHandler");
+VirtualHostHandler._jtype = {
+  accept: function(obj) {
+    return VirtualHostHandler._jclass.isInstance(obj._jdel);
+  },
+  wrap: function(jdel) {
+    var obj = Object.create(VirtualHostHandler.prototype, {});
+    VirtualHostHandler.apply(obj, arguments);
+    return obj;
+  },
+  unwrap: function(obj) {
+    return obj._jdel;
+  }
+};
+VirtualHostHandler._create = function(jdel) {
+  var obj = Object.create(VirtualHostHandler.prototype, {});
+  VirtualHostHandler.apply(obj, arguments);
+  return obj;
+}
 /**
  Create a handler
 
@@ -61,11 +80,10 @@ var VirtualHostHandler = function(j_val) {
 VirtualHostHandler.create = function(hostname, handler) {
   var __args = arguments;
   if (__args.length === 2 && typeof __args[0] === 'string' && typeof __args[1] === 'function') {
-    return utils.convReturnVertxGen(JVirtualHostHandler["create(java.lang.String,io.vertx.core.Handler)"](hostname, function(jVal) {
-    handler(utils.convReturnVertxGen(jVal, RoutingContext));
-  }), VirtualHostHandler);
+    return utils.convReturnVertxGen(VirtualHostHandler, JVirtualHostHandler["create(java.lang.String,io.vertx.core.Handler)"](hostname, function(jVal) {
+    handler(utils.convReturnVertxGen(RoutingContext, jVal));
+  }));
   } else throw new TypeError('function invoked with invalid arguments');
 };
 
-// We export the Constructor function
 module.exports = VirtualHostHandler;

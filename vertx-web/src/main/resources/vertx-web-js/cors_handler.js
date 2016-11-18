@@ -155,6 +155,25 @@ var CorsHandler = function(j_val) {
   this._jdel = j_corsHandler;
 };
 
+CorsHandler._jclass = utils.getJavaClass("io.vertx.ext.web.handler.CorsHandler");
+CorsHandler._jtype = {
+  accept: function(obj) {
+    return CorsHandler._jclass.isInstance(obj._jdel);
+  },
+  wrap: function(jdel) {
+    var obj = Object.create(CorsHandler.prototype, {});
+    CorsHandler.apply(obj, arguments);
+    return obj;
+  },
+  unwrap: function(obj) {
+    return obj._jdel;
+  }
+};
+CorsHandler._create = function(jdel) {
+  var obj = Object.create(CorsHandler.prototype, {});
+  CorsHandler.apply(obj, arguments);
+  return obj;
+}
 /**
  Create a CORS handler
 
@@ -165,9 +184,8 @@ var CorsHandler = function(j_val) {
 CorsHandler.create = function(allowedOriginPattern) {
   var __args = arguments;
   if (__args.length === 1 && typeof __args[0] === 'string') {
-    return utils.convReturnVertxGen(JCorsHandler["create(java.lang.String)"](allowedOriginPattern), CorsHandler);
+    return utils.convReturnVertxGen(CorsHandler, JCorsHandler["create(java.lang.String)"](allowedOriginPattern));
   } else throw new TypeError('function invoked with invalid arguments');
 };
 
-// We export the Constructor function
 module.exports = CorsHandler;

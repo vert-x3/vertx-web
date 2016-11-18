@@ -112,6 +112,25 @@ var FormLoginHandler = function(j_val) {
   this._jdel = j_formLoginHandler;
 };
 
+FormLoginHandler._jclass = utils.getJavaClass("io.vertx.ext.web.handler.FormLoginHandler");
+FormLoginHandler._jtype = {
+  accept: function(obj) {
+    return FormLoginHandler._jclass.isInstance(obj._jdel);
+  },
+  wrap: function(jdel) {
+    var obj = Object.create(FormLoginHandler.prototype, {});
+    FormLoginHandler.apply(obj, arguments);
+    return obj;
+  },
+  unwrap: function(obj) {
+    return obj._jdel;
+  }
+};
+FormLoginHandler._create = function(jdel) {
+  var obj = Object.create(FormLoginHandler.prototype, {});
+  FormLoginHandler.apply(obj, arguments);
+  return obj;
+}
 /**
  Create a handler
 
@@ -126,11 +145,10 @@ var FormLoginHandler = function(j_val) {
 FormLoginHandler.create = function() {
   var __args = arguments;
   if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
-    return utils.convReturnVertxGen(JFormLoginHandler["create(io.vertx.ext.auth.AuthProvider)"](__args[0]._jdel), FormLoginHandler);
+    return utils.convReturnVertxGen(FormLoginHandler, JFormLoginHandler["create(io.vertx.ext.auth.AuthProvider)"](__args[0]._jdel));
   }else if (__args.length === 5 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'string' && typeof __args[2] === 'string' && typeof __args[3] === 'string' && typeof __args[4] === 'string') {
-    return utils.convReturnVertxGen(JFormLoginHandler["create(io.vertx.ext.auth.AuthProvider,java.lang.String,java.lang.String,java.lang.String,java.lang.String)"](__args[0]._jdel, __args[1], __args[2], __args[3], __args[4]), FormLoginHandler);
+    return utils.convReturnVertxGen(FormLoginHandler, JFormLoginHandler["create(io.vertx.ext.auth.AuthProvider,java.lang.String,java.lang.String,java.lang.String,java.lang.String)"](__args[0]._jdel, __args[1], __args[2], __args[3], __args[4]));
   } else throw new TypeError('function invoked with invalid arguments');
 };
 
-// We export the Constructor function
 module.exports = FormLoginHandler;

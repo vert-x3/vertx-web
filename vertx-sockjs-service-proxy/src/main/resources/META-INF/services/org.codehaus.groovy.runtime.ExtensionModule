@@ -1,0 +1,4 @@
+moduleName = examples-module
+moduleVersion = 1.0
+extensionClasses = examples.groovy.GroovyExtension
+staticExtensionClasses = examples.groovy.GroovyStaticExtension

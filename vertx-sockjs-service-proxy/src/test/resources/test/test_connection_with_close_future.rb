@@ -12,6 +12,22 @@ module Test
     def j_del
       @j_del
     end
+    @@j_api_type = Object.new
+    def @@j_api_type.accept?(obj)
+      obj.class == TestConnectionWithCloseFuture
+    end
+    def @@j_api_type.wrap(obj)
+      TestConnectionWithCloseFuture.new(obj)
+    end
+    def @@j_api_type.unwrap(obj)
+      obj.j_del
+    end
+    def self.j_api_type
+      @@j_api_type
+    end
+    def self.j_class
+      Java::IoVertxServiceproxyTestmodel::TestConnectionWithCloseFuture.java_class
+    end
     # @yield 
     # @return [void]
     def close

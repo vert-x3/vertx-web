@@ -49,5 +49,23 @@ var TestBaseImportsService = function(j_val) {
   this._jdel = j_testBaseImportsService;
 };
 
-// We export the Constructor function
+TestBaseImportsService._jclass = utils.getJavaClass("io.vertx.serviceproxy.testmodel.TestBaseImportsService");
+TestBaseImportsService._jtype = {
+  accept: function(obj) {
+    return TestBaseImportsService._jclass.isInstance(obj._jdel);
+  },
+  wrap: function(jdel) {
+    var obj = Object.create(TestBaseImportsService.prototype, {});
+    TestBaseImportsService.apply(obj, arguments);
+    return obj;
+  },
+  unwrap: function(obj) {
+    return obj._jdel;
+  }
+};
+TestBaseImportsService._create = function(jdel) {
+  var obj = Object.create(TestBaseImportsService.prototype, {});
+  TestBaseImportsService.apply(obj, arguments);
+  return obj;
+}
 module.exports = TestBaseImportsService;

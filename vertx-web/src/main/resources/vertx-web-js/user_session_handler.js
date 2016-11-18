@@ -58,6 +58,25 @@ var UserSessionHandler = function(j_val) {
   this._jdel = j_userSessionHandler;
 };
 
+UserSessionHandler._jclass = utils.getJavaClass("io.vertx.ext.web.handler.UserSessionHandler");
+UserSessionHandler._jtype = {
+  accept: function(obj) {
+    return UserSessionHandler._jclass.isInstance(obj._jdel);
+  },
+  wrap: function(jdel) {
+    var obj = Object.create(UserSessionHandler.prototype, {});
+    UserSessionHandler.apply(obj, arguments);
+    return obj;
+  },
+  unwrap: function(obj) {
+    return obj._jdel;
+  }
+};
+UserSessionHandler._create = function(jdel) {
+  var obj = Object.create(UserSessionHandler.prototype, {});
+  UserSessionHandler.apply(obj, arguments);
+  return obj;
+}
 /**
  Create a new handler
 
@@ -68,9 +87,8 @@ var UserSessionHandler = function(j_val) {
 UserSessionHandler.create = function(authProvider) {
   var __args = arguments;
   if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
-    return utils.convReturnVertxGen(JUserSessionHandler["create(io.vertx.ext.auth.AuthProvider)"](authProvider._jdel), UserSessionHandler);
+    return utils.convReturnVertxGen(UserSessionHandler, JUserSessionHandler["create(io.vertx.ext.auth.AuthProvider)"](authProvider._jdel));
   } else throw new TypeError('function invoked with invalid arguments');
 };
 
-// We export the Constructor function
 module.exports = UserSessionHandler;

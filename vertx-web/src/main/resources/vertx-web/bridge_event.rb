@@ -10,13 +10,29 @@ module VertxWeb
     # @private
     # @param j_del [::VertxWeb::BridgeEvent] the java delegate
     def initialize(j_del)
-      super(j_del)
+      super(j_del, nil)
       @j_del = j_del
     end
     # @private
     # @return [::VertxWeb::BridgeEvent] the underlying java delegate
     def j_del
       @j_del
+    end
+    @@j_api_type = Object.new
+    def @@j_api_type.accept?(obj)
+      obj.class == BridgeEvent
+    end
+    def @@j_api_type.wrap(obj)
+      BridgeEvent.new(obj)
+    end
+    def @@j_api_type.unwrap(obj)
+      obj.j_del
+    end
+    def self.j_api_type
+      @@j_api_type
+    end
+    def self.j_class
+      Java::IoVertxExtWebHandlerSockjs::BridgeEvent.java_class
     end
     # @return [true,false]
     def complete?
@@ -42,7 +58,7 @@ module VertxWeb
       elsif (arg0.class == TrueClass || arg0.class == FalseClass) && !block_given?
         return @j_del.java_method(:complete, [Java::JavaLang::Boolean.java_class]).call(arg0)
       end
-      raise ArgumentError, "Invalid arguments when calling complete(arg0)"
+      raise ArgumentError, "Invalid arguments when calling complete(#{arg0})"
     end
     # @overload fail(arg0)
     #   @param [Exception] arg0 
@@ -55,7 +71,7 @@ module VertxWeb
       elsif param_1.class == String && !block_given?
         return @j_del.java_method(:fail, [Java::java.lang.String.java_class]).call(param_1)
       end
-      raise ArgumentError, "Invalid arguments when calling fail(param_1)"
+      raise ArgumentError, "Invalid arguments when calling fail(#{param_1})"
     end
     # @return [true,false]
     def result?
@@ -93,11 +109,11 @@ module VertxWeb
     # @return [::Vertx::Future]
     def compose(param_1=nil,param_2=nil)
       if block_given? && param_1 == nil && param_2 == nil
-        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:compose, [Java::JavaUtilFunction::Function.java_class]).call((Proc.new { |event| yield(event).j_del })),::Vertx::Future)
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:compose, [Java::JavaUtilFunction::Function.java_class]).call((Proc.new { |event| yield(event).j_del })),::Vertx::Future, nil)
       elsif param_1.class == Proc && param_2.class.method_defined?(:j_del) && !block_given?
-        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:compose, [Java::IoVertxCore::Handler.java_class,Java::IoVertxCore::Future.java_class]).call((Proc.new { |event| param_1.call(event) }),param_2.j_del),::Vertx::Future)
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:compose, [Java::IoVertxCore::Handler.java_class,Java::IoVertxCore::Future.java_class]).call((Proc.new { |event| param_1.call(event) }),param_2.j_del),::Vertx::Future, nil)
       end
-      raise ArgumentError, "Invalid arguments when calling compose(param_1,param_2)"
+      raise ArgumentError, "Invalid arguments when calling compose(#{param_1},#{param_2})"
     end
     # @overload map(mapper)
     #   @yield 
@@ -106,11 +122,11 @@ module VertxWeb
     # @return [::Vertx::Future]
     def map(param_1=nil)
       if block_given? && param_1 == nil
-        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:map, [Java::JavaUtilFunction::Function.java_class]).call((Proc.new { |event| ::Vertx::Util::Utils.to_object(yield(event)) })),::Vertx::Future)
-      elsif (param_1.class == String  || param_1.class == Hash || param_1.class == Array || param_1.class == NilClass || param_1.class == TrueClass || param_1.class == FalseClass || param_1.class == Fixnum || param_1.class == Float) && !block_given?
-        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:map, [Java::java.lang.Object.java_class]).call(::Vertx::Util::Utils.to_object(param_1)),::Vertx::Future)
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:map, [Java::JavaUtilFunction::Function.java_class]).call((Proc.new { |event| ::Vertx::Util::Utils.to_object(yield(event)) })),::Vertx::Future, nil)
+      elsif ::Vertx::Util::unknown_type.accept?(param_1) && !block_given?
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:map, [Java::java.lang.Object.java_class]).call(::Vertx::Util::Utils.to_object(param_1)),::Vertx::Future, nil)
       end
-      raise ArgumentError, "Invalid arguments when calling map(param_1)"
+      raise ArgumentError, "Invalid arguments when calling map(#{param_1})"
     end
     # @return [Proc]
     def completer
@@ -162,7 +178,7 @@ module VertxWeb
         @j_del.java_method(:setRawMessage, [Java::IoVertxCoreJson::JsonObject.java_class]).call(::Vertx::Util::Utils.to_json_object(message))
         return self
       end
-      raise ArgumentError, "Invalid arguments when calling set_raw_message(message)"
+      raise ArgumentError, "Invalid arguments when calling set_raw_message(#{message})"
     end
     #  Get the SockJSSocket instance corresponding to the event
     # @return [::VertxWeb::SockJSSocket] the SockJSSocket instance

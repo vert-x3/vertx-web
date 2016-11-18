@@ -47,7 +47,7 @@ var JadeTemplateEngine = function(j_val) {
     if (__args.length === 3 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'string' && typeof __args[2] === 'function') {
       j_jadeTemplateEngine["render(io.vertx.ext.web.RoutingContext,java.lang.String,io.vertx.core.Handler)"](arg0._jdel, arg1, function(ar) {
       if (ar.succeeded()) {
-        arg2(utils.convReturnVertxGen(ar.result(), Buffer), null);
+        arg2(utils.convReturnVertxGen(Buffer, ar.result()), null);
       } else {
         arg2(null, ar.cause());
       }
@@ -65,7 +65,7 @@ var JadeTemplateEngine = function(j_val) {
   this.setExtension = function(extension) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return utils.convReturnVertxGen(j_jadeTemplateEngine["setExtension(java.lang.String)"](extension), JadeTemplateEngine);
+      return utils.convReturnVertxGen(JadeTemplateEngine, j_jadeTemplateEngine["setExtension(java.lang.String)"](extension));
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -79,7 +79,7 @@ var JadeTemplateEngine = function(j_val) {
   this.setMaxCacheSize = function(maxCacheSize) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] ==='number') {
-      return utils.convReturnVertxGen(j_jadeTemplateEngine["setMaxCacheSize(int)"](maxCacheSize), JadeTemplateEngine);
+      return utils.convReturnVertxGen(JadeTemplateEngine, j_jadeTemplateEngine["setMaxCacheSize(int)"](maxCacheSize));
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -89,6 +89,25 @@ var JadeTemplateEngine = function(j_val) {
   this._jdel = j_jadeTemplateEngine;
 };
 
+JadeTemplateEngine._jclass = utils.getJavaClass("io.vertx.ext.web.templ.JadeTemplateEngine");
+JadeTemplateEngine._jtype = {
+  accept: function(obj) {
+    return JadeTemplateEngine._jclass.isInstance(obj._jdel);
+  },
+  wrap: function(jdel) {
+    var obj = Object.create(JadeTemplateEngine.prototype, {});
+    JadeTemplateEngine.apply(obj, arguments);
+    return obj;
+  },
+  unwrap: function(obj) {
+    return obj._jdel;
+  }
+};
+JadeTemplateEngine._create = function(jdel) {
+  var obj = Object.create(JadeTemplateEngine.prototype, {});
+  JadeTemplateEngine.apply(obj, arguments);
+  return obj;
+}
 /**
  Create a template engine using defaults
 
@@ -99,9 +118,8 @@ var JadeTemplateEngine = function(j_val) {
 JadeTemplateEngine.create = function() {
   var __args = arguments;
   if (__args.length === 0) {
-    return utils.convReturnVertxGen(JJadeTemplateEngine["create()"](), JadeTemplateEngine);
+    return utils.convReturnVertxGen(JadeTemplateEngine, JJadeTemplateEngine["create()"]());
   } else throw new TypeError('function invoked with invalid arguments');
 };
 
-// We export the Constructor function
 module.exports = JadeTemplateEngine;

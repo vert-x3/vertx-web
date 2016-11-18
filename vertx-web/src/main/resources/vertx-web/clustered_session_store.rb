@@ -17,6 +17,22 @@ module VertxWeb
     def j_del
       @j_del
     end
+    @@j_api_type = Object.new
+    def @@j_api_type.accept?(obj)
+      obj.class == ClusteredSessionStore
+    end
+    def @@j_api_type.wrap(obj)
+      ClusteredSessionStore.new(obj)
+    end
+    def @@j_api_type.unwrap(obj)
+      obj.j_del
+    end
+    def self.j_api_type
+      @@j_api_type
+    end
+    def self.j_class
+      Java::IoVertxExtWebSstore::ClusteredSessionStore.java_class
+    end
     #  The retry timeout value in milli seconds used by the session handler when it retrieves a value from the store.<p/>
     # 
     #  A non positive value means there is no retry at all.
@@ -34,7 +50,7 @@ module VertxWeb
       if timeout.class == Fixnum && !block_given?
         return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:createSession, [Java::long.java_class]).call(timeout),::VertxWeb::Session)
       end
-      raise ArgumentError, "Invalid arguments when calling create_session(timeout)"
+      raise ArgumentError, "Invalid arguments when calling create_session(#{timeout})"
     end
     #  Get the session with the specified ID
     # @param [String] id the unique ID of the session
@@ -44,7 +60,7 @@ module VertxWeb
       if id.class == String && block_given?
         return @j_del.java_method(:get, [Java::java.lang.String.java_class,Java::IoVertxCore::Handler.java_class]).call(id,(Proc.new { |ar| yield(ar.failed ? ar.cause : nil, ar.succeeded ? ::Vertx::Util::Utils.safe_create(ar.result,::VertxWeb::Session) : nil) }))
       end
-      raise ArgumentError, "Invalid arguments when calling get(id)"
+      raise ArgumentError, "Invalid arguments when calling get(#{id})"
     end
     #  Delete the session with the specified ID
     # @param [String] id the unique ID of the session
@@ -54,7 +70,7 @@ module VertxWeb
       if id.class == String && block_given?
         return @j_del.java_method(:delete, [Java::java.lang.String.java_class,Java::IoVertxCore::Handler.java_class]).call(id,(Proc.new { |ar| yield(ar.failed ? ar.cause : nil, ar.succeeded ? ar.result : nil) }))
       end
-      raise ArgumentError, "Invalid arguments when calling delete(id)"
+      raise ArgumentError, "Invalid arguments when calling delete(#{id})"
     end
     #  Add a session with the specified ID
     # @param [::VertxWeb::Session] session the session
@@ -64,7 +80,7 @@ module VertxWeb
       if session.class.method_defined?(:j_del) && block_given?
         return @j_del.java_method(:put, [Java::IoVertxExtWeb::Session.java_class,Java::IoVertxCore::Handler.java_class]).call(session.j_del,(Proc.new { |ar| yield(ar.failed ? ar.cause : nil, ar.succeeded ? ar.result : nil) }))
       end
-      raise ArgumentError, "Invalid arguments when calling put(session)"
+      raise ArgumentError, "Invalid arguments when calling put(#{session})"
     end
     #  Remove all sessions from the store
     # @yield will be called with a result true/false, or a failure
@@ -119,7 +135,7 @@ module VertxWeb
       elsif param_1.class.method_defined?(:j_del) && param_2.class == String && param_3.class == Fixnum && !block_given?
         return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebSstore::ClusteredSessionStore.java_method(:create, [Java::IoVertxCore::Vertx.java_class,Java::java.lang.String.java_class,Java::long.java_class]).call(param_1.j_del,param_2,param_3),::VertxWeb::ClusteredSessionStore)
       end
-      raise ArgumentError, "Invalid arguments when calling create(param_1,param_2,param_3)"
+      raise ArgumentError, "Invalid arguments when calling create(#{param_1},#{param_2},#{param_3})"
     end
   end
 end

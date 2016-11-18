@@ -28,6 +28,22 @@ module VertxWeb
     def j_del
       @j_del
     end
+    @@j_api_type = Object.new
+    def @@j_api_type.accept?(obj)
+      obj.class == SockJSSocket
+    end
+    def @@j_api_type.wrap(obj)
+      SockJSSocket.new(obj)
+    end
+    def @@j_api_type.unwrap(obj)
+      obj.j_del
+    end
+    def self.j_api_type
+      @@j_api_type
+    end
+    def self.j_class
+      Java::IoVertxExtWebHandlerSockjs::SockJSSocket.java_class
+    end
     # @param [::Vertx::Buffer] t 
     # @return [void]
     def end(t=nil)
@@ -36,7 +52,7 @@ module VertxWeb
       elsif t.class.method_defined?(:j_del) && !block_given?
         return @j_del.java_method(:end, [Java::IoVertxCoreBuffer::Buffer.java_class]).call(t.j_del)
       end
-      raise ArgumentError, "Invalid arguments when calling end(t)"
+      raise ArgumentError, "Invalid arguments when calling end(#{t})"
     end
     # @return [true,false]
     def write_queue_full?
@@ -95,7 +111,7 @@ module VertxWeb
         @j_del.java_method(:write, [Java::IoVertxCoreBuffer::Buffer.java_class]).call(data.j_del)
         return self
       end
-      raise ArgumentError, "Invalid arguments when calling write(data)"
+      raise ArgumentError, "Invalid arguments when calling write(#{data})"
     end
     # @param [Fixnum] maxSize 
     # @return [self]
@@ -104,7 +120,7 @@ module VertxWeb
         @j_del.java_method(:setWriteQueueMaxSize, [Java::int.java_class]).call(maxSize)
         return self
       end
-      raise ArgumentError, "Invalid arguments when calling set_write_queue_max_size(maxSize)"
+      raise ArgumentError, "Invalid arguments when calling set_write_queue_max_size(#{maxSize})"
     end
     # @yield 
     # @return [self]

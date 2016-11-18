@@ -17,6 +17,22 @@ module VertxWeb
     def j_del
       @j_del
     end
+    @@j_api_type = Object.new
+    def @@j_api_type.accept?(obj)
+      obj.class == Cookie
+    end
+    def @@j_api_type.wrap(obj)
+      Cookie.new(obj)
+    end
+    def @@j_api_type.unwrap(obj)
+      obj.j_del
+    end
+    def self.j_api_type
+      @@j_api_type
+    end
+    def self.j_class
+      Java::IoVertxExtWeb::Cookie.java_class
+    end
     #  Create a new cookie
     # @param [String] name the name of the cookie
     # @param [String] value the cookie value
@@ -25,7 +41,7 @@ module VertxWeb
       if name.class == String && value.class == String && !block_given?
         return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWeb::Cookie.java_method(:cookie, [Java::java.lang.String.java_class,Java::java.lang.String.java_class]).call(name,value),::VertxWeb::Cookie)
       end
-      raise ArgumentError, "Invalid arguments when calling cookie(name,value)"
+      raise ArgumentError, "Invalid arguments when calling cookie(#{name},#{value})"
     end
     # @return [String] the name of this cookie
     def get_name
@@ -49,7 +65,7 @@ module VertxWeb
         @j_del.java_method(:setValue, [Java::java.lang.String.java_class]).call(value)
         return self
       end
-      raise ArgumentError, "Invalid arguments when calling set_value(value)"
+      raise ArgumentError, "Invalid arguments when calling set_value(#{value})"
     end
     #  Sets the domain of this cookie
     # @param [String] domain The domain to use
@@ -59,7 +75,7 @@ module VertxWeb
         @j_del.java_method(:setDomain, [Java::java.lang.String.java_class]).call(domain)
         return self
       end
-      raise ArgumentError, "Invalid arguments when calling set_domain(domain)"
+      raise ArgumentError, "Invalid arguments when calling set_domain(#{domain})"
     end
     # @return [String] the domain for the cookie
     def get_domain
@@ -76,7 +92,7 @@ module VertxWeb
         @j_del.java_method(:setPath, [Java::java.lang.String.java_class]).call(path)
         return self
       end
-      raise ArgumentError, "Invalid arguments when calling set_path(path)"
+      raise ArgumentError, "Invalid arguments when calling set_path(#{path})"
     end
     # @return [String] the path for this cookie
     def get_path
@@ -98,7 +114,7 @@ module VertxWeb
         @j_del.java_method(:setMaxAge, [Java::long.java_class]).call(maxAge)
         return self
       end
-      raise ArgumentError, "Invalid arguments when calling set_max_age(maxAge)"
+      raise ArgumentError, "Invalid arguments when calling set_max_age(#{maxAge})"
     end
     #  Sets the security getStatus of this cookie
     # @param [true,false] secure True if this cookie is to be secure, otherwise false
@@ -108,7 +124,7 @@ module VertxWeb
         @j_del.java_method(:setSecure, [Java::boolean.java_class]).call(secure)
         return self
       end
-      raise ArgumentError, "Invalid arguments when calling set_secure(secure)"
+      raise ArgumentError, "Invalid arguments when calling set_secure(#{secure})"
     end
     #  Determines if this cookie is HTTP only.
     #  If set to true, this cookie cannot be accessed by a client
@@ -122,7 +138,7 @@ module VertxWeb
         @j_del.java_method(:setHttpOnly, [Java::boolean.java_class]).call(httpOnly)
         return self
       end
-      raise ArgumentError, "Invalid arguments when calling set_http_only(httpOnly)"
+      raise ArgumentError, "Invalid arguments when calling set_http_only(#{httpOnly})"
     end
     #  Encode the cookie to a string. This is what is used in the Set-Cookie header
     # @return [String] the encoded cookie
@@ -148,7 +164,7 @@ module VertxWeb
       if (changed.class == TrueClass || changed.class == FalseClass) && !block_given?
         return @j_del.java_method(:setChanged, [Java::boolean.java_class]).call(changed)
       end
-      raise ArgumentError, "Invalid arguments when calling set_changed(changed)"
+      raise ArgumentError, "Invalid arguments when calling set_changed(#{changed})"
     end
   end
 end

@@ -83,6 +83,25 @@ var BasicAuthHandler = function(j_val) {
   this._jdel = j_basicAuthHandler;
 };
 
+BasicAuthHandler._jclass = utils.getJavaClass("io.vertx.ext.web.handler.BasicAuthHandler");
+BasicAuthHandler._jtype = {
+  accept: function(obj) {
+    return BasicAuthHandler._jclass.isInstance(obj._jdel);
+  },
+  wrap: function(jdel) {
+    var obj = Object.create(BasicAuthHandler.prototype, {});
+    BasicAuthHandler.apply(obj, arguments);
+    return obj;
+  },
+  unwrap: function(obj) {
+    return obj._jdel;
+  }
+};
+BasicAuthHandler._create = function(jdel) {
+  var obj = Object.create(BasicAuthHandler.prototype, {});
+  BasicAuthHandler.apply(obj, arguments);
+  return obj;
+}
 /**
  Create a basic auth handler, specifying realm
 
@@ -94,11 +113,10 @@ var BasicAuthHandler = function(j_val) {
 BasicAuthHandler.create = function() {
   var __args = arguments;
   if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
-    return utils.convReturnVertxGen(JBasicAuthHandler["create(io.vertx.ext.auth.AuthProvider)"](__args[0]._jdel), AuthHandler);
+    return utils.convReturnVertxGen(AuthHandler, JBasicAuthHandler["create(io.vertx.ext.auth.AuthProvider)"](__args[0]._jdel));
   }else if (__args.length === 2 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'string') {
-    return utils.convReturnVertxGen(JBasicAuthHandler["create(io.vertx.ext.auth.AuthProvider,java.lang.String)"](__args[0]._jdel, __args[1]), AuthHandler);
+    return utils.convReturnVertxGen(AuthHandler, JBasicAuthHandler["create(io.vertx.ext.auth.AuthProvider,java.lang.String)"](__args[0]._jdel, __args[1]));
   } else throw new TypeError('function invoked with invalid arguments');
 };
 
-// We export the Constructor function
 module.exports = BasicAuthHandler;

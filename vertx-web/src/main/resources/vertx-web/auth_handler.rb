@@ -9,7 +9,7 @@ module VertxWeb
       if arg0.class.method_defined?(:j_del) && !block_given?
         return @j_del.java_method(:handle, [Java::IoVertxExtWeb::RoutingContext.java_class]).call(arg0.j_del)
       end
-      raise ArgumentError, "Invalid arguments when calling handle(arg0)"
+      raise ArgumentError, "Invalid arguments when calling handle(#{arg0})"
     end
     #  Add a required authority for this auth handler
     # @param [String] authority the authority
@@ -19,7 +19,7 @@ module VertxWeb
         @j_del.java_method(:addAuthority, [Java::java.lang.String.java_class]).call(authority)
         return self
       end
-      raise ArgumentError, "Invalid arguments when calling add_authority(authority)"
+      raise ArgumentError, "Invalid arguments when calling add_authority(#{authority})"
     end
     #  Add a set of required authorities for this auth handler
     # @param [Set<String>] authorities the set of authorities
@@ -29,7 +29,7 @@ module VertxWeb
         @j_del.java_method(:addAuthorities, [Java::JavaUtil::Set.java_class]).call(Java::JavaUtil::LinkedHashSet.new(authorities.map { |element| element }))
         return self
       end
-      raise ArgumentError, "Invalid arguments when calling add_authorities(authorities)"
+      raise ArgumentError, "Invalid arguments when calling add_authorities(#{authorities})"
     end
   end
   class AuthHandlerImpl
@@ -43,6 +43,22 @@ module VertxWeb
     # @return [::VertxWeb::AuthHandler] the underlying java delegate
     def j_del
       @j_del
+    end
+    @@j_api_type = Object.new
+    def @@j_api_type.accept?(obj)
+      obj.class == AuthHandler
+    end
+    def @@j_api_type.wrap(obj)
+      AuthHandler.new(obj)
+    end
+    def @@j_api_type.unwrap(obj)
+      obj.j_del
+    end
+    def self.j_api_type
+      @@j_api_type
+    end
+    def self.j_class
+      Java::IoVertxExtWebHandler::AuthHandler.java_class
     end
   end
 end

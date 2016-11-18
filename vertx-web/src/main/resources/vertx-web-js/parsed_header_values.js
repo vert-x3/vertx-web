@@ -104,7 +104,7 @@ var ParsedHeaderValues = function(j_val) {
   this.contentType = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return utils.convReturnVertxGen(j_parsedHeaderValues["contentType()"](), MIMEHeader);
+      return utils.convReturnVertxGen(MIMEHeader, j_parsedHeaderValues["contentType()"]());
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -114,5 +114,23 @@ var ParsedHeaderValues = function(j_val) {
   this._jdel = j_parsedHeaderValues;
 };
 
-// We export the Constructor function
+ParsedHeaderValues._jclass = utils.getJavaClass("io.vertx.ext.web.ParsedHeaderValues");
+ParsedHeaderValues._jtype = {
+  accept: function(obj) {
+    return ParsedHeaderValues._jclass.isInstance(obj._jdel);
+  },
+  wrap: function(jdel) {
+    var obj = Object.create(ParsedHeaderValues.prototype, {});
+    ParsedHeaderValues.apply(obj, arguments);
+    return obj;
+  },
+  unwrap: function(obj) {
+    return obj._jdel;
+  }
+};
+ParsedHeaderValues._create = function(jdel) {
+  var obj = Object.create(ParsedHeaderValues.prototype, {});
+  ParsedHeaderValues.apply(obj, arguments);
+  return obj;
+}
 module.exports = ParsedHeaderValues;

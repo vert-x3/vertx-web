@@ -21,6 +21,22 @@ module VertxWeb
     def j_del
       @j_del
     end
+    @@j_api_type = Object.new
+    def @@j_api_type.accept?(obj)
+      obj.class == Session
+    end
+    def @@j_api_type.wrap(obj)
+      Session.new(obj)
+    end
+    def @@j_api_type.unwrap(obj)
+      obj.j_del
+    end
+    def self.j_api_type
+      @@j_api_type
+    end
+    def self.j_class
+      Java::IoVertxExtWeb::Session.java_class
+    end
     # @return [String] The unique ID of the session. This is generated using a random secure UUID.
     def id
       if !block_given?
@@ -33,11 +49,11 @@ module VertxWeb
     # @param [Object] obj the data
     # @return [self]
     def put(key=nil,obj=nil)
-      if key.class == String && (obj.class == String  || obj.class == Hash || obj.class == Array || obj.class == NilClass || obj.class == TrueClass || obj.class == FalseClass || obj.class == Fixnum || obj.class == Float) && !block_given?
+      if key.class == String && ::Vertx::Util::unknown_type.accept?(obj) && !block_given?
         @j_del.java_method(:put, [Java::java.lang.String.java_class,Java::java.lang.Object.java_class]).call(key,::Vertx::Util::Utils.to_object(obj))
         return self
       end
-      raise ArgumentError, "Invalid arguments when calling put(key,obj)"
+      raise ArgumentError, "Invalid arguments when calling put(#{key},#{obj})"
     end
     #  Get some data from the session
     # @param [String] key the key of the data
@@ -46,7 +62,7 @@ module VertxWeb
       if key.class == String && !block_given?
         return ::Vertx::Util::Utils.from_object(@j_del.java_method(:get, [Java::java.lang.String.java_class]).call(key))
       end
-      raise ArgumentError, "Invalid arguments when calling get(key)"
+      raise ArgumentError, "Invalid arguments when calling get(#{key})"
     end
     #  Remove some data from the session
     # @param [String] key the key of the data
@@ -55,7 +71,7 @@ module VertxWeb
       if key.class == String && !block_given?
         return ::Vertx::Util::Utils.from_object(@j_del.java_method(:remove, [Java::java.lang.String.java_class]).call(key))
       end
-      raise ArgumentError, "Invalid arguments when calling remove(key)"
+      raise ArgumentError, "Invalid arguments when calling remove(#{key})"
     end
     # @return [Fixnum] the time the session was last accessed
     def last_accessed

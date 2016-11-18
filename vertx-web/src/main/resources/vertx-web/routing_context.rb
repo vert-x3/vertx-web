@@ -38,6 +38,22 @@ module VertxWeb
     def j_del
       @j_del
     end
+    @@j_api_type = Object.new
+    def @@j_api_type.accept?(obj)
+      obj.class == RoutingContext
+    end
+    def @@j_api_type.wrap(obj)
+      RoutingContext.new(obj)
+    end
+    def @@j_api_type.unwrap(obj)
+      obj.j_del
+    end
+    def self.j_api_type
+      @@j_api_type
+    end
+    def self.j_class
+      Java::IoVertxExtWeb::RoutingContext.java_class
+    end
     # @return [::Vertx::HttpServerRequest] the HTTP request object
     def request
       if !block_given?
@@ -86,18 +102,18 @@ module VertxWeb
       elsif param_1.is_a?(Exception) && !block_given?
         return @j_del.java_method(:fail, [Java::JavaLang::Throwable.java_class]).call(::Vertx::Util::Utils.to_throwable(param_1))
       end
-      raise ArgumentError, "Invalid arguments when calling fail(param_1)"
+      raise ArgumentError, "Invalid arguments when calling fail(#{param_1})"
     end
     #  Put some arbitrary data in the context. This will be available in any handlers that receive the context.
     # @param [String] key the key for the data
     # @param [Object] obj the data
     # @return [self]
     def put(key=nil,obj=nil)
-      if key.class == String && (obj.class == String  || obj.class == Hash || obj.class == Array || obj.class == NilClass || obj.class == TrueClass || obj.class == FalseClass || obj.class == Fixnum || obj.class == Float) && !block_given?
+      if key.class == String && ::Vertx::Util::unknown_type.accept?(obj) && !block_given?
         @j_del.java_method(:put, [Java::java.lang.String.java_class,Java::java.lang.Object.java_class]).call(key,::Vertx::Util::Utils.to_object(obj))
         return self
       end
-      raise ArgumentError, "Invalid arguments when calling put(key,obj)"
+      raise ArgumentError, "Invalid arguments when calling put(#{key},#{obj})"
     end
     #  Get some data from the context. The data is available in any handlers that receive the context.
     # @param [String] key the key for the data
@@ -106,7 +122,7 @@ module VertxWeb
       if key.class == String && !block_given?
         return ::Vertx::Util::Utils.from_object(@j_del.java_method(:get, [Java::java.lang.String.java_class]).call(key))
       end
-      raise ArgumentError, "Invalid arguments when calling get(key)"
+      raise ArgumentError, "Invalid arguments when calling get(#{key})"
     end
     #  Remove some data from the context. The data is available in any handlers that receive the context.
     # @param [String] key the key for the data
@@ -115,7 +131,7 @@ module VertxWeb
       if key.class == String && !block_given?
         return ::Vertx::Util::Utils.from_object(@j_del.java_method(:remove, [Java::java.lang.String.java_class]).call(key))
       end
-      raise ArgumentError, "Invalid arguments when calling remove(key)"
+      raise ArgumentError, "Invalid arguments when calling remove(#{key})"
     end
     # @return [::Vertx::Vertx] the Vert.x instance associated to the initiating {::VertxWeb::Router} for this context
     def vertx
@@ -164,7 +180,7 @@ module VertxWeb
       if name.class == String && !block_given?
         return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:getCookie, [Java::java.lang.String.java_class]).call(name),::VertxWeb::Cookie)
       end
-      raise ArgumentError, "Invalid arguments when calling get_cookie(name)"
+      raise ArgumentError, "Invalid arguments when calling get_cookie(#{name})"
     end
     #  Add a cookie. This will be sent back to the client in the response. The context must have first been routed
     #  to a {::VertxWeb::CookieHandler} for this to work.
@@ -175,7 +191,7 @@ module VertxWeb
         @j_del.java_method(:addCookie, [Java::IoVertxExtWeb::Cookie.java_class]).call(cookie.j_del)
         return self
       end
-      raise ArgumentError, "Invalid arguments when calling add_cookie(cookie)"
+      raise ArgumentError, "Invalid arguments when calling add_cookie(#{cookie})"
     end
     #  Remove a cookie. The context must have first been routed to a {::VertxWeb::CookieHandler}
     #  for this to work.
@@ -185,7 +201,7 @@ module VertxWeb
       if name.class == String && !block_given?
         return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:removeCookie, [Java::java.lang.String.java_class]).call(name),::VertxWeb::Cookie)
       end
-      raise ArgumentError, "Invalid arguments when calling remove_cookie(name)"
+      raise ArgumentError, "Invalid arguments when calling remove_cookie(#{name})"
     end
     # @return [Fixnum] the number of cookies. The context must have first been routed to a {::VertxWeb::CookieHandler} for this to work.
     def cookie_count
@@ -211,7 +227,7 @@ module VertxWeb
       elsif encoding.class == String && !block_given?
         return @j_del.java_method(:getBodyAsString, [Java::java.lang.String.java_class]).call(encoding)
       end
-      raise ArgumentError, "Invalid arguments when calling get_body_as_string(encoding)"
+      raise ArgumentError, "Invalid arguments when calling get_body_as_string(#{encoding})"
     end
     # @return [Hash{String => Object}] Get the entire HTTP request body as a . The context must have first been routed to a {::VertxWeb::BodyHandler} for this to be populated.
     def get_body_as_json
@@ -332,7 +348,7 @@ module VertxWeb
       if handlerID.class == Fixnum && !block_given?
         return @j_del.java_method(:removeHeadersEndHandler, [Java::int.java_class]).call(handlerID)
       end
-      raise ArgumentError, "Invalid arguments when calling remove_headers_end_handler?(handlerID)"
+      raise ArgumentError, "Invalid arguments when calling remove_headers_end_handler?(#{handlerID})"
     end
     #  Provides a handler that will be called after the last part of the body is written to the wire.
     #  The handler is called asynchronously of when the response has been received by the client.
@@ -353,7 +369,7 @@ module VertxWeb
       if handlerID.class == Fixnum && !block_given?
         return @j_del.java_method(:removeBodyEndHandler, [Java::int.java_class]).call(handlerID)
       end
-      raise ArgumentError, "Invalid arguments when calling remove_body_end_handler?(handlerID)"
+      raise ArgumentError, "Invalid arguments when calling remove_body_end_handler?(#{handlerID})"
     end
     # @return [true,false] true if the context is being routed to failure handlers.
     def failed?
@@ -369,7 +385,7 @@ module VertxWeb
       if body.class.method_defined?(:j_del) && !block_given?
         return @j_del.java_method(:setBody, [Java::IoVertxCoreBuffer::Buffer.java_class]).call(body.j_del)
       end
-      raise ArgumentError, "Invalid arguments when calling set_body(body)"
+      raise ArgumentError, "Invalid arguments when calling set_body(#{body})"
     end
     #  Set the session. Used by the {::VertxWeb::SessionHandler}. You will not normally call this method.
     # @param [::VertxWeb::Session] session the session
@@ -378,7 +394,7 @@ module VertxWeb
       if session.class.method_defined?(:j_del) && !block_given?
         return @j_del.java_method(:setSession, [Java::IoVertxExtWeb::Session.java_class]).call(session.j_del)
       end
-      raise ArgumentError, "Invalid arguments when calling set_session(session)"
+      raise ArgumentError, "Invalid arguments when calling set_session(#{session})"
     end
     #  Set the user. Usually used by auth handlers to inject a User. You will not normally call this method.
     # @param [::VertxAuthCommon::User] user the user
@@ -387,7 +403,7 @@ module VertxWeb
       if user.class.method_defined?(:j_del) && !block_given?
         return @j_del.java_method(:setUser, [Java::IoVertxExtAuth::User.java_class]).call(user.j_del)
       end
-      raise ArgumentError, "Invalid arguments when calling set_user(user)"
+      raise ArgumentError, "Invalid arguments when calling set_user(#{user})"
     end
     #  Clear the current user object in the context. This usually is used for implementing a log out feature, since the
     #  current user is unbounded from the routing context.
@@ -405,7 +421,7 @@ module VertxWeb
       if contentType.class == String && !block_given?
         return @j_del.java_method(:setAcceptableContentType, [Java::java.lang.String.java_class]).call(contentType)
       end
-      raise ArgumentError, "Invalid arguments when calling set_acceptable_content_type(contentType)"
+      raise ArgumentError, "Invalid arguments when calling set_acceptable_content_type(#{contentType})"
     end
     #  Restarts the current router with a new method and path. All path parameters are then parsed and available on the
     #  params list.
@@ -421,7 +437,7 @@ module VertxWeb
       elsif param_1.class == Symbol && param_2.class == String && !block_given?
         return @j_del.java_method(:reroute, [Java::IoVertxCoreHttp::HttpMethod.java_class,Java::java.lang.String.java_class]).call(Java::IoVertxCoreHttp::HttpMethod.valueOf(param_1),param_2)
       end
-      raise ArgumentError, "Invalid arguments when calling reroute(param_1,param_2)"
+      raise ArgumentError, "Invalid arguments when calling reroute(#{param_1},#{param_2})"
     end
     #  Returns the locales for the current request. The locales are determined from the `accept-languages` header and
     #  sorted on quality.
@@ -494,7 +510,7 @@ module VertxWeb
       if name.class == String && !block_given?
         return @j_del.java_method(:pathParam, [Java::java.lang.String.java_class]).call(name)
       end
-      raise ArgumentError, "Invalid arguments when calling path_param(name)"
+      raise ArgumentError, "Invalid arguments when calling path_param(#{name})"
     end
   end
 end

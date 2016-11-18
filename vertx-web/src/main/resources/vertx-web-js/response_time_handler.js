@@ -51,6 +51,25 @@ var ResponseTimeHandler = function(j_val) {
   this._jdel = j_responseTimeHandler;
 };
 
+ResponseTimeHandler._jclass = utils.getJavaClass("io.vertx.ext.web.handler.ResponseTimeHandler");
+ResponseTimeHandler._jtype = {
+  accept: function(obj) {
+    return ResponseTimeHandler._jclass.isInstance(obj._jdel);
+  },
+  wrap: function(jdel) {
+    var obj = Object.create(ResponseTimeHandler.prototype, {});
+    ResponseTimeHandler.apply(obj, arguments);
+    return obj;
+  },
+  unwrap: function(obj) {
+    return obj._jdel;
+  }
+};
+ResponseTimeHandler._create = function(jdel) {
+  var obj = Object.create(ResponseTimeHandler.prototype, {});
+  ResponseTimeHandler.apply(obj, arguments);
+  return obj;
+}
 /**
  Create a handler
 
@@ -61,9 +80,8 @@ var ResponseTimeHandler = function(j_val) {
 ResponseTimeHandler.create = function() {
   var __args = arguments;
   if (__args.length === 0) {
-    return utils.convReturnVertxGen(JResponseTimeHandler["create()"](), ResponseTimeHandler);
+    return utils.convReturnVertxGen(ResponseTimeHandler, JResponseTimeHandler["create()"]());
   } else throw new TypeError('function invoked with invalid arguments');
 };
 
-// We export the Constructor function
 module.exports = ResponseTimeHandler;

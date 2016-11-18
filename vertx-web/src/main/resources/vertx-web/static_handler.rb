@@ -14,13 +14,29 @@ module VertxWeb
     def j_del
       @j_del
     end
+    @@j_api_type = Object.new
+    def @@j_api_type.accept?(obj)
+      obj.class == StaticHandler
+    end
+    def @@j_api_type.wrap(obj)
+      StaticHandler.new(obj)
+    end
+    def @@j_api_type.unwrap(obj)
+      obj.j_del
+    end
+    def self.j_api_type
+      @@j_api_type
+    end
+    def self.j_class
+      Java::IoVertxExtWebHandler::StaticHandler.java_class
+    end
     # @param [::VertxWeb::RoutingContext] arg0 
     # @return [void]
     def handle(arg0=nil)
       if arg0.class.method_defined?(:j_del) && !block_given?
         return @j_del.java_method(:handle, [Java::IoVertxExtWeb::RoutingContext.java_class]).call(arg0.j_del)
       end
-      raise ArgumentError, "Invalid arguments when calling handle(arg0)"
+      raise ArgumentError, "Invalid arguments when calling handle(#{arg0})"
     end
     #  Create a handler, specifying web-root
     # @param [String] root the web-root
@@ -31,7 +47,7 @@ module VertxWeb
       elsif root.class == String && !block_given?
         return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebHandler::StaticHandler.java_method(:create, [Java::java.lang.String.java_class]).call(root),::VertxWeb::StaticHandler)
       end
-      raise ArgumentError, "Invalid arguments when calling create(root)"
+      raise ArgumentError, "Invalid arguments when calling create(#{root})"
     end
     #  Enable/Disable access to the root of the filesystem
     # @param [true,false] allowRootFileSystemAccess whether root access is allowed
@@ -41,7 +57,7 @@ module VertxWeb
         @j_del.java_method(:setAllowRootFileSystemAccess, [Java::boolean.java_class]).call(allowRootFileSystemAccess)
         return self
       end
-      raise ArgumentError, "Invalid arguments when calling set_allow_root_file_system_access(allowRootFileSystemAccess)"
+      raise ArgumentError, "Invalid arguments when calling set_allow_root_file_system_access(#{allowRootFileSystemAccess})"
     end
     #  Set the web root
     # @param [String] webRoot the web root
@@ -51,7 +67,7 @@ module VertxWeb
         @j_del.java_method(:setWebRoot, [Java::java.lang.String.java_class]).call(webRoot)
         return self
       end
-      raise ArgumentError, "Invalid arguments when calling set_web_root(webRoot)"
+      raise ArgumentError, "Invalid arguments when calling set_web_root(#{webRoot})"
     end
     #  Set whether files are read-only and will never change
     # @param [true,false] readOnly whether files are read-only
@@ -61,7 +77,7 @@ module VertxWeb
         @j_del.java_method(:setFilesReadOnly, [Java::boolean.java_class]).call(readOnly)
         return self
       end
-      raise ArgumentError, "Invalid arguments when calling set_files_read_only(readOnly)"
+      raise ArgumentError, "Invalid arguments when calling set_files_read_only(#{readOnly})"
     end
     #  Set value for max age in caching headers
     # @param [Fixnum] maxAgeSeconds maximum time for browser to cache, in seconds
@@ -71,7 +87,7 @@ module VertxWeb
         @j_del.java_method(:setMaxAgeSeconds, [Java::long.java_class]).call(maxAgeSeconds)
         return self
       end
-      raise ArgumentError, "Invalid arguments when calling set_max_age_seconds(maxAgeSeconds)"
+      raise ArgumentError, "Invalid arguments when calling set_max_age_seconds(#{maxAgeSeconds})"
     end
     #  Set whether cache header handling is enabled
     # @param [true,false] enabled true if enabled
@@ -81,7 +97,7 @@ module VertxWeb
         @j_del.java_method(:setCachingEnabled, [Java::boolean.java_class]).call(enabled)
         return self
       end
-      raise ArgumentError, "Invalid arguments when calling set_caching_enabled(enabled)"
+      raise ArgumentError, "Invalid arguments when calling set_caching_enabled(#{enabled})"
     end
     #  Set whether directory listing is enabled
     # @param [true,false] directoryListing true if enabled
@@ -91,7 +107,7 @@ module VertxWeb
         @j_del.java_method(:setDirectoryListing, [Java::boolean.java_class]).call(directoryListing)
         return self
       end
-      raise ArgumentError, "Invalid arguments when calling set_directory_listing(directoryListing)"
+      raise ArgumentError, "Invalid arguments when calling set_directory_listing(#{directoryListing})"
     end
     #  Set whether hidden files should be served
     # @param [true,false] includeHidden true if hidden files should be served
@@ -101,7 +117,7 @@ module VertxWeb
         @j_del.java_method(:setIncludeHidden, [Java::boolean.java_class]).call(includeHidden)
         return self
       end
-      raise ArgumentError, "Invalid arguments when calling set_include_hidden(includeHidden)"
+      raise ArgumentError, "Invalid arguments when calling set_include_hidden(#{includeHidden})"
     end
     #  Set the server cache entry timeout when caching is enabled
     # @param [Fixnum] timeout the timeout, in ms
@@ -111,7 +127,7 @@ module VertxWeb
         @j_del.java_method(:setCacheEntryTimeout, [Java::long.java_class]).call(timeout)
         return self
       end
-      raise ArgumentError, "Invalid arguments when calling set_cache_entry_timeout(timeout)"
+      raise ArgumentError, "Invalid arguments when calling set_cache_entry_timeout(#{timeout})"
     end
     #  Set the index page
     # @param [String] indexPage the index page
@@ -121,7 +137,7 @@ module VertxWeb
         @j_del.java_method(:setIndexPage, [Java::java.lang.String.java_class]).call(indexPage)
         return self
       end
-      raise ArgumentError, "Invalid arguments when calling set_index_page(indexPage)"
+      raise ArgumentError, "Invalid arguments when calling set_index_page(#{indexPage})"
     end
     #  Set the max cache size, when caching is enabled
     # @param [Fixnum] maxCacheSize the max cache size
@@ -131,7 +147,7 @@ module VertxWeb
         @j_del.java_method(:setMaxCacheSize, [Java::int.java_class]).call(maxCacheSize)
         return self
       end
-      raise ArgumentError, "Invalid arguments when calling set_max_cache_size(maxCacheSize)"
+      raise ArgumentError, "Invalid arguments when calling set_max_cache_size(#{maxCacheSize})"
     end
     #  Set whether async filesystem access should always be used
     # @param [true,false] alwaysAsyncFS true for always async FS access
@@ -141,7 +157,7 @@ module VertxWeb
         @j_del.java_method(:setAlwaysAsyncFS, [Java::boolean.java_class]).call(alwaysAsyncFS)
         return self
       end
-      raise ArgumentError, "Invalid arguments when calling set_always_async_fs(alwaysAsyncFS)"
+      raise ArgumentError, "Invalid arguments when calling set_always_async_fs(#{alwaysAsyncFS})"
     end
     #  Set whether async/sync filesystem tuning should enabled
     # @param [true,false] enableFSTuning true to enabled FS tuning
@@ -151,7 +167,7 @@ module VertxWeb
         @j_del.java_method(:setEnableFSTuning, [Java::boolean.java_class]).call(enableFSTuning)
         return self
       end
-      raise ArgumentError, "Invalid arguments when calling set_enable_fs_tuning(enableFSTuning)"
+      raise ArgumentError, "Invalid arguments when calling set_enable_fs_tuning(#{enableFSTuning})"
     end
     #  Set the max serve time in ns, above which serves are considered slow
     # @param [Fixnum] maxAvgServeTimeNanoSeconds max serve time, in ns
@@ -161,7 +177,7 @@ module VertxWeb
         @j_del.java_method(:setMaxAvgServeTimeNs, [Java::long.java_class]).call(maxAvgServeTimeNanoSeconds)
         return self
       end
-      raise ArgumentError, "Invalid arguments when calling set_max_avg_serve_time_ns(maxAvgServeTimeNanoSeconds)"
+      raise ArgumentError, "Invalid arguments when calling set_max_avg_serve_time_ns(#{maxAvgServeTimeNanoSeconds})"
     end
     #  Set the directory template to be used when directory listing
     # @param [String] directoryTemplate the directory template
@@ -171,7 +187,7 @@ module VertxWeb
         @j_del.java_method(:setDirectoryTemplate, [Java::java.lang.String.java_class]).call(directoryTemplate)
         return self
       end
-      raise ArgumentError, "Invalid arguments when calling set_directory_template(directoryTemplate)"
+      raise ArgumentError, "Invalid arguments when calling set_directory_template(#{directoryTemplate})"
     end
     #  Set whether range requests (resumable downloads; media streaming) should be enabled.
     # @param [true,false] enableRangeSupport true to enable range support
@@ -181,7 +197,7 @@ module VertxWeb
         @j_del.java_method(:setEnableRangeSupport, [Java::boolean.java_class]).call(enableRangeSupport)
         return self
       end
-      raise ArgumentError, "Invalid arguments when calling set_enable_range_support(enableRangeSupport)"
+      raise ArgumentError, "Invalid arguments when calling set_enable_range_support(#{enableRangeSupport})"
     end
     #  Set whether vary header should be sent with response.
     # @param [true,false] varyHeader true to sent vary header
@@ -191,7 +207,7 @@ module VertxWeb
         @j_del.java_method(:setSendVaryHeader, [Java::boolean.java_class]).call(varyHeader)
         return self
       end
-      raise ArgumentError, "Invalid arguments when calling set_send_vary_header(varyHeader)"
+      raise ArgumentError, "Invalid arguments when calling set_send_vary_header(#{varyHeader})"
     end
   end
 end

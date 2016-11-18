@@ -94,7 +94,7 @@ var SockJSSocket = function(j_val) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'function') {
       j_sockJSSocket["handler(io.vertx.core.Handler)"](function(jVal) {
-      handler(utils.convReturnVertxGen(jVal, Buffer));
+      handler(utils.convReturnVertxGen(Buffer, jVal));
     });
       return that;
     } else throw new TypeError('function invoked with invalid arguments');
@@ -226,7 +226,7 @@ var SockJSSocket = function(j_val) {
   this.remoteAddress = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return utils.convReturnVertxGen(j_sockJSSocket["remoteAddress()"](), SocketAddress);
+      return utils.convReturnVertxGen(SocketAddress, j_sockJSSocket["remoteAddress()"]());
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -240,7 +240,7 @@ var SockJSSocket = function(j_val) {
   this.localAddress = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return utils.convReturnVertxGen(j_sockJSSocket["localAddress()"](), SocketAddress);
+      return utils.convReturnVertxGen(SocketAddress, j_sockJSSocket["localAddress()"]());
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -255,7 +255,7 @@ var SockJSSocket = function(j_val) {
   this.headers = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return utils.convReturnVertxGen(j_sockJSSocket["headers()"](), MultiMap);
+      return utils.convReturnVertxGen(MultiMap, j_sockJSSocket["headers()"]());
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -282,7 +282,7 @@ var SockJSSocket = function(j_val) {
   this.webSession = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return utils.convReturnVertxGen(j_sockJSSocket["webSession()"](), Session);
+      return utils.convReturnVertxGen(Session, j_sockJSSocket["webSession()"]());
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -295,7 +295,7 @@ var SockJSSocket = function(j_val) {
   this.webUser = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return utils.convReturnVertxGen(j_sockJSSocket["webUser()"](), User);
+      return utils.convReturnVertxGen(User, j_sockJSSocket["webUser()"]());
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -305,5 +305,23 @@ var SockJSSocket = function(j_val) {
   this._jdel = j_sockJSSocket;
 };
 
-// We export the Constructor function
+SockJSSocket._jclass = utils.getJavaClass("io.vertx.ext.web.handler.sockjs.SockJSSocket");
+SockJSSocket._jtype = {
+  accept: function(obj) {
+    return SockJSSocket._jclass.isInstance(obj._jdel);
+  },
+  wrap: function(jdel) {
+    var obj = Object.create(SockJSSocket.prototype, {});
+    SockJSSocket.apply(obj, arguments);
+    return obj;
+  },
+  unwrap: function(obj) {
+    return obj._jdel;
+  }
+};
+SockJSSocket._create = function(jdel) {
+  var obj = Object.create(SockJSSocket.prototype, {});
+  SockJSSocket.apply(obj, arguments);
+  return obj;
+}
 module.exports = SockJSSocket;

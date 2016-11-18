@@ -12,6 +12,22 @@ module Test
     def j_del
       @j_del
     end
+    @@j_api_type = Object.new
+    def @@j_api_type.accept?(obj)
+      obj.class == TestConnection
+    end
+    def @@j_api_type.wrap(obj)
+      TestConnection.new(obj)
+    end
+    def @@j_api_type.unwrap(obj)
+      obj.j_del
+    end
+    def self.j_api_type
+      @@j_api_type
+    end
+    def self.j_class
+      Java::IoVertxServiceproxyTestmodel::TestConnection.java_class
+    end
     # @yield 
     # @return [self]
     def start_transaction
@@ -30,7 +46,7 @@ module Test
         @j_del.java_method(:insert, [Java::java.lang.String.java_class,Java::IoVertxCoreJson::JsonObject.java_class,Java::IoVertxCore::Handler.java_class]).call(name,::Vertx::Util::Utils.to_json_object(data),(Proc.new { |ar| yield(ar.failed ? ar.cause : nil, ar.succeeded ? ar.result : nil) }))
         return self
       end
-      raise ArgumentError, "Invalid arguments when calling insert(name,data)"
+      raise ArgumentError, "Invalid arguments when calling insert(#{name},#{data})"
     end
     # @yield 
     # @return [self]

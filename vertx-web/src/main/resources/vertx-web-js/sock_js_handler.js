@@ -66,7 +66,7 @@ var SockJSHandler = function(j_val) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'function') {
       j_sockJSHandler["socketHandler(io.vertx.core.Handler)"](function(jVal) {
-      handler(utils.convReturnVertxGen(jVal, SockJSSocket));
+      handler(utils.convReturnVertxGen(SockJSSocket, jVal));
     });
       return that;
     } else throw new TypeError('function invoked with invalid arguments');
@@ -88,7 +88,7 @@ var SockJSHandler = function(j_val) {
       return that;
     }  else if (__args.length === 2 && (typeof __args[0] === 'object' && __args[0] != null) && typeof __args[1] === 'function') {
       j_sockJSHandler["bridge(io.vertx.ext.web.handler.sockjs.BridgeOptions,io.vertx.core.Handler)"](__args[0] != null ? new BridgeOptions(new JsonObject(JSON.stringify(__args[0]))) : null, function(jVal) {
-      __args[1](utils.convReturnVertxGen(jVal, BridgeEvent));
+      __args[1](utils.convReturnVertxGen(BridgeEvent, jVal));
     });
       return that;
     } else throw new TypeError('function invoked with invalid arguments');
@@ -100,6 +100,25 @@ var SockJSHandler = function(j_val) {
   this._jdel = j_sockJSHandler;
 };
 
+SockJSHandler._jclass = utils.getJavaClass("io.vertx.ext.web.handler.sockjs.SockJSHandler");
+SockJSHandler._jtype = {
+  accept: function(obj) {
+    return SockJSHandler._jclass.isInstance(obj._jdel);
+  },
+  wrap: function(jdel) {
+    var obj = Object.create(SockJSHandler.prototype, {});
+    SockJSHandler.apply(obj, arguments);
+    return obj;
+  },
+  unwrap: function(obj) {
+    return obj._jdel;
+  }
+};
+SockJSHandler._create = function(jdel) {
+  var obj = Object.create(SockJSHandler.prototype, {});
+  SockJSHandler.apply(obj, arguments);
+  return obj;
+}
 /**
  Create a SockJS handler
 
@@ -111,9 +130,9 @@ var SockJSHandler = function(j_val) {
 SockJSHandler.create = function() {
   var __args = arguments;
   if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
-    return utils.convReturnVertxGen(JSockJSHandler["create(io.vertx.core.Vertx)"](__args[0]._jdel), SockJSHandler);
+    return utils.convReturnVertxGen(SockJSHandler, JSockJSHandler["create(io.vertx.core.Vertx)"](__args[0]._jdel));
   }else if (__args.length === 2 && typeof __args[0] === 'object' && __args[0]._jdel && (typeof __args[1] === 'object' && __args[1] != null)) {
-    return utils.convReturnVertxGen(JSockJSHandler["create(io.vertx.core.Vertx,io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions)"](__args[0]._jdel, __args[1] != null ? new SockJSHandlerOptions(new JsonObject(JSON.stringify(__args[1]))) : null), SockJSHandler);
+    return utils.convReturnVertxGen(SockJSHandler, JSockJSHandler["create(io.vertx.core.Vertx,io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions)"](__args[0]._jdel, __args[1] != null ? new SockJSHandlerOptions(new JsonObject(JSON.stringify(__args[1]))) : null));
   } else throw new TypeError('function invoked with invalid arguments');
 };
 
@@ -131,5 +150,4 @@ SockJSHandler.installTestApplications = function(router, vertx) {
   } else throw new TypeError('function invoked with invalid arguments');
 };
 
-// We export the Constructor function
 module.exports = SockJSHandler;

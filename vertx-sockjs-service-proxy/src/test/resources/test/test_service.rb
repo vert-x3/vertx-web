@@ -15,13 +15,29 @@ module Test
     def j_del
       @j_del
     end
+    @@j_api_type = Object.new
+    def @@j_api_type.accept?(obj)
+      obj.class == TestService
+    end
+    def @@j_api_type.wrap(obj)
+      TestService.new(obj)
+    end
+    def @@j_api_type.unwrap(obj)
+      obj.j_del
+    end
+    def self.j_api_type
+      @@j_api_type
+    end
+    def self.j_class
+      Java::IoVertxServiceproxyTestmodel::TestService.java_class
+    end
     # @param [::Vertx::Vertx] vertx 
     # @return [::Test::TestService]
     def self.create(vertx=nil)
       if vertx.class.method_defined?(:j_del) && !block_given?
         return ::Vertx::Util::Utils.safe_create(Java::IoVertxServiceproxyTestmodel::TestService.java_method(:create, [Java::IoVertxCore::Vertx.java_class]).call(vertx.j_del),::Test::TestService)
       end
-      raise ArgumentError, "Invalid arguments when calling create(vertx)"
+      raise ArgumentError, "Invalid arguments when calling create(#{vertx})"
     end
     # @param [::Vertx::Vertx] vertx 
     # @param [String] address 
@@ -30,7 +46,7 @@ module Test
       if vertx.class.method_defined?(:j_del) && address.class == String && !block_given?
         return ::Vertx::Util::Utils.safe_create(Java::IoVertxServiceproxyTestmodel::TestService.java_method(:createProxy, [Java::IoVertxCore::Vertx.java_class,Java::java.lang.String.java_class]).call(vertx.j_del,address),::Test::TestService)
       end
-      raise ArgumentError, "Invalid arguments when calling create_proxy(vertx,address)"
+      raise ArgumentError, "Invalid arguments when calling create_proxy(#{vertx},#{address})"
     end
     # @param [::Vertx::Vertx] vertx 
     # @param [String] address 
@@ -39,7 +55,7 @@ module Test
       if vertx.class.method_defined?(:j_del) && address.class == String && !block_given?
         return ::Vertx::Util::Utils.safe_create(Java::IoVertxServiceproxyTestmodel::TestService.java_method(:createProxyLongDelivery, [Java::IoVertxCore::Vertx.java_class,Java::java.lang.String.java_class]).call(vertx.j_del,address),::Test::TestService)
       end
-      raise ArgumentError, "Invalid arguments when calling create_proxy_long_delivery(vertx,address)"
+      raise ArgumentError, "Invalid arguments when calling create_proxy_long_delivery(#{vertx},#{address})"
     end
     # @yield 
     # @return [void]
@@ -64,7 +80,7 @@ module Test
       if str.class == String && block_given?
         return @j_del.java_method(:createConnection, [Java::java.lang.String.java_class,Java::IoVertxCore::Handler.java_class]).call(str,(Proc.new { |ar| yield(ar.failed ? ar.cause : nil, ar.succeeded ? ::Vertx::Util::Utils.safe_create(ar.result,::Test::TestConnection) : nil) }))
       end
-      raise ArgumentError, "Invalid arguments when calling create_connection(str)"
+      raise ArgumentError, "Invalid arguments when calling create_connection(#{str})"
     end
     # @yield 
     # @return [void]
@@ -95,7 +111,7 @@ module Test
       if str.class == String && b.class == Fixnum && s.class == Fixnum && i.class == Fixnum && l.class == Fixnum && f.class == Float && d.class == Float && c.class == Fixnum && (bool.class == TrueClass || bool.class == FalseClass) && !block_given?
         return @j_del.java_method(:basicTypes, [Java::java.lang.String.java_class,Java::byte.java_class,Java::short.java_class,Java::int.java_class,Java::long.java_class,Java::float.java_class,Java::double.java_class,Java::char.java_class,Java::boolean.java_class]).call(str,::Vertx::Util::Utils.to_byte(b),::Vertx::Util::Utils.to_short(s),i,l,::Vertx::Util::Utils.to_float(f),::Vertx::Util::Utils.to_double(d),::Vertx::Util::Utils.to_character(c),bool)
       end
-      raise ArgumentError, "Invalid arguments when calling basic_types(str,b,s,i,l,f,d,c,bool)"
+      raise ArgumentError, "Invalid arguments when calling basic_types(#{str},#{b},#{s},#{i},#{l},#{f},#{d},#{c},#{bool})"
     end
     # @param [String] str 
     # @param [Fixnum] b 
@@ -111,7 +127,7 @@ module Test
       if str.class == String && b.class == Fixnum && s.class == Fixnum && i.class == Fixnum && l.class == Fixnum && f.class == Float && d.class == Float && c.class == Fixnum && (bool.class == TrueClass || bool.class == FalseClass) && !block_given?
         return @j_del.java_method(:basicBoxedTypes, [Java::java.lang.String.java_class,Java::JavaLang::Byte.java_class,Java::JavaLang::Short.java_class,Java::JavaLang::Integer.java_class,Java::JavaLang::Long.java_class,Java::JavaLang::Float.java_class,Java::JavaLang::Double.java_class,Java::JavaLang::Character.java_class,Java::JavaLang::Boolean.java_class]).call(str,::Vertx::Util::Utils.to_byte(b),::Vertx::Util::Utils.to_short(s),::Vertx::Util::Utils.to_integer(i),l,::Vertx::Util::Utils.to_float(f),::Vertx::Util::Utils.to_double(d),::Vertx::Util::Utils.to_character(c),bool)
       end
-      raise ArgumentError, "Invalid arguments when calling basic_boxed_types(str,b,s,i,l,f,d,c,bool)"
+      raise ArgumentError, "Invalid arguments when calling basic_boxed_types(#{str},#{b},#{s},#{i},#{l},#{f},#{d},#{c},#{bool})"
     end
     # @param [String] str 
     # @param [Fixnum] b 
@@ -127,7 +143,7 @@ module Test
       if str.class == String && b.class == Fixnum && s.class == Fixnum && i.class == Fixnum && l.class == Fixnum && f.class == Float && d.class == Float && c.class == Fixnum && (bool.class == TrueClass || bool.class == FalseClass) && !block_given?
         return @j_del.java_method(:basicBoxedTypesNull, [Java::java.lang.String.java_class,Java::JavaLang::Byte.java_class,Java::JavaLang::Short.java_class,Java::JavaLang::Integer.java_class,Java::JavaLang::Long.java_class,Java::JavaLang::Float.java_class,Java::JavaLang::Double.java_class,Java::JavaLang::Character.java_class,Java::JavaLang::Boolean.java_class]).call(str,::Vertx::Util::Utils.to_byte(b),::Vertx::Util::Utils.to_short(s),::Vertx::Util::Utils.to_integer(i),l,::Vertx::Util::Utils.to_float(f),::Vertx::Util::Utils.to_double(d),::Vertx::Util::Utils.to_character(c),bool)
       end
-      raise ArgumentError, "Invalid arguments when calling basic_boxed_types_null(str,b,s,i,l,f,d,c,bool)"
+      raise ArgumentError, "Invalid arguments when calling basic_boxed_types_null(#{str},#{b},#{s},#{i},#{l},#{f},#{d},#{c},#{bool})"
     end
     # @param [Hash{String => Object}] jsonObject 
     # @param [Array<String,Object>] jsonArray 
@@ -136,7 +152,7 @@ module Test
       if jsonObject.class == Hash && jsonArray.class == Array && !block_given?
         return @j_del.java_method(:jsonTypes, [Java::IoVertxCoreJson::JsonObject.java_class,Java::IoVertxCoreJson::JsonArray.java_class]).call(::Vertx::Util::Utils.to_json_object(jsonObject),::Vertx::Util::Utils.to_json_array(jsonArray))
       end
-      raise ArgumentError, "Invalid arguments when calling json_types(jsonObject,jsonArray)"
+      raise ArgumentError, "Invalid arguments when calling json_types(#{jsonObject},#{jsonArray})"
     end
     # @param [Hash{String => Object}] jsonObject 
     # @param [Array<String,Object>] jsonArray 
@@ -145,7 +161,7 @@ module Test
       if jsonObject.class == Hash && jsonArray.class == Array && !block_given?
         return @j_del.java_method(:jsonTypesNull, [Java::IoVertxCoreJson::JsonObject.java_class,Java::IoVertxCoreJson::JsonArray.java_class]).call(::Vertx::Util::Utils.to_json_object(jsonObject),::Vertx::Util::Utils.to_json_array(jsonArray))
       end
-      raise ArgumentError, "Invalid arguments when calling json_types_null(jsonObject,jsonArray)"
+      raise ArgumentError, "Invalid arguments when calling json_types_null(#{jsonObject},#{jsonArray})"
     end
     # @param [:FOO,:BAR,:WIBBLE] someEnum 
     # @return [void]
@@ -153,7 +169,7 @@ module Test
       if someEnum.class == Symbol && !block_given?
         return @j_del.java_method(:enumType, [Java::IoVertxServiceproxyTestmodel::SomeEnum.java_class]).call(Java::IoVertxServiceproxyTestmodel::SomeEnum.valueOf(someEnum))
       end
-      raise ArgumentError, "Invalid arguments when calling enum_type(someEnum)"
+      raise ArgumentError, "Invalid arguments when calling enum_type(#{someEnum})"
     end
     # @param [:FOO,:BAR,:WIBBLE] someEnum 
     # @return [void]
@@ -161,7 +177,7 @@ module Test
       if someEnum.class == Symbol && !block_given?
         return @j_del.java_method(:enumTypeNull, [Java::IoVertxServiceproxyTestmodel::SomeEnum.java_class]).call(Java::IoVertxServiceproxyTestmodel::SomeEnum.valueOf(someEnum))
       end
-      raise ArgumentError, "Invalid arguments when calling enum_type_null(someEnum)"
+      raise ArgumentError, "Invalid arguments when calling enum_type_null(#{someEnum})"
     end
     # @yield 
     # @return [void]
@@ -185,7 +201,7 @@ module Test
       if options.class == Hash && !block_given?
         return @j_del.java_method(:dataObjectType, [Java::IoVertxServiceproxyTestmodel::TestDataObject.java_class]).call(Java::IoVertxServiceproxyTestmodel::TestDataObject.new(::Vertx::Util::Utils.to_json_object(options)))
       end
-      raise ArgumentError, "Invalid arguments when calling data_object_type(options)"
+      raise ArgumentError, "Invalid arguments when calling data_object_type(#{options})"
     end
     # @param [Hash] options 
     # @return [void]
@@ -193,7 +209,7 @@ module Test
       if options.class == Hash && !block_given?
         return @j_del.java_method(:dataObjectTypeNull, [Java::IoVertxServiceproxyTestmodel::TestDataObject.java_class]).call(Java::IoVertxServiceproxyTestmodel::TestDataObject.new(::Vertx::Util::Utils.to_json_object(options)))
       end
-      raise ArgumentError, "Invalid arguments when calling data_object_type_null(options)"
+      raise ArgumentError, "Invalid arguments when calling data_object_type_null(#{options})"
     end
     # @param [Array<String>] listString 
     # @param [Array<Fixnum>] listByte 
@@ -208,7 +224,7 @@ module Test
       if listString.class == Array && listByte.class == Array && listShort.class == Array && listInt.class == Array && listLong.class == Array && listJsonObject.class == Array && listJsonArray.class == Array && listDataObject.class == Array && !block_given?
         return @j_del.java_method(:listParams, [Java::JavaUtil::List.java_class,Java::JavaUtil::List.java_class,Java::JavaUtil::List.java_class,Java::JavaUtil::List.java_class,Java::JavaUtil::List.java_class,Java::JavaUtil::List.java_class,Java::JavaUtil::List.java_class,Java::JavaUtil::List.java_class]).call(listString.map { |element| element },listByte.map { |element| ::Vertx::Util::Utils.to_byte(element) },listShort.map { |element| ::Vertx::Util::Utils.to_short(element) },listInt.map { |element| ::Vertx::Util::Utils.to_integer(element) },listLong.map { |element| element },listJsonObject.map { |element| ::Vertx::Util::Utils.to_json_object(element) },listJsonArray.map { |element| ::Vertx::Util::Utils.to_json_array(element) },listDataObject.map { |element| Java::IoVertxServiceproxyTestmodel::TestDataObject.new(::Vertx::Util::Utils.to_json_object(element)) })
       end
-      raise ArgumentError, "Invalid arguments when calling list_params(listString,listByte,listShort,listInt,listLong,listJsonObject,listJsonArray,listDataObject)"
+      raise ArgumentError, "Invalid arguments when calling list_params(#{listString},#{listByte},#{listShort},#{listInt},#{listLong},#{listJsonObject},#{listJsonArray},#{listDataObject})"
     end
     # @param [Set<String>] setString 
     # @param [Set<Fixnum>] setByte 
@@ -223,7 +239,7 @@ module Test
       if setString.class == Set && setByte.class == Set && setShort.class == Set && setInt.class == Set && setLong.class == Set && setJsonObject.class == Set && setJsonArray.class == Set && setDataObject.class == Set && !block_given?
         return @j_del.java_method(:setParams, [Java::JavaUtil::Set.java_class,Java::JavaUtil::Set.java_class,Java::JavaUtil::Set.java_class,Java::JavaUtil::Set.java_class,Java::JavaUtil::Set.java_class,Java::JavaUtil::Set.java_class,Java::JavaUtil::Set.java_class,Java::JavaUtil::Set.java_class]).call(Java::JavaUtil::LinkedHashSet.new(setString.map { |element| element }),Java::JavaUtil::LinkedHashSet.new(setByte.map { |element| ::Vertx::Util::Utils.to_byte(element) }),Java::JavaUtil::LinkedHashSet.new(setShort.map { |element| ::Vertx::Util::Utils.to_short(element) }),Java::JavaUtil::LinkedHashSet.new(setInt.map { |element| ::Vertx::Util::Utils.to_integer(element) }),Java::JavaUtil::LinkedHashSet.new(setLong.map { |element| element }),Java::JavaUtil::LinkedHashSet.new(setJsonObject.map { |element| ::Vertx::Util::Utils.to_json_object(element) }),Java::JavaUtil::LinkedHashSet.new(setJsonArray.map { |element| ::Vertx::Util::Utils.to_json_array(element) }),Java::JavaUtil::LinkedHashSet.new(setDataObject.map { |element| Java::IoVertxServiceproxyTestmodel::TestDataObject.new(::Vertx::Util::Utils.to_json_object(element)) }))
       end
-      raise ArgumentError, "Invalid arguments when calling set_params(setString,setByte,setShort,setInt,setLong,setJsonObject,setJsonArray,setDataObject)"
+      raise ArgumentError, "Invalid arguments when calling set_params(#{setString},#{setByte},#{setShort},#{setInt},#{setLong},#{setJsonObject},#{setJsonArray},#{setDataObject})"
     end
     # @param [Hash{String => String}] mapString 
     # @param [Hash{String => Fixnum}] mapByte 
@@ -237,7 +253,7 @@ module Test
       if mapString.class == Hash && mapByte.class == Hash && mapShort.class == Hash && mapInt.class == Hash && mapLong.class == Hash && mapJsonObject.class == Hash && mapJsonArray.class == Hash && !block_given?
         return @j_del.java_method(:mapParams, [Java::JavaUtil::Map.java_class,Java::JavaUtil::Map.java_class,Java::JavaUtil::Map.java_class,Java::JavaUtil::Map.java_class,Java::JavaUtil::Map.java_class,Java::JavaUtil::Map.java_class,Java::JavaUtil::Map.java_class]).call(Hash[mapString.map { |k,v| [k,v] }],Hash[mapByte.map { |k,v| [k,::Vertx::Util::Utils.to_byte(v)] }],Hash[mapShort.map { |k,v| [k,::Vertx::Util::Utils.to_short(v)] }],Hash[mapInt.map { |k,v| [k,::Vertx::Util::Utils.to_integer(v)] }],Hash[mapLong.map { |k,v| [k,v] }],Hash[mapJsonObject.map { |k,v| [k,::Vertx::Util::Utils.to_json_object(v)] }],Hash[mapJsonArray.map { |k,v| [k,::Vertx::Util::Utils.to_json_array(v)] }])
       end
-      raise ArgumentError, "Invalid arguments when calling map_params(mapString,mapByte,mapShort,mapInt,mapLong,mapJsonObject,mapJsonArray)"
+      raise ArgumentError, "Invalid arguments when calling map_params(#{mapString},#{mapByte},#{mapShort},#{mapInt},#{mapLong},#{mapJsonObject},#{mapJsonArray})"
     end
     # @yield 
     # @return [void]
@@ -447,7 +463,7 @@ module Test
         @j_del.java_method(:fluentMethod, [Java::java.lang.String.java_class,Java::IoVertxCore::Handler.java_class]).call(str,(Proc.new { |ar| yield(ar.failed ? ar.cause : nil, ar.succeeded ? ar.result : nil) }))
         return self
       end
-      raise ArgumentError, "Invalid arguments when calling fluent_method(str)"
+      raise ArgumentError, "Invalid arguments when calling fluent_method(#{str})"
     end
     # @return [self]
     def fluent_no_params
@@ -476,7 +492,7 @@ module Test
       if object.class == Hash && str.class == String && i.class == Fixnum && chr.class == Fixnum && senum.class == Symbol && block_given?
         return @j_del.java_method(:invokeWithMessage, [Java::IoVertxCoreJson::JsonObject.java_class,Java::java.lang.String.java_class,Java::int.java_class,Java::char.java_class,Java::IoVertxServiceproxyTestmodel::SomeEnum.java_class,Java::IoVertxCore::Handler.java_class]).call(::Vertx::Util::Utils.to_json_object(object),str,i,::Vertx::Util::Utils.to_character(chr),Java::IoVertxServiceproxyTestmodel::SomeEnum.valueOf(senum),(Proc.new { |ar| yield(ar.failed ? ar.cause : nil, ar.succeeded ? ar.result : nil) }))
       end
-      raise ArgumentError, "Invalid arguments when calling invoke_with_message(object,str,i,chr,senum)"
+      raise ArgumentError, "Invalid arguments when calling invoke_with_message(#{object},#{str},#{i},#{chr},#{senum})"
     end
     # @yield 
     # @return [void]

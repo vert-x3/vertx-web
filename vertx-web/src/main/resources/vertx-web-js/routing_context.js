@@ -54,7 +54,7 @@ var RoutingContext = function(j_val) {
     var __args = arguments;
     if (__args.length === 0) {
       if (that.cachedrequest == null) {
-        that.cachedrequest = utils.convReturnVertxGen(j_routingContext["request()"](), HttpServerRequest);
+        that.cachedrequest = utils.convReturnVertxGen(HttpServerRequest, j_routingContext["request()"]());
       }
       return that.cachedrequest;
     } else throw new TypeError('function invoked with invalid arguments');
@@ -70,7 +70,7 @@ var RoutingContext = function(j_val) {
     var __args = arguments;
     if (__args.length === 0) {
       if (that.cachedresponse == null) {
-        that.cachedresponse = utils.convReturnVertxGen(j_routingContext["response()"](), HttpServerResponse);
+        that.cachedresponse = utils.convReturnVertxGen(HttpServerResponse, j_routingContext["response()"]());
       }
       return that.cachedresponse;
     } else throw new TypeError('function invoked with invalid arguments');
@@ -165,7 +165,7 @@ var RoutingContext = function(j_val) {
   this.vertx = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return utils.convReturnVertxGen(j_routingContext["vertx()"](), Vertx);
+      return utils.convReturnVertxGen(Vertx, j_routingContext["vertx()"]());
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -191,7 +191,7 @@ var RoutingContext = function(j_val) {
   this.currentRoute = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return utils.convReturnVertxGen(j_routingContext["currentRoute()"](), Route);
+      return utils.convReturnVertxGen(Route, j_routingContext["currentRoute()"]());
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -230,7 +230,7 @@ var RoutingContext = function(j_val) {
   this.getCookie = function(name) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return utils.convReturnVertxGen(j_routingContext["getCookie(java.lang.String)"](name), Cookie);
+      return utils.convReturnVertxGen(Cookie, j_routingContext["getCookie(java.lang.String)"](name));
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -261,7 +261,7 @@ var RoutingContext = function(j_val) {
   this.removeCookie = function(name) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return utils.convReturnVertxGen(j_routingContext["removeCookie(java.lang.String)"](name), Cookie);
+      return utils.convReturnVertxGen(Cookie, j_routingContext["removeCookie(java.lang.String)"](name));
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -343,7 +343,7 @@ var RoutingContext = function(j_val) {
   this.getBody = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return utils.convReturnVertxGen(j_routingContext["getBody()"](), Buffer);
+      return utils.convReturnVertxGen(Buffer, j_routingContext["getBody()"]());
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -372,7 +372,7 @@ var RoutingContext = function(j_val) {
   this.session = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return utils.convReturnVertxGen(j_routingContext["session()"](), Session);
+      return utils.convReturnVertxGen(Session, j_routingContext["session()"]());
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -386,7 +386,7 @@ var RoutingContext = function(j_val) {
   this.user = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return utils.convReturnVertxGen(j_routingContext["user()"](), User);
+      return utils.convReturnVertxGen(User, j_routingContext["user()"]());
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -464,7 +464,7 @@ var RoutingContext = function(j_val) {
     var __args = arguments;
     if (__args.length === 0) {
       if (that.cachedparsedHeaders == null) {
-        that.cachedparsedHeaders = utils.convReturnVertxGen(j_routingContext["parsedHeaders()"](), ParsedHeaderValues);
+        that.cachedparsedHeaders = utils.convReturnVertxGen(ParsedHeaderValues, j_routingContext["parsedHeaders()"]());
       }
       return that.cachedparsedHeaders;
     } else throw new TypeError('function invoked with invalid arguments');
@@ -682,7 +682,7 @@ var RoutingContext = function(j_val) {
     var __args = arguments;
     if (__args.length === 0) {
       if (that.cachedpreferredLocale == null) {
-        that.cachedpreferredLocale = utils.convReturnVertxGen(j_routingContext["preferredLocale()"](), Locale);
+        that.cachedpreferredLocale = utils.convReturnVertxGen(Locale, j_routingContext["preferredLocale()"]());
       }
       return that.cachedpreferredLocale;
     } else throw new TypeError('function invoked with invalid arguments');
@@ -700,7 +700,7 @@ var RoutingContext = function(j_val) {
     var __args = arguments;
     if (__args.length === 0) {
       if (that.cachedpreferredLanguage == null) {
-        that.cachedpreferredLanguage = utils.convReturnVertxGen(j_routingContext["preferredLanguage()"](), LanguageHeader);
+        that.cachedpreferredLanguage = utils.convReturnVertxGen(LanguageHeader, j_routingContext["preferredLanguage()"]());
       }
       return that.cachedpreferredLanguage;
     } else throw new TypeError('function invoked with invalid arguments');
@@ -740,5 +740,23 @@ var RoutingContext = function(j_val) {
   this._jdel = j_routingContext;
 };
 
-// We export the Constructor function
+RoutingContext._jclass = utils.getJavaClass("io.vertx.ext.web.RoutingContext");
+RoutingContext._jtype = {
+  accept: function(obj) {
+    return RoutingContext._jclass.isInstance(obj._jdel);
+  },
+  wrap: function(jdel) {
+    var obj = Object.create(RoutingContext.prototype, {});
+    RoutingContext.apply(obj, arguments);
+    return obj;
+  },
+  unwrap: function(obj) {
+    return obj._jdel;
+  }
+};
+RoutingContext._create = function(jdel) {
+  var obj = Object.create(RoutingContext.prototype, {});
+  RoutingContext.apply(obj, arguments);
+  return obj;
+}
 module.exports = RoutingContext;

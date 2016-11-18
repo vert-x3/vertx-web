@@ -129,5 +129,23 @@ var FileUpload = function(j_val) {
   this._jdel = j_fileUpload;
 };
 
-// We export the Constructor function
+FileUpload._jclass = utils.getJavaClass("io.vertx.ext.web.FileUpload");
+FileUpload._jtype = {
+  accept: function(obj) {
+    return FileUpload._jclass.isInstance(obj._jdel);
+  },
+  wrap: function(jdel) {
+    var obj = Object.create(FileUpload.prototype, {});
+    FileUpload.apply(obj, arguments);
+    return obj;
+  },
+  unwrap: function(obj) {
+    return obj._jdel;
+  }
+};
+FileUpload._create = function(jdel) {
+  var obj = Object.create(FileUpload.prototype, {});
+  FileUpload.apply(obj, arguments);
+  return obj;
+}
 module.exports = FileUpload;

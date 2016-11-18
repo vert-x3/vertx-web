@@ -34,7 +34,7 @@ var BridgeEvent = function(j_val) {
 
   var j_bridgeEvent = j_val;
   var that = this;
-  Future.call(this, j_val);
+  Future.call(this, j_val, undefined);
 
   /**
 
@@ -159,14 +159,14 @@ var BridgeEvent = function(j_val) {
   this.compose = function() {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'function') {
-      return utils.convReturnVertxGen(j_bridgeEvent["compose(java.util.function.Function)"](function(jVal) {
+      return utils.convReturnVertxGen(Future, j_bridgeEvent["compose(java.util.function.Function)"](function(jVal) {
       var jRet = __args[0](jVal);
       return jRet._jdel;
-    }), Future);
+    }), undefined);
     }  else if (__args.length === 2 && typeof __args[0] === 'function' && typeof __args[1] === 'object' && __args[1]._jdel) {
-      return utils.convReturnVertxGen(j_bridgeEvent["compose(io.vertx.core.Handler,io.vertx.core.Future)"](function(jVal) {
+      return utils.convReturnVertxGen(Future, j_bridgeEvent["compose(io.vertx.core.Handler,io.vertx.core.Future)"](function(jVal) {
       __args[0](jVal);
-    }, __args[1]._jdel), Future);
+    }, __args[1]._jdel), undefined);
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -179,12 +179,12 @@ var BridgeEvent = function(j_val) {
   this.map = function() {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'function') {
-      return utils.convReturnVertxGen(j_bridgeEvent["map(java.util.function.Function)"](function(jVal) {
+      return utils.convReturnVertxGen(Future, j_bridgeEvent["map(java.util.function.Function)"](function(jVal) {
       var jRet = __args[0](jVal);
       return utils.convParamTypeUnknown(jRet);
-    }), Future);
+    }), undefined);
     }  else if (__args.length === 1 && typeof __args[0] !== 'function') {
-      return utils.convReturnVertxGen(j_bridgeEvent["map(java.lang.Object)"](utils.convParamTypeUnknown(__args[0])), Future);
+      return utils.convReturnVertxGen(Future, j_bridgeEvent["map(java.lang.Object)"](utils.convParamTypeUnknown(__args[0])), undefined);
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -280,7 +280,7 @@ var BridgeEvent = function(j_val) {
     var __args = arguments;
     if (__args.length === 0) {
       if (that.cachedsocket == null) {
-        that.cachedsocket = utils.convReturnVertxGen(j_bridgeEvent["socket()"](), SockJSSocket);
+        that.cachedsocket = utils.convReturnVertxGen(SockJSSocket, j_bridgeEvent["socket()"]());
       }
       return that.cachedsocket;
     } else throw new TypeError('function invoked with invalid arguments');
@@ -292,5 +292,23 @@ var BridgeEvent = function(j_val) {
   this._jdel = j_bridgeEvent;
 };
 
-// We export the Constructor function
+BridgeEvent._jclass = utils.getJavaClass("io.vertx.ext.web.handler.sockjs.BridgeEvent");
+BridgeEvent._jtype = {
+  accept: function(obj) {
+    return BridgeEvent._jclass.isInstance(obj._jdel);
+  },
+  wrap: function(jdel) {
+    var obj = Object.create(BridgeEvent.prototype, {});
+    BridgeEvent.apply(obj, arguments);
+    return obj;
+  },
+  unwrap: function(obj) {
+    return obj._jdel;
+  }
+};
+BridgeEvent._create = function(jdel) {
+  var obj = Object.create(BridgeEvent.prototype, {});
+  BridgeEvent.apply(obj, arguments);
+  return obj;
+}
 module.exports = BridgeEvent;

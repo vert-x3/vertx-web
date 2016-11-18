@@ -12,6 +12,22 @@ module VertxWeb
     def j_del
       @j_del
     end
+    @@j_api_type = Object.new
+    def @@j_api_type.accept?(obj)
+      obj.class == Locale
+    end
+    def @@j_api_type.wrap(obj)
+      Locale.new(obj)
+    end
+    def @@j_api_type.unwrap(obj)
+      obj.j_del
+    end
+    def self.j_api_type
+      @@j_api_type
+    end
+    def self.j_class
+      Java::IoVertxExtWeb::Locale.java_class
+    end
     # @param [String] language 
     # @param [String] country 
     # @param [String] variant 
@@ -26,7 +42,7 @@ module VertxWeb
       elsif language.class == String && country.class == String && variant.class == String && !block_given?
         return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWeb::Locale.java_method(:create, [Java::java.lang.String.java_class,Java::java.lang.String.java_class,Java::java.lang.String.java_class]).call(language,country,variant),::VertxWeb::Locale)
       end
-      raise ArgumentError, "Invalid arguments when calling create(language,country,variant)"
+      raise ArgumentError, "Invalid arguments when calling create(#{language},#{country},#{variant})"
     end
     #  Returns the language as reported by the HTTP client.
     # @return [String] language

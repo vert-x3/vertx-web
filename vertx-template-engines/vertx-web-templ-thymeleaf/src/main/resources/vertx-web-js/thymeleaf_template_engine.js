@@ -47,7 +47,7 @@ var ThymeleafTemplateEngine = function(j_val) {
     if (__args.length === 3 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'string' && typeof __args[2] === 'function') {
       j_thymeleafTemplateEngine["render(io.vertx.ext.web.RoutingContext,java.lang.String,io.vertx.core.Handler)"](arg0._jdel, arg1, function(ar) {
       if (ar.succeeded()) {
-        arg2(utils.convReturnVertxGen(ar.result(), Buffer), null);
+        arg2(utils.convReturnVertxGen(Buffer, ar.result()), null);
       } else {
         arg2(null, ar.cause());
       }
@@ -65,7 +65,7 @@ var ThymeleafTemplateEngine = function(j_val) {
   this.setMode = function(mode) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return utils.convReturnVertxGen(j_thymeleafTemplateEngine["setMode(org.thymeleaf.templatemode.TemplateMode)"](org.thymeleaf.templatemode.TemplateMode.valueOf(mode)), ThymeleafTemplateEngine);
+      return utils.convReturnVertxGen(ThymeleafTemplateEngine, j_thymeleafTemplateEngine["setMode(org.thymeleaf.templatemode.TemplateMode)"](org.thymeleaf.templatemode.TemplateMode.valueOf(mode)));
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -75,6 +75,25 @@ var ThymeleafTemplateEngine = function(j_val) {
   this._jdel = j_thymeleafTemplateEngine;
 };
 
+ThymeleafTemplateEngine._jclass = utils.getJavaClass("io.vertx.ext.web.templ.ThymeleafTemplateEngine");
+ThymeleafTemplateEngine._jtype = {
+  accept: function(obj) {
+    return ThymeleafTemplateEngine._jclass.isInstance(obj._jdel);
+  },
+  wrap: function(jdel) {
+    var obj = Object.create(ThymeleafTemplateEngine.prototype, {});
+    ThymeleafTemplateEngine.apply(obj, arguments);
+    return obj;
+  },
+  unwrap: function(obj) {
+    return obj._jdel;
+  }
+};
+ThymeleafTemplateEngine._create = function(jdel) {
+  var obj = Object.create(ThymeleafTemplateEngine.prototype, {});
+  ThymeleafTemplateEngine.apply(obj, arguments);
+  return obj;
+}
 /**
  Create a template engine using defaults
 
@@ -85,9 +104,8 @@ var ThymeleafTemplateEngine = function(j_val) {
 ThymeleafTemplateEngine.create = function() {
   var __args = arguments;
   if (__args.length === 0) {
-    return utils.convReturnVertxGen(JThymeleafTemplateEngine["create()"](), ThymeleafTemplateEngine);
+    return utils.convReturnVertxGen(ThymeleafTemplateEngine, JThymeleafTemplateEngine["create()"]());
   } else throw new TypeError('function invoked with invalid arguments');
 };
 
-// We export the Constructor function
 module.exports = ThymeleafTemplateEngine;

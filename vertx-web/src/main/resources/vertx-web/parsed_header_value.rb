@@ -42,7 +42,7 @@ module VertxWeb
       if key.class == String && !block_given?
         return @j_del.java_method(:parameter, [Java::java.lang.String.java_class]).call(key)
       end
-      raise ArgumentError, "Invalid arguments when calling parameter(key)"
+      raise ArgumentError, "Invalid arguments when calling parameter(#{key})"
     end
     #  The parameters specified in this header value.
     #  <b>Note:</b> The <code>q</code> parameter is never present.
@@ -68,7 +68,7 @@ module VertxWeb
       if matchTry.class.method_defined?(:j_del) && !block_given?
         return @j_del.java_method(:isMatchedBy, [Java::IoVertxExtWeb::ParsedHeaderValue.java_class]).call(matchTry.j_del)
       end
-      raise ArgumentError, "Invalid arguments when calling matched_by?(matchTry)"
+      raise ArgumentError, "Invalid arguments when calling matched_by?(#{matchTry})"
     end
     #  An integer that represents the absolute order position of this header
     # @return [Fixnum]
@@ -90,6 +90,22 @@ module VertxWeb
     # @return [::VertxWeb::ParsedHeaderValue] the underlying java delegate
     def j_del
       @j_del
+    end
+    @@j_api_type = Object.new
+    def @@j_api_type.accept?(obj)
+      obj.class == ParsedHeaderValue
+    end
+    def @@j_api_type.wrap(obj)
+      ParsedHeaderValue.new(obj)
+    end
+    def @@j_api_type.unwrap(obj)
+      obj.j_del
+    end
+    def self.j_api_type
+      @@j_api_type
+    end
+    def self.j_class
+      Java::IoVertxExtWeb::ParsedHeaderValue.java_class
     end
   end
 end

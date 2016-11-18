@@ -17,13 +17,29 @@ module VertxWeb
     def j_del
       @j_del
     end
+    @@j_api_type = Object.new
+    def @@j_api_type.accept?(obj)
+      obj.class == JWTAuthHandler
+    end
+    def @@j_api_type.wrap(obj)
+      JWTAuthHandler.new(obj)
+    end
+    def @@j_api_type.unwrap(obj)
+      obj.j_del
+    end
+    def self.j_api_type
+      @@j_api_type
+    end
+    def self.j_class
+      Java::IoVertxExtWebHandler::JWTAuthHandler.java_class
+    end
     # @param [::VertxWeb::RoutingContext] arg0 
     # @return [void]
     def handle(arg0=nil)
       if arg0.class.method_defined?(:j_del) && !block_given?
         return @j_del.java_method(:handle, [Java::IoVertxExtWeb::RoutingContext.java_class]).call(arg0.j_del)
       end
-      raise ArgumentError, "Invalid arguments when calling handle(arg0)"
+      raise ArgumentError, "Invalid arguments when calling handle(#{arg0})"
     end
     #  Add a required authority for this auth handler
     # @param [String] authority the authority
@@ -33,7 +49,7 @@ module VertxWeb
         @j_del.java_method(:addAuthority, [Java::java.lang.String.java_class]).call(authority)
         return self
       end
-      raise ArgumentError, "Invalid arguments when calling add_authority(authority)"
+      raise ArgumentError, "Invalid arguments when calling add_authority(#{authority})"
     end
     #  Add a set of required authorities for this auth handler
     # @param [Set<String>] authorities the set of authorities
@@ -43,7 +59,7 @@ module VertxWeb
         @j_del.java_method(:addAuthorities, [Java::JavaUtil::Set.java_class]).call(Java::JavaUtil::LinkedHashSet.new(authorities.map { |element| element }))
         return self
       end
-      raise ArgumentError, "Invalid arguments when calling add_authorities(authorities)"
+      raise ArgumentError, "Invalid arguments when calling add_authorities(#{authorities})"
     end
     #  Create a JWT auth handler
     # @param [::VertxAuthJwt::JWTAuth] authProvider the auth provider to use.
@@ -55,7 +71,7 @@ module VertxWeb
       elsif authProvider.class.method_defined?(:j_del) && skip.class == String && !block_given?
         return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebHandler::JWTAuthHandler.java_method(:create, [Java::IoVertxExtAuthJwt::JWTAuth.java_class,Java::java.lang.String.java_class]).call(authProvider.j_del,skip),::VertxWeb::JWTAuthHandler)
       end
-      raise ArgumentError, "Invalid arguments when calling create(authProvider,skip)"
+      raise ArgumentError, "Invalid arguments when calling create(#{authProvider},#{skip})"
     end
     #  Set the audience list
     # @param [Array<String>] audience the audience list
@@ -65,7 +81,7 @@ module VertxWeb
         @j_del.java_method(:setAudience, [Java::JavaUtil::List.java_class]).call(audience.map { |element| element })
         return self
       end
-      raise ArgumentError, "Invalid arguments when calling set_audience(audience)"
+      raise ArgumentError, "Invalid arguments when calling set_audience(#{audience})"
     end
     #  Set the issuer
     # @param [String] issuer the issuer
@@ -75,7 +91,7 @@ module VertxWeb
         @j_del.java_method(:setIssuer, [Java::java.lang.String.java_class]).call(issuer)
         return self
       end
-      raise ArgumentError, "Invalid arguments when calling set_issuer(issuer)"
+      raise ArgumentError, "Invalid arguments when calling set_issuer(#{issuer})"
     end
     #  Set whether expiration is ignored
     # @param [true,false] ignoreExpiration whether expiration is ignored
@@ -85,7 +101,7 @@ module VertxWeb
         @j_del.java_method(:setIgnoreExpiration, [Java::boolean.java_class]).call(ignoreExpiration)
         return self
       end
-      raise ArgumentError, "Invalid arguments when calling set_ignore_expiration(ignoreExpiration)"
+      raise ArgumentError, "Invalid arguments when calling set_ignore_expiration(#{ignoreExpiration})"
     end
   end
 end

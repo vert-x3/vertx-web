@@ -51,6 +51,25 @@ var TimeoutHandler = function(j_val) {
   this._jdel = j_timeoutHandler;
 };
 
+TimeoutHandler._jclass = utils.getJavaClass("io.vertx.ext.web.handler.TimeoutHandler");
+TimeoutHandler._jtype = {
+  accept: function(obj) {
+    return TimeoutHandler._jclass.isInstance(obj._jdel);
+  },
+  wrap: function(jdel) {
+    var obj = Object.create(TimeoutHandler.prototype, {});
+    TimeoutHandler.apply(obj, arguments);
+    return obj;
+  },
+  unwrap: function(obj) {
+    return obj._jdel;
+  }
+};
+TimeoutHandler._create = function(jdel) {
+  var obj = Object.create(TimeoutHandler.prototype, {});
+  TimeoutHandler.apply(obj, arguments);
+  return obj;
+}
 /**
  Create a handler
 
@@ -62,13 +81,12 @@ var TimeoutHandler = function(j_val) {
 TimeoutHandler.create = function() {
   var __args = arguments;
   if (__args.length === 0) {
-    return utils.convReturnVertxGen(JTimeoutHandler["create()"](), TimeoutHandler);
+    return utils.convReturnVertxGen(TimeoutHandler, JTimeoutHandler["create()"]());
   }else if (__args.length === 1 && typeof __args[0] ==='number') {
-    return utils.convReturnVertxGen(JTimeoutHandler["create(long)"](__args[0]), TimeoutHandler);
+    return utils.convReturnVertxGen(TimeoutHandler, JTimeoutHandler["create(long)"](__args[0]));
   }else if (__args.length === 2 && typeof __args[0] ==='number' && typeof __args[1] ==='number') {
-    return utils.convReturnVertxGen(JTimeoutHandler["create(long,int)"](__args[0], __args[1]), TimeoutHandler);
+    return utils.convReturnVertxGen(TimeoutHandler, JTimeoutHandler["create(long,int)"](__args[0], __args[1]));
   } else throw new TypeError('function invoked with invalid arguments');
 };
 
-// We export the Constructor function
 module.exports = TimeoutHandler;

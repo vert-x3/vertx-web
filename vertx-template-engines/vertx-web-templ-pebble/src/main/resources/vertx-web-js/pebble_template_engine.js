@@ -48,7 +48,7 @@ var PebbleTemplateEngine = function(j_val) {
     if (__args.length === 3 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'string' && typeof __args[2] === 'function') {
       j_pebbleTemplateEngine["render(io.vertx.ext.web.RoutingContext,java.lang.String,io.vertx.core.Handler)"](arg0._jdel, arg1, function(ar) {
       if (ar.succeeded()) {
-        arg2(utils.convReturnVertxGen(ar.result(), Buffer), null);
+        arg2(utils.convReturnVertxGen(Buffer, ar.result()), null);
       } else {
         arg2(null, ar.cause());
       }
@@ -66,7 +66,7 @@ var PebbleTemplateEngine = function(j_val) {
   this.setExtension = function(extension) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return utils.convReturnVertxGen(j_pebbleTemplateEngine["setExtension(java.lang.String)"](extension), PebbleTemplateEngine);
+      return utils.convReturnVertxGen(PebbleTemplateEngine, j_pebbleTemplateEngine["setExtension(java.lang.String)"](extension));
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -80,7 +80,7 @@ var PebbleTemplateEngine = function(j_val) {
   this.setMaxCacheSize = function(maxCacheSize) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] ==='number') {
-      return utils.convReturnVertxGen(j_pebbleTemplateEngine["setMaxCacheSize(int)"](maxCacheSize), PebbleTemplateEngine);
+      return utils.convReturnVertxGen(PebbleTemplateEngine, j_pebbleTemplateEngine["setMaxCacheSize(int)"](maxCacheSize));
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -90,6 +90,25 @@ var PebbleTemplateEngine = function(j_val) {
   this._jdel = j_pebbleTemplateEngine;
 };
 
+PebbleTemplateEngine._jclass = utils.getJavaClass("io.vertx.ext.web.templ.PebbleTemplateEngine");
+PebbleTemplateEngine._jtype = {
+  accept: function(obj) {
+    return PebbleTemplateEngine._jclass.isInstance(obj._jdel);
+  },
+  wrap: function(jdel) {
+    var obj = Object.create(PebbleTemplateEngine.prototype, {});
+    PebbleTemplateEngine.apply(obj, arguments);
+    return obj;
+  },
+  unwrap: function(obj) {
+    return obj._jdel;
+  }
+};
+PebbleTemplateEngine._create = function(jdel) {
+  var obj = Object.create(PebbleTemplateEngine.prototype, {});
+  PebbleTemplateEngine.apply(obj, arguments);
+  return obj;
+}
 /**
  Create a template engine using defaults
 
@@ -100,9 +119,8 @@ var PebbleTemplateEngine = function(j_val) {
 PebbleTemplateEngine.create = function(vertx) {
   var __args = arguments;
   if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
-    return utils.convReturnVertxGen(JPebbleTemplateEngine["create(io.vertx.core.Vertx)"](vertx._jdel), PebbleTemplateEngine);
+    return utils.convReturnVertxGen(PebbleTemplateEngine, JPebbleTemplateEngine["create(io.vertx.core.Vertx)"](vertx._jdel));
   } else throw new TypeError('function invoked with invalid arguments');
 };
 
-// We export the Constructor function
 module.exports = PebbleTemplateEngine;

@@ -154,7 +154,7 @@ var Route = function(j_val) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'function') {
       j_route["handler(io.vertx.core.Handler)"](function(jVal) {
-      requestHandler(utils.convReturnVertxGen(jVal, RoutingContext));
+      requestHandler(utils.convReturnVertxGen(RoutingContext, jVal));
     });
       return that;
     } else throw new TypeError('function invoked with invalid arguments');
@@ -179,12 +179,12 @@ var Route = function(j_val) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'function') {
       j_route["blockingHandler(io.vertx.core.Handler)"](function(jVal) {
-      __args[0](utils.convReturnVertxGen(jVal, RoutingContext));
+      __args[0](utils.convReturnVertxGen(RoutingContext, jVal));
     });
       return that;
     }  else if (__args.length === 2 && typeof __args[0] === 'function' && typeof __args[1] ==='boolean') {
       j_route["blockingHandler(io.vertx.core.Handler,boolean)"](function(jVal) {
-      __args[0](utils.convReturnVertxGen(jVal, RoutingContext));
+      __args[0](utils.convReturnVertxGen(RoutingContext, jVal));
     }, __args[1]);
       return that;
     } else throw new TypeError('function invoked with invalid arguments');
@@ -203,7 +203,7 @@ var Route = function(j_val) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'function') {
       j_route["failureHandler(io.vertx.core.Handler)"](function(jVal) {
-      failureHandler(utils.convReturnVertxGen(jVal, RoutingContext));
+      failureHandler(utils.convReturnVertxGen(RoutingContext, jVal));
     });
       return that;
     } else throw new TypeError('function invoked with invalid arguments');
@@ -289,5 +289,23 @@ var Route = function(j_val) {
   this._jdel = j_route;
 };
 
-// We export the Constructor function
+Route._jclass = utils.getJavaClass("io.vertx.ext.web.Route");
+Route._jtype = {
+  accept: function(obj) {
+    return Route._jclass.isInstance(obj._jdel);
+  },
+  wrap: function(jdel) {
+    var obj = Object.create(Route.prototype, {});
+    Route.apply(obj, arguments);
+    return obj;
+  },
+  unwrap: function(obj) {
+    return obj._jdel;
+  }
+};
+Route._create = function(jdel) {
+  var obj = Object.create(Route.prototype, {});
+  Route.apply(obj, arguments);
+  return obj;
+}
 module.exports = Route;

@@ -25,6 +25,22 @@ module VertxWeb
     def j_del
       @j_del
     end
+    @@j_api_type = Object.new
+    def @@j_api_type.accept?(obj)
+      obj.class == ParsedHeaderValues
+    end
+    def @@j_api_type.wrap(obj)
+      ParsedHeaderValues.new(obj)
+    end
+    def @@j_api_type.unwrap(obj)
+      obj.j_del
+    end
+    def self.j_api_type
+      @@j_api_type
+    end
+    def self.j_class
+      Java::IoVertxExtWeb::ParsedHeaderValues.java_class
+    end
     # @return [Array<::VertxWeb::MIMEHeader>] List of MIME values in the <code>Accept</code> header
     def accept
       if !block_given?

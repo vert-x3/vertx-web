@@ -22,13 +22,29 @@ module VertxWeb
     def j_del
       @j_del
     end
+    @@j_api_type = Object.new
+    def @@j_api_type.accept?(obj)
+      obj.class == SessionHandler
+    end
+    def @@j_api_type.wrap(obj)
+      SessionHandler.new(obj)
+    end
+    def @@j_api_type.unwrap(obj)
+      obj.j_del
+    end
+    def self.j_api_type
+      @@j_api_type
+    end
+    def self.j_class
+      Java::IoVertxExtWebHandler::SessionHandler.java_class
+    end
     # @param [::VertxWeb::RoutingContext] arg0 
     # @return [void]
     def handle(arg0=nil)
       if arg0.class.method_defined?(:j_del) && !block_given?
         return @j_del.java_method(:handle, [Java::IoVertxExtWeb::RoutingContext.java_class]).call(arg0.j_del)
       end
-      raise ArgumentError, "Invalid arguments when calling handle(arg0)"
+      raise ArgumentError, "Invalid arguments when calling handle(#{arg0})"
     end
     #  Create a session handler
     # @param [::VertxWeb::SessionStore] sessionStore the session store
@@ -37,7 +53,7 @@ module VertxWeb
       if sessionStore.class.method_defined?(:j_del) && !block_given?
         return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebHandler::SessionHandler.java_method(:create, [Java::IoVertxExtWebSstore::SessionStore.java_class]).call(sessionStore.j_del),::VertxWeb::SessionHandler)
       end
-      raise ArgumentError, "Invalid arguments when calling create(sessionStore)"
+      raise ArgumentError, "Invalid arguments when calling create(#{sessionStore})"
     end
     #  Set the session timeout
     # @param [Fixnum] timeout the timeout, in ms.
@@ -47,7 +63,7 @@ module VertxWeb
         @j_del.java_method(:setSessionTimeout, [Java::long.java_class]).call(timeout)
         return self
       end
-      raise ArgumentError, "Invalid arguments when calling set_session_timeout(timeout)"
+      raise ArgumentError, "Invalid arguments when calling set_session_timeout(#{timeout})"
     end
     #  Set whether a nagging log warning should be written if the session handler is accessed over HTTP, not
     #  HTTPS
@@ -58,7 +74,7 @@ module VertxWeb
         @j_del.java_method(:setNagHttps, [Java::boolean.java_class]).call(nag)
         return self
       end
-      raise ArgumentError, "Invalid arguments when calling set_nag_https(nag)"
+      raise ArgumentError, "Invalid arguments when calling set_nag_https(#{nag})"
     end
     #  Sets whether the 'secure' flag should be set for the session cookie. When set this flag instructs browsers to only
     #  send the cookie over HTTPS. Note that this will probably stop your sessions working if used without HTTPS (e.g. in development).
@@ -69,7 +85,7 @@ module VertxWeb
         @j_del.java_method(:setCookieSecureFlag, [Java::boolean.java_class]).call(secure)
         return self
       end
-      raise ArgumentError, "Invalid arguments when calling set_cookie_secure_flag(secure)"
+      raise ArgumentError, "Invalid arguments when calling set_cookie_secure_flag(#{secure})"
     end
     #  Sets whether the 'HttpOnly' flag should be set for the session cookie. When set this flag instructs browsers to
     #  prevent Javascript access to the the cookie. Used as a line of defence against the most common XSS attacks.
@@ -80,7 +96,7 @@ module VertxWeb
         @j_del.java_method(:setCookieHttpOnlyFlag, [Java::boolean.java_class]).call(httpOnly)
         return self
       end
-      raise ArgumentError, "Invalid arguments when calling set_cookie_http_only_flag(httpOnly)"
+      raise ArgumentError, "Invalid arguments when calling set_cookie_http_only_flag(#{httpOnly})"
     end
     #  Set the session cookie name
     # @param [String] sessionCookieName the session cookie name
@@ -90,7 +106,7 @@ module VertxWeb
         @j_del.java_method(:setSessionCookieName, [Java::java.lang.String.java_class]).call(sessionCookieName)
         return self
       end
-      raise ArgumentError, "Invalid arguments when calling set_session_cookie_name(sessionCookieName)"
+      raise ArgumentError, "Invalid arguments when calling set_session_cookie_name(#{sessionCookieName})"
     end
   end
 end

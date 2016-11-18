@@ -18,13 +18,29 @@ module VertxWeb
     def j_del
       @j_del
     end
+    @@j_api_type = Object.new
+    def @@j_api_type.accept?(obj)
+      obj.class == OAuth2AuthHandler
+    end
+    def @@j_api_type.wrap(obj)
+      OAuth2AuthHandler.new(obj)
+    end
+    def @@j_api_type.unwrap(obj)
+      obj.j_del
+    end
+    def self.j_api_type
+      @@j_api_type
+    end
+    def self.j_class
+      Java::IoVertxExtWebHandler::OAuth2AuthHandler.java_class
+    end
     # @param [::VertxWeb::RoutingContext] arg0 
     # @return [void]
     def handle(arg0=nil)
       if arg0.class.method_defined?(:j_del) && !block_given?
         return @j_del.java_method(:handle, [Java::IoVertxExtWeb::RoutingContext.java_class]).call(arg0.j_del)
       end
-      raise ArgumentError, "Invalid arguments when calling handle(arg0)"
+      raise ArgumentError, "Invalid arguments when calling handle(#{arg0})"
     end
     #  Add a required authority for this auth handler
     # @param [String] authority the authority
@@ -34,7 +50,7 @@ module VertxWeb
         @j_del.java_method(:addAuthority, [Java::java.lang.String.java_class]).call(authority)
         return self
       end
-      raise ArgumentError, "Invalid arguments when calling add_authority(authority)"
+      raise ArgumentError, "Invalid arguments when calling add_authority(#{authority})"
     end
     #  Add a set of required authorities for this auth handler
     # @param [Set<String>] authorities the set of authorities
@@ -44,7 +60,7 @@ module VertxWeb
         @j_del.java_method(:addAuthorities, [Java::JavaUtil::Set.java_class]).call(Java::JavaUtil::LinkedHashSet.new(authorities.map { |element| element }))
         return self
       end
-      raise ArgumentError, "Invalid arguments when calling add_authorities(authorities)"
+      raise ArgumentError, "Invalid arguments when calling add_authorities(#{authorities})"
     end
     #  Create a OAuth2 auth handler
     # @param [::VertxAuthOauth2::OAuth2Auth] authProvider the auth provider to use
@@ -54,7 +70,7 @@ module VertxWeb
       if authProvider.class.method_defined?(:j_del) && uri.class == String && !block_given?
         return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebHandler::OAuth2AuthHandler.java_method(:create, [Java::IoVertxExtAuthOauth2::OAuth2Auth.java_class,Java::java.lang.String.java_class]).call(authProvider.j_del,uri),::VertxWeb::OAuth2AuthHandler)
       end
-      raise ArgumentError, "Invalid arguments when calling create(authProvider,uri)"
+      raise ArgumentError, "Invalid arguments when calling create(#{authProvider},#{uri})"
     end
     #  Build the authorization URL.
     # @param [String] redirectURL where is the callback mounted.
@@ -64,7 +80,7 @@ module VertxWeb
       if redirectURL.class == String && state.class == String && !block_given?
         return @j_del.java_method(:authURI, [Java::java.lang.String.java_class,Java::java.lang.String.java_class]).call(redirectURL,state)
       end
-      raise ArgumentError, "Invalid arguments when calling auth_uri(redirectURL,state)"
+      raise ArgumentError, "Invalid arguments when calling auth_uri(#{redirectURL},#{state})"
     end
     #  add the callback handler to a given route.
     # @param [::VertxWeb::Route] route a given route e.g.: `/callback`
@@ -74,7 +90,7 @@ module VertxWeb
         @j_del.java_method(:setupCallback, [Java::IoVertxExtWeb::Route.java_class]).call(route.j_del)
         return self
       end
-      raise ArgumentError, "Invalid arguments when calling setup_callback(route)"
+      raise ArgumentError, "Invalid arguments when calling setup_callback(#{route})"
     end
   end
 end

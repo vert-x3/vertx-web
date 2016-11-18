@@ -50,6 +50,25 @@ var ErrorHandler = function(j_val) {
   this._jdel = j_errorHandler;
 };
 
+ErrorHandler._jclass = utils.getJavaClass("io.vertx.ext.web.handler.ErrorHandler");
+ErrorHandler._jtype = {
+  accept: function(obj) {
+    return ErrorHandler._jclass.isInstance(obj._jdel);
+  },
+  wrap: function(jdel) {
+    var obj = Object.create(ErrorHandler.prototype, {});
+    ErrorHandler.apply(obj, arguments);
+    return obj;
+  },
+  unwrap: function(obj) {
+    return obj._jdel;
+  }
+};
+ErrorHandler._create = function(jdel) {
+  var obj = Object.create(ErrorHandler.prototype, {});
+  ErrorHandler.apply(obj, arguments);
+  return obj;
+}
 /**
  Create an error handler
 
@@ -61,15 +80,14 @@ var ErrorHandler = function(j_val) {
 ErrorHandler.create = function() {
   var __args = arguments;
   if (__args.length === 0) {
-    return utils.convReturnVertxGen(JErrorHandler["create()"](), ErrorHandler);
+    return utils.convReturnVertxGen(ErrorHandler, JErrorHandler["create()"]());
   }else if (__args.length === 1 && typeof __args[0] ==='boolean') {
-    return utils.convReturnVertxGen(JErrorHandler["create(boolean)"](__args[0]), ErrorHandler);
+    return utils.convReturnVertxGen(ErrorHandler, JErrorHandler["create(boolean)"](__args[0]));
   }else if (__args.length === 1 && typeof __args[0] === 'string') {
-    return utils.convReturnVertxGen(JErrorHandler["create(java.lang.String)"](__args[0]), ErrorHandler);
+    return utils.convReturnVertxGen(ErrorHandler, JErrorHandler["create(java.lang.String)"](__args[0]));
   }else if (__args.length === 2 && typeof __args[0] === 'string' && typeof __args[1] ==='boolean') {
-    return utils.convReturnVertxGen(JErrorHandler["create(java.lang.String,boolean)"](__args[0], __args[1]), ErrorHandler);
+    return utils.convReturnVertxGen(ErrorHandler, JErrorHandler["create(java.lang.String,boolean)"](__args[0], __args[1]));
   } else throw new TypeError('function invoked with invalid arguments');
 };
 
-// We export the Constructor function
 module.exports = ErrorHandler;

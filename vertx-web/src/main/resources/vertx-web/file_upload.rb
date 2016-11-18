@@ -14,6 +14,22 @@ module VertxWeb
     def j_del
       @j_del
     end
+    @@j_api_type = Object.new
+    def @@j_api_type.accept?(obj)
+      obj.class == FileUpload
+    end
+    def @@j_api_type.wrap(obj)
+      FileUpload.new(obj)
+    end
+    def @@j_api_type.unwrap(obj)
+      obj.j_del
+    end
+    def self.j_api_type
+      @@j_api_type
+    end
+    def self.j_class
+      Java::IoVertxExtWeb::FileUpload.java_class
+    end
     # @return [String] the name of the upload as provided in the form submission
     def name
       if !block_given?

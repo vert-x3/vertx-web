@@ -128,6 +128,25 @@ var SessionHandler = function(j_val) {
   this._jdel = j_sessionHandler;
 };
 
+SessionHandler._jclass = utils.getJavaClass("io.vertx.ext.web.handler.SessionHandler");
+SessionHandler._jtype = {
+  accept: function(obj) {
+    return SessionHandler._jclass.isInstance(obj._jdel);
+  },
+  wrap: function(jdel) {
+    var obj = Object.create(SessionHandler.prototype, {});
+    SessionHandler.apply(obj, arguments);
+    return obj;
+  },
+  unwrap: function(obj) {
+    return obj._jdel;
+  }
+};
+SessionHandler._create = function(jdel) {
+  var obj = Object.create(SessionHandler.prototype, {});
+  SessionHandler.apply(obj, arguments);
+  return obj;
+}
 /**
  Create a session handler
 
@@ -138,9 +157,8 @@ var SessionHandler = function(j_val) {
 SessionHandler.create = function(sessionStore) {
   var __args = arguments;
   if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
-    return utils.convReturnVertxGen(JSessionHandler["create(io.vertx.ext.web.sstore.SessionStore)"](sessionStore._jdel), SessionHandler);
+    return utils.convReturnVertxGen(SessionHandler, JSessionHandler["create(io.vertx.ext.web.sstore.SessionStore)"](sessionStore._jdel));
   } else throw new TypeError('function invoked with invalid arguments');
 };
 
-// We export the Constructor function
 module.exports = SessionHandler;

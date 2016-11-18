@@ -30,13 +30,18 @@ import io.vertx.core.Handler;
 
 public class TestConnection {
 
-  final io.vertx.serviceproxy.testmodel.TestConnection delegate;
+  public static final io.vertx.lang.rxjava.TypeArg<TestConnection> arg = new io.vertx.lang.rxjava.TypeArg<>(
+    obj -> new TestConnection((io.vertx.serviceproxy.testmodel.TestConnection) obj),
+    TestConnection::getDelegate
+  );
 
+  final io.vertx.serviceproxy.testmodel.TestConnection delegate;
+  
   public TestConnection(io.vertx.serviceproxy.testmodel.TestConnection delegate) {
     this.delegate = delegate;
   }
 
-  public Object getDelegate() {
+  public io.vertx.serviceproxy.testmodel.TestConnection getDelegate() {
     return delegate;
   }
 

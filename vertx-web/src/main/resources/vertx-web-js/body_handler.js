@@ -109,6 +109,25 @@ var BodyHandler = function(j_val) {
   this._jdel = j_bodyHandler;
 };
 
+BodyHandler._jclass = utils.getJavaClass("io.vertx.ext.web.handler.BodyHandler");
+BodyHandler._jtype = {
+  accept: function(obj) {
+    return BodyHandler._jclass.isInstance(obj._jdel);
+  },
+  wrap: function(jdel) {
+    var obj = Object.create(BodyHandler.prototype, {});
+    BodyHandler.apply(obj, arguments);
+    return obj;
+  },
+  unwrap: function(obj) {
+    return obj._jdel;
+  }
+};
+BodyHandler._create = function(jdel) {
+  var obj = Object.create(BodyHandler.prototype, {});
+  BodyHandler.apply(obj, arguments);
+  return obj;
+}
 /**
  Create a body handler and use the given upload directory.
 
@@ -119,11 +138,10 @@ var BodyHandler = function(j_val) {
 BodyHandler.create = function() {
   var __args = arguments;
   if (__args.length === 0) {
-    return utils.convReturnVertxGen(JBodyHandler["create()"](), BodyHandler);
+    return utils.convReturnVertxGen(BodyHandler, JBodyHandler["create()"]());
   }else if (__args.length === 1 && typeof __args[0] === 'string') {
-    return utils.convReturnVertxGen(JBodyHandler["create(java.lang.String)"](__args[0]), BodyHandler);
+    return utils.convReturnVertxGen(BodyHandler, JBodyHandler["create(java.lang.String)"](__args[0]));
   } else throw new TypeError('function invoked with invalid arguments');
 };
 
-// We export the Constructor function
 module.exports = BodyHandler;

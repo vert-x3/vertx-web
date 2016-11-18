@@ -52,6 +52,25 @@ var FaviconHandler = function(j_val) {
   this._jdel = j_faviconHandler;
 };
 
+FaviconHandler._jclass = utils.getJavaClass("io.vertx.ext.web.handler.FaviconHandler");
+FaviconHandler._jtype = {
+  accept: function(obj) {
+    return FaviconHandler._jclass.isInstance(obj._jdel);
+  },
+  wrap: function(jdel) {
+    var obj = Object.create(FaviconHandler.prototype, {});
+    FaviconHandler.apply(obj, arguments);
+    return obj;
+  },
+  unwrap: function(obj) {
+    return obj._jdel;
+  }
+};
+FaviconHandler._create = function(jdel) {
+  var obj = Object.create(FaviconHandler.prototype, {});
+  FaviconHandler.apply(obj, arguments);
+  return obj;
+}
 /**
  Create a handler attempting to load favicon file from the specified path, and with the specified max cache time
 
@@ -63,15 +82,14 @@ var FaviconHandler = function(j_val) {
 FaviconHandler.create = function() {
   var __args = arguments;
   if (__args.length === 0) {
-    return utils.convReturnVertxGen(JFaviconHandler["create()"](), FaviconHandler);
+    return utils.convReturnVertxGen(FaviconHandler, JFaviconHandler["create()"]());
   }else if (__args.length === 1 && typeof __args[0] === 'string') {
-    return utils.convReturnVertxGen(JFaviconHandler["create(java.lang.String)"](__args[0]), FaviconHandler);
+    return utils.convReturnVertxGen(FaviconHandler, JFaviconHandler["create(java.lang.String)"](__args[0]));
   }else if (__args.length === 1 && typeof __args[0] ==='number') {
-    return utils.convReturnVertxGen(JFaviconHandler["create(long)"](__args[0]), FaviconHandler);
+    return utils.convReturnVertxGen(FaviconHandler, JFaviconHandler["create(long)"](__args[0]));
   }else if (__args.length === 2 && typeof __args[0] === 'string' && typeof __args[1] ==='number') {
-    return utils.convReturnVertxGen(JFaviconHandler["create(java.lang.String,long)"](__args[0], __args[1]), FaviconHandler);
+    return utils.convReturnVertxGen(FaviconHandler, JFaviconHandler["create(java.lang.String,long)"](__args[0], __args[1]));
   } else throw new TypeError('function invoked with invalid arguments');
 };
 
-// We export the Constructor function
 module.exports = FaviconHandler;

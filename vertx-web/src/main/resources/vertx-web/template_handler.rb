@@ -17,13 +17,29 @@ module VertxWeb
     def j_del
       @j_del
     end
+    @@j_api_type = Object.new
+    def @@j_api_type.accept?(obj)
+      obj.class == TemplateHandler
+    end
+    def @@j_api_type.wrap(obj)
+      TemplateHandler.new(obj)
+    end
+    def @@j_api_type.unwrap(obj)
+      obj.j_del
+    end
+    def self.j_api_type
+      @@j_api_type
+    end
+    def self.j_class
+      Java::IoVertxExtWebHandler::TemplateHandler.java_class
+    end
     # @param [::VertxWeb::RoutingContext] arg0 
     # @return [void]
     def handle(arg0=nil)
       if arg0.class.method_defined?(:j_del) && !block_given?
         return @j_del.java_method(:handle, [Java::IoVertxExtWeb::RoutingContext.java_class]).call(arg0.j_del)
       end
-      raise ArgumentError, "Invalid arguments when calling handle(arg0)"
+      raise ArgumentError, "Invalid arguments when calling handle(#{arg0})"
     end
     #  Create a handler
     # @param [::VertxWeb::TemplateEngine] engine the template engine
@@ -36,7 +52,7 @@ module VertxWeb
       elsif engine.class.method_defined?(:j_del) && templateDirectory.class == String && contentType.class == String && !block_given?
         return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebHandler::TemplateHandler.java_method(:create, [Java::IoVertxExtWebTempl::TemplateEngine.java_class,Java::java.lang.String.java_class,Java::java.lang.String.java_class]).call(engine.j_del,templateDirectory,contentType),::VertxWeb::TemplateHandler)
       end
-      raise ArgumentError, "Invalid arguments when calling create(engine,templateDirectory,contentType)"
+      raise ArgumentError, "Invalid arguments when calling create(#{engine},#{templateDirectory},#{contentType})"
     end
   end
 end

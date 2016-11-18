@@ -28,13 +28,18 @@ import rx.Observable;
 
 public class TestBaseImportsService {
 
-  final io.vertx.serviceproxy.testmodel.TestBaseImportsService delegate;
+  public static final io.vertx.lang.rxjava.TypeArg<TestBaseImportsService> arg = new io.vertx.lang.rxjava.TypeArg<>(
+    obj -> new TestBaseImportsService((io.vertx.serviceproxy.testmodel.TestBaseImportsService) obj),
+    TestBaseImportsService::getDelegate
+  );
 
+  final io.vertx.serviceproxy.testmodel.TestBaseImportsService delegate;
+  
   public TestBaseImportsService(io.vertx.serviceproxy.testmodel.TestBaseImportsService delegate) {
     this.delegate = delegate;
   }
 
-  public Object getDelegate() {
+  public io.vertx.serviceproxy.testmodel.TestBaseImportsService getDelegate() {
     return delegate;
   }
 

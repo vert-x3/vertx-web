@@ -15,6 +15,22 @@ module VertxWeb
     def j_del
       @j_del
     end
+    @@j_api_type = Object.new
+    def @@j_api_type.accept?(obj)
+      obj.class == Route
+    end
+    def @@j_api_type.wrap(obj)
+      Route.new(obj)
+    end
+    def @@j_api_type.unwrap(obj)
+      obj.j_del
+    end
+    def self.j_api_type
+      @@j_api_type
+    end
+    def self.j_class
+      Java::IoVertxExtWeb::Route.java_class
+    end
     #  Add an HTTP method for this route. By default a route will match all HTTP methods. If any are specified then the route
     #  will only match any of the specified methods
     # @param [:OPTIONS,:GET,:HEAD,:POST,:PUT,:DELETE,:TRACE,:CONNECT,:PATCH,:OTHER] method the HTTP method to add
@@ -24,7 +40,7 @@ module VertxWeb
         @j_del.java_method(:method, [Java::IoVertxCoreHttp::HttpMethod.java_class]).call(Java::IoVertxCoreHttp::HttpMethod.valueOf(method))
         return self
       end
-      raise ArgumentError, "Invalid arguments when calling method(method)"
+      raise ArgumentError, "Invalid arguments when calling method(#{method})"
     end
     #  Set the path prefix for this route. If set then this route will only match request URI paths which start with this
     #  path prefix. Only a single path or path regex can be set for a route.
@@ -35,7 +51,7 @@ module VertxWeb
         @j_del.java_method(:path, [Java::java.lang.String.java_class]).call(path)
         return self
       end
-      raise ArgumentError, "Invalid arguments when calling path(path)"
+      raise ArgumentError, "Invalid arguments when calling path(#{path})"
     end
     #  Set the path prefix as a regular expression. If set then this route will only match request URI paths, the beginning
     #  of which match the regex. Only a single path or path regex can be set for a route.
@@ -46,7 +62,7 @@ module VertxWeb
         @j_del.java_method(:pathRegex, [Java::java.lang.String.java_class]).call(path)
         return self
       end
-      raise ArgumentError, "Invalid arguments when calling path_regex(path)"
+      raise ArgumentError, "Invalid arguments when calling path_regex(#{path})"
     end
     #  Add a content type produced by this route. Used for content based routing.
     # @param [String] contentType the content type
@@ -56,7 +72,7 @@ module VertxWeb
         @j_del.java_method(:produces, [Java::java.lang.String.java_class]).call(contentType)
         return self
       end
-      raise ArgumentError, "Invalid arguments when calling produces(contentType)"
+      raise ArgumentError, "Invalid arguments when calling produces(#{contentType})"
     end
     #  Add a content type consumed by this route. Used for content based routing.
     # @param [String] contentType the content type
@@ -66,7 +82,7 @@ module VertxWeb
         @j_del.java_method(:consumes, [Java::java.lang.String.java_class]).call(contentType)
         return self
       end
-      raise ArgumentError, "Invalid arguments when calling consumes(contentType)"
+      raise ArgumentError, "Invalid arguments when calling consumes(#{contentType})"
     end
     #  Specify the order for this route. The router tests routes in that order.
     # @param [Fixnum] order the order
@@ -76,7 +92,7 @@ module VertxWeb
         @j_del.java_method(:order, [Java::int.java_class]).call(order)
         return self
       end
-      raise ArgumentError, "Invalid arguments when calling order(order)"
+      raise ArgumentError, "Invalid arguments when calling order(#{order})"
     end
     #  Specify this is the last route for the router.
     # @return [self]
@@ -118,7 +134,7 @@ module VertxWeb
         @j_del.java_method(:blockingHandler, [Java::IoVertxCore::Handler.java_class,Java::boolean.java_class]).call((Proc.new { |event| requestHandler.call(::Vertx::Util::Utils.safe_create(event,::VertxWeb::RoutingContext)) }),ordered)
         return self
       end
-      raise ArgumentError, "Invalid arguments when calling blocking_handler(requestHandler,ordered)"
+      raise ArgumentError, "Invalid arguments when calling blocking_handler(#{requestHandler},#{ordered})"
     end
     #  Specify a failure handler for the route. The router routes failures to failurehandlers depending on whether the various
     #  criteria such as method, path, etc match. There can be only one failure handler for a route. If you set this more
@@ -168,7 +184,7 @@ module VertxWeb
         @j_del.java_method(:useNormalisedPath, [Java::boolean.java_class]).call(useNormalisedPath)
         return self
       end
-      raise ArgumentError, "Invalid arguments when calling use_normalised_path(useNormalisedPath)"
+      raise ArgumentError, "Invalid arguments when calling use_normalised_path(#{useNormalisedPath})"
     end
     # @return [String] the path prefix (if any) for this route
     def get_path

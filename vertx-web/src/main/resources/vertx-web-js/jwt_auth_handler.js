@@ -128,6 +128,25 @@ var JWTAuthHandler = function(j_val) {
   this._jdel = j_jWTAuthHandler;
 };
 
+JWTAuthHandler._jclass = utils.getJavaClass("io.vertx.ext.web.handler.JWTAuthHandler");
+JWTAuthHandler._jtype = {
+  accept: function(obj) {
+    return JWTAuthHandler._jclass.isInstance(obj._jdel);
+  },
+  wrap: function(jdel) {
+    var obj = Object.create(JWTAuthHandler.prototype, {});
+    JWTAuthHandler.apply(obj, arguments);
+    return obj;
+  },
+  unwrap: function(obj) {
+    return obj._jdel;
+  }
+};
+JWTAuthHandler._create = function(jdel) {
+  var obj = Object.create(JWTAuthHandler.prototype, {});
+  JWTAuthHandler.apply(obj, arguments);
+  return obj;
+}
 /**
  Create a JWT auth handler
 
@@ -139,11 +158,10 @@ var JWTAuthHandler = function(j_val) {
 JWTAuthHandler.create = function() {
   var __args = arguments;
   if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
-    return utils.convReturnVertxGen(JJWTAuthHandler["create(io.vertx.ext.auth.jwt.JWTAuth)"](__args[0]._jdel), JWTAuthHandler);
+    return utils.convReturnVertxGen(JWTAuthHandler, JJWTAuthHandler["create(io.vertx.ext.auth.jwt.JWTAuth)"](__args[0]._jdel));
   }else if (__args.length === 2 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'string') {
-    return utils.convReturnVertxGen(JJWTAuthHandler["create(io.vertx.ext.auth.jwt.JWTAuth,java.lang.String)"](__args[0]._jdel, __args[1]), JWTAuthHandler);
+    return utils.convReturnVertxGen(JWTAuthHandler, JJWTAuthHandler["create(io.vertx.ext.auth.jwt.JWTAuth,java.lang.String)"](__args[0]._jdel, __args[1]));
   } else throw new TypeError('function invoked with invalid arguments');
 };
 
-// We export the Constructor function
 module.exports = JWTAuthHandler;

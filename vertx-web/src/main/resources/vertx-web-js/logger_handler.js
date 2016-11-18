@@ -50,6 +50,25 @@ var LoggerHandler = function(j_val) {
   this._jdel = j_loggerHandler;
 };
 
+LoggerHandler._jclass = utils.getJavaClass("io.vertx.ext.web.handler.LoggerHandler");
+LoggerHandler._jtype = {
+  accept: function(obj) {
+    return LoggerHandler._jclass.isInstance(obj._jdel);
+  },
+  wrap: function(jdel) {
+    var obj = Object.create(LoggerHandler.prototype, {});
+    LoggerHandler.apply(obj, arguments);
+    return obj;
+  },
+  unwrap: function(obj) {
+    return obj._jdel;
+  }
+};
+LoggerHandler._create = function(jdel) {
+  var obj = Object.create(LoggerHandler.prototype, {});
+  LoggerHandler.apply(obj, arguments);
+  return obj;
+}
 /**
  Create a handler with he specified format
 
@@ -61,13 +80,12 @@ var LoggerHandler = function(j_val) {
 LoggerHandler.create = function() {
   var __args = arguments;
   if (__args.length === 0) {
-    return utils.convReturnVertxGen(JLoggerHandler["create()"](), LoggerHandler);
+    return utils.convReturnVertxGen(LoggerHandler, JLoggerHandler["create()"]());
   }else if (__args.length === 1 && typeof __args[0] === 'string') {
-    return utils.convReturnVertxGen(JLoggerHandler["create(io.vertx.ext.web.handler.LoggerFormat)"](io.vertx.ext.web.handler.LoggerFormat.valueOf(__args[0])), LoggerHandler);
+    return utils.convReturnVertxGen(LoggerHandler, JLoggerHandler["create(io.vertx.ext.web.handler.LoggerFormat)"](io.vertx.ext.web.handler.LoggerFormat.valueOf(__args[0])));
   }else if (__args.length === 2 && typeof __args[0] ==='boolean' && typeof __args[1] === 'string') {
-    return utils.convReturnVertxGen(JLoggerHandler["create(boolean,io.vertx.ext.web.handler.LoggerFormat)"](__args[0], io.vertx.ext.web.handler.LoggerFormat.valueOf(__args[1])), LoggerHandler);
+    return utils.convReturnVertxGen(LoggerHandler, JLoggerHandler["create(boolean,io.vertx.ext.web.handler.LoggerFormat)"](__args[0], io.vertx.ext.web.handler.LoggerFormat.valueOf(__args[1])));
   } else throw new TypeError('function invoked with invalid arguments');
 };
 
-// We export the Constructor function
 module.exports = LoggerHandler;

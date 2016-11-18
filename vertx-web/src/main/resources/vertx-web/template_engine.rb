@@ -17,6 +17,22 @@ module VertxWeb
     def j_del
       @j_del
     end
+    @@j_api_type = Object.new
+    def @@j_api_type.accept?(obj)
+      obj.class == TemplateEngine
+    end
+    def @@j_api_type.wrap(obj)
+      TemplateEngine.new(obj)
+    end
+    def @@j_api_type.unwrap(obj)
+      obj.j_del
+    end
+    def self.j_api_type
+      @@j_api_type
+    end
+    def self.j_class
+      Java::IoVertxExtWebTempl::TemplateEngine.java_class
+    end
     #  Render
     # @param [::VertxWeb::RoutingContext] context the routing context
     # @param [String] templateFileName the template file name to use
@@ -26,7 +42,7 @@ module VertxWeb
       if context.class.method_defined?(:j_del) && templateFileName.class == String && block_given?
         return @j_del.java_method(:render, [Java::IoVertxExtWeb::RoutingContext.java_class,Java::java.lang.String.java_class,Java::IoVertxCore::Handler.java_class]).call(context.j_del,templateFileName,(Proc.new { |ar| yield(ar.failed ? ar.cause : nil, ar.succeeded ? ::Vertx::Util::Utils.safe_create(ar.result,::Vertx::Buffer) : nil) }))
       end
-      raise ArgumentError, "Invalid arguments when calling render(context,templateFileName)"
+      raise ArgumentError, "Invalid arguments when calling render(#{context},#{templateFileName})"
     end
   end
 end

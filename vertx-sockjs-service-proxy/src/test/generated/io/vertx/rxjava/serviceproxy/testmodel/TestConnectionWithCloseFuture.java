@@ -29,13 +29,18 @@ import io.vertx.core.Handler;
 
 public class TestConnectionWithCloseFuture {
 
-  final io.vertx.serviceproxy.testmodel.TestConnectionWithCloseFuture delegate;
+  public static final io.vertx.lang.rxjava.TypeArg<TestConnectionWithCloseFuture> arg = new io.vertx.lang.rxjava.TypeArg<>(
+    obj -> new TestConnectionWithCloseFuture((io.vertx.serviceproxy.testmodel.TestConnectionWithCloseFuture) obj),
+    TestConnectionWithCloseFuture::getDelegate
+  );
 
+  final io.vertx.serviceproxy.testmodel.TestConnectionWithCloseFuture delegate;
+  
   public TestConnectionWithCloseFuture(io.vertx.serviceproxy.testmodel.TestConnectionWithCloseFuture delegate) {
     this.delegate = delegate;
   }
 
-  public Object getDelegate() {
+  public io.vertx.serviceproxy.testmodel.TestConnectionWithCloseFuture getDelegate() {
     return delegate;
   }
 

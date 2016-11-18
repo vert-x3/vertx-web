@@ -22,13 +22,29 @@ module VertxWeb
     def j_del
       @j_del
     end
+    @@j_api_type = Object.new
+    def @@j_api_type.accept?(obj)
+      obj.class == SockJSHandler
+    end
+    def @@j_api_type.wrap(obj)
+      SockJSHandler.new(obj)
+    end
+    def @@j_api_type.unwrap(obj)
+      obj.j_del
+    end
+    def self.j_api_type
+      @@j_api_type
+    end
+    def self.j_class
+      Java::IoVertxExtWebHandlerSockjs::SockJSHandler.java_class
+    end
     # @param [::VertxWeb::RoutingContext] arg0 
     # @return [void]
     def handle(arg0=nil)
       if arg0.class.method_defined?(:j_del) && !block_given?
         return @j_del.java_method(:handle, [Java::IoVertxExtWeb::RoutingContext.java_class]).call(arg0.j_del)
       end
-      raise ArgumentError, "Invalid arguments when calling handle(arg0)"
+      raise ArgumentError, "Invalid arguments when calling handle(#{arg0})"
     end
     #  Create a SockJS handler
     # @param [::Vertx::Vertx] vertx the Vert.x instance
@@ -40,7 +56,7 @@ module VertxWeb
       elsif vertx.class.method_defined?(:j_del) && options.class == Hash && !block_given?
         return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebHandlerSockjs::SockJSHandler.java_method(:create, [Java::IoVertxCore::Vertx.java_class,Java::IoVertxExtWebHandlerSockjs::SockJSHandlerOptions.java_class]).call(vertx.j_del,Java::IoVertxExtWebHandlerSockjs::SockJSHandlerOptions.new(::Vertx::Util::Utils.to_json_object(options))),::VertxWeb::SockJSHandler)
       end
-      raise ArgumentError, "Invalid arguments when calling create(vertx,options)"
+      raise ArgumentError, "Invalid arguments when calling create(#{vertx},#{options})"
     end
     #  Install SockJS test applications on a router - used when running the SockJS test suite
     # @param [::VertxWeb::Router] router the router to install on
@@ -50,7 +66,7 @@ module VertxWeb
       if router.class.method_defined?(:j_del) && vertx.class.method_defined?(:j_del) && !block_given?
         return Java::IoVertxExtWebHandlerSockjs::SockJSHandler.java_method(:installTestApplications, [Java::IoVertxExtWeb::Router.java_class,Java::IoVertxCore::Vertx.java_class]).call(router.j_del,vertx.j_del)
       end
-      raise ArgumentError, "Invalid arguments when calling install_test_applications(router,vertx)"
+      raise ArgumentError, "Invalid arguments when calling install_test_applications(#{router},#{vertx})"
     end
     #  Set a SockJS socket handler. This handler will be called with a SockJS socket whenever a SockJS connection
     #  is made from a client
@@ -76,7 +92,7 @@ module VertxWeb
         @j_del.java_method(:bridge, [Java::IoVertxExtWebHandlerSockjs::BridgeOptions.java_class,Java::IoVertxCore::Handler.java_class]).call(Java::IoVertxExtWebHandlerSockjs::BridgeOptions.new(::Vertx::Util::Utils.to_json_object(bridgeOptions)),(Proc.new { |event| yield(::Vertx::Util::Utils.safe_create(event,::VertxWeb::BridgeEvent)) }))
         return self
       end
-      raise ArgumentError, "Invalid arguments when calling bridge(bridgeOptions)"
+      raise ArgumentError, "Invalid arguments when calling bridge(#{bridgeOptions})"
     end
   end
 end

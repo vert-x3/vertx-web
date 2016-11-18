@@ -17,6 +17,22 @@ module VertxWeb
     def j_del
       @j_del
     end
+    @@j_api_type = Object.new
+    def @@j_api_type.accept?(obj)
+      obj.class == JadeTemplateEngine
+    end
+    def @@j_api_type.wrap(obj)
+      JadeTemplateEngine.new(obj)
+    end
+    def @@j_api_type.unwrap(obj)
+      obj.j_del
+    end
+    def self.j_api_type
+      @@j_api_type
+    end
+    def self.j_class
+      Java::IoVertxExtWebTempl::JadeTemplateEngine.java_class
+    end
     # @param [::VertxWeb::RoutingContext] arg0 
     # @param [String] arg1 
     # @yield 
@@ -25,7 +41,7 @@ module VertxWeb
       if arg0.class.method_defined?(:j_del) && arg1.class == String && block_given?
         return @j_del.java_method(:render, [Java::IoVertxExtWeb::RoutingContext.java_class,Java::java.lang.String.java_class,Java::IoVertxCore::Handler.java_class]).call(arg0.j_del,arg1,(Proc.new { |ar| yield(ar.failed ? ar.cause : nil, ar.succeeded ? ::Vertx::Util::Utils.safe_create(ar.result,::Vertx::Buffer) : nil) }))
       end
-      raise ArgumentError, "Invalid arguments when calling render(arg0,arg1)"
+      raise ArgumentError, "Invalid arguments when calling render(#{arg0},#{arg1})"
     end
     #  Create a template engine using defaults
     # @return [::VertxWeb::JadeTemplateEngine] the engine
@@ -42,7 +58,7 @@ module VertxWeb
       if extension.class == String && !block_given?
         return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:setExtension, [Java::java.lang.String.java_class]).call(extension),::VertxWeb::JadeTemplateEngine)
       end
-      raise ArgumentError, "Invalid arguments when calling set_extension(extension)"
+      raise ArgumentError, "Invalid arguments when calling set_extension(#{extension})"
     end
     #  Set the max cache size for the engine
     # @param [Fixnum] maxCacheSize the maxCacheSize
@@ -51,7 +67,7 @@ module VertxWeb
       if maxCacheSize.class == Fixnum && !block_given?
         return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:setMaxCacheSize, [Java::int.java_class]).call(maxCacheSize),::VertxWeb::JadeTemplateEngine)
       end
-      raise ArgumentError, "Invalid arguments when calling set_max_cache_size(maxCacheSize)"
+      raise ArgumentError, "Invalid arguments when calling set_max_cache_size(#{maxCacheSize})"
     end
   end
 end

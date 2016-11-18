@@ -49,6 +49,25 @@ var CookieHandler = function(j_val) {
   this._jdel = j_cookieHandler;
 };
 
+CookieHandler._jclass = utils.getJavaClass("io.vertx.ext.web.handler.CookieHandler");
+CookieHandler._jtype = {
+  accept: function(obj) {
+    return CookieHandler._jclass.isInstance(obj._jdel);
+  },
+  wrap: function(jdel) {
+    var obj = Object.create(CookieHandler.prototype, {});
+    CookieHandler.apply(obj, arguments);
+    return obj;
+  },
+  unwrap: function(obj) {
+    return obj._jdel;
+  }
+};
+CookieHandler._create = function(jdel) {
+  var obj = Object.create(CookieHandler.prototype, {});
+  CookieHandler.apply(obj, arguments);
+  return obj;
+}
 /**
  Create a cookie handler
 
@@ -59,9 +78,8 @@ var CookieHandler = function(j_val) {
 CookieHandler.create = function() {
   var __args = arguments;
   if (__args.length === 0) {
-    return utils.convReturnVertxGen(JCookieHandler["create()"](), CookieHandler);
+    return utils.convReturnVertxGen(CookieHandler, JCookieHandler["create()"]());
   } else throw new TypeError('function invoked with invalid arguments');
 };
 
-// We export the Constructor function
 module.exports = CookieHandler;

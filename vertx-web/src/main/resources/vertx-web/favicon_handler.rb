@@ -16,13 +16,29 @@ module VertxWeb
     def j_del
       @j_del
     end
+    @@j_api_type = Object.new
+    def @@j_api_type.accept?(obj)
+      obj.class == FaviconHandler
+    end
+    def @@j_api_type.wrap(obj)
+      FaviconHandler.new(obj)
+    end
+    def @@j_api_type.unwrap(obj)
+      obj.j_del
+    end
+    def self.j_api_type
+      @@j_api_type
+    end
+    def self.j_class
+      Java::IoVertxExtWebHandler::FaviconHandler.java_class
+    end
     # @param [::VertxWeb::RoutingContext] arg0 
     # @return [void]
     def handle(arg0=nil)
       if arg0.class.method_defined?(:j_del) && !block_given?
         return @j_del.java_method(:handle, [Java::IoVertxExtWeb::RoutingContext.java_class]).call(arg0.j_del)
       end
-      raise ArgumentError, "Invalid arguments when calling handle(arg0)"
+      raise ArgumentError, "Invalid arguments when calling handle(#{arg0})"
     end
     #  Create a handler attempting to load favicon file from the specified path, and with the specified max cache time
     # @overload create()
@@ -44,7 +60,7 @@ module VertxWeb
       elsif param_1.class == String && param_2.class == Fixnum && !block_given?
         return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebHandler::FaviconHandler.java_method(:create, [Java::java.lang.String.java_class,Java::long.java_class]).call(param_1,param_2),::VertxWeb::FaviconHandler)
       end
-      raise ArgumentError, "Invalid arguments when calling create(param_1,param_2)"
+      raise ArgumentError, "Invalid arguments when calling create(#{param_1},#{param_2})"
     end
   end
 end

@@ -14,13 +14,29 @@ module VertxWeb
     def j_del
       @j_del
     end
+    @@j_api_type = Object.new
+    def @@j_api_type.accept?(obj)
+      obj.class == ErrorHandler
+    end
+    def @@j_api_type.wrap(obj)
+      ErrorHandler.new(obj)
+    end
+    def @@j_api_type.unwrap(obj)
+      obj.j_del
+    end
+    def self.j_api_type
+      @@j_api_type
+    end
+    def self.j_class
+      Java::IoVertxExtWebHandler::ErrorHandler.java_class
+    end
     # @param [::VertxWeb::RoutingContext] arg0 
     # @return [void]
     def handle(arg0=nil)
       if arg0.class.method_defined?(:j_del) && !block_given?
         return @j_del.java_method(:handle, [Java::IoVertxExtWeb::RoutingContext.java_class]).call(arg0.j_del)
       end
-      raise ArgumentError, "Invalid arguments when calling handle(arg0)"
+      raise ArgumentError, "Invalid arguments when calling handle(#{arg0})"
     end
     #  Create an error handler
     # @overload create()
@@ -42,7 +58,7 @@ module VertxWeb
       elsif param_1.class == String && (param_2.class == TrueClass || param_2.class == FalseClass) && !block_given?
         return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebHandler::ErrorHandler.java_method(:create, [Java::java.lang.String.java_class,Java::boolean.java_class]).call(param_1,param_2),::VertxWeb::ErrorHandler)
       end
-      raise ArgumentError, "Invalid arguments when calling create(param_1,param_2)"
+      raise ArgumentError, "Invalid arguments when calling create(#{param_1},#{param_2})"
     end
   end
 end

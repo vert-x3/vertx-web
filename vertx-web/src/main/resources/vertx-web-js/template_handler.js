@@ -53,6 +53,25 @@ var TemplateHandler = function(j_val) {
   this._jdel = j_templateHandler;
 };
 
+TemplateHandler._jclass = utils.getJavaClass("io.vertx.ext.web.handler.TemplateHandler");
+TemplateHandler._jtype = {
+  accept: function(obj) {
+    return TemplateHandler._jclass.isInstance(obj._jdel);
+  },
+  wrap: function(jdel) {
+    var obj = Object.create(TemplateHandler.prototype, {});
+    TemplateHandler.apply(obj, arguments);
+    return obj;
+  },
+  unwrap: function(obj) {
+    return obj._jdel;
+  }
+};
+TemplateHandler._create = function(jdel) {
+  var obj = Object.create(TemplateHandler.prototype, {});
+  TemplateHandler.apply(obj, arguments);
+  return obj;
+}
 /**
  Create a handler
 
@@ -65,11 +84,10 @@ var TemplateHandler = function(j_val) {
 TemplateHandler.create = function() {
   var __args = arguments;
   if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
-    return utils.convReturnVertxGen(JTemplateHandler["create(io.vertx.ext.web.templ.TemplateEngine)"](__args[0]._jdel), TemplateHandler);
+    return utils.convReturnVertxGen(TemplateHandler, JTemplateHandler["create(io.vertx.ext.web.templ.TemplateEngine)"](__args[0]._jdel));
   }else if (__args.length === 3 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'string' && typeof __args[2] === 'string') {
-    return utils.convReturnVertxGen(JTemplateHandler["create(io.vertx.ext.web.templ.TemplateEngine,java.lang.String,java.lang.String)"](__args[0]._jdel, __args[1], __args[2]), TemplateHandler);
+    return utils.convReturnVertxGen(TemplateHandler, JTemplateHandler["create(io.vertx.ext.web.templ.TemplateEngine,java.lang.String,java.lang.String)"](__args[0]._jdel, __args[1], __args[2]));
   } else throw new TypeError('function invoked with invalid arguments');
 };
 
-// We export the Constructor function
 module.exports = TemplateHandler;

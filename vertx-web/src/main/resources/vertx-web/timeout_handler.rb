@@ -15,13 +15,29 @@ module VertxWeb
     def j_del
       @j_del
     end
+    @@j_api_type = Object.new
+    def @@j_api_type.accept?(obj)
+      obj.class == TimeoutHandler
+    end
+    def @@j_api_type.wrap(obj)
+      TimeoutHandler.new(obj)
+    end
+    def @@j_api_type.unwrap(obj)
+      obj.j_del
+    end
+    def self.j_api_type
+      @@j_api_type
+    end
+    def self.j_class
+      Java::IoVertxExtWebHandler::TimeoutHandler.java_class
+    end
     # @param [::VertxWeb::RoutingContext] arg0 
     # @return [void]
     def handle(arg0=nil)
       if arg0.class.method_defined?(:j_del) && !block_given?
         return @j_del.java_method(:handle, [Java::IoVertxExtWeb::RoutingContext.java_class]).call(arg0.j_del)
       end
-      raise ArgumentError, "Invalid arguments when calling handle(arg0)"
+      raise ArgumentError, "Invalid arguments when calling handle(#{arg0})"
     end
     #  Create a handler
     # @param [Fixnum] timeout the timeout, in ms
@@ -35,7 +51,7 @@ module VertxWeb
       elsif timeout.class == Fixnum && errorCode.class == Fixnum && !block_given?
         return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebHandler::TimeoutHandler.java_method(:create, [Java::long.java_class,Java::int.java_class]).call(timeout,errorCode),::VertxWeb::TimeoutHandler)
       end
-      raise ArgumentError, "Invalid arguments when calling create(timeout,errorCode)"
+      raise ArgumentError, "Invalid arguments when calling create(#{timeout},#{errorCode})"
     end
   end
 end

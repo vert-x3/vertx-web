@@ -81,7 +81,7 @@ var TestService = function(j_val) {
     if (__args.length === 2 && typeof __args[0] === 'string' && typeof __args[1] === 'function') {
       j_testService["createConnection(java.lang.String,io.vertx.core.Handler)"](str, function(ar) {
       if (ar.succeeded()) {
-        resultHandler(utils.convReturnVertxGen(ar.result(), TestConnection), null);
+        resultHandler(utils.convReturnVertxGen(TestConnection, ar.result()), null);
       } else {
         resultHandler(null, ar.cause());
       }
@@ -99,7 +99,7 @@ var TestService = function(j_val) {
     if (__args.length === 1 && typeof __args[0] === 'function') {
       j_testService["createConnectionWithCloseFuture(io.vertx.core.Handler)"](function(ar) {
       if (ar.succeeded()) {
-        resultHandler(utils.convReturnVertxGen(ar.result(), TestConnectionWithCloseFuture), null);
+        resultHandler(utils.convReturnVertxGen(TestConnectionWithCloseFuture, ar.result()), null);
       } else {
         resultHandler(null, ar.cause());
       }
@@ -1321,6 +1321,25 @@ var TestService = function(j_val) {
   this._jdel = j_testService;
 };
 
+TestService._jclass = utils.getJavaClass("io.vertx.serviceproxy.testmodel.TestService");
+TestService._jtype = {
+  accept: function(obj) {
+    return TestService._jclass.isInstance(obj._jdel);
+  },
+  wrap: function(jdel) {
+    var obj = Object.create(TestService.prototype, {});
+    TestService.apply(obj, arguments);
+    return obj;
+  },
+  unwrap: function(obj) {
+    return obj._jdel;
+  }
+};
+TestService._create = function(jdel) {
+  var obj = Object.create(TestService.prototype, {});
+  TestService.apply(obj, arguments);
+  return obj;
+}
 /**
 
  @memberof module:test-js/test_service
@@ -1330,7 +1349,7 @@ var TestService = function(j_val) {
 TestService.create = function(vertx) {
   var __args = arguments;
   if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
-    return utils.convReturnVertxGen(JTestService["create(io.vertx.core.Vertx)"](vertx._jdel), TestService);
+    return utils.convReturnVertxGen(TestService, JTestService["create(io.vertx.core.Vertx)"](vertx._jdel));
   } else throw new TypeError('function invoked with invalid arguments');
 };
 
@@ -1344,7 +1363,7 @@ TestService.create = function(vertx) {
 TestService.createProxy = function(vertx, address) {
   var __args = arguments;
   if (__args.length === 2 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'string') {
-    return utils.convReturnVertxGen(JTestService["createProxy(io.vertx.core.Vertx,java.lang.String)"](vertx._jdel, address), TestService);
+    return utils.convReturnVertxGen(TestService, JTestService["createProxy(io.vertx.core.Vertx,java.lang.String)"](vertx._jdel, address));
   } else throw new TypeError('function invoked with invalid arguments');
 };
 
@@ -1358,9 +1377,8 @@ TestService.createProxy = function(vertx, address) {
 TestService.createProxyLongDelivery = function(vertx, address) {
   var __args = arguments;
   if (__args.length === 2 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'string') {
-    return utils.convReturnVertxGen(JTestService["createProxyLongDelivery(io.vertx.core.Vertx,java.lang.String)"](vertx._jdel, address), TestService);
+    return utils.convReturnVertxGen(TestService, JTestService["createProxyLongDelivery(io.vertx.core.Vertx,java.lang.String)"](vertx._jdel, address));
   } else throw new TypeError('function invoked with invalid arguments');
 };
 
-// We export the Constructor function
 module.exports = TestService;

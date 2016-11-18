@@ -37,48 +37,6 @@ var LanguageHeader = function(j_val) {
   Locale.call(this, j_val);
 
   /**
-   Returns the language as reported by the HTTP client.
-
-   @public
-
-   @return {string} language
-   */
-  this.language = function() {
-    var __args = arguments;
-    if (__args.length === 0) {
-      return j_languageHeader["language()"]();
-    } else throw new TypeError('function invoked with invalid arguments');
-  };
-
-  /**
-   Returns the country as reported by the HTTP client.
-
-   @public
-
-   @return {string} variant
-   */
-  this.country = function() {
-    var __args = arguments;
-    if (__args.length === 0) {
-      return j_languageHeader["country()"]();
-    } else throw new TypeError('function invoked with invalid arguments');
-  };
-
-  /**
-   Returns the variant as reported by the HTTP client.
-
-   @public
-
-   @return {string} variant
-   */
-  this.variant = function() {
-    var __args = arguments;
-    if (__args.length === 0) {
-      return j_languageHeader["variant()"]();
-    } else throw new TypeError('function invoked with invalid arguments');
-  };
-
-  /**
    Contains the raw value that was received from the user agent 
 
    @public
@@ -201,6 +159,48 @@ var LanguageHeader = function(j_val) {
   };
 
   /**
+   Returns the language as reported by the HTTP client.
+
+   @public
+
+   @return {string} language
+   */
+  this.language = function() {
+    var __args = arguments;
+    if (__args.length === 0) {
+      return j_languageHeader["language()"]();
+    } else throw new TypeError('function invoked with invalid arguments');
+  };
+
+  /**
+   Returns the country as reported by the HTTP client.
+
+   @public
+
+   @return {string} variant
+   */
+  this.country = function() {
+    var __args = arguments;
+    if (__args.length === 0) {
+      return j_languageHeader["country()"]();
+    } else throw new TypeError('function invoked with invalid arguments');
+  };
+
+  /**
+   Returns the variant as reported by the HTTP client.
+
+   @public
+
+   @return {string} variant
+   */
+  this.variant = function() {
+    var __args = arguments;
+    if (__args.length === 0) {
+      return j_languageHeader["variant()"]();
+    } else throw new TypeError('function invoked with invalid arguments');
+  };
+
+  /**
    The tag of the language as specified by 
    <a href="https://tools.ietf.org/html/rfc7231#section-3.1.3.1">rfc7231#section-3.1.3.1</a>.<br>
    Equivalent to 
@@ -252,5 +252,23 @@ var LanguageHeader = function(j_val) {
   this._jdel = j_languageHeader;
 };
 
-// We export the Constructor function
+LanguageHeader._jclass = utils.getJavaClass("io.vertx.ext.web.LanguageHeader");
+LanguageHeader._jtype = {
+  accept: function(obj) {
+    return LanguageHeader._jclass.isInstance(obj._jdel);
+  },
+  wrap: function(jdel) {
+    var obj = Object.create(LanguageHeader.prototype, {});
+    LanguageHeader.apply(obj, arguments);
+    return obj;
+  },
+  unwrap: function(obj) {
+    return obj._jdel;
+  }
+};
+LanguageHeader._create = function(jdel) {
+  var obj = Object.create(LanguageHeader.prototype, {});
+  LanguageHeader.apply(obj, arguments);
+  return obj;
+}
 module.exports = LanguageHeader;

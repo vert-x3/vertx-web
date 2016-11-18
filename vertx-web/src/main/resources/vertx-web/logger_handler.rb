@@ -14,13 +14,29 @@ module VertxWeb
     def j_del
       @j_del
     end
+    @@j_api_type = Object.new
+    def @@j_api_type.accept?(obj)
+      obj.class == LoggerHandler
+    end
+    def @@j_api_type.wrap(obj)
+      LoggerHandler.new(obj)
+    end
+    def @@j_api_type.unwrap(obj)
+      obj.j_del
+    end
+    def self.j_api_type
+      @@j_api_type
+    end
+    def self.j_class
+      Java::IoVertxExtWebHandler::LoggerHandler.java_class
+    end
     # @param [::VertxWeb::RoutingContext] arg0 
     # @return [void]
     def handle(arg0=nil)
       if arg0.class.method_defined?(:j_del) && !block_given?
         return @j_del.java_method(:handle, [Java::IoVertxExtWeb::RoutingContext.java_class]).call(arg0.j_del)
       end
-      raise ArgumentError, "Invalid arguments when calling handle(arg0)"
+      raise ArgumentError, "Invalid arguments when calling handle(#{arg0})"
     end
     #  Create a handler with he specified format
     # @overload create()
@@ -38,7 +54,7 @@ module VertxWeb
       elsif (param_1.class == TrueClass || param_1.class == FalseClass) && param_2.class == Symbol && !block_given?
         return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebHandler::LoggerHandler.java_method(:create, [Java::boolean.java_class,Java::IoVertxExtWebHandler::LoggerFormat.java_class]).call(param_1,Java::IoVertxExtWebHandler::LoggerFormat.valueOf(param_2)),::VertxWeb::LoggerHandler)
       end
-      raise ArgumentError, "Invalid arguments when calling create(param_1,param_2)"
+      raise ArgumentError, "Invalid arguments when calling create(#{param_1},#{param_2})"
     end
   end
 end

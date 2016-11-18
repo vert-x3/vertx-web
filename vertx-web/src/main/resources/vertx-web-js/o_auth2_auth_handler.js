@@ -114,6 +114,25 @@ var OAuth2AuthHandler = function(j_val) {
   this._jdel = j_oAuth2AuthHandler;
 };
 
+OAuth2AuthHandler._jclass = utils.getJavaClass("io.vertx.ext.web.handler.OAuth2AuthHandler");
+OAuth2AuthHandler._jtype = {
+  accept: function(obj) {
+    return OAuth2AuthHandler._jclass.isInstance(obj._jdel);
+  },
+  wrap: function(jdel) {
+    var obj = Object.create(OAuth2AuthHandler.prototype, {});
+    OAuth2AuthHandler.apply(obj, arguments);
+    return obj;
+  },
+  unwrap: function(obj) {
+    return obj._jdel;
+  }
+};
+OAuth2AuthHandler._create = function(jdel) {
+  var obj = Object.create(OAuth2AuthHandler.prototype, {});
+  OAuth2AuthHandler.apply(obj, arguments);
+  return obj;
+}
 /**
  Create a OAuth2 auth handler
 
@@ -125,9 +144,8 @@ var OAuth2AuthHandler = function(j_val) {
 OAuth2AuthHandler.create = function(authProvider, uri) {
   var __args = arguments;
   if (__args.length === 2 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'string') {
-    return utils.convReturnVertxGen(JOAuth2AuthHandler["create(io.vertx.ext.auth.oauth2.OAuth2Auth,java.lang.String)"](authProvider._jdel, uri), OAuth2AuthHandler);
+    return utils.convReturnVertxGen(OAuth2AuthHandler, JOAuth2AuthHandler["create(io.vertx.ext.auth.oauth2.OAuth2Auth,java.lang.String)"](authProvider._jdel, uri));
   } else throw new TypeError('function invoked with invalid arguments');
 };
 
-// We export the Constructor function
 module.exports = OAuth2AuthHandler;

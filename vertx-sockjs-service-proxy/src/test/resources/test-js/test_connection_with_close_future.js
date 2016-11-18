@@ -72,5 +72,23 @@ var TestConnectionWithCloseFuture = function(j_val) {
   this._jdel = j_testConnectionWithCloseFuture;
 };
 
-// We export the Constructor function
+TestConnectionWithCloseFuture._jclass = utils.getJavaClass("io.vertx.serviceproxy.testmodel.TestConnectionWithCloseFuture");
+TestConnectionWithCloseFuture._jtype = {
+  accept: function(obj) {
+    return TestConnectionWithCloseFuture._jclass.isInstance(obj._jdel);
+  },
+  wrap: function(jdel) {
+    var obj = Object.create(TestConnectionWithCloseFuture.prototype, {});
+    TestConnectionWithCloseFuture.apply(obj, arguments);
+    return obj;
+  },
+  unwrap: function(obj) {
+    return obj._jdel;
+  }
+};
+TestConnectionWithCloseFuture._create = function(jdel) {
+  var obj = Object.create(TestConnectionWithCloseFuture.prototype, {});
+  TestConnectionWithCloseFuture.apply(obj, arguments);
+  return obj;
+}
 module.exports = TestConnectionWithCloseFuture;

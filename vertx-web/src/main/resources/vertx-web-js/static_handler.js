@@ -290,6 +290,25 @@ var StaticHandler = function(j_val) {
   this._jdel = j_staticHandler;
 };
 
+StaticHandler._jclass = utils.getJavaClass("io.vertx.ext.web.handler.StaticHandler");
+StaticHandler._jtype = {
+  accept: function(obj) {
+    return StaticHandler._jclass.isInstance(obj._jdel);
+  },
+  wrap: function(jdel) {
+    var obj = Object.create(StaticHandler.prototype, {});
+    StaticHandler.apply(obj, arguments);
+    return obj;
+  },
+  unwrap: function(obj) {
+    return obj._jdel;
+  }
+};
+StaticHandler._create = function(jdel) {
+  var obj = Object.create(StaticHandler.prototype, {});
+  StaticHandler.apply(obj, arguments);
+  return obj;
+}
 /**
  Create a handler, specifying web-root
 
@@ -300,11 +319,10 @@ var StaticHandler = function(j_val) {
 StaticHandler.create = function() {
   var __args = arguments;
   if (__args.length === 0) {
-    return utils.convReturnVertxGen(JStaticHandler["create()"](), StaticHandler);
+    return utils.convReturnVertxGen(StaticHandler, JStaticHandler["create()"]());
   }else if (__args.length === 1 && typeof __args[0] === 'string') {
-    return utils.convReturnVertxGen(JStaticHandler["create(java.lang.String)"](__args[0]), StaticHandler);
+    return utils.convReturnVertxGen(StaticHandler, JStaticHandler["create(java.lang.String)"](__args[0]));
   } else throw new TypeError('function invoked with invalid arguments');
 };
 
-// We export the Constructor function
 module.exports = StaticHandler;

@@ -58,7 +58,7 @@ var SessionStore = function(j_val) {
   this.createSession = function(timeout) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] ==='number') {
-      return utils.convReturnVertxGen(j_sessionStore["createSession(long)"](timeout), Session);
+      return utils.convReturnVertxGen(Session, j_sessionStore["createSession(long)"](timeout));
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -74,7 +74,7 @@ var SessionStore = function(j_val) {
     if (__args.length === 2 && typeof __args[0] === 'string' && typeof __args[1] === 'function') {
       j_sessionStore["get(java.lang.String,io.vertx.core.Handler)"](id, function(ar) {
       if (ar.succeeded()) {
-        resultHandler(utils.convReturnVertxGen(ar.result(), Session), null);
+        resultHandler(utils.convReturnVertxGen(Session, ar.result()), null);
       } else {
         resultHandler(null, ar.cause());
       }
@@ -179,5 +179,23 @@ var SessionStore = function(j_val) {
   this._jdel = j_sessionStore;
 };
 
-// We export the Constructor function
+SessionStore._jclass = utils.getJavaClass("io.vertx.ext.web.sstore.SessionStore");
+SessionStore._jtype = {
+  accept: function(obj) {
+    return SessionStore._jclass.isInstance(obj._jdel);
+  },
+  wrap: function(jdel) {
+    var obj = Object.create(SessionStore.prototype, {});
+    SessionStore.apply(obj, arguments);
+    return obj;
+  },
+  unwrap: function(obj) {
+    return obj._jdel;
+  }
+};
+SessionStore._create = function(jdel) {
+  var obj = Object.create(SessionStore.prototype, {});
+  SessionStore.apply(obj, arguments);
+  return obj;
+}
 module.exports = SessionStore;
