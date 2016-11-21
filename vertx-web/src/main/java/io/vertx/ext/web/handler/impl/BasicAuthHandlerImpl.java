@@ -22,6 +22,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.auth.AuthProvider;
 import io.vertx.ext.auth.User;
+import io.vertx.ext.web.Session;
 
 import java.util.Base64;
 
@@ -58,15 +59,15 @@ public class BasicAuthHandlerImpl extends AuthHandlerImpl {
         try {
           String[] parts = authorization.split(" ");
           sscheme = parts[0];
-          String decoded = new String(Base64.getDecoder().decode(parts[1]));          
+          String decoded = new String(Base64.getDecoder().decode(parts[1]));
           int colonIdx = decoded.indexOf(":");
           if(colonIdx!=-1) {
               suser = decoded.substring(0,colonIdx);
               spass = decoded.substring(colonIdx+1);
           } else {
               suser = decoded;
-              spass = null;                      
-          }          
+              spass = null;
+          }
         } catch (ArrayIndexOutOfBoundsException e) {
           handle401(context);
           return;
@@ -84,6 +85,12 @@ public class BasicAuthHandlerImpl extends AuthHandlerImpl {
             if (res.succeeded()) {
               User authenticated = res.result();
               context.setUser(authenticated);
+              Session session = context.session();
+              if (session != null) {
+                // the user has upgraded from unauthenticated to authenticated
+                // session should be upgraded as recommended by owasp
+                session.regenerateId();
+              }
               authorise(authenticated, context);
             } else {
               handle401(context);
@@ -97,5 +104,5 @@ public class BasicAuthHandlerImpl extends AuthHandlerImpl {
   private void handle401(RoutingContext context) {
     context.response().putHeader("WWW-Authenticate", "Basic realm=\"" + realm + "\"");
     context.fail(401);
-  }  
+  }
 }

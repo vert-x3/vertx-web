@@ -99,6 +99,10 @@ public class FormLoginHandlerImpl implements FormLoginHandler {
             User user = res.result();
             context.setUser(user);
             if (session != null) {
+              // the user has upgraded from unauthenticated to authenticated
+              // session should be upgraded as recommended by owasp
+              session.regenerateId();
+
               String returnURL = session.remove(returnURLParam);
               if (returnURL != null) {
                 // Now redirect back to the original url
