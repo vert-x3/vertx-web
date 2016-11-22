@@ -35,6 +35,12 @@
       <artifactId>vertx-auth-oauth2</artifactId>
       <optional>true</optional>
     </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-auth-htdigest</artifactId>
+      <version>${project.version}</version>
+      <optional>true</optional>
+    </dependency>
 
     <!-- Testing -->
     <dependency>
