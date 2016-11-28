@@ -1260,5 +1260,36 @@ public class WebExamples {
       ctx.response().putHeader("content-type", "text/html").end("Hello<br><a href=\"/protected/somepage\">Protected by keycloak</a>");
     });
   }
+
+  public void example62(Vertx vertx, Router router) {
+
+    // create an OAuth2 provider, clientID and clientSecret should be requested to Azure AD
+    OAuth2Auth authProvider = OAuth2Auth.create(vertx, OAuth2FlowType.AUTH_CODE, new OAuth2ClientOptions()
+            .setClientID("APPLICATION_ID")
+            .setClientSecret("APPLICATION_KEYS_SECRET")
+            .setSite("https://login.windows.net/YOUR_CLIENT_GUID")
+            .setAuthorizationPath("/oauth2/token")
+            .setTokenPath("/oauth2/authorize"));
+
+    // create a oauth2 handler (Azure requires HTTPS) and your resource GUID
+    OAuth2AuthHandler oauth2 = OAuth2AuthHandler
+            .create(authProvider, "https://localhost:8443")
+            .extraParams(new JsonObject().put("resource", "00000002-0000-0000-c000-000000000000"));
+
+    // setup the callback handler for receiving the LinkedIn callback
+    oauth2.setupCallback(router.get("/callback"));
+
+    // protect everything under /protected
+    router.route("/protected/*").handler(oauth2);
+    // mount some handler under the protected zone
+    router.route("/protected/somepage").handler(rc -> {
+      rc.response().end("Welcome to the protected resource!");
+    });
+
+    // welcome page
+    router.get("/").handler(ctx -> {
+      ctx.response().putHeader("content-type", "text/html").end("Hello<br><a href=\"/protected/somepage\">Protected by LinkedIn</a>");
+    });
+  }
 }
 

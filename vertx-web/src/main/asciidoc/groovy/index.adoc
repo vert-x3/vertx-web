@@ -2828,7 +2828,7 @@ The changes are only on the configuration, note that the token uri must now be a
 a different server than the authorization one.
 
 Important to note that for google OAuth you must register all your callback URLs in the developer console, so for the
-current example you would need to register `http://localhost:8080/callback?redirect_uri=/protected/somepage`.
+current example you would need to register `http://localhost:8080/callback`.
 
 If you're looking to integrate with LinkedIn then your config should be:
 
@@ -2870,6 +2870,47 @@ router.get("/").handler({ ctx ->
 
 ----
 
+When dealing with Microsoft Azure AD you should have to create an application key in order to get a client secret
+and extract the application GUID from the endpoints panel and finally know your resource GUID which you can inspect
+from the manifest.
+
+[source,groovy]
+----
+import io.vertx.ext.auth.oauth2.OAuth2FlowType
+import io.vertx.groovy.ext.auth.oauth2.OAuth2Auth
+import io.vertx.groovy.ext.web.handler.OAuth2AuthHandler
+
+// create an OAuth2 provider, clientID and clientSecret should be requested to Azure AD
+def authProvider = OAuth2Auth.create(vertx, OAuth2FlowType.AUTH_CODE, [
+  clientID:"APPLICATION_ID",
+  clientSecret:"APPLICATION_KEYS_SECRET",
+  site:"https://login.windows.net/YOUR_CLIENT_GUID",
+  authorizationPath:"/oauth2/token",
+  tokenPath:"/oauth2/authorize"
+])
+
+// create a oauth2 handler (Azure requires HTTPS) and your resource GUID
+def oauth2 = OAuth2AuthHandler.create(authProvider, "https://localhost:8443").extraParams([
+  resource:"00000002-0000-0000-c000-000000000000"
+])
+
+// setup the callback handler for receiving the LinkedIn callback
+oauth2.setupCallback(router.get("/callback"))
+
+// protect everything under /protected
+router.route("/protected/*").handler(oauth2)
+// mount some handler under the protected zone
+router.route("/protected/somepage").handler({ rc ->
+  rc.response().end("Welcome to the protected resource!")
+})
+
+// welcome page
+router.get("/").handler({ ctx ->
+  ctx.response().putHeader("content-type", "text/html").end("Hello<br><a href=\"/protected/somepage\">Protected by LinkedIn</a>")
+})
+
+----
+
 As it can be seen from the examples all you need to know is 2 urls, the authorization path and the token path. You
 will find all these configurations on your provider documentation we have also listed on the auth project examples
 for:
@@ -2880,6 +2921,7 @@ for:
 * linkedin
 * facebook
 * keycloak
+* azure AD
 
 For keycloak we have a slighter easier setup, just export the json file from the keycloak admin console and load it
 into the handler. Keycloak has some differences from the other providers in the sense that it can also use the token

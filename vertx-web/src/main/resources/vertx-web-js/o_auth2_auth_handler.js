@@ -79,17 +79,17 @@ var OAuth2AuthHandler = function(j_val) {
   };
 
   /**
-   Build the authorization URL.
+   Extra parameters needed to be passed while requesting a token.
 
    @public
-   @param redirectURL {string} where is the callback mounted. 
-   @param state {string} state opaque token to avoid forged requests 
-   @return {string} the redirect URL
+   @param extraParams {Object} extra optional parameters. 
+   @return {OAuth2AuthHandler} self
    */
-  this.authURI = function(redirectURL, state) {
+  this.extraParams = function(extraParams) {
     var __args = arguments;
-    if (__args.length === 2 && typeof __args[0] === 'string' && typeof __args[1] === 'string') {
-      return j_oAuth2AuthHandler["authURI(java.lang.String,java.lang.String)"](redirectURL, state);
+    if (__args.length === 1 && (typeof __args[0] === 'object' && __args[0] != null)) {
+      j_oAuth2AuthHandler["extraParams(io.vertx.core.json.JsonObject)"](utils.convParamJsonObject(extraParams));
+      return that;
     } else throw new TypeError('function invoked with invalid arguments');
   };
 

@@ -1792,13 +1792,22 @@
  * a different server than the authorization one.
  *
  * Important to note that for google OAuth you must register all your callback URLs in the developer console, so for the
- * current example you would need to register `http://localhost:8080/callback?redirect_uri=/protected/somepage`.
+ * current example you would need to register `http://localhost:8080/callback`.
  *
  * If you're looking to integrate with LinkedIn then your config should be:
  *
  * [source,$lang]
  * ----
  * {@link examples.WebExamples#example60}
+ * ----
+ *
+ * When dealing with Microsoft Azure AD you should have to create an application key in order to get a client secret
+ * and extract the application GUID from the endpoints panel and finally know your resource GUID which you can inspect
+ * from the manifest.
+ *
+ * [source,$lang]
+ * ----
+ * {@link examples.WebExamples#example62}
  * ----
  *
  * As it can be seen from the examples all you need to know is 2 urls, the authorization path and the token path. You
@@ -1811,6 +1820,7 @@
  * * linkedin
  * * facebook
  * * keycloak
+ * * azure AD
  *
  * For keycloak we have a slighter easier setup, just export the json file from the keycloak admin console and load it
  * into the handler. Keycloak has some differences from the other providers in the sense that it can also use the token
