@@ -102,7 +102,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     }, 302, "Found", null);
 
     // fake the redirect
-    testRequest(HttpMethod.GET, "/callback?redirect_uri=/protected/somepage&code=1", null, resp -> {
+    testRequest(HttpMethod.GET, "/callback?state=/protected/somepage&code=1", null, resp -> {
     }, 200, "OK", "Welcome to the protected resource!");
 
     server.close();
