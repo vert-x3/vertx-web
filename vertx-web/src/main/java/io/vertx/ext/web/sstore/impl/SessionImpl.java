@@ -25,8 +25,8 @@ import io.vertx.ext.web.impl.Utils;
 
 import java.io.*;
 import java.nio.charset.Charset;
+import java.security.SecureRandom;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -35,6 +35,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public class SessionImpl implements Session, ClusterSerializable, Shareable {
 
   private static final Charset UTF8 = Charset.forName("UTF-8");
+  private static final SecureRandom RNG = new SecureRandom();
+  private static final char[] HEX = "0123456789abcdef".toCharArray();
 
   private static final byte TYPE_LONG = 1;
   private static final byte TYPE_INT = 2;
@@ -63,8 +65,8 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
   public SessionImpl() {
   }
 
-  public SessionImpl(long timeout) {
-    this.id = UUID.randomUUID().toString();
+  public SessionImpl(long timeout, int length) {
+    this.id = generateId(length);
     this.timeout = timeout;
     this.lastAccessed = System.currentTimeMillis();
   }
@@ -81,7 +83,8 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
       // regeneration during the remaining lifecycle are ephemeral
       oldId = id;
     }
-    id = UUID.randomUUID().toString();
+    // ids are stored in hex, so the original size is half of the hex encodec length
+    id = generateId(oldId.length() / 2);
     renewed = true;
     return this;
   }
@@ -95,7 +98,7 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
   @SuppressWarnings("unchecked")
   public <T> T get(String key) {
     Object obj = getData().get(key);
-    return (T)obj;
+    return (T) obj;
   }
 
   @Override
@@ -114,7 +117,7 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
   @SuppressWarnings("unchecked")
   public <T> T remove(String key) {
     Object obj = getData().remove(key);
-    return (T)obj;
+    return (T) obj;
   }
 
   @Override
@@ -214,7 +217,7 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
       Buffer buffer = Buffer.buffer();
       buffer.appendInt(data.size());
       for (Map.Entry<String, Object> entry : data.entrySet()) {
-        String key  = entry.getKey();
+        String key = entry.getKey();
         byte[] keyBytes = key.getBytes(UTF8);
         buffer.appendInt(keyBytes.length).appendBytes(keyBytes);
         Object val = entry.getValue();
@@ -231,7 +234,7 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
         } else if (val instanceof Float) {
           buffer.appendByte(TYPE_FLOAT).appendFloat((float) val);
         } else if (val instanceof Character) {
-          buffer.appendByte(TYPE_CHAR).appendShort((short)((Character)val).charValue());
+          buffer.appendByte(TYPE_CHAR).appendShort((short) ((Character) val).charValue());
         } else if (val instanceof Boolean) {
           buffer.appendByte(TYPE_BOOLEAN).appendByte((byte) ((boolean) val ? 1 : 0));
         } else if (val instanceof String) {
@@ -255,7 +258,7 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
           String className = val.getClass().getName();
           byte[] classNameBytes = className.getBytes(UTF8);
           buffer.appendInt(classNameBytes.length).appendBytes(classNameBytes);
-          ((ClusterSerializable)val).writeToBuffer(buffer);
+          ((ClusterSerializable) val).writeToBuffer(buffer);
         } else {
           if (val != null) {
             throw new IllegalStateException("Invalid type for data in session: " + val.getClass());
@@ -271,7 +274,7 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
   private int readDataFromBuffer(int pos, Buffer buffer) {
     try {
       int entries = buffer.getInt(pos);
-      pos +=4;
+      pos += 4;
       data = new ConcurrentHashMap<>(entries);
       for (int i = 0; i < entries; i++) {
         int keylen = buffer.getInt(pos);
@@ -296,7 +299,7 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
             break;
           case TYPE_BYTE:
             val = buffer.getByte(pos);
-            pos ++;
+            pos++;
             break;
           case TYPE_FLOAT:
             val = buffer.getFloat(pos);
@@ -309,7 +312,7 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
           case TYPE_CHAR:
             short s = buffer.getShort(pos);
             pos += 2;
-            val = (char)s;
+            val = (char) s;
             break;
           case TYPE_BOOLEAN:
             byte b = buffer.getByte(pos);
@@ -352,7 +355,7 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
             pos += classNameLen;
             String className = new String(classNameBytes, UTF8);
             Class clazz = Utils.getClassLoader().loadClass(className);
-            ClusterSerializable obj = (ClusterSerializable)clazz.newInstance();
+            ClusterSerializable obj = (ClusterSerializable) clazz.newInstance();
             pos = obj.readFromBuffer(pos, buffer);
             val = obj;
             break;
@@ -367,5 +370,18 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
     }
   }
 
+  private static String generateId(int length) {
+    final byte[] bytes = new byte[length];
+    RNG.nextBytes(bytes);
+
+    final char[] hex = new char[length * 2];
+    for (int j = 0; j < length; j++) {
+      int v = bytes[j] & 0xFF;
+      hex[j * 2] = HEX[v >>> 4];
+      hex[j * 2 + 1] = HEX[v & 0x0F];
+    }
+
+    return new String(hex);
+  }
 }
 

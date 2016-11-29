@@ -60,7 +60,7 @@ public class RedirectAuthHandlerTest extends AuthHandlerTestBase {
     doLogin(rc -> {
       Session sess = rc.session();
       assertNotNull(sess);
-      assertEquals(sessionCookie.get().substring(18, 54), sess.id());
+      assertEquals(sessionCookie.get().substring(18, 50), sess.id());
       assertNotNull(rc.user());
       rc.response().end("Welcome to the protected resource!");
     });

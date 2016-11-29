@@ -213,7 +213,7 @@ public class SessionHandlerImpl implements SessionHandler {
   }
 
   private void createNewSession(RoutingContext context) {
-    Session session = sessionStore.createSession(sessionTimeout);
+    Session session = sessionStore.createSession(sessionTimeout, minLength);
     context.setSession(session);
     Cookie cookie = Cookie.cookie(sessionCookieName, session.id());
     cookie.setPath("/");

@@ -127,12 +127,12 @@ public class OAuth2AuthHandlerImpl extends AuthHandlerImpl implements OAuth2Auth
             session.regenerateId();
             // we should redirect the UA so this link becomes invalid
             ctx.response()
-              .putHeader("Location", relative_redirect_uri)
+              .putHeader("Location", state)
               .setStatusCode(302)
-              .end("Redirecting to " + relative_redirect_uri + ".");
+              .end("Redirecting to " + state + ".");
           } else {
             // there is no session object so we cannot keep state
-            ctx.reroute(relative_redirect_uri);
+            ctx.reroute(state);
           }
         }
       });

@@ -130,7 +130,7 @@ public interface SessionHandler extends Handler<RoutingContext> {
   SessionHandler setSessionCookieName(String sessionCookieName);
 
   /**
-   * Set the session cookie name
+   * Set expected session id minimum length.
    *
    * @param minLength  the session id minimal length
    * @return a reference to this, so the API can be used fluently

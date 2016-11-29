@@ -49,7 +49,12 @@ public class ClusteredSessionStoreImpl implements ClusteredSessionStore {
 
   @Override
   public Session createSession(long timeout) {
-    return new SessionImpl(timeout);
+    return new SessionImpl(timeout, DEFAULT_SESSIONID_LENGTH);
+  }
+
+  @Override
+  public Session createSession(long timeout, int length) {
+    return new SessionImpl(timeout, length);
   }
 
   @Override
