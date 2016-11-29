@@ -29,7 +29,7 @@ import io.vertx.ext.web.handler.impl.DigestAuthHandlerImpl;
 public interface DigestAuthHandler extends AuthHandler {
 
   /**
-   * The default nonce expire timeout to use
+   * The default nonce expire timeout to use in milliseconds.
    */
   long DEFAULT_NONCE_EXPIRE_TIMEOUT = 3600000;
 
@@ -47,7 +47,7 @@ public interface DigestAuthHandler extends AuthHandler {
    * Create a digest auth handler, specifying realm
    *
    * @param authProvider       the auth service to use
-   * @param nonceExpireTimeout the nonce expire timeout
+   * @param nonceExpireTimeout the nonce expire timeout in milliseconds.
    * @return the auth handler
    */
   static DigestAuthHandler create(HtdigestAuth authProvider, long nonceExpireTimeout) {
