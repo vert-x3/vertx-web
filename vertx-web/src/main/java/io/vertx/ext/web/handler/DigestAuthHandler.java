@@ -44,7 +44,7 @@ public interface DigestAuthHandler extends AuthHandler {
   }
 
   /**
-   * Create a digest auth handler, specifying realm
+   * Create a digest auth handler, specifying the expire timeout for nonces.
    *
    * @param authProvider       the auth service to use
    * @param nonceExpireTimeout the nonce expire timeout in milliseconds.
