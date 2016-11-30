@@ -14,7 +14,7 @@ module VertxWebClient
   #    <li>{::VertxWebClient::HttpResponse#version} the HTTP version</li>
   #  </ul>
   #  <p>
-  #  The body of the response is returned by {::VertxWebClient::HttpResponse#body} decoded as the format specified by the {::VertxWebClient::HttpResponseTemplate} that
+  #  The body of the response is returned by {::VertxWebClient::HttpResponse#body} decoded as the format specified by the {::VertxWebClient::HttpResponseBuilder} that
   #  built the response.
   #  <p>
   #  Keep in mind that using this <code>HttpResponse</code> impose to fully buffer the response body and should be used for payload
@@ -119,14 +119,14 @@ module VertxWebClient
       end
       raise ArgumentError, "Invalid arguments when calling body()"
     end
-    # @return [::Vertx::Buffer] the response body decoded as a
+    # @return [::Vertx::Buffer] the response body decoded as a 
     def body_as_buffer
       if !block_given?
         return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:bodyAsBuffer, []).call(),::Vertx::Buffer)
       end
       raise ArgumentError, "Invalid arguments when calling body_as_buffer()"
     end
-    # @param [String] encoding
+    # @param [String] encoding 
     # @return [String] the response body decoded as a <code>String</code> given a specific <code>encoding</code>
     def body_as_string(encoding=nil)
       if !block_given? && encoding == nil
@@ -143,7 +143,7 @@ module VertxWebClient
       end
       raise ArgumentError, "Invalid arguments when calling body_as_json_object()"
     end
-    # @param [Nil] type
+    # @param [Nil] type 
     # @return [Object] the response body decoded as the specified <code>type</code> with the Jackson mapper.
     def body_as(type=nil)
       if type.class == Class && !block_given?
@@ -151,20 +151,23 @@ module VertxWebClient
       end
       raise ArgumentError, "Invalid arguments when calling body_as(#{type})"
     end
-    # @return [::Vertx::HttpClientResponse]
-    def abc
-      if !block_given?
-        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:httpClientResponse, []).call(), ::Vertx::HttpClientResponse)
-      end
-      raise ArgumentError, "Invalid arguments when calling abc()"
-    end
-    # @yield
+    #  Buffer the response body and call the <code>handler</code> when the body is available.
+    #  <p>
+    #  When the body can't be retrieved, the handler is signaled with an exception.
+    # @yield the handler to receive the body
     # @return [void]
     def buffer_body
       if block_given?
         return @j_del.java_method(:bufferBody, [Java::IoVertxCore::Handler.java_class]).call((Proc.new { |ar| yield(ar.failed ? ar.cause : nil, ar.succeeded ? ::Vertx::Util::Utils.safe_create(ar.result,::Vertx::Buffer) : nil) }))
       end
       raise ArgumentError, "Invalid arguments when calling buffer_body()"
+    end
+    # @return [::Vertx::HttpClientResponse] the original 
+    def http_client_response
+      if !block_given?
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:httpClientResponse, []).call(),::Vertx::HttpClientResponse)
+      end
+      raise ArgumentError, "Invalid arguments when calling http_client_response()"
     end
   end
 end

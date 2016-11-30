@@ -4,9 +4,8 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.file.AsyncFile;
 import io.vertx.core.file.FileSystem;
 import io.vertx.core.file.OpenOptions;
-import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.json.JsonObject;
-import io.vertx.webclient.HttpRequestTemplate;
+import io.vertx.webclient.HttpRequestBuilder;
 import io.vertx.webclient.HttpResponse;
 import io.vertx.webclient.WebClient;
 
@@ -27,7 +26,7 @@ public class WebClientExamples {
   }
 
   public void multipleGet(WebClient client) {
-    HttpRequestTemplate get = client.get(8080, "localhost", "/something");
+    HttpRequestBuilder get = client.get(8080, "localhost", "/something");
     get.send(ar -> {
     });
     // Same request again

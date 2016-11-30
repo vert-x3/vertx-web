@@ -22,16 +22,16 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.streams.ReadStream;
-import io.vertx.webclient.HttpRequestTemplate;
+import io.vertx.webclient.HttpRequestBuilder;
 import io.vertx.webclient.HttpResponse;
-import io.vertx.webclient.HttpResponseTemplate;
+import io.vertx.webclient.HttpResponseBuilder;
 
 import java.util.function.Function;
 
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
  */
-class HttpResponseTemplateImpl<T> implements HttpResponseTemplate<T> {
+class HttpResponseBuilderImpl<T> implements HttpResponseBuilder<T> {
 
   static final Function<Buffer, JsonObject> jsonObjectUnmarshaller = buff -> new JsonObject(buff.toString());
   static final Function<Buffer, String> utf8Unmarshaller = Buffer::toString;
@@ -44,32 +44,32 @@ class HttpResponseTemplateImpl<T> implements HttpResponseTemplate<T> {
     return buff -> Json.decodeValue(buff.toString(), type);
   }
 
-  private final HttpRequestTemplate requestTemplate;
+  private final HttpRequestBuilder requestBuilder;
   private final Function<Buffer, T> bodyUnmarshaller;
 
-  HttpResponseTemplateImpl(HttpRequestTemplate requestTemplate, Function<Buffer, T> bodyUnmarshaller) {
-    this.requestTemplate = requestTemplate;
+  HttpResponseBuilderImpl(HttpRequestBuilder requestBuilder, Function<Buffer, T> bodyUnmarshaller) {
+    this.requestBuilder = requestBuilder;
     this.bodyUnmarshaller = bodyUnmarshaller;
   }
 
   @Override
-  public HttpResponseTemplate<String> asString() {
-    return new HttpResponseTemplateImpl<>(requestTemplate, utf8Unmarshaller);
+  public HttpResponseBuilder<String> asString() {
+    return new HttpResponseBuilderImpl<>(requestBuilder, utf8Unmarshaller);
   }
 
   @Override
-  public HttpResponseTemplate<String> asString(String encoding) {
-    return new HttpResponseTemplateImpl<>(requestTemplate, stringUnmarshaller(encoding));
+  public HttpResponseBuilder<String> asString(String encoding) {
+    return new HttpResponseBuilderImpl<>(requestBuilder, stringUnmarshaller(encoding));
   }
 
   @Override
-  public HttpResponseTemplate<JsonObject> asJsonObject() {
-    return new HttpResponseTemplateImpl<>(requestTemplate, jsonObjectUnmarshaller);
+  public HttpResponseBuilder<JsonObject> asJsonObject() {
+    return new HttpResponseBuilderImpl<>(requestBuilder, jsonObjectUnmarshaller);
   }
 
   @Override
-  public <R> HttpResponseTemplate<R> as(Class<R> type) {
-    return new HttpResponseTemplateImpl<>(requestTemplate, jsonUnmarshaller(type));
+  public <R> HttpResponseBuilder<R> as(Class<R> type) {
+    return new HttpResponseBuilderImpl<>(requestBuilder, jsonUnmarshaller(type));
   }
 
   private Handler<AsyncResult<HttpResponse<Void>>> createClientResponseHandler(Future<HttpResponse<T>> fut) {
@@ -99,21 +99,21 @@ class HttpResponseTemplateImpl<T> implements HttpResponseTemplate<T> {
 
   @Override
   public void sendStream(ReadStream<Buffer> body, Handler<AsyncResult<HttpResponse<T>>> handler) {
-    requestTemplate.sendStream(body, createClientResponseHandler(Future.<HttpResponse<T>>future().setHandler(handler)));
+    requestBuilder.sendStream(body, createClientResponseHandler(Future.<HttpResponse<T>>future().setHandler(handler)));
   }
 
   @Override
   public void sendBuffer(Buffer body, Handler<AsyncResult<HttpResponse<T>>> handler) {
-    requestTemplate.sendBuffer(body, createClientResponseHandler(Future.<HttpResponse<T>>future().setHandler(handler)));
+    requestBuilder.sendBuffer(body, createClientResponseHandler(Future.<HttpResponse<T>>future().setHandler(handler)));
   }
 
   @Override
   public void sendJson(Object body, Handler<AsyncResult<HttpResponse<T>>> handler) {
-    requestTemplate.sendJson(body, createClientResponseHandler(Future.<HttpResponse<T>>future().setHandler(handler)));
+    requestBuilder.sendJson(body, createClientResponseHandler(Future.<HttpResponse<T>>future().setHandler(handler)));
   }
 
   @Override
   public void send(Handler<AsyncResult<HttpResponse<T>>> handler) {
-    requestTemplate.send(createClientResponseHandler(Future.<HttpResponse<T>>future().setHandler(handler)));
+    requestBuilder.send(createClientResponseHandler(Future.<HttpResponse<T>>future().setHandler(handler)));
   }
 }

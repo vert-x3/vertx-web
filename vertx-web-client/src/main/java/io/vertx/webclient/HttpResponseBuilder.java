@@ -24,12 +24,12 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.streams.ReadStream;
 
 /**
- * A template for configuring client-side HTTP responses.
+ * A builder for configuring client-side HTTP responses.
  *
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
  */
 @VertxGen
-public interface HttpResponseTemplate<T> {
+public interface HttpResponseBuilder<T> {
 
   /**
    * Send a request, the {@code handler} will receive the response as an {@link HttpResponse}.
@@ -59,30 +59,30 @@ public interface HttpResponseTemplate<T> {
   void sendJson(Object body, Handler<AsyncResult<HttpResponse<T>>> handler);
 
   /**
-   * Configure the template to decode the response as a {@code String}.
+   * Configure the builder to decode the response as a {@code String}.
    *
-   * @return a new {@code HttpResponseTemplate} instance decoding the response as a {@code String}
+   * @return a new {@code HttpResponseBuilder} instance decoding the response as a {@code String}
    */
-  HttpResponseTemplate<String> asString();
+  HttpResponseBuilder<String> asString();
 
   /**
    * Like {@link #asString()} but with the specified {@code encoding} param.
    */
-  HttpResponseTemplate<String> asString(String encoding);
+  HttpResponseBuilder<String> asString(String encoding);
 
   /**
-   * Configure the template to decode the response as a Json object.
+   * Configure the builder to decode the response as a Json object.
    *
-   * @return a new {@code HttpResponseTemplate} instance decoding the response as a Json object
+   * @return a new {@code HttpResponseBuilder} instance decoding the response as a Json object
    */
-  HttpResponseTemplate<JsonObject> asJsonObject();
+  HttpResponseBuilder<JsonObject> asJsonObject();
 
   /**
-   * Configure the template to decode the response using a specified {@code type} using the Jackson mapper.
+   * Configure the builder to decode the response using a specified {@code type} using the Jackson mapper.
    *
-   * @return a new {@code HttpResponseTemplate} instance decoding the response as specified type
+   * @return a new {@code HttpResponseBuilder} instance decoding the response as specified type
    */
   @GenIgnore
-  <R> HttpResponseTemplate<R> as(Class<R> type);
+  <R> HttpResponseBuilder<R> as(Class<R> type);
 
 }

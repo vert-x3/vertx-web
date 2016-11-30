@@ -84,7 +84,7 @@ class HttpResponseImpl<T> implements HttpResponse<T> {
 
   @Override
   public String bodyAsString() {
-    return HttpResponseTemplateImpl.utf8Unmarshaller.apply(buff);
+    return HttpResponseBuilderImpl.utf8Unmarshaller.apply(buff);
   }
 
   @Override
@@ -94,12 +94,12 @@ class HttpResponseImpl<T> implements HttpResponse<T> {
 
   @Override
   public JsonObject bodyAsJsonObject() {
-    return HttpResponseTemplateImpl.jsonObjectUnmarshaller.apply(buff);
+    return HttpResponseBuilderImpl.jsonObjectUnmarshaller.apply(buff);
   }
 
   @Override
   public <R> R bodyAs(Class<R> type) {
-    return HttpResponseTemplateImpl.jsonUnmarshaller(type).apply(buff);
+    return HttpResponseBuilderImpl.jsonUnmarshaller(type).apply(buff);
   }
 
   @Override

@@ -64,26 +64,26 @@ public class WebClientTest extends HttpTestBase {
     });
     startServer();
 
-    HttpRequestTemplate template = null;
+    HttpRequestBuilder builder = null;
 
     switch (method) {
       case GET:
-        template = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
+        builder = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
         break;
       case HEAD:
-        template = client.head(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
+        builder = client.head(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
         break;
       case DELETE:
-        template = client.delete(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
+        builder = client.delete(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
         break;
 
       default: fail("Invalid HTTP method");
     }
 
-    template.send(onSuccess(resp -> {
+    builder.send(onSuccess(resp -> {
       complete();
     }));
-    template.send(onSuccess(resp -> {
+    builder.send(onSuccess(resp -> {
       complete();
     }));
     await();
@@ -130,26 +130,26 @@ public class WebClientTest extends HttpTestBase {
     vertx.runOnContext(v -> {
       AsyncFile asyncFile = vertx.fileSystem().openBlocking(f.getAbsolutePath(), new OpenOptions());
 
-      HttpRequestTemplate template = null;
+      HttpRequestBuilder builder = null;
 
       switch (method) {
         case POST:
-          template = client.post(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
+          builder = client.post(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
           break;
         case PUT:
-          template = client.put(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
+          builder = client.put(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
           break;
         case PATCH:
-          template = client.patch(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
+          builder = client.patch(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
           break;
         default:
           fail("Invalid HTTP method");
       }
 
       if (!chunked) {
-        template = template.putHeader("Content-Length", "" + expected.length());
+        builder = builder.putHeader("Content-Length", "" + expected.length());
       }
-      template.sendStream(asyncFile, onSuccess(resp -> {
+      builder.sendStream(asyncFile, onSuccess(resp -> {
             assertEquals(200, resp.statusCode());
             complete();
           }));
@@ -200,7 +200,7 @@ public class WebClientTest extends HttpTestBase {
       });
     });
     startServer();
-    HttpRequestTemplate post = client.post(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
+    HttpRequestBuilder post = client.post(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
     if (body instanceof Buffer) {
       post.sendBuffer((Buffer) body, onSuccess(resp -> {
         complete();
@@ -215,7 +215,7 @@ public class WebClientTest extends HttpTestBase {
 
   @Test
   public void testConnectError() throws Exception {
-    HttpRequestTemplate get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
+    HttpRequestBuilder get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
     get.send(onFailure(err -> {
       assertTrue(err instanceof ConnectException);
       complete();
@@ -225,7 +225,7 @@ public class WebClientTest extends HttpTestBase {
 
   @Test
   public void testRequestSendError() throws Exception {
-    HttpRequestTemplate post = client.post(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
+    HttpRequestBuilder post = client.post(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
     server.requestHandler(req -> {
       req.handler(buff -> {
         req.connection().close();
@@ -265,7 +265,7 @@ public class WebClientTest extends HttpTestBase {
   @Test
   public void testRequestPumpError() throws Exception {
     waitFor(2);
-    HttpRequestTemplate post = client.post(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
+    HttpRequestBuilder post = client.post(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
     CompletableFuture<Void> done = new CompletableFuture<>();
     server.requestHandler(req -> {
       req.response().closeHandler(v -> {
@@ -315,7 +315,7 @@ public class WebClientTest extends HttpTestBase {
 
   @Test
   public void testRequestPumpErrorNotYetConnected() throws Exception {
-    HttpRequestTemplate post = client.post(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
+    HttpRequestBuilder post = client.post(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
     server.requestHandler(req -> {
       fail();
     });
@@ -364,7 +364,7 @@ public class WebClientTest extends HttpTestBase {
       req.response().end(expected);
     });
     startServer();
-    HttpRequestTemplate get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
+    HttpRequestBuilder get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
     get.bufferBody().send(onSuccess(resp -> {
       assertEquals(200, resp.statusCode());
       assertEquals(expected, resp.body());
@@ -380,7 +380,7 @@ public class WebClientTest extends HttpTestBase {
       req.response().end(expected.encode());
     });
     startServer();
-    HttpRequestTemplate get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
+    HttpRequestBuilder get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
     get.bufferBody().asJsonObject().send(onSuccess(resp -> {
       assertEquals(200, resp.statusCode());
       assertEquals(expected, resp.body());
@@ -396,7 +396,7 @@ public class WebClientTest extends HttpTestBase {
       req.response().end(expected.encode());
     });
     startServer();
-    HttpRequestTemplate get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
+    HttpRequestBuilder get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
     get.bufferBody().as(WineAndCheese.class).send(onSuccess(resp -> {
       assertEquals(200, resp.statusCode());
       assertEquals(new WineAndCheese().setCheese("Goat Cheese").setWine("Condrieu"), resp.body());
@@ -412,7 +412,7 @@ public class WebClientTest extends HttpTestBase {
       req.response().end(expected.encode());
     });
     startServer();
-    HttpRequestTemplate get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
+    HttpRequestBuilder get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
     get.bufferBody().send(onSuccess(resp -> {
       assertEquals(200, resp.statusCode());
       assertEquals(expected, resp.bodyAsJsonObject());
@@ -428,7 +428,7 @@ public class WebClientTest extends HttpTestBase {
       req.response().end(expected.encode());
     });
     startServer();
-    HttpRequestTemplate get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
+    HttpRequestBuilder get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
     get.bufferBody().send(onSuccess(resp -> {
       assertEquals(200, resp.statusCode());
       assertEquals(new WineAndCheese().setCheese("Goat Cheese").setWine("Condrieu"), resp.bodyAs(WineAndCheese.class));
@@ -443,7 +443,7 @@ public class WebClientTest extends HttpTestBase {
       req.response().end("not-json-object");
     });
     startServer();
-    HttpRequestTemplate get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
+    HttpRequestBuilder get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
     get.bufferBody().asJsonObject().send(onFailure(err -> {
       assertTrue(err instanceof DecodeException);
       testComplete();
@@ -457,7 +457,7 @@ public class WebClientTest extends HttpTestBase {
       req.response().setChunked(true).write(Buffer.buffer("some-data")).close();
     });
     startServer();
-    HttpRequestTemplate get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
+    HttpRequestBuilder get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
     get.bufferBody().asJsonObject().send(onFailure(err -> {
       assertTrue(err instanceof VertxException);
       testComplete();
@@ -472,7 +472,7 @@ public class WebClientTest extends HttpTestBase {
       count.incrementAndGet();
     });
     startServer();
-    HttpRequestTemplate get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
+    HttpRequestBuilder get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
     get.timeout(50).send(onFailure(err -> {
       assertEquals(err.getClass(), TimeoutException.class);
       testComplete();

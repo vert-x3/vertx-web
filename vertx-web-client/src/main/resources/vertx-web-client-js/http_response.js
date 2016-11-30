@@ -232,22 +232,12 @@ var HttpResponse = function(j_val, j_arg_0) {
   };
 
   /**
+   Buffer the response body and call the <code>handler</code> when the body is available.
+   <p>
+   When the body can't be retrieved, the handler is signaled with an exception.
 
    @public
-
-   @return {HttpClientResponse}
-   */
-  this.abc = function() {
-    var __args = arguments;
-    if (__args.length === 0) {
-      return utils.convReturnVertxGen(HttpClientResponse, j_httpResponse["abc()"]());
-    } else throw new TypeError('function invoked with invalid arguments');
-  };
-
-  /**
-
-   @public
-   @param handler {function} 
+   @param handler {function} the handler to receive the body 
    */
   this.bufferBody = function(handler) {
     var __args = arguments;
@@ -259,6 +249,19 @@ var HttpResponse = function(j_val, j_arg_0) {
         handler(null, ar.cause());
       }
     });
+    } else throw new TypeError('function invoked with invalid arguments');
+  };
+
+  /**
+
+   @public
+
+   @return {HttpClientResponse} the original 
+   */
+  this.httpClientResponse = function() {
+    var __args = arguments;
+    if (__args.length === 0) {
+      return utils.convReturnVertxGen(HttpClientResponse, j_httpResponse["httpClientResponse()"]());
     } else throw new TypeError('function invoked with invalid arguments');
   };
 

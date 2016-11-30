@@ -3,7 +3,7 @@ package io.vertx.webclient.impl;
 import io.vertx.core.VertxException;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpMethod;
-import io.vertx.webclient.HttpRequestTemplate;
+import io.vertx.webclient.HttpRequestBuilder;
 import io.vertx.webclient.WebClient;
 
 import java.net.MalformedURLException;
@@ -21,87 +21,87 @@ public class WebClientImpl implements WebClient {
   }
 
   @Override
-  public HttpRequestTemplate get(int port, String host, String requestURI) {
-    HttpRequestTemplateImpl template = new HttpRequestTemplateImpl(client, HttpMethod.GET);
-    return createRequestTemplate(port, host, requestURI, template);
+  public HttpRequestBuilder get(int port, String host, String requestURI) {
+    HttpRequestBuilderImpl builder = new HttpRequestBuilderImpl(client, HttpMethod.GET);
+    return createRequestBuilder(port, host, requestURI, builder);
   }
 
   @Override
-  public HttpRequestTemplate post(int port, String host, String requestURI) {
-    HttpRequestTemplateImpl template = new HttpRequestTemplateImpl(client, HttpMethod.POST);
-    return createRequestTemplate(port, host, requestURI, template);
+  public HttpRequestBuilder post(int port, String host, String requestURI) {
+    HttpRequestBuilderImpl builder = new HttpRequestBuilderImpl(client, HttpMethod.POST);
+    return createRequestBuilder(port, host, requestURI, builder);
   }
 
   @Override
-  public HttpRequestTemplate put(int port, String host, String requestURI) {
-    HttpRequestTemplateImpl template = new HttpRequestTemplateImpl(client, HttpMethod.PUT);
-    return createRequestTemplate(port, host, requestURI, template);
+  public HttpRequestBuilder put(int port, String host, String requestURI) {
+    HttpRequestBuilderImpl builder = new HttpRequestBuilderImpl(client, HttpMethod.PUT);
+    return createRequestBuilder(port, host, requestURI, builder);
   }
 
   @Override
-  public HttpRequestTemplate delete(int port, String host, String requestURI) {
-    HttpRequestTemplateImpl template = new HttpRequestTemplateImpl(client, HttpMethod.DELETE);
-    return createRequestTemplate(port, host, requestURI, template);
+  public HttpRequestBuilder delete(int port, String host, String requestURI) {
+    HttpRequestBuilderImpl builder = new HttpRequestBuilderImpl(client, HttpMethod.DELETE);
+    return createRequestBuilder(port, host, requestURI, builder);
   }
 
   @Override
-  public HttpRequestTemplate patch(int port, String host, String requestURI) {
-    HttpRequestTemplateImpl template = new HttpRequestTemplateImpl(client, HttpMethod.PATCH);
-    return createRequestTemplate(port, host, requestURI, template);
+  public HttpRequestBuilder patch(int port, String host, String requestURI) {
+    HttpRequestBuilderImpl builder = new HttpRequestBuilderImpl(client, HttpMethod.PATCH);
+    return createRequestBuilder(port, host, requestURI, builder);
   }
 
   @Override
-  public HttpRequestTemplate head(int port, String host, String requestURI) {
-    HttpRequestTemplateImpl template = new HttpRequestTemplateImpl(client, HttpMethod.HEAD);
-    return createRequestTemplate(port, host, requestURI, template);
+  public HttpRequestBuilder head(int port, String host, String requestURI) {
+    HttpRequestBuilderImpl builder = new HttpRequestBuilderImpl(client, HttpMethod.HEAD);
+    return createRequestBuilder(port, host, requestURI, builder);
   }
 
   @Override
-  public HttpRequestTemplate getAbs(String absoluteURI) {
-    HttpRequestTemplateImpl template = new HttpRequestTemplateImpl(client, HttpMethod.GET);
+  public HttpRequestBuilder getAbs(String absoluteURI) {
+    HttpRequestBuilderImpl builder = new HttpRequestBuilderImpl(client, HttpMethod.GET);
     URL url = parseUrl(absoluteURI);
 
-    return createRequestTemplate(url.getPort(), url.getHost(), url.getFile(), template);
+    return createRequestBuilder(url.getPort(), url.getHost(), url.getFile(), builder);
   }
 
   @Override
-  public HttpRequestTemplate postAbs(String absoluteURI) {
-    HttpRequestTemplateImpl template = new HttpRequestTemplateImpl(client, HttpMethod.POST);
+  public HttpRequestBuilder postAbs(String absoluteURI) {
+    HttpRequestBuilderImpl builder = new HttpRequestBuilderImpl(client, HttpMethod.POST);
     URL url = parseUrl(absoluteURI);
 
-    return createRequestTemplate(url.getPort(), url.getHost(), url.getFile(), template);
+    return createRequestBuilder(url.getPort(), url.getHost(), url.getFile(), builder);
   }
 
   @Override
-  public HttpRequestTemplate putAbs(String absoluteURI) {
-    HttpRequestTemplateImpl template = new HttpRequestTemplateImpl(client, HttpMethod.PUT);
+  public HttpRequestBuilder putAbs(String absoluteURI) {
+    HttpRequestBuilderImpl builder = new HttpRequestBuilderImpl(client, HttpMethod.PUT);
     URL url = parseUrl(absoluteURI);
 
-    return createRequestTemplate(url.getPort(), url.getHost(), url.getFile(), template);
+    return createRequestBuilder(url.getPort(), url.getHost(), url.getFile(), builder);
   }
 
   @Override
-  public HttpRequestTemplate deleteAbs(String absoluteURI) {
-    HttpRequestTemplateImpl template = new HttpRequestTemplateImpl(client, HttpMethod.DELETE);
+  public HttpRequestBuilder deleteAbs(String absoluteURI) {
+    HttpRequestBuilderImpl builder = new HttpRequestBuilderImpl(client, HttpMethod.DELETE);
     URL url = parseUrl(absoluteURI);
 
-    return createRequestTemplate(url.getPort(), url.getHost(), url.getFile(), template);
+    return createRequestBuilder(url.getPort(), url.getHost(), url.getFile(), builder);
   }
 
   @Override
-  public HttpRequestTemplate patchAbs(String absoluteURI) {
-    HttpRequestTemplateImpl template = new HttpRequestTemplateImpl(client, HttpMethod.PATCH);
+  public HttpRequestBuilder patchAbs(String absoluteURI) {
+    HttpRequestBuilderImpl builder = new HttpRequestBuilderImpl(client, HttpMethod.PATCH);
     URL url = parseUrl(absoluteURI);
 
-    return createRequestTemplate(url.getPort(), url.getHost(), url.getFile(), template);
+    return createRequestBuilder(url.getPort(), url.getHost(), url.getFile(), builder);
   }
 
   @Override
-  public HttpRequestTemplate headAbs(String absoluteURI) {
-    HttpRequestTemplateImpl template = new HttpRequestTemplateImpl(client, HttpMethod.HEAD);
+  public HttpRequestBuilder headAbs(String absoluteURI) {
+    HttpRequestBuilderImpl builder = new HttpRequestBuilderImpl(client, HttpMethod.HEAD);
     URL url = parseUrl(absoluteURI);
 
-    return createRequestTemplate(url.getPort(), url.getHost(), url.getFile(), template);
+    return createRequestBuilder(url.getPort(), url.getHost(), url.getFile(), builder);
   }
 
   private URL parseUrl(String surl) {
@@ -113,7 +113,7 @@ public class WebClientImpl implements WebClient {
     }
   }
 
-  private HttpRequestTemplate createRequestTemplate(int port, String host, String requestURI, HttpRequestTemplateImpl get) {
+  private HttpRequestBuilder createRequestBuilder(int port, String host, String requestURI, HttpRequestBuilderImpl get) {
     get.port = port;
     get.host = host;
     get.requestURI = requestURI;

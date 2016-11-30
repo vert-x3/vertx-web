@@ -1,4 +1,4 @@
-require 'vertx-web-client/http_request_template'
+require 'vertx-web-client/http_request_builder'
 require 'vertx/http_client'
 require 'vertx/util/utils.rb'
 # Generated from io.vertx.webclient.WebClient
@@ -41,108 +41,108 @@ module VertxWebClient
     # @param [Fixnum] port 
     # @param [String] host 
     # @param [String] requestURI 
-    # @return [::VertxWebClient::HttpRequestTemplate]
+    # @return [::VertxWebClient::HttpRequestBuilder]
     def get(port=nil,host=nil,requestURI=nil)
       if port.class == Fixnum && host.class == String && requestURI.class == String && !block_given?
-        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:get, [Java::int.java_class,Java::java.lang.String.java_class,Java::java.lang.String.java_class]).call(port,host,requestURI),::VertxWebClient::HttpRequestTemplate)
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:get, [Java::int.java_class,Java::java.lang.String.java_class,Java::java.lang.String.java_class]).call(port,host,requestURI),::VertxWebClient::HttpRequestBuilder)
       end
       raise ArgumentError, "Invalid arguments when calling get(#{port},#{host},#{requestURI})"
     end
     # @param [Fixnum] port 
     # @param [String] host 
     # @param [String] requestURI 
-    # @return [::VertxWebClient::HttpRequestTemplate]
+    # @return [::VertxWebClient::HttpRequestBuilder]
     def post(port=nil,host=nil,requestURI=nil)
       if port.class == Fixnum && host.class == String && requestURI.class == String && !block_given?
-        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:post, [Java::int.java_class,Java::java.lang.String.java_class,Java::java.lang.String.java_class]).call(port,host,requestURI),::VertxWebClient::HttpRequestTemplate)
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:post, [Java::int.java_class,Java::java.lang.String.java_class,Java::java.lang.String.java_class]).call(port,host,requestURI),::VertxWebClient::HttpRequestBuilder)
       end
       raise ArgumentError, "Invalid arguments when calling post(#{port},#{host},#{requestURI})"
     end
     # @param [Fixnum] port 
     # @param [String] host 
     # @param [String] requestURI 
-    # @return [::VertxWebClient::HttpRequestTemplate]
+    # @return [::VertxWebClient::HttpRequestBuilder]
     def put(port=nil,host=nil,requestURI=nil)
       if port.class == Fixnum && host.class == String && requestURI.class == String && !block_given?
-        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:put, [Java::int.java_class,Java::java.lang.String.java_class,Java::java.lang.String.java_class]).call(port,host,requestURI),::VertxWebClient::HttpRequestTemplate)
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:put, [Java::int.java_class,Java::java.lang.String.java_class,Java::java.lang.String.java_class]).call(port,host,requestURI),::VertxWebClient::HttpRequestBuilder)
       end
       raise ArgumentError, "Invalid arguments when calling put(#{port},#{host},#{requestURI})"
     end
     # @param [Fixnum] port 
     # @param [String] host 
     # @param [String] requestURI 
-    # @return [::VertxWebClient::HttpRequestTemplate]
+    # @return [::VertxWebClient::HttpRequestBuilder]
     def delete(port=nil,host=nil,requestURI=nil)
       if port.class == Fixnum && host.class == String && requestURI.class == String && !block_given?
-        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:delete, [Java::int.java_class,Java::java.lang.String.java_class,Java::java.lang.String.java_class]).call(port,host,requestURI),::VertxWebClient::HttpRequestTemplate)
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:delete, [Java::int.java_class,Java::java.lang.String.java_class,Java::java.lang.String.java_class]).call(port,host,requestURI),::VertxWebClient::HttpRequestBuilder)
       end
       raise ArgumentError, "Invalid arguments when calling delete(#{port},#{host},#{requestURI})"
     end
     # @param [Fixnum] port 
     # @param [String] host 
     # @param [String] requestURI 
-    # @return [::VertxWebClient::HttpRequestTemplate]
+    # @return [::VertxWebClient::HttpRequestBuilder]
     def patch(port=nil,host=nil,requestURI=nil)
       if port.class == Fixnum && host.class == String && requestURI.class == String && !block_given?
-        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:patch, [Java::int.java_class,Java::java.lang.String.java_class,Java::java.lang.String.java_class]).call(port,host,requestURI),::VertxWebClient::HttpRequestTemplate)
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:patch, [Java::int.java_class,Java::java.lang.String.java_class,Java::java.lang.String.java_class]).call(port,host,requestURI),::VertxWebClient::HttpRequestBuilder)
       end
       raise ArgumentError, "Invalid arguments when calling patch(#{port},#{host},#{requestURI})"
     end
     # @param [Fixnum] port 
     # @param [String] host 
     # @param [String] requestURI 
-    # @return [::VertxWebClient::HttpRequestTemplate]
+    # @return [::VertxWebClient::HttpRequestBuilder]
     def head(port=nil,host=nil,requestURI=nil)
       if port.class == Fixnum && host.class == String && requestURI.class == String && !block_given?
-        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:head, [Java::int.java_class,Java::java.lang.String.java_class,Java::java.lang.String.java_class]).call(port,host,requestURI),::VertxWebClient::HttpRequestTemplate)
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:head, [Java::int.java_class,Java::java.lang.String.java_class,Java::java.lang.String.java_class]).call(port,host,requestURI),::VertxWebClient::HttpRequestBuilder)
       end
       raise ArgumentError, "Invalid arguments when calling head(#{port},#{host},#{requestURI})"
     end
     # @param [String] absoluteURI 
-    # @return [::VertxWebClient::HttpRequestTemplate]
+    # @return [::VertxWebClient::HttpRequestBuilder]
     def get_abs(absoluteURI=nil)
       if absoluteURI.class == String && !block_given?
-        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:getAbs, [Java::java.lang.String.java_class]).call(absoluteURI),::VertxWebClient::HttpRequestTemplate)
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:getAbs, [Java::java.lang.String.java_class]).call(absoluteURI),::VertxWebClient::HttpRequestBuilder)
       end
       raise ArgumentError, "Invalid arguments when calling get_abs(#{absoluteURI})"
     end
     # @param [String] absoluteURI 
-    # @return [::VertxWebClient::HttpRequestTemplate]
+    # @return [::VertxWebClient::HttpRequestBuilder]
     def post_abs(absoluteURI=nil)
       if absoluteURI.class == String && !block_given?
-        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:postAbs, [Java::java.lang.String.java_class]).call(absoluteURI),::VertxWebClient::HttpRequestTemplate)
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:postAbs, [Java::java.lang.String.java_class]).call(absoluteURI),::VertxWebClient::HttpRequestBuilder)
       end
       raise ArgumentError, "Invalid arguments when calling post_abs(#{absoluteURI})"
     end
     # @param [String] absoluteURI 
-    # @return [::VertxWebClient::HttpRequestTemplate]
+    # @return [::VertxWebClient::HttpRequestBuilder]
     def put_abs(absoluteURI=nil)
       if absoluteURI.class == String && !block_given?
-        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:putAbs, [Java::java.lang.String.java_class]).call(absoluteURI),::VertxWebClient::HttpRequestTemplate)
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:putAbs, [Java::java.lang.String.java_class]).call(absoluteURI),::VertxWebClient::HttpRequestBuilder)
       end
       raise ArgumentError, "Invalid arguments when calling put_abs(#{absoluteURI})"
     end
     # @param [String] absoluteURI 
-    # @return [::VertxWebClient::HttpRequestTemplate]
+    # @return [::VertxWebClient::HttpRequestBuilder]
     def delete_abs(absoluteURI=nil)
       if absoluteURI.class == String && !block_given?
-        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:deleteAbs, [Java::java.lang.String.java_class]).call(absoluteURI),::VertxWebClient::HttpRequestTemplate)
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:deleteAbs, [Java::java.lang.String.java_class]).call(absoluteURI),::VertxWebClient::HttpRequestBuilder)
       end
       raise ArgumentError, "Invalid arguments when calling delete_abs(#{absoluteURI})"
     end
     # @param [String] absoluteURI 
-    # @return [::VertxWebClient::HttpRequestTemplate]
+    # @return [::VertxWebClient::HttpRequestBuilder]
     def patch_abs(absoluteURI=nil)
       if absoluteURI.class == String && !block_given?
-        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:patchAbs, [Java::java.lang.String.java_class]).call(absoluteURI),::VertxWebClient::HttpRequestTemplate)
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:patchAbs, [Java::java.lang.String.java_class]).call(absoluteURI),::VertxWebClient::HttpRequestBuilder)
       end
       raise ArgumentError, "Invalid arguments when calling patch_abs(#{absoluteURI})"
     end
     # @param [String] absoluteURI 
-    # @return [::VertxWebClient::HttpRequestTemplate]
+    # @return [::VertxWebClient::HttpRequestBuilder]
     def head_abs(absoluteURI=nil)
       if absoluteURI.class == String && !block_given?
-        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:headAbs, [Java::java.lang.String.java_class]).call(absoluteURI),::VertxWebClient::HttpRequestTemplate)
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:headAbs, [Java::java.lang.String.java_class]).call(absoluteURI),::VertxWebClient::HttpRequestBuilder)
       end
       raise ArgumentError, "Invalid arguments when calling head_abs(#{absoluteURI})"
     end

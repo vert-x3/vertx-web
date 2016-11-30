@@ -25,15 +25,15 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.streams.ReadStream;
 
 /**
- * A template for configuring client-side HTTP requests.
+ * A builder for configuring client-side HTTP requests.
  * <p>
  * Instances are created by an {@link HttpClient} instance, via one of the methods {@code createXXX} corresponding to the
  * specific HTTP methods.
  * <p>
- * The request template shall be configured prior making a request, the template is immutable and when a configuration method
- * is called, a new template is returned allowing to expose the template and apply further customization.
+ * The request builder shall be configured prior making a request, the builder is immutable and when a configuration method
+ * is called, a new builder is returned allowing to expose the builder and apply further customization.
  * <p>
- * After the request template has been configured, the methods
+ * After the request builder has been configured, the methods
  * <ul>
  *   <li>{@link #send(Handler)}</li>
  *   <li>{@link #sendStream(ReadStream, Handler)}</li>
@@ -41,52 +41,52 @@ import io.vertx.core.streams.ReadStream;
  * </ul>
  * can be called.
  * <p>
- * The {@code #bufferBody} configures the template to buffer the entire HTTP response body and returns a
- * {@link HttpResponseTemplate} for configuring the response body.
+ * The {@code #bufferBody} configures the builder to buffer the entire HTTP response body and returns a
+ * {@link HttpResponseBuilder} for configuring the response body.
  * <p>
  * The {@code send} methods perform the actual request, they can be used multiple times to perform HTTP requests.
  *
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
  */
 @VertxGen
-public interface HttpRequestTemplate {
+public interface HttpRequestBuilder {
 
   /**
-   * Configure the template to use a new method {@code value}.
+   * Configure the builder to use a new method {@code value}.
    *
-   * @return a new {@code HttpRequestTemplate} instance with the specified method {@code value}
+   * @return a new {@code HttpRequestBuilder} instance with the specified method {@code value}
    */
-  HttpRequestTemplate method(HttpMethod value);
+  HttpRequestBuilder method(HttpMethod value);
 
   /**
-   * Configure the template to use a new port {@code value}.
+   * Configure the builder to use a new port {@code value}.
    *
-   * @return a new {@code HttpRequestTemplate} instance with the specified port {@code value}
+   * @return a new {@code HttpRequestBuilder} instance with the specified port {@code value}
    */
-  HttpRequestTemplate port(int value);
+  HttpRequestBuilder port(int value);
 
   /**
-   * Configure the template to use a new host {@code value}.
+   * Configure the builder to use a new host {@code value}.
    *
-   * @return a new {@code HttpRequestTemplate} instance with the specified host {@code value}
+   * @return a new {@code HttpRequestBuilder} instance with the specified host {@code value}
    */
-  HttpRequestTemplate host(String value);
+  HttpRequestBuilder host(String value);
 
   /**
-   * Configure the template to use a new request URI {@code value}.
+   * Configure the builder to use a new request URI {@code value}.
    *
-   * @return a new {@code HttpRequestTemplate} instance with the specified request URI {@code value}
+   * @return a new {@code HttpRequestBuilder} instance with the specified request URI {@code value}
    */
-  HttpRequestTemplate requestURI(String value);
+  HttpRequestBuilder requestURI(String value);
 
   /**
-   * Configure the template to add a new HTTP header.
+   * Configure the builder to add a new HTTP header.
    *
    * @param name the header name
    * @param value the header value
-   * @return a new {@code HttpRequestTemplate} instance with the specified header
+   * @return a new {@code HttpRequestBuilder} instance with the specified header
    */
-  HttpRequestTemplate putHeader(String name, String value);
+  HttpRequestBuilder putHeader(String name, String value);
 
   /**
    * Configures the amount of time in milliseconds after which if the request does not return any data within the timeout
@@ -95,9 +95,9 @@ public interface HttpRequestTemplate {
    * Setting zero or a negative {@code value} disables the timeout.
    *
    * @param value The quantity of time in milliseconds.
-   * @return a new {@code HttpRequestTemplate} instance with the specified timeout
+   * @return a new {@code HttpRequestBuilder} instance with the specified timeout
    */
-  HttpRequestTemplate timeout(long value);
+  HttpRequestBuilder timeout(long value);
 
   /**
    * Like {@link #send(Handler)} but with an HTTP request {@code body} stream.
@@ -127,9 +127,9 @@ public interface HttpRequestTemplate {
   void send(Handler<AsyncResult<HttpResponse<Void>>> handler);
 
   /**
-   * Configure to buffer the body and returns a {@link HttpResponseTemplate < Buffer >} for further configuration of
-   * the response or {@link HttpResponseTemplate#send(Handler) sending} the request.
+   * Configure to buffer the body and returns a {@link HttpResponseBuilder < Buffer >} for further configuration of
+   * the response or {@link HttpResponseBuilder#send(Handler) sending} the request.
    */
-  HttpResponseTemplate<Buffer> bufferBody();
+  HttpResponseBuilder<Buffer> bufferBody();
 
 }

@@ -29,16 +29,16 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.Json;
 import io.vertx.core.streams.Pump;
 import io.vertx.core.streams.ReadStream;
-import io.vertx.webclient.HttpRequestTemplate;
+import io.vertx.webclient.HttpRequestBuilder;
 import io.vertx.webclient.HttpResponse;
-import io.vertx.webclient.HttpResponseTemplate;
+import io.vertx.webclient.HttpResponseBuilder;
 
 import java.util.function.Function;
 
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
  */
-class HttpRequestTemplateImpl implements HttpRequestTemplate {
+class HttpRequestBuilderImpl implements HttpRequestBuilder {
 
   final HttpClient client;
   HttpMethod method;
@@ -48,12 +48,12 @@ class HttpRequestTemplateImpl implements HttpRequestTemplate {
   MultiMap headers;
   long timeout = -1;
 
-  HttpRequestTemplateImpl(HttpClient client, HttpMethod method) {
+  HttpRequestBuilderImpl(HttpClient client, HttpMethod method) {
     this.client = client;
     this.method = method;
   }
 
-  private HttpRequestTemplateImpl(HttpRequestTemplateImpl other) {
+  private HttpRequestBuilderImpl(HttpRequestBuilderImpl other) {
     this.client = other.client;
     this.method = other.method;
     this.port = other.port;
@@ -64,36 +64,36 @@ class HttpRequestTemplateImpl implements HttpRequestTemplate {
   }
 
   @Override
-  public HttpRequestTemplate method(HttpMethod value) {
-    HttpRequestTemplateImpl other = new HttpRequestTemplateImpl(this);
+  public HttpRequestBuilder method(HttpMethod value) {
+    HttpRequestBuilderImpl other = new HttpRequestBuilderImpl(this);
     other.method = value;
     return other;
   }
 
   @Override
-  public HttpRequestTemplate port(int value) {
-    HttpRequestTemplateImpl other = new HttpRequestTemplateImpl(this);
+  public HttpRequestBuilder port(int value) {
+    HttpRequestBuilderImpl other = new HttpRequestBuilderImpl(this);
     other.port = value;
     return other;
   }
 
   @Override
-  public HttpRequestTemplate host(String value) {
-    HttpRequestTemplateImpl other = new HttpRequestTemplateImpl(this);
+  public HttpRequestBuilder host(String value) {
+    HttpRequestBuilderImpl other = new HttpRequestBuilderImpl(this);
     other.host = value;
     return other;
   }
 
   @Override
-  public HttpRequestTemplate requestURI(String value) {
-    HttpRequestTemplateImpl other = new HttpRequestTemplateImpl(this);
+  public HttpRequestBuilder requestURI(String value) {
+    HttpRequestBuilderImpl other = new HttpRequestBuilderImpl(this);
     other.requestURI = value;
     return other;
   }
 
   @Override
-  public HttpRequestTemplate putHeader(String name, String value) {
-    HttpRequestTemplateImpl other = new HttpRequestTemplateImpl(this);
+  public HttpRequestBuilder putHeader(String name, String value) {
+    HttpRequestBuilderImpl other = new HttpRequestBuilderImpl(this);
     if (other.headers == null) {
       other.headers = new CaseInsensitiveHeaders();
     }
@@ -102,8 +102,8 @@ class HttpRequestTemplateImpl implements HttpRequestTemplate {
   }
 
   @Override
-  public HttpRequestTemplate timeout(long value) {
-    HttpRequestTemplateImpl other = new HttpRequestTemplateImpl(this);
+  public HttpRequestBuilder timeout(long value) {
+    HttpRequestBuilderImpl other = new HttpRequestBuilderImpl(this);
     other.timeout = value;
     return other;
   }
@@ -189,7 +189,7 @@ class HttpRequestTemplateImpl implements HttpRequestTemplate {
   }
 
   @Override
-  public HttpResponseTemplate<Buffer> bufferBody() {
-    return new HttpResponseTemplateImpl<>(this, Function.identity());
+  public HttpResponseBuilder<Buffer> bufferBody() {
+    return new HttpResponseBuilderImpl<>(this, Function.identity());
   }
 }
