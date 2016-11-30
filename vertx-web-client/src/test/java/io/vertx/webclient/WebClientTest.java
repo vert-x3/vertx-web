@@ -358,6 +358,22 @@ public class WebClientTest extends HttpTestBase {
   }
 
   @Test
+  public void testBufferBody() throws Exception {
+    Buffer expected = TestUtils.randomBuffer(2000);
+    server.requestHandler(req -> {
+      req.response().end(expected);
+    });
+    startServer();
+    HttpRequestTemplate get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
+    get.bufferBody().send(onSuccess(resp -> {
+      assertEquals(200, resp.statusCode());
+      assertEquals(expected, resp.body());
+      testComplete();
+    }));
+    await();
+  }
+
+  @Test
   public void testAsJsonObject() throws Exception {
     JsonObject expected = new JsonObject().put("cheese", "Goat Cheese").put("wine", "Condrieu");
     server.requestHandler(req -> {

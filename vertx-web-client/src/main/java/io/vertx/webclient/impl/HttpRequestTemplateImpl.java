@@ -30,6 +30,7 @@ import io.vertx.core.json.Json;
 import io.vertx.core.streams.Pump;
 import io.vertx.core.streams.ReadStream;
 import io.vertx.webclient.HttpRequestTemplate;
+import io.vertx.webclient.HttpResponse;
 import io.vertx.webclient.HttpResponseTemplate;
 
 import java.util.function.Function;
@@ -108,23 +109,33 @@ class HttpRequestTemplateImpl implements HttpRequestTemplate {
   }
 
   @Override
-  public void sendStream(ReadStream<Buffer> body, Handler<AsyncResult<HttpClientResponse>> handler) {
-    perform(null, body, handler);
+  public void sendStream(ReadStream<Buffer> body, Handler<AsyncResult<HttpResponse<Void>>> handler) {
+    perform2(null, body, handler);
   }
 
   @Override
-  public void send(Handler<AsyncResult<HttpClientResponse>> handler) {
-    perform(null, null, handler);
+  public void send(Handler<AsyncResult<HttpResponse<Void>>> handler) {
+    perform2(null, null, handler);
   }
 
   @Override
-  public void sendBuffer(Buffer body, Handler<AsyncResult<HttpClientResponse>> handler) {
-    perform(null, body, handler);
+  public void sendBuffer(Buffer body, Handler<AsyncResult<HttpResponse<Void>>> handler) {
+    perform2(null, body, handler);
   }
 
   @Override
-  public void sendJson(Object body, Handler<AsyncResult<HttpClientResponse>> handler) {
-    perform("application/json", body, handler);
+  public void sendJson(Object body, Handler<AsyncResult<HttpResponse<Void>>> handler) {
+    perform2("application/json", body, handler);
+  }
+
+  private void perform2(String contentType, Object body, Handler<AsyncResult<HttpResponse<Void>>> handler) {
+    perform(contentType, body, ar -> {
+      if (ar.succeeded()) {
+        handler.handle(Future.succeededFuture(new HttpResponseImpl<>(ar.result(), null, null)));
+      } else {
+        handler.handle(Future.failedFuture(ar.cause()));
+      }
+    });
   }
 
   private void perform(String contentType, Object body, Handler<AsyncResult<HttpClientResponse>> handler) {

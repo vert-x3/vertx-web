@@ -18,10 +18,7 @@ package io.vertx.webclient.impl;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
-import io.vertx.core.MultiMap;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.http.HttpClientResponse;
-import io.vertx.core.http.HttpVersion;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.streams.ReadStream;
@@ -29,7 +26,6 @@ import io.vertx.webclient.HttpRequestTemplate;
 import io.vertx.webclient.HttpResponse;
 import io.vertx.webclient.HttpResponseTemplate;
 
-import java.util.List;
 import java.util.function.Function;
 
 /**
@@ -37,14 +33,14 @@ import java.util.function.Function;
  */
 class HttpResponseTemplateImpl<T> implements HttpResponseTemplate<T> {
 
-  private static final Function<Buffer, JsonObject> jsonObjectUnmarshaller = buff -> new JsonObject(buff.toString());
-  private static final Function<Buffer, String> utf8Unmarshaller = Buffer::toString;
+  static final Function<Buffer, JsonObject> jsonObjectUnmarshaller = buff -> new JsonObject(buff.toString());
+  static final Function<Buffer, String> utf8Unmarshaller = Buffer::toString;
 
-  private static Function<Buffer, String> stringUnmarshaller(String encoding) {
+  static Function<Buffer, String> stringUnmarshaller(String encoding) {
     return buff -> buff.toString(encoding);
   }
 
-  private static <R> Function<Buffer, R> jsonUnmarshaller(Class<R> type) {
+  static <R> Function<Buffer, R> jsonUnmarshaller(Class<R> type) {
     return buff -> Json.decodeValue(buff.toString(), type);
   }
 
@@ -76,84 +72,23 @@ class HttpResponseTemplateImpl<T> implements HttpResponseTemplate<T> {
     return new HttpResponseTemplateImpl<>(requestTemplate, jsonUnmarshaller(type));
   }
 
-  private Handler<AsyncResult<HttpClientResponse>> createClientResponseHandler(Future<HttpResponse<T>> fut) {
+  private Handler<AsyncResult<HttpResponse<Void>>> createClientResponseHandler(Future<HttpResponse<T>> fut) {
     return ar -> {
       if (ar.succeeded()) {
-        HttpClientResponse resp = ar.result();
-        resp.exceptionHandler(err -> {
-          if (!fut.isComplete()) {
-            fut.fail(err);
-          }
-        });
-        resp.bodyHandler(buff -> {
-          T body;
-          try {
-            body = bodyUnmarshaller.apply(buff);
-          } catch (Throwable err) {
-            if (!fut.failed()) {
+        HttpResponse<Void> resp = ar.result();
+        resp.bufferBody(ar2 -> {
+          if (ar2.succeeded()) {
+            Buffer buff = ar2.result();
+            T body;
+            try {
+              body = bodyUnmarshaller.apply(buff);
+            } catch (Throwable err) {
               fut.fail(err);
+              return;
             }
-            return;
-          }
-          if (!fut.failed()) {
-            fut.complete(new HttpResponse<T>() {
-              @Override
-              public HttpVersion version() {
-                return resp.version();
-              }
-              @Override
-              public int statusCode() {
-                return resp.statusCode();
-              }
-              @Override
-              public String statusMessage() {
-                return resp.statusMessage();
-              }
-              @Override
-              public String getHeader(String headerName) {
-                return resp.getHeader(headerName);
-              }
-              @Override
-              public MultiMap trailers() {
-                return resp.trailers();
-              }
-              @Override
-              public String getTrailer(String trailerName) {
-                return resp.getTrailer(trailerName);
-              }
-              @Override
-              public List<String> cookies() {
-                return resp.cookies();
-              }
-              @Override
-              public MultiMap headers() {
-                return resp.headers();
-              }
-              @Override
-              public T body() {
-                return body;
-              }
-              @Override
-              public Buffer bodyAsBuffer() {
-                return buff;
-              }
-              @Override
-              public String bodyAsString() {
-                return utf8Unmarshaller.apply(buff);
-              }
-              @Override
-              public String bodyAsString(String encoding) {
-                return buff.toString(encoding);
-              }
-              @Override
-              public JsonObject bodyAsJsonObject() {
-                return jsonObjectUnmarshaller.apply(buff);
-              }
-              @Override
-              public <R> R bodyAs(Class<R> type) {
-                return jsonUnmarshaller(type).apply(buff);
-              }
-            });
+            fut.complete(new HttpResponseImpl<T>(resp.httpClientResponse(), buff, body));
+          } else {
+            fut.fail(ar2.cause());
           }
         });
       } else {

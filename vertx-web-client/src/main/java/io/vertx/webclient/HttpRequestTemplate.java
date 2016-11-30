@@ -104,14 +104,14 @@ public interface HttpRequestTemplate {
    *
    * @param body the body
    */
-  void sendStream(ReadStream<Buffer> body, Handler<AsyncResult<HttpClientResponse>> handler);
+  void sendStream(ReadStream<Buffer> body, Handler<AsyncResult<HttpResponse<Void>>> handler);
 
   /**
    * Like {@link #send(Handler)} but with an HTTP request {@code body} buffer.
    *
    * @param body the body
    */
-  void sendBuffer(Buffer body, Handler<AsyncResult<HttpClientResponse>> handler);
+  void sendBuffer(Buffer body, Handler<AsyncResult<HttpResponse<Void>>> handler);
 
   /**
    * Like {@link #send(Handler)} but with an HTTP request {@code body} object encoded as json and the content type
@@ -119,12 +119,12 @@ public interface HttpRequestTemplate {
    *
    * @param body the body
    */
-  void sendJson(Object body, Handler<AsyncResult<HttpClientResponse>> handler);
+  void sendJson(Object body, Handler<AsyncResult<HttpResponse<Void>>> handler);
 
   /**
    * Send a request, the {@code handler} will receive the response as an {@link HttpClientResponse}.
    */
-  void send(Handler<AsyncResult<HttpClientResponse>> handler);
+  void send(Handler<AsyncResult<HttpResponse<Void>>> handler);
 
   /**
    * Configure to buffer the body and returns a {@link HttpResponseTemplate < Buffer >} for further configuration of

@@ -21,7 +21,7 @@ public class WebClientExamples {
       .send(ar -> {
         if (ar.succeeded()) {
           // Obtain response
-          HttpClientResponse resp = ar.result();
+          HttpResponse<Void> resp = ar.result();
         }
       });
   }

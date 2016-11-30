@@ -1,3 +1,4 @@
+require 'vertx/http_client_response'
 require 'vertx/buffer'
 require 'vertx/multi_map'
 require 'vertx/util/utils.rb'
@@ -118,14 +119,14 @@ module VertxWebClient
       end
       raise ArgumentError, "Invalid arguments when calling body()"
     end
-    # @return [::Vertx::Buffer] the response body decoded as a 
+    # @return [::Vertx::Buffer] the response body decoded as a
     def body_as_buffer
       if !block_given?
         return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:bodyAsBuffer, []).call(),::Vertx::Buffer)
       end
       raise ArgumentError, "Invalid arguments when calling body_as_buffer()"
     end
-    # @param [String] encoding 
+    # @param [String] encoding
     # @return [String] the response body decoded as a <code>String</code> given a specific <code>encoding</code>
     def body_as_string(encoding=nil)
       if !block_given? && encoding == nil
@@ -142,13 +143,28 @@ module VertxWebClient
       end
       raise ArgumentError, "Invalid arguments when calling body_as_json_object()"
     end
-    # @param [Nil] type 
+    # @param [Nil] type
     # @return [Object] the response body decoded as the specified <code>type</code> with the Jackson mapper.
     def body_as(type=nil)
       if type.class == Class && !block_given?
         return ::Vertx::Util::Utils.v_type_of(type).wrap(@j_del.java_method(:bodyAs, [Java::JavaLang::Class.java_class]).call(::Vertx::Util::Utils.j_class_of(type)))
       end
       raise ArgumentError, "Invalid arguments when calling body_as(#{type})"
+    end
+    # @return [::Vertx::HttpClientResponse]
+    def abc
+      if !block_given?
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:httpClientResponse, []).call(), ::Vertx::HttpClientResponse)
+      end
+      raise ArgumentError, "Invalid arguments when calling abc()"
+    end
+    # @yield
+    # @return [void]
+    def buffer_body
+      if block_given?
+        return @j_del.java_method(:bufferBody, [Java::IoVertxCore::Handler.java_class]).call((Proc.new { |ar| yield(ar.failed ? ar.cause : nil, ar.succeeded ? ::Vertx::Util::Utils.safe_create(ar.result,::Vertx::Buffer) : nil) }))
+      end
+      raise ArgumentError, "Invalid arguments when calling buffer_body()"
     end
   end
 end

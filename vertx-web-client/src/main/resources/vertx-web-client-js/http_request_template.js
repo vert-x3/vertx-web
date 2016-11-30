@@ -16,10 +16,10 @@
 
 /** @module vertx-web-client-js/http_request_template */
 var utils = require('vertx-js/util/utils');
-var HttpClientResponse = require('vertx-js/http_client_response');
 var Buffer = require('vertx-js/buffer');
 var ReadStream = require('vertx-js/read_stream');
 var HttpResponseTemplate = require('vertx-web-client-js/http_response_template');
+var HttpResponse = require('vertx-web-client-js/http_response');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
@@ -135,7 +135,7 @@ var HttpRequestTemplate = function(j_val) {
     if (__args.length === 2 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'function') {
       j_httpRequestTemplate["sendStream(io.vertx.core.streams.ReadStream,io.vertx.core.Handler)"](body._jdel, function(ar) {
       if (ar.succeeded()) {
-        handler(utils.convReturnVertxGen(HttpClientResponse, ar.result()), null);
+        handler(utils.convReturnVertxGen(HttpResponse, ar.result(), undefined), null);
       } else {
         handler(null, ar.cause());
       }
@@ -155,7 +155,7 @@ var HttpRequestTemplate = function(j_val) {
     if (__args.length === 2 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'function') {
       j_httpRequestTemplate["sendBuffer(io.vertx.core.buffer.Buffer,io.vertx.core.Handler)"](body._jdel, function(ar) {
       if (ar.succeeded()) {
-        handler(utils.convReturnVertxGen(HttpClientResponse, ar.result()), null);
+        handler(utils.convReturnVertxGen(HttpResponse, ar.result(), undefined), null);
       } else {
         handler(null, ar.cause());
       }
@@ -176,7 +176,7 @@ var HttpRequestTemplate = function(j_val) {
     if (__args.length === 2 && typeof __args[0] !== 'function' && typeof __args[1] === 'function') {
       j_httpRequestTemplate["sendJson(java.lang.Object,io.vertx.core.Handler)"](utils.convParamTypeUnknown(body), function(ar) {
       if (ar.succeeded()) {
-        handler(utils.convReturnVertxGen(HttpClientResponse, ar.result()), null);
+        handler(utils.convReturnVertxGen(HttpResponse, ar.result(), undefined), null);
       } else {
         handler(null, ar.cause());
       }
@@ -195,7 +195,7 @@ var HttpRequestTemplate = function(j_val) {
     if (__args.length === 1 && typeof __args[0] === 'function') {
       j_httpRequestTemplate["send(io.vertx.core.Handler)"](function(ar) {
       if (ar.succeeded()) {
-        handler(utils.convReturnVertxGen(HttpClientResponse, ar.result()), null);
+        handler(utils.convReturnVertxGen(HttpResponse, ar.result(), undefined), null);
       } else {
         handler(null, ar.cause());
       }
