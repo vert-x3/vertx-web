@@ -42,7 +42,7 @@ import io.vertx.core.streams.ReadStream;
  * can be called.
  * <p>
  * The {@code #bufferBody} configures the builder to buffer the entire HTTP response body and returns a
- * {@link PayloadCodec} for configuring the response body.
+ * {@link BodyCodec} for configuring the response body.
  * <p>
  * The {@code send} methods perform the actual request, they can be used multiple times to perform HTTP requests.
  *
@@ -129,6 +129,6 @@ public interface HttpRequest {
   /**
    * Send a request, the {@code handler} will receive the response as an {@link HttpClientResponse}.
    */
-  <R> void send(PayloadCodec<R> codec, Handler<AsyncResult<HttpResponse<R>>> handler);
+  <R> void send(BodyCodec<R> codec, Handler<AsyncResult<HttpResponse<R>>> handler);
 
 }

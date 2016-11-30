@@ -14,7 +14,7 @@ module VertxWebClient
   #    <li>{::VertxWebClient::HttpResponse#version} the HTTP version</li>
   #  </ul>
   #  <p>
-  #  The body of the response is returned by {::VertxWebClient::HttpResponse#body} decoded as the format specified by the {::VertxWebClient::PayloadCodec} that
+  #  The body of the response is returned by {::VertxWebClient::HttpResponse#body} decoded as the format specified by the {::VertxWebClient::BodyCodec} that
   #  built the response.
   #  <p>
   #  Keep in mind that using this <code>HttpResponse</code> impose to fully buffer the response body and should be used for payload

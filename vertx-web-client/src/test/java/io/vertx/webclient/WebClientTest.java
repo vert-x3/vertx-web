@@ -379,7 +379,7 @@ public class WebClientTest extends HttpTestBase {
     });
     startServer();
     HttpRequest get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
-    get.send(PayloadCodec.jsonObject(), onSuccess(resp -> {
+    get.send(BodyCodec.jsonObject(), onSuccess(resp -> {
       assertEquals(200, resp.statusCode());
       assertEquals(expected, resp.body());
       testComplete();
@@ -395,7 +395,7 @@ public class WebClientTest extends HttpTestBase {
     });
     startServer();
     HttpRequest get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
-    get.send(PayloadCodec.json(WineAndCheese.class), onSuccess(resp -> {
+    get.send(BodyCodec.json(WineAndCheese.class), onSuccess(resp -> {
       assertEquals(200, resp.statusCode());
       assertEquals(new WineAndCheese().setCheese("Goat Cheese").setWine("Condrieu"), resp.body());
       testComplete();

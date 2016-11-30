@@ -1,6 +1,6 @@
 require 'vertx/buffer'
-require 'vertx-web-client/payload_codec'
 require 'vertx/read_stream'
+require 'vertx-web-client/body_codec'
 require 'vertx-web-client/http_response'
 require 'vertx/util/utils.rb'
 # Generated from io.vertx.webclient.HttpRequest
@@ -22,7 +22,7 @@ module VertxWebClient
   #  can be called.
   #  <p>
   #  The <code>#bufferBody</code> configures the builder to buffer the entire HTTP response body and returns a
-  #  {::VertxWebClient::PayloadCodec} for configuring the response body.
+  #  {::VertxWebClient::BodyCodec} for configuring the response body.
   #  <p>
   #  The <code>send</code> methods perform the actual request, they can be used multiple times to perform HTTP requests.
   class HttpRequest
@@ -142,14 +142,14 @@ module VertxWebClient
       raise ArgumentError, "Invalid arguments when calling send_json(#{body})"
     end
     #  Send a request, the <code>handler</code> will receive the response as an .
-    # @param [::VertxWebClient::PayloadCodec] codec 
+    # @param [::VertxWebClient::BodyCodec] codec 
     # @yield 
     # @return [void]
     def send(codec=nil)
       if block_given? && codec == nil
         return @j_del.java_method(:send, [Java::IoVertxCore::Handler.java_class]).call((Proc.new { |ar| yield(ar.failed ? ar.cause : nil, ar.succeeded ? ::Vertx::Util::Utils.safe_create(ar.result,::VertxWebClient::HttpResponse,::Vertx::Buffer.j_api_type) : nil) }))
       elsif codec.class.method_defined?(:j_del) && block_given?
-        return @j_del.java_method(:send, [Java::IoVertxWebclient::PayloadCodec.java_class,Java::IoVertxCore::Handler.java_class]).call(codec.j_del,(Proc.new { |ar| yield(ar.failed ? ar.cause : nil, ar.succeeded ? ::Vertx::Util::Utils.safe_create(ar.result,::VertxWebClient::HttpResponse, nil) : nil) }))
+        return @j_del.java_method(:send, [Java::IoVertxWebclient::BodyCodec.java_class,Java::IoVertxCore::Handler.java_class]).call(codec.j_del,(Proc.new { |ar| yield(ar.failed ? ar.cause : nil, ar.succeeded ? ::Vertx::Util::Utils.safe_create(ar.result,::VertxWebClient::HttpResponse, nil) : nil) }))
       end
       raise ArgumentError, "Invalid arguments when calling send(#{codec})"
     end

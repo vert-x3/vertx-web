@@ -17,8 +17,8 @@
 /** @module vertx-web-client-js/http_request */
 var utils = require('vertx-js/util/utils');
 var Buffer = require('vertx-js/buffer');
-var PayloadCodec = require('vertx-web-client-js/payload_codec');
 var ReadStream = require('vertx-js/read_stream');
+var BodyCodec = require('vertx-web-client-js/body_codec');
 var HttpResponse = require('vertx-web-client-js/http_response');
 
 var io = Packages.io;
@@ -188,7 +188,7 @@ var HttpRequest = function(j_val) {
    Send a request, the <code>handler</code> will receive the response as an .
 
    @public
-   @param codec {PayloadCodec} 
+   @param codec {BodyCodec} 
    @param handler {function} 
    */
   this.send = function() {
@@ -202,7 +202,7 @@ var HttpRequest = function(j_val) {
       }
     });
     }  else if (__args.length === 2 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'function') {
-      j_httpRequest["send(io.vertx.webclient.PayloadCodec,io.vertx.core.Handler)"](__args[0]._jdel, function(ar) {
+      j_httpRequest["send(io.vertx.webclient.BodyCodec,io.vertx.core.Handler)"](__args[0]._jdel, function(ar) {
       if (ar.succeeded()) {
         __args[1](utils.convReturnVertxGen(HttpResponse, ar.result(), undefined), null);
       } else {

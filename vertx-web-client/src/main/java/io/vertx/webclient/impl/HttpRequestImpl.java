@@ -29,11 +29,10 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.Json;
 import io.vertx.core.streams.Pump;
 import io.vertx.core.streams.ReadStream;
+import io.vertx.webclient.BodyCodec;
 import io.vertx.webclient.HttpRequest;
 import io.vertx.webclient.HttpResponse;
-import io.vertx.webclient.PayloadCodec;
-
-import java.util.function.Function;
+import io.vertx.webclient.spi.BodyStream;
 
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
@@ -110,31 +109,30 @@ class HttpRequestImpl implements HttpRequest {
 
   @Override
   public void sendStream(ReadStream<Buffer> body, Handler<AsyncResult<HttpResponse<Buffer>>> handler) {
-    perform2(null, body, Function.identity(), handler);
+    perform2(null, body, BodyCodec.buffer(), handler);
   }
 
   @Override
   public void send(Handler<AsyncResult<HttpResponse<Buffer>>> handler) {
-    perform2(null, null, Function.identity(), handler);
+    perform2(null, null, BodyCodec.buffer(), handler);
   }
 
   @Override
   public void sendBuffer(Buffer body, Handler<AsyncResult<HttpResponse<Buffer>>> handler) {
-    perform2(null, body, Function.identity(), handler);
+    perform2(null, body, BodyCodec.buffer(), handler);
   }
 
   @Override
   public void sendJson(Object body, Handler<AsyncResult<HttpResponse<Buffer>>> handler) {
-    perform2("application/json", body, Function.identity(), handler);
+    perform2("application/json", body, BodyCodec.buffer(), handler);
   }
 
   @Override
-  public <R> void send(PayloadCodec<R> codec, Handler<AsyncResult<HttpResponse<R>>> handler) {
-    Function<Buffer, R> bodyUnmarshaller = codec.unmarshaller();
-    perform2(null, null, bodyUnmarshaller, handler);
+  public <R> void send(BodyCodec<R> codec, Handler<AsyncResult<HttpResponse<R>>> handler) {
+    perform2(null, null, codec, handler);
   }
 
-  private <R> void perform2(String contentType, Object body, Function<Buffer, R> unmarshaller, Handler<AsyncResult<HttpResponse<R>>> handler) {
+  private <R> void perform2(String contentType, Object body, BodyCodec<R> unmarshaller, Handler<AsyncResult<HttpResponse<R>>> handler) {
     perform(contentType, body, ar -> {
       if (ar.succeeded()) {
         HttpClientResponse resp = ar.result();
@@ -146,15 +144,12 @@ class HttpRequestImpl implements HttpRequest {
           }
         });
         resp.bodyHandler(buff -> {
+          // Todo : do incremental with a pump
           if (!fut.isComplete()) {
-            R b;
-            try {
-              b = unmarshaller.apply(buff);
-            } catch (Throwable e) {
-              fut.fail(e);
-              return;
-            }
-            fut.complete(new HttpResponseImpl<>(resp, buff, b));
+            BodyStream<R> state = unmarshaller.stream();
+            state.write(buff);
+            state.end();
+            fut.complete(new HttpResponseImpl<>(resp, buff, state.state().result()));
           }
         });
       } else {

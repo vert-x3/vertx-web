@@ -5,9 +5,9 @@ import io.vertx.core.file.AsyncFile;
 import io.vertx.core.file.FileSystem;
 import io.vertx.core.file.OpenOptions;
 import io.vertx.core.json.JsonObject;
+import io.vertx.webclient.BodyCodec;
 import io.vertx.webclient.HttpRequest;
 import io.vertx.webclient.HttpResponse;
-import io.vertx.webclient.PayloadCodec;
 import io.vertx.webclient.WebClient;
 
 /**
@@ -57,7 +57,7 @@ public class WebClientExamples {
   public void bufferBodyDecodeAsJsonObject(WebClient client) {
     client
       .get(8080, "localhost", "/something")
-      .send(PayloadCodec.jsonObject(), ar -> {
+      .send(BodyCodec.jsonObject(), ar -> {
         if (ar.succeeded()) {
           HttpResponse<JsonObject> resp = ar.result();
           JsonObject body = resp.body();
