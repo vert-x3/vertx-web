@@ -57,7 +57,7 @@ class HttpRequestTemplateImpl implements HttpRequestTemplate {
     this.method = other.method;
     this.port = other.port;
     this.host = other.host;
-    this.timeout = timeout;
+    this.timeout = other.timeout;
     this.requestURI = other.requestURI;
     this.headers = other.headers != null ? new CaseInsensitiveHeaders().addAll(other.headers) : null;
   }
