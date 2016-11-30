@@ -1,12 +1,14 @@
 package io.vertx.webclient;
 
 import io.vertx.core.Handler;
+import io.vertx.core.VertxException;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.file.AsyncFile;
 import io.vertx.core.file.OpenOptions;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerOptions;
+import io.vertx.core.json.DecodeException;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.streams.ReadStream;
@@ -402,7 +404,6 @@ public class WebClientTest extends HttpTestBase {
     }));
     await();
   }
-/*
 
   @Test
   public void testAsJsonObjectUnknownContentType() throws Exception {
@@ -411,8 +412,8 @@ public class WebClientTest extends HttpTestBase {
       req.response().end(expected.encode());
     });
     startServer();
-    HttpRequestBuilder get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
-    get.bufferBody().send(onSuccess(resp -> {
+    HttpRequest get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
+    get.send(onSuccess(resp -> {
       assertEquals(200, resp.statusCode());
       assertEquals(expected, resp.bodyAsJsonObject());
       testComplete();
@@ -427,8 +428,8 @@ public class WebClientTest extends HttpTestBase {
       req.response().end(expected.encode());
     });
     startServer();
-    HttpRequestBuilder get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
-    get.bufferBody().send(onSuccess(resp -> {
+    HttpRequest get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
+    get.send(onSuccess(resp -> {
       assertEquals(200, resp.statusCode());
       assertEquals(new WineAndCheese().setCheese("Goat Cheese").setWine("Condrieu"), resp.bodyAs(WineAndCheese.class));
       testComplete();
@@ -442,8 +443,8 @@ public class WebClientTest extends HttpTestBase {
       req.response().end("not-json-object");
     });
     startServer();
-    HttpRequestBuilder get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
-    get.bufferBody().asJsonObject().send(onFailure(err -> {
+    HttpRequest get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
+    get.send(BodyCodec.jsonObject(), onFailure(err -> {
       assertTrue(err instanceof DecodeException);
       testComplete();
     }));
@@ -456,14 +457,13 @@ public class WebClientTest extends HttpTestBase {
       req.response().setChunked(true).write(Buffer.buffer("some-data")).close();
     });
     startServer();
-    HttpRequestBuilder get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
-    get.bufferBody().asJsonObject().send(onFailure(err -> {
+    HttpRequest get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
+    get.send(BodyCodec.jsonObject(), onFailure(err -> {
       assertTrue(err instanceof VertxException);
       testComplete();
     }));
     await();
   }
-*/
 
   @Test
   public void testTimeout() throws Exception {
