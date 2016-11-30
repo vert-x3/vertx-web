@@ -149,7 +149,11 @@ class HttpRequestImpl implements HttpRequest {
             BodyStream<R> state = unmarshaller.stream();
             state.write(buff);
             state.end();
-            fut.complete(new HttpResponseImpl<>(resp, buff, state.state().result()));
+            if (state.state().succeeded()) {
+              fut.complete(new HttpResponseImpl<>(resp, buff, state.state().result()));
+            } else {
+              fut.fail(state.state().cause());
+            }
           }
         });
       } else {
