@@ -79,27 +79,31 @@ class HttpResponseImpl<T> implements HttpResponse<T> {
 
   @Override
   public Buffer bodyAsBuffer() {
-    return buff;
+    return buff != null ? buff : body instanceof Buffer ? (Buffer)body : null;
   }
 
   @Override
   public String bodyAsString() {
-    return BodyCodecImpl.utf8Unmarshaller.apply(buff);
+    Buffer b = bodyAsBuffer();
+    return b != null ? BodyCodecImpl.utf8Unmarshaller.apply(b) : null;
   }
 
   @Override
   public String bodyAsString(String encoding) {
-    return buff.toString(encoding);
+    Buffer b = bodyAsBuffer();
+    return b != null ? b.toString(encoding) : null;
   }
 
   @Override
   public JsonObject bodyAsJsonObject() {
-    return BodyCodecImpl.jsonObjectUnmarshaller.apply(buff);
+    Buffer b = bodyAsBuffer();
+    return b != null ? BodyCodecImpl.jsonObjectUnmarshaller.apply(b) : null;
   }
 
   @Override
   public <R> R bodyAs(Class<R> type) {
-    return BodyCodecImpl.jsonUnmarshaller(type).apply(buff);
+    Buffer b = bodyAsBuffer();
+    return b != null ? BodyCodecImpl.jsonUnmarshaller(type).apply(b) : null;
   }
 
   @Override

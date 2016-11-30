@@ -8,10 +8,12 @@ import io.vertx.core.file.OpenOptions;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerOptions;
+import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.DecodeException;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.streams.ReadStream;
+import io.vertx.core.streams.WriteStream;
 import io.vertx.test.core.HttpTestBase;
 import io.vertx.test.core.TestUtils;
 import io.vertx.webclient.jackson.WineAndCheese;
@@ -22,6 +24,7 @@ import java.net.ConnectException;
 import java.nio.file.Files;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 
@@ -358,7 +361,7 @@ public class WebClientTest extends HttpTestBase {
   }
 
   @Test
-  public void testBufferBody() throws Exception {
+  public void testResponseBodyAsBuffer() throws Exception {
     Buffer expected = TestUtils.randomBuffer(2000);
     server.requestHandler(req -> {
       req.response().end(expected);
@@ -374,7 +377,7 @@ public class WebClientTest extends HttpTestBase {
   }
 
   @Test
-  public void testAsJsonObject() throws Exception {
+  public void testResponseBodyAsAsJsonObject() throws Exception {
     JsonObject expected = new JsonObject().put("cheese", "Goat Cheese").put("wine", "Condrieu");
     server.requestHandler(req -> {
       req.response().end(expected.encode());
@@ -390,7 +393,7 @@ public class WebClientTest extends HttpTestBase {
   }
 
   @Test
-  public void testAsJsonMapped() throws Exception {
+  public void testResponseBodyAsAsJsonMapped() throws Exception {
     JsonObject expected = new JsonObject().put("cheese", "Goat Cheese").put("wine", "Condrieu");
     server.requestHandler(req -> {
       req.response().end(expected.encode());
@@ -406,7 +409,7 @@ public class WebClientTest extends HttpTestBase {
   }
 
   @Test
-  public void testAsJsonObjectUnknownContentType() throws Exception {
+  public void testResponseUnknownContentTypeBodyAsJsonObject() throws Exception {
     JsonObject expected = new JsonObject().put("cheese", "Goat Cheese").put("wine", "Condrieu");
     server.requestHandler(req -> {
       req.response().end(expected.encode());
@@ -422,7 +425,7 @@ public class WebClientTest extends HttpTestBase {
   }
 
   @Test
-  public void testAsJsonMappedUnknownContentType() throws Exception {
+  public void testResponseUnknownContentTypeBodyAsJsonMapped() throws Exception {
     JsonObject expected = new JsonObject().put("cheese", "Goat Cheese").put("wine", "Condrieu");
     server.requestHandler(req -> {
       req.response().end(expected.encode());
@@ -438,7 +441,7 @@ public class WebClientTest extends HttpTestBase {
   }
 
   @Test
-  public void testBodyUnmarshallingError() throws Exception {
+  public void testResponseBodyUnmarshallingError() throws Exception {
     server.requestHandler(req -> {
       req.response().end("not-json-object");
     });
@@ -446,6 +449,171 @@ public class WebClientTest extends HttpTestBase {
     HttpRequest get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
     get.send(BodyCodec.jsonObject(), onFailure(err -> {
       assertTrue(err instanceof DecodeException);
+      testComplete();
+    }));
+    await();
+  }
+
+  @Test
+  public void testResponseBodyStream() throws Exception {
+    AtomicBoolean paused = new AtomicBoolean();
+    server.requestHandler(req -> {
+      HttpServerResponse resp = req.response();
+      resp.setChunked(true);
+      vertx.setPeriodic(1, id -> {
+        if (!resp.writeQueueFull()) {
+          resp.write(TestUtils.randomAlphaString(1024));
+        } else {
+          resp.drainHandler(v -> {
+            resp.end();
+          });
+          paused.set(true);
+          vertx.cancelTimer(id);
+        }
+      });
+    });
+    startServer();
+    CompletableFuture<Void> resume = new CompletableFuture<>();
+    AtomicInteger size = new AtomicInteger();
+    AtomicBoolean ended = new AtomicBoolean();
+    WriteStream<Buffer> stream = new WriteStream<Buffer>() {
+      boolean paused = true;
+      Handler<Void> drainHandler;
+      {
+        resume.thenAccept(v -> {
+          paused = false;
+          if (drainHandler != null) {
+            drainHandler.handle(null);
+          }
+        });
+      }
+      @Override
+      public WriteStream<Buffer> exceptionHandler(Handler<Throwable> handler) {
+        return this;
+      }
+      @Override
+      public WriteStream<Buffer> write(Buffer data) {
+        size.addAndGet(data.length());
+        return this;
+      }
+      @Override
+      public void end() {
+        ended.set(true);
+      }
+      @Override
+      public WriteStream<Buffer> setWriteQueueMaxSize(int maxSize) {
+        return this;
+      }
+      @Override
+      public boolean writeQueueFull() {
+        return paused;
+      }
+      @Override
+      public WriteStream<Buffer> drainHandler(Handler<Void> handler) {
+        drainHandler = handler;
+        return this;
+      }
+    };
+    HttpRequest get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
+    get.send(BodyCodec.stream(stream), onSuccess(resp -> {
+      assertTrue(ended.get());
+      assertEquals(200, resp.statusCode());
+      assertEquals(null, resp.body());
+      testComplete();
+    }));
+    waitUntil(paused::get);
+    resume.complete(null);
+    await();
+  }
+
+  @Test
+  public void testResponseBodyStreamError() throws Exception {
+    CompletableFuture<Void> fail = new CompletableFuture<>();
+    server.requestHandler(req -> {
+      HttpServerResponse resp = req.response();
+      resp.setChunked(true);
+      resp.write(TestUtils.randomBuffer(2048));
+      fail.thenAccept(v -> {
+        resp.close();
+      });
+    });
+    startServer();
+    AtomicInteger received = new AtomicInteger();
+    WriteStream<Buffer> stream = new WriteStream<Buffer>() {
+      @Override
+      public WriteStream<Buffer> exceptionHandler(Handler<Throwable> handler) {
+        return this;
+      }
+      @Override
+      public WriteStream<Buffer> write(Buffer data) {
+        received.addAndGet(data.length());
+        return this;
+      }
+      @Override
+      public void end() {
+      }
+      @Override
+      public WriteStream<Buffer> setWriteQueueMaxSize(int maxSize) {
+        return this;
+      }
+      @Override
+      public boolean writeQueueFull() {
+        return false;
+      }
+      @Override
+      public WriteStream<Buffer> drainHandler(Handler<Void> handler) {
+        return this;
+      }
+    };
+    HttpRequest get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
+    get.send(BodyCodec.stream(stream), onFailure(err -> {
+      testComplete();
+    }));
+    waitUntil(() -> received.get() == 2048);
+    fail.complete(null);
+    await();
+  }
+
+  @Test
+  public void testResponseBodyCodecError() throws Exception {
+    server.requestHandler(req -> {
+      HttpServerResponse resp = req.response();
+      resp.setChunked(true);
+      resp.end(TestUtils.randomBuffer(2048));
+    });
+    startServer();
+    RuntimeException cause = new RuntimeException();
+    WriteStream<Buffer> stream = new WriteStream<Buffer>() {
+      Handler<Throwable> exceptionHandler;
+      @Override
+      public WriteStream<Buffer> exceptionHandler(Handler<Throwable> handler) {
+        exceptionHandler = handler;
+        return this;
+      }
+      @Override
+      public WriteStream<Buffer> write(Buffer data) {
+        exceptionHandler.handle(cause);
+        return this;
+      }
+      @Override
+      public void end() {
+      }
+      @Override
+      public WriteStream<Buffer> setWriteQueueMaxSize(int maxSize) {
+        return this;
+      }
+      @Override
+      public boolean writeQueueFull() {
+        return false;
+      }
+      @Override
+      public WriteStream<Buffer> drainHandler(Handler<Void> handler) {
+        return this;
+      }
+    };
+    HttpRequest get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
+    get.send(BodyCodec.stream(stream), onFailure(err -> {
+      assertSame(cause, err);
       testComplete();
     }));
     await();

@@ -15,6 +15,7 @@
  */
 package io.vertx.webclient.impl;
 
+import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
@@ -49,8 +50,8 @@ public class BodyCodecImpl<T> implements BodyCodec<T> {
   }
 
   @Override
-  public BodyStream<T> stream() {
-    return new BodyStream<T>() {
+  public void stream(Handler<AsyncResult<BodyStream<T>>> handler) {
+    handler.handle(Future.succeededFuture(new BodyStream<T>() {
 
       Buffer buffer = Buffer.buffer();
       Future<T> state = Future.future();
@@ -106,6 +107,6 @@ public class BodyCodecImpl<T> implements BodyCodec<T> {
       public WriteStream<Buffer> drainHandler(Handler<Void> handler) {
         return this;
       }
-    };
+    }));
   }
 }

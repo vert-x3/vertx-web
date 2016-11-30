@@ -143,17 +143,30 @@ class HttpRequestImpl implements HttpRequest {
             fut.fail(err);
           }
         });
-        resp.bodyHandler(buff -> {
-          // Todo : do incremental with a pump
-          if (!fut.isComplete()) {
-            BodyStream<R> state = unmarshaller.stream();
-            state.write(buff);
-            state.end();
-            if (state.state().succeeded()) {
-              fut.complete(new HttpResponseImpl<>(resp, buff, state.state().result()));
-            } else {
-              fut.fail(state.state().cause());
-            }
+        resp.pause();
+        unmarshaller.stream(ar2 -> {
+          resp.resume();
+          if (ar2.succeeded()) {
+            BodyStream<R> stream = ar2.result();
+            stream.exceptionHandler(err -> {
+              if (!fut.isComplete()) {
+                fut.fail(err);
+              }
+            });
+            resp.endHandler(v -> {
+              if (!fut.isComplete()) {
+                stream.end();
+                if (stream.state().succeeded()) {
+                  fut.complete(new HttpResponseImpl<>(resp, null, stream.state().result()));
+                } else {
+                  fut.fail(stream.state().cause());
+                }
+              }
+            });
+            Pump responsePump = Pump.pump(resp, stream);
+            responsePump.start();
+          } else {
+            handler.handle(Future.failedFuture(ar2.cause()));
           }
         });
       } else {

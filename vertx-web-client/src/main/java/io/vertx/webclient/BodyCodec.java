@@ -17,6 +17,7 @@ package io.vertx.webclient;
 
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
+import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
@@ -70,8 +71,8 @@ public interface BodyCodec<T> {
   static BodyCodec<Void> stream(WriteStream<Buffer> stream) {
     return new BodyCodec<Void>() {
       @Override
-      public BodyStream<Void> stream() {
-        return new BodyStream<Void>() {
+      public void stream(Handler<AsyncResult<BodyStream<Void>>> handler) {
+        handler.handle(Future.succeededFuture(new BodyStream<Void>() {
 
           Future<Void> fut = Future.future();
 
@@ -89,6 +90,7 @@ public interface BodyCodec<T> {
 
           @Override
           public WriteStream<Buffer> exceptionHandler(Handler<Throwable> handler) {
+            stream.exceptionHandler(handler);
             return this;
           }
 
@@ -121,11 +123,11 @@ public interface BodyCodec<T> {
             stream.drainHandler(handler);
             return this;
           }
-        };
+        }));
       }
     };
   }
 
   @GenIgnore
-  BodyStream<T> stream();
+  void stream(Handler<AsyncResult<BodyStream<T>>> handler);
 }
