@@ -22,10 +22,11 @@ import io.vertx.core.shareddata.Shareable;
 import io.vertx.core.shareddata.impl.ClusterSerializable;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.impl.Utils;
+import sun.security.jca.Providers;
 
 import java.io.*;
 import java.nio.charset.Charset;
-import java.security.SecureRandom;
+import java.security.Provider;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -35,7 +36,6 @@ import java.util.concurrent.ConcurrentHashMap;
 public class SessionImpl implements Session, ClusterSerializable, Shareable {
 
   private static final Charset UTF8 = Charset.forName("UTF-8");
-  private static final SecureRandom RNG = new SecureRandom();
   private static final char[] HEX = "0123456789abcdef".toCharArray();
 
   private static final byte TYPE_LONG = 1;
@@ -52,6 +52,8 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
   private static final byte TYPE_SERIALIZABLE = 12;
   private static final byte TYPE_CLUSTER_SERIALIZABLE = 13;
 
+  private final PRNG rng;
+
   private String id;
   private long timeout;
   private Map<String, Object> data;
@@ -62,11 +64,13 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
   private boolean renewed;
   private String oldId;
 
-  public SessionImpl() {
+  public SessionImpl(PRNG random) {
+    this.rng = random;
   }
 
-  public SessionImpl(long timeout, int length) {
-    this.id = generateId(length);
+  public SessionImpl(PRNG random, long timeout, int length) {
+    this.rng = random;
+    this.id = generateId(rng, length);
     this.timeout = timeout;
     this.lastAccessed = System.currentTimeMillis();
   }
@@ -84,7 +88,7 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
       oldId = id;
     }
     // ids are stored in hex, so the original size is half of the hex encodec length
-    id = generateId(oldId.length() / 2);
+    id = generateId(rng, oldId.length() / 2);
     renewed = true;
     return this;
   }
@@ -370,9 +374,9 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
     }
   }
 
-  private static String generateId(int length) {
+  private static String generateId(PRNG rng, int length) {
     final byte[] bytes = new byte[length];
-    RNG.nextBytes(bytes);
+    rng.nextBytes(bytes);
 
     final char[] hex = new char[length * 2];
     for (int j = 0; j < length; j++) {
@@ -382,6 +386,16 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
     }
 
     return new String(hex);
+  }
+
+  public static void main(String[] args) {
+    for (Provider p : Providers.getProviderList().providers()) {
+      for (Provider.Service s : p.getServices()) {
+        if (s.getType().equals("SecureRandom")) {
+          System.out.println(s);
+        }
+      }
+    }
   }
 }
 

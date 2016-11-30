@@ -26,6 +26,7 @@ import io.vertx.core.shareddata.impl.ClusterSerializable;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.sstore.SessionStore;
+import io.vertx.ext.web.sstore.impl.PRNG;
 import io.vertx.ext.web.sstore.impl.SessionImpl;
 import io.vertx.ext.auth.AuthProvider;
 import io.vertx.ext.auth.shiro.ShiroAuth;
@@ -208,6 +209,7 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
   private class SerializingSessionStore implements SessionStore {
 
     private Map<String, Buffer> sessions = new ConcurrentHashMap<>();
+    private final PRNG prng = new PRNG(vertx);
 
     @Override
     public long retryTimeout() {
@@ -216,12 +218,12 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
 
     @Override
     public Session createSession(long timeout) {
-      return new SessionImpl(timeout, DEFAULT_SESSIONID_LENGTH);
+      return new SessionImpl(prng, timeout, DEFAULT_SESSIONID_LENGTH);
     }
 
     @Override
     public Session createSession(long timeout, int length) {
-      return new SessionImpl(timeout, length);
+      return new SessionImpl(prng, timeout, length);
     }
 
     @Override
@@ -229,7 +231,7 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
       Buffer buff = sessions.get(id);
       SessionImpl sess;
       if (buff != null) {
-        sess = new SessionImpl();
+        sess = new SessionImpl(prng);
         sess.readFromBuffer(0, buff);
       } else {
         sess = null;

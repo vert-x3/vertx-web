@@ -30,6 +30,7 @@ import io.vertx.ext.web.sstore.ClusteredSessionStore;
 public class ClusteredSessionStoreImpl implements ClusteredSessionStore {
 
   private final Vertx vertx;
+  private final PRNG random;
   private final String sessionMapName;
   private final long retryTimeout;
 
@@ -40,6 +41,7 @@ public class ClusteredSessionStoreImpl implements ClusteredSessionStore {
     this.vertx = vertx;
     this.sessionMapName = sessionMapName;
     this.retryTimeout = retryTimeout;
+    this.random = new PRNG(vertx);
   }
 
   @Override
@@ -49,12 +51,12 @@ public class ClusteredSessionStoreImpl implements ClusteredSessionStore {
 
   @Override
   public Session createSession(long timeout) {
-    return new SessionImpl(timeout, DEFAULT_SESSIONID_LENGTH);
+    return new SessionImpl(random, timeout, DEFAULT_SESSIONID_LENGTH);
   }
 
   @Override
   public Session createSession(long timeout, int length) {
-    return new SessionImpl(timeout, length);
+    return new SessionImpl(random, timeout, length);
   }
 
   @Override

@@ -34,6 +34,7 @@ public class LocalSessionStoreImpl implements LocalSessionStore, Handler<Long> {
 
   private final LocalMap<String, Session> localMap;
   private final long reaperInterval;
+  private final PRNG random;
 
   private long timerID = -1;
   private boolean closed;
@@ -41,6 +42,8 @@ public class LocalSessionStoreImpl implements LocalSessionStore, Handler<Long> {
   protected final Vertx vertx;
 
   public LocalSessionStoreImpl(Vertx vertx, String sessionMapName, long reaperInterval) {
+    // initialize a secure random
+    this.random = new PRNG(vertx);
     this.vertx = vertx;
     this.reaperInterval = reaperInterval;
     localMap = vertx.sharedData().getLocalMap(sessionMapName);
@@ -49,12 +52,12 @@ public class LocalSessionStoreImpl implements LocalSessionStore, Handler<Long> {
 
   @Override
   public Session createSession(long timeout) {
-    return new SessionImpl(timeout, DEFAULT_SESSIONID_LENGTH);
+    return new SessionImpl(random, timeout, DEFAULT_SESSIONID_LENGTH);
   }
 
   @Override
   public Session createSession(long timeout, int length) {
-    return new SessionImpl(timeout, length);
+    return new SessionImpl(random, timeout, length);
   }
 
   @Override
@@ -108,6 +111,8 @@ public class LocalSessionStoreImpl implements LocalSessionStore, Handler<Long> {
     if (timerID != -1) {
       vertx.cancelTimer(timerID);
     }
+    // stop seeding the PRNG
+    random.close();
     closed = true;
   }
 
