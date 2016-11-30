@@ -14,7 +14,7 @@
  * under the License.
  */
 
-/** @module vertx-web-client-js/http_request_builder */
+/** @module vertx-web-client-js/http_request */
 var utils = require('vertx-js/util/utils');
 var Buffer = require('vertx-js/buffer');
 var PayloadCodec = require('vertx-web-client-js/payload_codec');
@@ -23,16 +23,16 @@ var HttpResponse = require('vertx-web-client-js/http_response');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
-var JHttpRequestBuilder = io.vertx.webclient.HttpRequestBuilder;
+var JHttpRequest = io.vertx.webclient.HttpRequest;
 
 /**
  A builder for configuring client-side HTTP requests.
  <p>
  @class
 */
-var HttpRequestBuilder = function(j_val) {
+var HttpRequest = function(j_val) {
 
-  var j_httpRequestBuilder = j_val;
+  var j_httpRequest = j_val;
   var that = this;
 
   /**
@@ -40,12 +40,12 @@ var HttpRequestBuilder = function(j_val) {
 
    @public
    @param value {Object} 
-   @return {HttpRequestBuilder} a new <code>HttpRequestBuilder</code> instance with the specified method <code>value</code>
+   @return {HttpRequest} a new <code>HttpRequestBuilder</code> instance with the specified method <code>value</code>
    */
   this.method = function(value) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return utils.convReturnVertxGen(HttpRequestBuilder, j_httpRequestBuilder["method(io.vertx.core.http.HttpMethod)"](io.vertx.core.http.HttpMethod.valueOf(value)));
+      return utils.convReturnVertxGen(HttpRequest, j_httpRequest["method(io.vertx.core.http.HttpMethod)"](io.vertx.core.http.HttpMethod.valueOf(value)));
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -54,12 +54,12 @@ var HttpRequestBuilder = function(j_val) {
 
    @public
    @param value {number} 
-   @return {HttpRequestBuilder} a new <code>HttpRequestBuilder</code> instance with the specified port <code>value</code>
+   @return {HttpRequest} a new <code>HttpRequestBuilder</code> instance with the specified port <code>value</code>
    */
   this.port = function(value) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] ==='number') {
-      return utils.convReturnVertxGen(HttpRequestBuilder, j_httpRequestBuilder["port(int)"](value));
+      return utils.convReturnVertxGen(HttpRequest, j_httpRequest["port(int)"](value));
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -68,12 +68,12 @@ var HttpRequestBuilder = function(j_val) {
 
    @public
    @param value {string} 
-   @return {HttpRequestBuilder} a new <code>HttpRequestBuilder</code> instance with the specified host <code>value</code>
+   @return {HttpRequest} a new <code>HttpRequestBuilder</code> instance with the specified host <code>value</code>
    */
   this.host = function(value) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return utils.convReturnVertxGen(HttpRequestBuilder, j_httpRequestBuilder["host(java.lang.String)"](value));
+      return utils.convReturnVertxGen(HttpRequest, j_httpRequest["host(java.lang.String)"](value));
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -82,12 +82,12 @@ var HttpRequestBuilder = function(j_val) {
 
    @public
    @param value {string} 
-   @return {HttpRequestBuilder} a new <code>HttpRequestBuilder</code> instance with the specified request URI <code>value</code>
+   @return {HttpRequest} a new <code>HttpRequestBuilder</code> instance with the specified request URI <code>value</code>
    */
   this.requestURI = function(value) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return utils.convReturnVertxGen(HttpRequestBuilder, j_httpRequestBuilder["requestURI(java.lang.String)"](value));
+      return utils.convReturnVertxGen(HttpRequest, j_httpRequest["requestURI(java.lang.String)"](value));
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -97,12 +97,12 @@ var HttpRequestBuilder = function(j_val) {
    @public
    @param name {string} the header name 
    @param value {string} the header value 
-   @return {HttpRequestBuilder} a new <code>HttpRequestBuilder</code> instance with the specified header
+   @return {HttpRequest} a new <code>HttpRequestBuilder</code> instance with the specified header
    */
   this.putHeader = function(name, value) {
     var __args = arguments;
     if (__args.length === 2 && typeof __args[0] === 'string' && typeof __args[1] === 'string') {
-      return utils.convReturnVertxGen(HttpRequestBuilder, j_httpRequestBuilder["putHeader(java.lang.String,java.lang.String)"](name, value));
+      return utils.convReturnVertxGen(HttpRequest, j_httpRequest["putHeader(java.lang.String,java.lang.String)"](name, value));
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -114,17 +114,17 @@ var HttpRequestBuilder = function(j_val) {
 
    @public
    @param value {number} The quantity of time in milliseconds. 
-   @return {HttpRequestBuilder} a new <code>HttpRequestBuilder</code> instance with the specified timeout
+   @return {HttpRequest} a new <code>HttpRequestBuilder</code> instance with the specified timeout
    */
   this.timeout = function(value) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] ==='number') {
-      return utils.convReturnVertxGen(HttpRequestBuilder, j_httpRequestBuilder["timeout(long)"](value));
+      return utils.convReturnVertxGen(HttpRequest, j_httpRequest["timeout(long)"](value));
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
-   Like {@link HttpRequestBuilder#send} but with an HTTP request <code>body</code> stream.
+   Like {@link HttpRequest#send} but with an HTTP request <code>body</code> stream.
 
    @public
    @param body {ReadStream} the body 
@@ -133,7 +133,7 @@ var HttpRequestBuilder = function(j_val) {
   this.sendStream = function(body, handler) {
     var __args = arguments;
     if (__args.length === 2 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'function') {
-      j_httpRequestBuilder["sendStream(io.vertx.core.streams.ReadStream,io.vertx.core.Handler)"](body._jdel, function(ar) {
+      j_httpRequest["sendStream(io.vertx.core.streams.ReadStream,io.vertx.core.Handler)"](body._jdel, function(ar) {
       if (ar.succeeded()) {
         handler(utils.convReturnVertxGen(HttpResponse, ar.result(), Buffer._jtype), null);
       } else {
@@ -144,7 +144,7 @@ var HttpRequestBuilder = function(j_val) {
   };
 
   /**
-   Like {@link HttpRequestBuilder#send} but with an HTTP request <code>body</code> buffer.
+   Like {@link HttpRequest#send} but with an HTTP request <code>body</code> buffer.
 
    @public
    @param body {Buffer} the body 
@@ -153,7 +153,7 @@ var HttpRequestBuilder = function(j_val) {
   this.sendBuffer = function(body, handler) {
     var __args = arguments;
     if (__args.length === 2 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'function') {
-      j_httpRequestBuilder["sendBuffer(io.vertx.core.buffer.Buffer,io.vertx.core.Handler)"](body._jdel, function(ar) {
+      j_httpRequest["sendBuffer(io.vertx.core.buffer.Buffer,io.vertx.core.Handler)"](body._jdel, function(ar) {
       if (ar.succeeded()) {
         handler(utils.convReturnVertxGen(HttpResponse, ar.result(), Buffer._jtype), null);
       } else {
@@ -164,7 +164,7 @@ var HttpRequestBuilder = function(j_val) {
   };
 
   /**
-   Like {@link HttpRequestBuilder#send} but with an HTTP request <code>body</code> object encoded as json and the content type
+   Like {@link HttpRequest#send} but with an HTTP request <code>body</code> object encoded as json and the content type
    set to <code>application/json</code>.
 
    @public
@@ -174,7 +174,7 @@ var HttpRequestBuilder = function(j_val) {
   this.sendJson = function(body, handler) {
     var __args = arguments;
     if (__args.length === 2 && typeof __args[0] !== 'function' && typeof __args[1] === 'function') {
-      j_httpRequestBuilder["sendJson(java.lang.Object,io.vertx.core.Handler)"](utils.convParamTypeUnknown(body), function(ar) {
+      j_httpRequest["sendJson(java.lang.Object,io.vertx.core.Handler)"](utils.convParamTypeUnknown(body), function(ar) {
       if (ar.succeeded()) {
         handler(utils.convReturnVertxGen(HttpResponse, ar.result(), Buffer._jtype), null);
       } else {
@@ -194,7 +194,7 @@ var HttpRequestBuilder = function(j_val) {
   this.send = function() {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'function') {
-      j_httpRequestBuilder["send(io.vertx.core.Handler)"](function(ar) {
+      j_httpRequest["send(io.vertx.core.Handler)"](function(ar) {
       if (ar.succeeded()) {
         __args[0](utils.convReturnVertxGen(HttpResponse, ar.result(), Buffer._jtype), null);
       } else {
@@ -202,7 +202,7 @@ var HttpRequestBuilder = function(j_val) {
       }
     });
     }  else if (__args.length === 2 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'function') {
-      j_httpRequestBuilder["send(io.vertx.webclient.PayloadCodec,io.vertx.core.Handler)"](__args[0]._jdel, function(ar) {
+      j_httpRequest["send(io.vertx.webclient.PayloadCodec,io.vertx.core.Handler)"](__args[0]._jdel, function(ar) {
       if (ar.succeeded()) {
         __args[1](utils.convReturnVertxGen(HttpResponse, ar.result(), undefined), null);
       } else {
@@ -215,26 +215,26 @@ var HttpRequestBuilder = function(j_val) {
   // A reference to the underlying Java delegate
   // NOTE! This is an internal API and must not be used in user code.
   // If you rely on this property your code is likely to break if we change it / remove it without warning.
-  this._jdel = j_httpRequestBuilder;
+  this._jdel = j_httpRequest;
 };
 
-HttpRequestBuilder._jclass = utils.getJavaClass("io.vertx.webclient.HttpRequestBuilder");
-HttpRequestBuilder._jtype = {
+HttpRequest._jclass = utils.getJavaClass("io.vertx.webclient.HttpRequest");
+HttpRequest._jtype = {
   accept: function(obj) {
-    return HttpRequestBuilder._jclass.isInstance(obj._jdel);
+    return HttpRequest._jclass.isInstance(obj._jdel);
   },
   wrap: function(jdel) {
-    var obj = Object.create(HttpRequestBuilder.prototype, {});
-    HttpRequestBuilder.apply(obj, arguments);
+    var obj = Object.create(HttpRequest.prototype, {});
+    HttpRequest.apply(obj, arguments);
     return obj;
   },
   unwrap: function(obj) {
     return obj._jdel;
   }
 };
-HttpRequestBuilder._create = function(jdel) {
-  var obj = Object.create(HttpRequestBuilder.prototype, {});
-  HttpRequestBuilder.apply(obj, arguments);
+HttpRequest._create = function(jdel) {
+  var obj = Object.create(HttpRequest.prototype, {});
+  HttpRequest.apply(obj, arguments);
   return obj;
 }
-module.exports = HttpRequestBuilder;
+module.exports = HttpRequest;

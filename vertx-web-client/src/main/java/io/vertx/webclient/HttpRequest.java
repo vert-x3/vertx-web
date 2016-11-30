@@ -42,42 +42,42 @@ import io.vertx.core.streams.ReadStream;
  * can be called.
  * <p>
  * The {@code #bufferBody} configures the builder to buffer the entire HTTP response body and returns a
- * {@link HttpResponseBuilder} for configuring the response body.
+ * {@link PayloadCodec} for configuring the response body.
  * <p>
  * The {@code send} methods perform the actual request, they can be used multiple times to perform HTTP requests.
  *
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
  */
 @VertxGen
-public interface HttpRequestBuilder {
+public interface HttpRequest {
 
   /**
    * Configure the builder to use a new method {@code value}.
    *
    * @return a new {@code HttpRequestBuilder} instance with the specified method {@code value}
    */
-  HttpRequestBuilder method(HttpMethod value);
+  HttpRequest method(HttpMethod value);
 
   /**
    * Configure the builder to use a new port {@code value}.
    *
    * @return a new {@code HttpRequestBuilder} instance with the specified port {@code value}
    */
-  HttpRequestBuilder port(int value);
+  HttpRequest port(int value);
 
   /**
    * Configure the builder to use a new host {@code value}.
    *
    * @return a new {@code HttpRequestBuilder} instance with the specified host {@code value}
    */
-  HttpRequestBuilder host(String value);
+  HttpRequest host(String value);
 
   /**
    * Configure the builder to use a new request URI {@code value}.
    *
    * @return a new {@code HttpRequestBuilder} instance with the specified request URI {@code value}
    */
-  HttpRequestBuilder requestURI(String value);
+  HttpRequest requestURI(String value);
 
   /**
    * Configure the builder to add a new HTTP header.
@@ -86,7 +86,7 @@ public interface HttpRequestBuilder {
    * @param value the header value
    * @return a new {@code HttpRequestBuilder} instance with the specified header
    */
-  HttpRequestBuilder putHeader(String name, String value);
+  HttpRequest putHeader(String name, String value);
 
   /**
    * Configures the amount of time in milliseconds after which if the request does not return any data within the timeout
@@ -97,21 +97,21 @@ public interface HttpRequestBuilder {
    * @param value The quantity of time in milliseconds.
    * @return a new {@code HttpRequestBuilder} instance with the specified timeout
    */
-  HttpRequestBuilder timeout(long value);
+  HttpRequest timeout(long value);
 
   /**
    * Like {@link #send(Handler)} but with an HTTP request {@code body} stream.
    *
    * @param body the body
    */
-  void sendStream(ReadStream<Buffer> body, Handler<AsyncResult<HttpResponse<Void>>> handler);
+  void sendStream(ReadStream<Buffer> body, Handler<AsyncResult<HttpResponse<Buffer>>> handler);
 
   /**
    * Like {@link #send(Handler)} but with an HTTP request {@code body} buffer.
    *
    * @param body the body
    */
-  void sendBuffer(Buffer body, Handler<AsyncResult<HttpResponse<Void>>> handler);
+  void sendBuffer(Buffer body, Handler<AsyncResult<HttpResponse<Buffer>>> handler);
 
   /**
    * Like {@link #send(Handler)} but with an HTTP request {@code body} object encoded as json and the content type
@@ -119,17 +119,16 @@ public interface HttpRequestBuilder {
    *
    * @param body the body
    */
-  void sendJson(Object body, Handler<AsyncResult<HttpResponse<Void>>> handler);
+  void sendJson(Object body, Handler<AsyncResult<HttpResponse<Buffer>>> handler);
 
   /**
    * Send a request, the {@code handler} will receive the response as an {@link HttpClientResponse}.
    */
-  void send(Handler<AsyncResult<HttpResponse<Void>>> handler);
+  void send(Handler<AsyncResult<HttpResponse<Buffer>>> handler);
 
   /**
-   * Configure to buffer the body and returns a {@link HttpResponseBuilder < Buffer >} for further configuration of
-   * the response or {@link HttpResponseBuilder#send(Handler) sending} the request.
+   * Send a request, the {@code handler} will receive the response as an {@link HttpClientResponse}.
    */
-  HttpResponseBuilder<Buffer> bufferBody();
+  <R> void send(PayloadCodec<R> codec, Handler<AsyncResult<HttpResponse<R>>> handler);
 
 }

@@ -16,7 +16,7 @@
 
 /** @module vertx-web-client-js/web_client */
 var utils = require('vertx-js/util/utils');
-var HttpRequestBuilder = require('vertx-web-client-js/http_request_builder');
+var HttpRequest = require('vertx-web-client-js/http_request');
 var HttpClient = require('vertx-js/http_client');
 
 var io = Packages.io;
@@ -38,12 +38,12 @@ var WebClient = function(j_val) {
    @param port {number} 
    @param host {string} 
    @param requestURI {string} 
-   @return {HttpRequestBuilder}
+   @return {HttpRequest}
    */
   this.get = function(port, host, requestURI) {
     var __args = arguments;
     if (__args.length === 3 && typeof __args[0] ==='number' && typeof __args[1] === 'string' && typeof __args[2] === 'string') {
-      return utils.convReturnVertxGen(HttpRequestBuilder, j_webClient["get(int,java.lang.String,java.lang.String)"](port, host, requestURI));
+      return utils.convReturnVertxGen(HttpRequest, j_webClient["get(int,java.lang.String,java.lang.String)"](port, host, requestURI));
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -53,12 +53,12 @@ var WebClient = function(j_val) {
    @param port {number} 
    @param host {string} 
    @param requestURI {string} 
-   @return {HttpRequestBuilder}
+   @return {HttpRequest}
    */
   this.post = function(port, host, requestURI) {
     var __args = arguments;
     if (__args.length === 3 && typeof __args[0] ==='number' && typeof __args[1] === 'string' && typeof __args[2] === 'string') {
-      return utils.convReturnVertxGen(HttpRequestBuilder, j_webClient["post(int,java.lang.String,java.lang.String)"](port, host, requestURI));
+      return utils.convReturnVertxGen(HttpRequest, j_webClient["post(int,java.lang.String,java.lang.String)"](port, host, requestURI));
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -68,12 +68,12 @@ var WebClient = function(j_val) {
    @param port {number} 
    @param host {string} 
    @param requestURI {string} 
-   @return {HttpRequestBuilder}
+   @return {HttpRequest}
    */
   this.put = function(port, host, requestURI) {
     var __args = arguments;
     if (__args.length === 3 && typeof __args[0] ==='number' && typeof __args[1] === 'string' && typeof __args[2] === 'string') {
-      return utils.convReturnVertxGen(HttpRequestBuilder, j_webClient["put(int,java.lang.String,java.lang.String)"](port, host, requestURI));
+      return utils.convReturnVertxGen(HttpRequest, j_webClient["put(int,java.lang.String,java.lang.String)"](port, host, requestURI));
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -83,12 +83,12 @@ var WebClient = function(j_val) {
    @param port {number} 
    @param host {string} 
    @param requestURI {string} 
-   @return {HttpRequestBuilder}
+   @return {HttpRequest}
    */
   this.delete = function(port, host, requestURI) {
     var __args = arguments;
     if (__args.length === 3 && typeof __args[0] ==='number' && typeof __args[1] === 'string' && typeof __args[2] === 'string') {
-      return utils.convReturnVertxGen(HttpRequestBuilder, j_webClient["delete(int,java.lang.String,java.lang.String)"](port, host, requestURI));
+      return utils.convReturnVertxGen(HttpRequest, j_webClient["delete(int,java.lang.String,java.lang.String)"](port, host, requestURI));
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -98,12 +98,12 @@ var WebClient = function(j_val) {
    @param port {number} 
    @param host {string} 
    @param requestURI {string} 
-   @return {HttpRequestBuilder}
+   @return {HttpRequest}
    */
   this.patch = function(port, host, requestURI) {
     var __args = arguments;
     if (__args.length === 3 && typeof __args[0] ==='number' && typeof __args[1] === 'string' && typeof __args[2] === 'string') {
-      return utils.convReturnVertxGen(HttpRequestBuilder, j_webClient["patch(int,java.lang.String,java.lang.String)"](port, host, requestURI));
+      return utils.convReturnVertxGen(HttpRequest, j_webClient["patch(int,java.lang.String,java.lang.String)"](port, host, requestURI));
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -113,12 +113,12 @@ var WebClient = function(j_val) {
    @param port {number} 
    @param host {string} 
    @param requestURI {string} 
-   @return {HttpRequestBuilder}
+   @return {HttpRequest}
    */
   this.head = function(port, host, requestURI) {
     var __args = arguments;
     if (__args.length === 3 && typeof __args[0] ==='number' && typeof __args[1] === 'string' && typeof __args[2] === 'string') {
-      return utils.convReturnVertxGen(HttpRequestBuilder, j_webClient["head(int,java.lang.String,java.lang.String)"](port, host, requestURI));
+      return utils.convReturnVertxGen(HttpRequest, j_webClient["head(int,java.lang.String,java.lang.String)"](port, host, requestURI));
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -126,12 +126,12 @@ var WebClient = function(j_val) {
 
    @public
    @param absoluteURI {string} 
-   @return {HttpRequestBuilder}
+   @return {HttpRequest}
    */
   this.getAbs = function(absoluteURI) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return utils.convReturnVertxGen(HttpRequestBuilder, j_webClient["getAbs(java.lang.String)"](absoluteURI));
+      return utils.convReturnVertxGen(HttpRequest, j_webClient["getAbs(java.lang.String)"](absoluteURI));
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -139,12 +139,12 @@ var WebClient = function(j_val) {
 
    @public
    @param absoluteURI {string} 
-   @return {HttpRequestBuilder}
+   @return {HttpRequest}
    */
   this.postAbs = function(absoluteURI) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return utils.convReturnVertxGen(HttpRequestBuilder, j_webClient["postAbs(java.lang.String)"](absoluteURI));
+      return utils.convReturnVertxGen(HttpRequest, j_webClient["postAbs(java.lang.String)"](absoluteURI));
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -152,12 +152,12 @@ var WebClient = function(j_val) {
 
    @public
    @param absoluteURI {string} 
-   @return {HttpRequestBuilder}
+   @return {HttpRequest}
    */
   this.putAbs = function(absoluteURI) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return utils.convReturnVertxGen(HttpRequestBuilder, j_webClient["putAbs(java.lang.String)"](absoluteURI));
+      return utils.convReturnVertxGen(HttpRequest, j_webClient["putAbs(java.lang.String)"](absoluteURI));
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -165,12 +165,12 @@ var WebClient = function(j_val) {
 
    @public
    @param absoluteURI {string} 
-   @return {HttpRequestBuilder}
+   @return {HttpRequest}
    */
   this.deleteAbs = function(absoluteURI) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return utils.convReturnVertxGen(HttpRequestBuilder, j_webClient["deleteAbs(java.lang.String)"](absoluteURI));
+      return utils.convReturnVertxGen(HttpRequest, j_webClient["deleteAbs(java.lang.String)"](absoluteURI));
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -178,12 +178,12 @@ var WebClient = function(j_val) {
 
    @public
    @param absoluteURI {string} 
-   @return {HttpRequestBuilder}
+   @return {HttpRequest}
    */
   this.patchAbs = function(absoluteURI) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return utils.convReturnVertxGen(HttpRequestBuilder, j_webClient["patchAbs(java.lang.String)"](absoluteURI));
+      return utils.convReturnVertxGen(HttpRequest, j_webClient["patchAbs(java.lang.String)"](absoluteURI));
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -191,12 +191,12 @@ var WebClient = function(j_val) {
 
    @public
    @param absoluteURI {string} 
-   @return {HttpRequestBuilder}
+   @return {HttpRequest}
    */
   this.headAbs = function(absoluteURI) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return utils.convReturnVertxGen(HttpRequestBuilder, j_webClient["headAbs(java.lang.String)"](absoluteURI));
+      return utils.convReturnVertxGen(HttpRequest, j_webClient["headAbs(java.lang.String)"](absoluteURI));
     } else throw new TypeError('function invoked with invalid arguments');
   };
 

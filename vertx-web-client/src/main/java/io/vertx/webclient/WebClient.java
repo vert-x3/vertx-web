@@ -14,28 +14,28 @@ public interface WebClient {
     return new WebClientImpl(client);
   }
 
-  HttpRequestBuilder get(int port, String host, String requestURI);
+  HttpRequest get(int port, String host, String requestURI);
 
-  HttpRequestBuilder post(int port, String host, String requestURI);
+  HttpRequest post(int port, String host, String requestURI);
 
-  HttpRequestBuilder put(int port, String host, String requestURI);
+  HttpRequest put(int port, String host, String requestURI);
 
-  HttpRequestBuilder delete(int port, String host, String requestURI);
+  HttpRequest delete(int port, String host, String requestURI);
 
-  HttpRequestBuilder patch(int port, String host, String requestURI);
+  HttpRequest patch(int port, String host, String requestURI);
 
-  HttpRequestBuilder head(int port, String host, String requestURI);
+  HttpRequest head(int port, String host, String requestURI);
 
-  HttpRequestBuilder getAbs(String absoluteURI);
+  HttpRequest getAbs(String absoluteURI);
 
-  HttpRequestBuilder postAbs(String absoluteURI);
+  HttpRequest postAbs(String absoluteURI);
 
-  HttpRequestBuilder putAbs(String absoluteURI);
+  HttpRequest putAbs(String absoluteURI);
 
-  HttpRequestBuilder deleteAbs(String absoluteURI);
+  HttpRequest deleteAbs(String absoluteURI);
 
-  HttpRequestBuilder patchAbs(String absoluteURI);
+  HttpRequest patchAbs(String absoluteURI);
 
-  HttpRequestBuilder headAbs(String absoluteURI);
+  HttpRequest headAbs(String absoluteURI);
 
 }

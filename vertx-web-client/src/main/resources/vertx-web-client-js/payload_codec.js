@@ -14,89 +14,89 @@
  * under the License.
  */
 
-/** @module vertx-web-client-js/http_response_builder */
+/** @module vertx-web-client-js/payload_codec */
 var utils = require('vertx-js/util/utils');
 var Buffer = require('vertx-js/buffer');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
-var JHttpResponseBuilder = io.vertx.webclient.HttpResponseBuilder;
+var JPayloadCodec = io.vertx.webclient.PayloadCodec;
 
 /**
  A builder for configuring client-side HTTP responses.
 
  @class
 */
-var HttpResponseBuilder = function(j_val, j_arg_0) {
+var PayloadCodec = function(j_val, j_arg_0) {
 
-  var j_httpResponseBuilder = j_val;
+  var j_payloadCodec = j_val;
   var that = this;
   var j_T = typeof j_arg_0 !== 'undefined' ? j_arg_0 : utils.unknown_jtype;
 
   // A reference to the underlying Java delegate
   // NOTE! This is an internal API and must not be used in user code.
   // If you rely on this property your code is likely to break if we change it / remove it without warning.
-  this._jdel = j_httpResponseBuilder;
+  this._jdel = j_payloadCodec;
 };
 
-HttpResponseBuilder._jclass = utils.getJavaClass("io.vertx.webclient.HttpResponseBuilder");
-HttpResponseBuilder._jtype = {
+PayloadCodec._jclass = utils.getJavaClass("io.vertx.webclient.PayloadCodec");
+PayloadCodec._jtype = {
   accept: function(obj) {
-    return HttpResponseBuilder._jclass.isInstance(obj._jdel);
+    return PayloadCodec._jclass.isInstance(obj._jdel);
   },
   wrap: function(jdel) {
-    var obj = Object.create(HttpResponseBuilder.prototype, {});
-    HttpResponseBuilder.apply(obj, arguments);
+    var obj = Object.create(PayloadCodec.prototype, {});
+    PayloadCodec.apply(obj, arguments);
     return obj;
   },
   unwrap: function(obj) {
     return obj._jdel;
   }
 };
-HttpResponseBuilder._create = function(jdel) {
-  var obj = Object.create(HttpResponseBuilder.prototype, {});
-  HttpResponseBuilder.apply(obj, arguments);
+PayloadCodec._create = function(jdel) {
+  var obj = Object.create(PayloadCodec.prototype, {});
+  PayloadCodec.apply(obj, arguments);
   return obj;
 }
 /**
 
- @memberof module:vertx-web-client-js/http_response_builder
+ @memberof module:vertx-web-client-js/payload_codec
  @param enc {string} 
- @return {HttpResponseBuilder}
+ @return {PayloadCodec}
  */
-HttpResponseBuilder.string = function() {
+PayloadCodec.string = function() {
   var __args = arguments;
   if (__args.length === 0) {
-    return utils.convReturnVertxGen(HttpResponseBuilder, JHttpResponseBuilder["string()"](), undefined);
+    return utils.convReturnVertxGen(PayloadCodec, JPayloadCodec["string()"](), undefined);
   }else if (__args.length === 1 && typeof __args[0] === 'string') {
-    return utils.convReturnVertxGen(HttpResponseBuilder, JHttpResponseBuilder["string(java.lang.String)"](__args[0]), undefined);
+    return utils.convReturnVertxGen(PayloadCodec, JPayloadCodec["string(java.lang.String)"](__args[0]), undefined);
   } else throw new TypeError('function invoked with invalid arguments');
 };
 
 /**
 
- @memberof module:vertx-web-client-js/http_response_builder
+ @memberof module:vertx-web-client-js/payload_codec
 
- @return {HttpResponseBuilder}
+ @return {PayloadCodec}
  */
-HttpResponseBuilder.buffer = function() {
+PayloadCodec.buffer = function() {
   var __args = arguments;
   if (__args.length === 0) {
-    return utils.convReturnVertxGen(HttpResponseBuilder, JHttpResponseBuilder["buffer()"](), Buffer._jtype);
+    return utils.convReturnVertxGen(PayloadCodec, JPayloadCodec["buffer()"](), Buffer._jtype);
   } else throw new TypeError('function invoked with invalid arguments');
 };
 
 /**
 
- @memberof module:vertx-web-client-js/http_response_builder
+ @memberof module:vertx-web-client-js/payload_codec
 
- @return {HttpResponseBuilder}
+ @return {PayloadCodec}
  */
-HttpResponseBuilder.jsonObject = function() {
+PayloadCodec.jsonObject = function() {
   var __args = arguments;
   if (__args.length === 0) {
-    return utils.convReturnVertxGen(HttpResponseBuilder, JHttpResponseBuilder["jsonObject()"](), undefined);
+    return utils.convReturnVertxGen(PayloadCodec, JPayloadCodec["jsonObject()"](), undefined);
   } else throw new TypeError('function invoked with invalid arguments');
 };
 
-module.exports = HttpResponseBuilder;
+module.exports = PayloadCodec;

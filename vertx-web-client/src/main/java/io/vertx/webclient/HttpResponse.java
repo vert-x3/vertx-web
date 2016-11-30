@@ -39,7 +39,7 @@ import java.util.List;
  *   <li>{@link #version()} the HTTP version</li>
  * </ul>
  * <p>
- * The body of the response is returned by {@link #body()} decoded as the format specified by the {@link HttpResponseBuilder} that
+ * The body of the response is returned by {@link #body()} decoded as the format specified by the {@link PayloadCodec} that
  * built the response.
  * <p>
  * Keep in mind that using this {@code HttpResponse} impose to fully buffer the response body and should be used for payload

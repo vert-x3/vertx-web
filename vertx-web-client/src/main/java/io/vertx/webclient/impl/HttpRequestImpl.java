@@ -29,16 +29,16 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.Json;
 import io.vertx.core.streams.Pump;
 import io.vertx.core.streams.ReadStream;
-import io.vertx.webclient.HttpRequestBuilder;
+import io.vertx.webclient.HttpRequest;
 import io.vertx.webclient.HttpResponse;
-import io.vertx.webclient.HttpResponseBuilder;
+import io.vertx.webclient.PayloadCodec;
 
 import java.util.function.Function;
 
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
  */
-class HttpRequestBuilderImpl implements HttpRequestBuilder {
+class HttpRequestImpl implements HttpRequest {
 
   final HttpClient client;
   HttpMethod method;
@@ -48,12 +48,12 @@ class HttpRequestBuilderImpl implements HttpRequestBuilder {
   MultiMap headers;
   long timeout = -1;
 
-  HttpRequestBuilderImpl(HttpClient client, HttpMethod method) {
+  HttpRequestImpl(HttpClient client, HttpMethod method) {
     this.client = client;
     this.method = method;
   }
 
-  private HttpRequestBuilderImpl(HttpRequestBuilderImpl other) {
+  private HttpRequestImpl(HttpRequestImpl other) {
     this.client = other.client;
     this.method = other.method;
     this.port = other.port;
@@ -64,36 +64,36 @@ class HttpRequestBuilderImpl implements HttpRequestBuilder {
   }
 
   @Override
-  public HttpRequestBuilder method(HttpMethod value) {
-    HttpRequestBuilderImpl other = new HttpRequestBuilderImpl(this);
+  public HttpRequest method(HttpMethod value) {
+    HttpRequestImpl other = new HttpRequestImpl(this);
     other.method = value;
     return other;
   }
 
   @Override
-  public HttpRequestBuilder port(int value) {
-    HttpRequestBuilderImpl other = new HttpRequestBuilderImpl(this);
+  public HttpRequest port(int value) {
+    HttpRequestImpl other = new HttpRequestImpl(this);
     other.port = value;
     return other;
   }
 
   @Override
-  public HttpRequestBuilder host(String value) {
-    HttpRequestBuilderImpl other = new HttpRequestBuilderImpl(this);
+  public HttpRequest host(String value) {
+    HttpRequestImpl other = new HttpRequestImpl(this);
     other.host = value;
     return other;
   }
 
   @Override
-  public HttpRequestBuilder requestURI(String value) {
-    HttpRequestBuilderImpl other = new HttpRequestBuilderImpl(this);
+  public HttpRequest requestURI(String value) {
+    HttpRequestImpl other = new HttpRequestImpl(this);
     other.requestURI = value;
     return other;
   }
 
   @Override
-  public HttpRequestBuilder putHeader(String name, String value) {
-    HttpRequestBuilderImpl other = new HttpRequestBuilderImpl(this);
+  public HttpRequest putHeader(String name, String value) {
+    HttpRequestImpl other = new HttpRequestImpl(this);
     if (other.headers == null) {
       other.headers = new CaseInsensitiveHeaders();
     }
@@ -102,36 +102,61 @@ class HttpRequestBuilderImpl implements HttpRequestBuilder {
   }
 
   @Override
-  public HttpRequestBuilder timeout(long value) {
-    HttpRequestBuilderImpl other = new HttpRequestBuilderImpl(this);
+  public HttpRequest timeout(long value) {
+    HttpRequestImpl other = new HttpRequestImpl(this);
     other.timeout = value;
     return other;
   }
 
   @Override
-  public void sendStream(ReadStream<Buffer> body, Handler<AsyncResult<HttpResponse<Void>>> handler) {
-    perform2(null, body, handler);
+  public void sendStream(ReadStream<Buffer> body, Handler<AsyncResult<HttpResponse<Buffer>>> handler) {
+    perform2(null, body, Function.identity(), handler);
   }
 
   @Override
-  public void send(Handler<AsyncResult<HttpResponse<Void>>> handler) {
-    perform2(null, null, handler);
+  public void send(Handler<AsyncResult<HttpResponse<Buffer>>> handler) {
+    perform2(null, null, Function.identity(), handler);
   }
 
   @Override
-  public void sendBuffer(Buffer body, Handler<AsyncResult<HttpResponse<Void>>> handler) {
-    perform2(null, body, handler);
+  public void sendBuffer(Buffer body, Handler<AsyncResult<HttpResponse<Buffer>>> handler) {
+    perform2(null, body, Function.identity(), handler);
   }
 
   @Override
-  public void sendJson(Object body, Handler<AsyncResult<HttpResponse<Void>>> handler) {
-    perform2("application/json", body, handler);
+  public void sendJson(Object body, Handler<AsyncResult<HttpResponse<Buffer>>> handler) {
+    perform2("application/json", body, Function.identity(), handler);
   }
 
-  private void perform2(String contentType, Object body, Handler<AsyncResult<HttpResponse<Void>>> handler) {
+  @Override
+  public <R> void send(PayloadCodec<R> codec, Handler<AsyncResult<HttpResponse<R>>> handler) {
+    Function<Buffer, R> bodyUnmarshaller = codec.unmarshaller();
+    perform2(null, null, bodyUnmarshaller, handler);
+  }
+
+  private <R> void perform2(String contentType, Object body, Function<Buffer, R> unmarshaller, Handler<AsyncResult<HttpResponse<R>>> handler) {
     perform(contentType, body, ar -> {
       if (ar.succeeded()) {
-        handler.handle(Future.succeededFuture(new HttpResponseImpl<>(ar.result(), null, null)));
+        HttpClientResponse resp = ar.result();
+        Future<HttpResponse<R>> fut = Future.future();
+        fut.setHandler(handler);
+        resp.exceptionHandler(err -> {
+          if (!fut.isComplete()) {
+            fut.fail(err);
+          }
+        });
+        resp.bodyHandler(buff -> {
+          if (!fut.isComplete()) {
+            R b;
+            try {
+              b = unmarshaller.apply(buff);
+            } catch (Throwable e) {
+              fut.fail(e);
+              return;
+            }
+            fut.complete(new HttpResponseImpl<>(resp, buff, b));
+          }
+        });
       } else {
         handler.handle(Future.failedFuture(ar.cause()));
       }
@@ -186,10 +211,5 @@ class HttpRequestBuilderImpl implements HttpRequestBuilder {
       req.end();
     }
     fut.setHandler(handler);
-  }
-
-  @Override
-  public HttpResponseBuilder<Buffer> bufferBody() {
-    return new HttpResponseBuilderImpl<>(this, Function.identity());
   }
 }

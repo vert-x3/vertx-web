@@ -5,8 +5,9 @@ import io.vertx.core.file.AsyncFile;
 import io.vertx.core.file.FileSystem;
 import io.vertx.core.file.OpenOptions;
 import io.vertx.core.json.JsonObject;
-import io.vertx.webclient.HttpRequestBuilder;
+import io.vertx.webclient.HttpRequest;
 import io.vertx.webclient.HttpResponse;
+import io.vertx.webclient.PayloadCodec;
 import io.vertx.webclient.WebClient;
 
 /**
@@ -20,13 +21,13 @@ public class WebClientExamples {
       .send(ar -> {
         if (ar.succeeded()) {
           // Obtain response
-          HttpResponse<Void> resp = ar.result();
+          HttpResponse<Buffer> resp = ar.result();
         }
       });
   }
 
   public void multipleGet(WebClient client) {
-    HttpRequestBuilder get = client.get(8080, "localhost", "/something");
+    HttpRequest get = client.get(8080, "localhost", "/something");
     get.send(ar -> {
     });
     // Same request again
@@ -45,7 +46,6 @@ public class WebClientExamples {
   public void bufferBody(WebClient client) {
     client
       .get(8080, "localhost", "/something")
-      .bufferBody()
       .send(ar -> {
         if (ar.succeeded()) {
           HttpResponse<Buffer> resp = ar.result();
@@ -57,9 +57,7 @@ public class WebClientExamples {
   public void bufferBodyDecodeAsJsonObject(WebClient client) {
     client
       .get(8080, "localhost", "/something")
-      .bufferBody()
-      .asJsonObject()
-      .send(ar -> {
+      .send(PayloadCodec.jsonObject(), ar -> {
         if (ar.succeeded()) {
           HttpResponse<JsonObject> resp = ar.result();
           JsonObject body = resp.body();
