@@ -1,8 +1,5 @@
 package io.vertx.webclient.impl;
 
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Future;
-import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClientResponse;
@@ -25,11 +22,6 @@ class HttpResponseImpl<T> implements HttpResponse<T> {
     this.resp = resp;
     this.buff = buff;
     this.body = body;
-  }
-
-  @Override
-  public HttpClientResponse httpClientResponse() {
-    return resp;
   }
 
   @Override
@@ -104,25 +96,5 @@ class HttpResponseImpl<T> implements HttpResponse<T> {
   public <R> R bodyAs(Class<R> type) {
     Buffer b = bodyAsBuffer();
     return b != null ? BodyCodecImpl.jsonUnmarshaller(type).apply(b) : null;
-  }
-
-  @Override
-  public void bufferBody(Handler<AsyncResult<Buffer>> handler) {
-    Future<Buffer> fut = Future.future();
-    fut.setHandler(handler);
-    if (buff != null) {
-      fut.complete(buff);
-    } else {
-      resp.exceptionHandler(err -> {
-        if (!fut.isComplete()) {
-          fut.fail(err);
-        }
-      });
-      resp.bodyHandler(buff -> {
-        if (!fut.isComplete()) {
-          fut.complete(buff);
-        }
-      });
-    }
   }
 }

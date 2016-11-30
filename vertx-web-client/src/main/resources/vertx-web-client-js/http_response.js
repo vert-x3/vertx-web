@@ -16,7 +16,6 @@
 
 /** @module vertx-web-client-js/http_response */
 var utils = require('vertx-js/util/utils');
-var HttpClientResponse = require('vertx-js/http_client_response');
 var Buffer = require('vertx-js/buffer');
 var MultiMap = require('vertx-js/multi_map');
 
@@ -228,40 +227,6 @@ var HttpResponse = function(j_val, j_arg_0) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'function') {
       return utils.get_jtype(type).wrap(j_httpResponse["bodyAs(java.lang.Class)"](utils.get_jclass(type)));
-    } else throw new TypeError('function invoked with invalid arguments');
-  };
-
-  /**
-   Buffer the response body and call the <code>handler</code> when the body is available.
-   <p>
-   When the body can't be retrieved, the handler is signaled with an exception.
-
-   @public
-   @param handler {function} the handler to receive the body 
-   */
-  this.bufferBody = function(handler) {
-    var __args = arguments;
-    if (__args.length === 1 && typeof __args[0] === 'function') {
-      j_httpResponse["bufferBody(io.vertx.core.Handler)"](function(ar) {
-      if (ar.succeeded()) {
-        handler(utils.convReturnVertxGen(Buffer, ar.result()), null);
-      } else {
-        handler(null, ar.cause());
-      }
-    });
-    } else throw new TypeError('function invoked with invalid arguments');
-  };
-
-  /**
-
-   @public
-
-   @return {HttpClientResponse} the original 
-   */
-  this.httpClientResponse = function() {
-    var __args = arguments;
-    if (__args.length === 0) {
-      return utils.convReturnVertxGen(HttpClientResponse, j_httpResponse["httpClientResponse()"]());
     } else throw new TypeError('function invoked with invalid arguments');
   };
 

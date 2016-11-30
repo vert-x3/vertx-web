@@ -1,4 +1,3 @@
-require 'vertx/http_client_response'
 require 'vertx/buffer'
 require 'vertx/multi_map'
 require 'vertx/util/utils.rb'
@@ -150,24 +149,6 @@ module VertxWebClient
         return ::Vertx::Util::Utils.v_type_of(type).wrap(@j_del.java_method(:bodyAs, [Java::JavaLang::Class.java_class]).call(::Vertx::Util::Utils.j_class_of(type)))
       end
       raise ArgumentError, "Invalid arguments when calling body_as(#{type})"
-    end
-    #  Buffer the response body and call the <code>handler</code> when the body is available.
-    #  <p>
-    #  When the body can't be retrieved, the handler is signaled with an exception.
-    # @yield the handler to receive the body
-    # @return [void]
-    def buffer_body
-      if block_given?
-        return @j_del.java_method(:bufferBody, [Java::IoVertxCore::Handler.java_class]).call((Proc.new { |ar| yield(ar.failed ? ar.cause : nil, ar.succeeded ? ::Vertx::Util::Utils.safe_create(ar.result,::Vertx::Buffer) : nil) }))
-      end
-      raise ArgumentError, "Invalid arguments when calling buffer_body()"
-    end
-    # @return [::Vertx::HttpClientResponse] the original 
-    def http_client_response
-      if !block_given?
-        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:httpClientResponse, []).call(),::Vertx::HttpClientResponse)
-      end
-      raise ArgumentError, "Invalid arguments when calling http_client_response()"
     end
   end
 end

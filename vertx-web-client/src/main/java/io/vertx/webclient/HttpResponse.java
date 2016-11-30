@@ -18,11 +18,8 @@ package io.vertx.webclient;
 import io.vertx.codegen.annotations.CacheReturn;
 import io.vertx.codegen.annotations.Nullable;
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.http.HttpVersion;
 import io.vertx.core.json.JsonObject;
 
@@ -132,19 +129,5 @@ public interface HttpResponse<T> {
    * @return the response body decoded as the specified {@code type} with the Jackson mapper.
    */
   <R> R bodyAs(Class<R> type);
-
-  /**
-   * Buffer the response body and call the {@code handler} when the body is available.
-   * <p>
-   * When the body can't be retrieved, the handler is signaled with an exception.
-   *
-   * @param handler the handler to receive the body
-   */
-  void bufferBody(Handler<AsyncResult<Buffer>> handler);
-
-  /**
-   * @return the original {@link HttpClientResponse}
-   */
-  HttpClientResponse httpClientResponse();
 
 }
