@@ -30,36 +30,68 @@ import io.vertx.webclient.spi.BodyStream;
 import java.util.function.Function;
 
 /**
- * A builder for configuring client-side HTTP responses.
+ * A codec for encoding and decoding HTTP bodies.
  *
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
  */
 @VertxGen
 public interface BodyCodec<T> {
 
+  /**
+   * @return the UTF-8 string codec
+   */
   static BodyCodec<String> string() {
-    return new BodyCodecImpl<>(Buffer::toString);
+    return BodyCodecImpl.STRING;
   }
 
-  static BodyCodec<String> string(String enc) {
-    return new BodyCodecImpl<>(BodyCodecImpl.stringUnmarshaller(enc));
+  /**
+   * A codec for strings using a specific {@code encoding}.
+   *
+   * @param encoding the encoding
+   * @return the codec
+   */
+  static BodyCodec<String> string(String encoding) {
+    return BodyCodecImpl.string(encoding);
   }
 
+  /**
+   * @return the {@link Buffer} codec
+   */
   static BodyCodec<Buffer> buffer() {
-    return new BodyCodecImpl<>(Function.identity());
+    return BodyCodecImpl.BUFFER;
   }
 
+  /**
+   * @return the {@link JsonObject} codec
+   */
   static BodyCodec<JsonObject> jsonObject() {
-    return new BodyCodecImpl<>(BodyCodecImpl.jsonObjectUnmarshaller);
+    return BodyCodecImpl.JSON_OBJECT;
   }
 
+  /**
+   * Create and return a codec for Java objects encoded using Jackson mapper.
+   *
+   * @return a codec for mapping POJO to Json
+   */
   @GenIgnore
   static <U> BodyCodec<U> json(Class<U> type) {
-    return new BodyCodecImpl<>(BodyCodecImpl.jsonUnmarshaller(type));
+    return BodyCodecImpl.json(type);
   }
 
+/*
   static BodyCodec<AsyncFile> tempFile() {
     throw new UnsupportedOperationException("Todo");
+  }
+*/
+
+  /**
+   * Create a codec that buffers the entire body and then apply the {@code decode} function and returns the result.
+   *
+   * @param decode the decode function
+   * @return the created codec
+   */
+  static <T> BodyCodec<T> create(Function<Buffer, T> decode) {
+    return new BodyCodecImpl<>(decode);
   }
 
   /**
@@ -128,6 +160,9 @@ public interface BodyCodec<T> {
     };
   }
 
+  /**
+   * Reserved for internal usage.
+   */
   @GenIgnore
   void stream(Handler<AsyncResult<BodyStream<T>>> handler);
 }

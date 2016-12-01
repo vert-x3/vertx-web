@@ -5,26 +5,33 @@ require 'vertx-web-client/http_response'
 require 'vertx/util/utils.rb'
 # Generated from io.vertx.webclient.HttpRequest
 module VertxWebClient
-  #  A builder for configuring client-side HTTP requests.
+  #  A client-side HTTP request.
   #  <p>
-  #  Instances are created by an  instance, via one of the methods <code>createXXX</code> corresponding to the
-  #  specific HTTP methods.
+  #  Instances are created by an {::VertxWebClient::WebClient} instance, via one of the methods corresponding to the specific
+  #  HTTP methods such as {::VertxWebClient::WebClient#get}, etc...
   #  <p>
-  #  The request builder shall be configured prior making a request, the builder is immutable and when a configuration method
-  #  is called, a new builder is returned allowing to expose the builder and apply further customization.
+  #  The request shall be configured prior sending, the request is immutable and when a mutator method
+  #  is called, a new request is returned allowing to expose the request in a public API and apply further customization.
   #  <p>
-  #  After the request builder has been configured, the methods
+  #  After the request has been configured, the methods
   #  <ul>
   #    <li>{::VertxWebClient::HttpRequest#send}</li>
   #    <li>{::VertxWebClient::HttpRequest#send_stream}</li>
-  #    <li></li>
+  #    <li>{::VertxWebClient::HttpRequest#send_json} ()}</li>
+  #    <li>{::VertxWebClient::HttpRequest#send} (Handler)}</li>
   #  </ul>
   #  can be called.
+  #  The <code>sendXXX</code> methods perform the actual request, they can be used multiple times to perform multiple HTTP requests.
   #  <p>
-  #  The <code>#bufferBody</code> configures the builder to buffer the entire HTTP response body and returns a
-  #  {::VertxWebClient::BodyCodec} for configuring the response body.
+  #  The handler is called back with
+  #  <ul>
+  #    <li>an {::VertxWebClient::HttpResponse} instance when the HTTP response has been received</li>
+  #    <li>a failure when the HTTP request failed (like a connection error) or when the HTTP response could
+  #    not be obtained (like connection or unmarshalling errors)</li>
+  #  </ul>
   #  <p>
-  #  The <code>send</code> methods perform the actual request, they can be used multiple times to perform HTTP requests.
+  #  Most of the time, this client will buffer the HTTP response fully unless a specific {::VertxWebClient::BodyCodec} is used
+  #  such as {::VertxWebClient::BodyCodec#stream}.
   class HttpRequest
     # @private
     # @param j_del [::VertxWebClient::HttpRequest] the java delegate
@@ -52,46 +59,46 @@ module VertxWebClient
     def self.j_class
       Java::IoVertxWebclient::HttpRequest.java_class
     end
-    #  Configure the builder to use a new method <code>value</code>.
+    #  Configure the request to use a new method <code>value</code>.
     # @param [:OPTIONS,:GET,:HEAD,:POST,:PUT,:DELETE,:TRACE,:CONNECT,:PATCH,:OTHER] value 
-    # @return [::VertxWebClient::HttpRequest] a new <code>HttpRequestBuilder</code> instance with the specified method <code>value</code>
+    # @return [::VertxWebClient::HttpRequest] a new <code>HttpRequest</code> instance with the specified method <code>value</code>
     def method(value=nil)
       if value.class == Symbol && !block_given?
         return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:method, [Java::IoVertxCoreHttp::HttpMethod.java_class]).call(Java::IoVertxCoreHttp::HttpMethod.valueOf(value)),::VertxWebClient::HttpRequest)
       end
       raise ArgumentError, "Invalid arguments when calling method(#{value})"
     end
-    #  Configure the builder to use a new port <code>value</code>.
+    #  Configure the request to use a new port <code>value</code>.
     # @param [Fixnum] value 
-    # @return [::VertxWebClient::HttpRequest] a new <code>HttpRequestBuilder</code> instance with the specified port <code>value</code>
+    # @return [::VertxWebClient::HttpRequest] a new <code>HttpRequest</code> instance with the specified port <code>value</code>
     def port(value=nil)
       if value.class == Fixnum && !block_given?
         return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:port, [Java::int.java_class]).call(value),::VertxWebClient::HttpRequest)
       end
       raise ArgumentError, "Invalid arguments when calling port(#{value})"
     end
-    #  Configure the builder to use a new host <code>value</code>.
+    #  Configure the request to use a new host <code>value</code>.
     # @param [String] value 
-    # @return [::VertxWebClient::HttpRequest] a new <code>HttpRequestBuilder</code> instance with the specified host <code>value</code>
+    # @return [::VertxWebClient::HttpRequest] a new <code>HttpRequest</code> instance with the specified host <code>value</code>
     def host(value=nil)
       if value.class == String && !block_given?
         return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:host, [Java::java.lang.String.java_class]).call(value),::VertxWebClient::HttpRequest)
       end
       raise ArgumentError, "Invalid arguments when calling host(#{value})"
     end
-    #  Configure the builder to use a new request URI <code>value</code>.
+    #  Configure the request to use a new request URI <code>value</code>.
     # @param [String] value 
-    # @return [::VertxWebClient::HttpRequest] a new <code>HttpRequestBuilder</code> instance with the specified request URI <code>value</code>
+    # @return [::VertxWebClient::HttpRequest] a new <code>HttpRequest</code> instance with the specified request URI <code>value</code>
     def request_uri(value=nil)
       if value.class == String && !block_given?
         return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:requestURI, [Java::java.lang.String.java_class]).call(value),::VertxWebClient::HttpRequest)
       end
       raise ArgumentError, "Invalid arguments when calling request_uri(#{value})"
     end
-    #  Configure the builder to add a new HTTP header.
+    #  Configure the request to add a new HTTP header.
     # @param [String] name the header name
     # @param [String] value the header value
-    # @return [::VertxWebClient::HttpRequest] a new <code>HttpRequestBuilder</code> instance with the specified header
+    # @return [::VertxWebClient::HttpRequest] a new <code>HttpRequest</code> instance with the specified header
     def put_header(name=nil,value=nil)
       if name.class == String && value.class == String && !block_given?
         return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:putHeader, [Java::java.lang.String.java_class,Java::java.lang.String.java_class]).call(name,value),::VertxWebClient::HttpRequest)
@@ -103,7 +110,7 @@ module VertxWebClient
     #  <p>
     #  Setting zero or a negative <code>value</code> disables the timeout.
     # @param [Fixnum] value The quantity of time in milliseconds.
-    # @return [::VertxWebClient::HttpRequest] a new <code>HttpRequestBuilder</code> instance with the specified timeout
+    # @return [::VertxWebClient::HttpRequest] a new <code>HttpRequest</code> instance with the specified timeout
     def timeout(value=nil)
       if value.class == Fixnum && !block_given?
         return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:timeout, [Java::long.java_class]).call(value),::VertxWebClient::HttpRequest)
@@ -112,46 +119,56 @@ module VertxWebClient
     end
     #  Like {::VertxWebClient::HttpRequest#send} but with an HTTP request <code>body</code> stream.
     # @param [::Vertx::ReadStream] body the body
+    # @param [::VertxWebClient::BodyCodec] responseCodec the codec to decode the response
     # @yield 
     # @return [void]
-    def send_stream(body=nil)
-      if body.class.method_defined?(:j_del) && block_given?
+    def send_stream(body=nil,responseCodec=nil)
+      if body.class.method_defined?(:j_del) && block_given? && responseCodec == nil
         return @j_del.java_method(:sendStream, [Java::IoVertxCoreStreams::ReadStream.java_class,Java::IoVertxCore::Handler.java_class]).call(body.j_del,(Proc.new { |ar| yield(ar.failed ? ar.cause : nil, ar.succeeded ? ::Vertx::Util::Utils.safe_create(ar.result,::VertxWebClient::HttpResponse,::Vertx::Buffer.j_api_type) : nil) }))
+      elsif body.class.method_defined?(:j_del) && responseCodec.class.method_defined?(:j_del) && block_given?
+        return @j_del.java_method(:sendStream, [Java::IoVertxCoreStreams::ReadStream.java_class,Java::IoVertxWebclient::BodyCodec.java_class,Java::IoVertxCore::Handler.java_class]).call(body.j_del,responseCodec.j_del,(Proc.new { |ar| yield(ar.failed ? ar.cause : nil, ar.succeeded ? ::Vertx::Util::Utils.safe_create(ar.result,::VertxWebClient::HttpResponse, nil) : nil) }))
       end
-      raise ArgumentError, "Invalid arguments when calling send_stream(#{body})"
+      raise ArgumentError, "Invalid arguments when calling send_stream(#{body},#{responseCodec})"
     end
     #  Like {::VertxWebClient::HttpRequest#send} but with an HTTP request <code>body</code> buffer.
     # @param [::Vertx::Buffer] body the body
+    # @param [::VertxWebClient::BodyCodec] responseCodec the codec to decode the response
     # @yield 
     # @return [void]
-    def send_buffer(body=nil)
-      if body.class.method_defined?(:j_del) && block_given?
+    def send_buffer(body=nil,responseCodec=nil)
+      if body.class.method_defined?(:j_del) && block_given? && responseCodec == nil
         return @j_del.java_method(:sendBuffer, [Java::IoVertxCoreBuffer::Buffer.java_class,Java::IoVertxCore::Handler.java_class]).call(body.j_del,(Proc.new { |ar| yield(ar.failed ? ar.cause : nil, ar.succeeded ? ::Vertx::Util::Utils.safe_create(ar.result,::VertxWebClient::HttpResponse,::Vertx::Buffer.j_api_type) : nil) }))
+      elsif body.class.method_defined?(:j_del) && responseCodec.class.method_defined?(:j_del) && block_given?
+        return @j_del.java_method(:sendBuffer, [Java::IoVertxCoreBuffer::Buffer.java_class,Java::IoVertxWebclient::BodyCodec.java_class,Java::IoVertxCore::Handler.java_class]).call(body.j_del,responseCodec.j_del,(Proc.new { |ar| yield(ar.failed ? ar.cause : nil, ar.succeeded ? ::Vertx::Util::Utils.safe_create(ar.result,::VertxWebClient::HttpResponse, nil) : nil) }))
       end
-      raise ArgumentError, "Invalid arguments when calling send_buffer(#{body})"
+      raise ArgumentError, "Invalid arguments when calling send_buffer(#{body},#{responseCodec})"
     end
     #  Like {::VertxWebClient::HttpRequest#send} but with an HTTP request <code>body</code> object encoded as json and the content type
     #  set to <code>application/json</code>.
     # @param [Object] body the body
+    # @param [::VertxWebClient::BodyCodec] responseCodec the codec to decode the response
     # @yield 
     # @return [void]
-    def send_json(body=nil)
-      if ::Vertx::Util::unknown_type.accept?(body) && block_given?
+    def send_json(body=nil,responseCodec=nil)
+      if ::Vertx::Util::unknown_type.accept?(body) && block_given? && responseCodec == nil
         return @j_del.java_method(:sendJson, [Java::java.lang.Object.java_class,Java::IoVertxCore::Handler.java_class]).call(::Vertx::Util::Utils.to_object(body),(Proc.new { |ar| yield(ar.failed ? ar.cause : nil, ar.succeeded ? ::Vertx::Util::Utils.safe_create(ar.result,::VertxWebClient::HttpResponse,::Vertx::Buffer.j_api_type) : nil) }))
+      elsif ::Vertx::Util::unknown_type.accept?(body) && responseCodec.class.method_defined?(:j_del) && block_given?
+        return @j_del.java_method(:sendJson, [Java::java.lang.Object.java_class,Java::IoVertxWebclient::BodyCodec.java_class,Java::IoVertxCore::Handler.java_class]).call(::Vertx::Util::Utils.to_object(body),responseCodec.j_del,(Proc.new { |ar| yield(ar.failed ? ar.cause : nil, ar.succeeded ? ::Vertx::Util::Utils.safe_create(ar.result,::VertxWebClient::HttpResponse, nil) : nil) }))
       end
-      raise ArgumentError, "Invalid arguments when calling send_json(#{body})"
+      raise ArgumentError, "Invalid arguments when calling send_json(#{body},#{responseCodec})"
     end
-    #  Send a request, the <code>handler</code> will receive the response as an .
-    # @param [::VertxWebClient::BodyCodec] codec 
+    #  Send a request, the <code>handler</code> will receive the response as an {::VertxWebClient::HttpResponse} decoded using
+    #  the provided <code>responseCodec</code>.
+    # @param [::VertxWebClient::BodyCodec] responseCodec the codec to decode the response
     # @yield 
     # @return [void]
-    def send(codec=nil)
-      if block_given? && codec == nil
+    def send(responseCodec=nil)
+      if block_given? && responseCodec == nil
         return @j_del.java_method(:send, [Java::IoVertxCore::Handler.java_class]).call((Proc.new { |ar| yield(ar.failed ? ar.cause : nil, ar.succeeded ? ::Vertx::Util::Utils.safe_create(ar.result,::VertxWebClient::HttpResponse,::Vertx::Buffer.j_api_type) : nil) }))
-      elsif codec.class.method_defined?(:j_del) && block_given?
-        return @j_del.java_method(:send, [Java::IoVertxWebclient::BodyCodec.java_class,Java::IoVertxCore::Handler.java_class]).call(codec.j_del,(Proc.new { |ar| yield(ar.failed ? ar.cause : nil, ar.succeeded ? ::Vertx::Util::Utils.safe_create(ar.result,::VertxWebClient::HttpResponse, nil) : nil) }))
+      elsif responseCodec.class.method_defined?(:j_del) && block_given?
+        return @j_del.java_method(:send, [Java::IoVertxWebclient::BodyCodec.java_class,Java::IoVertxCore::Handler.java_class]).call(responseCodec.j_del,(Proc.new { |ar| yield(ar.failed ? ar.cause : nil, ar.succeeded ? ::Vertx::Util::Utils.safe_create(ar.result,::VertxWebClient::HttpResponse, nil) : nil) }))
       end
-      raise ArgumentError, "Invalid arguments when calling send(#{codec})"
+      raise ArgumentError, "Invalid arguments when calling send(#{responseCodec})"
     end
   end
 end

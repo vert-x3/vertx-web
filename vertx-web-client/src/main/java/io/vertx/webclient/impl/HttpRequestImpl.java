@@ -41,7 +41,7 @@ class HttpRequestImpl implements HttpRequest {
 
   final HttpClient client;
   HttpMethod method;
-  Integer port;
+  int port = -1;
   String host;
   String requestURI;
   MultiMap headers;
@@ -113,8 +113,18 @@ class HttpRequestImpl implements HttpRequest {
   }
 
   @Override
+  public <R> void sendStream(ReadStream<Buffer> body, BodyCodec<R> responseCodec, Handler<AsyncResult<HttpResponse<R>>> handler) {
+    perform2(null, body, responseCodec, handler);
+  }
+
+  @Override
   public void send(Handler<AsyncResult<HttpResponse<Buffer>>> handler) {
     perform2(null, null, BodyCodec.buffer(), handler);
+  }
+
+  @Override
+  public <R> void send(BodyCodec<R> responseCodec, Handler<AsyncResult<HttpResponse<R>>> handler) {
+    perform2(null, null, responseCodec, handler);
   }
 
   @Override
@@ -123,13 +133,18 @@ class HttpRequestImpl implements HttpRequest {
   }
 
   @Override
+  public <R> void sendBuffer(Buffer body, BodyCodec<R> responseCodec, Handler<AsyncResult<HttpResponse<R>>> handler) {
+    perform2(null, body, responseCodec, handler);
+  }
+
+  @Override
   public void sendJson(Object body, Handler<AsyncResult<HttpResponse<Buffer>>> handler) {
     perform2("application/json", body, BodyCodec.buffer(), handler);
   }
 
   @Override
-  public <R> void send(BodyCodec<R> codec, Handler<AsyncResult<HttpResponse<R>>> handler) {
-    perform2(null, null, codec, handler);
+  public <R> void sendJson(Object body, BodyCodec<R> responseCodec, Handler<AsyncResult<HttpResponse<R>>> handler) {
+    perform2("application/json", body, responseCodec, handler);
   }
 
   private <R> void perform2(String contentType, Object body, BodyCodec<R> unmarshaller, Handler<AsyncResult<HttpResponse<R>>> handler) {
@@ -177,7 +192,12 @@ class HttpRequestImpl implements HttpRequest {
 
   private void perform(String contentType, Object body, Handler<AsyncResult<HttpClientResponse>> handler) {
     Future<HttpClientResponse> fut = Future.future();
-    HttpClientRequest req = client.request(method, port, host, requestURI);
+    HttpClientRequest req;
+    if (port != -1) {
+      req = client.request(method, port, host, requestURI);
+    } else {
+      req = client.request(method, host, requestURI);
+    }
     if (headers != null) {
       req.headers().addAll(headers);
     }

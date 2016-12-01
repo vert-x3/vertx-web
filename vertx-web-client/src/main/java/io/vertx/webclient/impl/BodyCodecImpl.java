@@ -32,21 +32,29 @@ import java.util.function.Function;
  */
 public class BodyCodecImpl<T> implements BodyCodec<T> {
 
-  public static final Function<Buffer, JsonObject> jsonObjectUnmarshaller = buff -> new JsonObject(buff.toString());
-  public static final Function<Buffer, String> utf8Unmarshaller = Buffer::toString;
+  public static final Function<Buffer, String> UTF8_DECODER = Buffer::toString;
+  public static final Function<Buffer, JsonObject> JSON_OBJECT_DECODER = buff -> new JsonObject(buff.toString());
 
-  public static Function<Buffer, String> stringUnmarshaller(String encoding) {
-    return buff -> buff.toString(encoding);
+  public static final BodyCodec<String> STRING = new BodyCodecImpl<>(UTF8_DECODER);
+  public static final BodyCodec<Buffer> BUFFER = new BodyCodecImpl<>(Function.identity());
+  public static final BodyCodec<JsonObject> JSON_OBJECT = new BodyCodecImpl<>(JSON_OBJECT_DECODER);
+
+  public static BodyCodecImpl<String> string(String encoding) {
+    return new BodyCodecImpl<>(buff -> buff.toString(encoding));
   }
 
-  public static <R> Function<Buffer, R> jsonUnmarshaller(Class<R> type) {
+  public static <T> BodyCodec<T> json(Class<T> type) {
+    return new BodyCodecImpl<>(jsonDecoder(type));
+  }
+
+  public static <T> Function<Buffer, T> jsonDecoder(Class<T> type) {
     return buff -> Json.decodeValue(buff.toString(), type);
   }
 
-  private final Function<Buffer, T> unmarshaller;
+  private final Function<Buffer, T> decoder;
 
-  public BodyCodecImpl(Function<Buffer, T> unmarshaller) {
-    this.unmarshaller = unmarshaller;
+  public BodyCodecImpl(Function<Buffer, T> decoder) {
+    this.decoder = decoder;
   }
 
   @Override
@@ -84,7 +92,7 @@ public class BodyCodecImpl<T> implements BodyCodec<T> {
         if (!state.isComplete()) {
           T result;
           try {
-            result = unmarshaller.apply(buffer);
+            result = decoder.apply(buffer);
           } catch (Throwable t) {
             state.fail(t);
             return;

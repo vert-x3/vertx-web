@@ -434,7 +434,7 @@ public class WebClientTest extends HttpTestBase {
     HttpRequest get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
     get.send(onSuccess(resp -> {
       assertEquals(200, resp.statusCode());
-      assertEquals(new WineAndCheese().setCheese("Goat Cheese").setWine("Condrieu"), resp.bodyAs(WineAndCheese.class));
+      assertEquals(new WineAndCheese().setCheese("Goat Cheese").setWine("Condrieu"), resp.bodyAsJson(WineAndCheese.class));
       testComplete();
     }));
     await();

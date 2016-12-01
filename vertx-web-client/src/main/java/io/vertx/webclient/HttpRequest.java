@@ -19,32 +19,37 @@ import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.http.HttpClient;
-import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.streams.ReadStream;
 
 /**
- * A builder for configuring client-side HTTP requests.
+ * A client-side HTTP request.
  * <p>
- * Instances are created by an {@link HttpClient} instance, via one of the methods {@code createXXX} corresponding to the
- * specific HTTP methods.
+ * Instances are created by an {@link WebClient} instance, via one of the methods corresponding to the specific
+ * HTTP methods such as {@link WebClient#get}, etc...
  * <p>
- * The request builder shall be configured prior making a request, the builder is immutable and when a configuration method
- * is called, a new builder is returned allowing to expose the builder and apply further customization.
+ * The request shall be configured prior sending, the request is immutable and when a mutator method
+ * is called, a new request is returned allowing to expose the request in a public API and apply further customization.
  * <p>
- * After the request builder has been configured, the methods
+ * After the request has been configured, the methods
  * <ul>
  *   <li>{@link #send(Handler)}</li>
  *   <li>{@link #sendStream(ReadStream, Handler)}</li>
- *   <li>{@link #bufferBody()}</li>
+ *   <li>{@link #sendJson(Object, Handler)} ()}</li>
+ *   <li>{@link #send(BodyCodec, Handler)} (Handler)}</li>
  * </ul>
  * can be called.
+ * The {@code sendXXX} methods perform the actual request, they can be used multiple times to perform multiple HTTP requests.
  * <p>
- * The {@code #bufferBody} configures the builder to buffer the entire HTTP response body and returns a
- * {@link BodyCodec} for configuring the response body.
+ * The handler is called back with
+ * <ul>
+ *   <li>an {@link HttpResponse} instance when the HTTP response has been received</li>
+ *   <li>a failure when the HTTP request failed (like a connection error) or when the HTTP response could
+ *   not be obtained (like connection or unmarshalling errors)</li>
+ * </ul>
  * <p>
- * The {@code send} methods perform the actual request, they can be used multiple times to perform HTTP requests.
+ * Most of the time, this client will buffer the HTTP response fully unless a specific {@link BodyCodec} is used
+ * such as {@link BodyCodec#stream(Handler)}.
  *
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
  */
@@ -52,39 +57,39 @@ import io.vertx.core.streams.ReadStream;
 public interface HttpRequest {
 
   /**
-   * Configure the builder to use a new method {@code value}.
+   * Configure the request to use a new method {@code value}.
    *
-   * @return a new {@code HttpRequestBuilder} instance with the specified method {@code value}
+   * @return a new {@code HttpRequest} instance with the specified method {@code value}
    */
   HttpRequest method(HttpMethod value);
 
   /**
-   * Configure the builder to use a new port {@code value}.
+   * Configure the request to use a new port {@code value}.
    *
-   * @return a new {@code HttpRequestBuilder} instance with the specified port {@code value}
+   * @return a new {@code HttpRequest} instance with the specified port {@code value}
    */
   HttpRequest port(int value);
 
   /**
-   * Configure the builder to use a new host {@code value}.
+   * Configure the request to use a new host {@code value}.
    *
-   * @return a new {@code HttpRequestBuilder} instance with the specified host {@code value}
+   * @return a new {@code HttpRequest} instance with the specified host {@code value}
    */
   HttpRequest host(String value);
 
   /**
-   * Configure the builder to use a new request URI {@code value}.
+   * Configure the request to use a new request URI {@code value}.
    *
-   * @return a new {@code HttpRequestBuilder} instance with the specified request URI {@code value}
+   * @return a new {@code HttpRequest} instance with the specified request URI {@code value}
    */
   HttpRequest requestURI(String value);
 
   /**
-   * Configure the builder to add a new HTTP header.
+   * Configure the request to add a new HTTP header.
    *
    * @param name the header name
    * @param value the header value
-   * @return a new {@code HttpRequestBuilder} instance with the specified header
+   * @return a new {@code HttpRequest} instance with the specified header
    */
   HttpRequest putHeader(String name, String value);
 
@@ -95,7 +100,7 @@ public interface HttpRequest {
    * Setting zero or a negative {@code value} disables the timeout.
    *
    * @param value The quantity of time in milliseconds.
-   * @return a new {@code HttpRequestBuilder} instance with the specified timeout
+   * @return a new {@code HttpRequest} instance with the specified timeout
    */
   HttpRequest timeout(long value);
 
@@ -107,11 +112,27 @@ public interface HttpRequest {
   void sendStream(ReadStream<Buffer> body, Handler<AsyncResult<HttpResponse<Buffer>>> handler);
 
   /**
+   * Like {@link #send(BodyCodec, Handler)} but with an HTTP request {@code body} stream.
+   *
+   * @param body the body
+   * @param responseCodec the codec to decode the response
+   */
+  <R> void sendStream(ReadStream<Buffer> body, BodyCodec<R> responseCodec, Handler<AsyncResult<HttpResponse<R>>> handler);
+
+  /**
    * Like {@link #send(Handler)} but with an HTTP request {@code body} buffer.
    *
    * @param body the body
    */
   void sendBuffer(Buffer body, Handler<AsyncResult<HttpResponse<Buffer>>> handler);
+
+  /**
+   * Like {@link #send(BodyCodec, Handler)} but with an HTTP request {@code body} buffer.
+   *
+   * @param body the body
+   * @param responseCodec the codec to decode the response
+   */
+  <R> void sendBuffer(Buffer body, BodyCodec<R> responseCodec, Handler<AsyncResult<HttpResponse<R>>> handler);
 
   /**
    * Like {@link #send(Handler)} but with an HTTP request {@code body} object encoded as json and the content type
@@ -122,13 +143,25 @@ public interface HttpRequest {
   void sendJson(Object body, Handler<AsyncResult<HttpResponse<Buffer>>> handler);
 
   /**
-   * Send a request, the {@code handler} will receive the response as an {@link HttpClientResponse}.
+   * Like {@link #send(BodyCodec, Handler)} but with an HTTP request {@code body} object encoded as json and the content type
+   * set to {@code application/json}.
+   *
+   * @param body the body
+   * @param responseCodec the codec to decode the response
+   */
+  <R> void sendJson(Object body, BodyCodec<R> responseCodec, Handler<AsyncResult<HttpResponse<R>>> handler);
+
+  /**
+   * Send a request, the {@code handler} will receive the response as an {@link HttpResponse}.
    */
   void send(Handler<AsyncResult<HttpResponse<Buffer>>> handler);
 
   /**
-   * Send a request, the {@code handler} will receive the response as an {@link HttpClientResponse}.
+   * Send a request, the {@code handler} will receive the response as an {@link HttpResponse} decoded using
+   * the provided {@code responseCodec}.
+   *
+   * @param responseCodec the codec to decode the response
    */
-  <R> void send(BodyCodec<R> codec, Handler<AsyncResult<HttpResponse<R>>> handler);
+  <R> void send(BodyCodec<R> responseCodec, Handler<AsyncResult<HttpResponse<R>>> handler);
 
 }

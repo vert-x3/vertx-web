@@ -77,7 +77,7 @@ class HttpResponseImpl<T> implements HttpResponse<T> {
   @Override
   public String bodyAsString() {
     Buffer b = bodyAsBuffer();
-    return b != null ? BodyCodecImpl.utf8Unmarshaller.apply(b) : null;
+    return b != null ? BodyCodecImpl.UTF8_DECODER.apply(b) : null;
   }
 
   @Override
@@ -89,12 +89,12 @@ class HttpResponseImpl<T> implements HttpResponse<T> {
   @Override
   public JsonObject bodyAsJsonObject() {
     Buffer b = bodyAsBuffer();
-    return b != null ? BodyCodecImpl.jsonObjectUnmarshaller.apply(b) : null;
+    return b != null ? BodyCodecImpl.JSON_OBJECT_DECODER.apply(b) : null;
   }
 
   @Override
-  public <R> R bodyAs(Class<R> type) {
+  public <R> R bodyAsJson(Class<R> type) {
     Buffer b = bodyAsBuffer();
-    return b != null ? BodyCodecImpl.jsonUnmarshaller(type).apply(b) : null;
+    return b != null ? BodyCodecImpl.jsonDecoder(type).apply(b) : null;
   }
 }

@@ -144,11 +144,11 @@ module VertxWebClient
     end
     # @param [Nil] type 
     # @return [Object] the response body decoded as the specified <code>type</code> with the Jackson mapper.
-    def body_as(type=nil)
+    def body_as_json(type=nil)
       if type.class == Class && !block_given?
-        return ::Vertx::Util::Utils.v_type_of(type).wrap(@j_del.java_method(:bodyAs, [Java::JavaLang::Class.java_class]).call(::Vertx::Util::Utils.j_class_of(type)))
+        return ::Vertx::Util::Utils.v_type_of(type).wrap(@j_del.java_method(:bodyAsJson, [Java::JavaLang::Class.java_class]).call(::Vertx::Util::Utils.j_class_of(type)))
       end
-      raise ArgumentError, "Invalid arguments when calling body_as(#{type})"
+      raise ArgumentError, "Invalid arguments when calling body_as_json(#{type})"
     end
   end
 end

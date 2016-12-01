@@ -26,7 +26,7 @@ var JsonObject = io.vertx.core.json.JsonObject;
 var JHttpRequest = io.vertx.webclient.HttpRequest;
 
 /**
- A builder for configuring client-side HTTP requests.
+ A client-side HTTP request.
  <p>
  @class
 */
@@ -36,11 +36,11 @@ var HttpRequest = function(j_val) {
   var that = this;
 
   /**
-   Configure the builder to use a new method <code>value</code>.
+   Configure the request to use a new method <code>value</code>.
 
    @public
    @param value {Object} 
-   @return {HttpRequest} a new <code>HttpRequestBuilder</code> instance with the specified method <code>value</code>
+   @return {HttpRequest} a new <code>HttpRequest</code> instance with the specified method <code>value</code>
    */
   this.method = function(value) {
     var __args = arguments;
@@ -50,11 +50,11 @@ var HttpRequest = function(j_val) {
   };
 
   /**
-   Configure the builder to use a new port <code>value</code>.
+   Configure the request to use a new port <code>value</code>.
 
    @public
    @param value {number} 
-   @return {HttpRequest} a new <code>HttpRequestBuilder</code> instance with the specified port <code>value</code>
+   @return {HttpRequest} a new <code>HttpRequest</code> instance with the specified port <code>value</code>
    */
   this.port = function(value) {
     var __args = arguments;
@@ -64,11 +64,11 @@ var HttpRequest = function(j_val) {
   };
 
   /**
-   Configure the builder to use a new host <code>value</code>.
+   Configure the request to use a new host <code>value</code>.
 
    @public
    @param value {string} 
-   @return {HttpRequest} a new <code>HttpRequestBuilder</code> instance with the specified host <code>value</code>
+   @return {HttpRequest} a new <code>HttpRequest</code> instance with the specified host <code>value</code>
    */
   this.host = function(value) {
     var __args = arguments;
@@ -78,11 +78,11 @@ var HttpRequest = function(j_val) {
   };
 
   /**
-   Configure the builder to use a new request URI <code>value</code>.
+   Configure the request to use a new request URI <code>value</code>.
 
    @public
    @param value {string} 
-   @return {HttpRequest} a new <code>HttpRequestBuilder</code> instance with the specified request URI <code>value</code>
+   @return {HttpRequest} a new <code>HttpRequest</code> instance with the specified request URI <code>value</code>
    */
   this.requestURI = function(value) {
     var __args = arguments;
@@ -92,12 +92,12 @@ var HttpRequest = function(j_val) {
   };
 
   /**
-   Configure the builder to add a new HTTP header.
+   Configure the request to add a new HTTP header.
 
    @public
    @param name {string} the header name 
    @param value {string} the header value 
-   @return {HttpRequest} a new <code>HttpRequestBuilder</code> instance with the specified header
+   @return {HttpRequest} a new <code>HttpRequest</code> instance with the specified header
    */
   this.putHeader = function(name, value) {
     var __args = arguments;
@@ -114,7 +114,7 @@ var HttpRequest = function(j_val) {
 
    @public
    @param value {number} The quantity of time in milliseconds. 
-   @return {HttpRequest} a new <code>HttpRequestBuilder</code> instance with the specified timeout
+   @return {HttpRequest} a new <code>HttpRequest</code> instance with the specified timeout
    */
   this.timeout = function(value) {
     var __args = arguments;
@@ -128,16 +128,25 @@ var HttpRequest = function(j_val) {
 
    @public
    @param body {ReadStream} the body 
+   @param responseCodec {BodyCodec} the codec to decode the response 
    @param handler {function} 
    */
-  this.sendStream = function(body, handler) {
+  this.sendStream = function() {
     var __args = arguments;
     if (__args.length === 2 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'function') {
-      j_httpRequest["sendStream(io.vertx.core.streams.ReadStream,io.vertx.core.Handler)"](body._jdel, function(ar) {
+      j_httpRequest["sendStream(io.vertx.core.streams.ReadStream,io.vertx.core.Handler)"](__args[0]._jdel, function(ar) {
       if (ar.succeeded()) {
-        handler(utils.convReturnVertxGen(HttpResponse, ar.result(), Buffer._jtype), null);
+        __args[1](utils.convReturnVertxGen(HttpResponse, ar.result(), Buffer._jtype), null);
       } else {
-        handler(null, ar.cause());
+        __args[1](null, ar.cause());
+      }
+    });
+    }  else if (__args.length === 3 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'object' && __args[1]._jdel && typeof __args[2] === 'function') {
+      j_httpRequest["sendStream(io.vertx.core.streams.ReadStream,io.vertx.webclient.BodyCodec,io.vertx.core.Handler)"](__args[0]._jdel, __args[1]._jdel, function(ar) {
+      if (ar.succeeded()) {
+        __args[2](utils.convReturnVertxGen(HttpResponse, ar.result(), undefined), null);
+      } else {
+        __args[2](null, ar.cause());
       }
     });
     } else throw new TypeError('function invoked with invalid arguments');
@@ -148,16 +157,25 @@ var HttpRequest = function(j_val) {
 
    @public
    @param body {Buffer} the body 
+   @param responseCodec {BodyCodec} the codec to decode the response 
    @param handler {function} 
    */
-  this.sendBuffer = function(body, handler) {
+  this.sendBuffer = function() {
     var __args = arguments;
     if (__args.length === 2 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'function') {
-      j_httpRequest["sendBuffer(io.vertx.core.buffer.Buffer,io.vertx.core.Handler)"](body._jdel, function(ar) {
+      j_httpRequest["sendBuffer(io.vertx.core.buffer.Buffer,io.vertx.core.Handler)"](__args[0]._jdel, function(ar) {
       if (ar.succeeded()) {
-        handler(utils.convReturnVertxGen(HttpResponse, ar.result(), Buffer._jtype), null);
+        __args[1](utils.convReturnVertxGen(HttpResponse, ar.result(), Buffer._jtype), null);
       } else {
-        handler(null, ar.cause());
+        __args[1](null, ar.cause());
+      }
+    });
+    }  else if (__args.length === 3 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'object' && __args[1]._jdel && typeof __args[2] === 'function') {
+      j_httpRequest["sendBuffer(io.vertx.core.buffer.Buffer,io.vertx.webclient.BodyCodec,io.vertx.core.Handler)"](__args[0]._jdel, __args[1]._jdel, function(ar) {
+      if (ar.succeeded()) {
+        __args[2](utils.convReturnVertxGen(HttpResponse, ar.result(), undefined), null);
+      } else {
+        __args[2](null, ar.cause());
       }
     });
     } else throw new TypeError('function invoked with invalid arguments');
@@ -169,26 +187,36 @@ var HttpRequest = function(j_val) {
 
    @public
    @param body {Object} the body 
+   @param responseCodec {BodyCodec} the codec to decode the response 
    @param handler {function} 
    */
-  this.sendJson = function(body, handler) {
+  this.sendJson = function() {
     var __args = arguments;
     if (__args.length === 2 && typeof __args[0] !== 'function' && typeof __args[1] === 'function') {
-      j_httpRequest["sendJson(java.lang.Object,io.vertx.core.Handler)"](utils.convParamTypeUnknown(body), function(ar) {
+      j_httpRequest["sendJson(java.lang.Object,io.vertx.core.Handler)"](utils.convParamTypeUnknown(__args[0]), function(ar) {
       if (ar.succeeded()) {
-        handler(utils.convReturnVertxGen(HttpResponse, ar.result(), Buffer._jtype), null);
+        __args[1](utils.convReturnVertxGen(HttpResponse, ar.result(), Buffer._jtype), null);
       } else {
-        handler(null, ar.cause());
+        __args[1](null, ar.cause());
+      }
+    });
+    }  else if (__args.length === 3 && typeof __args[0] !== 'function' && typeof __args[1] === 'object' && __args[1]._jdel && typeof __args[2] === 'function') {
+      j_httpRequest["sendJson(java.lang.Object,io.vertx.webclient.BodyCodec,io.vertx.core.Handler)"](utils.convParamTypeUnknown(__args[0]), __args[1]._jdel, function(ar) {
+      if (ar.succeeded()) {
+        __args[2](utils.convReturnVertxGen(HttpResponse, ar.result(), undefined), null);
+      } else {
+        __args[2](null, ar.cause());
       }
     });
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
-   Send a request, the <code>handler</code> will receive the response as an .
+   Send a request, the <code>handler</code> will receive the response as an {@link HttpResponse} decoded using
+   the provided <code>responseCodec</code>.
 
    @public
-   @param codec {BodyCodec} 
+   @param responseCodec {BodyCodec} the codec to decode the response 
    @param handler {function} 
    */
   this.send = function() {

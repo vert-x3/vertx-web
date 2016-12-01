@@ -22,101 +22,157 @@ public class WebClientImpl implements WebClient {
 
   @Override
   public HttpRequest get(int port, String host, String requestURI) {
-    HttpRequestImpl builder = new HttpRequestImpl(client, HttpMethod.GET);
-    return createRequestBuilder(port, host, requestURI, builder);
+    return request(HttpMethod.GET, port, host, requestURI);
   }
 
   @Override
-  public HttpRequest post(int port, String host, String requestURI) {
-    HttpRequestImpl builder = new HttpRequestImpl(client, HttpMethod.POST);
-    return createRequestBuilder(port, host, requestURI, builder);
+  public HttpRequest get(String requestURI) {
+    return request(HttpMethod.GET, requestURI);
   }
 
   @Override
-  public HttpRequest put(int port, String host, String requestURI) {
-    HttpRequestImpl builder = new HttpRequestImpl(client, HttpMethod.PUT);
-    return createRequestBuilder(port, host, requestURI, builder);
-  }
-
-  @Override
-  public HttpRequest delete(int port, String host, String requestURI) {
-    HttpRequestImpl builder = new HttpRequestImpl(client, HttpMethod.DELETE);
-    return createRequestBuilder(port, host, requestURI, builder);
-  }
-
-  @Override
-  public HttpRequest patch(int port, String host, String requestURI) {
-    HttpRequestImpl builder = new HttpRequestImpl(client, HttpMethod.PATCH);
-    return createRequestBuilder(port, host, requestURI, builder);
-  }
-
-  @Override
-  public HttpRequest head(int port, String host, String requestURI) {
-    HttpRequestImpl builder = new HttpRequestImpl(client, HttpMethod.HEAD);
-    return createRequestBuilder(port, host, requestURI, builder);
+  public HttpRequest get(String host, String requestURI) {
+    return request(HttpMethod.GET, host, requestURI);
   }
 
   @Override
   public HttpRequest getAbs(String absoluteURI) {
-    HttpRequestImpl builder = new HttpRequestImpl(client, HttpMethod.GET);
-    URL url = parseUrl(absoluteURI);
+    return requestAbs(HttpMethod.GET, absoluteURI);
+  }
 
-    return createRequestBuilder(url.getPort(), url.getHost(), url.getFile(), builder);
+  @Override
+  public HttpRequest post(String requestURI) {
+    return request(HttpMethod.POST, requestURI);
+  }
+
+  @Override
+  public HttpRequest post(String host, String requestURI) {
+    return request(HttpMethod.POST, host, requestURI);
+  }
+
+  @Override
+  public HttpRequest post(int port, String host, String requestURI) {
+    return request(HttpMethod.POST, port, host, requestURI);
+  }
+
+  @Override
+  public HttpRequest put(String requestURI) {
+    return request(HttpMethod.PUT, requestURI);
+  }
+
+  @Override
+  public HttpRequest put(String host, String requestURI) {
+    return request(HttpMethod.PUT, host, requestURI);
+  }
+
+  @Override
+  public HttpRequest put(int port, String host, String requestURI) {
+    return request(HttpMethod.PUT, port, host, requestURI);
+  }
+
+  @Override
+  public HttpRequest delete(String host, String requestURI) {
+    return request(HttpMethod.DELETE, host, requestURI);
+  }
+
+  @Override
+  public HttpRequest delete(String requestURI) {
+    return request(HttpMethod.DELETE, requestURI);
+  }
+
+  @Override
+  public HttpRequest delete(int port, String host, String requestURI) {
+    return request(HttpMethod.DELETE, port, host, requestURI);
+  }
+
+  @Override
+  public HttpRequest patch(String requestURI) {
+    return request(HttpMethod.PATCH, requestURI);
+  }
+
+  @Override
+  public HttpRequest patch(String host, String requestURI) {
+    return request(HttpMethod.PATCH, host, requestURI);
+  }
+
+  @Override
+  public HttpRequest patch(int port, String host, String requestURI) {
+    return request(HttpMethod.PATCH, port, host, requestURI);
+  }
+
+  @Override
+  public HttpRequest head(String requestURI) {
+    return request(HttpMethod.HEAD, requestURI);
+  }
+
+  @Override
+  public HttpRequest head(String host, String requestURI) {
+    return request(HttpMethod.HEAD, host, requestURI);
+  }
+
+  @Override
+  public HttpRequest head(int port, String host, String requestURI) {
+    return request(HttpMethod.HEAD, port, host, requestURI);
   }
 
   @Override
   public HttpRequest postAbs(String absoluteURI) {
-    HttpRequestImpl builder = new HttpRequestImpl(client, HttpMethod.POST);
-    URL url = parseUrl(absoluteURI);
-
-    return createRequestBuilder(url.getPort(), url.getHost(), url.getFile(), builder);
+    return requestAbs(HttpMethod.POST, absoluteURI);
   }
 
   @Override
   public HttpRequest putAbs(String absoluteURI) {
-    HttpRequestImpl builder = new HttpRequestImpl(client, HttpMethod.PUT);
-    URL url = parseUrl(absoluteURI);
-
-    return createRequestBuilder(url.getPort(), url.getHost(), url.getFile(), builder);
+    return requestAbs(HttpMethod.PUT, absoluteURI);
   }
 
   @Override
   public HttpRequest deleteAbs(String absoluteURI) {
-    HttpRequestImpl builder = new HttpRequestImpl(client, HttpMethod.DELETE);
-    URL url = parseUrl(absoluteURI);
-
-    return createRequestBuilder(url.getPort(), url.getHost(), url.getFile(), builder);
+    return requestAbs(HttpMethod.DELETE, absoluteURI);
   }
 
   @Override
   public HttpRequest patchAbs(String absoluteURI) {
-    HttpRequestImpl builder = new HttpRequestImpl(client, HttpMethod.PATCH);
-    URL url = parseUrl(absoluteURI);
-
-    return createRequestBuilder(url.getPort(), url.getHost(), url.getFile(), builder);
+    return requestAbs(HttpMethod.PATCH, absoluteURI);
   }
 
   @Override
   public HttpRequest headAbs(String absoluteURI) {
-    HttpRequestImpl builder = new HttpRequestImpl(client, HttpMethod.HEAD);
-    URL url = parseUrl(absoluteURI);
-
-    return createRequestBuilder(url.getPort(), url.getHost(), url.getFile(), builder);
+    return requestAbs(HttpMethod.HEAD, absoluteURI);
   }
 
-  private URL parseUrl(String surl) {
+  public HttpRequest request(HttpMethod method, String requestURI) {
+    HttpRequestImpl request = new HttpRequestImpl(client, method);
+    request.requestURI = requestURI;
+    return request;
+  }
+
+  public HttpRequest request(HttpMethod method, String host, String requestURI) {
+    HttpRequestImpl request = new HttpRequestImpl(client, method);
+    request.host = host;
+    request.requestURI = requestURI;
+    return request;
+  }
+
+  public HttpRequest request(HttpMethod method, int port, String host, String requestURI) {
+    HttpRequestImpl request = new HttpRequestImpl(client, method);
+    request.port = port;
+    request.host = host;
+    request.requestURI = requestURI;
+    return request;
+  }
+
+  public HttpRequest requestAbs(HttpMethod method, String surl) {
     // Note - parsing a URL this way is slower than specifying host, port and relativeURI
+    URL url;
     try {
-      return new URL(surl);
+      url = new URL(surl);
     } catch (MalformedURLException e) {
       throw new VertxException("Invalid url: " + surl);
     }
-  }
-
-  private HttpRequest createRequestBuilder(int port, String host, String requestURI, HttpRequestImpl get) {
-    get.port = port;
-    get.host = host;
-    get.requestURI = requestURI;
-    return get;
+    HttpRequestImpl request = new HttpRequestImpl(client, method);
+    request.port = url.getPort();
+    request.host = url.getHost();
+    request.requestURI = url.getFile();
+    return request;
   }
 }

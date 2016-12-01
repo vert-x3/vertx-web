@@ -4,7 +4,7 @@ require 'vertx/write_stream'
 require 'vertx/util/utils.rb'
 # Generated from io.vertx.webclient.BodyCodec
 module VertxWebClient
-  #  A builder for configuring client-side HTTP responses.
+  #  A codec for encoding and decoding HTTP bodies.
   class BodyCodec
     # @private
     # @param j_del [::VertxWebClient::BodyCodec] the java delegate
@@ -17,7 +17,15 @@ module VertxWebClient
     def j_del
       @j_del
     end
-    # @param [String] enc 
+    # @yield
+    # @return [::VertxWebClient::BodyCodec]
+    def self.codec(f=nil)
+      if block_given? && f == nil
+        return ::Vertx::Util::Utils.safe_create(Java::IoVertxWebclient::BodyCodec.java_method(:create, [Java::JavaUtilFunction::Function.java_class]).call((Proc.new { |event| ::Vertx::Util::Utils.to_object(yield(::Vertx::Util::Utils.safe_create(event, ::Vertx::Buffer))) })), ::VertxWebClient::BodyCodec, nil)
+      end
+      raise ArgumentError, "Invalid arguments when calling codec(#{f})"
+    end
+    # @param [String] enc
     # @return [::VertxWebClient::BodyCodec]
     def self.string(enc=nil)
       if !block_given? && enc == nil

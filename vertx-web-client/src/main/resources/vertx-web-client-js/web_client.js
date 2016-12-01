@@ -33,100 +33,68 @@ var WebClient = function(j_val) {
   var that = this;
 
   /**
+   Create an HTTP request to send to the server at the specified host and port.
 
    @public
-   @param port {number} 
-   @param host {string} 
-   @param requestURI {string} 
-   @return {HttpRequest}
+   @param method {Object} the HTTP method 
+   @param port {number} the port 
+   @param host {string} the host 
+   @param requestURI {string} the relative URI 
+   @return {HttpRequest} an HTTP client request object
    */
-  this.get = function(port, host, requestURI) {
+  this.request = function() {
     var __args = arguments;
-    if (__args.length === 3 && typeof __args[0] ==='number' && typeof __args[1] === 'string' && typeof __args[2] === 'string') {
-      return utils.convReturnVertxGen(HttpRequest, j_webClient["get(int,java.lang.String,java.lang.String)"](port, host, requestURI));
+    if (__args.length === 2 && typeof __args[0] === 'string' && typeof __args[1] === 'string') {
+      return utils.convReturnVertxGen(HttpRequest, j_webClient["request(io.vertx.core.http.HttpMethod,java.lang.String)"](io.vertx.core.http.HttpMethod.valueOf(__args[0]), __args[1]));
+    }  else if (__args.length === 3 && typeof __args[0] === 'string' && typeof __args[1] === 'string' && typeof __args[2] === 'string') {
+      return utils.convReturnVertxGen(HttpRequest, j_webClient["request(io.vertx.core.http.HttpMethod,java.lang.String,java.lang.String)"](io.vertx.core.http.HttpMethod.valueOf(__args[0]), __args[1], __args[2]));
+    }  else if (__args.length === 4 && typeof __args[0] === 'string' && typeof __args[1] ==='number' && typeof __args[2] === 'string' && typeof __args[3] === 'string') {
+      return utils.convReturnVertxGen(HttpRequest, j_webClient["request(io.vertx.core.http.HttpMethod,int,java.lang.String,java.lang.String)"](io.vertx.core.http.HttpMethod.valueOf(__args[0]), __args[1], __args[2], __args[3]));
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
+   Create an HTTP request to send to the server using an absolute URI
 
    @public
-   @param port {number} 
-   @param host {string} 
-   @param requestURI {string} 
-   @return {HttpRequest}
+   @param method {Object} the HTTP method 
+   @param absoluteURI {string} the absolute URI 
+   @return {HttpRequest} an HTTP client request object
    */
-  this.post = function(port, host, requestURI) {
+  this.requestAbs = function(method, absoluteURI) {
     var __args = arguments;
-    if (__args.length === 3 && typeof __args[0] ==='number' && typeof __args[1] === 'string' && typeof __args[2] === 'string') {
-      return utils.convReturnVertxGen(HttpRequest, j_webClient["post(int,java.lang.String,java.lang.String)"](port, host, requestURI));
+    if (__args.length === 2 && typeof __args[0] === 'string' && typeof __args[1] === 'string') {
+      return utils.convReturnVertxGen(HttpRequest, j_webClient["requestAbs(io.vertx.core.http.HttpMethod,java.lang.String)"](io.vertx.core.http.HttpMethod.valueOf(method), absoluteURI));
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
+   Create an HTTP GET request to send to the server at the specified host and port.
 
    @public
-   @param port {number} 
-   @param host {string} 
-   @param requestURI {string} 
-   @return {HttpRequest}
+   @param port {number} the port 
+   @param host {string} the host 
+   @param requestURI {string} the relative URI 
+   @return {HttpRequest} an HTTP client request object
    */
-  this.put = function(port, host, requestURI) {
+  this.get = function() {
     var __args = arguments;
-    if (__args.length === 3 && typeof __args[0] ==='number' && typeof __args[1] === 'string' && typeof __args[2] === 'string') {
-      return utils.convReturnVertxGen(HttpRequest, j_webClient["put(int,java.lang.String,java.lang.String)"](port, host, requestURI));
+    if (__args.length === 1 && typeof __args[0] === 'string') {
+      return utils.convReturnVertxGen(HttpRequest, j_webClient["get(java.lang.String)"](__args[0]));
+    }  else if (__args.length === 2 && typeof __args[0] === 'string' && typeof __args[1] === 'string') {
+      return utils.convReturnVertxGen(HttpRequest, j_webClient["get(java.lang.String,java.lang.String)"](__args[0], __args[1]));
+    }  else if (__args.length === 3 && typeof __args[0] ==='number' && typeof __args[1] === 'string' && typeof __args[2] === 'string') {
+      return utils.convReturnVertxGen(HttpRequest, j_webClient["get(int,java.lang.String,java.lang.String)"](__args[0], __args[1], __args[2]));
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
+   Create an HTTP GET request to send to the server using an absolute URI, specifying a response handler to receive
+   the response
 
    @public
-   @param port {number} 
-   @param host {string} 
-   @param requestURI {string} 
-   @return {HttpRequest}
-   */
-  this.delete = function(port, host, requestURI) {
-    var __args = arguments;
-    if (__args.length === 3 && typeof __args[0] ==='number' && typeof __args[1] === 'string' && typeof __args[2] === 'string') {
-      return utils.convReturnVertxGen(HttpRequest, j_webClient["delete(int,java.lang.String,java.lang.String)"](port, host, requestURI));
-    } else throw new TypeError('function invoked with invalid arguments');
-  };
-
-  /**
-
-   @public
-   @param port {number} 
-   @param host {string} 
-   @param requestURI {string} 
-   @return {HttpRequest}
-   */
-  this.patch = function(port, host, requestURI) {
-    var __args = arguments;
-    if (__args.length === 3 && typeof __args[0] ==='number' && typeof __args[1] === 'string' && typeof __args[2] === 'string') {
-      return utils.convReturnVertxGen(HttpRequest, j_webClient["patch(int,java.lang.String,java.lang.String)"](port, host, requestURI));
-    } else throw new TypeError('function invoked with invalid arguments');
-  };
-
-  /**
-
-   @public
-   @param port {number} 
-   @param host {string} 
-   @param requestURI {string} 
-   @return {HttpRequest}
-   */
-  this.head = function(port, host, requestURI) {
-    var __args = arguments;
-    if (__args.length === 3 && typeof __args[0] ==='number' && typeof __args[1] === 'string' && typeof __args[2] === 'string') {
-      return utils.convReturnVertxGen(HttpRequest, j_webClient["head(int,java.lang.String,java.lang.String)"](port, host, requestURI));
-    } else throw new TypeError('function invoked with invalid arguments');
-  };
-
-  /**
-
-   @public
-   @param absoluteURI {string} 
-   @return {HttpRequest}
+   @param absoluteURI {string} the absolute URI 
+   @return {HttpRequest} an HTTP client request object
    */
   this.getAbs = function(absoluteURI) {
     var __args = arguments;
@@ -136,10 +104,32 @@ var WebClient = function(j_val) {
   };
 
   /**
+   Create an HTTP POST request to send to the server at the specified host and port.
 
    @public
-   @param absoluteURI {string} 
-   @return {HttpRequest}
+   @param port {number} the port 
+   @param host {string} the host 
+   @param requestURI {string} the relative URI 
+   @return {HttpRequest} an HTTP client request object
+   */
+  this.post = function() {
+    var __args = arguments;
+    if (__args.length === 1 && typeof __args[0] === 'string') {
+      return utils.convReturnVertxGen(HttpRequest, j_webClient["post(java.lang.String)"](__args[0]));
+    }  else if (__args.length === 2 && typeof __args[0] === 'string' && typeof __args[1] === 'string') {
+      return utils.convReturnVertxGen(HttpRequest, j_webClient["post(java.lang.String,java.lang.String)"](__args[0], __args[1]));
+    }  else if (__args.length === 3 && typeof __args[0] ==='number' && typeof __args[1] === 'string' && typeof __args[2] === 'string') {
+      return utils.convReturnVertxGen(HttpRequest, j_webClient["post(int,java.lang.String,java.lang.String)"](__args[0], __args[1], __args[2]));
+    } else throw new TypeError('function invoked with invalid arguments');
+  };
+
+  /**
+   Create an HTTP POST request to send to the server using an absolute URI, specifying a response handler to receive
+   the response
+
+   @public
+   @param absoluteURI {string} the absolute URI 
+   @return {HttpRequest} an HTTP client request object
    */
   this.postAbs = function(absoluteURI) {
     var __args = arguments;
@@ -149,10 +139,32 @@ var WebClient = function(j_val) {
   };
 
   /**
+   Create an HTTP PUT request to send to the server at the specified host and port.
 
    @public
-   @param absoluteURI {string} 
-   @return {HttpRequest}
+   @param port {number} the port 
+   @param host {string} the host 
+   @param requestURI {string} the relative URI 
+   @return {HttpRequest} an HTTP client request object
+   */
+  this.put = function() {
+    var __args = arguments;
+    if (__args.length === 1 && typeof __args[0] === 'string') {
+      return utils.convReturnVertxGen(HttpRequest, j_webClient["put(java.lang.String)"](__args[0]));
+    }  else if (__args.length === 2 && typeof __args[0] === 'string' && typeof __args[1] === 'string') {
+      return utils.convReturnVertxGen(HttpRequest, j_webClient["put(java.lang.String,java.lang.String)"](__args[0], __args[1]));
+    }  else if (__args.length === 3 && typeof __args[0] ==='number' && typeof __args[1] === 'string' && typeof __args[2] === 'string') {
+      return utils.convReturnVertxGen(HttpRequest, j_webClient["put(int,java.lang.String,java.lang.String)"](__args[0], __args[1], __args[2]));
+    } else throw new TypeError('function invoked with invalid arguments');
+  };
+
+  /**
+   Create an HTTP PUT request to send to the server using an absolute URI, specifying a response handler to receive
+   the response
+
+   @public
+   @param absoluteURI {string} the absolute URI 
+   @return {HttpRequest} an HTTP client request object
    */
   this.putAbs = function(absoluteURI) {
     var __args = arguments;
@@ -162,10 +174,32 @@ var WebClient = function(j_val) {
   };
 
   /**
+   Create an HTTP DELETE request to send to the server at the specified host and port.
 
    @public
-   @param absoluteURI {string} 
-   @return {HttpRequest}
+   @param port {number} the port 
+   @param host {string} the host 
+   @param requestURI {string} the relative URI 
+   @return {HttpRequest} an HTTP client request object
+   */
+  this.delete = function() {
+    var __args = arguments;
+    if (__args.length === 1 && typeof __args[0] === 'string') {
+      return utils.convReturnVertxGen(HttpRequest, j_webClient["delete(java.lang.String)"](__args[0]));
+    }  else if (__args.length === 2 && typeof __args[0] === 'string' && typeof __args[1] === 'string') {
+      return utils.convReturnVertxGen(HttpRequest, j_webClient["delete(java.lang.String,java.lang.String)"](__args[0], __args[1]));
+    }  else if (__args.length === 3 && typeof __args[0] ==='number' && typeof __args[1] === 'string' && typeof __args[2] === 'string') {
+      return utils.convReturnVertxGen(HttpRequest, j_webClient["delete(int,java.lang.String,java.lang.String)"](__args[0], __args[1], __args[2]));
+    } else throw new TypeError('function invoked with invalid arguments');
+  };
+
+  /**
+   Create an HTTP DELETE request to send to the server using an absolute URI, specifying a response handler to receive
+   the response
+
+   @public
+   @param absoluteURI {string} the absolute URI 
+   @return {HttpRequest} an HTTP client request object
    */
   this.deleteAbs = function(absoluteURI) {
     var __args = arguments;
@@ -175,10 +209,32 @@ var WebClient = function(j_val) {
   };
 
   /**
+   Create an HTTP PATCH request to send to the server at the specified host and port.
 
    @public
-   @param absoluteURI {string} 
-   @return {HttpRequest}
+   @param port {number} the port 
+   @param host {string} the host 
+   @param requestURI {string} the relative URI 
+   @return {HttpRequest} an HTTP client request object
+   */
+  this.patch = function() {
+    var __args = arguments;
+    if (__args.length === 1 && typeof __args[0] === 'string') {
+      return utils.convReturnVertxGen(HttpRequest, j_webClient["patch(java.lang.String)"](__args[0]));
+    }  else if (__args.length === 2 && typeof __args[0] === 'string' && typeof __args[1] === 'string') {
+      return utils.convReturnVertxGen(HttpRequest, j_webClient["patch(java.lang.String,java.lang.String)"](__args[0], __args[1]));
+    }  else if (__args.length === 3 && typeof __args[0] ==='number' && typeof __args[1] === 'string' && typeof __args[2] === 'string') {
+      return utils.convReturnVertxGen(HttpRequest, j_webClient["patch(int,java.lang.String,java.lang.String)"](__args[0], __args[1], __args[2]));
+    } else throw new TypeError('function invoked with invalid arguments');
+  };
+
+  /**
+   Create an HTTP PATCH request to send to the server using an absolute URI, specifying a response handler to receive
+   the response
+
+   @public
+   @param absoluteURI {string} the absolute URI 
+   @return {HttpRequest} an HTTP client request object
    */
   this.patchAbs = function(absoluteURI) {
     var __args = arguments;
@@ -188,10 +244,32 @@ var WebClient = function(j_val) {
   };
 
   /**
+   Create an HTTP HEAD request to send to the server at the specified host and port.
 
    @public
-   @param absoluteURI {string} 
-   @return {HttpRequest}
+   @param port {number} the port 
+   @param host {string} the host 
+   @param requestURI {string} the relative URI 
+   @return {HttpRequest} an HTTP client request object
+   */
+  this.head = function() {
+    var __args = arguments;
+    if (__args.length === 1 && typeof __args[0] === 'string') {
+      return utils.convReturnVertxGen(HttpRequest, j_webClient["head(java.lang.String)"](__args[0]));
+    }  else if (__args.length === 2 && typeof __args[0] === 'string' && typeof __args[1] === 'string') {
+      return utils.convReturnVertxGen(HttpRequest, j_webClient["head(java.lang.String,java.lang.String)"](__args[0], __args[1]));
+    }  else if (__args.length === 3 && typeof __args[0] ==='number' && typeof __args[1] === 'string' && typeof __args[2] === 'string') {
+      return utils.convReturnVertxGen(HttpRequest, j_webClient["head(int,java.lang.String,java.lang.String)"](__args[0], __args[1], __args[2]));
+    } else throw new TypeError('function invoked with invalid arguments');
+  };
+
+  /**
+   Create an HTTP HEAD request to send to the server using an absolute URI, specifying a response handler to receive
+   the response
+
+   @public
+   @param absoluteURI {string} the absolute URI 
+   @return {HttpRequest} an HTTP client request object
    */
   this.headAbs = function(absoluteURI) {
     var __args = arguments;
@@ -226,15 +304,16 @@ WebClient._create = function(jdel) {
   return obj;
 }
 /**
+ Create a web client using the provided <code>httpClient</code>.
 
  @memberof module:vertx-web-client-js/web_client
- @param client {HttpClient} 
- @return {WebClient}
+ @param httpClient {HttpClient} the  to wrap 
+ @return {WebClient} the created web client
  */
-WebClient.create = function(client) {
+WebClient.create = function(httpClient) {
   var __args = arguments;
   if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
-    return utils.convReturnVertxGen(WebClient, JWebClient["create(io.vertx.core.http.HttpClient)"](client._jdel));
+    return utils.convReturnVertxGen(WebClient, JWebClient["create(io.vertx.core.http.HttpClient)"](httpClient._jdel));
   } else throw new TypeError('function invoked with invalid arguments');
 };
 

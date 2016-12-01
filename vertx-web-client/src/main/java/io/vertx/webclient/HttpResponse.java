@@ -128,6 +128,6 @@ public interface HttpResponse<T> {
   /**
    * @return the response body decoded as the specified {@code type} with the Jackson mapper.
    */
-  <R> R bodyAs(Class<R> type);
+  <R> R bodyAsJson(Class<R> type);
 
 }

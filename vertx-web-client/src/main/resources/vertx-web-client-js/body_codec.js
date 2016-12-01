@@ -25,7 +25,7 @@ var JsonObject = io.vertx.core.json.JsonObject;
 var JBodyCodec = io.vertx.webclient.BodyCodec;
 
 /**
- A builder for configuring client-side HTTP responses.
+ A codec for encoding and decoding HTTP bodies.
 
  @class
 */
@@ -60,6 +60,22 @@ BodyCodec._create = function(jdel) {
   BodyCodec.apply(obj, arguments);
   return obj;
 }
+/**
+
+ @memberof module:vertx-web-client-js/body_codec
+ @param f {todo} 
+ @return {BodyCodec}
+ */
+BodyCodec.codec = function(f) {
+  var __args = arguments;
+  if (__args.length === 1 && typeof __args[0] === 'function') {
+    return utils.convReturnVertxGen(BodyCodec, JBodyCodec["codec(java.util.function.Function)"](function(jVal) {
+    var jRet = f(utils.convReturnVertxGen(Buffer, jVal));
+    return utils.convParamTypeUnknown(jRet);
+  }), undefined);
+  } else throw new TypeError('function invoked with invalid arguments');
+};
+
 /**
 
  @memberof module:vertx-web-client-js/body_codec

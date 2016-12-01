@@ -223,10 +223,10 @@ var HttpResponse = function(j_val, j_arg_0) {
    @param type {todo} 
    @return {Object} the response body decoded as the specified <code>type</code> with the Jackson mapper.
    */
-  this.bodyAs = function(type) {
+  this.bodyAsJson = function(type) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'function') {
-      return utils.get_jtype(type).wrap(j_httpResponse["bodyAs(java.lang.Class)"](utils.get_jclass(type)));
+      return utils.get_jtype(type).wrap(j_httpResponse["bodyAsJson(java.lang.Class)"](utils.get_jclass(type)));
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
