@@ -64,47 +64,45 @@ class HttpRequestImpl implements HttpRequest {
 
   @Override
   public HttpRequest method(HttpMethod value) {
-    HttpRequestImpl other = new HttpRequestImpl(this);
-    other.method = value;
-    return other;
+    method = value;
+    return this;
   }
 
   @Override
   public HttpRequest port(int value) {
-    HttpRequestImpl other = new HttpRequestImpl(this);
-    other.port = value;
-    return other;
+    port = value;
+    return this;
   }
 
   @Override
   public HttpRequest host(String value) {
-    HttpRequestImpl other = new HttpRequestImpl(this);
-    other.host = value;
-    return other;
+    host = value;
+    return this;
   }
 
   @Override
   public HttpRequest requestURI(String value) {
-    HttpRequestImpl other = new HttpRequestImpl(this);
-    other.requestURI = value;
-    return other;
+    requestURI = value;
+    return this;
   }
 
   @Override
   public HttpRequest putHeader(String name, String value) {
-    HttpRequestImpl other = new HttpRequestImpl(this);
-    if (other.headers == null) {
-      other.headers = new CaseInsensitiveHeaders();
+    if (headers == null) {
+      headers = new CaseInsensitiveHeaders();
     }
-    other.headers.add(name, value);
-    return other;
+    return this;
   }
 
   @Override
   public HttpRequest timeout(long value) {
-    HttpRequestImpl other = new HttpRequestImpl(this);
-    other.timeout = value;
-    return other;
+    timeout = value;
+    return this;
+  }
+
+  @Override
+  public HttpRequest copy() {
+    return new HttpRequestImpl(this);
   }
 
   @Override

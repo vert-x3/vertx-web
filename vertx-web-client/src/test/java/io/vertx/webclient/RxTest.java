@@ -37,7 +37,7 @@ public class RxTest extends VertxTestBase {
     });
     try {
       server.listen(ar -> {
-        client = WebClient.create(vertx.createHttpClient(new HttpClientOptions()));
+        client = WebClient.wrap(vertx.createHttpClient(new HttpClientOptions()));
         Single<HttpResponse<Buffer>> single = client
           .get(8080, "localhost", "/the_uri")
           .rxSend();
@@ -67,7 +67,7 @@ public class RxTest extends VertxTestBase {
     });
     try {
       server.listen(ar -> {
-        client = WebClient.create(vertx.createHttpClient(new HttpClientOptions()));
+        client = WebClient.wrap(vertx.createHttpClient(new HttpClientOptions()));
         Observable<Buffer> stream = Observable.just(Buffer.buffer("one"), Buffer.buffer("two"), Buffer.buffer("three"));
         Single<HttpResponse<Buffer>> single = client
           .post(8080, "localhost", "/the_uri")

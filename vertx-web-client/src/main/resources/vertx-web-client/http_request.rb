@@ -61,47 +61,52 @@ module VertxWebClient
     end
     #  Configure the request to use a new method <code>value</code>.
     # @param [:OPTIONS,:GET,:HEAD,:POST,:PUT,:DELETE,:TRACE,:CONNECT,:PATCH,:OTHER] value 
-    # @return [::VertxWebClient::HttpRequest] a new <code>HttpRequest</code> instance with the specified method <code>value</code>
+    # @return [self]
     def method(value=nil)
       if value.class == Symbol && !block_given?
-        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:method, [Java::IoVertxCoreHttp::HttpMethod.java_class]).call(Java::IoVertxCoreHttp::HttpMethod.valueOf(value)),::VertxWebClient::HttpRequest)
+        @j_del.java_method(:method, [Java::IoVertxCoreHttp::HttpMethod.java_class]).call(Java::IoVertxCoreHttp::HttpMethod.valueOf(value))
+        return self
       end
       raise ArgumentError, "Invalid arguments when calling method(#{value})"
     end
     #  Configure the request to use a new port <code>value</code>.
     # @param [Fixnum] value 
-    # @return [::VertxWebClient::HttpRequest] a new <code>HttpRequest</code> instance with the specified port <code>value</code>
+    # @return [self]
     def port(value=nil)
       if value.class == Fixnum && !block_given?
-        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:port, [Java::int.java_class]).call(value),::VertxWebClient::HttpRequest)
+        @j_del.java_method(:port, [Java::int.java_class]).call(value)
+        return self
       end
       raise ArgumentError, "Invalid arguments when calling port(#{value})"
     end
     #  Configure the request to use a new host <code>value</code>.
     # @param [String] value 
-    # @return [::VertxWebClient::HttpRequest] a new <code>HttpRequest</code> instance with the specified host <code>value</code>
+    # @return [self]
     def host(value=nil)
       if value.class == String && !block_given?
-        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:host, [Java::java.lang.String.java_class]).call(value),::VertxWebClient::HttpRequest)
+        @j_del.java_method(:host, [Java::java.lang.String.java_class]).call(value)
+        return self
       end
       raise ArgumentError, "Invalid arguments when calling host(#{value})"
     end
     #  Configure the request to use a new request URI <code>value</code>.
     # @param [String] value 
-    # @return [::VertxWebClient::HttpRequest] a new <code>HttpRequest</code> instance with the specified request URI <code>value</code>
+    # @return [self]
     def request_uri(value=nil)
       if value.class == String && !block_given?
-        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:requestURI, [Java::java.lang.String.java_class]).call(value),::VertxWebClient::HttpRequest)
+        @j_del.java_method(:requestURI, [Java::java.lang.String.java_class]).call(value)
+        return self
       end
       raise ArgumentError, "Invalid arguments when calling request_uri(#{value})"
     end
     #  Configure the request to add a new HTTP header.
     # @param [String] name the header name
     # @param [String] value the header value
-    # @return [::VertxWebClient::HttpRequest] a new <code>HttpRequest</code> instance with the specified header
+    # @return [self]
     def put_header(name=nil,value=nil)
       if name.class == String && value.class == String && !block_given?
-        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:putHeader, [Java::java.lang.String.java_class,Java::java.lang.String.java_class]).call(name,value),::VertxWebClient::HttpRequest)
+        @j_del.java_method(:putHeader, [Java::java.lang.String.java_class,Java::java.lang.String.java_class]).call(name,value)
+        return self
       end
       raise ArgumentError, "Invalid arguments when calling put_header(#{name},#{value})"
     end
@@ -110,10 +115,11 @@ module VertxWebClient
     #  <p>
     #  Setting zero or a negative <code>value</code> disables the timeout.
     # @param [Fixnum] value The quantity of time in milliseconds.
-    # @return [::VertxWebClient::HttpRequest] a new <code>HttpRequest</code> instance with the specified timeout
+    # @return [self]
     def timeout(value=nil)
       if value.class == Fixnum && !block_given?
-        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:timeout, [Java::long.java_class]).call(value),::VertxWebClient::HttpRequest)
+        @j_del.java_method(:timeout, [Java::long.java_class]).call(value)
+        return self
       end
       raise ArgumentError, "Invalid arguments when calling timeout(#{value})"
     end

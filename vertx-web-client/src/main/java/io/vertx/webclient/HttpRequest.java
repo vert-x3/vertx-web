@@ -15,6 +15,7 @@
  */
 package io.vertx.webclient;
 
+import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
@@ -59,29 +60,33 @@ public interface HttpRequest {
   /**
    * Configure the request to use a new method {@code value}.
    *
-   * @return a new {@code HttpRequest} instance with the specified method {@code value}
+   * @return a reference to this, so the API can be used fluently
    */
+  @Fluent
   HttpRequest method(HttpMethod value);
 
   /**
    * Configure the request to use a new port {@code value}.
    *
-   * @return a new {@code HttpRequest} instance with the specified port {@code value}
+   * @return a reference to this, so the API can be used fluently
    */
+  @Fluent
   HttpRequest port(int value);
 
   /**
    * Configure the request to use a new host {@code value}.
    *
-   * @return a new {@code HttpRequest} instance with the specified host {@code value}
+   * @return a reference to this, so the API can be used fluently
    */
+  @Fluent
   HttpRequest host(String value);
 
   /**
    * Configure the request to use a new request URI {@code value}.
    *
-   * @return a new {@code HttpRequest} instance with the specified request URI {@code value}
+   * @return a reference to this, so the API can be used fluently
    */
+  @Fluent
   HttpRequest requestURI(String value);
 
   /**
@@ -89,8 +94,9 @@ public interface HttpRequest {
    *
    * @param name the header name
    * @param value the header value
-   * @return a new {@code HttpRequest} instance with the specified header
+   * @return a reference to this, so the API can be used fluently
    */
+  @Fluent
   HttpRequest putHeader(String name, String value);
 
   /**
@@ -100,9 +106,17 @@ public interface HttpRequest {
    * Setting zero or a negative {@code value} disables the timeout.
    *
    * @param value The quantity of time in milliseconds.
-   * @return a new {@code HttpRequest} instance with the specified timeout
+   * @return a reference to this, so the API can be used fluently
    */
+  @Fluent
   HttpRequest timeout(long value);
+
+  /**
+   * Copy this request
+   *
+   * @return a copy of this request
+   */
+  HttpRequest copy();
 
   /**
    * Like {@link #send(Handler)} but with an HTTP request {@code body} stream.

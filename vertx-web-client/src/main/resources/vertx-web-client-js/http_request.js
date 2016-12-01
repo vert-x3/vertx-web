@@ -40,12 +40,13 @@ var HttpRequest = function(j_val) {
 
    @public
    @param value {Object} 
-   @return {HttpRequest} a new <code>HttpRequest</code> instance with the specified method <code>value</code>
+   @return {HttpRequest} a reference to this, so the API can be used fluently
    */
   this.method = function(value) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return utils.convReturnVertxGen(HttpRequest, j_httpRequest["method(io.vertx.core.http.HttpMethod)"](io.vertx.core.http.HttpMethod.valueOf(value)));
+      j_httpRequest["method(io.vertx.core.http.HttpMethod)"](io.vertx.core.http.HttpMethod.valueOf(value));
+      return that;
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -54,12 +55,13 @@ var HttpRequest = function(j_val) {
 
    @public
    @param value {number} 
-   @return {HttpRequest} a new <code>HttpRequest</code> instance with the specified port <code>value</code>
+   @return {HttpRequest} a reference to this, so the API can be used fluently
    */
   this.port = function(value) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] ==='number') {
-      return utils.convReturnVertxGen(HttpRequest, j_httpRequest["port(int)"](value));
+      j_httpRequest["port(int)"](value);
+      return that;
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -68,12 +70,13 @@ var HttpRequest = function(j_val) {
 
    @public
    @param value {string} 
-   @return {HttpRequest} a new <code>HttpRequest</code> instance with the specified host <code>value</code>
+   @return {HttpRequest} a reference to this, so the API can be used fluently
    */
   this.host = function(value) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return utils.convReturnVertxGen(HttpRequest, j_httpRequest["host(java.lang.String)"](value));
+      j_httpRequest["host(java.lang.String)"](value);
+      return that;
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -82,12 +85,13 @@ var HttpRequest = function(j_val) {
 
    @public
    @param value {string} 
-   @return {HttpRequest} a new <code>HttpRequest</code> instance with the specified request URI <code>value</code>
+   @return {HttpRequest} a reference to this, so the API can be used fluently
    */
   this.requestURI = function(value) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return utils.convReturnVertxGen(HttpRequest, j_httpRequest["requestURI(java.lang.String)"](value));
+      j_httpRequest["requestURI(java.lang.String)"](value);
+      return that;
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -97,12 +101,13 @@ var HttpRequest = function(j_val) {
    @public
    @param name {string} the header name 
    @param value {string} the header value 
-   @return {HttpRequest} a new <code>HttpRequest</code> instance with the specified header
+   @return {HttpRequest} a reference to this, so the API can be used fluently
    */
   this.putHeader = function(name, value) {
     var __args = arguments;
     if (__args.length === 2 && typeof __args[0] === 'string' && typeof __args[1] === 'string') {
-      return utils.convReturnVertxGen(HttpRequest, j_httpRequest["putHeader(java.lang.String,java.lang.String)"](name, value));
+      j_httpRequest["putHeader(java.lang.String,java.lang.String)"](name, value);
+      return that;
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -114,12 +119,13 @@ var HttpRequest = function(j_val) {
 
    @public
    @param value {number} The quantity of time in milliseconds. 
-   @return {HttpRequest} a new <code>HttpRequest</code> instance with the specified timeout
+   @return {HttpRequest} a reference to this, so the API can be used fluently
    */
   this.timeout = function(value) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] ==='number') {
-      return utils.convReturnVertxGen(HttpRequest, j_httpRequest["timeout(long)"](value));
+      j_httpRequest["timeout(long)"](value);
+      return that;
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
