@@ -2,6 +2,7 @@ package io.vertx.webclient;
 
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
+import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpClientResponse;
@@ -29,12 +30,22 @@ import io.vertx.webclient.impl.WebClientImpl;
 public interface WebClient {
 
   /**
-   * Create a web client using the provided {@code httpClient}.
+   * Create a web client using the provided {@code vertx} instance.
    *
-   * @param httpClient the {@link HttpClient} to wrap
+   * @param vertx the vertx instance
    * @return the created web client
    */
-  static WebClient create(HttpClient httpClient) {
+  static WebClient create(Vertx vertx) {
+    return new WebClientImpl(vertx.createHttpClient());
+  }
+
+  /**
+   * Wrap an {@code httpClient} with a web client.
+   *
+   * @param httpClient the {@link HttpClient} to wrap
+   * @return the web client
+   */
+  static WebClient wrap(HttpClient httpClient) {
     return new WebClientImpl(httpClient);
   }
 

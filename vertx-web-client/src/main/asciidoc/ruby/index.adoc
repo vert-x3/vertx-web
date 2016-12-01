@@ -1,1 +1,125 @@
-Todo
+= Vert.x Web Client
+
+Vert.x Web Client is an asynchronous HTTP / HTTP/2 client.
+
+The Web Client makes easy to do HTTP request/response interactions with a web server, and provides advanced
+features like:
+
+* Json body encoding / decoding
+* request/response pumping
+* error handling
+
+The web client does not deprecate the Vert.x Core `link:../../yardoc/Vertx/HttpClient.html[HttpClient]`, it is actually based on
+it and therefore inherits its configuration and great features like pooling. The `link:../../yardoc/Vertx/HttpClient.html[HttpClient]`
+should be used when fine grained control over the HTTP requests/response is necessary.
+
+== Using the web client
+
+To use Vert.x Web Client, add the following dependency to the _dependencies_ section of your build descriptor:
+
+* Maven (in your `pom.xml`):
+
+[source,xml,subs="+attributes"]
+----
+<dependency>
+  <groupId>io.vertx</groupId>
+  <artifactId>vertx-web-client</artifactId>
+  <version>3.4.0-SNAPSHOT</version>
+</dependency>
+----
+
+* Gradle (in your `build.gradle` file):
+
+[source,groovy,subs="+attributes"]
+----
+dependencies {
+  compile 'io.vertx:vertx-web-client:3.4.0-SNAPSHOT'
+}
+----
+
+== Re-cap on Vert.x core HTTP client
+
+Vert.x Web Client uses the API from Vert.x core, so it's well worth getting familiar with the basic concepts of using
+`link:../../yardoc/Vertx/HttpClient.html[HttpClient]` using Vert.x core, if you're not already.
+
+== Creating a web client
+
+You create an `link:../../yardoc/VertxWebClient/WebClient.html[WebClient]` instance with default options as follows:
+
+[source,java]
+----
+require 'vertx-web-client/web_client'
+client = VertxWebClient::WebClient.create(vertx)
+
+----
+
+If you want to configure options for the client, you create it as follows:
+
+[source,java]
+----
+require 'vertx-web-client/web_client'
+options = {
+  'keepAlive' => false
+}
+client = VertxWebClient::WebClient.wrap(vertx.create_http_client(options))
+
+----
+
+== Making requests
+
+=== Simple requests with no request body
+
+Often, you’ll want to make HTTP requests with no request body. This is usually the case with HTTP GET, OPTIONS
+and HEAD requests:
+
+[source,java]
+----
+require 'vertx-web-client/web_client'
+
+client = VertxWebClient::WebClient.create(vertx)
+
+# Send a GET request
+client.get(8080, "myserver.mycompany.com", "/some-uri").send() { |ar_err,ar|
+  if (ar_err == nil)
+    # Obtain response
+    response = ar
+
+    puts "Received response with status code#{response.status_code()}"
+  else
+    puts "Something went wrong #{ar_err.get_message()}"
+  end
+}
+
+# Send a HEAD request
+client.head(8080, "myserver.mycompany.com", "/some-uri").send() { |ar_err,ar|
+  if (ar_err == nil)
+    # Obtain response
+    response = ar
+
+    puts "Received response with status code#{response.status_code()}"
+  else
+    puts "Something went wrong #{ar_err.get_message()}"
+  end
+}
+
+----
+
+The `link:../../yardoc/VertxWebClient/HttpRequest.html#send-instance_method[send]` method can be called multiple times
+safely, making it very easy to configure http requests and reuse them:
+
+[source,java]
+----
+get = client.get(8080, "myserver.mycompany.com", "/some-uri")
+get.send() { |ar_err,ar|
+}
+
+# Same request again
+get.send() { |ar_err,ar|
+}
+
+----
+
+Further more, the `link:../../yardoc/VertxWebClient/HttpRequest.html[HttpRequest]` instance is copied before any mutation, so it can
+be mutated safely for further customization:
+
+Todo : make example with params ?

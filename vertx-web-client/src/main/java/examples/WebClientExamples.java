@@ -1,9 +1,11 @@
 package examples;
 
+import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.file.AsyncFile;
 import io.vertx.core.file.FileSystem;
 import io.vertx.core.file.OpenOptions;
+import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.json.JsonObject;
 import io.vertx.webclient.BodyCodec;
 import io.vertx.webclient.HttpRequest;
@@ -15,21 +17,53 @@ import io.vertx.webclient.WebClient;
  */
 public class WebClientExamples {
 
-  public void simpleGet(WebClient client) {
+  public void create(Vertx vertx) {
+    WebClient client = WebClient.create(vertx) ;
+  }
+
+  public void createFromOptions(Vertx vertx) {
+    HttpClientOptions options = new HttpClientOptions().setKeepAlive(false);
+    WebClient client = WebClient.wrap(vertx.createHttpClient(options));
+  }
+
+  public void simpleGetAndHead(Vertx vertx) {
+
+    WebClient client = WebClient.create(vertx) ;
+
+    // Send a GET request
     client
-      .get(8080, "localhost", "/something")
+      .get(8080, "myserver.mycompany.com", "/some-uri")
       .send(ar -> {
         if (ar.succeeded()) {
           // Obtain response
-          HttpResponse<Buffer> resp = ar.result();
+          HttpResponse<Buffer> response = ar.result();
+
+          System.out.println("Received response with status code" + response.statusCode());
+        } else {
+          System.out.println("Something went wrong " + ar.cause().getMessage());
+        }
+      });
+
+    // Send a HEAD request
+    client
+      .head(8080, "myserver.mycompany.com", "/some-uri")
+      .send(ar -> {
+        if (ar.succeeded()) {
+          // Obtain response
+          HttpResponse<Buffer> response = ar.result();
+
+          System.out.println("Received response with status code" + response.statusCode());
+        } else {
+          System.out.println("Something went wrong " + ar.cause().getMessage());
         }
       });
   }
 
-  public void multipleGet(WebClient client) {
-    HttpRequest get = client.get(8080, "localhost", "/something");
+  public void simpleGets(WebClient client) {
+    HttpRequest get = client.get(8080, "myserver.mycompany.com", "/some-uri");
     get.send(ar -> {
     });
+
     // Same request again
     get.send(ar -> {
     });

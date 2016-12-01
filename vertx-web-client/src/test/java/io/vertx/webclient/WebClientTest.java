@@ -39,7 +39,7 @@ public class WebClientTest extends HttpTestBase {
   public void setUp() throws Exception {
     super.setUp();
     super.client = vertx.createHttpClient(new HttpClientOptions());
-    client = WebClient.create(super.client);
+    client = WebClient.wrap(super.client);
     server = vertx.createHttpServer(new HttpServerOptions().setPort(DEFAULT_HTTP_PORT).setHost(DEFAULT_HTTP_HOST));
   }
 

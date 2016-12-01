@@ -16,6 +16,7 @@
 
 /** @module vertx-web-client-js/web_client */
 var utils = require('vertx-js/util/utils');
+var Vertx = require('vertx-js/vertx');
 var HttpRequest = require('vertx-web-client-js/http_request');
 var HttpClient = require('vertx-js/http_client');
 
@@ -304,16 +305,30 @@ WebClient._create = function(jdel) {
   return obj;
 }
 /**
- Create a web client using the provided <code>httpClient</code>.
+ Create a web client using the provided <code>vertx</code> instance.
+
+ @memberof module:vertx-web-client-js/web_client
+ @param vertx {Vertx} the vertx instance 
+ @return {WebClient} the created web client
+ */
+WebClient.create = function(vertx) {
+  var __args = arguments;
+  if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
+    return utils.convReturnVertxGen(WebClient, JWebClient["create(io.vertx.core.Vertx)"](vertx._jdel));
+  } else throw new TypeError('function invoked with invalid arguments');
+};
+
+/**
+ Wrap an <code>httpClient</code> with a web client.
 
  @memberof module:vertx-web-client-js/web_client
  @param httpClient {HttpClient} the  to wrap 
- @return {WebClient} the created web client
+ @return {WebClient} the web client
  */
-WebClient.create = function(httpClient) {
+WebClient.wrap = function(httpClient) {
   var __args = arguments;
   if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
-    return utils.convReturnVertxGen(WebClient, JWebClient["create(io.vertx.core.http.HttpClient)"](httpClient._jdel));
+    return utils.convReturnVertxGen(WebClient, JWebClient["wrap(io.vertx.core.http.HttpClient)"](httpClient._jdel));
   } else throw new TypeError('function invoked with invalid arguments');
 };
 

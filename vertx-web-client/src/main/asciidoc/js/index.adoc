@@ -1,1 +1,125 @@
-Todo
+= Vert.x Web Client
+
+Vert.x Web Client is an asynchronous HTTP / HTTP/2 client.
+
+The Web Client makes easy to do HTTP request/response interactions with a web server, and provides advanced
+features like:
+
+* Json body encoding / decoding
+* request/response pumping
+* error handling
+
+The web client does not deprecate the Vert.x Core `link:../../jsdoc/module-vertx-js_http_client-HttpClient.html[HttpClient]`, it is actually based on
+it and therefore inherits its configuration and great features like pooling. The `link:../../jsdoc/module-vertx-js_http_client-HttpClient.html[HttpClient]`
+should be used when fine grained control over the HTTP requests/response is necessary.
+
+== Using the web client
+
+To use Vert.x Web Client, add the following dependency to the _dependencies_ section of your build descriptor:
+
+* Maven (in your `pom.xml`):
+
+[source,xml,subs="+attributes"]
+----
+<dependency>
+  <groupId>io.vertx</groupId>
+  <artifactId>vertx-web-client</artifactId>
+  <version>3.4.0-SNAPSHOT</version>
+</dependency>
+----
+
+* Gradle (in your `build.gradle` file):
+
+[source,groovy,subs="+attributes"]
+----
+dependencies {
+  compile 'io.vertx:vertx-web-client:3.4.0-SNAPSHOT'
+}
+----
+
+== Re-cap on Vert.x core HTTP client
+
+Vert.x Web Client uses the API from Vert.x core, so it's well worth getting familiar with the basic concepts of using
+`link:../../jsdoc/module-vertx-js_http_client-HttpClient.html[HttpClient]` using Vert.x core, if you're not already.
+
+== Creating a web client
+
+You create an `link:../../jsdoc/module-vertx-web-client-js_web_client-WebClient.html[WebClient]` instance with default options as follows:
+
+[source,java]
+----
+var WebClient = require("vertx-web-client-js/web_client");
+var client = WebClient.create(vertx);
+
+----
+
+If you want to configure options for the client, you create it as follows:
+
+[source,java]
+----
+var WebClient = require("vertx-web-client-js/web_client");
+var options = {
+  "keepAlive" : false
+};
+var client = WebClient.wrap(vertx.createHttpClient(options));
+
+----
+
+== Making requests
+
+=== Simple requests with no request body
+
+Often, you’ll want to make HTTP requests with no request body. This is usually the case with HTTP GET, OPTIONS
+and HEAD requests:
+
+[source,java]
+----
+var WebClient = require("vertx-web-client-js/web_client");
+
+var client = WebClient.create(vertx);
+
+// Send a GET request
+client.get(8080, "myserver.mycompany.com", "/some-uri").send(function (ar, ar_err) {
+  if (ar_err == null) {
+    // Obtain response
+    var response = ar;
+
+    console.log("Received response with status code" + response.statusCode());
+  } else {
+    console.log("Something went wrong " + ar_err.getMessage());
+  }
+});
+
+// Send a HEAD request
+client.head(8080, "myserver.mycompany.com", "/some-uri").send(function (ar, ar_err) {
+  if (ar_err == null) {
+    // Obtain response
+    var response = ar;
+
+    console.log("Received response with status code" + response.statusCode());
+  } else {
+    console.log("Something went wrong " + ar_err.getMessage());
+  }
+});
+
+----
+
+The `link:../../jsdoc/module-vertx-web-client-js_http_request-HttpRequest.html#send[send]` method can be called multiple times
+safely, making it very easy to configure http requests and reuse them:
+
+[source,java]
+----
+var get = client.get(8080, "myserver.mycompany.com", "/some-uri");
+get.send(function (ar, ar_err) {
+});
+
+// Same request again
+get.send(function (ar, ar_err) {
+});
+
+----
+
+Further more, the `link:../../jsdoc/module-vertx-web-client-js_http_request-HttpRequest.html[HttpRequest]` instance is copied before any mutation, so it can
+be mutated safely for further customization:
+
+Todo : make example with params ?

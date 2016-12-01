@@ -16,7 +16,6 @@
 
 /** @module vertx-web-client-js/body_codec */
 var utils = require('vertx-js/util/utils');
-var AsyncFile = require('vertx-js/async_file');
 var Buffer = require('vertx-js/buffer');
 var WriteStream = require('vertx-js/write_stream');
 
@@ -61,26 +60,11 @@ BodyCodec._create = function(jdel) {
   return obj;
 }
 /**
+ A codec for strings using a specific <code>encoding</code>.
 
  @memberof module:vertx-web-client-js/body_codec
- @param f {todo} 
- @return {BodyCodec}
- */
-BodyCodec.codec = function(f) {
-  var __args = arguments;
-  if (__args.length === 1 && typeof __args[0] === 'function') {
-    return utils.convReturnVertxGen(BodyCodec, JBodyCodec["codec(java.util.function.Function)"](function(jVal) {
-    var jRet = f(utils.convReturnVertxGen(Buffer, jVal));
-    return utils.convParamTypeUnknown(jRet);
-  }), undefined);
-  } else throw new TypeError('function invoked with invalid arguments');
-};
-
-/**
-
- @memberof module:vertx-web-client-js/body_codec
- @param enc {string} 
- @return {BodyCodec}
+ @param encoding {string} the encoding 
+ @return {BodyCodec} the codec
  */
 BodyCodec.string = function() {
   var __args = arguments;
@@ -95,7 +79,7 @@ BodyCodec.string = function() {
 
  @memberof module:vertx-web-client-js/body_codec
 
- @return {BodyCodec}
+ @return {BodyCodec} the  codec
  */
 BodyCodec.buffer = function() {
   var __args = arguments;
@@ -108,7 +92,7 @@ BodyCodec.buffer = function() {
 
  @memberof module:vertx-web-client-js/body_codec
 
- @return {BodyCodec}
+ @return {BodyCodec} the  codec
  */
 BodyCodec.jsonObject = function() {
   var __args = arguments;
@@ -118,15 +102,19 @@ BodyCodec.jsonObject = function() {
 };
 
 /**
+ Create a codec that buffers the entire body and then apply the <code>decode</code> function and returns the result.
 
  @memberof module:vertx-web-client-js/body_codec
-
- @return {BodyCodec}
+ @param decode {todo} the decode function 
+ @return {BodyCodec} the created codec
  */
-BodyCodec.tempFile = function() {
+BodyCodec.create = function(decode) {
   var __args = arguments;
-  if (__args.length === 0) {
-    return utils.convReturnVertxGen(BodyCodec, JBodyCodec["tempFile()"](), AsyncFile._jtype);
+  if (__args.length === 1 && typeof __args[0] === 'function') {
+    return utils.convReturnVertxGen(BodyCodec, JBodyCodec["create(java.util.function.Function)"](function(jVal) {
+    var jRet = decode(utils.convReturnVertxGen(Buffer, jVal));
+    return utils.convParamTypeUnknown(jRet);
+  }), undefined);
   } else throw new TypeError('function invoked with invalid arguments');
 };
 

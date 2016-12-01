@@ -1,1 +1,125 @@
-Todo
+= Vert.x Web Client
+
+Vert.x Web Client is an asynchronous HTTP / HTTP/2 client.
+
+The Web Client makes easy to do HTTP request/response interactions with a web server, and provides advanced
+features like:
+
+* Json body encoding / decoding
+* request/response pumping
+* error handling
+
+The web client does not deprecate the Vert.x Core `link:../../apidocs/io/vertx/core/http/HttpClient.html[HttpClient]`, it is actually based on
+it and therefore inherits its configuration and great features like pooling. The `link:../../apidocs/io/vertx/core/http/HttpClient.html[HttpClient]`
+should be used when fine grained control over the HTTP requests/response is necessary.
+
+== Using the web client
+
+To use Vert.x Web Client, add the following dependency to the _dependencies_ section of your build descriptor:
+
+* Maven (in your `pom.xml`):
+
+[source,xml,subs="+attributes"]
+----
+<dependency>
+  <groupId>io.vertx</groupId>
+  <artifactId>vertx-web-client</artifactId>
+  <version>3.4.0-SNAPSHOT</version>
+</dependency>
+----
+
+* Gradle (in your `build.gradle` file):
+
+[source,groovy,subs="+attributes"]
+----
+dependencies {
+  compile 'io.vertx:vertx-web-client:3.4.0-SNAPSHOT'
+}
+----
+
+== Re-cap on Vert.x core HTTP client
+
+Vert.x Web Client uses the API from Vert.x core, so it's well worth getting familiar with the basic concepts of using
+`link:../../apidocs/io/vertx/core/http/HttpClient.html[HttpClient]` using Vert.x core, if you're not already.
+
+== Creating a web client
+
+You create an `link:../../apidocs/io/vertx/webclient/WebClient.html[WebClient]` instance with default options as follows:
+
+[source,java]
+----
+import io.vertx.webclient.WebClient
+def client = WebClient.create(vertx)
+
+----
+
+If you want to configure options for the client, you create it as follows:
+
+[source,java]
+----
+import io.vertx.webclient.WebClient
+def options = [
+  keepAlive:false
+]
+def client = WebClient.wrap(vertx.createHttpClient(options))
+
+----
+
+== Making requests
+
+=== Simple requests with no request body
+
+Often, you’ll want to make HTTP requests with no request body. This is usually the case with HTTP GET, OPTIONS
+and HEAD requests:
+
+[source,java]
+----
+import io.vertx.webclient.WebClient
+
+def client = WebClient.create(vertx)
+
+// Send a GET request
+client.get(8080, "myserver.mycompany.com", "/some-uri").send({ ar ->
+  if (ar.succeeded()) {
+    // Obtain response
+    def response = ar.result()
+
+    println("Received response with status code${response.statusCode()}")
+  } else {
+    println("Something went wrong ${ar.cause().getMessage()}")
+  }
+})
+
+// Send a HEAD request
+client.head(8080, "myserver.mycompany.com", "/some-uri").send({ ar ->
+  if (ar.succeeded()) {
+    // Obtain response
+    def response = ar.result()
+
+    println("Received response with status code${response.statusCode()}")
+  } else {
+    println("Something went wrong ${ar.cause().getMessage()}")
+  }
+})
+
+----
+
+The `link:../../apidocs/io/vertx/webclient/HttpRequest.html#send-io.vertx.core.Handler-[send]` method can be called multiple times
+safely, making it very easy to configure http requests and reuse them:
+
+[source,java]
+----
+def get = client.get(8080, "myserver.mycompany.com", "/some-uri")
+get.send({ ar ->
+})
+
+// Same request again
+get.send({ ar ->
+})
+
+----
+
+Further more, the `link:../../apidocs/io/vertx/webclient/HttpRequest.html[HttpRequest]` instance is copied before any mutation, so it can
+be mutated safely for further customization:
+
+Todo : make example with params ?
