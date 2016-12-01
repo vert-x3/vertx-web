@@ -22,11 +22,9 @@ import io.vertx.core.shareddata.Shareable;
 import io.vertx.core.shareddata.impl.ClusterSerializable;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.impl.Utils;
-import sun.security.jca.Providers;
 
 import java.io.*;
 import java.nio.charset.Charset;
-import java.security.Provider;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -52,7 +50,7 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
   private static final byte TYPE_SERIALIZABLE = 12;
   private static final byte TYPE_CLUSTER_SERIALIZABLE = 13;
 
-  private final PRNG rng;
+  private final PRNG prng;
 
   private String id;
   private long timeout;
@@ -65,12 +63,12 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
   private String oldId;
 
   public SessionImpl(PRNG random) {
-    this.rng = random;
+    this.prng = random;
   }
 
   public SessionImpl(PRNG random, long timeout, int length) {
-    this.rng = random;
-    this.id = generateId(rng, length);
+    this.prng = random;
+    this.id = generateId(prng, length);
     this.timeout = timeout;
     this.lastAccessed = System.currentTimeMillis();
   }
@@ -88,7 +86,7 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
       oldId = id;
     }
     // ids are stored in hex, so the original size is half of the hex encodec length
-    id = generateId(rng, oldId.length() / 2);
+    id = generateId(prng, oldId.length() / 2);
     renewed = true;
     return this;
   }
@@ -166,8 +164,8 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
     return version;
   }
 
-  public int incrementVersion() {
-    return ++version;
+  public void incrementVersion() {
+    ++version;
   }
 
   @Override
@@ -386,16 +384,6 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
     }
 
     return new String(hex);
-  }
-
-  public static void main(String[] args) {
-    for (Provider p : Providers.getProviderList().providers()) {
-      for (Provider.Service s : p.getServices()) {
-        if (s.getType().equals("SecureRandom")) {
-          System.out.println(s);
-        }
-      }
-    }
   }
 }
 

@@ -170,6 +170,8 @@ public class ClusteredSessionStoreImpl implements ClusteredSessionStore {
 
   @Override
   public void close() {
+    // stop seeding the PRNG
+    random.close();
   }
 
   private void getMap(Handler<AsyncResult<AsyncMap<String, Session>>> resultHandler) {

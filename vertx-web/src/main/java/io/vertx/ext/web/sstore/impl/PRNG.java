@@ -38,9 +38,9 @@ public class PRNG {
   public PRNG(Vertx vertx) {
     this.vertx = vertx;
 
-    final String algorithm = System.getProperty("io.vertx.ext.web.session.algorith");
-    final int seedInterval = getProperty("io.vertx.ext.web.session.seed.interval", DEFAULT_SEED_INTERVAL_MILLIS);
-    final int seedBits = getProperty("io.vertx.ext.web.session.seed.bits", DEFAULT_SEED_BITS);
+    final String algorithm = System.getProperty("io.vertx.ext.web.session.algorithm");
+    final int seedInterval = Integer.getInteger("io.vertx.ext.web.session.seed.interval", DEFAULT_SEED_INTERVAL_MILLIS);
+    final int seedBits = Integer.getInteger("io.vertx.ext.web.session.seed.bits", DEFAULT_SEED_BITS);
 
     if (algorithm != null) {
       // the user has made a conscious decision to not use the JVM defaults
@@ -52,7 +52,7 @@ public class PRNG {
       }
     } else {
       // initialize a secure random (note that on unices JDK8 will default to a mixed mode nativeprng
-      // (non-blocking fot getBytes() blocking for generateSeed()). A similar behavior is expected with SHA1PRNG which
+      // (non-blocking for getBytes() blocking for generateSeed()). A similar behavior is expected with SHA1PRNG which
       // will be the fallback on Windows
       random = new SecureRandom();
     }
@@ -68,6 +68,7 @@ public class PRNG {
         seedInterval,
         id -> vertx.<byte[]>executeBlocking(
           future -> future.complete(random.generateSeed(seedBits / 8)),
+          false,
           asyncResult -> random.setSeed(asyncResult.result())));
     } else {
       seedID = -1;
@@ -83,18 +84,5 @@ public class PRNG {
 
   void nextBytes(byte[] bytes) {
     random.nextBytes(bytes);
-  }
-
-  private static int getProperty(String name, int defaultValue) {
-    try {
-      String value = System.getProperty(name);
-      if (value == null) {
-        return defaultValue;
-      } else {
-        return Integer.parseInt(value);
-      }
-    } catch (NumberFormatException e) {
-      return defaultValue;
-    }
   }
 }

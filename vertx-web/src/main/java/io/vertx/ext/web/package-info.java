@@ -749,14 +749,14 @@
  * To create a session handler you need to have a session store instance. The session store is the object that
  * holds the actual sessions for your application.
  *
- * The session store is responsible for holding a secure random number generator in order to guarantee secure session
+ * The session store is responsible for holding a secure pseudo random number generator in order to guarantee secure session
  * ids. This PRNG is independent of the store which means that given a session id from store A one cannot derive the
  * session id of store B since they have different seeds and states.
  *
  * By default this PRNG uses a mixed mode, blocking for seeding, non blocking for generating. The PRNG will also reseed
- * every 5 minutes with 64bits of new entropy. However this can all be configured using the environment properties:
+ * every 5 minutes with 64bits of new entropy. However this can all be configured using the system properties:
  *
- * * io.vertx.ext.web.session.algorith e.g.: SHA1PRNG
+ * * io.vertx.ext.web.session.algorithm e.g.: SHA1PRNG
  * * io.vertx.ext.web.session.seed.interval e.g.: 1000 (every second)
  * * io.vertx.ext.web.session.seed.bits e.g.: 128
  *
