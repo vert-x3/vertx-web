@@ -53,7 +53,6 @@ public class RxWebClientExamples {
     single.subscribe(resp -> {
       System.out.println(resp.statusCode());
       System.out.println(resp.body());
-      ;
     });
   }
 }

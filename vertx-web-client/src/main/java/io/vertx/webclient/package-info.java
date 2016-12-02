@@ -117,14 +117,14 @@
  *
  * [source,java]
  * ----
- * To insert
+ * {@link examples.RxWebClientExamples#simpleGet(io.vertx.rxjava.webclient.WebClient)}
  * ----
  *
  * The obtained {@code Single} can be composed and chained naturally with the RxJava API:
  *
  * [source,java]
  * ----
- * To insert
+ * {@link examples.RxWebClientExamples#flatMap(io.vertx.rxjava.webclient.WebClient)}
  * ----
  *
  *

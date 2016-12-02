@@ -157,10 +157,12 @@ the `rxSend()` method returns a `Single<HttpResponse<Buffer>>`:
 
 [source,java]
 ----
+Code not translatable
 ----
 
 The obtained `Single` can be composed and chained naturally with the RxJava API:
 
 [source,java]
 ----
+Code not translatable
 ----
