@@ -27,6 +27,7 @@ import io.vertx.ext.auth.jwt.JWTAuth;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.auth.AuthProvider;
 import io.vertx.ext.auth.User;
+import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.JWTAuthHandler;
 
 import java.util.List;
@@ -122,6 +123,12 @@ public class JWTAuthHandlerImpl extends AuthHandlerImpl implements JWTAuthHandle
         if (res.succeeded()) {
           final User user2 = res.result();
           context.setUser(user2);
+          Session session = context.session();
+          if (session != null) {
+            // the user has upgraded from unauthenticated to authenticated
+            // session should be upgraded as recommended by owasp
+            session.regenerateId();
+          }
           authorise(user2, context);
         } else {
           log.warn("JWT decode failure", res.cause());

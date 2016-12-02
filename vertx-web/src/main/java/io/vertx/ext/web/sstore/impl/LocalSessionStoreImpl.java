@@ -32,13 +32,18 @@ import java.util.Set;
  */
 public class LocalSessionStoreImpl implements LocalSessionStore, Handler<Long> {
 
-  protected final Vertx vertx;
-  protected final LocalMap<String, Session> localMap;
+  private final LocalMap<String, Session> localMap;
   private final long reaperInterval;
+  private final PRNG random;
+
   private long timerID = -1;
   private boolean closed;
 
+  protected final Vertx vertx;
+
   public LocalSessionStoreImpl(Vertx vertx, String sessionMapName, long reaperInterval) {
+    // initialize a secure random
+    this.random = new PRNG(vertx);
     this.vertx = vertx;
     this.reaperInterval = reaperInterval;
     localMap = vertx.sharedData().getLocalMap(sessionMapName);
@@ -47,7 +52,12 @@ public class LocalSessionStoreImpl implements LocalSessionStore, Handler<Long> {
 
   @Override
   public Session createSession(long timeout) {
-    return new SessionImpl(timeout);
+    return new SessionImpl(random, timeout, DEFAULT_SESSIONID_LENGTH);
+  }
+
+  @Override
+  public Session createSession(long timeout, int length) {
+    return new SessionImpl(random, timeout, length);
   }
 
   @Override
@@ -62,11 +72,24 @@ public class LocalSessionStoreImpl implements LocalSessionStore, Handler<Long> {
 
   @Override
   public void delete(String id, Handler<AsyncResult<Boolean>> resultHandler) {
-    resultHandler.handle(Future.succeededFuture(localMap.remove(id) != null));
+    localMap.remove(id);
+    resultHandler.handle(Future.succeededFuture(true));
   }
 
   @Override
   public void put(Session session, Handler<AsyncResult<Boolean>> resultHandler) {
+    final SessionImpl oldSession = (SessionImpl) localMap.get(session.id());
+    final SessionImpl newSession = (SessionImpl) session;
+
+    if (oldSession != null) {
+      // there was already some stored data in this case we need to validate versions
+      if (oldSession.version() != newSession.version()) {
+        resultHandler.handle(Future.failedFuture("Version mismatch"));
+        return;
+      }
+    }
+
+    newSession.incrementVersion();
     localMap.put(session.id(), session);
     resultHandler.handle(Future.succeededFuture(true));
   }
@@ -88,6 +111,8 @@ public class LocalSessionStoreImpl implements LocalSessionStore, Handler<Long> {
     if (timerID != -1) {
       vertx.cancelTimer(timerID);
     }
+    // stop seeding the PRNG
+    random.close();
     closed = true;
   }
 

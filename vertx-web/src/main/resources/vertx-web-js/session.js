@@ -40,6 +40,19 @@ var Session = function(j_val) {
 
    @public
 
+   @return {Session} The new unique ID of the session.
+   */
+  this.regenerateId = function() {
+    var __args = arguments;
+    if (__args.length === 0) {
+      return utils.convReturnVertxGen(j_session["regenerateId()"](), Session);
+    } else throw new TypeError('function invoked with invalid arguments');
+  };
+
+  /**
+
+   @public
+
    @return {string} The unique ID of the session. This is generated using a random secure UUID.
    */
   this.id = function() {
@@ -129,6 +142,32 @@ var Session = function(j_val) {
     var __args = arguments;
     if (__args.length === 0) {
       return j_session["isDestroyed()"]();
+    } else throw new TypeError('function invoked with invalid arguments');
+  };
+
+  /**
+
+   @public
+
+   @return {boolean} has the session been renewed?
+   */
+  this.isRegenerated = function() {
+    var __args = arguments;
+    if (__args.length === 0) {
+      return j_session["isRegenerated()"]();
+    } else throw new TypeError('function invoked with invalid arguments');
+  };
+
+  /**
+
+   @public
+
+   @return {string} old ID if renewed
+   */
+  this.oldId = function() {
+    var __args = arguments;
+    if (__args.length === 0) {
+      return j_session["oldId()"]();
     } else throw new TypeError('function invoked with invalid arguments');
   };
 

@@ -39,6 +39,11 @@ import java.util.Map;
 public interface Session {
 
   /**
+   * @return The new unique ID of the session.
+   */
+  Session regenerateId();
+
+  /**
    * @return The unique ID of the session. This is generated using a random secure UUID.
    */
   String id();
@@ -89,6 +94,16 @@ public interface Session {
    * @return has the session been destroyed?
    */
   boolean isDestroyed();
+
+  /**
+   * @return has the session been renewed?
+   */
+  boolean isRegenerated();
+
+  /**
+   * @return old ID if renewed
+   */
+  String oldId();
 
   /**
    * @return the amount of time in ms, after which the session will expire, if not accessed.

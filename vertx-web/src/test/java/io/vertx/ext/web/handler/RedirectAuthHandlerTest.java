@@ -60,7 +60,7 @@ public class RedirectAuthHandlerTest extends AuthHandlerTestBase {
     doLogin(rc -> {
       Session sess = rc.session();
       assertNotNull(sess);
-      assertEquals(sessionCookie.get().substring(18, 54), sess.id());
+      assertEquals(sessionCookie.get().substring(18, 50), sess.id());
       assertNotNull(rc.user());
       rc.response().end("Welcome to the protected resource!");
     });
@@ -198,6 +198,11 @@ public class RedirectAuthHandlerTest extends AuthHandlerTestBase {
 
     // do post with credentials
     testRequest(HttpMethod.POST, "/login", sendLoginRequestConsumer(), resp -> {
+      // session will be upgraded
+      String setCookie = resp.headers().get("set-cookie");
+      assertNotNull(setCookie);
+      sessionCookie.set(setCookie);
+
       String location = resp.headers().get("location");
       assertNotNull(location);
       assertEquals("/protected/somepage?param=1", location);
@@ -234,6 +239,10 @@ public class RedirectAuthHandlerTest extends AuthHandlerTestBase {
   private void doLogin(Handler<RoutingContext> handler) throws Exception {
     doLoginCommon(handler);
     testRequest(HttpMethod.POST, "/login", sendLoginRequestConsumer(), resp -> {
+      // session will be upgraded
+      String setCookie = resp.headers().get("set-cookie");
+      assertNotNull(setCookie);
+      sessionCookie.set(setCookie);
       String location = resp.headers().get("location");
       assertNotNull(location);
       assertEquals("/protected/somepage", location);

@@ -21,6 +21,7 @@ import io.vertx.ext.auth.User;
 import io.vertx.ext.auth.oauth2.OAuth2Auth;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.OAuth2AuthHandler;
 
 import java.io.UnsupportedEncodingException;
@@ -119,7 +120,20 @@ public class OAuth2AuthHandlerImpl extends AuthHandlerImpl implements OAuth2Auth
           ctx.fail(res.cause());
         } else {
           ctx.setUser(res.result());
-          ctx.reroute(state);
+          Session session = ctx.session();
+          if (session != null) {
+            // the user has upgraded from unauthenticated to authenticated
+            // session should be upgraded as recommended by owasp
+            session.regenerateId();
+            // we should redirect the UA so this link becomes invalid
+            ctx.response()
+              .putHeader("Location", state)
+              .setStatusCode(302)
+              .end("Redirecting to " + state + ".");
+          } else {
+            // there is no session object so we cannot keep state
+            ctx.reroute(state);
+          }
         }
       });
     });
