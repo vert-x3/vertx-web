@@ -167,8 +167,12 @@ public class DigestAuthHandlerImpl extends AuthHandlerImpl implements DigestAuth
             if (res.succeeded()) {
               User authenticated = res.result();
               context.setUser(authenticated);
+              if (session != null) {
+                // the user has upgraded from unauthenticated to authenticated
+                // session should be upgraded as recommended by owasp
+                session.regenerateId();
+              }
               authorise(authenticated, context);
-              // TODO: refresh session id
             } else {
               handle401(context);
             }
