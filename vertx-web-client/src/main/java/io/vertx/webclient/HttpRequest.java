@@ -85,6 +85,8 @@ public interface HttpRequest {
 
   /**
    * Configure the request to use a new request URI {@code value}.
+   * <p>
+   * When the uri has query parameters, they are set in the {@link #queryParams()} multimap.
    *
    * @return a reference to this, so the API can be used fluently
    */
@@ -115,8 +117,6 @@ public interface HttpRequest {
 
   /**
    * Add a query parameter to the request.
-   * <p>
-   * When the {@code uri} has already a query string, these parameters will be appended to the existing query string.
    *
    * @param paramName the param name
    * @param paramValue the param value
@@ -126,13 +126,20 @@ public interface HttpRequest {
   HttpRequest addQueryParam(String paramName, String paramValue);
 
   /**
+   * Set a query parameter to the request.
+   *
+   * @param paramName the param name
+   * @param paramValue the param value
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  HttpRequest setQueryParam(String paramName, String paramValue);
+
+  /**
    * Return the current query parameters.
-   * <p>
-   * When the {@code uri} has already a query string, these parameters will be appended to the existing query string.
    *
    * @return the current query parameters
    */
-  @CacheReturn
   MultiMap queryParams();
 
   /**

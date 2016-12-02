@@ -83,6 +83,8 @@ var HttpRequest = function(j_val) {
 
   /**
    Configure the request to use a new request URI <code>value</code>.
+   <p>
+   When the uri has query parameters, they are set in the {@link HttpRequest#queryParams} multimap.
 
    @public
    @param value {string} 
@@ -132,8 +134,6 @@ var HttpRequest = function(j_val) {
 
   /**
    Add a query parameter to the request.
-   <p>
-   When the <code>uri</code> has already a query string, these parameters will be appended to the existing query string.
 
    @public
    @param paramName {string} the param name 
@@ -149,9 +149,23 @@ var HttpRequest = function(j_val) {
   };
 
   /**
+   Set a query parameter to the request.
+
+   @public
+   @param paramName {string} the param name 
+   @param paramValue {string} the param value 
+   @return {HttpRequest} a reference to this, so the API can be used fluently
+   */
+  this.setQueryParam = function(paramName, paramValue) {
+    var __args = arguments;
+    if (__args.length === 2 && typeof __args[0] === 'string' && typeof __args[1] === 'string') {
+      j_httpRequest["setQueryParam(java.lang.String,java.lang.String)"](paramName, paramValue);
+      return that;
+    } else throw new TypeError('function invoked with invalid arguments');
+  };
+
+  /**
    Return the current query parameters.
-   <p>
-   When the <code>uri</code> has already a query string, these parameters will be appended to the existing query string.
 
    @public
 
@@ -160,10 +174,7 @@ var HttpRequest = function(j_val) {
   this.queryParams = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      if (that.cachedqueryParams == null) {
-        that.cachedqueryParams = utils.convReturnVertxGen(MultiMap, j_httpRequest["queryParams()"]());
-      }
-      return that.cachedqueryParams;
+      return utils.convReturnVertxGen(MultiMap, j_httpRequest["queryParams()"]());
     } else throw new TypeError('function invoked with invalid arguments');
   };
 

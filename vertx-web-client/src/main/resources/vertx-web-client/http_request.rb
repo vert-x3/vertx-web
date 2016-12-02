@@ -91,6 +91,8 @@ module VertxWebClient
       raise ArgumentError, "Invalid arguments when calling host(#{value})"
     end
     #  Configure the request to use a new request URI <code>value</code>.
+    #  <p>
+    #  When the uri has query parameters, they are set in the {::VertxWebClient::HttpRequest#query_params} multimap.
     # @param [String] value 
     # @return [self]
     def uri(value=nil)
@@ -125,8 +127,6 @@ module VertxWebClient
       raise ArgumentError, "Invalid arguments when calling timeout(#{value})"
     end
     #  Add a query parameter to the request.
-    #  <p>
-    #  When the <code>uri</code> has already a query string, these parameters will be appended to the existing query string.
     # @param [String] paramName the param name
     # @param [String] paramValue the param value
     # @return [self]
@@ -137,16 +137,22 @@ module VertxWebClient
       end
       raise ArgumentError, "Invalid arguments when calling add_query_param(#{paramName},#{paramValue})"
     end
+    #  Set a query parameter to the request.
+    # @param [String] paramName the param name
+    # @param [String] paramValue the param value
+    # @return [self]
+    def set_query_param(paramName=nil,paramValue=nil)
+      if paramName.class == String && paramValue.class == String && !block_given?
+        @j_del.java_method(:setQueryParam, [Java::java.lang.String.java_class,Java::java.lang.String.java_class]).call(paramName,paramValue)
+        return self
+      end
+      raise ArgumentError, "Invalid arguments when calling set_query_param(#{paramName},#{paramValue})"
+    end
     #  Return the current query parameters.
-    #  <p>
-    #  When the <code>uri</code> has already a query string, these parameters will be appended to the existing query string.
     # @return [::Vertx::MultiMap] the current query parameters
     def query_params
       if !block_given?
-        if @cached_query_params != nil
-          return @cached_query_params
-        end
-        return @cached_query_params = ::Vertx::Util::Utils.safe_create(@j_del.java_method(:queryParams, []).call(),::Vertx::MultiMap)
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:queryParams, []).call(),::Vertx::MultiMap)
       end
       raise ArgumentError, "Invalid arguments when calling query_params()"
     end

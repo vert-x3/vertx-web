@@ -20,6 +20,7 @@ import io.netty.buffer.UnpooledByteBufAllocator;
 import io.netty.handler.codec.http.DefaultFullHttpRequest;
 import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpVersion;
+import io.netty.handler.codec.http.QueryStringDecoder;
 import io.netty.handler.codec.http.QueryStringEncoder;
 import io.netty.handler.codec.http.multipart.HttpPostRequestEncoder;
 import io.vertx.core.AsyncResult;
@@ -94,8 +95,8 @@ class HttpRequestImpl implements HttpRequest {
 
   @Override
   public HttpRequest uri(String value) {
-    uri = value;
     params = null;
+    uri = value;
     return this;
   }
 
@@ -121,9 +122,23 @@ class HttpRequestImpl implements HttpRequest {
   }
 
   @Override
+  public HttpRequest setQueryParam(String paramName, String paramValue) {
+    queryParams().set(paramName, paramValue);
+    return this;
+  }
+
+  @Override
   public MultiMap queryParams() {
     if (params == null) {
       params = new CaseInsensitiveHeaders();
+    }
+    if (params.isEmpty()) {
+      int idx = uri.indexOf('?');
+      if (idx >= 0) {
+        QueryStringDecoder dec = new QueryStringDecoder(uri);
+        dec.parameters().forEach((name, value) -> params.add(name, value));
+        uri = uri.substring(0, idx);
+      }
     }
     return params;
   }
@@ -230,20 +245,12 @@ class HttpRequestImpl implements HttpRequest {
     Future<HttpClientResponse> fut = Future.future();
     HttpClientRequest req;
     String requestURI;
-    if (params != null && params.size() > 0 && !uri.equals("*")) {
-      if (uri.indexOf('?') > 0) {
-        QueryStringEncoder enc = new QueryStringEncoder("");
-        params.forEach(param -> {
-          enc.addParam(param.getKey(), param.getValue());
-        });
-        requestURI = uri + "&" + enc.toString().substring(1);
-      } else {
-        QueryStringEncoder enc = new QueryStringEncoder(uri);
-        params.forEach(param -> {
-          enc.addParam(param.getKey(), param.getValue());
-        });
-        requestURI = enc.toString();
-      }
+    if (params != null && params.size() > 0) {
+      QueryStringEncoder enc = new QueryStringEncoder(uri);
+      params.forEach(param -> {
+        enc.addParam(param.getKey(), param.getValue());
+      });
+      requestURI = enc.toString();
     } else {
       requestURI = uri;
     }
