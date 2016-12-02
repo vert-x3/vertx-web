@@ -16,6 +16,7 @@
 
 package io.vertx.ext.web.handler.impl;
 
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.auth.oauth2.OAuth2Auth;
@@ -23,9 +24,6 @@ import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.OAuth2AuthHandler;
-
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 
 /**
  * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
@@ -40,6 +38,20 @@ public class OAuth2AuthHandlerImpl extends AuthHandlerImpl implements OAuth2Auth
   public OAuth2AuthHandlerImpl(OAuth2Auth authProvider, String host) {
     super(authProvider);
     this.host = host;
+  }
+
+  private String getHost(RoutingContext ctx) {
+    if (host != null) {
+      return host;
+    } else {
+      String host = ctx.request().getHeader("Host");
+
+      if (host != null) {
+        return (ctx.request().isSSL() ? "https://" : "http://") + host.split("\\s*,\\s*")[0];
+      }
+
+      return (ctx.request().isSSL() ? "https://" : "http://") + ctx.request().host();
+    }
   }
 
   @Override
@@ -59,37 +71,33 @@ public class OAuth2AuthHandlerImpl extends AuthHandlerImpl implements OAuth2Auth
     } else {
       // redirect request to the oauth2 server
       ctx.response()
-          .putHeader("Location", authURI(ctx.normalisedPath()))
+          .putHeader("Location", authURI(getHost(ctx), ctx.normalisedPath()))
           .setStatusCode(302)
           .end();
     }
   }
 
-  private String authURI(String redirectURL) {
+  private String authURI(String host, String redirectURL) {
     if (callback == null) {
       throw new NullPointerException("callback is null");
     }
 
-    StringBuilder scopes = new StringBuilder();
-
-    try {
+    if (authorities.size() > 0) {
+      JsonArray scopes = new JsonArray();
+      // scopes are passed as an array because the auth provider has the knowledge on how to encode them
       for (String authority : authorities) {
-        scopes.append(URLEncoder.encode(authority, "UTF-8"));
-        scopes.append(',');
+        scopes.add(authority);
       }
-    } catch (UnsupportedEncodingException e) {
-      throw new RuntimeException(e);
-    }
 
-    // exclude the trailing comma
-    if (scopes.length() > 0) {
-      scopes.setLength(scopes.length() - 1);
+      return ((OAuth2Auth) authProvider).authorizeURL(new JsonObject()
+        .put("redirect_uri", host + callback.getPath())
+        .put("scopes", scopes)
+        .put("state", redirectURL));
+    } else {
+      return ((OAuth2Auth) authProvider).authorizeURL(new JsonObject()
+        .put("redirect_uri", host + callback.getPath())
+        .put("state", redirectURL));
     }
-
-    return ((OAuth2Auth) authProvider).authorizeURL(new JsonObject()
-          .put("redirect_uri", host + callback.getPath())
-          .put("scope", scopes.toString())
-          .put("state", redirectURL));
   }
 
   @Override
@@ -115,7 +123,7 @@ public class OAuth2AuthHandlerImpl extends AuthHandlerImpl implements OAuth2Auth
 
       final String state = ctx.request().getParam("state");
 
-      ((OAuth2Auth) authProvider).getToken(new JsonObject().put("code", code).put("redirect_uri", host + callback.getPath()).mergeIn(extraParams), res -> {
+      ((OAuth2Auth) authProvider).getToken(new JsonObject().put("code", code).put("redirect_uri", getHost(ctx) + callback.getPath()).mergeIn(extraParams), res -> {
         if (res.failed()) {
           ctx.fail(res.cause());
         } else {

@@ -81,7 +81,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     latch.await();
 
     // create a oauth2 handler on our domain: "http://localhost:8080"
-    OAuth2AuthHandler oauth2Handler = OAuth2AuthHandler.create(oauth2, "http://localhost:8080");
+    OAuth2AuthHandler oauth2Handler = OAuth2AuthHandler.create(oauth2);
 
     // setup the callback handler for receiving the callback
     oauth2Handler.setupCallback(router.get("/callback"));

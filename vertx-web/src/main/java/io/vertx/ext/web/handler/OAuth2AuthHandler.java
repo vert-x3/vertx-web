@@ -33,13 +33,24 @@ import io.vertx.ext.web.handler.impl.OAuth2AuthHandlerImpl;
 public interface OAuth2AuthHandler extends AuthHandler {
 
   /**
+   * Create a OAuth2 auth handler with host pinning
+   *
+   * @param authProvider  the auth provider to use
+   * @param host the host as in http header that points to the server where this will be running e.g.: https://myserver:8888
+   * @return the auth handler
+   */
+  static OAuth2AuthHandler create(OAuth2Auth authProvider, String host) {
+    return new OAuth2AuthHandlerImpl(authProvider, host);
+  }
+
+  /**
    * Create a OAuth2 auth handler
    *
    * @param authProvider  the auth provider to use
    * @return the auth handler
    */
-  static OAuth2AuthHandler create(OAuth2Auth authProvider, String uri) {
-    return new OAuth2AuthHandlerImpl(authProvider, uri);
+  static OAuth2AuthHandler create(OAuth2Auth authProvider) {
+    return new OAuth2AuthHandlerImpl(authProvider, null);
   }
 
   /**
