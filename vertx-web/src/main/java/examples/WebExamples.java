@@ -13,6 +13,7 @@ import io.vertx.ext.auth.jwt.JWTOptions;
 import io.vertx.ext.auth.oauth2.OAuth2Auth;
 import io.vertx.ext.auth.oauth2.OAuth2ClientOptions;
 import io.vertx.ext.auth.oauth2.OAuth2FlowType;
+import io.vertx.ext.auth.oauth2.providers.GithubAuth;
 import io.vertx.ext.web.*;
 import io.vertx.ext.web.handler.*;
 import io.vertx.ext.web.handler.sockjs.*;
@@ -1140,15 +1141,10 @@ public class WebExamples {
   public void example58(Vertx vertx, Router router) {
 
     // create an OAuth2 provider, clientID and clientSecret should be requested to github
-    OAuth2Auth authProvider = OAuth2Auth.create(vertx, OAuth2FlowType.AUTH_CODE, new OAuth2ClientOptions()
-        .setClientID("CLIENT_ID")
-        .setClientSecret("CLIENT_SECRET")
-        .setSite("https://github.com/login")
-        .setTokenPath("/oauth/access_token")
-        .setAuthorizationPath("/oauth/authorize"));
+    OAuth2Auth authProvider = GithubAuth.create(vertx, "CLIENT_ID", "CLIENT_SECRET");
 
-    // create a oauth2 handler on our domain: "http://localhost:8080"
-    OAuth2AuthHandler oauth2 = OAuth2AuthHandler.create(authProvider, "http://localhost:8080");
+    // create a oauth2 handler on our running server
+    OAuth2AuthHandler oauth2 = OAuth2AuthHandler.create(authProvider);
 
     // setup the callback handler for receiving the GitHub callback
     oauth2.setupCallback(router.get("/callback"));
@@ -1197,68 +1193,9 @@ public class WebExamples {
       ctx.response().putHeader("content-type", "text/html").end("Hello<br><a href=\"/protected/somepage\">Protected by Google</a>");
     });
   }
-
-  public void example60(Vertx vertx, Router router) {
-
-    // create an OAuth2 provider, clientID and clientSecret should be requested to LinkedIn
-    OAuth2Auth authProvider = OAuth2Auth.create(vertx, OAuth2FlowType.AUTH_CODE, new OAuth2ClientOptions()
-        .setClientID("CLIENT_ID")
-        .setClientSecret("CLIENT_SECRET")
-        .setSite("https://www.linkedin.com")
-        .setAuthorizationPath("/uas/oauth2/authorization")
-        .setTokenPath("/uas/oauth2/accessToken"));
-
-    // create a oauth2 handler on our domain: "http://localhost:8080"
-    OAuth2AuthHandler oauth2 = OAuth2AuthHandler.create(authProvider, "http://localhost:8080");
-
-    // these are the scopes
-    oauth2.addAuthority("r_basicprofile");
-
-    // setup the callback handler for receiving the LinkedIn callback
-    oauth2.setupCallback(router.get("/callback"));
-
-    // protect everything under /protected
-    router.route("/protected/*").handler(oauth2);
-    // mount some handler under the protected zone
-    router.route("/protected/somepage").handler(rc -> {
-      rc.response().end("Welcome to the protected resource!");
-    });
-
-    // welcome page
-    router.get("/").handler(ctx -> {
-      ctx.response().putHeader("content-type", "text/html").end("Hello<br><a href=\"/protected/somepage\">Protected by LinkedIn</a>");
-    });
-  }
-
-  public void example61(Vertx vertx, Router router) {
-    // create an OAuth2 provider for keycloak
-    OAuth2Auth authProvider = OAuth2Auth.createKeycloak(vertx, OAuth2FlowType.AUTH_CODE, new JsonObject());
-
-    // create a oauth2 handler on our domain: "http://localhost:8000"
-    OAuth2AuthHandler oauth2 = OAuth2AuthHandler.create(authProvider, "http://localhost:8000");
-
-    // setup the callback handler for receiving the keycloak callback
-    oauth2.setupCallback(router.get("/callback"));
-
-    // protect everything under /protected
-    router.route("/protected/*").handler(oauth2);
-
-    // mount some handler under the protected zone
-    router.route("/protected/somepage").handler(rc -> {
-      // you can now do authZ based on keycloak grants
-      rc.user().isAuthorised("account:manage-account", manageAccount -> {
-        if (manageAccount.result()) {
-          rc.response().end("Welcome to the protected resource and you can manage your account!");
-        } else {
-          rc.response().end("Welcome to the protected resource but you cannot manage your account!");
-        }
-      });
-    });
-
-    // welcome page
-    router.get("/").handler(ctx -> {
-      ctx.response().putHeader("content-type", "text/html").end("Hello<br><a href=\"/protected/somepage\">Protected by keycloak</a>");
-    });
+  public void example61(Vertx vertx, Router router, OAuth2Auth provider) {
+    // create a oauth2 handler pinned to myserver.com: "https://myserver.com:8447"
+    OAuth2AuthHandler oauth2 = OAuth2AuthHandler.create(provider, "https://myserver.com:8447");
   }
 
   public void example62(Vertx vertx, Router router) {
