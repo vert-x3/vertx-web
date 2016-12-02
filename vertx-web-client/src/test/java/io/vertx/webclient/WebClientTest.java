@@ -2,7 +2,9 @@ package io.vertx.webclient;
 
 import io.vertx.core.Handler;
 import io.vertx.core.VertxException;
+import io.vertx.core.VertxOptions;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.dns.AddressResolverOptions;
 import io.vertx.core.file.AsyncFile;
 import io.vertx.core.file.OpenOptions;
 import io.vertx.core.http.HttpClientOptions;
@@ -40,11 +42,42 @@ public class WebClientTest extends HttpTestBase {
   private WebClient client;
 
   @Override
+  protected VertxOptions getOptions() {
+    return super.getOptions().setAddressResolverOptions(new AddressResolverOptions().
+      setHostsValue(Buffer.buffer("127.0.0.1 somehost")));
+  }
+
+  @Override
   public void setUp() throws Exception {
     super.setUp();
-    super.client = vertx.createHttpClient(new HttpClientOptions());
+    super.client = vertx.createHttpClient(new HttpClientOptions().setDefaultPort(8080).setDefaultHost("localhost"));
     client = WebClient.wrap(super.client);
     server = vertx.createHttpServer(new HttpServerOptions().setPort(DEFAULT_HTTP_PORT).setHost(DEFAULT_HTTP_HOST));
+  }
+
+  @Test
+  public void testDefaultHostAndPort() throws Exception {
+    testRequest(client -> client.get("somepath"), req -> {
+      assertEquals("localhost:8080", req.host());
+    });
+  }
+
+  @Test
+  public void testDefaultPort() throws Exception {
+    testRequest(client -> client.get("somehost", "somepath"), req -> {
+      assertEquals("somehost:8080", req.host());
+    });
+  }
+
+  @Test
+  public void testDefaultHost() throws Exception {
+    try {
+      client.get("somepath").port(8080).send(ar -> {
+        fail();
+      });
+      fail();
+    } catch (IllegalStateException ignore) {
+    }
   }
 
   @Test

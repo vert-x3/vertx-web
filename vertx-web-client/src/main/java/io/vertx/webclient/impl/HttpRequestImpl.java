@@ -228,9 +228,17 @@ class HttpRequestImpl implements HttpRequest {
       requestURI = uri;
     }
     if (port != -1) {
-      req = client.request(method, port, host, requestURI);
+      if (host != null) {
+        req = client.request(method, port, host, requestURI);
+      } else {
+        throw new IllegalStateException("Both host and port must be set with an explicit port");
+      }
     } else {
-      req = client.request(method, host, requestURI);
+      if (host != null) {
+        req = client.request(method, host, requestURI);
+      } else {
+        req = client.request(method, requestURI);
+      }
     }
     if (headers != null) {
       req.headers().addAll(headers);
