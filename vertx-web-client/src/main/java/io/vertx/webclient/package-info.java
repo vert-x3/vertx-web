@@ -107,6 +107,29 @@
  *
  * todo
  *
+ * === RxJava API
+ *
+ * The RxJava {@code HttpRequest} provides an augmented versions of the original API,
+ * the {@code rxSend()} method returns a `Single<HttpResponse<Buffer>>`:
+ *
+ * * the HTTP request is sent upon subscription of the {@code Single}
+ * * the {@code Single} can be subscribed many times
+ *
+ * [source,java]
+ * ----
+ * To insert
+ * ----
+ *
+ * The obtained {@code Single} can be composed and chained naturally with the RxJava API:
+ *
+ * [source,java]
+ * ----
+ * To insert
+ * ----
+ *
+ *
+ *
+ *
  */
 @Document(fileName = "index.adoc")
 @ModuleGen(name = "vertx-web-client", groupPackage = "io.vertx")

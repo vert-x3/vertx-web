@@ -146,3 +146,21 @@ get.send(ar -> {});
 === Decoding responses
 
 todo
+
+=== RxJava API
+
+The RxJava `HttpRequest` provides an augmented versions of the original API,
+the `rxSend()` method returns a `Single<HttpResponse<Buffer>>`:
+
+* the HTTP request is sent upon subscription of the `Single`
+* the `Single` can be subscribed many times
+
+[source,java]
+----
+----
+
+The obtained `Single` can be composed and chained naturally with the RxJava API:
+
+[source,java]
+----
+----
