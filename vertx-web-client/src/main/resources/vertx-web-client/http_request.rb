@@ -198,6 +198,22 @@ module VertxWebClient
       end
       raise ArgumentError, "Invalid arguments when calling send_json(#{body},#{responseCodec})"
     end
+    #  Like {::VertxWebClient::HttpRequest#send} but with an HTTP request <code>body</code> multimap encoded as a form and the content type
+    #  set to <code>application/x-www-form-urlencoded</code>.
+    #  <p>
+    #  When the content type header is previously set to <code>multipart/form-data</code> it will be used instead.
+    # @param [::Vertx::MultiMap] body the body
+    # @param [::VertxWebClient::BodyCodec] responseCodec the codec to decode the response
+    # @yield 
+    # @return [void]
+    def send_form(body=nil,responseCodec=nil)
+      if body.class.method_defined?(:j_del) && block_given? && responseCodec == nil
+        return @j_del.java_method(:sendForm, [Java::IoVertxCore::MultiMap.java_class,Java::IoVertxCore::Handler.java_class]).call(body.j_del,(Proc.new { |ar| yield(ar.failed ? ar.cause : nil, ar.succeeded ? ::Vertx::Util::Utils.safe_create(ar.result,::VertxWebClient::HttpResponse,::Vertx::Buffer.j_api_type) : nil) }))
+      elsif body.class.method_defined?(:j_del) && responseCodec.class.method_defined?(:j_del) && block_given?
+        return @j_del.java_method(:sendForm, [Java::IoVertxCore::MultiMap.java_class,Java::IoVertxWebclient::BodyCodec.java_class,Java::IoVertxCore::Handler.java_class]).call(body.j_del,responseCodec.j_del,(Proc.new { |ar| yield(ar.failed ? ar.cause : nil, ar.succeeded ? ::Vertx::Util::Utils.safe_create(ar.result,::VertxWebClient::HttpResponse, nil) : nil) }))
+      end
+      raise ArgumentError, "Invalid arguments when calling send_form(#{body},#{responseCodec})"
+    end
     #  Send a request, the <code>handler</code> will receive the response as an {::VertxWebClient::HttpResponse} decoded using
     #  the provided <code>responseCodec</code>.
     # @param [::VertxWebClient::BodyCodec] responseCodec the codec to decode the response

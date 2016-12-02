@@ -1,6 +1,7 @@
 package io.vertx.webclient;
 
 import io.vertx.core.Handler;
+import io.vertx.core.MultiMap;
 import io.vertx.core.VertxException;
 import io.vertx.core.VertxOptions;
 import io.vertx.core.buffer.Buffer;
@@ -720,5 +721,44 @@ public class WebClientTest extends HttpTestBase {
       assertEquals(" ", req.getParam("param1"));
       assertEquals("\u20AC", req.getParam("param2"));
     });
+  }
+
+  @Test
+  public void testFormUrlEncoded() throws Exception {
+    server.requestHandler(req -> {
+      req.setExpectMultipart(true);
+      req.endHandler(v -> {
+        assertEquals("param1_value", req.getFormAttribute("param1"));
+        req.response().end();
+      });
+    });
+    startServer();
+    MultiMap form = MultiMap.caseInsensitiveMultiMap();
+    form.add("param1", "param1_value");
+    HttpRequest builder = client.post("/somepath");
+    builder.sendForm(form, onSuccess(resp -> {
+      complete();
+    }));
+    await();
+  }
+
+  @Test
+  public void testFormMultipart() throws Exception {
+    server.requestHandler(req -> {
+      req.setExpectMultipart(true);
+      req.endHandler(v -> {
+        assertEquals("param1_value", req.getFormAttribute("param1"));
+        req.response().end();
+      });
+    });
+    startServer();
+    MultiMap form = MultiMap.caseInsensitiveMultiMap();
+    form.add("param1", "param1_value");
+    HttpRequest builder = client.post("/somepath");
+    builder.putHeader("content-type", "multipart/form-data");
+    builder.sendForm(form, onSuccess(resp -> {
+      complete();
+    }));
+    await();
   }
 }

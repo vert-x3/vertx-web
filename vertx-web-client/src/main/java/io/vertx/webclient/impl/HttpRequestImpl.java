@@ -15,11 +15,18 @@
  */
 package io.vertx.webclient.impl;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.UnpooledByteBufAllocator;
+import io.netty.handler.codec.http.DefaultFullHttpRequest;
+import io.netty.handler.codec.http.HttpContent;
+import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.QueryStringEncoder;
+import io.netty.handler.codec.http.multipart.HttpPostRequestEncoder;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
+import io.vertx.core.VertxException;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.CaseInsensitiveHeaders;
 import io.vertx.core.http.HttpClient;
@@ -34,6 +41,8 @@ import io.vertx.webclient.BodyCodec;
 import io.vertx.webclient.HttpRequest;
 import io.vertx.webclient.HttpResponse;
 import io.vertx.webclient.spi.BodyStream;
+
+import java.util.Map;
 
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
@@ -95,6 +104,7 @@ class HttpRequestImpl implements HttpRequest {
     if (headers == null) {
       headers = new CaseInsensitiveHeaders();
     }
+    headers.set(name, value);
     return this;
   }
 
@@ -161,6 +171,16 @@ class HttpRequestImpl implements HttpRequest {
   @Override
   public <R> void sendJson(Object body, BodyCodec<R> responseCodec, Handler<AsyncResult<HttpResponse<R>>> handler) {
     perform2("application/json", body, responseCodec, handler);
+  }
+
+  @Override
+  public void sendForm(MultiMap body, Handler<AsyncResult<HttpResponse<Buffer>>> handler) {
+    perform2("application/x-www-form-urlencoded", body, BodyCodec.buffer(), handler);
+  }
+
+  @Override
+  public <R> void sendForm(MultiMap body, BodyCodec<R> responseCodec, Handler<AsyncResult<HttpResponse<R>>> handler) {
+    perform2("application/x-www-form-urlencoded", body, responseCodec, handler);
   }
 
   private <R> void perform2(String contentType, Object body, BodyCodec<R> unmarshaller, Handler<AsyncResult<HttpResponse<R>>> handler) {
@@ -258,7 +278,12 @@ class HttpRequestImpl implements HttpRequest {
     }
     if (body != null) {
       if (contentType != null) {
-        req.putHeader(HttpHeaders.CONTENT_TYPE, contentType);
+        String prev = req.headers().get(HttpHeaders.CONTENT_TYPE);
+        if (prev == null) {
+          req.putHeader(HttpHeaders.CONTENT_TYPE, contentType);
+        } else {
+          contentType = prev;
+        }
       }
       if (body instanceof ReadStream<?>) {
         ReadStream<Buffer> stream = (ReadStream<Buffer>) body;
@@ -278,7 +303,42 @@ class HttpRequestImpl implements HttpRequest {
         });
         pump.start();
       } else {
-        Buffer buffer = body instanceof Buffer ? (Buffer) body : Buffer.buffer(Json.encode(body));
+        Buffer buffer;
+        if (body instanceof Buffer) {
+          buffer = (Buffer) body;
+        } else if (body instanceof MultiMap) {
+          try {
+            MultiMap attributes = (MultiMap) body;
+            boolean multipart = "multipart/form-data".equals(contentType);
+            DefaultFullHttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, io.netty.handler.codec.http.HttpMethod.POST, "/");
+            HttpPostRequestEncoder encoder = new HttpPostRequestEncoder(request, multipart);
+            for (Map.Entry<String, String> attribute : attributes) {
+              encoder.addBodyAttribute(attribute.getKey(), attribute.getValue());
+            }
+            encoder.finalizeRequest();
+            for (String headerName : request.headers().names()) {
+              req.putHeader(headerName, request.headers().get(headerName));
+            }
+            if (encoder.isChunked()) {
+              buffer = Buffer.buffer();
+              while (true) {
+                HttpContent chunk = encoder.readChunk(new UnpooledByteBufAllocator(false));
+                ByteBuf content = chunk.content();
+                if (content.readableBytes() == 0) {
+                  break;
+                }
+                buffer.appendBuffer(Buffer.buffer(content));
+              }
+            } else {
+              ByteBuf content = request.content();
+              buffer = Buffer.buffer(content);
+            }
+          } catch (Exception e) {
+            throw new VertxException(e);
+          }
+        } else {
+          buffer = Buffer.buffer(Json.encode(body));
+        }
         req.end(buffer);
       }
     } else {

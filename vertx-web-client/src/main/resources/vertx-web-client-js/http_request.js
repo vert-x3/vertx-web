@@ -270,6 +270,38 @@ var HttpRequest = function(j_val) {
   };
 
   /**
+   Like {@link HttpRequest#send} but with an HTTP request <code>body</code> multimap encoded as a form and the content type
+   set to <code>application/x-www-form-urlencoded</code>.
+   <p>
+   When the content type header is previously set to <code>multipart/form-data</code> it will be used instead.
+
+   @public
+   @param body {MultiMap} the body 
+   @param responseCodec {BodyCodec} the codec to decode the response 
+   @param handler {function} 
+   */
+  this.sendForm = function() {
+    var __args = arguments;
+    if (__args.length === 2 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'function') {
+      j_httpRequest["sendForm(io.vertx.core.MultiMap,io.vertx.core.Handler)"](__args[0]._jdel, function(ar) {
+      if (ar.succeeded()) {
+        __args[1](utils.convReturnVertxGen(HttpResponse, ar.result(), Buffer._jtype), null);
+      } else {
+        __args[1](null, ar.cause());
+      }
+    });
+    }  else if (__args.length === 3 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'object' && __args[1]._jdel && typeof __args[2] === 'function') {
+      j_httpRequest["sendForm(io.vertx.core.MultiMap,io.vertx.webclient.BodyCodec,io.vertx.core.Handler)"](__args[0]._jdel, __args[1]._jdel, function(ar) {
+      if (ar.succeeded()) {
+        __args[2](utils.convReturnVertxGen(HttpResponse, ar.result(), undefined), null);
+      } else {
+        __args[2](null, ar.cause());
+      }
+    });
+    } else throw new TypeError('function invoked with invalid arguments');
+  };
+
+  /**
    Send a request, the <code>handler</code> will receive the response as an {@link HttpResponse} decoded using
    the provided <code>responseCodec</code>.
 

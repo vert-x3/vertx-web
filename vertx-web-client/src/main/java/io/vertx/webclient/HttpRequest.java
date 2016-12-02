@@ -190,6 +190,27 @@ public interface HttpRequest {
   <R> void sendJson(Object body, BodyCodec<R> responseCodec, Handler<AsyncResult<HttpResponse<R>>> handler);
 
   /**
+   * Like {@link #send(Handler)} but with an HTTP request {@code body} multimap encoded as form and the content type
+   * set to {@code application/x-www-form-urlencoded}.
+   * <p>
+   * When the content type header is previously set to {@code multipart/form-data} it will be used instead.
+   *
+   * @param body the body
+   */
+  void sendForm(MultiMap body, Handler<AsyncResult<HttpResponse<Buffer>>> handler);
+
+  /**
+   * Like {@link #send(BodyCodec, Handler)} but with an HTTP request {@code body} multimap encoded as a form and the content type
+   * set to {@code application/x-www-form-urlencoded}.
+   * <p>
+   * When the content type header is previously set to {@code multipart/form-data} it will be used instead.
+   *
+   * @param body the body
+   * @param responseCodec the codec to decode the response
+   */
+  <R> void sendForm(MultiMap body, BodyCodec<R> responseCodec, Handler<AsyncResult<HttpResponse<R>>> handler);
+
+  /**
    * Send a request, the {@code handler} will receive the response as an {@link HttpResponse}.
    */
   void send(Handler<AsyncResult<HttpResponse<Buffer>>> handler);
