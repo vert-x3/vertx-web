@@ -17,6 +17,7 @@
 /** @module vertx-web-client-js/http_request */
 var utils = require('vertx-js/util/utils');
 var Buffer = require('vertx-js/buffer');
+var MultiMap = require('vertx-js/multi_map');
 var ReadStream = require('vertx-js/read_stream');
 var BodyCodec = require('vertx-web-client-js/body_codec');
 var HttpResponse = require('vertx-web-client-js/http_response');
@@ -87,10 +88,10 @@ var HttpRequest = function(j_val) {
    @param value {string} 
    @return {HttpRequest} a reference to this, so the API can be used fluently
    */
-  this.requestURI = function(value) {
+  this.uri = function(value) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      j_httpRequest["requestURI(java.lang.String)"](value);
+      j_httpRequest["uri(java.lang.String)"](value);
       return that;
     } else throw new TypeError('function invoked with invalid arguments');
   };
@@ -126,6 +127,57 @@ var HttpRequest = function(j_val) {
     if (__args.length === 1 && typeof __args[0] ==='number') {
       j_httpRequest["timeout(long)"](value);
       return that;
+    } else throw new TypeError('function invoked with invalid arguments');
+  };
+
+  /**
+   Add a query parameter to the request.
+   <p>
+   When the <code>uri</code> has already a query string, these parameters will be appended to the existing query string.
+
+   @public
+   @param paramName {string} the param name 
+   @param paramValue {string} the param value 
+   @return {HttpRequest} a reference to this, so the API can be used fluently
+   */
+  this.addQueryParam = function(paramName, paramValue) {
+    var __args = arguments;
+    if (__args.length === 2 && typeof __args[0] === 'string' && typeof __args[1] === 'string') {
+      j_httpRequest["addQueryParam(java.lang.String,java.lang.String)"](paramName, paramValue);
+      return that;
+    } else throw new TypeError('function invoked with invalid arguments');
+  };
+
+  /**
+   Return the current query parameters.
+   <p>
+   When the <code>uri</code> has already a query string, these parameters will be appended to the existing query string.
+
+   @public
+
+   @return {MultiMap} the current query parameters
+   */
+  this.queryParams = function() {
+    var __args = arguments;
+    if (__args.length === 0) {
+      if (that.cachedqueryParams == null) {
+        that.cachedqueryParams = utils.convReturnVertxGen(MultiMap, j_httpRequest["queryParams()"]());
+      }
+      return that.cachedqueryParams;
+    } else throw new TypeError('function invoked with invalid arguments');
+  };
+
+  /**
+   Copy this request
+
+   @public
+
+   @return {HttpRequest} a copy of this request
+   */
+  this.copy = function() {
+    var __args = arguments;
+    if (__args.length === 0) {
+      return utils.convReturnVertxGen(HttpRequest, j_httpRequest["copy()"]());
     } else throw new TypeError('function invoked with invalid arguments');
   };
 

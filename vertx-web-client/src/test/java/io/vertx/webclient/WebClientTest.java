@@ -8,6 +8,7 @@ import io.vertx.core.file.OpenOptions;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerOptions;
+import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.DecodeException;
 import io.vertx.core.json.JsonArray;
@@ -22,11 +23,14 @@ import org.junit.Test;
 import java.io.File;
 import java.net.ConnectException;
 import java.nio.file.Files;
+import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
@@ -59,30 +63,30 @@ public class WebClientTest extends HttpTestBase {
   }
 
   private void testRequest(HttpMethod method) throws Exception {
+    testRequest(client -> {
+      switch (method) {
+        case GET:
+          return client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
+        case HEAD:
+          return client.head(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
+        case DELETE:
+          return client.delete(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
+        default:
+          fail("Invalid HTTP method");
+          return null;
+      }
+    }, req -> assertEquals(method, req.method()));
+  }
+
+  private void testRequest(Function<WebClient, HttpRequest> reqFactory, Consumer<HttpServerRequest> reqChecker) throws Exception {
     waitFor(4);
     server.requestHandler(req -> {
-      assertEquals(method, req.method());
+      reqChecker.accept(req);
       complete();
       req.response().end();
     });
     startServer();
-
-    HttpRequest builder = null;
-
-    switch (method) {
-      case GET:
-        builder = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
-        break;
-      case HEAD:
-        builder = client.head(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
-        break;
-      case DELETE:
-        builder = client.delete(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
-        break;
-
-      default: fail("Invalid HTTP method");
-    }
-
+    HttpRequest builder = reqFactory.apply(client);
     builder.send(onSuccess(resp -> {
       complete();
     }));
@@ -646,5 +650,42 @@ public class WebClientTest extends HttpTestBase {
       testComplete();
     }));
     await();
+  }
+
+  @Test
+  public void testQueryParam() throws Exception {
+    testRequest(client -> client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/").addQueryParam("param", "param_value"), req -> {
+      assertEquals("param=param_value", req.query());
+      assertEquals("param_value", req.getParam("param"));
+    });
+  }
+
+  @Test
+  public void testQueryParamMulti() throws Exception {
+    testRequest(client -> client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/").addQueryParam("param", "param_value1").addQueryParam("param", "param_value2"), req -> {
+      assertEquals("param=param_value1&param=param_value2", req.query());
+      assertEquals(Arrays.asList("param_value1", "param_value2"), req.params().getAll("param"));
+    });
+  }
+
+  @Test
+  public void testQueryParamAppend() throws Exception {
+    testRequest(client -> client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/?param1=param1_value").addQueryParam("param2", "param2_value"), req -> {
+      assertEquals("param1=param1_value&param2=param2_value", req.query());
+      assertEquals("param1_value", req.getParam("param1"));
+      assertEquals("param2_value", req.getParam("param2"));
+    });
+  }
+
+  @Test
+  public void testQueryParamEncoding() throws Exception {
+    testRequest(client -> client
+      .get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/")
+      .addQueryParam("param1", " ")
+      .addQueryParam("param2", "\u20AC"), req -> {
+      assertEquals("param1=%20&param2=%E2%82%AC", req.query());
+      assertEquals(" ", req.getParam("param1"));
+      assertEquals("\u20AC", req.getParam("param2"));
+    });
   }
 }

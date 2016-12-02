@@ -15,6 +15,7 @@
  */
 package io.vertx.webclient.impl;
 
+import io.netty.handler.codec.http.QueryStringEncoder;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
@@ -40,10 +41,11 @@ import io.vertx.webclient.spi.BodyStream;
 class HttpRequestImpl implements HttpRequest {
 
   final HttpClient client;
+  MultiMap params;
   HttpMethod method;
   int port = -1;
   String host;
-  String requestURI;
+  String uri;
   MultiMap headers;
   long timeout = -1;
 
@@ -58,8 +60,9 @@ class HttpRequestImpl implements HttpRequest {
     this.port = other.port;
     this.host = other.host;
     this.timeout = other.timeout;
-    this.requestURI = other.requestURI;
+    this.uri = other.uri;
     this.headers = other.headers != null ? new CaseInsensitiveHeaders().addAll(other.headers) : null;
+    this.params = other.params != null ? new CaseInsensitiveHeaders().addAll(other.params) : null;
   }
 
   @Override
@@ -81,8 +84,9 @@ class HttpRequestImpl implements HttpRequest {
   }
 
   @Override
-  public HttpRequest requestURI(String value) {
-    requestURI = value;
+  public HttpRequest uri(String value) {
+    uri = value;
+    params = null;
     return this;
   }
 
@@ -98,6 +102,20 @@ class HttpRequestImpl implements HttpRequest {
   public HttpRequest timeout(long value) {
     timeout = value;
     return this;
+  }
+
+  @Override
+  public HttpRequest addQueryParam(String paramName, String paramValue) {
+    queryParams().add(paramName, paramValue);
+    return this;
+  }
+
+  @Override
+  public MultiMap queryParams() {
+    if (params == null) {
+      params = new CaseInsensitiveHeaders();
+    }
+    return params;
   }
 
   @Override
@@ -191,6 +209,24 @@ class HttpRequestImpl implements HttpRequest {
   private void perform(String contentType, Object body, Handler<AsyncResult<HttpClientResponse>> handler) {
     Future<HttpClientResponse> fut = Future.future();
     HttpClientRequest req;
+    String requestURI;
+    if (params != null && params.size() > 0 && !uri.equals("*")) {
+      if (uri.indexOf('?') > 0) {
+        QueryStringEncoder enc = new QueryStringEncoder("");
+        params.forEach(param -> {
+          enc.addParam(param.getKey(), param.getValue());
+        });
+        requestURI = uri + "&" + enc.toString().substring(1);
+      } else {
+        QueryStringEncoder enc = new QueryStringEncoder(uri);
+        params.forEach(param -> {
+          enc.addParam(param.getKey(), param.getValue());
+        });
+        requestURI = enc.toString();
+      }
+    } else {
+      requestURI = uri;
+    }
     if (port != -1) {
       req = client.request(method, port, host, requestURI);
     } else {

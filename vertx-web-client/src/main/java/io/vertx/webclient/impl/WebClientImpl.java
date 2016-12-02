@@ -142,14 +142,14 @@ public class WebClientImpl implements WebClient {
 
   public HttpRequest request(HttpMethod method, String requestURI) {
     HttpRequestImpl request = new HttpRequestImpl(client, method);
-    request.requestURI = requestURI;
+    request.uri = requestURI;
     return request;
   }
 
   public HttpRequest request(HttpMethod method, String host, String requestURI) {
     HttpRequestImpl request = new HttpRequestImpl(client, method);
     request.host = host;
-    request.requestURI = requestURI;
+    request.uri = requestURI;
     return request;
   }
 
@@ -157,7 +157,7 @@ public class WebClientImpl implements WebClient {
     HttpRequestImpl request = new HttpRequestImpl(client, method);
     request.port = port;
     request.host = host;
-    request.requestURI = requestURI;
+    request.uri = requestURI;
     return request;
   }
 
@@ -172,7 +172,7 @@ public class WebClientImpl implements WebClient {
     HttpRequestImpl request = new HttpRequestImpl(client, method);
     request.port = url.getPort();
     request.host = url.getHost();
-    request.requestURI = url.getFile();
+    request.uri = url.getFile();
     return request;
   }
 }

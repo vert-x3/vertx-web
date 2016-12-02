@@ -53,7 +53,7 @@ module VertxWebClient
       Java::IoVertxWebclient::HttpRequestBuilder.java_class
     end
     #  Configure the builder to use a new method <code>value</code>.
-    # @param [:OPTIONS,:GET,:HEAD,:POST,:PUT,:DELETE,:TRACE,:CONNECT,:PATCH,:OTHER] value 
+    # @param [:OPTIONS,:GET,:HEAD,:POST,:PUT,:DELETE,:TRACE,:CONNECT,:PATCH,:OTHER] value
     # @return [::VertxWebClient::HttpRequestBuilder] a new <code>HttpRequestBuilder</code> instance with the specified method <code>value</code>
     def method(value=nil)
       if value.class == Symbol && !block_given?
@@ -62,7 +62,7 @@ module VertxWebClient
       raise ArgumentError, "Invalid arguments when calling method(#{value})"
     end
     #  Configure the builder to use a new port <code>value</code>.
-    # @param [Fixnum] value 
+    # @param [Fixnum] value
     # @return [::VertxWebClient::HttpRequestBuilder] a new <code>HttpRequestBuilder</code> instance with the specified port <code>value</code>
     def port(value=nil)
       if value.class == Fixnum && !block_given?
@@ -71,7 +71,7 @@ module VertxWebClient
       raise ArgumentError, "Invalid arguments when calling port(#{value})"
     end
     #  Configure the builder to use a new host <code>value</code>.
-    # @param [String] value 
+    # @param [String] value
     # @return [::VertxWebClient::HttpRequestBuilder] a new <code>HttpRequestBuilder</code> instance with the specified host <code>value</code>
     def host(value=nil)
       if value.class == String && !block_given?
@@ -80,11 +80,11 @@ module VertxWebClient
       raise ArgumentError, "Invalid arguments when calling host(#{value})"
     end
     #  Configure the builder to use a new request URI <code>value</code>.
-    # @param [String] value 
+    # @param [String] value
     # @return [::VertxWebClient::HttpRequestBuilder] a new <code>HttpRequestBuilder</code> instance with the specified request URI <code>value</code>
     def request_uri(value=nil)
       if value.class == String && !block_given?
-        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:requestURI, [Java::java.lang.String.java_class]).call(value),::VertxWebClient::HttpRequestBuilder)
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:uri, [Java::java.lang.String.java_class]).call(value), ::VertxWebClient::HttpRequestBuilder)
       end
       raise ArgumentError, "Invalid arguments when calling request_uri(#{value})"
     end
@@ -112,7 +112,7 @@ module VertxWebClient
     end
     #  Like {::VertxWebClient::HttpRequestBuilder#send} but with an HTTP request <code>body</code> stream.
     # @param [::Vertx::ReadStream] body the body
-    # @yield 
+    # @yield
     # @return [void]
     def send_stream(body=nil)
       if body.class.method_defined?(:j_del) && block_given?
@@ -122,7 +122,7 @@ module VertxWebClient
     end
     #  Like {::VertxWebClient::HttpRequestBuilder#send} but with an HTTP request <code>body</code> buffer.
     # @param [::Vertx::Buffer] body the body
-    # @yield 
+    # @yield
     # @return [void]
     def send_buffer(body=nil)
       if body.class.method_defined?(:j_del) && block_given?
@@ -133,7 +133,7 @@ module VertxWebClient
     #  Like {::VertxWebClient::HttpRequestBuilder#send} but with an HTTP request <code>body</code> object encoded as json and the content type
     #  set to <code>application/json</code>.
     # @param [Object] body the body
-    # @yield 
+    # @yield
     # @return [void]
     def send_json(body=nil)
       if ::Vertx::Util::unknown_type.accept?(body) && block_given?
@@ -142,8 +142,8 @@ module VertxWebClient
       raise ArgumentError, "Invalid arguments when calling send_json(#{body})"
     end
     #  Send a request, the <code>handler</code> will receive the response as an .
-    # @param [::VertxWebClient::PayloadCodec] codec 
-    # @yield 
+    # @param [::VertxWebClient::PayloadCodec] codec
+    # @yield
     # @return [void]
     def send(codec=nil)
       if block_given? && codec == nil

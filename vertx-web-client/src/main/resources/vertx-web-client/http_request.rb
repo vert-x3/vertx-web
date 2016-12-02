@@ -1,4 +1,5 @@
 require 'vertx/buffer'
+require 'vertx/multi_map'
 require 'vertx/read_stream'
 require 'vertx-web-client/body_codec'
 require 'vertx-web-client/http_response'
@@ -92,12 +93,12 @@ module VertxWebClient
     #  Configure the request to use a new request URI <code>value</code>.
     # @param [String] value 
     # @return [self]
-    def request_uri(value=nil)
+    def uri(value=nil)
       if value.class == String && !block_given?
-        @j_del.java_method(:requestURI, [Java::java.lang.String.java_class]).call(value)
+        @j_del.java_method(:uri, [Java::java.lang.String.java_class]).call(value)
         return self
       end
-      raise ArgumentError, "Invalid arguments when calling request_uri(#{value})"
+      raise ArgumentError, "Invalid arguments when calling uri(#{value})"
     end
     #  Configure the request to add a new HTTP header.
     # @param [String] name the header name
@@ -122,6 +123,40 @@ module VertxWebClient
         return self
       end
       raise ArgumentError, "Invalid arguments when calling timeout(#{value})"
+    end
+    #  Add a query parameter to the request.
+    #  <p>
+    #  When the <code>uri</code> has already a query string, these parameters will be appended to the existing query string.
+    # @param [String] paramName the param name
+    # @param [String] paramValue the param value
+    # @return [self]
+    def add_query_param(paramName=nil,paramValue=nil)
+      if paramName.class == String && paramValue.class == String && !block_given?
+        @j_del.java_method(:addQueryParam, [Java::java.lang.String.java_class,Java::java.lang.String.java_class]).call(paramName,paramValue)
+        return self
+      end
+      raise ArgumentError, "Invalid arguments when calling add_query_param(#{paramName},#{paramValue})"
+    end
+    #  Return the current query parameters.
+    #  <p>
+    #  When the <code>uri</code> has already a query string, these parameters will be appended to the existing query string.
+    # @return [::Vertx::MultiMap] the current query parameters
+    def query_params
+      if !block_given?
+        if @cached_query_params != nil
+          return @cached_query_params
+        end
+        return @cached_query_params = ::Vertx::Util::Utils.safe_create(@j_del.java_method(:queryParams, []).call(),::Vertx::MultiMap)
+      end
+      raise ArgumentError, "Invalid arguments when calling query_params()"
+    end
+    #  Copy this request
+    # @return [::VertxWebClient::HttpRequest] a copy of this request
+    def copy
+      if !block_given?
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:copy, []).call(),::VertxWebClient::HttpRequest)
+      end
+      raise ArgumentError, "Invalid arguments when calling copy()"
     end
     #  Like {::VertxWebClient::HttpRequest#send} but with an HTTP request <code>body</code> stream.
     # @param [::Vertx::ReadStream] body the body

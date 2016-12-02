@@ -15,10 +15,12 @@
  */
 package io.vertx.webclient;
 
+import io.vertx.codegen.annotations.CacheReturn;
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
+import io.vertx.core.MultiMap;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.streams.ReadStream;
@@ -87,7 +89,7 @@ public interface HttpRequest {
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
-  HttpRequest requestURI(String value);
+  HttpRequest uri(String value);
 
   /**
    * Configure the request to add a new HTTP header.
@@ -110,6 +112,28 @@ public interface HttpRequest {
    */
   @Fluent
   HttpRequest timeout(long value);
+
+  /**
+   * Add a query parameter to the request.
+   * <p>
+   * When the {@code uri} has already a query string, these parameters will be appended to the existing query string.
+   *
+   * @param paramName the param name
+   * @param paramValue the param value
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  HttpRequest addQueryParam(String paramName, String paramValue);
+
+  /**
+   * Return the current query parameters.
+   * <p>
+   * When the {@code uri} has already a query string, these parameters will be appended to the existing query string.
+   *
+   * @return the current query parameters
+   */
+  @CacheReturn
+  MultiMap queryParams();
 
   /**
    * Copy this request
