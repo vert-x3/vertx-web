@@ -86,7 +86,8 @@ public interface HttpRequest {
   /**
    * Configure the request to use a new request URI {@code value}.
    * <p>
-   * When the uri has query parameters, they are set in the {@link #queryParams()} multimap.
+   * When the uri has query parameters, they are set in the {@link #queryParams()} multimap, overwritting
+   * any parameters previously set.
    *
    * @return a reference to this, so the API can be used fluently
    */

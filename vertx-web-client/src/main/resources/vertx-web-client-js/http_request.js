@@ -84,7 +84,8 @@ var HttpRequest = function(j_val) {
   /**
    Configure the request to use a new request URI <code>value</code>.
    <p>
-   When the uri has query parameters, they are set in the {@link HttpRequest#queryParams} multimap.
+   When the uri has query parameters, they are set in the {@link HttpRequest#queryParams} multimap, overwritting
+   any parameters previously set.
 
    @public
    @param value {string} 

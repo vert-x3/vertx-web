@@ -18,7 +18,7 @@ import io.vertx.webclient.WebClient;
 public class WebClientExamples {
 
   public void create(Vertx vertx) {
-    WebClient client = WebClient.create(vertx) ;
+    WebClient client = WebClient.create(vertx);
   }
 
   public void createFromOptions(Vertx vertx) {
@@ -28,7 +28,7 @@ public class WebClientExamples {
 
   public void simpleGetAndHead(Vertx vertx) {
 
-    WebClient client = WebClient.create(vertx) ;
+    WebClient client = WebClient.create(vertx);
 
     // Send a GET request
     client
@@ -59,22 +59,36 @@ public class WebClientExamples {
       });
   }
 
-  public void simpleGets(WebClient client) {
+  public void simpleGetWithParams(WebClient client) {
+    client
+      .get(8080, "myserver.mycompany.com", "/some-uri").addQueryParam("param", "param_value")
+      .send(ar -> {});
+  }
+
+  public void simpleGetWithInitialParams(WebClient client) {
+    HttpRequest request = client.get(8080, "myserver.mycompany.com", "/some-uri?param1=param1_value&param2=param2_value");
+
+    // Add param3
+    request.addQueryParam("param3", "param3_value");
+
+    // Overwrite param2
+    request.setQueryParam("param2", "another_param2_value");
+  }
+
+  public void multiGet(WebClient client) {
     HttpRequest get = client.get(8080, "myserver.mycompany.com", "/some-uri");
-    get.send(ar -> {
-    });
+    get.send(ar -> {});
 
     // Same request again
-    get.send(ar -> {
-    });
+    get.send(ar -> {});
   }
 
   public void sendStream(WebClient client, FileSystem fs) {
     AsyncFile file = fs.openBlocking("content.txt", new OpenOptions());
+
     client
       .get(8080, "localhost", "/something")
-      .sendStream(file, resp -> {
-      });
+      .sendStream(file, resp -> {});
   }
 
   public void bufferBody(WebClient client) {

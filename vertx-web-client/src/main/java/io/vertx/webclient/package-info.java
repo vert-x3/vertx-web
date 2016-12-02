@@ -71,18 +71,41 @@
  * {@link examples.WebClientExamples#simpleGetAndHead}
  * ----
  *
+ * You can add query parameters to the request URI in a fluent fashion:
+ *
+ * [source,java]
+ * ----
+ * {@link examples.WebClientExamples#simpleGetWithParams(io.vertx.webclient.WebClient)}
+ * ----
+ *
+ * Any request URI parameter will pre-populate the request:
+ *
+ * [source,java]
+ * ----
+ * {@link examples.WebClientExamples#simpleGetWithInitialParams(io.vertx.webclient.WebClient)}
+ * ----
+ *
+ * === Requests with a body
+ *
+ * todo : show how to send a buffer or stream buffers
+ *
+ * ==== Sending json
+ *
+ * ==== Sending forms
+ *
+ * === Reusing requests
+ *
  * The {@link io.vertx.webclient.HttpRequest#send(io.vertx.core.Handler)} method can be called multiple times
  * safely, making it very easy to configure http requests and reuse them:
  *
  * [source,java]
  * ----
- * {@link examples.WebClientExamples#simpleGets(io.vertx.webclient.WebClient)}
+ * {@link examples.WebClientExamples#multiGet(io.vertx.webclient.WebClient)}
  * ----
  *
- * Further more, the {@link io.vertx.webclient.HttpRequest} instance is copied before any mutation, so it can
- * be mutated safely for further customization:
+ * === Decoding responses
  *
- * Todo : make example with params ?
+ * todo
  *
  */
 @Document(fileName = "index.adoc")

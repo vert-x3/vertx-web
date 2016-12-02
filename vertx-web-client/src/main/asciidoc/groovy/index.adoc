@@ -104,22 +104,45 @@ client.head(8080, "myserver.mycompany.com", "/some-uri").send({ ar ->
 
 ----
 
+You can add query parameters to the request URI in a fluent fashion:
+
+[source,java]
+----
+Code not translatable
+----
+
+Any request URI parameter will pre-populate the request:
+
+[source,java]
+----
+def request = client.get(8080, "myserver.mycompany.com", "/some-uri?param1=param1_value&param2=param2_value")
+
+// Add param3
+request.addQueryParam("param3", "param3_value")
+
+// Overwrite param2
+request.setQueryParam("param2", "another_param2_value")
+
+----
+
+=== Requests with a body
+
+todo : show how to send a buffer or stream buffers
+
+==== Sending json
+
+==== Sending forms
+
+=== Reusing requests
+
 The `link:../../apidocs/io/vertx/webclient/HttpRequest.html#send-io.vertx.core.Handler-[send]` method can be called multiple times
 safely, making it very easy to configure http requests and reuse them:
 
 [source,java]
 ----
-def get = client.get(8080, "myserver.mycompany.com", "/some-uri")
-get.send({ ar ->
-})
-
-// Same request again
-get.send({ ar ->
-})
-
+Code not translatable
 ----
 
-Further more, the `link:../../apidocs/io/vertx/webclient/HttpRequest.html[HttpRequest]` instance is copied before any mutation, so it can
-be mutated safely for further customization:
+=== Decoding responses
 
-Todo : make example with params ?
+todo

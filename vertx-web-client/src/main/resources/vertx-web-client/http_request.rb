@@ -92,7 +92,8 @@ module VertxWebClient
     end
     #  Configure the request to use a new request URI <code>value</code>.
     #  <p>
-    #  When the uri has query parameters, they are set in the {::VertxWebClient::HttpRequest#query_params} multimap.
+    #  When the uri has query parameters, they are set in the {::VertxWebClient::HttpRequest#query_params} multimap, overwritting
+    #  any parameters previously set.
     # @param [String] value 
     # @return [self]
     def uri(value=nil)
