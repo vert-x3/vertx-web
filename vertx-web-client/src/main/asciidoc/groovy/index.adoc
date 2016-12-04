@@ -149,11 +149,9 @@ todo
 
 === RxJava API
 
-The RxJava `HttpRequest` provides an augmented versions of the original API,
-the `rxSend()` method returns a `Single<HttpResponse<Buffer>>`:
-
-* the HTTP request is sent upon subscription of the `Single`
-* the `Single` can be subscribed many times
+The RxJava `link:../../apidocs/io/vertx/rxjava/webclient/HttpRequest.html[HttpRequest]` provides an rx-ified version of the original API,
+the `link:../../apidocs/io/vertx/rxjava/webclient/HttpRequest.html#rxSend--[rxSend]` method returns a `Single<HttpResponse<Buffer>>` that
+makes the HTTP request upon subscription, as consequence, the `Single` can be subscribed many times.
 
 [source,java]
 ----

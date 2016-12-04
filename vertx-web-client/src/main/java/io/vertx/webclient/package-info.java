@@ -109,11 +109,9 @@
  *
  * === RxJava API
  *
- * The RxJava {@code HttpRequest} provides an augmented versions of the original API,
- * the {@code rxSend()} method returns a `Single<HttpResponse<Buffer>>`:
- *
- * * the HTTP request is sent upon subscription of the {@code Single}
- * * the {@code Single} can be subscribed many times
+ * The RxJava {@link io.vertx.rxjava.webclient.HttpRequest} provides an rx-ified version of the original API,
+ * the {@link io.vertx.rxjava.webclient.HttpRequest#rxSend()} method returns a `Single<HttpResponse<Buffer>>` that
+ * makes the HTTP request upon subscription, as consequence, the {@code Single} can be subscribed many times.
  *
  * [source,java]
  * ----
