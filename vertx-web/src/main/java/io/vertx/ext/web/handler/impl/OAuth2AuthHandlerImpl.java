@@ -54,11 +54,6 @@ public class OAuth2AuthHandlerImpl extends AuthHandlerImpl implements OAuth2Auth
 
   @Override
   public void handle(RoutingContext ctx) {
-    if (host == null) {
-      ctx.fail(new RuntimeException("Callback is not configured!"));
-      return;
-    }
-
     User user = ctx.user();
     if (user != null) {
       // Already authenticated.
