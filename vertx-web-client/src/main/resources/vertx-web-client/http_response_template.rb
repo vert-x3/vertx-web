@@ -53,7 +53,7 @@ module VertxWebClient
     # @return [void]
     def send_json(body=nil)
       if ::Vertx::Util::unknown_type.accept?(body) && block_given?
-        return @j_del.java_method(:sendJson, [Java::java.lang.Object.java_class,Java::IoVertxCore::Handler.java_class]).call(::Vertx::Util::Utils.to_object(body),(Proc.new { |ar| yield(ar.failed ? ar.cause : nil, ar.succeeded ? ::Vertx::Util::Utils.safe_create(ar.result,::VertxWebClient::HttpResponse, nil) : nil) }))
+        return @j_del.java_method(:sendJsonPOJO, [Java::java.lang.Object.java_class, Java::IoVertxCore::Handler.java_class]).call(::Vertx::Util::Utils.to_object(body), (Proc.new { |ar| yield(ar.failed ? ar.cause : nil, ar.succeeded ? ::Vertx::Util::Utils.safe_create(ar.result, ::VertxWebClient::HttpResponse, nil) : nil) }))
       end
       raise ArgumentError, "Invalid arguments when calling send_json(#{body})"
     end

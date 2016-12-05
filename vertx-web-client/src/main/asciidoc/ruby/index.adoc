@@ -264,11 +264,89 @@ get.send() { |ar_err,ar|
 
 == Handling http responses
 
-todo
+When the web client sends a request you always deal with a single async result response.
+
+On a success result the callback happens after the response has been fully received.
+
+[source,java]
+----
+client.get(8080, "myserver.mycompany.com", "/some-uri").send() { |ar_err,ar|
+  if (ar_err == nil)
+    response = ar
+    puts "Received response with status code#{response.status_code()}"
+  else
+    puts "Something went wrong #{ar_err.get_message()}"
+  end
+}
+
+----
 
 === Decoding responses
 
-todo
+By default the web client provides an http response body as a `Buffer` and does not apply
+any decoding.
+
+Custom response body decoding can be achieved using `link:../../yardoc/VertxWebClient/BodyCodec.html[BodyCodec]`:
+
+* Plain String
+* Json object
+* Json mapped POJO
+* WriteStream
+
+A body codec can decode an arbitrary binary data stream into a specific object instance, saving you the decoding
+step in your response handlers.
+
+Use `link:../../yardoc/VertxWebClient/BodyCodec.html#json_object-class_method[BodyCodec.jsonObject]` To decode a Json object:
+
+[source,java]
+----
+require 'vertx-web-client/body_codec'
+client.get(8080, "localhost", "/something").send(VertxWebClient::BodyCodec.json_object()) { |ar_err,ar|
+  if (ar_err == nil)
+    response = ar
+    body = response.body()
+    puts "Received response with status code#{response.status_code()} with body #{body}"
+  else
+    puts "Something went wrong #{ar_err.get_message()}"
+  end
+}
+
+----
+
+Custom Json mapped POJO can be decoded as well:
+
+[source,java]
+----
+require 'vertx-web-client/body_codec'
+client.get(8080, "localhost", "/something").send(VertxWebClient::BodyCodec.json(Java::ExamplesWebClientExamples::User::class)) { |ar_err,ar|
+  if (ar_err == nil)
+    response = ar
+    user = response.body()
+    puts "Received response with status code#{response.status_code()} with body #{user.get_first_name()} #{user.get_last_name()}"
+  else
+    puts "Something went wrong #{ar_err.get_message()}"
+  end
+}
+
+----
+
+You can use the `link:../../yardoc/VertxWebClient/BodyCodec.html#stream-class_method[BodyCodec.stream]` when large response are
+expected. This body codec pumps the response buffers to a `link:../../yardoc/Vertx/WriteStream.html[WriteStream]`
+and signals the success or the failure of the operation in the async result response:
+
+[source,java]
+----
+require 'vertx-web-client/body_codec'
+client.get(8080, "localhost", "/something").send(VertxWebClient::BodyCodec.stream(writeStream)) { |ar_err,ar|
+  if (ar_err == nil)
+    response = ar
+    puts "Received response with status code#{response.status_code()}"
+  else
+    puts "Something went wrong #{ar_err.get_message()}"
+  end
+}
+
+----
 
 === RxJava API
 

@@ -133,7 +133,7 @@
  *
  * [source,java]
  * ----
- * {@link examples.WebClientExamples#sendJson(io.vertx.webclient.WebClient)}
+ * {@link examples.WebClientExamples#sendJsonPOJO(io.vertx.webclient.WebClient)}
  * ----
  *
  * NOTE: the {@link io.vertx.core.json.Json#encode(java.lang.Object)} uses the Jackson mapper to encode the object
@@ -170,11 +170,52 @@
  *
  * == Handling http responses
  *
- * todo
+ * When the web client sends a request you always deal with a single async result response.
+ *
+ * On a success result the callback happens after the response has been fully received.
+ *
+ * [source,java]
+ * ----
+ * {@link examples.WebClientExamples#receiveResponse(io.vertx.webclient.WebClient)}
+ * ----
  *
  * === Decoding responses
  *
- * todo
+ * By default the web client provides an http response body as a {@code Buffer} and does not apply
+ * any decoding.
+ *
+ * Custom response body decoding can be achieved using {@link io.vertx.webclient.BodyCodec}:
+ *
+ * * Plain String
+ * * Json object
+ * * Json mapped POJO
+ * * WriteStream
+ *
+ * A body codec can decode an arbitrary binary data stream into a specific object instance, saving you the decoding
+ * step in your response handlers.
+ *
+ * Use {@link io.vertx.webclient.BodyCodec#jsonObject()} To decode a Json object:
+ *
+ * [source,java]
+ * ----
+ * {@link examples.WebClientExamples#receiveResponseAsJsonObject(io.vertx.webclient.WebClient)}
+ * ----
+ *
+ * Custom Json mapped POJO can be decoded as well:
+ *
+ * [source,java]
+ * ----
+ * {@link examples.WebClientExamples#receiveResponseAsJsonPOJO(io.vertx.webclient.WebClient)}
+ * ----
+ *
+ * You can use the {@link io.vertx.webclient.BodyCodec#stream(io.vertx.core.streams.WriteStream)} when large response are
+ * expected. This body codec pumps the response buffers to a {@link io.vertx.core.streams.WriteStream}
+ * and signals the success or the failure of the operation in the async result response:
+ *
+ * [source,java]
+ * ----
+ * {@link examples.WebClientExamples#receiveResponseAsWriteStream(io.vertx.webclient.WebClient, io.vertx.core.streams.WriteStream)}
+ * ----
  *
  * === RxJava API
  *

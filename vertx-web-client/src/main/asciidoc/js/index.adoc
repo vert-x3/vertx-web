@@ -264,11 +264,89 @@ get.send(function (ar, ar_err) {
 
 == Handling http responses
 
-todo
+When the web client sends a request you always deal with a single async result response.
+
+On a success result the callback happens after the response has been fully received.
+
+[source,java]
+----
+client.get(8080, "myserver.mycompany.com", "/some-uri").send(function (ar, ar_err) {
+  if (ar_err == null) {
+    var response = ar;
+    console.log("Received response with status code" + response.statusCode());
+  } else {
+    console.log("Something went wrong " + ar_err.getMessage());
+  }
+});
+
+----
 
 === Decoding responses
 
-todo
+By default the web client provides an http response body as a `Buffer` and does not apply
+any decoding.
+
+Custom response body decoding can be achieved using `link:../../jsdoc/module-vertx-web-client-js_body_codec-BodyCodec.html[BodyCodec]`:
+
+* Plain String
+* Json object
+* Json mapped POJO
+* WriteStream
+
+A body codec can decode an arbitrary binary data stream into a specific object instance, saving you the decoding
+step in your response handlers.
+
+Use `link:../../jsdoc/module-vertx-web-client-js_body_codec-BodyCodec.html#jsonObject[BodyCodec.jsonObject]` To decode a Json object:
+
+[source,java]
+----
+var BodyCodec = require("vertx-web-client-js/body_codec");
+client.get(8080, "localhost", "/something").send(BodyCodec.jsonObject(), function (ar, ar_err) {
+  if (ar_err == null) {
+    var response = ar;
+    var body = response.body();
+    console.log("Received response with status code" + response.statusCode() + " with body " + body);
+  } else {
+    console.log("Something went wrong " + ar_err.getMessage());
+  }
+});
+
+----
+
+Custom Json mapped POJO can be decoded as well:
+
+[source,java]
+----
+var BodyCodec = require("vertx-web-client-js/body_codec");
+client.get(8080, "localhost", "/something").send(BodyCodec.json(Java.type("examples.WebClientExamples.User").class), function (ar, ar_err) {
+  if (ar_err == null) {
+    var response = ar;
+    var user = response.body();
+    console.log("Received response with status code" + response.statusCode() + " with body " + user.getFirstName() + " " + user.getLastName());
+  } else {
+    console.log("Something went wrong " + ar_err.getMessage());
+  }
+});
+
+----
+
+You can use the `link:../../jsdoc/module-vertx-web-client-js_body_codec-BodyCodec.html#stream[BodyCodec.stream]` when large response are
+expected. This body codec pumps the response buffers to a `link:../../jsdoc/module-vertx-js_write_stream-WriteStream.html[WriteStream]`
+and signals the success or the failure of the operation in the async result response:
+
+[source,java]
+----
+var BodyCodec = require("vertx-web-client-js/body_codec");
+client.get(8080, "localhost", "/something").send(BodyCodec.stream(writeStream), function (ar, ar_err) {
+  if (ar_err == null) {
+    var response = ar;
+    console.log("Received response with status code" + response.statusCode());
+  } else {
+    console.log("Something went wrong " + ar_err.getMessage());
+  }
+});
+
+----
 
 === RxJava API
 

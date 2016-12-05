@@ -137,7 +137,7 @@ module VertxWebClient
     # @return [void]
     def send_json(body=nil)
       if ::Vertx::Util::unknown_type.accept?(body) && block_given?
-        return @j_del.java_method(:sendJson, [Java::java.lang.Object.java_class,Java::IoVertxCore::Handler.java_class]).call(::Vertx::Util::Utils.to_object(body),(Proc.new { |ar| yield(ar.failed ? ar.cause : nil, ar.succeeded ? ::Vertx::Util::Utils.safe_create(ar.result,::VertxWebClient::HttpResponse, nil) : nil) }))
+        return @j_del.java_method(:sendJsonPOJO, [Java::java.lang.Object.java_class, Java::IoVertxCore::Handler.java_class]).call(::Vertx::Util::Utils.to_object(body), (Proc.new { |ar| yield(ar.failed ? ar.cause : nil, ar.succeeded ? ::Vertx::Util::Utils.safe_create(ar.result, ::VertxWebClient::HttpResponse, nil) : nil) }))
       end
       raise ArgumentError, "Invalid arguments when calling send_json(#{body})"
     end
@@ -155,7 +155,7 @@ module VertxWebClient
     # @return [::VertxWebClient::HttpResponseTemplate]
     def buffer_body
       if !block_given?
-        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:bufferBody, []).call(),::VertxWebClient::HttpResponseTemplate,::Vertx::Buffer.j_api_type)
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:receiveBody, []).call(), ::VertxWebClient::HttpResponseTemplate, ::Vertx::Buffer.j_api_type)
       end
       raise ArgumentError, "Invalid arguments when calling buffer_body()"
     end

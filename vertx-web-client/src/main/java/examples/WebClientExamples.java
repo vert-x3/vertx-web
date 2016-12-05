@@ -9,6 +9,7 @@ import io.vertx.core.file.OpenOptions;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.streams.ReadStream;
+import io.vertx.core.streams.WriteStream;
 import io.vertx.webclient.BodyCodec;
 import io.vertx.webclient.HttpRequest;
 import io.vertx.webclient.HttpResponse;
@@ -148,9 +149,15 @@ public class WebClientExamples {
       this.firstName = firstName;
       this.lastName = lastName;
     }
+    public String getFirstName() {
+      return firstName;
+    }
+    public String getLastName() {
+      return lastName;
+    }
   }
 
-  public void sendJson(WebClient client) {
+  public void sendJsonPOJO(WebClient client) {
     client
       .post(8080, "myserver.mycompany.com", "/some-uri")
       .sendJson(new User("Dale", "Cooper"), ar -> {
@@ -173,24 +180,57 @@ public class WebClientExamples {
     request.putHeader("other-header", "foo");
   }
 
-  public void bufferBody(WebClient client) {
+  public void receiveResponse(WebClient client) {
     client
-      .get(8080, "localhost", "/something")
+      .get(8080, "myserver.mycompany.com", "/some-uri")
       .send(ar -> {
         if (ar.succeeded()) {
-          HttpResponse<Buffer> resp = ar.result();
-          JsonObject body = resp.bodyAsJsonObject();
+          HttpResponse<Buffer> response = ar.result();
+          System.out.println("Received response with status code" + response.statusCode());
+        } else {
+          System.out.println("Something went wrong " + ar.cause().getMessage());
         }
       });
   }
 
-  public void bufferBodyDecodeAsJsonObject(WebClient client) {
+  public void receiveResponseAsJsonObject(WebClient client) {
     client
       .get(8080, "localhost", "/something")
       .send(BodyCodec.jsonObject(), ar -> {
         if (ar.succeeded()) {
-          HttpResponse<JsonObject> resp = ar.result();
-          JsonObject body = resp.body();
+          HttpResponse<JsonObject> response = ar.result();
+          JsonObject body = response.body();
+          System.out.println("Received response with status code" + response.statusCode() + " with body " + body);
+        } else {
+          System.out.println("Something went wrong " + ar.cause().getMessage());
+        }
+      });
+  }
+
+  public void receiveResponseAsJsonPOJO(WebClient client) {
+    client
+      .get(8080, "localhost", "/something")
+      .send(BodyCodec.json(User.class), ar -> {
+        if (ar.succeeded()) {
+          HttpResponse<User> response = ar.result();
+          User user = response.body();
+          System.out.println("Received response with status code" + response.statusCode() + " with body " +
+            user.getFirstName() + " " + user.getLastName());
+        } else {
+          System.out.println("Something went wrong " + ar.cause().getMessage());
+        }
+      });
+  }
+
+  public void receiveResponseAsWriteStream(WebClient client, WriteStream<Buffer> writeStream) {
+    client
+      .get(8080, "localhost", "/something")
+      .send(BodyCodec.stream(writeStream), ar -> {
+        if (ar.succeeded()) {
+          HttpResponse<Void> response = ar.result();
+          System.out.println("Received response with status code" + response.statusCode());
+        } else {
+          System.out.println("Something went wrong " + ar.cause().getMessage());
         }
       });
   }

@@ -259,11 +259,91 @@ get.send(ar -> {
 
 == Handling http responses
 
-todo
+When the web client sends a request you always deal with a single async result response.
+
+On a success result the callback happens after the response has been fully received.
+
+[source,java]
+----
+client
+  .get(8080, "myserver.mycompany.com", "/some-uri")
+  .send(ar -> {
+    if (ar.succeeded()) {
+      HttpResponse<Buffer> response = ar.result();
+      System.out.println("Received response with status code" + response.statusCode());
+    } else {
+      System.out.println("Something went wrong " + ar.cause().getMessage());
+    }
+  });
+----
 
 === Decoding responses
 
-todo
+By default the web client provides an http response body as a `Buffer` and does not apply
+any decoding.
+
+Custom response body decoding can be achieved using `link:../../apidocs/io/vertx/webclient/BodyCodec.html[BodyCodec]`:
+
+* Plain String
+* Json object
+* Json mapped POJO
+* WriteStream
+
+A body codec can decode an arbitrary binary data stream into a specific object instance, saving you the decoding
+step in your response handlers.
+
+Use `link:../../apidocs/io/vertx/webclient/BodyCodec.html#jsonObject--[BodyCodec.jsonObject]` To decode a Json object:
+
+[source,java]
+----
+client
+  .get(8080, "localhost", "/something")
+  .send(BodyCodec.jsonObject(), ar -> {
+    if (ar.succeeded()) {
+      HttpResponse<JsonObject> response = ar.result();
+      JsonObject body = response.body();
+      System.out.println("Received response with status code" + response.statusCode() + " with body " + body);
+    } else {
+      System.out.println("Something went wrong " + ar.cause().getMessage());
+    }
+  });
+----
+
+Custom Json mapped POJO can be decoded as well:
+
+[source,java]
+----
+client
+  .get(8080, "localhost", "/something")
+  .send(BodyCodec.json(User.class), ar -> {
+    if (ar.succeeded()) {
+      HttpResponse<User> response = ar.result();
+      User user = response.body();
+      System.out.println("Received response with status code" + response.statusCode() + " with body " +
+        user.getFirstName() + " " + user.getLastName());
+    } else {
+      System.out.println("Something went wrong " + ar.cause().getMessage());
+    }
+  });
+----
+
+You can use the `link:../../apidocs/io/vertx/webclient/BodyCodec.html#stream-io.vertx.core.streams.WriteStream-[BodyCodec.stream]` when large response are
+expected. This body codec pumps the response buffers to a `link:../../apidocs/io/vertx/core/streams/WriteStream.html[WriteStream]`
+and signals the success or the failure of the operation in the async result response:
+
+[source,java]
+----
+client
+  .get(8080, "localhost", "/something")
+  .send(BodyCodec.stream(writeStream), ar -> {
+    if (ar.succeeded()) {
+      HttpResponse<Void> response = ar.result();
+      System.out.println("Received response with status code" + response.statusCode());
+    } else {
+      System.out.println("Something went wrong " + ar.cause().getMessage());
+    }
+  });
+----
 
 === RxJava API
 
