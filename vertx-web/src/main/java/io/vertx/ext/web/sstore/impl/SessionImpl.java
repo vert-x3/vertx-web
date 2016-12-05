@@ -54,7 +54,7 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
 
   private String id;
   private long timeout;
-  private Map<String, Object> data;
+  private volatile Map<String, Object> data;
   private long lastAccessed;
   private int version;
   // state management
@@ -215,55 +215,58 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
 
   private Buffer writeDataToBuffer() {
     try {
-      Map<String, Object> data = getData();
       Buffer buffer = Buffer.buffer();
-      buffer.appendInt(data.size());
-      for (Map.Entry<String, Object> entry : data.entrySet()) {
-        String key = entry.getKey();
-        byte[] keyBytes = key.getBytes(UTF8);
-        buffer.appendInt(keyBytes.length).appendBytes(keyBytes);
-        Object val = entry.getValue();
-        if (val instanceof Long) {
-          buffer.appendByte(TYPE_LONG).appendLong((long) val);
-        } else if (val instanceof Integer) {
-          buffer.appendByte(TYPE_INT).appendInt((int) val);
-        } else if (val instanceof Short) {
-          buffer.appendByte(TYPE_SHORT).appendShort((short) val);
-        } else if (val instanceof Byte) {
-          buffer.appendByte(TYPE_BYTE).appendByte((byte) val);
-        } else if (val instanceof Double) {
-          buffer.appendByte(TYPE_DOUBLE).appendDouble((double) val);
-        } else if (val instanceof Float) {
-          buffer.appendByte(TYPE_FLOAT).appendFloat((float) val);
-        } else if (val instanceof Character) {
-          buffer.appendByte(TYPE_CHAR).appendShort((short) ((Character) val).charValue());
-        } else if (val instanceof Boolean) {
-          buffer.appendByte(TYPE_BOOLEAN).appendByte((byte) ((boolean) val ? 1 : 0));
-        } else if (val instanceof String) {
-          byte[] bytes = ((String) val).getBytes(UTF8);
-          buffer.appendByte(TYPE_STRING).appendInt(bytes.length).appendBytes(bytes);
-        } else if (val instanceof Buffer) {
-          Buffer buff = (Buffer) val;
-          buffer.appendByte(TYPE_BUFFER).appendInt(buff.length()).appendBuffer(buff);
-        } else if (val instanceof byte[]) {
-          byte[] bytes = (byte[]) val;
-          buffer.appendByte(TYPE_BYTES).appendInt(bytes.length).appendBytes(bytes);
-        } else if (val instanceof Serializable) {
-          ByteArrayOutputStream baos = new ByteArrayOutputStream();
-          ObjectOutputStream oos = new ObjectOutputStream(new BufferedOutputStream(baos));
-          oos.writeObject(val);
-          oos.flush();
-          byte[] bytes = baos.toByteArray();
-          buffer.appendByte(TYPE_SERIALIZABLE).appendInt(bytes.length).appendBytes(bytes);
-        } else if (val instanceof ClusterSerializable) {
-          buffer.appendByte(TYPE_CLUSTER_SERIALIZABLE);
-          String className = val.getClass().getName();
-          byte[] classNameBytes = className.getBytes(UTF8);
-          buffer.appendInt(classNameBytes.length).appendBytes(classNameBytes);
-          ((ClusterSerializable) val).writeToBuffer(buffer);
-        } else {
-          if (val != null) {
-            throw new IllegalStateException("Invalid type for data in session: " + val.getClass());
+      if (data == null) {
+        buffer.appendInt(0);
+      } else {
+        buffer.appendInt(data.size());
+        for (Map.Entry<String, Object> entry : data.entrySet()) {
+          String key = entry.getKey();
+          byte[] keyBytes = key.getBytes(UTF8);
+          buffer.appendInt(keyBytes.length).appendBytes(keyBytes);
+          Object val = entry.getValue();
+          if (val instanceof Long) {
+            buffer.appendByte(TYPE_LONG).appendLong((long) val);
+          } else if (val instanceof Integer) {
+            buffer.appendByte(TYPE_INT).appendInt((int) val);
+          } else if (val instanceof Short) {
+            buffer.appendByte(TYPE_SHORT).appendShort((short) val);
+          } else if (val instanceof Byte) {
+            buffer.appendByte(TYPE_BYTE).appendByte((byte) val);
+          } else if (val instanceof Double) {
+            buffer.appendByte(TYPE_DOUBLE).appendDouble((double) val);
+          } else if (val instanceof Float) {
+            buffer.appendByte(TYPE_FLOAT).appendFloat((float) val);
+          } else if (val instanceof Character) {
+            buffer.appendByte(TYPE_CHAR).appendShort((short) ((Character) val).charValue());
+          } else if (val instanceof Boolean) {
+            buffer.appendByte(TYPE_BOOLEAN).appendByte((byte) ((boolean) val ? 1 : 0));
+          } else if (val instanceof String) {
+            byte[] bytes = ((String) val).getBytes(UTF8);
+            buffer.appendByte(TYPE_STRING).appendInt(bytes.length).appendBytes(bytes);
+          } else if (val instanceof Buffer) {
+            Buffer buff = (Buffer) val;
+            buffer.appendByte(TYPE_BUFFER).appendInt(buff.length()).appendBuffer(buff);
+          } else if (val instanceof byte[]) {
+            byte[] bytes = (byte[]) val;
+            buffer.appendByte(TYPE_BYTES).appendInt(bytes.length).appendBytes(bytes);
+          } else if (val instanceof Serializable) {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ObjectOutputStream oos = new ObjectOutputStream(new BufferedOutputStream(baos));
+            oos.writeObject(val);
+            oos.flush();
+            byte[] bytes = baos.toByteArray();
+            buffer.appendByte(TYPE_SERIALIZABLE).appendInt(bytes.length).appendBytes(bytes);
+          } else if (val instanceof ClusterSerializable) {
+            buffer.appendByte(TYPE_CLUSTER_SERIALIZABLE);
+            String className = val.getClass().getName();
+            byte[] classNameBytes = className.getBytes(UTF8);
+            buffer.appendInt(classNameBytes.length).appendBytes(classNameBytes);
+            ((ClusterSerializable) val).writeToBuffer(buffer);
+          } else {
+            if (val != null) {
+              throw new IllegalStateException("Invalid type for data in session: " + val.getClass());
+            }
           }
         }
       }
@@ -277,94 +280,96 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
     try {
       int entries = buffer.getInt(pos);
       pos += 4;
-      data = new ConcurrentHashMap<>(entries);
-      for (int i = 0; i < entries; i++) {
-        int keylen = buffer.getInt(pos);
-        pos += 4;
-        byte[] keyBytes = buffer.getBytes(pos, pos + keylen);
-        pos += keylen;
-        String key = new String(keyBytes, UTF8);
-        byte type = buffer.getByte(pos++);
-        Object val;
-        switch (type) {
-          case TYPE_LONG:
-            val = buffer.getLong(pos);
-            pos += 8;
-            break;
-          case TYPE_INT:
-            val = buffer.getInt(pos);
-            pos += 4;
-            break;
-          case TYPE_SHORT:
-            val = buffer.getShort(pos);
-            pos += 2;
-            break;
-          case TYPE_BYTE:
-            val = buffer.getByte(pos);
-            pos++;
-            break;
-          case TYPE_FLOAT:
-            val = buffer.getFloat(pos);
-            pos += 4;
-            break;
-          case TYPE_DOUBLE:
-            val = buffer.getDouble(pos);
-            pos += 8;
-            break;
-          case TYPE_CHAR:
-            short s = buffer.getShort(pos);
-            pos += 2;
-            val = (char) s;
-            break;
-          case TYPE_BOOLEAN:
-            byte b = buffer.getByte(pos);
-            pos++;
-            val = b == 1;
-            break;
-          case TYPE_STRING:
-            int len = buffer.getInt(pos);
-            pos += 4;
-            byte[] bytes = buffer.getBytes(pos, pos + len);
-            val = new String(bytes, UTF8);
-            pos += len;
-            break;
-          case TYPE_BUFFER:
-            len = buffer.getInt(pos);
-            pos += 4;
-            bytes = buffer.getBytes(pos, pos + len);
-            val = Buffer.buffer(bytes);
-            pos += len;
-            break;
-          case TYPE_BYTES:
-            len = buffer.getInt(pos);
-            pos += 4;
-            val = buffer.getBytes(pos, pos + len);
-            pos += len;
-            break;
-          case TYPE_SERIALIZABLE:
-            len = buffer.getInt(pos);
-            pos += 4;
-            bytes = buffer.getBytes(pos, pos + len);
-            ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
-            ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(bais));
-            val = ois.readObject();
-            pos += len;
-            break;
-          case TYPE_CLUSTER_SERIALIZABLE:
-            int classNameLen = buffer.getInt(pos);
-            pos += 4;
-            byte[] classNameBytes = buffer.getBytes(pos, pos + classNameLen);
-            pos += classNameLen;
-            String className = new String(classNameBytes, UTF8);
-            Class clazz = Utils.getClassLoader().loadClass(className);
-            ClusterSerializable obj = (ClusterSerializable) clazz.newInstance();
-            pos = obj.readFromBuffer(pos, buffer);
-            val = obj;
-            break;
-          default:
-            throw new IllegalStateException("Invalid serialized type: " + type);
+      if (entries != 0) {
+        data = new ConcurrentHashMap<>(entries);
+        for (int i = 0; i < entries; i++) {
+          int keylen = buffer.getInt(pos);
+          pos += 4;
+          byte[] keyBytes = buffer.getBytes(pos, pos + keylen);
+          pos += keylen;
+          String key = new String(keyBytes, UTF8);
+          byte type = buffer.getByte(pos++);
+          Object val;
+          switch (type) {
+            case TYPE_LONG:
+              val = buffer.getLong(pos);
+              pos += 8;
+              break;
+            case TYPE_INT:
+              val = buffer.getInt(pos);
+              pos += 4;
+              break;
+            case TYPE_SHORT:
+              val = buffer.getShort(pos);
+              pos += 2;
+              break;
+            case TYPE_BYTE:
+              val = buffer.getByte(pos);
+              pos++;
+              break;
+            case TYPE_FLOAT:
+              val = buffer.getFloat(pos);
+              pos += 4;
+              break;
+            case TYPE_DOUBLE:
+              val = buffer.getDouble(pos);
+              pos += 8;
+              break;
+            case TYPE_CHAR:
+              short s = buffer.getShort(pos);
+              pos += 2;
+              val = (char) s;
+              break;
+            case TYPE_BOOLEAN:
+              byte b = buffer.getByte(pos);
+              pos++;
+              val = b == 1;
+              break;
+            case TYPE_STRING:
+              int len = buffer.getInt(pos);
+              pos += 4;
+              byte[] bytes = buffer.getBytes(pos, pos + len);
+              val = new String(bytes, UTF8);
+              pos += len;
+              break;
+            case TYPE_BUFFER:
+              len = buffer.getInt(pos);
+              pos += 4;
+              bytes = buffer.getBytes(pos, pos + len);
+              val = Buffer.buffer(bytes);
+              pos += len;
+              break;
+            case TYPE_BYTES:
+              len = buffer.getInt(pos);
+              pos += 4;
+              val = buffer.getBytes(pos, pos + len);
+              pos += len;
+              break;
+            case TYPE_SERIALIZABLE:
+              len = buffer.getInt(pos);
+              pos += 4;
+              bytes = buffer.getBytes(pos, pos + len);
+              ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
+              ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(bais));
+              val = ois.readObject();
+              pos += len;
+              break;
+            case TYPE_CLUSTER_SERIALIZABLE:
+              int classNameLen = buffer.getInt(pos);
+              pos += 4;
+              byte[] classNameBytes = buffer.getBytes(pos, pos + classNameLen);
+              pos += classNameLen;
+              String className = new String(classNameBytes, UTF8);
+              Class clazz = Utils.getClassLoader().loadClass(className);
+              ClusterSerializable obj = (ClusterSerializable) clazz.newInstance();
+              pos = obj.readFromBuffer(pos, buffer);
+              val = obj;
+              break;
+            default:
+              throw new IllegalStateException("Invalid serialized type: " + type);
+          }
+          data.put(key, val);
         }
-        data.put(key, val);
       }
       return pos;
     } catch (Exception e) {
