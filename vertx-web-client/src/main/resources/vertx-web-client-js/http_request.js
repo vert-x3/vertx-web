@@ -116,6 +116,22 @@ var HttpRequest = function(j_val) {
   };
 
   /**
+
+   @public
+
+   @return {MultiMap} The HTTP headers
+   */
+  this.headers = function() {
+    var __args = arguments;
+    if (__args.length === 0) {
+      if (that.cachedheaders == null) {
+        that.cachedheaders = utils.convReturnVertxGen(MultiMap, j_httpRequest["headers()"]());
+      }
+      return that.cachedheaders;
+    } else throw new TypeError('function invoked with invalid arguments');
+  };
+
+  /**
    Configures the amount of time in milliseconds after which if the request does not return any data within the timeout
    period an TimeoutException fails the request.
    <p>
@@ -242,6 +258,36 @@ var HttpRequest = function(j_val) {
     });
     }  else if (__args.length === 3 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'object' && __args[1]._jdel && typeof __args[2] === 'function') {
       j_httpRequest["sendBuffer(io.vertx.core.buffer.Buffer,io.vertx.webclient.BodyCodec,io.vertx.core.Handler)"](__args[0]._jdel, __args[1]._jdel, function(ar) {
+      if (ar.succeeded()) {
+        __args[2](utils.convReturnVertxGen(HttpResponse, ar.result(), undefined), null);
+      } else {
+        __args[2](null, ar.cause());
+      }
+    });
+    } else throw new TypeError('function invoked with invalid arguments');
+  };
+
+  /**
+   Like {@link HttpRequest#send} but with an HTTP request <code>body</code> object encoded as json and the content type
+   set to <code>application/json</code>.
+
+   @public
+   @param body {Object} the body 
+   @param responseCodec {BodyCodec} the codec to decode the response 
+   @param handler {function} 
+   */
+  this.sendJsonObject = function() {
+    var __args = arguments;
+    if (__args.length === 2 && (typeof __args[0] === 'object' && __args[0] != null) && typeof __args[1] === 'function') {
+      j_httpRequest["sendJsonObject(io.vertx.core.json.JsonObject,io.vertx.core.Handler)"](utils.convParamJsonObject(__args[0]), function(ar) {
+      if (ar.succeeded()) {
+        __args[1](utils.convReturnVertxGen(HttpResponse, ar.result(), Buffer._jtype), null);
+      } else {
+        __args[1](null, ar.cause());
+      }
+    });
+    }  else if (__args.length === 3 && (typeof __args[0] === 'object' && __args[0] != null) && typeof __args[1] === 'object' && __args[1]._jdel && typeof __args[2] === 'function') {
+      j_httpRequest["sendJsonObject(io.vertx.core.json.JsonObject,io.vertx.webclient.BodyCodec,io.vertx.core.Handler)"](utils.convParamJsonObject(__args[0]), __args[1]._jdel, function(ar) {
       if (ar.succeeded()) {
         __args[2](utils.convReturnVertxGen(HttpResponse, ar.result(), undefined), null);
       } else {

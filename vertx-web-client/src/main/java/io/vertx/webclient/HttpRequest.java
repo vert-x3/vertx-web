@@ -23,6 +23,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.json.JsonObject;
 import io.vertx.core.streams.ReadStream;
 
 /**
@@ -105,6 +106,12 @@ public interface HttpRequest {
   HttpRequest putHeader(String name, String value);
 
   /**
+   * @return The HTTP headers
+   */
+  @CacheReturn
+  MultiMap headers();
+
+  /**
    * Configures the amount of time in milliseconds after which if the request does not return any data within the timeout
    * period an {@link java.util.concurrent.TimeoutException} fails the request.
    * <p>
@@ -179,6 +186,23 @@ public interface HttpRequest {
    * @param responseCodec the codec to decode the response
    */
   <R> void sendBuffer(Buffer body, BodyCodec<R> responseCodec, Handler<AsyncResult<HttpResponse<R>>> handler);
+
+  /**
+   * Like {@link #send(Handler)} but with an HTTP request {@code body} object encoded as json and the content type
+   * set to {@code application/json}.
+   *
+   * @param body the body
+   */
+  void sendJsonObject(JsonObject body, Handler<AsyncResult<HttpResponse<Buffer>>> handler);
+
+  /**
+   * Like {@link #send(BodyCodec, Handler)} but with an HTTP request {@code body} object encoded as json and the content type
+   * set to {@code application/json}.
+   *
+   * @param body the body
+   * @param responseCodec the codec to decode the response
+   */
+  <R> void sendJsonObject(JsonObject body, BodyCodec<R> responseCodec, Handler<AsyncResult<HttpResponse<R>>> handler);
 
   /**
    * Like {@link #send(Handler)} but with an HTTP request {@code body} object encoded as json and the content type

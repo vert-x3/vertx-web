@@ -114,6 +114,16 @@ module VertxWebClient
       end
       raise ArgumentError, "Invalid arguments when calling put_header(#{name},#{value})"
     end
+    # @return [::Vertx::MultiMap] The HTTP headers
+    def headers
+      if !block_given?
+        if @cached_headers != nil
+          return @cached_headers
+        end
+        return @cached_headers = ::Vertx::Util::Utils.safe_create(@j_del.java_method(:headers, []).call(),::Vertx::MultiMap)
+      end
+      raise ArgumentError, "Invalid arguments when calling headers()"
+    end
     #  Configures the amount of time in milliseconds after which if the request does not return any data within the timeout
     #  period an TimeoutException fails the request.
     #  <p>
@@ -190,6 +200,20 @@ module VertxWebClient
         return @j_del.java_method(:sendBuffer, [Java::IoVertxCoreBuffer::Buffer.java_class,Java::IoVertxWebclient::BodyCodec.java_class,Java::IoVertxCore::Handler.java_class]).call(body.j_del,responseCodec.j_del,(Proc.new { |ar| yield(ar.failed ? ar.cause : nil, ar.succeeded ? ::Vertx::Util::Utils.safe_create(ar.result,::VertxWebClient::HttpResponse, nil) : nil) }))
       end
       raise ArgumentError, "Invalid arguments when calling send_buffer(#{body},#{responseCodec})"
+    end
+    #  Like {::VertxWebClient::HttpRequest#send} but with an HTTP request <code>body</code> object encoded as json and the content type
+    #  set to <code>application/json</code>.
+    # @param [Hash{String => Object}] body the body
+    # @param [::VertxWebClient::BodyCodec] responseCodec the codec to decode the response
+    # @yield 
+    # @return [void]
+    def send_json_object(body=nil,responseCodec=nil)
+      if body.class == Hash && block_given? && responseCodec == nil
+        return @j_del.java_method(:sendJsonObject, [Java::IoVertxCoreJson::JsonObject.java_class,Java::IoVertxCore::Handler.java_class]).call(::Vertx::Util::Utils.to_json_object(body),(Proc.new { |ar| yield(ar.failed ? ar.cause : nil, ar.succeeded ? ::Vertx::Util::Utils.safe_create(ar.result,::VertxWebClient::HttpResponse,::Vertx::Buffer.j_api_type) : nil) }))
+      elsif body.class == Hash && responseCodec.class.method_defined?(:j_del) && block_given?
+        return @j_del.java_method(:sendJsonObject, [Java::IoVertxCoreJson::JsonObject.java_class,Java::IoVertxWebclient::BodyCodec.java_class,Java::IoVertxCore::Handler.java_class]).call(::Vertx::Util::Utils.to_json_object(body),responseCodec.j_del,(Proc.new { |ar| yield(ar.failed ? ar.cause : nil, ar.succeeded ? ::Vertx::Util::Utils.safe_create(ar.result,::VertxWebClient::HttpResponse, nil) : nil) }))
+      end
+      raise ArgumentError, "Invalid arguments when calling send_json_object(#{body},#{responseCodec})"
     end
     #  Like {::VertxWebClient::HttpRequest#send} but with an HTTP request <code>body</code> object encoded as json and the content type
     #  set to <code>application/json</code>.

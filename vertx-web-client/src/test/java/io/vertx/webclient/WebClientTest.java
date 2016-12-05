@@ -208,7 +208,7 @@ public class WebClientTest extends HttpTestBase {
   }
 
   @Test
-  public void testSendJsonObjectPojoBody() throws Exception {
+  public void testSendJsonPojoBody() throws Exception {
     testSendBody(new WineAndCheese().setCheese("roquefort").setWine("Chateauneuf Du Pape"),
         (contentType, buff) -> {
           assertEquals("application/json", contentType);
@@ -244,6 +244,10 @@ public class WebClientTest extends HttpTestBase {
     HttpRequest post = client.post(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
     if (body instanceof Buffer) {
       post.sendBuffer((Buffer) body, onSuccess(resp -> {
+        complete();
+      }));
+    } else if (body instanceof JsonObject) {
+      post.sendJsonObject((JsonObject) body, onSuccess(resp -> {
         complete();
       }));
     } else {

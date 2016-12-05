@@ -126,7 +126,7 @@ module VertxWebClient
     # @return [void]
     def send_buffer(body=nil)
       if body.class.method_defined?(:j_del) && block_given?
-        return @j_del.java_method(:sendBuffer, [Java::IoVertxCoreBuffer::Buffer.java_class,Java::IoVertxCore::Handler.java_class]).call(body.j_del,(Proc.new { |ar| yield(ar.failed ? ar.cause : nil, ar.succeeded ? ::Vertx::Util::Utils.safe_create(ar.result,::VertxWebClient::HttpResponse, nil) : nil) }))
+        return @j_del.java_method(:sendBuffer, [Java::IoVertxCoreBuffer::Buffer.java_class, Java::IoVertxCore::Handler.java_class]).call(body.j_del, (Proc.new { |ar| yield(ar.failed ? ar.cause : nil, ar.succeeded ? ::Vertx::Util::Utils.safe_create(ar.result, ::VertxWebClient::HttpResponse, nil) : nil) }))
       end
       raise ArgumentError, "Invalid arguments when calling send_buffer(#{body})"
     end

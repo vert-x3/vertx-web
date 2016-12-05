@@ -1,5 +1,6 @@
 package examples;
 
+import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.file.AsyncFile;
@@ -7,6 +8,7 @@ import io.vertx.core.file.FileSystem;
 import io.vertx.core.file.OpenOptions;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.streams.ReadStream;
 import io.vertx.webclient.BodyCodec;
 import io.vertx.webclient.HttpRequest;
 import io.vertx.webclient.HttpResponse;
@@ -77,18 +79,98 @@ public class WebClientExamples {
 
   public void multiGet(WebClient client) {
     HttpRequest get = client.get(8080, "myserver.mycompany.com", "/some-uri");
-    get.send(ar -> {});
+    get.send(ar -> {
+      if (ar.succeeded()) {
+        // Ok
+      }
+    });
 
     // Same request again
-    get.send(ar -> {});
+    get.send(ar -> {
+      if (ar.succeeded()) {
+        // Ok
+      }
+    });
+  }
+
+  public void sendBuffer(WebClient client, Buffer buffer) {
+    // Send a buffer to the server using POST, the content-length header will be set for you
+    client
+      .post(8080, "myserver.mycompany.com", "/some-uri")
+      .sendBuffer(buffer, ar -> {
+        if (ar.succeeded()) {
+          // Ok
+        }
+      });
   }
 
   public void sendStream(WebClient client, FileSystem fs) {
-    AsyncFile file = fs.openBlocking("content.txt", new OpenOptions());
+    fs.open("content.txt", new OpenOptions(), fileRes -> {
+      if (fileRes.succeeded()) {
+        ReadStream<Buffer> fileStream = fileRes.result();
 
+        String fileLen = "1024";
+
+        // Send the file to the server using POST
+        client
+          .post(8080, "myserver.mycompany.com", "/some-uri")
+          .putHeader("content-length", fileLen)
+          .sendStream(fileStream, ar -> {
+            if (ar.succeeded()) {
+              // Ok
+            }
+          });
+      }
+    });
+  }
+
+  public void sendStreamChunked(WebClient client, ReadStream<Buffer> stream) {
+    // When the stream len is unknown sendStream sends the file to the server using chunked transfer encoding
     client
-      .get(8080, "localhost", "/something")
-      .sendStream(file, resp -> {});
+      .post(8080, "myserver.mycompany.com", "/some-uri")
+      .sendStream(stream, resp -> {});
+  }
+
+  public void sendJsonObject(WebClient client) {
+    client
+      .post(8080, "myserver.mycompany.com", "/some-uri")
+      .sendJsonObject(new JsonObject().put("firstName", "Dale").put("lastName", "Cooper"), ar -> {
+        if (ar.succeeded()) {
+          // Ok
+        }
+      });
+  }
+
+  static class User {
+    String firstName;
+    String lastName;
+    public User(String firstName, String lastName) {
+      this.firstName = firstName;
+      this.lastName = lastName;
+    }
+  }
+
+  public void sendJson(WebClient client) {
+    client
+      .post(8080, "myserver.mycompany.com", "/some-uri")
+      .sendJson(new User("Dale", "Cooper"), ar -> {
+        if (ar.succeeded()) {
+          // Ok
+        }
+      });
+  }
+
+  public void sendHeaders1(WebClient client) {
+    HttpRequest request = client.get(8080, "myserver.mycompany.com", "/some-uri");
+    MultiMap headers = request.headers();
+    headers.set("content-type", "application/json");
+    headers.set("other-header", "foo");
+  }
+
+  public void sendHeaders2(WebClient client) {
+    HttpRequest request = client.get(8080, "myserver.mycompany.com", "/some-uri");
+    request.putHeader("content-type", "application/json");
+    request.putHeader("other-header", "foo");
   }
 
   public void bufferBody(WebClient client) {

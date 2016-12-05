@@ -36,6 +36,7 @@ import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.Json;
+import io.vertx.core.json.JsonObject;
 import io.vertx.core.streams.Pump;
 import io.vertx.core.streams.ReadStream;
 import io.vertx.webclient.BodyCodec;
@@ -102,11 +103,16 @@ class HttpRequestImpl implements HttpRequest {
 
   @Override
   public HttpRequest putHeader(String name, String value) {
+    headers().set(name, value);
+    return this;
+  }
+
+  @Override
+  public MultiMap headers() {
     if (headers == null) {
       headers = new CaseInsensitiveHeaders();
     }
-    headers.set(name, value);
-    return this;
+    return headers;
   }
 
   @Override
@@ -176,6 +182,16 @@ class HttpRequestImpl implements HttpRequest {
   @Override
   public <R> void sendBuffer(Buffer body, BodyCodec<R> responseCodec, Handler<AsyncResult<HttpResponse<R>>> handler) {
     perform2(null, body, responseCodec, handler);
+  }
+
+  @Override
+  public void sendJsonObject(JsonObject body, Handler<AsyncResult<HttpResponse<Buffer>>> handler) {
+    perform2("application/json", body, BodyCodec.buffer(), handler);
+  }
+
+  @Override
+  public <R> void sendJsonObject(JsonObject body, BodyCodec<R> responseCodec, Handler<AsyncResult<HttpResponse<R>>> handler) {
+    perform2("application/json", body, responseCodec, handler);
   }
 
   @Override
@@ -343,6 +359,8 @@ class HttpRequestImpl implements HttpRequest {
           } catch (Exception e) {
             throw new VertxException(e);
           }
+        } else if (body instanceof JsonObject) {
+          buffer = Buffer.buffer(((JsonObject)body).encode());
         } else {
           buffer = Buffer.buffer(Json.encode(body));
         }

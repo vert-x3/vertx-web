@@ -8,7 +8,8 @@
  *
  * * Json body encoding / decoding
  * * request/response pumping
- * * error handling
+ * * request parameters
+ * * unified error handling
  *
  * The web client does not deprecate the Vert.x Core {@link io.vertx.core.http.HttpClient}, it is actually based on
  * it and therefore inherits its configuration and great features like pooling. The {@link io.vertx.core.http.HttpClient}
@@ -45,14 +46,14 @@
  *
  * == Creating a web client
  *
- * You create an {@link io.vertx.webclient.WebClient} instance with default options as follows:
+ * You create an {@link io.vertx.webclient.WebClient} instance with default options as follows
  *
  * [source,java]
  * ----
  * {@link examples.WebClientExamples#create}
  * ----
  *
- * If you want to configure options for the client, you create it as follows:
+ * If you want to configure options for the client, you create it as follows
  *
  * [source,java]
  * ----
@@ -61,47 +62,115 @@
  *
  * == Making requests
  *
- * === Simple requests with no request body
+ * === Simple requests with no body
  *
  * Often, you’ll want to make HTTP requests with no request body. This is usually the case with HTTP GET, OPTIONS
- * and HEAD requests:
+ * and HEAD requests
  *
  * [source,java]
  * ----
  * {@link examples.WebClientExamples#simpleGetAndHead}
  * ----
  *
- * You can add query parameters to the request URI in a fluent fashion:
+ * You can add query parameters to the request URI in a fluent fashion
  *
  * [source,java]
  * ----
  * {@link examples.WebClientExamples#simpleGetWithParams(io.vertx.webclient.WebClient)}
  * ----
  *
- * Any request URI parameter will pre-populate the request:
+ * Any request URI parameter will pre-populate the request
  *
  * [source,java]
  * ----
  * {@link examples.WebClientExamples#simpleGetWithInitialParams(io.vertx.webclient.WebClient)}
  * ----
  *
- * === Requests with a body
+ * === Writing request bodies
  *
- * todo : show how to send a buffer or stream buffers
+ * When you need to make a request with a body, you use the same API and call then `sendXXX` methods
+ * that expects a body to send.
  *
- * ==== Sending json
+ * Use {@link io.vertx.webclient.HttpRequest#sendBuffer} to send a body buffer
  *
- * ==== Sending forms
+ * [source,java]
+ * ----
+ * {@link examples.WebClientExamples#sendBuffer(io.vertx.webclient.WebClient, io.vertx.core.buffer.Buffer)}
+ * ----
+ *
+ * Sending a single buffer is useful but often you don't want to load fully the content in memory, for this
+ * purpose the web client can send `ReadStream<Buffer>` (for example a {@link io.vertx.core.file.AsyncFile}
+ * is a ReadStream<Buffer>`) with the {@link io.vertx.webclient.HttpRequest#sendStream} method
+ *
+ * [source,java]
+ * ----
+ * {@link examples.WebClientExamples#sendStreamChunked(io.vertx.webclient.WebClient, io.vertx.core.streams.ReadStream)}
+ * ----
+ *
+ * The web client takes care of setting up the transfer Pump for you. The request will use chunked transfer
+ * encoding as the length of the stream is not know.
+ *
+ * When you know the size of the stream, you shall specify before using the `content-length` header
+ *
+ * [source,java]
+ * ----
+ * {@link examples.WebClientExamples#sendStream(io.vertx.webclient.WebClient, io.vertx.core.file.FileSystem)}
+ * ----
+ *
+ * ==== Json bodies
+ *
+ * Often you’ll want to write requests which have a Json body. To send a {@link io.vertx.core.json.JsonObject}
+ * use the {@link io.vertx.webclient.HttpRequest#sendJsonObject(io.vertx.core.json.JsonObject, io.vertx.core.Handler)}
+ *
+ * [source,java]
+ * ----
+ * {@link examples.WebClientExamples#sendJsonObject(io.vertx.webclient.WebClient)}
+ * ----
+ *
+ * In Java, Groovy or Kotlin, you can use the {@link io.vertx.webclient.HttpRequest#sendJson} method that maps
+ * a POJO (Plain Old Java Object) to a Json object using {@link io.vertx.core.json.Json#encode(java.lang.Object)}
+ * method
+ *
+ * [source,java]
+ * ----
+ * {@link examples.WebClientExamples#sendJson(io.vertx.webclient.WebClient)}
+ * ----
+ *
+ * NOTE: the {@link io.vertx.core.json.Json#encode(java.lang.Object)} uses the Jackson mapper to encode the object
+ * to Json.
+ *
+ * === Writing request headers
+ *
+ * You can write headers to a request using the headers multi-map as follows:
+ *
+ * [source,java]
+ * ----
+ * {@link examples.WebClientExamples#sendHeaders1(io.vertx.webclient.WebClient)}
+ * ----
+ *
+ * The headers are an instance of {@link io.vertx.core.MultiMap} which provides operations for adding,
+ * setting and removing entries. Http headers allow more than one value for a specific key.
+ *
+ * You can also write headers using putHeader
+ *
+ * [source,java]
+ * ----
+ * {@link examples.WebClientExamples#sendHeaders2(io.vertx.webclient.WebClient)}
+ * ----
  *
  * === Reusing requests
  *
  * The {@link io.vertx.webclient.HttpRequest#send(io.vertx.core.Handler)} method can be called multiple times
- * safely, making it very easy to configure http requests and reuse them:
+ * safely, making it very easy to configure http requests and reuse them
  *
  * [source,java]
  * ----
  * {@link examples.WebClientExamples#multiGet(io.vertx.webclient.WebClient)}
  * ----
+ *
+ * == Handling http responses
+ *
+ * todo
  *
  * === Decoding responses
  *
@@ -118,7 +187,7 @@
  * {@link examples.RxWebClientExamples#simpleGet(io.vertx.rxjava.webclient.WebClient)}
  * ----
  *
- * The obtained {@code Single} can be composed and chained naturally with the RxJava API:
+ * The obtained {@code Single} can be composed and chained naturally with the RxJava API
  *
  * [source,java]
  * ----
