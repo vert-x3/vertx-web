@@ -1144,10 +1144,11 @@ public class WebExamples {
     OAuth2Auth authProvider = GithubAuth.create(vertx, "CLIENT_ID", "CLIENT_SECRET");
 
     // create a oauth2 handler on our running server
-    OAuth2AuthHandler oauth2 = OAuth2AuthHandler.create(authProvider);
+    // the second argument is the full url to the callback as you entered in your provider management console.
+    OAuth2AuthHandler oauth2 = OAuth2AuthHandler.create(authProvider, "https://myserver.com/callback");
 
     // setup the callback handler for receiving the GitHub callback
-    oauth2.setupCallback(router.get("/callback"));
+    oauth2.setupCallback(router.route());
 
     // protect everything under /protected
     router.route("/protected/*").handler(oauth2);
@@ -1194,8 +1195,10 @@ public class WebExamples {
     });
   }
   public void example61(Vertx vertx, Router router, OAuth2Auth provider) {
-    // create a oauth2 handler pinned to myserver.com: "https://myserver.com:8447"
-    OAuth2AuthHandler oauth2 = OAuth2AuthHandler.create(provider, "https://myserver.com:8447");
+    // create a oauth2 handler pinned to myserver.com: "https://myserver.com:8447/callback"
+    OAuth2AuthHandler oauth2 = OAuth2AuthHandler.create(provider, "https://myserver.com:8447/callback");
+    // now allow the handler to setup the callback url for you
+    oauth2.setupCallback(router.route());
   }
 
   public void example62(Vertx vertx, Router router) {

@@ -16,6 +16,7 @@
 
 package io.vertx.ext.web.handler.impl;
 
+import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
@@ -25,37 +26,39 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.OAuth2AuthHandler;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+
 /**
  * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
  */
 public class OAuth2AuthHandlerImpl extends AuthHandlerImpl implements OAuth2AuthHandler {
 
   private final String host;
+  private final String callbackPath;
 
   private Route callback;
   private JsonObject extraParams = new JsonObject();
 
-  public OAuth2AuthHandlerImpl(OAuth2Auth authProvider, String host) {
+  public OAuth2AuthHandlerImpl(OAuth2Auth authProvider, String callbackURL) {
     super(authProvider);
-    this.host = host;
-  }
-
-  private String getHost(RoutingContext ctx) {
-    if (host != null) {
-      return host;
-    } else {
-      String host = ctx.request().getHeader("Host");
-
-      if (host != null) {
-        return (ctx.request().isSSL() ? "https://" : "http://") + host.split("\\s*,\\s*")[0];
-      }
-
-      return (ctx.request().isSSL() ? "https://" : "http://") + ctx.request().host();
+    try {
+      final URL url = new URL(callbackURL);
+      this.host = url.getProtocol() + "://" + url.getHost() + (url.getPort() == -1 ? "" : ":" + url.getPort());
+      this.callbackPath = url.getPath();
+    } catch (MalformedURLException e) {
+      throw new RuntimeException(e);
     }
+
   }
 
   @Override
   public void handle(RoutingContext ctx) {
+    if (host == null) {
+      ctx.fail(new RuntimeException("Callback is not configured!"));
+      return;
+    }
+
     User user = ctx.user();
     if (user != null) {
       // Already authenticated.
@@ -71,7 +74,7 @@ public class OAuth2AuthHandlerImpl extends AuthHandlerImpl implements OAuth2Auth
     } else {
       // redirect request to the oauth2 server
       ctx.response()
-          .putHeader("Location", authURI(getHost(ctx), ctx.normalisedPath()))
+          .putHeader("Location", authURI(host, ctx.normalisedPath()))
           .setStatusCode(302)
           .end();
     }
@@ -109,7 +112,11 @@ public class OAuth2AuthHandlerImpl extends AuthHandlerImpl implements OAuth2Auth
   @Override
   public OAuth2AuthHandler setupCallback(Route route) {
 
-    this.callback = route;
+    callback = route;
+
+    // no matter what path was provided we will make sure it is the correct one
+    callback.path(callbackPath);
+    callback.method(HttpMethod.GET);
 
     route.handler(ctx -> {
       // Handle the callback of the flow
@@ -123,7 +130,7 @@ public class OAuth2AuthHandlerImpl extends AuthHandlerImpl implements OAuth2Auth
 
       final String state = ctx.request().getParam("state");
 
-      ((OAuth2Auth) authProvider).getToken(new JsonObject().put("code", code).put("redirect_uri", getHost(ctx) + callback.getPath()).mergeIn(extraParams), res -> {
+      ((OAuth2Auth) authProvider).getToken(new JsonObject().put("code", code).put("redirect_uri", host + callback.getPath()).mergeIn(extraParams), res -> {
         if (res.failed()) {
           ctx.fail(res.cause());
         } else {
@@ -135,6 +142,11 @@ public class OAuth2AuthHandlerImpl extends AuthHandlerImpl implements OAuth2Auth
             session.regenerateId();
             // we should redirect the UA so this link becomes invalid
             ctx.response()
+              // disable all caching
+              .putHeader("Cache-Control", "no-cache, no-store, must-revalidate")
+              .putHeader("Pragma", "no-cache")
+              .putHeader("Expires", "0")
+              // redirect
               .putHeader("Location", state)
               .setStatusCode(302)
               .end("Redirecting to " + state + ".");

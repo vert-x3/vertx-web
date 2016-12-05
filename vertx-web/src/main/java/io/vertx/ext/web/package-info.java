@@ -1825,21 +1825,23 @@
  *
  * You will need to provide all the details of your provider manually but the end result is the same.
  *
- * If you're really interested in secure your application it is recommended to use the handler with host name. And avoid
- * using the runtime detection of the server hostname. This is what is commonly called pinning. In order to pin your
- * application to a specific host you should configure it passing a string that should include the protocol and the
- * hostname. It should not be needed to say that anything other than https is not secure and should be avoided.
+ * The handler will pin your application the the configured callback url. The usage is simple as providing the handler
+ * a route instance and all setup will be done for you. In a typical use case your provider will ask you what is the
+ * callback url to your application, your then enter a url like: `https://myserver.com/callback`. This is the second
+ * argument to the handler now you just need to set it up. To make it easier to the end user all you need to do is call
+ * the setupCallback method.
  *
- * This is how you pin your handler to the server `myserver.com`:
+ * This is how you pin your handler to the server `https://myserver.com:8447/callback`. Note that the port number is not
+ * mandatory for the default values, 80 for http, 443 for https.
  *
  * [source,$lang]
  * ----
  * {@link examples.WebExamples#example61}
  * ----
  *
- * By doing this, you make sure that all oauth2 redirects will be done to the specified host. This is useful for cases
- * where your server is running behind a load balancer or in a cluster where the machine name does not necessarily
- * matches the external name.
+ * In the example the route object is created inline by `Router.route()` however if you want to have full control of the
+ * order the handler is called (for example you want it to be called as soon as possible in the chain) you can always
+ * create the route object before and pass it as a reference to this method.
  *
  */
 @Document(fileName = "index.adoc")
