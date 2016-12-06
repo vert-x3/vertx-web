@@ -78,11 +78,12 @@ public interface BodyCodec<T> {
     return BodyCodecImpl.json(type);
   }
 
-/*
-  static BodyCodec<AsyncFile> tempFile() {
-    throw new UnsupportedOperationException("Todo");
+  /**
+   * @return a codec that simply discards the response
+   */
+  static BodyCodec<Void> none() {
+    return BodyCodecImpl.NONE;
   }
-*/
 
   /**
    * Create a codec that buffers the entire body and then apply the {@code decode} function and returns the result.

@@ -227,7 +227,7 @@ public class WebClientExamples {
 
   public void receiveResponseAsJsonObject(WebClient client) {
     client
-      .get(8080, "localhost", "/something")
+      .get(8080, "myserver.mycompany.com", "/some-uri")
       .send(BodyCodec.jsonObject(), ar -> {
         if (ar.succeeded()) {
           HttpResponse<JsonObject> response = ar.result();
@@ -243,7 +243,7 @@ public class WebClientExamples {
 
   public void receiveResponseAsJsonPOJO(WebClient client) {
     client
-      .get(8080, "localhost", "/something")
+      .get(8080, "myserver.mycompany.com", "/some-uri")
       .send(BodyCodec.json(User.class), ar -> {
         if (ar.succeeded()) {
           HttpResponse<User> response = ar.result();
@@ -260,8 +260,23 @@ public class WebClientExamples {
 
   public void receiveResponseAsWriteStream(WebClient client, WriteStream<Buffer> writeStream) {
     client
-      .get(8080, "localhost", "/something")
+      .get(8080, "myserver.mycompany.com", "/some-uri")
       .send(BodyCodec.writeStream(writeStream), ar -> {
+        if (ar.succeeded()) {
+
+          HttpResponse<Void> response = ar.result();
+
+          System.out.println("Received response with status code" + response.statusCode());
+        } else {
+          System.out.println("Something went wrong " + ar.cause().getMessage());
+        }
+      });
+  }
+
+  public void receiveResponseAndDiscard(WebClient client) {
+    client
+      .get(8080, "myserver.mycompany.com", "/some-uri")
+      .send(BodyCodec.none(), ar -> {
         if (ar.succeeded()) {
 
           HttpResponse<Void> response = ar.result();
@@ -275,7 +290,7 @@ public class WebClientExamples {
 
   public void receiveResponseAsBufferDecodeAsJsonObject(WebClient client) {
     client
-      .get(8080, "localhost", "/something")
+      .get(8080, "myserver.mycompany.com", "/some-uri")
       .send(ar -> {
         if (ar.succeeded()) {
 

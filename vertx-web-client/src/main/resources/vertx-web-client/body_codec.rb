@@ -41,6 +41,13 @@ module VertxWebClient
       end
       raise ArgumentError, "Invalid arguments when calling json_object()"
     end
+    # @return [::VertxWebClient::BodyCodec] a codec that simply discards the response
+    def self.none
+      if !block_given?
+        return ::Vertx::Util::Utils.safe_create(Java::IoVertxWebclient::BodyCodec.java_method(:none, []).call(),::VertxWebClient::BodyCodec, nil)
+      end
+      raise ArgumentError, "Invalid arguments when calling none()"
+    end
     #  Create a codec that buffers the entire body and then apply the <code>decode</code> function and returns the result.
     # @yield the decode function
     # @return [::VertxWebClient::BodyCodec] the created codec

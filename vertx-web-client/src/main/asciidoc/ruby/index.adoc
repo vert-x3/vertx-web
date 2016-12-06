@@ -347,7 +347,7 @@ Use `link:../../yardoc/VertxWebClient/BodyCodec.html#json_object-class_method[Bo
 [source,java]
 ----
 require 'vertx-web-client/body_codec'
-client.get(8080, "localhost", "/something").send(VertxWebClient::BodyCodec.json_object()) { |ar_err,ar|
+client.get(8080, "myserver.mycompany.com", "/some-uri").send(VertxWebClient::BodyCodec.json_object()) { |ar_err,ar|
   if (ar_err == nil)
     response = ar
 
@@ -366,7 +366,7 @@ Custom Json mapped POJO can be decoded as well:
 [source,java]
 ----
 require 'vertx-web-client/body_codec'
-client.get(8080, "localhost", "/something").send(VertxWebClient::BodyCodec.json(Java::ExamplesWebClientExamples::User::class)) { |ar_err,ar|
+client.get(8080, "myserver.mycompany.com", "/some-uri").send(VertxWebClient::BodyCodec.json(Java::ExamplesWebClientExamples::User::class)) { |ar_err,ar|
   if (ar_err == nil)
     response = ar
 
@@ -387,7 +387,26 @@ and signals the success or the failure of the operation in the async result resp
 [source,java]
 ----
 require 'vertx-web-client/body_codec'
-client.get(8080, "localhost", "/something").send(VertxWebClient::BodyCodec.write_stream(writeStream)) { |ar_err,ar|
+client.get(8080, "myserver.mycompany.com", "/some-uri").send(VertxWebClient::BodyCodec.write_stream(writeStream)) { |ar_err,ar|
+  if (ar_err == nil)
+
+    response = ar
+
+    puts "Received response with status code#{response.status_code()}"
+  else
+    puts "Something went wrong #{ar_err.get_message()}"
+  end
+}
+
+----
+
+Finally if you are not interested at all by the response content, the `link:../../yardoc/VertxWebClient/BodyCodec.html#none-class_method[BodyCodec.none]` will
+simply discard the entire response body and return null.
+
+[source,java]
+----
+require 'vertx-web-client/body_codec'
+client.get(8080, "myserver.mycompany.com", "/some-uri").send(VertxWebClient::BodyCodec.none()) { |ar_err,ar|
   if (ar_err == nil)
 
     response = ar
@@ -405,7 +424,7 @@ that decode the response to a specific type.
 
 [source,java]
 ----
-client.get(8080, "localhost", "/something").send() { |ar_err,ar|
+client.get(8080, "myserver.mycompany.com", "/some-uri").send() { |ar_err,ar|
   if (ar_err == nil)
 
     response = ar

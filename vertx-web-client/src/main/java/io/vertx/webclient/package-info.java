@@ -239,6 +239,14 @@
  * {@link examples.WebClientExamples#receiveResponseAsWriteStream(io.vertx.webclient.WebClient, io.vertx.core.streams.WriteStream)}
  * ----
  *
+ * Finally if you are not interested at all by the response content, the {@link io.vertx.webclient.BodyCodec#none()} will
+ * simply discard the entire response body and return null.
+ *
+ * [source,java]
+ * ----
+ * {@link examples.WebClientExamples#receiveResponseAndDiscard(io.vertx.webclient.WebClient)}
+ * ----
+ *
  * When you don't know in advance the content type of the http response, you can still use the {@code bodyAsXXX()} methods
  * that decode the response to a specific type.
  *

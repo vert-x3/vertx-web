@@ -344,7 +344,7 @@ Use `link:../../apidocs/io/vertx/webclient/BodyCodec.html#jsonObject--[BodyCodec
 [source,java]
 ----
 client
-  .get(8080, "localhost", "/something")
+  .get(8080, "myserver.mycompany.com", "/some-uri")
   .send(BodyCodec.jsonObject(), ar -> {
     if (ar.succeeded()) {
       HttpResponse<JsonObject> response = ar.result();
@@ -363,7 +363,7 @@ Custom Json mapped POJO can be decoded as well:
 [source,java]
 ----
 client
-  .get(8080, "localhost", "/something")
+  .get(8080, "myserver.mycompany.com", "/some-uri")
   .send(BodyCodec.json(User.class), ar -> {
     if (ar.succeeded()) {
       HttpResponse<User> response = ar.result();
@@ -385,8 +385,27 @@ and signals the success or the failure of the operation in the async result resp
 [source,java]
 ----
 client
-  .get(8080, "localhost", "/something")
+  .get(8080, "myserver.mycompany.com", "/some-uri")
   .send(BodyCodec.writeStream(writeStream), ar -> {
+    if (ar.succeeded()) {
+
+      HttpResponse<Void> response = ar.result();
+
+      System.out.println("Received response with status code" + response.statusCode());
+    } else {
+      System.out.println("Something went wrong " + ar.cause().getMessage());
+    }
+  });
+----
+
+Finally if you are not interested at all by the response content, the `link:../../apidocs/io/vertx/webclient/BodyCodec.html#none--[BodyCodec.none]` will
+simply discard the entire response body and return null.
+
+[source,java]
+----
+client
+  .get(8080, "myserver.mycompany.com", "/some-uri")
+  .send(BodyCodec.none(), ar -> {
     if (ar.succeeded()) {
 
       HttpResponse<Void> response = ar.result();
@@ -404,7 +423,7 @@ that decode the response to a specific type.
 [source,java]
 ----
 client
-  .get(8080, "localhost", "/something")
+  .get(8080, "myserver.mycompany.com", "/some-uri")
   .send(ar -> {
     if (ar.succeeded()) {
 

@@ -347,7 +347,7 @@ Use `link:../../jsdoc/module-vertx-web-client-js_body_codec-BodyCodec.html#jsonO
 [source,java]
 ----
 var BodyCodec = require("vertx-web-client-js/body_codec");
-client.get(8080, "localhost", "/something").send(BodyCodec.jsonObject(), function (ar, ar_err) {
+client.get(8080, "myserver.mycompany.com", "/some-uri").send(BodyCodec.jsonObject(), function (ar, ar_err) {
   if (ar_err == null) {
     var response = ar;
 
@@ -366,7 +366,7 @@ Custom Json mapped POJO can be decoded as well:
 [source,java]
 ----
 var BodyCodec = require("vertx-web-client-js/body_codec");
-client.get(8080, "localhost", "/something").send(BodyCodec.json(Java.type("examples.WebClientExamples.User").class), function (ar, ar_err) {
+client.get(8080, "myserver.mycompany.com", "/some-uri").send(BodyCodec.json(Java.type("examples.WebClientExamples.User").class), function (ar, ar_err) {
   if (ar_err == null) {
     var response = ar;
 
@@ -387,7 +387,26 @@ and signals the success or the failure of the operation in the async result resp
 [source,java]
 ----
 var BodyCodec = require("vertx-web-client-js/body_codec");
-client.get(8080, "localhost", "/something").send(BodyCodec.writeStream(writeStream), function (ar, ar_err) {
+client.get(8080, "myserver.mycompany.com", "/some-uri").send(BodyCodec.writeStream(writeStream), function (ar, ar_err) {
+  if (ar_err == null) {
+
+    var response = ar;
+
+    console.log("Received response with status code" + response.statusCode());
+  } else {
+    console.log("Something went wrong " + ar_err.getMessage());
+  }
+});
+
+----
+
+Finally if you are not interested at all by the response content, the `link:../../jsdoc/module-vertx-web-client-js_body_codec-BodyCodec.html#none[BodyCodec.none]` will
+simply discard the entire response body and return null.
+
+[source,java]
+----
+var BodyCodec = require("vertx-web-client-js/body_codec");
+client.get(8080, "myserver.mycompany.com", "/some-uri").send(BodyCodec.none(), function (ar, ar_err) {
   if (ar_err == null) {
 
     var response = ar;
@@ -405,7 +424,7 @@ that decode the response to a specific type.
 
 [source,java]
 ----
-client.get(8080, "localhost", "/something").send(function (ar, ar_err) {
+client.get(8080, "myserver.mycompany.com", "/some-uri").send(function (ar, ar_err) {
   if (ar_err == null) {
 
     var response = ar;

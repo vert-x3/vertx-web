@@ -32,10 +32,12 @@ import java.util.function.Function;
  */
 public class BodyCodecImpl<T> implements BodyCodec<T> {
 
+  public static final Function<Buffer, Void> VOID_DECODER = buff -> null;
   public static final Function<Buffer, String> UTF8_DECODER = Buffer::toString;
   public static final Function<Buffer, JsonObject> JSON_OBJECT_DECODER = buff -> new JsonObject(buff.toString());
 
   public static final BodyCodec<String> STRING = new BodyCodecImpl<>(UTF8_DECODER);
+  public static final BodyCodec<Void> NONE = new BodyCodecImpl<>(VOID_DECODER);
   public static final BodyCodec<Buffer> BUFFER = new BodyCodecImpl<>(Function.identity());
   public static final BodyCodec<JsonObject> JSON_OBJECT = new BodyCodecImpl<>(JSON_OBJECT_DECODER);
 

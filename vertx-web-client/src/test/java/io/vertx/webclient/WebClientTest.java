@@ -45,7 +45,9 @@ public class WebClientTest extends HttpTestBase {
   @Override
   protected VertxOptions getOptions() {
     return super.getOptions().setAddressResolverOptions(new AddressResolverOptions().
-      setHostsValue(Buffer.buffer("127.0.0.1 somehost")));
+      setHostsValue(Buffer.buffer(
+        "127.0.0.1 somehost\n" +
+        "127.0.0.1 localhost")));
   }
 
   @Override
@@ -445,6 +447,21 @@ public class WebClientTest extends HttpTestBase {
     get.send(BodyCodec.json(WineAndCheese.class), onSuccess(resp -> {
       assertEquals(200, resp.statusCode());
       assertEquals(new WineAndCheese().setCheese("Goat Cheese").setWine("Condrieu"), resp.body());
+      testComplete();
+    }));
+    await();
+  }
+
+  @Test
+  public void testResponseBodyDiscarded() throws Exception {
+    server.requestHandler(req -> {
+      req.response().end(TestUtils.randomAlphaString(1024));
+    });
+    startServer();
+    HttpRequest get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
+    get.send(BodyCodec.none(), onSuccess(resp -> {
+      assertEquals(200, resp.statusCode());
+      assertEquals(null, resp.body());
       testComplete();
     }));
     await();

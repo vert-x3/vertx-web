@@ -346,7 +346,7 @@ Use `link:../../apidocs/io/vertx/webclient/BodyCodec.html#jsonObject--[BodyCodec
 [source,java]
 ----
 import io.vertx.webclient.BodyCodec
-client.get(8080, "localhost", "/something").send(BodyCodec.jsonObject(), { ar ->
+client.get(8080, "myserver.mycompany.com", "/some-uri").send(BodyCodec.jsonObject(), { ar ->
   if (ar.succeeded()) {
     def response = ar.result()
 
@@ -365,7 +365,7 @@ Custom Json mapped POJO can be decoded as well:
 [source,java]
 ----
 import io.vertx.webclient.BodyCodec
-client.get(8080, "localhost", "/something").send(BodyCodec.json(examples.WebClientExamples.User.class), { ar ->
+client.get(8080, "myserver.mycompany.com", "/some-uri").send(BodyCodec.json(examples.WebClientExamples.User.class), { ar ->
   if (ar.succeeded()) {
     def response = ar.result()
 
@@ -386,7 +386,26 @@ and signals the success or the failure of the operation in the async result resp
 [source,java]
 ----
 import io.vertx.webclient.BodyCodec
-client.get(8080, "localhost", "/something").send(BodyCodec.writeStream(writeStream), { ar ->
+client.get(8080, "myserver.mycompany.com", "/some-uri").send(BodyCodec.writeStream(writeStream), { ar ->
+  if (ar.succeeded()) {
+
+    def response = ar.result()
+
+    println("Received response with status code${response.statusCode()}")
+  } else {
+    println("Something went wrong ${ar.cause().getMessage()}")
+  }
+})
+
+----
+
+Finally if you are not interested at all by the response content, the `link:../../apidocs/io/vertx/webclient/BodyCodec.html#none--[BodyCodec.none]` will
+simply discard the entire response body and return null.
+
+[source,java]
+----
+import io.vertx.webclient.BodyCodec
+client.get(8080, "myserver.mycompany.com", "/some-uri").send(BodyCodec.none(), { ar ->
   if (ar.succeeded()) {
 
     def response = ar.result()
@@ -404,7 +423,7 @@ that decode the response to a specific type.
 
 [source,java]
 ----
-client.get(8080, "localhost", "/something").send({ ar ->
+client.get(8080, "myserver.mycompany.com", "/some-uri").send({ ar ->
   if (ar.succeeded()) {
 
     def response = ar.result()

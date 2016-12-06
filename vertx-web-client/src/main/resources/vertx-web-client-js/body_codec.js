@@ -102,6 +102,19 @@ BodyCodec.jsonObject = function() {
 };
 
 /**
+
+ @memberof module:vertx-web-client-js/body_codec
+
+ @return {BodyCodec} a codec that simply discards the response
+ */
+BodyCodec.none = function() {
+  var __args = arguments;
+  if (__args.length === 0) {
+    return utils.convReturnVertxGen(BodyCodec, JBodyCodec["none()"](), undefined);
+  } else throw new TypeError('function invoked with invalid arguments');
+};
+
+/**
  Create a codec that buffers the entire body and then apply the <code>decode</code> function and returns the result.
 
  @memberof module:vertx-web-client-js/body_codec
