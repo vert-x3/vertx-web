@@ -314,7 +314,9 @@ client
   .get(8080, "myserver.mycompany.com", "/some-uri")
   .send(ar -> {
     if (ar.succeeded()) {
+
       HttpResponse<Buffer> response = ar.result();
+
       System.out.println("Received response with status code" + response.statusCode());
     } else {
       System.out.println("Something went wrong " + ar.cause().getMessage());
@@ -346,7 +348,9 @@ client
   .send(BodyCodec.jsonObject(), ar -> {
     if (ar.succeeded()) {
       HttpResponse<JsonObject> response = ar.result();
+
       JsonObject body = response.body();
+
       System.out.println("Received response with status code" + response.statusCode() + " with body " + body);
     } else {
       System.out.println("Something went wrong " + ar.cause().getMessage());
@@ -363,7 +367,9 @@ client
   .send(BodyCodec.json(User.class), ar -> {
     if (ar.succeeded()) {
       HttpResponse<User> response = ar.result();
+
       User user = response.body();
+
       System.out.println("Received response with status code" + response.statusCode() + " with body " +
         user.getFirstName() + " " + user.getLastName());
     } else {
@@ -382,13 +388,39 @@ client
   .get(8080, "localhost", "/something")
   .send(BodyCodec.writeStream(writeStream), ar -> {
     if (ar.succeeded()) {
+
       HttpResponse<Void> response = ar.result();
+
       System.out.println("Received response with status code" + response.statusCode());
     } else {
       System.out.println("Something went wrong " + ar.cause().getMessage());
     }
   });
 ----
+
+When you don't know in advance the content type of the http response, you can still use the `bodyAsXXX()` methods
+that decode the response to a specific type.
+
+[source,java]
+----
+client
+  .get(8080, "localhost", "/something")
+  .send(ar -> {
+    if (ar.succeeded()) {
+
+      HttpResponse<Buffer> response = ar.result();
+
+      // Decode the body as a json object
+      JsonObject body = response.bodyAsJsonObject();
+
+      System.out.println("Received response with status code" + response.statusCode() + " with body " + body);
+    } else {
+      System.out.println("Something went wrong " + ar.cause().getMessage());
+    }
+  });
+----
+
+WARNING: this is only valid for the response decoded as a buffer.
 
 === RxJava API
 

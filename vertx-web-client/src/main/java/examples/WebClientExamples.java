@@ -215,7 +215,9 @@ public class WebClientExamples {
       .get(8080, "myserver.mycompany.com", "/some-uri")
       .send(ar -> {
         if (ar.succeeded()) {
+
           HttpResponse<Buffer> response = ar.result();
+
           System.out.println("Received response with status code" + response.statusCode());
         } else {
           System.out.println("Something went wrong " + ar.cause().getMessage());
@@ -229,7 +231,9 @@ public class WebClientExamples {
       .send(BodyCodec.jsonObject(), ar -> {
         if (ar.succeeded()) {
           HttpResponse<JsonObject> response = ar.result();
+
           JsonObject body = response.body();
+
           System.out.println("Received response with status code" + response.statusCode() + " with body " + body);
         } else {
           System.out.println("Something went wrong " + ar.cause().getMessage());
@@ -243,7 +247,9 @@ public class WebClientExamples {
       .send(BodyCodec.json(User.class), ar -> {
         if (ar.succeeded()) {
           HttpResponse<User> response = ar.result();
+
           User user = response.body();
+
           System.out.println("Received response with status code" + response.statusCode() + " with body " +
             user.getFirstName() + " " + user.getLastName());
         } else {
@@ -257,8 +263,28 @@ public class WebClientExamples {
       .get(8080, "localhost", "/something")
       .send(BodyCodec.writeStream(writeStream), ar -> {
         if (ar.succeeded()) {
+
           HttpResponse<Void> response = ar.result();
+
           System.out.println("Received response with status code" + response.statusCode());
+        } else {
+          System.out.println("Something went wrong " + ar.cause().getMessage());
+        }
+      });
+  }
+
+  public void receiveResponseAsBufferDecodeAsJsonObject(WebClient client) {
+    client
+      .get(8080, "localhost", "/something")
+      .send(ar -> {
+        if (ar.succeeded()) {
+
+          HttpResponse<Buffer> response = ar.result();
+
+          // Decode the body as a json object
+          JsonObject body = response.bodyAsJsonObject();
+
+          System.out.println("Received response with status code" + response.statusCode() + " with body " + body);
         } else {
           System.out.println("Something went wrong " + ar.cause().getMessage());
         }

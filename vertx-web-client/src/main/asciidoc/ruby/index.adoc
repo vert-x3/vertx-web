@@ -316,7 +316,9 @@ On a success result the callback happens after the response has been fully recei
 ----
 client.get(8080, "myserver.mycompany.com", "/some-uri").send() { |ar_err,ar|
   if (ar_err == nil)
+
     response = ar
+
     puts "Received response with status code#{response.status_code()}"
   else
     puts "Something went wrong #{ar_err.get_message()}"
@@ -348,7 +350,9 @@ require 'vertx-web-client/body_codec'
 client.get(8080, "localhost", "/something").send(VertxWebClient::BodyCodec.json_object()) { |ar_err,ar|
   if (ar_err == nil)
     response = ar
+
     body = response.body()
+
     puts "Received response with status code#{response.status_code()} with body #{body}"
   else
     puts "Something went wrong #{ar_err.get_message()}"
@@ -365,7 +369,9 @@ require 'vertx-web-client/body_codec'
 client.get(8080, "localhost", "/something").send(VertxWebClient::BodyCodec.json(Java::ExamplesWebClientExamples::User::class)) { |ar_err,ar|
   if (ar_err == nil)
     response = ar
+
     user = response.body()
+
     puts "Received response with status code#{response.status_code()} with body #{user.get_first_name()} #{user.get_last_name()}"
   else
     puts "Something went wrong #{ar_err.get_message()}"
@@ -383,7 +389,9 @@ and signals the success or the failure of the operation in the async result resp
 require 'vertx-web-client/body_codec'
 client.get(8080, "localhost", "/something").send(VertxWebClient::BodyCodec.write_stream(writeStream)) { |ar_err,ar|
   if (ar_err == nil)
+
     response = ar
+
     puts "Received response with status code#{response.status_code()}"
   else
     puts "Something went wrong #{ar_err.get_message()}"
@@ -391,6 +399,29 @@ client.get(8080, "localhost", "/something").send(VertxWebClient::BodyCodec.write
 }
 
 ----
+
+When you don't know in advance the content type of the http response, you can still use the `bodyAsXXX()` methods
+that decode the response to a specific type.
+
+[source,java]
+----
+client.get(8080, "localhost", "/something").send() { |ar_err,ar|
+  if (ar_err == nil)
+
+    response = ar
+
+    # Decode the body as a json object
+    body = response.body_as_json_object()
+
+    puts "Received response with status code#{response.status_code()} with body #{body}"
+  else
+    puts "Something went wrong #{ar_err.get_message()}"
+  end
+}
+
+----
+
+WARNING: this is only valid for the response decoded as a buffer.
 
 === RxJava API
 

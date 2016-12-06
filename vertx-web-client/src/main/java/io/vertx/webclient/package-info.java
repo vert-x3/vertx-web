@@ -239,6 +239,16 @@
  * {@link examples.WebClientExamples#receiveResponseAsWriteStream(io.vertx.webclient.WebClient, io.vertx.core.streams.WriteStream)}
  * ----
  *
+ * When you don't know in advance the content type of the http response, you can still use the {@code bodyAsXXX()} methods
+ * that decode the response to a specific type.
+ *
+ * [source,java]
+ * ----
+ * {@link examples.WebClientExamples#receiveResponseAsBufferDecodeAsJsonObject(io.vertx.webclient.WebClient)}
+ * ----
+ *
+ * WARNING: this is only valid for the response decoded as a buffer.
+ *
  * === RxJava API
  *
  * The RxJava {@link io.vertx.rxjava.webclient.HttpRequest} provides an rx-ified version of the original API,

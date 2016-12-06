@@ -315,7 +315,9 @@ On a success result the callback happens after the response has been fully recei
 ----
 client.get(8080, "myserver.mycompany.com", "/some-uri").send({ ar ->
   if (ar.succeeded()) {
+
     def response = ar.result()
+
     println("Received response with status code${response.statusCode()}")
   } else {
     println("Something went wrong ${ar.cause().getMessage()}")
@@ -347,7 +349,9 @@ import io.vertx.webclient.BodyCodec
 client.get(8080, "localhost", "/something").send(BodyCodec.jsonObject(), { ar ->
   if (ar.succeeded()) {
     def response = ar.result()
+
     def body = response.body()
+
     println("Received response with status code${response.statusCode()} with body ${body}")
   } else {
     println("Something went wrong ${ar.cause().getMessage()}")
@@ -364,7 +368,9 @@ import io.vertx.webclient.BodyCodec
 client.get(8080, "localhost", "/something").send(BodyCodec.json(examples.WebClientExamples.User.class), { ar ->
   if (ar.succeeded()) {
     def response = ar.result()
+
     def user = response.body()
+
     println("Received response with status code${response.statusCode()} with body ${user.getFirstName()} ${user.getLastName()}")
   } else {
     println("Something went wrong ${ar.cause().getMessage()}")
@@ -382,7 +388,9 @@ and signals the success or the failure of the operation in the async result resp
 import io.vertx.webclient.BodyCodec
 client.get(8080, "localhost", "/something").send(BodyCodec.writeStream(writeStream), { ar ->
   if (ar.succeeded()) {
+
     def response = ar.result()
+
     println("Received response with status code${response.statusCode()}")
   } else {
     println("Something went wrong ${ar.cause().getMessage()}")
@@ -390,6 +398,29 @@ client.get(8080, "localhost", "/something").send(BodyCodec.writeStream(writeStre
 })
 
 ----
+
+When you don't know in advance the content type of the http response, you can still use the `bodyAsXXX()` methods
+that decode the response to a specific type.
+
+[source,java]
+----
+client.get(8080, "localhost", "/something").send({ ar ->
+  if (ar.succeeded()) {
+
+    def response = ar.result()
+
+    // Decode the body as a json object
+    def body = response.bodyAsJsonObject()
+
+    println("Received response with status code${response.statusCode()} with body ${body}")
+  } else {
+    println("Something went wrong ${ar.cause().getMessage()}")
+  }
+})
+
+----
+
+WARNING: this is only valid for the response decoded as a buffer.
 
 === RxJava API
 

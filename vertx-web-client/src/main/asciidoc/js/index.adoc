@@ -316,7 +316,9 @@ On a success result the callback happens after the response has been fully recei
 ----
 client.get(8080, "myserver.mycompany.com", "/some-uri").send(function (ar, ar_err) {
   if (ar_err == null) {
+
     var response = ar;
+
     console.log("Received response with status code" + response.statusCode());
   } else {
     console.log("Something went wrong " + ar_err.getMessage());
@@ -348,7 +350,9 @@ var BodyCodec = require("vertx-web-client-js/body_codec");
 client.get(8080, "localhost", "/something").send(BodyCodec.jsonObject(), function (ar, ar_err) {
   if (ar_err == null) {
     var response = ar;
+
     var body = response.body();
+
     console.log("Received response with status code" + response.statusCode() + " with body " + body);
   } else {
     console.log("Something went wrong " + ar_err.getMessage());
@@ -365,7 +369,9 @@ var BodyCodec = require("vertx-web-client-js/body_codec");
 client.get(8080, "localhost", "/something").send(BodyCodec.json(Java.type("examples.WebClientExamples.User").class), function (ar, ar_err) {
   if (ar_err == null) {
     var response = ar;
+
     var user = response.body();
+
     console.log("Received response with status code" + response.statusCode() + " with body " + user.getFirstName() + " " + user.getLastName());
   } else {
     console.log("Something went wrong " + ar_err.getMessage());
@@ -383,7 +389,9 @@ and signals the success or the failure of the operation in the async result resp
 var BodyCodec = require("vertx-web-client-js/body_codec");
 client.get(8080, "localhost", "/something").send(BodyCodec.writeStream(writeStream), function (ar, ar_err) {
   if (ar_err == null) {
+
     var response = ar;
+
     console.log("Received response with status code" + response.statusCode());
   } else {
     console.log("Something went wrong " + ar_err.getMessage());
@@ -391,6 +399,29 @@ client.get(8080, "localhost", "/something").send(BodyCodec.writeStream(writeStre
 });
 
 ----
+
+When you don't know in advance the content type of the http response, you can still use the `bodyAsXXX()` methods
+that decode the response to a specific type.
+
+[source,java]
+----
+client.get(8080, "localhost", "/something").send(function (ar, ar_err) {
+  if (ar_err == null) {
+
+    var response = ar;
+
+    // Decode the body as a json object
+    var body = response.bodyAsJsonObject();
+
+    console.log("Received response with status code" + response.statusCode() + " with body " + body);
+  } else {
+    console.log("Something went wrong " + ar_err.getMessage());
+  }
+});
+
+----
+
+WARNING: this is only valid for the response decoded as a buffer.
 
 === RxJava API
 
