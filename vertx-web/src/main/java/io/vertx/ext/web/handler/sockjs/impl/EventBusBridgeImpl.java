@@ -313,6 +313,8 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
         PingInfo pingInfo = new PingInfo();
         pingInfo.timerID = vertx.setPeriodic(pingTimeout, id -> {
           if (System.currentTimeMillis() - pingInfo.lastPing >= pingTimeout) {
+        	// Trigger an event to allow custom behavior before disconnecting client.
+            checkCallHook(() -> new BridgeEventImpl(BridgeEventType.SOCKET_IDLE, null, sock), null, null);
             // We didn't receive a ping in time so close the socket
             sock.close();
           }
