@@ -208,7 +208,7 @@
  * {@link examples.WebClientExamples#receiveResponseAsJsonPOJO(io.vertx.webclient.WebClient)}
  * ----
  *
- * You can use the {@link io.vertx.webclient.BodyCodec#stream(io.vertx.core.streams.WriteStream)} when large response are
+ * You can use the {@link io.vertx.webclient.BodyCodec#writeStream(io.vertx.core.streams.WriteStream)} when large response are
  * expected. This body codec pumps the response buffers to a {@link io.vertx.core.streams.WriteStream}
  * and signals the success or the failure of the operation in the async result response:
  *

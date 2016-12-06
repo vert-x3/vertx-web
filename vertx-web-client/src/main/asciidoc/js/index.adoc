@@ -330,14 +330,14 @@ client.get(8080, "localhost", "/something").send(BodyCodec.json(Java.type("examp
 
 ----
 
-You can use the `link:../../jsdoc/module-vertx-web-client-js_body_codec-BodyCodec.html#stream[BodyCodec.stream]` when large response are
+You can use the `link:../../jsdoc/module-vertx-web-client-js_body_codec-BodyCodec.html#writeStream[BodyCodec.writeStream]` when large response are
 expected. This body codec pumps the response buffers to a `link:../../jsdoc/module-vertx-js_write_stream-WriteStream.html[WriteStream]`
 and signals the success or the failure of the operation in the async result response:
 
 [source,java]
 ----
 var BodyCodec = require("vertx-web-client-js/body_codec");
-client.get(8080, "localhost", "/something").send(BodyCodec.stream(writeStream), function (ar, ar_err) {
+client.get(8080, "localhost", "/something").send(BodyCodec.writeStream(writeStream), function (ar, ar_err) {
   if (ar_err == null) {
     var response = ar;
     console.log("Received response with status code" + response.statusCode());

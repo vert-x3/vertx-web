@@ -557,7 +557,7 @@ public class WebClientTest extends HttpTestBase {
       }
     };
     HttpRequest get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
-    get.send(BodyCodec.stream(stream), onSuccess(resp -> {
+    get.send(BodyCodec.writeStream(stream), onSuccess(resp -> {
       assertTrue(ended.get());
       assertEquals(200, resp.statusCode());
       assertEquals(null, resp.body());
@@ -608,7 +608,7 @@ public class WebClientTest extends HttpTestBase {
       }
     };
     HttpRequest get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
-    get.send(BodyCodec.stream(stream), onFailure(err -> {
+    get.send(BodyCodec.writeStream(stream), onFailure(err -> {
       testComplete();
     }));
     waitUntil(() -> received.get() == 2048);
@@ -654,7 +654,7 @@ public class WebClientTest extends HttpTestBase {
       }
     };
     HttpRequest get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
-    get.send(BodyCodec.stream(stream), onFailure(err -> {
+    get.send(BodyCodec.writeStream(stream), onFailure(err -> {
       assertSame(cause, err);
       testComplete();
     }));

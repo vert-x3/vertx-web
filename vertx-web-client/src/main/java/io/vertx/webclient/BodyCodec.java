@@ -95,15 +95,15 @@ public interface BodyCodec<T> {
   }
 
   /**
-   * A body codec that writes the body to a write stream
+   * A body codec that writes the body to a write stream.
    *
    * @param stream the destination tream
    * @return the body codec for a write stream
    */
-  static BodyCodec<Void> stream(WriteStream<Buffer> stream) {
+  static BodyCodec<Void> writeStream(WriteStream<Buffer> stream) {
     return new BodyCodec<Void>() {
       @Override
-      public void stream(Handler<AsyncResult<BodyStream<Void>>> handler) {
+      public void writeStream(Handler<AsyncResult<BodyStream<Void>>> handler) {
         handler.handle(Future.succeededFuture(new BodyStream<Void>() {
 
           Future<Void> fut = Future.future();
@@ -164,5 +164,5 @@ public interface BodyCodec<T> {
    * Reserved for internal usage.
    */
   @GenIgnore
-  void stream(Handler<AsyncResult<BodyStream<T>>> handler);
+  void writeStream(Handler<AsyncResult<BodyStream<T>>> handler);
 }

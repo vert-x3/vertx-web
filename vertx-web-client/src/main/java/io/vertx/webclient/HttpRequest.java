@@ -53,7 +53,7 @@ import io.vertx.core.streams.ReadStream;
  * </ul>
  * <p>
  * Most of the time, this client will buffer the HTTP response fully unless a specific {@link BodyCodec} is used
- * such as {@link BodyCodec#stream(Handler)}.
+ * such as {@link BodyCodec#writeStream(Handler)}.
  *
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
  */

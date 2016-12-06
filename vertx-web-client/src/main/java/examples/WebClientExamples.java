@@ -3,7 +3,6 @@ package examples;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.file.AsyncFile;
 import io.vertx.core.file.FileSystem;
 import io.vertx.core.file.OpenOptions;
 import io.vertx.core.http.HttpClientOptions;
@@ -225,7 +224,7 @@ public class WebClientExamples {
   public void receiveResponseAsWriteStream(WebClient client, WriteStream<Buffer> writeStream) {
     client
       .get(8080, "localhost", "/something")
-      .send(BodyCodec.stream(writeStream), ar -> {
+      .send(BodyCodec.writeStream(writeStream), ar -> {
         if (ar.succeeded()) {
           HttpResponse<Void> response = ar.result();
           System.out.println("Received response with status code" + response.statusCode());

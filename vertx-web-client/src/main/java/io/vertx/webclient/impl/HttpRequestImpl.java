@@ -226,7 +226,7 @@ class HttpRequestImpl implements HttpRequest {
           }
         });
         resp.pause();
-        unmarshaller.stream(ar2 -> {
+        unmarshaller.writeStream(ar2 -> {
           resp.resume();
           if (ar2.succeeded()) {
             BodyStream<R> stream = ar2.result();

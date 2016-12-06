@@ -125,10 +125,10 @@ BodyCodec.create = function(decode) {
  @param stream {WriteStream} the destination tream 
  @return {BodyCodec} the body codec for a write stream
  */
-BodyCodec.stream = function(stream) {
+BodyCodec.writeStream = function(stream) {
   var __args = arguments;
   if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
-    return utils.convReturnVertxGen(BodyCodec, JBodyCodec["stream(io.vertx.core.streams.WriteStream)"](stream._jdel), undefined);
+    return utils.convReturnVertxGen(BodyCodec, JBodyCodec["writeStream(io.vertx.core.streams.WriteStream)"](stream._jdel), undefined);
   } else throw new TypeError('function invoked with invalid arguments');
 };
 

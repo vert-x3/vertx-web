@@ -32,7 +32,7 @@ module VertxWebClient
   #  </ul>
   #  <p>
   #  Most of the time, this client will buffer the HTTP response fully unless a specific {::VertxWebClient::BodyCodec} is used
-  #  such as {::VertxWebClient::BodyCodec#stream}.
+  #  such as {::VertxWebClient::BodyCodec#write_stream}.
   class HttpRequest
     # @private
     # @param j_del [::VertxWebClient::HttpRequest] the java delegate
