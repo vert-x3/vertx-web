@@ -166,6 +166,37 @@ public class WebClientExamples {
       });
   }
 
+  public void sendForm(WebClient client) {
+    MultiMap form = MultiMap.caseInsensitiveMultiMap();
+    form.set("firstName", "Dale");
+    form.set("lastName", "Cooper");
+
+    // Submit the form as a form URL encoded body
+    client
+      .post(8080, "myserver.mycompany.com", "/some-uri")
+      .sendForm(form, ar -> {
+        if (ar.succeeded()) {
+          // Ok
+        }
+      });
+  }
+
+  public void sendMultipart(WebClient client) {
+    MultiMap form = MultiMap.caseInsensitiveMultiMap();
+    form.set("firstName", "Dale");
+    form.set("lastName", "Cooper");
+
+    // Submit the form as a multipart form body
+    client
+      .post(8080, "myserver.mycompany.com", "/some-uri")
+      .putHeader("content-type", "multipart/form-data")
+      .sendForm(form, ar -> {
+        if (ar.succeeded()) {
+          // Ok
+        }
+      });
+  }
+
   public void sendHeaders1(WebClient client) {
     HttpRequest request = client.get(8080, "myserver.mycompany.com", "/some-uri");
     MultiMap headers = request.headers();

@@ -50,7 +50,7 @@ module VertxWebClient
       end
       raise ArgumentError, "Invalid arguments when calling create(#{decode})"
     end
-    #  A body codec that writes the body to a write stream
+    #  A body codec that writes the body to a write stream.
     # @param [::Vertx::WriteStream] stream the destination tream
     # @return [::VertxWebClient::BodyCodec] the body codec for a write stream
     def self.write_stream(stream=nil)

@@ -9,6 +9,7 @@ features like:
 * request/response pumping
 * request parameters
 * unified error handling
+* form submissions
 
 The web client does not deprecate the Vert.x Core `link:../../yardoc/Vertx/HttpClient.html[HttpClient]`, it is actually based on
 it and therefore inherits its configuration and great features like pooling. The `link:../../yardoc/Vertx/HttpClient.html[HttpClient]`
@@ -212,6 +213,49 @@ client.post(8080, "myserver.mycompany.com", "/some-uri").send_json(Java::Example
 
 NOTE: the `link:unavailable#encode-class_method[Json.encode]` uses the Jackson mapper to encode the object
 to Json.
+
+==== Form submissions
+
+You can send http form submissions bodies with the `link:../../yardoc/VertxWebClient/HttpRequest.html#send_form-instance_method[sendForm]`
+variant.
+
+[source,java]
+----
+require 'vertx/multi_map'
+form = Vertx::MultiMap.case_insensitive_multi_map()
+form.set("firstName", "Dale")
+form.set("lastName", "Cooper")
+
+# Submit the form as a form URL encoded body
+client.post(8080, "myserver.mycompany.com", "/some-uri").send_form(form) { |ar_err,ar|
+  if (ar_err == nil)
+    # Ok
+  end
+}
+
+----
+
+By default the form is submitted with the `application/x-www-form-urlencoded` content type header. You set
+the `content-type` header to `multipart/form-data`.
+
+[source,java]
+----
+require 'vertx/multi_map'
+form = Vertx::MultiMap.case_insensitive_multi_map()
+form.set("firstName", "Dale")
+form.set("lastName", "Cooper")
+
+# Submit the form as a multipart form body
+client.post(8080, "myserver.mycompany.com", "/some-uri").put_header("content-type", "multipart/form-data").send_form(form) { |ar_err,ar|
+  if (ar_err == nil)
+    # Ok
+  end
+}
+
+----
+
+NOTE: at the moment multipart files are not supported, it will likely be supported in a later revision
+of the API.
 
 === Writing request headers
 

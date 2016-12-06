@@ -10,6 +10,7 @@
  * * request/response pumping
  * * request parameters
  * * unified error handling
+ * * form submissions
  *
  * The web client does not deprecate the Vert.x Core {@link io.vertx.core.http.HttpClient}, it is actually based on
  * it and therefore inherits its configuration and great features like pooling. The {@link io.vertx.core.http.HttpClient}
@@ -138,6 +139,27 @@
  *
  * NOTE: the {@link io.vertx.core.json.Json#encode(java.lang.Object)} uses the Jackson mapper to encode the object
  * to Json.
+ *
+ * ==== Form submissions
+ *
+ * You can send http form submissions bodies with the {@link io.vertx.webclient.HttpRequest#sendForm(io.vertx.core.MultiMap, io.vertx.core.Handler)}
+ * variant.
+ *
+ * [source,java]
+ * ----
+ * {@link examples.WebClientExamples#sendForm(io.vertx.webclient.WebClient)}
+ * ----
+ *
+ * By default the form is submitted with the `application/x-www-form-urlencoded` content type header. You set
+ * the `content-type` header to `multipart/form-data`.
+ *
+ * [source,java]
+ * ----
+ * {@link examples.WebClientExamples#sendMultipart(io.vertx.webclient.WebClient)}
+ * ----
+ *
+ * NOTE: at the moment multipart files are not supported, it will likely be supported in a later revision
+ * of the API.
  *
  * === Writing request headers
  *

@@ -119,7 +119,7 @@ BodyCodec.create = function(decode) {
 };
 
 /**
- A body codec that writes the body to a write stream
+ A body codec that writes the body to a write stream.
 
  @memberof module:vertx-web-client-js/body_codec
  @param stream {WriteStream} the destination tream 

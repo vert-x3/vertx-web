@@ -9,6 +9,7 @@ features like:
 * request/response pumping
 * request parameters
 * unified error handling
+* form submissions
 
 The web client does not deprecate the Vert.x Core `link:../../jsdoc/module-vertx-js_http_client-HttpClient.html[HttpClient]`, it is actually based on
 it and therefore inherits its configuration and great features like pooling. The `link:../../jsdoc/module-vertx-js_http_client-HttpClient.html[HttpClient]`
@@ -212,6 +213,49 @@ client.post(8080, "myserver.mycompany.com", "/some-uri").sendJson(new (Java.type
 
 NOTE: the `Json.encode` uses the Jackson mapper to encode the object
 to Json.
+
+==== Form submissions
+
+You can send http form submissions bodies with the `link:../../jsdoc/module-vertx-web-client-js_http_request-HttpRequest.html#sendForm[sendForm]`
+variant.
+
+[source,java]
+----
+var MultiMap = require("vertx-js/multi_map");
+var form = MultiMap.caseInsensitiveMultiMap();
+form.set("firstName", "Dale");
+form.set("lastName", "Cooper");
+
+// Submit the form as a form URL encoded body
+client.post(8080, "myserver.mycompany.com", "/some-uri").sendForm(form, function (ar, ar_err) {
+  if (ar_err == null) {
+    // Ok
+  }
+});
+
+----
+
+By default the form is submitted with the `application/x-www-form-urlencoded` content type header. You set
+the `content-type` header to `multipart/form-data`.
+
+[source,java]
+----
+var MultiMap = require("vertx-js/multi_map");
+var form = MultiMap.caseInsensitiveMultiMap();
+form.set("firstName", "Dale");
+form.set("lastName", "Cooper");
+
+// Submit the form as a multipart form body
+client.post(8080, "myserver.mycompany.com", "/some-uri").putHeader("content-type", "multipart/form-data").sendForm(form, function (ar, ar_err) {
+  if (ar_err == null) {
+    // Ok
+  }
+});
+
+----
+
+NOTE: at the moment multipart files are not supported, it will likely be supported in a later revision
+of the API.
 
 === Writing request headers
 
