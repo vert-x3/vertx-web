@@ -20,8 +20,8 @@ import com.mitchellbosecke.pebble.loader.Loader;
 import io.vertx.core.Vertx;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.Reader;
+import java.io.StringReader;
 import java.nio.charset.Charset;
 
 /**
@@ -42,27 +42,8 @@ class PebbleVertxLoader implements Loader<String> {
   @Override
   public Reader getReader(String s) throws LoaderException {
     try {
-      final char[] buffer = vertx.fileSystem().readFileBlocking(s).toString(charset).toCharArray();
-      final int[] pos = {0};
-
-      return new Reader() {
-        @Override
-        public int read(char[] cbuf, int off, int len) throws IOException {
-          if (pos[0] == buffer.length) {
-            return -1;
-          }
-          final int end = Math.min(buffer.length, pos[0] + len);
-          System.arraycopy(buffer, pos[0], cbuf, off, end);
-          final int read = end - pos[0];
-          pos[0] = end;
-          return read;
-        }
-
-        @Override
-        public void close() throws IOException {
-
-        }
-      };
+      final String buffer = vertx.fileSystem().readFileBlocking(s).toString(charset);
+      return new StringReader(buffer);
     } catch (RuntimeException e) {
       throw new LoaderException(e, e.getMessage());
     }
