@@ -36,12 +36,14 @@ public class OAuth2AuthHandlerImpl extends AuthHandlerImpl implements OAuth2Auth
 
   private final String host;
   private final String callbackPath;
+  private final boolean supportJWT;
 
   private Route callback;
   private JsonObject extraParams = new JsonObject();
 
   public OAuth2AuthHandlerImpl(OAuth2Auth authProvider, String callbackURL) {
     super(authProvider);
+    this.supportJWT = authProvider.hasJWTToken();
     try {
       final URL url = new URL(callbackURL);
       this.host = url.getProtocol() + "://" + url.getHost() + (url.getPort() == -1 ? "" : ":" + url.getPort());
@@ -49,7 +51,6 @@ public class OAuth2AuthHandlerImpl extends AuthHandlerImpl implements OAuth2Auth
     } catch (MalformedURLException e) {
       throw new RuntimeException(e);
     }
-
   }
 
   @Override
@@ -59,7 +60,7 @@ public class OAuth2AuthHandlerImpl extends AuthHandlerImpl implements OAuth2Auth
       // Already authenticated.
 
       // if this provider support JWT authorize
-      if (((OAuth2Auth) authProvider).hasJWTToken()) {
+      if (supportJWT) {
         authorise(user, ctx);
       } else {
         // oauth2 used only for authentication (with or without scopes)
@@ -109,8 +110,10 @@ public class OAuth2AuthHandlerImpl extends AuthHandlerImpl implements OAuth2Auth
 
     callback = route;
 
-    // no matter what path was provided we will make sure it is the correct one
-    callback.path(callbackPath);
+    if (!"".equals(callbackPath)) {
+      // no matter what path was provided we will make sure it is the correct one
+      callback.path(callbackPath);
+    }
     callback.method(HttpMethod.GET);
 
     route.handler(ctx -> {
