@@ -63,7 +63,8 @@ public class WebClientExamples {
 
   public void simpleGetWithParams(WebClient client) {
     client
-      .get(8080, "myserver.mycompany.com", "/some-uri").addQueryParam("param", "param_value")
+      .get(8080, "myserver.mycompany.com", "/some-uri")
+      .addQueryParam("param", "param_value")
       .send(ar -> {});
   }
 
@@ -87,6 +88,23 @@ public class WebClientExamples {
 
     // Same request again
     get.send(ar -> {
+      if (ar.succeeded()) {
+        // Ok
+      }
+    });
+  }
+
+  public void multiGetCopy(WebClient client) {
+    HttpRequest get = client.get(8080, "myserver.mycompany.com", "/some-uri");
+    get.send(ar -> {
+      if (ar.succeeded()) {
+        // Ok
+      }
+    });
+
+    // Same request again
+    get.putHeader("an-header", "with-some-value")
+      .send(ar -> {
       if (ar.succeeded()) {
         // Ok
       }
@@ -134,7 +152,9 @@ public class WebClientExamples {
   public void sendJsonObject(WebClient client) {
     client
       .post(8080, "myserver.mycompany.com", "/some-uri")
-      .sendJsonObject(new JsonObject().put("firstName", "Dale").put("lastName", "Cooper"), ar -> {
+      .sendJsonObject(new JsonObject()
+        .put("firstName", "Dale")
+        .put("lastName", "Cooper"), ar -> {
         if (ar.succeeded()) {
           // Ok
         }

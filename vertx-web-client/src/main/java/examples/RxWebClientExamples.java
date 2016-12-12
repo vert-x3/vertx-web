@@ -1,10 +1,13 @@
 package examples;
 
+import io.vertx.core.file.AsyncFile;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava.core.buffer.Buffer;
 import io.vertx.rxjava.webclient.BodyCodec;
 import io.vertx.rxjava.webclient.HttpResponse;
 import io.vertx.rxjava.webclient.WebClient;
+import rx.Observable;
+import rx.Observer;
 import rx.Single;
 
 /**
@@ -22,7 +25,14 @@ public class RxWebClientExamples {
 
     // Send a request upon subscription of the Single
     single.subscribe(response -> {
-      System.out.println("Received response with status code" + response.statusCode());
+      System.out.println("Received 1st response with status code" + response.statusCode());
+    }, error -> {
+      System.out.println("Something went wrong " + error.getMessage());
+    });
+
+    // Send another request
+    single.subscribe(response -> {
+      System.out.println("Received 2nd response with status code" + response.statusCode());
     }, error -> {
       System.out.println("Something went wrong " + error.getMessage());
     });
@@ -46,10 +56,29 @@ public class RxWebClientExamples {
       });
   }
 
-  public void decodeAsJson(WebClient client) {
+  public void moreComplex(WebClient client) {
     Single<HttpResponse<JsonObject>> single = client
-      .get(8080, "localhost", "/somepath")
+      .get(8080, "myserver.mycompany.com", "/some-uri")
+      .putHeader("some-header", "header-value")
+      .addQueryParam("some-param", "param value")
       .rxSend(BodyCodec.jsonObject());
+    single.subscribe(resp -> {
+      System.out.println(resp.statusCode());
+      System.out.println(resp.body());
+    });
+  }
+
+  private Observable<Buffer> getPayload() {
+    throw new UnsupportedOperationException();
+  }
+
+  public void sendObservable(WebClient client) {
+
+    Observable<Buffer> body = getPayload();
+
+    Single<HttpResponse<Buffer>> single = client
+      .post(8080, "myserver.mycompany.com", "/some-uri")
+      .rxSendStream(body);
     single.subscribe(resp -> {
       System.out.println(resp.statusCode());
       System.out.println(resp.body());

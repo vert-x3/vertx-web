@@ -11,9 +11,10 @@ features like:
 * unified error handling
 * form submissions
 
-The web client does not deprecate the Vert.x Core `link:../../apidocs/io/vertx/core/http/HttpClient.html[HttpClient]`, it is actually based on
-it and therefore inherits its configuration and great features like pooling. The `link:../../apidocs/io/vertx/core/http/HttpClient.html[HttpClient]`
-should be used when fine grained control over the HTTP requests/response is necessary.
+The web client does not deprecate the Vert.x Core `link:../../apidocs/io/vertx/core/http/HttpClient.html[HttpClient]`, indeed it is based on
+this client and inherits its configuration and great features like pooling, HTTP/2 support, pipelining support, etc...
+The `link:../../apidocs/io/vertx/core/http/HttpClient.html[HttpClient]` should be used when fine grained control over the HTTP
+requests/response is necessary.
 
 == Using the web client
 
@@ -127,12 +128,14 @@ request.setQueryParam("param2", "another_param2_value")
 
 ----
 
+Setting a request URI discards existing query parameters.
+
 === Writing request bodies
 
 When you need to make a request with a body, you use the same API and call then `sendXXX` methods
 that expects a body to send.
 
-Use `link:../../apidocs/io/vertx/webclient/HttpRequest.html#sendBuffer-io.vertx.core.buffer.Buffer-io.vertx.core.Handler-[sendBuffer]` to send a body buffer
+Use `link:../../apidocs/io/vertx/webclient/HttpRequest.html#sendBuffer-io.vertx.core.buffer.Buffer-io.vertx.core.Handler-[sendBuffer]` to send a buffer body
 
 [source,java]
 ----
@@ -145,17 +148,18 @@ client.post(8080, "myserver.mycompany.com", "/some-uri").sendBuffer(buffer, { ar
 
 ----
 
-Sending a single buffer is useful but often you don't want to load fully the content in memory, for this
-purpose the web client can send `ReadStream<Buffer>` (for example a `link:../../apidocs/io/vertx/core/file/AsyncFile.html[AsyncFile]`
-is a ReadStream<Buffer>`) with the `link:../../apidocs/io/vertx/webclient/HttpRequest.html#sendStream-io.vertx.core.streams.ReadStream-io.vertx.core.Handler-[sendStream]` method
+Sending a single buffer is useful but often you don't want to load fully the content in memory because
+it may be too large or you want to handle many concurrent requests and want to use just the minimum
+for each request. For this purpose the web client can send `ReadStream<Buffer>` (e.g a
+`link:../../apidocs/io/vertx/core/file/AsyncFile.html[AsyncFile]` is a ReadStream<Buffer>`) with the `link:../../apidocs/io/vertx/webclient/HttpRequest.html#sendStream-io.vertx.core.streams.ReadStream-io.vertx.core.Handler-[sendStream]` method
 
 [source,java]
 ----
 Code not translatable
 ----
 
-The web client takes care of setting up the transfer Pump for you. The request will use chunked transfer
-encoding as the length of the stream is not know.
+The web client takes care of setting up the transfer pump for you. Since the length of the stream is not know
+the request will use chunked transfer encoding .
 
 When you know the size of the stream, you shall specify before using the `content-length` header
 
@@ -178,9 +182,11 @@ fs.open("content.txt", [:], { fileRes ->
 
 ----
 
+The POST will not be chunked.
+
 ==== Json bodies
 
-Often you’ll want to write requests which have a Json body. To send a `link:../../apidocs/io/vertx/core/json/JsonObject.html[JsonObject]`
+Often you’ll want to send Json body requests, to send a `link:../../apidocs/io/vertx/core/json/JsonObject.html[JsonObject]`
 use the `link:../../apidocs/io/vertx/webclient/HttpRequest.html#sendJsonObject-io.vertx.core.json.JsonObject-io.vertx.core.Handler-[sendJsonObject]`
 
 [source,java]
@@ -234,8 +240,8 @@ client.post(8080, "myserver.mycompany.com", "/some-uri").sendForm(form, { ar ->
 
 ----
 
-By default the form is submitted with the `application/x-www-form-urlencoded` content type header. You set
-the `content-type` header to `multipart/form-data`.
+By default the form is submitted with the `application/x-www-form-urlencoded` content type header. You can set
+the `content-type` header to `multipart/form-data` instead
 
 [source,java]
 ----
@@ -285,7 +291,7 @@ request.putHeader("other-header", "foo")
 === Reusing requests
 
 The `link:../../apidocs/io/vertx/webclient/HttpRequest.html#send-io.vertx.core.Handler-[send]` method can be called multiple times
-safely, making it very easy to configure http requests and reuse them
+safely, making it very easy to configure and reuse `link:../../apidocs/io/vertx/webclient/HttpRequest.html[HttpRequest]` objects
 
 [source,java]
 ----
@@ -305,11 +311,32 @@ get.send({ ar ->
 
 ----
 
+When you need to mutate a request, the `link:../../apidocs/io/vertx/webclient/HttpRequest.html#copy--[copy]` returns a copy of the
+request
+
+[source,java]
+----
+def get = client.get(8080, "myserver.mycompany.com", "/some-uri")
+get.send({ ar ->
+  if (ar.succeeded()) {
+    // Ok
+  }
+})
+
+// Same request again
+get.putHeader("an-header", "with-some-value").send({ ar ->
+  if (ar.succeeded()) {
+    // Ok
+  }
+})
+
+----
+
 == Handling http responses
 
-When the web client sends a request you always deal with a single async result response.
+When the web client sends a request you always deal with a single async result `link:../../apidocs/io/vertx/webclient/HttpResponse.html[HttpResponse]`.
 
-On a success result the callback happens after the response has been fully received.
+On a success result the callback happens after the response has been received
 
 [source,java]
 ----
@@ -336,7 +363,7 @@ Custom response body decoding can be achieved using `link:../../apidocs/io/vertx
 * Plain String
 * Json object
 * Json mapped POJO
-* WriteStream
+* `link:../../apidocs/io/vertx/core/streams/WriteStream.html[WriteStream]`
 
 A body codec can decode an arbitrary binary data stream into a specific object instance, saving you the decoding
 step in your response handlers.
@@ -360,7 +387,7 @@ client.get(8080, "myserver.mycompany.com", "/some-uri").send(BodyCodec.jsonObjec
 
 ----
 
-Custom Json mapped POJO can be decoded as well:
+In Java, Groovy or Kotlin, custom Json mapped POJO can be decoded
 
 [source,java]
 ----
@@ -379,9 +406,9 @@ client.get(8080, "myserver.mycompany.com", "/some-uri").send(BodyCodec.json(exam
 
 ----
 
-You can use the `link:../../apidocs/io/vertx/webclient/BodyCodec.html#writeStream-io.vertx.core.streams.WriteStream-[BodyCodec.writeStream]` when large response are
-expected. This body codec pumps the response buffers to a `link:../../apidocs/io/vertx/core/streams/WriteStream.html[WriteStream]`
-and signals the success or the failure of the operation in the async result response:
+When large response are expected, use the `link:../../apidocs/io/vertx/webclient/BodyCodec.html#writeStream-io.vertx.core.streams.WriteStream-[BodyCodec.writeStream]`.
+This body codec pumps the response body buffers to a `link:../../apidocs/io/vertx/core/streams/WriteStream.html[WriteStream]`
+and signals the success or the failure of the operation in the async result response
 
 [source,java]
 ----
@@ -399,8 +426,8 @@ client.get(8080, "myserver.mycompany.com", "/some-uri").send(BodyCodec.writeStre
 
 ----
 
-Finally if you are not interested at all by the response content, the `link:../../apidocs/io/vertx/webclient/BodyCodec.html#none--[BodyCodec.none]` will
-simply discard the entire response body and return null.
+Finally if you are not interested at all by the response content, the `link:../../apidocs/io/vertx/webclient/BodyCodec.html#none--[BodyCodec.none]`
+simply discards the entire response body
 
 [source,java]
 ----
@@ -419,7 +446,7 @@ client.get(8080, "myserver.mycompany.com", "/some-uri").send(BodyCodec.none(), {
 ----
 
 When you don't know in advance the content type of the http response, you can still use the `bodyAsXXX()` methods
-that decode the response to a specific type.
+that decode the response to a specific type
 
 [source,java]
 ----
@@ -458,3 +485,20 @@ The obtained `Single` can be composed and chained naturally with the RxJava API
 ----
 Code not translatable
 ----
+
+The same APIs is available
+
+[source,java]
+----
+Code not translatable
+----
+
+The `link:../../apidocs/io/vertx/rxjava/webclient/HttpRequest.html#sendStream-rx.Observable-io.vertx.core.Handler-[sendStream]` shall
+be preferred for sending bodies `Observable<Buffer>`
+
+[source,java]
+----
+Code not translatable
+----
+
+Upon subscription, the `body` will be subscribed and its content used for the request.
