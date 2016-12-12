@@ -23,7 +23,6 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.ext.web.RoutingContext;
-
 import io.vertx.ext.web.templ.FreeMarkerTemplateEngine;
 
 import java.io.ByteArrayOutputStream;
@@ -44,7 +43,7 @@ public class FreeMarkerTemplateEngineImpl extends CachingTemplateEngine<Template
 
     loader = new FreeMarkerTemplateLoader();
     config = new Configuration(Configuration.VERSION_2_3_22);
-
+    config.setObjectWrapper(new VertxWebObjectWrapper(config.getIncompatibleImprovements()));
     config.setTemplateLoader(loader);
   }
 
