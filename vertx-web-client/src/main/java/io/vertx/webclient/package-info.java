@@ -1,7 +1,7 @@
 /**
  * = Vert.x Web Client
  *
- * Vert.x Web Client is an asynchronous HTTP / HTTP/2 client.
+ * Vert.x Web Client is an asynchronous HTTP and HTTP/2 client.
  *
  * The Web Client makes easy to do HTTP request/response interactions with a web server, and provides advanced
  * features like:
