@@ -19,12 +19,11 @@ package io.vertx.ext.web;
 import io.vertx.ext.web.impl.Utils;
 import org.junit.Test;
 
-import java.util.List;
-
 import static org.junit.Assert.assertEquals;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
+ * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
 public class UtilsTest {
 
@@ -51,17 +50,17 @@ public class UtilsTest {
 
   @Test
   public void testDodgyPath1() throws Exception {
-    assertEquals("/foo/blah", Utils.normalisePath("/foo/../../blah"));
+    assertEquals("/blah", Utils.normalisePath("/foo/../../blah"));
   }
 
   @Test
   public void testDodgyPath2() throws Exception {
-    assertEquals("/foo/blah", Utils.normalisePath("/foo/../../../blah"));
+    assertEquals("/blah", Utils.normalisePath("/foo/../../../blah"));
   }
 
   @Test
   public void testDodgyPath3() throws Exception {
-    assertEquals("/foo/blah", Utils.normalisePath("/foo/../blah"));
+    assertEquals("/blah", Utils.normalisePath("/foo/../blah"));
   }
 
   @Test
@@ -135,6 +134,17 @@ public class UtilsTest {
   @Test
   public void testURLDecodeNonLatin() throws Exception {
     assertEquals("/foo/\u00F1/blah/\u5a74\u513f\u670d\u9970/eek/\u0E0C", Utils.normalisePath("/foo/%C3%B1/blah/%E5%A9%B4%E5%84%BF%E6%9C%8D%E9%A5%B0/eek/%E0%B8%8C"));
+  }
+
+  @Test
+  public void testDoubleDot() throws Exception {
+    assertEquals("/foo/bar/abc..def", Utils.normalisePath("/foo/bar/abc..def"));
+  }
+
+  @Test
+  public void testSpec() throws Exception {
+    assertEquals("/a/g", Utils.normalizePath("/a/b/c/./../../g", true));
+    assertEquals("/mid/6", Utils.normalizePath("mid/content=5/../6", true));
   }
 
 }

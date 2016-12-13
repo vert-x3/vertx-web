@@ -27,7 +27,9 @@ import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Comparator;
+import java.util.Locale;
+import java.util.TimeZone;
 import java.util.regex.Pattern;
 
 /**
@@ -40,61 +42,174 @@ public class Utils extends io.vertx.core.impl.Utils {
   private static final Pattern SEMICOLON_SPLITTER = Pattern.compile(" *; *");
   private static final Pattern EQUAL_SPLITTER = Pattern.compile(" *= *");
 
+  /**
+   * Please see {@link #normalizePath(String, boolean)}
+   * @deprecated
+   * @param path raw path
+   * @return normalized path
+   */
+  @Deprecated
   public static String normalisePath(String path) {
-    return normalisePath(path, true);
+    return normalizePath(path, true);
   }
 
-  public static String normalisePath(String path, boolean urldecode) {
-    if (path == null) {
+  private static int indexOfSlash(String str, int start) {
+    for (int i = start; i < str.length(); i++) {
+      if (str.charAt(i) == '/') {
+        return i;
+      }
+    }
+
+    return -1;
+  }
+
+  private static boolean matches(String path, int start, String what) {
+    return matches(path, start, what, false);
+  }
+
+  private static boolean matches(String path, int start, String what, boolean exact) {
+    if (exact) {
+      if (path.length() - start != what.length()) {
+        return false;
+      }
+    }
+
+    if (path.length() - start >= what.length()) {
+      for (int i = 0; i < what.length(); i++) {
+        if (path.charAt(start + i) != what.charAt(i)) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
+   * Normalizes a path (remove_dot_segments) as per <a href="http://tools.ietf.org/html/rfc3986#section-5.2.4>rfc3986#section-5.2.4</a>.
+   *
+   * There are 2 extra transformations that are not part of the spec but kept for backwards compatibility:
+   *
+   * double slash // will be converted to single slash and the path will always start with slash.
+   *
+   * @param ibuf raw path
+   * @param unescape unescape
+   * @return normalized path
+   */
+  public static String normalizePath(String ibuf, boolean unescape) {
+    // add trailing slash if not set
+    if (ibuf == null || ibuf.length() == 0) {
       return "/";
     }
 
-    if (path.charAt(0) != '/') {
-      path = "/" + path;
+    // Not standard!!!
+    if (ibuf.charAt(0) != '/') {
+      ibuf = "/" + ibuf;
     }
 
-    try {
-      StringBuilder result = new StringBuilder(path.length());
-
-      for (int i = 0; i < path.length(); i++) {
-        char c = path.charAt(i);
-
-        // we explicitly ignore the + sign as it should not be translated to
-        // space within a path as per RFC3986 we only consider percent encoded values
-        if (c == '/') {
-          if (i == 0 || result.charAt(result.length() - 1) != '/')
-            result.append(c);
-        } else if (urldecode && c == '%') {
-          i = processEscapeSequence(path, result, i);
-        } else if (c == '.') {
-          if (i == 0 || result.charAt(result.length() - 1) != '.')
-            result.append(c);
-          else
-            result.deleteCharAt(result.length() - 1);
+    // remove dots as described in
+    // http://tools.ietf.org/html/rfc3986#section-5.2.4
+    StringBuilder obuf = new StringBuilder(ibuf.length());
+    int i = 0;
+    while (i < ibuf.length()) {
+      if (matches(ibuf, i, "./")) {
+        i += 2;
+      } else if (matches(ibuf, i, "../")) {
+        i += 3;
+      } else if (matches(ibuf, i, "/./")) {
+        // preserve last slash
+        i += 2;
+      } else if (matches(ibuf, i,"/.", true)) {
+        ibuf = "/";
+        i = 0;
+      } else if (matches(ibuf, i, "/../")) {
+        // preserve last slash
+        i += 3;
+        int pos = obuf.lastIndexOf("/");
+        if (pos != -1) {
+          obuf.delete(pos, obuf.length());
+        }
+      } else if (matches(ibuf, i, "/..", true)) {
+        ibuf = "/";
+        i = 0;
+        int pos = obuf.lastIndexOf("/");
+        if (pos != -1) {
+          obuf.delete(pos - 1, obuf.length());
+        }
+      } else if (matches(ibuf, i, ".", true) || matches(ibuf, i, "..", true)) {
+        break;
+      } else {
+        if (ibuf.charAt(i) == '/') {
+          i++;
+          // Not standard!!!
+          // but common // -> /
+          if (obuf.length() == 0 || obuf.charAt(obuf.length() - 1) != '/') {
+            obuf.append('/');
+          }
+        }
+        int pos = indexOfSlash(ibuf, i);
+        if (pos != -1) {
+          if (unescape) {
+            try {
+              for (int j = i ; j < pos; j++) {
+                if (ibuf.charAt(j) == '%') {
+                  j = processEscapeSequence(ibuf, obuf, j);
+                } else {
+                  obuf.append(ibuf.charAt(j));
+                }
+              }
+            } catch (UnsupportedEncodingException e) {
+              throw new RuntimeException(e);
+            }
+          } else {
+            obuf.append(ibuf, i, pos);
+          }
+          i = pos;
         } else {
-          result.append(c);
+          if (unescape) {
+            try {
+              for (int j = i; j < ibuf.length(); j++) {
+                if (ibuf.charAt(j) == '%') {
+                  j = processEscapeSequence(ibuf, obuf, j);
+                } else {
+                  obuf.append(ibuf.charAt(j));
+                }
+              }
+            } catch (UnsupportedEncodingException e) {
+              throw new RuntimeException(e);
+            }
+          } else {
+            obuf.append(ibuf, i, ibuf.length());
+          }
+          break;
         }
       }
-
-      return result.toString();
-
-    } catch (UnsupportedEncodingException e) {
-      throw new IllegalStateException(e);
     }
+
+    return obuf.toString();
+  }
+
+  /**
+   * Please see {@link #normalizePath(String, boolean)}
+   * @deprecated
+   * @param path raw path
+   * @param urldecode unescape
+   * @return normalized path
+   */
+  @Deprecated
+  public static String normalisePath(String path, boolean urldecode) {
+    return normalizePath(path, urldecode);
   }
 
   /**
    * Processes a escape sequence in path
    *
-   * @param path
-   *          The original path
-   * @param result
-   *          The result of unescaping the escape sequence (and removing dangerous constructs)
-   * @param i
-   *          The index of path where the escape sequence begins
+   * @param path   The original path
+   * @param result The result of unescaping the escape sequence (and removing dangerous constructs)
+   * @param i      The index of path where the escape sequence begins
    * @return The index of path where the escape sequence ends
-   * @throws UnsupportedEncodingException
-   *           If the escape sequence does not represent a valid UTF-8 string
+   * @throws UnsupportedEncodingException If the escape sequence does not represent a valid UTF-8 string
    */
   private static int processEscapeSequence(String path, StringBuilder result, int i) throws UnsupportedEncodingException {
     Buffer buf = Buffer.buffer(2);
