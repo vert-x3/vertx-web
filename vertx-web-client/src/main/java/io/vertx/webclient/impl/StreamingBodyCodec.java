@@ -59,6 +59,7 @@ public class StreamingBodyCodec implements BodyCodec<Void> {
 
       @Override
       public WriteStream<Buffer> setWriteQueueMaxSize(int maxSize) {
+        stream.setWriteQueueMaxSize(maxSize);
         return this;
       }
 
