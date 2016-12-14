@@ -111,6 +111,19 @@ public class WebClientExamples {
     });
   }
 
+  public void timeout(WebClient client) {
+    client
+      .get(8080, "myserver.mycompany.com", "/some-uri")
+      .timeout(5000)
+      .send(ar -> {
+        if (ar.succeeded()) {
+          // Ok
+        } else {
+          // Might be a timeout when cause is java.util.concurrent.TimeoutException
+        }
+      });
+  }
+
   public void sendBuffer(WebClient client, Buffer buffer) {
     // Send a buffer to the server using POST, the content-length header will be set for you
     client

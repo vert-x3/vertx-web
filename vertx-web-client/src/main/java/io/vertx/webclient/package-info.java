@@ -204,6 +204,18 @@
  * {@link examples.WebClientExamples#multiGetCopy(io.vertx.webclient.WebClient)}
  * ----
  *
+ * === Timeouts
+ *
+ * You can set a timeout for a specific http request using {@link io.vertx.webclient.HttpRequest#timeout(long)}.
+ *
+ * [source,$lang]
+ * ----
+ * {@link examples.WebClientExamples#timeout(io.vertx.webclient.WebClient)}
+ * ----
+ *
+ * If the request does not return any data within the timeout period an exception will be passed to the response
+ * handler.
+ *
  * == Handling http responses
  *
  * When the web client sends a request you always deal with a single async result {@link io.vertx.webclient.HttpResponse}.

@@ -333,6 +333,25 @@ get.put_header("an-header", "with-some-value").send() { |ar_err,ar|
 
 ----
 
+=== Timeouts
+
+You can set a timeout for a specific http request using `link:../../yardoc/VertxWebClient/HttpRequest.html#timeout-instance_method[timeout]`.
+
+[source,ruby]
+----
+client.get(8080, "myserver.mycompany.com", "/some-uri").timeout(5000).send() { |ar_err,ar|
+  if (ar_err == nil)
+    # Ok
+  else
+    # Might be a timeout when cause is java.util.concurrent.TimeoutException
+  end
+}
+
+----
+
+If the request does not return any data within the timeout period an exception will be passed to the response
+handler.
+
 == Handling http responses
 
 When the web client sends a request you always deal with a single async result `link:../../yardoc/VertxWebClient/HttpResponse.html[HttpResponse]`.

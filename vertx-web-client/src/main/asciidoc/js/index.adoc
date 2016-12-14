@@ -333,6 +333,25 @@ get.putHeader("an-header", "with-some-value").send(function (ar, ar_err) {
 
 ----
 
+=== Timeouts
+
+You can set a timeout for a specific http request using `link:../../jsdoc/module-vertx-web-client-js_http_request-HttpRequest.html#timeout[timeout]`.
+
+[source,js]
+----
+client.get(8080, "myserver.mycompany.com", "/some-uri").timeout(5000).send(function (ar, ar_err) {
+  if (ar_err == null) {
+    // Ok
+  } else {
+    // Might be a timeout when cause is java.util.concurrent.TimeoutException
+  }
+});
+
+----
+
+If the request does not return any data within the timeout period an exception will be passed to the response
+handler.
+
 == Handling http responses
 
 When the web client sends a request you always deal with a single async result `link:../../jsdoc/module-vertx-web-client-js_http_response-HttpResponse.html[HttpResponse]`.

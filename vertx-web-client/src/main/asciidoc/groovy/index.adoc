@@ -332,6 +332,25 @@ get.putHeader("an-header", "with-some-value").send({ ar ->
 
 ----
 
+=== Timeouts
+
+You can set a timeout for a specific http request using `link:../../apidocs/io/vertx/webclient/HttpRequest.html#timeout-long-[timeout]`.
+
+[source,groovy]
+----
+client.get(8080, "myserver.mycompany.com", "/some-uri").timeout(5000).send({ ar ->
+  if (ar.succeeded()) {
+    // Ok
+  } else {
+    // Might be a timeout when cause is java.util.concurrent.TimeoutException
+  }
+})
+
+----
+
+If the request does not return any data within the timeout period an exception will be passed to the response
+handler.
+
 == Handling http responses
 
 When the web client sends a request you always deal with a single async result `link:../../apidocs/io/vertx/webclient/HttpResponse.html[HttpResponse]`.
