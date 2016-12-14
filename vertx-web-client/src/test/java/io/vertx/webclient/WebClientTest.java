@@ -304,7 +304,8 @@ public class WebClientTest extends HttpTestBase {
             return this;
           }
         }, onFailure(err -> {
-          assertTrue(err.getMessage().contains("Connection was closed"));
+          String msg = err.getMessage();
+          assertTrue("Was expected error message " + msg + " to contain 'Connection was closed'", msg.contains("Connection was closed"));
           complete();
         }));
     await();
