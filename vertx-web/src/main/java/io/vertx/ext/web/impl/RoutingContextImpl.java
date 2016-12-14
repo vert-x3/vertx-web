@@ -79,7 +79,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
       throw new HeaderTooLongException("Header '" + name + "' too long");
     }
   }
-  
+
   private void fillParsedHeaders(HttpServerRequest request) {
     String accept = request.getHeader("Accept");
     String acceptCharset = request.getHeader ("Accept-Charset");
@@ -100,7 +100,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
         HeaderParser.sort(HeaderParser.convertToParsedHeaderValues(acceptLanguage, ParsableLanguageValue::new)),
         new ParsableMIMEValue(contentType)
     );
-    
+
   }
 
   @Override
@@ -199,7 +199,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   @Override
   public String normalisedPath() {
     if (normalisedPath == null) {
-      normalisedPath = Utils.normalisePath(request.path());
+      normalisedPath = Utils.normalizePath(request.path());
     }
     return normalisedPath;
   }
@@ -299,7 +299,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   public void setAcceptableContentType(String contentType) {
     this.acceptableContentType = contentType;
   }
-  
+
   @Override
   public ParsableHeaderValuesContainer parsedHeaders() {
     return parsedHeaders;

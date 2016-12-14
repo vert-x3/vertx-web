@@ -132,7 +132,7 @@ public class StaticHandlerImpl implements StaticHandler {
       if (log.isTraceEnabled()) log.trace("Not GET or HEAD so ignoring request");
       context.next();
     } else {
-      String path = context.normalisedPath();
+      String path = Utils.removeDots(Utils.urlDecode(context.normalisedPath(), false));
       // if the normalized path is null it cannot be resolved
       if (path == null) {
         log.warn("Invalid path: " + context.request().path() + " so returning 404");
@@ -505,7 +505,7 @@ public class StaticHandlerImpl implements StaticHandler {
     this.maxAvgServeTimeNanoSeconds = maxAvgServeTimeNanoSeconds;
     return this;
   }
-  
+
   @Override
   public StaticHandler setSendVaryHeader(boolean sendVaryHeader) {
     this.sendVaryHeader = sendVaryHeader;
