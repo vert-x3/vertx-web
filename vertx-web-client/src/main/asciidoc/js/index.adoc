@@ -49,7 +49,7 @@ Vert.x Web Client uses the API from Vert.x core, so it's well worth getting fami
 
 You create an `link:../../jsdoc/module-vertx-web-client-js_web_client-WebClient.html[WebClient]` instance with default options as follows
 
-[source,java]
+[source,js]
 ----
 var WebClient = require("vertx-web-client-js/web_client");
 var client = WebClient.create(vertx);
@@ -58,7 +58,7 @@ var client = WebClient.create(vertx);
 
 If you want to configure options for the client, you create it as follows
 
-[source,java]
+[source,js]
 ----
 var WebClient = require("vertx-web-client-js/web_client");
 var options = {
@@ -75,7 +75,7 @@ var client = WebClient.wrap(vertx.createHttpClient(options));
 Often, you’ll want to make HTTP requests with no request body. This is usually the case with HTTP GET, OPTIONS
 and HEAD requests
 
-[source,java]
+[source,js]
 ----
 var WebClient = require("vertx-web-client-js/web_client");
 
@@ -109,14 +109,14 @@ client.head(8080, "myserver.mycompany.com", "/some-uri").send(function (ar, ar_e
 
 You can add query parameters to the request URI in a fluent fashion
 
-[source,java]
+[source,js]
 ----
 Code not translatable
 ----
 
 Any request URI parameter will pre-populate the request
 
-[source,java]
+[source,js]
 ----
 var request = client.get(8080, "myserver.mycompany.com", "/some-uri?param1=param1_value&param2=param2_value");
 
@@ -137,7 +137,7 @@ that expects a body to send.
 
 Use `link:../../jsdoc/module-vertx-web-client-js_http_request-HttpRequest.html#sendBuffer[sendBuffer]` to send a buffer body
 
-[source,java]
+[source,js]
 ----
 // Send a buffer to the server using POST, the content-length header will be set for you
 client.post(8080, "myserver.mycompany.com", "/some-uri").sendBuffer(buffer, function (ar, ar_err) {
@@ -153,7 +153,7 @@ it may be too large or you want to handle many concurrent requests and want to u
 for each request. For this purpose the web client can send `ReadStream<Buffer>` (e.g a
 `link:../../jsdoc/module-vertx-js_async_file-AsyncFile.html[AsyncFile]` is a ReadStream<Buffer>`) with the `link:../../jsdoc/module-vertx-web-client-js_http_request-HttpRequest.html#sendStream[sendStream]` method
 
-[source,java]
+[source,js]
 ----
 Code not translatable
 ----
@@ -163,7 +163,7 @@ the request will use chunked transfer encoding .
 
 When you know the size of the stream, you shall specify before using the `content-length` header
 
-[source,java]
+[source,js]
 ----
 fs.open("content.txt", {
 }, function (fileRes, fileRes_err) {
@@ -190,7 +190,7 @@ The POST will not be chunked.
 Often you’ll want to send Json body requests, to send a `JsonObject`
 use the `link:../../jsdoc/module-vertx-web-client-js_http_request-HttpRequest.html#sendJsonObject[sendJsonObject]`
 
-[source,java]
+[source,js]
 ----
 client.post(8080, "myserver.mycompany.com", "/some-uri").sendJsonObject({
   "firstName" : "Dale",
@@ -207,7 +207,7 @@ In Java, Groovy or Kotlin, you can use the `link:../../jsdoc/module-vertx-web-cl
 a POJO (Plain Old Java Object) to a Json object using `Json.encode`
 method
 
-[source,java]
+[source,js]
 ----
 client.post(8080, "myserver.mycompany.com", "/some-uri").sendJson(new (Java.type("examples.WebClientExamples.User"))("Dale", "Cooper"), function (ar, ar_err) {
   if (ar_err == null) {
@@ -225,7 +225,7 @@ to Json.
 You can send http form submissions bodies with the `link:../../jsdoc/module-vertx-web-client-js_http_request-HttpRequest.html#sendForm[sendForm]`
 variant.
 
-[source,java]
+[source,js]
 ----
 var MultiMap = require("vertx-js/multi_map");
 var form = MultiMap.caseInsensitiveMultiMap();
@@ -244,7 +244,7 @@ client.post(8080, "myserver.mycompany.com", "/some-uri").sendForm(form, function
 By default the form is submitted with the `application/x-www-form-urlencoded` content type header. You can set
 the `content-type` header to `multipart/form-data` instead
 
-[source,java]
+[source,js]
 ----
 var MultiMap = require("vertx-js/multi_map");
 var form = MultiMap.caseInsensitiveMultiMap();
@@ -267,7 +267,7 @@ of the API.
 
 You can write headers to a request using the headers multi-map as follows:
 
-[source,java]
+[source,js]
 ----
 var request = client.get(8080, "myserver.mycompany.com", "/some-uri");
 var headers = request.headers();
@@ -281,7 +281,7 @@ setting and removing entries. Http headers allow more than one value for a speci
 
 You can also write headers using putHeader
 
-[source,java]
+[source,js]
 ----
 var request = client.get(8080, "myserver.mycompany.com", "/some-uri");
 request.putHeader("content-type", "application/json");
@@ -294,7 +294,7 @@ request.putHeader("other-header", "foo");
 The `link:../../jsdoc/module-vertx-web-client-js_http_request-HttpRequest.html#send[send]` method can be called multiple times
 safely, making it very easy to configure and reuse `link:../../jsdoc/module-vertx-web-client-js_http_request-HttpRequest.html[HttpRequest]` objects
 
-[source,java]
+[source,js]
 ----
 var get = client.get(8080, "myserver.mycompany.com", "/some-uri");
 get.send(function (ar, ar_err) {
@@ -315,7 +315,7 @@ get.send(function (ar, ar_err) {
 When you need to mutate a request, the `link:../../jsdoc/module-vertx-web-client-js_http_request-HttpRequest.html#copy[copy]` returns a copy of the
 request
 
-[source,java]
+[source,js]
 ----
 var get = client.get(8080, "myserver.mycompany.com", "/some-uri");
 get.send(function (ar, ar_err) {
@@ -339,7 +339,7 @@ When the web client sends a request you always deal with a single async result `
 
 On a success result the callback happens after the response has been received
 
-[source,java]
+[source,js]
 ----
 client.get(8080, "myserver.mycompany.com", "/some-uri").send(function (ar, ar_err) {
   if (ar_err == null) {
@@ -371,7 +371,7 @@ step in your response handlers.
 
 Use `link:../../jsdoc/module-vertx-web-client-js_body_codec-BodyCodec.html#jsonObject[BodyCodec.jsonObject]` To decode a Json object:
 
-[source,java]
+[source,js]
 ----
 var BodyCodec = require("vertx-web-client-js/body_codec");
 client.get(8080, "myserver.mycompany.com", "/some-uri").send(BodyCodec.jsonObject(), function (ar, ar_err) {
@@ -390,7 +390,7 @@ client.get(8080, "myserver.mycompany.com", "/some-uri").send(BodyCodec.jsonObjec
 
 In Java, Groovy or Kotlin, custom Json mapped POJO can be decoded
 
-[source,java]
+[source,js]
 ----
 var BodyCodec = require("vertx-web-client-js/body_codec");
 client.get(8080, "myserver.mycompany.com", "/some-uri").send(BodyCodec.json(Java.type("examples.WebClientExamples.User").class), function (ar, ar_err) {
@@ -411,7 +411,7 @@ When large response are expected, use the `link:../../jsdoc/module-vertx-web-cli
 This body codec pumps the response body buffers to a `link:../../jsdoc/module-vertx-js_write_stream-WriteStream.html[WriteStream]`
 and signals the success or the failure of the operation in the async result response
 
-[source,java]
+[source,js]
 ----
 var BodyCodec = require("vertx-web-client-js/body_codec");
 client.get(8080, "myserver.mycompany.com", "/some-uri").send(BodyCodec.pipe(writeStream), function (ar, ar_err) {
@@ -430,7 +430,7 @@ client.get(8080, "myserver.mycompany.com", "/some-uri").send(BodyCodec.pipe(writ
 Finally if you are not interested at all by the response content, the `link:../../jsdoc/module-vertx-web-client-js_body_codec-BodyCodec.html#none[BodyCodec.none]`
 simply discards the entire response body
 
-[source,java]
+[source,js]
 ----
 var BodyCodec = require("vertx-web-client-js/body_codec");
 client.get(8080, "myserver.mycompany.com", "/some-uri").send(BodyCodec.none(), function (ar, ar_err) {
@@ -449,7 +449,7 @@ client.get(8080, "myserver.mycompany.com", "/some-uri").send(BodyCodec.none(), f
 When you don't know in advance the content type of the http response, you can still use the `bodyAsXXX()` methods
 that decode the response to a specific type
 
-[source,java]
+[source,js]
 ----
 client.get(8080, "myserver.mycompany.com", "/some-uri").send(function (ar, ar_err) {
   if (ar_err == null) {
@@ -475,21 +475,21 @@ The RxJava `HttpRequest` provides an rx-ified version of the original API,
 the `rxSend` method returns a `Single<HttpResponse<Buffer>>` that
 makes the HTTP request upon subscription, as consequence, the `Single` can be subscribed many times.
 
-[source,java]
+[source,js]
 ----
 Code not translatable
 ----
 
 The obtained `Single` can be composed and chained naturally with the RxJava API
 
-[source,java]
+[source,js]
 ----
 Code not translatable
 ----
 
 The same APIs is available
 
-[source,java]
+[source,js]
 ----
 Code not translatable
 ----
@@ -497,7 +497,7 @@ Code not translatable
 The `sendStream` shall
 be preferred for sending bodies `Observable<Buffer>`
 
-[source,java]
+[source,js]
 ----
 Code not translatable
 ----

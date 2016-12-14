@@ -50,14 +50,14 @@
  *
  * You create an {@link io.vertx.webclient.WebClient} instance with default options as follows
  *
- * [source,java]
+ * [source,$lang]
  * ----
  * {@link examples.WebClientExamples#create}
  * ----
  *
  * If you want to configure options for the client, you create it as follows
  *
- * [source,java]
+ * [source,$lang]
  * ----
  * {@link examples.WebClientExamples#createFromOptions}
  * ----
@@ -69,21 +69,21 @@
  * Often, you’ll want to make HTTP requests with no request body. This is usually the case with HTTP GET, OPTIONS
  * and HEAD requests
  *
- * [source,java]
+ * [source,$lang]
  * ----
  * {@link examples.WebClientExamples#simpleGetAndHead}
  * ----
  *
  * You can add query parameters to the request URI in a fluent fashion
  *
- * [source,java]
+ * [source,$lang]
  * ----
  * {@link examples.WebClientExamples#simpleGetWithParams(io.vertx.webclient.WebClient)}
  * ----
  *
  * Any request URI parameter will pre-populate the request
  *
- * [source,java]
+ * [source,$lang]
  * ----
  * {@link examples.WebClientExamples#simpleGetWithInitialParams(io.vertx.webclient.WebClient)}
  * ----
@@ -97,7 +97,7 @@
  *
  * Use {@link io.vertx.webclient.HttpRequest#sendBuffer} to send a buffer body
  *
- * [source,java]
+ * [source,$lang]
  * ----
  * {@link examples.WebClientExamples#sendBuffer(io.vertx.webclient.WebClient, io.vertx.core.buffer.Buffer)}
  * ----
@@ -107,7 +107,7 @@
  * for each request. For this purpose the web client can send `ReadStream<Buffer>` (e.g a
  * {@link io.vertx.core.file.AsyncFile} is a ReadStream<Buffer>`) with the {@link io.vertx.webclient.HttpRequest#sendStream} method
  *
- * [source,java]
+ * [source,$lang]
  * ----
  * {@link examples.WebClientExamples#sendStreamChunked(io.vertx.webclient.WebClient, io.vertx.core.streams.ReadStream)}
  * ----
@@ -117,7 +117,7 @@
  *
  * When you know the size of the stream, you shall specify before using the `content-length` header
  *
- * [source,java]
+ * [source,$lang]
  * ----
  * {@link examples.WebClientExamples#sendStream(io.vertx.webclient.WebClient, io.vertx.core.file.FileSystem)}
  * ----
@@ -129,7 +129,7 @@
  * Often you’ll want to send Json body requests, to send a {@link io.vertx.core.json.JsonObject}
  * use the {@link io.vertx.webclient.HttpRequest#sendJsonObject(io.vertx.core.json.JsonObject, io.vertx.core.Handler)}
  *
- * [source,java]
+ * [source,$lang]
  * ----
  * {@link examples.WebClientExamples#sendJsonObject(io.vertx.webclient.WebClient)}
  * ----
@@ -138,7 +138,7 @@
  * a POJO (Plain Old Java Object) to a Json object using {@link io.vertx.core.json.Json#encode(java.lang.Object)}
  * method
  *
- * [source,java]
+ * [source,$lang]
  * ----
  * {@link examples.WebClientExamples#sendJsonPOJO(io.vertx.webclient.WebClient)}
  * ----
@@ -151,7 +151,7 @@
  * You can send http form submissions bodies with the {@link io.vertx.webclient.HttpRequest#sendForm(io.vertx.core.MultiMap, io.vertx.core.Handler)}
  * variant.
  *
- * [source,java]
+ * [source,$lang]
  * ----
  * {@link examples.WebClientExamples#sendForm(io.vertx.webclient.WebClient)}
  * ----
@@ -159,7 +159,7 @@
  * By default the form is submitted with the `application/x-www-form-urlencoded` content type header. You can set
  * the `content-type` header to `multipart/form-data` instead
  *
- * [source,java]
+ * [source,$lang]
  * ----
  * {@link examples.WebClientExamples#sendMultipart(io.vertx.webclient.WebClient)}
  * ----
@@ -171,7 +171,7 @@
  *
  * You can write headers to a request using the headers multi-map as follows:
  *
- * [source,java]
+ * [source,$lang]
  * ----
  * {@link examples.WebClientExamples#sendHeaders1(io.vertx.webclient.WebClient)}
  * ----
@@ -181,7 +181,7 @@
  *
  * You can also write headers using putHeader
  *
- * [source,java]
+ * [source,$lang]
  * ----
  * {@link examples.WebClientExamples#sendHeaders2(io.vertx.webclient.WebClient)}
  * ----
@@ -191,7 +191,7 @@
  * The {@link io.vertx.webclient.HttpRequest#send(io.vertx.core.Handler)} method can be called multiple times
  * safely, making it very easy to configure and reuse {@link io.vertx.webclient.HttpRequest} objects
  *
- * [source,java]
+ * [source,$lang]
  * ----
  * {@link examples.WebClientExamples#multiGet(io.vertx.webclient.WebClient)}
  * ----
@@ -199,7 +199,7 @@
  * When you need to mutate a request, the {@link io.vertx.webclient.HttpRequest#copy()} returns a copy of the
  * request
  *
- * [source,java]
+ * [source,$lang]
  * ----
  * {@link examples.WebClientExamples#multiGetCopy(io.vertx.webclient.WebClient)}
  * ----
@@ -210,7 +210,7 @@
  *
  * On a success result the callback happens after the response has been received
  *
- * [source,java]
+ * [source,$lang]
  * ----
  * {@link examples.WebClientExamples#receiveResponse(io.vertx.webclient.WebClient)}
  * ----
@@ -232,14 +232,14 @@
  *
  * Use {@link io.vertx.webclient.BodyCodec#jsonObject()} To decode a Json object:
  *
- * [source,java]
+ * [source,$lang]
  * ----
  * {@link examples.WebClientExamples#receiveResponseAsJsonObject(io.vertx.webclient.WebClient)}
  * ----
  *
  * In Java, Groovy or Kotlin, custom Json mapped POJO can be decoded
  *
- * [source,java]
+ * [source,$lang]
  * ----
  * {@link examples.WebClientExamples#receiveResponseAsJsonPOJO(io.vertx.webclient.WebClient)}
  * ----
@@ -248,7 +248,7 @@
  * This body codec pumps the response body buffers to a {@link io.vertx.core.streams.WriteStream}
  * and signals the success or the failure of the operation in the async result response
  *
- * [source,java]
+ * [source,$lang]
  * ----
  * {@link examples.WebClientExamples#receiveResponseAsWriteStream(io.vertx.webclient.WebClient, io.vertx.core.streams.WriteStream)}
  * ----
@@ -256,7 +256,7 @@
  * Finally if you are not interested at all by the response content, the {@link io.vertx.webclient.BodyCodec#none()}
  * simply discards the entire response body
  *
- * [source,java]
+ * [source,$lang]
  * ----
  * {@link examples.WebClientExamples#receiveResponseAndDiscard(io.vertx.webclient.WebClient)}
  * ----
@@ -264,7 +264,7 @@
  * When you don't know in advance the content type of the http response, you can still use the {@code bodyAsXXX()} methods
  * that decode the response to a specific type
  *
- * [source,java]
+ * [source,$lang]
  * ----
  * {@link examples.WebClientExamples#receiveResponseAsBufferDecodeAsJsonObject(io.vertx.webclient.WebClient)}
  * ----
@@ -277,21 +277,21 @@
  * the {@link io.vertx.rxjava.webclient.HttpRequest#rxSend()} method returns a `Single<HttpResponse<Buffer>>` that
  * makes the HTTP request upon subscription, as consequence, the {@code Single} can be subscribed many times.
  *
- * [source,java]
+ * [source,$lang]
  * ----
  * {@link examples.RxWebClientExamples#simpleGet(io.vertx.rxjava.webclient.WebClient)}
  * ----
  *
  * The obtained {@code Single} can be composed and chained naturally with the RxJava API
  *
- * [source,java]
+ * [source,$lang]
  * ----
  * {@link examples.RxWebClientExamples#flatMap(io.vertx.rxjava.webclient.WebClient)}
  * ----
  *
  * The same APIs is available
  *
- * [source,java]
+ * [source,$lang]
  * ----
  * {@link examples.RxWebClientExamples#moreComplex(io.vertx.rxjava.webclient.WebClient)}
  * ----
@@ -299,7 +299,7 @@
  * The {@link io.vertx.rxjava.webclient.HttpRequest#sendStream(rx.Observable, io.vertx.core.Handler)} shall
  * be preferred for sending bodies {@code Observable<Buffer>}
  *
- * [source,java]
+ * [source,$lang]
  * ----
  * {@link examples.RxWebClientExamples#sendObservable(io.vertx.rxjava.webclient.WebClient)}
  * ----

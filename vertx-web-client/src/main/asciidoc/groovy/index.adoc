@@ -49,7 +49,7 @@ Vert.x Web Client uses the API from Vert.x core, so it's well worth getting fami
 
 You create an `link:../../apidocs/io/vertx/webclient/WebClient.html[WebClient]` instance with default options as follows
 
-[source,java]
+[source,groovy]
 ----
 import io.vertx.webclient.WebClient
 def client = WebClient.create(vertx)
@@ -58,7 +58,7 @@ def client = WebClient.create(vertx)
 
 If you want to configure options for the client, you create it as follows
 
-[source,java]
+[source,groovy]
 ----
 import io.vertx.webclient.WebClient
 def options = [
@@ -75,7 +75,7 @@ def client = WebClient.wrap(vertx.createHttpClient(options))
 Often, you’ll want to make HTTP requests with no request body. This is usually the case with HTTP GET, OPTIONS
 and HEAD requests
 
-[source,java]
+[source,groovy]
 ----
 import io.vertx.webclient.WebClient
 
@@ -109,14 +109,14 @@ client.head(8080, "myserver.mycompany.com", "/some-uri").send({ ar ->
 
 You can add query parameters to the request URI in a fluent fashion
 
-[source,java]
+[source,groovy]
 ----
 Code not translatable
 ----
 
 Any request URI parameter will pre-populate the request
 
-[source,java]
+[source,groovy]
 ----
 def request = client.get(8080, "myserver.mycompany.com", "/some-uri?param1=param1_value&param2=param2_value")
 
@@ -137,7 +137,7 @@ that expects a body to send.
 
 Use `link:../../apidocs/io/vertx/webclient/HttpRequest.html#sendBuffer-io.vertx.core.buffer.Buffer-io.vertx.core.Handler-[sendBuffer]` to send a buffer body
 
-[source,java]
+[source,groovy]
 ----
 // Send a buffer to the server using POST, the content-length header will be set for you
 client.post(8080, "myserver.mycompany.com", "/some-uri").sendBuffer(buffer, { ar ->
@@ -153,7 +153,7 @@ it may be too large or you want to handle many concurrent requests and want to u
 for each request. For this purpose the web client can send `ReadStream<Buffer>` (e.g a
 `link:../../apidocs/io/vertx/core/file/AsyncFile.html[AsyncFile]` is a ReadStream<Buffer>`) with the `link:../../apidocs/io/vertx/webclient/HttpRequest.html#sendStream-io.vertx.core.streams.ReadStream-io.vertx.core.Handler-[sendStream]` method
 
-[source,java]
+[source,groovy]
 ----
 Code not translatable
 ----
@@ -163,7 +163,7 @@ the request will use chunked transfer encoding .
 
 When you know the size of the stream, you shall specify before using the `content-length` header
 
-[source,java]
+[source,groovy]
 ----
 fs.open("content.txt", [:], { fileRes ->
   if (fileRes.succeeded()) {
@@ -189,7 +189,7 @@ The POST will not be chunked.
 Often you’ll want to send Json body requests, to send a `link:../../apidocs/io/vertx/core/json/JsonObject.html[JsonObject]`
 use the `link:../../apidocs/io/vertx/webclient/HttpRequest.html#sendJsonObject-io.vertx.core.json.JsonObject-io.vertx.core.Handler-[sendJsonObject]`
 
-[source,java]
+[source,groovy]
 ----
 client.post(8080, "myserver.mycompany.com", "/some-uri").sendJsonObject([
   firstName:"Dale",
@@ -206,7 +206,7 @@ In Java, Groovy or Kotlin, you can use the `link:../../apidocs/io/vertx/webclien
 a POJO (Plain Old Java Object) to a Json object using `link:../../apidocs/io/vertx/core/json/Json.html#encode-java.lang.Object-[Json.encode]`
 method
 
-[source,java]
+[source,groovy]
 ----
 client.post(8080, "myserver.mycompany.com", "/some-uri").sendJson(new examples.WebClientExamples.User("Dale", "Cooper"), { ar ->
   if (ar.succeeded()) {
@@ -224,7 +224,7 @@ to Json.
 You can send http form submissions bodies with the `link:../../apidocs/io/vertx/webclient/HttpRequest.html#sendForm-io.vertx.core.MultiMap-io.vertx.core.Handler-[sendForm]`
 variant.
 
-[source,java]
+[source,groovy]
 ----
 import io.vertx.core.MultiMap
 def form = MultiMap.caseInsensitiveMultiMap()
@@ -243,7 +243,7 @@ client.post(8080, "myserver.mycompany.com", "/some-uri").sendForm(form, { ar ->
 By default the form is submitted with the `application/x-www-form-urlencoded` content type header. You can set
 the `content-type` header to `multipart/form-data` instead
 
-[source,java]
+[source,groovy]
 ----
 import io.vertx.core.MultiMap
 def form = MultiMap.caseInsensitiveMultiMap()
@@ -266,7 +266,7 @@ of the API.
 
 You can write headers to a request using the headers multi-map as follows:
 
-[source,java]
+[source,groovy]
 ----
 def request = client.get(8080, "myserver.mycompany.com", "/some-uri")
 def headers = request.headers()
@@ -280,7 +280,7 @@ setting and removing entries. Http headers allow more than one value for a speci
 
 You can also write headers using putHeader
 
-[source,java]
+[source,groovy]
 ----
 def request = client.get(8080, "myserver.mycompany.com", "/some-uri")
 request.putHeader("content-type", "application/json")
@@ -293,7 +293,7 @@ request.putHeader("other-header", "foo")
 The `link:../../apidocs/io/vertx/webclient/HttpRequest.html#send-io.vertx.core.Handler-[send]` method can be called multiple times
 safely, making it very easy to configure and reuse `link:../../apidocs/io/vertx/webclient/HttpRequest.html[HttpRequest]` objects
 
-[source,java]
+[source,groovy]
 ----
 def get = client.get(8080, "myserver.mycompany.com", "/some-uri")
 get.send({ ar ->
@@ -314,7 +314,7 @@ get.send({ ar ->
 When you need to mutate a request, the `link:../../apidocs/io/vertx/webclient/HttpRequest.html#copy--[copy]` returns a copy of the
 request
 
-[source,java]
+[source,groovy]
 ----
 def get = client.get(8080, "myserver.mycompany.com", "/some-uri")
 get.send({ ar ->
@@ -338,7 +338,7 @@ When the web client sends a request you always deal with a single async result `
 
 On a success result the callback happens after the response has been received
 
-[source,java]
+[source,groovy]
 ----
 client.get(8080, "myserver.mycompany.com", "/some-uri").send({ ar ->
   if (ar.succeeded()) {
@@ -370,7 +370,7 @@ step in your response handlers.
 
 Use `link:../../apidocs/io/vertx/webclient/BodyCodec.html#jsonObject--[BodyCodec.jsonObject]` To decode a Json object:
 
-[source,java]
+[source,groovy]
 ----
 import io.vertx.webclient.BodyCodec
 client.get(8080, "myserver.mycompany.com", "/some-uri").send(BodyCodec.jsonObject(), { ar ->
@@ -389,7 +389,7 @@ client.get(8080, "myserver.mycompany.com", "/some-uri").send(BodyCodec.jsonObjec
 
 In Java, Groovy or Kotlin, custom Json mapped POJO can be decoded
 
-[source,java]
+[source,groovy]
 ----
 import io.vertx.webclient.BodyCodec
 client.get(8080, "myserver.mycompany.com", "/some-uri").send(BodyCodec.json(examples.WebClientExamples.User.class), { ar ->
@@ -410,7 +410,7 @@ When large response are expected, use the `link:../../apidocs/io/vertx/webclient
 This body codec pumps the response body buffers to a `link:../../apidocs/io/vertx/core/streams/WriteStream.html[WriteStream]`
 and signals the success or the failure of the operation in the async result response
 
-[source,java]
+[source,groovy]
 ----
 import io.vertx.webclient.BodyCodec
 client.get(8080, "myserver.mycompany.com", "/some-uri").send(BodyCodec.pipe(writeStream), { ar ->
@@ -429,7 +429,7 @@ client.get(8080, "myserver.mycompany.com", "/some-uri").send(BodyCodec.pipe(writ
 Finally if you are not interested at all by the response content, the `link:../../apidocs/io/vertx/webclient/BodyCodec.html#none--[BodyCodec.none]`
 simply discards the entire response body
 
-[source,java]
+[source,groovy]
 ----
 import io.vertx.webclient.BodyCodec
 client.get(8080, "myserver.mycompany.com", "/some-uri").send(BodyCodec.none(), { ar ->
@@ -448,7 +448,7 @@ client.get(8080, "myserver.mycompany.com", "/some-uri").send(BodyCodec.none(), {
 When you don't know in advance the content type of the http response, you can still use the `bodyAsXXX()` methods
 that decode the response to a specific type
 
-[source,java]
+[source,groovy]
 ----
 client.get(8080, "myserver.mycompany.com", "/some-uri").send({ ar ->
   if (ar.succeeded()) {
@@ -474,21 +474,21 @@ The RxJava `link:../../apidocs/io/vertx/rxjava/webclient/HttpRequest.html[HttpRe
 the `link:../../apidocs/io/vertx/rxjava/webclient/HttpRequest.html#rxSend--[rxSend]` method returns a `Single<HttpResponse<Buffer>>` that
 makes the HTTP request upon subscription, as consequence, the `Single` can be subscribed many times.
 
-[source,java]
+[source,groovy]
 ----
 Code not translatable
 ----
 
 The obtained `Single` can be composed and chained naturally with the RxJava API
 
-[source,java]
+[source,groovy]
 ----
 Code not translatable
 ----
 
 The same APIs is available
 
-[source,java]
+[source,groovy]
 ----
 Code not translatable
 ----
@@ -496,7 +496,7 @@ Code not translatable
 The `link:../../apidocs/io/vertx/rxjava/webclient/HttpRequest.html#sendStream-rx.Observable-io.vertx.core.Handler-[sendStream]` shall
 be preferred for sending bodies `Observable<Buffer>`
 
-[source,java]
+[source,groovy]
 ----
 Code not translatable
 ----

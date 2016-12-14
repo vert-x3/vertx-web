@@ -49,7 +49,7 @@ Vert.x Web Client uses the API from Vert.x core, so it's well worth getting fami
 
 You create an `link:../../yardoc/VertxWebClient/WebClient.html[WebClient]` instance with default options as follows
 
-[source,java]
+[source,ruby]
 ----
 require 'vertx-web-client/web_client'
 client = VertxWebClient::WebClient.create(vertx)
@@ -58,7 +58,7 @@ client = VertxWebClient::WebClient.create(vertx)
 
 If you want to configure options for the client, you create it as follows
 
-[source,java]
+[source,ruby]
 ----
 require 'vertx-web-client/web_client'
 options = {
@@ -75,7 +75,7 @@ client = VertxWebClient::WebClient.wrap(vertx.create_http_client(options))
 Often, you’ll want to make HTTP requests with no request body. This is usually the case with HTTP GET, OPTIONS
 and HEAD requests
 
-[source,java]
+[source,ruby]
 ----
 require 'vertx-web-client/web_client'
 
@@ -109,14 +109,14 @@ client.head(8080, "myserver.mycompany.com", "/some-uri").send() { |ar_err,ar|
 
 You can add query parameters to the request URI in a fluent fashion
 
-[source,java]
+[source,ruby]
 ----
 Code not translatable
 ----
 
 Any request URI parameter will pre-populate the request
 
-[source,java]
+[source,ruby]
 ----
 request = client.get(8080, "myserver.mycompany.com", "/some-uri?param1=param1_value&param2=param2_value")
 
@@ -137,7 +137,7 @@ that expects a body to send.
 
 Use `link:../../yardoc/VertxWebClient/HttpRequest.html#send_buffer-instance_method[sendBuffer]` to send a buffer body
 
-[source,java]
+[source,ruby]
 ----
 # Send a buffer to the server using POST, the content-length header will be set for you
 client.post(8080, "myserver.mycompany.com", "/some-uri").send_buffer(buffer) { |ar_err,ar|
@@ -153,7 +153,7 @@ it may be too large or you want to handle many concurrent requests and want to u
 for each request. For this purpose the web client can send `ReadStream<Buffer>` (e.g a
 `link:../../yardoc/Vertx/AsyncFile.html[AsyncFile]` is a ReadStream<Buffer>`) with the `link:../../yardoc/VertxWebClient/HttpRequest.html#send_stream-instance_method[sendStream]` method
 
-[source,java]
+[source,ruby]
 ----
 Code not translatable
 ----
@@ -163,7 +163,7 @@ the request will use chunked transfer encoding .
 
 When you know the size of the stream, you shall specify before using the `content-length` header
 
-[source,java]
+[source,ruby]
 ----
 fs.open("content.txt", {
 }) { |fileRes_err,fileRes|
@@ -190,7 +190,7 @@ The POST will not be chunked.
 Often you’ll want to send Json body requests, to send a `link:unavailable[JsonObject]`
 use the `link:../../yardoc/VertxWebClient/HttpRequest.html#send_json_object-instance_method[sendJsonObject]`
 
-[source,java]
+[source,ruby]
 ----
 client.post(8080, "myserver.mycompany.com", "/some-uri").send_json_object({
   'firstName' => "Dale",
@@ -207,7 +207,7 @@ In Java, Groovy or Kotlin, you can use the `link:../../yardoc/VertxWebClient/Htt
 a POJO (Plain Old Java Object) to a Json object using `link:unavailable#encode-class_method[Json.encode]`
 method
 
-[source,java]
+[source,ruby]
 ----
 client.post(8080, "myserver.mycompany.com", "/some-uri").send_json(Java::ExamplesWebClientExamples::User.new("Dale", "Cooper")) { |ar_err,ar|
   if (ar_err == nil)
@@ -225,7 +225,7 @@ to Json.
 You can send http form submissions bodies with the `link:../../yardoc/VertxWebClient/HttpRequest.html#send_form-instance_method[sendForm]`
 variant.
 
-[source,java]
+[source,ruby]
 ----
 require 'vertx/multi_map'
 form = Vertx::MultiMap.case_insensitive_multi_map()
@@ -244,7 +244,7 @@ client.post(8080, "myserver.mycompany.com", "/some-uri").send_form(form) { |ar_e
 By default the form is submitted with the `application/x-www-form-urlencoded` content type header. You can set
 the `content-type` header to `multipart/form-data` instead
 
-[source,java]
+[source,ruby]
 ----
 require 'vertx/multi_map'
 form = Vertx::MultiMap.case_insensitive_multi_map()
@@ -267,7 +267,7 @@ of the API.
 
 You can write headers to a request using the headers multi-map as follows:
 
-[source,java]
+[source,ruby]
 ----
 request = client.get(8080, "myserver.mycompany.com", "/some-uri")
 headers = request.headers()
@@ -281,7 +281,7 @@ setting and removing entries. Http headers allow more than one value for a speci
 
 You can also write headers using putHeader
 
-[source,java]
+[source,ruby]
 ----
 request = client.get(8080, "myserver.mycompany.com", "/some-uri")
 request.put_header("content-type", "application/json")
@@ -294,7 +294,7 @@ request.put_header("other-header", "foo")
 The `link:../../yardoc/VertxWebClient/HttpRequest.html#send-instance_method[send]` method can be called multiple times
 safely, making it very easy to configure and reuse `link:../../yardoc/VertxWebClient/HttpRequest.html[HttpRequest]` objects
 
-[source,java]
+[source,ruby]
 ----
 get = client.get(8080, "myserver.mycompany.com", "/some-uri")
 get.send() { |ar_err,ar|
@@ -315,7 +315,7 @@ get.send() { |ar_err,ar|
 When you need to mutate a request, the `link:../../yardoc/VertxWebClient/HttpRequest.html#copy-instance_method[copy]` returns a copy of the
 request
 
-[source,java]
+[source,ruby]
 ----
 get = client.get(8080, "myserver.mycompany.com", "/some-uri")
 get.send() { |ar_err,ar|
@@ -339,7 +339,7 @@ When the web client sends a request you always deal with a single async result `
 
 On a success result the callback happens after the response has been received
 
-[source,java]
+[source,ruby]
 ----
 client.get(8080, "myserver.mycompany.com", "/some-uri").send() { |ar_err,ar|
   if (ar_err == nil)
@@ -371,7 +371,7 @@ step in your response handlers.
 
 Use `link:../../yardoc/VertxWebClient/BodyCodec.html#json_object-class_method[BodyCodec.jsonObject]` To decode a Json object:
 
-[source,java]
+[source,ruby]
 ----
 require 'vertx-web-client/body_codec'
 client.get(8080, "myserver.mycompany.com", "/some-uri").send(VertxWebClient::BodyCodec.json_object()) { |ar_err,ar|
@@ -390,7 +390,7 @@ client.get(8080, "myserver.mycompany.com", "/some-uri").send(VertxWebClient::Bod
 
 In Java, Groovy or Kotlin, custom Json mapped POJO can be decoded
 
-[source,java]
+[source,ruby]
 ----
 require 'vertx-web-client/body_codec'
 client.get(8080, "myserver.mycompany.com", "/some-uri").send(VertxWebClient::BodyCodec.json(Java::ExamplesWebClientExamples::User::class)) { |ar_err,ar|
@@ -411,7 +411,7 @@ When large response are expected, use the `link:../../yardoc/VertxWebClient/Body
 This body codec pumps the response body buffers to a `link:../../yardoc/Vertx/WriteStream.html[WriteStream]`
 and signals the success or the failure of the operation in the async result response
 
-[source,java]
+[source,ruby]
 ----
 require 'vertx-web-client/body_codec'
 client.get(8080, "myserver.mycompany.com", "/some-uri").send(VertxWebClient::BodyCodec.pipe(writeStream)) { |ar_err,ar|
@@ -430,7 +430,7 @@ client.get(8080, "myserver.mycompany.com", "/some-uri").send(VertxWebClient::Bod
 Finally if you are not interested at all by the response content, the `link:../../yardoc/VertxWebClient/BodyCodec.html#none-class_method[BodyCodec.none]`
 simply discards the entire response body
 
-[source,java]
+[source,ruby]
 ----
 require 'vertx-web-client/body_codec'
 client.get(8080, "myserver.mycompany.com", "/some-uri").send(VertxWebClient::BodyCodec.none()) { |ar_err,ar|
@@ -449,7 +449,7 @@ client.get(8080, "myserver.mycompany.com", "/some-uri").send(VertxWebClient::Bod
 When you don't know in advance the content type of the http response, you can still use the `bodyAsXXX()` methods
 that decode the response to a specific type
 
-[source,java]
+[source,ruby]
 ----
 client.get(8080, "myserver.mycompany.com", "/some-uri").send() { |ar_err,ar|
   if (ar_err == nil)
@@ -475,21 +475,21 @@ The RxJava `link:unavailable[HttpRequest]` provides an rx-ified version of the o
 the `link:unavailable#rx_send-instance_method[rxSend]` method returns a `Single<HttpResponse<Buffer>>` that
 makes the HTTP request upon subscription, as consequence, the `Single` can be subscribed many times.
 
-[source,java]
+[source,ruby]
 ----
 Code not translatable
 ----
 
 The obtained `Single` can be composed and chained naturally with the RxJava API
 
-[source,java]
+[source,ruby]
 ----
 Code not translatable
 ----
 
 The same APIs is available
 
-[source,java]
+[source,ruby]
 ----
 Code not translatable
 ----
@@ -497,7 +497,7 @@ Code not translatable
 The `link:unavailable#send_stream-instance_method[sendStream]` shall
 be preferred for sending bodies `Observable<Buffer>`
 
-[source,java]
+[source,ruby]
 ----
 Code not translatable
 ----
