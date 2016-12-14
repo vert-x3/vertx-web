@@ -43,7 +43,8 @@ import io.vertx.core.streams.ReadStream;
  *   <li>{@link #send(BodyCodec, Handler)} (Handler)}</li>
  * </ul>
  * can be called.
- * The {@code sendXXX} methods perform the actual request, they can be used multiple times to perform multiple HTTP requests.
+ * The {@code sendXXX} methods perform the actual request, they can be called multiple times to perform the same HTTP
+ * request at different points in time.
  * <p>
  * The handler is called back with
  * <ul>
