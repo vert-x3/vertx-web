@@ -239,10 +239,10 @@ class HttpRequestImpl implements HttpRequest {
             resp.endHandler(v -> {
               if (!fut.isComplete()) {
                 stream.end();
-                if (stream.state().succeeded()) {
-                  fut.complete(new HttpResponseImpl<>(resp, null, stream.state().result()));
+                if (stream.result().succeeded()) {
+                  fut.complete(new HttpResponseImpl<>(resp, null, stream.result().result()));
                 } else {
-                  fut.fail(stream.state().cause());
+                  fut.fail(stream.result().cause());
                 }
               }
             });

@@ -26,7 +26,7 @@ public class StreamingBodyCodec implements BodyCodec<Void> {
       Future<Void> fut = Future.future();
 
       @Override
-      public Future<Void> state() {
+      public Future<Void> result() {
         return fut;
       }
 

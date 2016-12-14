@@ -6,10 +6,15 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.streams.WriteStream;
 
 /**
+ * The body stream decodes a {@link WriteStream<Buffer>} into the a {@code T} instance.
+ *
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
  */
 public interface BodyStream<T> extends WriteStream<Buffer>, Handler<Throwable> {
 
-  Future<T> state();
+  /**
+   * @return the future signaling the completion of the stream
+   */
+  Future<T> result();
 
 }

@@ -74,7 +74,7 @@ public class BodyCodecImpl<T> implements BodyCodec<T> {
       }
 
       @Override
-      public Future<T> state() {
+      public Future<T> result() {
         return state;
       }
 
