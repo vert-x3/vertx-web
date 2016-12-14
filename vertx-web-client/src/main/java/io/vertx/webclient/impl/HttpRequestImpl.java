@@ -156,66 +156,67 @@ class HttpRequestImpl implements HttpRequest {
 
   @Override
   public void sendStream(ReadStream<Buffer> body, Handler<AsyncResult<HttpResponse<Buffer>>> handler) {
-    perform2(null, body, BodyCodec.buffer(), handler);
+    send(null, body, BodyCodec.buffer(), handler);
   }
 
   @Override
   public <R> void sendStream(ReadStream<Buffer> body, BodyCodec<R> responseCodec, Handler<AsyncResult<HttpResponse<R>>> handler) {
-    perform2(null, body, responseCodec, handler);
+    send(null, body, responseCodec, handler);
   }
 
   @Override
   public void send(Handler<AsyncResult<HttpResponse<Buffer>>> handler) {
-    perform2(null, null, BodyCodec.buffer(), handler);
+    send(null, null, BodyCodec.buffer(), handler);
   }
 
   @Override
   public <R> void send(BodyCodec<R> responseCodec, Handler<AsyncResult<HttpResponse<R>>> handler) {
-    perform2(null, null, responseCodec, handler);
+    send(null, null, responseCodec, handler);
   }
 
   @Override
   public void sendBuffer(Buffer body, Handler<AsyncResult<HttpResponse<Buffer>>> handler) {
-    perform2(null, body, BodyCodec.buffer(), handler);
+    send(null, body, BodyCodec.buffer(), handler);
   }
 
   @Override
   public <R> void sendBuffer(Buffer body, BodyCodec<R> responseCodec, Handler<AsyncResult<HttpResponse<R>>> handler) {
-    perform2(null, body, responseCodec, handler);
+    send(null, body, responseCodec, handler);
   }
 
   @Override
   public void sendJsonObject(JsonObject body, Handler<AsyncResult<HttpResponse<Buffer>>> handler) {
-    perform2("application/json", body, BodyCodec.buffer(), handler);
+    send("application/json", body, BodyCodec.buffer(), handler);
   }
 
   @Override
   public <R> void sendJsonObject(JsonObject body, BodyCodec<R> responseCodec, Handler<AsyncResult<HttpResponse<R>>> handler) {
-    perform2("application/json", body, responseCodec, handler);
+    send("application/json", body, responseCodec, handler);
   }
 
   @Override
   public void sendJson(Object body, Handler<AsyncResult<HttpResponse<Buffer>>> handler) {
-    perform2("application/json", body, BodyCodec.buffer(), handler);
+    send("application/json", body, BodyCodec.buffer(), handler);
   }
 
   @Override
   public <R> void sendJson(Object body, BodyCodec<R> responseCodec, Handler<AsyncResult<HttpResponse<R>>> handler) {
-    perform2("application/json", body, responseCodec, handler);
+    send("application/json", body, responseCodec, handler);
   }
 
   @Override
   public void sendForm(MultiMap body, Handler<AsyncResult<HttpResponse<Buffer>>> handler) {
-    perform2("application/x-www-form-urlencoded", body, BodyCodec.buffer(), handler);
+    send("application/x-www-form-urlencoded", body, BodyCodec.buffer(), handler);
   }
 
   @Override
   public <R> void sendForm(MultiMap body, BodyCodec<R> responseCodec, Handler<AsyncResult<HttpResponse<R>>> handler) {
-    perform2("application/x-www-form-urlencoded", body, responseCodec, handler);
+    send("application/x-www-form-urlencoded", body, responseCodec, handler);
   }
 
-  private <R> void perform2(String contentType, Object body, BodyCodec<R> codec, Handler<AsyncResult<HttpResponse<R>>> handler) {
-    perform(contentType, body, ar -> {
+  private <R> void send(String contentType, Object body, BodyCodec<R> codec, Handler<AsyncResult<HttpResponse<R>>> handler) {
+
+    Future<HttpClientResponse> responseFuture = Future.<HttpClientResponse>future().setHandler(ar -> {
       if (ar.succeeded()) {
         HttpClientResponse resp = ar.result();
         Future<HttpResponse<R>> fut = Future.future();
@@ -255,10 +256,7 @@ class HttpRequestImpl implements HttpRequest {
         handler.handle(Future.failedFuture(ar.cause()));
       }
     });
-  }
 
-  private void perform(String contentType, Object body, Handler<AsyncResult<HttpClientResponse>> handler) {
-    Future<HttpClientResponse> fut = Future.future();
     HttpClientRequest req;
     String requestURI;
     if (params != null && params.size() > 0) {
@@ -287,13 +285,13 @@ class HttpRequestImpl implements HttpRequest {
       req.headers().addAll(headers);
     }
     req.exceptionHandler(err -> {
-      if (!fut.isComplete()) {
-        fut.fail(err);
+      if (!responseFuture.isComplete()) {
+        responseFuture.fail(err);
       }
     });
     req.handler(resp -> {
-      if (!fut.isComplete()) {
-        fut.complete(resp);
+      if (!responseFuture.isComplete()) {
+        responseFuture.complete(resp);
       }
     });
     if (timeout > 0) {
@@ -316,8 +314,8 @@ class HttpRequestImpl implements HttpRequest {
         Pump pump = Pump.pump(stream, req);
         stream.exceptionHandler(err -> {
           req.reset();
-          if (!fut.isComplete()) {
-            fut.fail(err);
+          if (!responseFuture.isComplete()) {
+            responseFuture.fail(err);
           }
         });
         stream.endHandler(v -> {
@@ -369,6 +367,5 @@ class HttpRequestImpl implements HttpRequest {
     } else {
       req.end();
     }
-    fut.setHandler(handler);
   }
 }

@@ -22,7 +22,8 @@ module VertxWebClient
   #    <li>{::VertxWebClient::HttpRequest#send} (Handler)}</li>
   #  </ul>
   #  can be called.
-  #  The <code>sendXXX</code> methods perform the actual request, they can be used multiple times to perform multiple HTTP requests.
+  #  The <code>sendXXX</code> methods perform the actual request, they can be called multiple times to perform the same HTTP
+  #  request at different points in time.
   #  <p>
   #  The handler is called back with
   #  <ul>
