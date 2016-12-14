@@ -18,6 +18,7 @@ package io.vertx.rxjava.serviceproxy.testmodel;
 
 import java.util.Map;
 import rx.Observable;
+import rx.Single;
 
 /**
  * Test base imports are corrects.

@@ -1843,6 +1843,19 @@
  * order the handler is called (for example you want it to be called as soon as possible in the chain) you can always
  * create the route object before and pass it as a reference to this method.
  *
+ * Mixing OAuth2 and JWT
+ *
+ * Some providers use JWT tokens as access tokens, this is a feature of <a href="https://tools.ietf.org/html/rfc6750">RFC6750</a>
+ * and can be quite useful when one wants to mix client based authentication and API authorization. For example say that
+ * you have a application that provides some protected HTML documents but you also want it to be available for API's to
+ * consume. In this case an API cannot easily perform the redirect handshake required by OAuth2 but can use a Token
+ * provided before hand.
+ *
+ * This is handled automatically by the handler as long as the provider is configured to support JWTs.
+ *
+ * In real life this means that your API's can access your protected resources using the header `Authorization` with the
+ * value `Bearer BASE64_ACCESS_TOKEN`.
+ *
  */
 @Document(fileName = "index.adoc")
 @ModuleGen(name = "vertx-web", groupPackage = "io.vertx")

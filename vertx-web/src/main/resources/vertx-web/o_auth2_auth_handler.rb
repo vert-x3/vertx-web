@@ -62,25 +62,25 @@ module VertxWeb
       end
       raise ArgumentError, "Invalid arguments when calling add_authorities(#{authorities})"
     end
-    #  Create a OAuth2 auth handler
+    #  Create a OAuth2 auth handler with host pinning
     # @param [::VertxAuthOauth2::OAuth2Auth] authProvider the auth provider to use
-    # @param [String] uri 
+    # @param [String] callbackURL the callback URL you entered in your provider admin console, usually it should be something like: `https://myserver:8888/callback`
     # @return [::VertxWeb::OAuth2AuthHandler] the auth handler
-    def self.create(authProvider=nil,uri=nil)
-      if authProvider.class.method_defined?(:j_del) && uri.class == String && !block_given?
-        return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebHandler::OAuth2AuthHandler.java_method(:create, [Java::IoVertxExtAuthOauth2::OAuth2Auth.java_class,Java::java.lang.String.java_class]).call(authProvider.j_del,uri),::VertxWeb::OAuth2AuthHandler)
+    def self.create(authProvider=nil,callbackURL=nil)
+      if authProvider.class.method_defined?(:j_del) && callbackURL.class == String && !block_given?
+        return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebHandler::OAuth2AuthHandler.java_method(:create, [Java::IoVertxExtAuthOauth2::OAuth2Auth.java_class,Java::java.lang.String.java_class]).call(authProvider.j_del,callbackURL),::VertxWeb::OAuth2AuthHandler)
       end
-      raise ArgumentError, "Invalid arguments when calling create(#{authProvider},#{uri})"
+      raise ArgumentError, "Invalid arguments when calling create(#{authProvider},#{callbackURL})"
     end
-    #  Build the authorization URL.
-    # @param [String] redirectURL where is the callback mounted.
-    # @param [String] state state opaque token to avoid forged requests
-    # @return [String] the redirect URL
-    def auth_uri(redirectURL=nil,state=nil)
-      if redirectURL.class == String && state.class == String && !block_given?
-        return @j_del.java_method(:authURI, [Java::java.lang.String.java_class,Java::java.lang.String.java_class]).call(redirectURL,state)
+    #  Extra parameters needed to be passed while requesting a token.
+    # @param [Hash{String => Object}] extraParams extra optional parameters.
+    # @return [self]
+    def extra_params(extraParams=nil)
+      if extraParams.class == Hash && !block_given?
+        @j_del.java_method(:extraParams, [Java::IoVertxCoreJson::JsonObject.java_class]).call(::Vertx::Util::Utils.to_json_object(extraParams))
+        return self
       end
-      raise ArgumentError, "Invalid arguments when calling auth_uri(#{redirectURL},#{state})"
+      raise ArgumentError, "Invalid arguments when calling extra_params(#{extraParams})"
     end
     #  add the callback handler to a given route.
     # @param [::VertxWeb::Route] route a given route e.g.: `/callback`

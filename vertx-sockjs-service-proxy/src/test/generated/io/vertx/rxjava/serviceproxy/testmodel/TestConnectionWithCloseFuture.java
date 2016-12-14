@@ -18,6 +18,7 @@ package io.vertx.rxjava.serviceproxy.testmodel;
 
 import java.util.Map;
 import rx.Observable;
+import rx.Single;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 
@@ -48,20 +49,34 @@ public class TestConnectionWithCloseFuture {
     delegate.close(handler);
   }
 
+  @Deprecated()
   public Observable<Void> closeObservable() { 
     io.vertx.rx.java.ObservableFuture<Void> handler = io.vertx.rx.java.RxHelper.observableFuture();
     close(handler.toHandler());
     return handler;
   }
 
+  public Single<Void> rxClose() { 
+    return Single.create(new io.vertx.rx.java.SingleOnSubscribeAdapter<>(fut -> {
+      close(fut);
+    }));
+  }
+
   public void someMethod(Handler<AsyncResult<String>> resultHandler) { 
     delegate.someMethod(resultHandler);
   }
 
+  @Deprecated()
   public Observable<String> someMethodObservable() { 
     io.vertx.rx.java.ObservableFuture<String> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
     someMethod(resultHandler.toHandler());
     return resultHandler;
+  }
+
+  public Single<String> rxSomeMethod() { 
+    return Single.create(new io.vertx.rx.java.SingleOnSubscribeAdapter<>(fut -> {
+      someMethod(fut);
+    }));
   }
 
 

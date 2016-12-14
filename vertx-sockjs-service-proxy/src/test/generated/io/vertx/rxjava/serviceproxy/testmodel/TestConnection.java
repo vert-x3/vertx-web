@@ -18,6 +18,7 @@ package io.vertx.rxjava.serviceproxy.testmodel;
 
 import java.util.Map;
 import rx.Observable;
+import rx.Single;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
@@ -50,10 +51,17 @@ public class TestConnection {
     return this;
   }
 
+  @Deprecated()
   public Observable<String> startTransactionObservable() { 
     io.vertx.rx.java.ObservableFuture<String> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
     startTransaction(resultHandler.toHandler());
     return resultHandler;
+  }
+
+  public Single<String> rxStartTransaction() { 
+    return Single.create(new io.vertx.rx.java.SingleOnSubscribeAdapter<>(fut -> {
+      startTransaction(fut);
+    }));
   }
 
   public TestConnection insert(String name, JsonObject data, Handler<AsyncResult<String>> resultHandler) { 
@@ -61,10 +69,17 @@ public class TestConnection {
     return this;
   }
 
+  @Deprecated()
   public Observable<String> insertObservable(String name, JsonObject data) { 
     io.vertx.rx.java.ObservableFuture<String> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
     insert(name, data, resultHandler.toHandler());
     return resultHandler;
+  }
+
+  public Single<String> rxInsert(String name, JsonObject data) { 
+    return Single.create(new io.vertx.rx.java.SingleOnSubscribeAdapter<>(fut -> {
+      insert(name, data, fut);
+    }));
   }
 
   public TestConnection commit(Handler<AsyncResult<String>> resultHandler) { 
@@ -72,10 +87,17 @@ public class TestConnection {
     return this;
   }
 
+  @Deprecated()
   public Observable<String> commitObservable() { 
     io.vertx.rx.java.ObservableFuture<String> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
     commit(resultHandler.toHandler());
     return resultHandler;
+  }
+
+  public Single<String> rxCommit() { 
+    return Single.create(new io.vertx.rx.java.SingleOnSubscribeAdapter<>(fut -> {
+      commit(fut);
+    }));
   }
 
   public TestConnection rollback(Handler<AsyncResult<String>> resultHandler) { 
@@ -83,10 +105,17 @@ public class TestConnection {
     return this;
   }
 
+  @Deprecated()
   public Observable<String> rollbackObservable() { 
     io.vertx.rx.java.ObservableFuture<String> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
     rollback(resultHandler.toHandler());
     return resultHandler;
+  }
+
+  public Single<String> rxRollback() { 
+    return Single.create(new io.vertx.rx.java.SingleOnSubscribeAdapter<>(fut -> {
+      rollback(fut);
+    }));
   }
 
   public void close() { 

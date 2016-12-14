@@ -45,12 +45,15 @@ module VertxWeb
     end
     #  Create a new session
     # @param [Fixnum] timeout - the session timeout, in ms
+    # @param [Fixnum] length - the required length for the session id
     # @return [::VertxWeb::Session] the session
-    def create_session(timeout=nil)
-      if timeout.class == Fixnum && !block_given?
+    def create_session(timeout=nil,length=nil)
+      if timeout.class == Fixnum && !block_given? && length == nil
         return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:createSession, [Java::long.java_class]).call(timeout),::VertxWeb::Session)
+      elsif timeout.class == Fixnum && length.class == Fixnum && !block_given?
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:createSession, [Java::long.java_class,Java::int.java_class]).call(timeout,length),::VertxWeb::Session)
       end
-      raise ArgumentError, "Invalid arguments when calling create_session(#{timeout})"
+      raise ArgumentError, "Invalid arguments when calling create_session(#{timeout},#{length})"
     end
     #  Get the session with the specified ID
     # @param [String] id the unique ID of the session

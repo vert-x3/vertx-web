@@ -123,7 +123,7 @@ var SessionHandler = function(j_val) {
   };
 
   /**
-   Set the session cookie name
+   Set expected session id minimum length.
 
    @public
    @param minLength {number} the session id minimal length 
