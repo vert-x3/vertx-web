@@ -60,7 +60,7 @@ public class BodyCodecImpl<T> implements BodyCodec<T> {
   }
 
   @Override
-  public void writeStream(Handler<AsyncResult<BodyStream<T>>> handler) {
+  public void create(Handler<AsyncResult<BodyStream<T>>> handler) {
     handler.handle(Future.succeededFuture(new BodyStream<T>() {
 
       Buffer buffer = Buffer.buffer();

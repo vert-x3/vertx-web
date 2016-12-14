@@ -57,14 +57,14 @@ module VertxWebClient
       end
       raise ArgumentError, "Invalid arguments when calling create(#{decode})"
     end
-    #  A body codec that writes the body to a write stream.
+    #  A body codec that pipes the body to a write stream.
     # @param [::Vertx::WriteStream] stream the destination tream
     # @return [::VertxWebClient::BodyCodec] the body codec for a write stream
-    def self.write_stream(stream=nil)
+    def self.pipe(stream=nil)
       if stream.class.method_defined?(:j_del) && !block_given?
-        return ::Vertx::Util::Utils.safe_create(Java::IoVertxWebclient::BodyCodec.java_method(:writeStream, [Java::IoVertxCoreStreams::WriteStream.java_class]).call(stream.j_del),::VertxWebClient::BodyCodec, nil)
+        return ::Vertx::Util::Utils.safe_create(Java::IoVertxWebclient::BodyCodec.java_method(:pipe, [Java::IoVertxCoreStreams::WriteStream.java_class]).call(stream.j_del),::VertxWebClient::BodyCodec, nil)
       end
-      raise ArgumentError, "Invalid arguments when calling write_stream(#{stream})"
+      raise ArgumentError, "Invalid arguments when calling pipe(#{stream})"
     end
   end
 end

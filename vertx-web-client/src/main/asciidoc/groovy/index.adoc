@@ -406,14 +406,14 @@ client.get(8080, "myserver.mycompany.com", "/some-uri").send(BodyCodec.json(exam
 
 ----
 
-When large response are expected, use the `link:../../apidocs/io/vertx/webclient/BodyCodec.html#writeStream-io.vertx.core.streams.WriteStream-[BodyCodec.writeStream]`.
+When large response are expected, use the `link:../../apidocs/io/vertx/webclient/BodyCodec.html#pipe-io.vertx.core.streams.WriteStream-[BodyCodec.pipe]`.
 This body codec pumps the response body buffers to a `link:../../apidocs/io/vertx/core/streams/WriteStream.html[WriteStream]`
 and signals the success or the failure of the operation in the async result response
 
 [source,java]
 ----
 import io.vertx.webclient.BodyCodec
-client.get(8080, "myserver.mycompany.com", "/some-uri").send(BodyCodec.writeStream(writeStream), { ar ->
+client.get(8080, "myserver.mycompany.com", "/some-uri").send(BodyCodec.pipe(writeStream), { ar ->
   if (ar.succeeded()) {
 
     def response = ar.result()

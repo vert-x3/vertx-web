@@ -34,7 +34,7 @@ module VertxWebClient
     # @return [::VertxWebClient::Form]
     def self.create
       if !block_given?
-        return ::Vertx::Util::Utils.safe_create(Java::IoVertxWebclient::Form.java_method(:create, []).call(),::VertxWebClient::Form)
+        return ::Vertx::Util::Utils.safe_create(Java::IoVertxWebclient::Form.java_method(:create, []).call(), ::VertxWebClient::Form)
       end
       raise ArgumentError, "Invalid arguments when calling create()"
     end
@@ -56,8 +56,8 @@ module VertxWebClient
       end
       raise ArgumentError, "Invalid arguments when calling add_attr(#{name},#{value})"
     end
-    # @param [String] name 
-    # @param [::Vertx::ReadStream] file 
+    # @param [String] name
+    # @param [::Vertx::ReadStream] file
     # @return [self]
     def add_file(name=nil,file=nil)
       if name.class == String && file.class.method_defined?(:j_del) && !block_given?
@@ -67,7 +67,7 @@ module VertxWebClient
       raise ArgumentError, "Invalid arguments when calling add_file(#{name},#{file})"
     end
     #  Adds all the entries from another MultiMap to this one
-    # @param [::Vertx::MultiMap] map 
+    # @param [::Vertx::MultiMap] map
     # @return [self]
     def add_all(map=nil)
       if map.class.method_defined?(:j_del) && !block_given?
@@ -90,7 +90,7 @@ module VertxWebClient
       raise ArgumentError, "Invalid arguments when calling set(#{name},#{value})"
     end
     #  Cleans this instance.
-    # @param [::Vertx::MultiMap] map 
+    # @param [::Vertx::MultiMap] map
     # @return [self]
     def set_all(map=nil)
       if map.class.method_defined?(:j_del) && !block_given?

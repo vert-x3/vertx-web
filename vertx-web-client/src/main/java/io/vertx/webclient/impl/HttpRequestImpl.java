@@ -214,7 +214,7 @@ class HttpRequestImpl implements HttpRequest {
     perform2("application/x-www-form-urlencoded", body, responseCodec, handler);
   }
 
-  private <R> void perform2(String contentType, Object body, BodyCodec<R> unmarshaller, Handler<AsyncResult<HttpResponse<R>>> handler) {
+  private <R> void perform2(String contentType, Object body, BodyCodec<R> codec, Handler<AsyncResult<HttpResponse<R>>> handler) {
     perform(contentType, body, ar -> {
       if (ar.succeeded()) {
         HttpClientResponse resp = ar.result();
@@ -226,7 +226,7 @@ class HttpRequestImpl implements HttpRequest {
           }
         });
         resp.pause();
-        unmarshaller.writeStream(ar2 -> {
+        codec.create(ar2 -> {
           resp.resume();
           if (ar2.succeeded()) {
             BodyStream<R> stream = ar2.result();

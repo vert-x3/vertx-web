@@ -407,14 +407,14 @@ client.get(8080, "myserver.mycompany.com", "/some-uri").send(VertxWebClient::Bod
 
 ----
 
-When large response are expected, use the `link:../../yardoc/VertxWebClient/BodyCodec.html#write_stream-class_method[BodyCodec.writeStream]`.
+When large response are expected, use the `link:../../yardoc/VertxWebClient/BodyCodec.html#pipe-class_method[BodyCodec.pipe]`.
 This body codec pumps the response body buffers to a `link:../../yardoc/Vertx/WriteStream.html[WriteStream]`
 and signals the success or the failure of the operation in the async result response
 
 [source,java]
 ----
 require 'vertx-web-client/body_codec'
-client.get(8080, "myserver.mycompany.com", "/some-uri").send(VertxWebClient::BodyCodec.write_stream(writeStream)) { |ar_err,ar|
+client.get(8080, "myserver.mycompany.com", "/some-uri").send(VertxWebClient::BodyCodec.pipe(writeStream)) { |ar_err,ar|
   if (ar_err == nil)
 
     response = ar

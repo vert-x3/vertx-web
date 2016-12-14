@@ -20,7 +20,7 @@ public class StreamingBodyCodec implements BodyCodec<Void> {
   }
 
   @Override
-  public void writeStream(Handler<AsyncResult<BodyStream<Void>>> handler) {
+  public void create(Handler<AsyncResult<BodyStream<Void>>> handler) {
     handler.handle(Future.succeededFuture(new BodyStream<Void>() {
 
       Future<Void> fut = Future.future();

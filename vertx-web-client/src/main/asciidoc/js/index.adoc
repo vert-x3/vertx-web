@@ -407,14 +407,14 @@ client.get(8080, "myserver.mycompany.com", "/some-uri").send(BodyCodec.json(Java
 
 ----
 
-When large response are expected, use the `link:../../jsdoc/module-vertx-web-client-js_body_codec-BodyCodec.html#writeStream[BodyCodec.writeStream]`.
+When large response are expected, use the `link:../../jsdoc/module-vertx-web-client-js_body_codec-BodyCodec.html#pipe[BodyCodec.pipe]`.
 This body codec pumps the response body buffers to a `link:../../jsdoc/module-vertx-js_write_stream-WriteStream.html[WriteStream]`
 and signals the success or the failure of the operation in the async result response
 
 [source,java]
 ----
 var BodyCodec = require("vertx-web-client-js/body_codec");
-client.get(8080, "myserver.mycompany.com", "/some-uri").send(BodyCodec.writeStream(writeStream), function (ar, ar_err) {
+client.get(8080, "myserver.mycompany.com", "/some-uri").send(BodyCodec.pipe(writeStream), function (ar, ar_err) {
   if (ar_err == null) {
 
     var response = ar;

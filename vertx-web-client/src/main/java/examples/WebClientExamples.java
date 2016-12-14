@@ -281,7 +281,7 @@ public class WebClientExamples {
   public void receiveResponseAsWriteStream(WebClient client, WriteStream<Buffer> writeStream) {
     client
       .get(8080, "myserver.mycompany.com", "/some-uri")
-      .send(BodyCodec.writeStream(writeStream), ar -> {
+      .send(BodyCodec.pipe(writeStream), ar -> {
         if (ar.succeeded()) {
 
           HttpResponse<Void> response = ar.result();

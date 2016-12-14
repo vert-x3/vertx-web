@@ -15,7 +15,7 @@ module VertxWebClient
     def j_del
       @j_del
     end
-    # @param [String] enc 
+    # @param [String] enc
     # @return [::VertxWebClient::HttpResponseBuilder]
     def self.string(enc=nil)
       if !block_given? && enc == nil
@@ -28,7 +28,7 @@ module VertxWebClient
     # @return [::VertxWebClient::HttpResponseBuilder]
     def self.buffer
       if !block_given?
-        return ::Vertx::Util::Utils.safe_create(Java::IoVertxWebclient::HttpResponseBuilder.java_method(:buffer, []).call(),::VertxWebClient::HttpResponseBuilder,::Vertx::Buffer.j_api_type)
+        return ::Vertx::Util::Utils.safe_create(Java::IoVertxWebclient::HttpResponseBuilder.java_method(:create, []).call(), ::VertxWebClient::HttpResponseBuilder, ::Vertx::Buffer.j_api_type)
       end
       raise ArgumentError, "Invalid arguments when calling buffer()"
     end

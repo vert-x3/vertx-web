@@ -95,19 +95,21 @@ public interface BodyCodec<T> {
   }
 
   /**
-   * A body codec that writes the body to a write stream.
+   * A body codec that pipes the body to a write stream.
    *
    * @param stream the destination tream
    * @return the body codec for a write stream
    */
-  static BodyCodec<Void> writeStream(WriteStream<Buffer> stream) {
+  static BodyCodec<Void> pipe(WriteStream<Buffer> stream) {
     return new StreamingBodyCodec(stream);
   }
 
   /**
-   * Reserved for internal usage.
+   * Create the {@link BodyStream}.
+   * <p>
+   * This method is usually called for creating the pump for the HTTP response and should not be called directly.
    */
   @GenIgnore
-  void writeStream(Handler<AsyncResult<BodyStream<T>>> handler);
+  void create(Handler<AsyncResult<BodyStream<T>>> handler);
 
 }

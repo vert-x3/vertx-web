@@ -132,16 +132,16 @@ BodyCodec.create = function(decode) {
 };
 
 /**
- A body codec that writes the body to a write stream.
+ A body codec that pipes the body to a write stream.
 
  @memberof module:vertx-web-client-js/body_codec
  @param stream {WriteStream} the destination tream 
  @return {BodyCodec} the body codec for a write stream
  */
-BodyCodec.writeStream = function(stream) {
+BodyCodec.pipe = function(stream) {
   var __args = arguments;
   if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
-    return utils.convReturnVertxGen(BodyCodec, JBodyCodec["writeStream(io.vertx.core.streams.WriteStream)"](stream._jdel), undefined);
+    return utils.convReturnVertxGen(BodyCodec, JBodyCodec["pipe(io.vertx.core.streams.WriteStream)"](stream._jdel), undefined);
   } else throw new TypeError('function invoked with invalid arguments');
 };
 
