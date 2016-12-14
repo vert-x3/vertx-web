@@ -1,5 +1,23 @@
 package io.vertx.ext.web.client;
 
+import java.io.File;
+import java.net.ConnectException;
+import java.nio.file.Files;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.function.Function;
+
+import org.junit.Test;
+
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.VertxException;
@@ -15,6 +33,7 @@ import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
+import io.vertx.core.http.HttpVersion;
 import io.vertx.core.json.DecodeException;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -22,26 +41,12 @@ import io.vertx.core.net.ProxyOptions;
 import io.vertx.core.net.ProxyType;
 import io.vertx.core.streams.ReadStream;
 import io.vertx.core.streams.WriteStream;
+import io.vertx.ext.web.client.impl.HttpContext;
 import io.vertx.ext.web.client.jackson.WineAndCheese;
 import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.test.core.HttpTestBase;
 import io.vertx.test.core.TestUtils;
 import io.vertx.test.core.tls.Cert;
-import org.junit.Test;
-
-import java.io.File;
-import java.net.ConnectException;
-import java.nio.file.Files;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-import java.util.function.Function;
 
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
@@ -1135,4 +1140,133 @@ public class WebClientTest extends HttpTestBase {
     await();
   }
 
+  private <R> void handleMutateRequest(HttpContext<R> context) {
+    context.getRequest().host("localhost");
+    context.getRequest().port(8080);
+    context.next();
+  }
+
+  @Test
+  public void testMutateRequestInterceptor() throws Exception {
+    server.requestHandler(req -> {
+      req.response().end();
+    });
+    startServer();
+    ((WebClientInternal) client).addInterceptor(this::handleMutateRequest);
+    HttpRequest<Buffer> builder = client.get("/somepath").host("another-host").port(8081);
+    builder.send(onSuccess(resp -> {
+      complete();
+    }));
+    await();
+  }
+
+  private <R> void handleMutateResponse(HttpContext<R> context) {
+    Handler<AsyncResult<HttpResponse<R>>> responseHandler = context.getResponseHandler();
+    context.setResponseHandler(ar -> {
+      if (ar.succeeded()) {
+        HttpResponse<R> resp = ar.result();
+        assertEquals(500, resp.statusCode());
+        responseHandler.handle(Future.succeededFuture(new HttpResponseImpl<R>() {
+          @Override
+          public int statusCode() {
+            return 200;
+          }
+        }));
+      } else {
+        responseHandler.handle(ar);
+      }
+    });
+    context.next();
+  }
+
+  @Test
+  public void testMutateResponseInterceptor() throws Exception {
+    server.requestHandler(req -> {
+      req.response().setStatusCode(500).end();
+    });
+    startServer();
+    ((WebClientInternal) client).addInterceptor(this::handleMutateResponse);
+    HttpRequest<Buffer> builder = client.get("/somepath");
+    builder.send(onSuccess(resp -> {
+      assertEquals(200, resp.statusCode());
+      complete();
+    }));
+    await();
+  }
+
+  private <R> void handleCacheInterceptor(HttpContext<R> context) {
+    context.getResponseHandler().handle(Future.succeededFuture(new HttpResponseImpl<>()));
+  }
+
+  @Test
+  public void testCacheInterceptor() throws Exception {
+    server.requestHandler(req -> {
+      fail();
+    });
+    startServer();
+    ((WebClientInternal) client).addInterceptor(this::handleCacheInterceptor);
+    HttpRequest<Buffer> builder = client.get("/somepath").host("localhost").port(8080);
+    builder.send(onSuccess(resp -> {
+      assertEquals(200, resp.statusCode());
+      complete();
+    }));
+    await();
+  }
+
+  private static class HttpResponseImpl<R> implements HttpResponse<R> {
+    @Override
+    public HttpVersion version() {
+      return HttpVersion.HTTP_1_1;
+    }
+
+    @Override
+    public int statusCode() {
+      return 200;
+    }
+
+    @Override
+    public String statusMessage() {
+      return null;
+    }
+
+    @Override
+    public MultiMap headers() {
+      return null;
+    }
+
+    @Override
+    public String getHeader(String headerName) {
+      return null;
+    }
+
+    @Override
+    public MultiMap trailers() {
+      return null;
+    }
+
+    @Override
+    public String getTrailer(String trailerName) {
+      return null;
+    }
+
+    @Override
+    public List<String> cookies() {
+      return null;
+    }
+
+    @Override
+    public R body() {
+      return null;
+    }
+
+    @Override
+    public Buffer bodyAsBuffer() {
+      return null;
+    }
+
+    @Override
+    public JsonArray bodyAsJsonArray() {
+      return null;
+    }
+  }
 }
