@@ -41,7 +41,7 @@ public class RxTest extends VertxTestBase {
         Single<HttpResponse<Buffer>> single = client
           .get(8080, "localhost", "/the_uri")
           .rxSend();
-        for (int i = 0;i < times;i++) {
+        for (int i = 0; i < times; i++) {
           single.subscribe(resp -> {
             assertEquals("some_content", resp.body().toString("UTF-8"));
             complete();
@@ -72,8 +72,40 @@ public class RxTest extends VertxTestBase {
         Single<HttpResponse<Buffer>> single = client
           .post(8080, "localhost", "/the_uri")
           .rxSendStream(stream);
-        for (int i = 0;i < times;i++) {
+        for (int i = 0; i < times; i++) {
           single.subscribe(resp -> {
+            complete();
+          }, this::fail);
+        }
+      });
+      await();
+    } finally {
+      server.close();
+    }
+  }
+
+  @Test
+  public void testResponseMissingBody() throws Exception {
+    int times = 5;
+    waitFor(times);
+    HttpServer server = vertx.createHttpServer(new HttpServerOptions().setPort(8080));
+    server.requestStream().handler(req -> {
+      req.response().setStatusCode(403).end();
+    });
+    try {
+      server.listen(ar -> {
+        client = WebClient.wrap(vertx.createHttpClient(new HttpClientOptions()));
+        Single<HttpResponse<Buffer>> single = client
+          .get(8080, "localhost", "/the_uri")
+          .rxSend();
+        for (int i = 0; i < times; i++) {
+          single.subscribe(resp -> {
+            assertEquals(403, resp.statusCode());
+            try {
+              assertNull(resp.body());
+            } catch (Exception e) {
+              e.printStackTrace();
+            }
             complete();
           }, this::fail);
         }

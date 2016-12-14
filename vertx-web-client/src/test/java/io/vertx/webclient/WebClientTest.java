@@ -31,6 +31,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -673,6 +674,66 @@ public class WebClientTest extends HttpTestBase {
     HttpRequest get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
     get.send(BodyCodec.pipe(stream), onFailure(err -> {
       assertSame(cause, err);
+      testComplete();
+    }));
+    await();
+  }
+
+  @Test
+  public void testResponseJsonObjectMissingBody() throws Exception {
+    testResponseMissingBody(BodyCodec.jsonObject());
+  }
+
+  @Test
+  public void testResponseJsonMissingBody() throws Exception {
+    testResponseMissingBody(BodyCodec.json(WineAndCheese.class));
+  }
+
+  @Test
+  public void testResponseWriteStreamMissingBody() throws Exception {
+    AtomicInteger length = new AtomicInteger();
+    AtomicBoolean ended = new AtomicBoolean();
+    WriteStream<Buffer> stream = new WriteStream<Buffer>() {
+      @Override
+      public WriteStream<Buffer> exceptionHandler(Handler<Throwable> handler) {
+        return this;
+      }
+      @Override
+      public WriteStream<Buffer> write(Buffer data) {
+        length.addAndGet(data.length());
+        return this;
+      }
+      @Override
+      public void end() {
+        ended.set(true);
+      }
+      @Override
+      public WriteStream<Buffer> setWriteQueueMaxSize(int maxSize) {
+        return this;
+      }
+      @Override
+      public boolean writeQueueFull() {
+        return false;
+      }
+      @Override
+      public WriteStream<Buffer> drainHandler(Handler<Void> handler) {
+        return this;
+      }
+    };
+    testResponseMissingBody(BodyCodec.pipe(stream));
+    assertTrue(ended.get());
+    assertEquals(0, length.get());
+  }
+
+  private <R> void testResponseMissingBody(BodyCodec<R> codec) throws Exception {
+    server.requestHandler(req -> {
+      req.response().setStatusCode(403).end();
+    });
+    startServer();
+    HttpRequest get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
+    get.send(codec, onSuccess(resp -> {
+      assertEquals(403, resp.statusCode());
+      assertNull(resp.body());
       testComplete();
     }));
     await();

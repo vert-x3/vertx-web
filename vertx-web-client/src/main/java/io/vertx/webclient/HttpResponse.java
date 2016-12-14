@@ -103,31 +103,40 @@ public interface HttpResponse<T> {
    * @return the response body in the format it was decoded.
    */
   @CacheReturn
+  @Nullable
   T body();
 
   /**
    * @return the response body decoded as a {@link Buffer}
    */
+  @CacheReturn
+  @Nullable
   Buffer bodyAsBuffer();
 
   /**
    * @return the response body decoded as a {@code String}
    */
+  @CacheReturn
+  @Nullable
   String bodyAsString();
 
   /**
    * @return the response body decoded as a {@code String} given a specific {@code encoding}
    */
+  @Nullable
   String bodyAsString(String encoding);
 
   /**
    * @return the response body decoded as a json object
    */
+  @CacheReturn
+  @Nullable
   JsonObject bodyAsJsonObject();
 
   /**
    * @return the response body decoded as the specified {@code type} with the Jackson mapper.
    */
+  @Nullable
   <R> R bodyAsJson(Class<R> type);
 
 }

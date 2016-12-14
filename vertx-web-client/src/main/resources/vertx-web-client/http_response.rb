@@ -121,7 +121,10 @@ module VertxWebClient
     # @return [::Vertx::Buffer] the response body decoded as a 
     def body_as_buffer
       if !block_given?
-        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:bodyAsBuffer, []).call(),::Vertx::Buffer)
+        if @cached_body_as_buffer != nil
+          return @cached_body_as_buffer
+        end
+        return @cached_body_as_buffer = ::Vertx::Util::Utils.safe_create(@j_del.java_method(:bodyAsBuffer, []).call(),::Vertx::Buffer)
       end
       raise ArgumentError, "Invalid arguments when calling body_as_buffer()"
     end
@@ -129,7 +132,10 @@ module VertxWebClient
     # @return [String] the response body decoded as a <code>String</code> given a specific <code>encoding</code>
     def body_as_string(encoding=nil)
       if !block_given? && encoding == nil
-        return @j_del.java_method(:bodyAsString, []).call()
+        if @cached_body_as_string != nil
+          return @cached_body_as_string
+        end
+        return @cached_body_as_string = @j_del.java_method(:bodyAsString, []).call()
       elsif encoding.class == String && !block_given?
         return @j_del.java_method(:bodyAsString, [Java::java.lang.String.java_class]).call(encoding)
       end
@@ -138,7 +144,10 @@ module VertxWebClient
     # @return [Hash{String => Object}] the response body decoded as a json object
     def body_as_json_object
       if !block_given?
-        return @j_del.java_method(:bodyAsJsonObject, []).call() != nil ? JSON.parse(@j_del.java_method(:bodyAsJsonObject, []).call().encode) : nil
+        if @cached_body_as_json_object != nil
+          return @cached_body_as_json_object
+        end
+        return @cached_body_as_json_object = @j_del.java_method(:bodyAsJsonObject, []).call() != nil ? JSON.parse(@j_del.java_method(:bodyAsJsonObject, []).call().encode) : nil
       end
       raise ArgumentError, "Invalid arguments when calling body_as_json_object()"
     end

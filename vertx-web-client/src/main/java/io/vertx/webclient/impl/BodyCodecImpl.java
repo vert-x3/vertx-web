@@ -93,11 +93,15 @@ public class BodyCodecImpl<T> implements BodyCodec<T> {
       public void end() {
         if (!state.isComplete()) {
           T result;
-          try {
-            result = decoder.apply(buffer);
-          } catch (Throwable t) {
-            state.fail(t);
-            return;
+          if (buffer.length() > 0) {
+            try {
+              result = decoder.apply(buffer);
+            } catch (Throwable t) {
+              state.fail(t);
+              return;
+            }
+          } else {
+            result = null;
           }
           state.complete(result);
         }

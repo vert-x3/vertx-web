@@ -185,7 +185,10 @@ var HttpResponse = function(j_val, j_arg_0) {
   this.bodyAsBuffer = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return utils.convReturnVertxGen(Buffer, j_httpResponse["bodyAsBuffer()"]());
+      if (that.cachedbodyAsBuffer == null) {
+        that.cachedbodyAsBuffer = utils.convReturnVertxGen(Buffer, j_httpResponse["bodyAsBuffer()"]());
+      }
+      return that.cachedbodyAsBuffer;
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -198,7 +201,10 @@ var HttpResponse = function(j_val, j_arg_0) {
   this.bodyAsString = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return j_httpResponse["bodyAsString()"]();
+      if (that.cachedbodyAsString == null) {
+        that.cachedbodyAsString = j_httpResponse["bodyAsString()"]();
+      }
+      return that.cachedbodyAsString;
     }  else if (__args.length === 1 && typeof __args[0] === 'string') {
       return j_httpResponse["bodyAsString(java.lang.String)"](__args[0]);
     } else throw new TypeError('function invoked with invalid arguments');
@@ -213,7 +219,10 @@ var HttpResponse = function(j_val, j_arg_0) {
   this.bodyAsJsonObject = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return utils.convReturnJson(j_httpResponse["bodyAsJsonObject()"]());
+      if (that.cachedbodyAsJsonObject == null) {
+        that.cachedbodyAsJsonObject = utils.convReturnJson(j_httpResponse["bodyAsJsonObject()"]());
+      }
+      return that.cachedbodyAsJsonObject;
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
