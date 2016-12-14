@@ -18,13 +18,12 @@ package io.vertx.webclient;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.AsyncResult;
-import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.file.AsyncFile;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.streams.WriteStream;
 import io.vertx.webclient.impl.BodyCodecImpl;
+import io.vertx.webclient.impl.StreamingBodyCodec;
 import io.vertx.webclient.spi.BodyStream;
 
 import java.util.function.Function;
@@ -102,63 +101,7 @@ public interface BodyCodec<T> {
    * @return the body codec for a write stream
    */
   static BodyCodec<Void> writeStream(WriteStream<Buffer> stream) {
-    return new BodyCodec<Void>() {
-      @Override
-      public void writeStream(Handler<AsyncResult<BodyStream<Void>>> handler) {
-        handler.handle(Future.succeededFuture(new BodyStream<Void>() {
-
-          Future<Void> fut = Future.future();
-
-          @Override
-          public Future<Void> state() {
-            return fut;
-          }
-
-          @Override
-          public void handle(Throwable cause) {
-            if (!fut.isComplete()) {
-              fut.fail(cause);
-            }
-          }
-
-          @Override
-          public WriteStream<Buffer> exceptionHandler(Handler<Throwable> handler) {
-            stream.exceptionHandler(handler);
-            return this;
-          }
-
-          @Override
-          public WriteStream<Buffer> write(Buffer data) {
-            stream.write(data);
-            return this;
-          }
-
-          @Override
-          public void end() {
-            stream.end();
-            if (!fut.isComplete()) {
-              fut.complete();
-            }
-          }
-
-          @Override
-          public WriteStream<Buffer> setWriteQueueMaxSize(int maxSize) {
-            return this;
-          }
-
-          @Override
-          public boolean writeQueueFull() {
-            return stream.writeQueueFull();
-          }
-
-          @Override
-          public WriteStream<Buffer> drainHandler(Handler<Void> handler) {
-            stream.drainHandler(handler);
-            return this;
-          }
-        }));
-      }
-    };
+    return new StreamingBodyCodec(stream);
   }
 
   /**
@@ -166,4 +109,5 @@ public interface BodyCodec<T> {
    */
   @GenIgnore
   void writeStream(Handler<AsyncResult<BodyStream<T>>> handler);
+
 }
