@@ -78,6 +78,16 @@ public class WebClientExamples {
     request.setQueryParam("param2", "another_param2_value");
   }
 
+  public void simpleGetOverwritePreviousParams(WebClient client) {
+    HttpRequest request = client.get(8080, "myserver.mycompany.com", "/some-uri");
+
+    // Add param1
+    request.addQueryParam("param1", "param1_value");
+
+    // Overwrite param1 and add param2
+    request.uri("/some-uri?param1=param1_value&param2=param2_value");
+  }
+
   public void multiGet(WebClient client) {
     HttpRequest get = client.get(8080, "myserver.mycompany.com", "/some-uri");
     get.send(ar -> {

@@ -15,7 +15,7 @@
  * The web client does not deprecate the Vert.x Core {@link io.vertx.core.http.HttpClient}, indeed it is based on
  * this client and inherits its configuration and great features like pooling, HTTP/2 support, pipelining support, etc...
  * The {@link io.vertx.core.http.HttpClient} should be used when fine grained control over the HTTP
- * requests/response is necessary.
+ * requests/responses is necessary.
  *
  * == Using the web client
  *
@@ -88,7 +88,12 @@
  * {@link examples.WebClientExamples#simpleGetWithInitialParams(io.vertx.webclient.WebClient)}
  * ----
  *
- * Setting a request URI discards existing query parameters.
+ * Setting a request URI discards existing query parameters
+ *
+ * [source,$lang]
+ * ----
+ * {@link examples.WebClientExamples#simpleGetOverwritePreviousParams(io.vertx.webclient.WebClient)}
+ * ----
  *
  * === Writing request bodies
  *
@@ -226,6 +231,9 @@
  * ----
  * {@link examples.WebClientExamples#receiveResponse(io.vertx.webclient.WebClient)}
  * ----
+ *
+ * WARNING: responses are fully buffered, use {@link io.vertx.webclient.BodyCodec#pipe(io.vertx.core.streams.WriteStream)}
+ * to pipe the response to a write stream
  *
  * === Decoding responses
  *

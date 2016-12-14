@@ -14,7 +14,7 @@ features like:
 The web client does not deprecate the Vert.x Core `link:../../yardoc/Vertx/HttpClient.html[HttpClient]`, indeed it is based on
 this client and inherits its configuration and great features like pooling, HTTP/2 support, pipelining support, etc...
 The `link:../../yardoc/Vertx/HttpClient.html[HttpClient]` should be used when fine grained control over the HTTP
-requests/response is necessary.
+requests/responses is necessary.
 
 == Using the web client
 
@@ -128,7 +128,19 @@ request.set_query_param("param2", "another_param2_value")
 
 ----
 
-Setting a request URI discards existing query parameters.
+Setting a request URI discards existing query parameters
+
+[source,ruby]
+----
+request = client.get(8080, "myserver.mycompany.com", "/some-uri")
+
+# Add param1
+request.add_query_param("param1", "param1_value")
+
+# Overwrite param1 and add param2
+request.uri("/some-uri?param1=param1_value&param2=param2_value")
+
+----
 
 === Writing request bodies
 
@@ -372,6 +384,9 @@ client.get(8080, "myserver.mycompany.com", "/some-uri").send() { |ar_err,ar|
 }
 
 ----
+
+WARNING: responses are fully buffered, use `link:../../yardoc/VertxWebClient/BodyCodec.html#pipe-class_method[BodyCodec.pipe]`
+to pipe the response to a write stream
 
 === Decoding responses
 
