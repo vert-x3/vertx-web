@@ -279,6 +279,20 @@ var WebClient = function(j_val) {
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
+  /**
+   Close the client. Closing will close down any pooled connections.
+   Clients should always be closed after use.
+
+   @public
+
+   */
+  this.close = function() {
+    var __args = arguments;
+    if (__args.length === 0) {
+      j_webClient["close()"]();
+    } else throw new TypeError('function invoked with invalid arguments');
+  };
+
   // A reference to the underlying Java delegate
   // NOTE! This is an internal API and must not be used in user code.
   // If you rely on this property your code is likely to break if we change it / remove it without warning.

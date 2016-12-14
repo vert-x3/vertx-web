@@ -291,4 +291,10 @@ public interface WebClient {
    */
   HttpRequest headAbs(String absoluteURI);
 
+  /**
+   * Close the client. Closing will close down any pooled connections.
+   * Clients should always be closed after use.
+   */
+  void close();
+
 }

@@ -282,5 +282,14 @@ module VertxWebClient
       end
       raise ArgumentError, "Invalid arguments when calling head_abs(#{absoluteURI})"
     end
+    #  Close the client. Closing will close down any pooled connections.
+    #  Clients should always be closed after use.
+    # @return [void]
+    def close
+      if !block_given?
+        return @j_del.java_method(:close, []).call()
+      end
+      raise ArgumentError, "Invalid arguments when calling close()"
+    end
   end
 end

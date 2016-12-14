@@ -190,4 +190,9 @@ public class WebClientImpl implements WebClient {
     request.uri = url.getFile();
     return request;
   }
+
+  @Override
+  public void close() {
+    client.close();
+  }
 }
