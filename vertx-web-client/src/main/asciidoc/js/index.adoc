@@ -16,6 +16,9 @@ this client and inherits its configuration and great features like pooling, HTTP
 The `link:../../jsdoc/module-vertx-js_http_client-HttpClient.html[HttpClient]` should be used when fine grained control over the HTTP
 requests/responses is necessary.
 
+The web client does not provide a WebSocket API, the Vert.x Core `link:../../jsdoc/module-vertx-js_http_client-HttpClient.html[HttpClient]` should
+be used.
+
 == Using the web client
 
 To use Vert.x Web Client, add the following dependency to the _dependencies_ section of your build descriptor:

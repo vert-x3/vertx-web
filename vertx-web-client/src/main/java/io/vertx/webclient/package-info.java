@@ -17,6 +17,9 @@
  * The {@link io.vertx.core.http.HttpClient} should be used when fine grained control over the HTTP
  * requests/responses is necessary.
  *
+ * The web client does not provide a WebSocket API, the Vert.x Core {@link io.vertx.core.http.HttpClient} should
+ * be used.
+ *
  * == Using the web client
  *
  * To use Vert.x Web Client, add the following dependency to the _dependencies_ section of your build descriptor:
