@@ -20,6 +20,7 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.impl.VertxInternal;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.impl.Utils;
 import io.vertx.ext.web.templ.MVELTemplateEngine;
@@ -29,7 +30,6 @@ import org.mvel2.templates.TemplateCompiler;
 import org.mvel2.templates.TemplateRuntime;
 import org.mvel2.util.StringAppender;
 
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -70,7 +70,8 @@ public class MVELTemplateEngineImpl extends CachingTemplateEngine<CompiledTempla
       }
       Map<String, RoutingContext> variables = new HashMap<>(1);
       variables.put("context", context);
-      String directoryName = Paths.get(templateFileName).getParent().toAbsolutePath().toString();
+      final VertxInternal vertxInternal = (VertxInternal) context.vertx();
+      String directoryName = vertxInternal.resolveFile(templateFileName).getParent();
       handler.handle(Future.succeededFuture(
         Buffer.buffer(
           (String) new TemplateRuntime(template.getTemplate(), null, template.getRoot(), directoryName)
