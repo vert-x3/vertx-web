@@ -24,7 +24,8 @@ import org.junit.Test;
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public class MVELTemplateTest extends WebTestBase {
+public class MVELTemplateTest
+  extends WebTestBase {
 
   @Test
   public void testTemplateHandlerOnClasspath() throws Exception {
@@ -33,9 +34,15 @@ public class MVELTemplateTest extends WebTestBase {
   }
 
   @Test
-  public void testTemplateHandlerOnFileSystem() throws Exception {
+  public void MVELTemplateTestMVELTemplateTestMVELTemplateTest() throws Exception {
     TemplateEngine engine = MVELTemplateEngine.create();
     testTemplateHandler(engine, "src/test/filesystemtemplates", "test-mvel-template3.templ", "Hello badger and fox\nRequest path is /test-mvel-template3.templ");
+  }
+
+  @Test
+  public void testTemplateHandlerWithInclude() throws Exception {
+    TemplateEngine engine = MVELTemplateEngine.create();
+    testTemplateHandler(engine, "src/test/filesystemtemplates", "test-mvel-template4.templ", "Hello badger and fox\nRequest path is /test-mvel-template4.templ");
   }
 
   @Test
