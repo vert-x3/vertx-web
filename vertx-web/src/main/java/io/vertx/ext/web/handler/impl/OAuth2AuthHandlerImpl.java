@@ -75,7 +75,7 @@ public class OAuth2AuthHandlerImpl extends AuthHandlerImpl implements OAuth2Auth
     try {
       for (String authority : authorities) {
         scopes.append(URLEncoder.encode(authority, "UTF-8"));
-        scopes.append(',');
+        scopes.append(' ');
       }
     } catch (UnsupportedEncodingException e) {
       throw new RuntimeException(e);
