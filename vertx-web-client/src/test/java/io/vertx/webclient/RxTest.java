@@ -101,11 +101,7 @@ public class RxTest extends VertxTestBase {
         for (int i = 0; i < times; i++) {
           single.subscribe(resp -> {
             assertEquals(403, resp.statusCode());
-            try {
-              assertNull(resp.body());
-            } catch (Exception e) {
-              e.printStackTrace();
-            }
+            assertNull(resp.body());
             complete();
           }, this::fail);
         }
