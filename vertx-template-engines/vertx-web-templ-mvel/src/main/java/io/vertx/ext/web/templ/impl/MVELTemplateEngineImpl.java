@@ -20,12 +20,15 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.impl.VertxInternal;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.impl.Utils;
 import io.vertx.ext.web.templ.MVELTemplateEngine;
+import org.mvel2.integration.impl.ImmutableDefaultFactory;
 import org.mvel2.templates.CompiledTemplate;
 import org.mvel2.templates.TemplateCompiler;
 import org.mvel2.templates.TemplateRuntime;
+import org.mvel2.util.StringAppender;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -67,11 +70,17 @@ public class MVELTemplateEngineImpl extends CachingTemplateEngine<CompiledTempla
       }
       Map<String, RoutingContext> variables = new HashMap<>(1);
       variables.put("context", context);
-      handler.handle(Future.succeededFuture(Buffer.buffer((String)TemplateRuntime.execute(template, variables))));
+      final VertxInternal vertxInternal = (VertxInternal) context.vertx();
+      String directoryName = vertxInternal.resolveFile(templateFileName).getParent();
+      handler.handle(Future.succeededFuture(
+        Buffer.buffer(
+          (String) new TemplateRuntime(template.getTemplate(), null, template.getRoot(), directoryName)
+            .execute(new StringAppender(), variables, new ImmutableDefaultFactory())
+        )
+      ));
     } catch (Exception ex) {
       handler.handle(Future.failedFuture(ex));
     }
   }
-
 
 }
