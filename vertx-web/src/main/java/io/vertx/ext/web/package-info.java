@@ -1845,7 +1845,7 @@
  *
  * Mixing OAuth2 and JWT
  *
- * Some providers use JWT tokens as access tokens, this is a feature of <a href="https://tools.ietf.org/html/rfc6750">RFC6750</a>
+ * Some providers use JWT tokens as access tokens, this is a feature of https://tools.ietf.org/html/rfc6750[RFC6750]
  * and can be quite useful when one wants to mix client based authentication and API authorization. For example say that
  * you have a application that provides some protected HTML documents but you also want it to be available for API's to
  * consume. In this case an API cannot easily perform the redirect handshake required by OAuth2 but can use a Token
