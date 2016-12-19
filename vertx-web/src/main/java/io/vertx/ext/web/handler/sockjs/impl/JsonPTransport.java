@@ -32,7 +32,6 @@
 
 package io.vertx.ext.web.handler.sockjs.impl;
 
-import io.netty.handler.codec.http.QueryStringDecoder;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServerRequest;
@@ -43,6 +42,7 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSSocket;
+import io.vertx.ext.web.impl.Utils;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -114,7 +114,7 @@ class JsonPTransport extends BaseTransport {
       }
 
       if (urlEncoded) {
-        body = QueryStringDecoder.decodeComponent(body).substring(2);
+        body = Utils.urlDecode(body, true).substring(2);
       }
 
       if (!session.handleMessages(body)) {

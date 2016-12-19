@@ -24,7 +24,6 @@ import io.vertx.ext.web.RoutingContext;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.Charset;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Comparator;
@@ -219,6 +218,18 @@ public class Utils extends io.vertx.core.impl.Utils {
     return obuf.toString();
   }
 
+  /**
+   * Decodes a bit of an URL encoded by a browser.
+   *
+   * The string is expected to be encoded as per RFC 3986, Section 2. This is the encoding used by JavaScript functions
+   * encodeURI and encodeURIComponent, but not escape. For example in this encoding, é (in Unicode U+00E9 or in
+   * UTF-8 0xC3 0xA9) is encoded as %C3%A9 or %c3%a9.
+   *
+   * @param s string to decode
+   * @param plus weather or not to transform plus signs into spaces
+   *
+   * @return decoded string
+   */
   public static String urlDecode(final String s, boolean plus) {
     if (s == null) {
       return null;
@@ -240,35 +251,32 @@ public class Utils extends io.vertx.core.impl.Utils {
     int pos = 0;  // position in `buf'.
     for (int i = 0; i < size; i++) {
       char c = s.charAt(i);
-      switch (c) {
-        case '%':
-          if (i == size - 1) {
-            throw new IllegalArgumentException("unterminated escape"
-              + " sequence at end of string: " + s);
-          }
-          c = s.charAt(++i);
-          if (c == '%') {
-            buf[pos++] = '%';  // "%%" -> "%"
-            break;
-          }
-          if (i == size - 1) {
-            throw new IllegalArgumentException("partial escape"
-              + " sequence at end of string: " + s);
-          }
-          c = decodeHexNibble(c);
-          final char c2 = decodeHexNibble(s.charAt(++i));
-          if (c == Character.MAX_VALUE || c2 == Character.MAX_VALUE) {
-            throw new IllegalArgumentException(
-              "invalid escape sequence `%" + s.charAt(i - 1)
-                + s.charAt(i) + "' at index " + (i - 2)
-                + " of: " + s);
-          }
-          c = (char) (c * 16 + c2);
-          // Fall through.
-        default:
-          buf[pos++] = (byte) (plus ? ' ' : c);
+      if (c == '%') {
+        if (i == size - 1) {
+          throw new IllegalArgumentException("unterminated escape"
+            + " sequence at end of string: " + s);
+        }
+        c = s.charAt(++i);
+        if (c == '%') {
+          buf[pos++] = '%';  // "%%" -> "%"
           break;
+        }
+        if (i == size - 1) {
+          throw new IllegalArgumentException("partial escape"
+            + " sequence at end of string: " + s);
+        }
+        c = decodeHexNibble(c);
+        final char c2 = decodeHexNibble(s.charAt(++i));
+        if (c == Character.MAX_VALUE || c2 == Character.MAX_VALUE) {
+          throw new IllegalArgumentException(
+            "invalid escape sequence `%" + s.charAt(i - 1)
+              + s.charAt(i) + "' at index " + (i - 2)
+              + " of: " + s);
+        }
+        c = (char) (c * 16 + c2);
       }
+      // Fall through.
+      buf[pos++] = (byte) (plus ? ' ' : c);
     }
     return new String(buf, 0, pos, CharsetUtil.UTF_8);
   }
