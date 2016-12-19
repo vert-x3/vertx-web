@@ -45,7 +45,7 @@ var Session = function(j_val) {
   this.regenerateId = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return utils.convReturnVertxGen(j_session["regenerateId()"](), Session);
+      return utils.convReturnVertxGen(Session, j_session["regenerateId()"]());
     } else throw new TypeError('function invoked with invalid arguments');
   };
 

@@ -1270,6 +1270,20 @@ that yourself.
 To create a session handler you need to have a session store instance. The session store is the object that
 holds the actual sessions for your application.
 
+The session store is responsible for holding a secure pseudo random number generator in order to guarantee secure session
+ids. This PRNG is independent of the store which means that given a session id from store A one cannot derive the
+session id of store B since they have different seeds and states.
+
+By default this PRNG uses a mixed mode, blocking for seeding, non blocking for generating. The PRNG will also reseed
+every 5 minutes with 64bits of new entropy. However this can all be configured using the system properties:
+
+* io.vertx.ext.web.session.algorithm e.g.: SHA1PRNG
+* io.vertx.ext.web.session.seed.interval e.g.: 1000 (every second)
+* io.vertx.ext.web.session.seed.bits e.g.: 128
+
+Most users should not need to configure these values unless if you notice that the performance of your application is
+being affected by the PRNG algorithm.
+
 Vert.x-Web comes with two session store implementations out of the box, and you can also write your own if you prefer.
 
 ==== Local session store
@@ -2736,23 +2750,18 @@ authCode flow. An example of using it to protect some resource and authenticate 
 
 [source,ruby]
 ----
-require 'vertx-auth-oauth2/o_auth2_auth'
+require 'vertx-auth-oauth2/github_auth'
 require 'vertx-web/o_auth2_auth_handler'
 
 # create an OAuth2 provider, clientID and clientSecret should be requested to github
-authProvider = VertxAuthOauth2::OAuth2Auth.create(vertx, :AUTH_CODE, {
-  'clientID' => "CLIENT_ID",
-  'clientSecret' => "CLIENT_SECRET",
-  'site' => "https://github.com/login",
-  'tokenPath' => "/oauth/access_token",
-  'authorizationPath' => "/oauth/authorize"
-})
+authProvider = VertxAuthOauth2::GithubAuth.create(vertx, "CLIENT_ID", "CLIENT_SECRET")
 
-# create a oauth2 handler on our domain: "http://localhost:8080"
-oauth2 = VertxWeb::OAuth2AuthHandler.create(authProvider, "http://localhost:8080")
+# create a oauth2 handler on our running server
+# the second argument is the full url to the callback as you entered in your provider management console.
+oauth2 = VertxWeb::OAuth2AuthHandler.create(authProvider, "https://myserver.com/callback")
 
 # setup the callback handler for receiving the GitHub callback
-oauth2.setup_callback(router.get("/callback"))
+oauth2.setup_callback(router.route())
 
 # protect everything under /protected
 router.route("/protected/*").handler(&oauth2.method(:handle))
@@ -2777,8 +2786,29 @@ A rule of thumb is once a valid callback is executed issue a client side redirec
 redirect should also create a session cookie (or other session mechanism) so the user is not required to authenticate
 for every request.
 
-Due to the nature of OAuth2 spec there are slight changes required in order to use other OAuth2 providers, for
-example, if you are planning to use Google Auth you implement it as:
+Due to the nature of OAuth2 spec there are slight changes required in order to use other OAuth2 providers but
+vertx-auth provides you with many out of the box implementations:
+
+
+* App.net `link:../../yardoc/VertxAuthOauth2/AppNetAuth.html[AppNetAuth]`
+* Azure Active Directory `link:../../yardoc/VertxAuthOauth2/AzureADAuth.html[AzureADAuth]`
+* Box.com `link:../../yardoc/VertxAuthOauth2/BoxAuth.html[BoxAuth]`
+* Dropbox `link:../../yardoc/VertxAuthOauth2/DropboxAuth.html[DropboxAuth]`
+* Facebook `link:../../yardoc/VertxAuthOauth2/FacebookAuth.html[FacebookAuth]`
+* Foursquare `link:../../yardoc/VertxAuthOauth2/FoursquareAuth.html[FoursquareAuth]`
+* Github `link:../../yardoc/VertxAuthOauth2/GithubAuth.html[GithubAuth]`
+* Google `link:../../yardoc/VertxAuthOauth2/GoogleAuth.html[GoogleAuth]`
+* Instagram `link:../../yardoc/VertxAuthOauth2/InstagramAuth.html[InstagramAuth]`
+* Keycloak `link:../../yardoc/VertxAuthOauth2/KeycloakAuth.html[KeycloakAuth]`
+* LinkedIn `link:../../yardoc/VertxAuthOauth2/LinkedInAuth.html[LinkedInAuth]`
+* Mailchimp `link:../../yardoc/VertxAuthOauth2/MailchimpAuth.html[MailchimpAuth]`
+* Salesforce `link:../../yardoc/VertxAuthOauth2/SalesforceAuth.html[SalesforceAuth]`
+* Shopify `link:../../yardoc/VertxAuthOauth2/ShopifyAuth.html[ShopifyAuth]`
+* Soundcloud `link:../../yardoc/VertxAuthOauth2/SoundcloudAuth.html[SoundcloudAuth]`
+* Stripe `link:../../yardoc/VertxAuthOauth2/StripeAuth.html[StripeAuth]`
+* Twitter `link:../../yardoc/VertxAuthOauth2/TwitterAuth.html[TwitterAuth]`
+
+However if you're using an unlisted provider you can still do it using the base API like this:
 
 [source,ruby]
 ----
@@ -2817,139 +2847,27 @@ router.get("/").handler() { |ctx|
 
 ----
 
-The changes are only on the configuration, note that the token uri must now be a full URL since it is generated from
-a different server than the authorization one.
+You will need to provide all the details of your provider manually but the end result is the same.
 
-Important to note that for google OAuth you must register all your callback URLs in the developer console, so for the
-current example you would need to register `http://localhost:8080/callback`.
+The handler will pin your application the the configured callback url. The usage is simple as providing the handler
+a route instance and all setup will be done for you. In a typical use case your provider will ask you what is the
+callback url to your application, your then enter a url like: `https://myserver.com/callback`. This is the second
+argument to the handler now you just need to set it up. To make it easier to the end user all you need to do is call
+the setupCallback method.
 
-If you're looking to integrate with LinkedIn then your config should be:
-
-[source,ruby]
-----
-require 'vertx-auth-oauth2/o_auth2_auth'
-require 'vertx-web/o_auth2_auth_handler'
-
-# create an OAuth2 provider, clientID and clientSecret should be requested to LinkedIn
-authProvider = VertxAuthOauth2::OAuth2Auth.create(vertx, :AUTH_CODE, {
-  'clientID' => "CLIENT_ID",
-  'clientSecret' => "CLIENT_SECRET",
-  'site' => "https://www.linkedin.com",
-  'authorizationPath' => "/uas/oauth2/authorization",
-  'tokenPath' => "/uas/oauth2/accessToken"
-})
-
-# create a oauth2 handler on our domain: "http://localhost:8080"
-oauth2 = VertxWeb::OAuth2AuthHandler.create(authProvider, "http://localhost:8080")
-
-# these are the scopes
-oauth2.add_authority("r_basicprofile")
-
-# setup the callback handler for receiving the LinkedIn callback
-oauth2.setup_callback(router.get("/callback"))
-
-# protect everything under /protected
-router.route("/protected/*").handler(&oauth2.method(:handle))
-# mount some handler under the protected zone
-router.route("/protected/somepage").handler() { |rc|
-  rc.response().end("Welcome to the protected resource!")
-}
-
-# welcome page
-router.get("/").handler() { |ctx|
-  ctx.response().put_header("content-type", "text/html").end("Hello<br><a href=\"/protected/somepage\">Protected by LinkedIn</a>")
-}
-
-----
-
-When dealing with Microsoft Azure AD you should have to create an application key in order to get a client secret
-and extract the application GUID from the endpoints panel and finally know your resource GUID which you can inspect
-from the manifest.
+This is how you pin your handler to the server `https://myserver.com:8447/callback`. Note that the port number is not
+mandatory for the default values, 80 for http, 443 for https.
 
 [source,ruby]
 ----
-require 'vertx-auth-oauth2/o_auth2_auth'
 require 'vertx-web/o_auth2_auth_handler'
-
-# create an OAuth2 provider, clientID and clientSecret should be requested to Azure AD
-authProvider = VertxAuthOauth2::OAuth2Auth.create(vertx, :AUTH_CODE, {
-  'clientID' => "APPLICATION_ID",
-  'clientSecret' => "APPLICATION_KEYS_SECRET",
-  'site' => "https://login.windows.net/YOUR_CLIENT_GUID",
-  'authorizationPath' => "/oauth2/token",
-  'tokenPath' => "/oauth2/authorize"
-})
-
-# create a oauth2 handler (Azure requires HTTPS) and your resource GUID
-oauth2 = VertxWeb::OAuth2AuthHandler.create(authProvider, "https://localhost:8443").extra_params({
-  'resource' => "00000002-0000-0000-c000-000000000000"
-})
-
-# setup the callback handler for receiving the LinkedIn callback
-oauth2.setup_callback(router.get("/callback"))
-
-# protect everything under /protected
-router.route("/protected/*").handler(&oauth2.method(:handle))
-# mount some handler under the protected zone
-router.route("/protected/somepage").handler() { |rc|
-  rc.response().end("Welcome to the protected resource!")
-}
-
-# welcome page
-router.get("/").handler() { |ctx|
-  ctx.response().put_header("content-type", "text/html").end("Hello<br><a href=\"/protected/somepage\">Protected by LinkedIn</a>")
-}
+# create a oauth2 handler pinned to myserver.com: "https://myserver.com:8447/callback"
+oauth2 = VertxWeb::OAuth2AuthHandler.create(provider, "https://myserver.com:8447/callback")
+# now allow the handler to setup the callback url for you
+oauth2.setup_callback(router.route())
 
 ----
 
-As it can be seen from the examples all you need to know is 2 urls, the authorization path and the token path. You
-will find all these configurations on your provider documentation we have also listed on the auth project examples
-for:
-
-* google
-* twitter
-* github
-* linkedin
-* facebook
-* keycloak
-* azure AD
-
-For keycloak we have a slighter easier setup, just export the json file from the keycloak admin console and load it
-into the handler. Keycloak has some differences from the other providers in the sense that it can also use the token
-to specify grants. You can validate against these grants like this:
-
-[source,ruby]
-----
-require 'vertx-auth-oauth2/o_auth2_auth'
-require 'vertx-web/o_auth2_auth_handler'
-# create an OAuth2 provider for keycloak
-authProvider = VertxAuthOauth2::OAuth2Auth.create_keycloak(vertx, :AUTH_CODE, {
-})
-
-# create a oauth2 handler on our domain: "http://localhost:8000"
-oauth2 = VertxWeb::OAuth2AuthHandler.create(authProvider, "http://localhost:8000")
-
-# setup the callback handler for receiving the keycloak callback
-oauth2.setup_callback(router.get("/callback"))
-
-# protect everything under /protected
-router.route("/protected/*").handler(&oauth2.method(:handle))
-
-# mount some handler under the protected zone
-router.route("/protected/somepage").handler() { |rc|
-  # you can now do authZ based on keycloak grants
-  rc.user().is_authorised("account:manage-account") { |manageAccount_err,manageAccount|
-    if (manageAccount)
-      rc.response().end("Welcome to the protected resource and you can manage your account!")
-    else
-      rc.response().end("Welcome to the protected resource but you cannot manage your account!")
-    end
-  }
-}
-
-# welcome page
-router.get("/").handler() { |ctx|
-  ctx.response().put_header("content-type", "text/html").end("Hello<br><a href=\"/protected/somepage\">Protected by keycloak</a>")
-}
-
-----
+In the example the route object is created inline by `Router.route()` however if you want to have full control of the
+order the handler is called (for example you want it to be called as soon as possible in the chain) you can always
+create the route object before and pass it as a reference to this method.

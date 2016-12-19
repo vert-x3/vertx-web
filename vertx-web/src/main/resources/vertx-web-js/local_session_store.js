@@ -58,12 +58,15 @@ var LocalSessionStore = function(j_val) {
 
    @public
    @param timeout {number} - the session timeout, in ms 
+   @param length {number} - the required length for the session id 
    @return {Session} the session
    */
-  this.createSession = function(timeout) {
+  this.createSession = function() {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] ==='number') {
-      return utils.convReturnVertxGen(Session, j_localSessionStore["createSession(long)"](timeout));
+      return utils.convReturnVertxGen(Session, j_localSessionStore["createSession(long)"](__args[0]));
+    }  else if (__args.length === 2 && typeof __args[0] ==='number' && typeof __args[1] ==='number') {
+      return utils.convReturnVertxGen(Session, j_localSessionStore["createSession(long,int)"](__args[0], __args[1]));
     } else throw new TypeError('function invoked with invalid arguments');
   };
 

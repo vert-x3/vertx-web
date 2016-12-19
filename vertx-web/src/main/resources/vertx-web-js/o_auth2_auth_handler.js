@@ -134,17 +134,17 @@ OAuth2AuthHandler._create = function(jdel) {
   return obj;
 }
 /**
- Create a OAuth2 auth handler
+ Create a OAuth2 auth handler with host pinning
 
  @memberof module:vertx-web-js/o_auth2_auth_handler
  @param authProvider {OAuth2Auth} the auth provider to use 
- @param uri {string} 
+ @param callbackURL {string} the callback URL you entered in your provider admin console, usually it should be something like: `https://myserver:8888/callback` 
  @return {OAuth2AuthHandler} the auth handler
  */
-OAuth2AuthHandler.create = function(authProvider, uri) {
+OAuth2AuthHandler.create = function(authProvider, callbackURL) {
   var __args = arguments;
   if (__args.length === 2 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'string') {
-    return utils.convReturnVertxGen(OAuth2AuthHandler, JOAuth2AuthHandler["create(io.vertx.ext.auth.oauth2.OAuth2Auth,java.lang.String)"](authProvider._jdel, uri));
+    return utils.convReturnVertxGen(OAuth2AuthHandler, JOAuth2AuthHandler["create(io.vertx.ext.auth.oauth2.OAuth2Auth,java.lang.String)"](authProvider._jdel, callbackURL));
   } else throw new TypeError('function invoked with invalid arguments');
 };
 

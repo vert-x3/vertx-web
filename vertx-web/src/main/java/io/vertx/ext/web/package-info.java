@@ -1794,56 +1794,67 @@
  * redirect should also create a session cookie (or other session mechanism) so the user is not required to authenticate
  * for every request.
  *
- * Due to the nature of OAuth2 spec there are slight changes required in order to use other OAuth2 providers, for
- * example, if you are planning to use Google Auth you implement it as:
+ * Due to the nature of OAuth2 spec there are slight changes required in order to use other OAuth2 providers but
+ * vertx-auth provides you with many out of the box implementations:
+ *
+ *
+ * * App.net {@link io.vertx.ext.auth.oauth2.providers.AppNetAuth}
+ * * Azure Active Directory {@link io.vertx.ext.auth.oauth2.providers.AzureADAuth}
+ * * Box.com {@link io.vertx.ext.auth.oauth2.providers.BoxAuth}
+ * * Dropbox {@link io.vertx.ext.auth.oauth2.providers.DropboxAuth}
+ * * Facebook {@link io.vertx.ext.auth.oauth2.providers.FacebookAuth}
+ * * Foursquare {@link io.vertx.ext.auth.oauth2.providers.FoursquareAuth}
+ * * Github {@link io.vertx.ext.auth.oauth2.providers.GithubAuth}
+ * * Google {@link io.vertx.ext.auth.oauth2.providers.GoogleAuth}
+ * * Instagram {@link io.vertx.ext.auth.oauth2.providers.InstagramAuth}
+ * * Keycloak {@link io.vertx.ext.auth.oauth2.providers.KeycloakAuth}
+ * * LinkedIn {@link io.vertx.ext.auth.oauth2.providers.LinkedInAuth}
+ * * Mailchimp {@link io.vertx.ext.auth.oauth2.providers.MailchimpAuth}
+ * * Salesforce {@link io.vertx.ext.auth.oauth2.providers.SalesforceAuth}
+ * * Shopify {@link io.vertx.ext.auth.oauth2.providers.ShopifyAuth}
+ * * Soundcloud {@link io.vertx.ext.auth.oauth2.providers.SoundcloudAuth}
+ * * Stripe {@link io.vertx.ext.auth.oauth2.providers.StripeAuth}
+ * * Twitter {@link io.vertx.ext.auth.oauth2.providers.TwitterAuth}
+ *
+ * However if you're using an unlisted provider you can still do it using the base API like this:
  *
  * [source,$lang]
  * ----
  * {@link examples.WebExamples#example59}
  * ----
  *
- * The changes are only on the configuration, note that the token uri must now be a full URL since it is generated from
- * a different server than the authorization one.
+ * You will need to provide all the details of your provider manually but the end result is the same.
  *
- * Important to note that for google OAuth you must register all your callback URLs in the developer console, so for the
- * current example you would need to register `http://localhost:8080/callback`.
+ * The handler will pin your application the the configured callback url. The usage is simple as providing the handler
+ * a route instance and all setup will be done for you. In a typical use case your provider will ask you what is the
+ * callback url to your application, your then enter a url like: `https://myserver.com/callback`. This is the second
+ * argument to the handler now you just need to set it up. To make it easier to the end user all you need to do is call
+ * the setupCallback method.
  *
- * If you're looking to integrate with LinkedIn then your config should be:
- *
- * [source,$lang]
- * ----
- * {@link examples.WebExamples#example60}
- * ----
- *
- * When dealing with Microsoft Azure AD you should have to create an application key in order to get a client secret
- * and extract the application GUID from the endpoints panel and finally know your resource GUID which you can inspect
- * from the manifest.
- *
- * [source,$lang]
- * ----
- * {@link examples.WebExamples#example62}
- * ----
- *
- * As it can be seen from the examples all you need to know is 2 urls, the authorization path and the token path. You
- * will find all these configurations on your provider documentation we have also listed on the auth project examples
- * for:
- *
- * * google
- * * twitter
- * * github
- * * linkedin
- * * facebook
- * * keycloak
- * * azure AD
- *
- * For keycloak we have a slighter easier setup, just export the json file from the keycloak admin console and load it
- * into the handler. Keycloak has some differences from the other providers in the sense that it can also use the token
- * to specify grants. You can validate against these grants like this:
+ * This is how you pin your handler to the server `https://myserver.com:8447/callback`. Note that the port number is not
+ * mandatory for the default values, 80 for http, 443 for https.
  *
  * [source,$lang]
  * ----
  * {@link examples.WebExamples#example61}
  * ----
+ *
+ * In the example the route object is created inline by `Router.route()` however if you want to have full control of the
+ * order the handler is called (for example you want it to be called as soon as possible in the chain) you can always
+ * create the route object before and pass it as a reference to this method.
+ *
+ * Mixing OAuth2 and JWT
+ *
+ * Some providers use JWT tokens as access tokens, this is a feature of https://tools.ietf.org/html/rfc6750[RFC6750]
+ * and can be quite useful when one wants to mix client based authentication and API authorization. For example say that
+ * you have a application that provides some protected HTML documents but you also want it to be available for API's to
+ * consume. In this case an API cannot easily perform the redirect handshake required by OAuth2 but can use a Token
+ * provided before hand.
+ *
+ * This is handled automatically by the handler as long as the provider is configured to support JWTs.
+ *
+ * In real life this means that your API's can access your protected resources using the header `Authorization` with the
+ * value `Bearer BASE64_ACCESS_TOKEN`.
  *
  */
 @Document(fileName = "index.adoc")

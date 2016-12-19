@@ -16,6 +16,10 @@
 
 package io.vertx.ext.web.handler.impl;
 
+import io.vertx.core.http.HttpHeaders;
+import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.HttpServerRequest;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.auth.oauth2.OAuth2Auth;
@@ -24,22 +28,34 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.OAuth2AuthHandler;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.regex.Pattern;
 
 /**
  * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
  */
 public class OAuth2AuthHandlerImpl extends AuthHandlerImpl implements OAuth2AuthHandler {
 
+  private static final Pattern BEARER = Pattern.compile("^Bearer$", Pattern.CASE_INSENSITIVE);
+
   private final String host;
+  private final String callbackPath;
+  private final boolean supportJWT;
 
   private Route callback;
   private JsonObject extraParams = new JsonObject();
 
-  public OAuth2AuthHandlerImpl(OAuth2Auth authProvider, String host) {
+  public OAuth2AuthHandlerImpl(OAuth2Auth authProvider, String callbackURL) {
     super(authProvider);
-    this.host = host;
+    this.supportJWT = authProvider.hasJWTToken();
+    try {
+      final URL url = new URL(callbackURL);
+      this.host = url.getProtocol() + "://" + url.getHost() + (url.getPort() == -1 ? "" : ":" + url.getPort());
+      this.callbackPath = url.getPath();
+    } catch (MalformedURLException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   @Override
@@ -49,7 +65,7 @@ public class OAuth2AuthHandlerImpl extends AuthHandlerImpl implements OAuth2Auth
       // Already authenticated.
 
       // if this provider support JWT authorize
-      if (((OAuth2Auth) authProvider).hasJWTToken()) {
+      if (supportJWT) {
         authorise(user, ctx);
       } else {
         // oauth2 used only for authentication (with or without scopes)
@@ -57,39 +73,79 @@ public class OAuth2AuthHandlerImpl extends AuthHandlerImpl implements OAuth2Auth
       }
 
     } else {
+
+      if (supportJWT) {
+        // if the provider supports JWT we can try to validate the Authorization header
+        final HttpServerRequest request = ctx.request();
+
+        final String authorization = request.headers().get(HttpHeaders.AUTHORIZATION);
+
+        if (authorization != null) {
+
+          String[] parts = authorization.split(" ");
+          if (parts.length == 2) {
+            final String scheme = parts[0],
+              credentials = parts[1];
+
+            if (BEARER.matcher(scheme).matches()) {
+
+              ((OAuth2Auth) authProvider).decodeToken(credentials, decodeToken -> {
+                if (decodeToken.failed()) {
+                  ctx.response().putHeader("WWW-Authenticate", "Bearer error=\"invalid_token\" error_message=\"" + decodeToken.cause().getMessage() + "\"");
+                  ctx.fail(401);
+                  return;
+                }
+
+                ctx.setUser(decodeToken.result());
+                Session session = ctx.session();
+                if (session != null) {
+                  // the user has upgraded from unauthenticated to authenticated
+                  // session should be upgraded as recommended by owasp
+                  session.regenerateId();
+                }
+                // continue
+                ctx.next();
+              });
+              return;
+
+            }
+          } else {
+            ctx.response().putHeader("WWW-Authenticate", "Bearer error=\"invalid_token\"");
+            ctx.fail(401);
+            return;
+          }
+        }
+      }
+
       // redirect request to the oauth2 server
       ctx.response()
-          .putHeader("Location", authURI(ctx.normalisedPath()))
+          .putHeader("Location", authURI(host, ctx.normalisedPath()))
           .setStatusCode(302)
           .end();
     }
   }
 
-  private String authURI(String redirectURL) {
+  private String authURI(String host, String redirectURL) {
     if (callback == null) {
       throw new NullPointerException("callback is null");
     }
 
-    StringBuilder scopes = new StringBuilder();
-
-    try {
+    if (authorities.size() > 0) {
+      JsonArray scopes = new JsonArray();
+      // scopes are passed as an array because the auth provider has the knowledge on how to encode them
       for (String authority : authorities) {
-        scopes.append(URLEncoder.encode(authority, "UTF-8"));
-        scopes.append(',');
+        scopes.add(authority);
       }
-    } catch (UnsupportedEncodingException e) {
-      throw new RuntimeException(e);
-    }
 
-    // exclude the trailing comma
-    if (scopes.length() > 0) {
-      scopes.setLength(scopes.length() - 1);
+      return ((OAuth2Auth) authProvider).authorizeURL(new JsonObject()
+        .put("redirect_uri", host + callback.getPath())
+        .put("scopes", scopes)
+        .put("state", redirectURL));
+    } else {
+      return ((OAuth2Auth) authProvider).authorizeURL(new JsonObject()
+        .put("redirect_uri", host + callback.getPath())
+        .put("state", redirectURL));
     }
-
-    return ((OAuth2Auth) authProvider).authorizeURL(new JsonObject()
-          .put("redirect_uri", host + callback.getPath())
-          .put("scope", scopes.toString())
-          .put("state", redirectURL));
   }
 
   @Override
@@ -101,7 +157,13 @@ public class OAuth2AuthHandlerImpl extends AuthHandlerImpl implements OAuth2Auth
   @Override
   public OAuth2AuthHandler setupCallback(Route route) {
 
-    this.callback = route;
+    callback = route;
+
+    if (!"".equals(callbackPath)) {
+      // no matter what path was provided we will make sure it is the correct one
+      callback.path(callbackPath);
+    }
+    callback.method(HttpMethod.GET);
 
     route.handler(ctx -> {
       // Handle the callback of the flow
@@ -127,6 +189,11 @@ public class OAuth2AuthHandlerImpl extends AuthHandlerImpl implements OAuth2Auth
             session.regenerateId();
             // we should redirect the UA so this link becomes invalid
             ctx.response()
+              // disable all caching
+              .putHeader("Cache-Control", "no-cache, no-store, must-revalidate")
+              .putHeader("Pragma", "no-cache")
+              .putHeader("Expires", "0")
+              // redirect
               .putHeader("Location", state)
               .setStatusCode(302)
               .end("Redirecting to " + state + ".");

@@ -108,7 +108,7 @@ module VertxWeb
       end
       raise ArgumentError, "Invalid arguments when calling set_session_cookie_name(#{sessionCookieName})"
     end
-    #  Set the session cookie name
+    #  Set expected session id minimum length.
     # @param [Fixnum] minLength the session id minimal length
     # @return [self]
     def set_min_length(minLength=nil)
@@ -116,7 +116,7 @@ module VertxWeb
         @j_del.java_method(:setMinLength, [Java::int.java_class]).call(minLength)
         return self
       end
-      raise ArgumentError, "Invalid arguments when calling set_min_length(minLength)"
+      raise ArgumentError, "Invalid arguments when calling set_min_length(#{minLength})"
     end
   end
 end
