@@ -16,7 +16,6 @@
 
 package io.vertx.ext.web.impl;
 
-import io.netty.handler.codec.http.QueryStringDecoder;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
@@ -241,7 +240,7 @@ public class RouteImpl implements Route {
       return false;
     }
     if (pattern != null) {
-      String path = useNormalisedPath ? Utils.normalisePath(context.request().path(), false) : context.request().path();
+      String path = useNormalisedPath ? Utils.normalizePath(context.request().path()) : context.request().path();
       if (mountPoint != null) {
         path = path.substring(mountPoint.length());
       }
@@ -255,7 +254,7 @@ public class RouteImpl implements Route {
             // decode the path as it could contain escaped chars.
             for (int i = 0; i < groups.size(); i++) {
               final String k = groups.get(i);
-              final String value = QueryStringDecoder.decodeComponent(m.group("p" + i).replace("+", "%2b"));
+              final String value = Utils.urlDecode(m.group("p" + i), false);
               if (!request.params().contains(k)) {
                 params.put(k, value);
               } else {
@@ -269,7 +268,7 @@ public class RouteImpl implements Route {
               String group = m.group(i + 1);
               if(group != null) {
                 final String k = "param" + i;
-                final String value = QueryStringDecoder.decodeComponent(group.replace("+", "%2b"));
+                final String value = Utils.urlDecode(group, false);
                 if (!request.params().contains(k)) {
                   params.put(k, value);
                 } else {
@@ -315,7 +314,7 @@ public class RouteImpl implements Route {
 
     if (useNormalisedPath) {
       // never null
-      requestPath = Utils.normalisePath(ctx.request().path(), false);
+      requestPath = Utils.normalizePath(ctx.request().path());
     } else {
       requestPath = ctx.request().path();
       // can be null
