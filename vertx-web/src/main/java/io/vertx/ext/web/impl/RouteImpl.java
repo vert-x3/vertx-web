@@ -17,6 +17,7 @@
 package io.vertx.ext.web.impl;
 
 import io.vertx.core.Handler;
+import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.logging.Logger;
@@ -232,7 +233,10 @@ public class RouteImpl implements Route {
     if (!enabled) {
       return false;
     }
-    HttpServerRequest request = context.request();
+
+    final HttpServerRequest request = context.request();
+    final MultiMap vertxParams = request.params();
+
     if (!methods.isEmpty() && !methods.contains(request.method())) {
       return false;
     }
@@ -240,7 +244,7 @@ public class RouteImpl implements Route {
       return false;
     }
     if (pattern != null) {
-      String path = useNormalisedPath ? Utils.normalizePath(context.request().path()) : context.request().path();
+      String path = useNormalisedPath ? context.normalisedPath() : context.request().path();
       if (mountPoint != null) {
         path = path.substring(mountPoint.length());
       }
@@ -255,7 +259,7 @@ public class RouteImpl implements Route {
             for (int i = 0; i < groups.size(); i++) {
               final String k = groups.get(i);
               final String value = Utils.urlDecode(m.group("p" + i), false);
-              if (!request.params().contains(k)) {
+              if (!vertxParams.contains(k)) {
                 params.put(k, value);
               } else {
                 context.pathParams().put(k, value);
@@ -269,7 +273,7 @@ public class RouteImpl implements Route {
               if(group != null) {
                 final String k = "param" + i;
                 final String value = Utils.urlDecode(group, false);
-                if (!request.params().contains(k)) {
+                if (!vertxParams.contains(k)) {
                   params.put(k, value);
                 } else {
                   context.pathParams().put(k, value);
@@ -277,7 +281,7 @@ public class RouteImpl implements Route {
               }
             }
           }
-          request.params().addAll(params);
+          vertxParams.addAll(params);
           context.pathParams().putAll(params);
         }
       } else {
@@ -314,7 +318,7 @@ public class RouteImpl implements Route {
 
     if (useNormalisedPath) {
       // never null
-      requestPath = Utils.normalizePath(ctx.request().path());
+      requestPath = ctx.normalisedPath();
     } else {
       requestPath = ctx.request().path();
       // can be null

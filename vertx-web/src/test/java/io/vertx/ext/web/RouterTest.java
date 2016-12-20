@@ -55,7 +55,7 @@ public class RouterTest extends WebTestBase {
       // OK
     }
   }
-  
+
   @Test
   public void testRouteGetPath() throws Exception {
     assertEquals("/foo", router.route("/foo").getPath());
@@ -132,7 +132,7 @@ public class RouterTest extends WebTestBase {
     testPathBegin(path1);
     testPathBegin(path2);
   }
-  
+
   @Test
   public void testRoutePathWithTrailingSlashOnlyBegin() throws Exception {
     String path = "/some/path/";
@@ -666,7 +666,7 @@ public class RouterTest extends WebTestBase {
     Arrays.fill(longChars, 'a');
     String testHeaderValue = new String(longChars);
     String path = "/blah";
-    
+
     router.route(path).handler(rc -> {
       rc.response().end();
     });
@@ -856,6 +856,15 @@ public class RouterTest extends WebTestBase {
       rc.response().setStatusMessage(params.get("!!!")).end();
     });
     testRequest(HttpMethod.GET, "/blah/tim", 404, "Not Found"); // Because it won't match
+  }
+
+  @Test
+  public void testStrangeChars() throws Exception {
+    router.route("/*").handler(rc -> {
+      MultiMap params = rc.request().params();
+      rc.response().end();
+    });
+    testRequest(HttpMethod.GET, "/eAcGYenH6Hy/fulltext?filename=\\@$%", 400, "Bad Request"); // Because it won't match
   }
 
   @Test
@@ -1066,7 +1075,7 @@ public class RouterTest extends WebTestBase {
     testRequestWithAccepts(HttpMethod.GET, "/foo", "something/html", 404, "Not Found");
     testRequest(HttpMethod.GET, "/foo", 200, "OK");
   }
-  
+
   @Test
   public void testProducesWithParameterKey() throws Exception {
     router.route().produces("text/html;boo").handler(rc -> rc.response().end());
@@ -1104,7 +1113,7 @@ public class RouterTest extends WebTestBase {
     testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html;q=2", 200, "OK");
     testRequest(HttpMethod.GET, "/foo", 200, "OK");
   }
-  
+
   @Test
   public void testProducesMissingSlash() throws Exception {
     // will assume "*/json"
@@ -1251,7 +1260,7 @@ public class RouterTest extends WebTestBase {
     testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html,text/plain;q=0.9;d,application/json;q=0.8", 200, "text/plain");
     testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html,text/plain;q=0.9,application/json;q=0.8;s", 200, "text/plain");
   }
-  
+
   @Test
   public void testAcceptsMultipleWithParams() throws Exception {
     router.route().produces("application/json").produces("text/plain").handler(rc -> {

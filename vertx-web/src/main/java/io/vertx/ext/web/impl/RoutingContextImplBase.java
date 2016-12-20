@@ -67,7 +67,19 @@ public abstract class RoutingContextImplBase implements RoutingContext {
     boolean failed = failed();
     while (iter.hasNext()) {
       RouteImpl route = iter.next();
-      if (route.matches(this, mountPoint(), failed)) {
+      boolean matches;
+
+      try {
+        matches = route.matches(this, mountPoint(), failed);
+      } catch (IllegalArgumentException e) {
+        failed = true;
+        matches = false;
+        // Failure in handling failure!
+        if (log.isTraceEnabled()) log.trace("Failure in request match", e);
+        unhandledFailure(400, e, route.router());
+      }
+
+      if (matches) {
         if (log.isTraceEnabled()) log.trace("Route matches: " + route);
         try {
           currentRoute = route;
@@ -103,7 +115,7 @@ public abstract class RoutingContextImplBase implements RoutingContext {
       } else {
         log.error("Unexpected exception in route", failure);
       }
-      if(!response().ended()){
+      if (!response().ended()) {
         // Handle in a custom way if the failure is internal and known
         if(failure instanceof HeaderTooLongException){
           response().setStatusCode(400);
@@ -118,8 +130,8 @@ public abstract class RoutingContextImplBase implements RoutingContext {
       } catch (IllegalArgumentException e) {
         // means that there are invalid chars in the status message
         response()
-            .setStatusMessage(HttpResponseStatus.valueOf(code).reasonPhrase())
-            .setStatusCode(code);
+          .setStatusMessage(HttpResponseStatus.valueOf(code).reasonPhrase())
+          .setStatusCode(code);
       }
       response().end(response().getStatusMessage());
     }

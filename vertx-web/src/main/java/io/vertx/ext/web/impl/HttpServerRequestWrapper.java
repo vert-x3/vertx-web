@@ -23,7 +23,7 @@ class HttpServerRequestWrapper implements HttpServerRequest {
   private String path;
   private String uri;
   private String absoluteURI;
-  
+
   HttpServerRequestWrapper(HttpServerRequest request) {
     delegate = request;
     method = request.method();
