@@ -154,49 +154,49 @@ public class Utils extends io.vertx.core.impl.Utils {
    *
    * double slash // will be converted to single slash and the path will always start with slash.
    *
-   * @param ibuf raw path
+   * @param path raw path
    * @return normalized path
    */
-  public static String removeDots(CharSequence ibuf) {
+  public static String removeDots(CharSequence path) {
 
-    if (ibuf == null) {
+    if (path == null) {
       return null;
     }
 
-    final StringBuilder obuf = new StringBuilder(ibuf.length());
+    final StringBuilder obuf = new StringBuilder(path.length());
 
     int i = 0;
-    while (i < ibuf.length()) {
+    while (i < path.length()) {
       // remove dots as described in
       // http://tools.ietf.org/html/rfc3986#section-5.2.4
-      if (matches(ibuf, i, "./")) {
+      if (matches(path, i, "./")) {
         i += 2;
-      } else if (matches(ibuf, i, "../")) {
+      } else if (matches(path, i, "../")) {
         i += 3;
-      } else if (matches(ibuf, i, "/./")) {
+      } else if (matches(path, i, "/./")) {
         // preserve last slash
         i += 2;
-      } else if (matches(ibuf, i,"/.", true)) {
-        ibuf = "/";
+      } else if (matches(path, i,"/.", true)) {
+        path = "/";
         i = 0;
-      } else if (matches(ibuf, i, "/../")) {
+      } else if (matches(path, i, "/../")) {
         // preserve last slash
         i += 3;
         int pos = obuf.lastIndexOf("/");
         if (pos != -1) {
           obuf.delete(pos, obuf.length());
         }
-      } else if (matches(ibuf, i, "/..", true)) {
-        ibuf = "/";
+      } else if (matches(path, i, "/..", true)) {
+        path = "/";
         i = 0;
         int pos = obuf.lastIndexOf("/");
         if (pos != -1) {
           obuf.delete(pos - 1, obuf.length());
         }
-      } else if (matches(ibuf, i, ".", true) || matches(ibuf, i, "..", true)) {
+      } else if (matches(path, i, ".", true) || matches(path, i, "..", true)) {
         break;
       } else {
-        if (ibuf.charAt(i) == '/') {
+        if (path.charAt(i) == '/') {
           i++;
           // Not standard!!!
           // but common // -> /
@@ -204,12 +204,12 @@ public class Utils extends io.vertx.core.impl.Utils {
             obuf.append('/');
           }
         }
-        int pos = indexOfSlash(ibuf, i);
+        int pos = indexOfSlash(path, i);
         if (pos != -1) {
-          obuf.append(ibuf, i, pos);
+          obuf.append(path, i, pos);
           i = pos;
         } else {
-          obuf.append(ibuf, i, ibuf.length());
+          obuf.append(path, i, path.length());
           break;
         }
       }
