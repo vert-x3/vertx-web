@@ -92,7 +92,7 @@
               <shadedClassifierName>shaded</shadedClassifierName>
               <artifactSet>
                 <includes>
-                  <include>freemarker</include>
+                  <include>org.freemarker:freemarker</include>
                 </includes>
               </artifactSet>
             </configuration>
