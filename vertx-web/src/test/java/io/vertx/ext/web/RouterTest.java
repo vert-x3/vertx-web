@@ -894,6 +894,33 @@ public class RouterTest extends WebTestBase {
     });
     testPattern("/dog/cat", "dogcat");
   }
+  
+  @Test
+  public void testNamedRegex1() throws Exception {
+    router.routeWithRegex("\\/(?<animal1>[^\\/]+)\\/(?<animal2>[^\\/]+)").handler(rc -> {
+      MultiMap params = rc.request().params();
+      rc.response().setStatusMessage(params.get("animal1") + params.get("animal2")).end();
+    });
+    testPattern("/dog/cat", "dogcat");
+  }  
+  
+  @Test
+  public void testNamedRegex2() throws Exception {
+    router.routeWithRegex("\\/(?<animal1>[^\\/]+)\\/(?<animal2>[^\\/]+)/blah").handler(rc -> {
+      MultiMap params = rc.request().params();
+      rc.response().setStatusMessage(params.get("animal1") + params.get("animal2")).end();
+    });
+    testPattern("/dog/cat/blah", "dogcat");
+  }  
+  
+  @Test
+  public void testIncompleteNamedRegex1() throws Exception {
+    router.routeWithRegex("\\/(?<animal1>[^\\/]+)\\/([^\\/]+)").handler(rc -> {
+      MultiMap params = rc.request().params();
+      rc.response().setStatusMessage(params.get("animal1") + params.get("param1")).end();
+    });
+    testPattern("/dog/cat", "dognull");
+  }    
 
   @Test
   public void testRegex1WithMethod() throws Exception {

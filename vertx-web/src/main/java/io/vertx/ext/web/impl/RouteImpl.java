@@ -254,7 +254,7 @@ public class RouteImpl implements Route {
             // decode the path as it could contain escaped chars.
             for (int i = 0; i < groups.size(); i++) {
               final String k = groups.get(i);
-              final String value = Utils.urlDecode(m.group("p" + i), false);
+              final String value = Utils.urlDecode(m.group(i+1), false);
               if (!request.params().contains(k)) {
                 params.put(k, value);
               } else {
@@ -363,8 +363,16 @@ public class RouteImpl implements Route {
     }
   }
 
+  private static final Pattern RE_GROUP_NAMES = Pattern.compile("\\?<(\\w+)>");
   private void setRegex(String regex) {
     pattern = Pattern.compile(regex);
+    Matcher matcher = RE_GROUP_NAMES.matcher(regex);
+    if (matcher.find()) {
+    	groups = new ArrayList<>();
+    	do {
+    		groups.add(matcher.group(1));
+    	} while (matcher.find());
+    }    
   }
 
   // intersection of regex chars and https://tools.ietf.org/html/rfc3986#section-3.3
