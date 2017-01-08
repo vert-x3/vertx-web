@@ -59,7 +59,8 @@ public class RxWebClientExamples {
       .get(8080, "myserver.mycompany.com", "/some-uri")
       .putHeader("some-header", "header-value")
       .addQueryParam("some-param", "param value")
-      .rxSend(BodyCodec.jsonObject());
+      .as(BodyCodec.jsonObject())
+      .rxSend();
     single.subscribe(resp -> {
       System.out.println(resp.statusCode());
       System.out.println(resp.body());

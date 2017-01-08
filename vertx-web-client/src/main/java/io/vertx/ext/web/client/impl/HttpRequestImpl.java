@@ -49,7 +49,7 @@ import java.util.Map;
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
  */
-class HttpRequestImpl implements HttpRequest {
+class HttpRequestImpl<T> implements HttpRequest<T> {
 
   final HttpClient client;
   MultiMap params;
@@ -59,13 +59,15 @@ class HttpRequestImpl implements HttpRequest {
   String uri;
   MultiMap headers;
   long timeout = -1;
+  BodyCodec<T> codec;
 
-  HttpRequestImpl(HttpClient client, HttpMethod method) {
+  HttpRequestImpl(HttpClient client, HttpMethod method, BodyCodec<T> codec) {
     this.client = client;
     this.method = method;
+    this.codec = codec;
   }
 
-  private HttpRequestImpl(HttpRequestImpl other) {
+  private HttpRequestImpl(HttpRequestImpl<T> other) {
     this.client = other.client;
     this.method = other.method;
     this.port = other.port;
@@ -74,35 +76,42 @@ class HttpRequestImpl implements HttpRequest {
     this.uri = other.uri;
     this.headers = other.headers != null ? new CaseInsensitiveHeaders().addAll(other.headers) : null;
     this.params = other.params != null ? new CaseInsensitiveHeaders().addAll(other.params) : null;
+    this.codec = other.codec;
   }
 
   @Override
-  public HttpRequest method(HttpMethod value) {
+  public <U> HttpRequest<U> as(BodyCodec<U> responseCodec) {
+    codec = (BodyCodec<T>) responseCodec;
+    return (HttpRequest<U>) this;
+  }
+
+  @Override
+  public HttpRequest<T> method(HttpMethod value) {
     method = value;
     return this;
   }
 
   @Override
-  public HttpRequest port(int value) {
+  public HttpRequest<T> port(int value) {
     port = value;
     return this;
   }
 
   @Override
-  public HttpRequest host(String value) {
+  public HttpRequest<T> host(String value) {
     host = value;
     return this;
   }
 
   @Override
-  public HttpRequest uri(String value) {
+  public HttpRequest<T> uri(String value) {
     params = null;
     uri = value;
     return this;
   }
 
   @Override
-  public HttpRequest putHeader(String name, String value) {
+  public HttpRequest<T> putHeader(String name, String value) {
     headers().set(name, value);
     return this;
   }
@@ -116,19 +125,19 @@ class HttpRequestImpl implements HttpRequest {
   }
 
   @Override
-  public HttpRequest timeout(long value) {
+  public HttpRequest<T> timeout(long value) {
     timeout = value;
     return this;
   }
 
   @Override
-  public HttpRequest addQueryParam(String paramName, String paramValue) {
+  public HttpRequest<T> addQueryParam(String paramName, String paramValue) {
     queryParams().add(paramName, paramValue);
     return this;
   }
 
   @Override
-  public HttpRequest setQueryParam(String paramName, String paramValue) {
+  public HttpRequest<T> setQueryParam(String paramName, String paramValue) {
     queryParams().set(paramName, paramValue);
     return this;
   }
@@ -150,76 +159,46 @@ class HttpRequestImpl implements HttpRequest {
   }
 
   @Override
-  public HttpRequest copy() {
-    return new HttpRequestImpl(this);
+  public HttpRequest<T> copy() {
+    return new HttpRequestImpl<T>(this);
   }
 
   @Override
-  public void sendStream(ReadStream<Buffer> body, Handler<AsyncResult<HttpResponse<Buffer>>> handler) {
-    send(null, body, BodyCodec.buffer(), handler);
+  public void sendStream(ReadStream<Buffer> body, Handler<AsyncResult<HttpResponse<T>>> handler) {
+    send(null, body, handler);
   }
 
   @Override
-  public <R> void sendStream(ReadStream<Buffer> body, BodyCodec<R> responseCodec, Handler<AsyncResult<HttpResponse<R>>> handler) {
-    send(null, body, responseCodec, handler);
+  public void send(Handler<AsyncResult<HttpResponse<T>>> handler) {
+    send(null, null, handler);
   }
 
   @Override
-  public void send(Handler<AsyncResult<HttpResponse<Buffer>>> handler) {
-    send(null, null, BodyCodec.buffer(), handler);
+  public void sendBuffer(Buffer body, Handler<AsyncResult<HttpResponse<T>>> handler) {
+    send(null, body, handler);
   }
 
   @Override
-  public <R> void send(BodyCodec<R> responseCodec, Handler<AsyncResult<HttpResponse<R>>> handler) {
-    send(null, null, responseCodec, handler);
+  public void sendJsonObject(JsonObject body, Handler<AsyncResult<HttpResponse<T>>> handler) {
+    send("application/json", body,handler);
   }
 
   @Override
-  public void sendBuffer(Buffer body, Handler<AsyncResult<HttpResponse<Buffer>>> handler) {
-    send(null, body, BodyCodec.buffer(), handler);
+  public void sendJson(Object body, Handler<AsyncResult<HttpResponse<T>>> handler) {
+    send("application/json", body, handler);
   }
 
   @Override
-  public <R> void sendBuffer(Buffer body, BodyCodec<R> responseCodec, Handler<AsyncResult<HttpResponse<R>>> handler) {
-    send(null, body, responseCodec, handler);
+  public void sendForm(MultiMap body, Handler<AsyncResult<HttpResponse<T>>> handler) {
+    send("application/x-www-form-urlencoded", body, handler);
   }
 
-  @Override
-  public void sendJsonObject(JsonObject body, Handler<AsyncResult<HttpResponse<Buffer>>> handler) {
-    send("application/json", body, BodyCodec.buffer(), handler);
-  }
-
-  @Override
-  public <R> void sendJsonObject(JsonObject body, BodyCodec<R> responseCodec, Handler<AsyncResult<HttpResponse<R>>> handler) {
-    send("application/json", body, responseCodec, handler);
-  }
-
-  @Override
-  public void sendJson(Object body, Handler<AsyncResult<HttpResponse<Buffer>>> handler) {
-    send("application/json", body, BodyCodec.buffer(), handler);
-  }
-
-  @Override
-  public <R> void sendJson(Object body, BodyCodec<R> responseCodec, Handler<AsyncResult<HttpResponse<R>>> handler) {
-    send("application/json", body, responseCodec, handler);
-  }
-
-  @Override
-  public void sendForm(MultiMap body, Handler<AsyncResult<HttpResponse<Buffer>>> handler) {
-    send("application/x-www-form-urlencoded", body, BodyCodec.buffer(), handler);
-  }
-
-  @Override
-  public <R> void sendForm(MultiMap body, BodyCodec<R> responseCodec, Handler<AsyncResult<HttpResponse<R>>> handler) {
-    send("application/x-www-form-urlencoded", body, responseCodec, handler);
-  }
-
-  private <R> void send(String contentType, Object body, BodyCodec<R> codec, Handler<AsyncResult<HttpResponse<R>>> handler) {
+  private void send(String contentType, Object body, Handler<AsyncResult<HttpResponse<T>>> handler) {
 
     Future<HttpClientResponse> responseFuture = Future.<HttpClientResponse>future().setHandler(ar -> {
       if (ar.succeeded()) {
         HttpClientResponse resp = ar.result();
-        Future<HttpResponse<R>> fut = Future.future();
+        Future<HttpResponse<T>> fut = Future.future();
         fut.setHandler(handler);
         resp.exceptionHandler(err -> {
           if (!fut.isComplete()) {
@@ -230,7 +209,7 @@ class HttpRequestImpl implements HttpRequest {
         codec.create(ar2 -> {
           resp.resume();
           if (ar2.succeeded()) {
-            BodyStream<R> stream = ar2.result();
+            BodyStream<T> stream = ar2.result();
             stream.exceptionHandler(err -> {
               if (!fut.isComplete()) {
                 fut.fail(err);

@@ -115,7 +115,7 @@ public class WebClientTest extends HttpTestBase {
     }, req -> assertEquals(method, req.method()));
   }
 
-  private void testRequest(Function<WebClient, HttpRequest> reqFactory, Consumer<HttpServerRequest> reqChecker) throws Exception {
+  private void testRequest(Function<WebClient, HttpRequest<Buffer>> reqFactory, Consumer<HttpServerRequest> reqChecker) throws Exception {
     waitFor(4);
     server.requestHandler(req -> {
       reqChecker.accept(req);
@@ -123,7 +123,7 @@ public class WebClientTest extends HttpTestBase {
       req.response().end();
     });
     startServer();
-    HttpRequest builder = reqFactory.apply(client);
+    HttpRequest<Buffer> builder = reqFactory.apply(client);
     builder.send(onSuccess(resp -> {
       complete();
     }));
@@ -174,7 +174,7 @@ public class WebClientTest extends HttpTestBase {
     vertx.runOnContext(v -> {
       AsyncFile asyncFile = vertx.fileSystem().openBlocking(f.getAbsolutePath(), new OpenOptions());
 
-      HttpRequest builder = null;
+      HttpRequest<Buffer> builder = null;
 
       switch (method) {
         case POST:
@@ -244,7 +244,7 @@ public class WebClientTest extends HttpTestBase {
       });
     });
     startServer();
-    HttpRequest post = client.post(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
+    HttpRequest<Buffer> post = client.post(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
     if (body instanceof Buffer) {
       post.sendBuffer((Buffer) body, onSuccess(resp -> {
         complete();
@@ -263,7 +263,7 @@ public class WebClientTest extends HttpTestBase {
 
   @Test
   public void testConnectError() throws Exception {
-    HttpRequest get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
+    HttpRequest<Buffer> get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
     get.send(onFailure(err -> {
       assertTrue(err instanceof ConnectException);
       complete();
@@ -273,7 +273,7 @@ public class WebClientTest extends HttpTestBase {
 
   @Test
   public void testRequestSendError() throws Exception {
-    HttpRequest post = client.post(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
+    HttpRequest<Buffer> post = client.post(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
     server.requestHandler(req -> {
       req.handler(buff -> {
         req.connection().close();
@@ -313,7 +313,7 @@ public class WebClientTest extends HttpTestBase {
   @Test
   public void testRequestPumpError() throws Exception {
     waitFor(2);
-    HttpRequest post = client.post(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
+    HttpRequest<Buffer> post = client.post(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
     CompletableFuture<Void> done = new CompletableFuture<>();
     server.requestHandler(req -> {
       req.response().closeHandler(v -> {
@@ -363,7 +363,7 @@ public class WebClientTest extends HttpTestBase {
 
   @Test
   public void testRequestPumpErrorNotYetConnected() throws Exception {
-    HttpRequest post = client.post(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
+    HttpRequest<Buffer> post = client.post(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
     server.requestHandler(req -> {
       fail();
     });
@@ -412,7 +412,7 @@ public class WebClientTest extends HttpTestBase {
       req.response().end(expected);
     });
     startServer();
-    HttpRequest get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
+    HttpRequest<Buffer> get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
     get.send(onSuccess(resp -> {
       assertEquals(200, resp.statusCode());
       assertEquals(expected, resp.body());
@@ -428,8 +428,10 @@ public class WebClientTest extends HttpTestBase {
       req.response().end(expected.encode());
     });
     startServer();
-    HttpRequest get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
-    get.send(BodyCodec.jsonObject(), onSuccess(resp -> {
+    HttpRequest<Buffer> get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
+    get
+      .as(BodyCodec.jsonObject())
+      .send(onSuccess(resp -> {
       assertEquals(200, resp.statusCode());
       assertEquals(expected, resp.body());
       testComplete();
@@ -444,8 +446,10 @@ public class WebClientTest extends HttpTestBase {
       req.response().end(expected.encode());
     });
     startServer();
-    HttpRequest get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
-    get.send(BodyCodec.json(WineAndCheese.class), onSuccess(resp -> {
+    HttpRequest<Buffer> get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
+    get
+      .as(BodyCodec.json(WineAndCheese.class))
+      .send(onSuccess(resp -> {
       assertEquals(200, resp.statusCode());
       assertEquals(new WineAndCheese().setCheese("Goat Cheese").setWine("Condrieu"), resp.body());
       testComplete();
@@ -459,8 +463,10 @@ public class WebClientTest extends HttpTestBase {
       req.response().end(TestUtils.randomAlphaString(1024));
     });
     startServer();
-    HttpRequest get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
-    get.send(BodyCodec.none(), onSuccess(resp -> {
+    HttpRequest<Buffer> get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
+    get
+      .as(BodyCodec.none())
+      .send(onSuccess(resp -> {
       assertEquals(200, resp.statusCode());
       assertEquals(null, resp.body());
       testComplete();
@@ -475,7 +481,7 @@ public class WebClientTest extends HttpTestBase {
       req.response().end(expected.encode());
     });
     startServer();
-    HttpRequest get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
+    HttpRequest<Buffer> get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
     get.send(onSuccess(resp -> {
       assertEquals(200, resp.statusCode());
       assertEquals(expected, resp.bodyAsJsonObject());
@@ -491,7 +497,7 @@ public class WebClientTest extends HttpTestBase {
       req.response().end(expected.encode());
     });
     startServer();
-    HttpRequest get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
+    HttpRequest<Buffer> get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
     get.send(onSuccess(resp -> {
       assertEquals(200, resp.statusCode());
       assertEquals(new WineAndCheese().setCheese("Goat Cheese").setWine("Condrieu"), resp.bodyAsJson(WineAndCheese.class));
@@ -506,8 +512,10 @@ public class WebClientTest extends HttpTestBase {
       req.response().end("not-json-object");
     });
     startServer();
-    HttpRequest get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
-    get.send(BodyCodec.jsonObject(), onFailure(err -> {
+    HttpRequest<Buffer> get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
+    get
+      .as(BodyCodec.jsonObject())
+      .send(onFailure(err -> {
       assertTrue(err instanceof DecodeException);
       testComplete();
     }));
@@ -574,8 +582,10 @@ public class WebClientTest extends HttpTestBase {
         return this;
       }
     };
-    HttpRequest get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
-    get.send(BodyCodec.pipe(stream), onSuccess(resp -> {
+    HttpRequest<Buffer> get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
+    get
+      .as(BodyCodec.pipe(stream))
+      .send(onSuccess(resp -> {
       assertTrue(ended.get());
       assertEquals(200, resp.statusCode());
       assertEquals(null, resp.body());
@@ -625,8 +635,10 @@ public class WebClientTest extends HttpTestBase {
         return this;
       }
     };
-    HttpRequest get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
-    get.send(BodyCodec.pipe(stream), onFailure(err -> {
+    HttpRequest<Buffer> get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
+    get
+      .as(BodyCodec.pipe(stream))
+      .send(onFailure(err -> {
       testComplete();
     }));
     waitUntil(() -> received.get() == 2048);
@@ -671,8 +683,10 @@ public class WebClientTest extends HttpTestBase {
         return this;
       }
     };
-    HttpRequest get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
-    get.send(BodyCodec.pipe(stream), onFailure(err -> {
+    HttpRequest<Buffer> get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
+    get
+      .as(BodyCodec.pipe(stream))
+      .send(onFailure(err -> {
       assertSame(cause, err);
       testComplete();
     }));
@@ -730,8 +744,10 @@ public class WebClientTest extends HttpTestBase {
       req.response().setStatusCode(403).end();
     });
     startServer();
-    HttpRequest get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
-    get.send(codec, onSuccess(resp -> {
+    HttpRequest<Buffer> get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
+    get
+      .as(codec)
+      .send(onSuccess(resp -> {
       assertEquals(403, resp.statusCode());
       assertNull(resp.body());
       testComplete();
@@ -745,8 +761,10 @@ public class WebClientTest extends HttpTestBase {
       req.response().setChunked(true).write(Buffer.buffer("some-data")).close();
     });
     startServer();
-    HttpRequest get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
-    get.send(BodyCodec.jsonObject(), onFailure(err -> {
+    HttpRequest<Buffer> get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
+    get
+      .as(BodyCodec.jsonObject())
+      .send(onFailure(err -> {
       assertTrue(err instanceof VertxException);
       testComplete();
     }));
@@ -760,7 +778,7 @@ public class WebClientTest extends HttpTestBase {
       count.incrementAndGet();
     });
     startServer();
-    HttpRequest get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
+    HttpRequest<Buffer> get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
     get.timeout(50).send(onFailure(err -> {
       assertEquals(err.getClass(), TimeoutException.class);
       testComplete();
@@ -825,7 +843,7 @@ public class WebClientTest extends HttpTestBase {
     startServer();
     MultiMap form = MultiMap.caseInsensitiveMultiMap();
     form.add("param1", "param1_value");
-    HttpRequest builder = client.post("/somepath");
+    HttpRequest<Buffer> builder = client.post("/somepath");
     builder.sendForm(form, onSuccess(resp -> {
       complete();
     }));
@@ -844,7 +862,7 @@ public class WebClientTest extends HttpTestBase {
     startServer();
     MultiMap form = MultiMap.caseInsensitiveMultiMap();
     form.add("param1", "param1_value");
-    HttpRequest builder = client.post("/somepath");
+    HttpRequest<Buffer> builder = client.post("/somepath");
     builder.putHeader("content-type", "multipart/form-data");
     builder.sendForm(form, onSuccess(resp -> {
       complete();

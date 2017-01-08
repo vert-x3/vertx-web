@@ -410,7 +410,7 @@ Use `link:../../apidocs/io/vertx/ext/web/codec/BodyCodec.html#jsonObject--[BodyC
 [source,groovy]
 ----
 import io.vertx.ext.web.codec.BodyCodec
-client.get(8080, "myserver.mycompany.com", "/some-uri").send(BodyCodec.jsonObject(), { ar ->
+client.get(8080, "myserver.mycompany.com", "/some-uri").as(BodyCodec.jsonObject()).send({ ar ->
   if (ar.succeeded()) {
     def response = ar.result()
 
@@ -429,7 +429,7 @@ In Java, Groovy or Kotlin, custom Json mapped POJO can be decoded
 [source,groovy]
 ----
 import io.vertx.ext.web.codec.BodyCodec
-client.get(8080, "myserver.mycompany.com", "/some-uri").send(BodyCodec.json(examples.WebClientExamples.User.class), { ar ->
+client.get(8080, "myserver.mycompany.com", "/some-uri").as(BodyCodec.json(examples.WebClientExamples.User.class)).send({ ar ->
   if (ar.succeeded()) {
     def response = ar.result()
 
@@ -450,7 +450,7 @@ and signals the success or the failure of the operation in the async result resp
 [source,groovy]
 ----
 import io.vertx.ext.web.codec.BodyCodec
-client.get(8080, "myserver.mycompany.com", "/some-uri").send(BodyCodec.pipe(writeStream), { ar ->
+client.get(8080, "myserver.mycompany.com", "/some-uri").as(BodyCodec.pipe(writeStream)).send({ ar ->
   if (ar.succeeded()) {
 
     def response = ar.result()
@@ -469,7 +469,7 @@ simply discards the entire response body
 [source,groovy]
 ----
 import io.vertx.ext.web.codec.BodyCodec
-client.get(8080, "myserver.mycompany.com", "/some-uri").send(BodyCodec.none(), { ar ->
+client.get(8080, "myserver.mycompany.com", "/some-uri").as(BodyCodec.none()).send({ ar ->
   if (ar.succeeded()) {
 
     def response = ar.result()

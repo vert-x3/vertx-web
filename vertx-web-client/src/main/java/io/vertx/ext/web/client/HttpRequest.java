@@ -41,7 +41,7 @@ import io.vertx.ext.web.codec.BodyCodec;
  *   <li>{@link #send(Handler)}</li>
  *   <li>{@link #sendStream(ReadStream, Handler)}</li>
  *   <li>{@link #sendJson(Object, Handler)} ()}</li>
- *   <li>{@link #send(BodyCodec, Handler)} (Handler)}</li>
+ *   <li>{@link #sendForm(MultiMap, Handler)}</li>
  * </ul>
  * can be called.
  * The {@code sendXXX} methods perform the actual request, they can be called multiple times to perform the same HTTP
@@ -57,10 +57,11 @@ import io.vertx.ext.web.codec.BodyCodec;
  * Most of the time, this client will buffer the HTTP response fully unless a specific {@link BodyCodec} is used
  * such as {@link BodyCodec#create(Handler)}.
  *
+ * @param <T> the type of response body
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
  */
 @VertxGen
-public interface HttpRequest {
+public interface HttpRequest<T> {
 
   /**
    * Configure the request to use a new method {@code value}.
@@ -68,7 +69,7 @@ public interface HttpRequest {
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
-  HttpRequest method(HttpMethod value);
+  HttpRequest<T> method(HttpMethod value);
 
   /**
    * Configure the request to use a new port {@code value}.
@@ -76,7 +77,15 @@ public interface HttpRequest {
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
-  HttpRequest port(int value);
+  HttpRequest<T> port(int value);
+
+  /**
+   * Configure the request to decode the response with the {@code responseCodec}.
+   *
+   * @param responseCodec the response codec
+   * @return a reference to this, so the API can be used fluently
+   */
+  <U> HttpRequest<U> as(BodyCodec<U> responseCodec);
 
   /**
    * Configure the request to use a new host {@code value}.
@@ -84,7 +93,7 @@ public interface HttpRequest {
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
-  HttpRequest host(String value);
+  HttpRequest<T> host(String value);
 
   /**
    * Configure the request to use a new request URI {@code value}.
@@ -95,7 +104,7 @@ public interface HttpRequest {
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
-  HttpRequest uri(String value);
+  HttpRequest<T> uri(String value);
 
   /**
    * Configure the request to add a new HTTP header.
@@ -105,7 +114,7 @@ public interface HttpRequest {
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
-  HttpRequest putHeader(String name, String value);
+  HttpRequest<T> putHeader(String name, String value);
 
   /**
    * @return The HTTP headers
@@ -123,7 +132,7 @@ public interface HttpRequest {
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
-  HttpRequest timeout(long value);
+  HttpRequest<T> timeout(long value);
 
   /**
    * Add a query parameter to the request.
@@ -133,7 +142,7 @@ public interface HttpRequest {
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
-  HttpRequest addQueryParam(String paramName, String paramValue);
+  HttpRequest<T> addQueryParam(String paramName, String paramValue);
 
   /**
    * Set a query parameter to the request.
@@ -143,7 +152,7 @@ public interface HttpRequest {
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
-  HttpRequest setQueryParam(String paramName, String paramValue);
+  HttpRequest<T> setQueryParam(String paramName, String paramValue);
 
   /**
    * Return the current query parameters.
@@ -157,37 +166,21 @@ public interface HttpRequest {
    *
    * @return a copy of this request
    */
-  HttpRequest copy();
+  HttpRequest<T> copy();
 
   /**
    * Like {@link #send(Handler)} but with an HTTP request {@code body} stream.
    *
    * @param body the body
    */
-  void sendStream(ReadStream<Buffer> body, Handler<AsyncResult<HttpResponse<Buffer>>> handler);
-
-  /**
-   * Like {@link #send(BodyCodec, Handler)} but with an HTTP request {@code body} stream.
-   *
-   * @param body the body
-   * @param responseCodec the codec to decode the response
-   */
-  <R> void sendStream(ReadStream<Buffer> body, BodyCodec<R> responseCodec, Handler<AsyncResult<HttpResponse<R>>> handler);
+  void sendStream(ReadStream<Buffer> body, Handler<AsyncResult<HttpResponse<T>>> handler);
 
   /**
    * Like {@link #send(Handler)} but with an HTTP request {@code body} buffer.
    *
    * @param body the body
    */
-  void sendBuffer(Buffer body, Handler<AsyncResult<HttpResponse<Buffer>>> handler);
-
-  /**
-   * Like {@link #send(BodyCodec, Handler)} but with an HTTP request {@code body} buffer.
-   *
-   * @param body the body
-   * @param responseCodec the codec to decode the response
-   */
-  <R> void sendBuffer(Buffer body, BodyCodec<R> responseCodec, Handler<AsyncResult<HttpResponse<R>>> handler);
+  void sendBuffer(Buffer body, Handler<AsyncResult<HttpResponse<T>>> handler);
 
   /**
    * Like {@link #send(Handler)} but with an HTTP request {@code body} object encoded as json and the content type
@@ -195,16 +188,7 @@ public interface HttpRequest {
    *
    * @param body the body
    */
-  void sendJsonObject(JsonObject body, Handler<AsyncResult<HttpResponse<Buffer>>> handler);
-
-  /**
-   * Like {@link #send(BodyCodec, Handler)} but with an HTTP request {@code body} object encoded as json and the content type
-   * set to {@code application/json}.
-   *
-   * @param body the body
-   * @param responseCodec the codec to decode the response
-   */
-  <R> void sendJsonObject(JsonObject body, BodyCodec<R> responseCodec, Handler<AsyncResult<HttpResponse<R>>> handler);
+  void sendJsonObject(JsonObject body, Handler<AsyncResult<HttpResponse<T>>> handler);
 
   /**
    * Like {@link #send(Handler)} but with an HTTP request {@code body} object encoded as json and the content type
@@ -212,16 +196,7 @@ public interface HttpRequest {
    *
    * @param body the body
    */
-  void sendJson(Object body, Handler<AsyncResult<HttpResponse<Buffer>>> handler);
-
-  /**
-   * Like {@link #send(BodyCodec, Handler)} but with an HTTP request {@code body} object encoded as json and the content type
-   * set to {@code application/json}.
-   *
-   * @param body the body
-   * @param responseCodec the codec to decode the response
-   */
-  <R> void sendJson(Object body, BodyCodec<R> responseCodec, Handler<AsyncResult<HttpResponse<R>>> handler);
+  void sendJson(Object body, Handler<AsyncResult<HttpResponse<T>>> handler);
 
   /**
    * Like {@link #send(Handler)} but with an HTTP request {@code body} multimap encoded as form and the content type
@@ -231,30 +206,11 @@ public interface HttpRequest {
    *
    * @param body the body
    */
-  void sendForm(MultiMap body, Handler<AsyncResult<HttpResponse<Buffer>>> handler);
-
-  /**
-   * Like {@link #send(BodyCodec, Handler)} but with an HTTP request {@code body} multimap encoded as a form and the content type
-   * set to {@code application/x-www-form-urlencoded}.
-   * <p>
-   * When the content type header is previously set to {@code multipart/form-data} it will be used instead.
-   *
-   * @param body the body
-   * @param responseCodec the codec to decode the response
-   */
-  <R> void sendForm(MultiMap body, BodyCodec<R> responseCodec, Handler<AsyncResult<HttpResponse<R>>> handler);
+  void sendForm(MultiMap body, Handler<AsyncResult<HttpResponse<T>>> handler);
 
   /**
    * Send a request, the {@code handler} will receive the response as an {@link HttpResponse}.
    */
-  void send(Handler<AsyncResult<HttpResponse<Buffer>>> handler);
-
-  /**
-   * Send a request, the {@code handler} will receive the response as an {@link HttpResponse} decoded using
-   * the provided {@code responseCodec}.
-   *
-   * @param responseCodec the codec to decode the response
-   */
-  <R> void send(BodyCodec<R> responseCodec, Handler<AsyncResult<HttpResponse<R>>> handler);
+  void send(Handler<AsyncResult<HttpResponse<T>>> handler);
 
 }

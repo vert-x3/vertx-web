@@ -411,7 +411,7 @@ Use `link:../../jsdoc/module-vertx-web-common-js_body_codec-BodyCodec.html#jsonO
 [source,js]
 ----
 var BodyCodec = require("vertx-web-common-js/body_codec");
-client.get(8080, "myserver.mycompany.com", "/some-uri").send(BodyCodec.jsonObject(), function (ar, ar_err) {
+client.get(8080, "myserver.mycompany.com", "/some-uri").as(BodyCodec.jsonObject()).send(function (ar, ar_err) {
   if (ar_err == null) {
     var response = ar;
 
@@ -430,7 +430,7 @@ In Java, Groovy or Kotlin, custom Json mapped POJO can be decoded
 [source,js]
 ----
 var BodyCodec = require("vertx-web-common-js/body_codec");
-client.get(8080, "myserver.mycompany.com", "/some-uri").send(BodyCodec.json(Java.type("examples.WebClientExamples.User").class), function (ar, ar_err) {
+client.get(8080, "myserver.mycompany.com", "/some-uri").as(BodyCodec.json(Java.type("examples.WebClientExamples.User").class)).send(function (ar, ar_err) {
   if (ar_err == null) {
     var response = ar;
 
@@ -451,7 +451,7 @@ and signals the success or the failure of the operation in the async result resp
 [source,js]
 ----
 var BodyCodec = require("vertx-web-common-js/body_codec");
-client.get(8080, "myserver.mycompany.com", "/some-uri").send(BodyCodec.pipe(writeStream), function (ar, ar_err) {
+client.get(8080, "myserver.mycompany.com", "/some-uri").as(BodyCodec.pipe(writeStream)).send(function (ar, ar_err) {
   if (ar_err == null) {
 
     var response = ar;
@@ -470,7 +470,7 @@ simply discards the entire response body
 [source,js]
 ----
 var BodyCodec = require("vertx-web-common-js/body_codec");
-client.get(8080, "myserver.mycompany.com", "/some-uri").send(BodyCodec.none(), function (ar, ar_err) {
+client.get(8080, "myserver.mycompany.com", "/some-uri").as(BodyCodec.none()).send(function (ar, ar_err) {
   if (ar_err == null) {
 
     var response = ar;

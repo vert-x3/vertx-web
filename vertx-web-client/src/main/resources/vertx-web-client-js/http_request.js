@@ -18,9 +18,9 @@
 var utils = require('vertx-js/util/utils');
 var HttpResponse = require('vertx-web-client-js/http_response');
 var Buffer = require('vertx-js/buffer');
+var BodyCodec = require('vertx-web-common-js/body_codec');
 var MultiMap = require('vertx-js/multi_map');
 var ReadStream = require('vertx-js/read_stream');
-var BodyCodec = require('vertx-web-common-js/body_codec');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
@@ -31,10 +31,11 @@ var JHttpRequest = io.vertx.ext.web.client.HttpRequest;
  <p>
  @class
 */
-var HttpRequest = function(j_val) {
+var HttpRequest = function(j_val, j_arg_0) {
 
   var j_httpRequest = j_val;
   var that = this;
+  var j_T = typeof j_arg_0 !== 'undefined' ? j_arg_0 : utils.unknown_jtype;
 
   /**
    Configure the request to use a new method <code>value</code>.
@@ -63,6 +64,20 @@ var HttpRequest = function(j_val) {
     if (__args.length === 1 && typeof __args[0] ==='number') {
       j_httpRequest["port(int)"](value);
       return that;
+    } else throw new TypeError('function invoked with invalid arguments');
+  };
+
+  /**
+   Configure the request to decode the response with the <code>responseCodec</code>.
+
+   @public
+   @param responseCodec {BodyCodec} the response codec 
+   @return {HttpRequest} a reference to this, so the API can be used fluently
+   */
+  this.as = function(responseCodec) {
+    var __args = arguments;
+    if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
+      return utils.convReturnVertxGen(HttpRequest, j_httpRequest["as(io.vertx.ext.web.codec.BodyCodec)"](responseCodec._jdel), undefined);
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -205,7 +220,7 @@ var HttpRequest = function(j_val) {
   this.copy = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return utils.convReturnVertxGen(HttpRequest, j_httpRequest["copy()"]());
+      return utils.convReturnVertxGen(HttpRequest, j_httpRequest["copy()"](), undefined);
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -214,25 +229,16 @@ var HttpRequest = function(j_val) {
 
    @public
    @param body {ReadStream} the body 
-   @param responseCodec {BodyCodec} the codec to decode the response 
    @param handler {function} 
    */
-  this.sendStream = function() {
+  this.sendStream = function(body, handler) {
     var __args = arguments;
     if (__args.length === 2 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'function') {
-      j_httpRequest["sendStream(io.vertx.core.streams.ReadStream,io.vertx.core.Handler)"](__args[0]._jdel, function(ar) {
+      j_httpRequest["sendStream(io.vertx.core.streams.ReadStream,io.vertx.core.Handler)"](body._jdel, function(ar) {
       if (ar.succeeded()) {
-        __args[1](utils.convReturnVertxGen(HttpResponse, ar.result(), Buffer._jtype), null);
+        handler(utils.convReturnVertxGen(HttpResponse, ar.result(), undefined), null);
       } else {
-        __args[1](null, ar.cause());
-      }
-    });
-    }  else if (__args.length === 3 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'object' && __args[1]._jdel && typeof __args[2] === 'function') {
-      j_httpRequest["sendStream(io.vertx.core.streams.ReadStream,io.vertx.ext.web.codec.BodyCodec,io.vertx.core.Handler)"](__args[0]._jdel, __args[1]._jdel, function(ar) {
-      if (ar.succeeded()) {
-        __args[2](utils.convReturnVertxGen(HttpResponse, ar.result(), undefined), null);
-      } else {
-        __args[2](null, ar.cause());
+        handler(null, ar.cause());
       }
     });
     } else throw new TypeError('function invoked with invalid arguments');
@@ -243,25 +249,16 @@ var HttpRequest = function(j_val) {
 
    @public
    @param body {Buffer} the body 
-   @param responseCodec {BodyCodec} the codec to decode the response 
    @param handler {function} 
    */
-  this.sendBuffer = function() {
+  this.sendBuffer = function(body, handler) {
     var __args = arguments;
     if (__args.length === 2 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'function') {
-      j_httpRequest["sendBuffer(io.vertx.core.buffer.Buffer,io.vertx.core.Handler)"](__args[0]._jdel, function(ar) {
+      j_httpRequest["sendBuffer(io.vertx.core.buffer.Buffer,io.vertx.core.Handler)"](body._jdel, function(ar) {
       if (ar.succeeded()) {
-        __args[1](utils.convReturnVertxGen(HttpResponse, ar.result(), Buffer._jtype), null);
+        handler(utils.convReturnVertxGen(HttpResponse, ar.result(), undefined), null);
       } else {
-        __args[1](null, ar.cause());
-      }
-    });
-    }  else if (__args.length === 3 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'object' && __args[1]._jdel && typeof __args[2] === 'function') {
-      j_httpRequest["sendBuffer(io.vertx.core.buffer.Buffer,io.vertx.ext.web.codec.BodyCodec,io.vertx.core.Handler)"](__args[0]._jdel, __args[1]._jdel, function(ar) {
-      if (ar.succeeded()) {
-        __args[2](utils.convReturnVertxGen(HttpResponse, ar.result(), undefined), null);
-      } else {
-        __args[2](null, ar.cause());
+        handler(null, ar.cause());
       }
     });
     } else throw new TypeError('function invoked with invalid arguments');
@@ -273,25 +270,16 @@ var HttpRequest = function(j_val) {
 
    @public
    @param body {Object} the body 
-   @param responseCodec {BodyCodec} the codec to decode the response 
    @param handler {function} 
    */
-  this.sendJsonObject = function() {
+  this.sendJsonObject = function(body, handler) {
     var __args = arguments;
     if (__args.length === 2 && (typeof __args[0] === 'object' && __args[0] != null) && typeof __args[1] === 'function') {
-      j_httpRequest["sendJsonObject(io.vertx.core.json.JsonObject,io.vertx.core.Handler)"](utils.convParamJsonObject(__args[0]), function(ar) {
+      j_httpRequest["sendJsonObject(io.vertx.core.json.JsonObject,io.vertx.core.Handler)"](utils.convParamJsonObject(body), function(ar) {
       if (ar.succeeded()) {
-        __args[1](utils.convReturnVertxGen(HttpResponse, ar.result(), Buffer._jtype), null);
+        handler(utils.convReturnVertxGen(HttpResponse, ar.result(), undefined), null);
       } else {
-        __args[1](null, ar.cause());
-      }
-    });
-    }  else if (__args.length === 3 && (typeof __args[0] === 'object' && __args[0] != null) && typeof __args[1] === 'object' && __args[1]._jdel && typeof __args[2] === 'function') {
-      j_httpRequest["sendJsonObject(io.vertx.core.json.JsonObject,io.vertx.ext.web.codec.BodyCodec,io.vertx.core.Handler)"](utils.convParamJsonObject(__args[0]), __args[1]._jdel, function(ar) {
-      if (ar.succeeded()) {
-        __args[2](utils.convReturnVertxGen(HttpResponse, ar.result(), undefined), null);
-      } else {
-        __args[2](null, ar.cause());
+        handler(null, ar.cause());
       }
     });
     } else throw new TypeError('function invoked with invalid arguments');
@@ -303,86 +291,58 @@ var HttpRequest = function(j_val) {
 
    @public
    @param body {Object} the body 
-   @param responseCodec {BodyCodec} the codec to decode the response 
    @param handler {function} 
    */
-  this.sendJson = function() {
+  this.sendJson = function(body, handler) {
     var __args = arguments;
     if (__args.length === 2 && typeof __args[0] !== 'function' && typeof __args[1] === 'function') {
-      j_httpRequest["sendJson(java.lang.Object,io.vertx.core.Handler)"](utils.convParamTypeUnknown(__args[0]), function(ar) {
+      j_httpRequest["sendJson(java.lang.Object,io.vertx.core.Handler)"](utils.convParamTypeUnknown(body), function(ar) {
       if (ar.succeeded()) {
-        __args[1](utils.convReturnVertxGen(HttpResponse, ar.result(), Buffer._jtype), null);
+        handler(utils.convReturnVertxGen(HttpResponse, ar.result(), undefined), null);
       } else {
-        __args[1](null, ar.cause());
-      }
-    });
-    }  else if (__args.length === 3 && typeof __args[0] !== 'function' && typeof __args[1] === 'object' && __args[1]._jdel && typeof __args[2] === 'function') {
-      j_httpRequest["sendJson(java.lang.Object,io.vertx.ext.web.codec.BodyCodec,io.vertx.core.Handler)"](utils.convParamTypeUnknown(__args[0]), __args[1]._jdel, function(ar) {
-      if (ar.succeeded()) {
-        __args[2](utils.convReturnVertxGen(HttpResponse, ar.result(), undefined), null);
-      } else {
-        __args[2](null, ar.cause());
+        handler(null, ar.cause());
       }
     });
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
-   Like {@link HttpRequest#send} but with an HTTP request <code>body</code> multimap encoded as a form and the content type
+   Like {@link HttpRequest#send} but with an HTTP request <code>body</code> multimap encoded as form and the content type
    set to <code>application/x-www-form-urlencoded</code>.
    <p>
    When the content type header is previously set to <code>multipart/form-data</code> it will be used instead.
 
    @public
    @param body {MultiMap} the body 
-   @param responseCodec {BodyCodec} the codec to decode the response 
    @param handler {function} 
    */
-  this.sendForm = function() {
+  this.sendForm = function(body, handler) {
     var __args = arguments;
     if (__args.length === 2 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'function') {
-      j_httpRequest["sendForm(io.vertx.core.MultiMap,io.vertx.core.Handler)"](__args[0]._jdel, function(ar) {
+      j_httpRequest["sendForm(io.vertx.core.MultiMap,io.vertx.core.Handler)"](body._jdel, function(ar) {
       if (ar.succeeded()) {
-        __args[1](utils.convReturnVertxGen(HttpResponse, ar.result(), Buffer._jtype), null);
+        handler(utils.convReturnVertxGen(HttpResponse, ar.result(), undefined), null);
       } else {
-        __args[1](null, ar.cause());
-      }
-    });
-    }  else if (__args.length === 3 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'object' && __args[1]._jdel && typeof __args[2] === 'function') {
-      j_httpRequest["sendForm(io.vertx.core.MultiMap,io.vertx.ext.web.codec.BodyCodec,io.vertx.core.Handler)"](__args[0]._jdel, __args[1]._jdel, function(ar) {
-      if (ar.succeeded()) {
-        __args[2](utils.convReturnVertxGen(HttpResponse, ar.result(), undefined), null);
-      } else {
-        __args[2](null, ar.cause());
+        handler(null, ar.cause());
       }
     });
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
   /**
-   Send a request, the <code>handler</code> will receive the response as an {@link HttpResponse} decoded using
-   the provided <code>responseCodec</code>.
+   Send a request, the <code>handler</code> will receive the response as an {@link HttpResponse}.
 
    @public
-   @param responseCodec {BodyCodec} the codec to decode the response 
    @param handler {function} 
    */
-  this.send = function() {
+  this.send = function(handler) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'function') {
       j_httpRequest["send(io.vertx.core.Handler)"](function(ar) {
       if (ar.succeeded()) {
-        __args[0](utils.convReturnVertxGen(HttpResponse, ar.result(), Buffer._jtype), null);
+        handler(utils.convReturnVertxGen(HttpResponse, ar.result(), undefined), null);
       } else {
-        __args[0](null, ar.cause());
-      }
-    });
-    }  else if (__args.length === 2 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'function') {
-      j_httpRequest["send(io.vertx.ext.web.codec.BodyCodec,io.vertx.core.Handler)"](__args[0]._jdel, function(ar) {
-      if (ar.succeeded()) {
-        __args[1](utils.convReturnVertxGen(HttpResponse, ar.result(), undefined), null);
-      } else {
-        __args[1](null, ar.cause());
+        handler(null, ar.cause());
       }
     });
     } else throw new TypeError('function invoked with invalid arguments');

@@ -1,3 +1,4 @@
+require 'vertx/buffer'
 require 'vertx/vertx'
 require 'vertx/http_client'
 require 'vertx-web-client/http_request'
@@ -78,11 +79,11 @@ module VertxWebClient
     # @return [::VertxWebClient::HttpRequest] an HTTP client request object
     def request(param_1=nil,param_2=nil,param_3=nil,param_4=nil)
       if param_1.class == Symbol && param_2.class == String && !block_given? && param_3 == nil && param_4 == nil
-        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:request, [Java::IoVertxCoreHttp::HttpMethod.java_class,Java::java.lang.String.java_class]).call(Java::IoVertxCoreHttp::HttpMethod.valueOf(param_1),param_2),::VertxWebClient::HttpRequest)
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:request, [Java::IoVertxCoreHttp::HttpMethod.java_class,Java::java.lang.String.java_class]).call(Java::IoVertxCoreHttp::HttpMethod.valueOf(param_1),param_2),::VertxWebClient::HttpRequest,::Vertx::Buffer.j_api_type)
       elsif param_1.class == Symbol && param_2.class == String && param_3.class == String && !block_given? && param_4 == nil
-        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:request, [Java::IoVertxCoreHttp::HttpMethod.java_class,Java::java.lang.String.java_class,Java::java.lang.String.java_class]).call(Java::IoVertxCoreHttp::HttpMethod.valueOf(param_1),param_2,param_3),::VertxWebClient::HttpRequest)
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:request, [Java::IoVertxCoreHttp::HttpMethod.java_class,Java::java.lang.String.java_class,Java::java.lang.String.java_class]).call(Java::IoVertxCoreHttp::HttpMethod.valueOf(param_1),param_2,param_3),::VertxWebClient::HttpRequest,::Vertx::Buffer.j_api_type)
       elsif param_1.class == Symbol && param_2.class == Fixnum && param_3.class == String && param_4.class == String && !block_given?
-        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:request, [Java::IoVertxCoreHttp::HttpMethod.java_class,Java::int.java_class,Java::java.lang.String.java_class,Java::java.lang.String.java_class]).call(Java::IoVertxCoreHttp::HttpMethod.valueOf(param_1),param_2,param_3,param_4),::VertxWebClient::HttpRequest)
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:request, [Java::IoVertxCoreHttp::HttpMethod.java_class,Java::int.java_class,Java::java.lang.String.java_class,Java::java.lang.String.java_class]).call(Java::IoVertxCoreHttp::HttpMethod.valueOf(param_1),param_2,param_3,param_4),::VertxWebClient::HttpRequest,::Vertx::Buffer.j_api_type)
       end
       raise ArgumentError, "Invalid arguments when calling request(#{param_1},#{param_2},#{param_3},#{param_4})"
     end
@@ -92,7 +93,7 @@ module VertxWebClient
     # @return [::VertxWebClient::HttpRequest] an HTTP client request object
     def request_abs(method=nil,absoluteURI=nil)
       if method.class == Symbol && absoluteURI.class == String && !block_given?
-        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:requestAbs, [Java::IoVertxCoreHttp::HttpMethod.java_class,Java::java.lang.String.java_class]).call(Java::IoVertxCoreHttp::HttpMethod.valueOf(method),absoluteURI),::VertxWebClient::HttpRequest)
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:requestAbs, [Java::IoVertxCoreHttp::HttpMethod.java_class,Java::java.lang.String.java_class]).call(Java::IoVertxCoreHttp::HttpMethod.valueOf(method),absoluteURI),::VertxWebClient::HttpRequest,::Vertx::Buffer.j_api_type)
       end
       raise ArgumentError, "Invalid arguments when calling request_abs(#{method},#{absoluteURI})"
     end
@@ -109,11 +110,11 @@ module VertxWebClient
     # @return [::VertxWebClient::HttpRequest] an HTTP client request object
     def get(param_1=nil,param_2=nil,param_3=nil)
       if param_1.class == String && !block_given? && param_2 == nil && param_3 == nil
-        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:get, [Java::java.lang.String.java_class]).call(param_1),::VertxWebClient::HttpRequest)
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:get, [Java::java.lang.String.java_class]).call(param_1),::VertxWebClient::HttpRequest,::Vertx::Buffer.j_api_type)
       elsif param_1.class == String && param_2.class == String && !block_given? && param_3 == nil
-        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:get, [Java::java.lang.String.java_class,Java::java.lang.String.java_class]).call(param_1,param_2),::VertxWebClient::HttpRequest)
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:get, [Java::java.lang.String.java_class,Java::java.lang.String.java_class]).call(param_1,param_2),::VertxWebClient::HttpRequest,::Vertx::Buffer.j_api_type)
       elsif param_1.class == Fixnum && param_2.class == String && param_3.class == String && !block_given?
-        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:get, [Java::int.java_class,Java::java.lang.String.java_class,Java::java.lang.String.java_class]).call(param_1,param_2,param_3),::VertxWebClient::HttpRequest)
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:get, [Java::int.java_class,Java::java.lang.String.java_class,Java::java.lang.String.java_class]).call(param_1,param_2,param_3),::VertxWebClient::HttpRequest,::Vertx::Buffer.j_api_type)
       end
       raise ArgumentError, "Invalid arguments when calling get(#{param_1},#{param_2},#{param_3})"
     end
@@ -123,7 +124,7 @@ module VertxWebClient
     # @return [::VertxWebClient::HttpRequest] an HTTP client request object
     def get_abs(absoluteURI=nil)
       if absoluteURI.class == String && !block_given?
-        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:getAbs, [Java::java.lang.String.java_class]).call(absoluteURI),::VertxWebClient::HttpRequest)
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:getAbs, [Java::java.lang.String.java_class]).call(absoluteURI),::VertxWebClient::HttpRequest,::Vertx::Buffer.j_api_type)
       end
       raise ArgumentError, "Invalid arguments when calling get_abs(#{absoluteURI})"
     end
@@ -140,11 +141,11 @@ module VertxWebClient
     # @return [::VertxWebClient::HttpRequest] an HTTP client request object
     def post(param_1=nil,param_2=nil,param_3=nil)
       if param_1.class == String && !block_given? && param_2 == nil && param_3 == nil
-        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:post, [Java::java.lang.String.java_class]).call(param_1),::VertxWebClient::HttpRequest)
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:post, [Java::java.lang.String.java_class]).call(param_1),::VertxWebClient::HttpRequest,::Vertx::Buffer.j_api_type)
       elsif param_1.class == String && param_2.class == String && !block_given? && param_3 == nil
-        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:post, [Java::java.lang.String.java_class,Java::java.lang.String.java_class]).call(param_1,param_2),::VertxWebClient::HttpRequest)
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:post, [Java::java.lang.String.java_class,Java::java.lang.String.java_class]).call(param_1,param_2),::VertxWebClient::HttpRequest,::Vertx::Buffer.j_api_type)
       elsif param_1.class == Fixnum && param_2.class == String && param_3.class == String && !block_given?
-        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:post, [Java::int.java_class,Java::java.lang.String.java_class,Java::java.lang.String.java_class]).call(param_1,param_2,param_3),::VertxWebClient::HttpRequest)
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:post, [Java::int.java_class,Java::java.lang.String.java_class,Java::java.lang.String.java_class]).call(param_1,param_2,param_3),::VertxWebClient::HttpRequest,::Vertx::Buffer.j_api_type)
       end
       raise ArgumentError, "Invalid arguments when calling post(#{param_1},#{param_2},#{param_3})"
     end
@@ -154,7 +155,7 @@ module VertxWebClient
     # @return [::VertxWebClient::HttpRequest] an HTTP client request object
     def post_abs(absoluteURI=nil)
       if absoluteURI.class == String && !block_given?
-        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:postAbs, [Java::java.lang.String.java_class]).call(absoluteURI),::VertxWebClient::HttpRequest)
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:postAbs, [Java::java.lang.String.java_class]).call(absoluteURI),::VertxWebClient::HttpRequest,::Vertx::Buffer.j_api_type)
       end
       raise ArgumentError, "Invalid arguments when calling post_abs(#{absoluteURI})"
     end
@@ -171,11 +172,11 @@ module VertxWebClient
     # @return [::VertxWebClient::HttpRequest] an HTTP client request object
     def put(param_1=nil,param_2=nil,param_3=nil)
       if param_1.class == String && !block_given? && param_2 == nil && param_3 == nil
-        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:put, [Java::java.lang.String.java_class]).call(param_1),::VertxWebClient::HttpRequest)
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:put, [Java::java.lang.String.java_class]).call(param_1),::VertxWebClient::HttpRequest,::Vertx::Buffer.j_api_type)
       elsif param_1.class == String && param_2.class == String && !block_given? && param_3 == nil
-        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:put, [Java::java.lang.String.java_class,Java::java.lang.String.java_class]).call(param_1,param_2),::VertxWebClient::HttpRequest)
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:put, [Java::java.lang.String.java_class,Java::java.lang.String.java_class]).call(param_1,param_2),::VertxWebClient::HttpRequest,::Vertx::Buffer.j_api_type)
       elsif param_1.class == Fixnum && param_2.class == String && param_3.class == String && !block_given?
-        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:put, [Java::int.java_class,Java::java.lang.String.java_class,Java::java.lang.String.java_class]).call(param_1,param_2,param_3),::VertxWebClient::HttpRequest)
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:put, [Java::int.java_class,Java::java.lang.String.java_class,Java::java.lang.String.java_class]).call(param_1,param_2,param_3),::VertxWebClient::HttpRequest,::Vertx::Buffer.j_api_type)
       end
       raise ArgumentError, "Invalid arguments when calling put(#{param_1},#{param_2},#{param_3})"
     end
@@ -185,7 +186,7 @@ module VertxWebClient
     # @return [::VertxWebClient::HttpRequest] an HTTP client request object
     def put_abs(absoluteURI=nil)
       if absoluteURI.class == String && !block_given?
-        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:putAbs, [Java::java.lang.String.java_class]).call(absoluteURI),::VertxWebClient::HttpRequest)
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:putAbs, [Java::java.lang.String.java_class]).call(absoluteURI),::VertxWebClient::HttpRequest,::Vertx::Buffer.j_api_type)
       end
       raise ArgumentError, "Invalid arguments when calling put_abs(#{absoluteURI})"
     end
@@ -202,11 +203,11 @@ module VertxWebClient
     # @return [::VertxWebClient::HttpRequest] an HTTP client request object
     def delete(param_1=nil,param_2=nil,param_3=nil)
       if param_1.class == String && !block_given? && param_2 == nil && param_3 == nil
-        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:delete, [Java::java.lang.String.java_class]).call(param_1),::VertxWebClient::HttpRequest)
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:delete, [Java::java.lang.String.java_class]).call(param_1),::VertxWebClient::HttpRequest,::Vertx::Buffer.j_api_type)
       elsif param_1.class == String && param_2.class == String && !block_given? && param_3 == nil
-        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:delete, [Java::java.lang.String.java_class,Java::java.lang.String.java_class]).call(param_1,param_2),::VertxWebClient::HttpRequest)
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:delete, [Java::java.lang.String.java_class,Java::java.lang.String.java_class]).call(param_1,param_2),::VertxWebClient::HttpRequest,::Vertx::Buffer.j_api_type)
       elsif param_1.class == Fixnum && param_2.class == String && param_3.class == String && !block_given?
-        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:delete, [Java::int.java_class,Java::java.lang.String.java_class,Java::java.lang.String.java_class]).call(param_1,param_2,param_3),::VertxWebClient::HttpRequest)
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:delete, [Java::int.java_class,Java::java.lang.String.java_class,Java::java.lang.String.java_class]).call(param_1,param_2,param_3),::VertxWebClient::HttpRequest,::Vertx::Buffer.j_api_type)
       end
       raise ArgumentError, "Invalid arguments when calling delete(#{param_1},#{param_2},#{param_3})"
     end
@@ -216,7 +217,7 @@ module VertxWebClient
     # @return [::VertxWebClient::HttpRequest] an HTTP client request object
     def delete_abs(absoluteURI=nil)
       if absoluteURI.class == String && !block_given?
-        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:deleteAbs, [Java::java.lang.String.java_class]).call(absoluteURI),::VertxWebClient::HttpRequest)
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:deleteAbs, [Java::java.lang.String.java_class]).call(absoluteURI),::VertxWebClient::HttpRequest,::Vertx::Buffer.j_api_type)
       end
       raise ArgumentError, "Invalid arguments when calling delete_abs(#{absoluteURI})"
     end
@@ -233,11 +234,11 @@ module VertxWebClient
     # @return [::VertxWebClient::HttpRequest] an HTTP client request object
     def patch(param_1=nil,param_2=nil,param_3=nil)
       if param_1.class == String && !block_given? && param_2 == nil && param_3 == nil
-        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:patch, [Java::java.lang.String.java_class]).call(param_1),::VertxWebClient::HttpRequest)
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:patch, [Java::java.lang.String.java_class]).call(param_1),::VertxWebClient::HttpRequest,::Vertx::Buffer.j_api_type)
       elsif param_1.class == String && param_2.class == String && !block_given? && param_3 == nil
-        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:patch, [Java::java.lang.String.java_class,Java::java.lang.String.java_class]).call(param_1,param_2),::VertxWebClient::HttpRequest)
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:patch, [Java::java.lang.String.java_class,Java::java.lang.String.java_class]).call(param_1,param_2),::VertxWebClient::HttpRequest,::Vertx::Buffer.j_api_type)
       elsif param_1.class == Fixnum && param_2.class == String && param_3.class == String && !block_given?
-        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:patch, [Java::int.java_class,Java::java.lang.String.java_class,Java::java.lang.String.java_class]).call(param_1,param_2,param_3),::VertxWebClient::HttpRequest)
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:patch, [Java::int.java_class,Java::java.lang.String.java_class,Java::java.lang.String.java_class]).call(param_1,param_2,param_3),::VertxWebClient::HttpRequest,::Vertx::Buffer.j_api_type)
       end
       raise ArgumentError, "Invalid arguments when calling patch(#{param_1},#{param_2},#{param_3})"
     end
@@ -247,7 +248,7 @@ module VertxWebClient
     # @return [::VertxWebClient::HttpRequest] an HTTP client request object
     def patch_abs(absoluteURI=nil)
       if absoluteURI.class == String && !block_given?
-        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:patchAbs, [Java::java.lang.String.java_class]).call(absoluteURI),::VertxWebClient::HttpRequest)
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:patchAbs, [Java::java.lang.String.java_class]).call(absoluteURI),::VertxWebClient::HttpRequest,::Vertx::Buffer.j_api_type)
       end
       raise ArgumentError, "Invalid arguments when calling patch_abs(#{absoluteURI})"
     end
@@ -264,11 +265,11 @@ module VertxWebClient
     # @return [::VertxWebClient::HttpRequest] an HTTP client request object
     def head(param_1=nil,param_2=nil,param_3=nil)
       if param_1.class == String && !block_given? && param_2 == nil && param_3 == nil
-        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:head, [Java::java.lang.String.java_class]).call(param_1),::VertxWebClient::HttpRequest)
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:head, [Java::java.lang.String.java_class]).call(param_1),::VertxWebClient::HttpRequest,::Vertx::Buffer.j_api_type)
       elsif param_1.class == String && param_2.class == String && !block_given? && param_3 == nil
-        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:head, [Java::java.lang.String.java_class,Java::java.lang.String.java_class]).call(param_1,param_2),::VertxWebClient::HttpRequest)
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:head, [Java::java.lang.String.java_class,Java::java.lang.String.java_class]).call(param_1,param_2),::VertxWebClient::HttpRequest,::Vertx::Buffer.j_api_type)
       elsif param_1.class == Fixnum && param_2.class == String && param_3.class == String && !block_given?
-        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:head, [Java::int.java_class,Java::java.lang.String.java_class,Java::java.lang.String.java_class]).call(param_1,param_2,param_3),::VertxWebClient::HttpRequest)
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:head, [Java::int.java_class,Java::java.lang.String.java_class,Java::java.lang.String.java_class]).call(param_1,param_2,param_3),::VertxWebClient::HttpRequest,::Vertx::Buffer.j_api_type)
       end
       raise ArgumentError, "Invalid arguments when calling head(#{param_1},#{param_2},#{param_3})"
     end
@@ -278,7 +279,7 @@ module VertxWebClient
     # @return [::VertxWebClient::HttpRequest] an HTTP client request object
     def head_abs(absoluteURI=nil)
       if absoluteURI.class == String && !block_given?
-        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:headAbs, [Java::java.lang.String.java_class]).call(absoluteURI),::VertxWebClient::HttpRequest)
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:headAbs, [Java::java.lang.String.java_class]).call(absoluteURI),::VertxWebClient::HttpRequest,::Vertx::Buffer.j_api_type)
       end
       raise ArgumentError, "Invalid arguments when calling head_abs(#{absoluteURI})"
     end

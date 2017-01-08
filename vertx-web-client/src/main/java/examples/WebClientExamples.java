@@ -69,7 +69,7 @@ public class WebClientExamples {
   }
 
   public void simpleGetWithInitialParams(WebClient client) {
-    HttpRequest request = client.get(8080, "myserver.mycompany.com", "/some-uri?param1=param1_value&param2=param2_value");
+    HttpRequest<Buffer> request = client.get(8080, "myserver.mycompany.com", "/some-uri?param1=param1_value&param2=param2_value");
 
     // Add param3
     request.addQueryParam("param3", "param3_value");
@@ -79,7 +79,7 @@ public class WebClientExamples {
   }
 
   public void simpleGetOverwritePreviousParams(WebClient client) {
-    HttpRequest request = client.get(8080, "myserver.mycompany.com", "/some-uri");
+    HttpRequest<Buffer> request = client.get(8080, "myserver.mycompany.com", "/some-uri");
 
     // Add param1
     request.addQueryParam("param1", "param1_value");
@@ -89,7 +89,7 @@ public class WebClientExamples {
   }
 
   public void multiGet(WebClient client) {
-    HttpRequest get = client.get(8080, "myserver.mycompany.com", "/some-uri");
+    HttpRequest<Buffer> get = client.get(8080, "myserver.mycompany.com", "/some-uri");
     get.send(ar -> {
       if (ar.succeeded()) {
         // Ok
@@ -105,7 +105,7 @@ public class WebClientExamples {
   }
 
   public void multiGetCopy(WebClient client) {
-    HttpRequest get = client.get(8080, "myserver.mycompany.com", "/some-uri");
+    HttpRequest<Buffer> get = client.get(8080, "myserver.mycompany.com", "/some-uri");
     get.send(ar -> {
       if (ar.succeeded()) {
         // Ok
@@ -241,14 +241,14 @@ public class WebClientExamples {
   }
 
   public void sendHeaders1(WebClient client) {
-    HttpRequest request = client.get(8080, "myserver.mycompany.com", "/some-uri");
+    HttpRequest<Buffer> request = client.get(8080, "myserver.mycompany.com", "/some-uri");
     MultiMap headers = request.headers();
     headers.set("content-type", "application/json");
     headers.set("other-header", "foo");
   }
 
   public void sendHeaders2(WebClient client) {
-    HttpRequest request = client.get(8080, "myserver.mycompany.com", "/some-uri");
+    HttpRequest<Buffer> request = client.get(8080, "myserver.mycompany.com", "/some-uri");
     request.putHeader("content-type", "application/json");
     request.putHeader("other-header", "foo");
   }
@@ -271,7 +271,8 @@ public class WebClientExamples {
   public void receiveResponseAsJsonObject(WebClient client) {
     client
       .get(8080, "myserver.mycompany.com", "/some-uri")
-      .send(BodyCodec.jsonObject(), ar -> {
+      .as(BodyCodec.jsonObject())
+      .send(ar -> {
         if (ar.succeeded()) {
           HttpResponse<JsonObject> response = ar.result();
 
@@ -287,7 +288,8 @@ public class WebClientExamples {
   public void receiveResponseAsJsonPOJO(WebClient client) {
     client
       .get(8080, "myserver.mycompany.com", "/some-uri")
-      .send(BodyCodec.json(User.class), ar -> {
+      .as(BodyCodec.json(User.class))
+      .send(ar -> {
         if (ar.succeeded()) {
           HttpResponse<User> response = ar.result();
 
@@ -304,7 +306,8 @@ public class WebClientExamples {
   public void receiveResponseAsWriteStream(WebClient client, WriteStream<Buffer> writeStream) {
     client
       .get(8080, "myserver.mycompany.com", "/some-uri")
-      .send(BodyCodec.pipe(writeStream), ar -> {
+      .as(BodyCodec.pipe(writeStream))
+      .send(ar -> {
         if (ar.succeeded()) {
 
           HttpResponse<Void> response = ar.result();
@@ -319,7 +322,8 @@ public class WebClientExamples {
   public void receiveResponseAndDiscard(WebClient client) {
     client
       .get(8080, "myserver.mycompany.com", "/some-uri")
-      .send(BodyCodec.none(), ar -> {
+      .as(BodyCodec.none())
+      .send(ar -> {
         if (ar.succeeded()) {
 
           HttpResponse<Void> response = ar.result();
