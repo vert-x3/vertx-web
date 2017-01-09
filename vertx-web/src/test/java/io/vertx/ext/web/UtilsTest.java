@@ -154,4 +154,12 @@ public class UtilsTest {
     assertEquals("/mid/6", Utils.normalizePath("mid/content=5/../6"));
     assertEquals("/~username/", Utils.normalizePath("/%7Eusername/"));
   }
+
+  @Test
+  public void testSockJSEscape() throws Exception {
+    assertEquals("[\"x\"]", Utils.urlDecode("%5B%22x%22%5D", true));
+    assertEquals("[\"abc\"]", Utils.urlDecode("%5B%22abc%22%5D", true));
+    assertEquals("[\"x", Utils.urlDecode("%5B%22x", true));
+    assertEquals("[\"b\"]", Utils.urlDecode("%5B%22b%22%5D", true));
+  }
 }

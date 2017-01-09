@@ -276,7 +276,7 @@ public class Utils extends io.vertx.core.impl.Utils {
         c = (char) (c * 16 + c2);
       }
       // Fall through.
-      buf[pos++] = (byte) (plus ? ' ' : c);
+      buf[pos++] = (byte) (plus && c == '+' ? ' ' : c);
     }
     return new String(buf, 0, pos, CharsetUtil.UTF_8);
   }
