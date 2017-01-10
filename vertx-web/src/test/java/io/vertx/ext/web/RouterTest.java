@@ -19,6 +19,7 @@ package io.vertx.ext.web;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.json.JsonObject;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -55,7 +56,7 @@ public class RouterTest extends WebTestBase {
       // OK
     }
   }
-  
+
   @Test
   public void testRouteGetPath() throws Exception {
     assertEquals("/foo", router.route("/foo").getPath());
@@ -132,7 +133,7 @@ public class RouterTest extends WebTestBase {
     testPathBegin(path1);
     testPathBegin(path2);
   }
-  
+
   @Test
   public void testRoutePathWithTrailingSlashOnlyBegin() throws Exception {
     String path = "/some/path/";
@@ -666,7 +667,7 @@ public class RouterTest extends WebTestBase {
     Arrays.fill(longChars, 'a');
     String testHeaderValue = new String(longChars);
     String path = "/blah";
-    
+
     router.route(path).handler(rc -> {
       rc.response().end();
     });
@@ -1066,7 +1067,7 @@ public class RouterTest extends WebTestBase {
     testRequestWithAccepts(HttpMethod.GET, "/foo", "something/html", 404, "Not Found");
     testRequest(HttpMethod.GET, "/foo", 200, "OK");
   }
-  
+
   @Test
   public void testProducesWithParameterKey() throws Exception {
     router.route().produces("text/html;boo").handler(rc -> rc.response().end());
@@ -1104,7 +1105,7 @@ public class RouterTest extends WebTestBase {
     testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html;q=2", 200, "OK");
     testRequest(HttpMethod.GET, "/foo", 200, "OK");
   }
-  
+
   @Test
   public void testProducesMissingSlash() throws Exception {
     // will assume "*/json"
@@ -1251,7 +1252,7 @@ public class RouterTest extends WebTestBase {
     testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html,text/plain;q=0.9;d,application/json;q=0.8", 200, "text/plain");
     testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html,text/plain;q=0.9,application/json;q=0.8;s", 200, "text/plain");
   }
-  
+
   @Test
   public void testAcceptsMultipleWithParams() throws Exception {
     router.route().produces("application/json").produces("text/plain").handler(rc -> {
@@ -1994,5 +1995,21 @@ public class RouterTest extends WebTestBase {
       rc.response().setStatusMessage("foo").end();
     });
     testRequest(HttpMethod.GET, "/some+path?q1=some+query", 200, "foo");
+  }
+
+  @Test
+  public void testCallOnce() throws Exception {
+    final AtomicInteger cnt = new AtomicInteger(0);
+
+    router.get("/once").useNormalisedPath(false).handler(rc -> {
+      int calls = cnt.incrementAndGet();
+      if (calls > 1) {
+        fail("more than 1 call");
+      }
+      JsonObject product = new JsonObject().put("id", "1234");
+      rc.response().putHeader("content-type", "application/json").end(product.encodePrettily());
+    });
+    testRequest(HttpMethod.GET, "/once", 200, "OK");
+    assertEquals(1, cnt.get());
   }
 }
