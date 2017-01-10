@@ -749,6 +749,20 @@
  * To create a session handler you need to have a session store instance. The session store is the object that
  * holds the actual sessions for your application.
  *
+ * The session store is responsible for holding a secure pseudo random number generator in order to guarantee secure session
+ * ids. This PRNG is independent of the store which means that given a session id from store A one cannot derive the
+ * session id of store B since they have different seeds and states.
+ *
+ * By default this PRNG uses a mixed mode, blocking for seeding, non blocking for generating. The PRNG will also reseed
+ * every 5 minutes with 64bits of new entropy. However this can all be configured using the system properties:
+ *
+ * * io.vertx.ext.web.session.algorithm e.g.: SHA1PRNG
+ * * io.vertx.ext.web.session.seed.interval e.g.: 1000 (every second)
+ * * io.vertx.ext.web.session.seed.bits e.g.: 128
+ *
+ * Most users should not need to configure these values unless if you notice that the performance of your application is
+ * being affected by the PRNG algorithm.
+ *
  * Vert.x-Web comes with two session store implementations out of the box, and you can also write your own if you prefer.
  *
  * ==== Local session store
@@ -1676,6 +1690,7 @@
  * The event can be one of the following types:
  *
  * SOCKET_CREATED:: This event will occur when a new SockJS socket is created.
+ * SOCKET_IDLE:: This event will occur when SockJS socket is on idle for longer period of time than initially configured.
  * SOCKET_CLOSED:: This event will occur when a SockJS socket is closed.
  * SEND:: This event will occur when a message is attempted to be sent from the client to the server.
  * PUBLISH:: This event will occur when a message is attempted to be published from the client to the server.
@@ -1709,6 +1724,62 @@
  * ----
  * {@link examples.WebExamples#example49}
  * ----
+ * 
+ * Here’s an example how to configure and handle SOCKET_IDLE bridge event type. 
+ * Notice `setPingTimeout(5000)` which says that if ping message doesn't arrive from client within 5 seconds 
+ * then the SOCKET_IDLE bridge event would be triggered.
+ * 
+ * ----
+ * // Initialize SockJS handler
+ * Router router = Router.router(vertx);
+ *
+ * SockJSHandler sockJSHandler = SockJSHandler.create(vertx);
+ * BridgeOptions options = new BridgeOptions().addInboundPermitted(inboundPermitted).setPingTimeout(5000);
+ *
+ * sockJSHandler.bridge(options, be -> {
+ * 	if (be.type() == BridgeEventType.SOCKET_IDLE) {
+ *	    // Do some custom handling...
+ *	}
+ *	
+ *  be.complete(true);
+ * });
+ *	
+ * router.route("/eventbus").handler(sockJSHandler);
+ * ----
+ *	
+ * In client side JavaScript you use the 'vertx-eventbus.js` library to create connections to the event bus and to send and receive messages:
+ *
+ * ----
+ * <script src="http://cdn.jsdelivr.net/sockjs/0.3.4/sockjs.min.js"></script>
+ * <script src='vertx-eventbus.js'></script>
+ *
+ * <script>
+ *	
+ * var eb = new EventBus('http://localhost:8080/eventbus', {"vertxbus_ping_interval": 300000}); // sends ping every 5 minutes.
+ *	
+ * eb.onopen = function() {
+ *	
+ *  // set a handler to receive a message
+ *  eb.registerHandler('some-address', function(error, message) {
+ *    console.log('received a message: ' + JSON.stringify(message));
+ *  });
+ *	
+ *  // send a message
+ *  eb.send('some-address', {name: 'tim', age: 587});
+ * }
+ *	
+ * </script>
+ * ----
+ *
+ * The first thing the example does is to create a instance of the event bus
+ *
+ * ----
+ * var eb = new EventBus('http://localhost:8080/eventbus', {"vertxbus_ping_interval": 300000});
+ * ----
+ *
+ * The 2nd parameter to the constructor tells the sockjs library to send ping message every 5 minutes. since the server
+ * was configured to expect ping every 5 seconds -> `SOCKET_IDLE` would be triggered on the server.
+ *
  *
  * You can also amend the raw message, e.g. change the body. For messages that are flowing in from the client you can
  * also add headers to the message, here's an example:
@@ -1780,46 +1851,67 @@
  * redirect should also create a session cookie (or other session mechanism) so the user is not required to authenticate
  * for every request.
  *
- * Due to the nature of OAuth2 spec there are slight changes required in order to use other OAuth2 providers, for
- * example, if you are planning to use Google Auth you implement it as:
+ * Due to the nature of OAuth2 spec there are slight changes required in order to use other OAuth2 providers but
+ * vertx-auth provides you with many out of the box implementations:
+ *
+ *
+ * * App.net {@link io.vertx.ext.auth.oauth2.providers.AppNetAuth}
+ * * Azure Active Directory {@link io.vertx.ext.auth.oauth2.providers.AzureADAuth}
+ * * Box.com {@link io.vertx.ext.auth.oauth2.providers.BoxAuth}
+ * * Dropbox {@link io.vertx.ext.auth.oauth2.providers.DropboxAuth}
+ * * Facebook {@link io.vertx.ext.auth.oauth2.providers.FacebookAuth}
+ * * Foursquare {@link io.vertx.ext.auth.oauth2.providers.FoursquareAuth}
+ * * Github {@link io.vertx.ext.auth.oauth2.providers.GithubAuth}
+ * * Google {@link io.vertx.ext.auth.oauth2.providers.GoogleAuth}
+ * * Instagram {@link io.vertx.ext.auth.oauth2.providers.InstagramAuth}
+ * * Keycloak {@link io.vertx.ext.auth.oauth2.providers.KeycloakAuth}
+ * * LinkedIn {@link io.vertx.ext.auth.oauth2.providers.LinkedInAuth}
+ * * Mailchimp {@link io.vertx.ext.auth.oauth2.providers.MailchimpAuth}
+ * * Salesforce {@link io.vertx.ext.auth.oauth2.providers.SalesforceAuth}
+ * * Shopify {@link io.vertx.ext.auth.oauth2.providers.ShopifyAuth}
+ * * Soundcloud {@link io.vertx.ext.auth.oauth2.providers.SoundcloudAuth}
+ * * Stripe {@link io.vertx.ext.auth.oauth2.providers.StripeAuth}
+ * * Twitter {@link io.vertx.ext.auth.oauth2.providers.TwitterAuth}
+ *
+ * However if you're using an unlisted provider you can still do it using the base API like this:
  *
  * [source,$lang]
  * ----
  * {@link examples.WebExamples#example59}
  * ----
  *
- * The changes are only on the configuration, note that the token uri must now be a full URL since it is generated from
- * a different server than the authorization one.
+ * You will need to provide all the details of your provider manually but the end result is the same.
  *
- * Important to note that for google OAuth you must register all your callback URLs in the developer console, so for the
- * current example you would need to register `http://localhost:8080/callback?redirect_uri=/protected/somepage`.
+ * The handler will pin your application the the configured callback url. The usage is simple as providing the handler
+ * a route instance and all setup will be done for you. In a typical use case your provider will ask you what is the
+ * callback url to your application, your then enter a url like: `https://myserver.com/callback`. This is the second
+ * argument to the handler now you just need to set it up. To make it easier to the end user all you need to do is call
+ * the setupCallback method.
  *
- * If you're looking to integrate with LinkedIn then your config should be:
- *
- * [source,$lang]
- * ----
- * {@link examples.WebExamples#example60}
- * ----
- *
- * As it can be seen from the examples all you need to know is 2 urls, the authorization path and the token path. You
- * will find all these configurations on your provider documentation we have also listed on the auth project examples
- * for:
- *
- * * google
- * * twitter
- * * github
- * * linkedin
- * * facebook
- * * keycloak
- *
- * For keycloak we have a slighter easier setup, just export the json file from the keycloak admin console and load it
- * into the handler. Keycloak has some differences from the other providers in the sense that it can also use the token
- * to specify grants. You can validate against these grants like this:
+ * This is how you pin your handler to the server `https://myserver.com:8447/callback`. Note that the port number is not
+ * mandatory for the default values, 80 for http, 443 for https.
  *
  * [source,$lang]
  * ----
  * {@link examples.WebExamples#example61}
  * ----
+ *
+ * In the example the route object is created inline by `Router.route()` however if you want to have full control of the
+ * order the handler is called (for example you want it to be called as soon as possible in the chain) you can always
+ * create the route object before and pass it as a reference to this method.
+ *
+ * Mixing OAuth2 and JWT
+ *
+ * Some providers use JWT tokens as access tokens, this is a feature of https://tools.ietf.org/html/rfc6750[RFC6750]
+ * and can be quite useful when one wants to mix client based authentication and API authorization. For example say that
+ * you have a application that provides some protected HTML documents but you also want it to be available for API's to
+ * consume. In this case an API cannot easily perform the redirect handshake required by OAuth2 but can use a Token
+ * provided before hand.
+ *
+ * This is handled automatically by the handler as long as the provider is configured to support JWTs.
+ *
+ * In real life this means that your API's can access your protected resources using the header `Authorization` with the
+ * value `Bearer BASE64_ACCESS_TOKEN`.
  *
  */
 @Document(fileName = "index.adoc")
