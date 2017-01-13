@@ -17,6 +17,8 @@
 package io.vertx.ext.web.templ;
 
 import com.github.jknack.handlebars.Handlebars;
+import com.github.jknack.handlebars.ValueResolver;
+
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.ext.web.templ.impl.HandlebarsTemplateEngineImpl;
@@ -72,5 +74,21 @@ public interface HandlebarsTemplateEngine extends TemplateEngine {
    */
   @GenIgnore
   Handlebars getHandlebars();
+
+  /**
+   * Return the array of configured handlebars context value resolvers.
+   * @return array of configured resolvers
+   */
+  @GenIgnore
+  ValueResolver[] getResolvers();
+
+  /**
+   * Set the array of handlebars context value resolvers.
+   * 
+   * @param resolvers the value resolvers to be used
+   * @return a reference to the internal Handlebars instance.
+   */
+  @GenIgnore
+  HandlebarsTemplateEngine setResolvers(ValueResolver... resolvers);
 
 }
