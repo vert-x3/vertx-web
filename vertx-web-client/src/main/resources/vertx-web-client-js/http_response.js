@@ -235,7 +235,7 @@ var HttpResponse = function(j_val, j_arg_0) {
   this.bodyAsJson = function(type) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'function') {
-      return utils.get_jtype(type).wrap(j_httpResponse["bodyAsJson(java.lang.Class)"](utils.get_jclass(type)));
+      return utils.get_jtype(__args[0]).wrap(j_httpResponse["bodyAsJson(java.lang.Class)"](utils.get_jclass(type)));
     } else throw new TypeError('function invoked with invalid arguments');
   };
 

@@ -138,7 +138,7 @@ module VertxWeb
       end
       raise ArgumentError, "Invalid arguments when calling completer()"
     end
-    # @return [:SOCKET_CREATED,:SOCKET_CLOSED,:SEND,:PUBLISH,:RECEIVE,:REGISTER,:UNREGISTER] the type of the event
+    # @return [:SOCKET_CREATED,:SOCKET_CLOSED,:SOCKET_IDLE,:SEND,:PUBLISH,:RECEIVE,:REGISTER,:UNREGISTER] the type of the event
     def type
       if !block_given?
         if @cached_type != nil
