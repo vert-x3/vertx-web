@@ -79,6 +79,22 @@ function testTemplate() {
     });
   });
   Assert.assertTrue(responseLatch.await(5, TimeUnit.SECONDS));
+
+  var closeLatch = new CountDownLatch(2);
+  client.close();
+  server.close(function (res, res_err) {
+    if (res_err != null) {
+      Assert.fail(res_err)
+    }
+    closeLatch.countDown();
+  });
+  vertx.close(function (res, res_err) {
+    if (res_err != null) {
+      Assert.fail(res_err)
+    }
+    closeLatch.countDown();
+  });
+  Assert.assertTrue(closeLatch.await(5, TimeUnit.SECONDS));
 }
 
 if (typeof this[testName] === "undefined") {
