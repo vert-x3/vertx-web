@@ -1,4 +1,4 @@
-package io.vertx.webclient;
+package io.vertx.ext.web.client;
 
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
@@ -20,7 +20,7 @@ import io.vertx.core.streams.ReadStream;
 import io.vertx.core.streams.WriteStream;
 import io.vertx.test.core.HttpTestBase;
 import io.vertx.test.core.TestUtils;
-import io.vertx.webclient.jackson.WineAndCheese;
+import io.vertx.ext.web.client.jackson.WineAndCheese;
 import org.junit.Test;
 
 import java.io.File;

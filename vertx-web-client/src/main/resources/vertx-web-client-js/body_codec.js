@@ -21,7 +21,7 @@ var WriteStream = require('vertx-js/write_stream');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
-var JBodyCodec = io.vertx.webclient.BodyCodec;
+var JBodyCodec = io.vertx.ext.web.client.BodyCodec;
 
 /**
  A codec for encoding and decoding HTTP bodies.
@@ -40,7 +40,7 @@ var BodyCodec = function(j_val, j_arg_0) {
   this._jdel = j_bodyCodec;
 };
 
-BodyCodec._jclass = utils.getJavaClass("io.vertx.webclient.BodyCodec");
+BodyCodec._jclass = utils.getJavaClass("io.vertx.ext.web.client.BodyCodec");
 BodyCodec._jtype = {
   accept: function(obj) {
     return BodyCodec._jclass.isInstance(obj._jdel);

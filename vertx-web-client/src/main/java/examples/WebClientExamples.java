@@ -9,10 +9,10 @@ import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.streams.ReadStream;
 import io.vertx.core.streams.WriteStream;
-import io.vertx.webclient.BodyCodec;
-import io.vertx.webclient.HttpRequest;
-import io.vertx.webclient.HttpResponse;
-import io.vertx.webclient.WebClient;
+import io.vertx.ext.web.client.BodyCodec;
+import io.vertx.ext.web.client.HttpRequest;
+import io.vertx.ext.web.client.HttpResponse;
+import io.vertx.ext.web.client.WebClient;
 
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>

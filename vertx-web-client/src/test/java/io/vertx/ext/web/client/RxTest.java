@@ -1,4 +1,4 @@
-package io.vertx.webclient;
+package io.vertx.ext.web.client;
 
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpServerOptions;
@@ -6,8 +6,8 @@ import io.vertx.rxjava.core.Vertx;
 import io.vertx.rxjava.core.buffer.Buffer;
 import io.vertx.rxjava.core.http.HttpServer;
 import io.vertx.test.core.VertxTestBase;
-import io.vertx.rxjava.webclient.WebClient;
-import io.vertx.rxjava.webclient.HttpResponse;
+import io.vertx.rxjava.ext.web.client.WebClient;
+import io.vertx.rxjava.ext.web.client.HttpResponse;
 import org.junit.Test;
 import rx.Observable;
 import rx.Single;

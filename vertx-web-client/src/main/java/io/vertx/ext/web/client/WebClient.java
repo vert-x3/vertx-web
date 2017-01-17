@@ -13,16 +13,13 @@
  *
  *  You may elect to redistribute this code under either of these licenses.
  */
-package io.vertx.webclient;
+package io.vertx.ext.web.client;
 
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpClient;
-import io.vertx.core.http.HttpClientRequest;
-import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.http.HttpMethod;
-import io.vertx.webclient.impl.WebClientImpl;
+import io.vertx.ext.web.client.impl.WebClientImpl;
 
 /**
  * An asynchronous HTTP / HTTP/2 client called {@code WebClient}.

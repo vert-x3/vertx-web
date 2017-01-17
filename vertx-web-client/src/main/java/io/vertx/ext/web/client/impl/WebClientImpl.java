@@ -13,13 +13,13 @@
  *
  *  You may elect to redistribute this code under either of these licenses.
  */
-package io.vertx.webclient.impl;
+package io.vertx.ext.web.client.impl;
 
 import io.vertx.core.VertxException;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpMethod;
-import io.vertx.webclient.HttpRequest;
-import io.vertx.webclient.WebClient;
+import io.vertx.ext.web.client.HttpRequest;
+import io.vertx.ext.web.client.WebClient;
 
 import java.net.MalformedURLException;
 import java.net.URL;

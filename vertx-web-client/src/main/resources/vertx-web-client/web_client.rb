@@ -1,8 +1,8 @@
 require 'vertx/vertx'
-require 'vertx-web-client/http_request'
 require 'vertx/http_client'
+require 'vertx-web-client/http_request'
 require 'vertx/util/utils.rb'
-# Generated from io.vertx.webclient.WebClient
+# Generated from io.vertx.ext.web.client.WebClient
 module VertxWebClient
   #  An asynchronous HTTP / HTTP/2 client called <code>WebClient</code>.
   #  <p>
@@ -42,14 +42,14 @@ module VertxWebClient
       @@j_api_type
     end
     def self.j_class
-      Java::IoVertxWebclient::WebClient.java_class
+      Java::IoVertxExtWebClient::WebClient.java_class
     end
     #  Create a web client using the provided <code>vertx</code> instance.
     # @param [::Vertx::Vertx] vertx the vertx instance
     # @return [::VertxWebClient::WebClient] the created web client
     def self.create(vertx=nil)
       if vertx.class.method_defined?(:j_del) && !block_given?
-        return ::Vertx::Util::Utils.safe_create(Java::IoVertxWebclient::WebClient.java_method(:create, [Java::IoVertxCore::Vertx.java_class]).call(vertx.j_del),::VertxWebClient::WebClient)
+        return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebClient::WebClient.java_method(:create, [Java::IoVertxCore::Vertx.java_class]).call(vertx.j_del),::VertxWebClient::WebClient)
       end
       raise ArgumentError, "Invalid arguments when calling create(#{vertx})"
     end
@@ -58,7 +58,7 @@ module VertxWebClient
     # @return [::VertxWebClient::WebClient] the web client
     def self.wrap(httpClient=nil)
       if httpClient.class.method_defined?(:j_del) && !block_given?
-        return ::Vertx::Util::Utils.safe_create(Java::IoVertxWebclient::WebClient.java_method(:wrap, [Java::IoVertxCoreHttp::HttpClient.java_class]).call(httpClient.j_del),::VertxWebClient::WebClient)
+        return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebClient::WebClient.java_method(:wrap, [Java::IoVertxCoreHttp::HttpClient.java_class]).call(httpClient.j_del),::VertxWebClient::WebClient)
       end
       raise ArgumentError, "Invalid arguments when calling wrap(#{httpClient})"
     end

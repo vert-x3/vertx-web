@@ -1,7 +1,7 @@
 require 'vertx/buffer'
 require 'vertx/multi_map'
 require 'vertx/util/utils.rb'
-# Generated from io.vertx.webclient.HttpResponse
+# Generated from io.vertx.ext.web.client.HttpResponse
 module VertxWebClient
   #  An HTTP response.
   #  <p>

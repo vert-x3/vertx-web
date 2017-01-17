@@ -16,15 +16,15 @@
 
 /** @module vertx-web-client-js/http_request */
 var utils = require('vertx-js/util/utils');
+var HttpResponse = require('vertx-web-client-js/http_response');
 var Buffer = require('vertx-js/buffer');
 var MultiMap = require('vertx-js/multi_map');
 var ReadStream = require('vertx-js/read_stream');
 var BodyCodec = require('vertx-web-client-js/body_codec');
-var HttpResponse = require('vertx-web-client-js/http_response');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
-var JHttpRequest = io.vertx.webclient.HttpRequest;
+var JHttpRequest = io.vertx.ext.web.client.HttpRequest;
 
 /**
  A client-side HTTP request.
@@ -228,7 +228,7 @@ var HttpRequest = function(j_val) {
       }
     });
     }  else if (__args.length === 3 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'object' && __args[1]._jdel && typeof __args[2] === 'function') {
-      j_httpRequest["sendStream(io.vertx.core.streams.ReadStream,io.vertx.webclient.BodyCodec,io.vertx.core.Handler)"](__args[0]._jdel, __args[1]._jdel, function(ar) {
+      j_httpRequest["sendStream(io.vertx.core.streams.ReadStream,io.vertx.ext.web.client.BodyCodec,io.vertx.core.Handler)"](__args[0]._jdel, __args[1]._jdel, function(ar) {
       if (ar.succeeded()) {
         __args[2](utils.convReturnVertxGen(HttpResponse, ar.result(), undefined), null);
       } else {
@@ -257,7 +257,7 @@ var HttpRequest = function(j_val) {
       }
     });
     }  else if (__args.length === 3 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'object' && __args[1]._jdel && typeof __args[2] === 'function') {
-      j_httpRequest["sendBuffer(io.vertx.core.buffer.Buffer,io.vertx.webclient.BodyCodec,io.vertx.core.Handler)"](__args[0]._jdel, __args[1]._jdel, function(ar) {
+      j_httpRequest["sendBuffer(io.vertx.core.buffer.Buffer,io.vertx.ext.web.client.BodyCodec,io.vertx.core.Handler)"](__args[0]._jdel, __args[1]._jdel, function(ar) {
       if (ar.succeeded()) {
         __args[2](utils.convReturnVertxGen(HttpResponse, ar.result(), undefined), null);
       } else {
@@ -287,7 +287,7 @@ var HttpRequest = function(j_val) {
       }
     });
     }  else if (__args.length === 3 && (typeof __args[0] === 'object' && __args[0] != null) && typeof __args[1] === 'object' && __args[1]._jdel && typeof __args[2] === 'function') {
-      j_httpRequest["sendJsonObject(io.vertx.core.json.JsonObject,io.vertx.webclient.BodyCodec,io.vertx.core.Handler)"](utils.convParamJsonObject(__args[0]), __args[1]._jdel, function(ar) {
+      j_httpRequest["sendJsonObject(io.vertx.core.json.JsonObject,io.vertx.ext.web.client.BodyCodec,io.vertx.core.Handler)"](utils.convParamJsonObject(__args[0]), __args[1]._jdel, function(ar) {
       if (ar.succeeded()) {
         __args[2](utils.convReturnVertxGen(HttpResponse, ar.result(), undefined), null);
       } else {
@@ -317,7 +317,7 @@ var HttpRequest = function(j_val) {
       }
     });
     }  else if (__args.length === 3 && typeof __args[0] !== 'function' && typeof __args[1] === 'object' && __args[1]._jdel && typeof __args[2] === 'function') {
-      j_httpRequest["sendJson(java.lang.Object,io.vertx.webclient.BodyCodec,io.vertx.core.Handler)"](utils.convParamTypeUnknown(__args[0]), __args[1]._jdel, function(ar) {
+      j_httpRequest["sendJson(java.lang.Object,io.vertx.ext.web.client.BodyCodec,io.vertx.core.Handler)"](utils.convParamTypeUnknown(__args[0]), __args[1]._jdel, function(ar) {
       if (ar.succeeded()) {
         __args[2](utils.convReturnVertxGen(HttpResponse, ar.result(), undefined), null);
       } else {
@@ -349,7 +349,7 @@ var HttpRequest = function(j_val) {
       }
     });
     }  else if (__args.length === 3 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'object' && __args[1]._jdel && typeof __args[2] === 'function') {
-      j_httpRequest["sendForm(io.vertx.core.MultiMap,io.vertx.webclient.BodyCodec,io.vertx.core.Handler)"](__args[0]._jdel, __args[1]._jdel, function(ar) {
+      j_httpRequest["sendForm(io.vertx.core.MultiMap,io.vertx.ext.web.client.BodyCodec,io.vertx.core.Handler)"](__args[0]._jdel, __args[1]._jdel, function(ar) {
       if (ar.succeeded()) {
         __args[2](utils.convReturnVertxGen(HttpResponse, ar.result(), undefined), null);
       } else {
@@ -378,7 +378,7 @@ var HttpRequest = function(j_val) {
       }
     });
     }  else if (__args.length === 2 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'function') {
-      j_httpRequest["send(io.vertx.webclient.BodyCodec,io.vertx.core.Handler)"](__args[0]._jdel, function(ar) {
+      j_httpRequest["send(io.vertx.ext.web.client.BodyCodec,io.vertx.core.Handler)"](__args[0]._jdel, function(ar) {
       if (ar.succeeded()) {
         __args[1](utils.convReturnVertxGen(HttpResponse, ar.result(), undefined), null);
       } else {
@@ -394,7 +394,7 @@ var HttpRequest = function(j_val) {
   this._jdel = j_httpRequest;
 };
 
-HttpRequest._jclass = utils.getJavaClass("io.vertx.webclient.HttpRequest");
+HttpRequest._jclass = utils.getJavaClass("io.vertx.ext.web.client.HttpRequest");
 HttpRequest._jtype = {
   accept: function(obj) {
     return HttpRequest._jclass.isInstance(obj._jdel);

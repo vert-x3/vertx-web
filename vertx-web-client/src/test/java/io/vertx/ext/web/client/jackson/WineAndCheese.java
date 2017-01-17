@@ -1,4 +1,4 @@
-package io.vertx.webclient.jackson;
+package io.vertx.ext.web.client.jackson;
 
 import java.util.Objects;
 

@@ -17,12 +17,12 @@
 /** @module vertx-web-client-js/web_client */
 var utils = require('vertx-js/util/utils');
 var Vertx = require('vertx-js/vertx');
-var HttpRequest = require('vertx-web-client-js/http_request');
 var HttpClient = require('vertx-js/http_client');
+var HttpRequest = require('vertx-web-client-js/http_request');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
-var JWebClient = io.vertx.webclient.WebClient;
+var JWebClient = io.vertx.ext.web.client.WebClient;
 
 /**
 
@@ -299,7 +299,7 @@ var WebClient = function(j_val) {
   this._jdel = j_webClient;
 };
 
-WebClient._jclass = utils.getJavaClass("io.vertx.webclient.WebClient");
+WebClient._jclass = utils.getJavaClass("io.vertx.ext.web.client.WebClient");
 WebClient._jtype = {
   accept: function(obj) {
     return WebClient._jclass.isInstance(obj._jdel);

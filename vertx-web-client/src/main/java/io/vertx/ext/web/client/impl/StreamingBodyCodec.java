@@ -13,15 +13,15 @@
  *
  *  You may elect to redistribute this code under either of these licenses.
  */
-package io.vertx.webclient.impl;
+package io.vertx.ext.web.client.impl;
 
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.streams.WriteStream;
-import io.vertx.webclient.BodyCodec;
-import io.vertx.webclient.spi.BodyStream;
+import io.vertx.ext.web.client.BodyCodec;
+import io.vertx.ext.web.client.spi.BodyStream;
 
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>

@@ -13,14 +13,14 @@
  *
  *  You may elect to redistribute this code under either of these licenses.
  */
-package io.vertx.webclient.impl;
+package io.vertx.ext.web.client.impl;
 
 import io.vertx.core.MultiMap;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.http.HttpVersion;
 import io.vertx.core.json.JsonObject;
-import io.vertx.webclient.HttpResponse;
+import io.vertx.ext.web.client.HttpResponse;
 
 import java.util.List;
 

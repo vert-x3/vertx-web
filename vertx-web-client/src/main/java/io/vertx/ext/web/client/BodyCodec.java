@@ -13,7 +13,7 @@
  *
  * You may elect to redistribute this code under either of these licenses.
  */
-package io.vertx.webclient;
+package io.vertx.ext.web.client;
 
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
@@ -22,9 +22,9 @@ import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.streams.WriteStream;
-import io.vertx.webclient.impl.BodyCodecImpl;
-import io.vertx.webclient.impl.StreamingBodyCodec;
-import io.vertx.webclient.spi.BodyStream;
+import io.vertx.ext.web.client.impl.BodyCodecImpl;
+import io.vertx.ext.web.client.impl.StreamingBodyCodec;
+import io.vertx.ext.web.client.spi.BodyStream;
 
 import java.util.function.Function;
 
