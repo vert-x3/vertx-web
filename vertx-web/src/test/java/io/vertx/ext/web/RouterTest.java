@@ -1996,20 +1996,4 @@ public class RouterTest extends WebTestBase {
     });
     testRequest(HttpMethod.GET, "/some+path?q1=some+query", 200, "foo");
   }
-
-  @Test
-  public void testCallOnce() throws Exception {
-    final AtomicInteger cnt = new AtomicInteger(0);
-
-    router.get("/once").useNormalisedPath(false).handler(rc -> {
-      int calls = cnt.incrementAndGet();
-      if (calls > 1) {
-        fail("more than 1 call");
-      }
-      JsonObject product = new JsonObject().put("id", "1234");
-      rc.response().putHeader("content-type", "application/json").end(product.encodePrettily());
-    });
-    testRequest(HttpMethod.GET, "/once", 200, "OK");
-    assertEquals(1, cnt.get());
-  }
 }
