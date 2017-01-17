@@ -64,13 +64,13 @@ public class StaticHandlerTest extends WebTestBase {
     stat.setIndexPage("otherpage.html");
     testRequest(HttpMethod.GET, "/", 200, "OK", "<html><body>Other page</body></html>");
   }
-  
+
   @Test
   public void testGetSubdirectoryOtherIndex() throws Exception {
     stat.setIndexPage("otherpage.html");
     testRequest(HttpMethod.GET, "/somedir", 200, "OK", "<html><body>Subdirectory other page</body></html>");
   }
-  
+
   @Test
   public void testGetSubdirectorySlashOtherIndex() throws Exception {
     stat.setIndexPage("otherpage.html");
@@ -81,7 +81,7 @@ public class StaticHandlerTest extends WebTestBase {
   public void testGetFileWithSpaces() throws Exception {
     testRequest(HttpMethod.GET, "/file%20with%20spaces.html", 200, "OK", "<html><body>File with spaces</body></html>");
   }
-  
+
   @Test
   public void testGetOtherPage() throws Exception {
     testRequest(HttpMethod.GET, "/otherpage.html", 200, "OK", "<html><body>Other page</body></html>");
@@ -180,7 +180,7 @@ public class StaticHandlerTest extends WebTestBase {
       req.putHeader("if-modified-since", lastModifiedRef.get());
     }, null, 304, "Not Modified", null);
   }
-  
+
   @Test
   public void testCacheIndexPageReturnFromCache() throws Exception {
     AtomicReference<String> lastModifiedRef = new AtomicReference<>();
@@ -230,7 +230,7 @@ public class StaticHandlerTest extends WebTestBase {
     }, res -> {
     }, 200, "OK", "<html><body>Other page</body></html>");
   }
-  
+
   @Test
   public void testSendVaryAcceptEncodingHeader() throws Exception {
     testRequest(HttpMethod.GET, "/otherpage.html", req -> {
@@ -241,7 +241,7 @@ public class StaticHandlerTest extends WebTestBase {
       assertEquals("accept-encoding", vary);
     }, 200, "OK", "<html><body>Other page</body></html>");
   }
-  
+
   @Test
   public void testNoSendingOfVaryAcceptEncodingHeader() throws Exception {
     testRequest(HttpMethod.GET, "/otherpage.html", null, res -> {
@@ -647,6 +647,16 @@ public class StaticHandlerTest extends WebTestBase {
     testRequest(HttpMethod.GET, "/otherpage.html", null, res -> {
       String lastModified = res.headers().get("last-modified");
       assertTrue(lastModified.endsWith("GMT"));
+    }, 200, "OK", "<html><body>Other page</body></html>");
+  }
+
+  @Test
+  public void testChangeDefaultContentEncoding() throws Exception {
+    stat.setDefaultContentEncoding("ISO-8859-1");
+    testRequest(HttpMethod.GET, "/otherpage.html", null, res -> {
+      String contentType = res.headers().get("Content-Type");
+      System.out.println(contentType);
+      assertEquals("text/html;charset=ISO-8859-1", contentType);
     }, 200, "OK", "<html><body>Other page</body></html>");
   }
 

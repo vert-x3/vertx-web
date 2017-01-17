@@ -52,7 +52,6 @@ import static io.netty.handler.codec.http.HttpResponseStatus.*;
 public class StaticHandlerImpl implements StaticHandler {
 
   private static final Logger log = LoggerFactory.getLogger(StaticHandlerImpl.class);
-  private static final String defaultContentEncoding = Charset.defaultCharset().name();
 
   private final DateFormat dateTimeFormatter = Utils.createRFC1123DateTimeFormatter();
   private Map<String, CacheEntry> propsCache;
@@ -70,6 +69,7 @@ public class StaticHandlerImpl implements StaticHandler {
   private boolean rangeSupport = DEFAULT_RANGE_SUPPORT;
   private boolean allowRootFileSystemAccess = DEFAULT_ROOT_FILESYSTEM_ACCESS;
   private boolean sendVaryHeader = DEFAULT_SEND_VARY_HEADER;
+  private String defaultContentEncoding = Charset.defaultCharset().name();
 
   // These members are all related to auto tuning of synchronous vs asynchronous file system access
   private static int NUM_SERVES_TUNING_FS_ACCESS = 1000;
@@ -509,6 +509,12 @@ public class StaticHandlerImpl implements StaticHandler {
   @Override
   public StaticHandler setSendVaryHeader(boolean sendVaryHeader) {
     this.sendVaryHeader = sendVaryHeader;
+    return this;
+  }
+
+  @Override
+  public StaticHandler setDefaultContentEncoding(String contentEncoding) {
+    this.defaultContentEncoding = contentEncoding;
     return this;
   }
 

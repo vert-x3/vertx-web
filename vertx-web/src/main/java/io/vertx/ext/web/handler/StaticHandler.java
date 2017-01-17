@@ -106,7 +106,7 @@ public interface StaticHandler extends Handler<RoutingContext> {
    * directory.
    */
   boolean DEFAULT_ROOT_FILESYSTEM_ACCESS = false;
-  
+
   /**
    * Default of whether vary header should be sent.
    */
@@ -277,7 +277,7 @@ public interface StaticHandler extends Handler<RoutingContext> {
    */
   @Fluent
   StaticHandler setEnableRangeSupport(boolean enableRangeSupport);
-  
+
   /**
    * Set whether vary header should be sent with response.
    *
@@ -287,4 +287,12 @@ public interface StaticHandler extends Handler<RoutingContext> {
   @Fluent
   StaticHandler setSendVaryHeader(boolean varyHeader);
 
+  /**
+   * Set the default content encoding for text related files. This allows overriding the system settings default value.
+   *
+   * @param contentEncoding the desired content encoding e.g.: "UTF-8"
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  StaticHandler setDefaultContentEncoding(String contentEncoding);
 }
