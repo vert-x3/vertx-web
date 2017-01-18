@@ -19,6 +19,12 @@
 
   <dependencies>
 
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-web-common</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
     <!-- Testing -->
     <dependency>
       <groupId>io.vertx</groupId>

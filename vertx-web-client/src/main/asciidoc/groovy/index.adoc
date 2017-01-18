@@ -387,7 +387,7 @@ client.get(8080, "myserver.mycompany.com", "/some-uri").send({ ar ->
 
 ----
 
-WARNING: responses are fully buffered, use `link:../../apidocs/io/vertx/ext/web/client/BodyCodec.html#pipe-io.vertx.core.streams.WriteStream-[BodyCodec.pipe]`
+WARNING: responses are fully buffered, use `link:../../apidocs/io/vertx/ext/web/codec/BodyCodec.html#pipe-io.vertx.core.streams.WriteStream-[BodyCodec.pipe]`
 to pipe the response to a write stream
 
 === Decoding responses
@@ -395,7 +395,7 @@ to pipe the response to a write stream
 By default the web client provides an http response body as a `Buffer` and does not apply
 any decoding.
 
-Custom response body decoding can be achieved using `link:../../apidocs/io/vertx/ext/web/client/BodyCodec.html[BodyCodec]`:
+Custom response body decoding can be achieved using `link:../../apidocs/io/vertx/ext/web/codec/BodyCodec.html[BodyCodec]`:
 
 * Plain String
 * Json object
@@ -405,11 +405,11 @@ Custom response body decoding can be achieved using `link:../../apidocs/io/vertx
 A body codec can decode an arbitrary binary data stream into a specific object instance, saving you the decoding
 step in your response handlers.
 
-Use `link:../../apidocs/io/vertx/ext/web/client/BodyCodec.html#jsonObject--[BodyCodec.jsonObject]` To decode a Json object:
+Use `link:../../apidocs/io/vertx/ext/web/codec/BodyCodec.html#jsonObject--[BodyCodec.jsonObject]` To decode a Json object:
 
 [source,groovy]
 ----
-import io.vertx.ext.web.client.BodyCodec
+import io.vertx.ext.web.codec.BodyCodec
 client.get(8080, "myserver.mycompany.com", "/some-uri").send(BodyCodec.jsonObject(), { ar ->
   if (ar.succeeded()) {
     def response = ar.result()
@@ -428,7 +428,7 @@ In Java, Groovy or Kotlin, custom Json mapped POJO can be decoded
 
 [source,groovy]
 ----
-import io.vertx.ext.web.client.BodyCodec
+import io.vertx.ext.web.codec.BodyCodec
 client.get(8080, "myserver.mycompany.com", "/some-uri").send(BodyCodec.json(examples.WebClientExamples.User.class), { ar ->
   if (ar.succeeded()) {
     def response = ar.result()
@@ -443,13 +443,13 @@ client.get(8080, "myserver.mycompany.com", "/some-uri").send(BodyCodec.json(exam
 
 ----
 
-When large response are expected, use the `link:../../apidocs/io/vertx/ext/web/client/BodyCodec.html#pipe-io.vertx.core.streams.WriteStream-[BodyCodec.pipe]`.
+When large response are expected, use the `link:../../apidocs/io/vertx/ext/web/codec/BodyCodec.html#pipe-io.vertx.core.streams.WriteStream-[BodyCodec.pipe]`.
 This body codec pumps the response body buffers to a `link:../../apidocs/io/vertx/core/streams/WriteStream.html[WriteStream]`
 and signals the success or the failure of the operation in the async result response
 
 [source,groovy]
 ----
-import io.vertx.ext.web.client.BodyCodec
+import io.vertx.ext.web.codec.BodyCodec
 client.get(8080, "myserver.mycompany.com", "/some-uri").send(BodyCodec.pipe(writeStream), { ar ->
   if (ar.succeeded()) {
 
@@ -463,12 +463,12 @@ client.get(8080, "myserver.mycompany.com", "/some-uri").send(BodyCodec.pipe(writ
 
 ----
 
-Finally if you are not interested at all by the response content, the `link:../../apidocs/io/vertx/ext/web/client/BodyCodec.html#none--[BodyCodec.none]`
+Finally if you are not interested at all by the response content, the `link:../../apidocs/io/vertx/ext/web/codec/BodyCodec.html#none--[BodyCodec.none]`
 simply discards the entire response body
 
 [source,groovy]
 ----
-import io.vertx.ext.web.client.BodyCodec
+import io.vertx.ext.web.codec.BodyCodec
 client.get(8080, "myserver.mycompany.com", "/some-uri").send(BodyCodec.none(), { ar ->
   if (ar.succeeded()) {
 

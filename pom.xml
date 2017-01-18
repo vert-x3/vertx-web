@@ -96,6 +96,7 @@
   </dependencies>
 
   <modules>
+    <module>vertx-web-common</module>
     <module>vertx-web</module>
     <module>vertx-web-client</module>
     <module>vertx-template-engines</module>

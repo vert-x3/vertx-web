@@ -1,13 +1,11 @@
 package examples;
 
-import io.vertx.core.file.AsyncFile;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava.core.buffer.Buffer;
-import io.vertx.rxjava.ext.web.client.BodyCodec;
+import io.vertx.rxjava.ext.web.codec.BodyCodec;
 import io.vertx.rxjava.ext.web.client.HttpResponse;
 import io.vertx.rxjava.ext.web.client.WebClient;
 import rx.Observable;
-import rx.Observer;
 import rx.Single;
 
 /**

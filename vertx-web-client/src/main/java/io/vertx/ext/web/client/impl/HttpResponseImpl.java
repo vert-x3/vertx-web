@@ -21,6 +21,7 @@ import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.http.HttpVersion;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.HttpResponse;
+import io.vertx.ext.web.codec.impl.BodyCodecImpl;
 
 import java.util.List;
 

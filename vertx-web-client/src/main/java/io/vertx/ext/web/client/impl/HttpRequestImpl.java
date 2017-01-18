@@ -39,10 +39,10 @@ import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.streams.Pump;
 import io.vertx.core.streams.ReadStream;
-import io.vertx.ext.web.client.BodyCodec;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.HttpResponse;
-import io.vertx.ext.web.client.spi.BodyStream;
+import io.vertx.ext.web.codec.BodyCodec;
+import io.vertx.ext.web.codec.spi.BodyStream;
 
 import java.util.Map;
 

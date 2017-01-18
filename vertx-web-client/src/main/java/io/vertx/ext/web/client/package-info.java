@@ -235,7 +235,7 @@
  * {@link examples.WebClientExamples#receiveResponse(io.vertx.ext.web.client.WebClient)}
  * ----
  *
- * WARNING: responses are fully buffered, use {@link io.vertx.ext.web.client.BodyCodec#pipe(io.vertx.core.streams.WriteStream)}
+ * WARNING: responses are fully buffered, use {@link io.vertx.ext.web.codec.BodyCodec#pipe(io.vertx.core.streams.WriteStream)}
  * to pipe the response to a write stream
  *
  * === Decoding responses
@@ -243,7 +243,7 @@
  * By default the web client provides an http response body as a {@code Buffer} and does not apply
  * any decoding.
  *
- * Custom response body decoding can be achieved using {@link io.vertx.ext.web.client.BodyCodec}:
+ * Custom response body decoding can be achieved using {@link io.vertx.ext.web.codec.BodyCodec}:
  *
  * * Plain String
  * * Json object
@@ -253,7 +253,7 @@
  * A body codec can decode an arbitrary binary data stream into a specific object instance, saving you the decoding
  * step in your response handlers.
  *
- * Use {@link io.vertx.ext.web.client.BodyCodec#jsonObject()} To decode a Json object:
+ * Use {@link io.vertx.ext.web.codec.BodyCodec#jsonObject()} To decode a Json object:
  *
  * [source,$lang]
  * ----
@@ -267,7 +267,7 @@
  * {@link examples.WebClientExamples#receiveResponseAsJsonPOJO(io.vertx.ext.web.client.WebClient)}
  * ----
  *
- * When large response are expected, use the {@link io.vertx.ext.web.client.BodyCodec#pipe(io.vertx.core.streams.WriteStream)}.
+ * When large response are expected, use the {@link io.vertx.ext.web.codec.BodyCodec#pipe(io.vertx.core.streams.WriteStream)}.
  * This body codec pumps the response body buffers to a {@link io.vertx.core.streams.WriteStream}
  * and signals the success or the failure of the operation in the async result response
  *
@@ -276,7 +276,7 @@
  * {@link examples.WebClientExamples#receiveResponseAsWriteStream(io.vertx.ext.web.client.WebClient, io.vertx.core.streams.WriteStream)}
  * ----
  *
- * Finally if you are not interested at all by the response content, the {@link io.vertx.ext.web.client.BodyCodec#none()}
+ * Finally if you are not interested at all by the response content, the {@link io.vertx.ext.web.codec.BodyCodec#none()}
  * simply discards the entire response body
  *
  * [source,$lang]

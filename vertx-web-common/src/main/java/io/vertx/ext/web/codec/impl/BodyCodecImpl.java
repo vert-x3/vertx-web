@@ -13,7 +13,7 @@
  *
  * You may elect to redistribute this code under either of these licenses.
  */
-package io.vertx.ext.web.client.impl;
+package io.vertx.ext.web.codec.impl;
 
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
@@ -22,8 +22,8 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.streams.WriteStream;
-import io.vertx.ext.web.client.BodyCodec;
-import io.vertx.ext.web.client.spi.BodyStream;
+import io.vertx.ext.web.codec.BodyCodec;
+import io.vertx.ext.web.codec.spi.BodyStream;
 
 import java.util.function.Function;
 
