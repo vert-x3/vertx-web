@@ -14,14 +14,14 @@
  * under the License.
  */
 
-/** @module vertx-web-client-js/body_codec */
+/** @module vertx-web-codec-js/body_codec */
 var utils = require('vertx-js/util/utils');
 var Buffer = require('vertx-js/buffer');
 var WriteStream = require('vertx-js/write_stream');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
-var JBodyCodec = io.vertx.ext.web.client.BodyCodec;
+var JBodyCodec = io.vertx.ext.web.codec.BodyCodec;
 
 /**
  A codec for encoding and decoding HTTP bodies.
@@ -40,7 +40,7 @@ var BodyCodec = function(j_val, j_arg_0) {
   this._jdel = j_bodyCodec;
 };
 
-BodyCodec._jclass = utils.getJavaClass("io.vertx.ext.web.client.BodyCodec");
+BodyCodec._jclass = utils.getJavaClass("io.vertx.ext.web.codec.BodyCodec");
 BodyCodec._jtype = {
   accept: function(obj) {
     return BodyCodec._jclass.isInstance(obj._jdel);
@@ -62,7 +62,7 @@ BodyCodec._create = function(jdel) {
 /**
  A codec for strings using a specific <code>encoding</code>.
 
- @memberof module:vertx-web-client-js/body_codec
+ @memberof module:vertx-web-codec-js/body_codec
  @param encoding {string} the encoding 
  @return {BodyCodec} the codec
  */
@@ -77,7 +77,7 @@ BodyCodec.string = function() {
 
 /**
 
- @memberof module:vertx-web-client-js/body_codec
+ @memberof module:vertx-web-codec-js/body_codec
 
  @return {BodyCodec} the  codec
  */
@@ -90,7 +90,7 @@ BodyCodec.buffer = function() {
 
 /**
 
- @memberof module:vertx-web-client-js/body_codec
+ @memberof module:vertx-web-codec-js/body_codec
 
  @return {BodyCodec} the  codec
  */
@@ -103,7 +103,7 @@ BodyCodec.jsonObject = function() {
 
 /**
 
- @memberof module:vertx-web-client-js/body_codec
+ @memberof module:vertx-web-codec-js/body_codec
 
  @return {BodyCodec} a codec that simply discards the response
  */
@@ -117,7 +117,7 @@ BodyCodec.none = function() {
 /**
  Create a codec that buffers the entire body and then apply the <code>decode</code> function and returns the result.
 
- @memberof module:vertx-web-client-js/body_codec
+ @memberof module:vertx-web-codec-js/body_codec
  @param decode {todo} the decode function 
  @return {BodyCodec} the created codec
  */
@@ -134,7 +134,7 @@ BodyCodec.create = function(decode) {
 /**
  A body codec that pipes the body to a write stream.
 
- @memberof module:vertx-web-client-js/body_codec
+ @memberof module:vertx-web-codec-js/body_codec
  @param stream {WriteStream} the destination tream 
  @return {BodyCodec} the body codec for a write stream
  */

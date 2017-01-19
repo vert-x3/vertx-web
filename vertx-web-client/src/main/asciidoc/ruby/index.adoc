@@ -388,7 +388,7 @@ client.get(8080, "myserver.mycompany.com", "/some-uri").send() { |ar_err,ar|
 
 ----
 
-WARNING: responses are fully buffered, use `link:../../yardoc/VertxWebClient/BodyCodec.html#pipe-class_method[BodyCodec.pipe]`
+WARNING: responses are fully buffered, use `link:../../yardoc/VertxWebCommon/BodyCodec.html#pipe-class_method[BodyCodec.pipe]`
 to pipe the response to a write stream
 
 === Decoding responses
@@ -396,7 +396,7 @@ to pipe the response to a write stream
 By default the web client provides an http response body as a `Buffer` and does not apply
 any decoding.
 
-Custom response body decoding can be achieved using `link:../../yardoc/VertxWebClient/BodyCodec.html[BodyCodec]`:
+Custom response body decoding can be achieved using `link:../../yardoc/VertxWebCommon/BodyCodec.html[BodyCodec]`:
 
 * Plain String
 * Json object
@@ -406,12 +406,12 @@ Custom response body decoding can be achieved using `link:../../yardoc/VertxWebC
 A body codec can decode an arbitrary binary data stream into a specific object instance, saving you the decoding
 step in your response handlers.
 
-Use `link:../../yardoc/VertxWebClient/BodyCodec.html#json_object-class_method[BodyCodec.jsonObject]` To decode a Json object:
+Use `link:../../yardoc/VertxWebCommon/BodyCodec.html#json_object-class_method[BodyCodec.jsonObject]` To decode a Json object:
 
 [source,ruby]
 ----
-require 'vertx-web-client/body_codec'
-client.get(8080, "myserver.mycompany.com", "/some-uri").send(VertxWebClient::BodyCodec.json_object()) { |ar_err,ar|
+require 'vertx-web-common/body_codec'
+client.get(8080, "myserver.mycompany.com", "/some-uri").send(VertxWebCommon::BodyCodec.json_object()) { |ar_err,ar|
   if (ar_err == nil)
     response = ar
 
@@ -429,8 +429,8 @@ In Java, Groovy or Kotlin, custom Json mapped POJO can be decoded
 
 [source,ruby]
 ----
-require 'vertx-web-client/body_codec'
-client.get(8080, "myserver.mycompany.com", "/some-uri").send(VertxWebClient::BodyCodec.json(Java::ExamplesWebClientExamples::User::class)) { |ar_err,ar|
+require 'vertx-web-common/body_codec'
+client.get(8080, "myserver.mycompany.com", "/some-uri").send(VertxWebCommon::BodyCodec.json(Java::ExamplesWebClientExamples::User::class)) { |ar_err,ar|
   if (ar_err == nil)
     response = ar
 
@@ -444,14 +444,14 @@ client.get(8080, "myserver.mycompany.com", "/some-uri").send(VertxWebClient::Bod
 
 ----
 
-When large response are expected, use the `link:../../yardoc/VertxWebClient/BodyCodec.html#pipe-class_method[BodyCodec.pipe]`.
+When large response are expected, use the `link:../../yardoc/VertxWebCommon/BodyCodec.html#pipe-class_method[BodyCodec.pipe]`.
 This body codec pumps the response body buffers to a `link:../../yardoc/Vertx/WriteStream.html[WriteStream]`
 and signals the success or the failure of the operation in the async result response
 
 [source,ruby]
 ----
-require 'vertx-web-client/body_codec'
-client.get(8080, "myserver.mycompany.com", "/some-uri").send(VertxWebClient::BodyCodec.pipe(writeStream)) { |ar_err,ar|
+require 'vertx-web-common/body_codec'
+client.get(8080, "myserver.mycompany.com", "/some-uri").send(VertxWebCommon::BodyCodec.pipe(writeStream)) { |ar_err,ar|
   if (ar_err == nil)
 
     response = ar
@@ -464,13 +464,13 @@ client.get(8080, "myserver.mycompany.com", "/some-uri").send(VertxWebClient::Bod
 
 ----
 
-Finally if you are not interested at all by the response content, the `link:../../yardoc/VertxWebClient/BodyCodec.html#none-class_method[BodyCodec.none]`
+Finally if you are not interested at all by the response content, the `link:../../yardoc/VertxWebCommon/BodyCodec.html#none-class_method[BodyCodec.none]`
 simply discards the entire response body
 
 [source,ruby]
 ----
-require 'vertx-web-client/body_codec'
-client.get(8080, "myserver.mycompany.com", "/some-uri").send(VertxWebClient::BodyCodec.none()) { |ar_err,ar|
+require 'vertx-web-common/body_codec'
+client.get(8080, "myserver.mycompany.com", "/some-uri").send(VertxWebCommon::BodyCodec.none()) { |ar_err,ar|
   if (ar_err == nil)
 
     response = ar

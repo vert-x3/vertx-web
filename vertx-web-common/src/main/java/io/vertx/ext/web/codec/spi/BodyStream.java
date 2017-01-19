@@ -13,7 +13,7 @@
  *
  *  You may elect to redistribute this code under either of these licenses.
  */
-package io.vertx.webclient.spi;
+package io.vertx.ext.web.codec.spi;
 
 import io.vertx.core.Future;
 import io.vertx.core.Handler;

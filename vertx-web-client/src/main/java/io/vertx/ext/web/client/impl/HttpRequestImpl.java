@@ -13,7 +13,7 @@
  *
  * You may elect to redistribute this code under either of these licenses.
  */
-package io.vertx.webclient.impl;
+package io.vertx.ext.web.client.impl;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.UnpooledByteBufAllocator;
@@ -39,10 +39,10 @@ import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.streams.Pump;
 import io.vertx.core.streams.ReadStream;
-import io.vertx.webclient.BodyCodec;
-import io.vertx.webclient.HttpRequest;
-import io.vertx.webclient.HttpResponse;
-import io.vertx.webclient.spi.BodyStream;
+import io.vertx.ext.web.client.HttpRequest;
+import io.vertx.ext.web.client.HttpResponse;
+import io.vertx.ext.web.codec.BodyCodec;
+import io.vertx.ext.web.codec.spi.BodyStream;
 
 import java.util.Map;
 

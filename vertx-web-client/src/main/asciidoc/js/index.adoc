@@ -388,7 +388,7 @@ client.get(8080, "myserver.mycompany.com", "/some-uri").send(function (ar, ar_er
 
 ----
 
-WARNING: responses are fully buffered, use `link:../../jsdoc/module-vertx-web-client-js_body_codec-BodyCodec.html#pipe[BodyCodec.pipe]`
+WARNING: responses are fully buffered, use `link:../../jsdoc/module-vertx-web-common-js_body_codec-BodyCodec.html#pipe[BodyCodec.pipe]`
 to pipe the response to a write stream
 
 === Decoding responses
@@ -396,7 +396,7 @@ to pipe the response to a write stream
 By default the web client provides an http response body as a `Buffer` and does not apply
 any decoding.
 
-Custom response body decoding can be achieved using `link:../../jsdoc/module-vertx-web-client-js_body_codec-BodyCodec.html[BodyCodec]`:
+Custom response body decoding can be achieved using `link:../../jsdoc/module-vertx-web-common-js_body_codec-BodyCodec.html[BodyCodec]`:
 
 * Plain String
 * Json object
@@ -406,11 +406,11 @@ Custom response body decoding can be achieved using `link:../../jsdoc/module-ver
 A body codec can decode an arbitrary binary data stream into a specific object instance, saving you the decoding
 step in your response handlers.
 
-Use `link:../../jsdoc/module-vertx-web-client-js_body_codec-BodyCodec.html#jsonObject[BodyCodec.jsonObject]` To decode a Json object:
+Use `link:../../jsdoc/module-vertx-web-common-js_body_codec-BodyCodec.html#jsonObject[BodyCodec.jsonObject]` To decode a Json object:
 
 [source,js]
 ----
-var BodyCodec = require("vertx-web-client-js/body_codec");
+var BodyCodec = require("vertx-web-common-js/body_codec");
 client.get(8080, "myserver.mycompany.com", "/some-uri").send(BodyCodec.jsonObject(), function (ar, ar_err) {
   if (ar_err == null) {
     var response = ar;
@@ -429,7 +429,7 @@ In Java, Groovy or Kotlin, custom Json mapped POJO can be decoded
 
 [source,js]
 ----
-var BodyCodec = require("vertx-web-client-js/body_codec");
+var BodyCodec = require("vertx-web-common-js/body_codec");
 client.get(8080, "myserver.mycompany.com", "/some-uri").send(BodyCodec.json(Java.type("examples.WebClientExamples.User").class), function (ar, ar_err) {
   if (ar_err == null) {
     var response = ar;
@@ -444,13 +444,13 @@ client.get(8080, "myserver.mycompany.com", "/some-uri").send(BodyCodec.json(Java
 
 ----
 
-When large response are expected, use the `link:../../jsdoc/module-vertx-web-client-js_body_codec-BodyCodec.html#pipe[BodyCodec.pipe]`.
+When large response are expected, use the `link:../../jsdoc/module-vertx-web-common-js_body_codec-BodyCodec.html#pipe[BodyCodec.pipe]`.
 This body codec pumps the response body buffers to a `link:../../jsdoc/module-vertx-js_write_stream-WriteStream.html[WriteStream]`
 and signals the success or the failure of the operation in the async result response
 
 [source,js]
 ----
-var BodyCodec = require("vertx-web-client-js/body_codec");
+var BodyCodec = require("vertx-web-common-js/body_codec");
 client.get(8080, "myserver.mycompany.com", "/some-uri").send(BodyCodec.pipe(writeStream), function (ar, ar_err) {
   if (ar_err == null) {
 
@@ -464,12 +464,12 @@ client.get(8080, "myserver.mycompany.com", "/some-uri").send(BodyCodec.pipe(writ
 
 ----
 
-Finally if you are not interested at all by the response content, the `link:../../jsdoc/module-vertx-web-client-js_body_codec-BodyCodec.html#none[BodyCodec.none]`
+Finally if you are not interested at all by the response content, the `link:../../jsdoc/module-vertx-web-common-js_body_codec-BodyCodec.html#none[BodyCodec.none]`
 simply discards the entire response body
 
 [source,js]
 ----
-var BodyCodec = require("vertx-web-client-js/body_codec");
+var BodyCodec = require("vertx-web-common-js/body_codec");
 client.get(8080, "myserver.mycompany.com", "/some-uri").send(BodyCodec.none(), function (ar, ar_err) {
   if (ar_err == null) {
 
