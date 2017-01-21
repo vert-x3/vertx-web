@@ -5,6 +5,7 @@ import io.vertx.core.http.HttpServerOptions;
 import io.vertx.rxjava.core.Vertx;
 import io.vertx.rxjava.core.buffer.Buffer;
 import io.vertx.rxjava.core.http.HttpServer;
+import io.vertx.rxjava.ext.web.codec.BodyCodec;
 import io.vertx.test.core.VertxTestBase;
 import io.vertx.rxjava.ext.web.client.WebClient;
 import io.vertx.rxjava.ext.web.client.HttpResponse;
@@ -40,10 +41,12 @@ public class RxTest extends VertxTestBase {
         client = WebClient.wrap(vertx.createHttpClient(new HttpClientOptions()));
         Single<HttpResponse<Buffer>> single = client
           .get(8080, "localhost", "/the_uri")
+          .as(BodyCodec.buffer())
           .rxSend();
         for (int i = 0; i < times; i++) {
           single.subscribe(resp -> {
-            assertEquals("some_content", resp.body().toString("UTF-8"));
+            Buffer body = resp.body();
+            assertEquals("some_content", body.toString("UTF-8"));
             complete();
           }, this::fail);
         }
