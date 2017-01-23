@@ -29,14 +29,15 @@ import io.vertx.core.Handler;
  * NOTE: This class has been automatically generated from the {@link io.vertx.serviceproxy.testmodel.TestConnection original} non RX-ified interface using Vert.x codegen.
  */
 
+@io.vertx.lang.rxjava.RxGen(io.vertx.serviceproxy.testmodel.TestConnection.class)
 public class TestConnection {
 
-  public static final io.vertx.lang.rxjava.TypeArg<TestConnection> arg = new io.vertx.lang.rxjava.TypeArg<>(
+  public static final io.vertx.lang.rxjava.TypeArg<TestConnection> __TYPE_ARG = new io.vertx.lang.rxjava.TypeArg<>(
     obj -> new TestConnection((io.vertx.serviceproxy.testmodel.TestConnection) obj),
     TestConnection::getDelegate
   );
 
-  final io.vertx.serviceproxy.testmodel.TestConnection delegate;
+  private final io.vertx.serviceproxy.testmodel.TestConnection delegate;
   
   public TestConnection(io.vertx.serviceproxy.testmodel.TestConnection delegate) {
     this.delegate = delegate;
@@ -51,13 +52,6 @@ public class TestConnection {
     return this;
   }
 
-  @Deprecated()
-  public Observable<String> startTransactionObservable() { 
-    io.vertx.rx.java.ObservableFuture<String> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
-    startTransaction(resultHandler.toHandler());
-    return resultHandler;
-  }
-
   public Single<String> rxStartTransaction() { 
     return Single.create(new io.vertx.rx.java.SingleOnSubscribeAdapter<>(fut -> {
       startTransaction(fut);
@@ -67,13 +61,6 @@ public class TestConnection {
   public TestConnection insert(String name, JsonObject data, Handler<AsyncResult<String>> resultHandler) { 
     delegate.insert(name, data, resultHandler);
     return this;
-  }
-
-  @Deprecated()
-  public Observable<String> insertObservable(String name, JsonObject data) { 
-    io.vertx.rx.java.ObservableFuture<String> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
-    insert(name, data, resultHandler.toHandler());
-    return resultHandler;
   }
 
   public Single<String> rxInsert(String name, JsonObject data) { 
@@ -87,13 +74,6 @@ public class TestConnection {
     return this;
   }
 
-  @Deprecated()
-  public Observable<String> commitObservable() { 
-    io.vertx.rx.java.ObservableFuture<String> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
-    commit(resultHandler.toHandler());
-    return resultHandler;
-  }
-
   public Single<String> rxCommit() { 
     return Single.create(new io.vertx.rx.java.SingleOnSubscribeAdapter<>(fut -> {
       commit(fut);
@@ -103,13 +83,6 @@ public class TestConnection {
   public TestConnection rollback(Handler<AsyncResult<String>> resultHandler) { 
     delegate.rollback(resultHandler);
     return this;
-  }
-
-  @Deprecated()
-  public Observable<String> rollbackObservable() { 
-    io.vertx.rx.java.ObservableFuture<String> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
-    rollback(resultHandler.toHandler());
-    return resultHandler;
   }
 
   public Single<String> rxRollback() { 

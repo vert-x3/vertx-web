@@ -27,14 +27,15 @@ import rx.Single;
  * NOTE: This class has been automatically generated from the {@link io.vertx.serviceproxy.testmodel.TestBaseImportsService original} non RX-ified interface using Vert.x codegen.
  */
 
+@io.vertx.lang.rxjava.RxGen(io.vertx.serviceproxy.testmodel.TestBaseImportsService.class)
 public class TestBaseImportsService {
 
-  public static final io.vertx.lang.rxjava.TypeArg<TestBaseImportsService> arg = new io.vertx.lang.rxjava.TypeArg<>(
+  public static final io.vertx.lang.rxjava.TypeArg<TestBaseImportsService> __TYPE_ARG = new io.vertx.lang.rxjava.TypeArg<>(
     obj -> new TestBaseImportsService((io.vertx.serviceproxy.testmodel.TestBaseImportsService) obj),
     TestBaseImportsService::getDelegate
   );
 
-  final io.vertx.serviceproxy.testmodel.TestBaseImportsService delegate;
+  private final io.vertx.serviceproxy.testmodel.TestBaseImportsService delegate;
   
   public TestBaseImportsService(io.vertx.serviceproxy.testmodel.TestBaseImportsService delegate) {
     this.delegate = delegate;
