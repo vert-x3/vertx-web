@@ -1,0 +1,4 @@
+moduleName = io.vertx.ext.web.templ.HandlebarsTemplateEngine-module
+moduleVersion = 1.0
+extensionClasses = 
+staticExtensionClasses = 

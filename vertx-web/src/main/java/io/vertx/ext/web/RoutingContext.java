@@ -21,7 +21,6 @@ import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.Nullable;
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
@@ -31,7 +30,6 @@ import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
-import io.vertx.ext.web.impl.ParsableLanguageValue;
 
 import java.util.List;
 import java.util.Map;
@@ -139,6 +137,7 @@ public interface RoutingContext {
   /**
    * @return the Vert.x instance associated to the initiating {@link Router} for this context
    */
+  @CacheReturn
   Vertx vertx();
 
   /**
@@ -292,7 +291,7 @@ public interface RoutingContext {
    * @return  the most acceptable content type.
    */
   @Nullable String getAcceptableContentType();
-  
+
   /**
    * The headers:
    * <ol>
@@ -415,7 +414,7 @@ public interface RoutingContext {
   @Deprecated
   @CacheReturn
   List<Locale> acceptableLocales();
-  
+
   /**
    * Returns the languages for the current request. The languages are determined from the <code>Accept-Language</code>
    * header and sorted on quality.
@@ -434,7 +433,7 @@ public interface RoutingContext {
   /**
    * Helper to return the user preferred locale. It is the same action as returning the first element of the acceptable
    * locales.
-   * 
+   *
    * @deprecated Use {@link #preferredLanguage()} instead
    * @return the users preferred locale.
    */
@@ -443,7 +442,7 @@ public interface RoutingContext {
   default Locale preferredLocale() {
     return preferredLanguage();
   }
-  
+
   /**
    * Helper to return the user preferred language.
    * It is the same action as returning the first element of the acceptable languages.
