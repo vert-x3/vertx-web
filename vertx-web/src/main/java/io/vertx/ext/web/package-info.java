@@ -1798,7 +1798,6 @@
  * vertx-auth provides you with many out of the box implementations:
  *
  *
- * * App.net {@link io.vertx.ext.auth.oauth2.providers.AppNetAuth}
  * * Azure Active Directory {@link io.vertx.ext.auth.oauth2.providers.AzureADAuth}
  * * Box.com {@link io.vertx.ext.auth.oauth2.providers.BoxAuth}
  * * Dropbox {@link io.vertx.ext.auth.oauth2.providers.DropboxAuth}
