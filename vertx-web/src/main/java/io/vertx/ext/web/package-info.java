@@ -1690,6 +1690,7 @@
  * The event can be one of the following types:
  *
  * SOCKET_CREATED:: This event will occur when a new SockJS socket is created.
+ * SOCKET_IDLE:: This event will occur when SockJS socket is on idle for longer period of time than initially configured.
  * SOCKET_CLOSED:: This event will occur when a SockJS socket is closed.
  * SEND:: This event will occur when a message is attempted to be sent from the client to the server.
  * PUBLISH:: This event will occur when a message is attempted to be published from the client to the server.
@@ -1723,6 +1724,62 @@
  * ----
  * {@link examples.WebExamples#example49}
  * ----
+ * 
+ * Here’s an example how to configure and handle SOCKET_IDLE bridge event type. 
+ * Notice `setPingTimeout(5000)` which says that if ping message doesn't arrive from client within 5 seconds 
+ * then the SOCKET_IDLE bridge event would be triggered.
+ * 
+ * ----
+ * // Initialize SockJS handler
+ * Router router = Router.router(vertx);
+ *
+ * SockJSHandler sockJSHandler = SockJSHandler.create(vertx);
+ * BridgeOptions options = new BridgeOptions().addInboundPermitted(inboundPermitted).setPingTimeout(5000);
+ *
+ * sockJSHandler.bridge(options, be -> {
+ * 	if (be.type() == BridgeEventType.SOCKET_IDLE) {
+ *	    // Do some custom handling...
+ *	}
+ *	
+ *  be.complete(true);
+ * });
+ *	
+ * router.route("/eventbus").handler(sockJSHandler);
+ * ----
+ *	
+ * In client side JavaScript you use the 'vertx-eventbus.js` library to create connections to the event bus and to send and receive messages:
+ *
+ * ----
+ * <script src="http://cdn.jsdelivr.net/sockjs/0.3.4/sockjs.min.js"></script>
+ * <script src='vertx-eventbus.js'></script>
+ *
+ * <script>
+ *	
+ * var eb = new EventBus('http://localhost:8080/eventbus', {"vertxbus_ping_interval": 300000}); // sends ping every 5 minutes.
+ *	
+ * eb.onopen = function() {
+ *	
+ *  // set a handler to receive a message
+ *  eb.registerHandler('some-address', function(error, message) {
+ *    console.log('received a message: ' + JSON.stringify(message));
+ *  });
+ *	
+ *  // send a message
+ *  eb.send('some-address', {name: 'tim', age: 587});
+ * }
+ *	
+ * </script>
+ * ----
+ *
+ * The first thing the example does is to create a instance of the event bus
+ *
+ * ----
+ * var eb = new EventBus('http://localhost:8080/eventbus', {"vertxbus_ping_interval": 300000});
+ * ----
+ *
+ * The 2nd parameter to the constructor tells the sockjs library to send ping message every 5 minutes. since the server
+ * was configured to expect ping every 5 seconds -> `SOCKET_IDLE` would be triggered on the server.
+ *
  *
  * You can also amend the raw message, e.g. change the body. For messages that are flowing in from the client you can
  * also add headers to the message, here's an example:

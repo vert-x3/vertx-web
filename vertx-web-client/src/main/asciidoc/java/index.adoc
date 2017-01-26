@@ -50,7 +50,7 @@ Vert.x Web Client uses the API from Vert.x core, so it's well worth getting fami
 
 == Creating a web client
 
-You create an `link:../../apidocs/io/vertx/webclient/WebClient.html[WebClient]` instance with default options as follows
+You create an `link:../../apidocs/io/vertx/ext/web/client/WebClient.html[WebClient]` instance with default options as follows
 
 [source,java]
 ----
@@ -119,7 +119,7 @@ Any request URI parameter will pre-populate the request
 
 [source,java]
 ----
-HttpRequest request = client.get(8080, "myserver.mycompany.com", "/some-uri?param1=param1_value&param2=param2_value");
+HttpRequest<Buffer> request = client.get(8080, "myserver.mycompany.com", "/some-uri?param1=param1_value&param2=param2_value");
 
 // Add param3
 request.addQueryParam("param3", "param3_value");
@@ -132,7 +132,7 @@ Setting a request URI discards existing query parameters
 
 [source,java]
 ----
-HttpRequest request = client.get(8080, "myserver.mycompany.com", "/some-uri");
+HttpRequest<Buffer> request = client.get(8080, "myserver.mycompany.com", "/some-uri");
 
 // Add param1
 request.addQueryParam("param1", "param1_value");
@@ -146,7 +146,7 @@ request.uri("/some-uri?param1=param1_value&param2=param2_value");
 When you need to make a request with a body, you use the same API and call then `sendXXX` methods
 that expects a body to send.
 
-Use `link:../../apidocs/io/vertx/webclient/HttpRequest.html#sendBuffer-io.vertx.core.buffer.Buffer-io.vertx.core.Handler-[sendBuffer]` to send a buffer body
+Use `link:../../apidocs/io/vertx/ext/web/client/HttpRequest.html#sendBuffer-io.vertx.core.buffer.Buffer-io.vertx.core.Handler-[sendBuffer]` to send a buffer body
 
 [source,java]
 ----
@@ -162,7 +162,7 @@ client
 Sending a single buffer is useful but often you don't want to load fully the content in memory because
 it may be too large or you want to handle many concurrent requests and want to use just the minimum
 for each request. For this purpose the web client can send `ReadStream<Buffer>` (e.g a
-`link:../../apidocs/io/vertx/core/file/AsyncFile.html[AsyncFile]` is a ReadStream<Buffer>`) with the `link:../../apidocs/io/vertx/webclient/HttpRequest.html#sendStream-io.vertx.core.streams.ReadStream-io.vertx.core.Handler-[sendStream]` method
+`link:../../apidocs/io/vertx/core/file/AsyncFile.html[AsyncFile]` is a ReadStream<Buffer>`) with the `link:../../apidocs/io/vertx/ext/web/client/HttpRequest.html#sendStream-io.vertx.core.streams.ReadStream-io.vertx.core.Handler-[sendStream]` method
 
 [source,java]
 ----
@@ -202,7 +202,7 @@ The POST will not be chunked.
 ==== Json bodies
 
 Often you’ll want to send Json body requests, to send a `link:../../apidocs/io/vertx/core/json/JsonObject.html[JsonObject]`
-use the `link:../../apidocs/io/vertx/webclient/HttpRequest.html#sendJsonObject-io.vertx.core.json.JsonObject-io.vertx.core.Handler-[sendJsonObject]`
+use the `link:../../apidocs/io/vertx/ext/web/client/HttpRequest.html#sendJsonObject-io.vertx.core.json.JsonObject-io.vertx.core.Handler-[sendJsonObject]`
 
 [source,java]
 ----
@@ -217,7 +217,7 @@ client
   });
 ----
 
-In Java, Groovy or Kotlin, you can use the `link:../../apidocs/io/vertx/webclient/HttpRequest.html#sendJson-java.lang.Object-io.vertx.core.Handler-[sendJson]` method that maps
+In Java, Groovy or Kotlin, you can use the `link:../../apidocs/io/vertx/ext/web/client/HttpRequest.html#sendJson-java.lang.Object-io.vertx.core.Handler-[sendJson]` method that maps
 a POJO (Plain Old Java Object) to a Json object using `link:../../apidocs/io/vertx/core/json/Json.html#encode-java.lang.Object-[Json.encode]`
 method
 
@@ -237,7 +237,7 @@ to Json.
 
 ==== Form submissions
 
-You can send http form submissions bodies with the `link:../../apidocs/io/vertx/webclient/HttpRequest.html#sendForm-io.vertx.core.MultiMap-io.vertx.core.Handler-[sendForm]`
+You can send http form submissions bodies with the `link:../../apidocs/io/vertx/ext/web/client/HttpRequest.html#sendForm-io.vertx.core.MultiMap-io.vertx.core.Handler-[sendForm]`
 variant.
 
 [source,java]
@@ -285,7 +285,7 @@ You can write headers to a request using the headers multi-map as follows:
 
 [source,java]
 ----
-HttpRequest request = client.get(8080, "myserver.mycompany.com", "/some-uri");
+HttpRequest<Buffer> request = client.get(8080, "myserver.mycompany.com", "/some-uri");
 MultiMap headers = request.headers();
 headers.set("content-type", "application/json");
 headers.set("other-header", "foo");
@@ -298,19 +298,19 @@ You can also write headers using putHeader
 
 [source,java]
 ----
-HttpRequest request = client.get(8080, "myserver.mycompany.com", "/some-uri");
+HttpRequest<Buffer> request = client.get(8080, "myserver.mycompany.com", "/some-uri");
 request.putHeader("content-type", "application/json");
 request.putHeader("other-header", "foo");
 ----
 
 === Reusing requests
 
-The `link:../../apidocs/io/vertx/webclient/HttpRequest.html#send-io.vertx.core.Handler-[send]` method can be called multiple times
-safely, making it very easy to configure and reuse `link:../../apidocs/io/vertx/webclient/HttpRequest.html[HttpRequest]` objects
+The `link:../../apidocs/io/vertx/ext/web/client/HttpRequest.html#send-io.vertx.core.Handler-[send]` method can be called multiple times
+safely, making it very easy to configure and reuse `link:../../apidocs/io/vertx/ext/web/client/HttpRequest.html[HttpRequest]` objects
 
 [source,java]
 ----
-HttpRequest get = client.get(8080, "myserver.mycompany.com", "/some-uri");
+HttpRequest<Buffer> get = client.get(8080, "myserver.mycompany.com", "/some-uri");
 get.send(ar -> {
   if (ar.succeeded()) {
     // Ok
@@ -325,12 +325,12 @@ get.send(ar -> {
 });
 ----
 
-When you need to mutate a request, the `link:../../apidocs/io/vertx/webclient/HttpRequest.html#copy--[copy]` returns a copy of the
+When you need to mutate a request, the `link:../../apidocs/io/vertx/ext/web/client/HttpRequest.html#copy--[copy]` returns a copy of the
 request
 
 [source,java]
 ----
-HttpRequest get = client.get(8080, "myserver.mycompany.com", "/some-uri");
+HttpRequest<Buffer> get = client.get(8080, "myserver.mycompany.com", "/some-uri");
 get.send(ar -> {
   if (ar.succeeded()) {
     // Ok
@@ -348,7 +348,7 @@ get.putHeader("an-header", "with-some-value")
 
 === Timeouts
 
-You can set a timeout for a specific http request using `link:../../apidocs/io/vertx/webclient/HttpRequest.html#timeout-long-[timeout]`.
+You can set a timeout for a specific http request using `link:../../apidocs/io/vertx/ext/web/client/HttpRequest.html#timeout-long-[timeout]`.
 
 [source,java]
 ----
@@ -369,7 +369,7 @@ handler.
 
 == Handling http responses
 
-When the web client sends a request you always deal with a single async result `link:../../apidocs/io/vertx/webclient/HttpResponse.html[HttpResponse]`.
+When the web client sends a request you always deal with a single async result `link:../../apidocs/io/vertx/ext/web/client/HttpResponse.html[HttpResponse]`.
 
 On a success result the callback happens after the response has been received
 
@@ -389,7 +389,7 @@ client
   });
 ----
 
-WARNING: responses are fully buffered, use `link:../../apidocs/io/vertx/webclient/BodyCodec.html#pipe-io.vertx.core.streams.WriteStream-[BodyCodec.pipe]`
+WARNING: responses are fully buffered, use `link:../../apidocs/io/vertx/ext/web/codec/BodyCodec.html#pipe-io.vertx.core.streams.WriteStream-[BodyCodec.pipe]`
 to pipe the response to a write stream
 
 === Decoding responses
@@ -397,7 +397,7 @@ to pipe the response to a write stream
 By default the web client provides an http response body as a `Buffer` and does not apply
 any decoding.
 
-Custom response body decoding can be achieved using `link:../../apidocs/io/vertx/webclient/BodyCodec.html[BodyCodec]`:
+Custom response body decoding can be achieved using `link:../../apidocs/io/vertx/ext/web/codec/BodyCodec.html[BodyCodec]`:
 
 * Plain String
 * Json object
@@ -407,13 +407,14 @@ Custom response body decoding can be achieved using `link:../../apidocs/io/vertx
 A body codec can decode an arbitrary binary data stream into a specific object instance, saving you the decoding
 step in your response handlers.
 
-Use `link:../../apidocs/io/vertx/webclient/BodyCodec.html#jsonObject--[BodyCodec.jsonObject]` To decode a Json object:
+Use `link:../../apidocs/io/vertx/ext/web/codec/BodyCodec.html#jsonObject--[BodyCodec.jsonObject]` To decode a Json object:
 
 [source,java]
 ----
 client
   .get(8080, "myserver.mycompany.com", "/some-uri")
-  .send(BodyCodec.jsonObject(), ar -> {
+  .as(BodyCodec.jsonObject())
+  .send(ar -> {
     if (ar.succeeded()) {
       HttpResponse<JsonObject> response = ar.result();
 
@@ -432,7 +433,8 @@ In Java, Groovy or Kotlin, custom Json mapped POJO can be decoded
 ----
 client
   .get(8080, "myserver.mycompany.com", "/some-uri")
-  .send(BodyCodec.json(User.class), ar -> {
+  .as(BodyCodec.json(User.class))
+  .send(ar -> {
     if (ar.succeeded()) {
       HttpResponse<User> response = ar.result();
 
@@ -446,7 +448,7 @@ client
   });
 ----
 
-When large response are expected, use the `link:../../apidocs/io/vertx/webclient/BodyCodec.html#pipe-io.vertx.core.streams.WriteStream-[BodyCodec.pipe]`.
+When large response are expected, use the `link:../../apidocs/io/vertx/ext/web/codec/BodyCodec.html#pipe-io.vertx.core.streams.WriteStream-[BodyCodec.pipe]`.
 This body codec pumps the response body buffers to a `link:../../apidocs/io/vertx/core/streams/WriteStream.html[WriteStream]`
 and signals the success or the failure of the operation in the async result response
 
@@ -454,7 +456,8 @@ and signals the success or the failure of the operation in the async result resp
 ----
 client
   .get(8080, "myserver.mycompany.com", "/some-uri")
-  .send(BodyCodec.pipe(writeStream), ar -> {
+  .as(BodyCodec.pipe(writeStream))
+  .send(ar -> {
     if (ar.succeeded()) {
 
       HttpResponse<Void> response = ar.result();
@@ -466,14 +469,15 @@ client
   });
 ----
 
-Finally if you are not interested at all by the response content, the `link:../../apidocs/io/vertx/webclient/BodyCodec.html#none--[BodyCodec.none]`
+Finally if you are not interested at all by the response content, the `link:../../apidocs/io/vertx/ext/web/codec/BodyCodec.html#none--[BodyCodec.none]`
 simply discards the entire response body
 
 [source,java]
 ----
 client
   .get(8080, "myserver.mycompany.com", "/some-uri")
-  .send(BodyCodec.none(), ar -> {
+  .as(BodyCodec.none())
+  .send(ar -> {
     if (ar.succeeded()) {
 
       HttpResponse<Void> response = ar.result();
@@ -511,8 +515,8 @@ WARNING: this is only valid for the response decoded as a buffer.
 
 === RxJava API
 
-The RxJava `link:../../apidocs/io/vertx/rxjava/webclient/HttpRequest.html[HttpRequest]` provides an rx-ified version of the original API,
-the `link:../../apidocs/io/vertx/rxjava/webclient/HttpRequest.html#rxSend--[rxSend]` method returns a `Single<HttpResponse<Buffer>>` that
+The RxJava `link:../../apidocs/io/vertx/rxjava/ext/web/client/HttpRequest.html[HttpRequest]` provides an rx-ified version of the original API,
+the `link:../../apidocs/io/vertx/rxjava/ext/web/client/HttpRequest.html#rxSend--[rxSend]` method returns a `Single<HttpResponse<Buffer>>` that
 makes the HTTP request upon subscription, as consequence, the `Single` can be subscribed many times.
 
 [source,java]
@@ -563,14 +567,15 @@ Single<HttpResponse<JsonObject>> single = client
   .get(8080, "myserver.mycompany.com", "/some-uri")
   .putHeader("some-header", "header-value")
   .addQueryParam("some-param", "param value")
-  .rxSend(BodyCodec.jsonObject());
+  .as(BodyCodec.jsonObject())
+  .rxSend();
 single.subscribe(resp -> {
   System.out.println(resp.statusCode());
   System.out.println(resp.body());
 });
 ----
 
-The `link:../../apidocs/io/vertx/rxjava/webclient/HttpRequest.html#sendStream-rx.Observable-io.vertx.core.Handler-[sendStream]` shall
+The `link:../../apidocs/io/vertx/rxjava/ext/web/client/HttpRequest.html#sendStream-rx.Observable-io.vertx.core.Handler-[sendStream]` shall
 be preferred for sending bodies `Observable<Buffer>`
 
 [source,java]

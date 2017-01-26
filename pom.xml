@@ -6,7 +6,7 @@
   <parent>
     <groupId>io.vertx</groupId>
     <artifactId>vertx-ext-parent</artifactId>
-    <version>23</version>
+    <version>24</version>
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
@@ -96,6 +96,7 @@
   </dependencies>
 
   <modules>
+    <module>vertx-web-common</module>
     <module>vertx-web</module>
     <module>vertx-web-client</module>
     <module>vertx-template-engines</module>

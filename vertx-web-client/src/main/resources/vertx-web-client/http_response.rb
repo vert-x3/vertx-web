@@ -1,7 +1,7 @@
 require 'vertx/buffer'
 require 'vertx/multi_map'
 require 'vertx/util/utils.rb'
-# Generated from io.vertx.webclient.HttpResponse
+# Generated from io.vertx.ext.web.client.HttpResponse
 module VertxWebClient
   #  An HTTP response.
   #  <p>
@@ -13,7 +13,7 @@ module VertxWebClient
   #    <li>{::VertxWebClient::HttpResponse#version} the HTTP version</li>
   #  </ul>
   #  <p>
-  #  The body of the response is returned by {::VertxWebClient::HttpResponse#body} decoded as the format specified by the {::VertxWebClient::BodyCodec} that
+  #  The body of the response is returned by {::VertxWebClient::HttpResponse#body} decoded as the format specified by the  that
   #  built the response.
   #  <p>
   #  Keep in mind that using this <code>HttpResponse</code> impose to fully buffer the response body and should be used for payload

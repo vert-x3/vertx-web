@@ -36,14 +36,15 @@ import io.vertx.core.Handler;
  * NOTE: This class has been automatically generated from the {@link io.vertx.serviceproxy.testmodel.TestService original} non RX-ified interface using Vert.x codegen.
  */
 
+@io.vertx.lang.rxjava.RxGen(io.vertx.serviceproxy.testmodel.TestService.class)
 public class TestService {
 
-  public static final io.vertx.lang.rxjava.TypeArg<TestService> arg = new io.vertx.lang.rxjava.TypeArg<>(
+  public static final io.vertx.lang.rxjava.TypeArg<TestService> __TYPE_ARG = new io.vertx.lang.rxjava.TypeArg<>(
     obj -> new TestService((io.vertx.serviceproxy.testmodel.TestService) obj),
     TestService::getDelegate
   );
 
-  final io.vertx.serviceproxy.testmodel.TestService delegate;
+  private final io.vertx.serviceproxy.testmodel.TestService delegate;
   
   public TestService(io.vertx.serviceproxy.testmodel.TestService delegate) {
     this.delegate = delegate;
@@ -72,13 +73,6 @@ public class TestService {
     delegate.longDeliverySuccess(resultHandler);
   }
 
-  @Deprecated()
-  public Observable<String> longDeliverySuccessObservable() { 
-    io.vertx.rx.java.ObservableFuture<String> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
-    longDeliverySuccess(resultHandler.toHandler());
-    return resultHandler;
-  }
-
   public Single<String> rxLongDeliverySuccess() { 
     return Single.create(new io.vertx.rx.java.SingleOnSubscribeAdapter<>(fut -> {
       longDeliverySuccess(fut);
@@ -87,13 +81,6 @@ public class TestService {
 
   public void longDeliveryFailed(Handler<AsyncResult<String>> resultHandler) { 
     delegate.longDeliveryFailed(resultHandler);
-  }
-
-  @Deprecated()
-  public Observable<String> longDeliveryFailedObservable() { 
-    io.vertx.rx.java.ObservableFuture<String> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
-    longDeliveryFailed(resultHandler.toHandler());
-    return resultHandler;
   }
 
   public Single<String> rxLongDeliveryFailed() { 
@@ -114,13 +101,6 @@ public class TestService {
     });
   }
 
-  @Deprecated()
-  public Observable<TestConnection> createConnectionObservable(String str) { 
-    io.vertx.rx.java.ObservableFuture<TestConnection> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
-    createConnection(str, resultHandler.toHandler());
-    return resultHandler;
-  }
-
   public Single<TestConnection> rxCreateConnection(String str) { 
     return Single.create(new io.vertx.rx.java.SingleOnSubscribeAdapter<>(fut -> {
       createConnection(str, fut);
@@ -137,13 +117,6 @@ public class TestService {
         }
       }
     });
-  }
-
-  @Deprecated()
-  public Observable<TestConnectionWithCloseFuture> createConnectionWithCloseFutureObservable() { 
-    io.vertx.rx.java.ObservableFuture<TestConnectionWithCloseFuture> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
-    createConnectionWithCloseFuture(resultHandler.toHandler());
-    return resultHandler;
   }
 
   public Single<TestConnectionWithCloseFuture> rxCreateConnectionWithCloseFuture() { 
@@ -188,13 +161,6 @@ public class TestService {
     delegate.enumTypeAsResult(someEnum);
   }
 
-  @Deprecated()
-  public Observable<SomeEnum> enumTypeAsResultObservable() { 
-    io.vertx.rx.java.ObservableFuture<SomeEnum> someEnum = io.vertx.rx.java.RxHelper.observableFuture();
-    enumTypeAsResult(someEnum.toHandler());
-    return someEnum;
-  }
-
   public Single<SomeEnum> rxEnumTypeAsResult() { 
     return Single.create(new io.vertx.rx.java.SingleOnSubscribeAdapter<>(fut -> {
       enumTypeAsResult(fut);
@@ -203,13 +169,6 @@ public class TestService {
 
   public void enumTypeAsResultNull(Handler<AsyncResult<SomeEnum>> someEnum) { 
     delegate.enumTypeAsResultNull(someEnum);
-  }
-
-  @Deprecated()
-  public Observable<SomeEnum> enumTypeAsResultNullObservable() { 
-    io.vertx.rx.java.ObservableFuture<SomeEnum> someEnum = io.vertx.rx.java.RxHelper.observableFuture();
-    enumTypeAsResultNull(someEnum.toHandler());
-    return someEnum;
   }
 
   public Single<SomeEnum> rxEnumTypeAsResultNull() { 
@@ -242,13 +201,6 @@ public class TestService {
     delegate.stringHandler(resultHandler);
   }
 
-  @Deprecated()
-  public Observable<String> stringHandlerObservable() { 
-    io.vertx.rx.java.ObservableFuture<String> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
-    stringHandler(resultHandler.toHandler());
-    return resultHandler;
-  }
-
   public Single<String> rxStringHandler() { 
     return Single.create(new io.vertx.rx.java.SingleOnSubscribeAdapter<>(fut -> {
       stringHandler(fut);
@@ -257,13 +209,6 @@ public class TestService {
 
   public void stringNullHandler(Handler<AsyncResult<String>> resultHandler) { 
     delegate.stringNullHandler(resultHandler);
-  }
-
-  @Deprecated()
-  public Observable<String> stringNullHandlerObservable() { 
-    io.vertx.rx.java.ObservableFuture<String> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
-    stringNullHandler(resultHandler.toHandler());
-    return resultHandler;
   }
 
   public Single<String> rxStringNullHandler() { 
@@ -276,13 +221,6 @@ public class TestService {
     delegate.byteHandler(resultHandler);
   }
 
-  @Deprecated()
-  public Observable<Byte> byteHandlerObservable() { 
-    io.vertx.rx.java.ObservableFuture<Byte> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
-    byteHandler(resultHandler.toHandler());
-    return resultHandler;
-  }
-
   public Single<Byte> rxByteHandler() { 
     return Single.create(new io.vertx.rx.java.SingleOnSubscribeAdapter<>(fut -> {
       byteHandler(fut);
@@ -291,13 +229,6 @@ public class TestService {
 
   public void byteNullHandler(Handler<AsyncResult<Byte>> resultHandler) { 
     delegate.byteNullHandler(resultHandler);
-  }
-
-  @Deprecated()
-  public Observable<Byte> byteNullHandlerObservable() { 
-    io.vertx.rx.java.ObservableFuture<Byte> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
-    byteNullHandler(resultHandler.toHandler());
-    return resultHandler;
   }
 
   public Single<Byte> rxByteNullHandler() { 
@@ -310,13 +241,6 @@ public class TestService {
     delegate.shortHandler(resultHandler);
   }
 
-  @Deprecated()
-  public Observable<Short> shortHandlerObservable() { 
-    io.vertx.rx.java.ObservableFuture<Short> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
-    shortHandler(resultHandler.toHandler());
-    return resultHandler;
-  }
-
   public Single<Short> rxShortHandler() { 
     return Single.create(new io.vertx.rx.java.SingleOnSubscribeAdapter<>(fut -> {
       shortHandler(fut);
@@ -325,13 +249,6 @@ public class TestService {
 
   public void shortNullHandler(Handler<AsyncResult<Short>> resultHandler) { 
     delegate.shortNullHandler(resultHandler);
-  }
-
-  @Deprecated()
-  public Observable<Short> shortNullHandlerObservable() { 
-    io.vertx.rx.java.ObservableFuture<Short> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
-    shortNullHandler(resultHandler.toHandler());
-    return resultHandler;
   }
 
   public Single<Short> rxShortNullHandler() { 
@@ -344,13 +261,6 @@ public class TestService {
     delegate.intHandler(resultHandler);
   }
 
-  @Deprecated()
-  public Observable<Integer> intHandlerObservable() { 
-    io.vertx.rx.java.ObservableFuture<Integer> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
-    intHandler(resultHandler.toHandler());
-    return resultHandler;
-  }
-
   public Single<Integer> rxIntHandler() { 
     return Single.create(new io.vertx.rx.java.SingleOnSubscribeAdapter<>(fut -> {
       intHandler(fut);
@@ -359,13 +269,6 @@ public class TestService {
 
   public void intNullHandler(Handler<AsyncResult<Integer>> resultHandler) { 
     delegate.intNullHandler(resultHandler);
-  }
-
-  @Deprecated()
-  public Observable<Integer> intNullHandlerObservable() { 
-    io.vertx.rx.java.ObservableFuture<Integer> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
-    intNullHandler(resultHandler.toHandler());
-    return resultHandler;
   }
 
   public Single<Integer> rxIntNullHandler() { 
@@ -378,13 +281,6 @@ public class TestService {
     delegate.longHandler(resultHandler);
   }
 
-  @Deprecated()
-  public Observable<Long> longHandlerObservable() { 
-    io.vertx.rx.java.ObservableFuture<Long> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
-    longHandler(resultHandler.toHandler());
-    return resultHandler;
-  }
-
   public Single<Long> rxLongHandler() { 
     return Single.create(new io.vertx.rx.java.SingleOnSubscribeAdapter<>(fut -> {
       longHandler(fut);
@@ -393,13 +289,6 @@ public class TestService {
 
   public void longNullHandler(Handler<AsyncResult<Long>> resultHandler) { 
     delegate.longNullHandler(resultHandler);
-  }
-
-  @Deprecated()
-  public Observable<Long> longNullHandlerObservable() { 
-    io.vertx.rx.java.ObservableFuture<Long> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
-    longNullHandler(resultHandler.toHandler());
-    return resultHandler;
   }
 
   public Single<Long> rxLongNullHandler() { 
@@ -412,13 +301,6 @@ public class TestService {
     delegate.floatHandler(resultHandler);
   }
 
-  @Deprecated()
-  public Observable<Float> floatHandlerObservable() { 
-    io.vertx.rx.java.ObservableFuture<Float> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
-    floatHandler(resultHandler.toHandler());
-    return resultHandler;
-  }
-
   public Single<Float> rxFloatHandler() { 
     return Single.create(new io.vertx.rx.java.SingleOnSubscribeAdapter<>(fut -> {
       floatHandler(fut);
@@ -427,13 +309,6 @@ public class TestService {
 
   public void floatNullHandler(Handler<AsyncResult<Float>> resultHandler) { 
     delegate.floatNullHandler(resultHandler);
-  }
-
-  @Deprecated()
-  public Observable<Float> floatNullHandlerObservable() { 
-    io.vertx.rx.java.ObservableFuture<Float> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
-    floatNullHandler(resultHandler.toHandler());
-    return resultHandler;
   }
 
   public Single<Float> rxFloatNullHandler() { 
@@ -446,13 +321,6 @@ public class TestService {
     delegate.doubleHandler(resultHandler);
   }
 
-  @Deprecated()
-  public Observable<Double> doubleHandlerObservable() { 
-    io.vertx.rx.java.ObservableFuture<Double> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
-    doubleHandler(resultHandler.toHandler());
-    return resultHandler;
-  }
-
   public Single<Double> rxDoubleHandler() { 
     return Single.create(new io.vertx.rx.java.SingleOnSubscribeAdapter<>(fut -> {
       doubleHandler(fut);
@@ -461,13 +329,6 @@ public class TestService {
 
   public void doubleNullHandler(Handler<AsyncResult<Double>> resultHandler) { 
     delegate.doubleNullHandler(resultHandler);
-  }
-
-  @Deprecated()
-  public Observable<Double> doubleNullHandlerObservable() { 
-    io.vertx.rx.java.ObservableFuture<Double> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
-    doubleNullHandler(resultHandler.toHandler());
-    return resultHandler;
   }
 
   public Single<Double> rxDoubleNullHandler() { 
@@ -480,13 +341,6 @@ public class TestService {
     delegate.charHandler(resultHandler);
   }
 
-  @Deprecated()
-  public Observable<Character> charHandlerObservable() { 
-    io.vertx.rx.java.ObservableFuture<Character> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
-    charHandler(resultHandler.toHandler());
-    return resultHandler;
-  }
-
   public Single<Character> rxCharHandler() { 
     return Single.create(new io.vertx.rx.java.SingleOnSubscribeAdapter<>(fut -> {
       charHandler(fut);
@@ -495,13 +349,6 @@ public class TestService {
 
   public void charNullHandler(Handler<AsyncResult<Character>> resultHandler) { 
     delegate.charNullHandler(resultHandler);
-  }
-
-  @Deprecated()
-  public Observable<Character> charNullHandlerObservable() { 
-    io.vertx.rx.java.ObservableFuture<Character> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
-    charNullHandler(resultHandler.toHandler());
-    return resultHandler;
   }
 
   public Single<Character> rxCharNullHandler() { 
@@ -514,13 +361,6 @@ public class TestService {
     delegate.booleanHandler(resultHandler);
   }
 
-  @Deprecated()
-  public Observable<Boolean> booleanHandlerObservable() { 
-    io.vertx.rx.java.ObservableFuture<Boolean> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
-    booleanHandler(resultHandler.toHandler());
-    return resultHandler;
-  }
-
   public Single<Boolean> rxBooleanHandler() { 
     return Single.create(new io.vertx.rx.java.SingleOnSubscribeAdapter<>(fut -> {
       booleanHandler(fut);
@@ -529,13 +369,6 @@ public class TestService {
 
   public void booleanNullHandler(Handler<AsyncResult<Boolean>> resultHandler) { 
     delegate.booleanNullHandler(resultHandler);
-  }
-
-  @Deprecated()
-  public Observable<Boolean> booleanNullHandlerObservable() { 
-    io.vertx.rx.java.ObservableFuture<Boolean> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
-    booleanNullHandler(resultHandler.toHandler());
-    return resultHandler;
   }
 
   public Single<Boolean> rxBooleanNullHandler() { 
@@ -548,13 +381,6 @@ public class TestService {
     delegate.jsonObjectHandler(resultHandler);
   }
 
-  @Deprecated()
-  public Observable<JsonObject> jsonObjectHandlerObservable() { 
-    io.vertx.rx.java.ObservableFuture<JsonObject> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
-    jsonObjectHandler(resultHandler.toHandler());
-    return resultHandler;
-  }
-
   public Single<JsonObject> rxJsonObjectHandler() { 
     return Single.create(new io.vertx.rx.java.SingleOnSubscribeAdapter<>(fut -> {
       jsonObjectHandler(fut);
@@ -563,13 +389,6 @@ public class TestService {
 
   public void jsonObjectNullHandler(Handler<AsyncResult<JsonObject>> resultHandler) { 
     delegate.jsonObjectNullHandler(resultHandler);
-  }
-
-  @Deprecated()
-  public Observable<JsonObject> jsonObjectNullHandlerObservable() { 
-    io.vertx.rx.java.ObservableFuture<JsonObject> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
-    jsonObjectNullHandler(resultHandler.toHandler());
-    return resultHandler;
   }
 
   public Single<JsonObject> rxJsonObjectNullHandler() { 
@@ -582,13 +401,6 @@ public class TestService {
     delegate.jsonArrayHandler(resultHandler);
   }
 
-  @Deprecated()
-  public Observable<JsonArray> jsonArrayHandlerObservable() { 
-    io.vertx.rx.java.ObservableFuture<JsonArray> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
-    jsonArrayHandler(resultHandler.toHandler());
-    return resultHandler;
-  }
-
   public Single<JsonArray> rxJsonArrayHandler() { 
     return Single.create(new io.vertx.rx.java.SingleOnSubscribeAdapter<>(fut -> {
       jsonArrayHandler(fut);
@@ -597,13 +409,6 @@ public class TestService {
 
   public void jsonArrayNullHandler(Handler<AsyncResult<JsonArray>> resultHandler) { 
     delegate.jsonArrayNullHandler(resultHandler);
-  }
-
-  @Deprecated()
-  public Observable<JsonArray> jsonArrayNullHandlerObservable() { 
-    io.vertx.rx.java.ObservableFuture<JsonArray> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
-    jsonArrayNullHandler(resultHandler.toHandler());
-    return resultHandler;
   }
 
   public Single<JsonArray> rxJsonArrayNullHandler() { 
@@ -616,13 +421,6 @@ public class TestService {
     delegate.dataObjectHandler(resultHandler);
   }
 
-  @Deprecated()
-  public Observable<TestDataObject> dataObjectHandlerObservable() { 
-    io.vertx.rx.java.ObservableFuture<TestDataObject> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
-    dataObjectHandler(resultHandler.toHandler());
-    return resultHandler;
-  }
-
   public Single<TestDataObject> rxDataObjectHandler() { 
     return Single.create(new io.vertx.rx.java.SingleOnSubscribeAdapter<>(fut -> {
       dataObjectHandler(fut);
@@ -631,13 +429,6 @@ public class TestService {
 
   public void dataObjectNullHandler(Handler<AsyncResult<TestDataObject>> resultHandler) { 
     delegate.dataObjectNullHandler(resultHandler);
-  }
-
-  @Deprecated()
-  public Observable<TestDataObject> dataObjectNullHandlerObservable() { 
-    io.vertx.rx.java.ObservableFuture<TestDataObject> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
-    dataObjectNullHandler(resultHandler.toHandler());
-    return resultHandler;
   }
 
   public Single<TestDataObject> rxDataObjectNullHandler() { 
@@ -650,13 +441,6 @@ public class TestService {
     delegate.voidHandler(resultHandler);
   }
 
-  @Deprecated()
-  public Observable<Void> voidHandlerObservable() { 
-    io.vertx.rx.java.ObservableFuture<Void> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
-    voidHandler(resultHandler.toHandler());
-    return resultHandler;
-  }
-
   public Single<Void> rxVoidHandler() { 
     return Single.create(new io.vertx.rx.java.SingleOnSubscribeAdapter<>(fut -> {
       voidHandler(fut);
@@ -666,13 +450,6 @@ public class TestService {
   public TestService fluentMethod(String str, Handler<AsyncResult<String>> resultHandler) { 
     delegate.fluentMethod(str, resultHandler);
     return this;
-  }
-
-  @Deprecated()
-  public Observable<String> fluentMethodObservable(String str) { 
-    io.vertx.rx.java.ObservableFuture<String> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
-    fluentMethod(str, resultHandler.toHandler());
-    return resultHandler;
   }
 
   public Single<String> rxFluentMethod(String str) { 
@@ -690,13 +467,6 @@ public class TestService {
     delegate.failingMethod(resultHandler);
   }
 
-  @Deprecated()
-  public Observable<JsonObject> failingMethodObservable() { 
-    io.vertx.rx.java.ObservableFuture<JsonObject> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
-    failingMethod(resultHandler.toHandler());
-    return resultHandler;
-  }
-
   public Single<JsonObject> rxFailingMethod() { 
     return Single.create(new io.vertx.rx.java.SingleOnSubscribeAdapter<>(fut -> {
       failingMethod(fut);
@@ -705,13 +475,6 @@ public class TestService {
 
   public void invokeWithMessage(JsonObject object, String str, int i, char chr, SomeEnum senum, Handler<AsyncResult<String>> resultHandler) { 
     delegate.invokeWithMessage(object, str, i, chr, senum, resultHandler);
-  }
-
-  @Deprecated()
-  public Observable<String> invokeWithMessageObservable(JsonObject object, String str, int i, char chr, SomeEnum senum) { 
-    io.vertx.rx.java.ObservableFuture<String> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
-    invokeWithMessage(object, str, i, chr, senum, resultHandler.toHandler());
-    return resultHandler;
   }
 
   public Single<String> rxInvokeWithMessage(JsonObject object, String str, int i, char chr, SomeEnum senum) { 
@@ -724,13 +487,6 @@ public class TestService {
     delegate.listStringHandler(resultHandler);
   }
 
-  @Deprecated()
-  public Observable<List<String>> listStringHandlerObservable() { 
-    io.vertx.rx.java.ObservableFuture<List<String>> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
-    listStringHandler(resultHandler.toHandler());
-    return resultHandler;
-  }
-
   public Single<List<String>> rxListStringHandler() { 
     return Single.create(new io.vertx.rx.java.SingleOnSubscribeAdapter<>(fut -> {
       listStringHandler(fut);
@@ -739,13 +495,6 @@ public class TestService {
 
   public void listByteHandler(Handler<AsyncResult<List<Byte>>> resultHandler) { 
     delegate.listByteHandler(resultHandler);
-  }
-
-  @Deprecated()
-  public Observable<List<Byte>> listByteHandlerObservable() { 
-    io.vertx.rx.java.ObservableFuture<List<Byte>> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
-    listByteHandler(resultHandler.toHandler());
-    return resultHandler;
   }
 
   public Single<List<Byte>> rxListByteHandler() { 
@@ -758,13 +507,6 @@ public class TestService {
     delegate.listShortHandler(resultHandler);
   }
 
-  @Deprecated()
-  public Observable<List<Short>> listShortHandlerObservable() { 
-    io.vertx.rx.java.ObservableFuture<List<Short>> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
-    listShortHandler(resultHandler.toHandler());
-    return resultHandler;
-  }
-
   public Single<List<Short>> rxListShortHandler() { 
     return Single.create(new io.vertx.rx.java.SingleOnSubscribeAdapter<>(fut -> {
       listShortHandler(fut);
@@ -773,13 +515,6 @@ public class TestService {
 
   public void listIntHandler(Handler<AsyncResult<List<Integer>>> resultHandler) { 
     delegate.listIntHandler(resultHandler);
-  }
-
-  @Deprecated()
-  public Observable<List<Integer>> listIntHandlerObservable() { 
-    io.vertx.rx.java.ObservableFuture<List<Integer>> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
-    listIntHandler(resultHandler.toHandler());
-    return resultHandler;
   }
 
   public Single<List<Integer>> rxListIntHandler() { 
@@ -792,13 +527,6 @@ public class TestService {
     delegate.listLongHandler(resultHandler);
   }
 
-  @Deprecated()
-  public Observable<List<Long>> listLongHandlerObservable() { 
-    io.vertx.rx.java.ObservableFuture<List<Long>> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
-    listLongHandler(resultHandler.toHandler());
-    return resultHandler;
-  }
-
   public Single<List<Long>> rxListLongHandler() { 
     return Single.create(new io.vertx.rx.java.SingleOnSubscribeAdapter<>(fut -> {
       listLongHandler(fut);
@@ -807,13 +535,6 @@ public class TestService {
 
   public void listFloatHandler(Handler<AsyncResult<List<Float>>> resultHandler) { 
     delegate.listFloatHandler(resultHandler);
-  }
-
-  @Deprecated()
-  public Observable<List<Float>> listFloatHandlerObservable() { 
-    io.vertx.rx.java.ObservableFuture<List<Float>> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
-    listFloatHandler(resultHandler.toHandler());
-    return resultHandler;
   }
 
   public Single<List<Float>> rxListFloatHandler() { 
@@ -826,13 +547,6 @@ public class TestService {
     delegate.listDoubleHandler(resultHandler);
   }
 
-  @Deprecated()
-  public Observable<List<Double>> listDoubleHandlerObservable() { 
-    io.vertx.rx.java.ObservableFuture<List<Double>> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
-    listDoubleHandler(resultHandler.toHandler());
-    return resultHandler;
-  }
-
   public Single<List<Double>> rxListDoubleHandler() { 
     return Single.create(new io.vertx.rx.java.SingleOnSubscribeAdapter<>(fut -> {
       listDoubleHandler(fut);
@@ -841,13 +555,6 @@ public class TestService {
 
   public void listCharHandler(Handler<AsyncResult<List<Character>>> resultHandler) { 
     delegate.listCharHandler(resultHandler);
-  }
-
-  @Deprecated()
-  public Observable<List<Character>> listCharHandlerObservable() { 
-    io.vertx.rx.java.ObservableFuture<List<Character>> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
-    listCharHandler(resultHandler.toHandler());
-    return resultHandler;
   }
 
   public Single<List<Character>> rxListCharHandler() { 
@@ -860,13 +567,6 @@ public class TestService {
     delegate.listBoolHandler(resultHandler);
   }
 
-  @Deprecated()
-  public Observable<List<Boolean>> listBoolHandlerObservable() { 
-    io.vertx.rx.java.ObservableFuture<List<Boolean>> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
-    listBoolHandler(resultHandler.toHandler());
-    return resultHandler;
-  }
-
   public Single<List<Boolean>> rxListBoolHandler() { 
     return Single.create(new io.vertx.rx.java.SingleOnSubscribeAdapter<>(fut -> {
       listBoolHandler(fut);
@@ -875,13 +575,6 @@ public class TestService {
 
   public void listJsonObjectHandler(Handler<AsyncResult<List<JsonObject>>> resultHandler) { 
     delegate.listJsonObjectHandler(resultHandler);
-  }
-
-  @Deprecated()
-  public Observable<List<JsonObject>> listJsonObjectHandlerObservable() { 
-    io.vertx.rx.java.ObservableFuture<List<JsonObject>> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
-    listJsonObjectHandler(resultHandler.toHandler());
-    return resultHandler;
   }
 
   public Single<List<JsonObject>> rxListJsonObjectHandler() { 
@@ -894,13 +587,6 @@ public class TestService {
     delegate.listJsonArrayHandler(resultHandler);
   }
 
-  @Deprecated()
-  public Observable<List<JsonArray>> listJsonArrayHandlerObservable() { 
-    io.vertx.rx.java.ObservableFuture<List<JsonArray>> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
-    listJsonArrayHandler(resultHandler.toHandler());
-    return resultHandler;
-  }
-
   public Single<List<JsonArray>> rxListJsonArrayHandler() { 
     return Single.create(new io.vertx.rx.java.SingleOnSubscribeAdapter<>(fut -> {
       listJsonArrayHandler(fut);
@@ -909,13 +595,6 @@ public class TestService {
 
   public void listDataObjectHandler(Handler<AsyncResult<List<TestDataObject>>> resultHandler) { 
     delegate.listDataObjectHandler(resultHandler);
-  }
-
-  @Deprecated()
-  public Observable<List<TestDataObject>> listDataObjectHandlerObservable() { 
-    io.vertx.rx.java.ObservableFuture<List<TestDataObject>> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
-    listDataObjectHandler(resultHandler.toHandler());
-    return resultHandler;
   }
 
   public Single<List<TestDataObject>> rxListDataObjectHandler() { 
@@ -928,13 +607,6 @@ public class TestService {
     delegate.setStringHandler(resultHandler);
   }
 
-  @Deprecated()
-  public Observable<Set<String>> setStringHandlerObservable() { 
-    io.vertx.rx.java.ObservableFuture<Set<String>> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
-    setStringHandler(resultHandler.toHandler());
-    return resultHandler;
-  }
-
   public Single<Set<String>> rxSetStringHandler() { 
     return Single.create(new io.vertx.rx.java.SingleOnSubscribeAdapter<>(fut -> {
       setStringHandler(fut);
@@ -943,13 +615,6 @@ public class TestService {
 
   public void setByteHandler(Handler<AsyncResult<Set<Byte>>> resultHandler) { 
     delegate.setByteHandler(resultHandler);
-  }
-
-  @Deprecated()
-  public Observable<Set<Byte>> setByteHandlerObservable() { 
-    io.vertx.rx.java.ObservableFuture<Set<Byte>> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
-    setByteHandler(resultHandler.toHandler());
-    return resultHandler;
   }
 
   public Single<Set<Byte>> rxSetByteHandler() { 
@@ -962,13 +627,6 @@ public class TestService {
     delegate.setShortHandler(resultHandler);
   }
 
-  @Deprecated()
-  public Observable<Set<Short>> setShortHandlerObservable() { 
-    io.vertx.rx.java.ObservableFuture<Set<Short>> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
-    setShortHandler(resultHandler.toHandler());
-    return resultHandler;
-  }
-
   public Single<Set<Short>> rxSetShortHandler() { 
     return Single.create(new io.vertx.rx.java.SingleOnSubscribeAdapter<>(fut -> {
       setShortHandler(fut);
@@ -977,13 +635,6 @@ public class TestService {
 
   public void setIntHandler(Handler<AsyncResult<Set<Integer>>> resultHandler) { 
     delegate.setIntHandler(resultHandler);
-  }
-
-  @Deprecated()
-  public Observable<Set<Integer>> setIntHandlerObservable() { 
-    io.vertx.rx.java.ObservableFuture<Set<Integer>> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
-    setIntHandler(resultHandler.toHandler());
-    return resultHandler;
   }
 
   public Single<Set<Integer>> rxSetIntHandler() { 
@@ -996,13 +647,6 @@ public class TestService {
     delegate.setLongHandler(resultHandler);
   }
 
-  @Deprecated()
-  public Observable<Set<Long>> setLongHandlerObservable() { 
-    io.vertx.rx.java.ObservableFuture<Set<Long>> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
-    setLongHandler(resultHandler.toHandler());
-    return resultHandler;
-  }
-
   public Single<Set<Long>> rxSetLongHandler() { 
     return Single.create(new io.vertx.rx.java.SingleOnSubscribeAdapter<>(fut -> {
       setLongHandler(fut);
@@ -1011,13 +655,6 @@ public class TestService {
 
   public void setFloatHandler(Handler<AsyncResult<Set<Float>>> resultHandler) { 
     delegate.setFloatHandler(resultHandler);
-  }
-
-  @Deprecated()
-  public Observable<Set<Float>> setFloatHandlerObservable() { 
-    io.vertx.rx.java.ObservableFuture<Set<Float>> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
-    setFloatHandler(resultHandler.toHandler());
-    return resultHandler;
   }
 
   public Single<Set<Float>> rxSetFloatHandler() { 
@@ -1030,13 +667,6 @@ public class TestService {
     delegate.setDoubleHandler(resultHandler);
   }
 
-  @Deprecated()
-  public Observable<Set<Double>> setDoubleHandlerObservable() { 
-    io.vertx.rx.java.ObservableFuture<Set<Double>> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
-    setDoubleHandler(resultHandler.toHandler());
-    return resultHandler;
-  }
-
   public Single<Set<Double>> rxSetDoubleHandler() { 
     return Single.create(new io.vertx.rx.java.SingleOnSubscribeAdapter<>(fut -> {
       setDoubleHandler(fut);
@@ -1045,13 +675,6 @@ public class TestService {
 
   public void setCharHandler(Handler<AsyncResult<Set<Character>>> resultHandler) { 
     delegate.setCharHandler(resultHandler);
-  }
-
-  @Deprecated()
-  public Observable<Set<Character>> setCharHandlerObservable() { 
-    io.vertx.rx.java.ObservableFuture<Set<Character>> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
-    setCharHandler(resultHandler.toHandler());
-    return resultHandler;
   }
 
   public Single<Set<Character>> rxSetCharHandler() { 
@@ -1064,13 +687,6 @@ public class TestService {
     delegate.setBoolHandler(resultHandler);
   }
 
-  @Deprecated()
-  public Observable<Set<Boolean>> setBoolHandlerObservable() { 
-    io.vertx.rx.java.ObservableFuture<Set<Boolean>> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
-    setBoolHandler(resultHandler.toHandler());
-    return resultHandler;
-  }
-
   public Single<Set<Boolean>> rxSetBoolHandler() { 
     return Single.create(new io.vertx.rx.java.SingleOnSubscribeAdapter<>(fut -> {
       setBoolHandler(fut);
@@ -1079,13 +695,6 @@ public class TestService {
 
   public void setJsonObjectHandler(Handler<AsyncResult<Set<JsonObject>>> resultHandler) { 
     delegate.setJsonObjectHandler(resultHandler);
-  }
-
-  @Deprecated()
-  public Observable<Set<JsonObject>> setJsonObjectHandlerObservable() { 
-    io.vertx.rx.java.ObservableFuture<Set<JsonObject>> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
-    setJsonObjectHandler(resultHandler.toHandler());
-    return resultHandler;
   }
 
   public Single<Set<JsonObject>> rxSetJsonObjectHandler() { 
@@ -1098,13 +707,6 @@ public class TestService {
     delegate.setJsonArrayHandler(resultHandler);
   }
 
-  @Deprecated()
-  public Observable<Set<JsonArray>> setJsonArrayHandlerObservable() { 
-    io.vertx.rx.java.ObservableFuture<Set<JsonArray>> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
-    setJsonArrayHandler(resultHandler.toHandler());
-    return resultHandler;
-  }
-
   public Single<Set<JsonArray>> rxSetJsonArrayHandler() { 
     return Single.create(new io.vertx.rx.java.SingleOnSubscribeAdapter<>(fut -> {
       setJsonArrayHandler(fut);
@@ -1113,13 +715,6 @@ public class TestService {
 
   public void setDataObjectHandler(Handler<AsyncResult<Set<TestDataObject>>> resultHandler) { 
     delegate.setDataObjectHandler(resultHandler);
-  }
-
-  @Deprecated()
-  public Observable<Set<TestDataObject>> setDataObjectHandlerObservable() { 
-    io.vertx.rx.java.ObservableFuture<Set<TestDataObject>> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
-    setDataObjectHandler(resultHandler.toHandler());
-    return resultHandler;
   }
 
   public Single<Set<TestDataObject>> rxSetDataObjectHandler() { 

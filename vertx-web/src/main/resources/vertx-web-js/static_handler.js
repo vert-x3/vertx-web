@@ -284,6 +284,21 @@ var StaticHandler = function(j_val) {
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
+  /**
+   Set the default content encoding for text related files. This allows overriding the system settings default value.
+
+   @public
+   @param contentEncoding {string} the desired content encoding e.g.: "UTF-8" 
+   @return {StaticHandler} a reference to this, so the API can be used fluently
+   */
+  this.setDefaultContentEncoding = function(contentEncoding) {
+    var __args = arguments;
+    if (__args.length === 1 && typeof __args[0] === 'string') {
+      j_staticHandler["setDefaultContentEncoding(java.lang.String)"](contentEncoding);
+      return that;
+    } else throw new TypeError('function invoked with invalid arguments');
+  };
+
   // A reference to the underlying Java delegate
   // NOTE! This is an internal API and must not be used in user code.
   // If you rely on this property your code is likely to break if we change it / remove it without warning.

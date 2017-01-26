@@ -165,7 +165,10 @@ var RoutingContext = function(j_val) {
   this.vertx = function() {
     var __args = arguments;
     if (__args.length === 0) {
-      return utils.convReturnVertxGen(Vertx, j_routingContext["vertx()"]());
+      if (that.cachedvertx == null) {
+        that.cachedvertx = utils.convReturnVertxGen(Vertx, j_routingContext["vertx()"]());
+      }
+      return that.cachedvertx;
     } else throw new TypeError('function invoked with invalid arguments');
   };
 

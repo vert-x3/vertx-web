@@ -1,0 +1,4 @@
+moduleName = io.vertx.ext.web.templ.JadeTemplateEngine-module
+moduleVersion = 1.0
+extensionClasses = 
+staticExtensionClasses = 

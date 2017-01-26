@@ -21,7 +21,7 @@ var MultiMap = require('vertx-js/multi_map');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
-var JHttpResponse = io.vertx.webclient.HttpResponse;
+var JHttpResponse = io.vertx.ext.web.client.HttpResponse;
 
 /**
  An HTTP response.
@@ -235,7 +235,7 @@ var HttpResponse = function(j_val, j_arg_0) {
   this.bodyAsJson = function(type) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'function') {
-      return utils.get_jtype(type).wrap(j_httpResponse["bodyAsJson(java.lang.Class)"](utils.get_jclass(type)));
+      return utils.get_jtype(__args[0]).wrap(j_httpResponse["bodyAsJson(java.lang.Class)"](utils.get_jclass(type)));
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -245,7 +245,7 @@ var HttpResponse = function(j_val, j_arg_0) {
   this._jdel = j_httpResponse;
 };
 
-HttpResponse._jclass = utils.getJavaClass("io.vertx.webclient.HttpResponse");
+HttpResponse._jclass = utils.getJavaClass("io.vertx.ext.web.client.HttpResponse");
 HttpResponse._jtype = {
   accept: function(obj) {
     return HttpResponse._jclass.isInstance(obj._jdel);

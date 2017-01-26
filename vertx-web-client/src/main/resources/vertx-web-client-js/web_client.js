@@ -16,13 +16,14 @@
 
 /** @module vertx-web-client-js/web_client */
 var utils = require('vertx-js/util/utils');
+var Buffer = require('vertx-js/buffer');
 var Vertx = require('vertx-js/vertx');
-var HttpRequest = require('vertx-web-client-js/http_request');
 var HttpClient = require('vertx-js/http_client');
+var HttpRequest = require('vertx-web-client-js/http_request');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
-var JWebClient = io.vertx.webclient.WebClient;
+var JWebClient = io.vertx.ext.web.client.WebClient;
 
 /**
 
@@ -46,11 +47,11 @@ var WebClient = function(j_val) {
   this.request = function() {
     var __args = arguments;
     if (__args.length === 2 && typeof __args[0] === 'string' && typeof __args[1] === 'string') {
-      return utils.convReturnVertxGen(HttpRequest, j_webClient["request(io.vertx.core.http.HttpMethod,java.lang.String)"](io.vertx.core.http.HttpMethod.valueOf(__args[0]), __args[1]));
+      return utils.convReturnVertxGen(HttpRequest, j_webClient["request(io.vertx.core.http.HttpMethod,java.lang.String)"](io.vertx.core.http.HttpMethod.valueOf(__args[0]), __args[1]), Buffer._jtype);
     }  else if (__args.length === 3 && typeof __args[0] === 'string' && typeof __args[1] === 'string' && typeof __args[2] === 'string') {
-      return utils.convReturnVertxGen(HttpRequest, j_webClient["request(io.vertx.core.http.HttpMethod,java.lang.String,java.lang.String)"](io.vertx.core.http.HttpMethod.valueOf(__args[0]), __args[1], __args[2]));
+      return utils.convReturnVertxGen(HttpRequest, j_webClient["request(io.vertx.core.http.HttpMethod,java.lang.String,java.lang.String)"](io.vertx.core.http.HttpMethod.valueOf(__args[0]), __args[1], __args[2]), Buffer._jtype);
     }  else if (__args.length === 4 && typeof __args[0] === 'string' && typeof __args[1] ==='number' && typeof __args[2] === 'string' && typeof __args[3] === 'string') {
-      return utils.convReturnVertxGen(HttpRequest, j_webClient["request(io.vertx.core.http.HttpMethod,int,java.lang.String,java.lang.String)"](io.vertx.core.http.HttpMethod.valueOf(__args[0]), __args[1], __args[2], __args[3]));
+      return utils.convReturnVertxGen(HttpRequest, j_webClient["request(io.vertx.core.http.HttpMethod,int,java.lang.String,java.lang.String)"](io.vertx.core.http.HttpMethod.valueOf(__args[0]), __args[1], __args[2], __args[3]), Buffer._jtype);
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -65,7 +66,7 @@ var WebClient = function(j_val) {
   this.requestAbs = function(method, absoluteURI) {
     var __args = arguments;
     if (__args.length === 2 && typeof __args[0] === 'string' && typeof __args[1] === 'string') {
-      return utils.convReturnVertxGen(HttpRequest, j_webClient["requestAbs(io.vertx.core.http.HttpMethod,java.lang.String)"](io.vertx.core.http.HttpMethod.valueOf(method), absoluteURI));
+      return utils.convReturnVertxGen(HttpRequest, j_webClient["requestAbs(io.vertx.core.http.HttpMethod,java.lang.String)"](io.vertx.core.http.HttpMethod.valueOf(method), absoluteURI), Buffer._jtype);
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -81,11 +82,11 @@ var WebClient = function(j_val) {
   this.get = function() {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return utils.convReturnVertxGen(HttpRequest, j_webClient["get(java.lang.String)"](__args[0]));
+      return utils.convReturnVertxGen(HttpRequest, j_webClient["get(java.lang.String)"](__args[0]), Buffer._jtype);
     }  else if (__args.length === 2 && typeof __args[0] === 'string' && typeof __args[1] === 'string') {
-      return utils.convReturnVertxGen(HttpRequest, j_webClient["get(java.lang.String,java.lang.String)"](__args[0], __args[1]));
+      return utils.convReturnVertxGen(HttpRequest, j_webClient["get(java.lang.String,java.lang.String)"](__args[0], __args[1]), Buffer._jtype);
     }  else if (__args.length === 3 && typeof __args[0] ==='number' && typeof __args[1] === 'string' && typeof __args[2] === 'string') {
-      return utils.convReturnVertxGen(HttpRequest, j_webClient["get(int,java.lang.String,java.lang.String)"](__args[0], __args[1], __args[2]));
+      return utils.convReturnVertxGen(HttpRequest, j_webClient["get(int,java.lang.String,java.lang.String)"](__args[0], __args[1], __args[2]), Buffer._jtype);
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -100,7 +101,7 @@ var WebClient = function(j_val) {
   this.getAbs = function(absoluteURI) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return utils.convReturnVertxGen(HttpRequest, j_webClient["getAbs(java.lang.String)"](absoluteURI));
+      return utils.convReturnVertxGen(HttpRequest, j_webClient["getAbs(java.lang.String)"](absoluteURI), Buffer._jtype);
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -116,11 +117,11 @@ var WebClient = function(j_val) {
   this.post = function() {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return utils.convReturnVertxGen(HttpRequest, j_webClient["post(java.lang.String)"](__args[0]));
+      return utils.convReturnVertxGen(HttpRequest, j_webClient["post(java.lang.String)"](__args[0]), Buffer._jtype);
     }  else if (__args.length === 2 && typeof __args[0] === 'string' && typeof __args[1] === 'string') {
-      return utils.convReturnVertxGen(HttpRequest, j_webClient["post(java.lang.String,java.lang.String)"](__args[0], __args[1]));
+      return utils.convReturnVertxGen(HttpRequest, j_webClient["post(java.lang.String,java.lang.String)"](__args[0], __args[1]), Buffer._jtype);
     }  else if (__args.length === 3 && typeof __args[0] ==='number' && typeof __args[1] === 'string' && typeof __args[2] === 'string') {
-      return utils.convReturnVertxGen(HttpRequest, j_webClient["post(int,java.lang.String,java.lang.String)"](__args[0], __args[1], __args[2]));
+      return utils.convReturnVertxGen(HttpRequest, j_webClient["post(int,java.lang.String,java.lang.String)"](__args[0], __args[1], __args[2]), Buffer._jtype);
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -135,7 +136,7 @@ var WebClient = function(j_val) {
   this.postAbs = function(absoluteURI) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return utils.convReturnVertxGen(HttpRequest, j_webClient["postAbs(java.lang.String)"](absoluteURI));
+      return utils.convReturnVertxGen(HttpRequest, j_webClient["postAbs(java.lang.String)"](absoluteURI), Buffer._jtype);
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -151,11 +152,11 @@ var WebClient = function(j_val) {
   this.put = function() {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return utils.convReturnVertxGen(HttpRequest, j_webClient["put(java.lang.String)"](__args[0]));
+      return utils.convReturnVertxGen(HttpRequest, j_webClient["put(java.lang.String)"](__args[0]), Buffer._jtype);
     }  else if (__args.length === 2 && typeof __args[0] === 'string' && typeof __args[1] === 'string') {
-      return utils.convReturnVertxGen(HttpRequest, j_webClient["put(java.lang.String,java.lang.String)"](__args[0], __args[1]));
+      return utils.convReturnVertxGen(HttpRequest, j_webClient["put(java.lang.String,java.lang.String)"](__args[0], __args[1]), Buffer._jtype);
     }  else if (__args.length === 3 && typeof __args[0] ==='number' && typeof __args[1] === 'string' && typeof __args[2] === 'string') {
-      return utils.convReturnVertxGen(HttpRequest, j_webClient["put(int,java.lang.String,java.lang.String)"](__args[0], __args[1], __args[2]));
+      return utils.convReturnVertxGen(HttpRequest, j_webClient["put(int,java.lang.String,java.lang.String)"](__args[0], __args[1], __args[2]), Buffer._jtype);
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -170,7 +171,7 @@ var WebClient = function(j_val) {
   this.putAbs = function(absoluteURI) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return utils.convReturnVertxGen(HttpRequest, j_webClient["putAbs(java.lang.String)"](absoluteURI));
+      return utils.convReturnVertxGen(HttpRequest, j_webClient["putAbs(java.lang.String)"](absoluteURI), Buffer._jtype);
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -186,11 +187,11 @@ var WebClient = function(j_val) {
   this.delete = function() {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return utils.convReturnVertxGen(HttpRequest, j_webClient["delete(java.lang.String)"](__args[0]));
+      return utils.convReturnVertxGen(HttpRequest, j_webClient["delete(java.lang.String)"](__args[0]), Buffer._jtype);
     }  else if (__args.length === 2 && typeof __args[0] === 'string' && typeof __args[1] === 'string') {
-      return utils.convReturnVertxGen(HttpRequest, j_webClient["delete(java.lang.String,java.lang.String)"](__args[0], __args[1]));
+      return utils.convReturnVertxGen(HttpRequest, j_webClient["delete(java.lang.String,java.lang.String)"](__args[0], __args[1]), Buffer._jtype);
     }  else if (__args.length === 3 && typeof __args[0] ==='number' && typeof __args[1] === 'string' && typeof __args[2] === 'string') {
-      return utils.convReturnVertxGen(HttpRequest, j_webClient["delete(int,java.lang.String,java.lang.String)"](__args[0], __args[1], __args[2]));
+      return utils.convReturnVertxGen(HttpRequest, j_webClient["delete(int,java.lang.String,java.lang.String)"](__args[0], __args[1], __args[2]), Buffer._jtype);
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -205,7 +206,7 @@ var WebClient = function(j_val) {
   this.deleteAbs = function(absoluteURI) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return utils.convReturnVertxGen(HttpRequest, j_webClient["deleteAbs(java.lang.String)"](absoluteURI));
+      return utils.convReturnVertxGen(HttpRequest, j_webClient["deleteAbs(java.lang.String)"](absoluteURI), Buffer._jtype);
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -221,11 +222,11 @@ var WebClient = function(j_val) {
   this.patch = function() {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return utils.convReturnVertxGen(HttpRequest, j_webClient["patch(java.lang.String)"](__args[0]));
+      return utils.convReturnVertxGen(HttpRequest, j_webClient["patch(java.lang.String)"](__args[0]), Buffer._jtype);
     }  else if (__args.length === 2 && typeof __args[0] === 'string' && typeof __args[1] === 'string') {
-      return utils.convReturnVertxGen(HttpRequest, j_webClient["patch(java.lang.String,java.lang.String)"](__args[0], __args[1]));
+      return utils.convReturnVertxGen(HttpRequest, j_webClient["patch(java.lang.String,java.lang.String)"](__args[0], __args[1]), Buffer._jtype);
     }  else if (__args.length === 3 && typeof __args[0] ==='number' && typeof __args[1] === 'string' && typeof __args[2] === 'string') {
-      return utils.convReturnVertxGen(HttpRequest, j_webClient["patch(int,java.lang.String,java.lang.String)"](__args[0], __args[1], __args[2]));
+      return utils.convReturnVertxGen(HttpRequest, j_webClient["patch(int,java.lang.String,java.lang.String)"](__args[0], __args[1], __args[2]), Buffer._jtype);
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -240,7 +241,7 @@ var WebClient = function(j_val) {
   this.patchAbs = function(absoluteURI) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return utils.convReturnVertxGen(HttpRequest, j_webClient["patchAbs(java.lang.String)"](absoluteURI));
+      return utils.convReturnVertxGen(HttpRequest, j_webClient["patchAbs(java.lang.String)"](absoluteURI), Buffer._jtype);
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -256,11 +257,11 @@ var WebClient = function(j_val) {
   this.head = function() {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return utils.convReturnVertxGen(HttpRequest, j_webClient["head(java.lang.String)"](__args[0]));
+      return utils.convReturnVertxGen(HttpRequest, j_webClient["head(java.lang.String)"](__args[0]), Buffer._jtype);
     }  else if (__args.length === 2 && typeof __args[0] === 'string' && typeof __args[1] === 'string') {
-      return utils.convReturnVertxGen(HttpRequest, j_webClient["head(java.lang.String,java.lang.String)"](__args[0], __args[1]));
+      return utils.convReturnVertxGen(HttpRequest, j_webClient["head(java.lang.String,java.lang.String)"](__args[0], __args[1]), Buffer._jtype);
     }  else if (__args.length === 3 && typeof __args[0] ==='number' && typeof __args[1] === 'string' && typeof __args[2] === 'string') {
-      return utils.convReturnVertxGen(HttpRequest, j_webClient["head(int,java.lang.String,java.lang.String)"](__args[0], __args[1], __args[2]));
+      return utils.convReturnVertxGen(HttpRequest, j_webClient["head(int,java.lang.String,java.lang.String)"](__args[0], __args[1], __args[2]), Buffer._jtype);
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -275,7 +276,7 @@ var WebClient = function(j_val) {
   this.headAbs = function(absoluteURI) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return utils.convReturnVertxGen(HttpRequest, j_webClient["headAbs(java.lang.String)"](absoluteURI));
+      return utils.convReturnVertxGen(HttpRequest, j_webClient["headAbs(java.lang.String)"](absoluteURI), Buffer._jtype);
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -299,7 +300,7 @@ var WebClient = function(j_val) {
   this._jdel = j_webClient;
 };
 
-WebClient._jclass = utils.getJavaClass("io.vertx.webclient.WebClient");
+WebClient._jclass = utils.getJavaClass("io.vertx.ext.web.client.WebClient");
 WebClient._jtype = {
   accept: function(obj) {
     return WebClient._jclass.isInstance(obj._jdel);

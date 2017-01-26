@@ -61,7 +61,7 @@ public class ThymeleafTemplateEngineImpl implements ThymeleafTemplateEngine {
 
     @Override
     public ThymeleafTemplateEngine setMode(TemplateMode mode) {
-        templateResolver.setTemplateMode(TemplateMode.HTML);
+        templateResolver.setTemplateMode(mode);
         return this;
     }
 

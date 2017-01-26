@@ -136,7 +136,10 @@ module VertxWeb
     # @return [::Vertx::Vertx] the Vert.x instance associated to the initiating {::VertxWeb::Router} for this context
     def vertx
       if !block_given?
-        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:vertx, []).call(),::Vertx::Vertx)
+        if @cached_vertx != nil
+          return @cached_vertx
+        end
+        return @cached_vertx = ::Vertx::Util::Utils.safe_create(@j_del.java_method(:vertx, []).call(),::Vertx::Vertx)
       end
       raise ArgumentError, "Invalid arguments when calling vertx()"
     end

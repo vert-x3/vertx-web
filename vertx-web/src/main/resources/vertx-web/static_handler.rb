@@ -209,5 +209,15 @@ module VertxWeb
       end
       raise ArgumentError, "Invalid arguments when calling set_send_vary_header(#{varyHeader})"
     end
+    #  Set the default content encoding for text related files. This allows overriding the system settings default value.
+    # @param [String] contentEncoding the desired content encoding e.g.: "UTF-8"
+    # @return [self]
+    def set_default_content_encoding(contentEncoding=nil)
+      if contentEncoding.class == String && !block_given?
+        @j_del.java_method(:setDefaultContentEncoding, [Java::java.lang.String.java_class]).call(contentEncoding)
+        return self
+      end
+      raise ArgumentError, "Invalid arguments when calling set_default_content_encoding(#{contentEncoding})"
+    end
   end
 end

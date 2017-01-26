@@ -28,14 +28,15 @@ import io.vertx.core.Handler;
  * NOTE: This class has been automatically generated from the {@link io.vertx.serviceproxy.testmodel.TestConnectionWithCloseFuture original} non RX-ified interface using Vert.x codegen.
  */
 
+@io.vertx.lang.rxjava.RxGen(io.vertx.serviceproxy.testmodel.TestConnectionWithCloseFuture.class)
 public class TestConnectionWithCloseFuture {
 
-  public static final io.vertx.lang.rxjava.TypeArg<TestConnectionWithCloseFuture> arg = new io.vertx.lang.rxjava.TypeArg<>(
+  public static final io.vertx.lang.rxjava.TypeArg<TestConnectionWithCloseFuture> __TYPE_ARG = new io.vertx.lang.rxjava.TypeArg<>(
     obj -> new TestConnectionWithCloseFuture((io.vertx.serviceproxy.testmodel.TestConnectionWithCloseFuture) obj),
     TestConnectionWithCloseFuture::getDelegate
   );
 
-  final io.vertx.serviceproxy.testmodel.TestConnectionWithCloseFuture delegate;
+  private final io.vertx.serviceproxy.testmodel.TestConnectionWithCloseFuture delegate;
   
   public TestConnectionWithCloseFuture(io.vertx.serviceproxy.testmodel.TestConnectionWithCloseFuture delegate) {
     this.delegate = delegate;
@@ -49,13 +50,6 @@ public class TestConnectionWithCloseFuture {
     delegate.close(handler);
   }
 
-  @Deprecated()
-  public Observable<Void> closeObservable() { 
-    io.vertx.rx.java.ObservableFuture<Void> handler = io.vertx.rx.java.RxHelper.observableFuture();
-    close(handler.toHandler());
-    return handler;
-  }
-
   public Single<Void> rxClose() { 
     return Single.create(new io.vertx.rx.java.SingleOnSubscribeAdapter<>(fut -> {
       close(fut);
@@ -64,13 +58,6 @@ public class TestConnectionWithCloseFuture {
 
   public void someMethod(Handler<AsyncResult<String>> resultHandler) { 
     delegate.someMethod(resultHandler);
-  }
-
-  @Deprecated()
-  public Observable<String> someMethodObservable() { 
-    io.vertx.rx.java.ObservableFuture<String> resultHandler = io.vertx.rx.java.RxHelper.observableFuture();
-    someMethod(resultHandler.toHandler());
-    return resultHandler;
   }
 
   public Single<String> rxSomeMethod() { 

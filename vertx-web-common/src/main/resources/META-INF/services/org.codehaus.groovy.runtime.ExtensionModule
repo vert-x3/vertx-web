@@ -1,0 +1,4 @@
+moduleName = io.vertx.ext.web.codec.BodyCodec-module
+moduleVersion = 1.0
+extensionClasses = 
+staticExtensionClasses = io.vertx.groovy.ext.web.codec.BodyCodec_GroovyStaticExtension
