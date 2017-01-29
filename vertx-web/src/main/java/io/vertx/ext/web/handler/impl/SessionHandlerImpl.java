@@ -40,6 +40,7 @@ public class SessionHandlerImpl implements SessionHandler {
   private boolean nagHttps;
   private boolean sessionCookieSecure;
   private boolean sessionCookieHttpOnly;
+  private long sessionCookieMaxAge;
   private int minLength;
 
   public SessionHandlerImpl(String sessionCookieName, long sessionTimeout, boolean nagHttps, boolean sessionCookieSecure, boolean sessionCookieHttpOnly, int minLength, SessionStore sessionStore) {
@@ -50,6 +51,7 @@ public class SessionHandlerImpl implements SessionHandler {
     this.sessionCookieSecure = sessionCookieSecure;
     this.sessionCookieHttpOnly = sessionCookieHttpOnly;
     this.minLength = minLength;
+    this.sessionCookieMaxAge = 0;
   }
 
   @Override
@@ -79,6 +81,12 @@ public class SessionHandlerImpl implements SessionHandler {
   @Override
   public SessionHandler setSessionCookieName(String sessionCookieName) {
     this.sessionCookieName = sessionCookieName;
+    return this;
+  }
+
+  @Override
+  public SessionHandler setSessionCookieMaxAge(long sessionCookieMaxAge) {
+    this.sessionCookieMaxAge = sessionCookieMaxAge<0?0:sessionCookieMaxAge;
     return this;
   }
 
@@ -215,11 +223,13 @@ public class SessionHandlerImpl implements SessionHandler {
   private void createNewSession(RoutingContext context) {
     Session session = sessionStore.createSession(sessionTimeout, minLength);
     context.setSession(session);
-    Cookie cookie = Cookie.cookie(sessionCookieName, session.id());
-    cookie.setPath("/");
-    cookie.setSecure(sessionCookieSecure);
-    cookie.setHttpOnly(sessionCookieHttpOnly);
-    // Don't set max age - it's a session cookie
+    Cookie cookie = Cookie.cookie(sessionCookieName, session.id())
+      .setPath("/")
+      .setSecure(sessionCookieSecure)
+      .setHttpOnly(sessionCookieHttpOnly);
+    // set max age if user requested it - else it's a session cookie
+    if(sessionCookieMaxAge > 0)
+      cookie.setMaxAge(sessionCookieMaxAge);
     context.addCookie(cookie);
     addStoreSessionHandler(context);
   }
