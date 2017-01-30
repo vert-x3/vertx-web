@@ -22,7 +22,7 @@ var RoutingContext = require('vertx-web-js/routing_context');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
-var JDigestAuthHandler = io.vertx.ext.web.handler.DigestAuthHandler;
+var JDigestAuthHandler = Java.type('io.vertx.ext.web.handler.DigestAuthHandler');
 
 /**
  An auth handler that provides HTTP Basic Authentication support.

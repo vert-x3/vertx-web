@@ -21,7 +21,7 @@ var Future = require('vertx-js/future');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
-var JBridgeEvent = io.vertx.ext.web.handler.sockjs.BridgeEvent;
+var JBridgeEvent = Java.type('io.vertx.ext.web.handler.sockjs.BridgeEvent');
 
 /**
  Represents an event that occurs on the event bus bridge.

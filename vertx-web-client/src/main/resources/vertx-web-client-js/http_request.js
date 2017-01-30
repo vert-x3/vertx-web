@@ -24,7 +24,7 @@ var ReadStream = require('vertx-js/read_stream');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
-var JHttpRequest = io.vertx.ext.web.client.HttpRequest;
+var JHttpRequest = Java.type('io.vertx.ext.web.client.HttpRequest');
 
 /**
  A client-side HTTP request.

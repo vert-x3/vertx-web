@@ -22,7 +22,7 @@ var RoutingContext = require('vertx-web-js/routing_context');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
-var JMVELTemplateEngine = io.vertx.ext.web.templ.MVELTemplateEngine;
+var JMVELTemplateEngine = Java.type('io.vertx.ext.web.templ.MVELTemplateEngine');
 
 /**
  A template engine that uses the Handlebars library.

@@ -19,7 +19,7 @@ var utils = require('vertx-js/util/utils');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
-var JLocale = io.vertx.ext.web.Locale;
+var JLocale = Java.type('io.vertx.ext.web.Locale');
 
 /**
 

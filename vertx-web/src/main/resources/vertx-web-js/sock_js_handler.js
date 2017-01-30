@@ -24,9 +24,9 @@ var BridgeEvent = require('vertx-web-js/bridge_event');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
-var JSockJSHandler = io.vertx.ext.web.handler.sockjs.SockJSHandler;
-var SockJSHandlerOptions = io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
-var BridgeOptions = io.vertx.ext.web.handler.sockjs.BridgeOptions;
+var JSockJSHandler = Java.type('io.vertx.ext.web.handler.sockjs.SockJSHandler');
+var SockJSHandlerOptions = Java.type('io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions');
+var BridgeOptions = Java.type('io.vertx.ext.web.handler.sockjs.BridgeOptions');
 
 /**
 
@@ -84,10 +84,10 @@ var SockJSHandler = function(j_val) {
   this.bridge = function() {
     var __args = arguments;
     if (__args.length === 1 && (typeof __args[0] === 'object' && __args[0] != null)) {
-      j_sockJSHandler["bridge(io.vertx.ext.web.handler.sockjs.BridgeOptions)"](__args[0] != null ? new BridgeOptions(new JsonObject(JSON.stringify(__args[0]))) : null);
+      j_sockJSHandler["bridge(io.vertx.ext.web.handler.sockjs.BridgeOptions)"](__args[0] != null ? new BridgeOptions(new JsonObject(Java.asJSONCompatible(__args[0]))) : null);
       return that;
     }  else if (__args.length === 2 && (typeof __args[0] === 'object' && __args[0] != null) && typeof __args[1] === 'function') {
-      j_sockJSHandler["bridge(io.vertx.ext.web.handler.sockjs.BridgeOptions,io.vertx.core.Handler)"](__args[0] != null ? new BridgeOptions(new JsonObject(JSON.stringify(__args[0]))) : null, function(jVal) {
+      j_sockJSHandler["bridge(io.vertx.ext.web.handler.sockjs.BridgeOptions,io.vertx.core.Handler)"](__args[0] != null ? new BridgeOptions(new JsonObject(Java.asJSONCompatible(__args[0]))) : null, function(jVal) {
       __args[1](utils.convReturnVertxGen(BridgeEvent, jVal));
     });
       return that;
@@ -132,7 +132,7 @@ SockJSHandler.create = function() {
   if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
     return utils.convReturnVertxGen(SockJSHandler, JSockJSHandler["create(io.vertx.core.Vertx)"](__args[0]._jdel));
   }else if (__args.length === 2 && typeof __args[0] === 'object' && __args[0]._jdel && (typeof __args[1] === 'object' && __args[1] != null)) {
-    return utils.convReturnVertxGen(SockJSHandler, JSockJSHandler["create(io.vertx.core.Vertx,io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions)"](__args[0]._jdel, __args[1] != null ? new SockJSHandlerOptions(new JsonObject(JSON.stringify(__args[1]))) : null));
+    return utils.convReturnVertxGen(SockJSHandler, JSockJSHandler["create(io.vertx.core.Vertx,io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions)"](__args[0]._jdel, __args[1] != null ? new SockJSHandlerOptions(new JsonObject(Java.asJSONCompatible(__args[1]))) : null));
   } else throw new TypeError('function invoked with invalid arguments');
 };
 

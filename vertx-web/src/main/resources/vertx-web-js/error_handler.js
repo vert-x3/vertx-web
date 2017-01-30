@@ -20,7 +20,7 @@ var RoutingContext = require('vertx-web-js/routing_context');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
-var JErrorHandler = io.vertx.ext.web.handler.ErrorHandler;
+var JErrorHandler = Java.type('io.vertx.ext.web.handler.ErrorHandler');
 
 /**
  A pretty error handler for rendering error pages.

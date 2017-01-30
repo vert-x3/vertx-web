@@ -756,9 +756,9 @@
  * By default this PRNG uses a mixed mode, blocking for seeding, non blocking for generating. The PRNG will also reseed
  * every 5 minutes with 64bits of new entropy. However this can all be configured using the system properties:
  *
- * * io.vertx.ext.web.session.algorithm e.g.: SHA1PRNG
- * * io.vertx.ext.web.session.seed.interval e.g.: 1000 (every second)
- * * io.vertx.ext.web.session.seed.bits e.g.: 128
+ * * io.vertx.ext.auth.prng.algorithm e.g.: SHA1PRNG
+ * * io.vertx.ext.auth.prng.seed.interval e.g.: 1000 (every second)
+ * * io.vertx.ext.auth.prng.seed.bits e.g.: 128
  *
  * Most users should not need to configure these values unless if you notice that the performance of your application is
  * being affected by the PRNG algorithm.
@@ -1724,11 +1724,11 @@
  * ----
  * {@link examples.WebExamples#example49}
  * ----
- * 
- * Here’s an example how to configure and handle SOCKET_IDLE bridge event type. 
- * Notice `setPingTimeout(5000)` which says that if ping message doesn't arrive from client within 5 seconds 
+ *
+ * Here’s an example how to configure and handle SOCKET_IDLE bridge event type.
+ * Notice `setPingTimeout(5000)` which says that if ping message doesn't arrive from client within 5 seconds
  * then the SOCKET_IDLE bridge event would be triggered.
- * 
+ *
  * ----
  * // Initialize SockJS handler
  * Router router = Router.router(vertx);
@@ -1740,13 +1740,13 @@
  * 	if (be.type() == BridgeEventType.SOCKET_IDLE) {
  *	    // Do some custom handling...
  *	}
- *	
+ *
  *  be.complete(true);
  * });
- *	
+ *
  * router.route("/eventbus").handler(sockJSHandler);
  * ----
- *	
+ *
  * In client side JavaScript you use the 'vertx-eventbus.js` library to create connections to the event bus and to send and receive messages:
  *
  * ----
@@ -1754,20 +1754,20 @@
  * <script src='vertx-eventbus.js'></script>
  *
  * <script>
- *	
+ *
  * var eb = new EventBus('http://localhost:8080/eventbus', {"vertxbus_ping_interval": 300000}); // sends ping every 5 minutes.
- *	
+ *
  * eb.onopen = function() {
- *	
+ *
  *  // set a handler to receive a message
  *  eb.registerHandler('some-address', function(error, message) {
  *    console.log('received a message: ' + JSON.stringify(message));
  *  });
- *	
+ *
  *  // send a message
  *  eb.send('some-address', {name: 'tim', age: 587});
  * }
- *	
+ *
  * </script>
  * ----
  *

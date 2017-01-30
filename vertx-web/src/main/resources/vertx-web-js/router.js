@@ -23,7 +23,7 @@ var RoutingContext = require('vertx-web-js/routing_context');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
-var JRouter = io.vertx.ext.web.Router;
+var JRouter = Java.type('io.vertx.ext.web.Router');
 
 /**
 

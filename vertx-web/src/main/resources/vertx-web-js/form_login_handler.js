@@ -21,7 +21,7 @@ var AuthProvider = require('vertx-auth-common-js/auth_provider');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
-var JFormLoginHandler = io.vertx.ext.web.handler.FormLoginHandler;
+var JFormLoginHandler = Java.type('io.vertx.ext.web.handler.FormLoginHandler');
 
 /**
  Handler that handles login from a form on a custom login page.

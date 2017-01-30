@@ -22,7 +22,7 @@ var LanguageHeader = require('vertx-web-js/language_header');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
-var JParsedHeaderValues = io.vertx.ext.web.ParsedHeaderValues;
+var JParsedHeaderValues = Java.type('io.vertx.ext.web.ParsedHeaderValues');
 
 /**
  A container with the request's headers that are meaningful enough to be parsed

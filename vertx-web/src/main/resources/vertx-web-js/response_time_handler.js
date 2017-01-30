@@ -20,7 +20,7 @@ var RoutingContext = require('vertx-web-js/routing_context');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
-var JResponseTimeHandler = io.vertx.ext.web.handler.ResponseTimeHandler;
+var JResponseTimeHandler = Java.type('io.vertx.ext.web.handler.ResponseTimeHandler');
 
 /**
  Handler which adds a header `x-response-time` in the response of matching requests containing the time taken

@@ -20,7 +20,7 @@ var Session = require('vertx-web-js/session');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
-var JSessionStore = io.vertx.ext.web.sstore.SessionStore;
+var JSessionStore = Java.type('io.vertx.ext.web.sstore.SessionStore');
 
 /**
  A session store is used to store sessions for an Vert.x-Web web app

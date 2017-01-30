@@ -21,7 +21,7 @@ var WriteStream = require('vertx-js/write_stream');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
-var JBodyCodec = io.vertx.ext.web.codec.BodyCodec;
+var JBodyCodec = Java.type('io.vertx.ext.web.codec.BodyCodec');
 
 /**
  A codec for encoding and decoding HTTP bodies.

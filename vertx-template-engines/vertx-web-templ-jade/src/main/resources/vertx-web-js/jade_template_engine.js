@@ -22,7 +22,7 @@ var RoutingContext = require('vertx-web-js/routing_context');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
-var JJadeTemplateEngine = io.vertx.ext.web.templ.JadeTemplateEngine;
+var JJadeTemplateEngine = Java.type('io.vertx.ext.web.templ.JadeTemplateEngine');
 
 /**
  A template engine that uses Jade.

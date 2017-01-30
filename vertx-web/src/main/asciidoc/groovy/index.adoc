@@ -2852,7 +2852,6 @@ Due to the nature of OAuth2 spec there are slight changes required in order to u
 vertx-auth provides you with many out of the box implementations:
 
 
-* App.net `link:../../apidocs/io/vertx/ext/auth/oauth2/providers/AppNetAuth.html[AppNetAuth]`
 * Azure Active Directory `link:../../apidocs/io/vertx/ext/auth/oauth2/providers/AzureADAuth.html[AzureADAuth]`
 * Box.com `link:../../apidocs/io/vertx/ext/auth/oauth2/providers/BoxAuth.html[BoxAuth]`
 * Dropbox `link:../../apidocs/io/vertx/ext/auth/oauth2/providers/DropboxAuth.html[DropboxAuth]`

@@ -22,7 +22,7 @@ var RoutingContext = require('vertx-web-js/routing_context');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
-var JThymeleafTemplateEngine = io.vertx.ext.web.templ.ThymeleafTemplateEngine;
+var JThymeleafTemplateEngine = Java.type('io.vertx.ext.web.templ.ThymeleafTemplateEngine');
 
 /**
  A template engine that uses the Thymeleaf library.

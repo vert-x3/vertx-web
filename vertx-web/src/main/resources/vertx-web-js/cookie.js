@@ -19,7 +19,7 @@ var utils = require('vertx-js/util/utils');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
-var JCookie = io.vertx.ext.web.Cookie;
+var JCookie = Java.type('io.vertx.ext.web.Cookie');
 
 /**
  Represents an HTTP Cookie.

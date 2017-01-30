@@ -22,7 +22,7 @@ var JWTAuth = require('vertx-auth-jwt-js/jwt_auth');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
-var JJWTAuthHandler = io.vertx.ext.web.handler.JWTAuthHandler;
+var JJWTAuthHandler = Java.type('io.vertx.ext.web.handler.JWTAuthHandler');
 
 /**
  An auth handler that provides JWT Authentication support.

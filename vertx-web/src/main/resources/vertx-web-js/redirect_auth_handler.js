@@ -22,7 +22,7 @@ var AuthProvider = require('vertx-auth-common-js/auth_provider');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
-var JRedirectAuthHandler = io.vertx.ext.web.handler.RedirectAuthHandler;
+var JRedirectAuthHandler = Java.type('io.vertx.ext.web.handler.RedirectAuthHandler');
 
 /**
  An auth handler that's used to handle auth by redirecting user to a custom login page.

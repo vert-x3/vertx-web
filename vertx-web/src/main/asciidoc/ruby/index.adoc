@@ -2847,7 +2847,6 @@ Due to the nature of OAuth2 spec there are slight changes required in order to u
 vertx-auth provides you with many out of the box implementations:
 
 
-* App.net `link:../../yardoc/VertxAuthOauth2/AppNetAuth.html[AppNetAuth]`
 * Azure Active Directory `link:../../yardoc/VertxAuthOauth2/AzureADAuth.html[AzureADAuth]`
 * Box.com `link:../../yardoc/VertxAuthOauth2/BoxAuth.html[BoxAuth]`
 * Dropbox `link:../../yardoc/VertxAuthOauth2/DropboxAuth.html[DropboxAuth]`

@@ -21,7 +21,7 @@ var RoutingContext = require('vertx-web-js/routing_context');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
-var JTemplateHandler = io.vertx.ext.web.handler.TemplateHandler;
+var JTemplateHandler = Java.type('io.vertx.ext.web.handler.TemplateHandler');
 
 /**
 

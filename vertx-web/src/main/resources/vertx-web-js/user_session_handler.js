@@ -21,7 +21,7 @@ var AuthProvider = require('vertx-auth-common-js/auth_provider');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
-var JUserSessionHandler = io.vertx.ext.web.handler.UserSessionHandler;
+var JUserSessionHandler = Java.type('io.vertx.ext.web.handler.UserSessionHandler');
 
 /**
 

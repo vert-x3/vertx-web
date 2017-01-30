@@ -21,6 +21,7 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.shareddata.AsyncMap;
+import io.vertx.ext.auth.PRNG;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.sstore.ClusteredSessionStore;
 

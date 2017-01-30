@@ -20,7 +20,7 @@ var RoutingContext = require('vertx-web-js/routing_context');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
-var JCSRFHandler = io.vertx.ext.web.handler.CSRFHandler;
+var JCSRFHandler = Java.type('io.vertx.ext.web.handler.CSRFHandler');
 
 /**
  This handler adds a CSRF token to requests which mutate state. In order change the state a (XSRF-TOKEN) cookie is set

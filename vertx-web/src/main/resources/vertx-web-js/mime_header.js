@@ -20,7 +20,7 @@ var ParsedHeaderValue = require('vertx-web-js/parsed_header_value');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
-var JMIMEHeader = io.vertx.ext.web.MIMEHeader;
+var JMIMEHeader = Java.type('io.vertx.ext.web.MIMEHeader');
 
 /**
  @class

@@ -22,7 +22,7 @@ var AuthProvider = require('vertx-auth-common-js/auth_provider');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
-var JBasicAuthHandler = io.vertx.ext.web.handler.BasicAuthHandler;
+var JBasicAuthHandler = Java.type('io.vertx.ext.web.handler.BasicAuthHandler');
 
 /**
  An auth handler that provides HTTP Basic Authentication support.

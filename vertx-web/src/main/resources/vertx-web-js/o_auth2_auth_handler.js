@@ -23,7 +23,7 @@ var OAuth2Auth = require('vertx-auth-oauth2-js/o_auth2_auth');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
-var JOAuth2AuthHandler = io.vertx.ext.web.handler.OAuth2AuthHandler;
+var JOAuth2AuthHandler = Java.type('io.vertx.ext.web.handler.OAuth2AuthHandler');
 
 /**
  An auth handler that provides OAuth2 Authentication support. This handler is suitable for AuthCode flows.

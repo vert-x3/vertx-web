@@ -22,7 +22,7 @@ var Vertx = require('vertx-js/vertx');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
-var JClusteredSessionStore = io.vertx.ext.web.sstore.ClusteredSessionStore;
+var JClusteredSessionStore = Java.type('io.vertx.ext.web.sstore.ClusteredSessionStore');
 
 /**
  A session store which stores sessions in a distributed map so they are available across the cluster.

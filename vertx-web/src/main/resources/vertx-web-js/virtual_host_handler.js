@@ -20,7 +20,7 @@ var RoutingContext = require('vertx-web-js/routing_context');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
-var JVirtualHostHandler = io.vertx.ext.web.handler.VirtualHostHandler;
+var JVirtualHostHandler = Java.type('io.vertx.ext.web.handler.VirtualHostHandler');
 
 /**
  Handler that will filter requests based on the request Host name.

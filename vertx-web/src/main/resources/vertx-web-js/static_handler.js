@@ -20,7 +20,7 @@ var RoutingContext = require('vertx-web-js/routing_context');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
-var JStaticHandler = io.vertx.ext.web.handler.StaticHandler;
+var JStaticHandler = Java.type('io.vertx.ext.web.handler.StaticHandler');
 
 /**
  A handler for serving static resources from the file system or classpath.
