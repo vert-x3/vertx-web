@@ -20,6 +20,7 @@ import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.streams.WriteStream;
 import io.vertx.ext.web.codec.impl.BodyCodecImpl;
@@ -65,6 +66,13 @@ public interface BodyCodec<T> {
    */
   static BodyCodec<JsonObject> jsonObject() {
     return BodyCodecImpl.JSON_OBJECT;
+  }
+
+  /**
+   * @return the {@link JsonArray} codec
+   */
+  static BodyCodec<JsonArray> jsonArray() {
+    return BodyCodecImpl.JSON_ARRAY;
   }
 
   /**

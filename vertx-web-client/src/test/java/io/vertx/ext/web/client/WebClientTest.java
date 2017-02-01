@@ -18,16 +18,17 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.streams.ReadStream;
 import io.vertx.core.streams.WriteStream;
+import io.vertx.ext.web.client.jackson.WineAndCheese;
 import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.test.core.HttpTestBase;
 import io.vertx.test.core.TestUtils;
-import io.vertx.ext.web.client.jackson.WineAndCheese;
 import org.junit.Test;
 
 import java.io.File;
 import java.net.ConnectException;
 import java.nio.file.Files;
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -454,6 +455,42 @@ public class WebClientTest extends HttpTestBase {
       assertEquals(new WineAndCheese().setCheese("Goat Cheese").setWine("Condrieu"), resp.body());
       testComplete();
     }));
+    await();
+  }
+
+  @Test
+  public void testResponseBodyAsAsJsonArray() throws Exception {
+    JsonArray expected = new JsonArray().add("cheese").add("wine");
+    server.requestHandler(req -> {
+      req.response().end(expected.encode());
+    });
+    startServer();
+    HttpRequest<Buffer> get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
+    get
+      .as(BodyCodec.jsonArray())
+      .send(onSuccess(resp -> {
+        assertEquals(200, resp.statusCode());
+        assertEquals(expected, resp.body());
+        testComplete();
+      }));
+    await();
+  }
+
+  @Test
+  public void testResponseBodyAsAsJsonArrayMapped() throws Exception {
+    JsonArray expected = new JsonArray().add("cheese").add("wine");
+    server.requestHandler(req -> {
+      req.response().end(expected.encode());
+    });
+    startServer();
+    HttpRequest<Buffer> get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
+    get
+      .as(BodyCodec.json(List.class))
+      .send(onSuccess(resp -> {
+        assertEquals(200, resp.statusCode());
+        assertEquals(expected.getList(), resp.body());
+        testComplete();
+      }));
     await();
   }
 
