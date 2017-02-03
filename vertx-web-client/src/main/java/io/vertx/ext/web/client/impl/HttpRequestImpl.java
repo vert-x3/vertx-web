@@ -51,6 +51,8 @@ import java.util.Map;
  */
 class HttpRequestImpl<T> implements HttpRequest<T> {
 
+  private static final String USER_AGENT = UserAgentUtil.loadUserAgent();
+
   final HttpClient client;
   MultiMap params;
   HttpMethod method;
@@ -260,8 +262,12 @@ class HttpRequestImpl<T> implements HttpRequest<T> {
         req = client.request(method, requestURI);
       }
     }
+    MultiMap reqHeaders = req.headers();
     if (headers != null) {
-      req.headers().addAll(headers);
+      reqHeaders.addAll(headers);
+    }
+    if (!reqHeaders.contains(HttpHeaders.USER_AGENT)) {
+      reqHeaders.add(HttpHeaders.USER_AGENT, USER_AGENT);
     }
     req.exceptionHandler(err -> {
       if (!responseFuture.isComplete()) {
@@ -278,7 +284,7 @@ class HttpRequestImpl<T> implements HttpRequest<T> {
     }
     if (body != null) {
       if (contentType != null) {
-        String prev = req.headers().get(HttpHeaders.CONTENT_TYPE);
+        String prev = reqHeaders.get(HttpHeaders.CONTENT_TYPE);
         if (prev == null) {
           req.putHeader(HttpHeaders.CONTENT_TYPE, contentType);
         } else {

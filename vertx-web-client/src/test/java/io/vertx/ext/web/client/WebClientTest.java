@@ -9,6 +9,7 @@ import io.vertx.core.dns.AddressResolverOptions;
 import io.vertx.core.file.AsyncFile;
 import io.vertx.core.file.OpenOptions;
 import io.vertx.core.http.HttpClientOptions;
+import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.http.HttpServerRequest;
@@ -18,16 +19,18 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.streams.ReadStream;
 import io.vertx.core.streams.WriteStream;
+import io.vertx.ext.web.client.impl.UserAgentUtil;
+import io.vertx.ext.web.client.jackson.WineAndCheese;
 import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.test.core.HttpTestBase;
 import io.vertx.test.core.TestUtils;
-import io.vertx.ext.web.client.jackson.WineAndCheese;
 import org.junit.Test;
 
 import java.io.File;
 import java.net.ConnectException;
 import java.nio.file.Files;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -85,6 +88,20 @@ public class WebClientTest extends HttpTestBase {
   }
 
   @Test
+  public void testDefaultUserAgent() throws Exception {
+    testRequest(client -> client.get("somehost", "somepath"), req -> {
+      assertEquals(Collections.singletonList(UserAgentUtil.loadUserAgent()), req.headers().getAll(HttpHeaders.USER_AGENT));
+    });
+  }
+
+  @Test
+  public void testCustomUserAgent() throws Exception {
+    testRequest(client -> client.get("somehost", "somepath").putHeader(HttpHeaders.USER_AGENT.toString(), "smith"), req -> {
+      assertEquals(Collections.singletonList("smith"), req.headers().getAll(HttpHeaders.USER_AGENT));
+    });
+  }
+
+  @Test
   public void testGet() throws Exception {
     testRequest(HttpMethod.GET);
   }
@@ -118,9 +135,12 @@ public class WebClientTest extends HttpTestBase {
   private void testRequest(Function<WebClient, HttpRequest<Buffer>> reqFactory, Consumer<HttpServerRequest> reqChecker) throws Exception {
     waitFor(4);
     server.requestHandler(req -> {
-      reqChecker.accept(req);
-      complete();
-      req.response().end();
+      try {
+        reqChecker.accept(req);
+        complete();
+      } finally {
+        req.response().end();
+      }
     });
     startServer();
     HttpRequest<Buffer> builder = reqFactory.apply(client);
