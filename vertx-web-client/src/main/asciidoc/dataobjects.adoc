@@ -13,16 +13,16 @@
 ^|Name | Type ^| Description
 |[[httpClientOptions]]`httpClientOptions`|`link:dataobjects.html#HttpClientOptions[HttpClientOptions]`|
 +++
-Sets the underlying link options.
- Not used when the Web Client is created with link.
+Sets the underlying HttpClient options.
+ Not used when the Web Client is created by wrapping a HttpClient.
 +++
 |[[userAgent]]`userAgent`|`String`|
 +++
-Sets the Web Client user agent header. Defaults to <code>Vert.x-WebClient/&lt;version&gt;</code>.
+Sets the Web Client user agent header. Defaults to Vert.x-WebClient/&lt;version&gt;.
 +++
 |[[userAgentEnabled]]`userAgentEnabled`|`Boolean`|
 +++
-Sets whether the Web Client should send a user agent header. Defaults to <code>true</code>.
+Sets whether the Web Client should send a user agent header. Defaults to true.
 +++
 |===
 

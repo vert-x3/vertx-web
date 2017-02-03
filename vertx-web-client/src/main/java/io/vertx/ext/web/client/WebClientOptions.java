@@ -17,7 +17,6 @@
 package io.vertx.ext.web.client;
 
 import io.vertx.codegen.annotations.DataObject;
-import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.impl.UserAgentUtil;
@@ -66,8 +65,8 @@ public class WebClientOptions {
   }
 
   /**
-   * Returns the underlying {@link io.vertx.core.http.HttpClient} options.
-   * Not used when the Web Client is created with {@link WebClient#wrap(HttpClient)}.
+   * Returns the underlying HttpClient options.
+   * Not used when the Web Client is created by wrapping a HttpClient.
    *
    * @return the underlying {@link io.vertx.core.http.HttpClient} options
    */
@@ -76,8 +75,8 @@ public class WebClientOptions {
   }
 
   /**
-   * Sets the underlying {@link io.vertx.core.http.HttpClient} options.
-   * Not used when the Web Client is created with {@link WebClient#wrap(HttpClient)}.
+   * Sets the underlying HttpClient options.
+   * Not used when the Web Client is created by wrapping a HttpClient.
    *
    * @param httpClientOptions the underlying {@link io.vertx.core.http.HttpClient} options
    * @return a reference to this, so the API can be used fluently
@@ -95,7 +94,7 @@ public class WebClientOptions {
   }
 
   /**
-   * Sets whether the Web Client should send a user agent header. Defaults to <code>true</code>.
+   * Sets whether the Web Client should send a user agent header. Defaults to true.
    *
    * @param userAgentEnabled true to send a user agent header, false otherwise
    * @return a reference to this, so the API can be used fluently
@@ -113,7 +112,7 @@ public class WebClientOptions {
   }
 
   /**
-   * Sets the Web Client user agent header. Defaults to <code>Vert.x-WebClient/&lt;version&gt;</code>.
+   * Sets the Web Client user agent header. Defaults to Vert.x-WebClient/&lt;version&gt;.
    *
    * @param userAgent user agent header value
    * @return a reference to this, so the API can be used fluently
