@@ -96,8 +96,35 @@ public class WebClientTest extends HttpTestBase {
 
   @Test
   public void testCustomUserAgent() throws Exception {
+    client = WebClient.wrap(super.client, new WebClientOptions().setUserAgent("smith"));
+    testRequest(client -> client.get("somehost", "somepath"), req -> {
+      assertEquals(Collections.singletonList("smith"), req.headers().getAll(HttpHeaders.USER_AGENT));
+    });
+  }
+
+  @Test
+  public void testUserAgentDisabled() throws Exception {
+    client = WebClient.wrap(super.client, new WebClientOptions().setUserAgentEnabled(false));
+    testRequest(client -> client.get("somehost", "somepath"), req -> {
+      assertEquals(Collections.emptyList(), req.headers().getAll(HttpHeaders.USER_AGENT));
+    });
+  }
+
+  @Test
+  public void testUserAgentHeaderOverride() throws Exception {
     testRequest(client -> client.get("somehost", "somepath").putHeader(HttpHeaders.USER_AGENT.toString(), "smith"), req -> {
       assertEquals(Collections.singletonList("smith"), req.headers().getAll(HttpHeaders.USER_AGENT));
+    });
+  }
+
+  @Test
+  public void testUserAgentHeaderRemoved() throws Exception {
+    testRequest(client -> {
+      HttpRequest<Buffer> request = client.get("somehost", "somepath");
+      request.headers().remove(HttpHeaders.USER_AGENT);
+      return request;
+    }, req -> {
+      assertEquals(Collections.emptyList(), req.headers().getAll(HttpHeaders.USER_AGENT));
     });
   }
 

@@ -1,0 +1,28 @@
+= Cheatsheets
+
+[[WebClientOptions]]
+== WebClientOptions
+
+++++
+++++
+'''
+
+[cols=">25%,^25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[httpClientOptions]]`httpClientOptions`|`link:dataobjects.html#HttpClientOptions[HttpClientOptions]`|
++++
+Sets the underlying link options.
+ Not used when the Web Client is created with link.
++++
+|[[userAgent]]`userAgent`|`String`|
++++
+Sets the Web Client user agent header. Defaults to <code>Vert.x-WebClient/&lt;version&gt;</code>.
++++
+|[[userAgentEnabled]]`userAgentEnabled`|`Boolean`|
++++
+Sets whether the Web Client should send a user agent header. Defaults to <code>true</code>.
++++
+|===
+
