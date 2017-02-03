@@ -47,4 +47,8 @@ public class UserAgentUtil {
     }
     return userAgent.toString();
   }
+
+  private UserAgentUtil() {
+    // Utility class
+  }
 }
