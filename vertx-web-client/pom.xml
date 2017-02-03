@@ -34,26 +34,22 @@
   </dependencies>
 
   <build>
-    <plugins>
-      <plugin>
-        <artifactId>maven-antrun-plugin</artifactId>
-        <version>1.8</version>
-        <executions>
-          <execution>
-            <id>create-version-file</id>
-            <goals>
-              <goal>run</goal>
-            </goals>
-            <phase>generate-resources</phase>
-            <configuration>
-              <target>
-                <echo message="${project.version}" file="${project.basedir}/src/main/resources/version"/>
-              </target>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+        <filtering>true</filtering>
+        <includes>
+          <include>**/vertx-version.txt</include>
+        </includes>
+      </resource>
+      <resource>
+        <directory>src/main/resources</directory>
+        <filtering>false</filtering>
+        <excludes>
+          <exclude>**/vertx-version.txt</exclude>
+        </excludes>
+      </resource>
+    </resources>
   </build>
 
 </project>
