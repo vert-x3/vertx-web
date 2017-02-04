@@ -26,7 +26,7 @@ var SocketAddress = require('vertx-js/socket_address');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
-var JSockJSSocket = io.vertx.ext.web.handler.sockjs.SockJSSocket;
+var JSockJSSocket = Java.type('io.vertx.ext.web.handler.sockjs.SockJSSocket');
 
 /**
 

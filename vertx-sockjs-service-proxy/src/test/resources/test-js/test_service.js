@@ -22,8 +22,8 @@ var TestConnectionWithCloseFuture = require('test-js/test_connection_with_close_
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
-var JTestService = io.vertx.serviceproxy.testmodel.TestService;
-var TestDataObject = io.vertx.serviceproxy.testmodel.TestDataObject;
+var JTestService = Java.type('io.vertx.serviceproxy.testmodel.TestService');
+var TestDataObject = Java.type('io.vertx.serviceproxy.testmodel.TestDataObject');
 
 /**
 
@@ -273,7 +273,7 @@ var TestService = function(j_val) {
   this.dataObjectType = function(options) {
     var __args = arguments;
     if (__args.length === 1 && (typeof __args[0] === 'object' && __args[0] != null)) {
-      j_testService["dataObjectType(io.vertx.serviceproxy.testmodel.TestDataObject)"](options != null ? new TestDataObject(new JsonObject(JSON.stringify(options))) : null);
+      j_testService["dataObjectType(io.vertx.serviceproxy.testmodel.TestDataObject)"](options != null ? new TestDataObject(new JsonObject(Java.asJSONCompatible(options))) : null);
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -285,7 +285,7 @@ var TestService = function(j_val) {
   this.dataObjectTypeNull = function(options) {
     var __args = arguments;
     if (__args.length === 1 && (typeof __args[0] === 'object' && __args[0] != null)) {
-      j_testService["dataObjectTypeNull(io.vertx.serviceproxy.testmodel.TestDataObject)"](options != null ? new TestDataObject(new JsonObject(JSON.stringify(options))) : null);
+      j_testService["dataObjectTypeNull(io.vertx.serviceproxy.testmodel.TestDataObject)"](options != null ? new TestDataObject(new JsonObject(Java.asJSONCompatible(options))) : null);
     } else throw new TypeError('function invoked with invalid arguments');
   };
 

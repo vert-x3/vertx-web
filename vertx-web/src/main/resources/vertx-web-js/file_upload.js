@@ -19,7 +19,7 @@ var utils = require('vertx-js/util/utils');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
-var JFileUpload = io.vertx.ext.web.FileUpload;
+var JFileUpload = Java.type('io.vertx.ext.web.FileUpload');
 
 /**
  Represents a file-upload from an HTTP multipart form submission.

@@ -21,7 +21,7 @@ var RoutingContext = require('vertx-web-js/routing_context');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
-var JSessionHandler = io.vertx.ext.web.handler.SessionHandler;
+var JSessionHandler = Java.type('io.vertx.ext.web.handler.SessionHandler');
 
 /**
 

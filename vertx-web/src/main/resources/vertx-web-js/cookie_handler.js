@@ -20,7 +20,7 @@ var RoutingContext = require('vertx-web-js/routing_context');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
-var JCookieHandler = io.vertx.ext.web.handler.CookieHandler;
+var JCookieHandler = Java.type('io.vertx.ext.web.handler.CookieHandler');
 
 /**
 

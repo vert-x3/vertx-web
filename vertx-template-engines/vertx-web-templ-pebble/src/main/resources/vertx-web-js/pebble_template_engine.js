@@ -23,7 +23,7 @@ var RoutingContext = require('vertx-web-js/routing_context');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
-var JPebbleTemplateEngine = io.vertx.ext.web.templ.PebbleTemplateEngine;
+var JPebbleTemplateEngine = Java.type('io.vertx.ext.web.templ.PebbleTemplateEngine');
 
 /**
  A template engine that uses the Pebble library.

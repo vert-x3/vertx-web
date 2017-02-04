@@ -20,7 +20,7 @@ var RoutingContext = require('vertx-web-js/routing_context');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
-var JTimeoutHandler = io.vertx.ext.web.handler.TimeoutHandler;
+var JTimeoutHandler = Java.type('io.vertx.ext.web.handler.TimeoutHandler');
 
 /**
  Handler that will timeout requests if the response has not been written after a certain time.

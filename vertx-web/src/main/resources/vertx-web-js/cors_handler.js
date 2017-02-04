@@ -20,7 +20,7 @@ var RoutingContext = require('vertx-web-js/routing_context');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
-var JCorsHandler = io.vertx.ext.web.handler.CorsHandler;
+var JCorsHandler = Java.type('io.vertx.ext.web.handler.CorsHandler');
 
 /**
  A handler which implements server side http://www.w3.org/TR/cors/[CORS] support for Vert.x-Web.

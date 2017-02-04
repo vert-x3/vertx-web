@@ -20,7 +20,7 @@ var RoutingContext = require('vertx-web-js/routing_context');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
-var JRoute = io.vertx.ext.web.Route;
+var JRoute = Java.type('io.vertx.ext.web.Route');
 
 /**
  A route is a holder for a set of criteria which determine whether an HTTP request or failure should be routed

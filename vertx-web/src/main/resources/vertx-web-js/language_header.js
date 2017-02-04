@@ -21,7 +21,7 @@ var Locale = require('vertx-web-js/locale');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
-var JLanguageHeader = io.vertx.ext.web.LanguageHeader;
+var JLanguageHeader = Java.type('io.vertx.ext.web.LanguageHeader');
 
 /**
  A parsed language header.

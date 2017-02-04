@@ -20,7 +20,7 @@ var RoutingContext = require('vertx-web-js/routing_context');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
-var JFaviconHandler = io.vertx.ext.web.handler.FaviconHandler;
+var JFaviconHandler = Java.type('io.vertx.ext.web.handler.FaviconHandler');
 
 /**
  A handler that serves favicons.

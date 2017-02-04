@@ -22,7 +22,7 @@ var Vertx = require('vertx-js/vertx');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
-var JLocalSessionStore = io.vertx.ext.web.sstore.LocalSessionStore;
+var JLocalSessionStore = Java.type('io.vertx.ext.web.sstore.LocalSessionStore');
 
 /**
  A session store which is only available on a single node.

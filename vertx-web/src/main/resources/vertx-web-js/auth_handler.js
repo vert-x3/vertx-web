@@ -20,7 +20,7 @@ var RoutingContext = require('vertx-web-js/routing_context');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
-var JAuthHandler = io.vertx.ext.web.handler.AuthHandler;
+var JAuthHandler = Java.type('io.vertx.ext.web.handler.AuthHandler');
 
 /**
  Base interface for auth handlers.

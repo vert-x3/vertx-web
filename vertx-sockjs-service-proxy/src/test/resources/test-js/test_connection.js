@@ -19,7 +19,7 @@ var utils = require('vertx-js/util/utils');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
-var JTestConnection = io.vertx.serviceproxy.testmodel.TestConnection;
+var JTestConnection = Java.type('io.vertx.serviceproxy.testmodel.TestConnection');
 
 /**
 

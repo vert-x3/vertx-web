@@ -21,7 +21,7 @@ var MultiMap = require('vertx-js/multi_map');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
-var JHttpResponse = io.vertx.ext.web.client.HttpResponse;
+var JHttpResponse = Java.type('io.vertx.ext.web.client.HttpResponse');
 
 /**
  An HTTP response.

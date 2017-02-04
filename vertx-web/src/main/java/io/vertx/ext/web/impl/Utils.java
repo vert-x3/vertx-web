@@ -191,7 +191,7 @@ public class Utils extends io.vertx.core.impl.Utils {
         i = 0;
         int pos = obuf.lastIndexOf("/");
         if (pos != -1) {
-          obuf.delete(pos - 1, obuf.length());
+          obuf.delete(pos, obuf.length());
         }
       } else if (matches(path, i, ".", true) || matches(path, i, "..", true)) {
         break;

@@ -153,6 +153,7 @@ public class UtilsTest {
     assertEquals("/a/g", Utils.normalizePath("/a/b/c/./../../g"));
     assertEquals("/mid/6", Utils.normalizePath("mid/content=5/../6"));
     assertEquals("/~username/", Utils.normalizePath("/%7Eusername/"));
+    assertEquals("/b/", Utils.normalizePath("/b/c/.."));
   }
 
   @Test

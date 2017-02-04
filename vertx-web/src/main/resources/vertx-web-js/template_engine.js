@@ -21,7 +21,7 @@ var RoutingContext = require('vertx-web-js/routing_context');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
-var JTemplateEngine = io.vertx.ext.web.templ.TemplateEngine;
+var JTemplateEngine = Java.type('io.vertx.ext.web.templ.TemplateEngine');
 
 /**
  A template engine uses a specific template and the data in a routing context to render a resource into a buffer.

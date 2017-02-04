@@ -19,7 +19,7 @@ var utils = require('vertx-js/util/utils');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
-var JTestBaseImportsService = io.vertx.serviceproxy.testmodel.TestBaseImportsService;
+var JTestBaseImportsService = Java.type('io.vertx.serviceproxy.testmodel.TestBaseImportsService');
 
 /**
  Test base imports are corrects.

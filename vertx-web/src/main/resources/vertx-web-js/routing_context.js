@@ -31,7 +31,7 @@ var LanguageHeader = require('vertx-web-js/language_header');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
-var JRoutingContext = io.vertx.ext.web.RoutingContext;
+var JRoutingContext = Java.type('io.vertx.ext.web.RoutingContext');
 
 /**
  Represents the context for the handling of a request in Vert.x-Web.

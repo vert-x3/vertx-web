@@ -20,7 +20,7 @@ var RoutingContext = require('vertx-web-js/routing_context');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
-var JLoggerHandler = io.vertx.ext.web.handler.LoggerHandler;
+var JLoggerHandler = Java.type('io.vertx.ext.web.handler.LoggerHandler');
 
 /**
  A handler which logs request information to the Vert.x logger.

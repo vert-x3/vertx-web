@@ -23,7 +23,7 @@ var HttpRequest = require('vertx-web-client-js/http_request');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
-var JWebClient = io.vertx.ext.web.client.WebClient;
+var JWebClient = Java.type('io.vertx.ext.web.client.WebClient');
 
 /**
 
