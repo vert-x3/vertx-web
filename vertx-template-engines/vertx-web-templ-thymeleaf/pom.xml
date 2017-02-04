@@ -28,6 +28,7 @@
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
       <version>1.7.12</version>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>io.vertx</groupId>
@@ -106,7 +107,6 @@
                   <include>*:thymeleaf</include>
                   <include>ognl:ognl</include>
                   <include>org.javassist:javassist</include>
-                  <include>org.slf4j:slf4j-api</include>
                 </includes>
               </artifactSet>
             </configuration>
