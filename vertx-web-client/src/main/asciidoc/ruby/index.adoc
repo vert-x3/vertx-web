@@ -514,21 +514,56 @@ makes the HTTP request upon subscription, as consequence, the `Single` can be su
 
 [source,ruby]
 ----
-Code not translatable
+
+# Create the RxJava single for an HttpRequest
+# at this point no HTTP request has been sent to the server
+single = client.get(8080, "myserver.mycompany.com", "/some-uri").rx_send()
+
+# Send a request upon subscription of the Single
+single.subscribe(lambda { |response|
+  puts "Received 1st response with status code#{response.status_code()}"
+}, lambda { |error|
+  puts "Something went wrong #{error.get_message()}"
+})
+
+# Send another request
+single.subscribe(lambda { |response|
+  puts "Received 2nd response with status code#{response.status_code()}"
+}, lambda { |error|
+  puts "Something went wrong #{error.get_message()}"
+})
+
 ----
 
 The obtained `Single` can be composed and chained naturally with the RxJava API
 
 [source,ruby]
 ----
-Code not translatable
+
+# Obtain an URL Single from myserver.mycompany.com
+url = client.get(8080, "myserver.mycompany.com", "/some-uri").rx_send().map(Java::IoVertxRxjavaExtWebClient::HttpResponse.method(:body_as_string))
+
+# Use the flatMap operator to make a request on the URL Single
+url.flat_map(lambda { |u|
+  client.get_abs(u).rx_send()
+}).subscribe(lambda { |response|
+  puts "Received response with status code#{response.status_code()}"
+}, lambda { |error|
+  puts "Something went wrong #{error.get_message()}"
+})
+
 ----
 
 The same APIs is available
 
 [source,ruby]
 ----
-Code not translatable
+single = client.get(8080, "myserver.mycompany.com", "/some-uri").put_header("some-header", "header-value").add_query_param("some-param", "param value").as(Java::IoVertxRxjavaExtWebCodec::BodyCodec.json_object()).rx_send()
+single.subscribe(lambda { |resp|
+  puts resp.status_code()
+  puts resp.body()
+})
+
 ----
 
 The `link:unavailable#send_stream-instance_method[sendStream]` shall
@@ -536,7 +571,18 @@ be preferred for sending bodies `Observable<Buffer>`
 
 [source,ruby]
 ----
-Code not translatable
+def get_payload()
+  raise "an error occurred"
+end
+
+body = get_payload()
+
+single = client.post(8080, "myserver.mycompany.com", "/some-uri").rx_send_stream(body)
+single.subscribe(lambda { |resp|
+  puts resp.status_code()
+  puts resp.body()
+})
+
 ----
 
 Upon subscription, the `body` will be subscribed and its content used for the request.
