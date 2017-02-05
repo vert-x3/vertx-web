@@ -21,17 +21,17 @@ import io.vertx.ext.web.handler.sockjs.PermittedOptions
  * NOTE: This function has been automatically generated from the [io.vertx.ext.web.handler.sockjs.BridgeOptions original] using Vert.x codegen.
  */
 fun BridgeOptions(
-  inboundPermitted: List<io.vertx.ext.web.handler.sockjs.PermittedOptions>? = null,
-  inboundPermitteds: List<io.vertx.ext.web.handler.sockjs.PermittedOptions>? = null,
+  inboundPermitted: Iterable<io.vertx.ext.web.handler.sockjs.PermittedOptions>? = null,
+  inboundPermitteds: Iterable<io.vertx.ext.web.handler.sockjs.PermittedOptions>? = null,
   maxAddressLength: Int? = null,
   maxHandlersPerSocket: Int? = null,
-  outboundPermitted: List<io.vertx.ext.web.handler.sockjs.PermittedOptions>? = null,
-  outboundPermitteds: List<io.vertx.ext.web.handler.sockjs.PermittedOptions>? = null,
+  outboundPermitted: Iterable<io.vertx.ext.web.handler.sockjs.PermittedOptions>? = null,
+  outboundPermitteds: Iterable<io.vertx.ext.web.handler.sockjs.PermittedOptions>? = null,
   pingTimeout: Long? = null,
   replyTimeout: Long? = null): BridgeOptions = io.vertx.ext.web.handler.sockjs.BridgeOptions().apply {
 
   if (inboundPermitted != null) {
-    this.setInboundPermitted(inboundPermitted)
+    this.setInboundPermitted(inboundPermitted.toList())
   }
   if (inboundPermitteds != null) {
     for (item in inboundPermitteds) {
@@ -45,7 +45,7 @@ fun BridgeOptions(
     this.setMaxHandlersPerSocket(maxHandlersPerSocket)
   }
   if (outboundPermitted != null) {
-    this.setOutboundPermitted(outboundPermitted)
+    this.setOutboundPermitted(outboundPermitted.toList())
   }
   if (outboundPermitteds != null) {
     for (item in outboundPermitteds) {

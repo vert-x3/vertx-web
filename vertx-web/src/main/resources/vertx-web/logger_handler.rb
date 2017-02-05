@@ -50,9 +50,9 @@ module VertxWeb
       if !block_given? && param_1 == nil && param_2 == nil
         return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebHandler::LoggerHandler.java_method(:create, []).call(),::VertxWeb::LoggerHandler)
       elsif param_1.class == Symbol && !block_given? && param_2 == nil
-        return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebHandler::LoggerHandler.java_method(:create, [Java::IoVertxExtWebHandler::LoggerFormat.java_class]).call(Java::IoVertxExtWebHandler::LoggerFormat.valueOf(param_1)),::VertxWeb::LoggerHandler)
+        return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebHandler::LoggerHandler.java_method(:create, [Java::IoVertxExtWebHandler::LoggerFormat.java_class]).call(Java::IoVertxExtWebHandler::LoggerFormat.valueOf(param_1.to_s)),::VertxWeb::LoggerHandler)
       elsif (param_1.class == TrueClass || param_1.class == FalseClass) && param_2.class == Symbol && !block_given?
-        return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebHandler::LoggerHandler.java_method(:create, [Java::boolean.java_class,Java::IoVertxExtWebHandler::LoggerFormat.java_class]).call(param_1,Java::IoVertxExtWebHandler::LoggerFormat.valueOf(param_2)),::VertxWeb::LoggerHandler)
+        return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebHandler::LoggerHandler.java_method(:create, [Java::boolean.java_class,Java::IoVertxExtWebHandler::LoggerFormat.java_class]).call(param_1,Java::IoVertxExtWebHandler::LoggerFormat.valueOf(param_2.to_s)),::VertxWeb::LoggerHandler)
       end
       raise ArgumentError, "Invalid arguments when calling create(#{param_1},#{param_2})"
     end

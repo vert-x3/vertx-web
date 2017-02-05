@@ -167,7 +167,7 @@ module Test
     # @return [void]
     def enum_type(someEnum=nil)
       if someEnum.class == Symbol && !block_given?
-        return @j_del.java_method(:enumType, [Java::IoVertxServiceproxyTestmodel::SomeEnum.java_class]).call(Java::IoVertxServiceproxyTestmodel::SomeEnum.valueOf(someEnum))
+        return @j_del.java_method(:enumType, [Java::IoVertxServiceproxyTestmodel::SomeEnum.java_class]).call(Java::IoVertxServiceproxyTestmodel::SomeEnum.valueOf(someEnum.to_s))
       end
       raise ArgumentError, "Invalid arguments when calling enum_type(#{someEnum})"
     end
@@ -175,7 +175,7 @@ module Test
     # @return [void]
     def enum_type_null(someEnum=nil)
       if someEnum.class == Symbol && !block_given?
-        return @j_del.java_method(:enumTypeNull, [Java::IoVertxServiceproxyTestmodel::SomeEnum.java_class]).call(Java::IoVertxServiceproxyTestmodel::SomeEnum.valueOf(someEnum))
+        return @j_del.java_method(:enumTypeNull, [Java::IoVertxServiceproxyTestmodel::SomeEnum.java_class]).call(Java::IoVertxServiceproxyTestmodel::SomeEnum.valueOf(someEnum.to_s))
       end
       raise ArgumentError, "Invalid arguments when calling enum_type_null(#{someEnum})"
     end
@@ -490,7 +490,7 @@ module Test
     # @return [void]
     def invoke_with_message(object=nil,str=nil,i=nil,chr=nil,senum=nil)
       if object.class == Hash && str.class == String && i.class == Fixnum && chr.class == Fixnum && senum.class == Symbol && block_given?
-        return @j_del.java_method(:invokeWithMessage, [Java::IoVertxCoreJson::JsonObject.java_class,Java::java.lang.String.java_class,Java::int.java_class,Java::char.java_class,Java::IoVertxServiceproxyTestmodel::SomeEnum.java_class,Java::IoVertxCore::Handler.java_class]).call(::Vertx::Util::Utils.to_json_object(object),str,i,::Vertx::Util::Utils.to_character(chr),Java::IoVertxServiceproxyTestmodel::SomeEnum.valueOf(senum),(Proc.new { |ar| yield(ar.failed ? ar.cause : nil, ar.succeeded ? ar.result : nil) }))
+        return @j_del.java_method(:invokeWithMessage, [Java::IoVertxCoreJson::JsonObject.java_class,Java::java.lang.String.java_class,Java::int.java_class,Java::char.java_class,Java::IoVertxServiceproxyTestmodel::SomeEnum.java_class,Java::IoVertxCore::Handler.java_class]).call(::Vertx::Util::Utils.to_json_object(object),str,i,::Vertx::Util::Utils.to_character(chr),Java::IoVertxServiceproxyTestmodel::SomeEnum.valueOf(senum.to_s),(Proc.new { |ar| yield(ar.failed ? ar.cause : nil, ar.succeeded ? ar.result : nil) }))
       end
       raise ArgumentError, "Invalid arguments when calling invoke_with_message(#{object},#{str},#{i},#{chr},#{senum})"
     end

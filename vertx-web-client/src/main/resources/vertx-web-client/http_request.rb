@@ -51,7 +51,7 @@ module VertxWebClient
     # @return [self]
     def method(value=nil)
       if value.class == Symbol && !block_given?
-        @j_del.java_method(:method, [Java::IoVertxCoreHttp::HttpMethod.java_class]).call(Java::IoVertxCoreHttp::HttpMethod.valueOf(value))
+        @j_del.java_method(:method, [Java::IoVertxCoreHttp::HttpMethod.java_class]).call(Java::IoVertxCoreHttp::HttpMethod.valueOf(value.to_s))
         return self
       end
       raise ArgumentError, "Invalid arguments when calling method(#{value})"

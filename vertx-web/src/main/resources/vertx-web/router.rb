@@ -70,7 +70,7 @@ module VertxWeb
       elsif param_1.class == String && !block_given? && param_2 == nil
         return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:route, [Java::java.lang.String.java_class]).call(param_1),::VertxWeb::Route)
       elsif param_1.class == Symbol && param_2.class == String && !block_given?
-        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:route, [Java::IoVertxCoreHttp::HttpMethod.java_class,Java::java.lang.String.java_class]).call(Java::IoVertxCoreHttp::HttpMethod.valueOf(param_1),param_2),::VertxWeb::Route)
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:route, [Java::IoVertxCoreHttp::HttpMethod.java_class,Java::java.lang.String.java_class]).call(Java::IoVertxCoreHttp::HttpMethod.valueOf(param_1.to_s),param_2),::VertxWeb::Route)
       end
       raise ArgumentError, "Invalid arguments when calling route(#{param_1},#{param_2})"
     end
@@ -85,7 +85,7 @@ module VertxWeb
       if param_1.class == String && !block_given? && param_2 == nil
         return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:routeWithRegex, [Java::java.lang.String.java_class]).call(param_1),::VertxWeb::Route)
       elsif param_1.class == Symbol && param_2.class == String && !block_given?
-        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:routeWithRegex, [Java::IoVertxCoreHttp::HttpMethod.java_class,Java::java.lang.String.java_class]).call(Java::IoVertxCoreHttp::HttpMethod.valueOf(param_1),param_2),::VertxWeb::Route)
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:routeWithRegex, [Java::IoVertxCoreHttp::HttpMethod.java_class,Java::java.lang.String.java_class]).call(Java::IoVertxCoreHttp::HttpMethod.valueOf(param_1.to_s),param_2),::VertxWeb::Route)
       end
       raise ArgumentError, "Invalid arguments when calling route_with_regex(#{param_1},#{param_2})"
     end

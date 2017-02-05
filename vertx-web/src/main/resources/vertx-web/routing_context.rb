@@ -438,7 +438,7 @@ module VertxWeb
       if param_1.class == String && !block_given? && param_2 == nil
         return @j_del.java_method(:reroute, [Java::java.lang.String.java_class]).call(param_1)
       elsif param_1.class == Symbol && param_2.class == String && !block_given?
-        return @j_del.java_method(:reroute, [Java::IoVertxCoreHttp::HttpMethod.java_class,Java::java.lang.String.java_class]).call(Java::IoVertxCoreHttp::HttpMethod.valueOf(param_1),param_2)
+        return @j_del.java_method(:reroute, [Java::IoVertxCoreHttp::HttpMethod.java_class,Java::java.lang.String.java_class]).call(Java::IoVertxCoreHttp::HttpMethod.valueOf(param_1.to_s),param_2)
       end
       raise ArgumentError, "Invalid arguments when calling reroute(#{param_1},#{param_2})"
     end

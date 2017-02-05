@@ -56,7 +56,7 @@ module VertxWeb
     # @return [::VertxWeb::ThymeleafTemplateEngine] a reference to this for fluency
     def set_mode(mode=nil)
       if mode.class == Symbol && !block_given?
-        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:setMode, [Java::OrgThymeleafTemplatemode::TemplateMode.java_class]).call(Java::OrgThymeleafTemplatemode::TemplateMode.valueOf(mode)),::VertxWeb::ThymeleafTemplateEngine)
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:setMode, [Java::OrgThymeleafTemplatemode::TemplateMode.java_class]).call(Java::OrgThymeleafTemplatemode::TemplateMode.valueOf(mode.to_s)),::VertxWeb::ThymeleafTemplateEngine)
       end
       raise ArgumentError, "Invalid arguments when calling set_mode(#{mode})"
     end

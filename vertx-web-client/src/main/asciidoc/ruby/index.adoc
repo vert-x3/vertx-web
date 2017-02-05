@@ -30,7 +30,7 @@ To use Vert.x Web Client, add the following dependency to the _dependencies_ sec
 <dependency>
   <groupId>io.vertx</groupId>
   <artifactId>vertx-web-client</artifactId>
-  <version>3.4.0-SNAPSHOT</version>
+  <version>3.4.0.Beta1</version>
 </dependency>
 ----
 
@@ -39,7 +39,7 @@ To use Vert.x Web Client, add the following dependency to the _dependencies_ sec
 [source,groovy,subs="+attributes"]
 ----
 dependencies {
-  compile 'io.vertx:vertx-web-client:3.4.0-SNAPSHOT'
+  compile 'io.vertx:vertx-web-client:3.4.0.Beta1'
 }
 ----
 

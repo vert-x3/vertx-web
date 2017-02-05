@@ -52,7 +52,7 @@ module VertxWeb
     # @return [self]
     def allowed_method(method=nil)
       if method.class == Symbol && !block_given?
-        @j_del.java_method(:allowedMethod, [Java::IoVertxCoreHttp::HttpMethod.java_class]).call(Java::IoVertxCoreHttp::HttpMethod.valueOf(method))
+        @j_del.java_method(:allowedMethod, [Java::IoVertxCoreHttp::HttpMethod.java_class]).call(Java::IoVertxCoreHttp::HttpMethod.valueOf(method.to_s))
         return self
       end
       raise ArgumentError, "Invalid arguments when calling allowed_method(#{method})"

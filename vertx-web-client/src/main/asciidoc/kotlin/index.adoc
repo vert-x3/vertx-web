@@ -30,7 +30,7 @@ To use Vert.x Web Client, add the following dependency to the _dependencies_ sec
 <dependency>
   <groupId>io.vertx</groupId>
   <artifactId>vertx-web-client</artifactId>
-  <version>3.4.0-SNAPSHOT</version>
+  <version>3.4.0.Beta1</version>
 </dependency>
 ----
 
@@ -39,7 +39,7 @@ To use Vert.x Web Client, add the following dependency to the _dependencies_ sec
 [source,groovy,subs="+attributes"]
 ----
 dependencies {
-  compile 'io.vertx:vertx-web-client:3.4.0-SNAPSHOT'
+  compile 'io.vertx:vertx-web-client:3.4.0.Beta1'
 }
 ----
 
@@ -55,7 +55,6 @@ You create an `link:../../apidocs/io/vertx/ext/web/client/WebClient.html[WebClie
 [source,kotlin]
 ----
 import io.vertx.ext.web.client.WebClient
-import io.vertx.kotlin.common.json.*
 
 var client = WebClient.create(vertx)
 
@@ -65,10 +64,11 @@ If you want to configure options for the client, you create it as follows
 
 [source,kotlin]
 ----
+import io.vertx.core.http.HttpClientOptions
 import io.vertx.ext.web.client.WebClient
-import io.vertx.kotlin.common.json.*
+import io.vertx.kotlin.core.http.*
 
-var options = io.vertx.core.http.HttpClientOptions(
+var options = HttpClientOptions(
   keepAlive = false)
 var client = WebClient.wrap(vertx.createHttpClient(options))
 
@@ -84,7 +84,6 @@ and HEAD requests
 [source,kotlin]
 ----
 import io.vertx.ext.web.client.WebClient
-import io.vertx.kotlin.common.json.*
 
 
 var client = WebClient.create(vertx)
@@ -126,7 +125,6 @@ Any request URI parameter will pre-populate the request
 
 [source,kotlin]
 ----
-import io.vertx.kotlin.common.json.*
 
 var request = client.get(8080, "myserver.mycompany.com", "/some-uri?param1=param1_value&param2=param2_value")
 
@@ -142,7 +140,6 @@ Setting a request URI discards existing query parameters
 
 [source,kotlin]
 ----
-import io.vertx.kotlin.common.json.*
 
 var request = client.get(8080, "myserver.mycompany.com", "/some-uri")
 
@@ -163,7 +160,6 @@ Use `link:../../apidocs/io/vertx/ext/web/client/HttpRequest.html#sendBuffer-io.v
 
 [source,kotlin]
 ----
-import io.vertx.kotlin.common.json.*
 
 // Send a buffer to the server using POST, the content-length header will be set for you
 client.post(8080, "myserver.mycompany.com", "/some-uri").sendBuffer(buffer, { ar ->
@@ -191,10 +187,10 @@ When you know the size of the stream, you shall specify before using the `conten
 
 [source,kotlin]
 ----
-import io.vertx.kotlin.common.json.*
+import io.vertx.core.file.OpenOptions
+import io.vertx.kotlin.core.file.*
 
-fs.open("content.txt", io.vertx.core.file.OpenOptions(
-), { fileRes ->
+fs.open("content.txt", OpenOptions(), { fileRes ->
   if (fileRes.succeeded()) {
     var fileStream = fileRes.result()
 
@@ -220,7 +216,7 @@ use the `link:../../apidocs/io/vertx/ext/web/client/HttpRequest.html#sendJsonObj
 
 [source,kotlin]
 ----
-import io.vertx.kotlin.common.json.*
+import io.vertx.kotlin.core.json.*
 
 client.post(8080, "myserver.mycompany.com", "/some-uri").sendJsonObject(json {
   obj(
@@ -241,7 +237,6 @@ method
 
 [source,kotlin]
 ----
-import io.vertx.kotlin.common.json.*
 
 client.post(8080, "myserver.mycompany.com", "/some-uri").sendJson(examples.WebClientExamples.User("Dale", "Cooper"), { ar ->
   if (ar.succeeded()) {
@@ -262,7 +257,6 @@ variant.
 [source,kotlin]
 ----
 import io.vertx.core.MultiMap
-import io.vertx.kotlin.common.json.*
 
 var form = MultiMap.caseInsensitiveMultiMap()
 form.set("firstName", "Dale")
@@ -283,7 +277,6 @@ the `content-type` header to `multipart/form-data` instead
 [source,kotlin]
 ----
 import io.vertx.core.MultiMap
-import io.vertx.kotlin.common.json.*
 
 var form = MultiMap.caseInsensitiveMultiMap()
 form.set("firstName", "Dale")
@@ -307,7 +300,6 @@ You can write headers to a request using the headers multi-map as follows:
 
 [source,kotlin]
 ----
-import io.vertx.kotlin.common.json.*
 
 var request = client.get(8080, "myserver.mycompany.com", "/some-uri")
 var headers = request.headers()
@@ -323,7 +315,6 @@ You can also write headers using putHeader
 
 [source,kotlin]
 ----
-import io.vertx.kotlin.common.json.*
 
 var request = client.get(8080, "myserver.mycompany.com", "/some-uri")
 request.putHeader("content-type", "application/json")
@@ -338,7 +329,6 @@ safely, making it very easy to configure and reuse `link:../../apidocs/io/vertx/
 
 [source,kotlin]
 ----
-import io.vertx.kotlin.common.json.*
 
 var get = client.get(8080, "myserver.mycompany.com", "/some-uri")
 get.send({ ar ->
@@ -361,7 +351,6 @@ request
 
 [source,kotlin]
 ----
-import io.vertx.kotlin.common.json.*
 
 var get = client.get(8080, "myserver.mycompany.com", "/some-uri")
 get.send({ ar ->
@@ -385,7 +374,6 @@ You can set a timeout for a specific http request using `link:../../apidocs/io/v
 
 [source,kotlin]
 ----
-import io.vertx.kotlin.common.json.*
 
 client.get(8080, "myserver.mycompany.com", "/some-uri").timeout(5000).send({ ar ->
   if (ar.succeeded()) {
@@ -408,7 +396,6 @@ On a success result the callback happens after the response has been received
 
 [source,kotlin]
 ----
-import io.vertx.kotlin.common.json.*
 
 client.get(8080, "myserver.mycompany.com", "/some-uri").send({ ar ->
   if (ar.succeeded()) {
@@ -446,7 +433,6 @@ Use `link:../../apidocs/io/vertx/ext/web/codec/BodyCodec.html#jsonObject--[BodyC
 [source,kotlin]
 ----
 import io.vertx.ext.web.codec.BodyCodec
-import io.vertx.kotlin.common.json.*
 
 client.get(8080, "myserver.mycompany.com", "/some-uri").as(BodyCodec.jsonObject()).send({ ar ->
   if (ar.succeeded()) {
@@ -467,7 +453,6 @@ In Java, Groovy or Kotlin, custom Json mapped POJO can be decoded
 [source,kotlin]
 ----
 import io.vertx.ext.web.codec.BodyCodec
-import io.vertx.kotlin.common.json.*
 
 client.get(8080, "myserver.mycompany.com", "/some-uri").as(BodyCodec.json(examples.WebClientExamples.User.`class`)).send({ ar ->
   if (ar.succeeded()) {
@@ -490,7 +475,6 @@ and signals the success or the failure of the operation in the async result resp
 [source,kotlin]
 ----
 import io.vertx.ext.web.codec.BodyCodec
-import io.vertx.kotlin.common.json.*
 
 client.get(8080, "myserver.mycompany.com", "/some-uri").as(BodyCodec.pipe(writeStream)).send({ ar ->
   if (ar.succeeded()) {
@@ -511,7 +495,6 @@ simply discards the entire response body
 [source,kotlin]
 ----
 import io.vertx.ext.web.codec.BodyCodec
-import io.vertx.kotlin.common.json.*
 
 client.get(8080, "myserver.mycompany.com", "/some-uri").as(BodyCodec.none()).send({ ar ->
   if (ar.succeeded()) {
@@ -531,7 +514,6 @@ that decode the response to a specific type
 
 [source,kotlin]
 ----
-import io.vertx.kotlin.common.json.*
 
 client.get(8080, "myserver.mycompany.com", "/some-uri").send({ ar ->
   if (ar.succeeded()) {
