@@ -20,6 +20,7 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.Json;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.streams.WriteStream;
 import io.vertx.ext.web.codec.BodyCodec;
@@ -35,11 +36,13 @@ public class BodyCodecImpl<T> implements BodyCodec<T> {
   public static final Function<Buffer, Void> VOID_DECODER = buff -> null;
   public static final Function<Buffer, String> UTF8_DECODER = Buffer::toString;
   public static final Function<Buffer, JsonObject> JSON_OBJECT_DECODER = buff -> new JsonObject(buff.toString());
+  public static final Function<Buffer, JsonArray> JSON_ARRAY_DECODER = buff -> new JsonArray(buff.toString());
 
   public static final BodyCodec<String> STRING = new BodyCodecImpl<>(UTF8_DECODER);
   public static final BodyCodec<Void> NONE = new BodyCodecImpl<>(VOID_DECODER);
   public static final BodyCodec<Buffer> BUFFER = new BodyCodecImpl<>(Function.identity());
   public static final BodyCodec<JsonObject> JSON_OBJECT = new BodyCodecImpl<>(JSON_OBJECT_DECODER);
+  public static final BodyCodec<JsonArray> JSON_ARRAY = new BodyCodecImpl<>(JSON_ARRAY_DECODER);
 
   public static BodyCodecImpl<String> string(String encoding) {
     return new BodyCodecImpl<>(buff -> buff.toString(encoding));
