@@ -24,6 +24,7 @@ var HttpRequest = require('vertx-web-client-js/http_request');
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
 var JWebClient = Java.type('io.vertx.ext.web.client.WebClient');
+var WebClientOptions = Java.type('io.vertx.ext.web.client.WebClientOptions');
 
 /**
 
@@ -324,26 +325,32 @@ WebClient._create = function(jdel) {
 
  @memberof module:vertx-web-client-js/web_client
  @param vertx {Vertx} the vertx instance 
+ @param options {Object} the Web Client options 
  @return {WebClient} the created web client
  */
-WebClient.create = function(vertx) {
+WebClient.create = function() {
   var __args = arguments;
   if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
-    return utils.convReturnVertxGen(WebClient, JWebClient["create(io.vertx.core.Vertx)"](vertx._jdel));
+    return utils.convReturnVertxGen(WebClient, JWebClient["create(io.vertx.core.Vertx)"](__args[0]._jdel));
+  }else if (__args.length === 2 && typeof __args[0] === 'object' && __args[0]._jdel && (typeof __args[1] === 'object' && __args[1] != null)) {
+    return utils.convReturnVertxGen(WebClient, JWebClient["create(io.vertx.core.Vertx,io.vertx.ext.web.client.WebClientOptions)"](__args[0]._jdel, __args[1] != null ? new WebClientOptions(new JsonObject(Java.asJSONCompatible(__args[1]))) : null));
   } else throw new TypeError('function invoked with invalid arguments');
 };
 
 /**
- Wrap an <code>httpClient</code> with a web client.
+ Wrap an <code>httpClient</code> with a web client and default options.
 
  @memberof module:vertx-web-client-js/web_client
  @param httpClient {HttpClient} the  to wrap 
+ @param options {Object} the Web Client options 
  @return {WebClient} the web client
  */
-WebClient.wrap = function(httpClient) {
+WebClient.wrap = function() {
   var __args = arguments;
   if (__args.length === 1 && typeof __args[0] === 'object' && __args[0]._jdel) {
-    return utils.convReturnVertxGen(WebClient, JWebClient["wrap(io.vertx.core.http.HttpClient)"](httpClient._jdel));
+    return utils.convReturnVertxGen(WebClient, JWebClient["wrap(io.vertx.core.http.HttpClient)"](__args[0]._jdel));
+  }else if (__args.length === 2 && typeof __args[0] === 'object' && __args[0]._jdel && (typeof __args[1] === 'object' && __args[1] != null)) {
+    return utils.convReturnVertxGen(WebClient, JWebClient["wrap(io.vertx.core.http.HttpClient,io.vertx.ext.web.client.WebClientOptions)"](__args[0]._jdel, __args[1] != null ? new WebClientOptions(new JsonObject(Java.asJSONCompatible(__args[1]))) : null));
   } else throw new TypeError('function invoked with invalid arguments');
 };
 

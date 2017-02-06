@@ -65,6 +65,15 @@
  * {@link examples.WebClientExamples#createFromOptions}
  * ----
  *
+ * Web Client options inherit Http Client options so you can set any one of them.
+ *
+ * If your already have an HTTP Client in your application you can also reuse it
+ *
+ * [source,$lang]
+ * ----
+ * {@link examples.WebClientExamples#wrap(io.vertx.core.http.HttpClient)}
+ * ----
+ *
  * == Making requests
  *
  * === Simple requests with no body

@@ -41,6 +41,7 @@ import io.vertx.core.streams.Pump;
 import io.vertx.core.streams.ReadStream;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.HttpResponse;
+import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.ext.web.codec.spi.BodyStream;
 
@@ -61,10 +62,13 @@ class HttpRequestImpl<T> implements HttpRequest<T> {
   long timeout = -1;
   BodyCodec<T> codec;
 
-  HttpRequestImpl(HttpClient client, HttpMethod method, BodyCodec<T> codec) {
+  HttpRequestImpl(HttpClient client, HttpMethod method, BodyCodec<T> codec, WebClientOptions options) {
     this.client = client;
     this.method = method;
     this.codec = codec;
+    if (options.isUserAgentEnabled()) {
+      headers = new CaseInsensitiveHeaders().add(HttpHeaders.USER_AGENT, options.getUserAgent());
+    }
   }
 
   private HttpRequestImpl(HttpRequestImpl<T> other) {

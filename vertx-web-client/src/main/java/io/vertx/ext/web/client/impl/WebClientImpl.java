@@ -21,6 +21,7 @@ import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.WebClient;
+import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.ext.web.codec.impl.BodyCodecImpl;
 
 import java.net.MalformedURLException;
@@ -32,9 +33,11 @@ import java.net.URL;
 public class WebClientImpl implements WebClient {
 
   private final HttpClient client;
+  private final WebClientOptions options;
 
-  public WebClientImpl(HttpClient client) {
+  public WebClientImpl(HttpClient client, WebClientOptions options) {
     this.client = client;
+    this.options = options;
   }
 
   @Override
@@ -158,20 +161,20 @@ public class WebClientImpl implements WebClient {
   }
 
   public HttpRequest<Buffer> request(HttpMethod method, String requestURI) {
-    HttpRequestImpl<Buffer> request = new HttpRequestImpl<Buffer>(client, method, BodyCodecImpl.BUFFER);
+    HttpRequestImpl<Buffer> request = new HttpRequestImpl<>(client, method, BodyCodecImpl.BUFFER, options);
     request.uri = requestURI;
     return request;
   }
 
   public HttpRequest<Buffer> request(HttpMethod method, String host, String requestURI) {
-    HttpRequestImpl<Buffer> request = new HttpRequestImpl<Buffer>(client, method, BodyCodecImpl.BUFFER);
+    HttpRequestImpl<Buffer> request = new HttpRequestImpl<>(client, method, BodyCodecImpl.BUFFER, options);
     request.host = host;
     request.uri = requestURI;
     return request;
   }
 
   public HttpRequest<Buffer> request(HttpMethod method, int port, String host, String requestURI) {
-    HttpRequestImpl<Buffer> request = new HttpRequestImpl<Buffer>(client, method, BodyCodecImpl.BUFFER);
+    HttpRequestImpl<Buffer> request = new HttpRequestImpl<>(client, method, BodyCodecImpl.BUFFER, options);
     request.port = port;
     request.host = host;
     request.uri = requestURI;
@@ -186,7 +189,7 @@ public class WebClientImpl implements WebClient {
     } catch (MalformedURLException e) {
       throw new VertxException("Invalid url: " + surl);
     }
-    HttpRequestImpl<Buffer> request = new HttpRequestImpl<Buffer>(client, method, BodyCodecImpl.BUFFER);
+    HttpRequestImpl<Buffer> request = new HttpRequestImpl<>(client, method, BodyCodecImpl.BUFFER, options);
     request.port = url.getPort();
     request.host = url.getHost();
     request.uri = url.getFile();

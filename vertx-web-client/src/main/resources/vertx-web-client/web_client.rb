@@ -47,21 +47,27 @@ module VertxWebClient
     end
     #  Create a web client using the provided <code>vertx</code> instance.
     # @param [::Vertx::Vertx] vertx the vertx instance
+    # @param [Hash] options the Web Client options
     # @return [::VertxWebClient::WebClient] the created web client
-    def self.create(vertx=nil)
-      if vertx.class.method_defined?(:j_del) && !block_given?
+    def self.create(vertx=nil,options=nil)
+      if vertx.class.method_defined?(:j_del) && !block_given? && options == nil
         return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebClient::WebClient.java_method(:create, [Java::IoVertxCore::Vertx.java_class]).call(vertx.j_del),::VertxWebClient::WebClient)
+      elsif vertx.class.method_defined?(:j_del) && options.class == Hash && !block_given?
+        return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebClient::WebClient.java_method(:create, [Java::IoVertxCore::Vertx.java_class,Java::IoVertxExtWebClient::WebClientOptions.java_class]).call(vertx.j_del,Java::IoVertxExtWebClient::WebClientOptions.new(::Vertx::Util::Utils.to_json_object(options))),::VertxWebClient::WebClient)
       end
-      raise ArgumentError, "Invalid arguments when calling create(#{vertx})"
+      raise ArgumentError, "Invalid arguments when calling create(#{vertx},#{options})"
     end
-    #  Wrap an <code>httpClient</code> with a web client.
+    #  Wrap an <code>httpClient</code> with a web client and default options.
     # @param [::Vertx::HttpClient] httpClient the  to wrap
+    # @param [Hash] options the Web Client options
     # @return [::VertxWebClient::WebClient] the web client
-    def self.wrap(httpClient=nil)
-      if httpClient.class.method_defined?(:j_del) && !block_given?
+    def self.wrap(httpClient=nil,options=nil)
+      if httpClient.class.method_defined?(:j_del) && !block_given? && options == nil
         return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebClient::WebClient.java_method(:wrap, [Java::IoVertxCoreHttp::HttpClient.java_class]).call(httpClient.j_del),::VertxWebClient::WebClient)
+      elsif httpClient.class.method_defined?(:j_del) && options.class == Hash && !block_given?
+        return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebClient::WebClient.java_method(:wrap, [Java::IoVertxCoreHttp::HttpClient.java_class,Java::IoVertxExtWebClient::WebClientOptions.java_class]).call(httpClient.j_del,Java::IoVertxExtWebClient::WebClientOptions.new(::Vertx::Util::Utils.to_json_object(options))),::VertxWebClient::WebClient)
       end
-      raise ArgumentError, "Invalid arguments when calling wrap(#{httpClient})"
+      raise ArgumentError, "Invalid arguments when calling wrap(#{httpClient},#{options})"
     end
     #  Create an HTTP request to send to the server at the specified host and port.
     # @overload request(method,requestURI)

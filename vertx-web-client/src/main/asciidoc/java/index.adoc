@@ -61,8 +61,19 @@ If you want to configure options for the client, you create it as follows
 
 [source,java]
 ----
-HttpClientOptions options = new HttpClientOptions().setKeepAlive(false);
-WebClient client = WebClient.wrap(vertx.createHttpClient(options));
+WebClientOptions options = new WebClientOptions()
+  .setUserAgent("My-App/1.2.3");
+options.setKeepAlive(false);
+WebClient client = WebClient.create(vertx, options);
+----
+
+Web Client options inherit Http Client options so you can set any one of them.
+
+If your already have an HTTP Client in your application you can also reuse it
+
+[source,java]
+----
+WebClient client = WebClient.wrap(httpClient);
 ----
 
 == Making requests

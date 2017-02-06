@@ -1,0 +1,73 @@
+= Cheatsheets
+
+[[WebClientOptions]]
+== WebClientOptions
+
+++++
+++++
+'''
+
+[cols=">25%,^25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[alpnVersions]]`alpnVersions`|`Array of link:enums.html#HttpVersion[HttpVersion]`|-
+|[[connectTimeout]]`connectTimeout`|`Number (int)`|-
+|[[crlPaths]]`crlPaths`|`Array of String`|-
+|[[crlValues]]`crlValues`|`Array of Buffer`|-
+|[[defaultHost]]`defaultHost`|`String`|-
+|[[defaultPort]]`defaultPort`|`Number (int)`|-
+|[[enabledCipherSuites]]`enabledCipherSuites`|`Array of String`|-
+|[[enabledSecureTransportProtocols]]`enabledSecureTransportProtocols`|`Array of String`|-
+|[[http2ClearTextUpgrade]]`http2ClearTextUpgrade`|`Boolean`|-
+|[[http2ConnectionWindowSize]]`http2ConnectionWindowSize`|`Number (int)`|-
+|[[http2MaxPoolSize]]`http2MaxPoolSize`|`Number (int)`|-
+|[[http2MultiplexingLimit]]`http2MultiplexingLimit`|`Number (int)`|-
+|[[idleTimeout]]`idleTimeout`|`Number (int)`|-
+|[[initialSettings]]`initialSettings`|`link:dataobjects.html#Http2Settings[Http2Settings]`|-
+|[[jdkSslEngineOptions]]`jdkSslEngineOptions`|`link:dataobjects.html#JdkSSLEngineOptions[JdkSSLEngineOptions]`|-
+|[[keepAlive]]`keepAlive`|`Boolean`|-
+|[[keyStoreOptions]]`keyStoreOptions`|`link:dataobjects.html#JksOptions[JksOptions]`|-
+|[[localAddress]]`localAddress`|`String`|-
+|[[logActivity]]`logActivity`|`Boolean`|-
+|[[maxChunkSize]]`maxChunkSize`|`Number (int)`|-
+|[[maxHeaderSize]]`maxHeaderSize`|`Number (int)`|-
+|[[maxInitialLineLength]]`maxInitialLineLength`|`Number (int)`|-
+|[[maxPoolSize]]`maxPoolSize`|`Number (int)`|-
+|[[maxWaitQueueSize]]`maxWaitQueueSize`|`Number (int)`|-
+|[[maxWebsocketFrameSize]]`maxWebsocketFrameSize`|`Number (int)`|-
+|[[metricsName]]`metricsName`|`String`|-
+|[[openSslEngineOptions]]`openSslEngineOptions`|`link:dataobjects.html#OpenSSLEngineOptions[OpenSSLEngineOptions]`|-
+|[[pemKeyCertOptions]]`pemKeyCertOptions`|`link:dataobjects.html#PemKeyCertOptions[PemKeyCertOptions]`|-
+|[[pemTrustOptions]]`pemTrustOptions`|`link:dataobjects.html#PemTrustOptions[PemTrustOptions]`|-
+|[[pfxKeyCertOptions]]`pfxKeyCertOptions`|`link:dataobjects.html#PfxOptions[PfxOptions]`|-
+|[[pfxTrustOptions]]`pfxTrustOptions`|`link:dataobjects.html#PfxOptions[PfxOptions]`|-
+|[[pipelining]]`pipelining`|`Boolean`|-
+|[[pipeliningLimit]]`pipeliningLimit`|`Number (int)`|-
+|[[protocolVersion]]`protocolVersion`|`link:enums.html#HttpVersion[HttpVersion]`|-
+|[[proxyOptions]]`proxyOptions`|`link:dataobjects.html#ProxyOptions[ProxyOptions]`|-
+|[[receiveBufferSize]]`receiveBufferSize`|`Number (int)`|-
+|[[reuseAddress]]`reuseAddress`|`Boolean`|-
+|[[sendBufferSize]]`sendBufferSize`|`Number (int)`|-
+|[[sendUnmaskedFrames]]`sendUnmaskedFrames`|`Boolean`|-
+|[[soLinger]]`soLinger`|`Number (int)`|-
+|[[ssl]]`ssl`|`Boolean`|-
+|[[tcpKeepAlive]]`tcpKeepAlive`|`Boolean`|-
+|[[tcpNoDelay]]`tcpNoDelay`|`Boolean`|-
+|[[trafficClass]]`trafficClass`|`Number (int)`|-
+|[[trustAll]]`trustAll`|`Boolean`|-
+|[[trustStoreOptions]]`trustStoreOptions`|`link:dataobjects.html#JksOptions[JksOptions]`|-
+|[[tryUseCompression]]`tryUseCompression`|`Boolean`|-
+|[[useAlpn]]`useAlpn`|`Boolean`|-
+|[[usePooledBuffers]]`usePooledBuffers`|`Boolean`|-
+|[[userAgent]]`userAgent`|`String`|
++++
+Sets the Web Client user agent header. Defaults to Vert.x-WebClient/&lt;version&gt;.
++++
+|[[userAgentEnabled]]`userAgentEnabled`|`Boolean`|
++++
+Sets whether the Web Client should send a user agent header. Defaults to true.
++++
+|[[verifyHost]]`verifyHost`|`Boolean`|-
+|===
+

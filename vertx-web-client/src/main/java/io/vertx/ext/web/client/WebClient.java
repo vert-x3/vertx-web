@@ -43,23 +43,46 @@ import io.vertx.ext.web.client.impl.WebClientImpl;
 public interface WebClient {
 
   /**
-   * Create a web client using the provided {@code vertx} instance.
+   * Create a web client using the provided {@code vertx} instance and default options.
    *
    * @param vertx the vertx instance
    * @return the created web client
    */
   static WebClient create(Vertx vertx) {
-    return new WebClientImpl(vertx.createHttpClient());
+    WebClientOptions options = new WebClientOptions();
+    return create(vertx, options);
   }
 
   /**
-   * Wrap an {@code httpClient} with a web client.
+   * Create a web client using the provided {@code vertx} instance.
+   *
+   * @param vertx   the vertx instance
+   * @param options the Web Client options
+   * @return the created web client
+   */
+  static WebClient create(Vertx vertx, WebClientOptions options) {
+    return new WebClientImpl(vertx.createHttpClient(options), options);
+  }
+
+  /**
+   * Wrap an {@code httpClient} with a web client and default options.
    *
    * @param httpClient the {@link HttpClient} to wrap
    * @return the web client
    */
   static WebClient wrap(HttpClient httpClient) {
-    return new WebClientImpl(httpClient);
+    return wrap(httpClient, new WebClientOptions());
+  }
+
+  /**
+   * Wrap an {@code httpClient} with a web client and default options.
+   *
+   * @param httpClient the {@link HttpClient} to wrap
+   * @param options    the Web Client options
+   * @return the web client
+   */
+  static WebClient wrap(HttpClient httpClient, WebClientOptions options) {
+    return new WebClientImpl(httpClient, options);
   }
 
   /**
