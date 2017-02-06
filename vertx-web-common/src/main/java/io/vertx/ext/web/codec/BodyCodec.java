@@ -80,7 +80,6 @@ public interface BodyCodec<T> {
    *
    * @return a codec for mapping POJO to Json
    */
-  @GenIgnore
   static <U> BodyCodec<U> json(Class<U> type) {
     return BodyCodecImpl.json(type);
   }

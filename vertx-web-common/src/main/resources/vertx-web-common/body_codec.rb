@@ -41,6 +41,22 @@ module VertxWebCommon
       end
       raise ArgumentError, "Invalid arguments when calling json_object()"
     end
+    # @return [::VertxWebCommon::BodyCodec] the  codec
+    def self.json_array
+      if !block_given?
+        return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebCodec::BodyCodec.java_method(:jsonArray, []).call(),::VertxWebCommon::BodyCodec, nil)
+      end
+      raise ArgumentError, "Invalid arguments when calling json_array()"
+    end
+    #  Create and return a codec for Java objects encoded using Jackson mapper.
+    # @param [Nil] type 
+    # @return [::VertxWebCommon::BodyCodec] a codec for mapping POJO to Json
+    def self.json(type=nil)
+      if type.class == Class && !block_given?
+        return ::Vertx::Util::Utils.safe_create(Java::IoVertxExtWebCodec::BodyCodec.java_method(:json, [Java::JavaLang::Class.java_class]).call(::Vertx::Util::Utils.j_class_of(type)),::VertxWebCommon::BodyCodec, ::Vertx::Util::Utils.v_type_of(type))
+      end
+      raise ArgumentError, "Invalid arguments when calling json(#{type})"
+    end
     # @return [::VertxWebCommon::BodyCodec] a codec that simply discards the response
     def self.none
       if !block_given?

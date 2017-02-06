@@ -2,6 +2,8 @@ package io.vertx.ext.web.client;
 
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpServerOptions;
+import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.client.jackson.WineAndCheese;
 import io.vertx.rxjava.core.Vertx;
 import io.vertx.rxjava.core.buffer.Buffer;
 import io.vertx.rxjava.core.http.HttpServer;
@@ -108,6 +110,32 @@ public class RxTest extends VertxTestBase {
             complete();
           }, this::fail);
         }
+      });
+      await();
+    } finally {
+      server.close();
+    }
+  }
+
+  @Test
+  public void testResponseBodyAsAsJsonMapped() throws Exception {
+    JsonObject expected = new JsonObject().put("cheese", "Goat Cheese").put("wine", "Condrieu");
+    HttpServer server = vertx.createHttpServer(new HttpServerOptions().setPort(8080));
+    server.requestStream().handler(req -> {
+      req.response().end(expected.encode());
+    });
+    try {
+      server.listen(ar -> {
+        client = WebClient.wrap(vertx.createHttpClient(new HttpClientOptions()));
+        Single<HttpResponse<WineAndCheese>> single = client
+          .get(8080, "localhost", "/the_uri")
+          .as(BodyCodec.json(WineAndCheese.class))
+          .rxSend();
+        single.subscribe(resp -> {
+          assertEquals(200, resp.statusCode());
+          assertEquals(new WineAndCheese().setCheese("Goat Cheese").setWine("Condrieu"), resp.body());
+          testComplete();
+        }, this::fail);
       });
       await();
     } finally {

@@ -105,6 +105,33 @@ BodyCodec.jsonObject = function() {
 
  @memberof module:vertx-web-common-js/body_codec
 
+ @return {BodyCodec} the  codec
+ */
+BodyCodec.jsonArray = function() {
+  var __args = arguments;
+  if (__args.length === 0) {
+    return utils.convReturnVertxGen(BodyCodec, JBodyCodec["jsonArray()"](), undefined);
+  } else throw new TypeError('function invoked with invalid arguments');
+};
+
+/**
+ Create and return a codec for Java objects encoded using Jackson mapper.
+
+ @memberof module:vertx-web-common-js/body_codec
+ @param type {todo} 
+ @return {BodyCodec} a codec for mapping POJO to Json
+ */
+BodyCodec.json = function(type) {
+  var __args = arguments;
+  if (__args.length === 1 && typeof __args[0] === 'function') {
+    return utils.convReturnVertxGen(BodyCodec, JBodyCodec["json(java.lang.Class)"](utils.get_jclass(type)), utils.get_jtype(__args[0]));
+  } else throw new TypeError('function invoked with invalid arguments');
+};
+
+/**
+
+ @memberof module:vertx-web-common-js/body_codec
+
  @return {BodyCodec} a codec that simply discards the response
  */
 BodyCodec.none = function() {
