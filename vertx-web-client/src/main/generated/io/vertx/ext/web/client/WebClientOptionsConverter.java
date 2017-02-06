@@ -27,9 +27,6 @@ import io.vertx.core.json.JsonArray;
 public class WebClientOptionsConverter {
 
   public static void fromJson(JsonObject json, WebClientOptions obj) {
-    if (json.getValue("httpClientOptions") instanceof JsonObject) {
-      obj.setHttpClientOptions(new io.vertx.core.http.HttpClientOptions((JsonObject)json.getValue("httpClientOptions")));
-    }
     if (json.getValue("userAgent") instanceof String) {
       obj.setUserAgent((String)json.getValue("userAgent"));
     }

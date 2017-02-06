@@ -61,7 +61,7 @@ public interface WebClient {
    * @return the created web client
    */
   static WebClient create(Vertx vertx, WebClientOptions options) {
-    return new WebClientImpl(vertx.createHttpClient(options.getHttpClientOptions()), options);
+    return new WebClientImpl(vertx.createHttpClient(options), options);
   }
 
   /**

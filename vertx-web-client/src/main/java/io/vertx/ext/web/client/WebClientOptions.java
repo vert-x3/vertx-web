@@ -25,7 +25,7 @@ import io.vertx.ext.web.client.impl.UserAgentUtil;
  * @author Thomas Segismont
  */
 @DataObject(generateConverter = true)
-public class WebClientOptions {
+public class WebClientOptions extends HttpClientOptions {
 
   /**
    * The default value of whether the Web Client should send a user agent header = true.
@@ -37,7 +37,6 @@ public class WebClientOptions {
    */
   public static final String DEFAULT_USER_AGENT = UserAgentUtil.loadUserAgent();
 
-  private HttpClientOptions httpClientOptions = new HttpClientOptions();
   private boolean userAgentEnabled = DEFAULT_USER_AGENT_ENABLED;
   private String userAgent = DEFAULT_USER_AGENT;
 
@@ -50,7 +49,7 @@ public class WebClientOptions {
    * @param other the options to copy
    */
   public WebClientOptions(WebClientOptions other) {
-    this.httpClientOptions = other.httpClientOptions;
+    super(other);
     this.userAgentEnabled = other.userAgentEnabled;
     this.userAgent = other.userAgent;
   }
@@ -61,29 +60,8 @@ public class WebClientOptions {
    * @param json the JSON object
    */
   public WebClientOptions(JsonObject json) {
+    super(json);
     WebClientOptionsConverter.fromJson(json, this);
-  }
-
-  /**
-   * Returns the underlying HttpClient options.
-   * Not used when the Web Client is created by wrapping a HttpClient.
-   *
-   * @return the underlying {@link io.vertx.core.http.HttpClient} options
-   */
-  public HttpClientOptions getHttpClientOptions() {
-    return httpClientOptions;
-  }
-
-  /**
-   * Sets the underlying HttpClient options.
-   * Not used when the Web Client is created by wrapping a HttpClient.
-   *
-   * @param httpClientOptions the underlying {@link io.vertx.core.http.HttpClient} options
-   * @return a reference to this, so the API can be used fluently
-   */
-  public WebClientOptions setHttpClientOptions(HttpClientOptions httpClientOptions) {
-    this.httpClientOptions = httpClientOptions;
-    return this;
   }
 
   /**
