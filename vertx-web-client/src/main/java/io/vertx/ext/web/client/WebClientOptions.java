@@ -20,6 +20,7 @@ import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpVersion;
+import io.vertx.core.impl.launcher.commands.VersionCommand;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.JdkSSLEngineOptions;
 import io.vertx.core.net.JksOptions;
@@ -31,7 +32,6 @@ import io.vertx.core.net.PfxOptions;
 import io.vertx.core.net.ProxyOptions;
 import io.vertx.core.net.SSLEngineOptions;
 import io.vertx.core.net.TrustOptions;
-import io.vertx.ext.web.client.impl.UserAgentUtil;
 
 import java.util.List;
 
@@ -49,7 +49,7 @@ public class WebClientOptions extends HttpClientOptions {
   /**
    * The default user agent string = Vert.x-WebClient/&lt;version&gt;.
    */
-  public static final String DEFAULT_USER_AGENT = UserAgentUtil.loadUserAgent();
+  public static final String DEFAULT_USER_AGENT = loadUserAgent();
 
   /**
    * The default value of whether the Web Client should follow redirects = true.
@@ -410,5 +410,14 @@ public class WebClientOptions extends HttpClientOptions {
   @Override
   public WebClientOptions setLogActivity(boolean logEnabled) {
     return (WebClientOptions) super.setLogActivity(logEnabled);
+  }
+
+  public static String loadUserAgent() {
+    String userAgent = "Vert.x-WebClient";
+    String version = VersionCommand.getVersion();
+    if (version.length() > 0) {
+      userAgent += "/" + version;
+    }
+    return userAgent;
   }
 }

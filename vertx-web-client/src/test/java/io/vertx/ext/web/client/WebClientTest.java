@@ -20,7 +20,6 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.streams.ReadStream;
 import io.vertx.core.streams.WriteStream;
-import io.vertx.ext.web.client.impl.UserAgentUtil;
 import io.vertx.ext.web.client.jackson.WineAndCheese;
 import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.test.core.HttpTestBase;
@@ -83,7 +82,8 @@ public class WebClientTest extends HttpTestBase {
   @Test
   public void testDefaultUserAgent() throws Exception {
     testRequest(client -> client.get("somehost", "somepath"), req -> {
-      assertEquals(Collections.singletonList(UserAgentUtil.loadUserAgent()), req.headers().getAll(HttpHeaders.USER_AGENT));
+      String ua = req.headers().get(HttpHeaders.USER_AGENT);
+      assertTrue("Was expecting use agent header " + ua + " to start with Vert.x-WebClient/", ua.startsWith("Vert.x-WebClient/"));
     });
   }
 

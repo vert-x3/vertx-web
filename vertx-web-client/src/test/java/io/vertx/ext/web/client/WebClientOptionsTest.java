@@ -16,8 +16,8 @@
 
 package io.vertx.ext.web.client;
 
+import io.vertx.core.impl.launcher.commands.VersionCommand;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.web.client.impl.UserAgentUtil;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -34,7 +34,7 @@ public class WebClientOptionsTest {
       .put("maxPoolSize", 50);
     WebClientOptions options = new WebClientOptions(json);
     assertFalse(options.isUserAgentEnabled());
-    assertEquals(UserAgentUtil.loadUserAgent(), options.getUserAgent());
+    assertEquals("Vert.x-WebClient/" + VersionCommand.getVersion(), options.getUserAgent());
     assertEquals(50, options.getMaxPoolSize());
   }
 

@@ -33,23 +33,4 @@
     </dependency>
   </dependencies>
 
-  <build>
-    <resources>
-      <resource>
-        <directory>src/main/resources</directory>
-        <filtering>true</filtering>
-        <includes>
-          <include>**/vertx-web-client-version.txt</include>
-        </includes>
-      </resource>
-      <resource>
-        <directory>src/main/resources</directory>
-        <filtering>false</filtering>
-        <excludes>
-          <exclude>**/vertx-web-client-version.txt</exclude>
-        </excludes>
-      </resource>
-    </resources>
-  </build>
-
 </project>
