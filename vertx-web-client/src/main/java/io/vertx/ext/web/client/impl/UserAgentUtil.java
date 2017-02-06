@@ -33,7 +33,7 @@ public class UserAgentUtil {
 
   public static String loadUserAgent() {
     StringBuilder userAgent = new StringBuilder("Vert.x-WebClient");
-    URL url = HttpRequestImpl.class.getClassLoader().getResource("vertx-version.txt");
+    URL url = HttpRequestImpl.class.getClassLoader().getResource("vertx-web-client-version.txt");
     if (url == null) {
       log.warn("Failed to load Web Client version");
     } else {
