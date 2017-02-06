@@ -319,11 +319,22 @@
  * {@link examples.WebClientExamples#testClientChangeMaxRedirects(io.vertx.core.Vertx)}
  * ----
  *
- * You can define the behavior per request:
+ * == Using HTTPS
+ *
+ * Vert.x web client can be configured to use HTTPS in exactly the same way as the Vert.x {@link io.vertx.core.http.HttpClient}.
+ *
+ * You can also define the behavior per request
  *
  * [source,$lang]
  * ----
- * {@link examples.WebClientExamples#testClientChangeMaxRedirects(io.vertx.core.Vertx)}
+ * {@link examples.WebClientExamples#testOverrideRequestSSL(io.vertx.ext.web.client.WebClient)}
+ * ----
+ *
+ * Or using create methods with absolute URI argument
+ *
+ * [source,$lang]
+ * ----
+ * {@link examples.WebClientExamples#testAbsRequestSSL(io.vertx.ext.web.client.WebClient)}
  * ----
  *
  * == RxJava API

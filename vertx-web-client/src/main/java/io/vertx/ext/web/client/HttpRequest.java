@@ -122,6 +122,9 @@ public interface HttpRequest<T> {
   @CacheReturn
   MultiMap headers();
 
+  @Fluent
+  HttpRequest<T> ssl(boolean value);
+
   /**
    * Configures the amount of time in milliseconds after which if the request does not return any data within the timeout
    * period an {@link java.util.concurrent.TimeoutException} fails the request.

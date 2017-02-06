@@ -119,6 +119,15 @@ module VertxWebClient
       end
       raise ArgumentError, "Invalid arguments when calling headers()"
     end
+    # @param [true,false] value 
+    # @return [self]
+    def ssl(value=nil)
+      if (value.class == TrueClass || value.class == FalseClass) && !block_given?
+        @j_del.java_method(:ssl, [Java::boolean.java_class]).call(value)
+        return self
+      end
+      raise ArgumentError, "Invalid arguments when calling ssl(#{value})"
+    end
     #  Configures the amount of time in milliseconds after which if the request does not return any data within the timeout
     #  period an TimeoutException fails the request.
     #  <p>

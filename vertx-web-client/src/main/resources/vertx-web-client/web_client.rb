@@ -58,6 +58,9 @@ module VertxWebClient
       raise ArgumentError, "Invalid arguments when calling create(#{vertx},#{options})"
     end
     #  Wrap an <code>httpClient</code> with a web client and default options.
+    #  <p>
+    #  Only the specific web client portion of the <code>options</code> is used, the {Hash}
+    #  of the <code>httpClient</code> is reused.
     # @param [::Vertx::HttpClient] httpClient the  to wrap
     # @param [Hash] options the Web Client options
     # @return [::VertxWebClient::WebClient] the web client
@@ -73,6 +76,9 @@ module VertxWebClient
     # @overload request(method,requestURI)
     #   @param [:OPTIONS,:GET,:HEAD,:POST,:PUT,:DELETE,:TRACE,:CONNECT,:PATCH,:OTHER] method the HTTP method
     #   @param [String] requestURI the relative URI
+    # @overload request(method,options)
+    #   @param [:OPTIONS,:GET,:HEAD,:POST,:PUT,:DELETE,:TRACE,:CONNECT,:PATCH,:OTHER] method the HTTP method
+    #   @param [Hash] options the request options
     # @overload request(method,host,requestURI)
     #   @param [:OPTIONS,:GET,:HEAD,:POST,:PUT,:DELETE,:TRACE,:CONNECT,:PATCH,:OTHER] method the HTTP method
     #   @param [String] host the host
@@ -86,6 +92,8 @@ module VertxWebClient
     def request(param_1=nil,param_2=nil,param_3=nil,param_4=nil)
       if param_1.class == Symbol && param_2.class == String && !block_given? && param_3 == nil && param_4 == nil
         return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:request, [Java::IoVertxCoreHttp::HttpMethod.java_class,Java::java.lang.String.java_class]).call(Java::IoVertxCoreHttp::HttpMethod.valueOf(param_1.to_s),param_2),::VertxWebClient::HttpRequest,::Vertx::Buffer.j_api_type)
+      elsif param_1.class == Symbol && param_2.class == Hash && !block_given? && param_3 == nil && param_4 == nil
+        return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:request, [Java::IoVertxCoreHttp::HttpMethod.java_class,Java::IoVertxCoreHttp::RequestOptions.java_class]).call(Java::IoVertxCoreHttp::HttpMethod.valueOf(param_1.to_s),Java::IoVertxCoreHttp::RequestOptions.new(::Vertx::Util::Utils.to_json_object(param_2))),::VertxWebClient::HttpRequest,::Vertx::Buffer.j_api_type)
       elsif param_1.class == Symbol && param_2.class == String && param_3.class == String && !block_given? && param_4 == nil
         return ::Vertx::Util::Utils.safe_create(@j_del.java_method(:request, [Java::IoVertxCoreHttp::HttpMethod.java_class,Java::java.lang.String.java_class,Java::java.lang.String.java_class]).call(Java::IoVertxCoreHttp::HttpMethod.valueOf(param_1.to_s),param_2,param_3),::VertxWebClient::HttpRequest,::Vertx::Buffer.j_api_type)
       elsif param_1.class == Symbol && param_2.class == Fixnum && param_3.class == String && param_4.class == String && !block_given?

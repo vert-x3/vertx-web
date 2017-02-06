@@ -388,4 +388,38 @@ public class WebClientExamples {
         }
       });
   }
+
+  public void testOverrideRequestSSL(WebClient client) {
+
+    client
+      .get(443, "myserver.mycompany.com", "/some-uri")
+      .ssl(true)
+      .send(ar -> {
+        if (ar.succeeded()) {
+          // Obtain response
+          HttpResponse<Buffer> response = ar.result();
+
+          System.out.println("Received response with status code" + response.statusCode());
+        } else {
+          System.out.println("Something went wrong " + ar.cause().getMessage());
+        }
+      });
+  }
+
+  public void testAbsRequestSSL(WebClient client) {
+
+    client
+      .getAbs("https://myserver.mycompany.com:4043/some-uri")
+      .ssl(true)
+      .send(ar -> {
+        if (ar.succeeded()) {
+          // Obtain response
+          HttpResponse<Buffer> response = ar.result();
+
+          System.out.println("Received response with status code" + response.statusCode());
+        } else {
+          System.out.println("Something went wrong " + ar.cause().getMessage());
+        }
+      });
+  }
 }

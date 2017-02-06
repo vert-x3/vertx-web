@@ -546,15 +546,42 @@ var client = WebClient.create(vertx, {
 
 ----
 
-You can define the behavior per request:
+== Using HTTPS
+
+Vert.x web client can be configured to use HTTPS in exactly the same way as the Vert.x `link:../../jsdoc/module-vertx-js_http_client-HttpClient.html[HttpClient]`.
+
+You can also define the behavior per request
 
 [source,js]
 ----
-var WebClient = require("vertx-web-client-js/web_client");
 
-// Follow at most 5 redirections
-var client = WebClient.create(vertx, {
-  "maxRedirects" : 5
+client.get(443, "myserver.mycompany.com", "/some-uri").ssl(true).send(function (ar, ar_err) {
+  if (ar_err == null) {
+    // Obtain response
+    var response = ar;
+
+    console.log("Received response with status code" + response.statusCode());
+  } else {
+    console.log("Something went wrong " + ar_err.getMessage());
+  }
+});
+
+----
+
+Or using create methods with absolute URI argument
+
+[source,js]
+----
+
+client.getAbs("https://myserver.mycompany.com:4043/some-uri").ssl(true).send(function (ar, ar_err) {
+  if (ar_err == null) {
+    // Obtain response
+    var response = ar;
+
+    console.log("Received response with status code" + response.statusCode());
+  } else {
+    console.log("Something went wrong " + ar_err.getMessage());
+  }
 });
 
 ----

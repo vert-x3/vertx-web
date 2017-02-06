@@ -545,16 +545,43 @@ def client = WebClient.create(vertx, [
 
 ----
 
-You can define the behavior per request:
+== Using HTTPS
+
+Vert.x web client can be configured to use HTTPS in exactly the same way as the Vert.x `link:../../apidocs/io/vertx/core/http/HttpClient.html[HttpClient]`.
+
+You can also define the behavior per request
 
 [source,groovy]
 ----
-import io.vertx.ext.web.client.WebClient
 
-// Follow at most 5 redirections
-def client = WebClient.create(vertx, [
-  maxRedirects:5
-])
+client.get(443, "myserver.mycompany.com", "/some-uri").ssl(true).send({ ar ->
+  if (ar.succeeded()) {
+    // Obtain response
+    def response = ar.result()
+
+    println("Received response with status code${response.statusCode()}")
+  } else {
+    println("Something went wrong ${ar.cause().getMessage()}")
+  }
+})
+
+----
+
+Or using create methods with absolute URI argument
+
+[source,groovy]
+----
+
+client.getAbs("https://myserver.mycompany.com:4043/some-uri").ssl(true).send({ ar ->
+  if (ar.succeeded()) {
+    // Obtain response
+    def response = ar.result()
+
+    println("Received response with status code${response.statusCode()}")
+  } else {
+    println("Something went wrong ${ar.cause().getMessage()}")
+  }
+})
 
 ----
 

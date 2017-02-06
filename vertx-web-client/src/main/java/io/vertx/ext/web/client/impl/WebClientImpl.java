@@ -19,6 +19,7 @@ import io.vertx.core.VertxException;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.RequestOptions;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
@@ -161,15 +162,20 @@ public class WebClientImpl implements WebClient {
   }
 
   public HttpRequest<Buffer> request(HttpMethod method, String requestURI) {
-    return new HttpRequestImpl<>(client, method, -1, null, requestURI, BodyCodecImpl.BUFFER, options);
+    return new HttpRequestImpl<>(client, method, options.isSsl(), options.getDefaultPort(), options.getDefaultHost(), requestURI, BodyCodecImpl.BUFFER, options);
+  }
+
+  @Override
+  public HttpRequest<Buffer> request(HttpMethod method, RequestOptions requestOptions) {
+    return new HttpRequestImpl<>(client, method, requestOptions.isSsl(), requestOptions.getPort(), requestOptions.getHost(), requestOptions.getURI(), BodyCodecImpl.BUFFER, options);
   }
 
   public HttpRequest<Buffer> request(HttpMethod method, String host, String requestURI) {
-    return new HttpRequestImpl<>(client, method, -1, host, requestURI, BodyCodecImpl.BUFFER, options);
+    return new HttpRequestImpl<>(client, method, options.isSsl(), options.getDefaultPort(), host, requestURI, BodyCodecImpl.BUFFER, options);
   }
 
   public HttpRequest<Buffer> request(HttpMethod method, int port, String host, String requestURI) {
-    return new HttpRequestImpl<>(client, method, port, host, requestURI, BodyCodecImpl.BUFFER, options);
+    return new HttpRequestImpl<>(client, method, options.isSsl(), port, host, requestURI, BodyCodecImpl.BUFFER, options);
   }
 
   public HttpRequest<Buffer> requestAbs(HttpMethod method, String surl) {
@@ -180,7 +186,21 @@ public class WebClientImpl implements WebClient {
     } catch (MalformedURLException e) {
       throw new VertxException("Invalid url: " + surl);
     }
-    return new HttpRequestImpl<>(client, method, url.getPort(), url.getHost(), url.getFile(), BodyCodecImpl.BUFFER, options);
+    boolean ssl = false;
+    int port = url.getPort();
+    String protocol = url.getProtocol();
+    char chend = protocol.charAt(protocol.length() - 1);
+    if (chend == 'p') {
+      if (port == -1) {
+        port = 80;
+      }
+    } else if (chend == 's'){
+      ssl = true;
+      if (port == -1) {
+        port = 443;
+      }
+    }
+    return new HttpRequestImpl<>(client, method, ssl, port, url.getHost(), url.getFile(), BodyCodecImpl.BUFFER, options);
   }
 
   @Override

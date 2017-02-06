@@ -546,16 +546,43 @@ client = VertxWebClient::WebClient.create(vertx, {
 
 ----
 
-You can define the behavior per request:
+== Using HTTPS
+
+Vert.x web client can be configured to use HTTPS in exactly the same way as the Vert.x `link:../../yardoc/Vertx/HttpClient.html[HttpClient]`.
+
+You can also define the behavior per request
 
 [source,ruby]
 ----
-require 'vertx-web-client/web_client'
 
-# Follow at most 5 redirections
-client = VertxWebClient::WebClient.create(vertx, {
-  'maxRedirects' => 5
-})
+client.get(443, "myserver.mycompany.com", "/some-uri").ssl(true).send() { |ar_err,ar|
+  if (ar_err == nil)
+    # Obtain response
+    response = ar
+
+    puts "Received response with status code#{response.status_code()}"
+  else
+    puts "Something went wrong #{ar_err.get_message()}"
+  end
+}
+
+----
+
+Or using create methods with absolute URI argument
+
+[source,ruby]
+----
+
+client.get_abs("https://myserver.mycompany.com:4043/some-uri").ssl(true).send() { |ar_err,ar|
+  if (ar_err == nil)
+    # Obtain response
+    response = ar
+
+    puts "Received response with status code#{response.status_code()}"
+  else
+    puts "Something went wrong #{ar_err.get_message()}"
+  end
+}
 
 ----
 

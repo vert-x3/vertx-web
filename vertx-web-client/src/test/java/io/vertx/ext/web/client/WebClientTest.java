@@ -11,6 +11,7 @@ import io.vertx.core.file.OpenOptions;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
@@ -24,6 +25,7 @@ import io.vertx.ext.web.client.jackson.WineAndCheese;
 import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.test.core.HttpTestBase;
 import io.vertx.test.core.TestUtils;
+import io.vertx.test.core.tls.Cert;
 import org.junit.Test;
 
 import java.io.File;
@@ -60,6 +62,7 @@ public class WebClientTest extends HttpTestBase {
     super.setUp();
     super.client = vertx.createHttpClient(new HttpClientOptions().setDefaultPort(8080).setDefaultHost("localhost"));
     client = WebClient.wrap(super.client);
+    server.close();
     server = vertx.createHttpServer(new HttpServerOptions().setPort(DEFAULT_HTTP_PORT).setHost(DEFAULT_HTTP_HOST));
   }
 
@@ -75,17 +78,6 @@ public class WebClientTest extends HttpTestBase {
     testRequest(client -> client.get("somehost", "somepath"), req -> {
       assertEquals("somehost:8080", req.host());
     });
-  }
-
-  @Test
-  public void testDefaultHost() throws Exception {
-    try {
-      client.get("somepath").port(8080).send(ar -> {
-        fail();
-      });
-      fail();
-    } catch (IllegalStateException ignore) {
-    }
   }
 
   @Test
@@ -1001,5 +993,78 @@ public class WebClientTest extends HttpTestBase {
       complete();
     }));
     await();
+  }
+
+  @Test
+  public void testTLSEnabled() throws Exception {
+    testTLS(true, true, client -> client.get("/"));
+  }
+
+  @Test
+  public void testTLSEnabledDisableRequestTLS() throws Exception {
+    testTLS(true, false, client -> client.get("/").ssl(false));
+  }
+
+  @Test
+  public void testTLSEnabledEnableRequestTLS() throws Exception {
+    testTLS(true, true, client -> client.get("/").ssl(true));
+  }
+
+  @Test
+  public void testTLSDisabledDisableRequestTLS() throws Exception {
+    testTLS(false, false, client -> client.get("/").ssl(false));
+  }
+
+  @Test
+  public void testTLSDisabledEnableRequestTLS() throws Exception {
+    testTLS(false, true, client -> client.get("/").ssl(true));
+  }
+
+  @Test
+  public void testTLSEnabledDisableRequestTLSAbsURI() throws Exception {
+    testTLS(true, false, client -> client.getAbs("http://" + DEFAULT_HTTPS_HOST + ":" + DEFAULT_HTTPS_PORT));
+  }
+
+  @Test
+  public void testTLSEnabledEnableRequestTLSAbsURI() throws Exception {
+    testTLS(true, true, client -> client.getAbs("https://" + DEFAULT_HTTPS_HOST + ":" + DEFAULT_HTTPS_PORT));
+  }
+
+  @Test
+  public void testTLSDisabledDisableRequestTLSAbsURI() throws Exception {
+    testTLS(false, false, client -> client.getAbs("http://" + DEFAULT_HTTPS_HOST + ":" + DEFAULT_HTTPS_PORT));
+  }
+
+  @Test
+  public void testTLSDisabledEnableRequestTLSAbsURI() throws Exception {
+    testTLS(false, true, client -> client.getAbs("https://" + DEFAULT_HTTPS_HOST + ":" + DEFAULT_HTTPS_PORT));
+  }
+
+  private void testTLS(boolean clientSSL, boolean serverSSL, Function<WebClient, HttpRequest<Buffer>> requestProvider) throws Exception {
+    WebClient sslClient = WebClient.create(vertx, new WebClientOptions()
+      .setSsl(clientSSL)
+      .setTrustAll(true)
+      .setDefaultHost(DEFAULT_HTTPS_HOST)
+      .setDefaultPort(DEFAULT_HTTPS_PORT));
+    HttpServer sslServer = vertx.createHttpServer(new HttpServerOptions()
+      .setSsl(serverSSL)
+      .setKeyStoreOptions(Cert.CLIENT_JKS.get())
+      .setPort(DEFAULT_HTTPS_PORT)
+      .setHost(DEFAULT_HTTPS_HOST));
+    sslServer.requestHandler(req -> {
+      assertEquals(serverSSL, req.isSSL());
+      req.response().end();
+    });
+    try {
+      startServer(sslServer);
+      HttpRequest<Buffer> builder = requestProvider.apply(sslClient);
+      builder.send(onSuccess(resp -> {
+        testComplete();
+      }));
+      await();
+    } finally {
+      sslClient.close();
+      sslServer.close();
+    }
   }
 }

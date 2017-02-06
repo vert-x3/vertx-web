@@ -25,6 +25,7 @@ var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
 var JWebClient = Java.type('io.vertx.ext.web.client.WebClient');
 var WebClientOptions = Java.type('io.vertx.ext.web.client.WebClientOptions');
+var RequestOptions = Java.type('io.vertx.core.http.RequestOptions');
 
 /**
 
@@ -49,6 +50,8 @@ var WebClient = function(j_val) {
     var __args = arguments;
     if (__args.length === 2 && typeof __args[0] === 'string' && typeof __args[1] === 'string') {
       return utils.convReturnVertxGen(HttpRequest, j_webClient["request(io.vertx.core.http.HttpMethod,java.lang.String)"](io.vertx.core.http.HttpMethod.valueOf(__args[0]), __args[1]), Buffer._jtype);
+    }  else if (__args.length === 2 && typeof __args[0] === 'string' && (typeof __args[1] === 'object' && __args[1] != null)) {
+      return utils.convReturnVertxGen(HttpRequest, j_webClient["request(io.vertx.core.http.HttpMethod,io.vertx.core.http.RequestOptions)"](io.vertx.core.http.HttpMethod.valueOf(__args[0]), __args[1] != null ? new RequestOptions(new JsonObject(Java.asJSONCompatible(__args[1]))) : null), Buffer._jtype);
     }  else if (__args.length === 3 && typeof __args[0] === 'string' && typeof __args[1] === 'string' && typeof __args[2] === 'string') {
       return utils.convReturnVertxGen(HttpRequest, j_webClient["request(io.vertx.core.http.HttpMethod,java.lang.String,java.lang.String)"](io.vertx.core.http.HttpMethod.valueOf(__args[0]), __args[1], __args[2]), Buffer._jtype);
     }  else if (__args.length === 4 && typeof __args[0] === 'string' && typeof __args[1] ==='number' && typeof __args[2] === 'string' && typeof __args[3] === 'string') {
@@ -339,6 +342,9 @@ WebClient.create = function() {
 
 /**
  Wrap an <code>httpClient</code> with a web client and default options.
+ <p>
+ Only the specific web client portion of the <code>options</code> is used, the <a href="../../dataobjects.html#HttpClientOptions">HttpClientOptions</a>
+ of the <code>httpClient</code> is reused.
 
  @memberof module:vertx-web-client-js/web_client
  @param httpClient {HttpClient} the  to wrap 

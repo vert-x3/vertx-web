@@ -578,18 +578,45 @@ var client = WebClient.create(vertx, WebClientOptions(
 
 ----
 
-You can define the behavior per request:
+== Using HTTPS
+
+Vert.x web client can be configured to use HTTPS in exactly the same way as the Vert.x `link:../../apidocs/io/vertx/core/http/HttpClient.html[HttpClient]`.
+
+You can also define the behavior per request
 
 [source,kotlin]
 ----
-import io.vertx.ext.web.client.WebClient
-import io.vertx.ext.web.client.WebClientOptions
-import io.vertx.kotlin.ext.web.client.*
 
 
-// Follow at most 5 redirections
-var client = WebClient.create(vertx, WebClientOptions(
-  maxRedirects = 5))
+client.get(443, "myserver.mycompany.com", "/some-uri").ssl(true).send({ ar ->
+  if (ar.succeeded()) {
+    // Obtain response
+    var response = ar.result()
+
+    println("Received response with status code${response.statusCode()}")
+  } else {
+    println("Something went wrong ${ar.cause().getMessage()}")
+  }
+})
+
+----
+
+Or using create methods with absolute URI argument
+
+[source,kotlin]
+----
+
+
+client.getAbs("https://myserver.mycompany.com:4043/some-uri").ssl(true).send({ ar ->
+  if (ar.succeeded()) {
+    // Obtain response
+    var response = ar.result()
+
+    println("Received response with status code${response.statusCode()}")
+  } else {
+    println("Something went wrong ${ar.cause().getMessage()}")
+  }
+})
 
 ----
 

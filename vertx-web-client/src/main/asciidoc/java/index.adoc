@@ -540,11 +540,46 @@ The client will follow at most `16` requests redirections, it can be changed in 
 WebClient client = WebClient.create(vertx, new WebClientOptions().setMaxRedirects(5));
 ----
 
-You can define the behavior per request:
+== Using HTTPS
+
+Vert.x web client can be configured to use HTTPS in exactly the same way as the Vert.x `link:../../apidocs/io/vertx/core/http/HttpClient.html[HttpClient]`.
+
+You can also define the behavior per request
 
 [source,java]
 ----
-WebClient client = WebClient.create(vertx, new WebClientOptions().setMaxRedirects(5));
+client
+  .get(443, "myserver.mycompany.com", "/some-uri")
+  .ssl(true)
+  .send(ar -> {
+    if (ar.succeeded()) {
+      // Obtain response
+      HttpResponse<Buffer> response = ar.result();
+
+      System.out.println("Received response with status code" + response.statusCode());
+    } else {
+      System.out.println("Something went wrong " + ar.cause().getMessage());
+    }
+  });
+----
+
+Or using create methods with absolute URI argument
+
+[source,java]
+----
+client
+  .getAbs("https://myserver.mycompany.com:4043/some-uri")
+  .ssl(true)
+  .send(ar -> {
+    if (ar.succeeded()) {
+      // Obtain response
+      HttpResponse<Buffer> response = ar.result();
+
+      System.out.println("Received response with status code" + response.statusCode());
+    } else {
+      System.out.println("Something went wrong " + ar.cause().getMessage());
+    }
+  });
 ----
 
 == RxJava API

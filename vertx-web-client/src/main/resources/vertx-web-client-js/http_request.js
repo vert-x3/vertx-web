@@ -147,6 +147,20 @@ var HttpRequest = function(j_val, j_arg_0) {
   };
 
   /**
+
+   @public
+   @param value {boolean} 
+   @return {HttpRequest}
+   */
+  this.ssl = function(value) {
+    var __args = arguments;
+    if (__args.length === 1 && typeof __args[0] ==='boolean') {
+      j_httpRequest["ssl(boolean)"](value);
+      return that;
+    } else throw new TypeError('function invoked with invalid arguments');
+  };
+
+  /**
    Configures the amount of time in milliseconds after which if the request does not return any data within the timeout
    period an TimeoutException fails the request.
    <p>

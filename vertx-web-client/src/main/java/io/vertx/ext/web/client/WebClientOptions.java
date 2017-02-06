@@ -17,9 +17,23 @@
 package io.vertx.ext.web.client;
 
 import io.vertx.codegen.annotations.DataObject;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClientOptions;
+import io.vertx.core.http.HttpVersion;
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.net.JdkSSLEngineOptions;
+import io.vertx.core.net.JksOptions;
+import io.vertx.core.net.KeyCertOptions;
+import io.vertx.core.net.OpenSSLEngineOptions;
+import io.vertx.core.net.PemKeyCertOptions;
+import io.vertx.core.net.PemTrustOptions;
+import io.vertx.core.net.PfxOptions;
+import io.vertx.core.net.ProxyOptions;
+import io.vertx.core.net.SSLEngineOptions;
+import io.vertx.core.net.TrustOptions;
 import io.vertx.ext.web.client.impl.UserAgentUtil;
+
+import java.util.List;
 
 /**
  * @author Thomas Segismont
@@ -56,9 +70,16 @@ public class WebClientOptions extends HttpClientOptions {
    */
   public WebClientOptions(WebClientOptions other) {
     super(other);
-    this.userAgentEnabled = other.userAgentEnabled;
-    this.userAgent = other.userAgent;
-    this.followRedirects = other.followRedirects;
+    init(other);
+  }
+
+  /**
+   * Copy constructor using {@link HttpClientOptions}.
+   *
+   * @param other the options to copy
+   */
+  public WebClientOptions(HttpClientOptions other) {
+    super(other);
   }
 
   /**
@@ -69,6 +90,12 @@ public class WebClientOptions extends HttpClientOptions {
   public WebClientOptions(JsonObject json) {
     super(json);
     WebClientOptionsConverter.fromJson(json, this);
+  }
+
+  void init(WebClientOptions other) {
+    this.userAgentEnabled = other.userAgentEnabled;
+    this.userAgent = other.userAgent;
+    this.followRedirects = other.followRedirects;
   }
 
   /**
@@ -119,5 +146,260 @@ public class WebClientOptions extends HttpClientOptions {
   @Override
   public WebClientOptions setMaxRedirects(int maxRedirects) {
     return (WebClientOptions) super.setMaxRedirects(maxRedirects);
+  }
+
+  @Override
+  public WebClientOptions setSendBufferSize(int sendBufferSize) {
+    return (WebClientOptions) super.setSendBufferSize(sendBufferSize);
+  }
+
+  @Override
+  public WebClientOptions setReceiveBufferSize(int receiveBufferSize) {
+    return (WebClientOptions) super.setReceiveBufferSize(receiveBufferSize);
+  }
+
+  @Override
+  public WebClientOptions setReuseAddress(boolean reuseAddress) {
+    return (WebClientOptions) super.setReuseAddress(reuseAddress);
+  }
+
+  @Override
+  public WebClientOptions setTrafficClass(int trafficClass) {
+    return (WebClientOptions) super.setTrafficClass(trafficClass);
+  }
+
+  @Override
+  public WebClientOptions setTcpNoDelay(boolean tcpNoDelay) {
+    return (WebClientOptions) super.setTcpNoDelay(tcpNoDelay);
+  }
+
+  @Override
+  public WebClientOptions setTcpKeepAlive(boolean tcpKeepAlive) {
+    return (WebClientOptions) super.setTcpKeepAlive(tcpKeepAlive);
+  }
+
+  @Override
+  public WebClientOptions setSoLinger(int soLinger) {
+    return (WebClientOptions) super.setSoLinger(soLinger);
+  }
+
+  @Override
+  public WebClientOptions setUsePooledBuffers(boolean usePooledBuffers) {
+    return (WebClientOptions) super.setUsePooledBuffers(usePooledBuffers);
+  }
+
+  @Override
+  public WebClientOptions setIdleTimeout(int idleTimeout) {
+    return (WebClientOptions) super.setIdleTimeout(idleTimeout);
+  }
+
+  @Override
+  public WebClientOptions setSsl(boolean ssl) {
+    return (WebClientOptions) super.setSsl(ssl);
+  }
+
+  @Override
+  public WebClientOptions setKeyCertOptions(KeyCertOptions options) {
+    return (WebClientOptions) super.setKeyCertOptions(options);
+  }
+
+  @Override
+  public WebClientOptions setKeyStoreOptions(JksOptions options) {
+    return (WebClientOptions) super.setKeyStoreOptions(options);
+  }
+
+  @Override
+  public WebClientOptions setPfxKeyCertOptions(PfxOptions options) {
+    return (WebClientOptions) super.setPfxKeyCertOptions(options);
+  }
+
+  @Override
+  public WebClientOptions setTrustOptions(TrustOptions options) {
+    return (WebClientOptions) super.setTrustOptions(options);
+  }
+
+  @Override
+  public WebClientOptions setPemKeyCertOptions(PemKeyCertOptions options) {
+    return (WebClientOptions) super.setPemKeyCertOptions(options);
+  }
+
+  @Override
+  public WebClientOptions setTrustStoreOptions(JksOptions options) {
+    return (WebClientOptions) super.setTrustStoreOptions(options);
+  }
+
+  @Override
+  public WebClientOptions setPfxTrustOptions(PfxOptions options) {
+    return (WebClientOptions) super.setPfxTrustOptions(options);
+  }
+
+  @Override
+  public WebClientOptions setPemTrustOptions(PemTrustOptions options) {
+    return (WebClientOptions) super.setPemTrustOptions(options);
+  }
+
+  @Override
+  public WebClientOptions addEnabledCipherSuite(String suite) {
+    return (WebClientOptions) super.addEnabledCipherSuite(suite);
+  }
+
+  @Override
+  public WebClientOptions addEnabledSecureTransportProtocol(String protocol) {
+    return (WebClientOptions) super.addEnabledSecureTransportProtocol(protocol);
+  }
+
+  @Override
+  public WebClientOptions addCrlPath(String crlPath) throws NullPointerException {
+    return (WebClientOptions) super.addCrlPath(crlPath);
+  }
+
+  @Override
+  public WebClientOptions addCrlValue(Buffer crlValue) throws NullPointerException {
+    return (WebClientOptions) super.addCrlValue(crlValue);
+  }
+
+  @Override
+  public WebClientOptions setConnectTimeout(int connectTimeout) {
+    return (WebClientOptions) super.setConnectTimeout(connectTimeout);
+  }
+
+  @Override
+  public WebClientOptions setTrustAll(boolean trustAll) {
+    return (WebClientOptions) super.setTrustAll(trustAll);
+  }
+
+  @Override
+  public WebClientOptions setMaxPoolSize(int maxPoolSize) {
+    return (WebClientOptions) super.setMaxPoolSize(maxPoolSize);
+  }
+
+  @Override
+  public WebClientOptions setHttp2MultiplexingLimit(int limit) {
+    return (WebClientOptions) super.setHttp2MultiplexingLimit(limit);
+  }
+
+  @Override
+  public WebClientOptions setHttp2MaxPoolSize(int max) {
+    return (WebClientOptions) super.setHttp2MaxPoolSize(max);
+  }
+
+  @Override
+  public WebClientOptions setHttp2ConnectionWindowSize(int http2ConnectionWindowSize) {
+    return (WebClientOptions) super.setHttp2ConnectionWindowSize(http2ConnectionWindowSize);
+  }
+
+  @Override
+  public WebClientOptions setKeepAlive(boolean keepAlive) {
+    return (WebClientOptions) super.setKeepAlive(keepAlive);
+  }
+
+  @Override
+  public WebClientOptions setPipelining(boolean pipelining) {
+    return (WebClientOptions) super.setPipelining(pipelining);
+  }
+
+  @Override
+  public WebClientOptions setPipeliningLimit(int limit) {
+    return (WebClientOptions) super.setPipeliningLimit(limit);
+  }
+
+  @Override
+  public WebClientOptions setVerifyHost(boolean verifyHost) {
+    return (WebClientOptions) super.setVerifyHost(verifyHost);
+  }
+
+  @Override
+  public WebClientOptions setTryUseCompression(boolean tryUseCompression) {
+    return (WebClientOptions) super.setTryUseCompression(tryUseCompression);
+  }
+
+  @Override
+  public WebClientOptions setSendUnmaskedFrames(boolean sendUnmaskedFrames) {
+    return (WebClientOptions) super.setSendUnmaskedFrames(sendUnmaskedFrames);
+  }
+
+  @Override
+  public WebClientOptions setMaxWebsocketFrameSize(int maxWebsocketFrameSize) {
+    return (WebClientOptions) super.setMaxWebsocketFrameSize(maxWebsocketFrameSize);
+  }
+
+  @Override
+  public WebClientOptions setDefaultHost(String defaultHost) {
+    return (WebClientOptions) super.setDefaultHost(defaultHost);
+  }
+
+  @Override
+  public WebClientOptions setDefaultPort(int defaultPort) {
+    return (WebClientOptions) super.setDefaultPort(defaultPort);
+  }
+
+  @Override
+  public WebClientOptions setMaxChunkSize(int maxChunkSize) {
+    return (WebClientOptions) super.setMaxChunkSize(maxChunkSize);
+  }
+
+  @Override
+  public WebClientOptions setProtocolVersion(HttpVersion protocolVersion) {
+    return (WebClientOptions) super.setProtocolVersion(protocolVersion);
+  }
+
+  @Override
+  public WebClientOptions setMaxHeaderSize(int maxHeaderSize) {
+    return (WebClientOptions) super.setMaxHeaderSize(maxHeaderSize);
+  }
+
+  @Override
+  public WebClientOptions setMaxWaitQueueSize(int maxWaitQueueSize) {
+    return (WebClientOptions) super.setMaxWaitQueueSize(maxWaitQueueSize);
+  }
+
+  @Override
+  public WebClientOptions setUseAlpn(boolean useAlpn) {
+    return (WebClientOptions) super.setUseAlpn(useAlpn);
+  }
+
+  @Override
+  public WebClientOptions setSslEngineOptions(SSLEngineOptions sslEngineOptions) {
+    return (WebClientOptions) super.setSslEngineOptions(sslEngineOptions);
+  }
+
+  @Override
+  public WebClientOptions setJdkSslEngineOptions(JdkSSLEngineOptions sslEngineOptions) {
+    return (WebClientOptions) super.setJdkSslEngineOptions(sslEngineOptions);
+  }
+
+  @Override
+  public WebClientOptions setOpenSslEngineOptions(OpenSSLEngineOptions sslEngineOptions) {
+    return (WebClientOptions) super.setOpenSslEngineOptions(sslEngineOptions);
+  }
+
+  @Override
+  public WebClientOptions setHttp2ClearTextUpgrade(boolean value) {
+    return (WebClientOptions) super.setHttp2ClearTextUpgrade(value);
+  }
+
+  @Override
+  public WebClientOptions setAlpnVersions(List<HttpVersion> alpnVersions) {
+    return (WebClientOptions) super.setAlpnVersions(alpnVersions);
+  }
+
+  @Override
+  public WebClientOptions setMetricsName(String metricsName) {
+    return (WebClientOptions) super.setMetricsName(metricsName);
+  }
+
+  @Override
+  public WebClientOptions setProxyOptions(ProxyOptions proxyOptions) {
+    return (WebClientOptions) super.setProxyOptions(proxyOptions);
+  }
+
+  @Override
+  public WebClientOptions setLocalAddress(String localAddress) {
+    return (WebClientOptions) super.setLocalAddress(localAddress);
+  }
+
+  @Override
+  public WebClientOptions setLogActivity(boolean logEnabled) {
+    return (WebClientOptions) super.setLogActivity(logEnabled);
   }
 }

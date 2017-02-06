@@ -19,7 +19,10 @@ import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClient;
+import io.vertx.core.http.HttpClientOptionsConverter;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.RequestOptions;
+import io.vertx.core.http.impl.HttpClientImpl;
 import io.vertx.ext.web.client.impl.WebClientImpl;
 
 /**
@@ -76,13 +79,18 @@ public interface WebClient {
 
   /**
    * Wrap an {@code httpClient} with a web client and default options.
+   * <p>
+   * Only the specific web client portion of the {@code options} is used, the {@link io.vertx.core.http.HttpClientOptions}
+   * of the {@code httpClient} is reused.
    *
    * @param httpClient the {@link HttpClient} to wrap
    * @param options    the Web Client options
    * @return the web client
    */
   static WebClient wrap(HttpClient httpClient, WebClientOptions options) {
-    return new WebClientImpl(httpClient, options);
+    WebClientOptions actualOptions = new WebClientOptions(((HttpClientImpl) httpClient).getOptions());
+    actualOptions.init(options);
+    return new WebClientImpl(httpClient, actualOptions);
   }
 
   /**
@@ -111,6 +119,14 @@ public interface WebClient {
    * @return  an HTTP client request object
    */
   HttpRequest<Buffer> request(HttpMethod method, String requestURI);
+
+  /**
+   * Create an HTTP request to send to the server at the specified host and port.
+   * @param method  the HTTP method
+   * @param options  the request options
+   * @return  an HTTP client request object
+   */
+  HttpRequest<Buffer> request(HttpMethod method, RequestOptions options);
 
   /**
    * Create an HTTP request to send to the server using an absolute URI

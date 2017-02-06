@@ -35,6 +35,7 @@ import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.RequestOptions;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.streams.Pump;
@@ -53,6 +54,7 @@ import java.util.Map;
 class HttpRequestImpl<T> implements HttpRequest<T> {
 
   private final HttpClient client;
+  private final WebClientOptions options;
   private MultiMap params;
   private HttpMethod method;
   private int port;
@@ -62,15 +64,18 @@ class HttpRequestImpl<T> implements HttpRequest<T> {
   private long timeout = -1;
   private BodyCodec<T> codec;
   private boolean followRedirects;
+  private boolean ssl;
 
-  HttpRequestImpl(HttpClient client, HttpMethod method, int port, String host, String uri, BodyCodec<T> codec, WebClientOptions options) {
+  HttpRequestImpl(HttpClient client, HttpMethod method, boolean ssl, int port, String host, String uri, BodyCodec<T> codec, WebClientOptions options) {
     this.client = client;
     this.method = method;
     this.codec = codec;
     this.port = port;
     this.host = host;
     this.uri = uri;
+    this.ssl = ssl;
     this.followRedirects = options.isFollowRedirects();
+    this.options = options;
     if (options.isUserAgentEnabled()) {
       headers = new CaseInsensitiveHeaders().add(HttpHeaders.USER_AGENT, options.getUserAgent());
     }
@@ -78,6 +83,7 @@ class HttpRequestImpl<T> implements HttpRequest<T> {
 
   private HttpRequestImpl(HttpRequestImpl<T> other) {
     this.client = other.client;
+    this.options = other.options;
     this.method = other.method;
     this.port = other.port;
     this.host = other.host;
@@ -132,6 +138,12 @@ class HttpRequestImpl<T> implements HttpRequest<T> {
       headers = new CaseInsensitiveHeaders();
     }
     return headers;
+  }
+
+  @Override
+  public HttpRequest<T> ssl(boolean value) {
+    ssl = value;
+    return this;
   }
 
   @Override
@@ -263,18 +275,10 @@ class HttpRequestImpl<T> implements HttpRequest<T> {
     } else {
       requestURI = uri;
     }
-    if (port != -1) {
-      if (host != null) {
-        req = client.request(method, port, host, requestURI);
-      } else {
-        throw new IllegalStateException("Both host and port must be set with an explicit port");
-      }
+    if (ssl != options.isSsl()) {
+      req = client.request(method, new RequestOptions().setSsl(ssl).setHost(host).setPort(port).setURI(uri));
     } else {
-      if (host != null) {
-        req = client.request(method, host, requestURI);
-      } else {
-        req = client.request(method, requestURI);
-      }
+      req = client.request(method, port, host, requestURI);
     }
     req.setFollowRedirects(followRedirects);
     if (headers != null) {
