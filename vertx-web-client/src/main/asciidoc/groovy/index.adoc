@@ -65,9 +65,21 @@ If you want to configure options for the client, you create it as follows
 ----
 import io.vertx.ext.web.client.WebClient
 def options = [
-  keepAlive:false
+  userAgent:"My-App/1.2.3"
 ]
-def client = WebClient.wrap(vertx.createHttpClient(options))
+options.keepAlive = false
+def client = WebClient.create(vertx, options)
+
+----
+
+Web Client options inherit Http Client options so you can set any one of them.
+
+If your already have an HTTP Client in your application you can also reuse it
+
+[source,groovy]
+----
+import io.vertx.ext.web.client.WebClient
+def client = WebClient.wrap(httpClient)
 
 ----
 

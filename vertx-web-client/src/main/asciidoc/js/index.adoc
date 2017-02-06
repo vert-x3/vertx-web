@@ -65,9 +65,21 @@ If you want to configure options for the client, you create it as follows
 ----
 var WebClient = require("vertx-web-client-js/web_client");
 var options = {
-  "keepAlive" : false
+  "userAgent" : "My-App/1.2.3"
 };
-var client = WebClient.wrap(vertx.createHttpClient(options));
+options.keepAlive = false;
+var client = WebClient.create(vertx, options);
+
+----
+
+Web Client options inherit Http Client options so you can set any one of them.
+
+If your already have an HTTP Client in your application you can also reuse it
+
+[source,js]
+----
+var WebClient = require("vertx-web-client-js/web_client");
+var client = WebClient.wrap(httpClient);
 
 ----
 

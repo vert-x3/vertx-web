@@ -64,13 +64,26 @@ If you want to configure options for the client, you create it as follows
 
 [source,kotlin]
 ----
-import io.vertx.core.http.HttpClientOptions
 import io.vertx.ext.web.client.WebClient
-import io.vertx.kotlin.core.http.*
+import io.vertx.ext.web.client.WebClientOptions
+import io.vertx.kotlin.ext.web.client.*
 
-var options = HttpClientOptions(
-  keepAlive = false)
-var client = WebClient.wrap(vertx.createHttpClient(options))
+var options = WebClientOptions(
+  userAgent = "My-App/1.2.3")
+options.keepAlive = false
+var client = WebClient.create(vertx, options)
+
+----
+
+Web Client options inherit Http Client options so you can set any one of them.
+
+If your already have an HTTP Client in your application you can also reuse it
+
+[source,kotlin]
+----
+import io.vertx.ext.web.client.WebClient
+
+var client = WebClient.wrap(httpClient)
 
 ----
 

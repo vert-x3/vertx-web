@@ -5,13 +5,14 @@ import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.file.FileSystem;
 import io.vertx.core.file.OpenOptions;
-import io.vertx.core.http.HttpClientOptions;
+import io.vertx.core.http.HttpClient;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.streams.ReadStream;
 import io.vertx.core.streams.WriteStream;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClient;
+import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.ext.web.codec.BodyCodec;
 
 /**
@@ -24,8 +25,14 @@ public class WebClientExamples {
   }
 
   public void createFromOptions(Vertx vertx) {
-    HttpClientOptions options = new HttpClientOptions().setKeepAlive(false);
-    WebClient client = WebClient.wrap(vertx.createHttpClient(options));
+    WebClientOptions options = new WebClientOptions()
+      .setUserAgent("My-App/1.2.3");
+    options.setKeepAlive(false);
+    WebClient client = WebClient.create(vertx, options);
+  }
+
+  public void wrap(HttpClient httpClient) {
+    WebClient client = WebClient.wrap(httpClient);
   }
 
   public void simpleGetAndHead(Vertx vertx) {
