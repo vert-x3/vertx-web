@@ -550,7 +550,7 @@ var client = WebClient.create(vertx, {
 
 Vert.x web client can be configured to use HTTPS in exactly the same way as the Vert.x `link:../../jsdoc/module-vertx-js_http_client-HttpClient.html[HttpClient]`.
 
-You can also define the behavior per request
+You can specify the behavior per request
 
 [source,js]
 ----
@@ -573,7 +573,7 @@ Or using create methods with absolute URI argument
 [source,js]
 ----
 
-client.getAbs("https://myserver.mycompany.com:4043/some-uri").ssl(true).send(function (ar, ar_err) {
+client.getAbs("https://myserver.mycompany.com:4043/some-uri").send(function (ar, ar_err) {
   if (ar_err == null) {
     // Obtain response
     var response = ar;

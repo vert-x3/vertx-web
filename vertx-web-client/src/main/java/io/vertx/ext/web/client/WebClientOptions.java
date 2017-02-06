@@ -134,10 +134,19 @@ public class WebClientOptions extends HttpClientOptions {
     return this;
   }
 
+  /**
+   * @return the default behavior of the client for following HTTP {@code 30x} redirections
+   */
   public boolean isFollowRedirects() {
     return followRedirects;
   }
 
+  /**
+   * Configure the default behavior of the client to follow HTTP {@code 30x} redirections.
+   *
+   * @param followRedirects true when a redirect is followed
+   * @return a reference to this, so the API can be used fluently
+   */
   public WebClientOptions setFollowRedirects(boolean followRedirects) {
     this.followRedirects = followRedirects;
     return this;

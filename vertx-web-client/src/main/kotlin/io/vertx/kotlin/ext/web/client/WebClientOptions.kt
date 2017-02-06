@@ -23,7 +23,7 @@ import io.vertx.core.net.ProxyOptions
  * @param defaultPort 
  * @param enabledCipherSuites 
  * @param enabledSecureTransportProtocols 
- * @param followRedirects 
+ * @param followRedirects  Configure the default behavior of the client to follow HTTP <code>30x</code> redirections.
  * @param http2ClearTextUpgrade 
  * @param http2ConnectionWindowSize 
  * @param http2MaxPoolSize 

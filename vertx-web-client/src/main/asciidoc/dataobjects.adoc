@@ -19,7 +19,10 @@
 |[[defaultPort]]`defaultPort`|`Number (int)`|-
 |[[enabledCipherSuites]]`enabledCipherSuites`|`Array of String`|-
 |[[enabledSecureTransportProtocols]]`enabledSecureTransportProtocols`|`Array of String`|-
-|[[followRedirects]]`followRedirects`|`Boolean`|-
+|[[followRedirects]]`followRedirects`|`Boolean`|
++++
+Configure the default behavior of the client to follow HTTP <code>30x</code> redirections.
++++
 |[[http2ClearTextUpgrade]]`http2ClearTextUpgrade`|`Boolean`|-
 |[[http2ConnectionWindowSize]]`http2ConnectionWindowSize`|`Number (int)`|-
 |[[http2MaxPoolSize]]`http2MaxPoolSize`|`Number (int)`|-

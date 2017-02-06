@@ -582,7 +582,7 @@ var client = WebClient.create(vertx, WebClientOptions(
 
 Vert.x web client can be configured to use HTTPS in exactly the same way as the Vert.x `link:../../apidocs/io/vertx/core/http/HttpClient.html[HttpClient]`.
 
-You can also define the behavior per request
+You can specify the behavior per request
 
 [source,kotlin]
 ----
@@ -607,7 +607,7 @@ Or using create methods with absolute URI argument
 ----
 
 
-client.getAbs("https://myserver.mycompany.com:4043/some-uri").ssl(true).send({ ar ->
+client.getAbs("https://myserver.mycompany.com:4043/some-uri").send({ ar ->
   if (ar.succeeded()) {
     // Obtain response
     var response = ar.result()

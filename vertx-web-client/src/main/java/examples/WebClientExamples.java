@@ -410,7 +410,6 @@ public class WebClientExamples {
 
     client
       .getAbs("https://myserver.mycompany.com:4043/some-uri")
-      .ssl(true)
       .send(ar -> {
         if (ar.succeeded()) {
           // Obtain response

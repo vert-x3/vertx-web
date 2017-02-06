@@ -323,7 +323,7 @@
  *
  * Vert.x web client can be configured to use HTTPS in exactly the same way as the Vert.x {@link io.vertx.core.http.HttpClient}.
  *
- * You can also define the behavior per request
+ * You can specify the behavior per request
  *
  * [source,$lang]
  * ----

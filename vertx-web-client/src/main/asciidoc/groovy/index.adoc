@@ -549,7 +549,7 @@ def client = WebClient.create(vertx, [
 
 Vert.x web client can be configured to use HTTPS in exactly the same way as the Vert.x `link:../../apidocs/io/vertx/core/http/HttpClient.html[HttpClient]`.
 
-You can also define the behavior per request
+You can specify the behavior per request
 
 [source,groovy]
 ----
@@ -572,7 +572,7 @@ Or using create methods with absolute URI argument
 [source,groovy]
 ----
 
-client.getAbs("https://myserver.mycompany.com:4043/some-uri").ssl(true).send({ ar ->
+client.getAbs("https://myserver.mycompany.com:4043/some-uri").send({ ar ->
   if (ar.succeeded()) {
     // Obtain response
     def response = ar.result()
