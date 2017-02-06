@@ -52,20 +52,25 @@ import java.util.Map;
  */
 class HttpRequestImpl<T> implements HttpRequest<T> {
 
-  final HttpClient client;
-  MultiMap params;
-  HttpMethod method;
-  int port = -1;
-  String host;
-  String uri;
-  MultiMap headers;
-  long timeout = -1;
-  BodyCodec<T> codec;
+  private final HttpClient client;
+  private MultiMap params;
+  private HttpMethod method;
+  private int port;
+  private String host;
+  private String uri;
+  private MultiMap headers;
+  private long timeout = -1;
+  private BodyCodec<T> codec;
+  private boolean followRedirects;
 
-  HttpRequestImpl(HttpClient client, HttpMethod method, BodyCodec<T> codec, WebClientOptions options) {
+  HttpRequestImpl(HttpClient client, HttpMethod method, int port, String host, String uri, BodyCodec<T> codec, WebClientOptions options) {
     this.client = client;
     this.method = method;
     this.codec = codec;
+    this.port = port;
+    this.host = host;
+    this.uri = uri;
+    this.followRedirects = options.isFollowRedirects();
     if (options.isUserAgentEnabled()) {
       headers = new CaseInsensitiveHeaders().add(HttpHeaders.USER_AGENT, options.getUserAgent());
     }
@@ -81,6 +86,7 @@ class HttpRequestImpl<T> implements HttpRequest<T> {
     this.headers = other.headers != null ? new CaseInsensitiveHeaders().addAll(other.headers) : null;
     this.params = other.params != null ? new CaseInsensitiveHeaders().addAll(other.params) : null;
     this.codec = other.codec;
+    this.followRedirects = other.followRedirects;
   }
 
   @Override
@@ -143,6 +149,12 @@ class HttpRequestImpl<T> implements HttpRequest<T> {
   @Override
   public HttpRequest<T> setQueryParam(String paramName, String paramValue) {
     queryParams().set(paramName, paramValue);
+    return this;
+  }
+
+  @Override
+  public HttpRequest<T> followRedirects(boolean value) {
+    followRedirects = value;
     return this;
   }
 
@@ -264,6 +276,7 @@ class HttpRequestImpl<T> implements HttpRequest<T> {
         req = client.request(method, requestURI);
       }
     }
+    req.setFollowRedirects(followRedirects);
     if (headers != null) {
       req.headers().addAll(headers);
     }

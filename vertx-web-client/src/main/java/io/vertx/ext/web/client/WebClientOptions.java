@@ -37,8 +37,14 @@ public class WebClientOptions extends HttpClientOptions {
    */
   public static final String DEFAULT_USER_AGENT = UserAgentUtil.loadUserAgent();
 
+  /**
+   * The default value of whether the Web Client should follow redirects = true.
+   */
+  public static final boolean DEFAULT_FOLLOW_REDIRECTS = true;
+
   private boolean userAgentEnabled = DEFAULT_USER_AGENT_ENABLED;
   private String userAgent = DEFAULT_USER_AGENT;
+  private boolean followRedirects = DEFAULT_FOLLOW_REDIRECTS;
 
   public WebClientOptions() {
   }
@@ -52,6 +58,7 @@ public class WebClientOptions extends HttpClientOptions {
     super(other);
     this.userAgentEnabled = other.userAgentEnabled;
     this.userAgent = other.userAgent;
+    this.followRedirects = other.followRedirects;
   }
 
   /**
@@ -98,5 +105,19 @@ public class WebClientOptions extends HttpClientOptions {
   public WebClientOptions setUserAgent(String userAgent) {
     this.userAgent = userAgent;
     return this;
+  }
+
+  public boolean isFollowRedirects() {
+    return followRedirects;
+  }
+
+  public WebClientOptions setFollowRedirects(boolean followRedirects) {
+    this.followRedirects = followRedirects;
+    return this;
+  }
+
+  @Override
+  public WebClientOptions setMaxRedirects(int maxRedirects) {
+    return (WebClientOptions) super.setMaxRedirects(maxRedirects);
   }
 }

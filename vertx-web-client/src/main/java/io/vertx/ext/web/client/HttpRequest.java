@@ -155,6 +155,15 @@ public interface HttpRequest<T> {
   HttpRequest<T> setQueryParam(String paramName, String paramValue);
 
   /**
+   * Set wether or not to follow the directs for the request.
+   *
+   * @param value true if redirections should be followed
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  HttpRequest<T> followRedirects(boolean value);
+
+  /**
    * Return the current query parameters.
    *
    * @return the current query parameters

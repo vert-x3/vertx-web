@@ -30,7 +30,7 @@ To use Vert.x Web Client, add the following dependency to the _dependencies_ sec
 <dependency>
   <groupId>io.vertx</groupId>
   <artifactId>vertx-web-client</artifactId>
-  <version>3.4.0.Beta1</version>
+  <version>3.4.0-SNAPSHOT</version>
 </dependency>
 ----
 
@@ -39,7 +39,7 @@ To use Vert.x Web Client, add the following dependency to the _dependencies_ sec
 [source,groovy,subs="+attributes"]
 ----
 dependencies {
-  compile 'io.vertx:vertx-web-client:3.4.0.Beta1'
+  compile 'io.vertx:vertx-web-client:3.4.0-SNAPSHOT'
 }
 ----
 
@@ -524,7 +524,30 @@ client
 
 WARNING: this is only valid for the response decoded as a buffer.
 
-=== RxJava API
+=== Handling 30x redirections
+
+By default the client follows redirections, you can configure the default behavior in the `link:../../apidocs/io/vertx/ext/web/client/WebClientOptions.html[WebClientOptions]`:
+
+[source,java]
+----
+WebClient client = WebClient.create(vertx, new WebClientOptions().setFollowRedirects(false));
+----
+
+The client will follow at most `16` requests redirections, it can be changed in the same options:
+
+[source,java]
+----
+WebClient client = WebClient.create(vertx, new WebClientOptions().setMaxRedirects(5));
+----
+
+You can define the behavior per request:
+
+[source,java]
+----
+WebClient client = WebClient.create(vertx, new WebClientOptions().setMaxRedirects(5));
+----
+
+== RxJava API
 
 The RxJava `link:../../apidocs/io/vertx/rxjava/ext/web/client/HttpRequest.html[HttpRequest]` provides an rx-ified version of the original API,
 the `link:../../apidocs/io/vertx/rxjava/ext/web/client/HttpRequest.html#rxSend--[rxSend]` method returns a `Single<HttpResponse<Buffer>>` that

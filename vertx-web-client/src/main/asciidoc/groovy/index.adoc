@@ -30,7 +30,7 @@ To use Vert.x Web Client, add the following dependency to the _dependencies_ sec
 <dependency>
   <groupId>io.vertx</groupId>
   <artifactId>vertx-web-client</artifactId>
-  <version>3.4.0.Beta1</version>
+  <version>3.4.0-SNAPSHOT</version>
 </dependency>
 ----
 
@@ -39,7 +39,7 @@ To use Vert.x Web Client, add the following dependency to the _dependencies_ sec
 [source,groovy,subs="+attributes"]
 ----
 dependencies {
-  compile 'io.vertx:vertx-web-client:3.4.0.Beta1'
+  compile 'io.vertx:vertx-web-client:3.4.0-SNAPSHOT'
 }
 ----
 
@@ -517,7 +517,48 @@ client.get(8080, "myserver.mycompany.com", "/some-uri").send({ ar ->
 
 WARNING: this is only valid for the response decoded as a buffer.
 
-=== RxJava API
+=== Handling 30x redirections
+
+By default the client follows redirections, you can configure the default behavior in the `link:../../apidocs/io/vertx/ext/web/client/WebClientOptions.html[WebClientOptions]`:
+
+[source,groovy]
+----
+import io.vertx.ext.web.client.WebClient
+
+// Change the default behavior to not follow redirects
+def client = WebClient.create(vertx, [
+  followRedirects:false
+])
+
+----
+
+The client will follow at most `16` requests redirections, it can be changed in the same options:
+
+[source,groovy]
+----
+import io.vertx.ext.web.client.WebClient
+
+// Follow at most 5 redirections
+def client = WebClient.create(vertx, [
+  maxRedirects:5
+])
+
+----
+
+You can define the behavior per request:
+
+[source,groovy]
+----
+import io.vertx.ext.web.client.WebClient
+
+// Follow at most 5 redirections
+def client = WebClient.create(vertx, [
+  maxRedirects:5
+])
+
+----
+
+== RxJava API
 
 The RxJava `link:../../apidocs/io/vertx/rxjava/ext/web/client/HttpRequest.html[HttpRequest]` provides an rx-ified version of the original API,
 the `link:../../apidocs/io/vertx/rxjava/ext/web/client/HttpRequest.html#rxSend--[rxSend]` method returns a `Single<HttpResponse<Buffer>>` that
@@ -525,56 +566,21 @@ makes the HTTP request upon subscription, as consequence, the `Single` can be su
 
 [source,groovy]
 ----
-
-// Create the RxJava single for an HttpRequest
-// at this point no HTTP request has been sent to the server
-def single = client.get(8080, "myserver.mycompany.com", "/some-uri").rxSend()
-
-// Send a request upon subscription of the Single
-single.subscribe({ response ->
-  println("Received 1st response with status code${response.statusCode()}")
-}, { error ->
-  println("Something went wrong ${error.getMessage()}")
-})
-
-// Send another request
-single.subscribe({ response ->
-  println("Received 2nd response with status code${response.statusCode()}")
-}, { error ->
-  println("Something went wrong ${error.getMessage()}")
-})
-
+Code not translatable
 ----
 
 The obtained `Single` can be composed and chained naturally with the RxJava API
 
 [source,groovy]
 ----
-
-// Obtain an URL Single from myserver.mycompany.com
-def url = client.get(8080, "myserver.mycompany.com", "/some-uri").rxSend().map(io.vertx.rxjava.ext.web.client.HttpResponse.&bodyAsString)
-
-// Use the flatMap operator to make a request on the URL Single
-url.flatMap({ u ->
-  client.getAbs(u).rxSend()
-}).subscribe({ response ->
-  println("Received response with status code${response.statusCode()}")
-}, { error ->
-  println("Something went wrong ${error.getMessage()}")
-})
-
+Code not translatable
 ----
 
 The same APIs is available
 
 [source,groovy]
 ----
-def single = client.get(8080, "myserver.mycompany.com", "/some-uri").putHeader("some-header", "header-value").addQueryParam("some-param", "param value").as(io.vertx.rxjava.ext.web.codec.BodyCodec.jsonObject()).rxSend()
-single.subscribe({ resp ->
-  println(resp.statusCode())
-  println(resp.body())
-})
-
+Code not translatable
 ----
 
 The `link:../../apidocs/io/vertx/rxjava/ext/web/client/HttpRequest.html#sendStream-rx.Observable-io.vertx.core.Handler-[sendStream]` shall
@@ -582,18 +588,7 @@ be preferred for sending bodies `Observable<Buffer>`
 
 [source,groovy]
 ----
-def getPayload() {
-  throw new java.lang.UnsupportedOperationException()
-}
-
-def body = this.getPayload()
-
-def single = client.post(8080, "myserver.mycompany.com", "/some-uri").rxSendStream(body)
-single.subscribe({ resp ->
-  println(resp.statusCode())
-  println(resp.body())
-})
-
+Code not translatable
 ----
 
 Upon subscription, the `body` will be subscribed and its content used for the request.

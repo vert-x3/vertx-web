@@ -19,6 +19,7 @@
 |[[defaultPort]]`defaultPort`|`Number (int)`|-
 |[[enabledCipherSuites]]`enabledCipherSuites`|`Array of String`|-
 |[[enabledSecureTransportProtocols]]`enabledSecureTransportProtocols`|`Array of String`|-
+|[[followRedirects]]`followRedirects`|`Boolean`|-
 |[[http2ClearTextUpgrade]]`http2ClearTextUpgrade`|`Boolean`|-
 |[[http2ConnectionWindowSize]]`http2ConnectionWindowSize`|`Number (int)`|-
 |[[http2MaxPoolSize]]`http2MaxPoolSize`|`Number (int)`|-
@@ -34,6 +35,7 @@
 |[[maxHeaderSize]]`maxHeaderSize`|`Number (int)`|-
 |[[maxInitialLineLength]]`maxInitialLineLength`|`Number (int)`|-
 |[[maxPoolSize]]`maxPoolSize`|`Number (int)`|-
+|[[maxRedirects]]`maxRedirects`|`Number (int)`|-
 |[[maxWaitQueueSize]]`maxWaitQueueSize`|`Number (int)`|-
 |[[maxWebsocketFrameSize]]`maxWebsocketFrameSize`|`Number (int)`|-
 |[[metricsName]]`metricsName`|`String`|-

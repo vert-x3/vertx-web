@@ -197,6 +197,21 @@ var HttpRequest = function(j_val, j_arg_0) {
   };
 
   /**
+   Set wether or not to follow the directs for the request.
+
+   @public
+   @param value {boolean} true if redirections should be followed 
+   @return {HttpRequest} a reference to this, so the API can be used fluently
+   */
+  this.followRedirects = function(value) {
+    var __args = arguments;
+    if (__args.length === 1 && typeof __args[0] ==='boolean') {
+      j_httpRequest["followRedirects(boolean)"](value);
+      return that;
+    } else throw new TypeError('function invoked with invalid arguments');
+  };
+
+  /**
    Return the current query parameters.
 
    @public

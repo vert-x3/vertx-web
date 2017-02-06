@@ -23,6 +23,7 @@ import io.vertx.core.net.ProxyOptions
  * @param defaultPort 
  * @param enabledCipherSuites 
  * @param enabledSecureTransportProtocols 
+ * @param followRedirects 
  * @param http2ClearTextUpgrade 
  * @param http2ConnectionWindowSize 
  * @param http2MaxPoolSize 
@@ -38,6 +39,7 @@ import io.vertx.core.net.ProxyOptions
  * @param maxHeaderSize 
  * @param maxInitialLineLength 
  * @param maxPoolSize 
+ * @param maxRedirects 
  * @param maxWaitQueueSize 
  * @param maxWebsocketFrameSize 
  * @param metricsName 
@@ -80,6 +82,7 @@ fun WebClientOptions(
   defaultPort: Int? = null,
   enabledCipherSuites: Iterable<String>? = null,
   enabledSecureTransportProtocols: Iterable<String>? = null,
+  followRedirects: Boolean? = null,
   http2ClearTextUpgrade: Boolean? = null,
   http2ConnectionWindowSize: Int? = null,
   http2MaxPoolSize: Int? = null,
@@ -95,6 +98,7 @@ fun WebClientOptions(
   maxHeaderSize: Int? = null,
   maxInitialLineLength: Int? = null,
   maxPoolSize: Int? = null,
+  maxRedirects: Int? = null,
   maxWaitQueueSize: Int? = null,
   maxWebsocketFrameSize: Int? = null,
   metricsName: String? = null,
@@ -157,6 +161,9 @@ fun WebClientOptions(
       this.addEnabledSecureTransportProtocol(item)
     }
   }
+  if (followRedirects != null) {
+    this.setFollowRedirects(followRedirects)
+  }
   if (http2ClearTextUpgrade != null) {
     this.setHttp2ClearTextUpgrade(http2ClearTextUpgrade)
   }
@@ -201,6 +208,9 @@ fun WebClientOptions(
   }
   if (maxPoolSize != null) {
     this.setMaxPoolSize(maxPoolSize)
+  }
+  if (maxRedirects != null) {
+    this.setMaxRedirects(maxRedirects)
   }
   if (maxWaitQueueSize != null) {
     this.setMaxWaitQueueSize(maxWaitQueueSize)

@@ -37,7 +37,7 @@ public class WebClientImpl implements WebClient {
 
   public WebClientImpl(HttpClient client, WebClientOptions options) {
     this.client = client;
-    this.options = options;
+    this.options = new WebClientOptions(options);
   }
 
   @Override
@@ -161,24 +161,15 @@ public class WebClientImpl implements WebClient {
   }
 
   public HttpRequest<Buffer> request(HttpMethod method, String requestURI) {
-    HttpRequestImpl<Buffer> request = new HttpRequestImpl<>(client, method, BodyCodecImpl.BUFFER, options);
-    request.uri = requestURI;
-    return request;
+    return new HttpRequestImpl<>(client, method, -1, null, requestURI, BodyCodecImpl.BUFFER, options);
   }
 
   public HttpRequest<Buffer> request(HttpMethod method, String host, String requestURI) {
-    HttpRequestImpl<Buffer> request = new HttpRequestImpl<>(client, method, BodyCodecImpl.BUFFER, options);
-    request.host = host;
-    request.uri = requestURI;
-    return request;
+    return new HttpRequestImpl<>(client, method, -1, host, requestURI, BodyCodecImpl.BUFFER, options);
   }
 
   public HttpRequest<Buffer> request(HttpMethod method, int port, String host, String requestURI) {
-    HttpRequestImpl<Buffer> request = new HttpRequestImpl<>(client, method, BodyCodecImpl.BUFFER, options);
-    request.port = port;
-    request.host = host;
-    request.uri = requestURI;
-    return request;
+    return new HttpRequestImpl<>(client, method, port, host, requestURI, BodyCodecImpl.BUFFER, options);
   }
 
   public HttpRequest<Buffer> requestAbs(HttpMethod method, String surl) {
@@ -189,11 +180,7 @@ public class WebClientImpl implements WebClient {
     } catch (MalformedURLException e) {
       throw new VertxException("Invalid url: " + surl);
     }
-    HttpRequestImpl<Buffer> request = new HttpRequestImpl<>(client, method, BodyCodecImpl.BUFFER, options);
-    request.port = url.getPort();
-    request.host = url.getHost();
-    request.uri = url.getFile();
-    return request;
+    return new HttpRequestImpl<>(client, method, url.getPort(), url.getHost(), url.getFile(), BodyCodecImpl.BUFFER, options);
   }
 
   @Override

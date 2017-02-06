@@ -27,6 +27,9 @@ import io.vertx.core.json.JsonArray;
 public class WebClientOptionsConverter {
 
   public static void fromJson(JsonObject json, WebClientOptions obj) {
+    if (json.getValue("followRedirects") instanceof Boolean) {
+      obj.setFollowRedirects((Boolean)json.getValue("followRedirects"));
+    }
     if (json.getValue("userAgent") instanceof String) {
       obj.setUserAgent((String)json.getValue("userAgent"));
     }
@@ -36,6 +39,7 @@ public class WebClientOptionsConverter {
   }
 
   public static void toJson(WebClientOptions obj, JsonObject json) {
+    json.put("followRedirects", obj.isFollowRedirects());
     if (obj.getUserAgent() != null) {
       json.put("userAgent", obj.getUserAgent());
     }

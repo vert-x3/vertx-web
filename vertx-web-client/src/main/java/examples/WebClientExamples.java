@@ -359,4 +359,33 @@ public class WebClientExamples {
         }
       });
   }
+
+  public void testClientDisableFollowRedirects(Vertx vertx) {
+
+    // Change the default behavior to not follow redirects
+    WebClient client = WebClient.create(vertx, new WebClientOptions().setFollowRedirects(false));
+  }
+
+  public void testClientChangeMaxRedirects(Vertx vertx) {
+
+    // Follow at most 5 redirections
+    WebClient client = WebClient.create(vertx, new WebClientOptions().setMaxRedirects(5));
+  }
+
+  public void testClientChangeMaxRedirects(WebClient client) {
+
+    client
+      .get(8080, "myserver.mycompany.com", "/some-uri")
+      .followRedirects(false)
+      .send(ar -> {
+        if (ar.succeeded()) {
+          // Obtain response
+          HttpResponse<Buffer> response = ar.result();
+
+          System.out.println("Received response with status code" + response.statusCode());
+        } else {
+          System.out.println("Something went wrong " + ar.cause().getMessage());
+        }
+      });
+  }
 }

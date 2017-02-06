@@ -303,7 +303,30 @@
  *
  * WARNING: this is only valid for the response decoded as a buffer.
  *
- * === RxJava API
+ * === Handling 30x redirections
+ *
+ * By default the client follows redirections, you can configure the default behavior in the {@link io.vertx.ext.web.client.WebClientOptions}:
+ *
+ * [source,$lang]
+ * ----
+ * {@link examples.WebClientExamples#testClientDisableFollowRedirects(io.vertx.core.Vertx)}
+ * ----
+ *
+ * The client will follow at most `16` requests redirections, it can be changed in the same options:
+ *
+ * [source,$lang]
+ * ----
+ * {@link examples.WebClientExamples#testClientChangeMaxRedirects(io.vertx.core.Vertx)}
+ * ----
+ *
+ * You can define the behavior per request:
+ *
+ * [source,$lang]
+ * ----
+ * {@link examples.WebClientExamples#testClientChangeMaxRedirects(io.vertx.core.Vertx)}
+ * ----
+ *
+ * == RxJava API
  *
  * The RxJava {@link io.vertx.rxjava.ext.web.client.HttpRequest} provides an rx-ified version of the original API,
  * the {@link io.vertx.rxjava.ext.web.client.HttpRequest#rxSend()} method returns a `Single<HttpResponse<Buffer>>` that

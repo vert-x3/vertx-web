@@ -953,4 +953,53 @@ public class WebClientTest extends HttpTestBase {
     }));
     await();
   }
+
+  @Test
+  public void testDefaultFollowRedirects() throws Exception {
+    testFollowRedirects(null, true);
+  }
+
+  @Test
+  public void testFollowRedirects() throws Exception {
+    testFollowRedirects(true, true);
+  }
+
+  @Test
+  public void testDoNotFollowRedirects() throws Exception {
+    testFollowRedirects(false, false);
+  }
+
+  private void testFollowRedirects(Boolean set, boolean expect) throws Exception {
+    waitFor(2);
+    String location = "http://" + DEFAULT_HTTP_HOST + ":" + DEFAULT_HTTP_PORT + "/ok";
+    server.requestHandler(req -> {
+      if (req.path().equals("/redirect")) {
+        req.response().setStatusCode(301).putHeader("Location", location).end();
+        if (!expect) {
+          complete();
+        }
+      } else {
+        req.response().end(req.path());
+        if (expect) {
+          complete();
+        }
+      }
+    });
+    startServer();
+    HttpRequest<Buffer> builder = client.get("/redirect");
+    if (set != null) {
+      builder = builder.followRedirects(set);
+    }
+    builder.send(onSuccess(resp -> {
+      if (expect) {
+        assertEquals(200, resp.statusCode());
+        assertEquals("/ok", resp.body().toString());
+      } else {
+        assertEquals(301, resp.statusCode());
+        assertEquals(location, resp.getHeader("location"));
+      }
+      complete();
+    }));
+    await();
+  }
 }

@@ -154,6 +154,16 @@ module VertxWebClient
       end
       raise ArgumentError, "Invalid arguments when calling set_query_param(#{paramName},#{paramValue})"
     end
+    #  Set wether or not to follow the directs for the request.
+    # @param [true,false] value true if redirections should be followed
+    # @return [self]
+    def follow_redirects(value=nil)
+      if (value.class == TrueClass || value.class == FalseClass) && !block_given?
+        @j_del.java_method(:followRedirects, [Java::boolean.java_class]).call(value)
+        return self
+      end
+      raise ArgumentError, "Invalid arguments when calling follow_redirects(#{value})"
+    end
     #  Return the current query parameters.
     # @return [::Vertx::MultiMap] the current query parameters
     def query_params
