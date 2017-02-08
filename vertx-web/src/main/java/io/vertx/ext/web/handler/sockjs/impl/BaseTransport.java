@@ -38,7 +38,6 @@ import io.netty.handler.codec.http.cookie.ServerCookieEncoder;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
-import io.vertx.core.VoidHandler;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.impl.StringEscapeUtils;
@@ -57,7 +56,7 @@ import java.util.Date;
 import java.util.Random;
 import java.util.Set;
 
-import static io.vertx.core.http.HttpHeaders.COOKIE;
+import static io.vertx.core.http.HttpHeaders.*;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -116,14 +115,12 @@ class BaseTransport {
       this.session = session;
     }
     protected void addCloseHandler(HttpServerResponse resp, final SockJSSession session) {
-      resp.closeHandler(new VoidHandler() {
-        public void handle() {
+      resp.closeHandler(v -> {
           if (log.isTraceEnabled()) log.trace("Connection closed (from client?), closing session");
           // Connection has been closed from the client or network error so
           // we remove the session
           session.shutdown();
           closed = true;
-        }
       });
     }
 
