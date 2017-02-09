@@ -19,7 +19,6 @@ package io.vertx.ext.web;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpMethod;
-import io.vertx.core.json.JsonObject;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -1173,6 +1172,25 @@ public class RouterTest extends WebTestBase {
     });
     testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html,application/*,text/plain", 200, "application/json");
     testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html;a,application/*,text/plain", 200, "application/json");
+  }
+
+  @Test
+  public void testAcceptsWithSpaces() throws Exception {
+    router.route("/json").produces("application/json").handler(rc -> {
+      rc.response().setStatusMessage(rc.getAcceptableContentType());
+      rc.response().end();
+    });
+    testRequestWithAccepts(HttpMethod.GET, "/json", "    text/html    , application/*    , text/plain; q= 0.9  ", 200, "application/json");
+    router.route("/html").produces("text/html").handler(rc -> {
+      rc.response().setStatusMessage(rc.getAcceptableContentType());
+      rc.response().end();
+    });
+    testRequestWithAccepts(HttpMethod.GET, "/html", "    text/html    , application/*    , text/plain; q= 0.9  ", 200, "text/html");
+    router.route("/text").produces("text/plain").handler(rc -> {
+      rc.response().setStatusMessage(rc.getAcceptableContentType());
+      rc.response().end();
+    });
+    testRequestWithAccepts(HttpMethod.GET, "/text", "    text/html    , application/*    , text/plain; q= 0.9  ", 200, "text/plain");
   }
 
   @Test
