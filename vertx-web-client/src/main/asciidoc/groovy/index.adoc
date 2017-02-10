@@ -54,7 +54,6 @@ You create an `link:../../apidocs/io/vertx/ext/web/client/WebClient.html[WebClie
 
 [source,groovy]
 ----
-import io.vertx.ext.web.client.WebClient
 def client = WebClient.create(vertx)
 
 ----
@@ -63,7 +62,6 @@ If you want to configure options for the client, you create it as follows
 
 [source,groovy]
 ----
-import io.vertx.ext.web.client.WebClient
 def options = [
   userAgent:"My-App/1.2.3"
 ]
@@ -78,7 +76,6 @@ If your already have an HTTP Client in your application you can also reuse it
 
 [source,groovy]
 ----
-import io.vertx.ext.web.client.WebClient
 def client = WebClient.wrap(httpClient)
 
 ----
@@ -92,7 +89,6 @@ and HEAD requests
 
 [source,groovy]
 ----
-import io.vertx.ext.web.client.WebClient
 
 def client = WebClient.create(vertx)
 
@@ -253,7 +249,6 @@ variant.
 
 [source,groovy]
 ----
-import io.vertx.core.MultiMap
 def form = MultiMap.caseInsensitiveMultiMap()
 form.set("firstName", "Dale")
 form.set("lastName", "Cooper")
@@ -272,7 +267,6 @@ the `content-type` header to `multipart/form-data` instead
 
 [source,groovy]
 ----
-import io.vertx.core.MultiMap
 def form = MultiMap.caseInsensitiveMultiMap()
 form.set("firstName", "Dale")
 form.set("lastName", "Cooper")
@@ -421,7 +415,6 @@ Use `link:../../apidocs/io/vertx/ext/web/codec/BodyCodec.html#jsonObject--[BodyC
 
 [source,groovy]
 ----
-import io.vertx.ext.web.codec.BodyCodec
 client.get(8080, "myserver.mycompany.com", "/some-uri").as(BodyCodec.jsonObject()).send({ ar ->
   if (ar.succeeded()) {
     def response = ar.result()
@@ -440,7 +433,6 @@ In Java, Groovy or Kotlin, custom Json mapped POJO can be decoded
 
 [source,groovy]
 ----
-import io.vertx.ext.web.codec.BodyCodec
 client.get(8080, "myserver.mycompany.com", "/some-uri").as(BodyCodec.json(examples.WebClientExamples.User.class)).send({ ar ->
   if (ar.succeeded()) {
     def response = ar.result()
@@ -461,7 +453,6 @@ and signals the success or the failure of the operation in the async result resp
 
 [source,groovy]
 ----
-import io.vertx.ext.web.codec.BodyCodec
 client.get(8080, "myserver.mycompany.com", "/some-uri").as(BodyCodec.pipe(writeStream)).send({ ar ->
   if (ar.succeeded()) {
 
@@ -480,7 +471,6 @@ simply discards the entire response body
 
 [source,groovy]
 ----
-import io.vertx.ext.web.codec.BodyCodec
 client.get(8080, "myserver.mycompany.com", "/some-uri").as(BodyCodec.none()).send({ ar ->
   if (ar.succeeded()) {
 
@@ -523,7 +513,6 @@ By default the client follows redirections, you can configure the default behavi
 
 [source,groovy]
 ----
-import io.vertx.ext.web.client.WebClient
 
 // Change the default behavior to not follow redirects
 def client = WebClient.create(vertx, [
@@ -536,7 +525,6 @@ The client will follow at most `16` requests redirections, it can be changed in 
 
 [source,groovy]
 ----
-import io.vertx.ext.web.client.WebClient
 
 // Follow at most 5 redirections
 def client = WebClient.create(vertx, [
