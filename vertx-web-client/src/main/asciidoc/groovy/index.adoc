@@ -1,4 +1,7 @@
 = Vert.x Web Client
+:toc: left
+:lang: groovy
+:groovy: groovy
 
 Vert.x Web Client is an asynchronous HTTP and HTTP/2 client.
 
@@ -573,6 +576,7 @@ client.getAbs("https://myserver.mycompany.com:4043/some-uri").send({ ar ->
 
 ----
 
+ifdef::java[]
 == RxJava API
 
 The RxJava `link:../../apidocs/io/vertx/rxjava/ext/web/client/HttpRequest.html[HttpRequest]` provides an rx-ified version of the original API,
@@ -607,3 +611,4 @@ Code not translatable
 ----
 
 Upon subscription, the `body` will be subscribed and its content used for the request.
+endif::[]

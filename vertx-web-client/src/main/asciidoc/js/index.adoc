@@ -1,4 +1,7 @@
 = Vert.x Web Client
+:toc: left
+:lang: js
+:js: js
 
 Vert.x Web Client is an asynchronous HTTP and HTTP/2 client.
 
@@ -586,6 +589,7 @@ client.getAbs("https://myserver.mycompany.com:4043/some-uri").send(function (ar,
 
 ----
 
+ifdef::java[]
 == RxJava API
 
 The RxJava `HttpRequest` provides an rx-ified version of the original API,
@@ -620,3 +624,4 @@ Code not translatable
 ----
 
 Upon subscription, the `body` will be subscribed and its content used for the request.
+endif::[]

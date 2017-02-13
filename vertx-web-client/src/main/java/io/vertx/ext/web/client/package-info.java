@@ -1,5 +1,8 @@
 /**
  * = Vert.x Web Client
+ * :toc: left
+ * :lang: $lang
+ * :$lang: $lang
  *
  * Vert.x Web Client is an asynchronous HTTP and HTTP/2 client.
  *
@@ -337,6 +340,7 @@
  * {@link examples.WebClientExamples#testAbsRequestSSL(io.vertx.ext.web.client.WebClient)}
  * ----
  *
+ * ifdef::java[]
  * == RxJava API
  *
  * The RxJava {@link io.vertx.rxjava.ext.web.client.HttpRequest} provides an rx-ified version of the original API,
@@ -371,6 +375,7 @@
  * ----
  *
  * Upon subscription, the {@code body} will be subscribed and its content used for the request.
+ * endif::[]
  */
 @Document(fileName = "index.adoc")
 @ModuleGen(name = "vertx-web-client", groupPackage = "io.vertx")
