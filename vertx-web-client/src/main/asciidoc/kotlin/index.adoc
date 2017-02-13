@@ -54,8 +54,6 @@ You create an `link:../../apidocs/io/vertx/ext/web/client/WebClient.html[WebClie
 
 [source,kotlin]
 ----
-import io.vertx.ext.web.client.WebClient
-
 var client = WebClient.create(vertx)
 
 ----
@@ -64,10 +62,6 @@ If you want to configure options for the client, you create it as follows
 
 [source,kotlin]
 ----
-import io.vertx.ext.web.client.WebClient
-import io.vertx.ext.web.client.WebClientOptions
-import io.vertx.kotlin.ext.web.client.*
-
 var options = WebClientOptions(
   userAgent = "My-App/1.2.3")
 options.keepAlive = false
@@ -81,8 +75,6 @@ If your already have an HTTP Client in your application you can also reuse it
 
 [source,kotlin]
 ----
-import io.vertx.ext.web.client.WebClient
-
 var client = WebClient.wrap(httpClient)
 
 ----
@@ -96,8 +88,6 @@ and HEAD requests
 
 [source,kotlin]
 ----
-import io.vertx.ext.web.client.WebClient
-
 
 var client = WebClient.create(vertx)
 
@@ -138,7 +128,6 @@ Any request URI parameter will pre-populate the request
 
 [source,kotlin]
 ----
-
 var request = client.get(8080, "myserver.mycompany.com", "/some-uri?param1=param1_value&param2=param2_value")
 
 // Add param3
@@ -153,7 +142,6 @@ Setting a request URI discards existing query parameters
 
 [source,kotlin]
 ----
-
 var request = client.get(8080, "myserver.mycompany.com", "/some-uri")
 
 // Add param1
@@ -173,7 +161,6 @@ Use `link:../../apidocs/io/vertx/ext/web/client/HttpRequest.html#sendBuffer-io.v
 
 [source,kotlin]
 ----
-
 // Send a buffer to the server using POST, the content-length header will be set for you
 client.post(8080, "myserver.mycompany.com", "/some-uri").sendBuffer(buffer, { ar ->
   if (ar.succeeded()) {
@@ -200,9 +187,6 @@ When you know the size of the stream, you shall specify before using the `conten
 
 [source,kotlin]
 ----
-import io.vertx.core.file.OpenOptions
-import io.vertx.kotlin.core.file.*
-
 fs.open("content.txt", OpenOptions(), { fileRes ->
   if (fileRes.succeeded()) {
     var fileStream = fileRes.result()
@@ -229,8 +213,6 @@ use the `link:../../apidocs/io/vertx/ext/web/client/HttpRequest.html#sendJsonObj
 
 [source,kotlin]
 ----
-import io.vertx.kotlin.core.json.*
-
 client.post(8080, "myserver.mycompany.com", "/some-uri").sendJsonObject(json {
   obj(
     "firstName" to "Dale",
@@ -250,7 +232,6 @@ method
 
 [source,kotlin]
 ----
-
 client.post(8080, "myserver.mycompany.com", "/some-uri").sendJson(examples.WebClientExamples.User("Dale", "Cooper"), { ar ->
   if (ar.succeeded()) {
     // Ok
@@ -269,8 +250,6 @@ variant.
 
 [source,kotlin]
 ----
-import io.vertx.core.MultiMap
-
 var form = MultiMap.caseInsensitiveMultiMap()
 form.set("firstName", "Dale")
 form.set("lastName", "Cooper")
@@ -289,8 +268,6 @@ the `content-type` header to `multipart/form-data` instead
 
 [source,kotlin]
 ----
-import io.vertx.core.MultiMap
-
 var form = MultiMap.caseInsensitiveMultiMap()
 form.set("firstName", "Dale")
 form.set("lastName", "Cooper")
@@ -313,7 +290,6 @@ You can write headers to a request using the headers multi-map as follows:
 
 [source,kotlin]
 ----
-
 var request = client.get(8080, "myserver.mycompany.com", "/some-uri")
 var headers = request.headers()
 headers.set("content-type", "application/json")
@@ -328,7 +304,6 @@ You can also write headers using putHeader
 
 [source,kotlin]
 ----
-
 var request = client.get(8080, "myserver.mycompany.com", "/some-uri")
 request.putHeader("content-type", "application/json")
 request.putHeader("other-header", "foo")
@@ -342,7 +317,6 @@ safely, making it very easy to configure and reuse `link:../../apidocs/io/vertx/
 
 [source,kotlin]
 ----
-
 var get = client.get(8080, "myserver.mycompany.com", "/some-uri")
 get.send({ ar ->
   if (ar.succeeded()) {
@@ -364,7 +338,6 @@ request
 
 [source,kotlin]
 ----
-
 var get = client.get(8080, "myserver.mycompany.com", "/some-uri")
 get.send({ ar ->
   if (ar.succeeded()) {
@@ -387,7 +360,6 @@ You can set a timeout for a specific http request using `link:../../apidocs/io/v
 
 [source,kotlin]
 ----
-
 client.get(8080, "myserver.mycompany.com", "/some-uri").timeout(5000).send({ ar ->
   if (ar.succeeded()) {
     // Ok
@@ -409,7 +381,6 @@ On a success result the callback happens after the response has been received
 
 [source,kotlin]
 ----
-
 client.get(8080, "myserver.mycompany.com", "/some-uri").send({ ar ->
   if (ar.succeeded()) {
 
@@ -445,8 +416,6 @@ Use `link:../../apidocs/io/vertx/ext/web/codec/BodyCodec.html#jsonObject--[BodyC
 
 [source,kotlin]
 ----
-import io.vertx.ext.web.codec.BodyCodec
-
 client.get(8080, "myserver.mycompany.com", "/some-uri").as(BodyCodec.jsonObject()).send({ ar ->
   if (ar.succeeded()) {
     var response = ar.result()
@@ -465,8 +434,6 @@ In Java, Groovy or Kotlin, custom Json mapped POJO can be decoded
 
 [source,kotlin]
 ----
-import io.vertx.ext.web.codec.BodyCodec
-
 client.get(8080, "myserver.mycompany.com", "/some-uri").as(BodyCodec.json(examples.WebClientExamples.User.`class`)).send({ ar ->
   if (ar.succeeded()) {
     var response = ar.result()
@@ -487,8 +454,6 @@ and signals the success or the failure of the operation in the async result resp
 
 [source,kotlin]
 ----
-import io.vertx.ext.web.codec.BodyCodec
-
 client.get(8080, "myserver.mycompany.com", "/some-uri").as(BodyCodec.pipe(writeStream)).send({ ar ->
   if (ar.succeeded()) {
 
@@ -507,8 +472,6 @@ simply discards the entire response body
 
 [source,kotlin]
 ----
-import io.vertx.ext.web.codec.BodyCodec
-
 client.get(8080, "myserver.mycompany.com", "/some-uri").as(BodyCodec.none()).send({ ar ->
   if (ar.succeeded()) {
 
@@ -527,7 +490,6 @@ that decode the response to a specific type
 
 [source,kotlin]
 ----
-
 client.get(8080, "myserver.mycompany.com", "/some-uri").send({ ar ->
   if (ar.succeeded()) {
 
@@ -552,10 +514,6 @@ By default the client follows redirections, you can configure the default behavi
 
 [source,kotlin]
 ----
-import io.vertx.ext.web.client.WebClient
-import io.vertx.ext.web.client.WebClientOptions
-import io.vertx.kotlin.ext.web.client.*
-
 
 // Change the default behavior to not follow redirects
 var client = WebClient.create(vertx, WebClientOptions(
@@ -567,10 +525,6 @@ The client will follow at most `16` requests redirections, it can be changed in 
 
 [source,kotlin]
 ----
-import io.vertx.ext.web.client.WebClient
-import io.vertx.ext.web.client.WebClientOptions
-import io.vertx.kotlin.ext.web.client.*
-
 
 // Follow at most 5 redirections
 var client = WebClient.create(vertx, WebClientOptions(
@@ -586,7 +540,6 @@ You can specify the behavior per request
 
 [source,kotlin]
 ----
-
 
 client.get(443, "myserver.mycompany.com", "/some-uri").ssl(true).send({ ar ->
   if (ar.succeeded()) {
@@ -605,7 +558,6 @@ Or using create methods with absolute URI argument
 
 [source,kotlin]
 ----
-
 
 client.getAbs("https://myserver.mycompany.com:4043/some-uri").send({ ar ->
   if (ar.succeeded()) {

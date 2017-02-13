@@ -100,7 +100,6 @@ Here's a hello world web server written using Vert.x core. At this point there i
 
 [source,java]
 ----
-
 var server = vertx.createHttpServer()
 
 server.requestHandler({ request ->
@@ -143,8 +142,6 @@ Here's a simple router example:
 
 [source,kotlin]
 ----
-import io.vertx.ext.web.Router
-
 var server = vertx.createHttpServer()
 
 var router = Router.router(vertx)
@@ -197,7 +194,6 @@ You can do this some time later, if you want:
 
 [source,kotlin]
 ----
-
 
 var route1 = router.route("/some/path/").handler({ routingContext ->
 
@@ -259,7 +255,6 @@ Here's an example:
 [source,kotlin]
 ----
 
-
 router.route().blockingHandler({ routingContext ->
 
   // Do something that might take some time synchronously
@@ -282,7 +277,6 @@ Note, if you need to process multipart form data from a blocking handler, you MU
 
 [source,kotlin]
 ----
-
 router.post("/some/endpoint").handler({ ctx ->
   ctx.request().setExpectMultipart(true)
   ctx.next()
@@ -302,7 +296,6 @@ so it will be called for paths `/some/path` and `/some/path//` too:
 
 [source,kotlin]
 ----
-
 
 var route = router.route().path("/some/path/")
 
@@ -333,7 +326,6 @@ For example `/some/path/foo.html` and `/some/path/otherdir/blah.css` would both 
 [source,kotlin]
 ----
 
-
 var route = router.route().path("/some/path/*")
 
 route.handler({ routingContext ->
@@ -357,7 +349,6 @@ With any path it can also be specified when creating the route:
 [source,kotlin]
 ----
 
-
 var route = router.route("/some/path/*")
 
 route.handler({ routingContext ->
@@ -376,8 +367,6 @@ Here's an example
 
 [source,kotlin]
 ----
-import io.vertx.core.http.HttpMethod
-
 
 var route = router.route(HttpMethod.POST, "/catalogue/products/:producttype/:productid/")
 
@@ -405,7 +394,6 @@ Regular expressions can also be used to match URI paths in routes.
 [source,kotlin]
 ----
 
-
 // Matches any path ending with 'foo'
 var route = router.route().pathRegex(".*foo")
 
@@ -430,7 +418,6 @@ Alternatively the regex can be specified when creating the route:
 [source,kotlin]
 ----
 
-
 var route = router.routeWithRegex(".*foo")
 
 route.handler({ routingContext ->
@@ -448,7 +435,6 @@ You can also capture path parameters when using regular expressions, here's an e
 
 [source,kotlin]
 ----
-
 
 var route = router.routeWithRegex(".*foo")
 
@@ -479,8 +465,6 @@ If you want a route to only match for a specific HTTP method you can use `link:.
 
 [source,kotlin]
 ----
-import io.vertx.core.http.HttpMethod
-
 
 var route = router.route().method(HttpMethod.POST)
 
@@ -497,8 +481,6 @@ Or you can specify this with a path when creating the route:
 
 [source,kotlin]
 ----
-import io.vertx.core.http.HttpMethod
-
 
 var route = router.route(HttpMethod.POST, "/some/path/")
 
@@ -517,7 +499,6 @@ method name. For example:
 
 [source,kotlin]
 ----
-
 
 router.get().handler({ routingContext ->
 
@@ -549,8 +530,6 @@ multiple times:
 
 [source,kotlin]
 ----
-import io.vertx.core.http.HttpMethod
-
 
 var route = router.route().method(HttpMethod.POST).method(HttpMethod.PUT)
 
@@ -577,7 +556,6 @@ Here's an example to illustrate this:
 
 [source,kotlin]
 ----
-
 
 var route1 = router.route("/some/path/").handler({ routingContext ->
 
@@ -637,7 +615,6 @@ Let's change the ordering of route2 so it runs before route1:
 
 [source,kotlin]
 ----
-
 
 var route1 = router.route("/some/path/").handler({ routingContext ->
 
@@ -702,7 +679,6 @@ Matching can be done on exact MIME type matches:
 [source,kotlin]
 ----
 
-
 // Exact match
 router.route().consumes("text/html").handler({ routingContext ->
 
@@ -717,7 +693,6 @@ Multiple exact matches can also be specified:
 
 [source,kotlin]
 ----
-
 
 // Multiple exact matches
 router.route().consumes("text/html").consumes("text/plain").handler({ routingContext ->
@@ -734,7 +709,6 @@ Matching on wildcards for the sub-type is supported:
 [source,kotlin]
 ----
 
-
 // Sub-type wildcard match
 router.route().consumes("text/*").handler({ routingContext ->
 
@@ -749,7 +723,6 @@ And you can also match on the top level type
 
 [source,kotlin]
 ----
-
 
 // Top level type wildcard match
 router.route().consumes("*/json").handler({ routingContext ->
@@ -794,7 +767,6 @@ following handler produces a response with MIME type `application/json`.
 [source,java]
 ----
 
-
 router.route().produces("application/json").handler({ routingContext ->
 
   var response = routingContext.response()
@@ -820,7 +792,6 @@ was accepted.
 
 [source,kotlin]
 ----
-
 
 // This route can produce two different MIME types
 router.route().produces("application/json").produces("text/html").handler({ routingContext ->
@@ -849,8 +820,6 @@ You can combine all the above routing criteria in many different ways, for examp
 
 [source,kotlin]
 ----
-import io.vertx.core.http.HttpMethod
-
 
 var route = router.route(HttpMethod.PUT, "myapi/orders").consumes("application/json").produces("application/json")
 
@@ -886,7 +855,6 @@ A request sent to path `/some/path/other` will match both routes.
 [source,kotlin]
 ----
 
-
 router.get("/some/path").handler({ routingContext ->
 
   routingContext.put("foo", "bar")
@@ -916,7 +884,6 @@ Router.
 
 [source,kotlin]
 ----
-
 
 router.get("/some/path").handler({ routingContext ->
 
@@ -949,7 +916,6 @@ for example:
 [source,kotlin]
 ----
 
-
 router.get("/my-pretty-notfound-handler").handler({ ctx ->
   ctx.response().setStatusCode(404).end("NOT FOUND fancy html here!!!")
 })
@@ -981,8 +947,6 @@ Here's the sub-router:
 
 [source,kotlin]
 ----
-import io.vertx.ext.web.Router
-
 
 var restAPI = Router.router(vertx)
 
@@ -1016,8 +980,6 @@ However, let's say we already have a web-site as described by another router:
 
 [source,kotlin]
 ----
-import io.vertx.ext.web.Router
-
 var mainRouter = Router.router(vertx)
 
 // Handle static resources
@@ -1031,7 +993,6 @@ We can now mount the sub router on the main router, against a mount point, in th
 
 [source,kotlin]
 ----
-
 
 mainRouter.mountSubRouter("/productsAPI", restAPI)
 
@@ -1047,7 +1008,6 @@ locale for a client or the sorted list of preferred locales by quality.
 
 [source,kotlin]
 ----
-
 
 var route = router.get("/localized").handler({ rc ->
   // although it might seem strange by running a loop with a switch we
@@ -1090,7 +1050,6 @@ to paths that start with `/somepath/`:
 [source,kotlin]
 ----
 
-
 var route = router.get("/somepath/*")
 
 route.failureHandler({ frc ->
@@ -1113,7 +1072,6 @@ to be retrieved so the failure handler can use that to generate a failure respon
 
 [source,kotlin]
 ----
-
 
 var route1 = router.get("/somepath/path1/")
 
@@ -1168,8 +1126,6 @@ to install handlers to consume the HTTP request body and this must be done befor
 
 [source,kotlin]
 ----
-import io.vertx.ext.web.handler.BodyHandler
-
 
 // This body handler will be called for all routes
 router.route().handler(BodyHandler.create())
@@ -1212,8 +1168,6 @@ Here's an example:
 
 [source,kotlin]
 ----
-import io.vertx.ext.web.handler.BodyHandler
-
 
 router.route().handler(BodyHandler.create())
 
@@ -1237,8 +1191,6 @@ You should make sure a cookie handler is on a matching route for any requests th
 
 [source,kotlin]
 ----
-import io.vertx.ext.web.handler.CookieHandler
-
 
 // This cookie handler will be called for all routes
 router.route().handler(CookieHandler.create())
@@ -1265,9 +1217,6 @@ Here's an example of querying and adding cookies:
 
 [source,kotlin]
 ----
-import io.vertx.ext.web.Cookie
-import io.vertx.ext.web.handler.CookieHandler
-
 
 // This cookie handler will be called for all routes
 router.route().handler(CookieHandler.create())
@@ -1348,8 +1297,6 @@ Here are some examples of creating a `link:../../apidocs/io/vertx/ext/web/sstore
 
 [source,kotlin]
 ----
-import io.vertx.ext.web.sstore.LocalSessionStore
-
 
 // Create a local session store using defaults
 var store1 = LocalSessionStore.create(vertx)
@@ -1381,11 +1328,6 @@ Here are some examples of creating a `link:../../apidocs/io/vertx/ext/web/sstore
 
 [source,kotlin]
 ----
-import io.vertx.core.Vertx
-import io.vertx.core.VertxOptions
-import io.vertx.ext.web.sstore.ClusteredSessionStore
-import io.vertx.kotlin.core.*
-
 
 // a clustered Vert.x
 Vertx.clusteredVertx(VertxOptions(
@@ -1417,11 +1359,6 @@ Here's an example:
 
 [source,kotlin]
 ----
-import io.vertx.ext.web.Router
-import io.vertx.ext.web.handler.CookieHandler
-import io.vertx.ext.web.handler.SessionHandler
-import io.vertx.ext.web.sstore.ClusteredSessionStore
-
 
 var router = Router.router(vertx)
 
@@ -1467,8 +1404,6 @@ Here's an example of manipulating session data:
 
 [source,kotlin]
 ----
-import io.vertx.ext.web.handler.CookieHandler
-
 
 router.route().handler(CookieHandler.create())
 router.route().handler(sessionHandler)
@@ -1525,11 +1460,6 @@ Here's a simple example of creating a basic auth handler given an auth provider.
 
 [source,kotlin]
 ----
-import io.vertx.ext.web.handler.BasicAuthHandler
-import io.vertx.ext.web.handler.CookieHandler
-import io.vertx.ext.web.handler.SessionHandler
-import io.vertx.ext.web.sstore.LocalSessionStore
-
 
 router.route().handler(CookieHandler.create())
 router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)))
@@ -1545,12 +1475,6 @@ your auth handler is before your application handlers on those paths:
 
 [source,kotlin]
 ----
-import io.vertx.ext.web.handler.BasicAuthHandler
-import io.vertx.ext.web.handler.CookieHandler
-import io.vertx.ext.web.handler.SessionHandler
-import io.vertx.ext.web.handler.UserSessionHandler
-import io.vertx.ext.web.sstore.LocalSessionStore
-
 
 router.route().handler(CookieHandler.create())
 router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)))
@@ -1632,14 +1556,6 @@ Here's an example of a simple app, using a redirect auth handler on the default 
 
 [source,kotlin]
 ----
-import io.vertx.ext.web.handler.CookieHandler
-import io.vertx.ext.web.handler.FormLoginHandler
-import io.vertx.ext.web.handler.RedirectAuthHandler
-import io.vertx.ext.web.handler.SessionHandler
-import io.vertx.ext.web.handler.StaticHandler
-import io.vertx.ext.web.handler.UserSessionHandler
-import io.vertx.ext.web.sstore.LocalSessionStore
-
 
 router.route().handler(CookieHandler.create())
 router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)))
@@ -1689,12 +1605,6 @@ Here's an example on how to issue tokens:
 
 [source,kotlin]
 ----
-import io.vertx.ext.auth.jwt.JWTAuth
-import io.vertx.ext.auth.jwt.JWTOptions
-import io.vertx.ext.web.Router
-import io.vertx.kotlin.core.json.*
-import io.vertx.kotlin.ext.auth.jwt.*
-
 
 var router = Router.router(vertx)
 
@@ -1726,11 +1636,6 @@ Now that your client has a token all it is required is that for *all* consequent
 
 [source,kotlin]
 ----
-import io.vertx.ext.auth.jwt.JWTAuth
-import io.vertx.ext.web.Router
-import io.vertx.ext.web.handler.JWTAuthHandler
-import io.vertx.kotlin.core.json.*
-
 
 var router = Router.router(vertx)
 
@@ -1758,11 +1663,6 @@ token, during the creation of the token just add data to the JsonObject paramete
 
 [source,kotlin]
 ----
-import io.vertx.ext.auth.jwt.JWTAuth
-import io.vertx.ext.auth.jwt.JWTOptions
-import io.vertx.kotlin.core.json.*
-import io.vertx.kotlin.ext.auth.jwt.*
-
 
 var authConfig = json {
   obj("keyStore" to obj(
@@ -1788,7 +1688,6 @@ And the same when consuming:
 [source,kotlin]
 ----
 
-
 var handler = { rc ->
   var theSubject = rc.user().principal().getString("sub")
   var someKey = rc.user().principal().getString("someKey")
@@ -1809,8 +1708,6 @@ may support a role/permission based model but others might use another model.
 
 [source,kotlin]
 ----
-import io.vertx.ext.web.handler.RedirectAuthHandler
-
 
 var listProductsAuthHandler = RedirectAuthHandler.create(authProvider)
 listProductsAuthHandler.addAuthority("list_products")
@@ -1842,8 +1739,6 @@ In the following example all requests to paths starting with `/static/` will get
 
 [source,kotlin]
 ----
-import io.vertx.ext.web.handler.StaticHandler
-
 
 router.route("/static/*").handler(StaticHandler.create())
 
@@ -1945,9 +1840,6 @@ Here's an example:
 
 [source,kotlin]
 ----
-import io.vertx.core.http.HttpMethod
-import io.vertx.ext.web.handler.CorsHandler
-
 
 // Will only accept GET requests from origin "vertx.io"
 router.route().handler(CorsHandler.create("vertx\\.io").allowedMethod(HttpMethod.GET))
@@ -2069,8 +1961,6 @@ add it the context data in a handler before the template handler. For example:
 
 [source,kotlin]
 ----
-import io.vertx.ext.web.handler.TemplateHandler
-
 
 var handler = TemplateHandler.create(engine)
 
@@ -2183,8 +2073,6 @@ seconds:
 
 [source,kotlin]
 ----
-import io.vertx.ext.web.handler.TimeoutHandler
-
 
 router.route("/foo/").handler(TimeoutHandler.create(5000))
 
@@ -2197,6 +2085,65 @@ This handler sets the header `x-response-time` response header containing the ti
 to when the response headers were written, in ms., e.g.:
 
  x-response-time: 1456ms
+
+== Content type handler
+
+The `ResponseContentTypeHandler` can set the `Content-Type` header automatically.
+Suppose we are building a RESTful web application. We need to set the content type in all our handlers:
+
+[source,kotlin]
+----
+router.get("/api/books").produces("application/json").handler({ rc ->
+  findBooks({ ar ->
+    if (ar.succeeded()) {
+      rc.response().putHeader("Content-Type", "application/json").end(toJson(ar.result()))
+    } else {
+      rc.fail(ar.cause())
+    }
+  })
+})
+
+----
+
+If the API surface becomes pretty large, setting the content type can become cumbersome.
+To avoid this situation, add the `ResponseContentTypeHandler` to the corresponding routes:
+
+[source,kotlin]
+----
+router.route("/api/*").handler(ResponseContentTypeHandler.create())
+router.get("/api/books").produces("application/json").handler({ rc ->
+  findBooks({ ar ->
+    if (ar.succeeded()) {
+      rc.response().end(toJson(ar.result()))
+    } else {
+      rc.fail(ar.cause())
+    }
+  })
+})
+
+----
+
+The handler gets the approriate content type from `link:../../apidocs/io/vertx/ext/web/RoutingContext.html#getAcceptableContentType--[getAcceptableContentType]`.
+As a consequence, you can easily share the same handler to produce data of different types:
+
+[source,kotlin]
+----
+router.route("/api/*").handler(ResponseContentTypeHandler.create())
+router.get("/api/books").produces("text/xml").produces("application/json").handler({ rc ->
+  findBooks({ ar ->
+    if (ar.succeeded()) {
+      if (rc.getAcceptableContentType() == "text/xml") {
+        rc.response().end(toXML(ar.result()))
+      } else {
+        rc.response().end(toJson(ar.result()))
+      }
+    } else {
+      rc.fail(ar.cause())
+    }
+  })
+})
+
+----
 
 == SockJS
 
@@ -2221,11 +2168,6 @@ an instance of `link:../../apidocs/io/vertx/ext/web/handler/sockjs/SockJSHandler
 
 [source,kotlin]
 ----
-import io.vertx.ext.web.Router
-import io.vertx.ext.web.handler.sockjs.SockJSHandler
-import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions
-import io.vertx.kotlin.ext.web.handler.sockjs.*
-
 
 var router = Router.router(vertx)
 
@@ -2252,11 +2194,6 @@ Here's an example of a simple SockJS handler that simply echoes back any back an
 
 [source,kotlin]
 ----
-import io.vertx.ext.web.Router
-import io.vertx.ext.web.handler.sockjs.SockJSHandler
-import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions
-import io.vertx.kotlin.ext.web.handler.sockjs.*
-
 
 var router = Router.router(vertx)
 
@@ -2357,11 +2294,6 @@ SockJS handler.
 
 [source,kotlin]
 ----
-import io.vertx.ext.web.Router
-import io.vertx.ext.web.handler.sockjs.BridgeOptions
-import io.vertx.ext.web.handler.sockjs.SockJSHandler
-import io.vertx.kotlin.ext.web.handler.sockjs.*
-
 
 var router = Router.router(vertx)
 
@@ -2490,13 +2422,6 @@ Here's an example:
 
 [source,kotlin]
 ----
-import io.vertx.ext.web.Router
-import io.vertx.ext.web.handler.sockjs.BridgeOptions
-import io.vertx.ext.web.handler.sockjs.PermittedOptions
-import io.vertx.ext.web.handler.sockjs.SockJSHandler
-import io.vertx.kotlin.core.json.*
-import io.vertx.kotlin.ext.web.handler.sockjs.*
-
 
 var router = Router.router(vertx)
 
@@ -2561,10 +2486,6 @@ Here's an example:
 
 [source,kotlin]
 ----
-import io.vertx.ext.web.handler.sockjs.BridgeOptions
-import io.vertx.ext.web.handler.sockjs.PermittedOptions
-import io.vertx.kotlin.ext.web.handler.sockjs.*
-
 
 // Let through any messages sent to 'demo.orderService' from the client
 var inboundPermitted = PermittedOptions(
@@ -2584,16 +2505,6 @@ To handle the login and actually auth you can configure the normal Vert.x auth h
 
 [source,kotlin]
 ----
-import io.vertx.ext.web.Router
-import io.vertx.ext.web.handler.BasicAuthHandler
-import io.vertx.ext.web.handler.CookieHandler
-import io.vertx.ext.web.handler.SessionHandler
-import io.vertx.ext.web.handler.sockjs.BridgeOptions
-import io.vertx.ext.web.handler.sockjs.PermittedOptions
-import io.vertx.ext.web.handler.sockjs.SockJSHandler
-import io.vertx.ext.web.sstore.LocalSessionStore
-import io.vertx.kotlin.ext.web.handler.sockjs.*
-
 
 var router = Router.router(vertx)
 
@@ -2666,13 +2577,6 @@ Here's an example where we reject all messages flowing through the bridge if the
 
 [source,kotlin]
 ----
-import io.vertx.ext.web.Router
-import io.vertx.ext.web.handler.sockjs.BridgeEventType
-import io.vertx.ext.web.handler.sockjs.BridgeOptions
-import io.vertx.ext.web.handler.sockjs.PermittedOptions
-import io.vertx.ext.web.handler.sockjs.SockJSHandler
-import io.vertx.kotlin.ext.web.handler.sockjs.*
-
 
 var router = Router.router(vertx)
 
@@ -2762,14 +2666,6 @@ also add headers to the message, here's an example:
 
 [source,kotlin]
 ----
-import io.vertx.ext.web.Router
-import io.vertx.ext.web.handler.sockjs.BridgeEventType
-import io.vertx.ext.web.handler.sockjs.BridgeOptions
-import io.vertx.ext.web.handler.sockjs.PermittedOptions
-import io.vertx.ext.web.handler.sockjs.SockJSHandler
-import io.vertx.kotlin.core.json.*
-import io.vertx.kotlin.ext.web.handler.sockjs.*
-
 
 var router = Router.router(vertx)
 
@@ -2830,9 +2726,6 @@ or the header name they have chosen during the instantiation of the `CSRFHandler
 
 [source,kotlin]
 ----
-import io.vertx.ext.web.handler.CSRFHandler
-import io.vertx.ext.web.handler.CookieHandler
-
 
 router.route().handler(CookieHandler.create())
 router.route().handler(CSRFHandler.create("abracadabra"))
@@ -2852,8 +2745,6 @@ example `*.vertx.io` or fully domain names as `www.vertx.io`.
 
 [source,kotlin]
 ----
-import io.vertx.ext.web.handler.VirtualHostHandler
-
 router.route().handler(VirtualHostHandler.create("*.vertx.io", { routingContext ->
   // do something if the request is for *.vertx.io
 }))
@@ -2867,9 +2758,6 @@ authCode flow. An example of using it to protect some resource and authenticate 
 
 [source,kotlin]
 ----
-import io.vertx.ext.auth.oauth2.providers.GithubAuth
-import io.vertx.ext.web.handler.OAuth2AuthHandler
-
 
 // create an OAuth2 provider, clientID and clientSecret should be requested to github
 var authProvider = GithubAuth.create(vertx, "CLIENT_ID", "CLIENT_SECRET")
@@ -2929,12 +2817,6 @@ However if you're using an unlisted provider you can still do it using the base 
 
 [source,kotlin]
 ----
-import io.vertx.ext.auth.oauth2.OAuth2Auth
-import io.vertx.ext.auth.oauth2.OAuth2ClientOptions
-import io.vertx.ext.auth.oauth2.OAuth2FlowType
-import io.vertx.ext.web.handler.OAuth2AuthHandler
-import io.vertx.kotlin.ext.auth.oauth2.*
-
 
 // create an OAuth2 provider, clientID and clientSecret should be requested to Google
 var authProvider = OAuth2Auth.create(vertx, OAuth2FlowType.AUTH_CODE, OAuth2ClientOptions(
@@ -2980,8 +2862,6 @@ mandatory for the default values, 80 for http, 443 for https.
 
 [source,kotlin]
 ----
-import io.vertx.ext.web.handler.OAuth2AuthHandler
-
 // create a oauth2 handler pinned to myserver.com: "https://myserver.com:8447/callback"
 var oauth2 = OAuth2AuthHandler.create(provider, "https://myserver.com:8447/callback")
 // now allow the handler to setup the callback url for you

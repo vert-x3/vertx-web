@@ -1,8 +1,10 @@
 package examples;
 
+import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerResponse;
@@ -14,14 +16,42 @@ import io.vertx.ext.auth.oauth2.OAuth2Auth;
 import io.vertx.ext.auth.oauth2.OAuth2ClientOptions;
 import io.vertx.ext.auth.oauth2.OAuth2FlowType;
 import io.vertx.ext.auth.oauth2.providers.GithubAuth;
-import io.vertx.ext.web.*;
-import io.vertx.ext.web.handler.*;
-import io.vertx.ext.web.handler.sockjs.*;
+import io.vertx.ext.web.Cookie;
+import io.vertx.ext.web.FileUpload;
+import io.vertx.ext.web.LanguageHeader;
+import io.vertx.ext.web.Route;
+import io.vertx.ext.web.Router;
+import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.Session;
+import io.vertx.ext.web.handler.AuthHandler;
+import io.vertx.ext.web.handler.BasicAuthHandler;
+import io.vertx.ext.web.handler.BodyHandler;
+import io.vertx.ext.web.handler.CSRFHandler;
+import io.vertx.ext.web.handler.CookieHandler;
+import io.vertx.ext.web.handler.CorsHandler;
+import io.vertx.ext.web.handler.ErrorHandler;
+import io.vertx.ext.web.handler.FormLoginHandler;
+import io.vertx.ext.web.handler.JWTAuthHandler;
+import io.vertx.ext.web.handler.OAuth2AuthHandler;
+import io.vertx.ext.web.handler.RedirectAuthHandler;
+import io.vertx.ext.web.handler.ResponseContentTypeHandler;
+import io.vertx.ext.web.handler.SessionHandler;
+import io.vertx.ext.web.handler.StaticHandler;
+import io.vertx.ext.web.handler.TemplateHandler;
+import io.vertx.ext.web.handler.TimeoutHandler;
+import io.vertx.ext.web.handler.UserSessionHandler;
+import io.vertx.ext.web.handler.VirtualHostHandler;
+import io.vertx.ext.web.handler.sockjs.BridgeEventType;
+import io.vertx.ext.web.handler.sockjs.BridgeOptions;
+import io.vertx.ext.web.handler.sockjs.PermittedOptions;
+import io.vertx.ext.web.handler.sockjs.SockJSHandler;
+import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
 import io.vertx.ext.web.sstore.ClusteredSessionStore;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import io.vertx.ext.web.sstore.SessionStore;
 import io.vertx.ext.web.templ.TemplateEngine;
 
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -1231,5 +1261,63 @@ public class WebExamples {
       ctx.response().putHeader("content-type", "text/html").end("Hello<br><a href=\"/protected/somepage\">Protected by LinkedIn</a>");
     });
   }
+
+  public void manualContentType(Router router) {
+    router.get("/api/books").produces("application/json").handler(rc -> {
+      findBooks(ar -> {
+        if (ar.succeeded()) {
+          rc.response().putHeader("Content-Type", "application/json").end(toJson(ar.result()));
+        } else {
+          rc.fail(ar.cause());
+        }
+      });
+    });
+  }
+
+  public void contentTypeHandler(Router router) {
+    router.route("/api/*").handler(ResponseContentTypeHandler.create());
+    router.get("/api/books").produces("application/json").handler(rc -> {
+      findBooks(ar -> {
+        if (ar.succeeded()) {
+          rc.response().end(toJson(ar.result()));
+        } else {
+          rc.fail(ar.cause());
+        }
+      });
+    });
+  }
+
+  private void findBooks(Handler<AsyncResult<List<Book>>> handler) {
+    throw new UnsupportedOperationException();
+  }
+
+  class Book {
+  }
+
+  Buffer toJson(List<Book> books) {
+    throw new UnsupportedOperationException();
+  }
+
+  Buffer toXML(List<Book> books) {
+    throw new UnsupportedOperationException();
+  }
+
+  public void mostAcceptableContentTypeHandler(Router router) {
+    router.route("/api/*").handler(ResponseContentTypeHandler.create());
+    router.get("/api/books").produces("text/xml").produces("application/json").handler(rc -> {
+      findBooks(ar -> {
+        if (ar.succeeded()) {
+          if (rc.getAcceptableContentType().equals("text/xml")) {
+            rc.response().end(toXML(ar.result()));
+          } else {
+            rc.response().end(toJson(ar.result()));
+          }
+        } else {
+          rc.fail(ar.cause());
+        }
+      });
+    });
+  }
+
 }
 

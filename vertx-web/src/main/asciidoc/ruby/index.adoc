@@ -2145,6 +2145,67 @@ to when the response headers were written, in ms., e.g.:
 
  x-response-time: 1456ms
 
+== Content type handler
+
+The `ResponseContentTypeHandler` can set the `Content-Type` header automatically.
+Suppose we are building a RESTful web application. We need to set the content type in all our handlers:
+
+[source,ruby]
+----
+router.get("/api/books").produces("application/json").handler() { |rc|
+  find_books() { |ar_err,ar|
+    if (ar_err == nil)
+      rc.response().put_header("Content-Type", "application/json").end(to_json(ar))
+    else
+      rc.fail(ar_err)
+    end
+  }
+}
+
+----
+
+If the API surface becomes pretty large, setting the content type can become cumbersome.
+To avoid this situation, add the `ResponseContentTypeHandler` to the corresponding routes:
+
+[source,ruby]
+----
+require 'vertx-web/response_content_type_handler'
+router.route("/api/*").handler(&VertxWeb::ResponseContentTypeHandler.create().method(:handle))
+router.get("/api/books").produces("application/json").handler() { |rc|
+  find_books() { |ar_err,ar|
+    if (ar_err == nil)
+      rc.response().end(to_json(ar))
+    else
+      rc.fail(ar_err)
+    end
+  }
+}
+
+----
+
+The handler gets the approriate content type from `link:../../yardoc/VertxWeb/RoutingContext.html#get_acceptable_content_type-instance_method[getAcceptableContentType]`.
+As a consequence, you can easily share the same handler to produce data of different types:
+
+[source,ruby]
+----
+require 'vertx-web/response_content_type_handler'
+router.route("/api/*").handler(&VertxWeb::ResponseContentTypeHandler.create().method(:handle))
+router.get("/api/books").produces("text/xml").produces("application/json").handler() { |rc|
+  find_books() { |ar_err,ar|
+    if (ar_err == nil)
+      if (rc.get_acceptable_content_type().==("text/xml"))
+        rc.response().end(to_xml(ar))
+      else
+        rc.response().end(to_json(ar))
+      end
+    else
+      rc.fail(ar_err)
+    end
+  }
+}
+
+----
+
 == SockJS
 
 SockJS is a client side JavaScript library and protocol which provides a simple WebSocket-like interface allowing you

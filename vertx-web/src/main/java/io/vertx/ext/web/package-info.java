@@ -1404,6 +1404,32 @@
  *
  *  x-response-time: 1456ms
  *
+ * == Content type handler
+ *
+ * The `ResponseContentTypeHandler` can set the `Content-Type` header automatically.
+ * Suppose we are building a RESTful web application. We need to set the content type in all our handlers:
+ *
+ * [source,$lang]
+ * ----
+ * {@link examples.WebExamples#manualContentType(io.vertx.ext.web.Router)}
+ * ----
+ *
+ * If the API surface becomes pretty large, setting the content type can become cumbersome.
+ * To avoid this situation, add the `ResponseContentTypeHandler` to the corresponding routes:
+ *
+ * [source,$lang]
+ * ----
+ * {@link examples.WebExamples#contentTypeHandler(io.vertx.ext.web.Router)}
+ * ----
+ *
+ * The handler gets the approriate content type from {@link io.vertx.ext.web.RoutingContext#getAcceptableContentType()}.
+ * As a consequence, you can easily share the same handler to produce data of different types:
+ *
+ * [source,$lang]
+ * ----
+ * {@link examples.WebExamples#mostAcceptableContentTypeHandler(io.vertx.ext.web.Router)}
+ * ----
+ *
  * == SockJS
  *
  * SockJS is a client side JavaScript library and protocol which provides a simple WebSocket-like interface allowing you
