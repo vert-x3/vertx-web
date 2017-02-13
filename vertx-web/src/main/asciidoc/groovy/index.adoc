@@ -2100,6 +2100,65 @@ to when the response headers were written, in ms., e.g.:
 
  x-response-time: 1456ms
 
+== Content type handler
+
+The `ResponseContentTypeHandler` can set the `Content-Type` header automatically.
+Suppose we are building a RESTful web application. We need to set the content type in all our handlers:
+
+[source,groovy]
+----
+router.get("/api/books").produces("application/json").handler({ rc ->
+  this.findBooks({ ar ->
+    if (ar.succeeded()) {
+      rc.response().putHeader("Content-Type", "application/json").end(this.toJson(ar.result()))
+    } else {
+      rc.fail(ar.cause())
+    }
+  })
+})
+
+----
+
+If the API surface becomes pretty large, setting the content type can become cumbersome.
+To avoid this situation, add the `ResponseContentTypeHandler` to the corresponding routes:
+
+[source,groovy]
+----
+router.route("/api/*").handler(ResponseContentTypeHandler.create())
+router.get("/api/books").produces("application/json").handler({ rc ->
+  this.findBooks({ ar ->
+    if (ar.succeeded()) {
+      rc.response().end(this.toJson(ar.result()))
+    } else {
+      rc.fail(ar.cause())
+    }
+  })
+})
+
+----
+
+The handler gets the approriate content type from `link:../../apidocs/io/vertx/ext/web/RoutingContext.html#getAcceptableContentType--[getAcceptableContentType]`.
+As a consequence, you can easily share the same handler to produce data of different types:
+
+[source,groovy]
+----
+router.route("/api/*").handler(ResponseContentTypeHandler.create())
+router.get("/api/books").produces("text/xml").produces("application/json").handler({ rc ->
+  this.findBooks({ ar ->
+    if (ar.succeeded()) {
+      if (rc.getAcceptableContentType() == "text/xml") {
+        rc.response().end(this.toXML(ar.result()))
+      } else {
+        rc.response().end(this.toJson(ar.result()))
+      }
+    } else {
+      rc.fail(ar.cause())
+    }
+  })
+})
+
+----
+
 == SockJS
 
 SockJS is a client side JavaScript library and protocol which provides a simple WebSocket-like interface allowing you

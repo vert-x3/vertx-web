@@ -6,7 +6,7 @@ module VertxWeb
   # 
   #  The header is set only if:
   #  <ul>
-  #    <li>no object is stored in the routing context under the name DEFAULT_DISABLE_FLAG</li>
+  #  <li>no object is stored in the routing context under the name DEFAULT_DISABLE_FLAG</li>
   #  <li>a match is found</li>
   #  <li>the header is not present already</li>
   #  <li>content length header is absent or set to something different than zero</li>
