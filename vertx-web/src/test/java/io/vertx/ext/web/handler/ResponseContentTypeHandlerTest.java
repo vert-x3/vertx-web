@@ -73,8 +73,8 @@ public class ResponseContentTypeHandlerTest extends WebTestBase {
       assertEquals(Integer.valueOf(buffer.length()), contentLength(resp));
       resp.bodyHandler(buf -> {
         assertEquals(buffer, buf);
+        testComplete();
       });
-      testComplete();
     }).putHeader(HttpHeaders.ACCEPT, "application/json").end();
     await();
   }
@@ -90,8 +90,8 @@ public class ResponseContentTypeHandlerTest extends WebTestBase {
       assertNull(contentLength(resp));
       resp.bodyHandler(buf -> {
         assertEquals(buffer, buf);
+        testComplete();
       });
-      testComplete();
     }).putHeader(HttpHeaders.ACCEPT, "application/json").end();
     await();
   }
@@ -124,8 +124,8 @@ public class ResponseContentTypeHandlerTest extends WebTestBase {
       assertEquals(Integer.valueOf(buffer.length()), contentLength(resp));
       resp.bodyHandler(buf -> {
         assertEquals(buffer, buf);
+        testComplete();
       });
-      testComplete();
     }).putHeader(HttpHeaders.ACCEPT, "application/json").end();
     await();
   }
