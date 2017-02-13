@@ -1600,7 +1600,8 @@ redirectAuthHandler = VertxWeb::RedirectAuthHandler.create(authProvider)
 router.route("/private/*").handler(&redirectAuthHandler.method(:handle))
 
 # Handle the actual login
-router.route("/login").handler(&VertxWeb::FormLoginHandler.create(authProvider).method(:handle))
+# One of your pages must POST form login data
+router.post("/login").handler(&VertxWeb::FormLoginHandler.create(authProvider).method(:handle))
 
 # Set a static server to serve static resources, e.g. the login page
 router.route().handler(&VertxWeb::StaticHandler.create().method(:handle))

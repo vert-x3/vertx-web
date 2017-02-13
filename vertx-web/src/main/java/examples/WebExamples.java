@@ -777,7 +777,8 @@ public class WebExamples {
     router.route("/private/*").handler(redirectAuthHandler);
 
     // Handle the actual login
-    router.route("/login").handler(FormLoginHandler.create(authProvider));
+    // One of your pages must POST form login data
+    router.post("/login").handler(FormLoginHandler.create(authProvider));
 
     // Set a static server to serve static resources, e.g. the login page
     router.route().handler(StaticHandler.create());
