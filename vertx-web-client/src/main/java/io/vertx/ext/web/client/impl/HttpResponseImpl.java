@@ -19,6 +19,7 @@ import io.vertx.core.MultiMap;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.http.HttpVersion;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.codec.impl.BodyCodecImpl;
@@ -106,6 +107,12 @@ class HttpResponseImpl<T> implements HttpResponse<T> {
   public JsonObject bodyAsJsonObject() {
     Buffer b = bodyAsBuffer();
     return b != null ? BodyCodecImpl.JSON_OBJECT_DECODER.apply(b) : null;
+  }
+
+  @Override
+  public JsonArray bodyAsJsonArray() {
+    Buffer b = bodyAsBuffer();
+    return b != null ? BodyCodecImpl.JSON_ARRAY_DECODER.apply(b) : null;
   }
 
   @Override
