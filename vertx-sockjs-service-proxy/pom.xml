@@ -86,7 +86,6 @@
                 <annotationProcessors>
                   <annotationProcessor>io.vertx.codegen.CodeGenProcessor</annotationProcessor>
                 </annotationProcessors>
-                <generatedTestSourcesDirectory>${project.basedir}/src/test/generated</generatedTestSourcesDirectory>
                 <compilerArgs>
                   <arg>-Acodegen.output=${project.basedir}/src/test</arg>
                 </compilerArgs>

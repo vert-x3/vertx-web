@@ -1,4 +1,0 @@
-moduleName = io.vertx.serviceproxy.testmodel.TestService-module
-moduleVersion = 1.0
-extensionClasses = io.vertx.groovy.serviceproxy.testmodel.TestConnection_GroovyExtension, io.vertx.groovy.serviceproxy.testmodel.TestService_GroovyExtension
-staticExtensionClasses = 

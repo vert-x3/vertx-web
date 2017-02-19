@@ -1,5 +1,5 @@
 {
-  "name": "sockjs-service-proxies",
+  "name": "sockjs_service_proxies",
   "generators": [
     {
       "kind": "proxy",

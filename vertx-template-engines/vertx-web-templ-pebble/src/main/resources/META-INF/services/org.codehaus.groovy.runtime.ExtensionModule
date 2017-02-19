@@ -1,4 +1,0 @@
-moduleName = io.vertx.ext.web.templ.PebbleTemplateEngine-module
-moduleVersion = 1.0
-extensionClasses = 
-staticExtensionClasses = 
