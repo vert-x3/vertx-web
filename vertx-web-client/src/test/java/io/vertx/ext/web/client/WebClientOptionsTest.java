@@ -30,12 +30,25 @@ public class WebClientOptionsTest {
   @Test
   public void testFromJson() {
     JsonObject json = new JsonObject()
+      .put("defaultPort", 4848)
       .put("userAgentEnabled", false)
       .put("maxPoolSize", 50);
     WebClientOptions options = new WebClientOptions(json);
+    assertEquals(4848, options.getDefaultPort());
     assertFalse(options.isUserAgentEnabled());
     assertEquals("Vert.x-WebClient/" + VersionCommand.getVersion(), options.getUserAgent());
     assertEquals(50, options.getMaxPoolSize());
   }
 
+  @Test
+  public void testToJson() {
+    WebClientOptions options = new WebClientOptions()
+      .setDefaultPort(4848)
+      .setMaxPoolSize(50)
+      .setUserAgentEnabled(false);
+    JsonObject json = options.toJson();
+    assertEquals(4848, (int) json.getInteger("defaultPort"));
+    assertEquals(50, (int) json.getInteger("maxPoolSize"));
+    assertEquals(false, json.getBoolean("userAgentEnabled"));
+  }
 }
