@@ -63,6 +63,11 @@ class BridgeEventImpl implements BridgeEvent {
   }
 
   @Override
+  public void handle(AsyncResult<Boolean> asyncResult) {
+    future.handle(asyncResult);
+  }
+
+  @Override
   public SockJSSocket socket() {
     return socket;
   }
@@ -83,23 +88,23 @@ class BridgeEventImpl implements BridgeEvent {
   }
 
   @Override
-  public void complete(Boolean result) {
-    future.complete(result);
+  public boolean complete(Boolean result) {
+    return future.complete(result);
   }
 
   @Override
-  public void complete() {
-    future.complete();
+  public boolean complete() {
+    return future.complete();
   }
 
   @Override
-  public void fail(Throwable throwable) {
-    future.fail(throwable);
+  public boolean fail(Throwable throwable) {
+    return future.fail(throwable);
   }
 
   @Override
-  public void fail(String failureMessage) {
-    future.fail(failureMessage);
+  public boolean fail(String failureMessage) {
+    return future.fail(failureMessage);
   }
 
   @Override

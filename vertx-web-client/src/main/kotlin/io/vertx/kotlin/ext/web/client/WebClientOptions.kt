@@ -42,6 +42,7 @@ import io.vertx.core.net.ProxyOptions
  * @param maxRedirects 
  * @param maxWaitQueueSize 
  * @param maxWebsocketFrameSize 
+ * @param maxWebsocketMessageSize 
  * @param metricsName 
  * @param openSslEngineOptions 
  * @param pemKeyCertOptions 
@@ -101,6 +102,7 @@ fun WebClientOptions(
   maxRedirects: Int? = null,
   maxWaitQueueSize: Int? = null,
   maxWebsocketFrameSize: Int? = null,
+  maxWebsocketMessageSize: Int? = null,
   metricsName: String? = null,
   openSslEngineOptions: io.vertx.core.net.OpenSSLEngineOptions? = null,
   pemKeyCertOptions: io.vertx.core.net.PemKeyCertOptions? = null,
@@ -217,6 +219,9 @@ fun WebClientOptions(
   }
   if (maxWebsocketFrameSize != null) {
     this.setMaxWebsocketFrameSize(maxWebsocketFrameSize)
+  }
+  if (maxWebsocketMessageSize != null) {
+    this.setMaxWebsocketMessageSize(maxWebsocketMessageSize)
   }
   if (metricsName != null) {
     this.setMetricsName(metricsName)
