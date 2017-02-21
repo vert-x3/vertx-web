@@ -121,4 +121,9 @@ class BridgeEventImpl implements BridgeEvent {
   public boolean failed() {
     return future.failed();
   }
+
+  @Override
+  public void handle(AsyncResult<Boolean> asyncResult) {
+    future.handle(asyncResult);
+  }
 }
