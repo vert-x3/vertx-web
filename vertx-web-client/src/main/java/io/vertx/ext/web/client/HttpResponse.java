@@ -21,6 +21,7 @@ import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.MultiMap;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpVersion;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 import java.util.List;
@@ -132,6 +133,13 @@ public interface HttpResponse<T> {
   @CacheReturn
   @Nullable
   JsonObject bodyAsJsonObject();
+
+  /**
+   * @return the response body decoded as a json array
+   */
+  @CacheReturn
+  @Nullable
+  JsonArray bodyAsJsonArray();
 
   /**
    * @return the response body decoded as the specified {@code type} with the Jackson mapper.
