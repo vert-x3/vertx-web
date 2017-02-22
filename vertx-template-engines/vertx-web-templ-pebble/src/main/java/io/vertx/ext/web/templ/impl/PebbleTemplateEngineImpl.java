@@ -38,12 +38,12 @@ public class PebbleTemplateEngineImpl extends CachingTemplateEngine<PebbleTempla
   private final PebbleEngine pebbleEngine;
 
   public PebbleTemplateEngineImpl(Vertx vertx) {
-    this(new PebbleEngine.Builder().loader(new PebbleVertxLoader(vertx)));
+    this(new PebbleEngine.Builder().loader(new PebbleVertxLoader(vertx)).build());
   }
 
-  public PebbleTemplateEngineImpl(PebbleEngine.Builder builder) {
+  public PebbleTemplateEngineImpl(PebbleEngine engine) {
     super(DEFAULT_TEMPLATE_EXTENSION, DEFAULT_MAX_CACHE_SIZE);
-    this.pebbleEngine = builder.build();
+    this.pebbleEngine = engine;
   }
 
   @Override

@@ -333,7 +333,7 @@ public class PebbleTemplateTest extends WebTestBase {
 
   @Test
   public void customBuilderShouldRender() throws Exception {
-    final TemplateEngine engine = PebbleTemplateEngine.create(new PebbleEngine.Builder().extension(new TestExtension()).loader(new PebbleVertxLoader(vertx)));
+    final TemplateEngine engine = PebbleTemplateEngine.create(new PebbleEngine.Builder().extension(new TestExtension()).loader(new PebbleVertxLoader(vertx)).build());
     testTemplateHandler(engine, "src/test/filesystemtemplates", "test-pebble-template5.peb","Hello badger and foxString is TESTRequest path is /test-pebble-template5.peb");
   }
 }
