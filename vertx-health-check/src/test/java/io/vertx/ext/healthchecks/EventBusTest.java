@@ -4,9 +4,12 @@ import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
+import io.vertx.ext.unit.junit.Repeat;
+import io.vertx.ext.unit.junit.RepeatRule;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -18,6 +21,9 @@ import static io.vertx.ext.healthchecks.Assertions.assertThatCheck;
  */
 @RunWith(VertxUnitRunner.class)
 public class EventBusTest {
+
+  @Rule
+  public RepeatRule repeatRule = new RepeatRule();
 
   private Vertx vertx;
   private HealthChecks healthChecks;
@@ -48,6 +54,7 @@ public class EventBusTest {
   }
 
   @Test
+  @Repeat(10)
   public void testWithFailure(TestContext tc) {
     Async async = tc.async();
 
