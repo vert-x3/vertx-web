@@ -1928,6 +1928,7 @@ Here are some examples:
 
 Please consult the http://www.mitchellbosecke.com/pebble/home/[Pebble documentation] for how to write
 Pebble templates.
+
 == Error handler
 
 You can render your own errors using a template handler or otherwise but Vert.x-Web also includes an out of the boxy
