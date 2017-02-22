@@ -16,13 +16,8 @@
 
 package io.vertx.ext.web.templ.impl;
 
-import java.io.StringWriter;
-import java.util.HashMap;
-import java.util.Map;
-
 import com.mitchellbosecke.pebble.PebbleEngine;
 import com.mitchellbosecke.pebble.template.PebbleTemplate;
-
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
@@ -30,6 +25,10 @@ import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.templ.PebbleTemplateEngine;
+
+import java.io.StringWriter;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Dan Kristensen
@@ -39,8 +38,12 @@ public class PebbleTemplateEngineImpl extends CachingTemplateEngine<PebbleTempla
   private final PebbleEngine pebbleEngine;
 
   public PebbleTemplateEngineImpl(Vertx vertx) {
+    this(new PebbleEngine.Builder().loader(new PebbleVertxLoader(vertx)));
+  }
+
+  public PebbleTemplateEngineImpl(PebbleEngine.Builder builder) {
     super(DEFAULT_TEMPLATE_EXTENSION, DEFAULT_MAX_CACHE_SIZE);
-    pebbleEngine = new PebbleEngine.Builder().loader(new PebbleVertxLoader(vertx)).build();
+    this.pebbleEngine = builder.build();
   }
 
   @Override

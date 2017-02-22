@@ -16,11 +16,13 @@
 
 package io.vertx.ext.web.templ;
 
-import org.junit.Test;
-
+import com.mitchellbosecke.pebble.PebbleEngine;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.WebTestBase;
 import io.vertx.ext.web.handler.TemplateHandler;
+import io.vertx.ext.web.templ.extension.TestExtension;
+import io.vertx.ext.web.templ.impl.PebbleVertxLoader;
+import org.junit.Test;
 
 /**
  * @author Dan Kristensen
@@ -328,4 +330,10 @@ public class PebbleTemplateTest extends WebTestBase {
             "\n" +
             "</body>\n" +
             "</html>";
+
+  @Test
+  public void customBuilderShouldRender() throws Exception {
+    final TemplateEngine engine = PebbleTemplateEngine.create(new PebbleEngine.Builder().extension(new TestExtension()).loader(new PebbleVertxLoader(vertx)));
+    testTemplateHandler(engine, "src/test/filesystemtemplates", "test-pebble-template5.peb","Hello badger and foxString is TESTRequest path is /test-pebble-template5.peb");
+  }
 }
