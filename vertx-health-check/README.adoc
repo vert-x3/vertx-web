@@ -1,0 +1,16 @@
+= Vert.x Health Check
+
+This component provides a simple way to expose health checks. Health checks are used to express the current state
+of the application in very simple terms: _UP_ or _DOWN_. The health checks can be used individually, or in
+combination to Vert.x Web or the event bus.
+
+This component provides a Vert.x Web handler on which you can register procedure testing the health of the application.
+The handler computes the final state and returns the result as JSON.
+
+Documentation:
+
+* link:src/main/asciidoc/java/index.adoc[in-source docs - java]
+* link:src/main/asciidoc/groovy/index.adoc[in-source docs - groovy]
+* link:src/main/asciidoc/js/index.adoc[in-source docs - javascript]
+* link:src/main/asciidoc/ruby/index.adoc[in-source docs - ruby]
+* link:src/main/asciidoc/kotlin/index.adoc[in-source docs - kotlin]
