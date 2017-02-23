@@ -2,22 +2,31 @@ package io.vertx.ext.healthchecks;
 
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.jdbc.JDBCClient;
+import io.vertx.ext.unit.junit.Repeat;
+import io.vertx.ext.unit.junit.RepeatRule;
+import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.servicediscovery.ServiceDiscovery;
 import io.vertx.servicediscovery.types.HttpEndpoint;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.jayway.awaitility.Awaitility.await;
-import static io.vertx.ext.healthchecks.HealthCheckTest.get;
 import static org.hamcrest.Matchers.is;
 
 /**
  * @author <a href="http://escoffier.me">Clement Escoffier</a>
  */
+@RunWith(VertxUnitRunner.class)
 public class CommonHealthChecksTest extends HealthCheckTestBase {
 
+  @Rule
+  public RepeatRule rule = new RepeatRule();
+
   @Test
+  @Repeat(10)
   public void testJDBC_OK() {
     JsonObject config = new JsonObject()
       .put("url", "jdbc:hsqldb:mem:test?shutdown=true")
@@ -25,7 +34,13 @@ public class CommonHealthChecksTest extends HealthCheckTestBase {
     JDBCClient client = JDBCClient.createShared(vertx, config);
 
     registerJDBCProcedure(client);
-    get(200);
+    await().until(() -> {
+      try {
+        return get(200) != null;
+      } catch (Exception e) {
+        return false;
+      }
+    });
   }
 
   private void registerJDBCProcedure(JDBCClient client) {
