@@ -43,9 +43,8 @@ class DefaultProcedure implements Procedure {
 
     if (timeout >= 0) {
       vertx.setTimer(timeout, l -> {
-        if (!future.isComplete()) {
-          future.fail(new ProcedureException("Timeout"));
-        }
+        // attempt to mark the future as failed, NNOP if already completed.
+        future.fail(new ProcedureException("Timeout"));
       });
     }
 
