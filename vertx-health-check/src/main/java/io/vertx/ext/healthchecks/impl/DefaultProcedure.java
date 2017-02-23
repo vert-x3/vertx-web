@@ -42,7 +42,7 @@ class DefaultProcedure implements Procedure {
       });
 
     if (timeout >= 0) {
-      vertx.setTimer(1000, l -> {
+      vertx.setTimer(timeout, l -> {
         if (!future.isComplete()) {
           future.fail(new ProcedureException("Timeout"));
         }
