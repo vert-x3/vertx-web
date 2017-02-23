@@ -88,23 +88,43 @@ class BridgeEventImpl implements BridgeEvent {
   }
 
   @Override
-  public boolean complete(Boolean result) {
-    return future.complete(result);
+  public void complete(Boolean result) {
+    future.complete(result);
   }
 
   @Override
-  public boolean complete() {
-    return future.complete();
+  public void complete() {
+    future.complete();
   }
 
   @Override
-  public boolean fail(Throwable throwable) {
-    return future.fail(throwable);
+  public void fail(Throwable throwable) {
+    future.fail(throwable);
   }
 
   @Override
-  public boolean fail(String failureMessage) {
-    return future.fail(failureMessage);
+  public void fail(String failureMessage) {
+    future.fail(failureMessage);
+  }
+
+  @Override
+  public boolean tryComplete(Boolean result) {
+    return future.tryComplete(result);
+  }
+
+  @Override
+  public boolean tryComplete() {
+    return future.tryComplete();
+  }
+
+  @Override
+  public boolean tryFail(Throwable cause) {
+    return future.tryFail(cause);
+  }
+
+  @Override
+  public boolean tryFail(String failureMessage) {
+    return future.tryFail(failureMessage);
   }
 
   @Override

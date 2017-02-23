@@ -2696,11 +2696,11 @@ sockJSHandler.bridge(options) { |be|
   if (be.type() == :PUBLISH || be.type() == :RECEIVE)
     if (be.get_raw_message()['body'].==("armadillos"))
       # Reject it
-      be.complete?(false)
+      be.complete(false)
       return
     end
   end
-  be.complete?(true)
+  be.complete(true)
 }
 
 router.route("/eventbus").handler(&sockJSHandler.method(:handle))
@@ -2798,7 +2798,7 @@ sockJSHandler.bridge(options) { |be|
     rawMessage['headers'] = headers
     be.set_raw_message(rawMessage)
   end
-  be.complete?(true)
+  be.complete(true)
 }
 
 router.route("/eventbus").handler(&sockJSHandler.method(:handle))
