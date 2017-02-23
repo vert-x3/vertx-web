@@ -23,7 +23,7 @@ public class Examples {
 
   public void example2(Vertx vertx) {
     HealthCheckHandler healthCheckHandler1 = HealthCheckHandler.create(vertx);
-    HealthCheckHandler healthCheckHandler2 = HealthCheckHandler.create(HealthChecks.create(vertx));
+    HealthCheckHandler healthCheckHandler2 = HealthCheckHandler.createWithHealthChecks(HealthChecks.create(vertx));
 
     Router router = Router.router(vertx);
     // Populate the router with routes...

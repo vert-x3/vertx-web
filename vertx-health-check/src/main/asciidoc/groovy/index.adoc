@@ -52,8 +52,8 @@ To create the Vert.x Web handler managing your health check you can either:
 
 [source, groovy]
 ----
-def healthCheckHandler1 = io.vertx.ext.healthchecks.HealthCheckHandler.create(vertx)
-def healthCheckHandler2 = io.vertx.ext.healthchecks.HealthCheckHandler.create(HealthChecks.create(vertx))
+def healthCheckHandler1 = HealthCheckHandler.create(vertx)
+def healthCheckHandler2 = HealthCheckHandler.createWithHealthChecks(HealthChecks.create(vertx))
 
 def router = Router.router(vertx)
 // Populate the router with routes...
@@ -104,7 +104,7 @@ tree and the structure is mapped to HTTP urls (see below).
 
 [source, groovy]
 ----
-def healthCheckHandler = io.vertx.ext.healthchecks.HealthCheckHandler.create(vertx)
+def healthCheckHandler = HealthCheckHandler.create(vertx)
 
 // Register procedures
 // Procedure can be grouped. The group is deduced using a name with "/".

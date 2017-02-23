@@ -1,6 +1,7 @@
 package io.vertx.ext.healthchecks;
 
 import io.vertx.codegen.annotations.Fluent;
+import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
@@ -22,6 +23,7 @@ import io.vertx.ext.healthchecks.impl.HealthCheckHandlerImpl;
  *
  * @author <a href="http://escoffier.me">Clement Escoffier</a>
  */
+@VertxGen
 public interface HealthCheckHandler extends Handler<RoutingContext> {
 
   /**
@@ -54,7 +56,7 @@ public interface HealthCheckHandler extends Handler<RoutingContext> {
    * @param hc the health checks object to use, must not be {@code null}
    * @return the created instance
    */
-  static HealthCheckHandler create(HealthChecks hc, AuthProvider provider) {
+  static HealthCheckHandler createWithHealthChecks(HealthChecks hc, AuthProvider provider) {
     return new HealthCheckHandlerImpl(hc, provider);
   }
 
@@ -64,8 +66,8 @@ public interface HealthCheckHandler extends Handler<RoutingContext> {
    * @param hc the health checks object to use
    * @return the created instance
    */
-  static HealthCheckHandler create(HealthChecks hc) {
-    return create(hc, null);
+  static HealthCheckHandler createWithHealthChecks(HealthChecks hc) {
+    return createWithHealthChecks(hc, null);
   }
 
   /**

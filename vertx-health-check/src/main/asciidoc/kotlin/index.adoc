@@ -52,8 +52,8 @@ To create the Vert.x Web handler managing your health check you can either:
 
 [source, kotlin]
 ----
-var healthCheckHandler1 = io.vertx.ext.healthchecks.HealthCheckHandler.create(vertx)
-var healthCheckHandler2 = io.vertx.ext.healthchecks.HealthCheckHandler.create(HealthChecks.create(vertx))
+var healthCheckHandler1 = HealthCheckHandler.create(vertx)
+var healthCheckHandler2 = HealthCheckHandler.createWithHealthChecks(HealthChecks.create(vertx))
 
 var router = Router.router(vertx)
 // Populate the router with routes...
@@ -104,7 +104,7 @@ tree and the structure is mapped to HTTP urls (see below).
 
 [source, kotlin]
 ----
-var healthCheckHandler = io.vertx.ext.healthchecks.HealthCheckHandler.create(vertx)
+var healthCheckHandler = HealthCheckHandler.create(vertx)
 
 // Register procedures
 // Procedure can be grouped. The group is deduced using a name with "/".
