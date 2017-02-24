@@ -16,6 +16,8 @@
 
 package io.vertx.ext.web.templ;
 
+import com.mitchellbosecke.pebble.PebbleEngine;
+import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Vertx;
 import io.vertx.ext.web.templ.impl.PebbleTemplateEngineImpl;
@@ -46,6 +48,17 @@ public interface PebbleTemplateEngine extends TemplateEngine {
 	static PebbleTemplateEngine create(Vertx vertx) {
 		return new PebbleTemplateEngineImpl(vertx);
 	}
+
+  /**
+   * Create a template engine using a custom Builder, e.g. if
+   * you want use custom Filters or Functions.
+   *
+   * @return the engine
+   */
+  @GenIgnore
+  static PebbleTemplateEngine create(PebbleEngine engine) {
+    return new PebbleTemplateEngineImpl(engine);
+  }
 
 	/**
 	 * Set the extension for the engine
