@@ -32,8 +32,11 @@
 
 package io.vertx.ext.web.handler.sockjs.impl;
 
+import io.netty.buffer.CompositeByteBuf;
+import io.netty.buffer.Unpooled;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.ServerWebSocket;
 import io.vertx.core.http.WebSocketFrame;
@@ -89,23 +92,65 @@ class WebSocketTransport extends BaseTransport {
 
     final ServerWebSocket ws;
     final SockJSSession session;
+    private CompositeByteBuf wsFramesCollector = Unpooled.compositeBuffer();
     boolean closed;
+
+    private void onFirstFrame(WebSocketFrame frame) {
+      clearCollector();
+      processFrame(frame);
+    }
+
+    private void processFrame(WebSocketFrame frame) {
+      wsFramesCollector.addComponent(frame.binaryData().getByteBuf());
+    }
+
+    private void clearCollector() {
+      if(wsFramesCollector.numComponents() > 0) {
+        wsFramesCollector.clear();
+        wsFramesCollector.removeComponents(0, wsFramesCollector.numComponents());
+      }
+    }
+
+    private void onFinalFrame(WebSocketFrame frame) {
+      if(wsFramesCollector.numComponents() == 0) {
+        processMessage(frame.binaryData());
+      } else {
+        processFrame(frame);
+        wsFramesCollector.writerIndex(wsFramesCollector.capacity());
+        Buffer data = Buffer.buffer(wsFramesCollector);
+        processMessage(data);
+        clearCollector();
+      }
+    }
+
+    private void processMessage(Buffer data) {
+      String msgs = data.toString();
+      if (msgs.equals("")) {
+        //Ignore empty frames
+      } else if ((msgs.startsWith("[\"") && msgs.endsWith("\"]")) ||
+              (msgs.startsWith("\"") && msgs.endsWith("\""))) {
+        session.handleMessages(msgs);
+      } else {
+        //Invalid JSON - we close the connection
+        log.info("Invalid websocket frame received - closing connection");
+        close();
+      }
+    }
 
     WebSocketListener(ServerWebSocket ws, SockJSSession session) {
       this.ws = ws;
       this.session = session;
-      ws.handler(data -> {
-        if (!session.isClosed()) {
-          String msgs = data.toString();
-          if (msgs.equals("")) {
-            //Ignore empty frames
-          } else if ((msgs.startsWith("[\"") && msgs.endsWith("\"]")) ||
-                     (msgs.startsWith("\"") && msgs.endsWith("\""))) {
-            session.handleMessages(msgs);
-          } else {
-            //Invalid JSON - we close the connection
-            close();
-          }
+
+      ws.frameHandler((frame) -> {
+        if (session.isClosed()) {
+          return;
+        }
+        if(frame.isFinal()) {
+          onFinalFrame(frame);
+        } else if(frame.isContinuation()) {
+          processFrame(frame);
+        } else {
+          onFirstFrame(frame);
         }
       });
       ws.closeHandler(v -> {
