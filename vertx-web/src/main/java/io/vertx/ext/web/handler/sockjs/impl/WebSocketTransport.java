@@ -94,8 +94,8 @@ class WebSocketTransport extends BaseTransport {
     WebSocketListener(ServerWebSocket ws, SockJSSession session) {
       this.ws = ws;
       this.session = session;
-      ws.textMessageHandler(this::handleMessage);
       ws.binaryMessageHandler((buffer) -> this.handleMessage(buffer.toString()));
+      ws.textMessageHandler(this::handleMessage);
       ws.closeHandler(v -> {
         closed = true;
         session.shutdown();
