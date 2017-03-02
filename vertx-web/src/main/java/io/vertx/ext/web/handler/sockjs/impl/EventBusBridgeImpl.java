@@ -298,6 +298,8 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
     SockInfo info = sockInfos.get(sock);
     if (info != null) {
       info.pingInfo.lastPing = System.currentTimeMillis();
+      // Trigger an event to allow custom behavior after updating lastPing
+      checkCallHook(() -> new BridgeEventImpl(BridgeEventType.SOCKET_PING, null, sock), null, null);
     }
   }
 
