@@ -23,6 +23,7 @@ import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.MIMEHeader;
 import io.vertx.ext.web.Route;
+import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 
 import java.util.*;
@@ -54,11 +55,13 @@ public class RouteImpl implements Route {
   private boolean added;
   private Pattern pattern;
   private List<String> groups;
-  private boolean useNormalisedPath = true;
+  private boolean useNormalisedPath;
+  private RouterImpl subRouter;
 
   RouteImpl(RouterImpl router, int order) {
     this.router = router;
     this.order = order;
+    this.useNormalisedPath = router.useNormalisedPathByDefault();
   }
 
   RouteImpl(RouterImpl router, int order, HttpMethod method, String path) {
@@ -72,6 +75,13 @@ public class RouteImpl implements Route {
     this(router, order);
     checkPath(path);
     setPath(path);
+  }
+
+  RouteImpl(RouterImpl router, int order, String path, Router subRouter) {
+    this(router, order, path + '*');
+    this.subRouter = (RouterImpl) subRouter;
+    handler(subRouter::handleContext);
+    failureHandler(subRouter::handleFailure);
   }
 
   RouteImpl(RouterImpl router, int order, HttpMethod method, String regex, boolean bregex) {
@@ -240,7 +250,7 @@ public class RouteImpl implements Route {
       return false;
     }
     if (pattern != null) {
-      String path = useNormalisedPath ? Utils.normalizePath(context.request().path()) : context.request().path();
+      String path = useNormalisedPath() ? Utils.normalizePath(context.request().path()) : context.request().path();
       if (mountPoint != null) {
         path = path.substring(mountPoint.length());
       }
@@ -312,7 +322,7 @@ public class RouteImpl implements Route {
     String thePath = mountPoint == null ? path : mountPoint + path;
     String requestPath;
 
-    if (useNormalisedPath) {
+    if (useNormalisedPath()) {
       // never null
       requestPath = Utils.normalizePath(ctx.request().path());
     } else {
@@ -404,6 +414,10 @@ public class RouteImpl implements Route {
   }
 
   private boolean exactPath;
+
+  private boolean useNormalisedPath() {
+    return subRouter == null ? useNormalisedPath : subRouter.useNormalisedPathByDefault();
+  }
 
   int order() {
     return order;

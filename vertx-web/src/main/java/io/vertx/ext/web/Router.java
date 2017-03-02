@@ -361,6 +361,18 @@ public interface Router {
   Router exceptionHandler(@Nullable Handler<Throwable> exceptionHandler);
 
   /**
+   * If true then the normalised request path will be used when routing (e.g. removing duplicate /)
+   * by default for all top-level routes on this router, unless explicitly set.
+   * Sub-routers will override this option.
+   * Default is true
+   *
+   * @param useNormalisedPathByDefault  use normalised path by default for all routes on this router?
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  Router useNormalisedPathByDefault(boolean useNormalisedPathByDefault);
+
+  /**
    * Used to route a context to the router. Used for sub-routers. You wouldn't normally call this method directly.
    *
    * @param context  the routing context

@@ -1844,6 +1844,45 @@ public class RouterTest extends WebTestBase {
   }
 
   @Test
+  public void testRouterNormaliseDefault() throws Exception {
+      router.useNormalisedPathByDefault(false).get("/:param1").handler(rc -> {
+        assertEquals("/some+path",rc.normalisedPath());
+        assertEquals("some+path",rc.pathParam("param1"));
+        assertEquals("some query",rc.request().getParam("q1"));
+        rc.response().setStatusMessage("foo").end();
+      });
+      testRequest(HttpMethod.GET, "/some+path?q1=some+query", 200, "foo");
+  }
+
+  @Test
+  public void testRouterNormaliseDefaultSubRouterOverride1() throws Exception {
+    Router subRouter = Router.router(vertx);
+    subRouter.route("/").handler(rc -> {
+      rc.response().setStatusMessage("pants").end();
+    });
+
+    router.useNormalisedPathByDefault(false).mountSubRouter("/", subRouter);
+    testRequest(HttpMethod.GET, "/", 200, "pants");
+    testRequest(HttpMethod.GET, "//", 200, "pants");
+    testRequest(HttpMethod.GET, "///", 200, "pants");
+  }
+
+
+  @Test
+  public void testRouterNormaliseDefaultSubRouterOverride2() throws Exception {
+    Router subRouter = Router.router(vertx);
+    subRouter.useNormalisedPathByDefault(false).get("/:param1").handler(rc -> {
+      assertEquals("/some+path",rc.normalisedPath());
+      assertEquals("some+path",rc.pathParam("param1"));
+      assertEquals("some query",rc.request().getParam("q1"));
+      rc.response().setStatusMessage("foo").end();
+    });
+
+    router.useNormalisedPathByDefault(true).mountSubRouter("/", subRouter);
+    testRequest(HttpMethod.GET, "/some+path?q1=some+query", 200, "foo");
+  }
+
+  @Test
   public void testIssue170() throws Exception {
     try {
       router.route("").handler(rc -> rc.response().end());
