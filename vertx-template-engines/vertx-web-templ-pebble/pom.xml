@@ -24,6 +24,7 @@
         </exclusion>
       </exclusions>
     </dependency>
+    <!-- Peeble requires SLF4J: declare this dependency to force shiro to use this one. It is the version used by vert.x -->
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
