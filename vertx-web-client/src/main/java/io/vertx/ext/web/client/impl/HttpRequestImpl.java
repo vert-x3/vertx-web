@@ -46,6 +46,7 @@ import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.ext.web.codec.spi.BodyStream;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -59,7 +60,7 @@ class HttpRequestImpl<T> implements HttpRequest<T> {
   private HttpMethod method;
   private int port;
   private String host;
-  private String uri;
+  private ParametrizedUri uri;
   private MultiMap headers;
   private long timeout = -1;
   private BodyCodec<T> codec;
@@ -72,7 +73,7 @@ class HttpRequestImpl<T> implements HttpRequest<T> {
     this.codec = codec;
     this.port = port;
     this.host = host;
-    this.uri = uri;
+    this.uri = new ParametrizedUri(uri);
     this.ssl = ssl;
     this.followRedirects = options.isFollowRedirects();
     this.options = options;
@@ -88,7 +89,7 @@ class HttpRequestImpl<T> implements HttpRequest<T> {
     this.port = other.port;
     this.host = other.host;
     this.timeout = other.timeout;
-    this.uri = other.uri;
+    this.uri = new ParametrizedUri(other.uri);
     this.headers = other.headers != null ? new CaseInsensitiveHeaders().addAll(other.headers) : null;
     this.params = other.params != null ? new CaseInsensitiveHeaders().addAll(other.params) : null;
     this.codec = other.codec;
@@ -122,7 +123,7 @@ class HttpRequestImpl<T> implements HttpRequest<T> {
   @Override
   public HttpRequest<T> uri(String value) {
     params = null;
-    uri = value;
+    uri = new ParametrizedUri(value);
     return this;
   }
 
@@ -165,6 +166,18 @@ class HttpRequestImpl<T> implements HttpRequest<T> {
   }
 
   @Override
+  public HttpRequest<T> setPathParam(String paramName, String paramValue) {
+    uri.setParam(paramName, paramValue);
+    return this;
+  }
+
+  @Override
+  public HttpRequest<T> setPathParamLong(String paramName, long paramValue) {
+    uri.setParam(paramName, paramValue);
+    return this;
+  }
+
+  @Override
   public HttpRequest<T> followRedirects(boolean value) {
     followRedirects = value;
     return this;
@@ -176,11 +189,12 @@ class HttpRequestImpl<T> implements HttpRequest<T> {
       params = new CaseInsensitiveHeaders();
     }
     if (params.isEmpty()) {
-      int idx = uri.indexOf('?');
+      String u = uri.raw();
+      int idx = u.indexOf('?');
       if (idx >= 0) {
-        QueryStringDecoder dec = new QueryStringDecoder(uri);
+        QueryStringDecoder dec = new QueryStringDecoder(u);
         dec.parameters().forEach((name, value) -> params.add(name, value));
-        uri = uri.substring(0, idx);
+        uri = new ParametrizedUri(u.substring(0, idx));
       }
     }
     return params;
@@ -264,19 +278,21 @@ class HttpRequestImpl<T> implements HttpRequest<T> {
       }
     });
 
+//    if (uri)
+
     HttpClientRequest req;
     String requestURI;
     if (params != null && params.size() > 0) {
-      QueryStringEncoder enc = new QueryStringEncoder(uri);
+      QueryStringEncoder enc = new QueryStringEncoder(uri.toString());
       params.forEach(param -> {
         enc.addParam(param.getKey(), param.getValue());
       });
       requestURI = enc.toString();
     } else {
-      requestURI = uri;
+      requestURI = uri.toString();
     }
     if (ssl != options.isSsl()) {
-      req = client.request(method, new RequestOptions().setSsl(ssl).setHost(host).setPort(port).setURI(uri));
+      req = client.request(method, new RequestOptions().setSsl(ssl).setHost(host).setPort(port).setURI(uri.toString()));
     } else {
       req = client.request(method, port, host, requestURI);
     }

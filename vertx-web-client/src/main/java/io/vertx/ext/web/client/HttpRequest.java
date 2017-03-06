@@ -100,6 +100,9 @@ public interface HttpRequest<T> {
    * <p>
    * When the uri has query parameters, they are set in the {@link #queryParams()} multimap, overwritting
    * any parameters previously set.
+   * <p>
+   * If the uri has path parameters, any previous values will be cleared and will need to be set using
+   * {@link #setPathParam(String, String)}.
    *
    * @return a reference to this, so the API can be used fluently
    */
@@ -156,6 +159,30 @@ public interface HttpRequest<T> {
    */
   @Fluent
   HttpRequest<T> setQueryParam(String paramName, String paramValue);
+
+  /**
+   * Set a path parameter to the request.
+   * <p>
+   * The uri must have a path parameter with the given name, or an error will be raised.
+   *
+   * @param paramName the param name
+   * @param paramValue the param value
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  HttpRequest<T> setPathParam(String paramName, String paramValue);
+
+  /**
+   * Set a path parameter to the request.
+   * <p>
+   * The uri must have a path parameter with the given name, or an error will be raised.
+   *
+   * @param paramName the param name
+   * @param paramValue the param value (must be >= 0)
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  HttpRequest<T> setPathParamLong(String paramName, long paramValue);
 
   /**
    * Set wether or not to follow the directs for the request.

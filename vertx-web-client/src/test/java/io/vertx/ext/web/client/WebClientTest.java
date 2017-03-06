@@ -924,6 +924,45 @@ public class WebClientTest extends HttpTestBase {
   }
 
   @Test
+  public void testPathParam() throws Exception {
+    testRequest(client -> client
+      .get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/aa/:one")
+      .setPathParam("one", "param"), req -> {
+      assertEquals("/aa/param", req.path());
+    });
+  }
+
+  @Test
+  public void testQueryAndPathParam() throws Exception {
+    testRequest(client -> client
+      .get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/:p/info")
+      .addQueryParam("param", "param_value")
+      .setPathParam("p", "path"), req -> {
+      assertEquals("/path/info", req.path());
+      assertEquals("param=param_value", req.query());
+      assertEquals("param_value", req.getParam("param"));
+    });
+  }
+
+
+  @Test
+  public void testPathParamMulti() throws Exception {
+    testRequest(client -> client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/:one/:two").setPathParam("one", "p1").setPathParam("two", "p2"), req -> {
+      assertEquals("/p1/p2", req.path());
+    });
+  }
+
+  @Test
+  public void testPathParamEncoding() throws Exception {
+    testRequest(client -> client
+      .get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/:one")
+      .setPathParam("one", " /-+"), req -> {
+      assertEquals("/%20%2f-+", req.path());
+    });
+  }
+
+
+  @Test
   public void testFormUrlEncoded() throws Exception {
     server.requestHandler(req -> {
       req.setExpectMultipart(true);
