@@ -63,8 +63,11 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
   private boolean renewed;
   private String oldId;
 
+  /**
+   * Important note: This constructor (even though not referenced anywhere) is required for serialization purposes. Do
+   * not remove.
+   */
   public SessionImpl() {
-    this.prng = null;
   }
 
   public SessionImpl(PRNG random) {
