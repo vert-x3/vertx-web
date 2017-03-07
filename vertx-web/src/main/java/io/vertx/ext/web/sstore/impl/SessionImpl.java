@@ -51,7 +51,7 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
   private static final byte TYPE_SERIALIZABLE = 12;
   private static final byte TYPE_CLUSTER_SERIALIZABLE = 13;
 
-  private final PRNG prng;
+  private PRNG prng;
 
   private String id;
   private long timeout;
@@ -63,6 +63,10 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
   private boolean renewed;
   private String oldId;
 
+  public SessionImpl() {
+    this.prng = null;
+  }
+
   public SessionImpl(PRNG random) {
     this.prng = random;
   }
@@ -72,6 +76,10 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
     this.id = generateId(prng, length);
     this.timeout = timeout;
     this.lastAccessed = System.currentTimeMillis();
+  }
+
+  void setPRNG(PRNG prng) {
+    this.prng = prng;
   }
 
   @Override
@@ -86,7 +94,7 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
       // regeneration during the remaining lifecycle are ephemeral
       oldId = id;
     }
-    // ids are stored in hex, so the original size is half of the hex encodec length
+    // ids are stored in hex, so the original size is half of the hex encoded length
     id = generateId(prng, oldId.length() / 2);
     renewed = true;
     return this;
