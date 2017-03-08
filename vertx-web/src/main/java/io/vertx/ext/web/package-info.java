@@ -50,6 +50,7 @@
  * ** MVEL
  * ** Thymeleaf
  * ** Apache FreeMarker
+ * ** Pebble
  * * Response time handler
  * * Static file serving, including caching logic and directory listing.
  * * Request timeout support
@@ -1357,6 +1358,34 @@
  * Please consult the http://www.freemarker.org/[Apache FreeMarker documentation] for how to write
  * Apache FreeMarker templates.
  *
+ * === Pebble template engine
+ *
+ * To use Pebble, you need to add the following _dependency_ to your project:
+ * `io.vertx:vertx-web-templ-pebble:3.4.0-SNAPSHOT`. Create an instance of the Pebble template engine
+ * using: `io.vertx.ext.web.templ.PebbleTemplateEngine#create(vertx)`.
+ *
+ * When using the Pebble template engine, it will by default look for
+ * templates with the `.peb` extension if no extension is specified in the file name.
+ *
+ * The routing context `link:../../apidocs/io/vertx/ext/web/RoutingContext.html[RoutingContext]` is available
+ * in the Pebble template as the `context` variable, this means you can render the template based on anything in the context
+ * including the request, response, session or context data.
+ *
+ * Here are some examples:
+ *
+ * ----
+ * [snip]
+ * <p th:text="{{context.foo}}"></p>
+ * <p th:text="{{context.bar}}"></p>
+ * <p th:text="{{context.normalisedPath()}}"></p>
+ * <p th:text="{{context.request().params().param1}}"></p>
+ * <p th:text="{{context.request().params().param2}}"></p>
+ * [snip]
+ * ----
+ *
+ * Please consult the http://www.mitchellbosecke.com/pebble/home/[Pebble documentation] for how to write
+ * Pebble templates.
+ *
  * == Error handler
  *
  * You can render your own errors using a template handler or otherwise but Vert.x-Web also includes an out of the boxy
@@ -1717,6 +1746,7 @@
  *
  * SOCKET_CREATED:: This event will occur when a new SockJS socket is created.
  * SOCKET_IDLE:: This event will occur when SockJS socket is on idle for longer period of time than initially configured.
+ * SOCKET_PING:: This event will occur when the last ping timestamp is updated for the SockJS socket.
  * SOCKET_CLOSED:: This event will occur when a SockJS socket is closed.
  * SEND:: This event will occur when a message is attempted to be sent from the client to the server.
  * PUBLISH:: This event will occur when a message is attempted to be published from the client to the server.

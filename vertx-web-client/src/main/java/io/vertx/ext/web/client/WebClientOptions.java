@@ -99,6 +99,17 @@ public class WebClientOptions extends HttpClientOptions {
   }
 
   /**
+   * Convert to JSON
+   *
+   * @return the JSON
+   */
+  public JsonObject toJson() {
+    JsonObject json = super.toJson();
+    WebClientOptionsConverter.toJson(this, json);
+    return json;
+  }
+
+  /**
    * @return true if the Web Client should send a user agent header, false otherwise
    */
   public boolean isUserAgentEnabled() {

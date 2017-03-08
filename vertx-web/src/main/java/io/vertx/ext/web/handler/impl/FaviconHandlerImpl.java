@@ -82,8 +82,8 @@ public class FaviconHandlerImpl implements FaviconHandler {
    * Create a new Favicon instance using a file in the file system and customizable cache period
    *
    * <pre>
-   * Yoke yoke = new Yoke(...);
-   * yoke.use(new Favicon("/icons/icon.ico", 1000));
+   * Router router = Router.router(vertx);
+   * router.route().handler(FaviconHandler.create("/icons/icon.ico", 1000));
    * </pre>
    *
    * @param path file path to icon
@@ -101,8 +101,8 @@ public class FaviconHandlerImpl implements FaviconHandler {
    * Create a new Favicon instance from the classpath and customizable cache period
    *
    * <pre>
-   * Yoke yoke = new Yoke(...);
-   * yoke.use(new Favicon("/icons/icon.ico", 1000));
+   * Router router = Router.router(vertx);
+   * router.route().handler(FaviconHandler.create(1000));
    * </pre>
    *
    * @param maxAgeSeconds max allowed time to be cached in seconds
@@ -115,8 +115,8 @@ public class FaviconHandlerImpl implements FaviconHandler {
    * Create a new Favicon instance using a file in the file system and cache for 1 day.
    *
    * <pre>
-   * Yoke yoke = new Yoke(...);
-   * yoke.use(new Favicon("/icons/icon.ico"));
+   * Router router = Router.router(vertx);
+   * router.route().handler(FaviconHandler.create("/icons/icon.ico"));
    * </pre>
    *
    * @param path file path to icon
@@ -129,8 +129,8 @@ public class FaviconHandlerImpl implements FaviconHandler {
    * Create a new Favicon instance using a the default icon and cache for 1 day.
    *
    * <pre>
-   * Yoke yoke = new Yoke(...);
-   * yoke.use(new Favicon());
+   * Router router = Router.router(vertx);
+   * router.route().handler(FaviconHandler.create());
    * </pre>
    */
   public FaviconHandlerImpl() {

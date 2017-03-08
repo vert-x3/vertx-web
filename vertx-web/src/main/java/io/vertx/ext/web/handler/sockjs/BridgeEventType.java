@@ -34,11 +34,16 @@ public enum BridgeEventType {
    * This event will occur when a SockJS socket is closed.
    */
   SOCKET_CLOSED,
-  
+
   /**
-   * This event will occur when SockJS socket is on idle for longer period of time than configured. 
+   * This event will occur when SockJS socket is on idle for longer period of time than configured.
    */
   SOCKET_IDLE,
+
+  /**
+   * This event will occur when the last ping timestamp is updated for the SockJS socket.
+   */
+  SOCKET_PING,
 
   /**
    * This event will occur when a message is attempted to be sent from the client to the server.

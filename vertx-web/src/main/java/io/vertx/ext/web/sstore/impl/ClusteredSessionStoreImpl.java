@@ -66,6 +66,10 @@ public class ClusteredSessionStoreImpl implements ClusteredSessionStore {
       if (res.succeeded()) {
         res.result().get(id, res2 -> {
           if (res2.succeeded()) {
+            SessionImpl session = (SessionImpl) res2.result();
+            if (session != null) {
+              session.setPRNG(random);
+            }
             resultHandler.handle(Future.succeededFuture(res2.result()));
           } else {
             resultHandler.handle(Future.failedFuture(res2.cause()));

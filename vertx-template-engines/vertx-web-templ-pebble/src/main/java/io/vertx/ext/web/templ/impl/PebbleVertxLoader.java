@@ -29,7 +29,7 @@ import java.nio.charset.Charset;
  *
  * @author Paulo Lopes
  */
-class PebbleVertxLoader implements Loader<String> {
+public class PebbleVertxLoader implements Loader<String> {
 
   private final Vertx vertx;
 

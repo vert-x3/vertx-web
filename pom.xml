@@ -1,22 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
   <parent>
     <groupId>io.vertx</groupId>
     <artifactId>vertx-ext-parent</artifactId>
-    <version>25</version>
+    <version>26</version>
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
   <packaging>pom</packaging>
 
   <artifactId>vertx-web-parent</artifactId>
-  <version>3.4.0-SNAPSHOT</version>
+  <version>3.4.1-SNAPSHOT</version>
 
   <properties>
-    <stack.version>3.4.0-SNAPSHOT</stack.version>
+    <stack.version>3.4.1-SNAPSHOT</stack.version>
     <pac4j.version>1.6.0</pac4j.version>
     <doc.skip>true</doc.skip>
   </properties>
@@ -101,6 +99,7 @@
     <module>vertx-web-client</module>
     <module>vertx-template-engines</module>
     <module>vertx-sockjs-service-proxy</module>
+    <module>vertx-health-check</module>
   </modules>
 
 </project>
