@@ -859,6 +859,15 @@ public class RouterTest extends WebTestBase {
   }
 
   @Test
+  public void testStrangeChars() throws Exception {
+    router.route("/*").handler(rc -> {
+      MultiMap params = rc.request().params();
+      rc.response().end();
+    });
+    testRequest(HttpMethod.GET, "/eAcGYenH6Hy/fulltext?filename=\\@$%", 400, "Bad Request"); // Because it won't match
+  }
+
+  @Test
   public void testInvalidPatternWithBuilder() throws Exception {
     router.route().path("/blah/:!!!/").handler(rc -> {
       MultiMap params = rc.request().params();
