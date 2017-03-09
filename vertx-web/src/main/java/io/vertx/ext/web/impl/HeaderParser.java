@@ -24,8 +24,6 @@ import static java.util.stream.Collectors.*;
 public class HeaderParser {
   private static final Logger log = LoggerFactory.getLogger(HeaderParser.class);
 
-  static final int MAX_HEADER_SIZE = 200;
-
   private static Pattern COMMA_SPLITTER = Pattern.compile(",(?=(?:(?<!\\\\)\"(?:(?!(?<!\\\\)\").)*(?<!\\\\)\"|\\\\.|[^\"])*$)");
   // The underscore is accepted due to some jdk locale implementations not using the hyphen (https://github.com/vert-x3/vertx-web/pull/446#discussion_r79402250)
   private static final Pattern HYPHEN_SPLITTER = Pattern.compile("-|_");
@@ -47,10 +45,8 @@ public class HeaderParser {
   public static <T extends ParsedHeaderValue> List<T> convertToParsedHeaderValues(String unparsedHeaderValue,
       Function<String, T> objectCreator){
 
-    if(unparsedHeaderValue == null){
+    if(unparsedHeaderValue == null) {
       return Collections.emptyList();
-    } else if(unparsedHeaderValue.length() > MAX_HEADER_SIZE){
-      throw new HeaderTooLongException("Header longer than " + MAX_HEADER_SIZE + " characters");
     }
     return Arrays.stream(COMMA_SPLITTER.split(unparsedHeaderValue))
       .map(String::trim)

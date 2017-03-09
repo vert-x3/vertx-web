@@ -19,7 +19,6 @@ package io.vertx.ext.web.handler.impl;
 import java.util.List;
 import java.util.Objects;
 
-import io.vertx.core.Handler;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonArray;
@@ -27,7 +26,6 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.MIMEHeader;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.ErrorHandler;
-import io.vertx.ext.web.impl.HeaderTooLongException;
 import io.vertx.ext.web.impl.Utils;
 
 /**
@@ -58,11 +56,7 @@ public class ErrorHandlerImpl implements ErrorHandler {
     HttpServerResponse response = context.response();
 
     Throwable failure = context.failure();
-    
-    if(answerWithKnownFailure(context)){
-      return;
-    }
-    
+
     int errorCode = context.statusCode();
     String errorMessage = null;
     if (errorCode != -1) {
@@ -79,18 +73,8 @@ public class ErrorHandlerImpl implements ErrorHandler {
       // no new lines are allowed in the status message
       response.setStatusMessage(errorMessage.replaceAll("\\r|\\n", " "));
     }
-    
+
     answerWithError(context, errorCode, errorMessage);
-  }
-  
-  private boolean answerWithKnownFailure(RoutingContext context) {
-    Throwable failure = context.failure();
-    
-    if(failure instanceof HeaderTooLongException){
-      answerWithError(context, 400, "A header was too long to process");
-      return true;
-    }
-    return false;
   }
 
   private void answerWithError(RoutingContext context, int errorCode, String errorMessage){
@@ -102,14 +86,14 @@ public class ErrorHandlerImpl implements ErrorHandler {
       sendError(context, "text/plain", errorCode, errorMessage);
     }
   }
-  
+
   private boolean sendErrorResponseMIME(RoutingContext context, int errorCode, String errorMessage){
     // does the response already set the mime type?
     String mime = context.response().headers().get(HttpHeaders.CONTENT_TYPE);
-    
+
     return mime != null && sendError(context, mime, errorCode, errorMessage);
   }
-  
+
   private boolean sendErrorAcceptMIME(RoutingContext context, int errorCode, String errorMessage){
     // respect the client accept order
     List<MIMEHeader> acceptableMimes = context.parsedHeaders().accept();

@@ -661,23 +661,6 @@ public class RouterTest extends WebTestBase {
   }
 
   @Test
-  public void testFailureWithKnownHeaderTooLongThrowable() throws Exception {
-    char[] longChars = new char[201];
-    Arrays.fill(longChars, 'a');
-    String testHeaderValue = new String(longChars);
-    String path = "/blah";
-
-    router.route(path).handler(rc -> {
-      rc.response().end();
-    });
-    testRequest(HttpMethod.GET, path, req -> req.putHeader("Accept", testHeaderValue), 400, "Bad Request", null);
-    testRequest(HttpMethod.GET, path, req -> req.putHeader("Accept-Charset", testHeaderValue), 400, "Bad Request", null);
-    testRequest(HttpMethod.GET, path, req -> req.putHeader("Accept-Encoding", testHeaderValue), 400, "Bad Request", null);
-    testRequest(HttpMethod.GET, path, req -> req.putHeader("Accept-Language", testHeaderValue), 400, "Bad Request", null);
-    testRequest(HttpMethod.GET, path, req -> req.putHeader("Content-Type", testHeaderValue), 400, "Bad Request", null);
-  }
-
-  @Test
   public void testPattern1() throws Exception {
     router.route("/:abc").handler(rc -> {
       rc.response().setStatusMessage(rc.request().params().get("abc")).end();
