@@ -60,24 +60,15 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   public RoutingContextImpl(String mountPoint, RouterImpl router, HttpServerRequest request, Set<RouteImpl> routes) {
     super(mountPoint, request, routes);
     this.router = router;
-    try{
-      fillParsedHeaders(request);
-      if (request.path().charAt(0) != '/') {
-        fail(404);
-      }
-    } catch (HeaderTooLongException e){
-      fail(e);
+
+    fillParsedHeaders(request);
+    if (request.path().charAt(0) != '/') {
+      fail(404);
     }
   }
 
   private String ensureNotNull(String string){
     return string == null ? "" : string;
-  }
-
-  private static void assertHeaderSmallEnough(String name, String content){
-    if(content != null && content.length() > HeaderParser.MAX_HEADER_SIZE){
-      throw new HeaderTooLongException("Header '" + name + "' too long");
-    }
   }
 
   private void fillParsedHeaders(HttpServerRequest request) {
@@ -86,12 +77,6 @@ public class RoutingContextImpl extends RoutingContextImplBase {
     String acceptEncoding = request.getHeader("Accept-Encoding");
     String acceptLanguage = request.getHeader("Accept-Language");
     String contentType = ensureNotNull(request.getHeader("Content-Type"));
-
-    assertHeaderSmallEnough("Accept", accept);
-    assertHeaderSmallEnough("Accept-Charset",  acceptCharset);
-    assertHeaderSmallEnough("Accept-Encoding", acceptEncoding);
-    assertHeaderSmallEnough("Accept-Language", acceptLanguage);
-    assertHeaderSmallEnough("Content-Type", contentType);
 
     parsedHeaders = new ParsableHeaderValuesContainer(
         HeaderParser.sort(HeaderParser.convertToParsedHeaderValues(accept, ParsableMIMEValue::new)),
