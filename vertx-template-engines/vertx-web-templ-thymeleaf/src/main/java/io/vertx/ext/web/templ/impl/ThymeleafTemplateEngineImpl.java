@@ -22,9 +22,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.ext.web.LanguageHeader;
-import io.vertx.ext.web.Locale;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.impl.ParsableLanguageValue;
 import io.vertx.ext.web.impl.Utils;
 import io.vertx.ext.web.templ.ThymeleafTemplateEngine;
 import org.thymeleaf.IEngineConfiguration;
@@ -118,9 +116,14 @@ public class ThymeleafTemplateEngineImpl implements ThymeleafTemplateEngine {
         private final java.util.Locale locale;
 
         private WebIContext(Map<String, Object> data, LanguageHeader locale) {
-            String variant;
-            this.data = data;
-            this.locale = locale == null ? java.util.Locale.getDefault() : new java.util.Locale(locale.tag(), locale.subtag(), (variant = locale.subtag(2)) == null ? "" : variant);
+          this.data = data;
+          if (locale == null) {
+            this.locale = java.util.Locale.getDefault();
+          } else {
+            String country = locale.subtag();
+            String variant = locale.subtag(2);
+            this.locale = new java.util.Locale(locale.tag(), country == null ? "" : country, variant == null ? "" : variant);
+          }
         }
 
         @Override
