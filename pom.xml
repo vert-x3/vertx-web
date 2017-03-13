@@ -99,7 +99,6 @@
     <module>vertx-web-client</module>
     <module>vertx-template-engines</module>
     <module>vertx-sockjs-service-proxy</module>
-    <module>vertx-health-check</module>
   </modules>
 
 </project>
