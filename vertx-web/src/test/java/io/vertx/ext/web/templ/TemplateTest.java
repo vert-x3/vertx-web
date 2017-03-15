@@ -19,6 +19,7 @@ package io.vertx.ext.web.templ;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
+import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
@@ -144,15 +145,24 @@ public class TemplateTest extends WebTestBase {
 
     @Override
     public void render(RoutingContext context, String templateFileName, Handler<AsyncResult<Buffer>> handler) {
+      render(context.vertx(), context, templateFileName, handler);
+    }
+
+    @Override
+    public <T> void render(Vertx vertx, T context, String templateFileName, Handler<AsyncResult<Buffer>> handler) {
       if (fail) {
         handler.handle(Future.failedFuture(new Exception("eek")));
       } else {
         String templ = Utils.readFileToString(vertx, templateFileName);
-        String rendered = templ.replace("{foo}", context.get("foo"));
-        rendered = rendered.replace("{bar}", context.get("bar"));
+        String rendered;
+        if (context instanceof RoutingContext) {
+          rendered = templ.replace("{foo}", ((RoutingContext) context).get("foo"));
+          rendered = rendered.replace("{bar}", ((RoutingContext) context).get("bar"));
+        } else {
+          rendered = "not implemented for this data-model type";
+        }
         handler.handle(Future.succeededFuture(Buffer.buffer(rendered)));
       }
     }
-
   }
 }

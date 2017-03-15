@@ -21,6 +21,7 @@ import freemarker.template.Template;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
+import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.templ.FreeMarkerTemplateEngine;
@@ -59,21 +60,26 @@ public class FreeMarkerTemplateEngineImpl extends CachingTemplateEngine<Template
     return this;
   }
 
-  @Override
+  @Deprecated
   public void render(RoutingContext context, String templateFileName, Handler<AsyncResult<Buffer>> handler) {
+    this.render(context.vertx(), context, templateFileName, handler);
+  }
+
+  @Override
+  public <T> void render(Vertx vertx, T context, String templateFileName, Handler<AsyncResult<Buffer>> handler) {
     try {
       Template template = cache.get(templateFileName);
       if (template == null) {
         // real compile
         synchronized (this) {
-          loader.setVertx(context.vertx());
+          loader.setVertx(vertx);
           // Compile
           template = config.getTemplate(adjustLocation(templateFileName));
         }
         cache.put(templateFileName, template);
       }
 
-      Map<String, RoutingContext> variables = new HashMap<>(1);
+      Map<String, T> variables = new HashMap<>(1);
       variables.put("context", context);
 
       try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
@@ -85,6 +91,4 @@ public class FreeMarkerTemplateEngineImpl extends CachingTemplateEngine<Template
       handler.handle(Future.failedFuture(ex));
     }
   }
-
-
 }
