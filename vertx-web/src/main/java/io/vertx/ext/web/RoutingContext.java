@@ -327,8 +327,8 @@ public interface RoutingContext {
   /**
    * Provides a handler that will be called after the last part of the body is written to the wire.
    * The handler is called asynchronously of when the response has been received by the client.
-   * This provides a hook allowing you to do more operations once the request has been sent over the wire
-   * such as resource cleanup.
+   * This provides a hook allowing you to do more operations once the request has been sent over the wire.
+   * Do not use this for resource cleanup as this handler might never get called (e.g. if the connection is reset).
    *
    * @param handler  the handler
    * @return  the id of the handler. This can be used if you later want to remove the handler.
