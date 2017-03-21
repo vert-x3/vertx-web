@@ -31,8 +31,8 @@ import java.io.File;
 import java.net.ConnectException;
 import java.nio.file.Files;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -683,7 +683,7 @@ public class WebClientTest extends HttpTestBase {
       assertEquals(null, resp.body());
       testComplete();
     }));
-    waitUntil(paused::get);
+    assertWaitUntil(paused::get);
     resume.complete(null);
     await();
   }
@@ -733,7 +733,7 @@ public class WebClientTest extends HttpTestBase {
       .send(onFailure(err -> {
       testComplete();
     }));
-    waitUntil(() -> received.get() == 2048);
+    assertWaitUntil(() -> received.get() == 2048);
     fail.complete(null);
     await();
   }

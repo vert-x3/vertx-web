@@ -21,7 +21,6 @@ import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpMethod;
 import org.junit.Test;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -1429,7 +1428,7 @@ public class RouterTest extends WebTestBase {
       rc.response().end();
     });
     testRequest(HttpMethod.GET, "/", 200, "OK");
-    waitUntil(() -> cnt.get() == 3);
+    assertWaitUntil(() -> cnt.get() == 3);
   }
 
   @Test
@@ -1454,7 +1453,7 @@ public class RouterTest extends WebTestBase {
     });
 
     testRequest(HttpMethod.GET, "/", 200, "OK");
-    waitUntil(() -> cnt.get() == 1);
+    assertWaitUntil(() -> cnt.get() == 1);
   }
 
   @Test
