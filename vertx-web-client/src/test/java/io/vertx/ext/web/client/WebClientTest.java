@@ -1067,17 +1067,14 @@ public class WebClientTest extends HttpTestBase {
       client -> client.getAbs("https://" + DEFAULT_HTTPS_HOST + ":" + DEFAULT_HTTPS_PORT)
         .addQueryParam("query1", "value1")
         .addQueryParam("query2", "value2"),
-      serverRequest -> {
-        assertEquals("query1=value1&query2=value2", serverRequest.query());
-        return null;
-      });
+      serverRequest -> assertEquals("query1=value1&query2=value2", serverRequest.query()));
   }
 
   private void testTLS(boolean clientSSL, boolean serverSSL, Function<WebClient, HttpRequest<Buffer>> requestProvider) throws Exception {
     testTLS(clientSSL, serverSSL, requestProvider, null);
   }
 
-  private void testTLS(boolean clientSSL, boolean serverSSL, Function<WebClient, HttpRequest<Buffer>> requestProvider, Function<HttpServerRequest, Void> serverAssertions) throws Exception {
+  private void testTLS(boolean clientSSL, boolean serverSSL, Function<WebClient, HttpRequest<Buffer>> requestProvider, Consumer<HttpServerRequest> serverAssertions) throws Exception {
     WebClient sslClient = WebClient.create(vertx, new WebClientOptions()
       .setSsl(clientSSL)
       .setTrustAll(true)
@@ -1091,7 +1088,7 @@ public class WebClientTest extends HttpTestBase {
     sslServer.requestHandler(req -> {
       assertEquals(serverSSL, req.isSSL());
       if (serverAssertions != null) {
-        serverAssertions.apply(req);
+        serverAssertions.accept(req);
       }
       req.response().end();
     });
