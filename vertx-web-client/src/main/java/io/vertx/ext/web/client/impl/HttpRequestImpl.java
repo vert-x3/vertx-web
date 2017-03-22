@@ -276,7 +276,7 @@ class HttpRequestImpl<T> implements HttpRequest<T> {
       requestURI = uri;
     }
     if (ssl != options.isSsl()) {
-      req = client.request(method, new RequestOptions().setSsl(ssl).setHost(host).setPort(port).setURI(uri));
+      req = client.request(method, new RequestOptions().setSsl(ssl).setHost(host).setPort(port).setURI(requestURI));
     } else {
       req = client.request(method, port, host, requestURI);
     }
