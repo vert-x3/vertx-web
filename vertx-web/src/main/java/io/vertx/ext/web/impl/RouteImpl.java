@@ -17,6 +17,7 @@
 package io.vertx.ext.web.impl;
 
 import io.vertx.core.Handler;
+import io.vertx.core.WorkerExecutor;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.logging.Logger;
@@ -25,7 +26,13 @@ import io.vertx.ext.web.MIMEHeader;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -150,6 +157,16 @@ public class RouteImpl implements Route {
   @Override
   public synchronized Route blockingHandler(Handler<RoutingContext> contextHandler, boolean ordered) {
     return handler(new BlockingHandlerDecorator(contextHandler, ordered));
+  }
+
+  @Override
+  public Route blockingHandler(Handler<RoutingContext> requestHandler, WorkerExecutor workerExecutor) {
+    return blockingHandler(requestHandler, workerExecutor, true);
+  }
+
+  @Override
+  public Route blockingHandler(Handler<RoutingContext> requestHandler, WorkerExecutor workerExecutor, boolean ordered) {
+    return handler(new BlockingHandlerDecorator(requestHandler, workerExecutor, ordered));
   }
 
   @Override
