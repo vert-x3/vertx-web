@@ -1996,4 +1996,24 @@ public class RouterTest extends WebTestBase {
     });
     testRequest(HttpMethod.GET, "/some+path?q1=some+query", 200, "foo");
   }
+
+  @Test
+  public void testMultipleSetHandler() throws Exception {
+    try {
+      router.route().handler(context -> {}).handler(context -> {});
+      fail();
+    } catch (IllegalStateException e) {
+      // OK
+    }
+  }
+
+  @Test
+  public void testMultipleSetFailureHandler() throws Exception {
+    try {
+      router.route().failureHandler(context -> {}).failureHandler(context -> {});
+      fail();
+    } catch (IllegalStateException e) {
+      // OK
+    }
+  }
 }
