@@ -39,7 +39,6 @@
     <dependency>
       <groupId>io.vertx</groupId>
       <artifactId>vertx-auth-htdigest</artifactId>
-      <version>${project.version}</version>
       <optional>true</optional>
     </dependency>
 
@@ -64,7 +63,6 @@
     <dependency>
       <groupId>io.vertx</groupId>
       <artifactId>vertx-hazelcast</artifactId>
-      <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
