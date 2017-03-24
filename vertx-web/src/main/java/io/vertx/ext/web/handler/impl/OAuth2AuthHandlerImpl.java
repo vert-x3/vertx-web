@@ -60,19 +60,20 @@ public class OAuth2AuthHandlerImpl extends AuthHandlerImpl implements OAuth2Auth
 
     switch (flow) {
       case AUTH_CODE:
+        try {
+          final URL url = new URL(callbackURL);
+          this.host = url.getProtocol() + "://" + url.getHost() + (url.getPort() == -1 ? "" : ":" + url.getPort());
+          this.callbackPath = url.getPath();
+        } catch (MalformedURLException e) {
+          throw new RuntimeException(e);
+        }
+        break;
       case PASSWORD:
-        // good to go, we can handle these
+        this.host = null;
+        this.callbackPath = null;
         break;
       default:
         throw new IllegalStateException(authProvider.getFlowType() + " is not a valid flow for web applications");
-    }
-
-    try {
-      final URL url = new URL(callbackURL);
-      this.host = url.getProtocol() + "://" + url.getHost() + (url.getPort() == -1 ? "" : ":" + url.getPort());
-      this.callbackPath = url.getPath();
-    } catch (MalformedURLException e) {
-      throw new RuntimeException(e);
     }
   }
 
@@ -208,6 +209,10 @@ public class OAuth2AuthHandlerImpl extends AuthHandlerImpl implements OAuth2Auth
 
   @Override
   public OAuth2AuthHandler setupCallback(Route route) {
+
+    if (host == null && callbackPath == null) {
+      throw new IllegalStateException("Cannot set callback with host pinning.");
+    }
 
     callback = route;
 

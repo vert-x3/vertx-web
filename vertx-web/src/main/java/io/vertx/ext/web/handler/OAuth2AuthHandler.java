@@ -32,6 +32,16 @@ import io.vertx.ext.web.handler.impl.OAuth2AuthHandlerImpl;
 public interface OAuth2AuthHandler extends AuthHandler {
 
   /**
+   * Create a OAuth2 auth handler without host pinning, useful not PASSWORD flows
+   *
+   * @param authProvider  the auth provider to use
+   * @return the auth handler
+   */
+  static OAuth2AuthHandler create(OAuth2Auth authProvider) {
+    return new OAuth2AuthHandlerImpl(authProvider, null);
+  }
+
+  /**
    * Create a OAuth2 auth handler with host pinning
    *
    * @param authProvider  the auth provider to use
