@@ -104,6 +104,10 @@ public class JWTAuthHandlerImpl extends AuthHandlerImpl implements JWTAuthHandle
 
           if (BEARER.matcher(scheme).matches()) {
             token = credentials;
+          } else {
+            log.warn("Format is Authorization: Bearer [token]");
+            context.fail(401);
+            return;
           }
         } else {
           log.warn("Format is Authorization: Bearer [token]");
