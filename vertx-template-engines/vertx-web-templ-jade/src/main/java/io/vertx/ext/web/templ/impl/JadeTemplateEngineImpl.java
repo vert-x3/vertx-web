@@ -62,12 +62,17 @@ public class JadeTemplateEngineImpl extends CachingTemplateEngine<JadeTemplate> 
 
   @Override
   public void render(RoutingContext context, String templateFileName, Handler<AsyncResult<Buffer>> handler) {
+    render(context.vertx(), context, templateFileName, handler);
+  }
+
+  @Override
+  public <T> void render(Vertx vertx, T context, String templateFileName, Handler<AsyncResult<Buffer>> handler) {
     try {
       JadeTemplate template = cache.get(templateFileName);
 
       if (template == null) {
         synchronized (this) {
-          loader.setVertx(context.vertx());
+          loader.setVertx(vertx);
           // Compile
           template = config.getTemplate(templateFileName);
         }

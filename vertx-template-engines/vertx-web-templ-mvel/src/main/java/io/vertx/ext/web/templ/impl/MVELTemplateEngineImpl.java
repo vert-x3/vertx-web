@@ -19,6 +19,7 @@ package io.vertx.ext.web.templ.impl;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
+import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.impl.VertxInternal;
 import io.vertx.ext.web.RoutingContext;
@@ -56,21 +57,26 @@ public class MVELTemplateEngineImpl extends CachingTemplateEngine<CompiledTempla
 
   @Override
   public void render(RoutingContext context, String templateFileName, Handler<AsyncResult<Buffer>> handler) {
+    render(context.vertx(), context, templateFileName, handler);
+  }
+
+  @Override
+  public <T> void render(Vertx vertx, T context, String templateFileName, Handler<AsyncResult<Buffer>> handler) {
     try {
       CompiledTemplate template = cache.get(templateFileName);
       if (template == null) {
         // real compile
         String loc = adjustLocation(templateFileName);
-        String templateText = Utils.readFileToString(context.vertx(), loc);
+        String templateText = Utils.readFileToString(vertx, loc);
         if (templateText == null) {
           throw new IllegalArgumentException("Cannot find template " + loc);
         }
         template = TemplateCompiler.compileTemplate(templateText);
         cache.put(templateFileName, template);
       }
-      Map<String, RoutingContext> variables = new HashMap<>(1);
+      Map<String, T> variables = new HashMap<>(1);
       variables.put("context", context);
-      final VertxInternal vertxInternal = (VertxInternal) context.vertx();
+      final VertxInternal vertxInternal = (VertxInternal) vertx;
       String directoryName = vertxInternal.resolveFile(templateFileName).getParent();
       handler.handle(Future.succeededFuture(
         Buffer.buffer(
