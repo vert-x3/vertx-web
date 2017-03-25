@@ -57,7 +57,7 @@ public class MVELTemplateEngineImpl extends CachingTemplateEngine<CompiledTempla
 
   @Override
   public void render(RoutingContext context, String templateFileName, Handler<AsyncResult<Buffer>> handler) {
-    render(context.vertx(), context.data(), templateFileName, handler);
+    render(context.vertx(), context, templateFileName, handler);
   }
 
   @Override
