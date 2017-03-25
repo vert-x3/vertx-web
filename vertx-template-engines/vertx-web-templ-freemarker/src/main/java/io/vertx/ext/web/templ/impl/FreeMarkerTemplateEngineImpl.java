@@ -62,7 +62,7 @@ public class FreeMarkerTemplateEngineImpl extends CachingTemplateEngine<Template
 
   @Deprecated
   public void render(RoutingContext context, String templateFileName, Handler<AsyncResult<Buffer>> handler) {
-    this.render(context.vertx(), context.data(), templateFileName, handler);
+    this.render(context.vertx(), context, templateFileName, handler);
   }
 
   @Override
