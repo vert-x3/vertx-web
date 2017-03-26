@@ -18,6 +18,7 @@ package io.vertx.ext.web.templ.impl;
 import com.mitchellbosecke.pebble.error.LoaderException;
 import com.mitchellbosecke.pebble.loader.Loader;
 import io.vertx.core.Vertx;
+import io.vertx.ext.web.impl.Utils;
 
 import java.io.File;
 import java.io.Reader;
@@ -33,7 +34,7 @@ public class PebbleVertxLoader implements Loader<String> {
 
   private final Vertx vertx;
 
-  private String charset = Charset.defaultCharset().toString();
+  private Charset charset = Charset.defaultCharset();
 
   public PebbleVertxLoader(Vertx vertx) {
     this.vertx = vertx;
@@ -42,7 +43,7 @@ public class PebbleVertxLoader implements Loader<String> {
   @Override
   public Reader getReader(String s) throws LoaderException {
     try {
-      final String buffer = vertx.fileSystem().readFileBlocking(s).toString(charset);
+      final String buffer = Utils.readFileToString(vertx, s, charset);
       return new StringReader(buffer);
     } catch (RuntimeException e) {
       throw new LoaderException(e, e.getMessage());
@@ -51,7 +52,7 @@ public class PebbleVertxLoader implements Loader<String> {
 
   @Override
   public void setCharset(String s) {
-    this.charset = s;
+    this.charset = Charset.forName(s);
   }
 
   @Override
