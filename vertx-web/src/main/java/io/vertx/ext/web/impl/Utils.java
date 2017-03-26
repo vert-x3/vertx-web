@@ -18,6 +18,7 @@ package io.vertx.ext.web.impl;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
+import io.netty.buffer.Unpooled;
 import io.netty.util.CharsetUtil;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxException;
@@ -26,6 +27,7 @@ import io.vertx.ext.web.RoutingContext;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Comparator;
@@ -333,24 +335,40 @@ public class Utils extends io.vertx.core.impl.Utils {
     }
   }
 
+  private static final Charset DEFAULT_CHARSET = Charset.defaultCharset();
+
   /*
-  Reads from file or classpath, replacing newlines with LF ones
+  Reads from file or classpath using the default charset, replacing CRLF line endings with LF ones
    */
   public static String readFileToString(Vertx vertx, String resource) {
+    return readFileToString(vertx, resource, DEFAULT_CHARSET);
+  }
+
+  /*
+  Reads from file or classpath using the given charset, replacing CRLF line endings with LF ones
+   */
+  public static String readFileToString(Vertx vertx, String resource, Charset charset) {
     try {
-      ByteBuf byteBuf = vertx.fileSystem().readFileBlocking(resource).getByteBuf();
-      StringBuilder sb = new StringBuilder(byteBuf.writerIndex());
+      Buffer buff = vertx.fileSystem().readFileBlocking(resource);
+      int buffLen = buff.length();
+      ByteBuf byteBuf = buff.getByteBuf();
+      ByteBuf convertedBuf = Unpooled.buffer(buffLen, buffLen);
+
       while (byteBuf.isReadable()) {
         int c = byteBuf.readUnsignedByte();
         // if \r encountered and next character is \n, skip
         // Implementation adapted from ByteBufInputStream
         if (!(c == '\r' && byteBuf.isReadable() && byteBuf.getUnsignedByte(byteBuf.readerIndex()) == '\n')) {
-          sb.append((char) c);
+          convertedBuf.writeByte(c);
         }
       }
-      // The ByteBuf is unreleasable, so this isn't necessary, but do it anyways in case of implementation change
+
+      // Original ByteBuf is unreleasable, but just in case the implementation changes...
       byteBuf.release();
-      return sb.toString();
+
+      String result = convertedBuf.toString(charset);
+      convertedBuf.release();
+      return result;
     } catch (Exception e) {
       throw new VertxException(e);
     }
