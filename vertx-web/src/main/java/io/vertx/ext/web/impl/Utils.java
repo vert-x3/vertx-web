@@ -343,6 +343,12 @@ public class Utils extends io.vertx.core.impl.Utils {
     }
   }
 
+  private static Pattern normalizeNewlineRegex = Pattern.compile("\\r\\n?");
+
+  public static String normalizeNewlines(String toNormalize) {
+    return normalizeNewlineRegex.matcher(toNormalize).replaceAll("\n");
+  }
+
   public static DateFormat createRFC1123DateTimeFormatter() {
     DateFormat dtf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.ENGLISH);
     dtf.setTimeZone(TimeZone.getTimeZone("GMT"));

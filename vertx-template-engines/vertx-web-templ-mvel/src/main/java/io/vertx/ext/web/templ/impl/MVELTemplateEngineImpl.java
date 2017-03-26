@@ -65,7 +65,10 @@ public class MVELTemplateEngineImpl extends CachingTemplateEngine<CompiledTempla
         if (templateText == null) {
           throw new IllegalArgumentException("Cannot find template " + loc);
         }
-        template = TemplateCompiler.compileTemplate(templateText);
+        template = TemplateCompiler.compileTemplate(
+          // If replacing the read string is a performance issue, it might be possible to do it when reading the buffer
+          Utils.normalizeNewlines(templateText)
+        );
         cache.put(templateFileName, template);
       }
       Map<String, RoutingContext> variables = new HashMap<>(1);
