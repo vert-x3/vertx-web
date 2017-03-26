@@ -16,6 +16,8 @@
 
 package io.vertx.ext.web.impl;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufInputStream;
 import io.netty.util.CharsetUtil;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxException;
@@ -332,12 +334,23 @@ public class Utils extends io.vertx.core.impl.Utils {
   }
 
   /*
-  Reads from file or classpath
+  Reads from file or classpath, replacing newlines with LF ones
    */
   public static String readFileToString(Vertx vertx, String resource) {
     try {
-      Buffer buff = vertx.fileSystem().readFileBlocking(resource);
-      return buff.toString();
+      ByteBuf byteBuf = vertx.fileSystem().readFileBlocking(resource).getByteBuf();
+      StringBuilder sb = new StringBuilder(byteBuf.writerIndex());
+      while (byteBuf.isReadable()) {
+        int c = byteBuf.readUnsignedByte();
+        // if \r encountered and next character is \n, skip
+        // Implementation adapted from ByteBufInputStream
+        if (!(c == '\r' && byteBuf.isReadable() && byteBuf.getUnsignedByte(byteBuf.readerIndex()) == '\n')) {
+          sb.append((char) c);
+        }
+      }
+      // The ByteBuf is unreleasable, so this isn't necessary, but do it anyways in case of implementation change
+      byteBuf.release();
+      return sb.toString();
     } catch (Exception e) {
       throw new VertxException(e);
     }
