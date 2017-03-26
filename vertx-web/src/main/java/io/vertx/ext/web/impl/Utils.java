@@ -344,12 +344,17 @@ public class Utils extends io.vertx.core.impl.Utils {
     return readFileToString(vertx, resource, DEFAULT_CHARSET);
   }
 
+  private static final boolean convertLineEndings = System.lineSeparator().equals("\r\n");
+
   /*
   Reads from file or classpath using the given charset, replacing CRLF line endings with LF ones
    */
   public static String readFileToString(Vertx vertx, String resource, Charset charset) {
     try {
       Buffer buff = vertx.fileSystem().readFileBlocking(resource);
+      if (!convertLineEndings) {
+        return buff.toString(charset);
+      }
       int buffLen = buff.length();
       ByteBuf byteBuf = buff.getByteBuf();
       ByteBuf convertedBuf = Unpooled.buffer(buffLen, buffLen);
