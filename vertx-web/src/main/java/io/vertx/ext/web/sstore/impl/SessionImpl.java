@@ -111,6 +111,9 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
   @Override
   @SuppressWarnings("unchecked")
   public <T> T get(String key) {
+    if (data == null) {
+      return null;
+    }
     Object obj = getData().get(key);
     return (T) obj;
   }
@@ -130,6 +133,9 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
   @Override
   @SuppressWarnings("unchecked")
   public <T> T remove(String key) {
+    if (data == null) {
+      return null;
+    }
     Object obj = getData().remove(key);
     return (T) obj;
   }
@@ -228,7 +234,7 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
   private Buffer writeDataToBuffer() {
     try {
       Buffer buffer = Buffer.buffer();
-      if (data == null) {
+      if (data == null || data.size() == 0) {
         buffer.appendInt(0);
       } else {
         buffer.appendInt(data.size());

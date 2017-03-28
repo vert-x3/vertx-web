@@ -140,6 +140,45 @@ public class ClusteredSessionStoreImpl implements ClusteredSessionStore {
   }
 
   @Override
+  public void replace(Session session, Handler<AsyncResult<Boolean>> resultHandler) {
+    getMap(res -> {
+      if (res.succeeded()) {
+        // we need to take care of the transactionality of session data
+        res.result().get(session.id(), old -> {
+          final SessionImpl oldSession;
+          final SessionImpl newSession = (SessionImpl) session;
+
+          // only care if succeeded
+          if (old.succeeded()) {
+            oldSession = (SessionImpl) old.result();
+          } else {
+            // either not existent or error getting it from the map
+            oldSession = null;
+          }
+
+          final boolean conflict =
+            (oldSession != null) &&
+            // there was already some stored data in this case we need to validate versions
+            (oldSession.version() != newSession.version());
+
+          // we can now safely store the new version
+          newSession.incrementVersion();
+
+          res.result().put(session.id(), session, session.timeout(), res2 -> {
+            if (res2.succeeded()) {
+              resultHandler.handle(Future.succeededFuture((res2.result() != null) || !conflict));
+            } else {
+              resultHandler.handle(Future.failedFuture(res2.cause()));
+            }
+          });
+        });
+      } else {
+        resultHandler.handle(Future.failedFuture(res.cause()));
+      }
+    });
+  }
+
+  @Override
   public void clear(Handler<AsyncResult<Boolean>> resultHandler) {
     getMap(res -> {
       if (res.succeeded()) {

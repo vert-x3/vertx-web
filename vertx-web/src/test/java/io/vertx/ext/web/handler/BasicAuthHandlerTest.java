@@ -255,6 +255,15 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
     }
 
     @Override
+    public void replace(Session session, Handler<AsyncResult<Boolean>> resultHandler) {
+      ClusterSerializable cs = (ClusterSerializable)session;
+      Buffer buff = Buffer.buffer();
+      cs.writeToBuffer(buff);
+      sessions.put(session.id(), buff);
+      vertx.runOnContext(v -> resultHandler.handle(Future.succeededFuture(true)));
+    }
+
+    @Override
     public void clear(Handler<AsyncResult<Boolean>> resultHandler) {
       sessions.clear();
       vertx.runOnContext(v -> resultHandler.handle(Future.succeededFuture(true)));
