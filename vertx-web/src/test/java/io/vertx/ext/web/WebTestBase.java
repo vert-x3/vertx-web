@@ -102,18 +102,30 @@ public class WebTestBase extends VertxTestBase {
   protected void testRequest(HttpMethod method, String path, Consumer<HttpClientRequest> requestAction, Consumer<HttpClientResponse> responseAction,
                              int statusCode, String statusMessage,
                              String responseBody) throws Exception {
-    testRequestBuffer(method, path, requestAction, responseAction, statusCode, statusMessage, responseBody != null ? Buffer.buffer(responseBody) : null);
+    testRequestBuffer(method, path, requestAction, responseAction, statusCode, statusMessage, responseBody != null ? Buffer.buffer(responseBody) : null, true);
   }
 
   protected void testRequestBuffer(HttpMethod method, String path, Consumer<HttpClientRequest> requestAction, Consumer<HttpClientResponse> responseAction,
                                    int statusCode, String statusMessage,
                                    Buffer responseBodyBuffer) throws Exception {
-    testRequestBuffer(client, method, 8080, path, requestAction, responseAction, statusCode, statusMessage, responseBodyBuffer);
+    testRequestBuffer(method, path, requestAction, responseAction, statusCode, statusMessage, responseBodyBuffer, false);
+  }
+
+  protected void testRequestBuffer(HttpMethod method, String path, Consumer<HttpClientRequest> requestAction, Consumer<HttpClientResponse> responseAction,
+                                   int statusCode, String statusMessage,
+                                   Buffer responseBodyBuffer, boolean normalizeLineEndings) throws Exception {
+    testRequestBuffer(client, method, 8080, path, requestAction, responseAction, statusCode, statusMessage, responseBodyBuffer, normalizeLineEndings);
   }
 
   protected void testRequestBuffer(HttpClient client, HttpMethod method, int port, String path, Consumer<HttpClientRequest> requestAction, Consumer<HttpClientResponse> responseAction,
                                    int statusCode, String statusMessage,
                                    Buffer responseBodyBuffer) throws Exception {
+    testRequestBuffer(client, method, port, path, requestAction, responseAction, statusCode, statusMessage, responseBodyBuffer, false);
+  }
+
+  protected void testRequestBuffer(HttpClient client, HttpMethod method, int port, String path, Consumer<HttpClientRequest> requestAction, Consumer<HttpClientResponse> responseAction,
+                                   int statusCode, String statusMessage,
+                                   Buffer responseBodyBuffer, boolean normalizeLineEndings) throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
     HttpClientRequest req = client.request(method, port, "localhost", path, resp -> {
       assertEquals(statusCode, resp.statusCode());
@@ -125,6 +137,9 @@ public class WebTestBase extends VertxTestBase {
         latch.countDown();
       } else {
         resp.bodyHandler(buff -> {
+          if (normalizeLineEndings) {
+            buff = normalizeLineEndingsFor(buff);
+          }
           assertEquals(responseBodyBuffer, buff);
           latch.countDown();
         });
@@ -137,6 +152,15 @@ public class WebTestBase extends VertxTestBase {
     awaitLatch(latch);
   }
 
-
-
+  private static Buffer normalizeLineEndingsFor(Buffer buff) {
+    int buffLen = buff.length();
+    Buffer normalized = Buffer.buffer(buffLen);
+    for (int i = 0; i < buffLen; i++) {
+      short unsignedByte = buff.getUnsignedByte(i);
+      if (unsignedByte != '\r' || i + 1 == buffLen || buff.getUnsignedByte(i + 1) != '\n') {
+        normalized.appendUnsignedByte(unsignedByte);
+      }
+    }
+    return normalized;
+  }
 }
