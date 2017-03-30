@@ -145,13 +145,13 @@ public class StaticHandlerTest extends WebTestBase {
       String contentType = res.headers().get("content-type");
       String contentLength = res.headers().get("content-length");
       assertEquals("text/html;charset=UTF-8", contentType);
-      assertEquals(36, Integer.valueOf(contentLength).intValue());
+      assertEquals(fileSize("src/test/resources/webroot/otherpage.html"), Integer.valueOf(contentLength).intValue());
     }, 200, "OK", null);
     testRequest(HttpMethod.GET, "/foo.json", null, res -> {
       String contentType = res.headers().get("content-type");
       String contentLength = res.headers().get("content-length");
       assertEquals("application/json", contentType);
-      assertEquals(18, Integer.valueOf(contentLength).intValue());
+      assertEquals(fileSize("src/test/resources/webroot/foo.json"), Integer.valueOf(contentLength).intValue());
     }, 200, "OK", null);
   }
 
@@ -672,5 +672,9 @@ public class StaticHandlerTest extends WebTestBase {
       fail(e.getMessage());
       return -1;
     }
+  }
+
+  private long fileSize(String filename) {
+    return new File(filename).length();
   }
 }
