@@ -35,6 +35,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
+ * @author <a href="https://github.com/mystdeim">Roman Novikov</a>
  * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
@@ -57,7 +58,15 @@ public class JadeTemplateEngineImpl extends CachingTemplateEngine<JadeTemplate> 
   @Override
   public JadeTemplateEngine setMaxCacheSize(int maxCacheSize) {
     this.cache.setMaxSize(maxCacheSize);
+    this.config.setCaching(maxCacheSize <= 0);
     return this;
+  }
+
+  @Override
+  public JadeTemplateEngine setCaching(boolean flag) {
+      this.config.setCaching(flag);
+      this.cache.setMaxSize(flag ? DEFAULT_MAX_CACHE_SIZE : 0);
+      return this;
   }
 
   @Override

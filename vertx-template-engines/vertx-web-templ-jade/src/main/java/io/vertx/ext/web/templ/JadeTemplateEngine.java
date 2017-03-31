@@ -65,6 +65,14 @@ public interface JadeTemplateEngine extends TemplateEngine {
   JadeTemplateEngine setMaxCacheSize(int maxCacheSize);
 
   /**
+   * Set caching option for templates
+   *
+   * @param flag
+   * @return
+   */
+  JadeTemplateEngine setCaching(boolean flag);
+
+  /**
    * Get a reference to the internal JadeConfiguration object so it
    * can be configured.
    *
