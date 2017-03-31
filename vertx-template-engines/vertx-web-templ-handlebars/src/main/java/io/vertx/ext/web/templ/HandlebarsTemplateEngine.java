@@ -42,6 +42,12 @@ public interface HandlebarsTemplateEngine extends TemplateEngine {
   String DEFAULT_TEMPLATE_EXTENSION = "hbs";
 
   /**
+   * Default template path
+   * //TODO move this to appropriate place
+   */
+  String DEFAULT_TEMPLATE_PATH = "templates";
+
+  /**
    * Create a template engine using defaults
    *
    * @return  the engine
@@ -57,6 +63,14 @@ public interface HandlebarsTemplateEngine extends TemplateEngine {
    * @return a reference to this for fluency
    */
   HandlebarsTemplateEngine setExtension(String extension);
+
+  /**
+   * Set the path for partials
+   *
+   * @param path the path
+   * @return a reference to this for fluency
+   */
+  HandlebarsTemplateEngine setPath(String path);
 
   /**
    * Set the max cache size for the engine
