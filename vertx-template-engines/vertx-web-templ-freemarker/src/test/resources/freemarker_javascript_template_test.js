@@ -74,7 +74,8 @@ function testTemplate() {
       lines.push("Julien loves Olympique de Marseille");
       lines.push("Thomas loves Olympique de Marseille");
       lines.push("");
-      Assert.assertEquals(lines.join("\n"), buffer.toString());
+      var actual = buffer.toString().replace(/\r\n/g , "\n");
+      Assert.assertEquals(lines.join("\n"), actual);
       responseLatch.countDown();
     });
   });
