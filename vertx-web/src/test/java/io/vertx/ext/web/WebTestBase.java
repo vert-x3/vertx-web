@@ -152,7 +152,7 @@ public class WebTestBase extends VertxTestBase {
     awaitLatch(latch);
   }
 
-  private static Buffer normalizeLineEndingsFor(Buffer buff) {
+  protected static Buffer normalizeLineEndingsFor(Buffer buff) {
     int buffLen = buff.length();
     Buffer normalized = Buffer.buffer(buffLen);
     for (int i = 0; i < buffLen; i++) {

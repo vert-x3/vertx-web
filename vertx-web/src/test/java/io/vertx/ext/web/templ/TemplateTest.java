@@ -122,14 +122,15 @@ public class TemplateTest extends WebTestBase {
       context.put("bar", "fox");
       engine.render(context, "somedir/test-template.html", onSuccess(res -> {
         String rendered = res.toString();
-        assertEquals(expected, rendered);
+        final String actual = normalizeLineEndingsFor(res).toString();
+        assertEquals(expected, actual);
         context.response().putHeader(HttpHeaders.CONTENT_TYPE, "text/html");
         context.response().end(rendered);
         testComplete();
       }));
     });
 
-    testRequest(HttpMethod.GET, "/", 200, "OK", expected);
+    testRequestBuffer(HttpMethod.GET, "/", null, null, 200, "OK", Buffer.buffer(expected), true);
     await();
   }
 
