@@ -470,4 +470,20 @@ public interface RoutingContext {
    */
   @Nullable
   String pathParam(String name);
+
+  /**
+   * Returns a map of all query parameters inside the <a href="https://en.wikipedia.org/wiki/Query_string">query string</a>
+   *
+   * @return the map of query parameters
+   */
+  Map<String, List<String>> queryParams();
+
+  /**
+   * Gets the value of a single query parameter
+   *
+   * @param query The name of query parameter
+   * @return The value of query parameter
+   */
+  @Nullable
+  List<String> queryParam(String query);
 }

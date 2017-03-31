@@ -810,6 +810,32 @@ public class RouterTest extends WebTestBase {
   }
 
   @Test
+  public void testCorrectQueryParamatersEncapsulation() throws Exception {
+    final String pathParameterName = "pathParameter";
+    final String pathParamValue = "awesomePath";
+    final String qName = "q";
+    final String qValue1 = "a";
+    final String qValue2 = "b";
+    final String sName = "s";
+    final String sValue = "sample_value";
+    final String sep = ",";
+    router.route("/blah/:" + pathParameterName + "/test").handler(rc -> {
+      Map<String, List<String>> params = rc.queryParams();
+      StringBuilder stringBuilder = new StringBuilder();
+      for (List<String> values : params.values())
+        for (String q : values)
+          stringBuilder.append(q + ",");
+        stringBuilder.deleteCharAt(stringBuilder.length() - 1); // Remove last comma
+        stringBuilder.append("/");
+      stringBuilder.deleteCharAt(stringBuilder.length() - 1); // Remove last slash
+      rc.response().setStatusMessage(stringBuilder.toString()).end();
+    });
+    testRequest(HttpMethod.GET,
+      "/blah/" + pathParamValue + "/test?" + qName + "=" + qValue1 + "," + qValue2 + "&" + sName + "=" + sValue, 200,
+      qValue1 + "," + qValue2 + "/" + sValue);
+  }
+
+  @Test
   public void testPathParamsWithReroute() throws Exception {
     String paramName = "param";
     String firstParamValue = "fpv";

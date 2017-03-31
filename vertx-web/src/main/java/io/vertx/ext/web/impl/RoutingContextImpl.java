@@ -41,6 +41,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   private final RouterImpl router;
   private Map<String, Object> data;
   private Map<String, String> pathParams;
+  private Map<String, List<String>> queryParams;
   private AtomicInteger handlerSeq = new AtomicInteger();
   private Map<Integer, Handler<Void>> headersEndHandlers;
   private Map<Integer, Handler<Void>> bodyEndHandlers;
@@ -362,6 +363,34 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   @Override
   public @Nullable String pathParam(String name) {
     return getPathParams().get(name);
+  }
+
+  /**
+   * Returns a map of all query parameters inside the <a href="https://en.wikipedia.org/wiki/Query_string">query string</a>
+   *
+   * @return the map of query parameters
+   */
+  @Override
+  public Map<String, List<String>> queryParams() {
+    return getQueryParams();
+  }
+
+  /**
+   * Gets the value of a single query parameter
+   *
+   * @param query The name of query parameter
+   * @return The value of query parameter
+   */
+  @Override
+  public @Nullable List<String> queryParam(String query) {
+    return getQueryParams().get(query);
+  }
+
+  private Map<String, List<String>> getQueryParams() {
+    if (queryParams == null) {
+      queryParams = new HashMap<>();
+    }
+    return queryParams;
   }
 
   private Map<String, String> getPathParams() {
