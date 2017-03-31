@@ -286,7 +286,8 @@ public class RouteImpl implements Route {
       }
     }
     // Decode query parameters and put insie context.pathParams
-    context.queryParams().putAll(new QueryStringDecoder(request.uri()).parameters());
+    Map<String, List<String>> decodedParams = new QueryStringDecoder(request.uri()).parameters();
+    ((RoutingContextImpl)context).setQueryParams(decodedParams);
 
     if (!consumes.isEmpty()) {
       // Can this route consume the specified content type

@@ -31,6 +31,7 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -474,15 +475,15 @@ public interface RoutingContext {
   /**
    * Returns a map of all query parameters inside the <a href="https://en.wikipedia.org/wiki/Query_string">query string</a>
    *
-   * @return the map of query parameters
+   * @return the map of query parameters (if a query parameter value is an array, it will be provided as comma separated string, so if you need to extract array from query use {@link #queryParam(String)} queryParam)
    */
-  Map<String, List<String>> queryParams();
+  Map<String, String> queryParams();
 
   /**
    * Gets the value of a single query parameter
    *
    * @param query The name of query parameter
-   * @return The value of query parameter
+   * @return The list of all elements inside query parameter
    */
   @Nullable
   List<String> queryParam(String query);

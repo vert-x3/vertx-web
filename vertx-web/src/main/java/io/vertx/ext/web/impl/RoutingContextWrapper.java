@@ -273,7 +273,7 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   }
 
   @Override
-  public Map<String, List<String>> queryParams() {
+  public Map<String, String> queryParams() {
     return inner.queryParams();
   }
 

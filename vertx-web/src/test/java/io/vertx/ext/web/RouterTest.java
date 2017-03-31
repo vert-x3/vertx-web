@@ -820,15 +820,10 @@ public class RouterTest extends WebTestBase {
     final String sValue = "sample_value";
     final String sep = ",";
     router.route("/blah/:" + pathParameterName + "/test").handler(rc -> {
-      Map<String, List<String>> params = rc.queryParams();
-      StringBuilder stringBuilder = new StringBuilder();
-      for (List<String> values : params.values())
-        for (String q : values)
-          stringBuilder.append(q + ",");
-        stringBuilder.deleteCharAt(stringBuilder.length() - 1); // Remove last comma
-        stringBuilder.append("/");
-      stringBuilder.deleteCharAt(stringBuilder.length() - 1); // Remove last slash
-      rc.response().setStatusMessage(stringBuilder.toString()).end();
+      Map<String, String> params = rc.queryParams();
+      assertEquals(params.get("q"), String.join(",", rc.queryParam("q")));
+      String statusMessage = String.join("/", params.values());
+      rc.response().setStatusMessage(statusMessage).end();
     });
     testRequest(HttpMethod.GET,
       "/blah/" + pathParamValue + "/test?" + qName + "=" + qValue1 + "," + qValue2 + "&" + sName + "=" + sValue, 200,
