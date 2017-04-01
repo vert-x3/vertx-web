@@ -42,9 +42,6 @@ public abstract class CachingTemplateEngine<T> implements TemplateEngine {
     if (!location.endsWith(extension)) {
       location += extension;
     }
-    if (location.endsWith("/" + extension)) {
-      location = location.substring(0, location.length() - extension.length()) + "index" + extension;
-    }
     return location;
   }
 
