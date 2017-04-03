@@ -20,7 +20,6 @@ import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
-import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.sockjs.impl.SockJSHandlerImpl;
 
@@ -55,16 +54,6 @@ public interface SockJSHandler extends Handler<RoutingContext> {
    */
   static SockJSHandler create(Vertx vertx, SockJSHandlerOptions options) {
     return new SockJSHandlerImpl(vertx, options);
-  }
-
-  /**
-   * Install SockJS test applications on a router - used when running the SockJS test suite
-   *
-   * @param router  the router to install on
-   * @param vertx  the Vert.x instance
-   */
-  static void installTestApplications(Router router, Vertx vertx) {
-    SockJSHandlerImpl.installTestApplications(router, vertx);
   }
 
   /**
