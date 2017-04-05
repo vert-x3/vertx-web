@@ -31,6 +31,7 @@ import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.Random;
 
+
 /**
  * @author <a href="mailto:pmlopes@gmail.com">Paulo Lopes</a>
  */
@@ -46,6 +47,7 @@ public class CSRFHandlerImpl implements CSRFHandler {
   private boolean nagHttps;
   private String cookieName = DEFAULT_COOKIE_NAME;
   private String headerName = DEFAULT_HEADER_NAME;
+  private String responseBody = DEFAULT_RESPONSE_BODY;
   private long timeout = SessionHandler.DEFAULT_SESSION_TIMEOUT;
 
   public CSRFHandlerImpl(final String secret) {
@@ -78,6 +80,12 @@ public class CSRFHandlerImpl implements CSRFHandler {
   @Override
   public CSRFHandler setNagHttps(boolean nag) {
     this.nagHttps = nag;
+    return this;
+  }
+
+  @Override
+  public CSRFHandler setResponseBody(String responseBody) {
+    this.responseBody = responseBody;
     return this;
   }
 
@@ -117,6 +125,17 @@ public class CSRFHandlerImpl implements CSRFHandler {
     }
   }
 
+  protected void forbidden(RoutingContext ctx) {
+    final int statusCode = 403;
+    if (responseBody != null) {
+      ctx.response()
+        .setStatusCode(statusCode)
+        .end(responseBody);
+    } else {
+      ctx.fail(statusCode);
+    }
+  }
+
   @Override
   public void handle(RoutingContext ctx) {
 
@@ -145,7 +164,7 @@ public class CSRFHandlerImpl implements CSRFHandler {
         if (validateToken(header == null ? ctx.request().getFormAttribute(headerName) : header)) {
           ctx.next();
         } else {
-          ctx.fail(403);
+          forbidden(ctx);
         }
         break;
       default:
