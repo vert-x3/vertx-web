@@ -23,24 +23,7 @@ import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
-import io.vertx.ext.web.handler.AuthHandler;
-import io.vertx.ext.web.handler.BasicAuthHandler;
-import io.vertx.ext.web.handler.BodyHandler;
-import io.vertx.ext.web.handler.CSRFHandler;
-import io.vertx.ext.web.handler.CookieHandler;
-import io.vertx.ext.web.handler.CorsHandler;
-import io.vertx.ext.web.handler.ErrorHandler;
-import io.vertx.ext.web.handler.FormLoginHandler;
-import io.vertx.ext.web.handler.JWTAuthHandler;
-import io.vertx.ext.web.handler.OAuth2AuthHandler;
-import io.vertx.ext.web.handler.RedirectAuthHandler;
-import io.vertx.ext.web.handler.ResponseContentTypeHandler;
-import io.vertx.ext.web.handler.SessionHandler;
-import io.vertx.ext.web.handler.StaticHandler;
-import io.vertx.ext.web.handler.TemplateHandler;
-import io.vertx.ext.web.handler.TimeoutHandler;
-import io.vertx.ext.web.handler.UserSessionHandler;
-import io.vertx.ext.web.handler.VirtualHostHandler;
+import io.vertx.ext.web.handler.*;
 import io.vertx.ext.web.handler.sockjs.BridgeEventType;
 import io.vertx.ext.web.handler.sockjs.BridgeOptions;
 import io.vertx.ext.web.handler.sockjs.PermittedOptions;
@@ -55,7 +38,6 @@ import java.util.List;
 import java.util.Set;
 
 /**
- *
  * These are the examples used in the documentation.
  *
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
@@ -417,8 +399,8 @@ public class WebExamples {
   public void example18(Router router) {
 
     Route route = router.route(HttpMethod.PUT, "myapi/orders")
-                        .consumes("application/json")
-                        .produces("application/json");
+      .consumes("application/json")
+      .produces("application/json");
 
     route.handler(routingContext -> {
 
@@ -452,7 +434,7 @@ public class WebExamples {
       response.write("route2\n");
 
       // Call the next matching route after a 5 second delay
-      routingContext.vertx().setTimer(5000, tid ->  routingContext.next());
+      routingContext.vertx().setTimer(5000, tid -> routingContext.next());
     });
 
     Route route3 = router.route("/some/path/").handler(routingContext -> {
@@ -819,6 +801,7 @@ public class WebExamples {
     router.route("/static/*").handler(StaticHandler.create());
 
   }
+
   public void example41_0_1(Router router) {
 
     // Will only accept GET requests from origin "vertx.io"
@@ -914,8 +897,8 @@ public class WebExamples {
     // have an action field with value 'find' and a collection field with value
     // 'albums'
     PermittedOptions inboundPermitted2 = new PermittedOptions().setAddress("demo.persistor")
-        .setMatch(new JsonObject().put("action", "find")
-            .put("collection", "albums"));
+      .setMatch(new JsonObject().put("action", "find")
+        .put("collection", "albums"));
 
     // Allow through any message with a field `wibble` with value `foo`.
     PermittedOptions inboundPermitted3 = new PermittedOptions().setMatch(new JsonObject().put("wibble", "foo"));
@@ -930,11 +913,11 @@ public class WebExamples {
 
     // Let's define what we're going to allow from client -> server
     BridgeOptions options = new BridgeOptions().
-        addInboundPermitted(inboundPermitted1).
-        addInboundPermitted(inboundPermitted1).
-        addInboundPermitted(inboundPermitted3).
-        addOutboundPermitted(outboundPermitted1).
-        addOutboundPermitted(outboundPermitted2);
+      addInboundPermitted(inboundPermitted1).
+      addInboundPermitted(inboundPermitted1).
+      addInboundPermitted(inboundPermitted3).
+      addOutboundPermitted(outboundPermitted1).
+      addOutboundPermitted(outboundPermitted2);
 
     sockJSHandler.bridge(options);
 
@@ -964,7 +947,7 @@ public class WebExamples {
 
     SockJSHandler sockJSHandler = SockJSHandler.create(vertx);
     sockJSHandler.bridge(new BridgeOptions().
-            addInboundPermitted(inboundPermitted));
+      addInboundPermitted(inboundPermitted));
 
     // Now set up some basic auth handling:
 
@@ -1037,9 +1020,9 @@ public class WebExamples {
     Router router = Router.router(vertx);
 
     JsonObject authConfig = new JsonObject().put("keyStore", new JsonObject()
-        .put("type", "jceks")
-        .put("path", "keystore.jceks")
-        .put("password", "secret"));
+      .put("type", "jceks")
+      .put("path", "keystore.jceks")
+      .put("password", "secret"));
 
     JWTAuth authProvider = JWTAuth.create(vertx, authConfig);
 
@@ -1058,9 +1041,9 @@ public class WebExamples {
     Router router = Router.router(vertx);
 
     JsonObject authConfig = new JsonObject().put("keyStore", new JsonObject()
-        .put("type", "jceks")
-        .put("path", "keystore.jceks")
-        .put("password", "secret"));
+      .put("type", "jceks")
+      .put("path", "keystore.jceks")
+      .put("password", "secret"));
 
     JWTAuth authProvider = JWTAuth.create(vertx, authConfig);
 
@@ -1074,9 +1057,9 @@ public class WebExamples {
   public void example52(Vertx vertx) {
 
     JsonObject authConfig = new JsonObject().put("keyStore", new JsonObject()
-        .put("type", "jceks")
-        .put("path", "keystore.jceks")
-        .put("password", "secret"));
+      .put("type", "jceks")
+      .put("path", "keystore.jceks")
+      .put("password", "secret"));
 
     JWTAuth authProvider = JWTAuth.create(vertx, authConfig);
 
@@ -1123,8 +1106,8 @@ public class WebExamples {
 
     router.get("/my-pretty-notfound-handler").handler(ctx -> {
       ctx.response()
-              .setStatusCode(404)
-              .end("NOT FOUND fancy html here!!!");
+        .setStatusCode(404)
+        .end("NOT FOUND fancy html here!!!");
     });
 
     router.get().failureHandler(ctx -> {
@@ -1144,7 +1127,7 @@ public class WebExamples {
 
   public void example57(Router router) {
 
-    Route route = router.get("/localized").handler( rc -> {
+    Route route = router.get("/localized").handler(rc -> {
       // although it might seem strange by running a loop with a switch we
       // make sure that the locale order of preference is preserved when
       // replying in the users language.
@@ -1198,11 +1181,11 @@ public class WebExamples {
 
     // create an OAuth2 provider, clientID and clientSecret should be requested to Google
     OAuth2Auth authProvider = OAuth2Auth.create(vertx, OAuth2FlowType.AUTH_CODE, new OAuth2ClientOptions()
-        .setClientID("CLIENT_ID")
-        .setClientSecret("CLIENT_SECRET")
-        .setSite("https://accounts.google.com")
-        .setTokenPath("https://www.googleapis.com/oauth2/v3/token")
-        .setAuthorizationPath("/o/oauth2/auth"));
+      .setClientID("CLIENT_ID")
+      .setClientSecret("CLIENT_SECRET")
+      .setSite("https://accounts.google.com")
+      .setTokenPath("https://www.googleapis.com/oauth2/v3/token")
+      .setAuthorizationPath("/o/oauth2/auth"));
 
     // create a oauth2 handler on our domain: "http://localhost:8080"
     OAuth2AuthHandler oauth2 = OAuth2AuthHandler.create(authProvider, "http://localhost:8080");
@@ -1225,6 +1208,7 @@ public class WebExamples {
       ctx.response().putHeader("content-type", "text/html").end("Hello<br><a href=\"/protected/somepage\">Protected by Google</a>");
     });
   }
+
   public void example61(Vertx vertx, Router router, OAuth2Auth provider) {
     // create a oauth2 handler pinned to myserver.com: "https://myserver.com:8447/callback"
     OAuth2AuthHandler oauth2 = OAuth2AuthHandler.create(provider, "https://myserver.com:8447/callback");
@@ -1236,16 +1220,16 @@ public class WebExamples {
 
     // create an OAuth2 provider, clientID and clientSecret should be requested to Azure AD
     OAuth2Auth authProvider = OAuth2Auth.create(vertx, OAuth2FlowType.AUTH_CODE, new OAuth2ClientOptions()
-            .setClientID("APPLICATION_ID")
-            .setClientSecret("APPLICATION_KEYS_SECRET")
-            .setSite("https://login.windows.net/YOUR_CLIENT_GUID")
-            .setAuthorizationPath("/oauth2/token")
-            .setTokenPath("/oauth2/authorize"));
+      .setClientID("APPLICATION_ID")
+      .setClientSecret("APPLICATION_KEYS_SECRET")
+      .setSite("https://login.windows.net/YOUR_CLIENT_GUID")
+      .setAuthorizationPath("/oauth2/token")
+      .setTokenPath("/oauth2/authorize"));
 
     // create a oauth2 handler (Azure requires HTTPS) and your resource GUID
     OAuth2AuthHandler oauth2 = OAuth2AuthHandler
-            .create(authProvider, "https://localhost:8443")
-            .extraParams(new JsonObject().put("resource", "00000002-0000-0000-c000-000000000000"));
+      .create(authProvider, "https://localhost:8443")
+      .extraParams(new JsonObject().put("resource", "00000002-0000-0000-c000-000000000000"));
 
     // setup the callback handler for receiving the LinkedIn callback
     oauth2.setupCallback(router.get("/callback"));
@@ -1320,5 +1304,21 @@ public class WebExamples {
     });
   }
 
+  public void example63(Router router, AuthProvider provider) {
+
+    ChainAuthHandler chain = ChainAuthHandler.create();
+
+    // add http basic auth handler to the chain
+    chain.append(BasicAuthHandler.create(provider));
+    // add form redirect auth handler to the chain
+    chain.append(RedirectAuthHandler.create(provider));
+
+    // secure your route
+    router.route("/secure/resource").handler(chain);
+    // your app
+    router.route("/secure/resource").handler(ctx -> {
+      // do something...
+    });
+  }
 }
 
