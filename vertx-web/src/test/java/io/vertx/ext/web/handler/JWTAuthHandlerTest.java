@@ -88,5 +88,9 @@ public class JWTAuthHandlerTest extends WebTestBase {
       req.putHeader("Authorization", "Bearer x" + token);
     }, 401, "Unauthorized", null);
 
+    testRequest(HttpMethod.GET, "/protected/somepage", req -> {
+        req.putHeader("Authorization", "Basic " + token);
+      }, 401, "Unauthorized", null);
+
   }
 }

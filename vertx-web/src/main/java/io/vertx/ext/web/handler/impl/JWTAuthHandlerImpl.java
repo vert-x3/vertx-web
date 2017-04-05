@@ -19,8 +19,6 @@ package io.vertx.ext.web.handler.impl;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
-import io.vertx.core.http.HttpHeaders;
-import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.jwt.JWTAuth;
@@ -32,13 +30,13 @@ import java.util.List;
 /**
  * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
  */
-public class JWTAuthHandlerImpl extends AuthHandlerImpl implements JWTAuthHandler {
+public class JWTAuthHandlerImpl extends AuthorizationAuthHandler implements JWTAuthHandler {
 
   private final String skip;
   private final JsonObject options;
 
   public JWTAuthHandlerImpl(JWTAuth authProvider, String skip) {
-    super(authProvider);
+    super(authProvider, Type.BEARER);
     this.skip = skip;
     options = new JsonObject();
   }
@@ -63,43 +61,20 @@ public class JWTAuthHandlerImpl extends AuthHandlerImpl implements JWTAuthHandle
 
   @Override
   public void parseCredentials(RoutingContext context, Handler<AsyncResult<JsonObject>> handler) {
-    final HttpServerRequest request = context.request();
-
-    final String token;
 
     if (skip != null && context.normalisedPath().startsWith(skip)) {
       context.next();
       return;
     }
 
-    final String authorization = request.getHeader(HttpHeaders.AUTHORIZATION);
-
-    if (authorization == null) {
-      handler.handle(Future.failedFuture(UNAUTHORIZED));
-      return;
-    }
-
-    try {
-      int idx = authorization.indexOf(' ');
-
-      if (idx <= 0) {
-        handler.handle(Future.failedFuture(BAD_REQUEST));
+    parseAuthorization(context, false, parseAuthorization -> {
+      if (parseAuthorization.failed()) {
+        handler.handle(Future.failedFuture(parseAuthorization.cause()));
         return;
       }
 
-      if (!"Bearer".equalsIgnoreCase(authorization.substring(0, idx))) {
-        handler.handle(Future.failedFuture(BAD_REQUEST));
-        return;
-      }
-
-      token = authorization.substring(idx + 1);
-
-    } catch (RuntimeException e) {
-      handler.handle(Future.failedFuture(e));
-      return;
-    }
-
-    handler.handle(Future.succeededFuture(new JsonObject().put("jwt", token).put("options", options)));
+      handler.handle(Future.succeededFuture(new JsonObject().put("jwt", parseAuthorization.result()).put("options", options)));
+    });
   }
 
   @Override

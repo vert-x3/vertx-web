@@ -31,55 +31,44 @@ import java.util.Base64;
  * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public class BasicAuthHandlerImpl extends AuthHandlerImpl {
+public class BasicAuthHandlerImpl extends AuthorizationAuthHandler {
 
   public BasicAuthHandlerImpl(AuthProvider authProvider, String realm) {
-    super(authProvider, realm);
+    super(authProvider, realm, Type.BASIC);
   }
 
   @Override
   public void parseCredentials(RoutingContext context, Handler<AsyncResult<JsonObject>> handler) {
-    HttpServerRequest request = context.request();
-    String authorization = request.headers().get(HttpHeaders.AUTHORIZATION);
 
-    if (authorization == null) {
-      handler.handle(Future.failedFuture(UNAUTHORIZED));
-      return;
-    }
-
-    String suser;
-    String spass;
-
-    try {
-      String[] parts = authorization.split(" ");
-      if (parts.length != 2) {
-        handler.handle(Future.failedFuture(BAD_REQUEST));
+    parseAuthorization(context, false, parseAuthorization -> {
+      if (parseAuthorization.failed()) {
+        handler.handle(Future.failedFuture(parseAuthorization.cause()));
         return;
       }
 
-      if (!"Basic".equals(parts[0])) {
-        handler.handle(Future.failedFuture(BAD_REQUEST));
+      final String suser;
+      final String spass;
+
+      try {
+        // decode the payload
+        String decoded = new String(Base64.getDecoder().decode(parseAuthorization.result()));
+
+        int colonIdx = decoded.indexOf(":");
+        if (colonIdx != -1) {
+          suser = decoded.substring(0, colonIdx);
+          spass = decoded.substring(colonIdx + 1);
+        } else {
+          suser = decoded;
+          spass = null;
+        }
+      } catch (RuntimeException e) {
+        // IllegalArgumentException includes PatternSyntaxException
+        context.fail(e);
         return;
       }
 
-      // decode the payload
-      String decoded = new String(Base64.getDecoder().decode(parts[1]));
-
-      int colonIdx = decoded.indexOf(":");
-      if (colonIdx != -1) {
-        suser = decoded.substring(0, colonIdx);
-        spass = decoded.substring(colonIdx + 1);
-      } else {
-        suser = decoded;
-        spass = null;
-      }
-    } catch (RuntimeException e) {
-      // IllegalArgumentException includes PatternSyntaxException
-      context.fail(e);
-      return;
-    }
-
-    handler.handle(Future.succeededFuture(new JsonObject().put("username", suser).put("password", spass)));
+      handler.handle(Future.succeededFuture(new JsonObject().put("username", suser).put("password", spass)));
+    });
   }
 
   @Override

@@ -27,7 +27,6 @@ import io.vertx.ext.auth.oauth2.OAuth2Auth;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
-import io.vertx.ext.web.handler.AuthHandler;
 import io.vertx.ext.web.handler.OAuth2AuthHandler;
 
 import java.net.MalformedURLException;
@@ -36,7 +35,7 @@ import java.net.URL;
 /**
  * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
  */
-public class OAuth2AuthHandlerImpl extends AuthHandlerImpl implements OAuth2AuthHandler {
+public class OAuth2AuthHandlerImpl extends AuthorizationAuthHandler implements OAuth2AuthHandler {
 
   private final String host;
   private final String callbackPath;
@@ -46,7 +45,7 @@ public class OAuth2AuthHandlerImpl extends AuthHandlerImpl implements OAuth2Auth
   private JsonObject extraParams = new JsonObject();
 
   public OAuth2AuthHandlerImpl(OAuth2Auth authProvider, String callbackURL) {
-    super(authProvider);
+    super(authProvider, Type.BEARER);
     this.supportJWT = authProvider.hasJWTToken();
     try {
       final URL url = new URL(callbackURL);
@@ -60,45 +59,27 @@ public class OAuth2AuthHandlerImpl extends AuthHandlerImpl implements OAuth2Auth
   @Override
   public void parseCredentials(RoutingContext context, Handler<AsyncResult<JsonObject>> handler) {
     if (supportJWT) {
-      // if the provider supports JWT we can try to validate the Authorization header
-      final String authorization = context.request().getHeader(HttpHeaders.AUTHORIZATION);
-
-      if (authorization != null) {
-
-        final String token;
-
-        try {
-          int idx = authorization.indexOf(' ');
-
-          if (idx <= 0) {
-            handler.handle(Future.failedFuture(BAD_REQUEST));
-            return;
-          }
-
-          if (!"Bearer".equalsIgnoreCase(authorization.substring(0, idx))) {
-            handler.handle(Future.failedFuture(BAD_REQUEST));
-            return;
-          }
-
-          token = authorization.substring(idx + 1);
-
-        } catch (RuntimeException e) {
-          handler.handle(Future.failedFuture(e));
+      parseAuthorization(context, true, parseAuthorization -> {
+        if (parseAuthorization.failed()) {
+          handler.handle(Future.failedFuture(parseAuthorization.cause()));
           return;
         }
+        // if the provider supports JWT we can try to validate the Authorization header
+        final String token = parseAuthorization.result();
 
-        ((OAuth2Auth) authProvider).decodeToken(token, decodeToken -> {
-          if (decodeToken.failed()) {
-            handler.handle(Future.failedFuture(new HttpStatusException(401, decodeToken.cause().getMessage())));
-            return;
-          }
+        if (token != null) {
+          ((OAuth2Auth) authProvider).decodeToken(token, decodeToken -> {
+            if (decodeToken.failed()) {
+              handler.handle(Future.failedFuture(new HttpStatusException(401, decodeToken.cause().getMessage())));
+              return;
+            }
 
-          context.setUser(decodeToken.result());
-          // continue
-          handler.handle(Future.succeededFuture());
-        });
-        return;
-      }
+            context.setUser(decodeToken.result());
+            // continue
+            handler.handle(Future.succeededFuture());
+          });
+        }
+      });
     }
     // redirect request to the oauth2 server
     handler.handle(Future.failedFuture(new HttpStatusException(302, authURI(host, context.request().uri()))));

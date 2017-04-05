@@ -34,6 +34,7 @@ import java.util.Set;
  * Auth handler requires a {@link SessionHandler} to be on the routing chain before it.
  *
  * @author <a href="http://tfox.org">Tim Fox</a>
+ * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
 @VertxGen(concrete = false)
 public interface AuthHandler extends Handler<RoutingContext> {
