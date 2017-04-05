@@ -18,7 +18,10 @@ package io.vertx.ext.web.handler;
 
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
+import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
+import io.vertx.core.json.JsonObject;
+import io.vertx.ext.auth.User;
 import io.vertx.ext.web.RoutingContext;
 
 import java.util.Set;
@@ -52,4 +55,22 @@ public interface AuthHandler extends Handler<RoutingContext> {
    */
   @Fluent
   AuthHandler addAuthorities(Set<String> authorities);
+
+  /**
+   * Parses the credentials from the request into a JsonObject. The implementation should
+   * be able to extract the required info for the auth provider in the format the provider
+   * expects.
+   *
+   * @param context the routing context
+   * @param handler the handler to be called once the information is available.
+   */
+  void parseCredentials(RoutingContext context, Handler<AsyncResult<JsonObject>> handler);
+
+  /**
+   * Authorizes the given user against all added authorities.
+   *
+   * @param user a user.
+   * @param handler the handler for the result.
+   */
+  void authorize(User user, Handler<AsyncResult<Void>> handler);
 }

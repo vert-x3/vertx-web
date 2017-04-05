@@ -16,10 +16,12 @@
 
 package io.vertx.ext.web.handler.impl;
 
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
+import io.vertx.core.Handler;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.auth.User;
 import io.vertx.ext.auth.htdigest.HtdigestAuth;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
@@ -29,7 +31,6 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -50,6 +51,8 @@ public class DigestAuthHandlerImpl extends AuthHandlerImpl implements DigestAuth
   }
 
   private static final Pattern PARSER = Pattern.compile("(\\w+)=[\"]?([^\"]*)[\"]?$");
+  private static final Pattern SPLITTER = Pattern.compile(",(?=(?:[^\"]|\"[^\"]*\")*$)");
+
   private static final MessageDigest MD5;
 
   static {
@@ -68,127 +71,97 @@ public class DigestAuthHandlerImpl extends AuthHandlerImpl implements DigestAuth
   private long lastExpireRun;
 
   public DigestAuthHandlerImpl(HtdigestAuth authProvider, long nonceExpireTimeout) {
-    super(authProvider);
+    super(authProvider, authProvider.realm());
     this.nonceExpireTimeout = nonceExpireTimeout;
   }
 
   @Override
-  public void handle(RoutingContext context) {
+  public void parseCredentials(RoutingContext context, Handler<AsyncResult<JsonObject>> handler) {
     // clean up nonce
     long now = System.currentTimeMillis();
     if (now - lastExpireRun > nonceExpireTimeout / 2) {
-      for(Iterator<Map.Entry<String,Nonce>> it = nonces.entrySet().iterator(); it.hasNext();){
-        Map.Entry<String, Nonce> entry = it.next();
-        if (entry.getValue().createdAt + nonceExpireTimeout < now) {
-          it.remove();
-        }
-      }
-
+      nonces.entrySet().removeIf(entry -> entry.getValue().createdAt + nonceExpireTimeout < now);
       lastExpireRun = now;
     }
 
-    User user = context.user();
-    if (user != null) {
-      // Already authenticated in, just authorise
-      authorise(user, context);
-    } else {
-      HttpServerRequest request = context.request();
-      String authorization = request.headers().get(HttpHeaders.AUTHORIZATION);
+    HttpServerRequest request = context.request();
+    String authorization = request.getHeader(HttpHeaders.AUTHORIZATION);
+    JsonObject authInfo = new JsonObject();
 
-      if (authorization == null) {
-        handle401(context);
-      } else {
-        try {
-          String sscheme;
-          int idx = authorization.indexOf(' ');
+    if (authorization == null) {
+      handler.handle(Future.failedFuture(UNAUTHORIZED));
+      return;
+    }
 
-          if (idx <= 0) {
-            context.fail(400);
-            return;
-          }
+    try {
+      int idx = authorization.indexOf(' ');
 
-          sscheme = authorization.substring(0, idx);
+      if (idx <= 0) {
+        handler.handle(Future.failedFuture(BAD_REQUEST));
+        return;
+      }
 
-          if (!"Digest".equalsIgnoreCase(sscheme)) {
-            context.fail(400);
-            return;
-          }
+      if (!"Digest".equalsIgnoreCase(authorization.substring(0, idx))) {
+        handler.handle(Future.failedFuture(BAD_REQUEST));
+        return;
+      }
 
-          JsonObject authInfo = new JsonObject();
-          // Split the parameters by comma.
-          String[] tokens = authorization.substring(idx).split(",(?=(?:[^\"]|\"[^\"]*\")*$)");
-          // Parse parameters.
-          int i = 0;
-          int len = tokens.length;
+      // Split the parameters by comma.
+      String[] tokens = SPLITTER.split(authorization.substring(idx + 1));
+      // Parse parameters.
+      int i = 0;
+      int len = tokens.length;
 
-          while (i < len) {
-            // Strip quotes and whitespace.
-            Matcher m = PARSER.matcher(tokens[i]);
-            if (m.find()) {
-              authInfo.put(m.group(1), m.group(2));
-            }
-
-            ++i;
-          }
-
-          final String nonce = authInfo.getString("nonce");
-
-          // check for expiration
-          if (!nonces.containsKey(nonce)) {
-            handle401(context);
-            return;
-          }
-
-          // check for nonce counter (prevent replay attack
-          if (authInfo.containsKey("qop")) {
-            Integer nc = Integer.parseInt(authInfo.getString("nc"));
-            final Nonce n = nonces.get(nonce);
-            if (nc <= n.count) {
-              handle401(context);
-              return;
-            }
-            n.count = nc;
-          }
-
-          // validate the opaque value
-          final Session session = context.session();
-          if (session != null) {
-            String opaque = (String) session.data().get("opaque");
-            if (opaque != null && !opaque.equals(authInfo.getString("opaque"))) {
-              handle401(context);
-              return;
-            }
-          }
-
-          // we now need to pass some extra info
-          authInfo.put("method", context.request().method().name());
-
-          authProvider.authenticate(authInfo, res -> {
-            if (res.succeeded()) {
-              User authenticated = res.result();
-              context.setUser(authenticated);
-              if (session != null) {
-                // the user has upgraded from unauthenticated to authenticated
-                // session should be upgraded as recommended by owasp
-                session.regenerateId();
-              }
-              authorise(authenticated, context);
-            } else {
-              handle401(context);
-            }
-          });
-
-        } catch (ArrayIndexOutOfBoundsException e) {
-          handle401(context);
-        } catch (IllegalArgumentException | NullPointerException e) {
-          // IllegalArgumentException includes PatternSyntaxException and NumberFormatException
-          context.fail(e);
+      while (i < len) {
+        // Strip quotes and whitespace.
+        Matcher m = PARSER.matcher(tokens[i]);
+        if (m.find()) {
+          authInfo.put(m.group(1), m.group(2));
         }
+
+        ++i;
+      }
+
+      final String nonce = authInfo.getString("nonce");
+
+      // check for expiration
+      if (!nonces.containsKey(nonce)) {
+        handler.handle(Future.failedFuture(UNAUTHORIZED));
+        return;
+      }
+
+      // check for nonce counter (prevent replay attack
+      if (authInfo.containsKey("qop")) {
+        Integer nc = Integer.parseInt(authInfo.getString("nc"));
+        final Nonce n = nonces.get(nonce);
+        if (nc <= n.count) {
+          handler.handle(Future.failedFuture(UNAUTHORIZED));
+          return;
+        }
+        n.count = nc;
+      }
+    } catch (RuntimeException e) {
+      handler.handle(Future.failedFuture(e));
+    }
+
+    // validate the opaque value
+    final Session session = context.session();
+    if (session != null) {
+      String opaque = (String) session.data().get("opaque");
+      if (opaque != null && !opaque.equals(authInfo.getString("opaque"))) {
+        handler.handle(Future.failedFuture(UNAUTHORIZED));
+        return;
       }
     }
+
+    // we now need to pass some extra info
+    authInfo.put("method", context.request().method().name());
+
+    handler.handle(Future.succeededFuture(authInfo));
   }
 
-  private void handle401(RoutingContext context) {
+  @Override
+  protected String authenticateHeader(RoutingContext context) {
     final byte[] bytes = new byte[32];
     random.nextBytes(bytes);
     // generate nonce
@@ -209,8 +182,7 @@ public class DigestAuthHandlerImpl extends AuthHandlerImpl implements DigestAuth
       opaque = md5(bytes);
     }
 
-    context.response().putHeader("WWW-Authenticate", "Digest realm=\"" + ((HtdigestAuth) authProvider).realm() + "\", qop=\"auth\", nonce=\"" + nonce + "\", opaque=\"" + opaque + "\"");
-    context.fail(401);
+    return "Digest realm=\"" + realm + "\", qop=\"auth\", nonce=\"" + nonce + "\", opaque=\"" + opaque + "\"";
   }
 
   private final static char[] hexArray = "0123456789abcdef".toCharArray();

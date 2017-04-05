@@ -16,30 +16,23 @@
 
 package io.vertx.ext.web.handler.impl;
 
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
+import io.vertx.core.Handler;
 import io.vertx.core.http.HttpHeaders;
-import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.auth.jwt.JWTAuth;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.auth.User;
-import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.JWTAuthHandler;
 
 import java.util.List;
-import java.util.regex.Pattern;
 
 /**
  * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
  */
 public class JWTAuthHandlerImpl extends AuthHandlerImpl implements JWTAuthHandler {
-
-  private static final Logger log = LoggerFactory.getLogger(JWTAuthHandlerImpl.class);
-
-  private static final Pattern BEARER = Pattern.compile("^Bearer$", Pattern.CASE_INSENSITIVE);
 
   private final String skip;
   private final JsonObject options;
@@ -69,71 +62,48 @@ public class JWTAuthHandlerImpl extends AuthHandlerImpl implements JWTAuthHandle
   }
 
   @Override
-  public void handle(RoutingContext context) {
-    User user = context.user();
-    if (user != null) {
-      // Already authenticated in, just authorise
-      authorise(user, context);
-    } else {
-      final HttpServerRequest request = context.request();
+  public void parseCredentials(RoutingContext context, Handler<AsyncResult<JsonObject>> handler) {
+    final HttpServerRequest request = context.request();
 
-      String token = null;
+    final String token;
 
-      if (request.method() == HttpMethod.OPTIONS && request.headers().get(HttpHeaders.ACCESS_CONTROL_REQUEST_HEADERS) != null) {
-        for (String ctrlReq : request.headers().get(HttpHeaders.ACCESS_CONTROL_REQUEST_HEADERS).split(",")) {
-          if (ctrlReq.equalsIgnoreCase("authorization")) {
-            // this request has auth in access control
-            context.next();
-            return;
-          }
-        }
-      }
-
-      if (skip != null && context.normalisedPath().startsWith(skip)) {
-        context.next();
-        return;
-      }
-
-      final String authorization = request.headers().get(HttpHeaders.AUTHORIZATION);
-
-      if (authorization != null) {
-        String[] parts = authorization.split(" ");
-        if (parts.length == 2) {
-          final String scheme = parts[0],
-              credentials = parts[1];
-
-          if (BEARER.matcher(scheme).matches()) {
-            token = credentials;
-          }
-        } else {
-          log.warn("Format is Authorization: Bearer [token]");
-          context.fail(401);
-          return;
-        }
-      } else {
-        log.warn("No Authorization header was found");
-        context.fail(401);
-        return;
-      }
-
-      JsonObject authInfo = new JsonObject().put("jwt", token).put("options", options);
-
-      authProvider.authenticate(authInfo, res -> {
-        if (res.succeeded()) {
-          final User user2 = res.result();
-          context.setUser(user2);
-          Session session = context.session();
-          if (session != null) {
-            // the user has upgraded from unauthenticated to authenticated
-            // session should be upgraded as recommended by owasp
-            session.regenerateId();
-          }
-          authorise(user2, context);
-        } else {
-          log.warn("JWT decode failure", res.cause());
-          context.fail(401);
-        }
-      });
+    if (skip != null && context.normalisedPath().startsWith(skip)) {
+      context.next();
+      return;
     }
+
+    final String authorization = request.getHeader(HttpHeaders.AUTHORIZATION);
+
+    if (authorization == null) {
+      handler.handle(Future.failedFuture(UNAUTHORIZED));
+      return;
+    }
+
+    try {
+      int idx = authorization.indexOf(' ');
+
+      if (idx <= 0) {
+        handler.handle(Future.failedFuture(BAD_REQUEST));
+        return;
+      }
+
+      if (!"Bearer".equalsIgnoreCase(authorization.substring(0, idx))) {
+        handler.handle(Future.failedFuture(BAD_REQUEST));
+        return;
+      }
+
+      token = authorization.substring(idx + 1);
+
+    } catch (RuntimeException e) {
+      handler.handle(Future.failedFuture(e));
+      return;
+    }
+
+    handler.handle(Future.succeededFuture(new JsonObject().put("jwt", token).put("options", options)));
+  }
+
+  @Override
+  protected String authenticateHeader(RoutingContext context) {
+    return "Bearer";
   }
 }

@@ -16,28 +16,27 @@
 
 package io.vertx.ext.web.handler.impl;
 
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
+import io.vertx.core.Handler;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
-import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.auth.User;
 import io.vertx.ext.auth.oauth2.OAuth2Auth;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
+import io.vertx.ext.web.handler.AuthHandler;
 import io.vertx.ext.web.handler.OAuth2AuthHandler;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.regex.Pattern;
 
 /**
  * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
  */
 public class OAuth2AuthHandlerImpl extends AuthHandlerImpl implements OAuth2AuthHandler {
-
-  private static final Pattern BEARER = Pattern.compile("^Bearer$", Pattern.CASE_INSENSITIVE);
 
   private final String host;
   private final String callbackPath;
@@ -59,70 +58,50 @@ public class OAuth2AuthHandlerImpl extends AuthHandlerImpl implements OAuth2Auth
   }
 
   @Override
-  public void handle(RoutingContext ctx) {
-    User user = ctx.user();
-    if (user != null) {
-      // Already authenticated.
+  public void parseCredentials(RoutingContext context, Handler<AsyncResult<JsonObject>> handler) {
+    if (supportJWT) {
+      // if the provider supports JWT we can try to validate the Authorization header
+      final String authorization = context.request().getHeader(HttpHeaders.AUTHORIZATION);
 
-      // if this provider support JWT authorize
-      if (supportJWT) {
-        authorise(user, ctx);
-      } else {
-        // oauth2 used only for authentication (with or without scopes)
-        ctx.next();
-      }
+      if (authorization != null) {
 
-    } else {
+        final String token;
 
-      if (supportJWT) {
-        // if the provider supports JWT we can try to validate the Authorization header
-        final HttpServerRequest request = ctx.request();
+        try {
+          int idx = authorization.indexOf(' ');
 
-        final String authorization = request.headers().get(HttpHeaders.AUTHORIZATION);
-
-        if (authorization != null) {
-
-          String[] parts = authorization.split(" ");
-          if (parts.length == 2) {
-            final String scheme = parts[0],
-              credentials = parts[1];
-
-            if (BEARER.matcher(scheme).matches()) {
-
-              ((OAuth2Auth) authProvider).decodeToken(credentials, decodeToken -> {
-                if (decodeToken.failed()) {
-                  ctx.response().putHeader("WWW-Authenticate", "Bearer error=\"invalid_token\" error_message=\"" + decodeToken.cause().getMessage() + "\"");
-                  ctx.fail(401);
-                  return;
-                }
-
-                ctx.setUser(decodeToken.result());
-                Session session = ctx.session();
-                if (session != null) {
-                  // the user has upgraded from unauthenticated to authenticated
-                  // session should be upgraded as recommended by owasp
-                  session.regenerateId();
-                }
-                // continue
-                ctx.next();
-              });
-              return;
-
-            }
-          } else {
-            ctx.response().putHeader("WWW-Authenticate", "Bearer error=\"invalid_token\"");
-            ctx.fail(401);
+          if (idx <= 0) {
+            handler.handle(Future.failedFuture(BAD_REQUEST));
             return;
           }
-        }
-      }
 
-      // redirect request to the oauth2 server
-      ctx.response()
-          .putHeader("Location", authURI(host, ctx.normalisedPath()))
-          .setStatusCode(302)
-          .end();
+          if (!"Bearer".equalsIgnoreCase(authorization.substring(0, idx))) {
+            handler.handle(Future.failedFuture(BAD_REQUEST));
+            return;
+          }
+
+          token = authorization.substring(idx + 1);
+
+        } catch (RuntimeException e) {
+          handler.handle(Future.failedFuture(e));
+          return;
+        }
+
+        ((OAuth2Auth) authProvider).decodeToken(token, decodeToken -> {
+          if (decodeToken.failed()) {
+            handler.handle(Future.failedFuture(new HttpStatusException(401, decodeToken.cause().getMessage())));
+            return;
+          }
+
+          context.setUser(decodeToken.result());
+          // continue
+          handler.handle(Future.succeededFuture());
+        });
+        return;
+      }
     }
+    // redirect request to the oauth2 server
+    handler.handle(Future.failedFuture(new HttpStatusException(302, authURI(host, context.request().uri()))));
   }
 
   private String authURI(String host, String redirectURL) {
@@ -190,11 +169,11 @@ public class OAuth2AuthHandlerImpl extends AuthHandlerImpl implements OAuth2Auth
             // we should redirect the UA so this link becomes invalid
             ctx.response()
               // disable all caching
-              .putHeader("Cache-Control", "no-cache, no-store, must-revalidate")
+              .putHeader(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate")
               .putHeader("Pragma", "no-cache")
-              .putHeader("Expires", "0")
+              .putHeader(HttpHeaders.EXPIRES, "0")
               // redirect
-              .putHeader("Location", state)
+              .putHeader(HttpHeaders.LOCATION, state)
               .setStatusCode(302)
               .end("Redirecting to " + state + ".");
           } else {
