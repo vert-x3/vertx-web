@@ -23,6 +23,8 @@ public interface CSRFHandler extends Handler<RoutingContext> {
 
   String DEFAULT_HEADER_NAME = "X-XSRF-TOKEN";
 
+  String DEFAULT_RESPONSE_BODY = null;
+
   /**
    * Instantiate a new CSRFHandlerImpl with a secret
    * <p>
@@ -64,6 +66,15 @@ public interface CSRFHandler extends Handler<RoutingContext> {
    */
   @Fluent
   CSRFHandler setNagHttps(boolean nag);
+
+  /**
+   * Set the body returned by the handler when the XSRF token is missing or invalid.
+   *
+   * @param responseBody the body of the response. If null, no response body will be returned.
+   * @return fluent
+   */
+  @Fluent
+  CSRFHandler setResponseBody(String responseBody);
 
 
   /**
