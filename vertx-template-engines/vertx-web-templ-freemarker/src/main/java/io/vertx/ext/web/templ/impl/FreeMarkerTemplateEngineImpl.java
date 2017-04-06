@@ -42,7 +42,7 @@ public class FreeMarkerTemplateEngineImpl extends CachingTemplateEngine<Template
     super(DEFAULT_TEMPLATE_EXTENSION, DEFAULT_MAX_CACHE_SIZE);
 
     loader = new FreeMarkerTemplateLoader();
-    config = new Configuration(Configuration.VERSION_2_3_22);
+    config = new Configuration(Configuration.VERSION_2_3_23);
     config.setObjectWrapper(new VertxWebObjectWrapper(config.getIncompatibleImprovements()));
     config.setTemplateLoader(loader);
   }
