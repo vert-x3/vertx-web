@@ -46,6 +46,7 @@ public class JadeTemplateEngineImpl extends CachingTemplateEngine<JadeTemplate> 
   public JadeTemplateEngineImpl() {
     super(DEFAULT_TEMPLATE_EXTENSION, DEFAULT_MAX_CACHE_SIZE);
     config.setTemplateLoader(loader);
+    config.setCaching(false);
   }
 
   @Override
