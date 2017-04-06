@@ -23,11 +23,19 @@ import io.vertx.ext.web.handler.TemplateHandler;
 import io.vertx.ext.web.templ.extension.TestExtension;
 import io.vertx.ext.web.templ.impl.PebbleVertxLoader;
 import org.junit.Test;
+import io.vertx.ext.web.templ.impl.CachingTemplateEngine;
+
+import java.io.File;
+import java.io.PrintWriter;
 
 /**
  * @author Dan Kristensen
  */
 public class PebbleTemplateTest extends WebTestBase {
+
+  static {
+    System.setProperty("vertx.disableFileCaching", "true");
+  }
 
 	@Test
 	public void testTemplateHandlerOnClasspath() throws Exception {
@@ -41,6 +49,12 @@ public class PebbleTemplateTest extends WebTestBase {
 		final TemplateEngine engine = PebbleTemplateEngine.create(vertx);
 		testTemplateHandler(engine, "src/test/filesystemtemplates", "test-pebble-template3.peb",
 		        "Hello badger and foxRequest path is /test-pebble-template3.peb");
+	}
+
+	@Test
+	public void testTemplateHandlerOnClasspathDisableCaching() throws Exception {
+		System.setProperty(CachingTemplateEngine.DISABLE_TEMPL_CACHING_PROP_NAME, "true");
+		testTemplateHandlerOnClasspath();
 	}
 
 	@Test
@@ -335,5 +349,57 @@ public class PebbleTemplateTest extends WebTestBase {
   public void customBuilderShouldRender() throws Exception {
     final TemplateEngine engine = PebbleTemplateEngine.create(new PebbleEngine.Builder().extension(new TestExtension()).loader(new PebbleVertxLoader(vertx)).build());
     testTemplateHandler(engine, "src/test/filesystemtemplates", "test-pebble-template5.peb","Hello badger and foxString is TESTRequest path is /test-pebble-template5.peb");
+  }
+
+  @Test
+  public void testCachingEnabled() throws Exception {
+    System.setProperty(CachingTemplateEngine.DISABLE_TEMPL_CACHING_PROP_NAME, "false");
+    TemplateEngine engine = PebbleTemplateEngine.create(vertx);
+
+    PrintWriter out;
+    File temp = File.createTempFile("template", ".peb", new File("target/classes"));
+    temp.deleteOnExit();
+
+    out = new PrintWriter(temp);
+    out.print("before");
+    out.flush();
+    out.close();
+
+    testTemplateHandler(engine, ".", temp.getName(), "before");
+
+    // cache is enabled so if we change the content that should not affect the result
+
+    out = new PrintWriter(temp);
+    out.print("after");
+    out.flush();
+    out.close();
+
+    testTemplateHandler(engine, ".", temp.getName(), "before");
+  }
+
+  @Test
+  public void testCachingDisabled() throws Exception {
+    System.setProperty(CachingTemplateEngine.DISABLE_TEMPL_CACHING_PROP_NAME, "true");
+    TemplateEngine engine = PebbleTemplateEngine.create(vertx);
+
+    PrintWriter out;
+    File temp = File.createTempFile("template", ".peb", new File("target/classes"));
+    temp.deleteOnExit();
+
+    out = new PrintWriter(temp);
+    out.print("before");
+    out.flush();
+    out.close();
+
+    testTemplateHandler(engine, ".", temp.getName(), "before");
+
+    // cache is disabled so if we change the content that should affect the result
+
+    out = new PrintWriter(temp);
+    out.print("after");
+    out.flush();
+    out.close();
+
+    testTemplateHandler(engine, ".", temp.getName(), "after");
   }
 }

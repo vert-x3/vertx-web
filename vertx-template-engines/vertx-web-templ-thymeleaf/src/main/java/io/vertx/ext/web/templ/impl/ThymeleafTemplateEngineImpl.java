@@ -40,129 +40,141 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static io.vertx.ext.web.templ.impl.CachingTemplateEngine.DISABLE_TEMPL_CACHING_PROP_NAME;
+
 /**
  * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
  * @author <a href="http://tfox.org">Tim Fox</a>
  * @author <a href="http://matty.io">Matty Southall</a>
  */
 public class ThymeleafTemplateEngineImpl implements ThymeleafTemplateEngine {
-    private final TemplateEngine templateEngine = new TemplateEngine();
-    private ResourceTemplateResolver templateResolver;
 
-    public ThymeleafTemplateEngineImpl() {
-        ResourceTemplateResolver templateResolver = new ResourceTemplateResolver();
-        templateResolver.setTemplateMode(ThymeleafTemplateEngine.DEFAULT_TEMPLATE_MODE);
+  // should not be static, so at at creation time the value is evaluated
+  private final boolean enableCache = !Boolean.getBoolean(DISABLE_TEMPL_CACHING_PROP_NAME);
 
-        this.templateResolver = templateResolver;
-        this.templateEngine.setTemplateResolver(templateResolver);
-    }
+  private final TemplateEngine templateEngine = new TemplateEngine();
+  private ResourceTemplateResolver templateResolver;
 
-    @Override
-    public ThymeleafTemplateEngine setMode(TemplateMode mode) {
-        templateResolver.setTemplateMode(mode);
-        return this;
-    }
+  public ThymeleafTemplateEngineImpl() {
+    ResourceTemplateResolver templateResolver = new ResourceTemplateResolver();
+    templateResolver.setCacheable(isCachingEnabled());
+    templateResolver.setTemplateMode(ThymeleafTemplateEngine.DEFAULT_TEMPLATE_MODE);
 
-    @Override
-    public TemplateEngine getThymeleafTemplateEngine() {
-        return this.templateEngine;
-    }
+    this.templateResolver = templateResolver;
+    this.templateEngine.setTemplateResolver(templateResolver);
+  }
 
-    @Override
-    public void render(RoutingContext context, String templateFileName, Handler<AsyncResult<Buffer>> handler) {
-        Buffer buffer = Buffer.buffer();
+  @Override
+  public boolean isCachingEnabled() {
+    return enableCache;
+  }
 
-        try {
-            Map<String, Object> data = new HashMap<>();
-            data.put("context", context);
-            data.putAll(context.data());
+  @Override
+  public ThymeleafTemplateEngine setMode(TemplateMode mode) {
+    templateResolver.setTemplateMode(mode);
+    return this;
+  }
 
-            synchronized (this) {
-                templateResolver.setVertx(context.vertx());
+  @Override
+  public TemplateEngine getThymeleafTemplateEngine() {
+    return this.templateEngine;
+  }
 
-                final List<LanguageHeader> acceptableLocales = context.acceptableLanguages();
+  @Override
+  public void render(RoutingContext context, String templateFileName, Handler<AsyncResult<Buffer>> handler) {
+    Buffer buffer = Buffer.buffer();
 
-              LanguageHeader locale = null;
+    try {
+      Map<String, Object> data = new HashMap<>();
+      data.put("context", context);
+      data.putAll(context.data());
 
-                if (acceptableLocales.size() > 0) {
-                    // this is the users preferred locale
-                    locale = acceptableLocales.get(0);
-                }
+      synchronized (this) {
+        templateResolver.setVertx(context.vertx());
 
-                templateEngine.process(templateFileName, new WebIContext(data, locale), new Writer() {
-                    @Override
-                    public void write(char[] cbuf, int off, int len) throws IOException {
-                        buffer.appendString(new String(cbuf, off, len));
-                    }
+        final List<LanguageHeader> acceptableLocales = context.acceptableLanguages();
 
-                    @Override
-                    public void flush() throws IOException {
-                    }
+        LanguageHeader locale = null;
 
-                    @Override
-                    public void close() throws IOException {
-                    }
-                });
-            }
-
-            handler.handle(Future.succeededFuture(buffer));
-        } catch (Exception ex) {
-            handler.handle(Future.failedFuture(ex));
+        if (acceptableLocales.size() > 0) {
+          // this is the users preferred locale
+          locale = acceptableLocales.get(0);
         }
-    }
 
-    private static class WebIContext implements IContext {
-        private final Map<String, Object> data;
-        private final java.util.Locale locale;
-
-        private WebIContext(Map<String, Object> data, LanguageHeader locale) {
-          this.data = data;
-          if (locale == null) {
-            this.locale = java.util.Locale.getDefault();
-          } else {
-            String country = locale.subtag();
-            String variant = locale.subtag(2);
-            this.locale = new java.util.Locale(locale.tag(), country == null ? "" : country, variant == null ? "" : variant);
+        templateEngine.process(templateFileName, new WebIContext(data, locale), new Writer() {
+          @Override
+          public void write(char[] cbuf, int off, int len) throws IOException {
+            buffer.appendString(new String(cbuf, off, len));
           }
-        }
 
-        @Override
-        public java.util.Locale getLocale() {
-            return locale;
-        }
+          @Override
+          public void flush() throws IOException {
+          }
 
-        @Override
-        public boolean containsVariable(String name) {
-            return data.containsKey(name);
-        }
+          @Override
+          public void close() throws IOException {
+          }
+        });
+      }
 
-        @Override
-        public Set<String> getVariableNames() {
-            return data.keySet();
-        }
+      handler.handle(Future.succeededFuture(buffer));
+    } catch (Exception ex) {
+      handler.handle(Future.failedFuture(ex));
+    }
+  }
 
-        @Override
-        public Object getVariable(String name) {
-            return data.get(name);
-        }
+  private static class WebIContext implements IContext {
+    private final Map<String, Object> data;
+    private final java.util.Locale locale;
+
+    private WebIContext(Map<String, Object> data, LanguageHeader locale) {
+      this.data = data;
+      if (locale == null) {
+        this.locale = java.util.Locale.getDefault();
+      } else {
+        String country = locale.subtag();
+        String variant = locale.subtag(2);
+        this.locale = new java.util.Locale(locale.tag(), country == null ? "" : country, variant == null ? "" : variant);
+      }
     }
 
-    private static class ResourceTemplateResolver extends StringTemplateResolver {
-        private Vertx vertx;
-
-        public ResourceTemplateResolver() {
-            super();
-            setName("vertx-web/Thymeleaf3");
-        }
-
-        void setVertx(Vertx vertx) {
-            this.vertx = vertx;
-        }
-
-        @Override
-        protected ITemplateResource computeTemplateResource(IEngineConfiguration configuration, String ownerTemplate, String template, Map<String, Object> templateResolutionAttributes) {
-            String str = Utils.readFileToString(vertx, template);
-            return new StringTemplateResource(str);
-        }
+    @Override
+    public java.util.Locale getLocale() {
+      return locale;
     }
+
+    @Override
+    public boolean containsVariable(String name) {
+      return data.containsKey(name);
+    }
+
+    @Override
+    public Set<String> getVariableNames() {
+      return data.keySet();
+    }
+
+    @Override
+    public Object getVariable(String name) {
+      return data.get(name);
+    }
+  }
+
+  private static class ResourceTemplateResolver extends StringTemplateResolver {
+    private Vertx vertx;
+
+    public ResourceTemplateResolver() {
+      super();
+      setName("vertx-web/Thymeleaf3");
+    }
+
+    void setVertx(Vertx vertx) {
+      this.vertx = vertx;
+    }
+
+    @Override
+    protected ITemplateResource computeTemplateResource(IEngineConfiguration configuration, String ownerTemplate, String template, Map<String, Object> templateResolutionAttributes) {
+      String str = Utils.readFileToString(vertx, template);
+      return new StringTemplateResource(str);
+    }
+  }
 }

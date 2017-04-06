@@ -67,12 +67,14 @@ public class HandlebarsTemplateEngineImpl extends CachingTemplateEngine<Template
   @Override
   public void render(RoutingContext context, String templateFileName, Handler<AsyncResult<Buffer>> handler) {
     try {
-      Template template = cache.get(templateFileName);
+      Template template = isCachingEnabled() ? cache.get(templateFileName) : null;
       if (template == null) {
         synchronized (this) {
           loader.setVertx(context.vertx());
           template = handlebars.compile(templateFileName);
-          cache.put(templateFileName, template);
+          if (isCachingEnabled()) {
+            cache.put(templateFileName, template);
+          }
         }
       }
       Context engineContext = Context.newBuilder(context.data()).resolver(getResolvers()).build();

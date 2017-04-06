@@ -16,6 +16,7 @@
 
 package io.vertx.ext.web.templ.impl;
 
+import freemarker.cache.NullCacheStorage;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import io.vertx.core.AsyncResult;
@@ -45,6 +46,7 @@ public class FreeMarkerTemplateEngineImpl extends CachingTemplateEngine<Template
     config = new Configuration(Configuration.VERSION_2_3_23);
     config.setObjectWrapper(new VertxWebObjectWrapper(config.getIncompatibleImprovements()));
     config.setTemplateLoader(loader);
+    config.setCacheStorage(new NullCacheStorage());
   }
 
   @Override
@@ -62,7 +64,7 @@ public class FreeMarkerTemplateEngineImpl extends CachingTemplateEngine<Template
   @Override
   public void render(RoutingContext context, String templateFileName, Handler<AsyncResult<Buffer>> handler) {
     try {
-      Template template = cache.get(templateFileName);
+      Template template = isCachingEnabled() ? cache.get(templateFileName) : null;
       if (template == null) {
         // real compile
         synchronized (this) {
@@ -70,7 +72,9 @@ public class FreeMarkerTemplateEngineImpl extends CachingTemplateEngine<Template
           // Compile
           template = config.getTemplate(adjustLocation(templateFileName));
         }
-        cache.put(templateFileName, template);
+        if (isCachingEnabled()) {
+          cache.put(templateFileName, template);
+        }
       }
 
       Map<String, RoutingContext> variables = new HashMap<>(1);

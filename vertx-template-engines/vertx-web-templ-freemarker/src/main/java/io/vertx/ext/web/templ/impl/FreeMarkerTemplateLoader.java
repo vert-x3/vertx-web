@@ -17,7 +17,6 @@ package io.vertx.ext.web.templ.impl;
 
 import freemarker.cache.TemplateLoader;
 import io.vertx.core.Vertx;
-import io.vertx.core.buffer.Buffer;
 import io.vertx.ext.web.impl.Utils;
 
 import java.io.IOException;

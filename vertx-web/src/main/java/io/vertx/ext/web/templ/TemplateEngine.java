@@ -39,4 +39,14 @@ public interface TemplateEngine {
    * @param handler  the handler that will be called with a result containing the buffer or a failure.
    */
   void render(RoutingContext context, String templateFileName, Handler<AsyncResult<Buffer>> handler);
+
+  /**
+   * Returns true if the template engine caches template files. If false, then template files are freshly loaded each
+   * time they are used.
+   *
+   * @return True if template files are cached; otherwise, false.
+   */
+  default boolean isCachingEnabled() {
+    return false;
+  }
 }
