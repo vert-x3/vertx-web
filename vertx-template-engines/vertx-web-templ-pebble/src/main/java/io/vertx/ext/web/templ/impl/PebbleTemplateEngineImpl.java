@@ -35,10 +35,6 @@ import java.util.Map;
  */
 public class PebbleTemplateEngineImpl extends CachingTemplateEngine<PebbleTemplate> implements PebbleTemplateEngine {
 
-  /* PebbleEngine performs internal caching. Use this instead of calling isCachingEnabled() in constructor.
-   * Todo: Remove CachingTemplateEngine as parent class as pebble's PebbleEngine performs internal caching. */
-  private static final boolean ENABLE_CACHING = !Boolean.getBoolean(CachingTemplateEngine.DISABLE_TEMPL_CACHING_PROP_NAME);
-
   private final PebbleEngine pebbleEngine;
 
   public PebbleTemplateEngineImpl(Vertx vertx) {

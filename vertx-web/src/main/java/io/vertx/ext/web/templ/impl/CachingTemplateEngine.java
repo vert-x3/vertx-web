@@ -26,7 +26,7 @@ import java.util.Objects;
  */
 public abstract class CachingTemplateEngine<T> implements TemplateEngine {
 
-  public static final String DISABLE_TEMPL_CACHING_PROP_NAME = "vertx.web.disableTemplCaching";
+  public static final String DISABLE_TEMPL_CACHING_PROP_NAME = "io.vertx.ext.web.TemplateEngine.caching";
 
   private static final boolean ENABLE_CACHING = !Boolean.getBoolean(DISABLE_TEMPL_CACHING_PROP_NAME);
 
