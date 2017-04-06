@@ -39,12 +39,16 @@ import java.util.Map;
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 public class JadeTemplateEngineImpl extends CachingTemplateEngine<JadeTemplate> implements JadeTemplateEngine {
+  /* JadeConfiguration performs internal caching. Use this instead of calling isCachingEnabled() in constructor.
+   * Todo: Remove CachingTemplateEngine as parent class as jade4j's JadeConfiguration performs internal caching. */
+  private static final boolean ENABLE_CACHING = !Boolean.getBoolean(CachingTemplateEngine.DISABLE_TEMPL_CACHING_PROP_NAME);
 
   private final JadeConfiguration config = new JadeConfiguration();
   private final JadeTemplateLoader loader = new JadeTemplateLoader();
 
   public JadeTemplateEngineImpl() {
     super(DEFAULT_TEMPLATE_EXTENSION, DEFAULT_MAX_CACHE_SIZE);
+    config.setCaching(ENABLE_CACHING);
     config.setTemplateLoader(loader);
     config.setCaching(false);
   }
@@ -64,7 +68,7 @@ public class JadeTemplateEngineImpl extends CachingTemplateEngine<JadeTemplate> 
   @Override
   public void render(RoutingContext context, String templateFileName, Handler<AsyncResult<Buffer>> handler) {
     try {
-      JadeTemplate template = cache.get(templateFileName);
+      JadeTemplate template = isCachingEnabled() ? cache.get(templateFileName) : null;
 
       if (template == null) {
         synchronized (this) {
@@ -72,7 +76,9 @@ public class JadeTemplateEngineImpl extends CachingTemplateEngine<JadeTemplate> 
           // Compile
           template = config.getTemplate(templateFileName);
         }
-        cache.put(templateFileName, template);
+        if (isCachingEnabled()) {
+          cache.put(templateFileName, template);
+        }
       }
       Map<String, Object> variables = new HashMap<>(1);
       variables.put("context", context);

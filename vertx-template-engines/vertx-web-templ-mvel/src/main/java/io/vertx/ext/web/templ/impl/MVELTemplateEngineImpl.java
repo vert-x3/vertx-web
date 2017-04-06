@@ -57,7 +57,7 @@ public class MVELTemplateEngineImpl extends CachingTemplateEngine<CompiledTempla
   @Override
   public void render(RoutingContext context, String templateFileName, Handler<AsyncResult<Buffer>> handler) {
     try {
-      CompiledTemplate template = cache.get(templateFileName);
+      CompiledTemplate template = isCachingEnabled() ? cache.get(templateFileName) : null;
       if (template == null) {
         // real compile
         String loc = adjustLocation(templateFileName);
@@ -66,7 +66,9 @@ public class MVELTemplateEngineImpl extends CachingTemplateEngine<CompiledTempla
           throw new IllegalArgumentException("Cannot find template " + loc);
         }
         template = TemplateCompiler.compileTemplate(templateText);
-        cache.put(templateFileName, template);
+        if (isCachingEnabled()) {
+          cache.put(templateFileName, template);
+        }
       }
       Map<String, RoutingContext> variables = new HashMap<>(1);
       variables.put("context", context);

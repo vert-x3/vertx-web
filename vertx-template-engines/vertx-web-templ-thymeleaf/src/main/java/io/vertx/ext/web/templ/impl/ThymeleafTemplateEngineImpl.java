@@ -46,15 +46,23 @@ import java.util.Set;
  * @author <a href="http://matty.io">Matty Southall</a>
  */
 public class ThymeleafTemplateEngineImpl implements ThymeleafTemplateEngine {
+    private static final boolean ENABLE_CACHING = !Boolean.getBoolean(CachingTemplateEngine.DISABLE_TEMPL_CACHING_PROP_NAME);
+
     private final TemplateEngine templateEngine = new TemplateEngine();
     private ResourceTemplateResolver templateResolver;
 
     public ThymeleafTemplateEngineImpl() {
         ResourceTemplateResolver templateResolver = new ResourceTemplateResolver();
+        templateResolver.setCacheable(ENABLE_CACHING);
         templateResolver.setTemplateMode(ThymeleafTemplateEngine.DEFAULT_TEMPLATE_MODE);
 
         this.templateResolver = templateResolver;
         this.templateEngine.setTemplateResolver(templateResolver);
+    }
+
+    @Override
+    public boolean isCachingEnabled() {
+        return ENABLE_CACHING;
     }
 
     @Override

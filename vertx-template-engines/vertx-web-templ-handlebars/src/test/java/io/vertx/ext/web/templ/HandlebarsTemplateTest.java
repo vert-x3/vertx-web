@@ -25,6 +25,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.WebTestBase;
 import io.vertx.ext.web.handler.TemplateHandler;
+import io.vertx.ext.web.templ.impl.CachingTemplateEngine;
 import org.junit.Test;
 
 import java.util.Collections;
@@ -127,6 +128,12 @@ public class HandlebarsTemplateTest extends WebTestBase {
   public void testTemplateOnFileSystem() throws Exception {
     TemplateEngine engine = HandlebarsTemplateEngine.create();
     testTemplateHandler(engine, "src/test/filesystemtemplates", "test-handlebars-template3.hbs", "Goodbye badger and fox");
+  }
+
+  @Test
+  public void testTemplateOnClasspathDisableCaching() throws Exception {
+    System.setProperty(CachingTemplateEngine.DISABLE_TEMPL_CACHING_PROP_NAME, "true");
+    testTemplateOnClasspath();
   }
 
   @Test
