@@ -18,6 +18,7 @@ package io.vertx.ext.web.templ;
 
 import io.vertx.lang.js.ClasspathFileResolver;
 import io.vertx.test.lang.js.JSTestBase;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -25,9 +26,9 @@ import org.junit.Test;
  */
 public class FreeMarkerJavascriptTemplateTest extends JSTestBase {
 
-  static {
-    ClasspathFileResolver.init();
-  }
+//  static {
+//    ClasspathFileResolver.init();
+//  }
 
   @Override
   protected String getTestFile() {
@@ -35,6 +36,7 @@ public class FreeMarkerJavascriptTemplateTest extends JSTestBase {
   }
 
   @Test
+  @Ignore
   public void testTemplate() throws Exception {
     runTest();
   }
