@@ -40,12 +40,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static io.vertx.ext.web.templ.impl.CachingTemplateEngine.DISABLE_TEMPL_CACHING_PROP_NAME;
+
 /**
  * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
  * @author <a href="http://tfox.org">Tim Fox</a>
  * @author <a href="http://matty.io">Matty Southall</a>
  */
 public class ThymeleafTemplateEngineImpl implements ThymeleafTemplateEngine {
+
+  // should not be static, so at at creation time the value is evaluated
+  private final boolean enableCache = !Boolean.getBoolean(DISABLE_TEMPL_CACHING_PROP_NAME);
 
   private final TemplateEngine templateEngine = new TemplateEngine();
   private ResourceTemplateResolver templateResolver;
@@ -57,6 +62,11 @@ public class ThymeleafTemplateEngineImpl implements ThymeleafTemplateEngine {
 
     this.templateResolver = templateResolver;
     this.templateEngine.setTemplateResolver(templateResolver);
+  }
+
+  @Override
+  public boolean isCachingEnabled() {
+    return enableCache;
   }
 
   @Override

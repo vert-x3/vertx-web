@@ -28,6 +28,8 @@ import io.vertx.ext.web.handler.TemplateHandler;
 import io.vertx.ext.web.templ.impl.CachingTemplateEngine;
 import org.junit.Test;
 
+import java.io.File;
+import java.io.PrintWriter;
 import java.util.Collections;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -37,6 +39,10 @@ import java.util.concurrent.atomic.AtomicReference;
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 public class HandlebarsTemplateTest extends WebTestBase {
+
+  static {
+    System.setProperty("vertx.disableFileCaching", "true");
+  }
 
   @Test
   public void testTemplateOnClasspath() throws Exception {
@@ -171,4 +177,55 @@ public class HandlebarsTemplateTest extends WebTestBase {
     assertNotNull(engine.getHandlebars());
   }
 
+  @Test
+  public void testCachingEnabled() throws Exception {
+    System.setProperty(CachingTemplateEngine.DISABLE_TEMPL_CACHING_PROP_NAME, "false");
+    TemplateEngine engine = HandlebarsTemplateEngine.create();
+
+    PrintWriter out;
+    File temp = File.createTempFile("template", ".hbs", new File("target/classes"));
+    temp.deleteOnExit();
+
+    out = new PrintWriter(temp);
+    out.print("before");
+    out.flush();
+    out.close();
+
+    testTemplateHandler(engine, ".", temp.getName(), "before");
+
+    // cache is enabled so if we change the content that should not affect the result
+
+    out = new PrintWriter(temp);
+    out.print("after");
+    out.flush();
+    out.close();
+
+    testTemplateHandler(engine, ".", temp.getName(), "before");
+  }
+
+  @Test
+  public void testCachingDisabled() throws Exception {
+    System.setProperty(CachingTemplateEngine.DISABLE_TEMPL_CACHING_PROP_NAME, "true");
+    TemplateEngine engine = HandlebarsTemplateEngine.create();
+
+    PrintWriter out;
+    File temp = File.createTempFile("template", ".hbs", new File("target/classes"));
+    temp.deleteOnExit();
+
+    out = new PrintWriter(temp);
+    out.print("before");
+    out.flush();
+    out.close();
+
+    testTemplateHandler(engine, ".", temp.getName(), "before");
+
+    // cache is disabled so if we change the content that should affect the result
+
+    out = new PrintWriter(temp);
+    out.print("after");
+    out.flush();
+    out.close();
+
+    testTemplateHandler(engine, ".", temp.getName(), "after");
+  }
 }
