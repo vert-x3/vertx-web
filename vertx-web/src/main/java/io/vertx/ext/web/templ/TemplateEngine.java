@@ -19,6 +19,7 @@ package io.vertx.ext.web.templ;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
+import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.ext.web.RoutingContext;
 
@@ -38,5 +39,15 @@ public interface TemplateEngine {
    * @param templateFileName  the template file name to use
    * @param handler  the handler that will be called with a result containing the buffer or a failure.
    */
+  @Deprecated
   void render(RoutingContext context, String templateFileName, Handler<AsyncResult<Buffer>> handler);
+
+  /**
+   * Render
+   * @param vertx  vertx shared instance
+   * @param context data-model for the template
+   * @param templateFileName  the template file name to use
+   * @param handler  the handler that will be called with a result containing the buffer or a failure.
+   */
+  <T> void render(Vertx vertx, T context, String templateFileName, Handler<AsyncResult<Buffer>> handler);
 }

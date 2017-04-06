@@ -66,16 +66,21 @@ public class HandlebarsTemplateEngineImpl extends CachingTemplateEngine<Template
 
   @Override
   public void render(RoutingContext context, String templateFileName, Handler<AsyncResult<Buffer>> handler) {
+    render(context.vertx(), context.data(), templateFileName, handler);
+  }
+
+  @Override
+  public <T> void render(Vertx vertx, T context, String templateFileName, Handler<AsyncResult<Buffer>> handler) {
     try {
       Template template = cache.get(templateFileName);
       if (template == null) {
         synchronized (this) {
-          loader.setVertx(context.vertx());
+          loader.setVertx(vertx);
           template = handlebars.compile(templateFileName);
           cache.put(templateFileName, template);
         }
       }
-      Context engineContext = Context.newBuilder(context.data()).resolver(getResolvers()).build();
+      Context engineContext = Context.newBuilder(context).resolver(getResolvers()).build();
       handler.handle(Future.succeededFuture(Buffer.buffer(template.apply(engineContext))));
     } catch (Exception ex) {
       handler.handle(Future.failedFuture(ex));
