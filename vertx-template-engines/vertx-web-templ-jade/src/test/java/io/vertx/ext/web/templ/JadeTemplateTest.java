@@ -73,4 +73,11 @@ public class JadeTemplateTest extends WebTestBase {
     assertNotNull(engine.getJadeConfiguration());
   }
 
+  @Test
+  public void testSetCachingDefault() throws Exception {
+    JadeTemplateEngine engine = JadeTemplateEngine.create();
+    engine.setCaching(false);
+    assertFalse(engine.getJadeConfiguration().isCaching());
+  }
+
 }
