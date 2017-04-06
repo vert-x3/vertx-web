@@ -20,6 +20,7 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.handler.TemplateHandler;
 import io.vertx.ext.web.WebTestBase;
 import io.vertx.ext.web.templ.impl.CachingTemplateEngine;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
@@ -30,8 +31,10 @@ import java.io.PrintWriter;
  */
 public class FreeMarkerTemplateTest extends WebTestBase {
 
-  static {
+  @Override
+  public void setUp() throws Exception {
     System.setProperty("vertx.disableFileCaching", "true");
+    super.setUp();
   }
 
   @Test

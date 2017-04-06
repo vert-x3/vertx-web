@@ -30,8 +30,10 @@ import java.io.PrintWriter;
  */
 public class JadeTemplateTest extends WebTestBase {
 
-  static {
+  @Override
+  public void setUp() throws Exception {
     System.setProperty("vertx.disableFileCaching", "true");
+    super.setUp();
   }
 
   @Test
