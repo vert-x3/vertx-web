@@ -16,13 +16,8 @@
 
 package io.vertx.ext.web.templ;
 
-import java.util.Set;
-import java.util.Collections;
-import java.util.Map.Entry;
-import java.util.concurrent.atomic.AtomicReference;
 import com.github.jknack.handlebars.HandlebarsException;
 import com.github.jknack.handlebars.ValueResolver;
-
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonArray;
@@ -31,6 +26,11 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.WebTestBase;
 import io.vertx.ext.web.handler.TemplateHandler;
 import org.junit.Test;
+
+import java.util.Collections;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -102,9 +102,9 @@ public class HandlebarsTemplateTest extends WebTestBase {
 
     AtomicReference<RoutingContext> contextRef = new AtomicReference<>();
     router.route().handler(context -> {
+      contextRef.set(context);
       context.put("foo", jsonArray);
       context.next();
-      contextRef.set(context);
     });
     router.route().handler(TemplateHandler.create(engine, "src/test/filesystemtemplates", "text/plain"));
     testRequest(HttpMethod.GET, "/" + "test-handlebars-template6.hbs", 500, "Internal Server Error");

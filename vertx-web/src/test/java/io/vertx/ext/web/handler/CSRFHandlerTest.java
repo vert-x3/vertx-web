@@ -172,4 +172,18 @@ public class CSRFHandlerTest extends WebTestBase {
       req.write(buffer);
     }, null, 200, "OK", null);
   }
+
+  @Test
+  public void testPostWithCustomResponseBody() throws Exception {
+    final String expectedResponseBody = "Expected response body";
+
+    router.route().handler(CookieHandler.create());
+    router.route().handler(CSRFHandler.create("Abracadabra").setTimeout(1).setResponseBody(expectedResponseBody));
+    router.route().handler(rc -> rc.response().end());
+
+    testRequest(HttpMethod.POST, "/", req -> {
+      req.putHeader(CSRFHandler.DEFAULT_HEADER_NAME,
+        "4CYp9vQsr2VSQEsi/oVsMu35Ho9TlR0EovcYovlbiBw=.1437037602082.41jwU0FPl/n7ZNZAZEA07GyIUnpKSTKQ8Eju7Nicb34=");
+    }, null, 403, "Forbidden", expectedResponseBody);
+  }
 }
