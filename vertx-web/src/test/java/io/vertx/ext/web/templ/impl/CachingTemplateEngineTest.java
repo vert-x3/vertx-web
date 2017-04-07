@@ -29,7 +29,7 @@ public class CachingTemplateEngineTest {
 
   @Test
   public void testAdjustLocation_Ext() {
-    assertEquals("templates/index.jade", engine.adjustLocation("templates/.jade"));
+    assertEquals("templates/.jade", engine.adjustLocation("templates/.jade"));
   }
 
   @Test

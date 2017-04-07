@@ -39,11 +39,11 @@ public abstract class CachingTemplateEngine<T> implements TemplateEngine {
   }
 
   protected String adjustLocation(String location) {
+    if (location.endsWith("/")) {
+      location += "index";
+    }
     if (!location.endsWith(extension)) {
       location += extension;
-    }
-    if (location.endsWith("/" + extension)) {
-      location = location.substring(0, location.length() - extension.length()) + "index" + extension;
     }
     return location;
   }
