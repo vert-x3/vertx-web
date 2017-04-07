@@ -39,7 +39,8 @@ public interface TemplateHandler extends Handler<RoutingContext> {
   /**
    * The default content type header to be used in the response
    */
-  String DEFAULT_CONTENT_TYPE = "text/html";
+  @Deprecated
+  String DEFAULT_CONTENT_TYPE = TemplateEngine.DEFAULT_CONTENT_TYPE;
 
   /**
    * Create a handler
@@ -48,7 +49,7 @@ public interface TemplateHandler extends Handler<RoutingContext> {
    * @return the handler
    */
   static TemplateHandler create(TemplateEngine engine) {
-    return new TemplateHandlerImpl(engine, DEFAULT_TEMPLATE_DIRECTORY, DEFAULT_CONTENT_TYPE);
+    return new TemplateHandlerImpl(engine, DEFAULT_TEMPLATE_DIRECTORY);
   }
 
   /**
@@ -56,11 +57,25 @@ public interface TemplateHandler extends Handler<RoutingContext> {
    *
    * @param engine  the template engine
    * @param templateDirectory  the template directory where templates will be looked for
+   * @return the handler
+   */
+  static TemplateHandler create(TemplateEngine engine, String templateDirectory) {
+    return new TemplateHandlerImpl(engine, templateDirectory);
+  }
+
+  /**
+   * Create a handler
+   * Deprecated, use {@link TemplateEngine#setContentType(String)} instead
+   *
+   * @param engine  the template engine
+   * @param templateDirectory  the template directory where templates will be looked for
    * @param contentType  the content type header to be used in the response
    * @return the handler
    */
+  @Deprecated
   static TemplateHandler create(TemplateEngine engine, String templateDirectory, String contentType) {
-    return new TemplateHandlerImpl(engine, templateDirectory, contentType);
+    engine.setContentType(contentType);
+    return new TemplateHandlerImpl(engine, templateDirectory);
   }
 
 }

@@ -27,6 +27,7 @@ import io.vertx.ext.web.handler.TemplateHandler;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.impl.Utils;
 import io.vertx.ext.web.WebTestBase;
+import io.vertx.ext.web.templ.impl.AbstractTemplateEngine;
 import org.junit.Test;
 
 /**
@@ -60,7 +61,7 @@ public class TemplateTest extends WebTestBase {
     if (pathPrefix != null) {
       route.path(pathPrefix + "*");
     }
-    route.handler(TemplateHandler.create(engine, "somedir", "text/html"));
+    route.handler(TemplateHandler.create(engine, "somedir"));
     String expected =
       "<html>\n" +
         "<body>\n" +
@@ -74,7 +75,7 @@ public class TemplateTest extends WebTestBase {
   @Test
   public void testTemplateEngineFail() throws Exception {
     TemplateEngine engine = new TestEngine(true);
-    router.route().handler(TemplateHandler.create(engine, "somedir", "text/html"));
+    router.route().handler(TemplateHandler.create(engine, "somedir"));
     router.exceptionHandler(t -> {
       assertEquals("eek", t.getMessage());
       testComplete();
@@ -134,9 +135,26 @@ public class TemplateTest extends WebTestBase {
     await();
   }
 
-  // Just for testing - not for actual use
-  class TestEngine implements TemplateEngine {
+  @Test
+  public void testRenderToContext() throws Exception {
+    TemplateEngine engine = new TestEngine(false);
+    router.route().handler(context -> {
+      context.put("foo", "badger");
+      context.put("bar", "fox");
+      engine.render(context, "somedir/test-template.html");
+    });
+    String expected =
+      "<html>\n" +
+        "<body>\n" +
+        "<h1>Test template</h1>\n" +
+        "foo is badger bar is fox<br>\n" +
+        "</body>\n" +
+        "</html>";
+    testRequest(HttpMethod.GET, "/", 200, "OK", expected);
+  }
 
+  // Just for testing - not for actual use
+  class TestEngine extends AbstractTemplateEngine {
     boolean fail;
 
     TestEngine(boolean fail) {
@@ -154,6 +172,5 @@ public class TemplateTest extends WebTestBase {
         handler.handle(Future.succeededFuture(Buffer.buffer(rendered)));
       }
     }
-
   }
 }

@@ -47,7 +47,7 @@ import static io.vertx.ext.web.templ.impl.CachingTemplateEngine.DISABLE_TEMPL_CA
  * @author <a href="http://tfox.org">Tim Fox</a>
  * @author <a href="http://matty.io">Matty Southall</a>
  */
-public class ThymeleafTemplateEngineImpl implements ThymeleafTemplateEngine {
+public class ThymeleafTemplateEngineImpl extends AbstractTemplateEngine implements ThymeleafTemplateEngine {
 
   // should not be static, so at at creation time the value is evaluated
   private final boolean enableCache = !Boolean.getBoolean(DISABLE_TEMPL_CACHING_PROP_NAME);

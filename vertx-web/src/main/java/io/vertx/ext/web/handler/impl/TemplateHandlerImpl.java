@@ -29,23 +29,14 @@ public class TemplateHandlerImpl implements TemplateHandler {
 
   private final TemplateEngine engine;
   private final String templateDirectory;
-  private final String contentType;
 
-  public TemplateHandlerImpl(TemplateEngine engine, String templateDirectory, String contentType) {
+  public TemplateHandlerImpl(TemplateEngine engine, String templateDirectory) {
     this.engine = engine;
     this.templateDirectory = templateDirectory;
-    this.contentType = contentType;
   }
 
   @Override
   public void handle(RoutingContext context) {
-    String file = templateDirectory + Utils.pathOffset(context.normalisedPath(), context);
-    engine.render(context, file, res -> {
-      if (res.succeeded()) {
-        context.response().putHeader(HttpHeaders.CONTENT_TYPE, contentType).end(res.result());
-      } else {
-        context.fail(res.cause());
-      }
-    });
+    engine.render(context, templateDirectory + Utils.pathOffset(context.normalisedPath(), context));
   }
 }

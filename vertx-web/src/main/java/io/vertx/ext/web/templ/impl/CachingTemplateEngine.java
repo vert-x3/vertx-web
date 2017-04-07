@@ -24,7 +24,7 @@ import java.util.Objects;
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public abstract class CachingTemplateEngine<T> implements TemplateEngine {
+public abstract class CachingTemplateEngine<T> extends AbstractTemplateEngine {
 
   public static final String DISABLE_TEMPL_CACHING_PROP_NAME = "io.vertx.ext.web.TemplateEngine.disableCache";
   // should not be static, so at at creation time the value is evaluated

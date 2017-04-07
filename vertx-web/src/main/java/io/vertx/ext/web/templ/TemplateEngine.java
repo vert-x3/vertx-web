@@ -20,6 +20,7 @@ import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.HttpHeaders;
 import io.vertx.ext.web.RoutingContext;
 
 /**
@@ -31,6 +32,10 @@ import io.vertx.ext.web.RoutingContext;
  */
 @VertxGen
 public interface TemplateEngine {
+  /**
+   * The default content type header to be used in the response
+   */
+  String DEFAULT_CONTENT_TYPE = "text/html";
 
   /**
    * Render
@@ -39,6 +44,35 @@ public interface TemplateEngine {
    * @param handler  the handler that will be called with a result containing the buffer or a failure.
    */
   void render(RoutingContext context, String templateFileName, Handler<AsyncResult<Buffer>> handler);
+
+  /**
+   * Renders directly to the given context with the provided filename
+   *
+   * @param context  the routing context to render to
+   * @param templateFileName  the template file to use
+   */
+  default void render(RoutingContext context, String templateFileName) {
+    render(context, templateFileName, (res) -> {
+      if (res.succeeded()) {
+        context.response().putHeader(HttpHeaders.CONTENT_TYPE, getContentType()).end(res.result());
+      } else {
+        context.fail(res.cause());
+      }
+    });
+  }
+
+  /**
+   * Gets the content type header to use when rendering, defaults to text/html
+   *
+   * @return the content type
+   */
+  String getContentType();
+
+  /**
+   * Sets the content type header to use when rendering
+   * @param contentType the content type
+   */
+  void setContentType(String contentType);
 
   /**
    * Returns true if the template engine caches template files. If false, then template files are freshly loaded each
