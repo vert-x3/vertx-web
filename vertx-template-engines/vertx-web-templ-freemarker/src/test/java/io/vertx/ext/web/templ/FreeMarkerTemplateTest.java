@@ -17,10 +17,9 @@
 package io.vertx.ext.web.templ;
 
 import io.vertx.core.http.HttpMethod;
-import io.vertx.ext.web.handler.TemplateHandler;
 import io.vertx.ext.web.WebTestBase;
+import io.vertx.ext.web.handler.TemplateHandler;
 import io.vertx.ext.web.templ.impl.CachingTemplateEngine;
-import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
@@ -73,6 +72,8 @@ public class FreeMarkerTemplateTest extends WebTestBase {
   public void testCachingDisabled() throws Exception {
     System.setProperty(CachingTemplateEngine.DISABLE_TEMPL_CACHING_PROP_NAME, "true");
     TemplateEngine engine = FreeMarkerTemplateEngine.create();
+
+    assertFalse("Caching should be disabled", engine.isCachingEnabled());
 
     PrintWriter out;
     File temp = File.createTempFile("template", ".ftl", new File("target/classes"));
