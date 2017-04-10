@@ -65,6 +65,12 @@
       <artifactId>vertx-hazelcast</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <version>2.7.22</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>

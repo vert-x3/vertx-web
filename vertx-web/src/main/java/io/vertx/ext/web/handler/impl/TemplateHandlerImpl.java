@@ -30,16 +30,21 @@ public class TemplateHandlerImpl implements TemplateHandler {
   private final TemplateEngine engine;
   private final String templateDirectory;
   private final String contentType;
+  private String indexTemplate;
 
   public TemplateHandlerImpl(TemplateEngine engine, String templateDirectory, String contentType) {
     this.engine = engine;
     this.templateDirectory = templateDirectory;
     this.contentType = contentType;
+    this.indexTemplate = DEFAULT_INDEX_TEMPLATE;
   }
 
   @Override
   public void handle(RoutingContext context) {
     String file = templateDirectory + Utils.pathOffset(context.normalisedPath(), context);
+    if (file.endsWith("/") && null != indexTemplate) {
+      file += indexTemplate;
+    }
     engine.render(context, file, res -> {
       if (res.succeeded()) {
         context.response().putHeader(HttpHeaders.CONTENT_TYPE, contentType).end(res.result());
@@ -47,5 +52,11 @@ public class TemplateHandlerImpl implements TemplateHandler {
         context.fail(res.cause());
       }
     });
+  }
+
+  @Override
+  public TemplateHandler setIndexTemplate(String indexTemplate) {
+    this.indexTemplate = indexTemplate;
+    return this;
   }
 }
