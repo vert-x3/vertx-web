@@ -61,12 +61,14 @@ public class PebbleTemplateEngineImpl extends CachingTemplateEngine<PebbleTempla
   @Override
   public void render(RoutingContext context, String templateFileName, Handler<AsyncResult<Buffer>> handler) {
     try {
-      PebbleTemplate template = cache.get(templateFileName);
+      PebbleTemplate template = isCachingEnabled() ? cache.get(templateFileName) : null;
       if (template == null) {
         // real compile
         final String loc = adjustLocation(templateFileName);
         template = pebbleEngine.getTemplate(loc);
-        cache.put(templateFileName, template);
+        if (isCachingEnabled()) {
+          cache.put(templateFileName, template);
+        }
       }
       final Map<String, Object> variables = new HashMap<>(1);
       variables.put("context", context);

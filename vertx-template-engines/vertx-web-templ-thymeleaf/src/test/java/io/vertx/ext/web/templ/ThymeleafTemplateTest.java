@@ -19,13 +19,23 @@ package io.vertx.ext.web.templ;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.handler.TemplateHandler;
 import io.vertx.ext.web.WebTestBase;
+import io.vertx.ext.web.templ.impl.CachingTemplateEngine;
 import org.junit.Test;
+
+import java.io.File;
+import java.io.PrintWriter;
 
 /**
  *
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 public class ThymeleafTemplateTest extends WebTestBase {
+
+  @Override
+  public void setUp() throws Exception {
+    System.setProperty("vertx.disableFileCaching", "true");
+    super.setUp();
+  }
 
   @Test
   public void testTemplateHandlerOnClasspath() throws Exception {
@@ -37,6 +47,12 @@ public class ThymeleafTemplateTest extends WebTestBase {
   public void testTemplateHandlerOnFileSystem() throws Exception {
     TemplateEngine engine = ThymeleafTemplateEngine.create();
     testTemplateHandler(engine, "src/test/filesystemtemplates", "test-thymeleaf-template3.html");
+  }
+
+  @Test
+  public void testTemplateHandlerOnClasspathDisableCaching() throws Exception {
+    System.setProperty(CachingTemplateEngine.DISABLE_TEMPL_CACHING_PROP_NAME, "true");
+    testTemplateHandlerOnClasspath();
   }
 
   private void testTemplateHandler(TemplateEngine engine, String directoryName, String templateName) throws Exception {
@@ -110,5 +126,67 @@ public class ThymeleafTemplateTest extends WebTestBase {
     router.route().handler(TemplateHandler.create(engine, "somedir", "text/html"));
 
     testRequest(HttpMethod.GET, "/test-thymeleaf-template2.html?param1=blah&param2=wibble", req -> req.putHeader("Accept-Language", "ru"), 200, "OK", null);
+  }
+
+  @Test
+  public void testCachingEnabled() throws Exception {
+    System.setProperty(CachingTemplateEngine.DISABLE_TEMPL_CACHING_PROP_NAME, "false");
+    TemplateEngine engine = ThymeleafTemplateEngine.create();
+
+    PrintWriter out;
+    File temp = File.createTempFile("template", ".html", new File("target/classes"));
+    temp.deleteOnExit();
+
+    out = new PrintWriter(temp);
+    out.print("before");
+    out.flush();
+    out.close();
+
+    testTemplateHandler(engine, ".", temp.getName(), "before");
+
+    // cache is enabled so if we change the content that should not affect the result
+
+    out = new PrintWriter(temp);
+    out.print("after");
+    out.flush();
+    out.close();
+
+    testTemplateHandler(engine, ".", temp.getName(), "before");
+  }
+
+  @Test
+  public void testCachingDisabled() throws Exception {
+    System.setProperty(CachingTemplateEngine.DISABLE_TEMPL_CACHING_PROP_NAME, "true");
+    TemplateEngine engine = ThymeleafTemplateEngine.create();
+
+    PrintWriter out;
+    File temp = File.createTempFile("template", ".html", new File("target/classes"));
+    temp.deleteOnExit();
+
+    out = new PrintWriter(temp);
+    out.print("before");
+    out.flush();
+    out.close();
+
+    testTemplateHandler(engine, ".", temp.getName(), "before");
+
+    // cache is disabled so if we change the content that should affect the result
+
+    out = new PrintWriter(temp);
+    out.print("after");
+    out.flush();
+    out.close();
+
+    testTemplateHandler(engine, ".", temp.getName(), "after");
+  }
+
+  private void testTemplateHandler(TemplateEngine engine, String directoryName, String templateName, String expected) throws Exception {
+    router.route().handler(context -> {
+      context.put("foo", "badger");
+      context.put("bar", "fox");
+      context.next();
+    });
+    router.route().handler(TemplateHandler.create(engine, directoryName, "text/plain"));
+    testRequest(HttpMethod.GET, "/" + templateName, 200, "OK", expected);
   }
 }

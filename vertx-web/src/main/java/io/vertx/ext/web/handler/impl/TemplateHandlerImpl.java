@@ -41,7 +41,6 @@ public class TemplateHandlerImpl implements TemplateHandler {
 
   @Override
   public void handle(RoutingContext context) {
-
     String file = templateDirectory + Utils.pathOffset(context.normalisedPath(), context);
     if (file.endsWith("/")) {
       file += indexTemplate;

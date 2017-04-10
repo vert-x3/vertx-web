@@ -1056,7 +1056,25 @@ public class WebClientTest extends HttpTestBase {
     testTLS(false, true, client -> client.getAbs("https://" + DEFAULT_HTTPS_HOST + ":" + DEFAULT_HTTPS_PORT));
   }
 
+  /**
+   * Regression test for issue #563 (https://github.com/vert-x3/vertx-web/issues/563)
+   * <p>
+   * Only occurred when {@link WebClientOptions#isSsl()} was false for an SSL request.
+   */
+  @Test
+  public void testTLSQueryParametersIssue563() throws Exception {
+    testTLS(false, true,
+      client -> client.getAbs("https://" + DEFAULT_HTTPS_HOST + ":" + DEFAULT_HTTPS_PORT)
+        .addQueryParam("query1", "value1")
+        .addQueryParam("query2", "value2"),
+      serverRequest -> assertEquals("query1=value1&query2=value2", serverRequest.query()));
+  }
+
   private void testTLS(boolean clientSSL, boolean serverSSL, Function<WebClient, HttpRequest<Buffer>> requestProvider) throws Exception {
+    testTLS(clientSSL, serverSSL, requestProvider, null);
+  }
+
+  private void testTLS(boolean clientSSL, boolean serverSSL, Function<WebClient, HttpRequest<Buffer>> requestProvider, Consumer<HttpServerRequest> serverAssertions) throws Exception {
     WebClient sslClient = WebClient.create(vertx, new WebClientOptions()
       .setSsl(clientSSL)
       .setTrustAll(true)
@@ -1069,6 +1087,9 @@ public class WebClientTest extends HttpTestBase {
       .setHost(DEFAULT_HTTPS_HOST));
     sslServer.requestHandler(req -> {
       assertEquals(serverSSL, req.isSSL());
+      if (serverAssertions != null) {
+        serverAssertions.accept(req);
+      }
       req.response().end();
     });
     try {

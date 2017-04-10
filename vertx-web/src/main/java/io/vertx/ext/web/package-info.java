@@ -1386,6 +1386,13 @@
  * Please consult the http://www.mitchellbosecke.com/pebble/home/[Pebble documentation] for how to write
  * Pebble templates.
  *
+ * === Disabling caching
+ *
+ * During development you might want to disable template caching so that the template gets reevaluated on each request.
+ * In order to do this you need to set the system property: `io.vertx.ext.web.TemplateEngine.disableCache` to `true`.
+ *
+ * By default it will be false. So caching is always enabled.
+ *
  * == Error handler
  *
  * You can render your own errors using a template handler or otherwise but Vert.x-Web also includes an out of the boxy
