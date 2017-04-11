@@ -92,24 +92,26 @@ public class JWTAuthHandlerImpl extends AuthHandlerImpl implements JWTAuthHandle
         return;
       }
 
-      final JsonObject authInfo = new JsonObject().put("jwt", readToken(context)).put("options", options);
-
-      authProvider.authenticate(authInfo, res -> {
-        if (res.succeeded()) {
-          final User user2 = res.result();
-          context.setUser(user2);
-          Session session = context.session();
-          if (session != null) {
-            // the user has upgraded from unauthenticated to authenticated
-            // session should be upgraded as recommended by owasp
-            session.regenerateId();
+      final String token = readToken(context);
+      if (null != token) {
+        JsonObject authInfo = new JsonObject().put("jwt", token).put("options", options);
+        authProvider.authenticate(authInfo, res -> {
+          if (res.succeeded()) {
+            final User user2 = res.result();
+            context.setUser(user2);
+            Session session = context.session();
+            if (session != null) {
+              // the user has upgraded from unauthenticated to authenticated
+              // session should be upgraded as recommended by owasp
+              session.regenerateId();
+            }
+            authorise(user2, context);
+          } else {
+            log.warn("JWT decode failure", res.cause());
+            context.fail(401);
           }
-          authorise(user2, context);
-        } else {
-          log.warn("JWT decode failure", res.cause());
-          context.fail(401);
-        }
-      });
+        });
+      }
     }
   }
 
