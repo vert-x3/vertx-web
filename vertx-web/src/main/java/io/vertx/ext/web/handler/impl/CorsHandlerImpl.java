@@ -101,6 +101,10 @@ public class CorsHandlerImpl implements CorsHandler {
 
   @Override
   public CorsHandler allowCredentials(boolean allow) {
+    if (allowedOrigin == null && allow) {
+      // https://developer.mozilla.org/En/HTTP_access_control#Requests_with_credentials
+      throw new IllegalStateException("wildcard origin with credentials is not allowed");
+    }
     this.allowCredentials = allow;
     return this;
   }

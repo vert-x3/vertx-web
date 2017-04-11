@@ -313,6 +313,16 @@ public class CORSHandlerTest extends WebTestBase {
     assertSame(cors, cors.allowCredentials(true));
   }
 
+  @Test
+  public void testUnsecureCorsShouldNotBeAllowed() throws Exception {
+    try {
+      CorsHandler.create("*").allowCredentials(true);
+      fail("Should not be allowed!");
+    } catch (IllegalStateException e) {
+      // OK
+    }
+  }
+
   private void checkHeaders(HttpClientResponse resp, String accessControlAllowOrigin,
                             String accessControlAllowMethods, String accessControlAllowHeaders,
                             String accessControlExposeHeaders) {
