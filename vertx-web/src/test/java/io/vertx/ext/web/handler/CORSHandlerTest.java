@@ -241,7 +241,7 @@ public class CORSHandlerTest extends WebTestBase {
   public void testPreflightAllowCredentialsNoWildcardOrigin() throws Exception {
     Set<HttpMethod> allowedMethods = new LinkedHashSet<>(Arrays.asList(HttpMethod.PUT, HttpMethod.DELETE));
     // Make sure * isn't returned in access-control-allow-origin for credentials
-    router.route().handler(CorsHandler.create("*").allowedMethods(allowedMethods).allowCredentials(true));
+    router.route().handler(CorsHandler.create("vertx.*").allowedMethods(allowedMethods).allowCredentials(true));
     router.route().handler(context -> {
       context.response().end();
     });
@@ -286,7 +286,7 @@ public class CORSHandlerTest extends WebTestBase {
   @Test
   public void testRealRequestCredentialsNoWildcardOrigin() throws Exception {
     Set<HttpMethod> allowedMethods = new LinkedHashSet<>(Arrays.asList(HttpMethod.PUT, HttpMethod.DELETE));
-    router.route().handler(CorsHandler.create("*").allowedMethods(allowedMethods).allowCredentials(true));
+    router.route().handler(CorsHandler.create("vertx.*").allowedMethods(allowedMethods).allowCredentials(true));
     router.route().handler(context -> {
       context.response().end();
     });
@@ -310,7 +310,6 @@ public class CORSHandlerTest extends WebTestBase {
     assertSame(cors, cors.exposedHeader("X-wibble"));
     assertSame(cors, cors.exposedHeader("X-blah"));
     assertSame(cors, cors.exposedHeaders(new HashSet<>()));
-    assertSame(cors, cors.allowCredentials(true));
   }
 
   @Test
