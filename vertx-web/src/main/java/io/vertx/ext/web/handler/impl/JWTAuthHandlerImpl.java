@@ -77,8 +77,6 @@ public class JWTAuthHandlerImpl extends AuthHandlerImpl implements JWTAuthHandle
     } else {
       final HttpServerRequest request = context.request();
 
-      String token = null;
-
       if (request.method() == HttpMethod.OPTIONS && request.headers().get(HttpHeaders.ACCESS_CONTROL_REQUEST_HEADERS) != null) {
         for (String ctrlReq : request.headers().get(HttpHeaders.ACCESS_CONTROL_REQUEST_HEADERS).split(",")) {
           if (ctrlReq.equalsIgnoreCase("authorization")) {
@@ -94,29 +92,7 @@ public class JWTAuthHandlerImpl extends AuthHandlerImpl implements JWTAuthHandle
         return;
       }
 
-      final String authorization = request.headers().get(HttpHeaders.AUTHORIZATION);
-
-      if (authorization != null) {
-        String[] parts = authorization.split(" ");
-        if (parts.length == 2) {
-          final String scheme = parts[0],
-              credentials = parts[1];
-
-          if (BEARER.matcher(scheme).matches()) {
-            token = credentials;
-          }
-        } else {
-          log.warn("Format is Authorization: Bearer [token]");
-          context.fail(401);
-          return;
-        }
-      } else {
-        log.warn("No Authorization header was found");
-        context.fail(401);
-        return;
-      }
-
-      JsonObject authInfo = new JsonObject().put("jwt", token).put("options", options);
+      final JsonObject authInfo = new JsonObject().put("jwt", readToken(context)).put("options", options);
 
       authProvider.authenticate(authInfo, res -> {
         if (res.succeeded()) {
@@ -135,5 +111,28 @@ public class JWTAuthHandlerImpl extends AuthHandlerImpl implements JWTAuthHandle
         }
       });
     }
+  }
+
+  protected String readToken(RoutingContext context) {
+    final String authorization = context.request().headers().get(HttpHeaders.AUTHORIZATION);
+
+    if (authorization != null) {
+      String[] parts = authorization.split(" ");
+      if (parts.length == 2) {
+        final String scheme = parts[0],
+          credentials = parts[1];
+
+        if (BEARER.matcher(scheme).matches()) {
+          return credentials;
+        }
+      } else {
+        log.warn("Format is Authorization: Bearer [token]");
+        context.fail(401);
+      }
+    } else {
+      log.warn("No Authorization header was found");
+      context.fail(401);
+    }
+    return null;
   }
 }
