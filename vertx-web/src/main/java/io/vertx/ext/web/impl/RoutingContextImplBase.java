@@ -59,7 +59,10 @@ public abstract class RoutingContextImplBase implements RoutingContext {
 
   protected void restart() {
     this.iter = routes.iterator();
-    currentRoute = null;
+    if (currentRoute != null) {
+      currentRoute.clearAutomaticHandler();
+      currentRoute = null;
+    }
     next();
   }
 
@@ -87,6 +90,8 @@ public abstract class RoutingContextImplBase implements RoutingContext {
             if (log.isTraceEnabled()) log.trace("Failure in handling failure");
             unhandledFailure(-1, t, route.router());
           }
+        } finally {
+          route.clearAutomaticHandler();
         }
         return true;
       }

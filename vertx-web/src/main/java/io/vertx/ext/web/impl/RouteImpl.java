@@ -57,6 +57,7 @@ public class RouteImpl implements Route {
   private List<String> groups;
   private boolean useNormalisedPath = true;
   private List<AutomaticHandler> automaticHandlers = new ArrayList<>();
+  private AutomaticHandler currentAutomaticHandler;
 
   private String allowedMethodsString;
   private boolean hasCorsHandler = false;
@@ -282,11 +283,9 @@ public class RouteImpl implements Route {
   }
 
   synchronized void handleContext(RoutingContext context) {
-    for (AutomaticHandler methodHandler : automaticHandlers) {
-      if (methodHandler.matches(context) != MatchResult.SKIP) {
-        methodHandler.handle(context);
-        return;
-      }
+    if (currentAutomaticHandler != null) {
+      currentAutomaticHandler.handle(context);
+      return;
     }
     if (contextHandler != null) {
       contextHandler.handle(context);
@@ -297,6 +296,10 @@ public class RouteImpl implements Route {
     if (failureHandler != null) {
       failureHandler.handle(context);
     }
+  }
+
+  synchronized void clearAutomaticHandler() {
+    currentAutomaticHandler = null;
   }
 
   synchronized boolean matches(RoutingContext context, String mountPoint, boolean failure) {
@@ -310,6 +313,7 @@ public class RouteImpl implements Route {
     for (AutomaticHandler automaticHandler : automaticHandlers) {
       MatchResult result = automaticHandler.matches(context);
       if (result == MatchResult.TRUE) {
+        currentAutomaticHandler = automaticHandler;
         return true;
       }
       if (result == MatchResult.FALSE) {
