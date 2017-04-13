@@ -21,8 +21,8 @@ import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.web.handler.CorsHandler;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.impl.Utils;
 
-import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -60,42 +60,42 @@ public class CorsHandlerImpl implements CorsHandler {
   @Override
   public CorsHandler allowedMethod(HttpMethod method) {
     allowedMethods.add(method);
-    allowedMethodsString = join(allowedMethods);
+    allowedMethodsString = Utils.join(allowedMethods);
     return this;
   }
 
   @Override
   public CorsHandler allowedMethods(Set<HttpMethod> methods) {
     allowedMethods.addAll(methods);
-    allowedMethodsString = join(allowedMethods);
+    allowedMethodsString = Utils.join(allowedMethods);
     return this;
   }
 
   @Override
   public CorsHandler allowedHeader(String headerName) {
     allowedHeaders.add(headerName);
-    allowedHeadersString = join(allowedHeaders);
+    allowedHeadersString = Utils.join(allowedHeaders);
     return this;
   }
 
   @Override
   public CorsHandler allowedHeaders(Set<String> headerNames) {
     allowedHeaders.addAll(headerNames);
-    allowedHeadersString = join(allowedHeaders);
+    allowedHeadersString = Utils.join(allowedHeaders);
     return this;
   }
 
   @Override
   public CorsHandler exposedHeader(String headerName) {
     exposedHeaders.add(headerName);
-    exposedHeadersString = join(exposedHeaders);
+    exposedHeadersString = Utils.join(exposedHeaders);
     return this;
   }
 
   @Override
   public CorsHandler exposedHeaders(Set<String> headerNames) {
     exposedHeaders.addAll(headerNames);
-    exposedHeadersString = join(exposedHeaders);
+    exposedHeadersString = Utils.join(exposedHeaders);
     return this;
   }
 
@@ -175,22 +175,6 @@ public class CorsHandlerImpl implements CorsHandler {
 
   private String getAllowedOrigin(String origin) {
     return allowedOrigin == null ? "*" : origin;
-  }
-
-  private String join(Collection<?> ss) {
-    if (ss == null || ss.isEmpty()) {
-      return null;
-    }
-    StringBuilder sb = new StringBuilder();
-    boolean first = true;
-    for (Object s : ss) {
-      if (!first) {
-        sb.append(',');
-      }
-      sb.append(s);
-      first = false;
-    }
-    return sb.toString();
   }
 
 }

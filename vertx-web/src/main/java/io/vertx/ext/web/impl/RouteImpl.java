@@ -24,6 +24,7 @@ import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.MIMEHeader;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.handler.CorsHandler;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -55,15 +56,68 @@ public class RouteImpl implements Route {
   private Pattern pattern;
   private List<String> groups;
   private boolean useNormalisedPath = true;
+  private List<AutomaticHandler> automaticHandlers = new ArrayList<>();
+
+  private String allowedMethodsString;
+  private boolean hasCorsHandler = false;
 
   RouteImpl(RouterImpl router, int order) {
     this.router = router;
     this.order = order;
+    this.allowedMethodsString = Utils.join(Arrays.asList(HttpMethod.values()));
+    // Automatically handle OPTIONS if CorsHandler and OPTIONS not added
+    automaticHandlers.add(new AutomaticHandler(
+      (ctx) -> {
+        if (ctx.request().method() == HttpMethod.OPTIONS && !methods.contains(HttpMethod.OPTIONS) && !hasCorsHandler) {
+          return AutomaticHandlerResult.METHOD;
+        }
+        return null;
+      },
+      (ctx) -> {
+        ctx.response().putHeader("Allow", allowedMethodsString);
+        ctx.response().setStatusCode(204).end();
+      }));
+    // Automatically send 405 if wrong verb
+    automaticHandlers.add(new AutomaticHandler(
+      (ctx) -> {
+        HttpMethod method = ctx.request().method();
+        // Return 404 for GET and HEAD
+        if (method != HttpMethod.GET && method != HttpMethod.HEAD && !methods.isEmpty() && !methods.contains(method)) {
+          return AutomaticHandlerResult.METHOD;
+        }
+        return null;
+      },
+      (ctx) -> {
+        ctx.response().putHeader("Allow", allowedMethodsString);
+        ctx.response().setStatusCode(405).end();
+      }));
+    // Automatically send 415 if content negotiation fails
+    automaticHandlers.add(new AutomaticHandler(
+      (ctx) -> {
+        if (!consumes.isEmpty() && ctx.parsedHeaders().contentType().findMatchedBy(consumes) == null) {
+          return AutomaticHandlerResult.CONTENT_TYPE;
+        }
+        return null;
+      },
+      (ctx) -> ctx.response().setStatusCode(415).end()
+    ));
+    // Automatically send 406 if we can't fulfill accept header
+    automaticHandlers.add(new AutomaticHandler(
+      (ctx) -> {
+        List<MIMEHeader> acceptableTypes = ctx.parsedHeaders().accept();
+        if (!produces.isEmpty() && !acceptableTypes.isEmpty()
+          && ctx.parsedHeaders().findBestUserAcceptedIn(acceptableTypes, produces) == null) {
+          return AutomaticHandlerResult.ACCEPTABLE_CONTENT_TYPES;
+        }
+        return null;
+      },
+      (ctx) -> ctx.response().setStatusCode(406).end()
+    ));
   }
 
   RouteImpl(RouterImpl router, int order, HttpMethod method, String path) {
     this(router, order);
-    methods.add(method);
+    method(method);
     checkPath(path);
     setPath(path);
   }
@@ -76,7 +130,7 @@ public class RouteImpl implements Route {
 
   RouteImpl(RouterImpl router, int order, HttpMethod method, String regex, boolean bregex) {
     this(router, order);
-    methods.add(method);
+    method(method);
     setRegex(regex);
   }
 
@@ -88,6 +142,7 @@ public class RouteImpl implements Route {
   @Override
   public synchronized Route method(HttpMethod method) {
     methods.add(method);
+    this.allowedMethodsString = Utils.join(methods);
     return this;
   }
 
@@ -138,6 +193,9 @@ public class RouteImpl implements Route {
       throw new IllegalStateException("Setting handler for a route more than once!");
     }
     this.contextHandler = contextHandler;
+    if (contextHandler instanceof CorsHandler) {
+      hasCorsHandler = true;
+    }
     checkAdd();
     return this;
   }
@@ -149,6 +207,9 @@ public class RouteImpl implements Route {
 
   @Override
   public synchronized Route blockingHandler(Handler<RoutingContext> contextHandler, boolean ordered) {
+    if (contextHandler instanceof CorsHandler) {
+      hasCorsHandler = true;
+    }
     return handler(new BlockingHandlerDecorator(contextHandler, ordered));
   }
 
@@ -213,6 +274,12 @@ public class RouteImpl implements Route {
   }
 
   synchronized void handleContext(RoutingContext context) {
+    for (AutomaticHandler methodHandler : automaticHandlers) {
+      if (methodHandler.shouldHandle(context) != null) {
+        methodHandler.handle(context);
+        return;
+      }
+    }
     if (contextHandler != null) {
       contextHandler.handle(context);
     }
@@ -232,11 +299,21 @@ public class RouteImpl implements Route {
     if (!enabled) {
       return false;
     }
+    AutomaticHandlerResult automaticHandlerResult = null;
+    for (AutomaticHandler automaticHandler : automaticHandlers) {
+      AutomaticHandlerResult result = automaticHandler.shouldHandle(context);
+      if (result != null) {
+        automaticHandlerResult = result;
+        break;
+      }
+    }
     HttpServerRequest request = context.request();
-    if (!methods.isEmpty() && !methods.contains(request.method())) {
+    if (automaticHandlerResult != AutomaticHandlerResult.METHOD &&
+      !methods.isEmpty() && !methods.contains(request.method())) {
       return false;
     }
-    if (path != null && pattern == null && !pathMatches(mountPoint, context)) {
+    if (automaticHandlerResult != AutomaticHandlerResult.PATH &&
+      path != null && pattern == null && !pathMatches(mountPoint, context)) {
       return false;
     }
     if (pattern != null) {
@@ -284,7 +361,7 @@ public class RouteImpl implements Route {
         return false;
       }
     }
-    if (!consumes.isEmpty()) {
+    if (automaticHandlerResult != AutomaticHandlerResult.CONTENT_TYPE && !consumes.isEmpty()) {
       // Can this route consume the specified content type
       MIMEHeader contentType = context.parsedHeaders().contentType();
       MIMEHeader consumal = contentType.findMatchedBy(consumes);
@@ -293,7 +370,8 @@ public class RouteImpl implements Route {
       }
     }
     List<MIMEHeader> acceptableTypes = context.parsedHeaders().accept();
-    if (!produces.isEmpty() && !acceptableTypes.isEmpty()) {
+    if (automaticHandlerResult != AutomaticHandlerResult.ACCEPTABLE_CONTENT_TYPES &&
+      !produces.isEmpty() && !acceptableTypes.isEmpty()) {
       MIMEHeader selectedAccept = context.parsedHeaders().findBestUserAcceptedIn(acceptableTypes, produces);
         if(selectedAccept != null){
           context.setAcceptableContentType(selectedAccept.rawValue());
@@ -415,5 +493,4 @@ public class RouteImpl implements Route {
       added = true;
     }
   }
-
 }

@@ -28,6 +28,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.Locale;
 import java.util.TimeZone;
@@ -407,5 +408,21 @@ public class Utils extends io.vertx.core.impl.Utils {
 
   public static long secondsFactor(long millis) {
     return millis - (millis % 1000);
+  }
+
+  public static String join(Collection<?> ss) {
+    if (ss == null || ss.isEmpty()) {
+      return null;
+    }
+    StringBuilder sb = new StringBuilder();
+    boolean first = true;
+    for (Object s : ss) {
+      if (!first) {
+        sb.append(',');
+      }
+      sb.append(s);
+      first = false;
+    }
+    return sb.toString();
   }
 }
