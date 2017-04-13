@@ -9,15 +9,15 @@ import java.util.function.Function;
  * @author <a href="mailto:y.lin@vanderbilt.edu">Yunyu Lin</a>
  */
 public class AutomaticHandler {
-  private Function<RoutingContext, AutomaticHandlerResult> resultFunction;
+  private Function<RoutingContext, MatchResult> resultFunction;
   private Handler<RoutingContext> contextHandler;
 
-  public AutomaticHandler(Function<RoutingContext, AutomaticHandlerResult> resultFunction, Handler<RoutingContext> contextHandler) {
+  public AutomaticHandler(Function<RoutingContext, MatchResult> resultFunction, Handler<RoutingContext> contextHandler) {
     this.resultFunction = resultFunction;
     this.contextHandler = contextHandler;
   }
 
-  public AutomaticHandlerResult shouldHandle(RoutingContext context) {
+  public MatchResult matches(RoutingContext context) {
     return resultFunction.apply(context);
   }
 

@@ -69,9 +69,9 @@ public class RouteImpl implements Route {
     automaticHandlers.add(new AutomaticHandler(
       (ctx) -> {
         if (ctx.request().method() == HttpMethod.OPTIONS && !methods.contains(HttpMethod.OPTIONS) && !hasCorsHandler) {
-          return AutomaticHandlerResult.METHOD;
+          return MatchResult.TRUE;
         }
-        return null;
+        return MatchResult.SKIP;
       },
       (ctx) -> {
         ctx.response().putHeader("Allow", allowedMethodsString);
@@ -82,10 +82,14 @@ public class RouteImpl implements Route {
       (ctx) -> {
         HttpMethod method = ctx.request().method();
         // Return 404 for GET and HEAD
-        if (method != HttpMethod.GET && method != HttpMethod.HEAD && !methods.isEmpty() && !methods.contains(method)) {
-          return AutomaticHandlerResult.METHOD;
+        if (!methods.isEmpty() && !methods.contains(method)) {
+          if (method != HttpMethod.HEAD && method != HttpMethod.GET) {
+            return MatchResult.TRUE;
+          } else {
+            return MatchResult.FALSE;
+          }
         }
-        return null;
+        return MatchResult.SKIP;
       },
       (ctx) -> {
         ctx.response().putHeader("Allow", allowedMethodsString);
@@ -95,9 +99,9 @@ public class RouteImpl implements Route {
     automaticHandlers.add(new AutomaticHandler(
       (ctx) -> {
         if (!consumes.isEmpty() && ctx.parsedHeaders().contentType().findMatchedBy(consumes) == null) {
-          return AutomaticHandlerResult.CONTENT_TYPE;
+          return MatchResult.TRUE;
         }
-        return null;
+        return MatchResult.SKIP;
       },
       (ctx) -> ctx.response().setStatusCode(415).end()
     ));
@@ -105,11 +109,15 @@ public class RouteImpl implements Route {
     automaticHandlers.add(new AutomaticHandler(
       (ctx) -> {
         List<MIMEHeader> acceptableTypes = ctx.parsedHeaders().accept();
-        if (!produces.isEmpty() && !acceptableTypes.isEmpty()
-          && ctx.parsedHeaders().findBestUserAcceptedIn(acceptableTypes, produces) == null) {
-          return AutomaticHandlerResult.ACCEPTABLE_CONTENT_TYPES;
+        if (!produces.isEmpty() && !acceptableTypes.isEmpty()) {
+          MIMEHeader selectedAccept = ctx.parsedHeaders().findBestUserAcceptedIn(acceptableTypes, produces);
+          if (selectedAccept == null) {
+            return MatchResult.TRUE;
+          } else {
+            ctx.setAcceptableContentType(selectedAccept.rawValue());
+          }
         }
-        return null;
+        return MatchResult.SKIP;
       },
       (ctx) -> ctx.response().setStatusCode(406).end()
     ));
@@ -275,7 +283,7 @@ public class RouteImpl implements Route {
 
   synchronized void handleContext(RoutingContext context) {
     for (AutomaticHandler methodHandler : automaticHandlers) {
-      if (methodHandler.shouldHandle(context) != null) {
+      if (methodHandler.matches(context) != MatchResult.SKIP) {
         methodHandler.handle(context);
         return;
       }
@@ -299,21 +307,17 @@ public class RouteImpl implements Route {
     if (!enabled) {
       return false;
     }
-    AutomaticHandlerResult automaticHandlerResult = null;
     for (AutomaticHandler automaticHandler : automaticHandlers) {
-      AutomaticHandlerResult result = automaticHandler.shouldHandle(context);
-      if (result != null) {
-        automaticHandlerResult = result;
-        break;
+      MatchResult result = automaticHandler.matches(context);
+      if (result == MatchResult.TRUE) {
+        return true;
+      }
+      if (result == MatchResult.FALSE) {
+        return false;
       }
     }
     HttpServerRequest request = context.request();
-    if (automaticHandlerResult != AutomaticHandlerResult.METHOD &&
-      !methods.isEmpty() && !methods.contains(request.method())) {
-      return false;
-    }
-    if (automaticHandlerResult != AutomaticHandlerResult.PATH &&
-      path != null && pattern == null && !pathMatches(mountPoint, context)) {
+    if (path != null && pattern == null && !pathMatches(mountPoint, context)) {
       return false;
     }
     if (pattern != null) {
@@ -360,24 +364,6 @@ public class RouteImpl implements Route {
       } else {
         return false;
       }
-    }
-    if (automaticHandlerResult != AutomaticHandlerResult.CONTENT_TYPE && !consumes.isEmpty()) {
-      // Can this route consume the specified content type
-      MIMEHeader contentType = context.parsedHeaders().contentType();
-      MIMEHeader consumal = contentType.findMatchedBy(consumes);
-      if(consumal == null){
-        return false;
-      }
-    }
-    List<MIMEHeader> acceptableTypes = context.parsedHeaders().accept();
-    if (automaticHandlerResult != AutomaticHandlerResult.ACCEPTABLE_CONTENT_TYPES &&
-      !produces.isEmpty() && !acceptableTypes.isEmpty()) {
-      MIMEHeader selectedAccept = context.parsedHeaders().findBestUserAcceptedIn(acceptableTypes, produces);
-        if(selectedAccept != null){
-          context.setAcceptableContentType(selectedAccept.rawValue());
-          return true;
-        }
-      return false;
     }
     return true;
   }
