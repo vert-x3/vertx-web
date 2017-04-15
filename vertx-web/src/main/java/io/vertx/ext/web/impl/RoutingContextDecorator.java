@@ -2,6 +2,7 @@ package io.vertx.ext.web.impl;
 
 import io.vertx.codegen.annotations.Nullable;
 import io.vertx.core.Handler;
+import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
@@ -229,7 +230,7 @@ public class RoutingContextDecorator implements RoutingContext {
   }
 
   @Override
-  public Map<String, String> queryParams() {
+  public MultiMap queryParams() {
     return decoratedContext.queryParams();
   }
 

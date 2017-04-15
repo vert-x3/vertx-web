@@ -22,6 +22,7 @@ import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.Nullable;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
+import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
@@ -475,9 +476,9 @@ public interface RoutingContext {
   /**
    * Returns a map of all query parameters inside the <a href="https://en.wikipedia.org/wiki/Query_string">query string</a>
    *
-   * @return the map of query parameters (if a query parameter value is an array, it will be provided as comma separated string, so if you need to extract array from query use {@link #queryParam(String)} queryParam)
+   * @return the multimap of query parameters
    */
-  Map<String, String> queryParams();
+  MultiMap queryParams();
 
   /**
    * Gets the value of a single query parameter

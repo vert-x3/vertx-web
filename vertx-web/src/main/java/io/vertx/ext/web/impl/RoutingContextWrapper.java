@@ -18,6 +18,7 @@ package io.vertx.ext.web.impl;
 
 import io.vertx.codegen.annotations.Nullable;
 import io.vertx.core.Handler;
+import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
@@ -273,9 +274,7 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   }
 
   @Override
-  public Map<String, String> queryParams() {
-    return inner.queryParams();
-  }
+  public MultiMap queryParams() { return inner.queryParams(); }
 
   @Override
   public @Nullable List<String> queryParam(String query) {

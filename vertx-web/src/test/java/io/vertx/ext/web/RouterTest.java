@@ -21,9 +21,7 @@ import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpMethod;
 import org.junit.Test;
 
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -820,9 +818,9 @@ public class RouterTest extends WebTestBase {
     final String sValue = "sample_value";
     final String sep = ",";
     router.route("/blah/:" + pathParameterName + "/test").handler(rc -> {
-      Map<String, String> params = rc.queryParams();
-      assertEquals(params.get("q"), String.join(",", rc.queryParam("q")));
-      String statusMessage = String.join("/", params.values());
+      MultiMap params = rc.queryParams();
+      String qExpected = String.join(",", params.getAll("q"));
+      String statusMessage = String.join("/", qExpected, params.get("s"));
       rc.response().setStatusMessage(statusMessage).end();
     });
     testRequest(HttpMethod.GET,

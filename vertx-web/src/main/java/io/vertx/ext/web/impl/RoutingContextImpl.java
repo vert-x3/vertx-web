@@ -19,6 +19,7 @@ package io.vertx.ext.web.impl;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.vertx.codegen.annotations.Nullable;
 import io.vertx.core.Handler;
+import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
@@ -41,8 +42,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   private final RouterImpl router;
   private Map<String, Object> data;
   private Map<String, String> pathParams;
-  private Map<String, String> queryParams;
-  private Map<String, List<String>> queryParamsParsed;
+  private MultiMap queryParams;
   private AtomicInteger handlerSeq = new AtomicInteger();
   private Map<Integer, Handler<Void>> headersEndHandlers;
   private Map<Integer, Handler<Void>> bodyEndHandlers;
@@ -367,35 +367,26 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   }
 
   @Override
-  public Map<String, String> queryParams() {
+  public MultiMap queryParams() {
     return getQueryParams();
   }
 
   @Override
   public @Nullable List<String> queryParam(String query) {
-    return getQueryParamsParsed().get(query);
+    return getQueryParams().getAll(query);
   }
 
   protected void setQueryParams(Map<String, List<String>> q) {
-    queryParamsParsed = new HashMap<>();
-    queryParamsParsed.putAll(q);
-    queryParams = new HashMap<>();
-    for (Map.Entry<String, List<String>> e : q.entrySet())
-      queryParams.put(e.getKey(), String.join(",", e.getValue()));
+    queryParams = MultiMap.caseInsensitiveMultiMap();
+    for (Map.Entry<String, List<String>> entry : q.entrySet())
+      queryParams.add(entry.getKey(), entry.getValue());
   }
 
-  private Map<String, String> getQueryParams() {
+  private MultiMap getQueryParams() {
     if (queryParams == null) {
-      queryParams = new HashMap<>();
+      queryParams = MultiMap.caseInsensitiveMultiMap();
     }
     return queryParams;
-  }
-
-  private Map<String, List<String>> getQueryParamsParsed() {
-    if (queryParamsParsed == null) {
-      queryParamsParsed = new HashMap<>();
-    }
-    return queryParamsParsed;
   }
 
   private Map<String, String> getPathParams() {
