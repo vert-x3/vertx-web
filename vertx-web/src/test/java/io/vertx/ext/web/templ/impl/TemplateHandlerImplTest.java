@@ -29,7 +29,7 @@ public class TemplateHandlerImplTest {
     TemplateHandler templateHandler = new TemplateHandlerImpl(templateEngine, "templates", "ext");
     templateHandler.handle(routingContext);
 
-    verify(templateEngine).render(any(), eq("templates/index"), any());
+    verify(templateEngine).render(any(), eq("templates"), eq("/index"), any());
   }
 
   @Test
@@ -45,7 +45,7 @@ public class TemplateHandlerImplTest {
     templateHandler.setIndexTemplate("home");
     templateHandler.handle(routingContext);
 
-    verify(templateEngine).render(any(), eq("templates/home"), any());
+    verify(templateEngine).render(any(), eq("templates"), eq("/home"), any());
   }
 
   @Test
@@ -61,7 +61,7 @@ public class TemplateHandlerImplTest {
     templateHandler.setIndexTemplate(null);
     templateHandler.handle(routingContext);
 
-    verify(templateEngine).render(any(), eq("templates/"), any());
+    verify(templateEngine).render(any(), eq("templates"), eq("/"), any());
   }
 
   @Test
@@ -76,7 +76,7 @@ public class TemplateHandlerImplTest {
     TemplateHandler templateHandler = new TemplateHandlerImpl(templateEngine, "templates", "ext");
     templateHandler.handle(routingContext);
 
-    verify(templateEngine).render(any(), eq("templates/about"), any());
+    verify(templateEngine).render(any(), eq("templates"), eq("/about"), any());
   }
 
 }
