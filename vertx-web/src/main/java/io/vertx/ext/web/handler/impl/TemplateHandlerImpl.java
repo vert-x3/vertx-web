@@ -34,18 +34,23 @@ public class TemplateHandlerImpl implements TemplateHandler {
 
   public TemplateHandlerImpl(TemplateEngine engine, String templateDirectory, String contentType) {
     this.engine = engine;
-    this.templateDirectory = templateDirectory;
+    String t = Utils.normalizePath(templateDirectory);
+    // remove leading slash put there by normalizePath if provided templateDirectory is not absolute path
+    if(!templateDirectory.startsWith("/")) t = t.substring(1);
+    // can't have empty template directory, set it to current path
+    if(t.length() == 0) t = ".";
+    this.templateDirectory = t;
     this.contentType = contentType;
     this.indexTemplate = DEFAULT_INDEX_TEMPLATE;
   }
 
   @Override
   public void handle(RoutingContext context) {
-    String file = templateDirectory + Utils.pathOffset(context.normalisedPath(), context);
+    String file = Utils.pathOffset(context.normalisedPath(), context);
     if (file.endsWith("/") && null != indexTemplate) {
       file += indexTemplate;
     }
-    engine.render(context, file, res -> {
+    engine.render(context, templateDirectory, file, res -> {
       if (res.succeeded()) {
         context.response().putHeader(HttpHeaders.CONTENT_TYPE, contentType).end(res.result());
       } else {

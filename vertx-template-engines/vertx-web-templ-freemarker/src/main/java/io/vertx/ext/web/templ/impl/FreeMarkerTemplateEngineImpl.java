@@ -24,6 +24,7 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.impl.Utils;
 import io.vertx.ext.web.templ.FreeMarkerTemplateEngine;
 
 import java.io.ByteArrayOutputStream;
@@ -62,8 +63,9 @@ public class FreeMarkerTemplateEngineImpl extends CachingTemplateEngine<Template
   }
 
   @Override
-  public void render(RoutingContext context, String templateFileName, Handler<AsyncResult<Buffer>> handler) {
+  public void render(RoutingContext context, String templateBasePath, String templateRelativePath, Handler<AsyncResult<Buffer>> handler) {
     try {
+      String templateFileName = templateBasePath + Utils.normalizePath(templateRelativePath);
       Template template = isCachingEnabled() ? cache.get(templateFileName) : null;
       if (template == null) {
         // real compile

@@ -35,10 +35,11 @@ public interface TemplateEngine {
   /**
    * Render
    * @param context  the routing context
-   * @param templateFileName  the template file name to use
+   * @param templateBasePath  the base-path to template
+   * @param templateRelativePath  relative path based on templateBasePath to template file
    * @param handler  the handler that will be called with a result containing the buffer or a failure.
    */
-  void render(RoutingContext context, String templateFileName, Handler<AsyncResult<Buffer>> handler);
+  void render(RoutingContext context, String templateBasePath, String templateRelativePath, Handler<AsyncResult<Buffer>> handler);
 
   /**
    * Returns true if the template engine caches template files. If false, then template files are freshly loaded each

@@ -151,6 +151,12 @@ public class HandlebarsTemplateTest extends WebTestBase {
   }
 
   @Test
+  public void testTemplateWithPartialFromSubdir() throws Exception {
+    TemplateEngine engine = HandlebarsTemplateEngine.create();
+    testTemplateHandler(engine, "src/test/filesystemtemplates", "sub/test-handlebars-template9", "\ntext from template8\n\ntext from template9\n\n\n");
+  }
+
+  @Test
   public void testTemplateNoExtension() throws Exception {
     TemplateEngine engine = HandlebarsTemplateEngine.create();
     testTemplateHandler(engine, "somedir", "test-handlebars-template2", "Hello badger and fox");

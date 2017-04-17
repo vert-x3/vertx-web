@@ -55,8 +55,9 @@ public class MVELTemplateEngineImpl extends CachingTemplateEngine<CompiledTempla
   }
 
   @Override
-  public void render(RoutingContext context, String templateFileName, Handler<AsyncResult<Buffer>> handler) {
+  public void render(RoutingContext context, String templateBasePath, String templateRelativePath, Handler<AsyncResult<Buffer>> handler) {
     try {
+      String templateFileName = templateBasePath + Utils.normalizePath(templateRelativePath);
       CompiledTemplate template = isCachingEnabled() ? cache.get(templateFileName) : null;
       if (template == null) {
         // real compile
