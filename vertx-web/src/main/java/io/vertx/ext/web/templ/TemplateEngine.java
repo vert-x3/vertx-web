@@ -33,7 +33,11 @@ import io.vertx.ext.web.RoutingContext;
 public interface TemplateEngine {
 
   /**
-   * Render
+   * Render the template
+   * <p>
+   * <b>NOTE</b> if you call method directly (i.e. not using {@link io.vertx.ext.web.handler.TemplateHandler}) make sure
+   * that <i>templateFileName</i> is sanitized via {@link io.vertx.ext.web.impl.Utils#normalizePath(String)}
+   *
    * @param context  the routing context
    * @param templateDirectory  the template directory to use
    * @param templateFileName  the relative template file name to use

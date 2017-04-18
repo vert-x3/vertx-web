@@ -67,8 +67,8 @@ public class HandlebarsTemplateEngineImpl extends CachingTemplateEngine<Template
   @Override
   public void render(RoutingContext context, String templateDirectory, String templateFileName, Handler<AsyncResult<Buffer>> handler) {
     try {
-      String baseTemplateFileName = Utils.normalizePath(templateFileName);
-      templateFileName = templateDirectory + baseTemplateFileName;
+      String baseTemplateFileName = templateFileName;
+      templateFileName = templateDirectory + templateFileName;
       Template template = isCachingEnabled() ? cache.get(templateFileName) : null;
       if (template == null) {
         synchronized (this) {

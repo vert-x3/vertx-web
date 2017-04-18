@@ -64,7 +64,7 @@ public class JadeTemplateEngineImpl extends CachingTemplateEngine<JadeTemplate> 
   @Override
   public void render(RoutingContext context, String templateDirectory, String templateFileName, Handler<AsyncResult<Buffer>> handler) {
     try {
-      templateFileName = templateDirectory + Utils.normalizePath(templateFileName);
+      templateFileName = templateDirectory + templateFileName;
       JadeTemplate template = isCachingEnabled() ? cache.get(templateFileName) : null;
 
       if (template == null) {

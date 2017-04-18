@@ -62,7 +62,7 @@ public class PebbleTemplateEngineImpl extends CachingTemplateEngine<PebbleTempla
   @Override
   public void render(RoutingContext context, String templateDirectory, String templateFileName, Handler<AsyncResult<Buffer>> handler) {
     try {
-      templateFileName = templateDirectory + Utils.normalizePath(templateFileName);
+      templateFileName = templateDirectory + templateFileName;
       PebbleTemplate template = isCachingEnabled() ? cache.get(templateFileName) : null;
       if (template == null) {
         // real compile
