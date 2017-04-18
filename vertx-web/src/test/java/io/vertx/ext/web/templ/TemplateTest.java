@@ -89,7 +89,7 @@ public class TemplateTest extends WebTestBase {
     router.route().handler(context -> {
       context.put("foo", "badger");
       context.put("bar", "fox");
-      engine.render(context, "somedir","test-template.html", res -> {
+      engine.render(context, "somedir", "test-template.html", res -> {
         if (res.succeeded()) {
           context.response().putHeader(HttpHeaders.CONTENT_TYPE, "text/html").end(res.result());
         } else {
@@ -144,8 +144,8 @@ public class TemplateTest extends WebTestBase {
     }
 
     @Override
-    public void render(RoutingContext context, String templateBasePath, String templateRelativePath, Handler<AsyncResult<Buffer>> handler) {
-      String templateFileName = templateBasePath + Utils.normalizePath(templateRelativePath);
+    public void render(RoutingContext context, String templateDirectory, String templateFileName, Handler<AsyncResult<Buffer>> handler) {
+      templateFileName = templateDirectory + Utils.normalizePath(templateFileName);
       if (fail) {
         handler.handle(Future.failedFuture(new Exception("eek")));
       } else {

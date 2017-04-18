@@ -63,9 +63,9 @@ public class FreeMarkerTemplateEngineImpl extends CachingTemplateEngine<Template
   }
 
   @Override
-  public void render(RoutingContext context, String templateBasePath, String templateRelativePath, Handler<AsyncResult<Buffer>> handler) {
+  public void render(RoutingContext context, String templateDirectory, String templateFileName, Handler<AsyncResult<Buffer>> handler) {
     try {
-      String templateFileName = templateBasePath + Utils.normalizePath(templateRelativePath);
+      templateFileName = templateDirectory + Utils.normalizePath(templateFileName);
       Template template = isCachingEnabled() ? cache.get(templateFileName) : null;
       if (template == null) {
         // real compile

@@ -81,9 +81,9 @@ public class ThymeleafTemplateEngineImpl implements ThymeleafTemplateEngine {
   }
 
   @Override
-  public void render(RoutingContext context, String templateBasePath, String templateRelativePath, Handler<AsyncResult<Buffer>> handler) {
+  public void render(RoutingContext context, String templateDirectory, String templateFileName, Handler<AsyncResult<Buffer>> handler) {
     Buffer buffer = Buffer.buffer();
-    String templateFileName = templateBasePath + Utils.normalizePath(templateRelativePath);
+    templateFileName = templateDirectory + Utils.normalizePath(templateFileName);
 
     try {
       Map<String, Object> data = new HashMap<>();

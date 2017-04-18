@@ -34,12 +34,7 @@ public class TemplateHandlerImpl implements TemplateHandler {
 
   public TemplateHandlerImpl(TemplateEngine engine, String templateDirectory, String contentType) {
     this.engine = engine;
-    String t = Utils.normalizePath(templateDirectory);
-    // remove leading slash put there by normalizePath if provided templateDirectory is not absolute path
-    if(!templateDirectory.startsWith("/")) t = t.substring(1);
-    // can't have empty template directory, set it to current path
-    if(t.length() == 0) t = ".";
-    this.templateDirectory = t;
+    this.templateDirectory = templateDirectory == null || templateDirectory.isEmpty() ? "." : templateDirectory;
     this.contentType = contentType;
     this.indexTemplate = DEFAULT_INDEX_TEMPLATE;
   }
