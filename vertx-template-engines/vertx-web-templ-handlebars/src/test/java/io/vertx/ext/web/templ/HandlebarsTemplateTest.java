@@ -157,6 +157,28 @@ public class HandlebarsTemplateTest extends WebTestBase {
   }
 
   @Test
+  public void testTemplateDirectoryNullAndEmpty() throws Exception {
+    // null or empty templateDirectory should resolve to current working directory,
+    // which is target/classes while testing
+    TemplateEngine engine = HandlebarsTemplateEngine.create();
+    File temp = File.createTempFile("template", ".hbs", new File("target/classes"));
+    temp.deleteOnExit();
+
+    router.clear();
+    router.route().handler(TemplateHandler.create(engine, null, "text/html"));
+    // template that doesn't exist
+    testRequest(HttpMethod.GET, "/foo.hbs", 500, "Internal Server Error");
+    // created template
+    testRequest(HttpMethod.GET, "/" + temp.getName(), 200, "OK");
+
+    // same tests with empty path
+    router.clear();
+    router.route().handler(TemplateHandler.create(engine, "", "text/html"));
+    testRequest(HttpMethod.GET, "/foo.hbs", 500, "Internal Server Error");
+    testRequest(HttpMethod.GET, "/" + temp.getName(), 200, "OK");
+  }
+
+  @Test
   public void testTemplateNoExtension() throws Exception {
     TemplateEngine engine = HandlebarsTemplateEngine.create();
     testTemplateHandler(engine, "somedir", "test-handlebars-template2", "Hello badger and fox");
