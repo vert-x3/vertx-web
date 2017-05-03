@@ -1025,9 +1025,9 @@
  * ----
  *
  * For example, if there was a request with path `/static/css/mystyles.css` the static serve will look for a file in the
- * directory `webroot/static/css/mystyle.css`.
+ * directory `webroot/css/mystyle.css`.
  *
- * It will also look for a file on the classpath called `webroot/static/css/mystyle.css`. This means you can package up all your
+ * It will also look for a file on the classpath called `webroot/css/mystyle.css`. This means you can package up all your
  * static resources into a jar file (or fatjar) and distribute them like that.
  *
  * When Vert.x finds a resource on the classpath for the first time it extracts it and caches it in a temporary directory
