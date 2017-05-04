@@ -57,6 +57,7 @@ class HttpRequestImpl<T> implements HttpRequest<T> {
   private final WebClientOptions options;
   private MultiMap params;
   private HttpMethod method;
+  private String protocol;
   private int port;
   private String host;
   private String uri;
@@ -67,8 +68,13 @@ class HttpRequestImpl<T> implements HttpRequest<T> {
   private boolean ssl;
 
   HttpRequestImpl(HttpClient client, HttpMethod method, boolean ssl, int port, String host, String uri, BodyCodec<T> codec, WebClientOptions options) {
+    this(client, method, null, ssl, port, uri, uri, codec, options);
+  }
+
+  HttpRequestImpl(HttpClient client, HttpMethod method, String protocol, boolean ssl, int port, String host, String uri, BodyCodec<T> codec, WebClientOptions options) {
     this.client = client;
     this.method = method;
+    this.protocol = protocol;
     this.codec = codec;
     this.port = port;
     this.host = host;
@@ -85,6 +91,7 @@ class HttpRequestImpl<T> implements HttpRequest<T> {
     this.client = other.client;
     this.options = other.options;
     this.method = other.method;
+    this.protocol = other.protocol;
     this.port = other.port;
     this.host = other.host;
     this.timeout = other.timeout;
@@ -278,7 +285,14 @@ class HttpRequestImpl<T> implements HttpRequest<T> {
     if (ssl != options.isSsl()) {
       req = client.request(method, new RequestOptions().setSsl(ssl).setHost(host).setPort(port).setURI(requestURI));
     } else {
-      req = client.request(method, port, host, requestURI);
+      if (protocol!=null && !protocol.equals("http") && !protocol.equals("https")) {
+        final int defaultPort = protocol.equals("ftp") ? 21 : 80;
+        final String addPort = (port != -1 && port != defaultPort) ? (":" + port) : "";
+        String absUri=protocol+"://"+host+addPort + requestURI;
+        req = client.requestAbs(method, absUri);
+      } else {
+        req = client.request(method, port, host, requestURI);
+      }
     }
     req.setFollowRedirects(followRedirects);
     if (headers != null) {
