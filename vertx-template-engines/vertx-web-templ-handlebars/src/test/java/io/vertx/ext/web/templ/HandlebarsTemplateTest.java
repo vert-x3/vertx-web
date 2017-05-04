@@ -19,6 +19,7 @@ package io.vertx.ext.web.templ;
 import com.github.jknack.handlebars.HandlebarsException;
 import com.github.jknack.handlebars.ValueResolver;
 import io.vertx.core.Handler;
+import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -263,5 +264,86 @@ public class HandlebarsTemplateTest extends WebTestBase {
     out.close();
 
     testTemplateHandler(engine, ".", temp.getName(), "after");
+  }
+
+  /**
+   * TODO remove when {@link io.vertx.ext.web.templ.TemplateEngine#render(RoutingContext, String, Handler)} is removed
+   */
+  @Test
+  public void testDeprecatedRenderMethodRelativePath() throws Exception {
+    TemplateEngine engine = HandlebarsTemplateEngine.create();
+    router.route().handler(context -> {
+      context.put("foo", "badger");
+      context.put("bar", "fox");
+      engine.render(context, "src/test/filesystemtemplates/test-handlebars-template3", res -> {
+        if (res.succeeded()) {
+          context.response().putHeader(HttpHeaders.CONTENT_TYPE, "text/html").end(res.result());
+        } else {
+          context.fail(res.cause());
+        }
+      });
+    });
+    String expected = "Goodbye badger and fox";
+    testRequest(HttpMethod.GET, "/", 200, "OK", expected);
+  }
+
+  /**
+   * TODO remove when {@link io.vertx.ext.web.templ.TemplateEngine#render(RoutingContext, String, Handler)} is removed
+   */
+  @Test
+  public void testDeprecatedRenderMethodAbsolutePath() throws Exception {
+    File wd = new File(".");
+    TemplateEngine engine = HandlebarsTemplateEngine.create();
+    router.route().handler(context -> {
+      context.put("foo", "badger");
+      context.put("bar", "fox");
+      engine.render(context, wd.getAbsolutePath() + "/src/test/filesystemtemplates/test-handlebars-template3", res -> {
+        if (res.succeeded()) {
+          context.response().putHeader(HttpHeaders.CONTENT_TYPE, "text/html").end(res.result());
+        } else {
+          context.fail(res.cause());
+        }
+      });
+    });
+    String expected = "Goodbye badger and fox";
+    testRequest(HttpMethod.GET, "/", 200, "OK", expected);
+  }
+
+  /**
+   * TODO remove when {@link io.vertx.ext.web.templ.TemplateEngine#render(RoutingContext, String, Handler)} is removed
+   * also remove src/test/filesystemtemplates/test-handlebars-template7A.hbs template
+   */
+  @Test
+  public void testDeprecatedRenderMethodRelativePathWithInclude() throws Exception {
+    TemplateEngine engine = HandlebarsTemplateEngine.create();
+    router.route().handler(context -> {
+      engine.render(context, "src/test/filesystemtemplates/test-handlebars-template7A", res -> {
+        if (res.succeeded()) {
+          context.response().putHeader(HttpHeaders.CONTENT_TYPE, "text/html").end(res.result());
+        } else {
+          context.fail(res.cause());
+        }
+      });
+    });
+    String expected = "\ntext from template8\n\ntext from template7\n\n\n";
+    testRequest(HttpMethod.GET, "/", 200, "OK", expected);
+  }
+
+  /**
+   * TODO remove when {@link io.vertx.ext.web.templ.TemplateEngine#render(RoutingContext, String, Handler)} is removed
+   */
+  @Test
+  public void testDeprecatedRenderMethodRelativePathWithIncludeFail() throws Exception {
+    TemplateEngine engine = HandlebarsTemplateEngine.create();
+    router.route().handler(context -> {
+      engine.render(context, "src/test/filesystemtemplates/test-handlebars-template7", res -> {
+        if (res.succeeded()) {
+          context.response().putHeader(HttpHeaders.CONTENT_TYPE, "text/html").end(res.result());
+        } else {
+          context.fail(res.cause());
+        }
+      });
+    });
+    testRequest(HttpMethod.GET, "/", 500, "Internal Server Error");
   }
 }

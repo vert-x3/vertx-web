@@ -34,6 +34,25 @@ public interface TemplateEngine {
 
   /**
    * Render the template
+   *
+   * @param context  the routing context
+   * @param templateFileName  the template file name to use
+   * @param handler  the handler that will be called with a result containing the buffer or a failure.
+   *
+   * @deprecated  use {@link #render(RoutingContext, String, String, Handler)}
+   */
+  @Deprecated
+  default void render(RoutingContext context, String templateFileName, Handler<AsyncResult<Buffer>> handler) {
+    int sep = templateFileName.indexOf('/');
+    if (sep != -1) {
+      render(context, templateFileName.substring(0, sep), templateFileName.substring(sep), handler);
+    } else {
+      render(context, "", templateFileName, handler);
+    }
+  }
+
+  /**
+   * Render the template
    * <p>
    * <b>NOTE</b> if you call method directly (i.e. not using {@link io.vertx.ext.web.handler.TemplateHandler}) make sure
    * that <i>templateFileName</i> is sanitized via {@link io.vertx.ext.web.impl.Utils#normalizePath(String)}
