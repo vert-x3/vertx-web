@@ -19,11 +19,13 @@ import io.vertx.core.net.ProxyOptions
  * @param connectTimeout 
  * @param crlPaths 
  * @param crlValues 
+ * @param decoderInitialBufferSize 
  * @param defaultHost 
  * @param defaultPort 
  * @param enabledCipherSuites 
  * @param enabledSecureTransportProtocols 
  * @param followRedirects  Configure the default behavior of the client to follow HTTP <code>30x</code> redirections.
+ * @param forceSni 
  * @param http2ClearTextUpgrade 
  * @param http2ConnectionWindowSize 
  * @param http2MaxPoolSize 
@@ -79,11 +81,13 @@ fun WebClientOptions(
   connectTimeout: Int? = null,
   crlPaths: Iterable<String>? = null,
   crlValues: Iterable<io.vertx.core.buffer.Buffer>? = null,
+  decoderInitialBufferSize: Int? = null,
   defaultHost: String? = null,
   defaultPort: Int? = null,
   enabledCipherSuites: Iterable<String>? = null,
   enabledSecureTransportProtocols: Iterable<String>? = null,
   followRedirects: Boolean? = null,
+  forceSni: Boolean? = null,
   http2ClearTextUpgrade: Boolean? = null,
   http2ConnectionWindowSize: Int? = null,
   http2MaxPoolSize: Int? = null,
@@ -147,6 +151,9 @@ fun WebClientOptions(
       this.addCrlValue(item)
     }
   }
+  if (decoderInitialBufferSize != null) {
+    this.setDecoderInitialBufferSize(decoderInitialBufferSize)
+  }
   if (defaultHost != null) {
     this.setDefaultHost(defaultHost)
   }
@@ -165,6 +172,9 @@ fun WebClientOptions(
   }
   if (followRedirects != null) {
     this.setFollowRedirects(followRedirects)
+  }
+  if (forceSni != null) {
+    this.setForceSni(forceSni)
   }
   if (http2ClearTextUpgrade != null) {
     this.setHttp2ClearTextUpgrade(http2ClearTextUpgrade)
