@@ -216,8 +216,8 @@
  * {@link examples.WebClientExamples#multiGet(io.vertx.ext.web.client.WebClient)}
  * ----
  *
- * When you need to mutate a request, the {@link io.vertx.ext.web.client.HttpRequest#copy()} returns a copy of the
- * request
+ * Beware though that {@link io.vertx.ext.web.client.HttpRequest} instances are mutable.
+ * Therefore you should call the {@link io.vertx.ext.web.client.HttpRequest#copy()} method before modifying a cached instance.
  *
  * [source,$lang]
  * ----
