@@ -70,12 +70,6 @@
       <version>2.7.22</version>
       <scope>test</scope>
     </dependency>
-    <dependency>
-      <groupId>io.netty</groupId>
-      <artifactId>netty-tcnative-boringssl-static</artifactId>
-      <version>1.1.33.Fork26</version>
-      <scope>test</scope>
-    </dependency>
   </dependencies>
 
   <build>
