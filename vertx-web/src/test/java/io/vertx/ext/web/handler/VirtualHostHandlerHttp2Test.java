@@ -19,7 +19,6 @@ import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.http.HttpVersion;
-import io.vertx.core.net.PemKeyCertOptions;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.WebTestBase;
 import org.junit.Test;
@@ -35,22 +34,15 @@ public class VirtualHostHandlerHttp2Test extends WebTestBase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    DEFAULT_PORT = 8443;
+    DEFAULT_PORT = 8181;
     router = Router.router(vertx);
     server = vertx.createHttpServer(new HttpServerOptions()
       .setPort(DEFAULT_PORT)
       .setHost("localhost")
-      .setSsl(true)
-      .setUseAlpn(true)
-      .setPemKeyCertOptions(new PemKeyCertOptions().setKeyPath("server-key.pem").setCertPath("server-cert.pem"))
     );
     client = vertx.createHttpClient(new HttpClientOptions()
       .setDefaultPort(DEFAULT_PORT)
-      .setSsl(true)
-      .setUseAlpn(true)
       .setProtocolVersion(HttpVersion.HTTP_2)
-      .setTrustAll(true)
-      .setVerifyHost(false)
     );
     CountDownLatch latch = new CountDownLatch(1);
     server.requestHandler(router::accept).listen(onSuccess(res -> {
