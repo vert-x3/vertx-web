@@ -33,12 +33,36 @@ import io.vertx.ext.web.RoutingContext;
 public interface TemplateEngine {
 
   /**
-   * Render
+   * Render the template
+   *
    * @param context  the routing context
    * @param templateFileName  the template file name to use
    * @param handler  the handler that will be called with a result containing the buffer or a failure.
+   *
+   * @deprecated  use {@link #render(RoutingContext, String, String, Handler)}
    */
-  void render(RoutingContext context, String templateFileName, Handler<AsyncResult<Buffer>> handler);
+  @Deprecated
+  default void render(RoutingContext context, String templateFileName, Handler<AsyncResult<Buffer>> handler) {
+    int sep = templateFileName.indexOf('/');
+    if (sep != -1) {
+      render(context, templateFileName.substring(0, sep), templateFileName.substring(sep), handler);
+    } else {
+      render(context, "", templateFileName, handler);
+    }
+  }
+
+  /**
+   * Render the template
+   * <p>
+   * <b>NOTE</b> if you call method directly (i.e. not using {@link io.vertx.ext.web.handler.TemplateHandler}) make sure
+   * that <i>templateFileName</i> is sanitized via {@link io.vertx.ext.web.impl.Utils#normalizePath(String)}
+   *
+   * @param context  the routing context
+   * @param templateDirectory  the template directory to use
+   * @param templateFileName  the relative template file name to use
+   * @param handler  the handler that will be called with a result containing the buffer or a failure.
+   */
+  void render(RoutingContext context, String templateDirectory, String templateFileName, Handler<AsyncResult<Buffer>> handler);
 
   /**
    * Returns true if the template engine caches template files. If false, then template files are freshly loaded each

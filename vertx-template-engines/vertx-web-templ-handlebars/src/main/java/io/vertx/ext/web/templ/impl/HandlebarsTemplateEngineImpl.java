@@ -65,18 +65,17 @@ public class HandlebarsTemplateEngineImpl extends CachingTemplateEngine<Template
   }
 
   @Override
-  public void render(RoutingContext context, String templateFileName, Handler<AsyncResult<Buffer>> handler) {
+  public void render(RoutingContext context, String templateDirectory, String templateFileName, Handler<AsyncResult<Buffer>> handler) {
     try {
+      String baseTemplateFileName = templateFileName;
+      templateFileName = templateDirectory + templateFileName;
       Template template = isCachingEnabled() ? cache.get(templateFileName) : null;
       if (template == null) {
         synchronized (this) {
-          // Prepare templateDirectory for partials every request, in case of multiple associated directories
-          loader.setPrefix(templateFileName.substring(0,
-            // preserve '/' as Utils#normalizePath guarantees a leading slash
-            templateFileName.length() - Utils.pathOffset(context.normalisedPath(), context).length() + 1
-          ));
+          loader.setPrefix(templateDirectory);
           loader.setVertx(context.vertx());
-          template = handlebars.compile(templateFileName.substring(loader.getPrefix().length()));
+          // Strip leading slash from Utils##normalizePath
+          template = handlebars.compile(baseTemplateFileName.substring(1));
           if (isCachingEnabled()) {
             cache.put(templateFileName, template);
           }
@@ -145,7 +144,7 @@ public class HandlebarsTemplateEngineImpl extends CachingTemplateEngine<Template
 
     @Override
     public String resolve(String location) {
-      return templateDirectory + adjustLocation(location);
+      return templateDirectory + "/" + adjustLocation(location);
     }
 
     @Override

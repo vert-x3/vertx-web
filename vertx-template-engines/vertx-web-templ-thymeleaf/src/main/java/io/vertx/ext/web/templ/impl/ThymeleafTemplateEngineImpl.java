@@ -81,7 +81,8 @@ public class ThymeleafTemplateEngineImpl implements ThymeleafTemplateEngine {
   }
 
   @Override
-  public void render(RoutingContext context, String templateFileName, Handler<AsyncResult<Buffer>> handler) {
+  public void render(RoutingContext context, String templateDirectory, String templateFileName, Handler<AsyncResult<Buffer>> handler) {
+    templateFileName = templateDirectory + templateFileName;
     Buffer buffer = Buffer.buffer();
 
     try {
