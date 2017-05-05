@@ -1807,7 +1807,7 @@
  *  be.complete(true);
  * });
  *
- * router.route("/eventbus").handler(sockJSHandler);
+ * router.route("/eventbus/*").handler(sockJSHandler);
  * ----
  *
  * In client side JavaScript you use the 'vertx-eventbus.js` library to create connections to the event bus and to send and receive messages:
