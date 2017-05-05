@@ -43,7 +43,7 @@ public interface TemplateEngine {
    */
   @Deprecated
   default void render(RoutingContext context, String templateFileName, Handler<AsyncResult<Buffer>> handler) {
-    int sep = templateFileName.indexOf('/');
+    int sep = templateFileName.lastIndexOf('/');
     if (sep != -1) {
       render(context, templateFileName.substring(0, sep), templateFileName.substring(sep), handler);
     } else {

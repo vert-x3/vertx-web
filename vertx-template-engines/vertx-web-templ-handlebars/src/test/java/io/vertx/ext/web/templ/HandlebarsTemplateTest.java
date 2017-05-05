@@ -310,10 +310,11 @@ public class HandlebarsTemplateTest extends WebTestBase {
   }
 
   /**
-   * TODO remove when {@link io.vertx.ext.web.templ.TemplateEngine#render(RoutingContext, String, Handler)} is removed
+   * remove when {@link io.vertx.ext.web.templ.TemplateEngine#render(RoutingContext, String, Handler)} is removed
    * also remove src/test/filesystemtemplates/test-handlebars-template7A.hbs template
    */
   @Test
+  @Deprecated
   public void testDeprecatedRenderMethodRelativePathWithInclude() throws Exception {
     TemplateEngine engine = HandlebarsTemplateEngine.create();
     router.route().handler(context -> {
@@ -325,15 +326,15 @@ public class HandlebarsTemplateTest extends WebTestBase {
         }
       });
     });
-    String expected = "\ntext from template8\n\ntext from template7\n\n\n";
-    testRequest(HttpMethod.GET, "/", 200, "OK", expected);
+    testRequest(HttpMethod.GET, "/", 500, "Internal Server Error");
   }
 
   /**
-   * TODO remove when {@link io.vertx.ext.web.templ.TemplateEngine#render(RoutingContext, String, Handler)} is removed
+   * remove when {@link io.vertx.ext.web.templ.TemplateEngine#render(RoutingContext, String, Handler)} is removed
    */
   @Test
-  public void testDeprecatedRenderMethodRelativePathWithIncludeFail() throws Exception {
+  @Deprecated
+  public void testDeprecatedRenderMethodRelativePathWithInclude2() throws Exception {
     TemplateEngine engine = HandlebarsTemplateEngine.create();
     router.route().handler(context -> {
       engine.render(context, "src/test/filesystemtemplates/test-handlebars-template7", res -> {
@@ -344,6 +345,7 @@ public class HandlebarsTemplateTest extends WebTestBase {
         }
       });
     });
-    testRequest(HttpMethod.GET, "/", 500, "Internal Server Error");
+    String expected = "\ntext from template8\n\ntext from template7\n\n\n";
+    testRequest(HttpMethod.GET, "/", 200, "OK", expected);
   }
 }
