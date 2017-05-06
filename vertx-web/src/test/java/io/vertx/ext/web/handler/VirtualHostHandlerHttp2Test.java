@@ -34,14 +34,14 @@ public class VirtualHostHandlerHttp2Test extends WebTestBase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    DEFAULT_PORT = 8181;
+    serverPort = 8181;
     router = Router.router(vertx);
     server = vertx.createHttpServer(new HttpServerOptions()
-      .setPort(DEFAULT_PORT)
+      .setPort(serverPort)
       .setHost("localhost")
     );
     client = vertx.createHttpClient(new HttpClientOptions()
-      .setDefaultPort(DEFAULT_PORT)
+      .setDefaultPort(serverPort)
       .setProtocolVersion(HttpVersion.HTTP_2)
     );
     CountDownLatch latch = new CountDownLatch(1);
