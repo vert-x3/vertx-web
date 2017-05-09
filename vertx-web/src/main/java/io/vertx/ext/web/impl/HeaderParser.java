@@ -24,7 +24,6 @@ import static java.util.stream.Collectors.*;
 public class HeaderParser {
   private static final Logger log = LoggerFactory.getLogger(HeaderParser.class);
 
-  private static Pattern COMMA_SPLITTER = Pattern.compile(",(?=(?:(?<!\\\\)\"(?:(?!(?<!\\\\)\").)*(?<!\\\\)\"|\\\\.|[^\"])*$)");
   // The underscore is accepted due to some jdk locale implementations not using the hyphen (https://github.com/vert-x3/vertx-web/pull/446#discussion_r79402250)
   private static final Pattern HYPHEN_SPLITTER = Pattern.compile("-|_");
   private static final Pattern PARAMETER_FINDER =
@@ -48,7 +47,9 @@ public class HeaderParser {
     if(unparsedHeaderValue == null) {
       return Collections.emptyList();
     }
-    return Arrays.stream(COMMA_SPLITTER.split(unparsedHeaderValue))
+    // this is special case, since it's a single char and not a regex reserved one,
+    // it defaults to a simple fast lookup @see java.lang.String#split(java.lang.String)
+    return Arrays.stream(unparsedHeaderValue.split(","))
       .map(String::trim)
       .map(HeaderParser::quotesRemover)
       .map(objectCreator)
