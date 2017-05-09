@@ -1001,7 +1001,7 @@ public class WebExamples {
       be.complete(true);
     });
 
-    router.route("/eventbus").handler(sockJSHandler);
+    router.route("/eventbus/*").handler(sockJSHandler);
 
 
   }
@@ -1027,7 +1027,7 @@ public class WebExamples {
       be.complete(true);
     });
 
-    router.route("/eventbus").handler(sockJSHandler);
+    router.route("/eventbus/*").handler(sockJSHandler);
 
 
   }

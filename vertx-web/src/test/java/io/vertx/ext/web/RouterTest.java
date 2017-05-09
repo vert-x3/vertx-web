@@ -938,7 +938,9 @@ public class RouterTest extends WebTestBase {
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=\"yeah,right\";itWorks=4real", 200, "OK");
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=\"yeah,right\"", 200, "OK");
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=\"yeah,right;itWorks=4real\"", 404, "Not Found");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=yeah,right", 404, "Not Found");
+    // this might look wrong but since there is only 1 entry per content-type, the comma has no semantic meaning
+    // therefore it is ignored
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=yeah,right", 200, "OK");
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo", 404, "Not Found");
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 404, "Not Found");
   }

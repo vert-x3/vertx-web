@@ -39,13 +39,6 @@ public interface BridgeEvent extends Future<Boolean> {
   BridgeEventType type();
 
   /**
-   * Use {@link #getRawMessage()} instead, will be removed in 3.3
-   */
-  @Deprecated
-  @CacheReturn
-  JsonObject rawMessage();
-
-  /**
    * Get the raw JSON message for the event. This will be null for SOCKET_CREATED or SOCKET_CLOSED events as there is
    * no message involved. If the returned message is modified, {@link #setRawMessage} should be called with the
    * new message.
