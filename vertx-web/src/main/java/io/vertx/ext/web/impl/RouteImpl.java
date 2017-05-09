@@ -214,6 +214,7 @@ public class RouteImpl implements Route {
   }
 
   synchronized void handleContext(RoutingContext context) {
+    //TODO add here validation entrypoint
     if (contextHandler != null) {
       contextHandler.handle(context);
     }
