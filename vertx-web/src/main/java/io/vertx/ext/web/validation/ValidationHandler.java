@@ -1,14 +1,12 @@
-package io.vertx.ext.web.validator;
+package io.vertx.ext.web.validation;
 
-import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.ext.web.RoutingContext;
 
 /**
  * Author: Francesco Guardiani @slinkydeveloper
  */
-public interface Validator {
-  Future<Void> validateRequest(RoutingContext routingContext, Handler<RoutingContext> next);
+public interface ValidationHandler extends Handler<RoutingContext> {
 
   enum ParameterType {
     STRING(""), //TODO add regexp
@@ -22,6 +20,21 @@ public interface Validator {
 
     ParameterType(String regexp) {
       this.regexp = regexp;
+    }
+  }
+
+  enum ParameterLocation {
+    HEADER("header"),
+    QUERY("query"),
+    PATH("path"),
+    BODY_FORM("body form"),
+    BODY_JSON("body json"),
+    XML_JSON("body xml");
+
+    public String s;
+
+    ParameterLocation(String s) {
+      this.s = s;
     }
   }
 }
