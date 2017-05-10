@@ -37,7 +37,7 @@ public class HeaderParser {
    * @return The same object as inserted
    */
   public static <T extends ParsedHeaderValue> List<T> sort(List<T> headers) {
-    Collections.sort(headers, HEADER_SORTER);
+    headers.sort(HEADER_SORTER);
     return headers;
   }
 
