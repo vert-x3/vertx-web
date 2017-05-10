@@ -4,78 +4,41 @@ import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.ParsedHeaderValue;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import static java.util.stream.Collectors.*;
 
 /**
  * Build with the intent of following
  * <a href="https://tools.ietf.org/html/rfc7231#section-5.3.1">rfc7231,section-5.3.1</a>'s specification.<br>
- *
  */
 public class HeaderParser {
   private static final Logger log = LoggerFactory.getLogger(HeaderParser.class);
 
-  private static Pattern COMMA_SPLITTER = Pattern.compile(",(?=(?:(?<!\\\\)\"(?:(?!(?<!\\\\)\").)*(?<!\\\\)\"|\\\\.|[^\"])*$)");
-  // The underscore is accepted due to some jdk locale implementations not using the hyphen (https://github.com/vert-x3/vertx-web/pull/446#discussion_r79402250)
-  private static final Pattern HYPHEN_SPLITTER = Pattern.compile("-|_");
-  private static final Pattern PARAMETER_FINDER =
-      Pattern.compile("\\s*+;\\s*+(?<key>[a-zA-Z0-9]++)\\s*+" +
-          "(?:=\\s*+(?:(?<value1>[a-zA-Z0-9.@#\\-%_]++)|\"(?<value2>(?:[^\\\\\"]*+(?:\\\\.)?)*+)\"))?+");
-
-
   private static final Comparator<ParsedHeaderValue> HEADER_SORTER =
-      (ParsedHeaderValue left, ParsedHeaderValue right) -> right.weightedOrder() - left.weightedOrder();
+    (ParsedHeaderValue left, ParsedHeaderValue right) -> right.weightedOrder() - left.weightedOrder();
 
   /**
    * Transforms each header value into the given ParsableHeaderValue
    *
    * @param unparsedHeaderValue The header to split
-   * @param objectCreator The type to instantiate for each header
+   * @param objectCreator       The type to instantiate for each header
    * @return The list of (unparsed) parsable header value
    */
-  public static <T extends ParsedHeaderValue> List<T> convertToParsedHeaderValues(String unparsedHeaderValue,
-      Function<String, T> objectCreator){
-
-    if(unparsedHeaderValue == null) {
-      return Collections.emptyList();
-    }
-    return Arrays.stream(COMMA_SPLITTER.split(unparsedHeaderValue))
-      .map(String::trim)
-      .map(HeaderParser::quotesRemover)
-      .map(objectCreator)
-      .collect(toList());
+  public static <T extends ParsedHeaderValue> List<T> convertToParsedHeaderValues(String unparsedHeaderValue, Function<String, T> objectCreator) {
+    return split(unparsedHeaderValue, ',', objectCreator);
   }
 
   /**
    * In-place sorting of the headers list
+   *
    * @param headers
    * @return The same object as inserted
    */
-  public static <T extends ParsedHeaderValue> List<T> sort(List<T> headers){
-    Collections.sort(headers, HEADER_SORTER);
+  public static <T extends ParsedHeaderValue> List<T> sort(List<T> headers) {
+    headers.sort(HEADER_SORTER);
     return headers;
-  }
-
-  static String quotesRemover(String val){
-    return val.replace("\\\"", "\"");
-  }
-
-  static String matchedSelector(String... matches){
-    for (String match : matches) {
-      if(match != null){
-        return match;
-      }
-    }
-    return null;
   }
 
   /**
@@ -86,56 +49,60 @@ public class HeaderParser {
    * @param weightCallback
    * @param parameterCallback
    */
-  public static void parseHeaderValue(
-        String headerContent,
-        Consumer<String> valueCallback,
-        Consumer<Float> weightCallback,
-        BiConsumer<String, String> parameterCallback
-      ) {
+  public static void parseHeaderValue(String headerContent, Consumer<String> valueCallback, Consumer<Float> weightCallback, BiConsumer<String, String> parameterCallback) {
+
     int paramIndex = headerContent.indexOf(';');
 
-    if(paramIndex < 0){
+    if (paramIndex < 0) {
       valueCallback.accept(headerContent);
     } else {
+      // the whole value
       valueCallback.accept(headerContent.substring(0, paramIndex));
 
-      Matcher paramFindings = PARAMETER_FINDER.matcher(headerContent);
+      if (paramIndex < headerContent.length()) {
 
-      while(paramFindings.find()){
-        String key = paramFindings.group("key");
-        String value = matchedSelector(paramFindings.group("value1"), paramFindings.group("value2"));
-        // If "q" doesn't have a double as a value, it is ignored on purpose!
-        if("q".equalsIgnoreCase(key)){
-          try{
-            if(value != null){
-              weightCallback.accept(Float.parseFloat(value));
+        split(headerContent.substring(paramIndex + 1), ';', part -> {
+          int idx = part.indexOf('=');
+          if (idx != -1) {
+            final String key = part.substring(0, idx);
+            final String val = part.substring(idx + 1);
+
+            if ("q".equalsIgnoreCase(key)) {
+              try {
+                weightCallback.accept(Float.parseFloat(val));
+              } catch (NumberFormatException e) {
+                log.info("Found a \"q\" parameter with value \"{}\" which was unparsable", val);
+              }
+            } else {
+              parameterCallback.accept(key, unquote(val));
             }
-          }catch(NumberFormatException e){
-            log.info("Found a \"q\" parameter with value \"{}\" which was unparsable", value);
+          } else {
+            // no value associated with this key
+            parameterCallback.accept(part, null);
           }
-        } else {
-          parameterCallback.accept(key, value);
-        }
+
+          return null;
+        });
       }
     }
   }
 
   public static void parseMIME(
-        String headerContent,
-        Consumer<String> componentCallback,
-        Consumer<String> subcomponentCallback
-      ){
+    String headerContent,
+    Consumer<String> componentCallback,
+    Consumer<String> subcomponentCallback
+  ) {
 
     int slashIndex = headerContent.indexOf('/');
     int paramIndex = headerContent.indexOf(';', slashIndex + 1);
 
-    if(slashIndex < 0){
+    if (slashIndex < 0) {
       componentCallback.accept("*");
     } else {
       componentCallback.accept(headerContent.substring(0, slashIndex));
     }
 
-    if(paramIndex < 0){
+    if (paramIndex < 0) {
       subcomponentCallback.accept(headerContent.substring(slashIndex + 1));
     } else {
       subcomponentCallback.accept(headerContent.substring(slashIndex + 1, paramIndex));
@@ -143,8 +110,172 @@ public class HeaderParser {
   }
 
 
-  public static String[] parseLanguageValue(String value) {
-    // Do not accept more than 9 subtags. Even more than 5 is a lot already!
-    return HYPHEN_SPLITTER.split(value.trim(), 9);
+  public static List<String> parseLanguageValue(String value) {
+    if (value == null || value.length() == 0) {
+      return Collections.emptyList();
+    }
+
+    final List<String> parts = new LinkedList<>();
+
+    // state machine
+    int start = 0;
+
+    for (int i = 0; i < value.length(); i++) {
+      char ch = value.charAt(i);
+      // trim initial white space
+      if (start == i && ch == ' ') {
+        start++;
+        continue;
+      }
+
+      // splitting logic uses 2 chars, since java Locales use underscore
+      if (ch == '-' || ch == '_') {
+        int end = i;
+        // trim end white space
+        for (int j = i - 1; j >= start; j--) {
+          if (value.charAt(j) == ' ') {
+            end--;
+            continue;
+          }
+          break;
+        }
+        // ignore empty
+        if (end - start > 0) {
+          parts.add(value.substring(start, end));
+          if (parts.size() == 3) {
+            // force stop, we have country, language and variant
+            return parts;
+          }
+        }
+        start = i + 1;
+      }
+    }
+
+    // rest
+    if (start < value.length()) {
+      int end = value.length();
+      // trim end white space
+      for (int j = value.length() - 1; j >= start; j--) {
+        if (value.charAt(j) == ' ') {
+          end--;
+          continue;
+        }
+        break;
+      }
+      // ignore empty
+      if (end - start > 0) {
+        parts.add(value.substring(start, end));
+      }
+    }
+
+    return parts;
+  }
+
+  private static <T> List<T> split(String header, char split, Function<String, T> factory) {
+    if (header == null || header.length() == 0) {
+      return Collections.emptyList();
+    }
+
+    final List<T> parts = new LinkedList<>();
+
+    // state machine
+    boolean quote = false;
+    int start = 0;
+    char last = 0;
+
+    for (int i = 0; i < header.length(); i++) {
+      char ch = header.charAt(i);
+      // trim initial white space
+      if (start == i && ch == ' ') {
+        start++;
+        continue;
+      }
+      // identify if we're handling quoted strings
+      if (ch == '\"' && last != '\\') {
+        quote = !quote;
+      }
+
+      last = ch;
+      // splitting logic only applies outside quoted strings
+      if (!quote && ch == split) {
+        int end = i;
+        // trim end white space
+        for (int j = i - 1; j >= start; j--) {
+          if (header.charAt(j) == ' ') {
+            end--;
+            continue;
+          }
+          break;
+        }
+        // ignore empty
+        if (end - start > 0) {
+          parts.add(factory.apply(header.substring(start, end)));
+        }
+        start = i + 1;
+      }
+    }
+
+    // rest
+    if (start < header.length()) {
+      int end = header.length();
+      // trim end white space
+      for (int j = header.length() - 1; j >= start; j--) {
+        if (header.charAt(j) == ' ') {
+          end--;
+          continue;
+        }
+        break;
+      }
+      // ignore empty
+      if (end - start > 0) {
+        parts.add(factory.apply(header.substring(start, end)));
+      }
+    }
+
+    return parts;
+  }
+
+  private static String unquote(String value) {
+    if (value == null || value.length() == 0) {
+      return value;
+    }
+
+    StringBuilder sb = null;
+
+    int start = 0;
+    int end = value.length();
+
+    // adjust start if there is a quote
+    if (value.charAt(start) == '\"') {
+      start++;
+    }
+
+    // adjust end if there is a quote
+    if (value.charAt(end - 1) == '\"') {
+      end--;
+    }
+
+    // look for extra quotes in the value itself
+    for (int i = start ; i < end; i++) {
+      if (value.charAt(i) == '\\') {
+        if (sb == null) {
+          sb = new StringBuilder(value.substring(start, i));
+        }
+        continue;
+      }
+      if (sb != null) {
+        sb.append(value.charAt(i));
+      }
+    }
+
+    if (sb != null) {
+      return sb.toString();
+    } else {
+      // the value is quoted
+      if (end - start != value.length()) {
+        return value.substring(start, end);
+      }
+      return value;
+    }
   }
 }
