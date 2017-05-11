@@ -1,7 +1,10 @@
 package io.vertx.ext.web.validation;
 
+import io.swagger.models.Operation;
+
 /**
- * Author: Francesco Guardiani @slinkydeveloper
+ * @author Francesco Guardiani @slinkydeveloper
  */
-public class Swagger2RequestValidator {
+public interface Swagger2RequestValidator extends HTTPOperationRequestValidationHandler<Operation> {
+
 }

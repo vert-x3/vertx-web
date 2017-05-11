@@ -1,4 +1,4 @@
-package io.vertx.ext.web.validation;
+package io.vertx.ext.web.validation.impl;
 
 /**
  * Author: Francesco Guardiani @slinkydeveloper

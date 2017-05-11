@@ -1,28 +1,32 @@
 package io.vertx.ext.web.validation;
 
+import io.vertx.codegen.annotations.VertxGen;
+import io.vertx.core.VertxException;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.validation.ValidationHandler.ParameterLocation;
+
+import java.util.regex.Pattern;
 
 /**
  * Author: Francesco Guardiani @slinkydeveloper
  */
-public class ValidationException extends Exception {
+public class ValidationException extends VertxException {
 
   public enum ErrorType {
     NO_MATCH,
     NOT_FOUND,
     UNEXPECTED_ARRAY,
-    FILE_NOT_FOUND
+    FILE_NOT_FOUND,
+    WRONG_CONTENT_TYPE
   }
 
   private String parameterName;
-  private String pattern;
+  private Pattern pattern;
   private String value;
-  private ValidationHandler.ParameterLocation location;
+  private ParameterLocation location;
   private RoutingContext routingContext;
   private ErrorType errorType;
 
-  public ValidationException(String parameterName, String value, String pattern, ParameterLocation location, RoutingContext routingContext, ErrorType errorType, String message) {
+  public ValidationException(String parameterName, String value, Pattern pattern, ParameterLocation location, RoutingContext routingContext, ErrorType errorType, String message) {
     super((message != null && message.length() != 0) ? message :
       "ValidationException{" +
         "parameterName='" + parameterName + '\'' +
@@ -40,7 +44,7 @@ public class ValidationException extends Exception {
     this.errorType = errorType;
   }
 
-  public ValidationException(String parameterName, ValidationHandler.ParameterLocation location, RoutingContext routingContext, ErrorType errorType) {
+  public ValidationException(String parameterName, ParameterLocation location, RoutingContext routingContext, ErrorType errorType) {
     super("Error during validation of request. Parameter \"" + parameterName + "\" inside " + location.s + "not found");
     this.parameterName = parameterName;
     this.location = location;
@@ -48,7 +52,7 @@ public class ValidationException extends Exception {
     this.errorType = errorType;
   }
 
-  public ValidationException(String parameterName, String value, String pattern, ValidationHandler.ParameterLocation location, RoutingContext routingContext) {
+  public ValidationException(String parameterName, String value, Pattern pattern, ParameterLocation location, RoutingContext routingContext) {
     super("Error during validation of request. Parameter \"" + parameterName + "\" inside " + location.s + "does not match the pattern \"" + pattern + "\"");
     this.parameterName = parameterName;
     this.value = value;
@@ -62,11 +66,11 @@ public class ValidationException extends Exception {
     return parameterName;
   }
 
-  public String getPattern() {
+  public Pattern getPattern() {
     return pattern;
   }
 
-  public ValidationHandler.ParameterLocation getLocation() {
+  public ParameterLocation getLocation() {
     return location;
   }
 
@@ -90,19 +94,23 @@ public class ValidationException extends Exception {
       '}';
   }
 
-  protected static ValidationException generateNotFoundValidationException(String parameterName, ValidationHandler.ParameterLocation location, RoutingContext routingContext) {
+  public static ValidationException generateWrongContentTypeExpected(String actualContentType, String expectedContentType, RoutingContext routingContext) {
+    return new ValidationException("Content-Type", actualContentType, Pattern.compile(Pattern.quote(expectedContentType)), ParameterLocation.HEADER, routingContext, ErrorType.WRONG_CONTENT_TYPE, "Wrong Content-Type header. Actual: " + actualContentType + " Expected: " + expectedContentType);
+  }
+
+  public static ValidationException generateNotFoundValidationException(String parameterName, ParameterLocation location, RoutingContext routingContext) {
     return new ValidationException(parameterName, location, routingContext, ErrorType.NOT_FOUND);
   }
 
-  protected static ValidationException generateUnexpectedArrayValidationException(String parameterName, ValidationHandler.ParameterLocation location, RoutingContext routingContext) {
+  public static ValidationException generateUnexpectedArrayValidationException(String parameterName, ParameterLocation location, RoutingContext routingContext) {
     return new ValidationException(parameterName, location, routingContext, ErrorType.UNEXPECTED_ARRAY);
   }
 
-  protected static ValidationException generateNotMatchValidationException(String parameterName, String value, String pattern, ValidationHandler.ParameterLocation location, RoutingContext routingContext) {
+  public static ValidationException generateNotMatchValidationException(String parameterName, String value, Pattern pattern, ParameterLocation location, RoutingContext routingContext) {
     return new ValidationException(parameterName, value, pattern, location, routingContext);
   }
 
-  protected static ValidationException generateFileNotFoundValidationException(String filename, RoutingContext routingContext) {
-    return new ValidationException(filename, null, null, ParameterLocation.BODY_FORM, routingContext, ErrorType.FILE_NOT_FOUND, "Error during validation: File not found: " + filename);
+  public static ValidationException generateFileNotFoundValidationException(String filename, RoutingContext routingContext) {
+    return new ValidationException(filename, null, null, ParameterLocation.FILE, routingContext, ErrorType.FILE_NOT_FOUND, "Error during validation: File not found: " + filename);
   }
 }

@@ -41,6 +41,11 @@
       <artifactId>vertx-auth-htdigest</artifactId>
       <optional>true</optional>
     </dependency>
+    <dependency>
+      <groupId>io.swagger</groupId>
+      <artifactId>swagger-parser</artifactId>
+      <version>1.0.24</version>
+    </dependency>
 
     <!-- Testing -->
     <dependency>
