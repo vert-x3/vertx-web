@@ -46,6 +46,8 @@ import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.ext.web.codec.spi.BodyStream;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Map;
 
 /**
@@ -285,11 +287,16 @@ class HttpRequestImpl<T> implements HttpRequest<T> {
     if (ssl != options.isSsl()) {
       req = client.request(method, new RequestOptions().setSsl(ssl).setHost(host).setPort(port).setURI(requestURI));
     } else {
-      if (protocol!=null && !protocol.equals("http") && !protocol.equals("https")) {
-        final int defaultPort = protocol.equals("ftp") ? 21 : 80;
-        final String addPort = (port != -1 && port != defaultPort) ? (":" + port) : "";
-        String absUri=protocol+"://"+host+addPort + requestURI;
-        req = client.requestAbs(method, absUri);
+      if (protocol != null && !protocol.equals("http") && !protocol.equals("https")) {
+        // we have to create an abs url again to parse it in HttpClient
+        try {
+          URI uri = new URI(protocol, null, host, port, requestURI, null, null);
+          req = client.requestAbs(method, uri.toString());
+        } catch (URISyntaxException ex) {
+          // FIXME: what is proper error handling?
+          handler.handle(Future.failedFuture(ex));
+          return;
+        }
       } else {
         req = client.request(method, port, host, requestURI);
       }

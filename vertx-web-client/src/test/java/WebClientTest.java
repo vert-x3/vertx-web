@@ -29,7 +29,7 @@ public class WebClientTest {
     options.setProxyOptions(new ProxyOptions());
     WebClient client = WebClient.create(vertx, options);
     client
-    .getAbs("ftp://ftp.gnu.org:21/gnu/")
+    .getAbs("ftp://ftp.gnu.org:21/gnu/dir with space/")
     .send(ar -> {
       if (ar.succeeded()) {
         // Obtain response
