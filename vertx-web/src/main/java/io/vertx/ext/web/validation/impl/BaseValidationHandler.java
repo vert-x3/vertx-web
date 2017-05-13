@@ -6,7 +6,6 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.validation.*;
 
 import java.util.*;
-import java.util.regex.Pattern;
 
 /**
  * @author Francesco Guardiani @slinkydeveloper
@@ -14,20 +13,27 @@ import java.util.regex.Pattern;
 public abstract class BaseValidationHandler implements ValidationHandler {
   protected class ValidationRule {
     private String name;
-    private Pattern regexp;
+    private ParameterTypeValidator validator;
     private boolean isOptional;
     private boolean isArray;
 
-    public ValidationRule(String name, Pattern regexp, boolean isOptional, boolean isArray) {
+    public ValidationRule(String name, ParameterTypeValidator validator, boolean isOptional, boolean isArray) {
       this.name = name;
-      this.regexp = regexp;
+      this.validator = validator;
       this.isOptional = isOptional;
       this.isArray = isArray;
     }
 
     public ValidationRule(String name, ParameterType type, boolean isOptional, boolean isArray) {
       this.name = name;
-      this.regexp = type.regexp;
+      this.validator = type.getValidationMethod();
+      this.isOptional = isOptional;
+      this.isArray = isArray;
+    }
+
+    public ValidationRule(String name, String pattern, boolean isOptional, boolean isArray) {
+      this.name = name;
+      this.validator = new PatternTypeValidator(pattern);
       this.isOptional = isOptional;
       this.isArray = isArray;
     }
@@ -36,8 +42,8 @@ public abstract class BaseValidationHandler implements ValidationHandler {
       return name;
     }
 
-    public Pattern getRegexp() {
-      return regexp;
+    public ParameterTypeValidator getValidator() {
+      return validator;
     }
 
     public boolean isOptional() {
@@ -46,6 +52,13 @@ public abstract class BaseValidationHandler implements ValidationHandler {
 
     public boolean isArray() {
       return isArray;
+    }
+
+    public boolean validate(String value) {
+      if (validator != null)
+        return validator.isValid(value);
+      else
+        return true;
     }
   }
 
@@ -67,7 +80,6 @@ public abstract class BaseValidationHandler implements ValidationHandler {
     customValidators = new ArrayList<>();
   }
 
-
   @Override
   public void handle(RoutingContext routingContext) {
     try {
@@ -75,29 +87,31 @@ public abstract class BaseValidationHandler implements ValidationHandler {
       validateQueryParams(routingContext);
       validateHeaderParams(routingContext);
 
-      String contentType = routingContext.request().getHeader("Content-Type");
-      if (fileNamesRules.size() != 0 && !contentType.contains("multipart/form-data"))
-        throw ValidationException.generateWrongContentTypeExpected(contentType, "multipart/form-data", routingContext);
-      if (contentType.contains("application/x-www-form-urlencoded") || contentType.contains("multipart/form-data")) {
-        validateFormParams(routingContext);
-        if (contentType.contains("multipart/form-data"))
-          validateFileUpload(routingContext);
-      } else if (contentType.equals("application/json"))
-        validateJSONBody();
-      else if (contentType.equals("application/xml"))
-        validateXMLBody();
-      else ;
-      //TODO ?!?
-
       //Run custom validators
       for (CustomValidator customValidator : customValidators) {
         customValidator.validate(routingContext);
       }
+
+      String contentType = routingContext.request().getHeader("Content-Type");
+      if (contentType != null && contentType.length() != 0) {
+        if (fileNamesRules.size() != 0 && !contentType.contains("multipart/form-data"))
+          throw ValidationException.generateWrongContentTypeExpected(contentType, "multipart/form-data", routingContext);
+        if (contentType.contains("application/x-www-form-urlencoded") || contentType.contains("multipart/form-data")) {
+          validateFormParams(routingContext);
+          if (contentType.contains("multipart/form-data"))
+            validateFileUpload(routingContext);
+        } else if (contentType.equals("application/json"))
+          validateJSONBody();
+        else if (contentType.equals("application/xml"))
+          validateXMLBody();
+        else ;
+        //TODO ?!?
+      }
+
+      routingContext.next();
     } catch (ValidationException e) {
       routingContext.fail(e);
     }
-
-    routingContext.next();
   }
 
   private void validatePathParams(RoutingContext routingContext) throws ValidationException {
@@ -105,13 +119,10 @@ public abstract class BaseValidationHandler implements ValidationHandler {
     Map<String, String> pathParams = routingContext.pathParams();
     for (ValidationRule rule : pathParamsRules.values()) {
       String name = rule.getName();
-      Pattern pattern = rule.getRegexp();
-      if (pathParams.containsKey(name))
-        if (pattern.matcher(pathParams.get(name)).matches())
-          continue;
-        else
-          throw ValidationException.generateNotMatchValidationException(name, pathParams.get(name), pattern, ParameterLocation.PATH, routingContext);
-      else if (!rule.isOptional())
+      if (pathParams.containsKey(name)) {
+        if (!rule.validate(pathParams.get(name)))
+          throw ValidationException.generateNotMatchValidationException(name, pathParams.get(name), rule.getValidator(), ParameterLocation.PATH, routingContext);
+      } else if (!rule.isOptional())
         throw ValidationException.generateNotFoundValidationException(name, ParameterLocation.PATH, routingContext);
     }
   }
@@ -121,20 +132,18 @@ public abstract class BaseValidationHandler implements ValidationHandler {
     MultiMap queryParams = routingContext.queryParams();
     for (ValidationRule rule : queryParamsRules.values()) {
       String name = rule.getName();
-      Pattern pattern = rule.getRegexp();
       if (queryParams.contains(name)) {
         List<String> values = queryParams.getAll(name);
-        if (values.size() > 1)
+        if (values.size() > 1) {
           if (rule.isArray()) {
             for (String s : values)
-              if (!pattern.matcher(s).matches())
-                throw ValidationException.generateNotMatchValidationException(name, values.get(0), pattern, ParameterLocation.QUERY, routingContext);
-            continue;
-          } else
+              if (!rule.validate(s))
+                throw ValidationException.generateNotMatchValidationException(name, values.get(0), rule.getValidator(), ParameterLocation.QUERY, routingContext);
+          } else {
             throw ValidationException.generateUnexpectedArrayValidationException(name, ParameterLocation.QUERY, routingContext);
-        else if (pattern.matcher(values.get(0)).matches()) continue;
-        else
-          throw ValidationException.generateNotMatchValidationException(name, values.get(0), pattern, ParameterLocation.QUERY, routingContext);
+          }
+        } else if (!rule.validate(values.get(0)))
+          throw ValidationException.generateNotMatchValidationException(name, values.get(0), rule.getValidator(), ParameterLocation.QUERY, routingContext);
       } else if (!rule.isOptional())
         throw ValidationException.generateNotFoundValidationException(name, ParameterLocation.QUERY, routingContext);
     }
@@ -145,20 +154,18 @@ public abstract class BaseValidationHandler implements ValidationHandler {
     MultiMap headerParams = routingContext.request().headers();
     for (ValidationRule rule : headerParamsRules.values()) {
       String name = rule.getName();
-      Pattern pattern = rule.getRegexp();
       if (headerParams.contains(name)) {
         List<String> values = headerParams.getAll(name);
-        if (values.size() > 1)
+        if (values.size() > 1) {
           if (rule.isArray()) {
             for (String s : values)
-              if (!pattern.matcher(s).matches())
-                throw ValidationException.generateNotMatchValidationException(name, values.get(0), pattern, ParameterLocation.HEADER, routingContext);
-            continue;
-          } else
+              if (!rule.validate(s))
+                throw ValidationException.generateNotMatchValidationException(name, values.get(0), rule.getValidator(), ParameterLocation.HEADER, routingContext);
+          } else {
             throw ValidationException.generateUnexpectedArrayValidationException(name, ParameterLocation.HEADER, routingContext);
-        else if (pattern.matcher(values.get(0)).matches()) continue;
-        else
-          throw ValidationException.generateNotMatchValidationException(name, values.get(0), pattern, ParameterLocation.HEADER, routingContext);
+          }
+        } else if (!rule.validate(values.get(0)))
+          throw ValidationException.generateNotMatchValidationException(name, values.get(0), rule.getValidator(), ParameterLocation.HEADER, routingContext);
       } else if (!rule.isOptional())
         throw ValidationException.generateNotFoundValidationException(name, ParameterLocation.HEADER, routingContext);
     }
@@ -169,20 +176,18 @@ public abstract class BaseValidationHandler implements ValidationHandler {
     MultiMap formParams = routingContext.request().formAttributes();
     for (ValidationRule rule : formParamsRules.values()) {
       String name = rule.getName();
-      Pattern pattern = rule.getRegexp();
       if (formParams.contains(name)) {
         List<String> values = formParams.getAll(name);
-        if (values.size() > 1)
+        if (values.size() > 1) {
           if (rule.isArray()) {
             for (String s : values)
-              if (!pattern.matcher(s).matches())
-                throw ValidationException.generateNotMatchValidationException(name, values.get(0), pattern, ParameterLocation.BODY_FORM, routingContext);
-            continue;
-          } else
+              if (!rule.validate(s))
+                throw ValidationException.generateNotMatchValidationException(name, values.get(0), rule.getValidator(), ParameterLocation.BODY_FORM, routingContext);
+          } else {
             throw ValidationException.generateUnexpectedArrayValidationException(name, ParameterLocation.BODY_FORM, routingContext);
-        else if (pattern.matcher(values.get(0)).matches()) continue;
-        else
-          throw ValidationException.generateNotMatchValidationException(name, values.get(0), pattern, ParameterLocation.BODY_FORM, routingContext);
+          }
+        } else if (!rule.validate(values.get(0)))
+          throw ValidationException.generateNotMatchValidationException(name, values.get(0), rule.getValidator(), ParameterLocation.BODY_FORM, routingContext);
       } else if (!rule.isOptional())
         throw ValidationException.generateNotFoundValidationException(name, ParameterLocation.BODY_FORM, routingContext);
     }
@@ -213,8 +218,8 @@ public abstract class BaseValidationHandler implements ValidationHandler {
 
 
   protected void addPathParamRule(ValidationRule rule) {
-    if (!formParamsRules.containsKey(rule.getName()))
-      formParamsRules.put(rule.getName(), rule);
+    if (!pathParamsRules.containsKey(rule.getName()))
+      pathParamsRules.put(rule.getName(), rule);
   }
 
   protected void addQueryParamRule(ValidationRule rule) {

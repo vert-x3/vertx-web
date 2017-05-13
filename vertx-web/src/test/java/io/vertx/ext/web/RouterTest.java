@@ -819,6 +819,7 @@ public class RouterTest extends WebTestBase {
     final String sep = ",";
     router.route("/blah/:" + pathParameterName + "/test").handler(rc -> {
       MultiMap params = rc.queryParams();
+      assertFalse(params.contains(pathParameterName));
       String qExpected = String.join(",", params.getAll("q"));
       String statusMessage = String.join("/", qExpected, params.get("s"));
       rc.response().setStatusMessage(statusMessage).end();

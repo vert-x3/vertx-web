@@ -27,24 +27,22 @@ public interface HTTPRequestValidationHandler extends ValidationHandler {
   static HTTPRequestValidationHandler create() { return new HTTPRequestValidationHandlerImpl(); }
 
   /**
-   * Add a path parameter with included parameter types
+   * Add a path parameter with included parameter types. All path params are <b>required</b>
    * @param parameterName expected name of parameter inside the path
    * @param type expected type of parameter
-   * @param required true if parameter is required
    * @return this handler
    */
   @Fluent
-  HTTPRequestValidationHandler addPathParam(String parameterName, ParameterType type, boolean required);
+  HTTPRequestValidationHandler addPathParam(String parameterName, ParameterType type);
 
   /**
-   * Add a path parameter with a custom pattern
+   * Add a path parameter with a custom pattern. All path params are <b>required</b>
    * @param parameterName expected name of parameter inside the path
    * @param pattern regular expression for validation
-   * @param required true if parameter is required
    * @return this handler
    */
   @Fluent
-  HTTPRequestValidationHandler addPathParamWithPattern(String parameterName, String pattern, boolean required);
+  HTTPRequestValidationHandler addPathParamWithPattern(String parameterName, String pattern);
 
   /**
    * Add a query parameter with included parameter types
