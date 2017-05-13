@@ -1160,7 +1160,7 @@
  * TemplateHandler handler = TemplateHandler.create(engine);
  *
  * // This will route all GET requests starting with /dynamic/ to the template handler
- * // E.g. /dynamic/graph.hbs will look for a template in /templates/dynamic/graph.hbs
+ * // E.g. /dynamic/graph.hbs will look for a template in /templates/graph.hbs
  * router.get("/dynamic/*").handler(handler);
  *
  * // Route all GET requests for resource ending in .hbs to the template handler
@@ -1179,7 +1179,7 @@
  * def handler = TemplateHandler.create(engine)
  *
  * // This will route all GET requests starting with /dynamic/ to the template handler
- * // E.g. /dynamic/graph.hbs will look for a template in /templates/dynamic/graph.hbs
+ * // E.g. /dynamic/graph.hbs will look for a template in /templates/graph.hbs
  * router.get("/dynamic/*").handler(handler)
  *
  * // Route all GET requests for resource ending in .hbs to the template handler
@@ -1198,7 +1198,7 @@
  * handler = VertxWeb::TemplateHandler.create(engine)
  *
  * # This will route all GET requests starting with /dynamic/ to the template handler
- * # E.g. /dynamic/graph.hbs will look for a template in /templates/dynamic/graph.hbs
+ * # E.g. /dynamic/graph.hbs will look for a template in /templates/graph.hbs
  * router.get("/dynamic/*").handler(&handler.method(:handle))
  *
  * # Route all GET requests for resource ending in .hbs to the template handler
@@ -1217,7 +1217,7 @@
  * var handler = TemplateHandler.create(engine);
  *
  * // This will route all GET requests starting with /dynamic/ to the template handler
- * // E.g. /dynamic/graph.hbs will look for a template in /templates/dynamic/graph.hbs
+ * // E.g. /dynamic/graph.hbs will look for a template in /templates/graph.hbs
  * router.get("/dynamic/*").handler(handler.handle);
  *
  * // Route all GET requests for resource ending in .hbs to the template handler
