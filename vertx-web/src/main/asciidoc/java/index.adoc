@@ -1744,7 +1744,7 @@ TemplateEngine engine = HandlebarsTemplateEngine.create();
 TemplateHandler handler = TemplateHandler.create(engine);
 
 // This will route all GET requests starting with /dynamic/ to the template handler
-// E.g. /dynamic/graph.hbs will look for a template in /templates/dynamic/graph.hbs
+// E.g. /dynamic/graph.hbs will look for a template in /templates/graph.hbs
 router.get("/dynamic/*").handler(handler);
 
 // Route all GET requests for resource ending in .hbs to the template handler
