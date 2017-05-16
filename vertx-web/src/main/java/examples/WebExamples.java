@@ -1032,6 +1032,24 @@ public class WebExamples {
 
   }
 
+  public void handleSocketIdle(Vertx vertx, PermittedOptions inboundPermitted) {
+    Router router = Router.router(vertx);
+
+    // Initialize SockJS handler
+    SockJSHandler sockJSHandler = SockJSHandler.create(vertx);
+    BridgeOptions options = new BridgeOptions().addInboundPermitted(inboundPermitted).setPingTimeout(5000);
+
+    sockJSHandler.bridge(options, be -> {
+      if (be.type() == BridgeEventType.SOCKET_IDLE) {
+        // Do some custom handling...
+      }
+
+      be.complete(true);
+    });
+
+    router.route("/eventbus/*").handler(sockJSHandler);
+  }
+
   public void example50(Vertx vertx) {
 
     Router router = Router.router(vertx);

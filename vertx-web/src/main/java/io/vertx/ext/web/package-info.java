@@ -1597,6 +1597,7 @@
  * In client side JavaScript you use the 'vertx-eventbus.js` library to create connections to the event bus and to send
  * and receive messages:
  *
+ * [source,html]
  * ----
  * <script src="http://cdn.jsdelivr.net/sockjs/0.3.4/sockjs.min.js"></script>
  * <script src='vertx-eventbus.js'></script>
@@ -1622,7 +1623,10 @@
  *
  * The first thing the example does is to create a instance of the event bus
  *
- *  var eb = new EventBus('http://localhost:8080/eventbus');
+ * [source,javascript]
+ * ----
+ * var eb = new EventBus('http://localhost:8080/eventbus');
+ * ----
  *
  * The parameter to the constructor is the URI where to connect to the event bus. Since we create our bridge with
  * the prefix `eventbus` we will connect there.
@@ -1788,30 +1792,18 @@
  * {@link examples.WebExamples#example49}
  * ----
  *
- * Here’s an example how to configure and handle SOCKET_IDLE bridge event type.
+ * Here's an example how to configure and handle SOCKET_IDLE bridge event type.
  * Notice `setPingTimeout(5000)` which says that if ping message doesn't arrive from client within 5 seconds
  * then the SOCKET_IDLE bridge event would be triggered.
  *
+ * [source,$lang]
  * ----
- * // Initialize SockJS handler
- * Router router = Router.router(vertx);
- *
- * SockJSHandler sockJSHandler = SockJSHandler.create(vertx);
- * BridgeOptions options = new BridgeOptions().addInboundPermitted(inboundPermitted).setPingTimeout(5000);
- *
- * sockJSHandler.bridge(options, be -> {
- * 	if (be.type() == BridgeEventType.SOCKET_IDLE) {
- *	    // Do some custom handling...
- *	}
- *
- *  be.complete(true);
- * });
- *
- * router.route("/eventbus/*").handler(sockJSHandler);
+ * {@link examples.WebExamples#handleSocketIdle}
  * ----
  *
  * In client side JavaScript you use the 'vertx-eventbus.js` library to create connections to the event bus and to send and receive messages:
  *
+ * [source,html]
  * ----
  * <script src="http://cdn.jsdelivr.net/sockjs/0.3.4/sockjs.min.js"></script>
  * <script src='vertx-eventbus.js'></script>
@@ -1836,6 +1828,7 @@
  *
  * The first thing the example does is to create a instance of the event bus
  *
+ * [source,javascript]
  * ----
  * var eb = new EventBus('http://localhost:8080/eventbus', {"vertxbus_ping_interval": 300000});
  * ----
