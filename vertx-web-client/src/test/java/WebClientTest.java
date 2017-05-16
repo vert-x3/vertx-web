@@ -12,10 +12,6 @@ import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 
 /**
- * 
- */
-
-/**
  * @author <a href="https://oss.lehmann.cx/">Alexander Lehmann</a>
  *
  */

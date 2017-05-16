@@ -293,7 +293,6 @@ class HttpRequestImpl<T> implements HttpRequest<T> {
           URI uri = new URI(protocol, null, host, port, requestURI, null, null);
           req = client.requestAbs(method, uri.toString());
         } catch (URISyntaxException ex) {
-          // FIXME: what is proper error handling?
           handler.handle(Future.failedFuture(ex));
           return;
         }
