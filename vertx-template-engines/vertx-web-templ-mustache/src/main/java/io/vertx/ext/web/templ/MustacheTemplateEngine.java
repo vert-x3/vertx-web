@@ -20,9 +20,9 @@ import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.ext.web.templ.impl.MustacheTemplateEngineImpl;
 
 /**
- * A template engine that uses the FreeMarker library.
+ * A template engine that uses the Mustache library.
  *
- * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
+ * @author <a href="mailto:j.milagroso@gmail.com">Jay Milagroso</a>
  */
 @VertxGen
 public interface MustacheTemplateEngine extends TemplateEngine {
