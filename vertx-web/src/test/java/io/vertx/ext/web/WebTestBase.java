@@ -17,7 +17,13 @@
 package io.vertx.ext.web;
 
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.http.*;
+import io.vertx.core.http.HttpClient;
+import io.vertx.core.http.HttpClientOptions;
+import io.vertx.core.http.HttpClientRequest;
+import io.vertx.core.http.HttpClientResponse;
+import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.HttpServer;
+import io.vertx.core.http.HttpServerOptions;
 import io.vertx.test.core.VertxTestBase;
 
 import java.util.Arrays;
@@ -37,20 +43,26 @@ public class WebTestBase extends VertxTestBase {
   protected HttpServer server;
   protected HttpClient client;
   protected Router router;
-  protected int serverPort;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    serverPort = 8080;
     router = Router.router(vertx);
-    server = vertx.createHttpServer(new HttpServerOptions().setPort(serverPort).setHost("localhost"));
-    client = vertx.createHttpClient(new HttpClientOptions().setDefaultPort(serverPort));
+    server = vertx.createHttpServer(getHttpServerOptions());
+    client = vertx.createHttpClient(getHttpClientOptions());
     CountDownLatch latch = new CountDownLatch(1);
     server.requestHandler(router::accept).listen(onSuccess(res -> {
       latch.countDown();
     }));
     awaitLatch(latch);
+  }
+
+  protected HttpServerOptions getHttpServerOptions() {
+    return new HttpServerOptions().setPort(8080).setHost("localhost");
+  }
+
+  protected HttpClientOptions getHttpClientOptions() {
+    return new HttpClientOptions().setDefaultPort(8080);
   }
 
   @Override
@@ -116,7 +128,7 @@ public class WebTestBase extends VertxTestBase {
   protected void testRequestBuffer(HttpMethod method, String path, Consumer<HttpClientRequest> requestAction, Consumer<HttpClientResponse> responseAction,
                                    int statusCode, String statusMessage,
                                    Buffer responseBodyBuffer, boolean normalizeLineEndings) throws Exception {
-    testRequestBuffer(client, method, serverPort, path, requestAction, responseAction, statusCode, statusMessage, responseBodyBuffer, normalizeLineEndings);
+    testRequestBuffer(client, method, 8080, path, requestAction, responseAction, statusCode, statusMessage, responseBodyBuffer, normalizeLineEndings);
   }
 
   protected void testRequestBuffer(HttpClient client, HttpMethod method, int port, String path, Consumer<HttpClientRequest> requestAction, Consumer<HttpClientResponse> responseAction,
