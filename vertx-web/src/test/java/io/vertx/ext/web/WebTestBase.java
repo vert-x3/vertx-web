@@ -37,13 +37,15 @@ public class WebTestBase extends VertxTestBase {
   protected HttpServer server;
   protected HttpClient client;
   protected Router router;
+  protected int serverPort;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
+    serverPort = 8080;
     router = Router.router(vertx);
-    server = vertx.createHttpServer(new HttpServerOptions().setPort(8080).setHost("localhost"));
-    client = vertx.createHttpClient(new HttpClientOptions().setDefaultPort(8080));
+    server = vertx.createHttpServer(new HttpServerOptions().setPort(serverPort).setHost("localhost"));
+    client = vertx.createHttpClient(new HttpClientOptions().setDefaultPort(serverPort));
     CountDownLatch latch = new CountDownLatch(1);
     server.requestHandler(router::accept).listen(onSuccess(res -> {
       latch.countDown();
@@ -114,7 +116,7 @@ public class WebTestBase extends VertxTestBase {
   protected void testRequestBuffer(HttpMethod method, String path, Consumer<HttpClientRequest> requestAction, Consumer<HttpClientResponse> responseAction,
                                    int statusCode, String statusMessage,
                                    Buffer responseBodyBuffer, boolean normalizeLineEndings) throws Exception {
-    testRequestBuffer(client, method, 8080, path, requestAction, responseAction, statusCode, statusMessage, responseBodyBuffer, normalizeLineEndings);
+    testRequestBuffer(client, method, serverPort, path, requestAction, responseAction, statusCode, statusMessage, responseBodyBuffer, normalizeLineEndings);
   }
 
   protected void testRequestBuffer(HttpClient client, HttpMethod method, int port, String path, Consumer<HttpClientRequest> requestAction, Consumer<HttpClientResponse> responseAction,

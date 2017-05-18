@@ -58,8 +58,8 @@
       <artifactId>slf4j-api</artifactId>
       <version>1.7.21</version>
       <scope>test</scope>
-    </dependency>
 
+    </dependency>
     <dependency>
       <groupId>io.vertx</groupId>
       <artifactId>vertx-hazelcast</artifactId>

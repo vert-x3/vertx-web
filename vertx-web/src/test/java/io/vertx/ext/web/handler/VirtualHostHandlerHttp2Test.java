@@ -15,14 +15,41 @@
  */
 package io.vertx.ext.web.handler;
 
+import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.HttpServerOptions;
+import io.vertx.core.http.HttpVersion;
+import io.vertx.ext.web.Router;
 import io.vertx.ext.web.WebTestBase;
 import org.junit.Test;
 
+import java.util.concurrent.CountDownLatch;
+
 /**
- * @author Paulo Lopes
+ * @author <a href="mailto:emad.albloushi@gmail.com">Emad Alblueshi</a>
  */
-public class VirtualHostHandlerTest extends WebTestBase {
+public class VirtualHostHandlerHttp2Test extends WebTestBase {
+
+
+  @Override
+  public void setUp() throws Exception {
+    super.setUp();
+    serverPort = 8181;
+    router = Router.router(vertx);
+    server = vertx.createHttpServer(new HttpServerOptions()
+      .setPort(serverPort)
+      .setHost("localhost")
+    );
+    client = vertx.createHttpClient(new HttpClientOptions()
+      .setDefaultPort(serverPort)
+      .setProtocolVersion(HttpVersion.HTTP_2)
+    );
+    CountDownLatch latch = new CountDownLatch(1);
+    server.requestHandler(router::accept).listen(onSuccess(res -> {
+      latch.countDown();
+    }));
+    awaitLatch(latch);
+  }
 
   @Test
   public void testVHost() throws Exception {
