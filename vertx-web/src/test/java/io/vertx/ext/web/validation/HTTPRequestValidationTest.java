@@ -2,12 +2,9 @@ package io.vertx.ext.web.validation;
 
 import io.netty.handler.codec.http.QueryStringEncoder;
 import io.vertx.core.http.HttpMethod;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
 import org.junit.Test;
 
 import java.net.URLEncoder;
-import java.util.Random;
 
 /**
  * @author Francesco Guardiani @slinkydeveloper
@@ -81,7 +78,7 @@ public class HTTPRequestValidationTest extends WebTestValidationBase {
   public void testPathParamsWithIncludedTypes() throws Exception {
     HTTPRequestValidationHandler validationHandler =
       HTTPRequestValidationHandler.create()
-        .addPathParam("a", ParameterType.STRING)
+        .addPathParam("a", ParameterType.GENERIC_STRING)
         .addPathParam("b", ParameterType.BOOL)
         .addPathParam("c", ParameterType.INT);
     router.get("/testPathParams/:a/:b/:c").handler(validationHandler);
@@ -98,7 +95,7 @@ public class HTTPRequestValidationTest extends WebTestValidationBase {
   public void testPathParamsFailureWithIncludedTypes() throws Exception {
     HTTPRequestValidationHandler validationHandler =
       HTTPRequestValidationHandler.create()
-        .addPathParam("a", ParameterType.STRING)
+        .addPathParam("a", ParameterType.GENERIC_STRING)
         .addPathParam("b", ParameterType.BOOL)
         .addPathParam("c", ParameterType.INT);
     router.get("/testPathParams/:a/:b/:c").handler(validationHandler);
@@ -138,5 +135,63 @@ public class HTTPRequestValidationTest extends WebTestValidationBase {
     encoder.addParam("param2", getFailureSample(ParameterType.INT));
     testRequest(HttpMethod.GET, encoder.toString(), 400, "failure:NO_MATCH");
   }
+
+  @Test
+  public void testQueryParamsArrayAndPathParamsWithIncludedTypes() throws Exception {
+    HTTPRequestValidationHandler validationHandler = HTTPRequestValidationHandler.create()
+      .addPathParam("pathParam1", ParameterType.INT)
+      .addQueryParamsArray("awesomeArray", ParameterType.EMAIL, true)
+      .addQueryParam("anotherParam", ParameterType.DOUBLE, true);
+    router.get("/testQueryParams/:pathParam1").handler(validationHandler);
+    router.get("/testQueryParams/:pathParam1").handler(routingContext -> {
+      routingContext.response().setStatusMessage(
+        routingContext.pathParam("pathParam1") +
+          routingContext.queryParam("awesomeArray").size() +
+          routingContext.queryParam("anotherParam").get(0))
+        .end();
+    }).failureHandler(generateFailureHandler());
+
+    String pathParam = getSuccessSample(ParameterType.INT);
+    String arrayValue1 = getSuccessSample(ParameterType.EMAIL);
+    String arrayValue2 = getSuccessSample(ParameterType.EMAIL);
+    String anotherParam = getSuccessSample(ParameterType.DOUBLE);
+
+    QueryStringEncoder encoder = new QueryStringEncoder("/testQueryParams/" + URLEncoder.encode(pathParam, "UTF-8"));
+    encoder.addParam("awesomeArray", arrayValue1);
+    encoder.addParam("awesomeArray", arrayValue2);
+    encoder.addParam("anotherParam", anotherParam);
+
+    testRequest(HttpMethod.GET, encoder.toString(), 200, pathParam + "2" + anotherParam);
+  }
+
+  @Test
+  public void testQueryParamsArrayAndPathParamsFailureWithIncludedTypes() throws Exception {
+    HTTPRequestValidationHandler validationHandler = HTTPRequestValidationHandler.create()
+      .addPathParam("pathParam1", ParameterType.INT)
+      .addQueryParamsArray("awesomeArray", ParameterType.EMAIL, true)
+      .addQueryParam("anotherParam", ParameterType.DOUBLE, true);
+    router.get("/testQueryParams/:pathParam1").handler(validationHandler);
+    router.get("/testQueryParams/:pathParam1").handler(routingContext -> {
+      routingContext.response().setStatusMessage(
+        routingContext.pathParam("pathParam1") +
+          routingContext.queryParam("awesomeArray").size() +
+          routingContext.queryParam("anotherParam").get(0))
+        .end();
+    }).failureHandler(generateFailureHandler());
+
+    String pathParam = getSuccessSample(ParameterType.INT);
+    String arrayValue1 = getSuccessSample(ParameterType.EMAIL);
+    String arrayValue2 = getFailureSample(ParameterType.EMAIL);
+    String anotherParam = getSuccessSample(ParameterType.DOUBLE);
+
+    QueryStringEncoder encoder = new QueryStringEncoder("/testQueryParams/" + URLEncoder.encode(pathParam, "UTF-8"));
+    encoder.addParam("awesomeArray", arrayValue1);
+    encoder.addParam("awesomeArray", arrayValue2);
+    encoder.addParam("anotherParam", anotherParam);
+
+    testRequest(HttpMethod.GET, encoder.toString(), 400, "failure:NO_MATCH");
+  }
+
+
 
 }

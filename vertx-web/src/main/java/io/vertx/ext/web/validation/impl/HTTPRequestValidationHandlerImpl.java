@@ -1,10 +1,6 @@
 package io.vertx.ext.web.validation.impl;
 
-import io.vertx.ext.web.validation.CustomValidator;
-import io.vertx.ext.web.validation.HTTPRequestValidationHandler;
-import io.vertx.ext.web.validation.ParameterType;
-
-import java.util.regex.Pattern;
+import io.vertx.ext.web.validation.*;
 
 /**
  * @author Francesco Guardiani @slinkydeveloper
@@ -24,7 +20,7 @@ public class HTTPRequestValidationHandlerImpl extends BaseValidationHandler impl
    */
   @Override
   public HTTPRequestValidationHandler addPathParam(String parameterName, ParameterType type) {
-    this.addPathParamRule(new ValidationRule(parameterName, type, false, false));
+    this.addPathParamRule(ParameterValidationRule.createSingleParamValidationRule(parameterName, type, false, ParameterLocation.PATH));
     return this;
   }
 
@@ -37,7 +33,7 @@ public class HTTPRequestValidationHandlerImpl extends BaseValidationHandler impl
    */
   @Override
   public HTTPRequestValidationHandler addPathParamWithPattern(String parameterName, String pattern) {
-    this.addPathParamRule(new ValidationRule(parameterName, new PatternTypeValidator(pattern), false, false));
+    this.addPathParamRule(ParameterValidationRule.createSingleParamValidationRuleWithCustomTypeValidator(parameterName, ParameterTypeValidator.createStringTypeValidator(pattern), false, ParameterLocation.PATH));
     return this;
   }
 
@@ -51,7 +47,7 @@ public class HTTPRequestValidationHandlerImpl extends BaseValidationHandler impl
    */
   @Override
   public HTTPRequestValidationHandler addQueryParam(String parameterName, ParameterType type, boolean required) {
-    this.addQueryParamRule(new ValidationRule(parameterName, type, !required, false));
+    this.addQueryParamRule(ParameterValidationRule.createSingleParamValidationRule(parameterName, type, !required, ParameterLocation.QUERY));
     return this;
   }
 
@@ -65,7 +61,7 @@ public class HTTPRequestValidationHandlerImpl extends BaseValidationHandler impl
    */
   @Override
   public HTTPRequestValidationHandler addQueryParamWithPattern(String parameterName, String pattern, boolean required) {
-    this.addQueryParamRule(new ValidationRule(parameterName, new PatternTypeValidator(pattern), !required, false));
+    this.addQueryParamRule(ParameterValidationRule.createSingleParamValidationRuleWithCustomTypeValidator(parameterName, ParameterTypeValidator.createStringTypeValidator(pattern), !required, ParameterLocation.QUERY));
     return this;
   }
 
@@ -79,7 +75,7 @@ public class HTTPRequestValidationHandlerImpl extends BaseValidationHandler impl
    */
   @Override
   public HTTPRequestValidationHandler addQueryParamsArray(String arrayName, ParameterType type, boolean required) {
-    this.addQueryParamRule(new ValidationRule(arrayName, type, !required, true));
+    this.addQueryParamRule(ParameterValidationRule.createArrayParamValidationRule(arrayName, type, !required, ParameterLocation.QUERY));
     return this;
   }
 
@@ -93,7 +89,7 @@ public class HTTPRequestValidationHandlerImpl extends BaseValidationHandler impl
    */
   @Override
   public HTTPRequestValidationHandler addQueryParamsArrayWithPattern(String arrayName, String pattern, boolean required) {
-    this.addQueryParamRule(new ValidationRule(arrayName, new PatternTypeValidator(pattern), !required, true));
+    this.addQueryParamRule(ParameterValidationRule.createArrayParamValidationRuleWithCustomTypeValidator(arrayName, ParameterTypeValidator.createStringTypeValidator(pattern), !required, ParameterLocation.QUERY));
     return this;
   }
 
@@ -107,7 +103,7 @@ public class HTTPRequestValidationHandlerImpl extends BaseValidationHandler impl
    */
   @Override
   public HTTPRequestValidationHandler addHeaderParam(String headerName, ParameterType type, boolean required) {
-    this.addHeaderParamRule(new ValidationRule(headerName, type, !required, false));
+    this.addHeaderParamRule(ParameterValidationRule.createSingleParamValidationRule(headerName, type, !required, ParameterLocation.HEADER));
     return this;
   }
 
@@ -121,7 +117,7 @@ public class HTTPRequestValidationHandlerImpl extends BaseValidationHandler impl
    */
   @Override
   public HTTPRequestValidationHandler addHeaderParamWithPattern(String headerName, String pattern, boolean required) {
-    this.addHeaderParamRule(new ValidationRule(headerName, new PatternTypeValidator(pattern), !required, false));
+    this.addHeaderParamRule(ParameterValidationRule.createSingleParamValidationRuleWithCustomTypeValidator(headerName, ParameterTypeValidator.createStringTypeValidator(pattern), !required, ParameterLocation.HEADER));
     return this;
   }
 
@@ -135,7 +131,7 @@ public class HTTPRequestValidationHandlerImpl extends BaseValidationHandler impl
    */
   @Override
   public HTTPRequestValidationHandler addFormParam(String parameterName, ParameterType type, boolean required) {
-    this.addFormParamRule(new ValidationRule(parameterName, type, !required, false));
+    this.addFormParamRule(ParameterValidationRule.createSingleParamValidationRule(parameterName, type, !required, ParameterLocation.BODY_FORM));
     return this;
   }
 
@@ -149,7 +145,7 @@ public class HTTPRequestValidationHandlerImpl extends BaseValidationHandler impl
    */
   @Override
   public HTTPRequestValidationHandler addFormParamWithPattern(String parameterName, String pattern, boolean required) {
-    this.addFormParamRule(new ValidationRule(parameterName, new PatternTypeValidator(pattern), !required, false));
+    this.addFormParamRule(ParameterValidationRule.createSingleParamValidationRuleWithCustomTypeValidator(parameterName, ParameterTypeValidator.createStringTypeValidator(pattern), !required, ParameterLocation.BODY_FORM));
     return this;
   }
 
@@ -163,7 +159,7 @@ public class HTTPRequestValidationHandlerImpl extends BaseValidationHandler impl
    */
   @Override
   public HTTPRequestValidationHandler addFormParamsArray(String parameterName, ParameterType type, boolean required) {
-    this.addFormParamRule(new ValidationRule(parameterName, type, !required, true));
+    this.addFormParamRule(ParameterValidationRule.createArrayParamValidationRule(parameterName, type, !required, ParameterLocation.BODY_FORM));
     return this;
   }
 
@@ -177,7 +173,7 @@ public class HTTPRequestValidationHandlerImpl extends BaseValidationHandler impl
    */
   @Override
   public HTTPRequestValidationHandler addFormParamsArrayWithPattern(String parameterName, String pattern, boolean required) {
-    this.addFormParamRule(new ValidationRule(parameterName, new PatternTypeValidator(pattern), !required, false));
+    this.addFormParamRule(ParameterValidationRule.createArrayParamValidationRuleWithCustomTypeValidator(parameterName, ParameterTypeValidator.createStringTypeValidator(pattern), !required, ParameterLocation.BODY_FORM));
     return this;
   }
 
