@@ -16,10 +16,14 @@
 
 package io.vertx.ext.web.templ.impl;
 
+import java.util.List;
+
 import com.fizzed.rocker.BindableRockerModel;
 import com.fizzed.rocker.Rocker;
 import com.fizzed.rocker.runtime.ArrayOfByteArraysOutput;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
@@ -60,7 +64,13 @@ public class RockerTemplateEngineImpl extends CachingTemplateEngine<Void> implem
       model.bind(context.data());
 
       ArrayOfByteArraysOutput output = model.render(ArrayOfByteArraysOutput.FACTORY);
-      handler.handle(Future.succeededFuture(Buffer.buffer(output.toByteArray())));
+
+      List<byte[]> listOfByteArrays = output.getArrays();
+      int listOfByteArraysSize = listOfByteArrays.size();
+      byte[][] arrayOfByteArrays = listOfByteArrays.toArray(new byte[listOfByteArraysSize][]);
+      ByteBuf byteBuf = Unpooled.wrappedBuffer(listOfByteArraysSize, arrayOfByteArrays);
+
+      handler.handle(Future.succeededFuture(Buffer.buffer(byteBuf)));
     } catch (final Exception ex) {
       handler.handle(Future.failedFuture(ex));
     }
