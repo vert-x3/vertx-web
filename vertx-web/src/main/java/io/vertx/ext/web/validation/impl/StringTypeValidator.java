@@ -14,7 +14,7 @@ public class StringTypeValidator implements ParameterTypeValidator {
   private Integer maxLength;
 
   public StringTypeValidator(String pattern, Integer minLength, Integer maxLength) {
-    this.pattern = Pattern.compile(pattern);
+    this.pattern = (pattern != null) ? Pattern.compile(pattern) : null;
     this.minLength = minLength;
     this.maxLength = maxLength;
   }
@@ -47,6 +47,6 @@ public class StringTypeValidator implements ParameterTypeValidator {
    */
   @Override
   public boolean isValid(String value) {
-    return (checkMinLength(value) && checkMaxLength(value) && pattern.matcher(value).matches());
+    return (checkMinLength(value) && checkMaxLength(value) && (pattern == null || pattern.matcher(value).matches()));
   }
 }

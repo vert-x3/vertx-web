@@ -39,7 +39,7 @@ public class NumericTypeValidator<NumberType extends Number> implements Paramete
 
   private boolean testMaximum(NumberType number) {
     if (this.maximum != null) {
-      if (this.exclusiveMaximum)
+      if (this.exclusiveMaximum != null && this.exclusiveMaximum)
         return (number.doubleValue() < maximum);
       else
         return (number.doubleValue() <= maximum);
@@ -49,7 +49,7 @@ public class NumericTypeValidator<NumberType extends Number> implements Paramete
 
   private boolean testMinimum(NumberType number) {
     if (this.minimum != null) {
-      if (this.exclusiveMinimum)
+      if (this.exclusiveMinimum != null && exclusiveMinimum)
         return (number.doubleValue() > minimum);
       else
         return (number.doubleValue() >= minimum);

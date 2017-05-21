@@ -1,0 +1,135 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "version": "1.0.0",
+    "title": "Vert.x tests swagger spec"
+  },
+  "host": "helloworld.com",
+  "basePath": "/api",
+  "schemes": [
+    "http",
+    "https"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/hello/world": {
+      "get": {
+        "description": "Hello world",
+        "operationId": "hello_world",
+        "parameters": [
+          {
+            "name": "aaa",
+            "in": "query",
+            "type": "string",
+            "required": "true"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Good hello world"
+          }
+        }
+      }
+    },
+    "/query/int": {
+      "get": {
+        "description": "Query int test",
+        "operationId": "query_int",
+        "parameters": [
+          {
+            "name": "param1",
+            "in": "query",
+            "type": "integer",
+            "required": "true"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "value"
+          }
+        }
+      }
+    },
+    "/query/int/maximumminimum": {
+      "get": {
+        "description": "Query int maximum minimum test",
+        "operationId": "query_int_maximum_minimum",
+        "parameters": [
+          {
+            "name": "param1",
+            "in": "query",
+            "type": "integer",
+            "required": "true",
+            "maximum": 10,
+            "minimum": 2
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "value"
+          }
+        }
+      }
+    },
+    "/query/int/multipleof": {
+      "get": {
+        "description": "Query int multipleOf test",
+        "operationId": "query_int_multiple_of",
+        "parameters": [
+          {
+            "name": "param1",
+            "in": "query",
+            "type": "integer",
+            "required": "true",
+            "multipleOf": "2"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "value"
+          }
+        }
+      }
+    },
+    "/query/string/pattern": {
+      "get": {
+        "description": "Query string with regex test",
+        "operationId": "query_string_pattern",
+        "parameters": [
+          {
+            "name": "value",
+            "in": "query",
+            "type": "string",
+            "pattern": "^[a]{5}$"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "value"
+          }
+        }
+      }
+    },
+    "/query/string/maxlength": {
+      "get": {
+        "description": "Query string with maxlength test",
+        "operationId": "query_string_maxlength",
+        "parameters": [
+          {
+            "name": "value",
+            "in": "query",
+            "type": "string",
+            "maxLength": "3"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "value"
+          }
+        }
+      }
+    }
+  }
+}

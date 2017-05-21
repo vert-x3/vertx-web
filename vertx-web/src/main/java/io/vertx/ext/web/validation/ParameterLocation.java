@@ -13,8 +13,9 @@ public enum ParameterLocation {
   PATH("path"),
   FILE("body multipart/form"),
   BODY_FORM("body form"),
+  BODY("body"),
   BODY_JSON("body json"),
-  XML_JSON("body xml");
+  BODY_XML("body xml");
 
   public String s;
 

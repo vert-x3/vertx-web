@@ -7,7 +7,7 @@ import io.vertx.codegen.annotations.VertxGen;
  * @author Francesco Guardiani @slinkydeveloper
  */
 @VertxGen(concrete = false)
-public interface HTTPOperationRequestValidationHandler<OperationSpecType> extends ValidationHandler {
+public interface HTTPOperationRequestValidationHandler extends ValidationHandler {
   /**
    * Function that parse the operation specification and generate validation rules
    */

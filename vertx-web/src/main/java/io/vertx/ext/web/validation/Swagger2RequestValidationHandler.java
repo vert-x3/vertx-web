@@ -7,6 +7,6 @@ import io.vertx.codegen.annotations.VertxGen;
  * @author Francesco Guardiani @slinkydeveloper
  */
 @VertxGen
-public interface Swagger2RequestValidator extends HTTPOperationRequestValidationHandler<Operation> {
+public interface Swagger2RequestValidationHandler extends HTTPOperationRequestValidationHandler {
 
 }
