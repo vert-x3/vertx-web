@@ -15,61 +15,63 @@ import io.vertx.core.net.ProxyOptions
  * A function providing a DSL for building [io.vertx.ext.web.client.WebClientOptions] objects.
  *
  *
- * @param alpnVersions 
- * @param connectTimeout 
- * @param crlPaths 
- * @param crlValues 
- * @param defaultHost 
- * @param defaultPort 
- * @param enabledCipherSuites 
- * @param enabledSecureTransportProtocols 
+ * @param alpnVersions
+ * @param connectTimeout
+ * @param crlPaths
+ * @param crlValues
+ * @param decoderInitialBufferSize
+ * @param defaultHost
+ * @param defaultPort
+ * @param enabledCipherSuites
+ * @param enabledSecureTransportProtocols
  * @param followRedirects  Configure the default behavior of the client to follow HTTP <code>30x</code> redirections.
- * @param http2ClearTextUpgrade 
- * @param http2ConnectionWindowSize 
- * @param http2MaxPoolSize 
- * @param http2MultiplexingLimit 
- * @param idleTimeout 
- * @param initialSettings 
- * @param jdkSslEngineOptions 
- * @param keepAlive 
- * @param keyStoreOptions 
- * @param localAddress 
- * @param logActivity 
- * @param maxChunkSize 
- * @param maxHeaderSize 
- * @param maxInitialLineLength 
- * @param maxPoolSize 
- * @param maxRedirects 
- * @param maxWaitQueueSize 
- * @param maxWebsocketFrameSize 
- * @param maxWebsocketMessageSize 
- * @param metricsName 
- * @param openSslEngineOptions 
- * @param pemKeyCertOptions 
- * @param pemTrustOptions 
- * @param pfxKeyCertOptions 
- * @param pfxTrustOptions 
- * @param pipelining 
- * @param pipeliningLimit 
- * @param protocolVersion 
- * @param proxyOptions 
- * @param receiveBufferSize 
- * @param reuseAddress 
- * @param sendBufferSize 
- * @param sendUnmaskedFrames 
- * @param soLinger 
- * @param ssl 
- * @param tcpKeepAlive 
- * @param tcpNoDelay 
- * @param trafficClass 
- * @param trustAll 
- * @param trustStoreOptions 
- * @param tryUseCompression 
- * @param useAlpn 
- * @param usePooledBuffers 
+ * @param forceSni
+ * @param http2ClearTextUpgrade
+ * @param http2ConnectionWindowSize
+ * @param http2MaxPoolSize
+ * @param http2MultiplexingLimit
+ * @param idleTimeout
+ * @param initialSettings
+ * @param jdkSslEngineOptions
+ * @param keepAlive
+ * @param keyStoreOptions
+ * @param localAddress
+ * @param logActivity
+ * @param maxChunkSize
+ * @param maxHeaderSize
+ * @param maxInitialLineLength
+ * @param maxPoolSize
+ * @param maxRedirects
+ * @param maxWaitQueueSize
+ * @param maxWebsocketFrameSize
+ * @param maxWebsocketMessageSize
+ * @param metricsName
+ * @param openSslEngineOptions
+ * @param pemKeyCertOptions
+ * @param pemTrustOptions
+ * @param pfxKeyCertOptions
+ * @param pfxTrustOptions
+ * @param pipelining
+ * @param pipeliningLimit
+ * @param protocolVersion
+ * @param proxyOptions
+ * @param receiveBufferSize
+ * @param reuseAddress
+ * @param sendBufferSize
+ * @param sendUnmaskedFrames
+ * @param soLinger
+ * @param ssl
+ * @param tcpKeepAlive
+ * @param tcpNoDelay
+ * @param trafficClass
+ * @param trustAll
+ * @param trustStoreOptions
+ * @param tryUseCompression
+ * @param useAlpn
+ * @param usePooledBuffers
  * @param userAgent  Sets the Web Client user agent header. Defaults to Vert.x-WebClient/&lt;version&gt;.
  * @param userAgentEnabled  Sets whether the Web Client should send a user agent header. Defaults to true.
- * @param verifyHost 
+ * @param verifyHost
  *
  * <p/>
  * NOTE: This function has been automatically generated from the [io.vertx.ext.web.client.WebClientOptions original] using Vert.x codegen.
@@ -79,11 +81,13 @@ fun WebClientOptions(
   connectTimeout: Int? = null,
   crlPaths: Iterable<String>? = null,
   crlValues: Iterable<io.vertx.core.buffer.Buffer>? = null,
+  decoderInitialBufferSize: Int? = null,
   defaultHost: String? = null,
   defaultPort: Int? = null,
   enabledCipherSuites: Iterable<String>? = null,
   enabledSecureTransportProtocols: Iterable<String>? = null,
   followRedirects: Boolean? = null,
+  forceSni: Boolean? = null,
   http2ClearTextUpgrade: Boolean? = null,
   http2ConnectionWindowSize: Int? = null,
   http2MaxPoolSize: Int? = null,
@@ -147,6 +151,9 @@ fun WebClientOptions(
       this.addCrlValue(item)
     }
   }
+  if (decoderInitialBufferSize != null) {
+    this.setDecoderInitialBufferSize(decoderInitialBufferSize)
+  }
   if (defaultHost != null) {
     this.setDefaultHost(defaultHost)
   }
@@ -165,6 +172,9 @@ fun WebClientOptions(
   }
   if (followRedirects != null) {
     this.setFollowRedirects(followRedirects)
+  }
+  if (forceSni != null) {
+    this.setForceSni(forceSni)
   }
   if (http2ClearTextUpgrade != null) {
     this.setHttp2ClearTextUpgrade(http2ClearTextUpgrade)

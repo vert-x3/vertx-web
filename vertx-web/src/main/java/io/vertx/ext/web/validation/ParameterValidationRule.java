@@ -48,35 +48,19 @@ public interface ParameterValidationRule {
    */
   ParameterTypeValidator getParameterTypeValidator();
 
-  static ParameterValidationRule createSingleParamValidationRule(String name, ParameterType type, boolean isOptional, ParameterLocation location) {
-    return new ParameterValidationRuleImpl(name, type.getValidationMethod(), isOptional, null, false, location);
+  /**
+   * Multi array is when a parameter name is assigned to different parameter instances, for example /hello?name=vertx&name=java <br/>
+   * This parameter is true when ParameterValidationRule is constructed with CollectionsSplitters.multi
+   *
+   * @return
+   */
+  boolean isMultiArray();
+
+  static ParameterValidationRule createValidationRule(String name, ParameterType type, boolean isOptional, ParameterLocation location) {
+    return new ParameterValidationRuleImpl(name, type.getValidationMethod(), isOptional, false, location);
   }
 
-  static ParameterValidationRule createSingleParamValidationRuleWithCustomTypeValidator(String name, ParameterTypeValidator validator, boolean isOptional, ParameterLocation location) {
-    return new ParameterValidationRuleImpl(name, validator, isOptional, null, false, location);
-  }
-
-  static ParameterValidationRule createSingleParamValidationRule(String name, ParameterType type, boolean isOptional, String defaultValue, boolean allowEmptyValue, ParameterLocation location) {
-    return new ParameterValidationRuleImpl(name, type.getValidationMethod(), isOptional, defaultValue, allowEmptyValue, location);
-  }
-
-  static ParameterValidationRule createSingleParamValidationRuleWithCustomTypeValidator(String name, ParameterTypeValidator validator, boolean isOptional, String defaultValue, boolean allowEmptyValue, ParameterLocation location) {
-    return new ParameterValidationRuleImpl(name, validator, isOptional, defaultValue, allowEmptyValue, location);
-  }
-
-  static ParameterValidationRule createArrayParamValidationRule(String name, ParameterType type, boolean isOptional, ParameterLocation location) {
-    return new ParameterValidationRuleImpl(name, type.getValidationMethod(), isOptional, null, false, null, null, location);
-  }
-
-  static ParameterValidationRule createArrayParamValidationRuleWithCustomTypeValidator(String name, ParameterTypeValidator validator, boolean isOptional, ParameterLocation location) {
-    return new ParameterValidationRuleImpl(name, validator, isOptional, null, false, null, null, location);
-  }
-
-  static ParameterValidationRule createArrayParamValidationRule(String name, ParameterType type, boolean isOptional, List<String> defaultArrayValue, boolean allowEmptyValue, Integer maxItems, Integer minItems, ParameterLocation location) {
-    return new ParameterValidationRuleImpl(name, type.getValidationMethod(), isOptional, defaultArrayValue, allowEmptyValue, maxItems, minItems, location);
-  }
-
-  static ParameterValidationRule createArrayParamValidationRuleWithCustomTypeValidator(String name, ParameterTypeValidator validator, boolean isOptional, List<String> defaultArrayValue, boolean allowEmptyValue, Integer maxItems, Integer minItems, ParameterLocation location) {
-    return new ParameterValidationRuleImpl(name, validator, isOptional, defaultArrayValue, allowEmptyValue, maxItems, minItems, location);
+  static ParameterValidationRule createValidationRuleWithCustomTypeValidator(String name, ParameterTypeValidator validator, boolean isOptional, ParameterLocation location) {
+    return new ParameterValidationRuleImpl(name, validator, isOptional, false, location);
   }
 }

@@ -22,6 +22,8 @@ public abstract class BaseValidationHandler implements ValidationHandler {
   private List<String> fileNamesRules;
   private List<CustomValidator> customValidators;
 
+  private boolean expectedBodyNotEmpty;
+
   protected BaseValidationHandler() {
     pathParamsRules = new HashMap<>();
     formParamsRules = new HashMap<>();
@@ -29,6 +31,8 @@ public abstract class BaseValidationHandler implements ValidationHandler {
     headerParamsRules = new HashMap<>();
     fileNamesRules = new ArrayList<>();
     customValidators = new ArrayList<>();
+
+    expectedBodyNotEmpty = false;
   }
 
   @Override
@@ -55,10 +59,16 @@ public abstract class BaseValidationHandler implements ValidationHandler {
           validateJSONBody();
         else if (contentType.equals("application/xml"))
           validateXMLBody();
-        else ;
-        //TODO ?!?
+        else {
+          routingContext.fail(400);
+          return;
+        }
+      } else {
+        if (expectedBodyNotEmpty) {
+          routingContext.fail(400);
+          return;
+        }
       }
-
       routingContext.next();
     } catch (ValidationException e) {
       routingContext.fail(e);
@@ -148,9 +158,10 @@ public abstract class BaseValidationHandler implements ValidationHandler {
   }
 
   protected void addFormParamRule(ParameterValidationRule rule) {
-
-    if (!formParamsRules.containsKey(rule.getName()))
+    if (!formParamsRules.containsKey(rule.getName())) {
       formParamsRules.put(rule.getName(), rule);
+      expectedBodyNotEmpty = true;
+    }
   }
 
   protected void addHeaderParamRule(ParameterValidationRule rule) {
@@ -164,15 +175,20 @@ public abstract class BaseValidationHandler implements ValidationHandler {
 
   protected void addFileUploadName(String formName) {
     fileNamesRules.add(formName);
+    expectedBodyNotEmpty = true;
   }
 
   protected void setJsonSchema(String jsonSchema) {
-    if (this.jsonSchema != null)
+    if (this.jsonSchema != null) {
       this.jsonSchema = jsonSchema;
+      expectedBodyNotEmpty = true;
+    }
   }
 
   protected void setXmlSchema(String xmlSchema) {
-    if (this.xmlSchema != null)
+    if (this.xmlSchema != null) {
       this.xmlSchema = xmlSchema;
+      expectedBodyNotEmpty = true;
+    }
   }
 }

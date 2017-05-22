@@ -69,15 +69,28 @@ public class Swagger2RequestValidationHandlerImpl extends HTTPOperationRequestVa
     return stringEnum;
   }
 
+  private String retrieveCollectionFormat(String collectionFormat) {
+    return (collectionFormat != null) ? collectionFormat : "csv";
+  }
+
   // "file" and "array" type are not managed inside this function!
   private ParameterTypeValidator resolveTypeValidatorFromProperty(Property property) {
     switch (property.getType()) {
+      /* Can't use this code, missing collectionFormat 😠
+      case "array":
+        ArrayProperty arrayProperty = (ArrayProperty) property;
+        return ParameterTypeValidator.createArrayTypeValidator(this.resolveTypeValidatorFromProperty(((ArrayProperty) property).getItems()), arrayProperty. TODO WHERE IS THIS FIELD );*/
       case "integer":
         IntegerProperty integerProperty = (IntegerProperty) property;
         if (integerProperty.getEnum() != null && integerProperty.getEnum().size() != 0)
           return ParameterTypeValidator.createEnumTypeValidator(this.convertEnum(integerProperty.getEnum()));
-        else
-          return ParameterTypeValidator.createIntegerTypeValidator(((integerProperty.getExclusiveMaximum() != null) ? integerProperty.getExclusiveMaximum() : false), integerProperty.getMaximum(), ((integerProperty.getExclusiveMinimum() != null) ? integerProperty.getExclusiveMinimum() : false), integerProperty.getMinimum(), null /* Where is multipleOf ?! */);
+        else {
+          if (integerProperty.getFormat() != null && integerProperty.getFormat().equals("int64")) {
+            return ParameterTypeValidator.createLongTypeValidator(((integerProperty.getExclusiveMaximum() != null) ? integerProperty.getExclusiveMaximum() : false), integerProperty.getMaximum(), ((integerProperty.getExclusiveMinimum() != null) ? integerProperty.getExclusiveMinimum() : false), integerProperty.getMinimum(), null /* Where is multipleOf ?! */);
+          } else {
+            return ParameterTypeValidator.createIntegerTypeValidator(((integerProperty.getExclusiveMaximum() != null) ? integerProperty.getExclusiveMaximum() : false), integerProperty.getMaximum(), ((integerProperty.getExclusiveMinimum() != null) ? integerProperty.getExclusiveMinimum() : false), integerProperty.getMinimum(), null /* Where is multipleOf ?! */);
+          }
+        }
       case "number":
         AbstractNumericProperty numericProperty = (AbstractNumericProperty) property;
         if (numericProperty.getFormat().equals("float"))
@@ -105,13 +118,19 @@ public class Swagger2RequestValidationHandlerImpl extends HTTPOperationRequestVa
     return ParameterType.GENERIC_STRING.getValidationMethod();
   }
 
-  // "file" and "array" type are not managed inside this function!
+  // "file"  type is not managed inside this function!
   private ParameterTypeValidator resolveTypeValidatorFromParameter(AbstractSerializableParameter parameter) {
     if (parameter.getEnum() != null && parameter.getEnum().size() != 0)
       return ParameterTypeValidator.createEnumTypeValidator(parameter.getEnum());
     switch (parameter.getType()) {
+      case "array":
+        return ParameterTypeValidator.createArrayTypeValidator(this.resolveTypeValidatorFromProperty(parameter.getItems()), this.retrieveCollectionFormat(parameter.getCollectionFormat()), parameter.getMaxItems(), parameter.getMinItems());
       case "integer":
-        return ParameterTypeValidator.createIntegerTypeValidator(parameter.isExclusiveMaximum(), parameter.getMaximum(), parameter.isExclusiveMinimum(), parameter.getMinimum(), (parameter.getMultipleOf() != null) ? parameter.getMultipleOf().doubleValue() : null);
+        if (parameter.getFormat() != null && parameter.getFormat().equals("int64")) {
+          return ParameterTypeValidator.createLongTypeValidator(parameter.isExclusiveMaximum(), parameter.getMaximum(), parameter.isExclusiveMinimum(), parameter.getMinimum(), (parameter.getMultipleOf() != null) ? parameter.getMultipleOf().doubleValue() : null);
+        } else {
+          return ParameterTypeValidator.createIntegerTypeValidator(parameter.isExclusiveMaximum(), parameter.getMaximum(), parameter.isExclusiveMinimum(), parameter.getMinimum(), (parameter.getMultipleOf() != null) ? parameter.getMultipleOf().doubleValue() : null);
+        }
       case "number":
         if (parameter.getFormat().equals("float"))
           return ParameterTypeValidator.createFloatTypeValidator(parameter.isExclusiveMaximum(), parameter.getMaximum(), parameter.isExclusiveMinimum(), parameter.getMinimum(), (parameter.getMultipleOf() != null) ? parameter.getMultipleOf().doubleValue() : null);
@@ -140,26 +159,13 @@ public class Swagger2RequestValidationHandlerImpl extends HTTPOperationRequestVa
     AbstractSerializableParameter serializableParameter = (AbstractSerializableParameter) parameter;
     if (serializableParameter.getType().equals("file")) {
       this.addFileUploadName(serializableParameter.getName());
-    } else if (serializableParameter.getType().equals("array")) {
-      this.loadValidationRule(serializableParameter.getIn(),
-        ParameterValidationRule.createArrayParamValidationRuleWithCustomTypeValidator(
-          serializableParameter.getName(),
-          this.resolveTypeValidatorFromProperty(serializableParameter.getItems()),
-          !serializableParameter.getRequired(),
-          null, // TODO Where to get default array value?
-          false, // TODO Where to get allowEmptyValue?!
-          serializableParameter.getMaxItems(),
-          serializableParameter.getMinItems(),
-          this.parseLocation(serializableParameter)));
     } else if (serializableParameter.getIn().equals("body")) {
       //TODO the revenge of the models
     } else {
       this.loadValidationRule(serializableParameter.getIn(),
-        ParameterValidationRule.createSingleParamValidationRuleWithCustomTypeValidator(serializableParameter.getName(),
+        ParameterValidationRule.createValidationRuleWithCustomTypeValidator(serializableParameter.getName(),
           this.resolveTypeValidatorFromParameter(serializableParameter),
           !serializableParameter.getRequired(),
-          serializableParameter.getDefaultValue(),
-          false,
           this.parseLocation(serializableParameter)));
     }
   }

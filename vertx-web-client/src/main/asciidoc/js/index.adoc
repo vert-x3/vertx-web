@@ -598,21 +598,56 @@ makes the HTTP request upon subscription, as consequence, the `Single` can be su
 
 [source,js]
 ----
-Code not translatable
+
+// Create the RxJava single for an HttpRequest
+// at this point no HTTP request has been sent to the server
+var single = client.get(8080, "myserver.mycompany.com", "/some-uri").rxSend();
+
+// Send a request upon subscription of the Single
+single.subscribe(function (response) {
+  console.log("Received 1st response with status code" + response.statusCode());
+}, function (error) {
+  console.log("Something went wrong " + error.getMessage());
+});
+
+// Send another request
+single.subscribe(function (response) {
+  console.log("Received 2nd response with status code" + response.statusCode());
+}, function (error) {
+  console.log("Something went wrong " + error.getMessage());
+});
+
 ----
 
 The obtained `Single` can be composed and chained naturally with the RxJava API
 
 [source,js]
 ----
-Code not translatable
+
+// Obtain an URL Single from myserver.mycompany.com
+var url = client.get(8080, "myserver.mycompany.com", "/some-uri").rxSend().map(Java.type("io.vertx.rxjava.ext.web.client.HttpResponse").bodyAsString);
+
+// Use the flatMap operator to make a request on the URL Single
+url.flatMap(function (u) {
+  client.getAbs(u).rxSend();
+}).subscribe(function (response) {
+  console.log("Received response with status code" + response.statusCode());
+}, function (error) {
+  console.log("Something went wrong " + error.getMessage());
+});
+
 ----
 
 The same APIs is available
 
 [source,js]
 ----
-Code not translatable
+var single = client.get(8080, "myserver.mycompany.com", "/some-uri").putHeader("some-header", "header-value").addQueryParam("some-param", "param value").as(Java.type("io.vertx.rxjava.ext.web.codec.BodyCodec").jsonObject()).rxSend();
+single.subscribe(function (resp) {
+  console.log(resp.statusCode());
+  console.log(resp.body());
+});
+
 ----
 
 The `sendStream` shall
@@ -620,7 +655,15 @@ be preferred for sending bodies `Observable<Buffer>`
 
 [source,js]
 ----
-Code not translatable
+
+var body = getPayload();
+
+var single = client.post(8080, "myserver.mycompany.com", "/some-uri").rxSendStream(body);
+single.subscribe(function (resp) {
+  console.log(resp.statusCode());
+  console.log(resp.body());
+});
+
 ----
 
 Upon subscription, the `body` will be subscribed and its content used for the request.

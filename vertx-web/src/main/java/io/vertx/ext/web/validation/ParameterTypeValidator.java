@@ -1,6 +1,7 @@
 package io.vertx.ext.web.validation;
 
 import io.vertx.codegen.annotations.VertxGen;
+import io.vertx.ext.web.validation.impl.ArrayTypeValidator;
 import io.vertx.ext.web.validation.impl.NumericTypeValidator;
 import io.vertx.ext.web.validation.impl.StringEnumTypeValidator;
 import io.vertx.ext.web.validation.impl.StringTypeValidator;
@@ -30,6 +31,18 @@ public interface ParameterTypeValidator {
 
   static ParameterTypeValidator createIntegerTypeValidator(Boolean exclusiveMaximum, Double maximum, Boolean exclusiveMinimum, Double minimum, Double multipleOf) {
     return new NumericTypeValidator<Integer>(NumericTypeValidator.parseInteger, exclusiveMaximum, maximum, exclusiveMinimum, minimum, multipleOf);
+  }
+
+  static ParameterTypeValidator createLongTypeValidator() {
+    return new NumericTypeValidator<Long>(NumericTypeValidator.parseLong);
+  }
+
+  static ParameterTypeValidator createLongTypeValidator(Double maximum, Double minimum, Double multipleOf) {
+    return new NumericTypeValidator<Long>(NumericTypeValidator.parseLong, maximum, minimum, multipleOf);
+  }
+
+  static ParameterTypeValidator createLongTypeValidator(Boolean exclusiveMaximum, Double maximum, Boolean exclusiveMinimum, Double minimum, Double multipleOf) {
+    return new NumericTypeValidator<Long>(NumericTypeValidator.parseLong, exclusiveMaximum, maximum, exclusiveMinimum, minimum, multipleOf);
   }
 
   static ParameterTypeValidator createFloatTypeValidator() {
@@ -68,6 +81,16 @@ public interface ParameterTypeValidator {
     return new StringEnumTypeValidator(allowedValues);
   }
 
-  //TODO add factory methods for numerictypevalidator
+  /**
+   * @param arrayMembersValidator
+   * @return An ArrayTypeValidator with multi collection format
+   */
+  static ParameterTypeValidator createArrayTypeValidator(ParameterTypeValidator arrayMembersValidator) {
+    return new ArrayTypeValidator(arrayMembersValidator);
+  }
+
+  static ParameterTypeValidator createArrayTypeValidator(ParameterTypeValidator arrayMembersValidator, String collectionFormat, Integer maxItems, Integer minItems) {
+    return new ArrayTypeValidator(arrayMembersValidator, collectionFormat, maxItems, minItems);
+  }
 
 }

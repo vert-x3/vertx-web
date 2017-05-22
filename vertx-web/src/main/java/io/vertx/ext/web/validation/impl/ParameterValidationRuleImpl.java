@@ -19,37 +19,34 @@ public class ParameterValidationRuleImpl implements ParameterValidationRule {
   private boolean isOptional;
   private boolean allowEmptyValue;
 
-  // Default Values
-  private String defaultValue; //TODO what to do with default value?
-  private List<String> defaultArrayValue;
-
-  // Array params
-  private boolean expectedArray;
+  // Array params, this params are used ONLY IF array collectionformat is multi, otherwise it will be handled by the validator
+  private boolean multiArray; // If parameter is a multi array, this object have to manually loop inside it, otherwise, call validator function
   private Integer maxItems;
   private Integer minItems;
 
-  // Only for internal construction of object
-  private ParameterValidationRuleImpl(String name, ParameterTypeValidator validator, boolean isOptional, boolean expectedArray, String defaultValue, List<String> defaultArrayValue, boolean allowEmptyValue, Integer maxItems, Integer minItems, ParameterLocation location) {
+  public ParameterValidationRuleImpl(String name, ParameterTypeValidator validator, boolean isOptional, boolean allowEmptyValue, ParameterLocation location) {
+    if (name == null)
+      throw new NullPointerException("name cannot be null");
     this.name = name;
+    if (validator == null)
+      throw new NullPointerException("validator cannot be null");
     this.validator = validator;
     this.isOptional = isOptional;
-    this.expectedArray = expectedArray;
-    this.defaultValue = defaultValue;
-    this.defaultArrayValue = defaultArrayValue;
     this.allowEmptyValue = allowEmptyValue;
-    this.maxItems = maxItems;
-    this.minItems = minItems;
     this.location = location;
-  }
 
-  // For single parameter rule construction
-  public ParameterValidationRuleImpl(String name, ParameterTypeValidator validator, boolean isOptional, String defaultValue, boolean allowEmptyValue, ParameterLocation location) {
-    this(name, validator, isOptional, false, defaultValue, null, allowEmptyValue, null, null, location);
-  }
-
-  // For array parameter rule construction
-  public ParameterValidationRuleImpl(String name, ParameterTypeValidator validator, boolean isOptional, List<String> defaultArrayValue, boolean allowEmptyValue, Integer maxItems, Integer minItems, ParameterLocation location) {
-    this(name, validator, isOptional, true, null, defaultArrayValue, allowEmptyValue, maxItems, minItems, location);
+    // Multi array construction routine
+    if (validator instanceof ArrayTypeValidator) {
+      ArrayTypeValidator arrayValidator = (ArrayTypeValidator) validator;
+      if (arrayValidator.getCollectionFormat().equals(ArrayTypeValidator.CollectionsSplitters.multi)) {
+        this.multiArray = true;
+        this.validator = arrayValidator.getInnerValidator();
+        this.minItems = arrayValidator.getMinItems();
+        this.maxItems = arrayValidator.getMaxItems();
+      } else {
+        this.multiArray = false;
+      }
+    }
   }
 
   @Override
@@ -60,23 +57,6 @@ public class ParameterValidationRuleImpl implements ParameterValidationRule {
   private void callValidator(String value) throws ValidationException {
     if (!validator.isValid(value))
       throw ValidationException.generateNotMatchValidationException(this.name, value, this, this.location);
-  }
-
-  @Override
-  public void validateSingleParam(String value) throws ValidationException {
-    if (value != null && value.length() != 0) {
-      // Value not null with size > 0
-      if (this.expectedArray) {
-        throw ValidationException.generateUnexpectedSingleStringValidationException(this.getName(), this);
-      } else {
-        callValidator(value);
-      }
-    } else {
-      // Value or null or length == 0
-      if (!this.allowEmptyValue)
-        throw ValidationException.generateEmptyValueValidationException(this.name, this, this.location);
-      //TODO applydefaultvalue?!
-    }
   }
 
   private boolean checkMinItems(int size) {
@@ -92,12 +72,20 @@ public class ParameterValidationRuleImpl implements ParameterValidationRule {
   }
 
   @Override
+  public void validateSingleParam(String value) throws ValidationException {
+    if (value != null && value.length() != 0) {
+      callValidator(value);
+    } else {
+      // Value or null or length == 0
+      if (!this.allowEmptyValue)
+        throw ValidationException.generateEmptyValueValidationException(this.name, this, this.location);
+    }
+  }
+
+  @Override
   public void validateArrayParam(List<String> value) throws ValidationException {
     if (value != null && value.size() != 0) {
-      // array not null with size > 0
-      if (!this.expectedArray && value.size() > 1)
-        throw ValidationException.generateUnexpectedArrayValidationException(this.name, this);
-      else {
+      if (this.multiArray) {
         if (checkMaxItems(value.size()) && checkMinItems(value.size())) {
           for (String s : value) {
             callValidator(s);
@@ -105,12 +93,13 @@ public class ParameterValidationRuleImpl implements ParameterValidationRule {
         } else {
           throw ValidationException.generateUnexpectedArraySizeValidationException(this.name, this.maxItems, this.minItems, value.size(), this, this.location);
         }
+      } else {
+        validateSingleParam(value.get(0));
       }
     } else {
       // array or null or size == 0
       if (!this.allowEmptyValue)
         throw ValidationException.generateEmptyValueValidationException(this.name, this, this.location);
-      //TODO applydefaultvalue?!
     }
   }
 
@@ -125,6 +114,11 @@ public class ParameterValidationRuleImpl implements ParameterValidationRule {
   }
 
   @Override
+  public boolean isMultiArray() {
+    return multiArray;
+  }
+
+  @Override
   public String toString() {
     return "ParameterValidationRuleImpl{" +
       "name='" + name + '\'' +
@@ -132,9 +126,7 @@ public class ParameterValidationRuleImpl implements ParameterValidationRule {
       ", location=" + location +
       ", isOptional=" + isOptional +
       ", allowEmptyValue=" + allowEmptyValue +
-      ", defaultValue='" + defaultValue + '\'' +
-      ", defaultArrayValue=" + defaultArrayValue +
-      ", expectedArray=" + expectedArray +
+      ", multiArray=" + multiArray +
       ", maxItems=" + maxItems +
       ", minItems=" + minItems +
       '}';

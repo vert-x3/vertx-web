@@ -12,6 +12,7 @@ public class NumericTypeValidator<NumberType extends Number> implements Paramete
   public static Function<String, Integer> parseInteger = (string) -> Integer.parseInt(string);
   public static Function<String, Float> parseFloat = (string) -> Float.parseFloat(string);
   public static Function<String, Double> parseDouble = (string) -> Double.parseDouble(string);
+  public static Function<String, Long> parseLong = (string) -> Long.parseLong(string);
 
   private Function<String, NumberType> parseNumber;
   private Boolean exclusiveMaximum;

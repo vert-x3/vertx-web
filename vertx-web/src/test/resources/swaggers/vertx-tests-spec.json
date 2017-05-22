@@ -112,6 +112,28 @@
         }
       }
     },
+    "/query/array/string/pattern": {
+      "get": {
+        "description": "Query array string with regex test",
+        "operationId": "query_array_string_pattern",
+        "parameters": [
+          {
+            "name": "value",
+            "in": "query",
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[a]{5}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "value"
+          }
+        }
+      }
+    },
     "/query/string/maxlength": {
       "get": {
         "description": "Query string with maxlength test",
@@ -121,7 +143,38 @@
             "name": "value",
             "in": "query",
             "type": "string",
-            "maxLength": "3"
+            "maxLength": 3
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "value"
+          }
+        }
+      }
+    },
+    "/multi/query_path_header/{param}": {
+      "get": {
+        "description": "Multiple parameter tests",
+        "operationId": "multi_query_path_header",
+        "parameters": [
+          {
+            "name": "value",
+            "in": "query",
+            "type": "integer",
+            "format": "long"
+          },
+          {
+            "name": "Custom-Date",
+            "in": "header",
+            "type": "string",
+            "format": "date"
+          },
+          {
+            "name": "param",
+            "in": "path",
+            "type": "string",
+            "pattern": "^[a]{5}$"
           }
         ],
         "responses": {

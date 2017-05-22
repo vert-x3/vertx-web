@@ -123,4 +123,45 @@ public class Swagger2RequestValidationHandlerTest extends WebTestValidationBase 
     testRequest(HttpMethod.GET, "/query/string/maxlength?value=" + value, 400, "failure:NO_MATCH");
   }
 
+  @Test
+  public void testQueryArrayStringPatternParam() throws Exception {
+    Swagger2RequestValidationHandlerImpl validationHandler = new Swagger2RequestValidationHandlerImpl(vertxTestSpec.getPath("/query/array/string/pattern").getGet());
+    router.get("/query/array/string/pattern").handler(validationHandler);
+    router.get("/query/array/string/pattern").handler(routingContext -> {
+      routingContext.response().setStatusMessage(routingContext.queryParam("value").get(0))
+        .end();
+    }).failureHandler(generateFailureHandler());
+    String value = "aaaaa,aaaaa,aaaaa";
+    testRequest(HttpMethod.GET, "/query/array/string/pattern?value=" + value, 200, "aaaaa,aaaaa,aaaaa");
+  }
+
+  @Test
+  public void testQueryArrayStringPatternParamFailure() throws Exception {
+    Swagger2RequestValidationHandlerImpl validationHandler = new Swagger2RequestValidationHandlerImpl(vertxTestSpec.getPath("/query/array/string/pattern").getGet());
+    router.get("/query/array/string/pattern").handler(validationHandler);
+    router.get("/query/array/string/pattern").handler(routingContext -> {
+      routingContext.response().setStatusMessage(routingContext.queryParam("value").get(0))
+        .end();
+    }).failureHandler(generateFailureHandler());
+    String value = "aaaaa,aabaa,aaaaa";
+    testRequest(HttpMethod.GET, "/query/array/string/pattern?value=" + value, 400, "failure:NO_MATCH");
+  }
+
+  @Test
+  public void testQueryHeaderPathParamsValidation() throws Exception {
+    Swagger2RequestValidationHandler validationHandler = new Swagger2RequestValidationHandlerImpl(vertxTestSpec.getPath("/multi/query_path_header/{param}").getGet());
+    router.get("/multi/query_path_header/:param").handler(validationHandler);
+    router.get("/multi/query_path_header/:param").handler(routingContext -> {
+      routingContext.response().setStatusMessage(
+        routingContext.queryParam("value").get(0) +
+          routingContext.request().headers().get("Custom-Date") +
+          routingContext.pathParam("param")
+      ).end();
+    });
+    String value = Long.toString(Long.MAX_VALUE - 1);
+    String date = getSuccessSample(ParameterType.DATE);
+    String param = "aaaaa";
+    //TODO and now? how to add headers?
+  }
+
 }
