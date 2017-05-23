@@ -1645,6 +1645,21 @@
  *
  * You can't actually do anything with the connection until it is opened. When it is open the `onopen` handler will be called.
  *
+ * IMPORTANT: Neither SockJS nor the EventBus bridge support automatic reconnection.
+ *
+ * When your server goes down, you must create another EventBus instance.
+ *
+ * [source,javascript]
+ * ----
+ * function setupEventBus() {
+ *   var eb = new EventBus();
+ *   eb.onclose = function (e) {
+ *     setTimeout(setupEventBus, 1000); // Give the server some time to come back
+ *   };
+ *   // Handlers setup here...
+ * }
+ * ----
+ *
  * You can retrieve the client library using a dependency manager:
  *
  * * Maven (in your `pom.xml`):
@@ -1673,7 +1688,7 @@
  * Notice that the API has changed between the 3.0.0 and 3.1.0 version. Please check the changelog. The previous client
  * is still compatible and can still be used, but the new client offers more feature and is closer to the vert.x
  * event bus API.
-  *
+ *
  * === Securing the Bridge
  *
  * If you started a bridge like in the above example without securing it, and attempted to send messages through
