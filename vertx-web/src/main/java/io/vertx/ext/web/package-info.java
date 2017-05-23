@@ -536,6 +536,18 @@
  * {@link examples.WebExamples#example55b}
  * ----
  *
+ * It should be clear that reroute works on `paths`, so if you need to preserve and or add state across reroutes, one
+ * should use the `RoutingContext` object. For example you want to reroute to a new path with a extra parameter:
+ *
+ * [source,$lang]
+ * ----
+ * {@link examples.WebExamples#example55c}
+ * ----
+ *
+ * Even though the wrong reroute path will warn you that the query string is ignored, the reroute will happen since the
+ * implementation will strip any query string or html fragment from the path.
+ *
+ *
  * == Sub-routers
  *
  * Sometimes if you have a lot of handlers it can make sense to split them up into multiple routers. This is also useful
