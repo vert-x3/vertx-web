@@ -70,7 +70,7 @@ class HttpRequestImpl<T> implements HttpRequest<T> {
   private boolean ssl;
 
   HttpRequestImpl(HttpClient client, HttpMethod method, boolean ssl, int port, String host, String uri, BodyCodec<T> codec, WebClientOptions options) {
-    this(client, method, null, ssl, port, uri, uri, codec, options);
+    this(client, method, null, ssl, port, host, uri, codec, options);
   }
 
   HttpRequestImpl(HttpClient client, HttpMethod method, String protocol, boolean ssl, int port, String host, String uri, BodyCodec<T> codec, WebClientOptions options) {
