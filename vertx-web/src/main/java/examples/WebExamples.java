@@ -1154,6 +1154,25 @@ public class WebExamples {
     });
   }
 
+  public void example55c(Router router) {
+
+    router.get("/final-target").handler(ctx -> {
+      // continue from here...
+    });
+
+    // THE WRONG WAY! (Will reroute to /final-target excluding the query string)
+    router.get().handler(ctx -> {
+      ctx.reroute("/final-target?variable=value");
+    });
+
+    // THE CORRECT WAY!
+    router.get().handler(ctx -> {
+      ctx
+        .put("variable", "value")
+        .reroute("/final-target");
+    });
+  }
+
   public void example56(Router router) {
     router.route().handler(VirtualHostHandler.create("*.vertx.io", routingContext -> {
       // do something if the request is for *.vertx.io

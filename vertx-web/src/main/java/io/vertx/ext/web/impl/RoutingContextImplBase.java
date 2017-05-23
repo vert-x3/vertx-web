@@ -31,7 +31,7 @@ import java.util.Set;
  */
 public abstract class RoutingContextImplBase implements RoutingContext {
 
-  private static final Logger log = LoggerFactory.getLogger(RoutingContextImplBase.class);
+  static final Logger log = LoggerFactory.getLogger(RoutingContextImplBase.class);
 
   private final Set<RouteImpl> routes;
 
