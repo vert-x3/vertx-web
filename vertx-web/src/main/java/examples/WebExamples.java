@@ -1142,14 +1142,16 @@ public class WebExamples {
       // continue from here...
     });
 
-    // THE WRONG WAY! (Will not work)
+    // THE WRONG WAY! (Will reroute to /final-target excluding the query string)
     router.get().handler(ctx -> {
       ctx.reroute("/final-target?variable=value");
     });
 
-    // THE CORRECT WAY! (Will work)
+    // THE CORRECT WAY!
     router.get().handler(ctx -> {
-      ctx.put("variable", "value").reroute("/final-target");
+      ctx
+        .put("variable", "value")
+        .reroute("/final-target");
     });
   }
 
