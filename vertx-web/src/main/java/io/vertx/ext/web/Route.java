@@ -20,6 +20,7 @@ import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.Nullable;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
+import io.vertx.core.WorkerExecutor;
 import io.vertx.core.http.HttpMethod;
 
 /**
@@ -130,6 +131,19 @@ public interface Route {
    */
   @Fluent
   Route blockingHandler(Handler<RoutingContext> requestHandler, boolean ordered);
+
+  /**
+   * Lilke {@link #blockingHandler(Handler, WorkerExecutor, boolean)} called with ordered = true
+   */
+  @Fluent
+  Route blockingHandler(Handler<RoutingContext> requestHandler, WorkerExecutor workerExecutor);
+
+  /**
+   * Like {@link #blockingHandler(Handler, boolean)}, except it will use a separate worker pool rather than the
+   * default Vert.x one.
+   */
+  @Fluent
+  Route blockingHandler(Handler<RoutingContext> requestHandler, WorkerExecutor workerExecutor, boolean ordered);
 
   /**
    * Specify a failure handler for the route. The router routes failures to failurehandlers depending on whether the various

@@ -17,9 +17,15 @@
 package io.vertx.ext.web.handler;
 
 import io.vertx.core.Context;
+import io.vertx.core.Handler;
+import io.vertx.core.WorkerExecutor;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.ext.web.Route;
+import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.WebTestBase;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestName;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,13 +36,28 @@ import java.util.concurrent.CountDownLatch;
  */
 public class BlockingHandlerTest extends WebTestBase {
 
+  @Rule
+  public TestName testName = new TestName();
+  private WorkerExecutor workerExecutor;
+
   @Override
   public void setUp() throws Exception {
     super.setUp();
+    workerExecutor = vertx.createSharedWorkerExecutor(testName.getMethodName());
   }
 
   @Test
   public void testBlockingHandler() throws Exception {
+    testBlockingHandler(null);
+  }
+
+  @Test
+  public void testBlockingHandlerSharedWorker() throws Exception {
+    disableThreadChecks();
+    testBlockingHandler(workerExecutor);
+  }
+
+  private void testBlockingHandler(WorkerExecutor sharedWorker) throws Exception {
     List<Thread> threads = new ArrayList<>();
     List<Context> contexts = new ArrayList<>();
     router.route().handler(rc -> {
@@ -47,14 +68,14 @@ public class BlockingHandlerTest extends WebTestBase {
       rc.response().write("A");
       rc.next();
     });
-    router.route().blockingHandler(rc -> {
+    blockingHandler(router.route(), sharedWorker, rc -> {
       assertTrue(!threads.get(0).equals(Thread.currentThread()));
       assertTrue(contexts.get(0).equals(rc.vertx().getOrCreateContext()));
       assertTrue(rc.currentRoute()!=null);
       rc.response().write("B");
       rc.next();
     });
-    router.route().blockingHandler(rc -> {
+    blockingHandler(router.route(), sharedWorker, rc -> {
       assertTrue(!threads.get(0).equals(Thread.currentThread()));
       assertTrue(contexts.get(0).equals(rc.vertx().getOrCreateContext()));
       assertTrue(rc.currentRoute()!=null);
@@ -78,8 +99,34 @@ public class BlockingHandlerTest extends WebTestBase {
     testRequest(HttpMethod.GET, "/", 200, "OK", "ABCDE");
   }
 
+  private void blockingHandler(Route route, WorkerExecutor sharedWorker, Handler<RoutingContext> handler) {
+    if (sharedWorker == null) {
+      route.blockingHandler(handler);
+    } else {
+      route.blockingHandler(handler, sharedWorker);
+    }
+  }
+
+  private void blockingHandler(Route route, WorkerExecutor sharedWorker, Handler<RoutingContext> handler, boolean ordered) {
+    if (sharedWorker == null) {
+      route.blockingHandler(handler, ordered);
+    } else {
+      route.blockingHandler(handler, sharedWorker, ordered);
+    }
+  }
+
   @Test
   public void testBlockingHandlerFailure() throws Exception {
+    testBlockingHandlerFailure(null);
+  }
+
+  @Test
+  public void testBlockingHandlerFailureSharedWorker() throws Exception {
+    disableThreadChecks();
+    testBlockingHandlerFailure(workerExecutor);
+  }
+
+  private void testBlockingHandlerFailure(WorkerExecutor sharedWorker) throws Exception {
     List<Thread> threads = new ArrayList<>();
     List<Context> contexts = new ArrayList<>();
     router.route().handler(rc -> {
@@ -88,7 +135,7 @@ public class BlockingHandlerTest extends WebTestBase {
       rc.response().setChunked(true);
       rc.next();
     });
-    router.route().blockingHandler(rc -> {
+    blockingHandler(router.route(), sharedWorker, rc -> {
       assertTrue(!threads.get(0).equals(Thread.currentThread()));
       assertTrue(contexts.get(0).equals(rc.vertx().getOrCreateContext()));
       assertTrue(rc.currentRoute()!=null);
@@ -105,6 +152,16 @@ public class BlockingHandlerTest extends WebTestBase {
 
   @Test
   public void testBlockingHandlerFailureThrowException() throws Exception {
+    testBlockingHandlerFailureThrowException(null);
+  }
+
+  @Test
+  public void testBlockingHandlerFailureThrowExceptionSharedWorker() throws Exception {
+    disableThreadChecks();
+    testBlockingHandlerFailureThrowException(workerExecutor);
+  }
+
+  private void testBlockingHandlerFailureThrowException(WorkerExecutor sharedWorker) throws Exception {
     List<Thread> threads = new ArrayList<>();
     List<Context> contexts = new ArrayList<>();
     router.route().handler(rc -> {
@@ -112,7 +169,7 @@ public class BlockingHandlerTest extends WebTestBase {
       contexts.add(rc.vertx().getOrCreateContext());
       rc.next();
     });
-    router.route().blockingHandler(rc -> {
+    blockingHandler(router.route(), sharedWorker, rc -> {
       assertTrue(!threads.get(0).equals(Thread.currentThread()));
       assertTrue(contexts.get(0).equals(rc.vertx().getOrCreateContext()));
       assertTrue(rc.currentRoute()!=null);
@@ -133,12 +190,22 @@ public class BlockingHandlerTest extends WebTestBase {
 
   @Test
   public void testExecuteBlockingParallel() throws Exception {
+    testExecuteBlockingParallel(null);
+  }
+
+  @Test
+  public void testExecuteBlockingParallelSharedWorker() throws Exception {
+    disableThreadChecks();
+    testExecuteBlockingParallel(workerExecutor);
+  }
+
+  private void testExecuteBlockingParallel(WorkerExecutor sharedWorker) throws Exception {
 
     long start = System.currentTimeMillis();
     int numExecBlocking = 5;
     long pause = 1000;
 
-    router.route().blockingHandler(rc -> {
+    blockingHandler(router.route(), sharedWorker, rc -> {
       System.out.println("In blocking handler");
       try {
         Thread.sleep(pause);
@@ -165,4 +232,9 @@ public class BlockingHandlerTest extends WebTestBase {
     assertTrue(now - start < pause + leeway);
   }
 
+  @Override
+  public void tearDown() throws Exception {
+    workerExecutor.close();
+    super.tearDown();
+  }
 }
