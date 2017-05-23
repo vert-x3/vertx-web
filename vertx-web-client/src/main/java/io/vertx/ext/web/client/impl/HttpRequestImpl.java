@@ -23,11 +23,7 @@ import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.QueryStringDecoder;
 import io.netty.handler.codec.http.QueryStringEncoder;
 import io.netty.handler.codec.http.multipart.HttpPostRequestEncoder;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Future;
-import io.vertx.core.Handler;
-import io.vertx.core.MultiMap;
-import io.vertx.core.VertxException;
+import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.CaseInsensitiveHeaders;
 import io.vertx.core.http.HttpClient;
@@ -233,10 +229,14 @@ class HttpRequestImpl<T> implements HttpRequest<T> {
   private void send(String contentType, Object body, Handler<AsyncResult<HttpResponse<T>>> handler) {
 
     Future<HttpClientResponse> responseFuture = Future.<HttpClientResponse>future().setHandler(ar -> {
+      Context context = Vertx.currentContext();
       if (ar.succeeded()) {
         HttpClientResponse resp = ar.result();
         Future<HttpResponse<T>> fut = Future.future();
-        fut.setHandler(handler);
+        fut.setHandler(r -> {
+          // We are running on a context (the HTTP client mandates it)
+          context.runOnContext(v -> handler.handle(r));
+        });
         resp.exceptionHandler(err -> {
           if (!fut.isComplete()) {
             fut.fail(err);
