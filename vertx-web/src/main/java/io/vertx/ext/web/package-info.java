@@ -1008,10 +1008,10 @@
  *
  * === Chaining multiple auth handlers
  *
- * There are times where you want to support multiple authN/authZ mechanisms in a single application. For this you can
+ * There are times when you want to support multiple authN/authZ mechanisms in a single application. For this you can
  * use the {@link io.vertx.ext.web.handler.ChainAuthHandler}. The chain auth handler will attempt to perform
- * authentication on a chain of handlers. This means that if the authentication is valid then that handler will used
- * only to perform authorization (if requested).
+ * authentication on a chain of handlers. The chain works both for AuthN and AuthZ, so if the authentication is valid
+ * at a given handler of the chain, then that same handler will be used to perform authorization (if requested).
  *
  * It is important to know that some handlers require specific providers, for example:
  *
@@ -1020,7 +1020,7 @@
  * * The {@link io.vertx.ext.web.handler.OAuth2AuthHandler} requires {@link io.vertx.ext.auth.oauth2.OAuth2Auth}.
  *
  * So it is not expected that the providers will be shared across all handlers. There are cases where one can share the
- * provider across, for example:
+ * provider across handlers, for example:
  *
  * * The {@link io.vertx.ext.web.handler.BasicAuthHandler} can take any provider.
  * * The {@link io.vertx.ext.web.handler.RedirectAuthHandler} can take any provider.
@@ -1030,7 +1030,7 @@
  *
  * [source,$lang]
  * ----
- * {@link examples.WebExamples#example40}
+ * {@link examples.WebExamples#example63}
  * ----
  *
  * So when a user makes a request without a `Authorization` header, this means that the chain will fail to authenticate
@@ -1039,7 +1039,7 @@
  *
  * Like the normal routing in vertx-web, auth chaning is a sequence, so if you would prefer to fallback to your browser
  * asking for the user credentials using HTTP Basic authentication instead of the redirect all you need to to is reverse
- * the order of the appening to the chain.
+ * the order of appending to the chain.
  *
  * Now assume that you make a request where you provide the header `Authorization` with the value `Basic [token]`. In
  * this case the basic auth handler will attempt to authenticate and if it is sucessful the chain will stop and

@@ -35,20 +35,20 @@ public interface ChainAuthHandler extends AuthHandler {
   /**
    * Appends a auth provider to the chain.
    *
-   * @param other auth handler
+   * @param authHandler auth handler
    * @return self
    *
    */
   @Fluent
-  ChainAuthHandler append(AuthHandler other);
+  ChainAuthHandler append(AuthHandler authHandler);
 
   /**
    * Removes a provider from the chain.
    *
-   * @param other provider to remove
+   * @param authHandler provider to remove
    * @return true if provider was removed, false if non existent in the chain.
    */
-  boolean remove(AuthHandler other);
+  boolean remove(AuthHandler authHandler);
 
   /**
    * Clears the chain.

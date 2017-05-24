@@ -2,7 +2,7 @@ package io.vertx.ext.web.handler.impl;
 
 import io.netty.handler.codec.http.HttpResponseStatus;
 
-public class HttpStatusException extends Throwable {
+public class HttpStatusException extends RuntimeException {
 
   private final int statusCode;
   private final String payload;

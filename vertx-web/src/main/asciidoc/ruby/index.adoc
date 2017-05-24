@@ -1768,10 +1768,10 @@ router.route("/private/settings/*").handler(&settingsAuthHandler.method(:handle)
 
 === Chaining multiple auth handlers
 
-There are times where you want to support multiple authN/authZ mechanisms in a single application. For this you can
+There are times when you want to support multiple authN/authZ mechanisms in a single application. For this you can
 use the `link:../../yardoc/VertxWeb/ChainAuthHandler.html[ChainAuthHandler]`. The chain auth handler will attempt to perform
-authentication on a chain of handlers. This means that if the authentication is valid then that handler will used
-only to perform authorization (if requested).
+authentication on a chain of handlers. The chain works both for AuthN and AuthZ, so if the authentication is valid
+at a given handler of the chain, then that same handler will be used to perform authorization (if requested).
 
 It is important to know that some handlers require specific providers, for example:
 
@@ -1780,7 +1780,7 @@ It is important to know that some handlers require specific providers, for examp
 * The `link:../../yardoc/VertxWeb/OAuth2AuthHandler.html[OAuth2AuthHandler]` requires `link:../../yardoc/VertxAuthOauth2/OAuth2Auth.html[OAuth2Auth]`.
 
 So it is not expected that the providers will be shared across all handlers. There are cases where one can share the
-provider across, for example:
+provider across handlers, for example:
 
 * The `link:../../yardoc/VertxWeb/BasicAuthHandler.html[BasicAuthHandler]` can take any provider.
 * The `link:../../yardoc/VertxWeb/RedirectAuthHandler.html[RedirectAuthHandler]` can take any provider.
@@ -1790,20 +1790,23 @@ would start configuring your chain as:
 
 [source,ruby]
 ----
+require 'vertx-web/chain_auth_handler'
+require 'vertx-web/basic_auth_handler'
 require 'vertx-web/redirect_auth_handler'
 
-listProductsAuthHandler = VertxWeb::RedirectAuthHandler.create(authProvider)
-listProductsAuthHandler.add_authority("list_products")
+chain = VertxWeb::ChainAuthHandler.create()
 
-# Need "list_products" authority to list products
-router.route("/listproducts/*").handler(&listProductsAuthHandler.method(:handle))
+# add http basic auth handler to the chain
+chain.append(VertxWeb::BasicAuthHandler.create(provider))
+# add form redirect auth handler to the chain
+chain.append(VertxWeb::RedirectAuthHandler.create(provider))
 
-settingsAuthHandler = VertxWeb::RedirectAuthHandler.create(authProvider)
-settingsAuthHandler.add_authority("role:admin")
-
-# Only "admin" has access to /private/settings
-router.route("/private/settings/*").handler(&settingsAuthHandler.method(:handle))
-
+# secure your route
+router.route("/secure/resource").handler(&chain.method(:handle))
+# your app
+router.route("/secure/resource").handler() { |ctx|
+  # do something...
+}
 
 ----
 
@@ -1813,7 +1816,7 @@ always redirects you will be sent to the login form that you configured in that 
 
 Like the normal routing in vertx-web, auth chaning is a sequence, so if you would prefer to fallback to your browser
 asking for the user credentials using HTTP Basic authentication instead of the redirect all you need to to is reverse
-the order of the appening to the chain.
+the order of appending to the chain.
 
 Now assume that you make a request where you provide the header `Authorization` with the value `Basic [token]`. In
 this case the basic auth handler will attempt to authenticate and if it is sucessful the chain will stop and
