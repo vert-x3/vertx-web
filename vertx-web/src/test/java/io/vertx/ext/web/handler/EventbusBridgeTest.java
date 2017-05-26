@@ -756,7 +756,7 @@ public class EventbusBridgeTest extends WebTestBase {
       consumer.handler(msg -> {
         Object receivedBody = msg.body();
         assertEquals("foobar", receivedBody);
-        msg.reply("barfoo",new DeliveryOptions().addHeader("headfoo", "headbar").addHeader("multi", "m1").addHeader("multi", "m2") );
+        msg.reply("barfoo", new DeliveryOptions().addHeader("headfoo", "headbar").addHeader("explode", "m1").addHeader("explode", "m2"));
         consumer.unregister();
       });
 
@@ -774,8 +774,8 @@ public class EventbusBridgeTest extends WebTestBase {
         JsonObject headers = received.getJsonObject("headers");
         assertNotNull(headers);
         assertEquals("headbar", headers.getString("headfoo"));
-        assertTrue(headers.getJsonArray("multi").contains("m1"));
-        assertTrue(headers.getJsonArray("multi").contains("m2"));
+        assertTrue(headers.getJsonArray("explode").contains("m1"));
+        assertTrue(headers.getJsonArray("explode").contains("m2"));
         ws.closeHandler(v -> latch.countDown());
         ws.close();
       });

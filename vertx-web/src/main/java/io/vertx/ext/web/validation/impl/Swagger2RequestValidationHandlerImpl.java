@@ -1,7 +1,10 @@
 package io.vertx.ext.web.validation.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.models.Operation;
 import io.swagger.models.parameters.AbstractSerializableParameter;
+import io.swagger.models.parameters.BodyParameter;
 import io.swagger.models.parameters.Parameter;
 import io.swagger.models.properties.*;
 import io.vertx.ext.web.validation.*;
@@ -12,6 +15,7 @@ import java.util.List;
 /**
  * @author Francesco Guardiani @slinkydeveloper
  */
+@Deprecated
 public class Swagger2RequestValidationHandlerImpl extends HTTPOperationRequestValidationHandlerImpl<Operation> implements Swagger2RequestValidationHandler {
 
   public Swagger2RequestValidationHandlerImpl(Operation operation) {
@@ -156,17 +160,26 @@ public class Swagger2RequestValidationHandlerImpl extends HTTPOperationRequestVa
   }
 
   private void parseParameter(Parameter parameter) {
-    AbstractSerializableParameter serializableParameter = (AbstractSerializableParameter) parameter;
-    if (serializableParameter.getType().equals("file")) {
-      this.addFileUploadName(serializableParameter.getName());
-    } else if (serializableParameter.getIn().equals("body")) {
-      //TODO the revenge of the models
+    if (parameter.getIn().equals("body")) {
+      ObjectMapper mapper = new ObjectMapper();
+      try {
+        this.setJsonSchema(mapper.writeValueAsString(((BodyParameter) parameter).getSchema()));
+        return;
+      } catch (JsonProcessingException e) {
+        e.printStackTrace();
+      }
     } else {
-      this.loadValidationRule(serializableParameter.getIn(),
-        ParameterValidationRule.createValidationRuleWithCustomTypeValidator(serializableParameter.getName(),
-          this.resolveTypeValidatorFromParameter(serializableParameter),
-          !serializableParameter.getRequired(),
-          this.parseLocation(serializableParameter)));
+      AbstractSerializableParameter serializableParameter = (AbstractSerializableParameter) parameter;
+      if (serializableParameter.getType().equals("file")) {
+        this.addFileUploadName(serializableParameter.getName());
+      } else {
+        this.loadValidationRule(serializableParameter.getIn(),
+          ParameterValidationRule.createValidationRuleWithCustomTypeValidator(serializableParameter.getName(),
+            this.resolveTypeValidatorFromParameter(serializableParameter),
+            !serializableParameter.getRequired(),
+            this.parseLocation(serializableParameter)));
+      }
     }
   }
+
 }

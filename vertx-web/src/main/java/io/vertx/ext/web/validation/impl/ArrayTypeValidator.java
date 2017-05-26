@@ -1,33 +1,16 @@
 package io.vertx.ext.web.validation.impl;
 
-import io.swagger.models.properties.ArrayProperty;
+import io.vertx.ext.web.validation.ContainerSerializationStyle;
 import io.vertx.ext.web.validation.ParameterTypeValidator;
+
+import java.util.List;
 
 /**
  * @author Francesco Guardiani @slinkydeveloper
  */
-public class ArrayTypeValidator implements ParameterTypeValidator {
-
-  public enum CollectionsSplitters {
-    csv(","),
-    ssv(" "),
-    tsv("\\"),
-    pipes("|"),
-    multi("");
-
-    private String splitter;
-
-    CollectionsSplitters(String splitter) {
-      this.splitter = splitter;
-    }
-
-    public String getSplitter() {
-      return splitter;
-    }
-  }
+public class ArrayTypeValidator extends ContainerTypeValidator<List<String>> {
 
   private ParameterTypeValidator validator;
-  private CollectionsSplitters collectionFormat;
 
   private Integer maxItems;
   private Integer minItems;
@@ -37,17 +20,17 @@ public class ArrayTypeValidator implements ParameterTypeValidator {
 
     // Check illegal inner ArrayTypeValidator
     if (this.validator instanceof ArrayTypeValidator &&
-      ((ArrayTypeValidator) this.validator).getCollectionFormat().equals(CollectionsSplitters.multi))
+      ((ArrayTypeValidator) this.validator).getCollectionFormat().equals(ContainerSerializationStyle.explode))
       throw new RuntimeException("Illegal inner type validator");
 
     if (collectionFormat != null) {
-      CollectionsSplitters splitterEnumValue = CollectionsSplitters.valueOf(collectionFormat);
+      ContainerSerializationStyle splitterEnumValue = ContainerSerializationStyle.valueOf(collectionFormat);
       if (splitterEnumValue != null)
         this.collectionFormat = splitterEnumValue;
       else
-        this.collectionFormat = CollectionsSplitters.multi;
+        this.collectionFormat = ContainerSerializationStyle.explode;
     } else {
-      this.collectionFormat = CollectionsSplitters.multi;
+      this.collectionFormat = ContainerSerializationStyle.explode;
     }
     this.maxItems = maxItems;
     this.minItems = minItems;
@@ -61,7 +44,7 @@ public class ArrayTypeValidator implements ParameterTypeValidator {
     this(validator, null);
   }
 
-  static String getCollectionSplitter(CollectionsSplitters collectionFormat) {
+  static String getCollectionSplitter(ContainerSerializationStyle collectionFormat) {
     if (collectionFormat != null) {
       return collectionFormat.getSplitter();
     }
@@ -82,14 +65,14 @@ public class ArrayTypeValidator implements ParameterTypeValidator {
 
   @Override
   public boolean isValid(String value) {
-    for (String s : value.split(ArrayTypeValidator.getCollectionSplitter(this.collectionFormat))) {
+    for (String s : this.deserialize(value)) {
       if (!validator.isValid(s))
         return false;
     }
     return true;
   }
 
-  public CollectionsSplitters getCollectionFormat() {
+  public ContainerSerializationStyle getCollectionFormat() {
     return collectionFormat;
   }
 

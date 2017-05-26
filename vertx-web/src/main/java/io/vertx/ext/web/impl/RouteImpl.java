@@ -26,6 +26,8 @@ import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
 import io.netty.handler.codec.http.QueryStringDecoder;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -250,16 +252,20 @@ public class RouteImpl implements Route {
       if (m.matches()) {
         if (m.groupCount() > 0) {
           Map<String, String> params = new HashMap<>(m.groupCount());
+          Map<String, String> undecodedParams = new HashMap<>(m.groupCount());
           if (groups != null) {
             // Pattern - named params
             // decode the path as it could contain escaped chars.
             for (int i = 0; i < groups.size(); i++) {
               final String k = groups.get(i);
-              final String value = Utils.urlDecode(m.group("p" + i), false);
+              final String undecodedValue = m.group("p" + i);
+              final String value = Utils.urlDecode(undecodedValue, false);
               if (!request.params().contains(k)) {
                 params.put(k, value);
+                undecodedParams.put(k, undecodedValue);
               } else {
                 context.pathParams().put(k, value);
+                context.requestParameters().getUndecodedPathParameters().put(k, undecodedValue);
               }
             }
           } else {
@@ -269,27 +275,37 @@ public class RouteImpl implements Route {
               String group = m.group(i + 1);
               if(group != null) {
                 final String k = "param" + i;
+                final String undecodedValue = group;
                 final String value = Utils.urlDecode(group, false);
                 if (!request.params().contains(k)) {
                   params.put(k, value);
+                  undecodedParams.put(k, undecodedValue);
                 } else {
                   context.pathParams().put(k, value);
+                  context.requestParameters().getUndecodedPathParameters().put(k, undecodedValue);
                 }
               }
             }
           }
           request.params().addAll(params);
           context.pathParams().putAll(params);
+          context.requestParameters().getUndecodedPathParameters().putAll(undecodedParams);
         }
       } else {
         return false;
       }
     }
-    // Decode query parameters and put inside context.pathParams
-    Map<String, List<String>> decodedParams = new QueryStringDecoder(request.uri()).parameters();
 
-    for (Map.Entry<String, List<String>> entry : decodedParams.entrySet())
-      context.queryParams().add(entry.getKey(), entry.getValue());
+    if (context.queryParams().size() == 0) {
+
+      try {
+        Utils.parseFormEncodedParams(new URL(request.uri()).getQuery(),
+          context.requestParameters().getQueryParameters(),
+          context.requestParameters().getUndecodedQueryParameters());
+      } catch (MalformedURLException e) {
+        context.fail(500);
+      }
+    }
 
     if (!consumes.isEmpty()) {
       // Can this route consume the specified content type

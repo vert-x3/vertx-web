@@ -43,10 +43,15 @@
     </dependency>
 
     <!-- Design Driven dependencies -->
-    <dependency>
+    <dependency> <!-- TODO clean when Swagger2RequestValidationHandler will be removed-->
       <groupId>io.swagger</groupId>
       <artifactId>swagger-parser</artifactId>
       <version>1.0.24</version>
+    </dependency>
+    <dependency>
+      <groupId>com.reprezen.kaizen</groupId>
+      <artifactId>openapi-parser</artifactId>
+      <version>0.0.1-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>

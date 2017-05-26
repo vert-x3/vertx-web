@@ -7,6 +7,7 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.validation.impl.Swagger2RequestValidationHandlerImpl;
 import org.junit.Test;
 
+import java.lang.reflect.Field;
 import java.nio.charset.Charset;
 
 /**
@@ -149,9 +150,9 @@ public class Swagger2RequestValidationHandlerTest extends WebTestValidationBase 
 
   @Test
   public void testQueryHeaderPathParamsValidation() throws Exception {
-    Swagger2RequestValidationHandler validationHandler = new Swagger2RequestValidationHandlerImpl(vertxTestSpec.getPath("/multi/query_path_header/{param}").getGet());
-    router.get("/multi/query_path_header/:param").handler(validationHandler);
-    router.get("/multi/query_path_header/:param").handler(routingContext -> {
+    Swagger2RequestValidationHandler validationHandler = new Swagger2RequestValidationHandlerImpl(vertxTestSpec.getPath("/explode/query_path_header/{param}").getGet());
+    router.get("/explode/query_path_header/:param").handler(validationHandler);
+    router.get("/explode/query_path_header/:param").handler(routingContext -> {
       routingContext.response().setStatusMessage(
         routingContext.queryParam("value").get(0) +
           routingContext.request().headers().get("Custom-Date") +
@@ -162,6 +163,14 @@ public class Swagger2RequestValidationHandlerTest extends WebTestValidationBase 
     String date = getSuccessSample(ParameterType.DATE);
     String param = "aaaaa";
     //TODO and now? how to add headers?
+  }
+
+  @Test
+  public void testBodySchemaLoading() throws Exception {
+    Swagger2RequestValidationHandler validationHandler = new Swagger2RequestValidationHandlerImpl(petStore.getPath("/pet").getPost());
+    Field jsonSchema = validationHandler.getClass().getDeclaredField("jsonSchema");
+    jsonSchema.setAccessible(true);
+    System.out.println(jsonSchema.get(validationHandler));
   }
 
 }

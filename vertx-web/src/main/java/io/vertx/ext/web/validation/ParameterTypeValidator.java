@@ -1,6 +1,7 @@
 package io.vertx.ext.web.validation;
 
 import io.vertx.codegen.annotations.VertxGen;
+import io.vertx.ext.web.impl.Utils;
 import io.vertx.ext.web.validation.impl.ArrayTypeValidator;
 import io.vertx.ext.web.validation.impl.NumericTypeValidator;
 import io.vertx.ext.web.validation.impl.StringEnumTypeValidator;
@@ -20,6 +21,16 @@ public interface ParameterTypeValidator {
    * @return true if parameter is valid
    */
   boolean isValid(String value);
+
+  /**
+   * Function that check if parameter is valid
+   *
+   * @param value value of parameter to test, Note: if this function is called, the parameter is actually encoded
+   * @return true if parameter is valid
+   */
+  default boolean isValidEncoded(String value) {
+    return this.isValid(Utils.urlDecode(value, false));
+  }
 
   static ParameterTypeValidator createIntegerTypeValidator() {
     return new NumericTypeValidator<Integer>(NumericTypeValidator.parseInteger);
@@ -83,7 +94,7 @@ public interface ParameterTypeValidator {
 
   /**
    * @param arrayMembersValidator
-   * @return An ArrayTypeValidator with multi collection format
+   * @return An ArrayTypeValidator with explode collection format
    */
   static ParameterTypeValidator createArrayTypeValidator(ParameterTypeValidator arrayMembersValidator) {
     return new ArrayTypeValidator(arrayMembersValidator);

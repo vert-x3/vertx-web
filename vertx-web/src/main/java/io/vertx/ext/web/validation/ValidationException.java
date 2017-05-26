@@ -15,7 +15,8 @@ public class ValidationException extends VertxException {
     FILE_NOT_FOUND,
     WRONG_CONTENT_TYPE,
     EMPTY_VALUE,
-    UNEXPECTED_ARRAY_SIZE
+    UNEXPECTED_ARRAY_SIZE,
+    DESERIALIZATION_ERROR
   }
 
   private String parameterName;
