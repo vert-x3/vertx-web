@@ -20,16 +20,16 @@ public interface ParameterTypeValidator {
    * @param value value of parameter to test
    * @return true if parameter is valid
    */
-  boolean isValid(String value);
+  void isValid(String value) throws ValidationException;
 
   /**
-   * Function that check if parameter is valid
+   * Function that check if array of values of a specific parameter
    *
-   * @param value value of parameter to test, Note: if this function is called, the parameter is actually encoded
+   * @param value value of parameter to test
    * @return true if parameter is valid
    */
-  default boolean isValidEncoded(String value) {
-    return this.isValid(Utils.urlDecode(value, false));
+  default void isValidCollection(List<String> value) throws ValidationException {
+    this.isValid(value.get(0));
   }
 
   static ParameterTypeValidator createIntegerTypeValidator() {
@@ -92,16 +92,12 @@ public interface ParameterTypeValidator {
     return new StringEnumTypeValidator(allowedValues);
   }
 
-  /**
-   * @param arrayMembersValidator
-   * @return An ArrayTypeValidator with explode collection format
-   */
   static ParameterTypeValidator createArrayTypeValidator(ParameterTypeValidator arrayMembersValidator) {
-    return new ArrayTypeValidator(arrayMembersValidator);
+    return ArrayTypeValidator.ArrayTypeValidatorFactory.createArrayTypeValidator(arrayMembersValidator);
   }
 
   static ParameterTypeValidator createArrayTypeValidator(ParameterTypeValidator arrayMembersValidator, String collectionFormat, Integer maxItems, Integer minItems) {
-    return new ArrayTypeValidator(arrayMembersValidator, collectionFormat, maxItems, minItems);
+    return ArrayTypeValidator.ArrayTypeValidatorFactory.createArrayTypeValidator(arrayMembersValidator, collectionFormat, maxItems, minItems);
   }
 
 }

@@ -24,17 +24,13 @@ import io.vertx.ext.web.RoutingContext;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Comparator;
 import java.util.Locale;
-import java.util.Map;
 import java.util.TimeZone;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -46,7 +42,6 @@ public class Utils extends io.vertx.core.impl.Utils {
   private static final Pattern COMMA_SPLITTER = Pattern.compile(" *, *");
   private static final Pattern SEMICOLON_SPLITTER = Pattern.compile(" *; *");
   private static final Pattern EQUAL_SPLITTER = Pattern.compile(" *= *");
-  public static final Pattern QUERY_KEY_VALUE_PATTERN = Pattern.compile("\\G\\s*\\?*(?<name>[^&=]+)=(?<value>[^&]*)\\s*&*");
 
   private static int indexOfSlash(CharSequence str, int start) {
     for (int i = start; i < str.length(); i++) {
@@ -412,17 +407,5 @@ public class Utils extends io.vertx.core.impl.Utils {
 
   public static long secondsFactor(long millis) {
     return millis - (millis % 1000);
-  }
-
-  public static void parseFormEncodedParams(String queryString, Map<String, String> values, Map<String, String> undecodedValues) {
-    Matcher matcher = Utils.QUERY_KEY_VALUE_PATTERN.matcher(queryString);
-    int lastMatchPos = 0;
-    while (matcher.find(lastMatchPos)) {
-      String k = matcher.group("name");
-      String undecodedValue = matcher.group("value");
-      values.put(k, Utils.urlDecode(undecodedValue, false));
-      undecodedValues.put(k, undecodedValue);
-      lastMatchPos = matcher.end();
-    }
   }
 }

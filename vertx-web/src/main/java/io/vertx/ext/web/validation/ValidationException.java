@@ -16,13 +16,14 @@ public class ValidationException extends VertxException {
     WRONG_CONTENT_TYPE,
     EMPTY_VALUE,
     UNEXPECTED_ARRAY_SIZE,
-    DESERIALIZATION_ERROR
+    DESERIALIZATION_ERROR,
+    OBJECT_FIELD_NOT_FOUND
   }
 
   private String parameterName;
   private ParameterValidationRule validationRule;
   private String value;
-  private ErrorType errorType;
+  final private ErrorType errorType;
 
   public ValidationException(String message, String parameterName, String value, ParameterValidationRule validationRule, ErrorType errorType) {
     super((message != null && message.length() != 0) ? message :
@@ -35,6 +36,14 @@ public class ValidationException extends VertxException {
     this.validationRule = validationRule;
     this.value = value;
     this.errorType = errorType;
+  }
+
+  public ValidationException(String message, ErrorType error) {
+    this(message, null, null, null, error);
+  }
+
+  public ValidationException(ErrorType error) {
+    this(null, null, null, null, error);
   }
 
   public String getParameterName() {
@@ -51,6 +60,18 @@ public class ValidationException extends VertxException {
 
   public ErrorType getErrorType() {
     return errorType;
+  }
+
+  public void setParameterName(String parameterName) {
+    this.parameterName = parameterName;
+  }
+
+  public void setValidationRule(ParameterValidationRule validationRule) {
+    this.validationRule = validationRule;
+  }
+
+  public void setValue(String value) {
+    this.value = value;
   }
 
   @Override
@@ -78,9 +99,9 @@ public class ValidationException extends VertxException {
     return new ValidationException("Parameter " + parameterName + "  expected as array", parameterName, null, validationRule, ErrorType.UNEXPECTED_SINGLE_STRING);
   }
 
-  public static ValidationException generateNotMatchValidationException(String parameterName, String value, ParameterValidationRule validationRule, ParameterLocation location) {
+  public static ValidationException generateNotMatchValidationException(String parameterName, String value, ParameterValidationRule validationRule) {
     return new ValidationException(
-      "Error during validation of request. Parameter \"" + parameterName + "\" inside " + location.s + " does not match the validator rules",
+      "Error during validation of request. Parameter \"" + parameterName + "\" does not match the validator rules",
         parameterName,
         value,
       validationRule,
@@ -95,7 +116,19 @@ public class ValidationException extends VertxException {
     return new ValidationException("Parameter " + parameterName + " inside " + location.s + " is empty", parameterName, null, rule, ErrorType.EMPTY_VALUE);
   }
 
-  public static ValidationException generateUnexpectedArraySizeValidationException(String parameterName, Integer maxItems, Integer minItems, int actualSize, ParameterValidationRule rule, ParameterLocation location) {
-    return new ValidationException("Array parameter " + parameterName + " inside " + location.s + " have unexpected size: " + minItems + "<=" + actualSize + "<=" + maxItems, parameterName, null, rule, ErrorType.UNEXPECTED_ARRAY_SIZE);
+  public static ValidationException generateUnexpectedArraySizeValidationException(Integer maxItems, Integer minItems, Integer actualSize) {
+    return new ValidationException("Array parameter have unexpected size: " + minItems + "<=" + actualSize + "<=" + maxItems, ErrorType.UNEXPECTED_ARRAY_SIZE);
+  }
+
+  public static ValidationException generateDeserializationError(String message) {
+    return new ValidationException(message, ErrorType.DESERIALIZATION_ERROR);
+  }
+
+  public static ValidationException generateObjectFieldNotFound(String fieldName) {
+    return new ValidationException("Object field not found but required: " + fieldName, ErrorType.OBJECT_FIELD_NOT_FOUND);
+  }
+
+  public static ValidationException generateNotMatchValidationException(String message) {
+    return new ValidationException(message, ErrorType.NO_MATCH);
   }
 }

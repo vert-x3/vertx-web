@@ -1,6 +1,7 @@
 package io.vertx.ext.web.validation.impl;
 
 import io.vertx.ext.web.validation.ParameterTypeValidator;
+import io.vertx.ext.web.validation.ValidationException;
 
 import java.util.function.Function;
 
@@ -72,16 +73,16 @@ public class NumericTypeValidator<NumberType extends Number> implements Paramete
    * @return true if parameter is valid
    */
   @Override
-  public boolean isValid(String value) {
+  public void isValid(String value) {
     try {
       NumberType number = parseNumber.apply(value);
       if (number != null && this.testMaximum(number) && this.testMinimum(number) && this.testMultipleOf(number)) {
-        return true;
+        return;
       } else {
-        return false;
+        throw ValidationException.generateNotMatchValidationException(null); //TODO add messages in future
       }
     } catch (NumberFormatException e) {
-      return false;
+      throw ValidationException.generateNotMatchValidationException(null); //TODO add messages in future
     }
   }
 }

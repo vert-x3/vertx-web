@@ -18,10 +18,6 @@ public class ParameterValidationRuleImpl implements ParameterValidationRule {
   private boolean isOptional;
   private boolean allowEmptyValue;
 
-  // Array params, this params are used ONLY IF array collectionformat is explode, otherwise it will be handled by the validator
-  private boolean explodedCollection; // If parameter is a explode array, this object have to manually loop inside it, otherwise, call validator function
-  private ContainerSerializationStyle explodedCollectionStyle;
-
   public ParameterValidationRuleImpl(String name, ParameterTypeValidator validator, boolean isOptional, boolean allowEmptyValue, ParameterLocation location) {
     if (name == null)
       throw new NullPointerException("name cannot be null");
@@ -32,13 +28,6 @@ public class ParameterValidationRuleImpl implements ParameterValidationRule {
     this.isOptional = isOptional;
     this.allowEmptyValue = allowEmptyValue;
     this.location = location;
-
-    // Multi array construction routine
-    if (validator instanceof ContainerTypeValidator && !location.equals(ParameterLocation.BODY_FORM)) {
-      ContainerTypeValidator arrayValidator = (ContainerTypeValidator) validator;
-      this.explodedCollection = arrayValidator.isExploded();
-      this.explodedCollectionStyle = arrayValidator.getCollectionFormat();
-    }
   }
 
   @Override
@@ -47,31 +36,25 @@ public class ParameterValidationRuleImpl implements ParameterValidationRule {
   }
 
   private void callValidator(String value) throws ValidationException {
-    if (!validator.isValid(value))
-      throw ValidationException.generateNotMatchValidationException(this.name, value, this, this.location);
-  }
-
-  //TODO move
-  private boolean checkMinItems(int size) {
-    if (minItems != null)
-      return size >= minItems;
-    else return true;
-  }
-
-  //TODO move
-  private boolean checkMaxItems(int size) {
-    if (maxItems != null)
-      return size <= maxItems;
-    else return true;
-  }
-
-  private String serializeExpandedRFC6570FormStyleExpansionQueryParameter(List<String> list) throws UnsupportedEncodingException {
-    StringBuilder stringBuilder = new StringBuilder();
-    for (String v : list) {
-      stringBuilder.append(URLEncoder.encode(v, "UTF-8") + ",");
+    try {
+      validator.isValid(value);
+    } catch (ValidationException e) {
+      e.setParameterName(this.name);
+      e.setValidationRule(this);
+      e.setValue(value);
+      throw e;
     }
-    stringBuilder.delete(stringBuilder.length() - 2, stringBuilder.length() - 1);
-    return stringBuilder.toString();
+  }
+
+  private void callValidator(List<String> value) throws ValidationException {
+    try {
+      validator.isValidCollection(value);
+    } catch (ValidationException e) {
+      e.setParameterName(this.name);
+      e.setValidationRule(this);
+      e.setValue(value.toString());
+      throw e;
+    }
   }
 
   @Override
@@ -88,19 +71,7 @@ public class ParameterValidationRuleImpl implements ParameterValidationRule {
   @Override
   public void validateArrayParam(List<String> value) throws ValidationException {
     if (value != null && value.size() != 0) {
-      if (this.explodedCollection) {
-        if (explodedCollectionStyle.equals(ContainerSerializationStyle.rfc6570_form_style_query_parameter_expansion) && location.equals(ParameterLocation.QUERY)) {
-          String serializedValue = null;
-          try {
-            serializedValue = this.serializeExpandedRFC6570FormStyleExpansionQueryParameter(value);
-          } catch (UnsupportedEncodingException e) {
-            //TODO throw ValidationException
-          }
-          validateSingleParam(serializedValue);
-        }
-      } else {
-        validateSingleParam(value.get(0));
-      }
+      callValidator(value);
     } else {
       // array or null or size == 0
       if (!this.allowEmptyValue)
@@ -119,11 +90,6 @@ public class ParameterValidationRuleImpl implements ParameterValidationRule {
   }
 
   @Override
-  public boolean isExplodedCollection() {
-    return explodedCollection;
-  }
-
-  @Override
   public String toString() {
     return "ParameterValidationRuleImpl{" +
       "name='" + name + '\'' +
@@ -131,7 +97,6 @@ public class ParameterValidationRuleImpl implements ParameterValidationRule {
       ", location=" + location +
       ", isOptional=" + isOptional +
       ", allowEmptyValue=" + allowEmptyValue +
-      ", explodedCollection=" + explodedCollection +
       '}';
   }
 }

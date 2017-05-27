@@ -48,14 +48,6 @@ public interface ParameterValidationRule {
    */
   ParameterTypeValidator getParameterTypeValidator();
 
-  /**
-   * Multi array is when a parameter name is assigned to different parameter instances, for example /hello?name=vertx&name=java <br/>
-   * This parameter is true when ParameterValidationRule is constructed with CollectionsSplitters.explode
-   *
-   * @return
-   */
-  boolean isExplodedCollection();
-
   static ParameterValidationRule createValidationRule(String name, ParameterType type, boolean isOptional, ParameterLocation location) {
     return new ParameterValidationRuleImpl(name, type.getValidationMethod(), isOptional, false, location);
   }

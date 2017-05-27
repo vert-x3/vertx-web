@@ -15,7 +15,7 @@ public enum ContainerSerializationStyle {
   /**
    * <a href="https://tools.ietf.org/html/rfc6570#section-3.2.7">RFC6570 Path style parameters</a>
    */
-  //TODO talk with Paulo about that
+  //TODO talk with mentor about that
   /*rfc6570_path_style_parameter_expansion("", new ContainerDeserializer() {
     @Override
     public List<String> deserializeArray(String serialized, boolean exploded) {
@@ -37,8 +37,8 @@ public enum ContainerSerializationStyle {
     }
   }),*/
 
-  csv(new StandardContainerDeserializer(",")),
-  ssv
+  csv(new StandardContainerDeserializer(","));
+  //TODO implement other types
 
 
   private ContainerDeserializer deserializer;
@@ -47,11 +47,8 @@ public enum ContainerSerializationStyle {
     this.deserializer = deserializer;
   }
 
-  public List<String> deserializeArray(String serialized) {
-    return this.deserializer.deserializeArray(serialized);
+  public ContainerDeserializer getDeserializer() {
+    return deserializer;
   }
 
-  public Map<String, String> deserializeObject(String serialized) {
-    return this.deserializeObject(serialized);
-  }
-  }
+}

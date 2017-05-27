@@ -1,6 +1,7 @@
 package io.vertx.ext.web.validation.impl;
 
 import io.vertx.ext.web.validation.ParameterTypeValidator;
+import io.vertx.ext.web.validation.ValidationException;
 
 import java.util.regex.Pattern;
 
@@ -46,7 +47,8 @@ public class StringTypeValidator implements ParameterTypeValidator {
    * @return true if parameter is valid
    */
   @Override
-  public boolean isValid(String value) {
-    return (checkMinLength(value) && checkMaxLength(value) && (pattern == null || pattern.matcher(value).matches()));
+  public void isValid(String value) {
+    if (!checkMinLength(value) || !checkMaxLength(value) || (pattern != null && !pattern.matcher(value).matches()))
+      throw ValidationException.generateNotMatchValidationException(null);
   }
 }

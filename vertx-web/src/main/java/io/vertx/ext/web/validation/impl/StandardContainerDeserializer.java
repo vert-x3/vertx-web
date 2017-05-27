@@ -37,11 +37,11 @@ public class StandardContainerDeserializer implements ContainerDeserializer {
     String[] values = serialized.split(separator);
     // Key value pairs -> odd length not allowed
     if (values.length % 2 != 0)
-      throw //TODO throw validationException
+      throw ValidationException.generateDeserializationError("DeserializationError: Key value pair Object must have odd fields");
     for (int i = 0; i < values.length; i += 2) {
       // empty key not allowed!
       if (values[i].length() == 0) {
-        //TODO throw ValidationExcpetion
+        throw ValidationException.generateDeserializationError("DeserializationError: Empty key not allowed");
       } else {
         result.put(Utils.urlDecode(values[0], false), values[1]);
       }

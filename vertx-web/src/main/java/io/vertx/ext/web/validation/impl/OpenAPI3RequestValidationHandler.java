@@ -26,7 +26,7 @@ public class OpenAPI3RequestValidationHandler extends HTTPOperationRequestValida
   }
 
   private ParameterTypeValidator resolveTypeValidator(Parameter parameter) {
-
+    return null;
   }
 
   private void parseParameter(Parameter parameter) {

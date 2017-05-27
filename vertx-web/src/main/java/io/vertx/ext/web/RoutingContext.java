@@ -488,8 +488,4 @@ public interface RoutingContext {
    */
   @Nullable
   List<String> queryParam(String query);
-
-  //TODO implementation, javadoc and various other RoutingContext related classes
-  @Nullable
-  RequestParameters requestParameters();
 }

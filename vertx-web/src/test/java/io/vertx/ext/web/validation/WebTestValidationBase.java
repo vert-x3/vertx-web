@@ -58,11 +58,25 @@ public class WebTestValidationBase extends WebTestBase {
     List<String> sampleValuesFailure = WebTestValidationBase.sampleValuesFailure.get(type);
 
     for (String s : sampleValuesSuccess) {
-      assertTrue("Error with string: " + s, type.validate(s));
+      Boolean valid;
+      try {
+        type.getValidationMethod().isValid(s);
+        valid = true;
+      } catch (ValidationException e) {
+        valid = false;
+      }
+      assertTrue("Error with string: " + s, valid);
     }
 
     for (String s : sampleValuesFailure) {
-      assertFalse("Error with string: " + s, type.validate(s));
+      Boolean valid;
+      try {
+        type.getValidationMethod().isValid(s);
+        valid = true;
+      } catch (ValidationException e) {
+        valid = false;
+      }
+      assertFalse("Error with string: " + s, valid);
     }
   }
 

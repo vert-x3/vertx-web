@@ -12,7 +12,8 @@ public enum ParameterType {
   /**
    * STRING Type accept every string
    */
-  GENERIC_STRING(value -> true),
+  GENERIC_STRING(value -> {
+  }),
   /**
    * EMAIL does validation with pattern: ^(?:[\w!#\$%&'\*\+\-/=\?\^`\{\|\}~]+\.)*[\w!#\$%&'\*\+\-/=\?\^`\{\|\}~]+@(?:(?:(?:[a-zA-Z0-9](?:[a-zA-Z0-9\-](?!\.)){0,61}[a-zA-Z0-9]?\.)+[a-zA-Z0-9](?:[a-zA-Z0-9\-](?!$)){0,61}[a-zA-Z0-9]?)|(?:\[(?:(?:[01]?\d{1,2}|2[0-4]\d|25[0-5])\.){3}(?:[01]?\d{1,2}|2[0-4]\d|25[0-5])\]))$
    */
@@ -63,12 +64,5 @@ public enum ParameterType {
 
   public ParameterTypeValidator getValidationMethod() {
     return validationMethod;
-  }
-
-  public boolean validate(String value) {
-    if (validationMethod != null)
-      return validationMethod.isValid(value);
-    else
-      return true;
   }
 }

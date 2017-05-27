@@ -1,6 +1,7 @@
 package io.vertx.ext.web.validation.impl;
 
 import io.vertx.ext.web.validation.ParameterTypeValidator;
+import io.vertx.ext.web.validation.ValidationException;
 
 import java.util.List;
 
@@ -16,7 +17,8 @@ public class StringEnumTypeValidator implements ParameterTypeValidator {
   }
 
   @Override
-  public boolean isValid(String value) {
-    return allowedValues.contains(value);
+  public void isValid(String value) {
+    if (!allowedValues.contains(value))
+      throw ValidationException.generateNotMatchValidationException("Value " + value + " in not inside enum list " + allowedValues.toString());
   }
 }

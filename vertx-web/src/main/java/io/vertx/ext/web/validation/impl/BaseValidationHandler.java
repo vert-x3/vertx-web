@@ -11,7 +11,6 @@ import java.util.regex.Pattern;
 /**
  * @author Francesco Guardiani @slinkydeveloper
  */
-//TODO refactor with new implementation of ValidationRule
 public abstract class BaseValidationHandler implements ValidationHandler {
 
   private Map<String, ParameterValidationRule> pathParamsRules;
