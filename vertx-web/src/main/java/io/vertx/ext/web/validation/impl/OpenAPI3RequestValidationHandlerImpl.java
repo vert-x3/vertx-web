@@ -11,9 +11,9 @@ import java.util.Map;
 /**
  * @author Francesco Guardiani @slinkydeveloper
  */
-public class OpenAPI3RequestValidationHandler extends HTTPOperationRequestValidationHandlerImpl<Operation> implements io.vertx.ext.web.validation.OpenAPI3RequestValidationHandler {
+public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestValidationHandlerImpl<Operation> implements io.vertx.ext.web.validation.OpenAPI3RequestValidationHandler {
 
-  public OpenAPI3RequestValidationHandler(Operation pathSpec) {
+  public OpenAPI3RequestValidationHandlerImpl(Operation pathSpec) {
     super(pathSpec);
   }
 
