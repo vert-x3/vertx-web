@@ -60,4 +60,15 @@ public class ObjectTypeValidator extends ContainerTypeValidator<Map<String, Stri
       }
     }
   }
+
+  public static class ObjectTypeValidatorFactory {
+    public static ObjectTypeValidator createObjectTypeValidator(ContainerSerializationStyle collectionFormat, boolean exploded) {
+      return new ObjectTypeValidator(collectionFormat.getDeserializer(), exploded);
+    }
+
+    public static ObjectTypeValidator createObjectTypeValidator(String collectionFormat, boolean exploded) {
+      return new ObjectTypeValidator(ContainerSerializationStyle.getContainerStyle(collectionFormat).getDeserializer(), exploded);
+    }
+  }
+
 }

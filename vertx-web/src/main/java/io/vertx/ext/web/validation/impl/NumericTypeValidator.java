@@ -79,10 +79,10 @@ public class NumericTypeValidator<NumberType extends Number> implements Paramete
       if (number != null && this.testMaximum(number) && this.testMinimum(number) && this.testMultipleOf(number)) {
         return;
       } else {
-        throw ValidationException.generateNotMatchValidationException(null); //TODO add messages in future
+        throw ValidationException.generateNotMatchValidationException("Invalid number");
       }
     } catch (NumberFormatException e) {
-      throw ValidationException.generateNotMatchValidationException(null); //TODO add messages in future
+      throw ValidationException.generateNotMatchValidationException("Value is not a valid number");
     }
   }
 }

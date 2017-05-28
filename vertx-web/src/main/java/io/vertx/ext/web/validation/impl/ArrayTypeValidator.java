@@ -95,13 +95,7 @@ public class ArrayTypeValidator extends ContainerTypeValidator<List<String>> {
     }
 
     public static ArrayTypeValidator createArrayTypeValidator(ParameterTypeValidator arrayMembersValidator, String collectionFormat, boolean exploded, Integer maxItems, Integer minItems) {
-      ContainerSerializationStyle containerSerializationStyle = ContainerSerializationStyle.csv;
-      if (collectionFormat != null) {
-        containerSerializationStyle = ContainerSerializationStyle.valueOf(collectionFormat);
-        if (containerSerializationStyle == null)
-          containerSerializationStyle = ContainerSerializationStyle.csv;
-      }
-      return new ArrayTypeValidator(arrayMembersValidator, containerSerializationStyle.getDeserializer(), exploded, maxItems, minItems);
+      return new ArrayTypeValidator(arrayMembersValidator, ContainerSerializationStyle.getContainerStyle(collectionFormat).getDeserializer(), exploded, maxItems, minItems);
     }
   }
 }

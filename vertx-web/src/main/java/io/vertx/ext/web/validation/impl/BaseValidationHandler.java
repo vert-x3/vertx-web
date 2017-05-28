@@ -1,12 +1,29 @@
 package io.vertx.ext.web.validation.impl;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.networknt.schema.JsonSchema;
+import com.networknt.schema.JsonSchemaFactory;
+import com.networknt.schema.ValidationMessage;
 import io.vertx.core.MultiMap;
 import io.vertx.ext.web.FileUpload;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.validation.*;
+import org.w3c.dom.Document;
+import org.xml.sax.SAXException;
 
+import javax.xml.XMLConstants;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.Source;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.SchemaFactory;
+import javax.xml.validation.Validator;
+import java.io.IOException;
+import java.io.StringReader;
 import java.util.*;
-import java.util.regex.Pattern;
 
 /**
  * @author Francesco Guardiani @slinkydeveloper
@@ -17,8 +34,8 @@ public abstract class BaseValidationHandler implements ValidationHandler {
   private Map<String, ParameterValidationRule> queryParamsRules;
   private Map<String, ParameterValidationRule> formParamsRules;
   private Map<String, ParameterValidationRule> headerParamsRules;
-  private String jsonSchema;
-  private String xmlSchema;
+  private JsonSchema jsonSchema;
+  private Validator xmlSchemaValidator;
   private List<String> fileNamesRules;
   private List<CustomValidator> customValidators;
 
@@ -56,9 +73,9 @@ public abstract class BaseValidationHandler implements ValidationHandler {
           if (contentType.contains("multipart/form-data"))
             validateFileUpload(routingContext);
         } else if (contentType.equals("application/json"))
-          validateJSONBody();
+          validateJSONBody(routingContext);
         else if (contentType.equals("application/xml"))
-          validateXMLBody();
+          validateXMLBody(routingContext);
         else {
           routingContext.fail(400);
           return;
@@ -138,12 +155,24 @@ public abstract class BaseValidationHandler implements ValidationHandler {
     }
   }
 
-  private void validateJSONBody() {
-    //TODO
+  private void validateJSONBody(RoutingContext routingContext) throws ValidationException {
+    try {
+      Set<ValidationMessage> errors = jsonSchema.validate(new ObjectMapper().readTree(routingContext.getBodyAsString()));
+      if (!errors.isEmpty())
+        ValidationException.generateInvalidJsonBodyException(errors.toString());
+    } catch (IOException e) {
+      throw ValidationException.generateNotParsableJsonBodyException();
+    }
   }
 
-  private void validateXMLBody() {
-    //TODO
+  private void validateXMLBody(RoutingContext routingContext) throws ValidationException {
+    try {
+      DocumentBuilder parser = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+      Document document = parser.parse(routingContext.getBodyAsString());
+      this.xmlSchemaValidator.validate(new DOMSource(document));
+    } catch (Exception e) {
+      throw ValidationException.generateInvalidXMLBodyException(e.getMessage());
+    }
   }
 
 
@@ -180,15 +209,35 @@ public abstract class BaseValidationHandler implements ValidationHandler {
 
   protected void setJsonSchema(String jsonSchema) {
     if (this.jsonSchema != null) {
-      this.jsonSchema = jsonSchema;
+      try {
+        this.jsonSchema = new JsonSchemaFactory().getSchema(new ObjectMapper().readTree(jsonSchema));
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+      expectedBodyNotEmpty = true;
+    }
+  }
+
+  protected void setJsonSchema(JsonNode jsonSchema) {
+    if (this.jsonSchema != null) {
+      this.jsonSchema = new JsonSchemaFactory().getSchema(jsonSchema);
       expectedBodyNotEmpty = true;
     }
   }
 
   protected void setXmlSchema(String xmlSchema) {
-    if (this.xmlSchema != null) {
-      this.xmlSchema = xmlSchema;
-      expectedBodyNotEmpty = true;
+    if (xmlSchema != null) {
+      // create a SchemaFactory capable of understanding WXS schemas
+      SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+
+      // load a WXS schema, represented by a Schema instance
+      Source xmlSchemaSource = new StreamSource(new StringReader(xmlSchema));
+      try {
+        this.xmlSchemaValidator = factory.newSchema(xmlSchemaSource).newValidator();
+        expectedBodyNotEmpty = true;
+      } catch (SAXException e) {
+        e.printStackTrace();
+      }
     }
   }
 }

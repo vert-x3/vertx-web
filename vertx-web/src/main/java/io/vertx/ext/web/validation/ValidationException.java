@@ -17,7 +17,10 @@ public class ValidationException extends VertxException {
     EMPTY_VALUE,
     UNEXPECTED_ARRAY_SIZE,
     DESERIALIZATION_ERROR,
-    OBJECT_FIELD_NOT_FOUND
+    OBJECT_FIELD_NOT_FOUND,
+    JSON_NOT_PARSABLE,
+    JSON_INVALID,
+    XML_INVALID
   }
 
   private String parameterName;
@@ -131,4 +134,18 @@ public class ValidationException extends VertxException {
   public static ValidationException generateNotMatchValidationException(String message) {
     return new ValidationException(message, ErrorType.NO_MATCH);
   }
+
+  public static ValidationException generateNotParsableJsonBodyException() {
+    return new ValidationException(null, ErrorType.JSON_NOT_PARSABLE);
+  }
+
+  public static ValidationException generateInvalidJsonBodyException(String message) {
+    return new ValidationException(message, ErrorType.JSON_INVALID);
+  }
+
+  public static ValidationException generateInvalidXMLBodyException(String message) {
+    return new ValidationException(message, ErrorType.XML_INVALID);
+  }
+
+
 }
