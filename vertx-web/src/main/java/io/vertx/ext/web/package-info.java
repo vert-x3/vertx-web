@@ -1655,8 +1655,11 @@
  * compile '${maven.groupId}:${maven.artifactId}:${maven.version}:client'
  * ----
  *
- * The library is also available on https://www.npmjs.com/package/vertx3-eventbus-client[NPM] and on
- * https://github.com/vert-x3/vertx-bus-bower[Bower]
+ * The library is also available on:
+ *
+ * * https://www.npmjs.com/package/vertx3-eventbus-client[NPM]
+ * * https://github.com/vert-x3/vertx-bus-bower[Bower]
+ * * https://cdnjs.com/libraries/vertx[cdnjs]
  *
  * Notice that the API has changed between the 3.0.0 and 3.1.0 version. Please check the changelog. The previous client
  * is still compatible and can still be used, but the new client offers more feature and is closer to the vert.x
