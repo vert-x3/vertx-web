@@ -2381,6 +2381,21 @@ the prefix `eventbus` we will connect there.
 
 You can't actually do anything with the connection until it is opened. When it is open the `onopen` handler will be called.
 
+IMPORTANT: Neither SockJS nor the EventBus bridge support automatic reconnection.
+
+When your server goes down, you must create another EventBus instance.
+
+[source,javascript]
+----
+function setupEventBus() {
+  var eb = new EventBus();
+  eb.onclose = function (e) {
+    setTimeout(setupEventBus, 1000); // Give the server some time to come back
+  };
+  // Handlers setup here...
+}
+----
+
 You can retrieve the client library using a dependency manager:
 
 * Maven (in your `pom.xml`):

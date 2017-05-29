@@ -316,6 +316,18 @@ public class RoutingContextImpl extends RoutingContextImplBase {
 
   @Override
   public void reroute(HttpMethod method, String path) {
+    int split = path.indexOf('?');
+
+    if (split == -1) {
+      split = path.indexOf('#');
+    }
+
+    if (split != -1) {
+      log.warn("Non path segment is not considered: " + path.substring(split));
+      // reroute is path based so we trim out the non url path parts
+      path = path.substring(0, split);
+    }
+
     ((HttpServerRequestWrapper) request).setMethod(method);
     ((HttpServerRequestWrapper) request).setPath(path);
     request.params().clear();
