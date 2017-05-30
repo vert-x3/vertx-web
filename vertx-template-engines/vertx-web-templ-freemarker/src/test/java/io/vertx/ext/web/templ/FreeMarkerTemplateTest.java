@@ -33,7 +33,7 @@ public class FreeMarkerTemplateTest extends WebTestBase {
 
   @Override
   protected VertxOptions getOptions() {
-    return super.getOptions().setFileResolverCachingEnabled(false);
+    return super.getOptions().setFileResolverCachingEnabled(true);
   }
 
   @Test
@@ -66,34 +66,6 @@ public class FreeMarkerTemplateTest extends WebTestBase {
     out.close();
 
     testTemplateHandler(engine, "", temp.getName(), "before");
-  }
-
-  @Test
-  public void testCachingDisabled() throws Exception {
-    System.setProperty(CachingTemplateEngine.DISABLE_TEMPL_CACHING_PROP_NAME, "true");
-    TemplateEngine engine = FreeMarkerTemplateEngine.create();
-
-    assertFalse("Caching should be disabled", engine.isCachingEnabled());
-
-    PrintWriter out;
-    File temp = File.createTempFile("template", ".ftl", new File("target/classes"));
-    temp.deleteOnExit();
-
-    out = new PrintWriter(temp);
-    out.print("before");
-    out.flush();
-    out.close();
-
-    testTemplateHandler(engine, "", temp.getName(), "before");
-
-    // cache is disabled so if we change the content that should affect the result
-
-    out = new PrintWriter(temp);
-    out.print("after");
-    out.flush();
-    out.close();
-
-    testTemplateHandler(engine, "", temp.getName(), "after");
   }
 
   @Test

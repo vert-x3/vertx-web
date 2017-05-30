@@ -26,9 +26,9 @@ import org.junit.Test;
  */
 public class FreeMarkerJavascriptTemplateTest extends JSTestBase {
 
-//  static {
-//    ClasspathFileResolver.init();
-//  }
+  static {
+    ClasspathFileResolver.init();
+  }
 
   @Override
   protected String getTestFile() {
@@ -36,7 +36,6 @@ public class FreeMarkerJavascriptTemplateTest extends JSTestBase {
   }
 
   @Test
-  @Ignore
   public void testTemplate() throws Exception {
     runTest();
   }

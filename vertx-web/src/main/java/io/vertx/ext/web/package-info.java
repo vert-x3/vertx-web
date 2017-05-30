@@ -1116,8 +1116,9 @@
  * In development this can cause a problem, as if you update your static content while the server is running, the
  * cached file will be served not the updated file.
  *
- * To disable file caching you can provide the system property `vertx.disableFileCaching` with the value `true`. E.g. you
- * could set up a run configuration in your IDE to set this when runnning your main class.
+ * To disable file caching you can provide your vert.x options the property `fileResolverCachingEnabled` to true. For
+ * backwards compatibility it will also default that value to the system property `vertx.disableFileCaching`. E.g. you
+ * could set up a run configuration in your IDE to set this when running your main class.
  *
  *
  * == CORS handling

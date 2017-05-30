@@ -19,6 +19,7 @@ package io.vertx.ext.web.templ;
 import com.github.jknack.handlebars.HandlebarsException;
 import com.github.jknack.handlebars.ValueResolver;
 import io.vertx.core.Handler;
+import io.vertx.core.VertxOptions;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonArray;
@@ -41,10 +42,8 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public class HandlebarsTemplateTest extends WebTestBase {
 
-  @Override
-  public void setUp() throws Exception {
-    System.setProperty("vertx.disableFileCaching", "true");
-    super.setUp();
+  protected VertxOptions getOptions() {
+    return new VertxOptions().setFileResolverCachingEnabled(true);
   }
 
   @Test
@@ -238,32 +237,6 @@ public class HandlebarsTemplateTest extends WebTestBase {
     out.close();
 
     testTemplateHandler(engine, ".", temp.getName(), "before");
-  }
-
-  @Test
-  public void testCachingDisabled() throws Exception {
-    System.setProperty(CachingTemplateEngine.DISABLE_TEMPL_CACHING_PROP_NAME, "true");
-    TemplateEngine engine = HandlebarsTemplateEngine.create();
-
-    PrintWriter out;
-    File temp = File.createTempFile("template", ".hbs", new File("target/classes"));
-    temp.deleteOnExit();
-
-    out = new PrintWriter(temp);
-    out.print("before");
-    out.flush();
-    out.close();
-
-    testTemplateHandler(engine, ".", temp.getName(), "before");
-
-    // cache is disabled so if we change the content that should affect the result
-
-    out = new PrintWriter(temp);
-    out.print("after");
-    out.flush();
-    out.close();
-
-    testTemplateHandler(engine, ".", temp.getName(), "after");
   }
 
   /**
