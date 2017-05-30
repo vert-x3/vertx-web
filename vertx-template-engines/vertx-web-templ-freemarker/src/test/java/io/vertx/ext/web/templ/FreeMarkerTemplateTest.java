@@ -16,6 +16,7 @@
 
 package io.vertx.ext.web.templ;
 
+import io.vertx.core.VertxOptions;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.WebTestBase;
 import io.vertx.ext.web.handler.TemplateHandler;
@@ -31,9 +32,8 @@ import java.io.PrintWriter;
 public class FreeMarkerTemplateTest extends WebTestBase {
 
   @Override
-  public void setUp() throws Exception {
-    System.setProperty("vertx.disableFileCaching", "true");
-    super.setUp();
+  protected VertxOptions getOptions() {
+    return super.getOptions().setFileResolverCachingEnabled(false);
   }
 
   @Test
