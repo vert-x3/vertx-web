@@ -156,22 +156,26 @@ public abstract class BaseValidationHandler implements ValidationHandler {
   }
 
   private void validateJSONBody(RoutingContext routingContext) throws ValidationException {
-    try {
-      Set<ValidationMessage> errors = jsonSchema.validate(new ObjectMapper().readTree(routingContext.getBodyAsString()));
-      if (!errors.isEmpty())
-        ValidationException.generateInvalidJsonBodyException(errors.toString());
-    } catch (IOException e) {
-      throw ValidationException.generateNotParsableJsonBodyException();
+    if (jsonSchema != null) {
+      try {
+        Set<ValidationMessage> errors = jsonSchema.validate(new ObjectMapper().readTree(routingContext.getBodyAsString()));
+        if (!errors.isEmpty())
+          ValidationException.generateInvalidJsonBodyException(errors.toString());
+      } catch (IOException e) {
+        throw ValidationException.generateNotParsableJsonBodyException();
+      }
     }
   }
 
   private void validateXMLBody(RoutingContext routingContext) throws ValidationException {
-    try {
-      DocumentBuilder parser = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-      Document document = parser.parse(routingContext.getBodyAsString());
-      this.xmlSchemaValidator.validate(new DOMSource(document));
-    } catch (Exception e) {
-      throw ValidationException.generateInvalidXMLBodyException(e.getMessage());
+    if (xmlSchemaValidator != null) {
+      try {
+        DocumentBuilder parser = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+        Document document = parser.parse(routingContext.getBodyAsString());
+        this.xmlSchemaValidator.validate(new DOMSource(document));
+      } catch (Exception e) {
+        throw ValidationException.generateInvalidXMLBodyException(e.getMessage());
+      }
     }
   }
 

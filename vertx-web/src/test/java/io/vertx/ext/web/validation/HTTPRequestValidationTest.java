@@ -1,7 +1,9 @@
 package io.vertx.ext.web.validation;
 
 import io.netty.handler.codec.http.QueryStringEncoder;
+import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.ext.web.handler.BodyHandler;
 import org.junit.Test;
 
 import java.net.URLEncoder;
@@ -17,52 +19,52 @@ public class HTTPRequestValidationTest extends WebTestValidationBase {
 
   @Test
   public void testBoolValidation() {
-    testParameterType(ParameterType.BOOL);
+    testPrimitiveParameterType(ParameterType.BOOL);
   }
 
   @Test
   public void testEmailValidation() {
-    testParameterType(ParameterType.EMAIL);
+    testPrimitiveParameterType(ParameterType.EMAIL);
   }
 
   @Test
   public void testURIValidation() {
-    testParameterType(ParameterType.URI);
+    testPrimitiveParameterType(ParameterType.URI);
   }
 
   @Test
   public void testIntegerValidation() {
-    testParameterType(ParameterType.INT);
+    testPrimitiveParameterType(ParameterType.INT);
   }
 
   @Test
   public void testFloatValidation() {
-    testParameterType(ParameterType.FLOAT);
+    testPrimitiveParameterType(ParameterType.FLOAT);
   }
 
   @Test
   public void testDoubleValidation() {
-    testParameterType(ParameterType.DOUBLE);
+    testPrimitiveParameterType(ParameterType.DOUBLE);
   }
 
   @Test
   public void testDateValidation() {
-    testParameterType(ParameterType.DATE);
+    testPrimitiveParameterType(ParameterType.DATE);
   }
 
   @Test
   public void testDateTimeValidation() {
-    testParameterType(ParameterType.DATETIME);
+    testPrimitiveParameterType(ParameterType.DATETIME);
   }
 
   @Test
   public void testTimeValidation() {
-    testParameterType(ParameterType.TIME);
+    testPrimitiveParameterType(ParameterType.TIME);
   }
 
   @Test
   public void testBase64Validation() {
-    testParameterType(ParameterType.BASE64);
+    testPrimitiveParameterType(ParameterType.BASE64);
   }
 
   //TODO write all tests for validation methods
@@ -84,7 +86,7 @@ public class HTTPRequestValidationTest extends WebTestValidationBase {
     router.get("/testPathParams/:a/:b/:c").handler(validationHandler);
     router.get("/testPathParams/:a/:b/:c").handler(routingContext -> {
       routingContext.response().setStatusMessage(routingContext.pathParams().get("a") + routingContext.pathParams().get("b") + routingContext.pathParams().get("c")).end();
-    }).failureHandler(generateFailureHandler());
+    }).failureHandler(generateFailureHandler(false));
     String value1 = getSuccessSample(ParameterType.BOOL);
     String value2 = getSuccessSample(ParameterType.INT);
     String path = "/testPathParams/hello/" + URLEncoder.encode(value1, "UTF-8") + "/" + URLEncoder.encode(value2, "UTF-8");
@@ -101,7 +103,7 @@ public class HTTPRequestValidationTest extends WebTestValidationBase {
     router.get("/testPathParams/:a/:b/:c").handler(validationHandler);
     router.get("/testPathParams/:a/:b/:c").handler(routingContext -> {
       routingContext.response().setStatusMessage(routingContext.pathParam("a") + routingContext.pathParam("b") + routingContext.pathParam("c")).end();
-    }).failureHandler(generateFailureHandler());
+    }).failureHandler(generateFailureHandler(true));
     String path = "/testPathParams/hello/" + URLEncoder.encode(getFailureSample(ParameterType.BOOL), "UTF-8") + "/" + URLEncoder.encode(getFailureSample(ParameterType.INT) + "/", "UTF-8");
     testRequest(HttpMethod.GET, path, 400, "failure:NO_MATCH");
   }
@@ -113,7 +115,7 @@ public class HTTPRequestValidationTest extends WebTestValidationBase {
     router.get("/testQueryParams").handler(validationHandler);
     router.get("/testQueryParams").handler(routingContext -> {
       routingContext.response().setStatusMessage(routingContext.queryParam("param1").get(0) + routingContext.queryParam("param2").get(0)).end();
-    }).failureHandler(generateFailureHandler());
+    }).failureHandler(generateFailureHandler(false));
     QueryStringEncoder encoder = new QueryStringEncoder("/testQueryParams");
     String param1 = getSuccessSample(ParameterType.BOOL);
     String param2 = getSuccessSample(ParameterType.INT);
@@ -129,7 +131,7 @@ public class HTTPRequestValidationTest extends WebTestValidationBase {
     router.get("/testQueryParams").handler(validationHandler);
     router.get("/testQueryParams").handler(routingContext -> {
       routingContext.response().setStatusMessage(routingContext.queryParam("param1").get(0) + routingContext.queryParam("param2").get(0)).end();
-    }).failureHandler(generateFailureHandler());
+    }).failureHandler(generateFailureHandler(true));
     QueryStringEncoder encoder = new QueryStringEncoder("/testQueryParams");
     encoder.addParam("param1", getFailureSample(ParameterType.BOOL));
     encoder.addParam("param2", getFailureSample(ParameterType.INT));
@@ -149,7 +151,7 @@ public class HTTPRequestValidationTest extends WebTestValidationBase {
           routingContext.queryParam("awesomeArray").size() +
           routingContext.queryParam("anotherParam").get(0))
         .end();
-    }).failureHandler(generateFailureHandler());
+    }).failureHandler(generateFailureHandler(false));
 
     String pathParam = getSuccessSample(ParameterType.INT);
     String arrayValue1 = getSuccessSample(ParameterType.EMAIL);
@@ -177,7 +179,7 @@ public class HTTPRequestValidationTest extends WebTestValidationBase {
           routingContext.queryParam("awesomeArray").size() +
           routingContext.queryParam("anotherParam").get(0))
         .end();
-    }).failureHandler(generateFailureHandler());
+    }).failureHandler(generateFailureHandler(true));
 
     String pathParam = getSuccessSample(ParameterType.INT);
     String arrayValue1 = getSuccessSample(ParameterType.EMAIL);
@@ -190,6 +192,65 @@ public class HTTPRequestValidationTest extends WebTestValidationBase {
     encoder.addParam("anotherParam", anotherParam);
 
     testRequest(HttpMethod.GET, encoder.toString(), 400, "failure:NO_MATCH");
+  }
+
+  @Test
+  public void testFormURLEncodedParamWithIncludedTypes() throws Exception {
+    HTTPRequestValidationHandler validationHandler = HTTPRequestValidationHandler.create()
+      .addFormParam("parameter", ParameterType.INT, true);
+    router.route().handler(BodyHandler.create());
+    router.post("/testFormParam").handler(validationHandler);
+    router.post("/testFormParam").handler(routingContext -> {
+      routingContext.response().setStatusMessage(
+        routingContext.request().formAttributes().get("parameter")).end();
+    }).failureHandler(generateFailureHandler(false));
+
+    String formParam = getSuccessSample(ParameterType.INT);
+
+    MultiMap form = MultiMap.caseInsensitiveMultiMap();
+    form.add("parameter", formParam);
+
+    testRequestWithForm(HttpMethod.POST, "/testFormParam", FormType.FORM_URLENCODED, form, 200, formParam);
+  }
+
+  @Test
+  public void testFormMultipartParamWithIncludedTypes() throws Exception {
+    HTTPRequestValidationHandler validationHandler = HTTPRequestValidationHandler.create()
+      .addFormParam("parameter", ParameterType.INT, true);
+    router.route().handler(BodyHandler.create());
+    router.post("/testFormParam").handler(validationHandler);
+    router.post("/testFormParam").handler(routingContext -> {
+      routingContext.response().setStatusMessage(
+        routingContext.request().formAttributes().get("parameter")).end();
+    }).failureHandler(generateFailureHandler(false));
+
+    String formParam = getSuccessSample(ParameterType.INT);
+
+    MultiMap form = MultiMap.caseInsensitiveMultiMap();
+    form.add("parameter", formParam);
+
+    testRequestWithForm(HttpMethod.POST, "/testFormParam", FormType.MULTIPART, form, 200, formParam);
+  }
+
+  @Test
+  public void testFormURLEncodedOverrideWithIncludedTypes() throws Exception {
+    HTTPRequestValidationHandler validationHandler = HTTPRequestValidationHandler.create()
+      .addFormParam("parameter", ParameterType.INT, true)
+      .addQueryParam("parameter", ParameterType.INT, true);
+    router.route().handler(BodyHandler.create());
+    router.post("/testFormParam").handler(validationHandler);
+    router.post("/testFormParam").handler(routingContext -> {
+      routingContext.response().setStatusMessage(
+        routingContext.request().formAttributes().get("parameter")).end();
+    }).failureHandler(generateFailureHandler(false));
+
+    String formParam = getSuccessSample(ParameterType.INT);
+    String queryParam = getSuccessSample(ParameterType.INT);
+
+    MultiMap form = MultiMap.caseInsensitiveMultiMap();
+    form.add("parameter", formParam);
+
+    testRequestWithForm(HttpMethod.POST, "/testFormParam?parameter=" + queryParam, FormType.FORM_URLENCODED, form, 200, formParam);
   }
 
 

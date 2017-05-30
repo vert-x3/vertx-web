@@ -8,15 +8,24 @@ import com.reprezen.kaizen.oasparser.model3.Parameter;
 public class OpenApi3Utils {
 
   public static boolean isParameterStyle(Parameter parameter, String style) {
-    return parameter.getStyle().equals(style);
+    if (parameter.getStyle() != null)
+      return parameter.getStyle().equals(style);
+    else
+      return false;
   }
 
   public static boolean isParameterArrayType(Parameter parameter) {
-    return parameter.getSchema().getType().equals("array");
+    if (parameter.getSchema() != null && parameter.getSchema().getType() != null)
+      return parameter.getSchema().getType().equals("array");
+    else
+      return false;
   }
 
   public static boolean isParameterObjectType(Parameter parameter) {
-    return parameter.getSchema().getType().equals("object");
+    if (parameter.getSchema() != null && parameter.getSchema().getType() != null)
+      return parameter.getSchema().getType().equals("object");
+    else
+      return false;
   }
 
 }

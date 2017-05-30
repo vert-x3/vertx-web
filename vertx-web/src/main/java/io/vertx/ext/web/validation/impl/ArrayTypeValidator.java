@@ -48,7 +48,7 @@ public class ArrayTypeValidator extends ContainerTypeValidator<List<String>> {
 
   @Override
   public void isValidCollection(List<String> value) throws ValidationException {
-    if (value.size() > 1) {
+    if (value.size() > 1 && this.isExploded()) {
       this.validate(value);
     } else {
       this.validate(this.deserialize(value.get(0)));

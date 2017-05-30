@@ -1,8 +1,11 @@
 package io.vertx.ext.web.validation;
 
 import io.vertx.core.Handler;
+import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.WebTestBase;
+import io.vertx.ext.web.WebTestWithWebClientBase;
+import io.vertx.ext.web.handler.BodyHandler;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -11,7 +14,7 @@ import java.util.concurrent.ThreadLocalRandom;
 /**
  * @author Francesco Guardiani @slinkydeveloper
  */
-public class WebTestValidationBase extends WebTestBase {
+public class WebTestValidationBase extends WebTestWithWebClientBase {
 
   static Map<ParameterType, List<String>> sampleValuesSuccess;
   static Map<ParameterType, List<String>> sampleValuesFailure;
@@ -53,7 +56,13 @@ public class WebTestValidationBase extends WebTestBase {
     return WebTestValidationBase.sampleValuesFailure.get(type).get(i);
   }
 
-  public void testParameterType(ParameterType type) {
+  public void loadHandlers(String path, HttpMethod method, boolean expectFail, ValidationHandler validationHandler, Handler<RoutingContext> handler) {
+    router.route(method, path).handler(BodyHandler.create());
+    router.route(method, path).handler(validationHandler);
+    router.route(method, path).handler(handler).failureHandler(generateFailureHandler(expectFail));
+  }
+
+  public void testPrimitiveParameterType(ParameterType type) {
     List<String> sampleValuesSuccess = WebTestValidationBase.sampleValuesSuccess.get(type);
     List<String> sampleValuesFailure = WebTestValidationBase.sampleValuesFailure.get(type);
 
@@ -80,16 +89,36 @@ public class WebTestValidationBase extends WebTestBase {
     }
   }
 
-  public Handler<RoutingContext> generateFailureHandler() {
+  public Handler<RoutingContext> generateFailureHandler(boolean expected) {
     return routingContext -> {
       Throwable failure = routingContext.failure();
       if (failure instanceof ValidationException) {
+        if (!expected) {
+          failure.printStackTrace();
+        }
         routingContext.response().setStatusCode(400).setStatusMessage("failure:" + ((ValidationException) failure).getErrorType().name()).end();
       } else {
         failure.printStackTrace();
         routingContext.response().setStatusCode(500).setStatusMessage("unknownfailure:" + failure.toString()).end();
       }
     };
+  }
+
+  public String errorMessage(ValidationException.ErrorType error) {
+    return "failure:" + error.name();
+  }
+
+  public String serializeInCSVStringArray(List<String> values) {
+    return this.serializeStringArray(values, ",");
+  }
+
+  public String serializeStringArray(List<String> values, String separator) {
+    StringBuilder stringBuilder = new StringBuilder();
+    for (String s : values) {
+      stringBuilder.append(s + separator);
+    }
+    stringBuilder.deleteCharAt(stringBuilder.length() - 1);
+    return stringBuilder.toString();
   }
 
 }
