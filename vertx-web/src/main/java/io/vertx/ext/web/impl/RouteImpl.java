@@ -285,11 +285,15 @@ public class RouteImpl implements Route {
         return false;
       }
     }
-    // Decode query parameters and put inside context.pathParams
-    Map<String, List<String>> decodedParams = new QueryStringDecoder(request.uri()).parameters();
 
-    for (Map.Entry<String, List<String>> entry : decodedParams.entrySet())
-      context.queryParams().add(entry.getKey(), entry.getValue());
+    // Check if query params are already parsed
+    if (context.queryParams().size() == 0) {
+      // Decode query parameters and put inside context.queryParams
+      Map<String, List<String>> decodedParams = new QueryStringDecoder(request.uri()).parameters();
+
+      for (Map.Entry<String, List<String>> entry : decodedParams.entrySet())
+        context.queryParams().add(entry.getKey(), entry.getValue());
+    }
 
     if (!consumes.isEmpty()) {
       // Can this route consume the specified content type

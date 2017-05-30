@@ -376,12 +376,6 @@ public class RoutingContextImpl extends RoutingContextImplBase {
     return getQueryParams().getAll(query);
   }
 
-  protected void setQueryParams(Map<String, List<String>> q) {
-    queryParams = MultiMap.caseInsensitiveMultiMap();
-    for (Map.Entry<String, List<String>> entry : q.entrySet())
-      queryParams.add(entry.getKey(), entry.getValue());
-  }
-
   private MultiMap getQueryParams() {
     if (queryParams == null) {
       queryParams = MultiMap.caseInsensitiveMultiMap();
