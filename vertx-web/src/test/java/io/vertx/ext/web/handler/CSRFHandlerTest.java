@@ -76,7 +76,7 @@ public class CSRFHandlerTest extends WebTestBase {
     testRequest(HttpMethod.GET, "/", null, resp -> {
       List<String> cookies = resp.headers().getAll("set-cookie");
       String cookie = cookies.get(0);
-      tmpCookie = cookie.substring(cookie.indexOf('=') + 1);
+      tmpCookie = cookie.substring(cookie.indexOf('=') + 1, cookie.indexOf(';'));
     }, 200, "OK", null);
 
     testRequest(HttpMethod.POST, "/", req -> {
@@ -108,7 +108,7 @@ public class CSRFHandlerTest extends WebTestBase {
     testRequest(HttpMethod.GET, "/", null, resp -> {
       List<String> cookies = resp.headers().getAll("set-cookie");
       String cookie = cookies.get(0);
-      tmpCookie = cookie.substring(cookie.indexOf('=') + 1);
+      tmpCookie = cookie.substring(cookie.indexOf('=') + 1, cookie.indexOf(';'));
     }, 200, "OK", null);
 
     testRequest(HttpMethod.POST, "/", req -> {

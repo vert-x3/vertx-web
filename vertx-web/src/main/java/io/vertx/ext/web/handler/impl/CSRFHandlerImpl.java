@@ -46,6 +46,7 @@ public class CSRFHandlerImpl implements CSRFHandler {
 
   private boolean nagHttps;
   private String cookieName = DEFAULT_COOKIE_NAME;
+  private String cookiePath = DEFAULT_COOKIE_PATH;
   private String headerName = DEFAULT_HEADER_NAME;
   private String responseBody = DEFAULT_RESPONSE_BODY;
   private long timeout = SessionHandler.DEFAULT_SESSION_TIMEOUT;
@@ -62,6 +63,12 @@ public class CSRFHandlerImpl implements CSRFHandler {
   @Override
   public CSRFHandler setCookieName(String cookieName) {
     this.cookieName = cookieName;
+    return this;
+  }
+
+  @Override
+  public CSRFHandler setCookiePath(String cookiePath) {
+    this.cookiePath = cookiePath;
     return this;
   }
 
@@ -141,7 +148,7 @@ public class CSRFHandlerImpl implements CSRFHandler {
 
     if (nagHttps) {
       String uri = ctx.request().absoluteURI();
-      if (!uri.startsWith("https:")) {
+      if (uri != null && !uri.startsWith("https:")) {
         log.warn("Using session cookies without https could make you susceptible to session hijacking: " + uri);
       }
     }
@@ -153,7 +160,7 @@ public class CSRFHandlerImpl implements CSRFHandler {
         final String token = generateToken();
         // put the token in the context for users who prefer to render the token directly on the HTML
         ctx.put(headerName, token);
-        ctx.addCookie(Cookie.cookie(cookieName, token));
+        ctx.addCookie(Cookie.cookie(cookieName, token).setPath(cookiePath));
         ctx.next();
         break;
       case POST:

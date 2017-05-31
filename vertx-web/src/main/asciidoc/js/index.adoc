@@ -932,6 +932,32 @@ router.get().failureHandler(function (ctx) {
 
 ----
 
+It should be clear that reroute works on `paths`, so if you need to preserve and or add state across reroutes, one
+should use the `RoutingContext` object. For example you want to reroute to a new path with a extra parameter:
+
+[source,js]
+----
+
+router.get("/final-target").handler(function (ctx) {
+  // continue from here...
+});
+
+// THE WRONG WAY! (Will reroute to /final-target excluding the query string)
+router.get().handler(function (ctx) {
+  ctx.reroute("/final-target?variable=value");
+});
+
+// THE CORRECT WAY!
+router.get().handler(function (ctx) {
+  ctx.put("variable", "value").reroute("/final-target");
+});
+
+----
+
+Even though the wrong reroute path will warn you that the query string is ignored, the reroute will happen since the
+implementation will strip any query string or html fragment from the path.
+
+
 == Sub-routers
 
 Sometimes if you have a lot of handlers it can make sense to split them up into multiple routers. This is also useful
@@ -1868,8 +1894,9 @@ fatjars in production where serving a file from the classpath every time can be 
 In development this can cause a problem, as if you update your static content while the server is running, the
 cached file will be served not the updated file.
 
-To disable file caching you can provide the system property `vertx.disableFileCaching` with the value `true`. E.g. you
-could set up a run configuration in your IDE to set this when runnning your main class.
+To disable file caching you can provide your vert.x options the property `fileResolverCachingEnabled` to true. For
+backwards compatibility it will also default that value to the system property `vertx.disableFileCaching`. E.g. you
+could set up a run configuration in your IDE to set this when running your main class.
 
 
 == CORS handling
@@ -2488,8 +2515,11 @@ You can retrieve the client library using a dependency manager:
 compile 'io.vertx:vertx-web:3.4.2-SNAPSHOT:client'
 ----
 
-The library is also available on https://www.npmjs.com/package/vertx3-eventbus-client[NPM] and on
-https://github.com/vert-x3/vertx-bus-bower[Bower]
+The library is also available on:
+
+* https://www.npmjs.com/package/vertx3-eventbus-client[NPM]
+* https://github.com/vert-x3/vertx-bus-bower[Bower]
+* https://cdnjs.com/libraries/vertx[cdnjs]
 
 Notice that the API has changed between the 3.0.0 and 3.1.0 version. Please check the changelog. The previous client
 is still compatible and can still be used, but the new client offers more feature and is closer to the vert.x
