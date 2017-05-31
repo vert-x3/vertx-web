@@ -21,6 +21,8 @@ public interface CSRFHandler extends Handler<RoutingContext> {
 
   String DEFAULT_COOKIE_NAME = "XSRF-TOKEN";
 
+  String DEFAULT_COOKIE_PATH = "/";
+
   String DEFAULT_HEADER_NAME = "X-XSRF-TOKEN";
 
   String DEFAULT_RESPONSE_BODY = null;
@@ -47,6 +49,15 @@ public interface CSRFHandler extends Handler<RoutingContext> {
    */
   @Fluent
   CSRFHandler setCookieName(String name);
+
+  /**
+   * Set the cookie path. By default / is used.
+   *
+   * @param path a new path for the cookie.
+   * @return fluent
+   */
+  @Fluent
+  CSRFHandler setCookiePath(String path);
 
   /**
    * Set the header name. By default X-XSRF-TOKEN is used as it is the expected name by AngularJS however other
