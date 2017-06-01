@@ -1,7 +1,6 @@
 package io.vertx.ext.web.validation;
 
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.ext.web.impl.Utils;
 import io.vertx.ext.web.validation.impl.SplitterCharContainerDeserializer;
 
 import java.util.*;

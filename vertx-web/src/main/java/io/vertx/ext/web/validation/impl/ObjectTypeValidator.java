@@ -1,8 +1,9 @@
 package io.vertx.ext.web.validation.impl;
 
+import com.google.common.collect.Maps;
+import io.vertx.ext.web.RequestParameter;
 import io.vertx.ext.web.validation.*;
 
-import java.lang.reflect.Parameter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,13 +35,13 @@ public class ObjectTypeValidator extends ContainerTypeValidator<Map<String, Stri
   }
 
   @Override
-  public void isValid(String value) throws ValidationException {
-    this.validate(this.deserialize(value));
+  public RequestParameter isValid(String value) throws ValidationException {
+    return this.validate(this.deserialize(value));
   }
 
   @Override
-  public void isValidCollection(List<String> value) throws ValidationException {
-    this.validate(this.deserialize(value.get(0)));
+  public RequestParameter isValidCollection(List<String> value) throws ValidationException {
+    return this.validate(this.deserialize(value.get(0)));
   }
 
   @Override
@@ -49,16 +50,25 @@ public class ObjectTypeValidator extends ContainerTypeValidator<Map<String, Stri
   }
 
   @Override
-  protected void validate(Map<String, String> values) throws ValidationException {
+  protected RequestParameter validate(Map<String, String> values) throws ValidationException {
+    Map<String, RequestParameter> parsedParams = Maps.newHashMap();
+
     for (Map.Entry<String, ObjectField> field : fieldsMap.entrySet()) {
       String valueToValidate = values.get(field.getKey());
       if (valueToValidate == null) {
         if (field.getValue().required)
           throw ValidationException.generateObjectFieldNotFound(field.getKey());
+        else if (field.getValue().validator.getDefault() != null)
+          parsedParams.put(field.getKey(), RequestParameter.create(field.getKey(), field.getValue().validator.getDefault()));
+
       } else {
-        field.getValue().validator.isValid(valueToValidate);
+        RequestParameter param = field.getValue().validator.isValid(valueToValidate);
+        param.setName(field.getKey());
+        parsedParams.put(field.getKey(), param);
       }
     }
+
+    return RequestParameter.create(parsedParams);
   }
 
   public static class ObjectTypeValidatorFactory {

@@ -1,5 +1,6 @@
 package io.vertx.ext.web.validation.impl;
 
+import io.vertx.ext.web.RequestParameter;
 import io.vertx.ext.web.validation.ParameterTypeValidator;
 import io.vertx.ext.web.validation.ValidationException;
 
@@ -14,14 +15,21 @@ public class StringTypeValidator implements ParameterTypeValidator {
   private Integer minLength;
   private Integer maxLength;
 
-  public StringTypeValidator(String pattern, Integer minLength, Integer maxLength) {
+  private String defaultValue;
+
+  public StringTypeValidator(String pattern, Integer minLength, Integer maxLength, String defaultValue) {
     this.pattern = (pattern != null) ? Pattern.compile(pattern) : null;
     this.minLength = minLength;
     this.maxLength = maxLength;
+    this.defaultValue = defaultValue;
+  }
+
+  public StringTypeValidator(String pattern, String defaultValue) {
+    this(pattern, null, null, defaultValue);
   }
 
   public StringTypeValidator(String pattern) {
-    this(pattern, null, null);
+    this(pattern, null, null, null);
   }
 
   public Pattern getPattern() {
@@ -47,8 +55,17 @@ public class StringTypeValidator implements ParameterTypeValidator {
    * @return true if parameter is valid
    */
   @Override
-  public void isValid(String value) {
+  public RequestParameter isValid(String value) {
+    if (value == null || value.length() == 0)
+      return RequestParameter.create(getDefault());
     if (!checkMinLength(value) || !checkMaxLength(value) || (pattern != null && !pattern.matcher(value).matches()))
       throw ValidationException.generateNotMatchValidationException(null);
+    else
+      return RequestParameter.create(value);
+  }
+
+  @Override
+  public Object getDefault() {
+    return defaultValue;
   }
 }

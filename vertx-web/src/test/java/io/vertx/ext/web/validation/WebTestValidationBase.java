@@ -2,6 +2,7 @@ package io.vertx.ext.web.validation;
 
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.ext.web.RequestParameter;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.WebTestBase;
 import io.vertx.ext.web.WebTestWithWebClientBase;
@@ -24,7 +25,7 @@ public class WebTestValidationBase extends WebTestWithWebClientBase {
     sampleValuesFailure = new HashMap<>();
 
     sampleValuesSuccess.put(ParameterType.BOOL, Arrays.asList("true", "false", "1", "0", "True", "False", "TRUE", "FALSE"));
-    sampleValuesFailure.put(ParameterType.BOOL, Arrays.asList("awesome", "yes", "no", "ok"));
+    sampleValuesFailure.put(ParameterType.BOOL, Arrays.asList("trues", "yes", "no", "ok"));
     sampleValuesSuccess.put(ParameterType.EMAIL, Arrays.asList("vertx@vertx.io", "awesome.vertx@vert.vertx.io", "random_email@vertx.io"));
     sampleValuesFailure.put(ParameterType.EMAIL, Arrays.asList("vertx.io", "@vertx.com"));
     sampleValuesSuccess.put(ParameterType.URI, Arrays.asList("ftp://awesomeftp/file.txt", "http://vertx.io", "mailto:vertx@vertx.io", "irc://irc.freenode.net/vertx.io"));
@@ -46,9 +47,9 @@ public class WebTestValidationBase extends WebTestWithWebClientBase {
 
   }
 
-  public String getSuccessSample(ParameterType type) {
+  public RequestParameter getSuccessSample(ParameterType type) {
     int i = ThreadLocalRandom.current().nextInt(0, WebTestValidationBase.sampleValuesSuccess.get(type).size());
-    return WebTestValidationBase.sampleValuesSuccess.get(type).get(i);
+    return type.getValidationMethod().isValid(WebTestValidationBase.sampleValuesSuccess.get(type).get(i));
   }
 
   public String getFailureSample(ParameterType type) {

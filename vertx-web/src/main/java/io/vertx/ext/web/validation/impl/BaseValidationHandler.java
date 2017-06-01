@@ -7,7 +7,11 @@ import com.networknt.schema.JsonSchemaFactory;
 import com.networknt.schema.ValidationMessage;
 import io.vertx.core.MultiMap;
 import io.vertx.ext.web.FileUpload;
+import io.vertx.ext.web.RequestParameter;
+import io.vertx.ext.web.RequestParameters;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.impl.RequestParameterImpl;
+import io.vertx.ext.web.impl.RequestParametersImpl;
 import io.vertx.ext.web.validation.*;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
@@ -15,7 +19,6 @@ import org.xml.sax.SAXException;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Source;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamSource;
@@ -55,9 +58,11 @@ public abstract class BaseValidationHandler implements ValidationHandler {
   @Override
   public void handle(RoutingContext routingContext) {
     try {
-      validatePathParams(routingContext);
-      validateQueryParams(routingContext);
-      validateHeaderParams(routingContext);
+      RequestParametersImpl parsedParameters = new RequestParametersImpl();
+
+      parsedParameters.setPathParameters(validatePathParams(routingContext));
+      parsedParameters.setQueryParameters(validateQueryParams(routingContext));
+      parsedParameters.setHeaderParameters(validateHeaderParams(routingContext));
 
       //Run custom validators
       for (CustomValidator customValidator : customValidators) {
@@ -69,7 +74,7 @@ public abstract class BaseValidationHandler implements ValidationHandler {
         if (fileNamesRules.size() != 0 && !contentType.contains("multipart/form-data"))
           throw ValidationException.generateWrongContentTypeExpected(contentType, "multipart/form-data");
         if (contentType.contains("application/x-www-form-urlencoded") || contentType.contains("multipart/form-data")) {
-          validateFormParams(routingContext);
+          parsedParameters.setFormParameters(validateFormParams(routingContext));
           if (contentType.contains("multipart/form-data"))
             validateFileUpload(routingContext);
         } else if (contentType.equals("application/json"))
@@ -86,58 +91,83 @@ public abstract class BaseValidationHandler implements ValidationHandler {
           return;
         }
       }
+
+      routingContext.put("parsedParameters", parsedParameters);
+
       routingContext.next();
     } catch (ValidationException e) {
       routingContext.fail(e);
     }
   }
 
-  private void validatePathParams(RoutingContext routingContext) throws ValidationException {
+  private Map<String, RequestParameter> validatePathParams(RoutingContext routingContext) throws ValidationException {
     // Validation process validate only params that are registered in the validation -> extra params are allowed
+    Map<String, RequestParameter> parsedParams = new HashMap<>();
     Map<String, String> pathParams = routingContext.pathParams();
     for (ParameterValidationRule rule : pathParamsRules.values()) {
       String name = rule.getName();
       if (pathParams.containsKey(name)) {
-        rule.validateSingleParam(pathParams.get(name));
-      } else if (!rule.isOptional())
+        RequestParameter parsedParam = rule.validateSingleParam(pathParams.get(name));
+        parsedParams.put(parsedParam.getName(), parsedParam);
+      } else // Path params are required!
         throw ValidationException.generateNotFoundValidationException(name, ParameterLocation.PATH);
     }
+    return parsedParams;
   }
 
-  private void validateQueryParams(RoutingContext routingContext) throws ValidationException {
+  private Map<String, RequestParameter> validateQueryParams(RoutingContext routingContext) throws ValidationException {
     // Validation process validate only params that are registered in the validation -> extra params are allowed
+    Map<String, RequestParameter> parsedParams = new HashMap<>();
     MultiMap queryParams = routingContext.queryParams();
     for (ParameterValidationRule rule : queryParamsRules.values()) {
       String name = rule.getName();
       if (queryParams.contains(name)) {
-        rule.validateArrayParam(queryParams.getAll(name));
+        RequestParameter parsedParam = rule.validateArrayParam(queryParams.getAll(name));
+        parsedParam.setName(name);
+        parsedParams.put(parsedParam.getName(), parsedParam);
+      } else if (rule.allowEmptyValue()) {
+        RequestParameter parsedParam = new RequestParameterImpl(name, rule.getParameterTypeValidator().getDefault());
+        parsedParams.put(parsedParam.getName(), parsedParam);
       } else if (!rule.isOptional())
         throw ValidationException.generateNotFoundValidationException(name, ParameterLocation.QUERY);
     }
+    return parsedParams;
   }
 
-  private void validateHeaderParams(RoutingContext routingContext) throws ValidationException {
+  private Map<String, RequestParameter> validateHeaderParams(RoutingContext routingContext) throws ValidationException {
     // Validation process validate only params that are registered in the validation -> extra params are allowed
+    Map<String, RequestParameter> parsedParams = new HashMap<>();
     MultiMap headersParams = routingContext.request().headers();
     for (ParameterValidationRule rule : headerParamsRules.values()) {
       String name = rule.getName();
       if (headersParams.contains(name)) {
-        rule.validateArrayParam(headersParams.getAll(name));
+        RequestParameter parsedParam = rule.validateArrayParam(headersParams.getAll(name));
+        parsedParams.put(parsedParam.getName(), parsedParam);
+      } else if (rule.allowEmptyValue()) {
+        RequestParameter parsedParam = new RequestParameterImpl(name, rule.getParameterTypeValidator().getDefault());
+        parsedParams.put(parsedParam.getName(), parsedParam);
       } else if (!rule.isOptional())
         throw ValidationException.generateNotFoundValidationException(name, ParameterLocation.HEADER);
     }
+    return parsedParams;
   }
 
-  private void validateFormParams(RoutingContext routingContext) throws ValidationException {
+  private Map<String, RequestParameter> validateFormParams(RoutingContext routingContext) throws ValidationException {
     // Validation process validate only params that are registered in the validation -> extra params are allowed
+    Map<String, RequestParameter> parsedParams = new HashMap<>();
     MultiMap formParams = routingContext.request().formAttributes();
     for (ParameterValidationRule rule : formParamsRules.values()) {
       String name = rule.getName();
       if (formParams.contains(name)) {
-        rule.validateArrayParam(formParams.getAll(name));
+        RequestParameter parsedParam = rule.validateArrayParam(formParams.getAll(name));
+        parsedParams.put(parsedParam.getName(), parsedParam);
+      } else if (rule.allowEmptyValue()) {
+        RequestParameter parsedParam = new RequestParameterImpl(name, rule.getParameterTypeValidator().getDefault());
+        parsedParams.put(parsedParam.getName(), parsedParam);
       } else if (!rule.isOptional())
         throw ValidationException.generateNotFoundValidationException(name, ParameterLocation.BODY_FORM);
     }
+    return parsedParams;
   }
 
   private boolean existFileUploadName(Set<FileUpload> files, String name) {

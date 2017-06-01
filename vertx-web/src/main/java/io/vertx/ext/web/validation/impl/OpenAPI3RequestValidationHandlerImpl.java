@@ -6,6 +6,7 @@ import io.vertx.ext.web.designdriven.OpenApi3Utils;
 import io.vertx.ext.web.validation.*;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -13,77 +14,108 @@ import java.util.Map;
  */
 public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestValidationHandlerImpl<Operation> implements io.vertx.ext.web.validation.OpenAPI3RequestValidationHandler {
 
-  public OpenAPI3RequestValidationHandlerImpl(Operation pathSpec) {
+  List<Parameter> parentParams;
+
+  public OpenAPI3RequestValidationHandlerImpl(Operation pathSpec, List<Parameter> parentParams) {
     super(pathSpec);
+    if (parentParams == null)
+      this.parentParams = new ArrayList<>();
+    else
+      this.parentParams = parentParams;
+    parseOperationSpec();
+  }
+
+  private List<Parameter> mergeParameters() {
+    List<Parameter> result = new ArrayList<>(this.pathSpec.getParameters());
+    List<Parameter> actualParams = new ArrayList<>(pathSpec.getParameters());
+    for (int i = 0; i < parentParams.size(); i++) {
+      for (int j = 0; j < actualParams.size(); j++) {
+        Parameter parentParam = parentParams.get(i);
+        Parameter actualParam = actualParams.get(j);
+        if (!(parentParam.getIn().equalsIgnoreCase(actualParam.getIn()) && parentParam.getName().equals(actualParam.getName())))
+          result.add(parentParam);
+      }
+    }
+    return result;
   }
 
   @Override
   public void parseOperationSpec() {
     // Extract from path spec parameters description
-    for (Parameter opParameter : this.pathSpec.getParameters()) {
+    for (Parameter opParameter : mergeParameters()) {
       this.parseParameter(opParameter);
     }
     this.parseRequestBody(this.pathSpec.getRequestBody());
   }
 
-  private ParameterTypeValidator resolveInnerSchemaTypeValidator(Schema schema, boolean allowedCollection) {
-    if (schema.getEnums() != null && schema.getEnums().size() != 0) {
-      return ParameterTypeValidator.createEnumTypeValidator(new ArrayList(schema.getEnums()));
+  private ParameterTypeValidator resolveSchemaTypeValidatorFormEncoded() {
+    //TODO
+    return null;
+  }
+
+  private ParameterTypeValidator resolveInnerSchemaPrimitiveTypeValidator(Schema schema, boolean parseEnum) {
+    if (schema == null) {
+      // It will never reach this
+      return ParameterType.GENERIC_STRING.getValidationMethod();
+    }
+    if (parseEnum && schema.getEnums() != null && schema.getEnums().size() != 0) {
+      return ParameterTypeValidator.createEnumTypeValidator(new ArrayList(schema.getEnums()), this.resolveInnerSchemaPrimitiveTypeValidator(schema, false));
     }
     switch (schema.getType()) {
       case "integer":
         if (schema.getFormat() != null && schema.getFormat().equals("int64")) {
-          return ParameterTypeValidator.createLongTypeValidator(schema.isExclusiveMaximum(), (schema.getMaximum() != null) ? schema.getMaximum().doubleValue() : null, schema.isExclusiveMinimum(), (schema.getMinimum() != null) ? schema.getMinimum().doubleValue() : null, (schema.getMultipleOf() != null) ? schema.getMultipleOf().doubleValue() : null);
+          return ParameterTypeValidator.createLongTypeValidator(schema.isExclusiveMaximum(), (schema.getMaximum() != null) ? schema.getMaximum().doubleValue() : null, schema.isExclusiveMinimum(), (schema.getMinimum() != null) ? schema.getMinimum().doubleValue() : null, (schema.getMultipleOf() != null) ? schema.getMultipleOf().doubleValue() : null, (Long) schema.getDefault() /* TODO test type received */);
         } else {
-          return ParameterTypeValidator.createIntegerTypeValidator(schema.isExclusiveMaximum(), (schema.getMaximum() != null) ? schema.getMaximum().doubleValue() : null, schema.isExclusiveMinimum(), (schema.getMinimum() != null) ? schema.getMinimum().doubleValue() : null, (schema.getMultipleOf() != null) ? schema.getMultipleOf().doubleValue() : null);
+          return ParameterTypeValidator.createIntegerTypeValidator(schema.isExclusiveMaximum(), (schema.getMaximum() != null) ? schema.getMaximum().doubleValue() : null, schema.isExclusiveMinimum(), (schema.getMinimum() != null) ? schema.getMinimum().doubleValue() : null, (schema.getMultipleOf() != null) ? schema.getMultipleOf().doubleValue() : null, (Integer) schema.getDefault() /* TODO test type received */);
         }
       case "number":
-        if (schema.getFormat().equals("float"))
-          return ParameterTypeValidator.createFloatTypeValidator(schema.isExclusiveMaximum(), (schema.getMaximum() != null) ? schema.getMaximum().doubleValue() : null, schema.isExclusiveMinimum(), (schema.getMinimum() != null) ? schema.getMinimum().doubleValue() : null, (schema.getMultipleOf() != null) ? schema.getMultipleOf().doubleValue() : null);
+        if (schema.getFormat() != null && schema.getFormat().equals("float"))
+          return ParameterTypeValidator.createFloatTypeValidator(schema.isExclusiveMaximum(), (schema.getMaximum() != null) ? schema.getMaximum().doubleValue() : null, schema.isExclusiveMinimum(), (schema.getMinimum() != null) ? schema.getMinimum().doubleValue() : null, (schema.getMultipleOf() != null) ? schema.getMultipleOf().doubleValue() : null, (Float) schema.getDefault() /* TODO test type received */);
         else
-          return ParameterTypeValidator.createDoubleTypeValidator(schema.isExclusiveMaximum(), (schema.getMaximum() != null) ? schema.getMaximum().doubleValue() : null, schema.isExclusiveMinimum(), (schema.getMinimum() != null) ? schema.getMinimum().doubleValue() : null, (schema.getMultipleOf() != null) ? schema.getMultipleOf().doubleValue() : null);
+          return ParameterTypeValidator.createDoubleTypeValidator(schema.isExclusiveMaximum(), (schema.getMaximum() != null) ? schema.getMaximum().doubleValue() : null, schema.isExclusiveMinimum(), (schema.getMinimum() != null) ? schema.getMinimum().doubleValue() : null, (schema.getMultipleOf() != null) ? schema.getMultipleOf().doubleValue() : null, (Double) schema.getDefault() /* TODO test type received */);
       case "boolean":
-        return ParameterType.BOOL.getValidationMethod();
+        return ParameterTypeValidator.createBooleanTypeValidator(schema.getDefault());
       case "string":
+        String regex = null;
         // Then resolve various string formats
         if (schema.getFormat() != null)
           switch (schema.getFormat()) {
             case "byte":
-              return ParameterType.BASE64.getValidationMethod();
+              regex = RegularExpressions.BASE64;
             case "date":
-              return ParameterType.DATE.getValidationMethod();
+              regex = RegularExpressions.DATE;
             case "date-time":
-              return ParameterType.DATETIME.getValidationMethod();
+              regex = RegularExpressions.DATETIME;
             case "ipv4":
-              return ParameterType.IPV4.getValidationMethod();
+              regex = RegularExpressions.IPV4;
             case "ipv6":
-              return ParameterType.IPV6.getValidationMethod();
+              regex = RegularExpressions.IPV6;
             case "hostname":
-              return ParameterType.HOSTNAME.getValidationMethod();
+              regex = RegularExpressions.HOSTNAME;
             default:
               throw new SpecFeatureNotSupportedException("format " + schema.getFormat() + " not supported");
           }
-        return ParameterTypeValidator.createStringTypeValidator(schema.getPattern(), schema.getMinLength(), schema.getMaxLength());
+        return ParameterTypeValidator.createStringTypeValidator((regex != null) ? regex : schema.getPattern(), schema.getMinLength(), schema.getMaxLength(), schema.getDefault());
 
     }
     return ParameterType.GENERIC_STRING.getValidationMethod();
   }
 
-  private void resolveObjectTypeFields(ObjectTypeValidator validator, Schema objectSchema, boolean allowedCollection) {
+  private void resolveObjectTypeFields(ObjectTypeValidator validator, Schema objectSchema) {
     for (Map.Entry<String, ? extends Schema> entry : objectSchema.getProperties().entrySet()) {
-      validator.addField(entry.getKey(), this.resolveInnerSchemaTypeValidator(entry.getValue(), allowedCollection), objectSchema.getRequiredFields().contains(entry.getKey()));
+      validator.addField(entry.getKey(), this.resolveInnerSchemaPrimitiveTypeValidator(entry.getValue(), true), objectSchema.getRequiredFields().contains(entry.getKey()));
     }
   }
 
   private ParameterTypeValidator resolveTypeValidator(Parameter parameter) {
     if (OpenApi3Utils.isParameterArrayType(parameter))
-      return ArrayTypeValidator.ArrayTypeValidatorFactory.createArrayTypeValidator(this.resolveInnerSchemaTypeValidator(parameter.getSchema().getItemsSchema(), false), parameter.getStyle(), parameter.isExplode(), parameter.getSchema().getMaxItems(), parameter.getSchema().getMinItems());
+      return ArrayTypeValidator.ArrayTypeValidatorFactory.createArrayTypeValidator(this.resolveInnerSchemaPrimitiveTypeValidator(parameter.getSchema().getItemsSchema(), true), OpenApi3Utils.resolveStyle(parameter), parameter.isExplode(), parameter.getSchema().getMaxItems(), parameter.getSchema().getMinItems());
     else if (OpenApi3Utils.isParameterObjectType(parameter)) {
-      ObjectTypeValidator objectTypeValidator = ObjectTypeValidator.ObjectTypeValidatorFactory.createObjectTypeValidator(parameter.getStyle(), parameter.isExplode());
-      resolveObjectTypeFields(objectTypeValidator, parameter.getSchema(), false);
+      ObjectTypeValidator objectTypeValidator = ObjectTypeValidator.ObjectTypeValidatorFactory.createObjectTypeValidator(OpenApi3Utils.resolveStyle(parameter), parameter.isExplode());
+      resolveObjectTypeFields(objectTypeValidator, parameter.getSchema());
       return objectTypeValidator;
     }
-    return this.resolveInnerSchemaTypeValidator(parameter.getSchema(), false);
+    return this.resolveInnerSchemaPrimitiveTypeValidator(parameter.getSchema(), true);
   }
 
   private void magicParameterExplodedStyleFormTypeObject(Parameter parameter) {
@@ -91,11 +123,12 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
       if (parameter.getIn().equals("query")) {
         this.addQueryParamRule(
           ParameterValidationRule.createValidationRuleWithCustomTypeValidator(entry.getKey(),
-            this.resolveInnerSchemaTypeValidator(entry.getValue(), false),
-            !parameter.getSchema().getRequiredFields().contains(entry.getKey()),
+            this.resolveInnerSchemaPrimitiveTypeValidator(entry.getValue(), true),
+            !OpenApi3Utils.isRequiredParam(parameter.getSchema(), entry.getKey()),
+            true,
             ParameterLocation.QUERY));
       } else if (parameter.getIn().equals("cookie")) {
-        // ready for cookie support
+        // TODO ready for cookie support
       } else {
         throw new SpecFeatureNotSupportedException("combination of style, type and location (in) of parameter fields not supported for parameter " + parameter.getName());
       }
@@ -104,18 +137,20 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
 
   private void magicParameterExplodedStyleSimpleTypeObject(Parameter parameter) {
     ObjectTypeValidator objectTypeValidator = ObjectTypeValidator.ObjectTypeValidatorFactory.createObjectTypeValidator(ContainerSerializationStyle.simple_exploded_object, false);
-    this.resolveObjectTypeFields(objectTypeValidator, parameter.getSchema(), false);
+    this.resolveObjectTypeFields(objectTypeValidator, parameter.getSchema());
     if (parameter.getIn().equals("path")) {
       this.addPathParamRule(
         ParameterValidationRule.createValidationRuleWithCustomTypeValidator(parameter.getName(),
           objectTypeValidator,
-          !parameter.getRequired(),
+          !OpenApi3Utils.isRequiredParam(parameter),
+          (parameter.getAllowEmptyValue() != null) ? parameter.getAllowEmptyValue() : false,
           ParameterLocation.PATH));
     } else if (parameter.getIn().equals("header")) {
       this.addHeaderParamRule(
         ParameterValidationRule.createValidationRuleWithCustomTypeValidator(parameter.getName(),
           objectTypeValidator,
-          !parameter.getRequired(),
+          !OpenApi3Utils.isRequiredParam(parameter),
+          (parameter.getAllowEmptyValue() != null) ? parameter.getAllowEmptyValue() : false,
           ParameterLocation.HEADER));
     } else {
       throw new SpecFeatureNotSupportedException("combination of style, type and location (in) of parameter fields not supported for parameter " + parameter.getName());
@@ -127,8 +162,9 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
       if (parameter.getIn().equals("query")) {
         this.addQueryParamRule(
           ParameterValidationRule.createValidationRuleWithCustomTypeValidator(parameter.getName() + "[" + entry.getKey() + "]",
-            this.resolveInnerSchemaTypeValidator(entry.getValue(), false),
-            !parameter.getSchema().getRequiredFields().contains(entry.getKey()),
+            this.resolveInnerSchemaPrimitiveTypeValidator(entry.getValue(), true),
+            !OpenApi3Utils.isRequiredParam(parameter.getSchema(), entry.getKey()),
+            true,
             ParameterLocation.QUERY));
       } else {
         throw new SpecFeatureNotSupportedException("combination of style, type and location (in) of parameter fields not supported for parameter " + parameter.getName());
@@ -150,12 +186,16 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
     } else /* From this moment only astonishing magic happens */ if (parameter.isExplode()) {
       if (OpenApi3Utils.isParameterStyle(parameter, "form") && OpenApi3Utils.isParameterObjectType(parameter)) {
         this.magicParameterExplodedStyleFormTypeObject(parameter);
+        return true;
       } else if (OpenApi3Utils.isParameterStyle(parameter, "simple") && OpenApi3Utils.isParameterObjectType(parameter)) {
         this.magicParameterExplodedStyleSimpleTypeObject(parameter);
+        return true;
       } else if (OpenApi3Utils.isParameterStyle(parameter, "deepObject")) {
         this.magicParameterExplodedStyleDeepObjectTypeObject(parameter);
+        return true;
+      } else {
+        return false;
       }
-      return true;
     }
     return false;
   }
@@ -167,18 +207,21 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
           this.addHeaderParamRule(ParameterValidationRule.createValidationRuleWithCustomTypeValidator(parameter.getName(),
             this.resolveTypeValidator(parameter),
             !parameter.getRequired(),
+            (parameter.getAllowEmptyValue() != null) ? parameter.getAllowEmptyValue() : false,
             ParameterLocation.HEADER));
           break;
         case "query":
           this.addQueryParamRule(ParameterValidationRule.createValidationRuleWithCustomTypeValidator(parameter.getName(),
             this.resolveTypeValidator(parameter),
-            !parameter.getRequired(),
+            !OpenApi3Utils.isRequiredParam(parameter),
+            (parameter.getAllowEmptyValue() != null) ? parameter.getAllowEmptyValue() : false,
             ParameterLocation.QUERY));
           break;
         case "path":
           this.addPathParamRule(ParameterValidationRule.createValidationRuleWithCustomTypeValidator(parameter.getName(),
             this.resolveTypeValidator(parameter),
-            !parameter.getRequired(),
+            !OpenApi3Utils.isRequiredParam(parameter),
+            (parameter.getAllowEmptyValue() != null) ? parameter.getAllowEmptyValue() : false,
             ParameterLocation.QUERY));
           break;
         case "cookie":
@@ -192,6 +235,10 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
     MediaType json = requestBody.getContentMediaType("application/json");
     if (json != null) {
       this.setJsonSchema(((MediaTypeImpl) json).getDereferencedJsonTree());
+    }
+    MediaType formUrlEncoded = requestBody.getContentMediaType("x-www-form-urlencoded");
+    if (formUrlEncoded != null) {
+      //TODO code
     }
     // TODO add form and multipart
   }

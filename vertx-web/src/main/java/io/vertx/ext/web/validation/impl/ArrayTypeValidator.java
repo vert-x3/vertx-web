@@ -1,10 +1,12 @@
 package io.vertx.ext.web.validation.impl;
 
+import io.vertx.ext.web.RequestParameter;
 import io.vertx.ext.web.validation.ContainerDeserializer;
 import io.vertx.ext.web.validation.ContainerSerializationStyle;
 import io.vertx.ext.web.validation.ParameterTypeValidator;
 import io.vertx.ext.web.validation.ValidationException;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -42,16 +44,16 @@ public class ArrayTypeValidator extends ContainerTypeValidator<List<String>> {
   }
 
   @Override
-  public void isValid(String value) throws ValidationException {
-    this.validate(this.deserialize(value));
+  public RequestParameter isValid(String value) throws ValidationException {
+    return this.validate(this.deserialize(value));
   }
 
   @Override
-  public void isValidCollection(List<String> value) throws ValidationException {
+  public RequestParameter isValidCollection(List<String> value) throws ValidationException {
     if (value.size() > 1 && this.isExploded()) {
-      this.validate(value);
+      return this.validate(value);
     } else {
-      this.validate(this.deserialize(value.get(0)));
+      return this.validate(this.deserialize(value.get(0)));
     }
   }
 
@@ -61,12 +63,15 @@ public class ArrayTypeValidator extends ContainerTypeValidator<List<String>> {
   }
 
   @Override
-  protected void validate(List<String> values) {
+  protected RequestParameter validate(List<String> values) {
     if (values == null || !checkMaxItems(values.size()) || !checkMinItems(values.size()))
       throw ValidationException.generateUnexpectedArraySizeValidationException(this.getMaxItems(), this.getMinItems(), values.size());
+    List<RequestParameter> parsedParams = new ArrayList<>();
     for (String s : values) {
-      validator.isValid(s);
+      RequestParameter parsed = validator.isValid(s);
+      parsedParams.add(parsed);
     }
+    return RequestParameter.create(parsedParams);
   }
 
   public ParameterTypeValidator getInnerValidator() {

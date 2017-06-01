@@ -1,9 +1,8 @@
 package io.vertx.ext.web.validation.impl;
 
+import io.vertx.ext.web.RequestParameter;
 import io.vertx.ext.web.validation.*;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.util.List;
 
 /**
@@ -35,9 +34,11 @@ public class ParameterValidationRuleImpl implements ParameterValidationRule {
     return this.name;
   }
 
-  private void callValidator(String value) throws ValidationException {
+  private RequestParameter callValidator(String value) throws ValidationException {
     try {
-      validator.isValid(value);
+      RequestParameter result = validator.isValid(value);
+      result.setName(getName());
+      return result;
     } catch (ValidationException e) {
       e.setParameterName(this.name);
       e.setValidationRule(this);
@@ -46,9 +47,11 @@ public class ParameterValidationRuleImpl implements ParameterValidationRule {
     }
   }
 
-  private void callValidator(List<String> value) throws ValidationException {
+  private RequestParameter callValidator(List<String> value) throws ValidationException {
     try {
-      validator.isValidCollection(value);
+      RequestParameter result = validator.isValidCollection(value);
+      result.setName(getName());
+      return result;
     } catch (ValidationException e) {
       e.setParameterName(this.name);
       e.setValidationRule(this);
@@ -58,24 +61,32 @@ public class ParameterValidationRuleImpl implements ParameterValidationRule {
   }
 
   @Override
-  public void validateSingleParam(String value) throws ValidationException {
+  public RequestParameter validateSingleParam(String value) throws ValidationException {
     if (value != null && value.length() != 0) {
-      callValidator(value);
+      return callValidator(value);
     } else {
       // Value or null or length == 0
       if (!this.allowEmptyValue)
         throw ValidationException.generateEmptyValueValidationException(this.name, this, this.location);
+      else if (getParameterTypeValidator().getDefault() != null)
+        return RequestParameter.create(getName(), getParameterTypeValidator().getDefault());
+      else
+        return RequestParameter.create(getName(), null);
     }
   }
 
   @Override
-  public void validateArrayParam(List<String> value) throws ValidationException {
+  public RequestParameter validateArrayParam(List<String> value) throws ValidationException {
     if (value != null && value.size() != 0) {
-      callValidator(value);
+      return callValidator(value);
     } else {
       // array or null or size == 0
       if (!this.allowEmptyValue)
         throw ValidationException.generateEmptyValueValidationException(this.name, this, this.location);
+      else if (getParameterTypeValidator().getDefault() != null)
+        return RequestParameter.create(getName(), getParameterTypeValidator().getDefault());
+      else
+        return RequestParameter.create(getName(), null);
     }
   }
 
@@ -87,6 +98,11 @@ public class ParameterValidationRuleImpl implements ParameterValidationRule {
   @Override
   public ParameterTypeValidator getParameterTypeValidator() {
     return validator;
+  }
+
+  @Override
+  public boolean allowEmptyValue() {
+    return allowEmptyValue;
   }
 
   @Override

@@ -84,7 +84,7 @@ paths:
     get:
       operationId: arrayTestFormExploded
       parameters:
-        - name: param1
+        - name: parameter
           in: query
           required: true
           explode: true
@@ -93,11 +93,22 @@ paths:
             items:
               type: integer
               multipleOf: 2
-  /queryTests/arrayTests/form:
+  /queryTests/default:
+    get:
+      operationId: testDefault
+      parameters:
+        - name: parameter
+          in: query
+          required: true
+          allowEmptyValue: true
+          schema:
+            type: string
+            default: aString
+  /queryTests/arrayTests/default:
     get:
       operationId: arrayTest
       parameters:
-        - name: param1
+        - name: parameter
           in: query
           required: true
           schema:

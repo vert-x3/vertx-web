@@ -1,5 +1,6 @@
 package io.vertx.ext.web.validation.impl;
 
+import io.vertx.ext.web.RequestParameter;
 import io.vertx.ext.web.validation.ContainerDeserializer;
 import io.vertx.ext.web.validation.ParameterTypeValidator;
 import io.vertx.ext.web.validation.ValidationException;
@@ -27,5 +28,6 @@ public abstract class ContainerTypeValidator<DeserializationResult> implements P
 
   protected abstract DeserializationResult deserialize(String serialized) throws ValidationException;
 
-  protected abstract void validate(DeserializationResult values) throws ValidationException;
+  protected abstract RequestParameter validate(DeserializationResult values) throws ValidationException;
+
 }

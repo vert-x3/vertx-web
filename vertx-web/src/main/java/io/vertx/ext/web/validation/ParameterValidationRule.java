@@ -1,6 +1,7 @@
 package io.vertx.ext.web.validation;
 
 import io.vertx.codegen.annotations.VertxGen;
+import io.vertx.ext.web.RequestParameter;
 import io.vertx.ext.web.validation.impl.ParameterValidationRuleImpl;
 
 import java.util.List;
@@ -24,7 +25,7 @@ public interface ParameterValidationRule {
    * @param value
    * @throws ValidationException
    */
-  void validateSingleParam(String value) throws ValidationException;
+  RequestParameter validateSingleParam(String value) throws ValidationException;
 
   /**
    * This function will be called when there is a List<String> that need to be validated. It must check if array is expected or not. It will throw a ValidationError in an error during validation occurs
@@ -32,7 +33,7 @@ public interface ParameterValidationRule {
    * @param value
    * @throws ValidationException
    */
-  void validateArrayParam(List<String> value) throws ValidationException;
+  RequestParameter validateArrayParam(List<String> value) throws ValidationException;
 
   /**
    * Return true if parameter is optional
@@ -48,11 +49,13 @@ public interface ParameterValidationRule {
    */
   ParameterTypeValidator getParameterTypeValidator();
 
-  static ParameterValidationRule createValidationRule(String name, ParameterType type, boolean isOptional, ParameterLocation location) {
-    return new ParameterValidationRuleImpl(name, type.getValidationMethod(), isOptional, false, location);
+  boolean allowEmptyValue();
+
+  static ParameterValidationRule createValidationRule(String name, ParameterType type, boolean isOptional, boolean allowEmptyValue, ParameterLocation location) {
+    return new ParameterValidationRuleImpl(name, type.getValidationMethod(), isOptional, allowEmptyValue, location);
   }
 
-  static ParameterValidationRule createValidationRuleWithCustomTypeValidator(String name, ParameterTypeValidator validator, boolean isOptional, ParameterLocation location) {
-    return new ParameterValidationRuleImpl(name, validator, isOptional, false, location);
+  static ParameterValidationRule createValidationRuleWithCustomTypeValidator(String name, ParameterTypeValidator validator, boolean isOptional, boolean allowEmptyValue, ParameterLocation location) {
+    return new ParameterValidationRuleImpl(name, validator, isOptional, allowEmptyValue, location);
   }
 }

@@ -10,6 +10,5 @@ public abstract class HTTPOperationRequestValidationHandlerImpl<OperationSpecTyp
 
   public HTTPOperationRequestValidationHandlerImpl(OperationSpecType pathSpec) {
     this.pathSpec = pathSpec;
-    parseOperationSpec();
   }
 }

@@ -1,11 +1,8 @@
 package io.vertx.ext.web.validation.impl;
 
-import io.vertx.ext.web.impl.Utils;
 import io.vertx.ext.web.validation.ContainerDeserializer;
 import io.vertx.ext.web.validation.ValidationException;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
