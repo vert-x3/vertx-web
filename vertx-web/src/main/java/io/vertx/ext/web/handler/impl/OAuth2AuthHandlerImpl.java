@@ -16,6 +16,7 @@
 
 package io.vertx.ext.web.handler.impl;
 
+import io.vertx.core.Future;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
@@ -119,9 +120,9 @@ public class OAuth2AuthHandlerImpl extends AuthHandlerImpl implements OAuth2Auth
 
       // redirect request to the oauth2 server
       ctx.response()
-          .putHeader("Location", authURI(host, ctx.normalisedPath()))
-          .setStatusCode(302)
-          .end();
+        .putHeader("Location", authURI(host, ctx.normalisedPath()))
+        .setStatusCode(302)
+        .end();
     }
   }
 
@@ -140,11 +141,11 @@ public class OAuth2AuthHandlerImpl extends AuthHandlerImpl implements OAuth2Auth
       return ((OAuth2Auth) authProvider).authorizeURL(new JsonObject()
         .put("redirect_uri", host + callback.getPath())
         .put("scopes", scopes)
-        .put("state", redirectURL));
+        .put("state", formState(redirectURL)));
     } else {
       return ((OAuth2Auth) authProvider).authorizeURL(new JsonObject()
         .put("redirect_uri", host + callback.getPath())
-        .put("state", redirectURL));
+        .put("state", formState(redirectURL)));
     }
   }
 
@@ -175,36 +176,52 @@ public class OAuth2AuthHandlerImpl extends AuthHandlerImpl implements OAuth2Auth
         return;
       }
 
-      final String state = ctx.request().getParam("state");
-
-      ((OAuth2Auth) authProvider).getToken(new JsonObject().put("code", code).put("redirect_uri", host + callback.getPath()).mergeIn(extraParams), res -> {
-        if (res.failed()) {
-          ctx.fail(res.cause());
-        } else {
-          ctx.setUser(res.result());
-          Session session = ctx.session();
-          if (session != null) {
-            // the user has upgraded from unauthenticated to authenticated
-            // session should be upgraded as recommended by owasp
-            session.regenerateId();
-            // we should redirect the UA so this link becomes invalid
-            ctx.response()
-              // disable all caching
-              .putHeader("Cache-Control", "no-cache, no-store, must-revalidate")
-              .putHeader("Pragma", "no-cache")
-              .putHeader("Expires", "0")
-              // redirect
-              .putHeader("Location", state)
-              .setStatusCode(302)
-              .end("Redirecting to " + state + ".");
-          } else {
-            // there is no session object so we cannot keep state
-            ctx.reroute(state);
+      getFinalUrl(ctx)
+        .setHandler(finalUrlResult -> {
+          if (finalUrlResult.failed()) {
+            ctx.fail(finalUrlResult.cause());
+            return;
           }
-        }
-      });
+          String finalUrl = finalUrlResult.result();
+
+          ((OAuth2Auth) authProvider).getToken(new JsonObject().put("code", code).put("redirect_uri", host + callback.getPath()).mergeIn(extraParams), res -> {
+            if (res.failed()) {
+              ctx.fail(res.cause());
+            } else {
+              ctx.setUser(res.result());
+              Session session = ctx.session();
+              if (session != null) {
+                // the user has upgraded from unauthenticated to authenticated
+                // session should be upgraded as recommended by owasp
+                session.regenerateId();
+                // we should redirect the UA so this link becomes invalid
+                ctx.response()
+                  // disable all caching
+                  .putHeader("Cache-Control", "no-cache, no-store, must-revalidate")
+                  .putHeader("Pragma", "no-cache")
+                  .putHeader("Expires", "0")
+                  // redirect
+                  .putHeader("Location", finalUrl)
+                  .setStatusCode(302)
+                  .end("Redirecting to " + finalUrl + ".");
+              } else {
+                // there is no session object so we cannot keep state
+                ctx.reroute(finalUrl);
+              }
+            }
+          });
+        });
     });
 
     return this;
   }
+
+  protected Future<String> getFinalUrl(RoutingContext ctx) {
+    return Future.succeededFuture(ctx.request().getParam("state"));
+  }
+
+  protected String formState(String redirectURL) {
+    return redirectURL;
+  }
+
 }

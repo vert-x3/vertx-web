@@ -18,10 +18,12 @@ package io.vertx.ext.web.handler;
 
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
+import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.oauth2.OAuth2Auth;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.handler.impl.OAuth2AuthHandlerImpl;
+import io.vertx.ext.web.handler.impl.OAuth2AuthHandlerCSRFImpl;
 
 /**
  * An auth handler that provides OAuth2 Authentication support. This handler is suitable for AuthCode flows.
@@ -40,6 +42,32 @@ public interface OAuth2AuthHandler extends AuthHandler {
    */
   static OAuth2AuthHandler create(OAuth2Auth authProvider, String callbackURL) {
     return new OAuth2AuthHandlerImpl(authProvider, callbackURL);
+  }
+
+  /**
+   * Create an OAuth2 auth handler with CSRF protection
+   *
+   * @param vertx  vertx instance
+   * @param authProvider  the auth provider to use
+   * @param callbackURL the callback URL you entered in your provider admin console, usually it should be something like: `https://myserver:8888/callback`
+   * @return the auth handler
+   */
+  static OAuth2AuthHandler createCSRFProtected(Vertx vertx, OAuth2Auth authProvider, String callbackURL) {
+    return new OAuth2AuthHandlerCSRFImpl(vertx, authProvider, callbackURL);
+  }
+
+  /**
+   * Create an OAuth2 auth handler with CSRF protection
+   *
+   * @param vertx  vertx instance
+   * @param authProvider  the auth provider to use
+   * @param callbackURL the callback URL you entered in your provider admin console, usually it should be something like: `https://myserver:8888/callback`
+   * @param ttl duration that the state parameter is cached
+   * @param stateLength length of the state string generated
+   * @return the auth handler
+   */
+  static OAuth2AuthHandler createCSRFProtected(Vertx vertx, OAuth2Auth authProvider, String callbackURL, long ttl, int stateLength) {
+    return new OAuth2AuthHandlerCSRFImpl(vertx, authProvider, callbackURL, ttl, stateLength);
   }
 
   /**
