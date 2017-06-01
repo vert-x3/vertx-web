@@ -30,4 +30,6 @@ public interface RequestParameters {
 
   RequestParameter getFormParameter(String name);
 
+  RequestParameter getBody();
+
 }

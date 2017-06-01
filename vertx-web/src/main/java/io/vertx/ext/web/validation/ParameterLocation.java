@@ -15,7 +15,8 @@ public enum ParameterLocation {
   BODY_FORM("body form"),
   BODY("body"),
   BODY_JSON("body json"),
-  BODY_XML("body xml");
+  BODY_XML("body xml"),
+  COOKIE("cookie");
 
   public String s;
 

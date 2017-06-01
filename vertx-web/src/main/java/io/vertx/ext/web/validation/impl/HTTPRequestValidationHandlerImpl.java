@@ -197,7 +197,7 @@ public class HTTPRequestValidationHandlerImpl extends BaseValidationHandler impl
    */
   @Override
   public HTTPRequestValidationHandler addJsonBodySchema(String jsonSchema) {
-    this.setJsonSchema(jsonSchema);
+    this.setEntireBodyValidator(JsonTypeValidator.JsonTypeValidatorFactory.createJsonTypeValidator(jsonSchema));
     return this;
   }
 
@@ -209,7 +209,7 @@ public class HTTPRequestValidationHandlerImpl extends BaseValidationHandler impl
    */
   @Override
   public HTTPRequestValidationHandler addXMLBodySchema(String xmlSchema) {
-    this.setXmlSchema(xmlSchema);
+    this.setEntireBodyValidator(XMLTypeValidator.XMLTypeValidatorFactory.createXMLTypeValidator(xmlSchema));
     return this;
   }
 

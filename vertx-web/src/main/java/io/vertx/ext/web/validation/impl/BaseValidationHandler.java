@@ -6,9 +6,9 @@ import com.networknt.schema.JsonSchema;
 import com.networknt.schema.JsonSchemaFactory;
 import com.networknt.schema.ValidationMessage;
 import io.vertx.core.MultiMap;
+import io.vertx.ext.web.Cookie;
 import io.vertx.ext.web.FileUpload;
 import io.vertx.ext.web.RequestParameter;
-import io.vertx.ext.web.RequestParameters;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.impl.RequestParameterImpl;
 import io.vertx.ext.web.impl.RequestParametersImpl;
@@ -26,6 +26,8 @@ import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
 import java.io.IOException;
 import java.io.StringReader;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.*;
 
 /**
@@ -34,11 +36,11 @@ import java.util.*;
 public abstract class BaseValidationHandler implements ValidationHandler {
 
   private Map<String, ParameterValidationRule> pathParamsRules;
+  private Map<String, ParameterValidationRule> cookieParamsRules;
   private Map<String, ParameterValidationRule> queryParamsRules;
   private Map<String, ParameterValidationRule> formParamsRules;
   private Map<String, ParameterValidationRule> headerParamsRules;
-  private JsonSchema jsonSchema;
-  private Validator xmlSchemaValidator;
+  private ParameterTypeValidator entireBodyValidator;
   private List<String> fileNamesRules;
   private List<CustomValidator> customValidators;
 
@@ -46,6 +48,7 @@ public abstract class BaseValidationHandler implements ValidationHandler {
 
   protected BaseValidationHandler() {
     pathParamsRules = new HashMap<>();
+    cookieParamsRules = new HashMap<>();
     formParamsRules = new HashMap<>();
     queryParamsRules = new HashMap<>();
     headerParamsRules = new HashMap<>();
@@ -63,6 +66,7 @@ public abstract class BaseValidationHandler implements ValidationHandler {
       parsedParameters.setPathParameters(validatePathParams(routingContext));
       parsedParameters.setQueryParameters(validateQueryParams(routingContext));
       parsedParameters.setHeaderParameters(validateHeaderParams(routingContext));
+      parsedParameters.setCookieParameters(validateCookieParams(routingContext));
 
       //Run custom validators
       for (CustomValidator customValidator : customValidators) {
@@ -77,10 +81,8 @@ public abstract class BaseValidationHandler implements ValidationHandler {
           parsedParameters.setFormParameters(validateFormParams(routingContext));
           if (contentType.contains("multipart/form-data"))
             validateFileUpload(routingContext);
-        } else if (contentType.equals("application/json"))
-          validateJSONBody(routingContext);
-        else if (contentType.equals("application/xml"))
-          validateXMLBody(routingContext);
+        } else if (contentType.equals("application/json") || contentType.equals("application/xml"))
+          parsedParameters.setBody(validateEntireBody(routingContext));
         else {
           routingContext.fail(400);
           return;
@@ -111,6 +113,33 @@ public abstract class BaseValidationHandler implements ValidationHandler {
         parsedParams.put(parsedParam.getName(), parsedParam);
       } else // Path params are required!
         throw ValidationException.generateNotFoundValidationException(name, ParameterLocation.PATH);
+    }
+    return parsedParams;
+  }
+
+  private Map<String, RequestParameter> validateCookieParams(RoutingContext routingContext) throws ValidationException {
+    // Validation process validate only params that are registered in the validation -> extra params are allowed
+    List<Cookie> cookies = new ArrayList<>(routingContext.cookies());
+    Map<String, RequestParameter> parsedParams = new HashMap<>();
+    for (ParameterValidationRule rule : cookieParamsRules.values()) {
+      String name = rule.getName();
+      boolean resolved = false;
+      for (int i = 0; i < cookies.size(); i++) {
+        if (cookies.get(i).getName().equals(name)) {
+          RequestParameter parsedParam = rule.validateSingleParam(cookies.get(i).getValue());
+          parsedParams.put(parsedParam.getName(), parsedParam);
+          cookies.remove(i);
+          resolved = true;
+          break;
+        }
+      }
+      if (!resolved) {
+        if (rule.allowEmptyValue()) {
+          RequestParameter parsedParam = new RequestParameterImpl(name, rule.getParameterTypeValidator().getDefault());
+          parsedParams.put(parsedParam.getName(), parsedParam);
+        } else if (!rule.isOptional())
+          throw ValidationException.generateNotFoundValidationException(name, ParameterLocation.COOKIE);
+      }
     }
     return parsedParams;
   }
@@ -159,7 +188,16 @@ public abstract class BaseValidationHandler implements ValidationHandler {
     for (ParameterValidationRule rule : formParamsRules.values()) {
       String name = rule.getName();
       if (formParams.contains(name)) {
-        RequestParameter parsedParam = rule.validateArrayParam(formParams.getAll(name));
+        // Decode values
+        List<String> values = new ArrayList<>();
+        for (String s : formParams.getAll(name)) {
+          try {
+            values.add(URLDecoder.decode(s, "UTF-8"));
+          } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+          }
+        }
+        RequestParameter parsedParam = rule.validateArrayParam(values);
         parsedParams.put(parsedParam.getName(), parsedParam);
       } else if (rule.allowEmptyValue()) {
         RequestParameter parsedParam = new RequestParameterImpl(name, rule.getParameterTypeValidator().getDefault());
@@ -185,34 +223,22 @@ public abstract class BaseValidationHandler implements ValidationHandler {
     }
   }
 
-  private void validateJSONBody(RoutingContext routingContext) throws ValidationException {
-    if (jsonSchema != null) {
-      try {
-        Set<ValidationMessage> errors = jsonSchema.validate(new ObjectMapper().readTree(routingContext.getBodyAsString()));
-        if (!errors.isEmpty())
-          ValidationException.generateInvalidJsonBodyException(errors.toString());
-      } catch (IOException e) {
-        throw ValidationException.generateNotParsableJsonBodyException();
-      }
-    }
-  }
-
-  private void validateXMLBody(RoutingContext routingContext) throws ValidationException {
-    if (xmlSchemaValidator != null) {
-      try {
-        DocumentBuilder parser = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-        Document document = parser.parse(routingContext.getBodyAsString());
-        this.xmlSchemaValidator.validate(new DOMSource(document));
-      } catch (Exception e) {
-        throw ValidationException.generateInvalidXMLBodyException(e.getMessage());
-      }
-    }
+  private RequestParameter validateEntireBody(RoutingContext routingContext) throws ValidationException {
+    if (entireBodyValidator != null)
+      return entireBodyValidator.isValid(routingContext.getBodyAsString());
+    else
+      return RequestParameter.create(null);
   }
 
 
   protected void addPathParamRule(ParameterValidationRule rule) {
     if (!pathParamsRules.containsKey(rule.getName()))
       pathParamsRules.put(rule.getName(), rule);
+  }
+
+  protected void addCookieParamRule(ParameterValidationRule rule) {
+    if (!cookieParamsRules.containsKey(rule.getName()))
+      cookieParamsRules.put(rule.getName(), rule);
   }
 
   protected void addQueryParamRule(ParameterValidationRule rule) {
@@ -241,37 +267,8 @@ public abstract class BaseValidationHandler implements ValidationHandler {
     expectedBodyNotEmpty = true;
   }
 
-  protected void setJsonSchema(String jsonSchema) {
-    if (this.jsonSchema != null) {
-      try {
-        this.jsonSchema = new JsonSchemaFactory().getSchema(new ObjectMapper().readTree(jsonSchema));
-      } catch (IOException e) {
-        e.printStackTrace();
-      }
-      expectedBodyNotEmpty = true;
-    }
-  }
-
-  protected void setJsonSchema(JsonNode jsonSchema) {
-    if (this.jsonSchema != null) {
-      this.jsonSchema = new JsonSchemaFactory().getSchema(jsonSchema);
-      expectedBodyNotEmpty = true;
-    }
-  }
-
-  protected void setXmlSchema(String xmlSchema) {
-    if (xmlSchema != null) {
-      // create a SchemaFactory capable of understanding WXS schemas
-      SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-
-      // load a WXS schema, represented by a Schema instance
-      Source xmlSchemaSource = new StreamSource(new StringReader(xmlSchema));
-      try {
-        this.xmlSchemaValidator = factory.newSchema(xmlSchemaSource).newValidator();
-        expectedBodyNotEmpty = true;
-      } catch (SAXException e) {
-        e.printStackTrace();
-      }
-    }
+  protected void setEntireBodyValidator(ParameterTypeValidator entireBodyValidator) {
+    this.entireBodyValidator = entireBodyValidator;
+    expectedBodyNotEmpty = true;
   }
 }

@@ -1,7 +1,10 @@
 package io.vertx.ext.web.impl;
 
 import io.vertx.codegen.annotations.Nullable;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RequestParameter;
+import org.w3c.dom.Document;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -126,6 +129,26 @@ public class RequestParameterImpl implements RequestParameter {
   @Override
   public boolean isBoolean() {
     return !isNull() && value instanceof Boolean;
+  }
+
+  @Override
+  public @Nullable JsonObject getJsonObject() {
+    return (isJsonObject()) ? ((JsonObject) value) : null;
+  }
+
+  @Override
+  public boolean isJsonObject() {
+    return !isNull() && value instanceof JsonObject;
+  }
+
+  @Override
+  public @Nullable JsonArray getJsonArray() {
+    return (isJsonArray()) ? ((JsonArray) value) : null;
+  }
+
+  @Override
+  public boolean isJsonArray() {
+    return !isNull() && value instanceof JsonArray;
   }
 
   @Override

@@ -2,7 +2,10 @@ package io.vertx.ext.web;
 
 import io.vertx.codegen.annotations.Nullable;
 import io.vertx.codegen.annotations.VertxGen;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.impl.RequestParameterImpl;
+import org.w3c.dom.Document;
 
 import java.util.List;
 import java.util.Map;
@@ -59,6 +62,16 @@ public interface RequestParameter {
 
   @Nullable
   Boolean getBoolean();
+
+  @Nullable
+  JsonObject getJsonObject();
+
+  boolean isJsonObject();
+
+  @Nullable
+  JsonArray getJsonArray();
+
+  boolean isJsonArray();
 
   boolean isBoolean();
 

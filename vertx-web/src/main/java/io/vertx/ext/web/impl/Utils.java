@@ -22,6 +22,7 @@ import io.netty.util.CharsetUtil;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxException;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 
@@ -412,6 +413,15 @@ public class Utils extends io.vertx.core.impl.Utils {
     return millis - (millis % 1000);
   }
 
+  public static JsonNode toJsonNode(String object) {
+    try {
+      return new ObjectMapper().readTree(object);
+    } catch (IOException e) {
+      e.printStackTrace();
+      return null;
+    }
+  }
+
   public static JsonNode toJsonNode(JsonObject object) {
     try {
       return new ObjectMapper().readTree(object.encode());
@@ -423,5 +433,18 @@ public class Utils extends io.vertx.core.impl.Utils {
 
   public static JsonObject toJsonObject(JsonNode node) {
     return new JsonObject(node.toString());
+  }
+
+  public static JsonArray toJsonArray(JsonNode node) {
+    return new JsonArray(node.toString());
+  }
+
+  public static Object toVertxJson(JsonNode node) {
+    if (node.isArray())
+      return toJsonArray(node);
+    else if (node.isObject())
+      return toJsonObject(node);
+    else
+      return node.toString();
   }
 }

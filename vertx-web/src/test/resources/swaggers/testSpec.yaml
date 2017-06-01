@@ -116,6 +116,37 @@ paths:
             items:
               type: integer
               multipleOf: 2
+  /formTests/arraytest:
+    post:
+      operationId: formArrayTest
+      requestBody:
+        content:
+          x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                values:
+                  # complex types are stringified to support RFC 1866
+                  type: array
+                  items:
+                    type: integer
+  /jsonBodyTest/sampleTest:
+    post:
+      operationId: jsonBodyTest
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                values:
+                  type: array
+                  items:
+                    type: integer
 
 components:
   schemas:

@@ -26,17 +26,25 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
   }
 
   private List<Parameter> mergeParameters() {
-    List<Parameter> result = new ArrayList<>(this.pathSpec.getParameters());
-    List<Parameter> actualParams = new ArrayList<>(pathSpec.getParameters());
-    for (int i = 0; i < parentParams.size(); i++) {
-      for (int j = 0; j < actualParams.size(); j++) {
-        Parameter parentParam = parentParams.get(i);
-        Parameter actualParam = actualParams.get(j);
-        if (!(parentParam.getIn().equalsIgnoreCase(actualParam.getIn()) && parentParam.getName().equals(actualParam.getName())))
-          result.add(parentParam);
+    if (parentParams == null && pathSpec.getParameters() == null) {
+      return new ArrayList<>();
+    } else if (pathSpec.getParameters() == null) {
+      return new ArrayList<>(parentParams);
+    } else if (parentParams == null) {
+      return new ArrayList<>(pathSpec.getParameters());
+    } else {
+      List<Parameter> result = new ArrayList<>(this.pathSpec.getParameters());
+      List<Parameter> actualParams = new ArrayList<>(pathSpec.getParameters());
+      for (int i = 0; i < parentParams.size(); i++) {
+        for (int j = 0; j < actualParams.size(); j++) {
+          Parameter parentParam = parentParams.get(i);
+          Parameter actualParam = actualParams.get(j);
+          if (!(parentParam.getIn().equalsIgnoreCase(actualParam.getIn()) && parentParam.getName().equals(actualParam.getName())))
+            result.add(parentParam);
+        }
       }
+      return result;
     }
-    return result;
   }
 
   @Override
@@ -48,9 +56,15 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
     this.parseRequestBody(this.pathSpec.getRequestBody());
   }
 
-  private ParameterTypeValidator resolveSchemaTypeValidatorFormEncoded() {
-    //TODO
-    return null;
+  private ParameterTypeValidator resolveSchemaTypeValidatorFormEncoded(Schema schema) {
+    if (schema.getType().equals("array"))
+      return ArrayTypeValidator.ArrayTypeValidatorFactory.createArrayTypeValidator(this.resolveInnerSchemaPrimitiveTypeValidator(schema.getItemsSchema(), true), "csv", false, schema.getMaxItems(), schema.getMinItems());
+    else if (schema.getType().equals("object")) {
+      ObjectTypeValidator objectTypeValidator = ObjectTypeValidator.ObjectTypeValidatorFactory.createObjectTypeValidator("csv", false);
+      resolveObjectTypeFields(objectTypeValidator, schema);
+      return objectTypeValidator;
+    }
+    return this.resolveInnerSchemaPrimitiveTypeValidator(schema, true);
   }
 
   private ParameterTypeValidator resolveInnerSchemaPrimitiveTypeValidator(Schema schema, boolean parseEnum) {
@@ -127,8 +141,6 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
             !OpenApi3Utils.isRequiredParam(parameter.getSchema(), entry.getKey()),
             true,
             ParameterLocation.QUERY));
-      } else if (parameter.getIn().equals("cookie")) {
-        // TODO ready for cookie support
       } else {
         throw new SpecFeatureNotSupportedException("combination of style, type and location (in) of parameter fields not supported for parameter " + parameter.getName());
       }
@@ -181,10 +193,10 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
     } else if ((parameter.getSchema().getAllOfSchemas() != null && parameter.getSchema().getAllOfSchemas().size() != 0) ||
       (parameter.getSchema().getAnyOfSchemas() != null && parameter.getSchema().getAnyOfSchemas().size() != 0)) {
       throw new SpecFeatureNotSupportedException("anyOf, oneOf, allOf not supported for parameter " + parameter.getName());
-    } else if (parameter.getIn().equals("cookie")) {
-      throw new SpecFeatureNotSupportedException("cookie parameter location not supported");
     } else /* From this moment only astonishing magic happens */ if (parameter.isExplode()) {
-      if (OpenApi3Utils.isParameterStyle(parameter, "form") && OpenApi3Utils.isParameterObjectType(parameter)) {
+      if (parameter.getIn().equals("cookie")) {
+        throw new SpecFeatureNotSupportedException("cookie parameter exploded location not supported");
+      } else if (OpenApi3Utils.isParameterStyle(parameter, "form") && OpenApi3Utils.isParameterObjectType(parameter)) {
         this.magicParameterExplodedStyleFormTypeObject(parameter);
         return true;
       } else if (OpenApi3Utils.isParameterStyle(parameter, "simple") && OpenApi3Utils.isParameterObjectType(parameter)) {
@@ -222,11 +234,15 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
             this.resolveTypeValidator(parameter),
             !OpenApi3Utils.isRequiredParam(parameter),
             (parameter.getAllowEmptyValue() != null) ? parameter.getAllowEmptyValue() : false,
-            ParameterLocation.QUERY));
+            ParameterLocation.PATH));
           break;
         case "cookie":
-          //TODO talk with mentor
-          throw new SpecFeatureNotSupportedException("Parameters in cookie not supported");
+          this.addCookieParamRule(ParameterValidationRule.createValidationRuleWithCustomTypeValidator(parameter.getName(),
+            this.resolveTypeValidator(parameter),
+            !OpenApi3Utils.isRequiredParam(parameter),
+            (parameter.getAllowEmptyValue() != null) ? parameter.getAllowEmptyValue() : false,
+            ParameterLocation.COOKIE));
+          break;
       }
     }
   }
@@ -234,12 +250,23 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
   private void parseRequestBody(RequestBody requestBody) {
     MediaType json = requestBody.getContentMediaType("application/json");
     if (json != null) {
-      this.setJsonSchema(((MediaTypeImpl) json).getDereferencedJsonTree());
+      this.setEntireBodyValidator(JsonTypeValidator.JsonTypeValidatorFactory.createJsonTypeValidator(((MediaTypeImpl) json).getDereferencedJsonTree().get("schema")));
     }
+
     MediaType formUrlEncoded = requestBody.getContentMediaType("x-www-form-urlencoded");
-    if (formUrlEncoded != null) {
-      //TODO code
+    if (formUrlEncoded != null && formUrlEncoded.getSchema() != null) {
+      for (Map.Entry<String, ? extends Schema> paramSchema : formUrlEncoded.getSchema().getProperties().entrySet()) {
+        this.addFormParamRule(ParameterValidationRule.createValidationRuleWithCustomTypeValidator(paramSchema.getKey(),
+          this.resolveSchemaTypeValidatorFormEncoded(paramSchema.getValue()),
+          !OpenApi3Utils.isRequiredParam(paramSchema.getValue(), paramSchema.getKey()),
+          false,
+          ParameterLocation.BODY_FORM));
+      }
     }
-    // TODO add form and multipart
+
+    MediaType multipart = requestBody.getContentMediaType("multipart/form-data");
+    if (multipart != null && multipart.getSchema() != null) {
+      throw new SpecFeatureNotSupportedException("multipart not supported");
+    }
   }
 }

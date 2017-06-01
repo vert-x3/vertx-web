@@ -18,6 +18,7 @@ public class RequestParametersImpl implements RequestParameters {
   private Map<String, RequestParameter> headerParameters;
   private Map<String, RequestParameter> cookieParameters;
   private Map<String, RequestParameter> formParameters;
+  private RequestParameter body;
 
   public RequestParametersImpl() {
     pathParameters = Maps.newHashMap();
@@ -25,6 +26,7 @@ public class RequestParametersImpl implements RequestParameters {
     headerParameters = Maps.newHashMap();
     cookieParameters = Maps.newHashMap();
     formParameters = Maps.newHashMap();
+    body = null;
   }
 
   public void setPathParameters(Map<String, RequestParameter> pathParameters) {
@@ -45,6 +47,10 @@ public class RequestParametersImpl implements RequestParameters {
 
   public void setFormParameters(Map<String, RequestParameter> formParameters) {
     this.formParameters = formParameters;
+  }
+
+  public void setBody(RequestParameter body) {
+    this.body = body;
   }
 
   @Override
@@ -95,5 +101,10 @@ public class RequestParametersImpl implements RequestParameters {
   @Override
   public RequestParameter getFormParameter(String name) {
     return formParameters.get(name);
+  }
+
+  @Override
+  public RequestParameter getBody() {
+    return body;
   }
 }
