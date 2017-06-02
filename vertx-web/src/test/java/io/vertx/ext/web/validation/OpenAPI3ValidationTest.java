@@ -214,9 +214,9 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
     JsonObject object = new JsonObject();
     object.put("id", "anId");
 
-    List<String> valuesArray = new ArrayList<>();
+    List<Integer> valuesArray = new ArrayList<>();
     for (int i = 0; i < 4; i++)
-      valuesArray.add(getSuccessSample(ParameterType.INT).getInteger().toString());
+      valuesArray.add(getSuccessSample(ParameterType.INT).getInteger());
     object.put("values", valuesArray);
 
     testRequestWithJSON(HttpMethod.POST, "/jsonBodyTest/sampleTest", object, 200, object.encode());
@@ -240,6 +240,80 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
     object.put("values", valuesArray);
 
     testRequestWithJSON(HttpMethod.POST, "/jsonBodyTest/sampleTest", object, 400, errorMessage(ValidationException.ErrorType.JSON_INVALID));
+  }
+
+  @Test
+  public void testAllOfQueryParam() throws Exception {
+    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(testSpec.getPath("/queryTests/allOfTest").getGet(), null);
+    loadHandlers("/queryTests/allOfTest", HttpMethod.GET, false, validationHandler, (routingContext) -> {
+      RequestParameters params = routingContext.get("parsedParameters");
+      routingContext.response().setStatusMessage(
+        params.getQueryParameter("parameter").getObjectValue("a").getInteger().toString() +
+          params.getQueryParameter("parameter").getObjectValue("b").getBoolean().toString()
+      ).end();
+    });
+
+    String a = "5";
+    String b = "false";
+
+    String parameter = "parameter=a," + a + ",b," + b;
+
+    testRequest(HttpMethod.GET, "/queryTests/allOfTest?" + parameter, 200, a + b);
+  }
+
+  @Test
+  public void testAllOfQueryParamWithDefault() throws Exception {
+    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(testSpec.getPath("/queryTests/allOfTest").getGet(), null);
+    loadHandlers("/queryTests/allOfTest", HttpMethod.GET, false, validationHandler, (routingContext) -> {
+      RequestParameters params = routingContext.get("parsedParameters");
+      routingContext.response().setStatusMessage(
+        params.getQueryParameter("parameter").getObjectValue("a").getInteger().toString() +
+          params.getQueryParameter("parameter").getObjectValue("b").getBoolean().toString()
+      ).end();
+    });
+
+    String a = "5";
+    String b = "";
+
+    String parameter = "parameter=a," + a + ",b," + b;
+
+    testRequest(HttpMethod.GET, "/queryTests/allOfTest?" + parameter, 200, a + "false");
+  }
+
+  @Test
+  public void testAllOfQueryParamFailure() throws Exception {
+    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(testSpec.getPath("/queryTests/allOfTest").getGet(), null);
+    loadHandlers("/queryTests/allOfTest", HttpMethod.GET, true, validationHandler, (routingContext) -> {
+      routingContext.response().setStatusMessage("ok").end();
+    });
+
+    String a = "5";
+    String b = "aString";
+
+    String parameter = "parameter=a," + a + ",b," + b;
+
+    testRequest(HttpMethod.GET, "/queryTests/allOfTest?" + parameter, 400, errorMessage(ValidationException.ErrorType.NO_MATCH));
+  }
+
+  @Test
+  public void testQueryParameterAnyOf() throws Exception {
+    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(testSpec.getPath("/queryTests/anyOfTest").getGet(), null);
+    loadHandlers("/queryTests/anyOfTest", HttpMethod.GET, false, validationHandler, (routingContext) -> {
+      RequestParameters params = routingContext.get("parsedParameters");
+      routingContext.response().setStatusMessage(params.getQueryParameter("parameter").getBoolean().toString()).end();
+    });
+
+    testRequest(HttpMethod.GET, "/queryTests/anyOfTest?parameter=true", 200, "true");
+  }
+
+  @Test
+  public void testQueryParameterAnyOfFailure() throws Exception {
+    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(testSpec.getPath("/queryTests/anyOfTest").getGet(), null);
+    loadHandlers("/queryTests/anyOfTest", HttpMethod.GET, true, validationHandler, (routingContext) -> {
+      routingContext.response().setStatusMessage("ok").end();
+    });
+
+    testRequest(HttpMethod.GET, "/queryTests/anyOfTest?parameter=anyString", 400, errorMessage(ValidationException.ErrorType.NO_MATCH));
   }
 
 }

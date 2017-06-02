@@ -147,6 +147,41 @@ paths:
                   type: array
                   items:
                     type: integer
+  /queryTests/allOfTest:
+    get:
+      operationid: alloftest
+      parameters:
+        - name: parameter
+          in: query
+          required: true
+          explode: false
+          schema:
+            allOf:
+              - type: object
+                properties:
+                  a:
+                    type: integer
+                required:
+                  - a
+              - type: object
+                properties:
+                  b:
+                    type: boolean
+                    default: false
+                required:
+                  - b
+  /queryTests/anyOfTest:
+    get:
+      operationid: alloftest
+      parameters:
+        - name: parameter
+          in: query
+          required: true
+          explode: false
+          schema:
+            anyOf:
+              - type: boolean
+              - type: integer
 
 components:
   schemas:

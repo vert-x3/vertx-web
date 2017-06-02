@@ -107,10 +107,14 @@ public interface ParameterTypeValidator {
   }
 
   static ParameterTypeValidator createBooleanTypeValidator(Object defaultValue) {
-    if (defaultValue instanceof String)
-      return new BooleanTypeValidator(Boolean.valueOf((String) defaultValue));
-    else
-      return new BooleanTypeValidator(Boolean.valueOf((Boolean) defaultValue));
+    if (defaultValue != null) {
+      if (defaultValue instanceof String)
+        return new BooleanTypeValidator(Boolean.valueOf((String) defaultValue));
+      else
+        return new BooleanTypeValidator(Boolean.valueOf((Boolean) defaultValue));
+    } else {
+      return new BooleanTypeValidator(null);
+    }
   }
 
   static ParameterTypeValidator createStringEnumTypeValidator(List<String> allowedValues) {
