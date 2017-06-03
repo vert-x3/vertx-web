@@ -189,18 +189,24 @@ public class WebClientImpl implements WebClient {
     boolean ssl = false;
     int port = url.getPort();
     String protocol = url.getProtocol();
-    char chend = protocol.charAt(protocol.length() - 1);
-    if (chend == 'p') {
+    if ("ftp".equals(protocol)) {
       if (port == -1) {
-        port = 80;
+        port = 21;
       }
-    } else if (chend == 's'){
-      ssl = true;
-      if (port == -1) {
-        port = 443;
+    } else {
+      char chend = protocol.charAt(protocol.length() - 1);
+      if (chend == 'p') {
+        if (port == -1) {
+          port = 80;
+        }
+      } else if (chend == 's'){
+        ssl = true;
+        if (port == -1) {
+          port = 443;
+        }
       }
     }
-    return new HttpRequestImpl<>(client, method, ssl, port, url.getHost(), url.getFile(), BodyCodecImpl.BUFFER, options);
+    return new HttpRequestImpl<>(client, method, protocol, ssl, port, url.getHost(), url.getFile(), BodyCodecImpl.BUFFER, options);
   }
 
   @Override

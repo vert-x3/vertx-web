@@ -15,6 +15,7 @@
 |[[connectTimeout]]`connectTimeout`|`Number (int)`|-
 |[[crlPaths]]`crlPaths`|`Array of String`|-
 |[[crlValues]]`crlValues`|`Array of Buffer`|-
+|[[decoderInitialBufferSize]]`decoderInitialBufferSize`|`Number (int)`|-
 |[[defaultHost]]`defaultHost`|`String`|-
 |[[defaultPort]]`defaultPort`|`Number (int)`|-
 |[[enabledCipherSuites]]`enabledCipherSuites`|`Array of String`|-
@@ -23,6 +24,7 @@
 +++
 Configure the default behavior of the client to follow HTTP <code>30x</code> redirections.
 +++
+|[[forceSni]]`forceSni`|`Boolean`|-
 |[[http2ClearTextUpgrade]]`http2ClearTextUpgrade`|`Boolean`|-
 |[[http2ConnectionWindowSize]]`http2ConnectionWindowSize`|`Number (int)`|-
 |[[http2MaxPoolSize]]`http2MaxPoolSize`|`Number (int)`|-

@@ -23,11 +23,7 @@ import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.QueryStringDecoder;
 import io.netty.handler.codec.http.QueryStringEncoder;
 import io.netty.handler.codec.http.multipart.HttpPostRequestEncoder;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Future;
-import io.vertx.core.Handler;
-import io.vertx.core.MultiMap;
-import io.vertx.core.VertxException;
+import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.CaseInsensitiveHeaders;
 import io.vertx.core.http.HttpClient;
@@ -46,6 +42,8 @@ import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.ext.web.codec.spi.BodyStream;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Map;
 
 /**
@@ -57,6 +55,7 @@ class HttpRequestImpl<T> implements HttpRequest<T> {
   private final WebClientOptions options;
   private MultiMap params;
   private HttpMethod method;
+  private String protocol;
   private int port;
   private String host;
   private String uri;
@@ -67,8 +66,13 @@ class HttpRequestImpl<T> implements HttpRequest<T> {
   private boolean ssl;
 
   HttpRequestImpl(HttpClient client, HttpMethod method, boolean ssl, int port, String host, String uri, BodyCodec<T> codec, WebClientOptions options) {
+    this(client, method, null, ssl, port, host, uri, codec, options);
+  }
+
+  HttpRequestImpl(HttpClient client, HttpMethod method, String protocol, boolean ssl, int port, String host, String uri, BodyCodec<T> codec, WebClientOptions options) {
     this.client = client;
     this.method = method;
+    this.protocol = protocol;
     this.codec = codec;
     this.port = port;
     this.host = host;
@@ -85,6 +89,7 @@ class HttpRequestImpl<T> implements HttpRequest<T> {
     this.client = other.client;
     this.options = other.options;
     this.method = other.method;
+    this.protocol = other.protocol;
     this.port = other.port;
     this.host = other.host;
     this.timeout = other.timeout;
@@ -224,10 +229,14 @@ class HttpRequestImpl<T> implements HttpRequest<T> {
   private void send(String contentType, Object body, Handler<AsyncResult<HttpResponse<T>>> handler) {
 
     Future<HttpClientResponse> responseFuture = Future.<HttpClientResponse>future().setHandler(ar -> {
+      Context context = Vertx.currentContext();
       if (ar.succeeded()) {
         HttpClientResponse resp = ar.result();
         Future<HttpResponse<T>> fut = Future.future();
-        fut.setHandler(handler);
+        fut.setHandler(r -> {
+          // We are running on a context (the HTTP client mandates it)
+          context.runOnContext(v -> handler.handle(r));
+        });
         resp.exceptionHandler(err -> {
           if (!fut.isComplete()) {
             fut.fail(err);
@@ -276,9 +285,20 @@ class HttpRequestImpl<T> implements HttpRequest<T> {
       requestURI = uri;
     }
     if (ssl != options.isSsl()) {
-      req = client.request(method, new RequestOptions().setSsl(ssl).setHost(host).setPort(port).setURI(uri));
+      req = client.request(method, new RequestOptions().setSsl(ssl).setHost(host).setPort(port).setURI(requestURI));
     } else {
-      req = client.request(method, port, host, requestURI);
+      if (protocol != null && !protocol.equals("http") && !protocol.equals("https")) {
+        // we have to create an abs url again to parse it in HttpClient
+        try {
+          URI uri = new URI(protocol, null, host, port, requestURI, null, null);
+          req = client.requestAbs(method, uri.toString());
+        } catch (URISyntaxException ex) {
+          handler.handle(Future.failedFuture(ex));
+          return;
+        }
+      } else {
+        req = client.request(method, port, host, requestURI);
+      }
     }
     req.setFollowRedirects(followRedirects);
     if (headers != null) {

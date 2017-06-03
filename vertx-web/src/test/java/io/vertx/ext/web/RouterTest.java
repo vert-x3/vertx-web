@@ -21,7 +21,6 @@ import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpMethod;
 import org.junit.Test;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -661,23 +660,6 @@ public class RouterTest extends WebTestBase {
   }
 
   @Test
-  public void testFailureWithKnownHeaderTooLongThrowable() throws Exception {
-    char[] longChars = new char[201];
-    Arrays.fill(longChars, 'a');
-    String testHeaderValue = new String(longChars);
-    String path = "/blah";
-
-    router.route(path).handler(rc -> {
-      rc.response().end();
-    });
-    testRequest(HttpMethod.GET, path, req -> req.putHeader("Accept", testHeaderValue), 400, "Bad Request", null);
-    testRequest(HttpMethod.GET, path, req -> req.putHeader("Accept-Charset", testHeaderValue), 400, "Bad Request", null);
-    testRequest(HttpMethod.GET, path, req -> req.putHeader("Accept-Encoding", testHeaderValue), 400, "Bad Request", null);
-    testRequest(HttpMethod.GET, path, req -> req.putHeader("Accept-Language", testHeaderValue), 400, "Bad Request", null);
-    testRequest(HttpMethod.GET, path, req -> req.putHeader("Content-Type", testHeaderValue), 400, "Bad Request", null);
-  }
-
-  @Test
   public void testPattern1() throws Exception {
     router.route("/:abc").handler(rc -> {
       rc.response().setStatusMessage(rc.request().params().get("abc")).end();
@@ -956,7 +938,9 @@ public class RouterTest extends WebTestBase {
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=\"yeah,right\";itWorks=4real", 200, "OK");
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=\"yeah,right\"", 200, "OK");
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=\"yeah,right;itWorks=4real\"", 404, "Not Found");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=yeah,right", 404, "Not Found");
+    // this might look wrong but since there is only 1 entry per content-type, the comma has no semantic meaning
+    // therefore it is ignored
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=yeah,right", 200, "OK");
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo", 404, "Not Found");
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 404, "Not Found");
   }
@@ -1446,7 +1430,7 @@ public class RouterTest extends WebTestBase {
       rc.response().end();
     });
     testRequest(HttpMethod.GET, "/", 200, "OK");
-    waitUntil(() -> cnt.get() == 3);
+    assertWaitUntil(() -> cnt.get() == 3);
   }
 
   @Test
@@ -1471,7 +1455,7 @@ public class RouterTest extends WebTestBase {
     });
 
     testRequest(HttpMethod.GET, "/", 200, "OK");
-    waitUntil(() -> cnt.get() == 1);
+    assertWaitUntil(() -> cnt.get() == 1);
   }
 
   @Test
@@ -2013,5 +1997,25 @@ public class RouterTest extends WebTestBase {
       rc.response().setStatusMessage("foo").end();
     });
     testRequest(HttpMethod.GET, "/some+path?q1=some+query", 200, "foo");
+  }
+
+  @Test
+  public void testMultipleSetHandler() throws Exception {
+    try {
+      router.route().handler(context -> {}).handler(context -> {});
+      fail();
+    } catch (IllegalStateException e) {
+      // OK
+    }
+  }
+
+  @Test
+  public void testMultipleSetFailureHandler() throws Exception {
+    try {
+      router.route().failureHandler(context -> {}).failureHandler(context -> {});
+      fail();
+    } catch (IllegalStateException e) {
+      // OK
+    }
   }
 }

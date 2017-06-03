@@ -46,8 +46,8 @@ public class SockJSProtocolTest extends WebTestBase {
    */
   @Test
   public void testProtocol() throws Exception {
-    // does this system have python?
-    Process p = Runtime.getRuntime().exec("python --version");
+    // does this system have python 2.x?
+    Process p = Runtime.getRuntime().exec("python pythonversion.py", null, new File("src/test"));
     int res = p.waitFor();
 
     if (res == 0) {

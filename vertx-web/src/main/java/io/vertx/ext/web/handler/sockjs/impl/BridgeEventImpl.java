@@ -45,11 +45,6 @@ class BridgeEventImpl implements BridgeEvent {
   }
 
   @Override
-  public JsonObject rawMessage() {
-    return rawMessage;
-  }
-
-  @Override
   public JsonObject getRawMessage() {
     return rawMessage;
   }

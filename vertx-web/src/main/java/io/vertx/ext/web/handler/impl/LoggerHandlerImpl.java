@@ -99,6 +99,9 @@ public class LoggerHandlerImpl implements LoggerHandler {
       case HTTP_1_1:
         versionFormatted = "HTTP/1.1";
         break;
+      case HTTP_2:
+        versionFormatted = "HTTP/2.0";
+        break;  
     }
 
     int status = request.response().getStatusCode();

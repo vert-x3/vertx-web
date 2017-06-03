@@ -16,15 +16,24 @@
 
 package io.vertx.ext.web.templ;
 
+import io.vertx.core.VertxOptions;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.handler.TemplateHandler;
 import io.vertx.ext.web.WebTestBase;
+import io.vertx.ext.web.templ.impl.CachingTemplateEngine;
 import org.junit.Test;
+
+import java.io.File;
+import java.io.PrintWriter;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 public class JadeTemplateTest extends WebTestBase {
+
+  protected VertxOptions getOptions() {
+    return new VertxOptions().setFileResolverCachingEnabled(true);
+  }
 
   @Test
   public void testTemplateHandlerOnClasspath() throws Exception {
@@ -36,6 +45,12 @@ public class JadeTemplateTest extends WebTestBase {
   public void testTemplateHandlerOnFileSystem() throws Exception {
     TemplateEngine engine = JadeTemplateEngine.create();
     testTemplateHandler(engine, "src/test/filesystemtemplates", "test-jade-template3.jade", "<!DOCTYPE html><html><head><title>badger/test-jade-template3.jade</title></head><body></body></html>");
+  }
+
+  @Test
+  public void testTemplateHandlerOnClasspathDisableCaching() throws Exception {
+    System.setProperty(CachingTemplateEngine.DISABLE_TEMPL_CACHING_PROP_NAME, "true");
+    testTemplateHandlerOnClasspath();
   }
 
   @Test
@@ -73,4 +88,29 @@ public class JadeTemplateTest extends WebTestBase {
     assertNotNull(engine.getJadeConfiguration());
   }
 
+  @Test
+  public void testCachingEnabled() throws Exception {
+    System.setProperty(CachingTemplateEngine.DISABLE_TEMPL_CACHING_PROP_NAME, "false");
+    TemplateEngine engine = JadeTemplateEngine.create();
+
+    PrintWriter out;
+    File temp = File.createTempFile("template", ".jade", new File("target/classes"));
+    temp.deleteOnExit();
+
+    out = new PrintWriter(temp);
+    out.print("before");
+    out.flush();
+    out.close();
+
+    testTemplateHandler(engine, ".", temp.getName(), "<before></before>");
+
+    // cache is enabled so if we change the content that should not affect the result
+
+    out = new PrintWriter(temp);
+    out.print("after");
+    out.flush();
+    out.close();
+
+    testTemplateHandler(engine, ".", temp.getName(), "<before></before>");
+  }
 }

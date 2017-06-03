@@ -26,6 +26,10 @@ import java.util.Objects;
  */
 public abstract class CachingTemplateEngine<T> implements TemplateEngine {
 
+  public static final String DISABLE_TEMPL_CACHING_PROP_NAME = "io.vertx.ext.web.TemplateEngine.disableCache";
+  // should not be static, so at at creation time the value is evaluated
+  private final boolean enableCache = !Boolean.getBoolean(DISABLE_TEMPL_CACHING_PROP_NAME);
+
   protected final ConcurrentLRUCache<String, T> cache;
   protected String extension;
 
@@ -36,6 +40,11 @@ public abstract class CachingTemplateEngine<T> implements TemplateEngine {
     }
     doSetExtension(ext);
     this.cache = new ConcurrentLRUCache<>(maxCacheSize);
+  }
+
+  @Override
+  public boolean isCachingEnabled() {
+      return enableCache;
   }
 
   protected String adjustLocation(String location) {

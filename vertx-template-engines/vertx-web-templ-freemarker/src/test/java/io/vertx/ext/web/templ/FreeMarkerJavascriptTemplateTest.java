@@ -18,6 +18,7 @@ package io.vertx.ext.web.templ;
 
 import io.vertx.lang.js.ClasspathFileResolver;
 import io.vertx.test.lang.js.JSTestBase;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**

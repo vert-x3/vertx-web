@@ -31,7 +31,7 @@ import java.util.Set;
  */
 public abstract class RoutingContextImplBase implements RoutingContext {
 
-  private static final Logger log = LoggerFactory.getLogger(RoutingContextImplBase.class);
+  static final Logger log = LoggerFactory.getLogger(RoutingContextImplBase.class);
 
   private final Set<RouteImpl> routes;
 
@@ -102,14 +102,6 @@ public abstract class RoutingContextImplBase implements RoutingContext {
         router.exceptionHandler().handle(failure);
       } else {
         log.error("Unexpected exception in route", failure);
-      }
-      if(!response().ended()){
-        // Handle in a custom way if the failure is internal and known
-        if(failure instanceof HeaderTooLongException){
-          response().setStatusCode(400);
-          response().putHeader("Content-Type", "text/plain");
-          response().end(failure.getMessage());
-        }
       }
     }
     if (!response().ended()) {

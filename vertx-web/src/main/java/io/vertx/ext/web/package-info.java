@@ -536,6 +536,18 @@
  * {@link examples.WebExamples#example55b}
  * ----
  *
+ * It should be clear that reroute works on `paths`, so if you need to preserve and or add state across reroutes, one
+ * should use the `RoutingContext` object. For example you want to reroute to a new path with a extra parameter:
+ *
+ * [source,$lang]
+ * ----
+ * {@link examples.WebExamples#example55c}
+ * ----
+ *
+ * Even though the wrong reroute path will warn you that the query string is ignored, the reroute will happen since the
+ * implementation will strip any query string or html fragment from the path.
+ *
+ *
  * == Sub-routers
  *
  * Sometimes if you have a lot of handlers it can make sense to split them up into multiple routers. This is also useful
@@ -1025,9 +1037,9 @@
  * ----
  *
  * For example, if there was a request with path `/static/css/mystyles.css` the static serve will look for a file in the
- * directory `webroot/static/css/mystyle.css`.
+ * directory `webroot/css/mystyle.css`.
  *
- * It will also look for a file on the classpath called `webroot/static/css/mystyle.css`. This means you can package up all your
+ * It will also look for a file on the classpath called `webroot/css/mystyle.css`. This means you can package up all your
  * static resources into a jar file (or fatjar) and distribute them like that.
  *
  * When Vert.x finds a resource on the classpath for the first time it extracts it and caches it in a temporary directory
@@ -1104,8 +1116,9 @@
  * In development this can cause a problem, as if you update your static content while the server is running, the
  * cached file will be served not the updated file.
  *
- * To disable file caching you can provide the system property `vertx.disableFileCaching` with the value `true`. E.g. you
- * could set up a run configuration in your IDE to set this when runnning your main class.
+ * To disable file caching you can provide your vert.x options the property `fileResolverCachingEnabled` to true. For
+ * backwards compatibility it will also default that value to the system property `vertx.disableFileCaching`. E.g. you
+ * could set up a run configuration in your IDE to set this when running your main class.
  *
  *
  * == CORS handling
@@ -1160,7 +1173,7 @@
  * TemplateHandler handler = TemplateHandler.create(engine);
  *
  * // This will route all GET requests starting with /dynamic/ to the template handler
- * // E.g. /dynamic/graph.hbs will look for a template in /templates/dynamic/graph.hbs
+ * // E.g. /dynamic/graph.hbs will look for a template in /templates/graph.hbs
  * router.get("/dynamic/*").handler(handler);
  *
  * // Route all GET requests for resource ending in .hbs to the template handler
@@ -1179,7 +1192,7 @@
  * def handler = TemplateHandler.create(engine)
  *
  * // This will route all GET requests starting with /dynamic/ to the template handler
- * // E.g. /dynamic/graph.hbs will look for a template in /templates/dynamic/graph.hbs
+ * // E.g. /dynamic/graph.hbs will look for a template in /templates/graph.hbs
  * router.get("/dynamic/*").handler(handler)
  *
  * // Route all GET requests for resource ending in .hbs to the template handler
@@ -1198,7 +1211,7 @@
  * handler = VertxWeb::TemplateHandler.create(engine)
  *
  * # This will route all GET requests starting with /dynamic/ to the template handler
- * # E.g. /dynamic/graph.hbs will look for a template in /templates/dynamic/graph.hbs
+ * # E.g. /dynamic/graph.hbs will look for a template in /templates/graph.hbs
  * router.get("/dynamic/*").handler(&handler.method(:handle))
  *
  * # Route all GET requests for resource ending in .hbs to the template handler
@@ -1217,7 +1230,7 @@
  * var handler = TemplateHandler.create(engine);
  *
  * // This will route all GET requests starting with /dynamic/ to the template handler
- * // E.g. /dynamic/graph.hbs will look for a template in /templates/dynamic/graph.hbs
+ * // E.g. /dynamic/graph.hbs will look for a template in /templates/graph.hbs
  * router.get("/dynamic/*").handler(handler.handle);
  *
  * // Route all GET requests for resource ending in .hbs to the template handler
@@ -1385,6 +1398,13 @@
  *
  * Please consult the http://www.mitchellbosecke.com/pebble/home/[Pebble documentation] for how to write
  * Pebble templates.
+ *
+ * === Disabling caching
+ *
+ * During development you might want to disable template caching so that the template gets reevaluated on each request.
+ * In order to do this you need to set the system property: `io.vertx.ext.web.TemplateEngine.disableCache` to `true`.
+ *
+ * By default it will be false. So caching is always enabled.
  *
  * == Error handler
  *
@@ -1590,6 +1610,7 @@
  * In client side JavaScript you use the 'vertx-eventbus.js` library to create connections to the event bus and to send
  * and receive messages:
  *
+ * [source,html]
  * ----
  * <script src="http://cdn.jsdelivr.net/sockjs/0.3.4/sockjs.min.js"></script>
  * <script src='vertx-eventbus.js'></script>
@@ -1615,12 +1636,30 @@
  *
  * The first thing the example does is to create a instance of the event bus
  *
- *  var eb = new EventBus('http://localhost:8080/eventbus');
+ * [source,javascript]
+ * ----
+ * var eb = new EventBus('http://localhost:8080/eventbus');
+ * ----
  *
  * The parameter to the constructor is the URI where to connect to the event bus. Since we create our bridge with
  * the prefix `eventbus` we will connect there.
  *
  * You can't actually do anything with the connection until it is opened. When it is open the `onopen` handler will be called.
+ *
+ * IMPORTANT: Neither SockJS nor the EventBus bridge support automatic reconnection.
+ *
+ * When your server goes down, you must create another EventBus instance.
+ *
+ * [source,javascript]
+ * ----
+ * function setupEventBus() {
+ *   var eb = new EventBus();
+ *   eb.onclose = function (e) {
+ *     setTimeout(setupEventBus, 1000); // Give the server some time to come back
+ *   };
+ *   // Handlers setup here...
+ * }
+ * ----
  *
  * You can retrieve the client library using a dependency manager:
  *
@@ -1644,13 +1683,16 @@
  * compile '${maven.groupId}:${maven.artifactId}:${maven.version}:client'
  * ----
  *
- * The library is also available on https://www.npmjs.com/package/vertx3-eventbus-client[NPM] and on
- * https://github.com/vert-x3/vertx-bus-bower[Bower]
+ * The library is also available on:
+ *
+ * * https://www.npmjs.com/package/vertx3-eventbus-client[NPM]
+ * * https://github.com/vert-x3/vertx-bus-bower[Bower]
+ * * https://cdnjs.com/libraries/vertx[cdnjs]
  *
  * Notice that the API has changed between the 3.0.0 and 3.1.0 version. Please check the changelog. The previous client
  * is still compatible and can still be used, but the new client offers more feature and is closer to the vert.x
  * event bus API.
-  *
+ *
  * === Securing the Bridge
  *
  * If you started a bridge like in the above example without securing it, and attempted to send messages through
@@ -1781,30 +1823,18 @@
  * {@link examples.WebExamples#example49}
  * ----
  *
- * Here’s an example how to configure and handle SOCKET_IDLE bridge event type.
+ * Here's an example how to configure and handle SOCKET_IDLE bridge event type.
  * Notice `setPingTimeout(5000)` which says that if ping message doesn't arrive from client within 5 seconds
  * then the SOCKET_IDLE bridge event would be triggered.
  *
+ * [source,$lang]
  * ----
- * // Initialize SockJS handler
- * Router router = Router.router(vertx);
- *
- * SockJSHandler sockJSHandler = SockJSHandler.create(vertx);
- * BridgeOptions options = new BridgeOptions().addInboundPermitted(inboundPermitted).setPingTimeout(5000);
- *
- * sockJSHandler.bridge(options, be -> {
- * 	if (be.type() == BridgeEventType.SOCKET_IDLE) {
- *	    // Do some custom handling...
- *	}
- *
- *  be.complete(true);
- * });
- *
- * router.route("/eventbus").handler(sockJSHandler);
+ * {@link examples.WebExamples#handleSocketIdle}
  * ----
  *
  * In client side JavaScript you use the 'vertx-eventbus.js` library to create connections to the event bus and to send and receive messages:
  *
+ * [source,html]
  * ----
  * <script src="http://cdn.jsdelivr.net/sockjs/0.3.4/sockjs.min.js"></script>
  * <script src='vertx-eventbus.js'></script>
@@ -1829,6 +1859,7 @@
  *
  * The first thing the example does is to create a instance of the event bus
  *
+ * [source,javascript]
  * ----
  * var eb = new EventBus('http://localhost:8080/eventbus', {"vertxbus_ping_interval": 300000});
  * ----

@@ -24,6 +24,8 @@ import io.vertx.ext.web.RoutingContext;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Comparator;
@@ -274,9 +276,11 @@ public class Utils extends io.vertx.core.impl.Utils {
               + " of: " + s);
         }
         c = (char) (c * 16 + c2);
+        // shouldn't check for plus since it would be a double decoding
+        buf[pos++] = (byte) c;
+      } else {
+        buf[pos++] = (byte) (plus && c == '+' ? ' ' : c);
       }
-      // Fall through.
-      buf[pos++] = (byte) (plus && c == '+' ? ' ' : c);
     }
     return new String(buf, 0, pos, CharsetUtil.UTF_8);
   }
@@ -332,12 +336,19 @@ public class Utils extends io.vertx.core.impl.Utils {
   }
 
   /*
-  Reads from file or classpath
+  Reads from file or classpath using UTF-8
    */
   public static String readFileToString(Vertx vertx, String resource) {
+    return readFileToString(vertx, resource, StandardCharsets.UTF_8);
+  }
+
+  /*
+  Reads from file or classpath using the provided charset
+   */
+  public static String readFileToString(Vertx vertx, String resource, Charset charset) {
     try {
       Buffer buff = vertx.fileSystem().readFileBlocking(resource);
-      return buff.toString();
+      return buff.toString(charset);
     } catch (Exception e) {
       throw new VertxException(e);
     }
