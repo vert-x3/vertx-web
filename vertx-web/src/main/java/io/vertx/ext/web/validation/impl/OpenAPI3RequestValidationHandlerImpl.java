@@ -2,7 +2,9 @@ package io.vertx.ext.web.validation.impl;
 
 import com.reprezen.kaizen.oasparser.model3.*;
 import com.reprezen.kaizen.oasparser.ovl3.MediaTypeImpl;
-import io.vertx.ext.web.designdriven.OpenApi3Utils;
+import com.reprezen.kaizen.oasparser.ovl3.SchemaImpl;
+import io.vertx.ext.web.RequestParameter;
+import io.vertx.ext.web.designdriven.impl.OpenApi3Utils;
 import io.vertx.ext.web.validation.*;
 
 import java.util.*;
@@ -11,6 +13,22 @@ import java.util.*;
  * @author Francesco Guardiani @slinkydeveloper
  */
 public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestValidationHandlerImpl<Operation> implements io.vertx.ext.web.validation.OpenAPI3RequestValidationHandler {
+
+  private final static ParameterTypeValidator CONTENT_TYPE_VALIDATOR = new ParameterTypeValidator() {
+
+    @Override
+    public RequestParameter isValid(String value) throws ValidationException {
+      return RequestParameter.create(value);
+    }
+
+    @Override
+    public RequestParameter isValidCollection(List<String> value) throws ValidationException {
+      if (value.size() > 1)
+        return RequestParameter.create(value);
+      else
+        return this.isValid(value.get(0));
+    }
+  };
 
   List<Parameter> parentParams;
 
@@ -196,6 +214,25 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
 
   /* --- "magic" functions for workarounds (watch below for more info) --- */
 
+  // content field can support every mime type. I will use a default type validator for every content type, except application/json, that i can validate with JsonTypeValidator
+  // If content has multiple media types, I use anyOfTypeValidator to support every content type
+  private void handleContent(Parameter parameter) {
+    Map<String, ? extends MediaType> contents = parameter.getContentMediaTypes();
+    ParameterLocation location = resolveLocation(parameter.getIn());
+    if (contents.size() == 1 && contents.containsKey("application/json")) {
+      this.addRule(ParameterValidationRule.createValidationRuleWithCustomTypeValidator(parameter.getName(), JsonTypeValidator.JsonTypeValidatorFactory.createJsonTypeValidator(((SchemaImpl) contents.get("application/json").getSchema()).getDereferencedJsonTree()), !parameter.getRequired(), (parameter.getAllowEmptyValue() != null) ? parameter.getAllowEmptyValue() : false, location), location);
+    } else if (contents.size() > 1 && contents.containsKey("application/json")) {
+      // Mount anyOf
+      List<ParameterTypeValidator> validators = new ArrayList<>();
+      validators.add(CONTENT_TYPE_VALIDATOR);
+      validators.add(0, JsonTypeValidator.JsonTypeValidatorFactory.createJsonTypeValidator(((SchemaImpl) contents.get("application/json").getSchema()).getDereferencedJsonTree()));
+      AnyOfTypeValidator validator = new AnyOfTypeValidator(validators);
+      this.addRule(ParameterValidationRule.createValidationRuleWithCustomTypeValidator(parameter.getName(), validator, !parameter.getRequired(), (parameter.getAllowEmptyValue() != null) ? parameter.getAllowEmptyValue() : false, location), location);
+    } else {
+      this.addRule(ParameterValidationRule.createValidationRuleWithCustomTypeValidator(parameter.getName(), CONTENT_TYPE_VALIDATOR, !parameter.getRequired(), (parameter.getAllowEmptyValue() != null) ? parameter.getAllowEmptyValue() : false, location), location);
+    }
+  }
+
   private void magicParameterExplodedStyleFormTypeObject(Parameter parameter) {
     Map<String, Schema> properties = new HashMap<>();
     List<String> requiredFields = new ArrayList<>();
@@ -259,7 +296,6 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
     }
   }
 
-  // TODO add allOf
   private void magicParameterExplodedStyleDeepObjectTypeObject(Parameter parameter) {
     Map<String, Schema> properties = new HashMap<>();
     List<String> requiredFields = new ArrayList<>();
@@ -291,9 +327,9 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
   /* This function check if a parameter has some particular configurations and run the needed flow to adapt it to vertx-web validation framework
    * Included not supported throws:
    * - allowReserved field (it will never be supported)
-   * - content field
    * - cookie parameter with explode: true
    * Included workarounds (handled in "magic" functions):
+   * - content
    * - exploded: true & style: form & type: object or allOf -> magicParameterExplodedStyleFormTypeObject
    * - exploded: true & style: simple & type: object or allOf -> magicParameterExplodedStyleSimpleTypeObject
    * - exploded: true & style: deepObject & type: object or allOf -> magicParameterExplodedStyleDeepObjectTypeObject
@@ -302,7 +338,8 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
     if (parameter.isAllowReserved()) {
       throw new SpecFeatureNotSupportedException("allowReserved field not supported!");
     } else if (parameter.getContentMediaTypes().size() != 0) {
-      throw new SpecFeatureNotSupportedException("content not supported for parameter " + parameter.getName());
+      handleContent(parameter);
+      return true;
     } else /* From this moment only astonishing magic happens */ if (parameter.isExplode()) {
       if (parameter.getIn().equals("cookie")) {
         throw new SpecFeatureNotSupportedException("cookie parameter exploded location not supported");
@@ -322,39 +359,27 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
     return false;
   }
 
+  /* Function to resolve ParameterLocation from in string */
+  private ParameterLocation resolveLocation(String in) {
+    switch (in) {
+      case "header":
+        return ParameterLocation.HEADER;
+      case "query":
+        return ParameterLocation.QUERY;
+      case "cookie":
+        return ParameterLocation.COOKIE;
+      case "path":
+        return ParameterLocation.PATH;
+      default:
+        throw new SpecFeatureNotSupportedException("in field wrong or not supported");
+    }
+  }
+
   /* Entry point for parse Parameter object */
   private void parseParameter(Parameter parameter) {
     if (!checkSupportedAndNeedWorkaround(parameter)) {
-      switch (parameter.getIn()) {
-        case "header":
-          this.addHeaderParamRule(ParameterValidationRule.createValidationRuleWithCustomTypeValidator(parameter.getName(),
-            this.resolveTypeValidator(parameter),
-            !parameter.getRequired(),
-            (parameter.getAllowEmptyValue() != null) ? parameter.getAllowEmptyValue() : false,
-            ParameterLocation.HEADER));
-          break;
-        case "query":
-          this.addQueryParamRule(ParameterValidationRule.createValidationRuleWithCustomTypeValidator(parameter.getName(),
-            this.resolveTypeValidator(parameter),
-            !OpenApi3Utils.isRequiredParam(parameter),
-            (parameter.getAllowEmptyValue() != null) ? parameter.getAllowEmptyValue() : false,
-            ParameterLocation.QUERY));
-          break;
-        case "path":
-          this.addPathParamRule(ParameterValidationRule.createValidationRuleWithCustomTypeValidator(parameter.getName(),
-            this.resolveTypeValidator(parameter),
-            !OpenApi3Utils.isRequiredParam(parameter),
-            (parameter.getAllowEmptyValue() != null) ? parameter.getAllowEmptyValue() : false,
-            ParameterLocation.PATH));
-          break;
-        case "cookie":
-          this.addCookieParamRule(ParameterValidationRule.createValidationRuleWithCustomTypeValidator(parameter.getName(),
-            this.resolveTypeValidator(parameter),
-            !OpenApi3Utils.isRequiredParam(parameter),
-            (parameter.getAllowEmptyValue() != null) ? parameter.getAllowEmptyValue() : false,
-            ParameterLocation.COOKIE));
-          break;
-      }
+      ParameterLocation location = resolveLocation(parameter.getIn());
+      this.addRule(ParameterValidationRule.createValidationRuleWithCustomTypeValidator(parameter.getName(), this.resolveTypeValidator(parameter), !parameter.getRequired(), (parameter.getAllowEmptyValue() != null) ? parameter.getAllowEmptyValue() : false, location), location);
     }
   }
 
@@ -376,7 +401,7 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
   private void parseRequestBody(RequestBody requestBody) {
     MediaType json = requestBody.getContentMediaType("application/json");
     if (json != null) {
-      this.setEntireBodyValidator(JsonTypeValidator.JsonTypeValidatorFactory.createJsonTypeValidator(((MediaTypeImpl) json).getDereferencedJsonTree().get("schema")));
+      this.setEntireBodyValidator(JsonTypeValidator.JsonTypeValidatorFactory.createJsonTypeValidator(((SchemaImpl) json.getSchema()).getDereferencedJsonTree()));
     }
 
     MediaType formUrlEncoded = requestBody.getContentMediaType("x-www-form-urlencoded");

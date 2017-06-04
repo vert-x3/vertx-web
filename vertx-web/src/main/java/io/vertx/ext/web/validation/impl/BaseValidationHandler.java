@@ -230,6 +230,25 @@ public abstract class BaseValidationHandler implements ValidationHandler {
       return RequestParameter.create(null);
   }
 
+  protected void addRule(ParameterValidationRule rule, ParameterLocation location) {
+    switch (location) {
+      case PATH:
+        addPathParamRule(rule);
+        break;
+      case HEADER:
+        addHeaderParamRule(rule);
+        break;
+      case COOKIE:
+        addCookieParamRule(rule);
+        break;
+      case QUERY:
+        addQueryParamRule(rule);
+        break;
+      case BODY_FORM:
+        addFormParamRule(rule);
+        break;
+    }
+  }
 
   protected void addPathParamRule(ParameterValidationRule rule) {
     if (!pathParamsRules.containsKey(rule.getName()))
