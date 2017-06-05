@@ -1,4 +1,4 @@
-package io.vertx.ext.web.designdriven;
+package io.vertx.ext.web.designdriven.impl;
 
 import com.reprezen.kaizen.oasparser.model3.Parameter;
 import com.reprezen.kaizen.oasparser.model3.Schema;
@@ -72,6 +72,20 @@ public class OpenApi3Utils {
 
   public static boolean isAllOfSchema(Schema schema) {
     return (schema.getAllOfSchemas() != null && schema.getAllOfSchemas().size() != 0);
+  }
+
+  public static String convertPathFromOpenApiToVertx(String path) {
+    return path.replaceAll(":{1}([^!#$&'()*+,\\/:;=?@\\[\\]]*)", "{$1}");
+  }
+
+  // Thank you StackOverflow https://stackoverflow.com/questions/28332924/case-insensitive-matching-of-a-string-to-a-java-enum :)
+  public static <T extends Enum<?>> T searchEnum(Class<T> enumeration, String search) {
+    for (T each : enumeration.getEnumConstants()) {
+      if (each.name().compareToIgnoreCase(search) == 0) {
+        return each;
+      }
+    }
+    return null;
   }
 
 }

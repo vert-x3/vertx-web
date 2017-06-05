@@ -183,6 +183,7 @@ paths:
               - type: boolean
               - type: integer
 
+
 components:
   schemas:
     Pet:
