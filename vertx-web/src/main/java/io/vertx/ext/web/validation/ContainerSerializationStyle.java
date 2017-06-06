@@ -9,38 +9,30 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ * This enum contains supported object and arrays serialization styles. Every style has a enum value, and an array of strings to refeer to it.
  * @author Francesco Guardiani @slinkydeveloper
  */
 @VertxGen
 public enum ContainerSerializationStyle {
+
   /**
-   * <a href="https://tools.ietf.org/html/rfc6570#section-3.2.7">RFC6570 Path style parameters</a>
+   * Comma separated values: "value1,value2,value3"
+   * aliases: "csv", "commaDelimited", "form", "simple"
    */
-  //TODO talk with mentor about that
-  /*rfc6570_path_style_parameter_expansion("", new ContainerDeserializer() {
-    @Override
-    public List<String> deserializeArray(String serialized, boolean exploded) {
-      ArrayList<String> list = new ArrayList<>();
-      if (exploded) {
-
-      } else {
-        serialized = serialized.trim();
-        if (serialized.charAt(0) == '.')
-          serialized = serialized.substring(1);
-        return Arrays.asList(serialized.split(","));
-      }
-      return list;
-    }
-
-    @Override
-    public Map<String, String> deserializeObject(String serialized, boolean exploded) {
-      return null;
-    }
-  }),*/
-
   csv(new String[]{"csv", "commaDelimited", "form", "simple"}, new SplitterCharContainerDeserializer(",")),
+  /**
+   * Space separated values: "value1 value2 value3"
+   * aliases: "ssv", "spaceDelimited"
+   */
   ssv(new String[]{"ssv", "spaceDelimited"}, new SplitterCharContainerDeserializer("\\s+")),
+  /**
+   * Pipe separated values: "value1|value2|value3"
+   * aliases: "psv", "pipeDelimited"
+   */
   psv(new String[]{"psv", "pipeDelimited"}, new SplitterCharContainerDeserializer("|")),
+  /**
+   * For internal usage, don't use it
+   */
   simple_exploded_object(new String[]{"simple_exploded_object"}, new ContainerDeserializer() {
 
     @Override

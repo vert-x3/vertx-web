@@ -7,7 +7,6 @@ public class RegularExpressions {
 
   public static final String EMAIL = "^(?:[\\w!#\\$%&'\\*\\+\\-/=\\?\\^`\\{\\|\\}~]+\\.)*[\\w!#\\$%&'\\*\\+\\-/=\\?\\^`\\{\\|\\}~]+@(?:(?:(?:[a-zA-Z0-9](?:[a-zA-Z0-9\\-](?!\\.)){0,61}[a-zA-Z0-9]?\\.)+[a-zA-Z0-9](?:[a-zA-Z0-9\\-](?!$)){0,61}[a-zA-Z0-9]?)|(?:\\[(?:(?:[01]?\\d{1,2}|2[0-4]\\d|25[0-5])\\.){3}(?:[01]?\\d{1,2}|2[0-4]\\d|25[0-5])\\]))$";
   public static final String URI = "^[a-zA-Z][a-zA-Z0-9+-.]*:[^\\s]*$";
-  public static final String BOOL = "^(?i)(true|false|t|f|1|0)$";
   public static final String DATE = "^\\d{4}-(?:0[0-9]|1[0-2])-[0-9]{2}$";
   public static final String DATETIME = "^\\d{4}-(?:0[0-9]|1[0-2])-[0-9]{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{3})?Z$";
   public static final String TIME = "^\\d{2}:\\d{2}:\\d{2}$";

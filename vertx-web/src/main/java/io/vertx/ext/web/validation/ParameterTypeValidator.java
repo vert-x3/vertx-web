@@ -44,17 +44,38 @@ public interface ParameterTypeValidator {
 
   /* --- Factory methods for built-in type validators --- */
 
-  //TODO javadoc
+  /**
+   * Create a new type validator for integer values
+   *
+   * @param defaultValue Default value that will be set if parameter is empty or not found. To apply default value you have to set {@link ParameterValidationRule#allowEmptyValue()} true. It can be null
+   * @return
+   */
   static ParameterTypeValidator createIntegerTypeValidator(Integer defaultValue) {
     return createIntegerTypeValidator(null, null, null, defaultValue);
   }
 
-  //TODO javadoc
+  /**
+   * Create a new type validator for integer values
+   * @param maximum Maximum value. It can be null
+   * @param minimum Minimum value. It can be null
+   * @param multipleOf Multiple of value. It can be null
+   * @param defaultValue Default value that will be set if parameter is empty or not found. To apply default value you have to set {@link ParameterValidationRule#allowEmptyValue()} true. It can be null
+   * @return
+   */
   static ParameterTypeValidator createIntegerTypeValidator(Double maximum, Double minimum, Double multipleOf, Integer defaultValue) {
     return createIntegerTypeValidator(false, maximum, false, minimum, multipleOf, defaultValue);
   }
 
-  //TODO javadoc
+  /**
+   * Create a new type validator for integer values
+   * @param exclusiveMaximum If true, value will be mark as valid if value < maximum. If false, value will be mark as valid if value <= maximum. The default value is false. It can be null
+   * @param maximum Maximum value. It can be null
+   * @param exclusiveMinimum If true, value will be mark as valid if value > minimum. If false, value will be mark as valid if value >= minimum. The default value is false. It can be null
+   * @param minimum Minimum value. It can be null
+   * @param multipleOf Multiple of value. It can be null
+   * @param defaultValue Default value that will be set if parameter is empty or not found. To apply default value you have to set {@link ParameterValidationRule#allowEmptyValue()} true. It can be null
+   * @return
+   */
   static ParameterTypeValidator createIntegerTypeValidator(Boolean exclusiveMaximum, Double maximum, Boolean exclusiveMinimum, Double minimum, Double multipleOf, Object defaultValue) {
     if (defaultValue instanceof String)
       return new NumericTypeValidator<Integer>(NumericTypeValidator.parseInteger, exclusiveMaximum, maximum, exclusiveMinimum, minimum, multipleOf, Integer.parseInt((String) defaultValue));
@@ -62,17 +83,37 @@ public interface ParameterTypeValidator {
       return new NumericTypeValidator<Integer>(NumericTypeValidator.parseInteger, exclusiveMaximum, maximum, exclusiveMinimum, minimum, multipleOf, (Integer) defaultValue);
   }
 
-  //TODO javadoc
+  /**
+   * Create a new type validator for long integer values
+   * @param defaultValue Default value that will be set if parameter is empty or not found. To apply default value you have to set {@link ParameterValidationRule#allowEmptyValue()} true. It can be null
+   * @return
+   */
   static ParameterTypeValidator createLongTypeValidator(Long defaultValue) {
     return createLongTypeValidator(null, null, null, defaultValue);
   }
 
-  //TODO javadoc
+  /**
+   * Create a new type validator for long integer values
+   * @param maximum Maximum value. It can be null
+   * @param minimum Minimum value. It can be null
+   * @param multipleOf Multiple of value. It can be null
+   * @param defaultValue Default value that will be set if parameter is empty or not found. To apply default value you have to set {@link ParameterValidationRule#allowEmptyValue()} true. It can be null
+   * @return
+   */
   static ParameterTypeValidator createLongTypeValidator(Double maximum, Double minimum, Double multipleOf, Long defaultValue) {
     return createLongTypeValidator(false, maximum, false, minimum, multipleOf, defaultValue);
   }
 
-  //TODO javadoc
+  /**
+   * Create a new type validator for long integer values
+   * @param exclusiveMaximum If true, value will be mark as valid if value < maximum. If false, value will be mark as valid if value <= maximum. The default value is false. It can be null
+   * @param maximum Maximum value. It can be null
+   * @param exclusiveMinimum If true, value will be mark as valid if value > minimum. If false, value will be mark as valid if value >= minimum. The default value is false. It can be null
+   * @param minimum Minimum value. It can be null
+   * @param multipleOf Multiple of value. It can be null
+   * @param defaultValue Default value that will be set if parameter is empty or not found. To apply default value you have to set {@link ParameterValidationRule#allowEmptyValue()} true. It can be null
+   * @return
+   */
   static ParameterTypeValidator createLongTypeValidator(Boolean exclusiveMaximum, Double maximum, Boolean exclusiveMinimum, Double minimum, Double multipleOf, Object defaultValue) {
     if (defaultValue instanceof String)
       return new NumericTypeValidator<Long>(NumericTypeValidator.parseLong, exclusiveMaximum, maximum, exclusiveMinimum, minimum, multipleOf, Long.parseLong((String) defaultValue));
@@ -80,17 +121,37 @@ public interface ParameterTypeValidator {
       return new NumericTypeValidator<Long>(NumericTypeValidator.parseLong, exclusiveMaximum, maximum, exclusiveMinimum, minimum, multipleOf, (Long) defaultValue);
   }
 
-  //TODO javadoc
+  /**
+   * Create a new type validator for float values
+   * @param defaultValue Default value that will be set if parameter is empty or not found. To apply default value you have to set {@link ParameterValidationRule#allowEmptyValue()} true. It can be null
+   * @return
+   */
   static ParameterTypeValidator createFloatTypeValidator(Float defaultValue) {
     return createFloatTypeValidator(null, null, null, defaultValue);
   }
 
-  //TODO javadoc
+  /**
+   * Create a new type validator for float values
+   * @param maximum Maximum value. It can be null
+   * @param minimum Minimum value. It can be null
+   * @param multipleOf Multiple of value. It can be null
+   * @param defaultValue Default value that will be set if parameter is empty or not found. To apply default value you have to set {@link ParameterValidationRule#allowEmptyValue()} true. It can be null
+   * @return
+   */
   static ParameterTypeValidator createFloatTypeValidator(Double maximum, Double minimum, Double multipleOf, Float defaultValue) {
     return createFloatTypeValidator(false, maximum, false, minimum, multipleOf, defaultValue);
   }
 
-  //TODO javadoc
+  /**
+   * Create a new type validator for float values
+   * @param exclusiveMaximum If true, value will be mark as valid if value < maximum. If false, value will be mark as valid if value <= maximum. The default value is false. It can be null
+   * @param maximum Maximum value. It can be null
+   * @param exclusiveMinimum If true, value will be mark as valid if value > minimum. If false, value will be mark as valid if value >= minimum. The default value is false. It can be null
+   * @param minimum Minimum value. It can be null
+   * @param multipleOf Multiple of value. It can be null
+   * @param defaultValue Default value that will be set if parameter is empty or not found. To apply default value you have to set {@link ParameterValidationRule#allowEmptyValue()} true. It can be null
+   * @return
+   */
   static ParameterTypeValidator createFloatTypeValidator(Boolean exclusiveMaximum, Double maximum, Boolean exclusiveMinimum, Double minimum, Double multipleOf, Object defaultValue) {
     if (defaultValue instanceof String)
       return new NumericTypeValidator<Float>(NumericTypeValidator.parseFloat, exclusiveMaximum, maximum, exclusiveMinimum, minimum, multipleOf, Float.parseFloat((String) defaultValue));
@@ -98,17 +159,37 @@ public interface ParameterTypeValidator {
       return new NumericTypeValidator<Float>(NumericTypeValidator.parseFloat, exclusiveMaximum, maximum, exclusiveMinimum, minimum, multipleOf, (Float) defaultValue);
   }
 
-  //TODO javadoc
+  /**
+   * Create a new type validator for double values
+   * @param defaultValue Default value that will be set if parameter is empty or not found. To apply default value you have to set {@link ParameterValidationRule#allowEmptyValue()} true. It can be null
+   * @return
+   */
   static ParameterTypeValidator createDoubleTypeValidator(Double defaultValue) {
     return createDoubleTypeValidator(null, null, null, defaultValue);
   }
 
-  //TODO javadoc
+  /**
+   * Create a new type validator for double values
+   * @param maximum Maximum value. It can be null
+   * @param minimum Minimum value. It can be null
+   * @param multipleOf Multiple of value. It can be null
+   * @param defaultValue Default value that will be set if parameter is empty or not found. To apply default value you have to set {@link ParameterValidationRule#allowEmptyValue()} true. It can be null
+   * @return
+   */
   static ParameterTypeValidator createDoubleTypeValidator(Double maximum, Double minimum, Double multipleOf, Double defaultValue) {
     return createDoubleTypeValidator(false, maximum, false, minimum, multipleOf, defaultValue);
   }
 
-  //TODO javadoc
+  /**
+   * Create a new type validator for double values
+   * @param exclusiveMaximum If true, value will be mark as valid if value < maximum. If false, value will be mark as valid if value <= maximum. The default value is false. It can be null
+   * @param maximum Maximum value. It can be null
+   * @param exclusiveMinimum If true, value will be mark as valid if value > minimum. If false, value will be mark as valid if value >= minimum. The default value is false. It can be null
+   * @param minimum Minimum value. It can be null
+   * @param multipleOf Multiple of value. It can be null
+   * @param defaultValue Default value that will be set if parameter is empty or not found. To apply default value you have to set {@link ParameterValidationRule#allowEmptyValue()} true. It can be null
+   * @return
+   */
   static ParameterTypeValidator createDoubleTypeValidator(Boolean exclusiveMaximum, Double maximum, Boolean exclusiveMinimum, Double minimum, Double multipleOf, Object defaultValue) {
     if (defaultValue instanceof String)
       return new NumericTypeValidator<Double>(NumericTypeValidator.parseDouble, exclusiveMaximum, maximum, exclusiveMinimum, minimum, multipleOf, Double.parseDouble((String) defaultValue));
@@ -116,22 +197,44 @@ public interface ParameterTypeValidator {
       return new NumericTypeValidator<Double>(NumericTypeValidator.parseDouble, exclusiveMaximum, maximum, exclusiveMinimum, minimum, multipleOf, (Double) defaultValue);
   }
 
-  //TODO javadoc
-  static ParameterTypeValidator createStringTypeValidator(String pattern) {
-    return new StringTypeValidator(pattern);
+  /**
+   * Create a new string type validator
+   *
+   * @param defaultValue Default value that will be set if parameter is empty or not found. To apply default value you have to set {@link ParameterValidationRule#allowEmptyValue()} true. It can be null
+   * @return
+   */
+  static ParameterTypeValidator createStringTypeValidator(Object defaultValue) {
+    return createStringTypeValidator(null, null, null, defaultValue);
   }
 
-  //TODO javadoc
+  /**
+   * Create a new string type validator
+   *
+   * @param pattern      pattern that string have to match. It can be null
+   * @param defaultValue Default value that will be set if parameter is empty or not found. To apply default value you have to set {@link ParameterValidationRule#allowEmptyValue()} true. It can be null
+   * @return
+   */
+  static ParameterTypeValidator createStringTypeValidator(String pattern, Object defaultValue) {
+    return createStringTypeValidator(pattern, null, null, defaultValue);
+  }
+
+  /**
+   * Create a new string type validator
+   * @param pattern pattern that string have to match. It can be null
+   * @param minLength Minimum length of string. It can be null
+   * @param maxLength Maximum length of string. It can be null
+   * @param defaultValue Default value that will be set if parameter is empty or not found. To apply default value you have to set {@link ParameterValidationRule#allowEmptyValue()} true. It can be null
+   * @return
+   */
   static ParameterTypeValidator createStringTypeValidator(String pattern, Integer minLength, Integer maxLength, Object defaultValue) {
     return new StringTypeValidator(pattern, minLength, maxLength, (String) defaultValue);
   }
 
-  //TODO javadoc
-  static ParameterTypeValidator createEnumTypeValidator(List<String> allowedValues, ParameterTypeValidator innerValidator) {
-    return new EnumTypeValidator(allowedValues, innerValidator);
-  }
-
-  //TODO javadoc
+  /**
+   * Create a boolean type validator
+   * @param defaultValue Default value that will be set if parameter is empty or not found. To apply default value you have to set {@link ParameterValidationRule#allowEmptyValue()} true. It can be null
+   * @return
+   */
   static ParameterTypeValidator createBooleanTypeValidator(Object defaultValue) {
     if (defaultValue != null) {
       if (defaultValue instanceof String)
@@ -143,17 +246,43 @@ public interface ParameterTypeValidator {
     }
   }
 
-  //TODO javadoc
+  /**
+   * Create an enum type validator
+   * @param allowedValues allowed values. It <b>can't be</b> null
+   * @return
+   */
   static ParameterTypeValidator createStringEnumTypeValidator(List<String> allowedValues) {
     return new EnumTypeValidator(allowedValues, ParameterType.GENERIC_STRING.getValidationMethod());
   }
 
-  //TODO javadoc
+  /**
+   * Create an enum type validator
+   *
+   * @param allowedValues  allowed values. It <b>can't be</b> null
+   * @param innerValidator After check if value is one of the lists, you can pass the value to an inner validator. It can be null
+   * @return
+   */
+  static ParameterTypeValidator createEnumTypeValidatorWithInnerValidator(List<String> allowedValues, ParameterTypeValidator innerValidator) {
+    return new EnumTypeValidator(allowedValues, innerValidator);
+  }
+
+  /**
+   * Create an array type validator
+   * @param arrayMembersValidator Type validator that describe array items. It <b>can't be</b> null
+   * @return
+   */
   static ParameterTypeValidator createArrayTypeValidator(ParameterTypeValidator arrayMembersValidator) {
     return ArrayTypeValidator.ArrayTypeValidatorFactory.createArrayTypeValidator(arrayMembersValidator);
   }
 
-  //TODO javadoc
+  /**
+   * Create an array type validator
+   * @param arrayMembersValidator Type validator that describe array items. It <b>can't be</b> null
+   * @param collectionFormat String that represent a ContainerSerializationStyle. Check out {@link ContainerSerializationStyle} for more informations. The default value is "csv". It can be null
+   * @param maxItems Maximum items in array. It can be null
+   * @param minItems Minimum items in array. It can be null
+   * @return
+   */
   static ParameterTypeValidator createArrayTypeValidator(ParameterTypeValidator arrayMembersValidator, String collectionFormat, Integer maxItems, Integer minItems) {
     return ArrayTypeValidator.ArrayTypeValidatorFactory.createArrayTypeValidator(arrayMembersValidator, collectionFormat, maxItems, minItems);
   }

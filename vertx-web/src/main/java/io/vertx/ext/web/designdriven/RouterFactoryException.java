@@ -3,15 +3,28 @@ package io.vertx.ext.web.designdriven;
 import io.vertx.codegen.annotations.VertxGen;
 
 /**
+ * Main class for router factory exceptions
  * @author Francesco Guardiani @slinkydeveloper
  */
 public class RouterFactoryException extends RuntimeException {
 
   @VertxGen
   public enum ErrorType {
+    /**
+     * You are trying to mount an operation (combination of path and method) not defined in specification
+     */
     PATH_NOT_FOUND,
+    /**
+     * You are trying to mount an operation with operation_id not defined in specification
+     */
     OPERATION_ID_NOT_FOUND,
+    /**
+     * Specification is not valid
+     */
     SPEC_INVALID,
+    /**
+     * Missing security handler during construction of router
+     */
     MISSING_SECURITY_HANDLER
   }
 

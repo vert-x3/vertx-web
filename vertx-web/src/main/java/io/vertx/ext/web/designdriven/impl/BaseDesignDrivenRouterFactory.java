@@ -9,7 +9,7 @@ import io.vertx.ext.web.validation.ValidationException;
 /**
  * @author Francesco Guardiani @slinkydeveloper
  */
-abstract public class BaseDesignDrivenRouterFactory<Specification> implements DesignDrivenRouterFactory {
+abstract public class BaseDesignDrivenRouterFactory<Specification> implements DesignDrivenRouterFactory<Specification> {
 
   protected Vertx vertx;
   protected Specification spec;

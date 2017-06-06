@@ -7,7 +7,7 @@ import io.vertx.ext.web.validation.impl.RegularExpressions;
 import io.vertx.ext.web.validation.impl.StringTypeValidator;
 
 /**
- * ParameterType contains regular expressions for parameter validation. Use it to describe parameter type
+ * ParameterType contains prebuilt type validators. To access to ParameterTypeValidator of every ParameterType, use {@link ParameterType#getValidationMethod()}
  * @author Francesco Guardiani @slinkydeveloper
  */
 @VertxGen
@@ -16,16 +16,9 @@ public enum ParameterType {
    * STRING Type accept every string
    */
   GENERIC_STRING(value -> RequestParameter.create(value)),
-  /**
-   * EMAIL does validation with pattern: ^(?:[\w!#\$%&'\*\+\-/=\?\^`\{\|\}~]+\.)*[\w!#\$%&'\*\+\-/=\?\^`\{\|\}~]+@(?:(?:(?:[a-zA-Z0-9](?:[a-zA-Z0-9\-](?!\.)){0,61}[a-zA-Z0-9]?\.)+[a-zA-Z0-9](?:[a-zA-Z0-9\-](?!$)){0,61}[a-zA-Z0-9]?)|(?:\[(?:(?:[01]?\d{1,2}|2[0-4]\d|25[0-5])\.){3}(?:[01]?\d{1,2}|2[0-4]\d|25[0-5])\]))$
-   */
   EMAIL(new StringTypeValidator(RegularExpressions.EMAIL)),
-  /**
-   * URI does validation with pattern: ^[a-zA-Z][a-zA-Z0-9+-.]*:[^\\s]*$
-   */
   URI(new StringTypeValidator(RegularExpressions.URI)),
   /**
-   * BOOL pattern: ^(?i)(true|false|t|f|1|0)$
    * It allows true, false, t, f, 1, 0
    */
   BOOL(new BooleanTypeValidator(null)),
@@ -53,15 +46,9 @@ public enum ParameterType {
    * TIME as defined by partial-time - RFC3339
    */
   TIME(new StringTypeValidator(RegularExpressions.TIME)),
-  /**
-   * BASE64 does validation with pattern: ^([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{4}|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)$
-   */
   BASE64(new StringTypeValidator(RegularExpressions.BASE64)),
-
   IPV4(new StringTypeValidator(RegularExpressions.IPV4)),
-
   IPV6(new StringTypeValidator(RegularExpressions.IPV6)),
-
   HOSTNAME(new StringTypeValidator(RegularExpressions.HOSTNAME));
 
   private ParameterTypeValidator validationMethod;

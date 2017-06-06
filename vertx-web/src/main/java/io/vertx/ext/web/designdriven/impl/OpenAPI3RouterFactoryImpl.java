@@ -20,7 +20,7 @@ import java.util.*;
 public class OpenAPI3RouterFactoryImpl extends BaseDesignDrivenRouterFactory<OpenApi3> implements OpenAPI3RouterFactory {
 
   private final Handler<RoutingContext> NOT_IMPLEMENTED_HANDLER = (routingContext) -> {
-    routingContext.fail(501);
+    routingContext.response().setStatusCode(501).setStatusMessage("Path not implemented").end();
   };
 
   // This map is fullfilled when spec is loaded in memory
@@ -164,7 +164,7 @@ public class OpenAPI3RouterFactoryImpl extends BaseDesignDrivenRouterFactory<Ope
   }
 
   @Override
-  public OpenAPI3RouterFactory addOAuth2ScopeValidator(String securitySchemaName, String scopeName, Handler handler) {
+  public OpenAPI3RouterFactory addSecuritySchemaScopeValidator(String securitySchemaName, String scopeName, Handler handler) {
     SecurityRequirementKey key = new SecurityRequirementKey(securitySchemaName, scopeName);
     securityHandlers.put(key, handler);
     return this;
@@ -256,13 +256,18 @@ public class OpenAPI3RouterFactoryImpl extends BaseDesignDrivenRouterFactory<Ope
       if (operation.getOperationModel().hasSecurityRequirements()) {
         for (SecurityRequirement securityRequirement : operation.getOperationModel().getSecurityRequirements()) {
           for (Map.Entry<String, ? extends SecurityParameter> securityValue : securityRequirement.getRequirements().entrySet()) {
-            if (securityValue.getValue().getParameters() != null) {
-              // It's an OAuth2 security requirement
+            if (securityValue.getValue().getParameters() != null && securityValue.getValue().getParameters().size() != 0) {
+              // It's a multiscope security requirement
               for (String scope : securityValue.getValue().getParameters()) {
                 Handler securityHandlerToLoad = this.securityHandlers.get(new SecurityRequirementKey(securityValue.getKey(), scope));
-                if (securityHandlerToLoad == null)
-                  throw RouterFactoryException.createMissingSecurityHandler(securityValue.getKey(), scope);
-                else
+                if (securityHandlerToLoad == null) {
+                  // Maybe there's only one security handler for all scopes of this security schema
+                  securityHandlerToLoad = this.securityHandlers.get(new SecurityRequirementKey(securityValue.getKey()));
+                  if (securityHandlerToLoad == null)
+                    throw RouterFactoryException.createMissingSecurityHandler(securityValue.getKey(), scope);
+                  else
+                    handlersToLoad.add(securityHandlerToLoad);
+                } else
                   handlersToLoad.add(securityHandlerToLoad);
               }
             } else {

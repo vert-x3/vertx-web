@@ -5,7 +5,7 @@ import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.ext.web.validation.impl.HTTPRequestValidationHandlerImpl;
 
 /**
- * An interface for add HTTP Request validation.
+ * An interface for add HTTP Request validation. This class can validate parameters inside query, path, headers an body (watch below)
  * <br/>
  * You can assign multiple body type at the same time(for example a JSON schema together with a XML schema). This interface support:
  * <ul>

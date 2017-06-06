@@ -23,7 +23,10 @@ public class EnumTypeValidator implements ParameterTypeValidator {
   public RequestParameter isValid(String value) {
     if (!allowedValues.contains(value))
       throw ValidationException.ValidationExceptionFactory.generateNotMatchValidationException("Value " + value + " in not inside enum list " + allowedValues.toString());
-    return this.innerValidator.isValid(value);
+    if (this.innerValidator != null)
+      return this.innerValidator.isValid(value);
+    else
+      return RequestParameter.create(value);
   }
 
   @Override

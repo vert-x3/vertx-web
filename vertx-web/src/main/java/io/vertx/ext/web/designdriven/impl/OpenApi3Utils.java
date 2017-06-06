@@ -74,8 +74,12 @@ public class OpenApi3Utils {
     return (schema.getAllOfSchemas() != null && schema.getAllOfSchemas().size() != 0);
   }
 
-  public static String convertPathFromOpenApiToVertx(String path) {
+  public static String convertPathFromVertxToOpenApi(String path) {
     return path.replaceAll(":{1}([^!#$&'()*+,\\/:;=?@\\[\\]]*)", "{$1}");
+  }
+
+  public static String convertPathFromOpenApiToVertx(String path) {
+    return path.replaceAll("(?:\\{{1})([^!#$&'()*+,\\/\\{\\}:;=?@\\[\\]]*)(?:\\}{1})", ":$1");
   }
 
   // Thank you StackOverflow https://stackoverflow.com/questions/28332924/case-insensitive-matching-of-a-string-to-a-java-enum :)

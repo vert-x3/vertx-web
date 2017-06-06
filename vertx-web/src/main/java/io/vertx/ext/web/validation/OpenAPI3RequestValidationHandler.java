@@ -7,5 +7,4 @@ import io.vertx.codegen.annotations.VertxGen;
  */
 @VertxGen
 public interface OpenAPI3RequestValidationHandler extends HTTPOperationRequestValidationHandler {
-
 }
