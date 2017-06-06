@@ -1,14 +1,6 @@
 package io.vertx.ext.web.validation.impl;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.networknt.schema.JsonSchema;
-import com.networknt.schema.JsonSchemaFactory;
-import com.networknt.schema.ValidationMessage;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RequestParameter;
-import io.vertx.ext.web.impl.RequestParameterImpl;
-import io.vertx.ext.web.impl.Utils;
 import io.vertx.ext.web.validation.ParameterTypeValidator;
 import io.vertx.ext.web.validation.ValidationException;
 import org.w3c.dom.Document;
@@ -22,9 +14,7 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
-import java.io.IOException;
 import java.io.StringReader;
-import java.util.Set;
 
 /**
  * @author Francesco Guardiani @slinkydeveloper
@@ -45,7 +35,7 @@ public class XMLTypeValidator implements ParameterTypeValidator {
       this.schemaValidator.validate(new DOMSource(document));
       return RequestParameter.create(document);
     } catch (Exception e) {
-      throw ValidationException.generateInvalidXMLBodyException(e.getMessage());
+      throw ValidationException.ValidationExceptionFactory.generateInvalidXMLBodyException(e.getMessage());
     }
   }
 

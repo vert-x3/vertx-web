@@ -24,7 +24,7 @@ public class BooleanTypeValidator implements ParameterTypeValidator {
     else if (value.equalsIgnoreCase("false") || value.equalsIgnoreCase("f") || value.equalsIgnoreCase("0"))
       return RequestParameter.create(Boolean.valueOf(false));
     else
-      throw ValidationException.generateNotMatchValidationException(null);
+      throw ValidationException.ValidationExceptionFactory.generateNotMatchValidationException(null);
   }
 
   @Override

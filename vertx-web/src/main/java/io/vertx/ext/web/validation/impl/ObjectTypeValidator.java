@@ -2,7 +2,10 @@ package io.vertx.ext.web.validation.impl;
 
 import com.google.common.collect.Maps;
 import io.vertx.ext.web.RequestParameter;
-import io.vertx.ext.web.validation.*;
+import io.vertx.ext.web.validation.ContainerDeserializer;
+import io.vertx.ext.web.validation.ContainerSerializationStyle;
+import io.vertx.ext.web.validation.ParameterTypeValidator;
+import io.vertx.ext.web.validation.ValidationException;
 
 import java.util.HashMap;
 import java.util.List;
@@ -57,7 +60,7 @@ public class ObjectTypeValidator extends ContainerTypeValidator<Map<String, Stri
       String valueToValidate = values.get(field.getKey());
       if (valueToValidate == null) {
         if (field.getValue().required)
-          throw ValidationException.generateObjectFieldNotFound(field.getKey());
+          throw ValidationException.ValidationExceptionFactory.generateObjectFieldNotFound(field.getKey());
         else if (field.getValue().validator.getDefault() != null)
           parsedParams.put(field.getKey(), RequestParameter.create(field.getKey(), field.getValue().validator.getDefault()));
 

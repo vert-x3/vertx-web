@@ -1,10 +1,5 @@
 package io.vertx.ext.web.validation.impl;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.networknt.schema.JsonSchema;
-import com.networknt.schema.JsonSchemaFactory;
-import com.networknt.schema.ValidationMessage;
 import io.vertx.core.MultiMap;
 import io.vertx.ext.web.Cookie;
 import io.vertx.ext.web.FileUpload;
@@ -13,19 +8,7 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.impl.RequestParameterImpl;
 import io.vertx.ext.web.impl.RequestParametersImpl;
 import io.vertx.ext.web.validation.*;
-import org.w3c.dom.Document;
-import org.xml.sax.SAXException;
 
-import javax.xml.XMLConstants;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.transform.Source;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamSource;
-import javax.xml.validation.SchemaFactory;
-import javax.xml.validation.Validator;
-import java.io.IOException;
-import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.*;
@@ -76,7 +59,7 @@ public abstract class BaseValidationHandler implements ValidationHandler {
       String contentType = routingContext.request().getHeader("Content-Type");
       if (contentType != null && contentType.length() != 0) {
         if (fileNamesRules.size() != 0 && !contentType.contains("multipart/form-data"))
-          throw ValidationException.generateWrongContentTypeExpected(contentType, "multipart/form-data");
+          throw ValidationException.ValidationExceptionFactory.generateWrongContentTypeExpected(contentType, "multipart/form-data");
         if (contentType.contains("application/x-www-form-urlencoded") || contentType.contains("multipart/form-data")) {
           parsedParameters.setFormParameters(validateFormParams(routingContext));
           if (contentType.contains("multipart/form-data"))
@@ -112,7 +95,7 @@ public abstract class BaseValidationHandler implements ValidationHandler {
         RequestParameter parsedParam = rule.validateSingleParam(pathParams.get(name));
         parsedParams.put(parsedParam.getName(), parsedParam);
       } else // Path params are required!
-        throw ValidationException.generateNotFoundValidationException(name, ParameterLocation.PATH);
+        throw ValidationException.ValidationExceptionFactory.generateNotFoundValidationException(name, ParameterLocation.PATH);
     }
     return parsedParams;
   }
@@ -134,11 +117,11 @@ public abstract class BaseValidationHandler implements ValidationHandler {
         }
       }
       if (!resolved) {
-        if (rule.allowEmptyValue()) {
+        if (rule.allowEmptyValue() && rule.getParameterTypeValidator().getDefault() != null) {
           RequestParameter parsedParam = new RequestParameterImpl(name, rule.getParameterTypeValidator().getDefault());
           parsedParams.put(parsedParam.getName(), parsedParam);
         } else if (!rule.isOptional())
-          throw ValidationException.generateNotFoundValidationException(name, ParameterLocation.COOKIE);
+          throw ValidationException.ValidationExceptionFactory.generateNotFoundValidationException(name, ParameterLocation.COOKIE);
       }
     }
     return parsedParams;
@@ -154,11 +137,11 @@ public abstract class BaseValidationHandler implements ValidationHandler {
         RequestParameter parsedParam = rule.validateArrayParam(queryParams.getAll(name));
         parsedParam.setName(name);
         parsedParams.put(parsedParam.getName(), parsedParam);
-      } else if (rule.allowEmptyValue()) {
+      } else if (rule.allowEmptyValue() && rule.getParameterTypeValidator().getDefault() != null) {
         RequestParameter parsedParam = new RequestParameterImpl(name, rule.getParameterTypeValidator().getDefault());
         parsedParams.put(parsedParam.getName(), parsedParam);
       } else if (!rule.isOptional())
-        throw ValidationException.generateNotFoundValidationException(name, ParameterLocation.QUERY);
+        throw ValidationException.ValidationExceptionFactory.generateNotFoundValidationException(name, ParameterLocation.QUERY);
     }
     return parsedParams;
   }
@@ -172,11 +155,11 @@ public abstract class BaseValidationHandler implements ValidationHandler {
       if (headersParams.contains(name)) {
         RequestParameter parsedParam = rule.validateArrayParam(headersParams.getAll(name));
         parsedParams.put(parsedParam.getName(), parsedParam);
-      } else if (rule.allowEmptyValue()) {
+      } else if (rule.allowEmptyValue() && rule.getParameterTypeValidator().getDefault() != null) {
         RequestParameter parsedParam = new RequestParameterImpl(name, rule.getParameterTypeValidator().getDefault());
         parsedParams.put(parsedParam.getName(), parsedParam);
       } else if (!rule.isOptional())
-        throw ValidationException.generateNotFoundValidationException(name, ParameterLocation.HEADER);
+        throw ValidationException.ValidationExceptionFactory.generateNotFoundValidationException(name, ParameterLocation.HEADER);
     }
     return parsedParams;
   }
@@ -199,11 +182,11 @@ public abstract class BaseValidationHandler implements ValidationHandler {
         }
         RequestParameter parsedParam = rule.validateArrayParam(values);
         parsedParams.put(parsedParam.getName(), parsedParam);
-      } else if (rule.allowEmptyValue()) {
+      } else if (rule.allowEmptyValue() && rule.getParameterTypeValidator().getDefault() != null) {
         RequestParameter parsedParam = new RequestParameterImpl(name, rule.getParameterTypeValidator().getDefault());
         parsedParams.put(parsedParam.getName(), parsedParam);
       } else if (!rule.isOptional())
-        throw ValidationException.generateNotFoundValidationException(name, ParameterLocation.BODY_FORM);
+        throw ValidationException.ValidationExceptionFactory.generateNotFoundValidationException(name, ParameterLocation.BODY_FORM);
     }
     return parsedParams;
   }
@@ -219,7 +202,7 @@ public abstract class BaseValidationHandler implements ValidationHandler {
     Set<FileUpload> fileUploads = routingContext.fileUploads();
     for (String expectedFileName : fileNamesRules) {
       if (!existFileUploadName(fileUploads, expectedFileName))
-        throw ValidationException.generateFileNotFoundValidationException(expectedFileName);
+        throw ValidationException.ValidationExceptionFactory.generateFileNotFoundValidationException(expectedFileName);
     }
   }
 

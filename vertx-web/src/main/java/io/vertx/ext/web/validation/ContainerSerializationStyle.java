@@ -3,7 +3,10 @@ package io.vertx.ext.web.validation;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.ext.web.validation.impl.SplitterCharContainerDeserializer;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Francesco Guardiani @slinkydeveloper
@@ -54,7 +57,7 @@ public enum ContainerSerializationStyle {
         // empty key not allowed!
         String[] values_internal = values[i].split("=", -1);
         if (values_internal[0].length() == 0) {
-          throw ValidationException.generateDeserializationError("DeserializationError: Empty key not allowed");
+          throw ValidationException.ValidationExceptionFactory.generateDeserializationError("DeserializationError: Empty key not allowed");
         } else {
           result.put(values_internal[0], values_internal[1]);
         }

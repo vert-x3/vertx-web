@@ -1,6 +1,5 @@
 package io.vertx.ext.web.designdriven.impl;
 
-import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.ext.web.RoutingContext;
@@ -36,7 +35,7 @@ abstract public class BaseDesignDrivenRouterFactory<Specification> implements De
   }
 
   @Override
-  public BaseDesignDrivenRouterFactory setValidationFailureHandler(Handler<RoutingContext> handler) {
+  public BaseDesignDrivenRouterFactory setValidationFailureHandler(Handler handler) {
     this.failureHandler = handler;
     return this;
   }

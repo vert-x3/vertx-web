@@ -67,11 +67,9 @@ public class ParameterValidationRuleImpl implements ParameterValidationRule {
     } else {
       // Value or null or length == 0
       if (!this.allowEmptyValue)
-        throw ValidationException.generateEmptyValueValidationException(this.name, this, this.location);
-      else if (getParameterTypeValidator().getDefault() != null)
-        return RequestParameter.create(getName(), getParameterTypeValidator().getDefault());
+        throw ValidationException.ValidationExceptionFactory.generateEmptyValueValidationException(this.name, this, this.location);
       else
-        return RequestParameter.create(getName(), null);
+        return RequestParameter.create(getName(), getParameterTypeValidator().getDefault());
     }
   }
 
@@ -82,11 +80,9 @@ public class ParameterValidationRuleImpl implements ParameterValidationRule {
     } else {
       // array or null or size == 0
       if (!this.allowEmptyValue)
-        throw ValidationException.generateEmptyValueValidationException(this.name, this, this.location);
-      else if (getParameterTypeValidator().getDefault() != null)
-        return RequestParameter.create(getName(), getParameterTypeValidator().getDefault());
+        throw ValidationException.ValidationExceptionFactory.generateEmptyValueValidationException(this.name, this, this.location);
       else
-        return RequestParameter.create(getName(), null);
+        return RequestParameter.create(getName(), getParameterTypeValidator().getDefault());
     }
   }
 
@@ -114,5 +110,16 @@ public class ParameterValidationRuleImpl implements ParameterValidationRule {
       ", isOptional=" + isOptional +
       ", allowEmptyValue=" + allowEmptyValue +
       '}';
+  }
+
+  public static class ParameterValidationRuleFactory {
+
+    static ParameterValidationRule createValidationRule(String name, ParameterType type, boolean isOptional, boolean allowEmptyValue, ParameterLocation location) {
+      return new ParameterValidationRuleImpl(name, type.getValidationMethod(), isOptional, allowEmptyValue, location);
+    }
+
+    static ParameterValidationRule createValidationRuleWithCustomTypeValidator(String name, ParameterTypeValidator validator, boolean isOptional, boolean allowEmptyValue, ParameterLocation location) {
+      return new ParameterValidationRuleImpl(name, validator, isOptional, allowEmptyValue, location);
+    }
   }
 }

@@ -10,7 +10,6 @@ import io.vertx.ext.web.designdriven.OpenAPI3RouterFactory;
 import io.vertx.ext.web.designdriven.RouterFactoryException;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.CookieHandler;
-import io.vertx.ext.web.impl.RouterImpl;
 import io.vertx.ext.web.validation.impl.OpenAPI3RequestValidationHandlerImpl;
 
 import java.util.*;
@@ -240,7 +239,7 @@ public class OpenAPI3RouterFactoryImpl extends BaseDesignDrivenRouterFactory<Ope
   }
 
   @Override
-  public OpenAPI3RouterFactory addHandler(HttpMethod method, String path, Handler<RoutingContext> handler, Handler<RoutingContext> failureHandler) {
+  public OpenAPI3RouterFactory addHandler(HttpMethod method, String path, Handler handler, Handler failureHandler) {
     addHandlerByOperationId(resolveOperationId(method, path), handler, failureHandler);
     return this;
   }

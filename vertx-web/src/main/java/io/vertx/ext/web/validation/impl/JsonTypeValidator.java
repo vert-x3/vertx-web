@@ -30,10 +30,10 @@ public class JsonTypeValidator implements ParameterTypeValidator {
     try {
       Set<ValidationMessage> errors = schema.validate(new ObjectMapper().readTree(value));
       if (!errors.isEmpty())
-        throw ValidationException.generateInvalidJsonBodyException(errors.toString());
+        throw ValidationException.ValidationExceptionFactory.generateInvalidJsonBodyException(errors.toString());
       return RequestParameter.create(new JsonObject(value));
     } catch (IOException e) {
-      throw ValidationException.generateNotParsableJsonBodyException();
+      throw ValidationException.ValidationExceptionFactory.generateNotParsableJsonBodyException();
     }
   }
 

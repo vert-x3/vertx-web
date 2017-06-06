@@ -59,7 +59,7 @@ public class StringTypeValidator implements ParameterTypeValidator {
     if (value == null || value.length() == 0)
       return RequestParameter.create(getDefault());
     if (!checkMinLength(value) || !checkMaxLength(value) || (pattern != null && !pattern.matcher(value).matches()))
-      throw ValidationException.generateNotMatchValidationException(null);
+      throw ValidationException.ValidationExceptionFactory.generateNotMatchValidationException(null);
     else
       return RequestParameter.create(value);
   }

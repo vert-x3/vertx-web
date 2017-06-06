@@ -1,12 +1,13 @@
 package io.vertx.ext.web.designdriven;
 
-import io.vertx.core.VertxException;
+import io.vertx.codegen.annotations.VertxGen;
 
 /**
  * @author Francesco Guardiani @slinkydeveloper
  */
 public class RouterFactoryException extends RuntimeException {
 
+  @VertxGen
   public enum ErrorType {
     PATH_NOT_FOUND,
     OPERATION_ID_NOT_FOUND,

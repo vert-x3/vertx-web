@@ -25,6 +25,6 @@ public class AnyOfTypeValidator implements ParameterTypeValidator {
       } catch (ValidationException e) {
       }
     }
-    throw ValidationException.generateNotMatchValidationException(value + " doesn't match anyOf schemas");
+    throw ValidationException.ValidationExceptionFactory.generateNotMatchValidationException(value + " doesn't match anyOf schemas");
   }
 }

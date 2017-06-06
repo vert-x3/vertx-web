@@ -65,7 +65,7 @@ public class ArrayTypeValidator extends ContainerTypeValidator<List<String>> {
   @Override
   protected RequestParameter validate(List<String> values) {
     if (values == null || !checkMaxItems(values.size()) || !checkMinItems(values.size()))
-      throw ValidationException.generateUnexpectedArraySizeValidationException(this.getMaxItems(), this.getMinItems(), values.size());
+      throw ValidationException.ValidationExceptionFactory.generateUnexpectedArraySizeValidationException(this.getMaxItems(), this.getMinItems(), values.size());
     List<RequestParameter> parsedParams = new ArrayList<>();
     for (String s : values) {
       RequestParameter parsed = validator.isValid(s);

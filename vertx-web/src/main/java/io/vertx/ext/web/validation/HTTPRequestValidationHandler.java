@@ -24,6 +24,11 @@ import io.vertx.ext.web.validation.impl.HTTPRequestValidationHandlerImpl;
 @VertxGen
 public interface HTTPRequestValidationHandler extends ValidationHandler {
 
+  /**
+   * Factory method to create an HTTPRequestValidationHandler
+   *
+   * @return new HTTPRequestValidationHandler
+   */
   static HTTPRequestValidationHandler create() { return new HTTPRequestValidationHandlerImpl(); }
 
   /**
@@ -43,6 +48,17 @@ public interface HTTPRequestValidationHandler extends ValidationHandler {
    */
   @Fluent
   HTTPRequestValidationHandler addPathParamWithPattern(String parameterName, String pattern);
+
+  /**
+   * Add a path parameter with a custom type validator. All path params are <b>required</b>. For more informations about how to construct built-in or custom type validator, check out {@link ParameterTypeValidator}
+   *
+   * @param parameterName   expected name of parameter inside the path
+   * @param validator       type validator
+   * @param allowEmptyValue true if parameter allowEmptyValue. For more informations about allowEmptyValue behaviour: {@link ParameterValidationRule#allowEmptyValue()}
+   * @return this handler
+   */
+  @Fluent
+  HTTPRequestValidationHandler addPathParamWithCustomTypeValidator(String parameterName, ParameterTypeValidator validator, boolean allowEmptyValue);
 
   /**
    * Add a query parameter with included parameter types
@@ -85,6 +101,18 @@ public interface HTTPRequestValidationHandler extends ValidationHandler {
   HTTPRequestValidationHandler addQueryParamsArrayWithPattern(String arrayName, String pattern, boolean required);
 
   /**
+   * Add a query parameter with a custom type validator. For more informations about how to construct built-in or custom type validator, check out {@link ParameterTypeValidator}
+   *
+   * @param parameterName   expected name of parameter inside the query
+   * @param validator       type validator
+   * @param required        true if parameter is required
+   * @param allowEmptyValue true if parameter allowEmptyValue. For more informations about allowEmptyValue behaviour: {@link ParameterValidationRule#allowEmptyValue()}
+   * @return this handler
+   */
+  @Fluent
+  HTTPRequestValidationHandler addQueryParamWithCustomTypeValidator(String parameterName, ParameterTypeValidator validator, boolean required, boolean allowEmptyValue);
+
+  /**
    * Add a header parameter with included parameter types
    * @param headerName expected header name
    * @param type expected type of parameter
@@ -103,6 +131,18 @@ public interface HTTPRequestValidationHandler extends ValidationHandler {
    */
   @Fluent
   HTTPRequestValidationHandler addHeaderParamWithPattern(String headerName, String pattern, boolean required);
+
+  /**
+   * Add a header parameter with a custom type validator. For more informations about how to construct built-in or custom type validator, check out {@link ParameterTypeValidator}
+   *
+   * @param headerName      expected header namery
+   * @param validator       type validator
+   * @param required        true if parameter is required
+   * @param allowEmptyValue true if parameter allowEmptyValue. For more informations about allowEmptyValue behaviour: {@link ParameterValidationRule#allowEmptyValue()}
+   * @return this handler
+   */
+  @Fluent
+  HTTPRequestValidationHandler addHeaderParamWithCustomTypeValidator(String headerName, ParameterTypeValidator validator, boolean required, boolean allowEmptyValue);
 
   /**
    * Add a single parameter inside a form with included parameter types
@@ -135,7 +175,7 @@ public interface HTTPRequestValidationHandler extends ValidationHandler {
   HTTPRequestValidationHandler addFormParamsArray(String parameterName, ParameterType type, boolean required);
 
   /**
-   * Add a query parameters array with a custom pattern
+   * Add a form parameters array with a custom pattern
    * @param parameterName expected name of array of parameters inside the form
    * @param pattern regular expression for validation
    * @param required true if parameter is required
@@ -143,6 +183,18 @@ public interface HTTPRequestValidationHandler extends ValidationHandler {
    */
   @Fluent
   HTTPRequestValidationHandler addFormParamsArrayWithPattern(String parameterName, String pattern, boolean required);
+
+  /**
+   * Add a form parameter with a custom type validator. For more informations about how to construct built-in or custom type validator, check out {@link ParameterTypeValidator}
+   *
+   * @param parameterName   expected name of parameter inside the form
+   * @param validator       type validator
+   * @param required        true if parameter is required
+   * @param allowEmptyValue true if parameter allowEmptyValue. For more informations about allowEmptyValue behaviour: {@link ParameterValidationRule#allowEmptyValue()}
+   * @return this handler
+   */
+  @Fluent
+  HTTPRequestValidationHandler addFormParamWithCustomTypeValidator(String parameterName, ParameterTypeValidator validator, boolean required, boolean allowEmptyValue);
 
   /**
    * Add a custom validator. For more informations about custom validator, see {@link CustomValidator}

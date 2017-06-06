@@ -1,13 +1,15 @@
 package io.vertx.ext.web.validation.impl;
 
 import com.reprezen.kaizen.oasparser.model3.*;
-import com.reprezen.kaizen.oasparser.ovl3.MediaTypeImpl;
 import com.reprezen.kaizen.oasparser.ovl3.SchemaImpl;
 import io.vertx.ext.web.RequestParameter;
 import io.vertx.ext.web.designdriven.impl.OpenApi3Utils;
 import io.vertx.ext.web.validation.*;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Francesco Guardiani @slinkydeveloper
@@ -220,16 +222,16 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
     Map<String, ? extends MediaType> contents = parameter.getContentMediaTypes();
     ParameterLocation location = resolveLocation(parameter.getIn());
     if (contents.size() == 1 && contents.containsKey("application/json")) {
-      this.addRule(ParameterValidationRule.createValidationRuleWithCustomTypeValidator(parameter.getName(), JsonTypeValidator.JsonTypeValidatorFactory.createJsonTypeValidator(((SchemaImpl) contents.get("application/json").getSchema()).getDereferencedJsonTree()), !parameter.getRequired(), (parameter.getAllowEmptyValue() != null) ? parameter.getAllowEmptyValue() : false, location), location);
+      this.addRule(ParameterValidationRuleImpl.ParameterValidationRuleFactory.createValidationRuleWithCustomTypeValidator(parameter.getName(), JsonTypeValidator.JsonTypeValidatorFactory.createJsonTypeValidator(((SchemaImpl) contents.get("application/json").getSchema()).getDereferencedJsonTree()), !parameter.getRequired(), (parameter.getAllowEmptyValue() != null) ? parameter.getAllowEmptyValue() : false, location), location);
     } else if (contents.size() > 1 && contents.containsKey("application/json")) {
       // Mount anyOf
       List<ParameterTypeValidator> validators = new ArrayList<>();
       validators.add(CONTENT_TYPE_VALIDATOR);
       validators.add(0, JsonTypeValidator.JsonTypeValidatorFactory.createJsonTypeValidator(((SchemaImpl) contents.get("application/json").getSchema()).getDereferencedJsonTree()));
       AnyOfTypeValidator validator = new AnyOfTypeValidator(validators);
-      this.addRule(ParameterValidationRule.createValidationRuleWithCustomTypeValidator(parameter.getName(), validator, !parameter.getRequired(), (parameter.getAllowEmptyValue() != null) ? parameter.getAllowEmptyValue() : false, location), location);
+      this.addRule(ParameterValidationRuleImpl.ParameterValidationRuleFactory.createValidationRuleWithCustomTypeValidator(parameter.getName(), validator, !parameter.getRequired(), (parameter.getAllowEmptyValue() != null) ? parameter.getAllowEmptyValue() : false, location), location);
     } else {
-      this.addRule(ParameterValidationRule.createValidationRuleWithCustomTypeValidator(parameter.getName(), CONTENT_TYPE_VALIDATOR, !parameter.getRequired(), (parameter.getAllowEmptyValue() != null) ? parameter.getAllowEmptyValue() : false, location), location);
+      this.addRule(ParameterValidationRuleImpl.ParameterValidationRuleFactory.createValidationRuleWithCustomTypeValidator(parameter.getName(), CONTENT_TYPE_VALIDATOR, !parameter.getRequired(), (parameter.getAllowEmptyValue() != null) ? parameter.getAllowEmptyValue() : false, location), location);
     }
   }
 
@@ -250,7 +252,7 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
     for (Map.Entry<String, Schema> entry : properties.entrySet()) {
       if (parameter.getIn().equals("query")) {
         this.addQueryParamRule(
-          ParameterValidationRule.createValidationRuleWithCustomTypeValidator(entry.getKey(),
+          ParameterValidationRuleImpl.ParameterValidationRuleFactory.createValidationRuleWithCustomTypeValidator(entry.getKey(),
             this.resolveInnerSchemaPrimitiveTypeValidator(entry.getValue(), true),
             !requiredFields.contains(entry.getKey()),
             true,
@@ -279,14 +281,14 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
     this.resolveObjectTypeFields(objectTypeValidator, properties, requiredFields);
     if (parameter.getIn().equals("path")) {
       this.addPathParamRule(
-        ParameterValidationRule.createValidationRuleWithCustomTypeValidator(parameter.getName(),
+        ParameterValidationRuleImpl.ParameterValidationRuleFactory.createValidationRuleWithCustomTypeValidator(parameter.getName(),
           objectTypeValidator,
           !OpenApi3Utils.isRequiredParam(parameter),
           (parameter.getAllowEmptyValue() != null) ? parameter.getAllowEmptyValue() : false,
           ParameterLocation.PATH));
     } else if (parameter.getIn().equals("header")) {
       this.addHeaderParamRule(
-        ParameterValidationRule.createValidationRuleWithCustomTypeValidator(parameter.getName(),
+        ParameterValidationRuleImpl.ParameterValidationRuleFactory.createValidationRuleWithCustomTypeValidator(parameter.getName(),
           objectTypeValidator,
           !OpenApi3Utils.isRequiredParam(parameter),
           (parameter.getAllowEmptyValue() != null) ? parameter.getAllowEmptyValue() : false,
@@ -313,7 +315,7 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
     for (Map.Entry<String, ? extends Schema> entry : properties.entrySet()) {
       if (parameter.getIn().equals("query")) {
         this.addQueryParamRule(
-          ParameterValidationRule.createValidationRuleWithCustomTypeValidator(parameter.getName() + "[" + entry.getKey() + "]",
+          ParameterValidationRuleImpl.ParameterValidationRuleFactory.createValidationRuleWithCustomTypeValidator(parameter.getName() + "[" + entry.getKey() + "]",
             this.resolveInnerSchemaPrimitiveTypeValidator(entry.getValue(), true),
             !requiredFields.contains(entry.getKey()),
             true,
@@ -379,7 +381,7 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
   private void parseParameter(Parameter parameter) {
     if (!checkSupportedAndNeedWorkaround(parameter)) {
       ParameterLocation location = resolveLocation(parameter.getIn());
-      this.addRule(ParameterValidationRule.createValidationRuleWithCustomTypeValidator(parameter.getName(), this.resolveTypeValidator(parameter), !parameter.getRequired(), (parameter.getAllowEmptyValue() != null) ? parameter.getAllowEmptyValue() : false, location), location);
+      this.addRule(ParameterValidationRuleImpl.ParameterValidationRuleFactory.createValidationRuleWithCustomTypeValidator(parameter.getName(), this.resolveTypeValidator(parameter), !parameter.getRequired(), (parameter.getAllowEmptyValue() != null) ? parameter.getAllowEmptyValue() : false, location), location);
     }
   }
 
@@ -404,10 +406,10 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
       this.setEntireBodyValidator(JsonTypeValidator.JsonTypeValidatorFactory.createJsonTypeValidator(((SchemaImpl) json.getSchema()).getDereferencedJsonTree()));
     }
 
-    MediaType formUrlEncoded = requestBody.getContentMediaType("x-www-form-urlencoded");
+    MediaType formUrlEncoded = requestBody.getContentMediaType("application/x-www-form-urlencoded");
     if (formUrlEncoded != null && formUrlEncoded.getSchema() != null) {
       for (Map.Entry<String, ? extends Schema> paramSchema : formUrlEncoded.getSchema().getProperties().entrySet()) {
-        this.addFormParamRule(ParameterValidationRule.createValidationRuleWithCustomTypeValidator(paramSchema.getKey(),
+        this.addFormParamRule(ParameterValidationRuleImpl.ParameterValidationRuleFactory.createValidationRuleWithCustomTypeValidator(paramSchema.getKey(),
           this.resolveSchemaTypeValidatorFormEncoded(paramSchema.getValue()),
           !OpenApi3Utils.isRequiredParam(paramSchema.getValue(), paramSchema.getKey()),
           false,

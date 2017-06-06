@@ -27,7 +27,7 @@ public class OneOfTypeValidator implements ParameterTypeValidator {
           if (resultParam == null)
             resultParam = validatedParam;
           else
-            throw ValidationException.generateNotMatchValidationException(value + " match multiple schemas inside oneOf field");
+            throw ValidationException.ValidationExceptionFactory.generateNotMatchValidationException(value + " match multiple schemas inside oneOf field");
         }
       } catch (ValidationException e) {
       }
@@ -35,6 +35,6 @@ public class OneOfTypeValidator implements ParameterTypeValidator {
     if (resultParam != null)
       return resultParam;
     else
-      throw ValidationException.generateNotMatchValidationException(value + " doesn't match any of oneOf schemas");
+      throw ValidationException.ValidationExceptionFactory.generateNotMatchValidationException(value + " doesn't match any of oneOf schemas");
   }
 }
