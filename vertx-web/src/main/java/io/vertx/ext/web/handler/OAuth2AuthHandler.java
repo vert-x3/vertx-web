@@ -62,12 +62,11 @@ public interface OAuth2AuthHandler extends AuthHandler {
    * @param vertx  vertx instance
    * @param authProvider  the auth provider to use
    * @param callbackURL the callback URL you entered in your provider admin console, usually it should be something like: `https://myserver:8888/callback`
-   * @param ttl duration that the state parameter is cached
    * @param stateLength length of the state string generated
    * @return the auth handler
    */
-  static OAuth2AuthHandler createCSRFProtected(Vertx vertx, OAuth2Auth authProvider, String callbackURL, long ttl, int stateLength) {
-    return new OAuth2AuthHandlerCSRFImpl(vertx, authProvider, callbackURL, ttl, stateLength);
+  static OAuth2AuthHandler createCSRFProtected(Vertx vertx, OAuth2Auth authProvider, String callbackURL, int stateLength) {
+    return new OAuth2AuthHandlerCSRFImpl(vertx, authProvider, callbackURL, stateLength);
   }
 
   /**

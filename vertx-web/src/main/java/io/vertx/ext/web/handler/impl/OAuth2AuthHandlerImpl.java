@@ -120,15 +120,21 @@ public class OAuth2AuthHandlerImpl extends AuthHandlerImpl implements OAuth2Auth
 
       // redirect request to the oauth2 server
       ctx.response()
-        .putHeader("Location", authURI(host, ctx.normalisedPath()))
+        .putHeader("Location", authURI(ctx, host))
         .setStatusCode(302)
         .end();
     }
   }
 
-  private String authURI(String host, String redirectURL) {
+  private String authURI(RoutingContext ctx, String host) {
     if (callback == null) {
       throw new NullPointerException("callback is null");
+    }
+
+    String state = formState(ctx);
+
+    if (state == null) {
+      throw new IllegalStateException("Unable to form state");
     }
 
     if (authorities.size() > 0) {
@@ -141,11 +147,11 @@ public class OAuth2AuthHandlerImpl extends AuthHandlerImpl implements OAuth2Auth
       return ((OAuth2Auth) authProvider).authorizeURL(new JsonObject()
         .put("redirect_uri", host + callback.getPath())
         .put("scopes", scopes)
-        .put("state", formState(redirectURL)));
+        .put("state", state));
     } else {
       return ((OAuth2Auth) authProvider).authorizeURL(new JsonObject()
         .put("redirect_uri", host + callback.getPath())
-        .put("state", formState(redirectURL)));
+        .put("state", state));
     }
   }
 
@@ -220,8 +226,8 @@ public class OAuth2AuthHandlerImpl extends AuthHandlerImpl implements OAuth2Auth
     return Future.succeededFuture(ctx.request().getParam("state"));
   }
 
-  protected String formState(String redirectURL) {
-    return redirectURL;
+  protected String formState(RoutingContext ctx) {
+    return ctx.normalisedPath();
   }
 
 }
