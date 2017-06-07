@@ -335,8 +335,8 @@ get.send({ ar ->
 
 ----
 
-When you need to mutate a request, the `link:../../apidocs/io/vertx/ext/web/client/HttpRequest.html#copy--[copy]` returns a copy of the
-request
+Beware though that `link:../../apidocs/io/vertx/ext/web/client/HttpRequest.html[HttpRequest]` instances are mutable.
+Therefore you should call the `link:../../apidocs/io/vertx/ext/web/client/HttpRequest.html#copy--[copy]` method before modifying a cached instance.
 
 [source,groovy]
 ----
@@ -347,8 +347,8 @@ get.send({ ar ->
   }
 })
 
-// Same request again
-get.putHeader("an-header", "with-some-value").send({ ar ->
+// The "get" request instance remains unmodified
+get.copy().putHeader("a-header", "with-some-value").send({ ar ->
   if (ar.succeeded()) {
     // Ok
   }

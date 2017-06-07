@@ -119,9 +119,8 @@ public class WebClientExamples {
       }
     });
 
-    // Same request again
-    get.putHeader("an-header", "with-some-value")
-      .send(ar -> {
+    // The "get" request instance remains unmodified
+    get.copy().putHeader("a-header", "with-some-value").send(ar -> {
       if (ar.succeeded()) {
         // Ok
       }
