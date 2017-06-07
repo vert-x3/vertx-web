@@ -39,6 +39,8 @@ import java.math.BigInteger;
 public class OAuth2AuthHandlerCSRFImpl extends OAuth2AuthHandlerImpl {
   private static final Logger log = LoggerFactory.getLogger(OAuth2AuthHandlerCSRFImpl.class);
   private static final String SESSION_STATE_NAME = "oauth";
+  public static final String AUTH_STATE_DATA_NAME = "state";
+  public static final String REDIRECT_URL_NAME = "redirect_url";
 
   private final int stateLength;
   private final PRNG random;
@@ -64,15 +66,15 @@ public class OAuth2AuthHandlerCSRFImpl extends OAuth2AuthHandlerImpl {
       return stateFuture;
     }
 
-    JsonObject authData = (JsonObject) session.data().get("oauth");
+    JsonObject authData = (JsonObject) session.data().get(SESSION_STATE_NAME);
 
     if (authData == null) {
       stateFuture.fail("Unable to find auth state");
     } else if (key == null) {
       stateFuture.fail("State not provided");
     } else {
-      String redirectUrl = authData.getString("redirect_url");
-      String state = authData.getString("state");
+      String redirectUrl = authData.getString(REDIRECT_URL_NAME);
+      String state = authData.getString(AUTH_STATE_DATA_NAME);
 
       if (!key.equals(state)) {
         stateFuture.fail("Session and called state differ");
@@ -103,8 +105,8 @@ public class OAuth2AuthHandlerCSRFImpl extends OAuth2AuthHandlerImpl {
     }
 
     session.data().put(SESSION_STATE_NAME, new JsonObject()
-      .put("state", state)
-      .put("redirect_url", ctx.normalisedPath()));
+      .put(AUTH_STATE_DATA_NAME, state)
+      .put(REDIRECT_URL_NAME, ctx.normalisedPath()));
 
     return state;
   }
