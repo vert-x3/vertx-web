@@ -2,7 +2,6 @@ package io.vertx.ext.web.client.impl;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -38,30 +37,26 @@ import io.vertx.ext.web.codec.spi.BodyStream;
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
  */
-public class HttpContext<R> implements Handler<AsyncResult<HttpClientResponse>> {
+public class HttpContext<T> implements Handler<AsyncResult<HttpClientResponse>> {
 
-  private static final Iterator<Handler<HttpContext<?>>> EMPTY_INTERCEPTORS = Collections.emptyIterator();
-
-  final WebClientImpl client;
-  private BodyCodec<R> codec;
-  private Handler<AsyncResult<HttpResponse<R>>> responseHandler;
-  private HttpRequestImpl request;
+  private final WebClientImpl client;
+  private final Iterator<Handler<HttpContext<?>>> it;
+  private final HttpRequestImpl request;
+  private final Object body;
   private String contentType;
-  private Object body;
-  private Iterator<Handler<HttpContext<?>>> it;
   private Map<String, Object> payload;
+  private Handler<AsyncResult<HttpResponse<T>>> responseHandler;
 
   public HttpContext(WebClientImpl client,
                      HttpRequestImpl request,
                      String contentType,
                      Object body,
-                     BodyCodec<R> codec,
-                     Handler<AsyncResult<HttpResponse<R>>> responseHandler) {
+                     Handler<AsyncResult<HttpResponse<T>>> responseHandler) {
     this.client = client;
+    this.it = client.interceptors.iterator();
     this.request = request;
     this.contentType = contentType;
     this.body = body;
-    this.codec = codec;
     this.responseHandler = responseHandler;
   }
 
@@ -69,39 +64,20 @@ public class HttpContext<R> implements Handler<AsyncResult<HttpClientResponse>> 
     return request;
   }
 
-  public void setRequest(HttpRequestImpl request) {
-    this.request = request;
-  }
-
   public String getContentType() {
     return contentType;
   }
 
-  public void setContentType(String contentType) {
-    this.contentType = contentType;
-  }
 
   public Object getBody() {
     return body;
   }
 
-  public void setBody(Object body) {
-    this.body = body;
-  }
-
-  public BodyCodec<R> getCodec() {
-    return codec;
-  }
-
-  public void setCodec(BodyCodec<R> codec) {
-    this.codec = codec;
-  }
-
-  public Handler<AsyncResult<HttpResponse<R>>> getResponseHandler() {
+  public Handler<AsyncResult<HttpResponse<T>>> getResponseHandler() {
     return responseHandler;
   }
 
-  public void setResponseHandler(Handler<AsyncResult<HttpResponse<R>>> responseHandler) {
+  public void setResponseHandler(Handler<AsyncResult<HttpResponse<T>>> responseHandler) {
     this.responseHandler = responseHandler;
   }
 
@@ -114,7 +90,6 @@ public class HttpContext<R> implements Handler<AsyncResult<HttpClientResponse>> 
    * will be reset.
    */
   void interceptAndSend() {
-    it = client.interceptors.size() > 0 ? client.interceptors.iterator() : EMPTY_INTERCEPTORS;
     next();
   }
 
@@ -138,7 +113,7 @@ public class HttpContext<R> implements Handler<AsyncResult<HttpClientResponse>> 
       Context context = Vertx.currentContext();
       if (ar.succeeded()) {
         HttpClientResponse resp = ar.result();
-        Future<HttpResponse<R>> fut = Future.future();
+        Future<HttpResponse<T>> fut = Future.future();
         fut.setHandler(r -> {
           // We are running on a context (the HTTP client mandates it)
           context.runOnContext(v -> responseHandler.handle(r));
@@ -149,10 +124,10 @@ public class HttpContext<R> implements Handler<AsyncResult<HttpClientResponse>> 
           }
         });
         resp.pause();
-        codec.create(ar2 -> {
+        ((BodyCodec<T>)request.codec).create(ar2 -> {
           resp.resume();
           if (ar2.succeeded()) {
-            BodyStream<R> stream = ar2.result();
+            BodyStream<T> stream = ar2.result();
             stream.exceptionHandler(err -> {
               if (!fut.isComplete()) {
                 fut.fail(err);
