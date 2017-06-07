@@ -1152,7 +1152,7 @@ public class WebClientTest extends HttpTestBase {
       req.response().end();
     });
     startServer();
-    ((WebClientInternal) client).addInterceptor(this::handleMutateRequest);
+    client.addInterceptor(this::handleMutateRequest);
     HttpRequest<Buffer> builder = client.get("/somepath").host("another-host").port(8081);
     builder.send(onSuccess(resp -> {
       complete();
@@ -1185,10 +1185,84 @@ public class WebClientTest extends HttpTestBase {
       req.response().setStatusCode(500).end();
     });
     startServer();
-    ((WebClientInternal) client).addInterceptor(this::handleMutateResponse);
+    client.addInterceptor(this::handleMutateResponse);
     HttpRequest<Buffer> builder = client.get("/somepath");
     builder.send(onSuccess(resp -> {
       assertEquals(200, resp.statusCode());
+      complete();
+    }));
+    await();
+  }
+
+  @Test //TODO
+  public void testInterceptor() throws Exception {
+    server.requestHandler(req -> {
+      req.response().setStatusCode(204).end();
+    });
+    startServer();
+
+
+    client.addInterceptor(context -> {
+      System.out.println("start interceptor1");
+
+      Handler responseHandler =
+              context.getResponseHandler();
+
+      context.setResponseHandler(innerEvent -> {
+        System.out.println(innerEvent.result());
+        System.out.println(innerEvent.result().statusCode());
+        System.out.println("end interceptor1");
+        responseHandler.handle(innerEvent);
+      });
+
+      context.next();
+    });
+
+    client.addInterceptor(event -> {
+      System.out.println("start interceptor2");
+
+      Handler responseHandler =
+              event.getResponseHandler();
+
+      event.setResponseHandler(innerEvent -> {
+        System.out.println(innerEvent.result());
+        System.out.println(innerEvent.result().statusCode());
+        System.out.println("end interceptor2");
+        responseHandler.handle(innerEvent);
+      });
+
+      System.out.println(event.getRequest());
+      event.next();
+    });
+
+    HttpRequest<Buffer> builder = client.get("/somepath");
+    builder.send(onSuccess(event -> {
+      System.out.println("end in client");
+      complete();
+    }));
+    await();
+  }
+
+  @Test //TODO
+  public void testInterceptorRedirect() throws Exception {
+    String location = "http://" + DEFAULT_HTTP_HOST + ":" + DEFAULT_HTTP_PORT + "/ok";
+    server.requestHandler(req -> {
+      if (req.path().equals("/redirect")) {
+        req.response().setStatusCode(301).putHeader("Location", location).end();
+      } else {
+        req.response().setStatusCode(204).end(req.path());
+      }
+    });
+    startServer();
+
+    client.addInterceptor(event -> {
+      System.out.println("start interceptor");
+      event.next();
+    });
+
+    HttpRequest<Buffer> builder = client.get("/redirect");
+    builder.send(onSuccess(event -> {
+      System.out.println(event.statusCode());
       complete();
     }));
     await();
@@ -1204,7 +1278,7 @@ public class WebClientTest extends HttpTestBase {
       fail();
     });
     startServer();
-    ((WebClientInternal) client).addInterceptor(this::handleCacheInterceptor);
+    client.addInterceptor(this::handleCacheInterceptor);
     HttpRequest<Buffer> builder = client.get("/somepath").host("localhost").port(8080);
     builder.send(onSuccess(resp -> {
       assertEquals(200, resp.statusCode());

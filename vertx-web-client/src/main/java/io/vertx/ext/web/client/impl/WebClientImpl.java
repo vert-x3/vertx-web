@@ -27,7 +27,7 @@ import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.RequestOptions;
 import io.vertx.ext.web.client.HttpRequest;
-import io.vertx.ext.web.client.WebClientInternal;
+import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.ext.web.codec.impl.BodyCodecImpl;
 
@@ -35,7 +35,7 @@ import io.vertx.ext.web.codec.impl.BodyCodecImpl;
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
  */
-public class WebClientImpl implements WebClientInternal {
+public class WebClientImpl implements WebClient {
 
   final HttpClient client;
   private final WebClientOptions options;

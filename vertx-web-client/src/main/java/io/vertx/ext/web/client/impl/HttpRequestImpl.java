@@ -213,7 +213,7 @@ class HttpRequestImpl<T> implements HttpRequest<T> {
   }
 
   private void send(String contentType, Object body, Handler<AsyncResult<HttpResponse<T>>> handler) {
-    HttpContext<T> ex = new HttpContext<>(client, this, contentType, body, codec, handler);
+    HttpContext<T> ex = new HttpContext<>(client, this, contentType, body, handler);
     ex.interceptAndSend();
   }
 }
