@@ -113,7 +113,7 @@ public class HttpContext<R> implements Handler<AsyncResult<HttpClientResponse>> 
    * Send the HTTP request, the context will traverse all interceptors. Any interceptor chain on the context
    * will be reset.
    */
-  public void send() {
+  void interceptAndSend() {
     it = client.interceptors.size() > 0 ? client.interceptors.iterator() : EMPTY_INTERCEPTORS;
     next();
   }
