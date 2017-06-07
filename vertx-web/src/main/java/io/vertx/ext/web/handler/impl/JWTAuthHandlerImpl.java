@@ -98,13 +98,8 @@ public class JWTAuthHandlerImpl extends AuthHandlerImpl implements JWTAuthHandle
 
       if (authorization != null) {
         String[] parts = authorization.split(" ");
-        if (parts.length == 2) {
-          final String scheme = parts[0],
-              credentials = parts[1];
-
-          if (BEARER.matcher(scheme).matches()) {
-            token = credentials;
-          }
+        if ((parts.length == 2) && BEARER.matcher(parts[0]).matches()) {
+          token = parts[1];
         } else {
           log.warn("Format is Authorization: Bearer [token]");
           context.fail(401);

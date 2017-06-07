@@ -19,7 +19,6 @@ package io.vertx.ext.web.handler;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.auth.AuthProvider;
 import io.vertx.ext.auth.jwt.JWTAuth;
 import io.vertx.ext.auth.jwt.JWTOptions;
 import io.vertx.ext.web.RoutingContext;
@@ -86,6 +85,10 @@ public class JWTAuthHandlerTest extends WebTestBase {
 
     testRequest(HttpMethod.GET, "/protected/somepage", req -> {
       req.putHeader("Authorization", "Bearer x" + token);
+    }, 401, "Unauthorized", null);
+
+    testRequest(HttpMethod.GET, "/protected/somepage", req -> {
+      req.putHeader("Authorization", "Basic " + token);
     }, 401, "Unauthorized", null);
 
   }
