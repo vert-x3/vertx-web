@@ -68,7 +68,6 @@ public class HttpContext<T> implements Handler<AsyncResult<HttpClientResponse>> 
     return contentType;
   }
 
-
   public Object getBody() {
     return body;
   }
@@ -101,9 +100,6 @@ public class HttpContext<T> implements Handler<AsyncResult<HttpClientResponse>> 
       Handler<HttpContext<?>> next = it.next();
       next.handle(this);
     } else {
-      Future<HttpClientResponse> fut = Future
-        .<HttpClientResponse>future()
-        .setHandler(this);
       sendRequest();
     }
   }
@@ -166,10 +162,11 @@ public class HttpContext<T> implements Handler<AsyncResult<HttpClientResponse>> 
       requestURI = request.uri;
     }
     if (request.ssl != request.options.isSsl()) {
-      req = client.client.request(request.method, new RequestOptions().setSsl(request.ssl).setHost(request.host).setPort
-              (request.port)
-              .setURI
-                      (requestURI));
+      req = client.client.request(request.method, new RequestOptions()
+              .setSsl(request.ssl)
+              .setHost(request.host)
+              .setPort(request.port)
+              .setURI(requestURI));
     } else {
       if (request.protocol != null && !request.protocol.equals("http") && !request.protocol.equals("https")) {
         // we have to create an abs url again to parse it in HttpClient

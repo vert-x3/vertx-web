@@ -5,8 +5,11 @@ import java.net.ConnectException;
 import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -1194,78 +1197,84 @@ public class WebClientTest extends HttpTestBase {
     await();
   }
 
-  @Test //TODO
-  public void testInterceptor() throws Exception {
-    server.requestHandler(req -> {
-      req.response().setStatusCode(204).end();
-    });
-    startServer();
-
-
-    client.addInterceptor(context -> {
-      System.out.println("start interceptor1");
-
-      Handler responseHandler =
-              context.getResponseHandler();
-
-      context.setResponseHandler(innerEvent -> {
-        System.out.println(innerEvent.result());
-        System.out.println(innerEvent.result().statusCode());
-        System.out.println("end interceptor1");
-        responseHandler.handle(innerEvent);
-      });
-
-      context.next();
-    });
-
-    client.addInterceptor(event -> {
-      System.out.println("start interceptor2");
-
-      Handler responseHandler =
-              event.getResponseHandler();
-
-      event.setResponseHandler(innerEvent -> {
-        System.out.println(innerEvent.result());
-        System.out.println(innerEvent.result().statusCode());
-        System.out.println("end interceptor2");
-        responseHandler.handle(innerEvent);
-      });
-
-      System.out.println(event.getRequest());
-      event.next();
-    });
-
-    HttpRequest<Buffer> builder = client.get("/somepath");
-    builder.send(onSuccess(event -> {
-      System.out.println("end in client");
-      complete();
-    }));
-    await();
-  }
-
-  @Test //TODO
-  public void testInterceptorRedirect() throws Exception {
+  @Test // TODO remove
+  public void testTracingInterceptor() throws Exception {
     String location = "http://" + DEFAULT_HTTP_HOST + ":" + DEFAULT_HTTP_PORT + "/ok";
     server.requestHandler(req -> {
       if (req.path().equals("/redirect")) {
+        String spanId = req.headers().get("spanId");
+        assertEquals("foo", spanId);
         req.response().setStatusCode(301).putHeader("Location", location).end();
       } else {
+        String spanId = req.headers().get("spanId");
+        assertEquals("foo", spanId);
         req.response().setStatusCode(204).end(req.path());
       }
     });
     startServer();
 
-    client.addInterceptor(event -> {
-      System.out.println("start interceptor");
-      event.next();
-    });
+    CountDownLatch countDownLatch = new CountDownLatch(2);
+    Map<String, Object> tags = new LinkedHashMap<>();
+    client.addInterceptor((a -> tracingInterceptor(a, countDownLatch, tags)));
 
+    /**
+     * TODO we need to pass context (spanId, traceId) to the interceptor.
+     */
     HttpRequest<Buffer> builder = client.get("/redirect");
     builder.send(onSuccess(event -> {
-      System.out.println(event.statusCode());
       complete();
     }));
+
+    countDownLatch.await();
     await();
+
+    assertEquals(1, tags.size());
+    assertEquals(204, tags.get("http.status_code"));
+  }
+
+  @Test // TODO remove
+  public void testTracingInterceptorError() throws Exception {
+    CountDownLatch countDownLatch = new CountDownLatch(2);
+    Map<String, Object> tags = new LinkedHashMap<>();
+    client.addInterceptor(a -> tracingInterceptor(a, countDownLatch, tags));
+    HttpRequest<Buffer> builder = client.get("http://nonexisting.example.com");
+    builder.send(event -> {});
+
+    countDownLatch.await();
+    assertEquals(2, tags.size());
+    assertTrue(tags.get("error.object") instanceof Throwable);
+    assertEquals(true, tags.get("error"));
+  }
+
+  private <R> void tracingInterceptor(HttpContext<R> context, CountDownLatch countDownLatch, Map<String, Object> tags) {
+    Handler<AsyncResult<HttpResponse<R>>> responseHandler = context.getResponseHandler();
+    countDownLatch.countDown();
+    /**
+     * TODO start span and make sure that parent span context is accessible
+     * this span should be childOf parent in order to connect server tracing with a client tracing.
+     */
+    HttpRequest request = context.getRequest();
+    // TODO method
+//    tags.put("http.method", request.method())
+    // TODO url
+//    tags.put("http.url", request.url());
+
+    // inject tracing headers
+    request.putHeader("spanId", "foo");
+
+    // finish span on response
+    context.setResponseHandler(asyncResponse -> {
+      if (asyncResponse.failed()) {
+        tags.put("error", true);
+        tags.put("error.object", asyncResponse.cause());
+      } else {
+        tags.put("http.status_code", asyncResponse.result().statusCode());
+      }
+      countDownLatch.countDown();
+      responseHandler.handle(asyncResponse);
+    });
+
+    context.next();
   }
 
   private <R> void handleCacheInterceptor(HttpContext<R> context) {
