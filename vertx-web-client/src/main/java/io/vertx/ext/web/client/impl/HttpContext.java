@@ -1,3 +1,18 @@
+/*
+ * Copyright 2014 Red Hat, Inc.
+ *
+ *  All rights reserved. This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License v1.0
+ *  and Apache License v2.0 which accompanies this distribution.
+ *
+ *  The Eclipse Public License is available at
+ *  http://www.eclipse.org/legal/epl-v10.html
+ *
+ *  The Apache License v2.0 is available at
+ *  http://www.opensource.org/licenses/apache2.0.php
+ *
+ *  You may elect to redistribute this code under either of these licenses.
+ */
 package io.vertx.ext.web.client.impl;
 
 import java.net.URI;
@@ -37,60 +52,54 @@ import io.vertx.ext.web.codec.spi.BodyStream;
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
  */
-public class HttpContext<T> implements Handler<AsyncResult<HttpClientResponse>> {
+public class HttpContext {
 
-  private final WebClientImpl client;
-  private final Iterator<Handler<HttpContext<?>>> it;
+  private final Handler<AsyncResult<HttpResponse<Object>>> responseHandler;
   private final HttpRequestImpl request;
   private final Object body;
   private String contentType;
-  private Map<String, Object> payload;
-  private Handler<AsyncResult<HttpResponse<T>>> responseHandler;
+  private Map<String, Object> attrs;
+  private Handler<AsyncResult<HttpResponse<Object>>> currentResponseHandler;
+  private Iterator<Handler<HttpContext>> it;
 
-  public HttpContext(WebClientImpl client,
-                     HttpRequestImpl request,
+  public HttpContext(HttpRequest request,
                      String contentType,
                      Object body,
-                     Handler<AsyncResult<HttpResponse<T>>> responseHandler) {
-    this.client = client;
-    this.it = client.interceptors.iterator();
-    this.request = request;
+                     Handler<AsyncResult<HttpResponse<Object>>> responseHandler) {
+    this.request = (HttpRequestImpl)request;
     this.contentType = contentType;
     this.body = body;
     this.responseHandler = responseHandler;
-  }
-
-  public HttpRequest getRequest() {
-    return request;
-  }
-
-  public String getContentType() {
-    return contentType;
-  }
-
-
-  public Object getBody() {
-    return body;
-  }
-
-  public Handler<AsyncResult<HttpResponse<T>>> getResponseHandler() {
-    return responseHandler;
-  }
-
-  public void setResponseHandler(Handler<AsyncResult<HttpResponse<T>>> responseHandler) {
-    this.responseHandler = responseHandler;
-  }
-
-  @Override
-  public void handle(AsyncResult<HttpClientResponse> asyncResult) {
   }
 
   /**
    * Send the HTTP request, the context will traverse all interceptors. Any interceptor chain on the context
    * will be reset.
    */
-  void interceptAndSend() {
+  public void interceptAndSend() {
+    it = request.client.interceptors.iterator();
+    currentResponseHandler = responseHandler;
     next();
+  }
+
+  public HttpRequest request() {
+    return request;
+  }
+
+  public String contentType() {
+    return contentType;
+  }
+
+  public Object body() {
+    return body;
+  }
+
+  public Handler<AsyncResult<HttpResponse<Object>>> getResponseHandler() {
+    return currentResponseHandler;
+  }
+
+  public void setResponseHandler(Handler<AsyncResult<HttpResponse<Object>>> responseHandler) {
+    this.currentResponseHandler = responseHandler;
   }
 
   /**
@@ -98,12 +107,9 @@ public class HttpContext<T> implements Handler<AsyncResult<HttpClientResponse>> 
    */
   public void next() {
     if (it.hasNext()) {
-      Handler<HttpContext<?>> next = it.next();
+      Handler<HttpContext> next = it.next();
       next.handle(this);
     } else {
-      Future<HttpClientResponse> fut = Future
-        .<HttpClientResponse>future()
-        .setHandler(this);
       sendRequest();
     }
   }
@@ -113,10 +119,10 @@ public class HttpContext<T> implements Handler<AsyncResult<HttpClientResponse>> 
       Context context = Vertx.currentContext();
       if (ar.succeeded()) {
         HttpClientResponse resp = ar.result();
-        Future<HttpResponse<T>> fut = Future.future();
+        Future<HttpResponse<Object>> fut = Future.future();
         fut.setHandler(r -> {
           // We are running on a context (the HTTP client mandates it)
-          context.runOnContext(v -> responseHandler.handle(r));
+          context.runOnContext(v -> currentResponseHandler.handle(r));
         });
         resp.exceptionHandler(err -> {
           if (!fut.isComplete()) {
@@ -124,10 +130,10 @@ public class HttpContext<T> implements Handler<AsyncResult<HttpClientResponse>> 
           }
         });
         resp.pause();
-        ((BodyCodec<T>)request.codec).create(ar2 -> {
+        ((BodyCodec<Object>)request.codec).create(ar2 -> {
           resp.resume();
           if (ar2.succeeded()) {
-            BodyStream<T> stream = ar2.result();
+            BodyStream<Object> stream = ar2.result();
             stream.exceptionHandler(err -> {
               if (!fut.isComplete()) {
                 fut.fail(err);
@@ -146,11 +152,11 @@ public class HttpContext<T> implements Handler<AsyncResult<HttpClientResponse>> 
             Pump responsePump = Pump.pump(resp, stream);
             responsePump.start();
           } else {
-            responseHandler.handle(Future.failedFuture(ar2.cause()));
+            currentResponseHandler.handle(Future.failedFuture(ar2.cause()));
           }
         });
       } else {
-        responseHandler.handle(Future.failedFuture(ar.cause()));
+        currentResponseHandler.handle(Future.failedFuture(ar.cause()));
       }
     });
 
@@ -166,7 +172,7 @@ public class HttpContext<T> implements Handler<AsyncResult<HttpClientResponse>> 
       requestURI = request.uri;
     }
     if (request.ssl != request.options.isSsl()) {
-      req = client.client.request(request.method, new RequestOptions().setSsl(request.ssl).setHost(request.host).setPort
+      req = request.client.client.request(request.method, new RequestOptions().setSsl(request.ssl).setHost(request.host).setPort
               (request.port)
               .setURI
                       (requestURI));
@@ -175,13 +181,13 @@ public class HttpContext<T> implements Handler<AsyncResult<HttpClientResponse>> 
         // we have to create an abs url again to parse it in HttpClient
         try {
           URI uri = new URI(request.protocol, null, request.host, request.port, requestURI, null, null);
-          req = client.client.requestAbs(request.method, uri.toString());
+          req = request.client.client.requestAbs(request.method, uri.toString());
         } catch (URISyntaxException ex) {
-          responseHandler.handle(Future.failedFuture(ex));
+          currentResponseHandler.handle(Future.failedFuture(ex));
           return;
         }
       } else {
-        req = client.client.request(request.method, request.port, request.host, requestURI);
+        req = request.client.client.request(request.method, request.port, request.host, requestURI);
       }
     }
     req.setFollowRedirects(request.followRedirects);
@@ -273,20 +279,29 @@ public class HttpContext<T> implements Handler<AsyncResult<HttpClientResponse>> 
     }
   }
 
-  public <T> T getPayload(String key) {
-    return payload != null ? (T) payload.get(key) : null;
+  public <T> T get(String key) {
+    return getOrDefault(key, null);
   }
 
-  public void setPayload(String key, Object value) {
+  public <T> T getOrDefault(String key, T def) {
+    T attr = attrs != null ? (T) attrs.get(key) : null;
+    if (attr == null) {
+      attr = def;
+    }
+    return attr;
+  }
+
+  public HttpContext set(String key, Object value) {
     if (value == null) {
-      if (payload != null) {
-        payload.remove(key);
+      if (attrs != null) {
+        attrs.remove(key);
       }
     } else {
-      if (payload == null) {
-        payload = new HashMap<>();
+      if (attrs == null) {
+        attrs = new HashMap<>();
       }
-      payload.put(key, value);
+      attrs.put(key, value);
     }
+    return this;
   }
 }

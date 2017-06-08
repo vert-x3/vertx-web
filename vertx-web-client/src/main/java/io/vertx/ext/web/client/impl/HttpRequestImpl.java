@@ -35,7 +35,7 @@ import io.vertx.ext.web.codec.BodyCodec;
  */
 class HttpRequestImpl<T> implements HttpRequest<T> {
 
-  private final WebClientImpl client;
+  final WebClientImpl client;
   final WebClientOptions options;
   MultiMap params;
   HttpMethod method;
@@ -213,7 +213,7 @@ class HttpRequestImpl<T> implements HttpRequest<T> {
   }
 
   private void send(String contentType, Object body, Handler<AsyncResult<HttpResponse<T>>> handler) {
-    HttpContext<T> ex = new HttpContext<>(client, this, contentType, body, handler);
+    HttpContext ex = new HttpContext(this, contentType, body, (Handler)handler);
     ex.interceptAndSend();
   }
 }

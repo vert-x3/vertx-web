@@ -16,8 +16,6 @@ import java.util.function.Function;
 
 import org.junit.Test;
 
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.VertxException;
@@ -33,7 +31,6 @@ import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
-import io.vertx.core.http.HttpVersion;
 import io.vertx.core.json.DecodeException;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -1140,207 +1137,9 @@ public class WebClientTest extends HttpTestBase {
     await();
   }
 
-  private <R> void handleMutateRequest(HttpContext<R> context) {
-    context.getRequest().host("localhost");
-    context.getRequest().port(8080);
+  private <R> void handleMutateRequest(HttpContext context) {
+    context.request().host("localhost");
+    context.request().port(8080);
     context.next();
-  }
-
-  @Test
-  public void testMutateRequestInterceptor() throws Exception {
-    server.requestHandler(req -> {
-      req.response().end();
-    });
-    startServer();
-    client.addInterceptor(this::handleMutateRequest);
-    HttpRequest<Buffer> builder = client.get("/somepath").host("another-host").port(8081);
-    builder.send(onSuccess(resp -> {
-      complete();
-    }));
-    await();
-  }
-
-  private <R> void handleMutateResponse(HttpContext<R> context) {
-    Handler<AsyncResult<HttpResponse<R>>> responseHandler = context.getResponseHandler();
-    context.setResponseHandler(ar -> {
-      if (ar.succeeded()) {
-        HttpResponse<R> resp = ar.result();
-        assertEquals(500, resp.statusCode());
-        responseHandler.handle(Future.succeededFuture(new HttpResponseImpl<R>() {
-          @Override
-          public int statusCode() {
-            return 200;
-          }
-        }));
-      } else {
-        responseHandler.handle(ar);
-      }
-    });
-    context.next();
-  }
-
-  @Test
-  public void testMutateResponseInterceptor() throws Exception {
-    server.requestHandler(req -> {
-      req.response().setStatusCode(500).end();
-    });
-    startServer();
-    client.addInterceptor(this::handleMutateResponse);
-    HttpRequest<Buffer> builder = client.get("/somepath");
-    builder.send(onSuccess(resp -> {
-      assertEquals(200, resp.statusCode());
-      complete();
-    }));
-    await();
-  }
-
-  @Test //TODO
-  public void testInterceptor() throws Exception {
-    server.requestHandler(req -> {
-      req.response().setStatusCode(204).end();
-    });
-    startServer();
-
-
-    client.addInterceptor(context -> {
-      System.out.println("start interceptor1");
-
-      Handler responseHandler =
-              context.getResponseHandler();
-
-      context.setResponseHandler(innerEvent -> {
-        System.out.println(innerEvent.result());
-        System.out.println(innerEvent.result().statusCode());
-        System.out.println("end interceptor1");
-        responseHandler.handle(innerEvent);
-      });
-
-      context.next();
-    });
-
-    client.addInterceptor(event -> {
-      System.out.println("start interceptor2");
-
-      Handler responseHandler =
-              event.getResponseHandler();
-
-      event.setResponseHandler(innerEvent -> {
-        System.out.println(innerEvent.result());
-        System.out.println(innerEvent.result().statusCode());
-        System.out.println("end interceptor2");
-        responseHandler.handle(innerEvent);
-      });
-
-      System.out.println(event.getRequest());
-      event.next();
-    });
-
-    HttpRequest<Buffer> builder = client.get("/somepath");
-    builder.send(onSuccess(event -> {
-      System.out.println("end in client");
-      complete();
-    }));
-    await();
-  }
-
-  @Test //TODO
-  public void testInterceptorRedirect() throws Exception {
-    String location = "http://" + DEFAULT_HTTP_HOST + ":" + DEFAULT_HTTP_PORT + "/ok";
-    server.requestHandler(req -> {
-      if (req.path().equals("/redirect")) {
-        req.response().setStatusCode(301).putHeader("Location", location).end();
-      } else {
-        req.response().setStatusCode(204).end(req.path());
-      }
-    });
-    startServer();
-
-    client.addInterceptor(event -> {
-      System.out.println("start interceptor");
-      event.next();
-    });
-
-    HttpRequest<Buffer> builder = client.get("/redirect");
-    builder.send(onSuccess(event -> {
-      System.out.println(event.statusCode());
-      complete();
-    }));
-    await();
-  }
-
-  private <R> void handleCacheInterceptor(HttpContext<R> context) {
-    context.getResponseHandler().handle(Future.succeededFuture(new HttpResponseImpl<>()));
-  }
-
-  @Test
-  public void testCacheInterceptor() throws Exception {
-    server.requestHandler(req -> {
-      fail();
-    });
-    startServer();
-    client.addInterceptor(this::handleCacheInterceptor);
-    HttpRequest<Buffer> builder = client.get("/somepath").host("localhost").port(8080);
-    builder.send(onSuccess(resp -> {
-      assertEquals(200, resp.statusCode());
-      complete();
-    }));
-    await();
-  }
-
-  private static class HttpResponseImpl<R> implements HttpResponse<R> {
-    @Override
-    public HttpVersion version() {
-      return HttpVersion.HTTP_1_1;
-    }
-
-    @Override
-    public int statusCode() {
-      return 200;
-    }
-
-    @Override
-    public String statusMessage() {
-      return null;
-    }
-
-    @Override
-    public MultiMap headers() {
-      return null;
-    }
-
-    @Override
-    public String getHeader(String headerName) {
-      return null;
-    }
-
-    @Override
-    public MultiMap trailers() {
-      return null;
-    }
-
-    @Override
-    public String getTrailer(String trailerName) {
-      return null;
-    }
-
-    @Override
-    public List<String> cookies() {
-      return null;
-    }
-
-    @Override
-    public R body() {
-      return null;
-    }
-
-    @Override
-    public Buffer bodyAsBuffer() {
-      return null;
-    }
-
-    @Override
-    public JsonArray bodyAsJsonArray() {
-      return null;
-    }
   }
 }

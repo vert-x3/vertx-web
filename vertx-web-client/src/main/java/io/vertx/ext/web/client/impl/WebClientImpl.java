@@ -27,7 +27,6 @@ import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.RequestOptions;
 import io.vertx.ext.web.client.HttpRequest;
-import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.ext.web.codec.impl.BodyCodecImpl;
 
@@ -35,11 +34,11 @@ import io.vertx.ext.web.codec.impl.BodyCodecImpl;
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
  */
-public class WebClientImpl implements WebClient {
+public class WebClientImpl implements WebClientInternal {
 
   final HttpClient client;
   private final WebClientOptions options;
-  final List<Handler<HttpContext<?>>> interceptors = new CopyOnWriteArrayList<>();
+  final List<Handler<HttpContext>> interceptors = new CopyOnWriteArrayList<>();
 
   public WebClientImpl(HttpClient client, WebClientOptions options) {
     this.client = client;
@@ -219,7 +218,7 @@ public class WebClientImpl implements WebClient {
   }
 
   @Override
-  public void addInterceptor(Handler<HttpContext<?>> interceptor) {
+  public void addInterceptor(Handler<HttpContext> interceptor) {
     interceptors.add(interceptor);
   }
 
