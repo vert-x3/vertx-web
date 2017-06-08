@@ -15,16 +15,13 @@
  */
 package io.vertx.ext.web.client;
 
-import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.RequestOptions;
 import io.vertx.core.http.impl.HttpClientImpl;
-import io.vertx.ext.web.client.impl.HttpContext;
 import io.vertx.ext.web.client.impl.WebClientImpl;
 
 /**
@@ -329,13 +326,6 @@ public interface WebClient {
    * @return  an HTTP client request object
    */
   HttpRequest<Buffer> headAbs(String absoluteURI);
-
-  /**
-   * Add interceptor
-   * @param interceptor the interceptor to add
-   */
-  @GenIgnore
-  void addInterceptor(Handler<HttpContext<?>> interceptor);
 
   /**
    * Close the client. Closing will close down any pooled connections.
