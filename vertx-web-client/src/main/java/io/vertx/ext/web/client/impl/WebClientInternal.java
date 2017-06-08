@@ -15,7 +15,6 @@
  */
 package io.vertx.ext.web.client.impl;
 
-import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.core.Handler;
 import io.vertx.ext.web.client.WebClient;
 
@@ -31,7 +30,6 @@ public interface WebClientInternal extends WebClient {
    *
    * @param interceptor the interceptor to add
    */
-  @GenIgnore
   void addInterceptor(Handler<HttpContext> interceptor);
 
 }

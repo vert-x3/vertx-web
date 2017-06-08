@@ -1136,10 +1136,4 @@ public class WebClientTest extends HttpTestBase {
     });
     await();
   }
-
-  private <R> void handleMutateRequest(HttpContext context) {
-    context.request().host("localhost");
-    context.request().port(8080);
-    context.next();
-  }
 }
