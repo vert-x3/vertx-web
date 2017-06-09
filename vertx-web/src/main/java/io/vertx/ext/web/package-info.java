@@ -1006,6 +1006,30 @@
  * {@link examples.WebExamples#example40}
  * ----
  *
+ * == Validate the requests
+ * Vert.x provide a validation framework that will validate requests for you and will put results of validation inside a container. To define a `link:../../apidocs/io/vertx/ext/web/validation/HTTPRequestValidationHandler.html[HTTPRequestValidationHandler]`:
+ * [source,$lang]
+ * ----
+ * {@link examples.WebExamples#example63}
+ * ----
+ * If validation succeeds, It returns request parameters inside `link:../../apidocs/io/vertx/ext/web/RequestParameters.html[RequestParameters]`, otherwise It will throw a `link:../../apidocs/io/vertx/ext/web/validation/ValidationException.html[ValidationException]`
+ *
+ * === Types of request parameters
+ * Every parameter has a type validator, a class that describes the expected type of value of parameter.
+ * You can find a set of prebuilt types in `link:../../apidocs/io/vertx/ext/web/validation/ParameterType.html[ParameterType]`, or you can instantiate a custom instance of prebuilt type validators `link:../../apidocs/io/vertx/ext/web/validation/ParameterTypeValidator.html[ParameterTypeValidator]`, or you can create your own ParameterTypeValidator implementing `link:../../apidocs/io/vertx/ext/web/validation/ParameterTypeValidator.html[ParameterTypeValidator]`.
+ *
+ * == API Specification Standards Support
+ * Vert.x-web come bundled with most common Api Specification Standards support. It provides a Router factory that will care about mount a ValidationHandler based on specification.
+ *
+ * All methods, except `getRouter()` are lazy methods. When you call `getRouter()`, the `Router` will be generated following the path ordering described in specification.
+ *
+ * === OpenAPI 3
+ * You can create your web service based on OpenAPI3 specification with `link:../../apidocs/io/vertx/ext/web/designdriven/OpenAPI3RouterFactory.html[OpenAPI3RouterFactory]`. This class, as name says, is a router factory based on your OpenAPI 3 specification. It enables you to add handlers for specific paths (or operationId), and the factory will care to load the correct security and validation handlers.
+ * [source,$lang]
+ * ----
+ * {@link examples.WebExamples#example64}
+ * ----
+ *
  * == Serving static resources
  *
  * Vert.x-Web comes with an out of the box handler for serving static web resources so you can write static web servers

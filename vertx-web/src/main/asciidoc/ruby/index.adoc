@@ -1766,6 +1766,107 @@ router.route("/private/settings/*").handler(&settingsAuthHandler.method(:handle)
 
 ----
 
+== Validate the requests
+Vert.x provide a validation framework that will validate requests for you and will put results of validation inside a container. To define a `link:../../apidocs/io/vertx/ext/web/validation/HTTPRequestValidationHandler.html[HTTPRequestValidationHandler]`:
+[source,ruby]
+----
+require 'vertx-web/body_handler'
+require 'vertx-web/http_request_validation_handler'
+# BodyHandler is required to manage body parameters like forms or json body
+router.route().handler(&VertxWeb::BodyHandler.create().method(:handle))
+
+# Create Validation Handler with some stuff
+validationHandler = VertxWeb::HTTPRequestValidationHandler.create().add_query_param("parameterName", :INT, true).add_form_param_with_pattern("formParameterName", "a{4}", true).add_path_param("pathParam", :FLOAT)
+
+router.get("/awesome/:pathParam").handler(&validationHandler.method(:handle)).handler() { |routingContext|
+  # Get Request parameters container
+  params = routingContext.get("parsedParameters")
+
+  # Get parameters
+  parameterName = params.get_query_parameter("parameterName").get_integer()
+  formParameterName = params.get_form_parameter("formParameterName").get_string()
+  pathParam = params.get_path_parameter("pathParam").get_float()
+}.failure_handler() { |routingContext|
+  failure = routingContext.failure()
+  if (failure.class.name == 'Java::IoVertxExtWebValidation::ValidationException')
+    # Something went wrong during validation!
+    validationErrorMessage = failure.get_message()
+  end
+}
+
+----
+If validation succeeds, It returns request parameters inside `link:../../apidocs/io/vertx/ext/web/RequestParameters.html[RequestParameters]`, otherwise It will throw a `link:../../apidocs/io/vertx/ext/web/validation/ValidationException.html[ValidationException]`
+
+=== Types of request parameters
+Every parameter has a type validator, a class that describes the expected type of value of parameter.
+You can find a set of prebuilt types in `link:../../apidocs/io/vertx/ext/web/validation/ParameterType.html[ParameterType]`, or you can instantiate a custom instance of prebuilt type validators `link:../../apidocs/io/vertx/ext/web/validation/ParameterTypeValidator.html[ParameterTypeValidator]`, or you can create your own ParameterTypeValidator implementing `link:../../apidocs/io/vertx/ext/web/validation/ParameterTypeValidator.html[ParameterTypeValidator]`.
+
+== API Specification Standards Support
+Vert.x-web come bundled with most common Api Specification Standards support. It provides a Router factory that will care about mount a ValidationHandler based on specification.
+
+All methods, except `getRouter()` are lazy methods. When you call `getRouter()`, the `Router` will be generated following the path ordering described in specification.
+
+=== OpenAPI 3
+You can create your web service based on OpenAPI3 specification with `link:../../apidocs/io/vertx/ext/web/designdriven/OpenAPI3RouterFactory.html[OpenAPI3RouterFactory]`. This class, as name says, is a router factory based on your OpenAPI 3 specification. It enables you to add handlers for specific paths (or operationId), and the factory will care to load the correct security and validation handlers.
+[source,ruby]
+----
+require 'json'
+require 'vertx-web/open_api3_router_factory'
+# Load the api spec. This operation is asynchronous
+VertxWeb::OpenAPI3RouterFactory.create_router_factory_from_file(vertx, "src/main/resources/petstore.yaml") { |openAPI3RouterFactoryAsyncResult_err,openAPI3RouterFactoryAsyncResult|
+  if (openAPI3RouterFactoryAsyncResult_err == nil)
+    # Spec loaded with success
+    routerFactory = openAPI3RouterFactoryAsyncResult
+    # Add an handler with operationId
+    routerFactory.add_handler_by_operation_id("listPets", lambda { |routingContext|
+      # Handle listPets operation
+      routingContext.response().set_status_message("Called listPets").end()
+    }) { |routingContext|
+      # This is the failure handler
+      failure = routingContext.failure()
+      if (failure.class.name == 'Java::IoVertxExtWebValidation::ValidationException')
+        routingContext.response().set_status_code(400).set_status_message("ValidationException thrown! #{failure.get_error_type().name()}").end()end
+    }
+
+    # Add an handler with a combination of HttpMethod and path
+    routerFactory.add_handler(:POST, "/pets", lambda { |routingContext|
+      # Extract request body and use it
+      params = routingContext.get("parsedParameters")
+      pet = params.get_body().get_json_object()
+      routingContext.response().put_header("content-type", "application/json; charset=utf-8").end(JSON.generate(pet))
+    }) { |routingContext|
+      failure = routingContext.failure()
+      if (failure.class.name == 'Java::IoVertxExtWebValidation::ValidationException')
+        routingContext.response().set_status_code(400).set_status_message("ValidationException thrown! #{failure.get_error_type().name()}").end()end
+    }
+
+    # Add a security handler
+    routerFactory.add_security_handler("api_key") { |routingContext|
+      # Handle security here
+      routingContext.next()
+    }
+
+    # Before router creation you can enable or disable mounting of a default failure handler for ValidationException
+    routerFactory.enable_validation_failure_handler(false)
+
+    # Now you have to generate the router
+    router = routerFactory.get_router()
+
+    # Now you can use your Router instance
+    server = vertx.create_http_server({
+      'port' => 8080,
+      'host' => "localhost"
+    })
+    server.request_handler(&router.method(:accept)).listen()
+
+  else
+    # Something went wrong during router factory initialization
+    exception = openAPI3RouterFactoryAsyncResult_err
+  end
+}
+
+----
+
 == Serving static resources
 
 Vert.x-Web comes with an out of the box handler for serving static web resources so you can write static web servers

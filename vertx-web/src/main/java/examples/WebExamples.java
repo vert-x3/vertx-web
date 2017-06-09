@@ -7,6 +7,7 @@ import io.vertx.core.VertxOptions;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServer;
+import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.AuthProvider;
@@ -16,13 +17,8 @@ import io.vertx.ext.auth.oauth2.OAuth2Auth;
 import io.vertx.ext.auth.oauth2.OAuth2ClientOptions;
 import io.vertx.ext.auth.oauth2.OAuth2FlowType;
 import io.vertx.ext.auth.oauth2.providers.GithubAuth;
-import io.vertx.ext.web.Cookie;
-import io.vertx.ext.web.FileUpload;
-import io.vertx.ext.web.LanguageHeader;
-import io.vertx.ext.web.Route;
-import io.vertx.ext.web.Router;
-import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.Session;
+import io.vertx.ext.web.*;
+import io.vertx.ext.web.designdriven.OpenAPI3RouterFactory;
 import io.vertx.ext.web.handler.AuthHandler;
 import io.vertx.ext.web.handler.BasicAuthHandler;
 import io.vertx.ext.web.handler.BodyHandler;
@@ -50,6 +46,9 @@ import io.vertx.ext.web.sstore.ClusteredSessionStore;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import io.vertx.ext.web.sstore.SessionStore;
 import io.vertx.ext.web.templ.TemplateEngine;
+import io.vertx.ext.web.validation.HTTPRequestValidationHandler;
+import io.vertx.ext.web.validation.ParameterType;
+import io.vertx.ext.web.validation.ValidationException;
 
 import java.util.List;
 import java.util.Set;
@@ -1260,6 +1259,102 @@ public class WebExamples {
     // welcome page
     router.get("/").handler(ctx -> {
       ctx.response().putHeader("content-type", "text/html").end("Hello<br><a href=\"/protected/somepage\">Protected by LinkedIn</a>");
+    });
+  }
+
+  public void example63(Vertx vertx, Router router) {
+    // BodyHandler is required to manage body parameters like forms or json body
+    router.route().handler(BodyHandler.create());
+
+    // Create Validation Handler with some stuff
+    HTTPRequestValidationHandler validationHandler = HTTPRequestValidationHandler.create()
+      .addQueryParam("parameterName", ParameterType.INT, true)
+      .addFormParamWithPattern("formParameterName", "a{4}", true)
+      .addPathParam("pathParam", ParameterType.FLOAT);
+
+    router.get("/awesome/:pathParam")
+      // Mount validation handler
+      .handler(validationHandler)
+      //Mount your handler
+      .handler((routingContext) -> {
+        // Get Request parameters container
+        RequestParameters params = routingContext.get("parsedParameters");
+
+        // Get parameters
+        Integer parameterName = params.getQueryParameter("parameterName").getInteger();
+        String formParameterName = params.getFormParameter("formParameterName").getString();
+        Float pathParam = params.getPathParameter("pathParam").getFloat();
+      })
+
+      //Mount your failure handler
+      .failureHandler((routingContext) -> {
+        Throwable failure = routingContext.failure();
+        if (failure instanceof ValidationException) {
+          // Something went wrong during validation!
+          String validationErrorMessage = failure.getMessage();
+        }
+      });
+  }
+
+  public void example64(Vertx vertx) {
+    // Load the api spec. This operation is asynchronous
+    OpenAPI3RouterFactory.createRouterFactoryFromFile(vertx, "src/main/resources/petstore.yaml", openAPI3RouterFactoryAsyncResult -> {
+      if (openAPI3RouterFactoryAsyncResult.succeeded()) {
+        // Spec loaded with success
+        OpenAPI3RouterFactory routerFactory = openAPI3RouterFactoryAsyncResult.result();
+        // Add an handler with operationId
+        routerFactory.addHandlerByOperationId("listPets", routingContext -> {
+          // Handle listPets operation
+          routingContext.response().setStatusMessage("Called listPets").end();
+        }, routingContext -> {
+          // This is the failure handler
+          Throwable failure = routingContext.failure();
+          if (failure instanceof ValidationException)
+            // Handle Validation Exception
+            routingContext.response()
+              .setStatusCode(400)
+              .setStatusMessage("ValidationException thrown! " + ((ValidationException) failure).getErrorType().name())
+              .end();
+        });
+
+        // Add an handler with a combination of HttpMethod and path
+        routerFactory.addHandler(HttpMethod.POST, "/pets", routingContext -> {
+          // Extract request body and use it
+          RequestParameters params = routingContext.get("parsedParameters");
+          JsonObject pet = params.getBody().getJsonObject();
+          routingContext.response()
+            .putHeader("content-type", "application/json; charset=utf-8")
+            .end(pet.encodePrettily());
+        }, routingContext -> {
+          Throwable failure = routingContext.failure();
+          if (failure instanceof ValidationException)
+            // Handle Validation Exception
+            routingContext.response()
+              .setStatusCode(400)
+              .setStatusMessage("ValidationException thrown! " + ((ValidationException) failure).getErrorType().name())
+              .end();
+        });
+
+        // Add a security handler
+        routerFactory.addSecurityHandler("api_key", routingContext -> {
+          // Handle security here
+          routingContext.next();
+        });
+
+        // Before router creation you can enable or disable mounting of a default failure handler for ValidationException
+        routerFactory.enableValidationFailureHandler(false);
+
+        // Now you have to generate the router
+        Router router = routerFactory.getRouter();
+
+        // Now you can use your Router instance
+        HttpServer server = vertx.createHttpServer(new HttpServerOptions().setPort(8080).setHost("localhost"));
+        server.requestHandler(router::accept).listen();
+
+      } else {
+        // Something went wrong during router factory initialization
+        Throwable exception = openAPI3RouterFactoryAsyncResult.cause();
+      }
     });
   }
 
