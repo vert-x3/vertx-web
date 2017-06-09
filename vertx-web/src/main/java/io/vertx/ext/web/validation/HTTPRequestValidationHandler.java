@@ -221,11 +221,21 @@ public interface HTTPRequestValidationHandler extends ValidationHandler {
   HTTPRequestValidationHandler addXMLBodySchema(String xmlSchema);
 
   /**
-   * Add a required file name
+   * Add an expected filename inside <b>multipart request</b>.
    * @param filename name of the file inside the form
+   * @param contentType expected content type of file
    * @return this handler
    */
   @Fluent
-  HTTPRequestValidationHandler addRequiredFile(String filename);
+  HTTPRequestValidationHandler addMultipartRequiredFile(String filename, String contentType);
+
+  /**
+   * Add an expected content type of request. It's not needed to add application/json, application/xml, multipart/form-data and application/x-www-form-urlencoded
+   *
+   * @param contentType expected content type of file
+   * @return this handler
+   */
+  @Fluent
+  HTTPRequestValidationHandler addExpectedContentType(String contentType);
 
 }

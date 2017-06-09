@@ -3,6 +3,9 @@ package io.vertx.ext.web.designdriven.impl;
 import com.reprezen.kaizen.oasparser.model3.Parameter;
 import com.reprezen.kaizen.oasparser.model3.Schema;
 
+import java.util.List;
+import java.util.regex.Pattern;
+
 /**
  * @author Francesco Guardiani @slinkydeveloper
  */
@@ -90,6 +93,19 @@ public class OpenApi3Utils {
       }
     }
     return null;
+  }
+
+  public static String resolveContentTypeRegex(String listContentTypes) {
+    // Check if it's list
+    if (listContentTypes.contains(",")) {
+      StringBuilder stringBuilder = new StringBuilder();
+      String[] contentTypes = listContentTypes.split(",");
+      for (String contentType : contentTypes)
+        stringBuilder.append(Pattern.quote(contentType.trim()) + "|");
+      stringBuilder.deleteCharAt(stringBuilder.length() - 1);
+      return stringBuilder.toString();
+    } else
+      return Pattern.quote(listContentTypes);
   }
 
 }

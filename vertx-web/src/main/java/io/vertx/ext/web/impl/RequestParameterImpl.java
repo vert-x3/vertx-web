@@ -4,7 +4,6 @@ import io.vertx.codegen.annotations.Nullable;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RequestParameter;
-import org.w3c.dom.Document;
 
 import java.util.ArrayList;
 import java.util.List;

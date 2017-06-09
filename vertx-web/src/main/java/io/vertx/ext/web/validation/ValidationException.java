@@ -164,8 +164,8 @@ public class ValidationException extends VertxException {
         ErrorType.NO_MATCH);
     }
 
-    public static ValidationException generateFileNotFoundValidationException(String filename) {
-      return new ValidationException("Error during validation: File not found: " + filename, filename, null, null, ErrorType.FILE_NOT_FOUND);
+    public static ValidationException generateFileNotFoundValidationException(String filename, String contentType) {
+      return new ValidationException("Error during validation: File not found or wrong content type. Expected file name: \"" + filename + "\". Expected content type: \"" + contentType + "\"", filename, null, null, ErrorType.FILE_NOT_FOUND);
     }
 
     public static ValidationException generateEmptyValueValidationException(String parameterName, ParameterValidationRule rule, ParameterLocation location) {
@@ -199,6 +199,7 @@ public class ValidationException extends VertxException {
     public static ValidationException generateInvalidXMLBodyException(String message) {
       return new ValidationException(message, ErrorType.XML_INVALID);
     }
+
   }
 
 

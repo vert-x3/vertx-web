@@ -78,7 +78,7 @@ public interface OpenAPI3RouterFactory extends DesignDrivenRouterFactory<OpenApi
         future.complete(new OpenAPI3RouterFactoryImpl(vertx, model));
       else {
         if (model.getValidationResults().getSeverity() == ValidationResults.Severity.ERROR || model.getValidationResults().getSeverity() == ValidationResults.Severity.MAX_SEVERITY)
-          future.fail(RouterFactoryException.createSpecInvalidException(model.getValidationResults().toString()));
+          future.fail(RouterFactoryException.createSpecInvalidException(model.getValidationResults().getItems().toString()));
         else
           future.complete(new OpenAPI3RouterFactoryImpl(vertx, model));
       }
@@ -104,7 +104,7 @@ public interface OpenAPI3RouterFactory extends DesignDrivenRouterFactory<OpenApi
         future.complete(new OpenAPI3RouterFactoryImpl(vertx, model));
       else {
         if (model.getValidationResults().getSeverity() == ValidationResults.Severity.ERROR || model.getValidationResults().getSeverity() == ValidationResults.Severity.MAX_SEVERITY)
-          future.fail(RouterFactoryException.createSpecInvalidException(model.getValidationResults().toString()));
+          future.fail(RouterFactoryException.createSpecInvalidException(model.getValidationResults().getItems().toString()));
         else
           future.complete(new OpenAPI3RouterFactoryImpl(vertx, model));
       }

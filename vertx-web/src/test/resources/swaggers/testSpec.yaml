@@ -182,11 +182,34 @@ paths:
             anyOf:
               - type: boolean
               - type: integer
+  /multipart/complex:
+    post:
+      operationId: complexMultipartRequest
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                param1:
+                  type: string
+                param2:
+                  $ref: "#/components/schemas/Pet"
+                param3:
+                  type: string
+                param4:
+                  type: array
+                  items:
+                    type: float
+              encoding:
+                param3:
+                  contentType: application/sql
 
 
 components:
   schemas:
     Pet:
+      type: object
       required:
         - id
         - name

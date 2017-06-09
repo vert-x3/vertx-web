@@ -7,6 +7,7 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RequestParameter;
 import io.vertx.ext.web.RequestParameters;
+import io.vertx.ext.web.impl.Utils;
 import io.vertx.ext.web.validation.impl.OpenAPI3RequestValidationHandlerImpl;
 import org.junit.Rule;
 import org.junit.Test;
@@ -314,6 +315,36 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
     });
 
     testRequest(HttpMethod.GET, "/queryTests/anyOfTest?parameter=anyString", 400, errorMessage(ValidationException.ErrorType.NO_MATCH));
+  }
+
+  @Test
+  public void testComplexMultipart() throws Exception {
+    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(testSpec.getPath("/multipart/complex").getPost(), null);
+    loadHandlers("/multipart/complex", HttpMethod.POST, false, validationHandler, (routingContext) -> {
+      RequestParameters params = routingContext.get("parsedParameters");
+      assertEquals(params.getFormParameter("param1").getString(), "sampleString");
+      assertNotNull(params.getFormParameter("param2").getJsonObject());
+      assertEquals(params.getFormParameter("param2").getJsonObject().getString("name"), "Willy");
+      assertEquals(params.getFormParameter("param4").getArray().size(), 4);
+      routingContext.response().setStatusMessage("ok").end();
+    });
+    MultiMap form = MultiMap.caseInsensitiveMultiMap();
+    form.add("param1", "sampleString");
+
+    JsonObject pet = new JsonObject();
+    pet.put("id", 14612);
+    pet.put("name", "Willy");
+
+    form.add("param2", URLEncoder.encode(pet.encode(), "UTF-8"));
+
+    form.add("param3", URLEncoder.encode("SELECT * FROM table;", "UTF-8"));
+
+    List<String> valuesArray = new ArrayList<>();
+    for (int i = 0; i < 4; i++)
+      valuesArray.add(getSuccessSample(ParameterType.FLOAT).getFloat().toString());
+    form.add("param4", URLEncoder.encode(serializeInCSVStringArray(valuesArray), "UTF-8"));
+
+    testRequestWithForm(HttpMethod.POST, "/multipart/complex", FormType.MULTIPART, form, 200, "ok");
   }
 
 }

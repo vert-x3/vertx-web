@@ -2,19 +2,46 @@ package io.vertx.ext.web.validation.impl;
 
 import com.reprezen.kaizen.oasparser.model3.*;
 import com.reprezen.kaizen.oasparser.ovl3.SchemaImpl;
+import io.vertx.ext.web.FileUpload;
 import io.vertx.ext.web.RequestParameter;
+import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.designdriven.impl.OpenApi3Utils;
 import io.vertx.ext.web.validation.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.regex.Pattern;
 
 /**
  * @author Francesco Guardiani @slinkydeveloper
  */
 public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestValidationHandlerImpl<Operation> implements io.vertx.ext.web.validation.OpenAPI3RequestValidationHandler {
+
+  /* I need this class to workaround the multipart validation of content types different from json and text */
+  private class MultipartCustomValidator implements CustomValidator {
+
+    Pattern contentTypePattern;
+    String parameterName;
+
+    public MultipartCustomValidator(Pattern contentTypeRegex, String parameterName) {
+      this.contentTypePattern = contentTypeRegex;
+      this.parameterName = parameterName;
+    }
+
+    private boolean existFileUpload(Set<FileUpload> files, String name, Pattern contentType) {
+      for (FileUpload f : files) {
+        if (f.name().equals(name) && contentType.matcher(f.contentType()).matches()) return true;
+      }
+      return false;
+    }
+
+    @Override
+    public void validate(RoutingContext routingContext) throws ValidationException {
+      if (!existFileUpload(routingContext.fileUploads(), parameterName, contentTypePattern)) {
+        if (!routingContext.request().formAttributes().contains(parameterName))
+          throw ValidationException.ValidationExceptionFactory.generateNotFoundValidationException(parameterName, ParameterLocation.BODY_FORM);
+      }
+    }
+  }
 
   private final static ParameterTypeValidator CONTENT_TYPE_VALIDATOR = new ParameterTypeValidator() {
 
@@ -399,27 +426,68 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
     return this.resolveInnerSchemaPrimitiveTypeValidator(schema, true);
   }
 
+  /* This function resolves default content types of multipart parameters */
+  private String resolveDefaultContentTypeRegex(Schema schema) {
+    if (schema.getType() != null) {
+      if (schema.getType().equals("object"))
+        return Pattern.quote("application/json");
+      else if (schema.getType().equals("string") && schema.getFormat() != null && (schema.getFormat().equals("binary") || schema.getFormat().equals("base64")))
+        return Pattern.quote("application/octet-stream");
+      else if (schema.getType().equals("array"))
+        return this.resolveDefaultContentTypeRegex(schema.getItemsSchema());
+      else
+        return Pattern.quote("text/plain");
+    }
+    throw new SpecFeatureNotSupportedException("Unable to find default content type for multipart parameter. Use encoding field");
+  }
+
+  /* This function handle all multimaps parameters */
+  private void handleMultimapParameter(String parameterName, String contentType, Schema schema, Schema multipartObjectSchema) {
+    Pattern contentTypePattern = Pattern.compile(contentType);
+    if (contentTypePattern.matcher("application/json").matches()) {
+      this.addFormParamRule(ParameterValidationRuleImpl.ParameterValidationRuleFactory.createValidationRuleWithCustomTypeValidator(parameterName,
+        JsonTypeValidator.JsonTypeValidatorFactory.createJsonTypeValidator(((SchemaImpl) schema).getDereferencedJsonTree()),
+        !OpenApi3Utils.isRequiredParam(multipartObjectSchema, parameterName),
+        false,
+        ParameterLocation.BODY_FORM));
+    } else if (contentTypePattern.matcher("text/plain").matches()) {
+      this.addFormParamRule(ParameterValidationRuleImpl.ParameterValidationRuleFactory.createValidationRuleWithCustomTypeValidator(parameterName,
+        this.resolveSchemaTypeValidatorFormEncoded(schema),
+        !OpenApi3Utils.isRequiredParam(multipartObjectSchema, parameterName),
+        false,
+        ParameterLocation.BODY_FORM));
+    } else {
+      this.addCustomValidator(new MultipartCustomValidator(contentTypePattern, parameterName));
+    }
+  }
+
   /* Entry point for parse RequestBody object */
   private void parseRequestBody(RequestBody requestBody) {
-    MediaType json = requestBody.getContentMediaType("application/json");
-    if (json != null) {
-      this.setEntireBodyValidator(JsonTypeValidator.JsonTypeValidatorFactory.createJsonTypeValidator(((SchemaImpl) json.getSchema()).getDereferencedJsonTree()));
-    }
-
-    MediaType formUrlEncoded = requestBody.getContentMediaType("application/x-www-form-urlencoded");
-    if (formUrlEncoded != null && formUrlEncoded.getSchema() != null) {
-      for (Map.Entry<String, ? extends Schema> paramSchema : formUrlEncoded.getSchema().getProperties().entrySet()) {
-        this.addFormParamRule(ParameterValidationRuleImpl.ParameterValidationRuleFactory.createValidationRuleWithCustomTypeValidator(paramSchema.getKey(),
-          this.resolveSchemaTypeValidatorFormEncoded(paramSchema.getValue()),
-          !OpenApi3Utils.isRequiredParam(paramSchema.getValue(), paramSchema.getKey()),
-          false,
-          ParameterLocation.BODY_FORM));
+    if (requestBody != null && requestBody.getContentMediaTypes() != null)
+      for (Map.Entry<String, ? extends MediaType> mediaType : requestBody.getContentMediaTypes().entrySet()) {
+        if (mediaType.getKey().equals("application/json") && mediaType.getValue().getSchema() != null)
+          this.setEntireBodyValidator(JsonTypeValidator.JsonTypeValidatorFactory.createJsonTypeValidator(((SchemaImpl) mediaType.getValue().getSchema()).getDereferencedJsonTree()));
+        else if (mediaType.getKey().equals("application/x-www-form-urlencoded") && mediaType.getValue().getSchema() != null) {
+          for (Map.Entry<String, ? extends Schema> paramSchema : mediaType.getValue().getSchema().getProperties().entrySet()) {
+            this.addFormParamRule(ParameterValidationRuleImpl.ParameterValidationRuleFactory.createValidationRuleWithCustomTypeValidator(paramSchema.getKey(),
+              this.resolveSchemaTypeValidatorFormEncoded(paramSchema.getValue()),
+              !OpenApi3Utils.isRequiredParam(mediaType.getValue().getSchema(), paramSchema.getKey()),
+              false,
+              ParameterLocation.BODY_FORM));
+          }
+        } else if (mediaType.getKey().equals("multipart/form-data") && mediaType.getValue().getSchema() != null && mediaType.getValue().getSchema().getType().equals("object")) {
+          for (Map.Entry<String, ? extends Schema> multipartProperty : mediaType.getValue().getSchema().getProperties().entrySet()) {
+            EncodingProperty encodingProperty = mediaType.getValue().getEncodingProperty(multipartProperty.getKey());
+            String contentTypeRegex = null;
+            if (encodingProperty != null && encodingProperty.getContentType() != null)
+              contentTypeRegex = OpenApi3Utils.resolveContentTypeRegex(encodingProperty.getContentType());
+            else
+              contentTypeRegex = this.resolveDefaultContentTypeRegex(multipartProperty.getValue());
+            handleMultimapParameter(multipartProperty.getKey(), contentTypeRegex, multipartProperty.getValue(), mediaType.getValue().getSchema());
+          }
+        } else {
+          this.addBodyFileRule(mediaType.getKey());
+        }
       }
-    }
-
-    MediaType multipart = requestBody.getContentMediaType("multipart/form-data");
-    if (multipart != null && multipart.getSchema() != null) {
-      throw new SpecFeatureNotSupportedException("multipart not supported");
-    }
   }
 }

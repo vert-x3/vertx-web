@@ -12,6 +12,7 @@ import io.vertx.ext.web.validation.*;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.*;
+import java.util.regex.Pattern;
 
 /**
  * @author Francesco Guardiani @slinkydeveloper
@@ -24,7 +25,9 @@ public abstract class BaseValidationHandler implements ValidationHandler {
   private Map<String, ParameterValidationRule> formParamsRules;
   private Map<String, ParameterValidationRule> headerParamsRules;
   private ParameterTypeValidator entireBodyValidator;
-  private List<String> fileNamesRules;
+  private Map<String, Pattern> multipartFileRules; // key is filename, value is content type
+  private List<String> bodyFileRules; // list of content-types
+
   private List<CustomValidator> customValidators;
 
   private boolean expectedBodyNotEmpty;
@@ -35,7 +38,8 @@ public abstract class BaseValidationHandler implements ValidationHandler {
     formParamsRules = new HashMap<>();
     queryParamsRules = new HashMap<>();
     headerParamsRules = new HashMap<>();
-    fileNamesRules = new ArrayList<>();
+    multipartFileRules = new HashMap<>();
+    bodyFileRules = new ArrayList<>();
     customValidators = new ArrayList<>();
 
     expectedBodyNotEmpty = false;
@@ -58,7 +62,7 @@ public abstract class BaseValidationHandler implements ValidationHandler {
 
       String contentType = routingContext.request().getHeader("Content-Type");
       if (contentType != null && contentType.length() != 0) {
-        if (fileNamesRules.size() != 0 && !contentType.contains("multipart/form-data"))
+        if (multipartFileRules.size() != 0 && !contentType.contains("multipart/form-data"))
           throw ValidationException.ValidationExceptionFactory.generateWrongContentTypeExpected(contentType, "multipart/form-data");
         if (contentType.contains("application/x-www-form-urlencoded") || contentType.contains("multipart/form-data")) {
           parsedParameters.setFormParameters(validateFormParams(routingContext));
@@ -71,10 +75,8 @@ public abstract class BaseValidationHandler implements ValidationHandler {
           return;
         }
       } else {
-        if (expectedBodyNotEmpty) {
-          routingContext.fail(400);
-          return;
-        }
+        if (expectedBodyNotEmpty && !checkContentType(contentType))
+          throw ValidationException.ValidationExceptionFactory.generateWrongContentTypeExpected(contentType, null);
       }
 
       routingContext.put("parsedParameters", parsedParameters);
@@ -171,7 +173,7 @@ public abstract class BaseValidationHandler implements ValidationHandler {
     for (ParameterValidationRule rule : formParamsRules.values()) {
       String name = rule.getName();
       if (formParams.contains(name)) {
-        // Decode values
+        // Decode values because I assume they are text/plain in this phase
         List<String> values = new ArrayList<>();
         for (String s : formParams.getAll(name)) {
           try {
@@ -179,9 +181,9 @@ public abstract class BaseValidationHandler implements ValidationHandler {
           } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
           }
+          RequestParameter parsedParam = rule.validateArrayParam(values);
+          parsedParams.put(parsedParam.getName(), parsedParam);
         }
-        RequestParameter parsedParam = rule.validateArrayParam(values);
-        parsedParams.put(parsedParam.getName(), parsedParam);
       } else if (rule.allowEmptyValue() && rule.getParameterTypeValidator().getDefault() != null) {
         RequestParameter parsedParam = new RequestParameterImpl(name, rule.getParameterTypeValidator().getDefault());
         parsedParams.put(parsedParam.getName(), parsedParam);
@@ -191,18 +193,18 @@ public abstract class BaseValidationHandler implements ValidationHandler {
     return parsedParams;
   }
 
-  private boolean existFileUploadName(Set<FileUpload> files, String name) {
+  private boolean existFileUpload(Set<FileUpload> files, String name, Pattern contentType) {
     for (FileUpload f : files) {
-      if (f.name().equals(name)) return true;
+      if (f.name().equals(name) && contentType.matcher(f.contentType()).matches()) return true;
     }
     return false;
   }
 
   private void validateFileUpload(RoutingContext routingContext) throws ValidationException {
     Set<FileUpload> fileUploads = routingContext.fileUploads();
-    for (String expectedFileName : fileNamesRules) {
-      if (!existFileUploadName(fileUploads, expectedFileName))
-        throw ValidationException.ValidationExceptionFactory.generateFileNotFoundValidationException(expectedFileName);
+    for (Map.Entry<String, Pattern> expectedFile : multipartFileRules.entrySet()) {
+      if (!existFileUpload(fileUploads, expectedFile.getKey(), expectedFile.getValue()))
+        throw ValidationException.ValidationExceptionFactory.generateFileNotFoundValidationException(expectedFile.getKey(), expectedFile.getValue().toString());
     }
   }
 
@@ -211,6 +213,14 @@ public abstract class BaseValidationHandler implements ValidationHandler {
       return entireBodyValidator.isValid(routingContext.getBodyAsString());
     else
       return RequestParameter.create(null);
+  }
+
+  private boolean checkContentType(String contentType) {
+    for (String ct : bodyFileRules) {
+      if (ct.equals(contentType))
+        return true;
+    }
+    return false;
   }
 
   protected void addRule(ParameterValidationRule rule, ParameterLocation location) {
@@ -264,8 +274,14 @@ public abstract class BaseValidationHandler implements ValidationHandler {
     customValidators.add(customValidator);
   }
 
-  protected void addFileUploadName(String formName) {
-    fileNamesRules.add(formName);
+  protected void addMultipartFileRule(String formName, String contentType) {
+    if (!multipartFileRules.containsKey(formName))
+      multipartFileRules.put(formName, Pattern.compile(contentType));
+    expectedBodyNotEmpty = true;
+  }
+
+  protected void addBodyFileRule(String contentType) {
+    bodyFileRules.add(contentType);
     expectedBodyNotEmpty = true;
   }
 

@@ -2,6 +2,8 @@ package io.vertx.ext.web.validation.impl;
 
 import io.vertx.ext.web.validation.*;
 
+import java.util.regex.Pattern;
+
 /**
  * @author Francesco Guardiani @slinkydeveloper
  */
@@ -126,8 +128,14 @@ public class HTTPRequestValidationHandlerImpl extends BaseValidationHandler impl
   }
 
   @Override
-  public HTTPRequestValidationHandler addRequiredFile(String filename) {
-    this.addFileUploadName(filename);
+  public HTTPRequestValidationHandler addMultipartRequiredFile(String filename, String contentType) {
+    this.addMultipartFileRule(filename, Pattern.quote(contentType));
+    return this;
+  }
+
+  @Override
+  public HTTPRequestValidationHandler addExpectedContentType(String contentType) {
+    this.addBodyFileRule(contentType);
     return this;
   }
 }
