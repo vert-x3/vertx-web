@@ -280,15 +280,7 @@ public class HttpContext {
   }
 
   public <T> T get(String key) {
-    return getOrDefault(key, null);
-  }
-
-  public <T> T getOrDefault(String key, T def) {
-    T attr = attrs != null ? (T) attrs.get(key) : null;
-    if (attr == null) {
-      attr = def;
-    }
-    return attr;
+    return attrs != null ? (T) attrs.get(key) : null;
   }
 
   public HttpContext set(String key, Object value) {

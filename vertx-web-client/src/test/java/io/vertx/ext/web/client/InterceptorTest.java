@@ -145,7 +145,10 @@ public class InterceptorTest extends HttpTestBase {
         if (ar.succeeded()) {
           HttpResponse<Object> resp = ar.result();
           if (resp.statusCode() == 503) {
-            int count = ctx.getOrDefault("retries", 0);
+            Integer count = ctx.get("retries");
+            if (count == null) {
+              count = 0;
+            }
             if (count < num) {
               ctx.set("retries", count + 1);
               ctx.interceptAndSend();
