@@ -12,6 +12,13 @@
   <modelVersion>4.0.0</modelVersion>
 
   <artifactId>vertx-web</artifactId>
+  
+  <repositories>
+		<repository>
+		    <id>jitpack.io</id>
+		    <url>https://jitpack.io</url>
+		</repository>
+	</repositories>
 
   <properties>
     <doc.skip>false</doc.skip>
@@ -44,10 +51,10 @@
 
     <!-- Design Driven dependencies -->
     <dependency>
-      <groupId>com.reprezen.kaizen</groupId>
-      <artifactId>openapi-parser</artifactId>
-      <version>0.0.1-SNAPSHOT</version>
-    </dependency>
+	    <groupId>com.github.slinkydeveloper</groupId>
+	    <artifactId>KaiZen-OpenApi-Parser</artifactId>
+	    <version>issue_44-SNAPSHOT</version>
+	</dependency>
     <dependency>
       <groupId>com.networknt</groupId>
       <artifactId>json-schema-validator</artifactId>
