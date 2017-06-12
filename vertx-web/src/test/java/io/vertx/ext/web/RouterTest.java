@@ -1054,11 +1054,11 @@ public class RouterTest extends WebTestBase {
   @Test
   public void testProducesWithParameterKey() throws Exception {
     router.route().produces("text/html;boo").handler(rc -> rc.response().end());
-    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html;boo=ya;itWorks=4real", 200, "OK");
     testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html;boo;itWorks", 200, "OK");
     testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html;boo=ya", 200, "OK");
     testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html;boo", 200, "OK");
     testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html", 404, "Not Found");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "*/*", 200, "OK");
   }
 
   @Test
@@ -1087,6 +1087,7 @@ public class RouterTest extends WebTestBase {
     testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html;a", 200, "OK");
     testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html;q=2", 200, "OK");
     testRequest(HttpMethod.GET, "/foo", 200, "OK");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "*/*", 200, "OK");
   }
 
   @Test
