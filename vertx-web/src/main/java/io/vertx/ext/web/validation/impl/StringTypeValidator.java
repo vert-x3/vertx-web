@@ -37,14 +37,12 @@ public class StringTypeValidator implements ParameterTypeValidator {
   }
 
   private boolean checkMinLength(String value) {
-    if (minLength != null)
-      return value.length() >= minLength;
+    if (minLength != null) return value.length() >= minLength;
     else return true;
   }
 
   private boolean checkMaxLength(String value) {
-    if (maxLength != null)
-      return value.length() <= maxLength;
+    if (maxLength != null) return value.length() <= maxLength;
     else return true;
   }
 
@@ -56,12 +54,10 @@ public class StringTypeValidator implements ParameterTypeValidator {
    */
   @Override
   public RequestParameter isValid(String value) {
-    if (value == null || value.length() == 0)
-      return RequestParameter.create(getDefault());
+    if (value == null || value.length() == 0) return RequestParameter.create(getDefault());
     if (!checkMinLength(value) || !checkMaxLength(value) || (pattern != null && !pattern.matcher(value).matches()))
       throw ValidationException.ValidationExceptionFactory.generateNotMatchValidationException(null);
-    else
-      return RequestParameter.create(value);
+    else return RequestParameter.create(value);
   }
 
   @Override

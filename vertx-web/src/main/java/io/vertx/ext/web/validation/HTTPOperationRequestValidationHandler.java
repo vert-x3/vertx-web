@@ -4,6 +4,7 @@ import io.vertx.codegen.annotations.VertxGen;
 
 /**
  * Base interface for HTTP request validation with API specification
+ *
  * @author Francesco Guardiani @slinkydeveloper
  */
 @VertxGen(concrete = false)

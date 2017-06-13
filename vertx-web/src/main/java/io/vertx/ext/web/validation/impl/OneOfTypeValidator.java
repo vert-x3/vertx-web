@@ -24,17 +24,17 @@ public class OneOfTypeValidator implements ParameterTypeValidator {
       try {
         RequestParameter validatedParam = validator.isValid(value);
         if (validatedParam != null) {
-          if (resultParam == null)
-            resultParam = validatedParam;
+          if (resultParam == null) resultParam = validatedParam;
           else
-            throw ValidationException.ValidationExceptionFactory.generateNotMatchValidationException(value + " match multiple schemas inside oneOf field");
+            throw ValidationException.ValidationExceptionFactory.generateNotMatchValidationException(value + " match " +
+              "" + "multiple schemas inside oneOf field");
         }
       } catch (ValidationException e) {
       }
     }
-    if (resultParam != null)
-      return resultParam;
+    if (resultParam != null) return resultParam;
     else
-      throw ValidationException.ValidationExceptionFactory.generateNotMatchValidationException(value + " doesn't match any of oneOf schemas");
+      throw ValidationException.ValidationExceptionFactory.generateNotMatchValidationException(value + " doesn't " +
+        "match any of oneOf schemas");
   }
 }

@@ -7,6 +7,7 @@ import java.util.Map;
 
 /**
  * Interface that define methods for deserialization of array and objects
+ *
  * @author Francesco Guardiani @slinkydeveloper
  */
 @VertxGen

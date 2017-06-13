@@ -4,7 +4,6 @@ import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.RequestParameter;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.WebTestBase;
 import io.vertx.ext.web.WebTestWithWebClientBase;
 import io.vertx.ext.web.handler.BodyHandler;
 
@@ -24,11 +23,14 @@ public class WebTestValidationBase extends WebTestWithWebClientBase {
     sampleValuesSuccess = new HashMap<>();
     sampleValuesFailure = new HashMap<>();
 
-    sampleValuesSuccess.put(ParameterType.BOOL, Arrays.asList("true", "false", "1", "0", "True", "False", "TRUE", "FALSE"));
+    sampleValuesSuccess.put(ParameterType.BOOL, Arrays.asList("true", "false", "1", "0", "True", "False", "TRUE",
+      "FALSE"));
     sampleValuesFailure.put(ParameterType.BOOL, Arrays.asList("trues", "yes", "no", "ok"));
-    sampleValuesSuccess.put(ParameterType.EMAIL, Arrays.asList("vertx@vertx.io", "awesome.vertx@vert.vertx.io", "random_email@vertx.io"));
+    sampleValuesSuccess.put(ParameterType.EMAIL, Arrays.asList("vertx@vertx.io", "awesome.vertx@vert.vertx.io",
+      "random_email@vertx.io"));
     sampleValuesFailure.put(ParameterType.EMAIL, Arrays.asList("vertx.io", "@vertx.com"));
-    sampleValuesSuccess.put(ParameterType.URI, Arrays.asList("ftp://awesomeftp/file.txt", "http://vertx.io", "mailto:vertx@vertx.io", "irc://irc.freenode.net/vertx.io"));
+    sampleValuesSuccess.put(ParameterType.URI, Arrays.asList("ftp://awesomeftp/file.txt", "http://vertx.io",
+      "mailto:vertx@vertx.io", "irc://irc.freenode.net/vertx.io"));
     sampleValuesFailure.put(ParameterType.URI, Arrays.asList("ftpvertx"));
     sampleValuesSuccess.put(ParameterType.INT, Arrays.asList("1000", "156123"));
     sampleValuesFailure.put(ParameterType.INT, Arrays.asList("adsf465", "156.526", "45 564"));
@@ -38,8 +40,10 @@ public class WebTestValidationBase extends WebTestWithWebClientBase {
     sampleValuesFailure.put(ParameterType.DOUBLE, Arrays.asList("fr1564", "4564, 516", "465f, ge78"));
     sampleValuesSuccess.put(ParameterType.DATE, Arrays.asList(new SimpleDateFormat("yyyy-MM-dd").format(new Date())));
     sampleValuesFailure.put(ParameterType.DATE, Arrays.asList(new SimpleDateFormat("yy-MM-dd").format(new Date())));
-    sampleValuesSuccess.put(ParameterType.DATETIME, Arrays.asList(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'").format(new Date())));
-    sampleValuesFailure.put(ParameterType.DATETIME, Arrays.asList(new SimpleDateFormat("yy-MM-dd").format(new Date()), new SimpleDateFormat("HH:mm:ssXXX").format(new Date())));
+    sampleValuesSuccess.put(ParameterType.DATETIME, Arrays.asList(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
+      .format(new Date())));
+    sampleValuesFailure.put(ParameterType.DATETIME, Arrays.asList(new SimpleDateFormat("yy-MM-dd").format(new Date())
+      , new SimpleDateFormat("HH:mm:ssXXX").format(new Date())));
     sampleValuesSuccess.put(ParameterType.TIME, Arrays.asList(new SimpleDateFormat("HH:mm:ss").format(new Date())));
     sampleValuesFailure.put(ParameterType.TIME, Arrays.asList(new SimpleDateFormat("yyyy:MM:dd").format(new Date())));
     sampleValuesSuccess.put(ParameterType.BASE64, Arrays.asList("SGVsbG8gVmVydHg="));
@@ -49,7 +53,7 @@ public class WebTestValidationBase extends WebTestWithWebClientBase {
 
   public RequestParameter getSuccessSample(ParameterType type) {
     int i = ThreadLocalRandom.current().nextInt(0, WebTestValidationBase.sampleValuesSuccess.get(type).size());
-    return type.getValidationMethod().isValid(WebTestValidationBase.sampleValuesSuccess.get(type).get(i));
+    return type.validationMethod().isValid(WebTestValidationBase.sampleValuesSuccess.get(type).get(i));
   }
 
   public String getFailureSample(ParameterType type) {
@@ -57,7 +61,8 @@ public class WebTestValidationBase extends WebTestWithWebClientBase {
     return WebTestValidationBase.sampleValuesFailure.get(type).get(i);
   }
 
-  public void loadHandlers(String path, HttpMethod method, boolean expectFail, ValidationHandler validationHandler, Handler<RoutingContext> handler) {
+  public void loadHandlers(String path, HttpMethod method, boolean expectFail, ValidationHandler validationHandler,
+                           Handler<RoutingContext> handler) {
     router.route(method, path).handler(BodyHandler.create());
     router.route(method, path).handler(validationHandler);
     router.route(method, path).handler(handler).failureHandler(generateFailureHandler(expectFail));
@@ -70,7 +75,7 @@ public class WebTestValidationBase extends WebTestWithWebClientBase {
     for (String s : sampleValuesSuccess) {
       Boolean valid;
       try {
-        type.getValidationMethod().isValid(s);
+        type.validationMethod().isValid(s);
         valid = true;
       } catch (ValidationException e) {
         valid = false;
@@ -81,7 +86,7 @@ public class WebTestValidationBase extends WebTestWithWebClientBase {
     for (String s : sampleValuesFailure) {
       Boolean valid;
       try {
-        type.getValidationMethod().isValid(s);
+        type.validationMethod().isValid(s);
         valid = true;
       } catch (ValidationException e) {
         valid = false;
@@ -97,7 +102,8 @@ public class WebTestValidationBase extends WebTestWithWebClientBase {
         if (!expected) {
           failure.printStackTrace();
         }
-        routingContext.response().setStatusCode(400).setStatusMessage("failure:" + ((ValidationException) failure).getErrorType().name()).end();
+        routingContext.response().setStatusCode(400).setStatusMessage("failure:" + ((ValidationException) failure)
+          .type().name()).end();
       } else {
         failure.printStackTrace();
         routingContext.response().setStatusCode(500).setStatusMessage("unknownfailure:" + failure.toString()).end();

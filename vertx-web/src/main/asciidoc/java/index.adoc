@@ -1607,9 +1607,9 @@ router.get("/awesome/:pathParam")
     RequestParameters params = routingContext.get("parsedParameters");
 
     // Get parameters
-    Integer parameterName = params.getQueryParameter("parameterName").getInteger();
-    String formParameterName = params.getFormParameter("formParameterName").getString();
-    Float pathParam = params.getPathParameter("pathParam").getFloat();
+    Integer parameterName = params.queryParameter("parameterName").getInteger();
+    String formParameterName = params.formParameter("formParameterName").getString();
+    Float pathParam = params.pathParameter("pathParam").getFloat();
   })
 
   //Mount your failure handler
@@ -1651,7 +1651,7 @@ OpenAPI3RouterFactory.createRouterFactoryFromFile(vertx, "src/main/resources/pet
         // Handle Validation Exception
         routingContext.response()
           .setStatusCode(400)
-          .setStatusMessage("ValidationException thrown! " + ((ValidationException) failure).getErrorType().name())
+          .setStatusMessage("ValidationException thrown! " + ((ValidationException) failure).type().name())
           .end();
     });
 
@@ -1659,7 +1659,7 @@ OpenAPI3RouterFactory.createRouterFactoryFromFile(vertx, "src/main/resources/pet
     routerFactory.addHandler(HttpMethod.POST, "/pets", routingContext -> {
       // Extract request body and use it
       RequestParameters params = routingContext.get("parsedParameters");
-      JsonObject pet = params.getBody().getJsonObject();
+      JsonObject pet = params.body().getJsonObject();
       routingContext.response()
         .putHeader("content-type", "application/json; charset=utf-8")
         .end(pet.encodePrettily());
@@ -1669,7 +1669,7 @@ OpenAPI3RouterFactory.createRouterFactoryFromFile(vertx, "src/main/resources/pet
         // Handle Validation Exception
         routingContext.response()
           .setStatusCode(400)
-          .setStatusMessage("ValidationException thrown! " + ((ValidationException) failure).getErrorType().name())
+          .setStatusMessage("ValidationException thrown! " + ((ValidationException) failure).type().name())
           .end();
     });
 

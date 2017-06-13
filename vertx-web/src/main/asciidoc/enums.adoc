@@ -54,7 +54,8 @@ This event will occur when a client attempts to unregister a handler.
 == ContainerSerializationStyle
 
 ++++
- This enum contains supported object and arrays serialization styles. Every style has a enum value, and an array of strings to refeer to it.
+ This enum contains supported object and arrays serialization styles. Every style has a enum value, and an array of
+ strings to refeer to it.
 ++++
 '''
 
@@ -151,7 +152,8 @@ Parameter found but with empty value
 +++
 |[[UNEXPECTED_ARRAY_SIZE]]`UNEXPECTED_ARRAY_SIZE`|
 +++
-Expected an array size between parameters configured in link
+Expected an array size between parameters configured in
+ link
 +++
 |[[DESERIALIZATION_ERROR]]`DESERIALIZATION_ERROR`|
 +++
@@ -228,7 +230,8 @@ XML doesn't match the provided schema
 == ParameterType
 
 ++++
- ParameterType contains prebuilt type validators. To access to ParameterTypeValidator of every ParameterType, use link
+ ParameterType contains prebuilt type validators. To access to ParameterTypeValidator of every ParameterType, use
+ link
 ++++
 '''
 

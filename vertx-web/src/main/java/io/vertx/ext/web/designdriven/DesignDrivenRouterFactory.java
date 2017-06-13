@@ -25,7 +25,9 @@ public interface DesignDrivenRouterFactory<Specification> {
   DesignDrivenRouterFactory addSecurityHandler(String securitySchemaName, Handler<RoutingContext> handler);
 
   /**
-   * Add an handler and a failure handler to a path with a method. If combination path/method is not available in specification, it will throw a {@link RouterFactoryException}
+   * Add an handler and a failure handler to a path with a method. If combination path/method is not available in
+   * specification, it will throw a {@link RouterFactoryException}
+   *
    * @param method
    * @param path
    * @param handler
@@ -33,10 +35,13 @@ public interface DesignDrivenRouterFactory<Specification> {
    * @return
    */
   @Fluent
-  DesignDrivenRouterFactory addHandler(HttpMethod method, String path, Handler<RoutingContext> handler, Handler<RoutingContext> failureHandler);
+  DesignDrivenRouterFactory addHandler(HttpMethod method, String path, Handler<RoutingContext> handler,
+                                       Handler<RoutingContext> failureHandler);
 
   /**
-   * Set default validation failure handler. You can disable this feature from {@link DesignDrivenRouterFactory#enableValidationFailureHandler(boolean)}
+   * Set default validation failure handler. You can disable this feature from
+   * {@link DesignDrivenRouterFactory#enableValidationFailureHandler(boolean)}
+   *
    * @param handler
    * @return
    */
@@ -44,7 +49,11 @@ public interface DesignDrivenRouterFactory<Specification> {
   DesignDrivenRouterFactory setValidationFailureHandler(Handler<RoutingContext> handler);
 
   /**
-   * Enable or disable validation failure handler. If you enable it, during router creation it will be mounted a built-in (or custom with function {@link DesignDrivenRouterFactory#setValidationFailureHandler(Handler)}) ValidationException handler as a failure handler. If failure is different from ValidationException, it will be called the next failure handler.
+   * Enable or disable validation failure handler. If you enable it, during router creation it will be mounted a
+   * built-in (or custom with function {@link DesignDrivenRouterFactory#setValidationFailureHandler(Handler)})
+   * ValidationException handler as a failure handler. If failure is different from ValidationException, it will be
+   * called the next failure handler.
+   *
    * @param enable
    * @return
    */
@@ -52,8 +61,10 @@ public interface DesignDrivenRouterFactory<Specification> {
   DesignDrivenRouterFactory enableValidationFailureHandler(boolean enable);
 
   /**
-   * Construct a new router based on spec. It will fail if you are trying to mount a spec with security schemes without assigned handlers<br/>
+   * Construct a new router based on spec. It will fail if you are trying to mount a spec with security schemes
+   * without assigned handlers<br/>
    * <b>Note:</b> Router is constructed in this function, so it will be respected the path definition ordering.
+   *
    * @return
    */
   Router getRouter();

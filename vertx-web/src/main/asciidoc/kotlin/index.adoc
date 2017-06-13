@@ -1741,9 +1741,9 @@ router.get("/awesome/:pathParam").handler(validationHandler).handler({ routingCo
   var params = routingContext.get<Any>("parsedParameters")
 
   // Get parameters
-  var parameterName = params.getQueryParameter("parameterName").getInteger()
-  var formParameterName = params.getFormParameter("formParameterName").getString()
-  var pathParam = params.getPathParameter("pathParam").getFloat()
+  var parameterName = params.queryParameter("parameterName").getInteger()
+  var formParameterName = params.formParameter("formParameterName").getString()
+  var pathParam = params.pathParameter("pathParam").getFloat()
 }).failureHandler({ routingContext ->
   var failure = routingContext.failure()
   if (failure is io.vertx.ext.web.validation.ValidationException) {
@@ -1781,19 +1781,19 @@ OpenAPI3RouterFactory.createRouterFactoryFromFile(vertx, "src/main/resources/pet
       // This is the failure handler
       var failure = routingContext.failure()
       if (failure is io.vertx.ext.web.validation.ValidationException) {
-        routingContext.response().setStatusCode(400).setStatusMessage("ValidationException thrown! ${failure.getErrorType().name()}").end()}
+        routingContext.response().setStatusCode(400).setStatusMessage("ValidationException thrown! ${failure.type().name()}").end()}
     })
 
     // Add an handler with a combination of HttpMethod and path
     routerFactory.addHandler(HttpMethod.POST, "/pets", { routingContext ->
       // Extract request body and use it
       var params = routingContext.get<Any>("parsedParameters")
-      var pet = params.getBody().getJsonObject()
+      var pet = params.body().getJsonObject()
       routingContext.response().putHeader("content-type", "application/json; charset=utf-8").end(pet.toString())
     }, { routingContext ->
       var failure = routingContext.failure()
       if (failure is io.vertx.ext.web.validation.ValidationException) {
-        routingContext.response().setStatusCode(400).setStatusMessage("ValidationException thrown! ${failure.getErrorType().name()}").end()}
+        routingContext.response().setStatusCode(400).setStatusMessage("ValidationException thrown! ${failure.type().name()}").end()}
     })
 
     // Add a security handler

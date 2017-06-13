@@ -19,7 +19,8 @@ public class ArrayTypeValidator extends ContainerTypeValidator<List<String>> {
   private Integer maxItems;
   private Integer minItems;
 
-  public ArrayTypeValidator(ParameterTypeValidator validator, ContainerDeserializer collectionFormat, boolean exploded, Integer maxItems, Integer minItems) {
+  public ArrayTypeValidator(ParameterTypeValidator validator, ContainerDeserializer collectionFormat, boolean
+    exploded, Integer maxItems, Integer minItems) {
     super(collectionFormat, exploded);
     // Check illegal inner ArrayTypeValidator
     if (this.validator instanceof ContainerTypeValidator && exploded)
@@ -32,14 +33,12 @@ public class ArrayTypeValidator extends ContainerTypeValidator<List<String>> {
   }
 
   private boolean checkMinItems(int size) {
-    if (minItems != null)
-      return size >= minItems;
+    if (minItems != null) return size >= minItems;
     else return true;
   }
 
   private boolean checkMaxItems(int size) {
-    if (maxItems != null)
-      return size <= maxItems;
+    if (maxItems != null) return size <= maxItems;
     else return true;
   }
 
@@ -65,7 +64,8 @@ public class ArrayTypeValidator extends ContainerTypeValidator<List<String>> {
   @Override
   protected RequestParameter validate(List<String> values) {
     if (values == null || !checkMaxItems(values.size()) || !checkMinItems(values.size()))
-      throw ValidationException.ValidationExceptionFactory.generateUnexpectedArraySizeValidationException(this.getMaxItems(), this.getMinItems(), values.size());
+      throw ValidationException.ValidationExceptionFactory.generateUnexpectedArraySizeValidationException(this
+        .getMaxItems(), this.getMinItems(), values.size());
     List<RequestParameter> parsedParams = new ArrayList<>();
     for (String s : values) {
       RequestParameter parsed = validator.isValid(s);
@@ -91,16 +91,22 @@ public class ArrayTypeValidator extends ContainerTypeValidator<List<String>> {
       return ArrayTypeValidatorFactory.createArrayTypeValidator(arrayMembersValidator, "csv", true);
     }
 
-    public static ArrayTypeValidator createArrayTypeValidator(ParameterTypeValidator arrayMembersValidator, String collectionFormat, boolean exploded) {
-      return ArrayTypeValidatorFactory.createArrayTypeValidator(arrayMembersValidator, collectionFormat, exploded, null, null);
+    public static ArrayTypeValidator createArrayTypeValidator(ParameterTypeValidator arrayMembersValidator, String
+      collectionFormat, boolean exploded) {
+      return ArrayTypeValidatorFactory.createArrayTypeValidator(arrayMembersValidator, collectionFormat, exploded,
+        null, null);
     }
 
-    public static ArrayTypeValidator createArrayTypeValidator(ParameterTypeValidator arrayMembersValidator, String collectionFormat, Integer maxItems, Integer minItems) {
-      return ArrayTypeValidatorFactory.createArrayTypeValidator(arrayMembersValidator, collectionFormat, true, maxItems, minItems);
+    public static ArrayTypeValidator createArrayTypeValidator(ParameterTypeValidator arrayMembersValidator, String
+      collectionFormat, Integer maxItems, Integer minItems) {
+      return ArrayTypeValidatorFactory.createArrayTypeValidator(arrayMembersValidator, collectionFormat, true,
+        maxItems, minItems);
     }
 
-    public static ArrayTypeValidator createArrayTypeValidator(ParameterTypeValidator arrayMembersValidator, String collectionFormat, boolean exploded, Integer maxItems, Integer minItems) {
-      return new ArrayTypeValidator(arrayMembersValidator, ContainerSerializationStyle.getContainerStyle(collectionFormat).getDeserializer(), exploded, maxItems, minItems);
+    public static ArrayTypeValidator createArrayTypeValidator(ParameterTypeValidator arrayMembersValidator, String
+      collectionFormat, boolean exploded, Integer maxItems, Integer minItems) {
+      return new ArrayTypeValidator(arrayMembersValidator, ContainerSerializationStyle.getContainerStyle
+        (collectionFormat).deserializer(), exploded, maxItems, minItems);
     }
   }
 }

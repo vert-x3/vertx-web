@@ -54,57 +54,57 @@ public class RequestParametersImpl implements RequestParameters {
   }
 
   @Override
-  public List<String> getPathParametersNames() {
+  public List<String> pathParametersNames() {
     return new ArrayList<>(pathParameters.keySet());
   }
 
   @Override
-  public RequestParameter getPathParameter(String name) {
+  public RequestParameter pathParameter(String name) {
     return pathParameters.get(name);
   }
 
   @Override
-  public List<String> getQueryParametersNames() {
+  public List<String> queryParametersNames() {
     return new ArrayList<>(queryParameters.keySet());
   }
 
   @Override
-  public RequestParameter getQueryParameter(String name) {
+  public RequestParameter queryParameter(String name) {
     return queryParameters.get(name);
   }
 
   @Override
-  public List<String> getHeaderParametersNames() {
+  public List<String> headerParametersNames() {
     return new ArrayList<>(headerParameters.keySet());
   }
 
   @Override
-  public RequestParameter getHeaderParameter(String name) {
+  public RequestParameter headerParameter(String name) {
     return headerParameters.get(name);
   }
 
   @Override
-  public List<String> getCookieParametersNames() {
+  public List<String> cookieParametersNames() {
     return new ArrayList<>(cookieParameters.keySet());
   }
 
   @Override
-  public RequestParameter getCookieParameter(String name) {
+  public RequestParameter cookieParameter(String name) {
     return cookieParameters.get(name);
   }
 
   @Override
-  public List<String> getFormParametersNames() {
+  public List<String> formParametersNames() {
     return new ArrayList<>(formParameters.keySet());
   }
 
   @Override
-  public RequestParameter getFormParameter(String name) {
+  public RequestParameter formParameter(String name) {
     return formParameters.get(name);
   }
 
   @Override
-  public RequestParameter getBody() {
+  public RequestParameter body() {
     return body;
   }
 }

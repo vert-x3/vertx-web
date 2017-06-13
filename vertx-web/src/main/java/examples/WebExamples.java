@@ -1281,9 +1281,9 @@ public class WebExamples {
         RequestParameters params = routingContext.get("parsedParameters");
 
         // Get parameters
-        Integer parameterName = params.getQueryParameter("parameterName").getInteger();
-        String formParameterName = params.getFormParameter("formParameterName").getString();
-        Float pathParam = params.getPathParameter("pathParam").getFloat();
+        Integer parameterName = params.queryParameter("parameterName").getInteger();
+        String formParameterName = params.formParameter("formParameterName").getString();
+        Float pathParam = params.pathParameter("pathParam").getFloat();
       })
 
       //Mount your failure handler
@@ -1311,9 +1311,8 @@ public class WebExamples {
           Throwable failure = routingContext.failure();
           if (failure instanceof ValidationException)
             // Handle Validation Exception
-            routingContext.response()
-              .setStatusCode(400)
-              .setStatusMessage("ValidationException thrown! " + ((ValidationException) failure).getErrorType().name())
+            routingContext.response().setStatusCode(400).setStatusMessage("ValidationException thrown! " + (
+              (ValidationException) failure).type().name())
               .end();
         });
 
@@ -1321,7 +1320,7 @@ public class WebExamples {
         routerFactory.addHandler(HttpMethod.POST, "/pets", routingContext -> {
           // Extract request body and use it
           RequestParameters params = routingContext.get("parsedParameters");
-          JsonObject pet = params.getBody().getJsonObject();
+          JsonObject pet = params.body().getJsonObject();
           routingContext.response()
             .putHeader("content-type", "application/json; charset=utf-8")
             .end(pet.encodePrettily());
@@ -1329,9 +1328,8 @@ public class WebExamples {
           Throwable failure = routingContext.failure();
           if (failure instanceof ValidationException)
             // Handle Validation Exception
-            routingContext.response()
-              .setStatusCode(400)
-              .setStatusMessage("ValidationException thrown! " + ((ValidationException) failure).getErrorType().name())
+            routingContext.response().setStatusCode(400).setStatusMessage("ValidationException thrown! " + (
+              (ValidationException) failure).type().name())
               .end();
         });
 

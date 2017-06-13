@@ -1783,9 +1783,9 @@ router.get("/awesome/:pathParam").handler(&validationHandler.method(:handle)).ha
   params = routingContext.get("parsedParameters")
 
   # Get parameters
-  parameterName = params.get_query_parameter("parameterName").get_integer()
-  formParameterName = params.get_form_parameter("formParameterName").get_string()
-  pathParam = params.get_path_parameter("pathParam").get_float()
+  parameterName = params.query_parameter("parameterName").get_integer()
+  formParameterName = params.form_parameter("formParameterName").get_string()
+  pathParam = params.path_parameter("pathParam").get_float()
 }.failure_handler() { |routingContext|
   failure = routingContext.failure()
   if (failure.class.name == 'Java::IoVertxExtWebValidation::ValidationException')
@@ -1825,19 +1825,19 @@ VertxWeb::OpenAPI3RouterFactory.create_router_factory_from_file(vertx, "src/main
       # This is the failure handler
       failure = routingContext.failure()
       if (failure.class.name == 'Java::IoVertxExtWebValidation::ValidationException')
-        routingContext.response().set_status_code(400).set_status_message("ValidationException thrown! #{failure.get_error_type().name()}").end()end
+        routingContext.response().set_status_code(400).set_status_message("ValidationException thrown! #{failure.type().name()}").end()end
     }
 
     # Add an handler with a combination of HttpMethod and path
     routerFactory.add_handler(:POST, "/pets", lambda { |routingContext|
       # Extract request body and use it
       params = routingContext.get("parsedParameters")
-      pet = params.get_body().get_json_object()
+      pet = params.body().get_json_object()
       routingContext.response().put_header("content-type", "application/json; charset=utf-8").end(JSON.generate(pet))
     }) { |routingContext|
       failure = routingContext.failure()
       if (failure.class.name == 'Java::IoVertxExtWebValidation::ValidationException')
-        routingContext.response().set_status_code(400).set_status_message("ValidationException thrown! #{failure.get_error_type().name()}").end()end
+        routingContext.response().set_status_code(400).set_status_message("ValidationException thrown! #{failure.type().name()}").end()end
     }
 
     # Add a security handler

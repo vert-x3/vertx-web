@@ -12,35 +12,31 @@ import java.util.regex.Pattern;
 public class OpenApi3Utils {
 
   public static boolean isParameterStyle(Parameter parameter, String style) {
-    if (parameter.getStyle() != null)
-      return parameter.getStyle().equals(style);
-    else
-      return false;
+    if (parameter.getStyle() != null) return parameter.getStyle().equals(style);
+    else return false;
   }
 
   public static boolean isParameterArrayType(Parameter parameter) {
     if (parameter.getSchema() != null && parameter.getSchema().getType() != null)
       return parameter.getSchema().getType().equals("array");
-    else
-      return false;
+    else return false;
   }
 
   public static boolean isParameterObjectType(Parameter parameter) {
     if (parameter.getSchema() != null && parameter.getSchema().getType() != null)
       return parameter.getSchema().getType().equals("object");
-    else
-      return false;
+    else return false;
   }
 
   public static boolean isParameterObjectOrAllOfType(Parameter parameter) {
     if (parameter.getSchema() != null && parameter.getSchema().getType() != null)
       return parameter.getSchema().getType().equals("object") || isAllOfSchema(parameter.getSchema());
-    else
-      return false;
+    else return false;
   }
 
   public static boolean isRequiredParam(Schema schema, String parameterName) {
-    return (schema != null && schema.getRequiredFields() != null) ? schema.getRequiredFields().contains(parameterName) : false;
+    return (schema != null && schema.getRequiredFields() != null) ? schema.getRequiredFields().contains
+      (parameterName) : false;
   }
 
   public static boolean isRequiredParam(Parameter param) {
@@ -48,21 +44,19 @@ public class OpenApi3Utils {
   }
 
   public static String resolveStyle(Parameter param) {
-    if (param.getStyle() != null)
-      return null;
-    else
-      switch (param.getIn()) {
-        case "query":
-          return "form";
-        case "path":
-          return "simple";
-        case "header":
-          return "simple";
-        case "cookie":
-          return "form";
-        default:
-          return null;
-      }
+    if (param.getStyle() != null) return null;
+    else switch (param.getIn()) {
+      case "query":
+        return "form";
+      case "path":
+        return "simple";
+      case "header":
+        return "simple";
+      case "cookie":
+        return "form";
+      default:
+        return null;
+    }
   }
 
   public static boolean isOneOfSchema(Schema schema) {
@@ -85,7 +79,8 @@ public class OpenApi3Utils {
     return path.replaceAll("(?:\\{{1})([^!#$&'()*+,\\/\\{\\}:;=?@\\[\\]]*)(?:\\}{1})", ":$1");
   }
 
-  // Thank you StackOverflow https://stackoverflow.com/questions/28332924/case-insensitive-matching-of-a-string-to-a-java-enum :)
+  // Thank you StackOverflow https://stackoverflow
+  // .com/questions/28332924/case-insensitive-matching-of-a-string-to-a-java-enum :)
   public static <T extends Enum<?>> T searchEnum(Class<T> enumeration, String search) {
     for (T each : enumeration.getEnumConstants()) {
       if (each.name().compareToIgnoreCase(search) == 0) {
@@ -104,8 +99,7 @@ public class OpenApi3Utils {
         stringBuilder.append(Pattern.quote(contentType.trim()) + "|");
       stringBuilder.deleteCharAt(stringBuilder.length() - 1);
       return stringBuilder.toString();
-    } else
-      return Pattern.quote(listContentTypes);
+    } else return Pattern.quote(listContentTypes);
   }
 
 }

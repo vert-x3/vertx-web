@@ -7,6 +7,7 @@ import java.util.List;
 
 /**
  * Container for request parameters
+ *
  * @author Francesco Guardiani @slinkydeveloper
  */
 @VertxGen
@@ -17,77 +18,81 @@ public interface RequestParameters {
    *
    * @return
    */
-  List<String> getPathParametersNames();
+  List<String> pathParametersNames();
 
   /**
    * Get path parameter by name
+   *
    * @param name Parameter name
    * @return
    */
-  @Nullable
-  RequestParameter getPathParameter(String name);
+  @Nullable RequestParameter pathParameter(String name);
 
   /**
    * Get list of all parameter names inside query
+   *
    * @return
    */
-  List<String> getQueryParametersNames();
+  List<String> queryParametersNames();
 
   /**
    * Get query parameter by name
+   *
    * @param name Parameter name
    * @return
    */
-  @Nullable
-  RequestParameter getQueryParameter(String name);
+  @Nullable RequestParameter queryParameter(String name);
 
   /**
    * Get list of all parameter names inside header
+   *
    * @return
    */
-  List<String> getHeaderParametersNames();
+  List<String> headerParametersNames();
 
   /**
    * Get header parameter by name
+   *
    * @param name Parameter name
    * @return
    */
-  @Nullable
-  RequestParameter getHeaderParameter(String name);
+  @Nullable RequestParameter headerParameter(String name);
 
   /**
    * Get list of all parameter names inside cookie
+   *
    * @return
    */
-  List<String> getCookieParametersNames();
+  List<String> cookieParametersNames();
 
   /**
    * Get cookie parameter by name
+   *
    * @param name Parameter name
    * @return
    */
-  @Nullable
-  RequestParameter getCookieParameter(String name);
+  @Nullable RequestParameter cookieParameter(String name);
 
   /**
    * Get list of all parameter names inside body form
+   *
    * @return
    */
-  List<String> getFormParametersNames();
+  List<String> formParametersNames();
 
   /**
    * Get form parameter by name
+   *
    * @param name Parameter name
    * @return
    */
-  @Nullable
-  RequestParameter getFormParameter(String name);
+  @Nullable RequestParameter formParameter(String name);
 
   /**
    * Return request body
+   *
    * @return
    */
-  @Nullable
-  RequestParameter getBody();
+  @Nullable RequestParameter body();
 
 }

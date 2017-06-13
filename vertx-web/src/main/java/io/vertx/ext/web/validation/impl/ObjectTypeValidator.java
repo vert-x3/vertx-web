@@ -62,7 +62,8 @@ public class ObjectTypeValidator extends ContainerTypeValidator<Map<String, Stri
         if (field.getValue().required)
           throw ValidationException.ValidationExceptionFactory.generateObjectFieldNotFound(field.getKey());
         else if (field.getValue().validator.getDefault() != null)
-          parsedParams.put(field.getKey(), RequestParameter.create(field.getKey(), field.getValue().validator.getDefault()));
+          parsedParams.put(field.getKey(), RequestParameter.create(field.getKey(), field.getValue().validator
+            .getDefault()));
 
       } else {
         RequestParameter param = field.getValue().validator.isValid(valueToValidate);
@@ -75,12 +76,14 @@ public class ObjectTypeValidator extends ContainerTypeValidator<Map<String, Stri
   }
 
   public static class ObjectTypeValidatorFactory {
-    public static ObjectTypeValidator createObjectTypeValidator(ContainerSerializationStyle collectionFormat, boolean exploded) {
-      return new ObjectTypeValidator(collectionFormat.getDeserializer(), exploded);
+    public static ObjectTypeValidator createObjectTypeValidator(ContainerSerializationStyle collectionFormat, boolean
+      exploded) {
+      return new ObjectTypeValidator(collectionFormat.deserializer(), exploded);
     }
 
     public static ObjectTypeValidator createObjectTypeValidator(String collectionFormat, boolean exploded) {
-      return new ObjectTypeValidator(ContainerSerializationStyle.getContainerStyle(collectionFormat).getDeserializer(), exploded);
+      return new ObjectTypeValidator(ContainerSerializationStyle.getContainerStyle(collectionFormat).deserializer(),
+        exploded);
     }
   }
 

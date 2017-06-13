@@ -17,12 +17,11 @@ public class ParameterValidationRuleImpl implements ParameterValidationRule {
   private boolean isOptional;
   private boolean allowEmptyValue;
 
-  public ParameterValidationRuleImpl(String name, ParameterTypeValidator validator, boolean isOptional, boolean allowEmptyValue, ParameterLocation location) {
-    if (name == null)
-      throw new NullPointerException("name cannot be null");
+  public ParameterValidationRuleImpl(String name, ParameterTypeValidator validator, boolean isOptional, boolean
+    allowEmptyValue, ParameterLocation location) {
+    if (name == null) throw new NullPointerException("name cannot be null");
     this.name = name;
-    if (validator == null)
-      throw new NullPointerException("validator cannot be null");
+    if (validator == null) throw new NullPointerException("validator cannot be null");
     this.validator = validator;
     this.isOptional = isOptional;
     this.allowEmptyValue = allowEmptyValue;
@@ -67,9 +66,9 @@ public class ParameterValidationRuleImpl implements ParameterValidationRule {
     } else {
       // Value or null or length == 0
       if (!this.allowEmptyValue)
-        throw ValidationException.ValidationExceptionFactory.generateEmptyValueValidationException(this.name, this, this.location);
-      else
-        return RequestParameter.create(getName(), getParameterTypeValidator().getDefault());
+        throw ValidationException.ValidationExceptionFactory.generateEmptyValueValidationException(this.name, this,
+          this.location);
+      else return RequestParameter.create(getName(), parameterTypeValidator().getDefault());
     }
   }
 
@@ -80,9 +79,9 @@ public class ParameterValidationRuleImpl implements ParameterValidationRule {
     } else {
       // array or null or size == 0
       if (!this.allowEmptyValue)
-        throw ValidationException.ValidationExceptionFactory.generateEmptyValueValidationException(this.name, this, this.location);
-      else
-        return RequestParameter.create(getName(), getParameterTypeValidator().getDefault());
+        throw ValidationException.ValidationExceptionFactory.generateEmptyValueValidationException(this.name, this,
+          this.location);
+      else return RequestParameter.create(getName(), parameterTypeValidator().getDefault());
     }
   }
 
@@ -92,7 +91,7 @@ public class ParameterValidationRuleImpl implements ParameterValidationRule {
   }
 
   @Override
-  public ParameterTypeValidator getParameterTypeValidator() {
+  public ParameterTypeValidator parameterTypeValidator() {
     return validator;
   }
 
@@ -103,22 +102,19 @@ public class ParameterValidationRuleImpl implements ParameterValidationRule {
 
   @Override
   public String toString() {
-    return "ParameterValidationRuleImpl{" +
-      "name='" + name + '\'' +
-      ", validator=" + validator +
-      ", location=" + location +
-      ", isOptional=" + isOptional +
-      ", allowEmptyValue=" + allowEmptyValue +
-      '}';
+    return "ParameterValidationRuleImpl{" + "name='" + name + '\'' + ", validator=" + validator + ", location=" +
+      location + ", isOptional=" + isOptional + ", allowEmptyValue=" + allowEmptyValue + '}';
   }
 
   public static class ParameterValidationRuleFactory {
 
-    static ParameterValidationRule createValidationRule(String name, ParameterType type, boolean isOptional, boolean allowEmptyValue, ParameterLocation location) {
-      return new ParameterValidationRuleImpl(name, type.getValidationMethod(), isOptional, allowEmptyValue, location);
+    static ParameterValidationRule createValidationRule(String name, ParameterType type, boolean isOptional, boolean
+      allowEmptyValue, ParameterLocation location) {
+      return new ParameterValidationRuleImpl(name, type.validationMethod(), isOptional, allowEmptyValue, location);
     }
 
-    static ParameterValidationRule createValidationRuleWithCustomTypeValidator(String name, ParameterTypeValidator validator, boolean isOptional, boolean allowEmptyValue, ParameterLocation location) {
+    static ParameterValidationRule createValidationRuleWithCustomTypeValidator(String name, ParameterTypeValidator
+      validator, boolean isOptional, boolean allowEmptyValue, ParameterLocation location) {
       return new ParameterValidationRuleImpl(name, validator, isOptional, allowEmptyValue, location);
     }
   }

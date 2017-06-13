@@ -17,14 +17,12 @@ public class BooleanTypeValidator implements ParameterTypeValidator {
 
   @Override
   public RequestParameter isValid(String value) {
-    if (value == null || value.length() == 0)
-      return RequestParameter.create(getDefault());
+    if (value == null || value.length() == 0) return RequestParameter.create(getDefault());
     else if (value.equalsIgnoreCase("true") || value.equalsIgnoreCase("t") || value.equalsIgnoreCase("1"))
       return RequestParameter.create(Boolean.valueOf(true));
     else if (value.equalsIgnoreCase("false") || value.equalsIgnoreCase("f") || value.equalsIgnoreCase("0"))
       return RequestParameter.create(Boolean.valueOf(false));
-    else
-      throw ValidationException.ValidationExceptionFactory.generateNotMatchValidationException(null);
+    else throw ValidationException.ValidationExceptionFactory.generateNotMatchValidationException(null);
   }
 
   @Override

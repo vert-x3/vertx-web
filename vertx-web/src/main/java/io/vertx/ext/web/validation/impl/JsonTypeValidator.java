@@ -43,10 +43,8 @@ public class JsonTypeValidator implements ParameterTypeValidator {
     }
 
     public static JsonTypeValidator createJsonTypeValidator(String object) {
-      if (object.length() != 0)
-        return createJsonTypeValidator(Utils.toJsonNode(object));
-      else
-        return null;
+      if (object.length() != 0) return createJsonTypeValidator(Utils.toJsonNode(object));
+      else return null;
     }
 
     public static JsonTypeValidator createJsonTypeValidator(JsonObject object) {

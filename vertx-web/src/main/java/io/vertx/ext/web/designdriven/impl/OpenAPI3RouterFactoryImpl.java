@@ -17,7 +17,8 @@ import java.util.*;
 /**
  * @author Francesco Guardiani @slinkydeveloper
  */
-public class OpenAPI3RouterFactoryImpl extends BaseDesignDrivenRouterFactory<OpenApi3> implements OpenAPI3RouterFactory {
+public class OpenAPI3RouterFactoryImpl extends BaseDesignDrivenRouterFactory<OpenApi3> implements
+  OpenAPI3RouterFactory {
 
   private final Handler<RoutingContext> NOT_IMPLEMENTED_HANDLER = (routingContext) -> {
     routingContext.response().setStatusCode(501).setStatusMessage("Path not implemented").end();
@@ -100,7 +101,8 @@ public class OpenAPI3RouterFactoryImpl extends BaseDesignDrivenRouterFactory<Ope
     private List<Handler<RoutingContext>> userHandlers;
     private List<Handler<RoutingContext>> userFailureHandlers;
 
-    public OperationValue(HttpMethod method, String vertxStylePath, Operation operationModel, Collection<? extends Parameter> parentParameters) {
+    public OperationValue(HttpMethod method, String vertxStylePath, Operation operationModel, Collection<? extends
+      Parameter> parentParameters) {
       this.method = method;
       this.vertxStylePath = vertxStylePath;
       this.operationModel = operationModel;
@@ -157,28 +159,28 @@ public class OpenAPI3RouterFactoryImpl extends BaseDesignDrivenRouterFactory<Ope
       String vertxStylePath = OpenApi3Utils.convertPathFromOpenApiToVertx(pathEntry.getKey());
       this.vertxPathToOpenApiPath.put(vertxStylePath, pathEntry.getKey());
       for (Map.Entry<String, ? extends Operation> opEntry : pathEntry.getValue().getOperations().entrySet()) {
-        this.operationIdtoOperations.put(opEntry.getValue().getOperationId(),
-          new OperationValue(OpenApi3Utils.searchEnum(HttpMethod.class, opEntry.getKey()), vertxStylePath, opEntry.getValue(), pathEntry.getValue().getParameters()));
+        this.operationIdtoOperations.put(opEntry.getValue().getOperationId(), new OperationValue(OpenApi3Utils
+          .searchEnum(HttpMethod.class, opEntry.getKey()), vertxStylePath, opEntry.getValue(), pathEntry.getValue()
+          .getParameters()));
       }
     }
   }
 
   @Override
-  public OpenAPI3RouterFactory addSecuritySchemaScopeValidator(String securitySchemaName, String scopeName, Handler handler) {
+  public OpenAPI3RouterFactory addSecuritySchemaScopeValidator(String securitySchemaName, String scopeName, Handler
+    handler) {
     SecurityRequirementKey key = new SecurityRequirementKey(securitySchemaName, scopeName);
     securityHandlers.put(key, handler);
     return this;
   }
 
   @Override
-  public OpenAPI3RouterFactory addHandlerByOperationId(String operationId, Handler<RoutingContext> handler, Handler<RoutingContext> failureHandler) {
+  public OpenAPI3RouterFactory addHandlerByOperationId(String operationId, Handler<RoutingContext> handler,
+                                                       Handler<RoutingContext> failureHandler) {
     OperationValue op = operationIdtoOperations.get(operationId);
-    if (op == null)
-      throw RouterFactoryException.createOperationIdNotFoundException(operationId);
-    if (handler != null)
-      op.addUserHandler(handler);
-    if (failureHandler != null)
-      op.addUserFailureHandler(failureHandler);
+    if (op == null) throw RouterFactoryException.createOperationIdNotFoundException(operationId);
+    if (handler != null) op.addUserHandler(handler);
+    if (failureHandler != null) op.addUserFailureHandler(failureHandler);
     return this;
   }
 
@@ -195,8 +197,7 @@ public class OpenAPI3RouterFactoryImpl extends BaseDesignDrivenRouterFactory<Ope
     if (pathObject == null) {
       // Maybe the user give me path in vertx style
       path = vertxPathToOpenApiPath.get(path);
-      if (path == null)
-        throw RouterFactoryException.createPathNotFoundException(path);
+      if (path == null) throw RouterFactoryException.createPathNotFoundException(path);
       else {
         pathObject = this.spec.getPath(path);
         if (pathObject == null) {
@@ -255,39 +256,40 @@ public class OpenAPI3RouterFactoryImpl extends BaseDesignDrivenRouterFactory<Ope
       // Resolve security handlers
       if (operation.getOperationModel().hasSecurityRequirements()) {
         for (SecurityRequirement securityRequirement : operation.getOperationModel().getSecurityRequirements()) {
-          for (Map.Entry<String, ? extends SecurityParameter> securityValue : securityRequirement.getRequirements().entrySet()) {
-            if (securityValue.getValue().getParameters() != null && securityValue.getValue().getParameters().size() != 0) {
+          for (Map.Entry<String, ? extends SecurityParameter> securityValue : securityRequirement.getRequirements()
+            .entrySet()) {
+            if (securityValue.getValue().getParameters() != null && securityValue.getValue().getParameters().size()
+              != 0) {
               // It's a multiscope security requirement
               for (String scope : securityValue.getValue().getParameters()) {
-                Handler securityHandlerToLoad = this.securityHandlers.get(new SecurityRequirementKey(securityValue.getKey(), scope));
+                Handler securityHandlerToLoad = this.securityHandlers.get(new SecurityRequirementKey(securityValue
+                  .getKey(), scope));
                 if (securityHandlerToLoad == null) {
                   // Maybe there's only one security handler for all scopes of this security schema
                   securityHandlerToLoad = this.securityHandlers.get(new SecurityRequirementKey(securityValue.getKey()));
                   if (securityHandlerToLoad == null)
                     throw RouterFactoryException.createMissingSecurityHandler(securityValue.getKey(), scope);
-                  else
-                    handlersToLoad.add(securityHandlerToLoad);
-                } else
-                  handlersToLoad.add(securityHandlerToLoad);
+                  else handlersToLoad.add(securityHandlerToLoad);
+                } else handlersToLoad.add(securityHandlerToLoad);
               }
             } else {
-              Handler securityHandlerToLoad = this.securityHandlers.get(new SecurityRequirementKey(securityValue.getKey()));
+              Handler securityHandlerToLoad = this.securityHandlers.get(new SecurityRequirementKey(securityValue
+                .getKey()));
               if (securityHandlerToLoad == null)
                 throw RouterFactoryException.createMissingSecurityHandler(securityValue.getKey());
-              else
-                handlersToLoad.add(securityHandlerToLoad);
+              else handlersToLoad.add(securityHandlerToLoad);
             }
           }
         }
       }
 
       // Generate ValidationHandler
-      Handler<RoutingContext> validationHandler = new OpenAPI3RequestValidationHandlerImpl(operation.getOperationModel(), operation.getParentParameters());
+      Handler<RoutingContext> validationHandler = new OpenAPI3RequestValidationHandlerImpl(operation
+        .getOperationModel(), operation.getParentParameters());
       handlersToLoad.add(validationHandler);
 
       // Check validation failure handler
-      if (this.enableValidationFailureHandler)
-        failureHandlersToLoad.add(this.failureHandler);
+      if (this.enableValidationFailureHandler) failureHandlersToLoad.add(this.failureHandler);
 
       // Check if path is set by user
       if (operation.isConfigured()) {

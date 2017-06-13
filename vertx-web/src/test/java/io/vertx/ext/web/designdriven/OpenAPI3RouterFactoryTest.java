@@ -4,7 +4,6 @@ import io.vertx.core.Handler;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerOptions;
-import io.vertx.ext.web.RequestParameters;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.WebTestWithWebClientBase;
@@ -25,7 +24,8 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
         if (!expected) {
           failure.printStackTrace();
         }
-        routingContext.response().setStatusCode(400).setStatusMessage("failure:" + ((ValidationException) failure).getErrorType().name()).end();
+        routingContext.response().setStatusCode(400).setStatusMessage("failure:" + ((ValidationException) failure)
+          .type().name()).end();
       } else {
         failure.printStackTrace();
         routingContext.response().setStatusCode(500).setStatusMessage("unknownfailure:" + failure.toString()).end();
@@ -75,7 +75,8 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
   public void loadPetStoreAndTestSomething() throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
     final Router[] router = {null};
-    OpenAPI3RouterFactory.createRouterFactoryFromFile(this.vertx, "src/test/resources/swaggers/petstore.yaml", openAPI3RouterFactoryAsyncResult -> {
+    OpenAPI3RouterFactory.createRouterFactoryFromFile(this.vertx, "src/test/resources/swaggers/petstore.yaml",
+      openAPI3RouterFactoryAsyncResult -> {
       assertTrue(openAPI3RouterFactoryAsyncResult.succeeded());
       OpenAPI3RouterFactory routerFactory = openAPI3RouterFactoryAsyncResult.result();
       routerFactory.addHandlerByOperationId("listPets", routingContext -> {
