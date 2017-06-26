@@ -65,8 +65,31 @@ public abstract class RoutingContextImplBase implements RoutingContext {
 
   protected boolean iterateNext() {
     boolean failed = failed();
-    while (iter.hasNext()) {
+    if (currentRoute != null) { // Handle multiple handlers inside route object
+      try {
+        if (!failed && currentRoute.hasNextContextHandler()) {
+          currentRoute.handleContext(this);
+          return true;
+        } else if (failed && currentRoute.hasNextFailureHandler()) {
+          currentRoute.handleFailure(this);
+          return true;
+        }
+      } catch (Throwable t) {
+        if (log.isTraceEnabled()) log.trace("Throwable thrown from handler", t);
+        if (!failed) {
+          if (log.isTraceEnabled()) log.trace("Failing the routing");
+          fail(t);
+        } else {
+          // Failure in handling failure!
+          if (log.isTraceEnabled()) log.trace("Failure in handling failure");
+          unhandledFailure(-1, t, currentRoute.router());
+        }
+        return true;
+      }
+    }
+    while (iter.hasNext()) { // Search for more handlers
       RouteImpl route = iter.next();
+      route.resetIndexes();
       if (route.matches(this, mountPoint(), failed)) {
         if (log.isTraceEnabled()) log.trace("Route matches: " + route);
         try {
