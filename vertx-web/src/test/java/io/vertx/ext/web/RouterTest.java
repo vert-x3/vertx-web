@@ -2090,4 +2090,21 @@ public class RouterTest extends WebTestBase {
     testRequest(HttpMethod.GET, "/path", 200, "OK", "handler1handler2handler3");
     testRequest(HttpMethod.GET, "/fail", 500, "ERROR", "fhandler1fhandler2fhandler3");
   }
+
+  @Test
+  public void testMultipleSetHandlerMultipleRouteObject() throws Exception {
+    router.get("/path").handler(routingContext -> {
+      routingContext.put("response", "handler1");
+      routingContext.next();
+    });
+    router.get("/path").handler(routingContext -> {
+      routingContext.put("response", routingContext.get("response") + "handler2");
+      routingContext.next();
+    }).handler(routingContext -> {
+      HttpServerResponse response = routingContext.response();
+      response.setChunked(true);
+      response.end(routingContext.get("response") + "handler3");
+    });
+    testRequest(HttpMethod.GET, "/path", 200, "OK", "handler1handler2handler3");
+  }
 }
