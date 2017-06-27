@@ -209,6 +209,7 @@
       </plugin>
       <plugin>
         <artifactId>maven-failsafe-plugin</artifactId>
+        <version>2.19.1</version>
         <configuration>
           <includes>
             <include>**/HazelcastClusteredSessionHandlerTest.java</include>
