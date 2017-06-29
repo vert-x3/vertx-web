@@ -35,7 +35,10 @@ package io.vertx.ext.web.handler.sockjs.impl;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
+import io.vertx.core.http.HttpServerResponse;
+import io.vertx.core.http.HttpVersion;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.core.shareddata.LocalMap;
@@ -145,10 +148,15 @@ class XhrTransport extends BaseTransport {
     public void sendFrame(String body) {
       if (log.isTraceEnabled()) log.trace("XHR sending frame");
       if (!headersWritten) {
-        rc.response().putHeader("Content-Type", "application/javascript; charset=UTF-8");
+        HttpServerResponse resp = rc.response();
+        resp.putHeader("Content-Type", "application/javascript; charset=UTF-8");
         setJSESSIONID(options, rc);
         setCORS(rc);
-        rc.response().setChunked(true);
+        if (rc.request().version() != HttpVersion.HTTP_1_0) {
+          resp.setChunked(true);
+        } else {
+          resp.putHeader("Content-Length", "0");
+        }
         headersWritten = true;
       }
     }
