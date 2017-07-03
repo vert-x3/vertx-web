@@ -21,9 +21,7 @@ import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpMethod;
 import org.junit.Test;
 
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -807,6 +805,27 @@ public class RouterTest extends WebTestBase {
             "/blah/" + pathParamValue + "/test?" + paramName + "=" + queryParamValue1 + "&" + paramName + "=" + queryParamValue2,
             200,
             pathParamValue + "|" + queryParamValue1 + sep + queryParamValue2);
+  }
+
+  @Test
+  public void testCorrectQueryParamatersEncapsulation() throws Exception {
+    final String pathParameterName = "pathParameter";
+    final String pathParamValue = "awesomePath";
+    final String qName = "q";
+    final String qValue1 = "a";
+    final String qValue2 = "b";
+    final String sName = "s";
+    final String sValue = "sample_value";
+    final String sep = ",";
+    router.route("/blah/:" + pathParameterName + "/test").handler(rc -> {
+      MultiMap params = rc.queryParams();
+      String qExpected = String.join(",", params.getAll("q"));
+      String statusMessage = String.join("/", qExpected, params.get("s"));
+      rc.response().setStatusMessage(statusMessage).end();
+    });
+    testRequest(HttpMethod.GET,
+      "/blah/" + pathParamValue + "/test?" + qName + "=" + qValue1 + "," + qValue2 + "&" + sName + "=" + sValue, 200,
+      qValue1 + "," + qValue2 + "/" + sValue);
   }
 
   @Test

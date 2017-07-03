@@ -24,6 +24,7 @@ import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.MIMEHeader;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
+import io.netty.handler.codec.http.QueryStringDecoder;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -284,6 +285,16 @@ public class RouteImpl implements Route {
         return false;
       }
     }
+
+    // Check if query params are already parsed
+    if (context.queryParams().size() == 0) {
+      // Decode query parameters and put inside context.queryParams
+      Map<String, List<String>> decodedParams = new QueryStringDecoder(request.uri()).parameters();
+
+      for (Map.Entry<String, List<String>> entry : decodedParams.entrySet())
+        context.queryParams().add(entry.getKey(), entry.getValue());
+    }
+
     if (!consumes.isEmpty()) {
       // Can this route consume the specified content type
       MIMEHeader contentType = context.parsedHeaders().contentType();
