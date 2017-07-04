@@ -168,7 +168,7 @@ public interface Route {
 
   /**
    * If true then the normalised request path will be used when routing (e.g. removing duplicate /)
-   * Default is true
+   * Defaults to {@link io.vertx.ext.web.Router#useNormalisedPathByDefault(boolean)} in the router
    *
    * @param useNormalisedPath  use normalised path for routing?
    * @return a reference to this, so the API can be used fluently

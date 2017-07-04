@@ -71,6 +71,7 @@ public class RouterImpl implements Router {
 
   private final AtomicInteger orderSequence = new AtomicInteger();
   private Handler<Throwable> exceptionHandler;
+  private boolean useNormalisedPathByDefault = true;
 
   @Override
   public void accept(HttpServerRequest request) {
@@ -268,13 +269,19 @@ public class RouterImpl implements Router {
     if (mountPoint.contains(":")) {
       throw new IllegalArgumentException("Can't use patterns in subrouter mounts");
     }
-    route(mountPoint + "*").handler(subRouter::handleContext).failureHandler(subRouter::handleFailure);
+    new RouteImpl(this, orderSequence.getAndIncrement(), mountPoint, subRouter);
     return this;
   }
 
   @Override
   public synchronized Router exceptionHandler(Handler<Throwable> exceptionHandler) {
     this.exceptionHandler = exceptionHandler;
+    return this;
+  }
+
+  @Override
+  public Router useNormalisedPathByDefault(boolean useNormalisedPathByDefault) {
+    this.useNormalisedPathByDefault = useNormalisedPathByDefault;
     return this;
   }
 
@@ -296,6 +303,10 @@ public class RouterImpl implements Router {
 
   Handler<Throwable> exceptionHandler() {
     return exceptionHandler;
+  }
+
+  public boolean useNormalisedPathByDefault() {
+    return useNormalisedPathByDefault;
   }
 
   private String getAndCheckRoutePath(RoutingContext ctx) {
