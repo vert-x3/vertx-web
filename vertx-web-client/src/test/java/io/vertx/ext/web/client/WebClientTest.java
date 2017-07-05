@@ -1,5 +1,26 @@
 package io.vertx.ext.web.client;
 
+import java.io.File;
+import java.net.ConnectException;
+import java.nio.file.Files;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.function.Function;
+
+import org.junit.Test;
+
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.VertxException;
@@ -15,6 +36,7 @@ import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
+import io.vertx.core.http.HttpVersion;
 import io.vertx.core.json.DecodeException;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -22,26 +44,12 @@ import io.vertx.core.net.ProxyOptions;
 import io.vertx.core.net.ProxyType;
 import io.vertx.core.streams.ReadStream;
 import io.vertx.core.streams.WriteStream;
+import io.vertx.ext.web.client.impl.HttpContext;
 import io.vertx.ext.web.client.jackson.WineAndCheese;
 import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.test.core.HttpTestBase;
 import io.vertx.test.core.TestUtils;
 import io.vertx.test.core.tls.Cert;
-import org.junit.Test;
-
-import java.io.File;
-import java.net.ConnectException;
-import java.nio.file.Files;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-import java.util.function.Function;
 
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
@@ -1135,4 +1143,213 @@ public class WebClientTest extends HttpTestBase {
     await();
   }
 
+  private <R> void handleMutateRequest(HttpContext<R> context) {
+    context.getRequest().host("localhost");
+    context.getRequest().port(8080);
+    context.next();
+  }
+
+  @Test
+  public void testMutateRequestInterceptor() throws Exception {
+    server.requestHandler(req -> {
+      req.response().end();
+    });
+    startServer();
+    client.addInterceptor(this::handleMutateRequest);
+    HttpRequest<Buffer> builder = client.get("/somepath").host("another-host").port(8081);
+    builder.send(onSuccess(resp -> {
+      complete();
+    }));
+    await();
+  }
+
+  private <R> void handleMutateResponse(HttpContext<R> context) {
+    Handler<AsyncResult<HttpResponse<R>>> responseHandler = context.getResponseHandler();
+    context.setResponseHandler(ar -> {
+      if (ar.succeeded()) {
+        HttpResponse<R> resp = ar.result();
+        assertEquals(500, resp.statusCode());
+        responseHandler.handle(Future.succeededFuture(new HttpResponseImpl<R>() {
+          @Override
+          public int statusCode() {
+            return 200;
+          }
+        }));
+      } else {
+        responseHandler.handle(ar);
+      }
+    });
+    context.next();
+  }
+
+  @Test
+  public void testMutateResponseInterceptor() throws Exception {
+    server.requestHandler(req -> {
+      req.response().setStatusCode(500).end();
+    });
+    startServer();
+    client.addInterceptor(this::handleMutateResponse);
+    HttpRequest<Buffer> builder = client.get("/somepath");
+    builder.send(onSuccess(resp -> {
+      assertEquals(200, resp.statusCode());
+      complete();
+    }));
+    await();
+  }
+
+  @Test // TODO remove
+  public void testTracingInterceptor() throws Exception {
+    String location = "http://" + DEFAULT_HTTP_HOST + ":" + DEFAULT_HTTP_PORT + "/ok";
+    server.requestHandler(req -> {
+      if (req.path().equals("/redirect")) {
+        String spanId = req.headers().get("spanId");
+        assertEquals("foo", spanId);
+        req.response().setStatusCode(301).putHeader("Location", location).end();
+      } else {
+        String spanId = req.headers().get("spanId");
+        assertEquals("foo", spanId);
+        req.response().setStatusCode(204).end(req.path());
+      }
+    });
+    startServer();
+
+    CountDownLatch countDownLatch = new CountDownLatch(2);
+    Map<String, Object> tags = new LinkedHashMap<>();
+    client.addInterceptor((a -> tracingInterceptor(a, countDownLatch, tags)));
+
+    /**
+     * TODO we need to pass context (spanId, traceId) to the interceptor.
+     */
+    HttpRequest<Buffer> builder = client.get("/redirect");
+    builder.send(onSuccess(event -> {
+      complete();
+    }));
+
+    countDownLatch.await();
+    await();
+
+    assertEquals(1, tags.size());
+    assertEquals(204, tags.get("http.status_code"));
+  }
+
+  @Test // TODO remove
+  public void testTracingInterceptorError() throws Exception {
+    CountDownLatch countDownLatch = new CountDownLatch(2);
+    Map<String, Object> tags = new LinkedHashMap<>();
+    client.addInterceptor(a -> tracingInterceptor(a, countDownLatch, tags));
+    HttpRequest<Buffer> builder = client.get("http://nonexisting.example.com");
+    builder.send(event -> {});
+
+    countDownLatch.await();
+    assertEquals(2, tags.size());
+    assertTrue(tags.get("error.object") instanceof Throwable);
+    assertEquals(true, tags.get("error"));
+  }
+
+  private <R> void tracingInterceptor(HttpContext<R> context, CountDownLatch countDownLatch, Map<String, Object> tags) {
+    Handler<AsyncResult<HttpResponse<R>>> responseHandler = context.getResponseHandler();
+    countDownLatch.countDown();
+    /**
+     * TODO start span and make sure that parent span context is accessible
+     * this span should be childOf parent in order to connect server tracing with a client tracing.
+     */
+    HttpRequest request = context.getRequest();
+    // TODO method
+//    tags.put("http.method", request.method())
+    // TODO url
+//    tags.put("http.url", request.url());
+
+    // inject tracing headers
+    request.putHeader("spanId", "foo");
+
+    // finish span on response
+    context.setResponseHandler(asyncResponse -> {
+      if (asyncResponse.failed()) {
+        tags.put("error", true);
+        tags.put("error.object", asyncResponse.cause());
+      } else {
+        tags.put("http.status_code", asyncResponse.result().statusCode());
+      }
+      countDownLatch.countDown();
+      responseHandler.handle(asyncResponse);
+    });
+
+    context.next();
+  }
+
+  private <R> void handleCacheInterceptor(HttpContext<R> context) {
+    context.getResponseHandler().handle(Future.succeededFuture(new HttpResponseImpl<>()));
+  }
+
+  @Test
+  public void testCacheInterceptor() throws Exception {
+    server.requestHandler(req -> {
+      fail();
+    });
+    startServer();
+    client.addInterceptor(this::handleCacheInterceptor);
+    HttpRequest<Buffer> builder = client.get("/somepath").host("localhost").port(8080);
+    builder.send(onSuccess(resp -> {
+      assertEquals(200, resp.statusCode());
+      complete();
+    }));
+    await();
+  }
+
+  private static class HttpResponseImpl<R> implements HttpResponse<R> {
+    @Override
+    public HttpVersion version() {
+      return HttpVersion.HTTP_1_1;
+    }
+
+    @Override
+    public int statusCode() {
+      return 200;
+    }
+
+    @Override
+    public String statusMessage() {
+      return null;
+    }
+
+    @Override
+    public MultiMap headers() {
+      return null;
+    }
+
+    @Override
+    public String getHeader(String headerName) {
+      return null;
+    }
+
+    @Override
+    public MultiMap trailers() {
+      return null;
+    }
+
+    @Override
+    public String getTrailer(String trailerName) {
+      return null;
+    }
+
+    @Override
+    public List<String> cookies() {
+      return null;
+    }
+
+    @Override
+    public R body() {
+      return null;
+    }
+
+    @Override
+    public Buffer bodyAsBuffer() {
+      return null;
+    }
+
+    @Override
+    public JsonArray bodyAsJsonArray() {
+      return null;
+    }
+  }
 }
