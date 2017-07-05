@@ -436,6 +436,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
 
   private void doFail() {
     this.iter = router.iterator();
+    currentRoute = null;
     next();
   }
 
