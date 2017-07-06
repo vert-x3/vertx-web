@@ -7,6 +7,7 @@ import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions
  *
  * Options for configuring a SockJS handler
  *
+ * @param corsHeadersEnabled 
  * @param disabledTransports 
  * @param heartbeatInterval 
  * @param insertJSESSIONID 
@@ -18,6 +19,7 @@ import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions
  * NOTE: This function has been automatically generated from the [io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions original] using Vert.x codegen.
  */
 fun SockJSHandlerOptions(
+  corsHeadersEnabled: Boolean? = null,
   disabledTransports: Iterable<String>? = null,
   heartbeatInterval: Long? = null,
   insertJSESSIONID: Boolean? = null,
@@ -25,6 +27,9 @@ fun SockJSHandlerOptions(
   maxBytesStreaming: Int? = null,
   sessionTimeout: Long? = null): SockJSHandlerOptions = io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions().apply {
 
+  if (corsHeadersEnabled != null) {
+    this.setCorsHeadersEnabled(corsHeadersEnabled)
+  }
   if (disabledTransports != null) {
     for (item in disabledTransports) {
       this.addDisabledTransport(item)

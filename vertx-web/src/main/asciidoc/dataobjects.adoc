@@ -69,6 +69,7 @@ Declare a specific authority that user must have in order to allow messages
 [frame="topbot"]
 |===
 ^|Name | Type ^| Description
+|[[corsHeadersEnabled]]`corsHeadersEnabled`|`Boolean`|-
 |[[disabledTransports]]`disabledTransports`|`Array of String`|-
 |[[heartbeatInterval]]`heartbeatInterval`|`Number (long)`|-
 |[[insertJSESSIONID]]`insertJSESSIONID`|`Boolean`|-

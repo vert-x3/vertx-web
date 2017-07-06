@@ -197,7 +197,7 @@ public class SockJSHandlerImpl implements SockJSHandler, Handler<RoutingContext>
       public void handle(RoutingContext rc) {
         rc.response().headers().set("Content-Type", "application/javascript; charset=UTF-8");
 
-        BaseTransport.setCORS(rc);
+        BaseTransport.setCORS(options, rc);
         rc.response().setChunked(true);
 
         Buffer h = buffer(2);
@@ -342,4 +342,3 @@ public class SockJSHandlerImpl implements SockJSHandler, Handler<RoutingContext>
     server.requestHandler(router::accept).listen(8081);
   }
 }
-
