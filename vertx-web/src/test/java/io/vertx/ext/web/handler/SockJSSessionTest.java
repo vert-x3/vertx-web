@@ -123,4 +123,20 @@ public class SockJSSessionTest extends VertxTestBase {
     });
     await();
   }
+
+  @Test
+  public void testCombineMultipleFramesIntoASingleMessage() {
+    sockJSHandler.socketHandler(socket -> {
+      socket.handler(buf -> {
+        assertEquals("Hello World", buf.toString());
+        testComplete();
+      });
+    });
+    client.websocket("/test/400/8ne8e94a/websocket", ws -> {
+      ws.writeFrame(io.vertx.core.http.WebSocketFrame.textFrame("[\"Hello", false));
+      ws.writeFrame(io.vertx.core.http.WebSocketFrame.continuationFrame(Buffer.buffer(" World\"]"), true));
+      ws.close();
+    });
+    await();
+  }
 }
