@@ -1,6 +1,7 @@
-package io.vertx.ext.web.validation;
+package io.vertx.ext.web.designdriven;
 
 import io.vertx.codegen.annotations.VertxGen;
+import io.vertx.ext.web.validation.ValidationHandler;
 
 /**
  * Base interface for HTTP request validation with API specification

@@ -13,13 +13,6 @@
 
   <artifactId>vertx-web</artifactId>
 
-  <repositories>
-		<repository>
-		    <id>jitpack.io</id>
-		    <url>https://jitpack.io</url>
-		</repository>
-	</repositories>
-
   <properties>
     <doc.skip>false</doc.skip>
     <codegen.rxjava.deprecated>true</codegen.rxjava.deprecated>
@@ -49,12 +42,7 @@
       <optional>true</optional>
     </dependency>
 
-    <!-- Design Driven dependencies -->
-    <dependency>
-	    <groupId>com.github.slinkydeveloper</groupId>
-	    <artifactId>KaiZen-OpenApi-Parser</artifactId>
-      <version>master-SNAPSHOT</version>
-	</dependency>
+    <!-- Validation dependencies -->
     <dependency>
       <groupId>com.networknt</groupId>
       <artifactId>json-schema-validator</artifactId>

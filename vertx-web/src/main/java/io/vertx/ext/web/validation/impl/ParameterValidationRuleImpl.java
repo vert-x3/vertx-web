@@ -113,8 +113,12 @@ public class ParameterValidationRuleImpl implements ParameterValidationRule {
       return new ParameterValidationRuleImpl(name, type.validationMethod(), isOptional, allowEmptyValue, location);
     }
 
-    static ParameterValidationRule createValidationRuleWithCustomTypeValidator(String name, ParameterTypeValidator
-      validator, boolean isOptional, boolean allowEmptyValue, ParameterLocation location) {
+    public static ParameterValidationRule createValidationRuleWithCustomTypeValidator(String name,
+                                                                                      ParameterTypeValidator
+                                                                                        validator, boolean
+                                                                                        isOptional, boolean
+                                                                                        allowEmptyValue,
+                                                                                      ParameterLocation location) {
       return new ParameterValidationRuleImpl(name, validator, isOptional, allowEmptyValue, location);
     }
   }

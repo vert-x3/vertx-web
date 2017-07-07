@@ -1,4 +1,4 @@
-package io.vertx.ext.web.designdriven;
+package io.vertx.ext.web.designdriven.openapi3;
 
 import com.reprezen.kaizen.oasparser.OpenApiParser;
 import com.reprezen.kaizen.oasparser.model3.OpenApi3;
@@ -11,7 +11,9 @@ import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.designdriven.impl.OpenAPI3RouterFactoryImpl;
+import io.vertx.ext.web.designdriven.DesignDrivenRouterFactory;
+import io.vertx.ext.web.designdriven.RouterFactoryException;
+import io.vertx.ext.web.designdriven.openapi3.impl.OpenAPI3RouterFactoryImpl;
 
 import java.io.File;
 import java.net.MalformedURLException;

@@ -1,4 +1,4 @@
-package io.vertx.ext.web.validation;
+package io.vertx.ext.web.designdriven.openapi3;
 
 import com.reprezen.kaizen.oasparser.OpenApiParser;
 import com.reprezen.kaizen.oasparser.model3.OpenApi3;
@@ -7,12 +7,13 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RequestParameter;
 import io.vertx.ext.web.RequestParameters;
-import io.vertx.ext.web.impl.Utils;
-import io.vertx.ext.web.validation.impl.OpenAPI3RequestValidationHandlerImpl;
+import io.vertx.ext.web.designdriven.openapi3.impl.OpenAPI3RequestValidationHandlerImpl;
+import io.vertx.ext.web.validation.ParameterType;
+import io.vertx.ext.web.validation.ValidationException;
+import io.vertx.ext.web.validation.WebTestValidationBase;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExternalResource;
-import sun.reflect.annotation.ExceptionProxy;
 
 import java.io.File;
 import java.net.URLEncoder;

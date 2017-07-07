@@ -1,0 +1,66 @@
+= Vert.x-Web OpenAPI 3 support
+:toc: left
+
+== OpenAPI 3
+You can create your web service based on OpenAPI3 specification with `link:../..
+
+/apidocs/io/vertx/ext/web/designdriven/OpenAPI3RouterFactory.html[OpenAPI3RouterFactory]`. This class, as name says, is a router factory based on your OpenAPI 3 specification. It enables you to add handlers for specific paths (or operationId), and the factory will care to load the correct security and validation handlers.
+[source,js]
+----
+var OpenAPI3RouterFactory = require("vertx-web-contract-openapi-js/open_api3_router_factory");
+// Load the api spec. This operation is asynchronous
+OpenAPI3RouterFactory.createRouterFactoryFromFile(vertx, "src/main/resources/petstore.yaml", function (openAPI3RouterFactoryAsyncResult, openAPI3RouterFactoryAsyncResult_err) {
+  if (openAPI3RouterFactoryAsyncResult_err == null) {
+    // Spec loaded with success
+    var routerFactory = openAPI3RouterFactoryAsyncResult;
+    // Add an handler with operationId
+    routerFactory.addHandlerByOperationId("listPets", function (routingContext) {
+      // Handle listPets operation
+      routingContext.response().setStatusMessage("Called listPets").end();
+    }, function (routingContext) {
+      // This is the failure handler
+      var failure = routingContext.failure();
+      if (failure.getClass().getSimpleName() == 'ValidationException') {
+        routingContext.response().setStatusCode(400).setStatusMessage("ValidationException thrown! " + failure.type().name()).end()}
+    });
+
+    // Add an handler with a combination of HttpMethod and path
+    routerFactory.addHandler('POST', "/pets", function (routingContext) {
+      // Extract request body and use it
+      var params = routingContext.get("parsedParameters");
+      var pet = params.body().getJsonObject();
+      routingContext.response().putHeader("content-type", "application/json; charset=utf-8").end(JSON.stringify(pet));
+    }, function (routingContext) {
+      var failure = routingContext.failure();
+      if (failure.getClass().getSimpleName() == 'ValidationException') {
+        routingContext.response().setStatusCode(400).setStatusMessage("ValidationException thrown! " + failure.type().name()).end()}
+    });
+
+    // Add a security handler
+    routerFactory.addSecurityHandler("api_key", function (routingContext) {
+      // Handle security here
+      routingContext.next();
+    });
+
+    // Before router creation you can enable or disable mounting of a default failure handler for ValidationException
+    routerFactory.enableValidationFailureHandler(false);
+
+    // Now you have to generate the router
+    var router = routerFactory.getRouter();
+
+    // Now you can use your Router instance
+    var server = vertx.createHttpServer({
+      "port" : 8080,
+      "host" : "localhost"
+    });
+    server.requestHandler(router.accept).listen();
+
+  } else {
+    // Something went wrong during router factory initialization
+    var exception = openAPI3RouterFactoryAsyncResult_err;
+  }
+});
+
+----
+All methods, except `getRouter()` are lazy methods. When you call `getRouter()`, the `Router` will be generated
+following the path ordering described in specification.

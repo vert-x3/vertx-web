@@ -7,7 +7,6 @@ import io.vertx.core.VertxOptions;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServer;
-import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.AuthProvider;
@@ -18,30 +17,8 @@ import io.vertx.ext.auth.oauth2.OAuth2ClientOptions;
 import io.vertx.ext.auth.oauth2.OAuth2FlowType;
 import io.vertx.ext.auth.oauth2.providers.GithubAuth;
 import io.vertx.ext.web.*;
-import io.vertx.ext.web.designdriven.OpenAPI3RouterFactory;
-import io.vertx.ext.web.handler.AuthHandler;
-import io.vertx.ext.web.handler.BasicAuthHandler;
-import io.vertx.ext.web.handler.BodyHandler;
-import io.vertx.ext.web.handler.CSRFHandler;
-import io.vertx.ext.web.handler.CookieHandler;
-import io.vertx.ext.web.handler.CorsHandler;
-import io.vertx.ext.web.handler.ErrorHandler;
-import io.vertx.ext.web.handler.FormLoginHandler;
-import io.vertx.ext.web.handler.JWTAuthHandler;
-import io.vertx.ext.web.handler.OAuth2AuthHandler;
-import io.vertx.ext.web.handler.RedirectAuthHandler;
-import io.vertx.ext.web.handler.ResponseContentTypeHandler;
-import io.vertx.ext.web.handler.SessionHandler;
-import io.vertx.ext.web.handler.StaticHandler;
-import io.vertx.ext.web.handler.TemplateHandler;
-import io.vertx.ext.web.handler.TimeoutHandler;
-import io.vertx.ext.web.handler.UserSessionHandler;
-import io.vertx.ext.web.handler.VirtualHostHandler;
-import io.vertx.ext.web.handler.sockjs.BridgeEventType;
-import io.vertx.ext.web.handler.sockjs.BridgeOptions;
-import io.vertx.ext.web.handler.sockjs.PermittedOptions;
-import io.vertx.ext.web.handler.sockjs.SockJSHandler;
-import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
+import io.vertx.ext.web.handler.*;
+import io.vertx.ext.web.handler.sockjs.*;
 import io.vertx.ext.web.sstore.ClusteredSessionStore;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import io.vertx.ext.web.sstore.SessionStore;
@@ -1294,66 +1271,6 @@ public class WebExamples {
           String validationErrorMessage = failure.getMessage();
         }
       });
-  }
-
-  public void example64(Vertx vertx) {
-    // Load the api spec. This operation is asynchronous
-    OpenAPI3RouterFactory.createRouterFactoryFromFile(vertx, "src/main/resources/petstore.yaml", openAPI3RouterFactoryAsyncResult -> {
-      if (openAPI3RouterFactoryAsyncResult.succeeded()) {
-        // Spec loaded with success
-        OpenAPI3RouterFactory routerFactory = openAPI3RouterFactoryAsyncResult.result();
-        // Add an handler with operationId
-        routerFactory.addHandlerByOperationId("listPets", routingContext -> {
-          // Handle listPets operation
-          routingContext.response().setStatusMessage("Called listPets").end();
-        }, routingContext -> {
-          // This is the failure handler
-          Throwable failure = routingContext.failure();
-          if (failure instanceof ValidationException)
-            // Handle Validation Exception
-            routingContext.response().setStatusCode(400).setStatusMessage("ValidationException thrown! " + (
-              (ValidationException) failure).type().name())
-              .end();
-        });
-
-        // Add an handler with a combination of HttpMethod and path
-        routerFactory.addHandler(HttpMethod.POST, "/pets", routingContext -> {
-          // Extract request body and use it
-          RequestParameters params = routingContext.get("parsedParameters");
-          JsonObject pet = params.body().getJsonObject();
-          routingContext.response()
-            .putHeader("content-type", "application/json; charset=utf-8")
-            .end(pet.encodePrettily());
-        }, routingContext -> {
-          Throwable failure = routingContext.failure();
-          if (failure instanceof ValidationException)
-            // Handle Validation Exception
-            routingContext.response().setStatusCode(400).setStatusMessage("ValidationException thrown! " + (
-              (ValidationException) failure).type().name())
-              .end();
-        });
-
-        // Add a security handler
-        routerFactory.addSecurityHandler("api_key", routingContext -> {
-          // Handle security here
-          routingContext.next();
-        });
-
-        // Before router creation you can enable or disable mounting of a default failure handler for ValidationException
-        routerFactory.enableValidationFailureHandler(false);
-
-        // Now you have to generate the router
-        Router router = routerFactory.getRouter();
-
-        // Now you can use your Router instance
-        HttpServer server = vertx.createHttpServer(new HttpServerOptions().setPort(8080).setHost("localhost"));
-        server.requestHandler(router::accept).listen();
-
-      } else {
-        // Something went wrong during router factory initialization
-        Throwable exception = openAPI3RouterFactoryAsyncResult.cause();
-      }
-    });
   }
 
   public void manualContentType(Router router) {

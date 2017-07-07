@@ -1,10 +1,10 @@
 package io.vertx.ext.web.impl;
 
-import com.google.common.collect.Maps;
 import io.vertx.ext.web.RequestParameter;
 import io.vertx.ext.web.RequestParameters;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -21,11 +21,11 @@ public class RequestParametersImpl implements RequestParameters {
   private RequestParameter body;
 
   public RequestParametersImpl() {
-    pathParameters = Maps.newHashMap();
-    queryParameters = Maps.newHashMap();
-    headerParameters = Maps.newHashMap();
-    cookieParameters = Maps.newHashMap();
-    formParameters = Maps.newHashMap();
+    pathParameters = new HashMap<>();
+    queryParameters = new HashMap<>();
+    headerParameters = new HashMap<>();
+    cookieParameters = new HashMap<>();
+    formParameters = new HashMap<>();
     body = null;
   }
 

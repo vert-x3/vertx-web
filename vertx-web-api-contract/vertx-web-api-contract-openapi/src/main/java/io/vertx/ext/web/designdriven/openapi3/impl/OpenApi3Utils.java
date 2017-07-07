@@ -1,9 +1,8 @@
-package io.vertx.ext.web.designdriven.impl;
+package io.vertx.ext.web.designdriven.openapi3.impl;
 
 import com.reprezen.kaizen.oasparser.model3.Parameter;
 import com.reprezen.kaizen.oasparser.model3.Schema;
 
-import java.util.List;
 import java.util.regex.Pattern;
 
 /**

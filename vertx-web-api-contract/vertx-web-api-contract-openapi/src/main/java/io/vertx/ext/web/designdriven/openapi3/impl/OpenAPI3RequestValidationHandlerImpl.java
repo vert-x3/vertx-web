@@ -1,12 +1,14 @@
-package io.vertx.ext.web.validation.impl;
+package io.vertx.ext.web.designdriven.openapi3.impl;
 
 import com.reprezen.kaizen.oasparser.model3.*;
 import com.reprezen.kaizen.oasparser.ovl3.SchemaImpl;
 import io.vertx.ext.web.FileUpload;
 import io.vertx.ext.web.RequestParameter;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.designdriven.impl.OpenApi3Utils;
+import io.vertx.ext.web.designdriven.impl.HTTPOperationRequestValidationHandlerImpl;
+import io.vertx.ext.web.designdriven.openapi3.OpenAPI3RequestValidationHandler;
 import io.vertx.ext.web.validation.*;
+import io.vertx.ext.web.validation.impl.*;
 
 import java.util.*;
 import java.util.regex.Pattern;
@@ -14,8 +16,7 @@ import java.util.regex.Pattern;
 /**
  * @author Francesco Guardiani @slinkydeveloper
  */
-public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestValidationHandlerImpl<Operation>
-  implements io.vertx.ext.web.validation.OpenAPI3RequestValidationHandler {
+public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestValidationHandlerImpl<Operation> implements OpenAPI3RequestValidationHandler {
 
   /* I need this class to workaround the multipart validation of content types different from json and text */
   private class MultipartCustomValidator implements CustomValidator {

@@ -1,6 +1,7 @@
-package io.vertx.ext.web.validation.impl;
+package io.vertx.ext.web.designdriven.impl;
 
-import io.vertx.ext.web.validation.HTTPOperationRequestValidationHandler;
+import io.vertx.ext.web.designdriven.HTTPOperationRequestValidationHandler;
+import io.vertx.ext.web.validation.impl.BaseValidationHandler;
 
 /**
  * @author Francesco Guardiani @slinkydeveloper

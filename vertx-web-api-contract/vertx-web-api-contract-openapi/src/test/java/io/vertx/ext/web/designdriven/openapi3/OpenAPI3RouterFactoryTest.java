@@ -1,4 +1,4 @@
-package io.vertx.ext.web.designdriven;
+package io.vertx.ext.web.designdriven.openapi3;
 
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpClientOptions;
@@ -7,6 +7,7 @@ import io.vertx.core.http.HttpServerOptions;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.WebTestWithWebClientBase;
+import io.vertx.ext.web.designdriven.RouterFactoryException;
 import io.vertx.ext.web.validation.ValidationException;
 import org.junit.Test;
 

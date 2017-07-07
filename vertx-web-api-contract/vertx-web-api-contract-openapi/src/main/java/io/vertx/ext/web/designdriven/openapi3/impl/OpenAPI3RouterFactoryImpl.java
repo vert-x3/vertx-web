@@ -1,4 +1,4 @@
-package io.vertx.ext.web.designdriven.impl;
+package io.vertx.ext.web.designdriven.openapi3.impl;
 
 import com.reprezen.kaizen.oasparser.model3.*;
 import io.vertx.core.Handler;
@@ -6,11 +6,11 @@ import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.designdriven.OpenAPI3RouterFactory;
 import io.vertx.ext.web.designdriven.RouterFactoryException;
+import io.vertx.ext.web.designdriven.impl.BaseDesignDrivenRouterFactory;
+import io.vertx.ext.web.designdriven.openapi3.OpenAPI3RouterFactory;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.CookieHandler;
-import io.vertx.ext.web.validation.impl.OpenAPI3RequestValidationHandlerImpl;
 
 import java.util.*;
 

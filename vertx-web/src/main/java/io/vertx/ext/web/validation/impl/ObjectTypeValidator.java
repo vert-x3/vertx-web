@@ -1,6 +1,5 @@
 package io.vertx.ext.web.validation.impl;
 
-import com.google.common.collect.Maps;
 import io.vertx.ext.web.RequestParameter;
 import io.vertx.ext.web.validation.ContainerDeserializer;
 import io.vertx.ext.web.validation.ContainerSerializationStyle;
@@ -54,7 +53,7 @@ public class ObjectTypeValidator extends ContainerTypeValidator<Map<String, Stri
 
   @Override
   protected RequestParameter validate(Map<String, String> values) throws ValidationException {
-    Map<String, RequestParameter> parsedParams = Maps.newHashMap();
+    Map<String, RequestParameter> parsedParams = new HashMap<>();
 
     for (Map.Entry<String, ObjectField> field : fieldsMap.entrySet()) {
       String valueToValidate = values.get(field.getKey());
