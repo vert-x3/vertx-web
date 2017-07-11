@@ -15,7 +15,6 @@
  */
 package io.vertx.ext.web.client.impl;
 
-import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.core.Handler;
 import io.vertx.ext.web.client.WebClient;
 
@@ -30,8 +29,8 @@ public interface WebClientInternal extends WebClient {
    * This API is internal and is subject to change or to be replaced by another one.
    *
    * @param interceptor the interceptor to add
+   * @return a reference to this, so the API can be used fluently
    */
-  @GenIgnore
-  void addInterceptor(Handler<HttpContext> interceptor);
+  WebClientInternal addInterceptor(Handler<HttpContext> interceptor);
 
 }
