@@ -1240,14 +1240,13 @@ public class WebExamples {
   }
 
   public void example63(Vertx vertx, Router router) {
+    // Create Validation Handler with some stuff
+    HTTPRequestValidationHandler validationHandler = HTTPRequestValidationHandler.create().addQueryParam("parameterName", ParameterType.INT, true).addFormParamWithPattern("formParameterName", "a{4}", true).addPathParam("pathParam", ParameterType.FLOAT);
+  }
+
+  public void example64(Vertx vertx, Router router, HTTPRequestValidationHandler validationHandler) {
     // BodyHandler is required to manage body parameters like forms or json body
     router.route().handler(BodyHandler.create());
-
-    // Create Validation Handler with some stuff
-    HTTPRequestValidationHandler validationHandler = HTTPRequestValidationHandler.create()
-      .addQueryParam("parameterName", ParameterType.INT, true)
-      .addFormParamWithPattern("formParameterName", "a{4}", true)
-      .addPathParam("pathParam", ParameterType.FLOAT);
 
     router.get("/awesome/:pathParam")
       // Mount validation handler
@@ -1271,6 +1270,29 @@ public class WebExamples {
           String validationErrorMessage = failure.getMessage();
         }
       });
+  }
+
+  public void example65(RoutingContext routingContext) {
+    RequestParameters params = routingContext.get("parsedParameters");
+    RequestParameter awesomeParameter = params.queryParameter("awesomeParameter");
+    if (awesomeParameter != null) {
+      if (!awesomeParameter.isEmpty()) {
+        // Parameter exists and isn't empty
+        // ParameterTypeValidator mapped the parameter in equivalent language object
+        Integer awesome = awesomeParameter.getInteger();
+      } else {
+        // Parameter exists, but it's empty
+      }
+    } else {
+      // Parameter doesn't exist (it's not required)
+    }
+  }
+
+  public void example66(RequestParameters params) {
+    RequestParameter body = params.body();
+    if (body != null) {
+      JsonObject jsonBody = body.getJsonObject();
+    }
   }
 
   public void manualContentType(Router router) {

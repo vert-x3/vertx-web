@@ -19,7 +19,7 @@ abstract public class BaseDesignDrivenRouterFactory<Specification> implements De
   // It can be overriden by the user with function
   protected Handler<RoutingContext> failureHandler = (routingContext -> {
     if (routingContext.failure() instanceof ValidationException) {
-      routingContext.response().setStatusCode(400).setStatusMessage("ValidationError").end(routingContext.failure()
+      routingContext.response().setStatusCode(400).setStatusMessage("Bad Request").end(routingContext.failure()
         .getMessage());
     } else routingContext.next();
   });

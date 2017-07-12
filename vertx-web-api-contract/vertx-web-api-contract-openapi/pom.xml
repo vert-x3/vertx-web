@@ -30,6 +30,12 @@
       <artifactId>vertx-web-api-contract-common</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-auth-jwt</artifactId>
+      <version>${project.version}</version>
+      <optional>true</optional>
+    </dependency>
 
     <dependency>
       <groupId>com.github.slinkydeveloper</groupId>

@@ -1,67 +1,113 @@
 = Vert.x-Web OpenAPI 3 support
 :toc: left
 
-== OpenAPI 3
-You can create your web service based on OpenAPI3 specification with `link:../..
+Vert.x enables you to use your OpenApi 3 specification directly inside your code using the design first approach.
 
-/apidocs/io/vertx/ext/web/designdriven/OpenAPI3RouterFactory.html[OpenAPI3RouterFactory]`. This class, as name says, is a router factory based on your OpenAPI 3 specification. It enables you to add handlers for specific paths (or operationId), and the factory will care to load the correct security and validation handlers.
+Vert.x-Web provides:
+
+* OpenAPI 3 compliant API specification validation with automatic **loading of external Json schemas**
+* Automatic request validation
+* Automatic mount of security validation handlers
+* Automatic 501 response for not implemented operations
+* Router factory to provide all this features to users
+
+== The router factory
+You can create your web service based on OpenAPI3 specification with `link:../../yardoc/VertxWebContractOpenapi/OpenAPI3RouterFactory.html[OpenAPI3RouterFactory]`.
+This class, as name says, is a router factory based on your OpenAPI 3 specification.
+`link:../../yardoc/VertxWebContractOpenapi/OpenAPI3RouterFactory.html[OpenAPI3RouterFactory]` is intended to give you a really simple user interface to use OpenAPI 3 support. It includes:
+
+* Async loading of specification and its schema dependencies
+* Mount path with operationId or with combination of path and HTTP method
+* Automatic request parameters validation
+* Automatic convert OpenAPI style paths to Vert.x style paths
+* Lazy methods: operations (combination of paths and HTTP methods) are mounted in declaration order inside specification
+* Automatic mount of security validation handlers
+
+== Create a new router factory
+To create a new router factory, you can use methods inside `link:../../yardoc/VertxWebContractOpenapi/OpenAPI3RouterFactory.html[OpenAPI3RouterFactory]`:
+
+* `link:../../yardoc/VertxWebContractOpenapi/OpenAPI3RouterFactory.html#create_router_factory_from_file-class_method[OpenAPI3RouterFactory.createRouterFactoryFromFile]` to create a router factory from local file
+* `link:../../yardoc/VertxWebContractOpenapi/OpenAPI3RouterFactory.html#create_router_factory_from_url-class_method[OpenAPI3RouterFactory.createRouterFactoryFromURL]` to create a router factory from url
+
+For example:
 [source,ruby]
 ----
-require 'json'
 require 'vertx-web-contract-openapi/open_api3_router_factory'
-# Load the api spec. This operation is asynchronous
-VertxWebContractOpenapi::OpenAPI3RouterFactory.create_router_factory_from_file(vertx, "src/main/resources/petstore.yaml") { |openAPI3RouterFactoryAsyncResult_err,openAPI3RouterFactoryAsyncResult|
-  if (openAPI3RouterFactoryAsyncResult_err == nil)
+VertxWebContractOpenapi::OpenAPI3RouterFactory.create_router_factory_from_file(vertx, "src/main/resources/petstore.yaml") { |ar_err,ar|
+  if (ar_err == nil)
     # Spec loaded with success
-    routerFactory = openAPI3RouterFactoryAsyncResult
-    # Add an handler with operationId
-    routerFactory.add_handler_by_operation_id("listPets", lambda { |routingContext|
-      # Handle listPets operation
-      routingContext.response().set_status_message("Called listPets").end()
-    }) { |routingContext|
-      # This is the failure handler
-      failure = routingContext.failure()
-      if (failure.class.name == 'Java::IoVertxExtWebValidation::ValidationException')
-        routingContext.response().set_status_code(400).set_status_message("ValidationException thrown! #{failure.type().name()}").end()end
-    }
-
-    # Add an handler with a combination of HttpMethod and path
-    routerFactory.add_handler(:POST, "/pets", lambda { |routingContext|
-      # Extract request body and use it
-      params = routingContext.get("parsedParameters")
-      pet = params.body().get_json_object()
-      routingContext.response().put_header("content-type", "application/json; charset=utf-8").end(JSON.generate(pet))
-    }) { |routingContext|
-      failure = routingContext.failure()
-      if (failure.class.name == 'Java::IoVertxExtWebValidation::ValidationException')
-        routingContext.response().set_status_code(400).set_status_message("ValidationException thrown! #{failure.type().name()}").end()end
-    }
-
-    # Add a security handler
-    routerFactory.add_security_handler("api_key") { |routingContext|
-      # Handle security here
-      routingContext.next()
-    }
-
-    # Before router creation you can enable or disable mounting of a default failure handler for ValidationException
-    routerFactory.enable_validation_failure_handler(false)
-
-    # Now you have to generate the router
-    router = routerFactory.get_router()
-
-    # Now you can use your Router instance
-    server = vertx.create_http_server({
-      'port' => 8080,
-      'host' => "localhost"
-    })
-    server.request_handler(&router.method(:accept)).listen()
-
+    routerFactory = ar
   else
     # Something went wrong during router factory initialization
-    exception = openAPI3RouterFactoryAsyncResult_err
+    exception = ar_err
   end
 }
 
 ----
-All methods, except `getRouter()` are lazy methods. When you call `getRouter()`, the `Router` will be generated
-following the path ordering described in specification.
+
+== Mount the handlers
+Now load your first path. There are two functions to load the handlers:
+
+* `link:../../yardoc/VertxWeb/DesignDrivenRouterFactory.html#add_handler-instance_method[addHandler]`
+* `link:../../yardoc/VertxWebContractOpenapi/OpenAPI3RouterFactory.html#add_handler_by_operation_id-instance_method[addHandlerByOperationId]`
+
+This two functions takes as parameters an handler and a failure handler. You can, of course, **add multiple handlers to same operation**, without overwrite the existing ones.
+
+For example:
+[source,ruby]
+----
+routerFactory.add_handler_by_operation_id("awesomeOperation", lambda { |routingContext|
+  params = routingContext.get("parsedParameters")
+  body = params.body()
+  jsonBody = body.get_json_object()
+  # Do something with body
+}) { |routingContext|
+  # Handle failure
+}
+
+----
+
+.Add operations with operationId
+IMPORTANT: Usage of combination of path and HTTP method is allowed, but it's better to add operations handlers with operationId, for performance reasons and to avoid paths nomenclature errors
+
+Now you can use parameter values as described in http://vertx.io/docs/vertx-web/java/#_andling_parameters[vertx-web documentation]
+
+== Define security handlers
+A security handler is defined by a combination of schema name and scope. You can mount only one security handler for a combination.
+For example:
+
+[source,ruby]
+----
+routerFactory.add_security_handler("security_scheme_name", &securityHandler)
+
+----
+
+You can of course use included Vert.x security handlers, for example:
+
+[source,ruby]
+----
+require 'vertx-web/jwt_auth_handler'
+routerFactory.add_security_handler("jwt_auth", &VertxWeb::JWTAuthHandler.create(jwtAuthProvider).method(:handle))
+
+----
+
+== Error handling
+The router factory allows you to manage efficiently errors:
+
+* It automatically mounts a 501 `Not Implemented` handler for operations where you haven't mounted any handler
+* It automatically mounts a 400 `Bad Request` handler that manages `ValidationException` (You can enable/disable this feature via `link:../../yardoc/VertxWeb/DesignDrivenRouterFactory.html#enable_validation_failure_handler-instance_method[enableValidationFailureHandler]`)
+
+== Generate the router
+When you are ready, generate the router and use it:
+
+[source,ruby]
+----
+router = routerFactory.get_router()
+
+server = vertx.create_http_server({
+  'port' => 8080,
+  'host' => "localhost"
+})
+server.request_handler(&router.method(:accept)).listen()
+
+----

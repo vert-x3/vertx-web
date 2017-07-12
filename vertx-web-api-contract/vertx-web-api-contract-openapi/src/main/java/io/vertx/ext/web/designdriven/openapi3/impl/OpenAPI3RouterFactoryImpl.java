@@ -21,7 +21,7 @@ public class OpenAPI3RouterFactoryImpl extends BaseDesignDrivenRouterFactory<Ope
   OpenAPI3RouterFactory {
 
   private final Handler<RoutingContext> NOT_IMPLEMENTED_HANDLER = (routingContext) -> {
-    routingContext.response().setStatusCode(501).setStatusMessage("Path not implemented").end();
+    routingContext.response().setStatusCode(501).setStatusMessage("Not Implemented").end();
   };
 
   // This map is fullfilled when spec is loaded in memory

@@ -1729,11 +1729,16 @@ router.route("/private/settings/*").handler(settingsAuthHandler)
 Vert.x provide a validation framework that will validate requests for you and will put results of validation inside a container. To define a `link:../../apidocs/io/vertx/ext/web/validation/HTTPRequestValidationHandler.html[HTTPRequestValidationHandler]`:
 [source,groovy]
 ----
-// BodyHandler is required to manage body parameters like forms or json body
-router.route().handler(BodyHandler.create())
-
 // Create Validation Handler with some stuff
 def validationHandler = HTTPRequestValidationHandler.create().addQueryParam("parameterName", ParameterType.INT, true).addFormParamWithPattern("formParameterName", "a{4}", true).addPathParam("pathParam", ParameterType.FLOAT)
+
+----
+
+Then you can mount your validation handler:
+[source,groovy]
+----
+// BodyHandler is required to manage body parameters like forms or json body
+router.route().handler(BodyHandler.create())
 
 router.get("/awesome/:pathParam").handler(validationHandler).handler({ routingContext ->
   // Get Request parameters container
@@ -1752,11 +1757,48 @@ router.get("/awesome/:pathParam").handler(validationHandler).handler({ routingCo
 })
 
 ----
+
 If validation succeeds, It returns request parameters inside `link:../../apidocs/io/vertx/ext/web/RequestParameters.html[RequestParameters]`, otherwise It will throw a `link:../../apidocs/io/vertx/ext/web/validation/ValidationException.html[ValidationException]`
 
 === Types of request parameters
-Every parameter has a type validator, a class that describes the expected type of value of parameter.
-You can find a set of prebuilt types in `link:../../apidocs/io/vertx/ext/web/validation/ParameterType.html[ParameterType]`, or you can instantiate a custom instance of prebuilt type validators `link:../../apidocs/io/vertx/ext/web/validation/ParameterTypeValidator.html[ParameterTypeValidator]`, or you can create your own ParameterTypeValidator implementing `link:../../apidocs/io/vertx/ext/web/validation/ParameterTypeValidator.html[ParameterTypeValidator]`.
+Every parameter has a type validator, a class that describes the expected type of parameter.
+A type validator validates the value, casts it in required language type and then loads it inside a `link:../../apidocs/io/vertx/ext/web/RequestParameter.html[RequestParameter]` object. There are three ways to describe the type of your parameter:
+
+* There is a set of prebuilt types that you can use: `link:../../apidocs/io/vertx/ext/web/validation/ParameterType.html[ParameterType]`
+* You can instantiate a custom instance of prebuilt type validators using static methods of `link:../../apidocs/io/vertx/ext/web/validation/ParameterTypeValidator.html[ParameterTypeValidator]` and then load it into `link:../../apidocs/io/vertx/ext/web/validation/HTTPRequestValidationHandler.html[HTTPRequestValidationHandler]` using functions ending with `WithCustomTypeValidator`
+* You can create your own `ParameterTypeValidator` implementing `link:../../apidocs/io/vertx/ext/web/validation/ParameterTypeValidator.html[ParameterTypeValidator]` interface
+
+=== Handling parameters
+Now you can handle parameter values:
+
+[source,groovy]
+----
+def params = routingContext.get("parsedParameters")
+def awesomeParameter = params.queryParameter("awesomeParameter")
+if (awesomeParameter != null) {
+  if (!awesomeParameter.isEmpty()) {
+    // Parameter exists and isn't empty
+    // ParameterTypeValidator mapped the parameter in equivalent language object
+    def awesome = awesomeParameter.getInteger()
+  } else {
+    // Parameter exists, but it's empty
+  }
+} else {
+  // Parameter doesn't exist (it's not required)
+}
+
+----
+
+As you can see, every parameter is mapped in respective language objects. You can also get a json body:
+
+[source,groovy]
+----
+def body = params.body()
+if (body != null) {
+  def jsonBody = body.getJsonObject()
+}
+
+----
 
 == Serving static resources
 
