@@ -1590,10 +1590,7 @@ router.route("/private/settings/*").handler(settingsAuthHandler);
 Vert.x provide a validation framework that will validate requests for you and will put results of validation inside a container. To define a `link:../../apidocs/io/vertx/ext/web/validation/HTTPRequestValidationHandler.html[HTTPRequestValidationHandler]`:
 [source,java]
 ----
-HTTPRequestValidationHandler validationHandler = HTTPRequestValidationHandler.create()
-  .addQueryParam("parameterName", ParameterType.INT, true)
-  .addFormParamWithPattern("formParameterName", "a{4}", true)
-  .addPathParam("pathParam", ParameterType.FLOAT);
+HTTPRequestValidationHandler validationHandler = HTTPRequestValidationHandler.create().addQueryParam("parameterName", ParameterType.INT, true).addFormParamWithPattern("formParameterName", "a{4}", true).addPathParam("pathParam", ParameterType.FLOAT);
 ----
 
 Then you can mount your validation handler:
