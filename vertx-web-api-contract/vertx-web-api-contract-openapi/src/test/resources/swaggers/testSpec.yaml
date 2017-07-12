@@ -186,6 +186,7 @@ paths:
     post:
       operationId: complexMultipartRequest
       requestBody:
+        required: false
         content:
           multipart/form-data:
             schema:

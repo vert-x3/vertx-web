@@ -30,7 +30,7 @@ public abstract class BaseValidationHandler implements ValidationHandler {
 
   private List<CustomValidator> customValidators;
 
-  private boolean expectedBodyNotEmpty;
+  protected boolean expectedBodyNotEmpty;
 
   protected BaseValidationHandler() {
     pathParamsRules = new HashMap<>();

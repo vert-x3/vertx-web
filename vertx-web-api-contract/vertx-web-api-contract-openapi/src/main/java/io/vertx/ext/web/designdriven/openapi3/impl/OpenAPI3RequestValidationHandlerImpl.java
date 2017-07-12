@@ -518,7 +518,7 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
           for (Map.Entry<String, ? extends Schema> multipartProperty : mediaType.getValue().getSchema().getProperties
             ().entrySet()) {
             EncodingProperty encodingProperty = mediaType.getValue().getEncodingProperty(multipartProperty.getKey());
-            String contentTypeRegex = null;
+            String contentTypeRegex;
             if (encodingProperty != null && encodingProperty.getContentType() != null)
               contentTypeRegex = OpenApi3Utils.resolveContentTypeRegex(encodingProperty.getContentType());
             else contentTypeRegex = this.resolveDefaultContentTypeRegex(multipartProperty.getValue());
@@ -529,5 +529,6 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
           this.addBodyFileRule(mediaType.getKey());
         }
       }
+    if (requestBody.getRequired() == null || !requestBody.getRequired()) this.expectedBodyNotEmpty = false;
   }
 }
