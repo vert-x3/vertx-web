@@ -82,10 +82,13 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
       OpenAPI3RouterFactory routerFactory = openAPI3RouterFactoryAsyncResult.result();
       routerFactory.addHandlerByOperationId("listPets", routingContext -> {
         routingContext.response().setStatusMessage("path mounted!").end();
-      }, generateFailureHandler(false));
+      });
+        routerFactory.addFailureHandlerByOperationId("listPets", generateFailureHandler(false));
+
       routerFactory.addHandler(HttpMethod.POST, "/pets", routingContext -> {
         routingContext.response().setStatusMessage("path mounted!").end();
-      }, generateFailureHandler(false));
+      });
+        routerFactory.addFailureHandler(HttpMethod.POST, "/pets", generateFailureHandler(false));
 
       //Test if router generation throw error if no handler is set for security validation
       boolean throwed = false;
@@ -113,7 +116,7 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
 
     testRequest(HttpMethod.GET, "/pets", 200, "path mounted!");
     testRequest(HttpMethod.POST, "/pets", 200, "path mounted!");
-    testRequest(HttpMethod.GET, "/pets/anId", 501, "Path not implemented");
+    testRequest(HttpMethod.GET, "/pets/anId", 501, "Not Implemented");
 
     stopServer();
 

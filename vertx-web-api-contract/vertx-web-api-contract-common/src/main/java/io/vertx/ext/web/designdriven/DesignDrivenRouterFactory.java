@@ -25,18 +25,28 @@ public interface DesignDrivenRouterFactory<Specification> {
   DesignDrivenRouterFactory addSecurityHandler(String securitySchemaName, Handler<RoutingContext> handler);
 
   /**
-   * Add an handler and a failure handler to a path with a method. If combination path/method is not available in
+   * Add an handler to a path with a method. If combination path/method is not available in
    * specification, it will throw a {@link RouterFactoryException}
    *
    * @param method
    * @param path
    * @param handler
+   * @return
+   */
+  @Fluent
+  DesignDrivenRouterFactory addHandler(HttpMethod method, String path, Handler<RoutingContext> handler);
+
+  /**
+   * Add a failure handler to a path with a method. If combination path/method is not available in
+   * specification, it will throw a {@link RouterFactoryException}
+   *
+   * @param method
+   * @param path
    * @param failureHandler
    * @return
    */
   @Fluent
-  DesignDrivenRouterFactory addHandler(HttpMethod method, String path, Handler<RoutingContext> handler,
-                                       Handler<RoutingContext> failureHandler);
+  DesignDrivenRouterFactory addFailureHandler(HttpMethod method, String path, Handler<RoutingContext> failureHandler);
 
   /**
    * Set default validation failure handler. You can disable this feature from

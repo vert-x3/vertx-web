@@ -101,7 +101,7 @@ public class OpenAPI3RouterFactoryImpl extends BaseDesignDrivenRouterFactory<Ope
     private List<Handler<RoutingContext>> userHandlers;
     private List<Handler<RoutingContext>> userFailureHandlers;
 
-    public OperationValue(HttpMethod method, String vertxStylePath, Operation operationModel, Collection<? extends
+    private OperationValue(HttpMethod method, String vertxStylePath, Operation operationModel, Collection<? extends
       Parameter> parentParameters) {
       this.method = method;
       this.vertxStylePath = vertxStylePath;
@@ -175,12 +175,22 @@ public class OpenAPI3RouterFactoryImpl extends BaseDesignDrivenRouterFactory<Ope
   }
 
   @Override
-  public OpenAPI3RouterFactory addHandlerByOperationId(String operationId, Handler<RoutingContext> handler,
-                                                       Handler<RoutingContext> failureHandler) {
-    OperationValue op = operationIdtoOperations.get(operationId);
-    if (op == null) throw RouterFactoryException.createOperationIdNotFoundException(operationId);
-    if (handler != null) op.addUserHandler(handler);
-    if (failureHandler != null) op.addUserFailureHandler(failureHandler);
+  public OpenAPI3RouterFactory addHandlerByOperationId(String operationId, Handler<RoutingContext> handler) {
+    if (handler != null) {
+      OperationValue op = operationIdtoOperations.get(operationId);
+      if (op == null) throw RouterFactoryException.createOperationIdNotFoundException(operationId);
+      op.addUserHandler(handler);
+    }
+    return this;
+  }
+
+  @Override
+  public OpenAPI3RouterFactory addFailureHandlerByOperationId(String operationId, Handler<RoutingContext> failureHandler) {
+    if (failureHandler != null) {
+      OperationValue op = operationIdtoOperations.get(operationId);
+      if (op == null) throw RouterFactoryException.createOperationIdNotFoundException(operationId);
+      op.addUserFailureHandler(failureHandler);
+    }
     return this;
   }
 
@@ -240,8 +250,14 @@ public class OpenAPI3RouterFactoryImpl extends BaseDesignDrivenRouterFactory<Ope
   }
 
   @Override
-  public OpenAPI3RouterFactory addHandler(HttpMethod method, String path, Handler handler, Handler failureHandler) {
-    addHandlerByOperationId(resolveOperationId(method, path), handler, failureHandler);
+  public OpenAPI3RouterFactory addHandler(HttpMethod method, String path, Handler handler) {
+    addHandlerByOperationId(resolveOperationId(method, path), handler);
+    return this;
+  }
+
+  @Override
+  public OpenAPI3RouterFactory addFailureHandler(HttpMethod method, String path, Handler failureHandler) {
+    addFailureHandlerByOperationId(resolveOperationId(method, path), failureHandler);
     return this;
   }
 

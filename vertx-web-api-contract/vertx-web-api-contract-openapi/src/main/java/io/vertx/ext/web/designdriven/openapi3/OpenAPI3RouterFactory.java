@@ -65,12 +65,20 @@ public interface OpenAPI3RouterFactory extends DesignDrivenRouterFactory<OpenApi
    *
    * @param operationId
    * @param handler
+   * @return
+   */
+  @Fluent
+  OpenAPI3RouterFactory addHandlerByOperationId(String operationId, Handler<RoutingContext> handler);
+
+  /**
+   * Add a failure handler by operation_id field in Operation object
+   *
+   * @param operationId
    * @param failureHandler
    * @return
    */
   @Fluent
-  OpenAPI3RouterFactory addHandlerByOperationId(String operationId, Handler<RoutingContext> handler,
-                                                Handler<RoutingContext> failureHandler);
+  OpenAPI3RouterFactory addFailureHandlerByOperationId(String operationId, Handler<RoutingContext> failureHandler);
 
   /**
    * Create a new OpenAPI3RouterFactory from a filename

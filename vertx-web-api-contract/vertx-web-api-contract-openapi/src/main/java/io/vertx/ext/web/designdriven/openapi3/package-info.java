@@ -37,10 +37,15 @@
  * == Mount the handlers
  * Now load your first path. There are two functions to load the handlers:
  *
- * * {@link io.vertx.ext.web.designdriven.openapi3.OpenAPI3RouterFactory#addHandler(io.vertx.core.http.HttpMethod, java.lang.String, io.vertx.core.Handler, io.vertx.core.Handler)}
- * * {@link io.vertx.ext.web.designdriven.openapi3.OpenAPI3RouterFactory#addHandlerByOperationId(java.lang.String, io.vertx.core.Handler, io.vertx.core.Handler)}
+ * * {@link io.vertx.ext.web.designdriven.openapi3.OpenAPI3RouterFactory#addHandler(io.vertx.core.http.HttpMethod, java.lang.String, io.vertx.core.Handler)}
+ * * {@link io.vertx.ext.web.designdriven.openapi3.OpenAPI3RouterFactory#addHandlerByOperationId(java.lang.String, io.vertx.core.Handler)}
  *
- * This two functions takes as parameters an handler and a failure handler. You can, of course, **add multiple handlers to same operation**, without overwrite the existing ones.
+ * And, of course, two functions to load failure handlers
+ *
+ * * {@link io.vertx.ext.web.designdriven.openapi3.OpenAPI3RouterFactory#addFailureHandler(io.vertx.core.http.HttpMethod, java.lang.String, io.vertx.core.Handler)}
+ * * {@link io.vertx.ext.web.designdriven.openapi3.OpenAPI3RouterFactory#addFailureHandlerByOperationId(java.lang.String, io.vertx.core.Handler)}
+ *
+ * You can, of course, **add multiple handlers to same operation**, without overwrite the existing ones.
  *
  * For example:
  * [source,$lang]

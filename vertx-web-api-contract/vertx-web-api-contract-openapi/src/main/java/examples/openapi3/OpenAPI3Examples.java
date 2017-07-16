@@ -34,7 +34,8 @@ public class OpenAPI3Examples {
       RequestParameter body = params.body();
       JsonObject jsonBody = body.getJsonObject();
       // Do something with body
-    }, routingContext -> {
+    });
+    routerFactory.addFailureHandlerByOperationId("awesomeOperation", routingContext -> {
       // Handle failure
     });
   }
@@ -65,7 +66,9 @@ public class OpenAPI3Examples {
         routerFactory.addHandlerByOperationId("listPets", routingContext -> {
           // Handle listPets operation
           routingContext.response().setStatusMessage("Called listPets").end();
-        }, routingContext -> {
+        });
+        // Add a failure handler to the same operationId
+        routerFactory.addFailureHandlerByOperationId("listPets", routingContext -> {
           // This is the failure handler
           Throwable failure = routingContext.failure();
           if (failure instanceof ValidationException)
@@ -81,12 +84,6 @@ public class OpenAPI3Examples {
           JsonObject pet = params.body().getJsonObject();
           routingContext.response().putHeader("content-type", "application/json; charset=utf-8").end(pet
             .encodePrettily());
-        }, routingContext -> {
-          Throwable failure = routingContext.failure();
-          if (failure instanceof ValidationException)
-            // Handle Validation Exception
-            routingContext.response().setStatusCode(400).setStatusMessage("ValidationException thrown! " + (
-              (ValidationException) failure).type().name()).end();
         });
 
         // Add a security handler

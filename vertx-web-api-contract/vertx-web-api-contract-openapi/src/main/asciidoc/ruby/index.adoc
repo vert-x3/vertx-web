@@ -51,17 +51,23 @@ Now load your first path. There are two functions to load the handlers:
 * `link:../../yardoc/VertxWeb/DesignDrivenRouterFactory.html#add_handler-instance_method[addHandler]`
 * `link:../../yardoc/VertxWebContractOpenapi/OpenAPI3RouterFactory.html#add_handler_by_operation_id-instance_method[addHandlerByOperationId]`
 
-This two functions takes as parameters an handler and a failure handler. You can, of course, **add multiple handlers to same operation**, without overwrite the existing ones.
+And, of course, two functions to load failure handlers
+
+* `link:../../yardoc/VertxWeb/DesignDrivenRouterFactory.html#add_failure_handler-instance_method[addFailureHandler]`
+* `link:../../yardoc/VertxWebContractOpenapi/OpenAPI3RouterFactory.html#add_failure_handler_by_operation_id-instance_method[addFailureHandlerByOperationId]`
+
+You can, of course, **add multiple handlers to same operation**, without overwrite the existing ones.
 
 For example:
 [source,ruby]
 ----
-routerFactory.add_handler_by_operation_id("awesomeOperation", lambda { |routingContext|
+routerFactory.add_handler_by_operation_id("awesomeOperation") { |routingContext|
   params = routingContext.get("parsedParameters")
   body = params.body()
   jsonBody = body.get_json_object()
   # Do something with body
-}) { |routingContext|
+}
+routerFactory.add_failure_handler_by_operation_id("awesomeOperation") { |routingContext|
   # Handle failure
 }
 

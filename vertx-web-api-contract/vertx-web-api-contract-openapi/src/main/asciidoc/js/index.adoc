@@ -51,7 +51,12 @@ Now load your first path. There are two functions to load the handlers:
 * `link:../../jsdoc/module-vertx-web-js_design_driven_router_factory-DesignDrivenRouterFactory.html#addHandler[addHandler]`
 * `link:../../jsdoc/module-vertx-web-contract-openapi-js_open_api3_router_factory-OpenAPI3RouterFactory.html#addHandlerByOperationId[addHandlerByOperationId]`
 
-This two functions takes as parameters an handler and a failure handler. You can, of course, **add multiple handlers to same operation**, without overwrite the existing ones.
+And, of course, two functions to load failure handlers
+
+* `link:../../jsdoc/module-vertx-web-js_design_driven_router_factory-DesignDrivenRouterFactory.html#addFailureHandler[addFailureHandler]`
+* `link:../../jsdoc/module-vertx-web-contract-openapi-js_open_api3_router_factory-OpenAPI3RouterFactory.html#addFailureHandlerByOperationId[addFailureHandlerByOperationId]`
+
+You can, of course, **add multiple handlers to same operation**, without overwrite the existing ones.
 
 For example:
 [source,js]
@@ -61,7 +66,8 @@ routerFactory.addHandlerByOperationId("awesomeOperation", function (routingConte
   var body = params.body();
   var jsonBody = body.getJsonObject();
   // Do something with body
-}, function (routingContext) {
+});
+routerFactory.addFailureHandlerByOperationId("awesomeOperation", function (routingContext) {
   // Handle failure
 });
 
