@@ -52,7 +52,7 @@
  *
  * First, you need to configure the SockJS bridge, in order to let the proxy communicate with the service. You will
  * find more details about the SockJS bridge in
- * <a href="http://vertx.io/docs/vertx-web/java/#_sockjs_event_bus_bridge">vertx-web</a>:
+ * http://vertx.io/docs/vertx-web/java/#_sockjs_event_bus_bridge[vertx-web]:
  *
  * [source, java]
  * ----
