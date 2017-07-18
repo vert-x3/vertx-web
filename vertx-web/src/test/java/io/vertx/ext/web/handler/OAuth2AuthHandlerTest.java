@@ -107,4 +107,97 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
 
     server.close();
   }
+
+  @Test
+  public void testPasswordFlow() throws Exception {
+
+    // lets mock a oauth2 server using code auth code flow
+    OAuth2Auth oauth2 = OAuth2Auth.create(vertx, OAuth2FlowType.PASSWORD, new OAuth2ClientOptions()
+      .setClientID("client-id")
+      .setClientSecret("client-secret")
+      .setSite("http://localhost:10000"));
+
+    final CountDownLatch latch = new CountDownLatch(1);
+
+    HttpServer server = vertx.createHttpServer().requestHandler(req -> {
+      if (req.method() == HttpMethod.POST && "/oauth/token".equals(req.path())) {
+        req.setExpectMultipart(true).bodyHandler(buffer -> {
+          req.response().putHeader("Content-Type", "application/json").end(fixture.encode());
+        });
+      } else if (req.method() == HttpMethod.POST && "/oauth/revoke".equals(req.path())) {
+        req.setExpectMultipart(true).bodyHandler(buffer -> {
+          req.response().end();
+        });
+      } else {
+        req.response().setStatusCode(400).end();
+      }
+    }).listen(10000, ready -> {
+      if (ready.failed()) {
+        throw new RuntimeException(ready.cause());
+      }
+      // ready
+      latch.countDown();
+    });
+
+    latch.await();
+
+    // create a oauth2 handler
+    OAuth2AuthHandler oauth2Handler = OAuth2AuthHandler.create(oauth2);
+
+    // protect everything under /protected
+    router.route("/protected/*").handler(oauth2Handler);
+    // mount some handler under the protected zone
+    router.route("/protected/somepage").handler(rc -> {
+      assertNotNull(rc.user());
+      rc.response().end("Welcome to the protected resource!");
+    });
+
+
+    testRequest(HttpMethod.GET, "/protected/somepage",
+      req -> {
+        req.putHeader("Authorization", "Basic dGltOmRlbGljaW91czpzYXVzYWdlcw==");
+      }, resp -> {
+      }, 200, "OK", "Welcome to the protected resource!");
+
+    server.close();
+  }
+
+  @Test
+  public void testPasswordFlowBadUsage() throws Exception {
+
+    // lets mock a oauth2 server using code auth code flow
+    OAuth2Auth oauth2 = OAuth2Auth.create(vertx, OAuth2FlowType.PASSWORD, new OAuth2ClientOptions());
+
+    // create a oauth2 handler
+    OAuth2AuthHandler oauth2Handler = OAuth2AuthHandler.create(oauth2);
+    try {
+      oauth2Handler.setupCallback(router.route());
+      fail("Should fail!");
+    } catch (IllegalStateException e) {
+      // expected
+    }
+  }
+
+  @Test
+  public void testPasswordFlowNoHeader() throws Exception {
+
+    // lets mock a oauth2 server using code auth code flow
+    OAuth2Auth oauth2 = OAuth2Auth.create(vertx, OAuth2FlowType.PASSWORD, new OAuth2ClientOptions()
+      .setClientID("client-id")
+      .setClientSecret("client-secret")
+      .setSite("http://localhost:10000"));
+
+    // create a oauth2 handler
+    OAuth2AuthHandler oauth2Handler = OAuth2AuthHandler.create(oauth2);
+
+    // protect everything under /protected
+    router.route("/protected/*").handler(oauth2Handler);
+    // mount some handler under the protected zone
+    router.route("/protected/somepage").handler(rc -> {
+      assertNotNull(rc.user());
+      rc.response().end("Welcome to the protected resource!");
+    });
+
+    testRequest(HttpMethod.GET, "/protected/somepage", 400, "Bad Request");
+  }
 }
