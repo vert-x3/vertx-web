@@ -16,6 +16,7 @@
 
 package io.vertx.ext.web.handler.impl;
 
+import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpVersion;
@@ -101,15 +102,17 @@ public class LoggerHandlerImpl implements LoggerHandler {
         break;
       case HTTP_2:
         versionFormatted = "HTTP/2.0";
-        break;  
+        break;
     }
 
+    final MultiMap headers = request.headers();
     int status = request.response().getStatusCode();
     String message = null;
 
     switch (format) {
       case DEFAULT:
-        String referrer = request.headers().get("referrer");
+        // as per RFC1945 the header is referer but it is not mandatory some implementations use referrer
+        String referrer = headers.contains("referrer") ? headers.get("referrer") : headers.get("referer");
         String userAgent = request.headers().get("user-agent");
         referrer = referrer == null ? "-" : referrer;
         userAgent = userAgent == null ? "-" : userAgent;
