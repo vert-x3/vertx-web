@@ -38,31 +38,7 @@ import java.util.concurrent.locks.LockSupport;
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
  */
-public class SockJSSessionTest extends VertxTestBase {
-
-  private HttpClient client;
-  private HttpServer server;
-  private Router router;
-  private SockJSHandler sockJSHandler;
-
-  @Override
-  public void setUp() throws Exception {
-    super.setUp();
-    client = vertx.createHttpClient(new HttpClientOptions().setDefaultPort(8080));
-    router = Router.router(vertx);
-    router.route().handler(CookieHandler.create());
-    router.route()
-      .handler(SessionHandler.create(LocalSessionStore.create(vertx))
-        .setNagHttps(false)
-        .setSessionTimeout(60 * 60 * 1000));
-    SockJSHandlerOptions options = new SockJSHandlerOptions().setHeartbeatInterval(2000);
-    sockJSHandler = SockJSHandler.create(vertx, options);
-    router.route("/test/*").handler(sockJSHandler);
-    server = vertx.createHttpServer(new HttpServerOptions().setPort(8080).setHost("localhost"));
-    CountDownLatch latch = new CountDownLatch(1);
-    server.requestHandler(router::accept).listen(ar -> latch.countDown());
-    awaitLatch(latch);
-  }
+public class SockJSSessionTest extends SockJSTestBase {
 
   @Test
   public void testNoDeadlockWhenWritingFromAnotherThreadWithSseTransport() {
