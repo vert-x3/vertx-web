@@ -77,8 +77,6 @@ public class JWTAuthHandlerImpl extends AuthHandlerImpl implements JWTAuthHandle
     } else {
       final HttpServerRequest request = context.request();
 
-      String token = null;
-
       if (request.method() == HttpMethod.OPTIONS && request.headers().get(HttpHeaders.ACCESS_CONTROL_REQUEST_HEADERS) != null) {
         for (String ctrlReq : request.headers().get(HttpHeaders.ACCESS_CONTROL_REQUEST_HEADERS).split(",")) {
           if (ctrlReq.equalsIgnoreCase("authorization")) {
@@ -94,46 +92,49 @@ public class JWTAuthHandlerImpl extends AuthHandlerImpl implements JWTAuthHandle
         return;
       }
 
-      final String authorization = request.headers().get(HttpHeaders.AUTHORIZATION);
-
-      if (authorization != null) {
-        String[] parts = authorization.split(" ");
-        if (parts.length == 2) {
-          final String scheme = parts[0],
-              credentials = parts[1];
-
-          if (BEARER.matcher(scheme).matches()) {
-            token = credentials;
+      final String token = readToken(context);
+      if (null != token) {
+        JsonObject authInfo = new JsonObject().put("jwt", token).put("options", options);
+        authProvider.authenticate(authInfo, res -> {
+          if (res.succeeded()) {
+            final User user2 = res.result();
+            context.setUser(user2);
+            Session session = context.session();
+            if (session != null) {
+              // the user has upgraded from unauthenticated to authenticated
+              // session should be upgraded as recommended by owasp
+              session.regenerateId();
+            }
+            authorise(user2, context);
+          } else {
+            log.warn("JWT decode failure", res.cause());
+            context.fail(401);
           }
-        } else {
-          log.warn("Format is Authorization: Bearer [token]");
-          context.fail(401);
-          return;
+        });
+      }
+    }
+  }
+
+  protected String readToken(RoutingContext context) {
+    final String authorization = context.request().headers().get(HttpHeaders.AUTHORIZATION);
+
+    if (authorization != null) {
+      String[] parts = authorization.split(" ");
+      if (parts.length == 2) {
+        final String scheme = parts[0],
+          credentials = parts[1];
+
+        if (BEARER.matcher(scheme).matches()) {
+          return credentials;
         }
       } else {
-        log.warn("No Authorization header was found");
+        log.warn("Format is Authorization: Bearer [token]");
         context.fail(401);
-        return;
       }
-
-      JsonObject authInfo = new JsonObject().put("jwt", token).put("options", options);
-
-      authProvider.authenticate(authInfo, res -> {
-        if (res.succeeded()) {
-          final User user2 = res.result();
-          context.setUser(user2);
-          Session session = context.session();
-          if (session != null) {
-            // the user has upgraded from unauthenticated to authenticated
-            // session should be upgraded as recommended by owasp
-            session.regenerateId();
-          }
-          authorise(user2, context);
-        } else {
-          log.warn("JWT decode failure", res.cause());
-          context.fail(401);
-        }
-      });
+    } else {
+      log.warn("No Authorization header was found");
+      context.fail(401);
     }
+    return null;
   }
 }
