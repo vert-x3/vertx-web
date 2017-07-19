@@ -28,7 +28,7 @@ import io.vertx.ext.web.RoutingContext;
  *
  * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
-public abstract class AuthorizationAuthHandler extends AuthHandlerImpl {
+abstract class AuthorizationAuthHandler extends AuthHandlerImpl {
 
   // this should match the IANA registry: https://www.iana.org/assignments/http-authschemes/http-authschemes.xhtml
   enum Type {
@@ -56,17 +56,17 @@ public abstract class AuthorizationAuthHandler extends AuthHandlerImpl {
 
   private final Type type;
 
-  public AuthorizationAuthHandler(AuthProvider authProvider, Type type) {
+  AuthorizationAuthHandler(AuthProvider authProvider, Type type) {
     super(authProvider);
     this.type = type;
   }
 
-  public AuthorizationAuthHandler(AuthProvider authProvider, String realm, Type type) {
+  AuthorizationAuthHandler(AuthProvider authProvider, String realm, Type type) {
     super(authProvider, realm);
     this.type = type;
   }
 
-  protected void parseAuthorization(RoutingContext ctx, boolean optional, Handler<AsyncResult<String>> handler) {
+  final void parseAuthorization(RoutingContext ctx, boolean optional, Handler<AsyncResult<String>> handler) {
 
     final HttpServerRequest request = ctx.request();
     final String authorization = request.headers().get(HttpHeaders.AUTHORIZATION);
