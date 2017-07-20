@@ -15,6 +15,8 @@
  */
 package io.vertx.ext.web.client;
 
+import java.util.List;
+
 import io.vertx.codegen.annotations.CacheReturn;
 import io.vertx.codegen.annotations.Nullable;
 import io.vertx.codegen.annotations.VertxGen;
@@ -23,8 +25,7 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpVersion;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-
-import java.util.List;
+import io.vertx.ext.web.codec.impl.BodyCodecImpl;
 
 /**
  * An HTTP response.
@@ -119,20 +120,29 @@ public interface HttpResponse<T> {
    */
   @CacheReturn
   @Nullable
-  String bodyAsString();
+  default String bodyAsString() {
+    Buffer b = bodyAsBuffer();
+    return b != null ? BodyCodecImpl.UTF8_DECODER.apply(b) : null;
+  }
 
   /**
    * @return the response body decoded as a {@code String} given a specific {@code encoding}
    */
   @Nullable
-  String bodyAsString(String encoding);
+  default String bodyAsString(String encoding) {
+    Buffer b = bodyAsBuffer();
+    return b != null ? b.toString(encoding) : null;
+  }
 
   /**
    * @return the response body decoded as a json object
    */
   @CacheReturn
   @Nullable
-  JsonObject bodyAsJsonObject();
+  default JsonObject bodyAsJsonObject() {
+    Buffer b = bodyAsBuffer();
+    return b != null ? BodyCodecImpl.JSON_OBJECT_DECODER.apply(b) : null;
+  }
 
   /**
    * @return the response body decoded as a json array
@@ -145,6 +155,9 @@ public interface HttpResponse<T> {
    * @return the response body decoded as the specified {@code type} with the Jackson mapper.
    */
   @Nullable
-  <R> R bodyAsJson(Class<R> type);
+  default <R> R bodyAsJson(Class<R> type) {
+    Buffer b = bodyAsBuffer();
+    return b != null ? BodyCodecImpl.jsonDecoder(type).apply(b) : null;
+  }
 
 }

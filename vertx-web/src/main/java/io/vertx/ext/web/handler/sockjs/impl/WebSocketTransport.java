@@ -94,9 +94,8 @@ class WebSocketTransport extends BaseTransport {
     WebSocketListener(ServerWebSocket ws, SockJSSession session) {
       this.ws = ws;
       this.session = session;
-      ws.handler(data -> {
+      ws.textMessageHandler(msgs -> {
         if (!session.isClosed()) {
-          String msgs = data.toString();
           if (msgs.equals("")) {
             //Ignore empty frames
           } else if ((msgs.startsWith("[\"") && msgs.endsWith("\"]")) ||

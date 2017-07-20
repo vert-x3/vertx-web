@@ -17,7 +17,13 @@
 package io.vertx.ext.web;
 
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.http.*;
+import io.vertx.core.http.HttpClient;
+import io.vertx.core.http.HttpClientOptions;
+import io.vertx.core.http.HttpClientRequest;
+import io.vertx.core.http.HttpClientResponse;
+import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.HttpServer;
+import io.vertx.core.http.HttpServerOptions;
 import io.vertx.test.core.VertxTestBase;
 
 import java.util.Arrays;
@@ -42,13 +48,21 @@ public class WebTestBase extends VertxTestBase {
   public void setUp() throws Exception {
     super.setUp();
     router = Router.router(vertx);
-    server = vertx.createHttpServer(new HttpServerOptions().setPort(8080).setHost("localhost"));
-    client = vertx.createHttpClient(new HttpClientOptions().setDefaultPort(8080));
+    server = vertx.createHttpServer(getHttpServerOptions());
+    client = vertx.createHttpClient(getHttpClientOptions());
     CountDownLatch latch = new CountDownLatch(1);
     server.requestHandler(router::accept).listen(onSuccess(res -> {
       latch.countDown();
     }));
     awaitLatch(latch);
+  }
+
+  protected HttpServerOptions getHttpServerOptions() {
+    return new HttpServerOptions().setPort(8080).setHost("localhost");
+  }
+
+  protected HttpClientOptions getHttpClientOptions() {
+    return new HttpClientOptions().setDefaultPort(8080);
   }
 
   @Override

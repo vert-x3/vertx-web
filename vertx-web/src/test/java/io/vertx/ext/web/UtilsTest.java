@@ -19,6 +19,8 @@ package io.vertx.ext.web;
 import io.vertx.ext.web.impl.Utils;
 import org.junit.Test;
 
+import java.net.URLEncoder;
+
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -162,5 +164,13 @@ public class UtilsTest {
     assertEquals("[\"abc\"]", Utils.urlDecode("%5B%22abc%22%5D", true));
     assertEquals("[\"x", Utils.urlDecode("%5B%22x", true));
     assertEquals("[\"b\"]", Utils.urlDecode("%5B%22b%22%5D", true));
+  }
+
+  @Test
+  public void testEncode() throws Exception {
+    String original = "ein verr+++ückter text mit Leerzeichen, Plus und Umlauten";
+    String encoded = URLEncoder.encode( original, "UTF-8" );
+
+    assertEquals(original, Utils.urlDecode( encoded, true ) );
   }
 }

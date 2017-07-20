@@ -156,4 +156,16 @@ public class RerouteTest extends WebTestBase {
       assertNull(res.getHeader("Cookie"));
     }, 200, "OK", "/users/:name");
   }
+
+  @Test
+  public void testRerouteWithParams() throws Exception {
+    router.get("/other").handler(ctx -> {
+      ctx.response().end("/other");
+    });
+    router.get("/base").handler(ctx -> {
+      ctx.reroute("/other?paramter1=p1&parameter2=p2");
+    });
+
+    testRequest(HttpMethod.GET, "/base", 200, "OK", "/other");
+  }
 }

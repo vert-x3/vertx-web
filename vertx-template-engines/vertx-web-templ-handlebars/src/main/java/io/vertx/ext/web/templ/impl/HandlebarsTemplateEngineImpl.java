@@ -65,14 +65,20 @@ public class HandlebarsTemplateEngineImpl extends CachingTemplateEngine<Template
   }
 
   @Override
-  public void render(RoutingContext context, String templateFileName, Handler<AsyncResult<Buffer>> handler) {
+  public void render(RoutingContext context, String templateDirectory, String templateFileName, Handler<AsyncResult<Buffer>> handler) {
     try {
-      Template template = cache.get(templateFileName);
+      String baseTemplateFileName = templateFileName;
+      templateFileName = templateDirectory + templateFileName;
+      Template template = isCachingEnabled() ? cache.get(templateFileName) : null;
       if (template == null) {
         synchronized (this) {
+          loader.setPrefix(templateDirectory);
           loader.setVertx(context.vertx());
-          template = handlebars.compile(templateFileName);
-          cache.put(templateFileName, template);
+          // Strip leading slash from Utils##normalizePath
+          template = handlebars.compile(baseTemplateFileName.substring(1));
+          if (isCachingEnabled()) {
+            cache.put(templateFileName, template);
+          }
         }
       }
       Context engineContext = Context.newBuilder(context.data()).resolver(getResolvers()).build();
@@ -99,8 +105,8 @@ public class HandlebarsTemplateEngineImpl extends CachingTemplateEngine<Template
   }
 
   private class Loader implements TemplateLoader {
-
     private Vertx vertx;
+    private String templateDirectory;
 
     void setVertx(Vertx vertx) {
       this.vertx = vertx;
@@ -108,8 +114,7 @@ public class HandlebarsTemplateEngineImpl extends CachingTemplateEngine<Template
 
     @Override
     public TemplateSource sourceAt(String location) throws IOException {
-
-      String loc = adjustLocation(location);
+      String loc = resolve(location);
       String templ = Utils.readFileToString(vertx, loc);
 
       if (templ == null) {
@@ -139,12 +144,12 @@ public class HandlebarsTemplateEngineImpl extends CachingTemplateEngine<Template
 
     @Override
     public String resolve(String location) {
-      return location;
+      return templateDirectory + "/" + adjustLocation(location);
     }
 
     @Override
     public String getPrefix() {
-      return null;
+      return templateDirectory;
     }
 
     @Override
@@ -154,7 +159,7 @@ public class HandlebarsTemplateEngineImpl extends CachingTemplateEngine<Template
 
     @Override
     public void setPrefix(String prefix) {
-      // does nothing since TemplateLoader handles the prefix
+      templateDirectory = prefix;
     }
 
     @Override
@@ -162,6 +167,4 @@ public class HandlebarsTemplateEngineImpl extends CachingTemplateEngine<Template
       extension = suffix;
     }
   }
-
-
 }

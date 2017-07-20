@@ -70,7 +70,7 @@ public interface Locale {
   /**
    * Returns the variant as reported by the HTTP client.
    *
-   * @deprecated Use {@link LanguageHeader#subtag(2)} instead
+   * @deprecated Use {@link LanguageHeader#subtag(int)} with value 2 instead
    * @return variant
    */
   @Deprecated

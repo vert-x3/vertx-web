@@ -19,6 +19,7 @@ package io.vertx.ext.web;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.HttpServerResponse;
 import org.junit.Test;
 
 import java.util.*;
@@ -958,7 +959,9 @@ public class RouterTest extends WebTestBase {
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=\"yeah,right\";itWorks=4real", 200, "OK");
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=\"yeah,right\"", 200, "OK");
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=\"yeah,right;itWorks=4real\"", 404, "Not Found");
-    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=yeah,right", 404, "Not Found");
+    // this might look wrong but since there is only 1 entry per content-type, the comma has no semantic meaning
+    // therefore it is ignored
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=yeah,right", 200, "OK");
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo", 404, "Not Found");
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 404, "Not Found");
   }
@@ -1072,11 +1075,11 @@ public class RouterTest extends WebTestBase {
   @Test
   public void testProducesWithParameterKey() throws Exception {
     router.route().produces("text/html;boo").handler(rc -> rc.response().end());
-    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html;boo=ya;itWorks=4real", 200, "OK");
     testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html;boo;itWorks", 200, "OK");
     testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html;boo=ya", 200, "OK");
     testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html;boo", 200, "OK");
     testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html", 404, "Not Found");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "*/*", 200, "OK");
   }
 
   @Test
@@ -1105,6 +1108,7 @@ public class RouterTest extends WebTestBase {
     testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html;a", 200, "OK");
     testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html;q=2", 200, "OK");
     testRequest(HttpMethod.GET, "/foo", 200, "OK");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "*/*", 200, "OK");
   }
 
   @Test
@@ -2019,21 +2023,108 @@ public class RouterTest extends WebTestBase {
 
   @Test
   public void testMultipleSetHandler() throws Exception {
-    try {
-      router.route().handler(context -> {}).handler(context -> {});
-      fail();
-    } catch (IllegalStateException e) {
-      // OK
-    }
+    router.get("/path").handler(routingContext -> {
+      routingContext.put("response", "handler1");
+      routingContext.next();
+    }).handler(routingContext -> {
+      routingContext.put("response", routingContext.get("response") + "handler2");
+      routingContext.next();
+    }).handler(routingContext -> {
+      HttpServerResponse response = routingContext.response();
+      response.setChunked(true);
+      response.end(routingContext.get("response") + "handler3");
+    });
+    testRequest(HttpMethod.GET, "/path", 200, "OK", "handler1handler2handler3");
   }
 
   @Test
   public void testMultipleSetFailureHandler() throws Exception {
-    try {
-      router.route().failureHandler(context -> {}).failureHandler(context -> {});
-      fail();
-    } catch (IllegalStateException e) {
-      // OK
-    }
+    router.get("/path").handler(routingContext -> {
+      routingContext.fail(500);
+    }).failureHandler(routingContext -> {
+      routingContext.put("response", "handler1");
+      routingContext.next();
+    }).failureHandler(routingContext -> {
+      routingContext.put("response", routingContext.get("response") + "handler2");
+      routingContext.next();
+    }).failureHandler(routingContext -> {
+      HttpServerResponse response = routingContext.response();
+      response.setChunked(true);
+      response.setStatusMessage("ERROR");
+      response.setStatusCode(500);
+      response.end(routingContext.get("response") + "handler3");
+    });
+    testRequest(HttpMethod.GET, "/path", 500, "ERROR", "handler1handler2handler3");
+  }
+
+  @Test
+  public void testMultipleSetFailureHandlerCorrectOrder() throws Exception {
+    router.route().failureHandler(routingContext -> {
+      routingContext.put("response", "handler1");
+      routingContext.next();
+    });
+
+    router.get("/path").handler(routingContext -> {
+      routingContext.fail(500);
+    }).failureHandler(routingContext -> {
+      routingContext.put("response", routingContext.get("response") + "handler2");
+      routingContext.next();
+    }).failureHandler(routingContext -> {
+      HttpServerResponse response = routingContext.response();
+      response.setChunked(true);
+      response.setStatusMessage("ERROR");
+      response.setStatusCode(500);
+      response.end(routingContext.get("response") + "handler3");
+    });
+    testRequest(HttpMethod.GET, "/path", 500, "ERROR", "handler1handler2handler3");
+  }
+
+  @Test
+  public void testMultipleHandlersMixed() throws Exception {
+    router.route().failureHandler(routingContext -> {
+      routingContext.put("response", "fhandler1");
+      routingContext.next();
+    });
+
+    router.get("/:param").handler(routingContext -> {
+      if (routingContext.pathParam("param").equals("fail")) routingContext.fail(500);
+      routingContext.put("response", "handler1");
+      routingContext.next();
+    }).handler(routingContext -> {
+      routingContext.put("response", routingContext.get("response") + "handler2");
+      routingContext.next();
+    }).handler(routingContext -> {
+      HttpServerResponse response = routingContext.response();
+      response.setChunked(true);
+      response.end(routingContext.get("response") + "handler3");
+    }).failureHandler(routingContext -> {
+      routingContext.put("response", routingContext.get("response") + "fhandler2");
+      routingContext.next();
+    }).failureHandler(routingContext -> {
+      HttpServerResponse response = routingContext.response();
+      response.setChunked(true);
+      response.setStatusMessage("ERROR");
+      response.setStatusCode(500);
+      response.end(routingContext.get("response") + "fhandler3");
+    });
+    testRequest(HttpMethod.GET, "/path", 200, "OK", "handler1handler2handler3");
+    testRequest(HttpMethod.GET, "/fail", 500, "ERROR", "fhandler1fhandler2fhandler3");
+  }
+
+  @Test
+  public void testMultipleSetHandlerMultipleRouteObject() throws Exception {
+    router.get("/path").handler(routingContext -> {
+      routingContext.put("response", "handler1");
+      routingContext.next();
+    });
+    router.get("/path").handler(routingContext -> {
+      routingContext.put("response", routingContext.get("response") + "handler2");
+      routingContext.next();
+    }).handler(routingContext -> {
+      HttpServerResponse response = routingContext.response();
+      response.setChunked(true);
+      response.end(routingContext.get("response") + "handler3");
+    });
+    testRequest(HttpMethod.GET, "/path", 200, "OK", "handler1handler2handler3");
   }
 }

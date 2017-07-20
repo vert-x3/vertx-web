@@ -28,31 +28,31 @@ import org.thymeleaf.templatemode.TemplateMode;
  */
 @VertxGen
 public interface ThymeleafTemplateEngine extends TemplateEngine {
-    TemplateMode DEFAULT_TEMPLATE_MODE = TemplateMode.HTML;
+  TemplateMode DEFAULT_TEMPLATE_MODE = TemplateMode.HTML;
 
-    /**
-     * Create a template engine using defaults
-     *
-     * @return  the engine
-     */
-    static ThymeleafTemplateEngine create() {
-        return new ThymeleafTemplateEngineImpl();
-    }
+  /**
+   * Create a template engine using defaults
+   *
+   * @return the engine
+   */
+  static ThymeleafTemplateEngine create() {
+    return new ThymeleafTemplateEngineImpl();
+  }
 
-    /**
-     * Set the mode for the engine
-     *
-     * @param mode  the mode
-     * @return a reference to this for fluency
-     */
-    ThymeleafTemplateEngine setMode(TemplateMode mode);
+  /**
+   * Set the mode for the engine
+   *
+   * @param mode the mode
+   * @return a reference to this for fluency
+   */
+  ThymeleafTemplateEngine setMode(TemplateMode mode);
 
-    /**
-     * Get a reference to the internal Thymeleaf TemplateEngine object so it
-     * can be configured.
-     *
-     * @return a reference to the internal Thymeleaf TemplateEngine instance.
-     */
-    @GenIgnore
-    org.thymeleaf.TemplateEngine getThymeleafTemplateEngine();
+  /**
+   * Get a reference to the internal Thymeleaf TemplateEngine object so it
+   * can be configured.
+   *
+   * @return a reference to the internal Thymeleaf TemplateEngine instance.
+   */
+  @GenIgnore
+  org.thymeleaf.TemplateEngine getThymeleafTemplateEngine();
 }

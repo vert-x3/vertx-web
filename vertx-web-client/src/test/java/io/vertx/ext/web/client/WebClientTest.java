@@ -1,5 +1,21 @@
 package io.vertx.ext.web.client;
 
+import java.io.File;
+import java.net.ConnectException;
+import java.nio.file.Files;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.function.Function;
+
+import org.junit.Test;
+
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.VertxException;
@@ -18,28 +34,16 @@ import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.DecodeException;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.net.ProxyOptions;
+import io.vertx.core.net.ProxyType;
 import io.vertx.core.streams.ReadStream;
 import io.vertx.core.streams.WriteStream;
+import io.vertx.ext.web.client.impl.HttpContext;
 import io.vertx.ext.web.client.jackson.WineAndCheese;
 import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.test.core.HttpTestBase;
 import io.vertx.test.core.TestUtils;
 import io.vertx.test.core.tls.Cert;
-import org.junit.Test;
-
-import java.io.File;
-import java.net.ConnectException;
-import java.nio.file.Files;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-import java.util.function.Function;
 
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
@@ -1056,7 +1060,25 @@ public class WebClientTest extends HttpTestBase {
     testTLS(false, true, client -> client.getAbs("https://" + DEFAULT_HTTPS_HOST + ":" + DEFAULT_HTTPS_PORT));
   }
 
+  /**
+   * Regression test for issue #563 (https://github.com/vert-x3/vertx-web/issues/563)
+   * <p>
+   * Only occurred when {@link WebClientOptions#isSsl()} was false for an SSL request.
+   */
+  @Test
+  public void testTLSQueryParametersIssue563() throws Exception {
+    testTLS(false, true,
+      client -> client.getAbs("https://" + DEFAULT_HTTPS_HOST + ":" + DEFAULT_HTTPS_PORT)
+        .addQueryParam("query1", "value1")
+        .addQueryParam("query2", "value2"),
+      serverRequest -> assertEquals("query1=value1&query2=value2", serverRequest.query()));
+  }
+
   private void testTLS(boolean clientSSL, boolean serverSSL, Function<WebClient, HttpRequest<Buffer>> requestProvider) throws Exception {
+    testTLS(clientSSL, serverSSL, requestProvider, null);
+  }
+
+  private void testTLS(boolean clientSSL, boolean serverSSL, Function<WebClient, HttpRequest<Buffer>> requestProvider, Consumer<HttpServerRequest> serverAssertions) throws Exception {
     WebClient sslClient = WebClient.create(vertx, new WebClientOptions()
       .setSsl(clientSSL)
       .setTrustAll(true)
@@ -1069,6 +1091,9 @@ public class WebClientTest extends HttpTestBase {
       .setHost(DEFAULT_HTTPS_HOST));
     sslServer.requestHandler(req -> {
       assertEquals(serverSSL, req.isSSL());
+      if (serverAssertions != null) {
+        serverAssertions.accept(req);
+      }
       req.response().end();
     });
     try {
@@ -1082,5 +1107,39 @@ public class WebClientTest extends HttpTestBase {
       sslClient.close();
       sslServer.close();
     }
+  }
+
+  @Test
+  public void testHttpProxyFtpRequest() throws Exception {
+    startProxy(null, ProxyType.HTTP);
+    proxy.setForceUri("http://" + DEFAULT_HTTP_HOST + ":" + DEFAULT_HTTP_PORT);
+    server.requestHandler(req -> {
+      req.response().setStatusCode(200).end();
+    });
+    startServer();
+
+    WebClientOptions options = new WebClientOptions();
+    options.setProxyOptions(new ProxyOptions().setPort(proxy.getPort()));
+    WebClient client = WebClient.create(vertx, options);
+    client
+    .getAbs("ftp://ftp.gnu.org/gnu/")
+    .send(ar -> {
+      if (ar.succeeded()) {
+        // Obtain response
+        HttpResponse<Buffer> response = ar.result();
+        assertEquals(200, response.statusCode());
+        assertEquals("ftp://ftp.gnu.org/gnu/", proxy.getLastUri());
+        testComplete();
+      } else {
+        fail(ar.cause());
+      }
+    });
+    await();
+  }
+
+  private <R> void handleMutateRequest(HttpContext context) {
+    context.request().host("localhost");
+    context.request().port(8080);
+    context.next();
   }
 }

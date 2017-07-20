@@ -16,26 +16,35 @@
 
 package io.vertx.ext.web.templ;
 
-import java.util.Set;
-import java.util.Collections;
-import java.util.Map.Entry;
-import java.util.concurrent.atomic.AtomicReference;
 import com.github.jknack.handlebars.HandlebarsException;
 import com.github.jknack.handlebars.ValueResolver;
-
 import io.vertx.core.Handler;
+import io.vertx.core.VertxOptions;
+import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.WebTestBase;
 import io.vertx.ext.web.handler.TemplateHandler;
+import io.vertx.ext.web.templ.impl.CachingTemplateEngine;
 import org.junit.Test;
+
+import java.io.File;
+import java.io.PrintWriter;
+import java.util.Collections;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 public class HandlebarsTemplateTest extends WebTestBase {
+
+  protected VertxOptions getOptions() {
+    return new VertxOptions().setFileResolverCachingEnabled(true);
+  }
 
   @Test
   public void testTemplateOnClasspath() throws Exception {
@@ -102,9 +111,9 @@ public class HandlebarsTemplateTest extends WebTestBase {
 
     AtomicReference<RoutingContext> contextRef = new AtomicReference<>();
     router.route().handler(context -> {
+      contextRef.set(context);
       context.put("foo", jsonArray);
       context.next();
-      contextRef.set(context);
     });
     router.route().handler(TemplateHandler.create(engine, "src/test/filesystemtemplates", "text/plain"));
     testRequest(HttpMethod.GET, "/" + "test-handlebars-template6.hbs", 500, "Internal Server Error");
@@ -127,6 +136,46 @@ public class HandlebarsTemplateTest extends WebTestBase {
   public void testTemplateOnFileSystem() throws Exception {
     TemplateEngine engine = HandlebarsTemplateEngine.create();
     testTemplateHandler(engine, "src/test/filesystemtemplates", "test-handlebars-template3.hbs", "Goodbye badger and fox");
+  }
+
+  @Test
+  public void testTemplateOnClasspathDisableCaching() throws Exception {
+    System.setProperty(CachingTemplateEngine.DISABLE_TEMPL_CACHING_PROP_NAME, "true");
+    testTemplateOnClasspath();
+  }
+
+  @Test
+  public void testTemplateWithPartial() throws Exception {
+    TemplateEngine engine = HandlebarsTemplateEngine.create();
+    testTemplateHandler(engine, "src/test/filesystemtemplates", "test-handlebars-template7", "\ntext from template8\n\ntext from template7\n\n\n");
+  }
+
+  @Test
+  public void testTemplateWithPartialFromSubdir() throws Exception {
+    TemplateEngine engine = HandlebarsTemplateEngine.create();
+    testTemplateHandler(engine, "src/test/filesystemtemplates", "sub/test-handlebars-template9", "\ntext from template8\n\ntext from template9\n\n\n");
+  }
+
+  @Test
+  public void testTemplateDirectoryNullAndEmpty() throws Exception {
+    // null or empty templateDirectory should resolve to current working directory,
+    // which is target/classes while testing
+    TemplateEngine engine = HandlebarsTemplateEngine.create();
+    File temp = File.createTempFile("template", ".hbs", new File("target/classes"));
+    temp.deleteOnExit();
+
+    router.clear();
+    router.route().handler(TemplateHandler.create(engine, null, "text/html"));
+    // template that doesn't exist
+    testRequest(HttpMethod.GET, "/foo.hbs", 500, "Internal Server Error");
+    // created template
+    testRequest(HttpMethod.GET, "/" + temp.getName(), 200, "OK");
+
+    // same tests with empty path
+    router.clear();
+    router.route().handler(TemplateHandler.create(engine, "", "text/html"));
+    testRequest(HttpMethod.GET, "/foo.hbs", 500, "Internal Server Error");
+    testRequest(HttpMethod.GET, "/" + temp.getName(), 200, "OK");
   }
 
   @Test
@@ -164,4 +213,112 @@ public class HandlebarsTemplateTest extends WebTestBase {
     assertNotNull(engine.getHandlebars());
   }
 
+  @Test
+  public void testCachingEnabled() throws Exception {
+    System.setProperty(CachingTemplateEngine.DISABLE_TEMPL_CACHING_PROP_NAME, "false");
+    TemplateEngine engine = HandlebarsTemplateEngine.create();
+
+    PrintWriter out;
+    File temp = File.createTempFile("template", ".hbs", new File("target/classes"));
+    temp.deleteOnExit();
+
+    out = new PrintWriter(temp);
+    out.print("before");
+    out.flush();
+    out.close();
+
+    testTemplateHandler(engine, ".", temp.getName(), "before");
+
+    // cache is enabled so if we change the content that should not affect the result
+
+    out = new PrintWriter(temp);
+    out.print("after");
+    out.flush();
+    out.close();
+
+    testTemplateHandler(engine, ".", temp.getName(), "before");
+  }
+
+  /**
+   * TODO remove when {@link io.vertx.ext.web.templ.TemplateEngine#render(RoutingContext, String, Handler)} is removed
+   */
+  @Test
+  public void testDeprecatedRenderMethodRelativePath() throws Exception {
+    TemplateEngine engine = HandlebarsTemplateEngine.create();
+    router.route().handler(context -> {
+      context.put("foo", "badger");
+      context.put("bar", "fox");
+      engine.render(context, "src/test/filesystemtemplates/test-handlebars-template3", res -> {
+        if (res.succeeded()) {
+          context.response().putHeader(HttpHeaders.CONTENT_TYPE, "text/html").end(res.result());
+        } else {
+          context.fail(res.cause());
+        }
+      });
+    });
+    String expected = "Goodbye badger and fox";
+    testRequest(HttpMethod.GET, "/", 200, "OK", expected);
+  }
+
+  /**
+   * TODO remove when {@link io.vertx.ext.web.templ.TemplateEngine#render(RoutingContext, String, Handler)} is removed
+   */
+  @Test
+  public void testDeprecatedRenderMethodAbsolutePath() throws Exception {
+    File wd = new File(".");
+    TemplateEngine engine = HandlebarsTemplateEngine.create();
+    router.route().handler(context -> {
+      context.put("foo", "badger");
+      context.put("bar", "fox");
+      engine.render(context, wd.getAbsolutePath() + "/src/test/filesystemtemplates/test-handlebars-template3", res -> {
+        if (res.succeeded()) {
+          context.response().putHeader(HttpHeaders.CONTENT_TYPE, "text/html").end(res.result());
+        } else {
+          context.fail(res.cause());
+        }
+      });
+    });
+    String expected = "Goodbye badger and fox";
+    testRequest(HttpMethod.GET, "/", 200, "OK", expected);
+  }
+
+  /**
+   * remove when {@link io.vertx.ext.web.templ.TemplateEngine#render(RoutingContext, String, Handler)} is removed
+   * also remove src/test/filesystemtemplates/test-handlebars-template7A.hbs template
+   */
+  @Test
+  @Deprecated
+  public void testDeprecatedRenderMethodRelativePathWithInclude() throws Exception {
+    TemplateEngine engine = HandlebarsTemplateEngine.create();
+    router.route().handler(context -> {
+      engine.render(context, "src/test/filesystemtemplates/test-handlebars-template7A", res -> {
+        if (res.succeeded()) {
+          context.response().putHeader(HttpHeaders.CONTENT_TYPE, "text/html").end(res.result());
+        } else {
+          context.fail(res.cause());
+        }
+      });
+    });
+    testRequest(HttpMethod.GET, "/", 500, "Internal Server Error");
+  }
+
+  /**
+   * remove when {@link io.vertx.ext.web.templ.TemplateEngine#render(RoutingContext, String, Handler)} is removed
+   */
+  @Test
+  @Deprecated
+  public void testDeprecatedRenderMethodRelativePathWithInclude2() throws Exception {
+    TemplateEngine engine = HandlebarsTemplateEngine.create();
+    router.route().handler(context -> {
+      engine.render(context, "src/test/filesystemtemplates/test-handlebars-template7", res -> {
+        if (res.succeeded()) {
+          context.response().putHeader(HttpHeaders.CONTENT_TYPE, "text/html").end(res.result());
+        } else {
+          context.fail(res.cause());
+        }
+      });
+    });
+    String expected = "\ntext from template8\n\ntext from template7\n\n\n";
+    testRequest(HttpMethod.GET, "/", 200, "OK", expected);
+  }
 }

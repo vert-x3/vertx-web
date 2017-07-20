@@ -76,7 +76,7 @@ public class CSRFHandlerTest extends WebTestBase {
     testRequest(HttpMethod.GET, "/", null, resp -> {
       List<String> cookies = resp.headers().getAll("set-cookie");
       String cookie = cookies.get(0);
-      tmpCookie = cookie.substring(cookie.indexOf('=') + 1);
+      tmpCookie = cookie.substring(cookie.indexOf('=') + 1, cookie.indexOf(';'));
     }, 200, "OK", null);
 
     testRequest(HttpMethod.POST, "/", req -> {
@@ -108,7 +108,7 @@ public class CSRFHandlerTest extends WebTestBase {
     testRequest(HttpMethod.GET, "/", null, resp -> {
       List<String> cookies = resp.headers().getAll("set-cookie");
       String cookie = cookies.get(0);
-      tmpCookie = cookie.substring(cookie.indexOf('=') + 1);
+      tmpCookie = cookie.substring(cookie.indexOf('=') + 1, cookie.indexOf(';'));
     }, 200, "OK", null);
 
     testRequest(HttpMethod.POST, "/", req -> {
@@ -171,5 +171,19 @@ public class CSRFHandlerTest extends WebTestBase {
       req.headers().set("content-type", "multipart/form-data; boundary=" + boundary);
       req.write(buffer);
     }, null, 200, "OK", null);
+  }
+
+  @Test
+  public void testPostWithCustomResponseBody() throws Exception {
+    final String expectedResponseBody = "Expected response body";
+
+    router.route().handler(CookieHandler.create());
+    router.route().handler(CSRFHandler.create("Abracadabra").setTimeout(1).setResponseBody(expectedResponseBody));
+    router.route().handler(rc -> rc.response().end());
+
+    testRequest(HttpMethod.POST, "/", req -> {
+      req.putHeader(CSRFHandler.DEFAULT_HEADER_NAME,
+        "4CYp9vQsr2VSQEsi/oVsMu35Ho9TlR0EovcYovlbiBw=.1437037602082.41jwU0FPl/n7ZNZAZEA07GyIUnpKSTKQ8Eju7Nicb34=");
+    }, null, 403, "Forbidden", expectedResponseBody);
   }
 }

@@ -6,7 +6,7 @@
   <parent>
     <groupId>io.vertx</groupId>
     <artifactId>vertx-web-parent</artifactId>
-    <version>3.4.2-SNAPSHOT</version>
+    <version>3.5.0-SNAPSHOT</version>
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
@@ -32,5 +32,68 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-jar-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>default-jar</id>
+            <configuration>
+              <archive>
+                <!-- Generate a jar INDEX.LIST -->
+                <index>true</index>
+                <!-- A manifest containing the OSGi metadata has been generated using the maven-bundle-plugin -->
+                <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
+                <!-- Add the Maven coordinates in the manifest -->
+                <manifestEntries>
+                  <Maven-Group-Id>${project.groupId}</Maven-Group-Id>
+                  <Maven-Artifact-Id>${project.artifactId}</Maven-Artifact-Id>
+                  <Maven-Version>${project.version}</Maven-Version>
+                </manifestEntries>
+              </archive>
+              <!-- Remove examples and docoverride -->
+              <excludes>
+                <exclude>/examples/**</exclude>
+              </excludes>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>biz.aQute.bnd</groupId>
+        <artifactId>bnd-maven-plugin</artifactId>
+        <version>3.2.0</version>
+
+        <executions>
+          <execution>
+            <id>default-bnd-process</id>
+            <goals>
+              <goal>bnd-process</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <bnd><![CDATA[
+          Import-Package: \
+            groovy.lang.*;resolution:=optional,\
+            org.codehaus.groovy.*;resolution:=optional,\
+            kotlin.*;resolution:=optional,\
+            io.vertx.groovy.*;resolution:=optional,\
+            io.vertx.lang.rxjava.*;resolution:=optional,\
+            io.vertx.lang.groovy.*;resolution:=optional,\
+            io.vertx.codegen.annotations;resolution:=optional,\
+            io.vertx.rx.java;resolution:=optional,\
+            io.vertx.rxjava.core.*;resolution:=optional,\
+            rx.*;resolution:=optional,\
+            *
+          -exportcontents: !*impl, !examples, *
+          ]]></bnd>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 
 </project>

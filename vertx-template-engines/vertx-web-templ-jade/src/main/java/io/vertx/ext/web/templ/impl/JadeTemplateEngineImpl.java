@@ -46,6 +46,7 @@ public class JadeTemplateEngineImpl extends CachingTemplateEngine<JadeTemplate> 
   public JadeTemplateEngineImpl() {
     super(DEFAULT_TEMPLATE_EXTENSION, DEFAULT_MAX_CACHE_SIZE);
     config.setTemplateLoader(loader);
+    config.setCaching(false);
   }
 
   @Override
@@ -61,9 +62,10 @@ public class JadeTemplateEngineImpl extends CachingTemplateEngine<JadeTemplate> 
   }
 
   @Override
-  public void render(RoutingContext context, String templateFileName, Handler<AsyncResult<Buffer>> handler) {
+  public void render(RoutingContext context, String templateDirectory, String templateFileName, Handler<AsyncResult<Buffer>> handler) {
     try {
-      JadeTemplate template = cache.get(templateFileName);
+      templateFileName = templateDirectory + templateFileName;
+      JadeTemplate template = isCachingEnabled() ? cache.get(templateFileName) : null;
 
       if (template == null) {
         synchronized (this) {
@@ -71,7 +73,9 @@ public class JadeTemplateEngineImpl extends CachingTemplateEngine<JadeTemplate> 
           // Compile
           template = config.getTemplate(templateFileName);
         }
-        cache.put(templateFileName, template);
+        if (isCachingEnabled()) {
+          cache.put(templateFileName, template);
+        }
       }
       Map<String, Object> variables = new HashMap<>(1);
       variables.put("context", context);

@@ -13,7 +13,7 @@
  *
  *  You may elect to redistribute this code under either of these licenses.
  */
-package io.vertx.ext.web.handler;
+package io.vertx.ext.web.handler.sockjs;
 
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClient;
@@ -21,6 +21,8 @@ import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.ext.web.Router;
+import io.vertx.ext.web.handler.CookieHandler;
+import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.handler.sockjs.SockJSHandler;
 import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
 import io.vertx.ext.web.sstore.LocalSessionStore;
@@ -36,31 +38,7 @@ import java.util.concurrent.locks.LockSupport;
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
  */
-public class SockJSSessionTest extends VertxTestBase {
-
-  private HttpClient client;
-  private HttpServer server;
-  private Router router;
-  private SockJSHandler sockJSHandler;
-
-  @Override
-  public void setUp() throws Exception {
-    super.setUp();
-    client = vertx.createHttpClient(new HttpClientOptions().setDefaultPort(8080));
-    router = Router.router(vertx);
-    router.route().handler(CookieHandler.create());
-    router.route()
-      .handler(SessionHandler.create(LocalSessionStore.create(vertx))
-        .setNagHttps(false)
-        .setSessionTimeout(60 * 60 * 1000));
-    SockJSHandlerOptions options = new SockJSHandlerOptions().setHeartbeatInterval(2000);
-    sockJSHandler = SockJSHandler.create(vertx, options);
-    router.route("/test/*").handler(sockJSHandler);
-    server = vertx.createHttpServer(new HttpServerOptions().setPort(8080).setHost("localhost"));
-    CountDownLatch latch = new CountDownLatch(1);
-    server.requestHandler(router::accept).listen(ar -> latch.countDown());
-    awaitLatch(latch);
-  }
+public class SockJSSessionTest extends SockJSTestBase {
 
   @Test
   public void testNoDeadlockWhenWritingFromAnotherThreadWithSseTransport() {
@@ -120,6 +98,22 @@ public class SockJSSessionTest extends VertxTestBase {
           ws.close();
         }
       });
+    });
+    await();
+  }
+
+  @Test
+  public void testCombineMultipleFramesIntoASingleMessage() {
+    sockJSHandler.socketHandler(socket -> {
+      socket.handler(buf -> {
+        assertEquals("Hello World", buf.toString());
+        testComplete();
+      });
+    });
+    client.websocket("/test/400/8ne8e94a/websocket", ws -> {
+      ws.writeFrame(io.vertx.core.http.WebSocketFrame.textFrame("[\"Hello", false));
+      ws.writeFrame(io.vertx.core.http.WebSocketFrame.continuationFrame(Buffer.buffer(" World\"]"), true));
+      ws.close();
     });
     await();
   }

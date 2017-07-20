@@ -99,7 +99,15 @@ public interface CorsHandler extends Handler<RoutingContext> {
   CorsHandler exposedHeaders(Set<String> headerNames);
 
   /**
-   * Set whether credentials are allowed
+   * Set whether credentials are allowed. Note that user agents will block
+   * requests that use a wildcard as origin and include credentials.
+   *
+   * From the MDN documentation you can read:
+   *
+   * <blockquote>
+   * Important note: when responding to a credentialed request,
+   * server must specify a domain, and cannot use wild carding.
+   * </blockquote>
    *
    * @param allow true if allowed
    * @return a reference to this, so the API can be used fluently

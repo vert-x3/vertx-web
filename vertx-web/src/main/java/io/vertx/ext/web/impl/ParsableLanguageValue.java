@@ -4,10 +4,12 @@ import io.vertx.codegen.annotations.Nullable;
 import io.vertx.ext.web.LanguageHeader;
 import io.vertx.ext.web.Locale;
 
+import java.util.List;
+
 public class ParsableLanguageValue extends ParsableHeaderValue implements LanguageHeader{
 
-  private String[] parsedValues;
-  
+  private List<String> parsedValues;
+
   public ParsableLanguageValue(String headerContent) {
     super(headerContent);
     parsedValues = null;
@@ -17,7 +19,7 @@ public class ParsableLanguageValue extends ParsableHeaderValue implements Langua
   public String tag() {
     return subtag(0);
   }
-  
+
   @Override
   public String language() {
     String value =  tag();
@@ -40,40 +42,40 @@ public class ParsableLanguageValue extends ParsableHeaderValue implements Langua
     String value = subtag(2);
     return value == null ? null : value.toUpperCase();
   }
-  
+
   @Override
   public @Nullable String subtag(int level) {
     ensureHeaderProcessed();
-    if(level < parsedValues.length){
-      return parsedValues[level];
+    if(level < parsedValues.size()){
+      return parsedValues.get(level);
     }
     return null;
   }
-  
+
   @Override
   public int subtagCount(){
-    return parsedValues.length;
+    return parsedValues.size();
   }
-  
+
   @Override
   protected boolean isMatchedBy2(ParsableHeaderValue matchTry) {
     ParsableLanguageValue myMatchTry = (ParsableLanguageValue) matchTry;
     ensureHeaderProcessed();
-    
-    for (int i = 0; i < myMatchTry.parsedValues.length; i++) {
-      String match = myMatchTry.parsedValues[i];
-      String against = this.parsedValues[i];
+
+    for (int i = 0; i < myMatchTry.parsedValues.size(); i++) {
+      String match = myMatchTry.parsedValues.get(i);
+      String against = this.parsedValues.get(i);
       if(!"*".equals(match) && !match.equalsIgnoreCase(against)){
         return false;
       }
     }
     return super.isMatchedBy2(myMatchTry);
   }
-  
+
   @Override
   protected void ensureHeaderProcessed() {
     super.ensureHeaderProcessed();
     parsedValues = HeaderParser.parseLanguageValue(value);
   }
-    
+
 }
