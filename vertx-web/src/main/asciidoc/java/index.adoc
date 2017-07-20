@@ -1636,19 +1636,7 @@ would start configuring your chain as:
 
 [source,java]
 ----
-ChainAuthHandler chain = ChainAuthHandler.create();
-
-// add http basic auth handler to the chain
-chain.append(BasicAuthHandler.create(provider));
-// add form redirect auth handler to the chain
-chain.append(RedirectAuthHandler.create(provider));
-
-// secure your route
-router.route("/secure/resource").handler(chain);
-// your app
-router.route("/secure/resource").handler(ctx -> {
-  // do something...
-});
+HTTPRequestValidationHandler validationHandler = HTTPRequestValidationHandler.create().addQueryParam("parameterName", ParameterType.INT, true).addFormParamWithPattern("formParameterName", "a{4}", true).addPathParam("pathParam", ParameterType.FLOAT);
 ----
 
 So when a user makes a request without a `Authorization` header, this means that the chain will fail to authenticate
