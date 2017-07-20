@@ -1816,23 +1816,9 @@ would start configuring your chain as:
 
 [source,js]
 ----
-var ChainAuthHandler = require("vertx-web-js/chain_auth_handler");
-var BasicAuthHandler = require("vertx-web-js/basic_auth_handler");
-var RedirectAuthHandler = require("vertx-web-js/redirect_auth_handler");
-
-var chain = ChainAuthHandler.create();
-
-// add http basic auth handler to the chain
-chain.append(BasicAuthHandler.create(provider));
-// add form redirect auth handler to the chain
-chain.append(RedirectAuthHandler.create(provider));
-
-// secure your route
-router.route("/secure/resource").handler(chain.handle);
-// your app
-router.route("/secure/resource").handler(function (ctx) {
-  // do something...
-});
+var HTTPRequestValidationHandler = require("vertx-web-js/http_request_validation_handler");
+// Create Validation Handler with some stuff
+var validationHandler = HTTPRequestValidationHandler.create().addQueryParam("parameterName", 'INT', true).addFormParamWithPattern("formParameterName", "a{4}", true).addPathParam("pathParam", 'FLOAT');
 
 ----
 

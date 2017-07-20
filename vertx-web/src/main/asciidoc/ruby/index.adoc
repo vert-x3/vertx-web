@@ -1816,23 +1816,9 @@ would start configuring your chain as:
 
 [source,ruby]
 ----
-require 'vertx-web/chain_auth_handler'
-require 'vertx-web/basic_auth_handler'
-require 'vertx-web/redirect_auth_handler'
-
-chain = VertxWeb::ChainAuthHandler.create()
-
-# add http basic auth handler to the chain
-chain.append(VertxWeb::BasicAuthHandler.create(provider))
-# add form redirect auth handler to the chain
-chain.append(VertxWeb::RedirectAuthHandler.create(provider))
-
-# secure your route
-router.route("/secure/resource").handler(&chain.method(:handle))
-# your app
-router.route("/secure/resource").handler() { |ctx|
-  # do something...
-}
+require 'vertx-web/http_request_validation_handler'
+# Create Validation Handler with some stuff
+validationHandler = VertxWeb::HTTPRequestValidationHandler.create().add_query_param("parameterName", :INT, true).add_form_param_with_pattern("formParameterName", "a{4}", true).add_path_param("pathParam", :FLOAT)
 
 ----
 
