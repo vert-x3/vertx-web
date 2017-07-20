@@ -21,8 +21,8 @@ import java.net.URL;
 
 /**
  * Interface for OpenAPI3RouterFactory. <br/>
- * To add an handler, use {@link OpenAPI3RouterFactory#addHandlerByOperationId(String, Handler, Handler)}, in this
- * class is better than generic {@link DesignDrivenRouterFactory#addHandler(HttpMethod, String, Handler, Handler)}<br/>
+ * To add an handler, use {@link OpenAPI3RouterFactory#addHandlerByOperationId(String, Handler)}, in this
+ * class is better than generic {@link DesignDrivenRouterFactory#addHandler(HttpMethod, String, Handler)}<br/>
  * Usage example:
  * <pre>
  * {@code
@@ -85,13 +85,17 @@ public interface OpenAPI3RouterFactory extends DesignDrivenRouterFactory<OpenApi
    *
    * @param vertx
    * @param filename
+   * @param validate Validate the spec. <b>Warning</b>: Flag this parameter false only if you are sure your spec is valid, otherwise you will get unexpected behaviour
    * @param handler  When specification is loaded, this handler will be called with AsyncResult<OpenAPI3RouterFactory>
    */
-  static void createRouterFactoryFromFile(Vertx vertx, String filename, Handler<AsyncResult<OpenAPI3RouterFactory>>
+  static void createRouterFactoryFromFile(Vertx vertx, String filename, boolean validate, Handler<AsyncResult<OpenAPI3RouterFactory>>
     handler) {
     vertx.executeBlocking((Future<OpenAPI3RouterFactory> future) -> {
-      OpenApi3 model = (OpenApi3) new OpenApiParser().parse(new File(filename), true);
-      if (model.isValid()) future.complete(new OpenAPI3RouterFactoryImpl(vertx, model));
+      File spec = new File(filename);
+      if (!spec.exists())
+        future.fail(RouterFactoryException.createSpecNotExistsException(filename));
+      OpenApi3 model = (OpenApi3) new OpenApiParser().parse(spec, validate);
+      if (!validate || model.isValid()) future.complete(new OpenAPI3RouterFactoryImpl(vertx, model));
       else {
         if (model.getValidationResults().getSeverity() == ValidationResults.Severity.ERROR || model
           .getValidationResults().getSeverity() == ValidationResults.Severity.MAX_SEVERITY)
@@ -107,17 +111,18 @@ public interface OpenAPI3RouterFactory extends DesignDrivenRouterFactory<OpenApi
    *
    * @param vertx
    * @param url
+   * @param validate Validate the spec. <b>Warning</b>: Flag this parameter false only if you are sure your spec is valid, otherwise you will get unexpected behaviour
    * @param handler When specification is loaded, this handler will be called with AsyncResult<OpenAPI3RouterFactory>
    */
-  static void createRouterFactoryFromURL(Vertx vertx, String url, Handler<AsyncResult<OpenAPI3RouterFactory>> handler) {
+  static void createRouterFactoryFromURL(Vertx vertx, String url, boolean validate, Handler<AsyncResult<OpenAPI3RouterFactory>> handler) {
     vertx.executeBlocking((Future<OpenAPI3RouterFactory> future) -> {
       OpenApi3 model = null;
       try {
-        model = (OpenApi3) new OpenApiParser().parse(new URL(url), true);
+        model = (OpenApi3) new OpenApiParser().parse(new URL(url), validate);
       } catch (MalformedURLException e) {
-        future.fail("Invalid url");
+        future.fail(RouterFactoryException.createSpecNotExistsException(url));
       }
-      if (model.isValid()) future.complete(new OpenAPI3RouterFactoryImpl(vertx, model));
+      if (!validate || model.isValid()) future.complete(new OpenAPI3RouterFactoryImpl(vertx, model));
       else {
         if (model.getValidationResults().getSeverity() == ValidationResults.Severity.ERROR || model
           .getValidationResults().getSeverity() == ValidationResults.Severity.MAX_SEVERITY)

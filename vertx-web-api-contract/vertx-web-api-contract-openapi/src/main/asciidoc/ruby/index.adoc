@@ -26,14 +26,14 @@ This class, as name says, is a router factory based on your OpenAPI 3 specificat
 == Create a new router factory
 To create a new router factory, you can use methods inside `link:../../yardoc/VertxWebContractOpenapi/OpenAPI3RouterFactory.html[OpenAPI3RouterFactory]`:
 
-* `link:../../yardoc/VertxWebContractOpenapi/OpenAPI3RouterFactory.html#create_router_factory_from_file-class_method[OpenAPI3RouterFactory.createRouterFactoryFromFile]` to create a router factory from local file
-* `link:../../yardoc/VertxWebContractOpenapi/OpenAPI3RouterFactory.html#create_router_factory_from_url-class_method[OpenAPI3RouterFactory.createRouterFactoryFromURL]` to create a router factory from url
+* `link:../../yardoc/VertxWebContractOpenapi/OpenAPI3RouterFactory.html#create_router_factory_from_file-class_method[OpenAPI3RouterFactory.createRouterFactoryFromFile]`  to create a router factory from local file
+* `link:../../yardoc/VertxWebContractOpenapi/OpenAPI3RouterFactory.html#create_router_factory_from_url-class_method[OpenAPI3RouterFactory.createRouterFactoryFromURL]`  to create a router factory from url
 
 For example:
 [source,ruby]
 ----
 require 'vertx-web-contract-openapi/open_api3_router_factory'
-VertxWebContractOpenapi::OpenAPI3RouterFactory.create_router_factory_from_file(vertx, "src/main/resources/petstore.yaml") { |ar_err,ar|
+VertxWebContractOpenapi::OpenAPI3RouterFactory.create_router_factory_from_file(vertx, "src/main/resources/petstore.yaml", true) { |ar_err,ar|
   if (ar_err == nil)
     # Spec loaded with success
     routerFactory = ar

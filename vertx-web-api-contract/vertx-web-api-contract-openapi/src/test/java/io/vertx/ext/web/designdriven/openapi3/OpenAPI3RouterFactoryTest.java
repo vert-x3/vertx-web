@@ -76,7 +76,7 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
   public void loadPetStoreAndTestSomething() throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
     final Router[] router = {null};
-    OpenAPI3RouterFactory.createRouterFactoryFromFile(this.vertx, "src/test/resources/swaggers/petstore.yaml",
+    OpenAPI3RouterFactory.createRouterFactoryFromFile(this.vertx, "src/test/resources/swaggers/petstore.yaml", false,
       openAPI3RouterFactoryAsyncResult -> {
       assertTrue(openAPI3RouterFactoryAsyncResult.succeeded());
       OpenAPI3RouterFactory routerFactory = openAPI3RouterFactoryAsyncResult.result();

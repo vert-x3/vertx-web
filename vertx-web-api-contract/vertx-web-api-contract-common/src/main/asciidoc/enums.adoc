@@ -24,5 +24,9 @@ Specification is not valid
 +++
 Missing security handler during construction of router
 +++
+|[[INVALID_SPEC_PATH]]`INVALID_SPEC_PATH`|
++++
+You have provided a wrong directory/path to specification file
++++
 |===
 

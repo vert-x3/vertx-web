@@ -23,7 +23,11 @@ public class RouterFactoryException extends RuntimeException {
     SPEC_INVALID, /**
      * Missing security handler during construction of router
      */
-    MISSING_SECURITY_HANDLER
+    MISSING_SECURITY_HANDLER,
+    /**
+     * You have provided a wrong directory/path to specification file
+     */
+    INVALID_SPEC_PATH
   }
 
   private ErrorType type;
@@ -48,6 +52,10 @@ public class RouterFactoryException extends RuntimeException {
 
   public static RouterFactoryException createSpecInvalidException(String message) {
     return new RouterFactoryException(message, ErrorType.SPEC_INVALID);
+  }
+
+  public static RouterFactoryException createSpecNotExistsException(String path) {
+    return new RouterFactoryException("Wrong specification url/path: " + path, ErrorType.INVALID_SPEC_PATH);
   }
 
   public static RouterFactoryException createMissingSecurityHandler(String securitySchema) {
