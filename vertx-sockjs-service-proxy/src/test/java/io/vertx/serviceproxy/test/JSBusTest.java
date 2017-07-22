@@ -12,6 +12,19 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class JSBusTest extends VertxTestBase {
 
   @Test
+  public void testBusReconnect() {
+    vertx.eventBus().consumer("the_address", msg -> {
+      assertEquals(new JsonObject().put("body", "the_message"), msg.body());
+      assertEquals(0, msg.headers().size());
+      testComplete();
+    });
+    vertx.deployVerticle("bus_test_reconnect.js", ar -> {
+      assertTrue(ar.succeeded());
+    });
+    await();
+  }
+
+  @Test
   public void testBusSend1() {
     vertx.eventBus().consumer("the_address", msg -> {
       assertEquals(new JsonObject().put("body", "the_message"), msg.body());
