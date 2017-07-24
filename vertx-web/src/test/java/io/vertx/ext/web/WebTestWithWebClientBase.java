@@ -25,7 +25,7 @@ public class WebTestWithWebClientBase extends WebTestBase {
     }
   }
 
-  protected WebClient webClient;
+  public WebClient webClient;
 
   @Override
   public void setUp() throws Exception {
