@@ -75,9 +75,25 @@
     // attributes
     this.pingInterval = options.vertxbus_ping_interval || 5000;
     this.pingTimerID = null;
+
     this.reconnectEnabled = false;
-    this.reconnectInterval = options.vertxbus_reconnect_interval || 3000;
+    this.reconnectAttempts = 0;
     this.reconnectTimerID = null;
+    // adapted from backo
+    this.reconnectDelayMin = options.vertxbus_reconnect_delay_min || 1000;
+    this.reconnectDelayMax = options.vertxbus_reconnect_delay_max || 5000;
+    this.reconnectExponent = options.vertxbus_reconnect_exponent || 2;
+    this.randomizationFactor = options.vertxbus_randomization_factor || 0.5;
+    var getReconnectDelay = function() {
+      var ms = self.reconnectDelayMin * Math.pow(self.reconnectExponent, self.reconnectAttempts);
+      if (self.randomizationFactor) {
+        var rand =  Math.random();
+        var deviation = Math.floor(rand * self.randomizationFactor * ms);
+        ms = (Math.floor(rand * 10) & 1) == 0  ? ms - deviation : ms + deviation;
+      }
+      return Math.min(ms, self.reconnectDelayMax) | 0;
+    };
+
     this.defaultHeaders = null;
 
     // default event handlers
@@ -103,6 +119,7 @@
         self.state = EventBus.OPEN;
         self.onopen && self.onopen();
         if (self.reconnectTimerID) {
+          self.reconnectAttempts = 0;
           // fire separate event for reconnects
           // consistent behavior with adding handlers onopen
           self.onreconnect && self.onreconnect();
@@ -112,10 +129,11 @@
       self.sockJSConn.onclose = function (e) {
         self.state = EventBus.CLOSED;
         if (self.pingTimerID) clearInterval(self.pingTimerID);
-        if (self.reconnectEnabled && self.reconnectInterval > 0) {
+        if (self.reconnectEnabled) {
           self.sockJSConn = null;
           // set id so users can cancel
-          self.reconnectTimerID = setTimeout(setupSockJSConnection, self.reconnectInterval);
+          self.reconnectTimerID = setTimeout(setupSockJSConnection, getReconnectDelay());
+          ++self.reconnectAttempts;
         }
         self.onclose && self.onclose(e);
       };
@@ -339,6 +357,7 @@
     if (!enable && self.reconnectTimerID) {
       clearTimeout(self.reconnectTimerID);
       self.reconnectTimerID = null;
+      self.reconnectAttempts = 0;
     }
   };
 
