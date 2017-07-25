@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 /**
  * This enum contains supported object and arrays serialization styles. Every style has a enum value, and an array of
@@ -21,7 +22,7 @@ public enum ContainerSerializationStyle {
    * Comma separated values: "value1,value2,value3"
    * aliases: "csv", "commaDelimited", "form", "simple"
    */
-  csv(new String[]{"csv", "commaDelimited", "form", "simple"}, new SplitterCharContainerDeserializer(",")), /**
+  csv(new String[]{"csv", "commaDelimited", "form", "simple"}, new SplitterCharContainerDeserializer(Pattern.quote(","))), /**
    * Space separated values: "value1 value2 value3"
    * aliases: "ssv", "spaceDelimited"
    */
@@ -29,7 +30,7 @@ public enum ContainerSerializationStyle {
    * Pipe separated values: "value1|value2|value3"
    * aliases: "psv", "pipeDelimited"
    */
-  psv(new String[]{"psv", "pipeDelimited"}, new SplitterCharContainerDeserializer("|")), /**
+  psv(new String[]{"psv", "pipeDelimited"}, new SplitterCharContainerDeserializer(Pattern.quote("|"))), /**
    * For internal usage, don't use it
    */
   simple_exploded_object(new String[]{"simple_exploded_object"}, new ContainerDeserializer() {

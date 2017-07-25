@@ -43,7 +43,7 @@ public class OpenApi3Utils {
   }
 
   public static String resolveStyle(Parameter param) {
-    if (param.getStyle() != null) return null;
+    if (param.getStyle() != null) return param.getStyle();
     else switch (param.getIn()) {
       case "query":
         return "form";

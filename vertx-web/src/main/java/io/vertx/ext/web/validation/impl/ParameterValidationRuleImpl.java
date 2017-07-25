@@ -33,10 +33,11 @@ public class ParameterValidationRuleImpl implements ParameterValidationRule {
     return this.name;
   }
 
-  private RequestParameter callValidator(String value) throws ValidationException {
+  protected RequestParameter callValidator(String value) throws ValidationException {
     try {
       RequestParameter result = validator.isValid(value);
-      result.setName(getName());
+      if (result.getName() == null)
+        result.setName(getName());
       return result;
     } catch (ValidationException e) {
       e.setParameterName(this.name);
@@ -46,10 +47,11 @@ public class ParameterValidationRuleImpl implements ParameterValidationRule {
     }
   }
 
-  private RequestParameter callValidator(List<String> value) throws ValidationException {
+  protected RequestParameter callValidator(List<String> value) throws ValidationException {
     try {
       RequestParameter result = validator.isValidCollection(value);
-      result.setName(getName());
+      if (result.getName() == null)
+        result.setName(getName());
       return result;
     } catch (ValidationException e) {
       e.setParameterName(this.name);

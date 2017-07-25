@@ -199,6 +199,14 @@ public interface RequestParameter {
    */
   boolean isEmpty();
 
+  /**
+   * Merge this request parameter with another one. Note: the parameter passed by argument has the priority
+   *
+   * @param otherParameter
+   * @return
+   */
+  RequestParameter merge(RequestParameter otherParameter);
+
   static RequestParameter create(String name, Object value) {
     return new RequestParameterImpl(name, value);
   }

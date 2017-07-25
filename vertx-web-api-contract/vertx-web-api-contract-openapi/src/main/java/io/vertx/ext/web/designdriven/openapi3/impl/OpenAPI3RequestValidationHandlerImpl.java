@@ -315,8 +315,8 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
     for (Map.Entry<String, Schema> entry : properties.entrySet()) {
       if (parameter.getIn().equals("query")) {
         this.addQueryParamRule(ParameterValidationRuleImpl.ParameterValidationRuleFactory
-          .createValidationRuleWithCustomTypeValidator(entry.getKey(), this.resolveInnerSchemaPrimitiveTypeValidator
-            (entry.getValue(), true), !requiredFields.contains(entry.getKey()), true, ParameterLocation.QUERY));
+          .createValidationRuleWithCustomTypeValidator(entry.getKey(), new ExpandedObjectFieldValidator(this
+            .resolveInnerSchemaPrimitiveTypeValidator(entry.getValue(), true), parameter.getName(), entry.getKey()), !requiredFields.contains(entry.getKey()), true, ParameterLocation.QUERY));
       } else {
         throw new SpecFeatureNotSupportedException("combination of style, type and location (in) of parameter fields " +
           "" + "not supported for parameter " + parameter.getName());
@@ -374,9 +374,9 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
     for (Map.Entry<String, ? extends Schema> entry : properties.entrySet()) {
       if (parameter.getIn().equals("query")) {
         this.addQueryParamRule(ParameterValidationRuleImpl.ParameterValidationRuleFactory
-          .createValidationRuleWithCustomTypeValidator(parameter.getName() + "[" + entry.getKey() + "]", this
-            .resolveInnerSchemaPrimitiveTypeValidator(entry.getValue(), true), !requiredFields.contains(entry.getKey
-            ()), true, ParameterLocation.QUERY));
+          .createValidationRuleWithCustomTypeValidator(parameter.getName() + "[" + entry.getKey() + "]", new ExpandedObjectFieldValidator(this
+            .resolveInnerSchemaPrimitiveTypeValidator(entry.getValue(), true), parameter.getName(), entry.getKey()), !requiredFields.contains(entry.getKey
+            ()), (parameter.getAllowEmptyValue() != null) ? parameter.getAllowEmptyValue() : false, ParameterLocation.QUERY));
       } else {
         throw new SpecFeatureNotSupportedException("combination of style, type and location (in) of parameter fields " +
           "" + "not supported for parameter " + parameter.getName());
