@@ -1,5 +1,6 @@
 package io.vertx.ext.web.validation.impl;
 
+import io.netty.handler.codec.http.QueryStringDecoder;
 import io.vertx.core.MultiMap;
 import io.vertx.ext.web.Cookie;
 import io.vertx.ext.web.FileUpload;
@@ -107,23 +108,17 @@ public abstract class BaseValidationHandler implements ValidationHandler {
 
   private Map<String, RequestParameter> validateCookieParams(RoutingContext routingContext) throws ValidationException {
     // Validation process validate only params that are registered in the validation -> extra params are allowed
-    List<Cookie> cookies = new ArrayList<>(routingContext.cookies());
+    QueryStringDecoder decoder = new QueryStringDecoder("/?" + routingContext.request().getHeader("Cookie")); // Some hack to reuse this object
+    Map<String, List<String>> cookies = decoder.parameters();
     Map<String, RequestParameter> parsedParams = new HashMap<>();
     for (ParameterValidationRule rule : cookieParamsRules.values()) {
       String name = rule.getName();
-      boolean resolved = false;
-      for (int i = 0; i < cookies.size(); i++) {
-        if (cookies.get(i).getName().equals(name)) {
-          RequestParameter parsedParam = rule.validateSingleParam(cookies.get(i).getValue());
-          if (parsedParams.containsKey(parsedParam.getName()))
-            parsedParam = parsedParam.merge(parsedParams.get(parsedParam.getName()));
-          parsedParams.put(parsedParam.getName(), parsedParam);
-          cookies.remove(i);
-          resolved = true;
-          break;
-        }
-      }
-      if (!resolved) {
+      if (cookies.containsKey(name)) {
+        RequestParameter parsedParam = rule.validateArrayParam(cookies.get(name));
+        if (parsedParams.containsKey(parsedParam.getName()))
+          parsedParam = parsedParam.merge(parsedParams.get(parsedParam.getName()));
+        parsedParams.put(parsedParam.getName(), parsedParam);
+      } else {
         if (rule.allowEmptyValue() && rule.parameterTypeValidator().getDefault() != null) {
           RequestParameter parsedParam = new RequestParameterImpl(name, rule.parameterTypeValidator().getDefault());
           if (parsedParams.containsKey(parsedParam.getName()))

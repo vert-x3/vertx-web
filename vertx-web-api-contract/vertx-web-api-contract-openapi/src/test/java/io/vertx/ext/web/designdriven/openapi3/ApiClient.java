@@ -58,6 +58,8 @@ public class ApiClient {
     MultiMap requestCookies = new CaseInsensitiveHeaders();
 
 
+    this.renderAndAttachCookieHeader(request, requestCookies);
+
     request.send(handler);
 
   }
@@ -74,6 +76,8 @@ public class ApiClient {
 
     MultiMap requestCookies = new CaseInsensitiveHeaders();
 
+
+    this.renderAndAttachCookieHeader(request, requestCookies);
 
     request.send(handler);
 
@@ -92,6 +96,8 @@ public class ApiClient {
     MultiMap requestCookies = new CaseInsensitiveHeaders();
 
 
+    this.renderAndAttachCookieHeader(request, requestCookies);
+
     request.send(handler);
 
   }
@@ -108,6 +114,8 @@ public class ApiClient {
 
     MultiMap requestCookies = new CaseInsensitiveHeaders();
 
+
+    this.renderAndAttachCookieHeader(request, requestCookies);
 
     request.send(handler);
 
@@ -126,6 +134,8 @@ public class ApiClient {
     MultiMap requestCookies = new CaseInsensitiveHeaders();
 
 
+    this.renderAndAttachCookieHeader(request, requestCookies);
+
     request.send(handler);
 
   }
@@ -142,6 +152,8 @@ public class ApiClient {
 
     MultiMap requestCookies = new CaseInsensitiveHeaders();
 
+
+    this.renderAndAttachCookieHeader(request, requestCookies);
 
     request.send(handler);
 
@@ -160,6 +172,8 @@ public class ApiClient {
     MultiMap requestCookies = new CaseInsensitiveHeaders();
 
 
+    this.renderAndAttachCookieHeader(request, requestCookies);
+
     request.send(handler);
 
   }
@@ -176,6 +190,8 @@ public class ApiClient {
 
     MultiMap requestCookies = new CaseInsensitiveHeaders();
 
+
+    this.renderAndAttachCookieHeader(request, requestCookies);
 
     request.send(handler);
 
@@ -194,6 +210,8 @@ public class ApiClient {
     MultiMap requestCookies = new CaseInsensitiveHeaders();
 
 
+    this.renderAndAttachCookieHeader(request, requestCookies);
+
     request.send(handler);
 
   }
@@ -210,6 +228,8 @@ public class ApiClient {
 
     MultiMap requestCookies = new CaseInsensitiveHeaders();
 
+
+    this.renderAndAttachCookieHeader(request, requestCookies);
 
     request.send(handler);
 
@@ -228,6 +248,8 @@ public class ApiClient {
     MultiMap requestCookies = new CaseInsensitiveHeaders();
 
 
+    this.renderAndAttachCookieHeader(request, requestCookies);
+
     request.send(handler);
 
   }
@@ -244,6 +266,8 @@ public class ApiClient {
 
     MultiMap requestCookies = new CaseInsensitiveHeaders();
 
+
+    this.renderAndAttachCookieHeader(request, requestCookies);
 
     request.send(handler);
 
@@ -262,6 +286,8 @@ public class ApiClient {
     MultiMap requestCookies = new CaseInsensitiveHeaders();
 
 
+    this.renderAndAttachCookieHeader(request, requestCookies);
+
     request.send(handler);
 
   }
@@ -278,6 +304,8 @@ public class ApiClient {
 
     MultiMap requestCookies = new CaseInsensitiveHeaders();
 
+
+    this.renderAndAttachCookieHeader(request, requestCookies);
 
     request.send(handler);
 
@@ -296,6 +324,8 @@ public class ApiClient {
     MultiMap requestCookies = new CaseInsensitiveHeaders();
 
 
+    this.renderAndAttachCookieHeader(request, requestCookies);
+
     request.send(handler);
 
   }
@@ -312,6 +342,8 @@ public class ApiClient {
 
     MultiMap requestCookies = new CaseInsensitiveHeaders();
 
+
+    this.renderAndAttachCookieHeader(request, requestCookies);
 
     request.send(handler);
 
@@ -330,6 +362,8 @@ public class ApiClient {
     MultiMap requestCookies = new CaseInsensitiveHeaders();
 
 
+    this.renderAndAttachCookieHeader(request, requestCookies);
+
     request.send(handler);
 
   }
@@ -346,6 +380,8 @@ public class ApiClient {
 
     MultiMap requestCookies = new CaseInsensitiveHeaders();
 
+
+    this.renderAndAttachCookieHeader(request, requestCookies);
 
     request.send(handler);
 
@@ -364,6 +400,8 @@ public class ApiClient {
     MultiMap requestCookies = new CaseInsensitiveHeaders();
 
 
+    this.renderAndAttachCookieHeader(request, requestCookies);
+
     request.send(handler);
 
   }
@@ -380,6 +418,8 @@ public class ApiClient {
 
     MultiMap requestCookies = new CaseInsensitiveHeaders();
 
+
+    this.renderAndAttachCookieHeader(request, requestCookies);
 
     request.send(handler);
 
@@ -398,6 +438,8 @@ public class ApiClient {
     MultiMap requestCookies = new CaseInsensitiveHeaders();
 
 
+    this.renderAndAttachCookieHeader(request, requestCookies);
+
     request.send(handler);
 
   }
@@ -414,6 +456,8 @@ public class ApiClient {
 
     MultiMap requestCookies = new CaseInsensitiveHeaders();
 
+
+    this.renderAndAttachCookieHeader(request, requestCookies);
 
     request.send(handler);
 
@@ -432,6 +476,8 @@ public class ApiClient {
     this.addQueryParam("color", color, request);
 
 
+    this.renderAndAttachCookieHeader(request, requestCookies);
+
     request.send(handler);
 
   }
@@ -448,6 +494,8 @@ public class ApiClient {
     MultiMap requestCookies = new CaseInsensitiveHeaders();
     this.addQueryParam("color", color, request);
 
+
+    this.renderAndAttachCookieHeader(request, requestCookies);
 
     request.send(handler);
 
@@ -466,6 +514,8 @@ public class ApiClient {
     this.addQueryArrayForm("color", color, request);
 
 
+    this.renderAndAttachCookieHeader(request, requestCookies);
+
     request.send(handler);
 
   }
@@ -482,6 +532,8 @@ public class ApiClient {
     MultiMap requestCookies = new CaseInsensitiveHeaders();
     this.addQueryObjectForm("color", color, request);
 
+
+    this.renderAndAttachCookieHeader(request, requestCookies);
 
     request.send(handler);
 
@@ -500,6 +552,8 @@ public class ApiClient {
     this.addQueryParam("color", color, request);
 
 
+    this.renderAndAttachCookieHeader(request, requestCookies);
+
     request.send(handler);
 
   }
@@ -516,6 +570,8 @@ public class ApiClient {
     MultiMap requestCookies = new CaseInsensitiveHeaders();
     this.addQueryParam("color", color, request);
 
+
+    this.renderAndAttachCookieHeader(request, requestCookies);
 
     request.send(handler);
 
@@ -534,6 +590,8 @@ public class ApiClient {
     this.addQueryArrayFormExplode("color", color, request);
 
 
+    this.renderAndAttachCookieHeader(request, requestCookies);
+
     request.send(handler);
 
   }
@@ -550,6 +608,8 @@ public class ApiClient {
     MultiMap requestCookies = new CaseInsensitiveHeaders();
     this.addQueryObjectFormExplode("color", color, request);
 
+
+    this.renderAndAttachCookieHeader(request, requestCookies);
 
     request.send(handler);
 
@@ -568,6 +628,8 @@ public class ApiClient {
     this.addQueryArraySpaceDelimited("color", color, request);
 
 
+    this.renderAndAttachCookieHeader(request, requestCookies);
+
     request.send(handler);
 
   }
@@ -584,6 +646,8 @@ public class ApiClient {
     MultiMap requestCookies = new CaseInsensitiveHeaders();
     this.addQueryObjectSpaceDelimited("color", color, request);
 
+
+    this.renderAndAttachCookieHeader(request, requestCookies);
 
     request.send(handler);
 
@@ -602,6 +666,8 @@ public class ApiClient {
     this.addQueryArrayPipeDelimited("color", color, request);
 
 
+    this.renderAndAttachCookieHeader(request, requestCookies);
+
     request.send(handler);
 
   }
@@ -618,6 +684,8 @@ public class ApiClient {
     MultiMap requestCookies = new CaseInsensitiveHeaders();
     this.addQueryObjectPipeDelimited("color", color, request);
 
+
+    this.renderAndAttachCookieHeader(request, requestCookies);
 
     request.send(handler);
 
@@ -636,6 +704,8 @@ public class ApiClient {
     this.addQueryObjectDeepObjectExplode("color", color, request);
 
 
+    this.renderAndAttachCookieHeader(request, requestCookies);
+
     request.send(handler);
 
   }
@@ -652,6 +722,8 @@ public class ApiClient {
     MultiMap requestCookies = new CaseInsensitiveHeaders();
     this.renderCookieParam("color", color, requestCookies);
 
+
+    this.renderAndAttachCookieHeader(request, requestCookies);
 
     request.send(handler);
 
@@ -670,6 +742,8 @@ public class ApiClient {
     this.renderCookieParam("color", color, requestCookies);
 
 
+    this.renderAndAttachCookieHeader(request, requestCookies);
+
     request.send(handler);
 
   }
@@ -686,6 +760,8 @@ public class ApiClient {
     MultiMap requestCookies = new CaseInsensitiveHeaders();
     this.renderCookieArrayForm("color", color, requestCookies);
 
+
+    this.renderAndAttachCookieHeader(request, requestCookies);
 
     request.send(handler);
 
@@ -704,6 +780,8 @@ public class ApiClient {
     this.renderCookieObjectForm("color", color, requestCookies);
 
 
+    this.renderAndAttachCookieHeader(request, requestCookies);
+
     request.send(handler);
 
   }
@@ -720,6 +798,8 @@ public class ApiClient {
     MultiMap requestCookies = new CaseInsensitiveHeaders();
     this.renderCookieParam("color", color, requestCookies);
 
+
+    this.renderAndAttachCookieHeader(request, requestCookies);
 
     request.send(handler);
 
@@ -738,6 +818,8 @@ public class ApiClient {
     this.renderCookieParam("color", color, requestCookies);
 
 
+    this.renderAndAttachCookieHeader(request, requestCookies);
+
     request.send(handler);
 
   }
@@ -754,6 +836,8 @@ public class ApiClient {
     MultiMap requestCookies = new CaseInsensitiveHeaders();
     this.renderCookieArrayFormExplode("color", color, requestCookies);
 
+
+    this.renderAndAttachCookieHeader(request, requestCookies);
 
     request.send(handler);
 
@@ -772,6 +856,8 @@ public class ApiClient {
     this.renderCookieObjectFormExplode("color", color, requestCookies);
 
 
+    this.renderAndAttachCookieHeader(request, requestCookies);
+
     request.send(handler);
 
   }
@@ -788,6 +874,8 @@ public class ApiClient {
     MultiMap requestCookies = new CaseInsensitiveHeaders();
     this.addHeaderParam("color", color, request);
 
+
+    this.renderAndAttachCookieHeader(request, requestCookies);
 
     request.send(handler);
 
@@ -806,6 +894,8 @@ public class ApiClient {
     this.addHeaderArraySimple("color", color, request);
 
 
+    this.renderAndAttachCookieHeader(request, requestCookies);
+
     request.send(handler);
 
   }
@@ -822,6 +912,8 @@ public class ApiClient {
     MultiMap requestCookies = new CaseInsensitiveHeaders();
     this.addHeaderObjectSimple("color", color, request);
 
+
+    this.renderAndAttachCookieHeader(request, requestCookies);
 
     request.send(handler);
 
@@ -840,6 +932,8 @@ public class ApiClient {
     this.addHeaderParam("color", color, request);
 
 
+    this.renderAndAttachCookieHeader(request, requestCookies);
+
     request.send(handler);
 
   }
@@ -857,6 +951,8 @@ public class ApiClient {
     this.addHeaderArraySimpleExplode("color", color, request);
 
 
+    this.renderAndAttachCookieHeader(request, requestCookies);
+
     request.send(handler);
 
   }
@@ -873,6 +969,8 @@ public class ApiClient {
     MultiMap requestCookies = new CaseInsensitiveHeaders();
     this.addHeaderObjectSimpleExplode("color", color, request);
 
+
+    this.renderAndAttachCookieHeader(request, requestCookies);
 
     request.send(handler);
 
@@ -1358,10 +1456,10 @@ public class ApiClient {
 
   /**
    * Add header array with simple style and exploded
-   * <p>
-   * +----------------+---------+---------------+-------------------------------------+----------------------------------------+
-   * | simple         | true    | path, header  | blue,black,brown                    | R=100,G=200,B=150                      |
-   * +----------------+---------+---------------+-------------------------------------+----------------------------------------+
+   *
+   +----------------+---------+---------------+-------------------------------------+----------------------------------------+
+   | simple         | true    | path, header  | blue,black,brown                    | R=100,G=200,B=150                      |
+   +----------------+---------+---------------+-------------------------------------+----------------------------------------+
    *
    * @param headerName
    * @param values
@@ -1504,20 +1602,20 @@ public class ApiClient {
       }
     }
     request.putHeader("Cookie", String.join("; ", listToSerialize));
-  }
-
-  // Other functions
-
-  private String encode(String s) {
-    try {
-      return URLEncoder.encode(s, "UTF-8");
-    } catch (Exception e) {
-      return null;
     }
-  }
 
-  public void close() {
-    client.close();
-  }
+    // Other functions
+
+    private String encode(String s) {
+        try {
+            return URLEncoder.encode(s, "UTF-8");
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public void close() {
+        client.close();
+    }
 
 }

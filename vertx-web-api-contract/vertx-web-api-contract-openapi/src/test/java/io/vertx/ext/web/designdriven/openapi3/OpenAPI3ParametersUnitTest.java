@@ -65,7 +65,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: ;color
    * Expected response: {"color":null}
-   *
    * @throws Exception
    */
   @Test
@@ -112,7 +111,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: ;color=blue
    * Expected response: {"color":"blue"}
-   *
    * @throws Exception
    */
   @Test
@@ -160,7 +158,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: ;color=blue,black,brown
    * Expected response: {"color":["blue","black","brown"]}
-   *
    * @throws Exception
    */
   @Test
@@ -210,7 +207,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: ;color=R,100,G,200,B,150
    * Expected response: {"color":{"R":"100","G":"200","B":"150"}}
-   *
    * @throws Exception
    */
   @Test
@@ -263,7 +259,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: ;color
    * Expected response: {"color":null}
-   *
    * @throws Exception
    */
   @Test
@@ -310,7 +305,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: ;color=blue
    * Expected response: {"color":"blue"}
-   *
    * @throws Exception
    */
   @Test
@@ -358,7 +352,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: ;color=blue;color=black;color=brown
    * Expected response: {"color":["blue","black","brown"]}
-   *
    * @throws Exception
    */
   @Test
@@ -408,7 +401,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: ;R=100;G=200;B=150
    * Expected response: {"color":{"R":"100","G":"200","B":"150"}}
-   *
    * @throws Exception
    */
   @Test
@@ -461,7 +453,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: .
    * Expected response: {"color":null}
-   *
    * @throws Exception
    */
   @Test
@@ -508,7 +499,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: .blue
    * Expected response: {"color":"blue"}
-   *
    * @throws Exception
    */
   @Test
@@ -556,7 +546,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: .blue.black.brown
    * Expected response: {"color":["blue","black","brown"]}
-   *
    * @throws Exception
    */
   @Test
@@ -606,7 +595,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: .R.100.G.200.B.150
    * Expected response: {"color":{"R":"100","G":"200","B":"150"}}
-   *
    * @throws Exception
    */
   @Test
@@ -659,7 +647,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: .
    * Expected response: {"color":null}
-   *
    * @throws Exception
    */
   @Test
@@ -706,7 +693,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: .blue
    * Expected response: {"color":"blue"}
-   *
    * @throws Exception
    */
   @Test
@@ -754,7 +740,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: .blue.black.brown
    * Expected response: {"color":["blue","black","brown"]}
-   *
    * @throws Exception
    */
   @Test
@@ -804,7 +789,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: .R=100.G=200.B=150
    * Expected response: {"color":{"R":"100","G":"200","B":"150"}}
-   *
    * @throws Exception
    */
   @Test
@@ -857,7 +841,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: blue
    * Expected response: {"color":"blue"}
-   *
    * @throws Exception
    */
   @Test
@@ -905,7 +888,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: blue,black,brown
    * Expected response: {"color":["blue","black","brown"]}
-   *
    * @throws Exception
    */
   @Test
@@ -955,7 +937,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: R,100,G,200,B,150
    * Expected response: {"color":{"R":"100","G":"200","B":"150"}}
-   *
    * @throws Exception
    */
   @Test
@@ -1008,7 +989,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: blue
    * Expected response: {"color":"blue"}
-   *
    * @throws Exception
    */
   @Test
@@ -1056,7 +1036,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: blue,black,brown
    * Expected response: {"color":["blue","black","brown"]}
-   *
    * @throws Exception
    */
   @Test
@@ -1106,7 +1085,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: R=100,G=200,B=150
    * Expected response: {"color":{"R":"100","G":"200","B":"150"}}
-   *
    * @throws Exception
    */
   @Test
@@ -1159,7 +1137,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: color=
    * Expected response: {"color":null}
-   *
    * @throws Exception
    */
   @Test
@@ -1206,7 +1183,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: color=blue
    * Expected response: {"color":"blue"}
-   *
    * @throws Exception
    */
   @Test
@@ -1254,7 +1230,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: color=blue,black,brown
    * Expected response: {"color":["blue","black","brown"]}
-   *
    * @throws Exception
    */
   @Test
@@ -1304,7 +1279,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: color=R,100,G,200,B,150
    * Expected response: {"color":{"R":"100","G":"200","B":"150"}}
-   *
    * @throws Exception
    */
   @Test
@@ -1357,7 +1331,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: color=
    * Expected response: {"color":null}
-   *
    * @throws Exception
    */
   @Test
@@ -1404,7 +1377,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: color=blue
    * Expected response: {"color":"blue"}
-   *
    * @throws Exception
    */
   @Test
@@ -1452,7 +1424,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: color=blue&color=black&color=brown
    * Expected response: {"color":["blue","black","brown"]}
-   *
    * @throws Exception
    */
   @Test
@@ -1502,7 +1473,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: R=100&G=200&B=150
    * Expected response: {"color":{"R":"100","G":"200","B":"150"}}
-   *
    * @throws Exception
    */
   @Test
@@ -1555,7 +1525,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: blue%20black%20brown
    * Expected response: {"color":["blue","black","brown"]}
-   *
    * @throws Exception
    */
   @Test
@@ -1605,7 +1574,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: R%20100%20G%20200%20B%20150
    * Expected response: {"color":{"R":"100","G":"200","B":"150"}}
-   *
    * @throws Exception
    */
   @Test
@@ -1658,7 +1626,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: blue|black|brown
    * Expected response: {"color":["blue","black","brown"]}
-   *
    * @throws Exception
    */
   @Test
@@ -1708,7 +1675,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: R|100|G|200|B|150
    * Expected response: {"color":{"R":"100","G":"200","B":"150"}}
-   *
    * @throws Exception
    */
   @Test
@@ -1761,7 +1727,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: color[R]=100&color[G]=200&color[B]=150
    * Expected response: {"color":{"R":"100","G":"200","B":"150"}}
-   *
    * @throws Exception
    */
   @Test
@@ -1814,7 +1779,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: color=
    * Expected response: {"color":null}
-   *
    * @throws Exception
    */
   @Test
@@ -1861,7 +1825,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: color=blue
    * Expected response: {"color":"blue"}
-   *
    * @throws Exception
    */
   @Test
@@ -1909,7 +1872,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: color=blue,black,brown
    * Expected response: {"color":["blue","black","brown"]}
-   *
    * @throws Exception
    */
   @Test
@@ -1959,7 +1921,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: color=R,100,G,200,B,150
    * Expected response: {"color":{"R":"100","G":"200","B":"150"}}
-   *
    * @throws Exception
    */
   @Test
@@ -2012,7 +1973,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: color=
    * Expected response: {"color":null}
-   *
    * @throws Exception
    */
   @Test
@@ -2059,7 +2019,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: color=blue
    * Expected response: {"color":"blue"}
-   *
    * @throws Exception
    */
   @Test
@@ -2107,7 +2066,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: color=blue&color=black&color=brown
    * Expected response: {"color":["blue","black","brown"]}
-   *
    * @throws Exception
    */
   @Test
@@ -2157,7 +2115,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: R=100&G=200&B=150
    * Expected response: {"color":{"R":"100","G":"200","B":"150"}}
-   *
    * @throws Exception
    */
   @Test
@@ -2210,7 +2167,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: blue
    * Expected response: {"color":"blue"}
-   *
    * @throws Exception
    */
   @Test
@@ -2258,7 +2214,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: blue,black,brown
    * Expected response: {"color":["blue","black","brown"]}
-   *
    * @throws Exception
    */
   @Test
@@ -2308,7 +2263,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: R,100,G,200,B,150
    * Expected response: {"color":{"R":"100","G":"200","B":"150"}}
-   *
    * @throws Exception
    */
   @Test
@@ -2361,7 +2315,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: blue
    * Expected response: {"color":"blue"}
-   *
    * @throws Exception
    */
   @Test
@@ -2409,7 +2362,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: blue,black,brown
    * Expected response: {"color":["blue","black","brown"]}
-   *
    * @throws Exception
    */
   @Test
@@ -2459,7 +2411,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: R=100,G=200,B=150
    * Expected response: {"color":{"R":"100","G":"200","B":"150"}}
-   *
    * @throws Exception
    */
   @Test
