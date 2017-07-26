@@ -13,6 +13,7 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.designdriven.openapi3.impl.OpenAPI3RouterFactoryImpl;
 import io.vertx.ext.web.validation.WebTestValidationBase;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExternalResource;
@@ -28,6 +29,7 @@ import java.util.stream.Collectors;
 /**
  * @author Francesco Guardiani @slinkydeveloper
  */
+@Ignore
 public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
 
   OpenApi3 spec;
