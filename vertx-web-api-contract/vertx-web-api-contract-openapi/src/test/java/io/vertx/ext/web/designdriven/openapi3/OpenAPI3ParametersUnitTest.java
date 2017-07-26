@@ -3,14 +3,16 @@ package io.vertx.ext.web.designdriven.openapi3;
 import com.reprezen.kaizen.oasparser.OpenApiParser;
 import com.reprezen.kaizen.oasparser.model3.OpenApi3;
 import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
+import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.JsonArray;
 import io.vertx.ext.web.RequestParameter;
 import io.vertx.ext.web.RequestParameters;
+import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.client.HttpResponse;
-import io.vertx.ext.web.designdriven.openapi3.impl.OpenAPI3RequestValidationHandlerImpl;
+import io.vertx.ext.web.designdriven.openapi3.impl.OpenAPI3RouterFactoryImpl;
 import io.vertx.ext.web.validation.WebTestValidationBase;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExternalResource;
@@ -26,15 +28,11 @@ import java.util.stream.Collectors;
 /**
  * @author Francesco Guardiani @slinkydeveloper
  */
-@Ignore
 public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
 
   OpenApi3 spec;
-  ApiClient client;
-
-  private OpenApi3 loadSwagger(String filename) {
-    return (OpenApi3) new OpenApiParser().parse(new File(filename), false);
-  }
+  ApiClient apiClient;
+  OpenAPI3RouterFactory routerFactory;
 
   @Rule
   public ExternalResource resource = new ExternalResource() {
@@ -51,11 +49,23 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    client = new ApiClient(webClient);
+    stopServer(); // Have to stop default server of WebTestBase
+    apiClient = new ApiClient(webClient);
+    routerFactory = new OpenAPI3RouterFactoryImpl(this.vertx, spec);
+    routerFactory.enableValidationFailureHandler(true);
+    routerFactory.setValidationFailureHandler(generateFailureHandler());
+    routerFactory.mountOperationsWithoutHandlers(false);
   }
 
   @Override
   public void tearDown() throws Exception {
+    if (apiClient != null) {
+      try {
+        apiClient.close();
+      } catch (IllegalStateException e) {
+      }
+    }
+    stopServer();
     super.tearDown();
   }
 
@@ -69,8 +79,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    */
   @Test
   public void testPathMatrixNoexplodeEmpty() throws Exception {
-    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(spec.getPath("/path/matrix/noexplode/empty/{color}").getGet(), null);
-    router.get("/path/matrix/noexplode/empty/{color}").handler(validationHandler).handler(routingContext -> {
+    routerFactory.addHandlerByOperationId("path_matrix_noexplode_empty", routingContext -> {
       RequestParameters params = routingContext.get("parsedParameters");
       JsonObject res = new JsonObject();
 
@@ -85,7 +94,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
         .setStatusMessage("OK")
         .putHeader("content-type", "application/json; charset=utf-8")
         .end(res.encode());
-    }).failureHandler(generateFailureHandler(false));
+    });
 
     CountDownLatch latch = new CountDownLatch(1);
 
@@ -93,7 +102,9 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
     color_path = "";
 
 
-    client.pathMatrixNoexplodeEmpty(color_path, (AsyncResult<HttpResponse> ar) -> {
+    startServer();
+
+    apiClient.pathMatrixNoexplodeEmpty(color_path, (AsyncResult<HttpResponse> ar) -> {
       if (ar.succeeded()) {
         assertEquals(200, ar.result().statusCode());
         assertTrue("Expected: " + new JsonObject("{\"color\":null}").encode() + " Actual: " + ar.result().bodyAsJsonObject().encode(), new JsonObject("{\"color\":null}").equals(ar.result().bodyAsJsonObject()));
@@ -115,8 +126,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    */
   @Test
   public void testPathMatrixNoexplodeString() throws Exception {
-    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(spec.getPath("/path/matrix/noexplode/string/{color}").getGet(), null);
-    router.get("/path/matrix/noexplode/string/{color}").handler(validationHandler).handler(routingContext -> {
+    routerFactory.addHandlerByOperationId("path_matrix_noexplode_string", routingContext -> {
       RequestParameters params = routingContext.get("parsedParameters");
       JsonObject res = new JsonObject();
 
@@ -132,7 +142,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
         .setStatusMessage("OK")
         .putHeader("content-type", "application/json; charset=utf-8")
         .end(res.encode());
-    }).failureHandler(generateFailureHandler(false));
+    });
 
     CountDownLatch latch = new CountDownLatch(1);
 
@@ -140,7 +150,9 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
     color_path = "blue";
 
 
-    client.pathMatrixNoexplodeString(color_path, (AsyncResult<HttpResponse> ar) -> {
+    startServer();
+
+    apiClient.pathMatrixNoexplodeString(color_path, (AsyncResult<HttpResponse> ar) -> {
       if (ar.succeeded()) {
         assertEquals(200, ar.result().statusCode());
         assertTrue("Expected: " + new JsonObject("{\"color\":\"blue\"}").encode() + " Actual: " + ar.result().bodyAsJsonObject().encode(), new JsonObject("{\"color\":\"blue\"}").equals(ar.result().bodyAsJsonObject()));
@@ -162,8 +174,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    */
   @Test
   public void testPathMatrixNoexplodeArray() throws Exception {
-    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(spec.getPath("/path/matrix/noexplode/array/{color}").getGet(), null);
-    router.get("/path/matrix/noexplode/array/{color}").handler(validationHandler).handler(routingContext -> {
+    routerFactory.addHandlerByOperationId("path_matrix_noexplode_array", routingContext -> {
       RequestParameters params = routingContext.get("parsedParameters");
       JsonObject res = new JsonObject();
 
@@ -178,7 +189,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
         .setStatusMessage("OK")
         .putHeader("content-type", "application/json; charset=utf-8")
         .end(res.encode());
-    }).failureHandler(generateFailureHandler(false));
+    });
 
     CountDownLatch latch = new CountDownLatch(1);
 
@@ -189,7 +200,9 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
     color_path.add("brown");
 
 
-    client.pathMatrixNoexplodeArray(color_path, (AsyncResult<HttpResponse> ar) -> {
+    startServer();
+
+    apiClient.pathMatrixNoexplodeArray(color_path, (AsyncResult<HttpResponse> ar) -> {
       if (ar.succeeded()) {
         assertEquals(200, ar.result().statusCode());
         assertTrue("Expected: " + new JsonObject("{\"color\":[\"blue\",\"black\",\"brown\"]}").encode() + " Actual: " + ar.result().bodyAsJsonObject().encode(), new JsonObject("{\"color\":[\"blue\",\"black\",\"brown\"]}").equals(ar.result().bodyAsJsonObject()));
@@ -211,8 +224,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    */
   @Test
   public void testPathMatrixNoexplodeObject() throws Exception {
-    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(spec.getPath("/path/matrix/noexplode/object/{color}").getGet(), null);
-    router.get("/path/matrix/noexplode/object/{color}").handler(validationHandler).handler(routingContext -> {
+    routerFactory.addHandlerByOperationId("path_matrix_noexplode_object", routingContext -> {
       RequestParameters params = routingContext.get("parsedParameters");
       JsonObject res = new JsonObject();
 
@@ -230,7 +242,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
         .setStatusMessage("OK")
         .putHeader("content-type", "application/json; charset=utf-8")
         .end(res.encode());
-    }).failureHandler(generateFailureHandler(false));
+    });
 
     CountDownLatch latch = new CountDownLatch(1);
 
@@ -241,7 +253,9 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
     color_path.put("B", "150");
 
 
-    client.pathMatrixNoexplodeObject(color_path, (AsyncResult<HttpResponse> ar) -> {
+    startServer();
+
+    apiClient.pathMatrixNoexplodeObject(color_path, (AsyncResult<HttpResponse> ar) -> {
       if (ar.succeeded()) {
         assertEquals(200, ar.result().statusCode());
         assertTrue("Expected: " + new JsonObject("{\"color\":{\"R\":\"100\",\"G\":\"200\",\"B\":\"150\"}}").encode() + " Actual: " + ar.result().bodyAsJsonObject().encode(), new JsonObject("{\"color\":{\"R\":\"100\",\"G\":\"200\",\"B\":\"150\"}}").equals(ar.result().bodyAsJsonObject()));
@@ -263,8 +277,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    */
   @Test
   public void testPathMatrixExplodeEmpty() throws Exception {
-    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(spec.getPath("/path/matrix/explode/empty/{color}").getGet(), null);
-    router.get("/path/matrix/explode/empty/{color}").handler(validationHandler).handler(routingContext -> {
+    routerFactory.addHandlerByOperationId("path_matrix_explode_empty", routingContext -> {
       RequestParameters params = routingContext.get("parsedParameters");
       JsonObject res = new JsonObject();
 
@@ -279,7 +292,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
         .setStatusMessage("OK")
         .putHeader("content-type", "application/json; charset=utf-8")
         .end(res.encode());
-    }).failureHandler(generateFailureHandler(false));
+    });
 
     CountDownLatch latch = new CountDownLatch(1);
 
@@ -287,7 +300,9 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
     color_path = "";
 
 
-    client.pathMatrixExplodeEmpty(color_path, (AsyncResult<HttpResponse> ar) -> {
+    startServer();
+
+    apiClient.pathMatrixExplodeEmpty(color_path, (AsyncResult<HttpResponse> ar) -> {
       if (ar.succeeded()) {
         assertEquals(200, ar.result().statusCode());
         assertTrue("Expected: " + new JsonObject("{\"color\":null}").encode() + " Actual: " + ar.result().bodyAsJsonObject().encode(), new JsonObject("{\"color\":null}").equals(ar.result().bodyAsJsonObject()));
@@ -309,8 +324,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    */
   @Test
   public void testPathMatrixExplodeString() throws Exception {
-    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(spec.getPath("/path/matrix/explode/string/{color}").getGet(), null);
-    router.get("/path/matrix/explode/string/{color}").handler(validationHandler).handler(routingContext -> {
+    routerFactory.addHandlerByOperationId("path_matrix_explode_string", routingContext -> {
       RequestParameters params = routingContext.get("parsedParameters");
       JsonObject res = new JsonObject();
 
@@ -326,7 +340,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
         .setStatusMessage("OK")
         .putHeader("content-type", "application/json; charset=utf-8")
         .end(res.encode());
-    }).failureHandler(generateFailureHandler(false));
+    });
 
     CountDownLatch latch = new CountDownLatch(1);
 
@@ -334,7 +348,9 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
     color_path = "blue";
 
 
-    client.pathMatrixExplodeString(color_path, (AsyncResult<HttpResponse> ar) -> {
+    startServer();
+
+    apiClient.pathMatrixExplodeString(color_path, (AsyncResult<HttpResponse> ar) -> {
       if (ar.succeeded()) {
         assertEquals(200, ar.result().statusCode());
         assertTrue("Expected: " + new JsonObject("{\"color\":\"blue\"}").encode() + " Actual: " + ar.result().bodyAsJsonObject().encode(), new JsonObject("{\"color\":\"blue\"}").equals(ar.result().bodyAsJsonObject()));
@@ -356,8 +372,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    */
   @Test
   public void testPathMatrixExplodeArray() throws Exception {
-    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(spec.getPath("/path/matrix/explode/array/{color}").getGet(), null);
-    router.get("/path/matrix/explode/array/{color}").handler(validationHandler).handler(routingContext -> {
+    routerFactory.addHandlerByOperationId("path_matrix_explode_array", routingContext -> {
       RequestParameters params = routingContext.get("parsedParameters");
       JsonObject res = new JsonObject();
 
@@ -372,7 +387,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
         .setStatusMessage("OK")
         .putHeader("content-type", "application/json; charset=utf-8")
         .end(res.encode());
-    }).failureHandler(generateFailureHandler(false));
+    });
 
     CountDownLatch latch = new CountDownLatch(1);
 
@@ -383,7 +398,9 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
     color_path.add("brown");
 
 
-    client.pathMatrixExplodeArray(color_path, (AsyncResult<HttpResponse> ar) -> {
+    startServer();
+
+    apiClient.pathMatrixExplodeArray(color_path, (AsyncResult<HttpResponse> ar) -> {
       if (ar.succeeded()) {
         assertEquals(200, ar.result().statusCode());
         assertTrue("Expected: " + new JsonObject("{\"color\":[\"blue\",\"black\",\"brown\"]}").encode() + " Actual: " + ar.result().bodyAsJsonObject().encode(), new JsonObject("{\"color\":[\"blue\",\"black\",\"brown\"]}").equals(ar.result().bodyAsJsonObject()));
@@ -405,8 +422,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    */
   @Test
   public void testPathMatrixExplodeObject() throws Exception {
-    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(spec.getPath("/path/matrix/explode/object/{color}").getGet(), null);
-    router.get("/path/matrix/explode/object/{color}").handler(validationHandler).handler(routingContext -> {
+    routerFactory.addHandlerByOperationId("path_matrix_explode_object", routingContext -> {
       RequestParameters params = routingContext.get("parsedParameters");
       JsonObject res = new JsonObject();
 
@@ -424,7 +440,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
         .setStatusMessage("OK")
         .putHeader("content-type", "application/json; charset=utf-8")
         .end(res.encode());
-    }).failureHandler(generateFailureHandler(false));
+    });
 
     CountDownLatch latch = new CountDownLatch(1);
 
@@ -435,7 +451,9 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
     color_path.put("B", "150");
 
 
-    client.pathMatrixExplodeObject(color_path, (AsyncResult<HttpResponse> ar) -> {
+    startServer();
+
+    apiClient.pathMatrixExplodeObject(color_path, (AsyncResult<HttpResponse> ar) -> {
       if (ar.succeeded()) {
         assertEquals(200, ar.result().statusCode());
         assertTrue("Expected: " + new JsonObject("{\"color\":{\"R\":\"100\",\"G\":\"200\",\"B\":\"150\"}}").encode() + " Actual: " + ar.result().bodyAsJsonObject().encode(), new JsonObject("{\"color\":{\"R\":\"100\",\"G\":\"200\",\"B\":\"150\"}}").equals(ar.result().bodyAsJsonObject()));
@@ -457,8 +475,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    */
   @Test
   public void testPathLabelNoexplodeEmpty() throws Exception {
-    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(spec.getPath("/path/label/noexplode/empty/{color}").getGet(), null);
-    router.get("/path/label/noexplode/empty/{color}").handler(validationHandler).handler(routingContext -> {
+    routerFactory.addHandlerByOperationId("path_label_noexplode_empty", routingContext -> {
       RequestParameters params = routingContext.get("parsedParameters");
       JsonObject res = new JsonObject();
 
@@ -473,7 +490,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
         .setStatusMessage("OK")
         .putHeader("content-type", "application/json; charset=utf-8")
         .end(res.encode());
-    }).failureHandler(generateFailureHandler(false));
+    });
 
     CountDownLatch latch = new CountDownLatch(1);
 
@@ -481,7 +498,9 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
     color_path = "";
 
 
-    client.pathLabelNoexplodeEmpty(color_path, (AsyncResult<HttpResponse> ar) -> {
+    startServer();
+
+    apiClient.pathLabelNoexplodeEmpty(color_path, (AsyncResult<HttpResponse> ar) -> {
       if (ar.succeeded()) {
         assertEquals(200, ar.result().statusCode());
         assertTrue("Expected: " + new JsonObject("{\"color\":null}").encode() + " Actual: " + ar.result().bodyAsJsonObject().encode(), new JsonObject("{\"color\":null}").equals(ar.result().bodyAsJsonObject()));
@@ -503,8 +522,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    */
   @Test
   public void testPathLabelNoexplodeString() throws Exception {
-    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(spec.getPath("/path/label/noexplode/string/{color}").getGet(), null);
-    router.get("/path/label/noexplode/string/{color}").handler(validationHandler).handler(routingContext -> {
+    routerFactory.addHandlerByOperationId("path_label_noexplode_string", routingContext -> {
       RequestParameters params = routingContext.get("parsedParameters");
       JsonObject res = new JsonObject();
 
@@ -520,7 +538,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
         .setStatusMessage("OK")
         .putHeader("content-type", "application/json; charset=utf-8")
         .end(res.encode());
-    }).failureHandler(generateFailureHandler(false));
+    });
 
     CountDownLatch latch = new CountDownLatch(1);
 
@@ -528,7 +546,9 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
     color_path = "blue";
 
 
-    client.pathLabelNoexplodeString(color_path, (AsyncResult<HttpResponse> ar) -> {
+    startServer();
+
+    apiClient.pathLabelNoexplodeString(color_path, (AsyncResult<HttpResponse> ar) -> {
       if (ar.succeeded()) {
         assertEquals(200, ar.result().statusCode());
         assertTrue("Expected: " + new JsonObject("{\"color\":\"blue\"}").encode() + " Actual: " + ar.result().bodyAsJsonObject().encode(), new JsonObject("{\"color\":\"blue\"}").equals(ar.result().bodyAsJsonObject()));
@@ -550,8 +570,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    */
   @Test
   public void testPathLabelNoexplodeArray() throws Exception {
-    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(spec.getPath("/path/label/noexplode/array/{color}").getGet(), null);
-    router.get("/path/label/noexplode/array/{color}").handler(validationHandler).handler(routingContext -> {
+    routerFactory.addHandlerByOperationId("path_label_noexplode_array", routingContext -> {
       RequestParameters params = routingContext.get("parsedParameters");
       JsonObject res = new JsonObject();
 
@@ -566,7 +585,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
         .setStatusMessage("OK")
         .putHeader("content-type", "application/json; charset=utf-8")
         .end(res.encode());
-    }).failureHandler(generateFailureHandler(false));
+    });
 
     CountDownLatch latch = new CountDownLatch(1);
 
@@ -577,7 +596,9 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
     color_path.add("brown");
 
 
-    client.pathLabelNoexplodeArray(color_path, (AsyncResult<HttpResponse> ar) -> {
+    startServer();
+
+    apiClient.pathLabelNoexplodeArray(color_path, (AsyncResult<HttpResponse> ar) -> {
       if (ar.succeeded()) {
         assertEquals(200, ar.result().statusCode());
         assertTrue("Expected: " + new JsonObject("{\"color\":[\"blue\",\"black\",\"brown\"]}").encode() + " Actual: " + ar.result().bodyAsJsonObject().encode(), new JsonObject("{\"color\":[\"blue\",\"black\",\"brown\"]}").equals(ar.result().bodyAsJsonObject()));
@@ -599,8 +620,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    */
   @Test
   public void testPathLabelNoexplodeObject() throws Exception {
-    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(spec.getPath("/path/label/noexplode/object/{color}").getGet(), null);
-    router.get("/path/label/noexplode/object/{color}").handler(validationHandler).handler(routingContext -> {
+    routerFactory.addHandlerByOperationId("path_label_noexplode_object", routingContext -> {
       RequestParameters params = routingContext.get("parsedParameters");
       JsonObject res = new JsonObject();
 
@@ -618,7 +638,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
         .setStatusMessage("OK")
         .putHeader("content-type", "application/json; charset=utf-8")
         .end(res.encode());
-    }).failureHandler(generateFailureHandler(false));
+    });
 
     CountDownLatch latch = new CountDownLatch(1);
 
@@ -629,7 +649,9 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
     color_path.put("B", "150");
 
 
-    client.pathLabelNoexplodeObject(color_path, (AsyncResult<HttpResponse> ar) -> {
+    startServer();
+
+    apiClient.pathLabelNoexplodeObject(color_path, (AsyncResult<HttpResponse> ar) -> {
       if (ar.succeeded()) {
         assertEquals(200, ar.result().statusCode());
         assertTrue("Expected: " + new JsonObject("{\"color\":{\"R\":\"100\",\"G\":\"200\",\"B\":\"150\"}}").encode() + " Actual: " + ar.result().bodyAsJsonObject().encode(), new JsonObject("{\"color\":{\"R\":\"100\",\"G\":\"200\",\"B\":\"150\"}}").equals(ar.result().bodyAsJsonObject()));
@@ -651,8 +673,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    */
   @Test
   public void testPathLabelExplodeEmpty() throws Exception {
-    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(spec.getPath("/path/label/explode/empty/{color}").getGet(), null);
-    router.get("/path/label/explode/empty/{color}").handler(validationHandler).handler(routingContext -> {
+    routerFactory.addHandlerByOperationId("path_label_explode_empty", routingContext -> {
       RequestParameters params = routingContext.get("parsedParameters");
       JsonObject res = new JsonObject();
 
@@ -667,7 +688,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
         .setStatusMessage("OK")
         .putHeader("content-type", "application/json; charset=utf-8")
         .end(res.encode());
-    }).failureHandler(generateFailureHandler(false));
+    });
 
     CountDownLatch latch = new CountDownLatch(1);
 
@@ -675,7 +696,9 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
     color_path = "";
 
 
-    client.pathLabelExplodeEmpty(color_path, (AsyncResult<HttpResponse> ar) -> {
+    startServer();
+
+    apiClient.pathLabelExplodeEmpty(color_path, (AsyncResult<HttpResponse> ar) -> {
       if (ar.succeeded()) {
         assertEquals(200, ar.result().statusCode());
         assertTrue("Expected: " + new JsonObject("{\"color\":null}").encode() + " Actual: " + ar.result().bodyAsJsonObject().encode(), new JsonObject("{\"color\":null}").equals(ar.result().bodyAsJsonObject()));
@@ -697,8 +720,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    */
   @Test
   public void testPathLabelExplodeString() throws Exception {
-    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(spec.getPath("/path/label/explode/string/{color}").getGet(), null);
-    router.get("/path/label/explode/string/{color}").handler(validationHandler).handler(routingContext -> {
+    routerFactory.addHandlerByOperationId("path_label_explode_string", routingContext -> {
       RequestParameters params = routingContext.get("parsedParameters");
       JsonObject res = new JsonObject();
 
@@ -714,7 +736,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
         .setStatusMessage("OK")
         .putHeader("content-type", "application/json; charset=utf-8")
         .end(res.encode());
-    }).failureHandler(generateFailureHandler(false));
+    });
 
     CountDownLatch latch = new CountDownLatch(1);
 
@@ -722,7 +744,9 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
     color_path = "blue";
 
 
-    client.pathLabelExplodeString(color_path, (AsyncResult<HttpResponse> ar) -> {
+    startServer();
+
+    apiClient.pathLabelExplodeString(color_path, (AsyncResult<HttpResponse> ar) -> {
       if (ar.succeeded()) {
         assertEquals(200, ar.result().statusCode());
         assertTrue("Expected: " + new JsonObject("{\"color\":\"blue\"}").encode() + " Actual: " + ar.result().bodyAsJsonObject().encode(), new JsonObject("{\"color\":\"blue\"}").equals(ar.result().bodyAsJsonObject()));
@@ -744,8 +768,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    */
   @Test
   public void testPathLabelExplodeArray() throws Exception {
-    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(spec.getPath("/path/label/explode/array/{color}").getGet(), null);
-    router.get("/path/label/explode/array/{color}").handler(validationHandler).handler(routingContext -> {
+    routerFactory.addHandlerByOperationId("path_label_explode_array", routingContext -> {
       RequestParameters params = routingContext.get("parsedParameters");
       JsonObject res = new JsonObject();
 
@@ -760,7 +783,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
         .setStatusMessage("OK")
         .putHeader("content-type", "application/json; charset=utf-8")
         .end(res.encode());
-    }).failureHandler(generateFailureHandler(false));
+    });
 
     CountDownLatch latch = new CountDownLatch(1);
 
@@ -771,7 +794,9 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
     color_path.add("brown");
 
 
-    client.pathLabelExplodeArray(color_path, (AsyncResult<HttpResponse> ar) -> {
+    startServer();
+
+    apiClient.pathLabelExplodeArray(color_path, (AsyncResult<HttpResponse> ar) -> {
       if (ar.succeeded()) {
         assertEquals(200, ar.result().statusCode());
         assertTrue("Expected: " + new JsonObject("{\"color\":[\"blue\",\"black\",\"brown\"]}").encode() + " Actual: " + ar.result().bodyAsJsonObject().encode(), new JsonObject("{\"color\":[\"blue\",\"black\",\"brown\"]}").equals(ar.result().bodyAsJsonObject()));
@@ -793,8 +818,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    */
   @Test
   public void testPathLabelExplodeObject() throws Exception {
-    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(spec.getPath("/path/label/explode/object/{color}").getGet(), null);
-    router.get("/path/label/explode/object/{color}").handler(validationHandler).handler(routingContext -> {
+    routerFactory.addHandlerByOperationId("path_label_explode_object", routingContext -> {
       RequestParameters params = routingContext.get("parsedParameters");
       JsonObject res = new JsonObject();
 
@@ -812,7 +836,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
         .setStatusMessage("OK")
         .putHeader("content-type", "application/json; charset=utf-8")
         .end(res.encode());
-    }).failureHandler(generateFailureHandler(false));
+    });
 
     CountDownLatch latch = new CountDownLatch(1);
 
@@ -823,7 +847,9 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
     color_path.put("B", "150");
 
 
-    client.pathLabelExplodeObject(color_path, (AsyncResult<HttpResponse> ar) -> {
+    startServer();
+
+    apiClient.pathLabelExplodeObject(color_path, (AsyncResult<HttpResponse> ar) -> {
       if (ar.succeeded()) {
         assertEquals(200, ar.result().statusCode());
         assertTrue("Expected: " + new JsonObject("{\"color\":{\"R\":\"100\",\"G\":\"200\",\"B\":\"150\"}}").encode() + " Actual: " + ar.result().bodyAsJsonObject().encode(), new JsonObject("{\"color\":{\"R\":\"100\",\"G\":\"200\",\"B\":\"150\"}}").equals(ar.result().bodyAsJsonObject()));
@@ -845,8 +871,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    */
   @Test
   public void testPathSimpleNoexplodeString() throws Exception {
-    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(spec.getPath("/path/simple/noexplode/string/{color}").getGet(), null);
-    router.get("/path/simple/noexplode/string/{color}").handler(validationHandler).handler(routingContext -> {
+    routerFactory.addHandlerByOperationId("path_simple_noexplode_string", routingContext -> {
       RequestParameters params = routingContext.get("parsedParameters");
       JsonObject res = new JsonObject();
 
@@ -862,7 +887,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
         .setStatusMessage("OK")
         .putHeader("content-type", "application/json; charset=utf-8")
         .end(res.encode());
-    }).failureHandler(generateFailureHandler(false));
+    });
 
     CountDownLatch latch = new CountDownLatch(1);
 
@@ -870,7 +895,9 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
     color_path = "blue";
 
 
-    client.pathSimpleNoexplodeString(color_path, (AsyncResult<HttpResponse> ar) -> {
+    startServer();
+
+    apiClient.pathSimpleNoexplodeString(color_path, (AsyncResult<HttpResponse> ar) -> {
       if (ar.succeeded()) {
         assertEquals(200, ar.result().statusCode());
         assertTrue("Expected: " + new JsonObject("{\"color\":\"blue\"}").encode() + " Actual: " + ar.result().bodyAsJsonObject().encode(), new JsonObject("{\"color\":\"blue\"}").equals(ar.result().bodyAsJsonObject()));
@@ -892,8 +919,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    */
   @Test
   public void testPathSimpleNoexplodeArray() throws Exception {
-    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(spec.getPath("/path/simple/noexplode/array/{color}").getGet(), null);
-    router.get("/path/simple/noexplode/array/{color}").handler(validationHandler).handler(routingContext -> {
+    routerFactory.addHandlerByOperationId("path_simple_noexplode_array", routingContext -> {
       RequestParameters params = routingContext.get("parsedParameters");
       JsonObject res = new JsonObject();
 
@@ -908,7 +934,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
         .setStatusMessage("OK")
         .putHeader("content-type", "application/json; charset=utf-8")
         .end(res.encode());
-    }).failureHandler(generateFailureHandler(false));
+    });
 
     CountDownLatch latch = new CountDownLatch(1);
 
@@ -919,7 +945,9 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
     color_path.add("brown");
 
 
-    client.pathSimpleNoexplodeArray(color_path, (AsyncResult<HttpResponse> ar) -> {
+    startServer();
+
+    apiClient.pathSimpleNoexplodeArray(color_path, (AsyncResult<HttpResponse> ar) -> {
       if (ar.succeeded()) {
         assertEquals(200, ar.result().statusCode());
         assertTrue("Expected: " + new JsonObject("{\"color\":[\"blue\",\"black\",\"brown\"]}").encode() + " Actual: " + ar.result().bodyAsJsonObject().encode(), new JsonObject("{\"color\":[\"blue\",\"black\",\"brown\"]}").equals(ar.result().bodyAsJsonObject()));
@@ -941,8 +969,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    */
   @Test
   public void testPathSimpleNoexplodeObject() throws Exception {
-    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(spec.getPath("/path/simple/noexplode/object/{color}").getGet(), null);
-    router.get("/path/simple/noexplode/object/{color}").handler(validationHandler).handler(routingContext -> {
+    routerFactory.addHandlerByOperationId("path_simple_noexplode_object", routingContext -> {
       RequestParameters params = routingContext.get("parsedParameters");
       JsonObject res = new JsonObject();
 
@@ -960,7 +987,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
         .setStatusMessage("OK")
         .putHeader("content-type", "application/json; charset=utf-8")
         .end(res.encode());
-    }).failureHandler(generateFailureHandler(false));
+    });
 
     CountDownLatch latch = new CountDownLatch(1);
 
@@ -971,7 +998,9 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
     color_path.put("B", "150");
 
 
-    client.pathSimpleNoexplodeObject(color_path, (AsyncResult<HttpResponse> ar) -> {
+    startServer();
+
+    apiClient.pathSimpleNoexplodeObject(color_path, (AsyncResult<HttpResponse> ar) -> {
       if (ar.succeeded()) {
         assertEquals(200, ar.result().statusCode());
         assertTrue("Expected: " + new JsonObject("{\"color\":{\"R\":\"100\",\"G\":\"200\",\"B\":\"150\"}}").encode() + " Actual: " + ar.result().bodyAsJsonObject().encode(), new JsonObject("{\"color\":{\"R\":\"100\",\"G\":\"200\",\"B\":\"150\"}}").equals(ar.result().bodyAsJsonObject()));
@@ -993,8 +1022,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    */
   @Test
   public void testPathSimpleExplodeString() throws Exception {
-    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(spec.getPath("/path/simple/explode/string/{color}").getGet(), null);
-    router.get("/path/simple/explode/string/{color}").handler(validationHandler).handler(routingContext -> {
+    routerFactory.addHandlerByOperationId("path_simple_explode_string", routingContext -> {
       RequestParameters params = routingContext.get("parsedParameters");
       JsonObject res = new JsonObject();
 
@@ -1010,7 +1038,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
         .setStatusMessage("OK")
         .putHeader("content-type", "application/json; charset=utf-8")
         .end(res.encode());
-    }).failureHandler(generateFailureHandler(false));
+    });
 
     CountDownLatch latch = new CountDownLatch(1);
 
@@ -1018,7 +1046,9 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
     color_path = "blue";
 
 
-    client.pathSimpleExplodeString(color_path, (AsyncResult<HttpResponse> ar) -> {
+    startServer();
+
+    apiClient.pathSimpleExplodeString(color_path, (AsyncResult<HttpResponse> ar) -> {
       if (ar.succeeded()) {
         assertEquals(200, ar.result().statusCode());
         assertTrue("Expected: " + new JsonObject("{\"color\":\"blue\"}").encode() + " Actual: " + ar.result().bodyAsJsonObject().encode(), new JsonObject("{\"color\":\"blue\"}").equals(ar.result().bodyAsJsonObject()));
@@ -1040,8 +1070,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    */
   @Test
   public void testPathSimpleExplodeArray() throws Exception {
-    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(spec.getPath("/path/simple/explode/array/{color}").getGet(), null);
-    router.get("/path/simple/explode/array/{color}").handler(validationHandler).handler(routingContext -> {
+    routerFactory.addHandlerByOperationId("path_simple_explode_array", routingContext -> {
       RequestParameters params = routingContext.get("parsedParameters");
       JsonObject res = new JsonObject();
 
@@ -1056,7 +1085,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
         .setStatusMessage("OK")
         .putHeader("content-type", "application/json; charset=utf-8")
         .end(res.encode());
-    }).failureHandler(generateFailureHandler(false));
+    });
 
     CountDownLatch latch = new CountDownLatch(1);
 
@@ -1067,7 +1096,9 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
     color_path.add("brown");
 
 
-    client.pathSimpleExplodeArray(color_path, (AsyncResult<HttpResponse> ar) -> {
+    startServer();
+
+    apiClient.pathSimpleExplodeArray(color_path, (AsyncResult<HttpResponse> ar) -> {
       if (ar.succeeded()) {
         assertEquals(200, ar.result().statusCode());
         assertTrue("Expected: " + new JsonObject("{\"color\":[\"blue\",\"black\",\"brown\"]}").encode() + " Actual: " + ar.result().bodyAsJsonObject().encode(), new JsonObject("{\"color\":[\"blue\",\"black\",\"brown\"]}").equals(ar.result().bodyAsJsonObject()));
@@ -1089,8 +1120,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    */
   @Test
   public void testPathSimpleExplodeObject() throws Exception {
-    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(spec.getPath("/path/simple/explode/object/{color}").getGet(), null);
-    router.get("/path/simple/explode/object/{color}").handler(validationHandler).handler(routingContext -> {
+    routerFactory.addHandlerByOperationId("path_simple_explode_object", routingContext -> {
       RequestParameters params = routingContext.get("parsedParameters");
       JsonObject res = new JsonObject();
 
@@ -1108,7 +1138,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
         .setStatusMessage("OK")
         .putHeader("content-type", "application/json; charset=utf-8")
         .end(res.encode());
-    }).failureHandler(generateFailureHandler(false));
+    });
 
     CountDownLatch latch = new CountDownLatch(1);
 
@@ -1119,7 +1149,9 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
     color_path.put("B", "150");
 
 
-    client.pathSimpleExplodeObject(color_path, (AsyncResult<HttpResponse> ar) -> {
+    startServer();
+
+    apiClient.pathSimpleExplodeObject(color_path, (AsyncResult<HttpResponse> ar) -> {
       if (ar.succeeded()) {
         assertEquals(200, ar.result().statusCode());
         assertTrue("Expected: " + new JsonObject("{\"color\":{\"R\":\"100\",\"G\":\"200\",\"B\":\"150\"}}").encode() + " Actual: " + ar.result().bodyAsJsonObject().encode(), new JsonObject("{\"color\":{\"R\":\"100\",\"G\":\"200\",\"B\":\"150\"}}").equals(ar.result().bodyAsJsonObject()));
@@ -1141,8 +1173,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    */
   @Test
   public void testQueryFormNoexplodeEmpty() throws Exception {
-    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(spec.getPath("/query/form/noexplode/empty").getGet(), null);
-    router.get("/query/form/noexplode/empty").handler(validationHandler).handler(routingContext -> {
+    routerFactory.addHandlerByOperationId("query_form_noexplode_empty", routingContext -> {
       RequestParameters params = routingContext.get("parsedParameters");
       JsonObject res = new JsonObject();
 
@@ -1157,7 +1188,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
         .setStatusMessage("OK")
         .putHeader("content-type", "application/json; charset=utf-8")
         .end(res.encode());
-    }).failureHandler(generateFailureHandler(false));
+    });
 
     CountDownLatch latch = new CountDownLatch(1);
 
@@ -1165,7 +1196,9 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
     color_query = "";
 
 
-    client.queryFormNoexplodeEmpty(color_query, (AsyncResult<HttpResponse> ar) -> {
+    startServer();
+
+    apiClient.queryFormNoexplodeEmpty(color_query, (AsyncResult<HttpResponse> ar) -> {
       if (ar.succeeded()) {
         assertEquals(200, ar.result().statusCode());
         assertTrue("Expected: " + new JsonObject("{\"color\":null}").encode() + " Actual: " + ar.result().bodyAsJsonObject().encode(), new JsonObject("{\"color\":null}").equals(ar.result().bodyAsJsonObject()));
@@ -1187,8 +1220,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    */
   @Test
   public void testQueryFormNoexplodeString() throws Exception {
-    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(spec.getPath("/query/form/noexplode/string").getGet(), null);
-    router.get("/query/form/noexplode/string").handler(validationHandler).handler(routingContext -> {
+    routerFactory.addHandlerByOperationId("query_form_noexplode_string", routingContext -> {
       RequestParameters params = routingContext.get("parsedParameters");
       JsonObject res = new JsonObject();
 
@@ -1204,7 +1236,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
         .setStatusMessage("OK")
         .putHeader("content-type", "application/json; charset=utf-8")
         .end(res.encode());
-    }).failureHandler(generateFailureHandler(false));
+    });
 
     CountDownLatch latch = new CountDownLatch(1);
 
@@ -1212,7 +1244,9 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
     color_query = "blue";
 
 
-    client.queryFormNoexplodeString(color_query, (AsyncResult<HttpResponse> ar) -> {
+    startServer();
+
+    apiClient.queryFormNoexplodeString(color_query, (AsyncResult<HttpResponse> ar) -> {
       if (ar.succeeded()) {
         assertEquals(200, ar.result().statusCode());
         assertTrue("Expected: " + new JsonObject("{\"color\":\"blue\"}").encode() + " Actual: " + ar.result().bodyAsJsonObject().encode(), new JsonObject("{\"color\":\"blue\"}").equals(ar.result().bodyAsJsonObject()));
@@ -1234,8 +1268,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    */
   @Test
   public void testQueryFormNoexplodeArray() throws Exception {
-    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(spec.getPath("/query/form/noexplode/array").getGet(), null);
-    router.get("/query/form/noexplode/array").handler(validationHandler).handler(routingContext -> {
+    routerFactory.addHandlerByOperationId("query_form_noexplode_array", routingContext -> {
       RequestParameters params = routingContext.get("parsedParameters");
       JsonObject res = new JsonObject();
 
@@ -1250,7 +1283,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
         .setStatusMessage("OK")
         .putHeader("content-type", "application/json; charset=utf-8")
         .end(res.encode());
-    }).failureHandler(generateFailureHandler(false));
+    });
 
     CountDownLatch latch = new CountDownLatch(1);
 
@@ -1261,7 +1294,9 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
     color_query.add("brown");
 
 
-    client.queryFormNoexplodeArray(color_query, (AsyncResult<HttpResponse> ar) -> {
+    startServer();
+
+    apiClient.queryFormNoexplodeArray(color_query, (AsyncResult<HttpResponse> ar) -> {
       if (ar.succeeded()) {
         assertEquals(200, ar.result().statusCode());
         assertTrue("Expected: " + new JsonObject("{\"color\":[\"blue\",\"black\",\"brown\"]}").encode() + " Actual: " + ar.result().bodyAsJsonObject().encode(), new JsonObject("{\"color\":[\"blue\",\"black\",\"brown\"]}").equals(ar.result().bodyAsJsonObject()));
@@ -1283,8 +1318,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    */
   @Test
   public void testQueryFormNoexplodeObject() throws Exception {
-    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(spec.getPath("/query/form/noexplode/object").getGet(), null);
-    router.get("/query/form/noexplode/object").handler(validationHandler).handler(routingContext -> {
+    routerFactory.addHandlerByOperationId("query_form_noexplode_object", routingContext -> {
       RequestParameters params = routingContext.get("parsedParameters");
       JsonObject res = new JsonObject();
 
@@ -1302,7 +1336,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
         .setStatusMessage("OK")
         .putHeader("content-type", "application/json; charset=utf-8")
         .end(res.encode());
-    }).failureHandler(generateFailureHandler(false));
+    });
 
     CountDownLatch latch = new CountDownLatch(1);
 
@@ -1313,7 +1347,9 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
     color_query.put("B", "150");
 
 
-    client.queryFormNoexplodeObject(color_query, (AsyncResult<HttpResponse> ar) -> {
+    startServer();
+
+    apiClient.queryFormNoexplodeObject(color_query, (AsyncResult<HttpResponse> ar) -> {
       if (ar.succeeded()) {
         assertEquals(200, ar.result().statusCode());
         assertTrue("Expected: " + new JsonObject("{\"color\":{\"R\":\"100\",\"G\":\"200\",\"B\":\"150\"}}").encode() + " Actual: " + ar.result().bodyAsJsonObject().encode(), new JsonObject("{\"color\":{\"R\":\"100\",\"G\":\"200\",\"B\":\"150\"}}").equals(ar.result().bodyAsJsonObject()));
@@ -1335,8 +1371,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    */
   @Test
   public void testQueryFormExplodeEmpty() throws Exception {
-    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(spec.getPath("/query/form/explode/empty").getGet(), null);
-    router.get("/query/form/explode/empty").handler(validationHandler).handler(routingContext -> {
+    routerFactory.addHandlerByOperationId("query_form_explode_empty", routingContext -> {
       RequestParameters params = routingContext.get("parsedParameters");
       JsonObject res = new JsonObject();
 
@@ -1351,7 +1386,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
         .setStatusMessage("OK")
         .putHeader("content-type", "application/json; charset=utf-8")
         .end(res.encode());
-    }).failureHandler(generateFailureHandler(false));
+    });
 
     CountDownLatch latch = new CountDownLatch(1);
 
@@ -1359,7 +1394,9 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
     color_query = "";
 
 
-    client.queryFormExplodeEmpty(color_query, (AsyncResult<HttpResponse> ar) -> {
+    startServer();
+
+    apiClient.queryFormExplodeEmpty(color_query, (AsyncResult<HttpResponse> ar) -> {
       if (ar.succeeded()) {
         assertEquals(200, ar.result().statusCode());
         assertTrue("Expected: " + new JsonObject("{\"color\":null}").encode() + " Actual: " + ar.result().bodyAsJsonObject().encode(), new JsonObject("{\"color\":null}").equals(ar.result().bodyAsJsonObject()));
@@ -1381,8 +1418,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    */
   @Test
   public void testQueryFormExplodeString() throws Exception {
-    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(spec.getPath("/query/form/explode/string").getGet(), null);
-    router.get("/query/form/explode/string").handler(validationHandler).handler(routingContext -> {
+    routerFactory.addHandlerByOperationId("query_form_explode_string", routingContext -> {
       RequestParameters params = routingContext.get("parsedParameters");
       JsonObject res = new JsonObject();
 
@@ -1398,7 +1434,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
         .setStatusMessage("OK")
         .putHeader("content-type", "application/json; charset=utf-8")
         .end(res.encode());
-    }).failureHandler(generateFailureHandler(false));
+    });
 
     CountDownLatch latch = new CountDownLatch(1);
 
@@ -1406,7 +1442,9 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
     color_query = "blue";
 
 
-    client.queryFormExplodeString(color_query, (AsyncResult<HttpResponse> ar) -> {
+    startServer();
+
+    apiClient.queryFormExplodeString(color_query, (AsyncResult<HttpResponse> ar) -> {
       if (ar.succeeded()) {
         assertEquals(200, ar.result().statusCode());
         assertTrue("Expected: " + new JsonObject("{\"color\":\"blue\"}").encode() + " Actual: " + ar.result().bodyAsJsonObject().encode(), new JsonObject("{\"color\":\"blue\"}").equals(ar.result().bodyAsJsonObject()));
@@ -1428,8 +1466,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    */
   @Test
   public void testQueryFormExplodeArray() throws Exception {
-    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(spec.getPath("/query/form/explode/array").getGet(), null);
-    router.get("/query/form/explode/array").handler(validationHandler).handler(routingContext -> {
+    routerFactory.addHandlerByOperationId("query_form_explode_array", routingContext -> {
       RequestParameters params = routingContext.get("parsedParameters");
       JsonObject res = new JsonObject();
 
@@ -1444,7 +1481,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
         .setStatusMessage("OK")
         .putHeader("content-type", "application/json; charset=utf-8")
         .end(res.encode());
-    }).failureHandler(generateFailureHandler(false));
+    });
 
     CountDownLatch latch = new CountDownLatch(1);
 
@@ -1455,7 +1492,9 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
     color_query.add("brown");
 
 
-    client.queryFormExplodeArray(color_query, (AsyncResult<HttpResponse> ar) -> {
+    startServer();
+
+    apiClient.queryFormExplodeArray(color_query, (AsyncResult<HttpResponse> ar) -> {
       if (ar.succeeded()) {
         assertEquals(200, ar.result().statusCode());
         assertTrue("Expected: " + new JsonObject("{\"color\":[\"blue\",\"black\",\"brown\"]}").encode() + " Actual: " + ar.result().bodyAsJsonObject().encode(), new JsonObject("{\"color\":[\"blue\",\"black\",\"brown\"]}").equals(ar.result().bodyAsJsonObject()));
@@ -1477,8 +1516,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    */
   @Test
   public void testQueryFormExplodeObject() throws Exception {
-    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(spec.getPath("/query/form/explode/object").getGet(), null);
-    router.get("/query/form/explode/object").handler(validationHandler).handler(routingContext -> {
+    routerFactory.addHandlerByOperationId("query_form_explode_object", routingContext -> {
       RequestParameters params = routingContext.get("parsedParameters");
       JsonObject res = new JsonObject();
 
@@ -1496,7 +1534,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
         .setStatusMessage("OK")
         .putHeader("content-type", "application/json; charset=utf-8")
         .end(res.encode());
-    }).failureHandler(generateFailureHandler(false));
+    });
 
     CountDownLatch latch = new CountDownLatch(1);
 
@@ -1507,7 +1545,9 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
     color_query.put("B", "150");
 
 
-    client.queryFormExplodeObject(color_query, (AsyncResult<HttpResponse> ar) -> {
+    startServer();
+
+    apiClient.queryFormExplodeObject(color_query, (AsyncResult<HttpResponse> ar) -> {
       if (ar.succeeded()) {
         assertEquals(200, ar.result().statusCode());
         assertTrue("Expected: " + new JsonObject("{\"color\":{\"R\":\"100\",\"G\":\"200\",\"B\":\"150\"}}").encode() + " Actual: " + ar.result().bodyAsJsonObject().encode(), new JsonObject("{\"color\":{\"R\":\"100\",\"G\":\"200\",\"B\":\"150\"}}").equals(ar.result().bodyAsJsonObject()));
@@ -1529,8 +1569,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    */
   @Test
   public void testQuerySpaceDelimitedNoexplodeArray() throws Exception {
-    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(spec.getPath("/query/spaceDelimited/noexplode/array").getGet(), null);
-    router.get("/query/spaceDelimited/noexplode/array").handler(validationHandler).handler(routingContext -> {
+    routerFactory.addHandlerByOperationId("query_spaceDelimited_noexplode_array", routingContext -> {
       RequestParameters params = routingContext.get("parsedParameters");
       JsonObject res = new JsonObject();
 
@@ -1545,7 +1584,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
         .setStatusMessage("OK")
         .putHeader("content-type", "application/json; charset=utf-8")
         .end(res.encode());
-    }).failureHandler(generateFailureHandler(false));
+    });
 
     CountDownLatch latch = new CountDownLatch(1);
 
@@ -1556,7 +1595,9 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
     color_query.add("brown");
 
 
-    client.querySpaceDelimitedNoexplodeArray(color_query, (AsyncResult<HttpResponse> ar) -> {
+    startServer();
+
+    apiClient.querySpaceDelimitedNoexplodeArray(color_query, (AsyncResult<HttpResponse> ar) -> {
       if (ar.succeeded()) {
         assertEquals(200, ar.result().statusCode());
         assertTrue("Expected: " + new JsonObject("{\"color\":[\"blue\",\"black\",\"brown\"]}").encode() + " Actual: " + ar.result().bodyAsJsonObject().encode(), new JsonObject("{\"color\":[\"blue\",\"black\",\"brown\"]}").equals(ar.result().bodyAsJsonObject()));
@@ -1578,8 +1619,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    */
   @Test
   public void testQuerySpaceDelimitedNoexplodeObject() throws Exception {
-    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(spec.getPath("/query/spaceDelimited/noexplode/object").getGet(), null);
-    router.get("/query/spaceDelimited/noexplode/object").handler(validationHandler).handler(routingContext -> {
+    routerFactory.addHandlerByOperationId("query_spaceDelimited_noexplode_object", routingContext -> {
       RequestParameters params = routingContext.get("parsedParameters");
       JsonObject res = new JsonObject();
 
@@ -1597,7 +1637,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
         .setStatusMessage("OK")
         .putHeader("content-type", "application/json; charset=utf-8")
         .end(res.encode());
-    }).failureHandler(generateFailureHandler(false));
+    });
 
     CountDownLatch latch = new CountDownLatch(1);
 
@@ -1608,7 +1648,9 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
     color_query.put("B", "150");
 
 
-    client.querySpaceDelimitedNoexplodeObject(color_query, (AsyncResult<HttpResponse> ar) -> {
+    startServer();
+
+    apiClient.querySpaceDelimitedNoexplodeObject(color_query, (AsyncResult<HttpResponse> ar) -> {
       if (ar.succeeded()) {
         assertEquals(200, ar.result().statusCode());
         assertTrue("Expected: " + new JsonObject("{\"color\":{\"R\":\"100\",\"G\":\"200\",\"B\":\"150\"}}").encode() + " Actual: " + ar.result().bodyAsJsonObject().encode(), new JsonObject("{\"color\":{\"R\":\"100\",\"G\":\"200\",\"B\":\"150\"}}").equals(ar.result().bodyAsJsonObject()));
@@ -1630,8 +1672,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    */
   @Test
   public void testQueryPipeDelimitedNoexplodeArray() throws Exception {
-    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(spec.getPath("/query/pipeDelimited/noexplode/array").getGet(), null);
-    router.get("/query/pipeDelimited/noexplode/array").handler(validationHandler).handler(routingContext -> {
+    routerFactory.addHandlerByOperationId("query_pipeDelimited_noexplode_array", routingContext -> {
       RequestParameters params = routingContext.get("parsedParameters");
       JsonObject res = new JsonObject();
 
@@ -1646,7 +1687,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
         .setStatusMessage("OK")
         .putHeader("content-type", "application/json; charset=utf-8")
         .end(res.encode());
-    }).failureHandler(generateFailureHandler(false));
+    });
 
     CountDownLatch latch = new CountDownLatch(1);
 
@@ -1657,7 +1698,9 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
     color_query.add("brown");
 
 
-    client.queryPipeDelimitedNoexplodeArray(color_query, (AsyncResult<HttpResponse> ar) -> {
+    startServer();
+
+    apiClient.queryPipeDelimitedNoexplodeArray(color_query, (AsyncResult<HttpResponse> ar) -> {
       if (ar.succeeded()) {
         assertEquals(200, ar.result().statusCode());
         assertTrue("Expected: " + new JsonObject("{\"color\":[\"blue\",\"black\",\"brown\"]}").encode() + " Actual: " + ar.result().bodyAsJsonObject().encode(), new JsonObject("{\"color\":[\"blue\",\"black\",\"brown\"]}").equals(ar.result().bodyAsJsonObject()));
@@ -1679,8 +1722,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    */
   @Test
   public void testQueryPipeDelimitedNoexplodeObject() throws Exception {
-    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(spec.getPath("/query/pipeDelimited/noexplode/object").getGet(), null);
-    router.get("/query/pipeDelimited/noexplode/object").handler(validationHandler).handler(routingContext -> {
+    routerFactory.addHandlerByOperationId("query_pipeDelimited_noexplode_object", routingContext -> {
       RequestParameters params = routingContext.get("parsedParameters");
       JsonObject res = new JsonObject();
 
@@ -1698,7 +1740,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
         .setStatusMessage("OK")
         .putHeader("content-type", "application/json; charset=utf-8")
         .end(res.encode());
-    }).failureHandler(generateFailureHandler(false));
+    });
 
     CountDownLatch latch = new CountDownLatch(1);
 
@@ -1709,7 +1751,9 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
     color_query.put("B", "150");
 
 
-    client.queryPipeDelimitedNoexplodeObject(color_query, (AsyncResult<HttpResponse> ar) -> {
+    startServer();
+
+    apiClient.queryPipeDelimitedNoexplodeObject(color_query, (AsyncResult<HttpResponse> ar) -> {
       if (ar.succeeded()) {
         assertEquals(200, ar.result().statusCode());
         assertTrue("Expected: " + new JsonObject("{\"color\":{\"R\":\"100\",\"G\":\"200\",\"B\":\"150\"}}").encode() + " Actual: " + ar.result().bodyAsJsonObject().encode(), new JsonObject("{\"color\":{\"R\":\"100\",\"G\":\"200\",\"B\":\"150\"}}").equals(ar.result().bodyAsJsonObject()));
@@ -1731,8 +1775,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    */
   @Test
   public void testQueryDeepObjectExplodeObject() throws Exception {
-    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(spec.getPath("/query/deepObject/explode/object").getGet(), null);
-    router.get("/query/deepObject/explode/object").handler(validationHandler).handler(routingContext -> {
+    routerFactory.addHandlerByOperationId("query_deepObject_explode_object", routingContext -> {
       RequestParameters params = routingContext.get("parsedParameters");
       JsonObject res = new JsonObject();
 
@@ -1750,7 +1793,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
         .setStatusMessage("OK")
         .putHeader("content-type", "application/json; charset=utf-8")
         .end(res.encode());
-    }).failureHandler(generateFailureHandler(false));
+    });
 
     CountDownLatch latch = new CountDownLatch(1);
 
@@ -1761,7 +1804,9 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
     color_query.put("B", "150");
 
 
-    client.queryDeepObjectExplodeObject(color_query, (AsyncResult<HttpResponse> ar) -> {
+    startServer();
+
+    apiClient.queryDeepObjectExplodeObject(color_query, (AsyncResult<HttpResponse> ar) -> {
       if (ar.succeeded()) {
         assertEquals(200, ar.result().statusCode());
         assertTrue("Expected: " + new JsonObject("{\"color\":{\"R\":\"100\",\"G\":\"200\",\"B\":\"150\"}}").encode() + " Actual: " + ar.result().bodyAsJsonObject().encode(), new JsonObject("{\"color\":{\"R\":\"100\",\"G\":\"200\",\"B\":\"150\"}}").equals(ar.result().bodyAsJsonObject()));
@@ -1783,8 +1828,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    */
   @Test
   public void testCookieFormNoexplodeEmpty() throws Exception {
-    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(spec.getPath("/cookie/form/noexplode/empty").getGet(), null);
-    router.get("/cookie/form/noexplode/empty").handler(validationHandler).handler(routingContext -> {
+    routerFactory.addHandlerByOperationId("cookie_form_noexplode_empty", routingContext -> {
       RequestParameters params = routingContext.get("parsedParameters");
       JsonObject res = new JsonObject();
 
@@ -1799,7 +1843,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
         .setStatusMessage("OK")
         .putHeader("content-type", "application/json; charset=utf-8")
         .end(res.encode());
-    }).failureHandler(generateFailureHandler(false));
+    });
 
     CountDownLatch latch = new CountDownLatch(1);
 
@@ -1807,7 +1851,9 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
     color_cookie = "";
 
 
-    client.cookieFormNoexplodeEmpty(color_cookie, (AsyncResult<HttpResponse> ar) -> {
+    startServer();
+
+    apiClient.cookieFormNoexplodeEmpty(color_cookie, (AsyncResult<HttpResponse> ar) -> {
       if (ar.succeeded()) {
         assertEquals(200, ar.result().statusCode());
         assertTrue("Expected: " + new JsonObject("{\"color\":null}").encode() + " Actual: " + ar.result().bodyAsJsonObject().encode(), new JsonObject("{\"color\":null}").equals(ar.result().bodyAsJsonObject()));
@@ -1829,8 +1875,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    */
   @Test
   public void testCookieFormNoexplodeString() throws Exception {
-    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(spec.getPath("/cookie/form/noexplode/string").getGet(), null);
-    router.get("/cookie/form/noexplode/string").handler(validationHandler).handler(routingContext -> {
+    routerFactory.addHandlerByOperationId("cookie_form_noexplode_string", routingContext -> {
       RequestParameters params = routingContext.get("parsedParameters");
       JsonObject res = new JsonObject();
 
@@ -1846,7 +1891,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
         .setStatusMessage("OK")
         .putHeader("content-type", "application/json; charset=utf-8")
         .end(res.encode());
-    }).failureHandler(generateFailureHandler(false));
+    });
 
     CountDownLatch latch = new CountDownLatch(1);
 
@@ -1854,7 +1899,9 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
     color_cookie = "blue";
 
 
-    client.cookieFormNoexplodeString(color_cookie, (AsyncResult<HttpResponse> ar) -> {
+    startServer();
+
+    apiClient.cookieFormNoexplodeString(color_cookie, (AsyncResult<HttpResponse> ar) -> {
       if (ar.succeeded()) {
         assertEquals(200, ar.result().statusCode());
         assertTrue("Expected: " + new JsonObject("{\"color\":\"blue\"}").encode() + " Actual: " + ar.result().bodyAsJsonObject().encode(), new JsonObject("{\"color\":\"blue\"}").equals(ar.result().bodyAsJsonObject()));
@@ -1876,8 +1923,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    */
   @Test
   public void testCookieFormNoexplodeArray() throws Exception {
-    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(spec.getPath("/cookie/form/noexplode/array").getGet(), null);
-    router.get("/cookie/form/noexplode/array").handler(validationHandler).handler(routingContext -> {
+    routerFactory.addHandlerByOperationId("cookie_form_noexplode_array", routingContext -> {
       RequestParameters params = routingContext.get("parsedParameters");
       JsonObject res = new JsonObject();
 
@@ -1892,7 +1938,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
         .setStatusMessage("OK")
         .putHeader("content-type", "application/json; charset=utf-8")
         .end(res.encode());
-    }).failureHandler(generateFailureHandler(false));
+    });
 
     CountDownLatch latch = new CountDownLatch(1);
 
@@ -1903,7 +1949,9 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
     color_cookie.add("brown");
 
 
-    client.cookieFormNoexplodeArray(color_cookie, (AsyncResult<HttpResponse> ar) -> {
+    startServer();
+
+    apiClient.cookieFormNoexplodeArray(color_cookie, (AsyncResult<HttpResponse> ar) -> {
       if (ar.succeeded()) {
         assertEquals(200, ar.result().statusCode());
         assertTrue("Expected: " + new JsonObject("{\"color\":[\"blue\",\"black\",\"brown\"]}").encode() + " Actual: " + ar.result().bodyAsJsonObject().encode(), new JsonObject("{\"color\":[\"blue\",\"black\",\"brown\"]}").equals(ar.result().bodyAsJsonObject()));
@@ -1925,8 +1973,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    */
   @Test
   public void testCookieFormNoexplodeObject() throws Exception {
-    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(spec.getPath("/cookie/form/noexplode/object").getGet(), null);
-    router.get("/cookie/form/noexplode/object").handler(validationHandler).handler(routingContext -> {
+    routerFactory.addHandlerByOperationId("cookie_form_noexplode_object", routingContext -> {
       RequestParameters params = routingContext.get("parsedParameters");
       JsonObject res = new JsonObject();
 
@@ -1944,7 +1991,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
         .setStatusMessage("OK")
         .putHeader("content-type", "application/json; charset=utf-8")
         .end(res.encode());
-    }).failureHandler(generateFailureHandler(false));
+    });
 
     CountDownLatch latch = new CountDownLatch(1);
 
@@ -1955,7 +2002,9 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
     color_cookie.put("B", "150");
 
 
-    client.cookieFormNoexplodeObject(color_cookie, (AsyncResult<HttpResponse> ar) -> {
+    startServer();
+
+    apiClient.cookieFormNoexplodeObject(color_cookie, (AsyncResult<HttpResponse> ar) -> {
       if (ar.succeeded()) {
         assertEquals(200, ar.result().statusCode());
         assertTrue("Expected: " + new JsonObject("{\"color\":{\"R\":\"100\",\"G\":\"200\",\"B\":\"150\"}}").encode() + " Actual: " + ar.result().bodyAsJsonObject().encode(), new JsonObject("{\"color\":{\"R\":\"100\",\"G\":\"200\",\"B\":\"150\"}}").equals(ar.result().bodyAsJsonObject()));
@@ -1977,8 +2026,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    */
   @Test
   public void testCookieFormExplodeEmpty() throws Exception {
-    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(spec.getPath("/cookie/form/explode/empty").getGet(), null);
-    router.get("/cookie/form/explode/empty").handler(validationHandler).handler(routingContext -> {
+    routerFactory.addHandlerByOperationId("cookie_form_explode_empty", routingContext -> {
       RequestParameters params = routingContext.get("parsedParameters");
       JsonObject res = new JsonObject();
 
@@ -1993,7 +2041,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
         .setStatusMessage("OK")
         .putHeader("content-type", "application/json; charset=utf-8")
         .end(res.encode());
-    }).failureHandler(generateFailureHandler(false));
+    });
 
     CountDownLatch latch = new CountDownLatch(1);
 
@@ -2001,7 +2049,9 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
     color_cookie = "";
 
 
-    client.cookieFormExplodeEmpty(color_cookie, (AsyncResult<HttpResponse> ar) -> {
+    startServer();
+
+    apiClient.cookieFormExplodeEmpty(color_cookie, (AsyncResult<HttpResponse> ar) -> {
       if (ar.succeeded()) {
         assertEquals(200, ar.result().statusCode());
         assertTrue("Expected: " + new JsonObject("{\"color\":null}").encode() + " Actual: " + ar.result().bodyAsJsonObject().encode(), new JsonObject("{\"color\":null}").equals(ar.result().bodyAsJsonObject()));
@@ -2023,8 +2073,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    */
   @Test
   public void testCookieFormExplodeString() throws Exception {
-    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(spec.getPath("/cookie/form/explode/string").getGet(), null);
-    router.get("/cookie/form/explode/string").handler(validationHandler).handler(routingContext -> {
+    routerFactory.addHandlerByOperationId("cookie_form_explode_string", routingContext -> {
       RequestParameters params = routingContext.get("parsedParameters");
       JsonObject res = new JsonObject();
 
@@ -2040,7 +2089,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
         .setStatusMessage("OK")
         .putHeader("content-type", "application/json; charset=utf-8")
         .end(res.encode());
-    }).failureHandler(generateFailureHandler(false));
+    });
 
     CountDownLatch latch = new CountDownLatch(1);
 
@@ -2048,7 +2097,9 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
     color_cookie = "blue";
 
 
-    client.cookieFormExplodeString(color_cookie, (AsyncResult<HttpResponse> ar) -> {
+    startServer();
+
+    apiClient.cookieFormExplodeString(color_cookie, (AsyncResult<HttpResponse> ar) -> {
       if (ar.succeeded()) {
         assertEquals(200, ar.result().statusCode());
         assertTrue("Expected: " + new JsonObject("{\"color\":\"blue\"}").encode() + " Actual: " + ar.result().bodyAsJsonObject().encode(), new JsonObject("{\"color\":\"blue\"}").equals(ar.result().bodyAsJsonObject()));
@@ -2070,8 +2121,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    */
   @Test
   public void testCookieFormExplodeArray() throws Exception {
-    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(spec.getPath("/cookie/form/explode/array").getGet(), null);
-    router.get("/cookie/form/explode/array").handler(validationHandler).handler(routingContext -> {
+    routerFactory.addHandlerByOperationId("cookie_form_explode_array", routingContext -> {
       RequestParameters params = routingContext.get("parsedParameters");
       JsonObject res = new JsonObject();
 
@@ -2086,7 +2136,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
         .setStatusMessage("OK")
         .putHeader("content-type", "application/json; charset=utf-8")
         .end(res.encode());
-    }).failureHandler(generateFailureHandler(false));
+    });
 
     CountDownLatch latch = new CountDownLatch(1);
 
@@ -2097,7 +2147,9 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
     color_cookie.add("brown");
 
 
-    client.cookieFormExplodeArray(color_cookie, (AsyncResult<HttpResponse> ar) -> {
+    startServer();
+
+    apiClient.cookieFormExplodeArray(color_cookie, (AsyncResult<HttpResponse> ar) -> {
       if (ar.succeeded()) {
         assertEquals(200, ar.result().statusCode());
         assertTrue("Expected: " + new JsonObject("{\"color\":[\"blue\",\"black\",\"brown\"]}").encode() + " Actual: " + ar.result().bodyAsJsonObject().encode(), new JsonObject("{\"color\":[\"blue\",\"black\",\"brown\"]}").equals(ar.result().bodyAsJsonObject()));
@@ -2119,8 +2171,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    */
   @Test
   public void testCookieFormExplodeObject() throws Exception {
-    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(spec.getPath("/cookie/form/explode/object").getGet(), null);
-    router.get("/cookie/form/explode/object").handler(validationHandler).handler(routingContext -> {
+    routerFactory.addHandlerByOperationId("cookie_form_explode_object", routingContext -> {
       RequestParameters params = routingContext.get("parsedParameters");
       JsonObject res = new JsonObject();
 
@@ -2138,7 +2189,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
         .setStatusMessage("OK")
         .putHeader("content-type", "application/json; charset=utf-8")
         .end(res.encode());
-    }).failureHandler(generateFailureHandler(false));
+    });
 
     CountDownLatch latch = new CountDownLatch(1);
 
@@ -2149,7 +2200,9 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
     color_cookie.put("B", "150");
 
 
-    client.cookieFormExplodeObject(color_cookie, (AsyncResult<HttpResponse> ar) -> {
+    startServer();
+
+    apiClient.cookieFormExplodeObject(color_cookie, (AsyncResult<HttpResponse> ar) -> {
       if (ar.succeeded()) {
         assertEquals(200, ar.result().statusCode());
         assertTrue("Expected: " + new JsonObject("{\"color\":{\"R\":\"100\",\"G\":\"200\",\"B\":\"150\"}}").encode() + " Actual: " + ar.result().bodyAsJsonObject().encode(), new JsonObject("{\"color\":{\"R\":\"100\",\"G\":\"200\",\"B\":\"150\"}}").equals(ar.result().bodyAsJsonObject()));
@@ -2171,8 +2224,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    */
   @Test
   public void testHeaderSimpleNoexplodeString() throws Exception {
-    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(spec.getPath("/header/simple/noexplode/string").getGet(), null);
-    router.get("/header/simple/noexplode/string").handler(validationHandler).handler(routingContext -> {
+    routerFactory.addHandlerByOperationId("header_simple_noexplode_string", routingContext -> {
       RequestParameters params = routingContext.get("parsedParameters");
       JsonObject res = new JsonObject();
 
@@ -2188,7 +2240,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
         .setStatusMessage("OK")
         .putHeader("content-type", "application/json; charset=utf-8")
         .end(res.encode());
-    }).failureHandler(generateFailureHandler(false));
+    });
 
     CountDownLatch latch = new CountDownLatch(1);
 
@@ -2196,7 +2248,9 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
     color_header = "blue";
 
 
-    client.headerSimpleNoexplodeString(color_header, (AsyncResult<HttpResponse> ar) -> {
+    startServer();
+
+    apiClient.headerSimpleNoexplodeString(color_header, (AsyncResult<HttpResponse> ar) -> {
       if (ar.succeeded()) {
         assertEquals(200, ar.result().statusCode());
         assertTrue("Expected: " + new JsonObject("{\"color\":\"blue\"}").encode() + " Actual: " + ar.result().bodyAsJsonObject().encode(), new JsonObject("{\"color\":\"blue\"}").equals(ar.result().bodyAsJsonObject()));
@@ -2218,8 +2272,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    */
   @Test
   public void testHeaderSimpleNoexplodeArray() throws Exception {
-    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(spec.getPath("/header/simple/noexplode/array").getGet(), null);
-    router.get("/header/simple/noexplode/array").handler(validationHandler).handler(routingContext -> {
+    routerFactory.addHandlerByOperationId("header_simple_noexplode_array", routingContext -> {
       RequestParameters params = routingContext.get("parsedParameters");
       JsonObject res = new JsonObject();
 
@@ -2234,7 +2287,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
         .setStatusMessage("OK")
         .putHeader("content-type", "application/json; charset=utf-8")
         .end(res.encode());
-    }).failureHandler(generateFailureHandler(false));
+    });
 
     CountDownLatch latch = new CountDownLatch(1);
 
@@ -2245,7 +2298,9 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
     color_header.add("brown");
 
 
-    client.headerSimpleNoexplodeArray(color_header, (AsyncResult<HttpResponse> ar) -> {
+    startServer();
+
+    apiClient.headerSimpleNoexplodeArray(color_header, (AsyncResult<HttpResponse> ar) -> {
       if (ar.succeeded()) {
         assertEquals(200, ar.result().statusCode());
         assertTrue("Expected: " + new JsonObject("{\"color\":[\"blue\",\"black\",\"brown\"]}").encode() + " Actual: " + ar.result().bodyAsJsonObject().encode(), new JsonObject("{\"color\":[\"blue\",\"black\",\"brown\"]}").equals(ar.result().bodyAsJsonObject()));
@@ -2267,8 +2322,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    */
   @Test
   public void testHeaderSimpleNoexplodeObject() throws Exception {
-    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(spec.getPath("/header/simple/noexplode/object").getGet(), null);
-    router.get("/header/simple/noexplode/object").handler(validationHandler).handler(routingContext -> {
+    routerFactory.addHandlerByOperationId("header_simple_noexplode_object", routingContext -> {
       RequestParameters params = routingContext.get("parsedParameters");
       JsonObject res = new JsonObject();
 
@@ -2286,7 +2340,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
         .setStatusMessage("OK")
         .putHeader("content-type", "application/json; charset=utf-8")
         .end(res.encode());
-    }).failureHandler(generateFailureHandler(false));
+    });
 
     CountDownLatch latch = new CountDownLatch(1);
 
@@ -2297,7 +2351,9 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
     color_header.put("B", "150");
 
 
-    client.headerSimpleNoexplodeObject(color_header, (AsyncResult<HttpResponse> ar) -> {
+    startServer();
+
+    apiClient.headerSimpleNoexplodeObject(color_header, (AsyncResult<HttpResponse> ar) -> {
       if (ar.succeeded()) {
         assertEquals(200, ar.result().statusCode());
         assertTrue("Expected: " + new JsonObject("{\"color\":{\"R\":\"100\",\"G\":\"200\",\"B\":\"150\"}}").encode() + " Actual: " + ar.result().bodyAsJsonObject().encode(), new JsonObject("{\"color\":{\"R\":\"100\",\"G\":\"200\",\"B\":\"150\"}}").equals(ar.result().bodyAsJsonObject()));
@@ -2319,8 +2375,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    */
   @Test
   public void testHeaderSimpleExplodeString() throws Exception {
-    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(spec.getPath("/header/simple/explode/string").getGet(), null);
-    router.get("/header/simple/explode/string").handler(validationHandler).handler(routingContext -> {
+    routerFactory.addHandlerByOperationId("header_simple_explode_string", routingContext -> {
       RequestParameters params = routingContext.get("parsedParameters");
       JsonObject res = new JsonObject();
 
@@ -2336,7 +2391,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
         .setStatusMessage("OK")
         .putHeader("content-type", "application/json; charset=utf-8")
         .end(res.encode());
-    }).failureHandler(generateFailureHandler(false));
+    });
 
     CountDownLatch latch = new CountDownLatch(1);
 
@@ -2344,7 +2399,9 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
     color_header = "blue";
 
 
-    client.headerSimpleExplodeString(color_header, (AsyncResult<HttpResponse> ar) -> {
+    startServer();
+
+    apiClient.headerSimpleExplodeString(color_header, (AsyncResult<HttpResponse> ar) -> {
       if (ar.succeeded()) {
         assertEquals(200, ar.result().statusCode());
         assertTrue("Expected: " + new JsonObject("{\"color\":\"blue\"}").encode() + " Actual: " + ar.result().bodyAsJsonObject().encode(), new JsonObject("{\"color\":\"blue\"}").equals(ar.result().bodyAsJsonObject()));
@@ -2366,8 +2423,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    */
   @Test
   public void testHeaderSimpleExplodeArray() throws Exception {
-    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(spec.getPath("/header/simple/explode/array").getGet(), null);
-    router.get("/header/simple/explode/array").handler(validationHandler).handler(routingContext -> {
+    routerFactory.addHandlerByOperationId("header_simple_explode_array", routingContext -> {
       RequestParameters params = routingContext.get("parsedParameters");
       JsonObject res = new JsonObject();
 
@@ -2382,7 +2438,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
         .setStatusMessage("OK")
         .putHeader("content-type", "application/json; charset=utf-8")
         .end(res.encode());
-    }).failureHandler(generateFailureHandler(false));
+    });
 
     CountDownLatch latch = new CountDownLatch(1);
 
@@ -2393,7 +2449,9 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
     color_header.add("brown");
 
 
-    client.headerSimpleExplodeArray(color_header, (AsyncResult<HttpResponse> ar) -> {
+    startServer();
+
+    apiClient.headerSimpleExplodeArray(color_header, (AsyncResult<HttpResponse> ar) -> {
       if (ar.succeeded()) {
         assertEquals(200, ar.result().statusCode());
         assertTrue("Expected: " + new JsonObject("{\"color\":[\"blue\",\"black\",\"brown\"]}").encode() + " Actual: " + ar.result().bodyAsJsonObject().encode(), new JsonObject("{\"color\":[\"blue\",\"black\",\"brown\"]}").equals(ar.result().bodyAsJsonObject()));
@@ -2415,8 +2473,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    */
   @Test
   public void testHeaderSimpleExplodeObject() throws Exception {
-    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(spec.getPath("/header/simple/explode/object").getGet(), null);
-    router.get("/header/simple/explode/object").handler(validationHandler).handler(routingContext -> {
+    routerFactory.addHandlerByOperationId("header_simple_explode_object", routingContext -> {
       RequestParameters params = routingContext.get("parsedParameters");
       JsonObject res = new JsonObject();
 
@@ -2434,7 +2491,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
         .setStatusMessage("OK")
         .putHeader("content-type", "application/json; charset=utf-8")
         .end(res.encode());
-    }).failureHandler(generateFailureHandler(false));
+    });
 
     CountDownLatch latch = new CountDownLatch(1);
 
@@ -2445,7 +2502,9 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
     color_header.put("B", "150");
 
 
-    client.headerSimpleExplodeObject(color_header, (AsyncResult<HttpResponse> ar) -> {
+    startServer();
+
+    apiClient.headerSimpleExplodeObject(color_header, (AsyncResult<HttpResponse> ar) -> {
       if (ar.succeeded()) {
         assertEquals(200, ar.result().statusCode());
         assertTrue("Expected: " + new JsonObject("{\"color\":{\"R\":\"100\",\"G\":\"200\",\"B\":\"150\"}}").encode() + " Actual: " + ar.result().bodyAsJsonObject().encode(), new JsonObject("{\"color\":{\"R\":\"100\",\"G\":\"200\",\"B\":\"150\"}}").equals(ar.result().bodyAsJsonObject()));
@@ -2458,4 +2517,40 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
 
   }
 
+
+  private OpenApi3 loadSwagger(String filename) {
+    return (OpenApi3) new OpenApiParser().parse(new File(filename), false);
+  }
+
+  public Handler<RoutingContext> generateFailureHandler() {
+    return routingContext -> {
+      Throwable failure = routingContext.failure();
+      failure.printStackTrace();
+      assertTrue(failure.getMessage(), false);
+    };
+  }
+
+  private void startServer() throws Exception {
+    router = routerFactory.getRouter();
+    server = this.vertx.createHttpServer(new HttpServerOptions().setPort(8080).setHost("localhost"));
+    CountDownLatch latch = new CountDownLatch(1);
+    server.requestHandler(router::accept).listen(onSuccess(res -> {
+      latch.countDown();
+    }));
+    awaitLatch(latch);
+  }
+
+  private void stopServer() throws Exception {
+    if (server != null) {
+      CountDownLatch latch = new CountDownLatch(1);
+      try {
+        server.close((asyncResult) -> {
+          latch.countDown();
+        });
+      } catch (IllegalStateException e) { // Server is already open
+        latch.countDown();
+      }
+      awaitLatch(latch);
+    }
+  }
 }

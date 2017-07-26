@@ -1256,10 +1256,8 @@ public class ApiClient {
    * @return
    */
   private String renderPathObjectSimpleExplode(String paramName, Map<String, Object> values) {
-    String result = "";
-    for (Map.Entry<String, Object> value : values.entrySet())
-      result = result.concat("," + value.getKey() + "=" + encode(String.valueOf(value.getValue())));
-    return result;
+    return String.join(",",
+      values.entrySet().stream().map((entry) -> entry.getKey() + "=" + encode(String.valueOf(entry.getValue()))).collect(Collectors.toList()));
   }
 
   /**
@@ -1597,11 +1595,11 @@ public class ApiClient {
       for (Map.Entry<String, String> e : otherCookies.entries()) {
         try {
           listToSerialize.add(URLEncoder.encode(e.getKey(), "UTF-8") + "=" + URLEncoder.encode(e.getValue(), "UTF-8"));
-        } catch (UnsupportedEncodingException e1) {
+                } catch (UnsupportedEncodingException e1) {
+                }
+            }
         }
-      }
-    }
-    request.putHeader("Cookie", String.join("; ", listToSerialize));
+        request.putHeader("Cookie", String.join("; ", listToSerialize));
     }
 
     // Other functions
