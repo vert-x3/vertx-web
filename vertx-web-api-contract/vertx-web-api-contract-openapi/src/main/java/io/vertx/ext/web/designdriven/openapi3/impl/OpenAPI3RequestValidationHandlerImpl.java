@@ -313,10 +313,14 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
         requiredFields.addAll(parameter.getSchema().getRequiredFields());
     }
     for (Map.Entry<String, Schema> entry : properties.entrySet()) {
-      if (parameter.getIn().equals("query")) {
+      if ("query".equals(parameter.getIn())) {
         this.addQueryParamRule(ParameterValidationRuleImpl.ParameterValidationRuleFactory
           .createValidationRuleWithCustomTypeValidator(entry.getKey(), new ExpandedObjectFieldValidator(this
             .resolveInnerSchemaPrimitiveTypeValidator(entry.getValue(), true), parameter.getName(), entry.getKey()), !requiredFields.contains(entry.getKey()), true, ParameterLocation.QUERY));
+      } else if ("cookie".equals(parameter.getIn())) {
+        this.addCookieParamRule(ParameterValidationRuleImpl.ParameterValidationRuleFactory
+          .createValidationRuleWithCustomTypeValidator(entry.getKey(), new ExpandedObjectFieldValidator(this
+            .resolveInnerSchemaPrimitiveTypeValidator(entry.getValue(), true), parameter.getName(), entry.getKey()), !requiredFields.contains(entry.getKey()), true, ParameterLocation.COOKIE));
       } else {
         throw new SpecFeatureNotSupportedException("combination of style, type and location (in) of parameter fields " +
           "" + "not supported for parameter " + parameter.getName());
@@ -402,9 +406,7 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
       handleContent(parameter);
       return true;
     } else /* From this moment only astonishing magic happens */ if (parameter.isExplode()) {
-      if (parameter.getIn().equals("cookie")) {
-        throw new SpecFeatureNotSupportedException("cookie parameter exploded location not supported");
-      } else if (OpenApi3Utils.isParameterStyle(parameter, "form") && (OpenApi3Utils.isParameterObjectOrAllOfType(parameter))) {
+      if (OpenApi3Utils.isParameterStyle(parameter, "form") && (OpenApi3Utils.isParameterObjectOrAllOfType(parameter))) {
         this.magicParameterExplodedStyleFormTypeObject(parameter);
         return true;
       } else if (OpenApi3Utils.isParameterStyle(parameter, "simple") && OpenApi3Utils.isParameterObjectOrAllOfType

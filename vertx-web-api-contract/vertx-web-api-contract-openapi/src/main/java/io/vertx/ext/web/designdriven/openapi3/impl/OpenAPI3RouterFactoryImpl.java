@@ -4,6 +4,7 @@ import com.reprezen.kaizen.oasparser.model3.*;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.designdriven.RouterFactoryException;
@@ -267,8 +268,13 @@ public class OpenAPI3RouterFactoryImpl extends BaseDesignDrivenRouterFactory<Ope
     router.route().handler(BodyHandler.create());
     router.route().handler(CookieHandler.create());
     for (OperationValue operation : operationIdtoOperations.values()) {
+      // If user don't want 501 handlers and the operation is not configured, skip it
+      if (!mount501handlers && !operation.isConfigured())
+        continue;
+
       List<Handler> handlersToLoad = new ArrayList<>();
       List<Handler> failureHandlersToLoad = new ArrayList<>();
+
       // Resolve security handlers
       if (operation.getOperationModel().hasSecurityRequirements()) {
         for (SecurityRequirement securityRequirement : operation.getOperationModel().getSecurityRequirements()) {
@@ -316,10 +322,11 @@ public class OpenAPI3RouterFactoryImpl extends BaseDesignDrivenRouterFactory<Ope
       }
 
       // Now add all handlers to router
+      Route route = router.route(operation.getMethod(), operation.getVertxStylePath());
       for (Handler handler : handlersToLoad)
-        router.route(operation.getMethod(), operation.getVertxStylePath()).handler(handler);
+        route.handler(handler);
       for (Handler failureHandler : failureHandlersToLoad)
-        router.route(operation.getMethod(), operation.getVertxStylePath()).failureHandler(failureHandler);
+        route.failureHandler(failureHandler);
     }
     return router;
   }

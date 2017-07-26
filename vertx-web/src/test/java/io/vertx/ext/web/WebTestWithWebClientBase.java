@@ -36,7 +36,10 @@ public class WebTestWithWebClientBase extends WebTestBase {
   @Override
   public void tearDown() throws Exception {
     if (webClient != null) {
-      webClient.close();
+      try {
+        webClient.close();
+      } catch (IllegalStateException e) {
+      }
     }
     super.tearDown();
   }

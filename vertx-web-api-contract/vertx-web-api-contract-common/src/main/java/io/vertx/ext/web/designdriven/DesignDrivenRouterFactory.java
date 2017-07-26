@@ -71,6 +71,15 @@ public interface DesignDrivenRouterFactory<Specification> {
   DesignDrivenRouterFactory enableValidationFailureHandler(boolean enable);
 
   /**
+   * Automatic mount handlers that return HTTP 501 status code for operations where you didn't specify an handler.
+   *
+   * @param enable
+   * @return
+   */
+  @Fluent
+  DesignDrivenRouterFactory mountOperationsWithoutHandlers(boolean enable);
+
+  /**
    * Construct a new router based on spec. It will fail if you are trying to mount a spec with security schemes
    * without assigned handlers<br/>
    * <b>Note:</b> Router is constructed in this function, so it will be respected the path definition ordering.

@@ -43,7 +43,7 @@ public enum ContainerSerializationStyle {
       @Override
       public Map<String, String> deserializeObject(String serialized) throws ValidationException {
         Map<String, String> result = new HashMap<>();
-        String[] values = serialized.split(",", -1);
+        String[] values = serialized.split(Pattern.quote(","), -1);
         // Key value pairs -> odd length not allowed
         for (int i = 0; i < values.length; i++) {
           // empty key not allowed!

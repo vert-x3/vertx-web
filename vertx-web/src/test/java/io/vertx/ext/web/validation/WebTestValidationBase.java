@@ -63,9 +63,10 @@ public class WebTestValidationBase extends WebTestWithWebClientBase {
 
   public void loadHandlers(String path, HttpMethod method, boolean expectFail, ValidationHandler validationHandler,
                            Handler<RoutingContext> handler) {
-    router.route(method, path).handler(BodyHandler.create());
-    router.route(method, path).handler(validationHandler);
-    router.route(method, path).handler(handler).failureHandler(generateFailureHandler(expectFail));
+    router.route(method, path).handler(BodyHandler.create())
+      .handler(validationHandler)
+      .handler(handler)
+      .failureHandler(generateFailureHandler(expectFail));
   }
 
   public void testPrimitiveParameterType(ParameterType type) {

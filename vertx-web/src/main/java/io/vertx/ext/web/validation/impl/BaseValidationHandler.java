@@ -14,6 +14,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.*;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * @author Francesco Guardiani @slinkydeveloper
@@ -108,11 +109,20 @@ public abstract class BaseValidationHandler implements ValidationHandler {
 
   private Map<String, RequestParameter> validateCookieParams(RoutingContext routingContext) throws ValidationException {
     // Validation process validate only params that are registered in the validation -> extra params are allowed
+    if (!routingContext.request().headers().contains("Cookie"))
+      return null;
     QueryStringDecoder decoder = new QueryStringDecoder("/?" + routingContext.request().getHeader("Cookie")); // Some hack to reuse this object
-    Map<String, List<String>> cookies = decoder.parameters();
+    Map<String, List<String>> cookies = new HashMap<>();
+    for (Map.Entry<String, List<String>> e : decoder.parameters().entrySet()) {
+      String key = e.getKey().trim();
+      if (cookies.containsKey(key))
+        cookies.get(key).addAll(e.getValue());
+      else
+        cookies.put(key, e.getValue());
+    }
     Map<String, RequestParameter> parsedParams = new HashMap<>();
     for (ParameterValidationRule rule : cookieParamsRules.values()) {
-      String name = rule.getName();
+      String name = rule.getName().trim();
       if (cookies.containsKey(name)) {
         RequestParameter parsedParam = rule.validateArrayParam(cookies.get(name));
         if (parsedParams.containsKey(parsedParam.getName()))
