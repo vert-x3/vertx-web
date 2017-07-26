@@ -323,25 +323,27 @@ public class RouteImpl implements Route {
   private boolean pathMatches(String mountPoint, RoutingContext ctx) {
     String thePath = mountPoint == null ? path : mountPoint + path;
     String requestPath;
-
-    if (useNormalisedPath) {
-      // never null
-      requestPath = Utils.normalizePath(ctx.request().path());
-    } else {
-      requestPath = ctx.request().path();
-      // can be null
-      if (requestPath == null) {
-        requestPath = "/";
+    try {
+      if (useNormalisedPath) {
+        // never null
+        requestPath = Utils.normalizePath(ctx.request().path());
+      } else {
+        requestPath = ctx.request().path();
+        // can be null
+        if (requestPath == null) {
+          requestPath = "/";
+        }
       }
-    }
-
-    if (exactPath) {
-      return pathMatchesExact(requestPath, thePath);
-    } else {
-      if (thePath.endsWith("/") && requestPath.equals(removeTrailing(thePath))) {
-        return true;
+      if (exactPath) {
+        return pathMatchesExact(requestPath, thePath);
+      } else {
+        if (thePath.endsWith("/") && requestPath.equals(removeTrailing(thePath))) {
+          return true;
+        }
+        return requestPath.startsWith(thePath);
       }
-      return requestPath.startsWith(thePath);
+    } catch (IllegalArgumentException e) {
+      return false;
     }
   }
 
