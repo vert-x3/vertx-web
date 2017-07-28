@@ -45,943 +45,1378 @@ public class ApiClient {
     cookieParams = new CaseInsensitiveHeaders();
   }
 
-  public void pathMatrixNoexplodeEmpty(String color,
-                                       Handler<AsyncResult<HttpResponse>> handler) {
+  /**
+   * Call path_matrix_noexplode_empty with empty body.
+   *
+   * @param color   Parameter color inside path
+   * @param handler The handler for the asynchronous request
+   */
+  public void pathMatrixNoexplodeEmpty(
+    String color,
+    Handler<AsyncResult<HttpResponse>> handler) {
     // Check required params
     if (color == null) throw new RuntimeException("Missing parameter color in path");
+
 
     // Generate the uri
     String uri = "/path/matrix/noexplode/empty/{color}";
     uri = uri.replace("{color}", this.renderPathMatrix("color", color));
+
     HttpRequest request = client.get(uri);
 
     MultiMap requestCookies = new CaseInsensitiveHeaders();
 
 
     this.renderAndAttachCookieHeader(request, requestCookies);
-
     request.send(handler);
-
   }
 
-  public void pathMatrixNoexplodeString(String color,
-                                        Handler<AsyncResult<HttpResponse>> handler) {
+  /**
+   * Call path_matrix_noexplode_string with empty body.
+   *
+   * @param color   Parameter color inside path
+   * @param handler The handler for the asynchronous request
+   */
+  public void pathMatrixNoexplodeString(
+    String color,
+    Handler<AsyncResult<HttpResponse>> handler) {
     // Check required params
     if (color == null) throw new RuntimeException("Missing parameter color in path");
+
 
     // Generate the uri
     String uri = "/path/matrix/noexplode/string/{color}";
     uri = uri.replace("{color}", this.renderPathMatrix("color", color));
+
     HttpRequest request = client.get(uri);
 
     MultiMap requestCookies = new CaseInsensitiveHeaders();
 
 
     this.renderAndAttachCookieHeader(request, requestCookies);
-
     request.send(handler);
-
   }
 
-  public void pathMatrixNoexplodeArray(List<Object> color,
-                                       Handler<AsyncResult<HttpResponse>> handler) {
+  /**
+   * Call path_matrix_noexplode_array with empty body.
+   *
+   * @param color   Parameter color inside path
+   * @param handler The handler for the asynchronous request
+   */
+  public void pathMatrixNoexplodeArray(
+    List<Object> color,
+    Handler<AsyncResult<HttpResponse>> handler) {
     // Check required params
     if (color == null) throw new RuntimeException("Missing parameter color in path");
+
 
     // Generate the uri
     String uri = "/path/matrix/noexplode/array/{color}";
     uri = uri.replace("{color}", this.renderPathArrayMatrix("color", color));
+
     HttpRequest request = client.get(uri);
 
     MultiMap requestCookies = new CaseInsensitiveHeaders();
 
 
     this.renderAndAttachCookieHeader(request, requestCookies);
-
     request.send(handler);
-
   }
 
-  public void pathMatrixNoexplodeObject(Map<String, Object> color,
-                                        Handler<AsyncResult<HttpResponse>> handler) {
+  /**
+   * Call path_matrix_noexplode_object with empty body.
+   *
+   * @param color   Parameter color inside path
+   * @param handler The handler for the asynchronous request
+   */
+  public void pathMatrixNoexplodeObject(
+    Map<String, Object> color,
+    Handler<AsyncResult<HttpResponse>> handler) {
     // Check required params
     if (color == null) throw new RuntimeException("Missing parameter color in path");
+
 
     // Generate the uri
     String uri = "/path/matrix/noexplode/object/{color}";
     uri = uri.replace("{color}", this.renderPathObjectMatrix("color", color));
+
     HttpRequest request = client.get(uri);
 
     MultiMap requestCookies = new CaseInsensitiveHeaders();
 
 
     this.renderAndAttachCookieHeader(request, requestCookies);
-
     request.send(handler);
-
   }
 
-  public void pathMatrixExplodeEmpty(String color,
-                                     Handler<AsyncResult<HttpResponse>> handler) {
+  /**
+   * Call path_matrix_explode_empty with empty body.
+   *
+   * @param color   Parameter color inside path
+   * @param handler The handler for the asynchronous request
+   */
+  public void pathMatrixExplodeEmpty(
+    String color,
+    Handler<AsyncResult<HttpResponse>> handler) {
     // Check required params
     if (color == null) throw new RuntimeException("Missing parameter color in path");
+
 
     // Generate the uri
     String uri = "/path/matrix/explode/empty/{color}";
     uri = uri.replace("{color}", this.renderPathMatrix("color", color));
+
     HttpRequest request = client.get(uri);
 
     MultiMap requestCookies = new CaseInsensitiveHeaders();
 
 
     this.renderAndAttachCookieHeader(request, requestCookies);
-
     request.send(handler);
-
   }
 
-  public void pathMatrixExplodeString(String color,
-                                      Handler<AsyncResult<HttpResponse>> handler) {
+  /**
+   * Call path_matrix_explode_string with empty body.
+   *
+   * @param color   Parameter color inside path
+   * @param handler The handler for the asynchronous request
+   */
+  public void pathMatrixExplodeString(
+    String color,
+    Handler<AsyncResult<HttpResponse>> handler) {
     // Check required params
     if (color == null) throw new RuntimeException("Missing parameter color in path");
+
 
     // Generate the uri
     String uri = "/path/matrix/explode/string/{color}";
     uri = uri.replace("{color}", this.renderPathMatrix("color", color));
+
     HttpRequest request = client.get(uri);
 
     MultiMap requestCookies = new CaseInsensitiveHeaders();
 
 
     this.renderAndAttachCookieHeader(request, requestCookies);
-
     request.send(handler);
-
   }
 
-  public void pathMatrixExplodeArray(List<Object> color,
-                                     Handler<AsyncResult<HttpResponse>> handler) {
+  /**
+   * Call path_matrix_explode_array with empty body.
+   *
+   * @param color   Parameter color inside path
+   * @param handler The handler for the asynchronous request
+   */
+  public void pathMatrixExplodeArray(
+    List<Object> color,
+    Handler<AsyncResult<HttpResponse>> handler) {
     // Check required params
     if (color == null) throw new RuntimeException("Missing parameter color in path");
+
 
     // Generate the uri
     String uri = "/path/matrix/explode/array/{color}";
     uri = uri.replace("{color}", this.renderPathArrayMatrixExplode("color", color));
+
     HttpRequest request = client.get(uri);
 
     MultiMap requestCookies = new CaseInsensitiveHeaders();
 
 
     this.renderAndAttachCookieHeader(request, requestCookies);
-
     request.send(handler);
-
   }
 
-  public void pathMatrixExplodeObject(Map<String, Object> color,
-                                      Handler<AsyncResult<HttpResponse>> handler) {
+  /**
+   * Call path_matrix_explode_object with empty body.
+   *
+   * @param color   Parameter color inside path
+   * @param handler The handler for the asynchronous request
+   */
+  public void pathMatrixExplodeObject(
+    Map<String, Object> color,
+    Handler<AsyncResult<HttpResponse>> handler) {
     // Check required params
     if (color == null) throw new RuntimeException("Missing parameter color in path");
+
 
     // Generate the uri
     String uri = "/path/matrix/explode/object/{color}";
     uri = uri.replace("{color}", this.renderPathObjectMatrixExplode("color", color));
+
     HttpRequest request = client.get(uri);
 
     MultiMap requestCookies = new CaseInsensitiveHeaders();
 
 
     this.renderAndAttachCookieHeader(request, requestCookies);
-
     request.send(handler);
-
   }
 
-  public void pathLabelNoexplodeEmpty(String color,
-                                      Handler<AsyncResult<HttpResponse>> handler) {
+  /**
+   * Call path_label_noexplode_empty with empty body.
+   *
+   * @param color   Parameter color inside path
+   * @param handler The handler for the asynchronous request
+   */
+  public void pathLabelNoexplodeEmpty(
+    String color,
+    Handler<AsyncResult<HttpResponse>> handler) {
     // Check required params
     if (color == null) throw new RuntimeException("Missing parameter color in path");
+
 
     // Generate the uri
     String uri = "/path/label/noexplode/empty/{color}";
     uri = uri.replace("{color}", this.renderPathLabel("color", color));
+
     HttpRequest request = client.get(uri);
 
     MultiMap requestCookies = new CaseInsensitiveHeaders();
 
 
     this.renderAndAttachCookieHeader(request, requestCookies);
-
     request.send(handler);
-
   }
 
-  public void pathLabelNoexplodeString(String color,
-                                       Handler<AsyncResult<HttpResponse>> handler) {
+  /**
+   * Call path_label_noexplode_string with empty body.
+   *
+   * @param color   Parameter color inside path
+   * @param handler The handler for the asynchronous request
+   */
+  public void pathLabelNoexplodeString(
+    String color,
+    Handler<AsyncResult<HttpResponse>> handler) {
     // Check required params
     if (color == null) throw new RuntimeException("Missing parameter color in path");
+
 
     // Generate the uri
     String uri = "/path/label/noexplode/string/{color}";
     uri = uri.replace("{color}", this.renderPathLabel("color", color));
+
     HttpRequest request = client.get(uri);
 
     MultiMap requestCookies = new CaseInsensitiveHeaders();
 
 
     this.renderAndAttachCookieHeader(request, requestCookies);
-
     request.send(handler);
-
   }
 
-  public void pathLabelNoexplodeArray(List<Object> color,
-                                      Handler<AsyncResult<HttpResponse>> handler) {
+  /**
+   * Call path_label_noexplode_array with empty body.
+   *
+   * @param color   Parameter color inside path
+   * @param handler The handler for the asynchronous request
+   */
+  public void pathLabelNoexplodeArray(
+    List<Object> color,
+    Handler<AsyncResult<HttpResponse>> handler) {
     // Check required params
     if (color == null) throw new RuntimeException("Missing parameter color in path");
+
 
     // Generate the uri
     String uri = "/path/label/noexplode/array/{color}";
     uri = uri.replace("{color}", this.renderPathArrayLabel("color", color));
+
     HttpRequest request = client.get(uri);
 
     MultiMap requestCookies = new CaseInsensitiveHeaders();
 
 
     this.renderAndAttachCookieHeader(request, requestCookies);
-
     request.send(handler);
-
   }
 
-  public void pathLabelNoexplodeObject(Map<String, Object> color,
-                                       Handler<AsyncResult<HttpResponse>> handler) {
+  /**
+   * Call path_label_noexplode_object with empty body.
+   *
+   * @param color   Parameter color inside path
+   * @param handler The handler for the asynchronous request
+   */
+  public void pathLabelNoexplodeObject(
+    Map<String, Object> color,
+    Handler<AsyncResult<HttpResponse>> handler) {
     // Check required params
     if (color == null) throw new RuntimeException("Missing parameter color in path");
+
 
     // Generate the uri
     String uri = "/path/label/noexplode/object/{color}";
     uri = uri.replace("{color}", this.renderPathObjectLabel("color", color));
+
     HttpRequest request = client.get(uri);
 
     MultiMap requestCookies = new CaseInsensitiveHeaders();
 
 
     this.renderAndAttachCookieHeader(request, requestCookies);
-
     request.send(handler);
-
   }
 
-  public void pathLabelExplodeEmpty(String color,
-                                    Handler<AsyncResult<HttpResponse>> handler) {
+  /**
+   * Call path_label_explode_empty with empty body.
+   *
+   * @param color   Parameter color inside path
+   * @param handler The handler for the asynchronous request
+   */
+  public void pathLabelExplodeEmpty(
+    String color,
+    Handler<AsyncResult<HttpResponse>> handler) {
     // Check required params
     if (color == null) throw new RuntimeException("Missing parameter color in path");
+
 
     // Generate the uri
     String uri = "/path/label/explode/empty/{color}";
     uri = uri.replace("{color}", this.renderPathLabel("color", color));
+
     HttpRequest request = client.get(uri);
 
     MultiMap requestCookies = new CaseInsensitiveHeaders();
 
 
     this.renderAndAttachCookieHeader(request, requestCookies);
-
     request.send(handler);
-
   }
 
-  public void pathLabelExplodeString(String color,
-                                     Handler<AsyncResult<HttpResponse>> handler) {
+  /**
+   * Call path_label_explode_string with empty body.
+   *
+   * @param color   Parameter color inside path
+   * @param handler The handler for the asynchronous request
+   */
+  public void pathLabelExplodeString(
+    String color,
+    Handler<AsyncResult<HttpResponse>> handler) {
     // Check required params
     if (color == null) throw new RuntimeException("Missing parameter color in path");
+
 
     // Generate the uri
     String uri = "/path/label/explode/string/{color}";
     uri = uri.replace("{color}", this.renderPathLabel("color", color));
+
     HttpRequest request = client.get(uri);
 
     MultiMap requestCookies = new CaseInsensitiveHeaders();
 
 
     this.renderAndAttachCookieHeader(request, requestCookies);
-
     request.send(handler);
-
   }
 
-  public void pathLabelExplodeArray(List<Object> color,
-                                    Handler<AsyncResult<HttpResponse>> handler) {
+  /**
+   * Call path_label_explode_array with empty body.
+   *
+   * @param color   Parameter color inside path
+   * @param handler The handler for the asynchronous request
+   */
+  public void pathLabelExplodeArray(
+    List<Object> color,
+    Handler<AsyncResult<HttpResponse>> handler) {
     // Check required params
     if (color == null) throw new RuntimeException("Missing parameter color in path");
+
 
     // Generate the uri
     String uri = "/path/label/explode/array/{color}";
     uri = uri.replace("{color}", this.renderPathArrayLabelExplode("color", color));
+
     HttpRequest request = client.get(uri);
 
     MultiMap requestCookies = new CaseInsensitiveHeaders();
 
 
     this.renderAndAttachCookieHeader(request, requestCookies);
-
     request.send(handler);
-
   }
 
-  public void pathLabelExplodeObject(Map<String, Object> color,
-                                     Handler<AsyncResult<HttpResponse>> handler) {
+  /**
+   * Call path_label_explode_object with empty body.
+   *
+   * @param color   Parameter color inside path
+   * @param handler The handler for the asynchronous request
+   */
+  public void pathLabelExplodeObject(
+    Map<String, Object> color,
+    Handler<AsyncResult<HttpResponse>> handler) {
     // Check required params
     if (color == null) throw new RuntimeException("Missing parameter color in path");
+
 
     // Generate the uri
     String uri = "/path/label/explode/object/{color}";
     uri = uri.replace("{color}", this.renderPathObjectLabelExplode("color", color));
+
     HttpRequest request = client.get(uri);
 
     MultiMap requestCookies = new CaseInsensitiveHeaders();
 
 
     this.renderAndAttachCookieHeader(request, requestCookies);
-
     request.send(handler);
-
   }
 
-  public void pathSimpleNoexplodeString(String color,
-                                        Handler<AsyncResult<HttpResponse>> handler) {
+  /**
+   * Call path_simple_noexplode_string with empty body.
+   *
+   * @param color   Parameter color inside path
+   * @param handler The handler for the asynchronous request
+   */
+  public void pathSimpleNoexplodeString(
+    String color,
+    Handler<AsyncResult<HttpResponse>> handler) {
     // Check required params
     if (color == null) throw new RuntimeException("Missing parameter color in path");
+
 
     // Generate the uri
     String uri = "/path/simple/noexplode/string/{color}";
     uri = uri.replace("{color}", this.renderPathParam("color", color));
+
     HttpRequest request = client.get(uri);
 
     MultiMap requestCookies = new CaseInsensitiveHeaders();
 
 
     this.renderAndAttachCookieHeader(request, requestCookies);
-
     request.send(handler);
-
   }
 
-  public void pathSimpleNoexplodeArray(List<Object> color,
-                                       Handler<AsyncResult<HttpResponse>> handler) {
+  /**
+   * Call path_simple_noexplode_array with empty body.
+   *
+   * @param color   Parameter color inside path
+   * @param handler The handler for the asynchronous request
+   */
+  public void pathSimpleNoexplodeArray(
+    List<Object> color,
+    Handler<AsyncResult<HttpResponse>> handler) {
     // Check required params
     if (color == null) throw new RuntimeException("Missing parameter color in path");
+
 
     // Generate the uri
     String uri = "/path/simple/noexplode/array/{color}";
     uri = uri.replace("{color}", this.renderPathArraySimple("color", color));
+
     HttpRequest request = client.get(uri);
 
     MultiMap requestCookies = new CaseInsensitiveHeaders();
 
 
     this.renderAndAttachCookieHeader(request, requestCookies);
-
     request.send(handler);
-
   }
 
-  public void pathSimpleNoexplodeObject(Map<String, Object> color,
-                                        Handler<AsyncResult<HttpResponse>> handler) {
+  /**
+   * Call path_simple_noexplode_object with empty body.
+   *
+   * @param color   Parameter color inside path
+   * @param handler The handler for the asynchronous request
+   */
+  public void pathSimpleNoexplodeObject(
+    Map<String, Object> color,
+    Handler<AsyncResult<HttpResponse>> handler) {
     // Check required params
     if (color == null) throw new RuntimeException("Missing parameter color in path");
+
 
     // Generate the uri
     String uri = "/path/simple/noexplode/object/{color}";
     uri = uri.replace("{color}", this.renderPathObjectSimple("color", color));
+
     HttpRequest request = client.get(uri);
 
     MultiMap requestCookies = new CaseInsensitiveHeaders();
 
 
     this.renderAndAttachCookieHeader(request, requestCookies);
-
     request.send(handler);
-
   }
 
-  public void pathSimpleExplodeString(String color,
-                                      Handler<AsyncResult<HttpResponse>> handler) {
+  /**
+   * Call path_simple_explode_string with empty body.
+   *
+   * @param color   Parameter color inside path
+   * @param handler The handler for the asynchronous request
+   */
+  public void pathSimpleExplodeString(
+    String color,
+    Handler<AsyncResult<HttpResponse>> handler) {
     // Check required params
     if (color == null) throw new RuntimeException("Missing parameter color in path");
+
 
     // Generate the uri
     String uri = "/path/simple/explode/string/{color}";
     uri = uri.replace("{color}", this.renderPathParam("color", color));
+
     HttpRequest request = client.get(uri);
 
     MultiMap requestCookies = new CaseInsensitiveHeaders();
 
 
     this.renderAndAttachCookieHeader(request, requestCookies);
-
     request.send(handler);
-
   }
 
-  public void pathSimpleExplodeArray(List<Object> color,
-                                     Handler<AsyncResult<HttpResponse>> handler) {
+  /**
+   * Call path_simple_explode_array with empty body.
+   *
+   * @param color   Parameter color inside path
+   * @param handler The handler for the asynchronous request
+   */
+  public void pathSimpleExplodeArray(
+    List<Object> color,
+    Handler<AsyncResult<HttpResponse>> handler) {
     // Check required params
     if (color == null) throw new RuntimeException("Missing parameter color in path");
+
 
     // Generate the uri
     String uri = "/path/simple/explode/array/{color}";
     uri = uri.replace("{color}", this.renderPathArraySimpleExplode("color", color));
+
     HttpRequest request = client.get(uri);
 
     MultiMap requestCookies = new CaseInsensitiveHeaders();
 
 
     this.renderAndAttachCookieHeader(request, requestCookies);
-
     request.send(handler);
-
   }
 
-  public void pathSimpleExplodeObject(Map<String, Object> color,
-                                      Handler<AsyncResult<HttpResponse>> handler) {
+  /**
+   * Call path_simple_explode_object with empty body.
+   *
+   * @param color   Parameter color inside path
+   * @param handler The handler for the asynchronous request
+   */
+  public void pathSimpleExplodeObject(
+    Map<String, Object> color,
+    Handler<AsyncResult<HttpResponse>> handler) {
     // Check required params
     if (color == null) throw new RuntimeException("Missing parameter color in path");
+
 
     // Generate the uri
     String uri = "/path/simple/explode/object/{color}";
     uri = uri.replace("{color}", this.renderPathObjectSimpleExplode("color", color));
+
     HttpRequest request = client.get(uri);
 
     MultiMap requestCookies = new CaseInsensitiveHeaders();
 
 
     this.renderAndAttachCookieHeader(request, requestCookies);
-
     request.send(handler);
-
   }
 
-  public void queryFormNoexplodeEmpty(String color,
-                                      Handler<AsyncResult<HttpResponse>> handler) {
+  /**
+   * Call path_multi_simple_label with empty body.
+   *
+   * @param colorSimple Parameter color_simple inside path
+   * @param colorLabel  Parameter color_label inside path
+   * @param handler     The handler for the asynchronous request
+   */
+  public void pathMultiSimpleLabel(
+    String colorSimple,
+    List<Object> colorLabel,
+    Handler<AsyncResult<HttpResponse>> handler) {
+    // Check required params
+    if (colorSimple == null) throw new RuntimeException("Missing parameter colorSimple in path");
+    if (colorLabel == null) throw new RuntimeException("Missing parameter colorLabel in path");
+
+
+    // Generate the uri
+    String uri = "/path/multi/{color_simple}{color_label}/test";
+    uri = uri.replace("{color_simple}", this.renderPathParam("color_simple", colorSimple));
+    uri = uri.replace("{color_label}", this.renderPathArrayLabel("color_label", colorLabel));
+
+    HttpRequest request = client.get(uri);
+
+    MultiMap requestCookies = new CaseInsensitiveHeaders();
+
+
+    this.renderAndAttachCookieHeader(request, requestCookies);
+    request.send(handler);
+  }
+
+  /**
+   * Call path_multi_simple_matrix with empty body.
+   *
+   * @param colorSimple Parameter color_simple inside path
+   * @param colorMatrix Parameter color_matrix inside path
+   * @param handler     The handler for the asynchronous request
+   */
+  public void pathMultiSimpleMatrix(
+    String colorSimple,
+    List<Object> colorMatrix,
+    Handler<AsyncResult<HttpResponse>> handler) {
+    // Check required params
+    if (colorSimple == null) throw new RuntimeException("Missing parameter colorSimple in path");
+    if (colorMatrix == null) throw new RuntimeException("Missing parameter colorMatrix in path");
+
+
+    // Generate the uri
+    String uri = "/path/multi/{color_simple}{color_matrix}/test";
+    uri = uri.replace("{color_simple}", this.renderPathParam("color_simple", colorSimple));
+    uri = uri.replace("{color_matrix}", this.renderPathArrayMatrix("color_matrix", colorMatrix));
+
+    HttpRequest request = client.get(uri);
+
+    MultiMap requestCookies = new CaseInsensitiveHeaders();
+
+
+    this.renderAndAttachCookieHeader(request, requestCookies);
+    request.send(handler);
+  }
+
+  /**
+   * Call path_multi_label_matrix with empty body.
+   *
+   * @param colorLabel  Parameter color_label inside path
+   * @param colorMatrix Parameter color_matrix inside path
+   * @param handler     The handler for the asynchronous request
+   */
+  public void pathMultiLabelMatrix(
+    List<Object> colorLabel,
+    Map<String, Object> colorMatrix,
+    Handler<AsyncResult<HttpResponse>> handler) {
+    // Check required params
+    if (colorLabel == null) throw new RuntimeException("Missing parameter colorLabel in path");
+    if (colorMatrix == null) throw new RuntimeException("Missing parameter colorMatrix in path");
+
+
+    // Generate the uri
+    String uri = "/path/multi/{color_label}{color_matrix}/test";
+    uri = uri.replace("{color_label}", this.renderPathArrayLabel("color_label", colorLabel));
+    uri = uri.replace("{color_matrix}", this.renderPathObjectMatrixExplode("color_matrix", colorMatrix));
+
+    HttpRequest request = client.get(uri);
+
+    MultiMap requestCookies = new CaseInsensitiveHeaders();
+
+
+    this.renderAndAttachCookieHeader(request, requestCookies);
+    request.send(handler);
+  }
+
+  /**
+   * Call query_form_noexplode_empty with empty body.
+   *
+   * @param color   Parameter color inside query
+   * @param handler The handler for the asynchronous request
+   */
+  public void queryFormNoexplodeEmpty(
+    String color,
+    Handler<AsyncResult<HttpResponse>> handler) {
     // Check required params
     if (color == null) throw new RuntimeException("Missing parameter color");
+
 
     // Generate the uri
     String uri = "/query/form/noexplode/empty";
+
     HttpRequest request = client.get(uri);
 
     MultiMap requestCookies = new CaseInsensitiveHeaders();
-    this.addQueryParam("color", color, request);
+    if (color != null) this.addQueryParam("color", color, request);
 
 
     this.renderAndAttachCookieHeader(request, requestCookies);
-
     request.send(handler);
-
   }
 
-  public void queryFormNoexplodeString(String color,
-                                       Handler<AsyncResult<HttpResponse>> handler) {
+  /**
+   * Call query_form_noexplode_string with empty body.
+   *
+   * @param color   Parameter color inside query
+   * @param handler The handler for the asynchronous request
+   */
+  public void queryFormNoexplodeString(
+    String color,
+    Handler<AsyncResult<HttpResponse>> handler) {
     // Check required params
     if (color == null) throw new RuntimeException("Missing parameter color");
+
 
     // Generate the uri
     String uri = "/query/form/noexplode/string";
+
     HttpRequest request = client.get(uri);
 
     MultiMap requestCookies = new CaseInsensitiveHeaders();
-    this.addQueryParam("color", color, request);
+    if (color != null) this.addQueryParam("color", color, request);
 
 
     this.renderAndAttachCookieHeader(request, requestCookies);
-
     request.send(handler);
-
   }
 
-  public void queryFormNoexplodeArray(List<Object> color,
-                                      Handler<AsyncResult<HttpResponse>> handler) {
+  /**
+   * Call query_form_noexplode_array with empty body.
+   *
+   * @param color   Parameter color inside query
+   * @param handler The handler for the asynchronous request
+   */
+  public void queryFormNoexplodeArray(
+    List<Object> color,
+    Handler<AsyncResult<HttpResponse>> handler) {
     // Check required params
     if (color == null) throw new RuntimeException("Missing parameter color");
+
 
     // Generate the uri
     String uri = "/query/form/noexplode/array";
+
     HttpRequest request = client.get(uri);
 
     MultiMap requestCookies = new CaseInsensitiveHeaders();
-    this.addQueryArrayForm("color", color, request);
+    if (color != null) this.addQueryArrayForm("color", color, request);
 
 
     this.renderAndAttachCookieHeader(request, requestCookies);
-
     request.send(handler);
-
   }
 
-  public void queryFormNoexplodeObject(Map<String, Object> color,
-                                       Handler<AsyncResult<HttpResponse>> handler) {
+  /**
+   * Call query_form_noexplode_object with empty body.
+   *
+   * @param color   Parameter color inside query
+   * @param handler The handler for the asynchronous request
+   */
+  public void queryFormNoexplodeObject(
+    Map<String, Object> color,
+    Handler<AsyncResult<HttpResponse>> handler) {
     // Check required params
     if (color == null) throw new RuntimeException("Missing parameter color");
+
 
     // Generate the uri
     String uri = "/query/form/noexplode/object";
+
     HttpRequest request = client.get(uri);
 
     MultiMap requestCookies = new CaseInsensitiveHeaders();
-    this.addQueryObjectForm("color", color, request);
+    if (color != null) this.addQueryObjectForm("color", color, request);
 
 
     this.renderAndAttachCookieHeader(request, requestCookies);
-
     request.send(handler);
-
   }
 
-  public void queryFormExplodeEmpty(String color,
-                                    Handler<AsyncResult<HttpResponse>> handler) {
+  /**
+   * Call query_form_explode_empty with empty body.
+   *
+   * @param color   Parameter color inside query
+   * @param handler The handler for the asynchronous request
+   */
+  public void queryFormExplodeEmpty(
+    String color,
+    Handler<AsyncResult<HttpResponse>> handler) {
     // Check required params
     if (color == null) throw new RuntimeException("Missing parameter color");
+
 
     // Generate the uri
     String uri = "/query/form/explode/empty";
+
     HttpRequest request = client.get(uri);
 
     MultiMap requestCookies = new CaseInsensitiveHeaders();
-    this.addQueryParam("color", color, request);
+    if (color != null) this.addQueryParam("color", color, request);
 
 
     this.renderAndAttachCookieHeader(request, requestCookies);
-
     request.send(handler);
-
   }
 
-  public void queryFormExplodeString(String color,
-                                     Handler<AsyncResult<HttpResponse>> handler) {
+  /**
+   * Call query_form_explode_string with empty body.
+   *
+   * @param color   Parameter color inside query
+   * @param handler The handler for the asynchronous request
+   */
+  public void queryFormExplodeString(
+    String color,
+    Handler<AsyncResult<HttpResponse>> handler) {
     // Check required params
     if (color == null) throw new RuntimeException("Missing parameter color");
+
 
     // Generate the uri
     String uri = "/query/form/explode/string";
+
     HttpRequest request = client.get(uri);
 
     MultiMap requestCookies = new CaseInsensitiveHeaders();
-    this.addQueryParam("color", color, request);
+    if (color != null) this.addQueryParam("color", color, request);
 
 
     this.renderAndAttachCookieHeader(request, requestCookies);
-
     request.send(handler);
-
   }
 
-  public void queryFormExplodeArray(List<Object> color,
-                                    Handler<AsyncResult<HttpResponse>> handler) {
+  /**
+   * Call query_form_explode_array with empty body.
+   *
+   * @param color   Parameter color inside query
+   * @param handler The handler for the asynchronous request
+   */
+  public void queryFormExplodeArray(
+    List<Object> color,
+    Handler<AsyncResult<HttpResponse>> handler) {
     // Check required params
     if (color == null) throw new RuntimeException("Missing parameter color");
+
 
     // Generate the uri
     String uri = "/query/form/explode/array";
+
     HttpRequest request = client.get(uri);
 
     MultiMap requestCookies = new CaseInsensitiveHeaders();
-    this.addQueryArrayFormExplode("color", color, request);
+    if (color != null) this.addQueryArrayFormExplode("color", color, request);
 
 
     this.renderAndAttachCookieHeader(request, requestCookies);
-
     request.send(handler);
-
   }
 
-  public void queryFormExplodeObject(Map<String, Object> color,
-                                     Handler<AsyncResult<HttpResponse>> handler) {
+  /**
+   * Call query_form_explode_object with empty body.
+   *
+   * @param color   Parameter color inside query
+   * @param handler The handler for the asynchronous request
+   */
+  public void queryFormExplodeObject(
+    Map<String, Object> color,
+    Handler<AsyncResult<HttpResponse>> handler) {
     // Check required params
     if (color == null) throw new RuntimeException("Missing parameter color");
+
 
     // Generate the uri
     String uri = "/query/form/explode/object";
+
     HttpRequest request = client.get(uri);
 
     MultiMap requestCookies = new CaseInsensitiveHeaders();
-    this.addQueryObjectFormExplode("color", color, request);
+    if (color != null) this.addQueryObjectFormExplode("color", color, request);
 
 
     this.renderAndAttachCookieHeader(request, requestCookies);
-
     request.send(handler);
-
   }
 
-  public void querySpaceDelimitedNoexplodeArray(List<Object> color,
-                                                Handler<AsyncResult<HttpResponse>> handler) {
+  /**
+   * Call query_spaceDelimited_noexplode_array with empty body.
+   *
+   * @param color   Parameter color inside query
+   * @param handler The handler for the asynchronous request
+   */
+  public void querySpaceDelimitedNoexplodeArray(
+    List<Object> color,
+    Handler<AsyncResult<HttpResponse>> handler) {
     // Check required params
     if (color == null) throw new RuntimeException("Missing parameter color");
+
 
     // Generate the uri
     String uri = "/query/spaceDelimited/noexplode/array";
+
     HttpRequest request = client.get(uri);
 
     MultiMap requestCookies = new CaseInsensitiveHeaders();
-    this.addQueryArraySpaceDelimited("color", color, request);
+    if (color != null) this.addQueryArraySpaceDelimited("color", color, request);
 
 
     this.renderAndAttachCookieHeader(request, requestCookies);
-
     request.send(handler);
-
   }
 
-  public void querySpaceDelimitedNoexplodeObject(Map<String, Object> color,
-                                                 Handler<AsyncResult<HttpResponse>> handler) {
+  /**
+   * Call query_spaceDelimited_noexplode_object with empty body.
+   *
+   * @param color   Parameter color inside query
+   * @param handler The handler for the asynchronous request
+   */
+  public void querySpaceDelimitedNoexplodeObject(
+    Map<String, Object> color,
+    Handler<AsyncResult<HttpResponse>> handler) {
     // Check required params
     if (color == null) throw new RuntimeException("Missing parameter color");
+
 
     // Generate the uri
     String uri = "/query/spaceDelimited/noexplode/object";
+
     HttpRequest request = client.get(uri);
 
     MultiMap requestCookies = new CaseInsensitiveHeaders();
-    this.addQueryObjectSpaceDelimited("color", color, request);
+    if (color != null) this.addQueryObjectSpaceDelimited("color", color, request);
 
 
     this.renderAndAttachCookieHeader(request, requestCookies);
-
     request.send(handler);
-
   }
 
-  public void queryPipeDelimitedNoexplodeArray(List<Object> color,
-                                               Handler<AsyncResult<HttpResponse>> handler) {
+  /**
+   * Call query_pipeDelimited_noexplode_array with empty body.
+   *
+   * @param color   Parameter color inside query
+   * @param handler The handler for the asynchronous request
+   */
+  public void queryPipeDelimitedNoexplodeArray(
+    List<Object> color,
+    Handler<AsyncResult<HttpResponse>> handler) {
     // Check required params
     if (color == null) throw new RuntimeException("Missing parameter color");
+
 
     // Generate the uri
     String uri = "/query/pipeDelimited/noexplode/array";
+
     HttpRequest request = client.get(uri);
 
     MultiMap requestCookies = new CaseInsensitiveHeaders();
-    this.addQueryArrayPipeDelimited("color", color, request);
+    if (color != null) this.addQueryArrayPipeDelimited("color", color, request);
 
 
     this.renderAndAttachCookieHeader(request, requestCookies);
-
     request.send(handler);
-
   }
 
-  public void queryPipeDelimitedNoexplodeObject(Map<String, Object> color,
-                                                Handler<AsyncResult<HttpResponse>> handler) {
+  /**
+   * Call query_pipeDelimited_noexplode_object with empty body.
+   *
+   * @param color   Parameter color inside query
+   * @param handler The handler for the asynchronous request
+   */
+  public void queryPipeDelimitedNoexplodeObject(
+    Map<String, Object> color,
+    Handler<AsyncResult<HttpResponse>> handler) {
     // Check required params
     if (color == null) throw new RuntimeException("Missing parameter color");
+
 
     // Generate the uri
     String uri = "/query/pipeDelimited/noexplode/object";
+
     HttpRequest request = client.get(uri);
 
     MultiMap requestCookies = new CaseInsensitiveHeaders();
-    this.addQueryObjectPipeDelimited("color", color, request);
+    if (color != null) this.addQueryObjectPipeDelimited("color", color, request);
 
 
     this.renderAndAttachCookieHeader(request, requestCookies);
-
     request.send(handler);
-
   }
 
-  public void queryDeepObjectExplodeObject(Map<String, Object> color,
-                                           Handler<AsyncResult<HttpResponse>> handler) {
+  /**
+   * Call query_deepObject_explode_object with empty body.
+   *
+   * @param color   Parameter color inside query
+   * @param handler The handler for the asynchronous request
+   */
+  public void queryDeepObjectExplodeObject(
+    Map<String, Object> color,
+    Handler<AsyncResult<HttpResponse>> handler) {
     // Check required params
     if (color == null) throw new RuntimeException("Missing parameter color");
+
 
     // Generate the uri
     String uri = "/query/deepObject/explode/object";
+
     HttpRequest request = client.get(uri);
 
     MultiMap requestCookies = new CaseInsensitiveHeaders();
-    this.addQueryObjectDeepObjectExplode("color", color, request);
+    if (color != null) this.addQueryObjectDeepObjectExplode("color", color, request);
 
 
     this.renderAndAttachCookieHeader(request, requestCookies);
-
     request.send(handler);
-
   }
 
-  public void cookieFormNoexplodeEmpty(String color,
-                                       Handler<AsyncResult<HttpResponse>> handler) {
+  /**
+   * Call cookie_form_noexplode_empty with empty body.
+   *
+   * @param color   Parameter color inside cookie
+   * @param handler The handler for the asynchronous request
+   */
+  public void cookieFormNoexplodeEmpty(
+    String color,
+    Handler<AsyncResult<HttpResponse>> handler) {
     // Check required params
     if (color == null) throw new RuntimeException("Missing parameter color");
+
 
     // Generate the uri
     String uri = "/cookie/form/noexplode/empty";
+
     HttpRequest request = client.get(uri);
 
     MultiMap requestCookies = new CaseInsensitiveHeaders();
-    this.renderCookieParam("color", color, requestCookies);
+    if (color != null) this.renderCookieParam("color", color, requestCookies);
 
 
     this.renderAndAttachCookieHeader(request, requestCookies);
-
     request.send(handler);
-
   }
 
-  public void cookieFormNoexplodeString(String color,
-                                        Handler<AsyncResult<HttpResponse>> handler) {
+  /**
+   * Call cookie_form_noexplode_string with empty body.
+   *
+   * @param color   Parameter color inside cookie
+   * @param handler The handler for the asynchronous request
+   */
+  public void cookieFormNoexplodeString(
+    String color,
+    Handler<AsyncResult<HttpResponse>> handler) {
     // Check required params
     if (color == null) throw new RuntimeException("Missing parameter color");
+
 
     // Generate the uri
     String uri = "/cookie/form/noexplode/string";
+
     HttpRequest request = client.get(uri);
 
     MultiMap requestCookies = new CaseInsensitiveHeaders();
-    this.renderCookieParam("color", color, requestCookies);
+    if (color != null) this.renderCookieParam("color", color, requestCookies);
 
 
     this.renderAndAttachCookieHeader(request, requestCookies);
-
     request.send(handler);
-
   }
 
-  public void cookieFormNoexplodeArray(List<Object> color,
-                                       Handler<AsyncResult<HttpResponse>> handler) {
+  /**
+   * Call cookie_form_noexplode_array with empty body.
+   *
+   * @param color   Parameter color inside cookie
+   * @param handler The handler for the asynchronous request
+   */
+  public void cookieFormNoexplodeArray(
+    List<Object> color,
+    Handler<AsyncResult<HttpResponse>> handler) {
     // Check required params
     if (color == null) throw new RuntimeException("Missing parameter color");
+
 
     // Generate the uri
     String uri = "/cookie/form/noexplode/array";
+
     HttpRequest request = client.get(uri);
 
     MultiMap requestCookies = new CaseInsensitiveHeaders();
-    this.renderCookieArrayForm("color", color, requestCookies);
+    if (color != null) this.renderCookieArrayForm("color", color, requestCookies);
 
 
     this.renderAndAttachCookieHeader(request, requestCookies);
-
     request.send(handler);
-
   }
 
-  public void cookieFormNoexplodeObject(Map<String, Object> color,
-                                        Handler<AsyncResult<HttpResponse>> handler) {
+  /**
+   * Call cookie_form_noexplode_object with empty body.
+   *
+   * @param color   Parameter color inside cookie
+   * @param handler The handler for the asynchronous request
+   */
+  public void cookieFormNoexplodeObject(
+    Map<String, Object> color,
+    Handler<AsyncResult<HttpResponse>> handler) {
     // Check required params
     if (color == null) throw new RuntimeException("Missing parameter color");
+
 
     // Generate the uri
     String uri = "/cookie/form/noexplode/object";
+
     HttpRequest request = client.get(uri);
 
     MultiMap requestCookies = new CaseInsensitiveHeaders();
-    this.renderCookieObjectForm("color", color, requestCookies);
+    if (color != null) this.renderCookieObjectForm("color", color, requestCookies);
 
 
     this.renderAndAttachCookieHeader(request, requestCookies);
-
     request.send(handler);
-
   }
 
-  public void cookieFormExplodeEmpty(String color,
-                                     Handler<AsyncResult<HttpResponse>> handler) {
+  /**
+   * Call cookie_form_explode_empty with empty body.
+   *
+   * @param color   Parameter color inside cookie
+   * @param handler The handler for the asynchronous request
+   */
+  public void cookieFormExplodeEmpty(
+    String color,
+    Handler<AsyncResult<HttpResponse>> handler) {
     // Check required params
     if (color == null) throw new RuntimeException("Missing parameter color");
+
 
     // Generate the uri
     String uri = "/cookie/form/explode/empty";
+
     HttpRequest request = client.get(uri);
 
     MultiMap requestCookies = new CaseInsensitiveHeaders();
-    this.renderCookieParam("color", color, requestCookies);
+    if (color != null) this.renderCookieParam("color", color, requestCookies);
 
 
     this.renderAndAttachCookieHeader(request, requestCookies);
-
     request.send(handler);
-
   }
 
-  public void cookieFormExplodeString(String color,
-                                      Handler<AsyncResult<HttpResponse>> handler) {
+  /**
+   * Call cookie_form_explode_string with empty body.
+   *
+   * @param color   Parameter color inside cookie
+   * @param handler The handler for the asynchronous request
+   */
+  public void cookieFormExplodeString(
+    String color,
+    Handler<AsyncResult<HttpResponse>> handler) {
     // Check required params
     if (color == null) throw new RuntimeException("Missing parameter color");
+
 
     // Generate the uri
     String uri = "/cookie/form/explode/string";
+
     HttpRequest request = client.get(uri);
 
     MultiMap requestCookies = new CaseInsensitiveHeaders();
-    this.renderCookieParam("color", color, requestCookies);
+    if (color != null) this.renderCookieParam("color", color, requestCookies);
 
 
     this.renderAndAttachCookieHeader(request, requestCookies);
-
     request.send(handler);
-
   }
 
-  public void cookieFormExplodeArray(List<Object> color,
-                                     Handler<AsyncResult<HttpResponse>> handler) {
+  /**
+   * Call cookie_form_explode_array with empty body.
+   *
+   * @param color   Parameter color inside cookie
+   * @param handler The handler for the asynchronous request
+   */
+  public void cookieFormExplodeArray(
+    List<Object> color,
+    Handler<AsyncResult<HttpResponse>> handler) {
     // Check required params
     if (color == null) throw new RuntimeException("Missing parameter color");
+
 
     // Generate the uri
     String uri = "/cookie/form/explode/array";
+
     HttpRequest request = client.get(uri);
 
     MultiMap requestCookies = new CaseInsensitiveHeaders();
-    this.renderCookieArrayFormExplode("color", color, requestCookies);
+    if (color != null) this.renderCookieArrayFormExplode("color", color, requestCookies);
 
 
     this.renderAndAttachCookieHeader(request, requestCookies);
-
     request.send(handler);
-
   }
 
-  public void cookieFormExplodeObject(Map<String, Object> color,
-                                      Handler<AsyncResult<HttpResponse>> handler) {
+  /**
+   * Call cookie_form_explode_object with empty body.
+   *
+   * @param color   Parameter color inside cookie
+   * @param handler The handler for the asynchronous request
+   */
+  public void cookieFormExplodeObject(
+    Map<String, Object> color,
+    Handler<AsyncResult<HttpResponse>> handler) {
     // Check required params
     if (color == null) throw new RuntimeException("Missing parameter color");
+
 
     // Generate the uri
     String uri = "/cookie/form/explode/object";
+
     HttpRequest request = client.get(uri);
 
     MultiMap requestCookies = new CaseInsensitiveHeaders();
-    this.renderCookieObjectFormExplode("color", color, requestCookies);
+    if (color != null) this.renderCookieObjectFormExplode("color", color, requestCookies);
 
 
     this.renderAndAttachCookieHeader(request, requestCookies);
-
     request.send(handler);
-
   }
 
-  public void headerSimpleNoexplodeString(String color,
-                                          Handler<AsyncResult<HttpResponse>> handler) {
+  /**
+   * Call header_simple_noexplode_string with empty body.
+   *
+   * @param color   Parameter color inside header
+   * @param handler The handler for the asynchronous request
+   */
+  public void headerSimpleNoexplodeString(
+    String color,
+    Handler<AsyncResult<HttpResponse>> handler) {
     // Check required params
     if (color == null) throw new RuntimeException("Missing parameter color");
+
 
     // Generate the uri
     String uri = "/header/simple/noexplode/string";
+
     HttpRequest request = client.get(uri);
 
     MultiMap requestCookies = new CaseInsensitiveHeaders();
-    this.addHeaderParam("color", color, request);
+    if (color != null) this.addHeaderParam("color", color, request);
 
 
     this.renderAndAttachCookieHeader(request, requestCookies);
-
     request.send(handler);
-
   }
 
-  public void headerSimpleNoexplodeArray(List<Object> color,
-                                         Handler<AsyncResult<HttpResponse>> handler) {
+  /**
+   * Call header_simple_noexplode_array with empty body.
+   *
+   * @param color   Parameter color inside header
+   * @param handler The handler for the asynchronous request
+   */
+  public void headerSimpleNoexplodeArray(
+    List<Object> color,
+    Handler<AsyncResult<HttpResponse>> handler) {
     // Check required params
     if (color == null) throw new RuntimeException("Missing parameter color");
+
 
     // Generate the uri
     String uri = "/header/simple/noexplode/array";
+
     HttpRequest request = client.get(uri);
 
     MultiMap requestCookies = new CaseInsensitiveHeaders();
-    this.addHeaderArraySimple("color", color, request);
+    if (color != null) this.addHeaderArraySimple("color", color, request);
 
 
     this.renderAndAttachCookieHeader(request, requestCookies);
-
     request.send(handler);
-
   }
 
-  public void headerSimpleNoexplodeObject(Map<String, Object> color,
-                                          Handler<AsyncResult<HttpResponse>> handler) {
+  /**
+   * Call header_simple_noexplode_object with empty body.
+   *
+   * @param color   Parameter color inside header
+   * @param handler The handler for the asynchronous request
+   */
+  public void headerSimpleNoexplodeObject(
+    Map<String, Object> color,
+    Handler<AsyncResult<HttpResponse>> handler) {
     // Check required params
     if (color == null) throw new RuntimeException("Missing parameter color");
+
 
     // Generate the uri
     String uri = "/header/simple/noexplode/object";
+
     HttpRequest request = client.get(uri);
 
     MultiMap requestCookies = new CaseInsensitiveHeaders();
-    this.addHeaderObjectSimple("color", color, request);
+    if (color != null) this.addHeaderObjectSimple("color", color, request);
 
 
     this.renderAndAttachCookieHeader(request, requestCookies);
-
     request.send(handler);
-
   }
 
-  public void headerSimpleExplodeString(String color,
-                                        Handler<AsyncResult<HttpResponse>> handler) {
+  /**
+   * Call header_simple_explode_string with empty body.
+   *
+   * @param color   Parameter color inside header
+   * @param handler The handler for the asynchronous request
+   */
+  public void headerSimpleExplodeString(
+    String color,
+    Handler<AsyncResult<HttpResponse>> handler) {
     // Check required params
     if (color == null) throw new RuntimeException("Missing parameter color");
+
 
     // Generate the uri
     String uri = "/header/simple/explode/string";
+
     HttpRequest request = client.get(uri);
 
     MultiMap requestCookies = new CaseInsensitiveHeaders();
-    this.addHeaderParam("color", color, request);
+    if (color != null) this.addHeaderParam("color", color, request);
 
 
     this.renderAndAttachCookieHeader(request, requestCookies);
-
     request.send(handler);
-
   }
 
-  public void headerSimpleExplodeArray(List<Object> color,
-                                       Handler<AsyncResult<HttpResponse>> handler) {
+  /**
+   * Call header_simple_explode_array with empty body.
+   *
+   * @param color   Parameter color inside header
+   * @param handler The handler for the asynchronous request
+   */
+  public void headerSimpleExplodeArray(
+    List<Object> color,
+    Handler<AsyncResult<HttpResponse>> handler) {
     // Check required params
     if (color == null) throw new RuntimeException("Missing parameter color");
+
 
     // Generate the uri
     String uri = "/header/simple/explode/array";
+
     HttpRequest request = client.get(uri);
 
     MultiMap requestCookies = new CaseInsensitiveHeaders();
-    this.addHeaderArraySimpleExplode("color", color, request);
+    if (color != null) this.addHeaderArraySimpleExplode("color", color, request);
 
 
     this.renderAndAttachCookieHeader(request, requestCookies);
-
     request.send(handler);
-
   }
 
-  public void headerSimpleExplodeObject(Map<String, Object> color,
-                                        Handler<AsyncResult<HttpResponse>> handler) {
+  /**
+   * Call header_simple_explode_object with empty body.
+   *
+   * @param color   Parameter color inside header
+   * @param handler The handler for the asynchronous request
+   */
+  public void headerSimpleExplodeObject(
+    Map<String, Object> color,
+    Handler<AsyncResult<HttpResponse>> handler) {
     // Check required params
     if (color == null) throw new RuntimeException("Missing parameter color");
 
+
     // Generate the uri
     String uri = "/header/simple/explode/object";
+
     HttpRequest request = client.get(uri);
 
     MultiMap requestCookies = new CaseInsensitiveHeaders();
-    this.addHeaderObjectSimpleExplode("color", color, request);
+    if (color != null) this.addHeaderObjectSimpleExplode("color", color, request);
 
 
     this.renderAndAttachCookieHeader(request, requestCookies);
-
     request.send(handler);
-
   }
-
-  // Security requirements functions
-  // Security parameters functions
 
 
   // Parameters functions
 
+  /**
+   * Remove a cookie parameter from the cookie cache
+   *
+   * @param paramName name of cookie parameter
+   */
   public void removeCookie(String paramName) {
     cookieParams.remove(paramName);
   }
@@ -990,6 +1425,12 @@ public class ApiClient {
     request.addQueryParam(paramName, String.valueOf(value));
   }
 
+  /**
+   * Add a cookie param in cookie cache
+   *
+   * @param paramName name of cookie parameter
+   * @param value     value of cookie parameter
+   */
   public void addCookieParam(String paramName, Object value) {
     renderCookieParam(paramName, value, cookieParams);
   }
@@ -1313,6 +1754,12 @@ public class ApiClient {
     map.add(paramName, value);
   }
 
+  /**
+   * Add a cookie array parameter in cookie cache
+   *
+   * @param paramName name of cookie parameter
+   * @param values    list of values of cookie parameter
+   */
   public void addCookieArrayForm(String paramName, List<Object> values) {
     renderCookieArrayForm(paramName, values, cookieParams);
   }
@@ -1338,6 +1785,12 @@ public class ApiClient {
     map.add(paramName, value);
   }
 
+  /**
+   * Add a cookie object parameter in cookie cache
+   *
+   * @param paramName name of cookie parameter
+   * @param values    map of values of cookie parameter
+   */
   public void addCookieObjectForm(String paramName, Map<String, Object> values) {
     renderCookieObjectForm(paramName, values, cookieParams);
   }
@@ -1454,10 +1907,10 @@ public class ApiClient {
 
   /**
    * Add header array with simple style and exploded
-   *
-   +----------------+---------+---------------+-------------------------------------+----------------------------------------+
-   | simple         | true    | path, header  | blue,black,brown                    | R=100,G=200,B=150                      |
-   +----------------+---------+---------------+-------------------------------------+----------------------------------------+
+   * <p>
+   * +----------------+---------+---------------+-------------------------------------+----------------------------------------+
+   * | simple         | true    | path, header  | blue,black,brown                    | R=100,G=200,B=150                      |
+   * +----------------+---------+---------------+-------------------------------------+----------------------------------------+
    *
    * @param headerName
    * @param values
@@ -1612,6 +2065,10 @@ public class ApiClient {
         }
     }
 
+    /**
+     * Close the connection with server
+     *
+     */
     public void close() {
         client.close();
     }

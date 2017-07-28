@@ -539,6 +539,177 @@ paths:
         default:
           description: Default response
 
+  /path/multi/{color_simple}{color_label}/test:
+    get:
+      parameters:
+        - name: color_simple
+          x-test: string
+          in: path
+          required: true
+          examples:
+            value:
+              $ref: "#/components/examples/Value"
+            spec:
+              value: "blue"
+          schema:
+            $ref: "#/components/schemas/Color"
+          style: simple
+          explode: false
+        - name: color_label
+          x-test: array
+          in: path
+          required: true
+          examples:
+            value:
+              $ref: "#/components/examples/Array"
+            spec:
+              value: ".blue.black.brown"
+          schema:
+            $ref: "#/components/schemas/ColorArray"
+          style: label
+          explode: false
+      operationId: path_multi_simple_label
+      responses:
+        200:
+          description: Validation successful
+          content:
+            application/json:
+              example:
+                color_simple: "blue"
+                color_label:
+                  - "blue"
+                  - "black"
+                  - "brown"
+              schema:
+                type: object
+                properties:
+                  color_simple:
+                    $ref: "#/components/schemas/Color"
+                  color_label:
+                    $ref: "#/components/schemas/ColorArray"
+                required:
+                  - color_simple
+                  - color_label
+        400:
+          description: Wrong validation
+        default:
+          description: Default response
+
+  /path/multi/{color_simple}{color_matrix}/test:
+    get:
+      parameters:
+        - name: color_simple
+          x-test: string
+          in: path
+          required: true
+          examples:
+            value:
+              $ref: "#/components/examples/Value"
+            spec:
+              value: "blue"
+          schema:
+            $ref: "#/components/schemas/Color"
+          style: simple
+          explode: false
+        - name: color_matrix
+          x-test: array
+          in: path
+          required: true
+          examples:
+            value:
+              $ref: "#/components/examples/Array"
+            spec:
+              value: ";color=blue,black,brown"
+          schema:
+            $ref: "#/components/schemas/ColorArray"
+          style: matrix
+          explode: false
+      operationId: path_multi_simple_matrix
+      responses:
+        200:
+          description: Validation successful
+          content:
+            application/json:
+              example:
+                color_simple: "blue"
+                color_matrix:
+                  - "blue"
+                  - "black"
+                  - "brown"
+              schema:
+                type: object
+                properties:
+                  color_simple:
+                    $ref: "#/components/schemas/Color"
+                  color_matrix:
+                    $ref: "#/components/schemas/ColorArray"
+                required:
+                  - color_simple
+                  - color_matrix
+        400:
+          description: Wrong validation
+        default:
+          description: Default response
+
+  /path/multi/{color_label}{color_matrix}/test:
+    get:
+      parameters:
+        - name: color_label
+          x-test: array
+          in: path
+          required: true
+          examples:
+            value:
+              $ref: "#/components/examples/Array"
+            spec:
+              value: ".blue.black.brown"
+          schema:
+            $ref: "#/components/schemas/ColorArray"
+          style: label
+          explode: false
+        - name: color_matrix
+          x-test: object
+          in: path
+          required: true
+          examples:
+            value:
+              $ref: "#/components/examples/Object"
+            spec:
+              value: ";R=100;G=200;B=150"
+          schema:
+            $ref: "#/components/schemas/ColorObject"
+          style: matrix
+          explode: true
+      operationId: path_multi_label_matrix
+      responses:
+        200:
+          description: Validation successful
+          content:
+            application/json:
+              example:
+                color_label:
+                  - "blue"
+                  - "black"
+                  - "brown"
+                color_matrix:
+                  R: "100"
+                  G: "200"
+                  B: "150"
+
+              schema:
+                type: object
+                properties:
+                  color_label:
+                    $ref: "#/components/schemas/ColorArray"
+                  color_matrix:
+                    $ref: "#/components/schemas/ColorObject"
+                required:
+                  - color_label
+                  - color_matrix
+        400:
+          description: Wrong validation
+        default:
+          description: Default response
 
   '/query/form/noexplode/empty':
     get:

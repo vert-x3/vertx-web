@@ -1167,6 +1167,188 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
   }
 
   /**
+   * Test: path_multi_simple_label
+   * Expected parameters sent:
+   * color_simple: blue
+   * color_label: .blue.black.brown
+   * Expected response: {"color_simple":"blue","color_label":["blue","black","brown"]}
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testPathMultiSimpleLabel() throws Exception {
+    routerFactory.addHandlerByOperationId("path_multi_simple_label", routingContext -> {
+      RequestParameters params = routingContext.get("parsedParameters");
+      JsonObject res = new JsonObject();
+
+      RequestParameter colorSimple_path = params.pathParameter("color_simple");
+      assertNotNull(colorSimple_path);
+      assertTrue(colorSimple_path.isString());
+      assertEquals(colorSimple_path.getString(), "blue");
+      res.put("color_simple", colorSimple_path.getString());
+      RequestParameter colorLabel_path = params.pathParameter("color_label");
+      assertNotNull(colorLabel_path);
+      assertTrue(colorLabel_path.isArray());
+      res.put("color_label", new JsonArray(colorLabel_path.getArray().stream().map(param -> param.getString()).collect(Collectors.toList())));
+
+
+      routingContext.response()
+        .setStatusCode(200)
+        .setStatusMessage("OK")
+        .putHeader("content-type", "application/json; charset=utf-8")
+        .end(res.encode());
+    });
+
+    CountDownLatch latch = new CountDownLatch(1);
+
+    String colorSimple_path;
+    colorSimple_path = "blue";
+    List<Object> colorLabel_path;
+    colorLabel_path = new ArrayList<>();
+    colorLabel_path.add("blue");
+    colorLabel_path.add("black");
+    colorLabel_path.add("brown");
+
+
+    startServer();
+
+    apiClient.pathMultiSimpleLabel(colorSimple_path, colorLabel_path, (AsyncResult<HttpResponse> ar) -> {
+      if (ar.succeeded()) {
+        assertEquals(200, ar.result().statusCode());
+        assertTrue("Expected: " + new JsonObject("{\"color_simple\":\"blue\",\"color_label\":[\"blue\",\"black\",\"brown\"]}").encode() + " Actual: " + ar.result().bodyAsJsonObject().encode(), new JsonObject("{\"color_simple\":\"blue\",\"color_label\":[\"blue\",\"black\",\"brown\"]}").equals(ar.result().bodyAsJsonObject()));
+      } else {
+        assertTrue(ar.cause().getMessage(), false);
+      }
+      latch.countDown();
+    });
+    awaitLatch(latch);
+
+  }
+
+  /**
+   * Test: path_multi_simple_matrix
+   * Expected parameters sent:
+   * color_simple: blue
+   * color_matrix: ;color=blue,black,brown
+   * Expected response: {"color_simple":"blue","color_matrix":["blue","black","brown"]}
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testPathMultiSimpleMatrix() throws Exception {
+    routerFactory.addHandlerByOperationId("path_multi_simple_matrix", routingContext -> {
+      RequestParameters params = routingContext.get("parsedParameters");
+      JsonObject res = new JsonObject();
+
+      RequestParameter colorSimple_path = params.pathParameter("color_simple");
+      assertNotNull(colorSimple_path);
+      assertTrue(colorSimple_path.isString());
+      assertEquals(colorSimple_path.getString(), "blue");
+      res.put("color_simple", colorSimple_path.getString());
+      RequestParameter colorMatrix_path = params.pathParameter("color_matrix");
+      assertNotNull(colorMatrix_path);
+      assertTrue(colorMatrix_path.isArray());
+      res.put("color_matrix", new JsonArray(colorMatrix_path.getArray().stream().map(param -> param.getString()).collect(Collectors.toList())));
+
+
+      routingContext.response()
+        .setStatusCode(200)
+        .setStatusMessage("OK")
+        .putHeader("content-type", "application/json; charset=utf-8")
+        .end(res.encode());
+    });
+
+    CountDownLatch latch = new CountDownLatch(1);
+
+    String colorSimple_path;
+    colorSimple_path = "blue";
+    List<Object> colorMatrix_path;
+    colorMatrix_path = new ArrayList<>();
+    colorMatrix_path.add("blue");
+    colorMatrix_path.add("black");
+    colorMatrix_path.add("brown");
+
+
+    startServer();
+
+    apiClient.pathMultiSimpleMatrix(colorSimple_path, colorMatrix_path, (AsyncResult<HttpResponse> ar) -> {
+      if (ar.succeeded()) {
+        assertEquals(200, ar.result().statusCode());
+        assertTrue("Expected: " + new JsonObject("{\"color_simple\":\"blue\",\"color_matrix\":[\"blue\",\"black\",\"brown\"]}").encode() + " Actual: " + ar.result().bodyAsJsonObject().encode(), new JsonObject("{\"color_simple\":\"blue\",\"color_matrix\":[\"blue\",\"black\",\"brown\"]}").equals(ar.result().bodyAsJsonObject()));
+      } else {
+        assertTrue(ar.cause().getMessage(), false);
+      }
+      latch.countDown();
+    });
+    awaitLatch(latch);
+
+  }
+
+  /**
+   * Test: path_multi_label_matrix
+   * Expected parameters sent:
+   * color_label: .blue.black.brown
+   * color_matrix: ;R=100;G=200;B=150
+   * Expected response: {"color_label":["blue","black","brown"],"color_matrix":{"R":"100","G":"200","B":"150"}}
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testPathMultiLabelMatrix() throws Exception {
+    routerFactory.addHandlerByOperationId("path_multi_label_matrix", routingContext -> {
+      RequestParameters params = routingContext.get("parsedParameters");
+      JsonObject res = new JsonObject();
+
+      RequestParameter colorLabel_path = params.pathParameter("color_label");
+      assertNotNull(colorLabel_path);
+      assertTrue(colorLabel_path.isArray());
+      res.put("color_label", new JsonArray(colorLabel_path.getArray().stream().map(param -> param.getString()).collect(Collectors.toList())));
+      RequestParameter colorMatrix_path = params.pathParameter("color_matrix");
+      assertNotNull(colorMatrix_path);
+      assertTrue(colorMatrix_path.isObject());
+      Map<String, String> map = new HashMap<>();
+      for (String key : colorMatrix_path.getObjectKeys())
+        map.put(key, colorMatrix_path.getObjectValue(key).getString());
+      res.put("color_matrix", map);
+
+
+      routingContext.response()
+        .setStatusCode(200)
+        .setStatusMessage("OK")
+        .putHeader("content-type", "application/json; charset=utf-8")
+        .end(res.encode());
+    });
+
+    CountDownLatch latch = new CountDownLatch(1);
+
+    List<Object> colorLabel_path;
+    colorLabel_path = new ArrayList<>();
+    colorLabel_path.add("blue");
+    colorLabel_path.add("black");
+    colorLabel_path.add("brown");
+    Map<String, Object> colorMatrix_path;
+    colorMatrix_path = new HashMap<>();
+    colorMatrix_path.put("R", "100");
+    colorMatrix_path.put("G", "200");
+    colorMatrix_path.put("B", "150");
+
+
+    startServer();
+
+    apiClient.pathMultiLabelMatrix(colorLabel_path, colorMatrix_path, (AsyncResult<HttpResponse> ar) -> {
+      if (ar.succeeded()) {
+        assertEquals(200, ar.result().statusCode());
+        assertTrue("Expected: " + new JsonObject("{\"color_label\":[\"blue\",\"black\",\"brown\"],\"color_matrix\":{\"R\":\"100\",\"G\":\"200\",\"B\":\"150\"}}").encode() + " Actual: " + ar.result().bodyAsJsonObject().encode(), new JsonObject("{\"color_label\":[\"blue\",\"black\",\"brown\"],\"color_matrix\":{\"R\":\"100\",\"G\":\"200\",\"B\":\"150\"}}").equals(ar.result().bodyAsJsonObject()));
+      } else {
+        assertTrue(ar.cause().getMessage(), false);
+      }
+      latch.countDown();
+    });
+    awaitLatch(latch);
+
+  }
+
+  /**
    * Test: query_form_noexplode_empty
    * Expected parameters sent:
    * color: color=
