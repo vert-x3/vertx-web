@@ -80,6 +80,7 @@
     this.reconnectAttempts = 0;
     this.reconnectTimerID = null;
     // adapted from backo
+    this.maxReconnectAttempts = options.vertxbus_reconnect_attempts_max || Infinity;
     this.reconnectDelayMin = options.vertxbus_reconnect_delay_min || 1000;
     this.reconnectDelayMax = options.vertxbus_reconnect_delay_max || 5000;
     this.reconnectExponent = options.vertxbus_reconnect_exponent || 2;
@@ -129,7 +130,7 @@
       self.sockJSConn.onclose = function (e) {
         self.state = EventBus.CLOSED;
         if (self.pingTimerID) clearInterval(self.pingTimerID);
-        if (self.reconnectEnabled) {
+        if (self.reconnectEnabled && self.reconnectAttempts < self.maxReconnectAttempts) {
           self.sockJSConn = null;
           // set id so users can cancel
           self.reconnectTimerID = setTimeout(setupSockJSConnection, getReconnectDelay());
