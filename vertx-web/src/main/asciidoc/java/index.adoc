@@ -964,7 +964,7 @@ Route route = router.get("/localized").handler(rc -> {
         rc.response().end("Bonjour!");
         return;
       case "pt":
-        rc.response().end("OlÃ¡!");
+        rc.response().end("Olá!");
         return;
       case "es":
         rc.response().end("Hola!");
