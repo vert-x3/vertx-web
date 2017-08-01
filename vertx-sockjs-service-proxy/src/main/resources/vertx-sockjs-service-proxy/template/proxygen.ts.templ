@@ -6,7 +6,7 @@
 
 @code{
   def genModuleName(moduleType) {
-    return moduleType.raw.moduleName + "-js/" + CASE_CAMEL.to(CASE_SNAKE, moduleType.raw.simpleName);
+    return moduleType.raw.moduleName + "-ts/" + CASE_CAMEL.to(CASE_SNAKE, moduleType.raw.simpleName);
   }
 }
 
@@ -37,7 +37,7 @@
     } else if (type.kind.collection) {
       return 'Array.<' + genTSType(type.args[0]) + '>';
     } else if (type.kind == CLASS_MAP) {
-      return 'Object.<string, ' + genTSType(type.args[1]) + '>';
+      return 'Map.<string, ' + genTSType(type.args[1]) + '>';
     } else if (type.kind == CLASS_OBJECT) {
       return 'any';
     } else if (type.kind == CLASS_HANDLER) {
@@ -68,7 +68,7 @@
 		@if{overloaded}
 		 () {\n
 		@else{}
-		 (@foreach{param: method.params}@{param.name}: @{genTSType(param.type)}@end{", "})@if{method.fluent} : @{ifaceSimpleName}@end{} {\n
+		 (@foreach{param: method.params}@{param.name}: @{genTSType(param.type)}@end{", "}) : @if{method.fluent}@{ifaceSimpleName}@else{}void@end{} {\n
 		@end{}
 			@code{mcnt = 0;}
     const __args = arguments;\n
