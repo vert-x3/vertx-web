@@ -1,0 +1,32 @@
+= Enums
+
+[[ErrorType]]
+== ErrorType
+
+
+[cols=">25%,75%"]
+[frame="topbot"]
+|===
+^|Name | Description
+|[[PATH_NOT_FOUND]]`PATH_NOT_FOUND`|
++++
+You are trying to mount an operation (combination of path and method) not defined in specification
++++
+|[[OPERATION_ID_NOT_FOUND]]`OPERATION_ID_NOT_FOUND`|
++++
+You are trying to mount an operation with operation_id not defined in specification
++++
+|[[SPEC_INVALID]]`SPEC_INVALID`|
++++
+Specification is not valid
++++
+|[[MISSING_SECURITY_HANDLER]]`MISSING_SECURITY_HANDLER`|
++++
+Missing security handler during construction of router
++++
+|[[INVALID_SPEC_PATH]]`INVALID_SPEC_PATH`|
++++
+You have provided a wrong directory/path to specification file
++++
+|===
+

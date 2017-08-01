@@ -16,6 +16,9 @@ import io.vertx.ext.auth.oauth2.OAuth2Auth;
 import io.vertx.ext.auth.oauth2.OAuth2ClientOptions;
 import io.vertx.ext.auth.oauth2.OAuth2FlowType;
 import io.vertx.ext.auth.oauth2.providers.GithubAuth;
+import io.vertx.ext.web.*;
+import io.vertx.ext.web.handler.*;
+import io.vertx.ext.web.handler.sockjs.*;
 import io.vertx.ext.web.Cookie;
 import io.vertx.ext.web.FileUpload;
 import io.vertx.ext.web.LanguageHeader;
@@ -33,6 +36,9 @@ import io.vertx.ext.web.sstore.ClusteredSessionStore;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import io.vertx.ext.web.sstore.SessionStore;
 import io.vertx.ext.web.templ.TemplateEngine;
+import io.vertx.ext.web.validation.HTTPRequestValidationHandler;
+import io.vertx.ext.web.validation.ParameterType;
+import io.vertx.ext.web.validation.ValidationException;
 
 import java.util.List;
 import java.util.Set;
@@ -1282,6 +1288,62 @@ public class WebExamples {
     router.get("/").handler(ctx -> {
       ctx.response().putHeader("content-type", "text/html").end("Hello<br><a href=\"/protected/somepage\">Protected by LinkedIn</a>");
     });
+  }
+
+  public void example63(Vertx vertx, Router router) {
+    // Create Validation Handler with some stuff
+    HTTPRequestValidationHandler validationHandler = HTTPRequestValidationHandler.create().addQueryParam("parameterName", ParameterType.INT, true).addFormParamWithPattern("formParameterName", "a{4}", true).addPathParam("pathParam", ParameterType.FLOAT);
+  }
+
+  public void example64(Vertx vertx, Router router, HTTPRequestValidationHandler validationHandler) {
+    // BodyHandler is required to manage body parameters like forms or json body
+    router.route().handler(BodyHandler.create());
+
+    router.get("/awesome/:pathParam")
+      // Mount validation handler
+      .handler(validationHandler)
+      //Mount your handler
+      .handler((routingContext) -> {
+        // Get Request parameters container
+        RequestParameters params = routingContext.get("parsedParameters");
+
+        // Get parameters
+        Integer parameterName = params.queryParameter("parameterName").getInteger();
+        String formParameterName = params.formParameter("formParameterName").getString();
+        Float pathParam = params.pathParameter("pathParam").getFloat();
+      })
+
+      //Mount your failure handler
+      .failureHandler((routingContext) -> {
+        Throwable failure = routingContext.failure();
+        if (failure instanceof ValidationException) {
+          // Something went wrong during validation!
+          String validationErrorMessage = failure.getMessage();
+        }
+      });
+  }
+
+  public void example65(RoutingContext routingContext) {
+    RequestParameters params = routingContext.get("parsedParameters");
+    RequestParameter awesomeParameter = params.queryParameter("awesomeParameter");
+    if (awesomeParameter != null) {
+      if (!awesomeParameter.isEmpty()) {
+        // Parameter exists and isn't empty
+        // ParameterTypeValidator mapped the parameter in equivalent language object
+        Integer awesome = awesomeParameter.getInteger();
+      } else {
+        // Parameter exists, but it's empty
+      }
+    } else {
+      // Parameter doesn't exist (it's not required)
+    }
+  }
+
+  public void example66(RequestParameters params) {
+    RequestParameter body = params.body();
+    if (body != null) {
+      JsonObject jsonBody = body.getJsonObject();
+    }
   }
 
   public void manualContentType(Router router) {

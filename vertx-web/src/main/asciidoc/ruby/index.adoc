@@ -1816,23 +1816,9 @@ would start configuring your chain as:
 
 [source,ruby]
 ----
-require 'vertx-web/chain_auth_handler'
-require 'vertx-web/basic_auth_handler'
-require 'vertx-web/redirect_auth_handler'
-
-chain = VertxWeb::ChainAuthHandler.create()
-
-# add http basic auth handler to the chain
-chain.append(VertxWeb::BasicAuthHandler.create(provider))
-# add form redirect auth handler to the chain
-chain.append(VertxWeb::RedirectAuthHandler.create(provider))
-
-# secure your route
-router.route("/secure/resource").handler(&chain.method(:handle))
-# your app
-router.route("/secure/resource").handler() { |ctx|
-  # do something...
-}
+require 'vertx-web/http_request_validation_handler'
+# Create Validation Handler with some stuff
+validationHandler = VertxWeb::HTTPRequestValidationHandler.create().add_query_param("parameterName", :INT, true).add_form_param_with_pattern("formParameterName", "a{4}", true).add_path_param("pathParam", :FLOAT)
 
 ----
 
@@ -1848,6 +1834,83 @@ Now assume that you make a request where you provide the header `Authorization` 
 this case the basic auth handler will attempt to authenticate and if it is sucessful the chain will stop and
 vertx-web will continue to process your handlers. If the token is not valid, for example bad username/password, then
 the chain will continue to the following entry. In this specific case the redirect auth handler.
+
+== Validate the requests
+Vert.x provide a validation framework that will validate requests for you and will put results of validation inside a container. To define a `link:../../yardoc/VertxWeb/HTTPRequestValidationHandler.html[HTTPRequestValidationHandler]`:
+[source,ruby]
+----
+require 'vertx-web/http_request_validation_handler'
+# Create Validation Handler with some stuff
+validationHandler = VertxWeb::HTTPRequestValidationHandler.create().add_query_param("parameterName", :INT, true).add_form_param_with_pattern("formParameterName", "a{4}", true).add_path_param("pathParam", :FLOAT)
+
+----
+
+Then you can mount your validation handler:
+[source,ruby]
+----
+require 'vertx-web/body_handler'
+# BodyHandler is required to manage body parameters like forms or json body
+router.route().handler(&VertxWeb::BodyHandler.create().method(:handle))
+
+router.get("/awesome/:pathParam").handler(&validationHandler.method(:handle)).handler() { |routingContext|
+  # Get Request parameters container
+  params = routingContext.get("parsedParameters")
+
+  # Get parameters
+  parameterName = params.query_parameter("parameterName").get_integer()
+  formParameterName = params.form_parameter("formParameterName").get_string()
+  pathParam = params.path_parameter("pathParam").get_float()
+}.failure_handler() { |routingContext|
+  failure = routingContext.failure()
+  if (failure.class.name == 'Java::IoVertxExtWebValidation::ValidationException')
+    # Something went wrong during validation!
+    validationErrorMessage = failure.get_message()
+  end
+}
+
+----
+
+If validation succeeds, It returns request parameters inside `link:../../yardoc/VertxWeb/RequestParameters.html[RequestParameters]`, otherwise It will throw a `link:unavailable[ValidationException]`
+
+=== Types of request parameters
+Every parameter has a type validator, a class that describes the expected type of parameter.
+A type validator validates the value, casts it in required language type and then loads it inside a `link:../../yardoc/VertxWeb/RequestParameter.html[RequestParameter]` object. There are three ways to describe the type of your parameter:
+
+* There is a set of prebuilt types that you can use: `link:../enums.html#ParameterType[ParameterType]`
+* You can instantiate a custom instance of prebuilt type validators using static methods of `link:../../yardoc/VertxWeb/ParameterTypeValidator.html[ParameterTypeValidator]` and then load it into `link:../../yardoc/VertxWeb/HTTPRequestValidationHandler.html[HTTPRequestValidationHandler]` using functions ending with `WithCustomTypeValidator`
+* You can create your own `ParameterTypeValidator` implementing `link:../../yardoc/VertxWeb/ParameterTypeValidator.html[ParameterTypeValidator]` interface
+
+=== Handling parameters
+Now you can handle parameter values:
+
+[source,ruby]
+----
+params = routingContext.get("parsedParameters")
+awesomeParameter = params.query_parameter("awesomeParameter")
+if (awesomeParameter != nil)
+  if (!awesomeParameter.empty?())
+    # Parameter exists and isn't empty
+    # ParameterTypeValidator mapped the parameter in equivalent language object
+    awesome = awesomeParameter.get_integer()
+  else
+    # Parameter exists, but it's empty
+  end
+else
+  # Parameter doesn't exist (it's not required)
+end
+
+----
+
+As you can see, every parameter is mapped in respective language objects. You can also get a json body:
+
+[source,ruby]
+----
+body = params.body()
+if (body != nil)
+  jsonBody = body.get_json_object()
+end
+
+----
 
 == Serving static resources
 
