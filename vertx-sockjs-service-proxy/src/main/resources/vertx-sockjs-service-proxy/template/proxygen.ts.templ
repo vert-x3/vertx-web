@@ -27,7 +27,9 @@
         return 'number';
       }
     } else if (type.kind == CLASS_JSON_OBJECT) {
-      return 'any';
+      return 'Object';
+    } else if (type.kind == CLASS_JSON_ARRAY) {
+      return 'Array';
     } else if (type.kind == CLASS_DATA_OBJECT) {
       return 'any';
     } else if (type.kind == CLASS_ENUM) {
@@ -35,9 +37,9 @@
     } else if (type.kind == CLASS_API) {
       return type.raw.simpleName;
     } else if (type.kind.collection) {
-      return 'Array.<' + genTSType(type.args[0]) + '>';
+      return 'Array<' + genTSType(type.args[0]) + '>';
     } else if (type.kind == CLASS_MAP) {
-      return 'Map.<string, ' + genTSType(type.args[1]) + '>';
+      return 'Object<string, ' + genTSType(type.args[1]) + '>';
     } else if (type.kind == CLASS_OBJECT) {
       return 'any';
     } else if (type.kind == CLASS_HANDLER) {
@@ -156,9 +158,9 @@
 		, function(err, result) { __args[@{psize}](err, result &&
 		@code{resultType=lastParam.type.args[0].args[0]}
 		@if{resultType.kind==CLASS_API}
-		new @{resultType.simpleName}(j_eb, result.headers.proxyaddr)
+		new @{resultType.simpleName}(this.eb, result.headers.proxyaddr)
 		@else{(resultType.kind==CLASS_LIST || resultType.kind==CLASS_SET) && resultType.args[0].name=='java.lang.Character'}
-		convCharCollection(result.body)
+		this.convCharCollection(result.body)
 		@else{}
 		result.body
 		@end{}
