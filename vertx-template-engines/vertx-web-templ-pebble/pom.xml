@@ -88,6 +88,9 @@
             io.vertx.rxjava.core.*;resolution:=optional,\
             io.vertx.rxjava.ext.auth.*;resolution:=optional,\
             rx.*;resolution:=optional,\
+            io.reactivex.*;resolution:=optional,\
+            io.vertx.reactivex.*;resolution:=optional,\
+            io.vertx.lang.reactivex.*;resolution:=optional,\
             !io.vertx.ext.web.impl,\
             *
           ]]></bnd>
