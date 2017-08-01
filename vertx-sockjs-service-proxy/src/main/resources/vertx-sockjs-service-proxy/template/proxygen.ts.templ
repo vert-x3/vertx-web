@@ -1,0 +1,254 @@
+@comment{"Generate a call to a Java API method"}
+@comment{"===================================="}
+
+@comment{"Generate the module name of a type"}
+@comment{"===================================="}
+
+@code{
+  def genModuleName(moduleType) {
+    return moduleType.raw.moduleName + "-js/" + CASE_CAMEL.to(CASE_SNAKE, moduleType.raw.simpleName);
+  }
+}
+
+@comment{"Generate the TS type of a type"}
+@comment{"===================================="}
+
+@comment{"TODO : add missing types"}
+@code{
+  def genTSType(type) {
+    if (type.kind == CLASS_STRING) {
+      return 'string';
+    } else if (type.kind == CLASS_PRIMITIVE || type.kind == CLASS_BOXED_PRIMITIVE) {
+      if (type.simpleName == 'boolean' || type.simpleName == 'Boolean') {
+        return 'boolean';
+      } else if (type.simpleName == 'char' || type.simpleName == 'Character') {
+        return 'string';
+      } else {
+        return 'number';
+      }
+    } else if (type.kind == CLASS_JSON_OBJECT) {
+      return 'any';
+    } else if (type.kind == CLASS_DATA_OBJECT) {
+      return 'any';
+    } else if (type.kind == CLASS_ENUM) {
+      return 'any';
+    } else if (type.kind == CLASS_API) {
+      return type.raw.simpleName;
+    } else if (type.kind.collection) {
+      return 'Array.<' + genTSType(type.args[0]) + '>';
+    } else if (type.kind == CLASS_MAP) {
+      return 'Object.<string, ' + genTSType(type.args[1]) + '>';
+    } else if (type.kind == CLASS_OBJECT) {
+      return 'any';
+    } else if (type.kind == CLASS_HANDLER) {
+      return '() => any';
+    } else {
+      return 'todo';
+    }
+  }
+}
+
+@comment{"Generate a TypeScript Method"}
+@comment{"============================"}
+
+@declare{'genMethod'}
+	@code{methodList = methodsByName.get(methodName)}
+	@if{methodFilter != null}
+		@code{methodList = new java.util.ArrayList()}
+		@foreach{method : methodsByName.get(methodName)}
+			@if{methodFilter(method)}
+				@code{methodList.add(method)}
+			@end{}
+		@end{}
+	@end{}
+	@if{methodList.size() > 0}
+	@code{overloaded = methodList.size() > 1; method = methodList.get(methodList.size() - 1);}
+	@if{static == method.staticMethod}
+  @if{static}static @end{}@{methodName}
+		@if{overloaded}
+		 () {\n
+		@else{}
+		 (@foreach{param: method.params}@{param.name}: @{genTSType(param.type)}@end{", "})@if{method.fluent} : @{ifaceSimpleName}@end{} {\n
+		@end{}
+			@code{mcnt = 0;}
+    const __args = arguments;\n
+			@foreach{method: methodList}
+  @if{mcnt == 0}  if@else{}else if@end{} (__args.length === @{method.params.size()}
+				@code{mcnt++;}
+				@code{cnt = 0;}
+				@if{method.params.size() > 0} && @end{}
+				@foreach{param: method.params}
+					@if{param.type.kind == CLASS_PRIMITIVE || param.type.kind == CLASS_BOXED_PRIMITIVE}
+						@if{param.nullable}(@end{}
+						typeof __args[@{cnt}] ===
+							@if{param.type.name == 'long' || param.type.name == 'java.lang.Long' ||
+									param.type.name == 'int'  || param.type.name == 'java.lang.Integer' ||
+									param.type.name == 'short' || param.type.name == 'java.lang.Short' ||
+									param.type.name == 'float' || param.type.name == 'java.lang.Float' ||
+									param.type.name == 'double' || param.type.name == 'java.lang.Double' ||
+									param.type.name == 'byte' || param.type.name == 'java.lang.Byte'}
+								'number'
+							@else{param.type.name == 'boolean' || param.type.name == 'java.lang.Boolean'}
+								'boolean'
+							@else{param.type.name == 'char' || param.type.name == 'java.lang.Character'}
+								'string'
+							@end{}
+						@if{param.nullable} || __args[@{cnt}] == null)@end{}
+					@else{param.type.kind == CLASS_STRING || param.type.kind == CLASS_ENUM}
+						@if{param.nullable}(@end{}
+						typeof __args[@{cnt}] === 'string'
+						@if{param.nullable} || __args[@{cnt}] == null)@end{}
+					@else{param.type.kind == CLASS_CLASS_TYPE}
+						typeof __args[@{cnt}] === 'function'
+					@else{param.type.kind == CLASS_API}
+						typeof __args[@{cnt}] === 'object' && @if{param.nullable}(__args[@{cnt}] == null || @end{}__args[@{cnt}]._jdel@if{param.nullable})@end{}
+					@else{param.type.kind == CLASS_JSON_ARRAY || param.type.kind == CLASS_LIST || param.type.kind == CLASS_SET}
+						typeof __args[@{cnt}] === 'object' && @if{param.nullable}(@end{}__args[@{cnt}] instanceof Array@if{param.nullable} || __args[@{cnt}] == null)@end{}
+					@else{param.type.kind == CLASS_HANDLER}
+						@if{param.nullable}(@end{}
+							typeof __args[@{cnt}] === 'function'
+						@if{param.nullable} || __args[@{cnt}] == null)@end{}
+					@else{param.type.kind == CLASS_OBJECT}
+						@if{param.type.variable && param.type.classParam}
+							j_@{param.type.name}.accept(__args[@{cnt}])
+						@else{}
+							typeof __args[@{cnt}] !== 'function'
+						@end{}
+					@else{param.type.kind == CLASS_FUNCTION}
+						typeof __args[@{cnt}] === 'function'
+					@else{param.type.kind == CLASS_THROWABLE}
+						typeof __args[@{cnt}] === 'object'
+					@else{}
+						@if{!param.nullable}(@end{}
+							typeof __args[@{cnt}] === 'object'
+						@if{!param.nullable} && __args[@{cnt}] != null)@end{}
+					@end{}
+					@code{cnt++}
+				@end{' && '}) {\n
+				@includeNamed{'genMethodAdapter'}
+    }
+			@end{} else throw new TypeError('function invoked with invalid arguments');\n
+  }\n\n
+	@end{}
+	@end{}
+@end{}
+
+@declare{'genMethodCall'}
+	@code{params = method.params}
+	@code{psize = params.size()}
+	@code{lastParam = psize > 0 ? params[psize - 1] : null}
+	@code{hasResultHandler = (lastParam != null) && (lastParam.type.kind == CLASS_HANDLER) && (lastParam.type.args[0].kind == CLASS_ASYNC_RESULT)}
+	@if{hasResultHandler}
+		@code{(psize--)}
+	@end{}
+	  this.eb.send(this.address, {
+	@foreach{pcnt : psize}
+		@code{param=method.params[pcnt]}
+		"@{param.name}":
+		@if{param.type.name == 'java.lang.Character' || param.type.name == 'char'}
+		__args[@{(pcnt)}].charCodeAt(0)
+		@else{}
+		__args[@{(pcnt)}]
+		@end{}
+	@end{", "}
+	}, {"action":"@{method.name}"}
+	@if{hasResultHandler}
+		, function(err, result) { __args[@{psize}](err, result &&
+		@code{resultType=lastParam.type.args[0].args[0]}
+		@if{resultType.kind==CLASS_API}
+		new @{resultType.simpleName}(j_eb, result.headers.proxyaddr)
+		@else{(resultType.kind==CLASS_LIST || resultType.kind==CLASS_SET) && resultType.args[0].name=='java.lang.Character'}
+		convCharCollection(result.body)
+		@else{}
+		result.body
+		@end{}
+		); }
+	@end{})
+@end{}
+
+@declare{'convReturn'}
+	@includeNamed{templ}
+@end{}
+
+@declare{'genMethodAdapter'}
+      if (closed) {\n
+        throw new Error('Proxy is closed');\n
+      }\n
+    @includeNamed{'genMethodCall'};\n
+@if{method.proxyClose}
+      closed = true;\n
+@end{}
+@if{method.fluent}
+      return this;\n
+@end{}
+@end{}
+
+@comment{"This is where the generation starts"}
+@comment{"==================================="}
+
+/*\n
+ * Copyright 2014 Red Hat, Inc.\n
+ *\n
+ * Red Hat licenses this file to you under the Apache License, version 2.0\n
+ * (the "License"); you may not use this file except in compliance with the\n
+ * License.  You may obtain a copy of the License at:\n
+ *\n
+ * http://www.apache.org/licenses/LICENSE-2.0\n
+ *\n
+ * Unless required by applicable law or agreed to in writing, software\n
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT\n
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the\n
+ * License for the specific language governing permissions and limitations\n
+ * under the License.\n
+ */\n\n
+
+@code{ifaceName = helper.decapitaliseFirstLetter(ifaceSimpleName)}
+
+@comment{"Generate the requires"}
+
+@foreach{referencedType : referencedTypes}
+	@if{referencedType.proxyGen}
+		@code{refedType=referencedType.simpleName;}
+  import { @{refedType} } from '@{genModuleName(referencedType)}-proxy';\n
+	@end{}
+@end{}
+\n
+
+@comment{"The main comment"}
+
+export class @{ifaceSimpleName} {\n\n
+
+  private closed = false;\n\n
+
+  private readonly convCharCollection = coll => {\n
+    const ret = [];\n
+    for (let i = 0; i < coll.length; i++) {\n
+      ret.push(String.fromCharCode(coll[i]));\n
+    }\n
+    return ret;\n
+  }\n\n
+
+@comment{"The constructor"}
+
+  constructor (private eb: any, private address: string) {\n
+@comment{"Apply any supertypes"}
+@foreach{superType: superTypes}
+  @{superType.raw.simpleName}.call(this, j_val);\n
+@end{}
+  }\n\n
+
+@code{
+  def methodFilter(method) {
+    return !method.proxyIgnore;
+  }
+}
+
+@comment{"Now iterate through each unique method"}
+
+@foreach{methodName:methodsByName.keySet()}
+
+@comment{"Call out to actually generate the method, we only consider non static methods here"}
+@code{methods}
+@includeNamed{'genMethod';static=false}
+@end{}
+}
