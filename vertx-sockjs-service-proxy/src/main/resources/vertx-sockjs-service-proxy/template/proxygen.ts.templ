@@ -43,7 +43,11 @@
     } else if (type.kind == CLASS_OBJECT) {
       return 'any';
     } else if (type.kind == CLASS_HANDLER) {
-      return '() => any';
+      if (type.args[0].args[0].kind==CLASS_API) {
+        return '(err: any, result: ' + type.args[0].args[0].simpleName + ') => any';
+      } else {
+        return '(err: any, result: any) => any';
+      }
     } else {
       return 'todo';
     }
@@ -211,7 +215,7 @@
 @foreach{referencedType : referencedTypes}
 	@if{referencedType.proxyGen}
 		@code{refedType=referencedType.simpleName;}
-  import { @{refedType} } from '@{genModuleName(referencedType)}-proxy';\n
+import { @{refedType} } from '@{genModuleName(referencedType)}-proxy';\n
 	@end{}
 @end{}
 \n
