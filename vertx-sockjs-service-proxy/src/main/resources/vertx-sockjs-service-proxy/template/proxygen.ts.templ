@@ -1,9 +1,5 @@
-@comment{"Generate a call to a Java API method"}
-@comment{"===================================="}
-
 @comment{"Generate the module name of a type"}
 @comment{"===================================="}
-
 @code{
   def genModuleName(moduleType) {
     return moduleType.raw.moduleName + "-ts/" + CASE_CAMEL.to(CASE_SNAKE, moduleType.raw.simpleName);
@@ -12,8 +8,6 @@
 
 @comment{"Generate the TS type of a type"}
 @comment{"===================================="}
-
-@comment{"TODO : add missing types"}
 @code{
   def genTSType(type) {
     if (type.kind == CLASS_STRING) {
@@ -33,7 +27,7 @@
     } else if (type.kind == CLASS_DATA_OBJECT) {
       return 'any';
     } else if (type.kind == CLASS_ENUM) {
-      return 'any';
+      return 'string';
     } else if (type.kind == CLASS_API) {
       return type.raw.simpleName;
     } else if (type.kind.collection) {
@@ -44,7 +38,7 @@
       return 'any';
     } else if (type.kind == CLASS_HANDLER) {
       if (type.args[0].args[0].kind==CLASS_API) {
-        return '(err: any, result: ' + type.args[0].args[0].simpleName + ') => any';
+        return '(err: any, result: ' + genTSType(type.args[0].args[0]) + ') => any';
       } else {
         return '(err: any, result: any) => any';
       }
@@ -56,7 +50,6 @@
 
 @comment{"Generate a TypeScript Method"}
 @comment{"============================"}
-
 @declare{'genMethod'}
 	@code{methodList = methodsByName.get(methodName)}
 	@if{methodFilter != null}
@@ -68,72 +61,10 @@
 		@end{}
 	@end{}
 	@if{methodList.size() > 0}
-	@code{overloaded = methodList.size() > 1; method = methodList.get(methodList.size() - 1);}
+	@code{method = methodList.get(methodList.size() - 1);}
 	@if{static == method.staticMethod}
-  @if{static}static @end{}@{methodName}
-		@if{overloaded}
-		 () {\n
-		@else{}
-		 (@foreach{param: method.params}@{param.name}: @{genTSType(param.type)}@end{", "}) : @if{method.fluent}@{ifaceSimpleName}@else{}void@end{} {\n
-		@end{}
-			@code{mcnt = 0;}
-    const __args = arguments;\n
-			@foreach{method: methodList}
-  @if{mcnt == 0}  if@else{}else if@end{} (__args.length === @{method.params.size()}
-				@code{mcnt++;}
-				@code{cnt = 0;}
-				@if{method.params.size() > 0} && @end{}
-				@foreach{param: method.params}
-					@if{param.type.kind == CLASS_PRIMITIVE || param.type.kind == CLASS_BOXED_PRIMITIVE}
-						@if{param.nullable}(@end{}
-						typeof __args[@{cnt}] ===
-							@if{param.type.name == 'long' || param.type.name == 'java.lang.Long' ||
-									param.type.name == 'int'  || param.type.name == 'java.lang.Integer' ||
-									param.type.name == 'short' || param.type.name == 'java.lang.Short' ||
-									param.type.name == 'float' || param.type.name == 'java.lang.Float' ||
-									param.type.name == 'double' || param.type.name == 'java.lang.Double' ||
-									param.type.name == 'byte' || param.type.name == 'java.lang.Byte'}
-								'number'
-							@else{param.type.name == 'boolean' || param.type.name == 'java.lang.Boolean'}
-								'boolean'
-							@else{param.type.name == 'char' || param.type.name == 'java.lang.Character'}
-								'string'
-							@end{}
-						@if{param.nullable} || __args[@{cnt}] == null)@end{}
-					@else{param.type.kind == CLASS_STRING || param.type.kind == CLASS_ENUM}
-						@if{param.nullable}(@end{}
-						typeof __args[@{cnt}] === 'string'
-						@if{param.nullable} || __args[@{cnt}] == null)@end{}
-					@else{param.type.kind == CLASS_CLASS_TYPE}
-						typeof __args[@{cnt}] === 'function'
-					@else{param.type.kind == CLASS_API}
-						typeof __args[@{cnt}] === 'object' && @if{param.nullable}(__args[@{cnt}] == null || @end{}__args[@{cnt}]._jdel@if{param.nullable})@end{}
-					@else{param.type.kind == CLASS_JSON_ARRAY || param.type.kind == CLASS_LIST || param.type.kind == CLASS_SET}
-						typeof __args[@{cnt}] === 'object' && @if{param.nullable}(@end{}__args[@{cnt}] instanceof Array@if{param.nullable} || __args[@{cnt}] == null)@end{}
-					@else{param.type.kind == CLASS_HANDLER}
-						@if{param.nullable}(@end{}
-							typeof __args[@{cnt}] === 'function'
-						@if{param.nullable} || __args[@{cnt}] == null)@end{}
-					@else{param.type.kind == CLASS_OBJECT}
-						@if{param.type.variable && param.type.classParam}
-							j_@{param.type.name}.accept(__args[@{cnt}])
-						@else{}
-							typeof __args[@{cnt}] !== 'function'
-						@end{}
-					@else{param.type.kind == CLASS_FUNCTION}
-						typeof __args[@{cnt}] === 'function'
-					@else{param.type.kind == CLASS_THROWABLE}
-						typeof __args[@{cnt}] === 'object'
-					@else{}
-						@if{!param.nullable}(@end{}
-							typeof __args[@{cnt}] === 'object'
-						@if{!param.nullable} && __args[@{cnt}] != null)@end{}
-					@end{}
-					@code{cnt++}
-				@end{' && '}) {\n
+  @if{static}static @end{}@{methodName}(@foreach{param: method.params}@{param.name}: @{genTSType(param.type)}@end{", "}) : @if{method.fluent}@{ifaceSimpleName}@else{}void@end{} {\n
 				@includeNamed{'genMethodAdapter'}
-    }
-			@end{} else throw new TypeError('function invoked with invalid arguments');\n
   }\n\n
 	@end{}
 	@end{}
@@ -147,19 +78,17 @@
 	@if{hasResultHandler}
 		@code{(psize--)}
 	@end{}
-	  this.eb.send(this.address, {
+	    this.eb.send(this.address, {
 	@foreach{pcnt : psize}
 		@code{param=method.params[pcnt]}
-		"@{param.name}":
+		"@{param.name}": @{param.name}
 		@if{param.type.name == 'java.lang.Character' || param.type.name == 'char'}
-		__args[@{(pcnt)}].charCodeAt(0)
-		@else{}
-		__args[@{(pcnt)}]
+		.charCodeAt(0)
 		@end{}
 	@end{", "}
 	}, {"action":"@{method.name}"}
 	@if{hasResultHandler}
-		, function(err, result) { __args[@{psize}](err, result &&
+		, function(err, result) { @{lastParam.name}(err, result &&
 		@code{resultType=lastParam.type.args[0].args[0]}
 		@if{resultType.kind==CLASS_API}
 		new @{resultType.simpleName}(this.eb, result.headers.proxyaddr)
@@ -172,15 +101,11 @@
 	@end{})
 @end{}
 
-@declare{'convReturn'}
-	@includeNamed{templ}
-@end{}
-
 @declare{'genMethodAdapter'}
-      if (closed) {\n
-        throw new Error('Proxy is closed');\n
-      }\n
-    @includeNamed{'genMethodCall'};\n
+    if (closed) {\n
+      throw new Error('Proxy is closed');\n
+    }\n
+	@includeNamed{'genMethodCall'};\n
 @if{method.proxyClose}
       closed = true;\n
 @end{}
@@ -219,8 +144,6 @@ import { @{refedType} } from '@{genModuleName(referencedType)}-proxy';\n
 	@end{}
 @end{}
 \n
-
-@comment{"The main comment"}
 
 export class @{ifaceSimpleName} {\n\n
 
