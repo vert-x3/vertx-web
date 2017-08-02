@@ -39,6 +39,8 @@ public class ResponseContentTypeHandlerTest extends WebTestBase {
   public void setUp() throws Exception {
     super.setUp();
     router.route().handler(ResponseContentTypeHandler.create());
+    // Added to make sure ResponseContentTypeHandler works well with others
+    router.route().handler(ResponseTimeHandler.create());
     testRoute = router.route("/test");
   }
 
@@ -64,7 +66,7 @@ public class ResponseContentTypeHandlerTest extends WebTestBase {
 
   @Test
   public void testFixedContent() {
-    Buffer buffer = Buffer.buffer(new JsonObject().put("toto", "titi").encode().getBytes());
+    Buffer buffer = new JsonObject().put("toto", "titi").toBuffer();
     testRoute.produces("application/json").handler(rc -> {
       rc.response().end(buffer);
     });
@@ -81,7 +83,7 @@ public class ResponseContentTypeHandlerTest extends WebTestBase {
 
   @Test
   public void testChunkedContent() {
-    Buffer buffer = Buffer.buffer(new JsonObject().put("toto", "titi").encode().getBytes());
+    Buffer buffer = new JsonObject().put("toto", "titi").toBuffer();
     testRoute.produces("application/json").handler(rc -> {
       rc.response().setChunked(true).end(buffer);
     });
