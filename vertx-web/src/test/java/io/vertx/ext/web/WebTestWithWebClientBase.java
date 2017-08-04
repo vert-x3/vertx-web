@@ -6,6 +6,7 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.WebClient;
+import io.vertx.ext.web.client.WebClientOptions;
 
 import java.util.concurrent.CountDownLatch;
 
@@ -30,7 +31,7 @@ public class WebTestWithWebClientBase extends WebTestBase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    webClient = WebClient.wrap(client);
+    webClient = WebClient.wrap(client, new WebClientOptions().setConnectTimeout(Integer.MAX_VALUE).setIdleTimeout(Integer.MAX_VALUE));
   }
 
   @Override
