@@ -64,6 +64,9 @@
             io.vertx.rx.java;resolution:=optional,\
             io.vertx.rxjava.core.*;resolution:=optional,\
             rx.*;resolution:=optional,\
+            io.reactivex.*;resolution:=optional,\
+            io.vertx.reactivex.*;resolution:=optional,\
+            io.vertx.lang.reactivex.*;resolution:=optional,\
             *
           -exportcontents: !examples, *
           ]]></bnd>

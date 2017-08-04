@@ -17,7 +17,6 @@
 package io.vertx.ext.web.handler.impl;
 
 import io.vertx.core.MultiMap;
-import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.ResponseContentTypeHandler;
 
@@ -36,8 +35,7 @@ public class ResponseContentTypeHandlerImpl implements ResponseContentTypeHandle
 
   @Override
   public void handle(RoutingContext rc) {
-    HttpServerResponse response = rc.response();
-    response.headersEndHandler(v -> {
+    rc.addHeadersEndHandler(v -> {
       if (rc.get(disableFlag) != null) {
         return;
       }

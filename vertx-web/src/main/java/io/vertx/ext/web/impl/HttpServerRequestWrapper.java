@@ -8,6 +8,7 @@ import io.vertx.core.http.*;
 import io.vertx.core.net.NetSocket;
 import io.vertx.core.net.SocketAddress;
 
+import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.security.cert.X509Certificate;
 import java.net.MalformedURLException;
@@ -23,7 +24,7 @@ class HttpServerRequestWrapper implements HttpServerRequest {
   private String path;
   private String uri;
   private String absoluteURI;
-  
+
   HttpServerRequestWrapper(HttpServerRequest request) {
     delegate = request;
     method = request.method();
@@ -142,6 +143,11 @@ class HttpServerRequestWrapper implements HttpServerRequest {
   @Override
   public X509Certificate[] peerCertificateChain() throws SSLPeerUnverifiedException {
     return delegate.peerCertificateChain();
+  }
+
+  @Override
+  public SSLSession sslSession() {
+    return delegate.sslSession();
   }
 
   @Override
