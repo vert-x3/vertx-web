@@ -28,5 +28,9 @@ Missing security handler during construction of router
 +++
 You have provided a wrong directory/path to specification file
 +++
+|[[PATH_PARAMETERS_COMBINATION_NOT_SUPPORTED]]`PATH_PARAMETERS_COMBINATION_NOT_SUPPORTED`|
++++
+You are trying to use two or more path parameters with a combination of parameters/name/styles/explode not supported
++++
 |===
 

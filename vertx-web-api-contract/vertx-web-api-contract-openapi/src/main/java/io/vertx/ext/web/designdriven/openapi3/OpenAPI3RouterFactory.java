@@ -23,6 +23,7 @@ import java.net.URL;
  * Interface for OpenAPI3RouterFactory. <br/>
  * To add an handler, use {@link OpenAPI3RouterFactory#addHandlerByOperationId(String, Handler)}, in this
  * class is better than generic {@link DesignDrivenRouterFactory#addHandler(HttpMethod, String, Handler)}<br/>
+ * If you want to use {@link DesignDrivenRouterFactory#addHandler(HttpMethod, String, Handler)} remember that <b>you have to pass path as declared in openapi specification</b>
  * Usage example:
  * <pre>
  * {@code
@@ -112,7 +113,7 @@ public interface OpenAPI3RouterFactory extends DesignDrivenRouterFactory<OpenApi
    * @param vertx
    * @param url
    * @param validate Validate the spec. <b>Warning</b>: Flag this parameter false only if you are sure your spec is valid, otherwise you will get unexpected behaviour
-   * @param handler When specification is loaded, this handler will be called with AsyncResult<OpenAPI3RouterFactory>
+   * @param handler  When specification is loaded, this handler will be called with AsyncResult<OpenAPI3RouterFactory>
    */
   static void createRouterFactoryFromURL(Vertx vertx, String url, boolean validate, Handler<AsyncResult<OpenAPI3RouterFactory>> handler) {
     vertx.executeBlocking((Future<OpenAPI3RouterFactory> future) -> {

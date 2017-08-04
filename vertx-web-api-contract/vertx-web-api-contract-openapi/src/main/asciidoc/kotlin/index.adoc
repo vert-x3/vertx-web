@@ -57,6 +57,9 @@ And, of course, two functions to load failure handlers
 
 You can, of course, **add multiple handlers to same operation**, without overwrite the existing ones.
 
+.Path in OpenAPI format
+IMPORTANT: If you want to use `link:../../apidocs/io/vertx/ext/web/designdriven/DesignDrivenRouterFactory.html#addHandler-io.vertx.core.http.HttpMethod-java.lang.String-io.vertx.core.Handler-[addHandler]` or `link:../../apidocs/io/vertx/ext/web/designdriven/DesignDrivenRouterFactory.html#addFailureHandler-io.vertx.core.http.HttpMethod-java.lang.String-io.vertx.core.Handler-[addFailureHandler]` pay attention: You can provide a path only in OpenAPI styles (for example path `/hello/:param` doesn't work)
+
 For example:
 [source,kotlin]
 ----

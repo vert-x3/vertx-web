@@ -58,6 +58,9 @@ And, of course, two functions to load failure handlers
 
 You can, of course, **add multiple handlers to same operation**, without overwrite the existing ones.
 
+.Path in OpenAPI format
+IMPORTANT: If you want to use `link:../../jsdoc/module-vertx-web-js_design_driven_router_factory-DesignDrivenRouterFactory.html#addHandler[addHandler]` or `link:../../jsdoc/module-vertx-web-js_design_driven_router_factory-DesignDrivenRouterFactory.html#addFailureHandler[addFailureHandler]` pay attention: You can provide a path only in OpenAPI styles (for example path `/hello/:param` doesn't work)
+
 For example:
 [source,js]
 ----

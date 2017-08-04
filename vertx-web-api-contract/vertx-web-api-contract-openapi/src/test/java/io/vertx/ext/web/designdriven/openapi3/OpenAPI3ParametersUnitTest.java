@@ -5,15 +5,14 @@ import com.reprezen.kaizen.oasparser.model3.OpenApi3;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpServerOptions;
-import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RequestParameter;
 import io.vertx.ext.web.RequestParameters;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.designdriven.openapi3.impl.OpenAPI3RouterFactoryImpl;
 import io.vertx.ext.web.validation.WebTestValidationBase;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExternalResource;
@@ -29,7 +28,6 @@ import java.util.stream.Collectors;
 /**
  * @author Francesco Guardiani @slinkydeveloper
  */
-@Ignore
 public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
 
   OpenApi3 spec;
@@ -73,57 +71,11 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
 
 
   /**
-   * Test: path_matrix_noexplode_empty
-   * Expected parameters sent:
-   * color: ;color
-   * Expected response: {"color":null}
-   * @throws Exception
-   */
-  @Test
-  public void testPathMatrixNoexplodeEmpty() throws Exception {
-    routerFactory.addHandlerByOperationId("path_matrix_noexplode_empty", routingContext -> {
-      RequestParameters params = routingContext.get("parsedParameters");
-      JsonObject res = new JsonObject();
-
-      RequestParameter color_path = params.pathParameter("color");
-      assertNotNull(color_path);
-      assertTrue(color_path.isEmpty());
-      res.putNull("color");
-
-
-      routingContext.response()
-        .setStatusCode(200)
-        .setStatusMessage("OK")
-        .putHeader("content-type", "application/json; charset=utf-8")
-        .end(res.encode());
-    });
-
-    CountDownLatch latch = new CountDownLatch(1);
-
-    String color_path;
-    color_path = "";
-
-
-    startServer();
-
-    apiClient.pathMatrixNoexplodeEmpty(color_path, (AsyncResult<HttpResponse> ar) -> {
-      if (ar.succeeded()) {
-        assertEquals(200, ar.result().statusCode());
-        assertTrue("Expected: " + new JsonObject("{\"color\":null}").encode() + " Actual: " + ar.result().bodyAsJsonObject().encode(), new JsonObject("{\"color\":null}").equals(ar.result().bodyAsJsonObject()));
-      } else {
-        assertTrue(ar.cause().getMessage(), false);
-      }
-      latch.countDown();
-    });
-    awaitLatch(latch);
-
-  }
-
-  /**
    * Test: path_matrix_noexplode_string
    * Expected parameters sent:
    * color: ;color=blue
    * Expected response: {"color":"blue"}
+   *
    * @throws Exception
    */
   @Test
@@ -172,6 +124,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: ;color=blue,black,brown
    * Expected response: {"color":["blue","black","brown"]}
+   *
    * @throws Exception
    */
   @Test
@@ -222,6 +175,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: ;color=R,100,G,200,B,150
    * Expected response: {"color":{"R":"100","G":"200","B":"150"}}
+   *
    * @throws Exception
    */
   @Test
@@ -271,57 +225,11 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
   }
 
   /**
-   * Test: path_matrix_explode_empty
-   * Expected parameters sent:
-   * color: ;color
-   * Expected response: {"color":null}
-   * @throws Exception
-   */
-  @Test
-  public void testPathMatrixExplodeEmpty() throws Exception {
-    routerFactory.addHandlerByOperationId("path_matrix_explode_empty", routingContext -> {
-      RequestParameters params = routingContext.get("parsedParameters");
-      JsonObject res = new JsonObject();
-
-      RequestParameter color_path = params.pathParameter("color");
-      assertNotNull(color_path);
-      assertTrue(color_path.isEmpty());
-      res.putNull("color");
-
-
-      routingContext.response()
-        .setStatusCode(200)
-        .setStatusMessage("OK")
-        .putHeader("content-type", "application/json; charset=utf-8")
-        .end(res.encode());
-    });
-
-    CountDownLatch latch = new CountDownLatch(1);
-
-    String color_path;
-    color_path = "";
-
-
-    startServer();
-
-    apiClient.pathMatrixExplodeEmpty(color_path, (AsyncResult<HttpResponse> ar) -> {
-      if (ar.succeeded()) {
-        assertEquals(200, ar.result().statusCode());
-        assertTrue("Expected: " + new JsonObject("{\"color\":null}").encode() + " Actual: " + ar.result().bodyAsJsonObject().encode(), new JsonObject("{\"color\":null}").equals(ar.result().bodyAsJsonObject()));
-      } else {
-        assertTrue(ar.cause().getMessage(), false);
-      }
-      latch.countDown();
-    });
-    awaitLatch(latch);
-
-  }
-
-  /**
    * Test: path_matrix_explode_string
    * Expected parameters sent:
    * color: ;color=blue
    * Expected response: {"color":"blue"}
+   *
    * @throws Exception
    */
   @Test
@@ -370,6 +278,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: ;color=blue;color=black;color=brown
    * Expected response: {"color":["blue","black","brown"]}
+   *
    * @throws Exception
    */
   @Test
@@ -420,6 +329,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: ;R=100;G=200;B=150
    * Expected response: {"color":{"R":"100","G":"200","B":"150"}}
+   *
    * @throws Exception
    */
   @Test
@@ -469,57 +379,11 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
   }
 
   /**
-   * Test: path_label_noexplode_empty
-   * Expected parameters sent:
-   * color: .
-   * Expected response: {"color":null}
-   * @throws Exception
-   */
-  @Test
-  public void testPathLabelNoexplodeEmpty() throws Exception {
-    routerFactory.addHandlerByOperationId("path_label_noexplode_empty", routingContext -> {
-      RequestParameters params = routingContext.get("parsedParameters");
-      JsonObject res = new JsonObject();
-
-      RequestParameter color_path = params.pathParameter("color");
-      assertNotNull(color_path);
-      assertTrue(color_path.isEmpty());
-      res.putNull("color");
-
-
-      routingContext.response()
-        .setStatusCode(200)
-        .setStatusMessage("OK")
-        .putHeader("content-type", "application/json; charset=utf-8")
-        .end(res.encode());
-    });
-
-    CountDownLatch latch = new CountDownLatch(1);
-
-    String color_path;
-    color_path = "";
-
-
-    startServer();
-
-    apiClient.pathLabelNoexplodeEmpty(color_path, (AsyncResult<HttpResponse> ar) -> {
-      if (ar.succeeded()) {
-        assertEquals(200, ar.result().statusCode());
-        assertTrue("Expected: " + new JsonObject("{\"color\":null}").encode() + " Actual: " + ar.result().bodyAsJsonObject().encode(), new JsonObject("{\"color\":null}").equals(ar.result().bodyAsJsonObject()));
-      } else {
-        assertTrue(ar.cause().getMessage(), false);
-      }
-      latch.countDown();
-    });
-    awaitLatch(latch);
-
-  }
-
-  /**
    * Test: path_label_noexplode_string
    * Expected parameters sent:
    * color: .blue
    * Expected response: {"color":"blue"}
+   *
    * @throws Exception
    */
   @Test
@@ -568,6 +432,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: .blue.black.brown
    * Expected response: {"color":["blue","black","brown"]}
+   *
    * @throws Exception
    */
   @Test
@@ -618,6 +483,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: .R.100.G.200.B.150
    * Expected response: {"color":{"R":"100","G":"200","B":"150"}}
+   *
    * @throws Exception
    */
   @Test
@@ -667,57 +533,11 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
   }
 
   /**
-   * Test: path_label_explode_empty
-   * Expected parameters sent:
-   * color: .
-   * Expected response: {"color":null}
-   * @throws Exception
-   */
-  @Test
-  public void testPathLabelExplodeEmpty() throws Exception {
-    routerFactory.addHandlerByOperationId("path_label_explode_empty", routingContext -> {
-      RequestParameters params = routingContext.get("parsedParameters");
-      JsonObject res = new JsonObject();
-
-      RequestParameter color_path = params.pathParameter("color");
-      assertNotNull(color_path);
-      assertTrue(color_path.isEmpty());
-      res.putNull("color");
-
-
-      routingContext.response()
-        .setStatusCode(200)
-        .setStatusMessage("OK")
-        .putHeader("content-type", "application/json; charset=utf-8")
-        .end(res.encode());
-    });
-
-    CountDownLatch latch = new CountDownLatch(1);
-
-    String color_path;
-    color_path = "";
-
-
-    startServer();
-
-    apiClient.pathLabelExplodeEmpty(color_path, (AsyncResult<HttpResponse> ar) -> {
-      if (ar.succeeded()) {
-        assertEquals(200, ar.result().statusCode());
-        assertTrue("Expected: " + new JsonObject("{\"color\":null}").encode() + " Actual: " + ar.result().bodyAsJsonObject().encode(), new JsonObject("{\"color\":null}").equals(ar.result().bodyAsJsonObject()));
-      } else {
-        assertTrue(ar.cause().getMessage(), false);
-      }
-      latch.countDown();
-    });
-    awaitLatch(latch);
-
-  }
-
-  /**
    * Test: path_label_explode_string
    * Expected parameters sent:
    * color: .blue
    * Expected response: {"color":"blue"}
+   *
    * @throws Exception
    */
   @Test
@@ -766,6 +586,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: .blue.black.brown
    * Expected response: {"color":["blue","black","brown"]}
+   *
    * @throws Exception
    */
   @Test
@@ -816,6 +637,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: .R=100.G=200.B=150
    * Expected response: {"color":{"R":"100","G":"200","B":"150"}}
+   *
    * @throws Exception
    */
   @Test
@@ -869,6 +691,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: blue
    * Expected response: {"color":"blue"}
+   *
    * @throws Exception
    */
   @Test
@@ -917,6 +740,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: blue,black,brown
    * Expected response: {"color":["blue","black","brown"]}
+   *
    * @throws Exception
    */
   @Test
@@ -967,6 +791,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: R,100,G,200,B,150
    * Expected response: {"color":{"R":"100","G":"200","B":"150"}}
+   *
    * @throws Exception
    */
   @Test
@@ -1020,6 +845,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: blue
    * Expected response: {"color":"blue"}
+   *
    * @throws Exception
    */
   @Test
@@ -1068,6 +894,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: blue,black,brown
    * Expected response: {"color":["blue","black","brown"]}
+   *
    * @throws Exception
    */
   @Test
@@ -1118,6 +945,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: R=100,G=200,B=150
    * Expected response: {"color":{"R":"100","G":"200","B":"150"}}
+   *
    * @throws Exception
    */
   @Test
@@ -1353,6 +1181,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: color=
    * Expected response: {"color":null}
+   *
    * @throws Exception
    */
   @Test
@@ -1400,6 +1229,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: color=blue
    * Expected response: {"color":"blue"}
+   *
    * @throws Exception
    */
   @Test
@@ -1448,6 +1278,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: color=blue,black,brown
    * Expected response: {"color":["blue","black","brown"]}
+   *
    * @throws Exception
    */
   @Test
@@ -1498,6 +1329,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: color=R,100,G,200,B,150
    * Expected response: {"color":{"R":"100","G":"200","B":"150"}}
+   *
    * @throws Exception
    */
   @Test
@@ -1551,6 +1383,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: color=
    * Expected response: {"color":null}
+   *
    * @throws Exception
    */
   @Test
@@ -1598,6 +1431,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: color=blue
    * Expected response: {"color":"blue"}
+   *
    * @throws Exception
    */
   @Test
@@ -1646,6 +1480,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: color=blue&color=black&color=brown
    * Expected response: {"color":["blue","black","brown"]}
+   *
    * @throws Exception
    */
   @Test
@@ -1696,6 +1531,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: R=100&G=200&B=150
    * Expected response: {"color":{"R":"100","G":"200","B":"150"}}
+   *
    * @throws Exception
    */
   @Test
@@ -1749,6 +1585,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: blue%20black%20brown
    * Expected response: {"color":["blue","black","brown"]}
+   *
    * @throws Exception
    */
   @Test
@@ -1799,6 +1636,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: R%20100%20G%20200%20B%20150
    * Expected response: {"color":{"R":"100","G":"200","B":"150"}}
+   *
    * @throws Exception
    */
   @Test
@@ -1852,6 +1690,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: blue|black|brown
    * Expected response: {"color":["blue","black","brown"]}
+   *
    * @throws Exception
    */
   @Test
@@ -1902,6 +1741,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: R|100|G|200|B|150
    * Expected response: {"color":{"R":"100","G":"200","B":"150"}}
+   *
    * @throws Exception
    */
   @Test
@@ -1955,6 +1795,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: color[R]=100&color[G]=200&color[B]=150
    * Expected response: {"color":{"R":"100","G":"200","B":"150"}}
+   *
    * @throws Exception
    */
   @Test
@@ -2008,6 +1849,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: color=
    * Expected response: {"color":null}
+   *
    * @throws Exception
    */
   @Test
@@ -2055,6 +1897,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: color=blue
    * Expected response: {"color":"blue"}
+   *
    * @throws Exception
    */
   @Test
@@ -2103,6 +1946,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: color=blue,black,brown
    * Expected response: {"color":["blue","black","brown"]}
+   *
    * @throws Exception
    */
   @Test
@@ -2153,6 +1997,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: color=R,100,G,200,B,150
    * Expected response: {"color":{"R":"100","G":"200","B":"150"}}
+   *
    * @throws Exception
    */
   @Test
@@ -2206,6 +2051,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: color=
    * Expected response: {"color":null}
+   *
    * @throws Exception
    */
   @Test
@@ -2253,6 +2099,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: color=blue
    * Expected response: {"color":"blue"}
+   *
    * @throws Exception
    */
   @Test
@@ -2301,6 +2148,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: color=blue&color=black&color=brown
    * Expected response: {"color":["blue","black","brown"]}
+   *
    * @throws Exception
    */
   @Test
@@ -2351,6 +2199,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: R=100&G=200&B=150
    * Expected response: {"color":{"R":"100","G":"200","B":"150"}}
+   *
    * @throws Exception
    */
   @Test
@@ -2404,6 +2253,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: blue
    * Expected response: {"color":"blue"}
+   *
    * @throws Exception
    */
   @Test
@@ -2452,6 +2302,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: blue,black,brown
    * Expected response: {"color":["blue","black","brown"]}
+   *
    * @throws Exception
    */
   @Test
@@ -2502,6 +2353,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: R,100,G,200,B,150
    * Expected response: {"color":{"R":"100","G":"200","B":"150"}}
+   *
    * @throws Exception
    */
   @Test
@@ -2555,6 +2407,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: blue
    * Expected response: {"color":"blue"}
+   *
    * @throws Exception
    */
   @Test
@@ -2603,6 +2456,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: blue,black,brown
    * Expected response: {"color":["blue","black","brown"]}
+   *
    * @throws Exception
    */
   @Test
@@ -2653,6 +2507,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: R=100,G=200,B=150
    * Expected response: {"color":{"R":"100","G":"200","B":"150"}}
+   *
    * @throws Exception
    */
   @Test

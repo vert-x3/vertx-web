@@ -3,30 +3,6 @@ info:
   version: 0.0.1
   title: OpenAPI 3 Parameter Validation Compatibility Test
 paths:
-  '/path/matrix/noexplode/empty/{color}':
-    get:
-      parameters:
-        - name: color
-          x-test: empty
-          in: path
-          required: true
-          examples:
-            value:
-              $ref: "#/components/examples/Empty"
-            spec:
-              value: ";color"
-          schema:
-            $ref: "#/components/schemas/Color"
-          style: matrix
-          explode: false
-      operationId: 'path_matrix_noexplode_empty'
-      responses:
-        200:
-          $ref: "#/components/responses/ColorEmpty200"
-        400:
-          description: Wrong validation
-        default:
-          description: Default response
   '/path/matrix/noexplode/string/{color}':
     get:
       parameters:
@@ -100,30 +76,6 @@ paths:
         default:
           description: Default response
 
-  '/path/matrix/explode/empty/{color}':
-    get:
-      parameters:
-        - name: color
-          x-test: empty
-          in: path
-          required: true
-          examples:
-            value:
-              $ref: "#/components/examples/Empty"
-            spec:
-              value: ";color"
-          schema:
-            $ref: "#/components/schemas/Color"
-          style: matrix
-          explode: true
-      operationId: 'path_matrix_explode_empty'
-      responses:
-        200:
-          $ref: "#/components/responses/ColorEmpty200"
-        400:
-          description: Wrong validation
-        default:
-          description: Default response
   '/path/matrix/explode/string/{color}':
     get:
       parameters:
@@ -198,30 +150,6 @@ paths:
           description: Default response
 
 
-  '/path/label/noexplode/empty/{color}':
-    get:
-      parameters:
-        - name: color
-          x-test: empty
-          in: path
-          required: true
-          examples:
-            value:
-              $ref: "#/components/examples/Empty"
-            spec:
-              value: "."
-          schema:
-            $ref: "#/components/schemas/Color"
-          style: label
-          explode: false
-      operationId: 'path_label_noexplode_empty'
-      responses:
-        200:
-          $ref: "#/components/responses/ColorEmpty200"
-        400:
-          description: Wrong validation
-        default:
-          description: Default response
   '/path/label/noexplode/string/{color}':
     get:
       parameters:
@@ -295,30 +223,6 @@ paths:
         default:
           description: Default response
 
-  '/path/label/explode/empty/{color}':
-    get:
-      parameters:
-        - name: color
-          x-test: empty
-          in: path
-          required: true
-          examples:
-            value:
-              $ref: "#/components/examples/Empty"
-            spec:
-              value: "."
-          schema:
-            $ref: "#/components/schemas/Color"
-          style: label
-          explode: true
-      operationId: 'path_label_explode_empty'
-      responses:
-        200:
-          $ref: "#/components/responses/ColorEmpty200"
-        400:
-          description: Wrong validation
-        default:
-          description: Default response
   '/path/label/explode/string/{color}':
     get:
       parameters:

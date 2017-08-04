@@ -2,6 +2,7 @@ package io.vertx.ext.web.designdriven.openapi3;
 
 import com.reprezen.kaizen.oasparser.OpenApiParser;
 import com.reprezen.kaizen.oasparser.model3.OpenApi3;
+import com.reprezen.kaizen.oasparser.model3.Operation;
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
@@ -51,8 +52,8 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
 
   @Test
   public void testLoadSampleOperationObject() throws Exception {
-    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(petStore.getPath
-      ("/pets").getGet(), null);
+    Operation op = petStore.getPath("/pets").getGet();
+    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(op, new ArrayList<>(op.getParameters()));
     router.get("/pets").handler(validationHandler);
     router.get("/pets").handler(routingContext -> {
       routingContext.response().setStatusMessage("ok").end();
@@ -62,8 +63,8 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
 
   @Test
   public void testPathParameter() throws Exception {
-    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(petStore.getPath
-      ("/pets/{petId}").getGet(), null);
+    Operation op = petStore.getPath("/pets/{petId}").getGet();
+    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(op, new ArrayList<>(op.getParameters()));
     loadHandlers("/pets/:petId", HttpMethod.GET, false, validationHandler, (routingContext) -> {
       RequestParameters params = routingContext.get("parsedParameters");
       routingContext.response().setStatusMessage(params.pathParameter("petId").getString()).end();
@@ -75,8 +76,8 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
 
   @Test
   public void testPathParameterFailure() throws Exception {
-    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(testSpec.getPath
-      ("/pets/{petId}").getGet(), null);
+    Operation op = testSpec.getPath("/pets/{petId}").getGet();
+    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(op, new ArrayList<>(op.getParameters()));
     loadHandlers("/pets/:petId", HttpMethod.GET, true, validationHandler, (routingContext) -> {
       routingContext.response().setStatusMessage("ok").end();
     });
@@ -85,8 +86,8 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
 
   @Test
   public void testQueryParameterNotRequired() throws Exception {
-    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(petStore.getPath
-      ("/pets").getGet(), null);
+    Operation op = petStore.getPath("/pets").getGet();
+    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(op, new ArrayList<>(op.getParameters()));
     loadHandlers("/pets", HttpMethod.GET, false, validationHandler, (routingContext) -> {
       routingContext.response().setStatusMessage("ok").end();
     });
@@ -95,8 +96,8 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
 
   @Test
   public void testQueryParameterArrayExploded() throws Exception {
-    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(testSpec.getPath
-      ("/queryTests/arrayTests/formExploded").getGet(), null);
+    Operation op = testSpec.getPath("/queryTests/arrayTests/formExploded").getGet();
+    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(op, new ArrayList<>(op.getParameters()));
     loadHandlers("/queryTests/arrayTests/formExploded", HttpMethod.GET, false, validationHandler, (routingContext) -> {
       RequestParameters params = routingContext.get("parsedParameters");
       List<String> result = new ArrayList<>();
@@ -121,8 +122,8 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
 
   @Test
   public void testQueryParameterArrayDefaultStyle() throws Exception {
-    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(testSpec.getPath
-      ("/queryTests/arrayTests/default").getGet(), null);
+    Operation op = testSpec.getPath("/queryTests/arrayTests/default").getGet();
+    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(op, new ArrayList<>(op.getParameters()));
     loadHandlers("/queryTests/arrayTests/default", HttpMethod.GET, false, validationHandler, (routingContext) -> {
       RequestParameters params = routingContext.get("parsedParameters");
       List<String> result = new ArrayList<>();
@@ -141,8 +142,8 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
 
   @Test
   public void testQueryParameterArrayDefaultStyleFailure() throws Exception {
-    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(testSpec.getPath
-      ("/queryTests/arrayTests/default").getGet(), null);
+    Operation op = testSpec.getPath("/queryTests/arrayTests/default").getGet();
+    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(op, new ArrayList<>(op.getParameters()));
     loadHandlers("/queryTests/arrayTests/default", HttpMethod.GET, true, validationHandler, (routingContext) -> {
       routingContext.response().setStatusMessage("ok").end();
     });
@@ -157,8 +158,8 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
 
   @Test
   public void testDefaultQueryParameter() throws Exception {
-    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(testSpec.getPath
-      ("/queryTests/default").getGet(), null);
+    Operation op = testSpec.getPath("/queryTests/default").getGet();
+    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(op, new ArrayList<>(op.getParameters()));
     loadHandlers("/queryTests/default", HttpMethod.GET, false, validationHandler, (routingContext) -> {
       RequestParameters params = routingContext.get("parsedParameters");
       routingContext.response().setStatusMessage(params.queryParameter("parameter").getString()).end();
@@ -170,8 +171,8 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
 
   @Test
   public void testFormArrayParameter() throws Exception {
-    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(testSpec.getPath
-      ("/formTests/arraytest").getPost(), null);
+    Operation op = testSpec.getPath("/formTests/arraytest").getPost();
+    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(op, new ArrayList<>(op.getParameters()));
     loadHandlers("/formTests/arraytest", HttpMethod.POST, false, validationHandler, (routingContext) -> {
       RequestParameters params = routingContext.get("parsedParameters");
       List<String> result = new ArrayList<>();
@@ -197,8 +198,8 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
 
   @Test
   public void testFormArrayParameterFailure() throws Exception {
-    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(testSpec.getPath
-      ("/formTests/arraytest").getPost(), null);
+    Operation op = testSpec.getPath("/formTests/arraytest").getPost();
+    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(op, new ArrayList<>(op.getParameters()));
     loadHandlers("/formTests/arraytest", HttpMethod.POST, true, validationHandler, (routingContext) -> {
       routingContext.response().setStatusMessage("ok").end();
     });
@@ -221,8 +222,8 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
 
   @Test
   public void testJsonBody() throws Exception {
-    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(testSpec.getPath
-      ("/jsonBodyTest/sampleTest").getPost(), null);
+    Operation op = testSpec.getPath("/jsonBodyTest/sampleTest").getPost();
+    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(op, new ArrayList<>(op.getParameters()));
     loadHandlers("/jsonBodyTest/sampleTest", HttpMethod.POST, false, validationHandler, (routingContext) -> {
       RequestParameters params = routingContext.get("parsedParameters");
       routingContext.response().setStatusMessage(params.body().getJsonObject().encode()).end();
@@ -241,8 +242,8 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
 
   @Test
   public void testJsonBodyFailure() throws Exception {
-    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(testSpec.getPath
-      ("/jsonBodyTest/sampleTest").getPost(), null);
+    Operation op = testSpec.getPath("/jsonBodyTest/sampleTest").getPost();
+    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(op, new ArrayList<>(op.getParameters()));
     loadHandlers("/jsonBodyTest/sampleTest", HttpMethod.POST, true, validationHandler, (routingContext) -> {
       routingContext.response().setStatusMessage("ok").end();
       ;
@@ -263,8 +264,8 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
 
   @Test
   public void testAllOfQueryParam() throws Exception {
-    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(testSpec.getPath
-      ("/queryTests/allOfTest").getGet(), null);
+    Operation op = testSpec.getPath("/queryTests/allOfTest").getGet();
+    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(op, new ArrayList<>(op.getParameters()));
     loadHandlers("/queryTests/allOfTest", HttpMethod.GET, false, validationHandler, (routingContext) -> {
       RequestParameters params = routingContext.get("parsedParameters");
       routingContext.response().setStatusMessage(params.queryParameter("parameter").getObjectValue("a").getInteger()
@@ -281,8 +282,8 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
 
   @Test
   public void testAllOfQueryParamWithDefault() throws Exception {
-    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(testSpec.getPath
-      ("/queryTests/allOfTest").getGet(), null);
+    Operation op = testSpec.getPath("/queryTests/allOfTest").getGet();
+    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(op, new ArrayList<>(op.getParameters()));
     loadHandlers("/queryTests/allOfTest", HttpMethod.GET, false, validationHandler, (routingContext) -> {
       RequestParameters params = routingContext.get("parsedParameters");
       routingContext.response().setStatusMessage(params.queryParameter("parameter").getObjectValue("a").getInteger()
@@ -299,8 +300,8 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
 
   @Test
   public void testAllOfQueryParamFailure() throws Exception {
-    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(testSpec.getPath
-      ("/queryTests/allOfTest").getGet(), null);
+    Operation op = testSpec.getPath("/queryTests/allOfTest").getGet();
+    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(op, new ArrayList<>(op.getParameters()));
     loadHandlers("/queryTests/allOfTest", HttpMethod.GET, true, validationHandler, (routingContext) -> {
       routingContext.response().setStatusMessage("ok").end();
     });
@@ -316,8 +317,8 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
 
   @Test
   public void testQueryParameterAnyOf() throws Exception {
-    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(testSpec.getPath
-      ("/queryTests/anyOfTest").getGet(), null);
+    Operation op = testSpec.getPath("/queryTests/anyOfTest").getGet();
+    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(op, new ArrayList<>(op.getParameters()));
     loadHandlers("/queryTests/anyOfTest", HttpMethod.GET, false, validationHandler, (routingContext) -> {
       RequestParameters params = routingContext.get("parsedParameters");
       routingContext.response().setStatusMessage(params.queryParameter("parameter").getBoolean().toString()).end();
@@ -328,8 +329,8 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
 
   @Test
   public void testQueryParameterAnyOfFailure() throws Exception {
-    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(testSpec.getPath
-      ("/queryTests/anyOfTest").getGet(), null);
+    Operation op = testSpec.getPath("/queryTests/anyOfTest").getGet();
+    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(op, new ArrayList<>(op.getParameters()));
     loadHandlers("/queryTests/anyOfTest", HttpMethod.GET, true, validationHandler, (routingContext) -> {
       routingContext.response().setStatusMessage("ok").end();
     });
@@ -340,8 +341,8 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
 
   @Test
   public void testComplexMultipart() throws Exception {
-    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(testSpec.getPath
-      ("/multipart/complex").getPost(), null);
+    Operation op = testSpec.getPath("/multipart/complex").getPost();
+    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(op, new ArrayList<>(op.getParameters()));
     loadHandlers("/multipart/complex", HttpMethod.POST, false, validationHandler, (routingContext) -> {
       RequestParameters params = routingContext.get("parsedParameters");
       assertEquals(params.formParameter("param1").getString(), "sampleString");
@@ -371,8 +372,8 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
 
   @Test
   public void testEmptyBody() throws Exception {
-    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(testSpec.getPath
-      ("/multipart/complex").getPost(), null);
+    Operation op = testSpec.getPath("/multipart/complex").getPost();
+    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(op, new ArrayList<>(op.getParameters()));
     loadHandlers("/multipart/complex", HttpMethod.POST, false, validationHandler, (routingContext) -> {
       routingContext.response().setStatusMessage("ok").end();
     });

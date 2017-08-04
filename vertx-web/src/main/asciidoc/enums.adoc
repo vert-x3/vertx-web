@@ -78,7 +78,16 @@ Space separated values: "value1 value2 value3"
 Pipe separated values: "value1|value2|value3"
  aliases: "psv", "pipeDelimited"
 +++
+|[[dsv]]`dsv`|
++++
+Dot delimited values: "value1.value2.value3"
+ aliases: "dsv", "dotDelimited", "label"
++++
 |[[simple_exploded_object]]`simple_exploded_object`|
++++
+For internal usage, don't use it
++++
+|[[matrix_exploded_array]]`matrix_exploded_array`|
 +++
 For internal usage, don't use it
 +++

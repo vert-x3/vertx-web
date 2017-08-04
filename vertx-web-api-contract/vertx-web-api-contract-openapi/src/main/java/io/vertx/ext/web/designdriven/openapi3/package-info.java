@@ -47,6 +47,9 @@
  *
  * You can, of course, **add multiple handlers to same operation**, without overwrite the existing ones.
  *
+ * .Path in OpenAPI format
+ * IMPORTANT: If you want to use {@link io.vertx.ext.web.designdriven.openapi3.OpenAPI3RouterFactory#addHandler(io.vertx.core.http.HttpMethod, java.lang.String, io.vertx.core.Handler)} or {@link io.vertx.ext.web.designdriven.openapi3.OpenAPI3RouterFactory#addFailureHandler(io.vertx.core.http.HttpMethod, java.lang.String, io.vertx.core.Handler)} pay attention: You can provide a path only in OpenAPI styles (for example path `/hello/:param` doesn't work)
+ *
  * For example:
  * [source,$lang]
  * ----

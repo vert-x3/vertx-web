@@ -20,9 +20,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.Base64;
 
-/**
- * @author Francesco Guardiani @slinkydeveloper
- */
 public class ApiClient {
   private WebClient client;
   private int port;
@@ -43,32 +40,6 @@ public class ApiClient {
     this.client = client;
 
     cookieParams = new CaseInsensitiveHeaders();
-  }
-
-  /**
-   * Call path_matrix_noexplode_empty with empty body.
-   *
-   * @param color   Parameter color inside path
-   * @param handler The handler for the asynchronous request
-   */
-  public void pathMatrixNoexplodeEmpty(
-    String color,
-    Handler<AsyncResult<HttpResponse>> handler) {
-    // Check required params
-    if (color == null) throw new RuntimeException("Missing parameter color in path");
-
-
-    // Generate the uri
-    String uri = "/path/matrix/noexplode/empty/{color}";
-    uri = uri.replace("{color}", this.renderPathMatrix("color", color));
-
-    HttpRequest request = client.get(uri);
-
-    MultiMap requestCookies = new CaseInsensitiveHeaders();
-
-
-    this.renderAndAttachCookieHeader(request, requestCookies);
-    request.send(handler);
   }
 
   /**
@@ -139,32 +110,6 @@ public class ApiClient {
     // Generate the uri
     String uri = "/path/matrix/noexplode/object/{color}";
     uri = uri.replace("{color}", this.renderPathObjectMatrix("color", color));
-
-    HttpRequest request = client.get(uri);
-
-    MultiMap requestCookies = new CaseInsensitiveHeaders();
-
-
-    this.renderAndAttachCookieHeader(request, requestCookies);
-    request.send(handler);
-  }
-
-  /**
-   * Call path_matrix_explode_empty with empty body.
-   *
-   * @param color   Parameter color inside path
-   * @param handler The handler for the asynchronous request
-   */
-  public void pathMatrixExplodeEmpty(
-    String color,
-    Handler<AsyncResult<HttpResponse>> handler) {
-    // Check required params
-    if (color == null) throw new RuntimeException("Missing parameter color in path");
-
-
-    // Generate the uri
-    String uri = "/path/matrix/explode/empty/{color}";
-    uri = uri.replace("{color}", this.renderPathMatrix("color", color));
 
     HttpRequest request = client.get(uri);
 
@@ -254,32 +199,6 @@ public class ApiClient {
   }
 
   /**
-   * Call path_label_noexplode_empty with empty body.
-   *
-   * @param color   Parameter color inside path
-   * @param handler The handler for the asynchronous request
-   */
-  public void pathLabelNoexplodeEmpty(
-    String color,
-    Handler<AsyncResult<HttpResponse>> handler) {
-    // Check required params
-    if (color == null) throw new RuntimeException("Missing parameter color in path");
-
-
-    // Generate the uri
-    String uri = "/path/label/noexplode/empty/{color}";
-    uri = uri.replace("{color}", this.renderPathLabel("color", color));
-
-    HttpRequest request = client.get(uri);
-
-    MultiMap requestCookies = new CaseInsensitiveHeaders();
-
-
-    this.renderAndAttachCookieHeader(request, requestCookies);
-    request.send(handler);
-  }
-
-  /**
    * Call path_label_noexplode_string with empty body.
    *
    * @param color   Parameter color inside path
@@ -347,32 +266,6 @@ public class ApiClient {
     // Generate the uri
     String uri = "/path/label/noexplode/object/{color}";
     uri = uri.replace("{color}", this.renderPathObjectLabel("color", color));
-
-    HttpRequest request = client.get(uri);
-
-    MultiMap requestCookies = new CaseInsensitiveHeaders();
-
-
-    this.renderAndAttachCookieHeader(request, requestCookies);
-    request.send(handler);
-  }
-
-  /**
-   * Call path_label_explode_empty with empty body.
-   *
-   * @param color   Parameter color inside path
-   * @param handler The handler for the asynchronous request
-   */
-  public void pathLabelExplodeEmpty(
-    String color,
-    Handler<AsyncResult<HttpResponse>> handler) {
-    // Check required params
-    if (color == null) throw new RuntimeException("Missing parameter color in path");
-
-
-    // Generate the uri
-    String uri = "/path/label/explode/empty/{color}";
-    uri = uri.replace("{color}", this.renderPathLabel("color", color));
 
     HttpRequest request = client.get(uri);
 
@@ -1538,7 +1431,7 @@ public class ApiClient {
    * @return
    */
   private String renderPathArrayMatrixExplode(String paramName, List<Object> values) {
-    return String.join(",", values.stream().map(object -> ";" + paramName + "=" + encode(String.valueOf(object))).collect(Collectors.toList()));
+    return String.join("", values.stream().map(object -> ";" + paramName + "=" + encode(String.valueOf(object))).collect(Collectors.toList()));
   }
 
   /**
@@ -1553,7 +1446,9 @@ public class ApiClient {
    * @return
    */
   private String renderPathObjectMatrixExplode(String paramName, Map<String, Object> values) {
-    return String.join(",", values.keySet().stream().map(object -> ";" + paramName + "=" + encode(String.valueOf(object))).collect(Collectors.toList()));
+    return String.join("", values.entrySet().stream().map(
+      entry -> ";" + entry.getKey() + "=" + encode(String.valueOf(entry.getValue()))
+    ).collect(Collectors.toList()));
   }
 
   /**
