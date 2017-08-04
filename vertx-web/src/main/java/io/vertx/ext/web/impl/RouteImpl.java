@@ -16,6 +16,7 @@
 
 package io.vertx.ext.web.impl;
 
+import io.netty.handler.codec.http.QueryStringDecoder;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
@@ -24,16 +25,14 @@ import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.MIMEHeader;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
-import io.netty.handler.codec.http.QueryStringDecoder;
 
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- *
  * This class is thread-safe
- *
+ * <p>
  * Some parts (e.g. content negotiation) from Yoke by Paulo Lopes
  *
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -201,7 +200,7 @@ public class RouteImpl implements Route {
     sb.append(" order:").append(order);
     sb.append(" methods:[");
     int cnt = 0;
-    for (HttpMethod method: methods) {
+    for (HttpMethod method : methods) {
       sb.append(method);
       cnt++;
       if (cnt < methods.size()) {
@@ -256,7 +255,13 @@ public class RouteImpl implements Route {
             // decode the path as it could contain escaped chars.
             for (int i = 0; i < groups.size(); i++) {
               final String k = groups.get(i);
-              final String value = Utils.urlDecode(m.group("p" + i), false);
+              String undecodedValue;
+              try {
+                undecodedValue = m.group("p" + i);
+              } catch (IllegalArgumentException e) {
+                undecodedValue = m.group(k);
+              }
+              final String value = Utils.urlDecode(undecodedValue, false);
               if (!request.params().contains(k)) {
                 params.put(k, value);
               } else {
@@ -268,7 +273,7 @@ public class RouteImpl implements Route {
             // decode the path as it could contain escaped chars.
             for (int i = 0; i < m.groupCount(); i++) {
               String group = m.group(i + 1);
-              if(group != null) {
+              if (group != null) {
                 final String k = "param" + i;
                 final String value = Utils.urlDecode(group, false);
                 if (!request.params().contains(k)) {
@@ -300,17 +305,17 @@ public class RouteImpl implements Route {
       // Can this route consume the specified content type
       MIMEHeader contentType = context.parsedHeaders().contentType();
       MIMEHeader consumal = contentType.findMatchedBy(consumes);
-      if(consumal == null){
+      if (consumal == null) {
         return false;
       }
     }
     List<MIMEHeader> acceptableTypes = context.parsedHeaders().accept();
     if (!produces.isEmpty() && !acceptableTypes.isEmpty()) {
       MIMEHeader selectedAccept = context.parsedHeaders().findBestUserAcceptedIn(acceptableTypes, produces);
-        if(selectedAccept != null){
-          context.setAcceptableContentType(selectedAccept.rawValue());
-          return true;
-        }
+      if (selectedAccept != null) {
+        context.setAcceptableContentType(selectedAccept.rawValue());
+        return true;
+      }
       return false;
     }
     return true;
@@ -375,7 +380,12 @@ public class RouteImpl implements Route {
     }
   }
 
+  public void setRegexGroupsNames(List<String> groups) {
+    this.groups = groups;
+  }
+
   private void setRegex(String regex) {
+    // Check if there are any groups with names
     pattern = Pattern.compile(regex);
   }
 
@@ -390,7 +400,7 @@ public class RouteImpl implements Route {
       path = path.substring(0, path.length() - 1) + ".*";
     }
     // We need to search for any :<token name> tokens in the String and replace them with named capture groups
-    Matcher m =  Pattern.compile(":([A-Za-z][A-Za-z0-9_]*)").matcher(path);
+    Matcher m = Pattern.compile(":([A-Za-z][A-Za-z0-9_]*)").matcher(path);
     StringBuffer sb = new StringBuffer();
     groups = new ArrayList<>();
     int index = 0;
