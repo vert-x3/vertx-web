@@ -1157,9 +1157,32 @@ public class WebClientTest extends HttpTestBase {
     await();
   }
 
-  private <R> void handleMutateRequest(HttpContext context) {
-    context.request().host("localhost");
-    context.request().port(8080);
-    context.next();
+  @Test
+  public void testStreamHttpServerRequest() throws Exception {
+    Buffer expected = TestUtils.randomBuffer(10000);
+    HttpServer server2 = vertx.createHttpServer(new HttpServerOptions().setPort(8081)).requestHandler(req -> {
+      req.bodyHandler(body -> {
+        assertEquals(body, expected);
+        req.response().end();
+      });
+    });
+    startServer(server2);
+    WebClient webClient = WebClient.create(vertx);
+    try {
+      server.requestHandler(req -> {
+        webClient.postAbs("http://localhost:8081/")
+          .sendStream(req, onSuccess(resp -> {
+            req.response().end("ok");
+          }));
+      });
+      startServer();
+      webClient.post(8080, "localhost", "/").sendBuffer(expected, onSuccess(resp -> {
+        assertEquals("ok", resp.bodyAsString());
+        complete();
+      }));
+      await();
+    } finally {
+      server2.close();
+    }
   }
 }
