@@ -135,8 +135,8 @@ public class StaticHandlerImpl implements StaticHandler {
       String path = Utils.removeDots(Utils.urlDecode(context.normalisedPath(), false));
       // if the normalized path is null it cannot be resolved
       if (path == null) {
-        log.warn("Invalid path: " + context.request().path() + " so returning 404");
-        context.fail(NOT_FOUND.code());
+        log.warn("Invalid path: " + context.request().path());
+        context.next();
         return;
       }
 
@@ -160,7 +160,8 @@ public class StaticHandlerImpl implements StaticHandler {
       int idx = file.lastIndexOf('/');
       String name = file.substring(idx + 1);
       if (name.length() > 0 && name.charAt(0) == '.') {
-        context.fail(NOT_FOUND.code());
+        // skip
+        context.next();
         return;
       }
     }
@@ -190,7 +191,7 @@ public class StaticHandlerImpl implements StaticHandler {
         FileProps fprops = res.result();
         if (fprops == null) {
           // File does not exist
-          context.fail(NOT_FOUND.code());
+          context.next();
         } else if (fprops.isDirectory()) {
           sendDirectory(context, path, sfile);
         } else {
@@ -199,6 +200,7 @@ public class StaticHandlerImpl implements StaticHandler {
         }
       } else {
         if (res.cause() instanceof NoSuchFileException || (res.cause().getCause() != null && res.cause().getCause() instanceof NoSuchFileException)) {
+          // this is a special case, we cannot detect that a file does not exist normally, but we by an exception
           context.fail(NOT_FOUND.code());
         } else {
           context.fail(res.cause());
