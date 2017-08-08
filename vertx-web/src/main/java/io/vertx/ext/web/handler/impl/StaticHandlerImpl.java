@@ -200,8 +200,8 @@ public class StaticHandlerImpl implements StaticHandler {
         }
       } else {
         if (res.cause() instanceof NoSuchFileException || (res.cause().getCause() != null && res.cause().getCause() instanceof NoSuchFileException)) {
-          // this is a special case, we cannot detect that a file does not exist normally, but we by an exception
-          context.fail(NOT_FOUND.code());
+          // this is a special case, we can't handle it as an error
+          context.next();
         } else {
           context.fail(res.cause());
         }
