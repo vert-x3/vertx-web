@@ -183,29 +183,38 @@ public class StaticHandlerImpl implements StaticHandler {
       file = getFile(path, context);
     }
 
-    String sfile = file;
+    final String sfile = file;
 
-    // Need to read the props from the filesystem
-    getFileProps(context, file, res -> {
-      if (res.succeeded()) {
-        FileProps fprops = res.result();
-        if (fprops == null) {
-          // File does not exist
-          context.next();
-        } else if (fprops.isDirectory()) {
-          sendDirectory(context, path, sfile);
-        } else {
-          propsCache().put(path, new CacheEntry(fprops, System.currentTimeMillis()));
-          sendFile(context, sfile, fprops);
-        }
-      } else {
-        if (res.cause() instanceof NoSuchFileException || (res.cause().getCause() != null && res.cause().getCause() instanceof NoSuchFileException)) {
-          // this is a special case, we can't handle it as an error
-          context.next();
+    // verify if the file exists
+    isFileExisting(context, sfile, exists -> {
+      if (exists.failed()) {
+        context.fail(exists.cause());
+        return;
+      }
+
+      // file does not exist, continue...
+      if (!exists.result()) {
+        context.next();
+        return;
+      }
+
+      // Need to read the props from the filesystem
+      getFileProps(context, sfile, res -> {
+        if (res.succeeded()) {
+          FileProps fprops = res.result();
+          if (fprops == null) {
+            // File does not exist
+            context.next();
+          } else if (fprops.isDirectory()) {
+            sendDirectory(context, path, sfile);
+          } else {
+            propsCache().put(path, new CacheEntry(fprops, System.currentTimeMillis()));
+            sendFile(context, sfile, fprops);
+          }
         } else {
           context.fail(res.cause());
         }
-      }
+      });
     });
   }
 
@@ -247,6 +256,11 @@ public class StaticHandlerImpl implements StaticHandler {
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
+  }
+
+  private synchronized void isFileExisting(RoutingContext context, String file, Handler<AsyncResult<Boolean>> resultHandler) {
+    FileSystem fs = context.vertx().fileSystem();
+    wrapInTCCLSwitch(() -> fs.exists(file, resultHandler));
   }
 
   private synchronized void getFileProps(RoutingContext context, String file, Handler<AsyncResult<FileProps>> resultHandler) {
