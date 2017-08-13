@@ -194,16 +194,7 @@ public class HttpContext {
     if (request.headers != null) {
       req.headers().addAll(request.headers);
     }
-    req.exceptionHandler(err -> {
-      if (!responseFuture.isComplete()) {
-        responseFuture.fail(err);
-      }
-    });
-    req.handler(resp -> {
-      if (!responseFuture.isComplete()) {
-        responseFuture.complete(resp);
-      }
-    });
+    req.handler(responseFuture::tryComplete);
     if (request.timeout > 0) {
       req.setTimeout(request.timeout);
     }
@@ -222,15 +213,20 @@ public class HttpContext {
           req.setChunked(true);
         }
         Pump pump = Pump.pump(stream, req);
+        req.exceptionHandler(err -> {
+          pump.stop();
+          stream.endHandler(null);
+          stream.resume();
+          responseFuture.tryFail(err);
+        });
         stream.exceptionHandler(err -> {
           req.reset();
-          if (!responseFuture.isComplete()) {
-            responseFuture.fail(err);
-          }
+          responseFuture.tryFail(err);
         });
         stream.endHandler(v -> {
-          pump.stop();
+          req.exceptionHandler(responseFuture::tryFail);
           req.end();
+          pump.stop();
         });
         pump.start();
       } else {
@@ -272,9 +268,11 @@ public class HttpContext {
         } else {
           buffer = Buffer.buffer(Json.encode(body));
         }
+        req.exceptionHandler(responseFuture::tryFail);
         req.end(buffer);
       }
     } else {
+      req.exceptionHandler(responseFuture::tryFail);
       req.end();
     }
   }
