@@ -191,6 +191,12 @@ public class RouteImpl implements Route {
   }
 
   @Override
+  public Route setRegexGroupsNames(List<String> groups) {
+    this.groups = groups;
+    return this;
+  }
+
+  @Override
   public String toString() {
     StringBuilder sb = new StringBuilder("Route[ ");
     sb.append("path:").append(path);
@@ -378,10 +384,6 @@ public class RouteImpl implements Route {
         this.path = path.substring(0, path.length() - 1);
       }
     }
-  }
-
-  public void setRegexGroupsNames(List<String> groups) {
-    this.groups = groups;
   }
 
   private void setRegex(String regex) {

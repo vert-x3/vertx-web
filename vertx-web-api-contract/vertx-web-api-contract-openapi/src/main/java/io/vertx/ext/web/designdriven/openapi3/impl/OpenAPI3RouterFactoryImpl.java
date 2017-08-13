@@ -309,7 +309,7 @@ public class OpenAPI3RouterFactoryImpl extends BaseDesignDrivenRouterFactory<Ope
       // Now add all handlers to router
       OpenAPI3PathResolver pathResolver = new OpenAPI3PathResolver(operation.getPath(), operation.getParameters());
       Route route = router.routeWithRegex(operation.getMethod(), pathResolver.solve().toString());
-      ((RouteImpl) route).setRegexGroupsNames(new ArrayList<>(pathResolver.getMappedGroups().values()));
+      route.setRegexGroupsNames(new ArrayList<>(pathResolver.getMappedGroups().values()));
       for (Handler handler : handlersToLoad)
         route.handler(handler);
       for (Handler failureHandler : failureHandlersToLoad)
