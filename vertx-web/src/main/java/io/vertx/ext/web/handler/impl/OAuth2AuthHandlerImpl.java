@@ -100,11 +100,13 @@ public class OAuth2AuthHandlerImpl extends AuthorizationAuthHandler implements O
       return ((OAuth2Auth) authProvider).authorizeURL(new JsonObject()
         .put("redirect_uri", host + callback.getPath())
         .put("scopes", scopes)
-        .put("state", redirectURL));
+        .put("state", redirectURL)
+        .mergeIn(extraParams));
     } else {
       return ((OAuth2Auth) authProvider).authorizeURL(new JsonObject()
         .put("redirect_uri", host + callback.getPath())
-        .put("state", redirectURL));
+        .put("state", redirectURL)
+        .mergeIn(extraParams));
     }
   }
 
