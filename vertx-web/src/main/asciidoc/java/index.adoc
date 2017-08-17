@@ -2381,11 +2381,11 @@ You can specify which _matches_ you want to allow for inbound and outbound traff
 
 Each match is a `link:../../apidocs/io/vertx/ext/web/handler/sockjs/PermittedOptions.html[PermittedOptions]` object:
 
-`link:../../apidocs/io/vertx/ext/web/handler/sockjs/PermittedOptions.html#setAddress-java.lang.String-[setAddress]`:: This represents the exact address the message is being sent to. If you want to allow messages based on
+`link:../../apidocs/io/vertx/ext/bridge/PermittedOptions.html#setAddress-java.lang.String-[setAddress]`:: This represents the exact address the message is being sent to. If you want to allow messages based on
 an exact address you use this field.
-`link:../../apidocs/io/vertx/ext/web/handler/sockjs/PermittedOptions.html#setAddressRegex-java.lang.String-[setAddressRegex]`:: This is a regular expression that will be matched against the address. If you want to allow messages
+`link:../../apidocs/io/vertx/ext/bridge/PermittedOptions.html#setAddressRegex-java.lang.String-[setAddressRegex]`:: This is a regular expression that will be matched against the address. If you want to allow messages
 based on a regular expression you use this field. If the `address` field is specified this field will be ignored.
-`link:../../apidocs/io/vertx/ext/web/handler/sockjs/PermittedOptions.html#setMatch-io.vertx.core.json.JsonObject-[setMatch]`:: This allows you to allow messages based on their structure. Any fields in the match must exist in the
+`link:../../apidocs/io/vertx/ext/bridge/PermittedOptions.html#setMatch-io.vertx.core.json.JsonObject-[setMatch]`:: This allows you to allow messages based on their structure. Any fields in the match must exist in the
 message with the same values for them to be allowed. This currently only works with JSON messages.
 
 If a message is _in-bound_ (i.e. being sent from client side JavaScript to the server) when it is received Vert.x-Web
@@ -2457,7 +2457,7 @@ To do this, you can add extra fields to the match described in the previous sect
 required for the match.
 
 To declare that a specific authority for the logged-in user is required in order to access allow the messages you use the
-`link:../../apidocs/io/vertx/ext/web/handler/sockjs/PermittedOptions.html#setRequiredAuthority-java.lang.String-[setRequiredAuthority]` field.
+`link:../../apidocs/io/vertx/ext/bridge/PermittedOptions.html#setRequiredAuthority-java.lang.String-[setRequiredAuthority]` field.
 
 Here's an example:
 
@@ -2522,8 +2522,8 @@ RECEIVE:: This event will occur when a message is attempted to be delivered from
 REGISTER:: This event will occur when a client attempts to register a handler.
 UNREGISTER:: This event will occur when a client attempts to unregister a handler.
 
-The event enables you to retrieve the type using `link:../../apidocs/io/vertx/ext/web/handler/sockjs/BridgeEvent.html#type--[type]` and
-inspect the raw message of the event using `link:../../apidocs/io/vertx/ext/web/handler/sockjs/BridgeEvent.html#getRawMessage--[getRawMessage]`.
+The event enables you to retrieve the type using `link:../../apidocs/io/vertx/ext/bridge/BaseBridgeEvent.html#type--[type]` and
+inspect the raw message of the event using `link:../../apidocs/io/vertx/ext/bridge/BaseBridgeEvent.html#getRawMessage--[getRawMessage]`.
 
 The raw message is a JSON object with the following structure:
 

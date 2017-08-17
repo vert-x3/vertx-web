@@ -2607,11 +2607,11 @@ You can specify which _matches_ you want to allow for inbound and outbound traff
 
 Each match is a `link:../dataobjects.html#PermittedOptions[PermittedOptions]` object:
 
-`link:../dataobjects.html#PermittedOptions#setAddress[address]`:: This represents the exact address the message is being sent to. If you want to allow messages based on
+`link:../../vertx-bridge-common/dataobjects.html#PermittedOptions#setAddress[address]`:: This represents the exact address the message is being sent to. If you want to allow messages based on
 an exact address you use this field.
-`link:../dataobjects.html#PermittedOptions#setAddressRegex[addressRegex]`:: This is a regular expression that will be matched against the address. If you want to allow messages
+`link:../../vertx-bridge-common/dataobjects.html#PermittedOptions#setAddressRegex[addressRegex]`:: This is a regular expression that will be matched against the address. If you want to allow messages
 based on a regular expression you use this field. If the `address` field is specified this field will be ignored.
-`link:../dataobjects.html#PermittedOptions#setMatch[match]`:: This allows you to allow messages based on their structure. Any fields in the match must exist in the
+`link:../../vertx-bridge-common/dataobjects.html#PermittedOptions#setMatch[match]`:: This allows you to allow messages based on their structure. Any fields in the match must exist in the
 message with the same values for them to be allowed. This currently only works with JSON messages.
 
 If a message is _in-bound_ (i.e. being sent from client side JavaScript to the server) when it is received Vert.x-Web
@@ -2706,7 +2706,7 @@ To do this, you can add extra fields to the match described in the previous sect
 required for the match.
 
 To declare that a specific authority for the logged-in user is required in order to access allow the messages you use the
-`link:../dataobjects.html#PermittedOptions#setRequiredAuthority[requiredAuthority]` field.
+`link:../../vertx-bridge-common/dataobjects.html#PermittedOptions#setRequiredAuthority[requiredAuthority]` field.
 
 Here's an example:
 
@@ -2794,8 +2794,8 @@ RECEIVE:: This event will occur when a message is attempted to be delivered from
 REGISTER:: This event will occur when a client attempts to register a handler.
 UNREGISTER:: This event will occur when a client attempts to unregister a handler.
 
-The event enables you to retrieve the type using `link:../../jsdoc/module-vertx-web-js_bridge_event-BridgeEvent.html#type[type]` and
-inspect the raw message of the event using `link:../../jsdoc/module-vertx-web-js_bridge_event-BridgeEvent.html#getRawMessage[getRawMessage]`.
+The event enables you to retrieve the type using `link:../../jsdoc/module-vertx-bridge-common-js_base_bridge_event-BaseBridgeEvent.html#type[type]` and
+inspect the raw message of the event using `link:../../jsdoc/module-vertx-bridge-common-js_base_bridge_event-BaseBridgeEvent.html#getRawMessage[getRawMessage]`.
 
 The raw message is a JSON object with the following structure:
 
