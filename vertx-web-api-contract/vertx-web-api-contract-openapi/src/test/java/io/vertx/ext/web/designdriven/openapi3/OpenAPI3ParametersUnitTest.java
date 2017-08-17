@@ -5,8 +5,8 @@ import com.reprezen.kaizen.oasparser.model3.OpenApi3;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpServerOptions;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.json.JsonArray;
 import io.vertx.ext.web.RequestParameter;
 import io.vertx.ext.web.RequestParameters;
 import io.vertx.ext.web.RoutingContext;
@@ -42,8 +42,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
     }
 
     @Override
-    protected void after() {
-    }
+    protected void after() {}
   };
 
   @Override
@@ -62,8 +61,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
     if (apiClient != null) {
       try {
         apiClient.close();
-      } catch (IllegalStateException e) {
-      }
+      } catch (IllegalStateException e) {}
     }
     stopServer();
     super.tearDown();
@@ -75,7 +73,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: ;color=blue
    * Expected response: {"color":"blue"}
-   *
    * @throws Exception
    */
   @Test
@@ -124,7 +121,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: ;color=blue,black,brown
    * Expected response: {"color":["blue","black","brown"]}
-   *
    * @throws Exception
    */
   @Test
@@ -175,7 +171,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: ;color=R,100,G,200,B,150
    * Expected response: {"color":{"R":"100","G":"200","B":"150"}}
-   *
    * @throws Exception
    */
   @Test
@@ -191,7 +186,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
       for (String key : color_path.getObjectKeys())
         map.put(key, color_path.getObjectValue(key).getString());
       res.put("color", map);
-
+      
 
       routingContext.response()
         .setStatusCode(200)
@@ -229,7 +224,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: ;color=blue
    * Expected response: {"color":"blue"}
-   *
    * @throws Exception
    */
   @Test
@@ -278,7 +272,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: ;color=blue;color=black;color=brown
    * Expected response: {"color":["blue","black","brown"]}
-   *
    * @throws Exception
    */
   @Test
@@ -329,7 +322,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: ;R=100;G=200;B=150
    * Expected response: {"color":{"R":"100","G":"200","B":"150"}}
-   *
    * @throws Exception
    */
   @Test
@@ -345,7 +337,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
       for (String key : color_path.getObjectKeys())
         map.put(key, color_path.getObjectValue(key).getString());
       res.put("color", map);
-
+      
 
       routingContext.response()
         .setStatusCode(200)
@@ -383,7 +375,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: .blue
    * Expected response: {"color":"blue"}
-   *
    * @throws Exception
    */
   @Test
@@ -432,7 +423,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: .blue.black.brown
    * Expected response: {"color":["blue","black","brown"]}
-   *
    * @throws Exception
    */
   @Test
@@ -483,7 +473,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: .R.100.G.200.B.150
    * Expected response: {"color":{"R":"100","G":"200","B":"150"}}
-   *
    * @throws Exception
    */
   @Test
@@ -499,7 +488,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
       for (String key : color_path.getObjectKeys())
         map.put(key, color_path.getObjectValue(key).getString());
       res.put("color", map);
-
+      
 
       routingContext.response()
         .setStatusCode(200)
@@ -537,7 +526,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: .blue
    * Expected response: {"color":"blue"}
-   *
    * @throws Exception
    */
   @Test
@@ -586,7 +574,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: .blue.black.brown
    * Expected response: {"color":["blue","black","brown"]}
-   *
    * @throws Exception
    */
   @Test
@@ -637,7 +624,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: .R=100.G=200.B=150
    * Expected response: {"color":{"R":"100","G":"200","B":"150"}}
-   *
    * @throws Exception
    */
   @Test
@@ -653,7 +639,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
       for (String key : color_path.getObjectKeys())
         map.put(key, color_path.getObjectValue(key).getString());
       res.put("color", map);
-
+      
 
       routingContext.response()
         .setStatusCode(200)
@@ -691,7 +677,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: blue
    * Expected response: {"color":"blue"}
-   *
    * @throws Exception
    */
   @Test
@@ -740,7 +725,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: blue,black,brown
    * Expected response: {"color":["blue","black","brown"]}
-   *
    * @throws Exception
    */
   @Test
@@ -791,7 +775,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: R,100,G,200,B,150
    * Expected response: {"color":{"R":"100","G":"200","B":"150"}}
-   *
    * @throws Exception
    */
   @Test
@@ -807,7 +790,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
       for (String key : color_path.getObjectKeys())
         map.put(key, color_path.getObjectValue(key).getString());
       res.put("color", map);
-
+      
 
       routingContext.response()
         .setStatusCode(200)
@@ -845,7 +828,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: blue
    * Expected response: {"color":"blue"}
-   *
    * @throws Exception
    */
   @Test
@@ -894,7 +876,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: blue,black,brown
    * Expected response: {"color":["blue","black","brown"]}
-   *
    * @throws Exception
    */
   @Test
@@ -945,7 +926,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: R=100,G=200,B=150
    * Expected response: {"color":{"R":"100","G":"200","B":"150"}}
-   *
    * @throws Exception
    */
   @Test
@@ -961,7 +941,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
       for (String key : color_path.getObjectKeys())
         map.put(key, color_path.getObjectValue(key).getString());
       res.put("color", map);
-
+      
 
       routingContext.response()
         .setStatusCode(200)
@@ -1000,7 +980,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * color_simple: blue
    * color_label: .blue.black.brown
    * Expected response: {"color_simple":"blue","color_label":["blue","black","brown"]}
-   *
    * @throws Exception
    */
   @Test
@@ -1059,7 +1038,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * color_simple: blue
    * color_matrix: ;color=blue,black,brown
    * Expected response: {"color_simple":"blue","color_matrix":["blue","black","brown"]}
-   *
    * @throws Exception
    */
   @Test
@@ -1118,7 +1096,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * color_label: .blue.black.brown
    * color_matrix: ;R=100;G=200;B=150
    * Expected response: {"color_label":["blue","black","brown"],"color_matrix":{"R":"100","G":"200","B":"150"}}
-   *
    * @throws Exception
    */
   @Test
@@ -1138,7 +1115,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
       for (String key : colorMatrix_path.getObjectKeys())
         map.put(key, colorMatrix_path.getObjectValue(key).getString());
       res.put("color_matrix", map);
-
+      
 
       routingContext.response()
         .setStatusCode(200)
@@ -1181,7 +1158,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: color=
    * Expected response: {"color":null}
-   *
    * @throws Exception
    */
   @Test
@@ -1229,7 +1205,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: color=blue
    * Expected response: {"color":"blue"}
-   *
    * @throws Exception
    */
   @Test
@@ -1278,7 +1253,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: color=blue,black,brown
    * Expected response: {"color":["blue","black","brown"]}
-   *
    * @throws Exception
    */
   @Test
@@ -1329,7 +1303,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: color=R,100,G,200,B,150
    * Expected response: {"color":{"R":"100","G":"200","B":"150"}}
-   *
    * @throws Exception
    */
   @Test
@@ -1345,7 +1318,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
       for (String key : color_query.getObjectKeys())
         map.put(key, color_query.getObjectValue(key).getString());
       res.put("color", map);
-
+      
 
       routingContext.response()
         .setStatusCode(200)
@@ -1383,7 +1356,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: color=
    * Expected response: {"color":null}
-   *
    * @throws Exception
    */
   @Test
@@ -1431,7 +1403,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: color=blue
    * Expected response: {"color":"blue"}
-   *
    * @throws Exception
    */
   @Test
@@ -1480,7 +1451,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: color=blue&color=black&color=brown
    * Expected response: {"color":["blue","black","brown"]}
-   *
    * @throws Exception
    */
   @Test
@@ -1531,7 +1501,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: R=100&G=200&B=150
    * Expected response: {"color":{"R":"100","G":"200","B":"150"}}
-   *
    * @throws Exception
    */
   @Test
@@ -1547,7 +1516,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
       for (String key : color_query.getObjectKeys())
         map.put(key, color_query.getObjectValue(key).getString());
       res.put("color", map);
-
+      
 
       routingContext.response()
         .setStatusCode(200)
@@ -1585,7 +1554,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: blue%20black%20brown
    * Expected response: {"color":["blue","black","brown"]}
-   *
    * @throws Exception
    */
   @Test
@@ -1636,7 +1604,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: R%20100%20G%20200%20B%20150
    * Expected response: {"color":{"R":"100","G":"200","B":"150"}}
-   *
    * @throws Exception
    */
   @Test
@@ -1652,7 +1619,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
       for (String key : color_query.getObjectKeys())
         map.put(key, color_query.getObjectValue(key).getString());
       res.put("color", map);
-
+      
 
       routingContext.response()
         .setStatusCode(200)
@@ -1690,7 +1657,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: blue|black|brown
    * Expected response: {"color":["blue","black","brown"]}
-   *
    * @throws Exception
    */
   @Test
@@ -1741,7 +1707,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: R|100|G|200|B|150
    * Expected response: {"color":{"R":"100","G":"200","B":"150"}}
-   *
    * @throws Exception
    */
   @Test
@@ -1757,7 +1722,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
       for (String key : color_query.getObjectKeys())
         map.put(key, color_query.getObjectValue(key).getString());
       res.put("color", map);
-
+      
 
       routingContext.response()
         .setStatusCode(200)
@@ -1795,7 +1760,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: color[R]=100&color[G]=200&color[B]=150
    * Expected response: {"color":{"R":"100","G":"200","B":"150"}}
-   *
    * @throws Exception
    */
   @Test
@@ -1811,7 +1775,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
       for (String key : color_query.getObjectKeys())
         map.put(key, color_query.getObjectValue(key).getString());
       res.put("color", map);
-
+      
 
       routingContext.response()
         .setStatusCode(200)
@@ -1849,7 +1813,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: color=
    * Expected response: {"color":null}
-   *
    * @throws Exception
    */
   @Test
@@ -1897,7 +1860,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: color=blue
    * Expected response: {"color":"blue"}
-   *
    * @throws Exception
    */
   @Test
@@ -1946,7 +1908,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: color=blue,black,brown
    * Expected response: {"color":["blue","black","brown"]}
-   *
    * @throws Exception
    */
   @Test
@@ -1997,7 +1958,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: color=R,100,G,200,B,150
    * Expected response: {"color":{"R":"100","G":"200","B":"150"}}
-   *
    * @throws Exception
    */
   @Test
@@ -2013,7 +1973,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
       for (String key : color_cookie.getObjectKeys())
         map.put(key, color_cookie.getObjectValue(key).getString());
       res.put("color", map);
-
+      
 
       routingContext.response()
         .setStatusCode(200)
@@ -2051,7 +2011,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: color=
    * Expected response: {"color":null}
-   *
    * @throws Exception
    */
   @Test
@@ -2099,7 +2058,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: color=blue
    * Expected response: {"color":"blue"}
-   *
    * @throws Exception
    */
   @Test
@@ -2148,7 +2106,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: color=blue&color=black&color=brown
    * Expected response: {"color":["blue","black","brown"]}
-   *
    * @throws Exception
    */
   @Test
@@ -2199,7 +2156,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: R=100&G=200&B=150
    * Expected response: {"color":{"R":"100","G":"200","B":"150"}}
-   *
    * @throws Exception
    */
   @Test
@@ -2215,7 +2171,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
       for (String key : color_cookie.getObjectKeys())
         map.put(key, color_cookie.getObjectValue(key).getString());
       res.put("color", map);
-
+      
 
       routingContext.response()
         .setStatusCode(200)
@@ -2253,7 +2209,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: blue
    * Expected response: {"color":"blue"}
-   *
    * @throws Exception
    */
   @Test
@@ -2302,7 +2257,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: blue,black,brown
    * Expected response: {"color":["blue","black","brown"]}
-   *
    * @throws Exception
    */
   @Test
@@ -2353,7 +2307,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: R,100,G,200,B,150
    * Expected response: {"color":{"R":"100","G":"200","B":"150"}}
-   *
    * @throws Exception
    */
   @Test
@@ -2369,7 +2322,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
       for (String key : color_header.getObjectKeys())
         map.put(key, color_header.getObjectValue(key).getString());
       res.put("color", map);
-
+      
 
       routingContext.response()
         .setStatusCode(200)
@@ -2407,7 +2360,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: blue
    * Expected response: {"color":"blue"}
-   *
    * @throws Exception
    */
   @Test
@@ -2456,7 +2408,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: blue,black,brown
    * Expected response: {"color":["blue","black","brown"]}
-   *
    * @throws Exception
    */
   @Test
@@ -2507,7 +2458,6 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
    * Expected parameters sent:
    * color: R=100,G=200,B=150
    * Expected response: {"color":{"R":"100","G":"200","B":"150"}}
-   *
    * @throws Exception
    */
   @Test
@@ -2523,7 +2473,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
       for (String key : color_header.getObjectKeys())
         map.put(key, color_header.getObjectValue(key).getString());
       res.put("color", map);
-
+      
 
       routingContext.response()
         .setStatusCode(200)

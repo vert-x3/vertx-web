@@ -23,7 +23,7 @@ public class OpenAPI3PathResolver {
   //Key is new name, value is old name
   Map<String, String> mappedGroups;
 
-  public static final Pattern OAS_PATH_PARAMETERS_PATTERN = Pattern.compile("\\{{1}([^\\{\\}]+)\\}{1}");
+  public static final Pattern OAS_PATH_PARAMETERS_PATTERN = Pattern.compile("\\{{1}[.;?*+]*([^\\{\\}.;?*+]+)[^\\}]*\\}{1}");
   public static final Pattern ILLEGAL_PATH_MATCHER = Pattern.compile("\\{[^\\/]*\\/[^\\/]*\\}");
 
   public static final String QUERY_REGEX_WITH_SLASH = "\\/?(?>\\??[^\\/]*)?";
