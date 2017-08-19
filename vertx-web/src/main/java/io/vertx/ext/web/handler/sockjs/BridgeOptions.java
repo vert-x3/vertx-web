@@ -19,6 +19,8 @@ import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
+import io.vertx.ext.bridge.PermittedOptions;
+
 import java.util.ArrayList;
 import java.util.List;
 

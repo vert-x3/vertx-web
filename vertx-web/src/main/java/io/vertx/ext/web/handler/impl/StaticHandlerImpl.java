@@ -135,8 +135,8 @@ public class StaticHandlerImpl implements StaticHandler {
       String path = Utils.removeDots(Utils.urlDecode(context.normalisedPath(), false));
       // if the normalized path is null it cannot be resolved
       if (path == null) {
-        log.warn("Invalid path: " + context.request().path() + " so returning 404");
-        context.fail(NOT_FOUND.code());
+        log.warn("Invalid path: " + context.request().path());
+        context.next();
         return;
       }
 
@@ -160,7 +160,8 @@ public class StaticHandlerImpl implements StaticHandler {
       int idx = file.lastIndexOf('/');
       String name = file.substring(idx + 1);
       if (name.length() > 0 && name.charAt(0) == '.') {
-        context.fail(NOT_FOUND.code());
+        // skip
+        context.next();
         return;
       }
     }
@@ -182,28 +183,38 @@ public class StaticHandlerImpl implements StaticHandler {
       file = getFile(path, context);
     }
 
-    String sfile = file;
+    final String sfile = file;
 
-    // Need to read the props from the filesystem
-    getFileProps(context, file, res -> {
-      if (res.succeeded()) {
-        FileProps fprops = res.result();
-        if (fprops == null) {
-          // File does not exist
-          context.fail(NOT_FOUND.code());
-        } else if (fprops.isDirectory()) {
-          sendDirectory(context, path, sfile);
-        } else {
-          propsCache().put(path, new CacheEntry(fprops, System.currentTimeMillis()));
-          sendFile(context, sfile, fprops);
-        }
-      } else {
-        if (res.cause() instanceof NoSuchFileException || (res.cause().getCause() != null && res.cause().getCause() instanceof NoSuchFileException)) {
-          context.fail(NOT_FOUND.code());
+    // verify if the file exists
+    isFileExisting(context, sfile, exists -> {
+      if (exists.failed()) {
+        context.fail(exists.cause());
+        return;
+      }
+
+      // file does not exist, continue...
+      if (!exists.result()) {
+        context.next();
+        return;
+      }
+
+      // Need to read the props from the filesystem
+      getFileProps(context, sfile, res -> {
+        if (res.succeeded()) {
+          FileProps fprops = res.result();
+          if (fprops == null) {
+            // File does not exist
+            context.next();
+          } else if (fprops.isDirectory()) {
+            sendDirectory(context, path, sfile);
+          } else {
+            propsCache().put(path, new CacheEntry(fprops, System.currentTimeMillis()));
+            sendFile(context, sfile, fprops);
+          }
         } else {
           context.fail(res.cause());
         }
-      }
+      });
     });
   }
 
@@ -245,6 +256,11 @@ public class StaticHandlerImpl implements StaticHandler {
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
+  }
+
+  private synchronized void isFileExisting(RoutingContext context, String file, Handler<AsyncResult<Boolean>> resultHandler) {
+    FileSystem fs = context.vertx().fileSystem();
+    wrapInTCCLSwitch(() -> fs.exists(file, resultHandler));
   }
 
   private synchronized void getFileProps(RoutingContext context, String file, Handler<AsyncResult<FileProps>> resultHandler) {
