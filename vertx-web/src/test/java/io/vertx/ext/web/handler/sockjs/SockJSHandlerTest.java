@@ -241,35 +241,6 @@ public class SockJSHandlerTest extends WebTestBase {
   }
 
   @Test
-  public void testCombineBinaryFrameSockJs() throws InterruptedException {
-    String serverPath = "/binary-combine-sockjs";
-    setupSockJsServer(serverPath, this::echoRequest);
-
-
-    List<Buffer> receivedMessages = new ArrayList<>();
-    WebSocket openedWebSocket = setupSockJsClient(serverPath, receivedMessages);
-
-    Buffer largeMessage = Buffer.buffer("[\"" + TestUtils.randomAlphaString(30) + "\"]");
-    WebSocketFrame frame1 = new WebSocketFrameImpl(FrameType.BINARY, largeMessage.slice(0, 10).getByteBuf(), false);
-    WebSocketFrame frame2 = WebSocketFrame.continuationFrame(largeMessage.slice(10, 20), false);
-    WebSocketFrame frame3 = WebSocketFrame.continuationFrame(largeMessage.slice(20, largeMessage.length()), true);
-
-    log.debug("Client sending " + frame1.textData());
-    openedWebSocket.writeFrame(frame1);
-    log.debug("Client sending " + frame2.textData());
-    openedWebSocket.writeFrame(frame2);
-    log.debug("Client sending " + frame3.textData());
-    openedWebSocket.writeFrame(frame3);
-
-    await(5, TimeUnit.SECONDS);
-
-    assertEquals("Client should have received 2 messages: the reply and the close.", 2, receivedMessages.size());
-    Buffer expectedReply = Buffer.buffer("a" + largeMessage.toString());
-    assertEquals("Client reply should have matched request", expectedReply, receivedMessages.get(0));
-    assertEquals("Final message should have been a close", SOCKJS_CLOSE_REPLY, receivedMessages.get(1));
-  }
-
-  @Test
   public void testSplitLargeReplySockJs() throws InterruptedException {
     String serverPath = "/large-reply-sockjs";
 
