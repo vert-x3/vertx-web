@@ -76,7 +76,7 @@ To use vert.x web, add the following dependency to the _dependencies_ section of
 <dependency>
   <groupId>io.vertx</groupId>
   <artifactId>vertx-web</artifactId>
-  <version>3.4.2-SNAPSHOT</version>
+  <version>3.5.0.Beta1</version>
 </dependency>
 ----
 
@@ -85,7 +85,7 @@ To use vert.x web, add the following dependency to the _dependencies_ section of
 [source,groovy,subs="+attributes"]
 ----
 dependencies {
-  compile 'io.vertx:vertx-web:3.4.2-SNAPSHOT'
+  compile 'io.vertx:vertx-web:3.5.0.Beta1'
 }
 ----
 
@@ -212,7 +212,7 @@ Route route2 = router.route("/some/path/").handler(routingContext -> {
   response.write("route2\n");
 
   // Call the next matching route after a 5 second delay
-  routingContext.vertx().setTimer(5000, tid ->  routingContext.next());
+  routingContext.vertx().setTimer(5000, tid -> routingContext.next());
 });
 
 Route route3 = router.route("/some/path/").handler(routingContext -> {
@@ -751,8 +751,8 @@ You can combine all the above routing criteria in many different ways, for examp
 [source,java]
 ----
 Route route = router.route(HttpMethod.PUT, "myapi/orders")
-                    .consumes("application/json")
-                    .produces("application/json");
+  .consumes("application/json")
+  .produces("application/json");
 
 route.handler(routingContext -> {
 
@@ -840,8 +840,8 @@ for example:
 ----
 router.get("/my-pretty-notfound-handler").handler(ctx -> {
   ctx.response()
-          .setStatusCode(404)
-          .end("NOT FOUND fancy html here!!!");
+    .setStatusCode(404)
+    .end("NOT FOUND fancy html here!!!");
 });
 
 router.get().failureHandler(ctx -> {
@@ -951,7 +951,7 @@ locale for a client or the sorted list of preferred locales by quality.
 
 [source,java]
 ----
-Route route = router.get("/localized").handler( rc -> {
+Route route = router.get("/localized").handler(rc -> {
   // although it might seem strange by running a loop with a switch we
   // make sure that the locale order of preference is preserved when
   // replying in the users language.
@@ -1523,9 +1523,9 @@ Here's an example on how to issue tokens:
 Router router = Router.router(vertx);
 
 JsonObject authConfig = new JsonObject().put("keyStore", new JsonObject()
-    .put("type", "jceks")
-    .put("path", "keystore.jceks")
-    .put("password", "secret"));
+  .put("type", "jceks")
+  .put("path", "keystore.jceks")
+  .put("password", "secret"));
 
 JWTAuth authProvider = JWTAuth.create(vertx, authConfig);
 
@@ -1547,9 +1547,9 @@ Now that your client has a token all it is required is that for *all* consequent
 Router router = Router.router(vertx);
 
 JsonObject authConfig = new JsonObject().put("keyStore", new JsonObject()
-    .put("type", "jceks")
-    .put("path", "keystore.jceks")
-    .put("password", "secret"));
+  .put("type", "jceks")
+  .put("path", "keystore.jceks")
+  .put("password", "secret"));
 
 JWTAuth authProvider = JWTAuth.create(vertx, authConfig);
 
@@ -1567,9 +1567,9 @@ token, during the creation of the token just add data to the JsonObject paramete
 [source,java]
 ----
 JsonObject authConfig = new JsonObject().put("keyStore", new JsonObject()
-    .put("type", "jceks")
-    .put("path", "keystore.jceks")
-    .put("password", "secret"));
+  .put("type", "jceks")
+  .put("path", "keystore.jceks")
+  .put("password", "secret"));
 
 JWTAuth authProvider = JWTAuth.create(vertx, authConfig);
 
@@ -1611,6 +1611,58 @@ settingsAuthHandler.addAuthority("role:admin");
 // Only "admin" has access to /private/settings
 router.route("/private/settings/*").handler(settingsAuthHandler);
 ----
+
+=== Chaining multiple auth handlers
+
+There are times when you want to support multiple authN/authZ mechanisms in a single application. For this you can
+use the `link:../../apidocs/io/vertx/ext/web/handler/ChainAuthHandler.html[ChainAuthHandler]`. The chain auth handler will attempt to perform
+authentication on a chain of handlers. The chain works both for AuthN and AuthZ, so if the authentication is valid
+at a given handler of the chain, then that same handler will be used to perform authorization (if requested).
+
+It is important to know that some handlers require specific providers, for example:
+
+* The `link:../../apidocs/io/vertx/ext/web/handler/JWTAuthHandler.html[JWTAuthHandler]` requires `link:../../apidocs/io/vertx/ext/auth/jwt/JWTAuth.html[JWTAuth]`.
+* The `link:../../apidocs/io/vertx/ext/web/handler/DigestAuthHandler.html[DigestAuthHandler]` requires `link:../../apidocs/io/vertx/ext/auth/htdigest/HtdigestAuth.html[HtdigestAuth]`.
+* The `link:../../apidocs/io/vertx/ext/web/handler/OAuth2AuthHandler.html[OAuth2AuthHandler]` requires `link:../../apidocs/io/vertx/ext/auth/oauth2/OAuth2Auth.html[OAuth2Auth]`.
+
+So it is not expected that the providers will be shared across all handlers. There are cases where one can share the
+provider across handlers, for example:
+
+* The `link:../../apidocs/io/vertx/ext/web/handler/BasicAuthHandler.html[BasicAuthHandler]` can take any provider.
+* The `link:../../apidocs/io/vertx/ext/web/handler/RedirectAuthHandler.html[RedirectAuthHandler]` can take any provider.
+
+So say that you want to create an application that accepts both `HTTP Basic Authentication` and `Form Redirect`. You
+would start configuring your chain as:
+
+[source,java]
+----
+ChainAuthHandler chain = ChainAuthHandler.create();
+
+// add http basic auth handler to the chain
+chain.append(BasicAuthHandler.create(provider));
+// add form redirect auth handler to the chain
+chain.append(RedirectAuthHandler.create(provider));
+
+// secure your route
+router.route("/secure/resource").handler(chain);
+// your app
+router.route("/secure/resource").handler(ctx -> {
+  // do something...
+});
+----
+
+So when a user makes a request without a `Authorization` header, this means that the chain will fail to authenticate
+with the basic auth handler and will attempt to authenticate with the redirect handler. Since the redirect handler
+always redirects you will be sent to the login form that you configured in that handler.
+
+Like the normal routing in vertx-web, auth chaning is a sequence, so if you would prefer to fallback to your browser
+asking for the user credentials using HTTP Basic authentication instead of the redirect all you need to to is reverse
+the order of appending to the chain.
+
+Now assume that you make a request where you provide the header `Authorization` with the value `Basic [token]`. In
+this case the basic auth handler will attempt to authenticate and if it is sucessful the chain will stop and
+vertx-web will continue to process your handlers. If the token is not valid, for example bad username/password, then
+the chain will continue to the following entry. In this specific case the redirect auth handler.
 
 == Serving static resources
 
@@ -1788,7 +1840,7 @@ router.getWithRegex(".+\\.hbs").handler(handler);
 === MVEL template engine
 
 To use MVEL, you need to add the following _dependency_ to your project:
-`io.vertx:vertx-web-templ-mvel:3.4.2-SNAPSHOT`. Create an instance of the MVEL template engine using:
+`io.vertx:vertx-web-templ-mvel:3.5.0.Beta1`. Create an instance of the MVEL template engine using:
 `io.vertx.ext.web.templ.MVELTemplateEngine#create()`
 
 When using the MVEL template engine, it will by default look for
@@ -1814,7 +1866,7 @@ MVEL templates.
 === Jade template engine
 
 To use the Jade template engine, you need to add the following _dependency_ to your project:
-`io.vertx:vertx-web-templ-jade:3.4.2-SNAPSHOT`. Create an instance of the Jade template engine using:
+`io.vertx:vertx-web-templ-jade:3.5.0.Beta1`. Create an instance of the Jade template engine using:
 `io.vertx.ext.web.templ.JadeTemplateEngine#create()`.
 
 When using the Jade template engine, it will by default look for
@@ -1840,7 +1892,7 @@ Jade templates.
 === Handlebars template engine
 
 To use Handlebars, you need to add the following _dependency_ to your project:
-`io.vertx:vertx-web-templ-handlebars:3.4.2-SNAPSHOT`. Create an instance of the Handlebars template engine
+`io.vertx:vertx-web-templ-handlebars:3.5.0.Beta1`. Create an instance of the Handlebars template engine
 using: `io.vertx.ext.web.templ.HandlebarsTemplateEngine#create()`.
 
 When using the Handlebars template engine, it will by default look for
@@ -1875,7 +1927,7 @@ handlebars templates.
 === Thymeleaf template engine
 
 To use Thymeleaf, you need to add the following _dependency_ to your project:
-`io.vertx:vertx-web-templ-thymeleaf:3.4.2-SNAPSHOT`. Create an instance of the Thymeleaf template engine
+`io.vertx:vertx-web-templ-thymeleaf:3.5.0.Beta1`. Create an instance of the Thymeleaf template engine
 using: `io.vertx.ext.web.templ.ThymeleafTemplateEngine#create()`.
 
 When using the Thymeleaf template engine, it will by default look for
@@ -1903,7 +1955,7 @@ Thymeleaf templates.
 === Apache FreeMarker template engine
 
 To use Apache FreeMarker, you need to add the following _dependency_ to your project:
-`io.vertx:vertx-web-templ-freemarker:3.4.2-SNAPSHOT`. Create an instance of the Apache FreeMarker template engine
+`io.vertx:vertx-web-templ-freemarker:3.5.0.Beta1`. Create an instance of the Apache FreeMarker template engine
 using: `io.vertx.ext.web.templ.FreeMarkerTemplateEngine#create()`.
 
 When using the Apache FreeMarker template engine, it will by default look for
@@ -2281,7 +2333,7 @@ You can retrieve the client library using a dependency manager:
 <dependency>
   <groupId>io.vertx</groupId>
   <artifactId>vertx-web</artifactId>
-  <version>3.4.2-SNAPSHOT</version>
+  <version>3.5.0.Beta1</version>
   <classifier>client</classifier>
   <type>js</type>
 </dependency>
@@ -2291,7 +2343,7 @@ You can retrieve the client library using a dependency manager:
 
 [source,groovy,subs="+attributes"]
 ----
-compile 'io.vertx:vertx-web:3.4.2-SNAPSHOT:client'
+compile 'io.vertx:vertx-web:3.5.0.Beta1:client'
 ----
 
 The library is also available on:
@@ -2329,11 +2381,11 @@ You can specify which _matches_ you want to allow for inbound and outbound traff
 
 Each match is a `link:../../apidocs/io/vertx/ext/web/handler/sockjs/PermittedOptions.html[PermittedOptions]` object:
 
-`link:../../apidocs/io/vertx/ext/web/handler/sockjs/PermittedOptions.html#setAddress-java.lang.String-[setAddress]`:: This represents the exact address the message is being sent to. If you want to allow messages based on
+`link:../../apidocs/io/vertx/ext/bridge/PermittedOptions.html#setAddress-java.lang.String-[setAddress]`:: This represents the exact address the message is being sent to. If you want to allow messages based on
 an exact address you use this field.
-`link:../../apidocs/io/vertx/ext/web/handler/sockjs/PermittedOptions.html#setAddressRegex-java.lang.String-[setAddressRegex]`:: This is a regular expression that will be matched against the address. If you want to allow messages
+`link:../../apidocs/io/vertx/ext/bridge/PermittedOptions.html#setAddressRegex-java.lang.String-[setAddressRegex]`:: This is a regular expression that will be matched against the address. If you want to allow messages
 based on a regular expression you use this field. If the `address` field is specified this field will be ignored.
-`link:../../apidocs/io/vertx/ext/web/handler/sockjs/PermittedOptions.html#setMatch-io.vertx.core.json.JsonObject-[setMatch]`:: This allows you to allow messages based on their structure. Any fields in the match must exist in the
+`link:../../apidocs/io/vertx/ext/bridge/PermittedOptions.html#setMatch-io.vertx.core.json.JsonObject-[setMatch]`:: This allows you to allow messages based on their structure. Any fields in the match must exist in the
 message with the same values for them to be allowed. This currently only works with JSON messages.
 
 If a message is _in-bound_ (i.e. being sent from client side JavaScript to the server) when it is received Vert.x-Web
@@ -2369,8 +2421,8 @@ PermittedOptions inboundPermitted1 = new PermittedOptions().setAddress("demo.ord
 // have an action field with value 'find' and a collection field with value
 // 'albums'
 PermittedOptions inboundPermitted2 = new PermittedOptions().setAddress("demo.persistor")
-    .setMatch(new JsonObject().put("action", "find")
-        .put("collection", "albums"));
+  .setMatch(new JsonObject().put("action", "find")
+    .put("collection", "albums"));
 
 // Allow through any message with a field `wibble` with value `foo`.
 PermittedOptions inboundPermitted3 = new PermittedOptions().setMatch(new JsonObject().put("wibble", "foo"));
@@ -2385,11 +2437,11 @@ PermittedOptions outboundPermitted2 = new PermittedOptions().setAddressRegex("ne
 
 // Let's define what we're going to allow from client -> server
 BridgeOptions options = new BridgeOptions().
-    addInboundPermitted(inboundPermitted1).
-    addInboundPermitted(inboundPermitted1).
-    addInboundPermitted(inboundPermitted3).
-    addOutboundPermitted(outboundPermitted1).
-    addOutboundPermitted(outboundPermitted2);
+  addInboundPermitted(inboundPermitted1).
+  addInboundPermitted(inboundPermitted1).
+  addInboundPermitted(inboundPermitted3).
+  addOutboundPermitted(outboundPermitted1).
+  addOutboundPermitted(outboundPermitted2);
 
 sockJSHandler.bridge(options);
 
@@ -2405,7 +2457,7 @@ To do this, you can add extra fields to the match described in the previous sect
 required for the match.
 
 To declare that a specific authority for the logged-in user is required in order to access allow the messages you use the
-`link:../../apidocs/io/vertx/ext/web/handler/sockjs/PermittedOptions.html#setRequiredAuthority-java.lang.String-[setRequiredAuthority]` field.
+`link:../../apidocs/io/vertx/ext/bridge/PermittedOptions.html#setRequiredAuthority-java.lang.String-[setRequiredAuthority]` field.
 
 Here's an example:
 
@@ -2435,7 +2487,7 @@ inboundPermitted.setRequiredAuthority("place_orders");
 
 SockJSHandler sockJSHandler = SockJSHandler.create(vertx);
 sockJSHandler.bridge(new BridgeOptions().
-        addInboundPermitted(inboundPermitted));
+  addInboundPermitted(inboundPermitted));
 
 // Now set up some basic auth handling:
 
@@ -2470,8 +2522,8 @@ RECEIVE:: This event will occur when a message is attempted to be delivered from
 REGISTER:: This event will occur when a client attempts to register a handler.
 UNREGISTER:: This event will occur when a client attempts to unregister a handler.
 
-The event enables you to retrieve the type using `link:../../apidocs/io/vertx/ext/web/handler/sockjs/BridgeEvent.html#type--[type]` and
-inspect the raw message of the event using `link:../../apidocs/io/vertx/ext/web/handler/sockjs/BridgeEvent.html#getRawMessage--[getRawMessage]`.
+The event enables you to retrieve the type using `link:../../apidocs/io/vertx/ext/bridge/BaseBridgeEvent.html#type--[type]` and
+inspect the raw message of the event using `link:../../apidocs/io/vertx/ext/bridge/BaseBridgeEvent.html#getRawMessage--[getRawMessage]`.
 
 The raw message is a JSON object with the following structure:
 
@@ -2715,11 +2767,11 @@ However if you're using an unlisted provider you can still do it using the base 
 [source,java]
 ----
 OAuth2Auth authProvider = OAuth2Auth.create(vertx, OAuth2FlowType.AUTH_CODE, new OAuth2ClientOptions()
-    .setClientID("CLIENT_ID")
-    .setClientSecret("CLIENT_SECRET")
-    .setSite("https://accounts.google.com")
-    .setTokenPath("https://www.googleapis.com/oauth2/v3/token")
-    .setAuthorizationPath("/o/oauth2/auth"));
+  .setClientID("CLIENT_ID")
+  .setClientSecret("CLIENT_SECRET")
+  .setSite("https://accounts.google.com")
+  .setTokenPath("https://www.googleapis.com/oauth2/v3/token")
+  .setAuthorizationPath("/o/oauth2/auth"));
 
 // create a oauth2 handler on our domain: "http://localhost:8080"
 OAuth2AuthHandler oauth2 = OAuth2AuthHandler.create(authProvider, "http://localhost:8080");

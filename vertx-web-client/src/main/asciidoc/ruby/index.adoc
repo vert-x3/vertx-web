@@ -33,7 +33,7 @@ To use Vert.x Web Client, add the following dependency to the _dependencies_ sec
 <dependency>
   <groupId>io.vertx</groupId>
   <artifactId>vertx-web-client</artifactId>
-  <version>3.4.2-SNAPSHOT</version>
+  <version>3.5.0.Beta1</version>
 </dependency>
 ----
 
@@ -42,7 +42,7 @@ To use Vert.x Web Client, add the following dependency to the _dependencies_ sec
 [source,groovy,subs="+attributes"]
 ----
 dependencies {
-  compile 'io.vertx:vertx-web-client:3.4.2-SNAPSHOT'
+  compile 'io.vertx:vertx-web-client:3.5.0.Beta1'
 }
 ----
 
@@ -342,8 +342,8 @@ get.send() { |ar_err,ar|
 
 ----
 
-When you need to mutate a request, the `link:../../yardoc/VertxWebClient/HttpRequest.html#copy-instance_method[copy]` returns a copy of the
-request
+Beware though that `link:../../yardoc/VertxWebClient/HttpRequest.html[HttpRequest]` instances are mutable.
+Therefore you should call the `link:../../yardoc/VertxWebClient/HttpRequest.html#copy-instance_method[copy]` method before modifying a cached instance.
 
 [source,ruby]
 ----
@@ -354,8 +354,8 @@ get.send() { |ar_err,ar|
   end
 }
 
-# Same request again
-get.put_header("an-header", "with-some-value").send() { |ar_err,ar|
+# The "get" request instance remains unmodified
+get.copy().put_header("a-header", "with-some-value").send() { |ar_err,ar|
   if (ar_err == nil)
     # Ok
   end

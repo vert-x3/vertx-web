@@ -15,26 +15,30 @@
  */
 package io.vertx.ext.web.client.impl;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+
+import io.vertx.core.Handler;
 import io.vertx.core.VertxException;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.RequestOptions;
 import io.vertx.ext.web.client.HttpRequest;
-import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.ext.web.codec.impl.BodyCodecImpl;
 
-import java.net.MalformedURLException;
-import java.net.URL;
 
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
  */
-public class WebClientImpl implements WebClient {
+public class WebClientImpl implements WebClientInternal {
 
-  private final HttpClient client;
+  final HttpClient client;
   private final WebClientOptions options;
+  final List<Handler<HttpContext>> interceptors = new CopyOnWriteArrayList<>();
 
   public WebClientImpl(HttpClient client, WebClientOptions options) {
     this.client = client;
@@ -161,21 +165,24 @@ public class WebClientImpl implements WebClient {
     return requestAbs(HttpMethod.HEAD, absoluteURI);
   }
 
+
   public HttpRequest<Buffer> request(HttpMethod method, String requestURI) {
-    return new HttpRequestImpl<>(client, method, options.isSsl(), options.getDefaultPort(), options.getDefaultHost(), requestURI, BodyCodecImpl.BUFFER, options);
+    return new HttpRequestImpl<>(this, method, options.isSsl(), options.getDefaultPort(), options.getDefaultHost(),
+            requestURI, BodyCodecImpl.BUFFER, options);
   }
 
   @Override
   public HttpRequest<Buffer> request(HttpMethod method, RequestOptions requestOptions) {
-    return new HttpRequestImpl<>(client, method, requestOptions.isSsl(), requestOptions.getPort(), requestOptions.getHost(), requestOptions.getURI(), BodyCodecImpl.BUFFER, options);
+    return new HttpRequestImpl<>(this, method, requestOptions.isSsl(), requestOptions.getPort(),
+            requestOptions.getHost(), requestOptions.getURI(), BodyCodecImpl.BUFFER, options);
   }
 
   public HttpRequest<Buffer> request(HttpMethod method, String host, String requestURI) {
-    return new HttpRequestImpl<>(client, method, options.isSsl(), options.getDefaultPort(), host, requestURI, BodyCodecImpl.BUFFER, options);
+    return new HttpRequestImpl<>(this, method, options.isSsl(), options.getDefaultPort(), host, requestURI, BodyCodecImpl.BUFFER, options);
   }
 
   public HttpRequest<Buffer> request(HttpMethod method, int port, String host, String requestURI) {
-    return new HttpRequestImpl<>(client, method, options.isSsl(), port, host, requestURI, BodyCodecImpl.BUFFER, options);
+    return new HttpRequestImpl<>(this, method, options.isSsl(), port, host, requestURI, BodyCodecImpl.BUFFER, options);
   }
 
   public HttpRequest<Buffer> requestAbs(HttpMethod method, String surl) {
@@ -206,7 +213,14 @@ public class WebClientImpl implements WebClient {
         }
       }
     }
-    return new HttpRequestImpl<>(client, method, protocol, ssl, port, url.getHost(), url.getFile(), BodyCodecImpl.BUFFER, options);
+    return new HttpRequestImpl<>(this, method, protocol, ssl, port, url.getHost(), url.getFile(),
+            BodyCodecImpl.BUFFER, options);
+  }
+
+  @Override
+  public WebClientImpl addInterceptor(Handler<HttpContext> interceptor) {
+    interceptors.add(interceptor);
+    return this;
   }
 
   @Override

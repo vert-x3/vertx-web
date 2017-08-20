@@ -33,7 +33,7 @@ To use Vert.x Web Client, add the following dependency to the _dependencies_ sec
 <dependency>
   <groupId>io.vertx</groupId>
   <artifactId>vertx-web-client</artifactId>
-  <version>3.4.2-SNAPSHOT</version>
+  <version>3.5.0.Beta1</version>
 </dependency>
 ----
 
@@ -42,7 +42,7 @@ To use Vert.x Web Client, add the following dependency to the _dependencies_ sec
 [source,groovy,subs="+attributes"]
 ----
 dependencies {
-  compile 'io.vertx:vertx-web-client:3.4.2-SNAPSHOT'
+  compile 'io.vertx:vertx-web-client:3.5.0.Beta1'
 }
 ----
 
@@ -342,8 +342,8 @@ get.send(function (ar, ar_err) {
 
 ----
 
-When you need to mutate a request, the `link:../../jsdoc/module-vertx-web-client-js_http_request-HttpRequest.html#copy[copy]` returns a copy of the
-request
+Beware though that `link:../../jsdoc/module-vertx-web-client-js_http_request-HttpRequest.html[HttpRequest]` instances are mutable.
+Therefore you should call the `link:../../jsdoc/module-vertx-web-client-js_http_request-HttpRequest.html#copy[copy]` method before modifying a cached instance.
 
 [source,js]
 ----
@@ -354,8 +354,8 @@ get.send(function (ar, ar_err) {
   }
 });
 
-// Same request again
-get.putHeader("an-header", "with-some-value").send(function (ar, ar_err) {
+// The "get" request instance remains unmodified
+get.copy().putHeader("a-header", "with-some-value").send(function (ar, ar_err) {
   if (ar_err == null) {
     // Ok
   }

@@ -22,6 +22,7 @@ import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.Nullable;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
+import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
@@ -31,6 +32,7 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -470,4 +472,20 @@ public interface RoutingContext {
    */
   @Nullable
   String pathParam(String name);
+
+  /**
+   * Returns a map of all query parameters inside the <a href="https://en.wikipedia.org/wiki/Query_string">query string</a>
+   *
+   * @return the multimap of query parameters
+   */
+  MultiMap queryParams();
+
+  /**
+   * Gets the value of a single query parameter
+   *
+   * @param query The name of query parameter
+   * @return The list of all elements inside query parameter
+   */
+  @Nullable
+  List<String> queryParam(String query);
 }

@@ -1,55 +1,5 @@
 = Enums
 
-[[BridgeEventType]]
-== BridgeEventType
-
-++++
- Bridge Event Types.
-++++
-'''
-
-[cols=">25%,75%"]
-[frame="topbot"]
-|===
-^|Name | Description
-|[[SOCKET_CREATED]]`SOCKET_CREATED`|
-+++
-This event will occur when a new SockJS socket is created.
-+++
-|[[SOCKET_CLOSED]]`SOCKET_CLOSED`|
-+++
-This event will occur when a SockJS socket is closed.
-+++
-|[[SOCKET_IDLE]]`SOCKET_IDLE`|
-+++
-This event will occur when SockJS socket is on idle for longer period of time than configured.
-+++
-|[[SOCKET_PING]]`SOCKET_PING`|
-+++
-This event will occur when the last ping timestamp is updated for the SockJS socket.
-+++
-|[[SEND]]`SEND`|
-+++
-This event will occur when a message is attempted to be sent from the client to the server.
-+++
-|[[PUBLISH]]`PUBLISH`|
-+++
-This event will occur when a message is attempted to be published from the client to the server.
-+++
-|[[RECEIVE]]`RECEIVE`|
-+++
-This event will occur when a message is attempted to be delivered from the server to the client.
-+++
-|[[REGISTER]]`REGISTER`|
-+++
-This event will occur when a client attempts to register a handler.
-+++
-|[[UNREGISTER]]`UNREGISTER`|
-+++
-This event will occur when a client attempts to unregister a handler.
-+++
-|===
-
 [[LoggerFormat]]
 == LoggerFormat
 

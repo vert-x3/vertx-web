@@ -1018,6 +1018,46 @@
  * {@link examples.WebExamples#example40}
  * ----
  *
+ * === Chaining multiple auth handlers
+ *
+ * There are times when you want to support multiple authN/authZ mechanisms in a single application. For this you can
+ * use the {@link io.vertx.ext.web.handler.ChainAuthHandler}. The chain auth handler will attempt to perform
+ * authentication on a chain of handlers. The chain works both for AuthN and AuthZ, so if the authentication is valid
+ * at a given handler of the chain, then that same handler will be used to perform authorization (if requested).
+ *
+ * It is important to know that some handlers require specific providers, for example:
+ *
+ * * The {@link io.vertx.ext.web.handler.JWTAuthHandler} requires {@link io.vertx.ext.auth.jwt.JWTAuth}.
+ * * The {@link io.vertx.ext.web.handler.DigestAuthHandler} requires {@link io.vertx.ext.auth.htdigest.HtdigestAuth}.
+ * * The {@link io.vertx.ext.web.handler.OAuth2AuthHandler} requires {@link io.vertx.ext.auth.oauth2.OAuth2Auth}.
+ *
+ * So it is not expected that the providers will be shared across all handlers. There are cases where one can share the
+ * provider across handlers, for example:
+ *
+ * * The {@link io.vertx.ext.web.handler.BasicAuthHandler} can take any provider.
+ * * The {@link io.vertx.ext.web.handler.RedirectAuthHandler} can take any provider.
+ *
+ * So say that you want to create an application that accepts both `HTTP Basic Authentication` and `Form Redirect`. You
+ * would start configuring your chain as:
+ *
+ * [source,$lang]
+ * ----
+ * {@link examples.WebExamples#example63}
+ * ----
+ *
+ * So when a user makes a request without a `Authorization` header, this means that the chain will fail to authenticate
+ * with the basic auth handler and will attempt to authenticate with the redirect handler. Since the redirect handler
+ * always redirects you will be sent to the login form that you configured in that handler.
+ *
+ * Like the normal routing in vertx-web, auth chaning is a sequence, so if you would prefer to fallback to your browser
+ * asking for the user credentials using HTTP Basic authentication instead of the redirect all you need to to is reverse
+ * the order of appending to the chain.
+ *
+ * Now assume that you make a request where you provide the header `Authorization` with the value `Basic [token]`. In
+ * this case the basic auth handler will attempt to authenticate and if it is sucessful the chain will stop and
+ * vertx-web will continue to process your handlers. If the token is not valid, for example bad username/password, then
+ * the chain will continue to the following entry. In this specific case the redirect auth handler.
+ *
  * == Serving static resources
  *
  * Vert.x-Web comes with an out of the box handler for serving static web resources so you can write static web servers

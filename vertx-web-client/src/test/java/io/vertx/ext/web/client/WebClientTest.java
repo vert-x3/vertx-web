@@ -1,5 +1,24 @@
 package io.vertx.ext.web.client;
 
+import java.io.File;
+import java.net.ConnectException;
+import java.nio.file.Files;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.function.Function;
+
+import io.vertx.core.http.HttpConnection;
+import org.junit.Test;
+
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.VertxException;
@@ -22,26 +41,12 @@ import io.vertx.core.net.ProxyOptions;
 import io.vertx.core.net.ProxyType;
 import io.vertx.core.streams.ReadStream;
 import io.vertx.core.streams.WriteStream;
+import io.vertx.ext.web.client.impl.HttpContext;
 import io.vertx.ext.web.client.jackson.WineAndCheese;
 import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.test.core.HttpTestBase;
 import io.vertx.test.core.TestUtils;
 import io.vertx.test.core.tls.Cert;
-import org.junit.Test;
-
-import java.io.File;
-import java.net.ConnectException;
-import java.nio.file.Files;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-import java.util.function.Function;
 
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
@@ -316,39 +321,56 @@ public class WebClientTest extends HttpTestBase {
   @Test
   public void testRequestSendError() throws Exception {
     HttpRequest<Buffer> post = client.post(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
+    CountDownLatch latch = new CountDownLatch(1);
+    AtomicReference<HttpConnection> conn = new AtomicReference<>();
     server.requestHandler(req -> {
-      req.handler(buff -> {
-        req.connection().close();
-      });
+      conn.set(req.connection());
+      req.pause();
+      latch.countDown();
     });
     startServer();
-    post.putHeader("Content-Length", "2048")
-        .sendStream(new ReadStream<Buffer>() {
+    AtomicReference<Handler<Buffer>> dataHandler = new AtomicReference<>();
+    AtomicReference<Handler<Void>> endHandler = new AtomicReference<>();
+    AtomicBoolean paused = new AtomicBoolean();
+    post.sendStream(new ReadStream<Buffer>() {
           @Override
           public ReadStream<Buffer> exceptionHandler(Handler<Throwable> handler) {
             return this;
           }
           @Override
           public ReadStream<Buffer> handler(Handler<Buffer> handler) {
-            handler.handle(TestUtils.randomBuffer(1024));
+            dataHandler.set(handler);
             return this;
           }
           @Override
           public ReadStream<Buffer> pause() {
+            paused.set(true);
             return this;
           }
           @Override
           public ReadStream<Buffer> resume() {
+            paused.set(false);
             return this;
           }
           @Override
-          public ReadStream<Buffer> endHandler(Handler<Void> endHandler) {
+          public ReadStream<Buffer> endHandler(Handler<Void> handler) {
+            endHandler.set(handler);
             return this;
           }
         }, onFailure(err -> {
           // Should be a connection reset by peer or closed
+          assertNull(endHandler.get());
+          assertNull(dataHandler.get());
+          assertFalse(paused.get());
           complete();
         }));
+    assertWaitUntil(() -> dataHandler.get() != null);
+    dataHandler.get().handle(TestUtils.randomBuffer(1024));
+    awaitLatch(latch);
+    while (!paused.get()) {
+      dataHandler.get().handle(TestUtils.randomBuffer(1024));
+    }
+    conn.get().close();
     await();
   }
 
@@ -1135,4 +1157,32 @@ public class WebClientTest extends HttpTestBase {
     await();
   }
 
+  @Test
+  public void testStreamHttpServerRequest() throws Exception {
+    Buffer expected = TestUtils.randomBuffer(10000);
+    HttpServer server2 = vertx.createHttpServer(new HttpServerOptions().setPort(8081)).requestHandler(req -> {
+      req.bodyHandler(body -> {
+        assertEquals(body, expected);
+        req.response().end();
+      });
+    });
+    startServer(server2);
+    WebClient webClient = WebClient.create(vertx);
+    try {
+      server.requestHandler(req -> {
+        webClient.postAbs("http://localhost:8081/")
+          .sendStream(req, onSuccess(resp -> {
+            req.response().end("ok");
+          }));
+      });
+      startServer();
+      webClient.post(8080, "localhost", "/").sendBuffer(expected, onSuccess(resp -> {
+        assertEquals("ok", resp.bodyAsString());
+        complete();
+      }));
+      await();
+    } finally {
+      server2.close();
+    }
+  }
 }

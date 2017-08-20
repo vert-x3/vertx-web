@@ -19,6 +19,7 @@ package io.vertx.ext.web.impl;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.vertx.codegen.annotations.Nullable;
 import io.vertx.core.Handler;
+import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
@@ -41,6 +42,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   private final RouterImpl router;
   private Map<String, Object> data;
   private Map<String, String> pathParams;
+  private MultiMap queryParams;
   private AtomicInteger handlerSeq = new AtomicInteger();
   private Map<Integer, Handler<Void>> headersEndHandlers;
   private Map<Integer, Handler<Void>> bodyEndHandlers;
@@ -376,6 +378,23 @@ public class RoutingContextImpl extends RoutingContextImplBase {
     return getPathParams().get(name);
   }
 
+  @Override
+  public MultiMap queryParams() {
+    return getQueryParams();
+  }
+
+  @Override
+  public @Nullable List<String> queryParam(String query) {
+    return getQueryParams().getAll(query);
+  }
+
+  private MultiMap getQueryParams() {
+    if (queryParams == null) {
+      queryParams = MultiMap.caseInsensitiveMultiMap();
+    }
+    return queryParams;
+  }
+
   private Map<String, String> getPathParams() {
     if (pathParams == null) {
       pathParams = new HashMap<>();
@@ -417,6 +436,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
 
   private void doFail() {
     this.iter = router.iterator();
+    currentRoute = null;
     next();
   }
 

@@ -24,6 +24,7 @@ import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.MIMEHeader;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
+import io.netty.handler.codec.http.QueryStringDecoder;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -49,8 +50,10 @@ public class RouteImpl implements Route {
   private String path;
   private int order;
   private boolean enabled = true;
-  private Handler<RoutingContext> contextHandler;
-  private Handler<RoutingContext> failureHandler;
+  private List<Handler<RoutingContext>> contextHandlers;
+  private int actualHandlerIndex;
+  private List<Handler<RoutingContext>> failureHandlers;
+  private int actualFailureHandlerIndex;
   private boolean added;
   private Pattern pattern;
   private List<String> groups;
@@ -59,6 +62,9 @@ public class RouteImpl implements Route {
   RouteImpl(RouterImpl router, int order) {
     this.router = router;
     this.order = order;
+    this.contextHandlers = new ArrayList<>();
+    this.failureHandlers = new ArrayList<>();
+    resetIndexes();
   }
 
   RouteImpl(RouterImpl router, int order, HttpMethod method, String path) {
@@ -134,10 +140,7 @@ public class RouteImpl implements Route {
 
   @Override
   public synchronized Route handler(Handler<RoutingContext> contextHandler) {
-    if (this.contextHandler != null) {
-      throw new IllegalStateException("Setting handler for a route more than once!");
-    }
-    this.contextHandler = contextHandler;
+    this.contextHandlers.add(contextHandler);
     checkAdd();
     return this;
   }
@@ -154,10 +157,7 @@ public class RouteImpl implements Route {
 
   @Override
   public synchronized Route failureHandler(Handler<RoutingContext> exceptionHandler) {
-    if (this.failureHandler != null) {
-      throw new IllegalStateException("Setting failureHandler for a route more than once!");
-    }
-    this.failureHandler = exceptionHandler;
+    this.failureHandlers.add(exceptionHandler);
     checkAdd();
     return this;
   }
@@ -196,8 +196,8 @@ public class RouteImpl implements Route {
     StringBuilder sb = new StringBuilder("Route[ ");
     sb.append("path:").append(path);
     sb.append(" pattern:").append(pattern);
-    sb.append(" handler:").append(contextHandler);
-    sb.append(" failureHandler:").append(failureHandler);
+    sb.append(" handlers:").append(contextHandlers);
+    sb.append(" failureHandlers:").append(failureHandlers);
     sb.append(" order:").append(order);
     sb.append(" methods:[");
     int cnt = 0;
@@ -213,20 +213,22 @@ public class RouteImpl implements Route {
   }
 
   synchronized void handleContext(RoutingContext context) {
-    if (contextHandler != null) {
-      contextHandler.handle(context);
+    if (this.hasNextContextHandler()) {
+      actualHandlerIndex++;
+      contextHandlers.get(actualHandlerIndex - 1).handle(context);
     }
   }
 
   synchronized void handleFailure(RoutingContext context) {
-    if (failureHandler != null) {
-      failureHandler.handle(context);
+    if (this.hasNextFailureHandler()) {
+      actualFailureHandlerIndex++;
+      failureHandlers.get(actualFailureHandlerIndex - 1).handle(context);
     }
   }
 
   synchronized boolean matches(RoutingContext context, String mountPoint, boolean failure) {
 
-    if (failure && failureHandler == null || !failure && contextHandler == null) {
+    if (failure && !hasNextFailureHandler() || !failure && !hasNextContextHandler()) {
       return false;
     }
     if (!enabled) {
@@ -284,6 +286,16 @@ public class RouteImpl implements Route {
         return false;
       }
     }
+
+    // Check if query params are already parsed
+    if (context.queryParams().size() == 0) {
+      // Decode query parameters and put inside context.queryParams
+      Map<String, List<String>> decodedParams = new QueryStringDecoder(request.uri()).parameters();
+
+      for (Map.Entry<String, List<String>> entry : decodedParams.entrySet())
+        context.queryParams().add(entry.getKey(), entry.getValue());
+    }
+
     if (!consumes.isEmpty()) {
       // Can this route consume the specified content type
       MIMEHeader contentType = context.parsedHeaders().contentType();
@@ -416,4 +428,18 @@ public class RouteImpl implements Route {
     }
   }
 
+  synchronized protected boolean hasNextContextHandler() {
+    if (actualHandlerIndex < contextHandlers.size()) return true;
+    else return false;
+  }
+
+  synchronized protected boolean hasNextFailureHandler() {
+    if (actualFailureHandlerIndex < failureHandlers.size()) return true;
+    else return false;
+  }
+
+  synchronized protected void resetIndexes() {
+    actualFailureHandlerIndex = 0;
+    actualHandlerIndex = 0;
+  }
 }
