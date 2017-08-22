@@ -36,7 +36,6 @@ import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.ServerWebSocket;
-import io.vertx.core.http.WebSocketFrame;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.core.shareddata.LocalMap;
@@ -94,19 +93,7 @@ class WebSocketTransport extends BaseTransport {
     WebSocketListener(ServerWebSocket ws, SockJSSession session) {
       this.ws = ws;
       this.session = session;
-      ws.textMessageHandler(msgs -> {
-        if (!session.isClosed()) {
-          if (msgs.equals("")) {
-            //Ignore empty frames
-          } else if ((msgs.startsWith("[\"") && msgs.endsWith("\"]")) ||
-                     (msgs.startsWith("\"") && msgs.endsWith("\""))) {
-            session.handleMessages(msgs);
-          } else {
-            //Invalid JSON - we close the connection
-            close();
-          }
-        }
-      });
+      ws.textMessageHandler(stringData -> handleMessages(stringData));
       ws.closeHandler(v -> {
         closed = true;
         session.shutdown();
@@ -118,10 +105,24 @@ class WebSocketTransport extends BaseTransport {
       });
     }
 
+  private void handleMessages(String msgs) {
+    if (!session.isClosed()) {
+      if (msgs.equals("")) {
+        //Ignore empty frames
+      } else if ((msgs.startsWith("[\"") && msgs.endsWith("\"]")) ||
+             (msgs.startsWith("\"") && msgs.endsWith("\""))) {
+        session.handleMessages(msgs);
+      } else {
+        //Invalid JSON - we close the connection
+        close();
+      }
+    }
+  }
+
     public void sendFrame(final String body) {
       if (log.isTraceEnabled()) log.trace("WS, sending frame");
       if (!closed) {
-        ws.writeFrame(WebSocketFrame.textFrame(body, true));
+        ws.writeTextMessage(body);
       }
     }
 
