@@ -31,11 +31,28 @@ import io.vertx.ext.web.handler.OAuth2AuthHandler;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Base64;
+
+import static io.vertx.ext.auth.oauth2.OAuth2FlowType.*;
+import static io.vertx.ext.web.handler.impl.AuthorizationAuthHandler.Type.*;
 
 /**
  * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
  */
 public class OAuth2AuthHandlerImpl extends AuthorizationAuthHandler implements OAuth2AuthHandler {
+
+  private static Type getTypeForFlow(OAuth2Auth provider) {
+    switch (provider.getFlowType()) {
+      case AUTH_CODE:
+        return BEARER;
+      case PASSWORD:
+        return BASIC;
+      case AUTH_JWT:
+      case CLIENT:
+      default:
+        throw new RuntimeException("Oauth2 Flow " + provider.getFlowType() + " not allowed!");
+    }
+  }
 
   private final String host;
   private final String callbackPath;
@@ -45,44 +62,91 @@ public class OAuth2AuthHandlerImpl extends AuthorizationAuthHandler implements O
   private JsonObject extraParams = new JsonObject();
 
   public OAuth2AuthHandlerImpl(OAuth2Auth authProvider, String callbackURL) {
-    super(authProvider, Type.BEARER);
+    super(authProvider, getTypeForFlow(authProvider));
+
     this.supportJWT = authProvider.hasJWTToken();
-    try {
-      final URL url = new URL(callbackURL);
-      this.host = url.getProtocol() + "://" + url.getHost() + (url.getPort() == -1 ? "" : ":" + url.getPort());
-      this.callbackPath = url.getPath();
-    } catch (MalformedURLException e) {
-      throw new RuntimeException(e);
+
+    if (authProvider.getFlowType() == AUTH_CODE) {
+      try {
+        final URL url = new URL(callbackURL);
+        this.host = url.getProtocol() + "://" + url.getHost() + (url.getPort() == -1 ? "" : ":" + url.getPort());
+        this.callbackPath = url.getPath();
+      } catch (MalformedURLException e) {
+        throw new RuntimeException(e);
+      }
+    } else {
+      host = null;
+      callbackPath = null;
     }
   }
 
   @Override
   public void parseCredentials(RoutingContext context, Handler<AsyncResult<JsonObject>> handler) {
-    if (supportJWT) {
-      parseAuthorization(context, true, parseAuthorization -> {
-        if (parseAuthorization.failed()) {
-          handler.handle(Future.failedFuture(parseAuthorization.cause()));
-          return;
-        }
-        // if the provider supports JWT we can try to validate the Authorization header
-        final String token = parseAuthorization.result();
+    switch (type) {
+      case BASIC:
+        parseAuthorization(context, false, parseAuthorization -> {
+          if (parseAuthorization.failed()) {
+            handler.handle(Future.failedFuture(parseAuthorization.cause()));
+            return;
+          }
 
-        if (token != null) {
-          ((OAuth2Auth) authProvider).decodeToken(token, decodeToken -> {
-            if (decodeToken.failed()) {
-              handler.handle(Future.failedFuture(new HttpStatusException(401, decodeToken.cause().getMessage())));
+          final String suser;
+          final String spass;
+
+          try {
+            // decode the payload
+            String decoded = new String(Base64.getDecoder().decode(parseAuthorization.result()));
+
+            int colonIdx = decoded.indexOf(":");
+            if (colonIdx != -1) {
+              suser = decoded.substring(0, colonIdx);
+              spass = decoded.substring(colonIdx + 1);
+            } else {
+              suser = decoded;
+              spass = null;
+            }
+          } catch (RuntimeException e) {
+            // IllegalArgumentException includes PatternSyntaxException
+            context.fail(e);
+            return;
+          }
+
+          handler.handle(Future.succeededFuture(new JsonObject().put("username", suser).put("password", spass)));
+        });
+        break;
+
+      case BEARER:
+        if (supportJWT) {
+          parseAuthorization(context, true, parseAuthorization -> {
+            if (parseAuthorization.failed()) {
+              handler.handle(Future.failedFuture(parseAuthorization.cause()));
               return;
             }
+            // if the provider supports JWT we can try to validate the Authorization header
+            final String token = parseAuthorization.result();
 
-            context.setUser(decodeToken.result());
-            // continue
-            handler.handle(Future.succeededFuture());
+            if (token != null) {
+              ((OAuth2Auth) authProvider).decodeToken(token, decodeToken -> {
+                if (decodeToken.failed()) {
+                  handler.handle(Future.failedFuture(new HttpStatusException(401, decodeToken.cause().getMessage())));
+                  return;
+                }
+
+                context.setUser(decodeToken.result());
+                // continue
+                handler.handle(Future.succeededFuture());
+              });
+            }
           });
         }
-      });
+        // redirect request to the oauth2 server
+        handler.handle(Future.failedFuture(new HttpStatusException(302, authURI(host, context.request().uri()))));
+        break;
+
+      default:
+        handler.handle(Future.failedFuture("Unsupported Authorization type: " + type));
+        break;
     }
-    // redirect request to the oauth2 server
-    handler.handle(Future.failedFuture(new HttpStatusException(302, authURI(host, context.request().uri()))));
   }
 
   private String authURI(String host, String redirectURL) {
@@ -139,7 +203,7 @@ public class OAuth2AuthHandlerImpl extends AuthorizationAuthHandler implements O
 
       final String state = ctx.request().getParam("state");
 
-      ((OAuth2Auth) authProvider).getToken(new JsonObject().put("code", code).put("redirect_uri", host + callback.getPath()).mergeIn(extraParams), res -> {
+      authProvider.authenticate(new JsonObject().put("code", code).put("redirect_uri", host + callback.getPath()).mergeIn(extraParams), res -> {
         if (res.failed()) {
           ctx.fail(res.cause());
         } else {
