@@ -19,9 +19,9 @@ package io.vertx.ext.web.handler.impl;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
-import io.vertx.core.http.HttpHeaders;
-import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.auth.oauth2.OAuth2Auth;
+import io.vertx.ext.auth.oauth2.OAuth2FlowType;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.auth.AuthProvider;
 
@@ -33,8 +33,25 @@ import java.util.Base64;
  */
 public class BasicAuthHandlerImpl extends AuthorizationAuthHandler {
 
+  /**
+   * This is a verification step, it can abort the instantiation by
+   * throwing a RuntimeException
+   *
+   * @param provider
+   * @return
+   */
+  private static AuthProvider verifyProvider(AuthProvider provider) {
+    if (provider instanceof OAuth2Auth) {
+      if (((OAuth2Auth) provider).getFlowType() != OAuth2FlowType.PASSWORD) {
+        throw new IllegalArgumentException("OAuth2Auth + Basic Auth requires OAuth2 PASSWORD flow");
+      }
+    }
+
+    return provider;
+  }
+
   public BasicAuthHandlerImpl(AuthProvider authProvider, String realm) {
-    super(authProvider, realm, Type.BASIC);
+    super(verifyProvider(authProvider), realm, Type.BASIC);
   }
 
   @Override
