@@ -96,6 +96,21 @@ public class LocalSessionStoreImpl implements LocalSessionStore, Handler<Long> {
   }
 
   @Override
+  public void replace(Session session, Handler<AsyncResult<Boolean>> resultHandler) {
+    final SessionImpl oldSession = (SessionImpl) localMap.get(session.id());
+    final SessionImpl newSession = (SessionImpl) session;
+
+    final boolean conflict =
+      (oldSession != null) &&
+      // there was already some stored data in this case we need to validate versions
+      (oldSession.version() != newSession.version());
+
+    newSession.incrementVersion();
+    localMap.put(session.id(), session);
+    resultHandler.handle(Future.succeededFuture(!conflict));
+  }
+
+  @Override
   public void clear(Handler<AsyncResult<Boolean>> resultHandler) {
     localMap.clear();
     resultHandler.handle(Future.succeededFuture(true));

@@ -81,12 +81,22 @@ public interface SessionStore {
   void delete(String id, Handler<AsyncResult<Boolean>> resultHandler);
 
   /**
-   * Add a session with the specified ID
+   * Updates a session with the specified ID. The call will fail if the version of the data does not
+   * match the version that is to be written.
    *
    * @param session  the session
    * @param resultHandler  will be called with a result true/false, or a failure
    */
   void put(Session session, Handler<AsyncResult<Boolean>> resultHandler);
+
+  /**
+   * Replaces a session with the specified ID. The call will succeed but result true if the replace would not
+   * create a version conflict, false otherwise. No matter what the last replace will win.
+   *
+   * @param session  the session
+   * @param resultHandler  will be called with a result true/false, or a failure
+   */
+  void replace(Session session, Handler<AsyncResult<Boolean>> resultHandler);
 
   /**
    * Remove all sessions from the store
