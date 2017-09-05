@@ -52,7 +52,6 @@ import static io.netty.handler.codec.http.HttpResponseStatus.*;
 public class StaticHandlerImpl implements StaticHandler {
 
   private static final Logger log = LoggerFactory.getLogger(StaticHandlerImpl.class);
-  private static final String defaultContentEncoding = Charset.defaultCharset().name();
 
   private final DateFormat dateTimeFormatter = Utils.createRFC1123DateTimeFormatter();
   private Map<String, CacheEntry> propsCache;
@@ -70,6 +69,7 @@ public class StaticHandlerImpl implements StaticHandler {
   private boolean rangeSupport = DEFAULT_RANGE_SUPPORT;
   private boolean allowRootFileSystemAccess = DEFAULT_ROOT_FILESYSTEM_ACCESS;
   private boolean sendVaryHeader = DEFAULT_SEND_VARY_HEADER;
+  private String defaultContentEncoding = Charset.defaultCharset().name();
 
   // These members are all related to auto tuning of synchronous vs asynchronous file system access
   private static int NUM_SERVES_TUNING_FS_ACCESS = 1000;
@@ -132,11 +132,11 @@ public class StaticHandlerImpl implements StaticHandler {
       if (log.isTraceEnabled()) log.trace("Not GET or HEAD so ignoring request");
       context.next();
     } else {
-      String path = context.normalisedPath();
+      String path = Utils.removeDots(Utils.urlDecode(context.normalisedPath(), false));
       // if the normalized path is null it cannot be resolved
       if (path == null) {
-        log.warn("Invalid path: " + context.request().path() + " so returning 404");
-        context.fail(NOT_FOUND.code());
+        log.warn("Invalid path: " + context.request().path());
+        context.next();
         return;
       }
 
@@ -160,7 +160,8 @@ public class StaticHandlerImpl implements StaticHandler {
       int idx = file.lastIndexOf('/');
       String name = file.substring(idx + 1);
       if (name.length() > 0 && name.charAt(0) == '.') {
-        context.fail(NOT_FOUND.code());
+        // skip
+        context.next();
         return;
       }
     }
@@ -182,28 +183,38 @@ public class StaticHandlerImpl implements StaticHandler {
       file = getFile(path, context);
     }
 
-    String sfile = file;
+    final String sfile = file;
 
-    // Need to read the props from the filesystem
-    getFileProps(context, file, res -> {
-      if (res.succeeded()) {
-        FileProps fprops = res.result();
-        if (fprops == null) {
-          // File does not exist
-          context.fail(NOT_FOUND.code());
-        } else if (fprops.isDirectory()) {
-          sendDirectory(context, path, sfile);
-        } else {
-          propsCache().put(path, new CacheEntry(fprops, System.currentTimeMillis()));
-          sendFile(context, sfile, fprops);
-        }
-      } else {
-        if (res.cause() instanceof NoSuchFileException || (res.cause().getCause() != null && res.cause().getCause() instanceof NoSuchFileException)) {
-          context.fail(NOT_FOUND.code());
+    // verify if the file exists
+    isFileExisting(context, sfile, exists -> {
+      if (exists.failed()) {
+        context.fail(exists.cause());
+        return;
+      }
+
+      // file does not exist, continue...
+      if (!exists.result()) {
+        context.next();
+        return;
+      }
+
+      // Need to read the props from the filesystem
+      getFileProps(context, sfile, res -> {
+        if (res.succeeded()) {
+          FileProps fprops = res.result();
+          if (fprops == null) {
+            // File does not exist
+            context.next();
+          } else if (fprops.isDirectory()) {
+            sendDirectory(context, path, sfile);
+          } else {
+            propsCache().put(path, new CacheEntry(fprops, System.currentTimeMillis()));
+            sendFile(context, sfile, fprops);
+          }
         } else {
           context.fail(res.cause());
         }
-      }
+      });
     });
   }
 
@@ -245,6 +256,11 @@ public class StaticHandlerImpl implements StaticHandler {
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
+  }
+
+  private synchronized void isFileExisting(RoutingContext context, String file, Handler<AsyncResult<Boolean>> resultHandler) {
+    FileSystem fs = context.vertx().fileSystem();
+    wrapInTCCLSwitch(() -> fs.exists(file, resultHandler));
   }
 
   private synchronized void getFileProps(RoutingContext context, String file, Handler<AsyncResult<FileProps>> resultHandler) {
@@ -322,9 +338,9 @@ public class StaticHandlerImpl implements StaticHandler {
             part = m.group(2);
             if (part != null && part.length() > 0) {
               // ranges are inclusive
-              end = Long.parseLong(part);
-              // offset must fall inside the limits of the file
-              if (end < offset || end >= fileProps.size()) {
+              end = Math.min(end, Long.parseLong(part));
+              // end offset must not be smaller than start offset
+              if (end < offset) {
                 throw new IndexOutOfBoundsException();
               }
             }
@@ -505,10 +521,16 @@ public class StaticHandlerImpl implements StaticHandler {
     this.maxAvgServeTimeNanoSeconds = maxAvgServeTimeNanoSeconds;
     return this;
   }
-  
+
   @Override
   public StaticHandler setSendVaryHeader(boolean sendVaryHeader) {
     this.sendVaryHeader = sendVaryHeader;
+    return this;
+  }
+
+  @Override
+  public StaticHandler setDefaultContentEncoding(String contentEncoding) {
+    this.defaultContentEncoding = contentEncoding;
     return this;
   }
 

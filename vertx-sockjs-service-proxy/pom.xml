@@ -7,10 +7,14 @@
   <parent>
     <groupId>io.vertx</groupId>
     <artifactId>vertx-web-parent</artifactId>
-    <version>3.4.0-SNAPSHOT</version>
+    <version>3.5.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>vertx-sockjs-service-proxy</artifactId>
+
+  <properties>
+    <codegen.rxjava.deprecated>true</codegen.rxjava.deprecated>
+  </properties>
 
   <dependencies>
     <dependency>
@@ -66,7 +70,7 @@
                 </annotationProcessors>
                 <generatedSourcesDirectory>${project.basedir}/target/generated-for-docs</generatedSourcesDirectory>
                 <compilerArgs>
-                  <arg>-AoutputDirectory=${project.basedir}/target/generated-for-docs</arg>
+                  <arg>-Acodegen.output=${project.basedir}/target/generated-for-docs</arg>
                   <arg>-Adocgen.output=${asciidoc.dir}/$lang</arg>
 
                   <arg>-Amaven.groupId=${project.groupId}</arg>
@@ -82,9 +86,8 @@
                 <annotationProcessors>
                   <annotationProcessor>io.vertx.codegen.CodeGenProcessor</annotationProcessor>
                 </annotationProcessors>
-                <generatedTestSourcesDirectory>${project.basedir}/src/test/generated</generatedTestSourcesDirectory>
                 <compilerArgs>
-                  <arg>-AoutputDirectory=${project.basedir}/src/test</arg>
+                  <arg>-Acodegen.output=${project.basedir}/src/test</arg>
                 </compilerArgs>
               </configuration>
             </execution>
@@ -131,7 +134,7 @@
             <configuration>
               <includeArtifactIds>vertx-web</includeArtifactIds>
               <includeClassifiers>client</includeClassifiers>
-              <outputDirectory>${project.basedir}/src/test/resources/vertx-js</outputDirectory>
+              <outputDirectory>${project.build.testOutputDirectory}/vertx-js</outputDirectory>
               <stripVersion>true</stripVersion>
             </configuration>
           </execution>
@@ -149,8 +152,8 @@
             <phase>process-test-resources</phase>
             <configuration>
               <target>
-                <move file="${project.basedir}/src/test/resources/vertx-js/vertx-web-client.js"
-                      tofile="${project.basedir}/src/test/resources/vertx-js/vertx-eventbus.js"/>
+                <move file="${project.build.testOutputDirectory}/vertx-js/vertx-web-client.js"
+                      tofile="${project.build.testOutputDirectory}/vertx-js/vertx-eventbus.js"/>
               </target>
             </configuration>
           </execution>

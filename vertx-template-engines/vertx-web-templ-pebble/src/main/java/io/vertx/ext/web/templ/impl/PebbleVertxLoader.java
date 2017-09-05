@@ -18,10 +18,11 @@ package io.vertx.ext.web.templ.impl;
 import com.mitchellbosecke.pebble.error.LoaderException;
 import com.mitchellbosecke.pebble.loader.Loader;
 import io.vertx.core.Vertx;
+import io.vertx.ext.web.impl.Utils;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.Reader;
+import java.io.StringReader;
 import java.nio.charset.Charset;
 
 /**
@@ -29,11 +30,11 @@ import java.nio.charset.Charset;
  *
  * @author Paulo Lopes
  */
-class PebbleVertxLoader implements Loader<String> {
+public class PebbleVertxLoader implements Loader<String> {
 
   private final Vertx vertx;
 
-  private String charset = Charset.defaultCharset().toString();
+  private Charset charset = Charset.defaultCharset();
 
   public PebbleVertxLoader(Vertx vertx) {
     this.vertx = vertx;
@@ -42,27 +43,8 @@ class PebbleVertxLoader implements Loader<String> {
   @Override
   public Reader getReader(String s) throws LoaderException {
     try {
-      final char[] buffer = vertx.fileSystem().readFileBlocking(s).toString(charset).toCharArray();
-      final int[] pos = {0};
-
-      return new Reader() {
-        @Override
-        public int read(char[] cbuf, int off, int len) throws IOException {
-          if (pos[0] == buffer.length) {
-            return -1;
-          }
-          final int end = Math.min(buffer.length, pos[0] + len);
-          System.arraycopy(buffer, pos[0], cbuf, off, end);
-          final int read = end - pos[0];
-          pos[0] = end;
-          return read;
-        }
-
-        @Override
-        public void close() throws IOException {
-
-        }
-      };
+      final String buffer = Utils.readFileToString(vertx, s, charset);
+      return new StringReader(buffer);
     } catch (RuntimeException e) {
       throw new LoaderException(e, e.getMessage());
     }
@@ -70,7 +52,7 @@ class PebbleVertxLoader implements Loader<String> {
 
   @Override
   public void setCharset(String s) {
-    this.charset = s;
+    this.charset = Charset.forName(s);
   }
 
   @Override

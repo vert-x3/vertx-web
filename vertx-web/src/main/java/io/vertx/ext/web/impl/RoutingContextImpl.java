@@ -19,6 +19,7 @@ package io.vertx.ext.web.impl;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.vertx.codegen.annotations.Nullable;
 import io.vertx.core.Handler;
+import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
@@ -41,6 +42,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   private final RouterImpl router;
   private Map<String, Object> data;
   private Map<String, String> pathParams;
+  private MultiMap queryParams;
   private AtomicInteger handlerSeq = new AtomicInteger();
   private Map<Integer, Handler<Void>> headersEndHandlers;
   private Map<Integer, Handler<Void>> bodyEndHandlers;
@@ -48,6 +50,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   private int statusCode = -1;
   private String normalisedPath;
   private String acceptableContentType;
+  private ParsableHeaderValuesContainer parsedHeaders;
 
   // We use Cookie as the key too so we can return keySet in cookies() without copying
   private Map<String, Cookie> cookies;
@@ -59,9 +62,32 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   public RoutingContextImpl(String mountPoint, RouterImpl router, HttpServerRequest request, Set<RouteImpl> routes) {
     super(mountPoint, request, routes);
     this.router = router;
+
+    fillParsedHeaders(request);
     if (request.path().charAt(0) != '/') {
       fail(404);
     }
+  }
+
+  private String ensureNotNull(String string){
+    return string == null ? "" : string;
+  }
+
+  private void fillParsedHeaders(HttpServerRequest request) {
+    String accept = request.getHeader("Accept");
+    String acceptCharset = request.getHeader ("Accept-Charset");
+    String acceptEncoding = request.getHeader("Accept-Encoding");
+    String acceptLanguage = request.getHeader("Accept-Language");
+    String contentType = ensureNotNull(request.getHeader("Content-Type"));
+
+    parsedHeaders = new ParsableHeaderValuesContainer(
+        HeaderParser.sort(HeaderParser.convertToParsedHeaderValues(accept, ParsableMIMEValue::new)),
+        HeaderParser.sort(HeaderParser.convertToParsedHeaderValues(acceptCharset, ParsableHeaderValue::new)),
+        HeaderParser.sort(HeaderParser.convertToParsedHeaderValues(acceptEncoding, ParsableHeaderValue::new)),
+        HeaderParser.sort(HeaderParser.convertToParsedHeaderValues(acceptLanguage, ParsableLanguageValue::new)),
+        new ParsableMIMEValue(contentType)
+    );
+
   }
 
   @Override
@@ -160,7 +186,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   @Override
   public String normalisedPath() {
     if (normalisedPath == null) {
-      normalisedPath = Utils.normalisePath(request.path());
+      normalisedPath = Utils.normalizePath(request.path());
     }
     return normalisedPath;
   }
@@ -262,6 +288,11 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   }
 
   @Override
+  public ParsableHeaderValuesContainer parsedHeaders() {
+    return parsedHeaders;
+  }
+
+  @Override
   public int addHeadersEndHandler(Handler<Void> handler) {
     int seq = nextHandlerSeq();
     getHeadersEndHandlers().put(seq, handler);
@@ -287,6 +318,18 @@ public class RoutingContextImpl extends RoutingContextImplBase {
 
   @Override
   public void reroute(HttpMethod method, String path) {
+    int split = path.indexOf('?');
+
+    if (split == -1) {
+      split = path.indexOf('#');
+    }
+
+    if (split != -1) {
+      log.warn("Non path segment is not considered: " + path.substring(split));
+      // reroute is path based so we trim out the non url path parts
+      path = path.substring(0, split);
+    }
+
     ((HttpServerRequestWrapper) request).setMethod(method);
     ((HttpServerRequestWrapper) request).setPath(path);
     request.params().clear();
@@ -294,43 +337,35 @@ public class RoutingContextImpl extends RoutingContextImplBase {
     normalisedPath = null;
     // we also need to reset any previous status
     statusCode = -1;
+    // we need to reset any response headers
+    response().headers().clear();
+    // special header case cookies are parsed and cached
+    if (cookies != null) {
+      cookies.clear();
+    }
+    // reset the end handlers
+    if (headersEndHandlers != null) {
+      headersEndHandlers.clear();
+    }
+    if (bodyEndHandlers != null) {
+      bodyEndHandlers.clear();
+    }
+
     failure = null;
     restart();
   }
 
+  /**
+   * <h5>Notes about the dangerous cast and suppression:</h5><br>
+   * I know for sure that <code>List&lt;Locale></code> will contain only <code>List&lt;LanguageHeader></code>.<br>
+   * Currently, LanguageHeader is the only one that extends Locale.<br>
+   * Locale does not extend LanguageHeader because I want full backwards compatibility to the previous vertx version<br>
+   * Also, Locale is being deprecated and the type of objects that extend it inside vertx should not change.
+   */
+  @SuppressWarnings({"rawtypes", "unchecked" })
   @Override
   public List<Locale> acceptableLocales() {
-    String languages = request.getHeader("Accept-Language");
-    if (languages != null) {
-      List<String> acceptLanguages = Utils.getSortedAcceptableMimeTypes(languages);
-
-      final List<Locale> locales = new ArrayList<>(acceptLanguages.size());
-
-      for (String lang : acceptLanguages) {
-        int idx = lang.indexOf(';');
-
-        if (idx != -1) {
-          lang = lang.substring(0, idx).trim();
-        }
-
-        String[] parts = lang.split("_|-");
-        switch (parts.length) {
-          case 3:
-            locales.add(Locale.create(parts[0], parts[1], parts[2]));
-            break;
-          case 2:
-            locales.add(Locale.create(parts[0], parts[1]));
-            break;
-          case 1:
-            locales.add(Locale.create(parts[0]));
-            break;
-        }
-      }
-
-      return locales;
-    }
-
-    return Collections.emptyList();
+    return (List)parsedHeaders.acceptLanguage();
   }
 
   @Override
@@ -341,6 +376,23 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   @Override
   public @Nullable String pathParam(String name) {
     return getPathParams().get(name);
+  }
+
+  @Override
+  public MultiMap queryParams() {
+    return getQueryParams();
+  }
+
+  @Override
+  public @Nullable List<String> queryParam(String query) {
+    return getQueryParams().getAll(query);
+  }
+
+  private MultiMap getQueryParams() {
+    if (queryParams == null) {
+      queryParams = MultiMap.caseInsensitiveMultiMap();
+    }
+    return queryParams;
   }
 
   private Map<String, String> getPathParams() {
@@ -384,6 +436,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
 
   private void doFail() {
     this.iter = router.iterator();
+    currentRoute = null;
     next();
   }
 

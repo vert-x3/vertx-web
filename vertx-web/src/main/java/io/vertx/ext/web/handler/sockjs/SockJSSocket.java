@@ -32,6 +32,7 @@
 
 package io.vertx.ext.web.handler.sockjs;
 
+import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.Nullable;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
@@ -74,6 +75,17 @@ public interface SockJSSocket extends ReadStream<Buffer>, WriteStream<Buffer> {
 
   @Override
   SockJSSocket write(Buffer data);
+
+  /**
+   * Write a {@link String} to the socket, encoded in UTF-8.
+   *
+   * @param data  the string to write
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  default SockJSSocket write(String data) {
+    return write(Buffer.buffer(data));
+  }
 
   @Override
   SockJSSocket setWriteQueueMaxSize(int maxSize);

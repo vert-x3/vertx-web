@@ -18,6 +18,7 @@ package io.vertx.ext.web.impl;
 
 import io.vertx.codegen.annotations.Nullable;
 import io.vertx.core.Handler;
+import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
@@ -243,6 +244,11 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   }
 
   @Override
+  public ParsedHeaderValues parsedHeaders() {
+    return inner.parsedHeaders();
+  }
+
+  @Override
   public void setAcceptableContentType(String contentType) {
     inner.setAcceptableContentType(contentType);
   }
@@ -265,6 +271,14 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   @Override
   public @Nullable String pathParam(String name) {
     return inner.pathParam(name);
+  }
+
+  @Override
+  public MultiMap queryParams() { return inner.queryParams(); }
+
+  @Override
+  public @Nullable List<String> queryParam(String query) {
+    return inner.queryParam(query);
   }
 
 }

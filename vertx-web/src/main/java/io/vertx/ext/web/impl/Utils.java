@@ -16,6 +16,7 @@
 
 package io.vertx.ext.web.impl;
 
+import io.netty.util.CharsetUtil;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxException;
 import io.vertx.core.buffer.Buffer;
@@ -23,11 +24,13 @@ import io.vertx.ext.web.RoutingContext;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Comparator;
+import java.util.Locale;
+import java.util.TimeZone;
 import java.util.regex.Pattern;
 
 /**
@@ -40,93 +43,265 @@ public class Utils extends io.vertx.core.impl.Utils {
   private static final Pattern SEMICOLON_SPLITTER = Pattern.compile(" *; *");
   private static final Pattern EQUAL_SPLITTER = Pattern.compile(" *= *");
 
-  public static String normalisePath(String path) {
-    return normalisePath(path, true);
+  private static int indexOfSlash(CharSequence str, int start) {
+    for (int i = start; i < str.length(); i++) {
+      if (str.charAt(i) == '/') {
+        return i;
+      }
+    }
+
+    return -1;
   }
 
-  public static String normalisePath(String path, boolean urldecode) {
-    if (path == null) {
-      return "/";
+  private static boolean matches(CharSequence path, int start, String what) {
+    return matches(path, start, what, false);
+  }
+
+  private static boolean matches(CharSequence path, int start, String what, boolean exact) {
+    if (exact) {
+      if (path.length() - start != what.length()) {
+        return false;
+      }
     }
 
-    if (path.charAt(0) != '/') {
-      path = "/" + path;
-    }
-
-    try {
-      StringBuilder result = new StringBuilder(path.length());
-
-      for (int i = 0; i < path.length(); i++) {
-        char c = path.charAt(i);
-
-        // we explicitly ignore the + sign as it should not be translated to
-        // space within a path as per RFC3986 we only consider percent encoded values
-        if (c == '/') {
-          if (i == 0 || result.charAt(result.length() - 1) != '/')
-            result.append(c);
-        } else if (urldecode && c == '%') {
-          i = processEscapeSequence(path, result, i);
-        } else if (c == '.') {
-          if (i == 0 || result.charAt(result.length() - 1) != '.')
-            result.append(c);
-          else
-            result.deleteCharAt(result.length() - 1);
-        } else {
-          result.append(c);
+    if (path.length() - start >= what.length()) {
+      for (int i = 0; i < what.length(); i++) {
+        if (path.charAt(start + i) != what.charAt(i)) {
+          return false;
         }
       }
+      return true;
+    }
 
-      return result.toString();
+    return false;
+  }
 
-    } catch (UnsupportedEncodingException e) {
-      throw new IllegalStateException(e);
+  private static void decodeUnreserved(StringBuilder path, int start) {
+    if (start + 3 <= path.length()) {
+      // these are latin chars so there is no danger of falling into some special unicode char that requires more
+      // than 1 byte
+      int unescaped = Integer.parseInt(path.substring(start + 1, start + 3), 16);
+      if (unescaped < 0) {
+        throw new IllegalArgumentException("Invalid escape sequence: " + path.substring(start, start + 3));
+      }
+      // validate if the octet is within the allowed ranges
+      if (
+          // ALPHA
+          (unescaped >= 0x41 && unescaped <= 0x5A) ||
+          (unescaped >= 0x61 && unescaped <= 0x7A) ||
+          // DIGIT
+          (unescaped >= 0x30 && unescaped <= 0x39) ||
+          // HYPHEN
+          (unescaped == 0x2D) ||
+          // PERIOD
+          (unescaped == 0x2E) ||
+          // UNDERSCORE
+          (unescaped == 0x5F) ||
+          // TILDE
+          (unescaped == 0x7E)) {
+
+        path.setCharAt(start, (char) unescaped);
+        path.delete(start + 1, start + 3);
+      }
+    } else {
+      throw new IllegalArgumentException("Invalid position for escape character: " + start);
     }
   }
 
   /**
-   * Processes a escape sequence in path
+   * Normalizes a path as per <a href="http://tools.ietf.org/html/rfc3986#section-5.2.4>rfc3986</a>.
    *
-   * @param path
-   *          The original path
-   * @param result
-   *          The result of unescaping the escape sequence (and removing dangerous constructs)
-   * @param i
-   *          The index of path where the escape sequence begins
-   * @return The index of path where the escape sequence ends
-   * @throws UnsupportedEncodingException
-   *           If the escape sequence does not represent a valid UTF-8 string
+   * There are 2 extra transformations that are not part of the spec but kept for backwards compatibility:
+   *
+   * double slash // will be converted to single slash and the path will always start with slash.
+   *
+   * @param pathname raw path
+   * @return normalized path
    */
-  private static int processEscapeSequence(String path, StringBuilder result, int i) throws UnsupportedEncodingException {
-    Buffer buf = Buffer.buffer(2);
-    do {
-      if (i >= path.length() - 2) {
-        throw new IllegalArgumentException("Invalid position for escape character: " + i);
-      }
-      int unescaped = Integer.parseInt(path.substring(i + 1, i + 3), 16);
-      if (unescaped < 0) {
-        throw new IllegalArgumentException("Invalid escape sequence: " + path.substring(i, i + 3));
-      }
-      buf.appendByte((byte) unescaped);
-      i += 3;
-    } while (i < path.length() && path.charAt(i) == '%');
+  public static String normalizePath(String pathname) {
+    // add trailing slash if not set
+    if (pathname == null || pathname.length() == 0) {
+      return "/";
+    }
 
-    String escapedSeq = new String(buf.getBytes(), StandardCharsets.UTF_8);
+    StringBuilder ibuf = new StringBuilder(pathname.length() + 1);
 
-    for (int j = 0; j < escapedSeq.length(); j++) {
-      char c = escapedSeq.charAt(j);
-      if (c == '/') {
-        if (j == 0 || result.charAt(result.length() - 1) != '/')
-          result.append(c);
-      } else if (c == '.') {
-        if (j == 0 || result.charAt(result.length() - 1) != '.')
-          result.append(c);
-        else
-          result.deleteCharAt(result.length() - 1);
+    // Not standard!!!
+    if (pathname.charAt(0) != '/') {
+      ibuf.append('/');
+    }
+
+    ibuf.append(pathname);
+    int i = 0;
+
+    while (i < ibuf.length()) {
+      // decode unreserved chars described in
+      // http://tools.ietf.org/html/rfc3986#section-2.4
+      if (ibuf.charAt(i) == '%') {
+        decodeUnreserved(ibuf, i);
+      }
+
+      i++;
+    }
+
+    // remove dots as described in
+    // http://tools.ietf.org/html/rfc3986#section-5.2.4
+    return removeDots(ibuf);
+  }
+
+  /**
+   * Removed dots as per <a href="http://tools.ietf.org/html/rfc3986#section-5.2.4>rfc3986</a>.
+   *
+   * There are 2 extra transformations that are not part of the spec but kept for backwards compatibility:
+   *
+   * double slash // will be converted to single slash and the path will always start with slash.
+   *
+   * @param path raw path
+   * @return normalized path
+   */
+  public static String removeDots(CharSequence path) {
+
+    if (path == null) {
+      return null;
+    }
+
+    final StringBuilder obuf = new StringBuilder(path.length());
+
+    int i = 0;
+    while (i < path.length()) {
+      // remove dots as described in
+      // http://tools.ietf.org/html/rfc3986#section-5.2.4
+      if (matches(path, i, "./")) {
+        i += 2;
+      } else if (matches(path, i, "../")) {
+        i += 3;
+      } else if (matches(path, i, "/./")) {
+        // preserve last slash
+        i += 2;
+      } else if (matches(path, i,"/.", true)) {
+        path = "/";
+        i = 0;
+      } else if (matches(path, i, "/../")) {
+        // preserve last slash
+        i += 3;
+        int pos = obuf.lastIndexOf("/");
+        if (pos != -1) {
+          obuf.delete(pos, obuf.length());
+        }
+      } else if (matches(path, i, "/..", true)) {
+        path = "/";
+        i = 0;
+        int pos = obuf.lastIndexOf("/");
+        if (pos != -1) {
+          obuf.delete(pos, obuf.length());
+        }
+      } else if (matches(path, i, ".", true) || matches(path, i, "..", true)) {
+        break;
       } else {
-        result.append(c);
+        if (path.charAt(i) == '/') {
+          i++;
+          // Not standard!!!
+          // but common // -> /
+          if (obuf.length() == 0 || obuf.charAt(obuf.length() - 1) != '/') {
+            obuf.append('/');
+          }
+        }
+        int pos = indexOfSlash(path, i);
+        if (pos != -1) {
+          obuf.append(path, i, pos);
+          i = pos;
+        } else {
+          obuf.append(path, i, path.length());
+          break;
+        }
       }
     }
-    return i - 1;
+
+    return obuf.toString();
+  }
+
+  /**
+   * Decodes a bit of an URL encoded by a browser.
+   *
+   * The string is expected to be encoded as per RFC 3986, Section 2. This is the encoding used by JavaScript functions
+   * encodeURI and encodeURIComponent, but not escape. For example in this encoding, é (in Unicode U+00E9 or in
+   * UTF-8 0xC3 0xA9) is encoded as %C3%A9 or %c3%a9.
+   *
+   * @param s string to decode
+   * @param plus weather or not to transform plus signs into spaces
+   *
+   * @return decoded string
+   */
+  public static String urlDecode(final String s, boolean plus) {
+    if (s == null) {
+      return null;
+    }
+
+    final int size = s.length();
+    boolean modified = false;
+    for (int i = 0; i < size; i++) {
+      final char c = s.charAt(i);
+      if (c == '%' || (plus && c == '+')) {
+        modified = true;
+        break;
+      }
+    }
+    if (!modified) {
+      return s;
+    }
+    final byte[] buf = new byte[size];
+    int pos = 0;  // position in `buf'.
+    for (int i = 0; i < size; i++) {
+      char c = s.charAt(i);
+      if (c == '%') {
+        if (i == size - 1) {
+          throw new IllegalArgumentException("unterminated escape"
+            + " sequence at end of string: " + s);
+        }
+        c = s.charAt(++i);
+        if (c == '%') {
+          buf[pos++] = '%';  // "%%" -> "%"
+          break;
+        }
+        if (i == size - 1) {
+          throw new IllegalArgumentException("partial escape"
+            + " sequence at end of string: " + s);
+        }
+        c = decodeHexNibble(c);
+        final char c2 = decodeHexNibble(s.charAt(++i));
+        if (c == Character.MAX_VALUE || c2 == Character.MAX_VALUE) {
+          throw new IllegalArgumentException(
+            "invalid escape sequence `%" + s.charAt(i - 1)
+              + s.charAt(i) + "' at index " + (i - 2)
+              + " of: " + s);
+        }
+        c = (char) (c * 16 + c2);
+        // shouldn't check for plus since it would be a double decoding
+        buf[pos++] = (byte) c;
+      } else {
+        buf[pos++] = (byte) (plus && c == '+' ? ' ' : c);
+      }
+    }
+    return new String(buf, 0, pos, CharsetUtil.UTF_8);
+  }
+
+  /**
+   * Helper to decode half of a hexadecimal number from a string.
+   * @param c The ASCII character of the hexadecimal number to decode.
+   * Must be in the range {@code [0-9a-fA-F]}.
+   * @return The hexadecimal value represented in the ASCII character
+   * given, or {@link Character#MAX_VALUE} if the character is invalid.
+   */
+  private static char decodeHexNibble(final char c) {
+    if ('0' <= c && c <= '9') {
+      return (char) (c - '0');
+    } else if ('a' <= c && c <= 'f') {
+      return (char) (c - 'a' + 10);
+    } else if ('A' <= c && c <= 'F') {
+      return (char) (c - 'A' + 10);
+    } else {
+      return Character.MAX_VALUE;
+    }
   }
 
   public static ClassLoader getClassLoader() {
@@ -161,42 +336,22 @@ public class Utils extends io.vertx.core.impl.Utils {
   }
 
   /*
-  Reads from file or classpath
+  Reads from file or classpath using UTF-8
    */
   public static String readFileToString(Vertx vertx, String resource) {
+    return readFileToString(vertx, resource, StandardCharsets.UTF_8);
+  }
+
+  /*
+  Reads from file or classpath using the provided charset
+   */
+  public static String readFileToString(Vertx vertx, String resource, Charset charset) {
     try {
       Buffer buff = vertx.fileSystem().readFileBlocking(resource);
-      return buff.toString();
+      return buff.toString(charset);
     } catch (Exception e) {
       throw new VertxException(e);
     }
-  }
-
-  public static List<String> getSortedAcceptableMimeTypes(String acceptHeader) {
-    // accept anything when accept is not present
-    if (acceptHeader == null) {
-      return Collections.emptyList();
-    }
-
-    // parse
-    String[] items = COMMA_SPLITTER.split(acceptHeader);
-    // sort on quality
-    Arrays.sort(items, ACCEPT_X_COMPARATOR);
-
-    List<String> list = new ArrayList<>(items.length);
-
-    for (String item : items) {
-      // find any ; e.g.: "application/json;q=0.8"
-      int space = item.indexOf(';');
-
-      if (space != -1) {
-        list.add(item.substring(0, space));
-      } else {
-        list.add(item);
-      }
-    }
-
-    return list;
   }
 
   public static DateFormat createRFC1123DateTimeFormatter() {

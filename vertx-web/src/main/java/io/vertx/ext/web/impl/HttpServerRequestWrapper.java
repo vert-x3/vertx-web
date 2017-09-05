@@ -1,5 +1,6 @@
 package io.vertx.ext.web.impl;
 
+import io.vertx.codegen.annotations.Nullable;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.buffer.Buffer;
@@ -7,10 +8,14 @@ import io.vertx.core.http.*;
 import io.vertx.core.net.NetSocket;
 import io.vertx.core.net.SocketAddress;
 
+import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.security.cert.X509Certificate;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 class HttpServerRequestWrapper implements HttpServerRequest {
 
@@ -138,6 +143,11 @@ class HttpServerRequestWrapper implements HttpServerRequest {
   @Override
   public X509Certificate[] peerCertificateChain() throws SSLPeerUnverifiedException {
     return delegate.peerCertificateChain();
+  }
+
+  @Override
+  public SSLSession sslSession() {
+    return delegate.sslSession();
   }
 
   @Override

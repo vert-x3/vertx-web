@@ -17,7 +17,7 @@ package io.vertx.ext.web.templ.impl;
 
 import freemarker.cache.TemplateLoader;
 import io.vertx.core.Vertx;
-import io.vertx.core.buffer.Buffer;
+import io.vertx.ext.web.impl.Utils;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -39,8 +39,8 @@ class FreeMarkerTemplateLoader implements TemplateLoader {
     try {
       // check if exists on file system
       if (vertx.fileSystem().existsBlocking(name)) {
-        Buffer buff = vertx.fileSystem().readFileBlocking(name);
-        return new StringTemplateSource(name, buff.toString(), System.currentTimeMillis());
+        String templ = Utils.readFileToString(vertx, name);
+        return new StringTemplateSource(name, templ, System.currentTimeMillis());
       } else {
         return null;
       }

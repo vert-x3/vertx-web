@@ -16,6 +16,7 @@
 
 package io.vertx.ext.web.templ.impl;
 
+import freemarker.cache.NullCacheStorage;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import io.vertx.core.AsyncResult;
@@ -23,7 +24,7 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.ext.web.RoutingContext;
-
+import io.vertx.ext.web.impl.Utils;
 import io.vertx.ext.web.templ.FreeMarkerTemplateEngine;
 
 import java.io.ByteArrayOutputStream;
@@ -43,9 +44,10 @@ public class FreeMarkerTemplateEngineImpl extends CachingTemplateEngine<Template
     super(DEFAULT_TEMPLATE_EXTENSION, DEFAULT_MAX_CACHE_SIZE);
 
     loader = new FreeMarkerTemplateLoader();
-    config = new Configuration(Configuration.VERSION_2_3_22);
-
+    config = new Configuration(Configuration.VERSION_2_3_23);
+    config.setObjectWrapper(new VertxWebObjectWrapper(config.getIncompatibleImprovements()));
     config.setTemplateLoader(loader);
+    config.setCacheStorage(new NullCacheStorage());
   }
 
   @Override
@@ -61,9 +63,10 @@ public class FreeMarkerTemplateEngineImpl extends CachingTemplateEngine<Template
   }
 
   @Override
-  public void render(RoutingContext context, String templateFileName, Handler<AsyncResult<Buffer>> handler) {
+  public void render(RoutingContext context, String templateDirectory, String templateFileName, Handler<AsyncResult<Buffer>> handler) {
     try {
-      Template template = cache.get(templateFileName);
+      templateFileName = templateDirectory + templateFileName;
+      Template template = isCachingEnabled() ? cache.get(templateFileName) : null;
       if (template == null) {
         // real compile
         synchronized (this) {
@@ -71,7 +74,9 @@ public class FreeMarkerTemplateEngineImpl extends CachingTemplateEngine<Template
           // Compile
           template = config.getTemplate(adjustLocation(templateFileName));
         }
-        cache.put(templateFileName, template);
+        if (isCachingEnabled()) {
+          cache.put(templateFileName, template);
+        }
       }
 
       Map<String, RoutingContext> variables = new HashMap<>(1);

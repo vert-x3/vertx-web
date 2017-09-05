@@ -7,7 +7,7 @@
   <parent>
     <groupId>io.vertx</groupId>
     <artifactId>vertx-web-parent</artifactId>
-    <version>3.4.0-SNAPSHOT</version>
+    <version>3.5.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>vertx-template-engines</artifactId>
@@ -15,6 +15,7 @@
 
   <properties>
     <doc.skip>true</doc.skip>
+    <codegen.rxjava.deprecated>true</codegen.rxjava.deprecated>
   </properties>
 
   <modules>

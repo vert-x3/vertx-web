@@ -21,8 +21,8 @@ import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.Nullable;
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.core.Future;
 import io.vertx.core.Handler;
+import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
@@ -32,6 +32,7 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -138,6 +139,7 @@ public interface RoutingContext {
   /**
    * @return the Vert.x instance associated to the initiating {@link Router} for this context
    */
+  @CacheReturn
   Vertx vertx();
 
   /**
@@ -293,6 +295,21 @@ public interface RoutingContext {
   @Nullable String getAcceptableContentType();
 
   /**
+   * The headers:
+   * <ol>
+   * <li>Accept</li>
+   * <li>Accept-Charset</li>
+   * <li>Accept-Encoding</li>
+   * <li>Accept-Language</li>
+   * <li>Content-Type</li>
+   * </ol>
+   * Parsed into {@link ParsedHeaderValue}
+   * @return A container with the parsed headers.
+   */
+  @CacheReturn
+  ParsedHeaderValues parsedHeaders();
+
+  /**
    * Add a handler that will be called just before headers are written to the response. This gives you a hook where
    * you can write any extra headers before the response has been written when it will be too late.
    *
@@ -312,8 +329,8 @@ public interface RoutingContext {
   /**
    * Provides a handler that will be called after the last part of the body is written to the wire.
    * The handler is called asynchronously of when the response has been received by the client.
-   * This provides a hook allowing you to do more operations once the request has been sent over the wire
-   * such as resource cleanup.
+   * This provides a hook allowing you to do more operations once the request has been sent over the wire.
+   * Do not use this for resource cleanup as this handler might never get called (e.g. if the connection is reset).
    *
    * @param handler  the handler
    * @return  the id of the handler. This can be used if you later want to remove the handler.
@@ -393,20 +410,51 @@ public interface RoutingContext {
    * index on the original list. For example if a user has en-US and en-GB with same quality and this order the best
    * match will be en-US because it was declared as first entry by the client.
    *
+   * @deprecated Use {@link #acceptableLanguages()} or {@link #parsedHeaders()}.{@link ParsedHeaderValues#acceptLanguage()}
    * @return the best matched locale for the request
    */
+  @Deprecated
   @CacheReturn
   List<Locale> acceptableLocales();
+
+  /**
+   * Returns the languages for the current request. The languages are determined from the <code>Accept-Language</code>
+   * header and sorted on quality.
+   *
+   * When 2 or more entries have the same quality then the order used to return the best match is based on the lowest
+   * index on the original list. For example if a user has en-US and en-GB with same quality and this order the best
+   * match will be en-US because it was declared as first entry by the client.
+   *
+   * @return The best matched language for the request
+   */
+  @CacheReturn
+  default List<LanguageHeader> acceptableLanguages(){
+    return parsedHeaders().acceptLanguage();
+  }
 
   /**
    * Helper to return the user preferred locale. It is the same action as returning the first element of the acceptable
    * locales.
    *
+   * @deprecated Use {@link #preferredLanguage()} instead
    * @return the users preferred locale.
    */
+  @CacheReturn
+  @Deprecated
   default Locale preferredLocale() {
-    final List<Locale> acceptableLocales = acceptableLocales();
-    return acceptableLocales.size() > 0 ? acceptableLocales.get(0) : null;
+    return preferredLanguage();
+  }
+
+  /**
+   * Helper to return the user preferred language.
+   * It is the same action as returning the first element of the acceptable languages.
+   *
+   * @return the users preferred locale.
+   */
+  @CacheReturn
+  default LanguageHeader preferredLanguage() {
+    List<? extends LanguageHeader> acceptableLanguages = acceptableLanguages();
+    return acceptableLanguages.size() > 0 ? acceptableLanguages.get(0) : null;
   }
 
   /**
@@ -424,4 +472,20 @@ public interface RoutingContext {
    */
   @Nullable
   String pathParam(String name);
+
+  /**
+   * Returns a map of all query parameters inside the <a href="https://en.wikipedia.org/wiki/Query_string">query string</a>
+   *
+   * @return the multimap of query parameters
+   */
+  MultiMap queryParams();
+
+  /**
+   * Gets the value of a single query parameter
+   *
+   * @param query The name of query parameter
+   * @return The list of all elements inside query parameter
+   */
+  @Nullable
+  List<String> queryParam(String query);
 }

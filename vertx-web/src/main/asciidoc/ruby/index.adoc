@@ -51,6 +51,7 @@ Some of the key features of Vert.x-Web include:
 ** MVEL
 ** Thymeleaf
 ** Apache FreeMarker
+** Pebble
 * Response time handler
 * Static file serving, including caching logic and directory listing.
 * Request timeout support
@@ -75,7 +76,7 @@ To use vert.x web, add the following dependency to the _dependencies_ section of
 <dependency>
   <groupId>io.vertx</groupId>
   <artifactId>vertx-web</artifactId>
-  <version>3.3.3</version>
+  <version>3.5.0.Beta1</version>
 </dependency>
 ----
 
@@ -84,7 +85,7 @@ To use vert.x web, add the following dependency to the _dependencies_ section of
 [source,groovy,subs="+attributes"]
 ----
 dependencies {
-  compile 'io.vertx:vertx-web:3.3.3'
+  compile 'io.vertx:vertx-web:3.5.0.Beta1'
 }
 ----
 
@@ -273,6 +274,20 @@ means the next one won't be executed until the previous one has completed. If yo
 don't mind your blocking handlers executing in parallel you can set the blocking handler specifying `ordered` as
 false using `link:../../yardoc/VertxWeb/Route.html#blocking_handler-instance_method[blockingHandler]`.
 
+Note, if you need to process multipart form data from a blocking handler, you MUST use a non-blocking handler
+      FIRST in order to call `setExpectMultipart(true)`. Here is an example:
+
+[source,ruby]
+----
+router.post("/some/endpoint").handler() { |ctx|
+  ctx.request().set_expect_multipart(true)
+  ctx.next()
+}.blocking_handler() { |ctx|
+  # ... Do some blocking operation
+}
+
+----
+
 == Routing by exact path
 
 A route can be set-up to match the path from the request URI. In this case it will match any request which has a path
@@ -355,7 +370,7 @@ Here's an example
 [source,ruby]
 ----
 
-route = router.route(:POST, "/catalogue/products/:productype/:productid/")
+route = router.route(:POST, "/catalogue/products/:producttype/:productid/")
 
 route.handler() { |routingContext|
 
@@ -391,7 +406,7 @@ route.handler() { |routingContext|
   # /some/path/foo
   # /foo
   # /foo/bar/wibble/foo
-  # /foo/bar
+  # /bar/foo
 
   # But not:
   # /bar/wibble
@@ -917,6 +932,32 @@ router.get().failure_handler() { |ctx|
 
 ----
 
+It should be clear that reroute works on `paths`, so if you need to preserve and or add state across reroutes, one
+should use the `RoutingContext` object. For example you want to reroute to a new path with a extra parameter:
+
+[source,ruby]
+----
+
+router.get("/final-target").handler() { |ctx|
+  # continue from here...
+}
+
+# THE WRONG WAY! (Will reroute to /final-target excluding the query string)
+router.get().handler() { |ctx|
+  ctx.reroute("/final-target?variable=value")
+}
+
+# THE CORRECT WAY!
+router.get().handler() { |ctx|
+  ctx.put("variable", "value").reroute("/final-target")
+}
+
+----
+
+Even though the wrong reroute path will warn you that the query string is ignored, the reroute will happen since the
+implementation will strip any query string or html fragment from the path.
+
+
 == Sub-routers
 
 Sometimes if you have a lot of handlers it can make sense to split them up into multiple routers. This is also useful
@@ -1002,7 +1043,7 @@ route = router.get("/localized").handler() { |rc|
   # although it might seem strange by running a loop with a switch we
   # make sure that the locale order of preference is preserved when
   # replying in the users language.
-  rc.acceptable_locales().each do |locale|
+  rc.acceptable_languages().each do |language|
     return
   end
   # we do not know the user language so lets just inform that back:
@@ -1255,6 +1296,20 @@ that yourself.
 
 To create a session handler you need to have a session store instance. The session store is the object that
 holds the actual sessions for your application.
+
+The session store is responsible for holding a secure pseudo random number generator in order to guarantee secure session
+ids. This PRNG is independent of the store which means that given a session id from store A one cannot derive the
+session id of store B since they have different seeds and states.
+
+By default this PRNG uses a mixed mode, blocking for seeding, non blocking for generating. The PRNG will also reseed
+every 5 minutes with 64bits of new entropy. However this can all be configured using the system properties:
+
+* io.vertx.ext.auth.prng.algorithm e.g.: SHA1PRNG
+* io.vertx.ext.auth.prng.seed.interval e.g.: 1000 (every second)
+* io.vertx.ext.auth.prng.seed.bits e.g.: 128
+
+Most users should not need to configure these values unless if you notice that the performance of your application is
+being affected by the PRNG algorithm.
 
 Vert.x-Web comes with two session store implementations out of the box, and you can also write your own if you prefer.
 
@@ -1572,7 +1627,8 @@ redirectAuthHandler = VertxWeb::RedirectAuthHandler.create(authProvider)
 router.route("/private/*").handler(&redirectAuthHandler.method(:handle))
 
 # Handle the actual login
-router.route("/login").handler(&VertxWeb::FormLoginHandler.create(authProvider).method(:handle))
+# One of your pages must POST form login data
+router.post("/login").handler(&VertxWeb::FormLoginHandler.create(authProvider).method(:handle))
 
 # Set a static server to serve static resources, e.g. the login page
 router.route().handler(&VertxWeb::StaticHandler.create().method(:handle))
@@ -1736,6 +1792,63 @@ router.route("/private/settings/*").handler(&settingsAuthHandler.method(:handle)
 
 ----
 
+=== Chaining multiple auth handlers
+
+There are times when you want to support multiple authN/authZ mechanisms in a single application. For this you can
+use the `link:../../yardoc/VertxWeb/ChainAuthHandler.html[ChainAuthHandler]`. The chain auth handler will attempt to perform
+authentication on a chain of handlers. The chain works both for AuthN and AuthZ, so if the authentication is valid
+at a given handler of the chain, then that same handler will be used to perform authorization (if requested).
+
+It is important to know that some handlers require specific providers, for example:
+
+* The `link:../../yardoc/VertxWeb/JWTAuthHandler.html[JWTAuthHandler]` requires `link:../../yardoc/VertxAuthJwt/JWTAuth.html[JWTAuth]`.
+* The `link:../../yardoc/VertxWeb/DigestAuthHandler.html[DigestAuthHandler]` requires `link:../../yardoc/VertxAuthHtdigest/HtdigestAuth.html[HtdigestAuth]`.
+* The `link:../../yardoc/VertxWeb/OAuth2AuthHandler.html[OAuth2AuthHandler]` requires `link:../../yardoc/VertxAuthOauth2/OAuth2Auth.html[OAuth2Auth]`.
+
+So it is not expected that the providers will be shared across all handlers. There are cases where one can share the
+provider across handlers, for example:
+
+* The `link:../../yardoc/VertxWeb/BasicAuthHandler.html[BasicAuthHandler]` can take any provider.
+* The `link:../../yardoc/VertxWeb/RedirectAuthHandler.html[RedirectAuthHandler]` can take any provider.
+
+So say that you want to create an application that accepts both `HTTP Basic Authentication` and `Form Redirect`. You
+would start configuring your chain as:
+
+[source,ruby]
+----
+require 'vertx-web/chain_auth_handler'
+require 'vertx-web/basic_auth_handler'
+require 'vertx-web/redirect_auth_handler'
+
+chain = VertxWeb::ChainAuthHandler.create()
+
+# add http basic auth handler to the chain
+chain.append(VertxWeb::BasicAuthHandler.create(provider))
+# add form redirect auth handler to the chain
+chain.append(VertxWeb::RedirectAuthHandler.create(provider))
+
+# secure your route
+router.route("/secure/resource").handler(&chain.method(:handle))
+# your app
+router.route("/secure/resource").handler() { |ctx|
+  # do something...
+}
+
+----
+
+So when a user makes a request without a `Authorization` header, this means that the chain will fail to authenticate
+with the basic auth handler and will attempt to authenticate with the redirect handler. Since the redirect handler
+always redirects you will be sent to the login form that you configured in that handler.
+
+Like the normal routing in vertx-web, auth chaning is a sequence, so if you would prefer to fallback to your browser
+asking for the user credentials using HTTP Basic authentication instead of the redirect all you need to to is reverse
+the order of appending to the chain.
+
+Now assume that you make a request where you provide the header `Authorization` with the value `Basic [token]`. In
+this case the basic auth handler will attempt to authenticate and if it is sucessful the chain will stop and
+vertx-web will continue to process your handlers. If the token is not valid, for example bad username/password, then
+the chain will continue to the following entry. In this specific case the redirect auth handler.
+
 == Serving static resources
 
 Vert.x-Web comes with an out of the box handler for serving static web resources so you can write static web servers
@@ -1759,9 +1872,9 @@ router.route("/static/*").handler(&VertxWeb::StaticHandler.create().method(:hand
 ----
 
 For example, if there was a request with path `/static/css/mystyles.css` the static serve will look for a file in the
-directory `webroot/static/css/mystyle.css`.
+directory `webroot/css/mystyle.css`.
 
-It will also look for a file on the classpath called `webroot/static/css/mystyle.css`. This means you can package up all your
+It will also look for a file on the classpath called `webroot/css/mystyle.css`. This means you can package up all your
 static resources into a jar file (or fatjar) and distribute them like that.
 
 When Vert.x finds a resource on the classpath for the first time it extracts it and caches it in a temporary directory
@@ -1838,8 +1951,9 @@ fatjars in production where serving a file from the classpath every time can be 
 In development this can cause a problem, as if you update your static content while the server is running, the
 cached file will be served not the updated file.
 
-To disable file caching you can provide the system property `vertx.disableFileCaching` with the value `true`. E.g. you
-could set up a run configuration in your IDE to set this when runnning your main class.
+To disable file caching you can provide your vert.x options the property `fileResolverCachingEnabled` to true. For
+backwards compatibility it will also default that value to the system property `vertx.disableFileCaching`. E.g. you
+could set up a run configuration in your IDE to set this when running your main class.
 
 
 == CORS handling
@@ -1909,7 +2023,7 @@ engine = VertxWeb::HandlebarsTemplateEngine.create()
 handler = VertxWeb::TemplateHandler.create(engine)
 
 # This will route all GET requests starting with /dynamic/ to the template handler
-# E.g. /dynamic/graph.hbs will look for a template in /templates/dynamic/graph.hbs
+# E.g. /dynamic/graph.hbs will look for a template in /templates/graph.hbs
 router.get("/dynamic/*").handler(&handler.method(:handle))
 
 # Route all GET requests for resource ending in .hbs to the template handler
@@ -1922,7 +2036,7 @@ router.get_with_regex(".+\\.hbs").handler(&handler.method(:handle))
 === MVEL template engine
 
 To use MVEL, you need to add the following _dependency_ to your project:
-`io.vertx:vertx-web-templ-mvel:3.3.3`. Create an instance of the MVEL template engine using:
+`io.vertx:vertx-web-templ-mvel:3.5.0.Beta1`. Create an instance of the MVEL template engine using:
 `io.vertx.ext.web.templ.MVELTemplateEngine#create()`
 
 When using the MVEL template engine, it will by default look for
@@ -1948,7 +2062,7 @@ MVEL templates.
 === Jade template engine
 
 To use the Jade template engine, you need to add the following _dependency_ to your project:
-`io.vertx:vertx-web-templ-jade:3.3.3`. Create an instance of the Jade template engine using:
+`io.vertx:vertx-web-templ-jade:3.5.0.Beta1`. Create an instance of the Jade template engine using:
 `io.vertx.ext.web.templ.JadeTemplateEngine#create()`.
 
 When using the Jade template engine, it will by default look for
@@ -1974,7 +2088,7 @@ Jade templates.
 === Handlebars template engine
 
 To use Handlebars, you need to add the following _dependency_ to your project:
-`io.vertx:vertx-web-templ-handlebars:3.3.3`. Create an instance of the Handlebars template engine
+`io.vertx:vertx-web-templ-handlebars:3.5.0.Beta1`. Create an instance of the Handlebars template engine
 using: `io.vertx.ext.web.templ.HandlebarsTemplateEngine#create()`.
 
 When using the Handlebars template engine, it will by default look for
@@ -2013,7 +2127,7 @@ handlebars templates.
 === Thymeleaf template engine
 
 To use Thymeleaf, you need to add the following _dependency_ to your project:
-`io.vertx:vertx-web-templ-thymeleaf:3.3.3`. Create an instance of the Thymeleaf template engine
+`io.vertx:vertx-web-templ-thymeleaf:3.5.0.Beta1`. Create an instance of the Thymeleaf template engine
 using: `io.vertx.ext.web.templ.ThymeleafTemplateEngine#create()`.
 
 When using the Thymeleaf template engine, it will by default look for
@@ -2041,7 +2155,7 @@ Thymeleaf templates.
 === Apache FreeMarker template engine
 
 To use Apache FreeMarker, you need to add the following _dependency_ to your project:
-`io.vertx:vertx-web-templ-freemarker:3.3.3`. Create an instance of the Apache FreeMarker template engine
+`io.vertx:vertx-web-templ-freemarker:3.5.0.Beta1`. Create an instance of the Apache FreeMarker template engine
 using: `io.vertx.ext.web.templ.FreeMarkerTemplateEngine#create()`.
 
 When using the Apache FreeMarker template engine, it will by default look for
@@ -2065,6 +2179,41 @@ Here are some examples:
 
 Please consult the http://www.freemarker.org/[Apache FreeMarker documentation] for how to write
 Apache FreeMarker templates.
+
+=== Pebble template engine
+
+To use Pebble, you need to add the following _dependency_ to your project:
+`io.vertx:vertx-web-templ-pebble:3.4.0-SNAPSHOT`. Create an instance of the Pebble template engine
+using: `io.vertx.ext.web.templ.PebbleTemplateEngine#create(vertx)`.
+
+When using the Pebble template engine, it will by default look for
+templates with the `.peb` extension if no extension is specified in the file name.
+
+The routing context `link:../../apidocs/io/vertx/ext/web/RoutingContext.html[RoutingContext]` is available
+in the Pebble template as the `context` variable, this means you can render the template based on anything in the context
+including the request, response, session or context data.
+
+Here are some examples:
+
+----
+[snip]
+<p th:text="{{context.foo}}"></p>
+<p th:text="{{context.bar}}"></p>
+<p th:text="{{context.normalisedPath()}}"></p>
+<p th:text="{{context.request().params().param1}}"></p>
+<p th:text="{{context.request().params().param2}}"></p>
+[snip]
+----
+
+Please consult the http://www.mitchellbosecke.com/pebble/home/[Pebble documentation] for how to write
+Pebble templates.
+
+=== Disabling caching
+
+During development you might want to disable template caching so that the template gets reevaluated on each request.
+In order to do this you need to set the system property: `io.vertx.ext.web.TemplateEngine.disableCache` to `true`.
+
+By default it will be false. So caching is always enabled.
 
 == Error handler
 
@@ -2116,6 +2265,67 @@ This handler sets the header `x-response-time` response header containing the ti
 to when the response headers were written, in ms., e.g.:
 
  x-response-time: 1456ms
+
+== Content type handler
+
+The `ResponseContentTypeHandler` can set the `Content-Type` header automatically.
+Suppose we are building a RESTful web application. We need to set the content type in all our handlers:
+
+[source,ruby]
+----
+router.get("/api/books").produces("application/json").handler() { |rc|
+  find_books() { |ar_err,ar|
+    if (ar_err == nil)
+      rc.response().put_header("Content-Type", "application/json").end(to_json(ar))
+    else
+      rc.fail(ar_err)
+    end
+  }
+}
+
+----
+
+If the API surface becomes pretty large, setting the content type can become cumbersome.
+To avoid this situation, add the `ResponseContentTypeHandler` to the corresponding routes:
+
+[source,ruby]
+----
+require 'vertx-web/response_content_type_handler'
+router.route("/api/*").handler(&VertxWeb::ResponseContentTypeHandler.create().method(:handle))
+router.get("/api/books").produces("application/json").handler() { |rc|
+  find_books() { |ar_err,ar|
+    if (ar_err == nil)
+      rc.response().end(to_json(ar))
+    else
+      rc.fail(ar_err)
+    end
+  }
+}
+
+----
+
+The handler gets the approriate content type from `link:../../yardoc/VertxWeb/RoutingContext.html#get_acceptable_content_type-instance_method[getAcceptableContentType]`.
+As a consequence, you can easily share the same handler to produce data of different types:
+
+[source,ruby]
+----
+require 'vertx-web/response_content_type_handler'
+router.route("/api/*").handler(&VertxWeb::ResponseContentTypeHandler.create().method(:handle))
+router.get("/api/books").produces("text/xml").produces("application/json").handler() { |rc|
+  find_books() { |ar_err,ar|
+    if (ar_err == nil)
+      if (rc.get_acceptable_content_type().==("text/xml"))
+        rc.response().end(to_xml(ar))
+      else
+        rc.response().end(to_json(ar))
+      end
+    else
+      rc.fail(ar_err)
+    end
+  }
+}
+
+----
 
 == SockJS
 
@@ -2289,6 +2499,7 @@ router.route("/eventbus/*").handler(&sockJSHandler.method(:handle))
 In client side JavaScript you use the 'vertx-eventbus.js` library to create connections to the event bus and to send
 and receive messages:
 
+[source,html]
 ----
 <script src="http://cdn.jsdelivr.net/sockjs/0.3.4/sockjs.min.js"></script>
 <script src='vertx-eventbus.js'></script>
@@ -2314,12 +2525,30 @@ eb.onopen = function() {
 
 The first thing the example does is to create a instance of the event bus
 
- var eb = new EventBus('http://localhost:8080/eventbus');
+[source,javascript]
+----
+var eb = new EventBus('http://localhost:8080/eventbus');
+----
 
 The parameter to the constructor is the URI where to connect to the event bus. Since we create our bridge with
 the prefix `eventbus` we will connect there.
 
 You can't actually do anything with the connection until it is opened. When it is open the `onopen` handler will be called.
+
+IMPORTANT: Neither SockJS nor the EventBus bridge support automatic reconnection.
+
+When your server goes down, you must create another EventBus instance.
+
+[source,javascript]
+----
+function setupEventBus() {
+  var eb = new EventBus();
+  eb.onclose = function (e) {
+    setTimeout(setupEventBus, 1000); // Give the server some time to come back
+  };
+  // Handlers setup here...
+}
+----
 
 You can retrieve the client library using a dependency manager:
 
@@ -2330,7 +2559,7 @@ You can retrieve the client library using a dependency manager:
 <dependency>
   <groupId>io.vertx</groupId>
   <artifactId>vertx-web</artifactId>
-  <version>3.3.3</version>
+  <version>3.5.0.Beta1</version>
   <classifier>client</classifier>
   <type>js</type>
 </dependency>
@@ -2340,11 +2569,14 @@ You can retrieve the client library using a dependency manager:
 
 [source,groovy,subs="+attributes"]
 ----
-compile 'io.vertx:vertx-web:3.3.3:client'
+compile 'io.vertx:vertx-web:3.5.0.Beta1:client'
 ----
 
-The library is also available on https://www.npmjs.com/package/vertx3-eventbus-client[NPM] and on
-https://github.com/vert-x3/vertx-bus-bower[Bower]
+The library is also available on:
+
+* https://www.npmjs.com/package/vertx3-eventbus-client[NPM]
+* https://github.com/vert-x3/vertx-bus-bower[Bower]
+* https://cdnjs.com/libraries/vertx[cdnjs]
 
 Notice that the API has changed between the 3.0.0 and 3.1.0 version. Please check the changelog. The previous client
 is still compatible and can still be used, but the new client offers more feature and is closer to the vert.x
@@ -2375,11 +2607,11 @@ You can specify which _matches_ you want to allow for inbound and outbound traff
 
 Each match is a `link:../dataobjects.html#PermittedOptions[PermittedOptions]` object:
 
-`link:../dataobjects.html#PermittedOptions#set_address-instance_method[address]`:: This represents the exact address the message is being sent to. If you want to allow messages based on
+`link:../../vertx-bridge-common/dataobjects.html#PermittedOptions#set_address-instance_method[address]`:: This represents the exact address the message is being sent to. If you want to allow messages based on
 an exact address you use this field.
-`link:../dataobjects.html#PermittedOptions#set_address_regex-instance_method[addressRegex]`:: This is a regular expression that will be matched against the address. If you want to allow messages
+`link:../../vertx-bridge-common/dataobjects.html#PermittedOptions#set_address_regex-instance_method[addressRegex]`:: This is a regular expression that will be matched against the address. If you want to allow messages
 based on a regular expression you use this field. If the `address` field is specified this field will be ignored.
-`link:../dataobjects.html#PermittedOptions#set_match-instance_method[match]`:: This allows you to allow messages based on their structure. Any fields in the match must exist in the
+`link:../../vertx-bridge-common/dataobjects.html#PermittedOptions#set_match-instance_method[match]`:: This allows you to allow messages based on their structure. Any fields in the match must exist in the
 message with the same values for them to be allowed. This currently only works with JSON messages.
 
 If a message is _in-bound_ (i.e. being sent from client side JavaScript to the server) when it is received Vert.x-Web
@@ -2474,7 +2706,7 @@ To do this, you can add extra fields to the match described in the previous sect
 required for the match.
 
 To declare that a specific authority for the logged-in user is required in order to access allow the messages you use the
-`link:../dataobjects.html#PermittedOptions#set_required_authority-instance_method[requiredAuthority]` field.
+`link:../../vertx-bridge-common/dataobjects.html#PermittedOptions#set_required_authority-instance_method[requiredAuthority]` field.
 
 Here's an example:
 
@@ -2553,6 +2785,8 @@ Whenever an event occurs on the bridge it will be passed to the handler. The eve
 The event can be one of the following types:
 
 SOCKET_CREATED:: This event will occur when a new SockJS socket is created.
+SOCKET_IDLE:: This event will occur when SockJS socket is on idle for longer period of time than initially configured.
+SOCKET_PING:: This event will occur when the last ping timestamp is updated for the SockJS socket.
 SOCKET_CLOSED:: This event will occur when a SockJS socket is closed.
 SEND:: This event will occur when a message is attempted to be sent from the client to the server.
 PUBLISH:: This event will occur when a message is attempted to be published from the client to the server.
@@ -2560,8 +2794,8 @@ RECEIVE:: This event will occur when a message is attempted to be delivered from
 REGISTER:: This event will occur when a client attempts to register a handler.
 UNREGISTER:: This event will occur when a client attempts to unregister a handler.
 
-The event enables you to retrieve the type using `link:../../yardoc/VertxWeb/BridgeEvent.html#type-instance_method[type]` and
-inspect the raw message of the event using `link:../../yardoc/VertxWeb/BridgeEvent.html#get_raw_message-instance_method[getRawMessage]`.
+The event enables you to retrieve the type using `link:../../yardoc/VertxBridgeCommon/BaseBridgeEvent.html#type-instance_method[type]` and
+inspect the raw message of the event using `link:../../yardoc/VertxBridgeCommon/BaseBridgeEvent.html#get_raw_message-instance_method[getRawMessage]`.
 
 The raw message is a JSON object with the following structure:
 
@@ -2612,11 +2846,78 @@ sockJSHandler.bridge(options) { |be|
   be.complete(true)
 }
 
-router.route("/eventbus").handler(&sockJSHandler.method(:handle))
+router.route("/eventbus/*").handler(&sockJSHandler.method(:handle))
 
 
 
 ----
+
+Here's an example how to configure and handle SOCKET_IDLE bridge event type.
+Notice `setPingTimeout(5000)` which says that if ping message doesn't arrive from client within 5 seconds
+then the SOCKET_IDLE bridge event would be triggered.
+
+[source,ruby]
+----
+require 'vertx-web/router'
+require 'vertx-web/sock_js_handler'
+router = VertxWeb::Router.router(vertx)
+
+# Initialize SockJS handler
+sockJSHandler = VertxWeb::SockJSHandler.create(vertx)
+options = {
+  'inboundPermitteds' => [
+    inboundPermitted
+  ],
+  'pingTimeout' => 5000
+}
+
+sockJSHandler.bridge(options) { |be|
+  if (be.type() == :SOCKET_IDLE)
+    # Do some custom handling...
+  end
+
+  be.complete(true)
+}
+
+router.route("/eventbus/*").handler(&sockJSHandler.method(:handle))
+
+----
+
+In client side JavaScript you use the 'vertx-eventbus.js` library to create connections to the event bus and to send and receive messages:
+
+[source,html]
+----
+<script src="http://cdn.jsdelivr.net/sockjs/0.3.4/sockjs.min.js"></script>
+<script src='vertx-eventbus.js'></script>
+
+<script>
+
+var eb = new EventBus('http://localhost:8080/eventbus', {"vertxbus_ping_interval": 300000}); // sends ping every 5 minutes.
+
+eb.onopen = function() {
+
+ // set a handler to receive a message
+ eb.registerHandler('some-address', function(error, message) {
+   console.log('received a message: ' + JSON.stringify(message));
+ });
+
+ // send a message
+ eb.send('some-address', {name: 'tim', age: 587});
+}
+
+</script>
+----
+
+The first thing the example does is to create a instance of the event bus
+
+[source,javascript]
+----
+var eb = new EventBus('http://localhost:8080/eventbus', {"vertxbus_ping_interval": 300000});
+----
+
+The 2nd parameter to the constructor tells the sockjs library to send ping message every 5 minutes. since the server
+was configured to expect ping every 5 seconds -> `SOCKET_IDLE` would be triggered on the server.
+
 
 You can also amend the raw message, e.g. change the body. For messages that are flowing in from the client you can
 also add headers to the message, here's an example:
@@ -2654,7 +2955,7 @@ sockJSHandler.bridge(options) { |be|
   be.complete(true)
 }
 
-router.route("/eventbus").handler(&sockJSHandler.method(:handle))
+router.route("/eventbus/*").handler(&sockJSHandler.method(:handle))
 
 
 
@@ -2722,23 +3023,18 @@ authCode flow. An example of using it to protect some resource and authenticate 
 
 [source,ruby]
 ----
-require 'vertx-auth-oauth2/o_auth2_auth'
+require 'vertx-auth-oauth2/github_auth'
 require 'vertx-web/o_auth2_auth_handler'
 
 # create an OAuth2 provider, clientID and clientSecret should be requested to github
-authProvider = VertxAuthOauth2::OAuth2Auth.create(vertx, :AUTH_CODE, {
-  'clientID' => "CLIENT_ID",
-  'clientSecret' => "CLIENT_SECRET",
-  'site' => "https://github.com/login",
-  'tokenPath' => "/oauth/access_token",
-  'authorizationPath' => "/oauth/authorize"
-})
+authProvider = VertxAuthOauth2::GithubAuth.create(vertx, "CLIENT_ID", "CLIENT_SECRET")
 
-# create a oauth2 handler on our domain: "http://localhost:8080"
-oauth2 = VertxWeb::OAuth2AuthHandler.create(authProvider, "http://localhost:8080")
+# create a oauth2 handler on our running server
+# the second argument is the full url to the callback as you entered in your provider management console.
+oauth2 = VertxWeb::OAuth2AuthHandler.create(authProvider, "https://myserver.com/callback")
 
 # setup the callback handler for receiving the GitHub callback
-oauth2.setup_callback(router.get("/callback"))
+oauth2.setup_callback(router.route())
 
 # protect everything under /protected
 router.route("/protected/*").handler(&oauth2.method(:handle))
@@ -2763,8 +3059,28 @@ A rule of thumb is once a valid callback is executed issue a client side redirec
 redirect should also create a session cookie (or other session mechanism) so the user is not required to authenticate
 for every request.
 
-Due to the nature of OAuth2 spec there are slight changes required in order to use other OAuth2 providers, for
-example, if you are planning to use Google Auth you implement it as:
+Due to the nature of OAuth2 spec there are slight changes required in order to use other OAuth2 providers but
+vertx-auth provides you with many out of the box implementations:
+
+
+* Azure Active Directory `link:../../yardoc/VertxAuthOauth2/AzureADAuth.html[AzureADAuth]`
+* Box.com `link:../../yardoc/VertxAuthOauth2/BoxAuth.html[BoxAuth]`
+* Dropbox `link:../../yardoc/VertxAuthOauth2/DropboxAuth.html[DropboxAuth]`
+* Facebook `link:../../yardoc/VertxAuthOauth2/FacebookAuth.html[FacebookAuth]`
+* Foursquare `link:../../yardoc/VertxAuthOauth2/FoursquareAuth.html[FoursquareAuth]`
+* Github `link:../../yardoc/VertxAuthOauth2/GithubAuth.html[GithubAuth]`
+* Google `link:../../yardoc/VertxAuthOauth2/GoogleAuth.html[GoogleAuth]`
+* Instagram `link:../../yardoc/VertxAuthOauth2/InstagramAuth.html[InstagramAuth]`
+* Keycloak `link:../../yardoc/VertxAuthOauth2/KeycloakAuth.html[KeycloakAuth]`
+* LinkedIn `link:../../yardoc/VertxAuthOauth2/LinkedInAuth.html[LinkedInAuth]`
+* Mailchimp `link:../../yardoc/VertxAuthOauth2/MailchimpAuth.html[MailchimpAuth]`
+* Salesforce `link:../../yardoc/VertxAuthOauth2/SalesforceAuth.html[SalesforceAuth]`
+* Shopify `link:../../yardoc/VertxAuthOauth2/ShopifyAuth.html[ShopifyAuth]`
+* Soundcloud `link:../../yardoc/VertxAuthOauth2/SoundcloudAuth.html[SoundcloudAuth]`
+* Stripe `link:../../yardoc/VertxAuthOauth2/StripeAuth.html[StripeAuth]`
+* Twitter `link:../../yardoc/VertxAuthOauth2/TwitterAuth.html[TwitterAuth]`
+
+However if you're using an unlisted provider you can still do it using the base API like this:
 
 [source,ruby]
 ----
@@ -2803,98 +3119,40 @@ router.get("/").handler() { |ctx|
 
 ----
 
-The changes are only on the configuration, note that the token uri must now be a full URL since it is generated from
-a different server than the authorization one.
+You will need to provide all the details of your provider manually but the end result is the same.
 
-Important to note that for google OAuth you must register all your callback URLs in the developer console, so for the
-current example you would need to register `http://localhost:8080/callback?redirect_uri=/protected/somepage`.
+The handler will pin your application the the configured callback url. The usage is simple as providing the handler
+a route instance and all setup will be done for you. In a typical use case your provider will ask you what is the
+callback url to your application, your then enter a url like: `https://myserver.com/callback`. This is the second
+argument to the handler now you just need to set it up. To make it easier to the end user all you need to do is call
+the setupCallback method.
 
-If you're looking to integrate with LinkedIn then your config should be:
-
-[source,ruby]
-----
-require 'vertx-auth-oauth2/o_auth2_auth'
-require 'vertx-web/o_auth2_auth_handler'
-
-# create an OAuth2 provider, clientID and clientSecret should be requested to LinkedIn
-authProvider = VertxAuthOauth2::OAuth2Auth.create(vertx, :AUTH_CODE, {
-  'clientID' => "CLIENT_ID",
-  'clientSecret' => "CLIENT_SECRET",
-  'site' => "https://www.linkedin.com",
-  'authorizationPath' => "/uas/oauth2/authorization",
-  'tokenPath' => "/uas/oauth2/accessToken"
-})
-
-# create a oauth2 handler on our domain: "http://localhost:8080"
-oauth2 = VertxWeb::OAuth2AuthHandler.create(authProvider, "http://localhost:8080")
-
-# these are the scopes
-oauth2.add_authority("r_basicprofile")
-
-# setup the callback handler for receiving the LinkedIn callback
-oauth2.setup_callback(router.get("/callback"))
-
-# protect everything under /protected
-router.route("/protected/*").handler(&oauth2.method(:handle))
-# mount some handler under the protected zone
-router.route("/protected/somepage").handler() { |rc|
-  rc.response().end("Welcome to the protected resource!")
-}
-
-# welcome page
-router.get("/").handler() { |ctx|
-  ctx.response().put_header("content-type", "text/html").end("Hello<br><a href=\"/protected/somepage\">Protected by LinkedIn</a>")
-}
-
-----
-
-As it can be seen from the examples all you need to know is 2 urls, the authorization path and the token path. You
-will find all these configurations on your provider documentation we have also listed on the auth project examples
-for:
-
-* google
-* twitter
-* github
-* linkedin
-* facebook
-* keycloak
-
-For keycloak we have a slighter easier setup, just export the json file from the keycloak admin console and load it
-into the handler. Keycloak has some differences from the other providers in the sense that it can also use the token
-to specify grants. You can validate against these grants like this:
+This is how you pin your handler to the server `https://myserver.com:8447/callback`. Note that the port number is not
+mandatory for the default values, 80 for http, 443 for https.
 
 [source,ruby]
 ----
-require 'vertx-auth-oauth2/o_auth2_auth'
 require 'vertx-web/o_auth2_auth_handler'
-# create an OAuth2 provider for keycloak
-authProvider = VertxAuthOauth2::OAuth2Auth.create_keycloak(vertx, :AUTH_CODE, {
-})
-
-# create a oauth2 handler on our domain: "http://localhost:8000"
-oauth2 = VertxWeb::OAuth2AuthHandler.create(authProvider, "http://localhost:8000")
-
-# setup the callback handler for receiving the keycloak callback
-oauth2.setup_callback(router.get("/callback"))
-
-# protect everything under /protected
-router.route("/protected/*").handler(&oauth2.method(:handle))
-
-# mount some handler under the protected zone
-router.route("/protected/somepage").handler() { |rc|
-  # you can now do authZ based on keycloak grants
-  rc.user().is_authorised("account:manage-account") { |manageAccount_err,manageAccount|
-    if (manageAccount)
-      rc.response().end("Welcome to the protected resource and you can manage your account!")
-    else
-      rc.response().end("Welcome to the protected resource but you cannot manage your account!")
-    end
-  }
-}
-
-# welcome page
-router.get("/").handler() { |ctx|
-  ctx.response().put_header("content-type", "text/html").end("Hello<br><a href=\"/protected/somepage\">Protected by keycloak</a>")
-}
+# create a oauth2 handler pinned to myserver.com: "https://myserver.com:8447/callback"
+oauth2 = VertxWeb::OAuth2AuthHandler.create(provider, "https://myserver.com:8447/callback")
+# now allow the handler to setup the callback url for you
+oauth2.setup_callback(router.route())
 
 ----
+
+In the example the route object is created inline by `Router.route()` however if you want to have full control of the
+order the handler is called (for example you want it to be called as soon as possible in the chain) you can always
+create the route object before and pass it as a reference to this method.
+
+Mixing OAuth2 and JWT
+
+Some providers use JWT tokens as access tokens, this is a feature of https://tools.ietf.org/html/rfc6750[RFC6750]
+and can be quite useful when one wants to mix client based authentication and API authorization. For example say that
+you have a application that provides some protected HTML documents but you also want it to be available for API's to
+consume. In this case an API cannot easily perform the redirect handshake required by OAuth2 but can use a Token
+provided before hand.
+
+This is handled automatically by the handler as long as the provider is configured to support JWTs.
+
+In real life this means that your API's can access your protected resources using the header `Authorization` with the
+value `Bearer BASE64_ACCESS_TOKEN`.

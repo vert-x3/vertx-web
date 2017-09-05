@@ -50,6 +50,7 @@
  * ** MVEL
  * ** Thymeleaf
  * ** Apache FreeMarker
+ * ** Pebble
  * * Response time handler
  * * Static file serving, including caching logic and directory listing.
  * * Request timeout support
@@ -535,6 +536,18 @@
  * {@link examples.WebExamples#example55b}
  * ----
  *
+ * It should be clear that reroute works on `paths`, so if you need to preserve and or add state across reroutes, one
+ * should use the `RoutingContext` object. For example you want to reroute to a new path with a extra parameter:
+ *
+ * [source,$lang]
+ * ----
+ * {@link examples.WebExamples#example55c}
+ * ----
+ *
+ * Even though the wrong reroute path will warn you that the query string is ignored, the reroute will happen since the
+ * implementation will strip any query string or html fragment from the path.
+ *
+ *
  * == Sub-routers
  *
  * Sometimes if you have a lot of handlers it can make sense to split them up into multiple routers. This is also useful
@@ -756,9 +769,9 @@
  * By default this PRNG uses a mixed mode, blocking for seeding, non blocking for generating. The PRNG will also reseed
  * every 5 minutes with 64bits of new entropy. However this can all be configured using the system properties:
  *
- * * io.vertx.ext.web.session.algorithm e.g.: SHA1PRNG
- * * io.vertx.ext.web.session.seed.interval e.g.: 1000 (every second)
- * * io.vertx.ext.web.session.seed.bits e.g.: 128
+ * * io.vertx.ext.auth.prng.algorithm e.g.: SHA1PRNG
+ * * io.vertx.ext.auth.prng.seed.interval e.g.: 1000 (every second)
+ * * io.vertx.ext.auth.prng.seed.bits e.g.: 128
  *
  * Most users should not need to configure these values unless if you notice that the performance of your application is
  * being affected by the PRNG algorithm.
@@ -1005,6 +1018,46 @@
  * {@link examples.WebExamples#example40}
  * ----
  *
+ * === Chaining multiple auth handlers
+ *
+ * There are times when you want to support multiple authN/authZ mechanisms in a single application. For this you can
+ * use the {@link io.vertx.ext.web.handler.ChainAuthHandler}. The chain auth handler will attempt to perform
+ * authentication on a chain of handlers. The chain works both for AuthN and AuthZ, so if the authentication is valid
+ * at a given handler of the chain, then that same handler will be used to perform authorization (if requested).
+ *
+ * It is important to know that some handlers require specific providers, for example:
+ *
+ * * The {@link io.vertx.ext.web.handler.JWTAuthHandler} requires {@link io.vertx.ext.auth.jwt.JWTAuth}.
+ * * The {@link io.vertx.ext.web.handler.DigestAuthHandler} requires {@link io.vertx.ext.auth.htdigest.HtdigestAuth}.
+ * * The {@link io.vertx.ext.web.handler.OAuth2AuthHandler} requires {@link io.vertx.ext.auth.oauth2.OAuth2Auth}.
+ *
+ * So it is not expected that the providers will be shared across all handlers. There are cases where one can share the
+ * provider across handlers, for example:
+ *
+ * * The {@link io.vertx.ext.web.handler.BasicAuthHandler} can take any provider.
+ * * The {@link io.vertx.ext.web.handler.RedirectAuthHandler} can take any provider.
+ *
+ * So say that you want to create an application that accepts both `HTTP Basic Authentication` and `Form Redirect`. You
+ * would start configuring your chain as:
+ *
+ * [source,$lang]
+ * ----
+ * {@link examples.WebExamples#example63}
+ * ----
+ *
+ * So when a user makes a request without a `Authorization` header, this means that the chain will fail to authenticate
+ * with the basic auth handler and will attempt to authenticate with the redirect handler. Since the redirect handler
+ * always redirects you will be sent to the login form that you configured in that handler.
+ *
+ * Like the normal routing in vertx-web, auth chaning is a sequence, so if you would prefer to fallback to your browser
+ * asking for the user credentials using HTTP Basic authentication instead of the redirect all you need to to is reverse
+ * the order of appending to the chain.
+ *
+ * Now assume that you make a request where you provide the header `Authorization` with the value `Basic [token]`. In
+ * this case the basic auth handler will attempt to authenticate and if it is sucessful the chain will stop and
+ * vertx-web will continue to process your handlers. If the token is not valid, for example bad username/password, then
+ * the chain will continue to the following entry. In this specific case the redirect auth handler.
+ *
  * == Serving static resources
  *
  * Vert.x-Web comes with an out of the box handler for serving static web resources so you can write static web servers
@@ -1024,9 +1077,9 @@
  * ----
  *
  * For example, if there was a request with path `/static/css/mystyles.css` the static serve will look for a file in the
- * directory `webroot/static/css/mystyle.css`.
+ * directory `webroot/css/mystyle.css`.
  *
- * It will also look for a file on the classpath called `webroot/static/css/mystyle.css`. This means you can package up all your
+ * It will also look for a file on the classpath called `webroot/css/mystyle.css`. This means you can package up all your
  * static resources into a jar file (or fatjar) and distribute them like that.
  *
  * When Vert.x finds a resource on the classpath for the first time it extracts it and caches it in a temporary directory
@@ -1103,8 +1156,9 @@
  * In development this can cause a problem, as if you update your static content while the server is running, the
  * cached file will be served not the updated file.
  *
- * To disable file caching you can provide the system property `vertx.disableFileCaching` with the value `true`. E.g. you
- * could set up a run configuration in your IDE to set this when runnning your main class.
+ * To disable file caching you can provide your vert.x options the property `fileResolverCachingEnabled` to true. For
+ * backwards compatibility it will also default that value to the system property `vertx.disableFileCaching`. E.g. you
+ * could set up a run configuration in your IDE to set this when running your main class.
  *
  *
  * == CORS handling
@@ -1159,7 +1213,7 @@
  * TemplateHandler handler = TemplateHandler.create(engine);
  *
  * // This will route all GET requests starting with /dynamic/ to the template handler
- * // E.g. /dynamic/graph.hbs will look for a template in /templates/dynamic/graph.hbs
+ * // E.g. /dynamic/graph.hbs will look for a template in /templates/graph.hbs
  * router.get("/dynamic/*").handler(handler);
  *
  * // Route all GET requests for resource ending in .hbs to the template handler
@@ -1178,7 +1232,7 @@
  * def handler = TemplateHandler.create(engine)
  *
  * // This will route all GET requests starting with /dynamic/ to the template handler
- * // E.g. /dynamic/graph.hbs will look for a template in /templates/dynamic/graph.hbs
+ * // E.g. /dynamic/graph.hbs will look for a template in /templates/graph.hbs
  * router.get("/dynamic/*").handler(handler)
  *
  * // Route all GET requests for resource ending in .hbs to the template handler
@@ -1197,7 +1251,7 @@
  * handler = VertxWeb::TemplateHandler.create(engine)
  *
  * # This will route all GET requests starting with /dynamic/ to the template handler
- * # E.g. /dynamic/graph.hbs will look for a template in /templates/dynamic/graph.hbs
+ * # E.g. /dynamic/graph.hbs will look for a template in /templates/graph.hbs
  * router.get("/dynamic/*").handler(&handler.method(:handle))
  *
  * # Route all GET requests for resource ending in .hbs to the template handler
@@ -1216,7 +1270,7 @@
  * var handler = TemplateHandler.create(engine);
  *
  * // This will route all GET requests starting with /dynamic/ to the template handler
- * // E.g. /dynamic/graph.hbs will look for a template in /templates/dynamic/graph.hbs
+ * // E.g. /dynamic/graph.hbs will look for a template in /templates/graph.hbs
  * router.get("/dynamic/*").handler(handler.handle);
  *
  * // Route all GET requests for resource ending in .hbs to the template handler
@@ -1357,6 +1411,41 @@
  * Please consult the http://www.freemarker.org/[Apache FreeMarker documentation] for how to write
  * Apache FreeMarker templates.
  *
+ * === Pebble template engine
+ *
+ * To use Pebble, you need to add the following _dependency_ to your project:
+ * `io.vertx:vertx-web-templ-pebble:3.4.0-SNAPSHOT`. Create an instance of the Pebble template engine
+ * using: `io.vertx.ext.web.templ.PebbleTemplateEngine#create(vertx)`.
+ *
+ * When using the Pebble template engine, it will by default look for
+ * templates with the `.peb` extension if no extension is specified in the file name.
+ *
+ * The routing context `link:../../apidocs/io/vertx/ext/web/RoutingContext.html[RoutingContext]` is available
+ * in the Pebble template as the `context` variable, this means you can render the template based on anything in the context
+ * including the request, response, session or context data.
+ *
+ * Here are some examples:
+ *
+ * ----
+ * [snip]
+ * <p th:text="{{context.foo}}"></p>
+ * <p th:text="{{context.bar}}"></p>
+ * <p th:text="{{context.normalisedPath()}}"></p>
+ * <p th:text="{{context.request().params().param1}}"></p>
+ * <p th:text="{{context.request().params().param2}}"></p>
+ * [snip]
+ * ----
+ *
+ * Please consult the http://www.mitchellbosecke.com/pebble/home/[Pebble documentation] for how to write
+ * Pebble templates.
+ *
+ * === Disabling caching
+ *
+ * During development you might want to disable template caching so that the template gets reevaluated on each request.
+ * In order to do this you need to set the system property: `io.vertx.ext.web.TemplateEngine.disableCache` to `true`.
+ *
+ * By default it will be false. So caching is always enabled.
+ *
  * == Error handler
  *
  * You can render your own errors using a template handler or otherwise but Vert.x-Web also includes an out of the boxy
@@ -1403,6 +1492,32 @@
  * to when the response headers were written, in ms., e.g.:
  *
  *  x-response-time: 1456ms
+ *
+ * == Content type handler
+ *
+ * The `ResponseContentTypeHandler` can set the `Content-Type` header automatically.
+ * Suppose we are building a RESTful web application. We need to set the content type in all our handlers:
+ *
+ * [source,$lang]
+ * ----
+ * {@link examples.WebExamples#manualContentType(io.vertx.ext.web.Router)}
+ * ----
+ *
+ * If the API surface becomes pretty large, setting the content type can become cumbersome.
+ * To avoid this situation, add the `ResponseContentTypeHandler` to the corresponding routes:
+ *
+ * [source,$lang]
+ * ----
+ * {@link examples.WebExamples#contentTypeHandler(io.vertx.ext.web.Router)}
+ * ----
+ *
+ * The handler gets the approriate content type from {@link io.vertx.ext.web.RoutingContext#getAcceptableContentType()}.
+ * As a consequence, you can easily share the same handler to produce data of different types:
+ *
+ * [source,$lang]
+ * ----
+ * {@link examples.WebExamples#mostAcceptableContentTypeHandler(io.vertx.ext.web.Router)}
+ * ----
  *
  * == SockJS
  *
@@ -1535,6 +1650,7 @@
  * In client side JavaScript you use the 'vertx-eventbus.js` library to create connections to the event bus and to send
  * and receive messages:
  *
+ * [source,html]
  * ----
  * <script src="http://cdn.jsdelivr.net/sockjs/0.3.4/sockjs.min.js"></script>
  * <script src='vertx-eventbus.js'></script>
@@ -1560,12 +1676,30 @@
  *
  * The first thing the example does is to create a instance of the event bus
  *
- *  var eb = new EventBus('http://localhost:8080/eventbus');
+ * [source,javascript]
+ * ----
+ * var eb = new EventBus('http://localhost:8080/eventbus');
+ * ----
  *
  * The parameter to the constructor is the URI where to connect to the event bus. Since we create our bridge with
  * the prefix `eventbus` we will connect there.
  *
  * You can't actually do anything with the connection until it is opened. When it is open the `onopen` handler will be called.
+ *
+ * IMPORTANT: Neither SockJS nor the EventBus bridge support automatic reconnection.
+ *
+ * When your server goes down, you must create another EventBus instance.
+ *
+ * [source,javascript]
+ * ----
+ * function setupEventBus() {
+ *   var eb = new EventBus();
+ *   eb.onclose = function (e) {
+ *     setTimeout(setupEventBus, 1000); // Give the server some time to come back
+ *   };
+ *   // Handlers setup here...
+ * }
+ * ----
  *
  * You can retrieve the client library using a dependency manager:
  *
@@ -1589,13 +1723,16 @@
  * compile '${maven.groupId}:${maven.artifactId}:${maven.version}:client'
  * ----
  *
- * The library is also available on https://www.npmjs.com/package/vertx3-eventbus-client[NPM] and on
- * https://github.com/vert-x3/vertx-bus-bower[Bower]
+ * The library is also available on:
+ *
+ * * https://www.npmjs.com/package/vertx3-eventbus-client[NPM]
+ * * https://github.com/vert-x3/vertx-bus-bower[Bower]
+ * * https://cdnjs.com/libraries/vertx[cdnjs]
  *
  * Notice that the API has changed between the 3.0.0 and 3.1.0 version. Please check the changelog. The previous client
  * is still compatible and can still be used, but the new client offers more feature and is closer to the vert.x
  * event bus API.
-  *
+ *
  * === Securing the Bridge
  *
  * If you started a bridge like in the above example without securing it, and attempted to send messages through
@@ -1691,6 +1828,7 @@
  *
  * SOCKET_CREATED:: This event will occur when a new SockJS socket is created.
  * SOCKET_IDLE:: This event will occur when SockJS socket is on idle for longer period of time than initially configured.
+ * SOCKET_PING:: This event will occur when the last ping timestamp is updated for the SockJS socket.
  * SOCKET_CLOSED:: This event will occur when a SockJS socket is closed.
  * SEND:: This event will occur when a message is attempted to be sent from the client to the server.
  * PUBLISH:: This event will occur when a message is attempted to be published from the client to the server.
@@ -1724,55 +1862,44 @@
  * ----
  * {@link examples.WebExamples#example49}
  * ----
- * 
- * Here’s an example how to configure and handle SOCKET_IDLE bridge event type. 
- * Notice `setPingTimeout(5000)` which says that if ping message doesn't arrive from client within 5 seconds 
+ *
+ * Here's an example how to configure and handle SOCKET_IDLE bridge event type.
+ * Notice `setPingTimeout(5000)` which says that if ping message doesn't arrive from client within 5 seconds
  * then the SOCKET_IDLE bridge event would be triggered.
- * 
- * ----
- * // Initialize SockJS handler
- * Router router = Router.router(vertx);
  *
- * SockJSHandler sockJSHandler = SockJSHandler.create(vertx);
- * BridgeOptions options = new BridgeOptions().addInboundPermitted(inboundPermitted).setPingTimeout(5000);
- *
- * sockJSHandler.bridge(options, be -> {
- * 	if (be.type() == BridgeEventType.SOCKET_IDLE) {
- *	    // Do some custom handling...
- *	}
- *	
- *  be.complete(true);
- * });
- *	
- * router.route("/eventbus").handler(sockJSHandler);
+ * [source,$lang]
  * ----
- *	
+ * {@link examples.WebExamples#handleSocketIdle}
+ * ----
+ *
  * In client side JavaScript you use the 'vertx-eventbus.js` library to create connections to the event bus and to send and receive messages:
  *
+ * [source,html]
  * ----
  * <script src="http://cdn.jsdelivr.net/sockjs/0.3.4/sockjs.min.js"></script>
  * <script src='vertx-eventbus.js'></script>
  *
  * <script>
- *	
+ *
  * var eb = new EventBus('http://localhost:8080/eventbus', {"vertxbus_ping_interval": 300000}); // sends ping every 5 minutes.
- *	
+ *
  * eb.onopen = function() {
- *	
+ *
  *  // set a handler to receive a message
  *  eb.registerHandler('some-address', function(error, message) {
  *    console.log('received a message: ' + JSON.stringify(message));
  *  });
- *	
+ *
  *  // send a message
  *  eb.send('some-address', {name: 'tim', age: 587});
  * }
- *	
+ *
  * </script>
  * ----
  *
  * The first thing the example does is to create a instance of the event bus
  *
+ * [source,javascript]
  * ----
  * var eb = new EventBus('http://localhost:8080/eventbus', {"vertxbus_ping_interval": 300000});
  * ----
@@ -1855,7 +1982,6 @@
  * vertx-auth provides you with many out of the box implementations:
  *
  *
- * * App.net {@link io.vertx.ext.auth.oauth2.providers.AppNetAuth}
  * * Azure Active Directory {@link io.vertx.ext.auth.oauth2.providers.AzureADAuth}
  * * Box.com {@link io.vertx.ext.auth.oauth2.providers.BoxAuth}
  * * Dropbox {@link io.vertx.ext.auth.oauth2.providers.DropboxAuth}

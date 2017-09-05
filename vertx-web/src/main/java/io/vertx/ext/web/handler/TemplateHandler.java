@@ -15,6 +15,7 @@
  */
 package io.vertx.ext.web.handler;
 
+import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
 import io.vertx.ext.web.handler.impl.TemplateHandlerImpl;
@@ -40,6 +41,21 @@ public interface TemplateHandler extends Handler<RoutingContext> {
    * The default content type header to be used in the response
    */
   String DEFAULT_CONTENT_TYPE = "text/html";
+
+  /**
+   * The default index page
+   */
+  String DEFAULT_INDEX_TEMPLATE = "index";
+
+
+  /**
+   * Set the index template
+   *
+   * @param indexTemplate the index template
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  TemplateHandler setIndexTemplate(String indexTemplate);
 
   /**
    * Create a handler

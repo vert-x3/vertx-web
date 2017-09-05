@@ -22,7 +22,7 @@ var RoutingContext = require('vertx-web-js/routing_context');
 
 var io = Packages.io;
 var JsonObject = io.vertx.core.json.JsonObject;
-var JFreeMarkerTemplateEngine = io.vertx.ext.web.templ.FreeMarkerTemplateEngine;
+var JFreeMarkerTemplateEngine = Java.type('io.vertx.ext.web.templ.FreeMarkerTemplateEngine');
 
 /**
  A template engine that uses the FreeMarker library.
@@ -47,7 +47,7 @@ var FreeMarkerTemplateEngine = function(j_val) {
     if (__args.length === 3 && typeof __args[0] === 'object' && __args[0]._jdel && typeof __args[1] === 'string' && typeof __args[2] === 'function') {
       j_freeMarkerTemplateEngine["render(io.vertx.ext.web.RoutingContext,java.lang.String,io.vertx.core.Handler)"](arg0._jdel, arg1, function(ar) {
       if (ar.succeeded()) {
-        arg2(utils.convReturnVertxGen(ar.result(), Buffer), null);
+        arg2(utils.convReturnVertxGen(Buffer, ar.result()), null);
       } else {
         arg2(null, ar.cause());
       }
@@ -65,7 +65,7 @@ var FreeMarkerTemplateEngine = function(j_val) {
   this.setExtension = function(extension) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] === 'string') {
-      return utils.convReturnVertxGen(j_freeMarkerTemplateEngine["setExtension(java.lang.String)"](extension), FreeMarkerTemplateEngine);
+      return utils.convReturnVertxGen(FreeMarkerTemplateEngine, j_freeMarkerTemplateEngine["setExtension(java.lang.String)"](extension));
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -79,7 +79,7 @@ var FreeMarkerTemplateEngine = function(j_val) {
   this.setMaxCacheSize = function(maxCacheSize) {
     var __args = arguments;
     if (__args.length === 1 && typeof __args[0] ==='number') {
-      return utils.convReturnVertxGen(j_freeMarkerTemplateEngine["setMaxCacheSize(int)"](maxCacheSize), FreeMarkerTemplateEngine);
+      return utils.convReturnVertxGen(FreeMarkerTemplateEngine, j_freeMarkerTemplateEngine["setMaxCacheSize(int)"](maxCacheSize));
     } else throw new TypeError('function invoked with invalid arguments');
   };
 
@@ -89,6 +89,25 @@ var FreeMarkerTemplateEngine = function(j_val) {
   this._jdel = j_freeMarkerTemplateEngine;
 };
 
+FreeMarkerTemplateEngine._jclass = utils.getJavaClass("io.vertx.ext.web.templ.FreeMarkerTemplateEngine");
+FreeMarkerTemplateEngine._jtype = {
+  accept: function(obj) {
+    return FreeMarkerTemplateEngine._jclass.isInstance(obj._jdel);
+  },
+  wrap: function(jdel) {
+    var obj = Object.create(FreeMarkerTemplateEngine.prototype, {});
+    FreeMarkerTemplateEngine.apply(obj, arguments);
+    return obj;
+  },
+  unwrap: function(obj) {
+    return obj._jdel;
+  }
+};
+FreeMarkerTemplateEngine._create = function(jdel) {
+  var obj = Object.create(FreeMarkerTemplateEngine.prototype, {});
+  FreeMarkerTemplateEngine.apply(obj, arguments);
+  return obj;
+}
 /**
  Create a template engine using defaults
 
@@ -99,9 +118,8 @@ var FreeMarkerTemplateEngine = function(j_val) {
 FreeMarkerTemplateEngine.create = function() {
   var __args = arguments;
   if (__args.length === 0) {
-    return utils.convReturnVertxGen(JFreeMarkerTemplateEngine["create()"](), FreeMarkerTemplateEngine);
+    return utils.convReturnVertxGen(FreeMarkerTemplateEngine, JFreeMarkerTemplateEngine["create()"]());
   } else throw new TypeError('function invoked with invalid arguments');
 };
 
-// We export the Constructor function
 module.exports = FreeMarkerTemplateEngine;

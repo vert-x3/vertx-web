@@ -31,6 +31,7 @@ import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.Random;
 
+
 /**
  * @author <a href="mailto:pmlopes@gmail.com">Paulo Lopes</a>
  */
@@ -45,7 +46,9 @@ public class CSRFHandlerImpl implements CSRFHandler {
 
   private boolean nagHttps;
   private String cookieName = DEFAULT_COOKIE_NAME;
+  private String cookiePath = DEFAULT_COOKIE_PATH;
   private String headerName = DEFAULT_HEADER_NAME;
+  private String responseBody = DEFAULT_RESPONSE_BODY;
   private long timeout = SessionHandler.DEFAULT_SESSION_TIMEOUT;
 
   public CSRFHandlerImpl(final String secret) {
@@ -64,6 +67,12 @@ public class CSRFHandlerImpl implements CSRFHandler {
   }
 
   @Override
+  public CSRFHandler setCookiePath(String cookiePath) {
+    this.cookiePath = cookiePath;
+    return this;
+  }
+
+  @Override
   public CSRFHandler setHeaderName(String headerName) {
     this.headerName = headerName;
     return this;
@@ -78,6 +87,12 @@ public class CSRFHandlerImpl implements CSRFHandler {
   @Override
   public CSRFHandler setNagHttps(boolean nag) {
     this.nagHttps = nag;
+    return this;
+  }
+
+  @Override
+  public CSRFHandler setResponseBody(String responseBody) {
+    this.responseBody = responseBody;
     return this;
   }
 
@@ -117,12 +132,23 @@ public class CSRFHandlerImpl implements CSRFHandler {
     }
   }
 
+  protected void forbidden(RoutingContext ctx) {
+    final int statusCode = 403;
+    if (responseBody != null) {
+      ctx.response()
+        .setStatusCode(statusCode)
+        .end(responseBody);
+    } else {
+      ctx.fail(statusCode);
+    }
+  }
+
   @Override
   public void handle(RoutingContext ctx) {
 
     if (nagHttps) {
       String uri = ctx.request().absoluteURI();
-      if (!uri.startsWith("https:")) {
+      if (uri != null && !uri.startsWith("https:")) {
         log.warn("Using session cookies without https could make you susceptible to session hijacking: " + uri);
       }
     }
@@ -134,7 +160,7 @@ public class CSRFHandlerImpl implements CSRFHandler {
         final String token = generateToken();
         // put the token in the context for users who prefer to render the token directly on the HTML
         ctx.put(headerName, token);
-        ctx.addCookie(Cookie.cookie(cookieName, token));
+        ctx.addCookie(Cookie.cookie(cookieName, token).setPath(cookiePath));
         ctx.next();
         break;
       case POST:
@@ -145,7 +171,7 @@ public class CSRFHandlerImpl implements CSRFHandler {
         if (validateToken(header == null ? ctx.request().getFormAttribute(headerName) : header)) {
           ctx.next();
         } else {
-          ctx.fail(403);
+          forbidden(ctx);
         }
         break;
       default:

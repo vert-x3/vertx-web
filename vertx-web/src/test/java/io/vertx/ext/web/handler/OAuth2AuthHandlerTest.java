@@ -80,11 +80,11 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
 
     latch.await();
 
-    // create a oauth2 handler on our domain: "http://localhost:8080"
-    OAuth2AuthHandler oauth2Handler = OAuth2AuthHandler.create(oauth2, "http://localhost:8080");
+    // create a oauth2 handler on our domain to the callback: "http://localhost:8080/callback"
+    OAuth2AuthHandler oauth2Handler = OAuth2AuthHandler.create(oauth2, "http://localhost:8080/callback");
 
     // setup the callback handler for receiving the callback
-    oauth2Handler.setupCallback(router.get("/callback"));
+    oauth2Handler.setupCallback(router.route());
 
     // protect everything under /protected
     router.route("/protected/*").handler(oauth2Handler);
@@ -102,7 +102,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     }, 302, "Found", null);
 
     // fake the redirect
-    testRequest(HttpMethod.GET, "/callback?redirect_uri=/protected/somepage&code=1", null, resp -> {
+    testRequest(HttpMethod.GET, "/callback?state=/protected/somepage&code=1", null, resp -> {
     }, 200, "OK", "Welcome to the protected resource!");
 
     server.close();

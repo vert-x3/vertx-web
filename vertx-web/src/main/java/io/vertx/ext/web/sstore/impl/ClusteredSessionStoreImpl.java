@@ -21,6 +21,7 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.shareddata.AsyncMap;
+import io.vertx.ext.auth.PRNG;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.sstore.ClusteredSessionStore;
 
@@ -30,6 +31,7 @@ import io.vertx.ext.web.sstore.ClusteredSessionStore;
 public class ClusteredSessionStoreImpl implements ClusteredSessionStore {
 
   private final Vertx vertx;
+  private final PRNG random;
   private final String sessionMapName;
   private final long retryTimeout;
 
@@ -40,6 +42,7 @@ public class ClusteredSessionStoreImpl implements ClusteredSessionStore {
     this.vertx = vertx;
     this.sessionMapName = sessionMapName;
     this.retryTimeout = retryTimeout;
+    this.random = new PRNG(vertx);
   }
 
   @Override
@@ -49,7 +52,12 @@ public class ClusteredSessionStoreImpl implements ClusteredSessionStore {
 
   @Override
   public Session createSession(long timeout) {
-    return new SessionImpl(timeout);
+    return new SessionImpl(random, timeout, DEFAULT_SESSIONID_LENGTH);
+  }
+
+  @Override
+  public Session createSession(long timeout, int length) {
+    return new SessionImpl(random, timeout, length);
   }
 
   @Override
@@ -58,6 +66,10 @@ public class ClusteredSessionStoreImpl implements ClusteredSessionStore {
       if (res.succeeded()) {
         res.result().get(id, res2 -> {
           if (res2.succeeded()) {
+            SessionImpl session = (SessionImpl) res2.result();
+            if (session != null) {
+              session.setPRNG(random);
+            }
             resultHandler.handle(Future.succeededFuture(res2.result()));
           } else {
             resultHandler.handle(Future.failedFuture(res2.cause()));
@@ -90,12 +102,36 @@ public class ClusteredSessionStoreImpl implements ClusteredSessionStore {
   public void put(Session session, Handler<AsyncResult<Boolean>> resultHandler) {
     getMap(res -> {
       if (res.succeeded()) {
-        res.result().put(session.id(), session, session.timeout(), res2 -> {
-          if (res2.succeeded()) {
-            resultHandler.handle(Future.succeededFuture(res2.result() != null));
+        // we need to take care of the transactionality of session data
+        res.result().get(session.id(), old -> {
+          final SessionImpl oldSession;
+          final SessionImpl newSession = (SessionImpl) session;
+          // only care if succeeded
+          if (old.succeeded()) {
+            oldSession = (SessionImpl) old.result();
           } else {
-            resultHandler.handle(Future.failedFuture(res2.cause()));
+            // either not existent or error getting it from the map
+            oldSession = null;
           }
+
+          if (oldSession != null) {
+            // there was already some stored data in this case we need to validate versions
+            if (oldSession.version() != newSession.version()) {
+              resultHandler.handle(Future.failedFuture("Version mismatch"));
+              return;
+            }
+          }
+
+          // we can now safely store the new version
+          newSession.incrementVersion();
+
+          res.result().put(session.id(), session, session.timeout(), res2 -> {
+            if (res2.succeeded()) {
+              resultHandler.handle(Future.succeededFuture(res2.result() != null));
+            } else {
+              resultHandler.handle(Future.failedFuture(res2.cause()));
+            }
+          });
         });
       } else {
         resultHandler.handle(Future.failedFuture(res.cause()));
@@ -139,6 +175,8 @@ public class ClusteredSessionStoreImpl implements ClusteredSessionStore {
 
   @Override
   public void close() {
+    // stop seeding the PRNG
+    random.close();
   }
 
   private void getMap(Handler<AsyncResult<AsyncMap<String, Session>>> resultHandler) {

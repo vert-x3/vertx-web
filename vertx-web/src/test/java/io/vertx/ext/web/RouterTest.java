@@ -19,11 +19,10 @@ package io.vertx.ext.web;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.HttpServerResponse;
 import org.junit.Test;
 
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -54,7 +53,7 @@ public class RouterTest extends WebTestBase {
       // OK
     }
   }
-  
+
   @Test
   public void testRouteGetPath() throws Exception {
     assertEquals("/foo", router.route("/foo").getPath());
@@ -131,7 +130,7 @@ public class RouterTest extends WebTestBase {
     testPathBegin(path1);
     testPathBegin(path2);
   }
-  
+
   @Test
   public void testRoutePathWithTrailingSlashOnlyBegin() throws Exception {
     String path = "/some/path/";
@@ -810,6 +809,27 @@ public class RouterTest extends WebTestBase {
   }
 
   @Test
+  public void testCorrectQueryParamatersEncapsulation() throws Exception {
+    final String pathParameterName = "pathParameter";
+    final String pathParamValue = "awesomePath";
+    final String qName = "q";
+    final String qValue1 = "a";
+    final String qValue2 = "b";
+    final String sName = "s";
+    final String sValue = "sample_value";
+    final String sep = ",";
+    router.route("/blah/:" + pathParameterName + "/test").handler(rc -> {
+      MultiMap params = rc.queryParams();
+      String qExpected = String.join(",", params.getAll("q"));
+      String statusMessage = String.join("/", qExpected, params.get("s"));
+      rc.response().setStatusMessage(statusMessage).end();
+    });
+    testRequest(HttpMethod.GET,
+      "/blah/" + pathParamValue + "/test?" + qName + "=" + qValue1 + "," + qValue2 + "&" + sName + "=" + sValue, 200,
+      qValue1 + "," + qValue2 + "/" + sValue);
+  }
+
+  @Test
   public void testPathParamsWithReroute() throws Exception {
     String paramName = "param";
     String firstParamValue = "fpv";
@@ -915,6 +935,55 @@ public class RouterTest extends WebTestBase {
   }
 
   @Test
+  public void testConsumesWithParameterKey() throws Exception {
+    router.route().consumes("text/html;boo").handler(rc -> rc.response().end());
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=ya;itWorks=4real", 200, "OK");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo;itWorks", 200, "OK");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=ya", 200, "OK");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo", 200, "OK");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 404, "Not Found");
+  }
+
+  @Test
+  public void testConsumesWithParameter() throws Exception {
+    router.route().consumes("text/html;boo=ya").handler(rc -> rc.response().end());
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=ya", 200, "OK");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo", 404, "Not Found");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 404, "Not Found");
+  }
+
+  @Test
+  public void testConsumesWithQuotedParameterWithComma() throws Exception {
+    router.route().consumes("text/html;boo=\"yeah,right\"").handler(rc -> rc.response().end());
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=\"yeah,right\";itWorks=4real", 200, "OK");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=\"yeah,right\"", 200, "OK");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=\"yeah,right;itWorks=4real\"", 404, "Not Found");
+    // this might look wrong but since there is only 1 entry per content-type, the comma has no semantic meaning
+    // therefore it is ignored
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=yeah,right", 200, "OK");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo", 404, "Not Found");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 404, "Not Found");
+  }
+
+  @Test
+  public void testConsumesWithQuotedParameterWithQuotes() throws Exception {
+    router.route().consumes("text/html;boo=\"yeah\\\"right\"").handler(rc -> rc.response().end());
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=\"yeah\\\"right\"", 200, "OK");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=\"yeah,right\"", 404, "Not Found");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=yeah,right", 404, "Not Found");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo", 404, "Not Found");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 404, "Not Found");
+  }
+
+  @Test
+  public void testConsumesWithQParameterIgnored() throws Exception {
+    router.route().consumes("text/html;q").consumes("text/html;q=0.1").handler(rc -> rc.response().end());
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo", 200, "OK");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 200, "OK");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=yeah,right", 200, "OK");
+  }
+
+  @Test
   public void testConsumesMultiple() throws Exception {
     router.route().consumes("text/html").consumes("application/json").handler(rc -> rc.response().end());
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 200, "OK");
@@ -923,6 +992,18 @@ public class RouterTest extends WebTestBase {
     testRequestWithContentType(HttpMethod.GET, "/foo", "something/html", 404, "Not Found");
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/json", 404, "Not Found");
     testRequestWithContentType(HttpMethod.GET, "/foo", "application/blah", 404, "Not Found");
+  }
+
+  @Test
+  public void testConsumesVariableParameters() throws Exception {
+    router.route().consumes("text/html;boo").consumes("text/html;works").handler(rc -> rc.response().end());
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo", 200, "OK");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;works", 200, "OK");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo;works", 200, "OK");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;boo=done;it=works", 200, "OK");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/html;yes=no;right", 404, "Not Found");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/book;boo", 404, "Not Found");
+    testRequestWithContentType(HttpMethod.GET, "/foo", "text/book;works=aright", 404, "Not Found");
   }
 
   @Test
@@ -991,6 +1072,24 @@ public class RouterTest extends WebTestBase {
   }
 
   @Test
+  public void testProducesWithParameterKey() throws Exception {
+    router.route().produces("text/html;boo").handler(rc -> rc.response().end());
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html;boo;itWorks", 200, "OK");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html;boo=ya", 200, "OK");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html;boo", 200, "OK");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html", 404, "Not Found");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "*/*", 200, "OK");
+  }
+
+  @Test
+  public void testProducesWithParameter() throws Exception {
+    router.route().produces("text/html;boo=ya").handler(rc -> rc.response().end());
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html;boo=ya", 200, "OK");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html;boo", 404, "Not Found");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html", 404, "Not Found");
+  }
+
+  @Test
   public void testProducesMultiple() throws Exception {
     router.route().produces("text/html").produces("application/json").handler(rc -> rc.response().end());
     testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html", 200, "OK");
@@ -999,6 +1098,16 @@ public class RouterTest extends WebTestBase {
     testRequestWithAccepts(HttpMethod.GET, "/foo", "something/html", 404, "Not Found");
     testRequestWithAccepts(HttpMethod.GET, "/foo", "text/json", 404, "Not Found");
     testRequestWithAccepts(HttpMethod.GET, "/foo", "application/blah", 404, "Not Found");
+  }
+
+  @Test
+  public void testProducesWithQParameterIgnored() throws Exception {
+    router.route().produces("text/html;q").produces("text/html;q=0.1").handler(rc -> rc.response().end());
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html", 200, "OK");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html;a", 200, "OK");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html;q=2", 200, "OK");
+    testRequest(HttpMethod.GET, "/foo", 200, "OK");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "*/*", 200, "OK");
   }
 
   @Test
@@ -1057,6 +1166,7 @@ public class RouterTest extends WebTestBase {
       rc.response().end();
     });
     testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html,application/json,text/plain", 200, "application/json");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html,application/json;b,text/plain", 200, "application/json");
   }
 
   @Test
@@ -1066,6 +1176,26 @@ public class RouterTest extends WebTestBase {
       rc.response().end();
     });
     testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html,application/*,text/plain", 200, "application/json");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html;a,application/*,text/plain", 200, "application/json");
+  }
+
+  @Test
+  public void testAcceptsWithSpaces() throws Exception {
+    router.route("/json").produces("application/json").handler(rc -> {
+      rc.response().setStatusMessage(rc.getAcceptableContentType());
+      rc.response().end();
+    });
+    testRequestWithAccepts(HttpMethod.GET, "/json", "    text/html    , application/*    , text/plain; q= 0.9  ", 200, "application/json");
+    router.route("/html").produces("text/html").handler(rc -> {
+      rc.response().setStatusMessage(rc.getAcceptableContentType());
+      rc.response().end();
+    });
+    testRequestWithAccepts(HttpMethod.GET, "/html", "    text/html    , application/*    , text/plain; q= 0.9  ", 200, "text/html");
+    router.route("/text").produces("text/plain").handler(rc -> {
+      rc.response().setStatusMessage(rc.getAcceptableContentType());
+      rc.response().end();
+    });
+    testRequestWithAccepts(HttpMethod.GET, "/text", "    text/html    , application/*    , text/plain; q= 0.9  ", 200, "text/plain");
   }
 
   @Test
@@ -1075,6 +1205,9 @@ public class RouterTest extends WebTestBase {
       rc.response().end();
     });
     testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html,application/json,text/plain", 200, "application/json");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html,application/json;a,text/plain", 200, "application/json");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html,application/json,text/plain;a", 200, "text/plain");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html,application/json;c,text/plain;a", 200, "application/json");
   }
 
   @Test
@@ -1084,6 +1217,8 @@ public class RouterTest extends WebTestBase {
       rc.response().end();
     });
     testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html,text/plain,application/json", 200, "text/plain");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html,text/plain;a,application/json", 200, "text/plain");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html,text/plain,application/json;a", 200, "application/json");
   }
 
   @Test
@@ -1093,6 +1228,9 @@ public class RouterTest extends WebTestBase {
       rc.response().end();
     });
     testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html,text/plain,application/json;q=0.9", 200, "text/plain");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html,text/plain,application/json;q=0.9;a", 200, "text/plain");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html,text/plain,application/json;a;q=0.9", 200, "text/plain");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html,text/plain;a,application/json;q=0.9", 200, "text/plain");
   }
 
   @Test
@@ -1102,6 +1240,8 @@ public class RouterTest extends WebTestBase {
       rc.response().end();
     });
     testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html,text/plain;q=0.9,application/json", 200, "application/json");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html,text/plain;q=0.9,application/json;a", 200, "application/json");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html,text/plain;q=0.9;a,application/json", 200, "application/json");
   }
 
   @Test
@@ -1111,10 +1251,33 @@ public class RouterTest extends WebTestBase {
       rc.response().end();
     });
     testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html,text/plain;q=0.9,application/json;q=1.0", 200, "application/json");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html,text/plain;q=0.9;a,application/json;q=1.0", 200, "application/json");
   }
 
   @Test
   public void testAcceptsMultiple8() throws Exception {
+    router.route().produces("application/json").produces("text/html").handler(rc -> {
+      rc.response().setStatusMessage(rc.getAcceptableContentType());
+      rc.response().end();
+    });
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html,text/plain;q=0.9,application/json;q=1.0", 200, "text/html");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html,text/plain;q=0.9;b,application/json;q=1.0", 200, "text/html");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html,text/plain;q=0.9;b,application/json;q=1.0;a", 200, "application/json");
+  }
+
+  @Test
+  public void testAcceptsMultiple9() throws Exception {
+    router.route().produces("application/json").produces("text/plain").handler(rc -> {
+      rc.response().setStatusMessage(rc.getAcceptableContentType());
+      rc.response().end();
+    });
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html,text/plain;q=0.9,application/json;q=0.8", 200, "text/plain");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html,text/plain;q=0.9;d,application/json;q=0.8", 200, "text/plain");
+    testRequestWithAccepts(HttpMethod.GET, "/foo", "text/html,text/plain;q=0.9,application/json;q=0.8;s", 200, "text/plain");
+  }
+
+  @Test
+  public void testAcceptsMultipleWithParams() throws Exception {
     router.route().produces("application/json").produces("text/plain").handler(rc -> {
       rc.response().setStatusMessage(rc.getAcceptableContentType());
       rc.response().end();
@@ -1288,7 +1451,7 @@ public class RouterTest extends WebTestBase {
       rc.response().end();
     });
     testRequest(HttpMethod.GET, "/", 200, "OK");
-    waitUntil(() -> cnt.get() == 3);
+    assertWaitUntil(() -> cnt.get() == 3);
   }
 
   @Test
@@ -1313,7 +1476,7 @@ public class RouterTest extends WebTestBase {
     });
 
     testRequest(HttpMethod.GET, "/", 200, "OK");
-    waitUntil(() -> cnt.get() == 1);
+    assertWaitUntil(() -> cnt.get() == 1);
   }
 
   @Test
@@ -1736,6 +1899,7 @@ public class RouterTest extends WebTestBase {
     });
 
     testRequest(HttpMethod.GET, "/foo", req -> req.putHeader("Accept-Language", "en-gb;q=0.8, en;q=0.7, da_DK;q=0.9"), 200, "OK", null);
+    testRequest(HttpMethod.GET, "/foo", req -> req.putHeader("Accept-Language", "en-gb;q=0.8, en;q=0.7, da-DK;q=0.9"), 200, "OK", null);
   }
 
   @Test
@@ -1854,5 +2018,112 @@ public class RouterTest extends WebTestBase {
       rc.response().setStatusMessage("foo").end();
     });
     testRequest(HttpMethod.GET, "/some+path?q1=some+query", 200, "foo");
+  }
+
+  @Test
+  public void testMultipleSetHandler() throws Exception {
+    router.get("/path").handler(routingContext -> {
+      routingContext.put("response", "handler1");
+      routingContext.next();
+    }).handler(routingContext -> {
+      routingContext.put("response", routingContext.get("response") + "handler2");
+      routingContext.next();
+    }).handler(routingContext -> {
+      HttpServerResponse response = routingContext.response();
+      response.setChunked(true);
+      response.end(routingContext.get("response") + "handler3");
+    });
+    testRequest(HttpMethod.GET, "/path", 200, "OK", "handler1handler2handler3");
+  }
+
+  @Test
+  public void testMultipleSetFailureHandler() throws Exception {
+    router.get("/path").handler(routingContext -> {
+      routingContext.fail(500);
+    }).failureHandler(routingContext -> {
+      routingContext.put("response", "handler1");
+      routingContext.next();
+    }).failureHandler(routingContext -> {
+      routingContext.put("response", routingContext.get("response") + "handler2");
+      routingContext.next();
+    }).failureHandler(routingContext -> {
+      HttpServerResponse response = routingContext.response();
+      response.setChunked(true);
+      response.setStatusMessage("ERROR");
+      response.setStatusCode(500);
+      response.end(routingContext.get("response") + "handler3");
+    });
+    testRequest(HttpMethod.GET, "/path", 500, "ERROR", "handler1handler2handler3");
+  }
+
+  @Test
+  public void testMultipleSetFailureHandlerCorrectOrder() throws Exception {
+    router.route().failureHandler(routingContext -> {
+      routingContext.put("response", "handler1");
+      routingContext.next();
+    });
+
+    router.get("/path").handler(routingContext -> {
+      routingContext.fail(500);
+    }).failureHandler(routingContext -> {
+      routingContext.put("response", routingContext.get("response") + "handler2");
+      routingContext.next();
+    }).failureHandler(routingContext -> {
+      HttpServerResponse response = routingContext.response();
+      response.setChunked(true);
+      response.setStatusMessage("ERROR");
+      response.setStatusCode(500);
+      response.end(routingContext.get("response") + "handler3");
+    });
+    testRequest(HttpMethod.GET, "/path", 500, "ERROR", "handler1handler2handler3");
+  }
+
+  @Test
+  public void testMultipleHandlersMixed() throws Exception {
+    router.route().failureHandler(routingContext -> {
+      routingContext.put("response", "fhandler1");
+      routingContext.next();
+    });
+
+    router.get("/:param").handler(routingContext -> {
+      if (routingContext.pathParam("param").equals("fail")) routingContext.fail(500);
+      routingContext.put("response", "handler1");
+      routingContext.next();
+    }).handler(routingContext -> {
+      routingContext.put("response", routingContext.get("response") + "handler2");
+      routingContext.next();
+    }).handler(routingContext -> {
+      HttpServerResponse response = routingContext.response();
+      response.setChunked(true);
+      response.end(routingContext.get("response") + "handler3");
+    }).failureHandler(routingContext -> {
+      routingContext.put("response", routingContext.get("response") + "fhandler2");
+      routingContext.next();
+    }).failureHandler(routingContext -> {
+      HttpServerResponse response = routingContext.response();
+      response.setChunked(true);
+      response.setStatusMessage("ERROR");
+      response.setStatusCode(500);
+      response.end(routingContext.get("response") + "fhandler3");
+    });
+    testRequest(HttpMethod.GET, "/path", 200, "OK", "handler1handler2handler3");
+    testRequest(HttpMethod.GET, "/fail", 500, "ERROR", "fhandler1fhandler2fhandler3");
+  }
+
+  @Test
+  public void testMultipleSetHandlerMultipleRouteObject() throws Exception {
+    router.get("/path").handler(routingContext -> {
+      routingContext.put("response", "handler1");
+      routingContext.next();
+    });
+    router.get("/path").handler(routingContext -> {
+      routingContext.put("response", routingContext.get("response") + "handler2");
+      routingContext.next();
+    }).handler(routingContext -> {
+      HttpServerResponse response = routingContext.response();
+      response.setChunked(true);
+      response.end(routingContext.get("response") + "handler3");
+    });
+    testRequest(HttpMethod.GET, "/path", 200, "OK", "handler1handler2handler3");
   }
 }

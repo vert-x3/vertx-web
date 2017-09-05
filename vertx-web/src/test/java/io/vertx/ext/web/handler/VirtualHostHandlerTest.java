@@ -34,7 +34,7 @@ public class VirtualHostHandlerTest extends WebTestBase {
       ctx.fail(500);
     });
 
-    testRequest(HttpMethod.GET, "/", req -> req.putHeader("Host", "www.mysite.com"), 200, "OK", null);
+    testRequest(HttpMethod.GET, "/", req -> req.setHost("www.mysite.com"), 200, "OK", null);
   }
 
   @Test
@@ -47,6 +47,6 @@ public class VirtualHostHandlerTest extends WebTestBase {
       ctx.fail(500);
     });
 
-    testRequest(HttpMethod.GET, "/", req -> req.putHeader("Host", "www.mysite.net"), 500, "Internal Server Error", null);
+    testRequest(HttpMethod.GET, "/", req -> req.setHost("www.mysite.net"), 500, "Internal Server Error", null);
   }
 }

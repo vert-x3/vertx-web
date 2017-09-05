@@ -64,13 +64,13 @@ public class StaticHandlerTest extends WebTestBase {
     stat.setIndexPage("otherpage.html");
     testRequest(HttpMethod.GET, "/", 200, "OK", "<html><body>Other page</body></html>");
   }
-  
+
   @Test
   public void testGetSubdirectoryOtherIndex() throws Exception {
     stat.setIndexPage("otherpage.html");
     testRequest(HttpMethod.GET, "/somedir", 200, "OK", "<html><body>Subdirectory other page</body></html>");
   }
-  
+
   @Test
   public void testGetSubdirectorySlashOtherIndex() throws Exception {
     stat.setIndexPage("otherpage.html");
@@ -81,7 +81,7 @@ public class StaticHandlerTest extends WebTestBase {
   public void testGetFileWithSpaces() throws Exception {
     testRequest(HttpMethod.GET, "/file%20with%20spaces.html", 200, "OK", "<html><body>File with spaces</body></html>");
   }
-  
+
   @Test
   public void testGetOtherPage() throws Exception {
     testRequest(HttpMethod.GET, "/otherpage.html", 200, "OK", "<html><body>Other page</body></html>");
@@ -145,13 +145,13 @@ public class StaticHandlerTest extends WebTestBase {
       String contentType = res.headers().get("content-type");
       String contentLength = res.headers().get("content-length");
       assertEquals("text/html;charset=UTF-8", contentType);
-      assertEquals(36, Integer.valueOf(contentLength).intValue());
+      assertEquals(fileSize("src/test/resources/webroot/otherpage.html"), Integer.valueOf(contentLength).intValue());
     }, 200, "OK", null);
     testRequest(HttpMethod.GET, "/foo.json", null, res -> {
       String contentType = res.headers().get("content-type");
       String contentLength = res.headers().get("content-length");
       assertEquals("application/json", contentType);
-      assertEquals(18, Integer.valueOf(contentLength).intValue());
+      assertEquals(fileSize("src/test/resources/webroot/foo.json"), Integer.valueOf(contentLength).intValue());
     }, 200, "OK", null);
   }
 
@@ -180,7 +180,7 @@ public class StaticHandlerTest extends WebTestBase {
       req.putHeader("if-modified-since", lastModifiedRef.get());
     }, null, 304, "Not Modified", null);
   }
-  
+
   @Test
   public void testCacheIndexPageReturnFromCache() throws Exception {
     AtomicReference<String> lastModifiedRef = new AtomicReference<>();
@@ -230,7 +230,7 @@ public class StaticHandlerTest extends WebTestBase {
     }, res -> {
     }, 200, "OK", "<html><body>Other page</body></html>");
   }
-  
+
   @Test
   public void testSendVaryAcceptEncodingHeader() throws Exception {
     testRequest(HttpMethod.GET, "/otherpage.html", req -> {
@@ -241,7 +241,7 @@ public class StaticHandlerTest extends WebTestBase {
       assertEquals("accept-encoding", vary);
     }, 200, "OK", "<html><body>Other page</body></html>");
   }
-  
+
   @Test
   public void testNoSendingOfVaryAcceptEncodingHeader() throws Exception {
     testRequest(HttpMethod.GET, "/otherpage.html", null, res -> {
@@ -491,6 +491,7 @@ public class StaticHandlerTest extends WebTestBase {
     // 1. request a head to a static image, this should tell us the server supports ranges
     // 2. make a request of the 1st 1000 bytes
     // 3. request all bytes after 1000
+    // 4. request bytes from 1000 up to 5000000 if available (which isn't)
 
     testRequest(HttpMethod.HEAD, "/somedir/range.jpg", null, res -> {
       assertEquals("bytes", res.headers().get("Accept-Ranges"));
@@ -507,6 +508,13 @@ public class StaticHandlerTest extends WebTestBase {
 
     testRequest(HttpMethod.GET, "/somedir/range.jpg", req -> {
       req.headers().set("Range", "bytes=1000-");
+    }, res -> {
+      assertEquals("bytes", res.headers().get("Accept-Ranges"));
+      assertEquals("14783", res.headers().get("Content-Length"));
+      assertEquals("bytes 1000-15782/15783", res.headers().get("Content-Range"));
+    }, 206, "Partial Content", null);
+    testRequest(HttpMethod.GET, "/somedir/range.jpg", req -> {
+      req.headers().set("Range", "bytes=1000-5000000");
     }, res -> {
       assertEquals("bytes", res.headers().get("Accept-Ranges"));
       assertEquals("14783", res.headers().get("Content-Length"));
@@ -613,34 +621,31 @@ public class StaticHandlerTest extends WebTestBase {
   }
 
   @Test
-  public void testDoubleException() throws Exception {
-    router.clear();
-
-    final AtomicInteger cnt = new AtomicInteger(0);
-
-    router.route("/static/*")
-        .handler(stat)
-        .failureHandler(ctx -> {
-          if (cnt.incrementAndGet() == 1) {
-            vertx.setTimer(100, v -> {
-              ctx.response().end();
-            });
-          }
-
-          System.out.println("HERE!");
-        });
-
-    testRequest(HttpMethod.GET, "/static/non-existent-file.txt", 200, "OK");
-    assertEquals(1, cnt.get());
-  }
-
-  @Test
   public void testLastModifiedInGMT() throws Exception {
     testRequest(HttpMethod.GET, "/otherpage.html", null, res -> {
       String lastModified = res.headers().get("last-modified");
       assertTrue(lastModified.endsWith("GMT"));
     }, 200, "OK", "<html><body>Other page</body></html>");
   }
+
+  @Test
+  public void testChangeDefaultContentEncoding() throws Exception {
+    stat.setDefaultContentEncoding("ISO-8859-1");
+    testRequest(HttpMethod.GET, "/otherpage.html", null, res -> {
+      String contentType = res.headers().get("Content-Type");
+      System.out.println(contentType);
+      assertEquals("text/html;charset=ISO-8859-1", contentType);
+    }, 200, "OK", "<html><body>Other page</body></html>");
+  }
+
+  @Test
+  public void testHandlerAfter() throws Exception {
+    router.get().handler(ctx -> {
+      ctx.response().end("Howdy!");
+    });
+    testRequest(HttpMethod.GET, "/not-existing-file.html", 200, "OK", "Howdy!");
+  }
+
 
   // TODO
   // 1.Test all the params including invalid values
@@ -654,5 +659,9 @@ public class StaticHandlerTest extends WebTestBase {
       fail(e.getMessage());
       return -1;
     }
+  }
+
+  private long fileSize(String filename) {
+    return new File(filename).length();
   }
 }

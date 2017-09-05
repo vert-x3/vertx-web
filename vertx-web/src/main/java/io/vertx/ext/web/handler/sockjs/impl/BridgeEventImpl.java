@@ -20,8 +20,8 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.bridge.BridgeEventType;
 import io.vertx.ext.web.handler.sockjs.BridgeEvent;
-import io.vertx.ext.web.handler.sockjs.BridgeEventType;
 import io.vertx.ext.web.handler.sockjs.SockJSSocket;
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -45,11 +45,6 @@ class BridgeEventImpl implements BridgeEvent {
   }
 
   @Override
-  public JsonObject rawMessage() {
-    return rawMessage;
-  }
-
-  @Override
   public JsonObject getRawMessage() {
     return rawMessage;
   }
@@ -60,6 +55,11 @@ class BridgeEventImpl implements BridgeEvent {
       rawMessage.clear().mergeIn(message);
     }
     return this;
+  }
+
+  @Override
+  public void handle(AsyncResult<Boolean> asyncResult) {
+    future.handle(asyncResult);
   }
 
   @Override
@@ -100,6 +100,26 @@ class BridgeEventImpl implements BridgeEvent {
   @Override
   public void fail(String failureMessage) {
     future.fail(failureMessage);
+  }
+
+  @Override
+  public boolean tryComplete(Boolean result) {
+    return future.tryComplete(result);
+  }
+
+  @Override
+  public boolean tryComplete() {
+    return future.tryComplete();
+  }
+
+  @Override
+  public boolean tryFail(Throwable cause) {
+    return future.tryFail(cause);
+  }
+
+  @Override
+  public boolean tryFail(String failureMessage) {
+    return future.tryFail(failureMessage);
   }
 
   @Override

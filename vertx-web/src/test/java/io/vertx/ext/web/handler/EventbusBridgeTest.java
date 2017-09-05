@@ -23,11 +23,14 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.AuthProvider;
 import io.vertx.ext.auth.shiro.ShiroAuth;
 import io.vertx.ext.auth.shiro.ShiroAuthRealmType;
+import io.vertx.ext.bridge.BridgeEventType;
+import io.vertx.ext.bridge.PermittedOptions;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.WebTestBase;
 import io.vertx.ext.web.handler.sockjs.*;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import io.vertx.ext.web.sstore.SessionStore;
+import io.vertx.ext.bridge.PermittedOptions;
 import io.vertx.test.core.TestUtils;
 import org.junit.Test;
 
@@ -61,7 +64,7 @@ public class EventbusBridgeTest extends WebTestBase {
     sockJSHandler.bridge(allAccessOptions, be -> {
       if (be.type() == BridgeEventType.SOCKET_CREATED) {
         assertNotNull(be.socket());
-        assertNull(be.rawMessage());
+        assertNull(be.getRawMessage());
         be.complete(true);
         testComplete();
       } else {

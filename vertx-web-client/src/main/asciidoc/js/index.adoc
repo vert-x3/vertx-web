@@ -1,0 +1,627 @@
+= Vert.x Web Client
+:toc: left
+:lang: js
+:js: js
+
+Vert.x Web Client is an asynchronous HTTP and HTTP/2 client.
+
+The Web Client makes easy to do HTTP request/response interactions with a web server, and provides advanced
+features like:
+
+* Json body encoding / decoding
+* request/response pumping
+* request parameters
+* unified error handling
+* form submissions
+
+The web client does not deprecate the Vert.x Core `link:../../jsdoc/module-vertx-js_http_client-HttpClient.html[HttpClient]`, indeed it is based on
+this client and inherits its configuration and great features like pooling, HTTP/2 support, pipelining support, etc...
+The `link:../../jsdoc/module-vertx-js_http_client-HttpClient.html[HttpClient]` should be used when fine grained control over the HTTP
+requests/responses is necessary.
+
+The web client does not provide a WebSocket API, the Vert.x Core `link:../../jsdoc/module-vertx-js_http_client-HttpClient.html[HttpClient]` should
+be used.
+
+== Using the web client
+
+To use Vert.x Web Client, add the following dependency to the _dependencies_ section of your build descriptor:
+
+* Maven (in your `pom.xml`):
+
+[source,xml,subs="+attributes"]
+----
+<dependency>
+  <groupId>io.vertx</groupId>
+  <artifactId>vertx-web-client</artifactId>
+  <version>3.5.0.Beta1</version>
+</dependency>
+----
+
+* Gradle (in your `build.gradle` file):
+
+[source,groovy,subs="+attributes"]
+----
+dependencies {
+  compile 'io.vertx:vertx-web-client:3.5.0.Beta1'
+}
+----
+
+== Re-cap on Vert.x core HTTP client
+
+Vert.x Web Client uses the API from Vert.x core, so it's well worth getting familiar with the basic concepts of using
+`link:../../jsdoc/module-vertx-js_http_client-HttpClient.html[HttpClient]` using Vert.x core, if you're not already.
+
+== Creating a web client
+
+You create an `link:../../jsdoc/module-vertx-web-client-js_web_client-WebClient.html[WebClient]` instance with default options as follows
+
+[source,js]
+----
+var WebClient = require("vertx-web-client-js/web_client");
+var client = WebClient.create(vertx);
+
+----
+
+If you want to configure options for the client, you create it as follows
+
+[source,js]
+----
+var WebClient = require("vertx-web-client-js/web_client");
+var options = {
+  "userAgent" : "My-App/1.2.3"
+};
+options.keepAlive = false;
+var client = WebClient.create(vertx, options);
+
+----
+
+Web Client options inherit Http Client options so you can set any one of them.
+
+If your already have an HTTP Client in your application you can also reuse it
+
+[source,js]
+----
+var WebClient = require("vertx-web-client-js/web_client");
+var client = WebClient.wrap(httpClient);
+
+----
+
+== Making requests
+
+=== Simple requests with no body
+
+Often, you’ll want to make HTTP requests with no request body. This is usually the case with HTTP GET, OPTIONS
+and HEAD requests
+
+[source,js]
+----
+var WebClient = require("vertx-web-client-js/web_client");
+
+var client = WebClient.create(vertx);
+
+// Send a GET request
+client.get(8080, "myserver.mycompany.com", "/some-uri").send(function (ar, ar_err) {
+  if (ar_err == null) {
+    // Obtain response
+    var response = ar;
+
+    console.log("Received response with status code" + response.statusCode());
+  } else {
+    console.log("Something went wrong " + ar_err.getMessage());
+  }
+});
+
+// Send a HEAD request
+client.head(8080, "myserver.mycompany.com", "/some-uri").send(function (ar, ar_err) {
+  if (ar_err == null) {
+    // Obtain response
+    var response = ar;
+
+    console.log("Received response with status code" + response.statusCode());
+  } else {
+    console.log("Something went wrong " + ar_err.getMessage());
+  }
+});
+
+----
+
+You can add query parameters to the request URI in a fluent fashion
+
+[source,js]
+----
+Code not translatable
+----
+
+Any request URI parameter will pre-populate the request
+
+[source,js]
+----
+var request = client.get(8080, "myserver.mycompany.com", "/some-uri?param1=param1_value&param2=param2_value");
+
+// Add param3
+request.addQueryParam("param3", "param3_value");
+
+// Overwrite param2
+request.setQueryParam("param2", "another_param2_value");
+
+----
+
+Setting a request URI discards existing query parameters
+
+[source,js]
+----
+var request = client.get(8080, "myserver.mycompany.com", "/some-uri");
+
+// Add param1
+request.addQueryParam("param1", "param1_value");
+
+// Overwrite param1 and add param2
+request.uri("/some-uri?param1=param1_value&param2=param2_value");
+
+----
+
+=== Writing request bodies
+
+When you need to make a request with a body, you use the same API and call then `sendXXX` methods
+that expects a body to send.
+
+Use `link:../../jsdoc/module-vertx-web-client-js_http_request-HttpRequest.html#sendBuffer[sendBuffer]` to send a buffer body
+
+[source,js]
+----
+// Send a buffer to the server using POST, the content-length header will be set for you
+client.post(8080, "myserver.mycompany.com", "/some-uri").sendBuffer(buffer, function (ar, ar_err) {
+  if (ar_err == null) {
+    // Ok
+  }
+});
+
+----
+
+Sending a single buffer is useful but often you don't want to load fully the content in memory because
+it may be too large or you want to handle many concurrent requests and want to use just the minimum
+for each request. For this purpose the web client can send `ReadStream<Buffer>` (e.g a
+`link:../../jsdoc/module-vertx-js_async_file-AsyncFile.html[AsyncFile]` is a ReadStream<Buffer>`) with the `link:../../jsdoc/module-vertx-web-client-js_http_request-HttpRequest.html#sendStream[sendStream]` method
+
+[source,js]
+----
+Code not translatable
+----
+
+The web client takes care of setting up the transfer pump for you. Since the length of the stream is not know
+the request will use chunked transfer encoding .
+
+When you know the size of the stream, you shall specify before using the `content-length` header
+
+[source,js]
+----
+fs.open("content.txt", {
+}, function (fileRes, fileRes_err) {
+  if (fileRes_err == null) {
+    var fileStream = fileRes;
+
+    var fileLen = "1024";
+
+    // Send the file to the server using POST
+    client.post(8080, "myserver.mycompany.com", "/some-uri").putHeader("content-length", fileLen).sendStream(fileStream, function (ar, ar_err) {
+      if (ar_err == null) {
+        // Ok
+      }
+    });
+  }
+});
+
+----
+
+The POST will not be chunked.
+
+==== Json bodies
+
+Often you’ll want to send Json body requests, to send a `JsonObject`
+use the `link:../../jsdoc/module-vertx-web-client-js_http_request-HttpRequest.html#sendJsonObject[sendJsonObject]`
+
+[source,js]
+----
+client.post(8080, "myserver.mycompany.com", "/some-uri").sendJsonObject({
+  "firstName" : "Dale",
+  "lastName" : "Cooper"
+}, function (ar, ar_err) {
+  if (ar_err == null) {
+    // Ok
+  }
+});
+
+----
+
+In Java, Groovy or Kotlin, you can use the `link:../../jsdoc/module-vertx-web-client-js_http_request-HttpRequest.html#sendJson[sendJson]` method that maps
+a POJO (Plain Old Java Object) to a Json object using `Json.encode`
+method
+
+[source,js]
+----
+client.post(8080, "myserver.mycompany.com", "/some-uri").sendJson(new (Java.type("examples.WebClientExamples.User"))("Dale", "Cooper"), function (ar, ar_err) {
+  if (ar_err == null) {
+    // Ok
+  }
+});
+
+----
+
+NOTE: the `Json.encode` uses the Jackson mapper to encode the object
+to Json.
+
+==== Form submissions
+
+You can send http form submissions bodies with the `link:../../jsdoc/module-vertx-web-client-js_http_request-HttpRequest.html#sendForm[sendForm]`
+variant.
+
+[source,js]
+----
+var MultiMap = require("vertx-js/multi_map");
+var form = MultiMap.caseInsensitiveMultiMap();
+form.set("firstName", "Dale");
+form.set("lastName", "Cooper");
+
+// Submit the form as a form URL encoded body
+client.post(8080, "myserver.mycompany.com", "/some-uri").sendForm(form, function (ar, ar_err) {
+  if (ar_err == null) {
+    // Ok
+  }
+});
+
+----
+
+By default the form is submitted with the `application/x-www-form-urlencoded` content type header. You can set
+the `content-type` header to `multipart/form-data` instead
+
+[source,js]
+----
+var MultiMap = require("vertx-js/multi_map");
+var form = MultiMap.caseInsensitiveMultiMap();
+form.set("firstName", "Dale");
+form.set("lastName", "Cooper");
+
+// Submit the form as a multipart form body
+client.post(8080, "myserver.mycompany.com", "/some-uri").putHeader("content-type", "multipart/form-data").sendForm(form, function (ar, ar_err) {
+  if (ar_err == null) {
+    // Ok
+  }
+});
+
+----
+
+NOTE: at the moment multipart files are not supported, it will likely be supported in a later revision
+of the API.
+
+=== Writing request headers
+
+You can write headers to a request using the headers multi-map as follows:
+
+[source,js]
+----
+var request = client.get(8080, "myserver.mycompany.com", "/some-uri");
+var headers = request.headers();
+headers.set("content-type", "application/json");
+headers.set("other-header", "foo");
+
+----
+
+The headers are an instance of `link:../../jsdoc/module-vertx-js_multi_map-MultiMap.html[MultiMap]` which provides operations for adding,
+setting and removing entries. Http headers allow more than one value for a specific key.
+
+You can also write headers using putHeader
+
+[source,js]
+----
+var request = client.get(8080, "myserver.mycompany.com", "/some-uri");
+request.putHeader("content-type", "application/json");
+request.putHeader("other-header", "foo");
+
+----
+
+=== Reusing requests
+
+The `link:../../jsdoc/module-vertx-web-client-js_http_request-HttpRequest.html#send[send]` method can be called multiple times
+safely, making it very easy to configure and reuse `link:../../jsdoc/module-vertx-web-client-js_http_request-HttpRequest.html[HttpRequest]` objects
+
+[source,js]
+----
+var get = client.get(8080, "myserver.mycompany.com", "/some-uri");
+get.send(function (ar, ar_err) {
+  if (ar_err == null) {
+    // Ok
+  }
+});
+
+// Same request again
+get.send(function (ar, ar_err) {
+  if (ar_err == null) {
+    // Ok
+  }
+});
+
+----
+
+Beware though that `link:../../jsdoc/module-vertx-web-client-js_http_request-HttpRequest.html[HttpRequest]` instances are mutable.
+Therefore you should call the `link:../../jsdoc/module-vertx-web-client-js_http_request-HttpRequest.html#copy[copy]` method before modifying a cached instance.
+
+[source,js]
+----
+var get = client.get(8080, "myserver.mycompany.com", "/some-uri");
+get.send(function (ar, ar_err) {
+  if (ar_err == null) {
+    // Ok
+  }
+});
+
+// The "get" request instance remains unmodified
+get.copy().putHeader("a-header", "with-some-value").send(function (ar, ar_err) {
+  if (ar_err == null) {
+    // Ok
+  }
+});
+
+----
+
+=== Timeouts
+
+You can set a timeout for a specific http request using `link:../../jsdoc/module-vertx-web-client-js_http_request-HttpRequest.html#timeout[timeout]`.
+
+[source,js]
+----
+client.get(8080, "myserver.mycompany.com", "/some-uri").timeout(5000).send(function (ar, ar_err) {
+  if (ar_err == null) {
+    // Ok
+  } else {
+    // Might be a timeout when cause is java.util.concurrent.TimeoutException
+  }
+});
+
+----
+
+If the request does not return any data within the timeout period an exception will be passed to the response
+handler.
+
+== Handling http responses
+
+When the web client sends a request you always deal with a single async result `link:../../jsdoc/module-vertx-web-client-js_http_response-HttpResponse.html[HttpResponse]`.
+
+On a success result the callback happens after the response has been received
+
+[source,js]
+----
+client.get(8080, "myserver.mycompany.com", "/some-uri").send(function (ar, ar_err) {
+  if (ar_err == null) {
+
+    var response = ar;
+
+    console.log("Received response with status code" + response.statusCode());
+  } else {
+    console.log("Something went wrong " + ar_err.getMessage());
+  }
+});
+
+----
+
+WARNING: responses are fully buffered, use `link:../../jsdoc/module-vertx-web-common-js_body_codec-BodyCodec.html#pipe[BodyCodec.pipe]`
+to pipe the response to a write stream
+
+=== Decoding responses
+
+By default the web client provides an http response body as a `Buffer` and does not apply
+any decoding.
+
+Custom response body decoding can be achieved using `link:../../jsdoc/module-vertx-web-common-js_body_codec-BodyCodec.html[BodyCodec]`:
+
+* Plain String
+* Json object
+* Json mapped POJO
+* `link:../../jsdoc/module-vertx-js_write_stream-WriteStream.html[WriteStream]`
+
+A body codec can decode an arbitrary binary data stream into a specific object instance, saving you the decoding
+step in your response handlers.
+
+Use `link:../../jsdoc/module-vertx-web-common-js_body_codec-BodyCodec.html#jsonObject[BodyCodec.jsonObject]` To decode a Json object:
+
+[source,js]
+----
+var BodyCodec = require("vertx-web-common-js/body_codec");
+client.get(8080, "myserver.mycompany.com", "/some-uri").as(BodyCodec.jsonObject()).send(function (ar, ar_err) {
+  if (ar_err == null) {
+    var response = ar;
+
+    var body = response.body();
+
+    console.log("Received response with status code" + response.statusCode() + " with body " + body);
+  } else {
+    console.log("Something went wrong " + ar_err.getMessage());
+  }
+});
+
+----
+
+In Java, Groovy or Kotlin, custom Json mapped POJO can be decoded
+
+[source,js]
+----
+var BodyCodec = require("vertx-web-common-js/body_codec");
+client.get(8080, "myserver.mycompany.com", "/some-uri").as(BodyCodec.json(Java.type("examples.WebClientExamples.User").class)).send(function (ar, ar_err) {
+  if (ar_err == null) {
+    var response = ar;
+
+    var user = response.body();
+
+    console.log("Received response with status code" + response.statusCode() + " with body " + user.getFirstName() + " " + user.getLastName());
+  } else {
+    console.log("Something went wrong " + ar_err.getMessage());
+  }
+});
+
+----
+
+When large response are expected, use the `link:../../jsdoc/module-vertx-web-common-js_body_codec-BodyCodec.html#pipe[BodyCodec.pipe]`.
+This body codec pumps the response body buffers to a `link:../../jsdoc/module-vertx-js_write_stream-WriteStream.html[WriteStream]`
+and signals the success or the failure of the operation in the async result response
+
+[source,js]
+----
+var BodyCodec = require("vertx-web-common-js/body_codec");
+client.get(8080, "myserver.mycompany.com", "/some-uri").as(BodyCodec.pipe(writeStream)).send(function (ar, ar_err) {
+  if (ar_err == null) {
+
+    var response = ar;
+
+    console.log("Received response with status code" + response.statusCode());
+  } else {
+    console.log("Something went wrong " + ar_err.getMessage());
+  }
+});
+
+----
+
+Finally if you are not interested at all by the response content, the `link:../../jsdoc/module-vertx-web-common-js_body_codec-BodyCodec.html#none[BodyCodec.none]`
+simply discards the entire response body
+
+[source,js]
+----
+var BodyCodec = require("vertx-web-common-js/body_codec");
+client.get(8080, "myserver.mycompany.com", "/some-uri").as(BodyCodec.none()).send(function (ar, ar_err) {
+  if (ar_err == null) {
+
+    var response = ar;
+
+    console.log("Received response with status code" + response.statusCode());
+  } else {
+    console.log("Something went wrong " + ar_err.getMessage());
+  }
+});
+
+----
+
+When you don't know in advance the content type of the http response, you can still use the `bodyAsXXX()` methods
+that decode the response to a specific type
+
+[source,js]
+----
+client.get(8080, "myserver.mycompany.com", "/some-uri").send(function (ar, ar_err) {
+  if (ar_err == null) {
+
+    var response = ar;
+
+    // Decode the body as a json object
+    var body = response.bodyAsJsonObject();
+
+    console.log("Received response with status code" + response.statusCode() + " with body " + body);
+  } else {
+    console.log("Something went wrong " + ar_err.getMessage());
+  }
+});
+
+----
+
+WARNING: this is only valid for the response decoded as a buffer.
+
+=== Handling 30x redirections
+
+By default the client follows redirections, you can configure the default behavior in the `link:../dataobjects.html#WebClientOptions[WebClientOptions]`:
+
+[source,js]
+----
+var WebClient = require("vertx-web-client-js/web_client");
+
+// Change the default behavior to not follow redirects
+var client = WebClient.create(vertx, {
+  "followRedirects" : false
+});
+
+----
+
+The client will follow at most `16` requests redirections, it can be changed in the same options:
+
+[source,js]
+----
+var WebClient = require("vertx-web-client-js/web_client");
+
+// Follow at most 5 redirections
+var client = WebClient.create(vertx, {
+  "maxRedirects" : 5
+});
+
+----
+
+== Using HTTPS
+
+Vert.x web client can be configured to use HTTPS in exactly the same way as the Vert.x `link:../../jsdoc/module-vertx-js_http_client-HttpClient.html[HttpClient]`.
+
+You can specify the behavior per request
+
+[source,js]
+----
+
+client.get(443, "myserver.mycompany.com", "/some-uri").ssl(true).send(function (ar, ar_err) {
+  if (ar_err == null) {
+    // Obtain response
+    var response = ar;
+
+    console.log("Received response with status code" + response.statusCode());
+  } else {
+    console.log("Something went wrong " + ar_err.getMessage());
+  }
+});
+
+----
+
+Or using create methods with absolute URI argument
+
+[source,js]
+----
+
+client.getAbs("https://myserver.mycompany.com:4043/some-uri").send(function (ar, ar_err) {
+  if (ar_err == null) {
+    // Obtain response
+    var response = ar;
+
+    console.log("Received response with status code" + response.statusCode());
+  } else {
+    console.log("Something went wrong " + ar_err.getMessage());
+  }
+});
+
+----
+
+ifdef::java[]
+== RxJava API
+
+The RxJava `HttpRequest` provides an rx-ified version of the original API,
+the `rxSend` method returns a `Single<HttpResponse<Buffer>>` that
+makes the HTTP request upon subscription, as consequence, the `Single` can be subscribed many times.
+
+[source,js]
+----
+Code not translatable
+----
+
+The obtained `Single` can be composed and chained naturally with the RxJava API
+
+[source,js]
+----
+Code not translatable
+----
+
+The same APIs is available
+
+[source,js]
+----
+Code not translatable
+----
+
+The `sendStream` shall
+be preferred for sending bodies `Observable<Buffer>`
+
+[source,js]
+----
+Code not translatable
+----
+
+Upon subscription, the `body` will be subscribed and its content used for the request.
+endif::[]

@@ -16,14 +16,15 @@
 
 package io.vertx.ext.web.impl;
 
-import io.netty.handler.codec.http.QueryStringDecoder;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
+import io.vertx.ext.web.MIMEHeader;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
+import io.netty.handler.codec.http.QueryStringDecoder;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -44,13 +45,15 @@ public class RouteImpl implements Route {
 
   private final RouterImpl router;
   private final Set<HttpMethod> methods = new HashSet<>();
-  private final Set<String> consumes = new LinkedHashSet<>();
-  private final Set<String> produces = new LinkedHashSet<>();
+  private final Set<MIMEHeader> consumes = new LinkedHashSet<>();
+  private final Set<MIMEHeader> produces = new LinkedHashSet<>();
   private String path;
   private int order;
   private boolean enabled = true;
-  private Handler<RoutingContext> contextHandler;
-  private Handler<RoutingContext> failureHandler;
+  private List<Handler<RoutingContext>> contextHandlers;
+  private int actualHandlerIndex;
+  private List<Handler<RoutingContext>> failureHandlers;
+  private int actualFailureHandlerIndex;
   private boolean added;
   private Pattern pattern;
   private List<String> groups;
@@ -59,6 +62,9 @@ public class RouteImpl implements Route {
   RouteImpl(RouterImpl router, int order) {
     this.router = router;
     this.order = order;
+    this.contextHandlers = new ArrayList<>();
+    this.failureHandlers = new ArrayList<>();
+    resetIndexes();
   }
 
   RouteImpl(RouterImpl router, int order, HttpMethod method, String path) {
@@ -106,13 +112,15 @@ public class RouteImpl implements Route {
 
   @Override
   public synchronized Route produces(String contentType) {
-    produces.add(contentType);
+    ParsableMIMEValue value = new ParsableMIMEValue(contentType).forceParse();
+    produces.add(value);
     return this;
   }
 
   @Override
   public synchronized Route consumes(String contentType) {
-    consumes.add(contentType);
+    ParsableMIMEValue value = new ParsableMIMEValue(contentType).forceParse();
+    consumes.add(value);
     return this;
   }
 
@@ -132,10 +140,7 @@ public class RouteImpl implements Route {
 
   @Override
   public synchronized Route handler(Handler<RoutingContext> contextHandler) {
-    if (this.contextHandler != null) {
-      log.warn("Setting handler for a route more than once!");
-    }
-    this.contextHandler = contextHandler;
+    this.contextHandlers.add(contextHandler);
     checkAdd();
     return this;
   }
@@ -152,10 +157,7 @@ public class RouteImpl implements Route {
 
   @Override
   public synchronized Route failureHandler(Handler<RoutingContext> exceptionHandler) {
-    if (this.failureHandler != null) {
-      log.warn("Setting failureHandler for a route more than once!");
-    }
-    this.failureHandler = exceptionHandler;
+    this.failureHandlers.add(exceptionHandler);
     checkAdd();
     return this;
   }
@@ -194,8 +196,8 @@ public class RouteImpl implements Route {
     StringBuilder sb = new StringBuilder("Route[ ");
     sb.append("path:").append(path);
     sb.append(" pattern:").append(pattern);
-    sb.append(" handler:").append(contextHandler);
-    sb.append(" failureHandler:").append(failureHandler);
+    sb.append(" handlers:").append(contextHandlers);
+    sb.append(" failureHandlers:").append(failureHandlers);
     sb.append(" order:").append(order);
     sb.append(" methods:[");
     int cnt = 0;
@@ -211,20 +213,22 @@ public class RouteImpl implements Route {
   }
 
   synchronized void handleContext(RoutingContext context) {
-    if (contextHandler != null) {
-      contextHandler.handle(context);
+    if (this.hasNextContextHandler()) {
+      actualHandlerIndex++;
+      contextHandlers.get(actualHandlerIndex - 1).handle(context);
     }
   }
 
   synchronized void handleFailure(RoutingContext context) {
-    if (failureHandler != null) {
-      failureHandler.handle(context);
+    if (this.hasNextFailureHandler()) {
+      actualFailureHandlerIndex++;
+      failureHandlers.get(actualFailureHandlerIndex - 1).handle(context);
     }
   }
 
   synchronized boolean matches(RoutingContext context, String mountPoint, boolean failure) {
 
-    if (failure && failureHandler == null || !failure && contextHandler == null) {
+    if (failure && !hasNextFailureHandler() || !failure && !hasNextContextHandler()) {
       return false;
     }
     if (!enabled) {
@@ -238,7 +242,7 @@ public class RouteImpl implements Route {
       return false;
     }
     if (pattern != null) {
-      String path = useNormalisedPath ? Utils.normalisePath(context.request().path(), false) : context.request().path();
+      String path = useNormalisedPath ? Utils.normalizePath(context.request().path()) : context.request().path();
       if (mountPoint != null) {
         path = path.substring(mountPoint.length());
       }
@@ -252,7 +256,7 @@ public class RouteImpl implements Route {
             // decode the path as it could contain escaped chars.
             for (int i = 0; i < groups.size(); i++) {
               final String k = groups.get(i);
-              final String value = QueryStringDecoder.decodeComponent(m.group("p" + i).replace("+", "%2b"));
+              final String value = Utils.urlDecode(m.group("p" + i), false);
               if (!request.params().contains(k)) {
                 params.put(k, value);
               } else {
@@ -266,7 +270,7 @@ public class RouteImpl implements Route {
               String group = m.group(i + 1);
               if(group != null) {
                 final String k = "param" + i;
-                final String value = QueryStringDecoder.decodeComponent(group.replace("+", "%2b"));
+                final String value = Utils.urlDecode(group, false);
                 if (!request.params().contains(k)) {
                   params.put(k, value);
                 } else {
@@ -282,38 +286,31 @@ public class RouteImpl implements Route {
         return false;
       }
     }
+
+    // Check if query params are already parsed
+    if (context.queryParams().size() == 0) {
+      // Decode query parameters and put inside context.queryParams
+      Map<String, List<String>> decodedParams = new QueryStringDecoder(request.uri()).parameters();
+
+      for (Map.Entry<String, List<String>> entry : decodedParams.entrySet())
+        context.queryParams().add(entry.getKey(), entry.getValue());
+    }
+
     if (!consumes.isEmpty()) {
       // Can this route consume the specified content type
-      String contentType = request.headers().get("content-type");
-      boolean matches = false;
-      for (String ct: consumes) {
-        if (ctMatches(contentType, ct)) {
-          matches = true;
-          break;
-        }
-      }
-      if (!matches) {
+      MIMEHeader contentType = context.parsedHeaders().contentType();
+      MIMEHeader consumal = contentType.findMatchedBy(consumes);
+      if(consumal == null){
         return false;
       }
     }
-    if (!produces.isEmpty()) {
-      String accept = request.headers().get("accept");
-      if (accept != null) {
-        List<String> acceptableTypes = Utils.getSortedAcceptableMimeTypes(accept);
-        for (String acceptable: acceptableTypes) {
-          for (String produce : produces) {
-            if (ctMatches(produce, acceptable)) {
-              context.setAcceptableContentType(produce);
-              return true;
-            }
-          }
+    List<MIMEHeader> acceptableTypes = context.parsedHeaders().accept();
+    if (!produces.isEmpty() && !acceptableTypes.isEmpty()) {
+      MIMEHeader selectedAccept = context.parsedHeaders().findBestUserAcceptedIn(acceptableTypes, produces);
+        if(selectedAccept != null){
+          context.setAcceptableContentType(selectedAccept.rawValue());
+          return true;
         }
-      } else {
-        // According to rfc2616-sec14,
-        // If no Accept header field is present, then it is assumed that the client accepts all media types.
-        context.setAcceptableContentType(produces.iterator().next());
-        return true;
-      }
       return false;
     }
     return true;
@@ -323,52 +320,13 @@ public class RouteImpl implements Route {
     return router;
   }
 
-  /*
-  E.g.
-  "text/html", "text/*"  - returns true
-  "text/html", "html" - returns true
-  "application/json", "json" - returns true
-  "application/*", "json" - returns true
-  TODO - don't parse consumes types on each request - they can be preparsed!
-   */
-  private boolean ctMatches(String actualCT, String allowsCT) {
-
-    if (allowsCT.equals("*") || allowsCT.equals("*/*")) {
-      return true;
-    }
-
-    if (actualCT == null) {
-      return false;
-    }
-    
-    // get the content type only (exclude charset)
-    actualCT = actualCT.split(";")[0];
-
-    // if we received an incomplete CT
-    if (allowsCT.indexOf('/') == -1) {
-      // when the content is incomplete we assume */type, e.g.:
-      // json -> */json
-      allowsCT = "*/" + allowsCT;
-    }
-
-    // process wildcards
-    if (allowsCT.contains("*")) {
-      String[] consumesParts = allowsCT.split("/");
-      String[] requestParts = actualCT.split("/");
-      return "*".equals(consumesParts[0]) && consumesParts[1].equals(requestParts[1]) ||
-             "*".equals(consumesParts[1]) && consumesParts[0].equals(requestParts[0]);
-    }
-
-    return actualCT.contains(allowsCT);
-  }
-
   private boolean pathMatches(String mountPoint, RoutingContext ctx) {
     String thePath = mountPoint == null ? path : mountPoint + path;
     String requestPath;
 
     if (useNormalisedPath) {
       // never null
-      requestPath = Utils.normalisePath(ctx.request().path(), false);
+      requestPath = Utils.normalizePath(ctx.request().path());
     } else {
       requestPath = ctx.request().path();
       // can be null
@@ -470,4 +428,18 @@ public class RouteImpl implements Route {
     }
   }
 
+  synchronized protected boolean hasNextContextHandler() {
+    if (actualHandlerIndex < contextHandlers.size()) return true;
+    else return false;
+  }
+
+  synchronized protected boolean hasNextFailureHandler() {
+    if (actualFailureHandlerIndex < failureHandlers.size()) return true;
+    else return false;
+  }
+
+  synchronized protected void resetIndexes() {
+    actualFailureHandlerIndex = 0;
+    actualHandlerIndex = 0;
+  }
 }

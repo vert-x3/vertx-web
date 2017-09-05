@@ -50,7 +50,7 @@ import io.vertx.ext.auth.User;
  */
 class RawWebSocketTransport {
 
-  private static final Logger log = LoggerFactory.getLogger(WebSocketTransport.class);
+  private static final Logger log = LoggerFactory.getLogger(RawWebSocketTransport.class);
 
   private static class RawWSSockJSSocket extends SockJSSocketBase {
 
@@ -67,7 +67,8 @@ class RawWebSocketTransport {
     }
 
     public SockJSSocket handler(Handler<Buffer> handler) {
-      ws.handler(handler);
+      ws.binaryMessageHandler(handler);
+      ws.textMessageHandler(textMessage -> handler.handle(Buffer.buffer(textMessage)));
       return this;
     }
 
@@ -82,7 +83,7 @@ class RawWebSocketTransport {
     }
 
     public SockJSSocket write(Buffer data) {
-      ws.write(data);
+      ws.writeBinaryMessage(data);
       return this;
     }
 

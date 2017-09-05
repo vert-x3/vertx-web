@@ -23,3 +23,5 @@ src/main/resources/vertx-js/*.js
 src/test/resources/vertx-js/*.js
 .vertx
 *.pyc
+.metadata/*
+.recommenders/*

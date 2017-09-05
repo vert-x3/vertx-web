@@ -34,7 +34,6 @@ package io.vertx.ext.web.handler.sockjs.impl;
 
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
-import io.vertx.core.VoidHandler;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerResponse;
@@ -43,13 +42,23 @@ import io.vertx.core.logging.LoggerFactory;
 import io.vertx.core.shareddata.LocalMap;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.handler.sockjs.*;
+import io.vertx.ext.web.handler.sockjs.BridgeEvent;
+import io.vertx.ext.web.handler.sockjs.BridgeOptions;
+import io.vertx.ext.web.handler.sockjs.SockJSHandler;
+import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
+import io.vertx.ext.web.handler.sockjs.SockJSSocket;
+import io.vertx.ext.web.handler.sockjs.Transport;
 
 import java.security.MessageDigest;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
-import static io.vertx.core.buffer.Buffer.buffer;
+import static io.vertx.core.buffer.Buffer.*;
 
 /**
  *
@@ -313,10 +322,8 @@ public class SockJSHandlerImpl implements SockJSHandler, Handler<RoutingContext>
                 vertx.eventBus().publish(actorID, buffer);
               }
             });
-            sock.endHandler(new VoidHandler() {
-              public void handle() {
+            sock.endHandler(v -> {
               connections.remove(sock.writeHandlerID());
-            }
             });
           }
         }));

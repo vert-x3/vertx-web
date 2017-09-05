@@ -16,20 +16,20 @@
 
 package io.vertx.ext.web.templ.impl;
 
-import java.io.StringWriter;
-import java.util.HashMap;
-import java.util.Map;
-
 import com.mitchellbosecke.pebble.PebbleEngine;
 import com.mitchellbosecke.pebble.template.PebbleTemplate;
-
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.impl.Utils;
 import io.vertx.ext.web.templ.PebbleTemplateEngine;
+
+import java.io.StringWriter;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Dan Kristensen
@@ -39,8 +39,12 @@ public class PebbleTemplateEngineImpl extends CachingTemplateEngine<PebbleTempla
   private final PebbleEngine pebbleEngine;
 
   public PebbleTemplateEngineImpl(Vertx vertx) {
+    this(new PebbleEngine.Builder().loader(new PebbleVertxLoader(vertx)).cacheActive(false).build());
+  }
+
+  public PebbleTemplateEngineImpl(PebbleEngine engine) {
     super(DEFAULT_TEMPLATE_EXTENSION, DEFAULT_MAX_CACHE_SIZE);
-    pebbleEngine = new PebbleEngine.Builder().loader(new PebbleVertxLoader(vertx)).build();
+    this.pebbleEngine = engine;
   }
 
   @Override
@@ -56,14 +60,17 @@ public class PebbleTemplateEngineImpl extends CachingTemplateEngine<PebbleTempla
   }
 
   @Override
-  public void render(RoutingContext context, String templateFileName, Handler<AsyncResult<Buffer>> handler) {
+  public void render(RoutingContext context, String templateDirectory, String templateFileName, Handler<AsyncResult<Buffer>> handler) {
     try {
-      PebbleTemplate template = cache.get(templateFileName);
+      templateFileName = templateDirectory + templateFileName;
+      PebbleTemplate template = isCachingEnabled() ? cache.get(templateFileName) : null;
       if (template == null) {
         // real compile
         final String loc = adjustLocation(templateFileName);
         template = pebbleEngine.getTemplate(loc);
-        cache.put(templateFileName, template);
+        if (isCachingEnabled()) {
+          cache.put(templateFileName, template);
+        }
       }
       final Map<String, Object> variables = new HashMap<>(1);
       variables.put("context", context);

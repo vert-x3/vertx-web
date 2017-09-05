@@ -31,6 +31,12 @@ import io.vertx.ext.web.Session;
 public interface SessionStore {
 
   /**
+   * Default length for a session id.
+   * More info: https://www.owasp.org/index.php/Session_Management_Cheat_Sheet
+   */
+  int DEFAULT_SESSIONID_LENGTH = 16;
+
+  /**
    * The retry timeout value in milli seconds used by the session handler when it retrieves a value from the store.<p/>
    *
    * A non positive value means there is no retry at all.
@@ -40,13 +46,23 @@ public interface SessionStore {
   long retryTimeout();
 
   /**
-   * Create a new session
+   * Create a new session using the default min length.
    *
    * @param timeout - the session timeout, in ms
    *
    * @return the session
    */
   Session createSession(long timeout);
+
+  /**
+   * Create a new session
+   *
+   * @param timeout - the session timeout, in ms
+   * @param length - the required length for the session id
+   *
+   * @return the session
+   */
+  Session createSession(long timeout, int length);
 
   /**
    * Get the session with the specified ID

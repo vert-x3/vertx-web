@@ -18,7 +18,7 @@ package io.vertx.ext.web.handler;
 
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.ext.auth.AuthProvider;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.oauth2.OAuth2Auth;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.handler.impl.OAuth2AuthHandlerImpl;
@@ -32,23 +32,24 @@ import io.vertx.ext.web.handler.impl.OAuth2AuthHandlerImpl;
 public interface OAuth2AuthHandler extends AuthHandler {
 
   /**
-   * Create a OAuth2 auth handler
+   * Create a OAuth2 auth handler with host pinning
    *
    * @param authProvider  the auth provider to use
+   * @param callbackURL the callback URL you entered in your provider admin console, usually it should be something like: `https://myserver:8888/callback`
    * @return the auth handler
    */
-  static OAuth2AuthHandler create(OAuth2Auth authProvider, String uri) {
-    return new OAuth2AuthHandlerImpl(authProvider, uri);
+  static OAuth2AuthHandler create(OAuth2Auth authProvider, String callbackURL) {
+    return new OAuth2AuthHandlerImpl(authProvider, callbackURL);
   }
 
   /**
-   * Build the authorization URL.
+   * Extra parameters needed to be passed while requesting a token.
    *
-   * @param redirectURL where is the callback mounted.
-   * @param state state opaque token to avoid forged requests
-   * @return the redirect URL
+   * @param extraParams extra optional parameters.
+   * @return self
    */
-  String authURI(String redirectURL, String state);
+  @Fluent
+  OAuth2AuthHandler extraParams(JsonObject extraParams);
 
   /**
    * add the callback handler to a given route.

@@ -7,7 +7,7 @@
   <parent>
     <groupId>io.vertx</groupId>
     <artifactId>vertx-template-engines</artifactId>
-    <version>3.4.0-SNAPSHOT</version>
+    <version>3.5.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>vertx-web-templ-mvel</artifactId>
@@ -61,6 +61,7 @@
           Import-Package: \
             groovy.lang.*;resolution:=optional,\
             org.codehaus.groovy.*;resolution:=optional,\
+            kotlin.*;resolution:=optional,\
             io.vertx.groovy.*;resolution:=optional,\
             io.vertx.ext.auth.*,\
             io.vertx.lang.rxjava.*;resolution:=optional,\
@@ -70,6 +71,9 @@
             io.vertx.rxjava.core.*;resolution:=optional,\
             io.vertx.rxjava.ext.auth.*;resolution:=optional,\
             rx.*;resolution:=optional,\
+            io.reactivex.*;resolution:=optional,\
+            io.vertx.reactivex.*;resolution:=optional,\
+            io.vertx.lang.reactivex.*;resolution:=optional,\
             !io.vertx.ext.web.impl,\
             *
           ]]></bnd>

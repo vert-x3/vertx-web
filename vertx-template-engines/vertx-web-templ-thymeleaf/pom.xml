@@ -7,7 +7,7 @@
   <parent>
     <groupId>io.vertx</groupId>
     <artifactId>vertx-template-engines</artifactId>
-    <version>3.4.0-SNAPSHOT</version>
+    <version>3.5.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>vertx-web-templ-thymeleaf</artifactId>
@@ -17,6 +17,18 @@
       <groupId>org.thymeleaf</groupId>
       <artifactId>thymeleaf</artifactId>
       <version>3.0.0.RELEASE</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-api</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>1.7.21</version>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>io.vertx</groupId>
@@ -62,6 +74,7 @@
             groovy.lang.*;resolution:=optional,\
             org.codehaus.groovy.*;resolution:=optional,\
             io.vertx.groovy.*;resolution:=optional,\
+            kotlin.*;resolution:=optional,\
             io.vertx.ext.auth.*,\
             io.vertx.lang.rxjava.*;resolution:=optional,\
             io.vertx.lang.groovy.*;resolution:=optional,\
@@ -70,6 +83,9 @@
             io.vertx.rxjava.core.*;resolution:=optional,\
             io.vertx.rxjava.ext.auth.*;resolution:=optional,\
             rx.*;resolution:=optional,\
+            io.reactivex.*;resolution:=optional,\
+            io.vertx.reactivex.*;resolution:=optional,\
+            io.vertx.lang.reactivex.*;resolution:=optional,\
             !io.vertx.ext.web.impl,\
             *
           ]]></bnd>
@@ -95,7 +111,6 @@
                   <include>*:thymeleaf</include>
                   <include>ognl:ognl</include>
                   <include>org.javassist:javassist</include>
-                  <include>org.slf4j:slf4j-api</include>
                 </includes>
               </artifactSet>
             </configuration>
