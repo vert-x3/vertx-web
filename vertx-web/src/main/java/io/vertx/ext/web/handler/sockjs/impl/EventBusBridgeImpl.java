@@ -41,6 +41,8 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.auth.User;
+import io.vertx.ext.bridge.BridgeEventType;
+import io.vertx.ext.bridge.PermittedOptions;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.sockjs.*;
 
@@ -298,6 +300,8 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
     SockInfo info = sockInfos.get(sock);
     if (info != null) {
       info.pingInfo.lastPing = System.currentTimeMillis();
+      // Trigger an event to allow custom behavior after updating lastPing
+      checkCallHook(() -> new BridgeEventImpl(BridgeEventType.SOCKET_PING, null, sock), null, null);
     }
   }
 
@@ -313,10 +317,11 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
         PingInfo pingInfo = new PingInfo();
         pingInfo.timerID = vertx.setPeriodic(pingTimeout, id -> {
           if (System.currentTimeMillis() - pingInfo.lastPing >= pingTimeout) {
-        	// Trigger an event to allow custom behavior before disconnecting client.
-            checkCallHook(() -> new BridgeEventImpl(BridgeEventType.SOCKET_IDLE, null, sock), null, null);
-            // We didn't receive a ping in time so close the socket
-            sock.close();
+        	  	// Trigger an event to allow custom behavior before disconnecting client.
+            checkCallHook(() -> new BridgeEventImpl(BridgeEventType.SOCKET_IDLE, null, sock),
+            		// We didn't receive a ping in time so close the socket
+            		sock::close, 
+            		() -> replyError(sock, "rejected"));
           }
         });
         SockInfo sockInfo = new SockInfo();
