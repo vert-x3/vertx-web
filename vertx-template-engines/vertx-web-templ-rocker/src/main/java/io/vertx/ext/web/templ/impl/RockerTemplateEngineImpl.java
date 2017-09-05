@@ -16,14 +16,9 @@
 
 package io.vertx.ext.web.templ.impl;
 
-import java.util.List;
-
 import com.fizzed.rocker.BindableRockerModel;
 import com.fizzed.rocker.Rocker;
-import com.fizzed.rocker.runtime.ArrayOfByteArraysOutput;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
@@ -63,14 +58,19 @@ public class RockerTemplateEngineImpl extends CachingTemplateEngine<Void> implem
       model.bind("context", context);
       model.bind(context.data());
 
-      ArrayOfByteArraysOutput output = model.render(ArrayOfByteArraysOutput.FACTORY);
+      ArrayOfByteBufsOutputFactory outputFactory = new ArrayOfByteBufsOutputFactory();
+      ArrayOfByteBufsOutput output;
+      try {
+        output = model.render(outputFactory);
+      } catch (final Exception ex) {
+        output = outputFactory.getOutput();
+        if (output != null) {
+          output.release();
+        }
+        throw ex;
+      }
 
-      List<byte[]> listOfByteArrays = output.getArrays();
-      int listOfByteArraysSize = listOfByteArrays.size();
-      byte[][] arrayOfByteArrays = listOfByteArrays.toArray(new byte[listOfByteArraysSize][]);
-      ByteBuf byteBuf = Unpooled.wrappedBuffer(listOfByteArraysSize, arrayOfByteArrays);
-
-      handler.handle(Future.succeededFuture(Buffer.buffer(byteBuf)));
+      handler.handle(Future.succeededFuture(Buffer.buffer(output.toByteBuf())));
     } catch (final Exception ex) {
       handler.handle(Future.failedFuture(ex));
     }
