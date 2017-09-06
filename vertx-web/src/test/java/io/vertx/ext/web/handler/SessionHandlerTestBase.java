@@ -22,6 +22,7 @@ import io.vertx.ext.web.Session;
 import io.vertx.ext.web.sstore.SessionStore;
 import io.vertx.ext.web.impl.Utils;
 import io.vertx.ext.web.WebTestBase;
+import io.vertx.ext.web.sstore.impl.SessionImpl;
 import org.junit.Test;
 
 import java.text.DateFormat;
@@ -418,5 +419,76 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
       String setCookie = resp.headers().get("set-cookie");
       assertNotNull(setCookie);
     }, 200, "OK", null);
+  }
+
+  @Test
+  public void testVersion() throws Exception {
+    SessionImpl session = (SessionImpl) store.createSession(10000);
+
+    assertEquals(0, session.version());
+    session.put("k", "v");
+
+    store.put(session, res -> {
+      if (res.failed()) {
+        fail("failed to store");
+      }
+      store.get(session.id(), res1 -> {
+        if (res1.failed()) {
+          fail("failed to store");
+        }
+
+        SessionImpl session1 = (SessionImpl) res1.result();
+        // session was stored for the first time so it must have version 1
+        assertEquals(1, session1.version());
+        // confirm that the content is present
+        assertEquals("v", session1.get("k"));
+
+        store.put(session1, res2 -> {
+          if (res2.failed()) {
+            fail("failed to store");
+          }
+          store.get(session1.id(), res3 -> {
+            if (res3.failed()) {
+              fail("failed to store");
+            }
+
+            SessionImpl session2 = (SessionImpl) res3.result();
+            // session was stored again but no changes were applied to the content
+            // therefore version should remain the same
+            assertEquals(1, session2.version());
+            // confirm the content is present
+            assertEquals("v", session2.get("k"));
+
+            // update content
+            session2.put("k", "w");
+
+            store.put(session2, res4 -> {
+              if (res4.failed()) {
+                fail("failed to store");
+              }
+              store.get(session2.id(), res5 -> {
+                if (res5.failed()) {
+                  fail("failed to store");
+                }
+
+                SessionImpl session3 = (SessionImpl) res5.result();
+                // session was stored again but changes were applied to the content
+                // therefore version should must increment
+                assertEquals(2, session3.version());
+                // confirm the content is present
+                assertEquals("w", session3.get("k"));
+
+                // update content
+                session2.put("k", "w");
+
+                testComplete();
+              });
+            });
+          });
+        });
+      });
+    });
+
+    await();
   }
 }
