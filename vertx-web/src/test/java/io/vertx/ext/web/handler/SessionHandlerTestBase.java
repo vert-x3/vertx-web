@@ -477,10 +477,6 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
                 assertEquals(2, session3.version());
                 // confirm the content is present
                 assertEquals("w", session3.get("k"));
-
-                // update content
-                session2.put("k", "w");
-
                 testComplete();
               });
             });
