@@ -51,6 +51,9 @@ public interface Route {
   @Fluent
   Route path(String path);
 
+  @Fluent
+  Route topic(String path);
+
   /**
    * Set the path prefix as a regular expression. If set then this route will only match request URI paths, the beginning
    * of which match the regex. Only a single path or path regex can be set for a route.
@@ -107,6 +110,8 @@ public interface Route {
   @Fluent
   Route handler(Handler<RoutingContext> requestHandler);
 
+  @Fluent
+  Route mqttMessageHandler(Handler<MqttPublishMessage> messageHandler);
 
   /**
    * Like {@link io.vertx.ext.web.Route#blockingHandler(Handler, boolean)} called with ordered = true

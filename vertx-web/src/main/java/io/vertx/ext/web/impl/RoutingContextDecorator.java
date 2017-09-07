@@ -155,6 +155,12 @@ public class RoutingContextDecorator implements RoutingContext {
   }
 
   @Override
+  public void nextMqtt() {
+    // make sure the next handler run on the correct context
+    vertx().runOnContext(future -> decoratedContext.next());
+  }
+
+  @Override
   public String normalisedPath() {
     return decoratedContext.normalisedPath();
   }
@@ -187,6 +193,11 @@ public class RoutingContextDecorator implements RoutingContext {
   @Override
   public HttpServerResponse response() {
     return decoratedContext.response();
+  }
+
+  @Override
+  public MqttPublishMessage message() {
+    return decoratedContext.message();
   }
 
   @Override
