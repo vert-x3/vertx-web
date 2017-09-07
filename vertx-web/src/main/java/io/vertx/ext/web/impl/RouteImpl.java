@@ -64,6 +64,7 @@ public class RouteImpl implements Route {
     this.router = router;
     this.order = order;
     this.contextHandlers = new ArrayList<>();
+    this.mqttMessageHandlers = new ArrayList<>();
     this.failureHandlers = new ArrayList<>();
     resetIndexes();
   }
