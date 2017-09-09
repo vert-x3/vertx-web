@@ -116,4 +116,4 @@ components:
       type: apiKey
       name: api_key
       in: header
-      openIdConnectUrl: "http://www.example.com" # I don't know why but this parameter is required even if type is basic or apiKey. I think It's OAS bug
+        
