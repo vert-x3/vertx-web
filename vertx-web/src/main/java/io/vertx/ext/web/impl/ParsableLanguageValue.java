@@ -9,6 +9,7 @@ import java.util.List;
 public class ParsableLanguageValue extends ParsableHeaderValue implements LanguageHeader{
 
   private List<String> parsedValues;
+  private boolean processed = false;
 
   public ParsableLanguageValue(String headerContent) {
     super(headerContent);
@@ -54,7 +55,8 @@ public class ParsableLanguageValue extends ParsableHeaderValue implements Langua
 
   @Override
   public int subtagCount(){
-    return parsedValues.size();
+    ensureHeaderProcessed();
+    return parsedValues != null ? parsedValues.size() : 0;
   }
 
   @Override
@@ -74,8 +76,11 @@ public class ParsableLanguageValue extends ParsableHeaderValue implements Langua
 
   @Override
   protected void ensureHeaderProcessed() {
-    super.ensureHeaderProcessed();
-    parsedValues = HeaderParser.parseLanguageValue(value);
+    if(!processed) {
+      processed = true;
+      super.ensureHeaderProcessed();
+      parsedValues = HeaderParser.parseLanguageValue(value);
+    }
   }
 
 }
