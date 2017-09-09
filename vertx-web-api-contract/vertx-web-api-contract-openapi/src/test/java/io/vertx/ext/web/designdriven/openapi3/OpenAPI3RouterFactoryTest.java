@@ -118,7 +118,7 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
 
     testRequest(HttpMethod.GET, "/pets", 200, "path mounted!");
     testRequest(HttpMethod.POST, "/pets", 200, "path mounted!");
-    testRequest(HttpMethod.GET, "/pets/anId", 501, "Not Implemented");
+    testRequest(HttpMethod.GET, "/pets/3", 501, "Not Implemented");
 
     stopServer();
 

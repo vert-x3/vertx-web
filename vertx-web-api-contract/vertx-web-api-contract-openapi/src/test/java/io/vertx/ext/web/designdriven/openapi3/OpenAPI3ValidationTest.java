@@ -67,10 +67,10 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
     OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(op, new ArrayList<>(op.getParameters()));
     loadHandlers("/pets/:petId", HttpMethod.GET, false, validationHandler, (routingContext) -> {
       RequestParameters params = routingContext.get("parsedParameters");
-      routingContext.response().setStatusMessage(params.pathParameter("petId").getString()).end();
+      routingContext.response().setStatusMessage(params.pathParameter("petId").getInteger().toString()).end();
     });
 
-    testRequest(HttpMethod.GET, "/pets/aPetId", 200, "aPetId");
+    testRequest(HttpMethod.GET, "/pets/3", 200, "3");
 
   }
 
@@ -81,7 +81,7 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
     loadHandlers("/pets/:petId", HttpMethod.GET, true, validationHandler, (routingContext) -> {
       routingContext.response().setStatusMessage("ok").end();
     });
-    testRequest(HttpMethod.GET, "/pets/3", 400, errorMessage(ValidationException.ErrorType.NO_MATCH));
+    testRequest(HttpMethod.GET, "/pets/three", 400, errorMessage(ValidationException.ErrorType.NO_MATCH));
   }
 
   @Test
