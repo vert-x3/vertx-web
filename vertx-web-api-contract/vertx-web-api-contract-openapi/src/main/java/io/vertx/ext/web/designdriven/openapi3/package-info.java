@@ -25,8 +25,8 @@
  * == Create a new router factory
  * To create a new router factory, you can use methods inside {@link io.vertx.ext.web.designdriven.openapi3.OpenAPI3RouterFactory}:
  *
- * * {@link io.vertx.ext.web.designdriven.openapi3.OpenAPI3RouterFactory#createRouterFactoryFromFile(io.vertx.core.Vertx, java.lang.String, boolean, io.vertx.core.Handler)}  to create a router factory from local file
- * * {@link io.vertx.ext.web.designdriven.openapi3.OpenAPI3RouterFactory#createRouterFactoryFromURL(io.vertx.core.Vertx, java.lang.String, boolean, io.vertx.core.Handler)}  to create a router factory from url
+ * * {@link io.vertx.ext.web.designdriven.openapi3.OpenAPI3RouterFactory#createRouterFactoryFromFile(io.vertx.core.Vertx, java.lang.String, io.vertx.core.Handler)}  to create a router factory from local file
+ * * {@link io.vertx.ext.web.designdriven.openapi3.OpenAPI3RouterFactory#createRouterFactoryFromURL(io.vertx.core.Vertx, java.lang.String, io.vertx.core.Handler)}  to create a router factory from url
  *
  * For example:
  * [source,$lang]
