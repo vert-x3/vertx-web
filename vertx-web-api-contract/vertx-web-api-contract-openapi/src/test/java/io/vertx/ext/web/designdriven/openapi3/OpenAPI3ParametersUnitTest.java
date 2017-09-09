@@ -1,7 +1,8 @@
 package io.vertx.ext.web.designdriven.openapi3;
 
-import com.reprezen.kaizen.oasparser.OpenApiParser;
-import com.reprezen.kaizen.oasparser.model3.OpenApi3;
+import io.swagger.oas.models.OpenAPI;
+import io.swagger.parser.models.ParseOptions;
+import io.swagger.parser.v3.OpenAPIV3Parser;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpServerOptions;
@@ -30,7 +31,7 @@ import java.util.stream.Collectors;
  */
 public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
 
-  OpenApi3 spec;
+  OpenAPI spec;
   ApiClient apiClient;
   OpenAPI3RouterFactory routerFactory;
 
@@ -2507,8 +2508,10 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
   }
 
 
-  private OpenApi3 loadSwagger(String filename) {
-    return (OpenApi3) new OpenApiParser().parse(new File(filename), false);
+  private OpenAPI loadSwagger(String filename) {
+    ParseOptions options = new ParseOptions();
+    options.setResolve(true);
+    return new OpenAPIV3Parser().read(filename, null, options);
   }
 
   public Handler<RoutingContext> generateFailureHandler() {

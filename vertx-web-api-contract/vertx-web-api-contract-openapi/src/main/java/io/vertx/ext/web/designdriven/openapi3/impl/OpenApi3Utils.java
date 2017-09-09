@@ -1,7 +1,8 @@
 package io.vertx.ext.web.designdriven.openapi3.impl;
 
-import com.reprezen.kaizen.oasparser.model3.Parameter;
-import com.reprezen.kaizen.oasparser.model3.Schema;
+import io.swagger.oas.models.media.ComposedSchema;
+import io.swagger.oas.models.media.Schema;
+import io.swagger.oas.models.parameters.Parameter;
 import io.vertx.ext.web.validation.SpecFeatureNotSupportedException;
 
 import java.util.ArrayList;
@@ -30,7 +31,7 @@ public class OpenApi3Utils {
   }
 
   public static boolean isRequiredParam(Schema schema, String parameterName) {
-    return schema != null && schema.getRequiredFields() != null && schema.getRequiredFields().contains(parameterName);
+    return schema != null && schema.getRequired() != null && schema.getRequired().contains(parameterName);
   }
 
   public static boolean isRequiredParam(Parameter param) {
@@ -38,7 +39,7 @@ public class OpenApi3Utils {
   }
 
   public static String resolveStyle(Parameter param) {
-    if (param.getStyle() != null) return param.getStyle();
+    if (param.getStyle() != null) return param.getStyle().toString();
     else switch (param.getIn()) {
       case "query":
         return "form";
@@ -54,15 +55,21 @@ public class OpenApi3Utils {
   }
 
   public static boolean isOneOfSchema(Schema schema) {
-    return (schema.getOneOfSchemas() != null && schema.getOneOfSchemas().size() != 0);
+    if(!(schema instanceof ComposedSchema)) return false;
+    ComposedSchema composedSchema = (ComposedSchema) schema;
+    return (composedSchema.getOneOf() != null && composedSchema.getOneOf().size() != 0);
   }
 
   public static boolean isAnyOfSchema(Schema schema) {
-    return (schema.getAnyOfSchemas() != null && schema.getAnyOfSchemas().size() != 0);
+    if(!(schema instanceof ComposedSchema)) return false;
+    ComposedSchema composedSchema = (ComposedSchema) schema;
+    return (composedSchema.getAnyOf() != null && composedSchema.getAnyOf().size() != 0);
   }
 
   public static boolean isAllOfSchema(Schema schema) {
-    return (schema.getAllOfSchemas() != null && schema.getAllOfSchemas().size() != 0);
+    if(!(schema instanceof ComposedSchema)) return false;
+    ComposedSchema composedSchema = (ComposedSchema) schema;
+    return (composedSchema.getAllOf() != null && composedSchema.getAllOf().size() != 0);
   }
 
   public static boolean resolveAllowEmptyValue(Parameter parameter) {
@@ -127,7 +134,7 @@ public class OpenApi3Utils {
 
     public ObjectField(Schema schema, String name, Schema superSchema) {
       this.schema = schema;
-      this.required = superSchema.getRequiredFields() != null && superSchema.getRequiredFields().contains(name);
+      this.required = superSchema.getRequired() != null && superSchema.getRequired().contains(name);
     }
 
     public Schema getSchema() {
@@ -145,7 +152,7 @@ public class OpenApi3Utils {
     for (Schema schema : allOfSchemas) {
       if (schema.getType() != null && !schema.getType().equals("object"))
         throw new SpecFeatureNotSupportedException("allOf only allows inner object types");
-      for (Map.Entry<String, ? extends Schema> entry : schema.getProperties().entrySet()) {
+      for (Map.Entry<String, ? extends Schema> entry : ((Map<String, Schema>)schema.getProperties()).entrySet()) {
         properties.put(entry.getKey(), new OpenApi3Utils.ObjectField(entry.getValue(), entry.getKey(), schema));
       }
     }
@@ -157,11 +164,12 @@ public class OpenApi3Utils {
     if (OpenApi3Utils.isSchemaObjectOrAllOfType(schema)) {
       if (OpenApi3Utils.isAllOfSchema(schema)) {
         // allOf case
-        return resolveAllOfArrays(new ArrayList<>(schema.getAllOfSchemas()));
+        ComposedSchema composedSchema = (ComposedSchema) schema;
+        return resolveAllOfArrays(new ArrayList<>(composedSchema.getAllOf()));
       } else {
         // type object case
         Map<String, ObjectField> properties = new HashMap<>();
-        for (Map.Entry<String, ? extends Schema> entry : schema.getProperties().entrySet()) {
+        for (Map.Entry<String, ? extends Schema> entry : ((Map<String, Schema>)schema.getProperties()).entrySet()) {
           properties.put(entry.getKey(), new OpenApi3Utils.ObjectField(entry.getValue(), entry.getKey(), schema));
         }
         return properties;

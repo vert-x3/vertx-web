@@ -1,6 +1,10 @@
 package io.vertx.ext.web.designdriven.openapi3.impl;
 
-import com.reprezen.kaizen.oasparser.model3.*;
+import io.swagger.oas.models.OpenAPI;
+import io.swagger.oas.models.Operation;
+import io.swagger.oas.models.PathItem;
+import io.swagger.oas.models.parameters.Parameter;
+import io.swagger.oas.models.security.SecurityRequirement;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
@@ -11,14 +15,17 @@ import io.vertx.ext.web.designdriven.RouterFactoryException;
 import io.vertx.ext.web.designdriven.impl.BaseDesignDrivenRouterFactory;
 import io.vertx.ext.web.designdriven.openapi3.OpenAPI3RouterFactory;
 import io.vertx.ext.web.handler.BodyHandler;
-import io.vertx.ext.web.impl.RouteImpl;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Francesco Guardiani @slinkydeveloper
  */
-public class OpenAPI3RouterFactoryImpl extends BaseDesignDrivenRouterFactory<OpenApi3> implements
+public class OpenAPI3RouterFactoryImpl extends BaseDesignDrivenRouterFactory<OpenAPI> implements
   OpenAPI3RouterFactory {
 
   private final Handler<RoutingContext> NOT_IMPLEMENTED_HANDLER = (routingContext) -> {
@@ -104,7 +111,9 @@ public class OpenAPI3RouterFactoryImpl extends BaseDesignDrivenRouterFactory<Ope
       this.path = path;
       this.operationModel = operationModel;
       // Merge parameters
-      this.parameters = OpenApi3Utils.mergeParameters(new ArrayList<Parameter>(operationModel.getParameters()), new ArrayList<Parameter>(parentParameters));
+      List<Parameter> opParams = operationModel.getParameters()==null?new ArrayList<>():new ArrayList<>(operationModel.getParameters());
+      List<Parameter> parentParams = parentParameters==null?new ArrayList<>():new ArrayList<>(parentParameters);
+      this.parameters = OpenApi3Utils.mergeParameters(opParams, parentParams);
       this.userHandlers = new ArrayList<>();
       this.userFailureHandlers = new ArrayList<>();
     }
@@ -146,16 +155,15 @@ public class OpenAPI3RouterFactoryImpl extends BaseDesignDrivenRouterFactory<Ope
     }
   }
 
-  public OpenAPI3RouterFactoryImpl(Vertx vertx, OpenApi3 spec) {
+  public OpenAPI3RouterFactoryImpl(Vertx vertx, OpenAPI spec) {
     super(vertx, spec);
     this.operations = new HashMap<>();
     this.securityHandlers = new HashMap<>();
 
     /* --- Initialization of all arrays and maps --- */
-    for (Map.Entry<String, ? extends Path> pathEntry : spec.getPaths().entrySet()) {
-      for (Map.Entry<String, ? extends Operation> opEntry : pathEntry.getValue().getOperations().entrySet()) {
-        this.operations.put(opEntry.getValue().getOperationId(), new OperationValue(OpenApi3Utils
-          .searchEnum(HttpMethod.class, opEntry.getKey()), pathEntry.getKey(), opEntry.getValue(), pathEntry.getValue()
+    for (Map.Entry<String, ? extends PathItem> pathEntry : spec.getPaths().entrySet()) {
+      for (Map.Entry<PathItem.HttpMethod, ? extends Operation> opEntry : pathEntry.getValue().readOperationsMap().entrySet()) {
+        this.operations.put(opEntry.getValue().getOperationId(), new OperationValue(HttpMethod.valueOf(opEntry.getKey().name()), pathEntry.getKey(), opEntry.getValue(), pathEntry.getValue()
           .getParameters()));
       }
     }
@@ -198,7 +206,7 @@ public class OpenAPI3RouterFactoryImpl extends BaseDesignDrivenRouterFactory<Ope
 
   private String resolveOperationId(HttpMethod method, String path) {
     // I assume the user give path in openapi style
-    Path pathObject = this.spec.getPath(path);
+    PathItem pathObject = this.spec.getPaths().get(path);
     if (pathObject == null) {
       throw RouterFactoryException.createPathNotFoundException(path);
     }
@@ -261,14 +269,13 @@ public class OpenAPI3RouterFactoryImpl extends BaseDesignDrivenRouterFactory<Ope
       List<Handler> failureHandlersToLoad = new ArrayList<>();
 
       // Resolve security handlers
-      if (operation.getOperationModel().hasSecurityRequirements()) {
-        for (SecurityRequirement securityRequirement : operation.getOperationModel().getSecurityRequirements()) {
-          for (Map.Entry<String, ? extends SecurityParameter> securityValue : securityRequirement.getRequirements()
-            .entrySet()) {
-            if (securityValue.getValue().getParameters() != null && securityValue.getValue().getParameters().size()
-              != 0) {
+      List<SecurityRequirement> securityRequirements = operation.getOperationModel().getSecurity();
+      if (securityRequirements != null) {
+        for (SecurityRequirement securityRequirement : securityRequirements) {
+          for (Map.Entry<String, List<String>> securityValue : securityRequirement.entrySet()) {
+            if (securityValue.getValue() != null && securityValue.getValue().size() != 0) {
               // It's a multiscope security requirement
-              for (String scope : securityValue.getValue().getParameters()) {
+              for (String scope : securityValue.getValue()) {
                 Handler securityHandlerToLoad = this.securityHandlers.get(new SecurityRequirementKey(securityValue
                   .getKey(), scope));
                 if (securityHandlerToLoad == null) {
@@ -292,7 +299,7 @@ public class OpenAPI3RouterFactoryImpl extends BaseDesignDrivenRouterFactory<Ope
 
       // Generate ValidationHandler
       Handler<RoutingContext> validationHandler = new OpenAPI3RequestValidationHandlerImpl(operation
-        .getOperationModel(), operation.getParameters());
+        .getOperationModel(), operation.getParameters(), this.spec);
       handlersToLoad.add(validationHandler);
 
       // Check validation failure handler

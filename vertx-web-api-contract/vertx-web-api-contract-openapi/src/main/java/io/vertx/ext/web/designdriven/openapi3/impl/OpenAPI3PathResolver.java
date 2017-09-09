@@ -1,6 +1,6 @@
 package io.vertx.ext.web.designdriven.openapi3.impl;
 
-import com.reprezen.kaizen.oasparser.model3.Parameter;
+import io.swagger.oas.models.parameters.Parameter;
 import io.vertx.ext.web.designdriven.RouterFactoryException;
 
 import java.util.HashMap;
@@ -62,7 +62,7 @@ public class OpenAPI3PathResolver {
         if (parameterOptional.isPresent()) {
           // For every parameter style I have to generate a different regular expression
           Parameter parameter = parameterOptional.get();
-          String style = (parameter.getStyle() != null && !parameter.getStyle().isEmpty()) ? parameter.getStyle() : "simple";
+          String style = (parameter.getStyle() != null) ? parameter.getStyle().toString() : "simple";
           boolean explode = (parameter.getExplode() != null) ? parameter.getExplode() : false;
           boolean isObject = OpenApi3Utils.isParameterObjectOrAllOfType(parameter);
           boolean isArray = OpenApi3Utils.isParameterArrayType(parameter);
