@@ -202,9 +202,9 @@ paths:
                   type: array
                   items:
                     type: float
-              encoding:
-                param3:
-                  contentType: application/sql
+            encoding:
+              param3:
+                contentType: application/sql
 
 
 components:
