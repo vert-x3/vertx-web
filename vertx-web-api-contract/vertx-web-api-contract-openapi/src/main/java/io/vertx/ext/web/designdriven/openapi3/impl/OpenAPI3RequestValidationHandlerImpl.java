@@ -64,12 +64,14 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
   };
 
   List<Parameter> resolvedParameters;
+  OpenAPI spec;
 
   /* --- Initialization functions --- */
 
-  public OpenAPI3RequestValidationHandlerImpl(Operation pathSpec, List<Parameter> resolvedParameters) {
+  public OpenAPI3RequestValidationHandlerImpl(Operation pathSpec, List<Parameter> resolvedParameters, OpenAPI spec) {
     super(pathSpec);
     this.resolvedParameters = resolvedParameters;
+    this.spec = spec;
     parseOperationSpec();
   }
 
@@ -362,6 +364,11 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
 
   /* Entry point for parse Parameter object */
   private void parseParameter(Parameter parameter) {
+    if(parameter.getSchema().get$ref() != null) {
+      Schema refSchema = this.spec.getComponents().getSchemas().get(RefUtils.computeDefinitionName(parameter.getSchema().get$ref()));
+      if(refSchema != null) parameter.setSchema(refSchema);
+    }
+    
     if (!checkSupportedAndNeedWorkaround(parameter)) {
       ParameterLocation location = resolveLocation(parameter.getIn());
       this.addRule(ParameterValidationRuleImpl.ParameterValidationRuleFactory
