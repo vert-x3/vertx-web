@@ -26,10 +26,12 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
 
     Pattern contentTypePattern;
     String parameterName;
+    boolean isOptional;
 
-    public MultipartCustomValidator(Pattern contentTypeRegex, String parameterName) {
+    public MultipartCustomValidator(Pattern contentTypeRegex, String parameterName, boolean isOptional) {
       this.contentTypePattern = contentTypeRegex;
       this.parameterName = parameterName;
+      this.isOptional = isOptional;
     }
 
     private boolean existFileUpload(Set<FileUpload> files, String name, Pattern contentType) {
@@ -42,8 +44,8 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
     @Override
     public void validate(RoutingContext routingContext) throws ValidationException {
       if (!existFileUpload(routingContext.fileUploads(), parameterName, contentTypePattern)) {
-        if (!routingContext.request().formAttributes().contains(parameterName))
-          throw ValidationException.ValidationExceptionFactory.generateNotFoundValidationException(parameterName,
+        if (!routingContext.request().formAttributes().contains(parameterName) && !isOptional)
+          throw ValidationException.ValidationExceptionFactory.generateNotFoundValidationException(parameterName, 
             ParameterLocation.BODY_FORM);
       }
     }
