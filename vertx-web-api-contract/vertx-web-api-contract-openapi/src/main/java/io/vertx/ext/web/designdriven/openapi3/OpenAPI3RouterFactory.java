@@ -1,8 +1,9 @@
 package io.vertx.ext.web.designdriven.openapi3;
 
-import com.reprezen.kaizen.oasparser.OpenApiParser;
-import com.reprezen.kaizen.oasparser.model3.OpenApi3;
-import com.reprezen.kaizen.oasparser.val.ValidationResults;
+import io.swagger.oas.models.OpenAPI;
+import io.swagger.parser.models.ParseOptions;
+import io.swagger.parser.models.SwaggerParseResult;
+import io.swagger.parser.v3.OpenAPIV3Parser;
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.AsyncResult;
@@ -14,10 +15,9 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.designdriven.DesignDrivenRouterFactory;
 import io.vertx.ext.web.designdriven.RouterFactoryException;
 import io.vertx.ext.web.designdriven.openapi3.impl.OpenAPI3RouterFactoryImpl;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
-import java.net.MalformedURLException;
-import java.net.URL;
 
 /**
  * Interface for OpenAPI3RouterFactory. <br/>
@@ -46,7 +46,7 @@ import java.net.URL;
  * @author Francesco Guardiani @slinkydeveloper
  */
 @VertxGen
-public interface OpenAPI3RouterFactory extends DesignDrivenRouterFactory<OpenApi3> {
+public interface OpenAPI3RouterFactory extends DesignDrivenRouterFactory<OpenAPI> {
 
   /**
    * Add a particular scope validator. The main security schema will not be called if a specific scope validator is
@@ -86,23 +86,21 @@ public interface OpenAPI3RouterFactory extends DesignDrivenRouterFactory<OpenApi
    *
    * @param vertx
    * @param filename
-   * @param validate Validate the spec. <b>Warning</b>: Flag this parameter false only if you are sure your spec is valid, otherwise you will get unexpected behaviour
    * @param handler  When specification is loaded, this handler will be called with AsyncResult<OpenAPI3RouterFactory>
    */
-  static void createRouterFactoryFromFile(Vertx vertx, String filename, boolean validate, Handler<AsyncResult<OpenAPI3RouterFactory>>
+  static void createRouterFactoryFromFile(Vertx vertx, String filename, Handler<AsyncResult<OpenAPI3RouterFactory>>
     handler) {
     vertx.executeBlocking((Future<OpenAPI3RouterFactory> future) -> {
       File spec = new File(filename);
       if (!spec.exists())
         future.fail(RouterFactoryException.createSpecNotExistsException(filename));
-      OpenApi3 model = (OpenApi3) new OpenApiParser().parse(spec, validate);
-      if (!validate || model.isValid()) future.complete(new OpenAPI3RouterFactoryImpl(vertx, model));
+      ParseOptions options = new ParseOptions();
+      options.setResolve(true);
+      SwaggerParseResult swaggerParseResult = new OpenAPIV3Parser().readLocation(spec.getAbsolutePath(), null, options);
+
+      if (swaggerParseResult.getMessages().isEmpty()) future.complete(new OpenAPI3RouterFactoryImpl(vertx, swaggerParseResult.getOpenAPI()));
       else {
-        if (model.getValidationResults().getSeverity() == ValidationResults.Severity.ERROR || model
-          .getValidationResults().getSeverity() == ValidationResults.Severity.MAX_SEVERITY)
-          future.fail(RouterFactoryException.createSpecInvalidException(model.getValidationResults().getItems()
-            .toString()));
-        else future.complete(new OpenAPI3RouterFactoryImpl(vertx, model));
+          future.fail(RouterFactoryException.createSpecInvalidException(StringUtils.join(swaggerParseResult.getMessages(),", ")));
       }
     }, handler);
   }
@@ -112,26 +110,9 @@ public interface OpenAPI3RouterFactory extends DesignDrivenRouterFactory<OpenApi
    *
    * @param vertx
    * @param url
-   * @param validate Validate the spec. <b>Warning</b>: Flag this parameter false only if you are sure your spec is valid, otherwise you will get unexpected behaviour
    * @param handler  When specification is loaded, this handler will be called with AsyncResult<OpenAPI3RouterFactory>
    */
-  static void createRouterFactoryFromURL(Vertx vertx, String url, boolean validate, Handler<AsyncResult<OpenAPI3RouterFactory>> handler) {
-    vertx.executeBlocking((Future<OpenAPI3RouterFactory> future) -> {
-      OpenApi3 model = null;
-      try {
-        model = (OpenApi3) new OpenApiParser().parse(new URL(url), validate);
-      } catch (MalformedURLException e) {
-        future.fail(RouterFactoryException.createSpecNotExistsException(url));
-      }
-      if (!validate || model.isValid()) future.complete(new OpenAPI3RouterFactoryImpl(vertx, model));
-      else {
-        if (model.getValidationResults().getSeverity() == ValidationResults.Severity.ERROR || model
-          .getValidationResults().getSeverity() == ValidationResults.Severity.MAX_SEVERITY)
-          future.fail(RouterFactoryException.createSpecInvalidException(model.getValidationResults().getItems()
-            .toString()));
-        else future.complete(new OpenAPI3RouterFactoryImpl(vertx, model));
-      }
-    }, handler);
+  static void createRouterFactoryFromURL(Vertx vertx, String url, Handler<AsyncResult<OpenAPI3RouterFactory>> handler) {
+    createRouterFactoryFromFile(vertx, url, handler);
   }
-
 }
