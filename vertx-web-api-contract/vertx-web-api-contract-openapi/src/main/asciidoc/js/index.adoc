@@ -33,7 +33,7 @@ For example:
 [source,js]
 ----
 var OpenAPI3RouterFactory = require("vertx-web-contract-openapi-js/open_api3_router_factory");
-OpenAPI3RouterFactory.createRouterFactoryFromFile(vertx, "src/main/resources/petstore.yaml", true, function (ar, ar_err) {
+OpenAPI3RouterFactory.createRouterFactoryFromFile(vertx, "src/main/resources/petstore.yaml", function (ar, ar_err) {
   if (ar_err == null) {
     // Spec loaded with success
     var routerFactory = ar;
