@@ -47,9 +47,7 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
   };
 
   private OpenAPI loadSwagger(String filename) {
-    ParseOptions options = new ParseOptions();
-    options.setResolve(true);
-    return new OpenAPIV3Parser().read(filename, null, options);
+    return new OpenAPIV3Parser().readLocation(filename, null, null).getOpenAPI();
   }
 
   @Test

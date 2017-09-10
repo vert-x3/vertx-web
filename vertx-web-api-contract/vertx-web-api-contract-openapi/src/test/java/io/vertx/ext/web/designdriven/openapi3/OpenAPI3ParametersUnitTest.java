@@ -2509,9 +2509,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
 
 
   private OpenAPI loadSwagger(String filename) {
-    ParseOptions options = new ParseOptions();
-    options.setResolve(true);
-    return new OpenAPIV3Parser().read(filename, null, options);
+    return new OpenAPIV3Parser().readLocation(filename, null, null).getOpenAPI();
   }
 
   public Handler<RoutingContext> generateFailureHandler() {
