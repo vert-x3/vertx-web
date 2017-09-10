@@ -93,6 +93,9 @@ paths:
             items:
               type: integer
               multipleOf: 2
+      responses:
+        default:
+          description: ok
   /queryTests/default:
     get:
       operationId: testDefault
@@ -104,6 +107,9 @@ paths:
           schema:
             type: string
             default: aString
+      responses:
+        default:
+          description: ok
   /queryTests/arrayTests/default:
     get:
       operationId: arrayTest
@@ -116,6 +122,9 @@ paths:
             items:
               type: integer
               multipleOf: 2
+      responses:
+        default:
+          description: ok
   /formTests/arraytest:
     post:
       operationId: formArrayTest
@@ -132,6 +141,9 @@ paths:
                   type: array
                   items:
                     type: integer
+      responses:
+        default:
+          description: ok
   /jsonBodyTest/sampleTest:
     post:
       operationId: jsonBodyTest
@@ -147,9 +159,12 @@ paths:
                   type: array
                   items:
                     type: integer
+      responses:
+        default:
+          description: ok
   /queryTests/allOfTest:
     get:
-      operationid: alloftest
+      operationId: alloftest
       parameters:
         - name: parameter
           in: query
@@ -170,9 +185,12 @@ paths:
                     default: false
                 required:
                   - b
+      responses:
+        default:
+          description: ok
   /queryTests/anyOfTest:
     get:
-      operationid: alloftest
+      operationId: alloftest
       parameters:
         - name: parameter
           in: query
@@ -182,6 +200,9 @@ paths:
             anyOf:
               - type: boolean
               - type: integer
+      responses:
+        default:
+          description: ok
   /multipart/complex:
     post:
       operationId: complexMultipartRequest
@@ -201,11 +222,14 @@ paths:
                 param4:
                   type: array
                   items:
-                    type: float
+                    type: number
+                    format: float
             encoding:
               param3:
                 contentType: application/sql
-
+      responses:
+        default:
+          description: ok
 
 components:
   schemas:
