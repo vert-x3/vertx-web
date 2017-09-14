@@ -23,6 +23,7 @@ import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.auth.AuthProvider;
 import io.vertx.ext.auth.oauth2.OAuth2Auth;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
@@ -32,10 +33,29 @@ import io.vertx.ext.web.handler.OAuth2AuthHandler;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import static io.vertx.ext.auth.oauth2.OAuth2FlowType.AUTH_CODE;
+
 /**
  * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
  */
 public class OAuth2AuthHandlerImpl extends AuthorizationAuthHandler implements OAuth2AuthHandler {
+
+  /**
+   * This is a verification step, it can abort the instantiation by
+   * throwing a RuntimeException
+   *
+   * @param provider a auth provider
+   * @return the provider if valid
+   */
+  private static AuthProvider verifyProvider(AuthProvider provider) {
+    if (provider instanceof OAuth2Auth) {
+      if (((OAuth2Auth) provider).getFlowType() != AUTH_CODE) {
+        throw new IllegalArgumentException("OAuth2Auth + Bearer Auth requires OAuth2 AUTH_CODE flow");
+      }
+    }
+
+    return provider;
+  }
 
   private final String host;
   private final String callbackPath;
@@ -45,8 +65,10 @@ public class OAuth2AuthHandlerImpl extends AuthorizationAuthHandler implements O
   private JsonObject extraParams;
 
   public OAuth2AuthHandlerImpl(OAuth2Auth authProvider, String callbackURL) {
-    super(authProvider, Type.BEARER);
+    super(verifyProvider(authProvider), Type.BEARER);
+
     this.supportJWT = authProvider.hasJWTToken();
+
     try {
       if (callbackURL != null) {
         final URL url = new URL(callbackURL);
@@ -160,8 +182,7 @@ public class OAuth2AuthHandlerImpl extends AuthorizationAuthHandler implements O
         config.mergeIn(extraParams);
       }
 
-
-      ((OAuth2Auth) authProvider).getToken(config, res -> {
+      authProvider.authenticate(config, res -> {
         if (res.failed()) {
           ctx.fail(res.cause());
         } else {

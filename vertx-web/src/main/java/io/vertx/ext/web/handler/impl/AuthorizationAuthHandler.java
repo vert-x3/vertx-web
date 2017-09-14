@@ -54,7 +54,7 @@ abstract class AuthorizationAuthHandler extends AuthHandlerImpl {
     }
   }
 
-  private final Type type;
+  protected final Type type;
 
   AuthorizationAuthHandler(AuthProvider authProvider, Type type) {
     super(authProvider);
