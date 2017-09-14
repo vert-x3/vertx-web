@@ -16,7 +16,7 @@
     <dependency>
       <groupId>de.neuland-bfi</groupId>
       <artifactId>jade4j</artifactId>
-      <version>1.2.1</version>
+      <version>1.2.5</version>
     </dependency>
     <dependency>
       <groupId>io.vertx</groupId>

@@ -62,7 +62,7 @@ public class OAuth2AuthHandlerImpl extends AuthorizationAuthHandler implements O
   private final boolean supportJWT;
 
   private Route callback;
-  private JsonObject extraParams = new JsonObject();
+  private JsonObject extraParams;
 
   public OAuth2AuthHandlerImpl(OAuth2Auth authProvider, String callbackURL) {
     super(verifyProvider(authProvider), Type.BEARER);
@@ -70,9 +70,14 @@ public class OAuth2AuthHandlerImpl extends AuthorizationAuthHandler implements O
     this.supportJWT = authProvider.hasJWTToken();
 
     try {
-      final URL url = new URL(callbackURL);
-      this.host = url.getProtocol() + "://" + url.getHost() + (url.getPort() == -1 ? "" : ":" + url.getPort());
-      this.callbackPath = url.getPath();
+      if (callbackURL != null) {
+        final URL url = new URL(callbackURL);
+        this.host = url.getProtocol() + "://" + url.getHost() + (url.getPort() == -1 ? "" : ":" + url.getPort());
+        this.callbackPath = url.getPath();
+      } else {
+        this.host = null;
+        this.callbackPath = null;
+      }
     } catch (MalformedURLException e) {
       throw new RuntimeException(e);
     }
@@ -104,12 +109,24 @@ public class OAuth2AuthHandlerImpl extends AuthorizationAuthHandler implements O
       });
     }
     // redirect request to the oauth2 server
-    handler.handle(Future.failedFuture(new HttpStatusException(302, authURI(host, context.request().uri()))));
+    if (callback == null) {
+      handler.handle(Future.failedFuture("callback route is not configured."));
+      return;
+    }
+
+    handler.handle(Future.failedFuture(new HttpStatusException(302, authURI(context.request().uri()))));
   }
 
-  private String authURI(String host, String redirectURL) {
-    if (callback == null) {
-      throw new NullPointerException("callback is null");
+  private String authURI(String redirectURL) {
+    final JsonObject config = new JsonObject()
+      .put("state", redirectURL);
+
+    if (host != null) {
+      config.put("redirect_uri", host + callback.getPath());
+    }
+
+    if (extraParams != null) {
+      config.mergeIn(extraParams);
     }
 
     if (authorities.size() > 0) {
@@ -119,17 +136,10 @@ public class OAuth2AuthHandlerImpl extends AuthorizationAuthHandler implements O
         scopes.add(authority);
       }
 
-      return ((OAuth2Auth) authProvider).authorizeURL(new JsonObject()
-        .put("redirect_uri", host + callback.getPath())
-        .put("scopes", scopes)
-        .put("state", redirectURL)
-        .mergeIn(extraParams));
-    } else {
-      return ((OAuth2Auth) authProvider).authorizeURL(new JsonObject()
-        .put("redirect_uri", host + callback.getPath())
-        .put("state", redirectURL)
-        .mergeIn(extraParams));
+      config.put("scopes", scopes);
     }
+
+    return ((OAuth2Auth) authProvider).authorizeURL(config);
   }
 
   @Override
@@ -143,7 +153,7 @@ public class OAuth2AuthHandlerImpl extends AuthorizationAuthHandler implements O
 
     callback = route;
 
-    if (!"".equals(callbackPath)) {
+    if (callbackPath != null && !"".equals(callbackPath)) {
       // no matter what path was provided we will make sure it is the correct one
       callback.path(callbackPath);
     }
@@ -161,7 +171,18 @@ public class OAuth2AuthHandlerImpl extends AuthorizationAuthHandler implements O
 
       final String state = ctx.request().getParam("state");
 
-      authProvider.authenticate(new JsonObject().put("code", code).put("redirect_uri", host + callback.getPath()).mergeIn(extraParams), res -> {
+      final JsonObject config = new JsonObject()
+        .put("code", code);
+
+      if (host != null) {
+        config.put("redirect_uri", host + callback.getPath());
+      }
+
+      if (extraParams != null) {
+        config.mergeIn(extraParams);
+      }
+
+      ((OAuth2Auth) authProvider).getToken(config, res -> {
         if (res.failed()) {
           ctx.fail(res.cause());
         } else {
@@ -177,13 +198,13 @@ public class OAuth2AuthHandlerImpl extends AuthorizationAuthHandler implements O
               .putHeader(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate")
               .putHeader("Pragma", "no-cache")
               .putHeader(HttpHeaders.EXPIRES, "0")
-              // redirect
-              .putHeader(HttpHeaders.LOCATION, state)
+              // redirect (when there is no state, redirect to home
+              .putHeader(HttpHeaders.LOCATION, state != null ? state : "/")
               .setStatusCode(302)
-              .end("Redirecting to " + state + ".");
+              .end("Redirecting to " + (state != null ? state : "/") + ".");
           } else {
             // there is no session object so we cannot keep state
-            ctx.reroute(state);
+            ctx.reroute(state != null ? state : "/");
           }
         }
       });
