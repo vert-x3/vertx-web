@@ -44,8 +44,8 @@ public class OAuth2AuthHandlerImpl extends AuthorizationAuthHandler implements O
    * This is a verification step, it can abort the instantiation by
    * throwing a RuntimeException
    *
-   * @param provider
-   * @return
+   * @param provider a auth provider
+   * @return the provider if valid
    */
   private static AuthProvider verifyProvider(AuthProvider provider) {
     if (provider instanceof OAuth2Auth) {
@@ -182,7 +182,7 @@ public class OAuth2AuthHandlerImpl extends AuthorizationAuthHandler implements O
         config.mergeIn(extraParams);
       }
 
-      ((OAuth2Auth) authProvider).getToken(config, res -> {
+      authProvider.authenticate(config, res -> {
         if (res.failed()) {
           ctx.fail(res.cause());
         } else {
