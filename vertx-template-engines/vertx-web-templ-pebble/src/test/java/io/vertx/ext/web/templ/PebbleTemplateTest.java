@@ -18,16 +18,20 @@ package io.vertx.ext.web.templ;
 
 import com.mitchellbosecke.pebble.PebbleEngine;
 import io.vertx.core.VertxOptions;
+import io.vertx.core.http.HttpClientRequest;
+import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.WebTestBase;
 import io.vertx.ext.web.handler.TemplateHandler;
 import io.vertx.ext.web.templ.extension.TestExtension;
+import io.vertx.ext.web.templ.impl.CachingTemplateEngine;
 import io.vertx.ext.web.templ.impl.PebbleVertxLoader;
 import org.junit.Test;
-import io.vertx.ext.web.templ.impl.CachingTemplateEngine;
 
 import java.io.File;
 import java.io.PrintWriter;
+import java.util.Locale;
+import java.util.function.Consumer;
 
 /**
  * @author Dan Kristensen
@@ -71,14 +75,18 @@ public class PebbleTemplateTest extends WebTestBase {
 	}
 
 	private void testTemplateHandler(TemplateEngine engine, String directoryName, String templateName, String expected) throws Exception {
-		router.route().handler(context -> {
-			context.put("foo", "badger");
-			context.put("bar", "fox");
-			context.next();
-		});
-		router.route().handler(TemplateHandler.create(engine, directoryName, "text/plain"));
-		testRequest(HttpMethod.GET, "/" + templateName, 200, "OK", expected);
+		testTemplateHandler(engine,directoryName,templateName,expected,null);
 	}
+
+    private void testTemplateHandler(TemplateEngine engine, String directoryName, String templateName, String expected,  Consumer<HttpClientRequest> requestAction) throws Exception {
+        router.route().handler(context -> {
+            context.put("foo", "badger");
+            context.put("bar", "fox");
+            context.next();
+        });
+        router.route().handler(TemplateHandler.create(engine, directoryName, "text/plain"));
+        testRequest(HttpMethod.GET, "/" + templateName,requestAction, 200, "OK", expected);
+    }
 
 	@Test
 	public void testNoSuchTemplate() throws Exception {
@@ -377,4 +385,23 @@ public class PebbleTemplateTest extends WebTestBase {
 
     testTemplateHandler(engine, ".", temp.getName(), "before");
   }
+
+  @Test
+  public void noLocaleShouldUseDefaultLocale() throws Exception {
+    Locale.setDefault(Locale.US);
+    final TemplateEngine engine = PebbleTemplateEngine.create(vertx);
+    testTemplateHandler(engine, "src/test/filesystemtemplates", "test-pebble-template-i18n.peb",
+              "Hi");
+  }
+
+  @Test
+  public void acceptLanguageHeaderShouldBeUsedWhenSet() throws Exception {
+    Locale.setDefault(Locale.US);
+    final TemplateEngine engine = PebbleTemplateEngine.create(vertx);
+    testTemplateHandler(engine, "src/test/filesystemtemplates", "test-pebble-template-i18n.peb",
+              "Hallo",httpClientRequest -> httpClientRequest.putHeader(HttpHeaders.ACCEPT_LANGUAGE,"de-DE"));
+  }
+
+
+
 }
