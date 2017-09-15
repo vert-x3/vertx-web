@@ -22,17 +22,11 @@ import com.fizzed.rocker.RockerOutputFactory;
 /**
  * @author <a href="mailto:xianguang.zhou@outlook.com">Xianguang Zhou</a>
  */
-public class ArrayOfByteBufsOutputFactory implements RockerOutputFactory<ArrayOfByteBufsOutput> {
-
-  private ArrayOfByteBufsOutput output;
+public class VertxBufferOutputFactory implements RockerOutputFactory<VertxBufferOutput> {
 
   @Override
-  public ArrayOfByteBufsOutput create(ContentType contentType, String charsetName) {
-    output = new ArrayOfByteBufsOutput(contentType, charsetName);
-    return output;
+  public VertxBufferOutput create(ContentType contentType, String charsetName) {
+    return new VertxBufferOutput(contentType, charsetName);
   }
 
-  public ArrayOfByteBufsOutput getOutput() {
-    return output;
-  }
 }

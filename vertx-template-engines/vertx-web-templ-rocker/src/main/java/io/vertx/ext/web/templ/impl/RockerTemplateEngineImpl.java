@@ -18,7 +18,6 @@ package io.vertx.ext.web.templ.impl;
 
 import com.fizzed.rocker.BindableRockerModel;
 import com.fizzed.rocker.Rocker;
-
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
@@ -58,19 +57,9 @@ public class RockerTemplateEngineImpl extends CachingTemplateEngine<Void> implem
       model.bind("context", context);
       model.bind(context.data());
 
-      ArrayOfByteBufsOutputFactory outputFactory = new ArrayOfByteBufsOutputFactory();
-      ArrayOfByteBufsOutput output;
-      try {
-        output = model.render(outputFactory);
-      } catch (final Exception ex) {
-        output = outputFactory.getOutput();
-        if (output != null) {
-          output.release();
-        }
-        throw ex;
-      }
+      VertxBufferOutput output = model.render(VertxBufferOutput.FACTORY);
 
-      handler.handle(Future.succeededFuture(Buffer.buffer(output.toByteBuf())));
+      handler.handle(Future.succeededFuture(output.getBuffer()));
     } catch (final Exception ex) {
       handler.handle(Future.failedFuture(ex));
     }
