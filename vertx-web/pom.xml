@@ -199,6 +199,8 @@
             io.vertx.groovy.*;resolution:=optional,\
             io.vertx.ext.auth,\
             io.vertx.ext.auth.*;resolution:=optional,\
+            io.vertx.ext.bridge,\
+            io.vertx.ext.bridge.*;resolution:=optional,\
             io.vertx.lang.rxjava.*;resolution:=optional,\
             io.vertx.lang.groovy.*;resolution:=optional,\
             io.vertx.codegen.annotations;resolution:=optional,\
