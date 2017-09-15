@@ -48,8 +48,7 @@ public class VertxBufferOutput extends AbstractRockerOutput<VertxBufferOutput> {
 
   @Override
   public VertxBufferOutput w(String string) throws IOException {
-  	byte[] bytes = string.getBytes(charset);
-    buffer.appendBytes(bytes);
+    buffer.appendBytes(string.getBytes(charset));
     return this;
   }
 
