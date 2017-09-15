@@ -13,6 +13,8 @@ paths:
       operationId: listPets
       tags:
         - pets
+      security:
+        - api_key: []
       parameters:
         - name: limit
           in: query
@@ -66,7 +68,7 @@ paths:
           description: The id of the pet to retrieve
           schema:
             type: integer
-            multipleOf: 2
+            format: int32
       responses:
         200:
           description: Expected response to a valid request
@@ -230,6 +232,20 @@ paths:
       responses:
         default:
           description: ok
+  /circularReferences:
+    post:
+      operationId: circularReferences
+      tags:
+        - pets
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SchemaRecursive"
+      responses:
+        default:
+          description: Ok
 
 components:
   schemas:
@@ -251,6 +267,7 @@ components:
       items:
         $ref: "#/components/schemas/Pet"
     Error:
+      type: object
       required:
         - code
         - message
@@ -260,3 +277,25 @@ components:
           format: int32
         message:
           type: string
+    SchemaRecursive:
+      type: object
+      properties:
+        a:
+          $ref: '#/components/schemas/SchemaInnerRecursive'
+        b:
+          type: string
+        c:
+          type: number
+    SchemaInnerRecursive:
+      type: object
+      properties:
+        a:
+          type: array
+          items:
+            $ref: '#/components/schemas/SchemaRecursive'
+  securitySchemes:
+    api_key:
+      type: apiKey
+      name: api_key
+      in: header
+

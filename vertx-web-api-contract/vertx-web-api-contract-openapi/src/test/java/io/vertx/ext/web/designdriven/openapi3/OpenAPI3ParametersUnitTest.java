@@ -19,6 +19,10 @@ import org.junit.Test;
 import org.junit.rules.ExternalResource;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -39,7 +43,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
   public ExternalResource resource = new ExternalResource() {
     @Override
     protected void before() throws Throwable {
-      spec = loadSwagger("src/test/resources/swaggers/openapi.yaml");
+      spec = loadSwagger("./src/test/resources/swaggers/openapi_parameters_compatibility_spec.yaml");
     }
 
     @Override
@@ -187,7 +191,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
       for (String key : color_path.getObjectKeys())
         map.put(key, color_path.getObjectValue(key).getString());
       res.put("color", map);
-      
+
 
       routingContext.response()
         .setStatusCode(200)
@@ -338,7 +342,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
       for (String key : color_path.getObjectKeys())
         map.put(key, color_path.getObjectValue(key).getString());
       res.put("color", map);
-      
+
 
       routingContext.response()
         .setStatusCode(200)
@@ -489,7 +493,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
       for (String key : color_path.getObjectKeys())
         map.put(key, color_path.getObjectValue(key).getString());
       res.put("color", map);
-      
+
 
       routingContext.response()
         .setStatusCode(200)
@@ -640,7 +644,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
       for (String key : color_path.getObjectKeys())
         map.put(key, color_path.getObjectValue(key).getString());
       res.put("color", map);
-      
+
 
       routingContext.response()
         .setStatusCode(200)
@@ -791,7 +795,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
       for (String key : color_path.getObjectKeys())
         map.put(key, color_path.getObjectValue(key).getString());
       res.put("color", map);
-      
+
 
       routingContext.response()
         .setStatusCode(200)
@@ -942,7 +946,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
       for (String key : color_path.getObjectKeys())
         map.put(key, color_path.getObjectValue(key).getString());
       res.put("color", map);
-      
+
 
       routingContext.response()
         .setStatusCode(200)
@@ -1116,7 +1120,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
       for (String key : colorMatrix_path.getObjectKeys())
         map.put(key, colorMatrix_path.getObjectValue(key).getString());
       res.put("color_matrix", map);
-      
+
 
       routingContext.response()
         .setStatusCode(200)
@@ -1319,7 +1323,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
       for (String key : color_query.getObjectKeys())
         map.put(key, color_query.getObjectValue(key).getString());
       res.put("color", map);
-      
+
 
       routingContext.response()
         .setStatusCode(200)
@@ -1517,7 +1521,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
       for (String key : color_query.getObjectKeys())
         map.put(key, color_query.getObjectValue(key).getString());
       res.put("color", map);
-      
+
 
       routingContext.response()
         .setStatusCode(200)
@@ -1620,7 +1624,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
       for (String key : color_query.getObjectKeys())
         map.put(key, color_query.getObjectValue(key).getString());
       res.put("color", map);
-      
+
 
       routingContext.response()
         .setStatusCode(200)
@@ -1723,7 +1727,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
       for (String key : color_query.getObjectKeys())
         map.put(key, color_query.getObjectValue(key).getString());
       res.put("color", map);
-      
+
 
       routingContext.response()
         .setStatusCode(200)
@@ -1776,7 +1780,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
       for (String key : color_query.getObjectKeys())
         map.put(key, color_query.getObjectValue(key).getString());
       res.put("color", map);
-      
+
 
       routingContext.response()
         .setStatusCode(200)
@@ -1974,7 +1978,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
       for (String key : color_cookie.getObjectKeys())
         map.put(key, color_cookie.getObjectValue(key).getString());
       res.put("color", map);
-      
+
 
       routingContext.response()
         .setStatusCode(200)
@@ -2172,7 +2176,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
       for (String key : color_cookie.getObjectKeys())
         map.put(key, color_cookie.getObjectValue(key).getString());
       res.put("color", map);
-      
+
 
       routingContext.response()
         .setStatusCode(200)
@@ -2323,7 +2327,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
       for (String key : color_header.getObjectKeys())
         map.put(key, color_header.getObjectValue(key).getString());
       res.put("color", map);
-      
+
 
       routingContext.response()
         .setStatusCode(200)
@@ -2474,7 +2478,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
       for (String key : color_header.getObjectKeys())
         map.put(key, color_header.getObjectValue(key).getString());
       res.put("color", map);
-      
+
 
       routingContext.response()
         .setStatusCode(200)
@@ -2508,8 +2512,8 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
   }
 
 
-  private OpenAPI loadSwagger(String filename) {
-    return new OpenAPIV3Parser().readLocation(filename, null, null).getOpenAPI();
+  private OpenAPI loadSwagger(String filename) throws IOException {
+    return new OpenAPIV3Parser().readContents(String.join("\n", Files.readAllLines(Paths.get(filename), StandardCharsets.UTF_8)), null, null).getOpenAPI();
   }
 
   public Handler<RoutingContext> generateFailureHandler() {

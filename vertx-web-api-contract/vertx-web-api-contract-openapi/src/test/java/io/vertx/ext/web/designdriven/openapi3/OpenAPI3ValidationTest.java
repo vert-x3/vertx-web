@@ -6,6 +6,7 @@ import io.swagger.parser.models.ParseOptions;
 import io.swagger.parser.v3.OpenAPIV3Parser;
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RequestParameter;
 import io.vertx.ext.web.RequestParameters;
@@ -26,14 +27,12 @@ import java.util.List;
  */
 public class OpenAPI3ValidationTest extends WebTestValidationBase {
 
-  OpenAPI petStore;
   OpenAPI testSpec;
 
   @Rule
   public ExternalResource resource = new ExternalResource() {
     @Override
     protected void before() throws Throwable {
-      petStore = loadSwagger("src/test/resources/swaggers/petstore.yaml");
       testSpec = loadSwagger("src/test/resources/swaggers/testSpec.yaml");
     }
 
@@ -52,8 +51,8 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
 
   @Test
   public void testLoadSampleOperationObject() throws Exception {
-    Operation op = petStore.getPaths().get("/pets").getGet();
-    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(op, op.getParameters(), petStore);
+    Operation op = testSpec.getPaths().get("/pets").getGet();
+    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(op, op.getParameters(), testSpec);
     router.get("/pets").handler(validationHandler);
     router.get("/pets").handler(routingContext -> {
       routingContext.response().setStatusMessage("ok").end();
@@ -63,8 +62,8 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
 
   @Test
   public void testPathParameter() throws Exception {
-    Operation op = petStore.getPaths().get("/pets/{petId}").getGet();
-    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(op, op.getParameters(), petStore);
+    Operation op = testSpec.getPaths().get("/pets/{petId}").getGet();
+    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(op, op.getParameters(), testSpec);
     loadHandlers("/pets/:petId", HttpMethod.GET, false, validationHandler, (routingContext) -> {
       RequestParameters params = routingContext.get("parsedParameters");
       routingContext.response().setStatusMessage(params.pathParameter("petId").getInteger().toString()).end();
@@ -76,8 +75,8 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
 
   @Test
   public void testPathParameterFailure() throws Exception {
-    Operation op = petStore.getPaths().get("/pets/{petId}").getGet();
-    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(op, op.getParameters(), petStore);
+    Operation op = testSpec.getPaths().get("/pets/{petId}").getGet();
+    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(op, op.getParameters(), testSpec);
     loadHandlers("/pets/:petId", HttpMethod.GET, true, validationHandler, (routingContext) -> {
       routingContext.response().setStatusMessage("ok").end();
     });
@@ -86,8 +85,8 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
 
   @Test
   public void testQueryParameterNotRequired() throws Exception {
-    Operation op = petStore.getPaths().get("/pets").getGet();
-    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(op, op.getParameters(), petStore);
+    Operation op = testSpec.getPaths().get("/pets").getGet();
+    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(op, op.getParameters(), testSpec);
     loadHandlers("/pets", HttpMethod.GET, false, validationHandler, (routingContext) -> {
       routingContext.response().setStatusMessage("ok").end();
     });
@@ -383,6 +382,31 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
     });
 
     testRequest(HttpMethod.POST, "/multipart/complex", 200, "ok");
+  }
+
+  @Test
+  public void testCircularReferences() throws Exception {
+    Operation op = testSpec.getPaths().get("/circularReferences").getPost();
+    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(op, op.getParameters(), testSpec);
+    loadHandlers("/circularReferences", HttpMethod.POST, false, validationHandler, (routingContext) -> {
+      routingContext.response().setStatusMessage("ok").end();
+    });
+
+    testRequestWithJSON(HttpMethod.POST, "/circularReferences", new JsonObject("{\n" +
+      "    \"a\": {\n" +
+      "        \"a\": [\n" +
+      "            {\n" +
+      "                \"a\": {\n" +
+      "                    \"a\": []\n" +
+      "                },\n" +
+      "                \"b\": \"hi\",\n" +
+      "                \"c\": 10\n" +
+      "            }\n" +
+      "        ]\n" +
+      "    },\n" +
+      "    \"b\": \"hello\",\n" +
+      "    \"c\": 6\n" +
+      "}"), 200, "ok");
   }
 
 }
