@@ -155,14 +155,13 @@ class JsonPTransport extends BaseTransport {
 
       body = escapeForJavaScript(body);
 
-      StringBuilder sb = new StringBuilder();
-      sb.append(callback).append("(\"");
-      sb.append(body);
-      sb.append("\");\r\n");
+      String sb = callback + "(\"" +
+        body +
+        "\");\r\n";
 
       //End the response and close the HTTP connection
 
-      rc.response().write(sb.toString());
+      rc.response().write(sb);
       close();
     }
 

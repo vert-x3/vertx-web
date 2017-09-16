@@ -59,9 +59,7 @@ public class TimeoutHandlerTest extends WebTestBase {
   public void testTimeoutCancelled() throws Exception {
     long timeout = 500;
     router.route().handler(TimeoutHandler.create(timeout));
-    router.route().handler(rc -> {
-      rc.response().end();
-    });
+    router.route().handler(rc -> rc.response().end());
     testRequest(HttpMethod.GET, "/", 200, "OK");
     Thread.sleep(1000); // Let timer kick in, if it's going to
   }

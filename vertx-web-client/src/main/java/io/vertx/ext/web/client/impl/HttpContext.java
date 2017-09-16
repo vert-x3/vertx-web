@@ -164,9 +164,7 @@ public class HttpContext {
     String requestURI;
     if (request.queryParams() != null && request.queryParams().size() > 0) {
       QueryStringEncoder enc = new QueryStringEncoder(request.uri);
-      request.queryParams().forEach(param -> {
-        enc.addParam(param.getKey(), param.getValue());
-      });
+      request.queryParams().forEach(param -> enc.addParam(param.getKey(), param.getValue()));
       requestURI = enc.toString();
     } else {
       requestURI = request.uri;

@@ -10,17 +10,17 @@ import java.util.Objects;
 import io.vertx.ext.web.ParsedHeaderValue;
 
 public class ParsableHeaderValue implements ParsedHeaderValue {
-  
+
   private String headerContent;
-  
+
   protected String value;
   private float weight;
 
   private Map<String, String> parameter;
-  
+
   private int paramsWeight;
-  
-  
+
+
   public ParsableHeaderValue(String headerContent) {
     Objects.requireNonNull(headerContent, "headerContent must not be null");
     this.headerContent = headerContent;
@@ -28,18 +28,18 @@ public class ParsableHeaderValue implements ParsedHeaderValue {
     weight = -1;
     parameter = Collections.emptyMap();
   }
-  
+
   @Override
   public String rawValue() {
     return headerContent;
   }
-  
+
   @Override
   public String value() {
     ensureHeaderProcessed();
     return value;
   }
-  
+
   @Override
   public float weight() {
     ensureHeaderProcessed();
@@ -52,20 +52,20 @@ public class ParsableHeaderValue implements ParsedHeaderValue {
     // rfc7231 states the least possible number above 0 is 0.001
     return weight < 0.001;
   }
-  
+
   public String parameter(String key) {
     return parameter.get(key);
   }
-  
+
   public Map<String, String> parameters() {
     return Collections.unmodifiableMap(parameter);
   }
-  
+
   public final boolean isMatchedBy(ParsedHeaderValue matchTry){
     ParsableHeaderValue impl = (ParsableHeaderValue) matchTry;
     return this.headerContent.equals(impl.headerContent) || isMatchedBy2(impl);
   }
-  
+
   protected boolean isMatchedBy2(ParsableHeaderValue matchTry){
     ensureHeaderProcessed();
     if (matchTry.parameter.isEmpty()) {
@@ -74,7 +74,7 @@ public class ParsableHeaderValue implements ParsedHeaderValue {
     if (parameter.isEmpty()) {
       return false;
     }
-      
+
     for (Entry<String, String> requiredParameter : matchTry.parameter.entrySet()) {
       String parameterValueToTest = parameter.get(requiredParameter.getKey());
       String requiredParamVal = requiredParameter.getValue();
@@ -85,20 +85,20 @@ public class ParsableHeaderValue implements ParsedHeaderValue {
       }
     }
     return true;
-    
+
   }
 
   @Override
   public <T extends ParsedHeaderValue> T findMatchedBy(Collection<T> matchTries) {
 
     for (T matchTry : matchTries) {
-      if(isMatchedBy((ParsableHeaderValue) matchTry)){
+      if(isMatchedBy(matchTry)){
         return matchTry;
       }
     }
     return null;
   }
-  
+
   private void ensureParameterIsHashMap() {
     if(parameter.isEmpty()){
       parameter = new HashMap<>();
@@ -118,12 +118,12 @@ public class ParsableHeaderValue implements ParsedHeaderValue {
       paramsWeight = parameter.isEmpty() ? 0 : 1;
     }
   }
-  
+
   public ParsableHeaderValue forceParse(){
     ensureHeaderProcessed();
     return this;
   }
-  
+
   private void setValue(String value) {
     this.value = value;
   }
@@ -141,12 +141,12 @@ public class ParsableHeaderValue implements ParsedHeaderValue {
     // Keep between 0 and 1 while dropping after the 3rd digit to the right (rfc7231#section-5.3.1)
     this.weight = ((int)((Math.max(0, Math.min(1, weight)) * 100)) / 100.0f);
   }
-  
+
   public final int weightedOrder(){
     ensureHeaderProcessed();
     return (int)(weight() * 1000) + (weightedOrderPart2() * 10) + paramsWeight;
   }
-  
+
   protected int weightedOrderPart2(){
     return 0;
   }
@@ -174,5 +174,5 @@ public class ParsableHeaderValue implements ParsedHeaderValue {
     }
     return true;
   }
-  
+
 }

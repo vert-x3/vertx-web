@@ -1110,23 +1110,17 @@ public class WebExamples {
 
     });
 
-    router.get("/some/path/B").handler(routingContext -> {
-      routingContext.response().end();
-    });
+    router.get("/some/path/B").handler(routingContext -> routingContext.response().end());
 
-    router.get("/some/path").handler(routingContext -> {
-      routingContext.reroute("/some/path/B");
-    });
+    router.get("/some/path").handler(routingContext -> routingContext.reroute("/some/path/B"));
 
   }
 
   public void example55b(Router router) {
 
-    router.get("/my-pretty-notfound-handler").handler(ctx -> {
-      ctx.response()
-        .setStatusCode(404)
-        .end("NOT FOUND fancy html here!!!");
-    });
+    router.get("/my-pretty-notfound-handler").handler(ctx -> ctx.response()
+      .setStatusCode(404)
+      .end("NOT FOUND fancy html here!!!"));
 
     router.get().failureHandler(ctx -> {
       if (ctx.statusCode() == 404) {
@@ -1144,16 +1138,12 @@ public class WebExamples {
     });
 
     // THE WRONG WAY! (Will reroute to /final-target excluding the query string)
-    router.get().handler(ctx -> {
-      ctx.reroute("/final-target?variable=value");
-    });
+    router.get().handler(ctx -> ctx.reroute("/final-target?variable=value"));
 
     // THE CORRECT WAY!
-    router.get().handler(ctx -> {
-      ctx
-        .put("variable", "value")
-        .reroute("/final-target");
-    });
+    router.get().handler(ctx -> ctx
+      .put("variable", "value")
+      .reroute("/final-target"));
   }
 
   public void example56(Router router) {
@@ -1204,14 +1194,10 @@ public class WebExamples {
     // protect everything under /protected
     router.route("/protected/*").handler(oauth2);
     // mount some handler under the protected zone
-    router.route("/protected/somepage").handler(rc -> {
-      rc.response().end("Welcome to the protected resource!");
-    });
+    router.route("/protected/somepage").handler(rc -> rc.response().end("Welcome to the protected resource!"));
 
     // welcome page
-    router.get("/").handler(ctx -> {
-      ctx.response().putHeader("content-type", "text/html").end("Hello<br><a href=\"/protected/somepage\">Protected by Github</a>");
-    });
+    router.get("/").handler(ctx -> ctx.response().putHeader("content-type", "text/html").end("Hello<br><a href=\"/protected/somepage\">Protected by Github</a>"));
   }
 
   public void example59(Vertx vertx, Router router) {
@@ -1236,14 +1222,10 @@ public class WebExamples {
     // protect everything under /protected
     router.route("/protected/*").handler(oauth2);
     // mount some handler under the protected zone
-    router.route("/protected/somepage").handler(rc -> {
-      rc.response().end("Welcome to the protected resource!");
-    });
+    router.route("/protected/somepage").handler(rc -> rc.response().end("Welcome to the protected resource!"));
 
     // welcome page
-    router.get("/").handler(ctx -> {
-      ctx.response().putHeader("content-type", "text/html").end("Hello<br><a href=\"/protected/somepage\">Protected by Google</a>");
-    });
+    router.get("/").handler(ctx -> ctx.response().putHeader("content-type", "text/html").end("Hello<br><a href=\"/protected/somepage\">Protected by Google</a>"));
   }
 
   public void example61(Vertx vertx, Router router, OAuth2Auth provider) {
@@ -1274,39 +1256,31 @@ public class WebExamples {
     // protect everything under /protected
     router.route("/protected/*").handler(oauth2);
     // mount some handler under the protected zone
-    router.route("/protected/somepage").handler(rc -> {
-      rc.response().end("Welcome to the protected resource!");
-    });
+    router.route("/protected/somepage").handler(rc -> rc.response().end("Welcome to the protected resource!"));
 
     // welcome page
-    router.get("/").handler(ctx -> {
-      ctx.response().putHeader("content-type", "text/html").end("Hello<br><a href=\"/protected/somepage\">Protected by LinkedIn</a>");
-    });
+    router.get("/").handler(ctx -> ctx.response().putHeader("content-type", "text/html").end("Hello<br><a href=\"/protected/somepage\">Protected by LinkedIn</a>"));
   }
 
   public void manualContentType(Router router) {
-    router.get("/api/books").produces("application/json").handler(rc -> {
-      findBooks(ar -> {
-        if (ar.succeeded()) {
-          rc.response().putHeader("Content-Type", "application/json").end(toJson(ar.result()));
-        } else {
-          rc.fail(ar.cause());
-        }
-      });
-    });
+    router.get("/api/books").produces("application/json").handler(rc -> findBooks(ar -> {
+      if (ar.succeeded()) {
+        rc.response().putHeader("Content-Type", "application/json").end(toJson(ar.result()));
+      } else {
+        rc.fail(ar.cause());
+      }
+    }));
   }
 
   public void contentTypeHandler(Router router) {
     router.route("/api/*").handler(ResponseContentTypeHandler.create());
-    router.get("/api/books").produces("application/json").handler(rc -> {
-      findBooks(ar -> {
-        if (ar.succeeded()) {
-          rc.response().end(toJson(ar.result()));
-        } else {
-          rc.fail(ar.cause());
-        }
-      });
-    });
+    router.get("/api/books").produces("application/json").handler(rc -> findBooks(ar -> {
+      if (ar.succeeded()) {
+        rc.response().end(toJson(ar.result()));
+      } else {
+        rc.fail(ar.cause());
+      }
+    }));
   }
 
   private void findBooks(Handler<AsyncResult<List<Book>>> handler) {
@@ -1326,19 +1300,17 @@ public class WebExamples {
 
   public void mostAcceptableContentTypeHandler(Router router) {
     router.route("/api/*").handler(ResponseContentTypeHandler.create());
-    router.get("/api/books").produces("text/xml").produces("application/json").handler(rc -> {
-      findBooks(ar -> {
-        if (ar.succeeded()) {
-          if (rc.getAcceptableContentType().equals("text/xml")) {
-            rc.response().end(toXML(ar.result()));
-          } else {
-            rc.response().end(toJson(ar.result()));
-          }
+    router.get("/api/books").produces("text/xml").produces("application/json").handler(rc -> findBooks(ar -> {
+      if (ar.succeeded()) {
+        if (rc.getAcceptableContentType().equals("text/xml")) {
+          rc.response().end(toXML(ar.result()));
         } else {
-          rc.fail(ar.cause());
+          rc.response().end(toJson(ar.result()));
         }
-      });
-    });
+      } else {
+        rc.fail(ar.cause());
+      }
+    }));
   }
 
   public void example63(Router router, AuthProvider provider) {

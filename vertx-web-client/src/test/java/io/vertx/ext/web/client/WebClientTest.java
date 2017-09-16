@@ -73,16 +73,12 @@ public class WebClientTest extends HttpTestBase {
 
   @Test
   public void testDefaultHostAndPort() throws Exception {
-    testRequest(client -> client.get("somepath"), req -> {
-      assertEquals("localhost:8080", req.host());
-    });
+    testRequest(client -> client.get("somepath"), req -> assertEquals("localhost:8080", req.host()));
   }
 
   @Test
   public void testDefaultPort() throws Exception {
-    testRequest(client -> client.get("somehost", "somepath"), req -> {
-      assertEquals("somehost:8080", req.host());
-    });
+    testRequest(client -> client.get("somehost", "somepath"), req -> assertEquals("somehost:8080", req.host()));
   }
 
   @Test
@@ -96,24 +92,18 @@ public class WebClientTest extends HttpTestBase {
   @Test
   public void testCustomUserAgent() throws Exception {
     client = WebClient.wrap(super.client, new WebClientOptions().setUserAgent("smith"));
-    testRequest(client -> client.get("somehost", "somepath"), req -> {
-      assertEquals(Collections.singletonList("smith"), req.headers().getAll(HttpHeaders.USER_AGENT));
-    });
+    testRequest(client -> client.get("somehost", "somepath"), req -> assertEquals(Collections.singletonList("smith"), req.headers().getAll(HttpHeaders.USER_AGENT)));
   }
 
   @Test
   public void testUserAgentDisabled() throws Exception {
     client = WebClient.wrap(super.client, new WebClientOptions().setUserAgentEnabled(false));
-    testRequest(client -> client.get("somehost", "somepath"), req -> {
-      assertEquals(Collections.emptyList(), req.headers().getAll(HttpHeaders.USER_AGENT));
-    });
+    testRequest(client -> client.get("somehost", "somepath"), req -> assertEquals(Collections.emptyList(), req.headers().getAll(HttpHeaders.USER_AGENT)));
   }
 
   @Test
   public void testUserAgentHeaderOverride() throws Exception {
-    testRequest(client -> client.get("somehost", "somepath").putHeader(HttpHeaders.USER_AGENT.toString(), "smith"), req -> {
-      assertEquals(Collections.singletonList("smith"), req.headers().getAll(HttpHeaders.USER_AGENT));
-    });
+    testRequest(client -> client.get("somehost", "somepath").putHeader(HttpHeaders.USER_AGENT.toString(), "smith"), req -> assertEquals(Collections.singletonList("smith"), req.headers().getAll(HttpHeaders.USER_AGENT)));
   }
 
   @Test
@@ -122,9 +112,7 @@ public class WebClientTest extends HttpTestBase {
       HttpRequest<Buffer> request = client.get("somehost", "somepath");
       request.headers().remove(HttpHeaders.USER_AGENT);
       return request;
-    }, req -> {
-      assertEquals(Collections.emptyList(), req.headers().getAll(HttpHeaders.USER_AGENT));
-    });
+    }, req -> assertEquals(Collections.emptyList(), req.headers().getAll(HttpHeaders.USER_AGENT)));
   }
 
   @Test
@@ -170,12 +158,8 @@ public class WebClientTest extends HttpTestBase {
     });
     startServer();
     HttpRequest<Buffer> builder = reqFactory.apply(client);
-    builder.send(onSuccess(resp -> {
-      complete();
-    }));
-    builder.send(onSuccess(resp -> {
-      complete();
-    }));
+    builder.send(onSuccess(resp -> complete()));
+    builder.send(onSuccess(resp -> complete()));
     await();
   }
 
@@ -282,27 +266,19 @@ public class WebClientTest extends HttpTestBase {
 
   private void testSendBody(Object body, BiConsumer<String, Buffer> checker) throws Exception {
     waitFor(2);
-    server.requestHandler(req -> {
-      req.bodyHandler(buff -> {
-        checker.accept(req.getHeader("content-type"), buff);
-        complete();
-        req.response().end();
-      });
-    });
+    server.requestHandler(req -> req.bodyHandler(buff -> {
+      checker.accept(req.getHeader("content-type"), buff);
+      complete();
+      req.response().end();
+    }));
     startServer();
     HttpRequest<Buffer> post = client.post(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
     if (body instanceof Buffer) {
-      post.sendBuffer((Buffer) body, onSuccess(resp -> {
-        complete();
-      }));
+      post.sendBuffer((Buffer) body, onSuccess(resp -> complete()));
     } else if (body instanceof JsonObject) {
-      post.sendJsonObject((JsonObject) body, onSuccess(resp -> {
-        complete();
-      }));
+      post.sendJsonObject((JsonObject) body, onSuccess(resp -> complete()));
     } else {
-      post.sendJson(body, onSuccess(resp -> {
-        complete();
-      }));
+      post.sendJson(body, onSuccess(resp -> complete()));
     }
     await();
   }
@@ -379,12 +355,8 @@ public class WebClientTest extends HttpTestBase {
     HttpRequest<Buffer> post = client.post(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
     CompletableFuture<Void> done = new CompletableFuture<>();
     server.requestHandler(req -> {
-      req.response().closeHandler(v -> {
-        complete();
-      });
-      req.handler(buff -> {
-        done.complete(null);
-      });
+      req.response().closeHandler(v -> complete());
+      req.handler(buff -> done.complete(null));
     });
     Throwable cause = new Throwable();
     startServer();
@@ -392,9 +364,7 @@ public class WebClientTest extends HttpTestBase {
           @Override
           public ReadStream<Buffer> exceptionHandler(Handler<Throwable> handler) {
             if (handler != null) {
-              done.thenAccept(v -> {
-                handler.handle(cause);
-              });
+              done.thenAccept(v -> handler.handle(cause));
             }
             return this;
           }
@@ -427,9 +397,7 @@ public class WebClientTest extends HttpTestBase {
   @Test
   public void testRequestPumpErrorNotYetConnected() throws Exception {
     HttpRequest<Buffer> post = client.post(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
-    server.requestHandler(req -> {
-      fail();
-    });
+    server.requestHandler(req -> fail());
     Throwable cause = new Throwable();
     startServer();
     post.sendStream(new ReadStream<Buffer>() {
@@ -443,9 +411,7 @@ public class WebClientTest extends HttpTestBase {
       public ReadStream<Buffer> handler(Handler<Buffer> handler) {
         if (handler != null) {
           handler.handle(TestUtils.randomBuffer(1024));
-          vertx.runOnContext(v -> {
-            exceptionHandler.handle(cause);
-          });
+          vertx.runOnContext(v -> exceptionHandler.handle(cause));
         }
         return this;
       }
@@ -471,9 +437,7 @@ public class WebClientTest extends HttpTestBase {
   @Test
   public void testResponseBodyAsBuffer() throws Exception {
     Buffer expected = TestUtils.randomBuffer(2000);
-    server.requestHandler(req -> {
-      req.response().end(expected);
-    });
+    server.requestHandler(req -> req.response().end(expected));
     startServer();
     HttpRequest<Buffer> get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
     get.send(onSuccess(resp -> {
@@ -487,9 +451,7 @@ public class WebClientTest extends HttpTestBase {
   @Test
   public void testResponseBodyAsAsJsonObject() throws Exception {
     JsonObject expected = new JsonObject().put("cheese", "Goat Cheese").put("wine", "Condrieu");
-    server.requestHandler(req -> {
-      req.response().end(expected.encode());
-    });
+    server.requestHandler(req -> req.response().end(expected.encode()));
     startServer();
     HttpRequest<Buffer> get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
     get
@@ -505,9 +467,7 @@ public class WebClientTest extends HttpTestBase {
   @Test
   public void testResponseBodyAsAsJsonMapped() throws Exception {
     JsonObject expected = new JsonObject().put("cheese", "Goat Cheese").put("wine", "Condrieu");
-    server.requestHandler(req -> {
-      req.response().end(expected.encode());
-    });
+    server.requestHandler(req -> req.response().end(expected.encode()));
     startServer();
     HttpRequest<Buffer> get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
     get
@@ -523,9 +483,7 @@ public class WebClientTest extends HttpTestBase {
   @Test
   public void testResponseBodyAsAsJsonArray() throws Exception {
     JsonArray expected = new JsonArray().add("cheese").add("wine");
-    server.requestHandler(req -> {
-      req.response().end(expected.encode());
-    });
+    server.requestHandler(req -> req.response().end(expected.encode()));
     startServer();
     HttpRequest<Buffer> get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
     get
@@ -541,9 +499,7 @@ public class WebClientTest extends HttpTestBase {
   @Test
   public void testResponseBodyAsAsJsonArrayMapped() throws Exception {
     JsonArray expected = new JsonArray().add("cheese").add("wine");
-    server.requestHandler(req -> {
-      req.response().end(expected.encode());
-    });
+    server.requestHandler(req -> req.response().end(expected.encode()));
     startServer();
     HttpRequest<Buffer> get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
     get
@@ -558,9 +514,7 @@ public class WebClientTest extends HttpTestBase {
 
   @Test
   public void testResponseBodyDiscarded() throws Exception {
-    server.requestHandler(req -> {
-      req.response().end(TestUtils.randomAlphaString(1024));
-    });
+    server.requestHandler(req -> req.response().end(TestUtils.randomAlphaString(1024)));
     startServer();
     HttpRequest<Buffer> get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
     get
@@ -576,9 +530,7 @@ public class WebClientTest extends HttpTestBase {
   @Test
   public void testResponseUnknownContentTypeBodyAsJsonObject() throws Exception {
     JsonObject expected = new JsonObject().put("cheese", "Goat Cheese").put("wine", "Condrieu");
-    server.requestHandler(req -> {
-      req.response().end(expected.encode());
-    });
+    server.requestHandler(req -> req.response().end(expected.encode()));
     startServer();
     HttpRequest<Buffer> get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
     get.send(onSuccess(resp -> {
@@ -592,9 +544,7 @@ public class WebClientTest extends HttpTestBase {
   @Test
   public void testResponseUnknownContentTypeBodyAsJsonArray() throws Exception {
     JsonArray expected = new JsonArray().add("cheese").add("wine");
-    server.requestHandler(req -> {
-      req.response().end(expected.encode());
-    });
+    server.requestHandler(req -> req.response().end(expected.encode()));
     startServer();
     HttpRequest<Buffer> get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
     get.send(onSuccess(resp -> {
@@ -608,9 +558,7 @@ public class WebClientTest extends HttpTestBase {
   @Test
   public void testResponseUnknownContentTypeBodyAsJsonMapped() throws Exception {
     JsonObject expected = new JsonObject().put("cheese", "Goat Cheese").put("wine", "Condrieu");
-    server.requestHandler(req -> {
-      req.response().end(expected.encode());
-    });
+    server.requestHandler(req -> req.response().end(expected.encode()));
     startServer();
     HttpRequest<Buffer> get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
     get.send(onSuccess(resp -> {
@@ -623,9 +571,7 @@ public class WebClientTest extends HttpTestBase {
 
   @Test
   public void testResponseBodyUnmarshallingError() throws Exception {
-    server.requestHandler(req -> {
-      req.response().end("not-json-object");
-    });
+    server.requestHandler(req -> req.response().end("not-json-object"));
     startServer();
     HttpRequest<Buffer> get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
     get
@@ -647,9 +593,7 @@ public class WebClientTest extends HttpTestBase {
         if (!resp.writeQueueFull()) {
           resp.write(TestUtils.randomAlphaString(1024));
         } else {
-          resp.drainHandler(v -> {
-            resp.end();
-          });
+          resp.drainHandler(v -> resp.end());
           paused.set(true);
           vertx.cancelTimer(id);
         }
@@ -718,9 +662,7 @@ public class WebClientTest extends HttpTestBase {
       HttpServerResponse resp = req.response();
       resp.setChunked(true);
       resp.write(TestUtils.randomBuffer(2048));
-      fail.thenAccept(v -> {
-        resp.close();
-      });
+      fail.thenAccept(v -> resp.close());
     });
     startServer();
     AtomicInteger received = new AtomicInteger();
@@ -753,9 +695,7 @@ public class WebClientTest extends HttpTestBase {
     HttpRequest<Buffer> get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
     get
       .as(BodyCodec.pipe(stream))
-      .send(onFailure(err -> {
-      testComplete();
-    }));
+      .send(onFailure(err -> testComplete()));
     assertWaitUntil(() -> received.get() == 2048);
     fail.complete(null);
     await();
@@ -855,9 +795,7 @@ public class WebClientTest extends HttpTestBase {
   }
 
   private <R> void testResponseMissingBody(BodyCodec<R> codec) throws Exception {
-    server.requestHandler(req -> {
-      req.response().setStatusCode(403).end();
-    });
+    server.requestHandler(req -> req.response().setStatusCode(403).end());
     startServer();
     HttpRequest<Buffer> get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
     get
@@ -872,9 +810,7 @@ public class WebClientTest extends HttpTestBase {
 
   @Test
   public void testHttpResponseError() throws Exception {
-    server.requestHandler(req -> {
-      req.response().setChunked(true).write(Buffer.buffer("some-data")).close();
-    });
+    server.requestHandler(req -> req.response().setChunked(true).write(Buffer.buffer("some-data")).close());
     startServer();
     HttpRequest<Buffer> get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
     get
@@ -889,9 +825,7 @@ public class WebClientTest extends HttpTestBase {
   @Test
   public void testTimeout() throws Exception {
     AtomicInteger count = new AtomicInteger();
-    server.requestHandler(req -> {
-      count.incrementAndGet();
-    });
+    server.requestHandler(req -> count.incrementAndGet());
     startServer();
     HttpRequest<Buffer> get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
     get.timeout(50).send(onFailure(err -> {
@@ -959,9 +893,7 @@ public class WebClientTest extends HttpTestBase {
     MultiMap form = MultiMap.caseInsensitiveMultiMap();
     form.add("param1", "param1_value");
     HttpRequest<Buffer> builder = client.post("/somepath");
-    builder.sendForm(form, onSuccess(resp -> {
-      complete();
-    }));
+    builder.sendForm(form, onSuccess(resp -> complete()));
     await();
   }
 
@@ -979,9 +911,7 @@ public class WebClientTest extends HttpTestBase {
     form.add("param1", "param1_value");
     HttpRequest<Buffer> builder = client.post("/somepath");
     builder.putHeader("content-type", "multipart/form-data");
-    builder.sendForm(form, onSuccess(resp -> {
-      complete();
-    }));
+    builder.sendForm(form, onSuccess(resp -> complete()));
     await();
   }
 
@@ -1118,9 +1048,7 @@ public class WebClientTest extends HttpTestBase {
     try {
       startServer(sslServer);
       HttpRequest<Buffer> builder = requestProvider.apply(sslClient);
-      builder.send(onSuccess(resp -> {
-        testComplete();
-      }));
+      builder.send(onSuccess(resp -> testComplete()));
       await();
     } finally {
       sslClient.close();
@@ -1132,9 +1060,7 @@ public class WebClientTest extends HttpTestBase {
   public void testHttpProxyFtpRequest() throws Exception {
     startProxy(null, ProxyType.HTTP);
     proxy.setForceUri("http://" + DEFAULT_HTTP_HOST + ":" + DEFAULT_HTTP_PORT);
-    server.requestHandler(req -> {
-      req.response().setStatusCode(200).end();
-    });
+    server.requestHandler(req -> req.response().setStatusCode(200).end());
     startServer();
 
     WebClientOptions options = new WebClientOptions();
@@ -1159,21 +1085,15 @@ public class WebClientTest extends HttpTestBase {
   @Test
   public void testStreamHttpServerRequest() throws Exception {
     Buffer expected = TestUtils.randomBuffer(10000);
-    HttpServer server2 = vertx.createHttpServer(new HttpServerOptions().setPort(8081)).requestHandler(req -> {
-      req.bodyHandler(body -> {
-        assertEquals(body, expected);
-        req.response().end();
-      });
-    });
+    HttpServer server2 = vertx.createHttpServer(new HttpServerOptions().setPort(8081)).requestHandler(req -> req.bodyHandler(body -> {
+      assertEquals(body, expected);
+      req.response().end();
+    }));
     startServer(server2);
     WebClient webClient = WebClient.create(vertx);
     try {
-      server.requestHandler(req -> {
-        webClient.postAbs("http://localhost:8081/")
-          .sendStream(req, onSuccess(resp -> {
-            req.response().end("ok");
-          }));
-      });
+      server.requestHandler(req -> webClient.postAbs("http://localhost:8081/")
+        .sendStream(req, onSuccess(resp -> req.response().end("ok"))));
       startServer();
       webClient.post(8080, "localhost", "/").sendBuffer(expected, onSuccess(resp -> {
         assertEquals("ok", resp.bodyAsString());

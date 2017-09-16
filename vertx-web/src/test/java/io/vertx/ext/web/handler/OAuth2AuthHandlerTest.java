@@ -61,13 +61,9 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
 
     HttpServer server = vertx.createHttpServer().requestHandler(req -> {
       if (req.method() == HttpMethod.POST && "/oauth/token".equals(req.path())) {
-        req.setExpectMultipart(true).bodyHandler(buffer -> {
-          req.response().putHeader("Content-Type", "application/json").end(fixture.encode());
-        });
+        req.setExpectMultipart(true).bodyHandler(buffer -> req.response().putHeader("Content-Type", "application/json").end(fixture.encode()));
       } else if (req.method() == HttpMethod.POST && "/oauth/revoke".equals(req.path())) {
-        req.setExpectMultipart(true).bodyHandler(buffer -> {
-          req.response().end();
-        });
+        req.setExpectMultipart(true).bodyHandler(buffer -> req.response().end());
       } else {
         req.response().setStatusCode(400).end();
       }
@@ -131,9 +127,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
           req.response().putHeader("Content-Type", "application/json").end(fixture.encode());
         });
       } else if (req.method() == HttpMethod.POST && "/oauth/revoke".equals(req.path())) {
-        req.setExpectMultipart(true).bodyHandler(buffer -> {
-          req.response().end();
-        });
+        req.setExpectMultipart(true).bodyHandler(buffer -> req.response().end());
       } else {
         req.response().setStatusCode(400).end();
       }
@@ -158,9 +152,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     });
 
 
-    testRequest(HttpMethod.GET, "/protected/somepage", req -> {
-      req.putHeader("Authorization", "Basic " + Base64.getEncoder().encodeToString("paulo:bananas".getBytes()));
-    }, res -> {
+    testRequest(HttpMethod.GET, "/protected/somepage", req -> req.putHeader("Authorization", "Basic " + Base64.getEncoder().encodeToString("paulo:bananas".getBytes())), res -> {
       // in this case we should get the resource
     }, 200, "OK", "Welcome to the protected resource!");
 

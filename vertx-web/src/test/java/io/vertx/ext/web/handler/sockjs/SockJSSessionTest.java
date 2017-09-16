@@ -36,15 +36,12 @@ public class SockJSSessionTest extends SockJSTestBase {
         closed.set(true);
         testComplete();
       });
-      new Thread() {
-        @Override
-        public void run() {
-          while (!closed.get()) {
-            LockSupport.parkNanos(50);
-            socket.write(Buffer.buffer(TestUtils.randomAlphaString(256)));
-          }
+      new Thread(() -> {
+        while (!closed.get()) {
+          LockSupport.parkNanos(50);
+          socket.write(Buffer.buffer(TestUtils.randomAlphaString(256)));
         }
-      }.start();
+      }).start();
     });
     client.get("/test/400/8ne8e94a/eventsource", resp -> {
       AtomicInteger count = new AtomicInteger();
@@ -65,19 +62,16 @@ public class SockJSSessionTest extends SockJSTestBase {
         closed.set(true);
         testComplete();
       });
-      new Thread() {
-        @Override
-        public void run() {
-          while (!closed.get()) {
-            LockSupport.parkNanos(50);
-            try {
-              socket.write(Buffer.buffer(TestUtils.randomAlphaString(256)));
-            } catch (IllegalStateException e) {
-              // Websocket has been closed
-            }
+      new Thread(() -> {
+        while (!closed.get()) {
+          LockSupport.parkNanos(50);
+          try {
+            socket.write(Buffer.buffer(TestUtils.randomAlphaString(256)));
+          } catch (IllegalStateException e) {
+            // Websocket has been closed
           }
         }
-      }.start();
+      }).start();
     });
     client.websocket("/test/400/8ne8e94a/websocket", ws -> {
       AtomicInteger count = new AtomicInteger();
@@ -92,12 +86,10 @@ public class SockJSSessionTest extends SockJSTestBase {
 
   @Test
   public void testCombineMultipleFramesIntoASingleMessage() {
-    sockJSHandler.socketHandler(socket -> {
-      socket.handler(buf -> {
-        assertEquals("Hello World", buf.toString());
-        testComplete();
-      });
-    });
+    sockJSHandler.socketHandler(socket -> socket.handler(buf -> {
+      assertEquals("Hello World", buf.toString());
+      testComplete();
+    }));
     client.websocket("/test/400/8ne8e94a/websocket", ws -> {
       ws.writeFrame(io.vertx.core.http.WebSocketFrame.textFrame("[\"Hello", false));
       ws.writeFrame(io.vertx.core.http.WebSocketFrame.continuationFrame(Buffer.buffer(" World\"]"), true));

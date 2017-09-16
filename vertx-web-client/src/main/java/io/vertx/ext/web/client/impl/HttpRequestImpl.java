@@ -179,7 +179,7 @@ class HttpRequestImpl<T> implements HttpRequest<T> {
 
   @Override
   public HttpRequest<T> copy() {
-    return new HttpRequestImpl<T>(this);
+    return new HttpRequestImpl<>(this);
   }
 
   @Override

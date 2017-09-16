@@ -22,18 +22,10 @@ public class RxWebClientExamples {
       .rxSend();
 
     // Send a request upon subscription of the Single
-    single.subscribe(response -> {
-      System.out.println("Received 1st response with status code" + response.statusCode());
-    }, error -> {
-      System.out.println("Something went wrong " + error.getMessage());
-    });
+    single.subscribe(response -> System.out.println("Received 1st response with status code" + response.statusCode()), error -> System.out.println("Something went wrong " + error.getMessage()));
 
     // Send another request
-    single.subscribe(response -> {
-      System.out.println("Received 2nd response with status code" + response.statusCode());
-    }, error -> {
-      System.out.println("Something went wrong " + error.getMessage());
-    });
+    single.subscribe(response -> System.out.println("Received 2nd response with status code" + response.statusCode()), error -> System.out.println("Something went wrong " + error.getMessage()));
   }
 
   public void flatMap(WebClient client) {
@@ -47,11 +39,7 @@ public class RxWebClientExamples {
     // Use the flatMap operator to make a request on the URL Single
     url
       .flatMap(u -> client.getAbs(u).rxSend())
-      .subscribe(response -> {
-        System.out.println("Received response with status code" + response.statusCode());
-      }, error -> {
-        System.out.println("Something went wrong " + error.getMessage());
-      });
+      .subscribe(response -> System.out.println("Received response with status code" + response.statusCode()), error -> System.out.println("Something went wrong " + error.getMessage()));
   }
 
   public void moreComplex(WebClient client) {

@@ -18,6 +18,7 @@ package io.vertx.ext.web.handler;
 import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.eventbus.MessageConsumer;
+import io.vertx.core.http.WebSocketBase;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.AuthProvider;
@@ -110,7 +111,7 @@ public class EventbusBridgeTest extends WebTestBase {
         be.complete(true);
       }
     });
-    client.websocket(websocketURI, ws -> ws.close());
+    client.websocket(websocketURI, WebSocketBase::close);
     await();
   }
 
@@ -811,15 +812,13 @@ public class EventbusBridgeTest extends WebTestBase {
         ws.writeFrame(io.vertx.core.http.WebSocketFrame.textFrame(reply.encode(), true));
       });
 
-      vertx.setTimer(500, tid -> {
-        vertx.eventBus().send(addr, "foobar", res -> {
-          if (res.succeeded()) {
-            assertEquals("barfoo", res.result().body());
-            ws.closeHandler(v2 -> latch.countDown());
-            ws.close();
-          }
-        });
-      });
+      vertx.setTimer(500, tid -> vertx.eventBus().send(addr, "foobar", res -> {
+        if (res.succeeded()) {
+          assertEquals("barfoo", res.result().body());
+          ws.closeHandler(v2 -> latch.countDown());
+          ws.close();
+        }
+      }));
 
     });
 
@@ -1248,9 +1247,7 @@ public class EventbusBridgeTest extends WebTestBase {
         assertEquals("rec", received.getString("type"));
         Object rec = received.getValue("body");
         assertEquals(body, rec);
-        ws.closeHandler(v -> {
-          latch.countDown();
-        });
+        ws.closeHandler(v -> latch.countDown());
         ws.close();
       });
 
@@ -1268,9 +1265,7 @@ public class EventbusBridgeTest extends WebTestBase {
       JsonObject msg = new JsonObject().put("type", "register").put("address", address);
       ws.writeFrame(io.vertx.core.http.WebSocketFrame.textFrame(msg.encode(), true));
 
-      ws.handler(buff -> {
-        fail("Shouldn't receive anything");
-      });
+      ws.handler(buff -> fail("Shouldn't receive anything"));
 
       // Wait a bit to allow the handler to be setup on the server, then send message from eventbus
       vertx.setTimer(200, tid -> {

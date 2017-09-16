@@ -151,13 +151,9 @@ class RawWebSocketTransport {
       sockHandler.handle(sock);
     });
 
-    router.get(wsRE).handler(rc -> {
-      rc.response().setStatusCode(400).end("Can \"Upgrade\" only to \"WebSocket\".");
-    });
+    router.get(wsRE).handler(rc -> rc.response().setStatusCode(400).end("Can \"Upgrade\" only to \"WebSocket\"."));
 
-    router.get(wsRE).handler(rc -> {
-      rc.response().putHeader("Allow", "GET").setStatusCode(405).end();
-    });
+    router.get(wsRE).handler(rc -> rc.response().putHeader("Allow", "GET").setStatusCode(405).end());
   }
 
 }

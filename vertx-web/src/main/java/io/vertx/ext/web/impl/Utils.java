@@ -397,13 +397,7 @@ public class Utils extends io.vertx.core.impl.Utils {
     public int compare(String o1, String o2) {
       float f1 = getQuality(o1);
       float f2 = getQuality(o2);
-      if (f1 < f2) {
-        return 1;
-      }
-      if (f1 > f2) {
-        return -1;
-      }
-      return 0;
+      return Float.compare(f2, f1);
     }
   };
 

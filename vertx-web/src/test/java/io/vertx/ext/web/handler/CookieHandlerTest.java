@@ -63,9 +63,7 @@ public class CookieHandlerTest extends WebTestBase {
       assertTrue(contains(cookies, "plop"));
       rc.response().end();
     });
-    testRequest(HttpMethod.GET, "/", req -> {
-      req.headers().set("Cookie", "foo=bar; wibble=blibble; plop=flop");
-    }, resp -> {
+    testRequest(HttpMethod.GET, "/", req -> req.headers().set("Cookie", "foo=bar; wibble=blibble; plop=flop"), resp -> {
       List<String> cookies = resp.headers().getAll("set-cookie");
       assertEquals(0, cookies.size());
     }, 200, "OK", null);
@@ -104,9 +102,7 @@ public class CookieHandlerTest extends WebTestBase {
       foo.setValue("blah");
       rc.response().end();
     });
-    testRequest(HttpMethod.GET, "/", req -> {
-      req.headers().set("Cookie", "foo=bar; wibble=blibble; plop=flop");
-    }, resp -> {
+    testRequest(HttpMethod.GET, "/", req -> req.headers().set("Cookie", "foo=bar; wibble=blibble; plop=flop"), resp -> {
       List<String> cookies = resp.headers().getAll("set-cookie");
       assertEquals(2, cookies.size());
       assertTrue(cookies.contains("foo=blah"));

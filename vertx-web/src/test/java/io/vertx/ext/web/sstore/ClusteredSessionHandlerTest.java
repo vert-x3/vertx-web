@@ -123,13 +123,9 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
     // the next request hits the server
     // https://github.com/vert-x3/vertx-web/issues/93
     Thread.sleep(1000);
-    testRequestBuffer(client2, HttpMethod.GET, 8082, "/", req -> {
-      req.putHeader("cookie", rSetCookie.get());
-    }, null, 200, "OK", null);
+    testRequestBuffer(client2, HttpMethod.GET, 8082, "/", req -> req.putHeader("cookie", rSetCookie.get()), null, 200, "OK", null);
     Thread.sleep(1000);
-    testRequestBuffer(client3, HttpMethod.GET, 8083, "/", req -> {
-      req.putHeader("cookie", rSetCookie.get());
-    }, null, 200, "OK", null);
+    testRequestBuffer(client3, HttpMethod.GET, 8083, "/", req -> req.putHeader("cookie", rSetCookie.get()), null, 200, "OK", null);
 
   }
 
@@ -138,7 +134,7 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
     long timeout = 123;
     SessionImpl session = (SessionImpl)store.createSession(timeout);
     session.setAccessed();
-    long lastAccessed = session.lastAccessed();    
+    long lastAccessed = session.lastAccessed();
     stuffSession(session);
     checkSession(session);
     Buffer buffer = Buffer.buffer();
@@ -152,7 +148,7 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
   }
 
   private void stuffSession(Session session) {
-    session.put("somelong", 123456l);
+    session.put("somelong", 123456L);
     session.put("someint", 1234);
     session.put("someshort", (short) 123);
     session.put("somebyte", (byte) 12);
@@ -169,7 +165,7 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
   }
 
   private void checkSession(Session session) {
-    assertEquals(123456l, (long) session.get("somelong"));
+    assertEquals(123456L, (long) session.get("somelong"));
     assertEquals(1234, (int) session.get("someint"));
     assertEquals((short) 123, (short) session.get("someshort"));
     assertEquals((byte) 12, (byte) session.get("somebyte"));

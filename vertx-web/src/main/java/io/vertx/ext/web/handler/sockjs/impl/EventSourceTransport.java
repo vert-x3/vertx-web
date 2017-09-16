@@ -91,11 +91,10 @@ class EventSourceTransport extends BaseTransport {
         rc.response().setChunked(true).write("\r\n");
         headersWritten = true;
       }
-      StringBuilder sb = new StringBuilder();
-      sb.append("data: ");
-      sb.append(body);
-      sb.append("\r\n\r\n");
-      Buffer buff = buffer(sb.toString());
+      String sb = "data: " +
+        body +
+        "\r\n\r\n";
+      Buffer buff = buffer(sb);
       rc.response().write(buff);
       bytesSent += buff.length();
       if (bytesSent >= maxBytesStreaming) {

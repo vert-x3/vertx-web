@@ -18,9 +18,7 @@ public class JSBusTest extends VertxTestBase {
       assertEquals(0, msg.headers().size());
       testComplete();
     });
-    vertx.deployVerticle("bus_test_reconnect.js", ar -> {
-      assertTrue(ar.succeeded());
-    });
+    vertx.deployVerticle("bus_test_reconnect.js", ar -> assertTrue(ar.succeeded()));
     await();
   }
 
@@ -31,9 +29,7 @@ public class JSBusTest extends VertxTestBase {
       assertEquals(0, msg.headers().size());
       testComplete();
     });
-    vertx.deployVerticle("bus_test_send_1.js", ar -> {
-      assertTrue(ar.succeeded());
-    });
+    vertx.deployVerticle("bus_test_send_1.js", ar -> assertTrue(ar.succeeded()));
     await();
   }
 
@@ -45,9 +41,7 @@ public class JSBusTest extends VertxTestBase {
       assertEquals("the_header_value", msg.headers().get("the_header_name"));
       testComplete();
     });
-    vertx.deployVerticle("bus_test_send_2.js", ar -> {
-      assertTrue(ar.succeeded());
-    });
+    vertx.deployVerticle("bus_test_send_2.js", ar -> assertTrue(ar.succeeded()));
     await();
   }
 
@@ -58,12 +52,8 @@ public class JSBusTest extends VertxTestBase {
       assertEquals(0, msg.headers().size());
       msg.reply("whatever");
     });
-    vertx.eventBus().consumer("done", msg -> {
-      testComplete();
-    });
-    vertx.deployVerticle("bus_test_send_3.js", ar -> {
-      assertTrue(ar.succeeded());
-    });
+    vertx.eventBus().consumer("done", msg -> testComplete());
+    vertx.deployVerticle("bus_test_send_3.js", ar -> assertTrue(ar.succeeded()));
     await();
   }
 
@@ -84,9 +74,7 @@ public class JSBusTest extends VertxTestBase {
       assertEquals(2, count.get());
       testComplete();
     });
-    vertx.deployVerticle("bus_test_send_4.js", ar -> {
-      assertTrue(ar.succeeded());
-    });
+    vertx.deployVerticle("bus_test_send_4.js", ar -> assertTrue(ar.succeeded()));
     await();
   }
 
@@ -98,12 +86,8 @@ public class JSBusTest extends VertxTestBase {
       assertEquals("the_header_value", msg.headers().get("the_header_name"));
       msg.reply("whatever");
     });
-    vertx.eventBus().consumer("done", msg -> {
-      testComplete();
-    });
-    vertx.deployVerticle("bus_test_send_5.js", ar -> {
-      assertTrue(ar.succeeded());
-    });
+    vertx.eventBus().consumer("done", msg -> testComplete());
+    vertx.deployVerticle("bus_test_send_5.js", ar -> assertTrue(ar.succeeded()));
     await();
   }
 
@@ -128,9 +112,7 @@ public class JSBusTest extends VertxTestBase {
       assertEquals(2, count.get());
       testComplete();
     });
-    vertx.deployVerticle("bus_test_send_6.js", ar -> {
-      assertTrue(ar.succeeded());
-    });
+    vertx.deployVerticle("bus_test_send_6.js", ar -> assertTrue(ar.succeeded()));
     await();
   }
 }

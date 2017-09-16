@@ -131,11 +131,10 @@ class HtmlFileTransport extends BaseTransport {
         headersWritten = true;
       }
       body = escapeForJavaScript(body);
-      StringBuilder sb = new StringBuilder();
-      sb.append("<script>\np(\"");
-      sb.append(body);
-      sb.append("\");\n</script>\r\n");
-      Buffer buff = buffer(sb.toString());
+      String sb = "<script>\np(\"" +
+        body +
+        "\");\n</script>\r\n";
+      Buffer buff = buffer(sb);
       rc.response().write(buff);
       bytesSent += buff.length();
       if (bytesSent >= maxBytesStreaming) {

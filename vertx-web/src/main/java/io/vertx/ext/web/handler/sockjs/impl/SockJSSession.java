@@ -370,15 +370,13 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
   }
 
   private void writeClosed(TransportListener lst, int code, String msg) {
-    StringBuilder sb = new StringBuilder("c[");
-    sb.append(String.valueOf(code)).append(",\"");
-    sb.append(msg).append("\"]");
-    lst.sendFrame(sb.toString());
+    String sb = "c[" + String.valueOf(code) + ",\"" +
+      msg + "\"]";
+    lst.sendFrame(sb);
   }
 
   private void writeOpen(TransportListener lst) {
-    StringBuilder sb = new StringBuilder("o");
-    lst.sendFrame(sb.toString());
+    lst.sendFrame("o");
     openWritten = true;
   }
 
