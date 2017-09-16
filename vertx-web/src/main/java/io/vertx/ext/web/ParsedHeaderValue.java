@@ -2,14 +2,10 @@ package io.vertx.ext.web;
 
 import java.util.Collection;
 import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
 
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.Nullable;
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.ext.web.impl.ParsableHeaderValue;
-import io.vertx.ext.web.impl.ParsableMIMEValue;
 
 @VertxGen(concrete = false)
 public interface ParsedHeaderValue {
@@ -20,10 +16,10 @@ public interface ParsedHeaderValue {
   float DEFAULT_WEIGHT = 1;
 
   /**
-   * Contains the raw value that was received from the user agent 
+   * Contains the raw value that was received from the user agent
    */
   String rawValue();
-  
+
   /**
    * Holds the unparsed value of the header.<br>
    * For the most part, this is the content before the semi-colon (";")
@@ -31,12 +27,12 @@ public interface ParsedHeaderValue {
   String value();
   /**
    * Holds the weight specified in the "q" parameter of the header.<br>
-   * If the parameter is not specified, 1.0 is assumed according to 
+   * If the parameter is not specified, 1.0 is assumed according to
    * <a href="https://tools.ietf.org/html/rfc7231#section-5.3.1">rfc7231</a>
    * @return
    */
   float weight();
-  
+
   /**
    * The value of the parameter specified by this key. Each is one of 3 things:
    * <ol>
@@ -45,11 +41,11 @@ public interface ParsedHeaderValue {
    * <li>[Other] <- The value of the parameter</li>
    * </ol>
    * <b>Note:</b> The <code>q</code> parameter is never present.
-   * @return 
+   * @return
    */
   @Nullable
   String parameter(String key);
-  
+
   /**
    * The parameters specified in this header value.
    * <b>Note:</b> The <code>q</code> parameter is never present.
@@ -57,20 +53,20 @@ public interface ParsedHeaderValue {
    * @return Unmodifiable Map of parameters of this header value
    */
   Map<String, String> parameters();
-  
+
   /**
    * Is this an allowed operation as specified by the corresponding header?
    * @return
    */
   boolean isPermitted();
-  
+
   /**
-   * Test if this header is matched by matchTry header 
+   * Test if this header is matched by matchTry header
    * @param matchTry The header to be matched from
    * @return true if this header represents a subset of matchTry, otherwise, false
    */
   boolean isMatchedBy(ParsedHeaderValue matchTry);
-  
+
   /**
    * Finds the first ParsedHeaderValue in the list that matches with this header value.
    * Will return an empty Optional if none match.

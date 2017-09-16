@@ -17,7 +17,6 @@ package io.vertx.ext.web.handler;
 
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
-import io.vertx.ext.web.Cookie;
 import io.vertx.ext.web.WebTestBase;
 import org.junit.AfterClass;
 import org.junit.Test;

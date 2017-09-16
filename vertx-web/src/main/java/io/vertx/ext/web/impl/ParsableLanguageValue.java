@@ -2,7 +2,6 @@ package io.vertx.ext.web.impl;
 
 import io.vertx.codegen.annotations.Nullable;
 import io.vertx.ext.web.LanguageHeader;
-import io.vertx.ext.web.Locale;
 
 import java.util.List;
 

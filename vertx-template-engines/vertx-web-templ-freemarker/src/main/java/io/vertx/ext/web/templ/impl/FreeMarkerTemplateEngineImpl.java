@@ -24,7 +24,6 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.impl.Utils;
 import io.vertx.ext.web.templ.FreeMarkerTemplateEngine;
 
 import java.io.ByteArrayOutputStream;
