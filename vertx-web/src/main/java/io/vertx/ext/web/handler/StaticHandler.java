@@ -20,6 +20,7 @@ import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.impl.StaticHandlerImpl;
 
@@ -232,6 +233,15 @@ public interface StaticHandler extends Handler<RoutingContext> {
    */
   @Fluent
   StaticHandler setMaxCacheSize(int maxCacheSize);
+
+  /**
+   * Set the file mapping for http2push and link preload
+   *
+   * @param http2PushMapping the mapping for http2 push
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  StaticHandler setHttp2PushMapping(JsonObject http2PushMapping);
 
   /**
    * Set whether async filesystem access should always be used
