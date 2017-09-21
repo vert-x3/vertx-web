@@ -82,6 +82,8 @@ public class PebbleTemplateEngineImpl extends CachingTemplateEngine<PebbleTempla
               .orElseGet(Locale::getDefault);
       final Map<String, Object> variables = new HashMap<>(1);
       variables.put("context", context);
+      // Pass defined variables in context to engine
+      variables.putAll(context.data());
       final StringWriter stringWriter = new StringWriter();
       template.evaluate(stringWriter, variables, locale);
       handler.handle(Future.succeededFuture(Buffer.buffer(stringWriter.toString())));
