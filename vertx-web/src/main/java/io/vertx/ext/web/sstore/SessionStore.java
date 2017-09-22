@@ -76,24 +76,24 @@ public interface SessionStore {
    * Delete the session with the specified ID
    *
    * @param id  the unique ID of the session
-   * @param resultHandler  will be called with a result true/false, or a failure
+   * @param resultHandler  will be called with a success or a failure
    */
-  void delete(String id, Handler<AsyncResult<Boolean>> resultHandler);
+  void delete(String id, Handler<AsyncResult<Void>> resultHandler);
 
   /**
    * Add a session with the specified ID
    *
    * @param session  the session
-   * @param resultHandler  will be called with a result true/false, or a failure
+   * @param resultHandler  will be called with a success or a failure
    */
-  void put(Session session, Handler<AsyncResult<Boolean>> resultHandler);
+  void put(Session session, Handler<AsyncResult<Void>> resultHandler);
 
   /**
    * Remove all sessions from the store
    *
-   * @param resultHandler  will be called with a result true/false, or a failure
+   * @param resultHandler  will be called with a success or a failure
    */
-  void clear(Handler<AsyncResult<Boolean>> resultHandler);
+  void clear(Handler<AsyncResult<Void>> resultHandler);
 
   /**
    * Get the number of sessions in the store

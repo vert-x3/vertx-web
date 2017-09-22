@@ -230,24 +230,24 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
     }
 
     @Override
-    public void delete(String id, Handler<AsyncResult<Boolean>> resultHandler) {
-      boolean deleted = sessions.remove(id) != null;
-      vertx.runOnContext(v -> resultHandler.handle(Future.succeededFuture(deleted)));
+    public void delete(String id, Handler<AsyncResult<Void>> resultHandler) {
+      sessions.remove(id);
+      vertx.runOnContext(v -> resultHandler.handle(Future.succeededFuture()));
     }
 
     @Override
-    public void put(Session session, Handler<AsyncResult<Boolean>> resultHandler) {
+    public void put(Session session, Handler<AsyncResult<Void>> resultHandler) {
       ClusterSerializable cs = (ClusterSerializable)session;
       Buffer buff = Buffer.buffer();
       cs.writeToBuffer(buff);
       sessions.put(session.id(), buff);
-      vertx.runOnContext(v -> resultHandler.handle(Future.succeededFuture(true)));
+      vertx.runOnContext(v -> resultHandler.handle(Future.succeededFuture()));
     }
 
     @Override
-    public void clear(Handler<AsyncResult<Boolean>> resultHandler) {
+    public void clear(Handler<AsyncResult<Void>> resultHandler) {
       sessions.clear();
-      vertx.runOnContext(v -> resultHandler.handle(Future.succeededFuture(true)));
+      vertx.runOnContext(v -> resultHandler.handle(Future.succeededFuture()));
     }
 
     @Override
