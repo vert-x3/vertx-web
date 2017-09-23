@@ -1686,19 +1686,26 @@
  *
  * You can't actually do anything with the connection until it is opened. When it is open the `onopen` handler will be called.
  *
- * IMPORTANT: Neither SockJS nor the EventBus bridge support automatic reconnection.
- *
- * When your server goes down, you must create another EventBus instance.
+ * The bridge supports automatic reconnection, with configurable delay and backoff options.
  *
  * [source,javascript]
  * ----
- * function setupEventBus() {
- *   var eb = new EventBus();
- *   eb.onclose = function (e) {
- *     setTimeout(setupEventBus, 1000); // Give the server some time to come back
- *   };
- *   // Handlers setup here...
- * }
+ * var eb = new EventBus('http://localhost:8080/eventbus');
+ * eb.enableReconnect(true);
+ *
+ * // Alternatively, pass in an options object
+ * var options = {
+ *     vertxbus_reconnect_attempts_max: Infinity, // Max reconnect attempts
+ *     vertxbus_reconnect_delay_min: 1000, // Initial delay (in ms) before first reconnect attempt
+ *     vertxbus_reconnect_delay_max: 5000, // Max delay (in ms) between reconnect attempts
+ *     vertxbus_reconnect_exponent: 2, // Exponential backoff factor
+ *     vertxbus_randomization_factor: 0.5 // Randomization factor between 0 and 1
+ * };
+ *
+ * var eb2 = new EventBus('http://localhost:8080/eventbus', options);
+ * eb2.enableReconnect(true);
+ *
+ * // Handlers setup here...
  * ----
  *
  * You can retrieve the client library using a dependency manager:
