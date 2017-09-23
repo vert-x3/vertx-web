@@ -1692,6 +1692,8 @@
  * ----
  * var eb = new EventBus('http://localhost:8080/eventbus');
  * eb.enableReconnect(true);
+ * eb.onopen = function() {}; // Set up handlers here, will be called on initial connection and all reconnections
+ * eb.onreconnect = function() {}; // Optional, will only be called on reconnections
  *
  * // Alternatively, pass in an options object
  * var options = {
@@ -1704,8 +1706,7 @@
  *
  * var eb2 = new EventBus('http://localhost:8080/eventbus', options);
  * eb2.enableReconnect(true);
- *
- * // Handlers setup here...
+ * // Set up handlers...
  * ----
  *
  * You can retrieve the client library using a dependency manager:
