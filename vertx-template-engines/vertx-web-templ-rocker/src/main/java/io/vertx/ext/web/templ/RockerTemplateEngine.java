@@ -16,6 +16,7 @@
 
 package io.vertx.ext.web.templ;
 
+import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.ext.web.templ.impl.RockerTemplateEngineImpl;
 
@@ -53,6 +54,7 @@ public interface RockerTemplateEngine extends TemplateEngine {
    *          the extension
    * @return a reference to this for fluency
    */
+  @Fluent
   RockerTemplateEngine setExtension(String extension);
 
   /**
@@ -62,5 +64,6 @@ public interface RockerTemplateEngine extends TemplateEngine {
    *          the maxCacheSize
    * @return a reference to this for fluency
    */
+  @Fluent
   RockerTemplateEngine setMaxCacheSize(int maxCacheSize);
 }

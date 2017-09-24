@@ -17,6 +17,7 @@
 package io.vertx.ext.web.templ;
 
 import de.neuland.jade4j.JadeConfiguration;
+import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.ext.web.templ.impl.JadeTemplateEngineImpl;
@@ -54,6 +55,7 @@ public interface JadeTemplateEngine extends TemplateEngine {
    * @param extension  the extension
    * @return a reference to this for fluency
    */
+  @Fluent
   JadeTemplateEngine setExtension(String extension);
 
   /**
@@ -62,6 +64,7 @@ public interface JadeTemplateEngine extends TemplateEngine {
    * @param maxCacheSize  the maxCacheSize
    * @return a reference to this for fluency
    */
+  @Fluent
   JadeTemplateEngine setMaxCacheSize(int maxCacheSize);
 
   /**
