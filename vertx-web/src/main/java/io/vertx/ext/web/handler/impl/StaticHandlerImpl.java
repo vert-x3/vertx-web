@@ -25,9 +25,9 @@ import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.http.HttpVersion;
 import io.vertx.core.http.impl.MimeMapping;
 import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
+import io.vertx.ext.web.Http2PushMapping;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.StaticHandler;
 import io.vertx.ext.web.impl.LRUCache;
@@ -67,7 +67,7 @@ public class StaticHandlerImpl implements StaticHandler {
   private boolean cachingEnabled = DEFAULT_CACHING_ENABLED;
   private long cacheEntryTimeout = DEFAULT_CACHE_ENTRY_TIMEOUT;
   private String indexPage = DEFAULT_INDEX_PAGE;
-  private JsonObject http2PushMapping;
+  private Map<String, List<Http2PushMapping>> http2PushMap;
   private int maxCacheSize = DEFAULT_MAX_CACHE_SIZE;
   private boolean rangeSupport = DEFAULT_RANGE_SUPPORT;
   private boolean allowRootFileSystemAccess = DEFAULT_ROOT_FILESYSTEM_ACCESS;
@@ -409,74 +409,74 @@ public class StaticHandlerImpl implements StaticHandler {
           }
 
           // http2 pushing support
-          if (request.version() == HttpVersion.HTTP_2 && http2PushMapping != null) {
+          if (request.version() == HttpVersion.HTTP_2 && http2PushMap != null) {
 
-            JsonArray dependencies = http2PushMapping.getJsonArray(file.substring(webRoot.length() + 1));
-            if (dependencies != null) {
+            for(Map.Entry<String, List<Http2PushMapping>> http2PushEntry : http2PushMap.entrySet()) {
 
-              for(Object dependency : dependencies) {
-                final String dep = webRoot + "/" + dependency;
+              for (Http2PushMapping dependency : http2PushEntry.getValue()) {
+                if (!dependency.isNoPush()) {
+                  final String dep = webRoot + "/" + dependency.getFilePath();
+                  HttpServerResponse response = request.response();
 
-                HttpServerResponse response = request.response();
+                  // get the file props
+                  log.info("looking up props for " + dep);
+                  getFileProps(context, dep, filePropsAsyncResult -> {
+                    if (filePropsAsyncResult.succeeded()) {
 
-                // get the file props
-                System.out.println("looking up props for " + dep);
-                getFileProps(context, dep, filePropsAsyncResult -> {
-                  if (filePropsAsyncResult.succeeded()) {
-
-                    // push
-                    System.out.println("pushing /" + dependency);
-
-                    writeCacheHeaders(request, filePropsAsyncResult.result());
-
-                    response.push(HttpMethod.GET, "/" + dependency, pushAsyncResult -> {
-                      if (pushAsyncResult.succeeded()) {
-                        HttpServerResponse res = pushAsyncResult.result();
-                        final String depContentType = MimeMapping.getMimeTypeForExtension(file);
-                        if (depContentType != null) {
-                          if (depContentType.startsWith("text")) {
-                            res.putHeader("Content-Type", contentType + ";charset=" + defaultContentEncoding);
-                          } else {
-                            res.putHeader("Content-Type", contentType);
+                      // push
+                      log.info("pushing /" + dependency.getFilePath());
+                      writeCacheHeaders(request, filePropsAsyncResult.result());
+                      response.push(HttpMethod.GET, "/" + dependency.getFilePath(), pushAsyncResult -> {
+                        if (pushAsyncResult.succeeded()) {
+                          HttpServerResponse res = pushAsyncResult.result();
+                          final String depContentType = MimeMapping.getMimeTypeForExtension(file);
+                          if (depContentType != null) {
+                            if (depContentType.startsWith("text")) {
+                              res.putHeader("Content-Type", contentType + ";charset=" + defaultContentEncoding);
+                            } else {
+                              res.putHeader("Content-Type", contentType);
+                            }
                           }
                         }
-                      }
-                    });
-                  }
-                });
+                      });
+                    }
+                  });
+                }
               }
             }
-          } else if (http2PushMapping != null) {
+          } else if (http2PushMap != null) {
             //Link preload when file push is not supported
-            JsonArray dependencies = http2PushMapping.getJsonArray(file.substring(webRoot.length() + 1));
-            if (dependencies != null) {
+
+            for (Map.Entry<String, List<Http2PushMapping>> http2PushEntry : http2PushMap.entrySet()) {
 
               List<String> asLinkExtensions = new ArrayList<>();
               HttpServerResponse response = request.response();
 
-              for(Object dependency : dependencies) {
-                final String dep = webRoot + "/" + dependency;
+              for (Http2PushMapping dependency : http2PushEntry.getValue()) {
+                if(!dependency.isNoPush()) {
+                  final String dep = webRoot + "/" + dependency.getFilePath();
 
-                // get the file props
-                System.out.println("looking up props for " + dep);
-                getFileProps(context, dep, filePropsAsyncResult -> {
-                  if (filePropsAsyncResult.succeeded()) {
-                    // push
-                    System.out.println("pushing /" + dependency);
-                    writeCacheHeaders(request, filePropsAsyncResult.result());
-                    final String depContentType = MimeMapping.getMimeTypeForExtension(dependency.toString());
-                    String asLinkExtension = "<" + dependency + ">; rel=preload; as=" + getLinkExtensionAs(dependency.toString());
-                    asLinkExtensions.add(asLinkExtension);
+                  // get the file props
+                  log.info("looking up props for " + dep);
+                  getFileProps(context, dep, filePropsAsyncResult -> {
+                    if (filePropsAsyncResult.succeeded()) {
+                      // push
+                      log.info("pushing /" + dependency.getFilePath());
+                      writeCacheHeaders(request, filePropsAsyncResult.result());
+                      final String depContentType = MimeMapping.getMimeTypeForExtension(dependency.getFilePath());
+                      String asLinkExtension = "<" + dependency.getFilePath() + ">; rel=preload; as=" + dependency.getExtensionTarget();
+                      asLinkExtensions.add(asLinkExtension);
 
-                    if (depContentType != null) {
-                      if (depContentType.startsWith("text")) {
-                        response.putHeader("Content-Type", contentType + ";charset=" + defaultContentEncoding);
-                      } else {
-                        response.putHeader("Content-Type", contentType);
+                      if (depContentType != null) {
+                        if (depContentType.startsWith("text")) {
+                          response.putHeader("Content-Type", contentType + ";charset=" + defaultContentEncoding);
+                        } else {
+                          response.putHeader("Content-Type", contentType);
+                        }
                       }
                     }
-                  }
-                });
+                  });
+                }
               }
               response.putHeader("Link", String.join(",", asLinkExtensions));
             }
@@ -585,8 +585,8 @@ public class StaticHandlerImpl implements StaticHandler {
   }
 
   @Override
-  public StaticHandler setHttp2PushMapping(JsonObject http2PushMapping) {
-    this.http2PushMapping = http2PushMapping;
+  public StaticHandler setHttp2PushMapping(Map<String, List<Http2PushMapping>> http2PushMap) {
+    this.http2PushMap = http2PushMap;
     return this;
   }
 
@@ -771,15 +771,5 @@ public class StaticHandlerImpl implements StaticHandler {
       return System.currentTimeMillis() - createDate > cacheEntryTimeout;
     }
 
-  }
-
-  public String getLinkExtensionAs(String fileName) {
-    String contentType = MimeMapping.getMimeTypeForFilename(fileName);
-    if (contentType.startsWith("audio")) return "audio";
-    if (contentType.startsWith("video")) return "video";
-    if (contentType.contains("script")) return "script";
-    if (contentType.contains("css")) return "style";
-    if (contentType.startsWith("image")) return "image";
-    return "";
   }
 }

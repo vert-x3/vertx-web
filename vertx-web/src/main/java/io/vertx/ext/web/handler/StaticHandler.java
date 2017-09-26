@@ -21,8 +21,12 @@ import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.Http2PushMapping;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.impl.StaticHandlerImpl;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * A handler for serving static resources from the file system or classpath.
@@ -237,11 +241,11 @@ public interface StaticHandler extends Handler<RoutingContext> {
   /**
    * Set the file mapping for http2push and link preload
    *
-   * @param http2PushMapping the mapping for http2 push
+   * @param http2PushMap the mapping for http2 push
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
-  StaticHandler setHttp2PushMapping(JsonObject http2PushMapping);
+  StaticHandler setHttp2PushMapping(Map<String, List<Http2PushMapping>> http2PushMap);
 
   /**
    * Set whether async filesystem access should always be used
