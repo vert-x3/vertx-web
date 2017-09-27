@@ -449,36 +449,24 @@ public class StaticHandlerImpl implements StaticHandler {
 
             for (Map.Entry<String, List<Http2PushMapping>> http2PushEntry : http2PushMap.entrySet()) {
 
-              List<String> asLinkExtensions = new ArrayList<>();
               HttpServerResponse response = request.response();
-
+              List<String> links = new ArrayList<>();
               for (Http2PushMapping dependency : http2PushEntry.getValue()) {
-                if(!dependency.isNoPush()) {
-                  final String dep = webRoot + "/" + dependency.getFilePath();
+                final String dep = webRoot + "/" + dependency.getFilePath();
 
-                  // get the file props
-                  log.info("looking up props for " + dep);
-                  getFileProps(context, dep, filePropsAsyncResult -> {
-                    if (filePropsAsyncResult.succeeded()) {
-                      // push
-                      log.info("pushing /" + dependency.getFilePath());
-                      writeCacheHeaders(request, filePropsAsyncResult.result());
-                      final String depContentType = MimeMapping.getMimeTypeForExtension(dependency.getFilePath());
-                      String asLinkExtension = "<" + dependency.getFilePath() + ">; rel=preload; as=" + dependency.getExtensionTarget();
-                      asLinkExtensions.add(asLinkExtension);
-
-                      if (depContentType != null) {
-                        if (depContentType.startsWith("text")) {
-                          response.putHeader("Content-Type", contentType + ";charset=" + defaultContentEncoding);
-                        } else {
-                          response.putHeader("Content-Type", contentType);
-                        }
-                      }
-                    }
-                  });
-                }
+                // get the file props
+                log.info("looking up props for " + dep);
+                getFileProps(context, dep, filePropsAsyncResult -> {
+                  if (filePropsAsyncResult.succeeded()) {
+                    // push
+                    log.info("pushing /" + dependency.getFilePath());
+                    writeCacheHeaders(request, filePropsAsyncResult.result());
+                    links.add("<" + dependency.getFilePath() + ">; rel=preload; as="
+                        + dependency.getExtensionTarget() + (dependency.isNoPush() ? "; nopush" : ""));
+                  }
+                });
               }
-              response.putHeader("Link", String.join(",", asLinkExtensions));
+              response.putHeader("Link", links);
             }
           }
 
