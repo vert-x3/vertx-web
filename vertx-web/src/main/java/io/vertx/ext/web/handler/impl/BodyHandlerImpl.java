@@ -16,6 +16,7 @@
 
 package io.vertx.ext.web.handler.impl;
 
+import io.netty.handler.codec.http.HttpHeaderValues;
 import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.file.FileSystem;
@@ -117,8 +118,14 @@ public class BodyHandlerImpl implements BodyHandler {
       Set<FileUpload> fileUploads = context.fileUploads();
 
       final String contentType = context.request().getHeader(HttpHeaders.CONTENT_TYPE);
-      isMultipart = contentType != null && contentType.contains("multipart/form-data");
-      isUrlEncoded = contentType != null && contentType.contains("application/x-www-form-urlencoded");
+      if (contentType == null) {
+        isMultipart = false;
+        isUrlEncoded = false;
+      } else {
+        final String lowerCaseContentType = contentType.toLowerCase();
+        isMultipart = lowerCaseContentType.startsWith(HttpHeaderValues.MULTIPART_FORM_DATA.toString());
+        isUrlEncoded = lowerCaseContentType.startsWith(HttpHeaderValues.APPLICATION_X_WWW_FORM_URLENCODED.toString());
+      }
 
       if (isMultipart || isUrlEncoded) {
         makeUploadDir(context.vertx().fileSystem());
