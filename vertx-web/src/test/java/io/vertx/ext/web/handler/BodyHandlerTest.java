@@ -313,6 +313,24 @@ public class BodyHandlerTest extends WebTestBase {
   }
 
   @Test
+  public void testFormContentTypeIgnoreCase() throws Exception {
+    router.route().handler(rc -> {
+      MultiMap attrs = rc.request().formAttributes();
+      assertNotNull(attrs);
+      assertEquals(1, attrs.size());
+      assertEquals("junit-testUserAlias", attrs.get("origin"));
+      rc.response().end();
+    });
+    testRequest(HttpMethod.POST, "/", req -> {
+      Buffer buffer = Buffer.buffer();
+      buffer.appendString("origin=junit-testUserAlias");
+      req.headers().set("content-length", String.valueOf(buffer.length()));
+      req.headers().set("content-type", "ApPlIcAtIoN/x-WwW-fOrM-uRlEnCoDeD");
+      req.write(buffer);
+    }, 200, "OK", null);
+  }
+
+  @Test
   public void testFormMultipartFormDataMergeAttributesDefault() throws Exception {
     testFormMultipartFormData(true);
   }
