@@ -206,8 +206,15 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   public Cookie removeCookie(String name) {
     Cookie cookie = cookiesMap().get(name);
     if (cookie != null) {
-      // expire the cookie
-      cookie.setMaxAge(0L);
+      if (cookie.isFromUserAgent()) {
+        // in the case the cookie was passed from the User Agent
+        // we need to expire it and sent it back to it can be
+        // invalidated
+        cookie.setMaxAge(0L);
+      } else {
+        // this was a temporary cookie so we can safely remove it
+        cookiesMap().remove(name);
+      }
     }
     return cookie;
   }

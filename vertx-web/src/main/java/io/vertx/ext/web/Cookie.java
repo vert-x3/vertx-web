@@ -158,4 +158,10 @@ public interface Cookie {
    */
   void setChanged(boolean changed);
 
+  /**
+   * Has this Cookie been sent from the User Agent (the browser)? or was created during the executing on the request.
+   *
+   * @return true if the cookie comes from the User Agent.
+   */
+  boolean isFromUserAgent();
 }
