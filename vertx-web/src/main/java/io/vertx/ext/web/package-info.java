@@ -2034,7 +2034,21 @@
  * order the handler is called (for example you want it to be called as soon as possible in the chain) you can always
  * create the route object before and pass it as a reference to this method.
  *
- * Mixing OAuth2 and JWT
+ * === A real world example
+ *
+ * Up to now you have learned how to use the Oauth2 Handler however you will notice that for each request you will need
+ * to authenticate. This is because the handler has no state and there was no state management applied in the examples.
+ *
+ * Although having no state is recommended for API facing endpoints, for example, using JWT (we will cover those later)
+ * for user facing endpoinst we can keep the authentication result stored in the session. For this to work we would
+ * need an application like the following snippet:
+ *
+ * [source,$lang]
+ * ----
+ * {@link examples.WebExamples#example62}
+ * ----
+ *
+ * === Mixing OAuth2 and JWT
  *
  * Some providers use JWT tokens as access tokens, this is a feature of https://tools.ietf.org/html/rfc6750[RFC6750]
  * and can be quite useful when one wants to mix client based authentication and API authorization. For example say that
