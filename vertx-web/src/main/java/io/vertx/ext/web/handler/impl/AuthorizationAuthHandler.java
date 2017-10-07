@@ -66,7 +66,7 @@ abstract class AuthorizationAuthHandler extends AuthHandlerImpl {
     this.type = type;
   }
 
-  final void parseAuthorization(RoutingContext ctx, boolean optional, Handler<AsyncResult<String>> handler) {
+  protected final void parseAuthorization(RoutingContext ctx, boolean optional, Handler<AsyncResult<String>> handler) {
 
     final HttpServerRequest request = ctx.request();
     final String authorization = request.headers().get(HttpHeaders.AUTHORIZATION);

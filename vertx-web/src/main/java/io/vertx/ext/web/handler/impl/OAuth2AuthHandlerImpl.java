@@ -100,11 +100,13 @@ public class OAuth2AuthHandlerImpl extends AuthorizationAuthHandler implements O
       return ((OAuth2Auth) authProvider).authorizeURL(new JsonObject()
         .put("redirect_uri", host + callback.getPath())
         .put("scopes", scopes)
-        .put("state", redirectURL));
+        .put("state", redirectURL)
+        .mergeIn(extraParams));
     } else {
       return ((OAuth2Auth) authProvider).authorizeURL(new JsonObject()
         .put("redirect_uri", host + callback.getPath())
-        .put("state", redirectURL));
+        .put("state", redirectURL)
+        .mergeIn(extraParams));
     }
   }
 
@@ -153,13 +155,13 @@ public class OAuth2AuthHandlerImpl extends AuthorizationAuthHandler implements O
               .putHeader(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate")
               .putHeader("Pragma", "no-cache")
               .putHeader(HttpHeaders.EXPIRES, "0")
-              // redirect
-              .putHeader(HttpHeaders.LOCATION, state)
+              // redirect (when there is no state, redirect to home
+              .putHeader(HttpHeaders.LOCATION, state != null ? state : "/")
               .setStatusCode(302)
-              .end("Redirecting to " + state + ".");
+              .end("Redirecting to " + (state != null ? state : "/") + ".");
           } else {
             // there is no session object so we cannot keep state
-            ctx.reroute(state);
+            ctx.reroute(state != null ? state : "/");
           }
         }
       });

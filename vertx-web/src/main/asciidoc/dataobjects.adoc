@@ -35,26 +35,10 @@
 [frame="topbot"]
 |===
 ^|Name | Type ^| Description
-|[[address]]`address`|`String`|
-+++
-The exact address the message is being sent to. If you want to allow messages based on
- an exact address you use this field.
-+++
-|[[addressRegex]]`addressRegex`|`String`|
-+++
-A regular expression that will be matched against the address. If you want to allow messages
- based on a regular expression you use this field. If the link value is specified
- this will be ignored.
-+++
-|[[match]]`match`|`Json object`|
-+++
-This allows you to allow messages based on their structure. Any fields in the match must exist in the
- message with the same values for them to be allowed. This currently only works with JSON messages.
-+++
-|[[requiredAuthority]]`requiredAuthority`|`String`|
-+++
-Declare a specific authority that user must have in order to allow messages
-+++
+|[[address]]`address`|`String`|-
+|[[addressRegex]]`addressRegex`|`String`|-
+|[[match]]`match`|`Json object`|-
+|[[requiredAuthority]]`requiredAuthority`|`String`|-
 |===
 
 [[SockJSHandlerOptions]]

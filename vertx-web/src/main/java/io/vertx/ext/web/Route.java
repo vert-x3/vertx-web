@@ -22,6 +22,8 @@ import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;
 
+import java.util.List;
+
 /**
  * A route is a holder for a set of criteria which determine whether an HTTP request or failure should be routed
  * to a handler.
@@ -181,6 +183,20 @@ public interface Route {
    */
   @Nullable
   String getPath();
+
+  /**
+   * When you add a new route with a regular expression, you can add named capture groups for parameters. <br/>
+   * However, if you need more complex parameters names (like "param_name"), you can add parameters names with
+   * this function. You have to name capture groups in regex with names: "p0", "p1", "p2", ... <br/>
+   * <br/>
+   * For example: If you declare route with regex \/(?<p0>[a-z]*)\/(?<p1>[a-z]*) and group names ["param_a", "param-b"]
+   * for uri /hello/world you receive inside pathParams() the parameter param_a = "hello"
+   *
+   * @param groups group names
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  Route setRegexGroupsNames(List<String> groups);
 
 }
 

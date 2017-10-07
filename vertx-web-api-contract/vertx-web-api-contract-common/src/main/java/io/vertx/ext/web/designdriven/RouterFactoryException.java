@@ -27,7 +27,11 @@ public class RouterFactoryException extends RuntimeException {
     /**
      * You have provided a wrong directory/path to specification file
      */
-    INVALID_SPEC_PATH
+    INVALID_SPEC_PATH,
+    /**
+     * You are trying to use two or more path parameters with a combination of parameters/name/styles/explode not supported
+     */
+    PATH_PARAMETERS_COMBINATION_NOT_SUPPORTED
   }
 
   private ErrorType type;

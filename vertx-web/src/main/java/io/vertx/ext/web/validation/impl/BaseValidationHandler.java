@@ -1,5 +1,6 @@
 package io.vertx.ext.web.validation.impl;
 
+import io.netty.handler.codec.http.QueryStringDecoder;
 import io.vertx.core.MultiMap;
 import io.vertx.ext.web.Cookie;
 import io.vertx.ext.web.FileUpload;
@@ -13,6 +14,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.*;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * @author Francesco Guardiani @slinkydeveloper
@@ -95,6 +97,8 @@ public abstract class BaseValidationHandler implements ValidationHandler {
       String name = rule.getName();
       if (pathParams.containsKey(name)) {
         RequestParameter parsedParam = rule.validateSingleParam(pathParams.get(name));
+        if (parsedParams.containsKey(parsedParam.getName()))
+          parsedParam = parsedParam.merge(parsedParams.get(parsedParam.getName()));
         parsedParams.put(parsedParam.getName(), parsedParam);
       } else // Path params are required!
         throw ValidationException.ValidationExceptionFactory.generateNotFoundValidationException(name,
@@ -105,23 +109,30 @@ public abstract class BaseValidationHandler implements ValidationHandler {
 
   private Map<String, RequestParameter> validateCookieParams(RoutingContext routingContext) throws ValidationException {
     // Validation process validate only params that are registered in the validation -> extra params are allowed
-    List<Cookie> cookies = new ArrayList<>(routingContext.cookies());
+    if (!routingContext.request().headers().contains("Cookie"))
+      return null;
+    QueryStringDecoder decoder = new QueryStringDecoder("/?" + routingContext.request().getHeader("Cookie")); // Some hack to reuse this object
+    Map<String, List<String>> cookies = new HashMap<>();
+    for (Map.Entry<String, List<String>> e : decoder.parameters().entrySet()) {
+      String key = e.getKey().trim();
+      if (cookies.containsKey(key))
+        cookies.get(key).addAll(e.getValue());
+      else
+        cookies.put(key, e.getValue());
+    }
     Map<String, RequestParameter> parsedParams = new HashMap<>();
     for (ParameterValidationRule rule : cookieParamsRules.values()) {
-      String name = rule.getName();
-      boolean resolved = false;
-      for (int i = 0; i < cookies.size(); i++) {
-        if (cookies.get(i).getName().equals(name)) {
-          RequestParameter parsedParam = rule.validateSingleParam(cookies.get(i).getValue());
-          parsedParams.put(parsedParam.getName(), parsedParam);
-          cookies.remove(i);
-          resolved = true;
-          break;
-        }
-      }
-      if (!resolved) {
+      String name = rule.getName().trim();
+      if (cookies.containsKey(name)) {
+        RequestParameter parsedParam = rule.validateArrayParam(cookies.get(name));
+        if (parsedParams.containsKey(parsedParam.getName()))
+          parsedParam = parsedParam.merge(parsedParams.get(parsedParam.getName()));
+        parsedParams.put(parsedParam.getName(), parsedParam);
+      } else {
         if (rule.allowEmptyValue() && rule.parameterTypeValidator().getDefault() != null) {
           RequestParameter parsedParam = new RequestParameterImpl(name, rule.parameterTypeValidator().getDefault());
+          if (parsedParams.containsKey(parsedParam.getName()))
+            parsedParam = parsedParam.merge(parsedParams.get(parsedParam.getName()));
           parsedParams.put(parsedParam.getName(), parsedParam);
         } else if (!rule.isOptional())
           throw ValidationException.ValidationExceptionFactory.generateNotFoundValidationException(name,
@@ -139,10 +150,13 @@ public abstract class BaseValidationHandler implements ValidationHandler {
       String name = rule.getName();
       if (queryParams.contains(name)) {
         RequestParameter parsedParam = rule.validateArrayParam(queryParams.getAll(name));
-        parsedParam.setName(name);
+        if (parsedParams.containsKey(parsedParam.getName()))
+          parsedParam = parsedParam.merge(parsedParams.get(parsedParam.getName()));
         parsedParams.put(parsedParam.getName(), parsedParam);
       } else if (rule.allowEmptyValue() && rule.parameterTypeValidator().getDefault() != null) {
         RequestParameter parsedParam = new RequestParameterImpl(name, rule.parameterTypeValidator().getDefault());
+        if (parsedParams.containsKey(parsedParam.getName()))
+          parsedParam = parsedParam.merge(parsedParams.get(parsedParam.getName()));
         parsedParams.put(parsedParam.getName(), parsedParam);
       } else if (!rule.isOptional())
         throw ValidationException.ValidationExceptionFactory.generateNotFoundValidationException(name,
@@ -159,9 +173,13 @@ public abstract class BaseValidationHandler implements ValidationHandler {
       String name = rule.getName();
       if (headersParams.contains(name)) {
         RequestParameter parsedParam = rule.validateArrayParam(headersParams.getAll(name));
+        if (parsedParams.containsKey(parsedParam.getName()))
+          parsedParam = parsedParam.merge(parsedParams.get(parsedParam.getName()));
         parsedParams.put(parsedParam.getName(), parsedParam);
       } else if (rule.allowEmptyValue() && rule.parameterTypeValidator().getDefault() != null) {
         RequestParameter parsedParam = new RequestParameterImpl(name, rule.parameterTypeValidator().getDefault());
+        if (parsedParams.containsKey(parsedParam.getName()))
+          parsedParam = parsedParam.merge(parsedParams.get(parsedParam.getName()));
         parsedParams.put(parsedParam.getName(), parsedParam);
       } else if (!rule.isOptional())
         throw ValidationException.ValidationExceptionFactory.generateNotFoundValidationException(name,
@@ -186,10 +204,14 @@ public abstract class BaseValidationHandler implements ValidationHandler {
             e.printStackTrace();
           }
           RequestParameter parsedParam = rule.validateArrayParam(values);
+          if (parsedParams.containsKey(parsedParam.getName()))
+            parsedParam = parsedParam.merge(parsedParams.get(parsedParam.getName()));
           parsedParams.put(parsedParam.getName(), parsedParam);
         }
       } else if (rule.allowEmptyValue() && rule.parameterTypeValidator().getDefault() != null) {
         RequestParameter parsedParam = new RequestParameterImpl(name, rule.parameterTypeValidator().getDefault());
+        if (parsedParams.containsKey(parsedParam.getName()))
+          parsedParam = parsedParam.merge(parsedParams.get(parsedParam.getName()));
         parsedParams.put(parsedParam.getName(), parsedParam);
       } else if (!rule.isOptional())
         throw ValidationException.ValidationExceptionFactory.generateNotFoundValidationException(name,

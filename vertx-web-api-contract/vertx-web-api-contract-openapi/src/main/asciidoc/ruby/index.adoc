@@ -33,7 +33,7 @@ For example:
 [source,ruby]
 ----
 require 'vertx-web-contract-openapi/open_api3_router_factory'
-VertxWebContractOpenapi::OpenAPI3RouterFactory.create_router_factory_from_file(vertx, "src/main/resources/petstore.yaml", true) { |ar_err,ar|
+VertxWebContractOpenapi::OpenAPI3RouterFactory.create_router_factory_from_file(vertx, "src/main/resources/petstore.yaml") { |ar_err,ar|
   if (ar_err == nil)
     # Spec loaded with success
     routerFactory = ar
@@ -57,6 +57,9 @@ And, of course, two functions to load failure handlers
 * `link:../../yardoc/VertxWebContractOpenapi/OpenAPI3RouterFactory.html#add_failure_handler_by_operation_id-instance_method[addFailureHandlerByOperationId]`
 
 You can, of course, **add multiple handlers to same operation**, without overwrite the existing ones.
+
+.Path in OpenAPI format
+IMPORTANT: If you want to use `link:../../yardoc/VertxWeb/DesignDrivenRouterFactory.html#add_handler-instance_method[addHandler]` or `link:../../yardoc/VertxWeb/DesignDrivenRouterFactory.html#add_failure_handler-instance_method[addFailureHandler]` pay attention: You can provide a path only in OpenAPI styles (for example path `/hello/:param` doesn't work)
 
 For example:
 [source,ruby]

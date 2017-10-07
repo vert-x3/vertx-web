@@ -1,10 +1,11 @@
 = Enums
 
-[[BridgeEventType]]
-== BridgeEventType
+[[ContainerSerializationStyle]]
+== ContainerSerializationStyle
 
 ++++
- Bridge Event Types.
+ This enum contains supported object and arrays serialization styles. Every style has a enum value, and an array of
+ strings to refeer to it.
 ++++
 '''
 
@@ -12,41 +13,100 @@
 [frame="topbot"]
 |===
 ^|Name | Description
-|[[SOCKET_CREATED]]`SOCKET_CREATED`|
+|[[csv]]`csv`|
 +++
-This event will occur when a new SockJS socket is created.
+Comma separated values: "value1,value2,value3"
+ aliases: "csv", "commaDelimited", "form", "simple"
 +++
-|[[SOCKET_CLOSED]]`SOCKET_CLOSED`|
+|[[ssv]]`ssv`|
 +++
-This event will occur when a SockJS socket is closed.
+Space separated values: "value1 value2 value3"
+ aliases: "ssv", "spaceDelimited"
 +++
-|[[SOCKET_IDLE]]`SOCKET_IDLE`|
+|[[psv]]`psv`|
 +++
-This event will occur when SockJS socket is on idle for longer period of time than configured.
+Pipe separated values: "value1|value2|value3"
+ aliases: "psv", "pipeDelimited"
 +++
-|[[SOCKET_PING]]`SOCKET_PING`|
+|[[dsv]]`dsv`|
 +++
-This event will occur when the last ping timestamp is updated for the SockJS socket.
+Dot delimited values: "value1.value2.value3"
+ aliases: "dsv", "dotDelimited", "label"
 +++
-|[[SEND]]`SEND`|
+|[[simple_exploded_object]]`simple_exploded_object`|
 +++
-This event will occur when a message is attempted to be sent from the client to the server.
+For internal usage, don't use it
 +++
-|[[PUBLISH]]`PUBLISH`|
+|[[matrix_exploded_array]]`matrix_exploded_array`|
 +++
-This event will occur when a message is attempted to be published from the client to the server.
+For internal usage, don't use it
 +++
-|[[RECEIVE]]`RECEIVE`|
+|===
+
+[[ErrorType]]
+== ErrorType
+
+++++
+ All errors type. You can get this values using link
+++++
+'''
+
+[cols=">25%,75%"]
+[frame="topbot"]
+|===
+^|Name | Description
+|[[NO_MATCH]]`NO_MATCH`|
 +++
-This event will occur when a message is attempted to be delivered from the server to the client.
+The provided value not match with ParameterTypeValidator rules
 +++
-|[[REGISTER]]`REGISTER`|
+|[[NOT_FOUND]]`NOT_FOUND`|
 +++
-This event will occur when a client attempts to register a handler.
+Parameter not found in request
 +++
-|[[UNREGISTER]]`UNREGISTER`|
+|[[UNEXPECTED_ARRAY]]`UNEXPECTED_ARRAY`|
 +++
-This event will occur when a client attempts to unregister a handler.
+It was expected a single value, but found in request an array
++++
+|[[UNEXPECTED_SINGLE_STRING]]`UNEXPECTED_SINGLE_STRING`|
++++
+It was expected an array, but found in request a single value
++++
+|[[FILE_NOT_FOUND]]`FILE_NOT_FOUND`|
++++
+Expected file not found
++++
+|[[WRONG_CONTENT_TYPE]]`WRONG_CONTENT_TYPE`|
++++
+Wrong Content-Type header
++++
+|[[EMPTY_VALUE]]`EMPTY_VALUE`|
++++
+Parameter found but with empty value
++++
+|[[UNEXPECTED_ARRAY_SIZE]]`UNEXPECTED_ARRAY_SIZE`|
++++
+Expected an array size between parameters configured in
+ link
++++
+|[[DESERIALIZATION_ERROR]]`DESERIALIZATION_ERROR`|
++++
+Error during deserializaton with rule provided
++++
+|[[OBJECT_FIELD_NOT_FOUND]]`OBJECT_FIELD_NOT_FOUND`|
++++
+Object field declared as required in link not found
++++
+|[[JSON_NOT_PARSABLE]]`JSON_NOT_PARSABLE`|
++++
+Json can't be parsed
++++
+|[[JSON_INVALID]]`JSON_INVALID`|
++++
+Json doesn't match the provided schema
++++
+|[[XML_INVALID]]`XML_INVALID`|
++++
+XML doesn't match the provided schema
 +++
 |===
 
@@ -78,7 +138,16 @@ Space separated values: "value1 value2 value3"
 Pipe separated values: "value1|value2|value3"
  aliases: "psv", "pipeDelimited"
 +++
+|[[dsv]]`dsv`|
++++
+Dot delimited values: "value1.value2.value3"
+ aliases: "dsv", "dotDelimited", "label"
++++
 |[[simple_exploded_object]]`simple_exploded_object`|
++++
+For internal usage, don't use it
++++
+|[[matrix_exploded_array]]`matrix_exploded_array`|
 +++
 For internal usage, don't use it
 +++

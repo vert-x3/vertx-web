@@ -15,6 +15,7 @@ abstract public class BaseDesignDrivenRouterFactory<Specification> implements De
   protected Specification spec;
 
   protected boolean enableValidationFailureHandler = true;
+  protected boolean mount501handlers = true;
 
   // It can be overriden by the user with function
   protected Handler<RoutingContext> failureHandler = (routingContext -> {
@@ -41,4 +42,9 @@ abstract public class BaseDesignDrivenRouterFactory<Specification> implements De
     return this;
   }
 
+  @Override
+  public DesignDrivenRouterFactory mountOperationsWithoutHandlers(boolean enable) {
+    this.mount501handlers = enable;
+    return this;
+  }
 }

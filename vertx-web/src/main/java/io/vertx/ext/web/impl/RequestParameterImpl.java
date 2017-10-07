@@ -6,6 +6,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RequestParameter;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -20,6 +21,20 @@ public class RequestParameterImpl implements RequestParameter {
   public RequestParameterImpl(String name, Object value) {
     this.name = name;
     this.value = value;
+  }
+
+  @Override
+  public RequestParameter merge(RequestParameter mergingObj) {
+    if (this.isArray() && mergingObj.isArray()) {
+      mergingObj.getArray().addAll(this.getArray());
+    } else if (this.isObject() && mergingObj.isObject()) {
+      Map<String, RequestParameter> map = new HashMap<>();
+      map.putAll(((Map<String, RequestParameter>) value));
+      for (String key : mergingObj.getObjectKeys())
+        map.put(key, mergingObj.getObjectValue(key));
+      mergingObj.setValue(map);
+    }
+    return mergingObj;
   }
 
   public RequestParameterImpl(String name) {

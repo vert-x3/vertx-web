@@ -26,13 +26,13 @@ This class, as name says, is a router factory based on your OpenAPI 3 specificat
 == Create a new router factory
 To create a new router factory, you can use methods inside `link:../../apidocs/io/vertx/ext/web/designdriven/openapi3/OpenAPI3RouterFactory.html[OpenAPI3RouterFactory]`:
 
-* `link:../../apidocs/io/vertx/ext/web/designdriven/openapi3/OpenAPI3RouterFactory.html#createRouterFactoryFromFile-io.vertx.core.Vertx-java.lang.String-boolean-io.vertx.core.Handler-[OpenAPI3RouterFactory.createRouterFactoryFromFile]`  to create a router factory from local file
-* `link:../../apidocs/io/vertx/ext/web/designdriven/openapi3/OpenAPI3RouterFactory.html#createRouterFactoryFromURL-io.vertx.core.Vertx-java.lang.String-boolean-io.vertx.core.Handler-[OpenAPI3RouterFactory.createRouterFactoryFromURL]`  to create a router factory from url
+* `link:../../apidocs/io/vertx/ext/web/designdriven/openapi3/OpenAPI3RouterFactory.html#createRouterFactoryFromFile-io.vertx.core.Vertx-java.lang.String-io.vertx.core.Handler-[OpenAPI3RouterFactory.createRouterFactoryFromFile]`  to create a router factory from local file
+* `link:../../apidocs/io/vertx/ext/web/designdriven/openapi3/OpenAPI3RouterFactory.html#createRouterFactoryFromURL-io.vertx.core.Vertx-java.lang.String-io.vertx.core.Handler-[OpenAPI3RouterFactory.createRouterFactoryFromURL]`  to create a router factory from url
 
 For example:
 [source,kotlin]
 ----
-OpenAPI3RouterFactory.createRouterFactoryFromFile(vertx, "src/main/resources/petstore.yaml", true, { ar ->
+OpenAPI3RouterFactory.createRouterFactoryFromFile(vertx, "src/main/resources/petstore.yaml", { ar ->
   if (ar.succeeded()) {
     // Spec loaded with success
     var routerFactory = ar.result()
@@ -56,6 +56,9 @@ And, of course, two functions to load failure handlers
 * `link:../../apidocs/io/vertx/ext/web/designdriven/openapi3/OpenAPI3RouterFactory.html#addFailureHandlerByOperationId-java.lang.String-io.vertx.core.Handler-[addFailureHandlerByOperationId]`
 
 You can, of course, **add multiple handlers to same operation**, without overwrite the existing ones.
+
+.Path in OpenAPI format
+IMPORTANT: If you want to use `link:../../apidocs/io/vertx/ext/web/designdriven/DesignDrivenRouterFactory.html#addHandler-io.vertx.core.http.HttpMethod-java.lang.String-io.vertx.core.Handler-[addHandler]` or `link:../../apidocs/io/vertx/ext/web/designdriven/DesignDrivenRouterFactory.html#addFailureHandler-io.vertx.core.http.HttpMethod-java.lang.String-io.vertx.core.Handler-[addFailureHandler]` pay attention: You can provide a path only in OpenAPI styles (for example path `/hello/:param` doesn't work)
 
 For example:
 [source,kotlin]

@@ -621,28 +621,6 @@ public class StaticHandlerTest extends WebTestBase {
   }
 
   @Test
-  public void testDoubleException() throws Exception {
-    router.clear();
-
-    final AtomicInteger cnt = new AtomicInteger(0);
-
-    router.route("/static/*")
-        .handler(stat)
-        .failureHandler(ctx -> {
-          if (cnt.incrementAndGet() == 1) {
-            vertx.setTimer(100, v -> {
-              ctx.response().end();
-            });
-          }
-
-          System.out.println("HERE!");
-        });
-
-    testRequest(HttpMethod.GET, "/static/non-existent-file.txt", 200, "OK");
-    assertEquals(1, cnt.get());
-  }
-
-  @Test
   public void testLastModifiedInGMT() throws Exception {
     testRequest(HttpMethod.GET, "/otherpage.html", null, res -> {
       String lastModified = res.headers().get("last-modified");
@@ -659,6 +637,15 @@ public class StaticHandlerTest extends WebTestBase {
       assertEquals("text/html;charset=ISO-8859-1", contentType);
     }, 200, "OK", "<html><body>Other page</body></html>");
   }
+
+  @Test
+  public void testHandlerAfter() throws Exception {
+    router.get().handler(ctx -> {
+      ctx.response().end("Howdy!");
+    });
+    testRequest(HttpMethod.GET, "/not-existing-file.html", 200, "OK", "Howdy!");
+  }
+
 
   // TODO
   // 1.Test all the params including invalid values

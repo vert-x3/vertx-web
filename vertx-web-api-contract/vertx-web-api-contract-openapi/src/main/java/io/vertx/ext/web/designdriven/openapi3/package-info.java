@@ -25,8 +25,8 @@
  * == Create a new router factory
  * To create a new router factory, you can use methods inside {@link io.vertx.ext.web.designdriven.openapi3.OpenAPI3RouterFactory}:
  *
- * * {@link io.vertx.ext.web.designdriven.openapi3.OpenAPI3RouterFactory#createRouterFactoryFromFile(io.vertx.core.Vertx, java.lang.String, boolean, io.vertx.core.Handler)}  to create a router factory from local file
- * * {@link io.vertx.ext.web.designdriven.openapi3.OpenAPI3RouterFactory#createRouterFactoryFromURL(io.vertx.core.Vertx, java.lang.String, boolean, io.vertx.core.Handler)}  to create a router factory from url
+ * * {@link io.vertx.ext.web.designdriven.openapi3.OpenAPI3RouterFactory#createRouterFactoryFromFile(io.vertx.core.Vertx, java.lang.String, io.vertx.core.Handler)}  to create a router factory from local file
+ * * {@link io.vertx.ext.web.designdriven.openapi3.OpenAPI3RouterFactory#createRouterFactoryFromURL(io.vertx.core.Vertx, java.lang.String, io.vertx.core.Handler)}  to create a router factory from url
  *
  * For example:
  * [source,$lang]
@@ -46,6 +46,9 @@
  * * {@link io.vertx.ext.web.designdriven.openapi3.OpenAPI3RouterFactory#addFailureHandlerByOperationId(java.lang.String, io.vertx.core.Handler)}
  *
  * You can, of course, **add multiple handlers to same operation**, without overwrite the existing ones.
+ *
+ * .Path in OpenAPI format
+ * IMPORTANT: If you want to use {@link io.vertx.ext.web.designdriven.openapi3.OpenAPI3RouterFactory#addHandler(io.vertx.core.http.HttpMethod, java.lang.String, io.vertx.core.Handler)} or {@link io.vertx.ext.web.designdriven.openapi3.OpenAPI3RouterFactory#addFailureHandler(io.vertx.core.http.HttpMethod, java.lang.String, io.vertx.core.Handler)} pay attention: You can provide a path only in OpenAPI styles (for example path `/hello/:param` doesn't work)
  *
  * For example:
  * [source,$lang]
