@@ -31,6 +31,7 @@ public class CookieImpl implements Cookie {
 
   private final io.netty.handler.codec.http.cookie.Cookie nettyCookie;
   private boolean changed;
+  private boolean fromUserAgent;
 
   public CookieImpl(String name, String value) {
     this.nettyCookie = new DefaultCookie(name, value);
@@ -39,6 +40,7 @@ public class CookieImpl implements Cookie {
 
   public CookieImpl(io.netty.handler.codec.http.cookie.Cookie nettyCookie) {
     this.nettyCookie = nettyCookie;
+    fromUserAgent = true;
   }
 
   @Override
@@ -116,5 +118,10 @@ public class CookieImpl implements Cookie {
   @Override
   public void setChanged(boolean changed) {
     this.changed = changed;
+  }
+
+  @Override
+  public boolean isFromUserAgent() {
+    return fromUserAgent;
   }
 }
