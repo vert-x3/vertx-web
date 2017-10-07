@@ -2462,19 +2462,27 @@ the prefix `eventbus` we will connect there.
 
 You can't actually do anything with the connection until it is opened. When it is open the `onopen` handler will be called.
 
-IMPORTANT: Neither SockJS nor the EventBus bridge support automatic reconnection.
-
-When your server goes down, you must create another EventBus instance.
+The bridge supports automatic reconnection, with configurable delay and backoff options.
 
 [source,javascript]
 ----
-function setupEventBus() {
-  var eb = new EventBus();
-  eb.onclose = function (e) {
-    setTimeout(setupEventBus, 1000); // Give the server some time to come back
-  };
-  // Handlers setup here...
-}
+var eb = new EventBus('http://localhost:8080/eventbus');
+eb.enableReconnect(true);
+eb.onopen = function() {}; // Set up handlers here, will be called on initial connection and all reconnections
+eb.onreconnect = function() {}; // Optional, will only be called on reconnections
+
+// Alternatively, pass in an options object
+var options = {
+    vertxbus_reconnect_attempts_max: Infinity, // Max reconnect attempts
+    vertxbus_reconnect_delay_min: 1000, // Initial delay (in ms) before first reconnect attempt
+    vertxbus_reconnect_delay_max: 5000, // Max delay (in ms) between reconnect attempts
+    vertxbus_reconnect_exponent: 2, // Exponential backoff factor
+    vertxbus_randomization_factor: 0.5 // Randomization factor between 0 and 1
+};
+
+var eb2 = new EventBus('http://localhost:8080/eventbus', options);
+eb2.enableReconnect(true);
+// Set up handlers...
 ----
 
 You can retrieve the client library using a dependency manager:
@@ -3020,7 +3028,50 @@ In the example the route object is created inline by `Router.route()` however if
 order the handler is called (for example you want it to be called as soon as possible in the chain) you can always
 create the route object before and pass it as a reference to this method.
 
-Mixing OAuth2 and JWT
+=== A real world example
+
+Up to now you have learned how to use the Oauth2 Handler however you will notice that for each request you will need
+to authenticate. This is because the handler has no state and there was no state management applied in the examples.
+
+Although having no state is recommended for API facing endpoints, for example, using JWT (we will cover those later)
+for user facing endpoinst we can keep the authentication result stored in the session. For this to work we would
+need an application like the following snippet:
+
+[source,kotlin]
+----
+// To simplify the development of the web components
+// we use a Router to route all HTTP requests
+// to organize our code in a reusable way.
+
+// We need cookies and sessions
+router.route().handler(CookieHandler.create())
+router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)))
+// Simple auth service which uses a GitHub to
+// authenticate the user
+var authProvider = GithubAuth.create(vertx, "YOUR PROVIDER CLIENTID", "YOUR PROVIDER CLIENT SECRET")
+// We need a user session handler too to make sure
+// the user is stored in the session between requests
+router.route().handler(UserSessionHandler.create(authProvider))
+// we now protect the resource under the path "/protected"
+router.route("/protected").handler(OAuth2AuthHandler.create(authProvider).setupCallback(router.route("/callback")).addAuthority("user:email"))
+// Entry point to the application, this will render
+// a custom template.
+router.get("/").handler({ ctx ->
+  ctx.response().putHeader("Content-Type", "text/html").end("<html>\n  <body>\n    <p>\n      Well, hello there!\n    </p>\n    <p>\n      We're going to the protected resource, if there is no\n      user in the session we will talk to the GitHub API. Ready?\n      <a href=\"/protected\">Click here</a> to begin!</a>\n    </p>\n    <p>\n      <b>If that link doesn't work</b>, remember to provide\n      your own <a href=\"https://github.com/settings/applications/new\">\n      Client ID</a>!\n    </p>\n  </body>\n</html>")
+})
+// The protected resource
+router.get("/protected").handler({ ctx ->
+  // at this moment your user object should contain the info
+  // from the Oauth2 response, since this is a protected resource
+  // as specified above in the handler config the user object is never null
+  var user = ctx.user()
+  // just dump it to the client for demo purposes
+  ctx.response().end(user.toString())
+})
+
+----
+
+=== Mixing OAuth2 and JWT
 
 Some providers use JWT tokens as access tokens, this is a feature of https://tools.ietf.org/html/rfc6750[RFC6750]
 and can be quite useful when one wants to mix client based authentication and API authorization. For example say that
