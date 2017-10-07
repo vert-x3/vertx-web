@@ -1414,7 +1414,7 @@
  * === Pebble template engine
  *
  * To use Pebble, you need to add the following _dependency_ to your project:
- * `io.vertx:vertx-web-templ-pebble:3.4.0-SNAPSHOT`. Create an instance of the Pebble template engine
+ * `io.vertx:vertx-web-templ-pebble:${maven.version}`. Create an instance of the Pebble template engine
  * using: `io.vertx.ext.web.templ.PebbleTemplateEngine#create(vertx)`.
  *
  * When using the Pebble template engine, it will by default look for
