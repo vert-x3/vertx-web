@@ -290,15 +290,13 @@ public class HandlebarsTemplateTest extends WebTestBase {
   @Deprecated
   public void testDeprecatedRenderMethodRelativePathWithInclude() throws Exception {
     TemplateEngine engine = HandlebarsTemplateEngine.create();
-    router.route().handler(context -> {
-      engine.render(context, "src/test/filesystemtemplates/test-handlebars-template7A", res -> {
-        if (res.succeeded()) {
-          context.response().putHeader(HttpHeaders.CONTENT_TYPE, "text/html").end(res.result());
-        } else {
-          context.fail(res.cause());
-        }
-      });
-    });
+    router.route().handler(context -> engine.render(context, "src/test/filesystemtemplates/test-handlebars-template7A", res -> {
+      if (res.succeeded()) {
+        context.response().putHeader(HttpHeaders.CONTENT_TYPE, "text/html").end(res.result());
+      } else {
+        context.fail(res.cause());
+      }
+    }));
     testRequest(HttpMethod.GET, "/", 500, "Internal Server Error");
   }
 
@@ -309,15 +307,13 @@ public class HandlebarsTemplateTest extends WebTestBase {
   @Deprecated
   public void testDeprecatedRenderMethodRelativePathWithInclude2() throws Exception {
     TemplateEngine engine = HandlebarsTemplateEngine.create();
-    router.route().handler(context -> {
-      engine.render(context, "src/test/filesystemtemplates/test-handlebars-template7", res -> {
-        if (res.succeeded()) {
-          context.response().putHeader(HttpHeaders.CONTENT_TYPE, "text/html").end(res.result());
-        } else {
-          context.fail(res.cause());
-        }
-      });
-    });
+    router.route().handler(context -> engine.render(context, "src/test/filesystemtemplates/test-handlebars-template7", res -> {
+      if (res.succeeded()) {
+        context.response().putHeader(HttpHeaders.CONTENT_TYPE, "text/html").end(res.result());
+      } else {
+        context.fail(res.cause());
+      }
+    }));
     String expected = "\ntext from template8\n\ntext from template7\n\n\n";
     testRequest(HttpMethod.GET, "/", 200, "OK", expected);
   }

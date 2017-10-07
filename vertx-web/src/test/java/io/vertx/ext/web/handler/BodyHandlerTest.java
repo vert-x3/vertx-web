@@ -132,9 +132,7 @@ public class BodyHandlerTest extends WebTestBase {
     router.clear();
     router.route().handler(BodyHandler.create().setBodyLimit(5000));
     Buffer buff = TestUtils.randomBuffer(10000);
-    router.route().handler(rc -> {
-      fail("Should not be called");
-    });
+    router.route().handler(rc -> fail("Should not be called"));
     testRequest(HttpMethod.POST, "/", req -> {
       req.setChunked(true);
       req.write(buff);
@@ -146,9 +144,7 @@ public class BodyHandlerTest extends WebTestBase {
     router.clear();
     router.route().handler(BodyHandler.create().setBodyLimit(500));
     Buffer buff = TestUtils.randomBuffer(1000);
-    router.route().handler(rc -> {
-      fail("Should not be called");
-    });
+    router.route().handler(rc -> fail("Should not be called"));
     testRequest(HttpMethod.POST, "/", req -> {
       req.setChunked(true);
       req.write(buff);
@@ -217,9 +213,7 @@ public class BodyHandlerTest extends WebTestBase {
     router.route().handler(BodyHandler.create().setBodyLimit(20000));
 
     Buffer fileData = TestUtils.randomBuffer(50000);
-    router.route().handler(rc -> {
-      fail("Should not be called");
-    });
+    router.route().handler(rc -> fail("Should not be called"));
     sendFileUploadRequest(fileData, 413, "Request Entity Too Large");
   }
 
@@ -229,9 +223,7 @@ public class BodyHandlerTest extends WebTestBase {
     router.route().handler(BodyHandler.create().setBodyLimit(20000));
 
     Buffer fileData = TestUtils.randomBuffer(50000);
-    router.route().handler(rc -> {
-      fail("Should not be called");
-    });
+    router.route().handler(rc -> fail("Should not be called"));
     sendFileUploadRequest(fileData, 413, "Request Entity Too Large");
   }
 
@@ -316,6 +308,24 @@ public class BodyHandlerTest extends WebTestBase {
       buffer.appendString("origin=junit-testUserAlias&login=admin%40foo.bar&pass+word=admin");
       req.headers().set("content-length", String.valueOf(buffer.length()));
       req.headers().set("content-type", "application/x-www-form-urlencoded");
+      req.write(buffer);
+    }, 200, "OK", null);
+  }
+
+  @Test
+  public void testFormContentTypeIgnoreCase() throws Exception {
+    router.route().handler(rc -> {
+      MultiMap attrs = rc.request().formAttributes();
+      assertNotNull(attrs);
+      assertEquals(1, attrs.size());
+      assertEquals("junit-testUserAlias", attrs.get("origin"));
+      rc.response().end();
+    });
+    testRequest(HttpMethod.POST, "/", req -> {
+      Buffer buffer = Buffer.buffer();
+      buffer.appendString("origin=junit-testUserAlias");
+      req.headers().set("content-length", String.valueOf(buffer.length()));
+      req.headers().set("content-type", "ApPlIcAtIoN/x-WwW-fOrM-uRlEnCoDeD");
       req.write(buffer);
     }, 200, "OK", null);
   }

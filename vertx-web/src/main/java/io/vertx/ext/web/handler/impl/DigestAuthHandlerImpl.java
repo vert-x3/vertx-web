@@ -19,8 +19,6 @@ package io.vertx.ext.web.handler.impl;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
-import io.vertx.core.http.HttpHeaders;
-import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.htdigest.HtdigestAuth;
 import io.vertx.ext.web.RoutingContext;
@@ -119,7 +117,7 @@ public class DigestAuthHandlerImpl extends AuthorizationAuthHandler implements D
 
         // check for nonce counter (prevent replay attack
         if (authInfo.containsKey("qop")) {
-          Integer nc = Integer.parseInt(authInfo.getString("nc"));
+          int nc = Integer.parseInt(authInfo.getString("nc"));
           final Nonce n = nonces.get(nonce);
           if (nc <= n.count) {
             handler.handle(Future.failedFuture(UNAUTHORIZED));

@@ -441,13 +441,11 @@ public class RouteImpl implements Route {
   }
 
   synchronized protected boolean hasNextContextHandler() {
-    if (actualHandlerIndex < contextHandlers.size()) return true;
-    else return false;
+    return actualHandlerIndex < contextHandlers.size();
   }
 
   synchronized protected boolean hasNextFailureHandler() {
-    if (actualFailureHandlerIndex < failureHandlers.size()) return true;
-    else return false;
+    return actualFailureHandlerIndex < failureHandlers.size();
   }
 
   synchronized protected void resetIndexes() {

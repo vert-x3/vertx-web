@@ -16,7 +16,7 @@
     <dependency>
       <groupId>de.neuland-bfi</groupId>
       <artifactId>jade4j</artifactId>
-      <version>1.2.1</version>
+      <version>1.2.5</version>
     </dependency>
     <dependency>
       <groupId>io.vertx</groupId>
@@ -38,7 +38,9 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
         <configuration>
-          <useDefaultManifestFile>true</useDefaultManifestFile>
+          <archive>
+            <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
+          </archive>
         </configuration>
       </plugin>
 

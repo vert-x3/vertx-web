@@ -817,13 +817,9 @@ router.get("/some/path").handler(routingContext -> {
 
 });
 
-router.get("/some/path/B").handler(routingContext -> {
-  routingContext.response().end();
-});
+router.get("/some/path/B").handler(routingContext -> routingContext.response().end());
 
-router.get("/some/path").handler(routingContext -> {
-  routingContext.reroute("/some/path/B");
-});
+router.get("/some/path").handler(routingContext -> routingContext.reroute("/some/path/B"));
 ----
 
 So from the code you can see that if a request arrives at `/some/path` if first add a value to the context, then
@@ -838,11 +834,9 @@ for example:
 
 [source,java]
 ----
-router.get("/my-pretty-notfound-handler").handler(ctx -> {
-  ctx.response()
-    .setStatusCode(404)
-    .end("NOT FOUND fancy html here!!!");
-});
+router.get("/my-pretty-notfound-handler").handler(ctx -> ctx.response()
+  .setStatusCode(404)
+  .end("NOT FOUND fancy html here!!!"));
 
 router.get().failureHandler(ctx -> {
   if (ctx.statusCode() == 404) {
@@ -863,16 +857,12 @@ router.get("/final-target").handler(ctx -> {
 });
 
 // THE WRONG WAY! (Will reroute to /final-target excluding the query string)
-router.get().handler(ctx -> {
-  ctx.reroute("/final-target?variable=value");
-});
+router.get().handler(ctx -> ctx.reroute("/final-target?variable=value"));
 
 // THE CORRECT WAY!
-router.get().handler(ctx -> {
-  ctx
-    .put("variable", "value")
-    .reroute("/final-target");
-});
+router.get().handler(ctx -> ctx
+  .put("variable", "value")
+  .reroute("/final-target"));
 ----
 
 Even though the wrong reroute path will warn you that the query string is ignored, the reroute will happen since the
@@ -2069,15 +2059,13 @@ Suppose we are building a RESTful web application. We need to set the content ty
 
 [source,java]
 ----
-router.get("/api/books").produces("application/json").handler(rc -> {
-  findBooks(ar -> {
-    if (ar.succeeded()) {
-      rc.response().putHeader("Content-Type", "application/json").end(toJson(ar.result()));
-    } else {
-      rc.fail(ar.cause());
-    }
-  });
-});
+router.get("/api/books").produces("application/json").handler(rc -> findBooks(ar -> {
+  if (ar.succeeded()) {
+    rc.response().putHeader("Content-Type", "application/json").end(toJson(ar.result()));
+  } else {
+    rc.fail(ar.cause());
+  }
+}));
 ----
 
 If the API surface becomes pretty large, setting the content type can become cumbersome.
@@ -2086,15 +2074,13 @@ To avoid this situation, add the `ResponseContentTypeHandler` to the correspondi
 [source,java]
 ----
 router.route("/api/*").handler(ResponseContentTypeHandler.create());
-router.get("/api/books").produces("application/json").handler(rc -> {
-  findBooks(ar -> {
-    if (ar.succeeded()) {
-      rc.response().end(toJson(ar.result()));
-    } else {
-      rc.fail(ar.cause());
-    }
-  });
-});
+router.get("/api/books").produces("application/json").handler(rc -> findBooks(ar -> {
+  if (ar.succeeded()) {
+    rc.response().end(toJson(ar.result()));
+  } else {
+    rc.fail(ar.cause());
+  }
+}));
 ----
 
 The handler gets the approriate content type from `link:../../apidocs/io/vertx/ext/web/RoutingContext.html#getAcceptableContentType--[getAcceptableContentType]`.
@@ -2103,19 +2089,17 @@ As a consequence, you can easily share the same handler to produce data of diffe
 [source,java]
 ----
 router.route("/api/*").handler(ResponseContentTypeHandler.create());
-router.get("/api/books").produces("text/xml").produces("application/json").handler(rc -> {
-  findBooks(ar -> {
-    if (ar.succeeded()) {
-      if (rc.getAcceptableContentType().equals("text/xml")) {
-        rc.response().end(toXML(ar.result()));
-      } else {
-        rc.response().end(toJson(ar.result()));
-      }
+router.get("/api/books").produces("text/xml").produces("application/json").handler(rc -> findBooks(ar -> {
+  if (ar.succeeded()) {
+    if (rc.getAcceptableContentType().equals("text/xml")) {
+      rc.response().end(toXML(ar.result()));
     } else {
-      rc.fail(ar.cause());
+      rc.response().end(toJson(ar.result()));
     }
-  });
-});
+  } else {
+    rc.fail(ar.cause());
+  }
+}));
 ----
 
 == SockJS
@@ -2722,14 +2706,10 @@ oauth2.setupCallback(router.route());
 // protect everything under /protected
 router.route("/protected/*").handler(oauth2);
 // mount some handler under the protected zone
-router.route("/protected/somepage").handler(rc -> {
-  rc.response().end("Welcome to the protected resource!");
-});
+router.route("/protected/somepage").handler(rc -> rc.response().end("Welcome to the protected resource!"));
 
 // welcome page
-router.get("/").handler(ctx -> {
-  ctx.response().putHeader("content-type", "text/html").end("Hello<br><a href=\"/protected/somepage\">Protected by Github</a>");
-});
+router.get("/").handler(ctx -> ctx.response().putHeader("content-type", "text/html").end("Hello<br><a href=\"/protected/somepage\">Protected by Github</a>"));
 ----
 
 The OAuth2AuthHandler will setup a proper callback OAuth2 handler so the user does not need to deal with validation
@@ -2785,14 +2765,10 @@ oauth2.setupCallback(router.get("/callback"));
 // protect everything under /protected
 router.route("/protected/*").handler(oauth2);
 // mount some handler under the protected zone
-router.route("/protected/somepage").handler(rc -> {
-  rc.response().end("Welcome to the protected resource!");
-});
+router.route("/protected/somepage").handler(rc -> rc.response().end("Welcome to the protected resource!"));
 
 // welcome page
-router.get("/").handler(ctx -> {
-  ctx.response().putHeader("content-type", "text/html").end("Hello<br><a href=\"/protected/somepage\">Protected by Google</a>");
-});
+router.get("/").handler(ctx -> ctx.response().putHeader("content-type", "text/html").end("Hello<br><a href=\"/protected/somepage\">Protected by Google</a>"));
 ----
 
 You will need to provide all the details of your provider manually but the end result is the same.

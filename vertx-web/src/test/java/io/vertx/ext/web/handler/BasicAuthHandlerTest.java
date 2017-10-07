@@ -74,9 +74,7 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
     }, 401, "Unauthorized", null);
 
     // Now try again with credentials
-    testRequest(HttpMethod.GET, "/protected/somepage", req -> {
-      req.putHeader("Authorization", "Basic dGltOmRlbGljaW91czpzYXVzYWdlcw==");
-    }, resp -> {
+    testRequest(HttpMethod.GET, "/protected/somepage", req -> req.putHeader("Authorization", "Basic dGltOmRlbGljaW91czpzYXVzYWdlcw=="), resp -> {
       String wwwAuth = resp.headers().get("WWW-Authenticate");
       assertNull(wwwAuth);
     }, 200, "OK", "Welcome to the protected resource!");
@@ -127,9 +125,7 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
     }, 401, "Unauthorized", null);
 
     // Now try again with credentials
-    testRequest(HttpMethod.GET, "/protected/somepage", req -> {
-      req.putHeader("Authorization", "Basic dGltOmRlbGljaW91czpzYXVzYWdlcw==");
-    }, resp -> {
+    testRequest(HttpMethod.GET, "/protected/somepage", req -> req.putHeader("Authorization", "Basic dGltOmRlbGljaW91czpzYXVzYWdlcw=="), resp -> {
       String wwwAuth = resp.headers().get("WWW-Authenticate");
       assertNull(wwwAuth);
       // auth is success, we should get a cookie!!!
@@ -140,9 +136,7 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
 
     // And try again a few times we should be logged in with user stored in the session
     for (int i = 0; i < 5; i++) {
-      testRequest(HttpMethod.GET, "/protected/somepage", req -> {
-        req.putHeader("cookie", sessionCookie.get());
-      }, resp -> {
+      testRequest(HttpMethod.GET, "/protected/somepage", req -> req.putHeader("cookie", sessionCookie.get()), resp -> {
         String wwwAuth = resp.headers().get("WWW-Authenticate");
         assertNull(wwwAuth);
       }, 200, "OK", "Welcome to the protected resource!");
@@ -157,9 +151,7 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
     }, 401, "Unauthorized", null);
 
     // And login again
-    testRequest(HttpMethod.GET, "/protected/somepage", req -> {
-      req.putHeader("Authorization", "Basic dGltOmRlbGljaW91czpzYXVzYWdlcw==");
-    }, resp -> {
+    testRequest(HttpMethod.GET, "/protected/somepage", req -> req.putHeader("Authorization", "Basic dGltOmRlbGljaW91czpzYXVzYWdlcw=="), resp -> {
       String wwwAuth = resp.headers().get("WWW-Authenticate");
       assertNull(wwwAuth);
     }, 200, "OK", "Welcome to the protected resource!");
@@ -190,9 +182,7 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
     }, 401, "Unauthorized", null);
 
     // Now try again with bad credentials
-    testRequest(HttpMethod.GET, "/protected/somepage", req -> {
-      req.putHeader("Authorization", "Basic dGltOn5hdXdhZ2Vz");
-    }, resp -> {
+    testRequest(HttpMethod.GET, "/protected/somepage", req -> req.putHeader("Authorization", "Basic dGltOn5hdXdhZ2Vz"), resp -> {
       String wwwAuth = resp.headers().get("WWW-Authenticate");
       assertNotNull(wwwAuth);
       assertEquals("Basic realm=\"" + realm + "\"", wwwAuth);
@@ -240,24 +230,24 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
     }
 
     @Override
-    public void delete(String id, Handler<AsyncResult<Boolean>> resultHandler) {
-      boolean deleted = sessions.remove(id) != null;
-      vertx.runOnContext(v -> resultHandler.handle(Future.succeededFuture(deleted)));
+    public void delete(String id, Handler<AsyncResult<Void>> resultHandler) {
+      sessions.remove(id);
+      vertx.runOnContext(v -> resultHandler.handle(Future.succeededFuture()));
     }
 
     @Override
-    public void put(Session session, Handler<AsyncResult<Boolean>> resultHandler) {
+    public void put(Session session, Handler<AsyncResult<Void>> resultHandler) {
       ClusterSerializable cs = (ClusterSerializable)session;
       Buffer buff = Buffer.buffer();
       cs.writeToBuffer(buff);
       sessions.put(session.id(), buff);
-      vertx.runOnContext(v -> resultHandler.handle(Future.succeededFuture(true)));
+      vertx.runOnContext(v -> resultHandler.handle(Future.succeededFuture()));
     }
 
     @Override
-    public void clear(Handler<AsyncResult<Boolean>> resultHandler) {
+    public void clear(Handler<AsyncResult<Void>> resultHandler) {
       sessions.clear();
-      vertx.runOnContext(v -> resultHandler.handle(Future.succeededFuture(true)));
+      vertx.runOnContext(v -> resultHandler.handle(Future.succeededFuture()));
     }
 
     @Override

@@ -10,6 +10,7 @@ import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.AuthProvider;
+import io.vertx.ext.auth.User;
 import io.vertx.ext.auth.jwt.JWTAuth;
 import io.vertx.ext.auth.jwt.JWTOptions;
 import io.vertx.ext.auth.oauth2.OAuth2Auth;
@@ -1104,23 +1105,17 @@ public class WebExamples {
 
     });
 
-    router.get("/some/path/B").handler(routingContext -> {
-      routingContext.response().end();
-    });
+    router.get("/some/path/B").handler(routingContext -> routingContext.response().end());
 
-    router.get("/some/path").handler(routingContext -> {
-      routingContext.reroute("/some/path/B");
-    });
+    router.get("/some/path").handler(routingContext -> routingContext.reroute("/some/path/B"));
 
   }
 
   public void example55b(Router router) {
 
-    router.get("/my-pretty-notfound-handler").handler(ctx -> {
-      ctx.response()
-        .setStatusCode(404)
-        .end("NOT FOUND fancy html here!!!");
-    });
+    router.get("/my-pretty-notfound-handler").handler(ctx -> ctx.response()
+      .setStatusCode(404)
+      .end("NOT FOUND fancy html here!!!"));
 
     router.get().failureHandler(ctx -> {
       if (ctx.statusCode() == 404) {
@@ -1138,16 +1133,12 @@ public class WebExamples {
     });
 
     // THE WRONG WAY! (Will reroute to /final-target excluding the query string)
-    router.get().handler(ctx -> {
-      ctx.reroute("/final-target?variable=value");
-    });
+    router.get().handler(ctx -> ctx.reroute("/final-target?variable=value"));
 
     // THE CORRECT WAY!
-    router.get().handler(ctx -> {
-      ctx
-        .put("variable", "value")
-        .reroute("/final-target");
-    });
+    router.get().handler(ctx -> ctx
+      .put("variable", "value")
+      .reroute("/final-target"));
   }
 
   public void example56(Router router) {
@@ -1198,14 +1189,10 @@ public class WebExamples {
     // protect everything under /protected
     router.route("/protected/*").handler(oauth2);
     // mount some handler under the protected zone
-    router.route("/protected/somepage").handler(rc -> {
-      rc.response().end("Welcome to the protected resource!");
-    });
+    router.route("/protected/somepage").handler(rc -> rc.response().end("Welcome to the protected resource!"));
 
     // welcome page
-    router.get("/").handler(ctx -> {
-      ctx.response().putHeader("content-type", "text/html").end("Hello<br><a href=\"/protected/somepage\">Protected by Github</a>");
-    });
+    router.get("/").handler(ctx -> ctx.response().putHeader("content-type", "text/html").end("Hello<br><a href=\"/protected/somepage\">Protected by Github</a>"));
   }
 
   public void example59(Vertx vertx, Router router) {
@@ -1230,14 +1217,10 @@ public class WebExamples {
     // protect everything under /protected
     router.route("/protected/*").handler(oauth2);
     // mount some handler under the protected zone
-    router.route("/protected/somepage").handler(rc -> {
-      rc.response().end("Welcome to the protected resource!");
-    });
+    router.route("/protected/somepage").handler(rc -> rc.response().end("Welcome to the protected resource!"));
 
     // welcome page
-    router.get("/").handler(ctx -> {
-      ctx.response().putHeader("content-type", "text/html").end("Hello<br><a href=\"/protected/somepage\">Protected by Google</a>");
-    });
+    router.get("/").handler(ctx -> ctx.response().putHeader("content-type", "text/html").end("Hello<br><a href=\"/protected/somepage\">Protected by Google</a>"));
   }
 
   public void example61(Vertx vertx, Router router, OAuth2Auth provider) {
@@ -1248,59 +1231,88 @@ public class WebExamples {
   }
 
   public void example62(Vertx vertx, Router router) {
+    // To simplify the development of the web components
+    // we use a Router to route all HTTP requests
+    // to organize our code in a reusable way.
 
-    // create an OAuth2 provider, clientID and clientSecret should be requested to Azure AD
-    OAuth2Auth authProvider = OAuth2Auth.create(vertx, OAuth2FlowType.AUTH_CODE, new OAuth2ClientOptions()
-      .setClientID("APPLICATION_ID")
-      .setClientSecret("APPLICATION_KEYS_SECRET")
-      .setSite("https://login.windows.net/YOUR_CLIENT_GUID")
-      .setAuthorizationPath("/oauth2/token")
-      .setTokenPath("/oauth2/authorize"));
-
-    // create a oauth2 handler (Azure requires HTTPS) and your resource GUID
-    OAuth2AuthHandler oauth2 = OAuth2AuthHandler
-      .create(authProvider, "https://localhost:8443")
-      .extraParams(new JsonObject().put("resource", "00000002-0000-0000-c000-000000000000"));
-
-    // setup the callback handler for receiving the LinkedIn callback
-    oauth2.setupCallback(router.get("/callback"));
-
-    // protect everything under /protected
-    router.route("/protected/*").handler(oauth2);
-    // mount some handler under the protected zone
-    router.route("/protected/somepage").handler(rc -> {
-      rc.response().end("Welcome to the protected resource!");
-    });
-
-    // welcome page
+    // We need cookies and sessions
+    router.route()
+      .handler(CookieHandler.create());
+    router.route()
+      .handler(SessionHandler.create(LocalSessionStore.create(vertx)));
+    // Simple auth service which uses a GitHub to
+    // authenticate the user
+    OAuth2Auth authProvider =
+      GithubAuth.create(vertx, "YOUR PROVIDER CLIENTID", "YOUR PROVIDER CLIENT SECRET");
+    // We need a user session handler too to make sure
+    // the user is stored in the session between requests
+    router.route()
+      .handler(UserSessionHandler.create(authProvider));
+    // we now protect the resource under the path "/protected"
+    router.route("/protected").handler(
+      OAuth2AuthHandler.create(authProvider)
+        // we now configure the oauth2 handler, it will
+        // setup the callback handler
+        // as expected by your oauth2 provider.
+        .setupCallback(router.route("/callback"))
+        // for this resource we require that users have
+        // the authority to retrieve the user emails
+        .addAuthority("user:email")
+    );
+    // Entry point to the application, this will render
+    // a custom template.
     router.get("/").handler(ctx -> {
-      ctx.response().putHeader("content-type", "text/html").end("Hello<br><a href=\"/protected/somepage\">Protected by LinkedIn</a>");
+      ctx.response()
+        .putHeader("Content-Type", "text/html")
+        .end(
+          "<html>\n" +
+          "  <body>\n" +
+          "    <p>\n" +
+          "      Well, hello there!\n" +
+          "    </p>\n" +
+          "    <p>\n" +
+          "      We're going to the protected resource, if there is no\n" +
+          "      user in the session we will talk to the GitHub API. Ready?\n" +
+          "      <a href=\"/protected\">Click here</a> to begin!</a>\n" +
+          "    </p>\n" +
+          "    <p>\n" +
+          "      <b>If that link doesn't work</b>, remember to provide\n" +
+          "      your own <a href=\"https://github.com/settings/applications/new\">\n" +
+          "      Client ID</a>!\n" +
+          "    </p>\n" +
+          "  </body>\n" +
+          "</html>");
+    });
+    // The protected resource
+    router.get("/protected").handler(ctx -> {
+      // at this moment your user object should contain the info
+      // from the Oauth2 response, since this is a protected resource
+      // as specified above in the handler config the user object is never null
+      User user = ctx.user();
+      // just dump it to the client for demo purposes
+      ctx.response().end(user.toString());
     });
   }
 
   public void manualContentType(Router router) {
-    router.get("/api/books").produces("application/json").handler(rc -> {
-      findBooks(ar -> {
-        if (ar.succeeded()) {
-          rc.response().putHeader("Content-Type", "application/json").end(toJson(ar.result()));
-        } else {
-          rc.fail(ar.cause());
-        }
-      });
-    });
+    router.get("/api/books").produces("application/json").handler(rc -> findBooks(ar -> {
+      if (ar.succeeded()) {
+        rc.response().putHeader("Content-Type", "application/json").end(toJson(ar.result()));
+      } else {
+        rc.fail(ar.cause());
+      }
+    }));
   }
 
   public void contentTypeHandler(Router router) {
     router.route("/api/*").handler(ResponseContentTypeHandler.create());
-    router.get("/api/books").produces("application/json").handler(rc -> {
-      findBooks(ar -> {
-        if (ar.succeeded()) {
-          rc.response().end(toJson(ar.result()));
-        } else {
-          rc.fail(ar.cause());
-        }
-      });
-    });
+    router.get("/api/books").produces("application/json").handler(rc -> findBooks(ar -> {
+      if (ar.succeeded()) {
+        rc.response().end(toJson(ar.result()));
+      } else {
+        rc.fail(ar.cause());
+      }
+    }));
   }
 
   private void findBooks(Handler<AsyncResult<List<Book>>> handler) {
@@ -1320,19 +1332,17 @@ public class WebExamples {
 
   public void mostAcceptableContentTypeHandler(Router router) {
     router.route("/api/*").handler(ResponseContentTypeHandler.create());
-    router.get("/api/books").produces("text/xml").produces("application/json").handler(rc -> {
-      findBooks(ar -> {
-        if (ar.succeeded()) {
-          if (rc.getAcceptableContentType().equals("text/xml")) {
-            rc.response().end(toXML(ar.result()));
-          } else {
-            rc.response().end(toJson(ar.result()));
-          }
+    router.get("/api/books").produces("text/xml").produces("application/json").handler(rc -> findBooks(ar -> {
+      if (ar.succeeded()) {
+        if (rc.getAcceptableContentType().equals("text/xml")) {
+          rc.response().end(toXML(ar.result()));
         } else {
-          rc.fail(ar.cause());
+          rc.response().end(toJson(ar.result()));
         }
-      });
-    });
+      } else {
+        rc.fail(ar.cause());
+      }
+    }));
   }
 
   public void example63(Router router, AuthProvider provider) {

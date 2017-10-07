@@ -79,9 +79,7 @@ public class CSRFHandlerTest extends WebTestBase {
       tmpCookie = cookie.substring(cookie.indexOf('=') + 1, cookie.indexOf(';'));
     }, 200, "OK", null);
 
-    testRequest(HttpMethod.POST, "/", req -> {
-      req.putHeader(CSRFHandler.DEFAULT_HEADER_NAME, tmpCookie);
-    }, null, 200, "OK", null);
+    testRequest(HttpMethod.POST, "/", req -> req.putHeader(CSRFHandler.DEFAULT_HEADER_NAME, tmpCookie), null, 200, "OK", null);
   }
 
   @Test
@@ -90,10 +88,8 @@ public class CSRFHandlerTest extends WebTestBase {
     router.route().handler(CSRFHandler.create("Abracadabra").setTimeout(1));
     router.route().handler(rc -> rc.response().end());
 
-    testRequest(HttpMethod.POST, "/", req -> {
-      req.putHeader(CSRFHandler.DEFAULT_HEADER_NAME,
-          "4CYp9vQsr2VSQEsi/oVsMu35Ho9TlR0EovcYovlbiBw=.1437037602082.41jwU0FPl/n7ZNZAZEA07GyIUnpKSTKQ8Eju7Nicb34=");
-    }, null, 403, "Forbidden", null);
+    testRequest(HttpMethod.POST, "/", req -> req.putHeader(CSRFHandler.DEFAULT_HEADER_NAME,
+        "4CYp9vQsr2VSQEsi/oVsMu35Ho9TlR0EovcYovlbiBw=.1437037602082.41jwU0FPl/n7ZNZAZEA07GyIUnpKSTKQ8Eju7Nicb34="), null, 403, "Forbidden", null);
   }
 
   @Test
@@ -181,9 +177,7 @@ public class CSRFHandlerTest extends WebTestBase {
     router.route().handler(CSRFHandler.create("Abracadabra").setTimeout(1).setResponseBody(expectedResponseBody));
     router.route().handler(rc -> rc.response().end());
 
-    testRequest(HttpMethod.POST, "/", req -> {
-      req.putHeader(CSRFHandler.DEFAULT_HEADER_NAME,
-        "4CYp9vQsr2VSQEsi/oVsMu35Ho9TlR0EovcYovlbiBw=.1437037602082.41jwU0FPl/n7ZNZAZEA07GyIUnpKSTKQ8Eju7Nicb34=");
-    }, null, 403, "Forbidden", expectedResponseBody);
+    testRequest(HttpMethod.POST, "/", req -> req.putHeader(CSRFHandler.DEFAULT_HEADER_NAME,
+      "4CYp9vQsr2VSQEsi/oVsMu35Ho9TlR0EovcYovlbiBw=.1437037602082.41jwU0FPl/n7ZNZAZEA07GyIUnpKSTKQ8Eju7Nicb34="), null, 403, "Forbidden", expectedResponseBody);
   }
 }

@@ -17,20 +17,8 @@
 package io.vertx.ext.web.handler;
 
 import io.vertx.core.http.HttpMethod;
-import io.vertx.core.json.JsonArray;
-import io.vertx.ext.web.Router;
-import io.vertx.ext.web.impl.Utils;
 import io.vertx.ext.web.WebTestBase;
 import org.junit.Test;
-
-import java.io.File;
-import java.text.DateFormat;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * @author <a href="mailto:pmlopes@gmail.com">Paulo Lopes</a>
@@ -48,9 +36,7 @@ public class StaticDirectoryListHandlerTest extends WebTestBase {
 
   @Test
   public void testGetSubSubDirectory() throws Exception {
-    testRequest(HttpMethod.GET, "/a/b/", req -> {
-      req.putHeader("Accept", "text/html");
-    }, null, 200, "OK", "<html>\n" +
+    testRequest(HttpMethod.GET, "/a/b/", req -> req.putHeader("Accept", "text/html"), null, 200, "OK", "<html>\n" +
         "<body>\n" +
         "<h1>Custom Index of /a/b/</h1>\n" +
         "<a href=\"/a/\">..</a>\n" +
@@ -61,9 +47,7 @@ public class StaticDirectoryListHandlerTest extends WebTestBase {
 
   @Test
   public void testGetDirectory() throws Exception {
-    testRequest(HttpMethod.GET, "/", req -> {
-      req.putHeader("Accept", "text/html");
-    }, null, 200, "OK", "<html>\n" +
+    testRequest(HttpMethod.GET, "/", req -> req.putHeader("Accept", "text/html"), null, 200, "OK", "<html>\n" +
         "<body>\n" +
         "<h1>Custom Index of /</h1>\n" +
         "<a href=\"/\">..</a>\n" +
@@ -77,9 +61,7 @@ public class StaticDirectoryListHandlerTest extends WebTestBase {
     router.clear();
     router.route("/c/*").handler(stat);
 
-    testRequest(HttpMethod.GET, "/c/a/b/", req -> {
-      req.putHeader("Accept", "text/html");
-    }, null, 200, "OK", "<html>\n" +
+    testRequest(HttpMethod.GET, "/c/a/b/", req -> req.putHeader("Accept", "text/html"), null, 200, "OK", "<html>\n" +
         "<body>\n" +
         "<h1>Custom Index of /c/a/b/</h1>\n" +
         "<a href=\"/c/a/\">..</a>\n" +
@@ -95,8 +77,6 @@ public class StaticDirectoryListHandlerTest extends WebTestBase {
 
     // even though the prefix is matched only the prefix is ignored from the file system match
     // webroot/annot/a/b will not be found
-    testRequest(HttpMethod.GET, "/cannot/a/b/", req -> {
-      req.putHeader("Accept", "text/html");
-    }, null, 404, "Not Found", null);
+    testRequest(HttpMethod.GET, "/cannot/a/b/", req -> req.putHeader("Accept", "text/html"), null, 404, "Not Found", null);
   }
 }

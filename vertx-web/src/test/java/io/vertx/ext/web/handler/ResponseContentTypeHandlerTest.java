@@ -67,9 +67,7 @@ public class ResponseContentTypeHandlerTest extends WebTestBase {
   @Test
   public void testFixedContent() {
     Buffer buffer = new JsonObject().put("toto", "titi").toBuffer();
-    testRoute.produces("application/json").handler(rc -> {
-      rc.response().end(buffer);
-    });
+    testRoute.produces("application/json").handler(rc -> rc.response().end(buffer));
     client.get(testRoute.getPath(), resp -> {
       assertEquals("application/json", contentType(resp));
       assertEquals(Integer.valueOf(buffer.length()), contentLength(resp));
@@ -84,9 +82,7 @@ public class ResponseContentTypeHandlerTest extends WebTestBase {
   @Test
   public void testChunkedContent() {
     Buffer buffer = new JsonObject().put("toto", "titi").toBuffer();
-    testRoute.produces("application/json").handler(rc -> {
-      rc.response().setChunked(true).end(buffer);
-    });
+    testRoute.produces("application/json").handler(rc -> rc.response().setChunked(true).end(buffer));
     client.get(testRoute.getPath(), resp -> {
       assertEquals("application/json", contentType(resp));
       assertNull(contentLength(resp));
@@ -100,9 +96,7 @@ public class ResponseContentTypeHandlerTest extends WebTestBase {
 
   @Test
   public void testNoContent() {
-    testRoute.produces("application/json").handler(rc -> {
-      rc.response().end();
-    });
+    testRoute.produces("application/json").handler(rc -> rc.response().end());
     client.get(testRoute.getPath(), resp -> {
       assertNull(contentType(resp));
       assertEquals(Integer.valueOf(0), contentLength(resp));

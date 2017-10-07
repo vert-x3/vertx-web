@@ -72,13 +72,13 @@ public class LocalSessionStoreImpl implements LocalSessionStore, Handler<Long> {
   }
 
   @Override
-  public void delete(String id, Handler<AsyncResult<Boolean>> resultHandler) {
+  public void delete(String id, Handler<AsyncResult<Void>> resultHandler) {
     localMap.remove(id);
-    resultHandler.handle(Future.succeededFuture(true));
+    resultHandler.handle(Future.succeededFuture());
   }
 
   @Override
-  public void put(Session session, Handler<AsyncResult<Boolean>> resultHandler) {
+  public void put(Session session, Handler<AsyncResult<Void>> resultHandler) {
     final SessionImpl oldSession = (SessionImpl) localMap.get(session.id());
     final SessionImpl newSession = (SessionImpl) session;
 
@@ -92,13 +92,13 @@ public class LocalSessionStoreImpl implements LocalSessionStore, Handler<Long> {
 
     newSession.incrementVersion();
     localMap.put(session.id(), session);
-    resultHandler.handle(Future.succeededFuture(true));
+    resultHandler.handle(Future.succeededFuture());
   }
 
   @Override
-  public void clear(Handler<AsyncResult<Boolean>> resultHandler) {
+  public void clear(Handler<AsyncResult<Void>> resultHandler) {
     localMap.clear();
-    resultHandler.handle(Future.succeededFuture(true));
+    resultHandler.handle(Future.succeededFuture());
   }
 
   @Override

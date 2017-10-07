@@ -86,9 +86,7 @@ public class RouterTest extends WebTestBase {
   private void testRoutePathAndMethod(HttpMethod method, boolean exact) throws Exception {
     String path = "/blah";
     router.clear();
-    router.route(method, exact ? path : path + "*").handler(rc -> {
-      rc.response().setStatusCode(200).setStatusMessage(rc.request().path()).end();
-    });
+    router.route(method, exact ? path : path + "*").handler(rc -> rc.response().setStatusCode(200).setStatusMessage(rc.request().path()).end());
     if (exact) {
       testPathExact(method, path);
     } else {
@@ -104,13 +102,9 @@ public class RouterTest extends WebTestBase {
   @Test
   public void testRoutePathOnly() throws Exception {
     String path1 = "/blah";
-    router.route(path1).handler(rc -> {
-      rc.response().setStatusCode(200).setStatusMessage(rc.request().path()).end();
-    });
+    router.route(path1).handler(rc -> rc.response().setStatusCode(200).setStatusMessage(rc.request().path()).end());
     String path2 = "/quux";
-    router.route(path2).handler(rc -> {
-      rc.response().setStatusCode(200).setStatusMessage(rc.request().path()).end();
-    });
+    router.route(path2).handler(rc -> rc.response().setStatusCode(200).setStatusMessage(rc.request().path()).end());
 
     testPathExact(path1);
     testPathExact(path2);
@@ -119,13 +113,9 @@ public class RouterTest extends WebTestBase {
   @Test
   public void testRoutePathOnlyBegin() throws Exception {
     String path1 = "/blah";
-    router.route(path1 + "*").handler(rc -> {
-      rc.response().setStatusCode(200).setStatusMessage(rc.request().path()).end();
-    });
+    router.route(path1 + "*").handler(rc -> rc.response().setStatusCode(200).setStatusMessage(rc.request().path()).end());
     String path2 = "/quux";
-    router.route(path2 + "*").handler(rc -> {
-      rc.response().setStatusCode(200).setStatusMessage(rc.request().path()).end();
-    });
+    router.route(path2 + "*").handler(rc -> rc.response().setStatusCode(200).setStatusMessage(rc.request().path()).end());
 
     testPathBegin(path1);
     testPathBegin(path2);
@@ -134,36 +124,28 @@ public class RouterTest extends WebTestBase {
   @Test
   public void testRoutePathWithTrailingSlashOnlyBegin() throws Exception {
     String path = "/some/path/";
-    router.route(path + "*").handler(rc -> {
-      rc.response().setStatusCode(200).setStatusMessage(rc.request().path()).end();
-    });
+    router.route(path + "*").handler(rc -> rc.response().setStatusCode(200).setStatusMessage(rc.request().path()).end());
     testPathBegin(path);
   }
 
   @Test
   public void testRoutePathBuilder() throws Exception {
     String path = "/blah";
-    router.route().path(path).handler(rc -> {
-      rc.response().setStatusCode(200).setStatusMessage(rc.request().path()).end();
-    });
+    router.route().path(path).handler(rc -> rc.response().setStatusCode(200).setStatusMessage(rc.request().path()).end());
     testPathExact(path);
   }
 
   @Test
   public void testRoutePathBuilderBegin() throws Exception {
     String path = "/blah";
-    router.route().path(path + "*").handler(rc -> {
-      rc.response().setStatusCode(200).setStatusMessage(rc.request().path()).end();
-    });
+    router.route().path(path + "*").handler(rc -> rc.response().setStatusCode(200).setStatusMessage(rc.request().path()).end());
     testPathBegin(path);
   }
 
   @Test
   public void testRoutePathAndMethodBuilder() throws Exception {
     String path = "/blah";
-    router.route().path(path).method(HttpMethod.GET).handler(rc -> {
-      rc.response().setStatusCode(200).setStatusMessage(rc.request().path()).end();
-    });
+    router.route().path(path).method(HttpMethod.GET).handler(rc -> rc.response().setStatusCode(200).setStatusMessage(rc.request().path()).end());
     testPathExact(HttpMethod.GET, path);
     testRequest(HttpMethod.POST, path, 404, "Not Found");
   }
@@ -171,9 +153,7 @@ public class RouterTest extends WebTestBase {
   @Test
   public void testRoutePathAndMethodBuilderBegin() throws Exception {
     String path = "/blah";
-    router.route().path(path + "*").method(HttpMethod.GET).handler(rc -> {
-      rc.response().setStatusCode(200).setStatusMessage(rc.request().path()).end();
-    });
+    router.route().path(path + "*").method(HttpMethod.GET).handler(rc -> rc.response().setStatusCode(200).setStatusMessage(rc.request().path()).end());
     testPathBegin(HttpMethod.GET, path);
     testRequest(HttpMethod.POST, path, 404, "Not Found");
   }
@@ -181,9 +161,7 @@ public class RouterTest extends WebTestBase {
   @Test
   public void testRoutePathAndMultipleMethodBuilder() throws Exception {
     String path = "/blah";
-    router.route().path(path).method(HttpMethod.GET).method(HttpMethod.POST).handler(rc -> {
-      rc.response().setStatusCode(200).setStatusMessage(rc.request().path()).end();
-    });
+    router.route().path(path).method(HttpMethod.GET).method(HttpMethod.POST).handler(rc -> rc.response().setStatusCode(200).setStatusMessage(rc.request().path()).end());
     testPathExact(HttpMethod.GET, path);
     testPathExact(HttpMethod.POST, path);
     testRequest(HttpMethod.PUT, path, 404, "Not Found");
@@ -192,9 +170,7 @@ public class RouterTest extends WebTestBase {
   @Test
   public void testRoutePathAndMultipleMethodBuilderBegin() throws Exception {
     String path = "/blah";
-    router.route().path(path + "*").method(HttpMethod.GET).method(HttpMethod.POST).handler(rc -> {
-      rc.response().setStatusCode(200).setStatusMessage(rc.request().path()).end();
-    });
+    router.route().path(path + "*").method(HttpMethod.GET).method(HttpMethod.POST).handler(rc -> rc.response().setStatusCode(200).setStatusMessage(rc.request().path()).end());
     testPathBegin(HttpMethod.GET, path);
     testPathBegin(HttpMethod.POST, path);
     testRequest(HttpMethod.PUT, path, 404, "Not Found");
@@ -239,9 +215,7 @@ public class RouterTest extends WebTestBase {
 
   @Test
   public void testRouteNoPath() throws Exception {
-    router.route().handler(rc -> {
-      rc.response().setStatusCode(200).setStatusMessage(rc.request().path()).end();
-    });
+    router.route().handler(rc -> rc.response().setStatusCode(200).setStatusMessage(rc.request().path()).end());
     for (HttpMethod meth: METHODS) {
       testNoPath(meth);
     }
@@ -253,9 +227,7 @@ public class RouterTest extends WebTestBase {
       rc.response().setStatusMessage(rc.request().path());
       rc.next();
     });
-    router.route().handler(rc -> {
-      rc.response().setStatusCode(200).end();
-    });
+    router.route().handler(rc -> rc.response().setStatusCode(200).end());
     for (HttpMethod meth: METHODS) {
       testNoPath(meth);
     }
@@ -270,9 +242,7 @@ public class RouterTest extends WebTestBase {
 
   private void testRouteNoPathWithMethod(HttpMethod meth) throws Exception {
     router.clear();
-    router.route().method(meth).handler(rc -> {
-      rc.response().setStatusCode(200).setStatusMessage(rc.request().path()).end();
-    });
+    router.route().method(meth).handler(rc -> rc.response().setStatusCode(200).setStatusMessage(rc.request().path()).end());
     testNoPath(meth);
     for (HttpMethod m: METHODS) {
       if (m != meth) {
@@ -498,9 +468,7 @@ public class RouterTest extends WebTestBase {
       rc.response().end();
       rc.next();  // Call next
     });
-    router.route(path).handler(rc -> {
-      assertTrue(rc.response().ended());
-    });
+    router.route(path).handler(rc -> assertTrue(rc.response().ended()));
     testRequest(HttpMethod.GET, path, 200, "OK");
   }
 
@@ -509,9 +477,7 @@ public class RouterTest extends WebTestBase {
     String path = "/blah";
     router.route(path).handler(rc -> {
       throw new RuntimeException("ouch!");
-    }).failureHandler(frc -> {
-      frc.response().setStatusCode(555).setStatusMessage("oh dear").end();
-    });
+    }).failureHandler(frc -> frc.response().setStatusCode(555).setStatusMessage("oh dear").end());
     testRequest(HttpMethod.GET, path, 555, "oh dear");
   }
 
@@ -529,9 +495,7 @@ public class RouterTest extends WebTestBase {
   @Test
   public void testFailureUsingInvalidCharsInStatus() throws Exception {
     String path = "/blah";
-    router.route(path).handler(rc -> {
-      rc.response().setStatusMessage("Hello\nWorld!").end();
-    });
+    router.route(path).handler(rc -> rc.response().setStatusMessage("Hello\nWorld!").end());
     testRequest(HttpMethod.GET, path, 500, "Internal Server Error");
   }
 
@@ -540,9 +504,7 @@ public class RouterTest extends WebTestBase {
     String path = "/blah";
     router.route(path).handler(rc -> {
       throw new RuntimeException("ouch!");
-    }).failureHandler(frc -> {
-      frc.response().setStatusMessage("Hello\nWorld").end();
-    });
+    }).failureHandler(frc -> frc.response().setStatusMessage("Hello\nWorld").end());
     testRequest(HttpMethod.GET, path, 500, "Internal Server Error");
   }
 
@@ -564,9 +526,7 @@ public class RouterTest extends WebTestBase {
   @Test
   public void testFailureHandler1CallFail() throws Exception {
     String path = "/blah";
-    router.route(path).handler(rc -> {
-      rc.fail(400);
-    }).failureHandler(frc -> {
+    router.route(path).handler(rc -> rc.fail(400)).failureHandler(frc -> {
       assertEquals(400, frc.statusCode());
       frc.response().setStatusCode(400).setStatusMessage("oh dear").end();
     });
@@ -579,18 +539,14 @@ public class RouterTest extends WebTestBase {
     router.route(path).handler(rc -> {
       throw new RuntimeException("ouch!");
     });
-    router.route("/bl*").failureHandler(frc -> {
-      frc.response().setStatusCode(555).setStatusMessage("oh dear").end();
-    });
+    router.route("/bl*").failureHandler(frc -> frc.response().setStatusCode(555).setStatusMessage("oh dear").end());
     testRequest(HttpMethod.GET, path, 555, "oh dear");
   }
 
   @Test
   public void testFailureHandler2CallFail() throws Exception {
     String path = "/blah";
-    router.route(path).handler(rc -> {
-      rc.fail(400);
-    });
+    router.route(path).handler(rc -> rc.fail(400));
     router.route("/bl*").failureHandler(frc -> {
       assertEquals(400, frc.statusCode());
       frc.response().setStatusCode(400).setStatusMessage("oh dear").end();
@@ -611,9 +567,7 @@ public class RouterTest extends WebTestBase {
   @Test
   public void testDefaultFailureHandlerCallFail() throws Exception {
     String path = "/blah";
-    router.route(path).handler(rc -> {
-      rc.fail(400);
-    });
+    router.route(path).handler(rc -> rc.fail(400));
     // Default failure response
     testRequest(HttpMethod.GET, path, 400, "Bad Request");
   }
@@ -624,9 +578,7 @@ public class RouterTest extends WebTestBase {
     router.route(path).handler(rc -> {
       throw new RuntimeException("ouch!");
     });
-    router.route("/other").failureHandler(frc -> {
-      frc.response().setStatusCode(555).setStatusMessage("oh dear").end();
-    });
+    router.route("/other").failureHandler(frc -> frc.response().setStatusCode(555).setStatusMessage("oh dear").end());
     // Default failure response
     testRequest(HttpMethod.GET, path, 500, "Internal Server Error");
   }
@@ -635,9 +587,7 @@ public class RouterTest extends WebTestBase {
   public void testFailureWithThrowable() throws Exception {
     String path = "/blah";
     Throwable failure = new Throwable();
-    router.route(path).handler(rc -> {
-      rc.fail(failure);
-    }).failureHandler(frc -> {
+    router.route(path).handler(rc -> rc.fail(failure)).failureHandler(frc -> {
       assertEquals(-1, frc.statusCode());
       assertSame(failure, frc.failure());
       frc.response().setStatusCode(500).setStatusMessage("Internal Server Error").end();
@@ -648,9 +598,7 @@ public class RouterTest extends WebTestBase {
   @Test
   public void testFailureWithNullThrowable() throws Exception {
     String path = "/blah";
-    router.route(path).handler(rc -> {
-      rc.fail(null);
-    }).failureHandler(frc -> {
+    router.route(path).handler(rc -> rc.fail(null)).failureHandler(frc -> {
       assertEquals(-1, frc.statusCode());
       assertTrue(frc.failure() instanceof NullPointerException);
       frc.response().setStatusCode(500).setStatusMessage("Internal Server Error").end();
@@ -660,9 +608,7 @@ public class RouterTest extends WebTestBase {
 
   @Test
   public void testPattern1() throws Exception {
-    router.route("/:abc").handler(rc -> {
-      rc.response().setStatusMessage(rc.request().params().get("abc")).end();
-    });
+    router.route("/:abc").handler(rc -> rc.response().setStatusMessage(rc.request().params().get("abc")).end());
     testPattern("/tim", "tim");
   }
 
@@ -704,42 +650,32 @@ public class RouterTest extends WebTestBase {
 
   @Test
   public void testPattern1WithMethod() throws Exception {
-    router.route(HttpMethod.GET, "/:abc").handler(rc -> {
-      rc.response().setStatusMessage(rc.request().params().get("abc")).end();
-    });
+    router.route(HttpMethod.GET, "/:abc").handler(rc -> rc.response().setStatusMessage(rc.request().params().get("abc")).end());
     testPattern("/tim", "tim");
     testRequest(HttpMethod.POST, "/tim", 404, "Not Found");
   }
 
   @Test
   public void testPattern1WithBuilder() throws Exception {
-    router.route().path("/:abc").handler(rc -> {
-      rc.response().setStatusMessage(rc.request().params().get("abc")).end();
-    });
+    router.route().path("/:abc").handler(rc -> rc.response().setStatusMessage(rc.request().params().get("abc")).end());
     testPattern("/tim", "tim");
   }
 
   @Test
   public void testPattern2() throws Exception {
-    router.route("/blah/:abc").handler(rc -> {
-      rc.response().setStatusMessage(rc.request().params().get("abc")).end();
-    });
+    router.route("/blah/:abc").handler(rc -> rc.response().setStatusMessage(rc.request().params().get("abc")).end());
     testPattern("/blah/tim", "tim");
   }
 
   @Test
   public void testPattern3() throws Exception {
-    router.route("/blah/:abc/blah").handler(rc -> {
-      rc.response().setStatusMessage(rc.request().params().get("abc")).end();
-    });
+    router.route("/blah/:abc/blah").handler(rc -> rc.response().setStatusMessage(rc.request().params().get("abc")).end());
     testPattern("/blah/tim/blah", "tim");
   }
 
   @Test
   public void testPattern4() throws Exception {
-    router.route("/blah/:abc/foo").handler(rc -> {
-      rc.response().setStatusMessage(rc.request().params().get("abc")).end();
-    });
+    router.route("/blah/:abc/foo").handler(rc -> rc.response().setStatusMessage(rc.request().params().get("abc")).end());
     testPattern("/blah/tim/foo", "tim");
   }
 
@@ -839,9 +775,7 @@ public class RouterTest extends WebTestBase {
       assertEquals(firstParamValue, rc.pathParam(paramName));
       rc.reroute(HttpMethod.GET, "/second/" + secondParamValue + "/route");
     });
-    router.route("/second/:" + paramName + "/route").handler(rc -> {
-       rc.response().setStatusMessage(rc.pathParam(paramName)).end();
-    });
+    router.route("/second/:" + paramName + "/route").handler(rc -> rc.response().setStatusMessage(rc.pathParam(paramName)).end());
     testRequest(HttpMethod.GET, "/first/" + firstParamValue + "/route", 200, secondParamValue);
   }
 
@@ -919,9 +853,7 @@ public class RouterTest extends WebTestBase {
 
   @Test
   public void testRegex3() throws Exception {
-    router.routeWithRegex(".*foo.txt").handler(rc -> {
-      rc.response().setStatusMessage("ok").end();
-    });
+    router.routeWithRegex(".*foo.txt").handler(rc -> rc.response().setStatusMessage("ok").end());
     testPattern("/dog/cat/foo.txt", "ok");
     testRequest(HttpMethod.POST, "/dog/cat/foo.bar", 404, "Not Found");
 
@@ -1318,21 +1250,15 @@ public class RouterTest extends WebTestBase {
   @Test
   public void testHeadersEndHandler() throws Exception {
     router.route().handler(rc -> {
-      rc.addHeadersEndHandler(v -> {
-        rc.response().putHeader("header1", "foo");
-      });
+      rc.addHeadersEndHandler(v -> rc.response().putHeader("header1", "foo"));
       rc.next();
     });
     router.route().handler(rc -> {
-      rc.addHeadersEndHandler(v -> {
-        rc.response().putHeader("header2", "foo");
-      });
+      rc.addHeadersEndHandler(v -> rc.response().putHeader("header2", "foo"));
       rc.next();
     });
     router.route().handler(rc -> {
-      rc.addHeadersEndHandler(v -> {
-        rc.response().putHeader("header3", "foo");
-      });
+      rc.addHeadersEndHandler(v -> rc.response().putHeader("header3", "foo"));
       rc.response().end();
     });
     testRequest(HttpMethod.GET, "/", null, resp -> {
@@ -1350,23 +1276,17 @@ public class RouterTest extends WebTestBase {
 
     router.route().handler(rc -> {
       final int val = cnt.incrementAndGet();
-      rc.addHeadersEndHandler(v -> {
-        assertEquals(val, cnt.getAndDecrement());
-      });
+      rc.addHeadersEndHandler(v -> assertEquals(val, cnt.getAndDecrement()));
       rc.next();
     });
     router.route().handler(rc -> {
       final int val = cnt.incrementAndGet();
-      rc.addHeadersEndHandler(v -> {
-        assertEquals(val, cnt.getAndDecrement());
-      });
+      rc.addHeadersEndHandler(v -> assertEquals(val, cnt.getAndDecrement()));
       rc.next();
     });
     router.route().handler(rc -> {
       final int val = cnt.incrementAndGet();
-      rc.addHeadersEndHandler(v -> {
-        assertEquals(val, cnt.getAndDecrement());
-      });
+      rc.addHeadersEndHandler(v -> assertEquals(val, cnt.getAndDecrement()));
       rc.response().end();
     });
 
@@ -1380,23 +1300,17 @@ public class RouterTest extends WebTestBase {
 
     router.route().handler(rc -> {
       final int val = cnt.incrementAndGet();
-      rc.addBodyEndHandler(v -> {
-        assertEquals(val, cnt.getAndDecrement());
-      });
+      rc.addBodyEndHandler(v -> assertEquals(val, cnt.getAndDecrement()));
       rc.next();
     });
     router.route().handler(rc -> {
       final int val = cnt.incrementAndGet();
-      rc.addBodyEndHandler(v -> {
-        assertEquals(val, cnt.getAndDecrement());
-      });
+      rc.addBodyEndHandler(v -> assertEquals(val, cnt.getAndDecrement()));
       rc.next();
     });
     router.route().handler(rc -> {
       final int val = cnt.incrementAndGet();
-      rc.addBodyEndHandler(v -> {
-        assertEquals(val, cnt.getAndDecrement());
-      });
+      rc.addBodyEndHandler(v -> assertEquals(val, cnt.getAndDecrement()));
       rc.response().end();
     });
 
@@ -1406,15 +1320,11 @@ public class RouterTest extends WebTestBase {
   @Test
   public void testHeadersEndHandlerRemoveHandler() throws Exception {
     router.route().handler(rc -> {
-      rc.addHeadersEndHandler(v -> {
-        rc.response().putHeader("header1", "foo");
-      });
+      rc.addHeadersEndHandler(v -> rc.response().putHeader("header1", "foo"));
       rc.next();
     });
     router.route().handler(rc -> {
-      Handler<Void> handler = v -> {
-        rc.response().putHeader("header2", "foo");
-      };
+      Handler<Void> handler = v -> rc.response().putHeader("header2", "foo");
       int handlerID = rc.addHeadersEndHandler(handler);
       vertx.setTimer(1, tid -> {
         assertTrue(rc.removeHeadersEndHandler(handlerID));
@@ -1434,21 +1344,15 @@ public class RouterTest extends WebTestBase {
   public void testBodyEndHandler() throws Exception {
     AtomicInteger cnt = new AtomicInteger();
     router.route().handler(rc -> {
-      rc.addBodyEndHandler(v -> {
-        cnt.incrementAndGet();
-      });
+      rc.addBodyEndHandler(v -> cnt.incrementAndGet());
       rc.next();
     });
     router.route().handler(rc -> {
-      rc.addBodyEndHandler(v -> {
-        cnt.incrementAndGet();
-      });
+      rc.addBodyEndHandler(v -> cnt.incrementAndGet());
       rc.next();
     });
     router.route().handler(rc -> {
-      rc.addBodyEndHandler(v -> {
-        cnt.incrementAndGet();
-      });
+      rc.addBodyEndHandler(v -> cnt.incrementAndGet());
       rc.response().end();
     });
     testRequest(HttpMethod.GET, "/", 200, "OK");
@@ -1459,15 +1363,11 @@ public class RouterTest extends WebTestBase {
   public void testBodyEndHandlerRemoveHandler() throws Exception {
     AtomicInteger cnt = new AtomicInteger();
     router.route().handler(rc -> {
-      rc.addBodyEndHandler(v -> {
-        cnt.incrementAndGet();
-      });
+      rc.addBodyEndHandler(v -> cnt.incrementAndGet());
       rc.next();
     });
     router.route().handler(rc -> {
-      Handler<Void> handler = v -> {
-        cnt.incrementAndGet();
-      };
+      Handler<Void> handler = v -> cnt.incrementAndGet();
       int handlerID = rc.addBodyEndHandler(handler);
       vertx.setTimer(1, tid -> {
         assertTrue(rc.removeBodyEndHandler(handlerID));
@@ -1487,9 +1387,7 @@ public class RouterTest extends WebTestBase {
 
   @Test
   public void testGet() throws Exception {
-    router.get().handler(rc -> {
-      rc.response().setStatusMessage("foo").end();
-    });
+    router.get().handler(rc -> rc.response().setStatusMessage("foo").end());
     testRequest(HttpMethod.GET, "/whatever", 200, "foo");
     testRequest(HttpMethod.POST, "/whatever", 404, "Not Found");
     testRequest(HttpMethod.PUT, "/whatever", 404, "Not Found");
@@ -1500,9 +1398,7 @@ public class RouterTest extends WebTestBase {
 
   @Test
   public void testGetWithPathExact() throws Exception {
-    router.get("/somepath/").handler(rc -> {
-      rc.response().setStatusMessage("foo").end();
-    });
+    router.get("/somepath/").handler(rc -> rc.response().setStatusMessage("foo").end());
     testRequest(HttpMethod.GET, "/somepath/", 200, "foo");
     testRequest(HttpMethod.GET, "/otherpath/whatever", 404, "Not Found");
     testRequest(HttpMethod.POST, "/somepath/whatever", 404, "Not Found");
@@ -1514,9 +1410,7 @@ public class RouterTest extends WebTestBase {
 
   @Test
   public void testGetWithPathBegin() throws Exception {
-    router.get("/somepath/*").handler(rc -> {
-      rc.response().setStatusMessage("foo").end();
-    });
+    router.get("/somepath/*").handler(rc -> rc.response().setStatusMessage("foo").end());
     testRequest(HttpMethod.GET, "/somepath/whatever", 200, "foo");
     testRequest(HttpMethod.GET, "/otherpath/whatever", 404, "Not Found");
     testRequest(HttpMethod.POST, "/somepath/whatever", 404, "Not Found");
@@ -1528,9 +1422,7 @@ public class RouterTest extends WebTestBase {
 
   @Test
   public void testGetWithRegex() throws Exception {
-    router.getWithRegex("\\/somepath\\/.*").handler(rc -> {
-      rc.response().setStatusMessage("foo").end();
-    });
+    router.getWithRegex("\\/somepath\\/.*").handler(rc -> rc.response().setStatusMessage("foo").end());
     testRequest(HttpMethod.GET, "/somepath/whatever", 200, "foo");
     testRequest(HttpMethod.GET, "/otherpath/whatever", 404, "Not Found");
     testRequest(HttpMethod.POST, "/somepath/whatever", 404, "Not Found");
@@ -1542,9 +1434,7 @@ public class RouterTest extends WebTestBase {
 
   @Test
   public void testPost() throws Exception {
-    router.post().handler(rc -> {
-      rc.response().setStatusMessage("foo").end();
-    });
+    router.post().handler(rc -> rc.response().setStatusMessage("foo").end());
     testRequest(HttpMethod.POST, "/whatever", 200, "foo");
     testRequest(HttpMethod.GET, "/whatever", 404, "Not Found");
     testRequest(HttpMethod.PUT, "/whatever", 404, "Not Found");
@@ -1555,9 +1445,7 @@ public class RouterTest extends WebTestBase {
 
   @Test
   public void testPostWithPathExact() throws Exception {
-    router.post("/somepath/").handler(rc -> {
-      rc.response().setStatusMessage("foo").end();
-    });
+    router.post("/somepath/").handler(rc -> rc.response().setStatusMessage("foo").end());
     testRequest(HttpMethod.POST, "/somepath/", 200, "foo");
     testRequest(HttpMethod.POST, "/otherpath/whatever", 404, "Not Found");
     testRequest(HttpMethod.GET, "/somepath/whatever", 404, "Not Found");
@@ -1569,9 +1457,7 @@ public class RouterTest extends WebTestBase {
 
   @Test
   public void testPostWithPathBegin() throws Exception {
-    router.post("/somepath/*").handler(rc -> {
-      rc.response().setStatusMessage("foo").end();
-    });
+    router.post("/somepath/*").handler(rc -> rc.response().setStatusMessage("foo").end());
     testRequest(HttpMethod.POST, "/somepath/whatever", 200, "foo");
     testRequest(HttpMethod.POST, "/otherpath/whatever", 404, "Not Found");
     testRequest(HttpMethod.GET, "/somepath/whatever", 404, "Not Found");
@@ -1583,9 +1469,7 @@ public class RouterTest extends WebTestBase {
 
   @Test
   public void testPostWithRegex() throws Exception {
-    router.postWithRegex("\\/somepath\\/.*").handler(rc -> {
-      rc.response().setStatusMessage("foo").end();
-    });
+    router.postWithRegex("\\/somepath\\/.*").handler(rc -> rc.response().setStatusMessage("foo").end());
     testRequest(HttpMethod.POST, "/somepath/whatever", 200, "foo");
     testRequest(HttpMethod.POST, "/otherpath/whatever", 404, "Not Found");
     testRequest(HttpMethod.GET, "/somepath/whatever", 404, "Not Found");
@@ -1597,9 +1481,7 @@ public class RouterTest extends WebTestBase {
 
   @Test
   public void testPut() throws Exception {
-    router.put().handler(rc -> {
-      rc.response().setStatusMessage("foo").end();
-    });
+    router.put().handler(rc -> rc.response().setStatusMessage("foo").end());
     testRequest(HttpMethod.PUT, "/whatever", 200, "foo");
     testRequest(HttpMethod.GET, "/whatever", 404, "Not Found");
     testRequest(HttpMethod.POST, "/whatever", 404, "Not Found");
@@ -1610,9 +1492,7 @@ public class RouterTest extends WebTestBase {
 
   @Test
   public void testPutWithPathExact() throws Exception {
-    router.put("/somepath/").handler(rc -> {
-      rc.response().setStatusMessage("foo").end();
-    });
+    router.put("/somepath/").handler(rc -> rc.response().setStatusMessage("foo").end());
     testRequest(HttpMethod.PUT, "/somepath/", 200, "foo");
     testRequest(HttpMethod.PUT, "/otherpath/whatever", 404, "Not Found");
     testRequest(HttpMethod.GET, "/somepath/whatever", 404, "Not Found");
@@ -1624,9 +1504,7 @@ public class RouterTest extends WebTestBase {
 
   @Test
   public void testPutWithPathBegin() throws Exception {
-    router.put("/somepath/*").handler(rc -> {
-      rc.response().setStatusMessage("foo").end();
-    });
+    router.put("/somepath/*").handler(rc -> rc.response().setStatusMessage("foo").end());
     testRequest(HttpMethod.PUT, "/somepath/whatever", 200, "foo");
     testRequest(HttpMethod.PUT, "/otherpath/whatever", 404, "Not Found");
     testRequest(HttpMethod.GET, "/somepath/whatever", 404, "Not Found");
@@ -1638,9 +1516,7 @@ public class RouterTest extends WebTestBase {
 
   @Test
   public void testPutWithRegex() throws Exception {
-    router.putWithRegex("\\/somepath\\/.*").handler(rc -> {
-      rc.response().setStatusMessage("foo").end();
-    });
+    router.putWithRegex("\\/somepath\\/.*").handler(rc -> rc.response().setStatusMessage("foo").end());
     testRequest(HttpMethod.PUT, "/somepath/whatever", 200, "foo");
     testRequest(HttpMethod.PUT, "/otherpath/whatever", 404, "Not Found");
     testRequest(HttpMethod.GET, "/somepath/whatever", 404, "Not Found");
@@ -1652,9 +1528,7 @@ public class RouterTest extends WebTestBase {
 
   @Test
   public void testDelete() throws Exception {
-    router.delete().handler(rc -> {
-      rc.response().setStatusMessage("foo").end();
-    });
+    router.delete().handler(rc -> rc.response().setStatusMessage("foo").end());
     testRequest(HttpMethod.DELETE, "/whatever", 200, "foo");
     testRequest(HttpMethod.GET, "/whatever", 404, "Not Found");
     testRequest(HttpMethod.POST, "/whatever", 404, "Not Found");
@@ -1665,9 +1539,7 @@ public class RouterTest extends WebTestBase {
 
   @Test
   public void testDeleteWithPathExact() throws Exception {
-    router.delete("/somepath/").handler(rc -> {
-      rc.response().setStatusMessage("foo").end();
-    });
+    router.delete("/somepath/").handler(rc -> rc.response().setStatusMessage("foo").end());
     testRequest(HttpMethod.DELETE, "/somepath/", 200, "foo");
     testRequest(HttpMethod.DELETE, "/otherpath/whatever", 404, "Not Found");
     testRequest(HttpMethod.GET, "/somepath/whatever", 404, "Not Found");
@@ -1679,9 +1551,7 @@ public class RouterTest extends WebTestBase {
 
   @Test
   public void testDeleteWithPathBegin() throws Exception {
-    router.delete("/somepath/*").handler(rc -> {
-      rc.response().setStatusMessage("foo").end();
-    });
+    router.delete("/somepath/*").handler(rc -> rc.response().setStatusMessage("foo").end());
     testRequest(HttpMethod.DELETE, "/somepath/whatever", 200, "foo");
     testRequest(HttpMethod.DELETE, "/otherpath/whatever", 404, "Not Found");
     testRequest(HttpMethod.GET, "/somepath/whatever", 404, "Not Found");
@@ -1693,9 +1563,7 @@ public class RouterTest extends WebTestBase {
 
   @Test
   public void testDeleteWithRegex() throws Exception {
-    router.deleteWithRegex("\\/somepath\\/.*").handler(rc -> {
-      rc.response().setStatusMessage("foo").end();
-    });
+    router.deleteWithRegex("\\/somepath\\/.*").handler(rc -> rc.response().setStatusMessage("foo").end());
     testRequest(HttpMethod.DELETE, "/somepath/whatever", 200, "foo");
     testRequest(HttpMethod.DELETE, "/otherpath/whatever", 404, "Not Found");
     testRequest(HttpMethod.GET, "/somepath/whatever", 404, "Not Found");
@@ -1707,9 +1575,7 @@ public class RouterTest extends WebTestBase {
 
   @Test
   public void testOptions() throws Exception {
-    router.options().handler(rc -> {
-      rc.response().setStatusMessage("foo").end();
-    });
+    router.options().handler(rc -> rc.response().setStatusMessage("foo").end());
     testRequest(HttpMethod.OPTIONS, "/whatever", 200, "foo");
     testRequest(HttpMethod.GET, "/whatever", 404, "Not Found");
     testRequest(HttpMethod.POST, "/whatever", 404, "Not Found");
@@ -1720,9 +1586,7 @@ public class RouterTest extends WebTestBase {
 
   @Test
   public void testOptionsWithPathExact() throws Exception {
-    router.options("/somepath/").handler(rc -> {
-      rc.response().setStatusMessage("foo").end();
-    });
+    router.options("/somepath/").handler(rc -> rc.response().setStatusMessage("foo").end());
     testRequest(HttpMethod.OPTIONS, "/somepath/", 200, "foo");
     testRequest(HttpMethod.OPTIONS, "/otherpath/whatever", 404, "Not Found");
     testRequest(HttpMethod.GET, "/somepath/whatever", 404, "Not Found");
@@ -1734,9 +1598,7 @@ public class RouterTest extends WebTestBase {
 
   @Test
   public void testOptionsWithPathBegin() throws Exception {
-    router.options("/somepath/*").handler(rc -> {
-      rc.response().setStatusMessage("foo").end();
-    });
+    router.options("/somepath/*").handler(rc -> rc.response().setStatusMessage("foo").end());
     testRequest(HttpMethod.OPTIONS, "/somepath/whatever", 200, "foo");
     testRequest(HttpMethod.OPTIONS, "/otherpath/whatever", 404, "Not Found");
     testRequest(HttpMethod.GET, "/somepath/whatever", 404, "Not Found");
@@ -1748,9 +1610,7 @@ public class RouterTest extends WebTestBase {
 
   @Test
   public void testOptionsWithRegex() throws Exception {
-    router.optionsWithRegex("\\/somepath\\/.*").handler(rc -> {
-      rc.response().setStatusMessage("foo").end();
-    });
+    router.optionsWithRegex("\\/somepath\\/.*").handler(rc -> rc.response().setStatusMessage("foo").end());
     testRequest(HttpMethod.OPTIONS, "/somepath/whatever", 200, "foo");
     testRequest(HttpMethod.OPTIONS, "/otherpath/whatever", 404, "Not Found");
     testRequest(HttpMethod.GET, "/somepath/whatever", 404, "Not Found");
@@ -1762,9 +1622,7 @@ public class RouterTest extends WebTestBase {
 
   @Test
   public void testHead() throws Exception {
-    router.head().handler(rc -> {
-      rc.response().setStatusMessage("foo").end();
-    });
+    router.head().handler(rc -> rc.response().setStatusMessage("foo").end());
     testRequest(HttpMethod.HEAD, "/whatever", 200, "foo");
     testRequest(HttpMethod.GET, "/whatever", 404, "Not Found");
     testRequest(HttpMethod.POST, "/whatever", 404, "Not Found");
@@ -1775,9 +1633,7 @@ public class RouterTest extends WebTestBase {
 
   @Test
   public void testHeadWithPathExact() throws Exception {
-    router.head("/somepath/").handler(rc -> {
-      rc.response().setStatusMessage("foo").end();
-    });
+    router.head("/somepath/").handler(rc -> rc.response().setStatusMessage("foo").end());
     testRequest(HttpMethod.HEAD, "/somepath/", 200, "foo");
     testRequest(HttpMethod.HEAD, "/otherpath/whatever", 404, "Not Found");
     testRequest(HttpMethod.GET, "/somepath/whatever", 404, "Not Found");
@@ -1789,9 +1645,7 @@ public class RouterTest extends WebTestBase {
 
   @Test
   public void testHeadWithPathBegin() throws Exception {
-    router.head("/somepath/*").handler(rc -> {
-      rc.response().setStatusMessage("foo").end();
-    });
+    router.head("/somepath/*").handler(rc -> rc.response().setStatusMessage("foo").end());
     testRequest(HttpMethod.HEAD, "/somepath/whatever", 200, "foo");
     testRequest(HttpMethod.HEAD, "/otherpath/whatever", 404, "Not Found");
     testRequest(HttpMethod.GET, "/somepath/whatever", 404, "Not Found");
@@ -1803,9 +1657,7 @@ public class RouterTest extends WebTestBase {
 
   @Test
   public void testHeadWithRegex() throws Exception {
-    router.headWithRegex("\\/somepath\\/.*").handler(rc -> {
-      rc.response().setStatusMessage("foo").end();
-    });
+    router.headWithRegex("\\/somepath\\/.*").handler(rc -> rc.response().setStatusMessage("foo").end());
     testRequest(HttpMethod.HEAD, "/somepath/whatever", 200, "foo");
     testRequest(HttpMethod.HEAD, "/otherpath/whatever", 404, "Not Found");
     testRequest(HttpMethod.GET, "/somepath/whatever", 404, "Not Found");
@@ -1817,9 +1669,7 @@ public class RouterTest extends WebTestBase {
 
   @Test
   public void testRouteNormalised1() throws Exception {
-    router.route("/foo").handler(rc -> {
-      rc.response().setStatusMessage("socks").end();
-    });
+    router.route("/foo").handler(rc -> rc.response().setStatusMessage("socks").end());
     testRequest(HttpMethod.GET, "/foo", 200, "socks");
     testRequest(HttpMethod.GET, "/foo/", 200, "socks");
     testRequest(HttpMethod.GET, "//foo/", 200, "socks");
@@ -1829,9 +1679,7 @@ public class RouterTest extends WebTestBase {
 
   @Test
   public void testRouteNormalised2() throws Exception {
-    router.route("/foo/").handler(rc -> {
-      rc.response().setStatusMessage("socks").end();
-    });
+    router.route("/foo/").handler(rc -> rc.response().setStatusMessage("socks").end());
     testRequest(HttpMethod.GET, "/foo", 200, "socks");
     testRequest(HttpMethod.GET, "/foo/", 200, "socks");
     testRequest(HttpMethod.GET, "//foo/", 200, "socks");
@@ -1841,9 +1689,7 @@ public class RouterTest extends WebTestBase {
 
   @Test
   public void testRouteNormalised3() throws Exception {
-    router.route("/").handler(rc -> {
-      rc.response().setStatusMessage("pants").end();
-    });
+    router.route("/").handler(rc -> rc.response().setStatusMessage("pants").end());
     testRequest(HttpMethod.GET, "/", 200, "pants");
     testRequest(HttpMethod.GET, "//", 200, "pants");
     testRequest(HttpMethod.GET, "///", 200, "pants");
@@ -1972,9 +1818,7 @@ public class RouterTest extends WebTestBase {
   @Test
   public void testDuplicateParams2() throws Exception {
     router.route("/test/:p").handler(RoutingContext::next);
-    router.route("/test/:p").handler(ctx -> {
-      ctx.reroute("/done/abc/cde");
-    });
+    router.route("/test/:p").handler(ctx -> ctx.reroute("/done/abc/cde"));
 
     router.route("/done/:a/:p").handler(routingContext -> {
       assertEquals(1, routingContext.request().params().getAll("p").size());
@@ -2039,9 +1883,7 @@ public class RouterTest extends WebTestBase {
 
   @Test
   public void testMultipleSetFailureHandler() throws Exception {
-    router.get("/path").handler(routingContext -> {
-      routingContext.fail(500);
-    }).failureHandler(routingContext -> {
+    router.get("/path").handler(routingContext -> routingContext.fail(500)).failureHandler(routingContext -> {
       routingContext.put("response", "handler1");
       routingContext.next();
     }).failureHandler(routingContext -> {
@@ -2064,9 +1906,7 @@ public class RouterTest extends WebTestBase {
       routingContext.next();
     });
 
-    router.get("/path").handler(routingContext -> {
-      routingContext.fail(500);
-    }).failureHandler(routingContext -> {
+    router.get("/path").handler(routingContext -> routingContext.fail(500)).failureHandler(routingContext -> {
       routingContext.put("response", routingContext.get("response") + "handler2");
       routingContext.next();
     }).failureHandler(routingContext -> {

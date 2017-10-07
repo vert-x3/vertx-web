@@ -1686,19 +1686,27 @@
  *
  * You can't actually do anything with the connection until it is opened. When it is open the `onopen` handler will be called.
  *
- * IMPORTANT: Neither SockJS nor the EventBus bridge support automatic reconnection.
- *
- * When your server goes down, you must create another EventBus instance.
+ * The bridge supports automatic reconnection, with configurable delay and backoff options.
  *
  * [source,javascript]
  * ----
- * function setupEventBus() {
- *   var eb = new EventBus();
- *   eb.onclose = function (e) {
- *     setTimeout(setupEventBus, 1000); // Give the server some time to come back
- *   };
- *   // Handlers setup here...
- * }
+ * var eb = new EventBus('http://localhost:8080/eventbus');
+ * eb.enableReconnect(true);
+ * eb.onopen = function() {}; // Set up handlers here, will be called on initial connection and all reconnections
+ * eb.onreconnect = function() {}; // Optional, will only be called on reconnections
+ *
+ * // Alternatively, pass in an options object
+ * var options = {
+ *     vertxbus_reconnect_attempts_max: Infinity, // Max reconnect attempts
+ *     vertxbus_reconnect_delay_min: 1000, // Initial delay (in ms) before first reconnect attempt
+ *     vertxbus_reconnect_delay_max: 5000, // Max delay (in ms) between reconnect attempts
+ *     vertxbus_reconnect_exponent: 2, // Exponential backoff factor
+ *     vertxbus_randomization_factor: 0.5 // Randomization factor between 0 and 1
+ * };
+ *
+ * var eb2 = new EventBus('http://localhost:8080/eventbus', options);
+ * eb2.enableReconnect(true);
+ * // Set up handlers...
  * ----
  *
  * You can retrieve the client library using a dependency manager:
@@ -2026,7 +2034,21 @@
  * order the handler is called (for example you want it to be called as soon as possible in the chain) you can always
  * create the route object before and pass it as a reference to this method.
  *
- * Mixing OAuth2 and JWT
+ * === A real world example
+ *
+ * Up to now you have learned how to use the Oauth2 Handler however you will notice that for each request you will need
+ * to authenticate. This is because the handler has no state and there was no state management applied in the examples.
+ *
+ * Although having no state is recommended for API facing endpoints, for example, using JWT (we will cover those later)
+ * for user facing endpoinst we can keep the authentication result stored in the session. For this to work we would
+ * need an application like the following snippet:
+ *
+ * [source,$lang]
+ * ----
+ * {@link examples.WebExamples#example62}
+ * ----
+ *
+ * === Mixing OAuth2 and JWT
  *
  * Some providers use JWT tokens as access tokens, this is a feature of https://tools.ietf.org/html/rfc6750[RFC6750]
  * and can be quite useful when one wants to mix client based authentication and API authorization. For example say that

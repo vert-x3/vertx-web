@@ -113,9 +113,7 @@ public class SubRouterTest extends WebTestBase {
   public void testMultiple2() throws Exception {
     Router subRouter = Router.router(vertx);
 
-    router.route("/otherpath1").handler(rc -> {
-      rc.response().setStatusMessage(rc.request().path()).end();
-    });
+    router.route("/otherpath1").handler(rc -> rc.response().setStatusMessage(rc.request().path()).end());
 
     router.mountSubRouter("/subpath", subRouter);
 
@@ -345,9 +343,7 @@ public class SubRouterTest extends WebTestBase {
 
     router.mountSubRouter("/subpath", subRouter);
 
-    subRouter.route("/foo/*").handler(rc -> {
-      rc.fail(557);
-    });
+    subRouter.route("/foo/*").handler(rc -> rc.fail(557));
 
     router.route("/subpath/*").failureHandler(rc -> {
       assertEquals(557, rc.statusCode());
@@ -364,9 +360,7 @@ public class SubRouterTest extends WebTestBase {
 
     router.mountSubRouter("/subpath", subRouter);
 
-    subRouter.route("/foo/*").handler(rc -> {
-      rc.fail(557);
-    });
+    subRouter.route("/foo/*").handler(rc -> rc.fail(557));
 
     router.route("/subpath/*").failureHandler(rc -> {
       assertEquals(557, rc.statusCode());
@@ -387,9 +381,7 @@ public class SubRouterTest extends WebTestBase {
   public void testSubRouteRegex() throws Exception {
     Router subRouter = Router.router(vertx);
     router.routeWithRegex("/foo/.*").handler(subRouter::handleContext).failureHandler(subRouter::handleFailure);
-    subRouter.route("/blah").handler(rc -> {
-      rc.response().setStatusMessage("sausages").end();
-    });
+    subRouter.route("/blah").handler(rc -> rc.response().setStatusMessage("sausages").end());
     testRequest(HttpMethod.GET, "/foo/blah", 500, "Internal Server Error");
 
   }
@@ -398,9 +390,7 @@ public class SubRouterTest extends WebTestBase {
   public void testRegexInSubRouter() throws Exception {
     Router subRouter = Router.router(vertx);
     router.mountSubRouter("/api", subRouter);
-    subRouter.routeWithRegex("\\/test").handler(rc -> {
-      rc.response().setStatusMessage("sausages").end();
-    });
+    subRouter.routeWithRegex("\\/test").handler(rc -> rc.response().setStatusMessage("sausages").end());
     testRequest(HttpMethod.GET, "/api/test", 200, "sausages");
 
   }
@@ -409,9 +399,7 @@ public class SubRouterTest extends WebTestBase {
   public void testNormalised1() throws Exception {
     Router subRouter = Router.router(vertx);
     router.mountSubRouter("/api", subRouter);
-    subRouter.route("/foo").handler(rc -> {
-      rc.response().setStatusMessage("sausages").end();
-    });
+    subRouter.route("/foo").handler(rc -> rc.response().setStatusMessage("sausages").end());
     testRequest(HttpMethod.GET, "/api/foo", 200, "sausages");
     testRequest(HttpMethod.GET, "/api/foo/", 200, "sausages");
     testRequest(HttpMethod.GET, "/api/foo//", 200, "sausages");
@@ -423,9 +411,7 @@ public class SubRouterTest extends WebTestBase {
   public void testNormalised2() throws Exception {
     Router subRouter = Router.router(vertx);
     router.mountSubRouter("/api/", subRouter);
-    subRouter.route("/foo").handler(rc -> {
-      rc.response().setStatusMessage("sausages").end();
-    });
+    subRouter.route("/foo").handler(rc -> rc.response().setStatusMessage("sausages").end());
     testRequest(HttpMethod.GET, "/api/foo", 200, "sausages");
     testRequest(HttpMethod.GET, "/api/foo/", 200, "sausages");
     testRequest(HttpMethod.GET, "/api/foo//", 200, "sausages");
@@ -437,9 +423,7 @@ public class SubRouterTest extends WebTestBase {
   public void testNormalised3() throws Exception {
     Router subRouter = Router.router(vertx);
     router.mountSubRouter("/api", subRouter);
-    subRouter.route("/").handler(rc -> {
-      rc.response().setStatusMessage("sausages").end();
-    });
+    subRouter.route("/").handler(rc -> rc.response().setStatusMessage("sausages").end());
     testRequest(HttpMethod.GET, "/api/", 200, "sausages");
     testRequest(HttpMethod.GET, "/api", 200, "sausages");
     testRequest(HttpMethod.GET, "/api///", 200, "sausages");
@@ -450,9 +434,7 @@ public class SubRouterTest extends WebTestBase {
   public void testNormalised4() throws Exception {
     Router subRouter = Router.router(vertx);
     router.mountSubRouter("/api/", subRouter);
-    subRouter.route("/").handler(rc -> {
-      rc.response().setStatusMessage("sausages").end();
-    });
+    subRouter.route("/").handler(rc -> rc.response().setStatusMessage("sausages").end());
     testRequest(HttpMethod.GET, "/api/", 200, "sausages");
     testRequest(HttpMethod.GET, "/api", 200, "sausages");
     testRequest(HttpMethod.GET, "/api///", 200, "sausages");

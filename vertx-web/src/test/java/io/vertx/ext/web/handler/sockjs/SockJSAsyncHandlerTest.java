@@ -16,19 +16,15 @@ public class SockJSAsyncHandlerTest extends SockJSTestBase {
 
   @Test
   public void testHandleMessageFromXhrTransportWithAsyncHandler() {
-    sockJSHandler.socketHandler(socket -> {
-      socket.handler(buf -> {
-        assertEquals("Hello World", buf.toString());
-        testComplete();
-      });
-    });
+    sockJSHandler.socketHandler(socket -> socket.handler(buf -> {
+      assertEquals("Hello World", buf.toString());
+      testComplete();
+    }));
 
     client.post("/test/400/8ne8e94a/xhr", resp -> {
       assertEquals(200, resp.statusCode());
 
-      client.post("/test/400/8ne8e94a/xhr_send", respSend -> {
-        assertEquals(204, respSend.statusCode());
-      })
+      client.post("/test/400/8ne8e94a/xhr_send", respSend -> assertEquals(204, respSend.statusCode()))
       .putHeader("content-length", "13")
       .write("\"Hello World\"")
       .end();

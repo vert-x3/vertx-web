@@ -16,14 +16,11 @@
 
 package io.vertx.ext.web.templ;
 
-import com.mitchellbosecke.pebble.PebbleEngine;
 import io.vertx.core.VertxOptions;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.WebTestBase;
 import io.vertx.ext.web.handler.TemplateHandler;
-import io.vertx.ext.web.templ.extension.TestExtension;
 import io.vertx.ext.web.templ.impl.CachingTemplateEngine;
-import io.vertx.ext.web.templ.impl.PebbleVertxLoader;
 import org.junit.Test;
 
 import java.io.File;

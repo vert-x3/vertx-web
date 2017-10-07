@@ -35,9 +35,7 @@ public class RxTest extends VertxTestBase {
     int times = 5;
     waitFor(times);
     HttpServer server = vertx.createHttpServer(new HttpServerOptions().setPort(8080));
-    server.requestStream().handler(req -> {
-      req.response().setChunked(true).end("some_content");
-    });
+    server.requestStream().handler(req -> req.response().setChunked(true).end("some_content"));
     try {
       server.listen(ar -> {
         client = WebClient.wrap(vertx.createHttpClient(new HttpClientOptions()));
@@ -64,12 +62,10 @@ public class RxTest extends VertxTestBase {
     int times = 5;
     waitFor(times);
     HttpServer server = vertx.createHttpServer(new HttpServerOptions().setPort(8080));
-    server.requestStream().handler(req -> {
-      req.bodyHandler(buff -> {
-        assertEquals("onetwothree", buff.toString());
-        req.response().end();
-      });
-    });
+    server.requestStream().handler(req -> req.bodyHandler(buff -> {
+      assertEquals("onetwothree", buff.toString());
+      req.response().end();
+    }));
     try {
       server.listen(ar -> {
         client = WebClient.wrap(vertx.createHttpClient(new HttpClientOptions()));
@@ -78,9 +74,7 @@ public class RxTest extends VertxTestBase {
           .post(8080, "localhost", "/the_uri")
           .rxSendStream(stream);
         for (int i = 0; i < times; i++) {
-          single.subscribe(resp -> {
-            complete();
-          }, this::fail);
+          single.subscribe(resp -> complete(), this::fail);
         }
       });
       await();
@@ -94,9 +88,7 @@ public class RxTest extends VertxTestBase {
     int times = 5;
     waitFor(times);
     HttpServer server = vertx.createHttpServer(new HttpServerOptions().setPort(8080));
-    server.requestStream().handler(req -> {
-      req.response().setStatusCode(403).end();
-    });
+    server.requestStream().handler(req -> req.response().setStatusCode(403).end());
     try {
       server.listen(ar -> {
         client = WebClient.wrap(vertx.createHttpClient(new HttpClientOptions()));
@@ -121,9 +113,7 @@ public class RxTest extends VertxTestBase {
   public void testResponseBodyAsAsJsonMapped() throws Exception {
     JsonObject expected = new JsonObject().put("cheese", "Goat Cheese").put("wine", "Condrieu");
     HttpServer server = vertx.createHttpServer(new HttpServerOptions().setPort(8080));
-    server.requestStream().handler(req -> {
-      req.response().end(expected.encode());
-    });
+    server.requestStream().handler(req -> req.response().end(expected.encode()));
     try {
       server.listen(ar -> {
         client = WebClient.wrap(vertx.createHttpClient(new HttpClientOptions()));

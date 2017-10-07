@@ -32,7 +32,6 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -190,8 +189,8 @@ public interface RoutingContext {
   RoutingContext addCookie(Cookie cookie);
 
   /**
-   * Remove a cookie. The context must have first been routed to a {@link io.vertx.ext.web.handler.CookieHandler}
-   * for this to work.
+   * Expire a cookie, notifying a User Agent to remove it from its cookie jar. The context must have first been routed
+   * to a {@link io.vertx.ext.web.handler.CookieHandler} for this to work.
    *
    * @param name  the name of the cookie
    * @return the cookie, if it existed, or null

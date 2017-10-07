@@ -81,11 +81,7 @@ class BaseTransport {
 
   protected SockJSSession getSession(RoutingContext rc, long timeout, long heartbeatInterval, String sessionID,
                                      Handler<SockJSSocket> sockHandler) {
-    SockJSSession session = sessions.get(sessionID);
-    if (session == null) {
-      session = new SockJSSession(vertx, sessions, rc, sessionID, timeout, heartbeatInterval, sockHandler);
-      sessions.put(sessionID, session);
-    }
+    SockJSSession session = sessions.computeIfAbsent(sessionID, s -> new SockJSSession(vertx, sessions, rc, s, timeout, heartbeatInterval, sockHandler));
     return session;
   }
 

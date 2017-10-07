@@ -19,6 +19,7 @@ package io.vertx.ext.web.templ;
 import com.github.jknack.handlebars.Handlebars;
 import com.github.jknack.handlebars.ValueResolver;
 
+import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.ext.web.templ.impl.HandlebarsTemplateEngineImpl;
@@ -56,6 +57,7 @@ public interface HandlebarsTemplateEngine extends TemplateEngine {
    * @param extension  the extension
    * @return a reference to this for fluency
    */
+  @Fluent
   HandlebarsTemplateEngine setExtension(String extension);
 
   /**
@@ -64,6 +66,7 @@ public interface HandlebarsTemplateEngine extends TemplateEngine {
    * @param maxCacheSize  the maxCacheSize
    * @return a reference to this for fluency
    */
+  @Fluent
   HandlebarsTemplateEngine setMaxCacheSize(int maxCacheSize);
 
   /**
@@ -84,7 +87,7 @@ public interface HandlebarsTemplateEngine extends TemplateEngine {
 
   /**
    * Set the array of handlebars context value resolvers.
-   * 
+   *
    * @param resolvers the value resolvers to be used
    * @return a reference to the internal Handlebars instance.
    */

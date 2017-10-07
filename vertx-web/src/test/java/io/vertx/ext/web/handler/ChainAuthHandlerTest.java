@@ -43,16 +43,12 @@ public class ChainAuthHandlerTest extends WebTestBase {
   @Test
   public void testWithAuthorization() throws Exception {
     // there is an authorization header, so it should be handled properly
-    testRequest(HttpMethod.GET, "/", req -> {
-      req.putHeader("Authorization", "Basic dGltOmRlbGljaW91czpzYXVzYWdlcw==");
-    },200, "OK", "");
+    testRequest(HttpMethod.GET, "/", req -> req.putHeader("Authorization", "Basic dGltOmRlbGljaW91czpzYXVzYWdlcw=="),200, "OK", "");
   }
 
   @Test
   public void testWithBadAuthorization() throws Exception {
     // there is an authorization header, but the token is invalid it should be processed by the basic auth
-    testRequest(HttpMethod.GET, "/", req -> {
-      req.putHeader("Authorization", "Basic dGltOmRlbGljaW91czpzYXVzYWdlcX==");
-    },401, "Unauthorized", "Unauthorized");
+    testRequest(HttpMethod.GET, "/", req -> req.putHeader("Authorization", "Basic dGltOmRlbGljaW91czpzYXVzYWdlcX=="),401, "Unauthorized", "Unauthorized");
   }
 }

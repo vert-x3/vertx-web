@@ -26,26 +26,18 @@ public class VirtualHostHandlerTest extends WebTestBase {
 
   @Test
   public void testVHost() throws Exception {
-    router.route().handler(VirtualHostHandler.create("*.com", ctx -> {
-      ctx.response().end();
-    }));
+    router.route().handler(VirtualHostHandler.create("*.com", ctx -> ctx.response().end()));
 
-    router.route().handler(ctx -> {
-      ctx.fail(500);
-    });
+    router.route().handler(ctx -> ctx.fail(500));
 
     testRequest(HttpMethod.GET, "/", req -> req.setHost("www.mysite.com"), 200, "OK", null);
   }
 
   @Test
   public void testVHostShouldFail() throws Exception {
-    router.route().handler(VirtualHostHandler.create("*.com", ctx -> {
-      ctx.response().end();
-    }));
+    router.route().handler(VirtualHostHandler.create("*.com", ctx -> ctx.response().end()));
 
-    router.route().handler(ctx -> {
-      ctx.fail(500);
-    });
+    router.route().handler(ctx -> ctx.fail(500));
 
     testRequest(HttpMethod.GET, "/", req -> req.setHost("www.mysite.net"), 500, "Internal Server Error", null);
   }

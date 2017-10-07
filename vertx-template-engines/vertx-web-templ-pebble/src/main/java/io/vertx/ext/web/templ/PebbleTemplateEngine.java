@@ -17,6 +17,7 @@
 package io.vertx.ext.web.templ;
 
 import com.mitchellbosecke.pebble.PebbleEngine;
+import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Vertx;
@@ -30,24 +31,24 @@ import io.vertx.ext.web.templ.impl.PebbleTemplateEngineImpl;
 @VertxGen
 public interface PebbleTemplateEngine extends TemplateEngine {
 
-	/**
-	 * Default max number of templates to cache
-	 */
-	int DEFAULT_MAX_CACHE_SIZE = 10000;
+  /**
+   * Default max number of templates to cache
+   */
+  int DEFAULT_MAX_CACHE_SIZE = 10000;
 
-	/**
-	 * Default template extension
-	 */
-	String DEFAULT_TEMPLATE_EXTENSION = "peb";
+  /**
+   * Default template extension
+   */
+  String DEFAULT_TEMPLATE_EXTENSION = "peb";
 
-	/**
-	 * Create a template engine using defaults
-	 *
-	 * @return the engine
-	 */
-	static PebbleTemplateEngine create(Vertx vertx) {
-		return new PebbleTemplateEngineImpl(vertx);
-	}
+  /**
+   * Create a template engine using defaults
+   *
+   * @return the engine
+   */
+  static PebbleTemplateEngine create(Vertx vertx) {
+    return new PebbleTemplateEngineImpl(vertx);
+  }
 
   /**
    * Create a template engine using a custom Builder, e.g. if
@@ -60,21 +61,23 @@ public interface PebbleTemplateEngine extends TemplateEngine {
     return new PebbleTemplateEngineImpl(engine);
   }
 
-	/**
-	 * Set the extension for the engine
-	 *
-	 * @param extension
-	 *            the extension
-	 * @return a reference to this for fluency
-	 */
-	PebbleTemplateEngine setExtension(String extension);
+  /**
+   * Set the extension for the engine
+   *
+   * @param extension
+   *            the extension
+   * @return a reference to this for fluency
+   */
+  @Fluent
+  PebbleTemplateEngine setExtension(String extension);
 
-	/**
-	 * Set the max cache size for the engine
-	 *
-	 * @param maxCacheSize
-	 *            the maxCacheSize
-	 * @return a reference to this for fluency
-	 */
-	PebbleTemplateEngine setMaxCacheSize(int maxCacheSize);
+  /**
+   * Set the max cache size for the engine
+   *
+   * @param maxCacheSize
+   *            the maxCacheSize
+   * @return a reference to this for fluency
+   */
+  @Fluent
+  PebbleTemplateEngine setMaxCacheSize(int maxCacheSize);
 }

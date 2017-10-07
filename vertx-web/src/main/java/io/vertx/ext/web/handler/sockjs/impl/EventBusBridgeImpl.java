@@ -90,10 +90,10 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
 
   private void handleSocketClosed(SockJSSocket sock, Map<String, MessageConsumer> registrations) {
     // On close unregister any handlers that haven't been unregistered
-    registrations.entrySet().forEach(entry -> {
-      entry.getValue().unregister();
+    registrations.forEach((key, value) -> {
+      value.unregister();
       checkCallHook(() -> new BridgeEventImpl(BridgeEventType.UNREGISTER,
-              new JsonObject().put("type", "unregister").put("address", entry.getValue().address()), sock), null, null);
+        new JsonObject().put("type", "unregister").put("address", value.address()), sock), null, null);
     });
 
     SockInfo info = sockInfos.remove(sock);
@@ -542,11 +542,7 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
   }
 
   private boolean regexMatches(String matchRegex, String address) {
-    Pattern pattern = compiledREs.get(matchRegex);
-    if (pattern == null) {
-      pattern = Pattern.compile(matchRegex);
-      compiledREs.put(matchRegex, pattern);
-    }
+    Pattern pattern = compiledREs.computeIfAbsent(matchRegex, Pattern::compile);
     Matcher m = pattern.matcher(address);
     return m.matches();
   }

@@ -16,6 +16,7 @@
 
 package io.vertx.ext.web.templ;
 
+import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.ext.web.templ.impl.ThymeleafTemplateEngineImpl;
@@ -45,6 +46,7 @@ public interface ThymeleafTemplateEngine extends TemplateEngine {
    * @param mode the mode
    * @return a reference to this for fluency
    */
+  @Fluent
   ThymeleafTemplateEngine setMode(TemplateMode mode);
 
   /**

@@ -16,6 +16,7 @@
 
 package io.vertx.ext.web.templ;
 
+import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.ext.web.templ.impl.FreeMarkerTemplateEngineImpl;
 
@@ -52,6 +53,7 @@ public interface FreeMarkerTemplateEngine extends TemplateEngine {
    * @param extension  the extension
    * @return a reference to this for fluency
    */
+  @Fluent
   FreeMarkerTemplateEngine setExtension(String extension);
 
   /**
@@ -60,5 +62,6 @@ public interface FreeMarkerTemplateEngine extends TemplateEngine {
    * @param maxCacheSize  the maxCacheSize
    * @return a reference to this for fluency
    */
+  @Fluent
   FreeMarkerTemplateEngine setMaxCacheSize(int maxCacheSize);
 }

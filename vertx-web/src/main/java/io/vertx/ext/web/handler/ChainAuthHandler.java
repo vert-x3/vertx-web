@@ -17,7 +17,6 @@ package io.vertx.ext.web.handler;
 
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.ext.auth.AuthProvider;
 import io.vertx.ext.web.handler.impl.ChainAuthHandlerImpl;
 
 /**

@@ -2,7 +2,6 @@ package io.vertx.ext.web.client;
 
 import io.vertx.core.Context;
 import io.vertx.core.Vertx;
-import io.vertx.core.http.HttpServer;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;

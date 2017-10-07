@@ -23,16 +23,18 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.ext.web.LanguageHeader;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.impl.Utils;
 import io.vertx.ext.web.templ.PebbleTemplateEngine;
 
 import java.io.StringWriter;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 /**
  * @author Dan Kristensen
+ * @author Jens Klingsporn
  */
 public class PebbleTemplateEngineImpl extends CachingTemplateEngine<PebbleTemplate> implements PebbleTemplateEngine {
 
@@ -72,10 +74,18 @@ public class PebbleTemplateEngineImpl extends CachingTemplateEngine<PebbleTempla
           cache.put(templateFileName, template);
         }
       }
+      final Locale locale = context.acceptableLanguages()
+              .stream()
+              .findFirst()
+                .map(LanguageHeader::value)
+                .map(Locale::forLanguageTag)
+              .orElseGet(Locale::getDefault);
       final Map<String, Object> variables = new HashMap<>(1);
       variables.put("context", context);
+      // Pass defined variables in context to engine
+      variables.putAll(context.data());
       final StringWriter stringWriter = new StringWriter();
-      template.evaluate(stringWriter, variables);
+      template.evaluate(stringWriter, variables, locale);
       handler.handle(Future.succeededFuture(Buffer.buffer(stringWriter.toString())));
     } catch (final Exception ex) {
       handler.handle(Future.failedFuture(ex));

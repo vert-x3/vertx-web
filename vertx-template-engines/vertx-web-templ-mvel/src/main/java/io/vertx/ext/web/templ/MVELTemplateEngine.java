@@ -16,6 +16,7 @@
 
 package io.vertx.ext.web.templ;
 
+import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.ext.web.templ.impl.MVELTemplateEngineImpl;
 
@@ -52,6 +53,7 @@ public interface MVELTemplateEngine extends TemplateEngine {
    * @param extension  the extension
    * @return a reference to this for fluency
    */
+  @Fluent
   MVELTemplateEngine setExtension(String extension);
 
   /**
@@ -60,5 +62,6 @@ public interface MVELTemplateEngine extends TemplateEngine {
    * @param maxCacheSize  the maxCacheSize
    * @return a reference to this for fluency
    */
+  @Fluent
   MVELTemplateEngine setMaxCacheSize(int maxCacheSize);
 }

@@ -234,7 +234,7 @@ public class SockJSHandlerImpl implements SockJSHandler, Handler<RoutingContext>
           rc.response().setStatusCode(304);
           rc.response().end();
         } else {
-          long oneYear = 365 * 24 * 60 * 60 * 1000l;
+          long oneYear = 365 * 24 * 60 * 60 * 1000L;
           String expires = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz").format(new Date(System.currentTimeMillis() + oneYear));
           rc.response().putHeader("Content-Type", "text/html; charset=UTF-8")
             .putHeader("Cache-Control", "public,max-age=31536000")
@@ -296,21 +296,19 @@ public class SockJSHandlerImpl implements SockJSHandler, Handler<RoutingContext>
           sock.endHandler(v -> vertx.cancelTimer(timerID));
         }));
     router.route("/amplify/*").handler(SockJSHandler.create(vertx,
-        new SockJSHandlerOptions().setMaxBytesStreaming(4096)).socketHandler(sock -> {
-          sock.handler(data -> {
-            String str = data.toString();
-            int n = Integer.valueOf(str);
-            if (n < 0 || n > 19) {
-              n = 1;
-            }
-            int num = (int) Math.pow(2, n);
-            Buffer buff = buffer(num);
-            for (int i = 0; i < num; i++) {
-              buff.appendByte((byte) 'x');
-            }
-            sock.write(buff);
-          });
-      }));
+        new SockJSHandlerOptions().setMaxBytesStreaming(4096)).socketHandler(sock -> sock.handler(data -> {
+          String str = data.toString();
+          int n = Integer.valueOf(str);
+          if (n < 0 || n > 19) {
+            n = 1;
+          }
+          int num = (int) Math.pow(2, n);
+          Buffer buff = buffer(num);
+          for (int i = 0; i < num; i++) {
+            buff.appendByte((byte) 'x');
+          }
+          sock.write(buff);
+        })));
     router.route("/broadcast/*").handler(SockJSHandler.create(vertx,
         new SockJSHandlerOptions().setMaxBytesStreaming(4096)).socketHandler(new Handler<SockJSSocket>() {
           Set<String> connections = new HashSet<>();
@@ -322,9 +320,7 @@ public class SockJSHandlerImpl implements SockJSHandler, Handler<RoutingContext>
                 vertx.eventBus().publish(actorID, buffer);
               }
             });
-            sock.endHandler(v -> {
-              connections.remove(sock.writeHandlerID());
-            });
+            sock.endHandler(v -> connections.remove(sock.writeHandlerID()));
           }
         }));
     router.route("/cookie_needed_echo/*").handler(SockJSHandler.create(vertx, new SockJSHandlerOptions().

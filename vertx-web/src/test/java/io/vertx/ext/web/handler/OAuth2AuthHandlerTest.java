@@ -25,6 +25,7 @@ import io.vertx.ext.auth.oauth2.OAuth2FlowType;
 import io.vertx.ext.web.WebTestBase;
 import org.junit.Test;
 
+import java.util.Base64;
 import java.util.concurrent.CountDownLatch;
 
 /**
@@ -48,7 +49,7 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
   private String redirectURL = null;
 
   @Test
-  public void testHappyFlow() throws Exception {
+  public void testAuthCodeFlow() throws Exception {
 
     // lets mock a oauth2 server using code auth code flow
     OAuth2Auth oauth2 = OAuth2Auth.create(vertx, OAuth2FlowType.AUTH_CODE, new OAuth2ClientOptions()
@@ -60,13 +61,9 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
 
     HttpServer server = vertx.createHttpServer().requestHandler(req -> {
       if (req.method() == HttpMethod.POST && "/oauth/token".equals(req.path())) {
-        req.setExpectMultipart(true).bodyHandler(buffer -> {
-          req.response().putHeader("Content-Type", "application/json").end(fixture.encode());
-        });
+        req.setExpectMultipart(true).bodyHandler(buffer -> req.response().putHeader("Content-Type", "application/json").end(fixture.encode()));
       } else if (req.method() == HttpMethod.POST && "/oauth/revoke".equals(req.path())) {
-        req.setExpectMultipart(true).bodyHandler(buffer -> {
-          req.response().end();
-        });
+        req.setExpectMultipart(true).bodyHandler(buffer -> req.response().end());
       } else {
         req.response().setStatusCode(400).end();
       }
@@ -104,6 +101,62 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
     // fake the redirect
     testRequest(HttpMethod.GET, "/callback?state=/protected/somepage&code=1", null, resp -> {
     }, 200, "OK", "Welcome to the protected resource!");
+
+    server.close();
+  }
+
+  @Test
+  public void testPasswordFlow() throws Exception {
+
+    // lets mock a oauth2 server using code auth code flow
+    OAuth2Auth oauth2 = OAuth2Auth.create(vertx, OAuth2FlowType.PASSWORD, new OAuth2ClientOptions()
+      .setClientID("client-id")
+      .setClientSecret("client-secret")
+      .setSite("http://localhost:10000"));
+
+    final CountDownLatch latch = new CountDownLatch(1);
+
+    HttpServer server = vertx.createHttpServer().requestHandler(req -> {
+      if (req.method() == HttpMethod.POST && "/oauth/token".equals(req.path())) {
+        req.setExpectMultipart(true).bodyHandler(buffer -> {
+          final String queryString = buffer.toString();
+          assertTrue(queryString.contains("username=paulo"));
+          assertTrue(queryString.contains("password=bananas"));
+          assertTrue(queryString.contains("grant_type=password"));
+
+          req.response().putHeader("Content-Type", "application/json").end(fixture.encode());
+        });
+      } else if (req.method() == HttpMethod.POST && "/oauth/revoke".equals(req.path())) {
+        req.setExpectMultipart(true).bodyHandler(buffer -> req.response().end());
+      } else {
+        req.response().setStatusCode(400).end();
+      }
+    }).listen(10000, ready -> {
+      if (ready.failed()) {
+        throw new RuntimeException(ready.cause());
+      }
+      // ready
+      latch.countDown();
+    });
+
+    latch.await();
+
+    AuthHandler oauth2Handler = BasicAuthHandler.create(oauth2);
+
+    // protect everything under /protected
+    router.route("/protected/*").handler(oauth2Handler);
+    // mount some handler under the protected zone
+    router.route("/protected/somepage").handler(rc -> {
+      assertNotNull(rc.user());
+      rc.response().end("Welcome to the protected resource!");
+    });
+
+
+    testRequest(HttpMethod.GET, "/protected/somepage", req -> req.putHeader("Authorization", "Basic " + Base64.getEncoder().encodeToString("paulo:bananas".getBytes())), res -> {
+      // in this case we should get the resource
+    }, 200, "OK", "Welcome to the protected resource!");
+
+    testRequest(HttpMethod.GET, "/protected/somepage", 401, "Unauthorized");
 
     server.close();
   }

@@ -16,15 +16,8 @@
 
 package io.vertx.ext.web.templ;
 
-import com.github.jknack.handlebars.HandlebarsException;
-import com.github.jknack.handlebars.ValueResolver;
-import io.vertx.core.Handler;
 import io.vertx.core.VertxOptions;
-import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
-import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
-import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.WebTestBase;
 import io.vertx.ext.web.handler.TemplateHandler;
 import io.vertx.ext.web.templ.impl.CachingTemplateEngine;
@@ -32,10 +25,6 @@ import org.junit.Test;
 
 import java.io.File;
 import java.io.PrintWriter;
-import java.util.Collections;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>

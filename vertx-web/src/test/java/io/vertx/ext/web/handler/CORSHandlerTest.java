@@ -43,149 +43,83 @@ public class CORSHandlerTest extends WebTestBase {
   @Test
   public void testNotCORSRequest() throws Exception {
     router.route().handler(CorsHandler.create("vertx\\.io"));
-    router.route().handler(context -> {
-      context.response().end();
-    });
-    testRequest(HttpMethod.GET, "/", null, resp -> {
-      checkHeaders(resp, null, null, null, null);
-    }, 200, "OK", null);
+    router.route().handler(context -> context.response().end());
+    testRequest(HttpMethod.GET, "/", null, resp -> checkHeaders(resp, null, null, null, null), 200, "OK", null);
   }
 
   @Test
   public void testAcceptAllAllowedOrigin() throws Exception {
     router.route().handler(CorsHandler.create("*"));
-    router.route().handler(context -> {
-      context.response().end();
-    });
-    testRequest(HttpMethod.GET, "/", req -> {
-      req.headers().add("origin", "vertx.io");
-    }, resp -> {
-      checkHeaders(resp, "*", null, null, null);
-    }, 200, "OK", null);
+    router.route().handler(context -> context.response().end());
+    testRequest(HttpMethod.GET, "/", req -> req.headers().add("origin", "vertx.io"), resp -> checkHeaders(resp, "*", null, null, null), 200, "OK", null);
   }
 
   @Test
   public void testAcceptConstantOrigin() throws Exception {
     router.route().handler(CorsHandler.create("vertx\\.io"));
-    router.route().handler(context -> {
-      context.response().end();
-    });
-    testRequest(HttpMethod.GET, "/", req -> {
-      req.headers().add("origin", "vertx.io");
-    }, resp -> {
-      checkHeaders(resp, "vertx.io", null, null, null);
-    }, 200, "OK", null);
+    router.route().handler(context -> context.response().end());
+    testRequest(HttpMethod.GET, "/", req -> req.headers().add("origin", "vertx.io"), resp -> checkHeaders(resp, "vertx.io", null, null, null), 200, "OK", null);
   }
 
   @Test
   public void testAcceptConstantOriginDenied1() throws Exception {
     router.route().handler(CorsHandler.create("vertx\\.io"));
-    router.route().handler(context -> {
-      context.response().end();
-    });
-    testRequest(HttpMethod.GET, "/", req -> {
-      req.headers().add("origin", "foo.io");
-    }, resp -> {
-      checkHeaders(resp, null, null, null, null);
-    }, 403, "CORS Rejected - Invalid origin", null);
+    router.route().handler(context -> context.response().end());
+    testRequest(HttpMethod.GET, "/", req -> req.headers().add("origin", "foo.io"), resp -> checkHeaders(resp, null, null, null, null), 403, "CORS Rejected - Invalid origin", null);
   }
 
   @Test
   public void testAcceptConstantOriginDenied2() throws Exception {
     router.route().handler(CorsHandler.create("vertx\\.io"));
-    router.route().handler(context -> {
-      context.response().end();
-    });
+    router.route().handler(context -> context.response().end());
     testRequest(HttpMethod.GET, "/", req -> {
       // Make sure the '.' doesn't match like a regex
       req.headers().add("origin", "fooxio");
-    }, resp -> {
-      checkHeaders(resp, null, null, null, null);
-    }, 403, "CORS Rejected - Invalid origin", null);
+    }, resp -> checkHeaders(resp, null, null, null, null), 403, "CORS Rejected - Invalid origin", null);
   }
 
   @Test
   public void testAcceptDotisAnyCharacter1() throws Exception {
     router.route().handler(CorsHandler.create("vertx.io")); // dot matches any character - watch out!
-    router.route().handler(context -> {
-      context.response().end();
-    });
-    testRequest(HttpMethod.GET, "/", req -> {
-      req.headers().add("origin", "vertxxio");
-    }, resp -> {
-      checkHeaders(resp, "vertxxio", null, null, null);
-    }, 200, "OK", null);
+    router.route().handler(context -> context.response().end());
+    testRequest(HttpMethod.GET, "/", req -> req.headers().add("origin", "vertxxio"), resp -> checkHeaders(resp, "vertxxio", null, null, null), 200, "OK", null);
   }
 
   @Test
   public void testAcceptDotisAnyCharacter2() throws Exception {
     router.route().handler(CorsHandler.create("vertx.io")); // dot matches any character - watch out!
-    router.route().handler(context -> {
-      context.response().end();
-    });
-    testRequest(HttpMethod.GET, "/", req -> {
-      req.headers().add("origin", "vertx.io");
-    }, resp -> {
-      checkHeaders(resp, "vertx.io", null, null, null);
-    }, 200, "OK", null);
+    router.route().handler(context -> context.response().end());
+    testRequest(HttpMethod.GET, "/", req -> req.headers().add("origin", "vertx.io"), resp -> checkHeaders(resp, "vertx.io", null, null, null), 200, "OK", null);
   }
 
   @Test
   public void testAcceptPattern() throws Exception {
     // Any subdomains of vertx.io
     router.route().handler(CorsHandler.create(".*\\.vertx\\.io"));
-    router.route().handler(context -> {
-      context.response().end();
-    });
-    testRequest(HttpMethod.GET, "/", req -> {
-      req.headers().add("origin", "foo.vertx.io");
-    }, resp -> {
-      checkHeaders(resp, "foo.vertx.io", null, null, null);
-    }, 200, "OK", null);
-    testRequest(HttpMethod.GET, "/", req -> {
-      req.headers().add("origin", "bar.vertx.io");
-    }, resp -> {
-      checkHeaders(resp, "bar.vertx.io", null, null, null);
-    }, 200, "OK", null);
-    testRequest(HttpMethod.GET, "/", req -> {
-      req.headers().add("origin", "wibble.bar.vertx.io");
-    }, resp -> {
-      checkHeaders(resp, "wibble.bar.vertx.io", null, null, null);
-    }, 200, "OK", null);
+    router.route().handler(context -> context.response().end());
+    testRequest(HttpMethod.GET, "/", req -> req.headers().add("origin", "foo.vertx.io"), resp -> checkHeaders(resp, "foo.vertx.io", null, null, null), 200, "OK", null);
+    testRequest(HttpMethod.GET, "/", req -> req.headers().add("origin", "bar.vertx.io"), resp -> checkHeaders(resp, "bar.vertx.io", null, null, null), 200, "OK", null);
+    testRequest(HttpMethod.GET, "/", req -> req.headers().add("origin", "wibble.bar.vertx.io"), resp -> checkHeaders(resp, "wibble.bar.vertx.io", null, null, null), 200, "OK", null);
   }
 
   @Test
   public void testAcceptPatternDenied() throws Exception {
     // Any subdomains of vertx.io
     router.route().handler(CorsHandler.create(".*\\.vertx\\.io"));
-    router.route().handler(context -> {
-      context.response().end();
-    });
-    testRequest(HttpMethod.GET, "/", req -> {
-      req.headers().add("origin", "foo.vertx.com");
-    }, resp -> {
-      checkHeaders(resp, null, null, null, null);
-    }, 403, "CORS Rejected - Invalid origin", null);
-    testRequest(HttpMethod.GET, "/", req -> {
-      req.headers().add("origin", "barxvertxxio");
-    }, resp -> {
-      checkHeaders(resp, null, null, null, null);
-    }, 403, "CORS Rejected - Invalid origin", null);
+    router.route().handler(context -> context.response().end());
+    testRequest(HttpMethod.GET, "/", req -> req.headers().add("origin", "foo.vertx.com"), resp -> checkHeaders(resp, null, null, null, null), 403, "CORS Rejected - Invalid origin", null);
+    testRequest(HttpMethod.GET, "/", req -> req.headers().add("origin", "barxvertxxio"), resp -> checkHeaders(resp, null, null, null, null), 403, "CORS Rejected - Invalid origin", null);
   }
 
   @Test
   public void testPreflightSimple() throws Exception {
     Set<HttpMethod> allowedMethods = new LinkedHashSet<>(Arrays.asList(HttpMethod.PUT, HttpMethod.DELETE));
     router.route().handler(CorsHandler.create("vertx\\.io").allowedMethods(allowedMethods));
-    router.route().handler(context -> {
-      context.response().end();
-    });
+    router.route().handler(context -> context.response().end());
     testRequest(HttpMethod.OPTIONS, "/", req -> {
       req.headers().add("origin", "vertx.io");
       req.headers().add("access-control-request-method", "PUT,DELETE");
-    }, resp -> {
-      checkHeaders(resp, "vertx.io", "PUT,DELETE", null, null);
-    }, 204, "No Content", null);
+    }, resp -> checkHeaders(resp, "vertx.io", "PUT,DELETE", null, null), 204, "No Content", null);
   }
 
   @Test
@@ -193,16 +127,12 @@ public class CORSHandlerTest extends WebTestBase {
     Set<HttpMethod> allowedMethods = new LinkedHashSet<>(Arrays.asList(HttpMethod.PUT, HttpMethod.DELETE));
     Set<String> allowedHeaders = new LinkedHashSet<>(Arrays.asList("X-wibble", "X-blah"));
     router.route().handler(CorsHandler.create("vertx\\.io").allowedMethods(allowedMethods).allowedHeaders(allowedHeaders));
-    router.route().handler(context -> {
-      context.response().end();
-    });
+    router.route().handler(context -> context.response().end());
     testRequest(HttpMethod.OPTIONS, "/", req -> {
       req.headers().add("origin", "vertx.io");
       req.headers().add("access-control-request-method", "PUT,DELETE");
       req.headers().add("access-control-request-headers", allowedHeaders);
-    }, resp -> {
-      checkHeaders(resp, "vertx.io", "PUT,DELETE", "X-wibble,X-blah", null);
-    }, 204, "No Content", null);
+    }, resp -> checkHeaders(resp, "vertx.io", "PUT,DELETE", "X-wibble,X-blah", null), 204, "No Content", null);
   }
 
   @Test
@@ -210,9 +140,7 @@ public class CORSHandlerTest extends WebTestBase {
     Set<HttpMethod> allowedMethods = new LinkedHashSet<>(Arrays.asList(HttpMethod.PUT, HttpMethod.DELETE));
     Set<String> exposeHeaders = new LinkedHashSet<>(Arrays.asList("X-floob", "X-blurp"));
     router.route().handler(CorsHandler.create("vertx\\.io").allowedMethods(allowedMethods).exposedHeaders(exposeHeaders));
-    router.route().handler(context -> {
-      context.response().end();
-    });
+    router.route().handler(context -> context.response().end());
     testRequest(HttpMethod.OPTIONS, "/", req -> {
       req.headers().add("origin", "vertx.io");
       req.headers().add("access-control-request-method", "PUT,DELETE");
@@ -226,15 +154,11 @@ public class CORSHandlerTest extends WebTestBase {
   public void testPreflightAllowCredentials() throws Exception {
     Set<HttpMethod> allowedMethods = new LinkedHashSet<>(Arrays.asList(HttpMethod.PUT, HttpMethod.DELETE));
     router.route().handler(CorsHandler.create("vertx\\.io").allowedMethods(allowedMethods).allowCredentials(true));
-    router.route().handler(context -> {
-      context.response().end();
-    });
+    router.route().handler(context -> context.response().end());
     testRequest(HttpMethod.OPTIONS, "/", req -> {
       req.headers().add("origin", "vertx.io");
       req.headers().add("access-control-request-method", "PUT,DELETE");
-    }, resp -> {
-      checkHeaders(resp, "vertx.io", "PUT,DELETE", null, null, "true", null);
-    }, 204, "No Content", null);
+    }, resp -> checkHeaders(resp, "vertx.io", "PUT,DELETE", null, null, "true", null), 204, "No Content", null);
   }
 
   @Test
@@ -242,15 +166,11 @@ public class CORSHandlerTest extends WebTestBase {
     Set<HttpMethod> allowedMethods = new LinkedHashSet<>(Arrays.asList(HttpMethod.PUT, HttpMethod.DELETE));
     // Make sure * isn't returned in access-control-allow-origin for credentials
     router.route().handler(CorsHandler.create("vertx.*").allowedMethods(allowedMethods).allowCredentials(true));
-    router.route().handler(context -> {
-      context.response().end();
-    });
+    router.route().handler(context -> context.response().end());
     testRequest(HttpMethod.OPTIONS, "/", req -> {
       req.headers().add("origin", "vertx.io");
       req.headers().add("access-control-request-method", "PUT,DELETE");
-    }, resp -> {
-      checkHeaders(resp, "vertx.io", "PUT,DELETE", null, null, "true", null);
-    }, 204, "No Content", null);
+    }, resp -> checkHeaders(resp, "vertx.io", "PUT,DELETE", null, null, "true", null), 204, "No Content", null);
   }
 
   @Test
@@ -258,43 +178,27 @@ public class CORSHandlerTest extends WebTestBase {
     Set<HttpMethod> allowedMethods = new LinkedHashSet<>(Arrays.asList(HttpMethod.PUT, HttpMethod.DELETE));
     int maxAge = 131233;
     router.route().handler(CorsHandler.create("vertx\\.io").allowedMethods(allowedMethods).maxAgeSeconds(maxAge));
-    router.route().handler(context -> {
-      context.response().end();
-    });
+    router.route().handler(context -> context.response().end());
     testRequest(HttpMethod.OPTIONS, "/", req -> {
       req.headers().add("origin", "vertx.io");
       req.headers().add("access-control-request-method", "PUT,DELETE");
-    }, resp -> {
-      checkHeaders(resp, "vertx.io", "PUT,DELETE", null, null, null, String.valueOf(maxAge));
-    }, 204, "No Content", null);
+    }, resp -> checkHeaders(resp, "vertx.io", "PUT,DELETE", null, null, null, String.valueOf(maxAge)), 204, "No Content", null);
   }
 
   @Test
   public void testRealRequestAllowCredentials() throws Exception {
     Set<HttpMethod> allowedMethods = new LinkedHashSet<>(Arrays.asList(HttpMethod.PUT, HttpMethod.DELETE));
     router.route().handler(CorsHandler.create("vertx\\.io").allowedMethods(allowedMethods).allowCredentials(true));
-    router.route().handler(context -> {
-      context.response().end();
-    });
-    testRequest(HttpMethod.GET, "/", req -> {
-      req.headers().add("origin", "vertx.io");
-    }, resp -> {
-      checkHeaders(resp, "vertx.io", null, null, null, "true", null);
-    }, 200, "OK", null);
+    router.route().handler(context -> context.response().end());
+    testRequest(HttpMethod.GET, "/", req -> req.headers().add("origin", "vertx.io"), resp -> checkHeaders(resp, "vertx.io", null, null, null, "true", null), 200, "OK", null);
   }
 
   @Test
   public void testRealRequestCredentialsNoWildcardOrigin() throws Exception {
     Set<HttpMethod> allowedMethods = new LinkedHashSet<>(Arrays.asList(HttpMethod.PUT, HttpMethod.DELETE));
     router.route().handler(CorsHandler.create("vertx.*").allowedMethods(allowedMethods).allowCredentials(true));
-    router.route().handler(context -> {
-      context.response().end();
-    });
-    testRequest(HttpMethod.GET, "/", req -> {
-      req.headers().add("origin", "vertx.io");
-    }, resp -> {
-      checkHeaders(resp, "vertx.io", null, null, null, "true", null);
-    }, 200, "OK", null);
+    router.route().handler(context -> context.response().end());
+    testRequest(HttpMethod.GET, "/", req -> req.headers().add("origin", "vertx.io"), resp -> checkHeaders(resp, "vertx.io", null, null, null, "true", null), 200, "OK", null);
   }
 
   @Test

@@ -54,15 +54,11 @@ public class InterceptorTest extends HttpTestBase {
 
   @Test
   public void testMutateRequestInterceptor() throws Exception {
-    server.requestHandler(req -> {
-      req.response().end();
-    });
+    server.requestHandler(req -> req.response().end());
     startServer();
     client.addInterceptor(this::handleMutateRequest);
     HttpRequest<Buffer> builder = client.get("/somepath").host("another-host").port(8081);
-    builder.send(onSuccess(resp -> {
-      complete();
-    }));
+    builder.send(onSuccess(resp -> complete()));
     await();
   }
 
@@ -87,9 +83,7 @@ public class InterceptorTest extends HttpTestBase {
 
   @Test
   public void testMutateResponseInterceptor() throws Exception {
-    server.requestHandler(req -> {
-      req.response().setStatusCode(500).end();
-    });
+    server.requestHandler(req -> req.response().setStatusCode(500).end());
     startServer();
     client.addInterceptor(this::mutateResponseHandler);
     HttpRequest<Buffer> builder = client.get("/somepath");
@@ -102,9 +96,7 @@ public class InterceptorTest extends HttpTestBase {
 
   @Test
   public void testInterceptorsOrder() throws Exception {
-    server.requestHandler(req -> {
-      req.response().setStatusCode(204).end();
-    });
+    server.requestHandler(req -> req.response().setStatusCode(204).end());
     startServer();
     List<String> events = Collections.synchronizedList(new ArrayList<>());
     client.addInterceptor(context -> {
@@ -165,9 +157,7 @@ public class InterceptorTest extends HttpTestBase {
   @Test
   public void testRetry() throws Exception {
     int num = 3;
-    server.requestHandler(req -> {
-      req.response().setStatusCode(503).end(req.path());
-    });
+    server.requestHandler(req -> req.response().setStatusCode(503).end(req.path()));
     startServer();
     AtomicInteger reqCount = new AtomicInteger();
     AtomicInteger respCount = new AtomicInteger();
@@ -188,9 +178,7 @@ public class InterceptorTest extends HttpTestBase {
 
   @Test
   public void testCacheInterceptor() throws Exception {
-    server.requestHandler(req -> {
-      fail();
-    });
+    server.requestHandler(req -> fail());
     startServer();
     client.addInterceptor(this::cacheInterceptorHandler);
     HttpRequest<Buffer> builder = client.get("/somepath").host("localhost").port(8080);

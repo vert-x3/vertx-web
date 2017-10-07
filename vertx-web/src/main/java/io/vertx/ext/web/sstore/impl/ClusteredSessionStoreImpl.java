@@ -82,12 +82,12 @@ public class ClusteredSessionStoreImpl implements ClusteredSessionStore {
   }
 
   @Override
-  public void delete(String id, Handler<AsyncResult<Boolean>> resultHandler) {
+  public void delete(String id, Handler<AsyncResult<Void>> resultHandler) {
     getMap(res -> {
       if (res.succeeded()) {
         res.result().remove(id, res2 -> {
           if (res2.succeeded()) {
-            resultHandler.handle(Future.succeededFuture(res2.result() != null));
+            resultHandler.handle(Future.succeededFuture());
           } else {
             resultHandler.handle(Future.failedFuture(res2.cause()));
           }
@@ -99,7 +99,7 @@ public class ClusteredSessionStoreImpl implements ClusteredSessionStore {
   }
 
   @Override
-  public void put(Session session, Handler<AsyncResult<Boolean>> resultHandler) {
+  public void put(Session session, Handler<AsyncResult<Void>> resultHandler) {
     getMap(res -> {
       if (res.succeeded()) {
         // we need to take care of the transactionality of session data
@@ -127,7 +127,7 @@ public class ClusteredSessionStoreImpl implements ClusteredSessionStore {
 
           res.result().put(session.id(), session, session.timeout(), res2 -> {
             if (res2.succeeded()) {
-              resultHandler.handle(Future.succeededFuture(res2.result() != null));
+              resultHandler.handle(Future.succeededFuture());
             } else {
               resultHandler.handle(Future.failedFuture(res2.cause()));
             }
@@ -140,12 +140,12 @@ public class ClusteredSessionStoreImpl implements ClusteredSessionStore {
   }
 
   @Override
-  public void clear(Handler<AsyncResult<Boolean>> resultHandler) {
+  public void clear(Handler<AsyncResult<Void>> resultHandler) {
     getMap(res -> {
       if (res.succeeded()) {
         res.result().clear(res2 -> {
           if (res2.succeeded()) {
-            resultHandler.handle(Future.succeededFuture(res2.result() != null));
+            resultHandler.handle(Future.succeededFuture());
           } else {
             resultHandler.handle(Future.failedFuture(res2.cause()));
           }

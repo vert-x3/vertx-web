@@ -99,13 +99,13 @@ public class HeaderParser {
     if (slashIndex < 0) {
       componentCallback.accept("*");
     } else {
-      componentCallback.accept(headerContent.substring(0, slashIndex));
+      componentCallback.accept(headerContent.substring(0, slashIndex).toLowerCase());
     }
 
     if (paramIndex < 0) {
       subcomponentCallback.accept(headerContent.substring(slashIndex + 1));
     } else {
-      subcomponentCallback.accept(headerContent.substring(slashIndex + 1, paramIndex));
+      subcomponentCallback.accept(headerContent.substring(slashIndex + 1, paramIndex).toLowerCase());
     }
   }
 

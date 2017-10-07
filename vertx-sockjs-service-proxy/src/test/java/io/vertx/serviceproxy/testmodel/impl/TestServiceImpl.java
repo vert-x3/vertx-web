@@ -330,7 +330,7 @@ public class TestServiceImpl implements TestService {
 
   @Override
   public void voidHandler(Handler<AsyncResult<Void>> resultHandler) {
-    resultHandler.handle(Future.succeededFuture((Void) null));
+    resultHandler.handle(Future.succeededFuture(null));
   }
 
   @Override
@@ -504,14 +504,14 @@ public class TestServiceImpl implements TestService {
 
   @Override
   public void listDataObjectHandler(Handler<AsyncResult<List<TestDataObject>>> resultHandler) {
-    List<TestDataObject> list = 
+    List<TestDataObject> list =
         Arrays.asList(new TestDataObject().setNumber(1).setString("String 1").setBool(false), new TestDataObject().setNumber(2).setString("String 2").setBool(true));
     resultHandler.handle(Future.succeededFuture(list));
   }
 
   @Override
   public void setDataObjectHandler(Handler<AsyncResult<Set<TestDataObject>>> resultHandler) {
-    Set<TestDataObject> set = 
+    Set<TestDataObject> set =
         new LinkedHashSet<>(Arrays.asList(new TestDataObject().setNumber(1).setString("String 1").setBool(false), new TestDataObject().setNumber(2).setString("String 2").setBool(true)));
     resultHandler.handle(Future.succeededFuture(set));
   }
