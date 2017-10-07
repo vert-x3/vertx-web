@@ -12,9 +12,9 @@ Vert.x-Web provides:
 * Router factory to provide all this features to users
 
 == The router factory
-You can create your web service based on OpenAPI3 specification with `link:../../apidocs/io/vertx/ext/web/designdriven/openapi3/OpenAPI3RouterFactory.html[OpenAPI3RouterFactory]`.
+You can create your web service based on OpenAPI3 specification with `link:../../apidocs/io/vertx/ext/web/api/contract/openapi3/OpenAPI3RouterFactory.html[OpenAPI3RouterFactory]`.
 This class, as name says, is a router factory based on your OpenAPI 3 specification.
-`link:../../apidocs/io/vertx/ext/web/designdriven/openapi3/OpenAPI3RouterFactory.html[OpenAPI3RouterFactory]` is intended to give you a really simple user interface to use OpenAPI 3 support. It includes:
+`link:../../apidocs/io/vertx/ext/web/api/contract/openapi3/OpenAPI3RouterFactory.html[OpenAPI3RouterFactory]` is intended to give you a really simple user interface to use OpenAPI 3 support. It includes:
 
 * Async loading of specification and its schema dependencies
 * Mount path with operationId or with combination of path and HTTP method
@@ -24,10 +24,10 @@ This class, as name says, is a router factory based on your OpenAPI 3 specificat
 * Automatic mount of security validation handlers
 
 == Create a new router factory
-To create a new router factory, you can use methods inside `link:../../apidocs/io/vertx/ext/web/designdriven/openapi3/OpenAPI3RouterFactory.html[OpenAPI3RouterFactory]`:
+To create a new router factory, you can use methods inside `link:../../apidocs/io/vertx/ext/web/api/contract/openapi3/OpenAPI3RouterFactory.html[OpenAPI3RouterFactory]`:
 
-* `link:../../apidocs/io/vertx/ext/web/designdriven/openapi3/OpenAPI3RouterFactory.html#createRouterFactoryFromFile-io.vertx.core.Vertx-java.lang.String-io.vertx.core.Handler-[OpenAPI3RouterFactory.createRouterFactoryFromFile]`  to create a router factory from local file
-* `link:../../apidocs/io/vertx/ext/web/designdriven/openapi3/OpenAPI3RouterFactory.html#createRouterFactoryFromURL-io.vertx.core.Vertx-java.lang.String-io.vertx.core.Handler-[OpenAPI3RouterFactory.createRouterFactoryFromURL]`  to create a router factory from url
+* `link:../../apidocs/io/vertx/ext/web/api/contract/openapi3/OpenAPI3RouterFactory.html#createRouterFactoryFromFile-io.vertx.core.Vertx-java.lang.String-io.vertx.core.Handler-[OpenAPI3RouterFactory.createRouterFactoryFromFile]`  to create a router factory from local file
+* `link:../../apidocs/io/vertx/ext/web/api/contract/openapi3/OpenAPI3RouterFactory.html#createRouterFactoryFromURL-io.vertx.core.Vertx-java.lang.String-io.vertx.core.Handler-[OpenAPI3RouterFactory.createRouterFactoryFromURL]`  to create a router factory from url
 
 For example:
 [source,kotlin]
@@ -47,18 +47,18 @@ OpenAPI3RouterFactory.createRouterFactoryFromFile(vertx, "src/main/resources/pet
 == Mount the handlers
 Now load your first path. There are two functions to load the handlers:
 
-* `link:../../apidocs/io/vertx/ext/web/designdriven/DesignDrivenRouterFactory.html#addHandler-io.vertx.core.http.HttpMethod-java.lang.String-io.vertx.core.Handler-[addHandler]`
-* `link:../../apidocs/io/vertx/ext/web/designdriven/openapi3/OpenAPI3RouterFactory.html#addHandlerByOperationId-java.lang.String-io.vertx.core.Handler-[addHandlerByOperationId]`
+* `link:../../apidocs/io/vertx/ext/web/api/contract/DesignDrivenRouterFactory.html#addHandler-io.vertx.core.http.HttpMethod-java.lang.String-io.vertx.core.Handler-[addHandler]`
+* `link:../../apidocs/io/vertx/ext/web/api/contract/openapi3/OpenAPI3RouterFactory.html#addHandlerByOperationId-java.lang.String-io.vertx.core.Handler-[addHandlerByOperationId]`
 
 And, of course, two functions to load failure handlers
 
-* `link:../../apidocs/io/vertx/ext/web/designdriven/DesignDrivenRouterFactory.html#addFailureHandler-io.vertx.core.http.HttpMethod-java.lang.String-io.vertx.core.Handler-[addFailureHandler]`
-* `link:../../apidocs/io/vertx/ext/web/designdriven/openapi3/OpenAPI3RouterFactory.html#addFailureHandlerByOperationId-java.lang.String-io.vertx.core.Handler-[addFailureHandlerByOperationId]`
+* `link:../../apidocs/io/vertx/ext/web/api/contract/DesignDrivenRouterFactory.html#addFailureHandler-io.vertx.core.http.HttpMethod-java.lang.String-io.vertx.core.Handler-[addFailureHandler]`
+* `link:../../apidocs/io/vertx/ext/web/api/contract/openapi3/OpenAPI3RouterFactory.html#addFailureHandlerByOperationId-java.lang.String-io.vertx.core.Handler-[addFailureHandlerByOperationId]`
 
 You can, of course, **add multiple handlers to same operation**, without overwrite the existing ones.
 
 .Path in OpenAPI format
-IMPORTANT: If you want to use `link:../../apidocs/io/vertx/ext/web/designdriven/DesignDrivenRouterFactory.html#addHandler-io.vertx.core.http.HttpMethod-java.lang.String-io.vertx.core.Handler-[addHandler]` or `link:../../apidocs/io/vertx/ext/web/designdriven/DesignDrivenRouterFactory.html#addFailureHandler-io.vertx.core.http.HttpMethod-java.lang.String-io.vertx.core.Handler-[addFailureHandler]` pay attention: You can provide a path only in OpenAPI styles (for example path `/hello/:param` doesn't work)
+IMPORTANT: If you want to use `link:../../apidocs/io/vertx/ext/web/api/contract/DesignDrivenRouterFactory.html#addHandler-io.vertx.core.http.HttpMethod-java.lang.String-io.vertx.core.Handler-[addHandler]` or `link:../../apidocs/io/vertx/ext/web/api/contract/DesignDrivenRouterFactory.html#addFailureHandler-io.vertx.core.http.HttpMethod-java.lang.String-io.vertx.core.Handler-[addFailureHandler]` pay attention: You can provide a path only in OpenAPI styles (for example path `/hello/:param` doesn't work)
 
 For example:
 [source,kotlin]
@@ -102,7 +102,7 @@ routerFactory.addSecurityHandler("jwt_auth", JWTAuthHandler.create(jwtAuthProvid
 The router factory allows you to manage efficiently errors:
 
 * It automatically mounts a 501 `Not Implemented` handler for operations where you haven't mounted any handler
-* It automatically mounts a 400 `Bad Request` handler that manages `ValidationException` (You can enable/disable this feature via `link:../../apidocs/io/vertx/ext/web/designdriven/DesignDrivenRouterFactory.html#enableValidationFailureHandler-boolean-[enableValidationFailureHandler]`)
+* It automatically mounts a 400 `Bad Request` handler that manages `ValidationException` (You can enable/disable this feature via `link:../../apidocs/io/vertx/ext/web/api/contract/DesignDrivenRouterFactory.html#enableValidationFailureHandler-boolean-[enableValidationFailureHandler]`)
 
 == Generate the router
 When you are ready, generate the router and use it:

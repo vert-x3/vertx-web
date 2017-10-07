@@ -48,18 +48,18 @@ OpenAPI3RouterFactory.createRouterFactoryFromFile(vertx, "src/main/resources/pet
 == Mount the handlers
 Now load your first path. There are two functions to load the handlers:
 
-* `link:../../jsdoc/module-vertx-web-js_design_driven_router_factory-DesignDrivenRouterFactory.html#addHandler[addHandler]`
+* `link:../../jsdoc/module-vertx-web-api-contract-js_design_driven_router_factory-DesignDrivenRouterFactory.html#addHandler[addHandler]`
 * `link:../../jsdoc/module-vertx-web-contract-openapi-js_open_api3_router_factory-OpenAPI3RouterFactory.html#addHandlerByOperationId[addHandlerByOperationId]`
 
 And, of course, two functions to load failure handlers
 
-* `link:../../jsdoc/module-vertx-web-js_design_driven_router_factory-DesignDrivenRouterFactory.html#addFailureHandler[addFailureHandler]`
+* `link:../../jsdoc/module-vertx-web-api-contract-js_design_driven_router_factory-DesignDrivenRouterFactory.html#addFailureHandler[addFailureHandler]`
 * `link:../../jsdoc/module-vertx-web-contract-openapi-js_open_api3_router_factory-OpenAPI3RouterFactory.html#addFailureHandlerByOperationId[addFailureHandlerByOperationId]`
 
 You can, of course, **add multiple handlers to same operation**, without overwrite the existing ones.
 
 .Path in OpenAPI format
-IMPORTANT: If you want to use `link:../../jsdoc/module-vertx-web-js_design_driven_router_factory-DesignDrivenRouterFactory.html#addHandler[addHandler]` or `link:../../jsdoc/module-vertx-web-js_design_driven_router_factory-DesignDrivenRouterFactory.html#addFailureHandler[addFailureHandler]` pay attention: You can provide a path only in OpenAPI styles (for example path `/hello/:param` doesn't work)
+IMPORTANT: If you want to use `link:../../jsdoc/module-vertx-web-api-contract-js_design_driven_router_factory-DesignDrivenRouterFactory.html#addHandler[addHandler]` or `link:../../jsdoc/module-vertx-web-api-contract-js_design_driven_router_factory-DesignDrivenRouterFactory.html#addFailureHandler[addFailureHandler]` pay attention: You can provide a path only in OpenAPI styles (for example path `/hello/:param` doesn't work)
 
 For example:
 [source,js]
@@ -104,7 +104,7 @@ routerFactory.addSecurityHandler("jwt_auth", JWTAuthHandler.create(jwtAuthProvid
 The router factory allows you to manage efficiently errors:
 
 * It automatically mounts a 501 `Not Implemented` handler for operations where you haven't mounted any handler
-* It automatically mounts a 400 `Bad Request` handler that manages `ValidationException` (You can enable/disable this feature via `link:../../jsdoc/module-vertx-web-js_design_driven_router_factory-DesignDrivenRouterFactory.html#enableValidationFailureHandler[enableValidationFailureHandler]`)
+* It automatically mounts a 400 `Bad Request` handler that manages `ValidationException` (You can enable/disable this feature via `link:../../jsdoc/module-vertx-web-api-contract-js_design_driven_router_factory-DesignDrivenRouterFactory.html#enableValidationFailureHandler[enableValidationFailureHandler]`)
 
 == Generate the router
 When you are ready, generate the router and use it:

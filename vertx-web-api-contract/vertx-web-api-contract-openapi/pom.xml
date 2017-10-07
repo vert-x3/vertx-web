@@ -119,7 +119,7 @@
             io.vertx.rxjava.core.*;resolution:=optional,\
             io.vertx.rxjava.ext.auth.*;resolution:=optional,\
             rx.*;resolution:=optional,\
-            !io.vertx.ext.web.impl,\
+            !io.vertx.ext.web.api.impl,\
             *
           -exportcontents: !*impl, !examples, *
           ]]></bnd>

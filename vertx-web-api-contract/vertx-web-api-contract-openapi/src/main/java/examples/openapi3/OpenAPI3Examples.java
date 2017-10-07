@@ -7,12 +7,12 @@ import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.jwt.JWTAuth;
-import io.vertx.ext.web.RequestParameter;
-import io.vertx.ext.web.RequestParameters;
+import io.vertx.ext.web.api.RequestParameter;
+import io.vertx.ext.web.api.RequestParameters;
 import io.vertx.ext.web.Router;
-import io.vertx.ext.web.designdriven.openapi3.OpenAPI3RouterFactory;
+import io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory;
 import io.vertx.ext.web.handler.JWTAuthHandler;
-import io.vertx.ext.web.validation.ValidationException;
+import io.vertx.ext.web.api.validation.ValidationException;
 
 public class OpenAPI3Examples {
 
@@ -69,7 +69,7 @@ public class OpenAPI3Examples {
 
   public void mainExample(Vertx vertx) {
     // Load the api spec. This operation is asynchronous
-    OpenAPI3RouterFactory.createRouterFactoryFromFile(vertx, "src/main/resources/petstore.yaml", 
+    OpenAPI3RouterFactory.createRouterFactoryFromFile(vertx, "src/main/resources/petstore.yaml",
       openAPI3RouterFactoryAsyncResult -> {
       if (openAPI3RouterFactoryAsyncResult.succeeded()) {
         // Spec loaded with success

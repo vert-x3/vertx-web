@@ -6,10 +6,12 @@ import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.*;
+import io.vertx.ext.web.api.RequestParameter;
+import io.vertx.ext.web.api.RequestParameters;
 import io.vertx.ext.web.handler.*;
-import io.vertx.ext.web.validation.HTTPRequestValidationHandler;
-import io.vertx.ext.web.validation.ParameterType;
-import io.vertx.ext.web.validation.ValidationException;
+import io.vertx.ext.web.api.validation.HTTPRequestValidationHandler;
+import io.vertx.ext.web.api.validation.ParameterType;
+import io.vertx.ext.web.api.validation.ValidationException;
 
 import java.util.List;
 

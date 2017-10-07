@@ -48,18 +48,18 @@ VertxWebContractOpenapi::OpenAPI3RouterFactory.create_router_factory_from_file(v
 == Mount the handlers
 Now load your first path. There are two functions to load the handlers:
 
-* `link:../../yardoc/VertxWeb/DesignDrivenRouterFactory.html#add_handler-instance_method[addHandler]`
+* `link:../../yardoc/VertxWebApiContract/DesignDrivenRouterFactory.html#add_handler-instance_method[addHandler]`
 * `link:../../yardoc/VertxWebContractOpenapi/OpenAPI3RouterFactory.html#add_handler_by_operation_id-instance_method[addHandlerByOperationId]`
 
 And, of course, two functions to load failure handlers
 
-* `link:../../yardoc/VertxWeb/DesignDrivenRouterFactory.html#add_failure_handler-instance_method[addFailureHandler]`
+* `link:../../yardoc/VertxWebApiContract/DesignDrivenRouterFactory.html#add_failure_handler-instance_method[addFailureHandler]`
 * `link:../../yardoc/VertxWebContractOpenapi/OpenAPI3RouterFactory.html#add_failure_handler_by_operation_id-instance_method[addFailureHandlerByOperationId]`
 
 You can, of course, **add multiple handlers to same operation**, without overwrite the existing ones.
 
 .Path in OpenAPI format
-IMPORTANT: If you want to use `link:../../yardoc/VertxWeb/DesignDrivenRouterFactory.html#add_handler-instance_method[addHandler]` or `link:../../yardoc/VertxWeb/DesignDrivenRouterFactory.html#add_failure_handler-instance_method[addFailureHandler]` pay attention: You can provide a path only in OpenAPI styles (for example path `/hello/:param` doesn't work)
+IMPORTANT: If you want to use `link:../../yardoc/VertxWebApiContract/DesignDrivenRouterFactory.html#add_handler-instance_method[addHandler]` or `link:../../yardoc/VertxWebApiContract/DesignDrivenRouterFactory.html#add_failure_handler-instance_method[addFailureHandler]` pay attention: You can provide a path only in OpenAPI styles (for example path `/hello/:param` doesn't work)
 
 For example:
 [source,ruby]
@@ -104,7 +104,7 @@ routerFactory.add_security_handler("jwt_auth", &VertxWeb::JWTAuthHandler.create(
 The router factory allows you to manage efficiently errors:
 
 * It automatically mounts a 501 `Not Implemented` handler for operations where you haven't mounted any handler
-* It automatically mounts a 400 `Bad Request` handler that manages `ValidationException` (You can enable/disable this feature via `link:../../yardoc/VertxWeb/DesignDrivenRouterFactory.html#enable_validation_failure_handler-instance_method[enableValidationFailureHandler]`)
+* It automatically mounts a 400 `Bad Request` handler that manages `ValidationException` (You can enable/disable this feature via `link:../../yardoc/VertxWebApiContract/DesignDrivenRouterFactory.html#enable_validation_failure_handler-instance_method[enableValidationFailureHandler]`)
 
 == Generate the router
 When you are ready, generate the router and use it:
