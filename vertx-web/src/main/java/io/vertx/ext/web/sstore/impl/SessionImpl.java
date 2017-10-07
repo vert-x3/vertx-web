@@ -458,7 +458,7 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
     0x8201, 0x42C0, 0x4380, 0x8341, 0x4100, 0x81C1, 0x8081, 0x4040,
   };
 
-  private int crc16(Buffer data, int start, int end) {
+  private static int crc16(Buffer data, int start, int end) {
     int crc = 0x0000;
     for (int i = start; i < end; i++) {
       crc = (crc >>> 8) ^ CRC16_TABLE[(crc ^ data.getByte(i)) & 0xff];
