@@ -1816,9 +1816,23 @@ would start configuring your chain as:
 
 [source,js]
 ----
-var HTTPRequestValidationHandler = require("vertx-web-js/http_request_validation_handler");
-// Create Validation Handler with some stuff
-var validationHandler = HTTPRequestValidationHandler.create().addQueryParam("parameterName", 'INT', true).addFormParamWithPattern("formParameterName", "a{4}", true).addPathParam("pathParam", 'FLOAT');
+var ChainAuthHandler = require("vertx-web-js/chain_auth_handler");
+var BasicAuthHandler = require("vertx-web-js/basic_auth_handler");
+var RedirectAuthHandler = require("vertx-web-js/redirect_auth_handler");
+
+var chain = ChainAuthHandler.create();
+
+// add http basic auth handler to the chain
+chain.append(BasicAuthHandler.create(provider));
+// add form redirect auth handler to the chain
+chain.append(RedirectAuthHandler.create(provider));
+
+// secure your route
+router.route("/secure/resource").handler(chain.handle);
+// your app
+router.route("/secure/resource").handler(function (ctx) {
+  // do something...
+});
 
 ----
 
@@ -1834,83 +1848,6 @@ Now assume that you make a request where you provide the header `Authorization` 
 this case the basic auth handler will attempt to authenticate and if it is sucessful the chain will stop and
 vertx-web will continue to process your handlers. If the token is not valid, for example bad username/password, then
 the chain will continue to the following entry. In this specific case the redirect auth handler.
-
-== Validate the requests
-Vert.x provide a validation framework that will validate requests for you and will put results of validation inside a container. To define a `link:../../jsdoc/module-vertx-web-js_http_request_validation_handler-HTTPRequestValidationHandler.html[HTTPRequestValidationHandler]`:
-[source,js]
-----
-var HTTPRequestValidationHandler = require("vertx-web-js/http_request_validation_handler");
-// Create Validation Handler with some stuff
-var validationHandler = HTTPRequestValidationHandler.create().addQueryParam("parameterName", 'INT', true).addFormParamWithPattern("formParameterName", "a{4}", true).addPathParam("pathParam", 'FLOAT');
-
-----
-
-Then you can mount your validation handler:
-[source,js]
-----
-var BodyHandler = require("vertx-web-js/body_handler");
-// BodyHandler is required to manage body parameters like forms or json body
-router.route().handler(BodyHandler.create().handle);
-
-router.get("/awesome/:pathParam").handler(validationHandler.handle).handler(function (routingContext) {
-  // Get Request parameters container
-  var params = routingContext.get("parsedParameters");
-
-  // Get parameters
-  var parameterName = params.queryParameter("parameterName").getInteger();
-  var formParameterName = params.formParameter("formParameterName").getString();
-  var pathParam = params.pathParameter("pathParam").getFloat();
-}).failureHandler(function (routingContext) {
-  var failure = routingContext.failure();
-  if (failure.getClass().getSimpleName() == 'ValidationException') {
-    // Something went wrong during validation!
-    var validationErrorMessage = failure.getMessage();
-  }
-});
-
-----
-
-If validation succeeds, It returns request parameters inside `link:../../jsdoc/module-vertx-web-js_request_parameters-RequestParameters.html[RequestParameters]`, otherwise It will throw a `ValidationException`
-
-=== Types of request parameters
-Every parameter has a type validator, a class that describes the expected type of parameter.
-A type validator validates the value, casts it in required language type and then loads it inside a `link:../../jsdoc/module-vertx-web-js_request_parameter-RequestParameter.html[RequestParameter]` object. There are three ways to describe the type of your parameter:
-
-* There is a set of prebuilt types that you can use: `link:../enums.html#ParameterType[ParameterType]`
-* You can instantiate a custom instance of prebuilt type validators using static methods of `link:../../jsdoc/module-vertx-web-js_parameter_type_validator-ParameterTypeValidator.html[ParameterTypeValidator]` and then load it into `link:../../jsdoc/module-vertx-web-js_http_request_validation_handler-HTTPRequestValidationHandler.html[HTTPRequestValidationHandler]` using functions ending with `WithCustomTypeValidator`
-* You can create your own `ParameterTypeValidator` implementing `link:../../jsdoc/module-vertx-web-js_parameter_type_validator-ParameterTypeValidator.html[ParameterTypeValidator]` interface
-
-=== Handling parameters
-Now you can handle parameter values:
-
-[source,js]
-----
-var params = routingContext.get("parsedParameters");
-var awesomeParameter = params.queryParameter("awesomeParameter");
-if ((awesomeParameter !== null && awesomeParameter !== undefined)) {
-  if (!awesomeParameter.isEmpty()) {
-    // Parameter exists and isn't empty
-    // ParameterTypeValidator mapped the parameter in equivalent language object
-    var awesome = awesomeParameter.getInteger();
-  } else {
-    // Parameter exists, but it's empty
-  }
-} else {
-  // Parameter doesn't exist (it's not required)
-}
-
-----
-
-As you can see, every parameter is mapped in respective language objects. You can also get a json body:
-
-[source,js]
-----
-var body = params.body();
-if ((body !== null && body !== undefined)) {
-  var jsonBody = body.getJsonObject();
-}
-
-----
 
 == Serving static resources
 

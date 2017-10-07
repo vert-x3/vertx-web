@@ -4,6 +4,7 @@ import io.netty.handler.codec.http.QueryStringEncoder;
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.RequestParameters;
+import io.vertx.ext.web.WebTestWithWebClientBase.FormType;
 import io.vertx.ext.web.handler.BodyHandler;
 import org.junit.Test;
 
@@ -253,6 +254,4 @@ public class HTTPRequestValidationTest extends WebTestValidationBase {
     testRequestWithForm(HttpMethod.POST, "/testFormParam?parameter=" + queryParam, FormType.FORM_URLENCODED, form,
       200, formParam);
   }
-
-
 }

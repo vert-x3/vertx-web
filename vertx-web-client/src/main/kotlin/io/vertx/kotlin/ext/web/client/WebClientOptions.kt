@@ -57,12 +57,16 @@ import io.vertx.core.net.ProxyOptions
  * @param proxyOptions 
  * @param receiveBufferSize 
  * @param reuseAddress 
+ * @param reusePort 
  * @param sendBufferSize 
  * @param sendUnmaskedFrames 
  * @param soLinger 
  * @param ssl 
+ * @param tcpCork 
+ * @param tcpFastOpen 
  * @param tcpKeepAlive 
  * @param tcpNoDelay 
+ * @param tcpQuickAck 
  * @param trafficClass 
  * @param trustAll 
  * @param trustStoreOptions 
@@ -119,12 +123,16 @@ fun WebClientOptions(
   proxyOptions: io.vertx.core.net.ProxyOptions? = null,
   receiveBufferSize: Int? = null,
   reuseAddress: Boolean? = null,
+  reusePort: Boolean? = null,
   sendBufferSize: Int? = null,
   sendUnmaskedFrames: Boolean? = null,
   soLinger: Int? = null,
   ssl: Boolean? = null,
+  tcpCork: Boolean? = null,
+  tcpFastOpen: Boolean? = null,
   tcpKeepAlive: Boolean? = null,
   tcpNoDelay: Boolean? = null,
+  tcpQuickAck: Boolean? = null,
   trafficClass: Int? = null,
   trustAll: Boolean? = null,
   trustStoreOptions: io.vertx.core.net.JksOptions? = null,
@@ -269,6 +277,9 @@ fun WebClientOptions(
   if (reuseAddress != null) {
     this.setReuseAddress(reuseAddress)
   }
+  if (reusePort != null) {
+    this.setReusePort(reusePort)
+  }
   if (sendBufferSize != null) {
     this.setSendBufferSize(sendBufferSize)
   }
@@ -281,11 +292,20 @@ fun WebClientOptions(
   if (ssl != null) {
     this.setSsl(ssl)
   }
+  if (tcpCork != null) {
+    this.setTcpCork(tcpCork)
+  }
+  if (tcpFastOpen != null) {
+    this.setTcpFastOpen(tcpFastOpen)
+  }
   if (tcpKeepAlive != null) {
     this.setTcpKeepAlive(tcpKeepAlive)
   }
   if (tcpNoDelay != null) {
     this.setTcpNoDelay(tcpNoDelay)
+  }
+  if (tcpQuickAck != null) {
+    this.setTcpQuickAck(tcpQuickAck)
   }
   if (trafficClass != null) {
     this.setTrafficClass(trafficClass)

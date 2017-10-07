@@ -1775,8 +1775,20 @@ would start configuring your chain as:
 
 [source,groovy]
 ----
-// Create Validation Handler with some stuff
-def validationHandler = HTTPRequestValidationHandler.create().addQueryParam("parameterName", ParameterType.INT, true).addFormParamWithPattern("formParameterName", "a{4}", true).addPathParam("pathParam", ParameterType.FLOAT)
+
+def chain = ChainAuthHandler.create()
+
+// add http basic auth handler to the chain
+chain.append(BasicAuthHandler.create(provider))
+// add form redirect auth handler to the chain
+chain.append(RedirectAuthHandler.create(provider))
+
+// secure your route
+router.route("/secure/resource").handler(chain)
+// your app
+router.route("/secure/resource").handler({ ctx ->
+  // do something...
+})
 
 ----
 
@@ -1792,81 +1804,6 @@ Now assume that you make a request where you provide the header `Authorization` 
 this case the basic auth handler will attempt to authenticate and if it is sucessful the chain will stop and
 vertx-web will continue to process your handlers. If the token is not valid, for example bad username/password, then
 the chain will continue to the following entry. In this specific case the redirect auth handler.
-
-== Validate the requests
-Vert.x provide a validation framework that will validate requests for you and will put results of validation inside a container. To define a `link:../../apidocs/io/vertx/ext/web/validation/HTTPRequestValidationHandler.html[HTTPRequestValidationHandler]`:
-[source,groovy]
-----
-// Create Validation Handler with some stuff
-def validationHandler = HTTPRequestValidationHandler.create().addQueryParam("parameterName", ParameterType.INT, true).addFormParamWithPattern("formParameterName", "a{4}", true).addPathParam("pathParam", ParameterType.FLOAT)
-
-----
-
-Then you can mount your validation handler:
-[source,groovy]
-----
-// BodyHandler is required to manage body parameters like forms or json body
-router.route().handler(BodyHandler.create())
-
-router.get("/awesome/:pathParam").handler(validationHandler).handler({ routingContext ->
-  // Get Request parameters container
-  def params = routingContext.get("parsedParameters")
-
-  // Get parameters
-  def parameterName = params.queryParameter("parameterName").getInteger()
-  def formParameterName = params.formParameter("formParameterName").getString()
-  def pathParam = params.pathParameter("pathParam").getFloat()
-}).failureHandler({ routingContext ->
-  def failure = routingContext.failure()
-  if (failure instanceof io.vertx.ext.web.validation.ValidationException) {
-    // Something went wrong during validation!
-    def validationErrorMessage = failure.getMessage()
-  }
-})
-
-----
-
-If validation succeeds, It returns request parameters inside `link:../../apidocs/io/vertx/ext/web/RequestParameters.html[RequestParameters]`, otherwise It will throw a `link:../../apidocs/io/vertx/ext/web/validation/ValidationException.html[ValidationException]`
-
-=== Types of request parameters
-Every parameter has a type validator, a class that describes the expected type of parameter.
-A type validator validates the value, casts it in required language type and then loads it inside a `link:../../apidocs/io/vertx/ext/web/RequestParameter.html[RequestParameter]` object. There are three ways to describe the type of your parameter:
-
-* There is a set of prebuilt types that you can use: `link:../../apidocs/io/vertx/ext/web/validation/ParameterType.html[ParameterType]`
-* You can instantiate a custom instance of prebuilt type validators using static methods of `link:../../apidocs/io/vertx/ext/web/validation/ParameterTypeValidator.html[ParameterTypeValidator]` and then load it into `link:../../apidocs/io/vertx/ext/web/validation/HTTPRequestValidationHandler.html[HTTPRequestValidationHandler]` using functions ending with `WithCustomTypeValidator`
-* You can create your own `ParameterTypeValidator` implementing `link:../../apidocs/io/vertx/ext/web/validation/ParameterTypeValidator.html[ParameterTypeValidator]` interface
-
-=== Handling parameters
-Now you can handle parameter values:
-
-[source,groovy]
-----
-def params = routingContext.get("parsedParameters")
-def awesomeParameter = params.queryParameter("awesomeParameter")
-if (awesomeParameter != null) {
-  if (!awesomeParameter.isEmpty()) {
-    // Parameter exists and isn't empty
-    // ParameterTypeValidator mapped the parameter in equivalent language object
-    def awesome = awesomeParameter.getInteger()
-  } else {
-    // Parameter exists, but it's empty
-  }
-} else {
-  // Parameter doesn't exist (it's not required)
-}
-
-----
-
-As you can see, every parameter is mapped in respective language objects. You can also get a json body:
-
-[source,groovy]
-----
-def body = params.body()
-if (body != null) {
-  def jsonBody = body.getJsonObject()
-}
-
-----
 
 == Serving static resources
 

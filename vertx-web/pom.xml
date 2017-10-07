@@ -46,18 +46,6 @@
       <optional>true</optional>
     </dependency>
 
-    <!-- Validation dependencies -->
-    <dependency>
-      <groupId>com.networknt</groupId>
-      <artifactId>json-schema-validator</artifactId>
-      <version>0.1.7</version>
-    </dependency>
-    <dependency>
-      <groupId>com.fasterxml.jackson.core</groupId>
-      <artifactId>jackson-annotations</artifactId>
-      <version>2.9.0</version>
-    </dependency>
-
     <!-- Testing -->
     <dependency>
       <groupId>io.vertx</groupId>
