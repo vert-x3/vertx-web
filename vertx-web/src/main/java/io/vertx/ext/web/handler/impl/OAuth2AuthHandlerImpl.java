@@ -28,10 +28,13 @@ import io.vertx.ext.auth.oauth2.OAuth2Auth;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
+import io.vertx.ext.web.handler.AuthHandler;
 import io.vertx.ext.web.handler.OAuth2AuthHandler;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.HashSet;
+import java.util.Set;
 
 import static io.vertx.ext.auth.oauth2.OAuth2FlowType.AUTH_CODE;
 
@@ -60,6 +63,7 @@ public class OAuth2AuthHandlerImpl extends AuthorizationAuthHandler implements O
   private final String host;
   private final String callbackPath;
   private final boolean supportJWT;
+  private final Set<String> scopes = new HashSet<>();
 
   private Route callback;
   private JsonObject extraParams;
@@ -81,6 +85,18 @@ public class OAuth2AuthHandlerImpl extends AuthorizationAuthHandler implements O
     } catch (MalformedURLException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  @Override
+  public AuthHandler addAuthority(String authority) {
+    scopes.add(authority);
+    return this;
+  }
+
+  @Override
+  public AuthHandler addAuthorities(Set<String> authorities) {
+    this.scopes.addAll(authorities);
+    return this;
   }
 
   @Override
@@ -129,14 +145,14 @@ public class OAuth2AuthHandlerImpl extends AuthorizationAuthHandler implements O
       config.mergeIn(extraParams);
     }
 
-    if (authorities.size() > 0) {
-      JsonArray scopes = new JsonArray();
+    if (scopes.size() > 0) {
+      JsonArray _scopes = new JsonArray();
       // scopes are passed as an array because the auth provider has the knowledge on how to encode them
-      for (String authority : authorities) {
-        scopes.add(authority);
+      for (String authority : scopes) {
+        _scopes.add(authority);
       }
 
-      config.put("scopes", scopes);
+      config.put("scopes", _scopes);
     }
 
     return ((OAuth2Auth) authProvider).authorizeURL(config);
