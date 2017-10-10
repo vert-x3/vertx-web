@@ -4,13 +4,13 @@
  *
  * == OpenAPI 3 support
  *
- * Vert.x enables you to use your OpenApi 3 specification directly inside your code using the design first approach. Vert.x-Web provides:
+ * Vert.x allows you to use your OpenApi 3 specification directly inside your code using the design first approach. Vert.x-Web provides:
  *
  * * OpenAPI 3 compliant API specification validation with automatic **loading of external Json schemas**
  * * Automatic request validation
  * * Automatic mount of security validation handlers
  * * Automatic 501 response for not implemented operations
- * * Router factory to provide all this features to users
+ * * Router factory to provide all these features to users
  *
  * === The router factory
  * You can create your web service based on OpenAPI3 specification with {@link io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory}.
@@ -80,7 +80,7 @@
  * ----
  *
  * === Error handling
- * The router factory allows you to manage efficiently errors:
+ * The router factory allows you to manage errors efficiently:
  *
  * * It automatically mounts a 501 `Not Implemented` handler for operations where you haven't mounted any handler
  * * It automatically mounts a 400 `Bad Request` handler that manages `ValidationException` (You can enable/disable this feature via {@link io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory#enableValidationFailureHandler(boolean)})
@@ -94,8 +94,8 @@
  * ----
  *
  * == Requests validation
- * 
- * Vert.x provide a validation framework that will validate requests for you and will put results of validation inside a container. To define a {@link io.vertx.ext.web.api.validation.HTTPRequestValidationHandler}:
+ *
+ * Vert.x provides a validation framework that will validate requests for you and will put results of validation inside a container. To define a {@link io.vertx.ext.web.api.validation.HTTPRequestValidationHandler}:
  * [source,$lang]
  * ----
  * {@link examples.WebExamples#example63}
