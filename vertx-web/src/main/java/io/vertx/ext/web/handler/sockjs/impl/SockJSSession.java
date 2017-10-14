@@ -87,7 +87,7 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
   private SocketAddress remoteAddress;
   private String uri;
   private MultiMap headers;
-  private volatile Context transportCtx;
+  private Context transportCtx;
 
   SockJSSession(Vertx vertx, LocalMap<String, SockJSSession> sessions, RoutingContext rc, long heartbeatInterval,
                 Handler<SockJSSocket> sockHandler) {
