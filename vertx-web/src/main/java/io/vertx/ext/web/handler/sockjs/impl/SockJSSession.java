@@ -46,7 +46,6 @@ import io.vertx.core.shareddata.LocalMap;
 import io.vertx.core.shareddata.Shareable;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.sockjs.SockJSSocket;
-import jnr.constants.platform.Sock;
 
 import java.util.LinkedList;
 import java.util.Queue;
