@@ -19,9 +19,11 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.test.core.TestUtils;
 import org.junit.Test;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.LockSupport;
+import java.util.function.BooleanSupplier;
 
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
@@ -56,14 +58,18 @@ public class SockJSSessionTest extends SockJSTestBase {
 
   @Test
   public void testNoDeadlockWhenWritingFromAnotherThreadWithWebsocketTransport() {
+    int numMsg = 4000;
+    waitFor(1);
+    AtomicInteger clientReceived = new AtomicInteger();
+    AtomicInteger serverReceived = new AtomicInteger();
+    BooleanSupplier shallStop = () -> clientReceived.get() > numMsg * 256 && serverReceived.get() > numMsg * 256;
     sockJSHandler.socketHandler(socket -> {
-      AtomicBoolean closed = new AtomicBoolean();
-      socket.endHandler(v -> {
-        closed.set(true);
-        testComplete();
+      socket.handler(msg -> {
+        serverReceived.addAndGet(msg.length());
       });
+      socket.write("hello");
       new Thread(() -> {
-        while (!closed.get()) {
+        while (!shallStop.getAsBoolean()) {
           LockSupport.parkNanos(50);
           try {
             socket.write(Buffer.buffer(TestUtils.randomAlphaString(256)));
@@ -74,10 +80,12 @@ public class SockJSSessionTest extends SockJSTestBase {
       }).start();
     });
     client.websocket("/test/400/8ne8e94a/websocket", ws -> {
-      AtomicInteger count = new AtomicInteger();
       ws.handler(msg -> {
-        if (count.incrementAndGet() == 400) {
-          ws.close();
+        clientReceived.addAndGet(msg.length());
+        ws.writeTextMessage("\"hello\"");
+        if (shallStop.getAsBoolean()) {
+          ws.handler(null);
+          complete();
         }
       });
     });

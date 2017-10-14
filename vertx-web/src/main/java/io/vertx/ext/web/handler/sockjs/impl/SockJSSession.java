@@ -32,10 +32,12 @@
 
 package io.vertx.ext.web.handler.sockjs.impl;
 
+import io.vertx.core.Context;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.json.DecodeException;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
@@ -44,6 +46,7 @@ import io.vertx.core.shareddata.LocalMap;
 import io.vertx.core.shareddata.Shareable;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.sockjs.SockJSSocket;
+import jnr.constants.platform.Sock;
 
 import java.util.LinkedList;
 import java.util.Queue;
@@ -85,6 +88,7 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
   private SocketAddress remoteAddress;
   private String uri;
   private MultiMap headers;
+  private volatile Context transportCtx;
 
   SockJSSession(Vertx vertx, LocalMap<String, SockJSSession> sessions, RoutingContext rc, long heartbeatInterval,
                 Handler<SockJSSocket> sockHandler) {
@@ -109,12 +113,21 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
   }
 
   @Override
-  public synchronized SockJSSocket write(Buffer buffer) {
-    String msgStr = buffer.toString();
-    pendingWrites.add(msgStr);
-    this.messagesSize += msgStr.length();
-    if (listener != null) {
-      writePendingMessages();
+  public SockJSSocket write(Buffer buffer) {
+    synchronized (this) {
+      String msgStr = buffer.toString();
+      pendingWrites.add(msgStr);
+      this.messagesSize += msgStr.length();
+      if (listener != null) {
+        Context ctx = transportCtx;
+        if (Vertx.currentContext() != ctx) {
+          ctx.runOnContext(v -> {
+            writePendingMessages();
+          });
+        } else {
+          writePendingMessages();
+        }
+      }
     }
     return this;
   }
@@ -174,41 +187,49 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
     return this;
   }
 
-
-  public synchronized void shutdown() {
-    doClose();
-  }
-
   // When the user calls close() we don't actually close the session - unless it's a websocket one
   // Yes, SockJS is weird, but it's hard to work out expected server behaviour when there's no spec
   @Override
-  public synchronized void close() {
-    if (endHandler != null) {
-      endHandler.handle(null);
+  public void close() {
+    synchronized (this) {
+      if (endHandler != null) {
+        endHandler.handle(null);
+      }
+      closed = true;
+      doClose();
     }
-    closed = true;
-    if (listener != null && handleCalled) {
-      listener.sessionClosed();
+  }
+
+  private synchronized void doClose() {
+    Context ctx = transportCtx;
+    if (ctx != Vertx.currentContext()) {
+      ctx.runOnContext(v -> {
+        doClose();
+      });
+    } else {
+      if (listener != null && handleCalled) {
+        listener.sessionClosed();
+      }
     }
   }
 
   @Override
-  public SocketAddress remoteAddress() {
+  public synchronized SocketAddress remoteAddress() {
     return remoteAddress;
   }
 
   @Override
-  public SocketAddress localAddress() {
+  public synchronized SocketAddress localAddress() {
     return localAddress;
   }
 
   @Override
-  public MultiMap headers() {
+  public synchronized MultiMap headers() {
     return headers;
   }
 
   @Override
-  public String uri() {
+  public synchronized String uri() {
     return uri;
   }
 
@@ -244,7 +265,7 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
     }
   }
 
-  synchronized void writePendingMessages() {
+  private synchronized void writePendingMessages() {
     String json = JsonCodec.encode(pendingWrites.toArray());
     listener.sendFrame("a" + json);
     pendingWrites.clear();
@@ -256,7 +277,12 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
     }
   }
 
-  synchronized void register(final TransportListener lst) {
+  synchronized void register(HttpServerRequest req, TransportListener lst) {
+    this.transportCtx = vertx.getOrCreateContext();
+    this.localAddress = req.localAddress();
+    this.remoteAddress = req.remoteAddress();
+    this.uri = req.uri();
+    this.headers = BaseTransport.removeCookieHeaders(req.headers());
     if (closed) {
       // Closed by the application
       writeClosed(lst);
@@ -295,7 +321,7 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
 
   // Actually close the session - when the user calls close() the session actually continues to exist until timeout
   // Yes, I know it's weird but that's the way SockJS likes it.
-  private void doClose() {
+  void shutdown() {
     super.close(); // We must call this or handlers don't get unregistered and we get a leak
     if (heartbeatID != -1) {
       vertx.cancelTimer(heartbeatID);
@@ -333,7 +359,7 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
     }
   }
 
-  boolean handleMessages(String messages) {
+  synchronized boolean handleMessages(String messages) {
 
     String[] msgArr = parseMessageString(messages);
 
@@ -357,7 +383,7 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
     }
   }
 
-  void handleException(Throwable t) {
+  synchronized void handleException(Throwable t) {
     if (exceptionHandler != null) {
       exceptionHandler.handle(t);
     } else {
@@ -365,7 +391,7 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
     }
   }
 
-  public void writeClosed(TransportListener lst) {
+  void writeClosed(TransportListener lst) {
     writeClosed(lst, 3000, "Go away!");
   }
 
@@ -375,16 +401,8 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
     lst.sendFrame(sb);
   }
 
-  private void writeOpen(TransportListener lst) {
+  private synchronized void writeOpen(TransportListener lst) {
     lst.sendFrame("o");
     openWritten = true;
-  }
-
-  void setInfo(SocketAddress localAddress, SocketAddress remoteAddress, String uri,
-               MultiMap headers) {
-    this.localAddress = localAddress;
-    this.remoteAddress = remoteAddress;
-    this.uri = uri;
-    this.headers = BaseTransport.removeCookieHeaders(headers);
   }
 }

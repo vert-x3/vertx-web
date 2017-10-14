@@ -67,8 +67,7 @@ class WebSocketTransport extends BaseTransport {
         ServerWebSocket ws = rc.request().upgrade();
         if (log.isTraceEnabled()) log.trace("WS, handler");
         SockJSSession session = new SockJSSession(vertx, sessions, rc, options.getHeartbeatInterval(), sockHandler);
-        session.setInfo(ws.localAddress(), ws.remoteAddress(), ws.uri(), ws.headers());
-        session.register(new WebSocketListener(ws, session));
+        session.register(req, new WebSocketListener(ws, session));
       }
     });
 

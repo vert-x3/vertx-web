@@ -109,8 +109,7 @@ class XhrTransport extends BaseTransport {
       String sessionID = rc.request().getParam("param0");
       SockJSSession session = getSession(rc, options.getSessionTimeout(), options.getHeartbeatInterval(), sessionID, sockHandler);
       HttpServerRequest req = rc.request();
-      session.setInfo(req.localAddress(), req.remoteAddress(), req.uri(), req.headers());
-      session.register(streaming? new XhrStreamingListener(options.getMaxBytesStreaming(), rc, session) : new XhrPollingListener(rc, session));
+      session.register(req, streaming? new XhrStreamingListener(options.getMaxBytesStreaming(), rc, session) : new XhrPollingListener(rc, session));
     });
   }
 
