@@ -64,8 +64,7 @@ class EventSourceTransport extends BaseTransport {
       String sessionID = rc.request().getParam("param0");
       SockJSSession session = getSession(rc, options.getSessionTimeout(), options.getHeartbeatInterval(), sessionID, sockHandler);
       HttpServerRequest req = rc.request();
-      session.setInfo(req.localAddress(), req.remoteAddress(), req.uri(), req.headers());
-      session.register(new EventSourceListener(options.getMaxBytesStreaming(), rc, session));
+      session.register(req, new EventSourceListener(options.getMaxBytesStreaming(), rc, session));
     });
   }
 
