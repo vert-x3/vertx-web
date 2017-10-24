@@ -145,6 +145,9 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
         case "unregister":
           internalHandleUnregister(sock, msg, registrations);
           break;
+        case "err":
+          internalHandleFailureReply(sock, msg);
+          break;
         default:
           log.error("Invalid type in incoming message: " + type);
           replyError(sock, "invalid_type");
@@ -192,6 +195,32 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
           return;
         }
         doSendOrPub(send, sock, address, msg);
+      }, () -> replyError(sock, "rejected"));
+  }
+
+  private void internalHandleFailureReply(SockJSSocket sock, JsonObject msg) {
+    checkCallHook(() -> new BridgeEventImpl(BridgeEventType.SEND, msg, sock),
+      () -> {
+        String address = msg.getString("address");
+        if (address == null) {
+          replyError(sock, "missing_address");
+          return;
+        }
+        final boolean debug = log.isDebugEnabled();
+        if (debug) {
+          log.debug("Received failure msg from client in bridge. address:" + address + " raw message:" + msg);
+        }
+        final Message awaitingReply = messagesAwaitingReply.remove(address);
+        if (awaitingReply == null) {
+          if (debug) {
+            log.debug("Inbound failure message for address " + address + " ignored because there is no message awaiting a reply");
+          }
+          return;
+        }
+        if (debug) {
+          log.debug("Forwarding failure message to address " + address + " on event bus");
+        }
+        awaitingReply.fail(msg.getInteger("failureCode"), msg.getString("message"));
       }, () -> replyError(sock, "rejected"));
   }
 

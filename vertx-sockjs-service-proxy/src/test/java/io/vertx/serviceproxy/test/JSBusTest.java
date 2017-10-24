@@ -1,5 +1,7 @@
 package io.vertx.serviceproxy.test;
 
+import io.vertx.core.eventbus.ReplyException;
+import io.vertx.core.eventbus.ReplyFailure;
 import io.vertx.core.json.JsonObject;
 import io.vertx.serviceproxy.SockJSProxyTestBase;
 import org.junit.Test;
@@ -10,6 +12,23 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
  */
 public class JSBusTest extends SockJSProxyTestBase {
+
+  @Test
+  public void testBusFail() {
+    vertx.eventBus().consumer("client_registered", msg -> {
+      msg.reply("fail_this", res -> {
+        assertTrue(res.failed());
+        assertNotNull(res.cause());
+        ReplyException exception = (ReplyException) res.cause();
+        assertEquals(ReplyFailure.RECIPIENT_FAILURE, exception.failureType());
+        assertEquals(520, exception.failureCode());
+        assertEquals("client_failure_message", exception.getMessage());
+        testComplete();
+      });
+    });
+    vertx.deployVerticle("bus_test_fail.js", ar -> assertTrue(ar.succeeded()));
+    await();
+  }
 
   @Test
   public void testBusReconnect() {
