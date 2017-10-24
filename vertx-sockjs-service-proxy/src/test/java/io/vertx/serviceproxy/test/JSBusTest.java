@@ -1,7 +1,7 @@
 package io.vertx.serviceproxy.test;
 
 import io.vertx.core.json.JsonObject;
-import io.vertx.test.core.VertxTestBase;
+import io.vertx.serviceproxy.SockJSProxyTestBase;
 import org.junit.Test;
 
 import java.util.concurrent.atomic.AtomicInteger;
@@ -9,7 +9,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
  */
-public class JSBusTest extends VertxTestBase {
+public class JSBusTest extends SockJSProxyTestBase {
 
   @Test
   public void testBusReconnect() {

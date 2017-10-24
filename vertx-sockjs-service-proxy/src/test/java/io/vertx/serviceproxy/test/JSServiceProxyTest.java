@@ -4,14 +4,14 @@ import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.json.JsonObject;
 import io.vertx.serviceproxy.Addresses;
 import io.vertx.serviceproxy.ProxyHelper;
+import io.vertx.serviceproxy.SockJSProxyTestBase;
 import io.vertx.serviceproxy.testmodel.TestService;
-import io.vertx.test.core.VertxTestBase;
 import org.junit.Test;
 
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
  */
-public class JSServiceProxyTest extends VertxTestBase {
+public class JSServiceProxyTest extends SockJSProxyTestBase {
 
   TestService service;
   MessageConsumer<JsonObject> consumer;
