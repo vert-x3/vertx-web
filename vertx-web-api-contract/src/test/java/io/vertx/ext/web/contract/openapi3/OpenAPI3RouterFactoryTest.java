@@ -1,5 +1,6 @@
 package io.vertx.ext.web.api.contract.openapi3;
 
+import com.google.common.io.Resources;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpMethod;
@@ -122,5 +123,38 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
 
     stopServer();
 
+  }
+
+  @Test
+  public void loadInvalidFilePathDoesntResultInSevereException() throws Exception {
+    CountDownLatch latch = new CountDownLatch(1);
+    OpenAPI3RouterFactory.createRouterFactoryFromFile(this.vertx, "some/bad/test/path.yaml",
+      openAPI3RouterFactoryAsyncResult -> {
+        assertTrue(openAPI3RouterFactoryAsyncResult.failed());
+        latch.countDown();
+      });
+    awaitLatch(latch);
+  }
+
+  @Test
+  public void loadInvalidUrlDoesntResultInSevereException() throws Exception {
+    CountDownLatch latch = new CountDownLatch(1);
+    OpenAPI3RouterFactory.createRouterFactoryFromFile(this.vertx, "http://some/bad/test/url.yaml",
+      openAPI3RouterFactoryAsyncResult -> {
+        assertTrue(openAPI3RouterFactoryAsyncResult.failed());
+        latch.countDown();
+      });
+    awaitLatch(latch);
+  }
+
+  @Test
+  public void loadSwaggerFromResources() throws Exception {
+    CountDownLatch latch = new CountDownLatch(1);
+    OpenAPI3RouterFactory.createRouterFactoryFromFile(this.vertx, Resources.getResource("swaggers/testSpec.yaml").toString(),
+      openAPI3RouterFactoryAsyncResult -> {
+        assertTrue(openAPI3RouterFactoryAsyncResult.succeeded());
+        latch.countDown();
+      });
+    awaitLatch(latch);
   }
 }

@@ -17,6 +17,7 @@ import io.vertx.ext.web.api.contract.openapi3.impl.OpenAPI3RouterFactoryImpl;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
+import java.util.Objects;
 
 /**
  * Interface for OpenAPI3RouterFactory. <br/>
@@ -89,11 +90,12 @@ public interface OpenAPI3RouterFactory extends DesignDrivenRouterFactory<OpenAPI
    */
   static void createRouterFactoryFromFile(Vertx vertx, String filename, Handler<AsyncResult<OpenAPI3RouterFactory>>
     handler) {
+    Objects.requireNonNull(vertx);
+    Objects.requireNonNull(filename);
+    Objects.requireNonNull(handler);
+
     vertx.executeBlocking((Future<OpenAPI3RouterFactory> future) -> {
-      File spec = new File(filename);
-      if (!spec.exists())
-        future.fail(RouterFactoryException.createSpecNotExistsException(filename));
-      SwaggerParseResult swaggerParseResult = new OpenAPIV3Parser().readLocation(spec.getAbsolutePath(), null, null);
+      SwaggerParseResult swaggerParseResult = new OpenAPIV3Parser().readLocation(filename, null, null);
 
       if (swaggerParseResult.getMessages().isEmpty()) future.complete(new OpenAPI3RouterFactoryImpl(vertx, swaggerParseResult.getOpenAPI()));
       else {
