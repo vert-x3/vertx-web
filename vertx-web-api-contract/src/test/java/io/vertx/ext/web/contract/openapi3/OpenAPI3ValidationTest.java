@@ -1,9 +1,12 @@
 package io.vertx.ext.web.api.contract.openapi3;
 
+import com.google.common.net.MediaType;
+import io.netty.handler.codec.http.HttpHeaderNames;
 import io.swagger.oas.models.OpenAPI;
 import io.swagger.oas.models.Operation;
 import io.swagger.parser.v3.OpenAPIV3Parser;
 import io.vertx.core.MultiMap;
+import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.api.RequestParameter;
@@ -19,6 +22,7 @@ import org.junit.rules.ExternalResource;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * @author Francesco Guardiani @slinkydeveloper
@@ -237,7 +241,15 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
       valuesArray.add(getSuccessSample(ParameterType.INT).getInteger());
     object.put("values", valuesArray);
 
-    testRequestWithJSON(HttpMethod.POST, "/jsonBodyTest/sampleTest", object, 200, object.encode());
+    String serialized = object.encode();
+
+    testRequestWithJSON(HttpMethod.POST, "/jsonBodyTest/sampleTest", object, 200, serialized);
+
+    Consumer<HttpClientRequest> jsonWithEncoding = r -> r.putHeader(HttpHeaderNames.CONTENT_TYPE, MediaType.JSON_UTF_8.toString())
+      .putHeader(HttpHeaderNames.CONTENT_LENGTH,"" + serialized.getBytes().length)
+      .write(serialized);
+    
+    testRequest(HttpMethod.POST, "/jsonBodyTest/sampleTest", jsonWithEncoding, 200, serialized, null);
   }
 
   @Test
