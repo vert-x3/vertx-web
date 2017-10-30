@@ -4,6 +4,7 @@ import io.swagger.oas.models.OpenAPI;
 import io.swagger.oas.models.Operation;
 import io.swagger.oas.models.PathItem;
 import io.swagger.oas.models.parameters.Parameter;
+import io.swagger.oas.models.responses.ApiResponse;
 import io.swagger.oas.models.security.SecurityRequirement;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
@@ -313,9 +314,24 @@ public class OpenAPI3RouterFactoryImpl extends BaseDesignDrivenRouterFactory<Ope
         handlersToLoad.add(this.NOT_IMPLEMENTED_HANDLER);
       }
 
-      // Now add all handlers to router
+      // Now add all handlers to route
       OpenAPI3PathResolver pathResolver = new OpenAPI3PathResolver(operation.getPath(), operation.getParameters());
       Route route = router.routeWithRegex(operation.getMethod(), pathResolver.solve().toString());
+
+      // Set produces/consumes
+      if (operation.getOperationModel().getRequestBody() != null &&
+        operation.getOperationModel().getRequestBody().getContent() != null)
+        for (String ct : operation.getOperationModel().getRequestBody().getContent().keySet())
+          route.consumes(ct);
+
+      if (operation.getOperationModel().getResponses() != null) {
+        for (ApiResponse response : operation.getOperationModel().getResponses().values()) {
+          if (response.getContent() != null)
+            for (String ct : response.getContent().keySet())
+              route.produces(ct);
+        }
+      }
+
       route.setRegexGroupsNames(new ArrayList<>(pathResolver.getMappedGroups().values()));
       for (Handler handler : handlersToLoad)
         route.handler(handler);
