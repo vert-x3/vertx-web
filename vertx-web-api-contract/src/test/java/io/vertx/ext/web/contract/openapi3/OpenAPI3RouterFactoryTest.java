@@ -123,4 +123,15 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
     stopServer();
 
   }
+
+  @Test
+  public void loadSpecFromURL() throws Exception {
+    CountDownLatch latch = new CountDownLatch(1);
+    OpenAPI3RouterFactory.createRouterFactoryFromURL(this.vertx, "https://raw.githubusercontent.com/OAI/OpenAPI-Specification/master/examples/v3.0/petstore.yaml",
+      openAPI3RouterFactoryAsyncResult -> {
+        assertFalse(openAPI3RouterFactoryAsyncResult.failed());
+        latch.countDown();
+      });
+    awaitLatch(latch);
+  }
 }
