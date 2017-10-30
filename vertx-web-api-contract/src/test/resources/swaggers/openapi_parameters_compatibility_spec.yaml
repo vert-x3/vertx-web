@@ -2,6 +2,8 @@ openapi: 3.0.0
 info:
   version: 0.0.1
   title: OpenAPI 3 Parameter Validation Compatibility Test
+  license:
+    name: Apache 2.0
 paths:
   '/path/matrix/noexplode/string/{color}':
     get:

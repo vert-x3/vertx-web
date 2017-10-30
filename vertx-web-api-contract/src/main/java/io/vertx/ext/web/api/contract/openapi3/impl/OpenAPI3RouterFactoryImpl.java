@@ -17,11 +17,7 @@ import io.vertx.ext.web.api.contract.impl.BaseDesignDrivenRouterFactory;
 import io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory;
 import io.vertx.ext.web.handler.BodyHandler;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author Francesco Guardiani @slinkydeveloper
@@ -319,18 +315,22 @@ public class OpenAPI3RouterFactoryImpl extends BaseDesignDrivenRouterFactory<Ope
       Route route = router.routeWithRegex(operation.getMethod(), pathResolver.solve().toString());
 
       // Set produces/consumes
+      Set<String> consumes = new HashSet<>();
+      Set<String> produces = new HashSet<>();
       if (operation.getOperationModel().getRequestBody() != null &&
         operation.getOperationModel().getRequestBody().getContent() != null)
-        for (String ct : operation.getOperationModel().getRequestBody().getContent().keySet())
-          route.consumes(ct);
+        consumes.addAll(operation.getOperationModel().getRequestBody().getContent().keySet());
 
-      if (operation.getOperationModel().getResponses() != null) {
-        for (ApiResponse response : operation.getOperationModel().getResponses().values()) {
+      if (operation.getOperationModel().getResponses() != null)
+        for (ApiResponse response : operation.getOperationModel().getResponses().values())
           if (response.getContent() != null)
-            for (String ct : response.getContent().keySet())
-              route.produces(ct);
-        }
-      }
+            produces.addAll(response.getContent().keySet());
+
+      for (String ct : consumes)
+        route.consumes(ct);
+
+      for (String ct : produces)
+        route.produces(ct);
 
       route.setRegexGroupsNames(new ArrayList<>(pathResolver.getMappedGroups().values()));
       for (Handler handler : handlersToLoad)

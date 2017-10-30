@@ -1,17 +1,26 @@
 package io.vertx.ext.web.api.contract.openapi3;
 
 import io.vertx.core.Handler;
+import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerOptions;
+import io.vertx.core.json.Json;
+import io.vertx.core.json.JsonObject;
+import io.vertx.core.parsetools.JsonParser;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.WebTestWithWebClientBase;
 import io.vertx.ext.web.api.contract.RouterFactoryException;
 import io.vertx.ext.web.api.validation.ValidationException;
+import io.vertx.ext.web.handler.ResponseContentTypeHandler;
 import org.junit.Test;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author Francesco Guardiani @slinkydeveloper
@@ -63,6 +72,7 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
 
   @Override
   public void tearDown() throws Exception {
+    stopServer();
     if (client != null) {
       try {
         client.close();
@@ -76,7 +86,7 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
   public void loadPetStoreAndTestSomething() throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
     final Router[] router = {null};
-    OpenAPI3RouterFactory.createRouterFactoryFromFile(this.vertx, "src/test/resources/swaggers/testSpec.yaml",
+    OpenAPI3RouterFactory.createRouterFactoryFromFile(this.vertx, "src/test/resources/swaggers/base_router_factory_test.yaml",
       openAPI3RouterFactoryAsyncResult -> {
         assertTrue(openAPI3RouterFactoryAsyncResult.succeeded());
         OpenAPI3RouterFactory routerFactory = openAPI3RouterFactoryAsyncResult.result();
@@ -120,7 +130,50 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
     testRequest(HttpMethod.POST, "/pets", 200, "path mounted!");
     testRequest(HttpMethod.GET, "/pets/3", 501, "Not Implemented");
 
-    stopServer();
+  }
 
+  @Test
+  public void testConsumesProduces() throws Exception {
+    CountDownLatch latch = new CountDownLatch(1);
+    final Router[] router = {null};
+    boolean failProduce[] = {false};
+    OpenAPI3RouterFactory.createRouterFactoryFromFile(this.vertx, "src/test/resources/swaggers/produces_consumes_test.yaml",
+      openAPI3RouterFactoryAsyncResult -> {
+        OpenAPI3RouterFactory factory = openAPI3RouterFactoryAsyncResult.result();
+        factory.mountOperationsWithoutHandlers(false);
+        factory.addHandlerByOperationId("consumesTest", routingContext -> {
+          routingContext.response().setStatusCode(200).setStatusMessage("ok").end();
+        });
+
+        factory.addHandlerByOperationId("producesTest", routingContext -> {
+          if (failProduce[0])
+            routingContext.response().putHeader("content-type", "text/plain").setStatusCode(500).end();
+          else
+            routingContext.response().end("{}"); // ResponseContentTypeHandler does the job for me
+        });
+
+        router[0] = factory.getRouter();
+        router[0].route().order(0).handler(ResponseContentTypeHandler.create());
+
+        latch.countDown();
+      });
+    awaitLatch(latch);
+
+    startServer(router[0]);
+
+    // Json consumes test
+    testRequestWithJSON(HttpMethod.POST, "/consumesTest", new JsonObject("{\"name\":\"francesco\"}"), 200, "ok");
+
+    // Form consumes tests
+    MultiMap form = MultiMap.caseInsensitiveMultiMap();
+    form.add("name", "francesco");
+    testRequestWithForm(HttpMethod.POST, "/consumesTest", FormType.FORM_URLENCODED, form, 200, "ok");
+    testRequestWithForm(HttpMethod.POST, "/consumesTest", FormType.MULTIPART, form, 404, "Not Found");
+
+    // Produces tests
+    List<String> acceptableContentTypes = Stream.of("application/json", "text/plain").collect(Collectors.toList());
+    testRequestWithResponseContentTypeCheck(HttpMethod.GET, "/producesTest", 200, "application/json", acceptableContentTypes);
+    failProduce[0] = true; // So lazy way
+    testRequestWithResponseContentTypeCheck(HttpMethod.GET, "/producesTest", 500, "text/plain", acceptableContentTypes);
   }
 }
