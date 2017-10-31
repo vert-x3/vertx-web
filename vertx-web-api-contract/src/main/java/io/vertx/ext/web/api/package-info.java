@@ -131,7 +131,7 @@
  * .Add operations with operationId
  * IMPORTANT: Usage of combination of path and HTTP method is allowed, but it's better to add operations handlers with operationId, for performance reasons and to avoid paths nomenclature errors
  *
- * Now you can use parameter values as described in http://vertx.io/docs/vertx-web/java/#_andling_parameters[vertx-web documentation]
+ * Now you can use parameter values as described above
  *
  * == Define security handlers
  * A security handler is defined by a combination of schema name and scope. You can mount only one security handler for a combination.
