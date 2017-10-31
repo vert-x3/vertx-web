@@ -2,6 +2,74 @@
  * = Vert.x-Web API Contract
  * :toc: left
  *
+ * Vert.x-Web API Contract brings to Vert.x two features to help you to develop you API:
+ *
+ * * HTTP Requests validation
+ * * OpenAPI 3 Support with automatic requests validation
+ *
+ * == Using Vert.x API Contract
+ *
+ * To use Vert.x API Contract, add the following dependency to the _dependencies_ section of your build descriptor:
+ *
+ * * Maven (in your `pom.xml`):
+ *
+ * [source,xml,subs="+attributes"]
+ * ----
+ * <dependency>
+ *   <groupId>${maven.groupId}</groupId>
+ *   <artifactId>${maven.artifactId}</artifactId>
+ *   <version>${maven.version}</version>
+ * </dependency>
+ * ----
+ *
+ * * Gradle (in your `build.gradle` file):
+ *
+ * [source,groovy,subs="+attributes"]
+ * ----
+ * dependencies {
+ *   compile '${maven.groupId}:${maven.artifactId}:${maven.version}'
+ * }
+ * ----
+ *
+ * == HTTP Requests validation
+ *
+ * Vert.x provides a validation framework that will validate requests for you and will put results of validation inside a container. To define a {@link io.vertx.ext.web.api.validation.HTTPRequestValidationHandler}:
+ * [source,$lang]
+ * ----
+ * {@link examples.ValidationExamples#example1}
+ * ----
+ *
+ * Then you can mount your validation handler:
+ * [source,$lang]
+ * ----
+ * {@link examples.ValidationExamples#example2}
+ * ----
+ *
+ * If validation succeeds, It returns request parameters inside {@link io.vertx.ext.web.api.RequestParameters}, otherwise It will throw a {@link io.vertx.ext.web.api.validation.ValidationException}
+ *
+ * === Types of request parameters
+ * Every parameter has a type validator, a class that describes the expected type of parameter.
+ * A type validator validates the value, casts it in required language type and then loads it inside a {@link io.vertx.ext.web.api.RequestParameter} object. There are three ways to describe the type of your parameter:
+ *
+ * * There is a set of prebuilt types that you can use: {@link io.vertx.ext.web.api.validation.ParameterType}
+ * * You can instantiate a custom instance of prebuilt type validators using static methods of {@link io.vertx.ext.web.api.validation.ParameterTypeValidator} and then load it into {@link io.vertx.ext.web.api.validation.HTTPRequestValidationHandler} using functions ending with `WithCustomTypeValidator`
+ * * You can create your own `ParameterTypeValidator` implementing {@link io.vertx.ext.web.api.validation.ParameterTypeValidator} interface
+ *
+ * === Handling parameters
+ * Now you can handle parameter values:
+ *
+ * [source,$lang]
+ * ----
+ * {@link examples.ValidationExamples#example3}
+ * ----
+ *
+ * As you can see, every parameter is mapped in respective language objects. You can also get a json body:
+ *
+ * [source,$lang]
+ * ----
+ * {@link examples.ValidationExamples#example4}
+ * ----
+ *
  * == OpenAPI 3 support
  *
  * Vert.x allows you to use your OpenApi 3 specification directly inside your code using the design first approach. Vert.x-Web provides:
@@ -11,6 +79,8 @@
  * * Automatic mount of security validation handlers
  * * Automatic 501 response for not implemented operations
  * * Router factory to provide all these features to users
+ *
+ * You can also use the community project https://github.com/pmlopes/slush-vertx[`slush-vertx`] to generate server code from your OpenAPI 3 specification.
  *
  * === The router factory
  * You can create your web service based on OpenAPI3 specification with {@link io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory}.
@@ -61,7 +131,7 @@
  * .Add operations with operationId
  * IMPORTANT: Usage of combination of path and HTTP method is allowed, but it's better to add operations handlers with operationId, for performance reasons and to avoid paths nomenclature errors
  *
- * Now you can use parameter values as described in http://vertx.io/docs/vertx-web/java/#_andling_parameters[vertx-web documentation]
+ * Now you can use parameter values as described above
  *
  * == Define security handlers
  * A security handler is defined by a combination of schema name and scope. You can mount only one security handler for a combination.
@@ -93,44 +163,6 @@
  * {@link examples.OpenAPI3Examples#generateRouter}
  * ----
  *
- * == Requests validation
- *
- * Vert.x provides a validation framework that will validate requests for you and will put results of validation inside a container. To define a {@link io.vertx.ext.web.api.validation.HTTPRequestValidationHandler}:
- * [source,$lang]
- * ----
- * {@link examples.WebExamples#example63}
- * ----
- *
- * Then you can mount your validation handler:
- * [source,$lang]
- * ----
- * {@link examples.WebExamples#example64}
- * ----
- *
- * If validation succeeds, It returns request parameters inside {@link io.vertx.ext.web.api.RequestParameters}, otherwise It will throw a {@link io.vertx.ext.web.api.validation.ValidationException}
- *
- * === Types of request parameters
- * Every parameter has a type validator, a class that describes the expected type of parameter.
- * A type validator validates the value, casts it in required language type and then loads it inside a {@link io.vertx.ext.web.api.RequestParameter} object. There are three ways to describe the type of your parameter:
- *
- * * There is a set of prebuilt types that you can use: {@link io.vertx.ext.web.api.validation.ParameterType}
- * * You can instantiate a custom instance of prebuilt type validators using static methods of {@link io.vertx.ext.web.api.validation.ParameterTypeValidator} and then load it into {@link io.vertx.ext.web.api.validation.HTTPRequestValidationHandler} using functions ending with `WithCustomTypeValidator`
- * * You can create your own `ParameterTypeValidator` implementing {@link io.vertx.ext.web.api.validation.ParameterTypeValidator} interface
- *
- * === Handling parameters
- * Now you can handle parameter values:
- *
- * [source,$lang]
- * ----
- * {@link examples.WebExamples#example65}
- * ----
- *
- * As you can see, every parameter is mapped in respective language objects. You can also get a json body:
- *
- * [source,$lang]
- * ----
- * {@link examples.WebExamples#example66}
- * ----
  */
 @Document(fileName = "index.adoc")
 @ModuleGen(name = "vertx-web-api-contract", groupPackage = "io.vertx")
