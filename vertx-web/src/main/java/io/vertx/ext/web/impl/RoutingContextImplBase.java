@@ -39,12 +39,16 @@ public abstract class RoutingContextImplBase implements RoutingContext {
   protected final HttpServerRequest request;
   protected Iterator<RouteImpl> iter;
   protected RouteImpl currentRoute;
+  protected int currentRouteNextHandlerIndex;
+  protected int currentRouteNextFailureHandlerIndex;
 
   protected RoutingContextImplBase(String mountPoint, HttpServerRequest request, Set<RouteImpl> routes) {
     this.mountPoint = mountPoint;
     this.request = new HttpServerRequestWrapper(request);
     this.routes = routes;
     this.iter = routes.iterator();
+    currentRouteNextHandlerIndex = 0;
+    currentRouteNextFailureHandlerIndex = 0;
   }
 
   @Override
@@ -57,6 +61,16 @@ public abstract class RoutingContextImplBase implements RoutingContext {
     return currentRoute;
   }
 
+  @Override
+  public int currentRouteNextHandlerIndex() {
+    return currentRouteNextHandlerIndex;
+  }
+
+  @Override
+  public int currentRouteNextFailureHandlerIndex() {
+    return currentRouteNextFailureHandlerIndex;
+  }
+
   protected void restart() {
     this.iter = routes.iterator();
     currentRoute = null;
@@ -67,10 +81,12 @@ public abstract class RoutingContextImplBase implements RoutingContext {
     boolean failed = failed();
     if (currentRoute != null) { // Handle multiple handlers inside route object
       try {
-        if (!failed && currentRoute.hasNextContextHandler()) {
+        if (!failed && currentRoute.hasNextContextHandler(this)) {
+          ++currentRouteNextHandlerIndex;
           currentRoute.handleContext(this);
           return true;
-        } else if (failed && currentRoute.hasNextFailureHandler()) {
+        } else if (failed && currentRoute.hasNextFailureHandler(this)) {
+          ++currentRouteNextFailureHandlerIndex;
           currentRoute.handleFailure(this);
           return true;
         }
@@ -89,16 +105,21 @@ public abstract class RoutingContextImplBase implements RoutingContext {
     }
     while (iter.hasNext()) { // Search for more handlers
       RouteImpl route = iter.next();
-      route.resetIndexes();
+      currentRouteNextHandlerIndex = 0;
+      currentRouteNextFailureHandlerIndex = 0;
       if (route.matches(this, mountPoint(), failed)) {
         if (log.isTraceEnabled()) log.trace("Route matches: " + route);
         try {
           currentRoute = route;
           if (log.isTraceEnabled()) log.trace("Calling the " + (failed ? "failure" : "") + " handler");
-          if (failed) {
+          if (failed && currentRoute.hasNextFailureHandler(this)) {
+            ++currentRouteNextFailureHandlerIndex;
             route.handleFailure(this);
-          } else {
+          } else if (currentRoute.hasNextContextHandler(this)) {
+            ++currentRouteNextHandlerIndex;
             route.handleContext(this);
+          } else {
+            continue;
           }
         } catch (Throwable t) {
           if (log.isTraceEnabled()) log.trace("Throwable thrown from handler", t);
