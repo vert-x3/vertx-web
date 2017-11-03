@@ -61,13 +61,11 @@ public abstract class RoutingContextImplBase implements RoutingContext {
     return currentRoute;
   }
 
-  @Override
-  public int currentRouteNextHandlerIndex() {
+  protected int currentRouteNextHandlerIndex() {
     return currentRouteNextHandlerIndex;
   }
 
-  @Override
-  public int currentRouteNextFailureHandlerIndex() {
+  protected int currentRouteNextFailureHandlerIndex() {
     return currentRouteNextFailureHandlerIndex;
   }
 

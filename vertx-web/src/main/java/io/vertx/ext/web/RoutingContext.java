@@ -153,16 +153,6 @@ public interface RoutingContext {
   Route currentRoute();
 
   /**
-   * @return the index of the next handler in the current route this context is being routed through.
-   */
-  int currentRouteNextHandlerIndex();
-
-  /**
-   * @return the index of the next failure handler in the current route this context is being routed through.
-   */
-  int currentRouteNextFailureHandlerIndex();
-
-  /**
    * Return the normalised path for the request.
    * <p>
    * The normalised path is where the URI path has been decoded, i.e. any unicode or other illegal URL characters that
