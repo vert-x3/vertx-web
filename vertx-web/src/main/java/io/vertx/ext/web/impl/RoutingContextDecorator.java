@@ -67,16 +67,6 @@ public class RoutingContextDecorator implements RoutingContext {
   }
 
   @Override
-  public int currentRouteNextHandlerIndex() {
-    return decoratedContext.currentRouteNextHandlerIndex();
-  }
-
-  @Override
-  public int currentRouteNextFailureHandlerIndex() {
-    return decoratedContext.currentRouteNextFailureHandlerIndex();
-  }
-
-  @Override
   public Map<String, Object> data() {
     return decoratedContext.data();
   }
