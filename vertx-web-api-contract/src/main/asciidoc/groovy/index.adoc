@@ -34,16 +34,7 @@ To create a new router factory, you can use methods inside `link:../../apidocs/i
 For example:
 [source,groovy]
 ----
-OpenAPI3RouterFactory.createRouterFactoryFromFile(vertx, "src/main/resources/petstore.yaml", { ar ->
-  if (ar.succeeded()) {
-    // Spec loaded with success
-    def routerFactory = ar.result()
-  } else {
-    // Something went wrong during router factory initialization
-    def exception = ar.cause()
-  }
-})
-
+`link:../../apidocs/examples/OpenAPI3Examples.html#constructRouterFactory-io.vertx.core.Vertx-[constructRouterFactory]`
 ----
 
 === Mount the handlers
@@ -65,16 +56,7 @@ IMPORTANT: If you want to use `link:../../apidocs/io/vertx/ext/web/api/contract/
 For example:
 [source,groovy]
 ----
-routerFactory.addHandlerByOperationId("awesomeOperation", { routingContext ->
-  def params = routingContext.get("parsedParameters")
-  def body = params.body()
-  def jsonBody = body.getJsonObject()
-  // Do something with body
-})
-routerFactory.addFailureHandlerByOperationId("awesomeOperation", { routingContext ->
-  // Handle failure
-})
-
+`link:../../apidocs/examples/OpenAPI3Examples.html#addRoute-io.vertx.core.Vertx-io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory-[addRoute]`
 ----
 
 .Add operations with operationId
@@ -88,16 +70,14 @@ For example:
 
 [source,groovy]
 ----
-routerFactory.addSecurityHandler("security_scheme_name", securityHandler)
-
+`link:../../apidocs/examples/OpenAPI3Examples.html#addSecurityHandler-io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory-io.vertx.core.Handler-[addSecurityHandler]`
 ----
 
 You can of course use included Vert.x security handlers, for example:
 
 [source,groovy]
 ----
-routerFactory.addSecurityHandler("jwt_auth", JWTAuthHandler.create(jwtAuthProvider))
-
+`link:../../apidocs/examples/OpenAPI3Examples.html#addJWT-io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory-io.vertx.ext.auth.jwt.JWTAuth-[addJWT]`
 ----
 
 === Error handling
@@ -111,14 +91,7 @@ When you are ready, generate the router and use it:
 
 [source,groovy]
 ----
-def router = routerFactory.getRouter()
-
-def server = vertx.createHttpServer([
-  port:8080,
-  host:"localhost"
-])
-server.requestHandler(router.&accept).listen()
-
+`link:../../apidocs/examples/OpenAPI3Examples.html#generateRouter-io.vertx.core.Vertx-io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory-[generateRouter]`
 ----
 
 == Requests validation
@@ -126,33 +99,13 @@ server.requestHandler(router.&accept).listen()
 Vert.x provides a validation framework that will validate requests for you and will put results of validation inside a container. To define a `link:../../apidocs/io/vertx/ext/web/api/validation/HTTPRequestValidationHandler.html[HTTPRequestValidationHandler]`:
 [source,groovy]
 ----
-// Create Validation Handler with some stuff
-def validationHandler = HTTPRequestValidationHandler.create().addQueryParam("parameterName", ParameterType.INT, true).addFormParamWithPattern("formParameterName", "a{4}", true).addPathParam("pathParam", ParameterType.FLOAT)
-
+`link:../../apidocs/examples/WebExamples.html#example63-io.vertx.core.Vertx-io.vertx.ext.web.Router-[example63]`
 ----
 
 Then you can mount your validation handler:
 [source,groovy]
 ----
-// BodyHandler is required to manage body parameters like forms or json body
-router.route().handler(BodyHandler.create())
-
-router.get("/awesome/:pathParam").handler(validationHandler).handler({ routingContext ->
-  // Get Request parameters container
-  def params = routingContext.get("parsedParameters")
-
-  // Get parameters
-  def parameterName = params.queryParameter("parameterName").getInteger()
-  def formParameterName = params.formParameter("formParameterName").getString()
-  def pathParam = params.pathParameter("pathParam").getFloat()
-}).failureHandler({ routingContext ->
-  def failure = routingContext.failure()
-  if (failure instanceof io.vertx.ext.web.api.validation.ValidationException) {
-    // Something went wrong during validation!
-    def validationErrorMessage = failure.getMessage()
-  }
-})
-
+`link:../../apidocs/examples/WebExamples.html#example64-io.vertx.core.Vertx-io.vertx.ext.web.Router-io.vertx.ext.web.api.validation.HTTPRequestValidationHandler-[example64]`
 ----
 
 If validation succeeds, It returns request parameters inside `link:../../apidocs/io/vertx/ext/web/api/RequestParameters.html[RequestParameters]`, otherwise It will throw a `link:../../apidocs/io/vertx/ext/web/api/validation/ValidationException.html[ValidationException]`
@@ -170,29 +123,12 @@ Now you can handle parameter values:
 
 [source,groovy]
 ----
-def params = routingContext.get("parsedParameters")
-def awesomeParameter = params.queryParameter("awesomeParameter")
-if (awesomeParameter != null) {
-  if (!awesomeParameter.isEmpty()) {
-    // Parameter exists and isn't empty
-    // ParameterTypeValidator mapped the parameter in equivalent language object
-    def awesome = awesomeParameter.getInteger()
-  } else {
-    // Parameter exists, but it's empty
-  }
-} else {
-  // Parameter doesn't exist (it's not required)
-}
-
+`link:../../apidocs/examples/WebExamples.html#example65-io.vertx.ext.web.RoutingContext-[example65]`
 ----
 
 As you can see, every parameter is mapped in respective language objects. You can also get a json body:
 
 [source,groovy]
 ----
-def body = params.body()
-if (body != null) {
-  def jsonBody = body.getJsonObject()
-}
-
+`link:../../apidocs/examples/WebExamples.html#example66-io.vertx.ext.web.api.RequestParameters-[example66]`
 ----
