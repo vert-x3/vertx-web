@@ -15,8 +15,10 @@ import io.vertx.ext.web.api.contract.DesignDrivenRouterFactory;
 import io.vertx.ext.web.api.contract.RouterFactoryException;
 import io.vertx.ext.web.api.contract.openapi3.impl.OpenAPI3RouterFactoryImpl;
 import org.apache.commons.lang3.StringUtils;
-
 import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLDecoder;
 
 /**
  * Interface for OpenAPI3RouterFactory. <br/>
@@ -110,6 +112,18 @@ public interface OpenAPI3RouterFactory extends DesignDrivenRouterFactory<OpenAPI
    * @param handler  When specification is loaded, this handler will be called with AsyncResult<OpenAPI3RouterFactory>
    */
   static void createRouterFactoryFromURL(Vertx vertx, String url, Handler<AsyncResult<OpenAPI3RouterFactory>> handler) {
-    createRouterFactoryFromFile(vertx, url, handler);
+    vertx.executeBlocking((Future<OpenAPI3RouterFactory> future) -> {
+      try {
+        URL urlObj = new URL(url);
+        SwaggerParseResult swaggerParseResult = new OpenAPIV3Parser().readLocation(urlObj.toString(), null, null);
+        if (swaggerParseResult.getMessages().isEmpty())
+          future.complete(new OpenAPI3RouterFactoryImpl(vertx, swaggerParseResult.getOpenAPI()));
+        else {
+          future.fail(RouterFactoryException.createSpecInvalidException(StringUtils.join(swaggerParseResult.getMessages(), ", ")));
+        }
+      } catch (MalformedURLException e) {
+        future.fail(RouterFactoryException.createSpecNotExistsException(url));
+      }
+    }, handler);
   }
 }
