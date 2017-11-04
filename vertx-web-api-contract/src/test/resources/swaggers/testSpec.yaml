@@ -246,6 +246,12 @@ paths:
       responses:
         default:
           description: Ok
+  /failureTest:
+    get:
+      operationId: failureTest
+      responses:
+        default:
+          description: Kaboom
 
 components:
   schemas:

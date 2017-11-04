@@ -308,7 +308,7 @@ public class OpenAPI3RouterFactoryImpl extends BaseDesignDrivenRouterFactory<Ope
       // Check if path is set by user
       if (operation.isConfigured()) {
         handlersToLoad.addAll(operation.getUserHandlers());
-        handlersToLoad.addAll(operation.getUserFailureHandlers());
+        failureHandlersToLoad.addAll(operation.getUserFailureHandlers());
       } else {
         handlersToLoad.add(this.NOT_IMPLEMENTED_HANDLER);
       }
