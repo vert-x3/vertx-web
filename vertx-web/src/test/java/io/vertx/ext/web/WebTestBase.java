@@ -26,6 +26,12 @@ import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.test.core.VertxTestBase;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -177,5 +183,40 @@ public class WebTestBase extends VertxTestBase {
       }
     }
     return normalized;
+  }
+
+  protected void testSyncRequest(String httpMethod, String path, int statusCode, String statusMessage, String responseBody) throws IOException {
+    HttpURLConnection connection = (HttpURLConnection) new URL("http://localhost:" + this.server.actualPort() + path).openConnection();
+    connection.setRequestMethod(httpMethod);
+
+    assertEquals(statusCode, connection.getResponseCode());
+    if (connection.getResponseCode() < 400) { // So dummy compare
+      assertEquals(statusMessage, connection.getResponseMessage());
+
+      BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+      String inputLine;
+      StringBuffer response = new StringBuffer();
+
+      while ((inputLine = in.readLine()) != null) {
+        response.append(inputLine);
+      }
+      in.close();
+
+      assertEquals(responseBody, response.toString());
+    } else {
+      assertEquals(statusMessage, connection.getResponseMessage());
+
+      BufferedReader in = new BufferedReader(new InputStreamReader(connection.getErrorStream()));
+      String inputLine;
+      StringBuffer response = new StringBuffer();
+
+      while ((inputLine = in.readLine()) != null) {
+        response.append(inputLine);
+      }
+      in.close();
+
+      assertEquals(responseBody, response.toString());
+    }
+
   }
 }
