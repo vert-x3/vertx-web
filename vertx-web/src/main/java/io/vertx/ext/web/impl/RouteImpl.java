@@ -57,6 +57,7 @@ public class RouteImpl implements Route {
   private Pattern pattern;
   private List<String> groups;
   private boolean useNormalisedPath = true;
+  private Set<String> namedGroupsInRegex = new TreeSet<>();
 
   RouteImpl(RouterImpl router, int order) {
     this.router = router;
@@ -255,7 +256,6 @@ public class RouteImpl implements Route {
       Matcher m = pattern.matcher(path);
       if (m.matches()) {
         if (m.groupCount() > 0) {
-          Map<String, String> params = new HashMap<>(m.groupCount());
           if (groups != null) {
             // Pattern - named params
             // decode the path as it could contain escaped chars.
@@ -267,31 +267,25 @@ public class RouteImpl implements Route {
               } catch (IllegalArgumentException e) {
                 undecodedValue = m.group(k);
               }
-              final String value = Utils.urlDecode(undecodedValue, false);
-              if (!request.params().contains(k)) {
-                params.put(k, value);
-              } else {
-                context.pathParams().put(k, value);
-              }
+              addPathParam(context, k, undecodedValue);
             }
           } else {
             // Straight regex - un-named params
             // decode the path as it could contain escaped chars.
+            for (String namedGroup : namedGroupsInRegex) {
+              String namedGroupValue = m.group(namedGroup);
+              if (namedGroupValue != null) {
+                addPathParam(context, namedGroup, namedGroupValue);
+              }
+            }
             for (int i = 0; i < m.groupCount(); i++) {
               String group = m.group(i + 1);
               if (group != null) {
                 final String k = "param" + i;
-                final String value = Utils.urlDecode(group, false);
-                if (!request.params().contains(k)) {
-                  params.put(k, value);
-                } else {
-                  context.pathParams().put(k, value);
-                }
+                addPathParam(context, k, group);
               }
             }
           }
-          request.params().addAll(params);
-          context.pathParams().putAll(params);
         }
       } else {
         return false;
@@ -325,6 +319,15 @@ public class RouteImpl implements Route {
       return false;
     }
     return true;
+  }
+
+  private void addPathParam(RoutingContext context, String name, String value) {
+    HttpServerRequest request = context.request();
+    final String decodedValue = Utils.urlDecode(value, false);
+    if (!request.params().contains(name)) {
+      request.params().add(name, decodedValue);
+    }
+    context.pathParams().put(name, decodedValue);
   }
 
   RouterImpl router() {
@@ -387,8 +390,21 @@ public class RouteImpl implements Route {
   }
 
   private void setRegex(String regex) {
-    // Check if there are any groups with names
     pattern = Pattern.compile(regex);
+    Set<String> namedGroups = findNamedGroups(pattern.pattern());
+    if (!namedGroups.isEmpty()) {
+      namedGroupsInRegex.addAll(namedGroups);
+    }
+  }
+
+  private Set<String> findNamedGroups(String path) {
+    Set<String> namedGroups = new TreeSet<>();
+    Matcher m = Pattern.compile("\\(\\?<([a-zA-Z][a-zA-Z0-9]*)>").matcher(path);
+
+    while (m.find()) {
+      namedGroups.add(m.group(1));
+    }
+    return namedGroups;
   }
 
   // intersection of regex chars and https://tools.ietf.org/html/rfc3986#section-3.3

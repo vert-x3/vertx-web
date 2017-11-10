@@ -856,7 +856,24 @@ public class RouterTest extends WebTestBase {
     router.routeWithRegex(".*foo.txt").handler(rc -> rc.response().setStatusMessage("ok").end());
     testPattern("/dog/cat/foo.txt", "ok");
     testRequest(HttpMethod.POST, "/dog/cat/foo.bar", 404, "Not Found");
+  }
 
+  @Test
+  public void testRegexWithNamedParams() throws Exception {
+    router.routeWithRegex(HttpMethod.GET, "\\/(?<name>[^\\/]+)\\/(?<surname>[^\\/]+)").handler(rc -> {
+      MultiMap params = rc.request().params();
+      rc.response().setStatusMessage(params.get("name") + params.get("surname")).end();
+    });
+    testPattern("/joe/doe", "joedoe");
+  }
+
+  @Test
+  public void testRegexWithNamedParamsKeepsIndexedParams() throws Exception {
+    router.routeWithRegex(HttpMethod.GET, "\\/(?<name>[^\\/]+)\\/(?<surname>[^\\/]+)").handler(rc -> {
+      MultiMap params = rc.request().params();
+      rc.response().setStatusMessage(params.get("param0") + params.get("param1")).end();
+    });
+    testPattern("/joe/doe", "joedoe");
   }
 
   @Test
