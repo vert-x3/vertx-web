@@ -287,6 +287,20 @@
  *
  * Captures are denoted in regular expressions with capture groups (i.e. surrounding the capture with round brackets)
  *
+ * == Using named capture groups
+ *
+ * Using int index param names might be troublesome in some cases.
+ * It's possible to use named capture groups in the regex path.
+ *
+ * * [source,$lang]
+ * ----
+ * {@link examples.WebExamples#example6_2}
+ * ----
+ *
+ * In the example above, named capture groups are mapped to path parameters of the same name as the group.
+ *
+ * Additionally, you can still access group parameters as you would with normal groups (i.e. `params0, params1...`)
+ *
  * == Routing by HTTP method
  *
  * By default a route will match all HTTP methods.
