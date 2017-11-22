@@ -1,0 +1,76 @@
+# https://swagger.io/docs/specification/using-ref/
+openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: JSON Schemas test spec
+  license:
+    name: MIT
+paths:
+  /test1:
+    operationId: test1
+    requestBody:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Person'
+    responses:
+      default:
+        description: "OK"
+  /test2:
+    operationId: test2
+    responses:
+      default:
+        description: "OK"
+    requestBody:
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/Person'
+              - $ref: '#/components/schemas/Citizen'
+  /test3:
+    operationId: test3
+    responses:
+      default:
+        description: "OK"
+    requestBody:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/PersonComplex'
+  /test4:
+    operationId: test4
+    responses:
+      default:
+        description: "OK"
+    requestBody:
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/paths/~1test1/requestBody/content/application~1json/schema'
+              - $ref: '#/components/schemas/Citizen'
+
+components:
+  schemas:
+    Person:
+      type: object
+      properties:
+        name:
+          type: string
+        surname:
+          type: string
+      required:
+        - name
+        - surname
+    Citizen:
+      type: object
+      properties:
+        id_card:
+          type: string
+      required:
+        - id_card
+    PersonComplex:
+      allOf:
+        - $ref: '#/components/schemas/Person'
+        - $ref: '#/components/schemas/Citizen'
