@@ -50,11 +50,90 @@ paths:
             allOf:
               - $ref: '#/paths/~1test1/requestBody/content/application~1json/schema'
               - $ref: '#/components/schemas/Citizen'
+  /test5:
+    operationId: test5
+    responses:
+      default:
+        description: "OK"
+    requestBody:
+      content:
+        application/json:
+          schema:
+            $ref: 'http://json-schema.org/example/geo.json'
+  /test6:
+    operationId: test6
+    responses:
+      default:
+        description: "OK"
+    requestBody:
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: 'http://json-schema.org/example/card.json'
+              - type: object
+                properties:
+                  id_card:
+                    type: string
+                required:
+                  - id_card
+  /test7:
+    operationId: test7
+    responses:
+      default:
+        description: "OK"
+    requestBody:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/PersonRecursive'
+  /test8:
+    operationId: test8
+    responses:
+      default:
+        description: "OK"
+    requestBody:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              value:
+                type: string
+              parent:
+                $ref: '#/paths/~1test8/requestBody/content/application~1json/schema'
+              children:
+                type: array
+                items:
+                  $ref: '#/paths/~1test8/requestBody/content/application~1json/schema' # Self refs!
+            additionalProperties: false
+  /test9:
+    operationId: test9
+    responses:
+      default:
+        description: "OK"
+    requestBody:
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: 'http://json-schema.org/example/card.json'
+              - $ref: './schemas/Card_id.yaml'
+              - type: object
+                properties:
+                  parent_card:
+                    $ref: '#/paths/~1test9/requestBody/content/application~1json/schema'
+                  children_cards:
+                    type: array
+                    items:
+                      $ref: '#/paths/~1test9/requestBody/content/application~1json/schema'
+
 
 components:
   schemas:
     Person:
       type: object
+      additionalProperties: false
       properties:
         name:
           type: string
@@ -65,6 +144,7 @@ components:
         - surname
     Citizen:
       type: object
+      additionalProperties: false
       properties:
         id_card:
           type: string
@@ -74,3 +154,15 @@ components:
       allOf:
         - $ref: '#/components/schemas/Person'
         - $ref: '#/components/schemas/Citizen'
+    PersonRecursive:
+      allOf:
+        - $ref: '#/components/schemas/Person'
+        - $ref: '#/components/schemas/Citizen'
+        - type: object
+          additionalProperties: false
+          properties:
+            mother:
+              $ref: '#/components/schemas/PersonRecursive'
+            father:
+              $ref: '#/components/schemas/PersonRecursive'
+
