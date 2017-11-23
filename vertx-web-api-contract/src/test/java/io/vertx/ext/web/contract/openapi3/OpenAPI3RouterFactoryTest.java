@@ -10,6 +10,8 @@ import io.vertx.ext.web.WebTestWithWebClientBase;
 import io.vertx.ext.web.api.contract.RouterFactoryException;
 import io.vertx.ext.web.api.validation.ValidationException;
 import org.junit.Test;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 import java.util.concurrent.CountDownLatch;
 
@@ -73,7 +75,60 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
   }
 
   @Test
-  public void loadPetStoreAndTestSomething() throws Exception {
+  public void loadPetStoreFromContentAndTestSomething() throws Exception {
+    CountDownLatch latch = new CountDownLatch(1);
+    final Router[] router = {null};
+    final String content = new String(Files.readAllBytes(Paths.get("src/test/resources/swaggers/testSpec.yaml")));
+    OpenAPI3RouterFactory.createRouterFactoryFromContent(this.vertx, content,
+      openAPI3RouterFactoryAsyncResult -> {
+        assertTrue(openAPI3RouterFactoryAsyncResult.succeeded());
+        OpenAPI3RouterFactory routerFactory = openAPI3RouterFactoryAsyncResult.result();
+        routerFactory.mountOperationsWithoutHandlers(true);
+
+        routerFactory.addHandlerByOperationId("listPets", routingContext -> {
+          routingContext.response().setStatusMessage("path mounted!").end();
+        });
+        routerFactory.addFailureHandlerByOperationId("listPets", generateFailureHandler(false));
+
+        routerFactory.addHandler(HttpMethod.POST, "/pets", routingContext -> {
+          routingContext.response().setStatusMessage("path mounted!").end();
+        });
+        routerFactory.addFailureHandler(HttpMethod.POST, "/pets", generateFailureHandler(false));
+
+        //Test if router generation throw error if no handler is set for security validation
+        boolean throwed = false;
+        try {
+          router[0] = routerFactory.getRouter();
+        } catch (RouterFactoryException e) {
+          throwed = true;
+        }
+        assertTrue("RouterFactoryException not thrown", throwed);
+
+        // Add security handler
+        routerFactory.addSecurityHandler("api_key", routingContext -> routingContext.next());
+        router[0] = routerFactory.getRouter();
+
+        latch.countDown();
+      });
+    awaitLatch(latch);
+
+    router[0].route().failureHandler((routingContext -> {
+      if (routingContext.statusCode() == 501)
+        routingContext.response().setStatusCode(501).setStatusMessage("not implemented").end();
+    }));
+
+    startServer(router[0]);
+
+    testRequest(HttpMethod.GET, "/pets", 200, "path mounted!");
+    testRequest(HttpMethod.POST, "/pets", 200, "path mounted!");
+    testRequest(HttpMethod.GET, "/pets/3", 501, "Not Implemented");
+
+    stopServer();
+
+  }
+
+  @Test
+  public void loadPetStoreFromFileAndTestSomething() throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
     final Router[] router = {null};
     OpenAPI3RouterFactory.createRouterFactoryFromFile(this.vertx, "src/test/resources/swaggers/testSpec.yaml",
