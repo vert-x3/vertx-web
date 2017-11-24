@@ -224,6 +224,24 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
   }
 
   @Test
+  public void testFormURLEncodedCharParameter() throws Exception {
+    Operation op = testSpec.getPaths().get("/formTests/urlencodedchar").getPost();
+    if(op.getParameters()==null) op.setParameters(new ArrayList<>());
+    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(op, op.getParameters(), testSpec);
+    loadHandlers("/formTests/urlencodedchar", HttpMethod.POST, false, validationHandler, (routingContext) -> {
+      RequestParameters params = routingContext.get("parsedParameters");
+      routingContext.response().setStatusMessage(params.formParameter("name").getString()).end();
+    });
+
+    String name = "test+urlencoded+char";
+
+    MultiMap form = MultiMap.caseInsensitiveMultiMap();
+    form.add("name", name);
+
+    testRequestWithForm(HttpMethod.POST, "/formTests/urlencodedchar", FormType.FORM_URLENCODED, form, 200, name);
+  }
+
+  @Test
   public void testJsonBody() throws Exception {
     Operation op = testSpec.getPaths().get("/jsonBodyTest/sampleTest").getPost();
     if(op.getParameters()==null) op.setParameters(new ArrayList<>());
