@@ -1,5 +1,6 @@
 package io.vertx.ext.web.api.contract.openapi3;
 
+import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpMethod;
@@ -10,17 +11,21 @@ import io.vertx.ext.web.WebTestWithWebClientBase;
 import io.vertx.ext.web.api.contract.RouterFactoryException;
 import io.vertx.ext.web.api.validation.ValidationException;
 import org.junit.Test;
+
 import java.nio.file.Files;
 import java.nio.file.Paths;
-
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * @author Francesco Guardiani @slinkydeveloper
  */
 public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
 
-  public Handler<RoutingContext> generateFailureHandler(boolean expected) {
+  public static Handler<RoutingContext> generateFailureHandler(boolean expected) {
     return routingContext -> {
       Throwable failure = routingContext.failure();
       if (failure instanceof ValidationException) {
@@ -74,14 +79,14 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
     super.tearDown();
   }
 
-  @Test
-  public void loadPetStoreFromContentAndTestSomething() throws Exception {
-    CountDownLatch latch = new CountDownLatch(1);
-    final Router[] router = {null};
-    final String content = new String(Files.readAllBytes(Paths.get("src/test/resources/swaggers/testSpec.yaml")));
-    OpenAPI3RouterFactory.createRouterFactoryFromContent(this.vertx, content,
-      openAPI3RouterFactoryAsyncResult -> {
-        assertTrue(openAPI3RouterFactoryAsyncResult.succeeded());
+  private static class PetStoreTestRouterBuilder {
+
+    private final CompletableFuture<Router> router = new CompletableFuture<>();
+
+    public void buildRouter(final AsyncResult<OpenAPI3RouterFactory> openAPI3RouterFactoryAsyncResult) {
+      if (openAPI3RouterFactoryAsyncResult.failed()) {
+        router.completeExceptionally(new IllegalStateException("RouterFactory result failed"));
+      } else {
         OpenAPI3RouterFactory routerFactory = openAPI3RouterFactoryAsyncResult.result();
         routerFactory.mountOperationsWithoutHandlers(true);
 
@@ -96,86 +101,66 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
         routerFactory.addFailureHandler(HttpMethod.POST, "/pets", generateFailureHandler(false));
 
         //Test if router generation throw error if no handler is set for security validation
-        boolean throwed = false;
+        boolean thrown = false;
         try {
-          router[0] = routerFactory.getRouter();
+          routerFactory.getRouter();
         } catch (RouterFactoryException e) {
-          throwed = true;
+          thrown = true;
         }
-        assertTrue("RouterFactoryException not thrown", throwed);
 
-        // Add security handler
-        routerFactory.addSecurityHandler("api_key", routingContext -> routingContext.next());
-        router[0] = routerFactory.getRouter();
+        if (!thrown) {
+          router.completeExceptionally(new AssertionError("RouterFactoryException not thrown"));
+        } else {
+          // Add security handler
+          routerFactory.addSecurityHandler("api_key", routingContext -> routingContext.next());
 
-        latch.countDown();
-      });
-    awaitLatch(latch);
+          router.complete(routerFactory.getRouter());
+        }
+      }
+    }
 
-    router[0].route().failureHandler((routingContext -> {
-      if (routingContext.statusCode() == 501)
-        routingContext.response().setStatusCode(501).setStatusMessage("not implemented").end();
-    }));
+    public Router getRouter() {
+      try {
+        return router.get(5, TimeUnit.SECONDS);
+      } catch (InterruptedException | ExecutionException | TimeoutException e) {
+        throw new RuntimeException(e);
+      }
+    }
 
-    startServer(router[0]);
+  }
 
-    testRequest(HttpMethod.GET, "/pets", 200, "path mounted!");
-    testRequest(HttpMethod.POST, "/pets", 200, "path mounted!");
-    testRequest(HttpMethod.GET, "/pets/3", 501, "Not Implemented");
+  @Test
+  public void loadPetStoreFromContentAndTestSomething() throws Exception {
+    final String content = new String(Files.readAllBytes(Paths.get("src/test/resources/swaggers/testSpec.yaml")));
+    final PetStoreTestRouterBuilder testRouterBuilder = new PetStoreTestRouterBuilder();
 
-    stopServer();
+    OpenAPI3RouterFactory.createRouterFactoryFromContent(this.vertx, content, testRouterBuilder::buildRouter);
+
+    testPetStoreRouter(testRouterBuilder);
 
   }
 
   @Test
   public void loadPetStoreFromFileAndTestSomething() throws Exception {
-    CountDownLatch latch = new CountDownLatch(1);
-    final Router[] router = {null};
-    OpenAPI3RouterFactory.createRouterFactoryFromFile(this.vertx, "src/test/resources/swaggers/testSpec.yaml",
-      openAPI3RouterFactoryAsyncResult -> {
-        assertTrue(openAPI3RouterFactoryAsyncResult.succeeded());
-        OpenAPI3RouterFactory routerFactory = openAPI3RouterFactoryAsyncResult.result();
-        routerFactory.mountOperationsWithoutHandlers(true);
+    final PetStoreTestRouterBuilder routerBuilder = new PetStoreTestRouterBuilder();
+    OpenAPI3RouterFactory.createRouterFactoryFromFile(this.vertx, "src/test/resources/swaggers/testSpec.yaml", routerBuilder::buildRouter);
+    testPetStoreRouter(routerBuilder);
+  }
 
-        routerFactory.addHandlerByOperationId("listPets", routingContext -> {
-          routingContext.response().setStatusMessage("path mounted!").end();
-        });
-        routerFactory.addFailureHandlerByOperationId("listPets", generateFailureHandler(false));
-
-        routerFactory.addHandler(HttpMethod.POST, "/pets", routingContext -> {
-          routingContext.response().setStatusMessage("path mounted!").end();
-        });
-        routerFactory.addFailureHandler(HttpMethod.POST, "/pets", generateFailureHandler(false));
-
-        //Test if router generation throw error if no handler is set for security validation
-        boolean throwed = false;
-        try {
-          router[0] = routerFactory.getRouter();
-        } catch (RouterFactoryException e) {
-          throwed = true;
-        }
-        assertTrue("RouterFactoryException not thrown", throwed);
-
-        // Add security handler
-        routerFactory.addSecurityHandler("api_key", routingContext -> routingContext.next());
-        router[0] = routerFactory.getRouter();
-
-        latch.countDown();
-      });
-    awaitLatch(latch);
-
-    router[0].route().failureHandler((routingContext -> {
+  public void testPetStoreRouter(io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactoryTest.PetStoreTestRouterBuilder testRouterBuilder) throws Exception {
+    final io.vertx.ext.web.Router router = testRouterBuilder.getRouter();
+    router.route().failureHandler((routingContext -> {
       if (routingContext.statusCode() == 501)
         routingContext.response().setStatusCode(501).setStatusMessage("not implemented").end();
     }));
 
-    startServer(router[0]);
+    startServer(router);
 
     testRequest(HttpMethod.GET, "/pets", 200, "path mounted!");
     testRequest(HttpMethod.POST, "/pets", 200, "path mounted!");
     testRequest(HttpMethod.GET, "/pets/3", 501, "Not Implemented");
 
     stopServer();
-
   }
+
 }
