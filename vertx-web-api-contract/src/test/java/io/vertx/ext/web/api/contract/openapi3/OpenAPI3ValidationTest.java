@@ -19,7 +19,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExternalResource;
 
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -194,7 +193,7 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
 
     MultiMap form = MultiMap.caseInsensitiveMultiMap();
     form.add("id", id);
-    form.add("values", URLEncoder.encode(values, "UTF-8"));
+    form.add("values", values);
 
     testRequestWithForm(HttpMethod.POST, "/formTests/arraytest", FormType.FORM_URLENCODED, form, 200, id + values);
   }
@@ -218,7 +217,7 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
 
     MultiMap form = MultiMap.caseInsensitiveMultiMap();
     form.add("id", id);
-    form.add("values", URLEncoder.encode(values, "UTF-8"));
+    form.add("values", values);
 
     testRequestWithForm(HttpMethod.POST, "/formTests/arraytest", FormType.FORM_URLENCODED, form, 400, errorMessage
       (ValidationException.ErrorType.NO_MATCH));
@@ -374,14 +373,14 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
     pet.put("id", 14612);
     pet.put("name", "Willy");
 
-    form.add("param2", URLEncoder.encode(pet.encode(), "UTF-8"));
+    form.add("param2", pet.encode());
 
-    form.add("param3", URLEncoder.encode("SELECT * FROM table;", "UTF-8"));
+    form.add("param3", "SELECT * FROM table;");
 
     List<String> valuesArray = new ArrayList<>();
     for (int i = 0; i < 4; i++)
       valuesArray.add(getSuccessSample(ParameterType.FLOAT).getFloat().toString());
-    form.add("param4", URLEncoder.encode(serializeInCSVStringArray(valuesArray), "UTF-8"));
+    form.add("param4", serializeInCSVStringArray(valuesArray));
 
     testRequestWithForm(HttpMethod.POST, "/multipart/complex", FormType.MULTIPART, form, 200, "ok");
   }
