@@ -9,8 +9,6 @@ import io.vertx.ext.web.api.impl.RequestParameterImpl;
 import io.vertx.ext.web.api.impl.RequestParametersImpl;
 import io.vertx.ext.web.api.validation.*;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -196,11 +194,7 @@ public abstract class BaseValidationHandler implements ValidationHandler {
         // Decode values because I assume they are text/plain in this phase
         List<String> values = new ArrayList<>();
         for (String s : formParams.getAll(name)) {
-          try {
-            values.add(URLDecoder.decode(s, "UTF-8"));
-          } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-          }
+          values.add(s);
           RequestParameter parsedParam = rule.validateArrayParam(values);
           if (parsedParams.containsKey(parsedParam.getName()))
             parsedParam = parsedParam.merge(parsedParams.get(parsedParam.getName()));
