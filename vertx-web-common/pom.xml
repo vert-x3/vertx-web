@@ -68,7 +68,7 @@
             io.vertx.reactivex.*;resolution:=optional,\
             io.vertx.lang.reactivex.*;resolution:=optional,\
             *
-          -exportcontents: !examples, *
+          -exportcontents: !examples, !io.vertx.ext.web, *
           ]]></bnd>
         </configuration>
       </plugin>
