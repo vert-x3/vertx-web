@@ -1,24 +1,21 @@
 package io.vertx.ext.web.client;
 
+import io.reactivex.Observable;
+import io.reactivex.Single;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.jackson.WineAndCheese;
-import io.vertx.rxjava.core.Vertx;
-import io.vertx.rxjava.core.buffer.Buffer;
-import io.vertx.rxjava.core.http.HttpServer;
-import io.vertx.rxjava.ext.web.codec.BodyCodec;
+import io.vertx.reactivex.core.Vertx;
+import io.vertx.reactivex.core.buffer.Buffer;
+import io.vertx.reactivex.core.http.HttpServer;
+import io.vertx.reactivex.ext.web.client.WebClient;
+import io.vertx.reactivex.ext.web.client.HttpResponse;
+import io.vertx.reactivex.ext.web.codec.BodyCodec;
 import io.vertx.test.core.VertxTestBase;
-import io.vertx.rxjava.ext.web.client.WebClient;
-import io.vertx.rxjava.ext.web.client.HttpResponse;
 import org.junit.Test;
-import rx.Observable;
-import rx.Single;
 
-/**
- * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
- */
-public class RxTest extends VertxTestBase {
+public class Rx2Test extends VertxTestBase {
 
   private Vertx vertx;
   private WebClient client;
@@ -40,9 +37,9 @@ public class RxTest extends VertxTestBase {
       server.listen(ar -> {
         client = WebClient.wrap(vertx.createHttpClient(new HttpClientOptions()));
         Single<HttpResponse<Buffer>> single = client
-          .get(8080, "localhost", "/the_uri")
-          .as(BodyCodec.buffer())
-          .rxSend();
+                .get(8080, "localhost", "/the_uri")
+                .as(BodyCodec.buffer())
+                .rxSend();
         for (int i = 0; i < times; i++) {
           single.subscribe(resp -> {
             Buffer body = resp.body();
@@ -71,8 +68,8 @@ public class RxTest extends VertxTestBase {
         client = WebClient.wrap(vertx.createHttpClient(new HttpClientOptions()));
         Observable<Buffer> stream = Observable.just(Buffer.buffer("one"), Buffer.buffer("two"), Buffer.buffer("three"));
         Single<HttpResponse<Buffer>> single = client
-          .post(8080, "localhost", "/the_uri")
-          .rxSendStream(stream);
+                .post(8080, "localhost", "/the_uri")
+                .rxSendStream(stream);
         for (int i = 0; i < times; i++) {
           single.subscribe(resp -> complete(), this::fail);
         }
@@ -93,8 +90,8 @@ public class RxTest extends VertxTestBase {
       server.listen(ar -> {
         client = WebClient.wrap(vertx.createHttpClient(new HttpClientOptions()));
         Single<HttpResponse<Buffer>> single = client
-          .get(8080, "localhost", "/the_uri")
-          .rxSend();
+                .get(8080, "localhost", "/the_uri")
+                .rxSend();
         for (int i = 0; i < times; i++) {
           single.subscribe(resp -> {
             assertEquals(403, resp.statusCode());
@@ -118,9 +115,9 @@ public class RxTest extends VertxTestBase {
       server.listen(ar -> {
         client = WebClient.wrap(vertx.createHttpClient(new HttpClientOptions()));
         Single<HttpResponse<WineAndCheese>> single = client
-          .get(8080, "localhost", "/the_uri")
-          .as(BodyCodec.json(WineAndCheese.class))
-          .rxSend();
+                .get(8080, "localhost", "/the_uri")
+                .as(BodyCodec.json(WineAndCheese.class))
+                .rxSend();
         single.subscribe(resp -> {
           assertEquals(200, resp.statusCode());
           assertEquals(new WineAndCheese().setCheese("Goat Cheese").setWine("Condrieu"), resp.body());
