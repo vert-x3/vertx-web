@@ -1,14 +1,17 @@
 package io.vertx.ext.web.api.contract.openapi3.impl;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import io.swagger.oas.models.OpenAPI;
 import io.swagger.oas.models.media.ComposedSchema;
 import io.swagger.oas.models.media.Schema;
 import io.swagger.oas.models.parameters.Parameter;
+import io.swagger.parser.v3.ObjectMapperFactory;
 import io.vertx.ext.web.api.validation.SpecFeatureNotSupportedException;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -27,7 +30,11 @@ public class OpenApi3Utils {
   }
 
   public static boolean isSchemaObjectOrAllOfType(Schema schema) {
-    return schema != null && (isAllOfSchema(schema) || "object".equals(schema.getType()));
+    return isAllOfSchema(schema) || isSchemaObject(schema);
+  }
+
+  public static boolean isSchemaObject(Schema schema) {
+    return schema != null && ("object".equals(schema.getType()) || schema.getProperties() != null);
   }
 
   public static boolean isRequiredParam(Schema schema, String parameterName) {
@@ -175,6 +182,72 @@ public class OpenApi3Utils {
         return properties;
       }
     } else return null;
+  }
+
+  private final static Pattern COMPONENTS_REFS_MATCHER = Pattern.compile("^\\#\\/components\\/schemas\\/(.+)$");
+  private final static String COMPONENTS_REFS_SUBSTITUTION = "\\#\\/definitions\\/$1";
+
+  public static ObjectNode generateJsonSchema(Schema s, OpenAPI oas) {
+    ObjectNode n = ObjectMapperFactory.createJson().valueToTree(s);
+    if (n.get("$ref") != null) {
+      throw new RuntimeException("WAT");
+    }
+    walkAndSolve(n, n, oas);
+    return n;
+  }
+
+  private static void walkAndSolve(ObjectNode n, ObjectNode root, OpenAPI oas) {
+    if (n.has("$ref")) {
+      replaceRef(n, root, oas);
+    } else if (n.has("allOf")) {
+      Iterator<JsonNode> it = n.get("allOf").elements();
+      while (it.hasNext()) {
+        walkAndSolve((ObjectNode) it.next(), root, oas);
+      }
+    } else if (n.has("anyOf")) {
+      Iterator<JsonNode> it = n.get("anyOf").elements();
+      while (it.hasNext()) {
+        walkAndSolve((ObjectNode) it.next(), root, oas);
+      }
+    } else if (n.has("oneOf")) {
+      Iterator<JsonNode> it = n.get("oneOf").elements();
+      while (it.hasNext()) {
+        walkAndSolve((ObjectNode) it.next(), root, oas);
+      }
+    } else if (n.has("properties")) {
+      Iterator<Map.Entry<String, JsonNode>> it = n.get("properties").fields();
+      while (it.hasNext()) {
+        walkAndSolve((ObjectNode) it.next().getValue(), root, oas);
+      }
+    }
+  }
+
+  private static void replaceRef(ObjectNode n, ObjectNode root, OpenAPI oas) {
+    /**
+     * If a ref is found, the structure of the schema is circular. The oas parser don't solve circular refs.
+     * So I bundle the schema:
+     * 1. I update the ref field with a #/definitions/schema_name uri
+     * 2. If #/definitions/schema_name is empty, I solve it
+     */
+    String oldRef = n.get("$ref").asText();
+    Matcher m = COMPONENTS_REFS_MATCHER.matcher(oldRef);
+    if (m.lookingAt()) {
+      String schemaName = m.group(1);
+      String newRef = m.replaceAll(COMPONENTS_REFS_SUBSTITUTION);
+      n.replace("$ref", JsonNodeFactory.instance.textNode(newRef));
+      if (!root.has("definitions") || !root.get("definitions").has(schemaName)) {
+        Schema s = oas.getComponents().getSchemas().get(schemaName);
+        ObjectNode schema = ObjectMapperFactory.createJson().valueToTree(s);
+        // We need to search inside for other refs
+        ObjectNode definitions;
+        if (!root.has("definitions"))
+          definitions = root.putObject("definitions");
+        else
+          definitions = (ObjectNode) root.get("definitions");
+        definitions.set(schemaName, schema);
+        walkAndSolve(schema, root, oas);
+      }
+    } else throw new RuntimeException("Very big problem here!");
   }
 
 }

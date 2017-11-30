@@ -1,6 +1,7 @@
 package io.vertx.ext.web.api.contract.openapi3;
 
 import io.swagger.oas.models.OpenAPI;
+import io.swagger.parser.models.ParseOptions;
 import io.swagger.parser.models.SwaggerParseResult;
 import io.swagger.parser.v3.OpenAPIV3Parser;
 import io.vertx.codegen.annotations.Fluent;
@@ -93,7 +94,10 @@ public interface OpenAPI3RouterFactory extends DesignDrivenRouterFactory<OpenAPI
       File spec = new File(filename);
       if (!spec.exists())
         future.fail(RouterFactoryException.createSpecNotExistsException(filename));
-      SwaggerParseResult swaggerParseResult = new OpenAPIV3Parser().readLocation(spec.getAbsolutePath(), null, null);
+
+      ParseOptions options = new ParseOptions();
+      options.setResolveFully(true);
+      SwaggerParseResult swaggerParseResult = new OpenAPIV3Parser().readLocation(spec.getAbsolutePath(), null, options);
 
       if (swaggerParseResult.getMessages().isEmpty()) future.complete(new OpenAPI3RouterFactoryImpl(vertx, swaggerParseResult.getOpenAPI()));
       else {

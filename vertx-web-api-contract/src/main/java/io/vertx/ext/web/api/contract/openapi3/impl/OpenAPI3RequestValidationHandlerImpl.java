@@ -3,19 +3,13 @@ package io.vertx.ext.web.api.contract.openapi3.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.oas.models.OpenAPI;
 import io.swagger.oas.models.Operation;
-import io.swagger.oas.models.media.ArraySchema;
-import io.swagger.oas.models.media.ComposedSchema;
-import io.swagger.oas.models.media.Content;
-import io.swagger.oas.models.media.Encoding;
-import io.swagger.oas.models.media.MediaType;
-import io.swagger.oas.models.media.Schema;
+import io.swagger.oas.models.media.*;
 import io.swagger.oas.models.parameters.Parameter;
 import io.swagger.oas.models.parameters.RequestBody;
 import io.swagger.parser.v3.ObjectMapperFactory;
-import io.swagger.parser.v3.util.RefUtils;
 import io.vertx.ext.web.FileUpload;
-import io.vertx.ext.web.api.RequestParameter;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.api.RequestParameter;
 import io.vertx.ext.web.api.contract.impl.HTTPOperationRequestValidationHandlerImpl;
 import io.vertx.ext.web.api.contract.openapi3.OpenAPI3RequestValidationHandler;
 import io.vertx.ext.web.api.validation.*;
@@ -240,28 +234,20 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
     Content contents = parameter.getContent();
     ParameterLocation location = resolveLocation(parameter.getIn());
     if (contents.size() == 1 && contents.containsKey("application/json")) {
-      try {
-        this.addRule(ParameterValidationRuleImpl.ParameterValidationRuleFactory
-          .createValidationRuleWithCustomTypeValidator(parameter.getName(), JsonTypeValidator.JsonTypeValidatorFactory
-            .createJsonTypeValidator(ObjectMapperFactory.createJson()
-              .writeValueAsString(contents.get("application/json").getSchema())), !parameter.getRequired(), OpenApi3Utils.resolveAllowEmptyValue(parameter), location), location);
-      } catch (JsonProcessingException e) {
-        throw new SpecFeatureNotSupportedException("problem when deserializing parameter to json for parameter " + parameter.getName());
-      }
+      this.addRule(ParameterValidationRuleImpl.ParameterValidationRuleFactory
+        .createValidationRuleWithCustomTypeValidator(parameter.getName(), JsonTypeValidator.JsonTypeValidatorFactory
+          .createJsonTypeValidator(OpenApi3Utils.generateJsonSchema(contents.get("application/json").getSchema(), this.spec)),
+          !parameter.getRequired(), OpenApi3Utils.resolveAllowEmptyValue(parameter), location), location);
     } else if (contents.size() > 1 && contents.containsKey("application/json")) {
-      try {
-        // Mount anyOf
-        List<ParameterTypeValidator> validators = new ArrayList<>();
-        validators.add(CONTENT_TYPE_VALIDATOR);
-        validators.add(0, JsonTypeValidator.JsonTypeValidatorFactory.createJsonTypeValidator(ObjectMapperFactory.createJson().writeValueAsString(
-          contents.get("application/json").getSchema())));
-        AnyOfTypeValidator validator = new AnyOfTypeValidator(validators);
-        this.addRule(ParameterValidationRuleImpl.ParameterValidationRuleFactory
-          .createValidationRuleWithCustomTypeValidator(parameter.getName(), validator, !parameter.getRequired(), OpenApi3Utils.resolveAllowEmptyValue(parameter)
-            , location), location);
-      } catch (JsonProcessingException e) {
-        throw new SpecFeatureNotSupportedException("problem when deserializing parameter to json for parameter " + parameter.getName());
-      }
+      // Mount anyOf
+      List<ParameterTypeValidator> validators = new ArrayList<>();
+      validators.add(CONTENT_TYPE_VALIDATOR);
+      validators.add(0, JsonTypeValidator.JsonTypeValidatorFactory
+        .createJsonTypeValidator(OpenApi3Utils.generateJsonSchema(contents.get("application/json").getSchema(), this.spec)));
+      AnyOfTypeValidator validator = new AnyOfTypeValidator(validators);
+      this.addRule(ParameterValidationRuleImpl.ParameterValidationRuleFactory
+        .createValidationRuleWithCustomTypeValidator(parameter.getName(), validator, !parameter.getRequired(), OpenApi3Utils.resolveAllowEmptyValue(parameter)
+          , location), location);
     } else {
       this.addRule(ParameterValidationRuleImpl.ParameterValidationRuleFactory
         .createValidationRuleWithCustomTypeValidator(parameter.getName(), CONTENT_TYPE_VALIDATOR, !parameter
@@ -392,11 +378,6 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
 
   /* Entry point for parse Parameter object */
   private void parseParameter(Parameter parameter) {
-    if(parameter.getSchema().get$ref() != null) {
-      Schema refSchema = this.spec.getComponents().getSchemas().get(RefUtils.computeDefinitionName(parameter.getSchema().get$ref()));
-      if(refSchema != null) parameter.setSchema(refSchema);
-    }
-
     if (!checkSupportedAndNeedWorkaround(parameter)) {
       ParameterLocation location = resolveLocation(parameter.getIn());
       this.addRule(ParameterValidationRuleImpl.ParameterValidationRuleFactory
@@ -413,7 +394,7 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
       return ArrayTypeValidator.ArrayTypeValidatorFactory.createArrayTypeValidator(this
           .resolveInnerSchemaPrimitiveTypeValidator(((ArraySchema) schema).getItems(), true), "csv", false, schema.getMaxItems(),
         schema.getMinItems());
-    else if (schema.getType().equals("object")) {
+    else if (OpenApi3Utils.isSchemaObjectOrAllOfType(schema)) {
       ObjectTypeValidator objectTypeValidator = ObjectTypeValidator.ObjectTypeValidatorFactory
         .createObjectTypeValidator("csv", false);
       resolveObjectTypeFields(objectTypeValidator, schema);
@@ -425,15 +406,15 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
   /* This function resolves default content types of multipart parameters */
   private String resolveDefaultContentTypeRegex(Schema schema) {
     if (schema.getType() != null) {
-      if (schema.getType().equals("object")) return Pattern.quote("application/json");
-      else if (schema.getType().equals("string") && schema.getFormat() != null && (schema.getFormat().equals
+      if (schema.getType().equals("string") && schema.getFormat() != null && (schema.getFormat().equals
         ("binary") || schema.getFormat().equals("base64")))
         return Pattern.quote("application/octet-stream");
-      else if (schema.getType().equals("array")) return this.resolveDefaultContentTypeRegex(((ArraySchema) schema).getItems());
+      else if (schema.getType().equals("array"))
+        return this.resolveDefaultContentTypeRegex(((ArraySchema) schema).getItems());
       else return Pattern.quote("text/plain");
     }
 
-    if(schema.get$ref() != null)
+    if (OpenApi3Utils.isSchemaObjectOrAllOfType(schema))
       return Pattern.quote("application/json");
 
     throw new SpecFeatureNotSupportedException("Unable to find default content type for multipart parameter. Use " +
@@ -444,14 +425,10 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
   private void handleMultimapParameter(String parameterName, String contentType, Schema schema, Schema multipartObjectSchema) {
     Pattern contentTypePattern = Pattern.compile(contentType);
     if (contentTypePattern.matcher("application/json").matches()) {
-      try {
-        this.addFormParamRule(ParameterValidationRuleImpl.ParameterValidationRuleFactory
-          .createValidationRuleWithCustomTypeValidator(parameterName, JsonTypeValidator.JsonTypeValidatorFactory
-            .createJsonTypeValidator(ObjectMapperFactory.createJson().writeValueAsString(schema)), !OpenApi3Utils.isRequiredParam
-            (multipartObjectSchema, parameterName), false, ParameterLocation.BODY_FORM));
-      } catch (JsonProcessingException e) {
-        throw new SpecFeatureNotSupportedException("problem when deserializing parameter to json for " + parameterName);
-      }
+      this.addFormParamRule(ParameterValidationRuleImpl.ParameterValidationRuleFactory
+        .createValidationRuleWithCustomTypeValidator(parameterName, JsonTypeValidator.JsonTypeValidatorFactory
+          .createJsonTypeValidator(OpenApi3Utils.generateJsonSchema(schema, this.spec)), !OpenApi3Utils.isRequiredParam
+          (multipartObjectSchema, parameterName), false, ParameterLocation.BODY_FORM));
     } else if (contentTypePattern.matcher("text/plain").matches()) {
       this.addFormParamRule(ParameterValidationRuleImpl.ParameterValidationRuleFactory
           .createValidationRuleWithCustomTypeValidator(parameterName,
@@ -468,12 +445,8 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
     if (requestBody != null && requestBody.getContent() != null)
       for (Map.Entry<String, ? extends MediaType> mediaType : requestBody.getContent().entrySet()) {
         if (mediaType.getKey().equals("application/json") && mediaType.getValue().getSchema() != null) {
-          try {
-            this.setEntireBodyValidator(JsonTypeValidator.JsonTypeValidatorFactory.createJsonTypeValidator(
-              ObjectMapperFactory.createJson().writeValueAsString(mediaType.getValue().getSchema())));
-          } catch (JsonProcessingException e) {
-            throw new SpecFeatureNotSupportedException("problem when deserializing requestBody to json");
-          }
+          this.setEntireBodyValidator(JsonTypeValidator.JsonTypeValidatorFactory
+            .createJsonTypeValidator(OpenApi3Utils.generateJsonSchema(mediaType.getValue().getSchema(), this.spec)));
         } else if (mediaType.getKey().equals("application/x-www-form-urlencoded") && mediaType.getValue().getSchema()
           != null) {
           for (Map.Entry<String, ? extends Schema> paramSchema : ((Map<String, Schema>) mediaType.getValue().getSchema().getProperties())
