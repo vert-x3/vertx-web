@@ -115,6 +115,8 @@ public class BodyHandlerImpl implements BodyHandler {
 
     public BHandler(RoutingContext context) {
       this.context = context;
+      this.context.request().connection().closeHandler(event -> deleteFileUploads());
+
       Set<FileUpload> fileUploads = context.fileUploads();
 
       final String contentType = context.request().getHeader(HttpHeaders.CONTENT_TYPE);
