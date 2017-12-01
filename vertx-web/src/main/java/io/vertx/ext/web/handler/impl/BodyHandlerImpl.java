@@ -131,6 +131,15 @@ public class BodyHandlerImpl implements BodyHandler {
         makeUploadDir(context.vertx().fileSystem());
         context.request().setExpectMultipart(true);
         context.request().uploadHandler(upload -> {
+          if (bodyLimit != -1 && upload.isSizeAvailable()) {
+            // we can try to abort even before the upload starts
+            long size = uploadSize + upload.size();
+            if (size > bodyLimit) {
+              failed = true;
+              context.fail(413);
+              return;
+            }
+          }
           // we actually upload to a file with a generated filename
           uploadCount.incrementAndGet();
           String uploadedFileName = new File(uploadsDir, UUID.randomUUID().toString()).getPath();
@@ -159,6 +168,8 @@ public class BodyHandlerImpl implements BodyHandler {
       if (bodyLimit != -1 && uploadSize > bodyLimit) {
         failed = true;
         context.fail(413);
+        // enqueue a delete for the error uploads
+        context.vertx().runOnContext(v -> deleteFileUploads());
       } else {
         // multipart requests will not end up in the request body
         // url encoded should also not, however jQuery by default
@@ -189,16 +200,14 @@ public class BodyHandlerImpl implements BodyHandler {
     }
 
     void doEnd() {
-      if (deleteUploadedFilesOnEnd) {
-        if (failed) {
-          deleteFileUploads();
-        } else {
-          context.addBodyEndHandler(x -> deleteFileUploads());
-        }
-      }
 
       if (failed) {
+        deleteFileUploads();
         return;
+      }
+
+      if (deleteUploadedFilesOnEnd) {
+        context.addBodyEndHandler(x -> deleteFileUploads());
       }
 
       HttpServerRequest req = context.request();
