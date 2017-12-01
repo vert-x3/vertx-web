@@ -136,7 +136,39 @@ paths:
                       type: array
                       items:
                         $ref: '#/paths/~1test9/get/requestBody/content/application~1json/schema'
-
+  /test10:
+    get:
+      operationId: test10
+      responses:
+        default:
+          description: "OK"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: 'http://localhost:8081/tree.yaml#/tree'
+  /test11:
+    get:
+      operationId: test11
+      responses:
+        default:
+          description: "OK"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: './src/test/resources/swaggers/schemas/tree.yaml#/tree'
+  /test12:
+    get:
+      operationId: test12
+      responses:
+        default:
+          description: "OK"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/schemaA'
 
 components:
   schemas:
@@ -171,4 +203,21 @@ components:
               $ref: '#/components/schemas/PersonRecursive'
             father:
               $ref: '#/components/schemas/PersonRecursive'
-
+    schemaA:
+      title: schemaA
+      type: object
+      properties:
+        a:
+          $ref: '#/components/schemas/schemaB'
+        b:
+          type: string
+        c:
+          type: number
+    schemaB:
+      title: schemaB
+      type: object
+      properties:
+        a:
+          type: array
+          items:
+            $ref: '#/components/schemas/schemaA'

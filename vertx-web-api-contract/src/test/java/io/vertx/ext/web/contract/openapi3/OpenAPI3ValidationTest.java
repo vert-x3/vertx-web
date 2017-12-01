@@ -2,6 +2,7 @@ package io.vertx.ext.web.api.contract.openapi3;
 
 import io.swagger.oas.models.OpenAPI;
 import io.swagger.oas.models.Operation;
+import io.swagger.parser.models.ParseOptions;
 import io.swagger.parser.v3.OpenAPIV3Parser;
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpMethod;
@@ -44,7 +45,10 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
   };
 
   private OpenAPI loadSwagger(String filename) {
-    return new OpenAPIV3Parser().readLocation(filename, null, null).getOpenAPI();
+    ParseOptions options = new ParseOptions();
+    options.setResolve(true);
+    options.setResolveFully(true);
+    return new OpenAPIV3Parser().readLocation(filename, null, options).getOpenAPI();
   }
 
   @Test

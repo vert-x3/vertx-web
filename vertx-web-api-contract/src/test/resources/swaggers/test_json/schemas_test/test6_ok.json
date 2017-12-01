@@ -17,11 +17,11 @@
   "url": "http://hello.com",
   "email": {
     "type": "dolor dolor",
-    "value": "kEBULxiNAbfUSqj@P.qe"
+    "value": "fake@vertx.com"
   },
   "org": {},
   "geo": {
-    "longitude": 63766244.90001288
+    "longitude": 63766244.900
   },
   "adr": {
     "locality": "sunt consequat",

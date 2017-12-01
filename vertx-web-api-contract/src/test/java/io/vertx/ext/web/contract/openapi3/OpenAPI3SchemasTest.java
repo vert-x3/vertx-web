@@ -1,7 +1,5 @@
 package io.vertx.ext.web.contract.openapi3;
 
-import io.swagger.oas.models.OpenAPI;
-import io.swagger.parser.v3.OpenAPIV3Parser;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpMethod;
@@ -11,21 +9,19 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory;
-import io.vertx.ext.web.api.contract.openapi3.impl.OpenAPI3RouterFactoryImpl;
+import io.vertx.ext.web.api.validation.ValidationException;
 import io.vertx.ext.web.api.validation.WebTestValidationBase;
 import io.vertx.ext.web.handler.StaticHandler;
 import org.junit.Ignore;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExternalResource;
 
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.concurrent.CountDownLatch;
 
 /**
+ * This tests check the building of JSON schemas from OAS schemas and validation of JSON
  * @author Francesco Guardiani @slinkydeveloper
  */
 public class OpenAPI3SchemasTest extends WebTestValidationBase {
@@ -37,6 +33,13 @@ public class OpenAPI3SchemasTest extends WebTestValidationBase {
 
   final Handler<RoutingContext> handler = routingContext -> {
     routingContext.response().setStatusCode(200).end("OK");
+  };
+
+  final Handler<RoutingContext> FAILURE_HANDLER = routingContext -> {
+    if (routingContext.failure() instanceof ValidationException)
+      routingContext.response().setStatusCode(400).setStatusMessage("ValidationException").end(routingContext.failure().toString());
+    else
+      routingContext.response().setStatusCode(500).setStatusMessage("Error").end(routingContext.failure().toString());
   };
 
   @Override
@@ -51,7 +54,7 @@ public class OpenAPI3SchemasTest extends WebTestValidationBase {
       assertNull(openAPI3RouterFactoryAsyncResult.cause());
       routerFactory = openAPI3RouterFactoryAsyncResult.result();
       routerFactory.enableValidationFailureHandler(true);
-      routerFactory.setValidationFailureHandler(generateFailureHandler());
+      routerFactory.setValidationFailureHandler(FAILURE_HANDLER);
       routerFactory.mountOperationsWithoutHandlers(false);
       latch.countDown();
     });
@@ -68,10 +71,6 @@ public class OpenAPI3SchemasTest extends WebTestValidationBase {
     stopSchemaServer();
     stopServer();
     super.tearDown();
-  }
-
-  private Handler<RoutingContext> generateFailureHandler() {
-    return routingContext -> routingContext.response().setStatusCode(400).setStatusMessage("ValidationException").end();
   }
 
   private void startServer() throws Exception {
@@ -219,6 +218,30 @@ public class OpenAPI3SchemasTest extends WebTestValidationBase {
     assertRequestOk("/test9", "test6_ok.json"); // Test6 should work
     assertRequestOk("/test9", "test9_ok.json");
     assertRequestFail("/test8", "test9_fail.json");
+  }
+
+  @Test
+  public void test10() throws Exception {
+    routerFactory.addHandlerByOperationId("test10", handler);
+    startServer();
+    assertRequestOk("/test10", "test10_ok.json");
+    assertRequestFail("/test10", "test10_fail.json");
+  }
+
+  @Test
+  public void test11() throws Exception {
+    routerFactory.addHandlerByOperationId("test11", handler);
+    startServer();
+    assertRequestOk("/test11", "test10_ok.json");
+    assertRequestFail("/test11", "test10_fail.json");
+  }
+
+  @Test
+  public void test12() throws Exception {
+    routerFactory.addHandlerByOperationId("test12", handler);
+    startServer();
+    assertRequestOk("/test12", "test12_ok.json");
+    assertRequestFail("/test12", "test12_fail.json");
   }
 
 }

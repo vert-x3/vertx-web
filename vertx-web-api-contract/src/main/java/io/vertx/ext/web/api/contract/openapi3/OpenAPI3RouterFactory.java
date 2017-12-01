@@ -96,6 +96,7 @@ public interface OpenAPI3RouterFactory extends DesignDrivenRouterFactory<OpenAPI
         future.fail(RouterFactoryException.createSpecNotExistsException(filename));
 
       ParseOptions options = new ParseOptions();
+      options.setResolve(true);
       options.setResolveFully(true);
       SwaggerParseResult swaggerParseResult = new OpenAPIV3Parser().readLocation(spec.getAbsolutePath(), null, options);
 

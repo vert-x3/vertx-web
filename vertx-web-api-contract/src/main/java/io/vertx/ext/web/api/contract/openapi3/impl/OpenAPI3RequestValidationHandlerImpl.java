@@ -1,12 +1,10 @@
 package io.vertx.ext.web.api.contract.openapi3.impl;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.oas.models.OpenAPI;
 import io.swagger.oas.models.Operation;
 import io.swagger.oas.models.media.*;
 import io.swagger.oas.models.parameters.Parameter;
 import io.swagger.oas.models.parameters.RequestBody;
-import io.swagger.parser.v3.ObjectMapperFactory;
 import io.vertx.ext.web.FileUpload;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.api.RequestParameter;

@@ -1,18 +1,19 @@
 package io.vertx.ext.web.api.contract.openapi3;
 
 import io.swagger.oas.models.OpenAPI;
+import io.swagger.parser.models.ParseOptions;
 import io.swagger.parser.v3.OpenAPIV3Parser;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpServerOptions;
-import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.api.RequestParameter;
 import io.vertx.ext.web.api.RequestParameters;
-import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.api.contract.openapi3.impl.OpenAPI3RouterFactoryImpl;
 import io.vertx.ext.web.api.validation.WebTestValidationBase;
+import io.vertx.ext.web.client.HttpResponse;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExternalResource;
@@ -2511,7 +2512,10 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
 
 
   private OpenAPI loadSwagger(String filename) throws IOException {
-    return new OpenAPIV3Parser().readContents(String.join("\n", Files.readAllLines(Paths.get(filename), StandardCharsets.UTF_8)), null, null).getOpenAPI();
+    ParseOptions options = new ParseOptions();
+    options.setResolve(true);
+    options.setResolveFully(true);
+    return new OpenAPIV3Parser().readContents(String.join("\n", Files.readAllLines(Paths.get(filename), StandardCharsets.UTF_8)), null, options).getOpenAPI();
   }
 
   public Handler<RoutingContext> generateFailureHandler() {
