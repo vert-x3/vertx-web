@@ -881,6 +881,22 @@ public class WebClientTest extends HttpTestBase {
   }
 
   @Test
+  public void testRetainsFragmentWithoutParams() throws Exception {
+    testRequestWithUri("/path#fragment");
+  }
+
+  @Test(expected=AssertionError.class)
+  public void testRetainsFragmentWithParams() throws Exception {
+    testRequestWithUri("/path?key=val#fragment");
+  }
+
+  private void testRequestWithUri(String uri) throws Exception {
+    testRequest(client -> client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, uri), req -> {
+      assertEquals(uri, req.uri());
+    });
+  }
+
+  @Test
   public void testFormUrlEncoded() throws Exception {
     server.requestHandler(req -> {
       req.setExpectMultipart(true);
