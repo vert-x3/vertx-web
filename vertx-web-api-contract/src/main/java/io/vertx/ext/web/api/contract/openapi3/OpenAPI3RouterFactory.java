@@ -15,9 +15,13 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.api.contract.DesignDrivenRouterFactory;
 import io.vertx.ext.web.api.contract.RouterFactoryException;
 import io.vertx.ext.web.api.contract.openapi3.impl.OpenAPI3RouterFactoryImpl;
+import io.vertx.ext.web.api.contract.openapi3.impl.OpenApi3Utils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 /**
  * Interface for OpenAPI3RouterFactory. <br/>
@@ -92,18 +96,16 @@ public interface OpenAPI3RouterFactory extends DesignDrivenRouterFactory<OpenAPI
     handler) {
     vertx.executeBlocking((Future<OpenAPI3RouterFactory> future) -> {
       File spec = new File(filename);
-      if (!spec.exists())
+      if (!spec.exists()) {
         future.fail(RouterFactoryException.createSpecNotExistsException(filename));
+      } else {
+        SwaggerParseResult swaggerParseResult = new OpenAPIV3Parser().readLocation(spec.getAbsolutePath(), null, OpenApi3Utils.getParseOptions());
 
-      ParseOptions options = new ParseOptions();
-      options.setResolve(true);
-      options.setResolveCombinators(false);
-      options.setResolveFully(true);
-      SwaggerParseResult swaggerParseResult = new OpenAPIV3Parser().readLocation(spec.getAbsolutePath(), null, options);
-
-      if (swaggerParseResult.getMessages().isEmpty()) future.complete(new OpenAPI3RouterFactoryImpl(vertx, swaggerParseResult.getOpenAPI()));
-      else {
-          future.fail(RouterFactoryException.createSpecInvalidException(StringUtils.join(swaggerParseResult.getMessages(),", ")));
+        if (swaggerParseResult.getMessages().isEmpty()) {
+          future.complete(new OpenAPI3RouterFactoryImpl(vertx, swaggerParseResult.getOpenAPI()));
+        } else {
+          future.fail(RouterFactoryException.createSpecInvalidException(StringUtils.join(swaggerParseResult.getMessages(), ", ")));
+        }
       }
     }, handler);
   }
@@ -119,13 +121,15 @@ public interface OpenAPI3RouterFactory extends DesignDrivenRouterFactory<OpenAPI
     vertx.executeBlocking((Future<OpenAPI3RouterFactory> future) -> {
       try {
         URL urlObj = new URL(url);
-        SwaggerParseResult swaggerParseResult = new OpenAPIV3Parser().readLocation(urlObj.toString(), null, null);
+
+        SwaggerParseResult swaggerParseResult = new OpenAPIV3Parser().readLocation(urlObj.toString(), null, OpenApi3Utils.getParseOptions());
+
         if (swaggerParseResult.getMessages().isEmpty())
           future.complete(new OpenAPI3RouterFactoryImpl(vertx, swaggerParseResult.getOpenAPI()));
         else {
           future.fail(RouterFactoryException.createSpecInvalidException(StringUtils.join(swaggerParseResult.getMessages(), ", ")));
         }
-      } catch (MalformedURLException e) {
+      } catch (IOException e) {
         future.fail(RouterFactoryException.createSpecNotExistsException(url));
       }
     }, handler);

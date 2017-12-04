@@ -6,6 +6,7 @@ import io.swagger.v3.oas.models.media.ComposedSchema;
 import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.parameters.Parameter;
 import io.swagger.v3.parser.ObjectMapperFactory;
+import io.swagger.v3.parser.core.models.ParseOptions;
 import io.vertx.ext.web.api.validation.SpecFeatureNotSupportedException;
 import org.json.JSONObject;
 
@@ -17,6 +18,14 @@ import java.util.regex.Pattern;
  * @author Francesco Guardiani @slinkydeveloper
  */
 public class OpenApi3Utils {
+
+  public static ParseOptions getParseOptions() {
+    ParseOptions options = new ParseOptions();
+    options.setResolve(true);
+    options.setResolveCombinators(false);
+    options.setResolveFully(true);
+    return options;
+  }
 
   public static boolean isParameterArrayType(Parameter parameter) {
     if (parameter.getSchema() != null && parameter.getSchema().getType() != null)
