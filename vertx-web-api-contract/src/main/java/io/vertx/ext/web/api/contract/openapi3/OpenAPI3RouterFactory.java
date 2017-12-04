@@ -116,6 +116,18 @@ public interface OpenAPI3RouterFactory extends DesignDrivenRouterFactory<OpenAPI
    * @param handler  When specification is loaded, this handler will be called with AsyncResult<OpenAPI3RouterFactory>
    */
   static void createRouterFactoryFromURL(Vertx vertx, String url, Handler<AsyncResult<OpenAPI3RouterFactory>> handler) {
-    createRouterFactoryFromFile(vertx, url, handler);
+    vertx.executeBlocking((Future<OpenAPI3RouterFactory> future) -> {
+      try {
+        URL urlObj = new URL(url);
+        SwaggerParseResult swaggerParseResult = new OpenAPIV3Parser().readLocation(urlObj.toString(), null, null);
+        if (swaggerParseResult.getMessages().isEmpty())
+          future.complete(new OpenAPI3RouterFactoryImpl(vertx, swaggerParseResult.getOpenAPI()));
+        else {
+          future.fail(RouterFactoryException.createSpecInvalidException(StringUtils.join(swaggerParseResult.getMessages(), ", ")));
+        }
+      } catch (MalformedURLException e) {
+        future.fail(RouterFactoryException.createSpecNotExistsException(url));
+      }
+    }, handler);
   }
 }
