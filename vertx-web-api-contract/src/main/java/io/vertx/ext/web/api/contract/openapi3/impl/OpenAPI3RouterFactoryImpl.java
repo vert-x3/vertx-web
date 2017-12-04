@@ -1,10 +1,10 @@
 package io.vertx.ext.web.api.contract.openapi3.impl;
 
-import io.swagger.oas.models.OpenAPI;
-import io.swagger.oas.models.Operation;
-import io.swagger.oas.models.PathItem;
-import io.swagger.oas.models.parameters.Parameter;
-import io.swagger.oas.models.security.SecurityRequirement;
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.Operation;
+import io.swagger.v3.oas.models.PathItem;
+import io.swagger.v3.oas.models.parameters.Parameter;
+import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;

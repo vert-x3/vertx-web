@@ -1,4 +1,4 @@
-package io.vertx.ext.web.contract.openapi3;
+package io.vertx.ext.web.api.contract.openapi3;
 
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpClientOptions;
@@ -8,7 +8,6 @@ import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory;
 import io.vertx.ext.web.api.validation.ValidationException;
 import io.vertx.ext.web.api.validation.WebTestValidationBase;
 import io.vertx.ext.web.handler.StaticHandler;

@@ -1,11 +1,11 @@
 package io.vertx.ext.web.api.contract.openapi3.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import io.swagger.oas.models.OpenAPI;
-import io.swagger.oas.models.media.ComposedSchema;
-import io.swagger.oas.models.media.Schema;
-import io.swagger.oas.models.parameters.Parameter;
-import io.swagger.parser.v3.ObjectMapperFactory;
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.media.ComposedSchema;
+import io.swagger.v3.oas.models.media.Schema;
+import io.swagger.v3.oas.models.parameters.Parameter;
+import io.swagger.v3.parser.ObjectMapperFactory;
 import io.vertx.ext.web.api.validation.SpecFeatureNotSupportedException;
 import org.json.JSONObject;
 
@@ -29,7 +29,7 @@ public class OpenApi3Utils {
   }
 
   public static boolean isSchemaObjectOrAllOfType(Schema schema) {
-    return isAllOfSchema(schema) || isSchemaObject(schema);
+    return isSchemaObject(schema) || isAllOfSchema(schema);
   }
 
   public static boolean isSchemaObject(Schema schema) {

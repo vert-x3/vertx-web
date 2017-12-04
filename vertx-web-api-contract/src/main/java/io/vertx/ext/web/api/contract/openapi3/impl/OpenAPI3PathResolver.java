@@ -1,6 +1,6 @@
 package io.vertx.ext.web.api.contract.openapi3.impl;
 
-import io.swagger.oas.models.parameters.Parameter;
+import io.swagger.v3.oas.models.parameters.Parameter;
 import io.vertx.ext.web.api.contract.RouterFactoryException;
 
 import java.util.HashMap;

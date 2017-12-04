@@ -1,10 +1,9 @@
 package io.vertx.ext.web.api.contract.openapi3.impl;
 
-import io.swagger.oas.models.OpenAPI;
-import io.swagger.oas.models.Operation;
-import io.swagger.oas.models.media.*;
-import io.swagger.oas.models.parameters.Parameter;
-import io.swagger.oas.models.parameters.RequestBody;
+import io.swagger.v3.oas.models.*;
+import io.swagger.v3.oas.models.media.*;
+import io.swagger.v3.oas.models.parameters.Parameter;
+import io.swagger.v3.oas.models.parameters.RequestBody;
 import io.vertx.ext.web.FileUpload;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.api.RequestParameter;
@@ -403,6 +402,9 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
 
   /* This function resolves default content types of multipart parameters */
   private String resolveDefaultContentTypeRegex(Schema schema) {
+    if (OpenApi3Utils.isSchemaObjectOrAllOfType(schema))
+      return Pattern.quote("application/json");
+
     if (schema.getType() != null) {
       if (schema.getType().equals("string") && schema.getFormat() != null && (schema.getFormat().equals
         ("binary") || schema.getFormat().equals("base64")))
@@ -411,9 +413,6 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
         return this.resolveDefaultContentTypeRegex(((ArraySchema) schema).getItems());
       else return Pattern.quote("text/plain");
     }
-
-    if (OpenApi3Utils.isSchemaObjectOrAllOfType(schema))
-      return Pattern.quote("application/json");
 
     throw new SpecFeatureNotSupportedException("Unable to find default content type for multipart parameter. Use " +
       "encoding field");

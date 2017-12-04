@@ -1,8 +1,8 @@
 package io.vertx.ext.web.api.contract.openapi3;
 
-import io.swagger.oas.models.OpenAPI;
-import io.swagger.parser.models.ParseOptions;
-import io.swagger.parser.v3.OpenAPIV3Parser;
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.parser.OpenAPIV3Parser;
+import io.swagger.v3.parser.core.models.ParseOptions;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpServerOptions;
@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
 public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
 
   OpenAPI spec;
-  ApiClient apiClient;
+  io.vertx.ext.web.api.contract.openapi3.ApiClient apiClient;
   OpenAPI3RouterFactory routerFactory;
 
   @Rule
@@ -53,7 +53,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
   public void setUp() throws Exception {
     super.setUp();
     stopServer(); // Have to stop default server of WebTestBase
-    apiClient = new ApiClient(webClient);
+    apiClient = new io.vertx.ext.web.api.contract.openapi3.ApiClient(webClient);
     routerFactory = new OpenAPI3RouterFactoryImpl(this.vertx, spec);
     routerFactory.enableValidationFailureHandler(true);
     routerFactory.setValidationFailureHandler(generateFailureHandler());
@@ -2514,6 +2514,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
   private OpenAPI loadSwagger(String filename) throws IOException {
     ParseOptions options = new ParseOptions();
     options.setResolve(true);
+    options.setResolveCombinators(false);
     options.setResolveFully(true);
     return new OpenAPIV3Parser().readContents(String.join("\n", Files.readAllLines(Paths.get(filename), StandardCharsets.UTF_8)), null, options).getOpenAPI();
   }
