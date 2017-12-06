@@ -272,9 +272,17 @@ public class OpenApi3Utils {
     } else throw new RuntimeException("Wrong ref! " + oldRef);
   }
 
-  public static JsonObject convertOrgJSONtoVertxJSON(JSONObject obj) {
-    // I've done some benchmarking on what method is faster and yes, this is the fastest way
-    return new JsonObject(obj.toString());
+  public static Object convertOrgJSONtoVertxJSON(Object obj) {
+    if (obj instanceof JSONObject) {
+      JsonObject result = new JsonObject();
+      for (Map.Entry<String, Object> e : ((JSONObject) obj).toMap().entrySet()) {
+        result.put(e.getKey(), e.getValue());
+      }
+      return result;
+    } else if (obj instanceof JSONArray) {
+      return new JsonArray(((JSONArray) obj).toList().stream().map(OpenApi3Utils::convertOrgJSONtoVertxJSON).collect(Collectors.toList()));
+    } else
+      return obj;
   }
 
 }
