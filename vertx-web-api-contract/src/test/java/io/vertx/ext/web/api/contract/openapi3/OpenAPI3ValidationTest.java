@@ -6,6 +6,7 @@ import io.swagger.v3.parser.OpenAPIV3Parser;
 import io.swagger.v3.parser.core.models.ParseOptions;
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.api.RequestParameter;
 import io.vertx.ext.web.api.RequestParameters;
@@ -231,7 +232,12 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
     OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(op, op.getParameters(), testSpec);
     loadHandlers("/jsonBodyTest/sampleTest", HttpMethod.POST, false, validationHandler, (routingContext) -> {
       RequestParameters params = routingContext.get("parsedParameters");
-      routingContext.response().setStatusMessage(params.body().getJsonObject().encode()).end();
+      routingContext
+        .response()
+        .setStatusCode(200)
+        .setStatusMessage("OK")
+        .putHeader("Content-Type", "application/json")
+        .end(params.body().getJsonObject().encode());
     });
 
     JsonObject object = new JsonObject();
@@ -242,7 +248,7 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
       valuesArray.add(getSuccessSample(ParameterType.INT).getInteger());
     object.put("values", valuesArray);
 
-    testRequestWithJSON(HttpMethod.POST, "/jsonBodyTest/sampleTest", object, 200, object.encode());
+    testRequestWithJSON(HttpMethod.POST, "/jsonBodyTest/sampleTest", object, 200, "OK", object);
   }
 
   @Test
@@ -251,8 +257,13 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
     if(op.getParameters()==null) op.setParameters(new ArrayList<>());
     OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(op, op.getParameters(), testSpec);
     loadHandlers("/jsonBodyTest/sampleTest", HttpMethod.POST, true, validationHandler, (routingContext) -> {
-      routingContext.response().setStatusMessage("ok").end();
-      ;
+      RequestParameters params = routingContext.get("parsedParameters");
+      routingContext
+        .response()
+        .setStatusCode(200)
+        .setStatusMessage("OK")
+        .putHeader("Content-Type", "application/json")
+        .end(params.body().getJsonObject().encode());
     });
 
     JsonObject object = new JsonObject();
@@ -265,7 +276,7 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
     object.put("values", valuesArray);
 
     testRequestWithJSON(HttpMethod.POST, "/jsonBodyTest/sampleTest", object, 400, errorMessage(ValidationException
-      .ErrorType.JSON_INVALID));
+      .ErrorType.JSON_INVALID), null);
   }
 
   @Test
@@ -392,10 +403,16 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
     Operation op = testSpec.getPaths().get("/circularReferences").getPost();
     OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(op, op.getParameters(), testSpec);
     loadHandlers("/circularReferences", HttpMethod.POST, false, validationHandler, (routingContext) -> {
-      routingContext.response().setStatusMessage("ok").end();
+      RequestParameters params = routingContext.get("parsedParameters");
+      routingContext
+        .response()
+        .setStatusCode(200)
+        .setStatusMessage("OK")
+        .putHeader("Content-Type", "application/json")
+        .end(params.body().getJsonObject().encode());
     });
 
-    testRequestWithJSON(HttpMethod.POST, "/circularReferences", new JsonObject("{\n" +
+    JsonObject obj = new JsonObject("{\n" +
       "    \"a\": {\n" +
       "        \"a\": [\n" +
       "            {\n" +
@@ -409,7 +426,9 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
       "    },\n" +
       "    \"b\": \"hello\",\n" +
       "    \"c\": 6\n" +
-      "}"), 200, "ok");
+      "}");
+
+    testRequestWithJSON(HttpMethod.POST, "/circularReferences", obj, 200, "OK", obj);
   }
 
 }

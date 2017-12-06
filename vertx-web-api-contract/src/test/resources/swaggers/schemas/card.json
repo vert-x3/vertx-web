@@ -28,8 +28,8 @@
         "value": { "type": "string", "format": "phone" }
       }
     },
-    "adr": { "$ref": "http://json-schema.org/address" },
-    "geo": { "$ref": "http://json-schema.org/geo" },
+    "adr": { "$ref": "./address.json" },
+    "geo": { "$ref": "./geo.json" },
     "tz": { "type": "string" },
     "photo": { "type": "string" },
     "logo": { "type": "string" },

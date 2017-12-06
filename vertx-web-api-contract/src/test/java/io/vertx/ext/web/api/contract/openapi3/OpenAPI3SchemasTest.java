@@ -5,9 +5,11 @@ import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
+import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.api.RequestParameters;
 import io.vertx.ext.web.api.validation.ValidationException;
 import io.vertx.ext.web.api.validation.WebTestValidationBase;
 import io.vertx.ext.web.handler.StaticHandler;
@@ -31,14 +33,19 @@ public class OpenAPI3SchemasTest extends WebTestValidationBase {
   HttpServer schemaServer;
 
   final Handler<RoutingContext> handler = routingContext -> {
-    routingContext.response().setStatusCode(200).end("OK");
+    routingContext
+      .response()
+      .setStatusCode(200)
+      .setStatusMessage("OK")
+      .putHeader("Content-Type", "application/json")
+      .end(((RequestParameters)routingContext.get("parsedParameters")).body().getJsonObject().encode());
   };
 
   final Handler<RoutingContext> FAILURE_HANDLER = routingContext -> {
     if (routingContext.failure() instanceof ValidationException)
-      routingContext.response().setStatusCode(400).setStatusMessage("ValidationException").end(routingContext.failure().toString());
+      routingContext.response().setStatusCode(400).setStatusMessage("ValidationException").end();
     else
-      routingContext.response().setStatusCode(500).setStatusMessage("Error").end(routingContext.failure().toString());
+      routingContext.response().setStatusCode(500).setStatusMessage("Error").end();
   };
 
   @Override
@@ -123,12 +130,13 @@ public class OpenAPI3SchemasTest extends WebTestValidationBase {
 
   private void assertRequestOk(String uri, String jsonName) throws Exception {
     String jsonString = String.join("", Files.readAllLines(Paths.get("./src/test/resources/swaggers/test_json", "schemas_test", jsonName), StandardCharsets.UTF_8));
-    testRequestWithJSON(HttpMethod.GET, uri, new JsonObject(jsonString), 200, "OK");
+    JsonObject obj = new JsonObject(jsonString);
+    testRequestWithJSON(HttpMethod.GET, uri, obj, 200, "OK", obj);
   };
 
   private void assertRequestFail(String uri, String jsonName) throws Exception {
     String jsonString = String.join("", Files.readAllLines(Paths.get("./src/test/resources/swaggers/test_json", "schemas_test", jsonName), StandardCharsets.UTF_8));
-    testRequestWithJSON(HttpMethod.GET, uri, new JsonObject(jsonString), 400, "ValidationException");
+    testRequestWithJSON(HttpMethod.GET, uri, new JsonObject(jsonString), 400, "ValidationException", null);
   };
 
   @Test

@@ -45,11 +45,12 @@ public class WebTestWithWebClientBase extends WebTestBase {
     super.tearDown();
   }
 
-  public void testRequestWithJSON(HttpMethod method, String path, JsonObject jsonObject, int statusCode, String statusMessage) throws Exception {
+  public void testRequestWithJSON(HttpMethod method, String path, JsonObject jsonObject, int statusCode, String statusMessage, JsonObject obj) throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
     webClient.request(method, 8080, "localhost", path).sendJsonObject(jsonObject, (ar) -> {
       assertEquals(statusCode, ar.result().statusCode());
       assertEquals(statusMessage, ar.result().statusMessage());
+      assertEquals(obj, ar.result().bodyAsJsonObject());
       latch.countDown();
     });
     awaitLatch(latch);
