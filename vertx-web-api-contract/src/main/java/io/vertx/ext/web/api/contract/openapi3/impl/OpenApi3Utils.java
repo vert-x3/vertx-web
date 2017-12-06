@@ -273,7 +273,9 @@ public class OpenApi3Utils {
   }
 
   public static Object convertOrgJSONToVertxJSON(Object obj) {
-    if (obj instanceof JSONObject) {
+    if (obj == JSONObject.NULL) {
+      return null;
+    } if (obj instanceof JSONObject) {
       JsonObject result = new JsonObject();
       for (Map.Entry<String, Object> e : ((JSONObject) obj).toMap().entrySet()) {
         result.put(e.getKey(), convertOrgJSONToVertxJSON(e.getValue()));
@@ -286,7 +288,9 @@ public class OpenApi3Utils {
   }
 
   public static Object convertVertxJSONToOrgJSON(Object obj) {
-    if (obj instanceof JsonObject) {
+    if (obj == null) {
+      return JSONObject.NULL;
+    } if (obj instanceof JsonObject) {
       JSONObject result = new JSONObject();
       for (Map.Entry<String, Object> e : ((JsonObject) obj).getMap().entrySet()) {
         result.put(e.getKey(), convertVertxJSONToOrgJSON(e.getValue()));
