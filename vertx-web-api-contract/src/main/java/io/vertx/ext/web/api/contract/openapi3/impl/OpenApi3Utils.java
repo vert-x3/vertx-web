@@ -7,12 +7,16 @@ import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.parameters.Parameter;
 import io.swagger.v3.parser.ObjectMapperFactory;
 import io.swagger.v3.parser.core.models.ParseOptions;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.api.validation.SpecFeatureNotSupportedException;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * @author Francesco Guardiani @slinkydeveloper
@@ -70,19 +74,19 @@ public class OpenApi3Utils {
   }
 
   public static boolean isOneOfSchema(Schema schema) {
-    if(!(schema instanceof ComposedSchema)) return false;
+    if (!(schema instanceof ComposedSchema)) return false;
     ComposedSchema composedSchema = (ComposedSchema) schema;
     return (composedSchema.getOneOf() != null && composedSchema.getOneOf().size() != 0);
   }
 
   public static boolean isAnyOfSchema(Schema schema) {
-    if(!(schema instanceof ComposedSchema)) return false;
+    if (!(schema instanceof ComposedSchema)) return false;
     ComposedSchema composedSchema = (ComposedSchema) schema;
     return (composedSchema.getAnyOf() != null && composedSchema.getAnyOf().size() != 0);
   }
 
   public static boolean isAllOfSchema(Schema schema) {
-    if(!(schema instanceof ComposedSchema)) return false;
+    if (!(schema instanceof ComposedSchema)) return false;
     ComposedSchema composedSchema = (ComposedSchema) schema;
     return (composedSchema.getAllOf() != null && composedSchema.getAllOf().size() != 0);
   }
@@ -167,7 +171,7 @@ public class OpenApi3Utils {
     for (Schema schema : allOfSchemas) {
       if (schema.getType() != null && !schema.getType().equals("object"))
         throw new SpecFeatureNotSupportedException("allOf only allows inner object types");
-      for (Map.Entry<String, ? extends Schema> entry : ((Map<String, Schema>)schema.getProperties()).entrySet()) {
+      for (Map.Entry<String, ? extends Schema> entry : ((Map<String, Schema>) schema.getProperties()).entrySet()) {
         properties.put(entry.getKey(), new OpenApi3Utils.ObjectField(entry.getValue(), entry.getKey(), schema));
       }
     }
@@ -184,7 +188,7 @@ public class OpenApi3Utils {
       } else {
         // type object case
         Map<String, ObjectField> properties = new HashMap<>();
-        for (Map.Entry<String, ? extends Schema> entry : ((Map<String, Schema>)schema.getProperties()).entrySet()) {
+        for (Map.Entry<String, ? extends Schema> entry : ((Map<String, Schema>) schema.getProperties()).entrySet()) {
           properties.put(entry.getKey(), new OpenApi3Utils.ObjectField(entry.getValue(), entry.getKey(), schema));
         }
         return properties;
@@ -266,6 +270,11 @@ public class OpenApi3Utils {
         walkAndSolve(schema, root, oas);
       }
     } else throw new RuntimeException("Wrong ref! " + oldRef);
+  }
+
+  public static JsonObject convertOrgJSONtoVertxJSON(JSONObject obj) {
+    // I've done some benchmarking on what method is faster and yes, this is the fastest way
+    return new JsonObject(obj.toString());
   }
 
 }
