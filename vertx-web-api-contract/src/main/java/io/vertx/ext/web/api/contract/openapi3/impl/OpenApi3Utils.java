@@ -272,15 +272,28 @@ public class OpenApi3Utils {
     } else throw new RuntimeException("Wrong ref! " + oldRef);
   }
 
-  public static Object convertOrgJSONtoVertxJSON(Object obj) {
+  public static Object convertOrgJSONToVertxJSON(Object obj) {
     if (obj instanceof JSONObject) {
       JsonObject result = new JsonObject();
       for (Map.Entry<String, Object> e : ((JSONObject) obj).toMap().entrySet()) {
-        result.put(e.getKey(), e.getValue());
+        result.put(e.getKey(), convertOrgJSONToVertxJSON(e.getValue()));
       }
       return result;
     } else if (obj instanceof JSONArray) {
-      return new JsonArray(((JSONArray) obj).toList().stream().map(OpenApi3Utils::convertOrgJSONtoVertxJSON).collect(Collectors.toList()));
+      return new JsonArray(((JSONArray) obj).toList().stream().map(OpenApi3Utils::convertOrgJSONToVertxJSON).collect(Collectors.toList()));
+    } else
+      return obj;
+  }
+
+  public static Object convertVertxJSONToOrgJSON(Object obj) {
+    if (obj instanceof JsonObject) {
+      JSONObject result = new JSONObject();
+      for (Map.Entry<String, Object> e : ((JsonObject) obj).getMap().entrySet()) {
+        result.put(e.getKey(), convertVertxJSONToOrgJSON(e.getValue()));
+      }
+      return result;
+    } else if (obj instanceof JsonArray) {
+      return new JSONArray(((JsonArray) obj).getList().stream().map(OpenApi3Utils::convertVertxJSONToOrgJSON).collect(Collectors.toList()));
     } else
       return obj;
   }
