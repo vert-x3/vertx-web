@@ -19,14 +19,14 @@ import java.util.List;
  * These are the examples used in the documentation.
  *
  */
-public class WebExamples {
+public class ValidationExamples {
 
-  public void example63(Vertx vertx, Router router) {
+  public void example1(Vertx vertx, Router router) {
     // Create Validation Handler with some stuff
     HTTPRequestValidationHandler validationHandler = HTTPRequestValidationHandler.create().addQueryParam("parameterName", ParameterType.INT, true).addFormParamWithPattern("formParameterName", "a{4}", true).addPathParam("pathParam", ParameterType.FLOAT);
   }
 
-  public void example64(Vertx vertx, Router router, HTTPRequestValidationHandler validationHandler) {
+  public void example2(Vertx vertx, Router router, HTTPRequestValidationHandler validationHandler) {
     // BodyHandler is required to manage body parameters like forms or json body
     router.route().handler(BodyHandler.create());
 
@@ -54,7 +54,7 @@ public class WebExamples {
       });
   }
 
-  public void example65(RoutingContext routingContext) {
+  public void example3(RoutingContext routingContext) {
     RequestParameters params = routingContext.get("parsedParameters");
     RequestParameter awesomeParameter = params.queryParameter("awesomeParameter");
     if (awesomeParameter != null) {
@@ -70,68 +70,11 @@ public class WebExamples {
     }
   }
 
-  public void example66(RequestParameters params) {
+  public void example4(RequestParameters params) {
     RequestParameter body = params.body();
     if (body != null) {
       JsonObject jsonBody = body.getJsonObject();
     }
-  }
-
-  public void manualContentType(Router router) {
-    router.get("/api/books").produces("application/json").handler(rc -> {
-      findBooks(ar -> {
-        if (ar.succeeded()) {
-          rc.response().putHeader("Content-Type", "application/json").end(toJson(ar.result()));
-        } else {
-          rc.fail(ar.cause());
-        }
-      });
-    });
-  }
-
-  public void contentTypeHandler(Router router) {
-    router.route("/api/*").handler(ResponseContentTypeHandler.create());
-    router.get("/api/books").produces("application/json").handler(rc -> {
-      findBooks(ar -> {
-        if (ar.succeeded()) {
-          rc.response().end(toJson(ar.result()));
-        } else {
-          rc.fail(ar.cause());
-        }
-      });
-    });
-  }
-
-  private void findBooks(Handler<AsyncResult<List<Book>>> handler) {
-    throw new UnsupportedOperationException();
-  }
-
-  class Book {
-  }
-
-  Buffer toJson(List<Book> books) {
-    throw new UnsupportedOperationException();
-  }
-
-  Buffer toXML(List<Book> books) {
-    throw new UnsupportedOperationException();
-  }
-
-  public void mostAcceptableContentTypeHandler(Router router) {
-    router.route("/api/*").handler(ResponseContentTypeHandler.create());
-    router.get("/api/books").produces("text/xml").produces("application/json").handler(rc -> {
-      findBooks(ar -> {
-        if (ar.succeeded()) {
-          if (rc.getAcceptableContentType().equals("text/xml")) {
-            rc.response().end(toXML(ar.result()));
-          } else {
-            rc.response().end(toJson(ar.result()));
-          }
-        } else {
-          rc.fail(ar.cause());
-        }
-      });
-    });
   }
 }
 

@@ -1,129 +1,40 @@
 = Vert.x-Web API Contract
 :toc: left
 
-== OpenAPI 3 support
+Vert.x-Web API Contract brings to Vert.x two features to help you to develop you API:
 
-Vert.x allows you to use your OpenApi 3 specification directly inside your code using the design first approach.
+* HTTP Requests validation
+* OpenAPI 3 Support with automatic requests validation
 
-Vert.x-Web provides:
+== Using Vert.x API Contract
 
-* OpenAPI 3 compliant API specification validation with automatic **loading of external Json schemas**
-* Automatic request validation
-* Automatic mount of security validation handlers
-* Automatic 501 response for not implemented operations
-* Router factory to provide all these features to users
+To use Vert.x API Contract, add the following dependency to the _dependencies_ section of your build descriptor:
 
-=== The router factory
-You can create your web service based on OpenAPI3 specification with `link:../../apidocs/io/vertx/ext/web/api/contract/openapi3/OpenAPI3RouterFactory.html[OpenAPI3RouterFactory]`.
-This class, as name says, is a router factory based on your OpenAPI 3 specification.
-`link:../../apidocs/io/vertx/ext/web/api/contract/openapi3/OpenAPI3RouterFactory.html[OpenAPI3RouterFactory]` is intended to give you a really simple user interface to use OpenAPI 3 support. It includes:
+* Maven (in your `pom.xml`):
 
-* Async loading of specification and its schema dependencies
-* Mount path with operationId or with combination of path and HTTP method
-* Automatic request parameters validation
-* Automatic convert OpenAPI style paths to Vert.x style paths
-* Lazy methods: operations (combination of paths and HTTP methods) are mounted in declaration order inside specification
-* Automatic mount of security validation handlers
-
-=== Create a new router factory
-To create a new router factory, you can use methods inside `link:../../apidocs/io/vertx/ext/web/api/contract/openapi3/OpenAPI3RouterFactory.html[OpenAPI3RouterFactory]`:
-
-* `link:../../apidocs/io/vertx/ext/web/api/contract/openapi3/OpenAPI3RouterFactory.html#createRouterFactoryFromFile-io.vertx.core.Vertx-java.lang.String-io.vertx.core.Handler-[OpenAPI3RouterFactory.createRouterFactoryFromFile]`  to create a router factory from local file
-* `link:../../apidocs/io/vertx/ext/web/api/contract/openapi3/OpenAPI3RouterFactory.html#createRouterFactoryFromURL-io.vertx.core.Vertx-java.lang.String-io.vertx.core.Handler-[OpenAPI3RouterFactory.createRouterFactoryFromURL]`  to create a router factory from url
-
-For example:
-[source,groovy]
+[source,xml,subs="+attributes"]
 ----
-OpenAPI3RouterFactory.createRouterFactoryFromFile(vertx, "src/main/resources/petstore.yaml", { ar ->
-  if (ar.succeeded()) {
-    // Spec loaded with success
-    def routerFactory = ar.result()
-  } else {
-    // Something went wrong during router factory initialization
-    def exception = ar.cause()
-  }
-})
-
+<dependency>
+  <groupId>io.vertx</groupId>
+  <artifactId>vertx-web-api-contract</artifactId>
+  <version>3.5.1-SNAPSHOT</version>
+</dependency>
 ----
 
-=== Mount the handlers
-Now load your first path. There are two functions to load the handlers:
+* Gradle (in your `build.gradle` file):
 
-* `link:../../apidocs/io/vertx/ext/web/api/contract/DesignDrivenRouterFactory.html#addHandler-io.vertx.core.http.HttpMethod-java.lang.String-io.vertx.core.Handler-[addHandler]`
-* `link:../../apidocs/io/vertx/ext/web/api/contract/openapi3/OpenAPI3RouterFactory.html#addHandlerByOperationId-java.lang.String-io.vertx.core.Handler-[addHandlerByOperationId]`
-
-And, of course, two functions to load failure handlers
-
-* `link:../../apidocs/io/vertx/ext/web/api/contract/DesignDrivenRouterFactory.html#addFailureHandler-io.vertx.core.http.HttpMethod-java.lang.String-io.vertx.core.Handler-[addFailureHandler]`
-* `link:../../apidocs/io/vertx/ext/web/api/contract/openapi3/OpenAPI3RouterFactory.html#addFailureHandlerByOperationId-java.lang.String-io.vertx.core.Handler-[addFailureHandlerByOperationId]`
-
-You can, of course, **add multiple handlers to same operation**, without overwrite the existing ones.
-
-.Path in OpenAPI format
-IMPORTANT: If you want to use `link:../../apidocs/io/vertx/ext/web/api/contract/DesignDrivenRouterFactory.html#addHandler-io.vertx.core.http.HttpMethod-java.lang.String-io.vertx.core.Handler-[addHandler]` or `link:../../apidocs/io/vertx/ext/web/api/contract/DesignDrivenRouterFactory.html#addFailureHandler-io.vertx.core.http.HttpMethod-java.lang.String-io.vertx.core.Handler-[addFailureHandler]` pay attention: You can provide a path only in OpenAPI styles (for example path `/hello/:param` doesn't work)
-
-For example:
-[source,groovy]
+[source,groovy,subs="+attributes"]
 ----
-routerFactory.addHandlerByOperationId("awesomeOperation", { routingContext ->
-  def params = routingContext.get("parsedParameters")
-  def body = params.body()
-  def jsonBody = body.getJsonObject()
-  // Do something with body
-})
-routerFactory.addFailureHandlerByOperationId("awesomeOperation", { routingContext ->
-  // Handle failure
-})
-
+dependencies {
+  compile 'io.vertx:vertx-web-api-contract:3.5.1-SNAPSHOT'
+}
 ----
 
-.Add operations with operationId
-IMPORTANT: Usage of combination of path and HTTP method is allowed, but it's better to add operations handlers with operationId, for performance reasons and to avoid paths nomenclature errors
+== HTTP Requests validation
 
-Now you can use parameter values as described in http://vertx.io/docs/vertx-web/java/#_andling_parameters[vertx-web documentation]
+Vert.x provides a validation framework that will validate requests for you and will put results of validation inside a container.
 
-== Define security handlers
-A security handler is defined by a combination of schema name and scope. You can mount only one security handler for a combination.
-For example:
-
-[source,groovy]
-----
-routerFactory.addSecurityHandler("security_scheme_name", securityHandler)
-
-----
-
-You can of course use included Vert.x security handlers, for example:
-
-[source,groovy]
-----
-routerFactory.addSecurityHandler("jwt_auth", JWTAuthHandler.create(jwtAuthProvider))
-
-----
-
-=== Error handling
-The router factory allows you to manage errors efficiently:
-
-* It automatically mounts a 501 `Not Implemented` handler for operations where you haven't mounted any handler
-* It automatically mounts a 400 `Bad Request` handler that manages `ValidationException` (You can enable/disable this feature via `link:../../apidocs/io/vertx/ext/web/api/contract/DesignDrivenRouterFactory.html#enableValidationFailureHandler-boolean-[enableValidationFailureHandler]`)
-
-=== Generate the router
-When you are ready, generate the router and use it:
-
-[source,groovy]
-----
-def router = routerFactory.getRouter()
-
-def server = vertx.createHttpServer([
-  port:8080,
-  host:"localhost"
-])
-server.requestHandler(router.&accept).listen()
-
-----
-
-== Requests validation
-
-Vert.x provides a validation framework that will validate requests for you and will put results of validation inside a container. To define a `link:../../apidocs/io/vertx/ext/web/api/validation/HTTPRequestValidationHandler.html[HTTPRequestValidationHandler]`:
+To define a `link:../../apidocs/io/vertx/ext/web/api/validation/HTTPRequestValidationHandler.html[HTTPRequestValidationHandler]`:
 [source,groovy]
 ----
 // Create Validation Handler with some stuff
@@ -194,5 +105,125 @@ def body = params.body()
 if (body != null) {
   def jsonBody = body.getJsonObject()
 }
+
+----
+
+== OpenAPI 3 support
+
+Vert.x allows you to use your OpenApi 3 specification directly inside your code using the design first approach. Vert.x-Web provides:
+
+* OpenAPI 3 compliant API specification validation with automatic **loading of external Json schemas**
+* Automatic request validation
+* Automatic mount of security validation handlers
+* Automatic 501 response for not implemented operations
+* Router factory to provide all these features to users
+
+You can also use the community project https://github.com/pmlopes/slush-vertx[`slush-vertx`] to generate server code from your OpenAPI 3 specification.
+
+=== The router factory
+You can create your web service based on OpenAPI3 specification with `link:../../apidocs/io/vertx/ext/web/api/contract/openapi3/OpenAPI3RouterFactory.html[OpenAPI3RouterFactory]`.
+This class, as name says, is a router factory based on your OpenAPI 3 specification.
+`link:../../apidocs/io/vertx/ext/web/api/contract/openapi3/OpenAPI3RouterFactory.html[OpenAPI3RouterFactory]` is intended to give you a really simple user interface to use OpenAPI 3 support. It includes:
+
+* Async loading of specification and its schema dependencies
+* Mount path with operationId or with combination of path and HTTP method
+* Automatic request parameters validation
+* Automatic convert OpenAPI style paths to Vert.x style paths
+* Lazy methods: operations (combination of paths and HTTP methods) are mounted in declaration order inside specification
+* Automatic mount of security validation handlers
+
+=== Create a new router factory
+To create a new router factory, you can use methods inside `link:../../apidocs/io/vertx/ext/web/api/contract/openapi3/OpenAPI3RouterFactory.html[OpenAPI3RouterFactory]`:
+
+* `link:../../apidocs/io/vertx/ext/web/api/contract/openapi3/OpenAPI3RouterFactory.html#createRouterFactoryFromFile-io.vertx.core.Vertx-java.lang.String-io.vertx.core.Handler-[OpenAPI3RouterFactory.createRouterFactoryFromFile]`  to create a router factory from local file
+* `link:../../apidocs/io/vertx/ext/web/api/contract/openapi3/OpenAPI3RouterFactory.html#createRouterFactoryFromURL-io.vertx.core.Vertx-java.lang.String-io.vertx.core.Handler-[OpenAPI3RouterFactory.createRouterFactoryFromURL]`  to create a router factory from url
+
+For example:
+[source,groovy]
+----
+OpenAPI3RouterFactory.createRouterFactoryFromFile(vertx, "src/main/resources/petstore.yaml", { ar ->
+  if (ar.succeeded()) {
+    // Spec loaded with success
+    def routerFactory = ar.result()
+  } else {
+    // Something went wrong during router factory initialization
+    def exception = ar.cause()
+  }
+})
+
+----
+
+=== Mount the handlers
+Now load your first path. There are two functions to load the handlers:
+
+* `link:../../apidocs/io/vertx/ext/web/api/contract/DesignDrivenRouterFactory.html#addHandler-io.vertx.core.http.HttpMethod-java.lang.String-io.vertx.core.Handler-[addHandler]`
+* `link:../../apidocs/io/vertx/ext/web/api/contract/openapi3/OpenAPI3RouterFactory.html#addHandlerByOperationId-java.lang.String-io.vertx.core.Handler-[addHandlerByOperationId]`
+
+And, of course, two functions to load failure handlers
+
+* `link:../../apidocs/io/vertx/ext/web/api/contract/DesignDrivenRouterFactory.html#addFailureHandler-io.vertx.core.http.HttpMethod-java.lang.String-io.vertx.core.Handler-[addFailureHandler]`
+* `link:../../apidocs/io/vertx/ext/web/api/contract/openapi3/OpenAPI3RouterFactory.html#addFailureHandlerByOperationId-java.lang.String-io.vertx.core.Handler-[addFailureHandlerByOperationId]`
+
+You can, of course, **add multiple handlers to same operation**, without overwrite the existing ones.
+
+.Path in OpenAPI format
+IMPORTANT: If you want to use `link:../../apidocs/io/vertx/ext/web/api/contract/DesignDrivenRouterFactory.html#addHandler-io.vertx.core.http.HttpMethod-java.lang.String-io.vertx.core.Handler-[addHandler]` or `link:../../apidocs/io/vertx/ext/web/api/contract/DesignDrivenRouterFactory.html#addFailureHandler-io.vertx.core.http.HttpMethod-java.lang.String-io.vertx.core.Handler-[addFailureHandler]` pay attention: You can provide a path only in OpenAPI styles (for example path `/hello/:param` doesn't work)
+
+For example:
+[source,groovy]
+----
+routerFactory.addHandlerByOperationId("awesomeOperation", { routingContext ->
+  def params = routingContext.get("parsedParameters")
+  def body = params.body()
+  def jsonBody = body.getJsonObject()
+  // Do something with body
+})
+routerFactory.addFailureHandlerByOperationId("awesomeOperation", { routingContext ->
+  // Handle failure
+})
+
+----
+
+.Add operations with operationId
+IMPORTANT: Usage of combination of path and HTTP method is allowed, but it's better to add operations handlers with operationId, for performance reasons and to avoid paths nomenclature errors
+
+Now you can use parameter values as described above
+
+== Define security handlers
+A security handler is defined by a combination of schema name and scope. You can mount only one security handler for a combination.
+For example:
+
+[source,groovy]
+----
+routerFactory.addSecurityHandler("security_scheme_name", securityHandler)
+
+----
+
+You can of course use included Vert.x security handlers, for example:
+
+[source,groovy]
+----
+routerFactory.addSecurityHandler("jwt_auth", JWTAuthHandler.create(jwtAuthProvider))
+
+----
+
+=== Error handling
+The router factory allows you to manage errors efficiently:
+
+* It automatically mounts a 501 `Not Implemented` handler for operations where you haven't mounted any handler
+* It automatically mounts a 400 `Bad Request` handler that manages `ValidationException` (You can enable/disable this feature via `link:../../apidocs/io/vertx/ext/web/api/contract/DesignDrivenRouterFactory.html#enableValidationFailureHandler-boolean-[enableValidationFailureHandler]`)
+
+=== Generate the router
+When you are ready, generate the router and use it:
+
+[source,groovy]
+----
+def router = routerFactory.getRouter()
+
+def server = vertx.createHttpServer([
+  port:8080,
+  host:"localhost"
+])
+server.requestHandler(router.&accept).listen()
 
 ----
