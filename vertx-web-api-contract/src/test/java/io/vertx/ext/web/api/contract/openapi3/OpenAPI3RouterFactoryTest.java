@@ -11,6 +11,7 @@ import io.vertx.core.parsetools.JsonParser;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.WebTestWithWebClientBase;
+import io.vertx.ext.web.api.RequestParameters;
 import io.vertx.ext.web.api.contract.RouterFactoryException;
 import io.vertx.ext.web.api.validation.ValidationException;
 import io.vertx.ext.web.handler.ResponseContentTypeHandler;
@@ -23,6 +24,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
+ * This tests are about OpenAPI3RouterFactory behaviours
  * @author Francesco Guardiani @slinkydeveloper
  */
 public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
@@ -86,7 +88,7 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
   public void loadPetStoreAndTestSomething() throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
     final Router[] router = {null};
-    OpenAPI3RouterFactory.createRouterFactoryFromFile(this.vertx, "src/test/resources/swaggers/base_router_factory_test.yaml",
+    OpenAPI3RouterFactory.createRouterFactoryFromFile(this.vertx, "src/test/resources/swaggers/router_factory_test.yaml",
       openAPI3RouterFactoryAsyncResult -> {
         assertTrue(openAPI3RouterFactoryAsyncResult.succeeded());
         OpenAPI3RouterFactory routerFactory = openAPI3RouterFactoryAsyncResult.result();
@@ -142,7 +144,21 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
         OpenAPI3RouterFactory factory = openAPI3RouterFactoryAsyncResult.result();
         factory.mountOperationsWithoutHandlers(false);
         factory.addHandlerByOperationId("consumesTest", routingContext -> {
-          routingContext.response().setStatusCode(200).setStatusMessage("ok").end();
+          RequestParameters params = routingContext.get("parsedParameters");
+          if (params.body() != null && params.body().isJsonObject()) {
+            routingContext
+              .response()
+              .setStatusCode(200)
+              .setStatusMessage("OK")
+              .putHeader("Content-Type", "application/json")
+              .end(params.body().getJsonObject().encode());
+          } else {
+            routingContext
+              .response()
+              .setStatusCode(200)
+              .setStatusMessage("OK")
+              .end();
+          }
         });
 
         factory.addHandlerByOperationId("producesTest", routingContext -> {
@@ -162,12 +178,13 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
     startServer(router[0]);
 
     // Json consumes test
-    testRequestWithJSON(HttpMethod.POST, "/consumesTest", new JsonObject("{\"name\":\"francesco\"}"), 200, "ok");
+    JsonObject obj = new JsonObject("{\"name\":\"francesco\"}");
+    testRequestWithJSON(HttpMethod.POST, "/consumesTest", obj, 200, "OK", obj);
 
     // Form consumes tests
     MultiMap form = MultiMap.caseInsensitiveMultiMap();
     form.add("name", "francesco");
-    testRequestWithForm(HttpMethod.POST, "/consumesTest", FormType.FORM_URLENCODED, form, 200, "ok");
+    testRequestWithForm(HttpMethod.POST, "/consumesTest", FormType.FORM_URLENCODED, form, 200, "OK");
     testRequestWithForm(HttpMethod.POST, "/consumesTest", FormType.MULTIPART, form, 404, "Not Found");
 
     // Produces tests

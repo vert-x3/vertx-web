@@ -11,6 +11,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.api.RequestParameter;
 import io.vertx.ext.web.api.RequestParameters;
 import io.vertx.ext.web.api.contract.openapi3.impl.OpenAPI3RequestValidationHandlerImpl;
+import io.vertx.ext.web.api.contract.openapi3.impl.OpenApi3Utils;
 import io.vertx.ext.web.api.validation.ParameterType;
 import io.vertx.ext.web.api.validation.ValidationException;
 import io.vertx.ext.web.api.validation.WebTestValidationBase;
@@ -23,6 +24,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * This tests are about OpenAPI 3 validation behaviours. The validation handlers are not constructed through OpenAPI3RouterFactory.
+ * For router factory behaviours, please give a look at OpenAPI3RouterFactoryTest
  * @author Francesco Guardiani @slinkydeveloper
  */
 public class OpenAPI3ValidationTest extends WebTestValidationBase {
@@ -46,11 +49,7 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
   };
 
   private OpenAPI loadSwagger(String filename) {
-    ParseOptions options = new ParseOptions();
-    options.setResolve(true);
-    options.setResolveCombinators(false);
-    options.setResolveFully(true);
-    return new OpenAPIV3Parser().readLocation(filename, null, options).getOpenAPI();
+    return new OpenAPIV3Parser().readLocation(filename, null, OpenApi3Utils.getParseOptions()).getOpenAPI();
   }
 
   @Test

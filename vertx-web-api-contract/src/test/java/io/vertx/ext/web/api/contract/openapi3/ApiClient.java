@@ -16,6 +16,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * This class is used by OpenAPI3ParametersUnitTest
+ */
 public class ApiClient {
     private WebClient client;
     private int port;
