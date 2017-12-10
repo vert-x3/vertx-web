@@ -8,6 +8,7 @@ import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
 
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
 /**
@@ -66,6 +67,21 @@ public class WebTestWithWebClientBase extends WebTestBase {
         assertEquals(statusMessage, ar.result().statusMessage());
         latch.countDown();
       });
+    awaitLatch(latch);
+  }
+
+  public void testRequestWithResponseContentTypeCheck(HttpMethod method, String path, int statusCode, String contentType, List<String> acceptableContentTypes) throws Exception {
+    CountDownLatch latch = new CountDownLatch(1);
+    HttpRequest<Buffer> request = webClient
+      .request(method, 8080, "localhost", path);
+    request.putHeader("Accept", String.join(", ", acceptableContentTypes));
+    request.send(httpResponseAsyncResult -> {
+      if (httpResponseAsyncResult.succeeded()) {
+        assertEquals(httpResponseAsyncResult.result().statusCode(), statusCode);
+        assertEquals(httpResponseAsyncResult.result().getHeader("content-type"), contentType);
+      }
+      latch.countDown();
+    });
     awaitLatch(latch);
   }
 }

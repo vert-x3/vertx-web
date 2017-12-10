@@ -4,6 +4,7 @@ import io.swagger.oas.models.OpenAPI;
 import io.swagger.oas.models.Operation;
 import io.swagger.oas.models.PathItem;
 import io.swagger.oas.models.parameters.Parameter;
+import io.swagger.oas.models.responses.ApiResponse;
 import io.swagger.oas.models.security.SecurityRequirement;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
@@ -16,11 +17,7 @@ import io.vertx.ext.web.api.contract.impl.BaseDesignDrivenRouterFactory;
 import io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory;
 import io.vertx.ext.web.handler.BodyHandler;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author Francesco Guardiani @slinkydeveloper
@@ -313,9 +310,28 @@ public class OpenAPI3RouterFactoryImpl extends BaseDesignDrivenRouterFactory<Ope
         handlersToLoad.add(this.NOT_IMPLEMENTED_HANDLER);
       }
 
-      // Now add all handlers to router
+      // Now add all handlers to route
       OpenAPI3PathResolver pathResolver = new OpenAPI3PathResolver(operation.getPath(), operation.getParameters());
       Route route = router.routeWithRegex(operation.getMethod(), pathResolver.solve().toString());
+
+      // Set produces/consumes
+      Set<String> consumes = new HashSet<>();
+      Set<String> produces = new HashSet<>();
+      if (operation.getOperationModel().getRequestBody() != null &&
+        operation.getOperationModel().getRequestBody().getContent() != null)
+        consumes.addAll(operation.getOperationModel().getRequestBody().getContent().keySet());
+
+      if (operation.getOperationModel().getResponses() != null)
+        for (ApiResponse response : operation.getOperationModel().getResponses().values())
+          if (response.getContent() != null)
+            produces.addAll(response.getContent().keySet());
+
+      for (String ct : consumes)
+        route.consumes(ct);
+
+      for (String ct : produces)
+        route.produces(ct);
+
       route.setRegexGroupsNames(new ArrayList<>(pathResolver.getMappedGroups().values()));
       for (Handler handler : handlersToLoad)
         route.handler(handler);
