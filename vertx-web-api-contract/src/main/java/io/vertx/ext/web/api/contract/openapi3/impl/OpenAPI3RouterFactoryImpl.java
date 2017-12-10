@@ -309,9 +309,28 @@ public class OpenAPI3RouterFactoryImpl extends BaseDesignDrivenRouterFactory<Ope
         handlersToLoad.add(this.NOT_IMPLEMENTED_HANDLER);
       }
 
-      // Now add all handlers to router
+      // Now add all handlers to route
       OpenAPI3PathResolver pathResolver = new OpenAPI3PathResolver(operation.getPath(), operation.getParameters());
       Route route = router.routeWithRegex(operation.getMethod(), pathResolver.solve().toString());
+
+      // Set produces/consumes
+      Set<String> consumes = new HashSet<>();
+      Set<String> produces = new HashSet<>();
+      if (operation.getOperationModel().getRequestBody() != null &&
+        operation.getOperationModel().getRequestBody().getContent() != null)
+        consumes.addAll(operation.getOperationModel().getRequestBody().getContent().keySet());
+
+      if (operation.getOperationModel().getResponses() != null)
+        for (ApiResponse response : operation.getOperationModel().getResponses().values())
+          if (response.getContent() != null)
+            produces.addAll(response.getContent().keySet());
+
+      for (String ct : consumes)
+        route.consumes(ct);
+
+      for (String ct : produces)
+        route.produces(ct);
+
       route.setRegexGroupsNames(new ArrayList<>(pathResolver.getMappedGroups().values()));
       for (Handler handler : handlersToLoad)
         route.handler(handler);

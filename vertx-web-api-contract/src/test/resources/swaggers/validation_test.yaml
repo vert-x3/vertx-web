@@ -1,11 +1,9 @@
 openapi: 3.0.0
 info:
   version: 1.0.0
-  title: Vertx test spec
+  title: Test spec for OpenAPI3ValidationTest
   license:
-    name: MIT
-servers:
-  - url: http://petstore.swagger.io/v1
+    name: Apache 2.0 License
 paths:
   /pets:
     get:
@@ -246,7 +244,21 @@ paths:
       responses:
         default:
           description: Ok
-
+  /consumesTest:
+    post:
+      operationId: consumesTest
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Pet"
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/Pet"
+      responses:
+        default:
+          description: ok
 components:
   schemas:
     Pet:

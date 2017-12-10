@@ -33,7 +33,7 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
   public ExternalResource resource = new ExternalResource() {
     @Override
     protected void before() throws Throwable {
-      testSpec = loadSwagger("src/test/resources/swaggers/testSpec.yaml");
+      testSpec = loadSwagger("src/test/resources/swaggers/validation_test.yaml");
     }
 
     ;
