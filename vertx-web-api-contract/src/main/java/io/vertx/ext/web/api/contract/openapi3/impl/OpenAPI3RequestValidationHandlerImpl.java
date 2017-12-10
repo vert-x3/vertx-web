@@ -439,7 +439,7 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
 
   /* Entry point for parse RequestBody object */
   private void parseRequestBody(RequestBody requestBody) {
-    if (requestBody != null && requestBody.getContent() != null)
+    if (requestBody != null && requestBody.getContent() != null) {
       for (Map.Entry<String, ? extends MediaType> mediaType : requestBody.getContent().entrySet()) {
         if (mediaType.getKey().equals("application/json") && mediaType.getValue().getSchema() != null) {
           this.setEntireBodyValidator(JsonTypeValidator.JsonTypeValidatorFactory
@@ -469,6 +469,7 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
           this.addBodyFileRule(mediaType.getKey());
         }
       }
-    if (requestBody!=null && (requestBody.getRequired() == null || !requestBody.getRequired())) this.expectedBodyNotEmpty = false;
+      this.bodyRequired = (requestBody.getRequired() == null) ? false : requestBody.getRequired();
+    }
   }
 }

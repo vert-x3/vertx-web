@@ -30,7 +30,7 @@ public abstract class BaseValidationHandler implements ValidationHandler {
 
   private List<CustomValidator> customValidators;
 
-  protected boolean expectedBodyNotEmpty;
+  protected boolean bodyRequired;
 
   protected BaseValidationHandler() {
     pathParamsRules = new HashMap<>();
@@ -42,7 +42,7 @@ public abstract class BaseValidationHandler implements ValidationHandler {
     bodyFileRules = new ArrayList<>();
     customValidators = new ArrayList<>();
 
-    expectedBodyNotEmpty = false;
+    bodyRequired = false;
   }
 
   @Override
@@ -62,26 +62,29 @@ public abstract class BaseValidationHandler implements ValidationHandler {
 
       String contentType = routingContext.request().getHeader("Content-Type");
       if (contentType != null && contentType.length() != 0) {
-        if (multipartFileRules.size() != 0 && !contentType.contains("multipart/form-data"))
+        boolean isMultipart = contentType.contains("multipart/form-data");
+
+        if (multipartFileRules.size() != 0 && !isMultipart) {
           throw ValidationException.ValidationExceptionFactory.generateWrongContentTypeExpected(contentType,
             "multipart/form-data");
-        if (contentType.contains("application/x-www-form-urlencoded") || contentType.contains("multipart/form-data")) {
-          parsedParameters.setFormParameters(validateFormParams(routingContext));
-          if (contentType.contains("multipart/form-data")) validateFileUpload(routingContext);
-        } else if (contentType.equals("application/json") || contentType.equals("application/xml"))
-          parsedParameters.setBody(validateEntireBody(routingContext));
-        else {
-          routingContext.fail(400);
-          return;
         }
-      } else {
-        if (expectedBodyNotEmpty && !checkContentType(contentType))
+        if (contentType.contains("application/x-www-form-urlencoded")) {
+          parsedParameters.setFormParameters(validateFormParams(routingContext));
+        } else if (isMultipart) {
+          parsedParameters.setFormParameters(validateFormParams(routingContext));
+          validateFileUpload(routingContext);
+        } else if (contentType.contains("application/json") || contentType.contains("application/xml") || contentType.contains("text/xml")) {
+          parsedParameters.setBody(validateEntireBody(routingContext));
+        } else if (bodyRequired && !checkContentType(contentType)) {
           throw ValidationException.ValidationExceptionFactory.generateWrongContentTypeExpected(contentType, null);
+        } // If content type is valid or body is not required, do nothing!
+      } else if (bodyRequired) {
+        throw ValidationException.ValidationExceptionFactory.generateWrongContentTypeExpected(contentType, null);
       }
 
       routingContext.put("parsedParameters", parsedParameters);
-
       routingContext.next();
+
     } catch (ValidationException e) {
       routingContext.fail(e);
     }
@@ -241,7 +244,7 @@ public abstract class BaseValidationHandler implements ValidationHandler {
 
   private boolean checkContentType(String contentType) {
     for (String ct : bodyFileRules) {
-      if (ct.equals(contentType)) return true;
+      if (contentType.contains(ct)) return true;
     }
     return false;
   }
@@ -279,10 +282,9 @@ public abstract class BaseValidationHandler implements ValidationHandler {
   }
 
   protected void addFormParamRule(ParameterValidationRule rule) {
-    if (!formParamsRules.containsKey(rule.getName())) {
+    if (!formParamsRules.containsKey(rule.getName()))
       formParamsRules.put(rule.getName(), rule);
-      expectedBodyNotEmpty = true;
-    }
+    bodyRequired = true;
   }
 
   protected void addHeaderParamRule(ParameterValidationRule rule) {
@@ -295,16 +297,16 @@ public abstract class BaseValidationHandler implements ValidationHandler {
 
   protected void addMultipartFileRule(String formName, String contentType) {
     if (!multipartFileRules.containsKey(formName)) multipartFileRules.put(formName, Pattern.compile(contentType));
-    expectedBodyNotEmpty = true;
+    bodyRequired = true;
   }
 
   protected void addBodyFileRule(String contentType) {
     bodyFileRules.add(contentType);
-    expectedBodyNotEmpty = true;
+    bodyRequired = true;
   }
 
   protected void setEntireBodyValidator(ParameterTypeValidator entireBodyValidator) {
     this.entireBodyValidator = entireBodyValidator;
-    expectedBodyNotEmpty = true;
+    bodyRequired = true;
   }
 }
