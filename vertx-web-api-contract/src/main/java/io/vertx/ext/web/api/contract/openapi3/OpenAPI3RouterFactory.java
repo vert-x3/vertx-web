@@ -17,7 +17,6 @@ import io.vertx.ext.web.api.contract.RouterFactoryException;
 import io.vertx.ext.web.api.contract.openapi3.impl.OpenAPI3RouterFactoryImpl;
 import io.vertx.ext.web.api.contract.openapi3.impl.OpenApi3Utils;
 import org.apache.commons.lang3.StringUtils;
-
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
