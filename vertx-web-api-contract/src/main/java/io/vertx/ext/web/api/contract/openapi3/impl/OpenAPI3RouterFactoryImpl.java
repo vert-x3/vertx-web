@@ -154,7 +154,7 @@ public class OpenAPI3RouterFactoryImpl extends BaseDesignDrivenRouterFactory<Ope
 
   public OpenAPI3RouterFactoryImpl(Vertx vertx, OpenAPI spec) {
     super(vertx, spec);
-    this.operations = new HashMap<>();
+    this.operations = new LinkedHashMap<>();
     this.securityHandlers = new HashMap<>();
 
     /* --- Initialization of all arrays and maps --- */
