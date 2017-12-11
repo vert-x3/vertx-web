@@ -262,10 +262,19 @@ public class RouteImpl implements Route {
             for (int i = 0; i < groups.size(); i++) {
               final String k = groups.get(i);
               String undecodedValue;
+              // We try to take value in three ways:
+              // 1. group name of type p0, p1, pN (most frequent and used by vertx params)
+              // 2. group name inside the regex
+              // 3. No group name
               try {
                 undecodedValue = m.group("p" + i);
               } catch (IllegalArgumentException e) {
-                undecodedValue = m.group(k);
+                try {
+                  undecodedValue = m.group(k);
+                } catch (IllegalArgumentException e1) {
+                  // Groups starts from 1 (0 group is total match)
+                  undecodedValue = m.group(i + 1);
+                }
               }
               addPathParam(context, k, undecodedValue);
             }
