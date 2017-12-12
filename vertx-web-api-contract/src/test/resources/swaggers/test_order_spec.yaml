@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
   version: 1.0.0
-  title: Vertx test order spec
+  title: Test spec for OpenAPI3RouterFactoryTest.loadSpecAndTestPrecedence()
 paths:
   /product/special:
     get:

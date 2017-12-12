@@ -209,7 +209,7 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
   public void loadSpecAndTestPrecedence() throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
     final Router[] router = {null};
-    OpenAPI3RouterFactory.createRouterFactoryFromFile(this.vertx, "src/test/resources/swaggers/testOrderSpec.yaml",
+    OpenAPI3RouterFactory.createRouterFactoryFromFile(this.vertx, "src/test/resources/swaggers/test_order_spec.yaml",
       openAPI3RouterFactoryAsyncResult -> {
         assertTrue(openAPI3RouterFactoryAsyncResult.succeeded());
         OpenAPI3RouterFactory routerFactory = openAPI3RouterFactoryAsyncResult.result();
