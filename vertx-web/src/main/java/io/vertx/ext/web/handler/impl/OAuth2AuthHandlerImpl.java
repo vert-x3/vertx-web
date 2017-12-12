@@ -123,14 +123,15 @@ public class OAuth2AuthHandlerImpl extends AuthorizationAuthHandler implements O
           });
         }
       });
-    }
-    // redirect request to the oauth2 server
-    if (callback == null) {
-      handler.handle(Future.failedFuture("callback route is not configured."));
-      return;
-    }
+    } else {
+      // redirect request to the oauth2 server
+      if (callback == null) {
+        handler.handle(Future.failedFuture("callback route is not configured."));
+        return;
+      }
 
-    handler.handle(Future.failedFuture(new HttpStatusException(302, authURI(context.request().uri()))));
+      handler.handle(Future.failedFuture(new HttpStatusException(302, authURI(context.request().uri()))));
+    }
   }
 
   private String authURI(String redirectURL) {
