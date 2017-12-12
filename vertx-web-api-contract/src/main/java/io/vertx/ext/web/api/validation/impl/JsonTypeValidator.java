@@ -7,6 +7,7 @@ import io.vertx.ext.web.api.validation.ParameterTypeValidator;
 import io.vertx.ext.web.api.validation.ValidationException;
 import org.everit.json.schema.Schema;
 import org.everit.json.schema.loader.SchemaLoader;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
@@ -23,7 +24,12 @@ public class JsonTypeValidator implements ParameterTypeValidator {
   @Override
   public RequestParameter isValid(String value) throws ValidationException {
     try {
-      JSONObject obj = new JSONObject(value);
+      JSONObject obj;
+      try {
+        obj = new JSONObject(value);
+      } catch (JSONException e) {
+        throw ValidationException.ValidationExceptionFactory.generateNotParsableJsonBodyException(e.getMessage());
+      }
       schema.validate(obj);
       // We can't simply reparse value because the validation can modify things inside obj
       // (for example when we apply default values)

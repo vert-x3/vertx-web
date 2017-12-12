@@ -186,8 +186,8 @@ public class ValidationException extends VertxException {
       return new ValidationException(message, ErrorType.NO_MATCH);
     }
 
-    public static ValidationException generateNotParsableJsonBodyException() {
-      return new ValidationException(null, ErrorType.JSON_NOT_PARSABLE);
+    public static ValidationException generateNotParsableJsonBodyException(String message) {
+      return new ValidationException(message, ErrorType.JSON_NOT_PARSABLE);
     }
 
     public static ValidationException generateInvalidJsonBodyException(String message) {

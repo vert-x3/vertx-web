@@ -430,4 +430,25 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
     testRequestWithJSON(HttpMethod.POST, "/circularReferences", obj, 200, "OK", obj);
   }
 
+  @Test
+  public void testNullJson() throws Exception {
+    Operation op = testSpec.getPaths().get("/pets").getPost();
+    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(op, op.getParameters(), testSpec);
+    loadHandlers("/pets", HttpMethod.POST, true, validationHandler, (routingContext) -> {
+      RequestParameters params = routingContext.get("parsedParameters");
+      routingContext
+        .response()
+        .setStatusCode(200)
+        .setStatusMessage("OK")
+        .putHeader("Content-Type", "application/json")
+        .end(params.body().getJsonObject().encode());
+    });
+
+    // An empty body should be a non parsable json, not an empty object invalid
+    testRequestWithJSON(HttpMethod.POST, "/pets", null, 400, errorMessage(ValidationException.ErrorType.JSON_NOT_PARSABLE));
+
+    // An empty json object should be invalid, because some fields are required
+    testRequestWithJSON(HttpMethod.POST, "/pets", new JsonObject(),400, errorMessage(ValidationException.ErrorType.JSON_INVALID));
+  }
+
 }

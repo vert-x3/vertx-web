@@ -46,6 +46,18 @@ public class WebTestWithWebClientBase extends WebTestBase {
     super.tearDown();
   }
 
+  public void testRequestWithJSON(HttpMethod method, String path, JsonObject jsonObject, int statusCode, String statusMessage) throws Exception {
+    CountDownLatch latch = new CountDownLatch(1);
+    webClient.request(method, 8080, "localhost", path)
+      .putHeader("content-type", "application/json")
+      .sendJsonObject(jsonObject, (ar) -> {
+      assertEquals(statusCode, ar.result().statusCode());
+      assertEquals(statusMessage, ar.result().statusMessage());
+      latch.countDown();
+    });
+    awaitLatch(latch);
+  }
+
   public void testRequestWithJSON(HttpMethod method, String path, JsonObject jsonObject, int statusCode, String statusMessage, JsonObject obj) throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
     webClient.request(method, 8080, "localhost", path).sendJsonObject(jsonObject, (ar) -> {
