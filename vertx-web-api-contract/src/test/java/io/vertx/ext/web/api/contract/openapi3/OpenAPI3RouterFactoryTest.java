@@ -226,8 +226,6 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
         });
         routerFactory.addFailureHandlerByOperationId("showProductById", generateFailureHandler(false));
 
-        // Add security handler
-        routerFactory.addSecurityHandler("api_key", routingContext -> routingContext.next());
         router[0] = routerFactory.getRouter();
 
         latch.countDown();
