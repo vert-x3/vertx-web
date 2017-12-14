@@ -133,18 +133,26 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
         String regex = null;
         // Then resolve various string formats
         if (schema.getFormat() != null) switch (schema.getFormat()) {
+          case "binary":
+            break;
           case "byte":
             regex = RegularExpressions.BASE64;
+            break;
           case "date":
             regex = RegularExpressions.DATE;
+            break;
           case "date-time":
             regex = RegularExpressions.DATETIME;
+            break;
           case "ipv4":
             regex = RegularExpressions.IPV4;
+            break;
           case "ipv6":
             regex = RegularExpressions.IPV6;
+            break;
           case "hostname":
             regex = RegularExpressions.HOSTNAME;
+            break;
           default:
             throw new SpecFeatureNotSupportedException("format " + schema.getFormat() + " not supported");
         }

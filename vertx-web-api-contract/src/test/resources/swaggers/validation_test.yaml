@@ -223,6 +223,52 @@ paths:
       responses:
         default:
           description: ok
+  # https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.1.md#data-types
+  /queryTests/formats:
+    get:
+      operationId: formatsTest
+      parameters:
+        - name: parameter
+          in: query
+          required: true
+          schema:
+            anyOf:
+              - type: integer
+                format: int32
+              - type: integer
+                format: int64
+              - type: number
+                format: float
+              - type: number
+                format: double
+              - type: string
+              - type: string
+                format: byte
+              - type: string
+                format: binary
+              - type: boolean
+              - type: string
+                format: date
+              - type: string
+                format: date-time
+              - type: string
+                format: password
+      responses:
+        default:
+          description: ok
+  /queryTests/byteFormat:
+    get:
+      operationId: byteFormatTest
+      parameters:
+        - name: parameter
+          in: query
+          required: true
+          schema:
+            - type: string
+              format: byte
+      responses:
+        default:
+          description: ok
   /multipart/complex:
     post:
       operationId: complexMultipartRequest
