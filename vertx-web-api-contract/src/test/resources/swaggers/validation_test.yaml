@@ -236,6 +236,19 @@ paths:
       responses:
         default:
           description: ok
+  /queryTests/byteFormat:
+    get:
+      operationId: byteFormatTest
+      parameters:
+        - name: parameter
+          in: query
+          required: true
+          schema:
+            - type: string
+              format: byte
+      responses:
+        default:
+          description: ok
   /multipart/complex:
     post:
       operationId: complexMultipartRequest
