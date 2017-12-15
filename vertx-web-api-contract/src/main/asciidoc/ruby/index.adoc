@@ -34,7 +34,17 @@ To create a new router factory, you can use methods inside `link:../../yardoc/Ve
 For example:
 [source,ruby]
 ----
-`link:unavailable#construct_router_factory-instance_method[constructRouterFactory]`
+require 'vertx-web-api-contract/open_api3_router_factory'
+VertxWebApiContract::OpenAPI3RouterFactory.create_router_factory_from_file(vertx, "src/main/resources/petstore.yaml") { |ar_err,ar|
+  if (ar_err == nil)
+    # Spec loaded with success
+    routerFactory = ar
+  else
+    # Something went wrong during router factory initialization
+    exception = ar_err
+  end
+}
+
 ----
 
 === Mount the handlers
@@ -56,7 +66,16 @@ IMPORTANT: If you want to use `link:../../yardoc/VertxWebApiContract/DesignDrive
 For example:
 [source,ruby]
 ----
-`link:unavailable#add_route-instance_method[addRoute]`
+routerFactory.add_handler_by_operation_id("awesomeOperation") { |routingContext|
+  params = routingContext.get("parsedParameters")
+  body = params.body()
+  jsonBody = body.get_json_object()
+  # Do something with body
+}
+routerFactory.add_failure_handler_by_operation_id("awesomeOperation") { |routingContext|
+  # Handle failure
+}
+
 ----
 
 .Add operations with operationId
@@ -70,14 +89,17 @@ For example:
 
 [source,ruby]
 ----
-`link:unavailable#add_security_handler-instance_method[addSecurityHandler]`
+routerFactory.add_security_handler("security_scheme_name", &securityHandler)
+
 ----
 
 You can of course use included Vert.x security handlers, for example:
 
 [source,ruby]
 ----
-`link:unavailable#add_jwt-instance_method[addJWT]`
+require 'vertx-web/jwt_auth_handler'
+routerFactory.add_security_handler("jwt_auth", &VertxWeb::JWTAuthHandler.create(jwtAuthProvider).method(:handle))
+
 ----
 
 === Error handling
@@ -91,7 +113,14 @@ When you are ready, generate the router and use it:
 
 [source,ruby]
 ----
-`link:unavailable#generate_router-instance_method[generateRouter]`
+router = routerFactory.get_router()
+
+server = vertx.create_http_server({
+  'port' => 8080,
+  'host' => "localhost"
+})
+server.request_handler(&router.method(:accept)).listen()
+
 ----
 
 == Requests validation
@@ -99,13 +128,35 @@ When you are ready, generate the router and use it:
 Vert.x provides a validation framework that will validate requests for you and will put results of validation inside a container. To define a `link:../../yardoc/VertxWebApiContract/HTTPRequestValidationHandler.html[HTTPRequestValidationHandler]`:
 [source,ruby]
 ----
-`link:unavailable#example63-instance_method[example63]`
+require 'vertx-web-api-contract/http_request_validation_handler'
+# Create Validation Handler with some stuff
+validationHandler = VertxWebApiContract::HTTPRequestValidationHandler.create().add_query_param("parameterName", :INT, true).add_form_param_with_pattern("formParameterName", "a{4}", true).add_path_param("pathParam", :FLOAT)
+
 ----
 
 Then you can mount your validation handler:
 [source,ruby]
 ----
-`link:unavailable#example64-instance_method[example64]`
+require 'vertx-web/body_handler'
+# BodyHandler is required to manage body parameters like forms or json body
+router.route().handler(&VertxWeb::BodyHandler.create().method(:handle))
+
+router.get("/awesome/:pathParam").handler(&validationHandler.method(:handle)).handler() { |routingContext|
+  # Get Request parameters container
+  params = routingContext.get("parsedParameters")
+
+  # Get parameters
+  parameterName = params.query_parameter("parameterName").get_integer()
+  formParameterName = params.form_parameter("formParameterName").get_string()
+  pathParam = params.path_parameter("pathParam").get_float()
+}.failure_handler() { |routingContext|
+  failure = routingContext.failure()
+  if (failure.class.name == 'Java::IoVertxExtWebApiValidation::ValidationException')
+    # Something went wrong during validation!
+    validationErrorMessage = failure.get_message()
+  end
+}
+
 ----
 
 If validation succeeds, It returns request parameters inside `link:../../yardoc/VertxWebApiContract/RequestParameters.html[RequestParameters]`, otherwise It will throw a `link:unavailable[ValidationException]`
@@ -123,12 +174,29 @@ Now you can handle parameter values:
 
 [source,ruby]
 ----
-`link:unavailable#example65-instance_method[example65]`
+params = routingContext.get("parsedParameters")
+awesomeParameter = params.query_parameter("awesomeParameter")
+if (awesomeParameter != nil)
+  if (!awesomeParameter.empty?())
+    # Parameter exists and isn't empty
+    # ParameterTypeValidator mapped the parameter in equivalent language object
+    awesome = awesomeParameter.get_integer()
+  else
+    # Parameter exists, but it's empty
+  end
+else
+  # Parameter doesn't exist (it's not required)
+end
+
 ----
 
 As you can see, every parameter is mapped in respective language objects. You can also get a json body:
 
 [source,ruby]
 ----
-`link:unavailable#example66-instance_method[example66]`
+body = params.body()
+if (body != nil)
+  jsonBody = body.get_json_object()
+end
+
 ----
