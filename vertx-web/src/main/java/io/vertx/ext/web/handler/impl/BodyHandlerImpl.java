@@ -24,10 +24,10 @@ import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
-import io.vertx.ext.web.impl.FileUploadImpl;
-import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.FileUpload;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.handler.BodyHandler;
+import io.vertx.ext.web.impl.FileUploadImpl;
 
 import java.io.File;
 import java.util.Set;
@@ -43,6 +43,7 @@ public class BodyHandlerImpl implements BodyHandler {
   private static final Logger log = LoggerFactory.getLogger(BodyHandlerImpl.class);
 
   private static final String BODY_HANDLED = "__body-handled";
+  private static final String WEBSOCKET_HEADER = HttpHeaders.WEBSOCKET.toString();
 
   private long bodyLimit = DEFAULT_BODY_LIMIT;
   private String uploadsDir;
@@ -60,6 +61,13 @@ public class BodyHandlerImpl implements BodyHandler {
   @Override
   public void handle(RoutingContext context) {
     HttpServerRequest request = context.request();
+    // FIXME when MultiMap has a contains(name,value) method, remove the constant and simplify this test
+    String upgradeHeader = request.getHeader(HttpHeaders.UPGRADE);
+    if (upgradeHeader != null && upgradeHeader.equalsIgnoreCase(WEBSOCKET_HEADER)) {
+      context.next();
+      return;
+    }
+
     // we need to keep state since we can be called again on reroute
     Boolean handled = context.get(BODY_HANDLED);
     if (handled == null || !handled) {
