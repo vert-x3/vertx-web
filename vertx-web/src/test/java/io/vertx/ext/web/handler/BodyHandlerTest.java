@@ -289,6 +289,25 @@ public class BodyHandlerTest extends WebTestBase {
     Thread.sleep(100); // wait until file is removed
     assertEquals(0, vertx.fileSystem().readDirBlocking(uploadsDirectory).size());
   }
+   
+  @Test
+  public void testFileDeleteOnLargeUpload() throws Exception {
+    String uploadsDirectory = tempUploads.newFolder().getPath();
+    router.clear();
+    router.route().handler(BodyHandler.create()
+      .setDeleteUploadedFilesOnEnd(true)
+      .setBodyLimit(10000)
+      .setUploadsDirectory(uploadsDirectory));
+    router.route().handler(ctx -> {
+      fail();
+      ctx.fail(500);
+    });
+
+    sendFileUploadRequest(TestUtils.randomBuffer(20000), 413, "Request Entity Too Large");
+
+    Thread.sleep(100); // wait until file is removed
+    assertEquals(0, vertx.fileSystem().readDirBlocking(uploadsDirectory).size());
+  }
 
   private void testFileUploadFileRemoval(Handler<RoutingContext> requestHandler, boolean deletedUploadedFilesOnEnd,
                                          int statusCode, String statusMessage) throws Exception {
@@ -326,6 +345,7 @@ public class BodyHandlerTest extends WebTestBase {
       buffer.appendString(footer);
       req.headers().set("content-length", String.valueOf(buffer.length()));
       req.headers().set("content-type", "multipart/form-data; boundary=" + boundary);
+      req.setChunked(true);
       req.write(buffer);
     }, statusCode, statusMessage, null);
   }

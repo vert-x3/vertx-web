@@ -34,7 +34,17 @@ To create a new router factory, you can use methods inside `link:../../jsdoc/mod
 For example:
 [source,js]
 ----
-`constructRouterFactory`
+var OpenAPI3RouterFactory = require("vertx-web-api-contract-js/open_api3_router_factory");
+OpenAPI3RouterFactory.createRouterFactoryFromFile(vertx, "src/main/resources/petstore.yaml", function (ar, ar_err) {
+  if (ar_err == null) {
+    // Spec loaded with success
+    var routerFactory = ar;
+  } else {
+    // Something went wrong during router factory initialization
+    var exception = ar_err;
+  }
+});
+
 ----
 
 === Mount the handlers
@@ -56,7 +66,16 @@ IMPORTANT: If you want to use `link:../../jsdoc/module-vertx-web-api-contract-js
 For example:
 [source,js]
 ----
-`addRoute`
+routerFactory.addHandlerByOperationId("awesomeOperation", function (routingContext) {
+  var params = routingContext.get("parsedParameters");
+  var body = params.body();
+  var jsonBody = body.getJsonObject();
+  // Do something with body
+});
+routerFactory.addFailureHandlerByOperationId("awesomeOperation", function (routingContext) {
+  // Handle failure
+});
+
 ----
 
 .Add operations with operationId
@@ -70,14 +89,17 @@ For example:
 
 [source,js]
 ----
-`addSecurityHandler`
+routerFactory.addSecurityHandler("security_scheme_name", securityHandler);
+
 ----
 
 You can of course use included Vert.x security handlers, for example:
 
 [source,js]
 ----
-`addJWT`
+var JWTAuthHandler = require("vertx-web-js/jwt_auth_handler");
+routerFactory.addSecurityHandler("jwt_auth", JWTAuthHandler.create(jwtAuthProvider).handle);
+
 ----
 
 === Error handling
@@ -91,7 +113,14 @@ When you are ready, generate the router and use it:
 
 [source,js]
 ----
-`generateRouter`
+var router = routerFactory.getRouter();
+
+var server = vertx.createHttpServer({
+  "port" : 8080,
+  "host" : "localhost"
+});
+server.requestHandler(router.accept).listen();
+
 ----
 
 == Requests validation
@@ -99,13 +128,35 @@ When you are ready, generate the router and use it:
 Vert.x provides a validation framework that will validate requests for you and will put results of validation inside a container. To define a `link:../../jsdoc/module-vertx-web-api-contract-js_http_request_validation_handler-HTTPRequestValidationHandler.html[HTTPRequestValidationHandler]`:
 [source,js]
 ----
-`example63`
+var HTTPRequestValidationHandler = require("vertx-web-api-contract-js/http_request_validation_handler");
+// Create Validation Handler with some stuff
+var validationHandler = HTTPRequestValidationHandler.create().addQueryParam("parameterName", 'INT', true).addFormParamWithPattern("formParameterName", "a{4}", true).addPathParam("pathParam", 'FLOAT');
+
 ----
 
 Then you can mount your validation handler:
 [source,js]
 ----
-`example64`
+var BodyHandler = require("vertx-web-js/body_handler");
+// BodyHandler is required to manage body parameters like forms or json body
+router.route().handler(BodyHandler.create().handle);
+
+router.get("/awesome/:pathParam").handler(validationHandler.handle).handler(function (routingContext) {
+  // Get Request parameters container
+  var params = routingContext.get("parsedParameters");
+
+  // Get parameters
+  var parameterName = params.queryParameter("parameterName").getInteger();
+  var formParameterName = params.formParameter("formParameterName").getString();
+  var pathParam = params.pathParameter("pathParam").getFloat();
+}).failureHandler(function (routingContext) {
+  var failure = routingContext.failure();
+  if (failure.getClass().getSimpleName() == 'ValidationException') {
+    // Something went wrong during validation!
+    var validationErrorMessage = failure.getMessage();
+  }
+});
+
 ----
 
 If validation succeeds, It returns request parameters inside `link:../../jsdoc/module-vertx-web-api-contract-js_request_parameters-RequestParameters.html[RequestParameters]`, otherwise It will throw a `ValidationException`
@@ -123,12 +174,29 @@ Now you can handle parameter values:
 
 [source,js]
 ----
-`example65`
+var params = routingContext.get("parsedParameters");
+var awesomeParameter = params.queryParameter("awesomeParameter");
+if ((awesomeParameter !== null && awesomeParameter !== undefined)) {
+  if (!awesomeParameter.isEmpty()) {
+    // Parameter exists and isn't empty
+    // ParameterTypeValidator mapped the parameter in equivalent language object
+    var awesome = awesomeParameter.getInteger();
+  } else {
+    // Parameter exists, but it's empty
+  }
+} else {
+  // Parameter doesn't exist (it's not required)
+}
+
 ----
 
 As you can see, every parameter is mapped in respective language objects. You can also get a json body:
 
 [source,js]
 ----
-`example66`
+var body = params.body();
+if ((body !== null && body !== undefined)) {
+  var jsonBody = body.getJsonObject();
+}
+
 ----

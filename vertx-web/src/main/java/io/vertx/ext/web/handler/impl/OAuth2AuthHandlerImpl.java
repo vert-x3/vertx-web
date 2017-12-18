@@ -62,7 +62,6 @@ public class OAuth2AuthHandlerImpl extends AuthorizationAuthHandler implements O
 
   private final String host;
   private final String callbackPath;
-  private final boolean supportJWT;
   private final Set<String> scopes = new HashSet<>();
 
   private Route callback;
@@ -70,8 +69,6 @@ public class OAuth2AuthHandlerImpl extends AuthorizationAuthHandler implements O
 
   public OAuth2AuthHandlerImpl(OAuth2Auth authProvider, String callbackURL) {
     super(verifyProvider(authProvider), Type.BEARER);
-
-    this.supportJWT = authProvider.hasJWTToken();
 
     try {
       if (callbackURL != null) {
@@ -101,37 +98,36 @@ public class OAuth2AuthHandlerImpl extends AuthorizationAuthHandler implements O
 
   @Override
   public void parseCredentials(RoutingContext context, Handler<AsyncResult<JsonObject>> handler) {
-    if (supportJWT) {
-      parseAuthorization(context, true, parseAuthorization -> {
-        if (parseAuthorization.failed()) {
-          handler.handle(Future.failedFuture(parseAuthorization.cause()));
-          return;
-        }
-        // if the provider supports JWT we can try to validate the Authorization header
-        final String token = parseAuthorization.result();
-
-        if (token != null) {
-          ((OAuth2Auth) authProvider).decodeToken(token, decodeToken -> {
-            if (decodeToken.failed()) {
-              handler.handle(Future.failedFuture(new HttpStatusException(401, decodeToken.cause().getMessage())));
-              return;
-            }
-
-            context.setUser(decodeToken.result());
-            // continue
-            handler.handle(Future.succeededFuture());
-          });
-        }
-      });
-    } else {
-      // redirect request to the oauth2 server
-      if (callback == null) {
-        handler.handle(Future.failedFuture("callback route is not configured."));
+    parseAuthorization(context, true, parseAuthorization -> {
+      if (parseAuthorization.failed()) {
+        handler.handle(Future.failedFuture(parseAuthorization.cause()));
         return;
       }
+      // Authorization header could be null as we mark it as optional
+      final String token = parseAuthorization.result();
 
-      handler.handle(Future.failedFuture(new HttpStatusException(302, authURI(context.request().uri()))));
-    }
+      if (token == null) {
+        // redirect request to the oauth2 server as we know nothing about this request
+        if (callback == null) {
+          handler.handle(Future.failedFuture("callback route is not configured."));
+          return;
+        }
+        // the redirect is processed as a failure to abort the chain
+        handler.handle(Future.failedFuture(new HttpStatusException(302, authURI(context.request().uri()))));
+      } else {
+        // attempt to decode the token and handle it as a user
+        ((OAuth2Auth) authProvider).decodeToken(token, decodeToken -> {
+          if (decodeToken.failed()) {
+            handler.handle(Future.failedFuture(new HttpStatusException(401, decodeToken.cause().getMessage())));
+            return;
+          }
+
+          context.setUser(decodeToken.result());
+          // continue
+          handler.handle(Future.succeededFuture());
+        });
+      }
+    });
   }
 
   private String authURI(String redirectURL) {

@@ -24,10 +24,10 @@ import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
-import io.vertx.ext.web.impl.FileUploadImpl;
-import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.FileUpload;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.handler.BodyHandler;
+import io.vertx.ext.web.impl.FileUploadImpl;
 
 import java.io.File;
 import java.util.Set;
@@ -43,6 +43,7 @@ public class BodyHandlerImpl implements BodyHandler {
   private static final Logger log = LoggerFactory.getLogger(BodyHandlerImpl.class);
 
   private static final String BODY_HANDLED = "__body-handled";
+  private static final String WEBSOCKET_HEADER = HttpHeaders.WEBSOCKET.toString();
 
   private long bodyLimit = DEFAULT_BODY_LIMIT;
   private String uploadsDir;
@@ -60,6 +61,13 @@ public class BodyHandlerImpl implements BodyHandler {
   @Override
   public void handle(RoutingContext context) {
     HttpServerRequest request = context.request();
+    // FIXME when MultiMap has a contains(name,value) method, remove the constant and simplify this test
+    String upgradeHeader = request.getHeader(HttpHeaders.UPGRADE);
+    if (upgradeHeader != null && upgradeHeader.equalsIgnoreCase(WEBSOCKET_HEADER)) {
+      context.next();
+      return;
+    }
+
     // we need to keep state since we can be called again on reroute
     Boolean handled = context.get(BODY_HANDLED);
     if (handled == null || !handled) {
@@ -133,6 +141,15 @@ public class BodyHandlerImpl implements BodyHandler {
         makeUploadDir(context.vertx().fileSystem());
         context.request().setExpectMultipart(true);
         context.request().uploadHandler(upload -> {
+          if (bodyLimit != -1 && upload.isSizeAvailable()) {
+            // we can try to abort even before the upload starts
+            long size = uploadSize + upload.size();
+            if (size > bodyLimit) {
+              failed = true;
+              context.fail(413);
+              return;
+            }
+          }
           // we actually upload to a file with a generated filename
           uploadCount.incrementAndGet();
           String uploadedFileName = new File(uploadsDir, UUID.randomUUID().toString()).getPath();
@@ -161,6 +178,8 @@ public class BodyHandlerImpl implements BodyHandler {
       if (bodyLimit != -1 && uploadSize > bodyLimit) {
         failed = true;
         context.fail(413);
+        // enqueue a delete for the error uploads
+        context.vertx().runOnContext(v -> deleteFileUploads());
       } else {
         // multipart requests will not end up in the request body
         // url encoded should also not, however jQuery by default
@@ -191,16 +210,14 @@ public class BodyHandlerImpl implements BodyHandler {
     }
 
     void doEnd() {
-      if (deleteUploadedFilesOnEnd) {
-        if (failed) {
-          deleteFileUploads();
-        } else {
-          context.addBodyEndHandler(x -> deleteFileUploads());
-        }
-      }
 
       if (failed) {
+        deleteFileUploads();
         return;
+      }
+
+      if (deleteUploadedFilesOnEnd) {
+        context.addBodyEndHandler(x -> deleteFileUploads());
       }
 
       HttpServerRequest req = context.request();
