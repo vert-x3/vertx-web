@@ -253,22 +253,60 @@ public class BodyHandlerTest extends WebTestBase {
   }
 
   @Test
+  public void testFileUploadFileRemovalOnClientClosesConnection() throws Exception {
+
+    String uploadsDirectory = tempUploads.newFolder().getPath();
+    router.clear();
+    router.route().handler(BodyHandler.create()
+      .setUploadsDirectory(uploadsDirectory));
+
+    io.vertx.core.http.HttpClientRequest req = client.request(HttpMethod.POST, "/", ctx -> {});
+
+    String name = "somename";
+    String fileName = "somefile.dat";
+    String contentType = "application/octet-stream";
+    String boundary = "dLV9Wyq26L_-JQxk6ferf-RT153LhOO";
+    Buffer buffer = Buffer.buffer();
+    String header =
+      "--" + boundary + "\r\n" +
+        "Content-Disposition: form-data; name=\"" + name + "\"; filename=\"" + fileName + "\"\r\n" +
+        "Content-Type: " + contentType + "\r\n" +
+        "Content-Transfer-Encoding: binary\r\n" +
+        "\r\n";
+    buffer.appendString(header);
+    buffer.appendBuffer(TestUtils.randomBuffer(50));
+    req.headers().set("content-length", String.valueOf(buffer.length() + 50)); //partial upload
+    req.headers().set("content-type", "multipart/form-data; boundary=" + boundary);
+    req.write(buffer);
+
+    for (int i = 100; i > 0 && vertx.fileSystem().readDirBlocking(uploadsDirectory).size() == 0; i--) {
+      Thread.sleep(100); //wait for upload beginning
+    }
+    assertEquals(1, vertx.fileSystem().readDirBlocking(uploadsDirectory).size());
+
+    req.connection().close();
+
+    Thread.sleep(100); // wait until file is removed
+    assertEquals(0, vertx.fileSystem().readDirBlocking(uploadsDirectory).size());
+  }
+   
+  @Test
   public void testFileDeleteOnLargeUpload() throws Exception {
-      String uploadsDirectory = tempUploads.newFolder().getPath();
-      router.clear();
-      router.route().handler(BodyHandler.create()
-        .setDeleteUploadedFilesOnEnd(true)
-        .setBodyLimit(10000)
-        .setUploadsDirectory(uploadsDirectory));
-      router.route().handler(ctx -> {
-        fail();
-        ctx.fail(500);
-      });
+    String uploadsDirectory = tempUploads.newFolder().getPath();
+    router.clear();
+    router.route().handler(BodyHandler.create()
+      .setDeleteUploadedFilesOnEnd(true)
+      .setBodyLimit(10000)
+      .setUploadsDirectory(uploadsDirectory));
+    router.route().handler(ctx -> {
+      fail();
+      ctx.fail(500);
+    });
 
-      sendFileUploadRequest(TestUtils.randomBuffer(20000), 413, "Request Entity Too Large");
+    sendFileUploadRequest(TestUtils.randomBuffer(20000), 413, "Request Entity Too Large");
 
-      Thread.sleep(100); // wait until file is removed
-      assertEquals(0, vertx.fileSystem().readDirBlocking(uploadsDirectory).size());
+    Thread.sleep(100); // wait until file is removed
+    assertEquals(0, vertx.fileSystem().readDirBlocking(uploadsDirectory).size());
   }
 
   private void testFileUploadFileRemoval(Handler<RoutingContext> requestHandler, boolean deletedUploadedFilesOnEnd,
