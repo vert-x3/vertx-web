@@ -32,6 +32,7 @@ import io.vertx.ext.web.impl.FileUploadImpl;
 import java.io.File;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -115,6 +116,7 @@ public class BodyHandlerImpl implements BodyHandler {
     Buffer body = Buffer.buffer();
     boolean failed;
     AtomicInteger uploadCount = new AtomicInteger();
+    AtomicBoolean cleanup = new AtomicBoolean(false);
     boolean ended;
     long uploadSize = 0L;
 
@@ -154,11 +156,17 @@ public class BodyHandlerImpl implements BodyHandler {
           upload.streamToFileSystem(uploadedFileName);
           FileUploadImpl fileUpload = new FileUploadImpl(uploadedFileName, upload);
           fileUploads.add(fileUpload);
-          upload.exceptionHandler(context::fail);
+          upload.exceptionHandler(t -> {
+            deleteFileUploads();
+            context.fail(t);
+          });
           upload.endHandler(v -> uploadEnded());
         });
       }
-      context.request().exceptionHandler(context::fail);
+      context.request().exceptionHandler(t -> {
+        deleteFileUploads();
+        context.fail(t);
+      });
     }
 
     private void makeUploadDir(FileSystem fileSystem) {
@@ -227,20 +235,22 @@ public class BodyHandlerImpl implements BodyHandler {
     }
 
     private void deleteFileUploads() {
-      for (FileUpload fileUpload : context.fileUploads()) {
-        FileSystem fileSystem = context.vertx().fileSystem();
-        String uploadedFileName = fileUpload.uploadedFileName();
-        fileSystem.exists(uploadedFileName, existResult -> {
-          if (existResult.failed()) {
-            log.warn("Could not detect if uploaded file exists, not deleting: " + uploadedFileName, existResult.cause());
-          } else if (existResult.result()) {
-            fileSystem.delete(uploadedFileName, deleteResult -> {
-              if (deleteResult.failed()) {
-                log.warn("Delete of uploaded file failed: " + uploadedFileName, deleteResult.cause());
-              }
-            });
-          }
-        });
+      if (cleanup.compareAndSet(false, true)) {
+        for (FileUpload fileUpload : context.fileUploads()) {
+          FileSystem fileSystem = context.vertx().fileSystem();
+          String uploadedFileName = fileUpload.uploadedFileName();
+          fileSystem.exists(uploadedFileName, existResult -> {
+            if (existResult.failed()) {
+              log.warn("Could not detect if uploaded file exists, not deleting: " + uploadedFileName, existResult.cause());
+            } else if (existResult.result()) {
+              fileSystem.delete(uploadedFileName, deleteResult -> {
+                if (deleteResult.failed()) {
+                  log.warn("Delete of uploaded file failed: " + uploadedFileName, deleteResult.cause());
+                }
+              });
+            }
+          });
+        }
       }
     }
   }
