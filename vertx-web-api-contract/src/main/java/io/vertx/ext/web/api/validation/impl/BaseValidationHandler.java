@@ -68,7 +68,7 @@ public abstract class BaseValidationHandler implements ValidationHandler {
         if (contentType.contains("application/x-www-form-urlencoded") || contentType.contains("multipart/form-data")) {
           parsedParameters.setFormParameters(validateFormParams(routingContext));
           if (contentType.contains("multipart/form-data")) validateFileUpload(routingContext);
-        } else if (contentType.equals("application/json") || contentType.equals("application/xml"))
+        } else if (contentType.contains("application/json") || contentType.contains("application/xml"))
           parsedParameters.setBody(validateEntireBody(routingContext));
         else {
           routingContext.fail(400);
