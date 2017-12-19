@@ -49,34 +49,49 @@ public interface DesignDrivenRouterFactory<Specification> {
   DesignDrivenRouterFactory addFailureHandler(HttpMethod method, String path, Handler<RoutingContext> failureHandler);
 
   /**
-   * Set default validation failure handler. You can disable this feature from
-   * {@link DesignDrivenRouterFactory#enableValidationFailureHandler(boolean)}
+   * Override options
+   *
+   * @param options
+   * @return
+   */
+  @Fluent
+  DesignDrivenRouterFactory setOptions(DesignDrivenRouterFactoryOptions options);
+
+  /**
+   * Get options of router factory. For more info {@link DesignDrivenRouterFactoryOptions}
+   *
+   * @return
+   */
+  DesignDrivenRouterFactoryOptions options();
+
+  /**
+   * Deprecated. Instantiate {@link DesignDrivenRouterFactoryOptions}
+   * and load it using {@link DesignDrivenRouterFactory#setOptions(DesignDrivenRouterFactoryOptions)}
    *
    * @param handler
    * @return
    */
-  @Fluent
+  @Fluent @Deprecated
   DesignDrivenRouterFactory setValidationFailureHandler(Handler<RoutingContext> handler);
 
   /**
-   * Enable or disable validation failure handler. If you enable it, during router creation it will be mounted a
-   * built-in (or custom with function {@link DesignDrivenRouterFactory#setValidationFailureHandler(Handler)})
-   * ValidationException handler as a failure handler. If failure is different from ValidationException, it will be
-   * called the next failure handler.
+   * Deprecated. Instantiate {@link DesignDrivenRouterFactoryOptions}
+   * and load it using {@link DesignDrivenRouterFactory#setOptions(DesignDrivenRouterFactoryOptions)}
    *
    * @param enable
    * @return
    */
-  @Fluent
+  @Fluent @Deprecated
   DesignDrivenRouterFactory enableValidationFailureHandler(boolean enable);
 
   /**
-   * Automatic mount handlers that return HTTP 501 status code for operations where you didn't specify an handler.
+   * Deprecated. Instantiate {@link DesignDrivenRouterFactoryOptions}
+   * and load it using {@link DesignDrivenRouterFactory#setOptions(DesignDrivenRouterFactoryOptions)}
    *
    * @param enable
    * @return
    */
-  @Fluent
+  @Fluent @Deprecated
   DesignDrivenRouterFactory mountOperationsWithoutHandlers(boolean enable);
 
   /**

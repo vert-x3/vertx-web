@@ -259,7 +259,7 @@ public class OpenAPI3RouterFactoryImpl extends BaseDesignDrivenRouterFactory<Ope
     router.route().handler(BodyHandler.create());
     for (OperationValue operation : operations.values()) {
       // If user don't want 501 handlers and the operation is not configured, skip it
-      if (!mount501handlers && !operation.isConfigured())
+      if (!options.isMountNotImplementedHandler() && !operation.isConfigured())
         continue;
 
       List<Handler> handlersToLoad = new ArrayList<>();
@@ -300,7 +300,7 @@ public class OpenAPI3RouterFactoryImpl extends BaseDesignDrivenRouterFactory<Ope
       handlersToLoad.add(validationHandler);
 
       // Check validation failure handler
-      if (this.enableValidationFailureHandler) failureHandlersToLoad.add(this.failureHandler);
+      if (this.options.isMountValidationFailureHandler()) failureHandlersToLoad.add(this.options.getValidationFailureHandler());
 
       // Check if path is set by user
       if (operation.isConfigured()) {
