@@ -25,10 +25,6 @@ import java.util.*;
 public class OpenAPI3RouterFactoryImpl extends BaseDesignDrivenRouterFactory<OpenAPI> implements
   OpenAPI3RouterFactory {
 
-  private final Handler<RoutingContext> NOT_IMPLEMENTED_HANDLER = (routingContext) -> {
-    routingContext.response().setStatusCode(501).setStatusMessage("Not Implemented").end();
-  };
-
   // This map is fullfilled when spec is loaded in memory
   Map<String, OperationValue> operations;
 
@@ -278,7 +274,7 @@ public class OpenAPI3RouterFactoryImpl extends BaseDesignDrivenRouterFactory<Ope
                 if (securityHandlerToLoad == null) {
                   // Maybe there's only one security handler for all scopes of this security schema
                   securityHandlerToLoad = this.securityHandlers.get(new SecurityRequirementKey(securityValue.getKey()));
-                  if (securityHandlerToLoad == null)
+                  if (securityHandlerToLoad == null && options.isRequireSecurityHandlers())
                     throw RouterFactoryException.createMissingSecurityHandler(securityValue.getKey(), scope);
                   else handlersToLoad.add(securityHandlerToLoad);
                 } else handlersToLoad.add(securityHandlerToLoad);
@@ -286,7 +282,7 @@ public class OpenAPI3RouterFactoryImpl extends BaseDesignDrivenRouterFactory<Ope
             } else {
               Handler securityHandlerToLoad = this.securityHandlers.get(new SecurityRequirementKey(securityValue
                 .getKey()));
-              if (securityHandlerToLoad == null)
+              if (securityHandlerToLoad == null && options.isRequireSecurityHandlers())
                 throw RouterFactoryException.createMissingSecurityHandler(securityValue.getKey());
               else handlersToLoad.add(securityHandlerToLoad);
             }
@@ -307,7 +303,7 @@ public class OpenAPI3RouterFactoryImpl extends BaseDesignDrivenRouterFactory<Ope
         handlersToLoad.addAll(operation.getUserHandlers());
         handlersToLoad.addAll(operation.getUserFailureHandlers());
       } else {
-        handlersToLoad.add(this.NOT_IMPLEMENTED_HANDLER);
+        handlersToLoad.add(this.options.getNotImplementedFailureHandler());
       }
 
       // Now add all handlers to route

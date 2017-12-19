@@ -46,10 +46,17 @@ public class DesignDrivenRouterFactoryOptions {
    */
   public final static boolean DEFAULT_MOUNT_NOT_IMPLEMENTED_HANDLER = true;
 
+  /**
+   * By default, DesignDrivenRouterFactory requires security handlers
+   * to be defined while calling getRouter() or it will throw an Exception
+   */
+  public final static boolean DEFAULT_REQUIRE_SECURITY_HANDLERS = true;
+
   private Handler<RoutingContext> validationFailureHandler;
   private boolean mountValidationFailureHandler;
   private Handler<RoutingContext> notImplementedFailureHandler;
   private boolean mountNotImplementedHandler;
+  private boolean requireSecurityHandlers;
 
   public DesignDrivenRouterFactoryOptions() {
     init();
@@ -63,8 +70,9 @@ public class DesignDrivenRouterFactoryOptions {
   public DesignDrivenRouterFactoryOptions(DesignDrivenRouterFactoryOptions other) {
     this.validationFailureHandler = other.getValidationFailureHandler();
     this.mountValidationFailureHandler = other.isMountValidationFailureHandler();
-    this.notImplementedFailureHandler = other.notImplementedFailureHandler();
+    this.notImplementedFailureHandler = other.getNotImplementedFailureHandler();
     this.mountNotImplementedHandler = other.isMountNotImplementedHandler();
+    this.requireSecurityHandlers = other.isRequireSecurityHandlers();
   }
 
   public JsonObject toJson() {
@@ -78,6 +86,7 @@ public class DesignDrivenRouterFactoryOptions {
     this.mountValidationFailureHandler = DEFAULT_MOUNT_VALIDATION_FAILURE_HANDLER;
     this.notImplementedFailureHandler = DEFAULT_NOT_IMPLEMENTED_HANDLER;
     this.mountNotImplementedHandler = DEFAULT_MOUNT_NOT_IMPLEMENTED_HANDLER;
+    this.requireSecurityHandlers = DEFAULT_REQUIRE_SECURITY_HANDLERS;
   }
 
   public Handler<RoutingContext> getValidationFailureHandler() {
@@ -89,7 +98,7 @@ public class DesignDrivenRouterFactoryOptions {
    * {@link DesignDrivenRouterFactoryOptions#setMountValidationFailureHandler(boolean)}
    *
    * @param validationFailureHandler
-   * @return
+   * @return this object
    */
   @Fluent
   public DesignDrivenRouterFactoryOptions setValidationFailureHandler(Handler<RoutingContext> validationFailureHandler) {
@@ -107,7 +116,7 @@ public class DesignDrivenRouterFactoryOptions {
    * handler will be called.
    *
    * @param mountGlobalValidationFailureHandler
-   * @return
+   * @return this object
    */
   @Fluent
   public DesignDrivenRouterFactoryOptions setMountValidationFailureHandler(boolean mountGlobalValidationFailureHandler) {
@@ -125,7 +134,7 @@ public class DesignDrivenRouterFactoryOptions {
    * {@link DesignDrivenRouterFactoryOptions#setMountNotImplementedHandler(boolean)}
    *
    * @param notImplementedFailureHandler
-   * @return
+   * @return this object
    */
   @Fluent
   public DesignDrivenRouterFactoryOptions setNotImplementedFailureHandler(Handler<RoutingContext> notImplementedFailureHandler) {
@@ -141,11 +150,28 @@ public class DesignDrivenRouterFactoryOptions {
    * Automatic mount handlers that return HTTP 501 status code for operations where you didn't specify an handler.
    *
    * @param mountOperationsWithoutHandler
-   * @return
+   * @return this object
    */
   @Fluent
   public DesignDrivenRouterFactoryOptions setMountNotImplementedHandler(boolean mountOperationsWithoutHandler) {
     this.mountNotImplementedHandler = mountOperationsWithoutHandler;
+    return this;
+  }
+
+  public boolean isRequireSecurityHandlers() {
+    return requireSecurityHandlers;
+  }
+
+  /**
+   * If true, when you call {@link DesignDrivenRouterFactory#getRouter()} the factory will mount for every path
+   * the required security handlers and, if a security handler is not defined, it throws an {@link RouterFactoryException}
+   *
+   * @param requireSecurityHandlers
+   * @return this object
+   */
+  @Fluent
+  public DesignDrivenRouterFactoryOptions setRequireSecurityHandlers(boolean requireSecurityHandlers) {
+    this.requireSecurityHandlers = requireSecurityHandlers;
     return this;
   }
 }
