@@ -1806,6 +1806,15 @@ public class RouterTest extends WebTestBase {
   }
 
   @Test
+  public void testBadURL() throws Exception {
+    router.route().handler(rc -> {
+      rc.response().end();
+    });
+
+    testRequest(HttpMethod.GET, "/%7B%channel%%7D", 200, "OK");
+  }
+
+  @Test
   public void testDuplicateParams() throws Exception {
     router.route("/test/:p").handler(RoutingContext::next);
     router.route("/test/:p").handler(RoutingContext::next);
