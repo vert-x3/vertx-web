@@ -21,6 +21,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerResponse;
+import org.jruby.compiler.util.HandleFactory;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -2125,5 +2126,53 @@ public class RouterTest extends WebTestBase {
       response.end(routingContext.get("response") + "handler3");
     });
     testRequest(HttpMethod.GET, "/path", 200, "OK", "handler1handler2handler3");
+  }
+
+  private Handler<RoutingContext> generateHandler(final int i) {
+    return routingContext -> routingContext.put(Integer.toString(i), i).next();
+  }
+
+  @Test
+  public void stressTestMultipleHandlers() throws Exception {
+    final int HANDLERS_NUMBER = 100;
+    final int REQUESTS_NUMBER = 200;
+
+    Route r = router.get("/path");
+    for (int i = 0; i < HANDLERS_NUMBER; i++) {
+      r.handler(generateHandler(i));
+    }
+    r.handler(routingContext -> {
+      StringBuilder sum = new StringBuilder();
+      for (int i = 0; i < HANDLERS_NUMBER; i++) {
+        sum.append((Integer)routingContext.get(Integer.toString(i)));
+      }
+      routingContext.response()
+        .setStatusCode(200)
+        .setStatusMessage("OK")
+        .end(sum.toString());
+    });
+
+    CountDownLatch latch = new CountDownLatch(REQUESTS_NUMBER);
+    final StringBuilder sum = new StringBuilder();
+    for (int i = 0; i < HANDLERS_NUMBER; i++) {
+      sum.append(i);
+    }
+    for (int i = 0; i < REQUESTS_NUMBER; i++) {
+      // using executeBlocking should create multiple connections
+      vertx.executeBlocking(future -> {
+        try {
+          Thread.sleep((int)(1 + Math.random() * 10));
+          testSyncRequest("GET", "/path", 200, "OK", sum.toString());
+          future.complete();
+        } catch (Exception e) {
+          future.fail(e);
+        }
+      }, asyncResult -> {
+        assertFalse(asyncResult.failed());
+        assertNull(asyncResult.cause());
+        latch.countDown();
+      });
+    }
+    awaitLatch(latch);
   }
 }
