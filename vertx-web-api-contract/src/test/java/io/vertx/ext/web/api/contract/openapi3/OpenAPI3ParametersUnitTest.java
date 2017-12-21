@@ -11,6 +11,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.api.RequestParameter;
 import io.vertx.ext.web.api.RequestParameters;
+import io.vertx.ext.web.api.contract.DesignDrivenRouterFactoryOptions;
 import io.vertx.ext.web.api.contract.openapi3.impl.OpenAPI3RouterFactoryImpl;
 import io.vertx.ext.web.api.validation.WebTestValidationBase;
 import io.vertx.ext.web.client.HttpResponse;
@@ -57,9 +58,13 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
     stopServer(); // Have to stop default server of WebTestBase
     apiClient = new io.vertx.ext.web.api.contract.openapi3.ApiClient(webClient);
     routerFactory = new OpenAPI3RouterFactoryImpl(this.vertx, spec);
-    routerFactory.enableValidationFailureHandler(true);
-    routerFactory.setValidationFailureHandler(generateFailureHandler());
-    routerFactory.mountOperationsWithoutHandlers(false);
+    routerFactory.setOptions(
+      new DesignDrivenRouterFactoryOptions()
+        .setRequireSecurityHandlers(false)
+        .setMountValidationFailureHandler(true)
+        .setValidationFailureHandler(generateFailureHandler())
+        .setMountNotImplementedHandler(false)
+    );
   }
 
   @Override

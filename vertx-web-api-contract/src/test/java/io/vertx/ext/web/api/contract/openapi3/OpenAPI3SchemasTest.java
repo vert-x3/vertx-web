@@ -10,6 +10,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.api.RequestParameters;
+import io.vertx.ext.web.api.contract.DesignDrivenRouterFactoryOptions;
 import io.vertx.ext.web.api.validation.ValidationException;
 import io.vertx.ext.web.api.validation.WebTestValidationBase;
 import io.vertx.ext.web.handler.StaticHandler;
@@ -59,9 +60,13 @@ public class OpenAPI3SchemasTest extends WebTestValidationBase {
       assertTrue(openAPI3RouterFactoryAsyncResult.succeeded());
       assertNull(openAPI3RouterFactoryAsyncResult.cause());
       routerFactory = openAPI3RouterFactoryAsyncResult.result();
-      routerFactory.enableValidationFailureHandler(true);
-      routerFactory.setValidationFailureHandler(FAILURE_HANDLER);
-      routerFactory.mountOperationsWithoutHandlers(false);
+      routerFactory.setOptions(
+        new DesignDrivenRouterFactoryOptions()
+        .setRequireSecurityHandlers(false)
+        .setMountValidationFailureHandler(true)
+        .setValidationFailureHandler(FAILURE_HANDLER)
+        .setMountNotImplementedHandler(false)
+      );
       latch.countDown();
     });
     awaitLatch(latch);
