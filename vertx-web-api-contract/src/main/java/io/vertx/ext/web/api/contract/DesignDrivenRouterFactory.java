@@ -26,26 +26,28 @@ public interface DesignDrivenRouterFactory<Specification> {
 
   /**
    * Add an handler to a path with a method. If combination path/method is not available in
-   * specification, it will throw a {@link RouterFactoryException}
+   * specification, it will throw a {@link RouterFactoryException}. Deprecated in favour of
+   * operation id
    *
    * @param method
    * @param path
    * @param handler
    * @return
    */
-  @Fluent
+  @Fluent @Deprecated
   DesignDrivenRouterFactory addHandler(HttpMethod method, String path, Handler<RoutingContext> handler);
 
   /**
    * Add a failure handler to a path with a method. If combination path/method is not available in
-   * specification, it will throw a {@link RouterFactoryException}
+   * specification, it will throw a {@link RouterFactoryException}. Deprecated in favour of
+   * operation id
    *
    * @param method
    * @param path
    * @param failureHandler
    * @return
    */
-  @Fluent
+  @Fluent @Deprecated
   DesignDrivenRouterFactory addFailureHandler(HttpMethod method, String path, Handler<RoutingContext> failureHandler);
 
   /**
