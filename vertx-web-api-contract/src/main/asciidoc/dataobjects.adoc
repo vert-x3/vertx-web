@@ -1,0 +1,25 @@
+= Cheatsheets
+
+[[DesignDrivenRouterFactoryOptions]]
+== DesignDrivenRouterFactoryOptions
+
+++++
+++++
+'''
+
+[cols=">25%,^25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[mountNotImplementedHandler]]`mountNotImplementedHandler`|`Boolean`|
++++
+Automatic mount handlers that return HTTP 501 status code for operations where you didn't specify an handler.
++++
+|[[mountValidationFailureHandler]]`mountValidationFailureHandler`|`Boolean`|
++++
+Enable or disable validation failure handler. If you enable it during router creation a failure handler
+ that manages ValidationException will be mounted. You can change the validation failure handler with with function link. If failure is different from ValidationException, next failure
+ handler will be called.
++++
+|===
+

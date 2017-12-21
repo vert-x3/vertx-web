@@ -106,6 +106,21 @@
  * {@link examples.OpenAPI3Examples#constructRouterFactory}
  * ----
  *
+ * You can also construct a router factory from a remote spec:
+ *
+ * [source,$lang]
+ * ----
+ * {@link examples.OpenAPI3Examples#constructRouterFactoryFromUrl}
+ * ----
+ *
+ * You can also modify the behaviours of the router factory with {@link io.vertx.ext.web.api.contract.DesignDrivenRouterFactoryOptions}.
+ * For example you can ask to router factory to mount the validation failure handler but to not mount the not implemented handler as follows:
+ *
+ * [source,$lang]
+ * ----
+ * {@link examples.OpenAPI3Examples#mountOptions}
+ * ----
+ *
  * === Mount the handlers
  * Now load your first path. There are two functions to load the handlers:
  *

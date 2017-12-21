@@ -22,6 +22,7 @@ import org.junit.Test;
 import java.net.URLEncoder;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -123,6 +124,16 @@ public class UtilsTest {
   @Test
   public void testMultipleTrailingSlashes2() throws Exception {
     assertEquals("/blah/", Utils.normalizePath("/blah///"));
+  }
+
+  @Test
+  public void testBadURL() throws Exception {
+    try {
+      Utils.normalizePath("/%7B%channel%%7D");
+      fail();
+    } catch (IllegalArgumentException e) {
+      // expected!
+    }
   }
 
   @Test

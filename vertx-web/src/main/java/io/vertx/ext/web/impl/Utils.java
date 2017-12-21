@@ -84,9 +84,15 @@ public class Utils extends io.vertx.core.impl.Utils {
     if (start + 3 <= path.length()) {
       // these are latin chars so there is no danger of falling into some special unicode char that requires more
       // than 1 byte
-      int unescaped = Integer.parseInt(path.substring(start + 1, start + 3), 16);
-      if (unescaped < 0) {
-        throw new IllegalArgumentException("Invalid escape sequence: " + path.substring(start, start + 3));
+      final String escapeSequence = path.substring(start + 1, start + 3);
+      int unescaped;
+      try {
+        unescaped = Integer.parseInt(escapeSequence, 16);
+        if (unescaped < 0) {
+          throw new IllegalArgumentException("Invalid escape sequence: %" + escapeSequence);
+        }
+      } catch (NumberFormatException e) {
+        throw new IllegalArgumentException("Invalid escape sequence: %" + escapeSequence);
       }
       // validate if the octet is within the allowed ranges
       if (

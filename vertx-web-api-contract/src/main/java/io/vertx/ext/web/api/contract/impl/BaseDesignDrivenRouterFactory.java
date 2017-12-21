@@ -4,6 +4,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.api.contract.DesignDrivenRouterFactory;
+import io.vertx.ext.web.api.contract.DesignDrivenRouterFactoryOptions;
 import io.vertx.ext.web.api.validation.ValidationException;
 
 /**
@@ -13,38 +14,50 @@ abstract public class BaseDesignDrivenRouterFactory<Specification> implements De
 
   protected Vertx vertx;
   protected Specification spec;
+  protected DesignDrivenRouterFactoryOptions options;
 
-  protected boolean enableValidationFailureHandler = true;
-  protected boolean mount501handlers = true;
-
-  // It can be overriden by the user with function
-  protected Handler<RoutingContext> failureHandler = (routingContext -> {
-    if (routingContext.failure() instanceof ValidationException) {
-      routingContext.response().setStatusCode(400).setStatusMessage("Bad Request").end(routingContext.failure()
-        .getMessage());
-    } else routingContext.next();
-  });
-
-  public BaseDesignDrivenRouterFactory(Vertx vertx, Specification spec) {
+  public BaseDesignDrivenRouterFactory(Vertx vertx, Specification spec, DesignDrivenRouterFactoryOptions options) {
     this.vertx = vertx;
     this.spec = spec;
+    this.options = options;
   }
 
-  @Override
+  public BaseDesignDrivenRouterFactory(Vertx vertx, Specification spec) {
+    this(vertx, spec, new DesignDrivenRouterFactoryOptions());
+  }
+
+  @Override @Deprecated
   public DesignDrivenRouterFactory enableValidationFailureHandler(boolean enable) {
-    this.enableValidationFailureHandler = enable;
+    if (options == null)
+      this.options = new DesignDrivenRouterFactoryOptions();
+    this.options.setMountValidationFailureHandler(enable);
     return this;
   }
 
-  @Override
-  public BaseDesignDrivenRouterFactory setValidationFailureHandler(Handler handler) {
-    this.failureHandler = handler;
+  @Override @Deprecated
+  public BaseDesignDrivenRouterFactory setValidationFailureHandler(Handler<RoutingContext> handler) {
+    if (options == null)
+      this.options = new DesignDrivenRouterFactoryOptions();
+    this.options.setValidationFailureHandler(handler);
     return this;
   }
 
-  @Override
+  @Override @Deprecated
   public DesignDrivenRouterFactory mountOperationsWithoutHandlers(boolean enable) {
-    this.mount501handlers = enable;
+    if (options == null)
+      this.options = new DesignDrivenRouterFactoryOptions();
+    this.options.setMountNotImplementedHandler(enable);
     return this;
+  }
+
+  @Override
+  public DesignDrivenRouterFactory setOptions(DesignDrivenRouterFactoryOptions options) {
+    this.options = options;
+    return this;
+  }
+
+  @Override
+  public DesignDrivenRouterFactoryOptions options() {
+    return options;
   }
 }

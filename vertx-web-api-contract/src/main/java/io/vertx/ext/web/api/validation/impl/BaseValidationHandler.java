@@ -123,12 +123,17 @@ public abstract class BaseValidationHandler implements ValidationHandler {
     for (ParameterValidationRule rule : cookieParamsRules.values()) {
       String name = rule.getName().trim();
       if (cookies.containsKey(name)) {
-        RequestParameter parsedParam = rule.validateArrayParam(cookies.get(name));
-        if (parsedParams.containsKey(parsedParam.getName()))
-          parsedParam = parsedParam.merge(parsedParams.get(parsedParam.getName()));
-        parsedParams.put(parsedParam.getName(), parsedParam);
+        List<String> p = cookies.get(name);
+        if (p.size() != 0) {
+          RequestParameter parsedParam = rule.validateArrayParam(p);
+          if (parsedParams.containsKey(parsedParam.getName()))
+            parsedParam = parsedParam.merge(parsedParams.get(parsedParam.getName()));
+          parsedParams.put(parsedParam.getName(), parsedParam);
+        } else if (!rule.allowEmptyValue()) {
+          throw ValidationException.ValidationExceptionFactory.generateNotMatchValidationException(name + " can't be empty");
+        }
       } else {
-        if (rule.allowEmptyValue() && rule.parameterTypeValidator().getDefault() != null) {
+        if (rule.parameterTypeValidator().getDefault() != null) {
           RequestParameter parsedParam = new RequestParameterImpl(name, rule.parameterTypeValidator().getDefault());
           if (parsedParams.containsKey(parsedParam.getName()))
             parsedParam = parsedParam.merge(parsedParams.get(parsedParam.getName()));
@@ -148,11 +153,16 @@ public abstract class BaseValidationHandler implements ValidationHandler {
     for (ParameterValidationRule rule : queryParamsRules.values()) {
       String name = rule.getName();
       if (queryParams.contains(name)) {
-        RequestParameter parsedParam = rule.validateArrayParam(queryParams.getAll(name));
-        if (parsedParams.containsKey(parsedParam.getName()))
-          parsedParam = parsedParam.merge(parsedParams.get(parsedParam.getName()));
-        parsedParams.put(parsedParam.getName(), parsedParam);
-      } else if (rule.allowEmptyValue() && rule.parameterTypeValidator().getDefault() != null) {
+        List<String> p = queryParams.getAll(name);
+        if (p.size() != 0) {
+          RequestParameter parsedParam = rule.validateArrayParam(p);
+          if (parsedParams.containsKey(parsedParam.getName()))
+            parsedParam = parsedParam.merge(parsedParams.get(parsedParam.getName()));
+          parsedParams.put(parsedParam.getName(), parsedParam);
+        } else if (!rule.allowEmptyValue()) {
+          throw ValidationException.ValidationExceptionFactory.generateNotMatchValidationException(name + " can't be empty");
+        }
+      } else if (rule.parameterTypeValidator().getDefault() != null) {
         RequestParameter parsedParam = new RequestParameterImpl(name, rule.parameterTypeValidator().getDefault());
         if (parsedParams.containsKey(parsedParam.getName()))
           parsedParam = parsedParam.merge(parsedParams.get(parsedParam.getName()));
@@ -171,11 +181,16 @@ public abstract class BaseValidationHandler implements ValidationHandler {
     for (ParameterValidationRule rule : headerParamsRules.values()) {
       String name = rule.getName();
       if (headersParams.contains(name)) {
-        RequestParameter parsedParam = rule.validateArrayParam(headersParams.getAll(name));
-        if (parsedParams.containsKey(parsedParam.getName()))
-          parsedParam = parsedParam.merge(parsedParams.get(parsedParam.getName()));
-        parsedParams.put(parsedParam.getName(), parsedParam);
-      } else if (rule.allowEmptyValue() && rule.parameterTypeValidator().getDefault() != null) {
+        List<String> p = headersParams.getAll(name);
+        if (p.size() != 0) {
+          RequestParameter parsedParam = rule.validateArrayParam(p);
+          if (parsedParams.containsKey(parsedParam.getName()))
+            parsedParam = parsedParam.merge(parsedParams.get(parsedParam.getName()));
+          parsedParams.put(parsedParam.getName(), parsedParam);
+        } else if (!rule.allowEmptyValue()) {
+          throw ValidationException.ValidationExceptionFactory.generateNotMatchValidationException(name + " can't be empty");
+        }
+      } else if (rule.parameterTypeValidator().getDefault() != null) {
         RequestParameter parsedParam = new RequestParameterImpl(name, rule.parameterTypeValidator().getDefault());
         if (parsedParams.containsKey(parsedParam.getName()))
           parsedParam = parsedParam.merge(parsedParams.get(parsedParam.getName()));
@@ -194,16 +209,16 @@ public abstract class BaseValidationHandler implements ValidationHandler {
     for (ParameterValidationRule rule : formParamsRules.values()) {
       String name = rule.getName();
       if (formParams.contains(name)) {
-        // Decode values because I assume they are text/plain in this phase
-        List<String> values = new ArrayList<>();
-        for (String s : formParams.getAll(name)) {
-          values.add(s);
-          RequestParameter parsedParam = rule.validateArrayParam(values);
+        List<String> p = formParams.getAll(name);
+        if (p.size() != 0) {
+          RequestParameter parsedParam = rule.validateArrayParam(p);
           if (parsedParams.containsKey(parsedParam.getName()))
             parsedParam = parsedParam.merge(parsedParams.get(parsedParam.getName()));
           parsedParams.put(parsedParam.getName(), parsedParam);
+        } else if (!rule.allowEmptyValue()) {
+          throw ValidationException.ValidationExceptionFactory.generateNotMatchValidationException(name + " can't be empty");
         }
-      } else if (rule.allowEmptyValue() && rule.parameterTypeValidator().getDefault() != null) {
+      } else if (rule.parameterTypeValidator().getDefault() != null) {
         RequestParameter parsedParam = new RequestParameterImpl(name, rule.parameterTypeValidator().getDefault());
         if (parsedParams.containsKey(parsedParam.getName()))
           parsedParam = parsedParam.merge(parsedParams.get(parsedParam.getName()));

@@ -58,7 +58,7 @@ public interface OpenAPI3RouterFactory extends DesignDrivenRouterFactory<OpenAPI
    * @param securitySchemaName
    * @param scopeName
    * @param handler
-   * @return
+   * @return this factory
    */
   @Fluent
   OpenAPI3RouterFactory addSecuritySchemaScopeValidator(String securitySchemaName, String scopeName,
@@ -69,7 +69,7 @@ public interface OpenAPI3RouterFactory extends DesignDrivenRouterFactory<OpenAPI
    *
    * @param operationId
    * @param handler
-   * @return
+   * @return this factory
    */
   @Fluent
   OpenAPI3RouterFactory addHandlerByOperationId(String operationId, Handler<RoutingContext> handler);
@@ -79,7 +79,7 @@ public interface OpenAPI3RouterFactory extends DesignDrivenRouterFactory<OpenAPI
    *
    * @param operationId
    * @param failureHandler
-   * @return
+   * @return this factory
    */
   @Fluent
   OpenAPI3RouterFactory addFailureHandlerByOperationId(String operationId, Handler<RoutingContext> failureHandler);
@@ -126,7 +126,10 @@ public interface OpenAPI3RouterFactory extends DesignDrivenRouterFactory<OpenAPI
         if (swaggerParseResult.getMessages().isEmpty())
           future.complete(new OpenAPI3RouterFactoryImpl(vertx, swaggerParseResult.getOpenAPI()));
         else {
-          future.fail(RouterFactoryException.createSpecInvalidException(StringUtils.join(swaggerParseResult.getMessages(), ", ")));
+          if (swaggerParseResult.getMessages().size() == 1 && swaggerParseResult.getMessages().get(0).startsWith("unable to read location " + url))
+            future.fail(RouterFactoryException.createSpecNotExistsException(url));
+          else
+            future.fail(RouterFactoryException.createSpecInvalidException(StringUtils.join(swaggerParseResult.getMessages(), ", ")));
         }
       } catch (IOException e) {
         future.fail(RouterFactoryException.createSpecNotExistsException(url));

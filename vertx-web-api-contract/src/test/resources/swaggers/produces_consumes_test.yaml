@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
   version: 1.0.0
-  title: Test spec for OpenAPI3RouterFactoryTest.testConsumesProduces()
+  title: Test spec for OpenAPI3RouterFactoryTest consumes and produces tests
   license:
     name: Apache 2.0 License
 paths:
@@ -33,6 +33,13 @@ paths:
   /producesTest:
     get:
       operationId: producesTest
+      parameters:
+        - name: fail
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: false
       responses:
         default:
           description: ok

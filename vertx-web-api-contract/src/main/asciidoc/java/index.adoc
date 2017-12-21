@@ -1,17 +1,125 @@
 = Vert.x-Web API Contract
 :toc: left
 
+Vert.x-Web API Contract brings to Vert.x two features to help you to develop you API:
+
+* HTTP Requests validation
+* OpenAPI 3 Support with automatic requests validation
+
+== Using Vert.x API Contract
+
+To use Vert.x API Contract, add the following dependency to the _dependencies_ section of your build descriptor:
+
+* Maven (in your `pom.xml`):
+
+[source,xml,subs="+attributes"]
+----
+<dependency>
+  <groupId>io.vertx</groupId>
+  <artifactId>vertx-web-api-contract</artifactId>
+  <version>3.5.1-SNAPSHOT</version>
+</dependency>
+----
+
+* Gradle (in your `build.gradle` file):
+
+[source,groovy,subs="+attributes"]
+----
+dependencies {
+  compile 'io.vertx:vertx-web-api-contract:3.5.1-SNAPSHOT'
+}
+----
+
+== HTTP Requests validation
+
+Vert.x provides a validation framework that will validate requests for you and will put results of validation inside a container.
+
+To define a `link:../../apidocs/io/vertx/ext/web/api/validation/HTTPRequestValidationHandler.html[HTTPRequestValidationHandler]`:
+[source,java]
+----
+HTTPRequestValidationHandler validationHandler = HTTPRequestValidationHandler.create().addQueryParam("parameterName", ParameterType.INT, true).addFormParamWithPattern("formParameterName", "a{4}", true).addPathParam("pathParam", ParameterType.FLOAT);
+----
+
+Then you can mount your validation handler:
+[source,java]
+----
+router.route().handler(BodyHandler.create());
+
+router.get("/awesome/:pathParam")
+  // Mount validation handler
+  .handler(validationHandler)
+  //Mount your handler
+  .handler((routingContext) -> {
+    // Get Request parameters container
+    RequestParameters params = routingContext.get("parsedParameters");
+
+    // Get parameters
+    Integer parameterName = params.queryParameter("parameterName").getInteger();
+    String formParameterName = params.formParameter("formParameterName").getString();
+    Float pathParam = params.pathParameter("pathParam").getFloat();
+  })
+
+  //Mount your failure handler
+  .failureHandler((routingContext) -> {
+    Throwable failure = routingContext.failure();
+    if (failure instanceof ValidationException) {
+      // Something went wrong during validation!
+      String validationErrorMessage = failure.getMessage();
+    }
+  });
+----
+
+If validation succeeds, It returns request parameters inside `link:../../apidocs/io/vertx/ext/web/api/RequestParameters.html[RequestParameters]`, otherwise It will throw a `link:../../apidocs/io/vertx/ext/web/api/validation/ValidationException.html[ValidationException]`
+
+=== Types of request parameters
+Every parameter has a type validator, a class that describes the expected type of parameter.
+A type validator validates the value, casts it in required language type and then loads it inside a `link:../../apidocs/io/vertx/ext/web/api/RequestParameter.html[RequestParameter]` object. There are three ways to describe the type of your parameter:
+
+* There is a set of prebuilt types that you can use: `link:../../apidocs/io/vertx/ext/web/api/validation/ParameterType.html[ParameterType]`
+* You can instantiate a custom instance of prebuilt type validators using static methods of `link:../../apidocs/io/vertx/ext/web/api/validation/ParameterTypeValidator.html[ParameterTypeValidator]` and then load it into `link:../../apidocs/io/vertx/ext/web/api/validation/HTTPRequestValidationHandler.html[HTTPRequestValidationHandler]` using functions ending with `WithCustomTypeValidator`
+* You can create your own `ParameterTypeValidator` implementing `link:../../apidocs/io/vertx/ext/web/api/validation/ParameterTypeValidator.html[ParameterTypeValidator]` interface
+
+=== Handling parameters
+Now you can handle parameter values:
+
+[source,java]
+----
+RequestParameters params = routingContext.get("parsedParameters");
+RequestParameter awesomeParameter = params.queryParameter("awesomeParameter");
+if (awesomeParameter != null) {
+  if (!awesomeParameter.isEmpty()) {
+    // Parameter exists and isn't empty
+    // ParameterTypeValidator mapped the parameter in equivalent language object
+    Integer awesome = awesomeParameter.getInteger();
+  } else {
+    // Parameter exists, but it's empty
+  }
+} else {
+  // Parameter doesn't exist (it's not required)
+}
+----
+
+As you can see, every parameter is mapped in respective language objects. You can also get a json body:
+
+[source,java]
+----
+RequestParameter body = params.body();
+if (body != null) {
+  JsonObject jsonBody = body.getJsonObject();
+}
+----
+
 == OpenAPI 3 support
 
-Vert.x allows you to use your OpenApi 3 specification directly inside your code using the design first approach.
-
-Vert.x-Web provides:
+Vert.x allows you to use your OpenApi 3 specification directly inside your code using the design first approach. Vert.x-Web provides:
 
 * OpenAPI 3 compliant API specification validation with automatic **loading of external Json schemas**
 * Automatic request validation
 * Automatic mount of security validation handlers
 * Automatic 501 response for not implemented operations
 * Router factory to provide all these features to users
+
+You can also use the community project https://github.com/pmlopes/slush-vertx[`slush-vertx`] to generate server code from your OpenAPI 3 specification.
 
 === The router factory
 You can create your web service based on OpenAPI3 specification with `link:../../apidocs/io/vertx/ext/web/api/contract/openapi3/OpenAPI3RouterFactory.html[OpenAPI3RouterFactory]`.
@@ -34,7 +142,48 @@ To create a new router factory, you can use methods inside `link:../../apidocs/i
 For example:
 [source,java]
 ----
-`link:../../apidocs/examples/OpenAPI3Examples.html#constructRouterFactory-io.vertx.core.Vertx-[constructRouterFactory]`
+OpenAPI3RouterFactory.createRouterFactoryFromFile(vertx, "src/main/resources/petstore.yaml", ar -> {
+  if (ar.succeeded()) {
+    // Spec loaded with success
+    OpenAPI3RouterFactory routerFactory = ar.result();
+  } else {
+    // Something went wrong during router factory initialization
+    Throwable exception = ar.cause();
+  }
+});
+----
+
+You can also construct a router factory from a remote spec:
+
+[source,java]
+----
+OpenAPI3RouterFactory.createRouterFactoryFromURL(
+  vertx,
+  "https://raw.githubusercontent.com/OAI/OpenAPI-Specification/master/examples/v3.0/petstore.yaml",
+  ar -> {
+    if (ar.succeeded()) {
+      // Spec loaded with success
+      OpenAPI3RouterFactory routerFactory = ar.result();
+    } else {
+      // Something went wrong during router factory initialization
+      Throwable exception = ar.cause();
+    }
+  });
+----
+
+You can also modify the behaviours of the router factory with `link:../../apidocs/io/vertx/ext/web/api/contract/DesignDrivenRouterFactoryOptions.html[DesignDrivenRouterFactoryOptions]`.
+For example you can ask to router factory to mount the validation failure handler but to not mount the not implemented handler as follows:
+
+[source,java]
+----
+OpenAPI3RouterFactory routerFactory = ar.result();
+// Create and mount options to router factory
+DesignDrivenRouterFactoryOptions options =
+  new DesignDrivenRouterFactoryOptions()
+  .setMountNotImplementedHandler(true)
+  .setMountValidationFailureHandler(false);
+
+routerFactory.setOptions(options);
 ----
 
 === Mount the handlers
@@ -56,13 +205,21 @@ IMPORTANT: If you want to use `link:../../apidocs/io/vertx/ext/web/api/contract/
 For example:
 [source,java]
 ----
-`link:../../apidocs/examples/OpenAPI3Examples.html#addRoute-io.vertx.core.Vertx-io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory-[addRoute]`
+routerFactory.addHandlerByOperationId("awesomeOperation", routingContext -> {
+  RequestParameters params = routingContext.get("parsedParameters");
+  RequestParameter body = params.body();
+  JsonObject jsonBody = body.getJsonObject();
+  // Do something with body
+});
+routerFactory.addFailureHandlerByOperationId("awesomeOperation", routingContext -> {
+  // Handle failure
+});
 ----
 
 .Add operations with operationId
 IMPORTANT: Usage of combination of path and HTTP method is allowed, but it's better to add operations handlers with operationId, for performance reasons and to avoid paths nomenclature errors
 
-Now you can use parameter values as described in http://vertx.io/docs/vertx-web/java/#_andling_parameters[vertx-web documentation]
+Now you can use parameter values as described above
 
 == Define security handlers
 A security handler is defined by a combination of schema name and scope. You can mount only one security handler for a combination.
@@ -70,14 +227,14 @@ For example:
 
 [source,java]
 ----
-`link:../../apidocs/examples/OpenAPI3Examples.html#addSecurityHandler-io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory-io.vertx.core.Handler-[addSecurityHandler]`
+routerFactory.addSecurityHandler("security_scheme_name", securityHandler);
 ----
 
 You can of course use included Vert.x security handlers, for example:
 
 [source,java]
 ----
-`link:../../apidocs/examples/OpenAPI3Examples.html#addJWT-io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory-io.vertx.ext.auth.jwt.JWTAuth-[addJWT]`
+routerFactory.addSecurityHandler("jwt_auth", JWTAuthHandler.create(jwtAuthProvider));
 ----
 
 === Error handling
@@ -91,44 +248,8 @@ When you are ready, generate the router and use it:
 
 [source,java]
 ----
-`link:../../apidocs/examples/OpenAPI3Examples.html#generateRouter-io.vertx.core.Vertx-io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory-[generateRouter]`
-----
+Router router = routerFactory.getRouter();
 
-== Requests validation
-
-Vert.x provides a validation framework that will validate requests for you and will put results of validation inside a container. To define a `link:../../apidocs/io/vertx/ext/web/api/validation/HTTPRequestValidationHandler.html[HTTPRequestValidationHandler]`:
-[source,java]
-----
-`link:../../apidocs/examples/WebExamples.html#example63-io.vertx.core.Vertx-io.vertx.ext.web.Router-[example63]`
-----
-
-Then you can mount your validation handler:
-[source,java]
-----
-`link:../../apidocs/examples/WebExamples.html#example64-io.vertx.core.Vertx-io.vertx.ext.web.Router-io.vertx.ext.web.api.validation.HTTPRequestValidationHandler-[example64]`
-----
-
-If validation succeeds, It returns request parameters inside `link:../../apidocs/io/vertx/ext/web/api/RequestParameters.html[RequestParameters]`, otherwise It will throw a `link:../../apidocs/io/vertx/ext/web/api/validation/ValidationException.html[ValidationException]`
-
-=== Types of request parameters
-Every parameter has a type validator, a class that describes the expected type of parameter.
-A type validator validates the value, casts it in required language type and then loads it inside a `link:../../apidocs/io/vertx/ext/web/api/RequestParameter.html[RequestParameter]` object. There are three ways to describe the type of your parameter:
-
-* There is a set of prebuilt types that you can use: `link:../../apidocs/io/vertx/ext/web/api/validation/ParameterType.html[ParameterType]`
-* You can instantiate a custom instance of prebuilt type validators using static methods of `link:../../apidocs/io/vertx/ext/web/api/validation/ParameterTypeValidator.html[ParameterTypeValidator]` and then load it into `link:../../apidocs/io/vertx/ext/web/api/validation/HTTPRequestValidationHandler.html[HTTPRequestValidationHandler]` using functions ending with `WithCustomTypeValidator`
-* You can create your own `ParameterTypeValidator` implementing `link:../../apidocs/io/vertx/ext/web/api/validation/ParameterTypeValidator.html[ParameterTypeValidator]` interface
-
-=== Handling parameters
-Now you can handle parameter values:
-
-[source,java]
-----
-`link:../../apidocs/examples/WebExamples.html#example65-io.vertx.ext.web.RoutingContext-[example65]`
-----
-
-As you can see, every parameter is mapped in respective language objects. You can also get a json body:
-
-[source,java]
-----
-`link:../../apidocs/examples/WebExamples.html#example66-io.vertx.ext.web.api.RequestParameters-[example66]`
+HttpServer server = vertx.createHttpServer(new HttpServerOptions().setPort(8080).setHost("localhost"));
+server.requestHandler(router::accept).listen();
 ----
