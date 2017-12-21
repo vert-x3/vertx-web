@@ -618,39 +618,4 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
 
     stopServer();
   }
-
-  @Test
-  public void loadSpecAndTestPrecedence() throws Exception {
-    CountDownLatch latch = new CountDownLatch(1);
-    final Router[] router = {null};
-    OpenAPI3RouterFactory.createRouterFactoryFromFile(this.vertx, "src/test/resources/swaggers/test_order_spec.yaml",
-      openAPI3RouterFactoryAsyncResult -> {
-        assertTrue(openAPI3RouterFactoryAsyncResult.succeeded());
-        OpenAPI3RouterFactory routerFactory = openAPI3RouterFactoryAsyncResult.result();
-        routerFactory.mountOperationsWithoutHandlers(true);
-
-        routerFactory.addHandlerByOperationId("showSpecialProduct", routingContext -> {
-        routingContext.response().setStatusMessage("special").end();
-        });
-        routerFactory.addFailureHandlerByOperationId("showSpecialProduct", generateFailureHandler(false));
-
-        routerFactory.addHandlerByOperationId("showProductById", routingContext -> {
-        RequestParameters params = routingContext.get("parsedParameters");
-        routingContext.response().setStatusMessage(params.pathParameter("id").getInteger().toString()).end();
-        });
-        routerFactory.addFailureHandlerByOperationId("showProductById", generateFailureHandler(false));
-
-        router[0] = routerFactory.getRouter();
-
-        latch.countDown();
-    });
-    awaitLatch(latch);
-
-    startServer(router[0]);
-
-    testRequest(HttpMethod.GET, "/product/special", 200, "special");
-    testRequest(HttpMethod.GET, "/product/123", 200, "123");
-
-    stopServer();
-  }
 }
