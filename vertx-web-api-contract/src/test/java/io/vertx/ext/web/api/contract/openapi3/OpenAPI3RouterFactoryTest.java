@@ -585,4 +585,37 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
     testRequestWithResponseContentTypeCheck(HttpMethod.GET, "/producesTest?fail=true", 500, "text/plain", acceptableContentTypes);
 
   }
+
+  @Test
+  public void mountHandlersOrderTest() throws Exception {
+    CountDownLatch latch = new CountDownLatch(1);
+    final Router[] router = {null};
+    OpenAPI3RouterFactory.createRouterFactoryFromFile(this.vertx, "src/test/resources/swaggers/test_order_spec.yaml",
+      openAPI3RouterFactoryAsyncResult -> {
+        assertTrue(openAPI3RouterFactoryAsyncResult.succeeded());
+        routerFactory = openAPI3RouterFactoryAsyncResult.result();
+        routerFactory.setOptions(new DesignDrivenRouterFactoryOptions().setMountNotImplementedHandler(false));
+
+        routerFactory.addHandlerByOperationId("showSpecialProduct", routingContext ->
+          routingContext.response().setStatusMessage("special").end()
+        );
+        routerFactory.addFailureHandlerByOperationId("showSpecialProduct", generateFailureHandler(false));
+
+        routerFactory.addHandlerByOperationId("showProductById", routingContext -> {
+          RequestParameters params = routingContext.get("parsedParameters");
+          routingContext.response().setStatusMessage(params.pathParameter("id").getInteger().toString()).end();
+        });
+        routerFactory.addFailureHandlerByOperationId("showProductById", generateFailureHandler(false));
+
+        latch.countDown();
+    });
+    awaitLatch(latch);
+
+    startServer();
+
+    testRequest(HttpMethod.GET, "/product/special", 200, "special");
+    testRequest(HttpMethod.GET, "/product/123", 200, "123");
+
+    stopServer();
+  }
 }

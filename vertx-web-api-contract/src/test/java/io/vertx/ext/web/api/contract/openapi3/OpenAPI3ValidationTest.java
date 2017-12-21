@@ -171,6 +171,18 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
   }
 
   @Test
+  public void testQueryParameterByteFormat() throws Exception {
+    Operation op = testSpec.getPaths().get("/queryTests/byteFormat").getGet();
+    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(op, op.getParameters(), testSpec);
+    loadHandlers("/queryTests/byteFormat", HttpMethod.GET, false, validationHandler, (routingContext) -> {
+      RequestParameters params = routingContext.get("parsedParameters");
+      routingContext.response().setStatusMessage(params.queryParameter("parameter").getString()).end();
+    });
+
+    testRequest(HttpMethod.GET, "/queryTests/byteFormat?parameter=Zm9vYmFyCg==", 200, "Zm9vYmFyCg==");
+  }
+
+  @Test
   public void testFormArrayParameter() throws Exception {
     Operation op = testSpec.getPaths().get("/formTests/arraytest").getPost();
     if(op.getParameters()==null) op.setParameters(new ArrayList<>());
