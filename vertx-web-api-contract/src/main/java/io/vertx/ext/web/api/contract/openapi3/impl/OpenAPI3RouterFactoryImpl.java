@@ -16,6 +16,7 @@ import io.vertx.ext.web.api.contract.RouterFactoryException;
 import io.vertx.ext.web.api.contract.impl.BaseDesignDrivenRouterFactory;
 import io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory;
 import io.vertx.ext.web.handler.BodyHandler;
+import io.vertx.ext.web.handler.ResponseContentTypeHandler;
 
 import java.util.*;
 
@@ -327,6 +328,9 @@ public class OpenAPI3RouterFactoryImpl extends BaseDesignDrivenRouterFactory<Ope
 
       for (String ct : produces)
         route.produces(ct);
+
+      if (options.isMountResponseContentTypeHandler() && produces.size() != 0)
+        route.handler(ResponseContentTypeHandler.create());
 
       route.setRegexGroupsNames(new ArrayList<>(pathResolver.getMappedGroups().values()));
       for (Handler handler : handlersToLoad)

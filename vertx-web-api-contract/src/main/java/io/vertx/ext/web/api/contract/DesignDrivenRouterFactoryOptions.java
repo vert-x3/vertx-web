@@ -52,11 +52,17 @@ public class DesignDrivenRouterFactoryOptions {
    */
   public final static boolean DEFAULT_REQUIRE_SECURITY_HANDLERS = true;
 
+  /**
+   * By default, DesignDrivenRouterFactory will mount ResponseContentTypeHandler when required
+   */
+  public final static boolean DEFAULT_MOUNT_RESPONSE_CONTENT_TYPE_HANDLER = true;
+
   private Handler<RoutingContext> validationFailureHandler;
   private boolean mountValidationFailureHandler;
   private Handler<RoutingContext> notImplementedFailureHandler;
   private boolean mountNotImplementedHandler;
   private boolean requireSecurityHandlers;
+  private boolean mountResponseContentTypeHandler;
 
   public DesignDrivenRouterFactoryOptions() {
     init();
@@ -73,6 +79,7 @@ public class DesignDrivenRouterFactoryOptions {
     this.notImplementedFailureHandler = other.getNotImplementedFailureHandler();
     this.mountNotImplementedHandler = other.isMountNotImplementedHandler();
     this.requireSecurityHandlers = other.isRequireSecurityHandlers();
+    this.mountResponseContentTypeHandler = other.isMountResponseContentTypeHandler();
   }
 
   public JsonObject toJson() {
@@ -87,6 +94,7 @@ public class DesignDrivenRouterFactoryOptions {
     this.notImplementedFailureHandler = DEFAULT_NOT_IMPLEMENTED_HANDLER;
     this.mountNotImplementedHandler = DEFAULT_MOUNT_NOT_IMPLEMENTED_HANDLER;
     this.requireSecurityHandlers = DEFAULT_REQUIRE_SECURITY_HANDLERS;
+    this.mountResponseContentTypeHandler = DEFAULT_MOUNT_RESPONSE_CONTENT_TYPE_HANDLER;
   }
 
   public Handler<RoutingContext> getValidationFailureHandler() {
@@ -172,6 +180,21 @@ public class DesignDrivenRouterFactoryOptions {
   @Fluent
   public DesignDrivenRouterFactoryOptions setRequireSecurityHandlers(boolean requireSecurityHandlers) {
     this.requireSecurityHandlers = requireSecurityHandlers;
+    return this;
+  }
+
+  public boolean isMountResponseContentTypeHandler() {
+    return mountResponseContentTypeHandler;
+  }
+
+  /**
+   * If true, when required, the factory will mount a {@link io.vertx.ext.web.handler.ResponseContentTypeHandler}
+   * @param mountResponseContentTypeHandler
+   * @return
+   */
+  @Fluent
+  public DesignDrivenRouterFactoryOptions setMountResponseContentTypeHandler(boolean mountResponseContentTypeHandler) {
+    this.mountResponseContentTypeHandler = mountResponseContentTypeHandler;
     return this;
   }
 }
