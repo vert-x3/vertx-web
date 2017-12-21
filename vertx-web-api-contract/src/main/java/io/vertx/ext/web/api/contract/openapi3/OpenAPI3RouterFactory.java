@@ -126,7 +126,7 @@ public interface OpenAPI3RouterFactory extends DesignDrivenRouterFactory<OpenAPI
         if (swaggerParseResult.getMessages().isEmpty())
           future.complete(new OpenAPI3RouterFactoryImpl(vertx, swaggerParseResult.getOpenAPI()));
         else {
-          if (swaggerParseResult.getMessages().size() == 1 && swaggerParseResult.getMessages().get(0).startsWith("unable to read location"))
+          if (swaggerParseResult.getMessages().size() == 1 && swaggerParseResult.getMessages().get(0).startsWith("unable to read location " + url))
             future.fail(RouterFactoryException.createSpecNotExistsException(url));
           else
             future.fail(RouterFactoryException.createSpecInvalidException(StringUtils.join(swaggerParseResult.getMessages(), ", ")));
