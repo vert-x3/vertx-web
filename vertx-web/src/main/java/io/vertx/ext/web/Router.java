@@ -57,6 +57,8 @@ public interface Router {
    */
   void accept(HttpServerRequest request);
 
+  void accept(MqttPublishMessage request);
+
   /**
    * Add a route with no matching criteria, i.e. it matches all requests or failures.
    *

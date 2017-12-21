@@ -159,6 +159,23 @@ public class Utils extends io.vertx.core.impl.Utils {
     return removeDots(ibuf);
   }
 
+  public static String normalizeTopic(String pathname) {
+
+    StringBuilder ibuf = new StringBuilder(pathname.length() + 1);
+
+    ibuf.append(pathname);
+
+    // Not standard!!!
+    if (ibuf.charAt(0) == '/') {
+      ibuf.deleteCharAt(0);
+    }
+
+    // remove dots as described in
+    // http://tools.ietf.org/html/rfc3986#section-5.2.4
+    return removeDots(ibuf);
+  }
+
+
   /**
    * Removed dots as per <a href="http://tools.ietf.org/html/rfc3986#section-5.2.4>rfc3986</a>.
    *

@@ -64,6 +64,11 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   }
 
   @Override
+  public MqttPublishMessage message() {
+    return inner.message();
+  }
+
+  @Override
   public void fail(int statusCode) {
     inner.fail(statusCode);
   }
@@ -146,6 +151,14 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
 
   @Override
   public void next() {
+    if (!super.iterateNext()) {
+      // We didn't route request to anything so go to parent
+      inner.next();
+    }
+  }
+
+  @Override
+  public void nextMqtt() {
     if (!super.iterateNext()) {
       // We didn't route request to anything so go to parent
       inner.next();

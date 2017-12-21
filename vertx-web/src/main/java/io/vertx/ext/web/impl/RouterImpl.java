@@ -80,6 +80,13 @@ public class RouterImpl implements Router {
   }
 
   @Override
+  public void accept(MqttPublishMessage message) {
+    if (log.isTraceEnabled()) log.trace("MQTT Router: " + System.identityHashCode(this) +
+      " accepting message from topic " + message.topicName() + " with QoS " + message.qosLevel());
+    new RoutingContextImpl(null, this, message, routes).next();
+  }
+
+  @Override
   public Route route() {
     return new RouteImpl(this, orderSequence.getAndIncrement());
   }

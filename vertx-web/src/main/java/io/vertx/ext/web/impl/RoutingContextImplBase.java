@@ -37,12 +37,20 @@ public abstract class RoutingContextImplBase implements RoutingContext {
 
   protected final String mountPoint;
   protected final HttpServerRequest request;
+  protected final MqttPublishMessage message;
   protected Iterator<RouteImpl> iter;
   protected RouteImpl currentRoute;
 
   protected RoutingContextImplBase(String mountPoint, HttpServerRequest request, Set<RouteImpl> routes) {
     this.mountPoint = mountPoint;
     this.request = new HttpServerRequestWrapper(request);
+    this.routes = routes;
+    this.iter = routes.iterator();
+  }
+
+  protected RoutingContextImplBase(String mountPoint, MqttPublishMessage message, Set<RouteImpl> routes) {
+    this.mountPoint = mountPoint;
+    this.message = message;
     this.routes = routes;
     this.iter = routes.iterator();
   }
@@ -91,6 +99,60 @@ public abstract class RoutingContextImplBase implements RoutingContext {
       RouteImpl route = iter.next();
       route.resetIndexes();
       if (route.matches(this, mountPoint(), failed)) {
+        if (log.isTraceEnabled()) log.trace("Route matches: " + route);
+        try {
+          currentRoute = route;
+          if (log.isTraceEnabled()) log.trace("Calling the " + (failed ? "failure" : "") + " handler");
+          if (failed) {
+            route.handleFailure(this);
+          } else {
+            route.handleContext(this);
+          }
+        } catch (Throwable t) {
+          if (log.isTraceEnabled()) log.trace("Throwable thrown from handler", t);
+          if (!failed) {
+            if (log.isTraceEnabled()) log.trace("Failing the routing");
+            fail(t);
+          } else {
+            // Failure in handling failure!
+            if (log.isTraceEnabled()) log.trace("Failure in handling failure");
+            unhandledFailure(-1, t, route.router());
+          }
+        }
+        return true;
+      }
+    }
+    return false;
+  }
+
+  protected boolean iterateNextMqtt() {
+    boolean failed = failed();
+    if (currentRoute != null) { // Handle multiple handlers inside route object
+      try {
+        if (!failed && currentRoute.hasNextContextHandler()) {
+          currentRoute.handleContext(this);
+          return true;
+        } else if (failed && currentRoute.hasNextFailureHandler()) {
+          currentRoute.handleFailure(this);
+          return true;
+        }
+      } catch (Throwable t) {
+        if (log.isTraceEnabled()) log.trace("Throwable thrown from handler", t);
+        if (!failed) {
+          if (log.isTraceEnabled()) log.trace("Failing the routing");
+          fail(t);
+        } else {
+          // Failure in handling failure!
+          if (log.isTraceEnabled()) log.trace("Failure in handling failure");
+          unhandledFailure(-1, t, currentRoute.router());
+        }
+        return true;
+      }
+    }
+    while (iter.hasNext()) { // Search for more handlers
+      RouteImpl route = iter.next();
+      route.resetIndexes();
+      if (route.matchesMqtt(this, mountPoint(), failed)) {
         if (log.isTraceEnabled()) log.trace("Route matches: " + route);
         try {
           currentRoute = route;

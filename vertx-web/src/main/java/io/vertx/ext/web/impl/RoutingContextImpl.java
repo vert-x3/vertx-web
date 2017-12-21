@@ -69,6 +69,15 @@ public class RoutingContextImpl extends RoutingContextImplBase {
     }
   }
 
+  public RoutingContextImpl(String mountPoint, RouterImpl router, MqttPublishMessage message, Set<RouteImpl> routes) {
+    super(mountPoint, message, routes);
+    this.router = router;
+
+    if (request.path().charAt(0) == '/') {
+      // throw Error
+    }
+  }
+
   private String ensureNotNull(String string){
     return string == null ? "" : string;
   }
@@ -96,6 +105,11 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   }
 
   @Override
+  public MqttPublishMessage message() {
+    return message;
+  }
+
+  @Override
   public HttpServerResponse response() {
     return request.response();
   }
@@ -119,6 +133,13 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   public void next() {
     if (!iterateNext()) {
       checkHandleNoMatch();
+    }
+  }
+
+  @Override
+  public void nextMqtt() {
+    if (!iterateNextMqtt()) {
+      // Do Smth
     }
   }
 
