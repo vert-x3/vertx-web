@@ -99,12 +99,8 @@ public interface ParameterTypeValidator {
    */
   static ParameterTypeValidator createIntegerTypeValidator(Boolean exclusiveMaximum, Double maximum, Boolean
     exclusiveMinimum, Double minimum, Double multipleOf, Object defaultValue) {
-    if (defaultValue instanceof String)
-      return new NumericTypeValidator<Integer>(NumericTypeValidator.parseInteger, exclusiveMaximum, maximum,
-        exclusiveMinimum, minimum, multipleOf, Integer.parseInt((String) defaultValue));
-    else
-      return new NumericTypeValidator<Integer>(NumericTypeValidator.parseInteger, exclusiveMaximum, maximum,
-        exclusiveMinimum, minimum, multipleOf, (Integer) defaultValue);
+    return new NumericTypeValidator(Integer.class, exclusiveMaximum, maximum,
+        exclusiveMinimum, minimum, multipleOf, defaultValue);
   }
 
   /**
@@ -150,12 +146,8 @@ public interface ParameterTypeValidator {
    */
   static ParameterTypeValidator createLongTypeValidator(Boolean exclusiveMaximum, Double maximum, Boolean
     exclusiveMinimum, Double minimum, Double multipleOf, Object defaultValue) {
-    if (defaultValue instanceof String)
-      return new NumericTypeValidator<Long>(NumericTypeValidator.parseLong, exclusiveMaximum, maximum,
-        exclusiveMinimum, minimum, multipleOf, Long.parseLong((String) defaultValue));
-    else
-      return new NumericTypeValidator<Long>(NumericTypeValidator.parseLong, exclusiveMaximum, maximum,
-        exclusiveMinimum, minimum, multipleOf, (Long) defaultValue);
+    return new NumericTypeValidator(Long.class, exclusiveMaximum, maximum,
+        exclusiveMinimum, minimum, multipleOf, defaultValue);
   }
 
   /**
@@ -201,12 +193,8 @@ public interface ParameterTypeValidator {
    */
   static ParameterTypeValidator createFloatTypeValidator(Boolean exclusiveMaximum, Double maximum, Boolean
     exclusiveMinimum, Double minimum, Double multipleOf, Object defaultValue) {
-    if (defaultValue instanceof String)
-      return new NumericTypeValidator<Float>(NumericTypeValidator.parseFloat, exclusiveMaximum, maximum,
-        exclusiveMinimum, minimum, multipleOf, Float.parseFloat((String) defaultValue));
-    else
-      return new NumericTypeValidator<Float>(NumericTypeValidator.parseFloat, exclusiveMaximum, maximum,
-        exclusiveMinimum, minimum, multipleOf, (Float) defaultValue);
+    return new NumericTypeValidator(Float.class, exclusiveMaximum, maximum,
+        exclusiveMinimum, minimum, multipleOf, defaultValue);
   }
 
   /**
@@ -252,12 +240,8 @@ public interface ParameterTypeValidator {
    */
   static ParameterTypeValidator createDoubleTypeValidator(Boolean exclusiveMaximum, Double maximum, Boolean
     exclusiveMinimum, Double minimum, Double multipleOf, Object defaultValue) {
-    if (defaultValue instanceof String)
-      return new NumericTypeValidator<Double>(NumericTypeValidator.parseDouble, exclusiveMaximum, maximum,
-        exclusiveMinimum, minimum, multipleOf, Double.parseDouble((String) defaultValue));
-    else
-      return new NumericTypeValidator<Double>(NumericTypeValidator.parseDouble, exclusiveMaximum, maximum,
-        exclusiveMinimum, minimum, multipleOf, (Double) defaultValue);
+    return new NumericTypeValidator(Double.class, exclusiveMaximum, maximum,
+        exclusiveMinimum, minimum, multipleOf, defaultValue);
   }
 
   /**
@@ -308,7 +292,7 @@ public interface ParameterTypeValidator {
   static ParameterTypeValidator createBooleanTypeValidator(Object defaultValue) {
     if (defaultValue != null) {
       if (defaultValue instanceof String) return new BooleanTypeValidator(Boolean.valueOf((String) defaultValue));
-      else return new BooleanTypeValidator(Boolean.valueOf((Boolean) defaultValue));
+      else return new BooleanTypeValidator((Boolean) defaultValue);
     } else {
       return new BooleanTypeValidator(null);
     }
