@@ -102,9 +102,9 @@ paths:
       responses:
         default:
           description: ok
-  /queryTests/default:
+  /queryTests/defaultString:
     get:
-      operationId: testDefault
+      operationId: testDefaultString
       parameters:
         - name: parameter
           in: query
@@ -113,6 +113,64 @@ paths:
           schema:
             type: string
             default: aString
+      responses:
+        default:
+          description: ok
+  /queryTests/defaultInt:
+    get:
+      operationId: testDefaultInt
+      parameters:
+        - name: parameter
+          in: query
+          required: true
+          allowEmptyValue: true
+          schema:
+            type: integer
+            default: 1
+      responses:
+        default:
+          description: ok
+  /queryTests/defaultFloat:
+    get:
+      operationId: testDefaultFloat
+      parameters:
+        - name: parameter
+          in: query
+          required: true
+          allowEmptyValue: true
+          schema:
+            type: number
+            format: float
+            default: 1.0
+      responses:
+        default:
+          description: ok
+  /queryTests/defaultDouble:
+    get:
+      operationId: testDefaultDouble
+      parameters:
+        - name: parameter
+          in: query
+          required: true
+          allowEmptyValue: true
+          schema:
+            type: number
+            format: double
+            default: 1.0
+      responses:
+        default:
+          description: ok
+  /queryTests/defaultBoolean:
+    get:
+      operationId: testDefaultBoolean
+      parameters:
+        - name: parameter
+          in: query
+          required: true
+          allowEmptyValue: true
+          schema:
+            type: boolean
+            default: true
       responses:
         default:
           description: ok

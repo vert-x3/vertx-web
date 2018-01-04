@@ -129,7 +129,7 @@ public abstract class BaseValidationHandler implements ValidationHandler {
           if (parsedParams.containsKey(parsedParam.getName()))
             parsedParam = parsedParam.merge(parsedParams.get(parsedParam.getName()));
           parsedParams.put(parsedParam.getName(), parsedParam);
-        } else if (!rule.allowEmptyValue()) {
+        } else {
           throw ValidationException.ValidationExceptionFactory.generateNotMatchValidationException(name + " can't be empty");
         }
       } else {
@@ -159,7 +159,7 @@ public abstract class BaseValidationHandler implements ValidationHandler {
           if (parsedParams.containsKey(parsedParam.getName()))
             parsedParam = parsedParam.merge(parsedParams.get(parsedParam.getName()));
           parsedParams.put(parsedParam.getName(), parsedParam);
-        } else if (!rule.allowEmptyValue()) {
+        } else {
           throw ValidationException.ValidationExceptionFactory.generateNotMatchValidationException(name + " can't be empty");
         }
       } else if (rule.parameterTypeValidator().getDefault() != null) {
@@ -187,7 +187,7 @@ public abstract class BaseValidationHandler implements ValidationHandler {
           if (parsedParams.containsKey(parsedParam.getName()))
             parsedParam = parsedParam.merge(parsedParams.get(parsedParam.getName()));
           parsedParams.put(parsedParam.getName(), parsedParam);
-        } else if (!rule.allowEmptyValue()) {
+        } else {
           throw ValidationException.ValidationExceptionFactory.generateNotMatchValidationException(name + " can't be empty");
         }
       } else if (rule.parameterTypeValidator().getDefault() != null) {
@@ -215,7 +215,7 @@ public abstract class BaseValidationHandler implements ValidationHandler {
           if (parsedParams.containsKey(parsedParam.getName()))
             parsedParam = parsedParam.merge(parsedParams.get(parsedParam.getName()));
           parsedParams.put(parsedParam.getName(), parsedParam);
-        } else if (!rule.allowEmptyValue()) {
+        } else {
           throw ValidationException.ValidationExceptionFactory.generateNotMatchValidationException(name + " can't be empty");
         }
       } else if (rule.parameterTypeValidator().getDefault() != null) {

@@ -1,6 +1,7 @@
 package io.vertx.ext.web.api.contract.openapi3.impl;
 
-import io.swagger.v3.oas.models.*;
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.media.*;
 import io.swagger.v3.oas.models.parameters.Parameter;
 import io.swagger.v3.oas.models.parameters.RequestBody;
@@ -109,24 +110,24 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
           return ParameterTypeValidator.createLongTypeValidator(schema.getExclusiveMaximum(), (schema.getMaximum() !=
             null) ? schema.getMaximum().doubleValue() : null, schema.getExclusiveMinimum(), (schema.getMinimum() !=
             null) ? schema.getMinimum().doubleValue() : null, (schema.getMultipleOf() != null) ? schema.getMultipleOf
-            ().doubleValue() : null, (Long) schema.getDefault() /* TODO test type received */);
+            ().doubleValue() : null, (schema.getDefault() != null) ? schema.getDefault().toString() : null);
         } else {
           return ParameterTypeValidator.createIntegerTypeValidator(schema.getExclusiveMaximum(), (schema.getMaximum() !=
             null) ? schema.getMaximum().doubleValue() : null, schema.getExclusiveMinimum(), (schema.getMinimum() !=
             null) ? schema.getMinimum().doubleValue() : null, (schema.getMultipleOf() != null) ? schema.getMultipleOf
-            ().doubleValue() : null, (Integer) schema.getDefault() /* TODO test type received */);
+            ().doubleValue() : null, (schema.getDefault() != null) ? schema.getDefault().toString() : null);
         }
       case "number":
         if (schema.getFormat() != null && schema.getFormat().equals("float"))
           return ParameterTypeValidator.createFloatTypeValidator(schema.getExclusiveMaximum(), (schema.getMaximum() !=
             null) ? schema.getMaximum().doubleValue() : null, schema.getExclusiveMinimum(), (schema.getMinimum() !=
             null) ? schema.getMinimum().doubleValue() : null, (schema.getMultipleOf() != null) ? schema.getMultipleOf
-            ().doubleValue() : null, (Float) schema.getDefault() /* TODO test type received */);
+            ().doubleValue() : null, (schema.getDefault() != null) ? schema.getDefault().toString() : null);
         else
           return ParameterTypeValidator.createDoubleTypeValidator(schema.getExclusiveMaximum(), (schema.getMaximum()
             != null) ? schema.getMaximum().doubleValue() : null, schema.getExclusiveMinimum(), (schema.getMinimum() !=
             null) ? schema.getMinimum().doubleValue() : null, (schema.getMultipleOf() != null) ? schema.getMultipleOf
-            ().doubleValue() : null, (Double) schema.getDefault() /* TODO test type received */);
+            ().doubleValue() : null, (schema.getDefault() != null) ? schema.getDefault().toString() : null);
       case "boolean":
         return ParameterTypeValidator.createBooleanTypeValidator(schema.getDefault());
       case "string":

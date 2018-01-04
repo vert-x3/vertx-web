@@ -63,28 +63,20 @@ public class ParameterValidationRuleImpl implements ParameterValidationRule {
 
   @Override
   public RequestParameter validateSingleParam(String value) throws ValidationException {
-    if (value != null && value.length() != 0) {
-      return callValidator(value);
-    } else {
-      // Value or null or length == 0
-      if (!this.allowEmptyValue)
-        throw ValidationException.ValidationExceptionFactory.generateEmptyValueValidationException(this.name, this,
-          this.location);
-      else return RequestParameter.create(getName(), parameterTypeValidator().getDefault());
-    }
+    // Check allowEmptyValue
+    if (this.allowEmptyValue() && value != null && value.length() == 0)
+      return RequestParameter.create(getName(), "");
+
+    return callValidator(value);
   }
 
   @Override
   public RequestParameter validateArrayParam(List<String> value) throws ValidationException {
-    if (value != null && value.size() != 0) {
-      return callValidator(value);
-    } else {
-      // array or null or size == 0
-      if (!this.allowEmptyValue)
-        throw ValidationException.ValidationExceptionFactory.generateEmptyValueValidationException(this.name, this,
-          this.location);
-      else return RequestParameter.create(getName(), parameterTypeValidator().getDefault());
-    }
+    // Check allowEmptyValue
+    if (this.allowEmptyValue() && value != null && value.size() == 1 && value.get(0).length() == 0)
+      return RequestParameter.create(getName(), "");
+
+    return callValidator(value);
   }
 
   @Override

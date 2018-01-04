@@ -244,10 +244,10 @@ routerFactory.add_security_handler("jwt_auth", &VertxWeb::JWTAuthHandler.create(
 
 ----
 
-=== Error handling
+=== Customize the router factory behaviours TODO add doc for router factory behaviours
 The router factory allows you to manage errors efficiently:
 
-* It automatically mounts a 501 `Not Implemented` handler for operations where you haven't mounted any handler
+* It automatically mounts a 501 `Not Implemented` handler for operations where you haven't mounted any handler. You can enable/disable this feature with `link:../dataobjects.html#DesignDrivenRouterFactoryOptions#set_mount_not_implemented_handler-instance_method[mountNotImplementedHandler]` and you can
 * It automatically mounts a 400 `Bad Request` handler that manages `ValidationException` (You can enable/disable this feature via `link:../../yardoc/VertxWebApiContract/DesignDrivenRouterFactory.html#enable_validation_failure_handler-instance_method[enableValidationFailureHandler]`)
 
 === Generate the router

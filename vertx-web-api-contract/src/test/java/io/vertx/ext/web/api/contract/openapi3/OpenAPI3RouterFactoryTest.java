@@ -5,10 +5,7 @@ import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerOptions;
-import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.parsetools.JsonParser;
-import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.WebTestWithWebClientBase;
@@ -16,10 +13,8 @@ import io.vertx.ext.web.api.RequestParameters;
 import io.vertx.ext.web.api.contract.DesignDrivenRouterFactoryOptions;
 import io.vertx.ext.web.api.contract.RouterFactoryException;
 import io.vertx.ext.web.api.validation.ValidationException;
-import io.vertx.ext.web.handler.ResponseContentTypeHandler;
 import org.junit.Test;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
@@ -589,7 +584,6 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
   @Test
   public void mountHandlersOrderTest() throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
-    final Router[] router = {null};
     OpenAPI3RouterFactory.createRouterFactoryFromFile(this.vertx, "src/test/resources/swaggers/test_order_spec.yaml",
       openAPI3RouterFactoryAsyncResult -> {
         assertTrue(openAPI3RouterFactoryAsyncResult.succeeded());

@@ -5,7 +5,6 @@ import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
-import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
@@ -180,7 +179,7 @@ public class OpenAPI3SchemasTest extends WebTestValidationBase {
     startServer();
     assertRequestOk("/test4", "test2_ok.json"); // Same as test2
     assertRequestFail("/test4", "test2_fail_1.json");
-    assertRequestFail("/test4", "test2_fail_2.json"); // TODO Parser doesn't load local ref, maybe a parser bug?
+    assertRequestFail("/test4", "test2_fail_2.json");
     assertRequestFail("/test4", "test2_fail_3.json");
   }
 

@@ -17,7 +17,6 @@
 package io.vertx.ext.web.api.contract;
 
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.json.JsonArray;
 
 /**
  * Converter for {@link io.vertx.ext.web.api.contract.DesignDrivenRouterFactoryOptions}.
@@ -30,13 +29,21 @@ import io.vertx.core.json.JsonArray;
     if (json.getValue("mountNotImplementedHandler") instanceof Boolean) {
       obj.setMountNotImplementedHandler((Boolean)json.getValue("mountNotImplementedHandler"));
     }
+    if (json.getValue("mountResponseContentTypeHandler") instanceof Boolean) {
+      obj.setMountResponseContentTypeHandler((Boolean)json.getValue("mountResponseContentTypeHandler"));
+    }
     if (json.getValue("mountValidationFailureHandler") instanceof Boolean) {
       obj.setMountValidationFailureHandler((Boolean)json.getValue("mountValidationFailureHandler"));
+    }
+    if (json.getValue("requireSecurityHandlers") instanceof Boolean) {
+      obj.setRequireSecurityHandlers((Boolean)json.getValue("requireSecurityHandlers"));
     }
   }
 
    static void toJson(DesignDrivenRouterFactoryOptions obj, JsonObject json) {
     json.put("mountNotImplementedHandler", obj.isMountNotImplementedHandler());
+    json.put("mountResponseContentTypeHandler", obj.isMountResponseContentTypeHandler());
     json.put("mountValidationFailureHandler", obj.isMountValidationFailureHandler());
+    json.put("requireSecurityHandlers", obj.isRequireSecurityHandlers());
   }
 }

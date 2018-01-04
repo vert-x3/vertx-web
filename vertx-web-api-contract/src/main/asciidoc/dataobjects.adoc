@@ -15,11 +15,20 @@
 +++
 Automatic mount handlers that return HTTP 501 status code for operations where you didn't specify an handler.
 +++
+|[[mountResponseContentTypeHandler]]`mountResponseContentTypeHandler`|`Boolean`|
++++
+If true, when required, the factory will mount a link
++++
 |[[mountValidationFailureHandler]]`mountValidationFailureHandler`|`Boolean`|
 +++
 Enable or disable validation failure handler. If you enable it during router creation a failure handler
  that manages ValidationException will be mounted. You can change the validation failure handler with with function link. If failure is different from ValidationException, next failure
  handler will be called.
++++
+|[[requireSecurityHandlers]]`requireSecurityHandlers`|`Boolean`|
++++
+If true, when you call link the factory will mount for every path
+ the required security handlers and, if a security handler is not defined, it throws an link
 +++
 |===
 

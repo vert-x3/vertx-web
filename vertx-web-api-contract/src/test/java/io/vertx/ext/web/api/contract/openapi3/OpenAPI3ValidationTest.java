@@ -3,10 +3,8 @@ package io.vertx.ext.web.api.contract.openapi3;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.parser.OpenAPIV3Parser;
-import io.swagger.v3.parser.core.models.ParseOptions;
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpMethod;
-import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.api.RequestParameter;
 import io.vertx.ext.web.api.RequestParameters;
@@ -158,16 +156,68 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
   }
 
   @Test
-  public void testDefaultQueryParameter() throws Exception {
-    Operation op = testSpec.getPaths().get("/queryTests/default").getGet();
+  public void testDefaultStringQueryParameter() throws Exception {
+    Operation op = testSpec.getPaths().get("/queryTests/defaultString").getGet();
     OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(op, op.getParameters(), testSpec);
-    loadHandlers("/queryTests/default", HttpMethod.GET, false, validationHandler, (routingContext) -> {
+    loadHandlers("/queryTests/defaultString", HttpMethod.GET, false, validationHandler, (routingContext) -> {
       RequestParameters params = routingContext.get("parsedParameters");
       routingContext.response().setStatusMessage(params.queryParameter("parameter").getString()).end();
     });
+    testRequest(HttpMethod.GET, "/queryTests/defaultString", 200, "aString");
+  }
 
-    testRequest(HttpMethod.GET, "/queryTests/default?parameter=", 200, "aString");
-    testRequest(HttpMethod.GET, "/queryTests/default", 200, "aString");
+  @Test
+  public void testAllowEmptyValueQueryParameter() throws Exception {
+    Operation op = testSpec.getPaths().get("/queryTests/defaultString").getGet();
+    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(op, op.getParameters(), testSpec);
+    loadHandlers("/queryTests/defaultString", HttpMethod.GET, false, validationHandler, (routingContext) -> {
+      RequestParameters params = routingContext.get("parsedParameters");
+      routingContext.response().setStatusMessage(params.queryParameter("parameter").getString()).end();
+    });
+    // Empty value should not be overwritten
+    testRequest(HttpMethod.GET, "/queryTests/defaultString?parameter=", 200, "");
+  }
+
+  @Test
+  public void testDefaultIntQueryParameter() throws Exception {
+    Operation op = testSpec.getPaths().get("/queryTests/defaultInt").getGet();
+    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(op, op.getParameters(), testSpec);
+    loadHandlers("/queryTests/defaultInt", HttpMethod.GET, false, validationHandler, (routingContext) -> {
+      RequestParameters params = routingContext.get("parsedParameters");
+      RequestParameter requestParameter = params.queryParameter("parameter");
+      assertTrue(requestParameter.isInteger());
+      routingContext.response().setStatusMessage(requestParameter.toString()).end();
+    });
+
+    testRequest(HttpMethod.GET, "/queryTests/defaultInt", 200, "1");
+  }
+
+  @Test
+  public void testDefaultFloatQueryParameter() throws Exception {
+    Operation op = testSpec.getPaths().get("/queryTests/defaultFloat").getGet();
+    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(op, op.getParameters(), testSpec);
+    loadHandlers("/queryTests/defaultFloat", HttpMethod.GET, false, validationHandler, (routingContext) -> {
+      RequestParameters params = routingContext.get("parsedParameters");
+      RequestParameter requestParameter = params.queryParameter("parameter");
+      assertTrue(requestParameter.isFloat());
+      routingContext.response().setStatusMessage(requestParameter.toString()).end();
+    });
+
+    testRequest(HttpMethod.GET, "/queryTests/defaultFloat", 200, "1.0");
+  }
+
+  @Test
+  public void testDefaultDoubleQueryParameter() throws Exception {
+    Operation op = testSpec.getPaths().get("/queryTests/defaultDouble").getGet();
+    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(op, op.getParameters(), testSpec);
+    loadHandlers("/queryTests/defaultDouble", HttpMethod.GET, false, validationHandler, (routingContext) -> {
+      RequestParameters params = routingContext.get("parsedParameters");
+      RequestParameter requestParameter = params.queryParameter("parameter");
+      assertTrue(requestParameter.isDouble());
+      routingContext.response().setStatusMessage(requestParameter.toString()).end();
+    });
+
+    testRequest(HttpMethod.GET, "/queryTests/defaultDouble", 200, "1.0");
   }
 
   @Test

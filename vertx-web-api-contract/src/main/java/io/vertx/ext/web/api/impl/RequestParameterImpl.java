@@ -174,4 +174,9 @@ public class RequestParameterImpl implements RequestParameter {
   public boolean isEmpty() {
     return isNull();
   }
+
+  @Override
+  public String toString() {
+    return value.toString();
+  }
 }
