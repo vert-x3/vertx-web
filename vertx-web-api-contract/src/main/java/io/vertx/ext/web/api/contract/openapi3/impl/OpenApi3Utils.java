@@ -3,6 +3,7 @@ package io.vertx.ext.web.api.contract.openapi3.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.media.ComposedSchema;
+import io.swagger.v3.oas.models.media.MediaType;
 import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.parameters.Parameter;
 import io.swagger.v3.parser.ObjectMapperFactory;
@@ -14,6 +15,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -300,6 +302,13 @@ public class OpenApi3Utils {
       return new JSONArray(((JsonArray) obj).getList().stream().map(OpenApi3Utils::convertVertxJSONToOrgJSON).collect(Collectors.toList()));
     } else
       return obj;
+  }
+
+  public static List<MediaType> extractTypesFromMediaTypesMap(Map<String, MediaType> types, Predicate<String> matchingFunction) {
+    return types
+      .entrySet().stream()
+      .filter(e -> matchingFunction.test(e.getKey()))
+      .map(Map.Entry::getValue).collect(Collectors.toList());
   }
 
 }

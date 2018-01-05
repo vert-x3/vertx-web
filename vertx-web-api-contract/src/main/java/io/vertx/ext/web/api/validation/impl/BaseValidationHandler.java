@@ -8,6 +8,7 @@ import io.vertx.ext.web.api.RequestParameter;
 import io.vertx.ext.web.api.impl.RequestParameterImpl;
 import io.vertx.ext.web.api.impl.RequestParametersImpl;
 import io.vertx.ext.web.api.validation.*;
+import io.vertx.ext.web.impl.Utils;
 
 import java.util.*;
 import java.util.regex.Pattern;
@@ -71,7 +72,7 @@ public abstract class BaseValidationHandler implements ValidationHandler {
         } else if (isMultipart) {
           parsedParameters.setFormParameters(validateFormParams(routingContext));
           validateFileUpload(routingContext);
-        } else if (contentType.contains("application/json") || contentType.contains("application/xml") || contentType.contains("text/xml")) {
+        } else if (Utils.isJsonContentType(contentType) || Utils.isXMLContentType(contentType)) {
           parsedParameters.setBody(validateEntireBody(routingContext));
         } else if (bodyRequired && !checkContentType(contentType)) {
           throw ValidationException.ValidationExceptionFactory.generateWrongContentTypeExpected(contentType, null);

@@ -69,6 +69,19 @@ public class WebTestWithWebClientBase extends WebTestBase {
     awaitLatch(latch);
   }
 
+  public void testRequestWithJSONAndCustomContentType(HttpMethod method, String path, String contentType, JsonObject jsonObject, int statusCode, String statusMessage, JsonObject obj) throws Exception {
+    CountDownLatch latch = new CountDownLatch(1);
+    webClient.request(method, 8080, "localhost", path)
+      .putHeader("content-type", contentType)
+      .sendBuffer(jsonObject.toBuffer(), (ar) -> {
+      assertEquals(statusCode, ar.result().statusCode());
+      assertEquals(statusMessage, ar.result().statusMessage());
+      assertEquals(obj, ar.result().bodyAsJsonObject());
+      latch.countDown();
+    });
+    awaitLatch(latch);
+  }
+
   public void testRequestWithForm(HttpMethod method, String path, FormType formType, MultiMap formMap, int statusCode, String statusMessage) throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
     HttpRequest<Buffer> request = webClient

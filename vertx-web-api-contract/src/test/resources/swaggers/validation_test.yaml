@@ -237,6 +237,16 @@ paths:
                   type: array
                   items:
                     type: integer
+          application/superapplication+json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+                values:
+                  type: array
+                  items:
+                    type: integer
       responses:
         default:
           description: ok

@@ -12,12 +12,14 @@ import io.vertx.ext.web.api.contract.impl.HTTPOperationRequestValidationHandlerI
 import io.vertx.ext.web.api.contract.openapi3.OpenAPI3RequestValidationHandler;
 import io.vertx.ext.web.api.validation.*;
 import io.vertx.ext.web.api.validation.impl.*;
+import io.vertx.ext.web.impl.Utils;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * @author Francesco Guardiani @slinkydeveloper
@@ -239,17 +241,18 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
   private void handleContent(Parameter parameter) {
     Content contents = parameter.getContent();
     ParameterLocation location = resolveLocation(parameter.getIn());
-    if (contents.size() == 1 && contents.containsKey("application/json")) {
+    List<MediaType> jsonsContents = OpenApi3Utils.extractTypesFromMediaTypesMap(contents, Utils::isJsonContentType);
+    if (jsonsContents.size() == 1) {
       this.addRule(ParameterValidationRuleImpl.ParameterValidationRuleFactory
         .createValidationRuleWithCustomTypeValidator(parameter.getName(), JsonTypeValidator.JsonTypeValidatorFactory
-          .createJsonTypeValidator(OpenApi3Utils.generateJsonSchema(contents.get("application/json").getSchema(), this.spec)),
+          .createJsonTypeValidator(OpenApi3Utils.generateJsonSchema(jsonsContents.get(0).getSchema(), this.spec)),
           !parameter.getRequired(), OpenApi3Utils.resolveAllowEmptyValue(parameter), location), location);
-    } else if (contents.size() > 1 && contents.containsKey("application/json")) {
+    } else if (contents.size() > 1 && jsonsContents.size() >= 1) {
       // Mount anyOf
-      List<ParameterTypeValidator> validators = new ArrayList<>();
+      List<ParameterTypeValidator> validators =
+        jsonsContents.stream().map(e -> JsonTypeValidator.JsonTypeValidatorFactory
+          .createJsonTypeValidator(OpenApi3Utils.generateJsonSchema(e.getSchema(), this.spec))).collect(Collectors.toList());
       validators.add(CONTENT_TYPE_VALIDATOR);
-      validators.add(0, JsonTypeValidator.JsonTypeValidatorFactory
-        .createJsonTypeValidator(OpenApi3Utils.generateJsonSchema(contents.get("application/json").getSchema(), this.spec)));
       AnyOfTypeValidator validator = new AnyOfTypeValidator(validators);
       this.addRule(ParameterValidationRuleImpl.ParameterValidationRuleFactory
         .createValidationRuleWithCustomTypeValidator(parameter.getName(), validator, !parameter.getRequired(), OpenApi3Utils.resolveAllowEmptyValue(parameter)
@@ -412,7 +415,7 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
   /* This function resolves default content types of multipart parameters */
   private String resolveDefaultContentTypeRegex(Schema schema) {
     if (OpenApi3Utils.isSchemaObjectOrAllOfType(schema))
-      return Pattern.quote("application/json");
+      return "\\Qapplication/json\\E|.*\\/.*\\+json"; // Regex for json content type
 
     if (schema.getType() != null) {
       if (schema.getType().equals("string") && schema.getFormat() != null && (schema.getFormat().equals
@@ -428,8 +431,8 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
   }
 
   /* This function handle all multimaps parameters */
-  private void handleMultimapParameter(String parameterName, String contentType, Schema schema, Schema multipartObjectSchema) {
-    Pattern contentTypePattern = Pattern.compile(contentType);
+  private void handleMultimapParameter(String parameterName, String contentTypeRegex, Schema schema, Schema multipartObjectSchema) {
+    Pattern contentTypePattern = Pattern.compile(contentTypeRegex);
     if (contentTypePattern.matcher("application/json").matches()) {
       this.addFormParamRule(ParameterValidationRuleImpl.ParameterValidationRuleFactory
         .createValidationRuleWithCustomTypeValidator(parameterName, JsonTypeValidator.JsonTypeValidatorFactory
@@ -450,7 +453,7 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
   private void parseRequestBody(RequestBody requestBody) {
     if (requestBody != null && requestBody.getContent() != null) {
       for (Map.Entry<String, ? extends MediaType> mediaType : requestBody.getContent().entrySet()) {
-        if (mediaType.getKey().equals("application/json") && mediaType.getValue().getSchema() != null) {
+        if (Utils.isJsonContentType(mediaType.getKey()) && mediaType.getValue().getSchema() != null) {
           this.setEntireBodyValidator(JsonTypeValidator.JsonTypeValidatorFactory
             .createJsonTypeValidator(OpenApi3Utils.generateJsonSchema(mediaType.getValue().getSchema(), this.spec)));
         } else if (mediaType.getKey().equals("application/x-www-form-urlencoded") && mediaType.getValue().getSchema()

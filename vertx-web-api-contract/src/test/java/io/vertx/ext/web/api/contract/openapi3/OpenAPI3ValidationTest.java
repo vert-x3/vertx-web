@@ -327,6 +327,14 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
     object.put("values", valuesArray);
 
     testRequestWithJSON(HttpMethod.POST, "/jsonBodyTest/sampleTest", object, 200, "OK", object);
+    testRequestWithJSONAndCustomContentType(HttpMethod.POST,
+      "/jsonBodyTest/sampleTest",
+      "application/json; charset=utf-8",
+      object, 200, "OK", object);
+    testRequestWithJSONAndCustomContentType(HttpMethod.POST,
+      "/jsonBodyTest/sampleTest",
+      "application/superapplication+json",
+      object, 200, "OK", object);
   }
 
   @Test
