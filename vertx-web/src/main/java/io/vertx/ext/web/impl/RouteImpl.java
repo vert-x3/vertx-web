@@ -50,9 +50,7 @@ public class RouteImpl implements Route {
   private int order;
   private boolean enabled = true;
   private List<Handler<RoutingContext>> contextHandlers;
-  private int actualHandlerIndex;
   private List<Handler<RoutingContext>> failureHandlers;
-  private int actualFailureHandlerIndex;
   private boolean added;
   private Pattern pattern;
   private List<String> groups;
@@ -63,7 +61,6 @@ public class RouteImpl implements Route {
     this.order = order;
     this.contextHandlers = new ArrayList<>();
     this.failureHandlers = new ArrayList<>();
-    resetIndexes();
   }
 
   RouteImpl(RouterImpl router, int order, HttpMethod method, String path) {
@@ -217,23 +214,17 @@ public class RouteImpl implements Route {
     return sb.toString();
   }
 
-  synchronized void handleContext(RoutingContext context) {
-    if (this.hasNextContextHandler()) {
-      actualHandlerIndex++;
-      contextHandlers.get(actualHandlerIndex - 1).handle(context);
-    }
+  synchronized void handleContext(RoutingContextImplBase context) {
+    contextHandlers.get(context.currentRouteNextHandlerIndex() - 1).handle(context);
   }
 
-  synchronized void handleFailure(RoutingContext context) {
-    if (this.hasNextFailureHandler()) {
-      actualFailureHandlerIndex++;
-      failureHandlers.get(actualFailureHandlerIndex - 1).handle(context);
-    }
+  synchronized void handleFailure(RoutingContextImplBase context) {
+    failureHandlers.get(context.currentRouteNextFailureHandlerIndex() - 1).handle(context);
   }
 
-  synchronized boolean matches(RoutingContext context, String mountPoint, boolean failure) {
+  synchronized boolean matches(RoutingContextImplBase context, String mountPoint, boolean failure) {
 
-    if (failure && !hasNextFailureHandler() || !failure && !hasNextContextHandler()) {
+    if (failure && !hasNextFailureHandler(context) || !failure && !hasNextContextHandler(context)) {
       return false;
     }
     if (!enabled) {
@@ -440,16 +431,11 @@ public class RouteImpl implements Route {
     }
   }
 
-  synchronized protected boolean hasNextContextHandler() {
-    return actualHandlerIndex < contextHandlers.size();
+  synchronized protected boolean hasNextContextHandler(RoutingContextImplBase context) {
+    return context.currentRouteNextHandlerIndex() < contextHandlers.size();
   }
 
-  synchronized protected boolean hasNextFailureHandler() {
-    return actualFailureHandlerIndex < failureHandlers.size();
-  }
-
-  synchronized protected void resetIndexes() {
-    actualFailureHandlerIndex = 0;
-    actualHandlerIndex = 0;
+  synchronized protected boolean hasNextFailureHandler(RoutingContextImplBase context) {
+    return context.currentRouteNextFailureHandlerIndex() < failureHandlers.size();
   }
 }
