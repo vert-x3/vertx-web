@@ -19,9 +19,9 @@ public class ParameterValidationRuleImpl implements ParameterValidationRule {
 
   public ParameterValidationRuleImpl(String name, ParameterTypeValidator validator, boolean isOptional, boolean
     allowEmptyValue, ParameterLocation location) {
-    if (name == null) throw new NullPointerException("name cannot be null");
+    if (name == null) throw new IllegalArgumentException("name cannot be null");
     this.name = name;
-    if (validator == null) throw new NullPointerException("validator cannot be null");
+    if (validator == null) throw new IllegalArgumentException("validator cannot be null");
     this.validator = validator;
     this.isOptional = isOptional;
     this.allowEmptyValue = allowEmptyValue;

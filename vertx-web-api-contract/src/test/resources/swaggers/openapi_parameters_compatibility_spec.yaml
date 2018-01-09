@@ -624,6 +624,7 @@ paths:
           x-test: empty
           in: query
           required: true
+          allowEmptyValue: true
           examples:
             value:
               $ref: "#/components/examples/Empty"
@@ -721,6 +722,7 @@ paths:
           x-test: empty
           in: query
           required: true
+          allowEmptyValue: true
           examples:
             value:
               $ref: "#/components/examples/Empty"
@@ -945,6 +947,7 @@ paths:
           x-test: empty
           in: cookie
           required: true
+          allowEmptyValue: true
           examples:
             value:
               $ref: "#/components/examples/Empty"
@@ -1042,6 +1045,7 @@ paths:
           x-test: empty
           in: cookie
           required: true
+          allowEmptyValue: true
           examples:
             value:
               $ref: "#/components/examples/Empty"

@@ -38,7 +38,7 @@ import java.util.stream.Collectors;
 public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
 
   OpenAPI spec;
-  io.vertx.ext.web.api.contract.openapi3.ApiClient apiClient;
+  ApiClient apiClient;
   OpenAPI3RouterFactory routerFactory;
 
   @Rule
@@ -1178,8 +1178,8 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
       JsonObject res = new JsonObject();
 
       RequestParameter color_query = params.queryParameter("color");
-      assertNotNull(color_query);
-      assertTrue(color_query.isEmpty());
+      assertNotNull(color_query.getString());
+      assertTrue(color_query.getString().isEmpty());
       res.putNull("color");
 
 
@@ -1376,8 +1376,8 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
       JsonObject res = new JsonObject();
 
       RequestParameter color_query = params.queryParameter("color");
-      assertNotNull(color_query);
-      assertTrue(color_query.isEmpty());
+      assertNotNull(color_query.getString());
+      assertTrue(color_query.getString().isEmpty());
       res.putNull("color");
 
 
@@ -1833,8 +1833,8 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
       JsonObject res = new JsonObject();
 
       RequestParameter color_cookie = params.cookieParameter("color");
-      assertNotNull(color_cookie);
-      assertTrue(color_cookie.isEmpty());
+      assertNotNull(color_cookie.getString());
+      assertTrue(color_cookie.getString().isEmpty());
       res.putNull("color");
 
 
@@ -2031,8 +2031,8 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
       JsonObject res = new JsonObject();
 
       RequestParameter color_cookie = params.cookieParameter("color");
-      assertNotNull(color_cookie);
-      assertTrue(color_cookie.isEmpty());
+      assertNotNull(color_cookie.getString());
+      assertTrue(color_cookie.getString().isEmpty());
       res.putNull("color");
 
 

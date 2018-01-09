@@ -56,8 +56,7 @@ public class ObjectTypeValidator extends ContainerTypeValidator<Map<String, Stri
     Map<String, RequestParameter> parsedParams = new HashMap<>();
 
     for (Map.Entry<String, ObjectField> field : fieldsMap.entrySet()) {
-      String valueToValidate = values.get(field.getKey());
-      if (valueToValidate == null) {
+      if (!values.containsKey(field.getKey())) {
         if (field.getValue().required)
           throw ValidationException.ValidationExceptionFactory.generateObjectFieldNotFound(field.getKey());
         else if (field.getValue().validator.getDefault() != null)
@@ -65,7 +64,7 @@ public class ObjectTypeValidator extends ContainerTypeValidator<Map<String, Stri
             .getDefault()));
 
       } else {
-        RequestParameter param = field.getValue().validator.isValid(valueToValidate);
+        RequestParameter param = field.getValue().validator.isValid(values.get(field.getKey()));
         param.setName(field.getKey());
         parsedParams.put(field.getKey(), param);
       }
