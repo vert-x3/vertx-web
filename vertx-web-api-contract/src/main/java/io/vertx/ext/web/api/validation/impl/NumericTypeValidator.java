@@ -1,7 +1,6 @@
 package io.vertx.ext.web.api.validation.impl;
 
 import io.vertx.ext.web.api.RequestParameter;
-import io.vertx.ext.web.api.validation.ParameterTypeValidator;
 import io.vertx.ext.web.api.validation.ValidationException;
 
 import java.util.function.Function;
@@ -9,7 +8,7 @@ import java.util.function.Function;
 /**
  * @author Francesco Guardiani @slinkydeveloper
  */
-public class NumericTypeValidator implements ParameterTypeValidator {
+public class NumericTypeValidator extends SingleValueParameterTypeValidator<Number> {
 
   private static final Function<String, Number> parseInteger = Integer::valueOf;
   private static final Function<String, Number> parseFloat = Float::parseFloat;
@@ -22,12 +21,12 @@ public class NumericTypeValidator implements ParameterTypeValidator {
   private Boolean exclusiveMinimum;
   private Double minimum;
   private Double multipleOf;
-  private Number defaultValue;
 
   public NumericTypeValidator(Class numberType,
                               Boolean exclusiveMaximum, Double maximum,
                               Boolean exclusiveMinimum, Double minimum,
                               Double multipleOf, Object defaultValue) {
+    super(null); // Default value is initialized later
     if (Integer.class.equals(numberType))
       this.parseNumber = parseInteger;
     else if (Float.class.equals(numberType))
@@ -88,15 +87,8 @@ public class NumericTypeValidator implements ParameterTypeValidator {
     else return true;
   }
 
-  /**
-   * Function that check if parameter is valid
-   *
-   * @param value value of parameter to test
-   * @return true if parameter is valid
-   */
   @Override
-  public RequestParameter isValid(String value) {
-    if (value == null) return RequestParameter.create(getDefault());
+  public RequestParameter isValidSingleParam(String value) {
     try {
       Number number = parseNumber.apply(value);
       if (number != null && this.testMaximum(number) && this.testMinimum(number) && this.testMultipleOf(number)) {
@@ -109,8 +101,4 @@ public class NumericTypeValidator implements ParameterTypeValidator {
     }
   }
 
-  @Override
-  public Object getDefault() {
-    return defaultValue;
-  }
 }

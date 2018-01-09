@@ -23,7 +23,7 @@ import java.util.List;
  *
  * @author Francesco Guardiani @slinkydeveloper
  */
-@VertxGen
+@VertxGen @FunctionalInterface
 public interface ParameterTypeValidator {
   /**
    * Function that checks if parameter is valid. It returns a RequestParameter object that will be linked inside
@@ -55,6 +55,13 @@ public interface ParameterTypeValidator {
   default Object getDefault() {
     return null;
   }
+
+  /**
+   * Returns true if this type validator has default value
+   *
+   * @return
+   */
+  default boolean hasDefault() { return getDefault() != null; }
 
   /* --- Factory methods for built-in type validators --- */
 

@@ -5,18 +5,15 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.api.RequestParameter;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author Francesco Guardiani @slinkydeveloper
  */
 public class RequestParameterImpl implements RequestParameter {
 
-  String name;
-  Object value;
+  private String name;
+  private Object value;
 
   public RequestParameterImpl(String name, Object value) {
     this.name = name;
@@ -178,5 +175,19 @@ public class RequestParameterImpl implements RequestParameter {
   @Override
   public String toString() {
     return value.toString();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    RequestParameterImpl that = (RequestParameterImpl) o;
+    return Objects.equals(name, that.name) &&
+      Objects.equals(value, that.value);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(name, value);
   }
 }
