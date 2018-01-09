@@ -265,23 +265,41 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
   }
 
   @Test
-  public void mountSecurityHandler() throws Exception {
+  public void mountSecurityHandlers() throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
     OpenAPI3RouterFactory.createRouterFactoryFromFile(this.vertx, "src/test/resources/swaggers/router_factory_test.yaml",
       openAPI3RouterFactoryAsyncResult -> {
         routerFactory = openAPI3RouterFactoryAsyncResult.result();
         routerFactory.setOptions(new DesignDrivenRouterFactoryOptions().setRequireSecurityHandlers(true));
 
-        routerFactory.addHandlerByOperationId("listPets", routingContext -> {
+        routerFactory.addHandlerByOperationId("listPetsSecurity", routingContext -> {
           routingContext
             .response()
             .setStatusCode(200)
-            .setStatusMessage(routingContext.get("message") + "OK")
+            .setStatusMessage(routingContext.get("first_level") + "-" +
+              routingContext.get("second_level") + "-" + routingContext.get("third_level_one") +
+              "-" + routingContext.get("third_level_two") + "-Done")
             .end();
         });
 
         routerFactory.addSecurityHandler("api_key",
-          routingContext -> routingContext.put("message", "VALID").next()
+          routingContext -> routingContext.put("first_level", "User").next()
+        );
+
+        routerFactory.addSecuritySchemaScopeValidator("second_api_key", "moderator",
+          routingContext -> routingContext.put("second_level", "Moderator").next()
+        );
+
+        routerFactory.addSecuritySchemaScopeValidator("third_api_key", "admin",
+          routingContext -> routingContext.put("third_level_one", "Admin").next()
+        );
+
+        routerFactory.addSecuritySchemaScopeValidator("third_api_key", "useless",
+          routingContext -> routingContext.put("third_level_one", "Wrong!").next()
+        );
+
+        routerFactory.addSecuritySchemaScopeValidator("third_api_key", "super_admin",
+          routingContext -> routingContext.put("third_level_two", "SuperAdmin").next()
         );
 
         latch.countDown();
@@ -290,7 +308,7 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
 
     startServer();
 
-    testRequest(HttpMethod.GET, "/pets", 200, "VALIDOK");
+    testRequest(HttpMethod.GET, "/pets_security_test", 200, "User-Moderator-Admin-SuperAdmin-Done");
   }
 
   @Test
@@ -313,11 +331,11 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
       });
     awaitLatch(latch);
 
-    assertThrow(() -> routerFactory.getRouter(), RouterFactoryException.class);
+    assertThrow(routerFactory::getRouter, RouterFactoryException.class);
 
     routerFactory.addSecurityHandler("api_key", routingContext -> routingContext.next());
 
-    assertNotThrow(() -> routerFactory.getRouter(), RouterFactoryException.class);
+    assertNotThrow(routerFactory::getRouter, RouterFactoryException.class);
   }
 
   @Test

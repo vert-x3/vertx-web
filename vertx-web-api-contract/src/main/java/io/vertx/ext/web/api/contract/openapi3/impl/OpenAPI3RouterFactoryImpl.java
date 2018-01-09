@@ -5,7 +5,6 @@ import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.PathItem;
 import io.swagger.v3.oas.models.parameters.Parameter;
 import io.swagger.v3.oas.models.responses.ApiResponse;
-import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
@@ -29,65 +28,7 @@ public class OpenAPI3RouterFactoryImpl extends BaseDesignDrivenRouterFactory<Ope
   // This map is fullfilled when spec is loaded in memory
   Map<String, OperationValue> operations;
 
-  Map<SecurityRequirementKey, Handler> securityHandlers;
-
-  private class SecurityRequirementKey {
-    private String name;
-    private String oauth2Scope;
-
-    public SecurityRequirementKey(String name, String oauth2Scope) {
-      this.name = name;
-      this.oauth2Scope = oauth2Scope;
-    }
-
-    public SecurityRequirementKey(String name) {
-      this(name, null);
-    }
-
-    public String getName() {
-      return name;
-    }
-
-    public String getOauth2Scope() {
-      return oauth2Scope;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      if (this == o) return true;
-      if (o == null || getClass() != o.getClass()) return false;
-
-      SecurityRequirementKey that = (SecurityRequirementKey) o;
-
-      if (!name.equals(that.name)) return false;
-      return oauth2Scope != null ? oauth2Scope.equals(that.oauth2Scope) : that.oauth2Scope == null;
-    }
-
-    @Override
-    public int hashCode() {
-      int result = name.hashCode();
-      result = 31 * result + (oauth2Scope != null ? oauth2Scope.hashCode() : 0);
-      return result;
-    }
-  }
-
-  private class Handlers {
-    private List<Handler> handlers;
-    private List<Handler> failureHandlers;
-
-    public Handlers(List<Handler> handlers, List<Handler> failureHandlers) {
-      this.handlers = handlers;
-      this.failureHandlers = failureHandlers;
-    }
-
-    public List<Handler> getHandlers() {
-      return handlers;
-    }
-
-    public List<Handler> getFailureHandlers() {
-      return failureHandlers;
-    }
-  }
+  SecurityHandlersStore securityHandlers;
 
   private class OperationValue {
     private HttpMethod method;
@@ -152,7 +93,7 @@ public class OpenAPI3RouterFactoryImpl extends BaseDesignDrivenRouterFactory<Ope
   public OpenAPI3RouterFactoryImpl(Vertx vertx, OpenAPI spec) {
     super(vertx, spec);
     this.operations = new LinkedHashMap<>();
-    this.securityHandlers = new HashMap<>();
+    this.securityHandlers = new SecurityHandlersStore();
 
     /* --- Initialization of all arrays and maps --- */
     for (Map.Entry<String, ? extends PathItem> pathEntry : spec.getPaths().entrySet()) {
@@ -166,8 +107,7 @@ public class OpenAPI3RouterFactoryImpl extends BaseDesignDrivenRouterFactory<Ope
   @Override
   public OpenAPI3RouterFactory addSecuritySchemaScopeValidator(String securitySchemaName, String scopeName, Handler
     handler) {
-    SecurityRequirementKey key = new SecurityRequirementKey(securitySchemaName, scopeName);
-    securityHandlers.put(key, handler);
+    securityHandlers.addSecurityRequirement(securitySchemaName, scopeName, handler);
     return this;
   }
 
@@ -193,8 +133,7 @@ public class OpenAPI3RouterFactoryImpl extends BaseDesignDrivenRouterFactory<Ope
 
   @Override
   public OpenAPI3RouterFactory addSecurityHandler(String securitySchemaName, Handler handler) {
-    SecurityRequirementKey key = new SecurityRequirementKey(securitySchemaName);
-    securityHandlers.put(key, handler);
+    securityHandlers.addSecurityRequirement(securitySchemaName, handler);
     return this;
   }
 
@@ -263,33 +202,10 @@ public class OpenAPI3RouterFactoryImpl extends BaseDesignDrivenRouterFactory<Ope
       List<Handler> failureHandlersToLoad = new ArrayList<>();
 
       // Resolve security handlers
-      List<SecurityRequirement> securityRequirements = operation.getOperationModel().getSecurity();
-      if (securityRequirements != null) {
-        for (SecurityRequirement securityRequirement : securityRequirements) {
-          for (Map.Entry<String, List<String>> securityValue : securityRequirement.entrySet()) {
-            if (securityValue.getValue() != null && securityValue.getValue().size() != 0) {
-              // It's a multiscope security requirement
-              for (String scope : securityValue.getValue()) {
-                Handler securityHandlerToLoad = this.securityHandlers.get(new SecurityRequirementKey(securityValue
-                  .getKey(), scope));
-                if (securityHandlerToLoad == null) {
-                  // Maybe there's only one security handler for all scopes of this security schema
-                  securityHandlerToLoad = this.securityHandlers.get(new SecurityRequirementKey(securityValue.getKey()));
-                  if (securityHandlerToLoad == null && options.isRequireSecurityHandlers())
-                    throw RouterFactoryException.createMissingSecurityHandler(securityValue.getKey(), scope);
-                  else handlersToLoad.add(securityHandlerToLoad);
-                } else handlersToLoad.add(securityHandlerToLoad);
-              }
-            } else {
-              Handler securityHandlerToLoad = this.securityHandlers.get(new SecurityRequirementKey(securityValue
-                .getKey()));
-              if (securityHandlerToLoad == null && options.isRequireSecurityHandlers())
-                throw RouterFactoryException.createMissingSecurityHandler(securityValue.getKey());
-              else handlersToLoad.add(securityHandlerToLoad);
-            }
-          }
-        }
-      }
+      handlersToLoad.addAll(securityHandlers.solveSecurityHandlers(
+        operation.getOperationModel().getSecurity(),
+        this.options().isRequireSecurityHandlers()
+      ));
 
       // Generate ValidationHandler
       Handler<RoutingContext> validationHandler = new OpenAPI3RequestValidationHandlerImpl(operation
