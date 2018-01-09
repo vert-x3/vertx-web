@@ -87,8 +87,7 @@ class SecurityHandlersStore {
   private Handler<RoutingContext> mapWithFail(SecurityRequirementKey k) throws RouterFactoryException {
     if (k.hasScope())
       return Optional
-        .ofNullable(Optional.ofNullable(this.securityHandlers.get(k)))
-        .orElseGet(() -> Optional.ofNullable(this.securityHandlers.get(k.cloneWithoutScope())))
+        .ofNullable((this.securityHandlers.get(k) != null) ? this.securityHandlers.get(k) : this.securityHandlers.get(k.cloneWithoutScope()))
         .orElseThrow(() -> RouterFactoryException.createMissingSecurityHandler(k.getName(), k.getScope()));
     else
       return Optional.ofNullable(this.securityHandlers.get(k)).orElseThrow(() -> RouterFactoryException.createMissingSecurityHandler(k.getName()));
@@ -97,7 +96,7 @@ class SecurityHandlersStore {
   private Handler<RoutingContext> mapWithoutFail(SecurityRequirementKey k) {
     if (k.hasScope())
       return Optional
-        .of(this.securityHandlers.get(k))
+        .ofNullable(this.securityHandlers.get(k))
         .orElseGet(() -> this.securityHandlers.get(k.cloneWithoutScope()));
     else
       return this.securityHandlers.get(k);

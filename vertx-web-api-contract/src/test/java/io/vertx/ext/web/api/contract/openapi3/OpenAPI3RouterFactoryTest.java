@@ -335,6 +335,14 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
 
     routerFactory.addSecurityHandler("api_key", routingContext -> routingContext.next());
 
+    routerFactory.addSecurityHandler("second_api_key",
+      routingContext -> routingContext.next()
+    );
+
+    routerFactory.addSecurityHandler("third_api_key",
+      routingContext -> routingContext.next()
+    );
+
     assertNotThrow(routerFactory::getRouter, RouterFactoryException.class);
   }
 
