@@ -381,4 +381,12 @@ public interface Router extends Handler<HttpServerRequest> {
    */
   void handleFailure(RoutingContext context);
 
+  /**
+   * Set an error handler for 404 Not Found error
+   *
+   * @param handler the handler to run
+   * @return a reference to this, so the API can be used fluently
+   */
+  Router setNotFoundHandler(Handler<RoutingContext> handler);
+
 }

@@ -2375,4 +2375,16 @@ public class RouterTest extends WebTestBase {
     }
     awaitLatch(latch);
   }
+
+  @Test
+  public void testCustom404ErrorHandler() throws Exception {
+    testRequest(HttpMethod.GET, "/blah", 404, "Not Found", "<html><body><h1>Resource not found</h1></body></html>");
+    router.setNotFoundHandler(routingContext -> routingContext
+      .response()
+      .setStatusMessage("Not Found")
+      .setStatusCode(404)
+      .end("Not Found custom error")
+    );
+    testRequest(HttpMethod.GET, "/blah", 404, "Not Found", "Not Found custom error");
+  }
 }

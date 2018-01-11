@@ -16,7 +16,6 @@
 
 package io.vertx.ext.web.impl;
 
-import io.netty.handler.codec.http.HttpHeaderNames;
 import io.vertx.codegen.annotations.Nullable;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
@@ -141,16 +140,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
       // Send back FAILURE
       unhandledFailure(statusCode, failure, router);
     } else {
-      // Send back default 404
-      response().setStatusCode(404);
-      if (request().method() == HttpMethod.HEAD) {
-        // HEAD responses don't have a body
-        response().end();
-      } else {
-        response()
-                .putHeader(HttpHeaderNames.CONTENT_TYPE, "text/html; charset=utf-8")
-                .end(DEFAULT_404);
-      }
+      router.notFoundHandler.handle(this);
     }
   }
 
@@ -479,8 +469,5 @@ public class RoutingContextImpl extends RoutingContextImplBase {
     }
     return seq;
   }
-
-  private static final String DEFAULT_404 =
-    "<html><body><h1>Resource not found</h1></body></html>";
 
 }

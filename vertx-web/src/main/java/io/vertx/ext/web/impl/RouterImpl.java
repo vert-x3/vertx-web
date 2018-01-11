@@ -16,6 +16,7 @@
 
 package io.vertx.ext.web.impl;
 
+import io.netty.handler.codec.http.HttpHeaderNames;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
@@ -59,6 +60,20 @@ public class RouterImpl implements Router {
     return compare;
   };
 
+  private final static Handler<RoutingContext> DEFAULT_404_HANDLER = routingContext -> {
+    // Send back default 404
+    routingContext.response()
+      .setStatusMessage("Not Found")
+      .setStatusCode(404);
+    if (routingContext.request().method() == HttpMethod.HEAD) {
+      // HEAD responses don't have a body
+      routingContext.response().end();
+    } else {
+      routingContext.response()
+        .putHeader(HttpHeaderNames.CONTENT_TYPE, "text/html; charset=utf-8")
+        .end("<html><body><h1>Resource not found</h1></body></html>");
+    }
+  };
 
   private static final Logger log = LoggerFactory.getLogger(RouterImpl.class);
 
@@ -67,10 +82,13 @@ public class RouterImpl implements Router {
 
   public RouterImpl(Vertx vertx) {
     this.vertx = vertx;
+    this.notFoundHandler = DEFAULT_404_HANDLER;
   }
 
   private final AtomicInteger orderSequence = new AtomicInteger();
   private Handler<Throwable> exceptionHandler;
+
+  protected Handler<RoutingContext> notFoundHandler;
 
   @Override
   public void handle(HttpServerRequest request) {
@@ -258,6 +276,12 @@ public class RouterImpl implements Router {
   @Override
   public void handleFailure(RoutingContext ctx) {
     new RoutingContextWrapper(getAndCheckRoutePath(ctx), ctx.request(), routes, ctx).next();
+  }
+
+  @Override
+  public Router setNotFoundHandler(Handler<RoutingContext> handler) {
+    this.notFoundHandler = handler;
+    return this;
   }
 
   @Override
