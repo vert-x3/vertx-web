@@ -419,12 +419,9 @@ public class StaticHandlerImpl implements StaticHandler {
                   HttpServerResponse response = request.response();
 
                   // get the file props
-                  log.info("looking up props for " + dep);
                   getFileProps(context, dep, filePropsAsyncResult -> {
                     if (filePropsAsyncResult.succeeded()) {
-
                       // push
-                      log.info("pushing /" + dependency.getFilePath());
                       writeCacheHeaders(request, filePropsAsyncResult.result());
                       response.push(HttpMethod.GET, "/" + dependency.getFilePath(), pushAsyncResult -> {
                         if (pushAsyncResult.succeeded()) {
@@ -455,11 +452,9 @@ public class StaticHandlerImpl implements StaticHandler {
                 final String dep = webRoot + "/" + dependency.getFilePath();
 
                 // get the file props
-                log.info("looking up props for " + dep);
                 getFileProps(context, dep, filePropsAsyncResult -> {
                   if (filePropsAsyncResult.succeeded()) {
                     // push
-                    log.info("pushing /" + dependency.getFilePath());
                     writeCacheHeaders(request, filePropsAsyncResult.result());
                     links.add("<" + dependency.getFilePath() + ">; rel=preload; as="
                         + dependency.getExtensionTarget() + (dependency.isNoPush() ? "; nopush" : ""));
@@ -574,7 +569,7 @@ public class StaticHandlerImpl implements StaticHandler {
 
   @Override
   public StaticHandler setHttp2PushMapping(Map<String, List<Http2PushMapping>> http2PushMap) {
-    this.http2PushMap = http2PushMap;
+    if(http2PushMap != null) this.http2PushMap = new HashMap<>(http2PushMap);
     return this;
   }
 
