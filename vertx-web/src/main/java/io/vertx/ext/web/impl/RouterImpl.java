@@ -279,7 +279,7 @@ public class RouterImpl implements Router {
   }
 
   @Override
-  public Router setNotFoundHandler(Handler<RoutingContext> handler) {
+  public Router notFoundHandler(Handler<RoutingContext> handler) {
     this.notFoundHandler = handler;
     return this;
   }

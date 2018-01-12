@@ -2378,8 +2378,9 @@ public class RouterTest extends WebTestBase {
 
   @Test
   public void testCustom404ErrorHandler() throws Exception {
+    // Default 404 handler
     testRequest(HttpMethod.GET, "/blah", 404, "Not Found", "<html><body><h1>Resource not found</h1></body></html>");
-    router.setNotFoundHandler(routingContext -> routingContext
+    router.notFoundHandler(routingContext -> routingContext
       .response()
       .setStatusMessage("Not Found")
       .setStatusCode(404)
