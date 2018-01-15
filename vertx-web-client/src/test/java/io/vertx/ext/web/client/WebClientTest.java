@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeoutException;
@@ -17,6 +18,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import io.vertx.core.http.HttpConnection;
+import io.vertx.ext.web.client.jackson.GHUser;
 import org.junit.Test;
 
 import io.vertx.core.Handler;
@@ -1103,5 +1105,23 @@ public class WebClientTest extends HttpTestBase {
     } finally {
       server2.close();
     }
+  }
+
+  @Test
+  public void testClientErrors() {
+    WebClientOptions wcOptions = new WebClientOptions().setUserAgent("Vertx GitHub Client").setDefaultHost("api.github.com").setDefaultPort(443).setSsl(true);
+    WebClient client = WebClient.create(vertx, wcOptions);
+    HttpRequest<GHUser> request = client.get("/users/" + UUID.randomUUID().toString()).as(BodyCodec.json(GHUser.class));
+    request.send(ar -> {
+      if (ar.succeeded()) {
+        HttpResponse<GHUser> response = ar.result();
+        GHUser user = response.body();
+        assertEquals("octocat", user.getLogin());
+        complete();
+      } else {
+        fail(ar.cause());
+      }
+    });
+    await();
   }
 }
