@@ -196,6 +196,7 @@ public class HttpContext {
     if (request.timeout > 0) {
       req.setTimeout(request.timeout);
     }
+    req.setHost(request.hostHeader);
     if (body != null) {
       if (contentType != null) {
         String prev = req.headers().get(HttpHeaders.CONTENT_TYPE);

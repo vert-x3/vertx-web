@@ -122,6 +122,19 @@ public interface HttpRequest<T> {
   @CacheReturn
   MultiMap headers();
 
+  /**
+    * Set the request host.<p/>
+    *
+    * For HTTP/2 it sets the {@literal :authority} pseudo header otherwise it sets the {@literal Host} header
+   */
+  @Fluent
+  HttpRequest<T> setHost(String host);
+
+  /**
+   * @return the request host. For HTTP/2 it returns the {@literal :authority} pseudo header otherwise it returns the {@literal Host} header
+   */
+  String getHost();
+
   @Fluent
   HttpRequest<T> ssl(boolean value);
 
