@@ -53,6 +53,15 @@ public class RequestParametersImpl implements RequestParameters {
     this.body = body;
   }
 
+  public void merge(RequestParametersImpl other) {
+    this.pathParameters.putAll(other.pathParameters);
+    this.queryParameters.putAll(other.queryParameters);
+    this.headerParameters.putAll(other.headerParameters);
+    this.cookieParameters.putAll(other.cookieParameters);
+    this.formParameters.putAll(other.formParameters);
+    this.body = (other.body == null) ? this.body : other.body;
+  }
+
   @Override
   public List<String> pathParametersNames() {
     return new ArrayList<>(pathParameters.keySet());

@@ -81,7 +81,11 @@ public abstract class BaseValidationHandler implements ValidationHandler {
         throw ValidationException.ValidationExceptionFactory.generateWrongContentTypeExpected(contentType, null);
       }
 
-      routingContext.put("parsedParameters", parsedParameters);
+      if (routingContext.data().containsKey("parsedParameters")) {
+        ((RequestParametersImpl)routingContext.get("parsedParameters")).merge(parsedParameters);
+      } else {
+        routingContext.put("parsedParameters", parsedParameters);
+      }
       routingContext.next();
 
     } catch (ValidationException e) {
