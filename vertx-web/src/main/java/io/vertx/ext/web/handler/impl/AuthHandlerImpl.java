@@ -99,7 +99,7 @@ public abstract class AuthHandlerImpl implements AuthHandler {
       };
       for (String authority : authorities) {
         if (!sentFailure.get()) {
-          user.isAuthorised(authority, authHandler);
+          user.isAuthorized(authority, authHandler);
         }
       }
     } else {
@@ -165,13 +165,18 @@ public abstract class AuthHandlerImpl implements AuthHandler {
             ctx.response()
               .putHeader("WWW-Authenticate", header);
           }
-          ctx.fail(401);
+          // to allow further processing if needed
+          processException(ctx, new HttpStatusException(401));
         }
       });
     });
   }
 
-  private void processException(RoutingContext ctx, Throwable exception) {
+  /**
+   * This method is protected so custom auth handlers can override the default
+   * error handling
+   */
+  protected void processException(RoutingContext ctx, Throwable exception) {
 
     if (exception != null) {
       if (exception instanceof HttpStatusException) {
