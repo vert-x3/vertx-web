@@ -77,15 +77,26 @@ public interface SockJSSocket extends ReadStream<Buffer>, WriteStream<Buffer> {
   SockJSSocket write(Buffer data);
 
   /**
-   * Write a {@link String} to the socket, encoded in UTF-8.
+   * Write a {@link String} to the socket, encoded in UTF-8. If
+   * the transport is raw websocket, this will write a binary message
+   * (for legacy reasons).
    *
    * @param data  the string to write
    * @return a reference to this, so the API can be used fluently
+   * @see #writeText(String)
    */
   @Fluent
-  default SockJSSocket write(String data) {
-    return write(Buffer.buffer(data));
-  }
+  SockJSSocket write(String data);
+
+  /**
+   * Write a {@link String} to the socket, encoded in UTF-8.
+   * If the transport is raw websocket, this will write a text message.
+   *
+   * @param text  the string to write
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  SockJSSocket writeText(String text);
 
   @Override
   SockJSSocket setWriteQueueMaxSize(int maxSize);

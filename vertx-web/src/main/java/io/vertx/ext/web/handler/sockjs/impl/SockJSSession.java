@@ -113,8 +113,17 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
 
   @Override
   public SockJSSocket write(Buffer buffer) {
+    return writeText(buffer.toString());
+  }
+
+  @Override
+  public SockJSSocket write(String data) {
+    return writeText(data);
+  }
+
+  @Override
+  public SockJSSocket writeText(String msgStr) {
     synchronized (this) {
-      String msgStr = buffer.toString();
       pendingWrites.add(msgStr);
       this.messagesSize += msgStr.length();
       if (listener != null) {
