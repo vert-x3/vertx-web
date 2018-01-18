@@ -41,8 +41,8 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.core.streams.ReadStream;
 import io.vertx.core.streams.WriteStream;
-import io.vertx.ext.web.Session;
 import io.vertx.ext.auth.User;
+import io.vertx.ext.web.Session;
 
 /**
  *
@@ -113,6 +113,23 @@ public interface SockJSSocket extends ReadStream<Buffer>, WriteStream<Buffer> {
    * Close it
    */
   void close();
+
+  /**
+   * Close sending a close frame with specified status code. You can give a look at various close payloads
+   * here: <a href="https://tools.ietf.org/html/rfc6455#section-7.4.1">RFC6455 Section 7.4.1</a>
+   *
+   * @param statusCode status code
+   */
+  void close(short statusCode);
+
+  /**
+   * Close sending a close frame with specified status code and a reason. You can give a look at various close payloads
+   * here: <a href="https://tools.ietf.org/html/rfc6455#section-7.4.1">RFC6455 Section 7.4.1</a>
+   *
+   * @param statusCode status code
+   * @param reason reason of closure
+   */
+  void close(short statusCode, String reason);
 
   /**
    * Return the remote address for this socket
