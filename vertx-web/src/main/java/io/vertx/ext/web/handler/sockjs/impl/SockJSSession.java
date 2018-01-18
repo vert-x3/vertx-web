@@ -199,6 +199,17 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
     }
   }
 
+  // The status code/reason is only for websocket transport
+  @Override
+  public void close(short statusCode) {
+    this.close();
+  }
+
+  @Override
+  public void close(short statusCode, String reason) {
+    this.close();
+  }
+
   private synchronized void doClose() {
     Context ctx = transportCtx;
     if (ctx != Vertx.currentContext()) {

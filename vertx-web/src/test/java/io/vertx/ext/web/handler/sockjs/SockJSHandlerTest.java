@@ -216,6 +216,27 @@ public class SockJSHandlerTest extends WebTestBase {
   }
 
   @Test
+  public void testCloseFrameCustomPayloadSockJs() throws InterruptedException {
+    CountDownLatch latch = new CountDownLatch(3);
+    router.route("/close-test/*").handler(SockJSHandler.create(vertx)
+      .socketHandler(sock -> {
+        sock.close((short)4000, "Closed without reason");
+        latch.countDown();
+      }));
+
+    client.websocket("/close-test/websocket", ws -> {
+      ws.frameHandler(webSocketFrame -> {
+        assertTrue(webSocketFrame.isClose());
+        assertEquals("Closed without reason", webSocketFrame.closeReason());
+        assertEquals(4000, webSocketFrame.closeStatusCode());
+        latch.countDown();
+      });
+      ws.closeHandler(v -> latch.countDown());
+    });
+    awaitLatch(latch);
+  }
+
+  @Test
   public void testCombineTextFrameSockJs() throws InterruptedException {
     String serverPath = "/text-combine-sockjs";
     setupSockJsServer(serverPath, this::echoRequest);
