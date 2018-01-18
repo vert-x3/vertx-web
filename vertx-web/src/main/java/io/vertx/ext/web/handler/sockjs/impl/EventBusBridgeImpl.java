@@ -44,7 +44,9 @@ import io.vertx.ext.auth.User;
 import io.vertx.ext.bridge.BridgeEventType;
 import io.vertx.ext.bridge.PermittedOptions;
 import io.vertx.ext.web.Session;
-import io.vertx.ext.web.handler.sockjs.*;
+import io.vertx.ext.web.handler.sockjs.BridgeEvent;
+import io.vertx.ext.web.handler.sockjs.BridgeOptions;
+import io.vertx.ext.web.handler.sockjs.SockJSSocket;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -320,7 +322,7 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
         	// Trigger an event to allow custom behavior before disconnecting client.
             checkCallHook(() -> new BridgeEventImpl(BridgeEventType.SOCKET_IDLE, null, sock), null, null);
             // We didn't receive a ping in time so close the socket
-            sock.close();
+            ((SockJSSocketBase)sock).closeAfterSessionExpired();
           }
         });
         SockInfo sockInfo = new SockInfo();

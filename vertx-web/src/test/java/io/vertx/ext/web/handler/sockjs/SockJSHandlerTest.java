@@ -379,4 +379,23 @@ public class SockJSHandlerTest extends WebTestBase {
     await();
   }
 
+  @Test
+  public void testTimeoutCloseCode() {
+    router.route("/ws-timeout/*").handler(SockJSHandler
+      .create(vertx)
+      .bridge(new BridgeOptions().setPingTimeout(1))
+    );
+
+    client.websocket("/ws-timeout/websocket", ws -> {
+      ws.frameHandler(frame -> {
+        if (frame.isClose()) {
+          assertEquals(1001, frame.closeStatusCode());
+          assertEquals("Session expired", frame.closeReason());
+          testComplete();
+        }
+      });
+    });
+    await();
+  }
+
 }
