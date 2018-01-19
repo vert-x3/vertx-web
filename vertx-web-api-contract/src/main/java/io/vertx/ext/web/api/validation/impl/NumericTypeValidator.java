@@ -66,36 +66,38 @@ public class NumericTypeValidator extends SingleValueParameterTypeValidator<Numb
     this(numberType, null, null, null, null, null, null);
   }
 
-  private boolean testMaximum(Number number) {
+  private void checkMaximum(Number number) {
     if (this.maximum != null) {
-      if (this.exclusiveMaximum != null && this.exclusiveMaximum) return (number.doubleValue() < maximum);
-      else return (number.doubleValue() <= maximum);
+      if (this.exclusiveMaximum != null && this.exclusiveMaximum && !(number.doubleValue() < maximum))
+        throw ValidationException.ValidationExceptionFactory.generateNotMatchValidationException("Number should be < " + this.maximum);
+      else if (!(number.doubleValue() <= maximum))
+        throw ValidationException.ValidationExceptionFactory.generateNotMatchValidationException("Number should be <= " + this.maximum);
     }
-    return true;
   }
 
-  private boolean testMinimum(Number number) {
+  private void checkMinimum(Number number) {
     if (this.minimum != null) {
-      if (this.exclusiveMinimum != null && exclusiveMinimum) return (number.doubleValue() > minimum);
-      else return (number.doubleValue() >= minimum);
+      if (this.exclusiveMinimum != null && exclusiveMinimum && !(number.doubleValue() > minimum))
+        throw ValidationException.ValidationExceptionFactory.generateNotMatchValidationException("Number should be > " + this.minimum);
+      else if (!(number.doubleValue() >= minimum))
+        throw ValidationException.ValidationExceptionFactory.generateNotMatchValidationException("Number should be >= " + this.minimum);
     }
-    return true;
   }
 
-  private boolean testMultipleOf(Number number) {
-    if (multipleOf != null) return (number.doubleValue() % multipleOf == 0);
-    else return true;
+  private void checkMultipleOf(Number number) {
+    if (multipleOf != null && !(number.doubleValue() % multipleOf == 0))
+      throw ValidationException.ValidationExceptionFactory.generateNotMatchValidationException(
+        "Number should be multipleOf " + this.multipleOf);
   }
 
   @Override
   public RequestParameter isValidSingleParam(String value) {
     try {
       Number number = parseNumber.apply(value);
-      if (number != null && this.testMaximum(number) && this.testMinimum(number) && this.testMultipleOf(number)) {
-        return RequestParameter.create(number);
-      } else {
-        throw ValidationException.ValidationExceptionFactory.generateNotMatchValidationException("Invalid number");
-      }
+      checkMaximum(number);
+      checkMinimum(number);
+      checkMultipleOf(number);
+      return RequestParameter.create(number);
     } catch (NumberFormatException e) {
       throw ValidationException.ValidationExceptionFactory.generateNotMatchValidationException("Value is not a valid number");
     }
