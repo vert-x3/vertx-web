@@ -863,6 +863,33 @@ public class RouterTest extends WebTestBase {
   }
 
   @Test
+  public void testRegexNamedCapturingGroup1() throws Exception {
+    router.routeWithRegex("\\/(?<namedGroup>[^\\/]+)\\/([^\\/]+)").handler(rc -> {
+      MultiMap params = rc.request().params();
+      rc.response().setStatusMessage(params.get("namedGroup") + params.get("param1")).end();
+    });
+    testPattern("/dog/cat", "dogcat");
+  }
+
+  @Test
+  public void testRegexNamedCapturingGroup2() throws Exception {
+    router.routeWithRegex("\\/(?<namedGroup1>[^\\/]+)\\/(?<namedGroup2>[^\\/]+)").handler(rc -> {
+      MultiMap params = rc.request().params();
+      rc.response().setStatusMessage(params.get("namedGroup1") + params.get("namedGroup2")).end();
+    });
+    testPattern("/dog/cat", "dogcat");
+  }
+
+  @Test
+  public void testRegexNamedCapturingGroup3() throws Exception {
+    router.routeWithRegex("\\/dog\\/(?<dog>[^\\/]+)").handler(rc -> {
+      MultiMap params = rc.request().params();
+      rc.response().setStatusMessage(params.get("dog") + params.get("param0")).end();
+    });
+    testPattern("/dog/husky", "huskyhusky");
+  }
+
+  @Test
   public void testConsumes() throws Exception {
     router.route().consumes("text/html").handler(rc -> rc.response().end());
     testRequestWithContentType(HttpMethod.GET, "/foo", "text/html", 200, "OK");
