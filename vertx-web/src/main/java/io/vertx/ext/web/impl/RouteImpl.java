@@ -54,6 +54,7 @@ public class RouteImpl implements Route {
   private boolean added;
   private Pattern pattern;
   private List<String> groups;
+  private List<String> namedGroups;
   private boolean useNormalisedPath = true;
 
   RouteImpl(RouterImpl router, int order) {
@@ -280,6 +281,17 @@ public class RouteImpl implements Route {
                 }
               }
             }
+            for (String k : namedGroups) {
+              String group = m.group(k);
+              if (group != null) {
+                final String value = Utils.urlDecode(group, false);
+                if (!request.params().contains(k)) {
+                  params.put(k, value);
+                } else {
+                  context.pathParams().put(k, value);
+                }
+              }
+            }
           }
           request.params().addAll(params);
           context.pathParams().putAll(params);
@@ -377,8 +389,15 @@ public class RouteImpl implements Route {
     }
   }
 
+  private static final Pattern RE_NAMED_CAPTURING_GROUP = Pattern.compile("\\(\\?<([a-zA-Z][a-zA-Z0-9]*)>.*?\\)");
+
   private void setRegex(String regex) {
     // Check if there are any groups with names
+    namedGroups = new ArrayList<>();
+    Matcher m = RE_NAMED_CAPTURING_GROUP.matcher(regex);
+    while (m.find()) {
+      namedGroups.add(m.group(1));
+    }
     pattern = Pattern.compile(regex);
   }
 
