@@ -34,7 +34,15 @@ To create a new router factory, you can use methods inside `link:../../apidocs/i
 For example:
 [source,java]
 ----
-`link:../../apidocs/examples/OpenAPI3Examples.html#constructRouterFactory-io.vertx.core.Vertx-[constructRouterFactory]`
+OpenAPI3RouterFactory.createRouterFactoryFromFile(vertx, "src/main/resources/petstore.yaml", ar -> {
+  if (ar.succeeded()) {
+    // Spec loaded with success
+    OpenAPI3RouterFactory routerFactory = ar.result();
+  } else {
+    // Something went wrong during router factory initialization
+    Throwable exception = ar.cause();
+  }
+});
 ----
 
 === Mount the handlers
@@ -56,7 +64,15 @@ IMPORTANT: If you want to use `link:../../apidocs/io/vertx/ext/web/api/contract/
 For example:
 [source,java]
 ----
-`link:../../apidocs/examples/OpenAPI3Examples.html#addRoute-io.vertx.core.Vertx-io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory-[addRoute]`
+routerFactory.addHandlerByOperationId("awesomeOperation", routingContext -> {
+  RequestParameters params = routingContext.get("parsedParameters");
+  RequestParameter body = params.body();
+  JsonObject jsonBody = body.getJsonObject();
+  // Do something with body
+});
+routerFactory.addFailureHandlerByOperationId("awesomeOperation", routingContext -> {
+  // Handle failure
+});
 ----
 
 .Add operations with operationId
@@ -70,14 +86,14 @@ For example:
 
 [source,java]
 ----
-`link:../../apidocs/examples/OpenAPI3Examples.html#addSecurityHandler-io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory-io.vertx.core.Handler-[addSecurityHandler]`
+routerFactory.addSecurityHandler("security_scheme_name", securityHandler);
 ----
 
 You can of course use included Vert.x security handlers, for example:
 
 [source,java]
 ----
-`link:../../apidocs/examples/OpenAPI3Examples.html#addJWT-io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory-io.vertx.ext.auth.jwt.JWTAuth-[addJWT]`
+routerFactory.addSecurityHandler("jwt_auth", JWTAuthHandler.create(jwtAuthProvider));
 ----
 
 === Error handling
@@ -91,7 +107,10 @@ When you are ready, generate the router and use it:
 
 [source,java]
 ----
-`link:../../apidocs/examples/OpenAPI3Examples.html#generateRouter-io.vertx.core.Vertx-io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory-[generateRouter]`
+Router router = routerFactory.getRouter();
+
+HttpServer server = vertx.createHttpServer(new HttpServerOptions().setPort(8080).setHost("localhost"));
+server.requestHandler(router::accept).listen();
 ----
 
 == Requests validation
@@ -99,13 +118,36 @@ When you are ready, generate the router and use it:
 Vert.x provides a validation framework that will validate requests for you and will put results of validation inside a container. To define a `link:../../apidocs/io/vertx/ext/web/api/validation/HTTPRequestValidationHandler.html[HTTPRequestValidationHandler]`:
 [source,java]
 ----
-`link:../../apidocs/examples/WebExamples.html#example63-io.vertx.core.Vertx-io.vertx.ext.web.Router-[example63]`
+HTTPRequestValidationHandler validationHandler = HTTPRequestValidationHandler.create().addQueryParam("parameterName", ParameterType.INT, true).addFormParamWithPattern("formParameterName", "a{4}", true).addPathParam("pathParam", ParameterType.FLOAT);
 ----
 
 Then you can mount your validation handler:
 [source,java]
 ----
-`link:../../apidocs/examples/WebExamples.html#example64-io.vertx.core.Vertx-io.vertx.ext.web.Router-io.vertx.ext.web.api.validation.HTTPRequestValidationHandler-[example64]`
+router.route().handler(BodyHandler.create());
+
+router.get("/awesome/:pathParam")
+  // Mount validation handler
+  .handler(validationHandler)
+  //Mount your handler
+  .handler((routingContext) -> {
+    // Get Request parameters container
+    RequestParameters params = routingContext.get("parsedParameters");
+
+    // Get parameters
+    Integer parameterName = params.queryParameter("parameterName").getInteger();
+    String formParameterName = params.formParameter("formParameterName").getString();
+    Float pathParam = params.pathParameter("pathParam").getFloat();
+  })
+
+  //Mount your failure handler
+  .failureHandler((routingContext) -> {
+    Throwable failure = routingContext.failure();
+    if (failure instanceof ValidationException) {
+      // Something went wrong during validation!
+      String validationErrorMessage = failure.getMessage();
+    }
+  });
 ----
 
 If validation succeeds, It returns request parameters inside `link:../../apidocs/io/vertx/ext/web/api/RequestParameters.html[RequestParameters]`, otherwise It will throw a `link:../../apidocs/io/vertx/ext/web/api/validation/ValidationException.html[ValidationException]`
@@ -123,12 +165,27 @@ Now you can handle parameter values:
 
 [source,java]
 ----
-`link:../../apidocs/examples/WebExamples.html#example65-io.vertx.ext.web.RoutingContext-[example65]`
+RequestParameters params = routingContext.get("parsedParameters");
+RequestParameter awesomeParameter = params.queryParameter("awesomeParameter");
+if (awesomeParameter != null) {
+  if (!awesomeParameter.isEmpty()) {
+    // Parameter exists and isn't empty
+    // ParameterTypeValidator mapped the parameter in equivalent language object
+    Integer awesome = awesomeParameter.getInteger();
+  } else {
+    // Parameter exists, but it's empty
+  }
+} else {
+  // Parameter doesn't exist (it's not required)
+}
 ----
 
 As you can see, every parameter is mapped in respective language objects. You can also get a json body:
 
 [source,java]
 ----
-`link:../../apidocs/examples/WebExamples.html#example66-io.vertx.ext.web.api.RequestParameters-[example66]`
+RequestParameter body = params.body();
+if (body != null) {
+  JsonObject jsonBody = body.getJsonObject();
+}
 ----

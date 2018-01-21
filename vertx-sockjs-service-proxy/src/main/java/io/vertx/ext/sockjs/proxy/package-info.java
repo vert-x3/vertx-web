@@ -70,12 +70,12 @@
  * [source, js]
  * ----
  * <script src="http://cdn.sockjs.org/sockjs-0.3.4.min.js"></script>
- * <script src="vertx-eventbus.js"></script>
+ * <script src="https://cdnjs.cloudflare.com/ajax/libs/vertx/3.4.2/vertx-eventbus.min.js"></script>
+ * <!-- This is your generated service proxy -->
+ * <script src="vertx-database-js/some_database_service-proxy.js"></script>
  * <script>
  *   var eb = new EventBus('http://localhost:8080/eventbus');
  *   eb.onopen = function() {
- *     var SomeDatabaseService =
- *       require('vertx-database-js/some_database_service-proxy.js');
  *     var svc = new SomeDatabaseService(eb, "database-service-address");
  *     // use the service
  *   };

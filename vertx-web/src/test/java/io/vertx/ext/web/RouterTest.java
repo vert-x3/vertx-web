@@ -16,12 +16,15 @@
 
 package io.vertx.ext.web;
 
+import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerResponse;
+import org.jruby.compiler.util.HandleFactory;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -1821,6 +1824,15 @@ public class RouterTest extends WebTestBase {
   }
 
   @Test
+  public void testBadURL() throws Exception {
+    router.route().handler(rc -> {
+      rc.response().end();
+    });
+
+    testRequest(HttpMethod.GET, "/%7B%channel%%7D", 200, "OK");
+  }
+
+  @Test
   public void testDuplicateParams() throws Exception {
     router.route("/test/:p").handler(RoutingContext::next);
     router.route("/test/:p").handler(RoutingContext::next);
@@ -1969,6 +1981,154 @@ public class RouterTest extends WebTestBase {
   }
 
   @Test
+  public void testMultipleHandlersMultipleConnections() throws Exception {
+    router.get("/path").handler(routingContext -> {
+      routingContext.put("response", "handler1");
+      routingContext.next();
+    }).handler(routingContext -> {
+      routingContext.put("response", routingContext.get("response") + "handler2");
+      routingContext.next();
+    }).handler(routingContext -> {
+      HttpServerResponse response = routingContext.response();
+      response.setChunked(true);
+      response.end(routingContext.get("response") + "handler3");
+    });
+    CountDownLatch latch = new CountDownLatch(100);
+
+    for (int i = 0; i < 100; i++) {
+      vertx.executeBlocking(future -> {
+        try {
+          testSyncRequest("GET", "/path", 200, "OK", "handler1handler2handler3");
+          future.complete();
+        } catch (Exception e) {
+          e.printStackTrace();
+          future.fail(e);
+        }
+      }, asyncResult -> {
+        assertFalse(asyncResult.failed());
+        assertNull(asyncResult.cause());
+        latch.countDown();
+      });
+    }
+    awaitLatch(latch);
+  }
+
+  /*
+  This test is for issue #729 and #740 about thread safety and errors of multiple handlers
+  In this test case I try 100 connections in separated worker threads with random delays and old fashion Java sync http client.
+  I've also added a timer when I call routingContext.next()
+   */
+  @Test
+  public void testMultipleHandlersMultipleConnectionsDelayed() throws Exception {
+    router.get("/path").handler(routingContext -> {
+      routingContext.put("response", "handler1");
+      routingContext.vertx().setTimer((int)(1 + Math.random() * 10), asyncResult -> routingContext.next());
+    }).handler(routingContext -> {
+      routingContext.put("response", routingContext.get("response") + "handler2");
+      routingContext.vertx().setTimer((int)(1 + Math.random() * 10), asyncResult -> routingContext.next());
+    }).handler(routingContext -> {
+      HttpServerResponse response = routingContext.response();
+      response.setChunked(true);
+      response.end(routingContext.get("response") + "handler3");
+    });
+
+    CountDownLatch latch = new CountDownLatch(100);
+    for (int i = 0; i < 100; i++) {
+      // using executeBlocking should create multiple connections
+      vertx.executeBlocking(future -> {
+        try {
+          Thread.sleep((int)(1 + Math.random() * 10));
+          testSyncRequest("GET", "/path", 200, "OK", "handler1handler2handler3");
+          future.complete();
+        } catch (Exception e) {
+          future.fail(e);
+        }
+      }, asyncResult -> {
+        assertFalse(asyncResult.failed());
+        assertNull(asyncResult.cause());
+        latch.countDown();
+      });
+    }
+    awaitLatch(latch);
+  }
+
+  /*
+    This test is similar to test above but it mixes right and failing requests
+   */
+  @Test
+  public void testMultipleHandlersMultipleConnectionsDelayedMixed() throws Exception {
+    router.get("/:param").handler(routingContext -> {
+      if (routingContext.pathParam("param").equals("fail")) {
+        routingContext.fail(400);
+      } else {
+        routingContext.put("response", "handler1");
+        routingContext.vertx().setTimer((int) (1 + Math.random() * 10), asyncResult -> routingContext.next());
+      }
+    }).failureHandler(routingContext -> {
+      routingContext.put("response", "fhandler1");
+      routingContext.vertx().setTimer((int)(1 + Math.random() * 10), asyncResult -> routingContext.next());
+    }).handler(routingContext -> {
+      routingContext.put("response", routingContext.get("response") + "handler2");
+      routingContext.vertx().setTimer((int)(1 + Math.random() * 10), asyncResult -> routingContext.next());
+    }).handler(routingContext -> {
+      HttpServerResponse response = routingContext.response();
+      response.setChunked(true);
+      response.end(routingContext.get("response") + "handler3");
+    }).failureHandler(routingContext -> {
+      routingContext.put("response", routingContext.get("response") + "fhandler2");
+      routingContext.vertx().setTimer((int)(1 + Math.random() * 10), asyncResult -> routingContext.next());
+    }).failureHandler(routingContext -> {
+      HttpServerResponse response = routingContext.response();
+      response.setChunked(true);
+      response.setStatusMessage("ERROR");
+      response.setStatusCode(400);
+      response.end(routingContext.get("response") + "fhandler3");
+    });
+
+    final int multipleConnections = 500;
+
+    CountDownLatch latch = new CountDownLatch(multipleConnections);
+
+    Handler<Future<Object>> execute200Request = future -> {
+      try {
+        Thread.sleep((int)(1 + Math.random() * 10));
+        testSyncRequest("GET", "/path", 200, "OK", "handler1handler2handler3");
+        future.complete();
+      } catch (InterruptedException e){
+        e.printStackTrace();
+        future.fail(e);
+      } catch (IOException e) {
+        e.printStackTrace();
+        future.fail(e);
+      }
+    };
+
+    Handler<Future<Object>> execute400Request = future -> {
+      try {
+        Thread.sleep((int)(1 + Math.random() * 10));
+        testSyncRequest("GET", "/fail", 400, "ERROR", "fhandler1fhandler2fhandler3");
+        future.complete();
+      } catch (InterruptedException e){
+        e.printStackTrace();
+        future.fail(e);
+      } catch (IOException e) {
+        e.printStackTrace();
+        future.fail(e);
+      }
+    };
+
+    for (int i = 0; i < multipleConnections; i++) {
+      // using executeBlocking should create multiple connections
+      vertx.executeBlocking((new Random().nextBoolean() ? execute200Request : execute400Request), objectAsyncResult -> {
+        assertTrue(objectAsyncResult.succeeded());
+        latch.countDown();
+      });
+    }
+    awaitLatch(latch);
+  }
+
+
+  @Test
   public void testMultipleSetHandlerMultipleRouteObject() throws Exception {
     router.get("/path").handler(routingContext -> {
       routingContext.put("response", "handler1");
@@ -2081,5 +2241,53 @@ public class RouterTest extends WebTestBase {
         .end();
     });
     testRequest(HttpMethod.GET, "/bbaa", 200, "aa-bbaa");
+  }
+  
+  private Handler<RoutingContext> generateHandler(final int i) {
+    return routingContext -> routingContext.put(Integer.toString(i), i).next();
+  }
+
+  @Test
+  public void stressTestMultipleHandlers() throws Exception {
+    final int HANDLERS_NUMBER = 100;
+    final int REQUESTS_NUMBER = 200;
+
+    Route r = router.get("/path");
+    for (int i = 0; i < HANDLERS_NUMBER; i++) {
+      r.handler(generateHandler(i));
+    }
+    r.handler(routingContext -> {
+      StringBuilder sum = new StringBuilder();
+      for (int i = 0; i < HANDLERS_NUMBER; i++) {
+        sum.append((Integer)routingContext.get(Integer.toString(i)));
+      }
+      routingContext.response()
+        .setStatusCode(200)
+        .setStatusMessage("OK")
+        .end(sum.toString());
+    });
+
+    CountDownLatch latch = new CountDownLatch(REQUESTS_NUMBER);
+    final StringBuilder sum = new StringBuilder();
+    for (int i = 0; i < HANDLERS_NUMBER; i++) {
+      sum.append(i);
+    }
+    for (int i = 0; i < REQUESTS_NUMBER; i++) {
+      // using executeBlocking should create multiple connections
+      vertx.executeBlocking(future -> {
+        try {
+          Thread.sleep((int)(1 + Math.random() * 10));
+          testSyncRequest("GET", "/path", 200, "OK", sum.toString());
+          future.complete();
+        } catch (Exception e) {
+          future.fail(e);
+        }
+      }, asyncResult -> {
+        assertFalse(asyncResult.failed());
+        assertNull(asyncResult.cause());
+        latch.countDown();
+      });
+    }
+    awaitLatch(latch);
   }
 }

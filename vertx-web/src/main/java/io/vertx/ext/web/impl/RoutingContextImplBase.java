@@ -25,6 +25,7 @@ import io.vertx.ext.web.RoutingContext;
 
 import java.util.Iterator;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -39,12 +40,16 @@ public abstract class RoutingContextImplBase implements RoutingContext {
   protected final HttpServerRequest request;
   protected Iterator<RouteImpl> iter;
   protected RouteImpl currentRoute;
+  protected AtomicInteger currentRouteNextHandlerIndex;
+  protected AtomicInteger currentRouteNextFailureHandlerIndex;
 
   protected RoutingContextImplBase(String mountPoint, HttpServerRequest request, Set<RouteImpl> routes) {
     this.mountPoint = mountPoint;
     this.request = new HttpServerRequestWrapper(request);
     this.routes = routes;
     this.iter = routes.iterator();
+    currentRouteNextHandlerIndex = new AtomicInteger(0);
+    currentRouteNextFailureHandlerIndex = new AtomicInteger(0);
   }
 
   @Override
@@ -57,6 +62,14 @@ public abstract class RoutingContextImplBase implements RoutingContext {
     return currentRoute;
   }
 
+  protected int currentRouteNextHandlerIndex() {
+    return currentRouteNextHandlerIndex.intValue();
+  }
+
+  protected int currentRouteNextFailureHandlerIndex() {
+    return currentRouteNextFailureHandlerIndex.intValue();
+  }
+
   protected void restart() {
     this.iter = routes.iterator();
     currentRoute = null;
@@ -67,10 +80,12 @@ public abstract class RoutingContextImplBase implements RoutingContext {
     boolean failed = failed();
     if (currentRoute != null) { // Handle multiple handlers inside route object
       try {
-        if (!failed && currentRoute.hasNextContextHandler()) {
+        if (!failed && currentRoute.hasNextContextHandler(this)) {
+          currentRouteNextHandlerIndex.incrementAndGet();
           currentRoute.handleContext(this);
           return true;
-        } else if (failed && currentRoute.hasNextFailureHandler()) {
+        } else if (failed && currentRoute.hasNextFailureHandler(this)) {
+          currentRouteNextFailureHandlerIndex.incrementAndGet();
           currentRoute.handleFailure(this);
           return true;
         }
@@ -89,16 +104,21 @@ public abstract class RoutingContextImplBase implements RoutingContext {
     }
     while (iter.hasNext()) { // Search for more handlers
       RouteImpl route = iter.next();
-      route.resetIndexes();
+      currentRouteNextHandlerIndex.set(0);
+      currentRouteNextFailureHandlerIndex.set(0);
       if (route.matches(this, mountPoint(), failed)) {
         if (log.isTraceEnabled()) log.trace("Route matches: " + route);
         try {
           currentRoute = route;
           if (log.isTraceEnabled()) log.trace("Calling the " + (failed ? "failure" : "") + " handler");
-          if (failed) {
+          if (failed && currentRoute.hasNextFailureHandler(this)) {
+            currentRouteNextFailureHandlerIndex.incrementAndGet();
             route.handleFailure(this);
-          } else {
+          } else if (currentRoute.hasNextContextHandler(this)) {
+            currentRouteNextHandlerIndex.incrementAndGet();
             route.handleContext(this);
+          } else {
+            continue;
           }
         } catch (Throwable t) {
           if (log.isTraceEnabled()) log.trace("Throwable thrown from handler", t);

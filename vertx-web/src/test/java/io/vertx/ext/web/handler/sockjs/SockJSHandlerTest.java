@@ -16,14 +16,6 @@
 
 package io.vertx.ext.web.handler.sockjs;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.BiConsumer;
-
 import io.vertx.core.MultiMap;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.CaseInsensitiveHeaders;
@@ -34,8 +26,17 @@ import io.vertx.core.http.impl.ws.WebSocketFrameImpl;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.WebTestBase;
+import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.test.core.TestUtils;
 import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BiConsumer;
 
 /**
  * SockJS protocol tests
@@ -50,6 +51,8 @@ public class SockJSHandlerTest extends WebTestBase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
+    // Make sure a catch-all BodyHandler will not prevent websocket connection
+    router.route().handler(BodyHandler.create());
     SockJSHandler.installTestApplications(router, vertx);
   }
 
