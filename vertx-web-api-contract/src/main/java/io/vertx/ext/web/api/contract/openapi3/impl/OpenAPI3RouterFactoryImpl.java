@@ -204,7 +204,7 @@ public class OpenAPI3RouterFactoryImpl extends BaseDesignDrivenRouterFactory<Ope
       // Resolve security handlers
       handlersToLoad.addAll(securityHandlers.solveSecurityHandlers(
         operation.getOperationModel().getSecurity(),
-        this.options().isRequireSecurityHandlers()
+        this.getOptions().isRequireSecurityHandlers()
       ));
 
       // Generate ValidationHandler

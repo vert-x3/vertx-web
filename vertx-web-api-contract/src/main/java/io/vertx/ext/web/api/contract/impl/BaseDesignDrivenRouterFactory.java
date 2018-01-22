@@ -57,7 +57,7 @@ abstract public class BaseDesignDrivenRouterFactory<Specification> implements De
   }
 
   @Override
-  public DesignDrivenRouterFactoryOptions options() {
+  public DesignDrivenRouterFactoryOptions getOptions() {
     return options;
   }
 }

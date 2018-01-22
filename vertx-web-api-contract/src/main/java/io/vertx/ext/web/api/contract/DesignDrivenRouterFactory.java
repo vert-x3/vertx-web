@@ -64,7 +64,7 @@ public interface DesignDrivenRouterFactory<Specification> {
    *
    * @return
    */
-  DesignDrivenRouterFactoryOptions options();
+  DesignDrivenRouterFactoryOptions getOptions();
 
   /**
    * Deprecated. Instantiate {@link DesignDrivenRouterFactoryOptions}
