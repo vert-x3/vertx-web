@@ -164,11 +164,15 @@
  * {@link examples.OpenAPI3Examples#addJWT}
  * ----
  *
- * === Customize the router factory behaviours TODO add doc for router factory behaviours
- * The router factory allows you to manage errors efficiently:
+ * === Customize the router factory behaviours
+ * The router factory allows you to customize some behaviours during router generation with
+ * {@link io.vertx.ext.web.api.contract.DesignDrivenRouterFactoryOptions}. Router factory can:
  *
- * * It automatically mounts a 501 `Not Implemented` handler for operations where you haven't mounted any handler. You can enable/disable this feature with {@link io.vertx.ext.web.api.contract.DesignDrivenRouterFactoryOptions#setMountNotImplementedHandler(boolean)} and you can
- * * It automatically mounts a 400 `Bad Request` handler that manages `ValidationException` (You can enable/disable this feature via {@link io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory#enableValidationFailureHandler(boolean)})
+ * * Mount a 501 `Not Implemented` handler for operations where you haven't mounted any handler
+ * * Mount a 400 `Bad Request` handler that manages `ValidationException`
+ * * Mount the {@link io.vertx.ext.web.handler.ResponseContentTypeHandler} handler when needed
+ *
+ * Give a deeper look at {@link io.vertx.ext.web.api.contract.DesignDrivenRouterFactoryOptions} documentation
  *
  * === Generate the router
  * When you are ready, generate the router and use it:
