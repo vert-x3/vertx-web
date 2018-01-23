@@ -193,6 +193,8 @@ public class OpenAPI3RouterFactoryImpl extends BaseDesignDrivenRouterFactory<Ope
   public Router getRouter() {
     Router router = Router.router(vertx);
     router.route().handler(BodyHandler.create());
+    List<Handler<RoutingContext>> globalSecurityHandlers = securityHandlers
+      .solveSecurityHandlers(spec.getSecurity(), this.getOptions().isRequireSecurityHandlers());
     for (OperationValue operation : operations.values()) {
       // If user don't want 501 handlers and the operation is not configured, skip it
       if (!options.isMountNotImplementedHandler() && !operation.isConfigured())
@@ -202,6 +204,7 @@ public class OpenAPI3RouterFactoryImpl extends BaseDesignDrivenRouterFactory<Ope
       List<Handler> failureHandlersToLoad = new ArrayList<>();
 
       // Resolve security handlers
+      handlersToLoad.addAll(globalSecurityHandlers);
       handlersToLoad.addAll(securityHandlers.solveSecurityHandlers(
         operation.getOperationModel().getSecurity(),
         this.getOptions().isRequireSecurityHandlers()

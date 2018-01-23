@@ -347,6 +347,41 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
   }
 
   @Test
+  public void requireGlobalSecurityHandler() throws Exception {
+    CountDownLatch latch = new CountDownLatch(1);
+    OpenAPI3RouterFactory.createRouterFactoryFromFile(this.vertx, "src/test/resources/swaggers/global_security_test.yaml",
+      openAPI3RouterFactoryAsyncResult -> {
+        routerFactory = openAPI3RouterFactoryAsyncResult.result();
+        routerFactory.setOptions(new DesignDrivenRouterFactoryOptions().setRequireSecurityHandlers(true));
+
+        routerFactory.addHandlerByOperationId("listPets", routingContext -> {
+          routingContext
+            .response()
+            .setStatusCode(200)
+            .setStatusMessage(routingContext.get("message") + "-OK")
+            .end();
+        });
+
+        latch.countDown();
+      });
+    awaitLatch(latch);
+
+    assertThrow(routerFactory::getRouter, RouterFactoryException.class);
+
+    routerFactory.addSecurityHandler("global_api_key",
+      routingContext -> routingContext.put("message", "Global").next()
+    );
+
+    routerFactory.addSecurityHandler("api_key",
+      routingContext -> routingContext.put("message", routingContext.get("message") +  "-Local").next()
+    );
+
+    startServer();
+
+    testRequest(HttpMethod.GET, "/pets", 200, "Global-Local-OK");
+  }
+
+  @Test
   public void notRequireSecurityHandler() throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
     OpenAPI3RouterFactory.createRouterFactoryFromFile(this.vertx, "src/test/resources/swaggers/router_factory_test.yaml",

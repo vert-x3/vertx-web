@@ -76,14 +76,6 @@ class SecurityHandlersStore {
     securityHandlers.put(new SecurityRequirementKey(name), handler);
   }
 
-  protected Optional<Handler<RoutingContext>> getSecurityHandler(String key, String scope) {
-    return Optional.of(this.securityHandlers.get(new SecurityRequirementKey(key, scope)));
-  }
-
-  protected Optional<Handler<RoutingContext>> getSecurityHandler(String key) {
-    return Optional.of(this.securityHandlers.get(new SecurityRequirementKey(key)));
-  }
-
   private Handler<RoutingContext> mapWithFail(SecurityRequirementKey k) throws RouterFactoryException {
     if (k.hasScope())
       return Optional
