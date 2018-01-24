@@ -7,7 +7,7 @@ info:
     name: MIT
 paths:
   /test1:
-    get:
+    post:
       operationId: test1
       requestBody:
         content:
@@ -18,7 +18,7 @@ paths:
         default:
           description: "OK"
   /test2:
-    get:
+    post:
       operationId: test2
       responses:
         default:
@@ -31,7 +31,7 @@ paths:
                 - $ref: '#/components/schemas/Person'
                 - $ref: '#/components/schemas/Citizen'
   /test3:
-    get:
+    post:
       operationId: test3
       responses:
         default:
@@ -42,7 +42,7 @@ paths:
             schema:
               $ref: '#/components/schemas/PersonComplex'
   /test4:
-    get:
+    post:
       operationId: test4
       responses:
         default:
@@ -55,7 +55,7 @@ paths:
                 - $ref: '#/paths/~1test1/get/requestBody/content/application~1json/schema'
                 - $ref: '#/components/schemas/Citizen'
   /test5:
-    get:
+    post:
       operationId: test5
       responses:
         default:
@@ -66,7 +66,7 @@ paths:
             schema:
               $ref: 'http://localhost:8081/geo.json'
   /test6:
-    get:
+    post:
       operationId: test6
       responses:
         default:
@@ -84,7 +84,7 @@ paths:
                   required:
                     - id_card
   /test7:
-    get:
+    post:
       operationId: test7
       responses:
         default:
@@ -95,7 +95,7 @@ paths:
             schema:
               $ref: '#/components/schemas/PersonRecursive'
   /test8:
-    get:
+    post:
       operationId: test8
       responses:
         default:
@@ -116,7 +116,7 @@ paths:
                     $ref: '#/paths/~1test8/get/requestBody/content/application~1json/schema' # Self refs!
               additionalProperties: {}
   /test9:
-    get:
+    post:
       operationId: test9
       responses:
         default:
@@ -137,7 +137,7 @@ paths:
                       items:
                         $ref: '#/paths/~1test9/get/requestBody/content/application~1json/schema'
   /test10:
-    get:
+    post:
       operationId: test10
       responses:
         default:
@@ -148,7 +148,7 @@ paths:
             schema:
               $ref: 'http://localhost:8081/tree.yaml#/tree'
   /test11:
-    get:
+    post:
       operationId: test11
       responses:
         default:
@@ -159,7 +159,7 @@ paths:
             schema:
               $ref: './src/test/resources/swaggers/schemas/tree.yaml#/tree'
   /test12:
-    get:
+    post:
       operationId: test12
       responses:
         default:
@@ -169,6 +169,23 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/schemaA'
+  /test13:
+    post:
+      operationId: test13
+      responses:
+        default:
+          description: "OK"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              title: schema13
+              type: object
+              properties:
+                a:
+                  type: string
+                  default: Hello
+
 
 components:
   schemas:

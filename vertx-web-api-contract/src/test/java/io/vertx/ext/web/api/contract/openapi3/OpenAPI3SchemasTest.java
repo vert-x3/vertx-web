@@ -135,12 +135,20 @@ public class OpenAPI3SchemasTest extends WebTestValidationBase {
   private void assertRequestOk(String uri, String jsonName) throws Exception {
     String jsonString = String.join("", Files.readAllLines(Paths.get("./src/test/resources/swaggers/test_json", "schemas_test", jsonName), StandardCharsets.UTF_8));
     JsonObject obj = new JsonObject(jsonString);
-    testRequestWithJSON(HttpMethod.GET, uri, obj, 200, "OK", obj);
+    testRequestWithJSON(HttpMethod.POST, uri, obj, 200, "OK", obj);
+  };
+
+  private void assertRequestOk(String uri, String jsonNameRequest, String jsonNameResponse) throws Exception {
+    String jsonStringRequest = String.join("", Files.readAllLines(Paths.get("./src/test/resources/swaggers/test_json", "schemas_test", jsonNameRequest), StandardCharsets.UTF_8));
+    JsonObject objRequest = new JsonObject(jsonStringRequest);
+    String jsonStringResponse = String.join("", Files.readAllLines(Paths.get("./src/test/resources/swaggers/test_json", "schemas_test", jsonNameResponse), StandardCharsets.UTF_8));
+    JsonObject objResponse = new JsonObject(jsonStringResponse);
+    testRequestWithJSON(HttpMethod.POST, uri, objRequest, 200, "OK", objResponse);
   };
 
   private void assertRequestFail(String uri, String jsonName) throws Exception {
     String jsonString = String.join("", Files.readAllLines(Paths.get("./src/test/resources/swaggers/test_json", "schemas_test", jsonName), StandardCharsets.UTF_8));
-    testRequestWithJSON(HttpMethod.GET, uri, new JsonObject(jsonString), 400, "ValidationException", null);
+    testRequestWithJSON(HttpMethod.POST, uri, new JsonObject(jsonString), 400, "ValidationException", null);
   };
 
   @Test
@@ -253,6 +261,13 @@ public class OpenAPI3SchemasTest extends WebTestValidationBase {
     startServer();
     assertRequestOk("/test12", "test12_ok.json");
     assertRequestFail("/test12", "test12_fail.json");
+  }
+
+  @Test
+  public void test13() throws Exception {
+    routerFactory.addHandlerByOperationId("test13", handler);
+    startServer();
+    assertRequestOk("/test13", "test13_ok_request.json", "test13_ok_response.json");
   }
 
 }

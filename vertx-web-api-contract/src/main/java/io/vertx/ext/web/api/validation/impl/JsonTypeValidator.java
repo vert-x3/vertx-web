@@ -43,7 +43,11 @@ public class JsonTypeValidator implements ParameterTypeValidator {
 
     // TODO document and hide useless methods
     public static JsonTypeValidator createJsonTypeValidator(JSONObject schema) {
-      return new JsonTypeValidator(SchemaLoader.load(schema));
+      return new JsonTypeValidator(SchemaLoader.builder()
+        .useDefaults(true)
+        .nullableSupport(true)
+        .draftV6Support()
+        .schemaJson(schema).build().load().build());
     }
 
     public static JsonTypeValidator createJsonTypeValidator(String schema) {
