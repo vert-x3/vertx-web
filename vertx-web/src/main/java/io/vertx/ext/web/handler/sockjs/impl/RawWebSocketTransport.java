@@ -116,8 +116,9 @@ class RawWebSocketTransport {
       ws.close();
     }
 
-    public void closeAfterSessionExpired() {
-      this.close((short) 1001, "Session expired");
+    public void close(short statusCode) {
+      super.close();
+      ws.close(statusCode);
     }
 
     public void close(short statusCode, String reason) {

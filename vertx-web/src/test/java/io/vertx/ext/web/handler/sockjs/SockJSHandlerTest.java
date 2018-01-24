@@ -398,4 +398,23 @@ public class SockJSHandlerTest extends WebTestBase {
     await();
   }
 
+  @Test
+  public void testCloseCode() {
+    router.route("/ws-close/*").handler(SockJSHandler
+      .create(vertx)
+      .socketHandler(sockJSSocket -> sockJSSocket.close((short)4000, "I want to close the socket"))
+    );
+
+    client.websocket("/ws-close/websocket", ws -> {
+      ws.frameHandler(frame -> {
+        if (frame.isClose()) {
+          assertEquals(4000, frame.closeStatusCode());
+          assertEquals("I want to close the socket", frame.closeReason());
+          testComplete();
+        }
+      });
+    });
+    await();
+  }
+
 }

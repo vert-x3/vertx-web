@@ -322,13 +322,13 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
         	// Trigger an event to allow custom behavior before disconnecting client.
             checkCallHook(() -> new BridgeEventImpl(BridgeEventType.SOCKET_IDLE, null, sock), null, null);
             // We didn't receive a ping in time so close the socket
-            ((SockJSSocketBase)sock).closeAfterSessionExpired();
+            sock.close((short) 1001, "Session expired");
           }
         });
         SockInfo sockInfo = new SockInfo();
         sockInfo.pingInfo = pingInfo;
         sockInfos.put(sock, sockInfo);
-      }, sock::close);
+      }, () -> sock.close((short)1001, "Endpoint is going away"));
   }
 
   private void checkAddAccceptedReplyAddress(Message message) {
