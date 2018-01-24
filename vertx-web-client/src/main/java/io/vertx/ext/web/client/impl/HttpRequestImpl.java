@@ -45,6 +45,7 @@ class HttpRequestImpl<T> implements HttpRequest<T> {
   String virtualHost;
   String uri;
   MultiMap headers;
+  String hostHeader;
   long timeout = -1;
   BodyCodec<T> codec;
   boolean followRedirects;
@@ -85,6 +86,7 @@ class HttpRequestImpl<T> implements HttpRequest<T> {
     this.params = other.params != null ? new CaseInsensitiveHeaders().addAll(other.params) : null;
     this.codec = other.codec;
     this.followRedirects = other.followRedirects;
+    this.hostHeader = other.hostHeader;
   }
 
   @Override
@@ -136,6 +138,17 @@ class HttpRequestImpl<T> implements HttpRequest<T> {
       headers = new CaseInsensitiveHeaders();
     }
     return headers;
+  }
+
+  @Override
+  public HttpRequest<T> setHost(String host) {
+    this.hostHeader = host;
+    return this;
+  }
+
+  @Override
+  public String getHost() {
+    return hostHeader;
   }
 
   @Override
