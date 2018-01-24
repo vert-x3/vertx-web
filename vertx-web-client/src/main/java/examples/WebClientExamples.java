@@ -9,6 +9,7 @@ import io.vertx.core.http.HttpClient;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.streams.ReadStream;
 import io.vertx.core.streams.WriteStream;
+import io.vertx.docgen.Source;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClient;
@@ -18,6 +19,7 @@ import io.vertx.ext.web.codec.BodyCodec;
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
  */
+@Source
 public class WebClientExamples {
 
   public void create(Vertx vertx) {

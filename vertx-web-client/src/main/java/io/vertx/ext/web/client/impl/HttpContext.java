@@ -169,24 +169,33 @@ public class HttpContext {
     } else {
       requestURI = request.uri;
     }
+    int port = request.port;
+    String host = request.host;
     if (request.ssl != request.options.isSsl()) {
-      req = request.client.client.request(request.method, new RequestOptions().setSsl(request.ssl).setHost(request.host).setPort
-              (request.port)
+      req = request.client.client.request(request.method, new RequestOptions().setSsl(request.ssl).setHost(host).setPort
+              (port)
               .setURI
                       (requestURI));
     } else {
       if (request.protocol != null && !request.protocol.equals("http") && !request.protocol.equals("https")) {
         // we have to create an abs url again to parse it in HttpClient
         try {
-          URI uri = new URI(request.protocol, null, request.host, request.port, requestURI, null, null);
+          URI uri = new URI(request.protocol, null, host, port, requestURI, null, null);
           req = request.client.client.requestAbs(request.method, uri.toString());
         } catch (URISyntaxException ex) {
           currentResponseHandler.handle(Future.failedFuture(ex));
           return;
         }
       } else {
-        req = request.client.client.request(request.method, request.port, request.host, requestURI);
+        req = request.client.client.request(request.method, port, host, requestURI);
       }
+    }
+    if (request.virtualHost != null) {
+      String virtalHost = request.virtualHost;
+      if (port != 80) {
+        virtalHost += ":" + port;
+      }
+      req.setHost(virtalHost);
     }
     req.setFollowRedirects(request.followRedirects);
     if (request.headers != null) {
