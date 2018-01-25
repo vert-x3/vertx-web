@@ -859,7 +859,24 @@ public class RouterTest extends WebTestBase {
     router.routeWithRegex(".*foo.txt").handler(rc -> rc.response().setStatusMessage("ok").end());
     testPattern("/dog/cat/foo.txt", "ok");
     testRequest(HttpMethod.POST, "/dog/cat/foo.bar", 404, "Not Found");
+  }
 
+  @Test
+  public void testRegexWithNamedParams() throws Exception {
+    router.routeWithRegex(HttpMethod.GET, "\\/(?<name>[^\\/]+)\\/(?<surname>[^\\/]+)").handler(rc -> {
+      MultiMap params = rc.request().params();
+      rc.response().setStatusMessage(params.get("name") + params.get("surname")).end();
+    });
+    testPattern("/joe/doe", "joedoe");
+  }
+
+  @Test
+  public void testRegexWithNamedParamsKeepsIndexedParams() throws Exception {
+    router.routeWithRegex(HttpMethod.GET, "\\/(?<name>[^\\/]+)\\/(?<surname>[^\\/]+)").handler(rc -> {
+      MultiMap params = rc.request().params();
+      rc.response().setStatusMessage(params.get("param0") + params.get("param1")).end();
+    });
+    testPattern("/joe/doe", "joedoe");
   }
 
   @Test
@@ -2128,6 +2145,104 @@ public class RouterTest extends WebTestBase {
     testRequest(HttpMethod.GET, "/path", 200, "OK", "handler1handler2handler3");
   }
 
+  @Test
+  public void testSetRegexGroupsNamesMethod() throws Exception {
+    List<String> groupNames = new ArrayList<>();
+    groupNames.add("hello");
+
+    Route route1 = router.getWithRegex("\\/(?<p0>[a-z]{2})");
+    route1.setRegexGroupsNames(groupNames);
+    route1.handler(routingContext -> {
+      routingContext
+        .response()
+        .setStatusCode(200)
+        .setStatusMessage(routingContext.pathParam("hello"))
+        .end();
+    });
+    testRequest(HttpMethod.GET, "/hi", 200, "hi");
+
+  }
+
+  @Test
+  public void testRegexGroupsNamesWithMethodOverride() throws Exception {
+    List<String> groupNames = new ArrayList<>();
+    groupNames.add("FirstParam");
+    groupNames.add("SecondParam");
+
+    Route route = router.getWithRegex("\\/([a-z]{2})([a-z]{2})");
+    route.setRegexGroupsNames(groupNames);
+    route.handler(routingContext -> {
+      routingContext
+        .response()
+        .setStatusCode(200)
+        .setStatusMessage(routingContext.pathParam("FirstParam") + "-" + routingContext.pathParam("SecondParam"))
+        .end();
+    });
+    testRequest(HttpMethod.GET, "/aabb", 200, "aa-bb");
+  }
+
+  @Test
+  public void testSetRegexGroupsNamesMethodWithUnorderedGroups() throws Exception {
+    List<String> groupNames = new ArrayList<>();
+    groupNames.add("firstParam");
+    groupNames.add("secondParam");
+
+    Route route1 = router.getWithRegex("\\/(?<p1>[a-z]{2})(?<p0>[a-z]{2})");
+    route1.setRegexGroupsNames(groupNames);
+    route1.handler(routingContext -> {
+      routingContext
+        .response()
+        .setStatusCode(200)
+        .setStatusMessage(routingContext.pathParam("firstParam") + "-" + routingContext.pathParam("secondParam"))
+        .end();
+    });
+    testRequest(HttpMethod.GET, "/bbaa", 200, "aa-bb");
+
+  }
+
+  @Test
+  public void testSetRegexGroupsNamesMethodWithNestedRegex() throws Exception {
+    List<String> groupNames = new ArrayList<>();
+    groupNames.add("firstParam");
+    groupNames.add("secondParam");
+
+    Route route1 = router.getWithRegex("\\/(?<p1>[a-z]{2}(?<p0>[a-z]{2}))");
+    route1.setRegexGroupsNames(groupNames);
+    route1.handler(routingContext -> {
+      routingContext
+        .response()
+        .setStatusCode(200)
+        .setStatusMessage(routingContext.pathParam("firstParam") + "-" + routingContext.pathParam("secondParam"))
+        .end();
+    });
+    testRequest(HttpMethod.GET, "/bbaa", 200, "aa-bbaa");
+
+  }
+
+  @Test
+  public void testRegexGroupsNames() throws Exception {
+    router.getWithRegex("\\/(?<firstParam>[a-z]{2})(?<secondParam>[a-z]{2})").handler(routingContext -> {
+      routingContext
+        .response()
+        .setStatusCode(200)
+        .setStatusMessage(routingContext.pathParam("firstParam") + "-" + routingContext.pathParam("secondParam"))
+        .end();
+    });
+    testRequest(HttpMethod.GET, "/aabb", 200, "aa-bb");
+  }
+
+  @Test
+  public void testRegexGroupsNamesWithNestedGroups() throws Exception {
+    router.getWithRegex("\\/(?<secondParam>[a-z]{2}(?<firstParam>[a-z]{2}))").handler(routingContext -> {
+      routingContext
+        .response()
+        .setStatusCode(200)
+        .setStatusMessage(routingContext.pathParam("firstParam") + "-" + routingContext.pathParam("secondParam"))
+        .end();
+    });
+    testRequest(HttpMethod.GET, "/bbaa", 200, "aa-bbaa");
+  }
+  
   private Handler<RoutingContext> generateHandler(final int i) {
     return routingContext -> routingContext.put(Integer.toString(i), i).next();
   }
