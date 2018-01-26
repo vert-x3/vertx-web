@@ -374,4 +374,12 @@ public interface Router {
    */
   void handleFailure(RoutingContext context);
 
+  /**
+   * Specify an error handler for errors during query parameters decoding. This handler will be called when Router
+   * can't succesfully decode path
+   *
+   * @param handler
+   */
+  @Fluent
+  Router decoderErrorHandler(Handler<RoutingContext> handler);
 }

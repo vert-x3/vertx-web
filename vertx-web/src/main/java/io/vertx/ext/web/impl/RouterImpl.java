@@ -16,6 +16,7 @@
 
 package io.vertx.ext.web.impl;
 
+import io.netty.handler.codec.http.HttpHeaderNames;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
@@ -59,7 +60,6 @@ public class RouterImpl implements Router {
     return compare;
   };
 
-
   private static final Logger log = LoggerFactory.getLogger(RouterImpl.class);
 
   private final Vertx vertx;
@@ -71,6 +71,8 @@ public class RouterImpl implements Router {
 
   private final AtomicInteger orderSequence = new AtomicInteger();
   private Handler<Throwable> exceptionHandler;
+
+  private Handler<RoutingContext> decoderErrorHandler;
 
   @Override
   public void accept(HttpServerRequest request) {
@@ -261,6 +263,12 @@ public class RouterImpl implements Router {
   }
 
   @Override
+  public Router decoderErrorHandler(Handler<RoutingContext> handler) {
+    this.decoderErrorHandler = handler;
+    return this;
+  }
+
+  @Override
   public Router mountSubRouter(String mountPoint, Router subRouter) {
     if (mountPoint.endsWith("*")) {
       throw new IllegalArgumentException("Don't include * when mounting subrouter");
@@ -307,5 +315,8 @@ public class RouterImpl implements Router {
     return path;
   }
 
+  protected Handler<RoutingContext> getDecoderErrorHandler() {
+    return this.decoderErrorHandler;
+  }
 
 }

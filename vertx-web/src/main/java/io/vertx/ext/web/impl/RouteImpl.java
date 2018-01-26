@@ -18,6 +18,7 @@ package io.vertx.ext.web.impl;
 
 import io.netty.handler.codec.http.QueryStringDecoder;
 import io.vertx.core.Handler;
+import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.logging.Logger;
@@ -295,10 +296,15 @@ public class RouteImpl implements Route {
     // Check if query params are already parsed
     if (context.queryParams().size() == 0) {
       // Decode query parameters and put inside context.queryParams
-      Map<String, List<String>> decodedParams = new QueryStringDecoder(request.uri()).parameters();
+      try {
+        Map<String, List<String>> decodedParams = new QueryStringDecoder(request.uri()).parameters();
 
-      for (Map.Entry<String, List<String>> entry : decodedParams.entrySet())
-        context.queryParams().add(entry.getKey(), entry.getValue());
+        for (Map.Entry<String, List<String>> entry : decodedParams.entrySet())
+          context.queryParams().add(entry.getKey(), entry.getValue());
+      } catch (IllegalArgumentException e) {
+        this.handleDecodingError(context, e);
+        throw e;
+      }
     }
 
     if (!consumes.isEmpty()) {
@@ -463,4 +469,16 @@ public class RouteImpl implements Route {
   synchronized protected boolean hasNextFailureHandler(RoutingContextImplBase context) {
     return context.currentRouteNextFailureHandlerIndex() < failureHandlers.size();
   }
+
+  private void handleDecodingError(RoutingContextImplBase context, Throwable e) {
+    if (router.getDecoderErrorHandler() == null)
+      context.response()
+        .putHeader(HttpHeaders.CONTENT_TYPE, "text/plain")
+        .setStatusMessage("Bad Request")
+        .setStatusCode(400)
+        .end(e.getMessage());
+    else
+      router.getDecoderErrorHandler().handle(context);
+  }
+
 }

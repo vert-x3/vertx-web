@@ -27,6 +27,7 @@ import org.junit.Test;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -2242,7 +2243,7 @@ public class RouterTest extends WebTestBase {
     });
     testRequest(HttpMethod.GET, "/bbaa", 200, "aa-bbaa");
   }
-  
+
   private Handler<RoutingContext> generateHandler(final int i) {
     return routingContext -> routingContext.put(Integer.toString(i), i).next();
   }
@@ -2289,5 +2290,25 @@ public class RouterTest extends WebTestBase {
       });
     }
     awaitLatch(latch);
+  }
+
+  @Test
+  public void testDecodingError() throws Exception {
+    String BAD_PARAM = "~!@\\||$%^&*()_=-%22;;%27%22:%3C%3E/?]}{";
+
+    router.route().handler(rc -> rc.next());
+    router.route("/path").handler(rc -> rc.response().setStatusCode(500).end());
+    testRequest(HttpMethod.GET, "/path?q=" + BAD_PARAM, 400,"Bad Request");
+  }
+
+  @Test
+  public void testDecodingErrorCustomHandler() throws Exception {
+    String BAD_PARAM = "~!@\\||$%^&*()_=-%22;;%27%22:%3C%3E/?]}{";
+
+    router.decoderErrorHandler(context -> context.response().setStatusCode(500).setStatusMessage("Dumb").end());
+
+    router.route().handler(rc -> rc.next());
+    router.route("/path").handler(rc -> rc.response().setStatusCode(500).end());
+    testRequest(HttpMethod.GET, "/path?q=" + BAD_PARAM, 500,"Dumb");
   }
 }

@@ -106,31 +106,38 @@ public abstract class RoutingContextImplBase implements RoutingContext {
       RouteImpl route = iter.next();
       currentRouteNextHandlerIndex.set(0);
       currentRouteNextFailureHandlerIndex.set(0);
-      if (route.matches(this, mountPoint(), failed)) {
-        if (log.isTraceEnabled()) log.trace("Route matches: " + route);
-        try {
-          currentRoute = route;
-          if (log.isTraceEnabled()) log.trace("Calling the " + (failed ? "failure" : "") + " handler");
-          if (failed && currentRoute.hasNextFailureHandler(this)) {
-            currentRouteNextFailureHandlerIndex.incrementAndGet();
-            route.handleFailure(this);
-          } else if (currentRoute.hasNextContextHandler(this)) {
-            currentRouteNextHandlerIndex.incrementAndGet();
-            route.handleContext(this);
-          } else {
-            continue;
+      try {
+        if (route.matches(this, mountPoint(), failed)) {
+          if (log.isTraceEnabled()) log.trace("Route matches: " + route);
+          try {
+            currentRoute = route;
+            if (log.isTraceEnabled()) log.trace("Calling the " + (failed ? "failure" : "") + " handler");
+            if (failed && currentRoute.hasNextFailureHandler(this)) {
+              currentRouteNextFailureHandlerIndex.incrementAndGet();
+              route.handleFailure(this);
+            } else if (currentRoute.hasNextContextHandler(this)) {
+              currentRouteNextHandlerIndex.incrementAndGet();
+              route.handleContext(this);
+            } else {
+              continue;
+            }
+          } catch (Throwable t) {
+            if (log.isTraceEnabled()) log.trace("Throwable thrown from handler", t);
+            if (!failed) {
+              if (log.isTraceEnabled()) log.trace("Failing the routing");
+              fail(t);
+            } else {
+              // Failure in handling failure!
+              if (log.isTraceEnabled()) log.trace("Failure in handling failure");
+              unhandledFailure(-1, t, route.router());
+            }
           }
-        } catch (Throwable t) {
-          if (log.isTraceEnabled()) log.trace("Throwable thrown from handler", t);
-          if (!failed) {
-            if (log.isTraceEnabled()) log.trace("Failing the routing");
-            fail(t);
-          } else {
-            // Failure in handling failure!
-            if (log.isTraceEnabled()) log.trace("Failure in handling failure");
-            unhandledFailure(-1, t, route.router());
-          }
+          return true;
         }
+      } catch (Throwable t)  {
+        // Handle exceptions during matches()
+        if (!this.response().ended())
+          unhandledFailure(-1, t, route.router());
         return true;
       }
     }
