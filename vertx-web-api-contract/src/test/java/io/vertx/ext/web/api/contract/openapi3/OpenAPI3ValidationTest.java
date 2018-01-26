@@ -538,4 +538,26 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
     testRequestWithJSON(HttpMethod.POST, "/pets", new JsonObject(),400, errorMessage(ValidationException.ErrorType.JSON_INVALID));
   }
 
+  @Test
+  public void testAdditionalPropertiesJson() throws Exception {
+    Operation op = testSpec.getPaths().get("/additionalProperties").getPost();
+    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(op, op.getParameters(), testSpec);
+    loadHandlers("/additionalProperties", HttpMethod.POST, true, validationHandler, (routingContext) -> {
+      RequestParameters params = routingContext.get("parsedParameters");
+      routingContext
+        .response()
+        .setStatusCode(200)
+        .setStatusMessage("OK")
+        .putHeader("Content-Type", "application/json")
+        .end(params.body().getJsonObject().encode());
+    });
+
+    JsonObject pet = new JsonObject();
+    pet.put("id", 14612);
+    pet.put("name", "Willy");
+    pet.put("lazyness",  "Highest");
+
+    testRequestWithJSON(HttpMethod.POST, "/additionalProperties", pet, 400, errorMessage(ValidationException.ErrorType.JSON_INVALID));
+  }
+
 }
