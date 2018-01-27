@@ -37,33 +37,13 @@ Vert.x provides a validation framework that will validate requests for you and w
 To define a `link:../../apidocs/io/vertx/ext/web/api/validation/HTTPRequestValidationHandler.html[HTTPRequestValidationHandler]`:
 [source,kotlin]
 ----
-// Create Validation Handler with some stuff
-var validationHandler = HTTPRequestValidationHandler.create().addQueryParam("parameterName", ParameterType.INT, true).addFormParamWithPattern("formParameterName", "a{4}", true).addPathParam("pathParam", ParameterType.FLOAT)
-
+`link:../../apidocs/examples/ValidationExamples.html#example1-io.vertx.core.Vertx-io.vertx.ext.web.Router-[example1]`
 ----
 
 Then you can mount your validation handler:
 [source,kotlin]
 ----
-// BodyHandler is required to manage body parameters like forms or json body
-router.route().handler(BodyHandler.create())
-
-router.get("/awesome/:pathParam").handler(validationHandler).handler({ routingContext ->
-  // Get Request parameters container
-  var params = routingContext.get<Any>("parsedParameters")
-
-  // Get parameters
-  var parameterName = params.queryParameter("parameterName").getInteger()
-  var formParameterName = params.formParameter("formParameterName").getString()
-  var pathParam = params.pathParameter("pathParam").getFloat()
-}).failureHandler({ routingContext ->
-  var failure = routingContext.failure()
-  if (failure is io.vertx.ext.web.api.validation.ValidationException) {
-    // Something went wrong during validation!
-    var validationErrorMessage = failure.getMessage()
-  }
-})
-
+`link:../../apidocs/examples/ValidationExamples.html#example2-io.vertx.core.Vertx-io.vertx.ext.web.Router-io.vertx.ext.web.api.validation.HTTPRequestValidationHandler-[example2]`
 ----
 
 If validation succeeds, It returns request parameters inside `link:../../apidocs/io/vertx/ext/web/api/RequestParameters.html[RequestParameters]`, otherwise It will throw a `link:../../apidocs/io/vertx/ext/web/api/validation/ValidationException.html[ValidationException]`
@@ -81,31 +61,14 @@ Now you can handle parameter values:
 
 [source,kotlin]
 ----
-var params = routingContext.get<Any>("parsedParameters")
-var awesomeParameter = params.queryParameter("awesomeParameter")
-if (awesomeParameter != null) {
-  if (!awesomeParameter.isEmpty()) {
-    // Parameter exists and isn't empty
-    // ParameterTypeValidator mapped the parameter in equivalent language object
-    var awesome = awesomeParameter.getInteger()
-  } else {
-    // Parameter exists, but it's empty
-  }
-} else {
-  // Parameter doesn't exist (it's not required)
-}
-
+`link:../../apidocs/examples/ValidationExamples.html#example3-io.vertx.ext.web.RoutingContext-[example3]`
 ----
 
 As you can see, every parameter is mapped in respective language objects. You can also get a json body:
 
 [source,kotlin]
 ----
-var body = params.body()
-if (body != null) {
-  var jsonBody = body.getJsonObject()
-}
-
+`link:../../apidocs/examples/ValidationExamples.html#example4-io.vertx.ext.web.api.RequestParameters-[example4]`
 ----
 
 == OpenAPI 3 support
@@ -141,78 +104,44 @@ To create a new router factory, you can use methods inside `link:../../apidocs/i
 For example:
 [source,kotlin]
 ----
-OpenAPI3RouterFactory.createRouterFactoryFromFile(vertx, "src/main/resources/petstore.yaml", { ar ->
-  if (ar.succeeded()) {
-    // Spec loaded with success
-    var routerFactory = ar.result()
-  } else {
-    // Something went wrong during router factory initialization
-    var exception = ar.cause()
-  }
-})
-
+`link:../../apidocs/examples/OpenAPI3Examples.html#constructRouterFactory-io.vertx.core.Vertx-[constructRouterFactory]`
 ----
 
 You can also construct a router factory from a remote spec:
 
 [source,kotlin]
 ----
-OpenAPI3RouterFactory.createRouterFactoryFromURL(vertx, "https://raw.githubusercontent.com/OAI/OpenAPI-Specification/master/examples/v3.0/petstore.yaml", { ar ->
-  if (ar.succeeded()) {
-    // Spec loaded with success
-    var routerFactory = ar.result()
-  } else {
-    // Something went wrong during router factory initialization
-    var exception = ar.cause()
-  }
-})
-
+`link:../../apidocs/examples/OpenAPI3Examples.html#constructRouterFactoryFromUrl-io.vertx.core.Vertx-[constructRouterFactoryFromUrl]`
 ----
 
-You can also modify the behaviours of the router factory with `link:../../apidocs/io/vertx/ext/web/api/contract/DesignDrivenRouterFactoryOptions.html[DesignDrivenRouterFactoryOptions]`.
+You can also modify the behaviours of the router factory with `link:../../apidocs/io/vertx/ext/web/api/contract/RouterFactoryOptions.html[RouterFactoryOptions]`.
 For example you can ask to router factory to mount the validation failure handler but to not mount the not implemented handler as follows:
 
 [source,kotlin]
 ----
-var routerFactory = ar.result()
-// Create and mount options to router factory
-var options = DesignDrivenRouterFactoryOptions(
-  mountNotImplementedHandler = true,
-  mountValidationFailureHandler = false)
-
-routerFactory.setOptions(options)
-
+`link:../../apidocs/examples/OpenAPI3Examples.html#mountOptions-io.vertx.core.AsyncResult-[mountOptions]`
 ----
 
 === Mount the handlers
 Now load your first path. There are two functions to load the handlers:
 
-* `link:../../apidocs/io/vertx/ext/web/api/contract/DesignDrivenRouterFactory.html#addHandler-io.vertx.core.http.HttpMethod-java.lang.String-io.vertx.core.Handler-[addHandler]`
+* `link:../../apidocs/io/vertx/ext/web/api/contract/RouterFactory.html#addHandler-io.vertx.core.http.HttpMethod-java.lang.String-io.vertx.core.Handler-[addHandler]`
 * `link:../../apidocs/io/vertx/ext/web/api/contract/openapi3/OpenAPI3RouterFactory.html#addHandlerByOperationId-java.lang.String-io.vertx.core.Handler-[addHandlerByOperationId]`
 
 And, of course, two functions to load failure handlers
 
-* `link:../../apidocs/io/vertx/ext/web/api/contract/DesignDrivenRouterFactory.html#addFailureHandler-io.vertx.core.http.HttpMethod-java.lang.String-io.vertx.core.Handler-[addFailureHandler]`
+* `link:../../apidocs/io/vertx/ext/web/api/contract/RouterFactory.html#addFailureHandler-io.vertx.core.http.HttpMethod-java.lang.String-io.vertx.core.Handler-[addFailureHandler]`
 * `link:../../apidocs/io/vertx/ext/web/api/contract/openapi3/OpenAPI3RouterFactory.html#addFailureHandlerByOperationId-java.lang.String-io.vertx.core.Handler-[addFailureHandlerByOperationId]`
 
 You can, of course, **add multiple handlers to same operation**, without overwrite the existing ones.
 
 .Path in OpenAPI format
-IMPORTANT: If you want to use `link:../../apidocs/io/vertx/ext/web/api/contract/DesignDrivenRouterFactory.html#addHandler-io.vertx.core.http.HttpMethod-java.lang.String-io.vertx.core.Handler-[addHandler]` or `link:../../apidocs/io/vertx/ext/web/api/contract/DesignDrivenRouterFactory.html#addFailureHandler-io.vertx.core.http.HttpMethod-java.lang.String-io.vertx.core.Handler-[addFailureHandler]` pay attention: You can provide a path only in OpenAPI styles (for example path `/hello/:param` doesn't work)
+IMPORTANT: If you want to use `link:../../apidocs/io/vertx/ext/web/api/contract/RouterFactory.html#addHandler-io.vertx.core.http.HttpMethod-java.lang.String-io.vertx.core.Handler-[addHandler]` or `link:../../apidocs/io/vertx/ext/web/api/contract/RouterFactory.html#addFailureHandler-io.vertx.core.http.HttpMethod-java.lang.String-io.vertx.core.Handler-[addFailureHandler]` pay attention: You can provide a path only in OpenAPI styles (for example path `/hello/:param` doesn't work)
 
 For example:
 [source,kotlin]
 ----
-routerFactory.addHandlerByOperationId("awesomeOperation", { routingContext ->
-  var params = routingContext.get<Any>("parsedParameters")
-  var body = params.body()
-  var jsonBody = body.getJsonObject()
-  // Do something with body
-})
-routerFactory.addFailureHandlerByOperationId("awesomeOperation", { routingContext ->
-  // Handle failure
-})
-
+`link:../../apidocs/examples/OpenAPI3Examples.html#addRoute-io.vertx.core.Vertx-io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory-[addRoute]`
 ----
 
 .Add operations with operationId
@@ -226,34 +155,30 @@ For example:
 
 [source,kotlin]
 ----
-routerFactory.addSecurityHandler("security_scheme_name", securityHandler)
-
+`link:../../apidocs/examples/OpenAPI3Examples.html#addSecurityHandler-io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory-io.vertx.core.Handler-[addSecurityHandler]`
 ----
 
 You can of course use included Vert.x security handlers, for example:
 
 [source,kotlin]
 ----
-routerFactory.addSecurityHandler("jwt_auth", JWTAuthHandler.create(jwtAuthProvider))
-
+`link:../../apidocs/examples/OpenAPI3Examples.html#addJWT-io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory-io.vertx.ext.auth.jwt.JWTAuth-[addJWT]`
 ----
 
-=== Customize the router factory behaviours TODO add doc for router factory behaviours
-The router factory allows you to manage errors efficiently:
+=== Customize the router factory behaviours
+The router factory allows you to customize some behaviours during router generation with
+`link:../../apidocs/io/vertx/ext/web/api/contract/RouterFactoryOptions.html[RouterFactoryOptions]`. Router factory can:
 
-* It automatically mounts a 501 `Not Implemented` handler for operations where you haven't mounted any handler. You can enable/disable this feature with `link:../../apidocs/io/vertx/ext/web/api/contract/DesignDrivenRouterFactoryOptions.html#setMountNotImplementedHandler-boolean-[setMountNotImplementedHandler]` and you can
-* It automatically mounts a 400 `Bad Request` handler that manages `ValidationException` (You can enable/disable this feature via `link:../../apidocs/io/vertx/ext/web/api/contract/DesignDrivenRouterFactory.html#enableValidationFailureHandler-boolean-[enableValidationFailureHandler]`)
+* Mount a 501 `Not Implemented` handler for operations where you haven't mounted any handler
+* Mount a 400 `Bad Request` handler that manages `ValidationException`
+* Mount the `link:../../apidocs/io/vertx/ext/web/handler/ResponseContentTypeHandler.html[ResponseContentTypeHandler]` handler when needed
+
+Give a deeper look at `link:../../apidocs/io/vertx/ext/web/api/contract/RouterFactoryOptions.html[RouterFactoryOptions]` documentation
 
 === Generate the router
 When you are ready, generate the router and use it:
 
 [source,kotlin]
 ----
-var router = routerFactory.getRouter()
-
-var server = vertx.createHttpServer(HttpServerOptions(
-  port = 8080,
-  host = "localhost"))
-server.requestHandler({ router.accept(it) }).listen()
-
+`link:../../apidocs/examples/OpenAPI3Examples.html#generateRouter-io.vertx.core.Vertx-io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory-[generateRouter]`
 ----

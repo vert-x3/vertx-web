@@ -10,7 +10,7 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.WebTestWithWebClientBase;
 import io.vertx.ext.web.api.RequestParameters;
-import io.vertx.ext.web.api.contract.DesignDrivenRouterFactoryOptions;
+import io.vertx.ext.web.api.contract.RouterFactoryOptions;
 import io.vertx.ext.web.api.contract.RouterFactoryException;
 import io.vertx.ext.web.api.validation.ValidationException;
 import org.junit.Test;
@@ -173,7 +173,7 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
     awaitLatch(latch);
   }
 
-  private DesignDrivenRouterFactoryOptions HANDLERS_TESTS_OPTIONS = new DesignDrivenRouterFactoryOptions()
+  private RouterFactoryOptions HANDLERS_TESTS_OPTIONS = new RouterFactoryOptions()
     .setRequireSecurityHandlers(false);
 
   @Test
@@ -270,7 +270,7 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
     OpenAPI3RouterFactory.createRouterFactoryFromFile(this.vertx, "src/test/resources/swaggers/router_factory_test.yaml",
       openAPI3RouterFactoryAsyncResult -> {
         routerFactory = openAPI3RouterFactoryAsyncResult.result();
-        routerFactory.setOptions(new DesignDrivenRouterFactoryOptions().setRequireSecurityHandlers(true));
+        routerFactory.setOptions(new RouterFactoryOptions().setRequireSecurityHandlers(true));
 
         routerFactory.addHandlerByOperationId("listPetsSecurity", routingContext -> {
           routingContext
@@ -317,7 +317,7 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
     OpenAPI3RouterFactory.createRouterFactoryFromFile(this.vertx, "src/test/resources/swaggers/router_factory_test.yaml",
       openAPI3RouterFactoryAsyncResult -> {
         routerFactory = openAPI3RouterFactoryAsyncResult.result();
-        routerFactory.setOptions(new DesignDrivenRouterFactoryOptions().setRequireSecurityHandlers(true));
+        routerFactory.setOptions(new RouterFactoryOptions().setRequireSecurityHandlers(true));
 
         routerFactory.addHandlerByOperationId("listPets", routingContext -> {
           routingContext
@@ -352,7 +352,7 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
     OpenAPI3RouterFactory.createRouterFactoryFromFile(this.vertx, "src/test/resources/swaggers/global_security_test.yaml",
       openAPI3RouterFactoryAsyncResult -> {
         routerFactory = openAPI3RouterFactoryAsyncResult.result();
-        routerFactory.setOptions(new DesignDrivenRouterFactoryOptions().setRequireSecurityHandlers(true));
+        routerFactory.setOptions(new RouterFactoryOptions().setRequireSecurityHandlers(true));
 
         routerFactory.addHandlerByOperationId("listPets", routingContext -> {
           routingContext
@@ -387,7 +387,7 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
     OpenAPI3RouterFactory.createRouterFactoryFromFile(this.vertx, "src/test/resources/swaggers/router_factory_test.yaml",
       openAPI3RouterFactoryAsyncResult -> {
         routerFactory = openAPI3RouterFactoryAsyncResult.result();
-        routerFactory.setOptions(new DesignDrivenRouterFactoryOptions().setRequireSecurityHandlers(false));
+        routerFactory.setOptions(new RouterFactoryOptions().setRequireSecurityHandlers(false));
 
         routerFactory.addHandlerByOperationId("listPets", routingContext -> {
           routingContext
@@ -471,7 +471,7 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
       openAPI3RouterFactoryAsyncResult -> {
         routerFactory = openAPI3RouterFactoryAsyncResult.result();
         routerFactory.setOptions(
-          new DesignDrivenRouterFactoryOptions()
+          new RouterFactoryOptions()
             .setRequireSecurityHandlers(false)
             .setMountValidationFailureHandler(false)
         );
@@ -510,7 +510,7 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
       openAPI3RouterFactoryAsyncResult -> {
         routerFactory = openAPI3RouterFactoryAsyncResult.result();
         routerFactory.setOptions(
-          new DesignDrivenRouterFactoryOptions()
+          new RouterFactoryOptions()
             .setRequireSecurityHandlers(false)
             .setMountNotImplementedHandler(true)
         );
@@ -531,7 +531,7 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
       openAPI3RouterFactoryAsyncResult -> {
         routerFactory = openAPI3RouterFactoryAsyncResult.result();
         routerFactory.setOptions(
-          new DesignDrivenRouterFactoryOptions()
+          new RouterFactoryOptions()
             .setMountNotImplementedHandler(true)
             .setRequireSecurityHandlers(false)
             .setNotImplementedFailureHandler(routingContext ->
@@ -559,7 +559,7 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
       openAPI3RouterFactoryAsyncResult -> {
         routerFactory = openAPI3RouterFactoryAsyncResult.result();
         routerFactory.setOptions(
-          new DesignDrivenRouterFactoryOptions()
+          new RouterFactoryOptions()
             .setMountNotImplementedHandler(false)
         );
 
@@ -578,7 +578,7 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
     OpenAPI3RouterFactory.createRouterFactoryFromFile(this.vertx, "src/test/resources/swaggers/produces_consumes_test.yaml",
       openAPI3RouterFactoryAsyncResult -> {
         routerFactory = openAPI3RouterFactoryAsyncResult.result();
-        routerFactory.setOptions(new DesignDrivenRouterFactoryOptions().setMountNotImplementedHandler(false));
+        routerFactory.setOptions(new RouterFactoryOptions().setMountNotImplementedHandler(false));
 
         routerFactory.addHandlerByOperationId("consumesTest", routingContext -> {
           RequestParameters params = routingContext.get("parsedParameters");
@@ -621,7 +621,7 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
     OpenAPI3RouterFactory.createRouterFactoryFromFile(this.vertx, "src/test/resources/swaggers/produces_consumes_test.yaml",
       openAPI3RouterFactoryAsyncResult -> {
         routerFactory = openAPI3RouterFactoryAsyncResult.result();
-        routerFactory.setOptions(new DesignDrivenRouterFactoryOptions().setMountNotImplementedHandler(false));
+        routerFactory.setOptions(new RouterFactoryOptions().setMountNotImplementedHandler(false));
 
         routerFactory.addHandlerByOperationId("producesTest", routingContext -> {
           if (((RequestParameters)routingContext.get("parsedParameters")).queryParameter("fail").getBoolean())
@@ -649,7 +649,7 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
       openAPI3RouterFactoryAsyncResult -> {
         assertTrue(openAPI3RouterFactoryAsyncResult.succeeded());
         routerFactory = openAPI3RouterFactoryAsyncResult.result();
-        routerFactory.setOptions(new DesignDrivenRouterFactoryOptions().setMountNotImplementedHandler(false));
+        routerFactory.setOptions(new RouterFactoryOptions().setMountNotImplementedHandler(false));
 
         routerFactory.addHandlerByOperationId("showSpecialProduct", routingContext ->
           routingContext.response().setStatusMessage("special").end()

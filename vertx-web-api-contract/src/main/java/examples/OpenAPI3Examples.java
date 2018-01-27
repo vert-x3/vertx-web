@@ -11,7 +11,7 @@ import io.vertx.ext.auth.jwt.JWTAuth;
 import io.vertx.ext.web.api.RequestParameter;
 import io.vertx.ext.web.api.RequestParameters;
 import io.vertx.ext.web.Router;
-import io.vertx.ext.web.api.contract.DesignDrivenRouterFactoryOptions;
+import io.vertx.ext.web.api.contract.RouterFactoryOptions;
 import io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory;
 import io.vertx.ext.web.handler.JWTAuthHandler;
 import io.vertx.ext.web.api.validation.ValidationException;
@@ -48,8 +48,8 @@ public class OpenAPI3Examples {
   public void mountOptions(AsyncResult<OpenAPI3RouterFactory> ar) {
     OpenAPI3RouterFactory routerFactory = ar.result();
     // Create and mount options to router factory
-    DesignDrivenRouterFactoryOptions options =
-      new DesignDrivenRouterFactoryOptions()
+    RouterFactoryOptions options =
+      new RouterFactoryOptions()
       .setMountNotImplementedHandler(true)
       .setMountValidationFailureHandler(false);
 
@@ -90,9 +90,9 @@ public class OpenAPI3Examples {
       if (openAPI3RouterFactoryAsyncResult.succeeded()) {
         // Spec loaded with success, retrieve the router
         OpenAPI3RouterFactory routerFactory = openAPI3RouterFactoryAsyncResult.result();
-        // You can enable or disable different features of router factory through mounting DesignDrivenRouterFactoryOptions
+        // You can enable or disable different features of router factory through mounting RouterFactoryOptions
         // For example you can enable or disable the default failure handler for ValidationException
-        DesignDrivenRouterFactoryOptions options = new DesignDrivenRouterFactoryOptions()
+        RouterFactoryOptions options = new RouterFactoryOptions()
           .setMountValidationFailureHandler(false);
         // Mount the options
         routerFactory.setOptions(options);

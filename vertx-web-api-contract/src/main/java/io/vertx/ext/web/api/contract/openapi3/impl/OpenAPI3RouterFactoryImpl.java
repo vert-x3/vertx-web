@@ -12,7 +12,7 @@ import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.api.contract.RouterFactoryException;
-import io.vertx.ext.web.api.contract.impl.BaseDesignDrivenRouterFactory;
+import io.vertx.ext.web.api.contract.impl.BaseRouterFactory;
 import io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.ResponseContentTypeHandler;
@@ -22,7 +22,7 @@ import java.util.*;
 /**
  * @author Francesco Guardiani @slinkydeveloper
  */
-public class OpenAPI3RouterFactoryImpl extends BaseDesignDrivenRouterFactory<OpenAPI> implements
+public class OpenAPI3RouterFactoryImpl extends BaseRouterFactory<OpenAPI> implements
   OpenAPI3RouterFactory {
 
   // This map is fullfilled when spec is loaded in memory

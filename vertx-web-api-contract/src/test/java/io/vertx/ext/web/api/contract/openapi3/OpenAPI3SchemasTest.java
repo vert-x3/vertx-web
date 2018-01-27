@@ -9,7 +9,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.api.RequestParameters;
-import io.vertx.ext.web.api.contract.DesignDrivenRouterFactoryOptions;
+import io.vertx.ext.web.api.contract.RouterFactoryOptions;
 import io.vertx.ext.web.api.validation.ValidationException;
 import io.vertx.ext.web.api.validation.WebTestValidationBase;
 import io.vertx.ext.web.handler.StaticHandler;
@@ -60,7 +60,7 @@ public class OpenAPI3SchemasTest extends WebTestValidationBase {
       assertNull(openAPI3RouterFactoryAsyncResult.cause());
       routerFactory = openAPI3RouterFactoryAsyncResult.result();
       routerFactory.setOptions(
-        new DesignDrivenRouterFactoryOptions()
+        new RouterFactoryOptions()
         .setRequireSecurityHandlers(false)
         .setMountValidationFailureHandler(true)
         .setValidationFailureHandler(FAILURE_HANDLER)

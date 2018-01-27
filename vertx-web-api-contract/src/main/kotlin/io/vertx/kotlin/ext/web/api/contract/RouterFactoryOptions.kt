@@ -14,11 +14,11 @@ import io.vertx.ext.web.api.contract.RouterFactoryOptions
  * <p/>
  * NOTE: This function has been automatically generated from the [io.vertx.ext.web.api.contract.RouterFactoryOptions original] using Vert.x codegen.
  */
-fun DesignDrivenRouterFactoryOptions(
+fun RouterFactoryOptions(
   mountNotImplementedHandler: Boolean? = null,
   mountResponseContentTypeHandler: Boolean? = null,
   mountValidationFailureHandler: Boolean? = null,
-  requireSecurityHandlers: Boolean? = null): RouterFactoryOptions = RouterFactoryOptions().apply {
+  requireSecurityHandlers: Boolean? = null): RouterFactoryOptions = io.vertx.ext.web.api.contract.RouterFactoryOptions().apply {
 
   if (mountNotImplementedHandler != null) {
     this.setMountNotImplementedHandler(mountNotImplementedHandler)

@@ -11,7 +11,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.api.contract.DesignDrivenRouterFactory;
+import io.vertx.ext.web.api.contract.RouterFactory;
 import io.vertx.ext.web.api.contract.RouterFactoryException;
 import io.vertx.ext.web.api.contract.openapi3.impl.OpenAPI3RouterFactoryImpl;
 import io.vertx.ext.web.api.contract.openapi3.impl.OpenApi3Utils;
@@ -24,8 +24,8 @@ import java.net.URL;
 /**
  * Interface for OpenAPI3RouterFactory. <br/>
  * To add an handler, use {@link OpenAPI3RouterFactory#addHandlerByOperationId(String, Handler)}, in this
- * class is better than generic {@link DesignDrivenRouterFactory#addHandler(HttpMethod, String, Handler)}<br/>
- * If you want to use {@link DesignDrivenRouterFactory#addHandler(HttpMethod, String, Handler)} remember that <b>you have to pass path as declared in openapi specification</b>
+ * class is better than generic {@link RouterFactory#addHandler(HttpMethod, String, Handler)}<br/>
+ * If you want to use {@link RouterFactory#addHandler(HttpMethod, String, Handler)} remember that <b>you have to pass path as declared in openapi specification</b>
  * Usage example:
  * <pre>
  * {@code
@@ -48,7 +48,7 @@ import java.net.URL;
  * @author Francesco Guardiani @slinkydeveloper
  */
 @VertxGen
-public interface OpenAPI3RouterFactory extends DesignDrivenRouterFactory<OpenAPI> {
+public interface OpenAPI3RouterFactory extends RouterFactory<OpenAPI> {
 
   /**
    * Add a particular scope validator. The main security schema will not be called if a specific scope validator is

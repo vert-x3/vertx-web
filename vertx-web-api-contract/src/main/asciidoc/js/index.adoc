@@ -37,35 +37,13 @@ Vert.x provides a validation framework that will validate requests for you and w
 To define a `link:../../jsdoc/module-vertx-web-api-contract-js_http_request_validation_handler-HTTPRequestValidationHandler.html[HTTPRequestValidationHandler]`:
 [source,js]
 ----
-var HTTPRequestValidationHandler = require("vertx-web-api-contract-js/http_request_validation_handler");
-// Create Validation Handler with some stuff
-var validationHandler = HTTPRequestValidationHandler.create().addQueryParam("parameterName", 'INT', true).addFormParamWithPattern("formParameterName", "a{4}", true).addPathParam("pathParam", 'FLOAT');
-
+`example1`
 ----
 
 Then you can mount your validation handler:
 [source,js]
 ----
-var BodyHandler = require("vertx-web-js/body_handler");
-// BodyHandler is required to manage body parameters like forms or json body
-router.route().handler(BodyHandler.create().handle);
-
-router.get("/awesome/:pathParam").handler(validationHandler.handle).handler(function (routingContext) {
-  // Get Request parameters container
-  var params = routingContext.get("parsedParameters");
-
-  // Get parameters
-  var parameterName = params.queryParameter("parameterName").getInteger();
-  var formParameterName = params.formParameter("formParameterName").getString();
-  var pathParam = params.pathParameter("pathParam").getFloat();
-}).failureHandler(function (routingContext) {
-  var failure = routingContext.failure();
-  if (failure.getClass().getSimpleName() == 'ValidationException') {
-    // Something went wrong during validation!
-    var validationErrorMessage = failure.getMessage();
-  }
-});
-
+`example2`
 ----
 
 If validation succeeds, It returns request parameters inside `link:../../jsdoc/module-vertx-web-api-contract-js_request_parameters-RequestParameters.html[RequestParameters]`, otherwise It will throw a `ValidationException`
@@ -83,31 +61,14 @@ Now you can handle parameter values:
 
 [source,js]
 ----
-var params = routingContext.get("parsedParameters");
-var awesomeParameter = params.queryParameter("awesomeParameter");
-if ((awesomeParameter !== null && awesomeParameter !== undefined)) {
-  if (!awesomeParameter.isEmpty()) {
-    // Parameter exists and isn't empty
-    // ParameterTypeValidator mapped the parameter in equivalent language object
-    var awesome = awesomeParameter.getInteger();
-  } else {
-    // Parameter exists, but it's empty
-  }
-} else {
-  // Parameter doesn't exist (it's not required)
-}
-
+`example3`
 ----
 
 As you can see, every parameter is mapped in respective language objects. You can also get a json body:
 
 [source,js]
 ----
-var body = params.body();
-if ((body !== null && body !== undefined)) {
-  var jsonBody = body.getJsonObject();
-}
-
+`example4`
 ----
 
 == OpenAPI 3 support
@@ -143,81 +104,44 @@ To create a new router factory, you can use methods inside `link:../../jsdoc/mod
 For example:
 [source,js]
 ----
-var OpenAPI3RouterFactory = require("vertx-web-api-contract-js/open_api3_router_factory");
-OpenAPI3RouterFactory.createRouterFactoryFromFile(vertx, "src/main/resources/petstore.yaml", function (ar, ar_err) {
-  if (ar_err == null) {
-    // Spec loaded with success
-    var routerFactory = ar;
-  } else {
-    // Something went wrong during router factory initialization
-    var exception = ar_err;
-  }
-});
-
+`constructRouterFactory`
 ----
 
 You can also construct a router factory from a remote spec:
 
 [source,js]
 ----
-var OpenAPI3RouterFactory = require("vertx-web-api-contract-js/open_api3_router_factory");
-OpenAPI3RouterFactory.createRouterFactoryFromURL(vertx, "https://raw.githubusercontent.com/OAI/OpenAPI-Specification/master/examples/v3.0/petstore.yaml", function (ar, ar_err) {
-  if (ar_err == null) {
-    // Spec loaded with success
-    var routerFactory = ar;
-  } else {
-    // Something went wrong during router factory initialization
-    var exception = ar_err;
-  }
-});
-
+`constructRouterFactoryFromUrl`
 ----
 
-You can also modify the behaviours of the router factory with `link:../dataobjects.html#DesignDrivenRouterFactoryOptions[DesignDrivenRouterFactoryOptions]`.
+You can also modify the behaviours of the router factory with `link:../dataobjects.html#RouterFactoryOptions[RouterFactoryOptions]`.
 For example you can ask to router factory to mount the validation failure handler but to not mount the not implemented handler as follows:
 
 [source,js]
 ----
-var routerFactory = ar.result();
-// Create and mount options to router factory
-var options = {
-  "mountNotImplementedHandler" : true,
-  "mountValidationFailureHandler" : false
-};
-
-routerFactory.setOptions(options);
-
+`mountOptions`
 ----
 
 === Mount the handlers
 Now load your first path. There are two functions to load the handlers:
 
-* `link:../../jsdoc/module-vertx-web-api-contract-js_design_driven_router_factory-DesignDrivenRouterFactory.html#addHandler[addHandler]`
+* `link:../../jsdoc/module-vertx-web-api-contract-js_router_factory-RouterFactory.html#addHandler[addHandler]`
 * `link:../../jsdoc/module-vertx-web-api-contract-js_open_api3_router_factory-OpenAPI3RouterFactory.html#addHandlerByOperationId[addHandlerByOperationId]`
 
 And, of course, two functions to load failure handlers
 
-* `link:../../jsdoc/module-vertx-web-api-contract-js_design_driven_router_factory-DesignDrivenRouterFactory.html#addFailureHandler[addFailureHandler]`
+* `link:../../jsdoc/module-vertx-web-api-contract-js_router_factory-RouterFactory.html#addFailureHandler[addFailureHandler]`
 * `link:../../jsdoc/module-vertx-web-api-contract-js_open_api3_router_factory-OpenAPI3RouterFactory.html#addFailureHandlerByOperationId[addFailureHandlerByOperationId]`
 
 You can, of course, **add multiple handlers to same operation**, without overwrite the existing ones.
 
 .Path in OpenAPI format
-IMPORTANT: If you want to use `link:../../jsdoc/module-vertx-web-api-contract-js_design_driven_router_factory-DesignDrivenRouterFactory.html#addHandler[addHandler]` or `link:../../jsdoc/module-vertx-web-api-contract-js_design_driven_router_factory-DesignDrivenRouterFactory.html#addFailureHandler[addFailureHandler]` pay attention: You can provide a path only in OpenAPI styles (for example path `/hello/:param` doesn't work)
+IMPORTANT: If you want to use `link:../../jsdoc/module-vertx-web-api-contract-js_router_factory-RouterFactory.html#addHandler[addHandler]` or `link:../../jsdoc/module-vertx-web-api-contract-js_router_factory-RouterFactory.html#addFailureHandler[addFailureHandler]` pay attention: You can provide a path only in OpenAPI styles (for example path `/hello/:param` doesn't work)
 
 For example:
 [source,js]
 ----
-routerFactory.addHandlerByOperationId("awesomeOperation", function (routingContext) {
-  var params = routingContext.get("parsedParameters");
-  var body = params.body();
-  var jsonBody = body.getJsonObject();
-  // Do something with body
-});
-routerFactory.addFailureHandlerByOperationId("awesomeOperation", function (routingContext) {
-  // Handle failure
-});
-
+`addRoute`
 ----
 
 .Add operations with operationId
@@ -231,36 +155,30 @@ For example:
 
 [source,js]
 ----
-routerFactory.addSecurityHandler("security_scheme_name", securityHandler);
-
+`addSecurityHandler`
 ----
 
 You can of course use included Vert.x security handlers, for example:
 
 [source,js]
 ----
-var JWTAuthHandler = require("vertx-web-js/jwt_auth_handler");
-routerFactory.addSecurityHandler("jwt_auth", JWTAuthHandler.create(jwtAuthProvider).handle);
-
+`addJWT`
 ----
 
-=== Customize the router factory behaviours TODO add doc for router factory behaviours
-The router factory allows you to manage errors efficiently:
+=== Customize the router factory behaviours
+The router factory allows you to customize some behaviours during router generation with
+`link:../dataobjects.html#RouterFactoryOptions[RouterFactoryOptions]`. Router factory can:
 
-* It automatically mounts a 501 `Not Implemented` handler for operations where you haven't mounted any handler. You can enable/disable this feature with `link:../dataobjects.html#DesignDrivenRouterFactoryOptions#setMountNotImplementedHandler[mountNotImplementedHandler]` and you can
-* It automatically mounts a 400 `Bad Request` handler that manages `ValidationException` (You can enable/disable this feature via `link:../../jsdoc/module-vertx-web-api-contract-js_design_driven_router_factory-DesignDrivenRouterFactory.html#enableValidationFailureHandler[enableValidationFailureHandler]`)
+* Mount a 501 `Not Implemented` handler for operations where you haven't mounted any handler
+* Mount a 400 `Bad Request` handler that manages `ValidationException`
+* Mount the `link:../../jsdoc/module-vertx-web-js_response_content_type_handler-ResponseContentTypeHandler.html[ResponseContentTypeHandler]` handler when needed
+
+Give a deeper look at `link:../dataobjects.html#RouterFactoryOptions[RouterFactoryOptions]` documentation
 
 === Generate the router
 When you are ready, generate the router and use it:
 
 [source,js]
 ----
-var router = routerFactory.getRouter();
-
-var server = vertx.createHttpServer({
-  "port" : 8080,
-  "host" : "localhost"
-});
-server.requestHandler(router.accept).listen();
-
+`generateRouter`
 ----

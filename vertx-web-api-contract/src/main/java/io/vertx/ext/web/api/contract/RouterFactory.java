@@ -12,7 +12,7 @@ import io.vertx.ext.web.RoutingContext;
  * Author: Francesco Guardiani @slinkydeveloper
  */
 @VertxGen(concrete = false)
-public interface DesignDrivenRouterFactory<Specification> {
+public interface RouterFactory<Specification> {
 
   /**
    * Mount to paths that have to follow a security schema a security handler
@@ -22,7 +22,7 @@ public interface DesignDrivenRouterFactory<Specification> {
    * @return
    */
   @Fluent
-  DesignDrivenRouterFactory addSecurityHandler(String securitySchemaName, Handler<RoutingContext> handler);
+  RouterFactory addSecurityHandler(String securitySchemaName, Handler<RoutingContext> handler);
 
   /**
    * Add an handler to a path with a method. If combination path/method is not available in
@@ -35,7 +35,7 @@ public interface DesignDrivenRouterFactory<Specification> {
    * @return
    */
   @Fluent @Deprecated
-  DesignDrivenRouterFactory addHandler(HttpMethod method, String path, Handler<RoutingContext> handler);
+  RouterFactory addHandler(HttpMethod method, String path, Handler<RoutingContext> handler);
 
   /**
    * Add a failure handler to a path with a method. If combination path/method is not available in
@@ -48,7 +48,7 @@ public interface DesignDrivenRouterFactory<Specification> {
    * @return
    */
   @Fluent @Deprecated
-  DesignDrivenRouterFactory addFailureHandler(HttpMethod method, String path, Handler<RoutingContext> failureHandler);
+  RouterFactory addFailureHandler(HttpMethod method, String path, Handler<RoutingContext> failureHandler);
 
   /**
    * Override options
@@ -57,44 +57,44 @@ public interface DesignDrivenRouterFactory<Specification> {
    * @return
    */
   @Fluent
-  DesignDrivenRouterFactory setOptions(DesignDrivenRouterFactoryOptions options);
+  RouterFactory setOptions(RouterFactoryOptions options);
 
   /**
-   * Get options of router factory. For more info {@link DesignDrivenRouterFactoryOptions}
+   * Get options of router factory. For more info {@link RouterFactoryOptions}
    *
    * @return
    */
-  DesignDrivenRouterFactoryOptions getOptions();
+  RouterFactoryOptions getOptions();
 
   /**
-   * Deprecated. Instantiate {@link DesignDrivenRouterFactoryOptions}
-   * and load it using {@link DesignDrivenRouterFactory#setOptions(DesignDrivenRouterFactoryOptions)}
+   * Deprecated. Instantiate {@link RouterFactoryOptions}
+   * and load it using {@link RouterFactory#setOptions(RouterFactoryOptions)}
    *
    * @param handler
    * @return
    */
   @Fluent @Deprecated
-  DesignDrivenRouterFactory setValidationFailureHandler(Handler<RoutingContext> handler);
+  RouterFactory setValidationFailureHandler(Handler<RoutingContext> handler);
 
   /**
-   * Deprecated. Instantiate {@link DesignDrivenRouterFactoryOptions}
-   * and load it using {@link DesignDrivenRouterFactory#setOptions(DesignDrivenRouterFactoryOptions)}
+   * Deprecated. Instantiate {@link RouterFactoryOptions}
+   * and load it using {@link RouterFactory#setOptions(RouterFactoryOptions)}
    *
    * @param enable
    * @return
    */
   @Fluent @Deprecated
-  DesignDrivenRouterFactory enableValidationFailureHandler(boolean enable);
+  RouterFactory enableValidationFailureHandler(boolean enable);
 
   /**
-   * Deprecated. Instantiate {@link DesignDrivenRouterFactoryOptions}
-   * and load it using {@link DesignDrivenRouterFactory#setOptions(DesignDrivenRouterFactoryOptions)}
+   * Deprecated. Instantiate {@link RouterFactoryOptions}
+   * and load it using {@link RouterFactory#setOptions(RouterFactoryOptions)}
    *
    * @param enable
    * @return
    */
   @Fluent @Deprecated
-  DesignDrivenRouterFactory mountOperationsWithoutHandlers(boolean enable);
+  RouterFactory mountOperationsWithoutHandlers(boolean enable);
 
   /**
    * Construct a new router based on spec. It will fail if you are trying to mount a spec with security schemes

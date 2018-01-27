@@ -37,35 +37,13 @@ Vert.x provides a validation framework that will validate requests for you and w
 To define a `link:../../yardoc/VertxWebApiContract/HTTPRequestValidationHandler.html[HTTPRequestValidationHandler]`:
 [source,ruby]
 ----
-require 'vertx-web-api-contract/http_request_validation_handler'
-# Create Validation Handler with some stuff
-validationHandler = VertxWebApiContract::HTTPRequestValidationHandler.create().add_query_param("parameterName", :INT, true).add_form_param_with_pattern("formParameterName", "a{4}", true).add_path_param("pathParam", :FLOAT)
-
+`link:unavailable#example1-instance_method[example1]`
 ----
 
 Then you can mount your validation handler:
 [source,ruby]
 ----
-require 'vertx-web/body_handler'
-# BodyHandler is required to manage body parameters like forms or json body
-router.route().handler(&VertxWeb::BodyHandler.create().method(:handle))
-
-router.get("/awesome/:pathParam").handler(&validationHandler.method(:handle)).handler() { |routingContext|
-  # Get Request parameters container
-  params = routingContext.get("parsedParameters")
-
-  # Get parameters
-  parameterName = params.query_parameter("parameterName").get_integer()
-  formParameterName = params.form_parameter("formParameterName").get_string()
-  pathParam = params.path_parameter("pathParam").get_float()
-}.failure_handler() { |routingContext|
-  failure = routingContext.failure()
-  if (failure.class.name == 'Java::IoVertxExtWebApiValidation::ValidationException')
-    # Something went wrong during validation!
-    validationErrorMessage = failure.get_message()
-  end
-}
-
+`link:unavailable#example2-instance_method[example2]`
 ----
 
 If validation succeeds, It returns request parameters inside `link:../../yardoc/VertxWebApiContract/RequestParameters.html[RequestParameters]`, otherwise It will throw a `link:unavailable[ValidationException]`
@@ -83,31 +61,14 @@ Now you can handle parameter values:
 
 [source,ruby]
 ----
-params = routingContext.get("parsedParameters")
-awesomeParameter = params.query_parameter("awesomeParameter")
-if (awesomeParameter != nil)
-  if (!awesomeParameter.empty?())
-    # Parameter exists and isn't empty
-    # ParameterTypeValidator mapped the parameter in equivalent language object
-    awesome = awesomeParameter.get_integer()
-  else
-    # Parameter exists, but it's empty
-  end
-else
-  # Parameter doesn't exist (it's not required)
-end
-
+`link:unavailable#example3-instance_method[example3]`
 ----
 
 As you can see, every parameter is mapped in respective language objects. You can also get a json body:
 
 [source,ruby]
 ----
-body = params.body()
-if (body != nil)
-  jsonBody = body.get_json_object()
-end
-
+`link:unavailable#example4-instance_method[example4]`
 ----
 
 == OpenAPI 3 support
@@ -143,81 +104,44 @@ To create a new router factory, you can use methods inside `link:../../yardoc/Ve
 For example:
 [source,ruby]
 ----
-require 'vertx-web-api-contract/open_api3_router_factory'
-VertxWebApiContract::OpenAPI3RouterFactory.create_router_factory_from_file(vertx, "src/main/resources/petstore.yaml") { |ar_err,ar|
-  if (ar_err == nil)
-    # Spec loaded with success
-    routerFactory = ar
-  else
-    # Something went wrong during router factory initialization
-    exception = ar_err
-  end
-}
-
+`link:unavailable#construct_router_factory-instance_method[constructRouterFactory]`
 ----
 
 You can also construct a router factory from a remote spec:
 
 [source,ruby]
 ----
-require 'vertx-web-api-contract/open_api3_router_factory'
-VertxWebApiContract::OpenAPI3RouterFactory.create_router_factory_from_url(vertx, "https://raw.githubusercontent.com/OAI/OpenAPI-Specification/master/examples/v3.0/petstore.yaml") { |ar_err,ar|
-  if (ar_err == nil)
-    # Spec loaded with success
-    routerFactory = ar
-  else
-    # Something went wrong during router factory initialization
-    exception = ar_err
-  end
-}
-
+`link:unavailable#construct_router_factory_from_url-instance_method[constructRouterFactoryFromUrl]`
 ----
 
-You can also modify the behaviours of the router factory with `link:../dataobjects.html#DesignDrivenRouterFactoryOptions[DesignDrivenRouterFactoryOptions]`.
+You can also modify the behaviours of the router factory with `link:../dataobjects.html#RouterFactoryOptions[RouterFactoryOptions]`.
 For example you can ask to router factory to mount the validation failure handler but to not mount the not implemented handler as follows:
 
 [source,ruby]
 ----
-routerFactory = ar.result()
-# Create and mount options to router factory
-options = {
-  'mountNotImplementedHandler' => true,
-  'mountValidationFailureHandler' => false
-}
-
-routerFactory.set_options(options)
-
+`link:unavailable#mount_options-instance_method[mountOptions]`
 ----
 
 === Mount the handlers
 Now load your first path. There are two functions to load the handlers:
 
-* `link:../../yardoc/VertxWebApiContract/DesignDrivenRouterFactory.html#add_handler-instance_method[addHandler]`
+* `link:../../yardoc/VertxWebApiContract/RouterFactory.html#add_handler-instance_method[addHandler]`
 * `link:../../yardoc/VertxWebApiContract/OpenAPI3RouterFactory.html#add_handler_by_operation_id-instance_method[addHandlerByOperationId]`
 
 And, of course, two functions to load failure handlers
 
-* `link:../../yardoc/VertxWebApiContract/DesignDrivenRouterFactory.html#add_failure_handler-instance_method[addFailureHandler]`
+* `link:../../yardoc/VertxWebApiContract/RouterFactory.html#add_failure_handler-instance_method[addFailureHandler]`
 * `link:../../yardoc/VertxWebApiContract/OpenAPI3RouterFactory.html#add_failure_handler_by_operation_id-instance_method[addFailureHandlerByOperationId]`
 
 You can, of course, **add multiple handlers to same operation**, without overwrite the existing ones.
 
 .Path in OpenAPI format
-IMPORTANT: If you want to use `link:../../yardoc/VertxWebApiContract/DesignDrivenRouterFactory.html#add_handler-instance_method[addHandler]` or `link:../../yardoc/VertxWebApiContract/DesignDrivenRouterFactory.html#add_failure_handler-instance_method[addFailureHandler]` pay attention: You can provide a path only in OpenAPI styles (for example path `/hello/:param` doesn't work)
+IMPORTANT: If you want to use `link:../../yardoc/VertxWebApiContract/RouterFactory.html#add_handler-instance_method[addHandler]` or `link:../../yardoc/VertxWebApiContract/RouterFactory.html#add_failure_handler-instance_method[addFailureHandler]` pay attention: You can provide a path only in OpenAPI styles (for example path `/hello/:param` doesn't work)
 
 For example:
 [source,ruby]
 ----
-routerFactory.add_handler_by_operation_id("awesomeOperation") { |routingContext|
-  params = routingContext.get("parsedParameters")
-  body = params.body()
-  jsonBody = body.get_json_object()
-  # Do something with body
-}
-routerFactory.add_failure_handler_by_operation_id("awesomeOperation") { |routingContext|
-  # Handle failure
-}
-
+`link:unavailable#add_route-instance_method[addRoute]`
 ----
 
 .Add operations with operationId
@@ -231,36 +155,30 @@ For example:
 
 [source,ruby]
 ----
-routerFactory.add_security_handler("security_scheme_name", &securityHandler)
-
+`link:unavailable#add_security_handler-instance_method[addSecurityHandler]`
 ----
 
 You can of course use included Vert.x security handlers, for example:
 
 [source,ruby]
 ----
-require 'vertx-web/jwt_auth_handler'
-routerFactory.add_security_handler("jwt_auth", &VertxWeb::JWTAuthHandler.create(jwtAuthProvider).method(:handle))
-
+`link:unavailable#add_jwt-instance_method[addJWT]`
 ----
 
-=== Customize the router factory behaviours TODO add doc for router factory behaviours
-The router factory allows you to manage errors efficiently:
+=== Customize the router factory behaviours
+The router factory allows you to customize some behaviours during router generation with
+`link:../dataobjects.html#RouterFactoryOptions[RouterFactoryOptions]`. Router factory can:
 
-* It automatically mounts a 501 `Not Implemented` handler for operations where you haven't mounted any handler. You can enable/disable this feature with `link:../dataobjects.html#DesignDrivenRouterFactoryOptions#set_mount_not_implemented_handler-instance_method[mountNotImplementedHandler]` and you can
-* It automatically mounts a 400 `Bad Request` handler that manages `ValidationException` (You can enable/disable this feature via `link:../../yardoc/VertxWebApiContract/DesignDrivenRouterFactory.html#enable_validation_failure_handler-instance_method[enableValidationFailureHandler]`)
+* Mount a 501 `Not Implemented` handler for operations where you haven't mounted any handler
+* Mount a 400 `Bad Request` handler that manages `ValidationException`
+* Mount the `link:../../yardoc/VertxWeb/ResponseContentTypeHandler.html[ResponseContentTypeHandler]` handler when needed
+
+Give a deeper look at `link:../dataobjects.html#RouterFactoryOptions[RouterFactoryOptions]` documentation
 
 === Generate the router
 When you are ready, generate the router and use it:
 
 [source,ruby]
 ----
-router = routerFactory.get_router()
-
-server = vertx.create_http_server({
-  'port' => 8080,
-  'host' => "localhost"
-})
-server.request_handler(&router.method(:accept)).listen()
-
+`link:unavailable#generate_router-instance_method[generateRouter]`
 ----
