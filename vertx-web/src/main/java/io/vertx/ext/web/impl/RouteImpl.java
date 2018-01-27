@@ -16,6 +16,7 @@
 
 package io.vertx.ext.web.impl;
 
+import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.QueryStringDecoder;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpHeaders;
@@ -474,8 +475,8 @@ public class RouteImpl implements Route {
     if (router.getDecoderErrorHandler() == null)
       context.response()
         .putHeader(HttpHeaders.CONTENT_TYPE, "text/plain")
-        .setStatusMessage("Bad Request")
-        .setStatusCode(400)
+        .setStatusMessage(HttpResponseStatus.BAD_REQUEST.reasonPhrase())
+        .setStatusCode(HttpResponseStatus.BAD_REQUEST.code())
         .end(e.getMessage());
     else
       router.getDecoderErrorHandler().handle(context);
