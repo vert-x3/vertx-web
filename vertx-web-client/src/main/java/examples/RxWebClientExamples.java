@@ -1,6 +1,7 @@
 package examples;
 
 import io.vertx.core.json.JsonObject;
+import io.vertx.docgen.Source;
 import io.vertx.rxjava.core.buffer.Buffer;
 import io.vertx.rxjava.ext.web.codec.BodyCodec;
 import io.vertx.rxjava.ext.web.client.HttpResponse;
@@ -11,6 +12,7 @@ import rx.Single;
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
  */
+@Source
 public class RxWebClientExamples {
 
   public void simpleGet(WebClient client) {

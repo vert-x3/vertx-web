@@ -78,7 +78,9 @@ public class JadeTemplateEngineImpl extends CachingTemplateEngine<JadeTemplate> 
         }
       }
       Map<String, Object> variables = new HashMap<>(1);
-      variables.put("context", context);
+      variables.put("context", context);      
+      // Pass defined variables in context to engine
+      variables.putAll(context.data());
       handler.handle(Future.succeededFuture(Buffer.buffer(config.renderTemplate(template, variables))));
     } catch (Exception ex) {
       handler.handle(Future.failedFuture(ex));

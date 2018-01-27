@@ -42,6 +42,7 @@ class HttpRequestImpl<T> implements HttpRequest<T> {
   String protocol;
   int port;
   String host;
+  String virtualHost;
   String uri;
   MultiMap headers;
   long timeout = -1;
@@ -107,6 +108,12 @@ class HttpRequestImpl<T> implements HttpRequest<T> {
   @Override
   public HttpRequest<T> host(String value) {
     host = value;
+    return this;
+  }
+
+  @Override
+  public HttpRequest<T> virtualHost(String value) {
+    virtualHost = value;
     return this;
   }
 

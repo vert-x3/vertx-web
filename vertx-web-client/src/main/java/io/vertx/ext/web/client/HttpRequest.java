@@ -96,6 +96,23 @@ public interface HttpRequest<T> {
   HttpRequest<T> host(String value);
 
   /**
+   * Configure the request to use a virtual host {@code value}.
+   * <p/>
+   * Usually the header <i>host</i> (<i>:authority</i> pseudo header for HTTP/2) is set from the request host value
+   * since this host value resolves to the server IP address.
+   * <p/>
+   * Sometimes you need to set a host header for an address that does not resolve to the server IP address.
+   * The virtual host value overrides the value of the actual <i>host</i> header (<i>:authority</i> pseudo header
+   * for HTTP/2).
+   * <p/>
+   * The virtual host is also be used for SNI.
+   *
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  HttpRequest<T> virtualHost(String value);
+
+  /**
    * Configure the request to use a new request URI {@code value}.
    * <p>
    * When the uri has query parameters, they are set in the {@link #queryParams()} multimap, overwritting
