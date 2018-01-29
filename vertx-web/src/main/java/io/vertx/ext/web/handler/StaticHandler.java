@@ -241,11 +241,11 @@ public interface StaticHandler extends Handler<RoutingContext> {
   /**
    * Set the file mapping for http2push and link preload
    *
-   * @param http2PushMap the mapping for http2 push
+   * @param http2PushMappings the mapping for http2 push
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
-  StaticHandler setHttp2PushMapping(Map<String, List<Http2PushMapping>> http2PushMap);
+  StaticHandler setHttp2PushMapping(List<Http2PushMapping> http2PushMappings);
 
   /**
    * Set whether async filesystem access should always be used

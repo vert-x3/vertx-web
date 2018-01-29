@@ -67,7 +67,7 @@ public class StaticHandlerImpl implements StaticHandler {
   private boolean cachingEnabled = DEFAULT_CACHING_ENABLED;
   private long cacheEntryTimeout = DEFAULT_CACHE_ENTRY_TIMEOUT;
   private String indexPage = DEFAULT_INDEX_PAGE;
-  private Map<String, List<Http2PushMapping>> http2PushMap;
+  private List<Http2PushMapping> http2PushMappings;
   private int maxCacheSize = DEFAULT_MAX_CACHE_SIZE;
   private boolean rangeSupport = DEFAULT_RANGE_SUPPORT;
   private boolean allowRootFileSystemAccess = DEFAULT_ROOT_FILESYSTEM_ACCESS;
@@ -409,11 +409,8 @@ public class StaticHandlerImpl implements StaticHandler {
           }
 
           // http2 pushing support
-          if (request.version() == HttpVersion.HTTP_2 && http2PushMap != null) {
-
-            for(Map.Entry<String, List<Http2PushMapping>> http2PushEntry : http2PushMap.entrySet()) {
-
-              for (Http2PushMapping dependency : http2PushEntry.getValue()) {
+          if (request.version() == HttpVersion.HTTP_2 && http2PushMappings != null) {
+              for (Http2PushMapping dependency : http2PushMappings) {
                 if (!dependency.isNoPush()) {
                   final String dep = webRoot + "/" + dependency.getFilePath();
                   HttpServerResponse response = request.response();
@@ -434,35 +431,31 @@ public class StaticHandlerImpl implements StaticHandler {
                               res.putHeader("Content-Type", contentType);
                             }
                           }
+                          res.sendFile(webRoot + "/" + dependency.getFilePath());
                         }
                       });
                     }
                   });
                 }
               }
-            }
-          } else if (http2PushMap != null) {
+
+          } else if (http2PushMappings != null) {
             //Link preload when file push is not supported
-
-            for (Map.Entry<String, List<Http2PushMapping>> http2PushEntry : http2PushMap.entrySet()) {
-
-              HttpServerResponse response = request.response();
-              List<String> links = new ArrayList<>();
-              for (Http2PushMapping dependency : http2PushEntry.getValue()) {
-                final String dep = webRoot + "/" + dependency.getFilePath();
-
-                // get the file props
-                getFileProps(context, dep, filePropsAsyncResult -> {
-                  if (filePropsAsyncResult.succeeded()) {
-                    // push
-                    writeCacheHeaders(request, filePropsAsyncResult.result());
-                    links.add("<" + dependency.getFilePath() + ">; rel=preload; as="
-                        + dependency.getExtensionTarget() + (dependency.isNoPush() ? "; nopush" : ""));
-                  }
-                });
-              }
-              response.putHeader("Link", links);
+            HttpServerResponse response = request.response();
+            List<String> links = new ArrayList<>();
+            for (Http2PushMapping dependency : http2PushMappings) {
+              final String dep = webRoot + "/" + dependency.getFilePath();
+              // get the file props
+              getFileProps(context, dep, filePropsAsyncResult -> {
+                if (filePropsAsyncResult.succeeded()) {
+                  // push
+                  writeCacheHeaders(request, filePropsAsyncResult.result());
+                  links.add("<" + dependency.getFilePath() + ">; rel=preload; as="
+                      + dependency.getExtensionTarget() + (dependency.isNoPush() ? "; nopush" : ""));
+                }
+              });
             }
+            response.putHeader("Link", links);
           }
 
           return request.response().sendFile(file, res2 -> {
@@ -568,8 +561,8 @@ public class StaticHandlerImpl implements StaticHandler {
   }
 
   @Override
-  public StaticHandler setHttp2PushMapping(Map<String, List<Http2PushMapping>> http2PushMap) {
-    if(http2PushMap != null) this.http2PushMap = new HashMap<>(http2PushMap);
+  public StaticHandler setHttp2PushMapping(List<Http2PushMapping> http2PushMap) {
+    if(http2PushMap != null) this.http2PushMappings = new ArrayList<>(http2PushMap);
     return this;
   }
 

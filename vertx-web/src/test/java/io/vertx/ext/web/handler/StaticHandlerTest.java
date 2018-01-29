@@ -17,7 +17,15 @@
 package io.vertx.ext.web.handler;
 
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.HttpVersion;
+import io.vertx.core.http.HttpServer;
+import io.vertx.core.http.HttpClient;
+import io.vertx.core.http.HttpServerOptions;
+import io.vertx.core.http.HttpClientOptions;
+import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.json.JsonArray;
+import io.vertx.core.net.PemKeyCertOptions;
+import io.vertx.ext.web.Http2PushMapping;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.impl.Utils;
 import io.vertx.ext.web.WebTestBase;
@@ -25,6 +33,8 @@ import org.junit.Test;
 
 import java.io.File;
 import java.text.DateFormat;
+import java.util.List;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
@@ -152,6 +162,95 @@ public class StaticHandlerTest extends WebTestBase {
       assertEquals("application/json", contentType);
       assertEquals(fileSize("src/test/resources/webroot/foo.json"), Integer.valueOf(contentLength).intValue());
     }, 200, "OK", null);
+  }
+
+  @Test
+  public void testNoLinkPreload() throws Exception {
+    stat.setWebRoot("webroot/somedir3");
+    testRequest(HttpMethod.GET, "/testLinkPreload.html", null, res -> {
+      List<String> linkHeaders = res.headers().getAll("Link");
+      assertTrue(linkHeaders.isEmpty());
+    }, 200, "OK", null);
+  }
+
+  @Test
+  public void testLinkPreload() throws Exception {
+    List<Http2PushMapping> mappings = new ArrayList<>();
+    mappings.add(new Http2PushMapping("style.css", "style", false));
+    mappings.add(new Http2PushMapping("coin.png", "image", false));
+    stat.setHttp2PushMapping(mappings)
+        .setWebRoot("webroot/somedir3");
+    testRequest(HttpMethod.GET, "/testLinkPreload.html", null, res -> {
+      List<String> linkHeaders = res.headers().getAll("Link");
+      assertTrue(linkHeaders.contains("<style.css>; rel=preload; as=style"));
+      assertTrue(linkHeaders.contains("<coin.png>; rel=preload; as=image"));
+    }, 200, "OK", null);
+  }
+
+  @Test
+  public void testNoHttp2Push() throws Exception {
+    stat.setWebRoot("webroot/somedir3");
+    router.route().handler(stat);
+    HttpServer http2Server = vertx.createHttpServer(new HttpServerOptions()
+        .setUseAlpn(true)
+        .setSsl(true)
+        .setPemKeyCertOptions(new PemKeyCertOptions().setKeyPath("tls/key.pem").setCertPath("tls/cert.pem")
+        ));
+    http2Server.requestHandler(router::accept).listen(8443);
+
+    HttpClientOptions options = new HttpClientOptions().
+        setSsl(true).
+        setUseAlpn(true).
+        setProtocolVersion(HttpVersion.HTTP_2).
+        setTrustAll(true);
+    HttpClient client = vertx.createHttpClient(options);
+    HttpClientRequest request = client.get(8443, "localhost", "/testLinkPreload.html", resp -> {
+      assertEquals(200, resp.statusCode());
+      assertEquals(HttpVersion.HTTP_2, resp.version());
+      resp.bodyHandler(this::assertNotNull);
+      testComplete();
+    });
+    request.pushHandler(pushedReq -> pushedReq.handler(pushedResp -> {
+      fail();
+    }));
+    request.end();
+    await();
+  }
+
+  @Test
+  public void testHttp2Push() throws Exception {
+    List<Http2PushMapping> mappings = new ArrayList<>();
+    mappings.add(new Http2PushMapping("style.css", "style", false));
+    mappings.add(new Http2PushMapping("coin.png", "image", false));
+    stat.setHttp2PushMapping(mappings)
+        .setWebRoot("webroot/somedir3");
+    router.route().handler(stat);
+    HttpServer http2Server = vertx.createHttpServer(new HttpServerOptions()
+        .setUseAlpn(true)
+        .setSsl(true)
+        .setPemKeyCertOptions(new PemKeyCertOptions().setKeyPath("tls/key.pem").setCertPath("tls/cert.pem")
+        ));
+    http2Server.requestHandler(router::accept).listen(8443);
+
+    HttpClientOptions options = new HttpClientOptions().
+        setSsl(true).
+        setUseAlpn(true).
+        setProtocolVersion(HttpVersion.HTTP_2).
+        setTrustAll(true);
+    HttpClient client = vertx.createHttpClient(options);
+    HttpClientRequest request = client.get(8443, "localhost", "/testLinkPreload.html", resp -> {
+      assertEquals(200, resp.statusCode());
+      assertEquals(HttpVersion.HTTP_2, resp.version());
+      resp.bodyHandler(this::assertNotNull);
+    });
+    CountDownLatch latch = new CountDownLatch(2);
+    request.pushHandler(pushedReq -> pushedReq.handler(pushedResp -> {
+      assertNotNull(pushedResp);
+      pushedResp.bodyHandler(this::assertNotNull);
+      latch.countDown();
+    }));
+    request.end();
+    latch.await();
   }
 
   @Test
@@ -323,47 +422,55 @@ public class StaticHandlerTest extends WebTestBase {
   @Test
   public void testDirectoryListingText() throws Exception {
     stat.setDirectoryListing(true);
-    Set<String> expected = new HashSet<>(Arrays.asList(".hidden.html", "a", "foo.json", "index.html", "otherpage.html", "somedir", "somedir2", "file with spaces.html"));
-    testRequest(HttpMethod.GET, "/", null, resp -> resp.bodyHandler(buff -> {
-      String sBuff = buff.toString();
-      String[] elems = sBuff.split("\n");
-      assertEquals(expected.size(), elems.length);
-      for (String elem : elems) {
-        assertTrue(expected.contains(elem));
-      }
-    }), 200, "OK", null);
+    Set<String> expected = new HashSet<>(Arrays.asList(".hidden.html", "a", "foo.json", "index.html", "otherpage.html", "somedir", "somedir2", "somedir3", "file with spaces.html"));
+    testRequest(HttpMethod.GET, "/", null, resp -> {
+      resp.bodyHandler(buff -> {
+        String sBuff = buff.toString();
+        String[] elems = sBuff.split("\n");
+        assertEquals(expected.size(), elems.length);
+        for (String elem : elems) {
+          assertTrue(expected.contains(elem));
+        }
+      });
+    }, 200, "OK", null);
   }
 
   @Test
   public void testDirectoryListingTextNoHidden() throws Exception {
     stat.setDirectoryListing(true);
     stat.setIncludeHidden(false);
-    Set<String> expected = new HashSet<>(Arrays.asList("foo.json", "a", "index.html", "otherpage.html", "somedir", "somedir2", "file with spaces.html"));
-    testRequest(HttpMethod.GET, "/", null, resp -> resp.bodyHandler(buff -> {
-      assertEquals("text/plain", resp.headers().get("content-type"));
-      String sBuff = buff.toString();
-      String[] elems = sBuff.split("\n");
-      assertEquals(expected.size(), elems.length);
-      for (String elem: elems) {
-        assertTrue(expected.contains(elem));
-      }
-    }), 200, "OK", null);
+    Set<String> expected = new HashSet<>(Arrays.asList("foo.json", "a", "index.html", "otherpage.html", "somedir", "somedir2", "somedir3", "file with spaces.html"));
+    testRequest(HttpMethod.GET, "/", null, resp -> {
+      resp.bodyHandler(buff -> {
+        assertEquals("text/plain", resp.headers().get("content-type"));
+        String sBuff = buff.toString();
+        String[] elems = sBuff.split("\n");
+        assertEquals(expected.size(), elems.length);
+        for (String elem: elems) {
+          assertTrue(expected.contains(elem));
+        }
+      });
+    }, 200, "OK", null);
   }
 
   @Test
   public void testDirectoryListingJson() throws Exception {
     stat.setDirectoryListing(true);
-    Set<String> expected = new HashSet<>(Arrays.asList(".hidden.html", "foo.json", "index.html", "otherpage.html", "a", "somedir", "somedir2", "file with spaces.html"));
-    testRequest(HttpMethod.GET, "/", req -> req.putHeader("accept", "application/json"), resp -> resp.bodyHandler(buff -> {
-      assertEquals("application/json", resp.headers().get("content-type"));
-      String sBuff = buff.toString();
-      JsonArray arr = new JsonArray(sBuff);
-      assertEquals(expected.size(), arr.size());
-      for (Object elem: arr) {
-        assertTrue(expected.contains(elem));
-      }
-      testComplete();
-    }), 200, "OK", null);
+    Set<String> expected = new HashSet<>(Arrays.asList(".hidden.html", "foo.json", "index.html", "otherpage.html", "a", "somedir", "somedir2", "somedir3", "file with spaces.html"));
+    testRequest(HttpMethod.GET, "/", req -> {
+      req.putHeader("accept", "application/json");
+    }, resp -> {
+      resp.bodyHandler(buff -> {
+        assertEquals("application/json", resp.headers().get("content-type"));
+        String sBuff = buff.toString();
+        JsonArray arr = new JsonArray(sBuff);
+        assertEquals(expected.size(), arr.size());
+        for (Object elem: arr) {
+          assertTrue(expected.contains(elem));
+        }
+        testComplete();
+      });
+    }, 200, "OK", null);
     await();
   }
 
@@ -371,17 +478,21 @@ public class StaticHandlerTest extends WebTestBase {
   public void testDirectoryListingJsonNoHidden() throws Exception {
     stat.setDirectoryListing(true);
     stat.setIncludeHidden(false);
-    Set<String> expected = new HashSet<>(Arrays.asList("foo.json", "a", "index.html", "otherpage.html", "somedir", "somedir2", "file with spaces.html"));
-    testRequest(HttpMethod.GET, "/", req -> req.putHeader("accept", "application/json"), resp -> resp.bodyHandler(buff -> {
-      assertEquals("application/json", resp.headers().get("content-type"));
-      String sBuff = buff.toString();
-      JsonArray arr = new JsonArray(sBuff);
-      assertEquals(expected.size(), arr.size());
-      for (Object elem: arr) {
-        assertTrue(expected.contains(elem));
-      }
-      testComplete();
-    }), 200, "OK", null);
+    Set<String> expected = new HashSet<>(Arrays.asList("foo.json", "a", "index.html", "otherpage.html", "somedir", "somedir2", "somedir3", "file with spaces.html"));
+    testRequest(HttpMethod.GET, "/", req -> {
+      req.putHeader("accept", "application/json");
+    }, resp -> {
+      resp.bodyHandler(buff -> {
+        assertEquals("application/json", resp.headers().get("content-type"));
+        String sBuff = buff.toString();
+        JsonArray arr = new JsonArray(sBuff);
+        assertEquals(expected.size(), arr.size());
+        for (Object elem: arr) {
+          assertTrue(expected.contains(elem));
+        }
+        testComplete();
+      });
+    }, 200, "OK", null);
     await();
   }
 
