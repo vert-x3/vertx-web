@@ -253,4 +253,34 @@ public class HTTPRequestValidationTest extends WebTestValidationBase {
     testRequestWithForm(HttpMethod.POST, "/testFormParam?parameter=" + queryParam, FormType.FORM_URLENCODED, form,
       200, formParam);
   }
+
+  @Test
+  public void testValidationHandlerChaining() throws Exception {
+    HTTPRequestValidationHandler validationHandler1 = HTTPRequestValidationHandler
+      .create()
+      .addQueryParam("param1", ParameterType.INT, true);
+    HTTPRequestValidationHandler validationHandler2 = HTTPRequestValidationHandler
+      .create()
+      .addQueryParam("param2", ParameterType.BOOL, true);
+    router.route().handler(BodyHandler.create());
+    router.get("/testHandlersChaining")
+      .handler(validationHandler1)
+      .handler(validationHandler2)
+      .handler(routingContext -> {
+        RequestParameters params = routingContext.get("parsedParameters");
+        assertNotNull(params.queryParameter("param1"));
+        assertNotNull(params.queryParameter("param2"));
+        routingContext
+          .response()
+          .setStatusMessage(
+            params.queryParameter("param1").getInteger().toString() +
+              params.queryParameter("param2").getBoolean()
+          ).end();
+    }).failureHandler(generateFailureHandler(false));
+
+    String param1 = getSuccessSample(ParameterType.INT).getInteger().toString();
+    String param2 = getSuccessSample(ParameterType.BOOL).getBoolean().toString();
+
+    testRequest(HttpMethod.GET, "/testHandlersChaining?param1=10&param2=true", 200, "10true");
+  }
 }
