@@ -449,4 +449,13 @@ public class Utils extends io.vertx.core.impl.Utils {
     else
       return node.toString();
   }
+
+  public static boolean isJsonContentType(String contentType) {
+    return contentType.contains("application/json") || contentType.contains("+json");
+  }
+
+  public static boolean isXMLContentType(String contentType) {
+    return contentType.contains("application/xml") || contentType.contains("text/xml") || contentType.contains("+xml");
+  }
+
 }

@@ -1,7 +1,6 @@
 package io.vertx.ext.web.api.validation.impl;
 
 import io.vertx.ext.web.api.RequestParameter;
-import io.vertx.ext.web.api.validation.ParameterTypeValidator;
 import io.vertx.ext.web.api.validation.ValidationException;
 
 import java.util.regex.Pattern;
@@ -9,19 +8,17 @@ import java.util.regex.Pattern;
 /**
  * @author Francesco Guardiani @slinkydeveloper
  */
-public class StringTypeValidator implements ParameterTypeValidator {
+public class StringTypeValidator extends SingleValueParameterTypeValidator<String> {
 
   private Pattern pattern;
   private Integer minLength;
   private Integer maxLength;
 
-  private String defaultValue;
-
   public StringTypeValidator(String pattern, Integer minLength, Integer maxLength, String defaultValue) {
+    super(defaultValue);
     this.pattern = (pattern != null) ? Pattern.compile(pattern) : null;
     this.minLength = minLength;
     this.maxLength = maxLength;
-    this.defaultValue = defaultValue;
   }
 
   public StringTypeValidator(String pattern, String defaultValue) {
@@ -46,22 +43,10 @@ public class StringTypeValidator implements ParameterTypeValidator {
     else return true;
   }
 
-  /**
-   * Function that check if parameter is valid
-   *
-   * @param value value of parameter to test
-   * @return true if parameter is valid
-   */
   @Override
-  public RequestParameter isValid(String value) {
-    if (value == null || value.length() == 0) return RequestParameter.create(getDefault());
+  public RequestParameter isValidSingleParam(String value) {
     if (!checkMinLength(value) || !checkMaxLength(value) || (pattern != null && !pattern.matcher(value).matches()))
       throw ValidationException.ValidationExceptionFactory.generateNotMatchValidationException(null);
     else return RequestParameter.create(value);
-  }
-
-  @Override
-  public Object getDefault() {
-    return defaultValue;
   }
 }

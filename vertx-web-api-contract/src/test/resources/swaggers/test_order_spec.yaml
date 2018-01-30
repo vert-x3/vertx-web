@@ -1,0 +1,27 @@
+openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: Test spec for OpenAPI3RouterFactoryTest.mountHandlersOrderTest()
+paths:
+  /product/special:
+    get:
+      summary: Get special product
+      operationId: showSpecialProduct
+      responses:
+        default:
+          description: ok
+  /product/{id}:
+    get:
+      summary: Product detail
+      operationId: showProductById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The id of the product to retrieve
+          schema:
+            type: integer
+            format: int32
+      responses:
+        default:
+          description: ok

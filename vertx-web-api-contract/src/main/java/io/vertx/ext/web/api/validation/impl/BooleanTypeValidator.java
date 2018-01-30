@@ -1,32 +1,24 @@
 package io.vertx.ext.web.api.validation.impl;
 
 import io.vertx.ext.web.api.RequestParameter;
-import io.vertx.ext.web.api.validation.ParameterTypeValidator;
 import io.vertx.ext.web.api.validation.ValidationException;
 
 /**
  * @author Francesco Guardiani @slinkydeveloper
  */
-public class BooleanTypeValidator implements ParameterTypeValidator {
-
-  Boolean defaultValue;
+public class BooleanTypeValidator extends SingleValueParameterTypeValidator<Boolean> {
 
   public BooleanTypeValidator(Boolean defaultValue) {
-    this.defaultValue = defaultValue;
+    super(defaultValue);
   }
 
   @Override
-  public RequestParameter isValid(String value) {
-    if (value == null || value.length() == 0) return RequestParameter.create(getDefault());
-    else if (value.equalsIgnoreCase("true") || value.equalsIgnoreCase("t") || value.equalsIgnoreCase("1"))
-      return RequestParameter.create(Boolean.valueOf(true));
+  public RequestParameter isValidSingleParam(String value) {
+    if (value.equalsIgnoreCase("true") || value.equalsIgnoreCase("t") || value.equalsIgnoreCase("1"))
+      return RequestParameter.create(true);
     else if (value.equalsIgnoreCase("false") || value.equalsIgnoreCase("f") || value.equalsIgnoreCase("0"))
-      return RequestParameter.create(Boolean.valueOf(false));
-    else throw ValidationException.ValidationExceptionFactory.generateNotMatchValidationException(null);
-  }
-
-  @Override
-  public Object getDefault() {
-    return defaultValue;
+      return RequestParameter.create(false);
+    else
+      throw ValidationException.ValidationExceptionFactory.generateNotMatchValidationException(null);
   }
 }

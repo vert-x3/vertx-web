@@ -1,8 +1,8 @@
 package io.vertx.ext.web.api.validation;
 
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.ext.web.impl.Utils;
 import io.vertx.ext.web.api.validation.impl.SplitterCharContainerDeserializer;
+import io.vertx.ext.web.impl.Utils;
 
 import java.util.*;
 import java.util.regex.Matcher;

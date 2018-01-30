@@ -11,7 +11,7 @@ import io.vertx.ext.web.api.validation.ValidationException;
 public abstract class ContainerTypeValidator<DeserializationResult> implements ParameterTypeValidator {
 
   private ContainerDeserializer containerDeserializer;
-  private boolean exploded; //TODO remove, it's useless
+  private boolean exploded;
 
   public ContainerTypeValidator(ContainerDeserializer collectionFormat, boolean exploded) {
     this.containerDeserializer = collectionFormat;

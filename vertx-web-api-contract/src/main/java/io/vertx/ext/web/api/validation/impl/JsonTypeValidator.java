@@ -1,13 +1,13 @@
 package io.vertx.ext.web.api.validation.impl;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.networknt.schema.JsonSchema;
 import com.networknt.schema.JsonSchemaFactory;
 import com.networknt.schema.ValidationMessage;
+import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.api.RequestParameter;
-import io.vertx.ext.web.impl.Utils;
 import io.vertx.ext.web.api.validation.ParameterTypeValidator;
 import io.vertx.ext.web.api.validation.ValidationException;
 
@@ -28,27 +28,40 @@ public class JsonTypeValidator implements ParameterTypeValidator {
   @Override
   public RequestParameter isValid(String value) throws ValidationException {
     try {
-      Set<ValidationMessage> errors = schema.validate(new ObjectMapper().readTree(value));
-      if (!errors.isEmpty())
-        throw ValidationException.ValidationExceptionFactory.generateInvalidJsonBodyException(errors.toString());
-      return RequestParameter.create(new JsonObject(value));
+      JsonNode node;
+      if (value == null)
+        throw ValidationException.ValidationExceptionFactory.generateNotParsableJsonBodyException("Json should not be null");
+      else if (value.length() == 0)
+        node = JsonNodeFactory.instance.textNode("");
+      else
+        node = Json.mapper.readTree(value);
+
+      Set<ValidationMessage> errors = schema.validate(node);
+      if (errors.size() == 0) {
+        return RequestParameter.create(new JsonObject(value));
+      } else {
+        throw ValidationException.ValidationExceptionFactory.generateInvalidJsonBodyException(errors.iterator().next().toString());
+      }
     } catch (IOException e) {
-      throw ValidationException.ValidationExceptionFactory.generateNotParsableJsonBodyException();
+      throw ValidationException.ValidationExceptionFactory.generateNotParsableJsonBodyException(e.getMessage());
     }
   }
 
   public static class JsonTypeValidatorFactory {
-    public static JsonTypeValidator createJsonTypeValidator(JsonNode node) {
-      return new JsonTypeValidator(new JsonSchemaFactory().getSchema(node));
+
+    public static JsonTypeValidator createJsonTypeValidator(JsonNode schema) {
+      return new JsonTypeValidator(JsonSchemaFactory.getInstance().getSchema(schema));
     }
 
-    public static JsonTypeValidator createJsonTypeValidator(String object) {
-      if (object.length() != 0) return createJsonTypeValidator(Utils.toJsonNode(object));
+    public static JsonTypeValidator createJsonTypeValidator(String schema) {
+      if (schema.length() != 0) {
+        try {
+          return createJsonTypeValidator(Json.mapper.readTree(schema));
+        } catch (IOException e) {
+          throw new IllegalArgumentException("schema provided is invalid: " + e);
+        }
+      }
       else return null;
-    }
-
-    public static JsonTypeValidator createJsonTypeValidator(JsonObject object) {
-      return createJsonTypeValidator(Utils.toJsonNode(object));
     }
   }
 

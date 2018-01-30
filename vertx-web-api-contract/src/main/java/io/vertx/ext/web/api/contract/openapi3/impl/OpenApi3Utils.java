@@ -1,20 +1,40 @@
 package io.vertx.ext.web.api.contract.openapi3.impl;
 
-import io.swagger.oas.models.media.ComposedSchema;
-import io.swagger.oas.models.media.Schema;
-import io.swagger.oas.models.parameters.Parameter;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.networknt.schema.JsonSchema;
+import com.networknt.schema.JsonSchemaFactory;
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.media.ComposedSchema;
+import io.swagger.v3.oas.models.media.MediaType;
+import io.swagger.v3.oas.models.media.Schema;
+import io.swagger.v3.oas.models.parameters.Parameter;
+import io.swagger.v3.parser.ObjectMapperFactory;
+import io.swagger.v3.parser.core.models.ParseOptions;
+import io.vertx.core.json.Json;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.api.validation.SpecFeatureNotSupportedException;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.function.Predicate;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * @author Francesco Guardiani @slinkydeveloper
  */
 public class OpenApi3Utils {
+
+  public static ParseOptions getParseOptions() {
+    ParseOptions options = new ParseOptions();
+    options.setResolve(true);
+    options.setResolveCombinators(false);
+    options.setResolveFully(true);
+    return options;
+  }
 
   public static boolean isParameterArrayType(Parameter parameter) {
     if (parameter.getSchema() != null && parameter.getSchema().getType() != null)
@@ -27,7 +47,11 @@ public class OpenApi3Utils {
   }
 
   public static boolean isSchemaObjectOrAllOfType(Schema schema) {
-    return schema != null && (isAllOfSchema(schema) || "object".equals(schema.getType()));
+    return isSchemaObject(schema) || isAllOfSchema(schema);
+  }
+
+  public static boolean isSchemaObject(Schema schema) {
+    return schema != null && ("object".equals(schema.getType()) || schema.getProperties() != null);
   }
 
   public static boolean isRequiredParam(Schema schema, String parameterName) {
@@ -55,19 +79,19 @@ public class OpenApi3Utils {
   }
 
   public static boolean isOneOfSchema(Schema schema) {
-    if(!(schema instanceof ComposedSchema)) return false;
+    if (!(schema instanceof ComposedSchema)) return false;
     ComposedSchema composedSchema = (ComposedSchema) schema;
     return (composedSchema.getOneOf() != null && composedSchema.getOneOf().size() != 0);
   }
 
   public static boolean isAnyOfSchema(Schema schema) {
-    if(!(schema instanceof ComposedSchema)) return false;
+    if (!(schema instanceof ComposedSchema)) return false;
     ComposedSchema composedSchema = (ComposedSchema) schema;
     return (composedSchema.getAnyOf() != null && composedSchema.getAnyOf().size() != 0);
   }
 
   public static boolean isAllOfSchema(Schema schema) {
-    if(!(schema instanceof ComposedSchema)) return false;
+    if (!(schema instanceof ComposedSchema)) return false;
     ComposedSchema composedSchema = (ComposedSchema) schema;
     return (composedSchema.getAllOf() != null && composedSchema.getAllOf().size() != 0);
   }
@@ -152,7 +176,7 @@ public class OpenApi3Utils {
     for (Schema schema : allOfSchemas) {
       if (schema.getType() != null && !schema.getType().equals("object"))
         throw new SpecFeatureNotSupportedException("allOf only allows inner object types");
-      for (Map.Entry<String, ? extends Schema> entry : ((Map<String, Schema>)schema.getProperties()).entrySet()) {
+      for (Map.Entry<String, ? extends Schema> entry : ((Map<String, Schema>) schema.getProperties()).entrySet()) {
         properties.put(entry.getKey(), new OpenApi3Utils.ObjectField(entry.getValue(), entry.getKey(), schema));
       }
     }
@@ -169,12 +193,88 @@ public class OpenApi3Utils {
       } else {
         // type object case
         Map<String, ObjectField> properties = new HashMap<>();
-        for (Map.Entry<String, ? extends Schema> entry : ((Map<String, Schema>)schema.getProperties()).entrySet()) {
+        for (Map.Entry<String, ? extends Schema> entry : ((Map<String, Schema>) schema.getProperties()).entrySet()) {
           properties.put(entry.getKey(), new OpenApi3Utils.ObjectField(entry.getValue(), entry.getKey(), schema));
         }
         return properties;
       }
     } else return null;
+  }
+
+  private final static Pattern COMPONENTS_REFS_MATCHER = Pattern.compile("^\\#\\/components\\/schemas\\/(.+)$");
+  private final static String COMPONENTS_REFS_SUBSTITUTION = "\\#\\/definitions\\/$1";
+
+  public static JsonNode generateSanitizedJsonSchemaNode(Schema s, OpenAPI oas) {
+    ObjectNode node = ObjectMapperFactory.createJson().convertValue(s, ObjectNode.class);
+    walkAndSolve(node, node, oas);
+    return node;
+  }
+
+  private static void walkAndSolve(ObjectNode n, ObjectNode root, OpenAPI oas) {
+    if (n.has("$ref")) {
+      replaceRef(n, root, oas);
+    } else if (n.has("allOf")) {
+      Iterator<JsonNode> it = n.get("allOf").iterator();
+      while (it.hasNext()) {
+        // We assert that parser validated allOf as array of objects
+        walkAndSolve((ObjectNode) it.next(), root, oas);
+      }
+    } else if (n.has("anyOf")) {
+      Iterator<JsonNode> it = n.get("anyOf").iterator();
+      while (it.hasNext()) {
+        walkAndSolve((ObjectNode) it.next(), root, oas);
+      }
+    } else if (n.has("oneOf")) {
+      Iterator<JsonNode> it = n.get("oneOf").iterator();
+      while (it.hasNext()) {
+        walkAndSolve((ObjectNode) it.next(), root, oas);
+      }
+    } else if (n.has("properties")) {
+      ObjectNode properties = (ObjectNode) n.get("properties");
+      Iterator<String> it = properties.fieldNames();
+      while (it.hasNext()) {
+        walkAndSolve((ObjectNode) properties.get(it.next()), root, oas);
+      }
+    } else if (n.has("items")) {
+      walkAndSolve((ObjectNode) n.get("items"), root, oas);
+    }
+  }
+
+  private static void replaceRef(ObjectNode n, ObjectNode root, OpenAPI oas) {
+    /**
+     * If a ref is found, the structure of the schema is circular. The oas parser don't solve circular refs.
+     * So I bundle the schema:
+     * 1. I update the ref field with a #/definitions/schema_name uri
+     * 2. If #/definitions/schema_name is empty, I solve it
+     */
+    String oldRef = n.get("$ref").asText();
+    Matcher m = COMPONENTS_REFS_MATCHER.matcher(oldRef);
+    if (m.lookingAt()) {
+      String schemaName = m.group(1);
+      String newRef = m.replaceAll(COMPONENTS_REFS_SUBSTITUTION);
+      n.remove("$ref");
+      n.put("$ref", newRef);
+      if (!root.has("definitions") || !root.get("definitions").has(schemaName)) {
+        Schema s = oas.getComponents().getSchemas().get(schemaName);
+        ObjectNode schema = ObjectMapperFactory.createJson().convertValue(s, ObjectNode.class);
+        // We need to search inside for other refs
+        if (!root.has("definitions")) {
+          ObjectNode definitions = JsonNodeFactory.instance.objectNode();
+          definitions.set(schemaName, schema);
+          root.putObject("definitions");
+        } else {
+          ((ObjectNode)root.get("definitions")).set(schemaName, schema);
+        }
+        walkAndSolve(schema, root, oas);
+      }
+    } else throw new RuntimeException("Wrong ref! " + oldRef);
+  }
+
+  public static List<MediaType> extractTypesFromMediaTypesMap(Map<String, MediaType> types, Predicate<String> matchingFunction) {
+    return types
+      .entrySet().stream()
+      .filter(e -> matchingFunction.test(e.getKey()))
+      .map(Map.Entry::getValue).collect(Collectors.toList());
   }
 
 }

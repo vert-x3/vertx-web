@@ -23,7 +23,7 @@ public class SplitterCharContainerDeserializer implements ContainerDeserializer 
   public List<String> deserializeArray(String serialized) throws ValidationException {
     List<String> values = new ArrayList<>();
     for (String v : serialized.split(separator, -1)) {
-      values.add(v);
+      values.add(this.nullateValue(v));
     }
     return values;
   }
@@ -42,10 +42,14 @@ public class SplitterCharContainerDeserializer implements ContainerDeserializer 
         throw ValidationException.ValidationExceptionFactory.generateDeserializationError("DeserializationError: " +
           "Empty key not allowed");
       } else {
-        result.put(values[i], values[i + 1]);
+        result.put(values[i], this.nullateValue(values[i + 1]));
       }
     }
     return result;
+  }
+
+  private String nullateValue(String v) {
+    return v.length() == 0 ? null : v;
   }
 
 }

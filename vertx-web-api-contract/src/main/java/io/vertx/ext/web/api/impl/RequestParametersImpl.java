@@ -3,10 +3,7 @@ package io.vertx.ext.web.api.impl;
 import io.vertx.ext.web.api.RequestParameter;
 import io.vertx.ext.web.api.RequestParameters;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author Francesco Guardiani @slinkydeveloper
@@ -51,6 +48,20 @@ public class RequestParametersImpl implements RequestParameters {
 
   public void setBody(RequestParameter body) {
     this.body = body;
+  }
+
+  public void merge(RequestParametersImpl other) {
+    if (other.pathParameters != null)
+      this.pathParameters.putAll(other.pathParameters);
+    if (other.queryParameters != null)
+      this.queryParameters.putAll(other.queryParameters);
+    if (other.headerParameters != null)
+      this.headerParameters.putAll(other.headerParameters);
+    if (other.cookieParameters != null)
+      this.cookieParameters.putAll(other.cookieParameters);
+    if (other.formParameters != null)
+      this.formParameters.putAll(other.formParameters);
+    this.body = (other.body == null) ? this.body : other.body;
   }
 
   @Override
@@ -106,5 +117,23 @@ public class RequestParametersImpl implements RequestParameters {
   @Override
   public RequestParameter body() {
     return body;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    RequestParametersImpl that = (RequestParametersImpl) o;
+    return Objects.equals(pathParameters, that.pathParameters) &&
+      Objects.equals(queryParameters, that.queryParameters) &&
+      Objects.equals(headerParameters, that.headerParameters) &&
+      Objects.equals(cookieParameters, that.cookieParameters) &&
+      Objects.equals(formParameters, that.formParameters) &&
+      Objects.equals(body, that.body);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(pathParameters, queryParameters, headerParameters, cookieParameters, formParameters, body);
   }
 }
