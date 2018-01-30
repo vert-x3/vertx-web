@@ -22,6 +22,19 @@
 |[[replyTimeout]]`replyTimeout`|`Number (long)`|-
 |===
 
+[[Http2PushMapping]]
+== Http2PushMapping
+
+
+[cols=">25%,^25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[extensionTarget]]`extensionTarget`|`String`|-
+|[[filePath]]`filePath`|`String`|-
+|[[noPush]]`noPush`|`Boolean`|-
+|===
+
 [[PermittedOptions]]
 == PermittedOptions
 
