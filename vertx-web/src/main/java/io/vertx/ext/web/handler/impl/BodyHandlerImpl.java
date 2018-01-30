@@ -44,7 +44,6 @@ public class BodyHandlerImpl implements BodyHandler {
   private static final Logger log = LoggerFactory.getLogger(BodyHandlerImpl.class);
 
   private static final String BODY_HANDLED = "__body-handled";
-  private static final String WEBSOCKET_HEADER = HttpHeaders.WEBSOCKET.toString();
 
   private long bodyLimit = DEFAULT_BODY_LIMIT;
   private String uploadsDir;
@@ -62,9 +61,7 @@ public class BodyHandlerImpl implements BodyHandler {
   @Override
   public void handle(RoutingContext context) {
     HttpServerRequest request = context.request();
-    // FIXME when MultiMap has a contains(name,value) method, remove the constant and simplify this test
-    String upgradeHeader = request.getHeader(HttpHeaders.UPGRADE);
-    if (upgradeHeader != null && upgradeHeader.equalsIgnoreCase(WEBSOCKET_HEADER)) {
+    if (request.headers().contains(HttpHeaders.UPGRADE, HttpHeaders.WEBSOCKET, true)) {
       context.next();
       return;
     }
