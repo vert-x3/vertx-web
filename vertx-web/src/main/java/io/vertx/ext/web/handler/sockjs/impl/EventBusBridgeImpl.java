@@ -319,15 +319,15 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
           if (System.currentTimeMillis() - pingInfo.lastPing >= pingTimeout) {
             // Trigger an event to allow custom behavior before disconnecting client.
             checkCallHook(() -> new BridgeEventImpl(BridgeEventType.SOCKET_IDLE, null, sock),
-            		// We didn't receive a ping in time so close the socket
-              () -> sock.close((short) 1001, "Session expired"),
-            		() -> replyError(sock, "rejected"));
+              // We didn't receive a ping in time so close the socket
+              ((SockJSSocketBase) sock)::closeAfterSessionExpired,
+              () -> replyError(sock, "rejected"));
           }
         });
         SockInfo sockInfo = new SockInfo();
         sockInfo.pingInfo = pingInfo;
         sockInfos.put(sock, sockInfo);
-      }, () -> sock.close((short)1001, "Endpoint is going away"));
+      }, sock::close);
   }
 
   private void checkAddAccceptedReplyAddress(Message message) {

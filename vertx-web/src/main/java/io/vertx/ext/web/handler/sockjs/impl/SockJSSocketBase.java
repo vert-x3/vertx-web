@@ -88,13 +88,7 @@ public abstract class SockJSSocketBase implements SockJSSocket {
   }
 
   // Only websocket transport allows status code and reason, so in other cases we simply call close()
-  @Override
-  public void close(short statusCode) {
-    close();
-  }
-
-  @Override
-  public void close(short statusCode, String reason) {
+  public void closeAfterSessionExpired() {
     close();
   }
 

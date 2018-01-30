@@ -115,21 +115,6 @@ public interface SockJSSocket extends ReadStream<Buffer>, WriteStream<Buffer> {
   void close();
 
   /**
-   * Close it with status code
-   *
-   * @param statusCode
-   */
-  void close(short statusCode);
-
-  /**
-   * Close it with status code and reason
-   *
-   * @param statusCode
-   * @param reason
-   */
-  void close(short statusCode, String reason);
-
-  /**
    * Return the remote address for this socket
    */
   SocketAddress remoteAddress();

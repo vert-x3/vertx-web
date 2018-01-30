@@ -23,8 +23,10 @@ import io.vertx.core.http.WebSocket;
 import io.vertx.core.http.WebSocketFrame;
 import io.vertx.core.http.impl.FrameType;
 import io.vertx.core.http.impl.ws.WebSocketFrameImpl;
+import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
+import io.vertx.ext.bridge.PermittedOptions;
 import io.vertx.ext.web.WebTestBase;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.test.core.TestUtils;
@@ -399,22 +401,30 @@ public class SockJSHandlerTest extends WebTestBase {
   }
 
   @Test
-  public void testCloseCode() {
-    router.route("/ws-close/*").handler(SockJSHandler
+  public void testInvalidMessageCode() {
+    router.route("/ws-timeout/*").handler(SockJSHandler
       .create(vertx)
-      .socketHandler(sockJSSocket -> sockJSSocket.close((short)4000, "I want to close the socket"))
+      .bridge(new BridgeOptions().addInboundPermitted(new PermittedOptions().setAddress("SockJSHandlerTest.testInvalidMessageCode")))
     );
 
-    client.websocket("/ws-close/websocket", ws -> {
+    vertx.eventBus().consumer("SockJSHandlerTest.testInvalidMessageCode", msg -> {
+      msg.reply(new JsonObject());
+    });
+
+    client.websocket("/ws-timeout/websocket", ws -> {
+      ws.writeFinalBinaryFrame(Buffer.buffer("durp!"));
+
       ws.frameHandler(frame -> {
-        if (frame.isClose()) {
-          assertEquals(4000, frame.closeStatusCode());
-          assertEquals("I want to close the socket", frame.closeReason());
+        // we should get a normal frame with a error message
+        if (!frame.isClose()) {
+          JsonObject msg = new JsonObject(frame.binaryData());
+          assertEquals("err", msg.getString("type"));
+          assertEquals("invalid_json", msg.getString("body"));
           testComplete();
+          ws.close();
         }
       });
     });
     await();
   }
-
 }
