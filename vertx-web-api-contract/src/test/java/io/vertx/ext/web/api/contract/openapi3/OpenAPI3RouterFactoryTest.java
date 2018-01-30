@@ -113,7 +113,7 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
   @Test
   public void loadSpecFromFile() throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
-    OpenAPI3RouterFactory.createRouterFactoryFromFile(this.vertx, "src/test/resources/swaggers/router_factory_test.yaml",
+    OpenAPI3RouterFactory.create(this.vertx, "src/test/resources/swaggers/router_factory_test.yaml",
       openAPI3RouterFactoryAsyncResult -> {
         assertTrue(openAPI3RouterFactoryAsyncResult.succeeded());
         assertNotNull(openAPI3RouterFactoryAsyncResult.result());
@@ -125,7 +125,7 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
   @Test
   public void failLoadSpecFromFile() throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
-    OpenAPI3RouterFactory.createRouterFactoryFromFile(this.vertx, "src/test/resources/swaggers/aaa.yaml",
+    OpenAPI3RouterFactory.create(this.vertx, "src/test/resources/swaggers/aaa.yaml",
       openAPI3RouterFactoryAsyncResult -> {
         assertTrue(openAPI3RouterFactoryAsyncResult.failed());
         assertEquals(RouterFactoryException.class, openAPI3RouterFactoryAsyncResult.cause().getClass());
@@ -138,7 +138,7 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
   @Test
   public void loadWrongSpecFromFile() throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
-    OpenAPI3RouterFactory.createRouterFactoryFromFile(this.vertx, "src/test/resources/swaggers/bad_spec.yaml",
+    OpenAPI3RouterFactory.create(this.vertx, "src/test/resources/swaggers/bad_spec.yaml",
       openAPI3RouterFactoryAsyncResult -> {
         assertTrue(openAPI3RouterFactoryAsyncResult.failed());
         assertEquals(RouterFactoryException.class, openAPI3RouterFactoryAsyncResult.cause().getClass());
@@ -151,7 +151,7 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
   @Test
   public void loadSpecFromURL() throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
-    OpenAPI3RouterFactory.createRouterFactoryFromURL(this.vertx, "https://raw.githubusercontent.com/OAI/OpenAPI-Specification/master/examples/v3.0/petstore.yaml",
+    OpenAPI3RouterFactory.create(this.vertx, "https://raw.githubusercontent.com/OAI/OpenAPI-Specification/master/examples/v3.0/petstore.yaml",
       openAPI3RouterFactoryAsyncResult -> {
         assertTrue(openAPI3RouterFactoryAsyncResult.succeeded());
         assertNotNull(openAPI3RouterFactoryAsyncResult.result());
@@ -163,7 +163,7 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
   @Test
   public void failLoadSpecFromURL() throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
-    OpenAPI3RouterFactory.createRouterFactoryFromURL(this.vertx, "https://helloworld.com/spec.yaml",
+    OpenAPI3RouterFactory.create(this.vertx, "https://helloworld.com/spec.yaml",
       openAPI3RouterFactoryAsyncResult -> {
         assertTrue(openAPI3RouterFactoryAsyncResult.failed());
         assertEquals(RouterFactoryException.class, openAPI3RouterFactoryAsyncResult.cause().getClass());
@@ -179,7 +179,7 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
   @Test
   public void mountHandlerTest() throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
-    OpenAPI3RouterFactory.createRouterFactoryFromFile(this.vertx, "src/test/resources/swaggers/router_factory_test.yaml",
+    OpenAPI3RouterFactory.create(this.vertx, "src/test/resources/swaggers/router_factory_test.yaml",
       openAPI3RouterFactoryAsyncResult -> {
         routerFactory = openAPI3RouterFactoryAsyncResult.result();
         routerFactory.setOptions(HANDLERS_TESTS_OPTIONS);
@@ -204,7 +204,7 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
   @Test
   public void mountFailureHandlerTest() throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
-    OpenAPI3RouterFactory.createRouterFactoryFromFile(this.vertx, "src/test/resources/swaggers/router_factory_test.yaml",
+    OpenAPI3RouterFactory.create(this.vertx, "src/test/resources/swaggers/router_factory_test.yaml",
       openAPI3RouterFactoryAsyncResult -> {
         routerFactory = openAPI3RouterFactoryAsyncResult.result();
         routerFactory.setOptions(HANDLERS_TESTS_OPTIONS);
@@ -231,7 +231,7 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
   @Test
   public void mountMultipleHandlers() throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
-    OpenAPI3RouterFactory.createRouterFactoryFromFile(this.vertx, "src/test/resources/swaggers/router_factory_test.yaml",
+    OpenAPI3RouterFactory.create(this.vertx, "src/test/resources/swaggers/router_factory_test.yaml",
       openAPI3RouterFactoryAsyncResult -> {
         routerFactory = openAPI3RouterFactoryAsyncResult.result();
         routerFactory.setOptions(HANDLERS_TESTS_OPTIONS);
@@ -267,7 +267,7 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
   @Test
   public void mountSecurityHandlers() throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
-    OpenAPI3RouterFactory.createRouterFactoryFromFile(this.vertx, "src/test/resources/swaggers/router_factory_test.yaml",
+    OpenAPI3RouterFactory.create(this.vertx, "src/test/resources/swaggers/router_factory_test.yaml",
       openAPI3RouterFactoryAsyncResult -> {
         routerFactory = openAPI3RouterFactoryAsyncResult.result();
         routerFactory.setOptions(new RouterFactoryOptions().setRequireSecurityHandlers(true));
@@ -314,7 +314,7 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
   @Test
   public void requireSecurityHandler() throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
-    OpenAPI3RouterFactory.createRouterFactoryFromFile(this.vertx, "src/test/resources/swaggers/router_factory_test.yaml",
+    OpenAPI3RouterFactory.create(this.vertx, "src/test/resources/swaggers/router_factory_test.yaml",
       openAPI3RouterFactoryAsyncResult -> {
         routerFactory = openAPI3RouterFactoryAsyncResult.result();
         routerFactory.setOptions(new RouterFactoryOptions().setRequireSecurityHandlers(true));
@@ -349,7 +349,7 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
   @Test
   public void requireGlobalSecurityHandler() throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
-    OpenAPI3RouterFactory.createRouterFactoryFromFile(this.vertx, "src/test/resources/swaggers/global_security_test.yaml",
+    OpenAPI3RouterFactory.create(this.vertx, "src/test/resources/swaggers/global_security_test.yaml",
       openAPI3RouterFactoryAsyncResult -> {
         routerFactory = openAPI3RouterFactoryAsyncResult.result();
         routerFactory.setOptions(new RouterFactoryOptions().setRequireSecurityHandlers(true));
@@ -384,7 +384,7 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
   @Test
   public void notRequireSecurityHandler() throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
-    OpenAPI3RouterFactory.createRouterFactoryFromFile(this.vertx, "src/test/resources/swaggers/router_factory_test.yaml",
+    OpenAPI3RouterFactory.create(this.vertx, "src/test/resources/swaggers/router_factory_test.yaml",
       openAPI3RouterFactoryAsyncResult -> {
         routerFactory = openAPI3RouterFactoryAsyncResult.result();
         routerFactory.setOptions(new RouterFactoryOptions().setRequireSecurityHandlers(false));
@@ -407,7 +407,7 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
   @Test
   public void mountValidationFailureHandler() throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
-    OpenAPI3RouterFactory.createRouterFactoryFromFile(this.vertx, "src/test/resources/swaggers/router_factory_test.yaml",
+    OpenAPI3RouterFactory.create(this.vertx, "src/test/resources/swaggers/router_factory_test.yaml",
       openAPI3RouterFactoryAsyncResult -> {
         routerFactory = openAPI3RouterFactoryAsyncResult.result();
         routerFactory.setOptions(HANDLERS_TESTS_OPTIONS);
@@ -433,7 +433,7 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
   @Test
   public void mountCustomValidationFailureHandler() throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
-    OpenAPI3RouterFactory.createRouterFactoryFromFile(this.vertx, "src/test/resources/swaggers/router_factory_test.yaml",
+    OpenAPI3RouterFactory.create(this.vertx, "src/test/resources/swaggers/router_factory_test.yaml",
       openAPI3RouterFactoryAsyncResult -> {
         routerFactory = openAPI3RouterFactoryAsyncResult.result();
         routerFactory.setOptions(HANDLERS_TESTS_OPTIONS
@@ -467,7 +467,7 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
   @Test
   public void notMountValidationFailureHandler() throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
-    OpenAPI3RouterFactory.createRouterFactoryFromFile(this.vertx, "src/test/resources/swaggers/router_factory_test.yaml",
+    OpenAPI3RouterFactory.create(this.vertx, "src/test/resources/swaggers/router_factory_test.yaml",
       openAPI3RouterFactoryAsyncResult -> {
         routerFactory = openAPI3RouterFactoryAsyncResult.result();
         routerFactory.setOptions(
@@ -506,7 +506,7 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
   @Test
   public void mountNotImplementedHandler() throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
-    OpenAPI3RouterFactory.createRouterFactoryFromFile(this.vertx, "src/test/resources/swaggers/router_factory_test.yaml",
+    OpenAPI3RouterFactory.create(this.vertx, "src/test/resources/swaggers/router_factory_test.yaml",
       openAPI3RouterFactoryAsyncResult -> {
         routerFactory = openAPI3RouterFactoryAsyncResult.result();
         routerFactory.setOptions(
@@ -527,7 +527,7 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
   @Test
   public void mountCustomNotImplementedHandler() throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
-    OpenAPI3RouterFactory.createRouterFactoryFromFile(this.vertx, "src/test/resources/swaggers/router_factory_test.yaml",
+    OpenAPI3RouterFactory.create(this.vertx, "src/test/resources/swaggers/router_factory_test.yaml",
       openAPI3RouterFactoryAsyncResult -> {
         routerFactory = openAPI3RouterFactoryAsyncResult.result();
         routerFactory.setOptions(
@@ -555,7 +555,7 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
   @Test
   public void notMountNotImplementedHandler() throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
-    OpenAPI3RouterFactory.createRouterFactoryFromFile(this.vertx, "src/test/resources/swaggers/router_factory_test.yaml",
+    OpenAPI3RouterFactory.create(this.vertx, "src/test/resources/swaggers/router_factory_test.yaml",
       openAPI3RouterFactoryAsyncResult -> {
         routerFactory = openAPI3RouterFactoryAsyncResult.result();
         routerFactory.setOptions(
@@ -575,7 +575,7 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
   @Test
   public void consumesTest() throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
-    OpenAPI3RouterFactory.createRouterFactoryFromFile(this.vertx, "src/test/resources/swaggers/produces_consumes_test.yaml",
+    OpenAPI3RouterFactory.create(this.vertx, "src/test/resources/swaggers/produces_consumes_test.yaml",
       openAPI3RouterFactoryAsyncResult -> {
         routerFactory = openAPI3RouterFactoryAsyncResult.result();
         routerFactory.setOptions(new RouterFactoryOptions().setMountNotImplementedHandler(false));
@@ -618,7 +618,7 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
   @Test
   public void producesTest() throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
-    OpenAPI3RouterFactory.createRouterFactoryFromFile(this.vertx, "src/test/resources/swaggers/produces_consumes_test.yaml",
+    OpenAPI3RouterFactory.create(this.vertx, "src/test/resources/swaggers/produces_consumes_test.yaml",
       openAPI3RouterFactoryAsyncResult -> {
         routerFactory = openAPI3RouterFactoryAsyncResult.result();
         routerFactory.setOptions(new RouterFactoryOptions().setMountNotImplementedHandler(false));
@@ -645,7 +645,7 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
   @Test
   public void mountHandlersOrderTest() throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
-    OpenAPI3RouterFactory.createRouterFactoryFromFile(this.vertx, "src/test/resources/swaggers/test_order_spec.yaml",
+    OpenAPI3RouterFactory.create(this.vertx, "src/test/resources/swaggers/test_order_spec.yaml",
       openAPI3RouterFactoryAsyncResult -> {
         assertTrue(openAPI3RouterFactoryAsyncResult.succeeded());
         routerFactory = openAPI3RouterFactoryAsyncResult.result();

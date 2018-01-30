@@ -19,7 +19,7 @@ import io.vertx.ext.web.api.validation.ValidationException;
 public class OpenAPI3Examples {
 
   public void constructRouterFactory(Vertx vertx) {
-    OpenAPI3RouterFactory.createRouterFactoryFromFile(vertx, "src/main/resources/petstore.yaml", ar -> {
+    OpenAPI3RouterFactory.create(vertx, "src/main/resources/petstore.yaml", ar -> {
       if (ar.succeeded()) {
         // Spec loaded with success
         OpenAPI3RouterFactory routerFactory = ar.result();
@@ -31,7 +31,7 @@ public class OpenAPI3Examples {
   }
 
   public void constructRouterFactoryFromUrl(Vertx vertx) {
-    OpenAPI3RouterFactory.createRouterFactoryFromURL(
+    OpenAPI3RouterFactory.create(
       vertx,
       "https://raw.githubusercontent.com/OAI/OpenAPI-Specification/master/examples/v3.0/petstore.yaml",
       ar -> {
@@ -85,7 +85,7 @@ public class OpenAPI3Examples {
 
   public void mainExample(Vertx vertx) {
     // Load the api spec. This operation is asynchronous
-    OpenAPI3RouterFactory.createRouterFactoryFromFile(vertx, "src/main/resources/petstore.yaml",
+    OpenAPI3RouterFactory.create(vertx, "src/main/resources/petstore.yaml",
       openAPI3RouterFactoryAsyncResult -> {
       if (openAPI3RouterFactoryAsyncResult.succeeded()) {
         // Spec loaded with success, retrieve the router

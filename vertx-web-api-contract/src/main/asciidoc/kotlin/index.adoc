@@ -96,10 +96,8 @@ This class, as name says, is a router factory based on your OpenAPI 3 specificat
 * Automatic mount of security validation handlers
 
 === Create a new router factory
-To create a new router factory, you can use methods inside `link:../../apidocs/io/vertx/ext/web/api/contract/openapi3/OpenAPI3RouterFactory.html[OpenAPI3RouterFactory]`:
-
-* `link:../../apidocs/io/vertx/ext/web/api/contract/openapi3/OpenAPI3RouterFactory.html#createRouterFactoryFromFile-io.vertx.core.Vertx-java.lang.String-io.vertx.core.Handler-[OpenAPI3RouterFactory.createRouterFactoryFromFile]`  to create a router factory from local file
-* `link:../../apidocs/io/vertx/ext/web/api/contract/openapi3/OpenAPI3RouterFactory.html#createRouterFactoryFromURL-io.vertx.core.Vertx-java.lang.String-io.vertx.core.Handler-[OpenAPI3RouterFactory.createRouterFactoryFromURL]`  to create a router factory from url
+To create a new router factory, Use method `link:../../apidocs/io/vertx/ext/web/api/contract/openapi3/OpenAPI3RouterFactory.html#create-io.vertx.core.Vertx-java.lang.String-io.vertx.core.Handler-[OpenAPI3RouterFactory.create]`.
+As location It accepts absolute paths, local paths and local or remote URLs (HTTP or file protocol).
 
 For example:
 [source,kotlin]

@@ -55,7 +55,7 @@ public class OpenAPI3SchemasTest extends WebTestValidationBase {
     startSchemaServer();
 
     CountDownLatch latch = new CountDownLatch(1);
-    OpenAPI3RouterFactory.createRouterFactoryFromFile(this.vertx, OAS_PATH, openAPI3RouterFactoryAsyncResult -> {
+    OpenAPI3RouterFactory.create(this.vertx, OAS_PATH, openAPI3RouterFactoryAsyncResult -> {
       assertTrue(openAPI3RouterFactoryAsyncResult.succeeded());
       assertNull(openAPI3RouterFactoryAsyncResult.cause());
       routerFactory = openAPI3RouterFactoryAsyncResult.result();

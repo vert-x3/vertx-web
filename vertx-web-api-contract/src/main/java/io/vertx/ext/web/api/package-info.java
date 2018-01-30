@@ -95,10 +95,8 @@
  * * Automatic mount of security validation handlers
  *
  * === Create a new router factory
- * To create a new router factory, you can use methods inside {@link io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory}:
- *
- * * {@link io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory#createRouterFactoryFromFile(io.vertx.core.Vertx, java.lang.String, io.vertx.core.Handler)}  to create a router factory from local file
- * * {@link io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory#createRouterFactoryFromURL(io.vertx.core.Vertx, java.lang.String, io.vertx.core.Handler)}  to create a router factory from url
+ * To create a new router factory, Use method {@link io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory#create(io.vertx.core.Vertx, java.lang.String, io.vertx.core.Handler)}.
+ * As location It accepts absolute paths, local paths and local or remote URLs (HTTP or file protocol).
  *
  * For example:
  * [source,$lang]

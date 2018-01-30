@@ -96,10 +96,8 @@ This class, as name says, is a router factory based on your OpenAPI 3 specificat
 * Automatic mount of security validation handlers
 
 === Create a new router factory
-To create a new router factory, you can use methods inside `link:../../yardoc/VertxWebApiContract/OpenAPI3RouterFactory.html[OpenAPI3RouterFactory]`:
-
-* `link:../../yardoc/VertxWebApiContract/OpenAPI3RouterFactory.html#create_router_factory_from_file-class_method[OpenAPI3RouterFactory.createRouterFactoryFromFile]`  to create a router factory from local file
-* `link:../../yardoc/VertxWebApiContract/OpenAPI3RouterFactory.html#create_router_factory_from_url-class_method[OpenAPI3RouterFactory.createRouterFactoryFromURL]`  to create a router factory from url
+To create a new router factory, Use method `link:../../yardoc/VertxWebApiContract/OpenAPI3RouterFactory.html#create-class_method[OpenAPI3RouterFactory.create]`.
+As location It accepts absolute paths, local paths and local or remote URLs (HTTP or file protocol).
 
 For example:
 [source,ruby]

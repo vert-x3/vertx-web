@@ -84,55 +84,49 @@ public interface OpenAPI3RouterFactory extends RouterFactory<OpenAPI> {
   OpenAPI3RouterFactory addFailureHandlerByOperationId(String operationId, Handler<RoutingContext> failureHandler);
 
   /**
-   * Create a new OpenAPI3RouterFactory from a filename
+   * Create a new OpenAPI3RouterFactory
    *
    * @param vertx
-   * @param filename
+   * @param url location of your spec. It can be an absolute path, a local path or remote url (with HTTP protocol)
    * @param handler  When specification is loaded, this handler will be called with AsyncResult<OpenAPI3RouterFactory>
    */
-  static void createRouterFactoryFromFile(Vertx vertx, String filename, Handler<AsyncResult<OpenAPI3RouterFactory>>
+  static void create(Vertx vertx, String url, Handler<AsyncResult<OpenAPI3RouterFactory>>
     handler) {
     vertx.executeBlocking((Future<OpenAPI3RouterFactory> future) -> {
-      File spec = new File(filename);
-      if (!spec.exists()) {
-        future.fail(RouterFactoryException.createSpecNotExistsException(filename));
+      SwaggerParseResult swaggerParseResult = new OpenAPIV3Parser().readLocation(url, null, OpenApi3Utils.getParseOptions());
+      if (swaggerParseResult.getMessages().isEmpty()) {
+        future.complete(new OpenAPI3RouterFactoryImpl(vertx, swaggerParseResult.getOpenAPI()));
       } else {
-        SwaggerParseResult swaggerParseResult = new OpenAPIV3Parser().readLocation(spec.getAbsolutePath(), null, OpenApi3Utils.getParseOptions());
-
-        if (swaggerParseResult.getMessages().isEmpty()) {
-          future.complete(new OpenAPI3RouterFactoryImpl(vertx, swaggerParseResult.getOpenAPI()));
-        } else {
+        if (swaggerParseResult.getMessages().size() == 1 && swaggerParseResult.getMessages().get(0).matches("unable to read location `?\\Q" + url + "\\E`?"))
+          future.fail(RouterFactoryException.createSpecNotExistsException(url));
+        else
           future.fail(RouterFactoryException.createSpecInvalidException(StringUtils.join(swaggerParseResult.getMessages(), ", ")));
-        }
       }
     }, handler);
   }
 
+
   /**
-   * Create a new OpenAPI3RouterFactory from an url
+   * @deprecated use {@link OpenAPI3RouterFactory#create(Vertx, String, Handler)}
    *
    * @param vertx
    * @param url
-   * @param handler  When specification is loaded, this handler will be called with AsyncResult<OpenAPI3RouterFactory>
+   * @param handler
    */
+  @Deprecated
+  static void createRouterFactoryFromFile(Vertx vertx, String url, Handler<AsyncResult<OpenAPI3RouterFactory>> handler) {
+    OpenAPI3RouterFactory.create(vertx, url, handler);
+  }
+
+  /**
+   * @deprecated use {@link OpenAPI3RouterFactory#create(Vertx, String, Handler)}
+   *
+   * @param vertx
+   * @param url
+   * @param handler
+   */
+  @Deprecated
   static void createRouterFactoryFromURL(Vertx vertx, String url, Handler<AsyncResult<OpenAPI3RouterFactory>> handler) {
-    vertx.executeBlocking((Future<OpenAPI3RouterFactory> future) -> {
-      try {
-        URL urlObj = new URL(url);
-
-        SwaggerParseResult swaggerParseResult = new OpenAPIV3Parser().readLocation(urlObj.toString(), null, OpenApi3Utils.getParseOptions());
-
-        if (swaggerParseResult.getMessages().isEmpty())
-          future.complete(new OpenAPI3RouterFactoryImpl(vertx, swaggerParseResult.getOpenAPI()));
-        else {
-          if (swaggerParseResult.getMessages().size() == 1 && swaggerParseResult.getMessages().get(0).matches("unable to read location `?\\Q" + url + "\\E`?"))
-            future.fail(RouterFactoryException.createSpecNotExistsException(url));
-          else
-            future.fail(RouterFactoryException.createSpecInvalidException(StringUtils.join(swaggerParseResult.getMessages(), ", ")));
-        }
-      } catch (IOException e) {
-        future.fail(RouterFactoryException.createSpecNotExistsException(url));
-      }
-    }, handler);
+    OpenAPI3RouterFactory.create(vertx, url, handler);
   }
 }
