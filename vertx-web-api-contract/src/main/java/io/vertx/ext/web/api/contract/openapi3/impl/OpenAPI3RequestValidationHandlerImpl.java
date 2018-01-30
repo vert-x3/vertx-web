@@ -245,13 +245,13 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
     if (jsonsContents.size() == 1) {
       this.addRule(ParameterValidationRuleImpl.ParameterValidationRuleFactory
         .createValidationRuleWithCustomTypeValidator(parameter.getName(), JsonTypeValidator.JsonTypeValidatorFactory
-          .createJsonTypeValidator(OpenApi3Utils.generateJsonSchema(jsonsContents.get(0).getSchema(), this.spec)),
+          .createJsonTypeValidator(OpenApi3Utils.generateSanitizedJsonSchemaNode(jsonsContents.get(0).getSchema(), this.spec)),
           !parameter.getRequired(), OpenApi3Utils.resolveAllowEmptyValue(parameter), location), location);
     } else if (contents.size() > 1 && jsonsContents.size() >= 1) {
       // Mount anyOf
       List<ParameterTypeValidator> validators =
         jsonsContents.stream().map(e -> JsonTypeValidator.JsonTypeValidatorFactory
-          .createJsonTypeValidator(OpenApi3Utils.generateJsonSchema(e.getSchema(), this.spec))).collect(Collectors.toList());
+          .createJsonTypeValidator(OpenApi3Utils.generateSanitizedJsonSchemaNode(e.getSchema(), this.spec))).collect(Collectors.toList());
       validators.add(CONTENT_TYPE_VALIDATOR);
       AnyOfTypeValidator validator = new AnyOfTypeValidator(validators);
       this.addRule(ParameterValidationRuleImpl.ParameterValidationRuleFactory
@@ -436,7 +436,7 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
     if (contentTypePattern.matcher("application/json").matches()) {
       this.addFormParamRule(ParameterValidationRuleImpl.ParameterValidationRuleFactory
         .createValidationRuleWithCustomTypeValidator(parameterName, JsonTypeValidator.JsonTypeValidatorFactory
-          .createJsonTypeValidator(OpenApi3Utils.generateJsonSchema(schema, this.spec)), !OpenApi3Utils.isRequiredParam
+          .createJsonTypeValidator(OpenApi3Utils.generateSanitizedJsonSchemaNode(schema, this.spec)), !OpenApi3Utils.isRequiredParam
           (multipartObjectSchema, parameterName), false, ParameterLocation.BODY_FORM));
     } else if (contentTypePattern.matcher("text/plain").matches()) {
       this.addFormParamRule(ParameterValidationRuleImpl.ParameterValidationRuleFactory
@@ -455,7 +455,7 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
       for (Map.Entry<String, ? extends MediaType> mediaType : requestBody.getContent().entrySet()) {
         if (Utils.isJsonContentType(mediaType.getKey()) && mediaType.getValue().getSchema() != null) {
           this.setEntireBodyValidator(JsonTypeValidator.JsonTypeValidatorFactory
-            .createJsonTypeValidator(OpenApi3Utils.generateJsonSchema(mediaType.getValue().getSchema(), this.spec)));
+            .createJsonTypeValidator(OpenApi3Utils.generateSanitizedJsonSchemaNode(mediaType.getValue().getSchema(), this.spec)));
         } else if (mediaType.getKey().equals("application/x-www-form-urlencoded") && mediaType.getValue().getSchema()
           != null) {
           for (Map.Entry<String, ? extends Schema> paramSchema : ((Map<String, Schema>) mediaType.getValue().getSchema().getProperties())

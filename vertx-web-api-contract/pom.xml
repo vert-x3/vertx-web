@@ -16,13 +16,6 @@
 
   <artifactId>vertx-web-api-contract</artifactId>
 
-  <repositories>
-    <repository>
-      <id>jitpack.io</id>
-      <url>https://jitpack.io</url>
-    </repository>
-  </repositories>
-
   <dependencies>
 
     <dependency>
@@ -31,9 +24,9 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>com.github.everit-org.json-schema</groupId>
-      <artifactId>org.everit.json.schema</artifactId>
-      <version>1.7.0</version>
+      <groupId>com.networknt</groupId>
+      <artifactId>json-schema-validator</artifactId>
+      <version>0.1.13</version>
     </dependency>
     <dependency>
       <groupId>io.swagger.parser.v3</groupId>

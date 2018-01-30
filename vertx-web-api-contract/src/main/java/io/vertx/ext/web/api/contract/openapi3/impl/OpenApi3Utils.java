@@ -1,6 +1,10 @@
 package io.vertx.ext.web.api.contract.openapi3.impl;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.networknt.schema.JsonSchema;
+import com.networknt.schema.JsonSchemaFactory;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.media.ComposedSchema;
 import io.swagger.v3.oas.models.media.MediaType;
@@ -8,11 +12,10 @@ import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.parameters.Parameter;
 import io.swagger.v3.parser.ObjectMapperFactory;
 import io.swagger.v3.parser.core.models.ParseOptions;
+import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.api.validation.SpecFeatureNotSupportedException;
-import org.json.JSONArray;
-import org.json.JSONObject;
 
 import java.util.*;
 import java.util.function.Predicate;
@@ -201,107 +204,70 @@ public class OpenApi3Utils {
   private final static Pattern COMPONENTS_REFS_MATCHER = Pattern.compile("^\\#\\/components\\/schemas\\/(.+)$");
   private final static String COMPONENTS_REFS_SUBSTITUTION = "\\#\\/definitions\\/$1";
 
-  public static JSONObject schemaToJSONObject(Schema s) {
-    try {
-      return new JSONObject(ObjectMapperFactory.createJson().writeValueAsString(s));
-    } catch (JsonProcessingException e) {
-      throw new RuntimeException("WAT");
-    }
+  public static JsonNode generateSanitizedJsonSchemaNode(Schema s, OpenAPI oas) {
+    ObjectNode node = ObjectMapperFactory.createJson().convertValue(s, ObjectNode.class);
+    walkAndSolve(node, node, oas);
+    return node;
   }
 
-  public static JSONObject generateJsonSchema(Schema s, OpenAPI oas) {
-    JSONObject n = OpenApi3Utils.schemaToJSONObject(s);
-    walkAndSolve(n, n, oas);
-    return n;
-  }
-
-  private static void walkAndSolve(JSONObject n, JSONObject root, OpenAPI oas) {
+  private static void walkAndSolve(ObjectNode n, ObjectNode root, OpenAPI oas) {
     if (n.has("$ref")) {
       replaceRef(n, root, oas);
     } else if (n.has("allOf")) {
-      Iterator<Object> it = n.getJSONArray("allOf").iterator();
+      Iterator<JsonNode> it = n.get("allOf").iterator();
       while (it.hasNext()) {
-        walkAndSolve((JSONObject) it.next(), root, oas);
+        // We assert that parser validated allOf as array of objects
+        walkAndSolve((ObjectNode) it.next(), root, oas);
       }
     } else if (n.has("anyOf")) {
-      Iterator<Object> it = n.getJSONArray("anyOf").iterator();
+      Iterator<JsonNode> it = n.get("anyOf").iterator();
       while (it.hasNext()) {
-        walkAndSolve((JSONObject) it.next(), root, oas);
+        walkAndSolve((ObjectNode) it.next(), root, oas);
       }
-    } else if (n.has("allOf")) {
-      Iterator<Object> it = n.getJSONArray("allOf").iterator();
+    } else if (n.has("oneOf")) {
+      Iterator<JsonNode> it = n.get("oneOf").iterator();
       while (it.hasNext()) {
-        walkAndSolve((JSONObject) it.next(), root, oas);
+        walkAndSolve((ObjectNode) it.next(), root, oas);
       }
     } else if (n.has("properties")) {
-      JSONObject properties = n.getJSONObject("properties");
-      Iterator<String> it = properties.keys();
+      ObjectNode properties = (ObjectNode) n.get("properties");
+      Iterator<String> it = properties.fieldNames();
       while (it.hasNext()) {
-        walkAndSolve(properties.getJSONObject(it.next()), root, oas);
+        walkAndSolve((ObjectNode) properties.get(it.next()), root, oas);
       }
     } else if (n.has("items")) {
-      walkAndSolve(n.getJSONObject("items"), root, oas);
+      walkAndSolve((ObjectNode) n.get("items"), root, oas);
     }
   }
 
-  private static void replaceRef(JSONObject n, JSONObject root, OpenAPI oas) {
+  private static void replaceRef(ObjectNode n, ObjectNode root, OpenAPI oas) {
     /**
      * If a ref is found, the structure of the schema is circular. The oas parser don't solve circular refs.
      * So I bundle the schema:
      * 1. I update the ref field with a #/definitions/schema_name uri
      * 2. If #/definitions/schema_name is empty, I solve it
      */
-    String oldRef = n.getString("$ref");
+    String oldRef = n.get("$ref").asText();
     Matcher m = COMPONENTS_REFS_MATCHER.matcher(oldRef);
     if (m.lookingAt()) {
       String schemaName = m.group(1);
       String newRef = m.replaceAll(COMPONENTS_REFS_SUBSTITUTION);
       n.remove("$ref");
       n.put("$ref", newRef);
-      if (!root.has("definitions") || !root.getJSONObject("definitions").has(schemaName)) {
+      if (!root.has("definitions") || !root.get("definitions").has(schemaName)) {
         Schema s = oas.getComponents().getSchemas().get(schemaName);
-        JSONObject schema = OpenApi3Utils.schemaToJSONObject(s);
+        ObjectNode schema = ObjectMapperFactory.createJson().convertValue(s, ObjectNode.class);
         // We need to search inside for other refs
         if (!root.has("definitions")) {
-          JSONObject definitions = new JSONObject();
-          definitions.put(schemaName, schema);
-          root.put("definitions", definitions);
+          ObjectNode definitions = JsonNodeFactory.instance.objectNode();
+          definitions.set(schemaName, schema);
+          root.putObject("definitions");
         } else {
-          root.getJSONObject("definitions").put(schemaName, schema);
+          ((ObjectNode)root.get("definitions")).set(schemaName, schema);
         }
         walkAndSolve(schema, root, oas);
       }
     } else throw new RuntimeException("Wrong ref! " + oldRef);
-  }
-
-  public static Object convertOrgJSONToVertxJSON(Object obj) {
-    if (obj == JSONObject.NULL) {
-      return null;
-    } if (obj instanceof JSONObject) {
-      JsonObject result = new JsonObject();
-      for (Map.Entry<String, Object> e : ((JSONObject) obj).toMap().entrySet()) {
-        result.put(e.getKey(), convertOrgJSONToVertxJSON(e.getValue()));
-      }
-      return result;
-    } else if (obj instanceof JSONArray) {
-      return new JsonArray(((JSONArray) obj).toList().stream().map(OpenApi3Utils::convertOrgJSONToVertxJSON).collect(Collectors.toList()));
-    } else
-      return obj;
-  }
-
-  public static Object convertVertxJSONToOrgJSON(Object obj) {
-    if (obj == null) {
-      return JSONObject.NULL;
-    } if (obj instanceof JsonObject) {
-      JSONObject result = new JSONObject();
-      for (Map.Entry<String, Object> e : ((JsonObject) obj).getMap().entrySet()) {
-        result.put(e.getKey(), convertVertxJSONToOrgJSON(e.getValue()));
-      }
-      return result;
-    } else if (obj instanceof JsonArray) {
-      return new JSONArray(((JsonArray) obj).getList().stream().map(OpenApi3Utils::convertVertxJSONToOrgJSON).collect(Collectors.toList()));
-    } else
-      return obj;
   }
 
   public static List<MediaType> extractTypesFromMediaTypesMap(Map<String, MediaType> types, Predicate<String> matchingFunction) {

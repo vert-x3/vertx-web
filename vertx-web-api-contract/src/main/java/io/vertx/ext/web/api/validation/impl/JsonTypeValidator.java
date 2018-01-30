@@ -1,62 +1,67 @@
 package io.vertx.ext.web.api.validation.impl;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.networknt.schema.JsonSchema;
+import com.networknt.schema.JsonSchemaFactory;
+import com.networknt.schema.ValidationMessage;
+import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.api.RequestParameter;
-import io.vertx.ext.web.api.contract.openapi3.impl.OpenApi3Utils;
 import io.vertx.ext.web.api.validation.ParameterTypeValidator;
 import io.vertx.ext.web.api.validation.ValidationException;
-import org.everit.json.schema.Schema;
-import org.everit.json.schema.loader.SchemaLoader;
-import org.json.JSONException;
-import org.json.JSONObject;
+
+import java.io.IOException;
+import java.util.Set;
 
 /**
  * @author Francesco Guardiani @slinkydeveloper
  */
 public class JsonTypeValidator implements ParameterTypeValidator {
 
-  Schema schema;
+  JsonSchema schema;
 
-  public JsonTypeValidator(Schema schema) {
+  public JsonTypeValidator(JsonSchema schema) {
     this.schema = schema;
   }
 
   @Override
   public RequestParameter isValid(String value) throws ValidationException {
     try {
-      JSONObject obj;
-      try {
-        obj = new JSONObject(value);
-      } catch (JSONException e) {
-        throw ValidationException.ValidationExceptionFactory.generateNotParsableJsonBodyException(e.getMessage());
+      JsonNode node;
+      if (value == null)
+        throw ValidationException.ValidationExceptionFactory.generateNotParsableJsonBodyException("Json should not be null");
+      else if (value.length() == 0)
+        node = JsonNodeFactory.instance.textNode("");
+      else
+        node = Json.mapper.readTree(value);
+
+      Set<ValidationMessage> errors = schema.validate(node);
+      if (errors.size() == 0) {
+        return RequestParameter.create(new JsonObject(value));
+      } else {
+        throw ValidationException.ValidationExceptionFactory.generateInvalidJsonBodyException(errors.iterator().next().toString());
       }
-      schema.validate(obj);
-      // We can't simply reparse value because the validation can modify things inside obj
-      // (for example when we apply default values)
-      return RequestParameter.create(OpenApi3Utils.convertOrgJSONToVertxJSON(obj));
-    } catch (org.everit.json.schema.ValidationException e) {
-      throw ValidationException.ValidationExceptionFactory.generateInvalidJsonBodyException(e.toString());
+    } catch (IOException e) {
+      throw ValidationException.ValidationExceptionFactory.generateNotParsableJsonBodyException(e.getMessage());
     }
   }
 
   public static class JsonTypeValidatorFactory {
 
-    // TODO document and hide useless methods
-    public static JsonTypeValidator createJsonTypeValidator(JSONObject schema) {
-      return new JsonTypeValidator(SchemaLoader.builder()
-        .useDefaults(true)
-        .nullableSupport(true)
-        .draftV6Support()
-        .schemaJson(schema).build().load().build());
+    public static JsonTypeValidator createJsonTypeValidator(JsonNode schema) {
+      return new JsonTypeValidator(JsonSchemaFactory.getInstance().getSchema(schema));
     }
 
     public static JsonTypeValidator createJsonTypeValidator(String schema) {
-      if (schema.length() != 0) return createJsonTypeValidator(new JSONObject(schema));
+      if (schema.length() != 0) {
+        try {
+          return createJsonTypeValidator(Json.mapper.readTree(schema));
+        } catch (IOException e) {
+          throw new IllegalArgumentException("schema provided is invalid: " + e);
+        }
+      }
       else return null;
-    }
-
-    public static JsonTypeValidator createJsonTypeValidator(JsonObject schema) {
-      return createJsonTypeValidator((JSONObject) OpenApi3Utils.convertVertxJSONToOrgJSON(schema));
     }
   }
 
