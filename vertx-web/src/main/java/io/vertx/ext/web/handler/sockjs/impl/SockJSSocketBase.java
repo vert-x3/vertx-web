@@ -37,9 +37,9 @@ import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.eventbus.MessageConsumer;
+import io.vertx.ext.auth.User;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.sockjs.SockJSSocket;
-import io.vertx.ext.auth.User;
 
 import java.util.UUID;
 
@@ -85,6 +85,17 @@ public abstract class SockJSSocketBase implements SockJSSocket {
   @Override
   public void close() {
     registration.unregister();
+  }
+
+  // Only websocket transport allows status code and reason, so in other cases we simply call close()
+  @Override
+  public void close(short statusCode) {
+    close();
+  }
+
+  @Override
+  public void close(short statusCode, String reason) {
+    close();
   }
 
   @Override
