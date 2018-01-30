@@ -477,7 +477,7 @@ public class RouteImpl implements Route {
         .putHeader(HttpHeaders.CONTENT_TYPE, "text/plain")
         .setStatusMessage(HttpResponseStatus.BAD_REQUEST.reasonPhrase())
         .setStatusCode(HttpResponseStatus.BAD_REQUEST.code())
-        .end(e.getMessage());
+        .end("Malformed query string");
     else
       router.getDecoderErrorHandler().handle(context);
   }

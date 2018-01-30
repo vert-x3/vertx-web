@@ -136,6 +136,7 @@ public abstract class RoutingContextImplBase implements RoutingContext {
         }
       } catch (Throwable t)  {
         // Handle exceptions during matches()
+        log.warn("Exception during route matching", t);
         if (!this.response().ended())
           unhandledFailure(-1, t, route.router());
         return true;
