@@ -21,10 +21,13 @@ import io.vertx.core.file.FileProps;
 import io.vertx.core.file.FileSystem;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
+import io.vertx.core.http.HttpServerResponse;
+import io.vertx.core.http.HttpVersion;
 import io.vertx.core.http.impl.MimeMapping;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
+import io.vertx.ext.web.Http2PushMapping;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.StaticHandler;
 import io.vertx.ext.web.impl.LRUCache;
@@ -64,6 +67,7 @@ public class StaticHandlerImpl implements StaticHandler {
   private boolean cachingEnabled = DEFAULT_CACHING_ENABLED;
   private long cacheEntryTimeout = DEFAULT_CACHE_ENTRY_TIMEOUT;
   private String indexPage = DEFAULT_INDEX_PAGE;
+  private List<Http2PushMapping> http2PushMappings;
   private int maxCacheSize = DEFAULT_MAX_CACHE_SIZE;
   private boolean rangeSupport = DEFAULT_RANGE_SUPPORT;
   private boolean allowRootFileSystemAccess = DEFAULT_ROOT_FILESYSTEM_ACCESS;
@@ -404,6 +408,56 @@ public class StaticHandlerImpl implements StaticHandler {
             }
           }
 
+          // http2 pushing support
+          if (request.version() == HttpVersion.HTTP_2 && http2PushMappings != null) {
+              for (Http2PushMapping dependency : http2PushMappings) {
+                if (!dependency.isNoPush()) {
+                  final String dep = webRoot + "/" + dependency.getFilePath();
+                  HttpServerResponse response = request.response();
+
+                  // get the file props
+                  getFileProps(context, dep, filePropsAsyncResult -> {
+                    if (filePropsAsyncResult.succeeded()) {
+                      // push
+                      writeCacheHeaders(request, filePropsAsyncResult.result());
+                      response.push(HttpMethod.GET, "/" + dependency.getFilePath(), pushAsyncResult -> {
+                        if (pushAsyncResult.succeeded()) {
+                          HttpServerResponse res = pushAsyncResult.result();
+                          final String depContentType = MimeMapping.getMimeTypeForExtension(file);
+                          if (depContentType != null) {
+                            if (depContentType.startsWith("text")) {
+                              res.putHeader("Content-Type", contentType + ";charset=" + defaultContentEncoding);
+                            } else {
+                              res.putHeader("Content-Type", contentType);
+                            }
+                          }
+                          res.sendFile(webRoot + "/" + dependency.getFilePath());
+                        }
+                      });
+                    }
+                  });
+                }
+              }
+
+          } else if (http2PushMappings != null) {
+            //Link preload when file push is not supported
+            HttpServerResponse response = request.response();
+            List<String> links = new ArrayList<>();
+            for (Http2PushMapping dependency : http2PushMappings) {
+              final String dep = webRoot + "/" + dependency.getFilePath();
+              // get the file props
+              getFileProps(context, dep, filePropsAsyncResult -> {
+                if (filePropsAsyncResult.succeeded()) {
+                  // push
+                  writeCacheHeaders(request, filePropsAsyncResult.result());
+                  links.add("<" + dependency.getFilePath() + ">; rel=preload; as="
+                      + dependency.getExtensionTarget() + (dependency.isNoPush() ? "; nopush" : ""));
+                }
+              });
+            }
+            response.putHeader("Link", links);
+          }
+
           return request.response().sendFile(file, res2 -> {
             if (res2.failed()) {
               context.fail(res2.cause());
@@ -503,6 +557,12 @@ public class StaticHandlerImpl implements StaticHandler {
   @Override
   public StaticHandler setAlwaysAsyncFS(boolean alwaysAsyncFS) {
     this.alwaysAsyncFS = alwaysAsyncFS;
+    return this;
+  }
+
+  @Override
+  public StaticHandler setHttp2PushMapping(List<Http2PushMapping> http2PushMap) {
+    if(http2PushMap != null) this.http2PushMappings = new ArrayList<>(http2PushMap);
     return this;
   }
 
@@ -688,6 +748,4 @@ public class StaticHandlerImpl implements StaticHandler {
     }
 
   }
-
-
 }

@@ -63,6 +63,11 @@
       <version>1.7.21</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-tcnative-boringssl-static</artifactId>
+      <version>2.0.7.Final</version>
+    </dependency>
     <!-- Required for testing with WebTestWithWebClientBase -->
     <dependency>
       <groupId>io.vertx</groupId>
@@ -78,6 +83,13 @@
   </dependencies>
 
   <build>
+    <extensions>
+      <extension>
+        <groupId>kr.motd.maven</groupId>
+        <artifactId>os-maven-plugin</artifactId>
+        <version>1.4.0.Final</version>
+      </extension>
+    </extensions>
     <pluginManagement>
       <plugins>
         <plugin>
