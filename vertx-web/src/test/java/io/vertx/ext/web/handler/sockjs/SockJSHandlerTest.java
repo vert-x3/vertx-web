@@ -23,8 +23,10 @@ import io.vertx.core.http.WebSocket;
 import io.vertx.core.http.WebSocketFrame;
 import io.vertx.core.http.impl.FrameType;
 import io.vertx.core.http.impl.ws.WebSocketFrameImpl;
+import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
+import io.vertx.ext.bridge.PermittedOptions;
 import io.vertx.ext.web.WebTestBase;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.test.core.TestUtils;
@@ -379,4 +381,50 @@ public class SockJSHandlerTest extends WebTestBase {
     await();
   }
 
+  @Test
+  public void testTimeoutCloseCode() {
+    router.route("/ws-timeout/*").handler(SockJSHandler
+      .create(vertx)
+      .bridge(new BridgeOptions().setPingTimeout(1))
+    );
+
+    client.websocket("/ws-timeout/websocket", ws -> {
+      ws.frameHandler(frame -> {
+        if (frame.isClose()) {
+          assertEquals(1001, frame.closeStatusCode());
+          assertEquals("Session expired", frame.closeReason());
+          testComplete();
+        }
+      });
+    });
+    await();
+  }
+
+  @Test
+  public void testInvalidMessageCode() {
+    router.route("/ws-timeout/*").handler(SockJSHandler
+      .create(vertx)
+      .bridge(new BridgeOptions().addInboundPermitted(new PermittedOptions().setAddress("SockJSHandlerTest.testInvalidMessageCode")))
+    );
+
+    vertx.eventBus().consumer("SockJSHandlerTest.testInvalidMessageCode", msg -> {
+      msg.reply(new JsonObject());
+    });
+
+    client.websocket("/ws-timeout/websocket", ws -> {
+      ws.writeFinalBinaryFrame(Buffer.buffer("durp!"));
+
+      ws.frameHandler(frame -> {
+        // we should get a normal frame with a error message
+        if (!frame.isClose()) {
+          JsonObject msg = new JsonObject(frame.binaryData());
+          assertEquals("err", msg.getString("type"));
+          assertEquals("invalid_json", msg.getString("body"));
+          testComplete();
+          ws.close();
+        }
+      });
+    });
+    await();
+  }
 }
