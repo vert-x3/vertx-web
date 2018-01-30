@@ -137,7 +137,8 @@ public class CorsHandlerImpl implements CorsHandler {
         if (maxAgeSeconds != null) {
           response.putHeader(ACCESS_CONTROL_MAX_AGE, maxAgeSeconds);
         }
-        response.setStatusCode(204).end();
+        // according to MDC although the is no body the response should be OK
+        response.setStatusCode(200).end();
       } else {
         addCredentialsAndOriginHeader(response, origin);
         if (exposedHeadersString != null) {

@@ -17,6 +17,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import io.vertx.core.http.HttpConnection;
+import io.vertx.core.net.JksOptions;
 import org.junit.Test;
 
 import io.vertx.core.Handler;
@@ -965,6 +966,20 @@ public class WebClientTest extends HttpTestBase {
   }
 
   @Test
+  public void testVirtualHost() throws Exception {
+    server.requestHandler(req -> {
+      assertEquals("another-host:8080", req.host());
+      req.response().end();
+    });
+    startServer();
+    HttpRequest<Buffer> req = client.get("/test").virtualHost("another-host");
+    req.send(onSuccess(resp -> {
+      testComplete();
+    }));
+    await();
+  }
+
+  @Test
   public void testTLSEnabled() throws Exception {
     testTLS(true, true, client -> client.get("/"));
   }
@@ -1028,18 +1043,42 @@ public class WebClientTest extends HttpTestBase {
   }
 
   private void testTLS(boolean clientSSL, boolean serverSSL, Function<WebClient, HttpRequest<Buffer>> requestProvider, Consumer<HttpServerRequest> serverAssertions) throws Exception {
-    WebClient sslClient = WebClient.create(vertx, new WebClientOptions()
+    WebClientOptions clientOptions = new WebClientOptions()
       .setSsl(clientSSL)
       .setTrustAll(true)
       .setDefaultHost(DEFAULT_HTTPS_HOST)
-      .setDefaultPort(DEFAULT_HTTPS_PORT));
-    HttpServer sslServer = vertx.createHttpServer(new HttpServerOptions()
+      .setDefaultPort(DEFAULT_HTTPS_PORT);
+    HttpServerOptions serverOptions = new HttpServerOptions()
       .setSsl(serverSSL)
-      .setKeyStoreOptions(Cert.CLIENT_JKS.get())
+      .setKeyStoreOptions(Cert.SERVER_JKS.get())
       .setPort(DEFAULT_HTTPS_PORT)
-      .setHost(DEFAULT_HTTPS_HOST));
+      .setHost(DEFAULT_HTTPS_HOST);
+    testTLS(clientOptions, serverOptions, requestProvider, serverAssertions);
+  }
+
+  @Test
+  public void testVirtualHostSNI() throws Exception {
+    WebClientOptions clientOptions = new WebClientOptions()
+      .setTrustAll(true)
+      .setDefaultHost(DEFAULT_HTTPS_HOST)
+      .setDefaultPort(DEFAULT_HTTPS_PORT);
+    HttpServerOptions serverOptions = new HttpServerOptions()
+      .setSsl(true)
+      .setSni(true)
+      .setKeyStoreOptions(Cert.SNI_JKS.get())
+      .setPort(DEFAULT_HTTPS_PORT)
+      .setHost(DEFAULT_HTTPS_HOST);
+     testTLS(clientOptions, serverOptions, req -> req.get("/").virtualHost("host2.com").ssl(true), req -> {
+       assertEquals("host2.com", req.connection().indicatedServerName());
+      System.out.println(req.host());
+    });
+  }
+
+  private void testTLS(WebClientOptions clientOptions, HttpServerOptions serverOptions, Function<WebClient, HttpRequest<Buffer>> requestProvider, Consumer<HttpServerRequest> serverAssertions) throws Exception {
+    WebClient sslClient = WebClient.create(vertx, clientOptions);
+    HttpServer sslServer = vertx.createHttpServer(serverOptions);
     sslServer.requestHandler(req -> {
-      assertEquals(serverSSL, req.isSSL());
+      assertEquals(serverOptions.isSsl(), req.isSSL());
       if (serverAssertions != null) {
         serverAssertions.accept(req);
       }

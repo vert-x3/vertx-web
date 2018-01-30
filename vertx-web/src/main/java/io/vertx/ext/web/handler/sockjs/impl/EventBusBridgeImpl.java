@@ -44,9 +44,7 @@ import io.vertx.ext.auth.User;
 import io.vertx.ext.bridge.BridgeEventType;
 import io.vertx.ext.bridge.PermittedOptions;
 import io.vertx.ext.web.Session;
-import io.vertx.ext.web.handler.sockjs.BridgeEvent;
-import io.vertx.ext.web.handler.sockjs.BridgeOptions;
-import io.vertx.ext.web.handler.sockjs.SockJSSocket;
+import io.vertx.ext.web.handler.sockjs.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -319,10 +317,11 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
         PingInfo pingInfo = new PingInfo();
         pingInfo.timerID = vertx.setPeriodic(pingTimeout, id -> {
           if (System.currentTimeMillis() - pingInfo.lastPing >= pingTimeout) {
-        	// Trigger an event to allow custom behavior before disconnecting client.
-            checkCallHook(() -> new BridgeEventImpl(BridgeEventType.SOCKET_IDLE, null, sock), null, null);
-            // We didn't receive a ping in time so close the socket
-            sock.close((short) 1001, "Session expired");
+        	  	// Trigger an event to allow custom behavior before disconnecting client.
+            checkCallHook(() -> new BridgeEventImpl(BridgeEventType.SOCKET_IDLE, null, sock),
+            		// We didn't receive a ping in time so close the socket
+              () -> sock.close((short) 1001, "Session expired"),
+            		() -> replyError(sock, "rejected"));
           }
         });
         SockInfo sockInfo = new SockInfo();
