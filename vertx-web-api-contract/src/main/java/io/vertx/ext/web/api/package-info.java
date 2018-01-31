@@ -34,12 +34,14 @@
  * == HTTP Requests validation
  *
  * Vert.x provides a validation framework that will validate requests for you and will put results of validation inside a container. To define a {@link io.vertx.ext.web.api.validation.HTTPRequestValidationHandler}:
+ *
  * [source,$lang]
  * ----
  * {@link examples.ValidationExamples#example1}
  * ----
  *
  * Then you can mount your validation handler:
+ *
  * [source,$lang]
  * ----
  * {@link examples.ValidationExamples#example2}
@@ -99,6 +101,7 @@
  * As location It accepts absolute paths, local paths and local or remote URLs (HTTP or file protocol).
  *
  * For example:
+ *
  * [source,$lang]
  * ----
  * {@link examples.OpenAPI3Examples#constructRouterFactory}
@@ -136,6 +139,7 @@
  * IMPORTANT: If you want to use {@link io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory#addHandler(io.vertx.core.http.HttpMethod, java.lang.String, io.vertx.core.Handler)} or {@link io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory#addFailureHandler(io.vertx.core.http.HttpMethod, java.lang.String, io.vertx.core.Handler)} pay attention: You can provide a path only in OpenAPI styles (for example path `/hello/:param` doesn't work)
  *
  * For example:
+ *
  * [source,$lang]
  * ----
  * {@link examples.OpenAPI3Examples#addRoute}

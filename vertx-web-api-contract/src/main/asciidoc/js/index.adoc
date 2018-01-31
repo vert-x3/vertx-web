@@ -35,15 +35,39 @@ dependencies {
 Vert.x provides a validation framework that will validate requests for you and will put results of validation inside a container.
 
 To define a `link:../../jsdoc/module-vertx-web-api-contract-js_http_request_validation_handler-HTTPRequestValidationHandler.html[HTTPRequestValidationHandler]`:
+
 [source,js]
 ----
-`example1`
+var HTTPRequestValidationHandler = require("vertx-web-api-contract-js/http_request_validation_handler");
+// Create Validation Handler with some stuff
+var validationHandler = HTTPRequestValidationHandler.create().addQueryParam("parameterName", 'INT', true).addFormParamWithPattern("formParameterName", "a{4}", true).addPathParam("pathParam", 'FLOAT');
+
 ----
 
 Then you can mount your validation handler:
+
 [source,js]
 ----
-`example2`
+var BodyHandler = require("vertx-web-js/body_handler");
+// BodyHandler is required to manage body parameters like forms or json body
+router.route().handler(BodyHandler.create().handle);
+
+router.get("/awesome/:pathParam").handler(validationHandler.handle).handler(function (routingContext) {
+  // Get Request parameters container
+  var params = routingContext.get("parsedParameters");
+
+  // Get parameters
+  var parameterName = params.queryParameter("parameterName").getInteger();
+  var formParameterName = params.formParameter("formParameterName").getString();
+  var pathParam = params.pathParameter("pathParam").getFloat();
+}).failureHandler(function (routingContext) {
+  var failure = routingContext.failure();
+  if (failure.getClass().getSimpleName() == 'ValidationException') {
+    // Something went wrong during validation!
+    var validationErrorMessage = failure.getMessage();
+  }
+});
+
 ----
 
 If validation succeeds, It returns request parameters inside `link:../../jsdoc/module-vertx-web-api-contract-js_request_parameters-RequestParameters.html[RequestParameters]`, otherwise It will throw a `ValidationException`
@@ -61,14 +85,31 @@ Now you can handle parameter values:
 
 [source,js]
 ----
-`example3`
+var params = routingContext.get("parsedParameters");
+var awesomeParameter = params.queryParameter("awesomeParameter");
+if ((awesomeParameter !== null && awesomeParameter !== undefined)) {
+  if (!awesomeParameter.isEmpty()) {
+    // Parameter exists and isn't empty
+    // ParameterTypeValidator mapped the parameter in equivalent language object
+    var awesome = awesomeParameter.getInteger();
+  } else {
+    // Parameter exists, but it's empty
+  }
+} else {
+  // Parameter doesn't exist (it's not required)
+}
+
 ----
 
 As you can see, every parameter is mapped in respective language objects. You can also get a json body:
 
 [source,js]
 ----
-`example4`
+var body = params.body();
+if ((body !== null && body !== undefined)) {
+  var jsonBody = body.getJsonObject();
+}
+
 ----
 
 == OpenAPI 3 support
@@ -100,16 +141,37 @@ To create a new router factory, Use method `link:../../jsdoc/module-vertx-web-ap
 As location It accepts absolute paths, local paths and local or remote URLs (HTTP or file protocol).
 
 For example:
+
 [source,js]
 ----
-`constructRouterFactory`
+var OpenAPI3RouterFactory = require("vertx-web-api-contract-js/open_api3_router_factory");
+OpenAPI3RouterFactory.create(vertx, "src/main/resources/petstore.yaml", function (ar, ar_err) {
+  if (ar_err == null) {
+    // Spec loaded with success
+    var routerFactory = ar;
+  } else {
+    // Something went wrong during router factory initialization
+    var exception = ar_err;
+  }
+});
+
 ----
 
 You can also construct a router factory from a remote spec:
 
 [source,js]
 ----
-`constructRouterFactoryFromUrl`
+var OpenAPI3RouterFactory = require("vertx-web-api-contract-js/open_api3_router_factory");
+OpenAPI3RouterFactory.create(vertx, "https://raw.githubusercontent.com/OAI/OpenAPI-Specification/master/examples/v3.0/petstore.yaml", function (ar, ar_err) {
+  if (ar_err == null) {
+    // Spec loaded with success
+    var routerFactory = ar;
+  } else {
+    // Something went wrong during router factory initialization
+    var exception = ar_err;
+  }
+});
+
 ----
 
 You can also modify the behaviours of the router factory with `link:../dataobjects.html#RouterFactoryOptions[RouterFactoryOptions]`.
@@ -117,7 +179,15 @@ For example you can ask to router factory to mount the validation failure handle
 
 [source,js]
 ----
-`mountOptions`
+var routerFactory = ar.result();
+// Create and mount options to router factory
+var options = {
+  "mountNotImplementedHandler" : true,
+  "mountValidationFailureHandler" : false
+};
+
+routerFactory.setOptions(options);
+
 ----
 
 === Mount the handlers
@@ -137,9 +207,19 @@ You can, of course, **add multiple handlers to same operation**, without overwri
 IMPORTANT: If you want to use `link:../../jsdoc/module-vertx-web-api-contract-js_router_factory-RouterFactory.html#addHandler[addHandler]` or `link:../../jsdoc/module-vertx-web-api-contract-js_router_factory-RouterFactory.html#addFailureHandler[addFailureHandler]` pay attention: You can provide a path only in OpenAPI styles (for example path `/hello/:param` doesn't work)
 
 For example:
+
 [source,js]
 ----
-`addRoute`
+routerFactory.addHandlerByOperationId("awesomeOperation", function (routingContext) {
+  var params = routingContext.get("parsedParameters");
+  var body = params.body();
+  var jsonBody = body.getJsonObject();
+  // Do something with body
+});
+routerFactory.addFailureHandlerByOperationId("awesomeOperation", function (routingContext) {
+  // Handle failure
+});
+
 ----
 
 .Add operations with operationId
@@ -153,14 +233,17 @@ For example:
 
 [source,js]
 ----
-`addSecurityHandler`
+routerFactory.addSecurityHandler("security_scheme_name", securityHandler);
+
 ----
 
 You can of course use included Vert.x security handlers, for example:
 
 [source,js]
 ----
-`addJWT`
+var JWTAuthHandler = require("vertx-web-js/jwt_auth_handler");
+routerFactory.addSecurityHandler("jwt_auth", JWTAuthHandler.create(jwtAuthProvider).handle);
+
 ----
 
 === Customize the router factory behaviours
@@ -178,5 +261,12 @@ When you are ready, generate the router and use it:
 
 [source,js]
 ----
-`generateRouter`
+var router = routerFactory.getRouter();
+
+var server = vertx.createHttpServer({
+  "port" : 8080,
+  "host" : "localhost"
+});
+server.requestHandler(router.accept).listen();
+
 ----
