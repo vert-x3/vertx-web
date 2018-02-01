@@ -25,6 +25,7 @@ import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.net.PemKeyCertOptions;
+import io.vertx.core.net.PemTrustOptions;
 import io.vertx.ext.web.Http2PushMapping;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.impl.Utils;
@@ -192,17 +193,16 @@ public class StaticHandlerTest extends WebTestBase {
     stat.setWebRoot("webroot/somedir3");
     router.route().handler(stat);
     HttpServer http2Server = vertx.createHttpServer(new HttpServerOptions()
-        .setUseAlpn(true)
-        .setSsl(true)
-        .setPemKeyCertOptions(new PemKeyCertOptions().setKeyPath("tls/key.pem").setCertPath("tls/cert.pem")
-        ));
+      .setUseAlpn(true)
+      .setSsl(true)
+      .setPemKeyCertOptions(new PemKeyCertOptions().setKeyPath("tls/server-key.pem").setCertPath("tls/server-cert.pem")));
     http2Server.requestHandler(router::accept).listen(8443);
 
-    HttpClientOptions options = new HttpClientOptions().
-        setSsl(true).
-        setUseAlpn(true).
-        setProtocolVersion(HttpVersion.HTTP_2).
-        setTrustAll(true);
+    HttpClientOptions options = new HttpClientOptions()
+      .setSsl(true)
+      .setUseAlpn(true)
+      .setProtocolVersion(HttpVersion.HTTP_2)
+      .setPemTrustOptions(new PemTrustOptions().addCertPath("tls/server-cert.pem"));
     HttpClient client = vertx.createHttpClient(options);
     HttpClientRequest request = client.get(8443, "localhost", "/testLinkPreload.html", resp -> {
       assertEquals(200, resp.statusCode());
@@ -228,15 +228,14 @@ public class StaticHandlerTest extends WebTestBase {
     HttpServer http2Server = vertx.createHttpServer(new HttpServerOptions()
         .setUseAlpn(true)
         .setSsl(true)
-        .setPemKeyCertOptions(new PemKeyCertOptions().setKeyPath("tls/key.pem").setCertPath("tls/cert.pem")
-        ));
+        .setPemKeyCertOptions(new PemKeyCertOptions().setKeyPath("tls/server-key.pem").setCertPath("tls/server-cert.pem")));
     http2Server.requestHandler(router::accept).listen(8443);
 
-    HttpClientOptions options = new HttpClientOptions().
-        setSsl(true).
-        setUseAlpn(true).
-        setProtocolVersion(HttpVersion.HTTP_2).
-        setTrustAll(true);
+    HttpClientOptions options = new HttpClientOptions()
+      .setSsl(true)
+      .setUseAlpn(true)
+      .setProtocolVersion(HttpVersion.HTTP_2)
+      .setPemTrustOptions(new PemTrustOptions().addCertPath("tls/server-cert.pem"));
     HttpClient client = vertx.createHttpClient(options);
     HttpClientRequest request = client.get(8443, "localhost", "/testLinkPreload.html", resp -> {
       assertEquals(200, resp.statusCode());

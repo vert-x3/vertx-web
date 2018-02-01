@@ -107,4 +107,21 @@
     <module>vertx-web-api-contract</module>
   </modules>
 
+  <profiles>
+    <profile>
+      <id>java-8</id>
+      <activation>
+        <jdk>1.8</jdk>
+      </activation>
+      <dependencies>
+        <dependency>
+          <groupId>io.netty</groupId>
+          <artifactId>netty-tcnative-boringssl-static</artifactId>
+          <version>2.0.7.Final</version>
+          <scope>test</scope>
+        </dependency>
+      </dependencies>
+    </profile>
+  </profiles>
+
 </project>
