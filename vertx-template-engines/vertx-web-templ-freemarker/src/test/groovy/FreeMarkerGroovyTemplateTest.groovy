@@ -2,6 +2,7 @@ import io.vertx.core.http.HttpMethod
 import io.vertx.ext.web.WebTestBase
 import io.vertx.ext.web.handler.TemplateHandler
 import io.vertx.ext.web.templ.FreeMarkerTemplateEngine
+import org.junit.Assume
 import org.junit.Test
 
 /*
@@ -27,10 +28,7 @@ class FreeMarkerGroovyTemplateTest extends WebTestBase {
 
   @Test
   void testTemplateHandler() throws Exception {
-    if (System.getProperty("java.version") == "9") {
-      // Sigh
-      return
-    }
+    Assume.assumeFalse(System.getProperty("java.version").startsWith("9"));
     def engine = FreeMarkerTemplateEngine.create()
     router.route().handler({ context ->
       context.put('foo', 'badger')
