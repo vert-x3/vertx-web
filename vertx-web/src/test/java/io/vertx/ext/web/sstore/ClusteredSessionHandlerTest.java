@@ -18,7 +18,11 @@ package io.vertx.ext.web.sstore;
 
 import io.vertx.core.VertxOptions;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.http.*;
+import io.vertx.core.http.HttpClient;
+import io.vertx.core.http.HttpClientOptions;
+import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.HttpServer;
+import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.spi.cluster.ClusterManager;
 import io.vertx.ext.web.Router;
@@ -28,6 +32,7 @@ import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.handler.SessionHandlerTestBase;
 import io.vertx.ext.web.handler.SomeSerializable;
 import io.vertx.ext.web.sstore.impl.SessionImpl;
+import io.vertx.test.core.Repeat;
 import io.vertx.test.core.TestUtils;
 import io.vertx.test.fakecluster.FakeClusterManager;
 import org.junit.Test;
@@ -61,14 +66,15 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
 
   @Test
   public void testClusteredSession() throws Exception {
+    CountDownLatch serversReady = new CountDownLatch(3);
+
     Router router1 = Router.router(vertices[0]);
     router1.route().handler(CookieHandler.create());
     SessionStore store1 = ClusteredSessionStore.create(vertices[0]);
     router1.route().handler(SessionHandler.create(store1));
     HttpServer server1 = vertices[0].createHttpServer(new HttpServerOptions().setPort(8081).setHost("localhost"));
     server1.requestHandler(router1::accept);
-    CountDownLatch latch1 = new CountDownLatch(1);
-    server1.listen(onSuccess(s -> latch1.countDown()));
+    server1.listen(onSuccess(s -> serversReady.countDown()));
     HttpClient client1 = vertices[0].createHttpClient(new HttpClientOptions());
 
     Router router2 = Router.router(vertices[1]);
@@ -77,8 +83,7 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
     router2.route().handler(SessionHandler.create(store2));
     HttpServer server2 = vertices[1].createHttpServer(new HttpServerOptions().setPort(8082).setHost("localhost"));
     server2.requestHandler(router2::accept);
-    CountDownLatch latch2 = new CountDownLatch(1);
-    server2.listen(onSuccess(s -> latch2.countDown()));
+    server2.listen(onSuccess(s -> serversReady.countDown()));
     HttpClient client2 = vertices[0].createHttpClient(new HttpClientOptions());
 
     Router router3 = Router.router(vertices[2]);
@@ -87,9 +92,10 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
     router3.route().handler(SessionHandler.create(store3));
     HttpServer server3 = vertices[2].createHttpServer(new HttpServerOptions().setPort(8083).setHost("localhost"));
     server3.requestHandler(router3::accept);
-    CountDownLatch latch3 = new CountDownLatch(1);
-    server3.listen(onSuccess(s -> latch3.countDown()));
+    server3.listen(onSuccess(s -> serversReady.countDown()));
     HttpClient client3 = vertices[0].createHttpClient(new HttpClientOptions());
+
+    awaitLatch(serversReady);
 
     router1.route().handler(rc -> {
       Session sess = rc.session();
@@ -126,7 +132,6 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
     testRequestBuffer(client2, HttpMethod.GET, 8082, "/", req -> req.putHeader("cookie", rSetCookie.get()), null, 200, "OK", null);
     Thread.sleep(1000);
     testRequestBuffer(client3, HttpMethod.GET, 8083, "/", req -> req.putHeader("cookie", rSetCookie.get()), null, 200, "OK", null);
-
   }
 
   @Test
