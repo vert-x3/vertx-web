@@ -35,6 +35,7 @@ public class SockJSHandlerOptions {
   public static final long DEFAULT_HEARTBEAT_INTERVAL = 25L * 1000;
   public static final int DEFAULT_MAX_BYTES_STREAMING = 128 * 1024;
   public static final String DEFAULT_LIBRARY_URL = "//cdn.jsdelivr.net/sockjs/0.3.4/sockjs.min.js";
+  public static final boolean DEFAULT_CORS_HEADERS_ENABLED = true;
 
   private long sessionTimeout;
   private boolean insertJSESSIONID;
@@ -42,6 +43,7 @@ public class SockJSHandlerOptions {
   private int maxBytesStreaming;
   private String libraryURL;
   private Set<String> disabledTransports = new HashSet<>();
+  private boolean corsHeadersEnabled;
 
   public SockJSHandlerOptions(SockJSHandlerOptions other) {
     throw new UnsupportedOperationException("todo");
@@ -53,6 +55,7 @@ public class SockJSHandlerOptions {
     this.heartbeatInterval = DEFAULT_HEARTBEAT_INTERVAL;
     this.maxBytesStreaming = DEFAULT_MAX_BYTES_STREAMING;
     this.libraryURL = DEFAULT_LIBRARY_URL;
+    this.corsHeadersEnabled = DEFAULT_CORS_HEADERS_ENABLED;
   }
 
   public SockJSHandlerOptions(JsonObject json) {
@@ -61,6 +64,7 @@ public class SockJSHandlerOptions {
     this.heartbeatInterval = json.getLong("heartbeatInterval", DEFAULT_HEARTBEAT_INTERVAL);
     this.maxBytesStreaming = json.getInteger("maxBytesStreaming", DEFAULT_MAX_BYTES_STREAMING);
     this.libraryURL = json.getString("libraryURL", DEFAULT_LIBRARY_URL);
+    this.corsHeadersEnabled = json.getBoolean("corsHeadersEnabled", DEFAULT_CORS_HEADERS_ENABLED);
     JsonArray arr = json.getJsonArray("disabledTransports");
     if (arr != null) {
       for (Object str : arr) {
@@ -137,4 +141,12 @@ public class SockJSHandlerOptions {
     return disabledTransports;
   }
 
+  public boolean isCorsHeadersEnabled() {
+    return corsHeadersEnabled;
+  }
+
+  public SockJSHandlerOptions setCorsHeadersEnabled(boolean corsHeadersEnabled) {
+    this.corsHeadersEnabled = corsHeadersEnabled;
+    return this;
+  }
 }

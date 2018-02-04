@@ -140,7 +140,7 @@ class XhrTransport extends BaseTransport {
       rc.response().putHeader("Content-Type", "text/plain; charset=UTF-8");
       setNoCacheHeaders(rc);
       setJSESSIONID(options, rc);
-      setCORS(rc);
+      setCORS(options, rc);
       rc.response().setStatusCode(204);
       rc.response().end();
     }
@@ -161,7 +161,7 @@ class XhrTransport extends BaseTransport {
         HttpServerResponse resp = rc.response();
         resp.putHeader("Content-Type", "application/javascript; charset=UTF-8");
         setJSESSIONID(options, rc);
-        setCORS(rc);
+        setCORS(options, rc);
         if (rc.request().version() != HttpVersion.HTTP_1_0) {
           resp.setChunked(true);
         } else {

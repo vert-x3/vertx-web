@@ -152,7 +152,11 @@ class BaseTransport {
     }
   }
 
-  static void setCORS(RoutingContext rc) {
+  static void setCORS(SockJSHandlerOptions options, RoutingContext rc) {
+    if (!options.isCorsHeadersEnabled()) {
+      return;
+    }
+
     HttpServerRequest req = rc.request();
     String origin = req.headers().get("origin");
     if (origin == null || "null".equals(origin)) {
@@ -180,7 +184,7 @@ class BaseTransport {
         // Java ints are signed, so we need to use a long and add the offset so
         // the result is not negative
         json.put("entropy", RAND_OFFSET + new Random().nextInt());
-        setCORS(rc);
+        setCORS(options, rc);
         rc.response().end(json.encode());
       }
     };
@@ -200,7 +204,7 @@ class BaseTransport {
       rc.response().putHeader("Expires", expires)
         .putHeader("Access-Control-Allow-Methods", methods)
         .putHeader("Access-Control-Max-Age", String.valueOf(oneYearSeconds));
-      setCORS(rc);
+      setCORS(options, rc);
       setJSESSIONID(options, rc);
       rc.response().setStatusCode(204);
       rc.response().end();
