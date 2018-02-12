@@ -18,6 +18,8 @@ package io.vertx.ext.web.handler;
 import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.eventbus.MessageConsumer;
+import io.vertx.core.eventbus.ReplyException;
+import io.vertx.core.eventbus.ReplyFailure;
 import io.vertx.core.http.WebSocketBase;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -173,6 +175,53 @@ public class EventbusBridgeTest extends WebTestBase {
 
   @Test
   public void testHookSendMissingAddress() throws Exception {
+    sockJSHandler.bridge(allAccessOptions, be -> {
+      if (be.type() == BridgeEventType.SEND) {
+        be.getRawMessage().remove("address");
+        testComplete();
+      }
+      be.complete(true);
+    });
+    testError(new JsonObject().put("type", "send").put("address", addr).put("body", "foobar"),
+      "missing_address");
+    await();
+  }
+
+  @Test
+  public void testHookFailureReply() throws Exception {
+    sockJSHandler.bridge(allAccessOptions, be -> {
+      if (be.type() == BridgeEventType.SEND) {
+        assertNotNull(be.socket());
+        JsonObject raw = be.getRawMessage();
+        assertEquals(5432, raw.getInteger("failureCode").intValue());
+        assertEquals("a_failure_message", raw.getString("message"));
+        be.complete(true);
+        testComplete();
+      } else {
+        be.complete(true);
+      }
+    });
+    testFailureReply(5432, "a_failure_message");
+    await();
+  }
+
+  @Test
+  public void testHookFailureReplyRejected() throws Exception {
+    sockJSHandler.bridge(allAccessOptions, be -> {
+      if (be.type() == BridgeEventType.SEND) {
+        be.complete(false);
+        testComplete();
+      } else {
+        be.complete(true);
+      }
+    });
+    testError(new JsonObject().put("type", "err").put("address", "12345431").put("failureCode", 4321),
+      "rejected");
+    await();
+  }
+
+  @Test
+  public void testHookFailureReplyMissingAddress() throws Exception {
     sockJSHandler.bridge(allAccessOptions, be -> {
       if (be.type() == BridgeEventType.SEND) {
         be.getRawMessage().remove("address");
@@ -1127,6 +1176,45 @@ public class EventbusBridgeTest extends WebTestBase {
     assertEquals(match, options.getMatch());
   }
 
+  @Test
+  public void testFailureReplyReceived() throws Exception {
+    sockJSHandler.bridge(new BridgeOptions(allAccessOptions));
+    CountDownLatch latch = new CountDownLatch(1);
+    client.websocket(websocketURI, ws -> {
+      JsonObject reg = new JsonObject().put("type", "register").put("address", addr);
+      ws.writeFrame(io.vertx.core.http.WebSocketFrame.textFrame(reg.encode(), true));
+      ws.handler(buff -> {
+        JsonObject received = new JsonObject(buff);
+        String replyAddress = received.getString("replyAddress");
+        assertNotNull(replyAddress);
+        assertFalse(replyAddress.isEmpty());
+        assertEquals("rec", received.getString("type"));
+        assertEquals("fail_this", received.getValue("body"));
+        // send failure reply
+        JsonObject msg = new JsonObject().put("type", "err").put("address", replyAddress).put("failureCode", 420).put("message", "testFailureMessage");
+        ws.writeFrame(io.vertx.core.http.WebSocketFrame.textFrame(msg.encode(), true));
+      });
+      // Wait a bit to allow the handler to be setup on the server, then send message from eventbus
+      vertx.setTimer(200, tid -> {
+        vertx.eventBus().send(addr, "fail_this", res -> {
+          assertTrue(res.failed());
+          ReplyException exception = (ReplyException) res.cause();
+          assertEquals(ReplyFailure.RECIPIENT_FAILURE, exception.failureType());
+          assertEquals(420, exception.failureCode());
+          assertEquals("testFailureMessage", exception.getMessage());
+          latch.countDown();
+        });
+      });
+    });
+    awaitLatch(latch);
+  }
+
+  @Test
+  public void testFailureReplyMissingAddress() throws Exception {
+    sockJSHandler.bridge(allAccessOptions);
+    testError(new JsonObject().put("type", "err").put("failureCode", 1923), "missing_address");
+  }
+
   private void testError(JsonObject msg, String expectedErr) throws Exception {
     testError(msg.encode(), expectedErr);
   }
@@ -1183,6 +1271,40 @@ public class EventbusBridgeTest extends WebTestBase {
 
     awaitLatch(latch);
 
+  }
+
+  private void testFailureReply(int failureCode, String message) throws Exception {
+    testFailureReply(addr, failureCode, message);
+  }
+
+  private void testFailureReply(String address, int failureCode, String message) throws Exception {
+    sockJSHandler.bridge(new BridgeOptions(allAccessOptions));
+    CountDownLatch latch = new CountDownLatch(1);
+    client.websocket(websocketURI, ws -> {
+      // register
+      JsonObject reg = new JsonObject().put("type", "register").put("address", address);
+      ws.writeFrame(io.vertx.core.http.WebSocketFrame.textFrame(reg.encode(), true));
+
+      ws.handler(buff -> {
+        JsonObject received = new JsonObject(buff);
+        String replyAddress = received.getString("replyAddress");
+        assertEquals("rec", received.getString("type"));
+        assertEquals("fail_this", received.getValue("body"));
+        JsonObject msg = new JsonObject().put("type", "err").put("address", replyAddress).put("failureCode", failureCode).put("message", message);
+        ws.writeFrame(io.vertx.core.http.WebSocketFrame.textFrame(msg.encode(), true));
+      });
+      vertx.setTimer(200, tid -> {
+        vertx.eventBus().send(address, "fail_this", res -> {
+          assertTrue(res.failed());
+          ReplyException exception = (ReplyException) res.cause();
+          assertEquals(ReplyFailure.RECIPIENT_FAILURE, exception.failureType());
+          assertEquals(failureCode, exception.failureCode());
+          assertEquals(message, exception.getMessage());
+          latch.countDown();
+        });
+      });
+    });
+    awaitLatch(latch);
   }
 
   private void testPublish(Object body) throws Exception {

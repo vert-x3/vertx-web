@@ -106,6 +106,19 @@
       }
     };
 
+    var sendFailure = function (address, failureCode, message) {
+      if (self.state !== EventBus.OPEN) {
+        throw new Error('INVALID_STATE_ERR');
+      }
+      var envelope = {
+        type: 'err',
+        address: address,
+        failureCode: failureCode,
+        message: message
+      };
+      self.sockJSConn.send(JSON.stringify(envelope));
+    };
+
     var setupSockJSConnection = function () {
       self.sockJSConn = new SockJS(url, null, options);
       self.state = EventBus.CONNECTING;
@@ -142,11 +155,18 @@
       self.sockJSConn.onmessage = function (e) {
         var json = JSON.parse(e.data);
 
-        // define a reply function on the message itself
+        // define reply and fail functions on the message itself
         if (json.replyAddress) {
-          Object.defineProperty(json, 'reply', {
-            value: function (message, headers, callback) {
-              self.send(json.replyAddress, message, headers, callback);
+          Object.defineProperties(json, {
+            'reply': {
+              value: function (message, headers, callback) {
+                self.send(json.replyAddress, message, headers, callback);
+              }
+            },
+            'fail': {
+              value: function (failureCode, message) {
+                sendFailure(json.replyAddress, failureCode, message);
+              }
             }
           });
         }
