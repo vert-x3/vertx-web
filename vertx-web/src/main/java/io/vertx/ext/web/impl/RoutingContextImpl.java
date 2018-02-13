@@ -28,10 +28,19 @@ import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
-import io.vertx.ext.web.*;
+import io.vertx.ext.web.Cookie;
+import io.vertx.ext.web.FileUpload;
 import io.vertx.ext.web.Locale;
+import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.Session;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -241,12 +250,12 @@ public class RoutingContextImpl extends RoutingContextImplBase {
 
   @Override
   public JsonObject getBodyAsJson() {
-    return body != null ? new JsonObject(body.toString()) : null;
+    return body != null ? new JsonObject(body) : null;
   }
 
   @Override
   public JsonArray getBodyAsJsonArray() {
-    return body != null ? new JsonArray(body.toString()) : null;
+    return body != null ? new JsonArray(body) : null;
   }
 
   @Override
