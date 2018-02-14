@@ -16,157 +16,82 @@
 
 package io.vertx.ext.web.templ;
 
-import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
-import io.vertx.core.file.FileSystemOptions;
-import io.vertx.core.json.JsonObject;
-import io.vertx.ext.unit.Async;
-import io.vertx.ext.unit.TestContext;
-import io.vertx.ext.unit.junit.VertxUnitRunner;
-import io.vertx.ext.web.common.template.CachingTemplateEngine;
-import io.vertx.ext.web.common.template.TemplateEngine;
-import org.junit.BeforeClass;
+import io.vertx.core.http.HttpMethod;
+import io.vertx.ext.web.handler.TemplateHandler;
+import io.vertx.ext.web.WebTestBase;
 import org.junit.Test;
 
-import io.vertx.ext.web.templ.mvel.MVELTemplateEngine;
-import org.junit.runner.RunWith;
-
 import java.io.File;
-import java.io.IOException;
 import java.io.PrintWriter;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-@RunWith(VertxUnitRunner.class)
-public class MVELTemplateTest {
+public class MVELTemplateTest extends WebTestBase {
 
-  private static Vertx vertx;
-
-  @BeforeClass
-  public static void before() {
-    vertx = Vertx.vertx(new VertxOptions().setFileSystemOptions(new FileSystemOptions().setFileCachingEnabled(true)));
+  protected VertxOptions getOptions() {
+    return new VertxOptions().setFileResolverCachingEnabled(true);
   }
 
   @Test
-  public void testTemplateHandlerOnClasspath(TestContext should) {
-    final Async test = should.async();
-    TemplateEngine engine = MVELTemplateEngine.create(vertx);
+  public void testTemplateHandlerOnClasspath() throws Exception {
+    TemplateEngine engine = MVELTemplateEngine.create();
+    testTemplateHandler(engine, "somedir", "test-mvel-template2.templ", "Hello badger and fox\nRequest path is /test-mvel-template2.templ");
+  }
 
-    final JsonObject context = new JsonObject()
-      .put("foo", "badger")
-      .put("bar", "fox");
+  @Test
+  public void MVELTemplateTestMVELTemplateTestMVELTemplateTest() throws Exception {
+    TemplateEngine engine = MVELTemplateEngine.create();
+    testTemplateHandler(engine, "src/test/filesystemtemplates", "test-mvel-template3.templ", "Hello badger and fox\nRequest path is /test-mvel-template3.templ");
+  }
 
-    context.put("context", new JsonObject().put("path", "/test-mvel-template2.templ"));
+  @Test
+  public void testTemplateHandlerWithInclude() throws Exception {
+    TemplateEngine engine = MVELTemplateEngine.create();
+    testTemplateHandler(engine, "src/test/filesystemtemplates", "test-mvel-template4.templ", "Hello badger and fox\nRequest path is /test-mvel-template4.templ");
+  }
 
-    engine.render(context, "somedir/test-mvel-template2.templ", render -> {
-      should.assertTrue(render.succeeded());
-      should.assertEquals("Hello badger and fox\nRequest path is /test-mvel-template2.templ\n", render.result().toString());
-      test.complete();
+  @Test
+  public void testTemplateHandlerOnClasspathDisableCaching() throws Exception {
+    System.setProperty("vertx.mode", "dev");
+    testTemplateHandlerOnClasspath();
+  }
+
+  @Test
+  public void testTemplateHandlerNoExtension() throws Exception {
+    TemplateEngine engine = MVELTemplateEngine.create();
+    testTemplateHandler(engine, "somedir", "test-mvel-template2", "Hello badger and fox\nRequest path is /test-mvel-template2");
+  }
+
+  @Test
+  public void testTemplateHandlerChangeExtension() throws Exception {
+    TemplateEngine engine = MVELTemplateEngine.create().setExtension("bempl");
+    testTemplateHandler(engine, "somedir", "test-mvel-template2", "Cheerio badger and fox\nRequest path is /test-mvel-template2");
+  }
+
+  private void testTemplateHandler(TemplateEngine engine, String directoryName, String templateName,
+                                   String expected) throws Exception {
+    router.route().handler(context -> {
+      context.put("foo", "badger");
+      context.put("bar", "fox");
+      context.next();
     });
-    test.await();
+    router.route().handler(TemplateHandler.create(engine, directoryName, "text/plain"));
+    testRequest(HttpMethod.GET, "/" + templateName, 200, "OK", expected);
   }
 
   @Test
-  public void MVELTemplateTestMVELTemplateTestMVELTemplateTest(TestContext should) {
-    final Async test = should.async();
-    TemplateEngine engine = MVELTemplateEngine.create(vertx);
-
-    final JsonObject context = new JsonObject()
-      .put("foo", "badger")
-      .put("bar", "fox");
-
-    context.put("context", new JsonObject().put("path", "/test-mvel-template3.templ"));
-
-    engine.render(context, "src/test/filesystemtemplates/test-mvel-template3.templ", render -> {
-      should.assertTrue(render.succeeded());
-      should.assertEquals("Hello badger and fox\nRequest path is /test-mvel-template3.templ\n", render.result().toString());
-      test.complete();
-    });
-    test.await();
+  public void testNoSuchTemplate() throws Exception {
+    TemplateEngine engine = MVELTemplateEngine.create();
+    router.route().handler(TemplateHandler.create(engine, "nosuchtemplate.templ", "text/plain"));
+    testRequest(HttpMethod.GET, "/foo.templ", 500, "Internal Server Error");
   }
 
   @Test
-  public void testTemplateHandlerWithInclude(TestContext should) {
-    final Async test = should.async();
-    TemplateEngine engine = MVELTemplateEngine.create(vertx);
-
-    final JsonObject context = new JsonObject()
-      .put("foo", "badger")
-      .put("bar", "fox");
-
-    context.put("context", new JsonObject().put("path", "/test-mvel-template4.templ"));
-
-    engine.render(context, "src/test/filesystemtemplates/test-mvel-template4.templ", render -> {
-      should.assertTrue(render.succeeded());
-      String res = render.result().toString();
-      should.assertEquals("Hello badger and fox\n\nRequest path is /test-mvel-template4.templ\n", res);
-      test.complete();
-    });
-    test.await();
-  }
-
-  @Test
-  public void testTemplateHandlerOnClasspathDisableCaching(TestContext should) throws Exception {
-    System.setProperty(CachingTemplateEngine.DISABLE_TEMPL_CACHING_PROP_NAME, "true");
-    testTemplateHandlerOnClasspath(should);
-  }
-
-  @Test
-  public void testTemplateHandlerNoExtension(TestContext should) {
-    final Async test = should.async();
-    TemplateEngine engine = MVELTemplateEngine.create(vertx);
-
-    final JsonObject context = new JsonObject()
-      .put("foo", "badger")
-      .put("bar", "fox");
-
-    context.put("context", new JsonObject().put("path", "/test-mvel-template2.templ"));
-
-    engine.render(context, "somedir/test-mvel-template2", render -> {
-      should.assertTrue(render.succeeded());
-      should.assertEquals("Hello badger and fox\nRequest path is /test-mvel-template2.templ\n", render.result().toString());
-      test.complete();
-    });
-    test.await();
-  }
-
-  @Test
-  public void testTemplateHandlerChangeExtension(TestContext should) {
-    final Async test = should.async();
-    TemplateEngine engine = MVELTemplateEngine.create(vertx).setExtension("bempl");
-
-    final JsonObject context = new JsonObject()
-      .put("foo", "badger")
-      .put("bar", "fox");
-
-    context.put("context", new JsonObject().put("path", "/test-mvel-template2"));
-
-    engine.render(context, "somedir/test-mvel-template2", render -> {
-      should.assertTrue(render.succeeded());
-      should.assertEquals("Cheerio badger and fox\nRequest path is /test-mvel-template2\n", render.result().toString());
-      test.complete();
-    });
-    test.await();
-  }
-
-  @Test
-  public void testNoSuchTemplate(TestContext should) {
-    final Async test = should.async();
-    TemplateEngine engine = MVELTemplateEngine.create(vertx);
-    engine.render(new JsonObject(), "nosuchtemplate.templ", render -> {
-      should.assertFalse(render.succeeded());
-      test.complete();
-    });
-    test.await();
-  }
-
-  @Test
-  public void testCachingEnabled(TestContext should) throws IOException {
-    final Async test = should.async();
-
-    System.setProperty(CachingTemplateEngine.DISABLE_TEMPL_CACHING_PROP_NAME, "false");
-    TemplateEngine engine = MVELTemplateEngine.create(vertx);
+  public void testCachingEnabled() throws Exception {
+    System.setProperty("vertx.mode", "prod");
+    TemplateEngine engine = MVELTemplateEngine.create();
 
     PrintWriter out;
     File temp = File.createTempFile("template", ".templ", new File("target/classes"));
@@ -177,26 +102,15 @@ public class MVELTemplateTest {
     out.flush();
     out.close();
 
-    engine.render(new JsonObject(), temp.getParent() + "/" + temp.getName(), render -> {
-      should.assertTrue(render.succeeded());
-      should.assertEquals("before", render.result().toString());
-      // cache is enabled so if we change the content that should not affect the result
+    testTemplateHandler(engine, ".", temp.getName(), "before");
 
-      try {
-        PrintWriter out2 = new PrintWriter(temp);
-        out2.print("after");
-        out2.flush();
-        out2.close();
-      } catch (IOException e) {
-        should.fail(e);
-      }
+    // cache is enabled so if we change the content that should not affect the result
 
-      engine.render(new JsonObject(), temp.getParent() + "/" + temp.getName(), render2 -> {
-        should.assertTrue(render2.succeeded());
-        should.assertEquals("before", render2.result().toString());
-        test.complete();
-      });
-    });
-    test.await();
+    out = new PrintWriter(temp);
+    out.print("after");
+    out.flush();
+    out.close();
+
+    testTemplateHandler(engine, ".", temp.getName(), "before");
   }
 }

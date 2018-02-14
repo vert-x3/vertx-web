@@ -16,44 +16,39 @@
 
 package io.vertx.ext.web.templ;
 
-import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
-import io.vertx.core.file.FileSystemOptions;
-import io.vertx.core.json.JsonObject;
-import io.vertx.ext.unit.Async;
-import io.vertx.ext.unit.TestContext;
-import io.vertx.ext.unit.junit.VertxUnitRunner;
-import io.vertx.ext.web.common.template.CachingTemplateEngine;
-import io.vertx.ext.web.common.template.TemplateEngine;
-import org.junit.BeforeClass;
+import io.vertx.core.http.HttpMethod;
+import io.vertx.ext.web.WebTestBase;
+import io.vertx.ext.web.handler.TemplateHandler;
+import io.vertx.ext.web.templ.impl.CachingTemplateEngine;
 import org.junit.Test;
 
-import io.vertx.ext.web.templ.jade.JadeTemplateEngine;
-import org.junit.runner.RunWith;
-
 import java.io.File;
-import java.io.IOException;
 import java.io.PrintWriter;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-@RunWith(VertxUnitRunner.class)
-public class JadeTemplateNoCacheTest {
+public class JadeTemplateNoCacheTest extends WebTestBase {
 
-  private static Vertx vertx;
+  protected VertxOptions getOptions() {
+    return new VertxOptions().setFileResolverCachingEnabled(false);
+  }
 
-  @BeforeClass
-  public static void before() {
-    vertx = Vertx.vertx(new VertxOptions().setFileSystemOptions(new FileSystemOptions().setFileCachingEnabled(false)));
+  private void testTemplateHandler(TemplateEngine engine, String directoryName, String templateName,
+                                   String expected) throws Exception {
+    router.route().handler(context -> {
+      context.put("foo", "badger");
+      context.next();
+    });
+    router.route().handler(TemplateHandler.create(engine, directoryName, "text/plain"));
+    testRequest(HttpMethod.GET, "/" + templateName, 200, "OK", expected);
   }
 
   @Test
-  public void testCachingDisabled(TestContext should) throws IOException {
-    final Async test = should.async();
-
-    System.setProperty(CachingTemplateEngine.DISABLE_TEMPL_CACHING_PROP_NAME, "true");
-    TemplateEngine engine = JadeTemplateEngine.create(vertx);
+  public void testCachingDisabled() throws Exception {
+    System.setProperty("vertx.mode", "dev");
+    TemplateEngine engine = JadeTemplateEngine.create();
 
     PrintWriter out;
     File temp = File.createTempFile("template", ".jade", new File("target/classes"));
@@ -64,26 +59,15 @@ public class JadeTemplateNoCacheTest {
     out.flush();
     out.close();
 
-    engine.render(new JsonObject(), temp.getParent() + "/" + temp.getName(), render -> {
-      should.assertTrue(render.succeeded());
-      should.assertEquals("<before></before>", render.result().toString());
-      // cache is enabled so if we change the content that should not affect the result
+    testTemplateHandler(engine, ".", temp.getName(), "<before></before>");
 
-      try {
-        PrintWriter out2 = new PrintWriter(temp);
-        out2.print("after");
-        out2.flush();
-        out2.close();
-      } catch (IOException e) {
-        should.fail(e);
-      }
+    // cache is disabled so if we change the content that should affect the result
 
-      engine.render(new JsonObject(), temp.getParent() + "/" + temp.getName(), render2 -> {
-        should.assertTrue(render2.succeeded());
-        should.assertEquals("<after></after>", render2.result().toString());
-        test.complete();
-      });
-    });
-    test.await();
+    out = new PrintWriter(temp);
+    out.print("after");
+    out.flush();
+    out.close();
+
+    testTemplateHandler(engine, ".", temp.getName(), "<after></after>");
   }
 }

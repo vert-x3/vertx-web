@@ -14,14 +14,18 @@
  *  You may elect to redistribute this code under either of these licenses.
  */
 
-package io.vertx.ext.web.templ.thymeleaf.impl;
+package io.vertx.ext.web.templ.impl;
 
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.ext.web.common.template.CachingTemplateEngine;
+import io.vertx.ext.web.LanguageHeader;
+import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.VertxMode;
+import io.vertx.ext.web.impl.Utils;
+import io.vertx.ext.web.templ.ThymeleafTemplateEngine;
 import org.thymeleaf.IEngineConfiguration;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.IContext;
@@ -30,12 +34,10 @@ import org.thymeleaf.templateresolver.StringTemplateResolver;
 import org.thymeleaf.templateresource.ITemplateResource;
 import org.thymeleaf.templateresource.StringTemplateResource;
 
-import io.vertx.ext.web.templ.thymeleaf.ThymeleafTemplateEngine;
-
 import java.io.IOException;
 import java.io.Writer;
-import java.nio.charset.Charset;
-import java.util.Locale;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -47,13 +49,13 @@ import java.util.Set;
 public class ThymeleafTemplateEngineImpl implements ThymeleafTemplateEngine {
 
   // should not be static, so at at creation time the value is evaluated
-  private final boolean enableCache = !Boolean.getBoolean(CachingTemplateEngine.DISABLE_TEMPL_CACHING_PROP_NAME);
+  private final boolean enableCache = !VertxMode.development();
 
   private final TemplateEngine templateEngine = new TemplateEngine();
   private ResourceTemplateResolver templateResolver;
 
-  public ThymeleafTemplateEngineImpl(Vertx vertx) {
-    ResourceTemplateResolver templateResolver = new ResourceTemplateResolver(vertx);
+  public ThymeleafTemplateEngineImpl() {
+    ResourceTemplateResolver templateResolver = new ResourceTemplateResolver();
     templateResolver.setCacheable(isCachingEnabled());
     templateResolver.setTemplateMode(ThymeleafTemplateEngine.DEFAULT_TEMPLATE_MODE);
 
@@ -78,12 +80,28 @@ public class ThymeleafTemplateEngineImpl implements ThymeleafTemplateEngine {
   }
 
   @Override
-  public void render(Map<String, Object> context, String templateFile, Handler<AsyncResult<Buffer>> handler) {
+  public void render(RoutingContext context, String templateDirectory, String templateFileName, Handler<AsyncResult<Buffer>> handler) {
+    templateFileName = templateDirectory + templateFileName;
     Buffer buffer = Buffer.buffer();
 
     try {
+      Map<String, Object> data = new HashMap<>();
+      data.put("context", context);
+      data.putAll(context.data());
+
       synchronized (this) {
-        templateEngine.process(templateFile, new WebIContext(context, (String) context.get("lang")), new Writer() {
+        templateResolver.setVertx(context.vertx());
+
+        final List<LanguageHeader> acceptableLocales = context.acceptableLanguages();
+
+        LanguageHeader locale = null;
+
+        if (acceptableLocales.size() > 0) {
+          // this is the users preferred locale
+          locale = acceptableLocales.get(0);
+        }
+
+        templateEngine.process(templateFileName, new WebIContext(data, locale), new Writer() {
           @Override
           public void write(char[] cbuf, int off, int len) throws IOException {
             buffer.appendString(new String(cbuf, off, len));
@@ -107,14 +125,16 @@ public class ThymeleafTemplateEngineImpl implements ThymeleafTemplateEngine {
 
   private static class WebIContext implements IContext {
     private final Map<String, Object> data;
-    private final Locale locale;
+    private final java.util.Locale locale;
 
-    private WebIContext(Map<String, Object> data, String lang) {
+    private WebIContext(Map<String, Object> data, LanguageHeader locale) {
       this.data = data;
-      if (lang == null) {
-        this.locale = Locale.getDefault();
+      if (locale == null) {
+        this.locale = java.util.Locale.getDefault();
       } else {
-        this.locale = Locale.forLanguageTag(lang);
+        String country = locale.subtag();
+        String variant = locale.subtag(2);
+        this.locale = new java.util.Locale(locale.tag(), country == null ? "" : country, variant == null ? "" : variant);
       }
     }
 
@@ -140,20 +160,21 @@ public class ThymeleafTemplateEngineImpl implements ThymeleafTemplateEngine {
   }
 
   private static class ResourceTemplateResolver extends StringTemplateResolver {
-    private final Vertx vertx;
+    private Vertx vertx;
 
-    public ResourceTemplateResolver(Vertx vertx) {
+    public ResourceTemplateResolver() {
       super();
+      setName("vertx-web/Thymeleaf3");
+    }
+
+    void setVertx(Vertx vertx) {
       this.vertx = vertx;
-      setName("vertx/Thymeleaf3");
     }
 
     @Override
     protected ITemplateResource computeTemplateResource(IEngineConfiguration configuration, String ownerTemplate, String template, Map<String, Object> templateResolutionAttributes) {
-      return new StringTemplateResource(
-        vertx.fileSystem()
-          .readFileBlocking(template)
-          .toString(Charset.defaultCharset()));
+      String str = Utils.readFileToString(vertx, template);
+      return new StringTemplateResource(str);
     }
   }
 }

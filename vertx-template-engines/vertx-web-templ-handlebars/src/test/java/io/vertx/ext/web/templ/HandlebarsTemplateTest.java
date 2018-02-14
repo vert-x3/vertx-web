@@ -16,100 +16,68 @@
 
 package io.vertx.ext.web.templ;
 
-import io.vertx.core.Vertx;
-import io.vertx.core.file.FileSystemOptions;
-import io.vertx.ext.unit.Async;
-import io.vertx.ext.unit.TestContext;
-import io.vertx.ext.unit.junit.VertxUnitRunner;
-import io.vertx.ext.web.common.template.CachingTemplateEngine;
-import io.vertx.ext.web.common.template.TemplateEngine;
-import io.vertx.ext.web.templ.handlebars.HandlebarsTemplateEngine;
-
+import com.github.jknack.handlebars.HandlebarsException;
 import com.github.jknack.handlebars.ValueResolver;
+import io.vertx.core.Handler;
 import io.vertx.core.VertxOptions;
+import io.vertx.core.http.HttpHeaders;
+import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import org.junit.BeforeClass;
+import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.WebTestBase;
+import io.vertx.ext.web.handler.TemplateHandler;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Collections;
 import java.util.Map.Entry;
 import java.util.Set;
-
-import static org.junit.Assert.assertNotNull;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-@RunWith(VertxUnitRunner.class)
-public class HandlebarsTemplateTest {
+public class HandlebarsTemplateTest extends WebTestBase {
 
-  private static Vertx vertx;
-
-  @BeforeClass
-  public static void before() {
-    vertx = Vertx.vertx(new VertxOptions().setFileSystemOptions(new FileSystemOptions().setFileCachingEnabled(true)));
+  protected VertxOptions getOptions() {
+    return new VertxOptions().setFileResolverCachingEnabled(true);
   }
 
   @Test
-  public void testTemplateOnClasspath(TestContext should) {
-    final Async test = should.async();
-    TemplateEngine engine = HandlebarsTemplateEngine.create(vertx);
-
-    final JsonObject context = new JsonObject()
-      .put("foo", "badger")
-      .put("bar", "fox");
-
-    engine.render(context, "somedir/test-handlebars-template2.hbs", render -> {
-      should.assertTrue(render.succeeded());
-      should.assertEquals("Hello badger and fox", render.result().toString());
-      test.complete();
-    });
-    test.await();
+  public void testTemplateOnClasspath() throws Exception {
+    TemplateEngine engine = HandlebarsTemplateEngine.create();
+    testTemplateHandler(engine, "somedir", "test-handlebars-template2.hbs", "Hello badger and fox");
   }
 
   @Test
-  public void testTemplateJsonObjectResolver(TestContext should) {
-    final Async test = should.async();
-    TemplateEngine engine = HandlebarsTemplateEngine.create(vertx);
-
+  public void testTemplateJsonObjectResolver() throws Exception {
+    TemplateEngine engine = HandlebarsTemplateEngine.create();
     JsonObject json = new JsonObject();
     json.put("bar", new JsonObject().put("one", "badger").put("two", "fox"));
 
-    engine.render(new JsonObject().put("foo", json), "src/test/filesystemtemplates/test-handlebars-template4.hbs", render -> {
-      should.assertTrue(render.succeeded());
-      should.assertEquals("Goodbye badger and fox", render.result().toString());
-      test.complete();
+    testTemplateHandlerWithContext(engine, "src/test/filesystemtemplates", "test-handlebars-template4.hbs", "Goodbye badger and fox", context -> {
+      context.put("foo", json);
+      context.next();
     });
-    test.await();
   }
 
   @Test
-  public void testTemplateJsonArrayResolver(TestContext should) {
-    final Async test = should.async();
-    TemplateEngine engine = HandlebarsTemplateEngine.create(vertx);
-
+  public void testTemplateJsonArrayResolver() throws Exception {
+    TemplateEngine engine = HandlebarsTemplateEngine.create();
     JsonArray jsonArray = new JsonArray();
     jsonArray.add("badger").add("fox").add(new JsonObject().put("name", "joe"));
     String expected = "Iterator: badger,fox,{&quot;name&quot;:&quot;joe&quot;}, Element by index:fox - joe - Out of bounds:  - Size:3";
-
-    engine.render(new JsonObject().put("foo", jsonArray), "src/test/filesystemtemplates/test-handlebars-template5.hbs", render -> {
-      should.assertTrue(render.succeeded());
-      should.assertEquals(expected, render.result().toString());
-      test.complete();
+    testTemplateHandlerWithContext(engine, "src/test/filesystemtemplates", "test-handlebars-template5.hbs", expected, context -> {
+      context.put("foo", jsonArray);
+      context.next();
     });
-    test.await();
   }
 
   @Test
-  public void testCustomResolver(TestContext should) {
-    final Async test = should.async();
-    HandlebarsTemplateEngine engine = HandlebarsTemplateEngine.create(vertx);
-
+  public void testCustomResolver() throws Exception {
+    HandlebarsTemplateEngine engine = HandlebarsTemplateEngine.create();
     engine.setResolvers(new ValueResolver() {
       @Override
       public Object resolve(Object context, String name) {
@@ -127,152 +95,127 @@ public class HandlebarsTemplateTest {
       }
     });
 
-    engine.render(new JsonObject().put("foo", "Badger").put("bar", "Fox"), "src/test/filesystemtemplates/test-handlebars-template3.hbs", render -> {
-      should.assertTrue(render.succeeded());
-      should.assertEquals("Goodbye custom and custom", render.result().toString());
-      test.complete();
+    testTemplateHandlerWithContext(engine, "src/test/filesystemtemplates", "test-handlebars-template3.hbs", "Goodbye custom and custom", context -> {
+      context.put("foo", "Badger");
+      context.put("bar", "Fox");
+      context.next();
     });
-    test.await();
   }
 
   @Test
-  public void testTemplateJsonArrayResolverError(TestContext should) {
-    final Async test = should.async();
-    HandlebarsTemplateEngine engine = HandlebarsTemplateEngine.create(vertx);
-
+  public void testTemplateJsonArrayResolverError() throws Exception {
+    TemplateEngine engine = HandlebarsTemplateEngine.create();
     JsonArray jsonArray = new JsonArray();
     jsonArray.add("badger").add("fox").add(new JsonObject().put("name", "joe"));
 
-    final JsonObject context = new JsonObject().put("foo", jsonArray);
-
-    engine.render(context, "src/test/filesystemtemplates/test-handlebars-template6.hbs", render -> {
-      should.assertFalse(render.succeeded());
-      should.assertTrue(render.cause().getMessage().contains("test-handlebars-template6.hbs:1:19"));
-      test.complete();
+    AtomicReference<RoutingContext> contextRef = new AtomicReference<>();
+    router.route().handler(context -> {
+      contextRef.set(context);
+      context.put("foo", jsonArray);
+      context.next();
     });
-    test.await();
+    router.route().handler(TemplateHandler.create(engine, "src/test/filesystemtemplates", "text/plain"));
+    testRequest(HttpMethod.GET, "/" + "test-handlebars-template6.hbs", 500, "Internal Server Error");
+    if(contextRef.get().failure() instanceof HandlebarsException) {
+      HandlebarsException exception = ((HandlebarsException)contextRef.get().failure());
+      assertTrue(exception.getMessage().contains("test-handlebars-template6.hbs:1:19"));
+    } else {
+      fail("We would expect an handlebars exception with detailed location information.");
+    }
+  }
+
+  private void testTemplateHandlerWithContext(TemplateEngine engine, String directoryName, String templateName, String expected,
+    Handler<RoutingContext> contextHandler) throws Exception {
+    router.route().handler(contextHandler);
+    router.route().handler(TemplateHandler.create(engine, directoryName, "text/plain"));
+    testRequest(HttpMethod.GET, "/" + templateName, 200, "OK", expected);
   }
 
   @Test
-  public void testTemplateOnFileSystem(TestContext should) {
-    final Async test = should.async();
-    HandlebarsTemplateEngine engine = HandlebarsTemplateEngine.create(vertx);
-
-    final JsonObject context = new JsonObject()
-      .put("foo", "badger")
-      .put("bar", "fox");
-
-
-    engine.render(context, "src/test/filesystemtemplates/test-handlebars-template3.hbs", render -> {
-      should.assertTrue(render.succeeded());
-      should.assertEquals("Goodbye badger and fox", render.result().toString());
-      test.complete();
-    });
-    test.await();
+  public void testTemplateOnFileSystem() throws Exception {
+    TemplateEngine engine = HandlebarsTemplateEngine.create();
+    testTemplateHandler(engine, "src/test/filesystemtemplates", "test-handlebars-template3.hbs", "Goodbye badger and fox");
   }
 
   @Test
-  public void testTemplateOnClasspathDisableCaching(TestContext should) {
-    System.setProperty(CachingTemplateEngine.DISABLE_TEMPL_CACHING_PROP_NAME, "true");
-    testTemplateOnClasspath(should);
+  public void testTemplateOnClasspathDisableCaching() throws Exception {
+    System.setProperty("vertx.mode", "dev");
+    testTemplateOnClasspath();
   }
 
   @Test
-  public void testTemplateWithPartial(TestContext should) {
-    final Async test = should.async();
-    HandlebarsTemplateEngine engine = HandlebarsTemplateEngine.create(vertx);
-
-    final JsonObject context = new JsonObject()
-      .put("foo", "badger")
-      .put("bar", "fox");
-
-    engine.render(context, "src/test/filesystemtemplates/test-handlebars-template7", render -> {
-      should.assertTrue(render.succeeded());
-      should.assertEquals("\ntext from template8\n\ntext from template7\n\n\n", render.result().toString());
-      test.complete();
-    });
-    test.await();
+  public void testTemplateWithPartial() throws Exception {
+    TemplateEngine engine = HandlebarsTemplateEngine.create();
+    testTemplateHandler(engine, "src/test/filesystemtemplates", "test-handlebars-template7", "\ntext from template8\n\ntext from template7\n\n\n");
   }
 
   @Test
-  public void testTemplateWithPartialFromSubdir(TestContext should) {
-    final Async test = should.async();
-    HandlebarsTemplateEngine engine = HandlebarsTemplateEngine.create(vertx);
-
-    final JsonObject context = new JsonObject()
-      .put("foo", "badger")
-      .put("bar", "fox");
-
-    engine.render(context, "src/test/filesystemtemplates/sub/test-handlebars-template9", render -> {
-      should.assertTrue(render.succeeded());
-      should.assertEquals("\ntext from template8\n\ntext from template9\n\n\n", render.result().toString());
-      test.complete();
-    });
-    test.await();
+  public void testTemplateWithPartialFromSubdir() throws Exception {
+    TemplateEngine engine = HandlebarsTemplateEngine.create();
+    testTemplateHandler(engine, "src/test/filesystemtemplates", "sub/test-handlebars-template9", "\ntext from template8\n\ntext from template9\n\n\n");
   }
 
   @Test
-  public void testTemplateNoExtension(TestContext should) {
-    final Async test = should.async();
-    HandlebarsTemplateEngine engine = HandlebarsTemplateEngine.create(vertx);
+  public void testTemplateDirectoryNullAndEmpty() throws Exception {
+    // null or empty templateDirectory should resolve to current working directory,
+    // which is target/classes while testing
+    TemplateEngine engine = HandlebarsTemplateEngine.create();
+    File temp = File.createTempFile("template", ".hbs", new File("target/classes"));
+    temp.deleteOnExit();
 
-    final JsonObject context = new JsonObject()
-      .put("foo", "badger")
-      .put("bar", "fox");
+    router.clear();
+    router.route().handler(TemplateHandler.create(engine, null, "text/html"));
+    // template that doesn't exist
+    testRequest(HttpMethod.GET, "/foo.hbs", 500, "Internal Server Error");
+    // created template
+    testRequest(HttpMethod.GET, "/" + temp.getName(), 200, "OK");
 
-    engine.render(context, "somedir/test-handlebars-template2", render -> {
-      should.assertTrue(render.succeeded());
-      should.assertEquals("Hello badger and fox", render.result().toString());
-      test.complete();
-    });
-    test.await();
+    // same tests with empty path
+    router.clear();
+    router.route().handler(TemplateHandler.create(engine, "", "text/html"));
+    testRequest(HttpMethod.GET, "/foo.hbs", 500, "Internal Server Error");
+    testRequest(HttpMethod.GET, "/" + temp.getName(), 200, "OK");
   }
 
   @Test
-  public void testTemplateChangeExtension(TestContext should) {
-    final Async test = should.async();
-    HandlebarsTemplateEngine engine = HandlebarsTemplateEngine.create(vertx).setExtension("zbs");
-
-    final JsonObject context = new JsonObject()
-      .put("foo", "badger")
-      .put("bar", "fox");
-
-    engine.render(context, "somedir/test-handlebars-template2", render -> {
-      should.assertTrue(render.succeeded());
-      should.assertEquals("Cheerio badger and fox", render.result().toString());
-      test.complete();
-    });
-    test.await();
+  public void testTemplateNoExtension() throws Exception {
+    TemplateEngine engine = HandlebarsTemplateEngine.create();
+    testTemplateHandler(engine, "somedir", "test-handlebars-template2", "Hello badger and fox");
   }
 
   @Test
-  public void testNoSuchTemplate(TestContext should) {
-    final Async test = should.async();
-    HandlebarsTemplateEngine engine = HandlebarsTemplateEngine.create(vertx).setExtension("zbs");
+  public void testTemplateChangeExtension() throws Exception {
+    TemplateEngine engine = HandlebarsTemplateEngine.create().setExtension("zbs");
+    testTemplateHandler(engine, "somedir", "test-handlebars-template2", "Cheerio badger and fox");
+  }
 
-    final JsonObject context = new JsonObject()
-      .put("foo", "badger")
-      .put("bar", "fox");
-
-    engine.render(context, "somedir/foo.hbs", render -> {
-      should.assertFalse(render.succeeded());
-      test.complete();
+  private void testTemplateHandler(TemplateEngine engine, String directoryName, String templateName, String expected) throws Exception {
+    router.route().handler(context -> {
+      context.put("foo", "badger");
+      context.put("bar", "fox");
+      context.next();
     });
-    test.await();
+    router.route().handler(TemplateHandler.create(engine, directoryName, "text/plain"));
+    testRequest(HttpMethod.GET, "/" + templateName, 200, "OK", expected);
+  }
+
+  @Test
+  public void testNoSuchTemplate() throws Exception {
+    TemplateEngine engine = HandlebarsTemplateEngine.create();
+    router.route().handler(TemplateHandler.create(engine, "somedir", "text/html"));
+    testRequest(HttpMethod.GET, "/foo.hbs", 500, "Internal Server Error");
   }
 
   @Test
   public void testGetHandlebars() throws Exception {
-    HandlebarsTemplateEngine engine = HandlebarsTemplateEngine.create(vertx);
+    HandlebarsTemplateEngine engine = HandlebarsTemplateEngine.create();
     assertNotNull(engine.getHandlebars());
   }
 
   @Test
-  public void testCachingEnabled(TestContext should) throws IOException {
-    final Async test = should.async();
-
-    System.setProperty(CachingTemplateEngine.DISABLE_TEMPL_CACHING_PROP_NAME, "false");
-    TemplateEngine engine = HandlebarsTemplateEngine.create(vertx);
+  public void testCachingEnabled() throws Exception {
+    System.setProperty("vertx.mode", "prod");
+    TemplateEngine engine = HandlebarsTemplateEngine.create();
 
     PrintWriter out;
     File temp = File.createTempFile("template", ".hbs", new File("target/classes"));
@@ -283,26 +226,94 @@ public class HandlebarsTemplateTest {
     out.flush();
     out.close();
 
-    engine.render(new JsonObject(), temp.getParent() + "/" + temp.getName(), render -> {
-      should.assertTrue(render.succeeded());
-      should.assertEquals("before", render.result().toString());
-      // cache is enabled so if we change the content that should not affect the result
+    testTemplateHandler(engine, ".", temp.getName(), "before");
 
-      try {
-        PrintWriter out2 = new PrintWriter(temp);
-        out2.print("after");
-        out2.flush();
-        out2.close();
-      } catch (IOException e) {
-        should.fail(e);
-      }
+    // cache is enabled so if we change the content that should not affect the result
 
-      engine.render(new JsonObject(), temp.getParent() + "/" + temp.getName(), render2 -> {
-        should.assertTrue(render2.succeeded());
-        should.assertEquals("before", render2.result().toString());
-        test.complete();
+    out = new PrintWriter(temp);
+    out.print("after");
+    out.flush();
+    out.close();
+
+    testTemplateHandler(engine, ".", temp.getName(), "before");
+  }
+
+  /**
+   * TODO remove when {@link io.vertx.ext.web.templ.TemplateEngine#render(RoutingContext, String, Handler)} is removed
+   */
+  @Test
+  public void testDeprecatedRenderMethodRelativePath() throws Exception {
+    TemplateEngine engine = HandlebarsTemplateEngine.create();
+    router.route().handler(context -> {
+      context.put("foo", "badger");
+      context.put("bar", "fox");
+      engine.render(context, "src/test/filesystemtemplates/test-handlebars-template3", res -> {
+        if (res.succeeded()) {
+          context.response().putHeader(HttpHeaders.CONTENT_TYPE, "text/html").end(res.result());
+        } else {
+          context.fail(res.cause());
+        }
       });
     });
-    test.await();
+    String expected = "Goodbye badger and fox";
+    testRequest(HttpMethod.GET, "/", 200, "OK", expected);
+  }
+
+  /**
+   * TODO remove when {@link io.vertx.ext.web.templ.TemplateEngine#render(RoutingContext, String, Handler)} is removed
+   */
+  @Test
+  public void testDeprecatedRenderMethodAbsolutePath() throws Exception {
+    File wd = new File(".");
+    TemplateEngine engine = HandlebarsTemplateEngine.create();
+    router.route().handler(context -> {
+      context.put("foo", "badger");
+      context.put("bar", "fox");
+      engine.render(context, wd.getAbsolutePath() + "/src/test/filesystemtemplates/test-handlebars-template3", res -> {
+        if (res.succeeded()) {
+          context.response().putHeader(HttpHeaders.CONTENT_TYPE, "text/html").end(res.result());
+        } else {
+          context.fail(res.cause());
+        }
+      });
+    });
+    String expected = "Goodbye badger and fox";
+    testRequest(HttpMethod.GET, "/", 200, "OK", expected);
+  }
+
+  /**
+   * remove when {@link io.vertx.ext.web.templ.TemplateEngine#render(RoutingContext, String, Handler)} is removed
+   * also remove src/test/filesystemtemplates/test-handlebars-template7A.hbs template
+   */
+  @Test
+  @Deprecated
+  public void testDeprecatedRenderMethodRelativePathWithInclude() throws Exception {
+    TemplateEngine engine = HandlebarsTemplateEngine.create();
+    router.route().handler(context -> engine.render(context, "src/test/filesystemtemplates/test-handlebars-template7A", res -> {
+      if (res.succeeded()) {
+        context.response().putHeader(HttpHeaders.CONTENT_TYPE, "text/html").end(res.result());
+      } else {
+        context.fail(res.cause());
+      }
+    }));
+    testRequest(HttpMethod.GET, "/", 500, "Internal Server Error");
+  }
+
+  /**
+   * remove when {@link io.vertx.ext.web.templ.TemplateEngine#render(RoutingContext, String, Handler)} is removed
+   */
+  @Test
+  @Deprecated
+  public void testDeprecatedRenderMethodRelativePathWithInclude2() throws Exception {
+    TemplateEngine engine = HandlebarsTemplateEngine.create();
+    router.route().handler(context -> engine.render(context, "src/test/filesystemtemplates/test-handlebars-template7", res -> {
+      if (res.succeeded()) {
+        context.response().putHeader(HttpHeaders.CONTENT_TYPE, "text/html").end(res.result());
+      } else {
+        context.fail(res.cause());
+      }
+    }));
+    String expected = "\ntext from template8\n\ntext from template7\n\n\n";
+    testRequest(HttpMethod.GET, "/", 200, "OK", expected);
   }
 }
