@@ -49,7 +49,7 @@ public class JadeTemplateTest extends WebTestBase {
 
   @Test
   public void testTemplateHandlerOnClasspathDisableCaching() throws Exception {
-    System.setProperty(CachingTemplateEngine.DISABLE_TEMPL_CACHING_PROP_NAME, "true");
+    System.setProperty("vertx.mode", "true");
     testTemplateHandlerOnClasspath();
   }
 
@@ -90,7 +90,7 @@ public class JadeTemplateTest extends WebTestBase {
 
   @Test
   public void testCachingEnabled() throws Exception {
-    System.setProperty(CachingTemplateEngine.DISABLE_TEMPL_CACHING_PROP_NAME, "false");
+    System.setProperty("vertx.mode", "prod");
     TemplateEngine engine = JadeTemplateEngine.create();
 
     PrintWriter out;

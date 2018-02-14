@@ -47,7 +47,7 @@ public class JadeTemplateNoCacheTest extends WebTestBase {
 
   @Test
   public void testCachingDisabled() throws Exception {
-    System.setProperty(CachingTemplateEngine.DISABLE_TEMPL_CACHING_PROP_NAME, "true");
+    System.setProperty("vertx.mode", "dev");
     TemplateEngine engine = JadeTemplateEngine.create();
 
     PrintWriter out;

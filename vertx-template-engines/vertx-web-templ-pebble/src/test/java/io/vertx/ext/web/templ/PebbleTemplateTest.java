@@ -24,7 +24,6 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.WebTestBase;
 import io.vertx.ext.web.handler.TemplateHandler;
 import io.vertx.ext.web.templ.extension.TestExtension;
-import io.vertx.ext.web.templ.impl.CachingTemplateEngine;
 import io.vertx.ext.web.templ.impl.PebbleVertxLoader;
 import org.junit.Test;
 
@@ -58,7 +57,7 @@ public class PebbleTemplateTest extends WebTestBase {
 
 	@Test
 	public void testTemplateHandlerOnClasspathDisableCaching() throws Exception {
-		System.setProperty(CachingTemplateEngine.DISABLE_TEMPL_CACHING_PROP_NAME, "true");
+		System.setProperty("vertx.mode", "dev");
 		testTemplateHandlerOnClasspath();
 	}
 
@@ -361,7 +360,7 @@ public class PebbleTemplateTest extends WebTestBase {
 
   @Test
   public void testCachingEnabled() throws Exception {
-    System.setProperty(CachingTemplateEngine.DISABLE_TEMPL_CACHING_PROP_NAME, "false");
+    System.setProperty("vertx.mode", "prod");
     TemplateEngine engine = PebbleTemplateEngine.create(vertx);
 
     PrintWriter out;

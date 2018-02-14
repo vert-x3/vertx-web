@@ -1106,9 +1106,13 @@
  *
  * === Configuring caching
  *
- * By default the static handler will set cache headers to enable browsers to effectively cache files.
+ * By default the static handler will set cache headers to enable browsers to effectively cache files. However, during
+ * development mode (when you run your application either with the system property `vertx.mode=dev` or environment
+ * variable `VERTX_MODE=dev` caching is disabled so you can edit static files without the need to restart the whole
+ * application.
  *
- * Vert.x-Web sets the headers `cache-control`,`last-modified`, and `date`.
+ * During normal operation (caching is enabled and) Vert.x-Web sets the headers `cache-control`,`last-modified`,
+ * and `date`.
  *
  * `cache-control` is set to `max-age=86400` by default. This corresponds to one day. This can be configured with
  * {@link io.vertx.ext.web.handler.StaticHandler#setMaxAgeSeconds(long)} if required.
@@ -1455,8 +1459,9 @@
  *
  * === Disabling caching
  *
- * During development you might want to disable template caching so that the template gets reevaluated on each request.
- * In order to do this you need to set the system property: `io.vertx.ext.web.TemplateEngine.disableCache` to `true`.
+ * During development template caching is disabled so that the template gets reevaluated on each request.
+ * In order to do enable development mode you need either to specify the system property `vertx.mode=dev`
+ * or set an environment variable `VERTX_MODE=dev`.
  *
  * By default it will be false. So caching is always enabled.
  *

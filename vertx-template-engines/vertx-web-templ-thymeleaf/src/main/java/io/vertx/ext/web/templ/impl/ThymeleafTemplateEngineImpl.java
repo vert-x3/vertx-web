@@ -23,6 +23,7 @@ import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.ext.web.LanguageHeader;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.VertxMode;
 import io.vertx.ext.web.impl.Utils;
 import io.vertx.ext.web.templ.ThymeleafTemplateEngine;
 import org.thymeleaf.IEngineConfiguration;
@@ -40,8 +41,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static io.vertx.ext.web.templ.impl.CachingTemplateEngine.DISABLE_TEMPL_CACHING_PROP_NAME;
-
 /**
  * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -50,7 +49,7 @@ import static io.vertx.ext.web.templ.impl.CachingTemplateEngine.DISABLE_TEMPL_CA
 public class ThymeleafTemplateEngineImpl implements ThymeleafTemplateEngine {
 
   // should not be static, so at at creation time the value is evaluated
-  private final boolean enableCache = !Boolean.getBoolean(DISABLE_TEMPL_CACHING_PROP_NAME);
+  private final boolean enableCache = !VertxMode.development();
 
   private final TemplateEngine templateEngine = new TemplateEngine();
   private ResourceTemplateResolver templateResolver;

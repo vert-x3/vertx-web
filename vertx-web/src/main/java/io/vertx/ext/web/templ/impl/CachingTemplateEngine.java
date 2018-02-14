@@ -16,6 +16,7 @@
 
 package io.vertx.ext.web.templ.impl;
 
+import io.vertx.ext.web.VertxMode;
 import io.vertx.ext.web.impl.ConcurrentLRUCache;
 import io.vertx.ext.web.templ.TemplateEngine;
 
@@ -26,9 +27,8 @@ import java.util.Objects;
  */
 public abstract class CachingTemplateEngine<T> implements TemplateEngine {
 
-  public static final String DISABLE_TEMPL_CACHING_PROP_NAME = "io.vertx.ext.web.TemplateEngine.disableCache";
   // should not be static, so at at creation time the value is evaluated
-  private final boolean enableCache = !Boolean.getBoolean(DISABLE_TEMPL_CACHING_PROP_NAME);
+  private final boolean enableCache = !VertxMode.development();
 
   protected final ConcurrentLRUCache<String, T> cache;
   protected String extension;

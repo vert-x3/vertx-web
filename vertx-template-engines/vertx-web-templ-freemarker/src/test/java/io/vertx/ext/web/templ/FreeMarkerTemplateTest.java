@@ -20,7 +20,6 @@ import io.vertx.core.VertxOptions;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.WebTestBase;
 import io.vertx.ext.web.handler.TemplateHandler;
-import io.vertx.ext.web.templ.impl.CachingTemplateEngine;
 import org.junit.Test;
 
 import java.io.File;
@@ -44,7 +43,7 @@ public class FreeMarkerTemplateTest extends WebTestBase {
 
   @Test
   public void testCachingEnabled() throws Exception {
-    System.setProperty(CachingTemplateEngine.DISABLE_TEMPL_CACHING_PROP_NAME, "false");
+    System.setProperty("vertx.mode", "prod");
     TemplateEngine engine = FreeMarkerTemplateEngine.create();
 
     PrintWriter out;
@@ -76,7 +75,7 @@ public class FreeMarkerTemplateTest extends WebTestBase {
 
   @Test
   public void testTemplateHandlerOnClasspathDisableCaching() throws Exception {
-    System.setProperty(CachingTemplateEngine.DISABLE_TEMPL_CACHING_PROP_NAME, "true");
+    System.setProperty("vertx.mode", "dev");
     testTemplateHandlerOnClasspath();
   }
 
