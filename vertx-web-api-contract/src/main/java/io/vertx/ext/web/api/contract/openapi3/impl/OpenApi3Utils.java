@@ -261,7 +261,7 @@ public class OpenApi3Utils {
         if (!root.has("definitions")) {
           ObjectNode definitions = JsonNodeFactory.instance.objectNode();
           definitions.set(schemaName, schema);
-          root.putObject("definitions");
+          root.putObject("definitions").set(schemaName, schema);
         } else {
           ((ObjectNode)root.get("definitions")).set(schemaName, schema);
         }
