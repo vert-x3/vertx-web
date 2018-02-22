@@ -27,6 +27,10 @@ import io.vertx.ext.web.RoutingContext;
  * exception details will be returned in the server responses, otherwise or when
  * manually specified no exception details are returned in the HTTP response.
  *
+ * The reason the display of the exception details is by default dependent of the mode
+ * is to follow the security best practices:
+ * <a href="https://www.owasp.org/index.php/Improper_Error_Handling">https://www.owasp.org/index.php/Improper_Error_Handling</a>
+ *
  * @author <a href="http://tfox.org">Tim Fox</a>
  * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
