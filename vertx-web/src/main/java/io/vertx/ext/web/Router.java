@@ -51,12 +51,13 @@ public interface Router {
 
   /**
    * Create a new router where every route will be created with the given prefix.
-   * @param vertx
+   * @param vertx the Vert.x instance
    * @param routePrefix The prefix, must not be empty or null
+   * @param isRegex {@code true} if routePrefix is to be used as an regular expression, {@code false} if it's a static text literal
    * @return the router
    */
-  static Router prefixedRouter(Vertx vertx, String routePrefix ){
-    return new PrefixedRouterImpl(vertx, routePrefix);
+  static Router prefixedRouter(Vertx vertx, String routePrefix, boolean isRegex){
+    return new PrefixedRouterImpl(vertx, routePrefix, isRegex);
   }
 
   /**

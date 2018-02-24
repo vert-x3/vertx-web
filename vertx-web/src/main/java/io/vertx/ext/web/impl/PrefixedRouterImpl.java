@@ -22,44 +22,113 @@ import java.util.regex.Pattern;
  * @author jansorg
  */
 public class PrefixedRouterImpl extends RouterImpl {
-  private final String routePrefix;
+  private final String prefix;
+  private final String escapedPrefix;
+  private final boolean isRegex;
 
-  public PrefixedRouterImpl(Vertx vertx, String routePrefix) {
+  public PrefixedRouterImpl(Vertx vertx, String routePrefix, boolean isRegex) {
     super(vertx);
-    this.routePrefix = routePrefix;
+    this.prefix = routePrefix;
+    this.isRegex = isRegex;
+
+    this.escapedPrefix = Pattern.quote(routePrefix);
   }
 
   @Override
   public Route route() {
-    return super.route(routePrefix);
+    return isRegex
+      ? super.routeWithRegex(prefix)
+      : super.route(prefix);
   }
 
   @Override
   public Route route(String path) {
-    return super.route(prefixedPath(path));
+    return isRegex
+      ? super.routeWithRegex(prefix + Pattern.quote(path))
+      : super.route(prefix + path);
   }
 
   @Override
   public Route route(HttpMethod method, String path) {
-    return super.route(method, prefixedPath(path));
-  }
-
-  @Override
-  public Route routeWithRegex(HttpMethod method, String regex) {
-    return super.routeWithRegex(method, prefixedRegex(regex));
+    return isRegex
+      ? super.routeWithRegex(method, prefix + Pattern.quote(path))
+      : super.route(method, prefix + path);
   }
 
   @Override
   public Route routeWithRegex(String regex) {
-    return super.routeWithRegex(prefixedRegex(regex));
+    return isRegex
+      ? super.routeWithRegex(prefix + regex)
+      : super.routeWithRegex(escapedPrefix + regex);
   }
 
-
-  private String prefixedPath(String path) {
-    return routePrefix + path;
+  @Override
+  public Route routeWithRegex(HttpMethod method, String regex) {
+    return isRegex
+      ? super.routeWithRegex(method, prefix + regex)
+      : super.routeWithRegex(method, escapedPrefix + regex);
   }
 
-  private String prefixedRegex(String regex) {
-    return Pattern.quote(routePrefix) + regex;
+  @Override
+  public Route getWithRegex(String path) {
+    return isRegex
+      ? super.getWithRegex(prefix + path)
+      : super.getWithRegex(escapedPrefix + path);
+  }
+
+  @Override
+  public Route headWithRegex(String path) {
+    return isRegex
+      ? super.headWithRegex(prefix + path)
+      : super.headWithRegex(escapedPrefix + path);
+  }
+
+  @Override
+  public Route optionsWithRegex(String path) {
+    return isRegex
+      ? super.optionsWithRegex(prefix + path)
+      : super.optionsWithRegex(escapedPrefix + path);
+  }
+
+  @Override
+  public Route putWithRegex(String path) {
+    return isRegex
+      ? super.putWithRegex(prefix + path)
+      : super.putWithRegex(escapedPrefix + path);
+  }
+
+  @Override
+  public Route postWithRegex(String path) {
+    return isRegex
+      ? super.postWithRegex(prefix + path)
+      : super.postWithRegex(escapedPrefix + path);
+  }
+
+  @Override
+  public Route deleteWithRegex(String path) {
+    return isRegex
+      ? super.deleteWithRegex(prefix + path)
+      : super.deleteWithRegex(escapedPrefix + path);
+  }
+
+  @Override
+  public Route traceWithRegex(String path) {
+    return isRegex
+      ? super.traceWithRegex(prefix + path)
+      : super.traceWithRegex(escapedPrefix + path);
+  }
+
+  @Override
+  public Route connectWithRegex(String path) {
+    return isRegex
+      ? super.connectWithRegex(prefix + path)
+      : super.connectWithRegex(escapedPrefix + path);
+  }
+
+  @Override
+  public Route patchWithRegex(String path) {
+    return isRegex
+      ? super.patchWithRegex(prefix + path)
+      : super.patchWithRegex(escapedPrefix + path);
   }
 }
