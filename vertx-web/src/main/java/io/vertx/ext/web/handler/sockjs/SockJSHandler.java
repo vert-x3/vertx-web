@@ -50,11 +50,34 @@ public interface SockJSHandler extends Handler<RoutingContext> {
    * Create a SockJS handler
    *
    * @param vertx  the Vert.x instance
+   * @param router the router where the routes are added
+   * @return the handler
+   */
+  static SockJSHandler create(Vertx vertx, Router router) {
+    return new SockJSHandlerImpl(vertx, router, new SockJSHandlerOptions());
+  }
+
+  /**
+   * Create a SockJS handler
+   *
+   * @param vertx  the Vert.x instance
    * @param options  options to configure the handler
    * @return the handler
    */
   static SockJSHandler create(Vertx vertx, SockJSHandlerOptions options) {
     return new SockJSHandlerImpl(vertx, options);
+  }
+
+  /**
+   * Create a SockJS handler
+   *
+   * @param vertx  the Vert.x instance
+   * @param router the router where the routes are added
+   * @param options  options to configure the handler
+   * @return the handler
+   */
+  static SockJSHandler create(Vertx vertx, Router router, SockJSHandlerOptions options) {
+    return new SockJSHandlerImpl(vertx, router, options);
   }
 
   /**

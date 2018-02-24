@@ -42,23 +42,13 @@ import io.vertx.core.logging.LoggerFactory;
 import io.vertx.core.shareddata.LocalMap;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.handler.sockjs.BridgeEvent;
-import io.vertx.ext.web.handler.sockjs.BridgeOptions;
-import io.vertx.ext.web.handler.sockjs.SockJSHandler;
-import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
-import io.vertx.ext.web.handler.sockjs.SockJSSocket;
-import io.vertx.ext.web.handler.sockjs.Transport;
+import io.vertx.ext.web.handler.sockjs.*;
 
 import java.security.MessageDigest;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
-import static io.vertx.core.buffer.Buffer.*;
+import static io.vertx.core.buffer.Buffer.buffer;
 
 /**
  *
@@ -74,10 +64,14 @@ public class SockJSHandlerImpl implements SockJSHandler, Handler<RoutingContext>
   private SockJSHandlerOptions options;
 
   public SockJSHandlerImpl(Vertx vertx, SockJSHandlerOptions options) {
+    this(vertx, Router.router(vertx), options);
+  }
+
+  public SockJSHandlerImpl(Vertx vertx, Router router, SockJSHandlerOptions options) {
     this.vertx = vertx;
     // TODO use clustered map
     this.sessions = vertx.sharedData().getLocalMap("_vertx.sockjssessions");
-    this.router = Router.router(vertx);
+    this.router = router;
     this.options = options;
   }
 

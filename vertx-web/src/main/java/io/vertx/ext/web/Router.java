@@ -23,6 +23,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
+import io.vertx.ext.web.impl.PrefixedRouterImpl;
 import io.vertx.ext.web.impl.RouterImpl;
 
 import java.util.List;
@@ -46,6 +47,16 @@ public interface Router {
    */
   static Router router(Vertx vertx) {
     return new RouterImpl(vertx);
+  }
+
+  /**
+   * Create a new router where every route will be created with the given prefix.
+   * @param vertx
+   * @param routePrefix The prefix, must not be empty or null
+   * @return the router
+   */
+  static Router prefixedRouter(Vertx vertx, String routePrefix ){
+    return new PrefixedRouterImpl(vertx, routePrefix);
   }
 
   /**
