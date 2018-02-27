@@ -7,21 +7,21 @@ makes the HTTP request upon subscription, as consequence, the {@code Single} can
 
 [source,$lang]
 ----
-{@link examples.RxWebClientExamples#simpleGet(io.vertx.rxjava.ext.web.client.WebClient)}
+{@link examples.override.RxWebClientExamples#simpleGet(io.vertx.rxjava.ext.web.client.WebClient)}
 ----
 
 The obtained {@code Single} can be composed and chained naturally with the RxJava API
 
 [source,$lang]
 ----
-{@link examples.RxWebClientExamples#flatMap(io.vertx.rxjava.ext.web.client.WebClient)}
+{@link examples.override.RxWebClientExamples#flatMap(io.vertx.rxjava.ext.web.client.WebClient)}
 ----
 
 The same APIs is available
 
 [source,$lang]
 ----
-{@link examples.RxWebClientExamples#moreComplex(io.vertx.rxjava.ext.web.client.WebClient)}
+{@link examples.override.RxWebClientExamples#moreComplex(io.vertx.rxjava.ext.web.client.WebClient)}
 ----
 
 The {@link io.vertx.rxjava.ext.web.client.HttpRequest#sendStream(rx.Observable, io.vertx.core.Handler)} shall
@@ -29,7 +29,7 @@ be preferred for sending bodies {@code Observable<Buffer>}
 
 [source,$lang]
 ----
-{@link examples.RxWebClientExamples#sendObservable(io.vertx.rxjava.ext.web.client.WebClient)}
+{@link examples.override.RxWebClientExamples#sendObservable(io.vertx.rxjava.ext.web.client.WebClient)}
 ----
 
 Upon subscription, the {@code body} will be subscribed and its content used for the request.
