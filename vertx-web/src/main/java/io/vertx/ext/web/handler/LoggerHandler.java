@@ -15,12 +15,10 @@
  */
 package io.vertx.ext.web.handler;
 
-import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.impl.LoggerHandlerImpl;
-import java.util.TimeZone;
 
 /**
  * <p>An access logger.
@@ -82,48 +80,22 @@ import java.util.TimeZone;
 public interface LoggerHandler extends Handler<RoutingContext> {
 
   /**
-   * Default log pattern that follows NCSA extended/combined log format
-   * <i>remote-client</i> - - [<i>timestamp</i>] "<i>method</i> <i>uri</i> <i>version</i>" <i>status</i> <i>content-length</i> "<i>referrer</i>" "<i>user-agent</i>"
-   */
-  String DEFAULT_PATTERN = "%h - - [%t] \"%m %U %H\" %s %b \"%{Referer}i\" \"%{User-agent}i\"]";
-
-  /**
    * Create a handler with default logging pattern
    *
    * @return the handler
    */
   static LoggerHandler create() {
-    return new LoggerHandlerImpl(DEFAULT_PATTERN);
+    return new LoggerHandlerImpl(new LoggerHandlerOptions());
   }
 
   /**
    * Create a handler with the specified logging pattern
    *
-   * @param pattern the logging pattern
+   * @param options the logging options
    * @return the handler
    */
-  static LoggerHandler create(String pattern) {
-    return new LoggerHandlerImpl(pattern);
+  static LoggerHandler create(LoggerHandlerOptions options) {
+    return new LoggerHandlerImpl(options);
   }
-
-  /**
-   * Create a handler with the specified logging pattern
-   *
-   * @param immediate true if logging should occur as soon as request arrives
-   * @param pattern the logging pattern
-   * @return the handler
-   */
-  static LoggerHandler create(boolean immediate, String pattern) {
-    return new LoggerHandlerImpl(immediate, pattern);
-  }
-
-  /**
-   * Set the TimeZone to be used by the timestamp formatter
-   *
-   * @param tz the time zone
-   * @return a reference to this, so the API can be used fluently
-   */
-  @Fluent
-  LoggerHandler setTimeZone(TimeZone tz);
 
 }
