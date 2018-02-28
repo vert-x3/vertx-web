@@ -7,13 +7,8 @@ image:https://bestpractices.coreinfrastructure.org/projects/540/badge["CII Best 
 Vert.x-Web is a set of building blocks for building web applications with Vert.x. Think of it as a Swiss Army Knife for building
 modern, scalable, web apps.
 
-Please see the in source asciidoc documentation or the main documentation on the web-site for a full description
+Please see the in source asciidoc link:vertx-web/src/main/asciidoc/index.adoc[documentation] or the main http://vertx.io/docs/#web[documentation] on the web-site for a full description
 of Vert.x-Web:
-
-* Web-site docs
-* link:vertx-web/src/main/asciidoc/java/index.adoc[Java in-source docs]
-* link:vertx-web/src/main/asciidoc/js/index.adoc[JavaScript in-source docs]
-* link:vertx-web/src/main/asciidoc/groovy/index.adoc[Groovy in-source docs]
 
 == Template engines
 

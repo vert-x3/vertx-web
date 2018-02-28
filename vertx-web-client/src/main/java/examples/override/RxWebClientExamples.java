@@ -1,4 +1,4 @@
-package examples;
+package examples.override;
 
 import io.vertx.core.json.JsonObject;
 import io.vertx.docgen.Source;

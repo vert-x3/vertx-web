@@ -1,9 +1,7 @@
 = Vert.x-Web
 :toc: left
 
-Vert.x-Web is a set of building blocks for building web applications with Vert.x.
-
-Think of it as a Swiss Army Knife for building
+Vert.x-Web is a set of building blocks for building web applications with Vert.x. Think of it as a Swiss Army Knife for building
 modern, scalable, web apps.
 
 Vert.x core provides a fairly low level set of functionality for handling HTTP, and for some applications
@@ -22,7 +20,7 @@ You can use Vert.x-Web to create classic server-side web applications, RESTful w
 web applications, or any other kind of web application you can think of. Vert.x-Web doesn't care. It's up to you to chose
 the type of app you prefer, not Vert.x-Web.
 
-Vert.x-Web is a great fit for writing *RESTful HTTP micro-services*, but we don't *force* you to write apps like that.
+Vert.x-Web is a great fit for writingRESTful HTTP micro-services*, but we don'tforce* you to write apps like that.
 
 Some of the key features of Vert.x-Web include:
 
@@ -74,9 +72,9 @@ To use vert.x web, add the following dependency to the _dependencies_ section of
 [source,xml,subs="+attributes"]
 ----
 <dependency>
-  <groupId>io.vertx</groupId>
-  <artifactId>vertx-web</artifactId>
-  <version>3.5.1</version>
+  <groupId>${maven.groupId}</groupId>
+  <artifactId>${maven.artifactId}</artifactId>
+  <version>${maven.version}</version>
 </dependency>
 ----
 
@@ -85,7 +83,7 @@ To use vert.x web, add the following dependency to the _dependencies_ section of
 [source,groovy,subs="+attributes"]
 ----
 dependencies {
-  compile 'io.vertx:vertx-web:3.5.1'
+  compile '${maven.groupId}:${maven.artifactId}:${maven.version}'
 }
 ----
 
@@ -101,20 +99,7 @@ Here's a hello world web server written using Vert.x core. At this point there i
 
 [source,java]
 ----
-def server = vertx.createHttpServer()
-
-server.requestHandler({ request ->
-
-  // This handler gets called for each request that arrives on the server
-  def response = request.response()
-  response.putHeader("content-type", "text/plain")
-
-  // Write to the response and end it
-  response.end("Hello World!")
-})
-
-server.listen(8080)
-
+{@link examples.WebExamples#example1}
 ----
 
 We create an HTTP server instance, and we set a request handler on it. The request handler will be called whenever
@@ -131,8 +116,8 @@ You can run this, and point your browser at `http://localhost:8080` to verify th
 
 Here's the 10000 foot view:
 
-A `link:../../apidocs/io/vertx/ext/web/Router.html[Router]` is one of the core concepts of Vert.x-Web. It's an object which maintains zero or more
-`link:../../apidocs/io/vertx/ext/web/Route.html[Routes]` .
+A {@link io.vertx.ext.web.Router} is one of the core concepts of Vert.x-Web. It's an object which maintains zero or more
+{@link io.vertx.ext.web.Route Routes} .
 
 A router takes an HTTP request and finds the first matching route for that request, and passes the request to that route.
 
@@ -141,25 +126,9 @@ request, and then, either end it or pass it to the next matching handler.
 
 Here's a simple router example:
 
-[source,groovy]
+[source,$lang]
 ----
-def server = vertx.createHttpServer()
-
-def router = Router.router(vertx)
-
-router.route().handler({ routingContext ->
-
-  // This handler will be called for every request
-  def response = routingContext.response()
-  response.putHeader("content-type", "text/plain")
-
-  // Write to the response and end it
-  response.end("Hello World from Vert.x-Web!")
-})
-
-server.requestHandler(router.&accept).listen(8080)
-
-
+{@link examples.WebExamples#example2}
 ----
 
 It basically does the same thing as the Vert.x Core HTTP server hello world example from the previous section,
@@ -170,69 +139,32 @@ no matching criteria so it will match _all_ requests that arrive on the server.
 
 We then specify a handler for that route. That handler will be called for all requests that arrive on the server.
 
-The object that gets passed into the handler is a `link:../../apidocs/io/vertx/ext/web/RoutingContext.html[RoutingContext]` - this contains
-the standard Vert.x `link:../../apidocs/io/vertx/core/http/HttpServerRequest.html[HttpServerRequest]` and `link:../../apidocs/io/vertx/core/http/HttpServerResponse.html[HttpServerResponse]`
+The object that gets passed into the handler is a {@link io.vertx.ext.web.RoutingContext} - this contains
+the standard Vert.x {@link io.vertx.core.http.HttpServerRequest} and {@link io.vertx.core.http.HttpServerResponse}
 but also various other useful stuff that makes working with Vert.x-Web simpler.
 
 For every request that is routed there is a unique routing context instance, and the same instance is passed to
 all handlers for that request.
 
 Once we've set up the handler, we set the request handler of the HTTP server to pass all incoming requests
-to `link:../../apidocs/io/vertx/ext/web/Router.html#accept-io.vertx.core.http.HttpServerRequest-[accept]`.
+to {@link io.vertx.ext.web.Router#accept}.
 
 So, that's the basics. Now we'll look at things in more detail:
 
 == Handling requests and calling the next handler
 
 When Vert.x-Web decides to route a request to a matching route, it calls the handler of the route passing in an instance
-of `link:../../apidocs/io/vertx/ext/web/RoutingContext.html[RoutingContext]`.
+of {@link io.vertx.ext.web.RoutingContext}.
 
-If you don't end the response in your handler, you should call `link:../../apidocs/io/vertx/ext/web/RoutingContext.html#next--[next]` so another
+If you don't end the response in your handler, you should call {@link io.vertx.ext.web.RoutingContext#next} so another
 matching route can handle the request (if any).
 
-You don't have to call `link:../../apidocs/io/vertx/ext/web/RoutingContext.html#next--[next]` before the handler has finished executing.
+You don't have to call {@link io.vertx.ext.web.RoutingContext#next} before the handler has finished executing.
 You can do this some time later, if you want:
 
-[source,groovy]
+[source,$lang]
 ----
-
-def route1 = router.route("/some/path/").handler({ routingContext ->
-
-  def response = routingContext.response()
-  // enable chunked responses because we will be adding data as
-  // we execute over other handlers. This is only required once and
-  // only if several handlers do output.
-  response.setChunked(true)
-
-  response.write("route1\n")
-
-  // Call the next matching route after a 5 second delay
-  routingContext.vertx().setTimer(5000, { tid ->
-    routingContext.next()
-  })
-})
-
-def route2 = router.route("/some/path/").handler({ routingContext ->
-
-  def response = routingContext.response()
-  response.write("route2\n")
-
-  // Call the next matching route after a 5 second delay
-  routingContext.vertx().setTimer(5000, { tid ->
-    routingContext.next()
-  })
-})
-
-def route3 = router.route("/some/path/").handler({ routingContext ->
-
-  def response = routingContext.response()
-  response.write("route3")
-
-  // Now end the response
-  routingContext.response().end()
-})
-
-
+{@link examples.WebExamples#example20}
 ----
 
 In the above example `route1` is written to the response, then 5 seconds later `route2` is written to the response,
@@ -250,41 +182,25 @@ You can't do that in a normal handler, so we provide the ability to set blocking
 A blocking handler looks just like a normal handler but it's called by Vert.x using a thread from the worker pool
 not using an event loop.
 
-You set a blocking handler on a route with `link:../../apidocs/io/vertx/ext/web/Route.html#blockingHandler-io.vertx.core.Handler-[blockingHandler]`.
+You set a blocking handler on a route with {@link io.vertx.ext.web.Route#blockingHandler(io.vertx.core.Handler)}.
 Here's an example:
 
-[source,groovy]
+[source,$lang]
 ----
-
-router.route().blockingHandler({ routingContext ->
-
-  // Do something that might take some time synchronously
-  service.doSomethingThatBlocks()
-
-  // Now call the next handler
-  routingContext.next()
-
-})
-
+{@link examples.WebExamples#example20_1}
 ----
 
 By default, any blocking handlers executed on the same context (e.g. the same verticle instance) are _ordered_ - this
 means the next one won't be executed until the previous one has completed. If you don't care about orderering and
 don't mind your blocking handlers executing in parallel you can set the blocking handler specifying `ordered` as
-false using `link:../../apidocs/io/vertx/ext/web/Route.html#blockingHandler-io.vertx.core.Handler-boolean-[blockingHandler]`.
+false using {@link io.vertx.ext.web.Route#blockingHandler(io.vertx.core.Handler, boolean)}.
 
 Note, if you need to process multipart form data from a blocking handler, you MUST use a non-blocking handler
-      FIRST in order to call `setExpectMultipart(true)`. Here is an example:
+      FIRST in order to call {@code setExpectMultipart(true)}. Here is an example:
 
-[source,groovy]
+[source,$lang]
 ----
-router.post("/some/endpoint").handler({ ctx ->
-  ctx.request().setExpectMultipart(true)
-  ctx.next()
-}).blockingHandler({ ctx ->
-  // ... Do some blocking operation
-})
-
+{@link examples.WebExamples#example20_2}
 ----
 
 == Routing by exact path
@@ -295,23 +211,9 @@ that's the same as the specified path.
 In the following example the handler will be called for a request `/some/path/`. We also ignore trailing slashes
 so it will be called for paths `/some/path` and `/some/path//` too:
 
-[source,groovy]
+[source,$lang]
 ----
-
-def route = router.route().path("/some/path/")
-
-route.handler({ routingContext ->
-  // This handler will be called for the following request paths:
-
-  // `/some/path`
-  // `/some/path/`
-  // `/some/path//`
-  //
-  // but not:
-  // `/some/path/subdir`
-})
-
-
+{@link examples.WebExamples#example3}
 ----
 
 == Routing by paths that begin with something
@@ -324,62 +226,28 @@ In the following example the handler will be called for any request with a URI p
 
 For example `/some/path/foo.html` and `/some/path/otherdir/blah.css` would both match.
 
-[source,groovy]
+[source,$lang]
 ----
-
-def route = router.route().path("/some/path/*")
-
-route.handler({ routingContext ->
-  // This handler will be called for any path that starts with
-  // `/some/path/`, e.g.
-
-  // `/some/path`
-  // `/some/path/`
-  // `/some/path/subdir`
-  // `/some/path/subdir/blah.html`
-  //
-  // but not:
-  // `/some/bath`
-})
-
-
+{@link examples.WebExamples#example3_1}
 ----
 
 With any path it can also be specified when creating the route:
 
-[source,groovy]
+[source,$lang]
 ----
-
-def route = router.route("/some/path/*")
-
-route.handler({ routingContext ->
-  // This handler will be called same as previous example
-})
-
-
+{@link examples.WebExamples#example4}
 ----
 
 == Capturing path parameters
 
 It's possible to match paths using placeholders for parameters which are then available in the request
-`link:../../apidocs/io/vertx/core/http/HttpServerRequest.html#params--[params]`.
+{@link io.vertx.core.http.HttpServerRequest#params}.
 
 Here's an example
 
-[source,groovy]
+[source,$lang]
 ----
-
-def route = router.route(HttpMethod.POST, "/catalogue/products/:producttype/:productid/")
-
-route.handler({ routingContext ->
-
-  def productType = routingContext.request().getParam("producttype")
-  def productID = routingContext.request().getParam("productid")
-
-  // Do something with them...
-})
-
-
+{@link examples.WebExamples#example4_1}
 ----
 
 The placeholders consist of `:` followed by the parameter name. Parameter names consist of any alphabetic character,
@@ -392,65 +260,25 @@ and `productType` will receive the value `tools` and productID will receive the 
 
 Regular expressions can also be used to match URI paths in routes.
 
-[source,groovy]
+[source,$lang]
 ----
-
-// Matches any path ending with 'foo'
-def route = router.route().pathRegex(".*foo")
-
-route.handler({ routingContext ->
-
-  // This handler will be called for:
-
-  // /some/path/foo
-  // /foo
-  // /foo/bar/wibble/foo
-  // /bar/foo
-
-  // But not:
-  // /bar/wibble
-})
-
-
+{@link examples.WebExamples#example5}
 ----
 
 Alternatively the regex can be specified when creating the route:
 
-[source,groovy]
+[source,$lang]
 ----
-
-def route = router.routeWithRegex(".*foo")
-
-route.handler({ routingContext ->
-
-  // This handler will be called same as previous example
-
-})
-
-
+{@link examples.WebExamples#example6}
 ----
 
 == Capturing path parameters with regular expressions
 
 You can also capture path parameters when using regular expressions, here's an example:
 
-[source,groovy]
+[source,$lang]
 ----
-
-def route = router.routeWithRegex(".*foo")
-
-// This regular expression matches paths that start with something like:
-// "/foo/bar" - where the "foo" is captured into param0 and the "bar" is captured into
-// param1
-route.pathRegex("\\/([^\\/]+)\\/([^\\/]+)").handler({ routingContext ->
-
-  def productType = routingContext.request().getParam("param0")
-  def productID = routingContext.request().getParam("param1")
-
-  // Do something with them...
-})
-
-
+{@link examples.WebExamples#example6_1}
 ----
 
 In the above example, if a request is made to path: `/tools/drill123/` then the route will match
@@ -463,20 +291,9 @@ Captures are denoted in regular expressions with capture groups (i.e. surroundin
 Using int index param names might be troublesome in some cases.
 It's possible to use named capture groups in the regex path.
 
-* [source,groovy]
+* [source,$lang]
 ----
-
-// This regular expression matches paths that start with something like: "/foo/bar"
-// It uses named regex groups to capture path params
-def route = router.routeWithRegex("\\/(?<productType>[^\\/]+)\\/(?<productId>[^\\/]+)").handler({ routingContext ->
-
-  def productType = routingContext.request().getParam("productType")
-  def productID = routingContext.request().getParam("productId")
-
-  // Do something with them...
-})
-
-
+{@link examples.WebExamples#example6_2}
 ----
 
 In the example above, named capture groups are mapped to path parameters of the same name as the group.
@@ -487,85 +304,35 @@ Additionally, you can still access group parameters as you would with normal gro
 
 By default a route will match all HTTP methods.
 
-If you want a route to only match for a specific HTTP method you can use `link:../../apidocs/io/vertx/ext/web/Route.html#method-io.vertx.core.http.HttpMethod-[method]`
+If you want a route to only match for a specific HTTP method you can use {@link io.vertx.ext.web.Route#method}
 
-[source,groovy]
+[source,$lang]
 ----
-
-def route = router.route().method(HttpMethod.POST)
-
-route.handler({ routingContext ->
-
-  // This handler will be called for any POST request
-
-})
-
-
+{@link examples.WebExamples#example7}
 ----
 
 Or you can specify this with a path when creating the route:
 
-[source,groovy]
+[source,$lang]
+----
+{@link examples.WebExamples#example8}
 ----
 
-def route = router.route(HttpMethod.POST, "/some/path/")
-
-route.handler({ routingContext ->
-
-  // This handler will be called for any POST request to a URI path starting with /some/path/
-
-})
-
-
-----
-
-If you want to route for a specific HTTP method you can also use the methods such as `link:../../apidocs/io/vertx/ext/web/Router.html#get--[get]`,
-`link:../../apidocs/io/vertx/ext/web/Router.html#post--[post]` and `link:../../apidocs/io/vertx/ext/web/Router.html#put--[put]` named after the HTTP
+If you want to route for a specific HTTP method you can also use the methods such as {@link io.vertx.ext.web.Router#get},
+{@link io.vertx.ext.web.Router#post} and {@link io.vertx.ext.web.Router#put} named after the HTTP
 method name. For example:
 
-[source,groovy]
+[source,$lang]
+----
+{@link examples.WebExamples#example8_1}
 ----
 
-router.get().handler({ routingContext ->
-
-  // Will be called for any GET request
-
-})
-
-router.get("/some/path/").handler({ routingContext ->
-
-  // Will be called for any GET request to a path
-  // starting with /some/path
-
-})
-
-router.getWithRegex(".*foo").handler({ routingContext ->
-
-  // Will be called for any GET request to a path
-  // ending with `foo`
-
-})
-
-// There are also equivalents to the above for PUT, POST, DELETE, HEAD and OPTIONS
-
-
-----
-
-If you want to specify a route will match for more than HTTP method you can call `link:../../apidocs/io/vertx/ext/web/Route.html#method-io.vertx.core.http.HttpMethod-[method]`
+If you want to specify a route will match for more than HTTP method you can call {@link io.vertx.ext.web.Route#method}
 multiple times:
 
-[source,groovy]
+[source,$lang]
 ----
-
-def route = router.route().method(HttpMethod.POST).method(HttpMethod.PUT)
-
-route.handler({ routingContext ->
-
-  // This handler will be called for any POST or PUT request
-
-})
-
-
+{@link examples.WebExamples#example9}
 ----
 
 == Route order
@@ -575,47 +342,14 @@ By default routes are matched in the order they are added to the router.
 When a request arrives the router will step through each route and check if it matches, if it matches then
 the handler for that route will be called.
 
-If the handler subsequently calls `link:../../apidocs/io/vertx/ext/web/RoutingContext.html#next--[next]` the handler for the next
+If the handler subsequently calls {@link io.vertx.ext.web.RoutingContext#next} the handler for the next
 matching route (if any) will be called. And so on.
 
 Here's an example to illustrate this:
 
-[source,groovy]
+[source,$lang]
 ----
-
-def route1 = router.route("/some/path/").handler({ routingContext ->
-
-  def response = routingContext.response()
-  // enable chunked responses because we will be adding data as
-  // we execute over other handlers. This is only required once and
-  // only if several handlers do output.
-  response.setChunked(true)
-
-  response.write("route1\n")
-
-  // Now call the next matching route
-  routingContext.next()
-})
-
-def route2 = router.route("/some/path/").handler({ routingContext ->
-
-  def response = routingContext.response()
-  response.write("route2\n")
-
-  // Now call the next matching route
-  routingContext.next()
-})
-
-def route3 = router.route("/some/path/").handler({ routingContext ->
-
-  def response = routingContext.response()
-  response.write("route3")
-
-  // Now end the response
-  routingContext.response().end()
-})
-
-
+{@link examples.WebExamples#example10}
 ----
 
 In the above example the response will contain:
@@ -628,7 +362,7 @@ route3
 
 As the routes have been called in that order for any request that starts with `/some/path`.
 
-If you want to override the default ordering for routes, you can do so using `link:../../apidocs/io/vertx/ext/web/Route.html#order-int-[order]`,
+If you want to override the default ordering for routes, you can do so using {@link io.vertx.ext.web.Route#order},
 specifying an integer value.
 
 Routes are assigned an order at creation time corresponding to the order in which they were added to the router, with
@@ -639,44 +373,9 @@ want to ensure a route is evaluated before route number `0`.
 
 Let's change the ordering of route2 so it runs before route1:
 
-[source,groovy]
+[source,$lang]
 ----
-
-def route1 = router.route("/some/path/").handler({ routingContext ->
-
-  def response = routingContext.response()
-  response.write("route1\n")
-
-  // Now call the next matching route
-  routingContext.next()
-})
-
-def route2 = router.route("/some/path/").handler({ routingContext ->
-
-  def response = routingContext.response()
-  // enable chunked responses because we will be adding data as
-  // we execute over other handlers. This is only required once and
-  // only if several handlers do output.
-  response.setChunked(true)
-
-  response.write("route2\n")
-
-  // Now call the next matching route
-  routingContext.next()
-})
-
-def route3 = router.route("/some/path/").handler({ routingContext ->
-
-  def response = routingContext.response()
-  response.write("route3")
-
-  // Now end the response
-  routingContext.response().end()
-})
-
-// Change the order of route2 so it runs before route1
-route2.order(-1)
-
+{@link examples.WebExamples#example11}
 ----
 
 then the response will now contain:
@@ -689,75 +388,43 @@ route3
 
 If two matching routes have the same value of order, then they will be called in the order they were added.
 
-You can also specify that a route is handled last, with `link:../../apidocs/io/vertx/ext/web/Route.html#last--[last]`
+You can also specify that a route is handled last, with {@link io.vertx.ext.web.Route#last}
 
 == Routing based on MIME type of request
 
-You can specify that a route will match against matching request MIME types using `link:../../apidocs/io/vertx/ext/web/Route.html#consumes-java.lang.String-[consumes]`.
+You can specify that a route will match against matching request MIME types using {@link io.vertx.ext.web.Route#consumes}.
 
 In this case, the request will contain a `content-type` header specifying the MIME type of the request body.
-This will be matched against the value specified in `link:../../apidocs/io/vertx/ext/web/Route.html#consumes-java.lang.String-[consumes]`.
+This will be matched against the value specified in {@link io.vertx.ext.web.Route#consumes}.
 
 Basically, `consumes` is describing which MIME types the handler can _consume_.
 
 Matching can be done on exact MIME type matches:
 
-[source,groovy]
+[source,$lang]
 ----
-
-// Exact match
-router.route().consumes("text/html").handler({ routingContext ->
-
-  // This handler will be called for any request with
-  // content-type header set to `text/html`
-
-})
-
+{@link examples.WebExamples#example12}
 ----
 
 Multiple exact matches can also be specified:
 
-[source,groovy]
+[source,$lang]
 ----
-
-// Multiple exact matches
-router.route().consumes("text/html").consumes("text/plain").handler({ routingContext ->
-
-  // This handler will be called for any request with
-  // content-type header set to `text/html` or `text/plain`.
-
-})
-
+{@link examples.WebExamples#example13}
 ----
 
 Matching on wildcards for the sub-type is supported:
 
-[source,groovy]
+[source,$lang]
 ----
-
-// Sub-type wildcard match
-router.route().consumes("text/*").handler({ routingContext ->
-
-  // This handler will be called for any request with top level type `text`
-  // e.g. content-type header set to `text/html` or `text/plain` will both match
-
-})
-
+{@link examples.WebExamples#example14}
 ----
 
 And you can also match on the top level type
 
-[source,groovy]
+[source,$lang]
 ----
-
-// Top level type wildcard match
-router.route().consumes("*/json").handler({ routingContext ->
-
-  // This handler will be called for any request with sub-type json
-  // e.g. content-type header set to `text/json` or `application/json` will both match
-
-})
-
+{@link examples.WebExamples#example15}
 ----
 
 If you don't specify a `/` in the consumers, it will assume you meant the sub-type.
@@ -787,20 +454,12 @@ With the following the client will accept `text/plain` or `text/html` but prefer
 
 If the server can provide both text/plain and text/html it should provide the text/html in this case.
 
-By using `link:../../apidocs/io/vertx/ext/web/Route.html#produces-java.lang.String-[produces]` you define which MIME type(s) the route produces, e.g. the
+By using {@link io.vertx.ext.web.Route#produces} you define which MIME type(s) the route produces, e.g. the
 following handler produces a response with MIME type `application/json`.
 
 [source,java]
 ----
-
-router.route().produces("application/json").handler({ routingContext ->
-
-  def response = routingContext.response()
-  response.putHeader("content-type", "application/json")
-  response.write(someJSON).end()
-
-})
-
+{@link examples.WebExamples#example16}
 ----
 
 In this case the route will match with any request with an `accept` header that matches `application/json`.
@@ -813,24 +472,12 @@ Here are some examples of `accept` headers that will match:
  Accept: application/json;q=0.7, text/html;q=0.8, text/plain
 
 You can also mark your route as producing more than one MIME type. If this is the case, then you use
-`link:../../apidocs/io/vertx/ext/web/RoutingContext.html#getAcceptableContentType--[getAcceptableContentType]` to find out the actual MIME type that
+{@link io.vertx.ext.web.RoutingContext#getAcceptableContentType} to find out the actual MIME type that
 was accepted.
 
-[source,groovy]
+[source,$lang]
 ----
-
-// This route can produce two different MIME types
-router.route().produces("application/json").produces("text/html").handler({ routingContext ->
-
-  def response = routingContext.response()
-
-  // Get the actual MIME type acceptable
-  def acceptableContentType = routingContext.getAcceptableContentType()
-
-  response.putHeader("content-type", acceptableContentType)
-  response.write(whatever).end()
-})
-
+{@link examples.WebExamples#example17}
 ----
 
 In the above example, if you sent a request with the following `accept` header:
@@ -844,62 +491,36 @@ acceptable but that has a higher `q` value.
 
 You can combine all the above routing criteria in many different ways, for example:
 
-[source,groovy]
+[source,$lang]
 ----
-
-def route = router.route(HttpMethod.PUT, "myapi/orders").consumes("application/json").produces("application/json")
-
-route.handler({ routingContext ->
-
-  // This would be match for any PUT method to paths starting with "myapi/orders" with a
-  // content-type of "application/json"
-  // and an accept header matching "application/json"
-
-})
-
-
+{@link examples.WebExamples#example18}
 ----
 
 == Enabling and disabling routes
 
-You can disable a route with `link:../../apidocs/io/vertx/ext/web/Route.html#disable--[disable]`. A disabled route will be ignored when matching.
+You can disable a route with {@link io.vertx.ext.web.Route#disable}. A disabled route will be ignored when matching.
 
-You can re-enable a disabled route with `link:../../apidocs/io/vertx/ext/web/Route.html#enable--[enable]`
+You can re-enable a disabled route with {@link io.vertx.ext.web.Route#enable}
 
 == Context data
 
-You can use the context data in the `link:../../apidocs/io/vertx/ext/web/RoutingContext.html[RoutingContext]` to maintain any data that you
+You can use the context data in the {@link io.vertx.ext.web.RoutingContext} to maintain any data that you
 want to share between handlers for the lifetime of the request.
 
 Here's an example where one handler sets some data in the context data and a subsequent handler retrieves it:
 
-You can use the `link:../../apidocs/io/vertx/ext/web/RoutingContext.html#put-java.lang.String-java.lang.Object-[put]` to put any object, and
-`link:../../apidocs/io/vertx/ext/web/RoutingContext.html#get-java.lang.String-[get]` to retrieve any object from the context data.
+You can use the {@link io.vertx.ext.web.RoutingContext#put} to put any object, and
+{@link io.vertx.ext.web.RoutingContext#get} to retrieve any object from the context data.
 
 A request sent to path `/some/path/other` will match both routes.
 
-[source,groovy]
+[source,$lang]
+----
+{@link examples.WebExamples#example21}
 ----
 
-router.get("/some/path").handler({ routingContext ->
-
-  routingContext.put("foo", "bar")
-  routingContext.next()
-
-})
-
-router.get("/some/path/other").handler({ routingContext ->
-
-  def bar = routingContext.get("foo")
-  // Do something with bar
-  routingContext.response().end()
-
-})
-
-
-----
-
-
+[language, java]
+Alternatively you can access the entire context data map with {@link io.vertx.ext.web.RoutingContext#data}.
 
 == Reroute
 
@@ -908,25 +529,9 @@ where you will want to go back. Since the context does not expose any informatio
 mostly because this information is dynamic there is a way to restart the whole routing from the start of the current
 Router.
 
-[source,groovy]
+[source,$lang]
 ----
-
-router.get("/some/path").handler({ routingContext ->
-
-  routingContext.put("foo", "bar")
-  routingContext.next()
-
-})
-
-router.get("/some/path/B").handler({ routingContext ->
-  routingContext.response().end()
-})
-
-router.get("/some/path").handler({ routingContext ->
-  routingContext.reroute("/some/path/B")
-})
-
-
+{@link examples.WebExamples#example55}
 ----
 
 So from the code you can see that if a request arrives at `/some/path` if first add a value to the context, then
@@ -939,43 +544,17 @@ Reroute is also allowed on the failure handler, however due to the nature of re 
 code and failure reason are reset. In order the rerouted handler should generate the correct status code if needed,
 for example:
 
-[source,groovy]
+[source,$lang]
 ----
-
-router.get("/my-pretty-notfound-handler").handler({ ctx ->
-  ctx.response().setStatusCode(404).end("NOT FOUND fancy html here!!!")
-})
-
-router.get().failureHandler({ ctx ->
-  if (ctx.statusCode() == 404) {
-    ctx.reroute("/my-pretty-notfound-handler")
-  } else {
-    ctx.next()
-  }
-})
-
+{@link examples.WebExamples#example55b}
 ----
 
 It should be clear that reroute works on `paths`, so if you need to preserve and or add state across reroutes, one
 should use the `RoutingContext` object. For example you want to reroute to a new path with a extra parameter:
 
-[source,groovy]
+[source,$lang]
 ----
-
-router.get("/final-target").handler({ ctx ->
-  // continue from here...
-})
-
-// THE WRONG WAY! (Will reroute to /final-target excluding the query string)
-router.get().handler({ ctx ->
-  ctx.reroute("/final-target?variable=value")
-})
-
-// THE CORRECT WAY!
-router.get().handler({ ctx ->
-  ctx.put("variable", "value").reroute("/final-target")
-})
-
+{@link examples.WebExamples#example55c}
 ----
 
 Even though the wrong reroute path will warn you that the query string is ignored, the reroute will happen since the
@@ -997,32 +576,9 @@ router. The full implementation of the REST API is not shown.
 
 Here's the sub-router:
 
-[source,groovy]
+[source,$lang]
 ----
-
-def restAPI = Router.router(vertx)
-
-restAPI.get("/products/:productID").handler({ rc ->
-
-  // TODO Handle the lookup of the product....
-  rc.response().write(productJSON)
-
-})
-
-restAPI.put("/products/:productID").handler({ rc ->
-
-  // TODO Add a new product...
-  rc.response().end()
-
-})
-
-restAPI.delete("/products/:productID").handler({ rc ->
-
-  // TODO delete the product...
-  rc.response().end()
-
-})
-
+{@link examples.WebExamples#example22}
 ----
 
 If this router was used as a top level router, then GET/PUT/DELETE requests to urls like `/products/product1234`
@@ -1030,25 +586,16 @@ would invoke the  API.
 
 However, let's say we already have a web-site as described by another router:
 
-[source,groovy]
+[source,$lang]
 ----
-def mainRouter = Router.router(vertx)
-
-// Handle static resources
-mainRouter.route("/static/*").handler(myStaticHandler)
-
-mainRouter.route(".*\\.templ").handler(myTemplateHandler)
-
+{@link examples.WebExamples#example23}
 ----
 
 We can now mount the sub router on the main router, against a mount point, in this case `/productsAPI`
 
-[source,groovy]
+[source,$lang]
 ----
-
-mainRouter.mountSubRouter("/productsAPI", restAPI)
-
-
+{@link examples.WebExamples#example24}
 ----
 
 This means the REST API is now accessible via paths like: `/productsAPI/products/product1234`
@@ -1058,25 +605,14 @@ This means the REST API is now accessible via paths like: `/productsAPI/products
 Vert.x Web parses the `Accept-Language` header and provides some helper methods to identify which is the preferred
 locale for a client or the sorted list of preferred locales by quality.
 
-[source,groovy]
+[source,$lang]
+----
+{@link examples.WebExamples#example57}
 ----
 
-def route = router.get("/localized").handler({ rc ->
-  // although it might seem strange by running a loop with a switch we
-  // make sure that the locale order of preference is preserved when
-  // replying in the users language.
-  rc.acceptableLanguages().each { language ->
-    return
-  }
-  // we do not know the user language so lets just inform that back:
-  rc.response().end("Sorry we don't speak: ${rc.preferredLocale()}")
-})
-
-----
-
-The main method `link:../../apidocs/io/vertx/ext/web/RoutingContext.html#acceptableLocales--[acceptableLocales]` will return the ordered list of locales the
+The main method {@link io.vertx.ext.web.RoutingContext#acceptableLocales} will return the ordered list of locales the
 user understands, if you're only interested in the user prefered locale then the helper:
-`link:../../apidocs/io/vertx/ext/web/RoutingContext.html#preferredLocale--[preferredLocale]` will return the 1st element of the list or `null` if no
+{@link io.vertx.ext.web.RoutingContext#preferredLocale} will return the 1st element of the list or `null` if no
 locale was provided by the user.
 
 == Default 404 Handling
@@ -1099,66 +635,22 @@ This allows you to set different failure handlers for different parts of your ap
 Here's an example failure handler that will only be called for failure that occur when routing to GET requests
 to paths that start with `/somepath/`:
 
-[source,groovy]
+[source,$lang]
 ----
-
-def route = router.get("/somepath/*")
-
-route.failureHandler({ frc ->
-
-  // This will be called for failures that occur
-  // when routing requests to paths starting with
-  // '/somepath/'
-
-})
-
+{@link examples.WebExamples#example25}
 ----
 
 Failure routing will occur if a handler throws an exception, or if a handler calls
-`link:../../apidocs/io/vertx/ext/web/RoutingContext.html#fail-int-[fail]` specifying an HTTP status code to deliberately signal a failure.
+{@link io.vertx.ext.web.RoutingContext#fail} specifying an HTTP status code to deliberately signal a failure.
 
 If an exception is caught from a handler this will result in a failure with status code `500` being signalled.
 
 When handling the failure, the failure handler is passed the routing context which also allows the failure or failure code
 to be retrieved so the failure handler can use that to generate a failure response.
 
-[source,groovy]
+[source,$lang]
 ----
-
-def route1 = router.get("/somepath/path1/")
-
-route1.handler({ routingContext ->
-
-  // Let's say this throws a RuntimeException
-  throw new java.lang.RuntimeException("something happened!")
-
-})
-
-def route2 = router.get("/somepath/path2")
-
-route2.handler({ routingContext ->
-
-  // This one deliberately fails the request passing in the status code
-  // E.g. 403 - Forbidden
-  routingContext.fail(403)
-
-})
-
-// Define a failure handler
-// This will get called for any failures in the above handlers
-def route3 = router.get("/somepath/*")
-
-route3.failureHandler({ failureRoutingContext ->
-
-  def statusCode = failureRoutingContext.statusCode()
-
-  // Status code will be 500 for the RuntimeException or 403 for the other failure
-  def response = failureRoutingContext.response()
-  response.setStatusCode(statusCode).end("Sorry! Not today")
-
-})
-
-
+{@link examples.WebExamples#example26}
 ----
 
 For the eventuality that an error occurs when running the error handler related usage of not allowed characters in
@@ -1168,7 +660,7 @@ without properly completing the protocol.
 
 == Request body handling
 
-The `link:../../apidocs/io/vertx/ext/web/handler/BodyHandler.html[BodyHandler]` allows you to retrieve request bodies, limit body sizes and handle
+The {@link io.vertx.ext.web.handler.BodyHandler} allows you to retrieve request bodies, limit body sizes and handle
 file uploads.
 
 You should make sure a body handler is on a matching route for any requests that require this functionality.
@@ -1176,24 +668,20 @@ You should make sure a body handler is on a matching route for any requests that
 The usage of this handler requires that it is installed as soon as possible in the router since it needs
 to install handlers to consume the HTTP request body and this must be done before executing any async call.
 
-[source,groovy]
+[source,$lang]
 ----
-
-// This body handler will be called for all routes
-router.route().handler(BodyHandler.create())
-
-
+{@link examples.WebExamples#example27}
 ----
 
 === Getting the request body
 
-If you know the request body is JSON, then you can use `link:../../apidocs/io/vertx/ext/web/RoutingContext.html#getBodyAsJson--[getBodyAsJson]`,
-if you know it's a string you can use `link:../../apidocs/io/vertx/ext/web/RoutingContext.html#getBodyAsString--[getBodyAsString]`, or to
-retrieve it as a buffer use `link:../../apidocs/io/vertx/ext/web/RoutingContext.html#getBody--[getBody]`.
+If you know the request body is JSON, then you can use {@link io.vertx.ext.web.RoutingContext#getBodyAsJson},
+if you know it's a string you can use {@link io.vertx.ext.web.RoutingContext#getBodyAsString}, or to
+retrieve it as a buffer use {@link io.vertx.ext.web.RoutingContext#getBody()}.
 
 === Limiting body size
 
-To limit the size of a request body, create the body handler then use `link:../../apidocs/io/vertx/ext/web/handler/BodyHandler.html#setBodyLimit-long-[setBodyLimit]`
+To limit the size of a request body, create the body handler then use {@link io.vertx.ext.web.handler.BodyHandler#setBodyLimit(long)}
 to specifying the maximum body size, in bytes. This is useful to avoid running out of memory with very large bodies.
 
 If an attempt to send a body greater than the maximum size is made, an HTTP status code of 413 - `Request Entity Too Large`,
@@ -1204,7 +692,7 @@ There is no body limit by default.
 === Merging form attributes
 
 By default, the body handler will merge any form attributes into the request parameters. If you don't want this behaviour
-you can use disable it with `link:../../apidocs/io/vertx/ext/web/handler/BodyHandler.html#setMergeFormAttributes-boolean-[setMergeFormAttributes]`.
+you can use disable it with {@link io.vertx.ext.web.handler.BodyHandler#setMergeFormAttributes(boolean)}.
 
 === Handling file uploads
 
@@ -1214,76 +702,49 @@ If a body handler is on a matching route for the request, any file uploads will 
 uploads directory, which is `file-uploads` by default.
 
 Each file will be given an automatically generated file name, and the file uploads will be available on the routing
-context with `link:../../apidocs/io/vertx/ext/web/RoutingContext.html#fileUploads--[fileUploads]`.
+context with {@link io.vertx.ext.web.RoutingContext#fileUploads()}.
 
 Here's an example:
 
-[source,groovy]
+[source,$lang]
+----
+{@link examples.WebExamples#example28}
 ----
 
-router.route().handler(BodyHandler.create())
-
-router.post("/some/path/uploads").handler({ routingContext ->
-
-  def uploads = routingContext.fileUploads()
-  // Do something with uploads....
-
-})
-
-----
-
-Each file upload is described by a `link:../../apidocs/io/vertx/ext/web/FileUpload.html[FileUpload]` instance, which allows various properties
+Each file upload is described by a {@link io.vertx.ext.web.FileUpload} instance, which allows various properties
 such as the name, file-name and size to be accessed.
 
 == Handling cookies
 
-Vert.x-Web has cookies support using the `link:../../apidocs/io/vertx/ext/web/handler/CookieHandler.html[CookieHandler]`.
+Vert.x-Web has cookies support using the {@link io.vertx.ext.web.handler.CookieHandler}.
 
 You should make sure a cookie handler is on a matching route for any requests that require this functionality.
 
-[source,groovy]
+[source,$lang]
 ----
-
-// This cookie handler will be called for all routes
-router.route().handler(CookieHandler.create())
-
-
+{@link examples.WebExamples#example29}
 ----
 
 === Manipulating cookies
 
-You use `link:../../apidocs/io/vertx/ext/web/RoutingContext.html#getCookie-java.lang.String-[getCookie]` to retrieve
-a cookie by name, or use `link:../../apidocs/io/vertx/ext/web/RoutingContext.html#cookies--[cookies]` to retrieve the entire set.
+You use {@link io.vertx.ext.web.RoutingContext#getCookie(String)} to retrieve
+a cookie by name, or use {@link io.vertx.ext.web.RoutingContext#cookies()} to retrieve the entire set.
 
-To remove a cookie, use `link:../../apidocs/io/vertx/ext/web/RoutingContext.html#removeCookie-java.lang.String-[removeCookie]`.
+To remove a cookie, use {@link io.vertx.ext.web.RoutingContext#removeCookie(String)}.
 
-To add a cookie use `link:../../apidocs/io/vertx/ext/web/RoutingContext.html#addCookie-io.vertx.ext.web.Cookie-[addCookie]`.
+To add a cookie use {@link io.vertx.ext.web.RoutingContext#addCookie(Cookie)}.
 
 The set of cookies will be written back in the response automatically when the response headers are written so the
 browser can store them.
 
-Cookies are described by instances of `link:../../apidocs/io/vertx/ext/web/Cookie.html[Cookie]`. This allows you to retrieve the name,
+Cookies are described by instances of {@link io.vertx.ext.web.Cookie}. This allows you to retrieve the name,
 value, domain, path and other normal cookie properties.
 
 Here's an example of querying and adding cookies:
 
-[source,groovy]
+[source,$lang]
 ----
-
-// This cookie handler will be called for all routes
-router.route().handler(CookieHandler.create())
-
-router.route("some/path/").handler({ routingContext ->
-
-  def someCookie = routingContext.getCookie("mycookie")
-  def cookieValue = someCookie.getValue()
-
-  // Do something with cookie...
-
-  // Add a cookie - this will get written back in the response automatically
-  routingContext.addCookie(Cookie.cookie("othercookie", "somevalue"))
-})
-
+{@link examples.WebExamples#example30}
 ----
 
 == Handling sessions
@@ -1303,7 +764,7 @@ be effectively unguessable.
 Cookies are passed across the wire in HTTP requests and responses so it's always wise to make sure you are using
 HTTPS when sessions are being used. Vert.x will warn you if you attempt to use sessions over straight HTTP.
 
-To enable sessions in your application you must have a `link:../../apidocs/io/vertx/ext/web/handler/SessionHandler.html[SessionHandler]`
+To enable sessions in your application you must have a {@link io.vertx.ext.web.handler.SessionHandler}
 on a matching route before your application logic.
 
 The session handler handles the creation of session cookies and the lookup of the session so you don't have to do
@@ -1343,26 +804,13 @@ requests might end up on a server which doesn't know about your session.
 Local session stores are implemented by using a shared local map, and have a reaper which clears out expired sessions.
 
 The reaper interval can be configured with
-`link:../../apidocs/io/vertx/ext/web/sstore/LocalSessionStore.html#create-io.vertx.core.Vertx-java.lang.String-long-[LocalSessionStore.create]`.
+{@link io.vertx.ext.web.sstore.LocalSessionStore#create(io.vertx.core.Vertx, String, long)}.
 
-Here are some examples of creating a `link:../../apidocs/io/vertx/ext/web/sstore/LocalSessionStore.html[LocalSessionStore]`
+Here are some examples of creating a {@link io.vertx.ext.web.sstore.LocalSessionStore}
 
-[source,groovy]
+[source,$lang]
 ----
-
-// Create a local session store using defaults
-def store1 = LocalSessionStore.create(vertx)
-
-// Create a local session store specifying the local shared map name to use
-// This might be useful if you have more than one application in the same
-// Vert.x instance and want to use different maps for different applications
-def store2 = LocalSessionStore.create(vertx, "myapp3.sessionmap")
-
-// Create a local session store specifying the local shared map name to use and
-// setting the reaper interval for expired sessions to 10 seconds
-def store3 = LocalSessionStore.create(vertx, "myapp3.sessionmap", 10000)
-
-
+{@link examples.WebExamples#example31}
 ----
 
 ==== Clustered session store
@@ -1376,28 +824,11 @@ Your session is accessible from any node in the cluster using this store.
 
 To you use a clustered session store you should make sure your Vert.x instance is clustered.
 
-Here are some examples of creating a `link:../../apidocs/io/vertx/ext/web/sstore/ClusteredSessionStore.html[ClusteredSessionStore]`
+Here are some examples of creating a {@link io.vertx.ext.web.sstore.ClusteredSessionStore}
 
-[source,groovy]
+[source,$lang]
 ----
-
-// a clustered Vert.x
-Vertx.clusteredVertx([
-  clustered:true
-], { res ->
-
-  def vertx = res.result()
-
-  // Create a clustered session store using defaults
-  def store1 = ClusteredSessionStore.create(vertx)
-
-  // Create a clustered session store specifying the distributed map name to use
-  // This might be useful if you have more than one application in the cluster
-  // and want to use different maps for different applications
-  def store2 = ClusteredSessionStore.create(vertx, "myclusteredapp3.sessionmap")
-})
-
-
+{@link examples.WebExamples#example32}
 ----
 
 === Creating the session handler
@@ -1405,37 +836,14 @@ Vertx.clusteredVertx([
 Once you've created a session store you can create a session handler, and add it to a route. You should make sure
 your session handler is routed to before your application handlers.
 
-You'll also need to include a `link:../../apidocs/io/vertx/ext/web/handler/CookieHandler.html[CookieHandler]` as the session handler uses cookies to
+You'll also need to include a {@link io.vertx.ext.web.handler.CookieHandler} as the session handler uses cookies to
 lookup the session. The cookie handler should be before the session handler when routing.
 
 Here's an example:
 
-[source,groovy]
+[source,$lang]
 ----
-
-def router = Router.router(vertx)
-
-// We need a cookie handler first
-router.route().handler(CookieHandler.create())
-
-// Create a clustered session store using defaults
-def store = ClusteredSessionStore.create(vertx)
-
-def sessionHandler = SessionHandler.create(store)
-
-// Make sure all requests are routed through the session handler too
-router.route().handler(sessionHandler)
-
-// Now your application handlers
-router.route("/somepath/blah/").handler({ routingContext ->
-
-  def session = routingContext.session()
-  session.put("foo", "bar")
-  // etc
-
-})
-
-
+{@link examples.WebExamples#example33}
 ----
 
 The session handler will ensure that your session is automatically looked up (or created if no session exists)
@@ -1443,46 +851,26 @@ from the session store and set on the routing context before it gets to your app
 
 === Using the session
 
-In your handlers you can access the session instance with `link:../../apidocs/io/vertx/ext/web/RoutingContext.html#session--[session]`.
+In your handlers you can access the session instance with {@link io.vertx.ext.web.RoutingContext#session()}.
 
-You put data into the session with `link:../../apidocs/io/vertx/ext/web/Session.html#put-java.lang.String-java.lang.Object-[put]`,
-you get data from the session with `link:../../apidocs/io/vertx/ext/web/Session.html#get-java.lang.String-[get]`, and you remove
-data from the session with `link:../../apidocs/io/vertx/ext/web/Session.html#remove-java.lang.String-[remove]`.
+You put data into the session with {@link io.vertx.ext.web.Session#put(String, Object)},
+you get data from the session with {@link io.vertx.ext.web.Session#get(String)}, and you remove
+data from the session with {@link io.vertx.ext.web.Session#remove(String)}.
 
 The keys for items in the session are always strings. The values can be any type for a local session store, and for
-a clustered session store they can be any basic type, or `link:../../apidocs/io/vertx/core/buffer/Buffer.html[Buffer]`, `link:../../apidocs/io/vertx/core/json/JsonObject.html[JsonObject]`,
-`link:../../apidocs/io/vertx/core/json/JsonArray.html[JsonArray]` or a serializable object, as the values have to serialized across the cluster.
+a clustered session store they can be any basic type, or {@link io.vertx.core.buffer.Buffer}, {@link io.vertx.core.json.JsonObject},
+{@link io.vertx.core.json.JsonArray} or a serializable object, as the values have to serialized across the cluster.
 
 Here's an example of manipulating session data:
 
-[source,groovy]
+[source,$lang]
 ----
-
-router.route().handler(CookieHandler.create())
-router.route().handler(sessionHandler)
-
-// Now your application handlers
-router.route("/somepath/blah").handler({ routingContext ->
-
-  def session = routingContext.session()
-
-  // Put some data from the session
-  session.put("foo", "bar")
-
-  // Retrieve some data from a session
-  def age = session.get("age")
-
-  // Remove some data from a session
-  def obj = session.remove("myobj")
-
-})
-
-
+{@link examples.WebExamples#example34}
 ----
 
 Sessions are automatically written back to the store after after responses are complete.
 
-You can manually destroy a session using `link:../../apidocs/io/vertx/ext/web/Session.html#destroy--[destroy]`. This will remove the session
+You can manually destroy a session using {@link io.vertx.ext.web.Session#destroy()}. This will remove the session
 from the context and the session store. Note that if there is no session a new one will be automatically created
 for the next request from the browser that's routed through the session handler.
 
@@ -1494,7 +882,7 @@ a session is timed out, it is removed from the store.
 Sessions are automatically marked as accessed when a request arrives and the session is looked up and and when the
 response is complete and the session is stored back in the store.
 
-You can also use `link:../../apidocs/io/vertx/ext/web/Session.html#setAccessed--[setAccessed]` to manually mark a session as accessed.
+You can also use {@link io.vertx.ext.web.Session#setAccessed()} to manually mark a session as accessed.
 
 The session timeout can be configured when creating the session handler. Default timeout is 30 minutes.
 
@@ -1504,21 +892,16 @@ Vert.x comes with some out-of-the-box handlers for handling both authentication 
 
 === Creating an auth handler
 
-To create an auth handler you need an instance of `link:../../apidocs/io/vertx/ext/auth/AuthProvider.html[AuthProvider]`. Auth provider is
+To create an auth handler you need an instance of {@link io.vertx.ext.auth.AuthProvider}. Auth provider is
 used for authentication and authorisation of users. Vert.x provides several auth provider instances out of the box
 in the vertx-auth project. For full information on auth providers and how to use and configure them
 please consult the auth documentation.
 
 Here's a simple example of creating a basic auth handler given an auth provider.
 
-[source,groovy]
+[source,$lang]
 ----
-
-router.route().handler(CookieHandler.create())
-router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)))
-
-def basicAuthHandler = BasicAuthHandler.create(authProvider)
-
+{@link examples.WebExamples#example37}
 ----
 
 === Handling auth in your application
@@ -1526,38 +909,14 @@ def basicAuthHandler = BasicAuthHandler.create(authProvider)
 Let's say you want all requests to paths that start with `/private/` to be subject to auth. To do that you make sure
 your auth handler is before your application handlers on those paths:
 
-[source,groovy]
+[source,$lang]
+----
+{@link examples.WebExamples#example38}
 ----
 
-router.route().handler(CookieHandler.create())
-router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)))
-router.route().handler(UserSessionHandler.create(authProvider))
-
-def basicAuthHandler = BasicAuthHandler.create(authProvider)
-
-// All requests to paths starting with '/private/' will be protected
-router.route("/private/*").handler(basicAuthHandler)
-
-router.route("/someotherpath").handler({ routingContext ->
-
-  // This will be public access - no login required
-
-})
-
-router.route("/private/somepath").handler({ routingContext ->
-
-  // This will require a login
-
-  // This will have the value true
-  def isAuthenticated = routingContext.user() != null
-
-})
-
-----
-
-If the auth handler has successfully authenticated and authorised the user it will inject a `link:../../apidocs/io/vertx/ext/auth/User.html[User]`
-object into the `link:../../apidocs/io/vertx/ext/web/RoutingContext.html[RoutingContext]` so it's available in your handlers with:
-`link:../../apidocs/io/vertx/ext/web/RoutingContext.html#user--[user]`.
+If the auth handler has successfully authenticated and authorised the user it will inject a {@link io.vertx.ext.auth.User}
+object into the {@link io.vertx.ext.web.RoutingContext} so it's available in your handlers with:
+{@link io.vertx.ext.web.RoutingContext#user()}.
 
 If you want your User object to be stored in the session so it's available between requests so you don't have to
 authenticate on each request, then you should make sure you have a session handler and a user session handler on matching
@@ -1565,7 +924,7 @@ routes before the auth handler.
 
 Once you have your user object you can also programmatically use the methods on it to authorise the user.
 
-If you want to cause the user to be logged out you can call `link:../../apidocs/io/vertx/ext/web/RoutingContext.html#clearUser--[clearUser]`
+If you want to cause the user to be logged out you can call {@link io.vertx.ext.web.RoutingContext#clearUser()}
 on the routing context.
 
 === HTTP Basic Authentication
@@ -1583,7 +942,7 @@ prompt the user to enter their username and password.
 The request is made to the resource again, this time with the `Authorization` header set, containing the username
 and password encoded in Base64.
 
-When the basic auth handler receives this information, it calls the configured `link:../../apidocs/io/vertx/ext/auth/AuthProvider.html[AuthProvider]`
+When the basic auth handler receives this information, it calls the configured {@link io.vertx.ext.auth.AuthProvider}
 with the username and password to authenticate the user. If the authentication is successful the handler attempts
 to authorise the user. If that is successful then the routing of the request is allowed to continue to the application
 handlers, otherwise a `403` response is returned to signify that access is denied.
@@ -1599,47 +958,17 @@ a protected resource and they are not logged in.
 The user then fills in the login form and submits it. This is handled by the server which authenticates
 the user and, if authenticated redirects the user back to the original resource.
 
-To use redirect auth you configure an instance of `link:../../apidocs/io/vertx/ext/web/handler/RedirectAuthHandler.html[RedirectAuthHandler]` instead of a
+To use redirect auth you configure an instance of {@link io.vertx.ext.web.handler.RedirectAuthHandler} instead of a
 basic auth handler.
 
 You will also need to setup handlers to serve your actual login page, and a handler to handle the actual login itself.
-To handle the login we provide a prebuilt handler `link:../../apidocs/io/vertx/ext/web/handler/FormLoginHandler.html[FormLoginHandler]` for the purpose.
+To handle the login we provide a prebuilt handler {@link io.vertx.ext.web.handler.FormLoginHandler} for the purpose.
 
 Here's an example of a simple app, using a redirect auth handler on the default redirect url `/loginpage`.
 
-[source,groovy]
+[source,$lang]
 ----
-
-router.route().handler(CookieHandler.create())
-router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)))
-router.route().handler(UserSessionHandler.create(authProvider))
-
-def redirectAuthHandler = RedirectAuthHandler.create(authProvider)
-
-// All requests to paths starting with '/private/' will be protected
-router.route("/private/*").handler(redirectAuthHandler)
-
-// Handle the actual login
-// One of your pages must POST form login data
-router.post("/login").handler(FormLoginHandler.create(authProvider))
-
-// Set a static server to serve static resources, e.g. the login page
-router.route().handler(StaticHandler.create())
-
-router.route("/someotherpath").handler({ routingContext ->
-  // This will be public access - no login required
-})
-
-router.route("/private/somepath").handler({ routingContext ->
-
-  // This will require a login
-
-  // This will have the value true
-  def isAuthenticated = routingContext.user() != null
-
-})
-
-
+{@link examples.WebExamples#example39}
 ----
 
 === JWT authorisation
@@ -1657,94 +986,33 @@ transit which leads to session hijacking attacks.
 
 Here's an example on how to issue tokens:
 
-[source,groovy]
+[source,$lang]
+----
+{@link examples.WebExamples#example50}
 ----
 
-def router = Router.router(vertx)
-
-def authConfig = [
-  keyStore:[
-    type:"jceks",
-    path:"keystore.jceks",
-    password:"secret"
-  ]
-]
-
-def authProvider = JWTAuth.create(vertx, authConfig)
-
-router.route("/login").handler({ ctx ->
-  // this is an example, authentication should be done with another provider...
-  if ("paulo" == ctx.request().getParam("username") && "secret" == ctx.request().getParam("password")) {
-    ctx.response().end(authProvider.generateToken([
-      sub:"paulo"
-    ], [:]))
-  } else {
-    ctx.fail(401)
-  }
-})
-
-----
-
-Now that your client has a token all it is required is that for *all* consequent request the HTTP header
+Now that your client has a token all it is required is that forall* consequent request the HTTP header
 `Authorization` is filled with: `Bearer <token>` e.g.:
 
-[source,groovy]
+[source,$lang]
 ----
-
-def router = Router.router(vertx)
-
-def authConfig = [
-  keyStore:[
-    type:"jceks",
-    path:"keystore.jceks",
-    password:"secret"
-  ]
-]
-
-def authProvider = JWTAuth.create(vertx, authConfig)
-
-router.route("/protected/*").handler(JWTAuthHandler.create(authProvider))
-
-router.route("/protected/somepage").handler({ ctx ->
-  // some handle code...
-})
-
+{@link examples.WebExamples#example51}
 ----
 
 JWT allows you to add any information you like to the token itself. By doing this there is no state in the server
 which allows you to scale your applications without need for clustered session data. In order to add data to the
 token, during the creation of the token just add data to the JsonObject parameter:
 
-[source,groovy]
+[source,$lang]
 ----
-
-def authConfig = [
-  keyStore:[
-    type:"jceks",
-    path:"keystore.jceks",
-    password:"secret"
-  ]
-]
-
-def authProvider = JWTAuth.create(vertx, authConfig)
-
-authProvider.generateToken([
-  sub:"paulo",
-  someKey:"some value"
-], [:])
-
+{@link examples.WebExamples#example52}
 ----
 
 And the same when consuming:
 
-[source,groovy]
+[source,$lang]
 ----
-
-def handler = { rc ->
-  def theSubject = rc.user().principal().sub
-  def someKey = rc.user().principal().someKey
-}
-
+{@link examples.WebExamples#example53}
 ----
 
 === Configuring required authorities
@@ -1758,63 +1026,36 @@ Here's an example of configuring an app so that different authorities are requir
 app. Note that the meaning of the authorities is determined by the underlying auth provider that you use. E.g. some
 may support a role/permission based model but others might use another model.
 
-[source,groovy]
+[source,$lang]
 ----
-
-def listProductsAuthHandler = RedirectAuthHandler.create(authProvider)
-listProductsAuthHandler.addAuthority("list_products")
-
-// Need "list_products" authority to list products
-router.route("/listproducts/*").handler(listProductsAuthHandler)
-
-def settingsAuthHandler = RedirectAuthHandler.create(authProvider)
-settingsAuthHandler.addAuthority("role:admin")
-
-// Only "admin" has access to /private/settings
-router.route("/private/settings/*").handler(settingsAuthHandler)
-
-
+{@link examples.WebExamples#example40}
 ----
 
 === Chaining multiple auth handlers
 
 There are times when you want to support multiple authN/authZ mechanisms in a single application. For this you can
-use the `link:../../apidocs/io/vertx/ext/web/handler/ChainAuthHandler.html[ChainAuthHandler]`. The chain auth handler will attempt to perform
+use the {@link io.vertx.ext.web.handler.ChainAuthHandler}. The chain auth handler will attempt to perform
 authentication on a chain of handlers. The chain works both for AuthN and AuthZ, so if the authentication is valid
 at a given handler of the chain, then that same handler will be used to perform authorization (if requested).
 
 It is important to know that some handlers require specific providers, for example:
 
-* The `link:../../apidocs/io/vertx/ext/web/handler/JWTAuthHandler.html[JWTAuthHandler]` requires `link:../../apidocs/io/vertx/ext/auth/jwt/JWTAuth.html[JWTAuth]`.
-* The `link:../../apidocs/io/vertx/ext/web/handler/DigestAuthHandler.html[DigestAuthHandler]` requires `link:../../apidocs/io/vertx/ext/auth/htdigest/HtdigestAuth.html[HtdigestAuth]`.
-* The `link:../../apidocs/io/vertx/ext/web/handler/OAuth2AuthHandler.html[OAuth2AuthHandler]` requires `link:../../apidocs/io/vertx/ext/auth/oauth2/OAuth2Auth.html[OAuth2Auth]`.
+* The {@link io.vertx.ext.web.handler.JWTAuthHandler} requires {@link io.vertx.ext.auth.jwt.JWTAuth}.
+* The {@link io.vertx.ext.web.handler.DigestAuthHandler} requires {@link io.vertx.ext.auth.htdigest.HtdigestAuth}.
+* The {@link io.vertx.ext.web.handler.OAuth2AuthHandler} requires {@link io.vertx.ext.auth.oauth2.OAuth2Auth}.
 
 So it is not expected that the providers will be shared across all handlers. There are cases where one can share the
 provider across handlers, for example:
 
-* The `link:../../apidocs/io/vertx/ext/web/handler/BasicAuthHandler.html[BasicAuthHandler]` can take any provider.
-* The `link:../../apidocs/io/vertx/ext/web/handler/RedirectAuthHandler.html[RedirectAuthHandler]` can take any provider.
+* The {@link io.vertx.ext.web.handler.BasicAuthHandler} can take any provider.
+* The {@link io.vertx.ext.web.handler.RedirectAuthHandler} can take any provider.
 
 So say that you want to create an application that accepts both `HTTP Basic Authentication` and `Form Redirect`. You
 would start configuring your chain as:
 
-[source,groovy]
+[source,$lang]
 ----
-
-def chain = ChainAuthHandler.create()
-
-// add http basic auth handler to the chain
-chain.append(BasicAuthHandler.create(provider))
-// add form redirect auth handler to the chain
-chain.append(RedirectAuthHandler.create(provider))
-
-// secure your route
-router.route("/secure/resource").handler(chain)
-// your app
-router.route("/secure/resource").handler({ ctx ->
-  // do something...
-})
-
+{@link examples.WebExamples#example63}
 ----
 
 So when a user makes a request without a `Authorization` header, this means that the chain will fail to authenticate
@@ -1836,19 +1077,16 @@ Vert.x-Web comes with an out of the box handler for serving static web resources
 very easily.
 
 To serve static resources such as `.html`, `.css`, `.js` or any other static resource, you use an instance of
-`link:../../apidocs/io/vertx/ext/web/handler/StaticHandler.html[StaticHandler]`.
+{@link io.vertx.ext.web.handler.StaticHandler}.
 
 Any requests to paths handled by the static handler will result in files being served from a directory on the file system
 or from the classpath. The default static file directory is `webroot` but this can be configured.
 
 In the following example all requests to paths starting with `/static/` will get served from the directory `webroot`:
 
-[source,groovy]
+[source,$lang]
 ----
-
-router.route("/static/*").handler(StaticHandler.create())
-
-
+{@link examples.WebExamples#example41}
 ----
 
 For example, if there was a request with path `/static/css/mystyles.css` the static serve will look for a file in the
@@ -1872,12 +1110,12 @@ By default the static handler will set cache headers to enable browsers to effec
 Vert.x-Web sets the headers `cache-control`,`last-modified`, and `date`.
 
 `cache-control` is set to `max-age=86400` by default. This corresponds to one day. This can be configured with
-`link:../../apidocs/io/vertx/ext/web/handler/StaticHandler.html#setMaxAgeSeconds-long-[setMaxAgeSeconds]` if required.
+{@link io.vertx.ext.web.handler.StaticHandler#setMaxAgeSeconds(long)} if required.
 
 If a browser sends a GET or a HEAD request with an `if-modified-since` header and the resource has not been modified
 since that date, a `304` status is returned which tells the browser to use its locally cached resource.
 
-If handling of cache headers is not required, it can be disabled with `link:../../apidocs/io/vertx/ext/web/handler/StaticHandler.html#setCachingEnabled-boolean-[setCachingEnabled]`.
+If handling of cache headers is not required, it can be disabled with {@link io.vertx.ext.web.handler.StaticHandler#setCachingEnabled(boolean)}.
 
 When cache handling is enabled Vert.x-Web will cache the last modified date of resources in memory, this avoids a disk hit
 to check the actual last modified date every time.
@@ -1889,38 +1127,38 @@ If you know that your files never change on disk, then the cache entry will effe
 default.
 
 If you know that your files might change on disk when the server is running then you can set files read only to false with
-`link:../../apidocs/io/vertx/ext/web/handler/StaticHandler.html#setFilesReadOnly-boolean-[setFilesReadOnly]`.
+{@link io.vertx.ext.web.handler.StaticHandler#setFilesReadOnly(boolean)}.
 
 To enable the maximum number of entries that can be cached in memory at any one time you can use
-`link:../../apidocs/io/vertx/ext/web/handler/StaticHandler.html#setMaxCacheSize-int-[setMaxCacheSize]`.
+{@link io.vertx.ext.web.handler.StaticHandler#setMaxCacheSize(int)}.
 
-To configure the expiry time of cache entries you can use `link:../../apidocs/io/vertx/ext/web/handler/StaticHandler.html#setCacheEntryTimeout-long-[setCacheEntryTimeout]`.
+To configure the expiry time of cache entries you can use {@link io.vertx.ext.web.handler.StaticHandler#setCacheEntryTimeout(long)}.
 
 === Configuring the index page
 
 Any requests to the root path `/` will cause the index page to be served. By default the index page is `index.html`.
-This can be configured with `link:../../apidocs/io/vertx/ext/web/handler/StaticHandler.html#setIndexPage-java.lang.String-[setIndexPage]`.
+This can be configured with {@link io.vertx.ext.web.handler.StaticHandler#setIndexPage(String)}.
 
 === Changing the web root
 
 By default static resources will be served from the directory `webroot`. To configure this use
-`link:../../apidocs/io/vertx/ext/web/handler/StaticHandler.html#setWebRoot-java.lang.String-[setWebRoot]`.
+{@link io.vertx.ext.web.handler.StaticHandler#setWebRoot(String)}.
 
 === Serving hidden files
 
 By default the serve will serve hidden files (files starting with `.`).
 
-If you do not want hidden files to be served you can configure it with `link:../../apidocs/io/vertx/ext/web/handler/StaticHandler.html#setIncludeHidden-boolean-[setIncludeHidden]`.
+If you do not want hidden files to be served you can configure it with {@link io.vertx.ext.web.handler.StaticHandler#setIncludeHidden(boolean)}.
 
 === Directory listing
 
 The server can also perform directory listing. By default directory listing is disabled. To enabled it use
-`link:../../apidocs/io/vertx/ext/web/handler/StaticHandler.html#setDirectoryListing-boolean-[setDirectoryListing]`.
+{@link io.vertx.ext.web.handler.StaticHandler#setDirectoryListing(boolean)}.
 
 When directory listing is enabled the content returned depends on the content type in the `accept` header.
 
 For `text/html` directory listing, the template used to render the directory listing page can be configured with
-`link:../../apidocs/io/vertx/ext/web/handler/StaticHandler.html#setDirectoryTemplate-java.lang.String-[setDirectoryTemplate]`.
+{@link io.vertx.ext.web.handler.StaticHandler#setDirectoryTemplate(String)}.
 
 === Disabling file caching on disk
 
@@ -1941,22 +1179,13 @@ could set up a run configuration in your IDE to set this when running your main 
 http://en.wikipedia.org/wiki/Cross-origin_resource_sharing[Cross Origin Resource Sharing] is a safe mechanism for
 allowing resources to be requested from one domain and served from another.
 
-Vert.x-Web includes a handler `link:../../apidocs/io/vertx/ext/web/handler/CorsHandler.html[CorsHandler]` that handles the CORS protocol for you.
+Vert.x-Web includes a handler {@link io.vertx.ext.web.handler.CorsHandler} that handles the CORS protocol for you.
 
 Here's an example:
 
-[source,groovy]
+[source,$lang]
 ----
-
-// Will only accept GET requests from origin "vertx.io"
-router.route().handler(CorsHandler.create("vertx\\.io").allowedMethod(HttpMethod.GET))
-
-router.route().handler({ routingContext ->
-
-  // Your app handlers
-
-})
-
+{@link examples.WebExamples#example41_0_1}
 ----
 
 ////
@@ -1968,11 +1197,11 @@ TODO more CORS docs
 Vert.x-Web includes dynamic page generation capabilities by including out of the box support for several popular template
 engines. You can also easily add your own.
 
-Template engines are described by `link:../../apidocs/io/vertx/ext/web/templ/TemplateEngine.html[TemplateEngine]`. In order to render a template
-`link:../../apidocs/io/vertx/ext/web/templ/TemplateEngine.html#render-io.vertx.ext.web.RoutingContext-java.lang.String-io.vertx.core.Handler-[render]` is used.
+Template engines are described by {@link io.vertx.ext.web.templ.TemplateEngine}. In order to render a template
+{@link io.vertx.ext.web.templ.TemplateEngine#render} is used.
 
 The simplest way to use templates is not to call the template engine directly but to use the
-`link:../../apidocs/io/vertx/ext/web/handler/TemplateHandler.html[TemplateHandler]`.
+{@link io.vertx.ext.web.handler.TemplateHandler}.
 This handler calls the template engine for you based on the path in the HTTP request.
 
 By default the template handler will look for templates in a directory called `templates`. This can be configured.
@@ -1989,10 +1218,26 @@ Here are some examples:
 These examples are not using the traditional "transcoding" as they use an API providing in another project.
 ////
 
-
-
-[source, groovy]
+[language, java]
 ----
+[source, java]
+\----
+TemplateEngine engine = HandlebarsTemplateEngine.create();
+TemplateHandler handler = TemplateHandler.create(engine);
+
+// This will route all GET requests starting with /dynamic/ to the template handler
+// E.g. /dynamic/graph.hbs will look for a template in /templates/graph.hbs
+router.get("/dynamic/*").handler(handler);
+
+// Route all GET requests for resource ending in .hbs to the template handler
+router.getWithRegex(".+\\.hbs").handler(handler);
+\----
+----
+
+[language, groovy]
+----
+[source, groovy]
+\----
 import io.vertx.groovy.ext.web.templ.HandlebarsTemplateEngine
 import io.vertx.groovy.ext.web.handler.TemplateHandler
 
@@ -2005,23 +1250,57 @@ router.get("/dynamic/*").handler(handler)
 
 // Route all GET requests for resource ending in .hbs to the template handler
 router.getWithRegex(".+\\.hbs").handler(handler)
+\----
 ----
 
+[language, ruby]
+----
+[source, ruby]
+\----
+require 'vertx-web/handlebars_template_engine'
+require 'vertx-web/template_handler'
 
+engine = VertxWeb::HandlebarsTemplateEngine.create()
+handler = VertxWeb::TemplateHandler.create(engine)
 
+# This will route all GET requests starting with /dynamic/ to the template handler
+# E.g. /dynamic/graph.hbs will look for a template in /templates/graph.hbs
+router.get("/dynamic/*").handler(&handler.method(:handle))
 
+# Route all GET requests for resource ending in .hbs to the template handler
+router.get_with_regex(".+\\.hbs").handler(&handler.method(:handle))
+\----
+----
 
+[language, js]
+----
+[source, javascript]
+\----
+var HandlebarsTemplateEngine = require("vertx-web-js/handlebars_template_engine");
+var TemplateHandler = require("vertx-web-js/template_handler");
+
+var engine = HandlebarsTemplateEngine.create();
+var handler = TemplateHandler.create(engine);
+
+// This will route all GET requests starting with /dynamic/ to the template handler
+// E.g. /dynamic/graph.hbs will look for a template in /templates/graph.hbs
+router.get("/dynamic/*").handler(handler.handle);
+
+// Route all GET requests for resource ending in .hbs to the template handler
+router.getWithRegex(".+\\.hbs").handler(handler.handle);
+\----
+----
 
 === MVEL template engine
 
 To use MVEL, you need to add the following _dependency_ to your project:
-`io.vertx:vertx-web-templ-mvel:3.5.1`. Create an instance of the MVEL template engine using:
+`${maven.groupId}:vertx-web-templ-mvel:${maven.version}`. Create an instance of the MVEL template engine using:
 `io.vertx.ext.web.templ.MVELTemplateEngine#create()`
 
 When using the MVEL template engine, it will by default look for
 templates with the `.templ` extension if no extension is specified in the file name.
 
-The routing context `link:../../apidocs/io/vertx/ext/web/RoutingContext.html[RoutingContext]` is available
+The routing context {@link io.vertx.ext.web.RoutingContext} is available
 in the MVEL template as the `context` variable, this means you can render the template based on anything in the context
 including the request, response, session or context data.
 
@@ -2041,13 +1320,13 @@ MVEL templates.
 === Jade template engine
 
 To use the Jade template engine, you need to add the following _dependency_ to your project:
-`io.vertx:vertx-web-templ-jade:3.5.1`. Create an instance of the Jade template engine using:
+`${maven.groupId}:vertx-web-templ-jade:${maven.version}`. Create an instance of the Jade template engine using:
 `io.vertx.ext.web.templ.JadeTemplateEngine#create()`.
 
 When using the Jade template engine, it will by default look for
 templates with the `.jade` extension if no extension is specified in the file name.
 
-The routing context `link:../../apidocs/io/vertx/ext/web/RoutingContext.html[RoutingContext]` is available
+The routing context {@link io.vertx.ext.web.RoutingContext} is available
 in the Jade template as the `context` variable, this means you can render the template based on anything in the context
 including the request, response, session or context data.
 
@@ -2067,7 +1346,7 @@ Jade templates.
 === Handlebars template engine
 
 To use Handlebars, you need to add the following _dependency_ to your project:
-`io.vertx:vertx-web-templ-handlebars:3.5.1`. Create an instance of the Handlebars template engine
+`${maven.groupId}:vertx-web-templ-handlebars:${maven.version}`. Create an instance of the Handlebars template engine
 using: `io.vertx.ext.web.templ.HandlebarsTemplateEngine#create()`.
 
 When using the Handlebars template engine, it will by default look for
@@ -2076,27 +1355,14 @@ templates with the `.hbs` extension if no extension is specified in the file nam
 Handlebars templates are not able to call arbitrary methods in objects so we can't just pass the routing context
 into the template and let the template introspect it like we can with other template engines.
 
-Instead, the context `link:../../apidocs/io/vertx/ext/web/RoutingContext.html#data--[data]` is available in the template.
+Instead, the context {@link io.vertx.ext.web.RoutingContext#data()} is available in the template.
 
 If you want to have access to other data like the request path, request params or session data you should
 add it the context data in a handler before the template handler. For example:
 
-[source,groovy]
+[source,$lang]
 ----
-
-def handler = TemplateHandler.create(engine)
-
-router.get("/dynamic").handler({ routingContext ->
-
-  routingContext.put("request_path", routingContext.request().path())
-  routingContext.put("session_data", routingContext.session().data())
-
-  routingContext.next()
-})
-
-router.get("/dynamic/").handler(handler)
-
-
+{@link examples.WebExamples#example41_2}
 ----
 
 Please consult the https://github.com/jknack/handlebars.java[Handlebars Java port documentation] for how to write
@@ -2105,13 +1371,13 @@ handlebars templates.
 === Thymeleaf template engine
 
 To use Thymeleaf, you need to add the following _dependency_ to your project:
-`io.vertx:vertx-web-templ-thymeleaf:3.5.1`. Create an instance of the Thymeleaf template engine
+`${maven.groupId}:vertx-web-templ-thymeleaf:${maven.version}`. Create an instance of the Thymeleaf template engine
 using: `io.vertx.ext.web.templ.ThymeleafTemplateEngine#create()`.
 
 When using the Thymeleaf template engine, it will by default look for
 templates with the `.html` extension if no extension is specified in the file name.
 
-The routing context `link:../../apidocs/io/vertx/ext/web/RoutingContext.html[RoutingContext]` is available
+The routing context {@link io.vertx.ext.web.RoutingContext} is available
 in the Thymeleaf template as the `context` variable, this means you can render the template based on anything in the context
 including the request, response, session or context data.
 
@@ -2133,13 +1399,13 @@ Thymeleaf templates.
 === Apache FreeMarker template engine
 
 To use Apache FreeMarker, you need to add the following _dependency_ to your project:
-`io.vertx:vertx-web-templ-freemarker:3.5.1`. Create an instance of the Apache FreeMarker template engine
+`${maven.groupId}:vertx-web-templ-freemarker:${maven.version}`. Create an instance of the Apache FreeMarker template engine
 using: `io.vertx.ext.web.templ.FreeMarkerTemplateEngine#create()`.
 
 When using the Apache FreeMarker template engine, it will by default look for
 templates with the `.ftl` extension if no extension is specified in the file name.
 
-The routing context `link:../../apidocs/io/vertx/ext/web/RoutingContext.html[RoutingContext]` is available
+The routing context {@link io.vertx.ext.web.RoutingContext} is available
 in the Apache FreeMarker template as the `context` variable, this means you can render the template based on anything in the context
 including the request, response, session or context data.
 
@@ -2161,7 +1427,7 @@ Apache FreeMarker templates.
 === Pebble template engine
 
 To use Pebble, you need to add the following _dependency_ to your project:
-`io.vertx:vertx-web-templ-pebble:3.5.1`. Create an instance of the Pebble template engine
+`io.vertx:vertx-web-templ-pebble:${maven.version}`. Create an instance of the Pebble template engine
 using: `io.vertx.ext.web.templ.PebbleTemplateEngine#create(vertx)`.
 
 When using the Pebble template engine, it will by default look for
@@ -2198,21 +1464,21 @@ By default it will be false. So caching is always enabled.
 You can render your own errors using a template handler or otherwise but Vert.x-Web also includes an out of the boxy
 "pretty" error handler that can render error pages for you.
 
-The handler is `link:../../apidocs/io/vertx/ext/web/handler/ErrorHandler.html[ErrorHandler]`. To use the error handler just set it as a
+The handler is {@link io.vertx.ext.web.handler.ErrorHandler}. To use the error handler just set it as a
 failure handler for any paths that you want covered.
 
 == Request logger
 
-Vert.x-Web includes a handler `link:../../apidocs/io/vertx/ext/web/handler/LoggerHandler.html[LoggerHandler]` that you can use to log HTTP requests.
+Vert.x-Web includes a handler {@link io.vertx.ext.web.handler.LoggerHandler} that you can use to log HTTP requests.
 
 
 By default requests are logged to the Vert.x logger which can be configured to use JUL logging, log4j or SLF4J.
 
-See `link:../../apidocs/io/vertx/ext/web/handler/LoggerFormat.html[LoggerFormat]`.
+See {@link io.vertx.ext.web.handler.LoggerFormat}.
 
 == Serving favicons
 
-Vert.x-Web includes the handler `link:../../apidocs/io/vertx/ext/web/handler/FaviconHandler.html[FaviconHandler]` especially for serving favicons.
+Vert.x-Web includes the handler {@link io.vertx.ext.web.handler.FaviconHandler} especially for serving favicons.
 
 Favicons can be specified using a path to the filesystem, or by default Vert.x-Web will look for a file on the classpath
 with the name `favicon.ico`. This means you bundle the favicon in the jar of your application.
@@ -2221,19 +1487,16 @@ with the name `favicon.ico`. This means you bundle the favicon in the jar of you
 
 Vert.x-Web includes a timeout handler that you can use to timeout requests if they take too long to process.
 
-This is configured using an instance of `link:../../apidocs/io/vertx/ext/web/handler/TimeoutHandler.html[TimeoutHandler]`.
+This is configured using an instance of {@link io.vertx.ext.web.handler.TimeoutHandler}.
 
 If a request times out before the response is written a `503` response will be returned to the client.
 
 Here's an example of using a timeout handler which will timeout all requests to paths starting with `/foo` after 5
 seconds:
 
-[source,groovy]
+[source,$lang]
 ----
-
-router.route("/foo/").handler(TimeoutHandler.create(5000))
-
-
+{@link examples.WebExamples#example42}
 ----
 
 == Response time handler
@@ -2248,58 +1511,25 @@ to when the response headers were written, in ms., e.g.:
 The `ResponseContentTypeHandler` can set the `Content-Type` header automatically.
 Suppose we are building a RESTful web application. We need to set the content type in all our handlers:
 
-[source,groovy]
+[source,$lang]
 ----
-router.get("/api/books").produces("application/json").handler({ rc ->
-  this.findBooks({ ar ->
-    if (ar.succeeded()) {
-      rc.response().putHeader("Content-Type", "application/json").end(this.toJson(ar.result()))
-    } else {
-      rc.fail(ar.cause())
-    }
-  })
-})
-
+{@link examples.WebExamples#manualContentType(io.vertx.ext.web.Router)}
 ----
 
 If the API surface becomes pretty large, setting the content type can become cumbersome.
 To avoid this situation, add the `ResponseContentTypeHandler` to the corresponding routes:
 
-[source,groovy]
+[source,$lang]
 ----
-router.route("/api/*").handler(ResponseContentTypeHandler.create())
-router.get("/api/books").produces("application/json").handler({ rc ->
-  this.findBooks({ ar ->
-    if (ar.succeeded()) {
-      rc.response().end(this.toJson(ar.result()))
-    } else {
-      rc.fail(ar.cause())
-    }
-  })
-})
-
+{@link examples.WebExamples#contentTypeHandler(io.vertx.ext.web.Router)}
 ----
 
-The handler gets the approriate content type from `link:../../apidocs/io/vertx/ext/web/RoutingContext.html#getAcceptableContentType--[getAcceptableContentType]`.
+The handler gets the approriate content type from {@link io.vertx.ext.web.RoutingContext#getAcceptableContentType()}.
 As a consequence, you can easily share the same handler to produce data of different types:
 
-[source,groovy]
+[source,$lang]
 ----
-router.route("/api/*").handler(ResponseContentTypeHandler.create())
-router.get("/api/books").produces("text/xml").produces("application/json").handler({ rc ->
-  this.findBooks({ ar ->
-    if (ar.succeeded()) {
-      if (rc.getAcceptableContentType() == "text/xml") {
-        rc.response().end(this.toXML(ar.result()))
-      } else {
-        rc.response().end(this.toJson(ar.result()))
-      }
-    } else {
-      rc.fail(ar.cause())
-    }
-  })
-})
-
+{@link examples.WebExamples#mostAcceptableContentTypeHandler(io.vertx.ext.web.Router)}
 ----
 
 == SockJS
@@ -2316,26 +1546,16 @@ Please see the https://github.com/sockjs/sockjs-client[SockJS website] for more 
 
 === SockJS handler
 
-Vert.x provides an out of the box handler called `link:../../apidocs/io/vertx/ext/web/handler/sockjs/SockJSHandler.html[SockJSHandler]` for
+Vert.x provides an out of the box handler called {@link io.vertx.ext.web.handler.sockjs.SockJSHandler} for
 using SockJS in your Vert.x-Web applications.
 
-You should create one handler per SockJS application using `link:../../apidocs/io/vertx/ext/web/handler/sockjs/SockJSHandler.html#create-io.vertx.core.Vertx-[SockJSHandler.create]`.
+You should create one handler per SockJS application using {@link io.vertx.ext.web.handler.sockjs.SockJSHandler#create}.
 You can also specify configuration options when creating the instance. The configuration options are described with
-an instance of `link:../../apidocs/io/vertx/ext/web/handler/sockjs/SockJSHandlerOptions.html[SockJSHandlerOptions]`.
+an instance of {@link io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions}.
 
-[source,groovy]
+[source,$lang]
 ----
-
-def router = Router.router(vertx)
-
-def options = [
-  heartbeatInterval:2000
-]
-
-def sockJSHandler = SockJSHandler.create(vertx, options)
-
-router.route("/myapp/*").handler(sockJSHandler)
-
+{@link examples.WebExamples#example43}
 ----
 
 === Handling SockJS sockets
@@ -2343,32 +1563,16 @@ router.route("/myapp/*").handler(sockJSHandler)
 On the server-side you set a handler on the SockJS handler, and
 this will be called every time a SockJS connection is made from a client:
 
-The object passed into the handler is a `link:../../apidocs/io/vertx/ext/web/handler/sockjs/SockJSSocket.html[SockJSSocket]`. This has a familiar
-socket-like interface which you can read and write to similarly to a `link:../../apidocs/io/vertx/core/net/NetSocket.html[NetSocket]` or
-a `link:../../apidocs/io/vertx/core/http/WebSocket.html[WebSocket]`. It also implements `link:../../apidocs/io/vertx/core/streams/ReadStream.html[ReadStream]` and
-`link:../../apidocs/io/vertx/core/streams/WriteStream.html[WriteStream]` so you can pump it to and from other read and write streams.
+The object passed into the handler is a {@link io.vertx.ext.web.handler.sockjs.SockJSSocket}. This has a familiar
+socket-like interface which you can read and write to similarly to a {@link io.vertx.core.net.NetSocket} or
+a {@link io.vertx.core.http.WebSocket}. It also implements {@link io.vertx.core.streams.ReadStream} and
+{@link io.vertx.core.streams.WriteStream} so you can pump it to and from other read and write streams.
 
 Here's an example of a simple SockJS handler that simply echoes back any back any data that it reads:
 
-[source,groovy]
+[source,$lang]
 ----
-
-def router = Router.router(vertx)
-
-def options = [
-  heartbeatInterval:2000
-]
-
-def sockJSHandler = SockJSHandler.create(vertx, options)
-
-sockJSHandler.socketHandler({ sockJSSocket ->
-
-  // Just echo the data back
-  sockJSSocket.handler(sockJSSocket.&write)
-})
-
-router.route("/myapp/*").handler(sockJSHandler)
-
+{@link examples.WebExamples#example44}
 ----
 
 === The client side
@@ -2402,7 +1606,7 @@ sock.close();
 
 === Configuring the SockJS handler
 
-The handler can be configured with various options using `link:../../apidocs/io/vertx/ext/web/handler/sockjs/SockJSHandlerOptions.html[SockJSHandlerOptions]`.
+The handler can be configured with various options using {@link io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions}.
 
 `insertJSESSIONID`:: Insert a JSESSIONID cookie so load-balancers ensure requests for a specific SockJS session
 are always routed to the correct server. Default is `true`.
@@ -2442,26 +1646,18 @@ very similar to the server-side Vert.x event-bus API, which allows you to send a
 and register handlers to receive messages.
 
 This JavaScript library uses the JavaScript SockJS client to tunnel the event bus traffic over SockJS connections
-terminating at at a `link:../../apidocs/io/vertx/ext/web/handler/sockjs/SockJSHandler.html[SockJSHandler]` on the server-side.
+terminating at at a {@link io.vertx.ext.web.handler.sockjs.SockJSHandler} on the server-side.
 
-A special SockJS socket handler is then installed on the `link:../../apidocs/io/vertx/ext/web/handler/sockjs/SockJSHandler.html[SockJSHandler]` which
+A special SockJS socket handler is then installed on the {@link io.vertx.ext.web.handler.sockjs.SockJSHandler} which
 handles the SockJS data and bridges it to and from the server side event bus.
 
 To activate the bridge you simply call
-`link:../../apidocs/io/vertx/ext/web/handler/sockjs/SockJSHandler.html#bridge-io.vertx.ext.web.handler.sockjs.BridgeOptions-[bridge]` on the
+{@link io.vertx.ext.web.handler.sockjs.SockJSHandler#bridge(io.vertx.ext.web.handler.sockjs.BridgeOptions)} on the
 SockJS handler.
 
-[source,groovy]
+[source,$lang]
 ----
-
-def router = Router.router(vertx)
-
-def sockJSHandler = SockJSHandler.create(vertx)
-def options = [:]
-sockJSHandler.bridge(options)
-
-router.route("/eventbus/*").handler(sockJSHandler)
-
+{@link examples.WebExamples#example45}
 ----
 
 In client side JavaScript you use the 'vertx-eventbus.js` library to create connections to the event bus and to send
@@ -2533,9 +1729,9 @@ You can retrieve the client library using a dependency manager:
 [source,xml,subs="+attributes"]
 ----
 <dependency>
-  <groupId>io.vertx</groupId>
-  <artifactId>vertx-web</artifactId>
-  <version>3.5.1</version>
+  <groupId>${maven.groupId}</groupId>
+  <artifactId>${maven.artifactId}</artifactId>
+  <version>${maven.version}</version>
   <classifier>client</classifier>
   <type>js</type>
 </dependency>
@@ -2545,7 +1741,7 @@ You can retrieve the client library using a dependency manager:
 
 [source,groovy,subs="+attributes"]
 ----
-compile 'io.vertx:vertx-web:3.5.1:client'
+compile '${maven.groupId}:${maven.artifactId}:${maven.version}:client'
 ----
 
 The library is also available on:
@@ -2579,15 +1775,15 @@ In other words the bridge acts like a kind of firewall which has a default _deny
 Configuring the bridge to tell it what messages it should pass through is easy.
 
 You can specify which _matches_ you want to allow for inbound and outbound traffic using the
-`link:../../apidocs/io/vertx/ext/web/handler/sockjs/BridgeOptions.html[BridgeOptions]` that you pass in when calling bridge.
+{@link io.vertx.ext.web.handler.sockjs.BridgeOptions} that you pass in when calling bridge.
 
-Each match is a `link:../../apidocs/io/vertx/ext/web/handler/sockjs/PermittedOptions.html[PermittedOptions]` object:
+Each match is a {@link io.vertx.ext.web.handler.sockjs.PermittedOptions} object:
 
-`link:../../apidocs/io/vertx/ext/bridge/PermittedOptions.html#setAddress-java.lang.String-[setAddress]`:: This represents the exact address the message is being sent to. If you want to allow messages based on
+{@link io.vertx.ext.web.handler.sockjs.PermittedOptions#setAddress}:: This represents the exact address the message is being sent to. If you want to allow messages based on
 an exact address you use this field.
-`link:../../apidocs/io/vertx/ext/bridge/PermittedOptions.html#setAddressRegex-java.lang.String-[setAddressRegex]`:: This is a regular expression that will be matched against the address. If you want to allow messages
+{@link io.vertx.ext.web.handler.sockjs.PermittedOptions#setAddressRegex}:: This is a regular expression that will be matched against the address. If you want to allow messages
 based on a regular expression you use this field. If the `address` field is specified this field will be ignored.
-`link:../../apidocs/io/vertx/ext/bridge/PermittedOptions.html#setMatch-io.vertx.core.json.JsonObject-[setMatch]`:: This allows you to allow messages based on their structure. Any fields in the match must exist in the
+{@link io.vertx.ext.web.handler.sockjs.PermittedOptions#setMatch}:: This allows you to allow messages based on their structure. Any fields in the match must exist in the
 message with the same values for them to be allowed. This currently only works with JSON messages.
 
 If a message is _in-bound_ (i.e. being sent from client side JavaScript to the server) when it is received Vert.x-Web
@@ -2609,66 +1805,9 @@ by looking at all the fields and values in the match object and checking they al
 
 Here's an example:
 
-[source,groovy]
+[source,$lang]
 ----
-
-def router = Router.router(vertx)
-
-def sockJSHandler = SockJSHandler.create(vertx)
-
-
-// Let through any messages sent to 'demo.orderMgr' from the client
-def inboundPermitted1 = [
-  address:"demo.orderMgr"
-]
-
-// Allow calls to the address 'demo.persistor' from the client as long as the messages
-// have an action field with value 'find' and a collection field with value
-// 'albums'
-def inboundPermitted2 = [
-  address:"demo.persistor",
-  match:[
-    action:"find",
-    collection:"albums"
-  ]
-]
-
-// Allow through any message with a field `wibble` with value `foo`.
-def inboundPermitted3 = [
-  match:[
-    wibble:"foo"
-  ]
-]
-
-// First let's define what we're going to allow from server -> client
-
-// Let through any messages coming from address 'ticker.mystock'
-def outboundPermitted1 = [
-  address:"ticker.mystock"
-]
-
-// Let through any messages from addresses starting with "news." (e.g. news.europe, news.usa, etc)
-def outboundPermitted2 = [
-  addressRegex:"news\\..+"
-]
-
-// Let's define what we're going to allow from client -> server
-def options = [
-  inboundPermitteds:[
-    inboundPermitted1,
-    inboundPermitted1,
-    inboundPermitted3
-  ],
-  outboundPermitteds:[
-    outboundPermitted1,
-    outboundPermitted2
-  ]
-]
-
-sockJSHandler.bridge(options)
-
-router.route("/eventbus/*").handler(sockJSHandler)
-
+{@link examples.WebExamples#example46}
 ----
 
 === Requiring authorisation for messages
@@ -2680,75 +1819,31 @@ To do this, you can add extra fields to the match described in the previous sect
 required for the match.
 
 To declare that a specific authority for the logged-in user is required in order to access allow the messages you use the
-`link:../../apidocs/io/vertx/ext/bridge/PermittedOptions.html#setRequiredAuthority-java.lang.String-[setRequiredAuthority]` field.
+{@link io.vertx.ext.web.handler.sockjs.PermittedOptions#setRequiredAuthority(String)} field.
 
 Here's an example:
 
-[source,groovy]
+[source,$lang]
 ----
-
-// Let through any messages sent to 'demo.orderService' from the client
-def inboundPermitted = [
-  address:"demo.orderService"
-]
-
-// But only if the user is logged in and has the authority "place_orders"
-inboundPermitted.requiredAuthority = "place_orders"
-
-def options = [
-  inboundPermitteds:[
-    inboundPermitted
-  ]
-]
-
+{@link examples.WebExamples#example47}
 ----
 
 For the user to be authorised they must be first logged in and secondly have the required authority.
 
 To handle the login and actually auth you can configure the normal Vert.x auth handlers. For example:
 
-[source,groovy]
+[source,$lang]
 ----
-
-def router = Router.router(vertx)
-
-// Let through any messages sent to 'demo.orderService' from the client
-def inboundPermitted = [
-  address:"demo.orderService"
-]
-
-// But only if the user is logged in and has the authority "place_orders"
-inboundPermitted.requiredAuthority = "place_orders"
-
-def sockJSHandler = SockJSHandler.create(vertx)
-sockJSHandler.bridge([
-  inboundPermitteds:[
-    inboundPermitted
-  ]
-])
-
-// Now set up some basic auth handling:
-
-router.route().handler(CookieHandler.create())
-router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)))
-
-def basicAuthHandler = BasicAuthHandler.create(authProvider)
-
-router.route("/eventbus/*").handler(basicAuthHandler)
-
-
-router.route("/eventbus/*").handler(sockJSHandler)
-
-
+{@link examples.WebExamples#example48}
 ----
 
 === Handling event bus bridge events
 
 If you want to be notified when an event occurs on the bridge you can provide a handler when calling
-`link:../../apidocs/io/vertx/ext/web/handler/sockjs/SockJSHandler.html#bridge-io.vertx.ext.web.handler.sockjs.BridgeOptions-io.vertx.core.Handler-[bridge]`.
+{@link io.vertx.ext.web.handler.sockjs.SockJSHandler#bridge(io.vertx.ext.web.handler.sockjs.BridgeOptions, io.vertx.core.Handler)}.
 
 Whenever an event occurs on the bridge it will be passed to the handler. The event is described by an instance of
-`link:../../apidocs/io/vertx/ext/web/handler/sockjs/BridgeEvent.html[BridgeEvent]`.
+{@link io.vertx.ext.web.handler.sockjs.BridgeEvent}.
 
 The event can be one of the following types:
 
@@ -2762,8 +1857,8 @@ RECEIVE:: This event will occur when a message is attempted to be delivered from
 REGISTER:: This event will occur when a client attempts to register a handler.
 UNREGISTER:: This event will occur when a client attempts to unregister a handler.
 
-The event enables you to retrieve the type using `link:../../apidocs/io/vertx/ext/bridge/BaseBridgeEvent.html#type--[type]` and
-inspect the raw message of the event using `link:../../apidocs/io/vertx/ext/bridge/BaseBridgeEvent.html#getRawMessage--[getRawMessage]`.
+The event enables you to retrieve the type using {@link io.vertx.ext.web.handler.sockjs.BridgeEvent#type()} and
+inspect the raw message of the event using {@link io.vertx.ext.web.handler.sockjs.BridgeEvent#getRawMessage()}.
 
 The raw message is a JSON object with the following structure:
 
@@ -2775,7 +1870,7 @@ The raw message is a JSON object with the following structure:
 }
 ----
 
-The event is also an instance of `link:../../apidocs/io/vertx/core/Future.html[Future]`. When you are finished handling the event you can
+The event is also an instance of {@link io.vertx.core.Future}. When you are finished handling the event you can
 complete the future with `true` to enable further processing.
 
 If you don't want the event to be processed you can complete the future with `false`. This is a useful feature that
@@ -2784,67 +1879,18 @@ authorisation or metrics.
 
 Here's an example where we reject all messages flowing through the bridge if they contain the word "Armadillos".
 
-[source,groovy]
+[source,$lang]
 ----
-
-def router = Router.router(vertx)
-
-// Let through any messages sent to 'demo.orderMgr' from the client
-def inboundPermitted = [
-  address:"demo.someService"
-]
-
-def sockJSHandler = SockJSHandler.create(vertx)
-def options = [
-  inboundPermitteds:[
-    inboundPermitted
-  ]
-]
-
-sockJSHandler.bridge(options, { be ->
-  if (be.type() == BridgeEventType.PUBLISH || be.type() == BridgeEventType.RECEIVE) {
-    if (be.getRawMessage().body == "armadillos") {
-      // Reject it
-      be.complete(false)
-      return
-    }
-  }
-  be.complete(true)
-})
-
-router.route("/eventbus/*").handler(sockJSHandler)
-
-
-
+{@link examples.WebExamples#example49}
 ----
 
 Here's an example how to configure and handle SOCKET_IDLE bridge event type.
 Notice `setPingTimeout(5000)` which says that if ping message doesn't arrive from client within 5 seconds
 then the SOCKET_IDLE bridge event would be triggered.
 
-[source,groovy]
+[source,$lang]
 ----
-def router = Router.router(vertx)
-
-// Initialize SockJS handler
-def sockJSHandler = SockJSHandler.create(vertx)
-def options = [
-  inboundPermitteds:[
-    inboundPermitted
-  ],
-  pingTimeout:5000
-]
-
-sockJSHandler.bridge(options, { be ->
-  if (be.type() == BridgeEventType.SOCKET_IDLE) {
-    // Do some custom handling...
-  }
-
-  be.complete(true)
-})
-
-router.route("/eventbus/*").handler(sockJSHandler)
-
+{@link examples.WebExamples#handleSocketIdle}
 ----
 
 In client side JavaScript you use the 'vertx-eventbus.js` library to create connections to the event bus and to send and receive messages:
@@ -2886,47 +1932,15 @@ was configured to expect ping every 5 seconds -> `SOCKET_IDLE` would be triggere
 You can also amend the raw message, e.g. change the body. For messages that are flowing in from the client you can
 also add headers to the message, here's an example:
 
-[source,groovy]
+[source,$lang]
 ----
-
-def router = Router.router(vertx)
-
-// Let through any messages sent to 'demo.orderService' from the client
-def inboundPermitted = [
-  address:"demo.orderService"
-]
-
-def sockJSHandler = SockJSHandler.create(vertx)
-def options = [
-  inboundPermitteds:[
-    inboundPermitted
-  ]
-]
-
-sockJSHandler.bridge(options, { be ->
-  if (be.type() == BridgeEventType.PUBLISH || be.type() == BridgeEventType.SEND) {
-    // Add some headers
-    def headers = [
-      header1:"val",
-      header2:"val2"
-    ]
-    def rawMessage = be.getRawMessage()
-    rawMessage.headers = headers
-    be.setRawMessage(rawMessage)
-  }
-  be.complete(true)
-})
-
-router.route("/eventbus/*").handler(sockJSHandler)
-
-
-
+{@link examples.WebExamples#example48_1}
 ----
 
 == CSRF Cross Site Request Forgery
 
 CSRF or sometimes also known as XSRF is a technique by which an unauthorized site can gain your user's private data.
-Vert.x-Web includes a handler `link:../../apidocs/io/vertx/ext/web/handler/CSRFHandler.html[CSRFHandler]` that you can use to prevent cross site
+Vert.x-Web includes a handler {@link io.vertx.ext.web.handler.CSRFHandler} that you can use to prevent cross site
 request forgery requests.
 
 On each get request under this handler a cookie is added to the response with a unique token. Clients are then
@@ -2948,15 +1962,9 @@ It is the responsibility of the user to fill in the right value for the form fie
 only solution can fill this value by fetching the the token value from the routing context under the key `X-XSRF-TOKEN`
 or the header name they have chosen during the instantiation of the `CSRFHandler` object.
 
-[source,groovy]
+[source,$lang]
 ----
-
-router.route().handler(CookieHandler.create())
-router.route().handler(CSRFHandler.create("abracadabra"))
-router.route().handler({ rc ->
-
-})
-
+{@link examples.WebExamples#example54}
 ----
 
 == VirtualHost Handler
@@ -2967,12 +1975,9 @@ registered handler, otherwise will continue inside the normal handlers chain.
 Request are checked against the `Host` header to a match and patterns allow the usage of `*` wildcards, as for
 example `*.vertx.io` or fully domain names as `www.vertx.io`.
 
-[source,groovy]
+[source,$lang]
 ----
-router.route().handler(VirtualHostHandler.create("*.vertx.io", { routingContext ->
-  // do something if the request is for *.vertx.io
-}))
-
+{@link examples.WebExamples#example56}
 ----
 
 == OAuth2AuthHandler Handler
@@ -2980,31 +1985,9 @@ router.route().handler(VirtualHostHandler.create("*.vertx.io", { routingContext 
 The `OAuth2AuthHandler` allows quick setup of secure routes using the OAuth2 protocol. This handler simplifies the
 authCode flow. An example of using it to protect some resource and authenticate with GitHub can be implemented as:
 
-[source,groovy]
+[source,$lang]
 ----
-
-// create an OAuth2 provider, clientID and clientSecret should be requested to github
-def authProvider = GithubAuth.create(vertx, "CLIENT_ID", "CLIENT_SECRET")
-
-// create a oauth2 handler on our running server
-// the second argument is the full url to the callback as you entered in your provider management console.
-def oauth2 = OAuth2AuthHandler.create(authProvider, "https://myserver.com/callback")
-
-// setup the callback handler for receiving the GitHub callback
-oauth2.setupCallback(router.route())
-
-// protect everything under /protected
-router.route("/protected/*").handler(oauth2)
-// mount some handler under the protected zone
-router.route("/protected/somepage").handler({ rc ->
-  rc.response().end("Welcome to the protected resource!")
-})
-
-// welcome page
-router.get("/").handler({ ctx ->
-  ctx.response().putHeader("content-type", "text/html").end("Hello<br><a href=\"/protected/somepage\">Protected by Github</a>")
-})
-
+{@link examples.WebExamples#example58}
 ----
 
 The OAuth2AuthHandler will setup a proper callback OAuth2 handler so the user does not need to deal with validation
@@ -3020,58 +2003,28 @@ Due to the nature of OAuth2 spec there are slight changes required in order to u
 vertx-auth provides you with many out of the box implementations:
 
 
-* Azure Active Directory `link:../../apidocs/io/vertx/ext/auth/oauth2/providers/AzureADAuth.html[AzureADAuth]`
-* Box.com `link:../../apidocs/io/vertx/ext/auth/oauth2/providers/BoxAuth.html[BoxAuth]`
-* Dropbox `link:../../apidocs/io/vertx/ext/auth/oauth2/providers/DropboxAuth.html[DropboxAuth]`
-* Facebook `link:../../apidocs/io/vertx/ext/auth/oauth2/providers/FacebookAuth.html[FacebookAuth]`
-* Foursquare `link:../../apidocs/io/vertx/ext/auth/oauth2/providers/FoursquareAuth.html[FoursquareAuth]`
-* Github `link:../../apidocs/io/vertx/ext/auth/oauth2/providers/GithubAuth.html[GithubAuth]`
-* Google `link:../../apidocs/io/vertx/ext/auth/oauth2/providers/GoogleAuth.html[GoogleAuth]`
-* Instagram `link:../../apidocs/io/vertx/ext/auth/oauth2/providers/InstagramAuth.html[InstagramAuth]`
-* Keycloak `link:../../apidocs/io/vertx/ext/auth/oauth2/providers/KeycloakAuth.html[KeycloakAuth]`
-* LinkedIn `link:../../apidocs/io/vertx/ext/auth/oauth2/providers/LinkedInAuth.html[LinkedInAuth]`
-* Mailchimp `link:../../apidocs/io/vertx/ext/auth/oauth2/providers/MailchimpAuth.html[MailchimpAuth]`
-* Salesforce `link:../../apidocs/io/vertx/ext/auth/oauth2/providers/SalesforceAuth.html[SalesforceAuth]`
-* Shopify `link:../../apidocs/io/vertx/ext/auth/oauth2/providers/ShopifyAuth.html[ShopifyAuth]`
-* Soundcloud `link:../../apidocs/io/vertx/ext/auth/oauth2/providers/SoundcloudAuth.html[SoundcloudAuth]`
-* Stripe `link:../../apidocs/io/vertx/ext/auth/oauth2/providers/StripeAuth.html[StripeAuth]`
-* Twitter `link:../../apidocs/io/vertx/ext/auth/oauth2/providers/TwitterAuth.html[TwitterAuth]`
+* Azure Active Directory {@link io.vertx.ext.auth.oauth2.providers.AzureADAuth}
+* Box.com {@link io.vertx.ext.auth.oauth2.providers.BoxAuth}
+* Dropbox {@link io.vertx.ext.auth.oauth2.providers.DropboxAuth}
+* Facebook {@link io.vertx.ext.auth.oauth2.providers.FacebookAuth}
+* Foursquare {@link io.vertx.ext.auth.oauth2.providers.FoursquareAuth}
+* Github {@link io.vertx.ext.auth.oauth2.providers.GithubAuth}
+* Google {@link io.vertx.ext.auth.oauth2.providers.GoogleAuth}
+* Instagram {@link io.vertx.ext.auth.oauth2.providers.InstagramAuth}
+* Keycloak {@link io.vertx.ext.auth.oauth2.providers.KeycloakAuth}
+* LinkedIn {@link io.vertx.ext.auth.oauth2.providers.LinkedInAuth}
+* Mailchimp {@link io.vertx.ext.auth.oauth2.providers.MailchimpAuth}
+* Salesforce {@link io.vertx.ext.auth.oauth2.providers.SalesforceAuth}
+* Shopify {@link io.vertx.ext.auth.oauth2.providers.ShopifyAuth}
+* Soundcloud {@link io.vertx.ext.auth.oauth2.providers.SoundcloudAuth}
+* Stripe {@link io.vertx.ext.auth.oauth2.providers.StripeAuth}
+* Twitter {@link io.vertx.ext.auth.oauth2.providers.TwitterAuth}
 
 However if you're using an unlisted provider you can still do it using the base API like this:
 
-[source,groovy]
+[source,$lang]
 ----
-
-// create an OAuth2 provider, clientID and clientSecret should be requested to Google
-def authProvider = OAuth2Auth.create(vertx, OAuth2FlowType.AUTH_CODE, [
-  clientID:"CLIENT_ID",
-  clientSecret:"CLIENT_SECRET",
-  site:"https://accounts.google.com",
-  tokenPath:"https://www.googleapis.com/oauth2/v3/token",
-  authorizationPath:"/o/oauth2/auth"
-])
-
-// create a oauth2 handler on our domain: "http://localhost:8080"
-def oauth2 = OAuth2AuthHandler.create(authProvider, "http://localhost:8080")
-
-// these are the scopes
-oauth2.addAuthority("profile")
-
-// setup the callback handler for receiving the Google callback
-oauth2.setupCallback(router.get("/callback"))
-
-// protect everything under /protected
-router.route("/protected/*").handler(oauth2)
-// mount some handler under the protected zone
-router.route("/protected/somepage").handler({ rc ->
-  rc.response().end("Welcome to the protected resource!")
-})
-
-// welcome page
-router.get("/").handler({ ctx ->
-  ctx.response().putHeader("content-type", "text/html").end("Hello<br><a href=\"/protected/somepage\">Protected by Google</a>")
-})
-
+{@link examples.WebExamples#example59}
 ----
 
 You will need to provide all the details of your provider manually but the end result is the same.
@@ -3085,13 +2038,9 @@ the setupCallback method.
 This is how you pin your handler to the server `https://myserver.com:8447/callback`. Note that the port number is not
 mandatory for the default values, 80 for http, 443 for https.
 
-[source,groovy]
+[source,$lang]
 ----
-// create a oauth2 handler pinned to myserver.com: "https://myserver.com:8447/callback"
-def oauth2 = OAuth2AuthHandler.create(provider, "https://myserver.com:8447/callback")
-// now allow the handler to setup the callback url for you
-oauth2.setupCallback(router.route())
-
+{@link examples.WebExamples#example61}
 ----
 
 In the example the route object is created inline by `Router.route()` however if you want to have full control of the
@@ -3107,38 +2056,9 @@ Although having no state is recommended for API facing endpoints, for example, u
 for user facing endpoinst we can keep the authentication result stored in the session. For this to work we would
 need an application like the following snippet:
 
-[source,groovy]
+[source,$lang]
 ----
-// To simplify the development of the web components
-// we use a Router to route all HTTP requests
-// to organize our code in a reusable way.
-
-// We need cookies and sessions
-router.route().handler(CookieHandler.create())
-router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)))
-// Simple auth service which uses a GitHub to
-// authenticate the user
-def authProvider = GithubAuth.create(vertx, "YOUR PROVIDER CLIENTID", "YOUR PROVIDER CLIENT SECRET")
-// We need a user session handler too to make sure
-// the user is stored in the session between requests
-router.route().handler(UserSessionHandler.create(authProvider))
-// we now protect the resource under the path "/protected"
-router.route("/protected").handler(OAuth2AuthHandler.create(authProvider).setupCallback(router.route("/callback")).addAuthority("user:email"))
-// Entry point to the application, this will render
-// a custom template.
-router.get("/").handler({ ctx ->
-  ctx.response().putHeader("Content-Type", "text/html").end("<html>\n  <body>\n    <p>\n      Well, hello there!\n    </p>\n    <p>\n      We're going to the protected resource, if there is no\n      user in the session we will talk to the GitHub API. Ready?\n      <a href=\"/protected\">Click here</a> to begin!</a>\n    </p>\n    <p>\n      <b>If that link doesn't work</b>, remember to provide\n      your own <a href=\"https://github.com/settings/applications/new\">\n      Client ID</a>!\n    </p>\n  </body>\n</html>")
-})
-// The protected resource
-router.get("/protected").handler({ ctx ->
-  // at this moment your user object should contain the info
-  // from the Oauth2 response, since this is a protected resource
-  // as specified above in the handler config the user object is never null
-  def user = ctx.user()
-  // just dump it to the client for demo purposes
-  ctx.response().end(user.toString())
-})
-
+{@link examples.WebExamples#example62}
 ----
 
 === Mixing OAuth2 and JWT
