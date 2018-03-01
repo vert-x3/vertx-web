@@ -98,12 +98,6 @@
       <version>1.1</version>
       <scope>test</scope>
     </dependency>
-
-    <dependency>
-      <groupId>io.swagger.core.v3</groupId>
-      <artifactId>swagger-models</artifactId>
-      <version>RELEASE</version>
-    </dependency><dependency><groupId>io.swagger.core.v3</groupId><artifactId>swagger-models</artifactId><version>RELEASE</version></dependency>
   </dependencies>
 
   <build>
