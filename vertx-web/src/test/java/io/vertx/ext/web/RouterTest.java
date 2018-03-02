@@ -21,7 +21,6 @@ import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerResponse;
-import org.jruby.compiler.util.HandleFactory;
 import org.junit.Test;
 
 import java.io.IOException;
