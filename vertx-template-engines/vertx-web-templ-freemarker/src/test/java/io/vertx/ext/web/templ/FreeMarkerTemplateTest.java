@@ -20,7 +20,7 @@ import io.vertx.core.VertxOptions;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.WebTestBase;
 import io.vertx.ext.web.handler.TemplateHandler;
-import io.vertx.ext.web.templ.impl.CachingTemplateEngine;
+import io.vertx.ext.web.templ.freemarker.FreeMarkerTemplateEngine;
 import org.junit.Test;
 
 import java.io.File;

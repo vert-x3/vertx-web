@@ -12,7 +12,7 @@
   <artifactId>vertx-web-templ-rocker</artifactId>
 
   <properties>
-    <rocker.version>0.22.0</rocker.version>
+    <rocker.version>0.23.0</rocker.version>
   </properties>
 
   <dependencies>

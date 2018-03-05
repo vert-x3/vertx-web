@@ -22,6 +22,8 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.WebTestBase;
 import io.vertx.ext.web.handler.TemplateHandler;
 
+import io.vertx.ext.web.templ.rocker.RockerTemplateEngine;
+
 /**
  * @author <a href="mailto:xianguang.zhou@outlook.com">Xianguang Zhou</a>
  */

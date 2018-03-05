@@ -16,6 +16,8 @@
 
 package io.vertx.ext.web.templ;
 
+import io.vertx.ext.web.templ.handlebars.HandlebarsTemplateEngine;
+
 import com.github.jknack.handlebars.HandlebarsException;
 import com.github.jknack.handlebars.ValueResolver;
 import io.vertx.core.Handler;
@@ -27,7 +29,6 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.WebTestBase;
 import io.vertx.ext.web.handler.TemplateHandler;
-import io.vertx.ext.web.templ.impl.CachingTemplateEngine;
 import org.junit.Test;
 
 import java.io.File;

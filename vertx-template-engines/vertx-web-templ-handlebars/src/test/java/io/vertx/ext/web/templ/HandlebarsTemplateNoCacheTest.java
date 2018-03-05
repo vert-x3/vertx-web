@@ -16,11 +16,12 @@
 
 package io.vertx.ext.web.templ;
 
+import io.vertx.ext.web.templ.handlebars.HandlebarsTemplateEngine;
+
 import io.vertx.core.VertxOptions;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.WebTestBase;
 import io.vertx.ext.web.handler.TemplateHandler;
-import io.vertx.ext.web.templ.impl.CachingTemplateEngine;
 import org.junit.Test;
 
 import java.io.File;

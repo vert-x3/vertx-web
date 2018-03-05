@@ -16,64 +16,21 @@
 
 package io.vertx.ext.web.templ;
 
-import de.neuland.jade4j.JadeConfiguration;
-import io.vertx.codegen.annotations.Fluent;
-import io.vertx.codegen.annotations.GenIgnore;
-import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.ext.web.templ.impl.JadeTemplateEngineImpl;
-
 /**
  * A template engine that uses Jade.
  *
  * @author <a href="http://tfox.org">Tim Fox</a>
+ * @deprecated
  */
-@VertxGen
-public interface JadeTemplateEngine extends TemplateEngine {
-
-  /**
-   * Default max number of templates to cache
-   */
-  int DEFAULT_MAX_CACHE_SIZE = 10000;
-
-  /**
-   * Default template extension
-   */
-  String DEFAULT_TEMPLATE_EXTENSION = "jade";
+@Deprecated
+public interface JadeTemplateEngine extends io.vertx.ext.web.templ.jade.JadeTemplateEngine {
 
   /**
    * Create a template engine using defaults
    *
    * @return  the engine
    */
-  static JadeTemplateEngine create() {
-    return new JadeTemplateEngineImpl();
+  static io.vertx.ext.web.templ.jade.JadeTemplateEngine create() {
+    return io.vertx.ext.web.templ.jade.JadeTemplateEngine.create();
   }
-
-  /**
-   * Set the extension for the engine
-   *
-   * @param extension  the extension
-   * @return a reference to this for fluency
-   */
-  @Fluent
-  JadeTemplateEngine setExtension(String extension);
-
-  /**
-   * Set the max cache size for the engine
-   *
-   * @param maxCacheSize  the maxCacheSize
-   * @return a reference to this for fluency
-   */
-  @Fluent
-  JadeTemplateEngine setMaxCacheSize(int maxCacheSize);
-
-  /**
-   * Get a reference to the internal JadeConfiguration object so it
-   * can be configured.
-   *
-   * @return a reference to the internal JadeConfiguration instance.
-   */
-  @GenIgnore
-  JadeConfiguration getJadeConfiguration();
-
 }

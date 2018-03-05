@@ -16,82 +16,21 @@
 
 package io.vertx.ext.web.templ;
 
-import com.github.jknack.handlebars.Handlebars;
-import com.github.jknack.handlebars.ValueResolver;
-
-import io.vertx.codegen.annotations.Fluent;
-import io.vertx.codegen.annotations.GenIgnore;
-import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.ext.web.templ.impl.HandlebarsTemplateEngineImpl;
-
 /**
  * A template engine that uses the Handlebars library.
  *
  * @author <a href="http://tfox.org">Tim Fox</a>
+ * @deprecated
  */
-@VertxGen
-public interface HandlebarsTemplateEngine extends TemplateEngine {
-
-  /**
-   * Default max number of templates to cache
-   */
-  int DEFAULT_MAX_CACHE_SIZE = 10000;
-
-  /**
-   * Default template extension
-   */
-  String DEFAULT_TEMPLATE_EXTENSION = "hbs";
+@Deprecated
+public interface HandlebarsTemplateEngine extends io.vertx.ext.web.templ.handlebars.HandlebarsTemplateEngine {
 
   /**
    * Create a template engine using defaults
    *
    * @return  the engine
    */
-  static HandlebarsTemplateEngine create() {
-    return new HandlebarsTemplateEngineImpl();
+  static io.vertx.ext.web.templ.handlebars.HandlebarsTemplateEngine create() {
+    return io.vertx.ext.web.templ.handlebars.HandlebarsTemplateEngine.create();
   }
-
-  /**
-   * Set the extension for the engine
-   *
-   * @param extension  the extension
-   * @return a reference to this for fluency
-   */
-  @Fluent
-  HandlebarsTemplateEngine setExtension(String extension);
-
-  /**
-   * Set the max cache size for the engine
-   *
-   * @param maxCacheSize  the maxCacheSize
-   * @return a reference to this for fluency
-   */
-  @Fluent
-  HandlebarsTemplateEngine setMaxCacheSize(int maxCacheSize);
-
-  /**
-   * Get a reference to the internal Handlebars object so it
-   * can be configured.
-   *
-   * @return a reference to the internal Handlebars instance.
-   */
-  @GenIgnore
-  Handlebars getHandlebars();
-
-  /**
-   * Return the array of configured handlebars context value resolvers.
-   * @return array of configured resolvers
-   */
-  @GenIgnore
-  ValueResolver[] getResolvers();
-
-  /**
-   * Set the array of handlebars context value resolvers.
-   *
-   * @param resolvers the value resolvers to be used
-   * @return a reference to the internal Handlebars instance.
-   */
-  @GenIgnore
-  HandlebarsTemplateEngine setResolvers(ValueResolver... resolvers);
-
 }

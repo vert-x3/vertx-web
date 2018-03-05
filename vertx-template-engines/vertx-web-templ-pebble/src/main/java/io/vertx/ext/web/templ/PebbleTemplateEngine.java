@@ -16,68 +16,23 @@
 
 package io.vertx.ext.web.templ;
 
-import com.mitchellbosecke.pebble.PebbleEngine;
-import io.vertx.codegen.annotations.Fluent;
-import io.vertx.codegen.annotations.GenIgnore;
-import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Vertx;
-import io.vertx.ext.web.templ.impl.PebbleTemplateEngineImpl;
 
 /**
  * A template engine that uses the Pebble library.
  *
  * @author Dan Kristensen
+ * @deprecated
  */
-@VertxGen
-public interface PebbleTemplateEngine extends TemplateEngine {
-
-  /**
-   * Default max number of templates to cache
-   */
-  int DEFAULT_MAX_CACHE_SIZE = 10000;
-
-  /**
-   * Default template extension
-   */
-  String DEFAULT_TEMPLATE_EXTENSION = "peb";
+@Deprecated
+public interface PebbleTemplateEngine extends io.vertx.ext.web.templ.pebble.PebbleTemplateEngine {
 
   /**
    * Create a template engine using defaults
    *
    * @return the engine
    */
-  static PebbleTemplateEngine create(Vertx vertx) {
-    return new PebbleTemplateEngineImpl(vertx);
+  static io.vertx.ext.web.templ.pebble.PebbleTemplateEngine create(Vertx vertx) {
+    return io.vertx.ext.web.templ.pebble.PebbleTemplateEngine.create(vertx);
   }
-
-  /**
-   * Create a template engine using a custom Builder, e.g. if
-   * you want use custom Filters or Functions.
-   *
-   * @return the engine
-   */
-  @GenIgnore
-  static PebbleTemplateEngine create(PebbleEngine engine) {
-    return new PebbleTemplateEngineImpl(engine);
-  }
-
-  /**
-   * Set the extension for the engine
-   *
-   * @param extension
-   *            the extension
-   * @return a reference to this for fluency
-   */
-  @Fluent
-  PebbleTemplateEngine setExtension(String extension);
-
-  /**
-   * Set the max cache size for the engine
-   *
-   * @param maxCacheSize
-   *            the maxCacheSize
-   * @return a reference to this for fluency
-   */
-  @Fluent
-  PebbleTemplateEngine setMaxCacheSize(int maxCacheSize);
 }

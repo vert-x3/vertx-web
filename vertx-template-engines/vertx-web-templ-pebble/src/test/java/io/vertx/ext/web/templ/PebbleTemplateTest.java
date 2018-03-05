@@ -24,14 +24,15 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.WebTestBase;
 import io.vertx.ext.web.handler.TemplateHandler;
 import io.vertx.ext.web.templ.extension.TestExtension;
-import io.vertx.ext.web.templ.impl.CachingTemplateEngine;
-import io.vertx.ext.web.templ.impl.PebbleVertxLoader;
+import io.vertx.ext.web.templ.pebble.impl.PebbleVertxLoader;
 import org.junit.Test;
 
 import java.io.File;
 import java.io.PrintWriter;
 import java.util.Locale;
 import java.util.function.Consumer;
+
+import io.vertx.ext.web.templ.pebble.PebbleTemplateEngine;
 
 /**
  * @author Dan Kristensen
