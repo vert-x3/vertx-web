@@ -335,7 +335,7 @@ public class SockJSHandlerImpl implements SockJSHandler, Handler<RoutingContext>
     HttpServer server = vertx.createHttpServer();
     Router router = Router.router(vertx);
     installTestApplications(router, vertx);
-    server.requestHandler(router::accept).listen(8081);
+    server.requestHandler(router).listen(8081);
   }
 }
 

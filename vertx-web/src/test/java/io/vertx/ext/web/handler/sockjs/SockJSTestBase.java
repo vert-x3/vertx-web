@@ -35,7 +35,7 @@ public abstract class SockJSTestBase extends VertxTestBase {
     router.route("/test/*").handler(sockJSHandler);
     server = vertx.createHttpServer(new HttpServerOptions().setPort(8080).setHost("localhost"));
     CountDownLatch latch = new CountDownLatch(1);
-    server.requestHandler(router::accept).listen(ar -> latch.countDown());
+    server.requestHandler(router).listen(ar -> latch.countDown());
     awaitLatch(latch);
   }
 

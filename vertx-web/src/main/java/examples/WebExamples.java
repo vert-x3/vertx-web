@@ -71,7 +71,7 @@ public class WebExamples {
       response.end("Hello World from Vert.x-Web!");
     });
 
-    server.requestHandler(router::accept).listen(8080);
+    server.requestHandler(router).listen(8080);
 
   }
 

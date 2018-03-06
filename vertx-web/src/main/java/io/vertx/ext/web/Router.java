@@ -36,7 +36,7 @@ import java.util.List;
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 @VertxGen
-public interface Router {
+public interface Router extends Handler<HttpServerRequest> {
 
   /**
    * Create a router
@@ -48,14 +48,14 @@ public interface Router {
     return new RouterImpl(vertx);
   }
 
-  /**
-   * This method is used to provide a request to the router. Usually you take request from the
-   * {@link io.vertx.core.http.HttpServer#requestHandler(Handler)} and pass it to this method. The
-   * router then routes it to matching routes.
-   *
-   * @param request  the request
-   */
-  void accept(HttpServerRequest request);
+//  /**
+//   * This method is used to provide a request to the router. Usually you take request from the
+//   * {@link io.vertx.core.http.HttpServer#requestHandler(Handler)} and pass it to this method. The
+//   * router then routes it to matching routes.
+//   *
+//   * @param request  the request
+//   */
+//  void accept(HttpServerRequest request);
 
   /**
    * Add a route with no matching criteria, i.e. it matches all requests or failures.
