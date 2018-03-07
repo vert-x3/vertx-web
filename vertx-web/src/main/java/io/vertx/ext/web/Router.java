@@ -48,14 +48,21 @@ public interface Router extends Handler<HttpServerRequest> {
     return new RouterImpl(vertx);
   }
 
-//  /**
-//   * This method is used to provide a request to the router. Usually you take request from the
-//   * {@link io.vertx.core.http.HttpServer#requestHandler(Handler)} and pass it to this method. The
-//   * router then routes it to matching routes.
-//   *
-//   * @param request  the request
-//   */
-//  void accept(HttpServerRequest request);
+  /**
+   * This method is used to provide a request to the router. Usually you take request from the
+   * {@link io.vertx.core.http.HttpServer#requestHandler(Handler)} and pass it to this method. The
+   * router then routes it to matching routes.
+   *
+   * This method is now deprecated you can use this object directly as a request handler, which
+   * means there is no need for a method reference anymore.
+   *
+   * @param request  the request
+   * @deprecated
+   */
+  @Deprecated
+  default void accept(HttpServerRequest request) {
+    handle(request);
+  }
 
   /**
    * Add a route with no matching criteria, i.e. it matches all requests or failures.
