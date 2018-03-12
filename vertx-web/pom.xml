@@ -15,7 +15,6 @@
 
   <properties>
     <doc.skip>false</doc.skip>
-    <codegen.rxjava.deprecated>true</codegen.rxjava.deprecated>
   </properties>
 
   <dependencies>
