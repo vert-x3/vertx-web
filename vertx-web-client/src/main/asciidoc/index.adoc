@@ -31,8 +31,8 @@ To use Vert.x Web Client, add the following dependency to the _dependencies_ sec
 [source,xml,subs="+attributes"]
 ----
 <dependency>
-  <groupId>${maven.groupId}</groupId>
-  <artifactId>${maven.artifactId}</artifactId>
+  <groupId>io.vertx</groupId>
+  <artifactId>vertx-web-client</artifactId>
   <version>${maven.version}</version>
 </dependency>
 ----
@@ -42,7 +42,7 @@ To use Vert.x Web Client, add the following dependency to the _dependencies_ sec
 [source,groovy,subs="+attributes"]
 ----
 dependencies {
-  compile '${maven.groupId}:${maven.artifactId}:${maven.version}'
+  compile 'io.vertx:vertx-web-client:${maven.version}'
 }
 ----
 

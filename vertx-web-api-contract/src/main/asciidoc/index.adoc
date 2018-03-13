@@ -15,8 +15,8 @@ To use Vert.x API Contract, add the following dependency to the _dependencies_ s
 [source,xml,subs="+attributes"]
 ----
 <dependency>
-  <groupId>${maven.groupId}</groupId>
-  <artifactId>${maven.artifactId}</artifactId>
+  <groupId>io.vertx</groupId>
+  <artifactId>vertx-web-api-contract</artifactId>
   <version>${maven.version}</version>
 </dependency>
 ----
@@ -26,7 +26,7 @@ To use Vert.x API Contract, add the following dependency to the _dependencies_ s
 [source,groovy,subs="+attributes"]
 ----
 dependencies {
-  compile '${maven.groupId}:${maven.artifactId}:${maven.version}'
+  compile 'io.vertx:vertx-web-api-contract:${maven.version}'
 }
 ----
 

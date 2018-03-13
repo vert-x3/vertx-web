@@ -72,8 +72,8 @@ To use vert.x web, add the following dependency to the _dependencies_ section of
 [source,xml,subs="+attributes"]
 ----
 <dependency>
-  <groupId>${maven.groupId}</groupId>
-  <artifactId>${maven.artifactId}</artifactId>
+  <groupId>io.vertx</groupId>
+  <artifactId>vertx-web</artifactId>
   <version>${maven.version}</version>
 </dependency>
 ----
@@ -83,7 +83,7 @@ To use vert.x web, add the following dependency to the _dependencies_ section of
 [source,groovy,subs="+attributes"]
 ----
 dependencies {
-  compile '${maven.groupId}:${maven.artifactId}:${maven.version}'
+  compile 'io.vertx:vertx-web:${maven.version}'
 }
 ----
 
