@@ -340,5 +340,5 @@ Or using create methods with absolute URI argument
 ----
 
 ifdef::java[]
-include::override/rx.adoc[]
+include::override/rxjava.adoc[]
 endif::[]
