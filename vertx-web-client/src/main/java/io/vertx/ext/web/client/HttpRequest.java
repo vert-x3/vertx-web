@@ -74,7 +74,7 @@ public interface HttpRequest<T> {
   /**
    * @return current HTTP request method
    */
-  HttpMethod getMethod();
+  HttpMethod method();
 
   /**
    * Configure the request to use a new port {@code value}.
@@ -87,7 +87,7 @@ public interface HttpRequest<T> {
   /**
    * @return current HTTP request port
    */
-  int getPort();
+  int port();
 
   /**
    * Configure the request to decode the response with the {@code responseCodec}.
@@ -108,7 +108,7 @@ public interface HttpRequest<T> {
   /**
    * @return current HTTP request host
    */
-  String getHost();
+  String host();
 
   /**
    * Configure the request to use a virtual host {@code value}.
@@ -130,7 +130,7 @@ public interface HttpRequest<T> {
   /**
    * @return current HTTP request virtual host
    */
-  String getVirtualHost();
+  String virtualHost();
 
   /**
    * Configure the request to use a new request URI {@code value}.
@@ -146,7 +146,7 @@ public interface HttpRequest<T> {
   /**
    * @return current HTTP request URI
    */
-  String getUri();
+  String uri();
 
   /**
    * Configure the request to add a new HTTP header.
@@ -187,7 +187,7 @@ public interface HttpRequest<T> {
   /**
    * @return current HTTP request timeout
    */
-  long getTimeout();
+  long timeout();
 
   /**
    * Add a query parameter to the request.
