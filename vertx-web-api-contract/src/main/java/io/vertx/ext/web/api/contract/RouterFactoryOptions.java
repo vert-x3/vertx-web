@@ -6,6 +6,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.api.validation.ValidationException;
+import io.vertx.ext.web.handler.BodyHandler;
 
 /**
  * @author Francesco Guardiani @slinkydeveloper
@@ -63,6 +64,7 @@ public class RouterFactoryOptions {
   private boolean mountNotImplementedHandler;
   private boolean requireSecurityHandlers;
   private boolean mountResponseContentTypeHandler;
+  private BodyHandler bodyHandler;
 
   public RouterFactoryOptions() {
     init();
@@ -80,6 +82,7 @@ public class RouterFactoryOptions {
     this.mountNotImplementedHandler = other.isMountNotImplementedHandler();
     this.requireSecurityHandlers = other.isRequireSecurityHandlers();
     this.mountResponseContentTypeHandler = other.isMountResponseContentTypeHandler();
+    this.bodyHandler = other.getBodyHandler();
   }
 
   public JsonObject toJson() {
@@ -95,6 +98,7 @@ public class RouterFactoryOptions {
     this.mountNotImplementedHandler = DEFAULT_MOUNT_NOT_IMPLEMENTED_HANDLER;
     this.requireSecurityHandlers = DEFAULT_REQUIRE_SECURITY_HANDLERS;
     this.mountResponseContentTypeHandler = DEFAULT_MOUNT_RESPONSE_CONTENT_TYPE_HANDLER;
+    this.bodyHandler = BodyHandler.create();
   }
 
   public Handler<RoutingContext> getValidationFailureHandler() {
@@ -195,6 +199,21 @@ public class RouterFactoryOptions {
   @Fluent
   public RouterFactoryOptions setMountResponseContentTypeHandler(boolean mountResponseContentTypeHandler) {
     this.mountResponseContentTypeHandler = mountResponseContentTypeHandler;
+    return this;
+  }
+
+  public BodyHandler getBodyHandler() {
+    return bodyHandler;
+  }
+
+  /**
+   * Supply your own BodyHandler if you would like to control body limit, uploads directory and deletion of uploaded files
+   * @param bodyHandler
+   * @return self
+   */
+  @Fluent
+  public RouterFactoryOptions setBodyHandler(BodyHandler bodyHandler) {
+    this.bodyHandler = bodyHandler;
     return this;
   }
 }
