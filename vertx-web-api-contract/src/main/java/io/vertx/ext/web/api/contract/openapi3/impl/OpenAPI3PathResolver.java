@@ -88,19 +88,19 @@ public class OpenAPI3PathResolver {
            */
 
           if (style.equals("simple")) {
-            regex.append("(?<" + groupName + ">[^\\/\\;\\?\\:\\@\\&\\.\\\"\\<\\>\\#\\%\\{\\}\\|\\\\\\^\\~\\[\\]\\`]*)?");
+            regex.append("(?<" + groupName + ">[^\\/\\;\\?\\:\\@\\&\\.\\\"\\<\\>\\#\\{\\}\\|\\\\\\^\\~\\[\\]\\`]*)?");
             mappedGroups.put(groupName, paramName);
           } else if (style.equals("label")) {
             if (isObject && explode) {
               Map<String, OpenApi3Utils.ObjectField> properties = OpenApi3Utils.solveObjectParameters(parameter.getSchema());
               for (Map.Entry<String, OpenApi3Utils.ObjectField> entry : properties.entrySet()) {
                 groupName = "p" + i;
-                regex.append("\\.?" + entry.getKey() + "=(?<" + groupName + ">[^\\/\\;\\?\\:\\@\\=\\.\\&\\\"\\<\\>\\#\\%\\{\\}\\|\\\\\\^\\~\\[\\]\\`]*)");
+                regex.append("\\.?" + entry.getKey() + "=(?<" + groupName + ">[^\\/\\;\\?\\:\\@\\=\\.\\&\\\"\\<\\>\\#\\{\\}\\|\\\\\\^\\~\\[\\]\\`]*)");
                 mappedGroups.put(groupName, entry.getKey());
                 i++;
               }
             } else {
-              regex.append("\\.?(?<" + groupName + ">[^\\/\\;\\?\\:\\@\\=\\&\\\"\\<\\>\\#\\%\\{\\}\\|\\\\\\^\\~\\[\\]\\`]*)?");
+              regex.append("\\.?(?<" + groupName + ">[^\\/\\;\\?\\:\\@\\=\\&\\\"\\<\\>\\#\\{\\}\\|\\\\\\^\\~\\[\\]\\`]*)?");
               mappedGroups.put(groupName, paramName);
             }
           } else if (style.equals("matrix")) {
@@ -108,15 +108,15 @@ public class OpenAPI3PathResolver {
               Map<String, OpenApi3Utils.ObjectField> properties = OpenApi3Utils.solveObjectParameters(parameter.getSchema());
               for (Map.Entry<String, OpenApi3Utils.ObjectField> entry : properties.entrySet()) {
                 groupName = "p" + i;
-                regex.append("\\;" + entry.getKey() + "=(?<" + groupName + ">[^\\/\\;\\?\\:\\@\\=\\.\\&\\\"\\<\\>\\#\\%\\{\\}\\|\\\\\\^\\~\\[\\]\\`]*)");
+                regex.append("\\;" + entry.getKey() + "=(?<" + groupName + ">[^\\/\\;\\?\\:\\@\\=\\.\\&\\\"\\<\\>\\#\\{\\}\\|\\\\\\^\\~\\[\\]\\`]*)");
                 mappedGroups.put(groupName, entry.getKey());
                 i++;
               }
             } else if (isArray && explode) {
-              regex.append("(?<" + groupName + ">(?>;" + paramName + "=[^\\/\\;\\?\\:\\@\\&\\\"\\<\\>\\#\\%\\{\\}\\|\\\\\\^\\~\\[\\]\\`]*)+)");
+              regex.append("(?<" + groupName + ">(?>;" + paramName + "=[^\\/\\;\\?\\:\\@\\&\\\"\\<\\>\\#\\{\\}\\|\\\\\\^\\~\\[\\]\\`]*)+)");
               mappedGroups.put(groupName, paramName);
             } else {
-              regex.append(";" + paramName + "=(?<" + groupName + ">[^\\/\\;\\?\\:\\@\\=\\&\\\"\\<\\>\\#\\%\\{\\}\\|\\\\\\^\\~\\[\\]\\`]*)?");
+              regex.append(";" + paramName + "=(?<" + groupName + ">[^\\/\\;\\?\\:\\@\\=\\&\\\"\\<\\>\\#\\{\\}\\|\\\\\\^\\~\\[\\]\\`]*)?");
               mappedGroups.put(groupName, paramName);
             }
           }
