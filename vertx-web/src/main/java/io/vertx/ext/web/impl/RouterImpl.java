@@ -73,7 +73,7 @@ public class RouterImpl implements Router {
   private Handler<Throwable> exceptionHandler;
 
   @Override
-  public void accept(HttpServerRequest request) {
+  public void handle(HttpServerRequest request) {
     if (log.isTraceEnabled()) log.trace("Router: " + System.identityHashCode(this) +
       " accepting request " + request.method() + " " + request.absoluteURI());
     new RoutingContextImpl(null, this, request, routes).next();

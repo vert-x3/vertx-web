@@ -36,7 +36,7 @@ import java.util.List;
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 @VertxGen
-public interface Router {
+public interface Router extends Handler<HttpServerRequest> {
 
   /**
    * Create a router
@@ -53,9 +53,16 @@ public interface Router {
    * {@link io.vertx.core.http.HttpServer#requestHandler(Handler)} and pass it to this method. The
    * router then routes it to matching routes.
    *
+   * This method is now deprecated you can use this object directly as a request handler, which
+   * means there is no need for a method reference anymore.
+   *
    * @param request  the request
+   * @deprecated
    */
-  void accept(HttpServerRequest request);
+  @Deprecated
+  default void accept(HttpServerRequest request) {
+    handle(request);
+  }
 
   /**
    * Add a route with no matching criteria, i.e. it matches all requests or failures.

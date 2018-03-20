@@ -196,7 +196,7 @@ public class StaticHandlerTest extends WebTestBase {
       .setUseAlpn(true)
       .setSsl(true)
       .setPemKeyCertOptions(new PemKeyCertOptions().setKeyPath("tls/server-key.pem").setCertPath("tls/server-cert.pem")));
-    http2Server.requestHandler(router::accept).listen(8443);
+    http2Server.requestHandler(router).listen(8443);
 
     HttpClientOptions options = new HttpClientOptions()
       .setSsl(true)
@@ -229,7 +229,7 @@ public class StaticHandlerTest extends WebTestBase {
         .setUseAlpn(true)
         .setSsl(true)
         .setPemKeyCertOptions(new PemKeyCertOptions().setKeyPath("tls/server-key.pem").setCertPath("tls/server-cert.pem")));
-    http2Server.requestHandler(router::accept).listen(8443);
+    http2Server.requestHandler(router).listen(8443);
 
     HttpClientOptions options = new HttpClientOptions()
       .setSsl(true)

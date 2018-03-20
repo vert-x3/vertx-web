@@ -147,7 +147,7 @@ For every request that is routed there is a unique routing context instance, and
 all handlers for that request.
 
 Once we've set up the handler, we set the request handler of the HTTP server to pass all incoming requests
-to {@link io.vertx.ext.web.Router#accept}.
+to {@link io.vertx.ext.web.Router#handle}.
 
 So, that's the basics. Now we'll look at things in more detail:
 

@@ -73,7 +73,7 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
     SessionStore store1 = ClusteredSessionStore.create(vertices[0]);
     router1.route().handler(SessionHandler.create(store1));
     HttpServer server1 = vertices[0].createHttpServer(new HttpServerOptions().setPort(8081).setHost("localhost"));
-    server1.requestHandler(router1::accept);
+    server1.requestHandler(router1);
     server1.listen(onSuccess(s -> serversReady.countDown()));
     HttpClient client1 = vertices[0].createHttpClient(new HttpClientOptions());
 
@@ -82,7 +82,7 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
     SessionStore store2 = ClusteredSessionStore.create(vertices[1]);
     router2.route().handler(SessionHandler.create(store2));
     HttpServer server2 = vertices[1].createHttpServer(new HttpServerOptions().setPort(8082).setHost("localhost"));
-    server2.requestHandler(router2::accept);
+    server2.requestHandler(router2);
     server2.listen(onSuccess(s -> serversReady.countDown()));
     HttpClient client2 = vertices[0].createHttpClient(new HttpClientOptions());
 
@@ -91,7 +91,7 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
     SessionStore store3 = ClusteredSessionStore.create(vertices[2]);
     router3.route().handler(SessionHandler.create(store3));
     HttpServer server3 = vertices[2].createHttpServer(new HttpServerOptions().setPort(8083).setHost("localhost"));
-    server3.requestHandler(router3::accept);
+    server3.requestHandler(router3);
     server3.listen(onSuccess(s -> serversReady.countDown()));
     HttpClient client3 = vertices[0].createHttpClient(new HttpClientOptions());
 
