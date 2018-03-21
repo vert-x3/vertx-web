@@ -72,22 +72,12 @@ public interface HttpRequest<T> {
   HttpRequest<T> method(HttpMethod value);
 
   /**
-   * @return current HTTP request method
-   */
-  HttpMethod method();
-
-  /**
    * Configure the request to use a new port {@code value}.
    *
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
   HttpRequest<T> port(int value);
-
-  /**
-   * @return current HTTP request port
-   */
-  int port();
 
   /**
    * Configure the request to decode the response with the {@code responseCodec}.
@@ -104,11 +94,6 @@ public interface HttpRequest<T> {
    */
   @Fluent
   HttpRequest<T> host(String value);
-
-  /**
-   * @return current HTTP request host
-   */
-  String host();
 
   /**
    * Configure the request to use a virtual host {@code value}.
@@ -128,11 +113,6 @@ public interface HttpRequest<T> {
   HttpRequest<T> virtualHost(String value);
 
   /**
-   * @return current HTTP request virtual host
-   */
-  String virtualHost();
-
-  /**
    * Configure the request to use a new request URI {@code value}.
    * <p>
    * When the uri has query parameters, they are set in the {@link #queryParams()} multimap, overwritting
@@ -142,11 +122,6 @@ public interface HttpRequest<T> {
    */
   @Fluent
   HttpRequest<T> uri(String value);
-
-  /**
-   * @return current HTTP request URI
-   */
-  String uri();
 
   /**
    * Configure the request to add a new HTTP header.
@@ -168,11 +143,6 @@ public interface HttpRequest<T> {
   HttpRequest<T> ssl(boolean value);
 
   /**
-   * @return is HTTP request set with ssl
-   */
-  boolean isSsl();
-
-  /**
    * Configures the amount of time in milliseconds after which if the request does not return any data within the timeout
    * period an {@link java.util.concurrent.TimeoutException} fails the request.
    * <p>
@@ -183,11 +153,6 @@ public interface HttpRequest<T> {
    */
   @Fluent
   HttpRequest<T> timeout(long value);
-
-  /**
-   * @return current HTTP request timeout
-   */
-  long timeout();
 
   /**
    * Add a query parameter to the request.
@@ -217,11 +182,6 @@ public interface HttpRequest<T> {
    */
   @Fluent
   HttpRequest<T> followRedirects(boolean value);
-
-  /**
-   * @return is HTTP request's 'follow redirects' enabled
-   */
-  boolean isFollowRedirects();
 
   /**
    * Return the current query parameters.
