@@ -100,19 +100,9 @@ class HttpRequestImpl<T> implements HttpRequest<T> {
   }
 
   @Override
-  public HttpMethod getMethod() {
-    return method;
-  }
-
-  @Override
   public HttpRequest<T> port(int value) {
     port = value;
     return this;
-  }
-
-  @Override
-  public int getPort() {
-    return port;
   }
 
   @Override
@@ -122,19 +112,9 @@ class HttpRequestImpl<T> implements HttpRequest<T> {
   }
 
   @Override
-  public String getHost() {
-    return host;
-  }
-
-  @Override
   public HttpRequest<T> virtualHost(String value) {
     virtualHost = value;
     return this;
-  }
-
-  @Override
-  public String getVirtualHost() {
-    return virtualHost;
   }
 
   @Override
@@ -142,11 +122,6 @@ class HttpRequestImpl<T> implements HttpRequest<T> {
     params = null;
     uri = value;
     return this;
-  }
-
-  @Override
-  public String getUri() {
-    return uri;
   }
 
   @Override
@@ -170,19 +145,9 @@ class HttpRequestImpl<T> implements HttpRequest<T> {
   }
 
   @Override
-  public boolean isSsl() {
-    return ssl;
-  }
-
-  @Override
   public HttpRequest<T> timeout(long value) {
     timeout = value;
     return this;
-  }
-
-  @Override
-  public long getTimeout() {
-    return timeout;
   }
 
   @Override
@@ -201,11 +166,6 @@ class HttpRequestImpl<T> implements HttpRequest<T> {
   public HttpRequest<T> followRedirects(boolean value) {
     followRedirects = value;
     return this;
-  }
-
-  @Override
-  public boolean isFollowRedirects() {
-    return followRedirects;
   }
 
   @Override
