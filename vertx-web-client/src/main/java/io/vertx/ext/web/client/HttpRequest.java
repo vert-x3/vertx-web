@@ -267,7 +267,7 @@ public interface HttpRequest<T> {
   /**
    * @return current HTTP request timeout
    */
-  long timeout();
+  long getTimeout();
 
   /**
    * Add a query parameter to the request.

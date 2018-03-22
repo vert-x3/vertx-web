@@ -143,7 +143,7 @@ class HttpRequestImpl<T> implements HttpRequest<T> {
 
   @Override
   public HttpRequest<T> virtualHost(String value) {
-    return virtualHost(value);
+    return setVirtualHost(value);
   }
 
   @Override
@@ -216,7 +216,7 @@ class HttpRequestImpl<T> implements HttpRequest<T> {
   }
 
   @Override
-  public long timeout() {
+  public long getTimeout() {
     return timeout;
   }
 

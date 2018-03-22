@@ -826,7 +826,7 @@ public class WebClientTest extends HttpTestBase {
     server.requestHandler(req -> count.incrementAndGet());
     startServer();
     HttpRequest<Buffer> get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
-    get.timeout(50).send(onFailure(err -> {
+    get.setTimeout(50).send(onFailure(err -> {
       assertEquals(err.getClass(), TimeoutException.class);
       testComplete();
     }));
@@ -947,7 +947,7 @@ public class WebClientTest extends HttpTestBase {
     startServer();
     HttpRequest<Buffer> builder = client.get("/redirect");
     if (set != null) {
-      builder = builder.followRedirects(set);
+      builder = builder.setIsFollowRedirects(set);
     }
     builder.send(onSuccess(resp -> {
       if (expect) {
@@ -969,7 +969,7 @@ public class WebClientTest extends HttpTestBase {
       req.response().end();
     });
     startServer();
-    HttpRequest<Buffer> req = client.get("/test").virtualHost("another-host");
+    HttpRequest<Buffer> req = client.get("/test").setVirtualHost("another-host");
     req.send(onSuccess(resp -> {
       testComplete();
     }));
@@ -983,22 +983,22 @@ public class WebClientTest extends HttpTestBase {
 
   @Test
   public void testTLSEnabledDisableRequestTLS() throws Exception {
-    testTLS(true, false, client -> client.get("/").ssl(false));
+    testTLS(true, false, client -> client.get("/").setIsSsl(false));
   }
 
   @Test
   public void testTLSEnabledEnableRequestTLS() throws Exception {
-    testTLS(true, true, client -> client.get("/").ssl(true));
+    testTLS(true, true, client -> client.get("/").setIsSsl(true));
   }
 
   @Test
   public void testTLSDisabledDisableRequestTLS() throws Exception {
-    testTLS(false, false, client -> client.get("/").ssl(false));
+    testTLS(false, false, client -> client.get("/").setIsSsl(false));
   }
 
   @Test
   public void testTLSDisabledEnableRequestTLS() throws Exception {
-    testTLS(false, true, client -> client.get("/").ssl(true));
+    testTLS(false, true, client -> client.get("/").setIsSsl(true));
   }
 
   @Test
@@ -1065,7 +1065,7 @@ public class WebClientTest extends HttpTestBase {
       .setKeyStoreOptions(Cert.SNI_JKS.get())
       .setPort(DEFAULT_HTTPS_PORT)
       .setHost(DEFAULT_HTTPS_HOST);
-     testTLS(clientOptions, serverOptions, req -> req.get("/").virtualHost("host2.com").ssl(true), req -> {
+     testTLS(clientOptions, serverOptions, req -> req.get("/").setVirtualHost("host2.com").setIsSsl(true), req -> {
        assertEquals("host2.com", req.connection().indicatedServerName());
       System.out.println(req.host());
     });

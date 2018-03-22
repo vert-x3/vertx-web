@@ -94,7 +94,7 @@ public class WebClientExamples {
     request.addQueryParam("param1", "param1_value");
 
     // Overwrite param1 and add param2
-    request.uri("/some-uri?param1=param1_value&param2=param2_value");
+    request.setUri("/some-uri?param1=param1_value&param2=param2_value");
   }
 
   public void multiGet(WebClient client) {
@@ -132,7 +132,7 @@ public class WebClientExamples {
   public void timeout(WebClient client) {
     client
       .get(8080, "myserver.mycompany.com", "/some-uri")
-      .timeout(5000)
+      .setTimeout(5000)
       .send(ar -> {
         if (ar.succeeded()) {
           // Ok
@@ -377,7 +377,7 @@ public class WebClientExamples {
 
     client
       .get(8080, "myserver.mycompany.com", "/some-uri")
-      .followRedirects(false)
+      .setIsFollowRedirects(false)
       .send(ar -> {
         if (ar.succeeded()) {
           // Obtain response
@@ -394,7 +394,7 @@ public class WebClientExamples {
 
     client
       .get(443, "myserver.mycompany.com", "/some-uri")
-      .ssl(true)
+      .setIsSsl(true)
       .send(ar -> {
         if (ar.succeeded()) {
           // Obtain response
