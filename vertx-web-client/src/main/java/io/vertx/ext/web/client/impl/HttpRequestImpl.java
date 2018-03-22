@@ -95,33 +95,83 @@ class HttpRequestImpl<T> implements HttpRequest<T> {
 
   @Override
   public HttpRequest<T> method(HttpMethod value) {
+    return setMethod(value);
+  }
+
+  @Override
+  public HttpRequest<T> setMethod(HttpMethod value) {
     method = value;
     return this;
   }
 
   @Override
+  public HttpMethod getMethod() {
+    return method;
+  }
+
+  @Override
   public HttpRequest<T> port(int value) {
+    return setPort(value);
+  }
+
+  @Override
+  public HttpRequest<T> setPort(int value) {
     port = value;
     return this;
   }
 
   @Override
+  public int getPort() {
+    return port;
+  }
+
+  @Override
   public HttpRequest<T> host(String value) {
+    return setHost(value);
+  }
+
+  @Override
+  public HttpRequest<T> setHost(String value) {
     host = value;
     return this;
   }
 
   @Override
+  public String getHost() {
+    return host;
+  }
+
+  @Override
   public HttpRequest<T> virtualHost(String value) {
+    return virtualHost(value);
+  }
+
+  @Override
+  public HttpRequest<T> setVirtualHost(String value) {
     virtualHost = value;
     return this;
   }
 
   @Override
+  public String getVirtualHost() {
+    return virtualHost;
+  }
+
+  @Override
   public HttpRequest<T> uri(String value) {
+    return setUri(value);
+  }
+
+  @Override
+  public HttpRequest<T> setUri(String value) {
     params = null;
     uri = value;
     return this;
+  }
+
+  @Override
+  public String getUri() {
+    return uri;
   }
 
   @Override
@@ -140,14 +190,34 @@ class HttpRequestImpl<T> implements HttpRequest<T> {
 
   @Override
   public HttpRequest<T> ssl(boolean value) {
+    return setIsSsl(value);
+  }
+
+  @Override
+  public HttpRequest<T> setIsSsl(boolean value) {
     ssl = value;
     return this;
   }
 
   @Override
+  public boolean isSsl() {
+    return ssl;
+  }
+
+  @Override
   public HttpRequest<T> timeout(long value) {
+    return setTimeout(value);
+  }
+
+  @Override
+  public HttpRequest<T> setTimeout(long value) {
     timeout = value;
     return this;
+  }
+
+  @Override
+  public long timeout() {
+    return timeout;
   }
 
   @Override
@@ -164,8 +234,18 @@ class HttpRequestImpl<T> implements HttpRequest<T> {
 
   @Override
   public HttpRequest<T> followRedirects(boolean value) {
+    return setIsFollowRedirects(value);
+  }
+
+  @Override
+  public HttpRequest<T> setIsFollowRedirects(boolean value) {
     followRedirects = value;
     return this;
+  }
+
+  @Override
+  public boolean isFollowRedirects() {
+    return followRedirects;
   }
 
   @Override
