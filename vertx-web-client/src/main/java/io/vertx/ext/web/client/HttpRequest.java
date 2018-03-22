@@ -290,7 +290,7 @@ public interface HttpRequest<T> {
   HttpRequest<T> setQueryParam(String paramName, String paramValue);
 
   /**
-   * Set weather or not to follow the directs for the request.
+   * Set whether or not to follow the directs for the request.
    *
    * @param value true if redirections should be followed
    * @return a reference to this, so the API can be used fluently
@@ -300,7 +300,7 @@ public interface HttpRequest<T> {
   HttpRequest<T> followRedirects(boolean value);
 
   /**
-   * Set weather or not to follow the directs for the request.
+   * Set whether or not to follow the directs for the request.
    *
    * @param value true if redirections should be followed
    * @return a reference to this, so the API can be used fluently
