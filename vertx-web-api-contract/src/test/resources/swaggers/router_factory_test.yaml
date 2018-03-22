@@ -119,6 +119,23 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+  /foo/{p1}:
+    get:
+      operationId: encodedParamTest
+      parameters:
+        - name: p1
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: p2
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: ok
 components:
   schemas:
     Pet:

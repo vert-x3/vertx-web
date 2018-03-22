@@ -15,6 +15,7 @@ import io.vertx.ext.web.api.contract.RouterFactoryException;
 import io.vertx.ext.web.api.validation.ValidationException;
 import org.junit.Test;
 
+import java.net.URLEncoder;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
@@ -672,5 +673,33 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
     testRequest(HttpMethod.GET, "/product/123", 200, "123");
 
     stopServer();
+  }
+
+  @Test
+  public void mountHandlerEncodedTest() throws Exception {
+    CountDownLatch latch = new CountDownLatch(1);
+    OpenAPI3RouterFactory.create(this.vertx, "src/test/resources/swaggers/router_factory_test.yaml",
+      openAPI3RouterFactoryAsyncResult -> {
+        routerFactory = openAPI3RouterFactoryAsyncResult.result();
+        routerFactory.setOptions(HANDLERS_TESTS_OPTIONS);
+
+        routerFactory.addHandlerByOperationId("encodedParamTest", routingContext -> {
+          RequestParameters params = routingContext.get("parsedParameters");
+          assertEquals("a:b", params.pathParameter("p1").toString());
+          assertEquals("a:b", params.queryParameter("p2").toString());
+          routingContext
+            .response()
+            .setStatusCode(200)
+            .setStatusMessage(params.pathParameter("p1").toString())
+            .end();
+        });
+
+        latch.countDown();
+      });
+    awaitLatch(latch);
+
+    startServer();
+
+    testRequest(HttpMethod.GET, "/foo/a%3Ab?p2=a%3Ab", 200, "a:b");
   }
 }
