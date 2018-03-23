@@ -7,6 +7,9 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.api.validation.ValidationException;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * @author Francesco Guardiani @slinkydeveloper
  */
@@ -63,6 +66,7 @@ public class RouterFactoryOptions {
   private boolean mountNotImplementedHandler;
   private boolean requireSecurityHandlers;
   private boolean mountResponseContentTypeHandler;
+  private List<Handler<RoutingContext>> globalHandlers;
 
   public RouterFactoryOptions() {
     init();
@@ -80,6 +84,7 @@ public class RouterFactoryOptions {
     this.mountNotImplementedHandler = other.isMountNotImplementedHandler();
     this.requireSecurityHandlers = other.isRequireSecurityHandlers();
     this.mountResponseContentTypeHandler = other.isMountResponseContentTypeHandler();
+    this.globalHandlers = other.getGlobalHandlers();
   }
 
   public JsonObject toJson() {
@@ -95,6 +100,7 @@ public class RouterFactoryOptions {
     this.mountNotImplementedHandler = DEFAULT_MOUNT_NOT_IMPLEMENTED_HANDLER;
     this.requireSecurityHandlers = DEFAULT_REQUIRE_SECURITY_HANDLERS;
     this.mountResponseContentTypeHandler = DEFAULT_MOUNT_RESPONSE_CONTENT_TYPE_HANDLER;
+    this.globalHandlers = new ArrayList<>();
   }
 
   public Handler<RoutingContext> getValidationFailureHandler() {
@@ -195,6 +201,22 @@ public class RouterFactoryOptions {
   @Fluent
   public RouterFactoryOptions setMountResponseContentTypeHandler(boolean mountResponseContentTypeHandler) {
     this.mountResponseContentTypeHandler = mountResponseContentTypeHandler;
+    return this;
+  }
+
+  public List<Handler<RoutingContext>> getGlobalHandlers() {
+    return globalHandlers;
+  }
+
+  /**
+   * Add global handler to be applied prior to {@link io.vertx.ext.web.Router} being generated.
+   *
+   * @param globalHandler
+   * @return this object
+   */
+  @Fluent
+  public RouterFactoryOptions addGlobalHandler(Handler<RoutingContext> globalHandler) {
+    this.globalHandlers.add(globalHandler);
     return this;
   }
 }
