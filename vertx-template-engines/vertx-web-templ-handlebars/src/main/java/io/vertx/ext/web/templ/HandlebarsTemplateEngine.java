@@ -20,7 +20,7 @@ package io.vertx.ext.web.templ;
  * A template engine that uses the Handlebars library.
  *
  * @author <a href="http://tfox.org">Tim Fox</a>
- * @deprecated
+ * @deprecated please use {@link io.vertx.ext.web.templ.handlebars.HandlebarsTemplateEngine} instead.
  */
 @Deprecated
 public interface HandlebarsTemplateEngine extends io.vertx.ext.web.templ.handlebars.HandlebarsTemplateEngine {

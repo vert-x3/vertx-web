@@ -20,7 +20,7 @@ package io.vertx.ext.web.templ;
  * A template engine that uses the Thymeleaf library.
  *
  * @author <a href="http://tfox.org">Tim Fox</a>
- * @deprecated
+ * @deprecated please use {@link io.vertx.ext.web.templ.thymeleaf.ThymeleafTemplateEngine} instead.
  */
 @Deprecated
 public interface ThymeleafTemplateEngine extends io.vertx.ext.web.templ.thymeleaf.ThymeleafTemplateEngine {

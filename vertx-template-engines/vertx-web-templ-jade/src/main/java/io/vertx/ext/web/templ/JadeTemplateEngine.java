@@ -20,7 +20,7 @@ package io.vertx.ext.web.templ;
  * A template engine that uses Jade.
  *
  * @author <a href="http://tfox.org">Tim Fox</a>
- * @deprecated
+ * @deprecated please use {@link io.vertx.ext.web.templ.jade.JadeTemplateEngine} instead.
  */
 @Deprecated
 public interface JadeTemplateEngine extends io.vertx.ext.web.templ.jade.JadeTemplateEngine {

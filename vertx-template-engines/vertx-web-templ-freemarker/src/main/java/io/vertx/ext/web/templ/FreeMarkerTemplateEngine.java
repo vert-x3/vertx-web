@@ -20,7 +20,7 @@ package io.vertx.ext.web.templ;
  * A template engine that uses the FreeMarker library.
  *
  * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
- * @deprecated
+ * @deprecated please use {@link io.vertx.ext.web.templ.freemarker.FreeMarkerTemplateEngine} instead.
  */
 @Deprecated
 public interface FreeMarkerTemplateEngine extends io.vertx.ext.web.templ.freemarker.FreeMarkerTemplateEngine {

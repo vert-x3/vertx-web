@@ -20,6 +20,7 @@ package io.vertx.ext.web.templ;
  * A template engine that uses the Rocker library.
  *
  * @author <a href="mailto:xianguang.zhou@outlook.com">Xianguang Zhou</a>
+ * @deprecated please use {@link io.vertx.ext.web.templ.rocker.RockerTemplateEngine} instead.
  */
 @Deprecated
 public interface RockerTemplateEngine extends io.vertx.ext.web.templ.rocker.RockerTemplateEngine {

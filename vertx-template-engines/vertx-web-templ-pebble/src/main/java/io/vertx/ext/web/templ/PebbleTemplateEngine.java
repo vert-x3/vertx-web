@@ -22,7 +22,7 @@ import io.vertx.core.Vertx;
  * A template engine that uses the Pebble library.
  *
  * @author Dan Kristensen
- * @deprecated
+ * @deprecated please use {@link io.vertx.ext.web.templ.pebble.PebbleTemplateEngine} instead.
  */
 @Deprecated
 public interface PebbleTemplateEngine extends io.vertx.ext.web.templ.pebble.PebbleTemplateEngine {
