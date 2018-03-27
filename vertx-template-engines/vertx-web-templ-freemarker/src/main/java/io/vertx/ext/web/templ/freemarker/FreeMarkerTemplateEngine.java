@@ -16,6 +16,7 @@
 package io.vertx.ext.web.templ.freemarker;
 
 import io.vertx.codegen.annotations.Fluent;
+import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.ext.web.templ.TemplateEngine;
 import io.vertx.ext.web.templ.freemarker.impl.FreeMarkerTemplateEngineImpl;
 
@@ -24,6 +25,7 @@ import io.vertx.ext.web.templ.freemarker.impl.FreeMarkerTemplateEngineImpl;
  *
  * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
+@VertxGen
 public interface FreeMarkerTemplateEngine extends TemplateEngine {
   /**
    * Default max number of templates to cache

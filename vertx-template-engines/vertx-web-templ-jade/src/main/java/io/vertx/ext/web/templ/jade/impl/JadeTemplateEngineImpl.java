@@ -108,6 +108,11 @@ public class JadeTemplateEngineImpl extends CachingTemplateEngine<JadeTemplate> 
     }
 
     @Override
+    public String getExtension() {
+      return "jade";
+    }
+
+    @Override
     public Reader getReader(String name) throws IOException {
       // the internal loader will always resolve with .jade extension
       name = adjustLocation(name.endsWith(".jade") ? name.substring(0, name.length() - 5) : name);
