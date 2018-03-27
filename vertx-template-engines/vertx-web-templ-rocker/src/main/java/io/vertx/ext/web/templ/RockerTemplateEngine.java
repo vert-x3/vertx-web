@@ -16,54 +16,21 @@
 
 package io.vertx.ext.web.templ;
 
-import io.vertx.codegen.annotations.Fluent;
-import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.ext.web.templ.impl.RockerTemplateEngineImpl;
-
 /**
  * A template engine that uses the Rocker library.
  *
  * @author <a href="mailto:xianguang.zhou@outlook.com">Xianguang Zhou</a>
+ * @deprecated please use {@link io.vertx.ext.web.templ.rocker.RockerTemplateEngine} instead.
  */
-@VertxGen
-public interface RockerTemplateEngine extends TemplateEngine {
-
-  /**
-   * Default max number of templates to cache
-   */
-  int DEFAULT_MAX_CACHE_SIZE = 10000;
-
-  /**
-   * Default template extension
-   */
-  String DEFAULT_TEMPLATE_EXTENSION = "rocker.html";
+@Deprecated
+public interface RockerTemplateEngine extends io.vertx.ext.web.templ.rocker.RockerTemplateEngine {
 
   /**
    * Create a template engine using defaults
    *
    * @return the engine
    */
-  static RockerTemplateEngine create() {
-    return new RockerTemplateEngineImpl();
+  static io.vertx.ext.web.templ.rocker.RockerTemplateEngine create() {
+    return io.vertx.ext.web.templ.rocker.RockerTemplateEngine.create();
   }
-
-  /**
-   * Set the extension for the engine
-   *
-   * @param extension
-   *          the extension
-   * @return a reference to this for fluency
-   */
-  @Fluent
-  RockerTemplateEngine setExtension(String extension);
-
-  /**
-   * Set the max cache size for the engine
-   *
-   * @param maxCacheSize
-   *          the maxCacheSize
-   * @return a reference to this for fluency
-   */
-  @Fluent
-  RockerTemplateEngine setMaxCacheSize(int maxCacheSize);
 }

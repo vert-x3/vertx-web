@@ -16,52 +16,20 @@
 
 package io.vertx.ext.web.templ;
 
-import io.vertx.codegen.annotations.Fluent;
-import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.ext.web.templ.impl.FreeMarkerTemplateEngineImpl;
-
 /**
  * A template engine that uses the FreeMarker library.
  *
  * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
+ * @deprecated please use {@link io.vertx.ext.web.templ.freemarker.FreeMarkerTemplateEngine} instead.
  */
-@VertxGen
-public interface FreeMarkerTemplateEngine extends TemplateEngine {
-
-  /**
-   * Default max number of templates to cache
-   */
-  int DEFAULT_MAX_CACHE_SIZE = 10000;
-
-  /**
-   * Default template extension
-   */
-  String DEFAULT_TEMPLATE_EXTENSION = "ftl";
-
+@Deprecated
+public interface FreeMarkerTemplateEngine extends io.vertx.ext.web.templ.freemarker.FreeMarkerTemplateEngine {
   /**
    * Create a template engine using defaults
    *
    * @return  the engine
    */
-  static FreeMarkerTemplateEngine create() {
-    return new FreeMarkerTemplateEngineImpl();
+  static io.vertx.ext.web.templ.freemarker.FreeMarkerTemplateEngine create() {
+    return io.vertx.ext.web.templ.freemarker.FreeMarkerTemplateEngine.create();
   }
-
-  /**
-   * Set the extension for the engine
-   *
-   * @param extension  the extension
-   * @return a reference to this for fluency
-   */
-  @Fluent
-  FreeMarkerTemplateEngine setExtension(String extension);
-
-  /**
-   * Set the max cache size for the engine
-   *
-   * @param maxCacheSize  the maxCacheSize
-   * @return a reference to this for fluency
-   */
-  @Fluent
-  FreeMarkerTemplateEngine setMaxCacheSize(int maxCacheSize);
 }

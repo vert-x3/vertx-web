@@ -16,52 +16,21 @@
 
 package io.vertx.ext.web.templ;
 
-import io.vertx.codegen.annotations.Fluent;
-import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.ext.web.templ.impl.MVELTemplateEngineImpl;
-
 /**
  * A template engine that uses the Handlebars library.
  *
  * @author <a href="http://tfox.org">Tim Fox</a>
+ * @deprecated Please use {@link io.vertx.ext.web.templ.mvel.MVELTemplateEngine} instead.
  */
-@VertxGen
-public interface MVELTemplateEngine extends TemplateEngine {
-
-  /**
-   * Default max number of templates to cache
-   */
-  int DEFAULT_MAX_CACHE_SIZE = 10000;
-
-  /**
-   * Default template extension
-   */
-  String DEFAULT_TEMPLATE_EXTENSION = "templ";
+@Deprecated
+public interface MVELTemplateEngine extends io.vertx.ext.web.templ.mvel.MVELTemplateEngine {
 
   /**
    * Create a template engine using defaults
    *
    * @return  the engine
    */
-  static MVELTemplateEngine create() {
-    return new MVELTemplateEngineImpl();
+  static io.vertx.ext.web.templ.mvel.MVELTemplateEngine create() {
+    return io.vertx.ext.web.templ.mvel.MVELTemplateEngine.create();
   }
-
-  /**
-   * Set the extension for the engine
-   *
-   * @param extension  the extension
-   * @return a reference to this for fluency
-   */
-  @Fluent
-  MVELTemplateEngine setExtension(String extension);
-
-  /**
-   * Set the max cache size for the engine
-   *
-   * @param maxCacheSize  the maxCacheSize
-   * @return a reference to this for fluency
-   */
-  @Fluent
-  MVELTemplateEngine setMaxCacheSize(int maxCacheSize);
 }

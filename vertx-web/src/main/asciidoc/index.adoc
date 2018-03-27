@@ -1400,7 +1400,7 @@ Thymeleaf templates.
 
 To use Apache FreeMarker, you need to add the following _dependency_ to your project:
 `${maven.groupId}:vertx-web-templ-freemarker:${maven.version}`. Create an instance of the Apache FreeMarker template engine
-using: `io.vertx.ext.web.templ.FreeMarkerTemplateEngine#create()`.
+using: `io.vertx.ext.web.templ.Engine#create()`.
 
 When using the Apache FreeMarker template engine, it will by default look for
 templates with the `.ftl` extension if no extension is specified in the file name.
