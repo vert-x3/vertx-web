@@ -20,7 +20,7 @@ The {@link io.vertx.core.http.HttpClient} should be used when fine grained contr
 requests/responses is necessary.
 
 The web client does not provide a WebSocket API, the Vert.x Core {@link io.vertx.core.http.HttpClient} should
-be used.
+be used. It also does not handle cookies at the moment.
 
 == Using the web client
 
