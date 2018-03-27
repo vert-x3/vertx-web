@@ -298,6 +298,47 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
     testRequest(HttpMethod.GET, "/", null, resp -> assertNull(resp.headers().get("set-cookie")), 401, "Unauthorized", null);
   }
 
+  @Test
+  public void testSessionCookieInvalidatedOnError() throws Exception {
+    final AtomicInteger counter = new AtomicInteger(0);
+    final AtomicReference<String> id = new AtomicReference<>();
+
+    router.route().handler(CookieHandler.create());
+    router.route().handler(SessionHandler.create(store));
+    // faking some error
+    router.route().handler(rc -> {
+      switch (counter.getAndIncrement()) {
+        case 0:
+          // store the reference
+          id.set(rc.session().id());
+          rc.response().end();
+          break;
+        case 1:
+          assertEquals(id.get(), rc.session().id());
+          rc.fail(500);
+          break;
+        case 2:
+          assertEquals(id.get(), rc.session().id());
+          rc.response().end();
+          break;
+      }
+    });
+
+    AtomicReference<String> sessionID = new AtomicReference<>();
+    // first call will get a session cookie
+    testRequest(HttpMethod.GET, "/", null, resp -> {
+      assertNotNull(resp.headers().get("set-cookie"));
+      String setCookie = resp.headers().get("set-cookie");
+      sessionID.set(setCookie);
+    }, 200, "OK", null);
+    // ensure that on the second call, in case of error, the cookie is not present
+    testRequest(HttpMethod.GET, "/", req -> req.putHeader("cookie", sessionID.get()), resp -> assertNull(resp.headers().get("set-cookie")), 500, "Internal Server Error", null);
+    // ensure that on the third call, the session is still valid
+    testRequest(HttpMethod.GET, "/", req -> req.putHeader("cookie", sessionID.get()), resp -> {
+      assertNull(resp.headers().get("set-cookie"));
+    }, 200, "OK", null);
+  }
+
   private final DateFormat dateTimeFormatter = Utils.createRFC1123DateTimeFormatter();
 
   protected long doTestSessionRetryTimeout() throws Exception {
