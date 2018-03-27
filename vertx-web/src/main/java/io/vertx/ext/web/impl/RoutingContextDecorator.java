@@ -170,8 +170,8 @@ public class RoutingContextDecorator implements RoutingContext {
   }
 
   @Override
-  public Cookie removeCookie(String name) {
-    return decoratedContext.removeCookie(name);
+  public Cookie removeCookie(String name, boolean invalidate) {
+    return decoratedContext.removeCookie(name, invalidate);
   }
 
   @Override
