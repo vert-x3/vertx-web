@@ -200,7 +200,8 @@ public class SessionHandlerImpl implements SessionHandler {
           }
         } else {
           // don't send a cookie if status is not 2xx or 3xx
-          context.removeCookie(sessionCookieName);
+          // remove it from the set (do not invalidate)
+          context.removeCookie(sessionCookieName, false);
         }
       } else {
         sessionStore.delete(session.id(), res -> {
