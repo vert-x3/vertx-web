@@ -44,8 +44,6 @@ public class JadeTemplateEngineImpl extends CachingTemplateEngine<JadeTemplate> 
   private final JadeConfiguration config = new JadeConfiguration();
   private final JadeTemplateLoader loader = new JadeTemplateLoader();
 
-  private String extension = DEFAULT_TEMPLATE_EXTENSION;
-
   public JadeTemplateEngineImpl() {
     super(DEFAULT_TEMPLATE_EXTENSION, DEFAULT_MAX_CACHE_SIZE);
     config.setTemplateLoader(loader);
@@ -55,7 +53,6 @@ public class JadeTemplateEngineImpl extends CachingTemplateEngine<JadeTemplate> 
   @Override
   public JadeTemplateEngine setExtension(String extension) {
     doSetExtension(extension);
-    this.extension = extension;
     return this;
   }
 
@@ -106,7 +103,7 @@ public class JadeTemplateEngineImpl extends CachingTemplateEngine<JadeTemplate> 
     }
 
     @Override
-    public long getLastModified(String name) throws IOException {
+    public long getLastModified(String name) {
       return lastMod;
     }
 
@@ -116,14 +113,9 @@ public class JadeTemplateEngineImpl extends CachingTemplateEngine<JadeTemplate> 
       name = adjustLocation(name.endsWith(".jade") ? name.substring(0, name.length() - 5) : name);
       String templ = Utils.readFileToString(vertx, name);
       if (templ == null) {
-        throw new IllegalArgumentException("Cannot find resource " + name);
+        throw new IOException("Cannot find resource " + name);
       }
       return new StringReader(templ);
-    }
-
-    @Override
-    public String getExtension() {
-      return extension;
     }
   }
 }
