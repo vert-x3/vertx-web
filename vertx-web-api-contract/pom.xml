@@ -26,7 +26,7 @@
     <dependency>
       <groupId>com.networknt</groupId>
       <artifactId>json-schema-validator</artifactId>
-      <version>0.1.13</version>
+      <version>0.1.17</version>
     </dependency>
     <dependency>
       <groupId>io.swagger.parser.v3</groupId>
