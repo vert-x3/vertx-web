@@ -30,6 +30,11 @@ class HttpServerRequestWrapper implements HttpServerRequest {
   }
 
   @Override
+  public long bytesRead() {
+    return delegate.bytesRead();
+  }
+
+  @Override
   public HttpServerRequest exceptionHandler(Handler<Throwable> handler) {
     return delegate.exceptionHandler(handler);
   }
