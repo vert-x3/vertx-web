@@ -5,6 +5,7 @@ import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.media.*;
 import io.swagger.v3.oas.models.parameters.Parameter;
 import io.swagger.v3.oas.models.parameters.RequestBody;
+import io.swagger.v3.parser.ResolverCache;
 import io.vertx.ext.web.FileUpload;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.api.RequestParameter;
@@ -20,6 +21,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import static io.swagger.v3.parser.util.RefUtils.computeRefFormat;
 
 /**
  * @author Francesco Guardiani @slinkydeveloper
@@ -72,13 +75,15 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
 
   List<Parameter> resolvedParameters;
   OpenAPI spec;
+  ResolverCache refsCache;
 
   /* --- Initialization functions --- */
 
-  public OpenAPI3RequestValidationHandlerImpl(Operation pathSpec, List<Parameter> resolvedParameters, OpenAPI spec) {
+  public OpenAPI3RequestValidationHandlerImpl(Operation pathSpec, List<Parameter> resolvedParameters, OpenAPI spec, ResolverCache refsCache) {
     super(pathSpec);
     this.resolvedParameters = resolvedParameters;
     this.spec = spec;
+    this.refsCache = refsCache;
     parseOperationSpec();
   }
 
@@ -87,10 +92,17 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
     // Extract from path spec parameters description
     if (resolvedParameters!=null) {
       for (Parameter opParameter : resolvedParameters) {
+        if (opParameter.get$ref() != null)
+          opParameter = refsCache.loadRef(opParameter.get$ref(), computeRefFormat(opParameter.get$ref()), Parameter.class);
         this.parseParameter(opParameter);
       }
     }
-    this.parseRequestBody(this.pathSpec.getRequestBody());
+    RequestBody body = this.pathSpec.getRequestBody();
+    if (body != null) {
+      if (body.get$ref() != null)
+        body = refsCache.loadRef(body.get$ref(), computeRefFormat(body.get$ref()), RequestBody.class);
+      this.parseRequestBody(body);
+    }
   }
 
   /* --- Type parsing functions --- */

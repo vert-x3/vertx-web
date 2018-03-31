@@ -2,6 +2,7 @@ package io.vertx.ext.web.api.contract.openapi3;
 
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.parser.OpenAPIV3Parser;
+import io.swagger.v3.parser.ResolverCache;
 import io.swagger.v3.parser.core.models.SwaggerParseResult;
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
@@ -95,7 +96,7 @@ public interface OpenAPI3RouterFactory extends RouterFactory<OpenAPI> {
     vertx.executeBlocking((Future<OpenAPI3RouterFactory> future) -> {
       SwaggerParseResult swaggerParseResult = new OpenAPIV3Parser().readLocation(url, null, OpenApi3Utils.getParseOptions());
       if (swaggerParseResult.getMessages().isEmpty()) {
-        future.complete(new OpenAPI3RouterFactoryImpl(vertx, swaggerParseResult.getOpenAPI()));
+        future.complete(new OpenAPI3RouterFactoryImpl(vertx, swaggerParseResult.getOpenAPI(), new ResolverCache(swaggerParseResult.getOpenAPI(), null, url)));
       } else {
         if (swaggerParseResult.getMessages().size() == 1 && swaggerParseResult.getMessages().get(0).matches("unable to read location `?\\Q" + url + "\\E`?"))
           future.fail(RouterFactoryException.createSpecNotExistsException(url));
