@@ -36,7 +36,12 @@ public class OpenAPI3PathResolver {
     this.mappedGroups = new HashMap<>();
   }
 
-  public Pattern solve() {
+  /**
+   * This method returns a pattern only if a pattern is needed, otherwise it returns an empty optional
+   *
+   * @return
+   */
+  public Optional<Pattern> solve() {
     // Filter parameters to get only path parameters
     parameters = parameters.stream().filter(parameter -> parameter.getIn().equals("path")).collect(Collectors.toList());
 
@@ -130,11 +135,10 @@ public class OpenAPI3PathResolver {
         regex.append(QUERY_REGEX_WITH_SLASH);
       else
         regex.append(QUERY_REGEX_WITHOUT_SLASH);
-      resolvedPattern = Pattern.compile(regex.toString());
+      return Optional.of(Pattern.compile(regex.toString()));
     } else {
-      resolvedPattern = Pattern.compile(Pattern.quote(oasPath));
+      return Optional.empty();
     }
-    return resolvedPattern;
   }
 
   public Pattern getResolvedPattern() {

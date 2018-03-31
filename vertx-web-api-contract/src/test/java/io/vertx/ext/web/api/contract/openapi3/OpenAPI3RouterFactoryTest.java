@@ -6,6 +6,7 @@ import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.WebTestWithWebClientBase;
@@ -762,5 +763,34 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
       finally {
           Paths.get("./my-uploads").toFile().deleteOnExit();
       }
+  }
+
+  @Test
+  public void pathResolverShouldNotCreateRegex() throws Exception {
+    CountDownLatch latch = new CountDownLatch(1);
+    OpenAPI3RouterFactory.create(this.vertx, "src/test/resources/swaggers/produces_consumes_test.yaml",
+      openAPI3RouterFactoryAsyncResult -> {
+        routerFactory = openAPI3RouterFactoryAsyncResult.result();
+        routerFactory.setOptions(new RouterFactoryOptions().setMountNotImplementedHandler(false));
+
+        routerFactory.addHandlerByOperationId("consumesTest", routingContext ->
+          routingContext
+            .response()
+            .setStatusCode(200)
+            .setStatusMessage("OK")
+        );
+
+        latch.countDown();
+      });
+    awaitLatch(latch);
+
+    router = routerFactory.getRouter();
+
+    for (Route route : router.getRoutes()) {
+      if (route.getPath() != null) {
+        assertEquals("/consumesTest", route.getPath());
+      }
+    }
+
   }
 }
