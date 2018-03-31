@@ -27,27 +27,39 @@ public class RequestParametersImpl implements RequestParameters {
   }
 
   public void setPathParameters(Map<String, RequestParameter> pathParameters) {
-    this.pathParameters = pathParameters;
+    if (pathParameters != null) {
+      this.pathParameters = pathParameters;
+    }
   }
 
   public void setQueryParameters(Map<String, RequestParameter> queryParameters) {
-    this.queryParameters = queryParameters;
+    if (queryParameters != null) {
+      this.queryParameters = queryParameters;
+    }
   }
 
   public void setHeaderParameters(Map<String, RequestParameter> headerParameters) {
-    this.headerParameters = headerParameters;
+    if (headerParameters != null) {
+      this.headerParameters = headerParameters;
+    }
   }
 
   public void setCookieParameters(Map<String, RequestParameter> cookieParameters) {
-    this.cookieParameters = cookieParameters;
+    if (cookieParameters != null) {
+      this.cookieParameters = cookieParameters;
+    }
   }
 
   public void setFormParameters(Map<String, RequestParameter> formParameters) {
-    this.formParameters = formParameters;
+    if (formParameters != null) {
+      this.formParameters = formParameters;
+    }
   }
 
   public void setBody(RequestParameter body) {
-    this.body = body;
+    if (body != null) {
+      this.body = body;
+    }
   }
 
   public void merge(RequestParametersImpl other) {
