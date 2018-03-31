@@ -200,6 +200,13 @@ public interface RequestParameter {
   boolean isEmpty();
 
   /**
+   * Converts deeply this RequestParameter in a Json representation
+   *
+   * @return
+   */
+  Object toJson();
+
+  /**
    * Merge this request parameter with another one. Note: the parameter passed by argument has the priority
    *
    * @param otherParameter

@@ -2,6 +2,7 @@ package io.vertx.ext.web.api;
 
 import io.vertx.codegen.annotations.Nullable;
 import io.vertx.codegen.annotations.VertxGen;
+import io.vertx.core.json.JsonObject;
 
 import java.util.List;
 
@@ -94,5 +95,14 @@ public interface RequestParameters {
    * @return
    */
   @Nullable RequestParameter body();
+
+  /**
+   * This method converts RequestParameters in an unique JsonObject with 6 fields: cookie, path, query, header, form, body<br/>
+   *
+   * cookie, path, query, header, form are JsonObject where keys are param names and values are param values, while body depends on body's shape and may not exist
+   *
+   * @return
+   */
+  JsonObject toJsonObject();
 
 }

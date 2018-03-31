@@ -1,9 +1,11 @@
 package io.vertx.ext.web.api.impl;
 
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.api.RequestParameter;
 import io.vertx.ext.web.api.RequestParameters;
 
 import java.util.*;
+import java.util.stream.Collector;
 
 /**
  * @author Francesco Guardiani @slinkydeveloper
@@ -135,5 +137,29 @@ public class RequestParametersImpl implements RequestParameters {
   @Override
   public int hashCode() {
     return Objects.hash(pathParameters, queryParameters, headerParameters, cookieParameters, formParameters, body);
+  }
+
+  @Override
+  public JsonObject toJsonObject() {
+    JsonObject root = new JsonObject();
+    root.put("path", mapToJsonObject(pathParameters));
+    root.put("query", mapToJsonObject(queryParameters));
+    root.put("header", mapToJsonObject(headerParameters));
+    root.put("cookie", mapToJsonObject(cookieParameters));
+    root.put("form", mapToJsonObject(formParameters));
+    if (body != null)
+      root.put("body", body.toJson());
+    return root;
+  }
+
+  private JsonObject mapToJsonObject(Map<String, RequestParameter> params) {
+    return params
+      .entrySet()
+      .stream()
+      .collect(Collector.of(
+        JsonObject::new,
+        (j, e) -> j.put(e.getKey(), e.getValue().toJson()),
+        JsonObject::mergeIn
+      ));
   }
 }
