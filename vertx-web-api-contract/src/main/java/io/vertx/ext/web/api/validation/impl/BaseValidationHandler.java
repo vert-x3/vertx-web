@@ -114,7 +114,7 @@ public abstract class BaseValidationHandler implements ValidationHandler {
   private Map<String, RequestParameter> validateCookieParams(RoutingContext routingContext) throws ValidationException {
     // Validation process validate only params that are registered in the validation -> extra params are allowed
     if (!routingContext.request().headers().contains("Cookie"))
-      return null;
+      return new HashMap<>();
     QueryStringDecoder decoder = new QueryStringDecoder("/?" + routingContext.request().getHeader("Cookie")); // Some hack to reuse this object
     Map<String, List<String>> cookies = new HashMap<>();
     for (Map.Entry<String, List<String>> e : decoder.parameters().entrySet()) {
