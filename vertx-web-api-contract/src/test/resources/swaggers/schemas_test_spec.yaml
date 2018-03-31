@@ -185,7 +185,20 @@ paths:
                 a:
                   type: string
                   default: Hello
-
+  /test14:
+    post:
+      operationId: test14
+      responses:
+        default:
+          description: "OK"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: string
+              minItems: 1
 
 components:
   schemas:
