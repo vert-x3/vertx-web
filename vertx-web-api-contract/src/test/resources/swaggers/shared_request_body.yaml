@@ -1,0 +1,54 @@
+openapi: 3.0.0
+info:
+  description: bug repro
+  version: 1.0.0
+  title: bug repro
+
+paths:
+  /v1/working:
+    post:
+      operationId: thisWayWorks
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Bug'
+      responses:
+        '200':
+          $ref: '#/components/responses/200_Bug'
+
+  /v1/notworking:
+    post:
+      operationId: thisWayBroken
+      requestBody:
+        $ref: '#/components/requestBodies/Bug'
+      responses:
+        '200':
+          $ref: '#/components/responses/200_Bug'
+
+components:
+  requestBodies:
+    Bug:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Bug'
+  responses:
+    200_Bug:
+      description: Bug
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Bug'
+  schemas:
+    Bug:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+      required:
+        - name

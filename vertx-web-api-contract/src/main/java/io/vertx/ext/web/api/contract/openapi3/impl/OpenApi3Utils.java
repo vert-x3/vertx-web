@@ -259,9 +259,8 @@ public class OpenApi3Utils {
         ObjectNode schema = ObjectMapperFactory.createJson().convertValue(s, ObjectNode.class);
         // We need to search inside for other refs
         if (!root.has("definitions")) {
-          ObjectNode definitions = JsonNodeFactory.instance.objectNode();
+          ObjectNode definitions = root.putObject("definitions");
           definitions.set(schemaName, schema);
-          root.putObject("definitions");
         } else {
           ((ObjectNode)root.get("definitions")).set(schemaName, schema);
         }
