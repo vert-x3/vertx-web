@@ -10,12 +10,14 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.WebTestWithWebClientBase;
 import io.vertx.ext.web.api.RequestParameters;
-import io.vertx.ext.web.api.contract.RouterFactoryOptions;
 import io.vertx.ext.web.api.contract.RouterFactoryException;
+import io.vertx.ext.web.api.contract.RouterFactoryOptions;
 import io.vertx.ext.web.api.validation.ValidationException;
+import io.vertx.ext.web.handler.BodyHandler;
 import org.junit.Test;
 
 import java.net.URLEncoder;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
@@ -701,5 +703,55 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
     startServer();
 
     testRequest(HttpMethod.GET, "/foo/a%3Ab?p2=a%3Ab", 200, "a:b");
+  }
+
+    /**
+     * Tests that user can supply customised BodyHandler
+     * @throws Exception
+     */
+  @Test
+  public void customBodyHandlerTest() throws Exception {
+      try {
+          CountDownLatch latch = new CountDownLatch(1);
+          OpenAPI3RouterFactory.create(this.vertx, "src/test/resources/swaggers/upload_test.yaml",
+                  openAPI3RouterFactoryAsyncResult -> {
+                      try {
+                          if (openAPI3RouterFactoryAsyncResult.succeeded()) {
+                              routerFactory = openAPI3RouterFactoryAsyncResult.result();
+                              routerFactory.setOptions(
+                                      new RouterFactoryOptions()
+                                              .setRequireSecurityHandlers(false)
+                                              .setBodyHandler(BodyHandler.create("my-uploads"))
+                              );
+
+                              routerFactory.addHandlerByOperationId("upload", (h) -> {
+                                  h.response().setStatusCode(201).end();
+                              });
+                          }
+                          else {
+                              fail(openAPI3RouterFactoryAsyncResult.cause());
+                          }
+                      }
+                      finally {
+                          latch.countDown();
+                      }
+                  });
+          awaitLatch(latch);
+
+          startServer();
+
+          // We're not uploading a real file, just triggering BodyHandler
+          MultiMap form = MultiMap.caseInsensitiveMultiMap();
+
+          assertFalse(Paths.get("./my-uploads").toFile().exists());
+
+          testRequestWithForm(HttpMethod.POST, "/upload", FormType.MULTIPART, form, 201, "Created");
+
+          // BodyHandler should create this custom directory for us
+          assertTrue(Paths.get("./my-uploads").toFile().exists());
+      }
+      finally {
+          Paths.get("./my-uploads").toFile().deleteOnExit();
+      }
   }
 }
