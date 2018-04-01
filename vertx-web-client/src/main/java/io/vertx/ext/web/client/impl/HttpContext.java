@@ -15,10 +15,12 @@
  */
 package io.vertx.ext.web.client.impl;
 
+import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import io.netty.buffer.ByteBuf;
@@ -44,6 +46,7 @@ import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.streams.Pump;
 import io.vertx.core.streams.ReadStream;
+import io.vertx.ext.web.client.FormDataPart;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.codec.BodyCodec;
@@ -253,20 +256,31 @@ public class HttpContext {
             for (String headerName : request.headers().names()) {
               req.putHeader(headerName, request.headers().get(headerName));
             }
-            if (encoder.isChunked()) {
-              buffer = Buffer.buffer();
-              while (true) {
-                HttpContent chunk = encoder.readChunk(new UnpooledByteBufAllocator(false));
-                ByteBuf content = chunk.content();
-                if (content.readableBytes() == 0) {
-                  break;
-                }
-                buffer.appendBuffer(Buffer.buffer(content));
+            buffer = getBuffer(request, encoder);
+          } catch (Exception e) {
+            throw new VertxException(e);
+          }
+        } else if (body instanceof List) {
+          try {
+            List<FormDataPart> attributes = (List<FormDataPart>) body;
+            DefaultFullHttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, io.netty.handler.codec.http.HttpMethod.POST, "/");
+            HttpPostRequestEncoder encoder = new HttpPostRequestEncoder(request, true);
+            for (FormDataPart attribute : attributes) {
+              if (attribute instanceof BodyAttributeFormDataPart) {
+                BodyAttributeFormDataPart bodyAttribute = (BodyAttributeFormDataPart) attribute;
+                encoder.addBodyAttribute(bodyAttribute.getKey(), bodyAttribute.getValue());
+              } else {
+                FileUploadFormDataPart fileUploadFormDataPart = (FileUploadFormDataPart) attribute;
+                encoder.addBodyFileUpload(fileUploadFormDataPart.getName(),
+                  fileUploadFormDataPart.getFilename(), new File(fileUploadFormDataPart.getPathname()),
+                  fileUploadFormDataPart.getMediaType(), fileUploadFormDataPart.isText());
               }
-            } else {
-              ByteBuf content = request.content();
-              buffer = Buffer.buffer(content);
             }
+            encoder.finalizeRequest();
+            for (String headerName : request.headers().names()) {
+              req.putHeader(headerName, request.headers().get(headerName));
+            }
+            buffer = getBuffer(request, encoder);
           } catch (Exception e) {
             throw new VertxException(e);
           }
@@ -282,6 +296,25 @@ public class HttpContext {
       req.exceptionHandler(responseFuture::tryFail);
       req.end();
     }
+  }
+
+  private Buffer getBuffer(DefaultFullHttpRequest request, HttpPostRequestEncoder encoder) throws Exception {
+    Buffer buffer;
+    if (encoder.isChunked()) {
+      buffer = Buffer.buffer();
+      while (true) {
+        HttpContent chunk = encoder.readChunk(new UnpooledByteBufAllocator(false));
+        ByteBuf content = chunk.content();
+        if (content.readableBytes() == 0) {
+          break;
+        }
+        buffer.appendBuffer(Buffer.buffer(content));
+      }
+    } else {
+      ByteBuf content = request.content();
+      buffer = Buffer.buffer(content);
+    }
+    return buffer;
   }
 
   public <T> T get(String key) {
