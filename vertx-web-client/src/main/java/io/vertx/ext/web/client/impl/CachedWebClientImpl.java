@@ -219,7 +219,7 @@ public class CachedWebClientImpl implements CachedWebClient {
             }
             else {
                 String cacheKey = generateKey(request);
-                System.out.println(cacheKey);
+
                 if (cache.containsKey(cacheKey)) {
                     HttpResponse<Object> cacheValue = cache.get(cacheKey);
                     event.getResponseHandler().handle(Future.succeededFuture(cacheValue));

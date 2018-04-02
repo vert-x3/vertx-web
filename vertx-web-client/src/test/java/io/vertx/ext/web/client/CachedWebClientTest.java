@@ -1,5 +1,6 @@
 package io.vertx.ext.web.client;
 
+import io.vertx.core.Future;
 import org.junit.Test;
 
 import java.util.UUID;
@@ -17,39 +18,28 @@ public class CachedWebClientTest extends WebClientTest {
         WebClient webClient = CachedWebClient.create(WebClient.create(vertx),
                 new CachedWebClientOptions().setMaxEntries(1));
 
-
-        CountDownLatch l1 = new CountDownLatch(1);
         // Generate unique ID each time
         server.requestHandler(h -> {
             h.response().end(UUID.randomUUID().toString());
         });
         startServer();
 
-        StringHolder s1 = new StringHolder();
-        webClient.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/").send(h -> {
-            s1.s = h.result().bodyAsString();
-            l1.countDown();
-        });
-        l1.await(1, TimeUnit.SECONDS);
+        String res1 = syncRequest(webClient, "/");
+        String res2 = syncRequest(webClient, "/");
 
-        CountDownLatch l2 = new CountDownLatch(1);
-
-        // This should be fetched from cache
-        StringHolder s2 = new StringHolder();
-        webClient.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/").send(h -> {
-            s2.s = h.result().bodyAsString();
-            l2.countDown();
-        });
-
-        l2.await(1, TimeUnit.SECONDS);
-
-        assertEquals(s1.s, s2.s);
+        assertEquals(res1, res2);
     }
 
-    /**
-     * Convenience class to hold responses
-     */
-    class StringHolder {
-        public String s;
+    private String syncRequest(WebClient webClient, String uri) {
+        Future<String> f = Future.future();
+        webClient.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/").send(h -> {
+            f.complete(h.result().bodyAsString());
+        });
+
+        // Can I has await?
+        while (!f.isComplete()) {
+
+        }
+        return f.result();
     }
 }
