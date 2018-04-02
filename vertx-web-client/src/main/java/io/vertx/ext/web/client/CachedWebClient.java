@@ -1,7 +1,6 @@
 package io.vertx.ext.web.client;
 
 import io.vertx.ext.web.client.impl.CachedWebClientImpl;
-import io.vertx.ext.web.client.impl.WebClientImpl;
 
 /**
  * @author Alexey Soshin

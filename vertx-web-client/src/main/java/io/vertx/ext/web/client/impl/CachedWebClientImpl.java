@@ -1,12 +1,20 @@
 package io.vertx.ext.web.client.impl;
 
-import io.vertx.core.Handler;
-import io.vertx.core.Vertx;
+import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.HttpVersion;
 import io.vertx.core.http.RequestOptions;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.*;
+
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 /**
  * @author Alexey Soshin
@@ -194,11 +202,55 @@ public class CachedWebClientImpl implements CachedWebClient {
         client.close();
     }
 
+    /**
+     *
+     */
     private class CacheInterceptor implements Handler<HttpContext> {
+
+        private final Map<String, HttpResponse<Object>> cache = new ConcurrentHashMap<>();
+
         @Override
         public void handle(HttpContext event) {
-            System.out.println("CacheInterceptor");
-            event.next();
+            HttpRequestImpl request = (HttpRequestImpl) event.request();
+
+            // Cache only GET requests
+            if (!request.method.equals(HttpMethod.GET)) {
+                event.next();
+            }
+            else {
+                String cacheKey = generateKey(request);
+                System.out.println(cacheKey);
+                if (cache.containsKey(cacheKey)) {
+                    HttpResponse<Object> cacheValue = cache.get(cacheKey);
+                    event.getResponseHandler().handle(Future.succeededFuture(cacheValue));
+                }
+                else {
+                    Handler<AsyncResult<HttpResponse<Object>>> responseHandler = event.getResponseHandler();
+                    event.setResponseHandler(ar -> {
+                        HttpResponse<Object> response = ar.result();
+                        if (ar.succeeded()) {
+                            cache.put(cacheKey, response);
+                        }
+                        responseHandler.handle(ar);
+                    });
+                    event.next();
+                }
+            }
+        }
+
+        private String generateKey(HttpRequestImpl request) {
+            StringBuilder sb = new StringBuilder();
+            sb.append(request.method);
+            sb.append(request.host);
+            sb.append(request.port);
+            sb.append(request.uri);
+            // Concatenate all query params
+            String params = StreamSupport.stream(request.queryParams().spliterator(), false).
+                    sorted().
+                    map(Object::toString).
+                    collect(Collectors.joining());
+            sb.append(params);
+            return sb.toString();
         }
     }
 }
