@@ -18,7 +18,7 @@ public class CachedWebClientTest extends WebClientTest {
                 new CachedWebClientOptions().setMaxEntries(1));
 
 
-        CountDownLatch latch = new CountDownLatch(2);
+        CountDownLatch l1 = new CountDownLatch(1);
         // Generate unique ID each time
         server.requestHandler(h -> {
             h.response().end(UUID.randomUUID().toString());
@@ -28,17 +28,20 @@ public class CachedWebClientTest extends WebClientTest {
         StringHolder s1 = new StringHolder();
         webClient.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/").send(h -> {
             s1.s = h.result().bodyAsString();
-            latch.countDown();
+            l1.countDown();
         });
+        l1.await(1, TimeUnit.SECONDS);
+
+        CountDownLatch l2 = new CountDownLatch(1);
 
         // This should be fetched from cache
         StringHolder s2 = new StringHolder();
         webClient.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/").send(h -> {
             s2.s = h.result().bodyAsString();
-            latch.countDown();
+            l2.countDown();
         });
 
-        latch.await(1, TimeUnit.SECONDS);
+        l2.await(1, TimeUnit.SECONDS);
 
         assertEquals(s1.s, s2.s);
     }
