@@ -17,6 +17,7 @@
 package io.vertx.ext.web.client;
 
 import io.vertx.codegen.annotations.DataObject;
+import io.vertx.codegen.annotations.Fluent;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpVersion;
@@ -56,9 +57,13 @@ public class WebClientOptions extends HttpClientOptions {
    */
   public static final boolean DEFAULT_FOLLOW_REDIRECTS = true;
 
+  private static final CacheOptions DEFAULT_CACHE_OPTIONS = new CacheOptions();
+
+
   private boolean userAgentEnabled = DEFAULT_USER_AGENT_ENABLED;
   private String userAgent = DEFAULT_USER_AGENT;
   private boolean followRedirects = DEFAULT_FOLLOW_REDIRECTS;
+  private CacheOptions cacheOptions = DEFAULT_CACHE_OPTIONS;
 
   public WebClientOptions() {
   }
@@ -430,5 +435,15 @@ public class WebClientOptions extends HttpClientOptions {
       userAgent += "/" + version;
     }
     return userAgent;
+  }
+
+  @Fluent
+  public WebClientOptions setCacheOptions(CacheOptions cacheOptions) {
+    this.cacheOptions = cacheOptions;
+    return this;
+  }
+
+  public CacheOptions getCacheOptions() {
+    return cacheOptions;
   }
 }
