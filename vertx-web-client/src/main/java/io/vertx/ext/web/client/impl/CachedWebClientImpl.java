@@ -16,6 +16,8 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 /**
+ * Wrapper for WebClient that is able to cache responses and serve them instead of going over the network again
+ *
  * @author Alexey Soshin
  */
 public class CachedWebClientImpl implements CachedWebClient {
@@ -39,6 +41,7 @@ public class CachedWebClientImpl implements CachedWebClient {
         this.client.addInterceptor(new CacheInterceptor());
     }
 
+    // Can I has delegate?
     @Override
     public HttpRequest<Buffer> get(int port, String host, String requestURI) {
         return client.get(port, host, requestURI);
@@ -206,13 +209,12 @@ public class CachedWebClientImpl implements CachedWebClient {
     }
 
     /**
-     *
+     * Response cache implemented as WebClient interceptor
      */
     private class CacheInterceptor implements Handler<HttpContext> {
 
         private final Map<CacheKey, HttpResponse<Object>> cache = new ConcurrentHashMap<>();
         private final LinkedHashSet<CacheKey> lru = new LinkedHashSet<>();
-        private final AtomicLong lruCount = new AtomicLong(0);
 
         @Override
         public void handle(HttpContext event) {

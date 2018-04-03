@@ -4,8 +4,6 @@ import io.vertx.core.Future;
 import org.junit.Test;
 
 import java.util.UUID;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertNotEquals;
 
@@ -13,6 +11,14 @@ import static org.junit.Assert.assertNotEquals;
  * @author Alexey Soshin
  */
 public class CachedWebClientTest extends WebClientTest {
+
+    @Test(expected = RuntimeException.class)
+    public void testShouldNotWrapItself() {
+        WebClient cachedWebClient = CachedWebClient.create(WebClient.create(vertx),
+                new CachedWebClientOptions().setMaxEntries(1));
+
+        CachedWebClient.create(cachedWebClient, new CachedWebClientOptions().setMaxEntries(1));
+    }
 
     @Test
     public void testClientCacheShouldReturnCachedValueForSameRouteIfCacheNotFull() throws Exception {
