@@ -45,9 +45,32 @@ public class CachedWebClientTest extends WebClientTest {
         startServer();
 
         String res1 = syncRequest(webClient, "/");
+        syncRequest(webClient, "/a");
         String res2 = syncRequest(webClient, "/");
 
         assertNotEquals(res1, res2);
+    }
+
+    @Test
+    public void testShouldPromoteSameValueInCache() throws Exception {
+
+        WebClient webClient = CachedWebClient.create(WebClient.create(vertx),
+                new CachedWebClientOptions().setMaxEntries(3));
+
+        // Generate unique ID each time
+        server.requestHandler(h -> {
+            h.response().end(UUID.randomUUID().toString());
+        });
+        startServer();
+
+        String res1 = syncRequest(webClient, "/");
+        for (int i = 0; i < 3; i++) {
+            syncRequest(webClient, "/"+i);
+            syncRequest(webClient, "/");
+        }
+        String res2 = syncRequest(webClient, "/");
+
+        assertEquals(res1, res2);
     }
 
     private String syncRequest(WebClient webClient, String uri) {
