@@ -21,7 +21,7 @@ public class CachedWebClientTest extends WebClientTest {
     }
 
     @Test
-    public void testClientCacheShouldReturnCachedValueForSameRouteIfCacheNotFull() throws Exception {
+    public void testShouldReturnCachedValueForSameRouteIfCacheNotFull() throws Exception {
 
         WebClient webClient = CachedWebClient.create(WebClient.create(vertx),
                 new CachedWebClientOptions().setMaxEntries(1));
@@ -36,6 +36,25 @@ public class CachedWebClientTest extends WebClientTest {
         String res2 = syncRequest(webClient, "/");
 
         assertEquals(res1, res2);
+    }
+
+    @Test
+    public void testClientCacheShouldNotReturnCachedValueForSameRouteIfCacheFlushed() throws Exception {
+
+        CachedWebClient webClient = CachedWebClient.create(WebClient.create(vertx),
+                new CachedWebClientOptions().setMaxEntries(1));
+
+        // Generate unique ID each time
+        server.requestHandler(h -> {
+            h.response().end(UUID.randomUUID().toString());
+        });
+        startServer();
+
+        String res1 = syncRequest(webClient, "/");
+        webClient.flushCache();
+        String res2 = syncRequest(webClient, "/");
+
+        assertNotEquals(res1, res2);
     }
 
     @Test

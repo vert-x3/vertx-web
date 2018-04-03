@@ -1,6 +1,9 @@
 package io.vertx.ext.web.client.impl;
 
-import io.vertx.core.*;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
+import io.vertx.core.Handler;
+import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpMethod;
@@ -9,15 +12,15 @@ import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.client.*;
 
-import java.util.*;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
+
 /**
- * Wrapper for WebClient that is able to cache responses and serve them instead of going over the network again
- *
  * @author Alexey Soshin
  */
 public class CachedWebClientImpl implements CachedWebClient {
@@ -27,6 +30,7 @@ public class CachedWebClientImpl implements CachedWebClient {
 
     private final WebClientImpl client;
     private final CachedWebClientOptions options;
+    private final CacheInterceptor cache;
 
     public CachedWebClientImpl(WebClient webClient, CachedWebClientOptions options) {
         if (!(webClient instanceof WebClientImpl)) {
@@ -38,7 +42,8 @@ public class CachedWebClientImpl implements CachedWebClient {
         }
         this.options = options;
 
-        this.client.addInterceptor(new CacheInterceptor());
+        this.cache = new CacheInterceptor();
+        this.client.addInterceptor(cache);
     }
 
     // Can I has delegate?
@@ -208,6 +213,11 @@ public class CachedWebClientImpl implements CachedWebClient {
         client.close();
     }
 
+    @Override
+    public void flushCache() {
+        cache.flush();
+    }
+
     /**
      * Response cache implemented as WebClient interceptor
      */
@@ -275,6 +285,13 @@ public class CachedWebClientImpl implements CachedWebClient {
                         cache.remove(lruKey);
                     }
                 }
+            }
+        }
+
+        public void flush() {
+            synchronized (this) {
+                lru.clear();
+                cache.clear();
             }
         }
 
