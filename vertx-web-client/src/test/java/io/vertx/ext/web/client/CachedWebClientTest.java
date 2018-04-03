@@ -7,6 +7,8 @@ import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import static org.junit.Assert.assertNotEquals;
+
 /**
  * @author Alexey Soshin
  */
@@ -30,9 +32,27 @@ public class CachedWebClientTest extends WebClientTest {
         assertEquals(res1, res2);
     }
 
+    @Test
+    public void testClientCacheShouldNotReturnCachedValueForSameRouteIfCacheFull() throws Exception {
+
+        WebClient webClient = CachedWebClient.create(WebClient.create(vertx),
+                new CachedWebClientOptions().setMaxEntries(0));
+
+        // Generate unique ID each time
+        server.requestHandler(h -> {
+            h.response().end(UUID.randomUUID().toString());
+        });
+        startServer();
+
+        String res1 = syncRequest(webClient, "/");
+        String res2 = syncRequest(webClient, "/");
+
+        assertNotEquals(res1, res2);
+    }
+
     private String syncRequest(WebClient webClient, String uri) {
         Future<String> f = Future.future();
-        webClient.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/").send(h -> {
+        webClient.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, uri).send(h -> {
             f.complete(h.result().bodyAsString());
         });
 

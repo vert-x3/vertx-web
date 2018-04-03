@@ -4,15 +4,14 @@ import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpMethod;
-import io.vertx.core.http.HttpVersion;
 import io.vertx.core.http.RequestOptions;
-import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.*;
 
-import java.util.List;
 import java.util.Map;
+import java.util.PriorityQueue;
+import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -208,6 +207,8 @@ public class CachedWebClientImpl implements CachedWebClient {
     private class CacheInterceptor implements Handler<HttpContext> {
 
         private final Map<String, HttpResponse<Object>> cache = new ConcurrentHashMap<>();
+        private final Queue<CacheKeyEntry> lru = new PriorityQueue<>();
+        private final AtomicLong lruCount = new AtomicLong(0);
 
         @Override
         public void handle(HttpContext event) {
@@ -229,7 +230,9 @@ public class CachedWebClientImpl implements CachedWebClient {
                     event.setResponseHandler(ar -> {
                         HttpResponse<Object> response = ar.result();
                         if (ar.succeeded()) {
+                            lru.add(new CacheKeyEntry(lruCount.getAndIncrement(), cacheKey));
                             cache.put(cacheKey, response);
+                            invalidate();
                         }
                         responseHandler.handle(ar);
                     });
@@ -238,6 +241,14 @@ public class CachedWebClientImpl implements CachedWebClient {
             }
         }
 
+        private void invalidate() {
+            if (cache.size() > options.getMaxEntries()) {
+                CacheKeyEntry lruKey = lru.poll();
+                cache.remove(lruKey.cacheKey);
+            }
+        }
+
+        // TODO make object
         private String generateKey(HttpRequestImpl request) {
             StringBuilder sb = new StringBuilder();
             sb.append(request.method);
@@ -251,6 +262,24 @@ public class CachedWebClientImpl implements CachedWebClient {
                     collect(Collectors.joining());
             sb.append(params);
             return sb.toString();
+        }
+
+        /**
+         * Sorts cache keys by their entry into cache
+         */
+        private class CacheKeyEntry implements Comparable<CacheKeyEntry>{
+            private final Long count;
+            private final String cacheKey;
+
+            CacheKeyEntry(long count, String cacheKey) {
+                this.count = count;
+                this.cacheKey = cacheKey;
+            }
+
+            @Override
+            public int compareTo(CacheKeyEntry o) {
+                return this.count.compareTo(o.count);
+            }
         }
     }
 }
