@@ -332,4 +332,6 @@ public interface WebClient {
    * Clients should always be closed after use.
    */
   void close();
+
+  CacheManager cache();
 }

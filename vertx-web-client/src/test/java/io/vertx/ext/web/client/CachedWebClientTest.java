@@ -12,14 +12,6 @@ import static org.junit.Assert.assertNotEquals;
  */
 public class CachedWebClientTest extends WebClientTest {
 
-    @Test(expected = RuntimeException.class)
-    public void testShouldNotWrapItself() {
-        WebClient cachedWebClient = CachedWebClient.create(WebClient.create(vertx),
-                new CacheOptions().setMaxEntries(1));
-
-        CachedWebClient.create(cachedWebClient, new CacheOptions().setMaxEntries(1));
-    }
-
     @Test
     public void testShouldReturnCachedValueForSameRouteIfCacheNotFull() throws Exception {
 
@@ -41,8 +33,8 @@ public class CachedWebClientTest extends WebClientTest {
     @Test
     public void testClientCacheShouldNotReturnCachedValueForSameRouteIfCacheFlushed() throws Exception {
 
-        CachedWebClient webClient = CachedWebClient.create(WebClient.create(vertx),
-                new CacheOptions().setMaxEntries(1));
+        WebClient webClient = WebClient.create(vertx,
+                new WebClientOptions().setCacheOptions(new CacheOptions().setMaxEntries(1)));
 
         // Generate unique ID each time
         server.requestHandler(h -> {
@@ -51,7 +43,7 @@ public class CachedWebClientTest extends WebClientTest {
         startServer();
 
         String res1 = syncRequest(webClient, "/");
-        webClient.flushCache();
+        webClient.cache().flush();
         String res2 = syncRequest(webClient, "/");
 
         assertNotEquals(res1, res2);

@@ -26,6 +26,7 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.RequestOptions;
+import io.vertx.ext.web.client.CacheManager;
 import io.vertx.ext.web.client.CacheOptions;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.WebClientOptions;
@@ -40,20 +41,13 @@ public class WebClientImpl implements WebClientInternal {
   final HttpClient client;
   private final WebClientOptions options;
   final List<Handler<HttpContext>> interceptors = new CopyOnWriteArrayList<>();
+  private final CacheManagerImpl cacheManager;
 
   public WebClientImpl(HttpClient client, WebClientOptions options) {
     this.client = client;
     this.options = new WebClientOptions(options);
-    initCache();
-  }
-
-  private void initCache() {
-    if (options.getCacheOptions() != null) {
-      CacheOptions cacheOptions = options.getCacheOptions();
-      if (cacheOptions.getMaxEntries() > 0) {
-        this.addInterceptor(new CacheInterceptor(cacheOptions));
-      }
-    }
+    this.cacheManager = new CacheManagerImpl();
+    this.cacheManager.initCache(this, this.options);
   }
 
   @Override
@@ -237,5 +231,10 @@ public class WebClientImpl implements WebClientInternal {
   @Override
   public void close() {
     client.close();
+  }
+
+  @Override
+  public CacheManager cache() {
+    return this.cacheManager;
   }
 }
