@@ -192,11 +192,12 @@ public class OpenAPI3RouterFactoryImpl extends BaseRouterFactory<OpenAPI> implem
   @Override
   public Router getRouter() {
     Router router = Router.router(vertx);
-    router.route().handler(BodyHandler.create());
+    Route globalRoute = router.route();
+    globalRoute.handler(BodyHandler.create());
 
     List<Handler<RoutingContext>> globalHandlers = this.getOptions().getGlobalHandlers();
     for (Handler<RoutingContext> globalHandler: globalHandlers) {
-      router.route().handler(globalHandler);
+      globalRoute.handler(globalHandler);
     }
 
     List<Handler<RoutingContext>> globalSecurityHandlers = securityHandlers
