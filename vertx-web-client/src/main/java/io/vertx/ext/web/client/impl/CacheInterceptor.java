@@ -10,9 +10,9 @@ import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.client.CacheOptions;
 import io.vertx.ext.web.client.HttpResponse;
 
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.Map;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -24,12 +24,16 @@ public class CacheInterceptor implements Handler<HttpContext> {
 
     private static final Logger log = LoggerFactory.getLogger(CacheInterceptor.class);
 
+    private final DateFormat dateTimeFormatter;
+
     private final Map<CacheKey, HttpResponse<Object>> cache = new ConcurrentHashMap<>();
     private final LinkedHashSet<CacheKey> lru = new LinkedHashSet<>();
     private final CacheOptions options;
 
     public CacheInterceptor(CacheOptions options) {
         this.options = options;
+        this.dateTimeFormatter = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.ENGLISH);
+        this.dateTimeFormatter.setTimeZone(TimeZone.getTimeZone("GMT"));
     }
 
     @Override
@@ -42,6 +46,10 @@ public class CacheInterceptor implements Handler<HttpContext> {
         }
         else {
             CacheKey cacheKey = new CacheKey(request);
+
+            if (request.headers().get("date") == null) {
+                request.putHeader("date", dateTimeFormatter.format(new Date()));
+            }
 
             invalidate();
             if (cache.containsKey(cacheKey)) {
