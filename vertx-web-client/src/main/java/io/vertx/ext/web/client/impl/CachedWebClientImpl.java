@@ -18,13 +18,13 @@ public class CachedWebClientImpl implements CachedWebClient {
     private final WebClientImpl client;
     private final CacheInterceptor cache;
 
-    public CachedWebClientImpl(WebClient webClient, CachedWebClientOptions options) {
+    public CachedWebClientImpl(WebClient webClient, CacheOptions options) {
         if (!(webClient instanceof WebClientImpl)) {
             throw new RuntimeException("Can only wrap WebClientImpl");
         }
         this.client = (WebClientImpl) webClient;
         if (options == null) {
-            options = new CachedWebClientOptions();
+            options = new CacheOptions();
         }
 
         this.cache = new CacheInterceptor(options);

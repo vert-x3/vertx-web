@@ -5,11 +5,11 @@ import io.vertx.codegen.annotations.Fluent;
 /**
  * @author Alexey Soshin
  */
-public class CachedWebClientOptions {
+public class CacheOptions {
     private int maxEntries = 1000;
 
     @Fluent
-    public CachedWebClientOptions setMaxEntries(int maxEntries) {
+    public CacheOptions setMaxEntries(int maxEntries) {
         this.maxEntries = maxEntries;
         return this;
     }

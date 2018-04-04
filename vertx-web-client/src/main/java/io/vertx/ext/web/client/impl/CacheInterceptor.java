@@ -7,7 +7,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
-import io.vertx.ext.web.client.CachedWebClientOptions;
+import io.vertx.ext.web.client.CacheOptions;
 import io.vertx.ext.web.client.HttpResponse;
 
 import java.util.Iterator;
@@ -26,9 +26,9 @@ public class CacheInterceptor implements Handler<HttpContext> {
 
     private final Map<CacheKey, HttpResponse<Object>> cache = new ConcurrentHashMap<>();
     private final LinkedHashSet<CacheKey> lru = new LinkedHashSet<>();
-    private final CachedWebClientOptions options;
+    private final CacheOptions options;
 
-    public CacheInterceptor(CachedWebClientOptions options) {
+    public CacheInterceptor(CacheOptions options) {
         this.options = options;
     }
 

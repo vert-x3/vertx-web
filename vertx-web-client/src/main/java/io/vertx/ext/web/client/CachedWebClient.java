@@ -8,7 +8,7 @@ import io.vertx.ext.web.client.impl.CachedWebClientImpl;
  * @author Alexey Soshin
  */
 public interface CachedWebClient extends WebClient {
-    static CachedWebClient create(WebClient webClient, CachedWebClientOptions options) {
+    static CachedWebClient create(WebClient webClient, CacheOptions options) {
         return new CachedWebClientImpl(webClient, options);
     }
 

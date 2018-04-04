@@ -15,16 +15,16 @@ public class CachedWebClientTest extends WebClientTest {
     @Test(expected = RuntimeException.class)
     public void testShouldNotWrapItself() {
         WebClient cachedWebClient = CachedWebClient.create(WebClient.create(vertx),
-                new CachedWebClientOptions().setMaxEntries(1));
+                new CacheOptions().setMaxEntries(1));
 
-        CachedWebClient.create(cachedWebClient, new CachedWebClientOptions().setMaxEntries(1));
+        CachedWebClient.create(cachedWebClient, new CacheOptions().setMaxEntries(1));
     }
 
     @Test
     public void testShouldReturnCachedValueForSameRouteIfCacheNotFull() throws Exception {
 
         WebClient webClient = CachedWebClient.create(WebClient.create(vertx),
-                new CachedWebClientOptions().setMaxEntries(1));
+                new CacheOptions().setMaxEntries(1));
 
         // Generate unique ID each time
         server.requestHandler(h -> {
@@ -42,7 +42,7 @@ public class CachedWebClientTest extends WebClientTest {
     public void testClientCacheShouldNotReturnCachedValueForSameRouteIfCacheFlushed() throws Exception {
 
         CachedWebClient webClient = CachedWebClient.create(WebClient.create(vertx),
-                new CachedWebClientOptions().setMaxEntries(1));
+                new CacheOptions().setMaxEntries(1));
 
         // Generate unique ID each time
         server.requestHandler(h -> {
@@ -61,7 +61,7 @@ public class CachedWebClientTest extends WebClientTest {
     public void testClientCacheShouldNotReturnCachedValueForSameRouteIfCacheFull() throws Exception {
 
         WebClient webClient = CachedWebClient.create(WebClient.create(vertx),
-                new CachedWebClientOptions().setMaxEntries(0));
+                new CacheOptions().setMaxEntries(0));
 
         // Generate unique ID each time
         server.requestHandler(h -> {
@@ -80,7 +80,7 @@ public class CachedWebClientTest extends WebClientTest {
     public void testShouldPromoteSameValueInCache() throws Exception {
 
         WebClient webClient = CachedWebClient.create(WebClient.create(vertx),
-                new CachedWebClientOptions().setMaxEntries(3));
+                new CacheOptions().setMaxEntries(3));
 
         // Generate unique ID each time
         server.requestHandler(h -> {
