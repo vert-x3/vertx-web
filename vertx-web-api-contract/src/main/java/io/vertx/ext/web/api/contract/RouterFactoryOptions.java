@@ -8,6 +8,9 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.api.validation.ValidationException;
 import io.vertx.ext.web.handler.BodyHandler;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * @author Francesco Guardiani @slinkydeveloper
  */
@@ -65,6 +68,7 @@ public class RouterFactoryOptions {
   private boolean requireSecurityHandlers;
   private boolean mountResponseContentTypeHandler;
   private BodyHandler bodyHandler;
+  private List<Handler<RoutingContext>> globalHandlers;
 
   public RouterFactoryOptions() {
     init();
@@ -83,6 +87,7 @@ public class RouterFactoryOptions {
     this.requireSecurityHandlers = other.isRequireSecurityHandlers();
     this.mountResponseContentTypeHandler = other.isMountResponseContentTypeHandler();
     this.bodyHandler = other.getBodyHandler();
+    this.globalHandlers = other.getGlobalHandlers();
   }
 
   public JsonObject toJson() {
@@ -99,6 +104,7 @@ public class RouterFactoryOptions {
     this.requireSecurityHandlers = DEFAULT_REQUIRE_SECURITY_HANDLERS;
     this.mountResponseContentTypeHandler = DEFAULT_MOUNT_RESPONSE_CONTENT_TYPE_HANDLER;
     this.bodyHandler = BodyHandler.create();
+    this.globalHandlers = new ArrayList<>();
   }
 
   public Handler<RoutingContext> getValidationFailureHandler() {
@@ -214,6 +220,23 @@ public class RouterFactoryOptions {
   @Fluent
   public RouterFactoryOptions setBodyHandler(BodyHandler bodyHandler) {
     this.bodyHandler = bodyHandler;
+    return this;
+  }
+
+  public List<Handler<RoutingContext>> getGlobalHandlers() {
+    return globalHandlers;
+  }
+
+  /**
+   * Add global handler to be applied prior to {@link io.vertx.ext.web.Router} being generated. <br/>
+   * Please note that you should not add a body handler inside that list. If you want to modify the body handler, please use {@link RouterFactoryOptions#setBodyHandler(BodyHandler)}
+   *
+   * @param globalHandler
+   * @return this object
+   */
+  @Fluent
+  public RouterFactoryOptions addGlobalHandler(Handler<RoutingContext> globalHandler) {
+    this.globalHandlers.add(globalHandler);
     return this;
   }
 }

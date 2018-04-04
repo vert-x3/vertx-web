@@ -576,6 +576,44 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
   }
 
   @Test
+  public void addGlobalHandlersTest() throws Exception {
+    CountDownLatch latch = new CountDownLatch(1);
+    OpenAPI3RouterFactory.create(this.vertx, "src/test/resources/swaggers/router_factory_test.yaml",
+      openAPI3RouterFactoryAsyncResult -> {
+        routerFactory = openAPI3RouterFactoryAsyncResult.result();
+        routerFactory.setOptions(
+          new RouterFactoryOptions()
+            .setRequireSecurityHandlers(false)
+            .addGlobalHandler(rc -> {
+              rc.response().putHeader("header-from-global-handler", "some dummy data");
+              rc.next();
+            })
+            .addGlobalHandler(rc -> {
+              rc.response().putHeader("header-from-global-handler", "some more dummy data");
+              rc.next();
+            })
+        );
+
+        routerFactory.addHandlerByOperationId("listPets", routingContext -> {
+          routingContext
+            .response()
+            .setStatusCode(200)
+            .setStatusMessage("OK")
+            .end();
+        });
+
+        latch.countDown();
+      });
+    awaitLatch(latch);
+
+    startServer();
+
+    testRequest(HttpMethod.GET, "/pets", null,
+      response -> assertEquals(response.getHeader("header-from-global-handler"),
+        "some more dummy data"), 200, "OK", null);
+  }
+
+  @Test
   public void consumesTest() throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
     OpenAPI3RouterFactory.create(this.vertx, "src/test/resources/swaggers/produces_consumes_test.yaml",
