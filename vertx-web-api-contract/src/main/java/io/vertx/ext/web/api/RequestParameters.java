@@ -1,5 +1,6 @@
 package io.vertx.ext.web.api;
 
+import io.vertx.codegen.annotations.CacheReturn;
 import io.vertx.codegen.annotations.Nullable;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.json.JsonObject;
@@ -103,6 +104,6 @@ public interface RequestParameters {
    *
    * @return
    */
-  JsonObject toJsonObject();
+  @CacheReturn JsonObject toJsonObject();
 
 }
