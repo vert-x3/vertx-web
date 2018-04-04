@@ -441,4 +441,16 @@ public class SubRouterTest extends WebTestBase {
     testRequest(HttpMethod.GET, "//api//", 200, "sausages");
   }
 
+  @Test
+  public void testStackOverflow() throws Exception {
+
+    router.get("/files/:id/info").handler(ctx -> {
+      ctx.response().end();
+    });
+
+    router.mountSubRouter("/v1", router);
+
+    testRequest(HttpMethod.GET, "/v1/files/some-file-id/info", 200, "OK");
+    testRequest(HttpMethod.GET, "/v1/files//info", 404, "Not Found");
+  }
 }
