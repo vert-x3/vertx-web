@@ -26,7 +26,7 @@ public class CacheInterceptor implements Handler<HttpContext> {
 
     private final DateFormat dateTimeFormatter;
 
-    private final Map<CacheKey, HttpResponse<Object>> cache = new ConcurrentHashMap<>();
+    private final Map<CacheKey, CacheValue> cache = new ConcurrentHashMap<>();
     private final LinkedHashSet<CacheKey> lru = new LinkedHashSet<>();
     private final CacheOptions options;
 
@@ -53,10 +53,11 @@ public class CacheInterceptor implements Handler<HttpContext> {
 
             // Always invalidate before checking if cache contains the value
             invalidate();
-            if (shouldUseCache(request) && cache.containsKey(cacheKey)) {
-                HttpResponse<Object> cacheValue = cache.get(cacheKey);
+            Set<String> cacheControl = parseCacheControl(request);
+            if (shouldUseCache(cacheControl) && cache.containsKey(cacheKey)) {
+                CacheValue cacheValue = cache.get(cacheKey);
 
-                if (expiredValue(request, cacheValue)) {
+                if (isValueExpired(request, cacheControl, cacheValue)) {
                     synchronized (this) {
                         cache.remove(cacheKey);
                         lru.remove(cacheKey);
@@ -71,7 +72,7 @@ public class CacheInterceptor implements Handler<HttpContext> {
                         lru.remove(cacheKey);
                         lru.add(cacheKey);
                     }
-                    event.getResponseHandler().handle(Future.succeededFuture(cacheValue));
+                    event.getResponseHandler().handle(Future.succeededFuture(cacheValue.value));
                 }
             }
             // No cache entry
@@ -81,43 +82,89 @@ public class CacheInterceptor implements Handler<HttpContext> {
         }
     }
 
-    private boolean shouldUseCache(HttpRequestImpl request) {
-        String cacheControlValue = request.headers().get("cache-control");
-        if (cacheControlValue == null) {
+    private boolean shouldUseCache(Set<String> cacheControl) {
+        if (cacheControl.isEmpty()) {
             return true;
         }
 
-        Set<String> cacheControl = Arrays.stream(cacheControlValue.split(",")).
+        if (cacheControl.contains("public")) {
+            return true;
+        }
+
+        return false;
+    }
+
+    private Set<String> parseCacheControl(HttpRequestImpl request) {
+        String cacheControlValue = request.headers().get("cache-control");
+
+        if (cacheControlValue == null) {
+            return Collections.emptySet();
+        }
+
+        return Arrays.stream(cacheControlValue.split(",")).
                 filter(Objects::nonNull).
                 map(String::trim).
                 map(String::toLowerCase).
                 collect(Collectors.toSet());
+    }
 
-        if (cacheControl.contains("no-cache")) {
-            if (log.isDebugEnabled()) {
-                log.debug(String.format("Received cache-control no-cache, skipping"));
-            }
+    private boolean isValueExpired(HttpRequestImpl request,
+                                   Set<String> cacheControl,
+                                   CacheValue cacheValue) {
+        if (!isValidEtag(request, cacheValue)) {
+            return true;
+        }
+
+        Optional<Integer> maxAge = parseMaxAge(cacheControl);
+
+        // Cannot expire if not set
+        if (!maxAge.isPresent()) {
+            return false;
+        }
+
+        // Check that this entry has not expired if age was set
+        return System.currentTimeMillis() > cacheValue.createdAt + maxAge.get();
+    }
+
+    private boolean isValidEtag(HttpRequestImpl request, CacheValue cacheValue) {
+        String requestEtag = request.headers().get("ETag");
+
+        if (requestEtag == null) {
+            return true;
+        }
+
+        String responseEtag = cacheValue.value.headers().get("ETag");
+
+        if (responseEtag == null) {
+            return true;
+        }
+
+        // If ETags are different, value should be considered expired
+        if  (!responseEtag.equals(requestEtag)) {
             return false;
         }
 
         return true;
     }
 
-    private boolean expiredValue(HttpRequestImpl request, HttpResponse<Object> cacheValue) {
-        String requestEtag = request.headers().get("ETag");
+    private Optional<Integer> parseMaxAge(Set<String> cacheControl) {
+        Optional<String> maxAge = cacheControl.stream().
+                filter(c -> c.startsWith("max-age")).
+                findFirst();
 
-        if (requestEtag == null) {
-            return false;
+        if (maxAge.isPresent()) {
+            String[] maxAgeParts = maxAge.get().split("=");
+            if (maxAgeParts.length > 1) {
+                try {
+                    return Optional.of(Integer.parseInt(maxAgeParts[1]));
+                }
+                catch (NumberFormatException nfe) {
+                    return Optional.empty();
+                }
+            }
         }
 
-        String responseEtag = cacheValue.headers().get("ETag");
-
-        if (responseEtag == null) {
-            return false;
-        }
-
-        // If ETags are different, value should be considered expired
-        return !responseEtag.equals(requestEtag);
+        return Optional.empty();
     }
 
     private void handleCacheMiss(HttpContext event, CacheKey cacheKey) {
@@ -129,7 +176,7 @@ public class CacheInterceptor implements Handler<HttpContext> {
                 // Cache response and add it as most recently used
                 synchronized (this) {
                     lru.add(cacheKey);
-                    cache.put(cacheKey, response);
+                    cache.put(cacheKey, new CacheValue(response));
                 }
             }
             responseHandler.handle(r);
@@ -213,6 +260,16 @@ public class CacheInterceptor implements Handler<HttpContext> {
             result = 31 * result + (params != null ? params.hashCode() : 0);
             result = 31 * result + (contentType != null ? contentType.hashCode() : 0);
             return result;
+        }
+    }
+
+    private class CacheValue {
+        long createdAt;
+        HttpResponse<Object> value;
+
+        public CacheValue(HttpResponse<Object> response) {
+            this.value = response;
+            this.createdAt = System.currentTimeMillis();
         }
     }
 }

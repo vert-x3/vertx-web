@@ -134,7 +134,7 @@ public class CachedWebClientTest extends WebClientTest {
     }
 
     @Test
-    public void testShouldRespectCacheControlPublic() throws Exception {
+    public void testShouldRespectCacheControlPublicNoMaxAge() throws Exception {
         WebClient webClient = WebClient.create(vertx,
                 new WebClientOptions().setCacheOptions(new CacheOptions().setMaxEntries(3)));
 
@@ -151,6 +151,46 @@ public class CachedWebClientTest extends WebClientTest {
         String res2 = syncRequest(webClient, "/", headers);
 
         assertEquals(res1, res2);
+    }
+
+    @Test
+    public void testShouldRespectCacheControlPublicMaxAgeNotExpired() throws Exception {
+        WebClient webClient = WebClient.create(vertx,
+                new WebClientOptions().setCacheOptions(new CacheOptions().setMaxEntries(3)));
+
+        // Generate unique ID each time
+        server.requestHandler(h -> {
+            h.response().end(UUID.randomUUID().toString());
+        });
+        startServer();
+
+        Map<String, String> headers = new HashMap<>();
+        headers.put("cache-control", "public, max-age=10");
+
+        String res1 = syncRequest(webClient, "/", null);
+        String res2 = syncRequest(webClient, "/", headers);
+
+        assertEquals(res1, res2);
+    }
+
+    @Test
+    public void testShouldRespectCacheControlPublicMaxAgeExpired() throws Exception {
+        WebClient webClient = WebClient.create(vertx,
+                new WebClientOptions().setCacheOptions(new CacheOptions().setMaxEntries(3)));
+
+        // Generate unique ID each time
+        server.requestHandler(h -> {
+            h.response().end(UUID.randomUUID().toString());
+        });
+        startServer();
+
+        Map<String, String> headers = new HashMap<>();
+        headers.put("cache-control", "public, max-age=-1");
+
+        String res1 = syncRequest(webClient, "/", null);
+        String res2 = syncRequest(webClient, "/", headers);
+
+        assertNotEquals(res1, res2);
     }
 
     @Test
