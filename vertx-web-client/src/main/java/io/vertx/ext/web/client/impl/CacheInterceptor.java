@@ -54,33 +54,64 @@ public class CacheInterceptor implements Handler<HttpContext> {
             invalidate();
             if (cache.containsKey(cacheKey)) {
                 HttpResponse<Object> cacheValue = cache.get(cacheKey);
-                synchronized (this) {
-                    // Promote this value in cache
-                    // First value are those to be removed, so we pull our element from whenever it is,
-                    // and put it in the end
-                    lru.remove(cacheKey);
-                    lru.add(cacheKey);
+
+                if (expiredValue(request, cacheValue)) {
+                    synchronized (this) {
+                        cache.remove(cacheKey);
+                        lru.remove(cacheKey);
+                    }
+                    handleCacheMiss(event, cacheKey);
                 }
-                event.getResponseHandler().handle(Future.succeededFuture(cacheValue));
+                else {
+                    synchronized (this) {
+                        // Promote this value in cache
+                        // First value are those to be removed, so we pull our element from whenever it is,
+                        // and put it in the end
+                        lru.remove(cacheKey);
+                        lru.add(cacheKey);
+                    }
+                    event.getResponseHandler().handle(Future.succeededFuture(cacheValue));
+                }
             }
             // No cache entry
             else {
-                Handler<AsyncResult<HttpResponse<Object>>> responseHandler = event.getResponseHandler();
-                event.setResponseHandler(r -> {
-                    if (r.succeeded()) {
-                        HttpResponse<Object> response = r.result();
-
-                        // Cache response and add it as most recently used
-                        synchronized (this) {
-                            lru.add(cacheKey);
-                            cache.put(cacheKey, response);
-                        }
-                    }
-                    responseHandler.handle(r);
-                });
-                event.next();
+                handleCacheMiss(event, cacheKey);
             }
         }
+    }
+
+    private boolean expiredValue(HttpRequestImpl request, HttpResponse<Object> cacheValue) {
+        String requestEtag = request.headers().get("ETag");
+
+        if (requestEtag == null) {
+            return false;
+        }
+
+        String responseEtag = cacheValue.headers().get("ETag");
+
+        if (responseEtag == null) {
+            return false;
+        }
+
+        // If ETags are different, value should be considered expired
+        return !responseEtag.equals(requestEtag);
+    }
+
+    private void handleCacheMiss(HttpContext event, CacheKey cacheKey) {
+        Handler<AsyncResult<HttpResponse<Object>>> responseHandler = event.getResponseHandler();
+        event.setResponseHandler(r -> {
+            if (r.succeeded()) {
+                HttpResponse<Object> response = r.result();
+
+                // Cache response and add it as most recently used
+                synchronized (this) {
+                    lru.add(cacheKey);
+                    cache.put(cacheKey, response);
+                }
+            }
+            responseHandler.handle(r);
+        });
+        event.next();
     }
 
     /**
