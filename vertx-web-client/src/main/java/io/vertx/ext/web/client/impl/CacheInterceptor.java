@@ -107,12 +107,14 @@ public class CacheInterceptor implements Handler<HttpContext> {
         private final int port;
         private final String uri;
         private final String params;
+        private final String contentType;
 
         CacheKey(HttpRequestImpl request) {
             this.method = request.method;
             this.host = request.host;
             this.port = request.port;
             this.uri = request.uri;
+            this.contentType = request.headers().get("content-type");
             // Concatenate all query params
             this.params = StreamSupport.stream(request.queryParams().spliterator(), false).
                     sorted().
@@ -134,18 +136,20 @@ public class CacheInterceptor implements Handler<HttpContext> {
 
             if (port != cacheKey.port) return false;
             if (method != cacheKey.method) return false;
-            if (!host.equals(cacheKey.host)) return false;
-            if (!uri.equals(cacheKey.uri)) return false;
-            return params != null ? params.equals(cacheKey.params) : cacheKey.params == null;
+            if (host != null ? !host.equals(cacheKey.host) : cacheKey.host != null) return false;
+            if (uri != null ? !uri.equals(cacheKey.uri) : cacheKey.uri != null) return false;
+            if (params != null ? !params.equals(cacheKey.params) : cacheKey.params != null) return false;
+            return contentType != null ? contentType.equals(cacheKey.contentType) : cacheKey.contentType == null;
         }
 
         @Override
         public int hashCode() {
             int result = method.hashCode();
-            result = 31 * result + host.hashCode();
+            result = 31 * result + (host != null ? host.hashCode() : 0);
             result = 31 * result + port;
-            result = 31 * result + uri.hashCode();
+            result = 31 * result + (uri != null ? uri.hashCode() : 0);
             result = 31 * result + (params != null ? params.hashCode() : 0);
+            result = 31 * result + (contentType != null ? contentType.hashCode() : 0);
             return result;
         }
     }
