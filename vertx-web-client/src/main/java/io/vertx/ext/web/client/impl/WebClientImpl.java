@@ -26,6 +26,7 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.RequestOptions;
+import io.vertx.ext.web.client.CacheOptions;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.ext.web.codec.impl.BodyCodecImpl;
@@ -43,6 +44,16 @@ public class WebClientImpl implements WebClientInternal {
   public WebClientImpl(HttpClient client, WebClientOptions options) {
     this.client = client;
     this.options = new WebClientOptions(options);
+    initCache();
+  }
+
+  private void initCache() {
+    if (options.getCacheOptions() != null) {
+      CacheOptions cacheOptions = options.getCacheOptions();
+      if (cacheOptions.getMaxEntries() > 0) {
+        this.addInterceptor(new CacheInterceptor(cacheOptions));
+      }
+    }
   }
 
   @Override

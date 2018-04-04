@@ -23,8 +23,8 @@ public class CachedWebClientTest extends WebClientTest {
     @Test
     public void testShouldReturnCachedValueForSameRouteIfCacheNotFull() throws Exception {
 
-        WebClient webClient = CachedWebClient.create(WebClient.create(vertx),
-                new CacheOptions().setMaxEntries(1));
+        WebClient webClient = WebClient.create(vertx,
+                new WebClientOptions().setCacheOptions(new CacheOptions().setMaxEntries(1)));
 
         // Generate unique ID each time
         server.requestHandler(h -> {
@@ -60,8 +60,8 @@ public class CachedWebClientTest extends WebClientTest {
     @Test
     public void testClientCacheShouldNotReturnCachedValueForSameRouteIfCacheFull() throws Exception {
 
-        WebClient webClient = CachedWebClient.create(WebClient.create(vertx),
-                new CacheOptions().setMaxEntries(0));
+        WebClient webClient = WebClient.create(vertx,
+                new WebClientOptions().setCacheOptions(new CacheOptions().setMaxEntries(1)));
 
         // Generate unique ID each time
         server.requestHandler(h -> {
@@ -79,8 +79,8 @@ public class CachedWebClientTest extends WebClientTest {
     @Test
     public void testShouldPromoteSameValueInCache() throws Exception {
 
-        WebClient webClient = CachedWebClient.create(WebClient.create(vertx),
-                new CacheOptions().setMaxEntries(3));
+        WebClient webClient = WebClient.create(vertx,
+                new WebClientOptions().setCacheOptions(new CacheOptions().setMaxEntries(3)));
 
         // Generate unique ID each time
         server.requestHandler(h -> {
