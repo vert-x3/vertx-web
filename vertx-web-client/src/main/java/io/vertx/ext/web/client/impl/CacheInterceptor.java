@@ -51,8 +51,9 @@ public class CacheInterceptor implements Handler<HttpContext> {
                 request.putHeader("date", dateTimeFormatter.format(new Date()));
             }
 
+            // Always invalidate before checking if cache contains the value
             invalidate();
-            if (cache.containsKey(cacheKey)) {
+            if (shouldUseCache(request) && cache.containsKey(cacheKey)) {
                 HttpResponse<Object> cacheValue = cache.get(cacheKey);
 
                 if (expiredValue(request, cacheValue)) {
@@ -78,6 +79,28 @@ public class CacheInterceptor implements Handler<HttpContext> {
                 handleCacheMiss(event, cacheKey);
             }
         }
+    }
+
+    private boolean shouldUseCache(HttpRequestImpl request) {
+        String cacheControlValue = request.headers().get("cache-control");
+        if (cacheControlValue == null) {
+            return true;
+        }
+
+        Set<String> cacheControl = Arrays.stream(cacheControlValue.split(",")).
+                filter(Objects::nonNull).
+                map(String::trim).
+                map(String::toLowerCase).
+                collect(Collectors.toSet());
+
+        if (cacheControl.contains("no-cache")) {
+            if (log.isDebugEnabled()) {
+                log.debug(String.format("Received cache-control no-cache, skipping"));
+            }
+            return false;
+        }
+
+        return true;
     }
 
     private boolean expiredValue(HttpRequestImpl request, HttpResponse<Object> cacheValue) {

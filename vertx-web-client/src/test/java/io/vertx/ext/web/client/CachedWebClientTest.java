@@ -114,6 +114,46 @@ public class CachedWebClientTest extends WebClientTest {
     }
 
     @Test
+    public void testShouldRespectCacheControlNoCache() throws Exception {
+        WebClient webClient = WebClient.create(vertx,
+                new WebClientOptions().setCacheOptions(new CacheOptions().setMaxEntries(3)));
+
+        // Generate unique ID each time
+        server.requestHandler(h -> {
+            h.response().end(UUID.randomUUID().toString());
+        });
+        startServer();
+
+        Map<String, String> headers = new HashMap<>();
+        headers.put("cache-control", "no-cache");
+
+        String res1 = syncRequest(webClient, "/", null);
+        String res2 = syncRequest(webClient, "/", headers);
+
+        assertNotEquals(res1, res2);
+    }
+
+    @Test
+    public void testShouldRespectCacheControlPublic() throws Exception {
+        WebClient webClient = WebClient.create(vertx,
+                new WebClientOptions().setCacheOptions(new CacheOptions().setMaxEntries(3)));
+
+        // Generate unique ID each time
+        server.requestHandler(h -> {
+            h.response().end(UUID.randomUUID().toString());
+        });
+        startServer();
+
+        Map<String, String> headers = new HashMap<>();
+        headers.put("cache-control", "public");
+
+        String res1 = syncRequest(webClient, "/", null);
+        String res2 = syncRequest(webClient, "/", headers);
+
+        assertEquals(res1, res2);
+    }
+
+    @Test
     public void testShouldRespectDifferentETag() throws Exception {
         WebClient webClient = WebClient.create(vertx,
                 new WebClientOptions().setCacheOptions(new CacheOptions().setMaxEntries(3)));
