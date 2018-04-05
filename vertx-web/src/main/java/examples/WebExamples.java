@@ -10,9 +10,11 @@ import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.AuthProvider;
+import io.vertx.ext.auth.KeyStoreOptions;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.auth.jwt.JWTAuth;
-import io.vertx.ext.auth.jwt.JWTOptions;
+import io.vertx.ext.auth.jwt.JWTAuthOptions;
+import io.vertx.ext.jwt.JWTOptions;
 import io.vertx.ext.auth.oauth2.OAuth2Auth;
 import io.vertx.ext.auth.oauth2.OAuth2ClientOptions;
 import io.vertx.ext.auth.oauth2.OAuth2FlowType;
@@ -1046,10 +1048,11 @@ public class WebExamples {
 
     Router router = Router.router(vertx);
 
-    JsonObject authConfig = new JsonObject().put("keyStore", new JsonObject()
-      .put("type", "jceks")
-      .put("path", "keystore.jceks")
-      .put("password", "secret"));
+    JWTAuthOptions authConfig = new JWTAuthOptions()
+      .setKeyStore(new KeyStoreOptions()
+        .setType("jceks")
+        .setPath("keystore.jceks")
+        .setPassword("secret"));
 
     JWTAuth authProvider = JWTAuth.create(vertx, authConfig);
 
@@ -1067,10 +1070,11 @@ public class WebExamples {
 
     Router router = Router.router(vertx);
 
-    JsonObject authConfig = new JsonObject().put("keyStore", new JsonObject()
-      .put("type", "jceks")
-      .put("path", "keystore.jceks")
-      .put("password", "secret"));
+    JWTAuthOptions authConfig = new JWTAuthOptions()
+      .setKeyStore(new KeyStoreOptions()
+        .setType("jceks")
+        .setPath("keystore.jceks")
+        .setPassword("secret"));
 
     JWTAuth authProvider = JWTAuth.create(vertx, authConfig);
 
@@ -1083,10 +1087,11 @@ public class WebExamples {
 
   public void example52(Vertx vertx) {
 
-    JsonObject authConfig = new JsonObject().put("keyStore", new JsonObject()
-      .put("type", "jceks")
-      .put("path", "keystore.jceks")
-      .put("password", "secret"));
+    JWTAuthOptions authConfig = new JWTAuthOptions()
+      .setKeyStore(new KeyStoreOptions()
+        .setType("jceks")
+        .setPath("keystore.jceks")
+        .setPassword("secret"));
 
     JWTAuth authProvider = JWTAuth.create(vertx, authConfig);
 
@@ -1184,7 +1189,7 @@ public class WebExamples {
         }
       }
       // we do not know the user language so lets just inform that back:
-      rc.response().end("Sorry we don't speak: " + rc.preferredLocale());
+      rc.response().end("Sorry we don't speak: " + rc.preferredLanguage());
     });
   }
 

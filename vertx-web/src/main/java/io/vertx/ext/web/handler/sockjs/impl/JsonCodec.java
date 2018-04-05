@@ -100,7 +100,7 @@ public class JsonCodec {
             gen.writeRaw(',');
             break;
           case JsonWriteContext.STATUS_EXPECT_NAME:
-            throw new JsonGenerationException("Can not write string value here");
+            throw new JsonGenerationException("Can not write string value here", gen);
         }
         gen.writeRaw('"');
         for (char c : str.toCharArray()) {

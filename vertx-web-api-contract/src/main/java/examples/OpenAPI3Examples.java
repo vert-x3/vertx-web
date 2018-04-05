@@ -80,7 +80,7 @@ public class OpenAPI3Examples {
     Router router = routerFactory.getRouter();
 
     HttpServer server = vertx.createHttpServer(new HttpServerOptions().setPort(8080).setHost("localhost"));
-    server.requestHandler(router::accept).listen();
+    server.requestHandler(router).listen();
   }
 
   public void mainExample(Vertx vertx) {
@@ -131,7 +131,7 @@ public class OpenAPI3Examples {
 
         // Now you can use your Router instance
         HttpServer server = vertx.createHttpServer(new HttpServerOptions().setPort(8080).setHost("localhost"));
-        server.requestHandler(router::accept).listen();
+        server.requestHandler(router).listen();
 
       } else {
         // Something went wrong during router factory initialization
