@@ -131,6 +131,20 @@ public class OpenAPI3RouterFactoryImpl extends BaseRouterFactory<OpenAPI> implem
   }
 
   @Override
+  public OpenAPI3RouterFactory mountAllOperationsToEventBus() {
+    //TODO
+    return this;
+  }
+
+  @Override
+  public OpenAPI3RouterFactory mountOperationToEventBus(String operationId, String address) {
+    OperationValue op = operations.get(operationId);
+    if (op == null) throw RouterFactoryException.createOperationIdNotFoundException(operationId);
+    op.addUserHandler(new RouteToEventBusOperationHandler(vertx.eventBus(), address, operationId));
+    return this;
+  }
+
+  @Override
   public OpenAPI3RouterFactory addSecurityHandler(String securitySchemaName, Handler handler) {
     securityHandlers.addSecurityRequirement(securitySchemaName, handler);
     return this;

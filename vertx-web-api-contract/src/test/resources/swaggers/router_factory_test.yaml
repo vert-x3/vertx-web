@@ -136,6 +136,22 @@ paths:
       responses:
         200:
           description: ok
+  /testA:
+    post:
+      operationId: testA
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                hello:
+                  type: string
+                name:
+                  type: string
+      responses:
+        200:
+          description: ok
 components:
   schemas:
     Pet:

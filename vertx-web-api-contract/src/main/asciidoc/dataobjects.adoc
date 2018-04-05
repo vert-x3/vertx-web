@@ -1,5 +1,28 @@
 = Cheatsheets
 
+[[OperationResult]]
+== OperationResult
+
+
+[cols=">25%,^25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[payload]]`payload`|`Buffer`|-
+|[[statusCode]]`statusCode`|`Number (Integer)`|-
+|===
+
+[[RequestContext]]
+== RequestContext
+
+
+[cols=">25%,^25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[params]]`params`|`Json object`|-
+|===
+
 [[RouterFactoryOptions]]
 == RouterFactoryOptions
 
