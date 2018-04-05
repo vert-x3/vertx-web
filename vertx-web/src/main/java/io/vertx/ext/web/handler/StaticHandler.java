@@ -20,13 +20,11 @@ import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Http2PushMapping;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.impl.StaticHandlerImpl;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * A handler for serving static resources from the file system or classpath.
