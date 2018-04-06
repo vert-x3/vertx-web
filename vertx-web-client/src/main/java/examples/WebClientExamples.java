@@ -10,11 +10,15 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.streams.ReadStream;
 import io.vertx.core.streams.WriteStream;
 import io.vertx.docgen.Source;
+import io.vertx.ext.web.client.FormDataPart;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.ext.web.codec.BodyCodec;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
@@ -242,6 +246,21 @@ public class WebClientExamples {
       .post(8080, "myserver.mycompany.com", "/some-uri")
       .putHeader("content-type", "multipart/form-data")
       .sendForm(form, ar -> {
+        if (ar.succeeded()) {
+          // Ok
+        }
+      });
+  }
+
+  public void sendMultipartWithFileUpload(WebClient client) {
+    List<FormDataPart> form = new ArrayList<>();
+    form.add(FormDataPart.createFileUpload("file", "filename", "pathname", "text/plain", true));
+    form.add(FormDataPart.createAttribute("attribute_key", "attribute_value"));
+
+    // Submit the form as a multipart form body
+    client
+      .post(8080, "myserver.mycompany.com", "/some-uri")
+      .sendMultipartForm(form, ar -> {
         if (ar.succeeded()) {
           // Ok
         }
