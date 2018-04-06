@@ -243,44 +243,48 @@ public class HttpContext {
         Buffer buffer;
         if (body instanceof Buffer) {
           buffer = (Buffer) body;
-        } else if (body instanceof MultiMap) {
+        } else if (body instanceof MultiMap || body instanceof List) {
           try {
-            MultiMap attributes = (MultiMap) body;
             boolean multipart = "multipart/form-data".equals(contentType);
             DefaultFullHttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, io.netty.handler.codec.http.HttpMethod.POST, "/");
             HttpPostRequestEncoder encoder = new HttpPostRequestEncoder(request, multipart);
-            for (Map.Entry<String, String> attribute : attributes) {
-              encoder.addBodyAttribute(attribute.getKey(), attribute.getValue());
-            }
-            encoder.finalizeRequest();
-            for (String headerName : request.headers().names()) {
-              req.putHeader(headerName, request.headers().get(headerName));
-            }
-            buffer = getBuffer(request, encoder);
-          } catch (Exception e) {
-            throw new VertxException(e);
-          }
-        } else if (body instanceof List) {
-          try {
-            List<FormDataPart> attributes = (List<FormDataPart>) body;
-            DefaultFullHttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, io.netty.handler.codec.http.HttpMethod.POST, "/");
-            HttpPostRequestEncoder encoder = new HttpPostRequestEncoder(request, true);
-            for (FormDataPart attribute : attributes) {
-              if (attribute instanceof AttributeFormDataPart) {
-                AttributeFormDataPart bodyAttribute = (AttributeFormDataPart) attribute;
-                encoder.addBodyAttribute(bodyAttribute.getKey(), bodyAttribute.getValue());
-              } else {
-                FileUploadFormDataPart fileUploadFormDataPart = (FileUploadFormDataPart) attribute;
-                encoder.addBodyFileUpload(fileUploadFormDataPart.getName(),
-                  fileUploadFormDataPart.getFilename(), new File(fileUploadFormDataPart.getPathname()),
-                  fileUploadFormDataPart.getMediaType(), fileUploadFormDataPart.isText());
+            if (body instanceof MultiMap) {
+              MultiMap attributes = (MultiMap) body;
+              for (Map.Entry<String, String> attribute : attributes) {
+                encoder.addBodyAttribute(attribute.getKey(), attribute.getValue());
+              }
+            } else {
+              List<FormDataPart> formDataParts = convertBodyToFormDataParts(body);
+              for (FormDataPart formDataPart : formDataParts) {
+                if (formDataPart instanceof AttributeFormDataPart) {
+                  AttributeFormDataPart bodyAttribute = (AttributeFormDataPart) formDataPart;
+                  encoder.addBodyAttribute(bodyAttribute.getKey(), bodyAttribute.getValue());
+                } else {
+                  FileUploadFormDataPart fileUploadFormDataPart = (FileUploadFormDataPart) formDataPart;
+                  encoder.addBodyFileUpload(fileUploadFormDataPart.getName(),
+                    fileUploadFormDataPart.getFilename(), new File(fileUploadFormDataPart.getPathname()),
+                    fileUploadFormDataPart.getMediaType(), fileUploadFormDataPart.isText());
+                }
               }
             }
             encoder.finalizeRequest();
             for (String headerName : request.headers().names()) {
               req.putHeader(headerName, request.headers().get(headerName));
             }
-            buffer = getBuffer(request, encoder);
+            if (encoder.isChunked()) {
+              buffer = Buffer.buffer();
+              while (true) {
+                HttpContent chunk = encoder.readChunk(new UnpooledByteBufAllocator(false));
+                ByteBuf content = chunk.content();
+                if (content.readableBytes() == 0) {
+                  break;
+                }
+                buffer.appendBuffer(Buffer.buffer(content));
+              }
+            } else {
+              ByteBuf content = request.content();
+              buffer = Buffer.buffer(content);
+            }
           } catch (Exception e) {
             throw new VertxException(e);
           }
@@ -298,23 +302,9 @@ public class HttpContext {
     }
   }
 
-  private Buffer getBuffer(DefaultFullHttpRequest request, HttpPostRequestEncoder encoder) throws Exception {
-    Buffer buffer;
-    if (encoder.isChunked()) {
-      buffer = Buffer.buffer();
-      while (true) {
-        HttpContent chunk = encoder.readChunk(new UnpooledByteBufAllocator(false));
-        ByteBuf content = chunk.content();
-        if (content.readableBytes() == 0) {
-          break;
-        }
-        buffer.appendBuffer(Buffer.buffer(content));
-      }
-    } else {
-      ByteBuf content = request.content();
-      buffer = Buffer.buffer(content);
-    }
-    return buffer;
+  @SuppressWarnings("unchecked")
+  private List<FormDataPart> convertBodyToFormDataParts(Object body) {
+    return (List<FormDataPart>) body;
   }
 
   public <T> T get(String key) {
