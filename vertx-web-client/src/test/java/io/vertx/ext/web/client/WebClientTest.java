@@ -958,6 +958,16 @@ public class WebClientTest extends HttpTestBase {
     await();
   }
 
+  @Test(expected = VertxException.class)
+  public void testFileUploadWhenFileDoesNotExist() {
+    HttpRequest<Buffer> builder = client.post("somepath");
+
+    FormDataPart fileUploadFormDataPart = FormDataPart.createFileUpload("file", "nonexistentFilename", "nonexistentPathname", "text/plain", true);
+
+    builder.sendMultipartForm(Collections.singletonList(fileUploadFormDataPart), onSuccess(resp -> complete()));
+    await();
+  }
+
   @Test
   public void testDefaultFollowRedirects() throws Exception {
     testFollowRedirects(null, true);
