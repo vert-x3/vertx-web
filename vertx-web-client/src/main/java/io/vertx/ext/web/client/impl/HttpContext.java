@@ -266,8 +266,8 @@ public class HttpContext {
             DefaultFullHttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, io.netty.handler.codec.http.HttpMethod.POST, "/");
             HttpPostRequestEncoder encoder = new HttpPostRequestEncoder(request, true);
             for (FormDataPart attribute : attributes) {
-              if (attribute instanceof BodyAttributeFormDataPart) {
-                BodyAttributeFormDataPart bodyAttribute = (BodyAttributeFormDataPart) attribute;
+              if (attribute instanceof AttributeFormDataPart) {
+                AttributeFormDataPart bodyAttribute = (AttributeFormDataPart) attribute;
                 encoder.addBodyAttribute(bodyAttribute.getKey(), bodyAttribute.getValue());
               } else {
                 FileUploadFormDataPart fileUploadFormDataPart = (FileUploadFormDataPart) attribute;

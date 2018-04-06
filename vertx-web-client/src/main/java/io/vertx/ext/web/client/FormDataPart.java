@@ -1,7 +1,7 @@
 package io.vertx.ext.web.client;
 
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.ext.web.client.impl.BodyAttributeFormDataPart;
+import io.vertx.ext.web.client.impl.AttributeFormDataPart;
 import io.vertx.ext.web.client.impl.FileUploadFormDataPart;
 
 /**
@@ -10,14 +10,14 @@ import io.vertx.ext.web.client.impl.FileUploadFormDataPart;
 @VertxGen
 public interface FormDataPart {
   /**
-   * Create a form data part of a body attribute.
+   * Create a form data part of an attribute.
    *
    * @param key   the key of the attribute
    * @param value the value of the attribute
    * @return the form data part
    */
-  static FormDataPart createFormDataPart(String key, String value) {
-    return new BodyAttributeFormDataPart(key, value);
+  static FormDataPart createAttribute(String key, String value) {
+    return new AttributeFormDataPart(key, value);
   }
 
   /**
@@ -30,7 +30,7 @@ public interface FormDataPart {
    * @param isText    true when this file should be transmitted in text format(else binary)
    * @return the form data part
    */
-  static FormDataPart createFormDataPart(String name, String filename, String pathname, String mediaType, boolean isText) {
+  static FormDataPart createFileUpload(String name, String filename, String pathname, String mediaType, boolean isText) {
     return new FileUploadFormDataPart(name, filename, pathname, mediaType, isText);
   }
 }

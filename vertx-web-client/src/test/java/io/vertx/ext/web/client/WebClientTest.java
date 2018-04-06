@@ -949,12 +949,12 @@ public class WebClientTest extends HttpTestBase {
       });
     });
     startServer();
-    FormDataPart simpleFormDataPart1 = FormDataPart.createFormDataPart("toolkit", "vert.x");
-    FormDataPart simpleFormDataPart2 = FormDataPart.createFormDataPart("runtime", "jvm");
-    FormDataPart fileUploadFormDataPart = FormDataPart.createFormDataPart("file", testFile.getName(), testFile.getPath(), "text/plain", true);
+    FormDataPart attributeFormDataPart1 = FormDataPart.createAttribute("toolkit", "vert.x");
+    FormDataPart attributeFormDataPart2 = FormDataPart.createAttribute("runtime", "jvm");
+    FormDataPart fileUploadFormDataPart = FormDataPart.createFileUpload("file", testFile.getName(), testFile.getPath(), "text/plain", true);
 
     HttpRequest<Buffer> builder = client.post("somepath");
-    builder.sendMultipartForm(Arrays.asList(simpleFormDataPart1, simpleFormDataPart2, fileUploadFormDataPart), onSuccess(resp -> complete()));
+    builder.sendMultipartForm(Arrays.asList(attributeFormDataPart1, attributeFormDataPart2, fileUploadFormDataPart), onSuccess(resp -> complete()));
     await();
   }
 
