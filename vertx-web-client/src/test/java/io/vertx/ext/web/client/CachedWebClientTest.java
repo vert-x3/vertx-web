@@ -2,8 +2,10 @@ package io.vertx.ext.web.client;
 
 import io.vertx.core.Future;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.ext.web.client.impl.CacheInterceptor;
 import org.junit.Test;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -255,6 +257,26 @@ public class CachedWebClientTest extends WebClientTest {
         String res2 = syncRequest(webClient, "/", headers);
 
         assertNotEquals(res1, res2);
+    }
+
+    @Test
+    public void testShouldSupportCustomCacheKey() throws Exception {
+
+        WebClient webClient = WebClient.create(vertx,
+                new WebClientOptions().setCacheOptions(new CacheOptions().setMaxEntries(1).
+                setCacheKeyValue(Arrays.asList(CacheInterceptor.CacheKeyValue.METHOD,
+                        CacheInterceptor.CacheKeyValue.HOST))));
+
+        // Generate unique ID each time
+        server.requestHandler(h -> {
+            h.response().end(UUID.randomUUID().toString());
+        });
+        startServer();
+
+        String res1 = syncRequest(webClient, "/abc", null);
+        String res2 = syncRequest(webClient, "/bcd", null);
+
+        assertEquals(res1, res2);
     }
 
     private String syncRequest(WebClient webClient, String uri, Map<String, String> headers) {

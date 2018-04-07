@@ -210,25 +210,57 @@ public class CacheInterceptor implements Handler<HttpContext> {
         }
     }
 
+    public enum CacheKeyValue {
+        METHOD,
+        HOST,
+        PORT,
+        URI,
+        PARAMS,
+        CONTENT_TYPE
+    }
+
     private class CacheKey {
-        private final HttpMethod method;
-        private final String host;
-        private final int port;
-        private final String uri;
-        private final String params;
-        private final String contentType;
+        private HttpMethod method = null;
+        private String host = null;
+        private Integer port = null;
+        private String uri = null;
+        private String params = null;
+        private String contentType = null;
+
+        CacheKey(HttpRequestImpl request, List<CacheKeyValue> keyStructure) {
+            for (CacheKeyValue v : keyStructure) {
+                switch (v) {
+                    case METHOD:
+                        this.method = request.method;
+                        break;
+                    case HOST:
+                        this.host = request.host;
+                        break;
+                    case PORT:
+                        this.port = request.port;
+                        break;
+                    case URI:
+                        this.uri = request.uri;
+                        break;
+                    case CONTENT_TYPE:
+                        this.contentType = request.headers().get("content-type");
+                        break;
+                    case PARAMS:
+                        // Concatenate all query params
+                        this.params = StreamSupport.stream(request.queryParams().spliterator(), false).
+                                sorted().
+                                map(Object::toString).
+                                collect(Collectors.joining());
+                        break;
+                    // This would be the case if we added a new enum, but forgot to handle it here
+                    default:
+                        throw new RuntimeException("Unsupported cache key value " + v);
+                }
+            }
+        }
 
         CacheKey(HttpRequestImpl request) {
-            this.method = request.method;
-            this.host = request.host;
-            this.port = request.port;
-            this.uri = request.uri;
-            this.contentType = request.headers().get("content-type");
-            // Concatenate all query params
-            this.params = StreamSupport.stream(request.queryParams().spliterator(), false).
-                    sorted().
-                    map(Object::toString).
-                    collect(Collectors.joining());
+            this(request, options.getCacheKeyValue());
         }
 
         /**
@@ -243,8 +275,8 @@ public class CacheInterceptor implements Handler<HttpContext> {
 
             CacheKey cacheKey = (CacheKey) o;
 
-            if (port != cacheKey.port) return false;
-            if (method != cacheKey.method) return false;
+            if (port != null ? !port.equals(cacheKey.port) : cacheKey.port != null) return false;
+            if (method != null ? !method.equals(cacheKey.method) : cacheKey.method != null) return false;
             if (host != null ? !host.equals(cacheKey.host) : cacheKey.host != null) return false;
             if (uri != null ? !uri.equals(cacheKey.uri) : cacheKey.uri != null) return false;
             if (params != null ? !params.equals(cacheKey.params) : cacheKey.params != null) return false;
@@ -255,7 +287,7 @@ public class CacheInterceptor implements Handler<HttpContext> {
         public int hashCode() {
             int result = method.hashCode();
             result = 31 * result + (host != null ? host.hashCode() : 0);
-            result = 31 * result + port;
+            result = 31 * result + (port != null ? port.hashCode() : 0);
             result = 31 * result + (uri != null ? uri.hashCode() : 0);
             result = 31 * result + (params != null ? params.hashCode() : 0);
             result = 31 * result + (contentType != null ? contentType.hashCode() : 0);
