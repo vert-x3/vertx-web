@@ -28,7 +28,9 @@ import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.test.core.HttpTestBase;
 import io.vertx.test.core.TestUtils;
 import io.vertx.test.core.tls.Cert;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
 import java.net.ConnectException;
@@ -51,6 +53,10 @@ import java.util.function.Function;
  */
 public class WebClientTest extends HttpTestBase {
 
+  @Rule
+  public TemporaryFolder testFolder = new TemporaryFolder();
+
+  private File testFile;
   private WebClient client;
 
   @Override
@@ -68,6 +74,7 @@ public class WebClientTest extends HttpTestBase {
     client = WebClient.wrap(super.client);
     server.close();
     server = vertx.createHttpServer(new HttpServerOptions().setPort(DEFAULT_HTTP_PORT).setHost(DEFAULT_HTTP_HOST));
+    testFile = testFolder.newFile("test.txt");
   }
 
   @Test
@@ -910,6 +917,54 @@ public class WebClientTest extends HttpTestBase {
     HttpRequest<Buffer> builder = client.post("/somepath");
     builder.putHeader("content-type", "multipart/form-data");
     builder.sendForm(form, onSuccess(resp -> complete()));
+    await();
+  }
+
+  @Test
+  public void testFileUploadFormMultipart() throws Exception {
+    Buffer content = Buffer.buffer("Some content of the file");
+
+    vertx.fileSystem().writeFileBlocking(testFile.getPath(), content);
+
+    server.requestHandler(req -> {
+      req.setExpectMultipart(true);
+      req.uploadHandler(upload -> {
+        Buffer fileBuffer = Buffer.buffer();
+        assertEquals("file", upload.name());
+        assertEquals("test.txt", upload.filename());
+        assertEquals("text/plain", upload.contentType());
+
+        upload.handler(buffer -> {
+          fileBuffer.appendBuffer(buffer);
+        });
+
+        upload.endHandler(v -> {
+          assertEquals(content, fileBuffer);
+        });
+      });
+      req.endHandler(v -> {
+        assertEquals("vert.x", req.getFormAttribute("toolkit"));
+        assertEquals("jvm", req.getFormAttribute("runtime"));
+        req.response().end();
+      });
+    });
+    startServer();
+    FormDataPart attributeFormDataPart1 = FormDataPart.createAttribute("toolkit", "vert.x");
+    FormDataPart attributeFormDataPart2 = FormDataPart.createAttribute("runtime", "jvm");
+    FormDataPart fileUploadFormDataPart = FormDataPart.createFileUpload("file", testFile.getName(), testFile.getPath(), "text/plain", true);
+
+    HttpRequest<Buffer> builder = client.post("somepath");
+    builder.sendMultipartForm(Arrays.asList(attributeFormDataPart1, attributeFormDataPart2, fileUploadFormDataPart), onSuccess(resp -> complete()));
+    await();
+  }
+
+  @Test(expected = VertxException.class)
+  public void testFileUploadWhenFileDoesNotExist() {
+    HttpRequest<Buffer> builder = client.post("somepath");
+
+    FormDataPart fileUploadFormDataPart = FormDataPart.createFileUpload("file", "nonexistentFilename", "nonexistentPathname", "text/plain", true);
+
+    builder.sendMultipartForm(Collections.singletonList(fileUploadFormDataPart), onSuccess(resp -> complete()));
     await();
   }
 

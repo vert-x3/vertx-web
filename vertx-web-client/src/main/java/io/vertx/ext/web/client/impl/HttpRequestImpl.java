@@ -25,10 +25,13 @@ import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.streams.ReadStream;
+import io.vertx.ext.web.client.FormDataPart;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.ext.web.codec.BodyCodec;
+
+import java.util.List;
 
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
@@ -217,6 +220,11 @@ class HttpRequestImpl<T> implements HttpRequest<T> {
   @Override
   public void sendForm(MultiMap body, Handler<AsyncResult<HttpResponse<T>>> handler) {
     send("application/x-www-form-urlencoded", body, handler);
+  }
+
+  @Override
+  public void sendMultipartForm(List<FormDataPart> body, Handler<AsyncResult<HttpResponse<T>>> handler) {
+    send("multipart/form-data", body, handler);
   }
 
   private void send(String contentType, Object body, Handler<AsyncResult<HttpResponse<T>>> handler) {

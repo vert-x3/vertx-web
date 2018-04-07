@@ -183,8 +183,12 @@ the `content-type` header to `multipart/form-data` instead
 {@link examples.WebClientExamples#sendMultipart(io.vertx.ext.web.client.WebClient)}
 ----
 
-NOTE: at the moment multipart files are not supported, it will likely be supported in a later revision
-of the API.
+If you want to upload your file and send attributes, you can use the {@link io.vertx.ext.web.client.HttpRequest#sendMultipartForm(java.util.List, io.vertx.core.Handler)} alternatively.
+
+[source,$lang]
+----
+{@link examples.WebClientExamples#sendMultipartWithFileUpload(io.vertx.ext.web.client.WebClient)}
+----
 
 === Writing request headers
 
