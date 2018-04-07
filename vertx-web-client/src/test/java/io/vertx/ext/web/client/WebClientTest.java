@@ -1,5 +1,6 @@
 package io.vertx.ext.web.client;
 
+import io.netty.handler.codec.http.multipart.HttpPostRequestEncoder;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.VertxException;
@@ -922,8 +923,22 @@ public class WebClientTest extends HttpTestBase {
   }
 
   @Test
-  public void testFileUploadFormMultipart() throws Exception {
-    Buffer content = Buffer.buffer("Some content of the file");
+  public void testFileUploadFormMultipart32B() throws Exception {
+    testFileUploadFormMultipart(32);
+  }
+
+  @Test
+  public void testFileUploadFormMultipart32K() throws Exception {
+    testFileUploadFormMultipart(32 * 1024);
+  }
+
+  @Test
+  public void testFileUploadFormMultipart32M() throws Exception {
+    testFileUploadFormMultipart(32 * 1024 * 1024);
+  }
+
+  private void testFileUploadFormMultipart(int size) throws Exception {
+    Buffer content = Buffer.buffer(TestUtils.randomAlphaString(size));
 
     vertx.fileSystem().writeFileBlocking(testFile.getPath(), content);
 
@@ -934,11 +949,7 @@ public class WebClientTest extends HttpTestBase {
         assertEquals("file", upload.name());
         assertEquals("test.txt", upload.filename());
         assertEquals("text/plain", upload.contentType());
-
-        upload.handler(buffer -> {
-          fileBuffer.appendBuffer(buffer);
-        });
-
+        upload.handler(fileBuffer::appendBuffer);
         upload.endHandler(v -> {
           assertEquals(content, fileBuffer);
         });
@@ -960,14 +971,16 @@ public class WebClientTest extends HttpTestBase {
     await();
   }
 
-  @Test(expected = VertxException.class)
+  @Test
   public void testFileUploadWhenFileDoesNotExist() {
     HttpRequest<Buffer> builder = client.post("somepath");
-
     MultipartForm form = MultipartForm.create()
       .fileUpload("file", "nonexistentFilename", "nonexistentPathname", "text/plain", true);
 
-    builder.sendMultipartForm(form, onSuccess(resp -> complete()));
+    builder.sendMultipartForm(form, onFailure(err -> {
+      assertEquals(err.getClass(), HttpPostRequestEncoder.ErrorDataEncoderException.class);
+      complete();
+    }));
     await();
   }
 

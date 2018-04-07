@@ -23,6 +23,7 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.CaseInsensitiveHeaders;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.impl.HttpClientImpl;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.streams.ReadStream;
 import io.vertx.ext.web.client.HttpRequest;
@@ -226,7 +227,7 @@ class HttpRequestImpl<T> implements HttpRequest<T> {
   }
 
   private void send(String contentType, Object body, Handler<AsyncResult<HttpResponse<T>>> handler) {
-    HttpContext ex = new HttpContext(this, contentType, body, (Handler)handler);
+    HttpContext ex = new HttpContext(((HttpClientImpl)client.client).getVertx().getOrCreateContext(), this, contentType, body, (Handler)handler);
     ex.interceptAndSend();
   }
 }
