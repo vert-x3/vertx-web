@@ -254,8 +254,8 @@ public class WebClientExamples {
 
   public void sendMultipartWithFileUpload(WebClient client) {
     List<FormDataPart> form = new ArrayList<>();
-    form.add(FormDataPart.createFileUpload("file", "filename", "pathname", "text/plain", true));
-    form.add(FormDataPart.createAttribute("attribute_key", "attribute_value"));
+    form.add(FormDataPart.fileUpload("file", "filename", "pathname", "text/plain", true));
+    form.add(FormDataPart.attribute("attribute_key", "attribute_value"));
 
     // Submit the form as a multipart form body
     client

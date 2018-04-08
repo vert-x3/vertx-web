@@ -31,7 +31,7 @@ public interface FormDataPart {
    * @param value the value of the attribute
    * @return the form data part
    */
-  static FormDataPart createAttribute(String key, String value) {
+  static FormDataPart attribute(String key, String value) {
     return new AttributeFormDataPart(key, value);
   }
 
@@ -45,7 +45,7 @@ public interface FormDataPart {
    * @param isText    true when this file should be transmitted in text format(else binary)
    * @return the form data part
    */
-  static FormDataPart createFileUpload(String name, String filename, String pathname, String mediaType, boolean isText) {
+  static FormDataPart fileUpload(String name, String filename, String pathname, String mediaType, boolean isText) {
     return new FileUploadFormDataPart(name, filename, pathname, mediaType, isText);
   }
 }
