@@ -38,7 +38,7 @@ import io.vertx.ext.web.codec.impl.BodyCodecImpl;
  *   <li>{@link #version()} the HTTP version</li>
  * </ul>
  * <p>
- * The body of the response is returned by {@link #body()} decoded as the format specified by the {@link BodyCodec} that
+ * The body of the response is returned by {@link #body()} decoded as the format specified by the {@link io.vertx.ext.web.codec.BodyCodec} that
  * built the response.
  * <p>
  * Keep in mind that using this {@code HttpResponse} impose to fully buffer the response body and should be used for payload

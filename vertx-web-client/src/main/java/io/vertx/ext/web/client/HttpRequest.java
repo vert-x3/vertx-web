@@ -26,6 +26,7 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.streams.ReadStream;
 import io.vertx.ext.web.codec.BodyCodec;
+import io.vertx.ext.web.multipart.MultipartForm;
 
 import java.util.List;
 
@@ -245,7 +246,7 @@ public interface HttpRequest<T> {
    *
    * @param body the body
    */
-  void sendMultipartForm(List<FormDataPart> body, Handler<AsyncResult<HttpResponse<T>>> handler);
+  void sendMultipartForm(MultipartForm body, Handler<AsyncResult<HttpResponse<T>>> handler);
 
   /**
    * Send a request, the {@code handler} will receive the response as an {@link HttpResponse}.

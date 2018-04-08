@@ -15,28 +15,19 @@
  */
 package io.vertx.ext.web.client.impl;
 
-import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.UnpooledByteBufAllocator;
-import io.netty.handler.codec.http.DefaultFullHttpRequest;
-import io.netty.handler.codec.http.HttpContent;
-import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.QueryStringEncoder;
-import io.netty.handler.codec.http.multipart.HttpPostRequestEncoder;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Context;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
-import io.vertx.core.VertxException;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpClientResponse;
@@ -46,29 +37,32 @@ import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.streams.Pump;
 import io.vertx.core.streams.ReadStream;
-import io.vertx.ext.web.client.FormDataPart;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.ext.web.codec.spi.BodyStream;
+import io.vertx.ext.web.multipart.MultipartForm;
 
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
  */
 public class HttpContext {
 
+  private final Context context;
   private final Handler<AsyncResult<HttpResponse<Object>>> responseHandler;
   private final HttpRequestImpl request;
-  private final Object body;
+  private Object body;
   private String contentType;
   private Map<String, Object> attrs;
   private Handler<AsyncResult<HttpResponse<Object>>> currentResponseHandler;
   private Iterator<Handler<HttpContext>> it;
 
-  public HttpContext(HttpRequest request,
+  public HttpContext(Context context,
+                     HttpRequest request,
                      String contentType,
                      Object body,
                      Handler<AsyncResult<HttpResponse<Object>>> responseHandler) {
+    this.context = context;
     this.request = (HttpRequestImpl)request;
     this.contentType = contentType;
     this.body = body;
@@ -217,6 +211,31 @@ public class HttpContext {
           contentType = prev;
         }
       }
+
+      if (body instanceof MultiMap) {
+        MultipartForm parts = MultipartForm.create();
+        MultiMap attributes = (MultiMap) body;
+        for (Map.Entry<String, String> attribute : attributes) {
+          parts.attribute(attribute.getKey(), attribute.getValue());
+        }
+        body = parts;
+      }
+      if (body instanceof MultipartForm) {
+        MultipartFormUpload multipartForm;
+        try {
+          boolean multipart = "multipart/form-data".equals(contentType);
+          multipartForm = new MultipartFormUpload(context,  (MultipartForm) this.body, multipart);
+          this.body = multipartForm;
+        } catch (Exception e) {
+          responseFuture.tryFail(e);
+          return;
+        }
+        request.headers().addAll(multipartForm.headers());
+        for (String headerName : request.headers().names()) {
+          req.putHeader(headerName, request.headers().get(headerName));
+        }
+      }
+
       if (body instanceof ReadStream<?>) {
         ReadStream<Buffer> stream = (ReadStream<Buffer>) body;
         if (request.headers == null || !request.headers.contains(HttpHeaders.CONTENT_LENGTH)) {
@@ -243,51 +262,6 @@ public class HttpContext {
         Buffer buffer;
         if (body instanceof Buffer) {
           buffer = (Buffer) body;
-        } else if (body instanceof MultiMap || body instanceof List) {
-          try {
-            boolean multipart = "multipart/form-data".equals(contentType);
-            DefaultFullHttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, io.netty.handler.codec.http.HttpMethod.POST, "/");
-            HttpPostRequestEncoder encoder = new HttpPostRequestEncoder(request, multipart);
-            if (body instanceof MultiMap) {
-              MultiMap attributes = (MultiMap) body;
-              for (Map.Entry<String, String> attribute : attributes) {
-                encoder.addBodyAttribute(attribute.getKey(), attribute.getValue());
-              }
-            } else {
-              List<FormDataPart> formDataParts = convertBodyToFormDataParts(body);
-              for (FormDataPart formDataPart : formDataParts) {
-                if (formDataPart instanceof AttributeFormDataPart) {
-                  AttributeFormDataPart bodyAttribute = (AttributeFormDataPart) formDataPart;
-                  encoder.addBodyAttribute(bodyAttribute.getKey(), bodyAttribute.getValue());
-                } else {
-                  FileUploadFormDataPart fileUploadFormDataPart = (FileUploadFormDataPart) formDataPart;
-                  encoder.addBodyFileUpload(fileUploadFormDataPart.getName(),
-                    fileUploadFormDataPart.getFilename(), new File(fileUploadFormDataPart.getPathname()),
-                    fileUploadFormDataPart.getMediaType(), fileUploadFormDataPart.isText());
-                }
-              }
-            }
-            encoder.finalizeRequest();
-            for (String headerName : request.headers().names()) {
-              req.putHeader(headerName, request.headers().get(headerName));
-            }
-            if (encoder.isChunked()) {
-              buffer = Buffer.buffer();
-              while (true) {
-                HttpContent chunk = encoder.readChunk(new UnpooledByteBufAllocator(false));
-                ByteBuf content = chunk.content();
-                if (content.readableBytes() == 0) {
-                  break;
-                }
-                buffer.appendBuffer(Buffer.buffer(content));
-              }
-            } else {
-              ByteBuf content = request.content();
-              buffer = Buffer.buffer(content);
-            }
-          } catch (Exception e) {
-            throw new VertxException(e);
-          }
         } else if (body instanceof JsonObject) {
           buffer = Buffer.buffer(((JsonObject)body).encode());
         } else {
@@ -300,11 +274,6 @@ public class HttpContext {
       req.exceptionHandler(responseFuture::tryFail);
       req.end();
     }
-  }
-
-  @SuppressWarnings("unchecked")
-  private List<FormDataPart> convertBodyToFormDataParts(Object body) {
-    return (List<FormDataPart>) body;
   }
 
   public <T> T get(String key) {

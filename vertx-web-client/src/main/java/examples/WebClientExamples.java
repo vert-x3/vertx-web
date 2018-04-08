@@ -10,15 +10,12 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.streams.ReadStream;
 import io.vertx.core.streams.WriteStream;
 import io.vertx.docgen.Source;
-import io.vertx.ext.web.client.FormDataPart;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.ext.web.codec.BodyCodec;
-
-import java.util.ArrayList;
-import java.util.List;
+import io.vertx.ext.web.multipart.MultipartForm;
 
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
@@ -253,9 +250,9 @@ public class WebClientExamples {
   }
 
   public void sendMultipartWithFileUpload(WebClient client) {
-    List<FormDataPart> form = new ArrayList<>();
-    form.add(FormDataPart.createFileUpload("file", "filename", "pathname", "text/plain", true));
-    form.add(FormDataPart.createAttribute("attribute_key", "attribute_value"));
+    MultipartForm form = MultipartForm.create()
+      .attribute("imageDescription", "a very nice image")
+      .binaryFileUpload("imageFile", "image.jpg", "/path/to/image", "image/jpeg");
 
     // Submit the form as a multipart form body
     client
