@@ -20,7 +20,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 
 import io.netty.buffer.ByteBuf;
@@ -46,11 +45,12 @@ import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.streams.Pump;
 import io.vertx.core.streams.ReadStream;
-import io.vertx.ext.web.client.FormDataPart;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.ext.web.codec.spi.BodyStream;
+import io.vertx.ext.web.multipart.FormDataPart;
+import io.vertx.ext.web.multipart.MultipartForm;
 
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
@@ -243,7 +243,7 @@ public class HttpContext {
         Buffer buffer;
         if (body instanceof Buffer) {
           buffer = (Buffer) body;
-        } else if (body instanceof MultiMap || body instanceof List) {
+        } else if (body instanceof MultiMap || body instanceof MultipartForm) {
           try {
             boolean multipart = "multipart/form-data".equals(contentType);
             DefaultFullHttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, io.netty.handler.codec.http.HttpMethod.POST, "/");
@@ -254,16 +254,14 @@ public class HttpContext {
                 encoder.addBodyAttribute(attribute.getKey(), attribute.getValue());
               }
             } else {
-              List<FormDataPart> formDataParts = convertBodyToFormDataParts(body);
+              MultipartForm formDataParts = convertBodyToFormDataParts(body);
               for (FormDataPart formDataPart : formDataParts) {
-                if (formDataPart instanceof AttributeFormDataPart) {
-                  AttributeFormDataPart bodyAttribute = (AttributeFormDataPart) formDataPart;
-                  encoder.addBodyAttribute(bodyAttribute.getKey(), bodyAttribute.getValue());
+                if (formDataPart.isAttribute()) {
+                  encoder.addBodyAttribute(formDataPart.name(), formDataPart.value());
                 } else {
-                  FileUploadFormDataPart fileUploadFormDataPart = (FileUploadFormDataPart) formDataPart;
-                  encoder.addBodyFileUpload(fileUploadFormDataPart.getName(),
-                    fileUploadFormDataPart.getFilename(), new File(fileUploadFormDataPart.getPathname()),
-                    fileUploadFormDataPart.getMediaType(), fileUploadFormDataPart.isText());
+                  encoder.addBodyFileUpload(formDataPart.name(),
+                    formDataPart.filename(), new File(formDataPart.pathname()),
+                    formDataPart.mediaType(), formDataPart.isText());
                 }
               }
             }
@@ -303,8 +301,8 @@ public class HttpContext {
   }
 
   @SuppressWarnings("unchecked")
-  private List<FormDataPart> convertBodyToFormDataParts(Object body) {
-    return (List<FormDataPart>) body;
+  private MultipartForm convertBodyToFormDataParts(Object body) {
+    return (MultipartForm) body;
   }
 
   public <T> T get(String key) {

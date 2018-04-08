@@ -25,6 +25,7 @@ import io.vertx.core.streams.ReadStream;
 import io.vertx.core.streams.WriteStream;
 import io.vertx.ext.web.client.jackson.WineAndCheese;
 import io.vertx.ext.web.codec.BodyCodec;
+import io.vertx.ext.web.multipart.MultipartForm;
 import io.vertx.test.core.HttpTestBase;
 import io.vertx.test.core.TestUtils;
 import io.vertx.test.core.tls.Cert;
@@ -949,12 +950,13 @@ public class WebClientTest extends HttpTestBase {
       });
     });
     startServer();
-    FormDataPart attributeFormDataPart1 = FormDataPart.attribute("toolkit", "vert.x");
-    FormDataPart attributeFormDataPart2 = FormDataPart.attribute("runtime", "jvm");
-    FormDataPart fileUploadFormDataPart = FormDataPart.fileUpload("file", testFile.getName(), testFile.getPath(), "text/plain", true);
+    MultipartForm form = MultipartForm.create()
+      .attribute("toolkit", "vert.x")
+      .attribute("runtime", "jvm")
+      .fileUpload("file", testFile.getName(), testFile.getPath(), "text/plain", true);
 
     HttpRequest<Buffer> builder = client.post("somepath");
-    builder.sendMultipartForm(Arrays.asList(attributeFormDataPart1, attributeFormDataPart2, fileUploadFormDataPart), onSuccess(resp -> complete()));
+    builder.sendMultipartForm(form, onSuccess(resp -> complete()));
     await();
   }
 
@@ -962,9 +964,10 @@ public class WebClientTest extends HttpTestBase {
   public void testFileUploadWhenFileDoesNotExist() {
     HttpRequest<Buffer> builder = client.post("somepath");
 
-    FormDataPart fileUploadFormDataPart = FormDataPart.fileUpload("file", "nonexistentFilename", "nonexistentPathname", "text/plain", true);
+    MultipartForm form = MultipartForm.create()
+      .fileUpload("file", "nonexistentFilename", "nonexistentPathname", "text/plain", true);
 
-    builder.sendMultipartForm(Collections.singletonList(fileUploadFormDataPart), onSuccess(resp -> complete()));
+    builder.sendMultipartForm(form, onSuccess(resp -> complete()));
     await();
   }
 
