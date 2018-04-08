@@ -964,7 +964,7 @@ public class WebClientTest extends HttpTestBase {
     MultipartForm form = MultipartForm.create()
       .attribute("toolkit", "vert.x")
       .attribute("runtime", "jvm")
-      .fileUpload("file", testFile.getName(), testFile.getPath(), "text/plain", true);
+      .textFileUpload("file", testFile.getName(), testFile.getPath(), "text/plain");
 
     HttpRequest<Buffer> builder = client.post("somepath");
     builder.sendMultipartForm(form, onSuccess(resp -> complete()));
@@ -975,7 +975,7 @@ public class WebClientTest extends HttpTestBase {
   public void testFileUploadWhenFileDoesNotExist() {
     HttpRequest<Buffer> builder = client.post("somepath");
     MultipartForm form = MultipartForm.create()
-      .fileUpload("file", "nonexistentFilename", "nonexistentPathname", "text/plain", true);
+      .textFileUpload("file", "nonexistentFilename", "nonexistentPathname", "text/plain");
 
     builder.sendMultipartForm(form, onFailure(err -> {
       assertEquals(err.getClass(), HttpPostRequestEncoder.ErrorDataEncoderException.class);

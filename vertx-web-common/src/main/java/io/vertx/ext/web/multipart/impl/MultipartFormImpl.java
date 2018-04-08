@@ -33,8 +33,14 @@ public class MultipartFormImpl implements MultipartForm {
   }
 
   @Override
-  public MultipartForm fileUpload(String name, String filename, String pathname, String mediaType, boolean isText) {
-    parts.add(new FormDataPartImpl(name, filename, pathname, mediaType, isText));
+  public MultipartForm textFileUpload(String name, String filename, String pathname, String mediaType) {
+    parts.add(new FormDataPartImpl(name, filename, pathname, mediaType, true));
+    return this;
+  }
+
+  @Override
+  public MultipartForm binaryFileUpload(String name, String filename, String pathname, String mediaType) {
+    parts.add(new FormDataPartImpl(name, filename, pathname, mediaType, false));
     return this;
   }
 

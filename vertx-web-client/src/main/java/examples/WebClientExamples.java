@@ -251,8 +251,8 @@ public class WebClientExamples {
 
   public void sendMultipartWithFileUpload(WebClient client) {
     MultipartForm form = MultipartForm.create()
-      .attribute("attribute_key", "attribute_value")
-      .fileUpload("file", "filename", "pathname", "text/plain", true);
+      .attribute("imageDescription", "a very nice image")
+      .binaryFileUpload("imageFile", "image.jpg", "/path/to/image", "image/jpeg");
 
     // Submit the form as a multipart form body
     client

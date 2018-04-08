@@ -34,6 +34,8 @@ import java.io.File;
 
 /**
  * A stream that sends a multipart form.
+ *
+ * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
  */
 public class MultipartFormUpload implements ReadStream<Buffer> {
 

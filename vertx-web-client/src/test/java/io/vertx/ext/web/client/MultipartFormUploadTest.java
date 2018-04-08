@@ -33,10 +33,8 @@ import org.junit.runner.RunWith;
 import java.io.File;
 import java.nio.file.Files;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.Assert.assertEquals;
@@ -77,11 +75,11 @@ public class MultipartFormUploadTest {
   @Test
   public void testFileUpload(TestContext ctx) throws Exception {
     Async async = ctx.async();
-    MultipartFormUpload upload = new MultipartFormUpload(vertx.getOrCreateContext(), MultipartForm.create().fileUpload(
+    MultipartFormUpload upload = new MultipartFormUpload(vertx.getOrCreateContext(), MultipartForm.create().textFileUpload(
       "the-file",
       largeFile.getName(),
       largeFile.getAbsolutePath(),
-      "text/plain", true), true);
+      "text/plain"), true);
     List<Buffer> buffers = Collections.synchronizedList(new ArrayList<>());
     AtomicInteger end = new AtomicInteger();
     upload.endHandler(v -> {

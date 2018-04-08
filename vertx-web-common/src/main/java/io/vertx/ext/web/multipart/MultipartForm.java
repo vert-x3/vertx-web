@@ -21,6 +21,8 @@ import io.vertx.ext.web.multipart.impl.MultipartFormImpl;
 
 /**
  * A multipart form.
+ *
+ * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
  */
 @VertxGen
 public interface MultipartForm extends Iterable<FormDataPart> {
@@ -43,16 +45,27 @@ public interface MultipartForm extends Iterable<FormDataPart> {
   MultipartForm attribute(String name, String value);
 
   /**
-   * Add a file upload form data part.
+   * Add a text file upload form data part.
    *
    * @param name      name of the parameter
    * @param filename  filename of the file
    * @param pathname  the pathname of the file
    * @param mediaType the MIME type of the file
-   * @param isText    true when this file should be transmitted in text format (else binary)
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
-  MultipartForm fileUpload(String name, String filename, String pathname, String mediaType, boolean isText);
+  MultipartForm textFileUpload(String name, String filename, String pathname, String mediaType);
+
+  /**
+   * Add a binary file upload form data part.
+   *
+   * @param name      name of the parameter
+   * @param filename  filename of the file
+   * @param pathname  the pathname of the file
+   * @param mediaType the MIME type of the file
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  MultipartForm binaryFileUpload(String name, String filename, String pathname, String mediaType);
 
 }
