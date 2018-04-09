@@ -246,6 +246,15 @@ public interface StaticHandler extends Handler<RoutingContext> {
   StaticHandler setHttp2PushMapping(List<Http2PushMapping> http2PushMappings);
 
   /**
+   * Set the suffix list for already compressed files
+   *
+   * @param suffixTypes the list of mime types that are already compressed
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  StaticHandler setCompressedSuffixTypes(List<String> suffixTypes);
+
+  /**
    * Set whether async filesystem access should always be used
    *
    * @param alwaysAsyncFS true for always async FS access

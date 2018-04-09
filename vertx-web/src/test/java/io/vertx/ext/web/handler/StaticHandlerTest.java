@@ -253,6 +253,37 @@ public class StaticHandlerTest extends WebTestBase {
   }
 
   @Test
+  public void testContentEncodingForCompressedFiles() throws Exception {
+    List<String> compressedSuffixTypes = new ArrayList<>();
+    compressedSuffixTypes.add("image/jpeg");
+    stat.setWebRoot("webroot").setCompressedSuffixTypes(compressedSuffixTypes);
+    router.route().handler(stat);
+
+    CountDownLatch latch = new CountDownLatch(3);
+    HttpServer httpServer = vertx.createHttpServer(new HttpServerOptions().setCompressionSupported(true));
+    httpServer.requestHandler(router).listen(8444);
+
+    HttpClient client = vertx.createHttpClient();
+    HttpClientRequest request1 = client.get(8444, "localhost", "/testCompressionSuffix.html", resp -> {
+      assertEquals(200, resp.statusCode());
+      latch.countDown();
+    });
+    request1.end();
+    HttpClientRequest request2 = client.get(8444, "localhost", "/somedir/range.jpg", resp -> {
+      assertEquals(200, resp.statusCode());
+      assertEquals("identity", resp.getHeader("content-encoding"));
+      latch.countDown();
+    });
+    request2.end();
+    HttpClientRequest request3 = client.get(8444, "localhost", "/somedir3/coin.png", resp -> {
+      assertEquals(200, resp.statusCode());
+      latch.countDown();
+    });
+    request3.end();
+    latch.await();
+  }
+
+  @Test
   public void testHead() throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
     testRequest(HttpMethod.HEAD, "/otherpage.html", null, res -> {
@@ -421,7 +452,7 @@ public class StaticHandlerTest extends WebTestBase {
   @Test
   public void testDirectoryListingText() throws Exception {
     stat.setDirectoryListing(true);
-    Set<String> expected = new HashSet<>(Arrays.asList(".hidden.html", "a", "foo.json", "index.html", "otherpage.html", "somedir", "somedir2", "somedir3", "file with spaces.html"));
+    Set<String> expected = new HashSet<>(Arrays.asList(".hidden.html", "a", "foo.json", "index.html", "otherpage.html", "somedir", "somedir2", "somedir3", "testCompressionSuffix.html", "file with spaces.html"));
     testRequest(HttpMethod.GET, "/", null, resp -> {
       resp.bodyHandler(buff -> {
         String sBuff = buff.toString();
@@ -438,7 +469,7 @@ public class StaticHandlerTest extends WebTestBase {
   public void testDirectoryListingTextNoHidden() throws Exception {
     stat.setDirectoryListing(true);
     stat.setIncludeHidden(false);
-    Set<String> expected = new HashSet<>(Arrays.asList("foo.json", "a", "index.html", "otherpage.html", "somedir", "somedir2", "somedir3", "file with spaces.html"));
+    Set<String> expected = new HashSet<>(Arrays.asList("foo.json", "a", "index.html", "otherpage.html", "somedir", "somedir2", "somedir3", "testCompressionSuffix.html", "file with spaces.html"));
     testRequest(HttpMethod.GET, "/", null, resp -> {
       resp.bodyHandler(buff -> {
         assertEquals("text/plain", resp.headers().get("content-type"));
@@ -455,7 +486,7 @@ public class StaticHandlerTest extends WebTestBase {
   @Test
   public void testDirectoryListingJson() throws Exception {
     stat.setDirectoryListing(true);
-    Set<String> expected = new HashSet<>(Arrays.asList(".hidden.html", "foo.json", "index.html", "otherpage.html", "a", "somedir", "somedir2", "somedir3", "file with spaces.html"));
+    Set<String> expected = new HashSet<>(Arrays.asList(".hidden.html", "foo.json", "index.html", "otherpage.html", "a", "somedir", "somedir2", "somedir3", "testCompressionSuffix.html", "file with spaces.html"));
     testRequest(HttpMethod.GET, "/", req -> {
       req.putHeader("accept", "application/json");
     }, resp -> {
@@ -477,7 +508,7 @@ public class StaticHandlerTest extends WebTestBase {
   public void testDirectoryListingJsonNoHidden() throws Exception {
     stat.setDirectoryListing(true);
     stat.setIncludeHidden(false);
-    Set<String> expected = new HashSet<>(Arrays.asList("foo.json", "a", "index.html", "otherpage.html", "somedir", "somedir2", "somedir3", "file with spaces.html"));
+    Set<String> expected = new HashSet<>(Arrays.asList("foo.json", "a", "index.html", "otherpage.html", "somedir", "somedir2", "somedir3", "testCompressionSuffix.html", "file with spaces.html"));
     testRequest(HttpMethod.GET, "/", req -> {
       req.putHeader("accept", "application/json");
     }, resp -> {

@@ -83,6 +83,7 @@ public class StaticHandlerImpl implements StaticHandler {
   private long numServesBlocking;
   private boolean useAsyncFS;
   private long nextAvgCheck = NUM_SERVES_TUNING_FS_ACCESS;
+  private List<String> compressedSuffixList;
 
   private final ClassLoader classLoader;
 
@@ -401,6 +402,9 @@ public class StaticHandlerImpl implements StaticHandler {
           // guess content type
           String contentType = MimeMapping.getMimeTypeForFilename(file);
           if (contentType != null) {
+            if(compressedSuffixList != null && compressedSuffixList.contains(contentType)) {
+              request.response().putHeader("content-encoding", "identity");
+            }
             if (contentType.startsWith("text")) {
               request.response().putHeader("Content-Type", contentType + ";charset=" + defaultContentEncoding);
             } else {
@@ -563,6 +567,12 @@ public class StaticHandlerImpl implements StaticHandler {
   @Override
   public StaticHandler setHttp2PushMapping(List<Http2PushMapping> http2PushMap) {
     if(http2PushMap != null) this.http2PushMappings = new ArrayList<>(http2PushMap);
+    return this;
+  }
+
+  @Override
+  public StaticHandler setCompressedSuffixTypes(List<String> suffixTypes) {
+    if(suffixTypes != null) this.compressedSuffixList = new ArrayList<>(suffixTypes);
     return this;
   }
 
