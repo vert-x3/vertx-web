@@ -29,9 +29,15 @@ import io.vertx.ext.web.codec.spi.BodyStream;
 public class StreamingBodyCodec implements BodyCodec<Void> {
 
   private final WriteStream<Buffer> stream;
+  private final boolean close;
 
   public StreamingBodyCodec(WriteStream<Buffer> stream) {
-    this.stream = stream;
+    this(stream, true);
+  }
+
+  public StreamingBodyCodec(WriteStream<Buffer> stream, boolean close) {
+	this.stream = stream;
+	this.close = close;
   }
 
   @Override
@@ -66,7 +72,9 @@ public class StreamingBodyCodec implements BodyCodec<Void> {
 
       @Override
       public void end() {
-        stream.end();
+        if (close) {
+          stream.end();
+        }
         if (!fut.isComplete()) {
           fut.complete();
         }

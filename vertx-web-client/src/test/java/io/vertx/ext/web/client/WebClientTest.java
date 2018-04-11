@@ -591,7 +591,16 @@ public class WebClientTest extends HttpTestBase {
   }
 
   @Test
+  public void testResponseBodyStreamNoClose() throws Exception {
+	testResponseBodyStream(false);
+  }
+
+  @Test
   public void testResponseBodyStream() throws Exception {
+	testResponseBodyStream(true);
+  }
+
+  public void testResponseBodyStream(boolean close) throws Exception {
     AtomicBoolean paused = new AtomicBoolean();
     server.requestHandler(req -> {
       HttpServerResponse resp = req.response();
@@ -650,9 +659,9 @@ public class WebClientTest extends HttpTestBase {
     };
     HttpRequest<Buffer> get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
     get
-      .as(BodyCodec.pipe(stream))
+      .as(BodyCodec.pipe(stream, close))
       .send(onSuccess(resp -> {
-      assertTrue(ended.get());
+      assertEquals(close, ended.get());
       assertEquals(200, resp.statusCode());
       assertEquals(null, resp.body());
       testComplete();
