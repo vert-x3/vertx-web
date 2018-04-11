@@ -64,6 +64,8 @@ Configure the default behavior of the client to follow HTTP <code>30x</code> red
 |[[sendUnmaskedFrames]]`@sendUnmaskedFrames`|`Boolean`|-
 |[[soLinger]]`@soLinger`|`Number (int)`|-
 |[[ssl]]`@ssl`|`Boolean`|-
+|[[sslHandshakeTimeout]]`@sslHandshakeTimeout`|`Number (long)`|-
+|[[sslHandshakeTimeoutUnit]]`@sslHandshakeTimeoutUnit`|`link:enums.html#TimeUnit[TimeUnit]`|-
 |[[tcpCork]]`@tcpCork`|`Boolean`|-
 |[[tcpFastOpen]]`@tcpFastOpen`|`Boolean`|-
 |[[tcpKeepAlive]]`@tcpKeepAlive`|`Boolean`|-
