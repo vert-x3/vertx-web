@@ -254,9 +254,40 @@ public class StaticHandlerTest extends WebTestBase {
 
   @Test
   public void testContentEncodingForCompressedFiles() throws Exception {
-    List<String> compressedSuffixTypes = new ArrayList<>();
+    Set<String> compressedSuffixTypes = new HashSet<>();
     compressedSuffixTypes.add("image/jpeg");
-    stat.setWebRoot("webroot").setCompressedSuffixTypes(compressedSuffixTypes);
+    stat.setCompressedContentTypes(compressedSuffixTypes);
+    router.route().handler(stat);
+
+    CountDownLatch latch = new CountDownLatch(3);
+    HttpServer httpServer = vertx.createHttpServer(new HttpServerOptions().setCompressionSupported(true));
+    httpServer.requestHandler(router).listen(8444);
+
+    HttpClient client = vertx.createHttpClient();
+    HttpClientRequest request1 = client.get(8444, "localhost", "/testCompressionSuffix.html", resp -> {
+      assertEquals(200, resp.statusCode());
+      latch.countDown();
+    });
+    request1.end();
+    HttpClientRequest request2 = client.get(8444, "localhost", "/somedir/range.jpg", resp -> {
+      assertEquals(200, resp.statusCode());
+      assertEquals("identity", resp.getHeader("content-encoding"));
+      latch.countDown();
+    });
+    request2.end();
+    HttpClientRequest request3 = client.get(8444, "localhost", "/somedir3/coin.png", resp -> {
+      assertEquals(200, resp.statusCode());
+      latch.countDown();
+    });
+    request3.end();
+    latch.await();
+  }
+
+  @Test
+  public void testSuffixesForCompressedFiles() throws Exception {
+    Set<String> compressedSuffixes = new HashSet<>();
+    compressedSuffixes.add("jpg");
+    stat.setCompressedSuffixes(compressedSuffixes);
     router.route().handler(stat);
 
     CountDownLatch latch = new CountDownLatch(3);

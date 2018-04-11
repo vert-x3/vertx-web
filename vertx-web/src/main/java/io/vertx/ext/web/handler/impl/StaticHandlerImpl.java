@@ -83,7 +83,8 @@ public class StaticHandlerImpl implements StaticHandler {
   private long numServesBlocking;
   private boolean useAsyncFS;
   private long nextAvgCheck = NUM_SERVES_TUNING_FS_ACCESS;
-  private List<String> compressedSuffixList;
+  private Set<String> compressedContentTypes = new HashSet<>();
+  private Set<String> compressedFileSuffixes = new HashSet<>();
 
   private final ClassLoader classLoader;
 
@@ -401,8 +402,12 @@ public class StaticHandlerImpl implements StaticHandler {
         wrapInTCCLSwitch(() -> {
           // guess content type
           String contentType = MimeMapping.getMimeTypeForFilename(file);
+          Set<String> contentTypesFromSuffixList = new HashSet<>();
+          for(String suffix : compressedFileSuffixes) {
+            contentTypesFromSuffixList.add(MimeMapping.getMimeTypeForExtension(suffix));
+          }
           if (contentType != null) {
-            if(compressedSuffixList != null && compressedSuffixList.contains(contentType)) {
+            if(compressedContentTypes.contains(contentType) || contentTypesFromSuffixList.contains(contentType)) {
               request.response().putHeader("content-encoding", "identity");
             }
             if (contentType.startsWith("text")) {
@@ -571,8 +576,14 @@ public class StaticHandlerImpl implements StaticHandler {
   }
 
   @Override
-  public StaticHandler setCompressedSuffixTypes(List<String> suffixTypes) {
-    if(suffixTypes != null) this.compressedSuffixList = new ArrayList<>(suffixTypes);
+  public StaticHandler setCompressedContentTypes(Set<String> contentTypes) {
+    if(contentTypes != null) this.compressedContentTypes = new HashSet<>(contentTypes);
+    return this;
+  }
+
+  @Override
+  public StaticHandler setCompressedSuffixes(Set<String> fileSuffixes) {
+    if(fileSuffixes != null) this.compressedFileSuffixes = new HashSet<>(fileSuffixes);
     return this;
   }
 
