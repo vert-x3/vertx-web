@@ -23,6 +23,7 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.http.HttpVersion;
+import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.impl.MimeMapping;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.logging.Logger;
@@ -83,8 +84,8 @@ public class StaticHandlerImpl implements StaticHandler {
   private long numServesBlocking;
   private boolean useAsyncFS;
   private long nextAvgCheck = NUM_SERVES_TUNING_FS_ACCESS;
-  private Set<String> compressedContentTypes = new HashSet<>();
-  private Set<String> compressedFileSuffixes = new HashSet<>();
+  private Set<String> compressedMediaTypes = Collections.emptySet();
+  private Set<String> compressedFileSuffixes = Collections.emptySet();
 
   private final ClassLoader classLoader;
 
@@ -401,15 +402,12 @@ public class StaticHandlerImpl implements StaticHandler {
         // classloader (if any).
         wrapInTCCLSwitch(() -> {
           // guess content type
-          String contentType = MimeMapping.getMimeTypeForFilename(file);
-          Set<String> contentTypesFromSuffixList = new HashSet<>();
-          for(String suffix : compressedFileSuffixes) {
-            contentTypesFromSuffixList.add(MimeMapping.getMimeTypeForExtension(suffix));
+          String extension = getFileExtension(file);
+          String contentType = MimeMapping.getMimeTypeForExtension(extension);
+          if (compressedMediaTypes.contains(contentType) || compressedFileSuffixes.contains(extension)) {
+            request.response().putHeader(HttpHeaders.CONTENT_ENCODING, HttpHeaders.IDENTITY);
           }
           if (contentType != null) {
-            if(compressedContentTypes.contains(contentType) || contentTypesFromSuffixList.contains(contentType)) {
-              request.response().putHeader("content-encoding", "identity");
-            }
             if (contentType.startsWith("text")) {
               request.response().putHeader("Content-Type", contentType + ";charset=" + defaultContentEncoding);
             } else {
@@ -419,34 +417,34 @@ public class StaticHandlerImpl implements StaticHandler {
 
           // http2 pushing support
           if (request.version() == HttpVersion.HTTP_2 && http2PushMappings != null) {
-              for (Http2PushMapping dependency : http2PushMappings) {
-                if (!dependency.isNoPush()) {
-                  final String dep = webRoot + "/" + dependency.getFilePath();
-                  HttpServerResponse response = request.response();
+            for (Http2PushMapping dependency : http2PushMappings) {
+              if (!dependency.isNoPush()) {
+                final String dep = webRoot + "/" + dependency.getFilePath();
+                HttpServerResponse response = request.response();
 
-                  // get the file props
-                  getFileProps(context, dep, filePropsAsyncResult -> {
-                    if (filePropsAsyncResult.succeeded()) {
-                      // push
-                      writeCacheHeaders(request, filePropsAsyncResult.result());
-                      response.push(HttpMethod.GET, "/" + dependency.getFilePath(), pushAsyncResult -> {
-                        if (pushAsyncResult.succeeded()) {
-                          HttpServerResponse res = pushAsyncResult.result();
-                          final String depContentType = MimeMapping.getMimeTypeForExtension(file);
-                          if (depContentType != null) {
-                            if (depContentType.startsWith("text")) {
-                              res.putHeader("Content-Type", contentType + ";charset=" + defaultContentEncoding);
-                            } else {
-                              res.putHeader("Content-Type", contentType);
-                            }
+                // get the file props
+                getFileProps(context, dep, filePropsAsyncResult -> {
+                  if (filePropsAsyncResult.succeeded()) {
+                    // push
+                    writeCacheHeaders(request, filePropsAsyncResult.result());
+                    response.push(HttpMethod.GET, "/" + dependency.getFilePath(), pushAsyncResult -> {
+                      if (pushAsyncResult.succeeded()) {
+                        HttpServerResponse res = pushAsyncResult.result();
+                        final String depContentType = MimeMapping.getMimeTypeForExtension(file);
+                        if (depContentType != null) {
+                          if (depContentType.startsWith("text")) {
+                            res.putHeader("Content-Type", contentType + ";charset=" + defaultContentEncoding);
+                          } else {
+                            res.putHeader("Content-Type", contentType);
                           }
-                          res.sendFile(webRoot + "/" + dependency.getFilePath());
                         }
-                      });
-                    }
-                  });
-                }
+                        res.sendFile(webRoot + "/" + dependency.getFilePath());
+                      }
+                    });
+                  }
+                });
               }
+            }
 
           } else if (http2PushMappings != null) {
             //Link preload when file push is not supported
@@ -460,7 +458,7 @@ public class StaticHandlerImpl implements StaticHandler {
                   // push
                   writeCacheHeaders(request, filePropsAsyncResult.result());
                   links.add("<" + dependency.getFilePath() + ">; rel=preload; as="
-                      + dependency.getExtensionTarget() + (dependency.isNoPush() ? "; nopush" : ""));
+                    + dependency.getExtensionTarget() + (dependency.isNoPush() ? "; nopush" : ""));
                 }
               });
             }
@@ -571,19 +569,25 @@ public class StaticHandlerImpl implements StaticHandler {
 
   @Override
   public StaticHandler setHttp2PushMapping(List<Http2PushMapping> http2PushMap) {
-    if(http2PushMap != null) this.http2PushMappings = new ArrayList<>(http2PushMap);
+    if (http2PushMap != null) {
+      this.http2PushMappings = new ArrayList<>(http2PushMap);
+    }
     return this;
   }
 
   @Override
-  public StaticHandler setCompressedContentTypes(Set<String> contentTypes) {
-    if(contentTypes != null) this.compressedContentTypes = new HashSet<>(contentTypes);
+  public StaticHandler skipCompressionForMediaTypes(Set<String> mediaTypes) {
+    if (mediaTypes != null) {
+      this.compressedMediaTypes = new HashSet<>(mediaTypes);
+    }
     return this;
   }
 
   @Override
-  public StaticHandler setCompressedSuffixes(Set<String> fileSuffixes) {
-    if(fileSuffixes != null) this.compressedFileSuffixes = new HashSet<>(fileSuffixes);
+  public StaticHandler skipCompressionForSuffixes(Set<String> fileSuffixes) {
+    if (fileSuffixes != null) {
+      this.compressedFileSuffixes = new HashSet<>(fileSuffixes);
+    }
     return this;
   }
 
@@ -740,6 +744,15 @@ public class StaticHandlerImpl implements StaticHandler {
         }
       }
     });
+  }
+
+  private String getFileExtension(String file) {
+    int li = file.lastIndexOf(46);
+    if (li != -1 && li != file.length() - 1) {
+      return file.substring(li + 1, file.length());
+    } else {
+      return null;
+    }
   }
 
   // TODO make this static and use Java8 DateTimeFormatter

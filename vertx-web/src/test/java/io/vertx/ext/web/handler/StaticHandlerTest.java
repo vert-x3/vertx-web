@@ -20,6 +20,7 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpVersion;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpClient;
+import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpClientRequest;
@@ -31,15 +32,14 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.impl.Utils;
 import io.vertx.ext.web.WebTestBase;
 import org.junit.Test;
-
-import java.io.File;
-import java.text.DateFormat;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
+import java.io.File;
+import java.text.DateFormat;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -253,65 +253,86 @@ public class StaticHandlerTest extends WebTestBase {
   }
 
   @Test
-  public void testContentEncodingForCompressedFiles() throws Exception {
-    Set<String> compressedSuffixTypes = new HashSet<>();
-    compressedSuffixTypes.add("image/jpeg");
-    stat.setCompressedContentTypes(compressedSuffixTypes);
+  public void testSkipCompressionForMediaTypes() throws Exception {
+    Set<String> compressedMediaTypes = new HashSet<>();
+    compressedMediaTypes.add("image/jpeg");
+    stat.skipCompressionForMediaTypes(compressedMediaTypes);
     router.route().handler(stat);
 
-    CountDownLatch latch = new CountDownLatch(3);
+    waitFor(4);
     HttpServer httpServer = vertx.createHttpServer(new HttpServerOptions().setCompressionSupported(true));
     httpServer.requestHandler(router).listen(8444);
-
     HttpClient client = vertx.createHttpClient();
-    HttpClientRequest request1 = client.get(8444, "localhost", "/testCompressionSuffix.html", resp -> {
-      assertEquals(200, resp.statusCode());
-      latch.countDown();
-    });
-    request1.end();
-    HttpClientRequest request2 = client.get(8444, "localhost", "/somedir/range.jpg", resp -> {
-      assertEquals(200, resp.statusCode());
-      assertEquals("identity", resp.getHeader("content-encoding"));
-      latch.countDown();
-    });
-    request2.end();
-    HttpClientRequest request3 = client.get(8444, "localhost", "/somedir3/coin.png", resp -> {
-      assertEquals(200, resp.statusCode());
-      latch.countDown();
-    });
-    request3.end();
-    latch.await();
+
+    final List<CharSequence> acceptEncodings = new ArrayList<CharSequence>();
+    acceptEncodings.add("gzip");
+    acceptEncodings.add("jpg");
+    acceptEncodings.add("jpeg");
+    acceptEncodings.add("png");
+    final String[] routes = {"/testCompressionSuffix.html", "/somedir/range.jpg", "/somedir/range.jpeg", "/somedir3/coin.png"};
+    final int[] statusCodes = new int[4];
+    final String[] contentEncodings = new String[4];
+
+    for (int i = 0; i < 4; i++) {
+      int finalI = i;
+      HttpClientRequest request = client.get(8444, "localhost", routes[i], resp -> {
+        statusCodes[finalI] = resp.statusCode();
+        contentEncodings[finalI] = resp.getHeader(HttpHeaders.CONTENT_ENCODING);
+        complete();
+      });
+      request.putHeader(HttpHeaders.ACCEPT_ENCODING, acceptEncodings);
+      request.end();
+    }
+    await();
+
+    final int successCode = 200;
+    //jpeg and jpg have the same mime type, hence both are not compressed
+    final CharSequence[] expectedContentEncodings = {"gzip", HttpHeaders.IDENTITY, HttpHeaders.IDENTITY, "gzip"};
+    for (int i = 0; i < 4; i++) {
+      assertEquals("Status code does not equal 200 for request " + (i+1), successCode, statusCodes[i]);
+      assertEquals("Content-Encoding did not match for request " + (i+1), expectedContentEncodings[i].toString(), contentEncodings[i]);
+    }
   }
 
   @Test
-  public void testSuffixesForCompressedFiles() throws Exception {
+  public void testSkipCompressionForSuffixes() throws Exception {
     Set<String> compressedSuffixes = new HashSet<>();
     compressedSuffixes.add("jpg");
-    stat.setCompressedSuffixes(compressedSuffixes);
+    stat.skipCompressionForSuffixes(compressedSuffixes);
     router.route().handler(stat);
 
-    CountDownLatch latch = new CountDownLatch(3);
+    waitFor(4);
     HttpServer httpServer = vertx.createHttpServer(new HttpServerOptions().setCompressionSupported(true));
     httpServer.requestHandler(router).listen(8444);
-
     HttpClient client = vertx.createHttpClient();
-    HttpClientRequest request1 = client.get(8444, "localhost", "/testCompressionSuffix.html", resp -> {
-      assertEquals(200, resp.statusCode());
-      latch.countDown();
-    });
-    request1.end();
-    HttpClientRequest request2 = client.get(8444, "localhost", "/somedir/range.jpg", resp -> {
-      assertEquals(200, resp.statusCode());
-      assertEquals("identity", resp.getHeader("content-encoding"));
-      latch.countDown();
-    });
-    request2.end();
-    HttpClientRequest request3 = client.get(8444, "localhost", "/somedir3/coin.png", resp -> {
-      assertEquals(200, resp.statusCode());
-      latch.countDown();
-    });
-    request3.end();
-    latch.await();
+
+    final List<CharSequence> acceptEncodings = new ArrayList<CharSequence>();
+    acceptEncodings.add("gzip");
+    acceptEncodings.add("jpg");
+    acceptEncodings.add("jpeg");
+    acceptEncodings.add("png");
+    final String[] routes = {"/testCompressionSuffix.html", "/somedir/range.jpg", "/somedir/range.jpeg", "/somedir3/coin.png"};
+    final int[] statusCodes = new int[4];
+    final String[] contentEncodings = new String[4];
+
+    for (int i = 0; i < 4; i++) {
+      int finalI = i;
+      HttpClientRequest request = client.get(8444, "localhost", routes[i], resp -> {
+        statusCodes[finalI] = resp.statusCode();
+        contentEncodings[finalI] = resp.getHeader(HttpHeaders.CONTENT_ENCODING);
+        complete();
+      });
+      request.putHeader(HttpHeaders.ACCEPT_ENCODING, acceptEncodings);
+      request.end();
+    }
+    await();
+
+    final int successCode = 200;
+    final CharSequence[] expectedContentEncodings = {"gzip", HttpHeaders.IDENTITY, "gzip", "gzip"};
+    for (int i = 0; i < 4; i++) {
+      assertEquals("Status code does not equal 200 for request " + (i+1), successCode, statusCodes[i]);
+      assertEquals("Content-Encoding did not match for request " + (i+1), expectedContentEncodings[i].toString(), contentEncodings[i]);
+    }
   }
 
   @Test

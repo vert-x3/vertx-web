@@ -247,24 +247,24 @@ public interface StaticHandler extends Handler<RoutingContext> {
   StaticHandler setHttp2PushMapping(List<Http2PushMapping> http2PushMappings);
 
   /**
-   * Set the content types list for already compressed files
-   * Content-Type header set to identity for the types present in the content type list
+   * Skip compression if the media type of the file to send is in the provided {@code mediaTypes} set.
+   * {@code Content-Encoding} header set to {@code identity} for the types present in the {@code mediaTypes} set
    *
-   * @param contentTypes the list of mime types that are already compressed
+   * @param mediaTypes the set of mime types that are already compressed
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
-  StaticHandler setCompressedContentTypes(Set<String> contentTypes);
+  StaticHandler skipCompressionForMediaTypes(Set<String> mediaTypes);
 
   /**
-   * Set the suffix list for already compressed files
-   * Content-Type header set to identity for the suffixes present in the suffix list
+   * Skip compression if the suffix of the file to send is in the provided {@code fileSuffixes} set.
+   * {@code Content-Encoding} header set to {@code identity} for the suffixes present in the {@code fileSuffixes} set
    *
-   * @param fileSuffixes the list of file suffixes that are already compressed
+   * @param fileSuffixes the set of file suffixes that are already compressed
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
-  StaticHandler setCompressedSuffixes(Set<String> fileSuffixes);
+  StaticHandler skipCompressionForSuffixes(Set<String> fileSuffixes);
 
   /**
    * Set whether async filesystem access should always be used
