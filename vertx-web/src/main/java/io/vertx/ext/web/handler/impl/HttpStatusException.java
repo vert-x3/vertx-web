@@ -8,11 +8,19 @@ public class HttpStatusException extends RuntimeException {
   private final String payload;
 
   public HttpStatusException(int statusCode) {
-    this(statusCode, null);
+    this(statusCode, null, null);
   }
 
+  public HttpStatusException(int statusCode, Throwable cause) {
+      this(statusCode, null, cause);
+    }
+
   public HttpStatusException(int statusCode, String payload) {
-    super(HttpResponseStatus.valueOf(statusCode).reasonPhrase(), null, false, false);
+    this(statusCode, payload, null);
+  }
+
+  public HttpStatusException(int statusCode, String payload, Throwable cause) {
+    super(HttpResponseStatus.valueOf(statusCode).reasonPhrase(), cause, false, false);
     this.statusCode = statusCode;
     this.payload = payload;
   }
