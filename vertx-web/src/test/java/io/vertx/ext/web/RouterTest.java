@@ -2301,4 +2301,11 @@ public class RouterTest extends WebTestBase {
     router.route("/path").handler(rc -> rc.response().setStatusCode(500).end());
     testRequest(HttpMethod.GET, "/path?q=" + BAD_PARAM, 400, "Bad Request");
   }
+
+  @Test
+  public void testRoutePathNoSlashBegin() throws Exception {
+    String path = "?test=something";
+    router.route().handler(rc -> rc.response().end());
+    testRequest(HttpMethod.GET, path, 400, "Bad Request");
+  }
 }
