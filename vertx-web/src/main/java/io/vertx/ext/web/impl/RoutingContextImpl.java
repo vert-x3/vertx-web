@@ -73,7 +73,11 @@ public class RoutingContextImpl extends RoutingContextImplBase {
     this.router = router;
 
     fillParsedHeaders(request);
-    if (request.path().charAt(0) != '/') {
+    if (request.path().length() == 0) {
+      // HTTP paths must start with a '/'
+      fail(400);
+    } else if (request.path().charAt(0) != '/') {
+      // For compatiblity we return `Not Found` when a path does not start with `/`
       fail(404);
     }
   }
