@@ -71,8 +71,31 @@ public interface HttpRequest<T> {
    *
    * @return a reference to this, so the API can be used fluently
    */
+  @Deprecated
   @Fluent
   HttpRequest<T> method(HttpMethod value);
+
+  /**
+   * Configure the request to use a new method {@code value}.
+   *
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  HttpRequest<T> setMethod(HttpMethod value);
+
+  /**
+   * @return current HTTP request method
+   */
+  HttpMethod getMethod();
+
+  /**
+   * Configure the request to use a new port {@code value}.
+   *
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Deprecated
+  @Fluent
+  HttpRequest<T> port(int value);
 
   /**
    * Configure the request to use a new port {@code value}.
@@ -80,7 +103,13 @@ public interface HttpRequest<T> {
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
-  HttpRequest<T> port(int value);
+  HttpRequest<T> setPort(int value);
+
+  /**
+   * @return current HTTP request port
+   */
+  int getPort();
+
 
   /**
    * Configure the request to decode the response with the {@code responseCodec}.
@@ -95,8 +124,40 @@ public interface HttpRequest<T> {
    *
    * @return a reference to this, so the API can be used fluently
    */
+  @Deprecated
   @Fluent
   HttpRequest<T> host(String value);
+
+  /**
+   * Configure the request to use a new host {@code value}.
+   *
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  HttpRequest<T> setHost(String value);
+
+  /**
+   * @return current HTTP request host
+   */
+  String getHost();
+
+  /**
+   * Configure the request to use a virtual host {@code value}.
+   * <p/>
+   * Usually the header <i>host</i> (<i>:authority</i> pseudo header for HTTP/2) is set from the request host value
+   * since this host value resolves to the server IP address.
+   * <p/>
+   * Sometimes you need to set a host header for an address that does not resolve to the server IP address.
+   * The virtual host value overrides the value of the actual <i>host</i> header (<i>:authority</i> pseudo header
+   * for HTTP/2).
+   * <p/>
+   * The virtual host is also be used for SNI.
+   *
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Deprecated
+  @Fluent
+  HttpRequest<T> virtualHost(String value);
 
   /**
    * Configure the request to use a virtual host {@code value}.
@@ -113,7 +174,24 @@ public interface HttpRequest<T> {
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
-  HttpRequest<T> virtualHost(String value);
+  HttpRequest<T> setVirtualHost(String value);
+
+  /**
+   * @return current HTTP request virtual host
+   */
+  String getVirtualHost();
+
+  /**
+   * Configure the request to use a new request URI {@code value}.
+   * <p>
+   * When the uri has query parameters, they are set in the {@link #queryParams()} multimap, overwritting
+   * any parameters previously set.
+   *
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Deprecated
+  @Fluent
+  HttpRequest<T> uri(String value);
 
   /**
    * Configure the request to use a new request URI {@code value}.
@@ -124,7 +202,12 @@ public interface HttpRequest<T> {
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
-  HttpRequest<T> uri(String value);
+  HttpRequest<T> setUri(String value);
+
+  /**
+   * @return current HTTP request URI
+   */
+  String getUri();
 
   /**
    * Configure the request to add a new HTTP header.
@@ -142,8 +225,35 @@ public interface HttpRequest<T> {
   @CacheReturn
   MultiMap headers();
 
+  @Deprecated
   @Fluent
   HttpRequest<T> ssl(boolean value);
+
+  /**
+   * Configure the HTTP request to use SSL
+   * @param value true to use SSL and false to not use SSL
+   * @return
+   */
+  @Fluent
+  HttpRequest<T> setIsSsl(boolean value);
+
+  /**
+   * @return is HTTP request set with ssl
+   */
+  boolean isSsl();
+
+  /**
+   * Configures the amount of time in milliseconds after which if the request does not return any data within the timeout
+   * period an {@link java.util.concurrent.TimeoutException} fails the request.
+   * <p>
+   * Setting zero or a negative {@code value} disables the timeout.
+   *
+   * @param value The quantity of time in milliseconds.
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Deprecated
+  @Fluent
+  HttpRequest<T> timeout(long value);
 
   /**
    * Configures the amount of time in milliseconds after which if the request does not return any data within the timeout
@@ -155,7 +265,12 @@ public interface HttpRequest<T> {
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
-  HttpRequest<T> timeout(long value);
+  HttpRequest<T> setTimeout(long value);
+
+  /**
+   * @return current HTTP request timeout
+   */
+  long getTimeout();
 
   /**
    * Add a query parameter to the request.
@@ -178,14 +293,28 @@ public interface HttpRequest<T> {
   HttpRequest<T> setQueryParam(String paramName, String paramValue);
 
   /**
-   * Set wether or not to follow the directs for the request.
+   * Set whether or not to follow the directs for the request.
+   *
+   * @param value true if redirections should be followed
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Deprecated
+  @Fluent
+  HttpRequest<T> followRedirects(boolean value);
+
+  /**
+   * Set whether or not to follow the directs for the request.
    *
    * @param value true if redirections should be followed
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
-  HttpRequest<T> followRedirects(boolean value);
+  HttpRequest<T> setIsFollowRedirects(boolean value);
 
+  /**
+   * @return is HTTP request's 'follow redirects' enabled
+   */
+  boolean isFollowRedirects();
   /**
    * Return the current query parameters.
    *

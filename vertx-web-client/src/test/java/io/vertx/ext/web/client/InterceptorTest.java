@@ -47,8 +47,8 @@ public class InterceptorTest extends HttpTestBase {
   }
 
   private <R> void handleMutateRequest(HttpContext context) {
-    context.request().host("localhost");
-    context.request().port(8080);
+    context.request().setHost("localhost");
+    context.request().setPort(8080);
     context.next();
   }
 
@@ -57,7 +57,7 @@ public class InterceptorTest extends HttpTestBase {
     server.requestHandler(req -> req.response().end());
     startServer();
     client.addInterceptor(this::handleMutateRequest);
-    HttpRequest<Buffer> builder = client.get("/somepath").host("another-host").port(8081);
+    HttpRequest<Buffer> builder = client.get("/somepath").setHost("another-host").setPort(8081);
     builder.send(onSuccess(resp -> complete()));
     await();
   }
@@ -181,7 +181,7 @@ public class InterceptorTest extends HttpTestBase {
     server.requestHandler(req -> fail());
     startServer();
     client.addInterceptor(this::cacheInterceptorHandler);
-    HttpRequest<Buffer> builder = client.get("/somepath").host("localhost").port(8080);
+    HttpRequest<Buffer> builder = client.get("/somepath").setHost("localhost").setPort(8080);
     builder.send(onSuccess(resp -> {
       assertEquals(200, resp.statusCode());
       complete();
