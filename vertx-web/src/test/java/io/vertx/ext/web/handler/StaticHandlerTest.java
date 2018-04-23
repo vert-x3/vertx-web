@@ -261,7 +261,7 @@ public class StaticHandlerTest extends WebTestBase {
 
     waitFor(4);
     server.close();
-    server = vertx.createHttpServer(new HttpServerOptions().setCompressionSupported(true));
+    server = vertx.createHttpServer(getHttpServerOptions().setCompressionSupported(true));
     server.requestHandler(router).listen(8444);
 
     final List<CharSequence> acceptEncodings = new ArrayList<CharSequence>();
@@ -303,7 +303,7 @@ public class StaticHandlerTest extends WebTestBase {
 
     waitFor(4);
     server.close();
-    server = vertx.createHttpServer(new HttpServerOptions().setCompressionSupported(true));
+    server = vertx.createHttpServer(getHttpServerOptions().setCompressionSupported(true));
     server.requestHandler(router).listen(8444);
 
     final List<CharSequence> acceptEncodings = new ArrayList<CharSequence>();
