@@ -260,9 +260,9 @@ public class StaticHandlerTest extends WebTestBase {
     router.route().handler(stat);
 
     waitFor(4);
-    HttpServer httpServer = vertx.createHttpServer(new HttpServerOptions().setCompressionSupported(true));
-    httpServer.requestHandler(router).listen(8444);
-    HttpClient client = vertx.createHttpClient();
+    server.close();
+    server = vertx.createHttpServer(new HttpServerOptions().setCompressionSupported(true));
+    server.requestHandler(router).listen(8444);
 
     final List<CharSequence> acceptEncodings = new ArrayList<CharSequence>();
     acceptEncodings.add("gzip");
@@ -302,9 +302,9 @@ public class StaticHandlerTest extends WebTestBase {
     router.route().handler(stat);
 
     waitFor(4);
-    HttpServer httpServer = vertx.createHttpServer(new HttpServerOptions().setCompressionSupported(true));
-    httpServer.requestHandler(router).listen(8444);
-    HttpClient client = vertx.createHttpClient();
+    server.close();
+    server = vertx.createHttpServer(new HttpServerOptions().setCompressionSupported(true));
+    server.requestHandler(router).listen(8444);
 
     final List<CharSequence> acceptEncodings = new ArrayList<CharSequence>();
     acceptEncodings.add("gzip");
