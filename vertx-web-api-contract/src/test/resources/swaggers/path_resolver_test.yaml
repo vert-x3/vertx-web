@@ -1,0 +1,113 @@
+openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: Test spec for OpenAPI3PathResolverTest
+  license:
+    name: Apache 2.0 License
+paths:
+  /pets:
+    get:
+      summary: List all pets
+      operationId: listPets
+      responses:
+        200:
+          description: ok
+  /path/multi/{color_simple}{color_label}/test:
+    get:
+      parameters:
+        - name: color_simple
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/Email"
+          style: simple
+          explode: false
+        - name: color_label
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/EmailArray"
+          style: label
+          explode: false
+      operationId: path_multi_simple_label
+      responses:
+        default:
+          description: Default response
+
+  /path/multi/{color_simple}{color_matrix}/test:
+    get:
+      parameters:
+        - name: color_simple
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/Email"
+          style: simple
+          explode: false
+        - name: color_matrix
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/EmailArray"
+          style: matrix
+          explode: false
+      operationId: path_multi_simple_matrix
+      responses:
+        200:
+          description: Validation successful
+#
+#  /path/multi/{color_label}{color_matrix}/test:
+#    get:
+#      parameters:
+#        - name: color_label
+#          x-test: array
+#          in: path
+#          required: true
+#          examples:
+#            value:
+#              $ref: "#/components/examples/Array"
+#            spec:
+#              value: ".blue.black.brown"
+#          schema:
+#            $ref: "#/components/schemas/ColorArray"
+#          style: label
+#          explode: false
+#        - name: color_matrix
+#          x-test: object
+#          in: path
+#          required: true
+#          examples:
+#            value:
+#              $ref: "#/components/examples/Object"
+#            spec:
+#              value: ";R=100;G=200;B=150"
+#          schema:
+#            $ref: "#/components/schemas/ColorObject"
+#          style: matrix
+#          explode: true
+#      operationId: path_multi_label_matrix
+#      responses:
+#        200:
+#          description: Validation successful
+components:
+  schemas:
+    Email:
+      type: string
+      format: email
+    EmailArray:
+      type: array
+      items:
+        type: string
+        format: email
+    EmailObject:
+      type: object
+      properties:
+        from:
+          type: string
+          format: email
+        to:
+          type: string
+          format: email
+      required:
+        - from
+        - to

@@ -6,6 +6,7 @@ import io.vertx.ext.web.api.contract.RouterFactoryOptions
  * A function providing a DSL for building [io.vertx.ext.web.api.contract.RouterFactoryOptions] objects.
  *
  *
+ * @param bodyHandler  Supply your own BodyHandler if you would like to control body limit, uploads directory and deletion of uploaded files
  * @param mountNotImplementedHandler  Automatic mount handlers that return HTTP 501 status code for operations where you didn't specify an handler.
  * @param mountResponseContentTypeHandler  If true, when required, the factory will mount a [io.vertx.ext.web.handler.ResponseContentTypeHandler]
  * @param mountValidationFailureHandler  Enable or disable validation failure handler. If you enable it during router creation a failure handler that manages ValidationException will be mounted. You can change the validation failure handler with with function [io.vertx.ext.web.api.contract.RouterFactoryOptions]. If failure is different from ValidationException, next failure handler will be called.
@@ -15,11 +16,15 @@ import io.vertx.ext.web.api.contract.RouterFactoryOptions
  * NOTE: This function has been automatically generated from the [io.vertx.ext.web.api.contract.RouterFactoryOptions original] using Vert.x codegen.
  */
 fun RouterFactoryOptions(
+  bodyHandler: io.vertx.ext.web.handler.BodyHandler? = null,
   mountNotImplementedHandler: Boolean? = null,
   mountResponseContentTypeHandler: Boolean? = null,
   mountValidationFailureHandler: Boolean? = null,
   requireSecurityHandlers: Boolean? = null): RouterFactoryOptions = io.vertx.ext.web.api.contract.RouterFactoryOptions().apply {
 
+  if (bodyHandler != null) {
+    this.setBodyHandler(bodyHandler)
+  }
   if (mountNotImplementedHandler != null) {
     this.setMountNotImplementedHandler(mountNotImplementedHandler)
   }
