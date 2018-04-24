@@ -55,40 +55,22 @@ paths:
       responses:
         200:
           description: Validation successful
-#
-#  /path/multi/{color_label}{color_matrix}/test:
-#    get:
-#      parameters:
-#        - name: color_label
-#          x-test: array
-#          in: path
-#          required: true
-#          examples:
-#            value:
-#              $ref: "#/components/examples/Array"
-#            spec:
-#              value: ".blue.black.brown"
-#          schema:
-#            $ref: "#/components/schemas/ColorArray"
-#          style: label
-#          explode: false
-#        - name: color_matrix
-#          x-test: object
-#          in: path
-#          required: true
-#          examples:
-#            value:
-#              $ref: "#/components/examples/Object"
-#            spec:
-#              value: ";R=100;G=200;B=150"
-#          schema:
-#            $ref: "#/components/schemas/ColorObject"
-#          style: matrix
-#          explode: true
-#      operationId: path_multi_label_matrix
-#      responses:
-#        200:
-#          description: Validation successful
+
+  /path/{matrix}/test:
+    get:
+      parameters:
+        - name: matrix
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/EmailArray"
+          style: matrix
+          explode: false
+      operationId: path_array_matrix
+      responses:
+        200:
+          description: Validation successful
+
 components:
   schemas:
     Email:

@@ -119,4 +119,15 @@ public class OpenAPI3PathResolverTest {
       "user@vertx.io.committer@vertx.io");
   }
 
+  @Test
+  public void complexMatrixArrayNotExploded() {
+    OpenAPI3PathResolver resolver = instantiatePathResolver("path_array_matrix");
+    String path = "/path/;matrix=" + encode("admin@vertx.io") + "," + encode("user@vertx.io") + "," + encode("committer@vertx.io") + "/test";
+    shouldMatchParameter(
+      resolver,
+      path,
+      "matrix",
+      "admin@vertx.io,user@vertx.io,committer@vertx.io");
+  }
+
 }
