@@ -71,7 +71,8 @@ public class RegexBuilder {
   public RegexBuilder notCharactersClass(String... chars) {
     stringBuilder.append("[^");
     for (String c : chars)
-      stringBuilder.append("\\" + c);
+      if (c != null && c.length() != 0)
+        stringBuilder.append("\\" + c);
     stringBuilder.append("]");
     return this;
   }
