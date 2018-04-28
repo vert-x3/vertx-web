@@ -104,7 +104,7 @@ public class OpenAPI3PathResolverTest {
   }
 
   @Test
-  public void complexEncodingMultiSimpleMixed() {
+  public void complexEncodingMultiSimpleLabelMixed() {
     OpenAPI3PathResolver resolver = instantiatePathResolver("path_multi_simple_label");
     String path = "/path/multi/" + encode("admin@vertx.io") + "." + encode("user@vertx.io") + "." + encode("committer@vertx.io") + "/test";
     shouldMatchParameter(
@@ -117,6 +117,17 @@ public class OpenAPI3PathResolverTest {
       path,
       "color_label",
       "user@vertx.io.committer@vertx.io");
+    Optional<Pattern> optional = resolver.solve();
+    Pattern p = optional.get();
+  }
+
+  @Test
+  public void shouldNotHaveEmptyStringQuoting() {
+    OpenAPI3PathResolver resolver = instantiatePathResolver("path_multi_simple_label");
+    Optional<Pattern> optional = resolver.solve();
+    Pattern p = optional.get();
+    String pattern = p.toString();
+    assertFalse(pattern.contains("\\Q\\E"));
   }
 
   @Test
@@ -128,6 +139,25 @@ public class OpenAPI3PathResolverTest {
       path,
       "matrix",
       "admin@vertx.io,user@vertx.io,committer@vertx.io");
+    String withoutDotEncoded = "/path/;matrix=" + encode("admin@vertx") + ".io," + encode("user@vertx") + ".io," + encode("committer@vertx") + ".io/test";
+    shouldMatchParameter(
+      resolver,
+      withoutDotEncoded,
+      "matrix",
+      "admin@vertx.io,user@vertx.io,committer@vertx.io");
+  }
+
+
+  @Test
+  public void dotInASimplePathParam() {
+    OpenAPI3PathResolver resolver = instantiatePathResolver("path_simple");
+    String path = "/path/bla.bla.bla/test";
+    shouldMatchParameter(
+      resolver,
+      path,
+      "simple",
+      "bla.bla.bla"
+    );
   }
 
 }
