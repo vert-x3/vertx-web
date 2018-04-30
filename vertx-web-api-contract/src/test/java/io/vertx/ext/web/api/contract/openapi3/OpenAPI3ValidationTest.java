@@ -541,7 +541,7 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
   @Test
   public void testEmptyParametersNotNull() throws Exception {
     Operation op = testSpec.getPaths().get("/pets").getPost();
-    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(op, op.getParameters(), testSpec);
+    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(op, op.getParameters(), testSpec, refsCache);
     loadHandlers("/pets", HttpMethod.POST, true, validationHandler, (routingContext) -> {
       RequestParameters params = routingContext.get("parsedParameters");
       assertEquals(0, params.cookieParametersNames().size()); //Here it should not throw exception (issue #850)
