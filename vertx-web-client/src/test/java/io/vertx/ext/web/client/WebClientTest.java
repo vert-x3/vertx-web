@@ -827,7 +827,7 @@ public class WebClientTest extends HttpTestBase {
     startServer();
     HttpRequest<Buffer> get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
     get.timeout(50).send(onFailure(err -> {
-      assertEquals(err.getClass(), TimeoutException.class);
+      assertTrue(err instanceof TimeoutException);
       testComplete();
     }));
     await();
