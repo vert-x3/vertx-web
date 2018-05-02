@@ -5,9 +5,11 @@ import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.api.RequestParameter;
 import io.vertx.ext.web.api.RequestParameters;
 import io.vertx.ext.web.api.contract.RouterFactoryOptions;
 import io.vertx.ext.web.api.validation.ValidationException;
@@ -33,12 +35,21 @@ public class OpenAPI3SchemasTest extends WebTestValidationBase {
   HttpServer schemaServer;
 
   final Handler<RoutingContext> handler = routingContext -> {
-    routingContext
-      .response()
-      .setStatusCode(200)
-      .setStatusMessage("OK")
-      .putHeader("Content-Type", "application/json")
-      .end(((RequestParameters)routingContext.get("parsedParameters")).body().getJsonObject().encode());
+    RequestParameter body = ((RequestParameters)routingContext.get("parsedParameters")).body();
+    if (body.isJsonObject())
+      routingContext
+        .response()
+        .setStatusCode(200)
+        .setStatusMessage("OK")
+        .putHeader("Content-Type", "application/json")
+        .end(body.getJsonObject().encode());
+    else
+      routingContext
+        .response()
+        .setStatusCode(200)
+        .setStatusMessage("OK")
+        .putHeader("Content-Type", "application/json")
+        .end(body.getJsonArray().encode());
   };
 
   final Handler<RoutingContext> FAILURE_HANDLER = routingContext -> {
@@ -134,8 +145,14 @@ public class OpenAPI3SchemasTest extends WebTestValidationBase {
 
   private void assertRequestOk(String uri, String jsonName) throws Exception {
     String jsonString = String.join("", Files.readAllLines(Paths.get("./src/test/resources/swaggers/test_json", "schemas_test", jsonName), StandardCharsets.UTF_8));
-    JsonObject obj = new JsonObject(jsonString);
-    testRequestWithJSON(HttpMethod.POST, uri, obj, 200, "OK", obj);
+    jsonString = jsonString.trim();
+    if (jsonString.startsWith("[")) {
+      JsonArray array = new JsonArray(jsonString);
+      testRequestWithJSONArray(HttpMethod.POST, uri, array, 200, "OK", array);
+    } else {
+      JsonObject obj = new JsonObject(jsonString);
+      testRequestWithJSON(HttpMethod.POST, uri, obj, 200, "OK", obj);
+    }
   };
 
   private void assertRequestOk(String uri, String jsonNameRequest, String jsonNameResponse) throws Exception {
@@ -148,7 +165,12 @@ public class OpenAPI3SchemasTest extends WebTestValidationBase {
 
   private void assertRequestFail(String uri, String jsonName) throws Exception {
     String jsonString = String.join("", Files.readAllLines(Paths.get("./src/test/resources/swaggers/test_json", "schemas_test", jsonName), StandardCharsets.UTF_8));
-    testRequestWithJSON(HttpMethod.POST, uri, new JsonObject(jsonString), 400, "ValidationException", null);
+    jsonString = jsonString.trim();
+    if (jsonString.startsWith("[")) {
+      testRequestWithJSONArray(HttpMethod.POST, uri, new JsonArray(jsonString), 400, "ValidationException", null);
+    } else {
+      testRequestWithJSON(HttpMethod.POST, uri, new JsonObject(jsonString), 400, "ValidationException", null);
+    }
   };
 
   @Test
@@ -273,6 +295,14 @@ public class OpenAPI3SchemasTest extends WebTestValidationBase {
     routerFactory.addHandlerByOperationId("test13", handler);
     startServer();
     assertRequestOk("/test13", "test13_ok_request.json", "test13_ok_response.json");
+  }
+
+  @Test
+  public void test14() throws Exception {
+    routerFactory.addHandlerByOperationId("test14", handler);
+    startServer();
+    assertRequestOk("/test14", "test14_ok.json");
+    assertRequestFail("/test14", "test14_fail.json");
   }
 
 }

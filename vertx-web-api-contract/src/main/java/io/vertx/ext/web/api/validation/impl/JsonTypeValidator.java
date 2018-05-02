@@ -6,6 +6,7 @@ import com.networknt.schema.JsonSchema;
 import com.networknt.schema.JsonSchemaFactory;
 import com.networknt.schema.ValidationMessage;
 import io.vertx.core.json.Json;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.api.RequestParameter;
 import io.vertx.ext.web.api.validation.ParameterTypeValidator;
@@ -38,7 +39,12 @@ public class JsonTypeValidator implements ParameterTypeValidator {
 
       Set<ValidationMessage> errors = schema.validate(node);
       if (errors.size() == 0) {
-        return RequestParameter.create(new JsonObject(value));
+        if (node.isArray())
+          return RequestParameter.create(new JsonArray(value));
+        else if (node.isObject())
+          return RequestParameter.create(new JsonObject(value));
+        else
+          return RequestParameter.create(value);
       } else {
         throw ValidationException.ValidationExceptionFactory.generateInvalidJsonBodyException(errors.iterator().next().toString());
       }
