@@ -49,7 +49,9 @@ public class BodyHandlerImpl implements BodyHandler {
   private String uploadsDir;
   private boolean mergeFormAttributes = DEFAULT_MERGE_FORM_ATTRIBUTES;
   private boolean deleteUploadedFilesOnEnd = DEFAULT_DELETE_UPLOADED_FILES_ON_END;
+  private boolean isPreallocateBodyBuffer = DEFAULT_PREALLOCATE_BODY_BUFFER;
   private static final int DEFAULT_INITIAL_BODY_BUFFER_SIZE = 1024; //bytes
+
 
   public BodyHandlerImpl() {
     setUploadsDirectory(DEFAULT_UPLOADS_DIRECTORY);
@@ -69,7 +71,7 @@ public class BodyHandlerImpl implements BodyHandler {
     // we need to keep state since we can be called again on reroute
     Boolean handled = context.get(BODY_HANDLED);
     if (handled == null || !handled) {
-      Long contentLength = parseContentLengthHeader(request);
+      Long contentLength = isPreallocateBodyBuffer ? parseContentLengthHeader(request) : null;
       BHandler handler = new BHandler(context, contentLength);
       request.handler(handler);
       request.endHandler(v -> handler.end());
@@ -108,6 +110,12 @@ public class BodyHandlerImpl implements BodyHandler {
     return this;
   }
 
+  @Override
+  public BodyHandler setPreallocateBodyBuffer(boolean isPreallocateBodyBuffer) {
+    this.isPreallocateBodyBuffer = isPreallocateBodyBuffer;
+    return this;
+  }
+
   private Long parseContentLengthHeader(HttpServerRequest request) {
     String contentLength = request.getHeader(HttpHeaders.CONTENT_LENGTH);
     if(contentLength == null || contentLength == "") {
@@ -133,6 +141,7 @@ public class BodyHandlerImpl implements BodyHandler {
     boolean ended;
     long uploadSize = 0L;
 
+    final int MAX_PREALLOCATED_BODY_BUFFER_BYTES = 65535;
     final boolean isMultipart;
     final boolean isUrlEncoded;
 
@@ -190,8 +199,8 @@ public class BodyHandlerImpl implements BodyHandler {
       if(contentLength == null || contentLength < 0) {
         initialBodyBufferSize = DEFAULT_INITIAL_BODY_BUFFER_SIZE;
       }
-      else if(contentLength > Integer.MAX_VALUE) {
-        initialBodyBufferSize = Integer.MAX_VALUE;
+      else if(contentLength > MAX_PREALLOCATED_BODY_BUFFER_BYTES) {
+        initialBodyBufferSize = MAX_PREALLOCATED_BODY_BUFFER_BYTES;
       }
       else {
         initialBodyBufferSize = contentLength.intValue();
