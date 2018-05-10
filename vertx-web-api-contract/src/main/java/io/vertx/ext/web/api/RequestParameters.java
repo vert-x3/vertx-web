@@ -104,6 +104,6 @@ public interface RequestParameters {
    *
    * @return
    */
-  @CacheReturn JsonObject toJsonObject();
+  @CacheReturn JsonObject toJson();
 
 }

@@ -74,7 +74,7 @@ public class RequestParametersTest {
   @Test
   public void testToJsonObjectEmpty() {
     RequestParameters params = new RequestParametersImpl();
-    JsonObject obj = params.toJsonObject();
+    JsonObject obj = params.toJson();
     assertEquals(0, obj.getJsonObject("path").size());
     assertEquals(0, obj.getJsonObject("cookie").size());
     assertEquals(0, obj.getJsonObject("query").size());
@@ -102,7 +102,7 @@ public class RequestParametersTest {
     params.setQueryParameters(paramsMap);
     params.setBody(bodyParam);
 
-    JsonObject obj = params.toJsonObject();
+    JsonObject obj = params.toJson();
     assertEquals(3, obj.getJsonObject("path").size());
     assertEquals(3, obj.getJsonObject("cookie").size());
     assertEquals(3, obj.getJsonObject("query").size());

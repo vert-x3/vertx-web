@@ -140,7 +140,7 @@ public class RequestParametersImpl implements RequestParameters {
   }
 
   @Override
-  public JsonObject toJsonObject() {
+  public JsonObject toJson() {
     JsonObject root = new JsonObject();
     root.put("path", mapToJsonObject(pathParameters));
     root.put("query", mapToJsonObject(queryParameters));
