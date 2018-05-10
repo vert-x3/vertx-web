@@ -53,7 +53,7 @@ public interface BodyHandler extends Handler<RoutingContext> {
   boolean DEFAULT_DELETE_UPLOADED_FILES_ON_END = false;
 
   /**
-   * Default value of whether to preallocate the body buffer size according to content-length
+   * Default value of whether to pre-allocate the body buffer size according to the content-length HTTP request header
    */
   boolean DEFAULT_PREALLOCATE_BODY_BUFFER = false;
 
@@ -113,7 +113,7 @@ public interface BodyHandler extends Handler<RoutingContext> {
   BodyHandler setDeleteUploadedFilesOnEnd(boolean deleteUploadedFilesOnEnd);
 
   /**
-   * Prealocated the body buffer according to the value parsed from Content-Length Header.
+   * Pre-allocated the body buffer according to the value parsed from content-length header.
    * The buffer is capped at 64KB
    * @param isPreallocateBodyBuffer true if body buffer is prealocated according to the size
    *                               read from Content=Length Header.
