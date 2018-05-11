@@ -76,7 +76,7 @@ To use vert.x web, add the following dependency to the _dependencies_ section of
 <dependency>
   <groupId>io.vertx</groupId>
   <artifactId>vertx-web</artifactId>
-  <version>3.5.1</version>
+  <version>3.5.2.CR1</version>
 </dependency>
 ----
 
@@ -85,7 +85,7 @@ To use vert.x web, add the following dependency to the _dependencies_ section of
 [source,groovy,subs="+attributes"]
 ----
 dependencies {
-  compile 'io.vertx:vertx-web:3.5.1'
+  compile 'io.vertx:vertx-web:3.5.2.CR1'
 }
 ----
 
@@ -2015,7 +2015,7 @@ router.getWithRegex(".+\\.hbs").handler(handler)
 === MVEL template engine
 
 To use MVEL, you need to add the following _dependency_ to your project:
-`io.vertx:vertx-web-templ-mvel:3.5.1`. Create an instance of the MVEL template engine using:
+`io.vertx:vertx-web-templ-mvel:3.5.2.CR1`. Create an instance of the MVEL template engine using:
 `io.vertx.ext.web.templ.MVELTemplateEngine#create()`
 
 When using the MVEL template engine, it will by default look for
@@ -2041,7 +2041,7 @@ MVEL templates.
 === Jade template engine
 
 To use the Jade template engine, you need to add the following _dependency_ to your project:
-`io.vertx:vertx-web-templ-jade:3.5.1`. Create an instance of the Jade template engine using:
+`io.vertx:vertx-web-templ-jade:3.5.2.CR1`. Create an instance of the Jade template engine using:
 `io.vertx.ext.web.templ.JadeTemplateEngine#create()`.
 
 When using the Jade template engine, it will by default look for
@@ -2067,7 +2067,7 @@ Jade templates.
 === Handlebars template engine
 
 To use Handlebars, you need to add the following _dependency_ to your project:
-`io.vertx:vertx-web-templ-handlebars:3.5.1`. Create an instance of the Handlebars template engine
+`io.vertx:vertx-web-templ-handlebars:3.5.2.CR1`. Create an instance of the Handlebars template engine
 using: `io.vertx.ext.web.templ.HandlebarsTemplateEngine#create()`.
 
 When using the Handlebars template engine, it will by default look for
@@ -2105,7 +2105,7 @@ handlebars templates.
 === Thymeleaf template engine
 
 To use Thymeleaf, you need to add the following _dependency_ to your project:
-`io.vertx:vertx-web-templ-thymeleaf:3.5.1`. Create an instance of the Thymeleaf template engine
+`io.vertx:vertx-web-templ-thymeleaf:3.5.2.CR1`. Create an instance of the Thymeleaf template engine
 using: `io.vertx.ext.web.templ.ThymeleafTemplateEngine#create()`.
 
 When using the Thymeleaf template engine, it will by default look for
@@ -2133,7 +2133,7 @@ Thymeleaf templates.
 === Apache FreeMarker template engine
 
 To use Apache FreeMarker, you need to add the following _dependency_ to your project:
-`io.vertx:vertx-web-templ-freemarker:3.5.1`. Create an instance of the Apache FreeMarker template engine
+`io.vertx:vertx-web-templ-freemarker:3.5.2.CR1`. Create an instance of the Apache FreeMarker template engine
 using: `io.vertx.ext.web.templ.FreeMarkerTemplateEngine#create()`.
 
 When using the Apache FreeMarker template engine, it will by default look for
@@ -2161,7 +2161,7 @@ Apache FreeMarker templates.
 === Pebble template engine
 
 To use Pebble, you need to add the following _dependency_ to your project:
-`io.vertx:vertx-web-templ-pebble:3.5.1`. Create an instance of the Pebble template engine
+`io.vertx:vertx-web-templ-pebble:3.5.2.CR1`. Create an instance of the Pebble template engine
 using: `io.vertx.ext.web.templ.PebbleTemplateEngine#create(vertx)`.
 
 When using the Pebble template engine, it will by default look for
@@ -2535,7 +2535,7 @@ You can retrieve the client library using a dependency manager:
 <dependency>
   <groupId>io.vertx</groupId>
   <artifactId>vertx-web</artifactId>
-  <version>3.5.1</version>
+  <version>3.5.2.CR1</version>
   <classifier>client</classifier>
   <type>js</type>
 </dependency>
@@ -2545,7 +2545,7 @@ You can retrieve the client library using a dependency manager:
 
 [source,groovy,subs="+attributes"]
 ----
-compile 'io.vertx:vertx-web:3.5.1:client'
+compile 'io.vertx:vertx-web:3.5.2.CR1:client'
 ----
 
 The library is also available on:

@@ -28,12 +28,14 @@ import io.vertx.core.net.ProxyOptions
  * @param forceSni 
  * @param http2ClearTextUpgrade 
  * @param http2ConnectionWindowSize 
+ * @param http2KeepAliveTimeout 
  * @param http2MaxPoolSize 
  * @param http2MultiplexingLimit 
  * @param idleTimeout 
  * @param initialSettings 
  * @param jdkSslEngineOptions 
  * @param keepAlive 
+ * @param keepAliveTimeout 
  * @param keyStoreOptions 
  * @param localAddress 
  * @param logActivity 
@@ -53,6 +55,7 @@ import io.vertx.core.net.ProxyOptions
  * @param pfxTrustOptions 
  * @param pipelining 
  * @param pipeliningLimit 
+ * @param poolCleanerPeriod 
  * @param protocolVersion 
  * @param proxyOptions 
  * @param receiveBufferSize 
@@ -94,12 +97,14 @@ fun WebClientOptions(
   forceSni: Boolean? = null,
   http2ClearTextUpgrade: Boolean? = null,
   http2ConnectionWindowSize: Int? = null,
+  http2KeepAliveTimeout: Int? = null,
   http2MaxPoolSize: Int? = null,
   http2MultiplexingLimit: Int? = null,
   idleTimeout: Int? = null,
   initialSettings: io.vertx.core.http.Http2Settings? = null,
   jdkSslEngineOptions: io.vertx.core.net.JdkSSLEngineOptions? = null,
   keepAlive: Boolean? = null,
+  keepAliveTimeout: Int? = null,
   keyStoreOptions: io.vertx.core.net.JksOptions? = null,
   localAddress: String? = null,
   logActivity: Boolean? = null,
@@ -119,6 +124,7 @@ fun WebClientOptions(
   pfxTrustOptions: io.vertx.core.net.PfxOptions? = null,
   pipelining: Boolean? = null,
   pipeliningLimit: Int? = null,
+  poolCleanerPeriod: Int? = null,
   protocolVersion: HttpVersion? = null,
   proxyOptions: io.vertx.core.net.ProxyOptions? = null,
   receiveBufferSize: Int? = null,
@@ -188,6 +194,9 @@ fun WebClientOptions(
   if (http2ConnectionWindowSize != null) {
     this.setHttp2ConnectionWindowSize(http2ConnectionWindowSize)
   }
+  if (http2KeepAliveTimeout != null) {
+    this.setHttp2KeepAliveTimeout(http2KeepAliveTimeout)
+  }
   if (http2MaxPoolSize != null) {
     this.setHttp2MaxPoolSize(http2MaxPoolSize)
   }
@@ -205,6 +214,9 @@ fun WebClientOptions(
   }
   if (keepAlive != null) {
     this.setKeepAlive(keepAlive)
+  }
+  if (keepAliveTimeout != null) {
+    this.setKeepAliveTimeout(keepAliveTimeout)
   }
   if (keyStoreOptions != null) {
     this.setKeyStoreOptions(keyStoreOptions)
@@ -262,6 +274,9 @@ fun WebClientOptions(
   }
   if (pipeliningLimit != null) {
     this.setPipeliningLimit(pipeliningLimit)
+  }
+  if (poolCleanerPeriod != null) {
+    this.setPoolCleanerPeriod(poolCleanerPeriod)
   }
   if (protocolVersion != null) {
     this.setProtocolVersion(protocolVersion)
