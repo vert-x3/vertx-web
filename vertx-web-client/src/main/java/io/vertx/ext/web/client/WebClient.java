@@ -23,6 +23,7 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.RequestOptions;
 import io.vertx.core.http.impl.HttpClientImpl;
 import io.vertx.ext.web.client.cache.CacheManager;
+import io.vertx.ext.web.client.impl.CacheManagerImpl;
 import io.vertx.ext.web.client.impl.WebClientImpl;
 
 /**
@@ -65,6 +66,10 @@ public interface WebClient {
    */
   static WebClient create(Vertx vertx, WebClientOptions options) {
     return new WebClientImpl(vertx.createHttpClient(options), options);
+  }
+
+  static WebClient create(Vertx vertx, WebClientOptions options, CacheManager cacheManager) {
+    return new WebClientImpl(vertx.createHttpClient(options), options, cacheManager);
   }
 
   /**
