@@ -426,7 +426,6 @@ public class WebClientOptions extends HttpClientOptions {
     return userAgent;
   }
 
-  @Fluent
   public WebClientOptions setCacheOptions(CacheOptions cacheOptions) {
     this.cacheOptions = cacheOptions;
     return this;

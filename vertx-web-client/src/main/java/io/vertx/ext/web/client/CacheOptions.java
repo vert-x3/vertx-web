@@ -1,5 +1,6 @@
 package io.vertx.ext.web.client;
 
+import io.vertx.codegen.annotations.DataObject;
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.ext.web.client.impl.CacheInterceptor;
 
@@ -14,6 +15,7 @@ import static io.vertx.ext.web.client.impl.CacheInterceptor.CacheKeyValue.PARAMS
 /**
  * @author Alexey Soshin
  */
+@DataObject
 public class CacheOptions {
 
     private final List<CacheInterceptor.CacheKeyValue> DEFAULT_CACHE_KEY_STRUCTURE = Arrays.asList(
@@ -41,7 +43,6 @@ public class CacheOptions {
      * @param maxEntries
      * @return
      */
-    @Fluent
     public CacheOptions setMaxEntries(int maxEntries) {
         this.maxEntries = maxEntries;
         return this;
