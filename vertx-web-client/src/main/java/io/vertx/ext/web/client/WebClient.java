@@ -22,6 +22,7 @@ import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.RequestOptions;
 import io.vertx.core.http.impl.HttpClientImpl;
+import io.vertx.ext.web.client.cache.CacheManager;
 import io.vertx.ext.web.client.impl.WebClientImpl;
 
 /**
