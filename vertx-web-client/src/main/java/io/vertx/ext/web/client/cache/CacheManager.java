@@ -1,4 +1,4 @@
-package io.vertx.ext.web.client;
+package io.vertx.ext.web.client.cache;
 
 /**
  * @author Alexey Soshin

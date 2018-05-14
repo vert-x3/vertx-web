@@ -1,6 +1,6 @@
 package io.vertx.ext.web.client.impl;
 
-import io.vertx.ext.web.client.CacheManager;
+import io.vertx.ext.web.client.cache.CacheManager;
 import io.vertx.ext.web.client.CacheOptions;
 import io.vertx.ext.web.client.WebClientOptions;
 
