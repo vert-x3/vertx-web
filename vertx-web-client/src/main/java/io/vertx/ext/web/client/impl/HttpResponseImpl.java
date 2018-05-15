@@ -19,7 +19,6 @@ import java.util.List;
 
 import io.vertx.core.MultiMap;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.http.HttpVersion;
 import io.vertx.core.json.JsonArray;
 import io.vertx.ext.web.client.HttpResponse;
@@ -30,54 +29,71 @@ import io.vertx.ext.web.codec.impl.BodyCodecImpl;
  */
 class HttpResponseImpl<T> implements HttpResponse<T> {
 
-  private final HttpClientResponse resp;
-  private Buffer buff;
-  private T body;
+  private final HttpVersion version;
+  private final int statusCode;
+  private final String statusMessage;
+  private final MultiMap headers;
+  private final MultiMap trailers;
+  private final List<String> cookies;
+  private final Buffer buff;
+  private final T body;
 
-  HttpResponseImpl(HttpClientResponse resp, Buffer buff, T body) {
-    this.resp = resp;
+  public HttpResponseImpl(HttpVersion version,
+                          int statusCode,
+                          String statusMessage,
+                          MultiMap headers,
+                          MultiMap trailers,
+                          List<String> cookies,
+                          Buffer buff,
+                          T body) {
+    this.version = version;
+    this.statusCode = statusCode;
+    this.statusMessage = statusMessage;
+    this.headers = headers;
+    this.trailers = trailers;
+    this.cookies = cookies;
     this.buff = buff;
     this.body = body;
   }
 
   @Override
   public HttpVersion version() {
-    return resp.version();
+    return version;
   }
 
   @Override
   public int statusCode() {
-    return resp.statusCode();
+    return statusCode;
   }
 
   @Override
   public String statusMessage() {
-    return resp.statusMessage();
+    return statusMessage;
   }
 
   @Override
   public String getHeader(String headerName) {
-    return resp.getHeader(headerName);
+    return headers.get(headerName);
   }
 
   @Override
   public MultiMap trailers() {
-    return resp.trailers();
+    return trailers;
   }
 
   @Override
   public String getTrailer(String trailerName) {
-    return resp.getTrailer(trailerName);
+    return trailers.get(trailerName);
   }
 
   @Override
   public List<String> cookies() {
-    return resp.cookies();
+    return cookies;
   }
 
   @Override
   public MultiMap headers() {
-    return resp.headers();
+    return headers;
   }
 
   @Override
