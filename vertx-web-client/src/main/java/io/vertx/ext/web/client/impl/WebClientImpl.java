@@ -15,21 +15,21 @@
  */
 package io.vertx.ext.web.client.impl;
 
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
-
 import io.vertx.core.Handler;
 import io.vertx.core.VertxException;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.RequestOptions;
-import io.vertx.ext.web.client.cache.CacheManager;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.WebClientOptions;
+import io.vertx.ext.web.client.cache.CacheManager;
 import io.vertx.ext.web.codec.impl.BodyCodecImpl;
+
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 
 /**
@@ -43,16 +43,19 @@ public class WebClientImpl implements WebClientInternal {
   private final CacheManager cacheManager;
 
   public WebClientImpl(HttpClient client, WebClientOptions options) {
-    this.client = client;
-    this.options = new WebClientOptions(options);
-    this.cacheManager = new CacheManagerImpl();
-    ((CacheManagerImpl)cacheManager).initCache(this, this.options);
+    this(client, options, new CacheManagerImpl(options.getCacheOptions()));
   }
 
   public WebClientImpl(HttpClient client, WebClientOptions options, CacheManager cacheManager) {
     this.client = client;
     this.options = new WebClientOptions(options);
     this.cacheManager = cacheManager;
+    addCacheInterceptor();
+  }
+
+  private void addCacheInterceptor() {
+    CacheInterceptor cacheInterceptor = new CacheInterceptor(this.cacheManager);
+    this.addInterceptor(cacheInterceptor);
   }
 
   @Override
