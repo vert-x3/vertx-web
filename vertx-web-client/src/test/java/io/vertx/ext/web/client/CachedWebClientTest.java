@@ -9,10 +9,7 @@ import io.vertx.ext.web.client.cache.CacheManager;
 import io.vertx.ext.web.client.cache.CacheKeyValue;
 import org.junit.Test;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertNotEquals;
@@ -302,17 +299,17 @@ public class CachedWebClientTest extends WebClientTest {
                     }
 
                     @Override
-                    public void fetch(HttpRequest request,
-                                      Handler<HttpResponse<Object>> hitHandler,
-                                      Handler<Handler<HttpResponse<Object>>> missHandler) {
+                    public Optional<HttpResponse<Object>> fetch(HttpRequest request,
+                                                                Handler<Handler<HttpResponse<Object>>> missHandler) {
 
                         HttpResponse<Object> value = cache.get("/abc");
                         if (value != null) {
-                            hitHandler.handle(value);
+                            return Optional.of(value);
                         }
                         else {
                             missHandler.handle(httpResponse -> cache.put("/abc", httpResponse));
                         }
+                        return Optional.empty();
                     }
                 });
 

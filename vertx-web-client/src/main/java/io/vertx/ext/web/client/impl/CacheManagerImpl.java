@@ -4,14 +4,12 @@ import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
+import io.vertx.ext.web.client.CacheOptions;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.HttpResponse;
-import io.vertx.ext.web.client.cache.CacheManager;
-import io.vertx.ext.web.client.CacheOptions;
 import io.vertx.ext.web.client.cache.CacheKeyValue;
+import io.vertx.ext.web.client.cache.CacheManager;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -24,8 +22,6 @@ public class CacheManagerImpl implements CacheManager {
 
     private static final Logger log = LoggerFactory.getLogger(CacheManagerImpl.class);
 
-    private final DateFormat dateTimeFormatter;
-
     private final Map<CacheKey, CacheValue> cache = new ConcurrentHashMap<>();
     private final LinkedHashSet<CacheKey> lru = new LinkedHashSet<>();
     private CacheOptions options;
@@ -35,8 +31,6 @@ public class CacheManagerImpl implements CacheManager {
             throw new IllegalArgumentException("No cache options supplied");
         }
         this.options = options;
-        this.dateTimeFormatter = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.ENGLISH);
-        this.dateTimeFormatter.setTimeZone(TimeZone.getTimeZone("GMT"));
     }
 
     @Override
@@ -66,14 +60,9 @@ public class CacheManagerImpl implements CacheManager {
         }
     }
 
-    public void fetch(HttpRequest request,
-                      Handler<HttpResponse<Object>> hitHandler,
+    public Optional<HttpResponse<Object>> fetch(HttpRequest request,
                       Handler<Handler<HttpResponse<Object>>> missHandler) {
         CacheKey cacheKey = new CacheKey(request);
-
-        if (request.headers().get("date") == null) {
-            request.putHeader("date", dateTimeFormatter.format(new Date()));
-        }
 
         // Always invalidate before checking if cache contains the value
         invalidate();
@@ -96,13 +85,15 @@ public class CacheManagerImpl implements CacheManager {
                     lru.remove(cacheKey);
                     lru.add(cacheKey);
                 }
-                hitHandler.handle(cacheValue.value);
+                return Optional.of(cacheValue.value);
             }
         }
         // No cache entry
         else {
             handleCacheMiss(missHandler, cacheKey);
         }
+
+        return Optional.empty();
     }
 
     private void handleCacheMiss(Handler<Handler<HttpResponse<Object>>> missHandler,
