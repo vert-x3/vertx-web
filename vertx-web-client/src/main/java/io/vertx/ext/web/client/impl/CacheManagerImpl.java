@@ -232,7 +232,7 @@ public class CacheManagerImpl implements CacheManager {
                     case PARAMS:
                         // Concatenate all query params
                         this.params = StreamSupport.stream(request.queryParams().spliterator(), false).
-                                sorted().
+                                sorted(Comparator.comparing(Map.Entry::getKey)).
                                 map(Object::toString).
                                 collect(Collectors.joining());
                         break;
