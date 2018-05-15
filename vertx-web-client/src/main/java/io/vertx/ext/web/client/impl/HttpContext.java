@@ -140,7 +140,15 @@ public class HttpContext {
               if (!fut.isComplete()) {
                 stream.end();
                 if (stream.result().succeeded()) {
-                  fut.complete(new HttpResponseImpl<>(resp, null, stream.result().result()));
+                  fut.complete(new HttpResponseImpl<>(
+                    resp.version(),
+                    resp.statusCode(),
+                    resp.statusMessage(),
+                    resp.headers(),
+                    resp.trailers(),
+                    resp.cookies(),
+                    null,
+                    stream.result().result()));
                 } else {
                   fut.fail(stream.result().cause());
                 }
