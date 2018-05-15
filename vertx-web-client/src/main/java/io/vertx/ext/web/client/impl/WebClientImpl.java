@@ -21,6 +21,7 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.RequestOptions;
+import io.vertx.ext.web.client.CacheOptions;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.ext.web.client.cache.CacheInterceptor;
@@ -44,7 +45,7 @@ public class WebClientImpl implements WebClientInternal {
   private final CacheManager cacheManager;
 
   public WebClientImpl(HttpClient client, WebClientOptions options) {
-    this(client, options, new CacheManagerImpl(options.getCacheOptions()));
+    this(client, options, new CacheManagerImpl(options.getCacheOptions() == null ? new CacheOptions() : options.getCacheOptions()));
   }
 
   public WebClientImpl(HttpClient client, WebClientOptions options, CacheManager cacheManager) {

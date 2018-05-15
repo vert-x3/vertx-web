@@ -31,9 +31,12 @@ public class CacheManagerImpl implements CacheManager {
     private CacheOptions options;
 
     CacheManagerImpl(CacheOptions options) {
+        if (options == null) {
+            throw new IllegalArgumentException("No cache options supplied");
+        }
+        this.options = options;
         this.dateTimeFormatter = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.ENGLISH);
         this.dateTimeFormatter.setTimeZone(TimeZone.getTimeZone("GMT"));
-        this.options = options;
     }
 
     @Override
