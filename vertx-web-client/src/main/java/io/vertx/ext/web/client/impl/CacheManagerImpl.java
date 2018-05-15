@@ -131,6 +131,11 @@ public class CacheManagerImpl implements CacheManager {
         return false;
     }
 
+    /**
+     * Creates a set of values out of Cache-Control header
+     * @param request
+     * @return
+     */
     private Set<String> parseCacheControl(HttpRequest request) {
         String cacheControlValue = request.headers().get("cache-control");
 
@@ -145,6 +150,13 @@ public class CacheManagerImpl implements CacheManager {
                 collect(Collectors.toSet());
     }
 
+    /**
+     * Validates ETag and max-age of the value in cache
+     * @param request
+     * @param cacheControl
+     * @param cacheValue
+     * @return
+     */
     private boolean isValueExpired(HttpRequest request,
                                    Set<String> cacheControl,
                                    CacheValue cacheValue) {
@@ -163,6 +175,13 @@ public class CacheManagerImpl implements CacheManager {
         return System.currentTimeMillis() > cacheValue.createdAt + maxAge.get();
     }
 
+    /**
+     * Compares ETag header value from the request with the one cached
+     * @param request
+     * @param cacheValue
+     * @return true if one of the ETags is empty, or both equals
+     *         false if both present but not equal
+     */
     private boolean isValidEtag(HttpRequest request, CacheValue cacheValue) {
         String requestEtag = request.headers().get("ETag");
 
@@ -184,6 +203,11 @@ public class CacheManagerImpl implements CacheManager {
         return true;
     }
 
+    /**
+     * Gets max-age header value if exists
+     * @param cacheControl set of key=value pairs of Cache-Control header
+     * @return optional representing value of max-age part
+     */
     private Optional<Integer> parseMaxAge(Set<String> cacheControl) {
         Optional<String> maxAge = cacheControl.stream().
                 filter(c -> c.startsWith("max-age")).
@@ -205,7 +229,9 @@ public class CacheManagerImpl implements CacheManager {
     }
 
 
-
+    /**
+     * Maps between HTTP request and a key in hash map
+     */
     public class CacheKey {
         private HttpMethod method = null;
         private String host = null;
@@ -286,7 +312,7 @@ public class CacheManagerImpl implements CacheManager {
         long createdAt;
         HttpResponse<Object> value;
 
-        public CacheValue(HttpResponse<Object> response) {
+        CacheValue(HttpResponse<Object> response) {
             this.value = response;
             this.createdAt = System.currentTimeMillis();
         }
