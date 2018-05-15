@@ -200,6 +200,26 @@ class HttpRequestImpl<T> implements HttpRequest<T> {
   }
 
   @Override
+  public HttpMethod getMethod() {
+    return this.method;
+  }
+
+  @Override
+  public String getHost() {
+    return this.host;
+  }
+
+  @Override
+  public Integer getPort() {
+    return this.port;
+  }
+
+  @Override
+  public String getURI() {
+    return this.uri;
+  }
+
+  @Override
   public void sendBuffer(Buffer body, Handler<AsyncResult<HttpResponse<T>>> handler) {
     send(null, body, handler);
   }

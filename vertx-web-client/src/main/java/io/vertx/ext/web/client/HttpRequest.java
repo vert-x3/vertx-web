@@ -242,4 +242,11 @@ public interface HttpRequest<T> {
    */
   void send(Handler<AsyncResult<HttpResponse<T>>> handler);
 
+  HttpMethod getMethod();
+
+  String getHost();
+
+  Integer getPort();
+
+  String getURI();
 }
