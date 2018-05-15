@@ -68,6 +68,13 @@ public interface WebClient {
     return new WebClientImpl(vertx.createHttpClient(options), options);
   }
 
+  /**
+   * Create a web client with custom cache manager
+   * @param vertx         the vertx instance
+   * @param options       Web Client options
+   * @param cacheManager  custom CacheManager
+   * @return  new instance of web client
+   */
   static WebClient create(Vertx vertx, WebClientOptions options, CacheManager cacheManager) {
     return new WebClientImpl(vertx.createHttpClient(options), options, cacheManager);
   }
