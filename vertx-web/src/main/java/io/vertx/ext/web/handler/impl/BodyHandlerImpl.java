@@ -71,7 +71,7 @@ public class BodyHandlerImpl implements BodyHandler {
     // we need to keep state since we can be called again on reroute
     Boolean handled = context.get(BODY_HANDLED);
     if (handled == null || !handled) {
-      Long contentLength = isPreallocateBodyBuffer ? parseContentLengthHeader(request) : null;
+      long contentLength = isPreallocateBodyBuffer ? parseContentLengthHeader(request) : -1;
       BHandler handler = new BHandler(context, contentLength);
       request.handler(handler);
       request.endHandler(v -> handler.end());
@@ -116,22 +116,22 @@ public class BodyHandlerImpl implements BodyHandler {
     return this;
   }
 
-  private Long parseContentLengthHeader(HttpServerRequest request) {
+  private long parseContentLengthHeader(HttpServerRequest request) {
     String contentLength = request.getHeader(HttpHeaders.CONTENT_LENGTH);
-    if(contentLength == null || contentLength == "") {
-      return null;
+    if(contentLength == null || contentLength.isEmpty()) {
+      return -1;
     }
-    try{
+    try {
       long parsedContentLength = Long.parseLong(contentLength);
-
       return  parsedContentLength < 0 ? null : parsedContentLength;
     }
     catch (NumberFormatException ex) {
-      return null;
+      return -1;
     }
   }
 
   private class BHandler implements Handler<Buffer> {
+    private static final int MAX_PREALLOCATED_BODY_BUFFER_BYTES = 65535;
 
     RoutingContext context;
     Buffer body;
@@ -140,12 +140,10 @@ public class BodyHandlerImpl implements BodyHandler {
     AtomicBoolean cleanup = new AtomicBoolean(false);
     boolean ended;
     long uploadSize = 0L;
-
-    final int MAX_PREALLOCATED_BODY_BUFFER_BYTES = 65535;
     final boolean isMultipart;
     final boolean isUrlEncoded;
 
-    public BHandler(RoutingContext context, Long contentLength) {
+    public BHandler(RoutingContext context, long contentLength) {
       this.context = context;
       Set<FileUpload> fileUploads = context.fileUploads();
 
@@ -194,16 +192,16 @@ public class BodyHandlerImpl implements BodyHandler {
       });
     }
 
-    private void initBodyBuffer(Long contentLength) {
+    private void initBodyBuffer(long contentLength) {
       int initialBodyBufferSize;
-      if(contentLength == null || contentLength < 0) {
+      if(contentLength < 0) {
         initialBodyBufferSize = DEFAULT_INITIAL_BODY_BUFFER_SIZE;
       }
       else if(contentLength > MAX_PREALLOCATED_BODY_BUFFER_BYTES) {
         initialBodyBufferSize = MAX_PREALLOCATED_BODY_BUFFER_BYTES;
       }
       else {
-        initialBodyBufferSize = contentLength.intValue();
+        initialBodyBufferSize = (int) contentLength;
       }
 
       if(bodyLimit != -1) {

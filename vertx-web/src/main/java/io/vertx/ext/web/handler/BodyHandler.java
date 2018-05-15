@@ -113,11 +113,11 @@ public interface BodyHandler extends Handler<RoutingContext> {
   BodyHandler setDeleteUploadedFilesOnEnd(boolean deleteUploadedFilesOnEnd);
 
   /**
-   * Pre-allocated the body buffer according to the value parsed from content-length header.
+   * Pre-allocate the body buffer according to the value parsed from content-length header.
    * The buffer is capped at 64KB
-   * @param isPreallocateBodyBuffer true if body buffer is prealocated according to the size
-   *                               read from Content=Length Header.
-   *                               false if body buffer is prealocated to 1KB, and is resized dynamically
+   * @param isPreallocateBodyBuffer {@code true} if body buffer is pre-allocated according to the size
+   *                               read from content-length Header.
+   *                               {code false} if body buffer is pre-allocated to 1KB, and is resized dynamically
    * @return reference to this for fluency
    */
   @Fluent
