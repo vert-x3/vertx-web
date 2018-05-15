@@ -16,9 +16,11 @@ public interface CacheManager {
 
     /**
      * Attempts to fetch value corresponding to request from cache
-     * @param request       request 
-     * @param hitHandler
-     * @param missHandler
+     * @param request       request is used to build cache key
+     * @param hitHandler    this handler is called if key was found in cache
+     *                      to return the value immediately
+     * @param missHandler   in case key is not in cache, you should supply a handler
+     *                      that will be called when the request returns to set the value
      */
     void fetch(HttpRequest request,
                Handler<HttpResponse<Object>> hitHandler,
