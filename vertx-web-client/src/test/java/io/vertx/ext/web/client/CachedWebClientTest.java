@@ -6,7 +6,7 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.ext.web.client.cache.CacheManager;
-import io.vertx.ext.web.client.impl.CacheKeyValue;
+import io.vertx.ext.web.client.cache.CacheKeyValue;
 import org.junit.Test;
 
 import java.util.Arrays;

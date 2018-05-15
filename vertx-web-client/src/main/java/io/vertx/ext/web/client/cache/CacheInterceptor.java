@@ -1,4 +1,4 @@
-package io.vertx.ext.web.client.impl;
+package io.vertx.ext.web.client.cache;
 
 
 import io.vertx.core.AsyncResult;
@@ -6,7 +6,8 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.client.HttpResponse;
-import io.vertx.ext.web.client.cache.CacheManager;
+import io.vertx.ext.web.client.impl.HttpContext;
+import io.vertx.ext.web.client.HttpRequest;
 
 /**
  * Response cache implemented as WebClient interceptor
@@ -21,10 +22,10 @@ public class CacheInterceptor implements Handler<HttpContext> {
 
     @Override
     public void handle(HttpContext event) {
-        HttpRequestImpl request = (HttpRequestImpl) event.request();
+        HttpRequest request = event.request();
 
         // Cache only GET requests
-        if (!request.method.equals(HttpMethod.GET)) {
+        if (!request.getMethod().equals(HttpMethod.GET)) {
             event.next();
         }
         else {

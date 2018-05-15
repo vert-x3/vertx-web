@@ -1,13 +1,13 @@
 package io.vertx.ext.web.client;
 
 import io.vertx.codegen.annotations.DataObject;
-import io.vertx.ext.web.client.impl.CacheKeyValue;
+import io.vertx.ext.web.client.cache.CacheKeyValue;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static io.vertx.ext.web.client.impl.CacheKeyValue.*;
+import static io.vertx.ext.web.client.cache.CacheKeyValue.*;
 
 /**
  * @author Alexey Soshin

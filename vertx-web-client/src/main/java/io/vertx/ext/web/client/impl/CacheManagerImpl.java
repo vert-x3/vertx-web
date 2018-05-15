@@ -8,7 +8,7 @@ import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.cache.CacheManager;
 import io.vertx.ext.web.client.CacheOptions;
-import io.vertx.ext.web.client.WebClientOptions;
+import io.vertx.ext.web.client.cache.CacheKeyValue;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -24,14 +24,13 @@ public class CacheManagerImpl implements CacheManager {
 
     private static final Logger log = LoggerFactory.getLogger(CacheManagerImpl.class);
 
-
     private final DateFormat dateTimeFormatter;
 
     private final Map<CacheKey, CacheValue> cache = new ConcurrentHashMap<>();
     private final LinkedHashSet<CacheKey> lru = new LinkedHashSet<>();
     private CacheOptions options;
 
-    protected CacheManagerImpl(CacheOptions options) {
+    CacheManagerImpl(CacheOptions options) {
         this.dateTimeFormatter = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.ENGLISH);
         this.dateTimeFormatter.setTimeZone(TimeZone.getTimeZone("GMT"));
         this.options = options;

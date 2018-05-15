@@ -1,4 +1,4 @@
-package io.vertx.ext.web.client.impl;
+package io.vertx.ext.web.client.cache;
 
 /**
  * Allowed keys for Web Client cache
