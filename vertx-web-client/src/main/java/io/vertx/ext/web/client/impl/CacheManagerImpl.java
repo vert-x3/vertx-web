@@ -1,6 +1,5 @@
 package io.vertx.ext.web.client.impl;
 
-import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
@@ -60,165 +59,43 @@ public class CacheManagerImpl implements CacheManager {
         }
     }
 
-    public Optional<HttpResponse<Object>> fetch(HttpRequest request,
-                      Handler<Handler<HttpResponse<Object>>> missHandler) {
+    public Optional<HttpResponse<Object>> fetch(HttpRequest request) {
         CacheKey cacheKey = new CacheKey(request);
 
         // Always invalidate before checking if cache contains the value
         invalidate();
-        Set<String> cacheControl = parseCacheControl(request);
-        if (shouldUseCache(cacheControl) && cache.containsKey(cacheKey)) {
+        if (cache.containsKey(cacheKey)) {
             CacheValue cacheValue = cache.get(cacheKey);
 
-            if (isValueExpired(request, cacheControl, cacheValue)) {
-                synchronized (this) {
-                    cache.remove(cacheKey);
-                    lru.remove(cacheKey);
-                }
-                handleCacheMiss(missHandler, cacheKey);
+            synchronized (this) {
+                // Promote this value in cache
+                // First value are those to be removed, so we pull our element from whenever it is,
+                // and put it in the end
+                lru.remove(cacheKey);
+                lru.add(cacheKey);
             }
-            else {
-                synchronized (this) {
-                    // Promote this value in cache
-                    // First value are those to be removed, so we pull our element from whenever it is,
-                    // and put it in the end
-                    lru.remove(cacheKey);
-                    lru.add(cacheKey);
-                }
-                return Optional.of(cacheValue.value);
-            }
-        }
-        // No cache entry
-        else {
-            handleCacheMiss(missHandler, cacheKey);
+            return Optional.of(cacheValue.value);
         }
 
         return Optional.empty();
     }
 
-    private void handleCacheMiss(Handler<Handler<HttpResponse<Object>>> missHandler,
-                                 CacheKey cacheKey) {
-        missHandler.handle(new Handler<HttpResponse<Object>>() {
-            @Override
-            public void handle(HttpResponse<Object> httpResponse) {
-                // Cache response and add it as most recently used
-                synchronized (this) {
-                    lru.add(cacheKey);
-                    cache.put(cacheKey, new CacheManagerImpl.CacheValue(httpResponse));
-                }
-            }
-        });
+
+    public void remove(HttpRequest request) {
+        CacheKey cacheKey = new CacheKey(request);
+        synchronized (this) {
+            cache.remove(cacheKey);
+            lru.remove(cacheKey);
+        }
     }
 
-    private boolean shouldUseCache(Set<String> cacheControl) {
-        if (cacheControl.isEmpty()) {
-            return true;
+    public void put(HttpRequest request, HttpResponse<Object> response) {
+        CacheKey cacheKey = new CacheKey(request);
+        synchronized (this) {
+            lru.add(cacheKey);
+            cache.put(cacheKey, new CacheManagerImpl.CacheValue(response));
         }
-
-        if (cacheControl.contains("public")) {
-            return true;
-        }
-
-        return false;
     }
-
-    /**
-     * Creates a set of values out of Cache-Control header
-     * @param request
-     * @return
-     */
-    private Set<String> parseCacheControl(HttpRequest request) {
-        String cacheControlValue = request.headers().get("cache-control");
-
-        if (cacheControlValue == null) {
-            return Collections.emptySet();
-        }
-
-        return Arrays.stream(cacheControlValue.split(",")).
-                filter(Objects::nonNull).
-                map(String::trim).
-                map(String::toLowerCase).
-                collect(Collectors.toSet());
-    }
-
-    /**
-     * Validates ETag and max-age of the value in cache
-     * @param request
-     * @param cacheControl
-     * @param cacheValue
-     * @return
-     */
-    private boolean isValueExpired(HttpRequest request,
-                                   Set<String> cacheControl,
-                                   CacheValue cacheValue) {
-        if (!isValidEtag(request, cacheValue)) {
-            return true;
-        }
-
-        Optional<Integer> maxAge = parseMaxAge(cacheControl);
-
-        // Cannot expire if not set
-        if (!maxAge.isPresent()) {
-            return false;
-        }
-
-        // Check that this entry has not expired if age was set
-        return System.currentTimeMillis() > cacheValue.createdAt + maxAge.get();
-    }
-
-    /**
-     * Compares ETag header value from the request with the one cached
-     * @param request
-     * @param cacheValue
-     * @return true if one of the ETags is empty, or both equals
-     *         false if both present but not equal
-     */
-    private boolean isValidEtag(HttpRequest request, CacheValue cacheValue) {
-        String requestEtag = request.headers().get("ETag");
-
-        if (requestEtag == null) {
-            return true;
-        }
-
-        String responseEtag = cacheValue.value.headers().get("ETag");
-
-        if (responseEtag == null) {
-            return true;
-        }
-
-        // If ETags are different, value should be considered expired
-        if  (!responseEtag.equals(requestEtag)) {
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
-     * Gets max-age header value if exists
-     * @param cacheControl set of key=value pairs of Cache-Control header
-     * @return optional representing value of max-age part
-     */
-    private Optional<Integer> parseMaxAge(Set<String> cacheControl) {
-        Optional<String> maxAge = cacheControl.stream().
-                filter(c -> c.startsWith("max-age")).
-                findFirst();
-
-        if (maxAge.isPresent()) {
-            String[] maxAgeParts = maxAge.get().split("=");
-            if (maxAgeParts.length > 1) {
-                try {
-                    return Optional.of(Integer.parseInt(maxAgeParts[1]));
-                }
-                catch (NumberFormatException nfe) {
-                    return Optional.empty();
-                }
-            }
-        }
-
-        return Optional.empty();
-    }
-
 
     /**
      * Maps between HTTP request and a key in hash map
@@ -232,19 +109,20 @@ public class CacheManagerImpl implements CacheManager {
         private String contentType = null;
 
         CacheKey(HttpRequest request, List<CacheKeyValue> keyStructure) {
+            HttpRequestImpl r = (HttpRequestImpl) request;
             for (CacheKeyValue v : keyStructure) {
                 switch (v) {
                     case METHOD:
-                        this.method = request.getMethod();
+                        this.method = r.method;
                         break;
                     case HOST:
-                        this.host = request.getHost();
+                        this.host = r.host;
                         break;
                     case PORT:
-                        this.port = request.getPort();
+                        this.port = r.port;
                         break;
                     case URI:
-                        this.uri = request.getURI();
+                        this.uri = r.uri;
                         break;
                     case CONTENT_TYPE:
                         this.contentType = request.headers().get("content-type");
@@ -265,6 +143,18 @@ public class CacheManagerImpl implements CacheManager {
 
         CacheKey(HttpRequest request) {
             this(request, options.getCacheKeyValue());
+        }
+
+        @Override
+        public String toString() {
+            return "CacheKey{" +
+                    "method=" + method +
+                    ", host='" + host + '\'' +
+                    ", port=" + port +
+                    ", uri='" + uri + '\'' +
+                    ", params='" + params + '\'' +
+                    ", contentType='" + contentType + '\'' +
+                    '}';
         }
 
         /**

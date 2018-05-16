@@ -18,11 +18,12 @@ public interface CacheManager {
 
     /**
      * Attempts to fetch value corresponding to request from cache
-     * @param request       request is used to build cache key
-     * @param missHandler   in case key is not in cache, you should supply a handler
-     *                      that will be called when the request returns to set the value
+     * @param request request is used to build cache key
      * @return cached HTTP response or Optional.empty
      */
-    Optional<HttpResponse<Object>> fetch(HttpRequest request,
-                                         Handler<Handler<HttpResponse<Object>>> missHandler);
+    Optional<HttpResponse<Object>> fetch(HttpRequest request);
+
+    void put(HttpRequest request, HttpResponse<Object> response);
+
+    void remove(HttpRequest request);
 }

@@ -24,7 +24,6 @@ import io.vertx.core.http.RequestOptions;
 import io.vertx.ext.web.client.CacheOptions;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.WebClientOptions;
-import io.vertx.ext.web.client.cache.CacheInterceptor;
 import io.vertx.ext.web.client.cache.CacheManager;
 import io.vertx.ext.web.codec.impl.BodyCodecImpl;
 

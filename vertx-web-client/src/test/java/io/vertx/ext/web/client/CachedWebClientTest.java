@@ -9,6 +9,9 @@ import io.vertx.ext.web.client.cache.CacheManager;
 import io.vertx.ext.web.client.cache.CacheKeyValue;
 import org.junit.Test;
 
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -164,12 +167,13 @@ public class CachedWebClientTest extends WebClientTest {
 
         // Generate unique ID each time
         server.requestHandler(h -> {
-            h.response().end(UUID.randomUUID().toString());
+            String date = DateTimeFormatter.RFC_1123_DATE_TIME.format(ZonedDateTime.now(ZoneOffset.UTC));
+            h.response().putHeader("date", date).end(UUID.randomUUID().toString());
         });
         startServer();
 
         Map<String, String> headers = new HashMap<>();
-        headers.put("cache-control", "public, max-age=10");
+        headers.put("cache-control", "public, max-age=1000");
 
         String res1 = syncRequest(webClient, "/", null);
         String res2 = syncRequest(webClient, "/", headers);
@@ -184,7 +188,8 @@ public class CachedWebClientTest extends WebClientTest {
 
         // Generate unique ID each time
         server.requestHandler(h -> {
-            h.response().end(UUID.randomUUID().toString());
+            String date = DateTimeFormatter.RFC_1123_DATE_TIME.format(ZonedDateTime.now(ZoneOffset.UTC));
+            h.response().putHeader("date", date).end(UUID.randomUUID().toString());
         });
         startServer();
 
@@ -299,17 +304,23 @@ public class CachedWebClientTest extends WebClientTest {
                     }
 
                     @Override
-                    public Optional<HttpResponse<Object>> fetch(HttpRequest request,
-                                                                Handler<Handler<HttpResponse<Object>>> missHandler) {
+                    public Optional<HttpResponse<Object>> fetch(HttpRequest request) {
 
                         HttpResponse<Object> value = cache.get("/abc");
                         if (value != null) {
                             return Optional.of(value);
                         }
-                        else {
-                            missHandler.handle(httpResponse -> cache.put("/abc", httpResponse));
-                        }
                         return Optional.empty();
+                    }
+
+                    @Override
+                    public void put(HttpRequest request, HttpResponse<Object> response) {
+                        cache.put("/abc", response);
+                    }
+
+                    @Override
+                    public void remove(HttpRequest request) {
+
                     }
                 });
 
