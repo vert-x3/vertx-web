@@ -241,12 +241,4 @@ public interface HttpRequest<T> {
    * Send a request, the {@code handler} will receive the response as an {@link HttpResponse}.
    */
   void send(Handler<AsyncResult<HttpResponse<T>>> handler);
-
-  HttpMethod getMethod();
-
-  String getHost();
-
-  Integer getPort();
-
-  String getURI();
 }
