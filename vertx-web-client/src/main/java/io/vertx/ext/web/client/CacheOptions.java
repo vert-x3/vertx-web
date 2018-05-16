@@ -1,6 +1,7 @@
 package io.vertx.ext.web.client;
 
 import io.vertx.codegen.annotations.DataObject;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.cache.CacheKeyValue;
 
 import java.util.ArrayList;
@@ -26,13 +27,22 @@ public class CacheOptions {
 
     }
 
-    public CacheOptions(CacheOptions other) {
+    CacheOptions(CacheOptions other) {
         if (other != null) {
             this.maxEntries = other.getMaxEntries();
             if (other.cacheKeyValue != null) {
                 this.cacheKeyValue = new ArrayList<>(other.cacheKeyValue);
             }
         }
+    }
+
+    /**
+     * Creates a new instance from JSON
+     *
+     * @param json the JSON object
+     */
+    public CacheOptions(JsonObject json) {
+
     }
 
     /**
