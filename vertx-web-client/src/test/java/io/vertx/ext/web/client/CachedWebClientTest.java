@@ -337,7 +337,7 @@ public class CachedWebClientTest extends WebClientTest {
         assertEquals(res1, res2);
     }
 
-    private String syncRequest(WebClient webClient, String uri, Map<String, String> headers) {
+    protected String syncRequest(WebClient webClient, String uri, Map<String, String> headers) {
         Future<String> f = Future.future();
         HttpRequest<Buffer> req = webClient.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, uri);
 
