@@ -5,8 +5,10 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.ext.web.client.CacheOptions;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.HttpResponse;
+import io.vertx.ext.web.client.cache.CacheKeyValue;
 import io.vertx.ext.web.client.cache.CacheManager;
 
 import java.text.DateFormat;
@@ -14,6 +16,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 /**
  * Response cache implemented as WebClient interceptor
@@ -23,9 +26,11 @@ public class CacheInterceptor implements Handler<HttpContext> {
     private final CacheManager cacheManager;
 
     private final DateFormat dateTimeFormatter;
+    private final CacheOptions options;
 
-    CacheInterceptor(CacheManager cacheManager) {
+    CacheInterceptor(CacheManager cacheManager, CacheOptions options) {
         this.cacheManager = cacheManager;
+        this.options = options;
 
         this.dateTimeFormatter = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.ENGLISH);
         this.dateTimeFormatter.setTimeZone(TimeZone.getTimeZone("UTC"));
@@ -46,8 +51,10 @@ public class CacheInterceptor implements Handler<HttpContext> {
             if (request.headers().get("date") == null) {
                 request.putHeader("date", dateTimeFormatter.format(new Date()));
             }
+
+            CacheKey cacheKey = new CacheKey(request);
             // If this is a GET call, we should check the value in cache
-            Optional<HttpResponse<Object>> valueFromCache = cacheManager.fetch(request);
+            Optional<HttpResponse<Object>> valueFromCache = cacheManager.fetch(cacheKey);
 
             if (valueFromCache.isPresent()) {
                 HttpResponse<Object> value = valueFromCache.get();
@@ -58,7 +65,7 @@ public class CacheInterceptor implements Handler<HttpContext> {
                         return;
                     }
                     else {
-                        cacheManager.remove(request);
+                        cacheManager.remove(cacheKey);
                     }
                 }
             }
@@ -71,7 +78,7 @@ public class CacheInterceptor implements Handler<HttpContext> {
         Handler<AsyncResult<HttpResponse<Object>>> responseHandler = event.getResponseHandler();
         event.setResponseHandler(r -> {
             if (r.succeeded()) {
-                cacheManager.put(request, r.result());
+                cacheManager.put(new CacheKey(request), r.result());
             }
             responseHandler.handle(r);
         });
@@ -197,5 +204,97 @@ public class CacheInterceptor implements Handler<HttpContext> {
         }
 
         return Optional.empty();
+    }
+
+    /**
+     * Maps between HTTP request and a key in hash map
+     */
+    public class CacheKey {
+        private HttpMethod method = null;
+        private String host = null;
+        private Integer port = null;
+        private String uri = null;
+        private String params = null;
+        private String contentType = null;
+
+        CacheKey(HttpRequest request, List<CacheKeyValue> keyStructure) {
+            HttpRequestImpl r = (HttpRequestImpl) request;
+            for (CacheKeyValue v : keyStructure) {
+                switch (v) {
+                    case METHOD:
+                        this.method = r.method;
+                        break;
+                    case HOST:
+                        this.host = r.host;
+                        break;
+                    case PORT:
+                        this.port = r.port;
+                        break;
+                    case URI:
+                        this.uri = r.uri;
+                        break;
+                    case CONTENT_TYPE:
+                        this.contentType = request.headers().get("content-type");
+                        break;
+                    case PARAMS:
+                        // Concatenate all query params
+                        this.params = StreamSupport.stream(request.queryParams().spliterator(), false).
+                                sorted(Comparator.comparing(Map.Entry::getKey)).
+                                map(Object::toString).
+                                collect(Collectors.joining());
+                        break;
+                    // This would be the case if we added a new enum, but forgot to handle it here
+                    default:
+                        throw new RuntimeException("Unsupported cache key value " + v);
+                }
+            }
+        }
+
+        CacheKey(HttpRequest request) {
+            this(request, options.getCacheKeyValue());
+        }
+
+        @Override
+        public String toString() {
+            return "CacheKey{" +
+                    "method=" + method +
+                    ", host='" + host + '\'' +
+                    ", port=" + port +
+                    ", uri='" + uri + '\'' +
+                    ", params='" + params + '\'' +
+                    ", contentType='" + contentType + '\'' +
+                    '}';
+        }
+
+        /**
+         * This is very important, as it allows us to locate "similar" cache values
+         * @param o
+         * @return
+         */
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            CacheKey cacheKey = (CacheKey) o;
+
+            if (port != null ? !port.equals(cacheKey.port) : cacheKey.port != null) return false;
+            if (method != null ? !method.equals(cacheKey.method) : cacheKey.method != null) return false;
+            if (host != null ? !host.equals(cacheKey.host) : cacheKey.host != null) return false;
+            if (uri != null ? !uri.equals(cacheKey.uri) : cacheKey.uri != null) return false;
+            if (params != null ? !params.equals(cacheKey.params) : cacheKey.params != null) return false;
+            return contentType != null ? contentType.equals(cacheKey.contentType) : cacheKey.contentType == null;
+        }
+
+        @Override
+        public int hashCode() {
+            int result = method.hashCode();
+            result = 31 * result + (host != null ? host.hashCode() : 0);
+            result = 31 * result + (port != null ? port.hashCode() : 0);
+            result = 31 * result + (uri != null ? uri.hashCode() : 0);
+            result = 31 * result + (params != null ? params.hashCode() : 0);
+            result = 31 * result + (contentType != null ? contentType.hashCode() : 0);
+            return result;
+        }
     }
 }

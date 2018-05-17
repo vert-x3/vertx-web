@@ -1,7 +1,7 @@
 package io.vertx.ext.web.client.cache;
 
-import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.HttpResponse;
+import io.vertx.ext.web.client.impl.CacheInterceptor;
 
 import java.util.Optional;
 
@@ -18,21 +18,21 @@ public interface CacheManager {
 
     /**
      * Attempts to fetch value corresponding to request from cache
-     * @param request request is used to build cache key
+     * @param cacheKey key based on HTTP request
      * @return cached HTTP response or Optional.empty
      */
-    Optional<HttpResponse<Object>> fetch(HttpRequest request);
+    Optional<HttpResponse<Object>> fetch(CacheInterceptor.CacheKey cacheKey);
 
     /**
      * Puts new value in cache, where the key is based on request and value on response
-     * @param request   HTTP request that was issues
+     * @param cacheKey   key based on HTTP requests request that was issues
      * @param response  HTTP response to be associated
      */
-    void put(HttpRequest request, HttpResponse<Object> response);
+    void put(CacheInterceptor.CacheKey cacheKey, HttpResponse<Object> response);
 
     /**
      * Removes value from cache corresponding to request key
-     * @param request HTTP request that should be removed from cache
+     * @param cacheKey key based on HTTP requests that should be removed from cache
      */
-    void remove(HttpRequest request);
+    void remove(CacheInterceptor.CacheKey cacheKey);
 }

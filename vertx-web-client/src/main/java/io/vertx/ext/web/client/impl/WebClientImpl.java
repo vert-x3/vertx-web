@@ -55,7 +55,7 @@ public class WebClientImpl implements WebClientInternal {
   }
 
   private void addCacheInterceptor() {
-    CacheInterceptor cacheInterceptor = new CacheInterceptor(this.cacheManager);
+    CacheInterceptor cacheInterceptor = new CacheInterceptor(this.cacheManager, this.options.getCacheOptions());
     this.addInterceptor(cacheInterceptor);
   }
 

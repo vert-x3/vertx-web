@@ -7,6 +7,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.ext.web.client.cache.CacheManager;
 import io.vertx.ext.web.client.cache.CacheKeyValue;
+import io.vertx.ext.web.client.impl.CacheInterceptor;
 import org.junit.Test;
 
 import java.time.ZoneOffset;
@@ -304,7 +305,7 @@ public class CachedWebClientTest extends WebClientTest {
                     }
 
                     @Override
-                    public Optional<HttpResponse<Object>> fetch(HttpRequest request) {
+                    public Optional<HttpResponse<Object>> fetch(CacheInterceptor.CacheKey key) {
 
                         HttpResponse<Object> value = cache.get("/abc");
                         if (value != null) {
@@ -314,12 +315,12 @@ public class CachedWebClientTest extends WebClientTest {
                     }
 
                     @Override
-                    public void put(HttpRequest request, HttpResponse<Object> response) {
+                    public void put(CacheInterceptor.CacheKey key, HttpResponse<Object> response) {
                         cache.put("/abc", response);
                     }
 
                     @Override
-                    public void remove(HttpRequest request) {
+                    public void remove(CacheInterceptor.CacheKey key) {
 
                     }
                 });
