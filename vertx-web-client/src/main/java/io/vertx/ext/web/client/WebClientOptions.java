@@ -17,13 +17,13 @@
 package io.vertx.ext.web.client;
 
 import io.vertx.codegen.annotations.DataObject;
-import io.vertx.codegen.annotations.Fluent;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpVersion;
 import io.vertx.core.impl.launcher.commands.VersionCommand;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.*;
+import io.vertx.ext.web.client.cache.CacheOptions;
 
 import java.util.List;
 

@@ -3,10 +3,10 @@ package io.vertx.ext.web.client;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import io.vertx.core.Future;
-import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.ext.web.client.cache.CacheManager;
 import io.vertx.ext.web.client.cache.CacheKeyValue;
+import io.vertx.ext.web.client.cache.CacheOptions;
 import io.vertx.ext.web.client.impl.CacheInterceptor;
 import org.junit.Test;
 

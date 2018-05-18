@@ -2,7 +2,7 @@ package io.vertx.ext.web.client.impl;
 
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
-import io.vertx.ext.web.client.CacheOptions;
+import io.vertx.ext.web.client.cache.CacheOptions;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.cache.CacheManager;
 

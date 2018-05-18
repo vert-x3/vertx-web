@@ -1,8 +1,7 @@
-package io.vertx.ext.web.client;
+package io.vertx.ext.web.client.cache;
 
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.web.client.cache.CacheKeyValue;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -27,7 +26,7 @@ public class CacheOptions {
 
     }
 
-    CacheOptions(CacheOptions other) {
+    public CacheOptions(CacheOptions other) {
         if (other != null) {
             this.maxEntries = other.getMaxEntries();
             if (other.cacheKeyValue != null) {
