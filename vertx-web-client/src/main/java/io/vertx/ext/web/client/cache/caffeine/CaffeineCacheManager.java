@@ -12,7 +12,7 @@ import java.util.Optional;
  *
  * @author Alexey Soshin
  */
-public class CaffeineCacheManager implements CacheManager {
+public class CaffeineCacheManager implements CacheManager<CacheInterceptor.CacheKey> {
 
   private final Cache<CacheInterceptor.CacheKey, HttpResponse<Object>> cache;
 

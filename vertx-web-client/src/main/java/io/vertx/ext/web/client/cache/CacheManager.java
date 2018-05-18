@@ -1,7 +1,6 @@
 package io.vertx.ext.web.client.cache;
 
 import io.vertx.ext.web.client.HttpResponse;
-import io.vertx.ext.web.client.impl.CacheInterceptor;
 
 import java.util.Optional;
 
@@ -10,7 +9,7 @@ import java.util.Optional;
  *
  * @author Alexey Soshin
  */
-public interface CacheManager {
+public interface CacheManager<K> {
 
   /**
    * Clears the cache completely
@@ -23,7 +22,7 @@ public interface CacheManager {
    * @param cacheKey key based on HTTP request
    * @return cached HTTP response or Optional.empty
    */
-  Optional<HttpResponse<Object>> fetch(CacheInterceptor.CacheKey cacheKey);
+  Optional<HttpResponse<Object>> fetch(K cacheKey);
 
   /**
    * Puts new value in cache, where the key is based on request and value on response
@@ -31,12 +30,12 @@ public interface CacheManager {
    * @param cacheKey key based on HTTP requests request that was issues
    * @param response HTTP response to be associated
    */
-  void put(CacheInterceptor.CacheKey cacheKey, HttpResponse<Object> response);
+  void put(K cacheKey, HttpResponse<Object> response);
 
   /**
    * Removes value from cache corresponding to request key
    *
    * @param cacheKey key based on HTTP requests that should be removed from cache
    */
-  void remove(CacheInterceptor.CacheKey cacheKey);
+  void remove(K cacheKey);
 }

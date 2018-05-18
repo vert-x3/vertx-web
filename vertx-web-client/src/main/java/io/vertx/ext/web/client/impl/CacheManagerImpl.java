@@ -15,7 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * @author Alexey Soshin
  */
-public class CacheManagerImpl implements CacheManager {
+public class CacheManagerImpl implements CacheManager<CacheInterceptor.CacheKey> {
 
   private static final Logger log = LoggerFactory.getLogger(CacheManagerImpl.class);
 

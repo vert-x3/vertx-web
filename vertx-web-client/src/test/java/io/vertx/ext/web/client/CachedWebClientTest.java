@@ -292,7 +292,7 @@ public class CachedWebClientTest extends WebClientTest {
 
         WebClientOptions options = new WebClientOptions();
         WebClient webClient = WebClient.create(vertx,
-                options, new CacheManager() {
+                options, new CacheManager<CacheInterceptor.CacheKey>() {
 
                     LoadingCache<String, HttpResponse<Object>> cache = Caffeine.newBuilder()
                             .maximumSize(1)
