@@ -357,6 +357,8 @@ public interface Router extends Handler<HttpServerRequest> {
   @Fluent
   Router mountSubRouter(String mountPoint, Router subRouter);
 
+
+  Router buildSubRouter(String mountPoint);
   /**
    * Specify a handler for any unhandled exceptions on this router. The handler will be called for exceptions thrown
    * from handlers. This does not affect the normal failure routing logic.

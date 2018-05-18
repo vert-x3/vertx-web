@@ -31,7 +31,6 @@ import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- *
  * This class is thread-safe
  *
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -270,6 +269,13 @@ public class RouterImpl implements Router {
     }
     route(mountPoint + "*").handler(subRouter::handleContext).failureHandler(subRouter::handleFailure);
     return this;
+  }
+
+  @Override
+  public Router buildSubRouter(String mountPoint) {
+    Router router = Router.router(vertx);
+    this.mountSubRouter(mountPoint, router);
+    return router;
   }
 
   @Override
