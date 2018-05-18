@@ -220,7 +220,7 @@ public class WebClientImpl implements WebClientInternal {
         if (port == -1) {
           port = 80;
         }
-      } else if (chend == 's'){
+      } else if (chend == 's') {
         ssl = true;
         if (port == -1) {
           port = 443;
