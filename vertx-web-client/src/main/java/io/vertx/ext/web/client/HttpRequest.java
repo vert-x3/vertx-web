@@ -187,6 +187,15 @@ public interface HttpRequest<T> {
   HttpRequest<T> followRedirects(boolean value);
 
   /**
+   * Set connection exception handler
+   * @param connectionExceptionHandler - handler to be called if a connection exception is raised
+   * @return a reference to this, so the API can be used fluently
+   */
+
+  @Fluent
+  HttpRequest<T> setConnectionExceptionHandler(Handler<Throwable> connectionExceptionHandler);
+
+  /**
    * Return the current query parameters.
    *
    * @return the current query parameters
@@ -252,5 +261,6 @@ public interface HttpRequest<T> {
    * Send a request, the {@code handler} will receive the response as an {@link HttpResponse}.
    */
   void send(Handler<AsyncResult<HttpResponse<T>>> handler);
+
 
 }

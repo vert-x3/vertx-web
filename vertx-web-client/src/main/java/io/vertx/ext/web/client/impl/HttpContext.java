@@ -195,6 +195,10 @@ public class HttpContext {
         req = request.client.client.request(request.method, port, host, requestURI);
       }
     }
+
+    if(req.connection() != null) {
+      req.connection().exceptionHandler(request.connectionExceptionHandler());
+    }
     if (request.virtualHost != null) {
       String virtalHost = request.virtualHost;
       if (port != 80) {

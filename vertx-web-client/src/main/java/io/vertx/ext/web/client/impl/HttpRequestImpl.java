@@ -51,6 +51,7 @@ class HttpRequestImpl<T> implements HttpRequest<T> {
   BodyCodec<T> codec;
   boolean followRedirects;
   boolean ssl;
+  Handler<Throwable> connectionExceptionHandler;
 
   HttpRequestImpl(WebClientImpl client, HttpMethod method, boolean ssl, int port, String host, String uri, BodyCodec<T>
           codec, WebClientOptions options) {
@@ -168,6 +169,16 @@ class HttpRequestImpl<T> implements HttpRequest<T> {
   public HttpRequest<T> followRedirects(boolean value) {
     followRedirects = value;
     return this;
+  }
+
+  @Override
+  public HttpRequest<T> setConnectionExceptionHandler(Handler<Throwable> connectionExceptionHandler) {
+    this.connectionExceptionHandler = connectionExceptionHandler;
+    return this;
+  }
+
+  public Handler<Throwable> connectionExceptionHandler() {
+    return this.connectionExceptionHandler;
   }
 
   @Override
