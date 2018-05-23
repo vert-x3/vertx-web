@@ -10,8 +10,12 @@ import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.parameters.Parameter;
 import io.swagger.v3.parser.ObjectMapperFactory;
 import io.swagger.v3.parser.core.models.ParseOptions;
+import io.vertx.core.Handler;
+import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.api.RequestContext;
 import io.vertx.ext.web.api.validation.SpecFeatureNotSupportedException;
 
+import java.lang.reflect.Method;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
@@ -267,6 +271,19 @@ public class OpenApi3Utils {
       .entrySet().stream()
       .filter(e -> matchingFunction.test(e.getKey()))
       .map(Map.Entry::getValue).collect(Collectors.toList());
+  }
+
+  public final static List<Class> SERVICE_PROXY_METHOD_PARAMETERS = Arrays.asList(new Class[]{RequestContext.class, Handler.class});
+
+  public static boolean methodHasParametersType(Method method, List<Class> paramsClasses) {
+    return Arrays.stream(method.getParameters()).map(p -> p.getType()).allMatch(c -> paramsClasses.contains(c));
+  }
+
+  public static JsonObject sanitizeDeliveryOptionsExtension(JsonObject jsonObject) {
+    JsonObject newObj = new JsonObject();
+    if (jsonObject.containsKey("timeout")) newObj.put("timeout", jsonObject.getValue("timeout"));
+    if (jsonObject.containsKey("headers")) newObj.put("headers", jsonObject.getValue("headers"));
+    return newObj;
   }
 
 }

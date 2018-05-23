@@ -12,45 +12,42 @@ import io.vertx.ext.web.api.OperationResult;
 import io.vertx.ext.web.api.RequestContext;
 import io.vertx.ext.web.api.RequestParameters;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-
-public class RouteToEventBusOperationHandler implements Handler<RoutingContext> {
+public class RouteToServiceProxyHandler implements Handler<RoutingContext> {
 
   EventBus eventBus;
   String address;
-  String actionName;
+  DeliveryOptions deliveryOptions;
 
-  public RouteToEventBusOperationHandler(EventBus eventBus, String address, String actionName) {
+  public RouteToServiceProxyHandler(EventBus eventBus, String address, DeliveryOptions deliveryOptions) {
     this.eventBus = eventBus;
     this.address = address;
-    this.actionName = actionName;
+    this.deliveryOptions = deliveryOptions;
   }
 
   @Override
   public void handle(RoutingContext routingContext) {
-    eventBus.send(address, buildPayload(routingContext), new DeliveryOptions().addHeader("action", actionName), (AsyncResult<Message<JsonObject>> res) -> {
+    eventBus.send(address, buildPayload(routingContext), deliveryOptions, (AsyncResult<Message<JsonObject>> res) -> {
       OperationResult op = new OperationResult(res.result().body());
       HttpServerResponse response = routingContext.response().setStatusCode(op.getStatusCode());
-      // op.getHeaders().forEach(e -> response.putHeader(e.getKey(), e.getValue()));
+      op.getHeaders().forEach(h -> response.putHeader(h.getKey(), h.getValue()));
       response.end(op.getPayload().toString());
     });
   }
 
   private static JsonObject buildPayload(RoutingContext context) {
     return new JsonObject().put("context", new RequestContext(
-      context.request().headers().entries().stream().reduce(new HashMap<String, List<String>>(), (m, e) -> {
-        if (!m.containsKey(e.getKey()))
-          m.put(e.getKey(), new ArrayList<>());
-        m.get(e.getKey()).add(e.getValue());
-        return m;
-      }, (m1, m2) -> {
-        m1.putAll(m2);
-        return m1;
-      }),
+      context.request().headers(),
       ((RequestParameters)context.get("parsedParameters")).toJsonObject()
     ).toJson());
+  }
+
+  public static RouteToServiceProxyHandler build(EventBus eventBus, String address, String actionName) {
+    return new RouteToServiceProxyHandler(eventBus, address, new DeliveryOptions().addHeader("action", actionName));
+  }
+
+  public static RouteToServiceProxyHandler build(EventBus eventBus, String address, String actionName, JsonObject deliveryOptions) {
+    DeliveryOptions opt = new DeliveryOptions(deliveryOptions).addHeader("action", actionName);
+    return new RouteToServiceProxyHandler(eventBus, address, opt);
   }
 
 }

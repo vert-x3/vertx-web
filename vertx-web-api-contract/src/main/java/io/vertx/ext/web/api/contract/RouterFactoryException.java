@@ -14,13 +14,16 @@ public class RouterFactoryException extends RuntimeException {
     /**
      * You are trying to mount an operation (combination of path and method) not defined in specification
      */
-    PATH_NOT_FOUND, /**
+    PATH_NOT_FOUND,
+    /**
      * You are trying to mount an operation with operation_id not defined in specification
      */
-    OPERATION_ID_NOT_FOUND, /**
+    OPERATION_ID_NOT_FOUND,
+    /**
      * Specification is not valid
      */
-    SPEC_INVALID, /**
+    SPEC_INVALID,
+    /**
      * Missing security handler during construction of router
      */
     MISSING_SECURITY_HANDLER,
@@ -70,5 +73,9 @@ public class RouterFactoryException extends RuntimeException {
   public static RouterFactoryException createMissingSecurityHandler(String securitySchema, String securityScope) {
     return new RouterFactoryException("Missing handler for security requirement: " + securitySchema + ":" +
       securityScope, ErrorType.MISSING_SECURITY_HANDLER);
+  }
+
+  public static RouterFactoryException createWrongExtension(String message) {
+    return new RouterFactoryException(message, ErrorType.SPEC_INVALID);
   }
 }

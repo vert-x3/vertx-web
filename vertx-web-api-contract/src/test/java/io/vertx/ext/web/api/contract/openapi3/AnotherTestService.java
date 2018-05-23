@@ -10,12 +10,14 @@ import io.vertx.ext.web.api.RequestContext;
 
 @ProxyGen
 @VertxGen
-public interface TestService {
-  void testA(RequestContext context, Handler<AsyncResult<OperationResult>> resultHandler);
+interface AnotherTestService {
 
-  void testB(RequestContext context, Handler<AsyncResult<OperationResult>> resultHandler);
+  void testC(RequestContext context, Handler<AsyncResult<OperationResult>> resultHandler);
 
-  static TestService create(Vertx vertx) {
-    return new TestServiceImpl(vertx);
+  void testD(RequestContext context, Handler<AsyncResult<OperationResult>> resultHandler);
+
+  static AnotherTestService create(Vertx vertx) {
+    return new AnotherTestServiceImpl(vertx);
   }
+
 }

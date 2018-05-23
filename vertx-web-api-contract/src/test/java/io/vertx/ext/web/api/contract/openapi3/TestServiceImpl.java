@@ -1,7 +1,9 @@
 package io.vertx.ext.web.api.contract.openapi3;
 
-import io.vertx.core.*;
-import io.vertx.core.http.HttpHeaders;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
+import io.vertx.core.Handler;
+import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.api.OperationResult;
 import io.vertx.ext.web.api.RequestContext;
@@ -17,9 +19,16 @@ public class TestServiceImpl implements TestService {
   @Override
   public void testA(RequestContext context, Handler<AsyncResult<OperationResult>> resultHandler) {
     JsonObject body = context.getParams().getJsonObject("body");
-    resultHandler.handle(Future.succeededFuture(new OperationResult()
-      .setStatusCode(200)
-      //.setHeaders(MultiMap.caseInsensitiveMultiMap().add(HttpHeaders.CONTENT_TYPE, "application/json"))
-      .setPayload(new JsonObject().put("result", body.getString("hello") + " " + body.getString("name") + "!").toBuffer())));
+    resultHandler.handle(Future.succeededFuture(
+      OperationResult.completedWithJsonPayload(new JsonObject().put("result", body.getString("hello") + " " + body.getString("name") + "!")))
+    );
+  }
+
+  @Override
+  public void testB(RequestContext context, Handler<AsyncResult<OperationResult>> resultHandler) {
+    JsonObject body = context.getParams().getJsonObject("body");
+    resultHandler.handle(Future.succeededFuture(
+      OperationResult.completedWithJsonPayload(new JsonObject().put("result", body.getString("hello") + " " + body.getString("name") + "?")))
+    );
   }
 }

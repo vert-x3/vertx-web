@@ -4,6 +4,7 @@ import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.parser.OpenAPIV3Parser;
 import io.vertx.core.MultiMap;
+import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -511,7 +512,7 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
         .response()
         .setStatusCode(200)
         .setStatusMessage("OK")
-        .putHeader("Content-Type", "application/json")
+        .putHeader(HttpHeaders.CONTENT_TYPE, "application/json")
         .end(params.body().getJsonObject().encode());
     });
 
@@ -537,6 +538,7 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
         .response()
         .setStatusCode(200)
         .setStatusMessage("OK")
+        .putHeader(HttpHeaders.CONTENT_TYPE, "application/json")
         .end();
     });
 
@@ -553,7 +555,7 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
         .response()
         .setStatusCode(200)
         .setStatusMessage("OK")
-        .putHeader("Content-Type", "application/json")
+        .putHeader(HttpHeaders.CONTENT_TYPE, "application/json")
         .end(params.body().getJsonObject().encode());
     });
 
