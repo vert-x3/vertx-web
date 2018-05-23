@@ -49,6 +49,9 @@ public class BodyHandlerImpl implements BodyHandler {
   private String uploadsDir;
   private boolean mergeFormAttributes = DEFAULT_MERGE_FORM_ATTRIBUTES;
   private boolean deleteUploadedFilesOnEnd = DEFAULT_DELETE_UPLOADED_FILES_ON_END;
+  private boolean isPreallocateBodyBuffer = DEFAULT_PREALLOCATE_BODY_BUFFER;
+  private static final int DEFAULT_INITIAL_BODY_BUFFER_SIZE = 1024; //bytes
+
 
   public BodyHandlerImpl() {
     setUploadsDirectory(DEFAULT_UPLOADS_DIRECTORY);
@@ -65,11 +68,11 @@ public class BodyHandlerImpl implements BodyHandler {
       context.next();
       return;
     }
-
     // we need to keep state since we can be called again on reroute
     Boolean handled = context.get(BODY_HANDLED);
     if (handled == null || !handled) {
-      BHandler handler = new BHandler(context);
+      long contentLength = isPreallocateBodyBuffer ? parseContentLengthHeader(request) : -1;
+      BHandler handler = new BHandler(context, contentLength);
       request.handler(handler);
       request.endHandler(v -> handler.end());
       context.put(BODY_HANDLED, true);
@@ -107,20 +110,40 @@ public class BodyHandlerImpl implements BodyHandler {
     return this;
   }
 
+  @Override
+  public BodyHandler setPreallocateBodyBuffer(boolean isPreallocateBodyBuffer) {
+    this.isPreallocateBodyBuffer = isPreallocateBodyBuffer;
+    return this;
+  }
+
+  private long parseContentLengthHeader(HttpServerRequest request) {
+    String contentLength = request.getHeader(HttpHeaders.CONTENT_LENGTH);
+    if(contentLength == null || contentLength.isEmpty()) {
+      return -1;
+    }
+    try {
+      long parsedContentLength = Long.parseLong(contentLength);
+      return  parsedContentLength < 0 ? null : parsedContentLength;
+    }
+    catch (NumberFormatException ex) {
+      return -1;
+    }
+  }
+
   private class BHandler implements Handler<Buffer> {
+    private static final int MAX_PREALLOCATED_BODY_BUFFER_BYTES = 65535;
 
     RoutingContext context;
-    Buffer body = Buffer.buffer();
+    Buffer body;
     boolean failed;
     AtomicInteger uploadCount = new AtomicInteger();
     AtomicBoolean cleanup = new AtomicBoolean(false);
     boolean ended;
     long uploadSize = 0L;
-
     final boolean isMultipart;
     final boolean isUrlEncoded;
 
-    public BHandler(RoutingContext context) {
+    public BHandler(RoutingContext context, long contentLength) {
       this.context = context;
       Set<FileUpload> fileUploads = context.fileUploads();
 
@@ -133,6 +156,8 @@ public class BodyHandlerImpl implements BodyHandler {
         isMultipart = lowerCaseContentType.startsWith(HttpHeaderValues.MULTIPART_FORM_DATA.toString());
         isUrlEncoded = lowerCaseContentType.startsWith(HttpHeaderValues.APPLICATION_X_WWW_FORM_URLENCODED.toString());
       }
+
+      initBodyBuffer(contentLength);
 
       if (isMultipart || isUrlEncoded) {
         makeUploadDir(context.vertx().fileSystem());
@@ -160,10 +185,30 @@ public class BodyHandlerImpl implements BodyHandler {
           upload.endHandler(v -> uploadEnded());
         });
       }
+
       context.request().exceptionHandler(t -> {
         deleteFileUploads();
         context.fail(t);
       });
+    }
+
+    private void initBodyBuffer(long contentLength) {
+      int initialBodyBufferSize;
+      if(contentLength < 0) {
+        initialBodyBufferSize = DEFAULT_INITIAL_BODY_BUFFER_SIZE;
+      }
+      else if(contentLength > MAX_PREALLOCATED_BODY_BUFFER_BYTES) {
+        initialBodyBufferSize = MAX_PREALLOCATED_BODY_BUFFER_BYTES;
+      }
+      else {
+        initialBodyBufferSize = (int) contentLength;
+      }
+
+      if(bodyLimit != -1) {
+        initialBodyBufferSize = (int)Math.min(initialBodyBufferSize, bodyLimit);
+      }
+
+      this.body = Buffer.buffer(initialBodyBufferSize);
     }
 
     private void makeUploadDir(FileSystem fileSystem) {

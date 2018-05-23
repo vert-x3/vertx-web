@@ -27,12 +27,14 @@ Configure the default behavior of the client to follow HTTP <code>30x</code> red
 |[[forceSni]]`forceSni`|`Boolean`|-
 |[[http2ClearTextUpgrade]]`http2ClearTextUpgrade`|`Boolean`|-
 |[[http2ConnectionWindowSize]]`http2ConnectionWindowSize`|`Number (int)`|-
+|[[http2KeepAliveTimeout]]`http2KeepAliveTimeout`|`Number (int)`|-
 |[[http2MaxPoolSize]]`http2MaxPoolSize`|`Number (int)`|-
 |[[http2MultiplexingLimit]]`http2MultiplexingLimit`|`Number (int)`|-
 |[[idleTimeout]]`idleTimeout`|`Number (int)`|-
 |[[initialSettings]]`initialSettings`|`link:dataobjects.html#Http2Settings[Http2Settings]`|-
 |[[jdkSslEngineOptions]]`jdkSslEngineOptions`|`link:dataobjects.html#JdkSSLEngineOptions[JdkSSLEngineOptions]`|-
 |[[keepAlive]]`keepAlive`|`Boolean`|-
+|[[keepAliveTimeout]]`keepAliveTimeout`|`Number (int)`|-
 |[[keyStoreOptions]]`keyStoreOptions`|`link:dataobjects.html#JksOptions[JksOptions]`|-
 |[[localAddress]]`localAddress`|`String`|-
 |[[logActivity]]`logActivity`|`Boolean`|-
@@ -52,6 +54,7 @@ Configure the default behavior of the client to follow HTTP <code>30x</code> red
 |[[pfxTrustOptions]]`pfxTrustOptions`|`link:dataobjects.html#PfxOptions[PfxOptions]`|-
 |[[pipelining]]`pipelining`|`Boolean`|-
 |[[pipeliningLimit]]`pipeliningLimit`|`Number (int)`|-
+|[[poolCleanerPeriod]]`poolCleanerPeriod`|`Number (int)`|-
 |[[protocolVersion]]`protocolVersion`|`link:enums.html#HttpVersion[HttpVersion]`|-
 |[[proxyOptions]]`proxyOptions`|`link:dataobjects.html#ProxyOptions[ProxyOptions]`|-
 |[[receiveBufferSize]]`receiveBufferSize`|`Number (int)`|-
