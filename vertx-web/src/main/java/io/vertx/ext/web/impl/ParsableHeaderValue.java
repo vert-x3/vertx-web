@@ -79,7 +79,7 @@ public class ParsableHeaderValue implements ParsedHeaderValue {
       String parameterValueToTest = parameter.get(requiredParameter.getKey());
       String requiredParamVal = requiredParameter.getValue();
       if (parameterValueToTest == null || (
-          !requiredParamVal.isEmpty() && !requiredParamVal.equals(parameterValueToTest))
+          !requiredParamVal.isEmpty() && !requiredParamVal.equalsIgnoreCase(parameterValueToTest))
          ){
         return false;
       }
