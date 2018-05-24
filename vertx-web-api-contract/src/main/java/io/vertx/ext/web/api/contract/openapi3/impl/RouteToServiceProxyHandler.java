@@ -27,10 +27,14 @@ public class RouteToServiceProxyHandler implements Handler<RoutingContext> {
   @Override
   public void handle(RoutingContext routingContext) {
     eventBus.send(address, buildPayload(routingContext), deliveryOptions, (AsyncResult<Message<JsonObject>> res) -> {
-      OperationResult op = new OperationResult(res.result().body());
-      HttpServerResponse response = routingContext.response().setStatusCode(op.getStatusCode());
-      op.getHeaders().forEach(h -> response.putHeader(h.getKey(), h.getValue()));
-      response.end(op.getPayload().toString());
+      if (res.succeeded()) {
+        OperationResult op = new OperationResult(res.result().body());
+        HttpServerResponse response = routingContext.response().setStatusCode(op.getStatusCode());
+        op.getHeaders().forEach(h -> response.putHeader(h.getKey(), h.getValue()));
+        response.end(op.getPayload().toString());
+      } else {
+        routingContext.fail(res.cause());
+      }
     });
   }
 

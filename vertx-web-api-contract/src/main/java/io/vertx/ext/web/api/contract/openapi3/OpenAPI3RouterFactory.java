@@ -78,9 +78,6 @@ public interface OpenAPI3RouterFactory extends RouterFactory<OpenAPI> {
   OpenAPI3RouterFactory addFailureHandlerByOperationId(String operationId, Handler<RoutingContext> failureHandler);
 
   @Fluent
-  OpenAPI3RouterFactory mountAllOperationsToEventBus();
-
-  @Fluent
   OpenAPI3RouterFactory mountOperationToEventBus(String operationId, String address);
 
   /**

@@ -286,4 +286,23 @@ public class OpenApi3Utils {
     return newObj;
   }
 
+  public static String sanitizeOperationId(String operationId) {
+    StringBuffer result = new StringBuffer();
+    for (int i = 0; i < operationId.length(); i++) {
+      char c = operationId.charAt(i);
+      if (c == '-' || c == ' ' || c == '_') {
+        try {
+          while (c == '-' || c == ' ' || c == '_') {
+            i++;
+            c = operationId.charAt(i);
+          }
+          result.append(Character.toUpperCase(operationId.charAt(i)));
+        } catch (StringIndexOutOfBoundsException e) {}
+      } else {
+        result.append(c);
+      }
+    }
+    return result.toString();
+  }
+
 }

@@ -45,7 +45,7 @@ paths:
           description: ok
   /testC:
     post:
-      operationId: testC
+      operationId: test_ -C_
       tags:
         - anotherTest
       x-vertx-event-bus:

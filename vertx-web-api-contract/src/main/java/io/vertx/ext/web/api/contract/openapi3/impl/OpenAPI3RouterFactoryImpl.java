@@ -147,7 +147,7 @@ public class OpenAPI3RouterFactoryImpl extends BaseRouterFactory<OpenAPI> implem
   public OpenAPI3RouterFactory mountTaggedOperationsToEventBus(String tag, String address) {
     for (Map.Entry<String, OperationValue> op : operations.entrySet()) {
       if (op.getValue().hasTag(tag))
-        op.getValue().addUserHandler(RouteToServiceProxyHandler.build(vertx.eventBus(), address, op.getKey()));
+        op.getValue().addUserHandler(RouteToServiceProxyHandler.build(vertx.eventBus(), address, OpenApi3Utils.sanitizeOperationId(op.getKey())));
     }
     return this;
   }
@@ -156,12 +156,14 @@ public class OpenAPI3RouterFactoryImpl extends BaseRouterFactory<OpenAPI> implem
   public OpenAPI3RouterFactory mountServiceProxy(Class interfaceClass, String address) {
     for (Method m : interfaceClass.getMethods()) {
       if (OpenApi3Utils.methodHasParametersType(m, OpenApi3Utils.SERVICE_PROXY_METHOD_PARAMETERS)) {
-        String maybeOperationId = m.getName();
+        String methodName = m.getName();
         OperationValue op = Optional
-          .ofNullable(this.operations.get(maybeOperationId))
-          .orElseGet(() -> this.operations.get(maybeOperationId.substring(0, 1).toUpperCase() + maybeOperationId.substring(1)));
+          .ofNullable(this.operations.get(methodName))
+          .orElseGet(() ->
+            this.operations.entrySet().stream().filter(e -> OpenApi3Utils.sanitizeOperationId(e.getKey()).equals(methodName)).map(Map.Entry::getValue).findFirst().orElseGet(() -> null)
+          );
         if (op != null) {
-          op.getUserHandlers().add(RouteToServiceProxyHandler.build(vertx.eventBus(), address, m.getName()));
+          op.getUserHandlers().add(RouteToServiceProxyHandler.build(vertx.eventBus(), address, methodName));
         }
       }
     }
@@ -183,7 +185,7 @@ public class OpenAPI3RouterFactoryImpl extends BaseRouterFactory<OpenAPI> implem
       if (operationModel.getExtensions() != null && operationModel.getExtensions().containsKey(OPENAPI_EXTENSION)) {
         Object extensionVal = operationModel.getExtensions().get(OPENAPI_EXTENSION);
         if (extensionVal instanceof String) {
-          op.getValue().addUserHandler(RouteToServiceProxyHandler.build(vertx.eventBus(), (String)extensionVal, op.getKey()));
+          op.getValue().addUserHandler(RouteToServiceProxyHandler.build(vertx.eventBus(), (String)extensionVal, OpenApi3Utils.sanitizeOperationId(op.getKey())));
         } else if (extensionVal instanceof Map) {
           JsonObject extensionMap = new JsonObject((Map<String, Object>) extensionVal);
           String address = extensionMap.getString(OPENAPI_EXTENSION_ADDRESS);

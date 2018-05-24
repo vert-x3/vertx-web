@@ -10,6 +10,7 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.WebTestWithWebClientBase;
 import io.vertx.ext.web.api.contract.RouterFactoryOptions;
+import io.vertx.ext.web.api.contract.openapi3.impl.OpenApi3Utils;
 import io.vertx.ext.web.api.validation.ValidationException;
 import io.vertx.serviceproxy.ServiceBinder;
 import org.junit.Test;
@@ -109,6 +110,18 @@ public class OpenAPI3ServiceProxiesTest extends WebTestWithWebClientBase {
   }
 
   @Test
+  public void testOperationIdSanitizer() {
+    assertEquals("operationId", OpenApi3Utils.sanitizeOperationId("operationId"));
+    assertEquals("operationId", OpenApi3Utils.sanitizeOperationId("operation id"));
+    assertEquals("operationId", OpenApi3Utils.sanitizeOperationId("operation Id"));
+    assertEquals("operationId", OpenApi3Utils.sanitizeOperationId("operation-id"));
+    assertEquals("operationId", OpenApi3Utils.sanitizeOperationId("operation_id"));
+    assertEquals("operationId", OpenApi3Utils.sanitizeOperationId("operation__id-"));
+    assertEquals("operationId", OpenApi3Utils.sanitizeOperationId("operation_- id "));
+    assertEquals("operationAB", OpenApi3Utils.sanitizeOperationId("operation_- A B"));
+  }
+
+  @Test
   public void serviceProxyManualTest() throws Exception {
     TestService service = new TestServiceImpl(vertx);
 
@@ -153,8 +166,6 @@ public class OpenAPI3ServiceProxiesTest extends WebTestWithWebClientBase {
       openAPI3RouterFactoryAsyncResult -> {
         routerFactory = openAPI3RouterFactoryAsyncResult.result();
         routerFactory.setOptions(HANDLERS_TESTS_OPTIONS);
-
-        routerFactory.mountOperationsToEventBusFromExtensions();
 
         routerFactory.mountServiceProxy(service.getClass(), "someAddress");
 
