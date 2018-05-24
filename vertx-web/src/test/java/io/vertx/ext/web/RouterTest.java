@@ -20,6 +20,7 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import org.jruby.compiler.util.HandleFactory;
 import org.junit.Test;
@@ -27,8 +28,12 @@ import org.junit.Test;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -2308,5 +2313,67 @@ public class RouterTest extends WebTestBase {
     String path = "?test=something";
     router.route().handler(rc -> rc.response().end());
     testRequest(HttpMethod.GET, path, 400, "Bad Request");
+  }
+
+  @Test
+  public void testMultipleHandlersWithFailuresDeadlock() throws Exception {
+    AtomicBoolean first = new AtomicBoolean(true);
+    CountDownLatch firstHandlerLatch = new CountDownLatch(1);
+    CountDownLatch secondHandlerLatch = new CountDownLatch(1);
+
+    router.get("/path").handler(event -> {
+      if (!first.compareAndSet(true, false)) {
+        // Second run, block until the second handler runs
+        try {
+          firstHandlerLatch.countDown();
+          awaitLatch(secondHandlerLatch);
+
+          // Add a small delay so the exception handler happens first
+          Thread.sleep(100);
+        } catch (InterruptedException e) {
+          // ignore
+        }
+
+        event.next();
+      } else {
+        vertx.executeBlocking(future -> {
+          event.next();
+          future.complete();
+        }, asyncResult -> {});
+      }
+    });
+
+    router.get("/path").handler(event -> {
+      try {
+        awaitLatch(firstHandlerLatch);
+      } catch (InterruptedException e) {
+        // ignore
+      }
+      secondHandlerLatch.countDown();
+      event.fail(new NullPointerException());
+    });
+
+    CountDownLatch latch = new CountDownLatch(2);
+    for (int i = 0; i < 2; i++) {
+      vertx.executeBlocking(future -> {
+        HttpServerRequest request = mock(HttpServerRequest.class);
+        HttpServerResponse response = mock(HttpServerResponse.class);
+        when(request.method()).thenReturn(HttpMethod.GET);
+        when(request.rawMethod()).thenReturn("GET");
+        when(request.uri()).thenReturn("http://localhost/path");
+        when(request.absoluteURI()).thenReturn("http://localhost/path");
+        when(request.host()).thenReturn("localhost");
+        when(request.path()).thenReturn("/path");
+        when(request.response()).thenReturn(response);
+        when(response.ended()).thenReturn(true);
+        router.accept(request);
+        future.complete();
+      }, asyncResult -> {
+        assertFalse(asyncResult.failed());
+        assertNull(asyncResult.cause());
+        latch.countDown();
+      });
+    }
+    awaitLatch(latch);
   }
 }
