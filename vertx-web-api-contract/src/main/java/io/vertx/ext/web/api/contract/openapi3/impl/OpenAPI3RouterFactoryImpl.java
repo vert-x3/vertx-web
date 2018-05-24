@@ -99,7 +99,7 @@ public class OpenAPI3RouterFactoryImpl extends BaseRouterFactory<OpenAPI> implem
       return tags;
     }
 
-    public boolean hasTag(String tag) { return tags.contains(tag); }
+    public boolean hasTag(String tag) { return tags != null && tags.contains(tag); }
   }
 
   public OpenAPI3RouterFactoryImpl(Vertx vertx, OpenAPI spec) {

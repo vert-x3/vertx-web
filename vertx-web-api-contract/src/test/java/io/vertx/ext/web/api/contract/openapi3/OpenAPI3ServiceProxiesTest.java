@@ -165,7 +165,7 @@ public class OpenAPI3ServiceProxiesTest extends WebTestWithWebClientBase {
     OpenAPI3RouterFactory.create(this.vertx, "src/test/resources/swaggers/service_proxy_test.yaml",
       openAPI3RouterFactoryAsyncResult -> {
         routerFactory = openAPI3RouterFactoryAsyncResult.result();
-        routerFactory.setOptions(HANDLERS_TESTS_OPTIONS);
+        routerFactory.setOptions(HANDLERS_TESTS_OPTIONS.setMountValidationFailureHandler(true));
 
         routerFactory.mountServiceProxy(service.getClass(), "someAddress");
 
@@ -192,6 +192,8 @@ public class OpenAPI3ServiceProxiesTest extends WebTestWithWebClientBase {
       "OK",
       new JsonObject().put("result", "Ciao Francesco?")
     );
+
+    testRequestWithJSON(HttpMethod.POST, "/testB", new JsonObject().put("hello", "Ciao"), 400, "Bad Request", null);
 
     consumer.unregister();
   }
@@ -324,5 +326,39 @@ public class OpenAPI3ServiceProxiesTest extends WebTestWithWebClientBase {
     serviceConsumer.unregister();
     anotherServiceConsumer.unregister();
   }
+  @Test
+  public void serviceProxyManualFailureTest() throws Exception {
+    FailureTestService service = new FailureTestServiceImpl(vertx);
 
+    final ServiceBinder serviceBinder = new ServiceBinder(vertx).setAddress("someAddress");
+    MessageConsumer<JsonObject> consumer = serviceBinder.register(FailureTestService.class, service);
+
+    CountDownLatch latch = new CountDownLatch(1);
+    OpenAPI3RouterFactory.create(this.vertx, "src/test/resources/swaggers/service_proxy_test.yaml",
+      openAPI3RouterFactoryAsyncResult -> {
+        routerFactory = openAPI3RouterFactoryAsyncResult.result();
+        routerFactory.setOptions(HANDLERS_TESTS_OPTIONS);
+
+        routerFactory.mountOperationToEventBus("testFailure", "someAddress");
+        routerFactory.addFailureHandlerByOperationId("testFailure", routingContext -> {
+          routingContext.response().setStatusCode(501).setStatusMessage(routingContext.failure().getMessage()).end();
+        });
+
+        latch.countDown();
+      });
+    awaitLatch(latch);
+
+    startServer();
+
+    testRequestWithJSON(
+      HttpMethod.POST,
+      "/testFailure",
+      new JsonObject().put("hello", "Ciao").put("name", "Francesco"),
+      501,
+      "error for Francesco",
+      null
+    );
+
+    consumer.unregister();
+  }
 }

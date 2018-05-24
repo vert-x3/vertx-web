@@ -67,7 +67,7 @@ public class WebTestWithWebClientBase extends WebTestBase {
     webClient.request(method, 8080, "localhost", path).sendJsonObject(jsonObject, (ar) -> {
       assertEquals(statusCode, ar.result().statusCode());
       assertEquals(statusMessage, ar.result().statusMessage());
-      assertEquals(obj, ar.result().bodyAsJsonObject());
+      if (obj != null) assertEquals(obj, ar.result().bodyAsJsonObject());
       if (obj != null) assertEquals("application/json", ar.result().getHeader(HttpHeaders.CONTENT_TYPE.toString()));
       latch.countDown();
     });
