@@ -18,10 +18,14 @@ package io.vertx.ext.web.templ.rocker.impl;
 
 import com.fizzed.rocker.BindableRockerModel;
 import com.fizzed.rocker.Rocker;
+import com.fizzed.rocker.TemplateBindException;
+
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.templ.CachingTemplateEngine;
 import io.vertx.ext.web.templ.rocker.RockerTemplateEngine;
@@ -30,6 +34,8 @@ import io.vertx.ext.web.templ.rocker.RockerTemplateEngine;
  * @author <a href="mailto:xianguang.zhou@outlook.com">Xianguang Zhou</a>
  */
 public class RockerTemplateEngineImpl extends CachingTemplateEngine<Void> implements RockerTemplateEngine {
+  
+  private static final Logger log = LoggerFactory.getLogger(RockerTemplateEngineImpl.class);
 
   public RockerTemplateEngineImpl() {
     super(DEFAULT_TEMPLATE_EXTENSION, DEFAULT_MAX_CACHE_SIZE);
@@ -55,14 +61,22 @@ public class RockerTemplateEngineImpl extends CachingTemplateEngine<Void> implem
       String templatePath = adjustLocation(templateFileName);
 
       BindableRockerModel model = Rocker.template(templatePath);
-      model.bind("context", context);
-      model.bind(context.data());
+      bindParam(model, "context", context);
+      context.data().forEach((name, value) -> bindParam(model, name, value));
 
       VertxBufferOutput output = model.render(VertxBufferOutput.FACTORY);
 
       handler.handle(Future.succeededFuture(output.getBuffer()));
     } catch (final Exception ex) {
       handler.handle(Future.failedFuture(ex));
+    }
+  }
+  
+  private void bindParam(BindableRockerModel model, String name, Object value) {
+    try {
+      model.bind(name, value);
+    } catch(TemplateBindException e) {
+      log.info("RockerModel param not binded '" + name + "': " + e.getMessage());
     }
   }
 
