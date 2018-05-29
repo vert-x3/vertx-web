@@ -40,7 +40,8 @@ public class JsonTypeValidator implements ParameterTypeValidator {
       if (errors.size() == 0) {
         return RequestParameter.create(new JsonObject(value));
       } else {
-        throw ValidationException.ValidationExceptionFactory.generateInvalidJsonBodyException(errors.iterator().next().toString());
+        ValidationMessage firstError = errors.iterator().next();
+        throw ValidationException.ValidationExceptionFactory.generateInvalidJsonBodyException(firstError.getPath(), value, firstError.getMessage());
       }
     } catch (IOException e) {
       throw ValidationException.ValidationExceptionFactory.generateNotParsableJsonBodyException(e.getMessage());

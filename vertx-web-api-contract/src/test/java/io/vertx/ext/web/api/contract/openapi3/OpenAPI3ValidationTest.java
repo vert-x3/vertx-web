@@ -583,4 +583,41 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
     testRequestWithJSON(HttpMethod.POST, "/additionalProperties", pet, 400, errorMessage(ValidationException.ErrorType.JSON_INVALID));
   }
 
+  @Test
+  public void testJsonBodyFailureErrorMessage() throws Exception {
+    Operation op = testSpec.getPaths().get("/jsonBodyTest/sampleTest").getPost();
+    if(op.getParameters()==null) op.setParameters(new ArrayList<>());
+    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(op, op.getParameters(), testSpec);
+    loadHandlers("/jsonBodyTest/sampleTest", HttpMethod.POST, true, validationHandler, (routingContext) -> {
+      RequestParameters params = routingContext.get("parsedParameters");
+      routingContext
+        .response()
+        .setStatusCode(200)
+        .setStatusMessage("OK")
+        .putHeader("Content-Type", "application/json")
+        .end(params.body().getJsonObject().encode());
+    }, routingContext -> {
+      ValidationException e = (ValidationException) routingContext.failure();
+      routingContext
+        .response()
+        .setStatusCode(400)
+        .setStatusMessage(errorMessage(ValidationException.ErrorType.JSON_INVALID))
+        .putHeader("Content-Type", "application/json")
+        .end(new JsonObject().put("field", e.parameterName()).toBuffer());
+    });
+
+    JsonObject object = new JsonObject();
+    object.put("id", "anId");
+
+    List<String> valuesArray = new ArrayList<>();
+    for (int i = 0; i < 4; i++)
+      valuesArray.add(getSuccessSample(ParameterType.INT).getInteger().toString());
+    valuesArray.add(0, getFailureSample(ParameterType.INT));
+    object.put("values", valuesArray);
+
+    testRequestWithJSON(HttpMethod.POST, "/jsonBodyTest/sampleTest", object, 400,
+      errorMessage(ValidationException.ErrorType.JSON_INVALID),
+      new JsonObject().put("field", "body.values[0]"));
+  }
+
 }
