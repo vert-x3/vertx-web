@@ -269,6 +269,30 @@ paths:
       responses:
         default:
           description: ok
+  /jsonBodyWithDate:
+    post:
+      operationId: jsonBodyWithDate
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                date:
+                  type: string
+                  format: date
+                dateTime1:
+                  type: string
+                  format: date-time
+                dateTime2:
+                  type: string
+                  format: date-time
+                dateTime3:
+                  type: string
+                  format: date-time
+      responses:
+        default:
+          description: ok
   /queryTests/allOfTest:
     get:
       operationId: alloftest
