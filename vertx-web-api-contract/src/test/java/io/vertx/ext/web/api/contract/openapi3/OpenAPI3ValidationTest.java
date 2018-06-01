@@ -581,4 +581,27 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
     testRequestWithJSON(HttpMethod.POST, "/additionalProperties", pet, 400, errorMessage(ValidationException.ErrorType.JSON_INVALID));
   }
 
+  @Test
+  public void testJsonBodyWithDate() throws Exception {
+    Operation op = testSpec.getPaths().get("/jsonBodyWithDate").getPost();
+    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(op, op.getParameters(), testSpec, refsCache);
+    loadHandlers("/jsonBodyWithDate", HttpMethod.POST, true, validationHandler, (routingContext) -> {
+      RequestParameters params = routingContext.get("parsedParameters");
+      routingContext
+        .response()
+        .setStatusCode(200)
+        .setStatusMessage("OK")
+        .putHeader("Content-Type", "application/json")
+        .end(params.body().getJsonObject().encode());
+    });
+
+    JsonObject obj = new JsonObject();
+    obj.put("date", "2018-02-18");
+    obj.put("dateTime1", "2018-01-01T10:00:00.0000000000000000000000Z");
+    obj.put("dateTime2", "2018-01-01T10:00:00+10:00");
+    obj.put("dateTime3", "2018-01-01T10:00:00-10:00");
+
+    testRequestWithJSON(HttpMethod.POST, "/jsonBodyWithDate", obj, 200, "OK", obj);
+  }
+
 }
