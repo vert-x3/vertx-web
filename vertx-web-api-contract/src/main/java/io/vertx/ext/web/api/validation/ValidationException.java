@@ -132,7 +132,7 @@ public class ValidationException extends VertxException {
     public static ValidationException generateNotFoundValidationException(String parameterName, ParameterLocation
       location) {
       return new ValidationException("Error during validation of request. Parameter \"" + parameterName + "\" inside " +
-        "" + "" + "" + location.s + "not found", parameterName, null, null, ErrorType.NOT_FOUND);
+        location.s + " not found", parameterName, null, null, ErrorType.NOT_FOUND);
     }
 
     public static ValidationException generateUnexpectedArrayValidationException(String parameterName,
