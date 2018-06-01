@@ -71,6 +71,29 @@ paths:
         200:
           description: Validation successful
 
+  /path/{id}{email}/test:
+    get:
+      parameters:
+        - name: id
+          in: path
+          required: true
+          style: matrix
+          explode: false
+          schema:
+            type: string
+        - name: email
+          in: path
+          required: true
+          schema:
+            type: string
+            format: email
+          style: matrix
+          explode: false
+      operationId: path_matrix_id_email
+      responses:
+        200:
+          description: Validation successful
+
   /path/{simple}/test:
     get:
       parameters:

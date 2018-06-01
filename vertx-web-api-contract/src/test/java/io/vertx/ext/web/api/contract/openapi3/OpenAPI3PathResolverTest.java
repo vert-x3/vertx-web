@@ -9,10 +9,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExternalResource;
 
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertEquals;
-
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.AbstractMap;
@@ -20,6 +16,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static org.junit.Assert.*;
 
 public class OpenAPI3PathResolverTest {
 
@@ -147,7 +145,6 @@ public class OpenAPI3PathResolverTest {
       "admin@vertx.io,user@vertx.io,committer@vertx.io");
   }
 
-
   @Test
   public void dotInASimplePathParam() {
     OpenAPI3PathResolver resolver = instantiatePathResolver("path_simple");
@@ -158,6 +155,34 @@ public class OpenAPI3PathResolverTest {
       "simple",
       "bla.bla.bla"
     );
+  }
+
+  @Test
+  public void semicolonInASimplePathParam() {
+    OpenAPI3PathResolver resolver = instantiatePathResolver("path_simple");
+    String path = "/path/bla:bla:bla/test";
+    shouldMatchParameter(
+      resolver,
+      path,
+      "simple",
+      "bla:bla:bla"
+    );
+  }
+
+  @Test
+  public void matrixWithSemicolon() {
+    OpenAPI3PathResolver resolver = instantiatePathResolver("path_matrix_id_email");
+    String path = "/path/;id=" + "bla:bla" + ";email=" + encode("user@vertx.io") + "/test";
+    shouldMatchParameter(
+      resolver,
+      path,
+      "id",
+      "bla:bla");
+    shouldMatchParameter(
+      resolver,
+      path,
+      "email",
+      "user@vertx.io");
   }
 
 }
