@@ -73,6 +73,19 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
   }
 
   @Test
+  public void testPathParameterWithSemicolon() throws Exception {
+    Operation op = testSpec.getPaths().get("/petsWithSemicolon/{petId}").getGet();
+    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(op, op.getParameters(), testSpec, refsCache);
+    loadHandlers("/petsWithSemicolon/:petId", HttpMethod.GET, false, validationHandler, (routingContext) -> {
+      RequestParameters params = routingContext.get("parsedParameters");
+      routingContext.response().setStatusMessage(params.pathParameter("petId").getString()).end();
+    });
+
+    testRequest(HttpMethod.GET, "/petsWithSemicolon/3:2:1", 200, "3:2:1");
+
+  }
+
+  @Test
   public void testPathParameterFailure() throws Exception {
     Operation op = testSpec.getPaths().get("/pets/{petId}").getGet();
     OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(op, op.getParameters(), testSpec, refsCache);
