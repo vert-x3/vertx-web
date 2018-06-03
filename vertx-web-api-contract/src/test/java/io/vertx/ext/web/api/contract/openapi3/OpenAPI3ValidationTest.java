@@ -5,6 +5,7 @@ import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.parser.OpenAPIV3Parser;
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.api.RequestParameter;
 import io.vertx.ext.web.api.RequestParameters;
@@ -618,6 +619,10 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
     testRequestWithJSON(HttpMethod.POST, "/jsonBodyTest/sampleTest", object, 400,
       errorMessage(ValidationException.ErrorType.JSON_INVALID),
       new JsonObject().put("field", "body.values[0]"));
+
+    testRequestWithJSON(HttpMethod.POST, "/jsonBodyTest/sampleTest", new JsonArray(), 400,
+      errorMessage(ValidationException.ErrorType.JSON_INVALID),
+      new JsonObject().put("field", "body"));
   }
 
 }

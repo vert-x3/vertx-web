@@ -198,7 +198,8 @@ public class ValidationException extends VertxException {
     }
 
     public static ValidationException generateInvalidJsonBodyException(String jsonPath, String value, String message) {
-      return new ValidationException(message, "body." + ((jsonPath != null) ? jsonPath.substring(jsonPath.indexOf("$.") + 2) : ""), value, null, ErrorType.JSON_INVALID);
+      String jsonPathWithoutDollar = (jsonPath != null) ? jsonPath.substring(jsonPath.indexOf("$.") + 2) : "";
+      return new ValidationException(message, (jsonPathWithoutDollar.length() == 0) ? "body" : "body." + jsonPathWithoutDollar, value, null, ErrorType.JSON_INVALID);
     }
 
     public static ValidationException generateInvalidXMLBodyException(String message) {
