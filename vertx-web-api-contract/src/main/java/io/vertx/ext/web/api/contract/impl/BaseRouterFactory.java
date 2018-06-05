@@ -5,6 +5,7 @@ import io.vertx.core.Vertx;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.api.contract.RouterFactory;
 import io.vertx.ext.web.api.contract.RouterFactoryOptions;
+import io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory;
 
 /**
  * @author Francesco Guardiani @slinkydeveloper

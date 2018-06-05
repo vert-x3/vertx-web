@@ -1,10 +1,13 @@
 package io.vertx.ext.web.api.contract.openapi3;
 
 import io.vertx.core.Handler;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.http.HttpClientOptions;
+import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerOptions;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
@@ -326,6 +329,7 @@ public class OpenAPI3ServiceProxiesTest extends WebTestWithWebClientBase {
     serviceConsumer.unregister();
     anotherServiceConsumer.unregister();
   }
+
   @Test
   public void serviceProxyManualFailureTest() throws Exception {
     FailureTestService service = new FailureTestServiceImpl(vertx);
@@ -357,6 +361,58 @@ public class OpenAPI3ServiceProxiesTest extends WebTestWithWebClientBase {
       501,
       "error for Francesco",
       null
+    );
+
+    consumer.unregister();
+  }
+
+  @Test
+  public void serviceProxyTypedManualTest() throws Exception {
+    AnotherTestService service = new AnotherTestServiceImpl(vertx);
+
+    final ServiceBinder serviceBinder = new ServiceBinder(vertx).setAddress("someAddress");
+    MessageConsumer<JsonObject> consumer = serviceBinder.register(AnotherTestService.class, service);
+
+    CountDownLatch latch = new CountDownLatch(1);
+    OpenAPI3RouterFactory.create(this.vertx, "src/test/resources/swaggers/service_proxy_test.yaml",
+      openAPI3RouterFactoryAsyncResult -> {
+        routerFactory = openAPI3RouterFactoryAsyncResult.result();
+        routerFactory.setOptions(HANDLERS_TESTS_OPTIONS);
+
+        routerFactory.mountTypedOperationToEventBus("testE", "someAddress");
+        routerFactory.mountTypedOperationToEventBus("testF", "someAddress");
+
+        latch.countDown();
+      });
+    awaitLatch(latch);
+
+    startServer();
+
+    testRequestWithJSON(
+      HttpMethod.POST,
+      "/testE/123",
+      new JsonObject().put("value", 1),
+      200,
+      "OK",
+      new JsonObject().put("id", 123).put("value", 1)
+    );
+
+    testRequestWithJSONArray(
+      HttpMethod.POST,
+      "/testF/123",
+      new JsonArray().add(1).add(2).add(3),
+      200,
+      "OK",
+      new JsonArray().add(1 + 123).add(2 + 123).add(3 + 123)
+    );
+
+    testRequestWithJSON(
+      HttpMethod.POST,
+      "/testF/123",
+      new JsonObject().put("value", 1),
+      200,
+      "OK",
+      new JsonObject().put("id", 123).put("value", 1)
     );
 
     consumer.unregister();

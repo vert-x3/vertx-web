@@ -80,6 +80,9 @@ public interface OpenAPI3RouterFactory extends RouterFactory<OpenAPI> {
   @Fluent
   OpenAPI3RouterFactory mountOperationToEventBus(String operationId, String address);
 
+  @Fluent
+  OpenAPI3RouterFactory mountTypedOperationToEventBus(String operationId, String address);
+
   /**
    * Create a new OpenAPI3RouterFactory
    *

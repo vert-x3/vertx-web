@@ -1,6 +1,7 @@
 package io.vertx.ext.web.api;
 
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.json.JsonArray;
 
 /**
  * Converter for {@link io.vertx.ext.web.api.RequestContext}.

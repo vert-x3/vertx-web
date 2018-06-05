@@ -65,6 +65,50 @@ paths:
       responses:
         200:
           description: ok
+  /testE/{id}:
+    post:
+      operationId: testE
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: integer
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                value:
+                  type: integer
+      responses:
+        200:
+          description: ok
+  /testF/{id}:
+    post:
+      operationId: testF
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: integer
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              anyOf:
+                - type: object
+                  properties:
+                    value:
+                      type: integer
+                - type: array
+                  items:
+                    type: integer
+      responses:
+        200:
+          description: ok
   /testFailure:
     post:
       operationId: testFailure
