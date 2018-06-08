@@ -33,6 +33,12 @@
       <artifactId>swagger-parser</artifactId>
       <version>2.0.0-rc3</version>
     </dependency>
+    <!-- Force to 19.0 as that's the stack version -->
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>19.0</version>
+    </dependency>
 
     <dependency>
       <groupId>io.vertx</groupId>
