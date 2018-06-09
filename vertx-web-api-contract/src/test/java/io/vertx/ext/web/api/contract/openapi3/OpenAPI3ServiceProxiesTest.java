@@ -347,6 +347,7 @@ public class OpenAPI3ServiceProxiesTest extends WebTestWithWebClientBase {
         routerFactory.addFailureHandlerByOperationId("testFailure", routingContext -> {
           routingContext.response().setStatusCode(501).setStatusMessage(routingContext.failure().getMessage()).end();
         });
+        routerFactory.mountOperationToEventBus("testException", "someAddress");
 
         latch.countDown();
       });
@@ -363,11 +364,20 @@ public class OpenAPI3ServiceProxiesTest extends WebTestWithWebClientBase {
       null
     );
 
+    testRequestWithJSON(
+      HttpMethod.POST,
+      "/testException",
+      new JsonObject().put("hello", "Ciao").put("name", "Francesco"),
+      500,
+      "Internal Server Error",
+      null
+    );
+
     consumer.unregister();
   }
 
   @Test
-  public void serviceProxyTypedManualTest() throws Exception {
+  public void serviceProxyTypedTest() throws Exception {
     AnotherTestService service = new AnotherTestServiceImpl(vertx);
 
     final ServiceBinder serviceBinder = new ServiceBinder(vertx).setAddress("someAddress");
@@ -379,8 +389,7 @@ public class OpenAPI3ServiceProxiesTest extends WebTestWithWebClientBase {
         routerFactory = openAPI3RouterFactoryAsyncResult.result();
         routerFactory.setOptions(HANDLERS_TESTS_OPTIONS);
 
-        routerFactory.mountOperationToEventBus("testE", "someAddress");
-        routerFactory.mountOperationToEventBus("testF", "someAddress");
+        routerFactory.mountServiceProxy(AnotherTestService.class, "someAddress");
 
         latch.countDown();
       });
@@ -413,6 +422,44 @@ public class OpenAPI3ServiceProxiesTest extends WebTestWithWebClientBase {
       200,
       "OK",
       new JsonObject().put("id", 123).put("value", 1)
+    );
+
+    consumer.unregister();
+  }
+
+  @Test
+  public void serviceProxyDataObjectTest() throws Exception {
+    AnotherTestService service = new AnotherTestServiceImpl(vertx);
+
+    final ServiceBinder serviceBinder = new ServiceBinder(vertx).setAddress("someAddress");
+    MessageConsumer<JsonObject> consumer = serviceBinder.register(AnotherTestService.class, service);
+
+    CountDownLatch latch = new CountDownLatch(1);
+    OpenAPI3RouterFactory.create(this.vertx, "src/test/resources/swaggers/service_proxy_test.yaml",
+      openAPI3RouterFactoryAsyncResult -> {
+        routerFactory = openAPI3RouterFactoryAsyncResult.result();
+        routerFactory.setOptions(HANDLERS_TESTS_OPTIONS);
+
+        routerFactory.mountServiceProxy(AnotherTestService.class, "someAddress");
+
+        latch.countDown();
+      });
+    awaitLatch(latch);
+
+    startServer();
+
+    FilterData data = FilterData.generate();
+
+    JsonObject result = data.toJson().copy();
+    result.remove("message");
+
+    testRequestWithJSON(
+      HttpMethod.POST,
+      "/testDataObject",
+      data.toJson(),
+      200,
+      "OK",
+      result
     );
 
     consumer.unregister();

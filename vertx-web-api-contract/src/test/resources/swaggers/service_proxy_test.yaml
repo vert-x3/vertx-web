@@ -120,6 +120,46 @@ paths:
       responses:
         200:
           description: ok
+  /testException:
+    post:
+      operationId: testException
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Payload"
+      responses:
+        200:
+          description: ok
+  /testDataObject:
+    post:
+      operationId: testDataObject
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                from:
+                  type: array
+                  items:
+                    type: string
+                    format: email
+                to:
+                  type: array
+                  items:
+                    type: string
+                    format: email
+                message:
+                  type: array
+                  items:
+                    type: string
+        required: true
+      responses:
+        200:
+          description: Ok
+        500:
+          description: Something wrong happened
 components:
   schemas:
     Payload:

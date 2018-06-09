@@ -20,4 +20,10 @@ public class FailureTestServiceImpl implements FailureTestService {
     JsonObject body = context.getParams().getJsonObject("body");
     resultHandler.handle(Future.failedFuture(new Exception("error for " + body.getString("name"))));
   }
+
+  @Override
+  public void testException(RequestContext context, Handler<AsyncResult<OperationResult>> resultHandler) {
+    JsonObject body = context.getParams().getJsonObject("body");
+    throw new IllegalArgumentException();
+  }
 }

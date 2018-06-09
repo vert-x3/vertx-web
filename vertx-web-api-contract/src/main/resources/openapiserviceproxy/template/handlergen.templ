@@ -255,10 +255,13 @@ createHandler(msg)
             throw new IllegalStateException("Received action " + action + " without RequestContext \"context\"");\n
           RequestContext context = new RequestContext(contextSerialized);\n
           JsonObject params = context.getParams();\n
-          service.@{method.name}(
+          try {\n
+            service.@{method.name}(
 		@code{hasParamsToExtract = !method.paramsToExtract.isEmpty()}
     @foreach{param: method.paramsToExtract}
-      @if{param.type.name == 'char' || param.type.name == 'java.lang.Character'}
+      @if{param.type.name.equals("io.vertx.ext.web.api.RequestParameter")}
+io.vertx.ext.web.api.RequestParameter.create("@{param.name}", this.searchInJson(params, "@{param.name}"))
+      @else{param.type.name == 'char' || param.type.name == 'java.lang.Character'}
 this.searchIntegerInJson(params, "@{param.name}") == null ? null : (char)(int)(this.searchIntegerInJson(params, "@{param.name}"))
       @else{param.type.name == 'byte' || param.type.name == 'java.lang.Byte' || param.type.name == 'short' || param.type.name == 'java.lang.Short' || param.type.name == 'int' || param.type.name == 'java.lang.Integer' || param.type.name == 'long' || param.type.name == 'java.lang.Long'}
 this.searchInJson(params, "@{param.name}") == null ? null : (this.searchLongInJson(params, "@{param.name}").@{numericMapping[param.type.name]}Value())
@@ -293,16 +296,19 @@ this.searchJsonObjectInJson(params, "@{param.name}") == null ? null : new @{para
 		,
 		@end{}
 context, res -> {\n
-            if (res.failed()) {\n
-              if (res.cause() instanceof ServiceException) {\n
-                msg.reply(res.cause());\n
+              if (res.failed()) {\n
+                if (res.cause() instanceof ServiceException) {\n
+                  msg.reply(res.cause());\n
+                } else {\n
+                  msg.reply(new ServiceException(-1, res.cause().getMessage()));\n
+                }\n
               } else {\n
-                msg.reply(new ServiceException(-1, res.cause().getMessage()));\n
+                msg.reply(res.result() == null ? null : res.result().toJson());\n
               }\n
-            } else {\n
-              msg.reply(res.result() == null ? null : res.result().toJson());\n
-            }\n
-          });\n
+            });\n
+          } catch (Exception e) {\n
+            msg.reply(new ServiceException(-1, e.getMessage()));\n
+          }\n
           break;\n
         }
 	@end{}

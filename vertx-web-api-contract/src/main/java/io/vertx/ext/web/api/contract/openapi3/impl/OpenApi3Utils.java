@@ -275,8 +275,12 @@ public class OpenApi3Utils {
 
   public final static List<Class> SERVICE_PROXY_METHOD_PARAMETERS = Arrays.asList(new Class[]{RequestContext.class, Handler.class});
 
-  public static boolean methodHasParametersType(Method method, List<Class> paramsClasses) {
-    return Arrays.stream(method.getParameters()).map(p -> p.getType()).allMatch(c -> paramsClasses.contains(c));
+  public static boolean serviceProxyMethodIsCompatibleHandler(Method method) {
+    java.lang.reflect.Parameter[] parameters = method.getParameters();
+    if (parameters.length < 2) return false;
+    if (!parameters[parameters.length - 1].getType().equals(Handler.class)) return false;
+    if (!parameters[parameters.length - 2].getType().equals(RequestContext.class)) return false;
+    return true;
   }
 
   public static JsonObject sanitizeDeliveryOptionsExtension(JsonObject jsonObject) {
