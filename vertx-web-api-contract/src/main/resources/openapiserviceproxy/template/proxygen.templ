@@ -1,0 +1,267 @@
+
+@declare{'methodBody'}
+	@code{hasParams = !method.params.isEmpty()}
+	@code{lastParam = hasParams ? method.params.get(method.params.size() - 1) : null}
+	@code{hasResultHandler=(lastParam != null) && (lastParam.type.kind == CLASS_HANDLER) && (lastParam.type.args[0].kind == CLASS_ASYNC_RESULT)}
+	@code{count=0}
+  @if{hasResultHandler}
+  if (closed) {\n
+    @{lastParam.name}.handle(Future.failedFuture(new IllegalStateException("Proxy is closed")));\n
+  @if{method.fluent}
+    return this;\n
+  @else{}
+    return;\n
+  @end{}
+  }\n
+  @else{}
+  if (closed) {\n
+    throw new IllegalStateException("Proxy is closed");\n
+  }\n
+  @end{}
+@if{method.proxyClose}
+  closed = true;\n
+@end{}
+
+	  JsonObject _json = new JsonObject();\n
+	@foreach{param: method.params}
+		@if{!hasResultHandler || (count++ != method.params.size() - 1)}
+			@if{param.type.name == 'char'}
+    _json.put("@{param.name}", (int)@{param.name});\n
+			@else{param.type.name == 'java.lang.Character'}
+    _json.put("@{param.name}", @{param.name} == null ? null : (int)@{param.name});\n
+			@else{param.type.kind == CLASS_ENUM}
+    _json.put("@{param.name}", @{param.name} == null ? null : @{param.name}.toString());\n
+			@else{param.type.kind == CLASS_LIST}
+				@if{param.type.args[0].kind == CLASS_DATA_OBJECT}
+    _json.put("@{param.name}", new JsonArray(@{param.name}.stream().map(r -> r == null ? null : r.toJson()).collect(Collectors.toList())));\n
+				@else{}
+    _json.put("@{param.name}", new JsonArray(@{param.name}));\n
+				@end{}
+			@else{param.type.kind == CLASS_SET}
+				@if{param.type.args[0].kind == CLASS_DATA_OBJECT}
+    _json.put("@{param.name}", new JsonArray(@{param.name}.stream().map(r -> r == null ? null : r.toJson()).collect(Collectors.toList())));\n
+				@else{}
+    _json.put("@{param.name}", new JsonArray(new ArrayList<>(@{param.name})));\n
+				@end{}
+			@else{param.type.kind == CLASS_MAP}
+    _json.put("@{param.name}", new JsonObject(convertMap(@{param.name})));\n
+			@else{param.type.kind == CLASS_DATA_OBJECT}
+    _json.put("@{param.name}", @{param.name} == null ? null : @{param.name}.toJson());\n
+			@else{}
+    _json.put("@{param.name}", @{param.name});\n
+			@end{}
+		@end{}
+	@end{}
+
+    DeliveryOptions _deliveryOptions = (_options != null) ? new DeliveryOptions(_options) : new DeliveryOptions();\n
+    _deliveryOptions.addHeader("action", "@{method.name}");\n
+	@if{hasResultHandler}
+		@code{resultType=lastParam.type.args[0].args[0]}
+		@code{resultKind=resultType.kind}
+    _vertx.eventBus().
+@if{resultKind == CLASS_LIST || resultKind == CLASS_SET}
+<JsonArray>
+@else{resultKind == CLASS_DATA_OBJECT}
+<JsonObject>
+@else{resultKind == CLASS_ENUM}
+<String>
+@else{}
+<@{resultType.simpleName}>
+@end{}
+
+send(_address, _json, _deliveryOptions, res -> {\n
+      if (res.failed()) {\n
+        @{lastParam.name}.handle(Future.failedFuture(res.cause()));\n
+      } else {\n
+				@if{resultKind == CLASS_LIST}
+					@if{resultType.args[0].name == 'java.lang.Character'}
+        @{lastParam.name}.handle(Future.succeededFuture(convertToListChar(res.result().body())));\n
+					@else{resultType.args[0].kind == CLASS_DATA_OBJECT}
+        @{lastParam.name}.handle(Future.succeededFuture(res.result().body().stream()\n
+            .map(o -> { if (o == null) return null;\n
+                        return o instanceof Map ? new @{resultType.args[0].simpleName}(new JsonObject((Map) o)) : new @{resultType.args[0].simpleName}((JsonObject) o);\n
+                 })\n
+            .collect(Collectors.toList())));\n
+					@else{}
+        @{lastParam.name}.handle(Future.succeededFuture(convertList(res.result().body().getList())));\n
+					@end{}
+				@else{resultKind == CLASS_SET}
+					@if{resultType.args[0].name == 'java.lang.Character'}
+        @{lastParam.name}.handle(Future.succeededFuture(convertToSetChar(res.result().body())));\n
+					@else{resultType.args[0].kind == CLASS_DATA_OBJECT}
+        @{lastParam.name}.handle(Future.succeededFuture(res.result().body().stream()\n
+            .map(o -> { if (o == null) return null;\n
+                        return o instanceof Map ? new @{resultType.args[0].simpleName}(new JsonObject((Map) o)) : new @{resultType.args[0].simpleName}((JsonObject) o);\n
+                })\n
+            .collect(Collectors.toSet())));\n
+					@else{}
+        @{lastParam.name}.handle(Future.succeededFuture(convertSet(res.result().body().getList())));\n
+					@end{}
+				@else{resultKind == CLASS_API && resultType.proxyGen}
+        String addr = res.result().headers().get("proxyaddr");\n
+        @{lastParam.name}.handle(Future.succeededFuture(ProxyHelper.createProxy(@{resultType.simpleName}.class, _vertx, addr)));\n
+				@else{resultKind == CLASS_DATA_OBJECT}
+        @{lastParam.name}.handle(Future.succeededFuture(res.result().body() == null ? null : new @{resultType.simpleName}(res.result().body())));\n
+                @else{resultKind == CLASS_ENUM}
+        @{lastParam.name}.handle(Future.succeededFuture(res.result().body() == null ? null : @{resultType.simpleName}.valueOf(res.result().body())));\n
+				@else{}
+        @{lastParam.name}.handle(Future.succeededFuture(res.result().body()));\n
+				@end{}
+      }\n
+    });\n
+	@else{}
+    _vertx.eventBus().send(_address, _json, _deliveryOptions);\n
+	@end{}
+
+@end{}
+
+
+@declare{'startMethodTemplate'}
+public @if{method.typeParams.size() > 0}
+		<@foreach{typeVar:method.typeParams}@{typeVar}@end{', '}>
+	 @end{}@{method.returnType.simpleName} @{method.name}(@foreach{param: method.params}@{param.type.simpleName} @{param.name}@end{', '}) {
+@end{}
+
+/*\n
+* Copyright 2014 Red Hat, Inc.\n
+*\n
+* Red Hat licenses this file to you under the Apache License, version 2.0\n
+* (the "License"); you may not use this file except in compliance with the\n
+* License. You may obtain a copy of the License at:\n
+*\n
+* http://www.apache.org/licenses/LICENSE-2.0\n
+*\n
+* Unless required by applicable law or agreed to in writing, software\n
+* distributed under the License is distributed on an "AS IS" BASIS, WITHOUT\n
+* WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the\n
+* License for the specific language governing permissions and limitations\n
+* under the License.\n
+*/\n\n
+package @{ifacePackageName};\n
+\n
+import @{ifaceFQCN};\n
+import io.vertx.core.eventbus.DeliveryOptions;\n
+import io.vertx.core.Vertx;\n
+import io.vertx.core.Future;\n
+import io.vertx.core.json.JsonObject;\n
+import io.vertx.core.json.JsonArray;\n
+import java.util.ArrayList;\n
+import java.util.HashSet;\n
+import java.util.List;\n
+import java.util.Map;\n
+import java.util.Set;\n
+import java.util.stream.Collectors;\n
+import java.util.function.Function;\n
+import io.vertx.serviceproxy.ProxyHelper;\n
+import io.vertx.serviceproxy.ServiceException;\n
+import io.vertx.serviceproxy.ServiceExceptionMessageCodec;\n
+@foreach{importedType:importedTypes}
+	@if{!importedType.packageName.equals("java.lang")}
+		import @{importedType};\n
+	@end{}
+@end{}
+\n
+/*\n
+  Generated Proxy code - DO NOT EDIT\n
+  @author Roger the Robot\n
+*/\n
+@SuppressWarnings({"unchecked", "rawtypes"})\n
+public class @{ifaceSimpleName}VertxEBProxy implements @{ifaceSimpleName} {\n
+\n
+  private Vertx _vertx;\n
+  private String _address;\n
+  private DeliveryOptions _options;\n
+  private boolean closed;\n
+\n
+  public @{ifaceSimpleName}VertxEBProxy(Vertx vertx, String address) {\n
+    this(vertx, address, null);\n
+  }\n
+\n
+  public @{ifaceSimpleName}VertxEBProxy(Vertx vertx, String address, DeliveryOptions options) {\n
+    this._vertx = vertx;\n
+    this._address = address;\n
+    this._options = options;\n
+    try {\n
+      this._vertx.eventBus().registerDefaultCodec(ServiceException.class,\n
+          new ServiceExceptionMessageCodec());\n
+    } catch (IllegalStateException ex) {}\n
+  }\n
+\n
+@foreach{method:methods}
+	@if{!method.staticMethod}
+  @Override\n
+  @includeNamed{'startMethodTemplate';method:method}\n
+		@if{!method.proxyIgnore}@includeNamed{'methodBody';method:method}@end{}
+		@if{method.fluent}
+    return this;\n
+		@end{}
+  }\n\n
+	@end{}
+@end{}
+
+\n
+
+  private List<Character> convertToListChar(JsonArray arr) {\n
+    List<Character> list = new ArrayList<>();\n
+    for (Object obj: arr) {\n
+      Integer jobj = (Integer)obj;\n
+      list.add((char)(int)jobj);\n
+    }\n
+    return list;\n
+  }\n\n
+
+  private Set<Character> convertToSetChar(JsonArray arr) {\n
+    Set<Character> set = new HashSet<>();\n
+    for (Object obj: arr) {\n
+      Integer jobj = (Integer)obj;\n
+      set.add((char)(int)jobj);\n
+    }\n
+    return set;\n
+  }\n\n
+
+  private <T> Map<String, T> convertMap(Map map) {\n
+    if (map.isEmpty()) { \n
+      return (Map<String, T>) map; \n
+    } \n
+     \n
+    Object elem = map.values().stream().findFirst().get(); \n
+    if (!(elem instanceof Map) && !(elem instanceof List)) { \n
+      return (Map<String, T>) map; \n
+    } else { \n
+      Function<Object, T> converter; \n
+      if (elem instanceof List) { \n
+        converter = object -> (T) new JsonArray((List) object); \n
+      } else { \n
+        converter = object -> (T) new JsonObject((Map) object); \n
+      } \n
+      return ((Map<String, T>) map).entrySet() \n
+       .stream() \n
+       .collect(Collectors.toMap(Map.Entry::getKey, converter::apply)); \n
+    } \n
+  }\n
+
+  private <T> List<T> convertList(List list) {\n
+    if (list.isEmpty()) { \n
+          return (List<T>) list; \n
+        } \n
+     \n
+    Object elem = list.get(0); \n
+    if (!(elem instanceof Map) && !(elem instanceof List)) { \n
+      return (List<T>) list; \n
+    } else { \n
+      Function<Object, T> converter; \n
+      if (elem instanceof List) { \n
+        converter = object -> (T) new JsonArray((List) object); \n
+      } else { \n
+        converter = object -> (T) new JsonObject((Map) object); \n
+      } \n
+      return (List<T>) list.stream().map(converter).collect(Collectors.toList()); \n
+    } \n
+  }\n
+
+  private <T> Set<T> convertSet(List list) {\n
+    return new HashSet<T>(convertList(list));\n
+  }\n
+
+}
+

@@ -379,8 +379,8 @@ public class OpenAPI3ServiceProxiesTest extends WebTestWithWebClientBase {
         routerFactory = openAPI3RouterFactoryAsyncResult.result();
         routerFactory.setOptions(HANDLERS_TESTS_OPTIONS);
 
-        routerFactory.mountTypedOperationToEventBus("testE", "someAddress");
-        routerFactory.mountTypedOperationToEventBus("testF", "someAddress");
+        routerFactory.mountOperationToEventBus("testE", "someAddress");
+        routerFactory.mountOperationToEventBus("testF", "someAddress");
 
         latch.countDown();
       });

@@ -179,14 +179,6 @@ public class OpenAPI3RouterFactoryImpl extends BaseRouterFactory<OpenAPI> implem
   }
 
   @Override
-  public OpenAPI3RouterFactory mountTypedOperationToEventBus(String operationId, String address) {
-    OperationValue op = operations.get(operationId);
-    if (op == null) throw RouterFactoryException.createOperationIdNotFoundException(operationId);
-    op.addUserHandler(TypedRouteToServiceProxyHandler.build(vertx.eventBus(), address, operationId));
-    return this;
-  }
-
-  @Override
   public OpenAPI3RouterFactory mountOperationsToEventBusFromExtensions() {
     for (Map.Entry<String, OperationValue> op : operations.entrySet()) {
       Operation operationModel = op.getValue().getOperationModel();

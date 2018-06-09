@@ -60,4 +60,14 @@ public class AnotherTestServiceImpl implements AnotherTestService {
     else
       testE(id, (JsonObject)body, context, resultHandler);
   }
+
+  @Override
+  public void bla() {
+
+  }
+
+  @Override
+  public void close() {
+
+  }
 }
