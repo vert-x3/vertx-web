@@ -2,6 +2,7 @@ package io.vertx.ext.web.api.contract;
 
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.JsonArray;
+import java.util.Objects;
 
 /**
  * Converter for {@link io.vertx.ext.web.api.contract.RouterFactoryOptions}.
@@ -46,4 +47,5 @@ import io.vertx.core.json.JsonArray;
     json.put("mountValidationFailureHandler", obj.isMountValidationFailureHandler());
     json.put("requireSecurityHandlers", obj.isRequireSecurityHandlers());
   }
+
 }
