@@ -27,7 +27,6 @@ import io.vertx.core.net.*;
 
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author Thomas Segismont
@@ -205,11 +204,6 @@ public class WebClientOptions extends HttpClientOptions {
   @Override
   public WebClientOptions setIdleTimeout(int idleTimeout) {
     return (WebClientOptions) super.setIdleTimeout(idleTimeout);
-  }
-
-  @Override
-  public WebClientOptions setIdleTimeoutUnit(TimeUnit idleTimeoutUnit) {
-    return (WebClientOptions) super.setIdleTimeoutUnit(idleTimeoutUnit);
   }
 
   @Override
