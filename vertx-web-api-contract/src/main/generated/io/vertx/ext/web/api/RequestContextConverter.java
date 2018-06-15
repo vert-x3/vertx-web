@@ -2,6 +2,7 @@ package io.vertx.ext.web.api;
 
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.JsonArray;
+import java.util.Objects;
 
 /**
  * Converter for {@link io.vertx.ext.web.api.RequestContext}.
@@ -30,4 +31,5 @@ import io.vertx.core.json.JsonArray;
       json.put("params", obj.getParams());
     }
   }
+
 }

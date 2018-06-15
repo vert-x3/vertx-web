@@ -1,14 +1,14 @@
 {
-  "name": "openapi_service_proxies",
+  "name": "webapi_service_proxies",
   "generators": [
     {
-      "kind": "openapi_proxy",
+      "kind": "webapi_proxy",
       "fileName": "ifaceFQCN + 'VertxEBProxy.java'",
-      "templateFileName": "openapiserviceproxy/template/proxygen.templ"
+      "templateFileName": "webapiserviceproxy/template/proxygen.templ"
     },{
-      "kind": "openapi_proxy",
+      "kind": "webapi_proxy",
       "fileName": "ifaceFQCN + 'VertxProxyHandler.java'",
-      "templateFileName": "openapiserviceproxy/template/handlergen.templ"
+      "templateFileName": "webapiserviceproxy/template/handlergen.templ"
     }
   ]
 }

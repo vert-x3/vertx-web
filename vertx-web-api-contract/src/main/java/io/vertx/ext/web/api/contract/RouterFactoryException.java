@@ -34,7 +34,11 @@ public class RouterFactoryException extends RuntimeException {
     /**
      * You are trying to use two or more path parameters with a combination of parameters/name/styles/explode not supported
      */
-    PATH_PARAMETERS_COMBINATION_NOT_SUPPORTED
+    PATH_PARAMETERS_COMBINATION_NOT_SUPPORTED,
+    /**
+     * You specified an interface not annotated with {@link io.vertx.ext.web.api.annotations.WebApiProxyGen} while calling {@link RouterFactory#mountServiceProxy(Class, String)}
+     */
+    WRONG_INTERFACE
   }
 
   private ErrorType type;
@@ -78,4 +82,9 @@ public class RouterFactoryException extends RuntimeException {
   public static RouterFactoryException createWrongExtension(String message) {
     return new RouterFactoryException(message, ErrorType.SPEC_INVALID);
   }
+
+  public static RouterFactoryException createWrongInterface(Class i) {
+    return new RouterFactoryException("Interface " + i.getName() + " is not annotated with @WebApiServiceProxy", ErrorType.WRONG_INTERFACE);
+  }
+
 }

@@ -154,6 +154,7 @@ public class OpenAPI3RouterFactoryImpl extends BaseRouterFactory<OpenAPI> implem
 
   @Override
   public OpenAPI3RouterFactory mountServiceProxy(Class interfaceClass, String address) {
+    super.mountServiceProxy(interfaceClass, address);
     for (Method m : interfaceClass.getMethods()) {
       if (OpenApi3Utils.serviceProxyMethodIsCompatibleHandler(m)) {
         String methodName = m.getName();
