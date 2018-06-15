@@ -2,6 +2,7 @@ package io.vertx.ext.web.api.contract.openapi3;
 
 import io.swagger.parser.OpenAPIParser;
 import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.parser.OpenAPIV3Parser;
 import io.swagger.v3.parser.core.models.SwaggerParseResult;
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
@@ -90,7 +91,7 @@ public interface OpenAPI3RouterFactory extends RouterFactory<OpenAPI> {
   static void create(Vertx vertx, String url, Handler<AsyncResult<OpenAPI3RouterFactory>>
     handler) {
     vertx.executeBlocking((Future<OpenAPI3RouterFactory> future) -> {
-      SwaggerParseResult swaggerParseResult = new OpenAPIParser().readLocation(url, null, OpenApi3Utils.getParseOptions());
+      SwaggerParseResult swaggerParseResult = new OpenAPIV3Parser().readLocation(url, null, OpenApi3Utils.getParseOptions());
       if (swaggerParseResult.getMessages().isEmpty()) {
         future.complete(new OpenAPI3RouterFactoryImpl(vertx, swaggerParseResult.getOpenAPI()));
       } else {

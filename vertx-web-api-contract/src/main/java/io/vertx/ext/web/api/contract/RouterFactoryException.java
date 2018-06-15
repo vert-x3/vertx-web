@@ -36,7 +36,7 @@ public class RouterFactoryException extends RuntimeException {
      */
     PATH_PARAMETERS_COMBINATION_NOT_SUPPORTED,
     /**
-     * You specified an interface not annotated with {@link io.vertx.ext.web.api.annotations.WebApiProxyGen} while calling {@link RouterFactory#mountServiceProxy(Class, String)}
+     * You specified an interface not annotated with io.vertx.ext.web.api.generator.WebApiProxyGen while calling {@link RouterFactory#mountServiceProxy(Class, String)}
      */
     WRONG_INTERFACE
   }
