@@ -106,9 +106,9 @@ public class CSRFHandlerImpl implements CSRFHandler {
     return saltPlusToken + "." + signature;
   }
 
-  private boolean validateToken(String header) {
+  private boolean validateToken(String header, String cookie) {
 
-    if (header == null) {
+    if (header == null || cookie == null || !header.equals(cookie)) {
       return false;
     }
 
@@ -168,7 +168,8 @@ public class CSRFHandlerImpl implements CSRFHandler {
       case DELETE:
       case PATCH:
         final String header = ctx.request().getHeader(headerName);
-        if (validateToken(header == null ? ctx.request().getFormAttribute(headerName) : header)) {
+        final String cookie = ctx.getCookie(cookieName).getValue();
+        if (validateToken(header == null ? ctx.request().getFormAttribute(headerName) : header, cookie)) {
           ctx.next();
         } else {
           forbidden(ctx);
