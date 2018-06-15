@@ -1,4 +1,4 @@
-package io.vertx.ext.web.api.contract.openapi3;
+package io.vertx.ext.web.api.router_factory_integration;
 
 import io.vertx.codegen.annotations.ProxyClose;
 import io.vertx.codegen.annotations.ProxyIgnore;
@@ -10,7 +10,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.api.OperationResult;
 import io.vertx.ext.web.api.RequestContext;
 import io.vertx.ext.web.api.RequestParameter;
-import io.vertx.ext.web.api.annotations.WebApiProxyGen;
+import io.vertx.ext.web.api.generator.WebApiProxyGen;
 
 @WebApiProxyGen
 @VertxGen

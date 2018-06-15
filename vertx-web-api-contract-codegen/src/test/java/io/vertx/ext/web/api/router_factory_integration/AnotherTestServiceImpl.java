@@ -1,4 +1,4 @@
-package io.vertx.ext.web.api.contract.openapi3;
+package io.vertx.ext.web.api.router_factory_integration;
 
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;

@@ -1,4 +1,4 @@
-package io.vertx.ext.web.api.annotations;
+package io.vertx.ext.web.api.generator;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

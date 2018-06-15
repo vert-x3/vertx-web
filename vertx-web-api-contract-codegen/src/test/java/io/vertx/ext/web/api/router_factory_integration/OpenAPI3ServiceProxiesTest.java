@@ -1,10 +1,8 @@
-package io.vertx.ext.web.api.contract.openapi3;
+package io.vertx.ext.web.api.router_factory_integration;
 
 import io.vertx.core.Handler;
-import io.vertx.core.buffer.Buffer;
 import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.http.HttpClientOptions;
-import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.json.JsonArray;
@@ -13,6 +11,7 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.WebTestWithWebClientBase;
 import io.vertx.ext.web.api.contract.RouterFactoryOptions;
+import io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory;
 import io.vertx.ext.web.api.contract.openapi3.impl.OpenApi3Utils;
 import io.vertx.ext.web.api.validation.ValidationException;
 import io.vertx.serviceproxy.ServiceBinder;

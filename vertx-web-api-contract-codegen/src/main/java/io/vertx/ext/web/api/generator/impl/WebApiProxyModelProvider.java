@@ -2,7 +2,7 @@ package io.vertx.ext.web.api.generator.impl;
 
 import io.vertx.codegen.Model;
 import io.vertx.codegen.ModelProvider;
-import io.vertx.ext.web.api.annotations.WebApiProxyGen;
+import io.vertx.ext.web.api.generator.WebApiProxyGen;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.TypeElement;

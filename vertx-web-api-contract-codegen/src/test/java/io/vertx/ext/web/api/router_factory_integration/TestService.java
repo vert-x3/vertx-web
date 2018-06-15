@@ -1,4 +1,4 @@
-package io.vertx.ext.web.api.contract.openapi3;
+package io.vertx.ext.web.api.router_factory_integration;
 
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.AsyncResult;
@@ -6,7 +6,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.ext.web.api.OperationResult;
 import io.vertx.ext.web.api.RequestContext;
-import io.vertx.ext.web.api.annotations.WebApiProxyGen;
+import io.vertx.ext.web.api.generator.WebApiProxyGen;
 
 @WebApiProxyGen
 @VertxGen

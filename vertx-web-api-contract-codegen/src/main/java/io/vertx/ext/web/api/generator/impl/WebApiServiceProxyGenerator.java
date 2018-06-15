@@ -20,7 +20,7 @@ import io.vertx.codegen.Generator;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.codegen.annotations.ModuleGen;
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.ext.web.api.annotations.WebApiProxyGen;
+import io.vertx.ext.web.api.generator.WebApiProxyGen;
 
 import java.util.Arrays;
 import java.util.Set;

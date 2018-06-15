@@ -1,7 +1,7 @@
 package io.vertx.ext.web.api.generator;
 
 import io.vertx.codegen.GenException;
-import io.vertx.ext.web.api.annotations.WebApiProxyGen;
+import io.vertx.ext.web.api.generator.WebApiProxyGen;
 import io.vertx.ext.web.api.generator.impl.WebApiProxyModel;
 import io.vertx.ext.web.api.generator.models.*;
 import io.vertx.test.codegen.GeneratorHelper;

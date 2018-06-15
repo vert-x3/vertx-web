@@ -8,7 +8,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.api.OperationResult;
 import io.vertx.ext.web.api.RequestContext;
 import io.vertx.ext.web.api.RequestParameter;
-import io.vertx.ext.web.api.annotations.WebApiProxyGen;
+import io.vertx.ext.web.api.generator.WebApiProxyGen;
 
 /**
  * @author <a href="https://github.com/slinkydeveloper">Francesco Guardiani</a>

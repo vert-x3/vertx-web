@@ -3,11 +3,9 @@ package io.vertx.ext.web.api.contract.impl;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.api.annotations.WebApiProxyGen;
 import io.vertx.ext.web.api.contract.RouterFactory;
 import io.vertx.ext.web.api.contract.RouterFactoryException;
 import io.vertx.ext.web.api.contract.RouterFactoryOptions;
-import io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory;
 
 /**
  * @author Francesco Guardiani @slinkydeveloper
@@ -30,10 +28,11 @@ abstract public class BaseRouterFactory<Specification> implements RouterFactory<
 
   @Override
   public RouterFactory mountServiceProxy(Class interfaceClass, String address) {
-    if (interfaceClass.getAnnotation(WebApiProxyGen.class) != null)
-      return this;
-    else
-      throw RouterFactoryException.createWrongInterface(interfaceClass);
+//    if (interfaceClass.getAnnotation(WebApiProxyGen.class) != null) TODO
+//      return this;
+//    else
+//      throw RouterFactoryException.createWrongInterface(interfaceClass);
+    return this;
   }
 
   @Override
