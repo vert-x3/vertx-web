@@ -7,6 +7,8 @@ import io.vertx.ext.web.api.contract.RouterFactory;
 import io.vertx.ext.web.api.contract.RouterFactoryException;
 import io.vertx.ext.web.api.contract.RouterFactoryOptions;
 
+import java.lang.annotation.Annotation;
+
 /**
  * @author Francesco Guardiani @slinkydeveloper
  */
@@ -24,15 +26,6 @@ abstract public class BaseRouterFactory<Specification> implements RouterFactory<
 
   public BaseRouterFactory(Vertx vertx, Specification spec) {
     this(vertx, spec, new RouterFactoryOptions());
-  }
-
-  @Override
-  public RouterFactory mountServiceProxy(Class interfaceClass, String address) {
-//    if (interfaceClass.getAnnotation(WebApiProxyGen.class) != null) TODO
-//      return this;
-//    else
-//      throw RouterFactoryException.createWrongInterface(interfaceClass);
-    return this;
   }
 
   @Override
