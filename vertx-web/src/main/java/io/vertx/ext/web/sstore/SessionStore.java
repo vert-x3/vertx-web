@@ -16,11 +16,16 @@
 
 package io.vertx.ext.web.sstore;
 
+import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.Nullable;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
+import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Session;
+
+import java.util.ServiceLoader;
 
 /**
  * A session store is used to store sessions for an Vert.x-Web web app
@@ -29,6 +34,54 @@ import io.vertx.ext.web.Session;
  */
 @VertxGen
 public interface SessionStore {
+
+  /**
+   * Create a Session store given a backend and configuration JSON.
+   *
+   * @param vertx vertx instance
+   * @param backend the backend type
+   * @return the store or runtime exception
+   */
+  static SessionStore create(Vertx vertx, String backend) {
+    return create(vertx, backend, new JsonObject());
+  }
+
+  /**
+   * Create a Session store given a backend and configuration JSON.
+   *
+   * @param vertx vertx instance
+   * @param backend the backend type
+   * @param options extra options for initialization
+   * @return the store or runtime exception
+   */
+  static SessionStore create(Vertx vertx, String backend, JsonObject options) {
+    ServiceLoader<SessionStore> serviceLoader = ServiceLoader.load(SessionStore.class);
+
+    for (SessionStore store : serviceLoader) {
+      if (store.id().equalsIgnoreCase(backend)) {
+        return store.init(vertx, options);
+      }
+    }
+
+    throw new RuntimeException("Backend [" + backend + "] not available!");
+  }
+
+  /**
+   * Unique identifier for a store.
+   *
+   * @return non null string
+   */
+  String id();
+
+  /**
+   * Initialize this store.
+   *
+   * @param vertx  the vertx instance
+   * @param options  optional Json with extra configuration options
+   * @return  self
+   */
+  @Fluent
+  SessionStore init(Vertx vertx, JsonObject options);
 
   /**
    * Default length for a session id.
@@ -67,15 +120,15 @@ public interface SessionStore {
   /**
    * Get the session with the specified ID
    *
-   * @param id  the unique ID of the session
+   * @param cookieValue  the unique ID of the session
    * @param resultHandler  will be called with a result holding the session, or a failure
    */
-  void get(String id, Handler<AsyncResult<@Nullable Session>> resultHandler);
+  void get(String cookieValue, Handler<AsyncResult<@Nullable Session>> resultHandler);
 
   /**
    * Delete the session with the specified ID
    *
-   * @param id  the unique ID of the session
+   * @param id  the session id
    * @param resultHandler  will be called with a success or a failure
    */
   void delete(String id, Handler<AsyncResult<Void>> resultHandler);
@@ -106,5 +159,4 @@ public interface SessionStore {
    * Close the store
    */
   void close();
-
 }

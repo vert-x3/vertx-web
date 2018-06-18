@@ -19,6 +19,7 @@ package io.vertx.ext.web.handler;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
+import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
@@ -27,7 +28,7 @@ import io.vertx.ext.auth.PRNG;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.sstore.SessionStore;
-import io.vertx.ext.web.sstore.impl.SessionImpl;
+import io.vertx.ext.web.sstore.impl.SharedDataSessionImpl;
 import io.vertx.ext.auth.AuthProvider;
 import io.vertx.ext.auth.shiro.ShiroAuth;
 import io.vertx.ext.auth.shiro.ShiroAuthRealmType;
@@ -202,26 +203,36 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
     private final PRNG prng = new PRNG(vertx);
 
     @Override
+    public String id() {
+      return "test";
+    }
+
+    @Override
+    public SessionStore init(Vertx vertx, JsonObject options) {
+      return this;
+    }
+
+    @Override
     public long retryTimeout() {
       return 0L;
     }
 
     @Override
     public Session createSession(long timeout) {
-      return new SessionImpl(prng, timeout, DEFAULT_SESSIONID_LENGTH);
+      return new SharedDataSessionImpl(prng, timeout, DEFAULT_SESSIONID_LENGTH);
     }
 
     @Override
     public Session createSession(long timeout, int length) {
-      return new SessionImpl(prng, timeout, length);
+      return new SharedDataSessionImpl(prng, timeout, length);
     }
 
     @Override
     public void get(String id, Handler<AsyncResult<Session>> resultHandler) {
       Buffer buff = sessions.get(id);
-      SessionImpl sess;
+      SharedDataSessionImpl sess;
       if (buff != null) {
-        sess = new SessionImpl(prng);
+        sess = new SharedDataSessionImpl(prng);
         sess.readFromBuffer(0, buff);
       } else {
         sess = null;

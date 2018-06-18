@@ -81,6 +81,11 @@ public interface Session {
   Map<String, Object> data();
 
   /**
+   * @return true if the session has data
+   */
+  boolean isEmpty();
+
+  /**
    * @return the time the session was last accessed
    */
   long lastAccessed();
@@ -115,4 +120,12 @@ public interface Session {
    */
   void setAccessed();
 
+  /**
+   * The short representation of the session to be added to the session cookie. By default is the session id.
+   *
+   * @return short representation string.
+   */
+  default String value() {
+    return id();
+  }
 }

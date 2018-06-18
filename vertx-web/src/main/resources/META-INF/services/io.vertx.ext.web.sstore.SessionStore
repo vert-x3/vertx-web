@@ -1,0 +1,3 @@
+io.vertx.ext.web.sstore.impl.LocalSessionStoreImpl
+io.vertx.ext.web.sstore.impl.ClusteredSessionStoreImpl
+io.vertx.ext.web.sstore.impl.CookieSessionStore
