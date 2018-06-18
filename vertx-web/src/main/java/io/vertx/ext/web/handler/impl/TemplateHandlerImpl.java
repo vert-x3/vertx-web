@@ -41,17 +41,19 @@ public class TemplateHandlerImpl implements TemplateHandler {
 
   @Override
   public void handle(RoutingContext context) {
-    String file = Utils.pathOffset(context.normalisedPath(), context);
-    if (file.endsWith("/") && null != indexTemplate) {
-      file += indexTemplate;
-    }
-    engine.render(context, templateDirectory, file, res -> {
-      if (res.succeeded()) {
-        context.response().putHeader(HttpHeaders.CONTENT_TYPE, contentType).end(res.result());
-      } else {
-        context.fail(res.cause());
+    if (!context.response().ended()) {
+      String file = Utils.pathOffset(context.normalisedPath(), context);
+      if (file.endsWith("/") && null != indexTemplate) {
+        file += indexTemplate;
       }
-    });
+      engine.render(context, templateDirectory, file, res -> {
+        if (res.succeeded()) {
+          context.response().putHeader(HttpHeaders.CONTENT_TYPE, contentType).end(res.result());
+        } else {
+          context.fail(res.cause());
+        }
+      });
+    }
   }
 
   @Override
