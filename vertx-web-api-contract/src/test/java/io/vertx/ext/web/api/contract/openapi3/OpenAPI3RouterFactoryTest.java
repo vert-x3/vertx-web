@@ -337,18 +337,24 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
   }
 
   @Test
-  public void requireGlobalSecurityHandler() throws Exception {
+  public void testGlobalSecurityHandler() throws Exception {
+    final Handler<RoutingContext> handler = routingContext -> {
+      routingContext
+        .response()
+        .setStatusCode(200)
+        .setStatusMessage(((routingContext.get("message") != null) ? routingContext.get("message") +  "-OK" : "OK"))
+        .end();
+    };
+
     CountDownLatch latch = new CountDownLatch(1);
     OpenAPI3RouterFactory.create(this.vertx, "src/test/resources/swaggers/global_security_test.yaml",
       openAPI3RouterFactoryAsyncResult -> {
         routerFactory = openAPI3RouterFactoryAsyncResult.result();
         routerFactory.setOptions(new RouterFactoryOptions().setRequireSecurityHandlers(true));
 
-        routerFactory.addHandlerByOperationId("listPets", routingContext -> routingContext
-          .response()
-          .setStatusCode(200)
-          .setStatusMessage(routingContext.get("message") + "-OK")
-          .end());
+        routerFactory.addHandlerByOperationId("listPetsWithoutSecurity", handler);
+        routerFactory.addHandlerByOperationId("listPetsWithOverride", handler);
+        routerFactory.addHandlerByOperationId("listPetsWithoutOverride", handler);
 
         latch.countDown();
       });
@@ -361,12 +367,14 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
     );
 
     routerFactory.addSecurityHandler("api_key",
-      routingContext -> routingContext.put("message", routingContext.get("message") +  "-Local").next()
+      routingContext -> routingContext.put("message", "Local").next()
     );
 
     startServer();
 
-    testRequest(HttpMethod.GET, "/pets", 200, "Global-Local-OK");
+    testRequest(HttpMethod.GET, "/petsWithoutSecurity", 200, "OK");
+    testRequest(HttpMethod.GET, "/petsWithOverride", 200, "Local-OK");
+    testRequest(HttpMethod.GET, "/petsWithoutOverride", 200, "Global-OK");
   }
 
   @Test

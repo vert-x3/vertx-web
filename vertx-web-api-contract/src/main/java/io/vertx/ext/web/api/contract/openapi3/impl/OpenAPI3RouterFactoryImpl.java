@@ -210,11 +210,16 @@ public class OpenAPI3RouterFactoryImpl extends BaseRouterFactory<OpenAPI> implem
       List<Handler> failureHandlersToLoad = new ArrayList<>();
 
       // Resolve security handlers
-      handlersToLoad.addAll(globalSecurityHandlers);
-      handlersToLoad.addAll(securityHandlers.solveSecurityHandlers(
-        operation.getOperationModel().getSecurity(),
-        this.getOptions().isRequireSecurityHandlers()
-      ));
+      // As https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.1.md#fixed-fields-8 says:
+      // Operation specific security requirement overrides global security requirement, even if local security requirement is an empty array
+      if (operation.getOperationModel().getSecurity() != null) {
+        handlersToLoad.addAll(securityHandlers.solveSecurityHandlers(
+          operation.getOperationModel().getSecurity(),
+          this.getOptions().isRequireSecurityHandlers()
+        ));
+      } else {
+        handlersToLoad.addAll(globalSecurityHandlers);
+      }
 
       // Generate ValidationHandler
       Handler<RoutingContext> validationHandler = new OpenAPI3RequestValidationHandlerImpl(operation
