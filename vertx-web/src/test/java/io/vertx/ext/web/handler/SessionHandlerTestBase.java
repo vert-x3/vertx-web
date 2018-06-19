@@ -23,7 +23,6 @@ import io.vertx.ext.web.Session;
 import io.vertx.ext.web.sstore.SessionStore;
 import io.vertx.ext.web.impl.Utils;
 import io.vertx.ext.web.WebTestBase;
-import io.vertx.ext.web.sstore.impl.CookieSessionStore;
 import org.junit.Test;
 
 import java.text.DateFormat;
@@ -415,20 +414,16 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
       assertFalse(("vertx-web.session=" + sessionId.get() + "; Path=/").equals(setCookie));
     }, 200, "OK", null);
 
-    // cookie store does not preserve state so we cannot assert that data is removed
-    if (!(store instanceof CookieSessionStore)) {
+    CountDownLatch latch = new CountDownLatch(1);
+    // after the id is regenerated the old id must not be valid anymore
 
-      CountDownLatch latch = new CountDownLatch(1);
-      // after the id is regenerated the old id must not be valid anymore
+    store.get(sessionId.get(), get -> {
+      assertTrue(get.succeeded());
+      assertNull(get.result());
+      latch.countDown();
+    });
 
-      store.get(sessionId.get(), get -> {
-        assertTrue(get.succeeded());
-        assertNull(get.result());
-        latch.countDown();
-      });
-
-      awaitLatch(latch);
-    }
+    awaitLatch(latch);
   }
 
   @Test
