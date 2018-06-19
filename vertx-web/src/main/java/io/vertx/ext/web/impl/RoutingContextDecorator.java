@@ -210,8 +210,8 @@ public class RoutingContextDecorator implements RoutingContext {
   }
 
   @Override
-  public RoutingContext reroute(HttpMethod method, String path) {
-    return decoratedContext.reroute(method, path);
+  public void reroute(HttpMethod method, String path) {
+    decoratedContext.reroute(method, path);
   }
 
   @Override

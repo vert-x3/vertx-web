@@ -400,8 +400,8 @@ public interface RoutingContext {
    *
    * @param path the new http path.
    */
-  default RoutingContext reroute(String path) {
-    return reroute(request().method(), path);
+  default void reroute(String path) {
+    reroute(request().method(), path);
   }
 
   /**
@@ -411,7 +411,7 @@ public interface RoutingContext {
    * @param method the new http request
    * @param path the new http path.
    */
-  RoutingContext reroute(HttpMethod method, String path);
+  void reroute(HttpMethod method, String path);
 
   /**
    * Returns the locales for the current request. The locales are determined from the `accept-languages` header and

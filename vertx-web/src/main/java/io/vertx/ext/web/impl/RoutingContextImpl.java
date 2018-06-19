@@ -342,7 +342,7 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   }
 
   @Override
-  public RoutingContext reroute(HttpMethod method, String path) {
+  public void reroute(HttpMethod method, String path) {
     int split = path.indexOf('?');
 
     if (split == -1) {
@@ -378,8 +378,6 @@ public class RoutingContextImpl extends RoutingContextImplBase {
 
     failure = null;
     restart();
-    
-    return this;
   }
 
   /**
