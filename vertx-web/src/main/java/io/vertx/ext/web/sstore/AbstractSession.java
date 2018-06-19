@@ -170,7 +170,7 @@ public abstract class AbstractSession implements Session {
 
   @Override
   public boolean isEmpty() {
-    return data == null && data.size() == 0;
+    return data == null || data.size() == 0;
   }
 
   @Override

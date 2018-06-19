@@ -26,7 +26,22 @@ import io.vertx.ext.web.sstore.impl.LocalSessionStoreImpl;
  * <p>
  * Can be used when sticky sessions are being used.
  *
+ *
+ * This Factory has been deprecated and users are advised to use:
+ *
+ * <code>
+ *     SessionStore.create(vertx, "local")
+ * </code>
+ *
+ * To customize the store provide an extra JsonObject with the keys:
+ *
+ * <ul>
+ *     <li>reaperInterval</li>
+ *     <li>mapName</li>
+ * </ul>
+ *
  * @author <a href="http://tfox.org">Tim Fox</a>
+ * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  * @deprecated
  */
 @Deprecated

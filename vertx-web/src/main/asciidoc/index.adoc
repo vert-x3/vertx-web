@@ -791,6 +791,9 @@ being affected by the PRNG algorithm.
 
 Vert.x-Web comes with two session store implementations out of the box, and you can also write your own if you prefer.
 
+The implementations are expected to follow the `ServiceLoader` conventions and all stores that are available at runtime
+from the classpath will be exposed.
+
 ==== Local session store
 
 With this store, sessions are stored locally in memory and only available in this instance.
@@ -803,10 +806,9 @@ requests might end up on a server which doesn't know about your session.
 
 Local session stores are implemented by using a shared local map, and have a reaper which clears out expired sessions.
 
-The reaper interval can be configured with
-{@link io.vertx.ext.web.sstore.LocalSessionStore#create(io.vertx.core.Vertx, String, long)}.
+The reaper interval can be configured with a json message with the key: `reaperInterval`.
 
-Here are some examples of creating a {@link io.vertx.ext.web.sstore.LocalSessionStore}
+Here are some examples of creating a local {@link io.vertx.ext.web.sstore.SessionStore}
 
 [source,$lang]
 ----
@@ -824,7 +826,7 @@ Your session is accessible from any node in the cluster using this store.
 
 To you use a clustered session store you should make sure your Vert.x instance is clustered.
 
-Here are some examples of creating a {@link io.vertx.ext.web.sstore.ClusteredSessionStore}
+Here are some examples of creating a clustered {@link io.vertx.ext.web.sstore.SessionStore}
 
 [source,$lang]
 ----

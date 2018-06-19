@@ -642,17 +642,24 @@ public class WebExamples {
   public void example31(Vertx vertx) {
 
     // Create a local session store using defaults
-    SessionStore store1 = LocalSessionStore.create(vertx);
+    SessionStore store1 = SessionStore.create(vertx, "local");
 
     // Create a local session store specifying the local shared map name to use
     // This might be useful if you have more than one application in the same
     // Vert.x instance and want to use different maps for different applications
-    SessionStore store2 = LocalSessionStore.create(vertx, "myapp3.sessionmap");
+    SessionStore store2 = SessionStore.create(
+      vertx,
+      "local",
+      new JsonObject().put("mapName", "myapp3.sessionmap"));
 
     // Create a local session store specifying the local shared map name to use and
     // setting the reaper interval for expired sessions to 10 seconds
-    SessionStore store3 = LocalSessionStore.create(vertx, "myapp3.sessionmap", 10000);
-
+    SessionStore store3 = SessionStore.create(
+      vertx,
+      "local",
+      new JsonObject()
+        .put("mapName", "myapp3.sessionmap")
+        .put("reaperInterval", 10000));
   }
 
   public void example32() {
@@ -663,12 +670,15 @@ public class WebExamples {
       Vertx vertx = res.result();
 
       // Create a clustered session store using defaults
-      SessionStore store1 = ClusteredSessionStore.create(vertx);
+      SessionStore store1 = SessionStore.create(vertx, "cluster");
 
       // Create a clustered session store specifying the distributed map name to use
       // This might be useful if you have more than one application in the cluster
       // and want to use different maps for different applications
-      SessionStore store2 = ClusteredSessionStore.create(vertx, "myclusteredapp3.sessionmap");
+      SessionStore store2 = SessionStore.create(
+        vertx,
+        "cluster",
+        new JsonObject().put("mapName", "myclusteredapp.sessionmap"));
     });
 
   }
@@ -681,7 +691,7 @@ public class WebExamples {
     router.route().handler(CookieHandler.create());
 
     // Create a clustered session store using defaults
-    SessionStore store = ClusteredSessionStore.create(vertx);
+    SessionStore store = SessionStore.create(vertx, "cluster");
 
     SessionHandler sessionHandler = SessionHandler.create(store);
 
@@ -726,7 +736,7 @@ public class WebExamples {
   public void example37(Vertx vertx, AuthProvider authProvider, Router router) {
 
     router.route().handler(CookieHandler.create());
-    router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
+    router.route().handler(SessionHandler.create(SessionStore.create(vertx, "local")));
 
     AuthHandler basicAuthHandler = BasicAuthHandler.create(authProvider);
   }
@@ -734,7 +744,7 @@ public class WebExamples {
   public void example38(Vertx vertx, AuthProvider authProvider, Router router) {
 
     router.route().handler(CookieHandler.create());
-    router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
+    router.route().handler(SessionHandler.create(SessionStore.create(vertx, "local")));
     router.route().handler(UserSessionHandler.create(authProvider));
 
     AuthHandler basicAuthHandler = BasicAuthHandler.create(authProvider);

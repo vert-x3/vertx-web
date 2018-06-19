@@ -90,8 +90,6 @@ public class SessionHandlerImpl implements SessionHandler {
 
   @Override
   public void handle(RoutingContext context) {
-    context.response().ended();
-
     if (nagHttps && log.isDebugEnabled()) {
       String uri = context.request().absoluteURI();
       if (!uri.startsWith("https:")) {
@@ -111,7 +109,6 @@ public class SessionHandlerImpl implements SessionHandler {
             Session session = res.result();
             if (session != null) {
               context.setSession(session);
-              //session.setAccessed();
               addStoreSessionHandler(context);
             } else {
               // Cannot find session - either it timed out, or was explicitly destroyed at the server side on a
@@ -206,6 +203,7 @@ public class SessionHandlerImpl implements SessionHandler {
       } else {
         // invalidate the cookie as the session has been destroyed
         context.removeCookie(sessionCookieName);
+        // delete from the storage
         sessionStore.delete(session.id(), res -> {
           if (res.failed()) {
             log.error("Failed to delete session", res.cause());

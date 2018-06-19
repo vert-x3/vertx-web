@@ -24,7 +24,21 @@ import io.vertx.ext.web.sstore.impl.ClusteredSessionStoreImpl;
 /**
  * A session store which stores sessions in a distributed map so they are available across the cluster.
  *
+ * This Factory has been deprecated and users are advised to use:
+ *
+ * <code>
+ *     SessionStore.create(vertx, "cluster")
+ * </code>
+ *
+ * To customize the store provide an extra JsonObject with the keys:
+ *
+ * <ul>
+ *     <li>retryTimeout</li>
+ *     <li>mapName</li>
+ * </ul>
+ *
  * @author <a href="http://tfox.org">Tim Fox</a>
+ * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  * @deprecated
  */
 @Deprecated

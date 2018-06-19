@@ -31,6 +31,7 @@ import java.util.ServiceLoader;
  * A session store is used to store sessions for an Vert.x-Web web app
  *
  * @author <a href="http://tfox.org">Tim Fox</a>
+ * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
 @VertxGen
 public interface SessionStore {
