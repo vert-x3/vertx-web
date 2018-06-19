@@ -84,7 +84,8 @@ public abstract class AbstractSession implements Session {
 
   /**
    * Important note: This constructor (even though not referenced anywhere) is required for serialization purposes. Do
-   * not remove.
+   * not remove. It is required as part of the contract of the ClusterSerializable interface which some implementations
+   * might require.
    */
   public AbstractSession() {
   }
