@@ -254,8 +254,8 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   }
 
   @Override
-  public void reroute(HttpMethod method, String path) {
-    inner.reroute(method, path);
+  public RoutingContext reroute(HttpMethod method, String path) {
+    return inner.reroute(method, path);
   }
 
   @Override
