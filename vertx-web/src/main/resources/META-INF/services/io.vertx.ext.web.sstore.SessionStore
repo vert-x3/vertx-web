@@ -1,2 +1,0 @@
-io.vertx.ext.web.sstore.impl.LocalSessionStoreImpl
-io.vertx.ext.web.sstore.impl.ClusteredSessionStoreImpl

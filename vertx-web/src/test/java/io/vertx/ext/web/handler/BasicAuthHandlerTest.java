@@ -203,11 +203,6 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
     private final PRNG prng = new PRNG(vertx);
 
     @Override
-    public String id() {
-      return "test";
-    }
-
-    @Override
     public SessionStore init(Vertx vertx, JsonObject options) {
       return this;
     }

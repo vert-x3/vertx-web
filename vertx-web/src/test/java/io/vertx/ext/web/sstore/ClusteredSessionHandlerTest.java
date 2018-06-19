@@ -30,7 +30,6 @@ import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.CookieHandler;
 import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.handler.SessionHandlerTestBase;
-import io.vertx.ext.web.handler.SomeSerializable;
 import io.vertx.ext.web.sstore.impl.SharedDataSessionImpl;
 import io.vertx.test.core.TestUtils;
 import io.vertx.test.fakecluster.FakeClusterManager;
@@ -164,7 +163,6 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
     session.put("somestring", "wibble");
     session.put("somebytes", bytes);
     session.put("somebuffer", buffer);
-//    session.put("someserializable", new SomeSerializable("eek"));
     session.put("someclusterserializable", new JsonObject().put("foo", "bar"));
   }
 

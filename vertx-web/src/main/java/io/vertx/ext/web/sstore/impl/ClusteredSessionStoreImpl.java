@@ -53,11 +53,6 @@ public class ClusteredSessionStoreImpl implements SessionStore, ClusteredSession
   private volatile AsyncMap<String, Session> sessionMap;
 
   @Override
-  public String id() {
-    return "cluster";
-  }
-
-  @Override
   public SessionStore init(Vertx vertx, JsonObject options) {
     this.vertx = vertx;
     this.sessionMapName = options.getString("mapName", DEFAULT_SESSION_MAP_NAME);

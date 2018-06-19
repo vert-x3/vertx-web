@@ -24,6 +24,8 @@ import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Session;
+import io.vertx.ext.web.sstore.impl.ClusteredSessionStoreImpl;
+import io.vertx.ext.web.sstore.impl.LocalSessionStoreImpl;
 
 import java.util.ServiceLoader;
 
@@ -40,39 +42,42 @@ public interface SessionStore {
    * Create a Session store given a backend and configuration JSON.
    *
    * @param vertx vertx instance
-   * @param backend the backend type
    * @return the store or runtime exception
    */
-  static SessionStore create(Vertx vertx, String backend) {
-    return create(vertx, backend, new JsonObject());
+  static SessionStore create(Vertx vertx) {
+    return create(vertx, new JsonObject());
   }
 
   /**
    * Create a Session store given a backend and configuration JSON.
    *
    * @param vertx vertx instance
-   * @param backend the backend type
    * @param options extra options for initialization
    * @return the store or runtime exception
    */
-  static SessionStore create(Vertx vertx, String backend, JsonObject options) {
+  static SessionStore create(Vertx vertx, JsonObject options) {
     ServiceLoader<SessionStore> serviceLoader = ServiceLoader.load(SessionStore.class);
 
     for (SessionStore store : serviceLoader) {
-      if (store.id().equalsIgnoreCase(backend)) {
+      // first come first served!
+      try {
         return store.init(vertx, options);
+      } catch (RuntimeException e) {
+        // ignore that it cannot be loaded, falling back to the next
       }
     }
 
-    throw new RuntimeException("Backend [" + backend + "] not available!");
-  }
+    // no extra stores found
+    SessionStore defaultStore;
 
-  /**
-   * Unique identifier for a store.
-   *
-   * @return non null string
-   */
-  String id();
+    if (vertx.isClustered()) {
+      defaultStore = new ClusteredSessionStoreImpl();
+    } else {
+      defaultStore = new LocalSessionStoreImpl();
+    }
+
+    return defaultStore.init(vertx, options);
+  }
 
   /**
    * Initialize this store.

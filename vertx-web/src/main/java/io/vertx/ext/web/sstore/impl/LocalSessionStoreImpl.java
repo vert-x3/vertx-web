@@ -67,11 +67,6 @@ public class LocalSessionStoreImpl implements SessionStore, LocalSessionStore, H
   }
 
   @Override
-  public String id() {
-    return "local";
-  }
-
-  @Override
   public SessionStore init(Vertx vertx, JsonObject options) {
     // initialize a secure random
     this.random = new PRNG(vertx);
