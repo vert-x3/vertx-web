@@ -19,7 +19,6 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.test.core.TestUtils;
 import org.junit.Test;
 
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.LockSupport;
