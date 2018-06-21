@@ -1604,7 +1604,7 @@ public class ApiClient {
      * @param request
      */
     private void addQueryArrayForm(String paramName, List<Object> values, HttpRequest request) {
-        String serialized = String.join(",", values.stream().map(object -> String.valueOf(object)).collect(Collectors.toList()));
+        String serialized = String.join(",", values.stream().map(String::valueOf).collect(Collectors.toList()));
         this.addQueryParam(paramName, serialized, request); // Encoding is done by WebClient
     }
 
@@ -1640,7 +1640,7 @@ public class ApiClient {
      * @param values
      */
     private void renderCookieArrayForm(String paramName, List<Object> values, MultiMap map) {
-        String value = String.join(",", values.stream().map(object -> String.valueOf(object)).collect(Collectors.toList()));
+        String value = String.join(",", values.stream().map(String::valueOf).collect(Collectors.toList()));
         map.remove(paramName);
         map.add(paramName, value);
     }
@@ -1771,7 +1771,7 @@ public class ApiClient {
      * @param request
      */
     private void addHeaderArraySimple(String headerName, List<Object> values, HttpRequest request) {
-        String serialized = String.join(",", values.stream().map(object -> String.valueOf(object)).collect(Collectors.toList()));
+        String serialized = String.join(",", values.stream().map(String::valueOf).collect(Collectors.toList()));
         this.addHeaderParam(headerName, serialized, request);
     }
 
@@ -1843,7 +1843,7 @@ public class ApiClient {
      * @param request
      */
     private void addQueryArraySpaceDelimited(String paramName, List<Object> values, HttpRequest request) {
-        String serialized = String.join(" ", values.stream().map(object -> String.valueOf(object)).collect(Collectors.toList()));
+        String serialized = String.join(" ", values.stream().map(String::valueOf).collect(Collectors.toList()));
         this.addQueryParam(paramName, serialized, request); // Encoding is done by WebClient
     }
 
@@ -1880,7 +1880,7 @@ public class ApiClient {
      * @param request
      */
     private void addQueryArrayPipeDelimited(String paramName, List<Object> values, HttpRequest request) {
-        String serialized = String.join("|", values.stream().map(object -> String.valueOf(object)).collect(Collectors.toList()));
+        String serialized = String.join("|", values.stream().map(String::valueOf).collect(Collectors.toList()));
         this.addQueryParam(paramName, serialized, request); // Encoding is done by WebClient
     }
 

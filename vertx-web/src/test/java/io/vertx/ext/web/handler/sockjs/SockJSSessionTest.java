@@ -63,9 +63,7 @@ public class SockJSSessionTest extends SockJSTestBase {
     AtomicInteger serverReceived = new AtomicInteger();
     BooleanSupplier shallStop = () -> clientReceived.get() > numMsg * 256 && serverReceived.get() > numMsg * 256;
     sockJSHandler.socketHandler(socket -> {
-      socket.handler(msg -> {
-        serverReceived.addAndGet(msg.length());
-      });
+      socket.handler(msg -> serverReceived.addAndGet(msg.length()));
       socket.write("hello");
       new Thread(() -> {
         while (!shallStop.getAsBoolean()) {
@@ -78,16 +76,14 @@ public class SockJSSessionTest extends SockJSTestBase {
         }
       }).start();
     });
-    client.websocket("/test/400/8ne8e94a/websocket", ws -> {
-      ws.handler(msg -> {
-        clientReceived.addAndGet(msg.length());
-        ws.writeTextMessage("\"hello\"");
-        if (shallStop.getAsBoolean()) {
-          ws.handler(null);
-          complete();
-        }
-      });
-    });
+    client.websocket("/test/400/8ne8e94a/websocket", ws -> ws.handler(msg -> {
+      clientReceived.addAndGet(msg.length());
+      ws.writeTextMessage("\"hello\"");
+      if (shallStop.getAsBoolean()) {
+        ws.handler(null);
+        complete();
+      }
+    }));
     await();
   }
 

@@ -177,7 +177,7 @@ public class RequestParameterImpl implements RequestParameter {
   @Override
   public Object toJson() {
     if (isArray())
-      return new JsonArray(getArray().stream().map(rp -> rp.toJson()).collect(Collectors.toList()));
+      return new JsonArray(getArray().stream().map(RequestParameter::toJson).collect(Collectors.toList()));
     else if (isObject())
       return ((Map<String, RequestParameter>) value)
         .entrySet()

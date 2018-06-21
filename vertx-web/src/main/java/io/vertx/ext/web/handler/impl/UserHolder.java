@@ -46,7 +46,7 @@ public class UserHolder implements ClusterSerializable {
   public void writeToBuffer(Buffer buffer) {
     // try to get the user from the context otherwise fall back to any cached version
     User user = context != null ? context.user() : this.user;
-    if (user != null && user instanceof ClusterSerializable) {
+    if (user instanceof ClusterSerializable) {
       buffer.appendByte((byte)1);
       String className = user.getClass().getCanonicalName();
       if (className == null) {
