@@ -170,23 +170,13 @@ public class StaticHandlerImpl implements StaticHandler {
     }
 
     // Look in cache
-    CacheEntry entry;
-    if (cachingEnabled) {
-      entry = propsCache().get(path);
-      if (entry != null) {
-        HttpServerRequest request = context.request();
-        if ((filesReadOnly || !entry.isOutOfDate()) && entry.shouldUseCached(request)) {
-          context.response().setStatusCode(NOT_MODIFIED.code()).end();
-          return;
-        }
-      }
+    CacheEntry entry = cachingEnabled ? propsCache().get(path) : null;
+    if (entry != null && (filesReadOnly || !entry.isOutOfDate()) && entry.shouldUseCached(context.request())) {
+      context.response().setStatusCode(NOT_MODIFIED.code()).end();
+      return;
     }
 
-    if (file == null) {
-      file = getFile(path, context);
-    }
-
-    final String sfile = file;
+    final String sfile = file == null ? getFile(path, context) : file;
 
     // verify if the file exists
     isFileExisting(context, sfile, exists -> {
@@ -197,6 +187,7 @@ public class StaticHandlerImpl implements StaticHandler {
 
       // file does not exist, continue...
       if (!exists.result()) {
+        if (cachingEnabled && entry != null) removeCache(path);
         context.next();
         return;
       }
@@ -207,11 +198,20 @@ public class StaticHandlerImpl implements StaticHandler {
           FileProps fprops = res.result();
           if (fprops == null) {
             // File does not exist
+            if (cachingEnabled && entry != null) removeCache(path);
             context.next();
           } else if (fprops.isDirectory()) {
+            if (cachingEnabled && entry != null) removeCache(path);
             sendDirectory(context, path, sfile);
           } else {
-            propsCache().put(path, new CacheEntry(fprops, System.currentTimeMillis()));
+            if (cachingEnabled) {
+              CacheEntry now = new CacheEntry(fprops, System.currentTimeMillis());
+              propsCache().put(path, now);
+              if (now.shouldUseCached(context.request())) {
+                context.response().setStatusCode(NOT_MODIFIED.code()).end();
+                return;
+              }
+            }
             sendFile(context, sfile, fprops);
           }
         } else {
@@ -598,6 +598,10 @@ public class StaticHandlerImpl implements StaticHandler {
       propsCache = new LRUCache<>(maxCacheSize);
     }
     return propsCache;
+  }
+
+  private void removeCache(String path) {
+    if (propsCache != null) propsCache.remove(path);
   }
 
   private Date parseDate(String header) {
