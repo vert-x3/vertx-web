@@ -794,7 +794,7 @@ Vert.x-Web comes with two session store implementations out of the box, and you 
 The implementations are expected to follow the `ServiceLoader` conventions and all stores that are available at runtime
 from the classpath will be exposed. When more than 1 implementations are available the first one that can be
 instantiated and configured with success becomes the default. If none is available, then the default depends on the mode
-vertx was created. If cluster mode is available the the clustered session store is the default otherwise the local
+Vert.x was created. If cluster mode is available the the clustered session store is the default otherwise the local
 storage is the default.
 
 ==== Local session store
