@@ -72,8 +72,11 @@ public class UserHolder implements ClusterSerializable {
       pos += len;
       String className = new String(bytes, StandardCharsets.UTF_8);
       try {
-        Class clazz = Utils.getClassLoader().loadClass(className);
-        ClusterSerializable obj = (ClusterSerializable) clazz.newInstance();
+        Class<?> clazz = Utils.getClassLoader().loadClass(className);
+        if (!ClusterSerializable.class.isAssignableFrom(clazz)) {
+          throw new ClassCastException(className + " is not ClusterSerializable");
+        }
+        ClusterSerializable obj = (ClusterSerializable) clazz.getDeclaredConstructor().newInstance();
         pos = obj.readFromBuffer(pos, buffer);
         user = (User) obj;
       } catch (Exception e) {

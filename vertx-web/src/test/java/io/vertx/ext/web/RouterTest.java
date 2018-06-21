@@ -2365,7 +2365,7 @@ public class RouterTest extends WebTestBase {
         when(request.path()).thenReturn("/path");
         when(request.response()).thenReturn(response);
         when(response.ended()).thenReturn(true);
-        router.accept(request);
+        router.handle(request);
         future.complete();
       }, asyncResult -> {
         assertFalse(asyncResult.failed());

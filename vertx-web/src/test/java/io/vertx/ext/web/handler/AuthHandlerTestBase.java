@@ -19,6 +19,7 @@ package io.vertx.ext.web.handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.auth.shiro.ShiroAuthOptions;
 import io.vertx.ext.web.WebTestBase;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import io.vertx.ext.web.sstore.SessionStore;
@@ -76,7 +77,7 @@ public abstract class AuthHandlerTestBase extends WebTestBase {
       router.route().handler(SessionHandler.create(store));
     }
     JsonObject authConfig = new JsonObject().put("properties_path", "classpath:login/loginusers.properties");
-    AuthProvider authProvider = ShiroAuth.create(vertx, ShiroAuthRealmType.PROPERTIES, authConfig);
+    AuthProvider authProvider = ShiroAuth.create(vertx, new ShiroAuthOptions().setType(ShiroAuthRealmType.PROPERTIES).setConfig(authConfig));
     AuthHandler authHandler = createAuthHandler(authProvider);
     if (authorities != null) {
       authHandler.addAuthorities(authorities);
