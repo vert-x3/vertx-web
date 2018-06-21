@@ -1832,9 +1832,7 @@ public class RouterTest extends WebTestBase {
 
   @Test
   public void testBadURL() throws Exception {
-    router.route().handler(rc -> {
-      rc.response().end();
-    });
+    router.route().handler(rc -> rc.response().end());
 
     testRequest(HttpMethod.GET, "/%7B%channel%%7D", 200, "OK");
   }
@@ -2101,10 +2099,7 @@ public class RouterTest extends WebTestBase {
         Thread.sleep((int) (1 + Math.random() * 10));
         testSyncRequest("GET", "/path", 200, "OK", "handler1handler2handler3");
         future.complete();
-      } catch (InterruptedException e) {
-        e.printStackTrace();
-        future.fail(e);
-      } catch (IOException e) {
+      } catch (InterruptedException | IOException e) {
         e.printStackTrace();
         future.fail(e);
       }
@@ -2115,10 +2110,7 @@ public class RouterTest extends WebTestBase {
         Thread.sleep((int) (1 + Math.random() * 10));
         testSyncRequest("GET", "/fail", 400, "ERROR", "fhandler1fhandler2fhandler3");
         future.complete();
-      } catch (InterruptedException e) {
-        e.printStackTrace();
-        future.fail(e);
-      } catch (IOException e) {
+      } catch (InterruptedException | IOException e) {
         e.printStackTrace();
         future.fail(e);
       }
@@ -2159,13 +2151,11 @@ public class RouterTest extends WebTestBase {
 
     Route route1 = router.getWithRegex("\\/(?<p0>[a-z]{2})");
     route1.setRegexGroupsNames(groupNames);
-    route1.handler(routingContext -> {
-      routingContext
-        .response()
-        .setStatusCode(200)
-        .setStatusMessage(routingContext.pathParam("hello"))
-        .end();
-    });
+    route1.handler(routingContext -> routingContext
+      .response()
+      .setStatusCode(200)
+      .setStatusMessage(routingContext.pathParam("hello"))
+      .end());
     testRequest(HttpMethod.GET, "/hi", 200, "hi");
 
   }
@@ -2178,13 +2168,11 @@ public class RouterTest extends WebTestBase {
 
     Route route = router.getWithRegex("\\/([a-z]{2})([a-z]{2})");
     route.setRegexGroupsNames(groupNames);
-    route.handler(routingContext -> {
-      routingContext
-        .response()
-        .setStatusCode(200)
-        .setStatusMessage(routingContext.pathParam("FirstParam") + "-" + routingContext.pathParam("SecondParam"))
-        .end();
-    });
+    route.handler(routingContext -> routingContext
+      .response()
+      .setStatusCode(200)
+      .setStatusMessage(routingContext.pathParam("FirstParam") + "-" + routingContext.pathParam("SecondParam"))
+      .end());
     testRequest(HttpMethod.GET, "/aabb", 200, "aa-bb");
   }
 
@@ -2196,13 +2184,11 @@ public class RouterTest extends WebTestBase {
 
     Route route1 = router.getWithRegex("\\/(?<p1>[a-z]{2})(?<p0>[a-z]{2})");
     route1.setRegexGroupsNames(groupNames);
-    route1.handler(routingContext -> {
-      routingContext
-        .response()
-        .setStatusCode(200)
-        .setStatusMessage(routingContext.pathParam("firstParam") + "-" + routingContext.pathParam("secondParam"))
-        .end();
-    });
+    route1.handler(routingContext -> routingContext
+      .response()
+      .setStatusCode(200)
+      .setStatusMessage(routingContext.pathParam("firstParam") + "-" + routingContext.pathParam("secondParam"))
+      .end());
     testRequest(HttpMethod.GET, "/bbaa", 200, "aa-bb");
 
   }
@@ -2215,38 +2201,32 @@ public class RouterTest extends WebTestBase {
 
     Route route1 = router.getWithRegex("\\/(?<p1>[a-z]{2}(?<p0>[a-z]{2}))");
     route1.setRegexGroupsNames(groupNames);
-    route1.handler(routingContext -> {
-      routingContext
-        .response()
-        .setStatusCode(200)
-        .setStatusMessage(routingContext.pathParam("firstParam") + "-" + routingContext.pathParam("secondParam"))
-        .end();
-    });
+    route1.handler(routingContext -> routingContext
+      .response()
+      .setStatusCode(200)
+      .setStatusMessage(routingContext.pathParam("firstParam") + "-" + routingContext.pathParam("secondParam"))
+      .end());
     testRequest(HttpMethod.GET, "/bbaa", 200, "aa-bbaa");
 
   }
 
   @Test
   public void testRegexGroupsNames() throws Exception {
-    router.getWithRegex("\\/(?<firstParam>[a-z]{2})(?<secondParam>[a-z]{2})").handler(routingContext -> {
-      routingContext
-        .response()
-        .setStatusCode(200)
-        .setStatusMessage(routingContext.pathParam("firstParam") + "-" + routingContext.pathParam("secondParam"))
-        .end();
-    });
+    router.getWithRegex("\\/(?<firstParam>[a-z]{2})(?<secondParam>[a-z]{2})").handler(routingContext -> routingContext
+      .response()
+      .setStatusCode(200)
+      .setStatusMessage(routingContext.pathParam("firstParam") + "-" + routingContext.pathParam("secondParam"))
+      .end());
     testRequest(HttpMethod.GET, "/aabb", 200, "aa-bb");
   }
 
   @Test
   public void testRegexGroupsNamesWithNestedGroups() throws Exception {
-    router.getWithRegex("\\/(?<secondParam>[a-z]{2}(?<firstParam>[a-z]{2}))").handler(routingContext -> {
-      routingContext
-        .response()
-        .setStatusCode(200)
-        .setStatusMessage(routingContext.pathParam("firstParam") + "-" + routingContext.pathParam("secondParam"))
-        .end();
-    });
+    router.getWithRegex("\\/(?<secondParam>[a-z]{2}(?<firstParam>[a-z]{2}))").handler(routingContext -> routingContext
+      .response()
+      .setStatusCode(200)
+      .setStatusMessage(routingContext.pathParam("firstParam") + "-" + routingContext.pathParam("secondParam"))
+      .end());
     testRequest(HttpMethod.GET, "/bbaa", 200, "aa-bbaa");
   }
 
@@ -2302,7 +2282,7 @@ public class RouterTest extends WebTestBase {
   public void testDecodingError() throws Exception {
     String BAD_PARAM = "~!@\\||$%^&*()_=-%22;;%27%22:%3C%3E/?]}{";
 
-    router.route().handler(rc -> rc.next());
+    router.route().handler(RoutingContext::next);
     router.route("/path").handler(rc -> rc.response().setStatusCode(500).end());
     testRequest(HttpMethod.GET, "/path?q=" + BAD_PARAM, 400, "Bad Request");
   }
@@ -2365,7 +2345,7 @@ public class RouterTest extends WebTestBase {
         when(request.path()).thenReturn("/path");
         when(request.response()).thenReturn(response);
         when(response.ended()).thenReturn(true);
-        router.accept(request);
+        router.handle(request);
         future.complete();
       }, asyncResult -> {
         assertFalse(asyncResult.failed());

@@ -32,14 +32,12 @@ public class OpenAPI3SchemasTest extends WebTestValidationBase {
   OpenAPI3RouterFactory routerFactory;
   HttpServer schemaServer;
 
-  final Handler<RoutingContext> handler = routingContext -> {
-    routingContext
-      .response()
-      .setStatusCode(200)
-      .setStatusMessage("OK")
-      .putHeader("Content-Type", "application/json")
-      .end(((RequestParameters)routingContext.get("parsedParameters")).body().getJsonObject().encode());
-  };
+  final Handler<RoutingContext> handler = routingContext -> routingContext
+    .response()
+    .setStatusCode(200)
+    .setStatusMessage("OK")
+    .putHeader("Content-Type", "application/json")
+    .end(((RequestParameters)routingContext.get("parsedParameters")).body().getJsonObject().encode());
 
   final Handler<RoutingContext> FAILURE_HANDLER = routingContext -> {
     if (routingContext.failure() instanceof ValidationException)
@@ -87,9 +85,7 @@ public class OpenAPI3SchemasTest extends WebTestValidationBase {
     router = routerFactory.getRouter();
     server = this.vertx.createHttpServer(new HttpServerOptions().setPort(8080).setHost("localhost"));
     CountDownLatch latch = new CountDownLatch(1);
-    server.requestHandler(router::accept).listen(onSuccess(res -> {
-      latch.countDown();
-    }));
+    server.requestHandler(router::accept).listen(onSuccess(res -> latch.countDown()));
     awaitLatch(latch);
   }
 
@@ -97,9 +93,7 @@ public class OpenAPI3SchemasTest extends WebTestValidationBase {
     if (server != null) {
       CountDownLatch latch = new CountDownLatch(1);
       try {
-        server.close((asyncResult) -> {
-          latch.countDown();
-        });
+        server.close((asyncResult) -> latch.countDown());
       } catch (IllegalStateException e) { // Server is already open
         latch.countDown();
       }
@@ -112,19 +106,15 @@ public class OpenAPI3SchemasTest extends WebTestValidationBase {
     r.route().handler(StaticHandler.create("./src/test/resources/swaggers/schemas"));
     CountDownLatch latch = new CountDownLatch(1);
     schemaServer = vertx.createHttpServer(new HttpServerOptions().setPort(8081))
-      .requestHandler(r::accept).listen(onSuccess(res -> {
-        latch.countDown();
-      }));
-    awaitLatch(latch);;
+      .requestHandler(r::accept).listen(onSuccess(res -> latch.countDown()));
+    awaitLatch(latch);
   }
 
   private void stopSchemaServer() throws Exception {
     if (schemaServer != null) {
       CountDownLatch latch = new CountDownLatch(1);
       try {
-        schemaServer.close((asyncResult) -> {
-          latch.countDown();
-        });
+        schemaServer.close((asyncResult) -> latch.countDown());
       } catch (IllegalStateException e) { // Server is already open
         latch.countDown();
       }
@@ -136,7 +126,7 @@ public class OpenAPI3SchemasTest extends WebTestValidationBase {
     String jsonString = String.join("", Files.readAllLines(Paths.get("./src/test/resources/swaggers/test_json", "schemas_test", jsonName), StandardCharsets.UTF_8));
     JsonObject obj = new JsonObject(jsonString);
     testRequestWithJSON(HttpMethod.POST, uri, obj, 200, "OK", obj);
-  };
+  }
 
   private void assertRequestOk(String uri, String jsonNameRequest, String jsonNameResponse) throws Exception {
     String jsonStringRequest = String.join("", Files.readAllLines(Paths.get("./src/test/resources/swaggers/test_json", "schemas_test", jsonNameRequest), StandardCharsets.UTF_8));
@@ -144,12 +134,12 @@ public class OpenAPI3SchemasTest extends WebTestValidationBase {
     String jsonStringResponse = String.join("", Files.readAllLines(Paths.get("./src/test/resources/swaggers/test_json", "schemas_test", jsonNameResponse), StandardCharsets.UTF_8));
     JsonObject objResponse = new JsonObject(jsonStringResponse);
     testRequestWithJSON(HttpMethod.POST, uri, objRequest, 200, "OK", objResponse);
-  };
+  }
 
   private void assertRequestFail(String uri, String jsonName) throws Exception {
     String jsonString = String.join("", Files.readAllLines(Paths.get("./src/test/resources/swaggers/test_json", "schemas_test", jsonName), StandardCharsets.UTF_8));
     testRequestWithJSON(HttpMethod.POST, uri, new JsonObject(jsonString), 400, "ValidationException", null);
-  };
+  }
 
   @Test
   public void test1() throws Exception {

@@ -454,16 +454,14 @@ public class StaticHandlerTest extends WebTestBase {
   public void testDirectoryListingText() throws Exception {
     stat.setDirectoryListing(true);
     Set<String> expected = new HashSet<>(Arrays.asList(".hidden.html", "a", "foo.json", "index.html", "otherpage.html", "somedir", "somedir2", "somedir3", "file with spaces.html"));
-    testRequest(HttpMethod.GET, "/", null, resp -> {
-      resp.bodyHandler(buff -> {
-        String sBuff = buff.toString();
-        String[] elems = sBuff.split("\n");
-        assertEquals(expected.size(), elems.length);
-        for (String elem : elems) {
-          assertTrue(expected.contains(elem));
-        }
-      });
-    }, 200, "OK", null);
+    testRequest(HttpMethod.GET, "/", null, resp -> resp.bodyHandler(buff -> {
+      String sBuff = buff.toString();
+      String[] elems = sBuff.split("\n");
+      assertEquals(expected.size(), elems.length);
+      for (String elem : elems) {
+        assertTrue(expected.contains(elem));
+      }
+    }), 200, "OK", null);
   }
 
   @Test
@@ -471,37 +469,31 @@ public class StaticHandlerTest extends WebTestBase {
     stat.setDirectoryListing(true);
     stat.setIncludeHidden(false);
     Set<String> expected = new HashSet<>(Arrays.asList("foo.json", "a", "index.html", "otherpage.html", "somedir", "somedir2", "somedir3", "file with spaces.html"));
-    testRequest(HttpMethod.GET, "/", null, resp -> {
-      resp.bodyHandler(buff -> {
-        assertEquals("text/plain", resp.headers().get("content-type"));
-        String sBuff = buff.toString();
-        String[] elems = sBuff.split("\n");
-        assertEquals(expected.size(), elems.length);
-        for (String elem: elems) {
-          assertTrue(expected.contains(elem));
-        }
-      });
-    }, 200, "OK", null);
+    testRequest(HttpMethod.GET, "/", null, resp -> resp.bodyHandler(buff -> {
+      assertEquals("text/plain", resp.headers().get("content-type"));
+      String sBuff = buff.toString();
+      String[] elems = sBuff.split("\n");
+      assertEquals(expected.size(), elems.length);
+      for (String elem: elems) {
+        assertTrue(expected.contains(elem));
+      }
+    }), 200, "OK", null);
   }
 
   @Test
   public void testDirectoryListingJson() throws Exception {
     stat.setDirectoryListing(true);
     Set<String> expected = new HashSet<>(Arrays.asList(".hidden.html", "foo.json", "index.html", "otherpage.html", "a", "somedir", "somedir2", "somedir3", "file with spaces.html"));
-    testRequest(HttpMethod.GET, "/", req -> {
-      req.putHeader("accept", "application/json");
-    }, resp -> {
-      resp.bodyHandler(buff -> {
-        assertEquals("application/json", resp.headers().get("content-type"));
-        String sBuff = buff.toString();
-        JsonArray arr = new JsonArray(sBuff);
-        assertEquals(expected.size(), arr.size());
-        for (Object elem: arr) {
-          assertTrue(expected.contains(elem));
-        }
-        testComplete();
-      });
-    }, 200, "OK", null);
+    testRequest(HttpMethod.GET, "/", req -> req.putHeader("accept", "application/json"), resp -> resp.bodyHandler(buff -> {
+      assertEquals("application/json", resp.headers().get("content-type"));
+      String sBuff = buff.toString();
+      JsonArray arr = new JsonArray(sBuff);
+      assertEquals(expected.size(), arr.size());
+      for (Object elem: arr) {
+        assertTrue(expected.contains(elem));
+      }
+      testComplete();
+    }), 200, "OK", null);
     await();
   }
 
@@ -510,20 +502,16 @@ public class StaticHandlerTest extends WebTestBase {
     stat.setDirectoryListing(true);
     stat.setIncludeHidden(false);
     Set<String> expected = new HashSet<>(Arrays.asList("foo.json", "a", "index.html", "otherpage.html", "somedir", "somedir2", "somedir3", "file with spaces.html"));
-    testRequest(HttpMethod.GET, "/", req -> {
-      req.putHeader("accept", "application/json");
-    }, resp -> {
-      resp.bodyHandler(buff -> {
-        assertEquals("application/json", resp.headers().get("content-type"));
-        String sBuff = buff.toString();
-        JsonArray arr = new JsonArray(sBuff);
-        assertEquals(expected.size(), arr.size());
-        for (Object elem: arr) {
-          assertTrue(expected.contains(elem));
-        }
-        testComplete();
-      });
-    }, 200, "OK", null);
+    testRequest(HttpMethod.GET, "/", req -> req.putHeader("accept", "application/json"), resp -> resp.bodyHandler(buff -> {
+      assertEquals("application/json", resp.headers().get("content-type"));
+      String sBuff = buff.toString();
+      JsonArray arr = new JsonArray(sBuff);
+      assertEquals(expected.size(), arr.size());
+      for (Object elem: arr) {
+        assertTrue(expected.contains(elem));
+      }
+      testComplete();
+    }), 200, "OK", null);
     await();
   }
 

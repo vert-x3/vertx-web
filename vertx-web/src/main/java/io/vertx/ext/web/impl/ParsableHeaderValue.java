@@ -161,18 +161,15 @@ public class ParsableHeaderValue implements ParsedHeaderValue {
     if (this == obj) {
       return true;
     }
-    if (obj == null || !(obj instanceof ParsableHeaderValue)) {
+    if (!(obj instanceof ParsableHeaderValue)) {
       return false;
     }
     ParsableHeaderValue other = (ParsableHeaderValue) obj;
     if (headerContent == null) {
-      if (other.headerContent != null) {
-        return false;
-      }
-    } else if (!headerContent.equals(other.headerContent)) {
-      return false;
+      return other.headerContent == null;
+    } else {
+      return headerContent.equals(other.headerContent);
     }
-    return true;
   }
 
 }

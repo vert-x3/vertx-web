@@ -950,9 +950,7 @@ public class WebClientTest extends HttpTestBase {
         assertEquals("test.txt", upload.filename());
         assertEquals("text/plain", upload.contentType());
         upload.handler(fileBuffer::appendBuffer);
-        upload.endHandler(v -> {
-          assertEquals(content, fileBuffer);
-        });
+        upload.endHandler(v -> assertEquals(content, fileBuffer));
       });
       req.endHandler(v -> {
         assertEquals("vert.x", req.getFormAttribute("toolkit"));
@@ -1041,9 +1039,7 @@ public class WebClientTest extends HttpTestBase {
     });
     startServer();
     HttpRequest<Buffer> req = client.get("/test").virtualHost("another-host");
-    req.send(onSuccess(resp -> {
-      testComplete();
-    }));
+    req.send(onSuccess(resp -> testComplete()));
     await();
   }
 

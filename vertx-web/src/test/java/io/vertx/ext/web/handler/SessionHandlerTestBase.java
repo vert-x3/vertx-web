@@ -334,9 +334,7 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
     // ensure that on the second call, in case of error, the cookie is not present
     testRequest(HttpMethod.GET, "/", req -> req.putHeader("cookie", sessionID.get()), resp -> assertNull(resp.headers().get("set-cookie")), 500, "Internal Server Error", null);
     // ensure that on the third call, the session is still valid
-    testRequest(HttpMethod.GET, "/", req -> req.putHeader("cookie", sessionID.get()), resp -> {
-      assertNull(resp.headers().get("set-cookie"));
-    }, 200, "OK", null);
+    testRequest(HttpMethod.GET, "/", req -> req.putHeader("cookie", sessionID.get()), resp -> assertNull(resp.headers().get("set-cookie")), 200, "OK", null);
   }
 
   private final DateFormat dateTimeFormatter = Utils.createRFC1123DateTimeFormatter();

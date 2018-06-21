@@ -143,7 +143,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
       RequestParameter color_path = params.pathParameter("color");
       assertNotNull(color_path);
       assertTrue(color_path.isArray());
-      res.put("color", new JsonArray(color_path.getArray().stream().map(param -> param.getString()).collect(Collectors.toList())));
+      res.put("color", new JsonArray(color_path.getArray().stream().map(RequestParameter::getString).collect(Collectors.toList())));
 
 
       routingContext.response()
@@ -294,7 +294,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
       RequestParameter color_path = params.pathParameter("color");
       assertNotNull(color_path);
       assertTrue(color_path.isArray());
-      res.put("color", new JsonArray(color_path.getArray().stream().map(param -> param.getString()).collect(Collectors.toList())));
+      res.put("color", new JsonArray(color_path.getArray().stream().map(RequestParameter::getString).collect(Collectors.toList())));
 
 
       routingContext.response()
@@ -445,7 +445,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
       RequestParameter color_path = params.pathParameter("color");
       assertNotNull(color_path);
       assertTrue(color_path.isArray());
-      res.put("color", new JsonArray(color_path.getArray().stream().map(param -> param.getString()).collect(Collectors.toList())));
+      res.put("color", new JsonArray(color_path.getArray().stream().map(RequestParameter::getString).collect(Collectors.toList())));
 
 
       routingContext.response()
@@ -596,7 +596,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
       RequestParameter color_path = params.pathParameter("color");
       assertNotNull(color_path);
       assertTrue(color_path.isArray());
-      res.put("color", new JsonArray(color_path.getArray().stream().map(param -> param.getString()).collect(Collectors.toList())));
+      res.put("color", new JsonArray(color_path.getArray().stream().map(RequestParameter::getString).collect(Collectors.toList())));
 
 
       routingContext.response()
@@ -747,7 +747,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
       RequestParameter color_path = params.pathParameter("color");
       assertNotNull(color_path);
       assertTrue(color_path.isArray());
-      res.put("color", new JsonArray(color_path.getArray().stream().map(param -> param.getString()).collect(Collectors.toList())));
+      res.put("color", new JsonArray(color_path.getArray().stream().map(RequestParameter::getString).collect(Collectors.toList())));
 
 
       routingContext.response()
@@ -898,7 +898,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
       RequestParameter color_path = params.pathParameter("color");
       assertNotNull(color_path);
       assertTrue(color_path.isArray());
-      res.put("color", new JsonArray(color_path.getArray().stream().map(param -> param.getString()).collect(Collectors.toList())));
+      res.put("color", new JsonArray(color_path.getArray().stream().map(RequestParameter::getString).collect(Collectors.toList())));
 
 
       routingContext.response()
@@ -1007,7 +1007,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
       RequestParameter colorLabel_path = params.pathParameter("color_label");
       assertNotNull(colorLabel_path);
       assertTrue(colorLabel_path.isArray());
-      res.put("color_label", new JsonArray(colorLabel_path.getArray().stream().map(param -> param.getString()).collect(Collectors.toList())));
+      res.put("color_label", new JsonArray(colorLabel_path.getArray().stream().map(RequestParameter::getString).collect(Collectors.toList())));
 
 
       routingContext.response()
@@ -1065,7 +1065,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
       RequestParameter colorMatrix_path = params.pathParameter("color_matrix");
       assertNotNull(colorMatrix_path);
       assertTrue(colorMatrix_path.isArray());
-      res.put("color_matrix", new JsonArray(colorMatrix_path.getArray().stream().map(param -> param.getString()).collect(Collectors.toList())));
+      res.put("color_matrix", new JsonArray(colorMatrix_path.getArray().stream().map(RequestParameter::getString).collect(Collectors.toList())));
 
 
       routingContext.response()
@@ -1118,7 +1118,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
       RequestParameter colorLabel_path = params.pathParameter("color_label");
       assertNotNull(colorLabel_path);
       assertTrue(colorLabel_path.isArray());
-      res.put("color_label", new JsonArray(colorLabel_path.getArray().stream().map(param -> param.getString()).collect(Collectors.toList())));
+      res.put("color_label", new JsonArray(colorLabel_path.getArray().stream().map(RequestParameter::getString).collect(Collectors.toList())));
       RequestParameter colorMatrix_path = params.pathParameter("color_matrix");
       assertNotNull(colorMatrix_path);
       assertTrue(colorMatrix_path.isObject());
@@ -1275,7 +1275,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
       RequestParameter color_query = params.queryParameter("color");
       assertNotNull(color_query);
       assertTrue(color_query.isArray());
-      res.put("color", new JsonArray(color_query.getArray().stream().map(param -> param.getString()).collect(Collectors.toList())));
+      res.put("color", new JsonArray(color_query.getArray().stream().map(RequestParameter::getString).collect(Collectors.toList())));
 
 
       routingContext.response()
@@ -1473,7 +1473,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
       RequestParameter color_query = params.queryParameter("color");
       assertNotNull(color_query);
       assertTrue(color_query.isArray());
-      res.put("color", new JsonArray(color_query.getArray().stream().map(param -> param.getString()).collect(Collectors.toList())));
+      res.put("color", new JsonArray(color_query.getArray().stream().map(RequestParameter::getString).collect(Collectors.toList())));
 
 
       routingContext.response()
@@ -1576,7 +1576,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
       RequestParameter color_query = params.queryParameter("color");
       assertNotNull(color_query);
       assertTrue(color_query.isArray());
-      res.put("color", new JsonArray(color_query.getArray().stream().map(param -> param.getString()).collect(Collectors.toList())));
+      res.put("color", new JsonArray(color_query.getArray().stream().map(RequestParameter::getString).collect(Collectors.toList())));
 
 
       routingContext.response()
@@ -1679,7 +1679,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
       RequestParameter color_query = params.queryParameter("color");
       assertNotNull(color_query);
       assertTrue(color_query.isArray());
-      res.put("color", new JsonArray(color_query.getArray().stream().map(param -> param.getString()).collect(Collectors.toList())));
+      res.put("color", new JsonArray(color_query.getArray().stream().map(RequestParameter::getString).collect(Collectors.toList())));
 
 
       routingContext.response()
@@ -1930,7 +1930,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
       RequestParameter color_cookie = params.cookieParameter("color");
       assertNotNull(color_cookie);
       assertTrue(color_cookie.isArray());
-      res.put("color", new JsonArray(color_cookie.getArray().stream().map(param -> param.getString()).collect(Collectors.toList())));
+      res.put("color", new JsonArray(color_cookie.getArray().stream().map(RequestParameter::getString).collect(Collectors.toList())));
 
 
       routingContext.response()
@@ -2128,7 +2128,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
       RequestParameter color_cookie = params.cookieParameter("color");
       assertNotNull(color_cookie);
       assertTrue(color_cookie.isArray());
-      res.put("color", new JsonArray(color_cookie.getArray().stream().map(param -> param.getString()).collect(Collectors.toList())));
+      res.put("color", new JsonArray(color_cookie.getArray().stream().map(RequestParameter::getString).collect(Collectors.toList())));
 
 
       routingContext.response()
@@ -2279,7 +2279,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
       RequestParameter color_header = params.headerParameter("color");
       assertNotNull(color_header);
       assertTrue(color_header.isArray());
-      res.put("color", new JsonArray(color_header.getArray().stream().map(param -> param.getString()).collect(Collectors.toList())));
+      res.put("color", new JsonArray(color_header.getArray().stream().map(RequestParameter::getString).collect(Collectors.toList())));
 
 
       routingContext.response()
@@ -2430,7 +2430,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
       RequestParameter color_header = params.headerParameter("color");
       assertNotNull(color_header);
       assertTrue(color_header.isArray());
-      res.put("color", new JsonArray(color_header.getArray().stream().map(param -> param.getString()).collect(Collectors.toList())));
+      res.put("color", new JsonArray(color_header.getArray().stream().map(RequestParameter::getString).collect(Collectors.toList())));
 
 
       routingContext.response()
@@ -2538,9 +2538,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
     router = routerFactory.getRouter();
     server = this.vertx.createHttpServer(new HttpServerOptions().setPort(8080).setHost("localhost"));
     CountDownLatch latch = new CountDownLatch(1);
-    server.requestHandler(router::accept).listen(onSuccess(res -> {
-      latch.countDown();
-    }));
+    server.requestHandler(router::accept).listen(onSuccess(res -> latch.countDown()));
     awaitLatch(latch);
   }
 
@@ -2548,9 +2546,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
     if (server != null) {
       CountDownLatch latch = new CountDownLatch(1);
       try {
-        server.close((asyncResult) -> {
-          latch.countDown();
-        });
+        server.close((asyncResult) -> latch.countDown());
       } catch (IllegalStateException e) { // Server is already open
         latch.countDown();
       }

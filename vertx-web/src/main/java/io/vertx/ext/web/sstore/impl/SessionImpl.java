@@ -392,8 +392,11 @@ public class SessionImpl implements Session, ClusterSerializable, Shareable {
               byte[] classNameBytes = buffer.getBytes(pos, pos + classNameLen);
               pos += classNameLen;
               String className = new String(classNameBytes, UTF8);
-              Class clazz = Utils.getClassLoader().loadClass(className);
-              ClusterSerializable obj = (ClusterSerializable) clazz.newInstance();
+              Class<?> clazz = Utils.getClassLoader().loadClass(className);
+              if (!ClusterSerializable.class.isAssignableFrom(clazz)) {
+                throw new ClassCastException(className + " is not ClusterSerializable");
+              }
+              ClusterSerializable obj = (ClusterSerializable) clazz.getDeclaredConstructor().newInstance();
               pos = obj.readFromBuffer(pos, buffer);
               val = obj;
               break;

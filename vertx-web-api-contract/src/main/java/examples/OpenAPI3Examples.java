@@ -8,6 +8,7 @@ import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.jwt.JWTAuth;
+import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.api.RequestParameter;
 import io.vertx.ext.web.api.RequestParameters;
 import io.vertx.ext.web.Router;
@@ -121,10 +122,8 @@ public class OpenAPI3Examples {
         });
 
         // Add a security handler
-        routerFactory.addSecurityHandler("api_key", routingContext -> {
-          // Handle security here
-          routingContext.next();
-        });
+        // Handle security here
+        routerFactory.addSecurityHandler("api_key", RoutingContext::next);
 
         // Now you have to generate the router
         Router router = routerFactory.getRouter();

@@ -32,7 +32,6 @@ import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.handler.SessionHandlerTestBase;
 import io.vertx.ext.web.handler.SomeSerializable;
 import io.vertx.ext.web.sstore.impl.SessionImpl;
-import io.vertx.test.core.Repeat;
 import io.vertx.test.core.TestUtils;
 import io.vertx.test.fakecluster.FakeClusterManager;
 import org.junit.Test;

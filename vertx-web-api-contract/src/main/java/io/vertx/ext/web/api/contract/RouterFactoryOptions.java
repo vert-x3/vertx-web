@@ -40,9 +40,7 @@ public class RouterFactoryOptions {
    * Default not implemented handler. It sends a response with status code 501,
    * status message "Not Implemented" and empty body
    */
-  public final static Handler<RoutingContext> DEFAULT_NOT_IMPLEMENTED_HANDLER = (routingContext) -> {
-    routingContext.response().setStatusCode(501).setStatusMessage("Not Implemented").end();
-  };
+  public final static Handler<RoutingContext> DEFAULT_NOT_IMPLEMENTED_HANDLER = (routingContext) -> routingContext.response().setStatusCode(501).setStatusMessage("Not Implemented").end();
 
 
   /**
