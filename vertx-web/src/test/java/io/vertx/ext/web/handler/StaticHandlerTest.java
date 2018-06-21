@@ -33,6 +33,7 @@ import io.vertx.ext.web.WebTestBase;
 import org.junit.Test;
 
 import java.io.File;
+import java.nio.file.Files;
 import java.text.DateFormat;
 import java.util.List;
 import java.util.ArrayList;
@@ -399,23 +400,54 @@ public class StaticHandlerTest extends WebTestBase {
 
   @Test
   public void testCacheFilesEntryOld() throws Exception {
+	String webroot = "src/test/filesystemwebroot", page = "/fspage.html";
+	File resource = new File(webroot + page);
+	String html = new String(Files.readAllBytes(resource.toPath()));
+	int cacheEntryTimeout = 100;
+
     stat.setFilesReadOnly(false);
-    stat.setWebRoot("src/test/filesystemwebroot");
-    stat.setCacheEntryTimeout(2000);
-    File resource = new File("src/test/filesystemwebroot", "fspage.html");
+    stat.setWebRoot(webroot);
+    stat.setCacheEntryTimeout(cacheEntryTimeout);
+
     long modified = Utils.secondsFactor(resource.lastModified());
-    testRequest(HttpMethod.GET, "/fspage.html", null, res -> {
+    testRequest(HttpMethod.GET, page, null, res -> {
       String lastModified = res.headers().get("last-modified");
       assertEquals(modified, toDateTime(lastModified));
       // Now update the web resource
       resource.setLastModified(modified + 1000);
-    }, 200, "OK", "<html><body>File system page</body></html>");
+    }, 200, "OK", html);
     // But it should return a new entry as the entry is now old
-    Thread.sleep(2001);
-    testRequest(HttpMethod.GET, "/fspage.html", req -> req.putHeader("if-modified-since", dateTimeFormatter.format(modified)), res -> {
+    Thread.sleep(cacheEntryTimeout + 1);
+    testRequest(HttpMethod.GET, page, req -> req.putHeader("if-modified-since", dateTimeFormatter.format(modified)), res -> {
       String lastModified = res.headers().get("last-modified");
       assertEquals(modified + 1000, toDateTime(lastModified));
-    }, 200, "OK", "<html><body>File system page</body></html>");
+    }, 200, "OK", html);
+
+    // 304 must still work when cacheEntry.isOutOfDate() == true, https://github.com/vert-x3/vertx-web/issues/726
+    Thread.sleep(cacheEntryTimeout + 1);
+
+    testRequest(HttpMethod.GET, page, req -> req.putHeader("if-modified-since", dateTimeFormatter.format(modified + 1000)), 304, "Not Modified", null);
+  }
+
+  @Test
+  public void testCacheFilesFileDeleted() throws Exception {
+    File webroot = new File(".vertx/webroot"), pageFile = new File(webroot, "deleted.html");
+    if (!pageFile.exists()) {
+      webroot.mkdirs();
+      pageFile.createNewFile();
+    }
+    String page = '/' + pageFile.getName();
+
+    stat.setFilesReadOnly(false);
+    stat.setWebRoot(webroot.getPath());
+    stat.setCacheEntryTimeout(3600 * 1000);
+
+    long modified = Utils.secondsFactor(pageFile.lastModified());
+    testRequest(HttpMethod.GET, page, req -> req.putHeader("if-modified-since", dateTimeFormatter.format(modified)), null, 304, "Not Modified", null);
+    pageFile.delete();
+    testRequest(HttpMethod.GET, page, 404, "Not Found");
+    testRequest(HttpMethod.GET, page, req -> req.putHeader("if-modified-since", dateTimeFormatter.format(modified)), null, 404, "Not Found", null);
+
   }
 
   @Test
