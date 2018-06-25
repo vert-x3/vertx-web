@@ -64,6 +64,7 @@ public class CSRFHandlerTest extends WebTestBase {
     testRequest(HttpMethod.POST, "/", null, null, 403, "Forbidden", null);
   }
 
+  String rawCookie;
   String tmpCookie;
 
   @Test
@@ -76,10 +77,14 @@ public class CSRFHandlerTest extends WebTestBase {
     testRequest(HttpMethod.GET, "/", null, resp -> {
       List<String> cookies = resp.headers().getAll("set-cookie");
       String cookie = cookies.get(0);
+      rawCookie = cookie;
       tmpCookie = cookie.substring(cookie.indexOf('=') + 1, cookie.indexOf(';'));
     }, 200, "OK", null);
 
-    testRequest(HttpMethod.POST, "/", req -> req.putHeader(CSRFHandler.DEFAULT_HEADER_NAME, tmpCookie), null, 200, "OK", null);
+    testRequest(HttpMethod.POST, "/", req -> {
+      req.putHeader(CSRFHandler.DEFAULT_HEADER_NAME, tmpCookie);
+      req.putHeader("Cookie", rawCookie);
+    }, null, 200, "OK", null);
   }
 
   @Test
@@ -104,6 +109,7 @@ public class CSRFHandlerTest extends WebTestBase {
     testRequest(HttpMethod.GET, "/", null, resp -> {
       List<String> cookies = resp.headers().getAll("set-cookie");
       String cookie = cookies.get(0);
+      rawCookie = cookie;
       tmpCookie = cookie.substring(cookie.indexOf('=') + 1, cookie.indexOf(';'));
     }, 200, "OK", null);
 
@@ -118,6 +124,7 @@ public class CSRFHandlerTest extends WebTestBase {
       buffer.appendString(str);
       req.headers().set("content-length", String.valueOf(buffer.length()));
       req.headers().set("content-type", "multipart/form-data; boundary=" + boundary);
+      req.putHeader("Cookie", rawCookie);
       req.write(buffer);
     }, null, 200, "OK", null);
   }
@@ -154,6 +161,7 @@ public class CSRFHandlerTest extends WebTestBase {
     // response body is known
     latch.await();
 
+    // will fail as the cookie is always required to be validated!
     testRequest(HttpMethod.POST, "/", req -> {
       // create a HTTP form
       String boundary = "dLV9Wyq26L_-JQxk6ferf-RT153LhOO";
@@ -166,7 +174,7 @@ public class CSRFHandlerTest extends WebTestBase {
       req.headers().set("content-length", String.valueOf(buffer.length()));
       req.headers().set("content-type", "multipart/form-data; boundary=" + boundary);
       req.write(buffer);
-    }, null, 200, "OK", null);
+    }, null, 403, "Forbidden", null);
   }
 
   @Test
