@@ -16,16 +16,16 @@
 
 package io.vertx.ext.web.templ.rocker.impl;
 
-import com.fizzed.rocker.BindableRockerModel;
-import com.fizzed.rocker.Rocker;
+import java.lang.reflect.Method;
+
+import com.fizzed.rocker.RockerModel;
 import com.fizzed.rocker.TemplateBindException;
+import com.fizzed.rocker.runtime.RockerRuntime;
 
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.templ.CachingTemplateEngine;
 import io.vertx.ext.web.templ.rocker.RockerTemplateEngine;
@@ -34,8 +34,6 @@ import io.vertx.ext.web.templ.rocker.RockerTemplateEngine;
  * @author <a href="mailto:xianguang.zhou@outlook.com">Xianguang Zhou</a>
  */
 public class RockerTemplateEngineImpl extends CachingTemplateEngine<Void> implements RockerTemplateEngine {
-  
-  private static final Logger log = LoggerFactory.getLogger(RockerTemplateEngineImpl.class);
 
   public RockerTemplateEngineImpl() {
     super(DEFAULT_TEMPLATE_EXTENSION, DEFAULT_MAX_CACHE_SIZE);
@@ -60,9 +58,9 @@ public class RockerTemplateEngineImpl extends CachingTemplateEngine<Void> implem
       templateFileName = templateDirectory + templateFileName;
       String templatePath = adjustLocation(templateFileName);
 
-      BindableRockerModel model = Rocker.template(templatePath);
-      bindParam(model, "context", context);
-      context.data().forEach((name, value) -> bindParam(model, name, value));
+      RockerModel model = RockerRuntime.getInstance().getBootstrap().model(templatePath);
+      bindParam(templatePath, model, "context", context);
+      context.data().forEach((name, value) -> bindParam(templatePath, model, name, value));
 
       VertxBufferOutput output = model.render(VertxBufferOutput.FACTORY);
 
@@ -72,12 +70,30 @@ public class RockerTemplateEngineImpl extends CachingTemplateEngine<Void> implem
     }
   }
   
-  private void bindParam(BindableRockerModel model, String name, Object value) {
-    try {
-      model.bind(name, value);
-    } catch(TemplateBindException e) {
-      log.info("RockerModel param not binded '" + name + "': " + e.getMessage());
+  private void bindParam(String templatePath, RockerModel model, String name, Object value) {
+    Method setter = findModelMethod(model, name);
+    if(setter != null) {
+      try {
+        setter.invoke(model, value);
+      } catch (Exception e) {
+        throw new TemplateBindException(templatePath, model.getClass().getCanonicalName(), "Unable to set property '" + name + "'", e);
+      }
     }
+  }
+  
+  private Method findModelMethod(RockerModel model, String name) {
+    Method result = null;
+    Method[] methods = model.getClass().getMethods();
+    for (Method method : methods) {
+      if (method.getName().equals(name)) {
+        Class<?>[] parameterTypes = method.getParameterTypes();
+        if (parameterTypes != null && parameterTypes.length == 1) {
+          result = method;
+        }
+      }
+    }
+    
+    return result;
   }
 
 }
