@@ -115,17 +115,23 @@ public class StaticHandlerImpl implements StaticHandler {
     if (cachingEnabled) {
       // We use cache-control and last-modified
       // We *do not use* etags and expires (since they do the same thing - redundant)
-      headers.set("cache-control", "public, max-age=" + maxAgeSeconds);
-      headers.set("last-modified", dateTimeFormatter.format(props.lastModifiedTime()));
+      writeNotExistingCacheHeader(headers, "cache-control", "public, max-age=" + maxAgeSeconds);
+      writeNotExistingCacheHeader(headers, "last-modified", dateTimeFormatter.format(props.lastModifiedTime()));
       // We send the vary header (for intermediate caches)
       // (assumes that most will turn on compression when using static handler)
       if (sendVaryHeader && request.headers().contains("accept-encoding")) {
-        headers.set("vary", "accept-encoding");
+        writeNotExistingCacheHeader(headers, "vary", "accept-encoding");
       }
     }
 
     // date header is mandatory
     headers.set("date", dateTimeFormatter.format(new Date()));
+  }
+  
+  private void writeNotExistingCacheHeader(MultiMap headers, String key, String value) {
+    if (!headers.contains(key)) {
+      headers.set(key, value);
+    }
   }
 
   @Override
