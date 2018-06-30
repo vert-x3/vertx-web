@@ -19,6 +19,7 @@ package io.vertx.ext.web.impl;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.netty.util.CharsetUtil;
+import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxException;
 import io.vertx.core.buffer.Buffer;
@@ -456,6 +457,12 @@ public class Utils extends io.vertx.core.impl.Utils {
 
   public static boolean isXMLContentType(String contentType) {
     return contentType.contains("application/xml") || contentType.contains("text/xml") || contentType.contains("+xml");
+  }
+  
+  public static void addToMapIfAbsent(MultiMap map, String key, String value) {
+    if (!map.contains(key)) {
+    	map.set(key, value);
+    }
   }
 
 }
