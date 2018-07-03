@@ -425,7 +425,8 @@ public class WebExamples {
 
   public void example20(Router router) {
 
-    Route route1 = router.route("/some/path/").handler(routingContext -> {
+    Route route = router.route("/some/path/");
+    route.handler(routingContext -> {
 
       HttpServerResponse response = routingContext.response();
       // enable chunked responses because we will be adding data as
@@ -439,7 +440,7 @@ public class WebExamples {
       routingContext.vertx().setTimer(5000, tid -> routingContext.next());
     });
 
-    Route route2 = router.route("/some/path/").handler(routingContext -> {
+    route.handler(routingContext -> {
 
       HttpServerResponse response = routingContext.response();
       response.write("route2\n");
@@ -448,7 +449,7 @@ public class WebExamples {
       routingContext.vertx().setTimer(5000, tid -> routingContext.next());
     });
 
-    Route route3 = router.route("/some/path/").handler(routingContext -> {
+    route.handler(routingContext -> {
 
       HttpServerResponse response = routingContext.response();
       response.write("route3");
