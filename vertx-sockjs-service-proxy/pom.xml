@@ -7,7 +7,7 @@
   <parent>
     <groupId>io.vertx</groupId>
     <artifactId>vertx-web-parent</artifactId>
-    <version>3.5.3-SNAPSHOT</version>
+    <version>3.5.3.CR1</version>
   </parent>
 
   <artifactId>vertx-sockjs-service-proxy</artifactId>
