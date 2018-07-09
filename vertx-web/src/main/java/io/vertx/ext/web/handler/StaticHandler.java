@@ -62,7 +62,7 @@ public interface StaticHandler extends Handler<RoutingContext> {
   /**
    * Default template file to use for directory listing
    */
-  String DEFAULT_DIRECTORY_TEMPLATE = "vertx-web-directory.html";
+  String DEFAULT_DIRECTORY_TEMPLATE = "META-INF/vertx/web/vertx-web-directory.html";
 
   /**
    * Default of whether hidden files can be served
