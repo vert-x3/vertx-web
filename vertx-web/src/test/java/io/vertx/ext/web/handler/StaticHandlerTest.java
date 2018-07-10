@@ -20,6 +20,7 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpVersion;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpClient;
+import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpClientRequest;
@@ -254,6 +255,89 @@ public class StaticHandlerTest extends WebTestBase {
   }
 
   @Test
+  public void testSkipCompressionForMediaTypes() throws Exception {
+    Set<String> compressedMediaTypes = new HashSet<>();
+    compressedMediaTypes.add("image/jpeg");
+    stat.skipCompressionForMediaTypes(compressedMediaTypes);
+    router.route().handler(stat);
+
+    waitFor(4);
+    server.close();
+    server = vertx.createHttpServer(getHttpServerOptions().setCompressionSupported(true));
+    server.requestHandler(router).listen(8444);
+
+    final List<CharSequence> acceptEncodings = new ArrayList<CharSequence>();
+    acceptEncodings.add("gzip");
+    acceptEncodings.add("jpg");
+    acceptEncodings.add("jpeg");
+    acceptEncodings.add("png");
+    final String[] routes = {"/testCompressionSuffix.html", "/somedir/range.jpg", "/somedir/range.jpeg", "/somedir3/coin.png"};
+    final int[] statusCodes = new int[4];
+    final String[] contentEncodings = new String[4];
+
+    for (int i = 0; i < 4; i++) {
+      int finalI = i;
+      HttpClientRequest request = client.get(8444, "localhost", routes[i], resp -> {
+        statusCodes[finalI] = resp.statusCode();
+        contentEncodings[finalI] = resp.getHeader(HttpHeaders.CONTENT_ENCODING);
+        complete();
+      });
+      request.putHeader(HttpHeaders.ACCEPT_ENCODING, acceptEncodings);
+      request.end();
+    }
+    await();
+
+    final int successCode = 200;
+    //jpeg and jpg have the same mime type, hence both are not compressed
+    final CharSequence[] expectedContentEncodings = {"gzip", HttpHeaders.IDENTITY, HttpHeaders.IDENTITY, "gzip"};
+    for (int i = 0; i < 4; i++) {
+      assertEquals("Status code does not equal 200 for request " + (i+1), successCode, statusCodes[i]);
+      assertEquals("Content-Encoding did not match for request " + (i+1), expectedContentEncodings[i].toString(), contentEncodings[i]);
+    }
+  }
+
+  @Test
+  public void testSkipCompressionForSuffixes() throws Exception {
+    Set<String> compressedSuffixes = new HashSet<>();
+    compressedSuffixes.add("jpg");
+    stat.skipCompressionForSuffixes(compressedSuffixes);
+    router.route().handler(stat);
+
+    waitFor(4);
+    server.close();
+    server = vertx.createHttpServer(getHttpServerOptions().setCompressionSupported(true));
+    server.requestHandler(router).listen(8444);
+
+    final List<CharSequence> acceptEncodings = new ArrayList<CharSequence>();
+    acceptEncodings.add("gzip");
+    acceptEncodings.add("jpg");
+    acceptEncodings.add("jpeg");
+    acceptEncodings.add("png");
+    final String[] routes = {"/testCompressionSuffix.html", "/somedir/range.jpg", "/somedir/range.jpeg", "/somedir3/coin.png"};
+    final int[] statusCodes = new int[4];
+    final String[] contentEncodings = new String[4];
+
+    for (int i = 0; i < 4; i++) {
+      int finalI = i;
+      HttpClientRequest request = client.get(8444, "localhost", routes[i], resp -> {
+        statusCodes[finalI] = resp.statusCode();
+        contentEncodings[finalI] = resp.getHeader(HttpHeaders.CONTENT_ENCODING);
+        complete();
+      });
+      request.putHeader(HttpHeaders.ACCEPT_ENCODING, acceptEncodings);
+      request.end();
+    }
+    await();
+
+    final int successCode = 200;
+    final CharSequence[] expectedContentEncodings = {"gzip", HttpHeaders.IDENTITY, "gzip", "gzip"};
+    for (int i = 0; i < 4; i++) {
+      assertEquals("Status code does not equal 200 for request " + (i+1), successCode, statusCodes[i]);
+      assertEquals("Content-Encoding did not match for request " + (i+1), expectedContentEncodings[i].toString(), contentEncodings[i]);
+    }
+  }
+
+  @Test
   public void testHead() throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
     testRequest(HttpMethod.HEAD, "/otherpage.html", null, res -> {
@@ -475,47 +559,55 @@ public class StaticHandlerTest extends WebTestBase {
   @Test
   public void testDirectoryListingText() throws Exception {
     stat.setDirectoryListing(true);
-    Set<String> expected = new HashSet<>(Arrays.asList(".hidden.html", "a", "foo.json", "index.html", "otherpage.html", "somedir", "somedir2", "somedir3", "file with spaces.html"));
-    testRequest(HttpMethod.GET, "/", null, resp -> resp.bodyHandler(buff -> {
-      String sBuff = buff.toString();
-      String[] elems = sBuff.split("\n");
-      assertEquals(expected.size(), elems.length);
-      for (String elem : elems) {
-        assertTrue(expected.contains(elem));
-      }
-    }), 200, "OK", null);
+    Set<String> expected = new HashSet<>(Arrays.asList(".hidden.html", "a", "foo.json", "index.html", "otherpage.html", "somedir", "somedir2", "somedir3", "testCompressionSuffix.html", "file with spaces.html"));
+    testRequest(HttpMethod.GET, "/", null, resp -> {
+      resp.bodyHandler(buff -> {
+        String sBuff = buff.toString();
+        String[] elems = sBuff.split("\n");
+        assertEquals(expected.size(), elems.length);
+        for (String elem : elems) {
+          assertTrue(expected.contains(elem));
+        }
+      });
+    }, 200, "OK", null);
   }
 
   @Test
   public void testDirectoryListingTextNoHidden() throws Exception {
     stat.setDirectoryListing(true);
     stat.setIncludeHidden(false);
-    Set<String> expected = new HashSet<>(Arrays.asList("foo.json", "a", "index.html", "otherpage.html", "somedir", "somedir2", "somedir3", "file with spaces.html"));
-    testRequest(HttpMethod.GET, "/", null, resp -> resp.bodyHandler(buff -> {
-      assertEquals("text/plain", resp.headers().get("content-type"));
-      String sBuff = buff.toString();
-      String[] elems = sBuff.split("\n");
-      assertEquals(expected.size(), elems.length);
-      for (String elem: elems) {
-        assertTrue(expected.contains(elem));
-      }
-    }), 200, "OK", null);
+    Set<String> expected = new HashSet<>(Arrays.asList("foo.json", "a", "index.html", "otherpage.html", "somedir", "somedir2", "somedir3", "testCompressionSuffix.html", "file with spaces.html"));
+    testRequest(HttpMethod.GET, "/", null, resp -> {
+      resp.bodyHandler(buff -> {
+        assertEquals("text/plain", resp.headers().get("content-type"));
+        String sBuff = buff.toString();
+        String[] elems = sBuff.split("\n");
+        assertEquals(expected.size(), elems.length);
+        for (String elem: elems) {
+          assertTrue(expected.contains(elem));
+        }
+      });
+    }, 200, "OK", null);
   }
 
   @Test
   public void testDirectoryListingJson() throws Exception {
     stat.setDirectoryListing(true);
-    Set<String> expected = new HashSet<>(Arrays.asList(".hidden.html", "foo.json", "index.html", "otherpage.html", "a", "somedir", "somedir2", "somedir3", "file with spaces.html"));
-    testRequest(HttpMethod.GET, "/", req -> req.putHeader("accept", "application/json"), resp -> resp.bodyHandler(buff -> {
-      assertEquals("application/json", resp.headers().get("content-type"));
-      String sBuff = buff.toString();
-      JsonArray arr = new JsonArray(sBuff);
-      assertEquals(expected.size(), arr.size());
-      for (Object elem: arr) {
-        assertTrue(expected.contains(elem));
-      }
-      testComplete();
-    }), 200, "OK", null);
+    Set<String> expected = new HashSet<>(Arrays.asList(".hidden.html", "foo.json", "index.html", "otherpage.html", "a", "somedir", "somedir2", "somedir3", "testCompressionSuffix.html", "file with spaces.html"));
+    testRequest(HttpMethod.GET, "/", req -> {
+      req.putHeader("accept", "application/json");
+    }, resp -> {
+      resp.bodyHandler(buff -> {
+        assertEquals("application/json", resp.headers().get("content-type"));
+        String sBuff = buff.toString();
+        JsonArray arr = new JsonArray(sBuff);
+        assertEquals(expected.size(), arr.size());
+        for (Object elem: arr) {
+          assertTrue(expected.contains(elem));
+        }
+        testComplete();
+      });
+    }, 200, "OK", null);
     await();
   }
 
@@ -523,17 +615,21 @@ public class StaticHandlerTest extends WebTestBase {
   public void testDirectoryListingJsonNoHidden() throws Exception {
     stat.setDirectoryListing(true);
     stat.setIncludeHidden(false);
-    Set<String> expected = new HashSet<>(Arrays.asList("foo.json", "a", "index.html", "otherpage.html", "somedir", "somedir2", "somedir3", "file with spaces.html"));
-    testRequest(HttpMethod.GET, "/", req -> req.putHeader("accept", "application/json"), resp -> resp.bodyHandler(buff -> {
-      assertEquals("application/json", resp.headers().get("content-type"));
-      String sBuff = buff.toString();
-      JsonArray arr = new JsonArray(sBuff);
-      assertEquals(expected.size(), arr.size());
-      for (Object elem: arr) {
-        assertTrue(expected.contains(elem));
-      }
-      testComplete();
-    }), 200, "OK", null);
+    Set<String> expected = new HashSet<>(Arrays.asList("foo.json", "a", "index.html", "otherpage.html", "somedir", "somedir2", "somedir3", "testCompressionSuffix.html", "file with spaces.html"));
+    testRequest(HttpMethod.GET, "/", req -> {
+      req.putHeader("accept", "application/json");
+    }, resp -> {
+      resp.bodyHandler(buff -> {
+        assertEquals("application/json", resp.headers().get("content-type"));
+        String sBuff = buff.toString();
+        JsonArray arr = new JsonArray(sBuff);
+        assertEquals(expected.size(), arr.size());
+        for (Object elem: arr) {
+          assertTrue(expected.contains(elem));
+        }
+        testComplete();
+      });
+    }, 200, "OK", null);
     await();
   }
 

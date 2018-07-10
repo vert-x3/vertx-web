@@ -23,6 +23,7 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.http.HttpVersion;
+import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.impl.MimeMapping;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.logging.Logger;
@@ -83,6 +84,8 @@ public class StaticHandlerImpl implements StaticHandler {
   private long numServesBlocking;
   private boolean useAsyncFS;
   private long nextAvgCheck = NUM_SERVES_TUNING_FS_ACCESS;
+  private Set<String> compressedMediaTypes = Collections.emptySet();
+  private Set<String> compressedFileSuffixes = Collections.emptySet();
 
   private final ClassLoader classLoader;
 
@@ -406,7 +409,11 @@ public class StaticHandlerImpl implements StaticHandler {
         // classloader (if any).
         wrapInTCCLSwitch(() -> {
           // guess content type
-          String contentType = MimeMapping.getMimeTypeForFilename(file);
+          String extension = getFileExtension(file);
+          String contentType = MimeMapping.getMimeTypeForExtension(extension);
+          if (compressedMediaTypes.contains(contentType) || compressedFileSuffixes.contains(extension)) {
+            request.response().putHeader(HttpHeaders.CONTENT_ENCODING, HttpHeaders.IDENTITY);
+          }
           if (contentType != null) {
             if (contentType.startsWith("text")) {
               request.response().putHeader("Content-Type", contentType + ";charset=" + defaultContentEncoding);
@@ -569,7 +576,25 @@ public class StaticHandlerImpl implements StaticHandler {
 
   @Override
   public StaticHandler setHttp2PushMapping(List<Http2PushMapping> http2PushMap) {
-    if (http2PushMap != null) this.http2PushMappings = new ArrayList<>(http2PushMap);
+    if (http2PushMap != null) {
+      this.http2PushMappings = new ArrayList<>(http2PushMap);
+    }
+    return this;
+  }
+
+  @Override
+  public StaticHandler skipCompressionForMediaTypes(Set<String> mediaTypes) {
+    if (mediaTypes != null) {
+      this.compressedMediaTypes = new HashSet<>(mediaTypes);
+    }
+    return this;
+  }
+
+  @Override
+  public StaticHandler skipCompressionForSuffixes(Set<String> fileSuffixes) {
+    if (fileSuffixes != null) {
+      this.compressedFileSuffixes = new HashSet<>(fileSuffixes);
+    }
     return this;
   }
 
@@ -732,6 +757,15 @@ public class StaticHandlerImpl implements StaticHandler {
         }
       }
     });
+  }
+
+  private String getFileExtension(String file) {
+    int li = file.lastIndexOf(46);
+    if (li != -1 && li != file.length() - 1) {
+      return file.substring(li + 1, file.length());
+    } else {
+      return null;
+    }
   }
 
   // TODO make this static and use Java8 DateTimeFormatter
