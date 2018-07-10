@@ -154,7 +154,8 @@ So, that's the basics. Now we'll look at things in more detail:
 == Handling requests and calling the next handler
 
 When Vert.x-Web decides to route a request to a matching route, it calls the handler of the route passing in an instance
-of {@link io.vertx.ext.web.RoutingContext}.
+of {@link io.vertx.ext.web.RoutingContext}. A route can have different handlers, that you can append using
+{@link io.vertx.ext.web.Route#handler}
 
 If you don't end the response in your handler, you should call {@link io.vertx.ext.web.RoutingContext#next} so another
 matching route can handle the request (if any).

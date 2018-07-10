@@ -99,9 +99,9 @@ public interface Route {
   Route last();
 
   /**
-   * Specify a request handler for the route. The router routes requests to handlers depending on whether the various
-   * criteria such as method, path, etc match. There can be only one request handler for a route. If you set this more
-   * than once it will overwrite the previous handler.
+   * Append a request handler to the route handlers list. The router routes requests to handlers depending on whether the various
+   * criteria such as method, path, etc match. When method, path, etc are the same for different routes, You should add multiple
+   * handlers to the same route object rather than creating two different routes objects with one handler for route
    *
    * @param requestHandler  the request handler
    * @return a reference to this, so the API can be used fluently
@@ -134,9 +134,9 @@ public interface Route {
   Route blockingHandler(Handler<RoutingContext> requestHandler, boolean ordered);
 
   /**
-   * Specify a failure handler for the route. The router routes failures to failurehandlers depending on whether the various
-   * criteria such as method, path, etc match. There can be only one failure handler for a route. If you set this more
-   * than once it will overwrite the previous handler.
+   * Append a failure handler to the route failure handlers list. The router routes failures to failurehandlers depending on whether the various
+   * criteria such as method, path, etc match. When method, path, etc are the same for different routes, You should add multiple
+   * failure handlers to the same route object rather than creating two different routes objects with one failure handler for route
    *
    * @param failureHandler  the request handler
    * @return a reference to this, so the API can be used fluently
