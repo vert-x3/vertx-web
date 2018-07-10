@@ -109,11 +109,11 @@ class Test(unittest.TestCase):
     def verify_cors(self, r, origin=None):
         if origin and origin != 'null':
             self.assertEqual(r['access-control-allow-origin'], origin)
+            # In order to get cookies (`JSESSIONID` mostly) flying, we
+            # need to set `allow-credentials` header to true.
+            self.assertEqual(r['access-control-allow-credentials'], 'true')
         else:
             self.assertEqual(r['access-control-allow-origin'], '*')
-        # In order to get cookies (`JSESSIONID` mostly) flying, we
-        # need to set `allow-credentials` header to true.
-        self.assertEqual(r['access-control-allow-credentials'], 'true')
 
     # Sometimes, due to transports limitations we need to request
     # private data using GET method. In such case it's very important
