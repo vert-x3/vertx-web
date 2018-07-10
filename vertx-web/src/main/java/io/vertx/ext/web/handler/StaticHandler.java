@@ -25,6 +25,7 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.impl.StaticHandlerImpl;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * A handler for serving static resources from the file system or classpath.
@@ -244,6 +245,26 @@ public interface StaticHandler extends Handler<RoutingContext> {
    */
   @Fluent
   StaticHandler setHttp2PushMapping(List<Http2PushMapping> http2PushMappings);
+
+  /**
+   * Skip compression if the media type of the file to send is in the provided {@code mediaTypes} set.
+   * {@code Content-Encoding} header set to {@code identity} for the types present in the {@code mediaTypes} set
+   *
+   * @param mediaTypes the set of mime types that are already compressed
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  StaticHandler skipCompressionForMediaTypes(Set<String> mediaTypes);
+
+  /**
+   * Skip compression if the suffix of the file to send is in the provided {@code fileSuffixes} set.
+   * {@code Content-Encoding} header set to {@code identity} for the suffixes present in the {@code fileSuffixes} set
+   *
+   * @param fileSuffixes the set of file suffixes that are already compressed
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  StaticHandler skipCompressionForSuffixes(Set<String> fileSuffixes);
 
   /**
    * Set whether async filesystem access should always be used
