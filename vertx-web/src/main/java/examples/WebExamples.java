@@ -506,6 +506,11 @@ public class WebExamples {
 
   }
 
+  public void example021(Router router) {
+    // Find implemented handlers and do route using RouteRegisteration Annotation
+    router.routeWithPackage("examples");
+  }
+
   public void example22(Vertx vertx, String productJSON) {
 
     Router restAPI = Router.router(vertx);

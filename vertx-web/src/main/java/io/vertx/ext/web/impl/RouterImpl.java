@@ -23,15 +23,16 @@ import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.Route;
+import io.vertx.ext.web.RouteRegistration;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
+import org.reflections.Reflections;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- *
  * This class is thread-safe
  *
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -92,6 +93,25 @@ public class RouterImpl implements Router {
   @Override
   public Route route(String path) {
     return new RouteImpl(this, orderSequence.getAndIncrement(), path);
+  }
+
+  @Override
+  public Route[] routeWithPackage(String pacakge) {
+    Reflections reflections = new Reflections(pacakge);
+    Set<Class<?>> annotated = reflections.getTypesAnnotatedWith(RouteRegistration.class);
+    List<Route> routes = new ArrayList<Route>();
+    for (Class<?> c : annotated) {
+      RouteRegistration annotation = c.getAnnotation(RouteRegistration.class);
+      try {
+        if (annotation.method().length > 0)
+          routes.add(route(annotation.method()[0], annotation.path()).handler((Handler<RoutingContext>) c.newInstance()));
+        else
+          routes.add(route(annotation.path()).handler((Handler<RoutingContext>) c.newInstance()));
+      } catch (InstantiationException | IllegalAccessException e) {
+        e.printStackTrace();
+      }
+    }
+    return (Route[])routes.toArray();
   }
 
   @Override

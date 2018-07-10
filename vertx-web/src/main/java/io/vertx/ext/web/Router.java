@@ -91,6 +91,14 @@ public interface Router extends Handler<HttpServerRequest> {
   Route route(String path);
 
   /**
+   * Add routes with handler which located in package automatically
+   *
+   * @param pacakge Name of Package containing Routehandler with RouteRegisteration Annotation
+   *
+   * @return registered route list
+   */
+  Route[] routeWithPackage(String pacakge);
+  /**
    * Add a route that matches the specified HTTP method and path regex
    *
    * @param method  the HTTP method to match
