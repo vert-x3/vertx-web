@@ -26,9 +26,6 @@ interface AnotherTestService {
 
   void testDataObject(FilterData body, RequestContext context, Handler<AsyncResult<OperationResult>> resultHandler);
 
-  @ProxyIgnore
-  void bla();
-
   @ProxyClose
   void close();
 

@@ -5,7 +5,7 @@ import io.vertx.core.json.JsonArray;
 
 /**
  * Converter for {@link io.vertx.ext.web.api.RequestContext}.
- * NOTE: This class has been automatically generated from the {@link "io.vertx.ext.web.api.RequestContext} original class using Vert.x codegen.
+ * NOTE: This class has been automatically generated from the {@link io.vertx.ext.web.api.RequestContext} original class using Vert.x codegen.
  */
  class RequestContextConverter {
 

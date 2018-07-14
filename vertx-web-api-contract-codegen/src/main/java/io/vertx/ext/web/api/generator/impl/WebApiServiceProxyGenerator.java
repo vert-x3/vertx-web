@@ -37,7 +37,7 @@ public class WebApiServiceProxyGenerator extends CodeGenProcessor {
   public WebApiServiceProxyGenerator() { }
 
   private static final Predicate<Generator> FILTER = generator ->
-    generator.name.contains("webapi_service_proxies") || generator.name.equals("data_object_converters");
+    generator.name.contains("web_api_service_proxy_handler") || generator.name.equals("data_object_converters");
 
   @Override
   protected Predicate<Generator> filterGenerators() {

@@ -22,9 +22,6 @@ public interface ValidWebApiProxy {
 
   void testC(Integer id, RequestParameter body, RequestContext context, Handler<AsyncResult<OperationResult>> resultHandler);
 
-  @ProxyIgnore
-  void ignored();
-
   @ProxyClose
   void closeIt();
 

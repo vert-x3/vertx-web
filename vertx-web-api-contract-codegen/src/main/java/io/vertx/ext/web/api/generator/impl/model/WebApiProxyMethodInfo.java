@@ -1,4 +1,4 @@
-package io.vertx.ext.web.api.generator.impl;
+package io.vertx.ext.web.api.generator.impl.model;
 
 import io.vertx.codegen.MethodKind;
 import io.vertx.codegen.ParamInfo;
@@ -7,7 +7,7 @@ import io.vertx.codegen.doc.Doc;
 import io.vertx.codegen.doc.Text;
 import io.vertx.codegen.type.ClassTypeInfo;
 import io.vertx.codegen.type.TypeInfo;
-import io.vertx.serviceproxy.model.ProxyMethodInfo;
+import io.vertx.serviceproxy.generator.model.ProxyMethodInfo;
 
 import java.util.List;
 import java.util.Set;

@@ -1,4 +1,4 @@
-package io.vertx.ext.web.api.generator.impl;
+package io.vertx.ext.web.api.generator.impl.model;
 
 import io.vertx.codegen.*;
 import io.vertx.codegen.doc.Doc;
@@ -9,8 +9,8 @@ import io.vertx.codegen.type.TypeInfo;
 import io.vertx.ext.web.api.OperationResult;
 import io.vertx.ext.web.api.RequestContext;
 import io.vertx.ext.web.api.RequestParameter;
-import io.vertx.serviceproxy.model.ProxyMethodInfo;
-import io.vertx.serviceproxy.model.ProxyModel;
+import io.vertx.serviceproxy.generator.model.ProxyMethodInfo;
+import io.vertx.serviceproxy.generator.model.ProxyModel;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.ExecutableElement;
@@ -45,7 +45,7 @@ public class WebApiProxyModel extends ProxyModel {
   @Override
   protected MethodInfo createMethodInfo(Set<ClassTypeInfo> ownerTypes, String methodName, String comment, Doc doc, MethodKind kind, TypeInfo returnType, Text returnDescription, boolean isFluent, boolean isCacheReturn, List<ParamInfo> mParams, ExecutableElement methodElt, boolean isStatic, boolean isDefault, ArrayList<TypeParamInfo.Method> typeParams, TypeElement declaringElt, boolean methodDeprecated) {
     ProxyMethodInfo baseInfo = (ProxyMethodInfo) super.createMethodInfo(ownerTypes, methodName, comment, doc, kind, returnType, returnDescription, isFluent, isCacheReturn, mParams, methodElt, isStatic, isDefault, typeParams, declaringElt, methodDeprecated);
-    if (!isStatic && !baseInfo.isProxyClose() && !baseInfo.isProxyIgnore()) {
+    if (!isStatic && !baseInfo.isProxyClose()) {
       if (mParams.size() < 2) {
         throw new GenException(this.modelElt, "Method should have second to last parameter of type io.vertx.ext.web.api.RequestContext and last parameter of type Handler<AsyncResult<io.vertx.ext.web.api.OperationResult>>");
       }

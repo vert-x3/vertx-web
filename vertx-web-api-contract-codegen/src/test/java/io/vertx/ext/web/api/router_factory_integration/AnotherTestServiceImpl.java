@@ -69,11 +69,6 @@ public class AnotherTestServiceImpl implements AnotherTestService {
   }
 
   @Override
-  public void bla() {
-
-  }
-
-  @Override
   public void close() {
 
   }

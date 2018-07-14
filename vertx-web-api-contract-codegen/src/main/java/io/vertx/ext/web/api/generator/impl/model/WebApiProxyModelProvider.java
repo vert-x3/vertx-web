@@ -1,4 +1,4 @@
-package io.vertx.ext.web.api.generator.impl;
+package io.vertx.ext.web.api.generator.impl.model;
 
 import io.vertx.codegen.Model;
 import io.vertx.codegen.ModelProvider;
