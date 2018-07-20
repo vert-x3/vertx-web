@@ -1,4 +1,0 @@
-@import io.vertx.ext.web.RoutingContext
-@args (RoutingContext context, String foo, String bar)
-Cheerio @foo and @bar
-Request path is @context.request().path()

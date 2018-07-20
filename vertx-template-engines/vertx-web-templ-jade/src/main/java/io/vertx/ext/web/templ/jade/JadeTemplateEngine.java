@@ -20,7 +20,8 @@ import de.neuland.jade4j.JadeConfiguration;
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.ext.web.templ.TemplateEngine;
+import io.vertx.core.Vertx;
+import io.vertx.ext.web.common.template.TemplateEngine;
 import io.vertx.ext.web.templ.jade.impl.JadeTemplateEngineImpl;
 
 /**
@@ -46,8 +47,8 @@ public interface JadeTemplateEngine extends TemplateEngine {
    *
    * @return  the engine
    */
-  static JadeTemplateEngine create() {
-    return new JadeTemplateEngineImpl();
+  static JadeTemplateEngine create(Vertx vertx) {
+    return new JadeTemplateEngineImpl(vertx);
   }
 
   /**

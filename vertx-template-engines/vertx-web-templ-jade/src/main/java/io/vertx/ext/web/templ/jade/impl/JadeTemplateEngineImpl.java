@@ -24,16 +24,14 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.impl.Utils;
-import io.vertx.ext.web.templ.CachingTemplateEngine;
+import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.common.template.CachingTemplateEngine;
 import io.vertx.ext.web.templ.jade.JadeTemplateEngine;
 
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
-import java.util.HashMap;
-import java.util.Map;
+import java.nio.charset.Charset;
 
 /**
  * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
@@ -42,11 +40,10 @@ import java.util.Map;
 public class JadeTemplateEngineImpl extends CachingTemplateEngine<JadeTemplate> implements JadeTemplateEngine {
 
   private final JadeConfiguration config = new JadeConfiguration();
-  private final JadeTemplateLoader loader = new JadeTemplateLoader();
 
-  public JadeTemplateEngineImpl() {
+  public JadeTemplateEngineImpl(Vertx vertx) {
     super(DEFAULT_TEMPLATE_EXTENSION, DEFAULT_MAX_CACHE_SIZE);
-    config.setTemplateLoader(loader);
+    config.setTemplateLoader(new JadeTemplateLoader(vertx));
     config.setCaching(false);
   }
 
@@ -63,26 +60,20 @@ public class JadeTemplateEngineImpl extends CachingTemplateEngine<JadeTemplate> 
   }
 
   @Override
-  public void render(RoutingContext context, String templateDirectory, String templateFileName, Handler<AsyncResult<Buffer>> handler) {
+  public void render(JsonObject context, String templateFile, Handler<AsyncResult<Buffer>> handler) {
     try {
-      templateFileName = templateDirectory + templateFileName;
-      JadeTemplate template = isCachingEnabled() ? cache.get(templateFileName) : null;
+      JadeTemplate template = isCachingEnabled() ? cache.get(templateFile) : null;
 
       if (template == null) {
         synchronized (this) {
-          loader.setVertx(context.vertx());
           // Compile
-          template = config.getTemplate(templateFileName);
+          template = config.getTemplate(templateFile);
         }
         if (isCachingEnabled()) {
-          cache.put(templateFileName, template);
+          cache.put(templateFile, template);
         }
       }
-      Map<String, Object> variables = new HashMap<>(1);
-      variables.put("context", context);
-      // Pass defined variables in context to engine
-      variables.putAll(context.data());
-      handler.handle(Future.succeededFuture(Buffer.buffer(config.renderTemplate(template, variables))));
+      handler.handle(Future.succeededFuture(Buffer.buffer(config.renderTemplate(template, context.getMap()))));
     } catch (Exception ex) {
       handler.handle(Future.failedFuture(ex));
     }
@@ -95,10 +86,10 @@ public class JadeTemplateEngineImpl extends CachingTemplateEngine<JadeTemplate> 
 
   private class JadeTemplateLoader implements TemplateLoader {
 
-    private Vertx vertx;
+    private final Vertx vertx;
     private long lastMod = System.currentTimeMillis();
 
-    void setVertx(Vertx vertx) {
+    JadeTemplateLoader(Vertx vertx) {
       this.vertx = vertx;
     }
 
@@ -116,7 +107,14 @@ public class JadeTemplateEngineImpl extends CachingTemplateEngine<JadeTemplate> 
     public Reader getReader(String name) throws IOException {
       // the internal loader will always resolve with .jade extension
       name = adjustLocation(name.endsWith(".jade") ? name.substring(0, name.length() - 5) : name);
-      String templ = Utils.readFileToString(vertx, name);
+      String templ = null;
+
+      if (vertx.fileSystem().existsBlocking(name)) {
+        templ = vertx.fileSystem()
+          .readFileBlocking(name)
+          .toString(Charset.defaultCharset());
+      }
+
       if (templ == null) {
         throw new IOException("Cannot find resource " + name);
       }

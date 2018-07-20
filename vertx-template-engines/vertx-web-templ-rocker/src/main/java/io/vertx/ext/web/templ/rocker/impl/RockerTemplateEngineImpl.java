@@ -22,8 +22,8 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.templ.CachingTemplateEngine;
+import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.common.template.CachingTemplateEngine;
 import io.vertx.ext.web.templ.rocker.RockerTemplateEngine;
 
 /**
@@ -48,15 +48,12 @@ public class RockerTemplateEngineImpl extends CachingTemplateEngine<Void> implem
   }
 
   @Override
-  public void render(RoutingContext context, String templateDirectory, String templateFileName,
-      Handler<AsyncResult<Buffer>> handler) {
+  public void render(JsonObject context, String templateFile, Handler<AsyncResult<Buffer>> handler) {
     try {
-      templateFileName = templateDirectory + templateFileName;
-      String templatePath = adjustLocation(templateFileName);
+      String templatePath = adjustLocation(templateFile);
 
       BindableRockerModel model = Rocker.template(templatePath);
-      model.bind("context", context);
-      model.bind(context.data());
+      model.bind(context.getMap());
 
       VertxBufferOutput output = model.render(VertxBufferOutput.FACTORY);
 

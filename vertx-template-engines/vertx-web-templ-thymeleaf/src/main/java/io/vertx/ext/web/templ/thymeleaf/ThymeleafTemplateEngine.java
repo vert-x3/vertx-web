@@ -19,7 +19,8 @@ package io.vertx.ext.web.templ.thymeleaf;
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.ext.web.templ.TemplateEngine;
+import io.vertx.core.Vertx;
+import io.vertx.ext.web.common.template.TemplateEngine;
 import io.vertx.ext.web.templ.thymeleaf.impl.ThymeleafTemplateEngineImpl;
 import org.thymeleaf.templatemode.TemplateMode;
 
@@ -37,8 +38,8 @@ public interface ThymeleafTemplateEngine extends TemplateEngine {
    *
    * @return the engine
    */
-  static ThymeleafTemplateEngine create() {
-    return new ThymeleafTemplateEngineImpl();
+  static ThymeleafTemplateEngine create(Vertx vertx) {
+    return new ThymeleafTemplateEngineImpl(vertx);
   }
 
   /**

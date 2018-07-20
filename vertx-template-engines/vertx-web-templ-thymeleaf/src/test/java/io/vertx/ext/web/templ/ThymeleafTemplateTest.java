@@ -16,122 +16,200 @@
 
 package io.vertx.ext.web.templ;
 
+import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
-import io.vertx.core.http.HttpMethod;
-import io.vertx.ext.web.handler.TemplateHandler;
-import io.vertx.ext.web.WebTestBase;
+import io.vertx.core.json.JsonObject;
+import io.vertx.ext.unit.Async;
+import io.vertx.ext.unit.TestContext;
+import io.vertx.ext.unit.junit.VertxUnitRunner;
+import io.vertx.ext.web.common.template.CachingTemplateEngine;
+import io.vertx.ext.web.common.template.TemplateEngine;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.PrintWriter;
 
 import io.vertx.ext.web.templ.thymeleaf.ThymeleafTemplateEngine;
+import org.junit.runner.RunWith;
+
+import static junit.framework.TestCase.assertNotNull;
 
 /**
- *
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public class ThymeleafTemplateTest extends WebTestBase {
+@RunWith(VertxUnitRunner.class)
+public class ThymeleafTemplateTest {
 
-  protected VertxOptions getOptions() {
-    return new VertxOptions().setFileResolverCachingEnabled(true);
+  private static Vertx vertx;
+
+  @BeforeClass
+  public static void before() {
+    vertx = Vertx.vertx(new VertxOptions().setFileResolverCachingEnabled(true));
   }
 
   @Test
-  public void testTemplateHandlerOnClasspath() throws Exception {
-    TemplateEngine engine = ThymeleafTemplateEngine.create();
-    testTemplateHandler(engine, "somedir", "test-thymeleaf-template2.html");
+  public void testTemplateHandlerOnClasspath(TestContext should) {
+    final Async test = should.async();
+    TemplateEngine engine = ThymeleafTemplateEngine.create(vertx);
+
+    final JsonObject context = new JsonObject()
+      .put("foo", "badger")
+      .put("bar", "fox")
+      .put("context", new JsonObject().put("path", "/test-thymeleaf-template2.html"));
+
+    engine.render(context, "somedir/test-thymeleaf-template2.html", render -> {
+      should.assertTrue(render.succeeded());
+
+      final String expected =
+        "<!doctype html>\n" +
+          "<html xmlns=\"http://www.w3.org/1999/xhtml\">\n" +
+          "<head>\n" +
+          "  <meta charset=\"utf-8\">\n" +
+          "</head>\n" +
+          "<body>\n" +
+          "<p>badger</p>\n" +
+          "<p>fox</p>\n" +
+          "<p>/test-thymeleaf-template2.html</p>\n" +
+          "</body>\n" +
+          "</html>\n";
+
+      should.assertEquals(expected, render.result().toString());
+      test.complete();
+    });
+    test.await();
   }
 
   @Test
-  public void testTemplateHandlerOnFileSystem() throws Exception {
-    TemplateEngine engine = ThymeleafTemplateEngine.create();
-    testTemplateHandler(engine, "src/test/filesystemtemplates", "test-thymeleaf-template3.html");
+  public void testTemplateHandlerOnFileSystem(TestContext should) {
+    final Async test = should.async();
+    TemplateEngine engine = ThymeleafTemplateEngine.create(vertx);
+
+    final JsonObject context = new JsonObject()
+      .put("foo", "badger")
+      .put("bar", "fox")
+      .put("context", new JsonObject().put("path", "/test-thymeleaf-template2.html"));
+
+    engine.render(context, "src/test/filesystemtemplates/test-thymeleaf-template3.html", render -> {
+      should.assertTrue(render.succeeded());
+
+      final String expected =
+        "<!doctype html>\n" +
+          "<html xmlns=\"http://www.w3.org/1999/xhtml\">\n" +
+          "<head>\n" +
+          "  <meta charset=\"utf-8\">\n" +
+          "</head>\n" +
+          "<body>\n" +
+          "<p>badger</p>\n" +
+          "<p>fox</p>\n" +
+          "<p>/test-thymeleaf-template2.html</p>\n" +
+          "</body>\n" +
+          "</html>\n";
+
+      should.assertEquals(expected, render.result().toString());
+      test.complete();
+    });
+    test.await();
   }
 
   @Test
-  public void testTemplateHandlerOnClasspathDisableCaching() throws Exception {
+  public void testTemplateHandlerOnClasspathDisableCaching(TestContext should) throws Exception {
     System.setProperty(CachingTemplateEngine.DISABLE_TEMPL_CACHING_PROP_NAME, "true");
-    testTemplateHandlerOnClasspath();
+    testTemplateHandlerOnClasspath(should);
   }
 
-  private void testTemplateHandler(TemplateEngine engine, String directoryName, String templateName) throws Exception {
-    router.route().handler(context -> {
-      context.put("foo", "badger");
-      context.put("bar", "fox");
-      context.next();
+  @Test
+  public void testNoSuchTemplate(TestContext should) {
+    final Async test = should.async();
+    TemplateEngine engine = ThymeleafTemplateEngine.create(vertx);
+
+    final JsonObject context = new JsonObject();
+
+    engine.render(context, "nosuchtemplate.html", render -> {
+      should.assertFalse(render.succeeded());
+      test.complete();
     });
-    router.route().handler(TemplateHandler.create(engine, directoryName, "text/html"));
-    String expected =
-      "<!doctype html>\n" +
-        "<html xmlns=\"http://www.w3.org/1999/xhtml\">\n" +
-        "<head>\n" +
-        "  <meta charset=\"utf-8\">\n" +
-        "</head>\n" +
-        "<body>\n" +
-        "<p>badger</p>\n" +
-        "<p>fox</p>\n" +
-        "<p>/" + templateName + "</p>\n" +
-        "<p>blah</p>\n" +
-        "<p>wibble</p>\n" +
-        "</body>\n" +
-        "</html>";
-
-    testRequest(HttpMethod.GET, "/" + templateName + "?param1=blah&param2=wibble", 200, "OK", expected);
+    test.await();
   }
 
   @Test
-  public void testNoSuchTemplate() throws Exception {
-    TemplateEngine engine = ThymeleafTemplateEngine.create();
-    router.route().handler(TemplateHandler.create(engine, "nosuchtemplate.html", "text/html"));
-    testRequest(HttpMethod.GET, "/foo.html", 500, "Internal Server Error");
-  }
+  public void testWithLocale(TestContext should) {
+    final Async test = should.async();
+    TemplateEngine engine = ThymeleafTemplateEngine.create(vertx);
 
-  @Test
-  public void testWithLocale() throws Exception {
-    TemplateEngine engine = ThymeleafTemplateEngine.create();
+    final JsonObject context = new JsonObject()
+      .put("foo", "badger")
+      .put("bar", "fox")
+      .put("lang", "en-gb")
+      .put("context", new JsonObject().put("path", "/test-thymeleaf-template2.html"));
 
-    router.route().handler(context -> {
-      context.put("foo", "badger");
-      context.put("bar", "fox");
-      context.next();
+    engine.render(context, "somedir/test-thymeleaf-template2.html", render -> {
+      should.assertTrue(render.succeeded());
+
+      final String expected =
+        "<!doctype html>\n" +
+          "<html xmlns=\"http://www.w3.org/1999/xhtml\">\n" +
+          "<head>\n" +
+          "  <meta charset=\"utf-8\">\n" +
+          "</head>\n" +
+          "<body>\n" +
+          "<p>badger</p>\n" +
+          "<p>fox</p>\n" +
+          "<p>/test-thymeleaf-template2.html</p>\n" +
+          "</body>\n" +
+          "</html>\n";
+
+      should.assertEquals(expected, render.result().toString());
+      test.complete();
     });
-    router.route().handler(TemplateHandler.create(engine, "somedir", "text/html"));
-
-    testRequest(HttpMethod.GET, "/test-thymeleaf-template2.html?param1=blah&param2=wibble", req -> req.putHeader("Accept-Language", "en-gb"), 200, "OK", null);
+    test.await();
   }
 
-
   @Test
-  public void testGetThymeLeafTemplateEngine() throws Exception {
-    ThymeleafTemplateEngine engine = ThymeleafTemplateEngine.create();
+  public void testGetThymeLeafTemplateEngine() {
+    ThymeleafTemplateEngine engine = ThymeleafTemplateEngine.create(vertx);
     assertNotNull(engine.getThymeleafTemplateEngine());
   }
 
   @Test
-  public void testFragmentedTemplates() throws Exception {
-    TemplateEngine engine = ThymeleafTemplateEngine.create();
-    testTemplateHandler(engine, "somedir", "test-thymeleaf-fragmented.html");
-  }
+  public void testFragmentedTemplates(TestContext should) {
+    final Async test = should.async();
+    TemplateEngine engine = ThymeleafTemplateEngine.create(vertx);
 
-  @Test
-  public void testWithLocale2() throws Exception {
-    TemplateEngine engine = ThymeleafTemplateEngine.create();
+    final JsonObject context = new JsonObject()
+      .put("foo", "badger")
+      .put("bar", "fox")
+      .put("context", new JsonObject().put("path", "/test-thymeleaf-template2.html"));
 
-    router.route().handler(context -> {
-      context.put("foo", "badger");
-      context.put("bar", "fox");
-      context.next();
+    engine.render(context, "somedir/test-thymeleaf-fragmented.html", render -> {
+      should.assertTrue(render.succeeded());
+
+      final String expected =
+        "<!doctype html>\n" +
+          "<html xmlns=\"http://www.w3.org/1999/xhtml\">\n" +
+          "<head>\n" +
+          "  <meta charset=\"utf-8\">\n" +
+          "</head>\n" +
+          "<body>\n" +
+          "<p>badger</p>\n" +
+          "<p>fox</p>\n" +
+          "<p>/test-thymeleaf-template2.html</p>\n" +
+          "</body>\n" +
+          "</html>\n";
+
+      should.assertEquals(expected, render.result().toString());
+      test.complete();
     });
-    router.route().handler(TemplateHandler.create(engine, "somedir", "text/html"));
-
-    testRequest(HttpMethod.GET, "/test-thymeleaf-template2.html?param1=blah&param2=wibble", req -> req.putHeader("Accept-Language", "ru"), 200, "OK", null);
+    test.await();
   }
 
   @Test
-  public void testCachingEnabled() throws Exception {
+  public void testCachingEnabled(TestContext should) throws IOException {
+    final Async test = should.async();
+
     System.setProperty(CachingTemplateEngine.DISABLE_TEMPL_CACHING_PROP_NAME, "false");
-    TemplateEngine engine = ThymeleafTemplateEngine.create();
+    TemplateEngine engine = ThymeleafTemplateEngine.create(vertx);
 
     PrintWriter out;
     File temp = File.createTempFile("template", ".html", new File("target/classes"));
@@ -142,25 +220,26 @@ public class ThymeleafTemplateTest extends WebTestBase {
     out.flush();
     out.close();
 
-    testTemplateHandler(engine, ".", temp.getName(), "before");
+    engine.render(new JsonObject(), temp.getParent() + "/" + temp.getName(), render -> {
+      should.assertTrue(render.succeeded());
+      should.assertEquals("before", render.result().toString());
+      // cache is enabled so if we change the content that should not affect the result
 
-    // cache is enabled so if we change the content that should not affect the result
+      try {
+        PrintWriter out2 = new PrintWriter(temp);
+        out2.print("after");
+        out2.flush();
+        out2.close();
+      } catch (IOException e) {
+        should.fail(e);
+      }
 
-    out = new PrintWriter(temp);
-    out.print("after");
-    out.flush();
-    out.close();
-
-    testTemplateHandler(engine, ".", temp.getName(), "before");
-  }
-
-  private void testTemplateHandler(TemplateEngine engine, String directoryName, String templateName, String expected) throws Exception {
-    router.route().handler(context -> {
-      context.put("foo", "badger");
-      context.put("bar", "fox");
-      context.next();
+      engine.render(new JsonObject(), temp.getParent() + "/" + temp.getName(), render2 -> {
+        should.assertTrue(render2.succeeded());
+        should.assertEquals("before", render2.result().toString());
+        test.complete();
+      });
     });
-    router.route().handler(TemplateHandler.create(engine, directoryName, "text/plain"));
-    testRequest(HttpMethod.GET, "/" + templateName, 200, "OK", expected);
+    test.await();
   }
 }

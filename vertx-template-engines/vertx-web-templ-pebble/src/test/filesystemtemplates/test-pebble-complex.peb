@@ -3,6 +3,6 @@
 {% block title %}Hello.{% endblock %}
 
 {% block content %}
-Hi {{ context.get("bar") }}.
+Hi {{ bar }}.
 {% include "./parts/include.peb" %}
 {% endblock %}

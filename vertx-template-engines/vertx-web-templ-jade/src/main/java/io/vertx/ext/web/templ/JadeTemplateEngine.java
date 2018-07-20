@@ -16,6 +16,8 @@
 
 package io.vertx.ext.web.templ;
 
+import io.vertx.core.Vertx;
+
 /**
  * A template engine that uses Jade.
  *
@@ -30,7 +32,7 @@ public interface JadeTemplateEngine extends io.vertx.ext.web.templ.jade.JadeTemp
    *
    * @return  the engine
    */
-  static io.vertx.ext.web.templ.jade.JadeTemplateEngine create() {
-    return io.vertx.ext.web.templ.jade.JadeTemplateEngine.create();
+  static io.vertx.ext.web.templ.jade.JadeTemplateEngine create(Vertx vertx) {
+    return io.vertx.ext.web.templ.jade.JadeTemplateEngine.create(vertx);
   }
 }

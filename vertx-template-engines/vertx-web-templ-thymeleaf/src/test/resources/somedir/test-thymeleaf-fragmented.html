@@ -5,8 +5,6 @@
 </head>
 <body>
 <th:block th:include="somedir/test-thymeleaf-include.html :: example"></th:block>
-<p th:text="${context.normalisedPath()}"></p>
-<p th:text="${context.request().getParam('param1')}"></p>
-<p th:text="${context.request().getParam('param2')}"></p>
+<p th:text="${context.getString('path')}"></p>
 </body>
 </html>

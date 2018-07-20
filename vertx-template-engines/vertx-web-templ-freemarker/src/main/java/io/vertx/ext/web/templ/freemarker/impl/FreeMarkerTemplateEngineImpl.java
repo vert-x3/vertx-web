@@ -22,15 +22,14 @@ import freemarker.template.Template;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
+import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.templ.CachingTemplateEngine;
+import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.common.template.CachingTemplateEngine;
 import io.vertx.ext.web.templ.freemarker.FreeMarkerTemplateEngine;
 
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStreamWriter;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
@@ -38,15 +37,13 @@ import java.util.Map;
 public class FreeMarkerTemplateEngineImpl extends CachingTemplateEngine<Template> implements FreeMarkerTemplateEngine {
 
   private final Configuration config;
-  private final FreeMarkerTemplateLoader loader;
 
-  public FreeMarkerTemplateEngineImpl() {
+  public FreeMarkerTemplateEngineImpl(Vertx vertx) {
     super(DEFAULT_TEMPLATE_EXTENSION, DEFAULT_MAX_CACHE_SIZE);
 
-    loader = new FreeMarkerTemplateLoader();
     config = new Configuration(Configuration.VERSION_2_3_23);
     config.setObjectWrapper(new VertxWebObjectWrapper(config.getIncompatibleImprovements()));
-    config.setTemplateLoader(loader);
+    config.setTemplateLoader(new FreeMarkerTemplateLoader(vertx));
     config.setCacheStorage(new NullCacheStorage());
   }
 
@@ -63,27 +60,22 @@ public class FreeMarkerTemplateEngineImpl extends CachingTemplateEngine<Template
   }
 
   @Override
-  public void render(RoutingContext context, String templateDirectory, String templateFileName, Handler<AsyncResult<Buffer>> handler) {
+  public void render(JsonObject context, String templateFile, Handler<AsyncResult<Buffer>> handler) {
     try {
-      templateFileName = templateDirectory + templateFileName;
-      Template template = isCachingEnabled() ? cache.get(templateFileName) : null;
+      Template template = isCachingEnabled() ? cache.get(templateFile) : null;
       if (template == null) {
         // real compile
         synchronized (this) {
-          loader.setVertx(context.vertx());
           // Compile
-          template = config.getTemplate(adjustLocation(templateFileName));
+          template = config.getTemplate(adjustLocation(templateFile));
         }
         if (isCachingEnabled()) {
-          cache.put(templateFileName, template);
+          cache.put(templateFile, template);
         }
       }
 
-      Map<String, RoutingContext> variables = new HashMap<>(1);
-      variables.put("context", context);
-
       try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-        template.process(variables, new OutputStreamWriter(baos));
+        template.process(context, new OutputStreamWriter(baos));
         handler.handle(Future.succeededFuture(Buffer.buffer(baos.toByteArray())));
       }
 
