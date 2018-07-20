@@ -53,7 +53,13 @@ public class RockerTemplateEngineImpl extends CachingTemplateEngine<Void> implem
       String templatePath = adjustLocation(templateFile);
 
       BindableRockerModel model = Rocker.template(templatePath);
-      model.bind(context.getMap());
+      // we need to exclude some keys as rocker requires explicit knowledge on the binded keys
+      context.getMap().forEach((k, v) -> {
+        // all keys starting with __ are considered private and will not be exposed
+        if (!k.startsWith("__")) {
+          model.bind(k, v);
+        }
+      });
 
       VertxBufferOutput output = model.render(VertxBufferOutput.FACTORY);
 

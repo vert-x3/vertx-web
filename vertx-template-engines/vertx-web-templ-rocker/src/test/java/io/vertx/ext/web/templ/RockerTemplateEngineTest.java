@@ -16,14 +16,11 @@
 
 package io.vertx.ext.web.templ;
 
-import io.vertx.core.Vertx;
-import io.vertx.core.VertxOptions;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.ext.web.common.template.TemplateEngine;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import io.vertx.ext.web.templ.rocker.RockerTemplateEngine;
@@ -116,6 +113,25 @@ public class RockerTemplateEngineTest {
 
     engine.render(context, "nosuchtemplate.rocker.html", render -> {
       should.assertFalse(render.succeeded());
+      test.complete();
+    });
+    test.await();
+  }
+
+  @Test
+  public void testTemplateWithUndrescoreKeysHandler(TestContext should) {
+    final Async test = should.async();
+    TemplateEngine engine = RockerTemplateEngine.create();
+
+    final JsonObject context = new JsonObject()
+      .put("foo", "badger")
+      .put("bar", "fox")
+      .put("context", new JsonObject().put("path", "/TestRockerTemplate2.rocker.html"))
+      .put("__body-handled", true);
+
+    engine.render(context, "somedir/TestRockerTemplate2.rocker.html", render -> {
+      should.assertTrue(render.succeeded());
+      should.assertEquals("Hello badger and fox\nRequest path is /TestRockerTemplate2.rocker.html\n", render.result().toString());
       test.complete();
     });
     test.await();
