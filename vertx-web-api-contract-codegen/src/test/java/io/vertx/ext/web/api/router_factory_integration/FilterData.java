@@ -1,10 +1,12 @@
 package io.vertx.ext.web.api.router_factory_integration;
 
 import io.vertx.codegen.annotations.DataObject;
+import io.vertx.codegen.annotations.Fluent;
 import io.vertx.core.json.JsonObject;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Filter;
 
 @DataObject(generateConverter = true, publicConverter = false)
 public class FilterData {
@@ -38,8 +40,9 @@ public class FilterData {
     return from;
   }
 
-  public void setFrom(List<String> from) {
+  @Fluent public FilterData setFrom(List<String> from) {
     this.from = from;
+    return this;
   }
 
   public List<String> getTo() {
@@ -66,5 +69,10 @@ public class FilterData {
     data.getMessage().add("aaa");
     data.getMessage().add("bbb");
     return data;
+  }
+
+  @Override
+  public String toString() {
+    return toJson().toString();
   }
 }

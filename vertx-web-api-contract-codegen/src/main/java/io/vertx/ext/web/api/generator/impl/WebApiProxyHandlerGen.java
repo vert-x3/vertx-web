@@ -25,7 +25,7 @@ public class WebApiProxyHandlerGen extends ServiceProxyHandlerGen {
     super(utils);
     kinds = Collections.singleton("webapi_proxy");
     name = "web_api_service_proxy_handler";
-    serviceCallHandler = utils.loadResource("service_call_handler");
+    serviceCallHandler = utils.loadResource("service_call_handler", "vertx-web-api-contract-codegen");
   }
 
   public String className(ProxyModel model) {
@@ -87,37 +87,37 @@ public class WebApiProxyHandlerGen extends ServiceProxyHandlerGen {
     if (typeName.equals(RequestParameter.class.getName()))
       return "io.vertx.ext.web.api.RequestParameter.create(\"" + name + "\", ApiHandlerUtils.searchInJson(params, \"" + name + "\"))";
     if (typeName.equals("char") || typeName.equals("java.lang.Character"))
-      return "ApiHandlerUtils.searchOptionalIntegerInJson(params, \"" + name + "\").map(i -> (char)(int)i).get()";
+      return "ApiHandlerUtils.searchCharInJson(params, \"" + name + "\")";
     if (typeName.equals("byte") || typeName.equals("java.lang.Byte") ||
       typeName.equals("short") || typeName.equals("java.lang.Short") ||
       typeName.equals("int") || typeName.equals("java.lang.Integer") ||
       typeName.equals("long") || typeName.equals("java.lang.Long"))
-      return "ApiHandlerUtils.searchOptionalLongInJson(params, \"" + name + "\").map(Long::" + numericMapping.get(typeName) + "Value).get()";
+      return "ApiHandlerUtils.searchOptionalLongInJson(params, \"" + name + "\").map(Long::" + numericMapping.get(typeName) + "Value).orElse(null)";
     if (typeName.equals("float") || typeName.equals("java.lang.Float") ||
       typeName.equals("double") || typeName.equals("java.lang.Double"))
-      return "ApiHandlerUtils.searchOptionalDoubleInJson(params, \"" + name + "\").map(Double::" + numericMapping.get(typeName) + "Value).get()";
+      return "ApiHandlerUtils.searchOptionalDoubleInJson(params, \"" + name + "\").map(Double::" + numericMapping.get(typeName) + "Value).orElse(null)";
     if (type.getKind() == ClassKind.ENUM)
-      return "ApiHandlerUtils.searchOptionalStringInJson(params, \"" + name + "\").map(s -> " + param.getType().getName() + ".valueOf(s)).get()";
+      return "ApiHandlerUtils.searchOptionalStringInJson(params, \"" + name + "\").map(s -> " + param.getType().getName() + ".valueOf(s)).orElse(null)";
     if (type.getKind() == ClassKind.LIST || type.getKind() == ClassKind.SET) {
       String coll = type.getKind() == ClassKind.LIST ? "List" : "Set";
       TypeInfo typeArg = ((ParameterizedTypeInfo)type).getArg(0);
       if (typeArg.getKind() == ClassKind.DATA_OBJECT)
-        return "ApiHandlerUtils.searchOptionalJsonArrayInJson(params, \"" + name + "\").map(a -> a.stream().map(o -> new " + typeArg.getName() + "((JsonObject)o)).collect(Collectors.to" + coll + "())).get()";
+        return "ApiHandlerUtils.searchOptionalJsonArrayInJson(params, \"" + name + "\").map(a -> a.stream().map(o -> new " + typeArg.getName() + "((JsonObject)o)).collect(Collectors.to" + coll + "())).orElse(null)";
       if (typeArg.getName().equals("java.lang.Byte") || typeArg.getName().equals("java.lang.Short") ||
         typeArg.getName().equals("java.lang.Integer") || typeArg.getName().equals("java.lang.Long"))
-        return "ApiHandlerUtils.searchOptionalJsonArrayInJson(params, \"" + name + "\").map(a -> a.stream().map(o -> ((Number)o)." + numericMapping.get(typeArg.getName()) + "Value()).collect(Collectors.to" + coll + "())).get()";
-      return "HelperUtils.convert" + coll + "(ApiHandlerUtils.searchOptionalJsonArrayInJson(params, \"" + name + "\").map(JsonArray::getList).get())";
+        return "ApiHandlerUtils.searchOptionalJsonArrayInJson(params, \"" + name + "\").map(a -> a.stream().map(o -> ((Number)o)." + numericMapping.get(typeArg.getName()) + "Value()).collect(Collectors.to" + coll + "())).orElse(null)";
+      return "HelperUtils.convert" + coll + "(ApiHandlerUtils.searchOptionalJsonArrayInJson(params, \"" + name + "\").map(JsonArray::getList).orElse(null))";
     }
     if (type.getKind() == ClassKind.MAP) {
       TypeInfo typeArg = ((ParameterizedTypeInfo)type).getArg(1);
       if (typeArg.getName().equals("java.lang.Byte") || typeArg.getName().equals("java.lang.Short") ||
         typeArg.getName().equals("java.lang.Integer") || typeArg.getName().equals("java.lang.Long") ||
         typeArg.getName().equals("java.lang.Float") || typeArg.getName().equals("java.lang.Double"))
-        return "ApiHandlerUtils.searchOptionalJsonObjectInJson(params, \"" + name + "\").map(m -> m.getMap().entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, entry -> ((java.lang.Number)entry.getValue())." + numericMapping.get(typeArg.getName()) + "Value()))).get()";
-      return "HelperUtils.convertMap(ApiHandlerUtils.searchOptionalJsonObjectInJson(params, \"" + name + "\").map(JsonObject::getMap).get())";
+        return "ApiHandlerUtils.searchOptionalJsonObjectInJson(params, \"" + name + "\").map(m -> m.getMap().entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, entry -> ((java.lang.Number)entry.getValue())." + numericMapping.get(typeArg.getName()) + "Value()))).orElse(null)";
+      return "HelperUtils.convertMap(ApiHandlerUtils.searchOptionalJsonObjectInJson(params, \"" + name + "\").map(JsonObject::getMap).orElse(null))";
     }
     if (type.getKind() == ClassKind.DATA_OBJECT)
-      return "ApiHandlerUtils.searchOptionalJsonObjectInJson(params, \"" + name + "\").map(j -> new " + type.getName() + "(j)).get()";
+      return "ApiHandlerUtils.searchOptionalJsonObjectInJson(params, \"" + name + "\").map(j -> new " + type.getName() + "(j)).orElse(null)";
     return "(" + type.getName() + ")ApiHandlerUtils.searchInJson(params, \"" + name + "\")";
   }
 

@@ -36,6 +36,20 @@ public class ApiHandlerUtils {
     return Optional.ofNullable(searchIntegerInJson(obj, key));
   }
 
+  public static Character searchCharInJson(JsonObject obj, String key) {
+    if ("body".equals(key)) return (Character)obj.getValue("body");
+    if (obj.getJsonObject("path").containsKey(key)) return (Character) obj.getJsonObject("path").getValue(key);
+    if (obj.getJsonObject("query").containsKey(key)) return (Character) obj.getJsonObject("query").getValue(key);
+    if (obj.getJsonObject("header").containsKey(key)) return (Character) obj.getJsonObject("header").getValue(key);
+    if (obj.getJsonObject("cookie").containsKey(key)) return (Character) obj.getJsonObject("cookie").getValue(key);
+    if (obj.getJsonObject("form").containsKey(key)) return (Character) obj.getJsonObject("form").getValue(key);
+    return null;
+  }
+
+  public static Optional<Character> searchOptionalCharacterInJson(JsonObject obj, String key) {
+    return Optional.ofNullable(searchCharInJson(obj, key));
+  }
+
   public static Long searchLongInJson(JsonObject obj, String key) {
     if ("body".equals(key)) return obj.getLong("body");
     if (obj.getJsonObject("path").containsKey(key)) return  obj.getJsonObject("path").getLong(key);

@@ -1,7 +1,6 @@
-package io.vertx.ext.web.api.router_factory_integration;
+package io.vertx.ext.web.api.param_extraction;
 
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.codegen.testmodel.TestDataObject;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonArray;
@@ -9,6 +8,8 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.api.OperationResult;
 import io.vertx.ext.web.api.RequestContext;
 import io.vertx.ext.web.api.generator.WebApiProxyGen;
+import io.vertx.ext.web.api.router_factory_integration.FilterData;
+import io.vertx.ext.web.api.router_factory_integration.SomeEnum;
 
 import java.util.List;
 import java.util.Map;
@@ -34,13 +35,13 @@ public interface ParamsTestService {
 
   void enumTypeNull(SomeEnum someEnum, RequestContext context, Handler<AsyncResult<OperationResult>> resultHandler);
 
-  void dataObjectType(TestDataObject options, RequestContext context, Handler<AsyncResult<OperationResult>> resultHandler);
+  void dataObjectType(FilterData options, RequestContext context, Handler<AsyncResult<OperationResult>> resultHandler);
 
-  void dataObjectTypeNull(TestDataObject options, RequestContext context, Handler<AsyncResult<OperationResult>> resultHandler);
+  void dataObjectTypeNull(FilterData options, RequestContext context, Handler<AsyncResult<OperationResult>> resultHandler);
 
-  void listParams(List<String> listString, List<Byte> listByte, List<Short> listShort, List<Integer> listInt, List<Long> listLong, List<JsonObject> listJsonObject, List<JsonArray> listJsonArray, List<TestDataObject> listDataObject, RequestContext context, Handler<AsyncResult<OperationResult>> resultHandler);
+  void listParams(List<String> listString, List<Byte> listByte, List<Short> listShort, List<Integer> listInt, List<Long> listLong, List<JsonObject> listJsonObject, List<JsonArray> listJsonArray, List<FilterData> listDataObject, RequestContext context, Handler<AsyncResult<OperationResult>> resultHandler);
 
-  void setParams(Set<String> setString, Set<Byte> setByte, Set<Short> setShort, Set<Integer> setInt, Set<Long> setLong, Set<JsonObject> setJsonObject, Set<JsonArray> setJsonArray, Set<TestDataObject> setDataObject, RequestContext context, Handler<AsyncResult<OperationResult>> resultHandler);
+  void setParams(Set<String> setString, Set<Byte> setByte, Set<Short> setShort, Set<Integer> setInt, Set<Long> setLong, Set<JsonObject> setJsonObject, Set<JsonArray> setJsonArray, Set<FilterData> setDataObject, RequestContext context, Handler<AsyncResult<OperationResult>> resultHandler);
 
   void mapParams(Map<String, String> mapString, Map<String, Byte> mapByte, Map<String, Short> mapShort, Map<String, Integer> mapInt, Map<String, Long> mapLong, Map<String, JsonObject> mapJsonObject, Map<String, JsonArray> mapJsonArray, RequestContext context, Handler<AsyncResult<OperationResult>> resultHandler);
 

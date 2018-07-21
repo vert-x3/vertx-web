@@ -115,4 +115,11 @@ public class OperationResult {
     op.setPayload(jsonArray.toBuffer());
     return op;
   }
+
+  public static OperationResult completedWithPlainText(Buffer text) {
+    return new OperationResult()
+      .setStatusCode(200)
+      .putHeader(HttpHeaders.CONTENT_TYPE.toString(), "text/plain")
+      .setPayload(text);
+  }
 }

@@ -1,4 +1,4 @@
-package io.vertx.ext.web.api.contract.openapi3.impl;
+package io.vertx.ext.web.api.contract.impl;
 
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
