@@ -94,8 +94,8 @@ class SecurityHandlersStore {
       return this.securityHandlers.get(k);
   }
 
-  protected List<Handler<RoutingContext>> solveSecurityHandlers(List<SecurityRequirement> untraslatedKeys, boolean failOnNotFound) {
-    List<SecurityRequirementKey> keys = this.translateRequirements(untraslatedKeys);
+  protected List<Handler<RoutingContext>> solveSecurityHandlers(List<SecurityRequirement> nonTranslatedKeys, boolean failOnNotFound) {
+    List<SecurityRequirementKey> keys = this.translateRequirements(nonTranslatedKeys);
     if (keys != null) {
       if (failOnNotFound)
         return keys.stream().flatMap(key -> this.mapWithFail(key).stream()).collect(Collectors.toList());
