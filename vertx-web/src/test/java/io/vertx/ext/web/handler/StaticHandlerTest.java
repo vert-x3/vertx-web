@@ -406,7 +406,7 @@ public class StaticHandlerTest extends WebTestBase {
     testRequest(HttpMethod.GET, "/otherpage.html", req -> req.putHeader("if-modified-since", dateTimeFormatter.format(toDateTime(lastModifiedRef.get()) - 1)), res -> {
     }, 200, "OK", "<html><body>Other page</body></html>");
   }
-  
+
   @Test
   public void testCacheNotOverwritingCacheControlHeaderValues() throws Exception {
     router.clear();
@@ -414,11 +414,11 @@ public class StaticHandlerTest extends WebTestBase {
       context.response().putHeader("cache-control", "test1");
       context.response().putHeader("last-modified", "test2");
       context.response().putHeader("vary", "test3");
-      
+
       context.next();
     });
     router.route().order(2).handler(stat);
-    
+
     testRequest(HttpMethod.GET, "/otherpage.html", req -> req.putHeader("accept-encoding", "gzip"), res -> {
       String cacheControl = res.headers().get("cache-control");
       String lastModified = res.headers().get("last-modified");
@@ -637,7 +637,7 @@ public class StaticHandlerTest extends WebTestBase {
   public void testDirectoryListingHtml() throws Exception {
     stat.setDirectoryListing(true);
 
-    testDirectoryListingHtmlCustomTemplate("vertx-web-directory.html");
+    testDirectoryListingHtmlCustomTemplate("META-INF/vertx/web/vertx-web-directory.html");
   }
 
   @Test
