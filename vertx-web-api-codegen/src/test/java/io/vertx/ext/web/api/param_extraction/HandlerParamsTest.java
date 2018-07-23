@@ -43,7 +43,7 @@ public class HandlerParamsTest extends VertxTestBase {
       .map(e -> new SimpleEntry<>(e.getKey(), new RequestParameterImpl(e.getKey(), e.getValue())))
       .collect(Collectors.toMap(SimpleEntry::getKey, SimpleEntry::getValue))
     );
-    JsonObject payload = buildPayload(paramsToSend.toJsonObject());
+    JsonObject payload = buildPayload(paramsToSend.toJson());
     String result = params
       .getMap().entrySet()
       .stream().map(e -> e.getValue() != null ? e.getValue() : "null").map(Object::toString).reduce("", String::concat);

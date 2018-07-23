@@ -9,9 +9,7 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.WebTestWithWebClientBase;
-import io.vertx.ext.web.api.contract.RouterFactory;
-import io.vertx.ext.web.api.contract.RouterFactoryException;
+import io.vertx.ext.web.api.ApiWebTestBase;
 import io.vertx.ext.web.api.contract.RouterFactoryOptions;
 import io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory;
 import io.vertx.ext.web.api.contract.openapi3.impl.OpenApi3Utils;
@@ -25,7 +23,7 @@ import java.util.concurrent.CountDownLatch;
  * This tests are about OpenAPI3RouterFactory and Service Proxy integrations
  * @author Francesco Guardiani @slinkydeveloper
  */
-public class OpenAPI3ServiceProxiesTest extends WebTestWithWebClientBase {
+public class OpenAPI3ServiceProxiesTest extends ApiWebTestBase {
 
   private OpenAPI3RouterFactory routerFactory;
 
@@ -149,10 +147,10 @@ public class OpenAPI3ServiceProxiesTest extends WebTestWithWebClientBase {
     testRequestWithJSON(
       HttpMethod.POST,
       "/testA",
-      new JsonObject().put("hello", "Ciao").put("name", "Francesco"),
+      new JsonObject().put("hello", "Ciao").put("name", "Francesco").toBuffer(),
       200,
       "OK",
-      new JsonObject().put("result", "Ciao Francesco!")
+      new JsonObject().put("result", "Ciao Francesco!").toBuffer()
     );
 
     consumer.unregister();
@@ -182,22 +180,22 @@ public class OpenAPI3ServiceProxiesTest extends WebTestWithWebClientBase {
     testRequestWithJSON(
       HttpMethod.POST,
       "/testA",
-      new JsonObject().put("hello", "Ciao").put("name", "Francesco"),
+      new JsonObject().put("hello", "Ciao").put("name", "Francesco").toBuffer(),
       200,
       "OK",
-      new JsonObject().put("result", "Ciao Francesco!")
+      new JsonObject().put("result", "Ciao Francesco!").toBuffer()
     );
 
     testRequestWithJSON(
       HttpMethod.POST,
       "/testB",
-      new JsonObject().put("hello", "Ciao").put("name", "Francesco"),
+      new JsonObject().put("hello", "Ciao").put("name", "Francesco").toBuffer(),
       200,
       "OK",
-      new JsonObject().put("result", "Ciao Francesco?")
+      new JsonObject().put("result", "Ciao Francesco?").toBuffer()
     );
 
-    testRequestWithJSON(HttpMethod.POST, "/testB", new JsonObject().put("hello", "Ciao"), 400, "Bad Request", null);
+    testRequestWithJSON(HttpMethod.POST, "/testB", new JsonObject().put("hello", "Ciao").toBuffer(), 400, "Bad Request");
 
     consumer.unregister();
   }
@@ -230,37 +228,37 @@ public class OpenAPI3ServiceProxiesTest extends WebTestWithWebClientBase {
     testRequestWithJSON(
       HttpMethod.POST,
       "/testA",
-      new JsonObject().put("hello", "Ciao").put("name", "Francesco"),
+      new JsonObject().put("hello", "Ciao").put("name", "Francesco").toBuffer(),
       200,
       "OK",
-      new JsonObject().put("result", "Ciao Francesco!")
+      new JsonObject().put("result", "Ciao Francesco!").toBuffer()
     );
 
     testRequestWithJSON(
       HttpMethod.POST,
       "/testB",
-      new JsonObject().put("hello", "Ciao").put("name", "Francesco"),
+      new JsonObject().put("hello", "Ciao").put("name", "Francesco").toBuffer(),
       200,
       "OK",
-      new JsonObject().put("result", "Ciao Francesco?")
+      new JsonObject().put("result", "Ciao Francesco?").toBuffer()
     );
 
     testRequestWithJSON(
       HttpMethod.POST,
       "/testC",
-      new JsonObject().put("hello", "Ciao").put("name", "Francesco"),
+      new JsonObject().put("hello", "Ciao").put("name", "Francesco").toBuffer(),
       200,
       "OK",
-      new JsonObject().put("anotherResult", "Francesco Ciao!")
+      new JsonObject().put("anotherResult", "Francesco Ciao!").toBuffer()
     );
 
     testRequestWithJSON(
       HttpMethod.POST,
       "/testD",
-      new JsonObject().put("hello", "Ciao").put("name", "Francesco"),
+      new JsonObject().put("hello", "Ciao").put("name", "Francesco").toBuffer(),
       200,
       "OK",
-      new JsonObject().put("content-type", "application/json").put("anotherResult", "Francesco Ciao?")
+      new JsonObject().put("content-type", "application/json").put("anotherResult", "Francesco Ciao?").toBuffer()
     );
 
     serviceConsumer.unregister();
@@ -294,41 +292,41 @@ public class OpenAPI3ServiceProxiesTest extends WebTestWithWebClientBase {
     testRequestWithJSON(
       HttpMethod.POST,
       "/testA",
-      new JsonObject().put("hello", "Ciao").put("name", "Francesco"),
+      new JsonObject().put("hello", "Ciao").put("name", "Francesco").toBuffer(),
       200,
       "OK",
-      new JsonObject().put("result", "Ciao Francesco!")
+      new JsonObject().put("result", "Ciao Francesco!").toBuffer()
     );
 
     testRequestWithJSON(
       HttpMethod.POST,
       "/testB",
-      new JsonObject().put("hello", "Ciao").put("name", "Francesco"),
+      new JsonObject().put("hello", "Ciao").put("name", "Francesco").toBuffer(),
       200,
       "OK",
-      new JsonObject().put("result", "Ciao Francesco?")
+      new JsonObject().put("result", "Ciao Francesco?").toBuffer()
     );
 
     testRequestWithJSON(
       HttpMethod.POST,
       "/testC",
-      new JsonObject().put("hello", "Ciao").put("name", "Francesco"),
+      new JsonObject().put("hello", "Ciao").put("name", "Francesco").toBuffer(),
       200,
       "OK",
-      new JsonObject().put("content-type", "application/json").put("anotherResult", "Francesco Ciao?")
+      new JsonObject().put("content-type", "application/json").put("anotherResult", "Francesco Ciao?").toBuffer()
     );
 
     testRequestWithJSON(
       HttpMethod.POST,
       "/testD",
-      new JsonObject().put("hello", "Ciao").put("name", "Francesco"),
+      new JsonObject().put("hello", "Ciao").put("name", "Francesco").toBuffer(),
       200,
       "OK",
-      new JsonObject().put("content-type", "application/json").put("anotherResult", "Francesco Ciao?")
+      new JsonObject().put("content-type", "application/json").put("anotherResult", "Francesco Ciao?").toBuffer()
     );
 
-    serviceConsumer.unregister();
-    anotherServiceConsumer.unregister();
+    serviceBinder.unregister(serviceConsumer);
+    anotherServiceBinder.unregister(anotherServiceConsumer);
   }
 
   @Test
@@ -359,19 +357,17 @@ public class OpenAPI3ServiceProxiesTest extends WebTestWithWebClientBase {
     testRequestWithJSON(
       HttpMethod.POST,
       "/testFailure",
-      new JsonObject().put("hello", "Ciao").put("name", "Francesco"),
+      new JsonObject().put("hello", "Ciao").put("name", "Francesco").toBuffer(),
       501,
-      "error for Francesco",
-      null
+      "error for Francesco"
     );
 
     testRequestWithJSON(
       HttpMethod.POST,
       "/testException",
-      new JsonObject().put("hello", "Ciao").put("name", "Francesco"),
+      new JsonObject().put("hello", "Ciao").put("name", "Francesco").toBuffer(),
       500,
-      "Internal Server Error",
-      null
+      "Internal Server Error"
     );
 
     consumer.unregister();
@@ -401,28 +397,28 @@ public class OpenAPI3ServiceProxiesTest extends WebTestWithWebClientBase {
     testRequestWithJSON(
       HttpMethod.POST,
       "/testE/123",
-      new JsonObject().put("value", 1),
+      new JsonObject().put("value", 1).toBuffer(),
       200,
       "OK",
-      new JsonObject().put("id", 123).put("value", 1)
-    );
-
-    testRequestWithJSONArray(
-      HttpMethod.POST,
-      "/testF/123",
-      new JsonArray().add(1).add(2).add(3),
-      200,
-      "OK",
-      new JsonArray().add(1 + 123).add(2 + 123).add(3 + 123)
+      new JsonObject().put("id", 123).put("value", 1).toBuffer()
     );
 
     testRequestWithJSON(
       HttpMethod.POST,
       "/testF/123",
-      new JsonObject().put("value", 1),
+      new JsonArray().add(1).add(2).add(3).toBuffer(),
       200,
       "OK",
-      new JsonObject().put("id", 123).put("value", 1)
+      new JsonArray().add(1 + 123).add(2 + 123).add(3 + 123).toBuffer()
+    );
+
+    testRequestWithJSON(
+      HttpMethod.POST,
+      "/testF/123",
+      new JsonObject().put("value", 1).toBuffer(),
+      200,
+      "OK",
+      new JsonObject().put("id", 123).put("value", 1).toBuffer()
     );
 
     consumer.unregister();
@@ -457,10 +453,10 @@ public class OpenAPI3ServiceProxiesTest extends WebTestWithWebClientBase {
     testRequestWithJSON(
       HttpMethod.POST,
       "/testDataObject",
-      data.toJson(),
+      data.toJson().toBuffer(),
       200,
       "OK",
-      result
+      result.toBuffer()
     );
 
     consumer.unregister();

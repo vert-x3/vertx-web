@@ -316,15 +316,15 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
       valuesArray.add(getSuccessSample(ParameterType.INT).getInteger());
     object.put("values", valuesArray);
 
-    testRequestWithJSON(HttpMethod.POST, "/jsonBodyTest/sampleTest", object, 200, "OK", object);
-    testRequestWithJSONAndCustomContentType(HttpMethod.POST,
+    testRequestWithJSON(HttpMethod.POST, "/jsonBodyTest/sampleTest", object.toBuffer(), 200, "OK", object.toBuffer());
+    testRequestWithBufferResponse(HttpMethod.POST,
       "/jsonBodyTest/sampleTest",
       "application/json; charset=utf-8",
-      object, 200, "OK", object);
-    testRequestWithJSONAndCustomContentType(HttpMethod.POST,
+      object.toBuffer(), 200, "OK", object.toBuffer());
+    testRequestWithBufferResponse(HttpMethod.POST,
       "/jsonBodyTest/sampleTest",
       "application/superapplication+json",
-      object, 200, "OK", object);
+      object.toBuffer(), 200, "OK", object.toBuffer());
   }
 
   @Test
@@ -351,8 +351,7 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
     valuesArray.add(2, getFailureSample(ParameterType.INT));
     object.put("values", valuesArray);
 
-    testRequestWithJSON(HttpMethod.POST, "/jsonBodyTest/sampleTest", object, 400, errorMessage(ValidationException
-      .ErrorType.JSON_INVALID), null);
+    testRequestWithJSON(HttpMethod.POST, "/jsonBodyTest/sampleTest", object.toBuffer(), 400, errorMessage(ValidationException.ErrorType.JSON_INVALID));
   }
 
   @Test
@@ -499,7 +498,7 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
       "    \"c\": 6\n" +
       "}");
 
-    testRequestWithJSON(HttpMethod.POST, "/circularReferences", obj, 200, "OK", obj);
+    testRequestWithJSON(HttpMethod.POST, "/circularReferences", obj.toBuffer(), 200, "OK", obj.toBuffer());
   }
 
   @Test
@@ -520,7 +519,7 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
     testRequestWithJSON(HttpMethod.POST, "/pets", null, 400, errorMessage(ValidationException.ErrorType.JSON_INVALID));
 
     // An empty json object should be invalid, because some fields are required
-    testRequestWithJSON(HttpMethod.POST, "/pets", new JsonObject(),400, errorMessage(ValidationException.ErrorType.JSON_INVALID));
+    testRequestWithJSON(HttpMethod.POST, "/pets", new JsonObject().toBuffer(),400, errorMessage(ValidationException.ErrorType.JSON_INVALID));
   }
 
   @Test
@@ -542,7 +541,7 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
         .end();
     });
 
-    testRequestWithJSON(HttpMethod.POST, "/pets", new JsonObject().put("id", 1).put("name", "Willy"),200, "OK");
+    testRequestWithJSON(HttpMethod.POST, "/pets", new JsonObject().put("id", 1).put("name", "Willy").toBuffer(),200, "OK");
   }
 
   @Test
@@ -564,7 +563,7 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
     pet.put("name", "Willy");
     pet.put("lazyness",  "Highest");
 
-    testRequestWithJSON(HttpMethod.POST, "/additionalProperties", pet, 400, errorMessage(ValidationException.ErrorType.JSON_INVALID));
+    testRequestWithJSON(HttpMethod.POST, "/additionalProperties", pet.toBuffer(), 400, errorMessage(ValidationException.ErrorType.JSON_INVALID));
   }
 
   @Test

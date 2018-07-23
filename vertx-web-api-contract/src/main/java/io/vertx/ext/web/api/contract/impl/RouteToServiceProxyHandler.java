@@ -41,7 +41,7 @@ public class RouteToServiceProxyHandler implements Handler<RoutingContext> {
   private static JsonObject buildPayload(RoutingContext context) {
     return new JsonObject().put("context", new RequestContext(
       context.request().headers(),
-      ((RequestParameters)context.get("parsedParameters")).toJsonObject()
+      ((RequestParameters)context.get("parsedParameters")).toJson()
     ).toJson());
   }
 

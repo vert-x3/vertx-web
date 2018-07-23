@@ -137,10 +137,10 @@ public class OpenAPI3SchemasTest extends WebTestValidationBase {
     jsonString = jsonString.trim();
     if (jsonString.startsWith("[")) {
       JsonArray array = new JsonArray(jsonString);
-      testRequestWithJSONArray(HttpMethod.POST, uri, array, 200, "OK", array);
+      testRequestWithJSON(HttpMethod.POST, uri, array.toBuffer(), 200, "OK", array.toBuffer());
     } else {
       JsonObject obj = new JsonObject(jsonString);
-      testRequestWithJSON(HttpMethod.POST, uri, obj, 200, "OK", obj);
+      testRequestWithJSON(HttpMethod.POST, uri, obj.toBuffer(), 200, "OK", obj.toBuffer());
     }
   };
 
@@ -149,16 +149,16 @@ public class OpenAPI3SchemasTest extends WebTestValidationBase {
     JsonObject objRequest = new JsonObject(jsonStringRequest);
     String jsonStringResponse = String.join("", Files.readAllLines(Paths.get("./src/test/resources/swaggers/test_json", "schemas_test", jsonNameResponse), StandardCharsets.UTF_8));
     JsonObject objResponse = new JsonObject(jsonStringResponse);
-    testRequestWithJSON(HttpMethod.POST, uri, objRequest, 200, "OK", objResponse);
-  }
+    testRequestWithJSON(HttpMethod.POST, uri, objRequest.toBuffer(), 200, "OK", objResponse.toBuffer());
+  };
 
   private void assertRequestFail(String uri, String jsonName) throws Exception {
     String jsonString = String.join("", Files.readAllLines(Paths.get("./src/test/resources/swaggers/test_json", "schemas_test", jsonName), StandardCharsets.UTF_8));
     jsonString = jsonString.trim();
     if (jsonString.startsWith("[")) {
-      testRequestWithJSONArray(HttpMethod.POST, uri, new JsonArray(jsonString), 400, "ValidationException", null);
+      testRequestWithJSON(HttpMethod.POST, uri, new JsonArray(jsonString).toBuffer(), 400, "ValidationException");
     } else {
-      testRequestWithJSON(HttpMethod.POST, uri, new JsonObject(jsonString), 400, "ValidationException", null);
+      testRequestWithJSON(HttpMethod.POST, uri, new JsonObject(jsonString).toBuffer(), 400, "ValidationException");
     }
   };
 

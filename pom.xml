@@ -69,7 +69,7 @@
     <module>vertx-web-client</module>
     <module>vertx-template-engines</module>
     <module>vertx-web-api-contract</module>
-    <module>vertx-web-api-contract-codegen</module>
+    <module>vertx-web-api-codegen</module>
   </modules>
 
   <profiles>
