@@ -62,21 +62,21 @@ class SecurityHandlersStore {
     }
   }
 
-  private final Map<SecurityRequirementKey, Handler<RoutingContext>> securityHandlers;
+  private final Map<SecurityRequirementKey, List<Handler<RoutingContext>>> securityHandlers;
 
   SecurityHandlersStore() {
     this.securityHandlers = new HashMap<>();
   }
 
   protected void addSecurityRequirement(String name, String scope, Handler<RoutingContext> handler) {
-    securityHandlers.put(new SecurityRequirementKey(name, scope), handler);
+    securityHandlers.computeIfAbsent(new SecurityRequirementKey(name, scope), k -> new ArrayList<>()).add(handler);
   }
 
   protected void addSecurityRequirement(String name, Handler<RoutingContext> handler) {
-    securityHandlers.put(new SecurityRequirementKey(name), handler);
+    securityHandlers.computeIfAbsent(new SecurityRequirementKey(name), k -> new ArrayList<>()).add(handler);
   }
 
-  private Handler<RoutingContext> mapWithFail(SecurityRequirementKey k) throws RouterFactoryException {
+  private List<Handler<RoutingContext>> mapWithFail(SecurityRequirementKey k) throws RouterFactoryException {
     if (k.hasScope())
       return Optional
         .ofNullable((this.securityHandlers.get(k) != null) ? this.securityHandlers.get(k) : this.securityHandlers.get(k.cloneWithoutScope()))
@@ -85,7 +85,7 @@ class SecurityHandlersStore {
       return Optional.ofNullable(this.securityHandlers.get(k)).orElseThrow(() -> RouterFactoryException.createMissingSecurityHandler(k.getName()));
   }
 
-  private Handler<RoutingContext> mapWithoutFail(SecurityRequirementKey k) {
+  private List<Handler<RoutingContext>> mapWithoutFail(SecurityRequirementKey k) {
     if (k.hasScope())
       return Optional
         .ofNullable(this.securityHandlers.get(k))
@@ -98,9 +98,9 @@ class SecurityHandlersStore {
     List<SecurityRequirementKey> keys = this.translateRequirements(untraslatedKeys);
     if (keys != null) {
       if (failOnNotFound)
-        return keys.stream().map(this::mapWithFail).collect(Collectors.toList());
+        return keys.stream().flatMap(key -> this.mapWithFail(key).stream()).collect(Collectors.toList());
       else
-        return keys.stream().map(this::mapWithoutFail).filter(Objects::nonNull).collect(Collectors.toList());
+        return keys.stream().flatMap(key -> this.mapWithoutFail(key).stream()).filter(Objects::nonNull).collect(Collectors.toList());
     } else
       return new ArrayList<>();
   }
