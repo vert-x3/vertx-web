@@ -54,10 +54,12 @@ public class ParsableHeaderValue implements ParsedHeaderValue {
   }
 
   public String parameter(String key) {
+    ensureHeaderProcessed();
     return parameter.get(key);
   }
 
   public Map<String, String> parameters() {
+    ensureHeaderProcessed();
     return Collections.unmodifiableMap(parameter);
   }
 
