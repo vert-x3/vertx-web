@@ -70,18 +70,19 @@ public class CSRFHandlerTest extends WebTestBase {
   @Test
   public void testPostWithHeader() throws Exception {
 
-    router.route().handler(CookieHandler.create());
-    router.route().handler(CSRFHandler.create("Abracadabra"));
-    router.route().handler(rc -> rc.response().end());
+    router.route().handler(StaticHandler.create());
+    router.route("/xsrf").handler(CookieHandler.create());
+    router.route("/xsrf").handler(CSRFHandler.create("Abracadabra"));
+    router.route("/xsrf").handler(rc -> rc.response().end());
 
-    testRequest(HttpMethod.GET, "/", null, resp -> {
+    testRequest(HttpMethod.GET, "/xsrf", null, resp -> {
       List<String> cookies = resp.headers().getAll("set-cookie");
       String cookie = cookies.get(0);
       rawCookie = cookie;
       tmpCookie = cookie.substring(cookie.indexOf('=') + 1, cookie.indexOf(';'));
     }, 200, "OK", null);
 
-    testRequest(HttpMethod.POST, "/", req -> {
+    testRequest(HttpMethod.POST, "/xsrf", req -> {
       req.putHeader(CSRFHandler.DEFAULT_HEADER_NAME, tmpCookie);
       req.putHeader("Cookie", rawCookie);
     }, null, 200, "OK", null);
