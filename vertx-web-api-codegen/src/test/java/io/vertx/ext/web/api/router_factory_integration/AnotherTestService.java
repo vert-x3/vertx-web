@@ -10,9 +10,9 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.api.OperationResult;
 import io.vertx.ext.web.api.RequestContext;
 import io.vertx.ext.web.api.RequestParameter;
-import io.vertx.ext.web.api.generator.WebApiProxyGen;
+import io.vertx.ext.web.api.generator.WebApiServiceGen;
 
-@WebApiProxyGen
+@WebApiServiceGen
 @VertxGen
 interface AnotherTestService {
 

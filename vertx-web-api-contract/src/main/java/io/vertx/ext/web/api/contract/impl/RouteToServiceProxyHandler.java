@@ -30,6 +30,7 @@ public class RouteToServiceProxyHandler implements Handler<RoutingContext> {
       if (res.succeeded()) {
         OperationResult op = new OperationResult(res.result().body());
         HttpServerResponse response = routingContext.response().setStatusCode(op.getStatusCode());
+        response.setStatusMessage(op.getStatusMessage());
         op.getHeaders().forEach(h -> response.putHeader(h.getKey(), h.getValue()));
         response.end(op.getPayload().toString());
       } else {

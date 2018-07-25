@@ -23,6 +23,11 @@ import java.util.Objects;
             obj.setStatusCode(((Number)member.getValue()).intValue());
           }
           break;
+        case "statusMessage":
+          if (member.getValue() instanceof String) {
+            obj.setStatusMessage((String)member.getValue());
+          }
+          break;
       }
     }
   }
@@ -37,6 +42,9 @@ import java.util.Objects;
     }
     if (obj.getStatusCode() != null) {
       json.put("statusCode", obj.getStatusCode());
+    }
+    if (obj.getStatusMessage() != null) {
+      json.put("statusMessage", obj.getStatusMessage());
     }
   }
 

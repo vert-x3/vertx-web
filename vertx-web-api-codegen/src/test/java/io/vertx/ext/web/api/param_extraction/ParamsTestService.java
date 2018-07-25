@@ -7,7 +7,7 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.api.OperationResult;
 import io.vertx.ext.web.api.RequestContext;
-import io.vertx.ext.web.api.generator.WebApiProxyGen;
+import io.vertx.ext.web.api.generator.WebApiServiceGen;
 import io.vertx.ext.web.api.router_factory_integration.FilterData;
 import io.vertx.ext.web.api.router_factory_integration.SomeEnum;
 
@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-@WebApiProxyGen
+@WebApiServiceGen
 @VertxGen
 public interface ParamsTestService {
 

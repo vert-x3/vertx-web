@@ -169,7 +169,7 @@ public class OpenAPI3ServiceProxiesTest extends ApiWebTestBase {
         routerFactory = openAPI3RouterFactoryAsyncResult.result();
         routerFactory.setOptions(HANDLERS_TESTS_OPTIONS.setMountValidationFailureHandler(true));
 
-        routerFactory.mountServiceProxy(service.getClass(), "someAddress");
+        routerFactory.mountServiceInterface(service.getClass(), "someAddress");
 
         latch.countDown();
       });
@@ -216,8 +216,8 @@ public class OpenAPI3ServiceProxiesTest extends ApiWebTestBase {
         routerFactory = openAPI3RouterFactoryAsyncResult.result();
         routerFactory.setOptions(HANDLERS_TESTS_OPTIONS);
 
-        routerFactory.mountTaggedOperationsToEventBus("test", "address");
-        routerFactory.mountTaggedOperationsToEventBus("anotherTest", "anotherAddress");
+        routerFactory.mountServiceFromTag("test", "address");
+        routerFactory.mountServiceFromTag("anotherTest", "anotherAddress");
 
         latch.countDown();
       });
@@ -281,7 +281,7 @@ public class OpenAPI3ServiceProxiesTest extends ApiWebTestBase {
         routerFactory = openAPI3RouterFactoryAsyncResult.result();
         routerFactory.setOptions(HANDLERS_TESTS_OPTIONS);
 
-        routerFactory.mountOperationsToEventBusFromExtensions();
+        routerFactory.mountServicesFromExtensions();
 
         latch.countDown();
       });
@@ -386,7 +386,7 @@ public class OpenAPI3ServiceProxiesTest extends ApiWebTestBase {
         routerFactory = openAPI3RouterFactoryAsyncResult.result();
         routerFactory.setOptions(HANDLERS_TESTS_OPTIONS);
 
-        routerFactory.mountServiceProxy(AnotherTestService.class, "someAddress");
+        routerFactory.mountServiceInterface(AnotherTestService.class, "someAddress");
 
         latch.countDown();
       });
@@ -437,7 +437,7 @@ public class OpenAPI3ServiceProxiesTest extends ApiWebTestBase {
         routerFactory = openAPI3RouterFactoryAsyncResult.result();
         routerFactory.setOptions(HANDLERS_TESTS_OPTIONS);
 
-        routerFactory.mountServiceProxy(AnotherTestService.class, "someAddress");
+        routerFactory.mountServiceInterface(AnotherTestService.class, "someAddress");
 
         latch.countDown();
       });

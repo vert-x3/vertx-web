@@ -15,7 +15,7 @@ import static org.junit.Assert.fail;
 public class WebApiProxyTest {
 
   public WebApiProxyModel generateWebApiProxyModel(Class c, Class... rest) throws Exception {
-    return new GeneratorHelper().generateClass(codegen -> (WebApiProxyModel) codegen.getModel(c.getCanonicalName(), "webapi_proxy"), WebApiProxyGen.class, c, rest);
+    return new GeneratorHelper().generateClass(codegen -> (WebApiProxyModel) codegen.getModel(c.getCanonicalName(), "webapi_proxy"), WebApiServiceGen.class, c, rest);
   }
 
   @Test

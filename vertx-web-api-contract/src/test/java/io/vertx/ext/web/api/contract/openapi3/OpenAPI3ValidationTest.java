@@ -320,11 +320,11 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
     testRequestWithBufferResponse(HttpMethod.POST,
       "/jsonBodyTest/sampleTest",
       "application/json; charset=utf-8",
-      object.toBuffer(), 200, "OK", object.toBuffer());
+      object.toBuffer(), 200, "OK", object.toBuffer(), "application/json");
     testRequestWithBufferResponse(HttpMethod.POST,
       "/jsonBodyTest/sampleTest",
       "application/superapplication+json",
-      object.toBuffer(), 200, "OK", object.toBuffer());
+      object.toBuffer(), 200, "OK", object.toBuffer(), "application/json");
   }
 
   @Test

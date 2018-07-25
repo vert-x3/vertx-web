@@ -24,7 +24,7 @@ public class AnotherTestServiceImpl implements AnotherTestService {
   public void testC(RequestContext context, Handler<AsyncResult<OperationResult>> resultHandler) {
     JsonObject body = context.getParams().getJsonObject("body");
     resultHandler.handle(Future.succeededFuture(
-      OperationResult.completedWithJsonPayload(new JsonObject().put("anotherResult", body.getString("name") + " " + body.getString("hello") + "!")))
+      OperationResult.completedWithJson(new JsonObject().put("anotherResult", body.getString("name") + " " + body.getString("hello") + "!")))
     );
   }
 
@@ -32,7 +32,7 @@ public class AnotherTestServiceImpl implements AnotherTestService {
   public void testD(RequestContext context, Handler<AsyncResult<OperationResult>> resultHandler) {
     JsonObject body = context.getParams().getJsonObject("body");
     resultHandler.handle(Future.succeededFuture(
-      OperationResult.completedWithJsonPayload(
+      OperationResult.completedWithJson(
         new JsonObject()
           .put("content-type", context.getHeaders().get(HttpHeaders.CONTENT_TYPE))
           .put("anotherResult", body.getString("name") + " " + body.getString("hello") + "?")
@@ -44,7 +44,7 @@ public class AnotherTestServiceImpl implements AnotherTestService {
   public void testE(Integer id, JsonObject body, RequestContext context, Handler<AsyncResult<OperationResult>> resultHandler) {
     resultHandler.handle(
       Future.succeededFuture(
-        OperationResult.completedWithJsonPayload(body.copy().put("id", id))
+        OperationResult.completedWithJson(new JsonObject().put("id", id).put("value", body.getValue("value")))
       )
     );
   }
@@ -54,7 +54,7 @@ public class AnotherTestServiceImpl implements AnotherTestService {
     if (body.isJsonArray())
       resultHandler.handle(
         Future.succeededFuture(
-          OperationResult.completedWithJsonPayload(new JsonArray(body.getJsonArray().stream().map(i -> id + (Integer)i).collect(Collectors.toList())))
+          OperationResult.completedWithJson(new JsonArray(body.getJsonArray().stream().map(i -> id + (Integer)i).collect(Collectors.toList())))
         )
       );
     else
@@ -65,7 +65,7 @@ public class AnotherTestServiceImpl implements AnotherTestService {
   public void testDataObject(FilterData body, RequestContext context, Handler<AsyncResult<OperationResult>> resultHandler) {
     JsonObject r = body.toJson();
     r.remove("message");
-    resultHandler.handle(Future.succeededFuture(OperationResult.completedWithJsonPayload(r)));
+    resultHandler.handle(Future.succeededFuture(OperationResult.completedWithJson(r)));
   }
 
   @Override

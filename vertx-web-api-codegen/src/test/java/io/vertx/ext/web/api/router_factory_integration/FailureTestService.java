@@ -6,9 +6,9 @@ import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.ext.web.api.OperationResult;
 import io.vertx.ext.web.api.RequestContext;
-import io.vertx.ext.web.api.generator.WebApiProxyGen;
+import io.vertx.ext.web.api.generator.WebApiServiceGen;
 
-@WebApiProxyGen
+@WebApiServiceGen
 @VertxGen
 interface FailureTestService {
 

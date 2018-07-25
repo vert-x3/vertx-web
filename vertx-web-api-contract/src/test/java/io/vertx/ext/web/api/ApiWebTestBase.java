@@ -2,6 +2,7 @@ package io.vertx.ext.web.api;
 
 import io.vertx.core.MultiMap;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.WebTestBase;
@@ -45,23 +46,29 @@ public class ApiWebTestBase extends WebTestBase {
     super.tearDown();
   }
 
-  public void testRequestWithBufferResponse(HttpMethod method, String path, String contentType, Buffer obj, int statusCode, String statusMessage, Buffer expected) throws Exception {
+  public void testRequestWithBufferResponse(HttpMethod method, String path, String contentType, Buffer obj, int statusCode, String statusMessage, Buffer expected, String expectedContentType) throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
-    client
+    HttpClientRequest req = client
       .request(method, 8080, "localhost", path)
       .putHeader(HttpHeaders.CONTENT_TYPE, contentType)
       .handler(res -> {
-        assertEquals(statusCode, res.statusCode());
-        assertEquals(statusMessage, res.statusMessage());
         if (expected != null) {
-          assertEquals(contentType, res.getHeader(HttpHeaders.CONTENT_TYPE));
+          assertEquals(statusCode, res.statusCode());
+          assertEquals(statusMessage, res.statusMessage());
+          assertEquals(expectedContentType, res.getHeader(HttpHeaders.CONTENT_TYPE));
           res.bodyHandler(buff -> {
             buff = normalizeLineEndingsFor(buff);
             assertEquals(expected, buff);
             latch.countDown();
           });
+        } else {
+          assertEquals(statusCode, res.statusCode());
+          assertEquals(statusMessage, res.statusMessage());
+          latch.countDown();
         }
-      }).end(obj);
+      });
+    if (obj == null) req.end();
+    else req.end(obj);
     awaitLatch(latch);
   }
 
@@ -70,7 +77,7 @@ public class ApiWebTestBase extends WebTestBase {
   }
 
   public void testRequestWithJSON(HttpMethod method, String path, Buffer obj, int statusCode, String statusMessage, Buffer expected) throws Exception {
-    testRequestWithBufferResponse(method, path, "application/json", obj, statusCode, statusMessage, expected);
+    testRequestWithBufferResponse(method, path, "application/json", obj, statusCode, statusMessage, expected, "application/json");
   }
 
   public void testRequestWithForm(HttpMethod method, String path, FormType formType, MultiMap formMap, int statusCode, String statusMessage) throws Exception {
@@ -95,6 +102,7 @@ public class ApiWebTestBase extends WebTestBase {
       .handler(res -> {
         assertEquals(statusCode, res.statusCode());
         assertEquals(contentType, res.getHeader(HttpHeaders.CONTENT_TYPE));
+        latch.countDown();
       }).end();
     awaitLatch(latch);
   }

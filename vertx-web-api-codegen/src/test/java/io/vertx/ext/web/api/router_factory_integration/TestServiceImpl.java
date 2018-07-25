@@ -20,7 +20,7 @@ public class TestServiceImpl implements TestService {
   public void testA(RequestContext context, Handler<AsyncResult<OperationResult>> resultHandler) {
     JsonObject body = context.getParams().getJsonObject("body");
     resultHandler.handle(Future.succeededFuture(
-      OperationResult.completedWithJsonPayload(new JsonObject().put("result", body.getString("hello") + " " + body.getString("name") + "!")))
+      OperationResult.completedWithJson(new JsonObject().put("result", body.getString("hello") + " " + body.getString("name") + "!")))
     );
   }
 
@@ -28,7 +28,7 @@ public class TestServiceImpl implements TestService {
   public void testB(RequestContext context, Handler<AsyncResult<OperationResult>> resultHandler) {
     JsonObject body = context.getParams().getJsonObject("body");
     resultHandler.handle(Future.succeededFuture(
-      OperationResult.completedWithJsonPayload(new JsonObject().put("result", body.getString("hello") + " " + body.getString("name") + "?")))
+      OperationResult.completedWithJson(new JsonObject().put("result", body.getString("hello") + " " + body.getString("name") + "?")))
     );
   }
 }

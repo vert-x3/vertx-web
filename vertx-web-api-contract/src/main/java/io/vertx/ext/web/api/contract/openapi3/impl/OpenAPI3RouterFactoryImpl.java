@@ -145,7 +145,7 @@ public class OpenAPI3RouterFactoryImpl extends BaseRouterFactory<OpenAPI> implem
   }
 
   @Override
-  public OpenAPI3RouterFactory mountTaggedOperationsToEventBus(String tag, String address) {
+  public OpenAPI3RouterFactory mountServiceFromTag(String tag, String address) {
     for (Map.Entry<String, OperationValue> op : operations.entrySet()) {
       if (op.getValue().hasTag(tag))
         op.getValue().addUserHandler(RouteToServiceProxyHandler.build(vertx.eventBus(), address, OpenApi3Utils.sanitizeOperationId(op.getKey())));
@@ -154,7 +154,7 @@ public class OpenAPI3RouterFactoryImpl extends BaseRouterFactory<OpenAPI> implem
   }
 
   @Override
-  public OpenAPI3RouterFactory mountServiceProxy(Class interfaceClass, String address) {
+  public OpenAPI3RouterFactory mountServiceInterface(Class interfaceClass, String address) {
     for (Method m : interfaceClass.getMethods()) {
       if (OpenApi3Utils.serviceProxyMethodIsCompatibleHandler(m)) {
         String methodName = m.getName();
@@ -180,7 +180,7 @@ public class OpenAPI3RouterFactoryImpl extends BaseRouterFactory<OpenAPI> implem
   }
 
   @Override
-  public OpenAPI3RouterFactory mountOperationsToEventBusFromExtensions() {
+  public OpenAPI3RouterFactory mountServicesFromExtensions() {
     for (Map.Entry<String, OperationValue> op : operations.entrySet()) {
       Operation operationModel = op.getValue().getOperationModel();
       if (operationModel.getExtensions() != null && operationModel.getExtensions().containsKey(OPENAPI_EXTENSION)) {

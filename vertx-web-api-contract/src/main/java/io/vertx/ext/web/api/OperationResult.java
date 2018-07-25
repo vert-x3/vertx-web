@@ -17,6 +17,7 @@ public class OperationResult {
   private final static Integer DEFAULT_STATUS_CODE = 200;
 
   private Integer statusCode;
+  private String statusMessage;
   private Buffer payload;
   private MultiMap headers;
 
@@ -39,14 +40,16 @@ public class OperationResult {
     }
   }
 
-  public OperationResult(Integer statusCode, Buffer payload, MultiMap headers) {
+  public OperationResult(Integer statusCode, String statusMessage, Buffer payload, MultiMap headers) {
     this.statusCode = statusCode;
+    this.statusMessage = statusMessage;
     this.payload = payload;
     this.headers = headers;
   }
 
   public OperationResult(OperationResult other) {
     this.statusCode = other.getStatusCode();
+    this.statusMessage = other.getStatusMessage();
     this.payload = other.getPayload();
     this.headers = other.getHeaders();
   }
@@ -72,6 +75,10 @@ public class OperationResult {
     return statusCode;
   }
 
+  public String getStatusMessage() {
+    return statusMessage;
+  }
+
   public Buffer getPayload() {
     return payload;
   }
@@ -90,6 +97,11 @@ public class OperationResult {
     return this;
   }
 
+  @Fluent public OperationResult setStatusMessage(String statusMessage) {
+    this.statusMessage = statusMessage;
+    return this;
+  }
+
   @Fluent public OperationResult setPayload(Buffer payload) {
     this.payload = payload;
     return this;
@@ -100,25 +112,27 @@ public class OperationResult {
     return this;
   }
 
-  public static OperationResult completedWithJsonPayload(JsonObject jsonObject) {
-    OperationResult op = new OperationResult();
-    op.setStatusCode(200);
-    op.putHeader(HttpHeaders.CONTENT_TYPE.toString(), "application/json");
-    op.setPayload(jsonObject.toBuffer());
-    return op;
+  public static OperationResult completedWithJson(JsonObject jsonObject) {
+    return completedWithJson(jsonObject.toBuffer());
   }
 
-  public static OperationResult completedWithJsonPayload(JsonArray jsonArray) {
+  public static OperationResult completedWithJson(JsonArray jsonArray) {
+   return completedWithJson(jsonArray.toBuffer());
+  }
+
+  public static OperationResult completedWithJson(Buffer json) {
     OperationResult op = new OperationResult();
     op.setStatusCode(200);
+    op.setStatusMessage("OK");
     op.putHeader(HttpHeaders.CONTENT_TYPE.toString(), "application/json");
-    op.setPayload(jsonArray.toBuffer());
+    op.setPayload(json);
     return op;
   }
 
   public static OperationResult completedWithPlainText(Buffer text) {
     return new OperationResult()
       .setStatusCode(200)
+      .setStatusMessage("OK")
       .putHeader(HttpHeaders.CONTENT_TYPE.toString(), "text/plain")
       .setPayload(text);
   }

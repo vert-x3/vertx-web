@@ -20,7 +20,7 @@ import io.vertx.codegen.Generator;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.codegen.annotations.ModuleGen;
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.ext.web.api.generator.WebApiProxyGen;
+import io.vertx.ext.web.api.generator.WebApiServiceGen;
 
 import java.util.Arrays;
 import java.util.Set;
@@ -48,7 +48,7 @@ public class WebApiServiceProxyGenerator extends CodeGenProcessor {
   public Set<String> getSupportedAnnotationTypes() {
     return Arrays.asList(
       VertxGen.class,
-      WebApiProxyGen.class,
+      WebApiServiceGen.class,
       DataObject.class,
       ModuleGen.class
     ).stream().map(Class::getName).collect(Collectors.toSet());
