@@ -304,6 +304,50 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
   }
 
   @Test
+  public void mountMultipleSecurityHandlers() throws Exception {
+    final Handler<RoutingContext> firstHandler = routingContext -> {
+      routingContext.put("firstHandler", "OK");
+      routingContext.next();
+    };
+    final Handler<RoutingContext> secondHandler = routingContext -> {
+      routingContext
+        .response()
+        .setStatusCode(200)
+        .setStatusMessage("First handler: " + routingContext.get("firstHandler") + ", Second handler: OK")
+        .end();
+    };
+
+    CountDownLatch latch = new CountDownLatch(1);
+    OpenAPI3RouterFactory.create(this.vertx, "src/test/resources/swaggers/router_factory_test.yaml",
+      openAPI3RouterFactoryAsyncResult -> {
+        routerFactory = openAPI3RouterFactoryAsyncResult.result();
+        routerFactory.setOptions(new RouterFactoryOptions().setRequireSecurityHandlers(true));
+
+        routerFactory.addHandlerByOperationId("listPetsSecurity", routingContext -> routingContext
+          .response()
+          .setStatusCode(200)
+          .end());
+
+        routerFactory.addSecurityHandler("api_key", firstHandler);
+        routerFactory.addSecurityHandler("api_key", secondHandler);
+
+        routerFactory.addSecurityHandler("second_api_key",
+          RoutingContext::next
+        );
+
+        routerFactory.addSecurityHandler("third_api_key",
+          RoutingContext::next
+        );
+        latch.countDown();
+      });
+    awaitLatch(latch);
+
+    startServer();
+
+    testRequest(HttpMethod.GET, "/pets_security_test", 200, "First handler: OK, Second handler: OK");
+  }
+
+  @Test
   public void requireSecurityHandler() throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
     OpenAPI3RouterFactory.create(this.vertx, "src/test/resources/swaggers/router_factory_test.yaml",
@@ -335,6 +379,7 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
 
     assertNotThrow(routerFactory::getRouter, RouterFactoryException.class);
   }
+
 
   @Test
   public void testGlobalSecurityHandler() throws Exception {

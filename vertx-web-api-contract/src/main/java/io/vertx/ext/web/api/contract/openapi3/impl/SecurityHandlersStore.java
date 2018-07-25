@@ -98,9 +98,9 @@ class SecurityHandlersStore {
     List<SecurityRequirementKey> keys = this.translateRequirements(nonTranslatedKeys);
     if (keys != null) {
       if (failOnNotFound)
-        return keys.stream().flatMap(key -> this.mapWithFail(key).stream()).collect(Collectors.toList());
+        return keys.stream().map(this::mapWithFail).flatMap(Collection::stream).collect(Collectors.toList());
       else
-        return keys.stream().flatMap(key -> this.mapWithoutFail(key).stream()).filter(Objects::nonNull).collect(Collectors.toList());
+        return keys.stream().map(this::mapWithoutFail).filter(Objects::nonNull).flatMap(Collection::stream).collect(Collectors.toList());
     } else
       return new ArrayList<>();
   }
