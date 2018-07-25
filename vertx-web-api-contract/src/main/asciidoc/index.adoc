@@ -1,10 +1,9 @@
-= Vert.x-Web API Contract
+= Vert.x Web API Contract
 :toc: left
 
-Vert.x-Web API Contract brings to Vert.x two features to help you to develop you API:
+Vert.x Web API Contract extends Vert.x Web to support https://www.openapis.org/[OpenAPI 3], bringing to you a simple interface to build your router and mount security and validation handler.
 
-* HTTP Requests validation
-* OpenAPI 3 Support with automatic requests validation
+If you are interested in building an application that routes API Requests to event bus, check out https://vertx.io/docs/vertx-web-api-codegen/java/[Vert.x Web API Codegen]
 
 == Using Vert.x API Contract
 
@@ -30,7 +29,7 @@ dependencies {
 }
 ----
 
-== HTTP Requests validation
+== HTTP Requests validation without OpenAPI 3
 
 Vert.x provides a validation framework that will validate requests for you and will put results of validation inside a container. To define a {@link io.vertx.ext.web.api.validation.HTTPRequestValidationHandler}:
 
@@ -71,7 +70,7 @@ As you can see, every parameter is mapped in respective language objects. You ca
 {@link examples.ValidationExamples#example4}
 ----
 
-== OpenAPI 3 support
+== OpenAPI 3
 
 Vert.x allows you to use your OpenApi 3 specification directly inside your code using the design first approach. Vert.x-Web provides:
 

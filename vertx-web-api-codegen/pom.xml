@@ -50,6 +50,12 @@
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-web-client</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>
@@ -132,6 +138,7 @@
               </optionMap>
               <excludes>
                 <exclude>META-INF/**</exclude> <!-- This conf entry should remove model provider from compilation phase -->
+                <exclude>/examples/**</exclude>
               </excludes>
             </configuration>
           </execution>

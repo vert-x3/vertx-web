@@ -1,0 +1,185 @@
+= Vert.x Web API Codegen
+:toc: left
+
+Vert.x Web API Codegen helps you routing the API requests incoming from a Vert.x Web Router built with https://vertx.io/docs/vertx-web-api-contract/java/[Vert.x Web API Contract Router Factory] to event bus. It's based on https://vertx.io/docs/vertx-service-proxy/java/[Vert.x service proxies]
+
+== Using Vert.x API Codegen
+
+To use Vert.x API Codegen, add the following dependency to the _dependencies_ section of your build descriptor:
+
+* Maven (in your `pom.xml`):
+
+[source,xml,subs="+attributes"]
+----
+<dependency>
+  <groupId>io.vertx</groupId>
+  <artifactId>vertx-web-api-codegen</artifactId>
+  <version>${maven.version}</version>
+</dependency>
+----
+
+* Gradle (in your `build.gradle` file):
+
+[source,groovy,subs="+attributes"]
+----
+dependencies {
+  compile 'io.vertx:vertx-web-api-codegen:${maven.version}'
+}
+----
+
+== Recap on Vert.x Web API Contract
+
+Vert.x Web API Contract helps you to build a Vert.x Web router compliant to an OpenAPI spec, for example:
+
+[source,$lang]
+----
+{@link examples.ApiCodegenExamples#example1}
+----
+
+With Vert.x Web API Codegen you can define an event bus service that connects automatically to the router factory, allowing automatic request routing to Vert.x Event Bus.
+
+We encourage you to read https://vertx.io/docs/vertx-service-proxy/java/[Service Proxy documentation] before going further
+
+== Define your Service
+
+First you need to define your service interface. Let's start with this OpenAPI operation definition:
+
+[source,yaml]
+----
+/api/transactions:
+  get:
+    operationId: getTransactionsList
+    parameters:
+      - name: from
+        in: query
+        style: form
+        explode: false
+        required: false
+        schema:
+          type: string
+      - name: to
+        in: query
+        style: form
+        explode: false
+        required: false
+        schema:
+          type: string
+    responses: ...
+  put:
+    operationId: putTransaction
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              from:
+                type: string
+                format: email
+              to:
+                type: string
+                format: email
+              value:
+                type: number
+                format: double
+            additionalProperties: false
+            required:
+              - from
+              - to
+              - value
+    responses: ...
+----
+
+Now we can build the interface that specifies a *TransactionService* that handles _getTransactionsList_ and _putTransaction_ operations. For each operation you need to write a method with name corresponding to operation id with following parameters:
+
+* Last parameter must be a `Handler<AsyncResult<OperationResult>>`
+* Second to last parameter must be a {@link io.vertx.ext.web.api.RequestContext}
+* All parameters from first to second to last (excluded) are extracted from {@link io.vertx.ext.web.api.RequestParameter} with specified type automatically, but they need to respect https://vertx.io/docs/vertx-service-proxy/java/#_restrictions_for_service_interface[service proxy restrictions]
+
+For example:
+
+[source,java]
+----
+@WebApiServiceGen
+interface TransactionService {
+  void getTransactionsList(String from, String to, RequestContext context, Handler<AsyncResult<OperationResult>> resultHandler);
+  void putTransaction(JsonObject body, RequestContext context, Handler<AsyncResult<OperationResult>> resultHandler);
+}
+----
+
+When you receive a request at `TransactionService.getTransactionsList()` the generated service handler will automatically extract `from` and `to` parameter (if present) from {@link io.vertx.ext.web.api.RequestContext}. In `putTransaction()` we use the `body` parameter name to extract the json body.
+
+The service handler is also capable to translate `JsonObject` to Vert.x data objects automatically, for example if you have a `Transaction` data object that matches the json schema above, you can rewrite the `putTransaction()` signature as:
+
+[source,java]
+----
+void putTransaction(Transaction body, RequestContext context, Handler<AsyncResult<OperationResult>> resultHandler);
+----
+
+Note that generated service handler matches method parameters with parameter name and not with the location of parameter, so avoid duplicated parameter names
+
+We also encourage to extract with {@link io.vertx.ext.web.api.RequestParameter} parameters that uses json schema allOf/anyOf/oneOf/not keywords because the extraction can produce undefined behaviours
+
+== Implement your service
+
+Now you can implement your service. The {@link io.vertx.ext.web.api.RequestContext} object contains headers and parameters maps.
+
+To write the request you must call the `resultHandler` with an {@link io.vertx.ext.web.api.OperationResult}. To construct the {@link io.vertx.ext.web.api.OperationResult} you can use some handy methods like {@link io.vertx.ext.web.api.OperationResult#completedWithJson(io.vertx.core.buffer.Buffer)} or {@link io.vertx.ext.web.api.OperationResult#completedWithPlainText(io.vertx.core.buffer.Buffer)}
+
+For example:
+
+[source,$lang]
+----
+{@link examples.ApiCodegenExamples#example2}
+----
+
+== Mount to Router Factory and run the service
+
+Now that your service is ready you need to mount it to {@link io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory}. When you use one of the methods below, the router factory mounts an handler that routes the request through the event bus to the service at the address specified. Pay attention to specify the correct address to event bus endpoint.
+
+You have four methods to match the service with router operation handlers:
+
+* Mount manually every operation to a specified address with {@link io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory#mountOperationToEventBus(java.lang.String, java.lang.String)}
+* Mount operations matching a tag[https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.1.md#operation-object] to a specified address with {@link io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory#mountServiceFromTag(java.lang.String, java.lang.String)}.
+* Specify the class interface and the address of the service with {@link io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory#mountServiceInterface(java.lang.Class, java.lang.String)}. This method introspects the interface public methods and mounts all matching method names with operation ids
+* Specify inside the OpenAPI specification the `x-vertx-event-bus` extension for operations you want to route to your service and scan all operations that contains it with {@link io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory#mountServicesFromExtensions()}
+
+The `x-vertx-event-bus` must be one of these two formats:
+
+* A string containing the address of service
+* An object containing the field `address` and the field `method` that specifies the interface method name
+
+For example if I want to route _getTransactionsList_ to `TransactionService` mounted at event bus address `transaction_service.my_application`:
+
+[source,yaml]
+----
+/api/transactions:
+  get:
+    operationId: getTransactionsList
+    parameters: ...
+    responses: ...
+    x-vertx-event-bus: transaction_service.my_application
+----
+
+Or
+
+[source,yaml]
+----
+/api/transactions:
+  get:
+    operationId: getTransactionsList
+    parameters: ...
+    responses: ...
+    x-vertx-event-bus:
+      address: transaction_service.my_application
+      method: getTransactionsList
+----
+
+Then you can call {@link io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory#mountServicesFromExtensions()} that scans entire spec and mounts the handlers that route to your service the requests
+
+Now you can register your service to event bus:
+[source,$lang]
+----
+{@link examples.ApiCodegenExamples#example3}
+----
