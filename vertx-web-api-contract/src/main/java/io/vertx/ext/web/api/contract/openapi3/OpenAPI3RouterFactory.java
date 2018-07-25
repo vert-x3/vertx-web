@@ -4,6 +4,7 @@ import io.swagger.parser.OpenAPIParser;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.parser.OpenAPIV3Parser;
 import io.swagger.v3.parser.core.models.SwaggerParseResult;
+import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.AsyncResult;
@@ -78,8 +79,43 @@ public interface OpenAPI3RouterFactory extends RouterFactory<OpenAPI> {
   @Fluent
   OpenAPI3RouterFactory addFailureHandlerByOperationId(String operationId, Handler<RoutingContext> failureHandler);
 
+  /**
+   * Specify to route an incoming request for specified operation id to a Web Api Service mounted at the specified address on event bus. Please give a look at <a href="https://vertx.io/docs/vertx-web-api-codegen/java/">vertx-web-api-codegen documentation</a> for more informations
+   *
+   * @param operationId
+   * @param address
+   * @return this factory
+   */
   @Fluent
   OpenAPI3RouterFactory mountOperationToEventBus(String operationId, String address);
+
+  /**
+   * Specify to route an incoming request for all operations that contains the specified tag to a Web Api Service mounted at the specified address on event bus.
+   * The request is handled by the method that matches the operation id. Please give a look at <a href="https://vertx.io/docs/vertx-web-api-codegen/java/">vertx-web-api-codegen documentation</a> for more informations
+   *
+   * @param tag
+   * @param address
+   * @return this factory
+   */
+  @Fluent
+  OpenAPI3RouterFactory mountServiceFromTag(String tag, String address);
+
+  /**
+   * Introspect the OpenAPI spec to mount handlers for all operations that specifies a x-vertx-event-bus annotation. Please give a look at <a href="https://vertx.io/docs/vertx-web-api-codegen/java/">vertx-web-api-codegen documentation</a> for more informations
+   *
+   * @return this factory
+   */
+  @Fluent
+  OpenAPI3RouterFactory mountServicesFromExtensions();
+
+  /**
+   * Introspect the Web Api Service interface to route to service all matching method names with operation ids. Please give a look at <a href="https://vertx.io/docs/vertx-web-api-codegen/java/">vertx-web-api-codegen documentation</a> for more informations
+   *
+   * @return this factory
+   */
+  @Fluent
+  @GenIgnore
+  OpenAPI3RouterFactory mountServiceInterface(Class interfaceClass, String address);
 
   /**
    * Create a new OpenAPI3RouterFactory

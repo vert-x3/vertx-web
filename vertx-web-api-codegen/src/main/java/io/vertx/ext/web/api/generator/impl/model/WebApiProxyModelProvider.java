@@ -7,6 +7,9 @@ import io.vertx.ext.web.api.generator.WebApiServiceGen;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.TypeElement;
 
+/**
+ * @author <a href="https://github.com/slinkydeveloper">Francesco Guardiani</a>
+ */
 public class WebApiProxyModelProvider implements ModelProvider {
   @Override
   public Model getModel(ProcessingEnvironment env, TypeElement elt) {

@@ -20,7 +20,7 @@ import org.junit.Test;
 import java.util.concurrent.CountDownLatch;
 
 /**
- * This tests are about OpenAPI3RouterFactory and Service Proxy integrations
+ * These tests are about OpenAPI3RouterFactory and Service Proxy integrations
  * @author Francesco Guardiani @slinkydeveloper
  */
 public class OpenAPI3ServiceProxiesTest extends ApiWebTestBase {

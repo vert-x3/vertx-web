@@ -7,6 +7,9 @@ import io.vertx.ext.web.api.OperationResult;
 import io.vertx.ext.web.api.RequestContext;
 import io.vertx.ext.web.api.generator.WebApiServiceGen;
 
+/**
+ * @author <a href="https://github.com/slinkydeveloper">Francesco Guardiani</a>
+ */
 @WebApiServiceGen
 interface TransactionService {
   void getTransactionsList(String from, String to, RequestContext context, Handler<AsyncResult<OperationResult>> resultHandler);

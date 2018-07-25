@@ -24,6 +24,7 @@ import java.util.stream.Collectors;
 
 import static io.vertx.ext.web.api.router_factory_integration.SomeEnum.FIRST;
 
+
 public class HandlerParamsTest extends VertxTestBase {
 
   private static final String ADDRESS = "address";

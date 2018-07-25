@@ -13,6 +13,9 @@ import io.vertx.ext.web.api.RequestParameters;
 import io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory;
 import io.vertx.serviceproxy.ServiceBinder;
 
+/**
+ * @author <a href="https://github.com/slinkydeveloper">Francesco Guardiani</a>
+ */
 public class ApiCodegenExamples {
 
   public void example1(OpenAPI3RouterFactory routerFactory) {
