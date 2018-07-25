@@ -1596,6 +1596,10 @@ sock.onmessage = function(e) {
   console.log('message', e.data);
 };
 
+sock.onunhandled = function(data) {
+  console.log('this message has no address:', data);
+};
+
 sock.onclose = function() {
   console.log('close');
 };

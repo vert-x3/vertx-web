@@ -106,6 +106,14 @@
       }
     };
 
+    this.onunhandled = function (json) {
+      try {
+        console.warn('No handler found for message: ', json);
+      } catch (e) {
+        // dev tools are disabled so we cannot use console on IE
+      }
+    }
+
     var setupSockJSConnection = function () {
       self.sockJSConn = new SockJS(url, null, options);
       self.state = EventBus.CONNECTING;
@@ -174,11 +182,7 @@
           if (json.type === 'err') {
             self.onerror(json);
           } else {
-            try {
-              console.warn('No handler found for message: ', json);
-            } catch (e) {
-              // dev tools are disabled so we cannot use console on IE
-            }
+            self.onunhandled(json)
           }
         }
       }
