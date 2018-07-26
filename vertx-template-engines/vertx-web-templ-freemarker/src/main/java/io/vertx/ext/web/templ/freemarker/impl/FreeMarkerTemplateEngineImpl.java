@@ -24,12 +24,12 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.common.template.CachingTemplateEngine;
 import io.vertx.ext.web.templ.freemarker.FreeMarkerTemplateEngine;
 
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStreamWriter;
+import java.util.Map;
 
 /**
  * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
@@ -41,7 +41,7 @@ public class FreeMarkerTemplateEngineImpl extends CachingTemplateEngine<Template
   public FreeMarkerTemplateEngineImpl(Vertx vertx) {
     super(DEFAULT_TEMPLATE_EXTENSION, DEFAULT_MAX_CACHE_SIZE);
 
-    config = new Configuration(Configuration.VERSION_2_3_23);
+    config = new Configuration(Configuration.VERSION_2_3_28);
     config.setObjectWrapper(new VertxWebObjectWrapper(config.getIncompatibleImprovements()));
     config.setTemplateLoader(new FreeMarkerTemplateLoader(vertx));
     config.setCacheStorage(new NullCacheStorage());
@@ -60,7 +60,7 @@ public class FreeMarkerTemplateEngineImpl extends CachingTemplateEngine<Template
   }
 
   @Override
-  public void render(JsonObject context, String templateFile, Handler<AsyncResult<Buffer>> handler) {
+  public void render(Map<String, Object> context, String templateFile, Handler<AsyncResult<Buffer>> handler) {
     try {
       Template template = isCachingEnabled() ? cache.get(templateFile) : null;
       if (template == null) {

@@ -22,13 +22,14 @@ import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.handler.TemplateHandler;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.impl.Utils;
 import io.vertx.ext.web.WebTestBase;
 import org.junit.Test;
+
+import java.util.Map;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -202,13 +203,13 @@ public class TemplateTest extends WebTestBase {
     }
 
     @Override
-    public void render(JsonObject context, String templateFileName, Handler<AsyncResult<Buffer>> handler) {
+    public void render(Map<String, Object> context, String templateFileName, Handler<AsyncResult<Buffer>> handler) {
       if (fail) {
         handler.handle(Future.failedFuture(new Exception("eek")));
       } else {
         String templ = Utils.readFileToString(vertx, templateFileName);
-        String rendered = templ.replace("{foo}", context.getString("foo"));
-        rendered = rendered.replace("{bar}", context.getString("bar"));
+        String rendered = templ.replace("{foo}", (String) context.get("foo"));
+        rendered = rendered.replace("{bar}", (String) context.get("bar"));
         handler.handle(Future.succeededFuture(Buffer.buffer(rendered)));
       }
     }

@@ -17,8 +17,8 @@
 package io.vertx.ext.web.templ.handlebars.impl;
 
 import java.nio.charset.Charset;
+import java.util.Map;
 
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.common.template.CachingTemplateEngine;
 
 import com.github.jknack.handlebars.Context;
@@ -69,7 +69,7 @@ public class HandlebarsTemplateEngineImpl extends CachingTemplateEngine<Template
   }
 
   @Override
-  public void render(JsonObject context, String templateFile, Handler<AsyncResult<Buffer>> handler) {
+  public void render(Map<String, Object> context, String templateFile, Handler<AsyncResult<Buffer>> handler) {
     try {
       int idx = templateFile.lastIndexOf('/');
       String prefix = "";

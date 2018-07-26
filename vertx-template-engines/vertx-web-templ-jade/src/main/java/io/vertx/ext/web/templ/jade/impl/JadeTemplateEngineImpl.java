@@ -24,7 +24,6 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.common.template.CachingTemplateEngine;
 import io.vertx.ext.web.templ.jade.JadeTemplateEngine;
 
@@ -32,6 +31,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
 import java.nio.charset.Charset;
+import java.util.Map;
 
 /**
  * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
@@ -60,7 +60,7 @@ public class JadeTemplateEngineImpl extends CachingTemplateEngine<JadeTemplate> 
   }
 
   @Override
-  public void render(JsonObject context, String templateFile, Handler<AsyncResult<Buffer>> handler) {
+  public void render(Map<String, Object> context, String templateFile, Handler<AsyncResult<Buffer>> handler) {
     try {
       JadeTemplate template = isCachingEnabled() ? cache.get(templateFile) : null;
 
@@ -73,7 +73,7 @@ public class JadeTemplateEngineImpl extends CachingTemplateEngine<JadeTemplate> 
           cache.put(templateFile, template);
         }
       }
-      handler.handle(Future.succeededFuture(Buffer.buffer(config.renderTemplate(template, context.getMap()))));
+      handler.handle(Future.succeededFuture(Buffer.buffer(config.renderTemplate(template, context))));
     } catch (Exception ex) {
       handler.handle(Future.failedFuture(ex));
     }

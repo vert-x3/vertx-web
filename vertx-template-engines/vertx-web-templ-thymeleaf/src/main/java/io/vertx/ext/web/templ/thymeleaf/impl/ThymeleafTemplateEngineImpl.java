@@ -21,7 +21,6 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.common.template.CachingTemplateEngine;
 import org.thymeleaf.IEngineConfiguration;
 import org.thymeleaf.TemplateEngine;
@@ -79,12 +78,12 @@ public class ThymeleafTemplateEngineImpl implements ThymeleafTemplateEngine {
   }
 
   @Override
-  public void render(JsonObject context, String templateFile, Handler<AsyncResult<Buffer>> handler) {
+  public void render(Map<String, Object> context, String templateFile, Handler<AsyncResult<Buffer>> handler) {
     Buffer buffer = Buffer.buffer();
 
     try {
       synchronized (this) {
-        templateEngine.process(templateFile, new WebIContext(context.getMap(), context.getString("lang")), new Writer() {
+        templateEngine.process(templateFile, new WebIContext(context, (String) context.get("lang")), new Writer() {
           @Override
           public void write(char[] cbuf, int off, int len) throws IOException {
             buffer.appendString(new String(cbuf, off, len));

@@ -18,6 +18,7 @@ package io.vertx.ext.web.templ;
 
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
@@ -63,7 +64,7 @@ public class FreeMarkerTemplateNoCacheTest {
     out.flush();
     out.close();
 
-    engine.render(null, temp.getName(), render -> {
+    engine.render(new JsonObject(), temp.getName(), render -> {
       should.assertTrue(render.succeeded());
       should.assertEquals("before", render.result().toString());
       // cache is enabled so if we change the content that should not affect the result
@@ -77,7 +78,7 @@ public class FreeMarkerTemplateNoCacheTest {
         should.fail(e);
       }
 
-      engine.render(null, temp.getName(), render2 -> {
+      engine.render(new JsonObject(), temp.getName(), render2 -> {
         should.assertTrue(render2.succeeded());
         should.assertEquals("after", render2.result().toString());
         test.complete();

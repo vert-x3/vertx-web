@@ -21,7 +21,6 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.common.template.CachingTemplateEngine;
 import org.mvel2.integration.impl.ImmutableDefaultFactory;
 import org.mvel2.templates.CompiledTemplate;
@@ -32,6 +31,7 @@ import org.mvel2.util.StringAppender;
 import io.vertx.ext.web.templ.mvel.MVELTemplateEngine;
 
 import java.nio.charset.Charset;
+import java.util.Map;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -58,7 +58,7 @@ public class MVELTemplateEngineImpl extends CachingTemplateEngine<CompiledTempla
   }
 
   @Override
-  public void render(JsonObject context, String templateFile, Handler<AsyncResult<Buffer>> handler) {
+  public void render(Map<String, Object> context, String templateFile, Handler<AsyncResult<Buffer>> handler) {
     try {
       int idx = templateFile.lastIndexOf('/');
       String prefix = "";
@@ -93,7 +93,7 @@ public class MVELTemplateEngineImpl extends CachingTemplateEngine<CompiledTempla
       handler.handle(Future.succeededFuture(
         Buffer.buffer(
           (String) new TemplateRuntime(template.getTemplate(), null, template.getRoot(), prefix)
-            .execute(new StringAppender(), context.getMap(), new ImmutableDefaultFactory())
+            .execute(new StringAppender(), context, new ImmutableDefaultFactory())
         )
       ));
     } catch (Exception ex) {

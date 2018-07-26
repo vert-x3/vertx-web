@@ -23,12 +23,12 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.common.template.CachingTemplateEngine;
 import io.vertx.ext.web.templ.pebble.PebbleTemplateEngine;
 
 import java.io.StringWriter;
 import java.util.Locale;
+import java.util.Map;
 
 /**
  * @author Dan Kristensen
@@ -60,7 +60,7 @@ public class PebbleTemplateEngineImpl extends CachingTemplateEngine<PebbleTempla
   }
 
   @Override
-  public void render(JsonObject context, String templateFile, Handler<AsyncResult<Buffer>> handler) {
+  public void render(Map<String, Object> context, String templateFile, Handler<AsyncResult<Buffer>> handler) {
     try {
       PebbleTemplate template = isCachingEnabled() ? cache.get(templateFile) : null;
       if (template == null) {
@@ -72,10 +72,10 @@ public class PebbleTemplateEngineImpl extends CachingTemplateEngine<PebbleTempla
         }
       }
       // special key for lang selection
-      final String lang = context.getString("lang");
+      final String lang = (String) context.get("lang");
       // rendering
       final StringWriter stringWriter = new StringWriter();
-      template.evaluate(stringWriter, context.getMap(), lang == null ? Locale.getDefault() : Locale.forLanguageTag(lang));
+      template.evaluate(stringWriter, context, lang == null ? Locale.getDefault() : Locale.forLanguageTag(lang));
       handler.handle(Future.succeededFuture(Buffer.buffer(stringWriter.toString())));
     } catch (final Exception ex) {
       handler.handle(Future.failedFuture(ex));

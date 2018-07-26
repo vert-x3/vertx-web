@@ -1,11 +1,14 @@
 package io.vertx.ext.web.templ.handlebars.impl;
 
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.TemplateHandler;
 import io.vertx.ext.web.handler.impl.TemplateHandlerImpl;
 import io.vertx.ext.web.common.template.TemplateEngine;
 import org.junit.Test;
+
+import java.util.Map;
 
 import static org.mockito.Mockito.*;
 
@@ -27,7 +30,7 @@ public class TemplateHandlerImplTest {
     TemplateHandler templateHandler = new TemplateHandlerImpl(templateEngine, "templates", "ext");
     templateHandler.handle(routingContext);
 
-    verify(templateEngine).render(any(), eq("templates/index"), any());
+    verify(templateEngine).render(any(JsonObject.class), eq("templates/index"), any());
   }
 
   @Test
@@ -43,7 +46,7 @@ public class TemplateHandlerImplTest {
     templateHandler.setIndexTemplate("home");
     templateHandler.handle(routingContext);
 
-    verify(templateEngine).render(any(), eq("templates/home"), any());
+    verify(templateEngine).render(any(JsonObject.class), eq("templates/home"), any());
   }
 
   @Test
@@ -59,7 +62,7 @@ public class TemplateHandlerImplTest {
     templateHandler.setIndexTemplate(null);
     templateHandler.handle(routingContext);
 
-    verify(templateEngine).render(any(), eq("templates/"), any());
+    verify(templateEngine).render(any(JsonObject.class), eq("templates/"), any());
   }
 
   @Test
@@ -74,7 +77,7 @@ public class TemplateHandlerImplTest {
     TemplateHandler templateHandler = new TemplateHandlerImpl(templateEngine, "templates", "ext");
     templateHandler.handle(routingContext);
 
-    verify(templateEngine).render(any(), eq("templates/about"), any());
+    verify(templateEngine).render(any(JsonObject.class), eq("templates/about"), any());
   }
 
 }
