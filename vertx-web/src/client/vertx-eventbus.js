@@ -112,7 +112,11 @@
 
     this.onunhandled = function (json) {
       try {
-        console.warn('No handler found for message: ', json);
+        if (json.event) {
+          console.warn('No handler found for event: %o. Message: %O', json.event, json);
+        } else {
+          console.warn('No handler found for message: ', json);
+        }
       } catch (e) {
         // dev tools are disabled so we cannot use console on IE
       }
