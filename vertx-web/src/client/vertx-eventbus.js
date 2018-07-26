@@ -106,6 +106,10 @@
       }
     };
 
+    this.onevent = function (event, message) {
+      return false; // return false to signal that this message is not processed
+    };
+
     this.onunhandled = function (json) {
       try {
         console.warn('No handler found for message: ', json);
@@ -148,7 +152,22 @@
       };
 
       self.sockJSConn.onmessage = function (e) {
-        var json = JSON.parse(e.data);
+        var json;
+
+        try {
+          json = JSON.parse(e.data);
+        } catch(ex) {
+          json = {
+            type: 'err',
+            failureType: ex.toString(),
+            message: e.data
+          };
+        }
+
+        if (json.type === 'err') {
+          self.onerror(json);
+          return;
+        }
 
         // define a reply function on the message itself
         if (json.replyAddress) {
@@ -179,9 +198,7 @@
             handler(null, json);
           }
         } else {
-          if (json.type === 'err') {
-            self.onerror(json);
-          } else {
+          if (!json.event || !self.onevent(json.event, json.message)) {
             self.onunhandled(json)
           }
         }
