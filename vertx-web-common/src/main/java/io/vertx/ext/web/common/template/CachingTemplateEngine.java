@@ -30,14 +30,21 @@ public abstract class CachingTemplateEngine<T> implements TemplateEngine {
   private final boolean enableCache = !Boolean.getBoolean(DISABLE_TEMPL_CACHING_PROP_NAME);
 
   protected final ConcurrentLRUCache<String, T> cache;
+
+  @Deprecated
   protected String extension;
 
+  @Deprecated
   protected CachingTemplateEngine(String ext, int maxCacheSize) {
+    this(maxCacheSize);
     Objects.requireNonNull(ext);
+    doSetExtension(ext);
+  }
+
+  protected CachingTemplateEngine(int maxCacheSize) {
     if (maxCacheSize < 1) {
       throw new IllegalArgumentException("maxCacheSize must be >= 1");
     }
-    doSetExtension(ext);
     this.cache = new ConcurrentLRUCache<>(maxCacheSize);
   }
 
@@ -46,13 +53,17 @@ public abstract class CachingTemplateEngine<T> implements TemplateEngine {
       return enableCache;
   }
 
+  @Deprecated
   protected String adjustLocation(String location) {
-    if (!location.endsWith(extension)) {
-      location += extension;
+    if (extension != null) {
+      if (!location.endsWith(extension)) {
+        location += extension;
+      }
     }
     return location;
   }
 
+  @Deprecated
   protected void doSetExtension(String ext) {
     this.extension = ext.charAt(0) == '.' ? ext : "." + ext;
   }

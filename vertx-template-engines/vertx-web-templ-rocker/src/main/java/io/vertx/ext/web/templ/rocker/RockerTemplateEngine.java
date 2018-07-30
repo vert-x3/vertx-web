@@ -37,9 +37,14 @@ public interface RockerTemplateEngine extends TemplateEngine {
   /**
    * Default template extension
    */
+  @Deprecated
   String DEFAULT_TEMPLATE_EXTENSION = "rocker.html";
 
   /**
+   * @deprecated as a user you should use filename with extensions on the render method instead of relying
+   * on this method to suffix your filenames. Using this method is quite an opinionated API and has the side
+   * effect that you cannot use files without extensions as templates.
+   *
    * Create a template engine using defaults
    *
    * @return the engine
@@ -56,6 +61,7 @@ public interface RockerTemplateEngine extends TemplateEngine {
    * @return a reference to this for fluency
    */
   @Fluent
+  @Deprecated
   RockerTemplateEngine setExtension(String extension);
 
   /**
