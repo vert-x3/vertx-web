@@ -15,19 +15,8 @@
  */
 package io.vertx.ext.web.client.impl;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-
 import io.netty.handler.codec.http.QueryStringEncoder;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Context;
-import io.vertx.core.Future;
-import io.vertx.core.Handler;
-import io.vertx.core.MultiMap;
-import io.vertx.core.Vertx;
+import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpClientResponse;
@@ -42,6 +31,12 @@ import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.ext.web.codec.spi.BodyStream;
 import io.vertx.ext.web.multipart.MultipartForm;
+
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
@@ -147,7 +142,6 @@ public class HttpContext {
                     resp.headers(),
                     resp.trailers(),
                     resp.cookies(),
-                    null,
                     stream.result().result()));
                 } else {
                   fut.fail(stream.result().cause());
