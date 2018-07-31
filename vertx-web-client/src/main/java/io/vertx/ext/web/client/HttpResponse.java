@@ -110,14 +110,14 @@ public interface HttpResponse<T> {
   T body();
 
   /**
-   * @return the response body decoded as a {@link Buffer}, or null if a codec other than {@link BodyCodec#buffer()} was used
+   * @return the response body decoded as a {@link Buffer}, or {@code null} if a codec other than {@link BodyCodec#buffer()} was used
    */
   @CacheReturn
   @Nullable
   Buffer bodyAsBuffer();
 
   /**
-   * @return the response body decoded as a {@code String}, or null if a codec other than {@link BodyCodec#buffer()} was used
+   * @return the response body decoded as a {@code String}, or {@code null} if a codec other than {@link BodyCodec#buffer()} was used
    */
   @CacheReturn
   @Nullable
@@ -127,7 +127,7 @@ public interface HttpResponse<T> {
   }
 
   /**
-   * @return the response body decoded as a {@code String} given a specific {@code encoding}, or null if a codec other than {@link BodyCodec#buffer()} was used
+   * @return the response body decoded as a {@code String} given a specific {@code encoding}, or {@code null} if a codec other than {@link BodyCodec#buffer()} was used
    */
   @Nullable
   default String bodyAsString(String encoding) {
@@ -136,7 +136,7 @@ public interface HttpResponse<T> {
   }
 
   /**
-   * @return the response body decoded as {@link JsonObject}, or null if a codec other than {@link BodyCodec#buffer()} was used
+   * @return the response body decoded as {@link JsonObject}, or {@code null} if a codec other than {@link BodyCodec#buffer()} was used
    */
   @CacheReturn
   @Nullable
@@ -146,14 +146,14 @@ public interface HttpResponse<T> {
   }
 
   /**
-   * @return the response body decoded as a {@link JsonArray}, or null if a codec other than {@link BodyCodec#buffer()} was used
+   * @return the response body decoded as a {@link JsonArray}, or {@code null} if a codec other than {@link BodyCodec#buffer()} was used
    */
   @CacheReturn
   @Nullable
   JsonArray bodyAsJsonArray();
 
   /**
-   * @return the response body decoded as the specified {@code type} with the Jackson mapper, or null if a codec other than {@link BodyCodec#buffer()} was used
+   * @return the response body decoded as the specified {@code type} with the Jackson mapper, or {@code null} if a codec other than {@link BodyCodec#buffer()} was used
    */
   @Nullable
   default <R> R bodyAsJson(Class<R> type) {
