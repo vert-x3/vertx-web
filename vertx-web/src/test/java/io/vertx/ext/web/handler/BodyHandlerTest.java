@@ -366,9 +366,8 @@ public class BodyHandlerTest extends WebTestBase {
 
     sendFileUploadRequest(TestUtils.randomBuffer(50), statusCode, statusMessage);
 
-    Thread.sleep(100); // wait until file is removed
     int uploadedFilesAfterEnd = deletedUploadedFilesOnEnd ? 0 : 1;
-    assertEquals(uploadedFilesAfterEnd, vertx.fileSystem().readDirBlocking(uploadsDirectory).size());
+    assertWaitUntil(() -> uploadedFilesAfterEnd == vertx.fileSystem().readDirBlocking(uploadsDirectory).size());
   }
 
   private void sendFileUploadRequest(Buffer fileData,
