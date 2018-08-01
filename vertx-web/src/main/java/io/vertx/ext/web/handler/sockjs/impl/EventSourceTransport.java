@@ -48,6 +48,7 @@ import static io.vertx.core.buffer.Buffer.buffer;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
+ * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
 class EventSourceTransport extends BaseTransport {
 
