@@ -23,9 +23,7 @@ import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.Router;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.*;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -45,11 +43,11 @@ public class SockJSProtocolTest {
 
   private static final Logger log = LoggerFactory.getLogger(SockJSProtocolTest.class);
 
-  private Vertx vertx;
-  private HttpServer server;
+  private static Vertx vertx;
+  private static HttpServer server;
 
-  @Before
-  public void setUp() throws Exception {
+  @BeforeClass
+  public static void before() throws Exception {
     vertx = Vertx.vertx();
     server = vertx.createHttpServer();
     Router router = Router.router(vertx);
@@ -57,8 +55,8 @@ public class SockJSProtocolTest {
     server.requestHandler(router).listen(8081);
   }
 
-  @After
-  public void tearDown() {
+  @AfterClass
+  public static void after() {
     server.close();
     vertx.close();
   }
@@ -70,7 +68,7 @@ public class SockJSProtocolTest {
     router.route("/echo/*").handler(SockJSHandler.create(vertx,
       new SockJSHandlerOptions().setMaxBytesStreaming(4096)).socketHandler(sock -> sock.handler(sock::write)));
     router.route("/close/*").handler(SockJSHandler.create(vertx,
-      new SockJSHandlerOptions().setMaxBytesStreaming(4096)).socketHandler(SockJSSocket::close));
+      new SockJSHandlerOptions().setMaxBytesStreaming(4096)).socketHandler(sock -> sock.close(3000, "Go away!")));
     router.route("/disabled_websocket_echo/*").handler(SockJSHandler.create(vertx, new SockJSHandlerOptions()
       .setMaxBytesStreaming(4096).addDisabledTransport("WEBSOCKET")).socketHandler(sock -> sock.handler(sock::write)));
     router.route("/ticker/*").handler(SockJSHandler.create(vertx,
@@ -111,8 +109,8 @@ public class SockJSProtocolTest {
   }
 
   /*
-  We run the actual Python SockJS protocol tests - these are taken from the 0.3.3 branch of the sockjs-protocol repository:
-  https://github.com/sockjs/sockjs-protocol/tree/v0.3.3
+  We run the actual Python SockJS protocol tests - these are taken from the master branch of the sockjs-protocol repository:
+  https://github.com/sockjs/sockjs-protocol
    */
   @Test
   public void testProtocol() throws Exception {
@@ -125,6 +123,38 @@ public class SockJSProtocolTest {
       p = Runtime
           .getRuntime()
           .exec("python sockjs-protocol.py", new String[]{"SOCKJS_URL=http://localhost:8081"}, dir);
+
+      try (BufferedReader input = new BufferedReader(new InputStreamReader(p.getErrorStream()))) {
+        String line;
+        while ((line = input.readLine()) != null) {
+          log.info(line);
+        }
+      }
+
+      res = p.waitFor();
+
+      // Make sure all tests pass
+      assertEquals("Protocol tests failed", 0, res);
+    } else {
+      System.err.println("*** No Python runtime sockjs tests will be skiped!!!");
+    }
+  }
+
+  /*
+  We run the actual Python SockJS protocol tests - these are taken from the master branch of the sockjs-protocol repository:
+  https://github.com/sockjs/sockjs-protocol
+   */
+  @Test
+  public void testQuirks() throws Exception {
+    // does this system have python 2.x?
+    Process p = Runtime.getRuntime().exec("python pythonversion.py", null, new File("src/test"));
+    int res = p.waitFor();
+
+    if (res == 0) {
+      File dir = new File("src/test/sockjs-protocol");
+      p = Runtime
+        .getRuntime()
+        .exec("python http-quirks.py", new String[]{"SOCKJS_URL=http://localhost:8081"}, dir);
 
       try (BufferedReader input = new BufferedReader(new InputStreamReader(p.getErrorStream()))) {
         String line;

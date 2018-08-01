@@ -164,11 +164,11 @@ class IframePage(Test):
 <head>
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <script src="(?P<sockjs_url>[^"]*)"></script>
   <script>
     document.domain = document.domain;
-    _sockjs_onload = function\(\){SockJS.bootstrap_iframe\(\);};
+    SockJS.bootstrap_iframe\(\);
   </script>
-  <script src="(?P<sockjs_url>[^"]*)"></script>
 </head>
 <body>
   <h2>Don't panic!</h2>
@@ -492,12 +492,6 @@ class Protocol(Test):
 # WebSocket protocols: `/*/*/websocket`
 # -------------------------------------
 import websocket
-try:
-  from websocket import WebSocketConnectionClosedException
-except ImportError:
-  # Older version of websocket-client
-  from websocket import ConnectionClosedException \
-    as WebSocketConnectionClosedException
 
 # The most important feature of SockJS is to support native WebSocket
 # protocol. A decent SockJS server should support at least the
@@ -549,9 +543,9 @@ class WebsocketHixie76(Test):
         self.assertEqual(ws.recv(), u'c[3000,"Go away!"]')
 
         # The connection should be closed after the close frame.
-        with self.assertRaises(WebSocketConnectionClosedException):
+        with self.assertRaises(websocket.ConnectionClosedException):
             if ws.recv() is None:
-                raise WebSocketConnectionClosedException
+                raise websocket.ConnectionClosedException
         ws.close()
 
     # Empty frames must be ignored by the server side.
@@ -647,9 +641,9 @@ class WebsocketHixie76(Test):
         ws = websocket.create_connection(ws_url)
         self.assertEqual(ws.recv(), u'o')
         ws.send(u'["a')
-        with self.assertRaises(WebSocketConnectionClosedException):
+        with self.assertRaises(websocket.ConnectionClosedException):
             if ws.recv() is None:
-                raise WebSocketConnectionClosedException
+                raise websocket.ConnectionClosedException
         ws.close()
 
 
@@ -1299,7 +1293,7 @@ class RawWebsocket(Test):
         ws = WebSocket8Client(close_base_url.replace('http', 'ws') + '/websocket')
         with self.assertRaises(ws.ConnectionClosedException) as ce:
             ws.recv()
-        self.assertIn(ce.exception.reason, ["Go away!", ''])
+        self.assertEqual(ce.exception.reason, "Go away!")
         ws.close()
 
 
