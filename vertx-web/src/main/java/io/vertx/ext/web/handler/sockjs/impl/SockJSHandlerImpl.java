@@ -269,11 +269,11 @@ public class SockJSHandlerImpl implements SockJSHandler, Handler<RoutingContext>
       "<head>\n" +
       "  <meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\" />\n" +
       "  <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" />\n" +
+      "  <script src=\"{{ sockjs_url }}\"></script>\n" +
       "  <script>\n" +
       "    document.domain = document.domain;\n" +
-      "    _sockjs_onload = function(){SockJS.bootstrap_iframe();};\n" +
+      "    SockJS.bootstrap_iframe();\n" +
       "  </script>\n" +
-      "  <script src=\"{{ sockjs_url }}\"></script>\n" +
       "</head>\n" +
       "<body>\n" +
       "  <h2>Don't panic!</h2>\n" +
