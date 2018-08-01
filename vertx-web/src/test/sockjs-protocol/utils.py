@@ -5,7 +5,6 @@ import Queue
 import socket
 import re
 
-
 class HttpResponse:
     def __init__(self, method, url,
                  headers={}, body=None, async=False, load=True):
@@ -50,6 +49,7 @@ class HttpResponse:
         return self.headers.get(key.lower())
 
     def _load(self):
+        # That works for Content-Length responses.
         self.res = self.conn.getresponse()
         self.headers = dict( (k.lower(), v) for k, v in self.res.getheaders() )
         self.body = self.res.read()
@@ -61,6 +61,7 @@ class HttpResponse:
             self.conn = None
 
     def _async_load(self):
+        # That works for Transfer-Encoding: Chunked
         self.res = self.conn.getresponse()
         self.headers = dict( (k.lower(), v) for k, v in self.res.getheaders() )
 
@@ -72,20 +73,8 @@ class HttpResponse:
             self.close()
             return None
 
-def GET(url, **kwargs):
-    return HttpResponse('GET', url, **kwargs)
-
-def GET_async(url, **kwargs):
-    return HttpResponse('GET', url, async=True, **kwargs)
-
-def POST(url, **kwargs):
-    return HttpResponse('POST', url, **kwargs)
-
-def POST_async(url, **kwargs):
+def old_POST_async(url, **kwargs):
     return HttpResponse('POST', url, async=True, **kwargs)
-
-def OPTIONS(url, **kwargs):
-    return HttpResponse('OPTIONS', url, **kwargs)
 
 
 class WebSocket8Client(object):
@@ -97,11 +86,15 @@ class WebSocket8Client(object):
         class IntWebSocketClient(WebSocketClient):
             def received_message(self, m):
                 queue.put(unicode(str(m), 'utf-8'))
-            def read_from_connection(self, amount):
-                r = super(IntWebSocketClient, self).read_from_connection(amount)
-                if not r:
-                    queue.put(Ellipsis)
-                return r
+            def closed(self, code, reason):
+                queue.put((code, reason))
+            # def read_from_connection(self, amount):
+            #     r = super(IntWebSocketClient, self).read_from_connection(amount)
+            #     if self.stream.closing:
+            #         queue.put((self.stream.closing.code, self.stream.closing.reason[2:]))
+            #     elif not r:
+            #         queue.put((1000, ""))
+            #     return r
         self.client = IntWebSocketClient(url)
         self.client.connect()
 
@@ -118,8 +111,10 @@ class WebSocket8Client(object):
     def recv(self):
         try:
             r = self.queue.get(timeout=1.0)
-            if r is Ellipsis:
-                raise self.ConnectionClosedException()
+            if isinstance(r, tuple):
+                ce = self.ConnectionClosedException()
+                (ce.code, ce.reason) = r
+                raise ce
             return r
         except:
             self.close()
@@ -171,6 +166,13 @@ class Response(object):
 
     def __str__(self): return repr(self)
 
+    def __getitem__(self, key):
+        return self.headers.get(key)
+
+    def get(self, key, default):
+        return self.headers.get(key, default)
+
+
 class RawHttpConnection(object):
     def __init__(self, url):
         u = urlparse.urlparse(url)
@@ -179,21 +181,23 @@ class RawHttpConnection(object):
     def request(self, method, url, headers={}, body=None, timeout=1, http="1.1"):
         headers = CaseInsensitiveDict(headers)
         if method == 'POST':
-            body = body or ''
+            body = (body or '').encode('utf-8')
         u = urlparse.urlparse(url)
         headers['Host'] = u.hostname + ':' + str(u.port) if u.port else u.hostname
         if body is not None:
             headers['Content-Length'] = str(len(body))
 
-        req = ["%s %s HTTP/%s" % (method, u.path, http)]
+        rel_url = url[ url.find(u.path): ]
+
+        req = ["%s %s HTTP/%s" % (method, rel_url, http)]
         for k, v in headers.items():
             req.append( "%s: %s" % (k, v) )
         req.append('')
         req.append('')
-        self.s.sendall('\r\n'.join(req))
+        self.send('\r\n'.join(req))
 
         if body:
-            self.s.sendall(body)
+            self.send(body)
 
         head = recvline(self.s)
         r = re.match(r'HTTP/(?P<version>\S+) (?P<status>\S+) (?P<description>.*)', head)
@@ -226,9 +230,19 @@ class RawHttpConnection(object):
             data.append( c )
         return ''.join(data)
 
+    def read_till_eof(self):
+        data = []
+        while True:
+            c = self.s.recv(999999)
+            if not c:
+                break
+            data.append( c )
+        return ''.join(data)
+
     def closed(self):
         # To check if socket is being closed, we need to recv and see
-        # if the response is empty.
+        # if the response is empty. If it is not - we're in trouble -
+        # abort.
         t = self.s.settimeout(0.1)
         r = self.s.recv(1) == ''
         if not r:
@@ -243,3 +257,71 @@ class RawHttpConnection(object):
 
     def send(self, data):
         self.s.sendall(data)
+
+    def close(self):
+        self.s.close()
+
+
+def SynchronousHttpRequest(method, url, **kwargs):
+    c = RawHttpConnection(url)
+    r = c.request(method, url, **kwargs)
+    if r.get('Transfer-Encoding', '').lower() == 'chunked':
+        chunks = []
+        while True:
+            chunk = c.read_chunk()
+            if len(chunk) == 0:
+                break
+            chunks.append( chunk )
+        r.body = ''.join(chunks)
+    elif r.get('Content-Length', ''):
+        cl = int(r['Content-Length'])
+        r.body = c.read(cl)
+    elif 'close' in [k.strip() for k in r.get('Connection', '').lower().split(',')]:
+        r.body = c.read_till_eof()
+    else:
+        # Whitelist statuses that may not need a response
+        if r.status in [101, 304, 204] or (r.status == 200 and method == 'OPTIONS'):
+            r.body = ''
+        else:
+            raise Exception(str(r.status) + ' '+str(r.headers) + " No Transfer-Encoding:chunked nor Content-Length nor Connection:Close!")
+    c.close()
+    return r
+
+def GET(url, **kwargs):
+    return SynchronousHttpRequest('GET', url, **kwargs)
+
+def POST(url, **kwargs):
+    return SynchronousHttpRequest('POST', url, **kwargs)
+
+def OPTIONS(url, **kwargs):
+    return SynchronousHttpRequest('OPTIONS', url, **kwargs)
+
+def AsynchronousHttpRequest(method, url, **kwargs):
+    c = RawHttpConnection(url)
+    r = c.request(method, url, **kwargs)
+    if r.get('Transfer-Encoding', '').lower() == 'chunked':
+        def read():
+            return c.read_chunk()
+        r.read = read
+    elif r.get('Content-Length', ''):
+        cl = int(r['Content-Length'])
+        def read():
+            return c.read(cl)
+        r.read = read
+    elif ('close' in [k.strip() for k in r.get('Connection', '').lower().split(',')]
+          or r.status == 101):
+        def read():
+            return c.read()
+        r.read = read
+    else:
+        raise Exception(str(r.status) + ' '+str(r.headers) + " No Transfer-Encoding:chunked nor Content-Length nor Connection:Close!")
+    def close():
+        c.close()
+    r.close = close
+    return r
+
+def GET_async(url, **kwargs):
+    return AsynchronousHttpRequest('GET', url, **kwargs)
+
+def POST_async(url, **kwargs):
+    return AsynchronousHttpRequest('POST', url, **kwargs)

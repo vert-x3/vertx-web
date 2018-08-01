@@ -31,7 +31,7 @@ __all__ = ['TestResult', 'TestCase', 'TestSuite',
            'defaultTestLoader', 'SkipTest', 'skip', 'skipIf', 'skipUnless',
            'expectedFailure', 'TextTestResult', '__version__', 'collector']
 
-__version__ = '1.0.1'
+__version__ = '1.1.0'
 
 # Expose obsolete functions for backwards compatibility
 __all__.extend(['getTestCaseNames', 'makeSuite', 'findTestCases'])
@@ -75,13 +75,3 @@ def load_tests(loader, tests, pattern):
     return loader.discover(start_dir=this_dir, pattern=pattern)
 
 __unittest = True
-
-def load_tests(loader, tests, pattern):
-    # All our tests are in test/ - the test objects found in unittest2 itself
-    # are base classes not intended to be executed. This load_tests intercepts
-    # discovery to prevent that.
-    import unittest2.test
-    result = loader.suiteClass()
-    for path in unittest2.test.__path__:
-        result.addTests(loader.discover(path, pattern=pattern))
-    return result

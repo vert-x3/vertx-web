@@ -56,12 +56,13 @@ import static io.vertx.core.buffer.Buffer.buffer;
 
 /**
  * The SockJS session implementation.
- *
+ * <p>
  * If multiple instances of the SockJS server are used then instances of this
  * class can be accessed by different threads (not concurrently), so we store
  * it in a shared data map
  *
  * @author <a href="http://tfox.org">Tim Fox</a>
+ * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
 class SockJSSession extends SockJSSocketBase implements Shareable {
 
@@ -75,7 +76,7 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
   private final String id;
   private final long timeout;
   private final Handler<SockJSSocket> sockHandler;
-  private long heartbeatID = -1;
+  private long heartbeatID;
   private long timeoutTimerID = -1;
   private int maxQueueSize = 64 * 1024; // Message queue size is measured in *characters* (not bytes)
   private int messagesSize;
@@ -344,10 +345,10 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
       String[] parts;
       if (msgs.startsWith("[")) {
         //JSON array
-        parts = (String[])JsonCodec.decodeValue(msgs, String[].class);
+        parts = JsonCodec.decodeValue(msgs, String[].class);
       } else {
         //JSON string
-        String str = (String)JsonCodec.decodeValue(msgs, String.class);
+        String str = JsonCodec.decodeValue(msgs, String.class);
         parts = new String[] { str };
       }
       return parts;

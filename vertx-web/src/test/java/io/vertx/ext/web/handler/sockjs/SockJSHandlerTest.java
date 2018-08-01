@@ -55,7 +55,7 @@ public class SockJSHandlerTest extends WebTestBase {
     super.setUp();
     // Make sure a catch-all BodyHandler will not prevent websocket connection
     router.route().handler(BodyHandler.create());
-    SockJSHandler.installTestApplications(router, vertx);
+    SockJSProtocolTest.installTestApplications(router, vertx);
   }
 
   @Test
