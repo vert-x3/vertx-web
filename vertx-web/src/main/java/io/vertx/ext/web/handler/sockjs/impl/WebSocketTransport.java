@@ -45,6 +45,7 @@ import io.vertx.ext.web.handler.sockjs.SockJSSocket;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
+ * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
 class WebSocketTransport extends BaseTransport {
 
@@ -106,7 +107,7 @@ class WebSocketTransport extends BaseTransport {
 
   private void handleMessages(String msgs) {
     if (!session.isClosed()) {
-      if (msgs.equals("")) {
+      if (msgs.equals("") || msgs.equals("[]")) {
         //Ignore empty frames
       } else if ((msgs.startsWith("[\"") && msgs.endsWith("\"]")) ||
              (msgs.startsWith("\"") && msgs.endsWith("\""))) {

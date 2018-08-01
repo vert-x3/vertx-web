@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 __all__ = ['WebSocketException', 'FrameTooLargeException', 'ProtocolException',
-           'FUnsupportedFrameTypeException', 'TextFrameEncodingException',
+           'UnsupportedFrameTypeException', 'TextFrameEncodingException',
+           'UnsupportedFrameTypeException', 'TextFrameEncodingException',
            'StreamClosed', 'HandshakeError', 'InvalidBytesError']
 
 class WebSocketException(Exception): pass

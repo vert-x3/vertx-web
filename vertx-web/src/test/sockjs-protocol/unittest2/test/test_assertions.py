@@ -75,6 +75,10 @@ class Test_Assertions(unittest2.TestCase):
         getattr(sys, 'pypy_version_info', None),
         "pypy doesn't use refcounting."
         )
+    @unittest.skipIf(
+        sys.version_info[:2] in ((3, 2), (3, 3)),
+        "python 3.2 and 3.3 always leak."
+        )
     def test_assertRaises_frames_survival(self):
         # Issue #9815: assertRaises should avoid keeping local variables
         # in a traceback alive.

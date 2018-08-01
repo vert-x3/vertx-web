@@ -50,6 +50,7 @@ import io.vertx.ext.web.handler.sockjs.SockJSSocket;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
+ * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
 class XhrTransport extends BaseTransport {
 
@@ -164,9 +165,9 @@ class XhrTransport extends BaseTransport {
         setCORS(rc);
         if (rc.request().version() != HttpVersion.HTTP_1_0) {
           resp.setChunked(true);
-        } else {
-          resp.putHeader("Content-Length", "0");
         }
+        // NOTE that this is streaming!!!
+        // Client are not expecting to see Content-Length as we don't know it's value
         headersWritten = true;
       }
     }

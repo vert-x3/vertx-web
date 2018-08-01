@@ -44,14 +44,19 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSSocket;
 
+import java.util.regex.Pattern;
+
 import static io.vertx.core.buffer.Buffer.buffer;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
+ * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
 class HtmlFileTransport extends BaseTransport {
 
   private static final Logger log = LoggerFactory.getLogger(HtmlFileTransport.class);
+
+  private static final Pattern CALLBACK_VALIDATION = Pattern.compile("[^a-zA-Z0-9-_.]");
 
   private static final String HTML_FILE_TEMPLATE;
 
@@ -94,6 +99,12 @@ class HtmlFileTransport extends BaseTransport {
           rc.response().setStatusCode(500).end("\"callback\" parameter required\n");
           return;
         }
+      }
+
+      if (CALLBACK_VALIDATION.matcher(callback).find()) {
+        rc.response().setStatusCode(500);
+        rc.response().end("invalid \"callback\" parameter\n");
+        return;
       }
 
       HttpServerRequest req = rc.request();
