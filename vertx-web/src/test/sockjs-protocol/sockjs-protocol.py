@@ -929,7 +929,7 @@ class EventSource(Test):
         url = base_url + '/000/' + str(uuid.uuid4())
         r = GET_async(url + '/eventsource')
         self.assertEqual(r.status, 200)
-        self.verify_content_type(r, 'text/event-stream;charset=UTF-8')
+        self.verify_content_type(r, 'text/event-stream')
         # As EventSource is requested using GET we must be very
         # careful not to allow it being cached.
         self.verify_not_cached(r)
