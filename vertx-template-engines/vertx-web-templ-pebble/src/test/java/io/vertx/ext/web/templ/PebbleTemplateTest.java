@@ -20,6 +20,7 @@ import com.mitchellbosecke.pebble.PebbleEngine;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.json.JsonArray;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
@@ -506,4 +507,62 @@ public class PebbleTemplateTest {
     });
     test.await();
   }
+
+  @Test
+  public void testTemplateJsonObjectResolver(TestContext should) {
+    final Async test = should.async();
+    TemplateEngine engine = PebbleTemplateEngine.create(vertx);
+
+    final JsonObject context = new JsonObject();
+    JsonObject foo = new JsonObject();
+    JsonObject bar = new JsonObject().put("one", "badger").put("two", "fox");
+    foo.put("bar", bar);
+    context.put("foo", foo);
+
+    engine.render(context, "src/test/filesystemtemplates/test-pebble-template7.peb", render -> {
+      should.assertTrue(render.succeeded());
+      should.assertEquals("Goodbye badger and fox", render.result().toString());
+      test.complete();
+    });
+    test.await();
+  }
+
+  @Test
+  public void testTemplateJsonArrayResolver(TestContext should) {
+    final Async test = should.async();
+    TemplateEngine engine = PebbleTemplateEngine.create(vertx);
+
+    JsonArray jsonArray = new JsonArray();
+    jsonArray.add("badger").add("fox").add(new JsonObject().put("name", "joe"));
+    JsonObject context = new JsonObject();
+    context.put("foo", jsonArray);
+
+    String expected = "Iterator: badger,fox,{&quot;name&quot;:&quot;joe&quot;}, Element by index:fox - joe - Out of bounds:  - Size:3";
+    engine.render(context, "src/test/filesystemtemplates/test-pebble-template8.peb", render -> {
+      should.assertTrue(render.succeeded());
+      should.assertEquals(expected, render.result().toString());
+      test.complete();
+    });
+    test.await();
+  }
+
+  @Test
+  public void testTemplateJsonArrayBogusKey(TestContext should) {
+    final Async test = should.async();
+    TemplateEngine engine = PebbleTemplateEngine.create(vertx);
+
+    JsonArray jsonArray = new JsonArray();
+    jsonArray.add("badger").add("fox").add(new JsonObject().put("name", "joe"));
+    JsonObject context = new JsonObject();
+    context.put("foo", jsonArray);
+
+    engine.render(context, "src/test/filesystemtemplates/test-pebble-template6.peb", render -> {
+      // We expect no error since strict mode is not enabled by default
+      should.assertTrue(render.succeeded());
+      should.assertEquals("No number index: ", render.result().toString());
+      test.complete();
+    });
+    test.await();
+  }
+
 }

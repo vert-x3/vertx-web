@@ -1,0 +1,1 @@
+Iterator: {% for item in foo %}{{item}},{% endfor %} Element by index:{{foo[1]}} - {{foo[2].name}} - Out of bounds: {{foo[42].name}} - Size:{{foo.length}}

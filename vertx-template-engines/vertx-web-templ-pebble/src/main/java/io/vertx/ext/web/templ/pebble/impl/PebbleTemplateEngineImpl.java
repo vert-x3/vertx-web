@@ -39,7 +39,7 @@ public class PebbleTemplateEngineImpl extends CachingTemplateEngine<PebbleTempla
   private final PebbleEngine pebbleEngine;
 
   public PebbleTemplateEngineImpl(Vertx vertx) {
-    this(new PebbleEngine.Builder().loader(new PebbleVertxLoader(vertx)).cacheActive(false).build());
+    this(new PebbleEngine.Builder().extension(new VertxAttributeResolverExtension()).loader(new PebbleVertxLoader(vertx)).cacheActive(false).build());
   }
 
   public PebbleTemplateEngineImpl(PebbleEngine engine) {

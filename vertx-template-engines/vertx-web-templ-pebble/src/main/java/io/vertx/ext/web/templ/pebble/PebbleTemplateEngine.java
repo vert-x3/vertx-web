@@ -20,7 +20,11 @@ import com.mitchellbosecke.pebble.PebbleEngine;
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
+import io.vertx.core.buffer.Buffer;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.common.template.TemplateEngine;
 import io.vertx.ext.web.templ.pebble.impl.PebbleTemplateEngineImpl;
 
