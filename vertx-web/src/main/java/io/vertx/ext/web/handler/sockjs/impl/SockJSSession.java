@@ -120,9 +120,7 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
       if (listener != null) {
         Context ctx = transportCtx;
         if (Vertx.currentContext() != ctx) {
-          ctx.runOnContext(v -> {
-            writePendingMessages();
-          });
+          ctx.runOnContext(v -> writePendingMessages());
         } else {
           writePendingMessages();
         }
@@ -202,9 +200,7 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
   private synchronized void doClose() {
     Context ctx = transportCtx;
     if (ctx != Vertx.currentContext()) {
-      ctx.runOnContext(v -> {
-        doClose();
-      });
+      ctx.runOnContext(v -> doClose());
     } else {
       if (listener != null && handleCalled) {
         listener.sessionClosed();

@@ -50,6 +50,7 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSSocket;
 import io.vertx.ext.web.handler.sockjs.Transport;
+import io.vertx.ext.web.impl.Utils;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -158,11 +159,14 @@ class BaseTransport {
     if (origin == null || "null".equals(origin)) {
       origin = "*";
     }
-    req.response().headers().set("Access-Control-Allow-Origin", origin);
-    req.response().headers().set("Access-Control-Allow-Credentials", "true");
+    Utils.addToMapIfAbsent(req.response().headers(), "Access-Control-Allow-Origin", origin);
+    // https://developer.mozilla.org/En/HTTP_access_control#Requests_with_credentials
+    if (!"*".equals(origin)) {
+      Utils.addToMapIfAbsent(req.response().headers(), "Access-Control-Allow-Credentials", "true");
+    }
     String hdr = req.headers().get("Access-Control-Request-Headers");
     if (hdr != null) {
-      req.response().headers().set("Access-Control-Allow-Headers", hdr);
+      Utils.addToMapIfAbsent(req.response().headers(), "Access-Control-Allow-Headers", hdr);
     }
   }
 
@@ -208,7 +212,7 @@ class BaseTransport {
   }
 
   // We remove cookie headers for security reasons. See https://github.com/sockjs/sockjs-node section on
-  // Authorisation
+  // Authorization
   static MultiMap removeCookieHeaders(MultiMap headers) {
     // We don't want to remove the JSESSION cookie.
     String cookieHeader = headers.get(COOKIE);

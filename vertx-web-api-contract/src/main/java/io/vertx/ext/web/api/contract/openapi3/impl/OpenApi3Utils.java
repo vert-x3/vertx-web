@@ -134,10 +134,10 @@ public class OpenApi3Utils {
     } else {
       List<Parameter> result = new ArrayList<>(operationParameters);
       List<Parameter> actualParams = new ArrayList<>(operationParameters);
-      for (int i = 0; i < parentParameters.size(); i++) {
-        for (int j = 0; j < actualParams.size(); j++) {
-          Parameter parentParam = parentParameters.get(i);
-          Parameter actualParam = actualParams.get(j);
+      for (Parameter parentParameter : parentParameters) {
+        for (Parameter actualParam1 : actualParams) {
+          Parameter parentParam = parentParameter;
+          Parameter actualParam = actualParam1;
           if (!(parentParam.getIn().equalsIgnoreCase(actualParam.getIn()) && parentParam.getName().equals(actualParam
             .getName())))
             result.add(parentParam);
@@ -209,20 +209,17 @@ public class OpenApi3Utils {
     if (n.has("$ref")) {
       replaceRef(n, root, oas);
     } else if (n.has("allOf")) {
-      Iterator<JsonNode> it = n.get("allOf").iterator();
-      while (it.hasNext()) {
+      for (JsonNode jsonNode : n.get("allOf")) {
         // We assert that parser validated allOf as array of objects
-        walkAndSolve((ObjectNode) it.next(), root, oas);
+        walkAndSolve((ObjectNode) jsonNode, root, oas);
       }
     } else if (n.has("anyOf")) {
-      Iterator<JsonNode> it = n.get("anyOf").iterator();
-      while (it.hasNext()) {
-        walkAndSolve((ObjectNode) it.next(), root, oas);
+      for (JsonNode jsonNode : n.get("anyOf")) {
+        walkAndSolve((ObjectNode) jsonNode, root, oas);
       }
     } else if (n.has("oneOf")) {
-      Iterator<JsonNode> it = n.get("oneOf").iterator();
-      while (it.hasNext()) {
-        walkAndSolve((ObjectNode) it.next(), root, oas);
+      for (JsonNode jsonNode : n.get("oneOf")) {
+        walkAndSolve((ObjectNode) jsonNode, root, oas);
       }
     } else if (n.has("properties")) {
       ObjectNode properties = (ObjectNode) n.get("properties");

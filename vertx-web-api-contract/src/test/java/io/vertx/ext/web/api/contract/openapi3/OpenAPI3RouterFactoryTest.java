@@ -16,7 +16,6 @@ import io.vertx.ext.web.api.validation.ValidationException;
 import io.vertx.ext.web.handler.BodyHandler;
 import org.junit.Test;
 
-import java.net.URLEncoder;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -51,9 +50,7 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
     Router router = routerFactory.getRouter();
     server = vertx.createHttpServer(new HttpServerOptions().setPort(8080).setHost("localhost"));
     CountDownLatch latch = new CountDownLatch(1);
-    server.requestHandler(router::accept).listen(onSuccess(res -> {
-      latch.countDown();
-    }));
+    server.requestHandler(router::accept).listen(onSuccess(res -> latch.countDown()));
     awaitLatch(latch);
   }
 
@@ -187,13 +184,11 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
         routerFactory = openAPI3RouterFactoryAsyncResult.result();
         routerFactory.setOptions(HANDLERS_TESTS_OPTIONS);
 
-        routerFactory.addHandlerByOperationId("listPets", routingContext -> {
-          routingContext
-            .response()
-            .setStatusCode(200)
-            .setStatusMessage("OK")
-            .end();
-        });
+        routerFactory.addHandlerByOperationId("listPets", routingContext -> routingContext
+          .response()
+          .setStatusCode(200)
+          .setStatusMessage("OK")
+          .end());
 
         latch.countDown();
       });
@@ -214,13 +209,11 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
 
         routerFactory
           .addHandlerByOperationId("listPets", routingContext -> routingContext.fail(null))
-          .addFailureHandlerByOperationId("listPets", routingContext -> {
-            routingContext
-              .response()
-              .setStatusCode(500)
-              .setStatusMessage("ERROR")
-              .end();
-          });
+          .addFailureHandlerByOperationId("listPets", routingContext -> routingContext
+            .response()
+            .setStatusCode(500)
+            .setStatusMessage("ERROR")
+            .end());
 
         latch.countDown();
       });
@@ -250,13 +243,11 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
           .addFailureHandlerByOperationId("listPets", routingContext ->
             routingContext.put("message", routingContext.get("message") + "E").next()
           )
-          .addFailureHandlerByOperationId("listPets", routingContext -> {
-            routingContext
-              .response()
-              .setStatusCode(500)
-              .setStatusMessage(routingContext.get("message"))
-              .end();
-          });
+          .addFailureHandlerByOperationId("listPets", routingContext -> routingContext
+            .response()
+            .setStatusCode(500)
+            .setStatusMessage(routingContext.get("message"))
+            .end());
 
         latch.countDown();
       });
@@ -275,15 +266,13 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
         routerFactory = openAPI3RouterFactoryAsyncResult.result();
         routerFactory.setOptions(new RouterFactoryOptions().setRequireSecurityHandlers(true));
 
-        routerFactory.addHandlerByOperationId("listPetsSecurity", routingContext -> {
-          routingContext
-            .response()
-            .setStatusCode(200)
-            .setStatusMessage(routingContext.get("first_level") + "-" +
-              routingContext.get("second_level") + "-" + routingContext.get("third_level_one") +
-              "-" + routingContext.get("third_level_two") + "-Done")
-            .end();
-        });
+        routerFactory.addHandlerByOperationId("listPetsSecurity", routingContext -> routingContext
+          .response()
+          .setStatusCode(200)
+          .setStatusMessage(routingContext.get("first_level") + "-" +
+            routingContext.get("second_level") + "-" + routingContext.get("third_level_one") +
+            "-" + routingContext.get("third_level_two") + "-Done")
+          .end());
 
         routerFactory.addSecurityHandler("api_key",
           routingContext -> routingContext.put("first_level", "User").next()
@@ -322,13 +311,11 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
         routerFactory = openAPI3RouterFactoryAsyncResult.result();
         routerFactory.setOptions(new RouterFactoryOptions().setRequireSecurityHandlers(true));
 
-        routerFactory.addHandlerByOperationId("listPets", routingContext -> {
-          routingContext
-            .response()
-            .setStatusCode(200)
-            .setStatusMessage(routingContext.get("message") + "OK")
-            .end();
-        });
+        routerFactory.addHandlerByOperationId("listPets", routingContext -> routingContext
+          .response()
+          .setStatusCode(200)
+          .setStatusMessage(routingContext.get("message") + "OK")
+          .end());
 
         latch.countDown();
       });
@@ -336,34 +323,38 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
 
     assertThrow(routerFactory::getRouter, RouterFactoryException.class);
 
-    routerFactory.addSecurityHandler("api_key", routingContext -> routingContext.next());
+    routerFactory.addSecurityHandler("api_key", RoutingContext::next);
 
     routerFactory.addSecurityHandler("second_api_key",
-      routingContext -> routingContext.next()
+      RoutingContext::next
     );
 
     routerFactory.addSecurityHandler("third_api_key",
-      routingContext -> routingContext.next()
+      RoutingContext::next
     );
 
     assertNotThrow(routerFactory::getRouter, RouterFactoryException.class);
   }
 
   @Test
-  public void requireGlobalSecurityHandler() throws Exception {
+  public void testGlobalSecurityHandler() throws Exception {
+    final Handler<RoutingContext> handler = routingContext -> {
+      routingContext
+        .response()
+        .setStatusCode(200)
+        .setStatusMessage(((routingContext.get("message") != null) ? routingContext.get("message") +  "-OK" : "OK"))
+        .end();
+    };
+
     CountDownLatch latch = new CountDownLatch(1);
     OpenAPI3RouterFactory.create(this.vertx, "src/test/resources/swaggers/global_security_test.yaml",
       openAPI3RouterFactoryAsyncResult -> {
         routerFactory = openAPI3RouterFactoryAsyncResult.result();
         routerFactory.setOptions(new RouterFactoryOptions().setRequireSecurityHandlers(true));
 
-        routerFactory.addHandlerByOperationId("listPets", routingContext -> {
-          routingContext
-            .response()
-            .setStatusCode(200)
-            .setStatusMessage(routingContext.get("message") + "-OK")
-            .end();
-        });
+        routerFactory.addHandlerByOperationId("listPetsWithoutSecurity", handler);
+        routerFactory.addHandlerByOperationId("listPetsWithOverride", handler);
+        routerFactory.addHandlerByOperationId("listPetsWithoutOverride", handler);
 
         latch.countDown();
       });
@@ -376,12 +367,14 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
     );
 
     routerFactory.addSecurityHandler("api_key",
-      routingContext -> routingContext.put("message", routingContext.get("message") +  "-Local").next()
+      routingContext -> routingContext.put("message", "Local").next()
     );
 
     startServer();
 
-    testRequest(HttpMethod.GET, "/pets", 200, "Global-Local-OK");
+    testRequest(HttpMethod.GET, "/petsWithoutSecurity", 200, "OK");
+    testRequest(HttpMethod.GET, "/petsWithOverride", 200, "Local-OK");
+    testRequest(HttpMethod.GET, "/petsWithoutOverride", 200, "Global-OK");
   }
 
   @Test
@@ -392,13 +385,11 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
         routerFactory = openAPI3RouterFactoryAsyncResult.result();
         routerFactory.setOptions(new RouterFactoryOptions().setRequireSecurityHandlers(false));
 
-        routerFactory.addHandlerByOperationId("listPets", routingContext -> {
-          routingContext
-            .response()
-            .setStatusCode(200)
-            .setStatusMessage(routingContext.get("message") + "OK")
-            .end();
-        });
+        routerFactory.addHandlerByOperationId("listPets", routingContext -> routingContext
+          .response()
+          .setStatusCode(200)
+          .setStatusMessage(routingContext.get("message") + "OK")
+          .end());
 
         latch.countDown();
       });
@@ -415,13 +406,11 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
         routerFactory = openAPI3RouterFactoryAsyncResult.result();
         routerFactory.setOptions(HANDLERS_TESTS_OPTIONS);
 
-        routerFactory.addHandlerByOperationId("listPets", routingContext -> {
-          routingContext
-            .response()
-            .setStatusCode(200)
-            .setStatusMessage(((RequestParameters) routingContext.get("parsedParameters")).queryParameter("limit").toString())
-            .end();
-        });
+        routerFactory.addHandlerByOperationId("listPets", routingContext -> routingContext
+          .response()
+          .setStatusCode(200)
+          .setStatusMessage(((RequestParameters) routingContext.get("parsedParameters")).queryParameter("limit").toString())
+          .end());
 
         latch.countDown();
       });
@@ -449,13 +438,11 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
           )
         );
 
-        routerFactory.addHandlerByOperationId("listPets", routingContext -> {
-          routingContext
-            .response()
-            .setStatusCode(200)
-            .setStatusMessage(((RequestParameters) routingContext.get("parsedParameters")).queryParameter("limit").toString())
-            .end();
-        });
+        routerFactory.addHandlerByOperationId("listPets", routingContext -> routingContext
+          .response()
+          .setStatusCode(200)
+          .setStatusMessage(((RequestParameters) routingContext.get("parsedParameters")).queryParameter("limit").toString())
+          .end());
 
         latch.countDown();
       });
@@ -479,21 +466,17 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
             .setMountValidationFailureHandler(false)
         );
 
-        routerFactory.addHandlerByOperationId("listPets", routingContext -> {
-          routingContext
-            .response()
-            .setStatusCode(200)
-            .setStatusMessage(((RequestParameters) routingContext.get("parsedParameters")).queryParameter("limit").toString())
-            .end();
-        });
+        routerFactory.addHandlerByOperationId("listPets", routingContext -> routingContext
+          .response()
+          .setStatusCode(200)
+          .setStatusMessage(((RequestParameters) routingContext.get("parsedParameters")).queryParameter("limit").toString())
+          .end());
 
-        routerFactory.addFailureHandlerByOperationId("listPets", routingContext -> {
-          routingContext
-            .response()
-            .setStatusCode((routingContext.failure() instanceof ValidationException) ? 400 : 500)
-            .setStatusMessage((routingContext.failure() instanceof ValidationException) ? "Very very Bad Request" : "Error")
-            .end();
-        });
+        routerFactory.addFailureHandlerByOperationId("listPets", routingContext -> routingContext
+          .response()
+          .setStatusCode((routingContext.failure() instanceof ValidationException) ? 400 : 500)
+          .setStatusMessage((routingContext.failure() instanceof ValidationException) ? "Very very Bad Request" : "Error")
+          .end());
 
         latch.countDown();
       });
@@ -594,13 +577,11 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
             })
         );
 
-        routerFactory.addHandlerByOperationId("listPets", routingContext -> {
-          routingContext
-            .response()
-            .setStatusCode(200)
-            .setStatusMessage("OK")
-            .end();
-        });
+        routerFactory.addHandlerByOperationId("listPets", routingContext -> routingContext
+          .response()
+          .setStatusCode(200)
+          .setStatusMessage("OK")
+          .end());
 
         latch.countDown();
       });
@@ -762,9 +743,7 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
                                               .setBodyHandler(BodyHandler.create("my-uploads"))
                               );
 
-                              routerFactory.addHandlerByOperationId("upload", (h) -> {
-                                  h.response().setStatusCode(201).end();
-                              });
+                              routerFactory.addHandlerByOperationId("upload", (h) -> h.response().setStatusCode(201).end());
                           }
                           else {
                               fail(openAPI3RouterFactoryAsyncResult.cause());

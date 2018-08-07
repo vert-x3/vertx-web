@@ -22,12 +22,17 @@
           <groupId>org.slf4j</groupId>
           <artifactId>slf4j-api</artifactId>
         </exclusion>
+        <exclusion>
+          <groupId>com.google.guava</groupId>
+          <artifactId>guava</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
+    <!-- Force to 20.0 as that's the stack version -->
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-      <version>19.0</version>
+      <version>20.0</version>
     </dependency>
     <!-- Peeble requires SLF4J: declare this dependency to force shiro to use this one. It is the version used by vert.x -->
     <dependency>

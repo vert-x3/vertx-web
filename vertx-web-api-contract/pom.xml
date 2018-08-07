@@ -32,6 +32,18 @@
       <groupId>io.swagger.parser.v3</groupId>
       <artifactId>swagger-parser</artifactId>
       <version>2.0.0-rc3</version>
+      <exclusions>
+        <exclusion>
+          <groupId>com.google.guava</groupId>
+          <artifactId>guava</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <!-- Force to 20.0 as that's the stack version -->
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>20.0</version>
     </dependency>
 
     <dependency>

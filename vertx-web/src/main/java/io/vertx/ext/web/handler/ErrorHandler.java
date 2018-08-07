@@ -32,7 +32,7 @@ public interface ErrorHandler extends Handler<RoutingContext> {
   /**
    * The default template to use for rendering
    */
-  String DEFAULT_ERROR_HANDLER_TEMPLATE = "vertx-web-error.html";
+  String DEFAULT_ERROR_HANDLER_TEMPLATE = "META-INF/vertx/web/vertx-web-error.html";
 
   /**
    * Should exception details be displayed by default?

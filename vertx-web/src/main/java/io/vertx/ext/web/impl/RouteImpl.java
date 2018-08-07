@@ -215,12 +215,24 @@ public class RouteImpl implements Route {
     return sb.toString();
   }
 
-  synchronized void handleContext(RoutingContextImplBase context) {
-    contextHandlers.get(context.currentRouteNextHandlerIndex() - 1).handle(context);
+  void handleContext(RoutingContextImplBase context) {
+    Handler<RoutingContext> contextHandler;
+
+    synchronized (this) {
+      contextHandler = contextHandlers.get(context.currentRouteNextHandlerIndex() - 1);
+    }
+
+    contextHandler.handle(context);
   }
 
-  synchronized void handleFailure(RoutingContextImplBase context) {
-    failureHandlers.get(context.currentRouteNextFailureHandlerIndex() - 1).handle(context);
+  void handleFailure(RoutingContextImplBase context) {
+    Handler<RoutingContext> failureHandler;
+
+    synchronized (this) {
+      failureHandler = failureHandlers.get(context.currentRouteNextFailureHandlerIndex() - 1);
+    }
+
+    failureHandler.handle(context);
   }
 
   synchronized boolean matches(RoutingContextImplBase context, String mountPoint, boolean failure) {

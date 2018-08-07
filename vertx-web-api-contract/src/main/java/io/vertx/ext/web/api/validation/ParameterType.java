@@ -17,7 +17,7 @@ public enum ParameterType {
   /**
    * STRING Type accept every string
    */
-  GENERIC_STRING(value -> RequestParameter.create(value)), EMAIL(new StringTypeValidator(RegularExpressions.EMAIL)),
+  GENERIC_STRING(RequestParameter::create), EMAIL(new StringTypeValidator(RegularExpressions.EMAIL)),
   URI(new StringTypeValidator(RegularExpressions.URI)), /**
    * It allows true, false, t, f, 1, 0
    */

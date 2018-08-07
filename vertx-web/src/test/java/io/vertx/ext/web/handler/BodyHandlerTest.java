@@ -20,6 +20,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.FileUpload;
@@ -123,6 +124,48 @@ public class BodyHandlerTest extends WebTestBase {
     });
     testRequest(HttpMethod.POST, "/", req -> {
       req.setChunked(true);
+      req.write(json.encode());
+    }, 200, "OK", null);
+  }
+
+  @Test
+  public void testBodyJsonWithNegativeContentLength() throws Exception {
+    JsonObject json = new JsonObject().put("foo", "bar").put("blah", 123);
+    router.route().handler(rc -> {
+      assertEquals(json, rc.getBodyAsJson());
+      rc.response().end();
+    });
+    testRequest(HttpMethod.POST, "/", req -> {
+      req.setChunked(true);
+      req.putHeader(HttpHeaders.CONTENT_LENGTH, "-1");
+      req.write(json.encode());
+    }, 200, "OK", null);
+  }
+
+  @Test
+  public void testBodyJsonWithEmptyContentLength() throws Exception {
+    JsonObject json = new JsonObject().put("foo", "bar").put("blah", 123);
+    router.route().handler(rc -> {
+      assertEquals(json, rc.getBodyAsJson());
+      rc.response().end();
+    });
+    testRequest(HttpMethod.POST, "/", req -> {
+      req.setChunked(true);
+      req.putHeader(HttpHeaders.CONTENT_LENGTH, "");
+      req.write(json.encode());
+    }, 200, "OK", null);
+  }
+
+  @Test
+  public void testBodyJsonWithHugeContentLength() throws Exception {
+    JsonObject json = new JsonObject().put("foo", "bar").put("blah", 123);
+    router.route().handler(rc -> {
+      assertEquals(json, rc.getBodyAsJson());
+      rc.response().end();
+    });
+    testRequest(HttpMethod.POST, "/", req -> {
+      req.setChunked(true);
+      req.putHeader(HttpHeaders.CONTENT_LENGTH, String.valueOf(Long.MAX_VALUE));
       req.write(json.encode());
     }, 200, "OK", null);
   }
@@ -323,9 +366,8 @@ public class BodyHandlerTest extends WebTestBase {
 
     sendFileUploadRequest(TestUtils.randomBuffer(50), statusCode, statusMessage);
 
-    Thread.sleep(100); // wait until file is removed
     int uploadedFilesAfterEnd = deletedUploadedFilesOnEnd ? 0 : 1;
-    assertEquals(uploadedFilesAfterEnd, vertx.fileSystem().readDirBlocking(uploadsDirectory).size());
+    assertWaitUntil(() -> uploadedFilesAfterEnd == vertx.fileSystem().readDirBlocking(uploadsDirectory).size());
   }
 
   private void sendFileUploadRequest(Buffer fileData,

@@ -303,17 +303,20 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
     ObjectTypeValidator objectTypeValidator = ObjectTypeValidator.ObjectTypeValidatorFactory
       .createObjectTypeValidator(ContainerSerializationStyle.simple_exploded_object, false);
     this.resolveObjectTypeFields(objectTypeValidator, parameter.getSchema());
-    if (parameter.getIn().equals("path")) {
-      this.addPathParamRule(ParameterValidationRuleImpl.ParameterValidationRuleFactory
-        .createValidationRuleWithCustomTypeValidator(parameter.getName(), objectTypeValidator, !OpenApi3Utils
-          .isRequiredParam(parameter), OpenApi3Utils.resolveAllowEmptyValue(parameter), ParameterLocation.PATH));
-    } else if (parameter.getIn().equals("header")) {
-      this.addHeaderParamRule(ParameterValidationRuleImpl.ParameterValidationRuleFactory
-        .createValidationRuleWithCustomTypeValidator(parameter.getName(), objectTypeValidator, !OpenApi3Utils
-          .isRequiredParam(parameter), OpenApi3Utils.resolveAllowEmptyValue(parameter), ParameterLocation.HEADER));
-    } else {
-      throw new SpecFeatureNotSupportedException("combination of style, type and location (in) of parameter fields "
-        + "not supported for parameter " + parameter.getName());
+    switch (parameter.getIn()) {
+      case "path":
+        this.addPathParamRule(ParameterValidationRuleImpl.ParameterValidationRuleFactory
+          .createValidationRuleWithCustomTypeValidator(parameter.getName(), objectTypeValidator, !OpenApi3Utils
+            .isRequiredParam(parameter), OpenApi3Utils.resolveAllowEmptyValue(parameter), ParameterLocation.PATH));
+        break;
+      case "header":
+        this.addHeaderParamRule(ParameterValidationRuleImpl.ParameterValidationRuleFactory
+          .createValidationRuleWithCustomTypeValidator(parameter.getName(), objectTypeValidator, !OpenApi3Utils
+            .isRequiredParam(parameter), OpenApi3Utils.resolveAllowEmptyValue(parameter), ParameterLocation.HEADER));
+        break;
+      default:
+        throw new SpecFeatureNotSupportedException("combination of style, type and location (in) of parameter fields "
+          + "not supported for parameter " + parameter.getName());
     }
   }
 

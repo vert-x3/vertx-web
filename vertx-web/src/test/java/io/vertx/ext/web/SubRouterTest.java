@@ -444,9 +444,7 @@ public class SubRouterTest extends WebTestBase {
   @Test
   public void testStackOverflow() throws Exception {
 
-    router.get("/files/:id/info").handler(ctx -> {
-      ctx.response().end();
-    });
+    router.get("/files/:id/info").handler(ctx -> ctx.response().end());
 
     router.mountSubRouter("/v1", router);
 

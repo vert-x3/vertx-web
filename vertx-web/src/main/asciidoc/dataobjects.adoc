@@ -8,31 +8,31 @@
 ++++
 '''
 
-[cols=">25%,^25%,50%"]
+[cols=">25%,75%"]
 [frame="topbot"]
 |===
 ^|Name | Type ^| Description
-|[[inboundPermitted]]`inboundPermitted`|`Array of link:dataobjects.html#PermittedOptions[PermittedOptions]`|-
-|[[inboundPermitteds]]`inboundPermitteds`|`Array of link:dataobjects.html#PermittedOptions[PermittedOptions]`|-
-|[[maxAddressLength]]`maxAddressLength`|`Number (int)`|-
-|[[maxHandlersPerSocket]]`maxHandlersPerSocket`|`Number (int)`|-
-|[[outboundPermitted]]`outboundPermitted`|`Array of link:dataobjects.html#PermittedOptions[PermittedOptions]`|-
-|[[outboundPermitteds]]`outboundPermitteds`|`Array of link:dataobjects.html#PermittedOptions[PermittedOptions]`|-
-|[[pingTimeout]]`pingTimeout`|`Number (long)`|-
-|[[replyTimeout]]`replyTimeout`|`Number (long)`|-
+|[[inboundPermitted]]`@inboundPermitted`|`Array of link:dataobjects.html#PermittedOptions[PermittedOptions]`|-
+|[[inboundPermitteds]]`@inboundPermitteds`|`Array of link:dataobjects.html#PermittedOptions[PermittedOptions]`|-
+|[[maxAddressLength]]`@maxAddressLength`|`Number (int)`|-
+|[[maxHandlersPerSocket]]`@maxHandlersPerSocket`|`Number (int)`|-
+|[[outboundPermitted]]`@outboundPermitted`|`Array of link:dataobjects.html#PermittedOptions[PermittedOptions]`|-
+|[[outboundPermitteds]]`@outboundPermitteds`|`Array of link:dataobjects.html#PermittedOptions[PermittedOptions]`|-
+|[[pingTimeout]]`@pingTimeout`|`Number (long)`|-
+|[[replyTimeout]]`@replyTimeout`|`Number (long)`|-
 |===
 
 [[Http2PushMapping]]
 == Http2PushMapping
 
 
-[cols=">25%,^25%,50%"]
+[cols=">25%,75%"]
 [frame="topbot"]
 |===
 ^|Name | Type ^| Description
-|[[extensionTarget]]`extensionTarget`|`String`|-
-|[[filePath]]`filePath`|`String`|-
-|[[noPush]]`noPush`|`Boolean`|-
+|[[extensionTarget]]`@extensionTarget`|`String`|-
+|[[filePath]]`@filePath`|`String`|-
+|[[noPush]]`@noPush`|`Boolean`|-
 |===
 
 [[PermittedOptions]]
@@ -44,14 +44,14 @@
 ++++
 '''
 
-[cols=">25%,^25%,50%"]
+[cols=">25%,75%"]
 [frame="topbot"]
 |===
 ^|Name | Type ^| Description
-|[[address]]`address`|`String`|-
-|[[addressRegex]]`addressRegex`|`String`|-
-|[[match]]`match`|`Json object`|-
-|[[requiredAuthority]]`requiredAuthority`|`String`|-
+|[[address]]`@address`|`String`|-
+|[[addressRegex]]`@addressRegex`|`String`|-
+|[[match]]`@match`|`Json object`|-
+|[[requiredAuthority]]`@requiredAuthority`|`String`|-
 |===
 
 [[SockJSHandlerOptions]]
@@ -62,15 +62,15 @@
 ++++
 '''
 
-[cols=">25%,^25%,50%"]
+[cols=">25%,75%"]
 [frame="topbot"]
 |===
 ^|Name | Type ^| Description
-|[[disabledTransports]]`disabledTransports`|`Array of String`|-
-|[[heartbeatInterval]]`heartbeatInterval`|`Number (long)`|-
-|[[insertJSESSIONID]]`insertJSESSIONID`|`Boolean`|-
-|[[libraryURL]]`libraryURL`|`String`|-
-|[[maxBytesStreaming]]`maxBytesStreaming`|`Number (int)`|-
-|[[sessionTimeout]]`sessionTimeout`|`Number (long)`|-
+|[[disabledTransports]]`@disabledTransports`|`Array of String`|-
+|[[heartbeatInterval]]`@heartbeatInterval`|`Number (long)`|-
+|[[insertJSESSIONID]]`@insertJSESSIONID`|`Boolean`|-
+|[[libraryURL]]`@libraryURL`|`String`|-
+|[[maxBytesStreaming]]`@maxBytesStreaming`|`Number (int)`|-
+|[[sessionTimeout]]`@sessionTimeout`|`Number (long)`|-
 |===
 

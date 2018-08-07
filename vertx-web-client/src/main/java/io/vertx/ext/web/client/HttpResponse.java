@@ -15,8 +15,6 @@
  */
 package io.vertx.ext.web.client;
 
-import java.util.List;
-
 import io.vertx.codegen.annotations.CacheReturn;
 import io.vertx.codegen.annotations.Nullable;
 import io.vertx.codegen.annotations.VertxGen;
@@ -25,7 +23,10 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpVersion;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.ext.web.codec.impl.BodyCodecImpl;
+
+import java.util.List;
 
 /**
  * An HTTP response.
@@ -109,14 +110,14 @@ public interface HttpResponse<T> {
   T body();
 
   /**
-   * @return the response body decoded as a {@link Buffer}
+   * @return the response body decoded as a {@link Buffer}, or {@code null} if a codec other than {@link BodyCodec#buffer()} was used
    */
   @CacheReturn
   @Nullable
   Buffer bodyAsBuffer();
 
   /**
-   * @return the response body decoded as a {@code String}
+   * @return the response body decoded as a {@code String}, or {@code null} if a codec other than {@link BodyCodec#buffer()} was used
    */
   @CacheReturn
   @Nullable
@@ -126,7 +127,7 @@ public interface HttpResponse<T> {
   }
 
   /**
-   * @return the response body decoded as a {@code String} given a specific {@code encoding}
+   * @return the response body decoded as a {@code String} given a specific {@code encoding}, or {@code null} if a codec other than {@link BodyCodec#buffer()} was used
    */
   @Nullable
   default String bodyAsString(String encoding) {
@@ -135,7 +136,7 @@ public interface HttpResponse<T> {
   }
 
   /**
-   * @return the response body decoded as a json object
+   * @return the response body decoded as {@link JsonObject}, or {@code null} if a codec other than {@link BodyCodec#buffer()} was used
    */
   @CacheReturn
   @Nullable
@@ -145,14 +146,14 @@ public interface HttpResponse<T> {
   }
 
   /**
-   * @return the response body decoded as a json array
+   * @return the response body decoded as a {@link JsonArray}, or {@code null} if a codec other than {@link BodyCodec#buffer()} was used
    */
   @CacheReturn
   @Nullable
   JsonArray bodyAsJsonArray();
 
   /**
-   * @return the response body decoded as the specified {@code type} with the Jackson mapper.
+   * @return the response body decoded as the specified {@code type} with the Jackson mapper, or {@code null} if a codec other than {@link BodyCodec#buffer()} was used
    */
   @Nullable
   default <R> R bodyAsJson(Class<R> type) {

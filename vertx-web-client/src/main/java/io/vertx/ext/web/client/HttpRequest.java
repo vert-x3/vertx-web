@@ -28,8 +28,6 @@ import io.vertx.core.streams.ReadStream;
 import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.ext.web.multipart.MultipartForm;
 
-import java.util.List;
-
 /**
  * A client-side HTTP request.
  * <p>
