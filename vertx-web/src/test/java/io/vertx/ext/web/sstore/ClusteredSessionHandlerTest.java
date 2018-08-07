@@ -30,8 +30,7 @@ import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.CookieHandler;
 import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.handler.SessionHandlerTestBase;
-import io.vertx.ext.web.handler.SomeSerializable;
-import io.vertx.ext.web.sstore.impl.SessionImpl;
+import io.vertx.ext.web.sstore.impl.SharedDataSessionImpl;
 import io.vertx.test.core.TestUtils;
 import io.vertx.test.fakecluster.FakeClusterManager;
 import org.junit.Test;
@@ -136,14 +135,14 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
   @Test
   public void testSessionSerializationNullPrincipal() {
     long timeout = 123;
-    SessionImpl session = (SessionImpl)store.createSession(timeout);
+    SharedDataSessionImpl session = (SharedDataSessionImpl)store.createSession(timeout);
     session.setAccessed();
     long lastAccessed = session.lastAccessed();
     stuffSession(session);
     checkSession(session);
     Buffer buffer = Buffer.buffer();
     session.writeToBuffer(buffer);
-    SessionImpl session2 = (SessionImpl)store.createSession(0);
+    SharedDataSessionImpl session2 = (SharedDataSessionImpl)store.createSession(0);
     session2.readFromBuffer(0, buffer);
     checkSession(session2);
     assertEquals(timeout, session2.timeout());
@@ -164,7 +163,6 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
     session.put("somestring", "wibble");
     session.put("somebytes", bytes);
     session.put("somebuffer", buffer);
-    session.put("someserializable", new SomeSerializable("eek"));
     session.put("someclusterserializable", new JsonObject().put("foo", "bar"));
   }
 

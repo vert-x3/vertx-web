@@ -18,6 +18,7 @@ package io.vertx.ext.web.sstore;
 
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.sstore.impl.LocalSessionStoreImpl;
 
 /**
@@ -26,6 +27,7 @@ import io.vertx.ext.web.sstore.impl.LocalSessionStoreImpl;
  * Can be used when sticky sessions are being used.
  *
  * @author <a href="http://tfox.org">Tim Fox</a>
+ * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
 @VertxGen
 public interface LocalSessionStore extends SessionStore {
@@ -47,7 +49,11 @@ public interface LocalSessionStore extends SessionStore {
    * @return the session store
    */
   static LocalSessionStore create(Vertx vertx) {
-    return new LocalSessionStoreImpl(vertx, DEFAULT_SESSION_MAP_NAME, DEFAULT_REAPER_INTERVAL);
+    LocalSessionStoreImpl store = new LocalSessionStoreImpl();
+    store.init(vertx, new JsonObject()
+      .put("reaperInterval", DEFAULT_REAPER_INTERVAL)
+      .put("mapName", DEFAULT_SESSION_MAP_NAME));
+    return store;
   }
 
   /**
@@ -58,7 +64,11 @@ public interface LocalSessionStore extends SessionStore {
    * @return the session store
    */
   static LocalSessionStore create(Vertx vertx, String sessionMapName) {
-    return new LocalSessionStoreImpl(vertx, sessionMapName, DEFAULT_REAPER_INTERVAL);
+    LocalSessionStoreImpl store = new LocalSessionStoreImpl();
+    store.init(vertx, new JsonObject()
+      .put("reaperInterval", DEFAULT_REAPER_INTERVAL)
+      .put("mapName", sessionMapName));
+    return store;
   }
 
   /**
@@ -70,6 +80,10 @@ public interface LocalSessionStore extends SessionStore {
    * @return the session store
    */
   static LocalSessionStore create(Vertx vertx, String sessionMapName, long reaperInterval) {
-    return new LocalSessionStoreImpl(vertx, sessionMapName, reaperInterval);
+    LocalSessionStoreImpl store = new LocalSessionStoreImpl();
+    store.init(vertx, new JsonObject()
+      .put("reaperInterval", reaperInterval)
+      .put("mapName", sessionMapName));
+    return store;
   }
 }

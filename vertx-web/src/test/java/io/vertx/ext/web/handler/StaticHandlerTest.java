@@ -783,7 +783,6 @@ public class StaticHandlerTest extends WebTestBase {
     stat.setDefaultContentEncoding("ISO-8859-1");
     testRequest(HttpMethod.GET, "/otherpage.html", null, res -> {
       String contentType = res.headers().get("Content-Type");
-      System.out.println(contentType);
       assertEquals("text/html;charset=ISO-8859-1", contentType);
     }, 200, "OK", "<html><body>Other page</body></html>");
   }

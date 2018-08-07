@@ -18,12 +18,14 @@ package io.vertx.ext.web.sstore;
 
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.sstore.impl.ClusteredSessionStoreImpl;
 
 /**
  * A session store which stores sessions in a distributed map so they are available across the cluster.
  *
  * @author <a href="http://tfox.org">Tim Fox</a>
+ * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
 @VertxGen
 public interface ClusteredSessionStore extends SessionStore {
@@ -46,7 +48,11 @@ public interface ClusteredSessionStore extends SessionStore {
    * @return the session store
    */
   static ClusteredSessionStore create(Vertx vertx, String sessionMapName) {
-    return new ClusteredSessionStoreImpl(vertx, sessionMapName, DEFAULT_RETRY_TIMEOUT);
+    ClusteredSessionStoreImpl store = new ClusteredSessionStoreImpl();
+    store.init(vertx, new JsonObject()
+      .put("retryTimeout", DEFAULT_RETRY_TIMEOUT)
+      .put("mapName", sessionMapName));
+    return store;
   }
 
   /**
@@ -61,7 +67,11 @@ public interface ClusteredSessionStore extends SessionStore {
    * @return the session store
    */
   static ClusteredSessionStore create(Vertx vertx, String sessionMapName, long retryTimeout) {
-    return new ClusteredSessionStoreImpl(vertx, sessionMapName, retryTimeout);
+    ClusteredSessionStoreImpl store = new ClusteredSessionStoreImpl();
+    store.init(vertx, new JsonObject()
+      .put("retryTimeout", retryTimeout)
+      .put("mapName", sessionMapName));
+    return store;
   }
 
   /**
@@ -71,7 +81,11 @@ public interface ClusteredSessionStore extends SessionStore {
    * @return the session store
    */
   static ClusteredSessionStore create(Vertx vertx) {
-    return new ClusteredSessionStoreImpl(vertx, DEFAULT_SESSION_MAP_NAME, DEFAULT_RETRY_TIMEOUT);
+    ClusteredSessionStoreImpl store = new ClusteredSessionStoreImpl();
+    store.init(vertx, new JsonObject()
+      .put("retryTimeout", DEFAULT_RETRY_TIMEOUT)
+      .put("mapName", DEFAULT_SESSION_MAP_NAME));
+    return store;
   }
 
   /**
@@ -85,6 +99,10 @@ public interface ClusteredSessionStore extends SessionStore {
    * @return the session store
    */
   static ClusteredSessionStore create(Vertx vertx, long retryTimeout) {
-    return new ClusteredSessionStoreImpl(vertx, DEFAULT_SESSION_MAP_NAME, retryTimeout);
+    ClusteredSessionStoreImpl store = new ClusteredSessionStoreImpl();
+    store.init(vertx, new JsonObject()
+      .put("retryTimeout", retryTimeout)
+      .put("mapName", DEFAULT_SESSION_MAP_NAME));
+    return store;
   }
 }

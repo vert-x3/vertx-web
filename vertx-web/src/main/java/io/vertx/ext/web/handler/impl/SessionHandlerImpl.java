@@ -90,8 +90,6 @@ public class SessionHandlerImpl implements SessionHandler {
 
   @Override
   public void handle(RoutingContext context) {
-    context.response().ended();
-
     if (nagHttps && log.isDebugEnabled()) {
       String uri = context.request().absoluteURI();
       if (!uri.startsWith("https:")) {
@@ -111,7 +109,6 @@ public class SessionHandlerImpl implements SessionHandler {
             Session session = res.result();
             if (session != null) {
               context.setSession(session);
-              session.setAccessed();
               addStoreSessionHandler(context);
             } else {
               // Cannot find session - either it timed out, or was explicitly destroyed at the server side on a
@@ -173,7 +170,7 @@ public class SessionHandlerImpl implements SessionHandler {
             final Cookie cookie = context.getCookie(sessionCookieName);
             // restore defaults
             cookie
-              .setValue(session.id())
+              .setValue(session.value())
               .setPath("/")
               .setSecure(sessionCookieSecure)
               .setHttpOnly(sessionCookieHttpOnly);
@@ -204,6 +201,9 @@ public class SessionHandlerImpl implements SessionHandler {
           context.removeCookie(sessionCookieName, false);
         }
       } else {
+        // invalidate the cookie as the session has been destroyed
+        context.removeCookie(sessionCookieName);
+        // delete from the storage
         sessionStore.delete(session.id(), res -> {
           if (res.failed()) {
             log.error("Failed to delete session", res.cause());
@@ -216,7 +216,7 @@ public class SessionHandlerImpl implements SessionHandler {
   private void createNewSession(RoutingContext context) {
     Session session = sessionStore.createSession(sessionTimeout, minLength);
     context.setSession(session);
-    Cookie cookie = Cookie.cookie(sessionCookieName, session.id());
+    Cookie cookie = Cookie.cookie(sessionCookieName, session.value());
     cookie.setPath("/");
     cookie.setSecure(sessionCookieSecure);
     cookie.setHttpOnly(sessionCookieHttpOnly);

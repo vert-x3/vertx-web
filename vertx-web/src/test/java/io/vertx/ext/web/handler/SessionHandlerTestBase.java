@@ -17,18 +17,20 @@
 package io.vertx.ext.web.handler;
 
 import io.vertx.core.http.HttpMethod;
+import io.vertx.ext.web.sstore.AbstractSession;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.sstore.SessionStore;
 import io.vertx.ext.web.impl.Utils;
 import io.vertx.ext.web.WebTestBase;
-import io.vertx.ext.web.sstore.impl.SessionImpl;
 import org.junit.Test;
 
 import java.text.DateFormat;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+
+import static org.junit.Assume.assumeTrue;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -99,7 +101,7 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
       assertNotNull(sess);
       assertTrue(System.currentTimeMillis() - sess.lastAccessed() < 500);
       assertNotNull(sess.id());
-      rid.set(sess.id());
+      rid.set(sess.value());
       assertFalse(sess.isDestroyed());
       assertEquals(SessionHandler.DEFAULT_SESSION_TIMEOUT, sess.timeout());
       rc.response().end();
@@ -122,7 +124,6 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
     router.route().handler(rc -> {
       Session sess = rc.session();
       assertNotNull(sess);
-      assertTrue(System.currentTimeMillis() - sess.lastAccessed() < 500);
       assertNotNull(sess.id());
       switch (requestCount.get()) {
         case 0:
@@ -148,7 +149,13 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
       rSetCookie.set(setCookie);
     }, 200, "OK", null);
     Thread.sleep(1000);
-    testRequest(HttpMethod.GET, "/", req -> req.putHeader("cookie", rSetCookie.get()), null, 200, "OK", null);
+    testRequest(HttpMethod.GET, "/", req -> req.putHeader("cookie", rSetCookie.get()), resp -> {
+      String setCookie = resp.headers().get("set-cookie");
+      // if the cookie was regenerated
+      if (setCookie != null) {
+        rSetCookie.set(setCookie);
+      }
+    }, 200, "OK", null);
     Thread.sleep(1000);
     testRequest(HttpMethod.GET, "/", req -> req.putHeader("cookie", rSetCookie.get()), null, 200, "OK", null);
   }
@@ -230,9 +237,10 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
     AtomicReference<String> rSetCookie = new AtomicReference<>();
     testRequest(HttpMethod.GET, "/", null, resp -> {
       String setCookie = resp.headers().get("set-cookie");
-      rSetCookie.set(setCookie);
+      assertNull(setCookie);
+      // the cookie got destroyed even before the end of the request, so no side effects are expected
     }, 200, "OK", null);
-    testRequest(HttpMethod.GET, "/", req -> req.putHeader("cookie", rSetCookie.get()), null, 200, "OK", null);
+    testRequest(HttpMethod.GET, "/", null, null, 200, "OK", null);
     CountDownLatch latch1 = new CountDownLatch(1);
     store.size(onSuccess(res -> {
       assertEquals(0, res.intValue());
@@ -381,13 +389,13 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
     router.route().handler(SessionHandler.create(store));
     // call #0 anonymous a random id should be returned
     router.route("/0").handler(rc -> {
-      sessionId.set(rc.session().id());
+      sessionId.set(rc.session().value());
       rc.response().end();
     });
     // call #1 fake auth security upgrade is done so session id must change
     router.route("/1").handler(rc -> {
       // previous id must match
-      assertEquals(sessionId.get(), rc.session().id());
+      assertEquals(sessionId.get(), rc.session().value());
       rc.session().regenerateId();
       rc.response().end();
     });
@@ -405,6 +413,7 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
 
     CountDownLatch latch = new CountDownLatch(1);
     // after the id is regenerated the old id must not be valid anymore
+
     store.get(sessionId.get(), get -> {
       assertTrue(get.succeeded());
       assertNull(get.result());
@@ -434,7 +443,7 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
 
   @Test
   public void testVersion() throws Exception {
-    SessionImpl session = (SessionImpl) store.createSession(10000);
+    AbstractSession session = (AbstractSession) store.createSession(10000);
 
     assertEquals(0, session.version());
     session.put("k", "v");
@@ -443,12 +452,12 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
       if (res.failed()) {
         fail("failed to store");
       }
-      store.get(session.id(), res1 -> {
+      store.get(session.value(), res1 -> {
         if (res1.failed()) {
           fail("failed to store");
         }
 
-        SessionImpl session1 = (SessionImpl) res1.result();
+        AbstractSession session1 = (AbstractSession) res1.result();
         // session was stored for the first time so it must have version 1
         assertEquals(1, session1.version());
         // confirm that the content is present
@@ -458,12 +467,12 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
           if (res2.failed()) {
             fail("failed to store");
           }
-          store.get(session1.id(), res3 -> {
+          store.get(session1.value(), res3 -> {
             if (res3.failed()) {
               fail("failed to store");
             }
 
-            SessionImpl session2 = (SessionImpl) res3.result();
+            AbstractSession session2 = (AbstractSession) res3.result();
             // session was stored again but no changes were applied to the content
             // therefore version should remain the same
             assertEquals(1, session2.version());
@@ -477,12 +486,12 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
               if (res4.failed()) {
                 fail("failed to store");
               }
-              store.get(session2.id(), res5 -> {
+              store.get(session2.value(), res5 -> {
                 if (res5.failed()) {
                   fail("failed to store");
                 }
 
-                SessionImpl session3 = (SessionImpl) res5.result();
+                AbstractSession session3 = (AbstractSession) res5.result();
                 // session was stored again but changes were applied to the content
                 // therefore version should must increment
                 assertEquals(2, session3.version());

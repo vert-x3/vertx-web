@@ -139,7 +139,6 @@ public class BlockingHandlerTest extends WebTestBase {
     long pause = 1000;
 
     router.route().blockingHandler(rc -> {
-      System.out.println("In blocking handler");
       try {
         Thread.sleep(pause);
       } catch (Exception ignore) {
