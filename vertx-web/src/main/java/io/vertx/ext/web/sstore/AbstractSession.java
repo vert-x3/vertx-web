@@ -83,7 +83,7 @@ public abstract class AbstractSession implements Session {
   private int crc;
 
   /**
-   * Important note: This constructor is <b>mandatory</b> (even though not referenced anywhere) is required for
+   * This constructor is <b>mandatory</b> (even though not referenced anywhere) is required for
    * serialization purposes. Do not remove. It is required as part of the contract of the ClusterSerializable
    * interface which some implementations might require.
    */
