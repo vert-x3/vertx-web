@@ -118,4 +118,4 @@ public class CookieSessionHandlerTest extends SessionHandlerTestBase {
     super.testSessionExpires();
   }
 
-  }
+}
