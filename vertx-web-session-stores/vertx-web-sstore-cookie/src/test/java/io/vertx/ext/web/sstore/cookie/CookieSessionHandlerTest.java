@@ -23,6 +23,7 @@ import io.vertx.ext.web.handler.CookieHandler;
 import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.handler.SessionHandlerTestBase;
 import io.vertx.ext.web.sstore.SessionStore;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.concurrent.CountDownLatch;
@@ -36,7 +37,7 @@ public class CookieSessionHandlerTest extends SessionHandlerTestBase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    store = SessionStore.create(vertx, "cookie", new JsonObject().put("secret", "KeyboardCat!"));
+    store = CookieSessionStore.create(vertx, "KeyboardCat!");
   }
 
   @Test
@@ -105,4 +106,16 @@ public class CookieSessionHandlerTest extends SessionHandlerTestBase {
     }, 200, "OK", null);
   }
 
-}
+  /**
+   * We explicitly ignore this test as there is no backend to assert that the cookie is removed.
+   *
+   * @throws Exception
+   */
+  @Test
+  @Ignore
+  @Override
+  public void testSessionExpires() throws Exception {
+    super.testSessionExpires();
+  }
+
+  }

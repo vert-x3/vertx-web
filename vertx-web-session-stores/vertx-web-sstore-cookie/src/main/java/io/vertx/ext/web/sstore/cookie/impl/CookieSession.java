@@ -13,7 +13,7 @@
  *
  *  You may elect to redistribute this code under either of these licenses.
  */
-package io.vertx.ext.web.sstore.cookie;
+package io.vertx.ext.web.sstore.cookie.impl;
 
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonObject;
