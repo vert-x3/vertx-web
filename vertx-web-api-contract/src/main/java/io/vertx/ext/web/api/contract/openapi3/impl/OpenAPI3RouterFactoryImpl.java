@@ -241,6 +241,12 @@ public class OpenAPI3RouterFactoryImpl extends BaseRouterFactory<OpenAPI> implem
       OpenAPI3PathResolver pathResolver = new OpenAPI3PathResolver(operation.getPath(), operation.getParameters());
       Route route = router.routeWithRegex(operation.getMethod(), pathResolver.solve().toString());
 
+      // Add OpenAPI extensions to the routing context
+      Map<String, Object> extensions = operation.getOperationModel().getExtensions();
+      if(extensions != null) {
+        route.handler(ctx -> ctx.put("openapi-extensions", extensions).next());
+      }
+
       // Set produces/consumes
       Set<String> consumes = new HashSet<>();
       Set<String> produces = new HashSet<>();
