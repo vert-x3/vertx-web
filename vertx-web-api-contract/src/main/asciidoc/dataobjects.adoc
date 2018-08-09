@@ -11,6 +11,9 @@
 [frame="topbot"]
 |===
 ^|Name | Type ^| Description
+|[[exposeConfigurationKey]]`@exposeConfigurationKey`|`String`|+++
+If set, the operation configuration will be exposed in the routing context
++++
 |[[mountNotImplementedHandler]]`@mountNotImplementedHandler`|`Boolean`|+++
 Automatic mount handlers that return HTTP 501 status code for operations where you didn't specify an handler.
 +++
