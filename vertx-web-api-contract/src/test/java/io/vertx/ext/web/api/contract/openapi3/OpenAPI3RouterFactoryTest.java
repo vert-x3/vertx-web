@@ -14,6 +14,7 @@ import io.vertx.ext.web.api.contract.RouterFactoryException;
 import io.vertx.ext.web.api.contract.RouterFactoryOptions;
 import io.vertx.ext.web.api.validation.ValidationException;
 import io.vertx.ext.web.handler.BodyHandler;
+import java.util.Map;
 import org.junit.Test;
 
 import java.nio.file.Paths;
@@ -592,6 +593,33 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
     testRequest(HttpMethod.GET, "/pets", null,
       response -> assertEquals(response.getHeader("header-from-global-handler"),
         "some more dummy data"), 200, "OK", null);
+  }
+
+  @Test
+  public void extensionsTest() throws Exception {
+    CountDownLatch latch = new CountDownLatch(1);
+    OpenAPI3RouterFactory.create(this.vertx, "src/test/resources/swaggers/router_factory_test.yaml",
+      openAPI3RouterFactoryAsyncResult -> {
+        routerFactory = openAPI3RouterFactoryAsyncResult.result();
+        routerFactory.setOptions(new RouterFactoryOptions().setMountNotImplementedHandler(false));
+
+        routerFactory.addHandlerByOperationId("listPets", routingContext -> {
+          String testExtension = (String) routingContext
+            .<Map<String, Object>>get("openapi-extensions")
+            .get("x-test-extension");
+
+          routingContext
+            .response()
+            .end(testExtension);
+        });
+
+        latch.countDown();
+      });
+    awaitLatch(latch);
+
+    startServer();
+
+    testRequest(HttpMethod.GET, "/pets", 200, "OK", "test");
   }
 
   @Test
