@@ -251,7 +251,8 @@ public class RouterFactoryOptions {
   }
 
   /**
-   * If set, the operation configuration will be exposed in the routing context
+   * When set, an additional handler will be created to expose the operation model in the routing
+   * context under the given key. When the key is null, the handler is not added.
    * @param operationModelKey
    * @return
    */
