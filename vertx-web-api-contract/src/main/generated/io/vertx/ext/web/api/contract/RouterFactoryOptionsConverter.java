@@ -14,11 +14,6 @@ import java.time.format.DateTimeFormatter;
    static void fromJson(Iterable<java.util.Map.Entry<String, Object>> json, RouterFactoryOptions obj) {
     for (java.util.Map.Entry<String, Object> member : json) {
       switch (member.getKey()) {
-        case "exposeConfigurationKey":
-          if (member.getValue() instanceof String) {
-            obj.setExposeConfigurationKey((String)member.getValue());
-          }
-          break;
         case "mountNotImplementedHandler":
           if (member.getValue() instanceof Boolean) {
             obj.setMountNotImplementedHandler((Boolean)member.getValue());
@@ -32,6 +27,11 @@ import java.time.format.DateTimeFormatter;
         case "mountValidationFailureHandler":
           if (member.getValue() instanceof Boolean) {
             obj.setMountValidationFailureHandler((Boolean)member.getValue());
+          }
+          break;
+        case "operationModelKey":
+          if (member.getValue() instanceof String) {
+            obj.setOperationModelKey((String)member.getValue());
           }
           break;
         case "requireSecurityHandlers":
@@ -48,12 +48,12 @@ import java.time.format.DateTimeFormatter;
   }
 
    static void toJson(RouterFactoryOptions obj, java.util.Map<String, Object> json) {
-    if (obj.getExposeConfigurationKey() != null) {
-      json.put("exposeConfigurationKey", obj.getExposeConfigurationKey());
-    }
     json.put("mountNotImplementedHandler", obj.isMountNotImplementedHandler());
     json.put("mountResponseContentTypeHandler", obj.isMountResponseContentTypeHandler());
     json.put("mountValidationFailureHandler", obj.isMountValidationFailureHandler());
+    if (obj.getOperationModelKey() != null) {
+      json.put("operationModelKey", obj.getOperationModelKey());
+    }
     json.put("requireSecurityHandlers", obj.isRequireSecurityHandlers());
   }
 }

@@ -601,7 +601,7 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
     OpenAPI3RouterFactory.create(this.vertx, "src/test/resources/swaggers/router_factory_test.yaml",
       openAPI3RouterFactoryAsyncResult -> {
         routerFactory = openAPI3RouterFactoryAsyncResult.result();
-        routerFactory.setOptions(new RouterFactoryOptions().setExposeConfigurationKey("fooBarKey"));
+        routerFactory.setOptions(new RouterFactoryOptions().setOperationModelKey("fooBarKey"));
 
         routerFactory.addHandlerByOperationId("listPets", routingContext -> {
           Operation operation = routingContext.get("fooBarKey");

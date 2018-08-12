@@ -72,7 +72,7 @@ public class RouterFactoryOptions {
   private boolean mountResponseContentTypeHandler;
   private BodyHandler bodyHandler;
   private List<Handler<RoutingContext>> globalHandlers;
-  private String exposeConfigurationKey;
+  private String operationModelKey;
 
   public RouterFactoryOptions() {
     init();
@@ -92,7 +92,7 @@ public class RouterFactoryOptions {
     this.mountResponseContentTypeHandler = other.isMountResponseContentTypeHandler();
     this.bodyHandler = other.getBodyHandler();
     this.globalHandlers = other.getGlobalHandlers();
-    this.exposeConfigurationKey = other.getExposeConfigurationKey();
+    this.operationModelKey = other.getOperationModelKey();
   }
 
   public JsonObject toJson() {
@@ -110,7 +110,7 @@ public class RouterFactoryOptions {
     this.mountResponseContentTypeHandler = DEFAULT_MOUNT_RESPONSE_CONTENT_TYPE_HANDLER;
     this.bodyHandler = BodyHandler.create();
     this.globalHandlers = new ArrayList<>();
-    this.exposeConfigurationKey = DEFAULT_EXPOSE_CONFIGURATION_KEY;
+    this.operationModelKey = DEFAULT_EXPOSE_CONFIGURATION_KEY;
   }
 
   public Handler<RoutingContext> getValidationFailureHandler() {
@@ -246,18 +246,18 @@ public class RouterFactoryOptions {
     return this;
   }
 
-  public String getExposeConfigurationKey() {
-    return exposeConfigurationKey;
+  public String getOperationModelKey() {
+    return operationModelKey;
   }
 
   /**
    * If set, the operation configuration will be exposed in the routing context
-   * @param exposeConfigurationKey
+   * @param operationModelKey
    * @return
    */
   @Fluent
-  public RouterFactoryOptions setExposeConfigurationKey(String exposeConfigurationKey) {
-    this.exposeConfigurationKey = exposeConfigurationKey;
+  public RouterFactoryOptions setOperationModelKey(String operationModelKey) {
+    this.operationModelKey = operationModelKey;
     return this;
   }
 }
