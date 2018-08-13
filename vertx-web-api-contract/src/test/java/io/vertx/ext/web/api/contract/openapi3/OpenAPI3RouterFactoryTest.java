@@ -304,6 +304,40 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
   }
 
   @Test
+  public void mountMultipleSecurityHandlers() throws Exception {
+    final Handler<RoutingContext> firstHandler = routingContext -> routingContext.put("firstHandler", "OK").next();
+    final Handler<RoutingContext> secondHandler = routingContext -> routingContext.put("secondHandler", "OK").next();
+    final Handler<RoutingContext> secondApiKey = routingContext -> routingContext.put("secondApiKey", "OK").next();
+    final Handler<RoutingContext> thirdApiKey = routingContext -> routingContext.put("thirdApiKey", "OK").next();
+
+    CountDownLatch latch = new CountDownLatch(1);
+    OpenAPI3RouterFactory.create(this.vertx, "src/test/resources/swaggers/router_factory_test.yaml",
+      openAPI3RouterFactoryAsyncResult -> {
+        routerFactory = openAPI3RouterFactoryAsyncResult.result();
+        routerFactory.setOptions(new RouterFactoryOptions().setRequireSecurityHandlers(true));
+
+        routerFactory.addHandlerByOperationId("listPetsSecurity", routingContext ->
+          routingContext
+          .response()
+          .setStatusCode(200)
+          .setStatusMessage("First handler: " + routingContext.get("firstHandler") + ", Second handler: " + routingContext.get("secondHandler") + ", Second api key: " + routingContext.get("secondApiKey") + ", Third api key: " + routingContext.get("thirdApiKey"))
+          .end()
+        );
+
+        routerFactory.addSecurityHandler("api_key", firstHandler);
+        routerFactory.addSecurityHandler("api_key", secondHandler);
+        routerFactory.addSecurityHandler("second_api_key", secondApiKey);
+        routerFactory.addSecurityHandler("third_api_key", thirdApiKey);
+        latch.countDown();
+      });
+    awaitLatch(latch);
+
+    startServer();
+
+    testRequest(HttpMethod.GET, "/pets_security_test", 200, "First handler: OK, Second handler: OK, Second api key: OK, Third api key: OK");
+  }
+
+  @Test
   public void requireSecurityHandler() throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
     OpenAPI3RouterFactory.create(this.vertx, "src/test/resources/swaggers/router_factory_test.yaml",
@@ -335,6 +369,7 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
 
     assertNotThrow(routerFactory::getRouter, RouterFactoryException.class);
   }
+
 
   @Test
   public void testGlobalSecurityHandler() throws Exception {
