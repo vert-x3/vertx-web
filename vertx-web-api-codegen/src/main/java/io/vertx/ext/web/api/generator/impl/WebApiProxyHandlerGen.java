@@ -4,7 +4,7 @@ import io.vertx.codegen.ParamInfo;
 import io.vertx.codegen.type.*;
 import io.vertx.ext.web.api.RequestParameter;
 import io.vertx.ext.web.api.generator.impl.model.WebApiProxyMethodInfo;
-import io.vertx.serviceproxy.generator.CodeWriter;
+import io.vertx.codegen.utils.CodeWriter;
 import io.vertx.serviceproxy.generator.GeneratorUtils;
 import io.vertx.serviceproxy.generator.ServiceProxyHandlerGen;
 import io.vertx.serviceproxy.generator.model.ProxyMethodInfo;
