@@ -3,6 +3,7 @@ package io.vertx.ext.web;
 import io.vertx.core.MultiMap;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.WebClient;
@@ -62,6 +63,17 @@ public class WebTestWithWebClientBase extends WebTestBase {
   public void testRequestWithJSON(HttpMethod method, String path, JsonObject jsonObject, int statusCode, String statusMessage, JsonObject obj) throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
     webClient.request(method, 8080, "localhost", path).sendJsonObject(jsonObject, (ar) -> {
+      assertEquals(statusCode, ar.result().statusCode());
+      assertEquals(statusMessage, ar.result().statusMessage());
+      assertEquals(obj, ar.result().bodyAsJsonObject());
+      latch.countDown();
+    });
+    awaitLatch(latch);
+  }
+
+  public void testRequestWithJSON(HttpMethod method, String path, JsonArray jsonArray, int statusCode, String statusMessage, JsonObject obj) throws Exception {
+    CountDownLatch latch = new CountDownLatch(1);
+    webClient.request(method, 8080, "localhost", path).sendJson(jsonArray, (ar) -> {
       assertEquals(statusCode, ar.result().statusCode());
       assertEquals(statusMessage, ar.result().statusMessage());
       assertEquals(obj, ar.result().bodyAsJsonObject());
