@@ -65,11 +65,13 @@ public class MultipartFormUploadTest {
     Async async = ctx.async();
     Buffer result = Buffer.buffer();
     MultipartFormUpload upload = new MultipartFormUpload(vertx.getOrCreateContext(), MultipartForm.create().attribute("foo", "bar"), false);
+    upload.run();
     upload.endHandler(v -> {
       assertEquals("foo=bar", result.toString());
       async.complete();
     });
     upload.handler(result::appendBuffer);
+    upload.resume();
   }
 
   @Test
@@ -82,6 +84,7 @@ public class MultipartFormUploadTest {
       "text/plain"), true);
     List<Buffer> buffers = Collections.synchronizedList(new ArrayList<>());
     AtomicInteger end = new AtomicInteger();
+    upload.run();
     upload.endHandler(v -> {
       assertEquals(0, end.getAndIncrement());
       ctx.assertTrue(buffers.size() > 0);
@@ -91,5 +94,6 @@ public class MultipartFormUploadTest {
       assertEquals(0, end.get());
       buffers.add(buffer);
     });
+    upload.resume();
   }
 }

@@ -26,6 +26,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.impl.HeadersAdaptor;
+import io.vertx.core.queue.Queue;
 import io.vertx.core.streams.ReadStream;
 import io.vertx.ext.web.multipart.FormDataPart;
 import io.vertx.ext.web.multipart.MultipartForm;
@@ -41,17 +42,14 @@ public class MultipartFormUpload implements ReadStream<Buffer> {
 
   private static final UnpooledByteBufAllocator ALLOC = new UnpooledByteBufAllocator(false);
 
-  private final Context context;
   private DefaultFullHttpRequest request;
   private HttpPostRequestEncoder encoder;
   private Handler<Throwable> exceptionHandler;
-  private Handler<Buffer> dataHandler;
   private Handler<Void> endHandler;
-  private boolean paused;
-  private boolean sentCheck;
+  private Queue<Buffer> pending;
 
   public MultipartFormUpload(Context context, MultipartForm parts, boolean multipart) throws Exception {
-    this.context = context;
+    this.pending = Queue.<Buffer>queue(context).emptyHandler(v -> checkEnd()).writableHandler(v -> run()).pause();
     this.request = new DefaultFullHttpRequest(
       HttpVersion.HTTP_1_1,
       io.netty.handler.codec.http.HttpMethod.POST,
@@ -67,64 +65,52 @@ public class MultipartFormUpload implements ReadStream<Buffer> {
       }
     }
     encoder.finalizeRequest();
-    this.paused = true;
+  }
+
+  private void checkEnd() {
+    Handler<Void> handler;
+    synchronized (MultipartFormUpload.this) {
+      if (encoder != null || (handler = endHandler) == null) {
+        return;
+      }
+    }
+    handler.handle(null);
+  }
+
+  public void run() {
+    while (encoder != null) {
+      if (encoder.isChunked()) {
+        try {
+          HttpContent chunk = encoder.readChunk(ALLOC);
+          ByteBuf content = chunk.content();
+          Buffer buff = Buffer.buffer(content);
+          if (encoder.isEndOfInput()) {
+            request = null;
+            encoder = null;
+          }
+          if (!pending.add(buff)) {
+            break;
+          }
+        } catch (Exception e) {
+          request = null;
+          encoder = null;
+          if (exceptionHandler != null) {
+            exceptionHandler.handle(e);
+          }
+          break;
+        }
+      } else {
+        ByteBuf content = request.content();
+        Buffer buffer = Buffer.buffer(content);
+        request = null;
+        encoder = null;
+        pending.add(buffer);
+      }
+    }
   }
 
   public MultiMap headers() {
     return new HeadersAdaptor(request.headers());
-  }
-
-  private synchronized void checkNextTick() {
-    if (!paused && encoder != null && !sentCheck) {
-      sentCheck = true;
-      context.runOnContext(v -> {
-        Handler<Void> endHandler;
-        Handler<Buffer> dataHandler;
-        Handler<Throwable> exceptionHandler;
-        synchronized (MultipartFormUpload.this) {
-          sentCheck = false;
-          endHandler = this.endHandler;
-          dataHandler = this.dataHandler;
-          exceptionHandler = this.exceptionHandler;
-        }
-        if (encoder.isChunked()) {
-          try {
-            HttpContent chunk = encoder.readChunk(ALLOC);
-            ByteBuf content = chunk.content();
-            Buffer buff = Buffer.buffer(content);
-            if (dataHandler != null) {
-              dataHandler.handle(buff);
-            }
-            if (encoder.isEndOfInput()) {
-              request = null;
-              encoder = null;
-              if (endHandler != null) {
-                endHandler.handle(null);
-              }
-            } else {
-              checkNextTick();
-            }
-          } catch (Exception e) {
-            request = null;
-            encoder = null;
-            if (exceptionHandler != null) {
-              exceptionHandler.handle(e);
-            }
-          }
-        } else {
-          ByteBuf content = request.content();
-          Buffer buffer = Buffer.buffer(content);
-          if (dataHandler != null) {
-            dataHandler.handle(buffer);
-          }
-          if (endHandler != null) {
-            endHandler.handle(null);
-          }
-          request = null;
-          encoder = null;
-        }
-      });
-    }
   }
 
   @Override
@@ -135,29 +121,25 @@ public class MultipartFormUpload implements ReadStream<Buffer> {
 
   @Override
   public synchronized MultipartFormUpload handler(Handler<Buffer> handler) {
-    if (dataHandler == null) {
-      dataHandler = handler;
-      if (paused) {
-        resume();
-      }
-    } else {
-      dataHandler = handler;
-    }
+    pending.handler(handler);
     return this;
   }
 
   @Override
   public synchronized MultipartFormUpload pause() {
-    paused = true;
+    pending.pause();
+    return this;
+  }
+
+  @Override
+  public ReadStream<Buffer> fetch(long amount) {
+    pending.take(amount);
     return this;
   }
 
   @Override
   public synchronized MultipartFormUpload resume() {
-    if (paused) {
-      paused = false;
-      checkNextTick();
-    }
+    pending.resume();
     return this;
   }
 

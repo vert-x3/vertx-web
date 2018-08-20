@@ -55,6 +55,11 @@ class HttpServerRequestWrapper implements HttpServerRequest {
   }
 
   @Override
+  public HttpServerRequest fetch(long amount) {
+    return delegate.fetch(amount);
+  }
+
+  @Override
   public HttpServerRequest endHandler(Handler<Void> handler) {
     return delegate.endHandler(handler);
   }

@@ -236,6 +236,7 @@ public class HttpContext {
         for (String headerName : request.headers().names()) {
           req.putHeader(headerName, request.headers().get(headerName));
         }
+        multipartForm.run();
       }
 
       if (body instanceof ReadStream<?>) {
@@ -260,6 +261,7 @@ public class HttpContext {
           pump.stop();
         });
         pump.start();
+        stream.resume();
       } else {
         Buffer buffer;
         if (body instanceof Buffer) {

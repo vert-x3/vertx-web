@@ -331,6 +331,10 @@ public class WebClientTest extends HttpTestBase {
             return this;
           }
           @Override
+          public ReadStream<Buffer> fetch(long amount) {
+            throw new UnsupportedOperationException();
+          }
+          @Override
           public ReadStream<Buffer> resume() {
             paused.set(false);
             return this;
@@ -384,6 +388,10 @@ public class WebClientTest extends HttpTestBase {
             return this;
           }
           @Override
+          public ReadStream<Buffer> fetch(long amount) {
+            return this;
+          }
+          @Override
           public ReadStream<Buffer> pause() {
             return this;
           }
@@ -420,6 +428,10 @@ public class WebClientTest extends HttpTestBase {
         if (handler != null) {
           vertx.runOnContext(v -> exceptionHandler.handle(cause));
         }
+        return this;
+      }
+      @Override
+      public ReadStream<Buffer> fetch(long amount) {
         return this;
       }
       @Override

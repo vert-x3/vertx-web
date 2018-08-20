@@ -42,13 +42,15 @@ import io.vertx.core.json.DecodeException;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.core.net.SocketAddress;
+import io.vertx.core.queue.Queue;
 import io.vertx.core.shareddata.LocalMap;
 import io.vertx.core.shareddata.Shareable;
+import io.vertx.core.streams.ReadStream;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.sockjs.SockJSSocket;
 
+import java.util.Deque;
 import java.util.LinkedList;
-import java.util.Queue;
 
 import static io.vertx.core.buffer.Buffer.buffer;
 
@@ -65,10 +67,9 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
 
   private static final Logger log = LoggerFactory.getLogger(SockJSSession.class);
   private final LocalMap<String, SockJSSession> sessions;
-  private final Queue<String> pendingWrites = new LinkedList<>();
-  private final Queue<String> pendingReads = new LinkedList<>();
+  private final Deque<String> pendingWrites = new LinkedList<>();
+  private final Queue<Buffer> pendingReads;
   private TransportListener listener;
-  private Handler<Buffer> dataHandler;
   private boolean closed;
   private boolean openWritten;
   private final String id;
@@ -76,7 +77,6 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
   private final Handler<SockJSSocket> sockHandler;
   private long heartbeatID = -1;
   private long timeoutTimerID = -1;
-  private boolean paused;
   private int maxQueueSize = 64 * 1024; // Message queue size is measured in *characters* (not bytes)
   private int messagesSize;
   private Handler<Void> drainHandler;
@@ -101,6 +101,7 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
     this.id = id;
     this.timeout = timeout;
     this.sockHandler = sockHandler;
+    this.pendingReads = Queue.queue(vertx.getOrCreateContext());
 
     // Start a heartbeat
 
@@ -131,24 +132,25 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
 
   @Override
   public synchronized SockJSSession handler(Handler<Buffer> handler) {
-    this.dataHandler = handler;
+    pendingReads.handler(handler);
+    return this;
+  }
+
+  @Override
+  public ReadStream<Buffer> fetch(long amount) {
+    pendingReads.take(amount);
     return this;
   }
 
   @Override
   public synchronized SockJSSession pause() {
-    paused = true;
+    pendingReads.pause();
     return this;
   }
 
   @Override
   public synchronized SockJSSession resume() {
-    paused = false;
-    if (dataHandler != null) {
-      for (String msg: this.pendingReads) {
-        dataHandler.handle(buffer(msg));
-      }
-    }
+    pendingReads.resume();
     return this;
   }
 
@@ -361,18 +363,8 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
     if (msgArr == null) {
       return false;
     } else {
-      if (dataHandler != null) {
-        for (String msg : msgArr) {
-          if (!paused) {
-            try {
-              dataHandler.handle(buffer(msg));
-            } catch (Throwable t) {
-              log.error("Unhandle exception", t);
-            }
-          } else {
-            pendingReads.add(msg);
-          }
-        }
+      for (String msg : msgArr) {
+        pendingReads.add(buffer(msg));
       }
       return true;
     }
