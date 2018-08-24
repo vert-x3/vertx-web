@@ -422,6 +422,9 @@ public class RouteImpl implements Route {
   // intersection of regex chars and https://tools.ietf.org/html/rfc3986#section-3.3
   private static final Pattern RE_OPERATORS_NO_STAR = Pattern.compile("([\\(\\)\\$\\+\\.])");
 
+  // Pattern for :<token name> in path
+  private static final Pattern RE_TOKEN_SEARCH = Pattern.compile(":([A-Za-z][A-Za-z0-9_]*)");
+
   private void createPatternRegex(String path) {
     // escape path from any regex special chars
     path = RE_OPERATORS_NO_STAR.matcher(path).replaceAll("\\\\$1");
@@ -430,7 +433,7 @@ public class RouteImpl implements Route {
       path = path.substring(0, path.length() - 1) + ".*";
     }
     // We need to search for any :<token name> tokens in the String and replace them with named capture groups
-    Matcher m = Pattern.compile(":([A-Za-z][A-Za-z0-9_]*)").matcher(path);
+    Matcher m = RE_TOKEN_SEARCH.matcher(path);
     StringBuffer sb = new StringBuffer();
     groups = new ArrayList<>();
     int index = 0;
