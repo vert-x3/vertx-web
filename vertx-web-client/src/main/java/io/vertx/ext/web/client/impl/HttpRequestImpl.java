@@ -28,13 +28,17 @@ import io.vertx.core.streams.ReadStream;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClientOptions;
+import io.vertx.ext.web.client.predicate.ResponsePredicate;
 import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.ext.web.multipart.MultipartForm;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
  */
-class HttpRequestImpl<T> implements HttpRequest<T> {
+public class HttpRequestImpl<T> implements HttpRequest<T> {
 
   final WebClientInternal client;
   final WebClientOptions options;
@@ -50,6 +54,7 @@ class HttpRequestImpl<T> implements HttpRequest<T> {
   BodyCodec<T> codec;
   boolean followRedirects;
   boolean ssl;
+  public List<ResponsePredicate> expectations;
 
   HttpRequestImpl(WebClientInternal client, HttpMethod method, boolean ssl, int port, String host, String uri, BodyCodec<T>
           codec, WebClientOptions options) {
@@ -167,6 +172,15 @@ class HttpRequestImpl<T> implements HttpRequest<T> {
   @Override
   public HttpRequest<T> followRedirects(boolean value) {
     followRedirects = value;
+    return this;
+  }
+
+  @Override
+  public HttpRequest<T> expect(ResponsePredicate expectation) {
+    if (expectations == null) {
+      expectations = new ArrayList<>();
+    }
+    expectations.add(expectation);
     return this;
   }
 

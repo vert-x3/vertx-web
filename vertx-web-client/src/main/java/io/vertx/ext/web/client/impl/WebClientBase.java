@@ -31,6 +31,7 @@ import io.vertx.core.http.impl.HttpClientImpl;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClientOptions;
+import io.vertx.ext.web.client.impl.predicate.PredicateInterceptor;
 import io.vertx.ext.web.codec.impl.BodyCodecImpl;
 
 /**
@@ -46,12 +47,15 @@ public class WebClientBase implements WebClientInternal {
     this.client = client;
     this.options = new WebClientOptions(options);
     this.interceptors = new CopyOnWriteArrayList<>();
+
+    // Add base interceptor
+    addInterceptor(new PredicateInterceptor());
   }
 
   WebClientBase(WebClientBase webClient) {
     this.client = webClient.client;
     this.options = new WebClientOptions(webClient.options);
-    this.interceptors = new CopyOnWriteArrayList<>(new CopyOnWriteArrayList<>());
+    this.interceptors = new CopyOnWriteArrayList<>(webClient.interceptors);
   }
 
   @Override

@@ -16,12 +16,14 @@
 
 package examples;
 
+import io.vertx.codegen.annotations.Nullable;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.file.FileSystem;
 import io.vertx.core.file.OpenOptions;
 import io.vertx.core.http.HttpClient;
+import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.streams.ReadStream;
 import io.vertx.core.streams.WriteStream;
@@ -30,8 +32,15 @@ import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
+import io.vertx.ext.web.client.predicate.ErrorConverter;
+import io.vertx.ext.web.client.predicate.ResponsePredicate;
+import io.vertx.ext.web.client.predicate.ResponsePredicateResult;
 import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.ext.web.multipart.MultipartForm;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.function.Function;
 
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
@@ -404,6 +413,135 @@ public class WebClientExamples {
           System.out.println("Something went wrong " + ar.cause().getMessage());
         }
       });
+  }
+
+  public void manualSanityChecks(WebClient client) {
+    client
+      .get(8080, "myserver.mycompany.com", "/some-uri")
+      .send(ar -> {
+        if (ar.succeeded()) {
+
+          HttpResponse<Buffer> response = ar.result();
+
+          if (response.statusCode() == 200 && response.getHeader("content-type").equals("application/json")) {
+
+            // Decode the body as a json object
+            JsonObject body = response.bodyAsJsonObject();
+            System.out.println("Received response with status code" + response.statusCode() + " with body " + body);
+
+          } else {
+            System.out.println("Something went wrong " + response.statusCode());
+          }
+
+        } else {
+          System.out.println("Something went wrong " + ar.cause().getMessage());
+        }
+      });
+  }
+
+  public void usingPredicates(WebClient client) {
+
+    // Check CORS header allowing to do POST
+    Function<HttpResponse<Void>, ResponsePredicateResult> methodsPredicate = resp -> {
+      String methods = resp.getHeader("Access-Control-Allow-Methods");
+      if (methods != null) {
+        if (methods.contains("POST")) {
+          return ResponsePredicateResult.success();
+        }
+      }
+      return ResponsePredicateResult.failure("Does not work");
+    };
+
+    // Send pre-flight CORS request
+    client
+      .request(HttpMethod.OPTIONS, 8080, "myserver.mycompany.com", "/some-uri")
+      .putHeader("Origin", "Server-b.com")
+      .putHeader("Access-Control-Request-Method", "POST")
+      .expect(methodsPredicate)
+      .send(ar -> {
+        if (ar.succeeded()) {
+          // Process the POST request now
+        } else {
+          System.out.println("Something went wrong " + ar.cause().getMessage());
+        }
+      });
+  }
+
+  public void usingPredefinedPredicates(WebClient client) {
+    client
+      .get(8080, "myserver.mycompany.com", "/some-uri")
+      .expect(ResponsePredicate.SC_SUCCESS)
+      .expect(ResponsePredicate.JSON)
+      .send(ar -> {
+        if (ar.succeeded()) {
+
+          HttpResponse<Buffer> response = ar.result();
+
+          // Safely decode the body as a json object
+          JsonObject body = response.bodyAsJsonObject();
+          System.out.println("Received response with status code" + response.statusCode() + " with body " + body);
+
+        } else {
+          System.out.println("Something went wrong " + ar.cause().getMessage());
+        }
+      });
+  }
+
+  public void usingSpecificStatus(WebClient client) {
+    client
+      .get(8080, "myserver.mycompany.com", "/some-uri")
+      .expect(ResponsePredicate.status(200, 202))
+      .send(ar -> {
+        // ....
+      });
+  }
+
+  public void usingSpecificContentType(WebClient client) {
+    client
+      .get(8080, "myserver.mycompany.com", "/some-uri")
+      .expect(ResponsePredicate.contentType("some/content-type"))
+      .send(ar -> {
+        // ....
+      });
+  }
+
+  private static class MyCustomException extends Exception {
+    private final String code;
+
+    public MyCustomException(String message) {
+      super(message);
+      code = null;
+    }
+
+    public MyCustomException(String code, String message) {
+      super(message);
+      this.code = code;
+    }
+  }
+
+  public void predicateCustomError() {
+    ResponsePredicate predicate = ResponsePredicate.create(ResponsePredicate.SC_SUCCESS, result -> {
+      return new MyCustomException(result.message());
+    });
+  }
+
+  public void predicateCustomErrorWithBody() {
+    ErrorConverter converter = ErrorConverter.createFullBody(result -> {
+
+      // Invoked after the response body is fully received
+      HttpResponse<Buffer> response = result.response();
+
+      if (response.getHeader("content-type").equals("application/json")) {
+        // Error body is JSON data
+        JsonObject body = response.bodyAsJsonObject();
+        return new MyCustomException(body.getString("code"), body.getString("message"));
+      }
+
+      // Fallback to defaut message
+      return new MyCustomException(result.message());
+    });
+
+    ResponsePredicate predicate = ResponsePredicate.create(ResponsePredicate.SC_SUCCESS, converter);
   }
 
   public void testClientDisableFollowRedirects(Vertx vertx) {

@@ -27,7 +27,7 @@ import java.util.List;
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
  */
-class HttpResponseImpl<T> implements HttpResponse<T> {
+public class HttpResponseImpl<T> implements HttpResponse<T> {
 
   private final HttpVersion version;
   private final int statusCode;

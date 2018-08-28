@@ -251,7 +251,14 @@ On a success result the callback happens after the response has been received
 {@link examples.WebClientExamples#receiveResponse(io.vertx.ext.web.client.WebClient)}
 ----
 
-WARNING: responses are fully buffered, use {@link io.vertx.ext.web.codec.BodyCodec#pipe(io.vertx.core.streams.WriteStream)}
+[CAUTION]
+====
+By default, a Vert.x Web Client request ends with an error only if something wrong happens at the network level.
+In other words, a `404 Not Found` response, or a response with the wrong content type, are *not* considered as failures.
+Use <<response-predicates, response predicates>> if you want the Web Client to perform sanity checks automatically.
+====
+
+WARNING: Responses are fully buffered, use {@link io.vertx.ext.web.codec.BodyCodec#pipe(io.vertx.core.streams.WriteStream)}
 to pipe the response to a write stream
 
 === Decoding responses
@@ -309,6 +316,98 @@ that decode the response to a specific type
 ----
 
 WARNING: this is only valid for the response decoded as a buffer.
+
+[[response-predicates]]
+=== Response predicates
+
+By default, a Vert.x Web Client request ends with an error only if something wrong happens at the network level.
+
+In other words, you must perform sanity checks manually after the response is received:
+
+[source,$lang]
+----
+{@link examples.WebClientExamples#manualSanityChecks(io.vertx.ext.web.client.WebClient)}
+----
+
+You can trade flexibility for clarity and conciseness using _response predicates_.
+
+{@link io.vertx.ext.web.client.predicate.ResponsePredicate Response predicates} can fail a request when the response does
+not match a criteria.
+
+The Web Client comes with a set of out of the box predicates ready to use:
+
+[source,$lang]
+----
+{@link examples.WebClientExamples#usingPredefinedPredicates(io.vertx.ext.web.client.WebClient)}
+----
+
+You can also create custom predicates when existing predicates don't fit your needs:
+
+[source,$lang]
+----
+{@link examples.WebClientExamples#usingPredicates(io.vertx.ext.web.client.WebClient)}
+----
+
+TIP: Response predicates are evaluated _before_ the response body is received. Therefore you can't inspect the response body
+in a predicate test function.
+
+==== Predefined predicates
+
+As a convenience, the Web Client ships a few predicates for common uses cases .
+
+For status codes, e.g {@link io.vertx.ext.web.client.predicate.ResponsePredicate#SC_SUCCESS} to verify that the
+response has a `2xx` code, you can also create a custom one:
+
+[source,$lang]
+----
+{@link examples.WebClientExamples#usingSpecificStatus(io.vertx.ext.web.client.WebClient)}
+----
+
+For content types, e.g {@link io.vertx.ext.web.client.predicate.ResponsePredicate#JSON} to verify that the
+response body contains JSON data, you can also create a custom one:
+
+[source,$lang]
+----
+{@link examples.WebClientExamples#usingSpecificContentType(io.vertx.ext.web.client.WebClient)}
+----
+
+Please refer to the {@link io.vertx.ext.web.client.predicate.ResponsePredicate} documentation for a full list of predefined predicates.
+
+ifeval::["$lang" == "java"]
+==== Creating custom failures
+
+By default, response predicates (including the predefined ones) use a default error converter which discards
+the body and conveys a simple message. You can customize the exception class by changing the error converter:
+
+[source,$lang]
+----
+{@link examples.WebClientExamples#predicateCustomError()}
+----
+
+Many web APIs provide details in error responses.
+For example, the https://developer.marvel.com/docs[Marvel API] uses this JSON object format:
+
+[source,javascript]
+----
+{
+  "code": "InvalidCredentials",
+  "message": "The passed API key is invalid."
+}
+----
+
+To avoid losing this information, it is possible to wait for the response body to be fully received before the error
+converter is called:
+
+[source,$lang]
+----
+{@link examples.WebClientExamples#predicateCustomErrorWithBody()}
+----
+
+WARNING: creating exception in Java can have a performance cost when it captures a stack trace, so you might want
+         to create exceptions that do not capture the stack trace. By default exceptions are reported using the
+         an exception that does not capture the stack trace.
+
+endif::[]
 
 === Handling 30x redirections
 
