@@ -1,0 +1,14 @@
+= Enums
+
+[[StatusExpectations]]
+== StatusExpectations
+
+
+[cols=">25%,75%"]
+[frame="topbot"]
+|===
+^|Name | Description
+|[[SUCCESS]]`SUCCESS`|-
+|[[OK]]`OK`|-
+|===
+

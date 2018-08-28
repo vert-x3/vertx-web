@@ -25,6 +25,7 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.streams.ReadStream;
+import io.vertx.ext.web.client.checks.ResponsePredicate;
 import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.ext.web.multipart.MultipartForm;
 
@@ -183,6 +184,9 @@ public interface HttpRequest<T> {
    */
   @Fluent
   HttpRequest<T> followRedirects(boolean value);
+
+  @Fluent
+  HttpRequest<T> expect(ResponsePredicate expectation);
 
   /**
    * Return the current query parameters.

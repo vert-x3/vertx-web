@@ -28,6 +28,7 @@ import io.vertx.core.streams.Pump;
 import io.vertx.core.streams.ReadStream;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.HttpResponse;
+import io.vertx.ext.web.client.checks.ResponsePredicate;
 import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.ext.web.codec.spi.BodyStream;
 import io.vertx.ext.web.multipart.MultipartForm;
@@ -36,6 +37,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -116,6 +118,24 @@ public class HttpContext {
           // We are running on a context (the HTTP client mandates it)
           context.runOnContext(v -> currentResponseHandler.handle(r));
         });
+
+        // Run expectations
+        List<ResponsePredicate> expectations = request.expectations;
+        if (expectations != null) {
+          for (ResponsePredicate check : expectations) {
+            if (!check.test(resp)) {
+              Throwable result = check.mapToError(resp);
+              if (result != null) {
+                fut.tryFail(result);
+              } else {
+                fut.tryFail("");
+              }
+              return;
+            }
+          }
+        }
+
+        // Setup response handlers
         resp.exceptionHandler(err -> {
           if (!fut.isComplete()) {
             fut.fail(err);
