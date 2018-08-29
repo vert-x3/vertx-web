@@ -659,5 +659,15 @@ public class BodyHandlerTest extends WebTestBase {
     assertFalse("Upload directory must not be created.",
         vertx.fileSystem().existsBlocking(BodyHandler.DEFAULT_UPLOADS_DIRECTORY));
   }
+  
+  @Test
+  public void testBodyHanlerCreateFalseWorks() throws Exception
+  {
+    oneTimeTearDown();
+    router.clear();
+    router.route().handler(BodyHandler.create(false));
+
+    testFormURLEncoded();
+  }
 
 }

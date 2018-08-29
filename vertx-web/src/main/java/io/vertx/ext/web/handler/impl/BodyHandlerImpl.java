@@ -63,7 +63,7 @@ public class BodyHandlerImpl implements BodyHandler {
   }
 
   public BodyHandlerImpl(boolean ignoreFilesUpload) {
-    this(ignoreFilesUpload, null);
+    this(ignoreFilesUpload, ignoreFilesUpload ? null : DEFAULT_UPLOADS_DIRECTORY);
   }
 
   public BodyHandlerImpl(String uploadDirectory) {

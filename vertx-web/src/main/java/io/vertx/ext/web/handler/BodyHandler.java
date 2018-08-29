@@ -67,7 +67,7 @@ public interface BodyHandler extends Handler<RoutingContext> {
   }
 
   /**
-   * Create a body handler setting if it should support files upload
+   * Create a body handler setting if it should ignore files upload
    *
    * @param ignorefilesUpload true if files upload is allowed
    * @return the body handler
