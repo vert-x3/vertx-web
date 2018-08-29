@@ -302,7 +302,7 @@ public class BodyHandlerImpl implements BodyHandler {
     }
 
     private void deleteFileUploads() {
-      if (ignoreFilesUpload && cleanup.compareAndSet(false, true)) {
+      if (!ignoreFilesUpload && cleanup.compareAndSet(false, true)) {
         for (FileUpload fileUpload : context.fileUploads()) {
           FileSystem fileSystem = context.vertx().fileSystem();
           String uploadedFileName = fileUpload.uploadedFileName();

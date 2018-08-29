@@ -564,7 +564,7 @@ public class BodyHandlerTest extends WebTestBase {
 
   @Test
   public void testCannotSetUploadDirIfUploadDisabled() {
-    BodyHandlerImpl bh = new BodyHandlerImpl(false);
+    BodyHandler bh = BodyHandler.create(true);
     try {
       bh.setUploadsDirectory(".");
       fail("IllegalStateException was expected.");
