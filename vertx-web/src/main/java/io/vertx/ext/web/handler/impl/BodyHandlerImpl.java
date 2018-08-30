@@ -50,7 +50,7 @@ public class BodyHandlerImpl implements BodyHandler {
   private static final Handler<HttpServerFileUpload> NOOP_UPLOAD_HANDLER = upload -> {};
 
   private long bodyLimit = DEFAULT_BODY_LIMIT;
-  private boolean ignoreFilesUpload;
+  private boolean handleFileUploads;
   private String uploadsDir;
   private boolean mergeFormAttributes = DEFAULT_MERGE_FORM_ATTRIBUTES;
   private boolean deleteUploadedFilesOnEnd = DEFAULT_DELETE_UPLOADED_FILES_ON_END;
@@ -59,21 +59,21 @@ public class BodyHandlerImpl implements BodyHandler {
 
 
   public BodyHandlerImpl() {
-    this(false, DEFAULT_UPLOADS_DIRECTORY);
+    this(true, DEFAULT_UPLOADS_DIRECTORY);
   }
 
-  public BodyHandlerImpl(boolean ignoreFilesUpload) {
-    this(ignoreFilesUpload, ignoreFilesUpload ? null : DEFAULT_UPLOADS_DIRECTORY);
+  public BodyHandlerImpl(boolean handleFileUploads) {
+    this(handleFileUploads, DEFAULT_UPLOADS_DIRECTORY);
   }
 
   public BodyHandlerImpl(String uploadDirectory) {
-    this(false, uploadDirectory);
+    this(true, uploadDirectory);
   }
 
   // private in order to not allow conflicting settings.
-  private BodyHandlerImpl(boolean ignoreFilesUpload, String uploadDirectory) {
-    this.ignoreFilesUpload = ignoreFilesUpload;
-    if (!ignoreFilesUpload) {
+  private BodyHandlerImpl(boolean handleFileUploads, String uploadDirectory) {
+    this.handleFileUploads = handleFileUploads;
+    if (handleFileUploads) {
       setUploadsDirectory(Objects.requireNonNull(uploadDirectory));
     }
   }
@@ -111,8 +111,8 @@ public class BodyHandlerImpl implements BodyHandler {
 
   @Override
   public BodyHandler setUploadsDirectory(String uploadsDirectory) {
-    if (ignoreFilesUpload) {
-      throw new IllegalStateException("Cannot set the uplaod directory because ignoreFilesUpload is set to true.");
+    if (!handleFileUploads) {
+      throw new IllegalStateException("Cannot set the upload directory because handleFileUploads is set to false.");
     }
     this.uploadsDir = uploadsDirectory;
     return this;
@@ -181,7 +181,7 @@ public class BodyHandlerImpl implements BodyHandler {
 
       if (isMultipart || isUrlEncoded) {
         context.request().setExpectMultipart(true);
-        if (!ignoreFilesUpload) {
+        if (handleFileUploads) {
           makeUploadDir(context.vertx().fileSystem());
           context.request().uploadHandler(upload -> {
             if (bodyLimit != -1 && upload.isSizeAvailable()) {
@@ -302,7 +302,7 @@ public class BodyHandlerImpl implements BodyHandler {
     }
 
     private void deleteFileUploads() {
-      if (!ignoreFilesUpload && cleanup.compareAndSet(false, true)) {
+      if (cleanup.compareAndSet(false, true) && handleFileUploads) {
         for (FileUpload fileUpload : context.fileUploads()) {
           FileSystem fileSystem = context.vertx().fileSystem();
           String uploadedFileName = fileUpload.uploadedFileName();

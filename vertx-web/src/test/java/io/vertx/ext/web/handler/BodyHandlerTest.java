@@ -34,7 +34,6 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.FileUpload;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.WebTestBase;
-import io.vertx.ext.web.handler.impl.BodyHandlerImpl;
 import io.vertx.test.core.TestUtils;
 
 /**
@@ -564,7 +563,7 @@ public class BodyHandlerTest extends WebTestBase {
 
   @Test
   public void testCannotSetUploadDirIfUploadDisabled() {
-    BodyHandler bh = BodyHandler.create(true);
+    BodyHandler bh = BodyHandler.create(false);
     try {
       bh.setUploadsDirectory(".");
       fail("IllegalStateException was expected.");
@@ -578,7 +577,7 @@ public class BodyHandlerTest extends WebTestBase {
   {
     oneTimeTearDown();
     router.clear();
-    router.route().handler(BodyHandler.create(true));
+    router.route().handler(BodyHandler.create(false));
     
     Buffer fileData = TestUtils.randomBuffer(50);
     router.route().handler(rc -> {
@@ -599,10 +598,10 @@ public class BodyHandlerTest extends WebTestBase {
       testFormMultipartFormDataWithAllowedFilesUploadFalse(false);
   }
   
-  public void testFormMultipartFormDataWithAllowedFilesUploadFalse(boolean mergeAttributes) throws Exception {
+  private void testFormMultipartFormDataWithAllowedFilesUploadFalse(boolean mergeAttributes) throws Exception {
     String fileName = "test.bin";
     router.clear();
-    router.route().handler(BodyHandler.create(true).setMergeFormAttributes(mergeAttributes)).handler(rc -> {
+    router.route().handler(BodyHandler.create(false).setMergeFormAttributes(mergeAttributes)).handler(rc -> {
       MultiMap attrs = rc.request().formAttributes();
       assertNotNull(attrs);
       assertEquals(2, attrs.size());
@@ -652,7 +651,7 @@ public class BodyHandlerTest extends WebTestBase {
   {
     oneTimeTearDown();
     router.clear();
-    router.route().handler(BodyHandler.create(true));
+    router.route().handler(BodyHandler.create(false));
 
     testFormURLEncoded();
 
@@ -661,11 +660,11 @@ public class BodyHandlerTest extends WebTestBase {
   }
   
   @Test
-  public void testBodyHanlerCreateFalseWorks() throws Exception
+  public void testBodyHandlerCreateTrueWorks() throws Exception
   {
     oneTimeTearDown();
     router.clear();
-    router.route().handler(BodyHandler.create(false));
+    router.route().handler(BodyHandler.create(true));
 
     testFormURLEncoded();
   }
