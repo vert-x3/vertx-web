@@ -16,6 +16,12 @@
 
 package io.vertx.ext.web.handler.impl;
 
+import java.io.File;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import io.netty.handler.codec.http.HttpHeaderValues;
 import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
@@ -29,13 +35,6 @@ import io.vertx.ext.web.FileUpload;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.impl.FileUploadImpl;
-
-import java.io.File;
-import java.util.Objects;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  *
@@ -70,12 +69,9 @@ public class BodyHandlerImpl implements BodyHandler {
     this(true, uploadDirectory);
   }
 
-  // private in order to not allow conflicting settings.
   private BodyHandlerImpl(boolean handleFileUploads, String uploadDirectory) {
     this.handleFileUploads = handleFileUploads;
-    if (handleFileUploads) {
-      setUploadsDirectory(Objects.requireNonNull(uploadDirectory));
-    }
+    setUploadsDirectory(uploadDirectory);
   }
 
   @Override
@@ -104,6 +100,12 @@ public class BodyHandlerImpl implements BodyHandler {
   }
 
   @Override
+  public BodyHandler setHandleFileUploads(boolean handleFileUploads) {
+    this.handleFileUploads = handleFileUploads;
+    return this;
+  }
+
+  @Override
   public BodyHandler setBodyLimit(long bodyLimit) {
     this.bodyLimit = bodyLimit;
     return this;
@@ -111,9 +113,6 @@ public class BodyHandlerImpl implements BodyHandler {
 
   @Override
   public BodyHandler setUploadsDirectory(String uploadsDirectory) {
-    if (!handleFileUploads) {
-      throw new IllegalStateException("Cannot set the upload directory because handleFileUploads is set to false.");
-    }
     this.uploadsDir = uploadsDirectory;
     return this;
   }
@@ -206,7 +205,7 @@ public class BodyHandlerImpl implements BodyHandler {
             upload.endHandler(v -> uploadEnded());
           });
         } else {
-          // Add a NOOP upload handler, to ignore files. 
+          // Add a NOOP upload handler, to ignore files.
           context.request().uploadHandler(NOOP_UPLOAD_HANDLER);
         }
       }

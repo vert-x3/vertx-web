@@ -17,6 +17,7 @@
 package io.vertx.ext.web.handler;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Set;
 
 import org.junit.AfterClass;
@@ -32,6 +33,7 @@ import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.FileUpload;
+import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.WebTestBase;
 import io.vertx.test.core.TestUtils;
@@ -560,30 +562,18 @@ public class BodyHandlerTest extends WebTestBase {
       req.write(buffer);
     }, 200, "OK", "");
   }
-
-  @Test
-  public void testCannotSetUploadDirIfUploadDisabled() {
-    BodyHandler bh = BodyHandler.create(false);
-    try {
-      bh.setUploadsDirectory(".");
-      fail("IllegalStateException was expected.");
-    } catch (IllegalStateException e) {
-      // OK
-    }
-  }
   
   @Test
   public void testNoUploadDirMultiPartFormData() throws Exception
   {
-    oneTimeTearDown();
+    String dirName = getNotCreatedTemporaryFolderName();
     router.clear();
-    router.route().handler(BodyHandler.create(false));
+    router.route().handler(BodyHandler.create(false).setUploadsDirectory(dirName));
     
     Buffer fileData = TestUtils.randomBuffer(50);
     router.route().handler(rc -> {
       rc.response().end();
-      assertFalse("Upload directory must not be created.",
-          vertx.fileSystem().existsBlocking(BodyHandler.DEFAULT_UPLOADS_DIRECTORY));
+      assertFalse("Upload directory must not be created.", vertx.fileSystem().existsBlocking(dirName));
     });
     sendFileUploadRequest(fileData, 200, "OK");
   }
@@ -649,24 +639,52 @@ public class BodyHandlerTest extends WebTestBase {
   @Test
   public void testNoUploadDirFormURLEncoded() throws Exception
   {
-    oneTimeTearDown();
+    String dirName = getNotCreatedTemporaryFolderName();
     router.clear();
-    router.route().handler(BodyHandler.create(false));
+    router.route().handler(BodyHandler.create(false).setUploadsDirectory(dirName));
 
     testFormURLEncoded();
 
-    assertFalse("Upload directory must not be created.",
-        vertx.fileSystem().existsBlocking(BodyHandler.DEFAULT_UPLOADS_DIRECTORY));
+    assertFalse("Upload directory must not be created.", vertx.fileSystem().existsBlocking(dirName));
   }
   
   @Test
   public void testBodyHandlerCreateTrueWorks() throws Exception
   {
-    oneTimeTearDown();
     router.clear();
     router.route().handler(BodyHandler.create(true));
-
     testFormURLEncoded();
   }
 
+  @Test
+  public void testSetHandleFileUploads() throws Exception
+  {
+    String dirName = getNotCreatedTemporaryFolderName();
+    router.clear();
+    
+    BodyHandler bodyHandler = BodyHandler.create().setUploadsDirectory(dirName).setHandleFileUploads(false);
+    router.route().handler(bodyHandler);
+    
+    Buffer fileData = TestUtils.randomBuffer(50);
+    Route route = router.route().handler(rc -> {
+      rc.response().end();
+      assertFalse("Upload directory must not be created.", vertx.fileSystem().existsBlocking(dirName));
+    });
+    sendFileUploadRequest(fileData, 200, "OK");
+    
+    route.remove();
+    bodyHandler.setHandleFileUploads(true);
+    router.route().handler(rc -> {
+      rc.response().end();
+      assertTrue("Upload directory must be created.", vertx.fileSystem().existsBlocking(dirName));
+    });
+    sendFileUploadRequest(fileData, 200, "OK");
+  }
+  
+  private String getNotCreatedTemporaryFolderName() throws IOException
+  {
+    File dir = tempUploads.newFolder();
+    dir.delete();
+    return dir.getPath();
+  }
 }
