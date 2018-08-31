@@ -355,7 +355,6 @@ public class BodyHandlerTest extends WebTestBase {
     for (int i = 100; i > 0 && vertx.fileSystem().readDirBlocking(uploadsDirectory).size() != 0; i--) {
       Thread.sleep(100); //wait for upload being deleted
     }
-    System.out.println(vertx.fileSystem().readDirBlocking(uploadsDirectory));
     assertEquals(0, vertx.fileSystem().readDirBlocking(uploadsDirectory).size());
   }
 
