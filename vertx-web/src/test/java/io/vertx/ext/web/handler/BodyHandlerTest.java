@@ -681,6 +681,51 @@ public class BodyHandlerTest extends WebTestBase {
     sendFileUploadRequest(fileData, 200, "OK");
   }
   
+  @Test
+  public void testRerouteWithHandleFileUploadsFalse() throws Exception
+  {
+    String fileName = "test.bin";
+    router.clear();
+    router.route().handler(BodyHandler.create(false).setMergeFormAttributes(true));
+    router.route("/toBeRerouted").handler(rc -> {
+      rc.reroute("/rerouted");
+    });
+    router.route("/rerouted").handler(rc -> {
+      MultiMap attrs = rc.request().formAttributes();
+      assertNotNull(attrs);
+      assertEquals(2, attrs.size());
+      assertEquals("Tim", attrs.get("attr1"));
+      assertEquals("Tommaso", attrs.get("attr2"));
+      MultiMap params = rc.request().params();
+      assertEquals(0, rc.fileUploads().size());
+      assertNotNull(params);
+      assertEquals(2, params.size());
+      assertEquals("Tim", params.get("attr1"));
+      assertEquals("Tommaso", params.get("attr2"));
+      rc.response().end();
+    });
+    testRequest(HttpMethod.POST, "/toBeRerouted", req -> {
+      Buffer buffer = Buffer.buffer();
+      String boundary = "dLV9Wyq26L_-JQxk6ferf-RT153LhOO";
+      String header =
+          "--" + boundary + "\r\n" +
+          "Content-Disposition: form-data; name=\"attr1\"\r\n\r\nTim\r\n" +
+          "--" + boundary + "\r\n" +
+          "Content-Disposition: form-data; name=\"attr2\"\r\n\r\nTommaso\r\n" +
+          "--" + boundary + "\r\n" +
+          "Content-Disposition: form-data; name=\"" + name + "\"; filename=\"" + fileName + "\"\r\n" +
+          "Content-Type: application/octet-stream\r\n" +
+          "Content-Transfer-Encoding: binary\r\n" +
+          "\r\n";
+        buffer.appendString(header);
+        buffer.appendBuffer(TestUtils.randomBuffer(50));
+      buffer.appendString("\r\n--" + boundary + "--\r\n");
+      req.headers().set("content-length", String.valueOf(buffer.length()));
+      req.headers().set("content-type", "multipart/form-data; boundary=" + boundary);
+      req.write(buffer);
+    }, 200, "OK", null);    
+  }
+  
   private String getNotCreatedTemporaryFolderName() throws IOException
   {
     File dir = tempUploads.newFolder();
