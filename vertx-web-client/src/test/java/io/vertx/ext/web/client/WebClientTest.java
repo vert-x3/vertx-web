@@ -404,8 +404,11 @@ public class WebClientTest extends HttpTestBase {
             return this;
           }
         }, onFailure(err -> {
-          assertSame(cause, err);
-          complete();
+          if (cause == err) {
+            complete();
+          } else {
+            fail(new Exception("Unexpected failure", err));
+          }
         }));
     await();
   }
