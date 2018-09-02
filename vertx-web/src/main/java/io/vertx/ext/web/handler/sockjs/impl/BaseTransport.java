@@ -61,6 +61,7 @@ import static io.vertx.core.http.HttpHeaders.*;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
+ * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
 class BaseTransport {
 
@@ -70,7 +71,7 @@ class BaseTransport {
   protected final LocalMap<String, SockJSSession> sessions;
   protected SockJSHandlerOptions options;
 
-  protected static final String COMMON_PATH_ELEMENT_RE = "\\/[^\\/\\.]+\\/([^\\/\\.]+)\\/";
+  static final String COMMON_PATH_ELEMENT_RE = "\\/[^\\/\\.]+\\/([^\\/\\.]+)\\/";
 
   private static final long RAND_OFFSET = 2L << 30;
 
@@ -156,12 +157,13 @@ class BaseTransport {
   static void setCORS(RoutingContext rc) {
     HttpServerRequest req = rc.request();
     String origin = req.headers().get("origin");
-    if (origin == null || "null".equals(origin)) {
+    if (origin == null) {
       origin = "*";
     }
     Utils.addToMapIfAbsent(req.response().headers(), "Access-Control-Allow-Origin", origin);
-    // https://developer.mozilla.org/En/HTTP_access_control#Requests_with_credentials
-    if (!"*".equals(origin)) {
+    if ("*".equals(origin)) {
+      Utils.addToMapIfAbsent(req.response().headers(), "Access-Control-Allow-Credentials", "false");
+    } else {
       Utils.addToMapIfAbsent(req.response().headers(), "Access-Control-Allow-Credentials", "true");
     }
     String hdr = req.headers().get("Access-Control-Request-Headers");
@@ -191,7 +193,7 @@ class BaseTransport {
   }
 
   static void setNoCacheHeaders(RoutingContext rc) {
-    rc.response().putHeader("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
+    rc.response().putHeader("Cache-Control", "no-store, no-cache, no-transform, must-revalidate, max-age=0");
   }
 
   static Handler<RoutingContext> createCORSOptionsHandler(SockJSHandlerOptions options, String methods) {

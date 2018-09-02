@@ -48,6 +48,7 @@ import static io.vertx.core.buffer.Buffer.buffer;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
+ * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
 class EventSourceTransport extends BaseTransport {
 
@@ -84,7 +85,10 @@ class EventSourceTransport extends BaseTransport {
     public void sendFrame(String body) {
       if (log.isTraceEnabled()) log.trace("EventSource, sending frame");
       if (!headersWritten) {
-        rc.response().putHeader("Content-Type", "text/event-stream; charset=UTF-8");
+        // event stream data is always UTF8
+        // https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format
+        // no need to specify the character encoding
+        rc.response().putHeader("Content-Type", "text/event-stream");
         setNoCacheHeaders(rc);
         setJSESSIONID(options, rc);
         rc.response().setChunked(true).write("\r\n");
