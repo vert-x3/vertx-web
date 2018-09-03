@@ -1443,6 +1443,7 @@ class HandlingClose(Test):
         self.assertFalse(r2.read())
 
         r1.close()
+        time.sleep(0.25)
 
         # Polling request now, after we aborted previous one, should
         # trigger a connection closure. Implementations may close
@@ -1467,6 +1468,7 @@ class HandlingClose(Test):
         self.assertEqual(r2.body, 'c[2010,"Another connection still open"]\n')
 
         r1.close()
+        time.sleep(0.25)
 
         # Polling request now, after we aborted previous one, should
         # trigger a connection closure. Implementations may close
