@@ -61,6 +61,17 @@ public class RockerTemplateEngineTest extends WebTestBase {
     TemplateEngine engine = RockerTemplateEngine.create();
     testTemplateHandler(engine, "somedir", "Base", "Vert.x rules");
   }
+  
+  @Test
+  public void testTemplateHandlerNotIncludedArg() throws Exception {
+    TemplateEngine engine = RockerTemplateEngine.create();
+    router.route().handler(context -> {
+      context.put("notExistingArg", true);
+      context.next();
+    });
+    testTemplateHandler(engine, "somedir", "TestRockerTemplate2.rocker.html",
+        "Hello badger and fox\nRequest path is /TestRockerTemplate2.rocker.html");
+  }
 
   @Test
   public void testNoSuchTemplate() throws Exception {

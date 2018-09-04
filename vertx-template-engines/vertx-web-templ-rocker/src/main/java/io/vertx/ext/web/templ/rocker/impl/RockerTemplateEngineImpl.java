@@ -16,8 +16,12 @@
 
 package io.vertx.ext.web.templ.rocker.impl;
 
-import com.fizzed.rocker.BindableRockerModel;
-import com.fizzed.rocker.Rocker;
+import java.lang.reflect.Method;
+
+import com.fizzed.rocker.RockerModel;
+import com.fizzed.rocker.TemplateBindException;
+import com.fizzed.rocker.runtime.RockerRuntime;
+
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
@@ -54,9 +58,9 @@ public class RockerTemplateEngineImpl extends CachingTemplateEngine<Void> implem
       templateFileName = templateDirectory + templateFileName;
       String templatePath = adjustLocation(templateFileName);
 
-      BindableRockerModel model = Rocker.template(templatePath);
-      model.bind("context", context);
-      model.bind(context.data());
+      RockerModel model = RockerRuntime.getInstance().getBootstrap().model(templatePath);
+      bindParam(templatePath, model, "context", context);
+      context.data().forEach((name, value) -> bindParam(templatePath, model, name, value));
 
       VertxBufferOutput output = model.render(VertxBufferOutput.FACTORY);
 
@@ -64,6 +68,32 @@ public class RockerTemplateEngineImpl extends CachingTemplateEngine<Void> implem
     } catch (final Exception ex) {
       handler.handle(Future.failedFuture(ex));
     }
+  }
+  
+  private void bindParam(String templatePath, RockerModel model, String name, Object value) {
+    Method setter = findModelMethod(model, name);
+    if(setter != null) {
+      try {
+        setter.invoke(model, value);
+      } catch (Exception e) {
+        throw new TemplateBindException(templatePath, model.getClass().getCanonicalName(), "Unable to set property '" + name + "'", e);
+      }
+    }
+  }
+  
+  private Method findModelMethod(RockerModel model, String name) {
+    Method result = null;
+    Method[] methods = model.getClass().getMethods();
+    for (Method method : methods) {
+      if (method.getName().equals(name)) {
+        Class<?>[] parameterTypes = method.getParameterTypes();
+        if (parameterTypes != null && parameterTypes.length == 1) {
+          result = method;
+        }
+      }
+    }
+    
+    return result;
   }
 
 }
