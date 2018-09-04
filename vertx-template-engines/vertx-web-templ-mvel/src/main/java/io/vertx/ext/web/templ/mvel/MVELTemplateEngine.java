@@ -18,7 +18,8 @@ package io.vertx.ext.web.templ.mvel;
 
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.ext.web.templ.TemplateEngine;
+import io.vertx.core.Vertx;
+import io.vertx.ext.web.common.template.TemplateEngine;
 import io.vertx.ext.web.templ.mvel.impl.MVELTemplateEngineImpl;
 
 /**
@@ -44,8 +45,8 @@ public interface MVELTemplateEngine extends TemplateEngine {
    *
    * @return  the engine
    */
-  static MVELTemplateEngine create() {
-    return new MVELTemplateEngineImpl();
+  static MVELTemplateEngine create(Vertx vertx) {
+    return new MVELTemplateEngineImpl(vertx);
   }
 
   /**

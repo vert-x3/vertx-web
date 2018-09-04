@@ -28,20 +28,13 @@
       </exclusions>
     </dependency>
     <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
-      <version>1.7.21</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
       <groupId>io.vertx</groupId>
-      <artifactId>vertx-web</artifactId>
+      <artifactId>vertx-web-common</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>io.vertx</groupId>
-      <artifactId>vertx-web</artifactId>
-      <type>test-jar</type>
+      <artifactId>vertx-unit</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
@@ -55,19 +48,6 @@
 
   <build>
     <plugins>
-      <plugin>
-        <groupId>org.codehaus.gmavenplus</groupId>
-        <artifactId>gmavenplus-plugin</artifactId>
-        <version>1.5</version>
-        <executions>
-          <execution>
-            <goals>
-              <goal>addTestSources</goal>
-              <goal>testCompile</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
@@ -149,7 +129,7 @@
               <goal>generate</goal>
             </goals>
             <configuration>
-              <templateDirectory>${project.basedir}/src/test/templates</templateDirectory>
+              <templateDirectory>${project.basedir}/src/test/resources</templateDirectory>
               <outputDirectory>${project.build.directory}/generated-test-sources/rocker</outputDirectory>
               <addAsSources>false</addAsSources>
               <addAsTestSources>true</addAsTestSources>

@@ -18,7 +18,6 @@ package io.vertx.ext.web.templ.pebble.impl;
 import com.mitchellbosecke.pebble.error.LoaderException;
 import com.mitchellbosecke.pebble.loader.Loader;
 import io.vertx.core.Vertx;
-import io.vertx.ext.web.impl.Utils;
 
 import java.io.File;
 import java.io.Reader;
@@ -43,8 +42,10 @@ public class PebbleVertxLoader implements Loader<String> {
   @Override
   public Reader getReader(String s) throws LoaderException {
     try {
-      final String buffer = Utils.readFileToString(vertx, s, charset);
-      return new StringReader(buffer);
+      return new StringReader(
+        vertx.fileSystem()
+          .readFileBlocking(s)
+          .toString(charset));
     } catch (RuntimeException e) {
       throw new LoaderException(e, e.getMessage());
     }

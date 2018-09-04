@@ -21,7 +21,8 @@ import com.github.jknack.handlebars.ValueResolver;
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.ext.web.templ.TemplateEngine;
+import io.vertx.core.Vertx;
+import io.vertx.ext.web.common.template.TemplateEngine;
 import io.vertx.ext.web.templ.handlebars.impl.HandlebarsTemplateEngineImpl;
 
 /**
@@ -47,8 +48,8 @@ public interface HandlebarsTemplateEngine extends TemplateEngine {
    *
    * @return  the engine
    */
-  static HandlebarsTemplateEngine create() {
-    return new HandlebarsTemplateEngineImpl();
+  static HandlebarsTemplateEngine create(Vertx vertx) {
+    return new HandlebarsTemplateEngineImpl(vertx);
   }
 
   /**

@@ -23,13 +23,10 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.ext.web.LanguageHeader;
-import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.templ.CachingTemplateEngine;
+import io.vertx.ext.web.common.template.CachingTemplateEngine;
 import io.vertx.ext.web.templ.pebble.PebbleTemplateEngine;
 
 import java.io.StringWriter;
-import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
@@ -63,30 +60,22 @@ public class PebbleTemplateEngineImpl extends CachingTemplateEngine<PebbleTempla
   }
 
   @Override
-  public void render(RoutingContext context, String templateDirectory, String templateFileName, Handler<AsyncResult<Buffer>> handler) {
+  public void render(Map<String, Object> context, String templateFile, Handler<AsyncResult<Buffer>> handler) {
     try {
-      templateFileName = templateDirectory + templateFileName;
-      PebbleTemplate template = isCachingEnabled() ? cache.get(templateFileName) : null;
+      PebbleTemplate template = isCachingEnabled() ? cache.get(templateFile) : null;
       if (template == null) {
         // real compile
-        final String loc = adjustLocation(templateFileName);
+        final String loc = adjustLocation(templateFile);
         template = pebbleEngine.getTemplate(loc);
         if (isCachingEnabled()) {
-          cache.put(templateFileName, template);
+          cache.put(templateFile, template);
         }
       }
-      final Locale locale = context.acceptableLanguages()
-              .stream()
-              .findFirst()
-                .map(LanguageHeader::value)
-                .map(Locale::forLanguageTag)
-              .orElseGet(Locale::getDefault);
-      final Map<String, Object> variables = new HashMap<>(1);
-      variables.put("context", context);
-      // Pass defined variables in context to engine
-      variables.putAll(context.data());
+      // special key for lang selection
+      final String lang = (String) context.get("lang");
+      // rendering
       final StringWriter stringWriter = new StringWriter();
-      template.evaluate(stringWriter, variables, locale);
+      template.evaluate(stringWriter, context, lang == null ? Locale.getDefault() : Locale.forLanguageTag(lang));
       handler.handle(Future.succeededFuture(Buffer.buffer(stringWriter.toString())));
     } catch (final Exception ex) {
       handler.handle(Future.failedFuture(ex));

@@ -17,7 +17,8 @@ package io.vertx.ext.web.templ.freemarker;
 
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.ext.web.templ.TemplateEngine;
+import io.vertx.core.Vertx;
+import io.vertx.ext.web.common.template.TemplateEngine;
 import io.vertx.ext.web.templ.freemarker.impl.FreeMarkerTemplateEngineImpl;
 
 /**
@@ -42,8 +43,8 @@ public interface FreeMarkerTemplateEngine extends TemplateEngine {
    *
    * @return  the engine
    */
-  static FreeMarkerTemplateEngine create() {
-    return new FreeMarkerTemplateEngineImpl();
+  static FreeMarkerTemplateEngine create(Vertx vertx) {
+    return new FreeMarkerTemplateEngineImpl(vertx);
   }
 
   /**

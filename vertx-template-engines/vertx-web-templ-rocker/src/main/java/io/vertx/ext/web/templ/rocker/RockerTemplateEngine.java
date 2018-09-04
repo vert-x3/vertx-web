@@ -18,7 +18,7 @@ package io.vertx.ext.web.templ.rocker;
 
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.ext.web.templ.TemplateEngine;
+import io.vertx.ext.web.common.template.TemplateEngine;
 import io.vertx.ext.web.templ.rocker.impl.RockerTemplateEngineImpl;
 
 /**

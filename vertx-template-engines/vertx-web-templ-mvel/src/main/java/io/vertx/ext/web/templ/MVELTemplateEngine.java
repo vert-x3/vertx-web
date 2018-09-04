@@ -16,6 +16,8 @@
 
 package io.vertx.ext.web.templ;
 
+import io.vertx.core.Vertx;
+
 /**
  * A template engine that uses the Handlebars library.
  *
@@ -30,7 +32,7 @@ public interface MVELTemplateEngine extends io.vertx.ext.web.templ.mvel.MVELTemp
    *
    * @return  the engine
    */
-  static io.vertx.ext.web.templ.mvel.MVELTemplateEngine create() {
-    return io.vertx.ext.web.templ.mvel.MVELTemplateEngine.create();
+  static io.vertx.ext.web.templ.mvel.MVELTemplateEngine create(Vertx vertx) {
+    return io.vertx.ext.web.templ.mvel.MVELTemplateEngine.create(vertx);
   }
 }

@@ -16,6 +16,8 @@
 
 package io.vertx.ext.web.templ;
 
+import io.vertx.core.Vertx;
+
 /**
  * A template engine that uses the FreeMarker library.
  *
@@ -29,7 +31,7 @@ public interface FreeMarkerTemplateEngine extends io.vertx.ext.web.templ.freemar
    *
    * @return  the engine
    */
-  static io.vertx.ext.web.templ.freemarker.FreeMarkerTemplateEngine create() {
-    return io.vertx.ext.web.templ.freemarker.FreeMarkerTemplateEngine.create();
+  static io.vertx.ext.web.templ.freemarker.FreeMarkerTemplateEngine create(Vertx vertx) {
+    return io.vertx.ext.web.templ.freemarker.FreeMarkerTemplateEngine.create(vertx);
   }
 }
