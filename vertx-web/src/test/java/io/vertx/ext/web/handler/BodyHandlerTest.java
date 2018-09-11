@@ -724,6 +724,21 @@ public class BodyHandlerTest extends WebTestBase {
       req.write(buffer);
     }, 200, "OK", null);    
   }
+
+  @Test
+  public void testBodyLimitWithHandleFileUploadsFalse() throws Exception
+  {
+    router.clear();
+    
+    BodyHandler bodyHandler = BodyHandler.create(false).setBodyLimit(2048);
+    router.route().handler(bodyHandler);
+    
+    Buffer fileData = TestUtils.randomBuffer(4096);
+    router.route().handler(rc -> {
+      rc.response().end();
+    });
+    sendFileUploadRequest(fileData, 413, "Request Entity Too Large");
+  }
   
   private String getNotCreatedTemporaryFolderName() throws IOException
   {
