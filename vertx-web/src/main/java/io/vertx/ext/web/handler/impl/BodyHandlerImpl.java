@@ -27,7 +27,6 @@ import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.file.FileSystem;
 import io.vertx.core.http.HttpHeaders;
-import io.vertx.core.http.HttpServerFileUpload;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
@@ -45,8 +44,6 @@ public class BodyHandlerImpl implements BodyHandler {
   private static final Logger log = LoggerFactory.getLogger(BodyHandlerImpl.class);
 
   private static final String BODY_HANDLED = "__body-handled";
-  
-  private static final Handler<HttpServerFileUpload> NOOP_UPLOAD_HANDLER = upload -> {};
 
   private long bodyLimit = DEFAULT_BODY_LIMIT;
   private boolean handleFileUploads;
@@ -182,16 +179,18 @@ public class BodyHandlerImpl implements BodyHandler {
         context.request().setExpectMultipart(true);
         if (handleFileUploads) {
           makeUploadDir(context.vertx().fileSystem());
-          context.request().uploadHandler(upload -> {
-            if (bodyLimit != -1 && upload.isSizeAvailable()) {
-              // we can try to abort even before the upload starts
-              long size = uploadSize + upload.size();
-              if (size > bodyLimit) {
-                failed = true;
-                context.fail(413);
-                return;
-              }
+        }
+        context.request().uploadHandler(upload -> {
+          if (bodyLimit != -1 && upload.isSizeAvailable()) {
+            // we can try to abort even before the upload starts
+            long size = uploadSize + upload.size();
+            if (size > bodyLimit) {
+              failed = true;
+              context.fail(413);
+              return;
             }
+          }
+          if (handleFileUploads) {
             // we actually upload to a file with a generated filename
             uploadCount.incrementAndGet();
             String uploadedFileName = new File(uploadsDir, UUID.randomUUID().toString()).getPath();
@@ -203,11 +202,8 @@ public class BodyHandlerImpl implements BodyHandler {
               context.fail(t);
             });
             upload.endHandler(v -> uploadEnded());
-          });
-        } else {
-          // Add a NOOP upload handler, to ignore files.
-          context.request().uploadHandler(NOOP_UPLOAD_HANDLER);
-        }
+          }
+        });
       }
 
       context.request().exceptionHandler(t -> {
