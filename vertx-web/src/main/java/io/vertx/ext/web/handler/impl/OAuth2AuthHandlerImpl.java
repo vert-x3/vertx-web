@@ -66,6 +66,8 @@ public class OAuth2AuthHandlerImpl extends AuthorizationAuthHandler implements O
 
   private Route callback;
   private JsonObject extraParams;
+  // explicit signal that tokens are handled as bearer only (meaning, no backend server known)
+  private boolean bearerOnly = true;
 
   public OAuth2AuthHandlerImpl(OAuth2Auth authProvider, String callbackURL) {
     super(verifyProvider(authProvider), Type.BEARER);
@@ -98,7 +100,8 @@ public class OAuth2AuthHandlerImpl extends AuthorizationAuthHandler implements O
 
   @Override
   public void parseCredentials(RoutingContext context, Handler<AsyncResult<JsonObject>> handler) {
-    parseAuthorization(context, true, parseAuthorization -> {
+    // when the handler is working as bearer only, then the `Authorization` header is required
+    parseAuthorization(context, !bearerOnly, parseAuthorization -> {
       if (parseAuthorization.failed()) {
         handler.handle(Future.failedFuture(parseAuthorization.cause()));
         return;
@@ -109,7 +112,11 @@ public class OAuth2AuthHandlerImpl extends AuthorizationAuthHandler implements O
       if (token == null) {
         // redirect request to the oauth2 server as we know nothing about this request
         if (callback == null) {
-          handler.handle(Future.failedFuture("callback route is not configured."));
+          // it's a failure both cases but the cause is not the same
+          handler.handle(Future.failedFuture(
+            bearerOnly ?
+              "bearer-only access type: token is null" :
+              "callback route is not configured."));
           return;
         }
         // the redirect is processed as a failure to abort the chain
@@ -162,15 +169,14 @@ public class OAuth2AuthHandlerImpl extends AuthorizationAuthHandler implements O
   }
 
   @Override
-  public OAuth2AuthHandler setupCallback(Route route) {
-
-    callback = route;
+  public OAuth2AuthHandler setupCallback(final Route route) {
 
     if (callbackPath != null && !"".equals(callbackPath)) {
       // no matter what path was provided we will make sure it is the correct one
-      callback.path(callbackPath);
+      route.path(callbackPath);
     }
-    callback.method(HttpMethod.GET);
+
+    route.method(HttpMethod.GET);
 
     route.handler(ctx -> {
       // Handle the callback of the flow
@@ -188,7 +194,7 @@ public class OAuth2AuthHandlerImpl extends AuthorizationAuthHandler implements O
         .put("code", code);
 
       if (host != null) {
-        config.put("redirect_uri", host + callback.getPath());
+        config.put("redirect_uri", host + route.getPath());
       }
 
       if (extraParams != null) {
@@ -222,6 +228,11 @@ public class OAuth2AuthHandlerImpl extends AuthorizationAuthHandler implements O
         }
       });
     });
+
+    // the redirect handler has been setup so we can process this
+    // handler has full oauth2
+    bearerOnly = false;
+    callback = route;
 
     return this;
   }
