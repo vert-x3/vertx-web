@@ -705,6 +705,10 @@ public class StaticHandlerTest extends WebTestBase {
     testRequest(HttpMethod.GET, "/not-existing-file.html", 200, "OK", "Howdy!");
   }
 
+  @Test
+  public void testEscapeRootFromWindows() throws Exception {
+    testRequest(HttpMethod.GET, "/somedir/..\\..\\somedir/test-template.html", 404, "Not Found");
+  }
 
   // TODO
   // 1.Test all the params including invalid values
