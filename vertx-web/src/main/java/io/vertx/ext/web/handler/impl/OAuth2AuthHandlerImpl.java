@@ -106,17 +106,14 @@ public class OAuth2AuthHandlerImpl extends AuthorizationAuthHandler implements O
         handler.handle(Future.failedFuture(parseAuthorization.cause()));
         return;
       }
-      // Authorization header could be null as we mark it as optional
+      // Authorization header can be null when in bearerOnly mode
       final String token = parseAuthorization.result();
 
       if (token == null) {
         // redirect request to the oauth2 server as we know nothing about this request
         if (callback == null) {
           // it's a failure both cases but the cause is not the same
-          handler.handle(Future.failedFuture(
-            bearerOnly ?
-              "bearer-only access type: token is null" :
-              "callback route is not configured."));
+          handler.handle(Future.failedFuture("callback route is not configured."));
           return;
         }
         // the redirect is processed as a failure to abort the chain
