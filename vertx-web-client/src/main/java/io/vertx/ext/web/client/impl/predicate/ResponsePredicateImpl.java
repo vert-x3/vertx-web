@@ -53,8 +53,7 @@ public class ResponsePredicateImpl implements ResponsePredicate {
 
   @Override
   public ResponsePredicateImpl errorConverter(ErrorConverter errorConverter) {
-    this.errorConverter = errorConverter;
-    return this;
+    return new ResponsePredicateImpl(test, errorConverter);
   }
 
   public ErrorConverter getErrorConverter() {

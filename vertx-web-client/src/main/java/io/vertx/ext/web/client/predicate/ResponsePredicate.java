@@ -16,7 +16,6 @@
 
 package io.vertx.ext.web.client.predicate;
 
-import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.ext.web.client.HttpResponse;
@@ -29,13 +28,12 @@ import java.util.function.Function;
 @VertxGen
 public interface ResponsePredicate {
 
+  ResponsePredicate SC_SUCCESS = status(200, 300);
+
   static ResponsePredicate status(int statusCode) {
     return status(statusCode, statusCode + 1);
   }
 
-  static ResponsePredicate statusSuccess() {
-    return status(200, 300);
-  }
 
   /**
    * Return a predicate asserting that the status response code is in the {@code [min,max[} range.
@@ -57,9 +55,7 @@ public interface ResponsePredicate {
     });
   }
 
-  static ResponsePredicate contentTypeJson() {
-    return contentType("application/json");
-  }
+  ResponsePredicate JSON = contentType("application/json");
 
   /**
    * Create a predicate validating the response has a {@code content-type} header matching
@@ -118,6 +114,5 @@ public interface ResponsePredicate {
    *
    * @param errorConverter
    */
-  @Fluent
   ResponsePredicate errorConverter(ErrorConverter errorConverter);
 }

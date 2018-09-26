@@ -1249,35 +1249,35 @@ public class WebClientTest extends HttpTestBase {
   @Test
   public void testExpectStatusRangeFail() throws Exception {
     testExpectation(true,
-      req -> req.expect(ResponsePredicate.statusSuccess()),
+      req -> req.expect(ResponsePredicate.SC_SUCCESS),
       resp -> resp.setStatusCode(500).end());
   }
 
   @Test
   public void testExpectStatusRangePass1() throws Exception {
     testExpectation(false,
-      req -> req.expect(ResponsePredicate.statusSuccess()),
+      req -> req.expect(ResponsePredicate.SC_SUCCESS),
       resp -> resp.setStatusCode(200).end());
   }
 
   @Test
   public void testExpectStatusRangePass2() throws Exception {
     testExpectation(false,
-      req -> req.expect(ResponsePredicate.statusSuccess()),
+      req -> req.expect(ResponsePredicate.SC_SUCCESS),
       resp -> resp.setStatusCode(299).end());
   }
 
   @Test
   public void testExpectContentTypeFail() throws Exception {
     testExpectation(true,
-      req -> req.expect(ResponsePredicate.contentTypeJson()),
+      req -> req.expect(ResponsePredicate.JSON),
       HttpServerResponse::end);
   }
 
   @Test
   public void testExpectContentTypePass() throws Exception {
     testExpectation(false,
-      req -> req.expect(ResponsePredicate.contentTypeJson()),
+      req -> req.expect(ResponsePredicate.JSON),
       resp -> resp.putHeader("content-type", "application/json").end());
   }
 
@@ -1303,7 +1303,7 @@ public class WebClientTest extends HttpTestBase {
     UUID uuid = UUID.randomUUID();
     testExpectation(true,
       req -> {
-        ResponsePredicate predicate = ResponsePredicate.statusSuccess()
+        ResponsePredicate predicate = ResponsePredicate.SC_SUCCESS
           .errorConverter(ErrorConverter.withBody(result -> {
             JsonObject body = new JsonObject(result.body());
             return new CustomException(UUID.fromString(body.getString("tag")), body.getString("message"));
