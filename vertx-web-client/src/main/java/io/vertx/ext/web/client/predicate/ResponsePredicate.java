@@ -77,7 +77,7 @@ public interface ResponsePredicate {
    */
   static ResponsePredicate contentType(List<String> mimeTypes) {
     return create(response -> {
-      String contentType = response.getHeader(HttpHeaders.CONTENT_TYPE.toString());
+      String contentType = response.headers().get(HttpHeaders.CONTENT_TYPE);
       if (contentType == null) {
         return ResponsePredicateResult.failure("Missing response content type");
       }
