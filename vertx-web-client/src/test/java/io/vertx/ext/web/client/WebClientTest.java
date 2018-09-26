@@ -1324,6 +1324,26 @@ public class WebClientTest extends HttpTestBase {
       });
   }
 
+  @Test
+  public void testExpectFunctionThrowsException() throws Exception {
+    testExpectation(true,
+      req -> req.expect(ResponsePredicate.create(r -> {
+        throw new IndexOutOfBoundsException("boom");
+      })), HttpServerResponse::end, ar -> {
+        assertThat(ar.cause(), instanceOf(IndexOutOfBoundsException.class));
+      });
+  }
+
+  @Test
+  public void testErrorConverterThrowsException() throws Exception {
+    testExpectation(true,
+      req -> req.expect(ResponsePredicate.create(r -> ResponsePredicateResult.failure("boom")).errorConverter(ErrorConverter.withoutBody(r -> {
+        throw new IndexOutOfBoundsException("boom");
+      }))), HttpServerResponse::end, ar -> {
+        assertThat(ar.cause(), instanceOf(IndexOutOfBoundsException.class));
+      });
+  }
+
   private static class CustomException extends Exception {
 
     UUID tag;
@@ -1355,9 +1375,9 @@ public class WebClientTest extends HttpTestBase {
     modifier.accept(request);
     request.send(ar -> {
       if (ar.succeeded()) {
-        assertFalse("Expect response success", shouldFail);
+        assertFalse("Expected response success", shouldFail);
       } else {
-        assertTrue("Expect response failure", shouldFail);
+        assertTrue("Expected response failure", shouldFail);
       }
       if (resultTest != null) resultTest.accept(ar);
       testComplete();
