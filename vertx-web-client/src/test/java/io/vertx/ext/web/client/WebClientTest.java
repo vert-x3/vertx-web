@@ -1305,7 +1305,7 @@ public class WebClientTest extends HttpTestBase {
       req -> {
         ResponsePredicate predicate = ResponsePredicate.SC_SUCCESS
           .errorConverter(ErrorConverter.withBody(result -> {
-            JsonObject body = new JsonObject(result.body());
+            JsonObject body = result.httpResponse().bodyAsJsonObject();
             return new CustomException(UUID.fromString(body.getString("tag")), body.getString("message"));
           }));
         req.expect(predicate);

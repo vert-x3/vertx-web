@@ -132,17 +132,9 @@ public class HttpContext {
         if (expectations != null) {
           for (ResponsePredicate expectation : expectations) {
             ResponsePredicateImpl predicate = (ResponsePredicateImpl) expectation;
-            HttpResponseImpl<Void> httpResponse = new HttpResponseImpl<>(
-              resp.version(),
-              resp.statusCode(),
-              resp.statusMessage(),
-              MultiMap.caseInsensitiveMultiMap().addAll(resp.headers()),
-              null,
-              new ArrayList<>(resp.cookies()),
-              null);
             ResponsePredicateResultImpl predicateResult;
             try {
-              predicateResult = (ResponsePredicateResultImpl) predicate.getTest().apply(httpResponse);
+              predicateResult = (ResponsePredicateResultImpl) predicate.getTest().apply(responseCopy(resp, null));
             } catch (Exception e) {
               fut.tryFail(e);
               return;
@@ -153,7 +145,7 @@ public class HttpContext {
                 failOnPredicate(fut, errorConverter.getConverter(), predicateResult);
               } else {
                 resp.bodyHandler(buffer -> {
-                  predicateResult.setBody(buffer);
+                  predicateResult.setHttpResponse(responseCopy(resp, buffer));
                   failOnPredicate(fut, errorConverter.getConverter(), predicateResult);
                 });
               }
@@ -319,6 +311,17 @@ public class HttpContext {
       req.exceptionHandler(responseFuture::tryFail);
       req.end();
     }
+  }
+
+  private <B> HttpResponseImpl<B> responseCopy(HttpClientResponse resp, B value) {
+    return new HttpResponseImpl<>(
+      resp.version(),
+      resp.statusCode(),
+      resp.statusMessage(),
+      MultiMap.caseInsensitiveMultiMap().addAll(resp.headers()),
+      null,
+      new ArrayList<>(resp.cookies()),
+      value);
   }
 
   private void failOnPredicate(Future<HttpResponse<Object>> fut, Function<ResponsePredicateResult, Throwable> converter, ResponsePredicateResultImpl predicateResult) {

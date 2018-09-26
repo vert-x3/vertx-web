@@ -63,13 +63,5 @@ public interface ResponsePredicateResult {
    *
    * @return null after the result has been created, or the tested response when the {@link ErrorConverter} is invoked
    */
-  @Nullable HttpResponse<Void> httpResponse();
-
-  /**
-   * The body {@link HttpResponse} which has been tested.
-   *
-   * @return the tested response when the {@link ErrorConverter} is invoked and the {@link ErrorConverter} needs the it, null otherwise
-   */
-  @Nullable Buffer body();
-
+  @Nullable HttpResponse<Buffer> httpResponse();
 }

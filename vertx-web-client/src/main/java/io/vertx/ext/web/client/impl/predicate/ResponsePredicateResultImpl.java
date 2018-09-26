@@ -27,8 +27,7 @@ public class ResponsePredicateResultImpl implements ResponsePredicateResult {
 
   private final boolean passed;
   private final String message;
-  private HttpResponse<Void> httpResponse;
-  private Buffer body;
+  private HttpResponse<Buffer> httpResponse;
 
   public ResponsePredicateResultImpl(boolean passed, String message) {
     this.passed = passed;
@@ -46,22 +45,12 @@ public class ResponsePredicateResultImpl implements ResponsePredicateResult {
   }
 
   @Override
-  public HttpResponse<Void> httpResponse() {
+  public HttpResponse<Buffer> httpResponse() {
     return httpResponse;
   }
 
-  public ResponsePredicateResultImpl setHttpResponse(HttpResponse<Void> httpResponse) {
+  public ResponsePredicateResultImpl setHttpResponse(HttpResponse<Buffer> httpResponse) {
     this.httpResponse = httpResponse;
-    return this;
-  }
-
-  @Override
-  public Buffer body() {
-    return body;
-  }
-
-  public ResponsePredicateResultImpl setBody(Buffer body) {
-    this.body = body;
     return this;
   }
 }
