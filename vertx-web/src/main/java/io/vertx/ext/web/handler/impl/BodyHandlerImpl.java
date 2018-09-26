@@ -16,6 +16,12 @@
 
 package io.vertx.ext.web.handler.impl;
 
+import java.io.File;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import io.netty.handler.codec.http.HttpHeaderValues;
 import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
@@ -29,12 +35,6 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.impl.FileUploadImpl;
 
-import java.io.File;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
-
 /**
  *
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -46,6 +46,7 @@ public class BodyHandlerImpl implements BodyHandler {
   private static final String BODY_HANDLED = "__body-handled";
 
   private long bodyLimit = DEFAULT_BODY_LIMIT;
+  private boolean handleFileUploads;
   private String uploadsDir;
   private boolean mergeFormAttributes = DEFAULT_MERGE_FORM_ATTRIBUTES;
   private boolean deleteUploadedFilesOnEnd = DEFAULT_DELETE_UPLOADED_FILES_ON_END;
@@ -54,10 +55,19 @@ public class BodyHandlerImpl implements BodyHandler {
 
 
   public BodyHandlerImpl() {
-    setUploadsDirectory(DEFAULT_UPLOADS_DIRECTORY);
+    this(true, DEFAULT_UPLOADS_DIRECTORY);
+  }
+
+  public BodyHandlerImpl(boolean handleFileUploads) {
+    this(handleFileUploads, DEFAULT_UPLOADS_DIRECTORY);
   }
 
   public BodyHandlerImpl(String uploadDirectory) {
+    this(true, uploadDirectory);
+  }
+
+  private BodyHandlerImpl(boolean handleFileUploads, String uploadDirectory) {
+    this.handleFileUploads = handleFileUploads;
     setUploadsDirectory(uploadDirectory);
   }
 
@@ -84,6 +94,12 @@ public class BodyHandlerImpl implements BodyHandler {
 
       context.next();
     }
+  }
+
+  @Override
+  public BodyHandler setHandleFileUploads(boolean handleFileUploads) {
+    this.handleFileUploads = handleFileUploads;
+    return this;
   }
 
   @Override
@@ -160,8 +176,10 @@ public class BodyHandlerImpl implements BodyHandler {
       initBodyBuffer(contentLength);
 
       if (isMultipart || isUrlEncoded) {
-        makeUploadDir(context.vertx().fileSystem());
         context.request().setExpectMultipart(true);
+        if (handleFileUploads) {
+          makeUploadDir(context.vertx().fileSystem());
+        }
         context.request().uploadHandler(upload -> {
           if (bodyLimit != -1 && upload.isSizeAvailable()) {
             // we can try to abort even before the upload starts
@@ -172,17 +190,19 @@ public class BodyHandlerImpl implements BodyHandler {
               return;
             }
           }
-          // we actually upload to a file with a generated filename
-          uploadCount.incrementAndGet();
-          String uploadedFileName = new File(uploadsDir, UUID.randomUUID().toString()).getPath();
-          upload.streamToFileSystem(uploadedFileName);
-          FileUploadImpl fileUpload = new FileUploadImpl(uploadedFileName, upload);
-          fileUploads.add(fileUpload);
-          upload.exceptionHandler(t -> {
-            deleteFileUploads();
-            context.fail(t);
-          });
-          upload.endHandler(v -> uploadEnded());
+          if (handleFileUploads) {
+            // we actually upload to a file with a generated filename
+            uploadCount.incrementAndGet();
+            String uploadedFileName = new File(uploadsDir, UUID.randomUUID().toString()).getPath();
+            upload.streamToFileSystem(uploadedFileName);
+            FileUploadImpl fileUpload = new FileUploadImpl(uploadedFileName, upload);
+            fileUploads.add(fileUpload);
+            upload.exceptionHandler(t -> {
+              deleteFileUploads();
+              context.fail(t);
+            });
+            upload.endHandler(v -> uploadEnded());
+          }
         });
       }
 
@@ -277,7 +297,7 @@ public class BodyHandlerImpl implements BodyHandler {
     }
 
     private void deleteFileUploads() {
-      if (cleanup.compareAndSet(false, true)) {
+      if (cleanup.compareAndSet(false, true) && handleFileUploads) {
         for (FileUpload fileUpload : context.fileUploads()) {
           FileSystem fileSystem = context.vertx().fileSystem();
           String uploadedFileName = fileUpload.uploadedFileName();
