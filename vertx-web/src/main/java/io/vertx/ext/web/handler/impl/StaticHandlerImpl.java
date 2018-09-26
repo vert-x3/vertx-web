@@ -28,6 +28,7 @@ import io.vertx.core.http.impl.MimeMapping;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
+import io.vertx.core.net.impl.URIDecoder;
 import io.vertx.ext.web.Http2PushMapping;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.StaticHandler;
@@ -138,7 +139,7 @@ public class StaticHandlerImpl implements StaticHandler {
       if (log.isTraceEnabled()) log.trace("Not GET or HEAD so ignoring request");
       context.next();
     } else {
-      String path = Utils.removeDots(Utils.urlDecode(context.normalisedPath(), false));
+      String path = Utils.removeDots(URIDecoder.decodeURIComponent(context.normalisedPath(), false));
       // if the normalized path is null it cannot be resolved
       if (path == null) {
         log.warn("Invalid path: " + context.request().path());
@@ -762,7 +763,7 @@ public class StaticHandlerImpl implements StaticHandler {
   private String getFileExtension(String file) {
     int li = file.lastIndexOf(46);
     if (li != -1 && li != file.length() - 1) {
-      return file.substring(li + 1, file.length());
+      return file.substring(li + 1);
     } else {
       return null;
     }

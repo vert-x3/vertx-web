@@ -18,7 +18,6 @@ package io.vertx.ext.web.impl;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.netty.util.CharsetUtil;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxException;
@@ -33,20 +32,14 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Comparator;
 import java.util.Locale;
 import java.util.TimeZone;
-import java.util.regex.Pattern;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
  */
 public class Utils extends io.vertx.core.impl.Utils {
-
-  private static final Pattern COMMA_SPLITTER = Pattern.compile(" *, *");
-  private static final Pattern SEMICOLON_SPLITTER = Pattern.compile(" *; *");
-  private static final Pattern EQUAL_SPLITTER = Pattern.compile(" *= *");
 
   private static int indexOfSlash(CharSequence str, int start) {
     for (int i = start; i < str.length(); i++) {
@@ -231,90 +224,6 @@ public class Utils extends io.vertx.core.impl.Utils {
     return obuf.toString();
   }
 
-  /**
-   * Decodes a bit of an URL encoded by a browser.
-   *
-   * The string is expected to be encoded as per RFC 3986, Section 2. This is the encoding used by JavaScript functions
-   * encodeURI and encodeURIComponent, but not escape. For example in this encoding, é (in Unicode U+00E9 or in
-   * UTF-8 0xC3 0xA9) is encoded as %C3%A9 or %c3%a9.
-   *
-   * @param s string to decode
-   * @param plus weather or not to transform plus signs into spaces
-   *
-   * @return decoded string
-   */
-  public static String urlDecode(final String s, boolean plus) {
-    if (s == null) {
-      return null;
-    }
-
-    final int size = s.length();
-    boolean modified = false;
-    for (int i = 0; i < size; i++) {
-      final char c = s.charAt(i);
-      if (c == '%' || (plus && c == '+')) {
-        modified = true;
-        break;
-      }
-    }
-    if (!modified) {
-      return s;
-    }
-    final byte[] buf = new byte[size];
-    int pos = 0;  // position in `buf'.
-    for (int i = 0; i < size; i++) {
-      char c = s.charAt(i);
-      if (c == '%') {
-        if (i == size - 1) {
-          throw new IllegalArgumentException("unterminated escape"
-            + " sequence at end of string: " + s);
-        }
-        c = s.charAt(++i);
-        if (c == '%') {
-          buf[pos++] = '%';  // "%%" -> "%"
-          break;
-        }
-        if (i == size - 1) {
-          throw new IllegalArgumentException("partial escape"
-            + " sequence at end of string: " + s);
-        }
-        c = decodeHexNibble(c);
-        final char c2 = decodeHexNibble(s.charAt(++i));
-        if (c == Character.MAX_VALUE || c2 == Character.MAX_VALUE) {
-          throw new IllegalArgumentException(
-            "invalid escape sequence `%" + s.charAt(i - 1)
-              + s.charAt(i) + "' at index " + (i - 2)
-              + " of: " + s);
-        }
-        c = (char) (c * 16 + c2);
-        // shouldn't check for plus since it would be a double decoding
-        buf[pos++] = (byte) c;
-      } else {
-        buf[pos++] = (byte) (plus && c == '+' ? ' ' : c);
-      }
-    }
-    return new String(buf, 0, pos, CharsetUtil.UTF_8);
-  }
-
-  /**
-   * Helper to decode half of a hexadecimal number from a string.
-   * @param c The ASCII character of the hexadecimal number to decode.
-   * Must be in the range {@code [0-9a-fA-F]}.
-   * @return The hexadecimal value represented in the ASCII character
-   * given, or {@link Character#MAX_VALUE} if the character is invalid.
-   */
-  private static char decodeHexNibble(final char c) {
-    if ('0' <= c && c <= '9') {
-      return (char) (c - '0');
-    } else if ('a' <= c && c <= 'f') {
-      return (char) (c - 'a' + 10);
-    } else if ('A' <= c && c <= 'F') {
-      return (char) (c - 'A' + 10);
-    } else {
-      return Character.MAX_VALUE;
-    }
-  }
-
   public static ClassLoader getClassLoader() {
     ClassLoader tccl = Thread.currentThread().getContextClassLoader();
     return tccl == null ? Utils.class.getClassLoader() : tccl;
@@ -387,30 +296,6 @@ public class Utils extends io.vertx.core.impl.Utils {
     }
     return prefixLen != 0 ? path.substring(prefixLen) : path;
   }
-
-  private static final Comparator<String> ACCEPT_X_COMPARATOR = new Comparator<String>() {
-    float getQuality(String s) {
-      if (s == null) {
-        return 0;
-      }
-
-      String[] params = SEMICOLON_SPLITTER.split(s);
-      for (int i = 1; i < params.length; i++) {
-        String[] q = EQUAL_SPLITTER.split(params[1]);
-        if ("q".equals(q[0])) {
-          return Float.parseFloat(q[1]);
-        }
-      }
-      return 1;
-    }
-
-    @Override
-    public int compare(String o1, String o2) {
-      float f1 = getQuality(o1);
-      float f2 = getQuality(o2);
-      return Float.compare(f2, f1);
-    }
-  };
 
   public static long secondsFactor(long millis) {
     return millis - (millis % 1000);

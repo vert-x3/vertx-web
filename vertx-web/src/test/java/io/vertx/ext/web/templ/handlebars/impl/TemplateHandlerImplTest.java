@@ -8,8 +8,6 @@ import io.vertx.ext.web.handler.impl.TemplateHandlerImpl;
 import io.vertx.ext.web.common.template.TemplateEngine;
 import org.junit.Test;
 
-import java.util.Map;
-
 import static org.mockito.Mockito.*;
 
 /**

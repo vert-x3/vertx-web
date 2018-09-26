@@ -30,8 +30,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static org.junit.Assume.assumeTrue;
-
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */

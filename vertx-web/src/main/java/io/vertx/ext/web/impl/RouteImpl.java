@@ -22,6 +22,7 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
+import io.vertx.core.net.impl.URIDecoder;
 import io.vertx.ext.web.MIMEHeader;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
@@ -335,7 +336,7 @@ public class RouteImpl implements Route {
 
   private void addPathParam(RoutingContext context, String name, String value) {
     HttpServerRequest request = context.request();
-    final String decodedValue = Utils.urlDecode(value, false);
+    final String decodedValue = URIDecoder.decodeURIComponent(value, false);
     if (!request.params().contains(name)) {
       request.params().add(name, decodedValue);
     }

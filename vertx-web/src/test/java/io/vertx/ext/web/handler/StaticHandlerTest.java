@@ -280,7 +280,7 @@ public class StaticHandlerTest extends WebTestBase {
         .exceptionHandler(this::fail)
         .handler(resp -> {
           assertEquals(200, resp.statusCode());
-          contentEncodings.add(resp.getHeader(HttpHeaders.CONTENT_ENCODING).toString());
+          contentEncodings.add(resp.getHeader(HttpHeaders.CONTENT_ENCODING));
           responseReceived.countDown();
         }).end();
       awaitLatch(responseReceived);

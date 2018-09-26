@@ -37,12 +37,12 @@ import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
+import io.vertx.core.net.impl.URIDecoder;
 import io.vertx.core.shareddata.LocalMap;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSSocket;
-import io.vertx.ext.web.impl.Utils;
 
 import java.util.regex.Pattern;
 
@@ -125,7 +125,7 @@ class JsonPTransport extends BaseTransport {
       }
 
       if (urlEncoded) {
-        body = Utils.urlDecode(body, true).substring(2);
+        body = URIDecoder.decodeURIComponent(body, true).substring(2);
       }
 
       if (!session.handleMessages(body)) {

@@ -1,8 +1,8 @@
 package io.vertx.ext.web.api.validation;
 
 import io.vertx.codegen.annotations.VertxGen;
+import io.vertx.core.net.impl.URIDecoder;
 import io.vertx.ext.web.api.validation.impl.SplitterCharContainerDeserializer;
-import io.vertx.ext.web.impl.Utils;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -82,7 +82,7 @@ public enum ContainerSerializationStyle {
       List<String> values = new ArrayList<>();
       Matcher m = MATRIX_PARAMETER.matcher(serialized);
       while (m.find())
-        values.add(Utils.urlDecode(m.group("value"), false));
+        values.add(URIDecoder.decodeURIComponent(m.group("value"), false));
       return values;
     }
 

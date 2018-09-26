@@ -16,10 +16,9 @@
 
 package io.vertx.ext.web;
 
+import io.vertx.core.net.impl.URIDecoder;
 import io.vertx.ext.web.impl.Utils;
 import org.junit.Test;
-
-import java.net.URLEncoder;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
@@ -137,26 +136,6 @@ public class UtilsTest {
   }
 
   @Test
-  public void testURLDecode() throws Exception {
-    // verify that the URL is translated as per RFC
-    assertEquals(
-        "/%20%21%22%23%24%25%26%27%28%29%2A%2B%2C-.%2F0123456789%3A%3B%3C%3D%3E%3F%40ABCDEFGHIJKLMNOPQRSTUVWXYZ%5B%5C%5D%5E_%60abcdefghijklmnopqrstuvwxyz%7B%7C%7D~",
-        Utils.normalizePath("/%20%21%22%23%24%25%26%27%28%29%2A%2B%2C%2D%2E%2F%30%31%32%33%34%35%36%37%38%39%3A%3B%3C%3D%3E%3F%40%41%42%43%44%45%46%47%48%49%4A%4B%4C%4D%4E%4F%50%51%52%53%54%55%56%57%58%59%5A%5B%5C%5D%5E%5F%60%61%62%63%64%65%66%67%68%69%6A%6B%6C%6D%6E%6F%70%71%72%73%74%75%76%77%78%79%7A%7B%7C%7D%7E"));
-    // when dealing with path params the url decoder should respect the full encoded chars
-    assertEquals(
-      "/ !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~",
-      Utils.urlDecode(Utils.normalizePath("/%20%21%22%23%24%25%26%27%28%29%2A%2B%2C%2D%2E%2F%30%31%32%33%34%35%36%37%38%39%3A%3B%3C%3D%3E%3F%40%41%42%43%44%45%46%47%48%49%4A%4B%4C%4D%4E%4F%50%51%52%53%54%55%56%57%58%59%5A%5B%5C%5D%5E%5F%60%61%62%63%64%65%66%67%68%69%6A%6B%6C%6D%6E%6F%70%71%72%73%74%75%76%77%78%79%7A%7B%7C%7D%7E"), false));
-  }
-
-  @Test
-  public void testURLDecodeNonLatin() throws Exception {
-    // verify that the URL is translated as per RFC
-    assertEquals("/foo/%C3%B1/blah/%E5%A9%B4%E5%84%BF%E6%9C%8D%E9%A5%B0/eek/%E0%B8%8C", Utils.normalizePath("/foo/%C3%B1/blah/%E5%A9%B4%E5%84%BF%E6%9C%8D%E9%A5%B0/eek/%E0%B8%8C"));
-    // when dealing with path params the url decoder should respect the full encoded chars
-    assertEquals("/foo/\u00F1/blah/\u5a74\u513f\u670d\u9970/eek/\u0E0C", Utils.urlDecode(Utils.normalizePath("/foo/%C3%B1/blah/%E5%A9%B4%E5%84%BF%E6%9C%8D%E9%A5%B0/eek/%E0%B8%8C"), false));
-  }
-
-  @Test
   public void testDoubleDot() throws Exception {
     assertEquals("/foo/bar/abc..def", Utils.normalizePath("/foo/bar/abc..def"));
   }
@@ -171,17 +150,9 @@ public class UtilsTest {
 
   @Test
   public void testSockJSEscape() throws Exception {
-    assertEquals("[\"x\"]", Utils.urlDecode("%5B%22x%22%5D", true));
-    assertEquals("[\"abc\"]", Utils.urlDecode("%5B%22abc%22%5D", true));
-    assertEquals("[\"x", Utils.urlDecode("%5B%22x", true));
-    assertEquals("[\"b\"]", Utils.urlDecode("%5B%22b%22%5D", true));
-  }
-
-  @Test
-  public void testEncode() throws Exception {
-    String original = "ein verr+++ückter text mit Leerzeichen, Plus und Umlauten";
-    String encoded = URLEncoder.encode( original, "UTF-8" );
-
-    assertEquals(original, Utils.urlDecode( encoded, true ) );
+    assertEquals("[\"x\"]", URIDecoder.decodeURIComponent("%5B%22x%22%5D", true));
+    assertEquals("[\"abc\"]", URIDecoder.decodeURIComponent("%5B%22abc%22%5D", true));
+    assertEquals("[\"x", URIDecoder.decodeURIComponent("%5B%22x", true));
+    assertEquals("[\"b\"]", URIDecoder.decodeURIComponent("%5B%22b%22%5D", true));
   }
 }
