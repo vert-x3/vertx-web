@@ -15,6 +15,7 @@ import io.vertx.core.net.ProxyType;
 import io.vertx.core.streams.ReadStream;
 import io.vertx.core.streams.WriteStream;
 import io.vertx.ext.web.client.jackson.WineAndCheese;
+import io.vertx.ext.web.client.predicate.ErrorConverter;
 import io.vertx.ext.web.client.predicate.ResponsePredicate;
 import io.vertx.ext.web.client.predicate.ResponsePredicateResult;
 import io.vertx.ext.web.codec.BodyCodec;
@@ -1283,7 +1284,11 @@ public class WebClientTest extends HttpTestBase {
   @Test
   public void testExpectCustomException() throws Exception {
     testExpectation(true,
-      req -> req.expect(ResponsePredicate.create(r -> ResponsePredicateResult.failure("boom")).errorConverter(result -> new CustomException(result.message()))),
+      req -> {
+        ResponsePredicate predicate = ResponsePredicate.create(r -> ResponsePredicateResult.failure("boom"))
+          .errorConverter(ErrorConverter.withoutBody(result -> new CustomException(result.message())));
+        req.expect(predicate);
+      },
       HttpServerResponse::end,
       ar -> {
         Throwable cause = ar.cause();
@@ -1299,11 +1304,10 @@ public class WebClientTest extends HttpTestBase {
     testExpectation(true,
       req -> {
         ResponsePredicate predicate = ResponsePredicate.statusSuccess()
-          .bufferBody(true)
-          .errorConverter(result -> {
+          .errorConverter(ErrorConverter.withBody(result -> {
             JsonObject body = new JsonObject(result.body());
             return new CustomException(UUID.fromString(body.getString("tag")), body.getString("message"));
-          });
+          }));
         req.expect(predicate);
       },
       httpServerResponse -> {

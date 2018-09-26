@@ -28,9 +28,11 @@ import io.vertx.core.streams.Pump;
 import io.vertx.core.streams.ReadStream;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.HttpResponse;
+import io.vertx.ext.web.client.impl.predicate.ErrorConverterImpl;
 import io.vertx.ext.web.client.impl.predicate.ResponsePredicateImpl;
 import io.vertx.ext.web.client.impl.predicate.ResponsePredicateResultImpl;
 import io.vertx.ext.web.client.predicate.ResponsePredicate;
+import io.vertx.ext.web.client.predicate.ResponsePredicateResult;
 import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.ext.web.codec.spi.BodyStream;
 import io.vertx.ext.web.multipart.MultipartForm;
@@ -38,6 +40,7 @@ import io.vertx.ext.web.multipart.MultipartForm;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
+import java.util.function.Function;
 
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
@@ -137,14 +140,21 @@ public class HttpContext {
               null,
               new ArrayList<>(resp.cookies()),
               null);
-            ResponsePredicateResultImpl predicateResult = (ResponsePredicateResultImpl) predicate.getTest().apply(httpResponse);
+            ResponsePredicateResultImpl predicateResult;
+            try {
+              predicateResult = (ResponsePredicateResultImpl) predicate.getTest().apply(httpResponse);
+            } catch (Exception e) {
+              fut.tryFail(e);
+              return;
+            }
             if (!predicateResult.passed()) {
-              if (!predicate.isBufferBody()) {
-                failOnPredicate(fut, predicate, predicateResult);
+              ErrorConverterImpl errorConverter = (ErrorConverterImpl) predicate.getErrorConverter();
+              if (!errorConverter.needsBody()) {
+                failOnPredicate(fut, errorConverter.getConverter(), predicateResult);
               } else {
                 resp.bodyHandler(buffer -> {
                   predicateResult.setBody(buffer);
-                  failOnPredicate(fut, predicate, predicateResult);
+                  failOnPredicate(fut, errorConverter.getConverter(), predicateResult);
                 });
               }
               return;
@@ -311,12 +321,18 @@ public class HttpContext {
     }
   }
 
-  private void failOnPredicate(Future<HttpResponse<Object>> fut, ResponsePredicateImpl predicate, ResponsePredicateResultImpl predicateResult) {
-    Throwable result = predicate.getErrorConverter().apply(predicateResult);
+  private void failOnPredicate(Future<HttpResponse<Object>> fut, Function<ResponsePredicateResult, Throwable> converter, ResponsePredicateResultImpl predicateResult) {
+    Throwable result;
+    try {
+      result = converter.apply(predicateResult);
+    } catch (Exception e) {
+      fut.tryFail(e);
+      return;
+    }
     if (result != null) {
       fut.tryFail(result);
     } else {
-      fut.tryFail("");
+      fut.tryFail("http response invalid");
     }
   }
 

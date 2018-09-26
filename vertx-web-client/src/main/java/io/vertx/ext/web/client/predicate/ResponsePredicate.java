@@ -107,25 +107,9 @@ public interface ResponsePredicate {
     return new ResponsePredicateImpl(test);
   }
 
-  static ResponsePredicate create(Function<HttpResponse<Void>, ResponsePredicateResult> test, Function<ResponsePredicateResult, Throwable> errorConverter) {
-    return create(test, false, errorConverter);
+  static ResponsePredicate create(Function<HttpResponse<Void>, ResponsePredicateResult> test, ErrorConverter errorConverter) {
+    return new ResponsePredicateImpl(test, errorConverter);
   }
-
-  static ResponsePredicate create(Function<HttpResponse<Void>, ResponsePredicateResult> test, boolean bufferBody, Function<ResponsePredicateResult, Throwable> errorConverter) {
-    return new ResponsePredicateImpl(test, bufferBody, errorConverter);
-  }
-
-  /**
-   * Evaluate the {@code HttpClientResponse} validity.
-   *
-   * @param test the response
-   * @return {@code true} if the response is valid
-   */
-  @Fluent
-  ResponsePredicate test(Function<HttpResponse<Void>, ResponsePredicateResult> test);
-
-  @Fluent
-  ResponsePredicate bufferBody(boolean bufferBody);
 
   /**
    * Map the http response to a {@code Throwable} describing the error.
@@ -135,5 +119,5 @@ public interface ResponsePredicate {
    * @param errorConverter
    */
   @Fluent
-  ResponsePredicate errorConverter(Function<ResponsePredicateResult, Throwable> errorConverter);
+  ResponsePredicate errorConverter(ErrorConverter errorConverter);
 }
