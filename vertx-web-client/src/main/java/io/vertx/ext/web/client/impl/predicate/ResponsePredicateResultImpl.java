@@ -36,7 +36,7 @@ public class ResponsePredicateResultImpl implements ResponsePredicateResult {
   }
 
   @Override
-  public boolean passed() {
+  public boolean succeeded() {
     return passed;
   }
 

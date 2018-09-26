@@ -147,7 +147,7 @@ public class HttpContext {
               fut.tryFail(e);
               return;
             }
-            if (!predicateResult.passed()) {
+            if (!predicateResult.succeeded()) {
               ErrorConverterImpl errorConverter = (ErrorConverterImpl) predicate.getErrorConverter();
               if (!errorConverter.needsBody()) {
                 failOnPredicate(fut, errorConverter.getConverter(), predicateResult);

@@ -338,16 +338,20 @@ public interface ResponsePredicate {
    */
   ResponsePredicate SC_NETWORK_AUTHENTICATION_REQUIRED = status(511);
 
+  /**
+   * Creates a predicate asserting that the status response code is equal to {@code statusCode}.
+   *
+   * @param statusCode the expected status code
+   */
   static ResponsePredicate status(int statusCode) {
     return status(statusCode, statusCode + 1);
   }
 
   /**
-   * Return a predicate asserting that the status response code is in the {@code [min,max[} range.
+   * Creates a predicate asserting that the status response code is in the {@code [min,max[} range.
    *
    * @param min the lower (inclusive) accepted status code
    * @param max the highest (exclusive) accepted status code
-   * @return the expectation
    */
   static ResponsePredicate status(int min, int max) {
     return create(response -> {
@@ -362,25 +366,24 @@ public interface ResponsePredicate {
     });
   }
 
+  /**
+   * Creates a predicate validating the response {@code content-type} is {@code application/json}.
+   */
   ResponsePredicate JSON = contentType("application/json");
 
   /**
-   * Create a predicate validating the response has a {@code content-type} header matching
-   * the {@code mimeType}.
+   * Creates a predicate validating the response has a {@code content-type} header matching the {@code mimeType}.
    *
    * @param mimeType the mime type
-   * @return the predicate
    */
   static ResponsePredicate contentType(String mimeType) {
     return ResponsePredicate.contentType(Collections.singletonList(mimeType));
   }
 
   /**
-   * Create a predicate validating the response has a {@code content-type} header matching
-   * one of the {@code mimeTypes}.
+   * Creates a predicate validating the response has a {@code content-type} header matching one of the {@code mimeTypes}.
    *
    * @param mimeTypes the list of mime types
-   * @return the predicate
    */
   static ResponsePredicate contentType(List<String> mimeTypes) {
     return create(response -> {
@@ -406,20 +409,27 @@ public interface ResponsePredicate {
     });
   }
 
+  /**
+   * Creates a new {@link ResponsePredicate}.
+   *
+   * @param test the function to invoke when the response is received
+   */
   static ResponsePredicate create(Function<HttpResponse<Void>, ResponsePredicateResult> test) {
     return new ResponsePredicateImpl(test);
   }
 
+  /**
+   * Creates a new {@link ResponsePredicate}.
+   *
+   * @param test the function to invoke when the response is received
+   * @param errorConverter converts the result of the {@code test} function to a {@link Throwable}
+   */
   static ResponsePredicate create(Function<HttpResponse<Void>, ResponsePredicateResult> test, ErrorConverter errorConverter) {
     return new ResponsePredicateImpl(test, errorConverter);
   }
 
   /**
-   * Map the http response to a {@code Throwable} describing the error.
-   *
-   * The default implementation returns a {@code NoStackTraceThrowable} with a vanilla message.
-   *
-   * @param errorConverter
+   * Sets a new {@link ErrorConverter} for this predicate.
    */
   ResponsePredicate errorConverter(ErrorConverter errorConverter);
 }

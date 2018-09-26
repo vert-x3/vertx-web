@@ -23,22 +23,53 @@ import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.impl.predicate.ResponsePredicateResultImpl;
 
 /**
+ * Represents the outcome of a {@link ResponsePredicate} applied to an {@link HttpResponse}.
+ *
  * @author Thomas Segismont
  */
 @VertxGen
 public interface ResponsePredicateResult {
 
+  /**
+   * Creates a successful result.
+   */
   static ResponsePredicateResult success() {
     return new ResponsePredicateResultImpl(true, null);
   }
 
+  /**
+   * Creates a failed result.
+   *
+   * @param message the failure description
+   */
   static ResponsePredicateResult failure(String message) {
     return new ResponsePredicateResultImpl(false, message);
   }
 
-  boolean passed();
+  /**
+   * Whether the result is a success or failure.
+   *
+   * @return true if the {@link ResponsePredicate} was applied successfully, false otherwise
+   */
+  boolean succeeded();
+
+  /**
+   * The failure message. May be {@code null}.
+   */
   @Nullable String message();
+
+  /**
+   * The {@link HttpResponse} which has been tested.
+   *
+   * @return null after the result has been created, or the tested response when the {@link ErrorConverter} is invoked
+   */
   @Nullable HttpResponse<Void> httpResponse();
+
+  /**
+   * The body {@link HttpResponse} which has been tested.
+   *
+   * @return the tested response when the {@link ErrorConverter} is invoked and the {@link ErrorConverter} needs the it, null otherwise
+   */
   @Nullable Buffer body();
 
 }

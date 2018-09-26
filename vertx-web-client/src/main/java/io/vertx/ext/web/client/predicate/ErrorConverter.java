@@ -22,15 +22,29 @@ import io.vertx.ext.web.client.impl.predicate.ErrorConverterImpl;
 import java.util.function.Function;
 
 /**
+ * Converts a {@link ResponsePredicateResult} to a {@code Throwable} describing the error.
+ *
  * @author Thomas Segismont
  */
 @VertxGen
 public interface ErrorConverter {
 
+  /**
+   * Creates an {@link ErrorConverter} ignoring the HTTP response body.
+   *
+   * @param converter a function creating a {@link Throwable} from a {@link ResponsePredicateResult}
+   */
   static ErrorConverter withoutBody(Function<ResponsePredicateResult, Throwable> converter) {
     return new ErrorConverterImpl(converter, false);
   }
 
+  /**
+   * Creates an {@link ErrorConverter}.
+   *
+   * <p>The {@code converter} function will be invoked <em>after</em> the HTTP response body is received.
+   *
+   * @param converter a function creating a {@link Throwable} from a {@link ResponsePredicateResult}
+   */
   static ErrorConverter withBody(Function<ResponsePredicateResult, Throwable> converter) {
     return new ErrorConverterImpl(converter, true);
   }
