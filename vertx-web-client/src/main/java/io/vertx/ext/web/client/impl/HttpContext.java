@@ -28,17 +28,16 @@ import io.vertx.core.streams.Pump;
 import io.vertx.core.streams.ReadStream;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.HttpResponse;
-import io.vertx.ext.web.client.checks.ResponsePredicate;
+import io.vertx.ext.web.client.impl.predicate.ResponsePredicateImpl;
+import io.vertx.ext.web.client.impl.predicate.ResponsePredicateResultImpl;
+import io.vertx.ext.web.client.predicate.ResponsePredicate;
 import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.ext.web.codec.spi.BodyStream;
 import io.vertx.ext.web.multipart.MultipartForm;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
@@ -119,28 +118,40 @@ public class HttpContext {
           context.runOnContext(v -> currentResponseHandler.handle(r));
         });
 
+        resp.exceptionHandler(err -> {
+          if (!fut.isComplete()) {
+            fut.fail(err);
+          }
+        });
+
         // Run expectations
         List<ResponsePredicate> expectations = request.expectations;
         if (expectations != null) {
-          for (ResponsePredicate check : expectations) {
-            if (!check.test(resp)) {
-              Throwable result = check.mapToError(resp);
-              if (result != null) {
-                fut.tryFail(result);
+          for (ResponsePredicate expectation : expectations) {
+            ResponsePredicateImpl predicate = (ResponsePredicateImpl) expectation;
+            HttpResponseImpl<Void> httpResponse = new HttpResponseImpl<>(
+              resp.version(),
+              resp.statusCode(),
+              resp.statusMessage(),
+              MultiMap.caseInsensitiveMultiMap().addAll(resp.headers()),
+              null,
+              new ArrayList<>(resp.cookies()),
+              null);
+            ResponsePredicateResultImpl predicateResult = (ResponsePredicateResultImpl) predicate.getTest().apply(httpResponse);
+            if (!predicateResult.passed()) {
+              if (!predicate.isBufferBody()) {
+                failOnPredicate(fut, predicate, predicateResult);
               } else {
-                fut.tryFail("");
+                resp.bodyHandler(buffer -> {
+                  predicateResult.setBody(buffer);
+                  failOnPredicate(fut, predicate, predicateResult);
+                });
               }
               return;
             }
           }
         }
 
-        // Setup response handlers
-        resp.exceptionHandler(err -> {
-          if (!fut.isComplete()) {
-            fut.fail(err);
-          }
-        });
         resp.pause();
         ((BodyCodec<Object>)request.codec).create(ar2 -> {
           resp.resume();
@@ -297,6 +308,15 @@ public class HttpContext {
     } else {
       req.exceptionHandler(responseFuture::tryFail);
       req.end();
+    }
+  }
+
+  private void failOnPredicate(Future<HttpResponse<Object>> fut, ResponsePredicateImpl predicate, ResponsePredicateResultImpl predicateResult) {
+    Throwable result = predicate.getErrorConverter().apply(predicateResult);
+    if (result != null) {
+      fut.tryFail(result);
+    } else {
+      fut.tryFail("");
     }
   }
 

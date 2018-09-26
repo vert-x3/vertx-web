@@ -1,10 +1,7 @@
 package io.vertx.ext.web.client;
 
 import io.netty.handler.codec.http.multipart.HttpPostRequestEncoder;
-import io.vertx.core.Handler;
-import io.vertx.core.MultiMap;
-import io.vertx.core.VertxException;
-import io.vertx.core.VertxOptions;
+import io.vertx.core.*;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.dns.AddressResolverOptions;
 import io.vertx.core.file.AsyncFile;
@@ -17,8 +14,9 @@ import io.vertx.core.net.ProxyOptions;
 import io.vertx.core.net.ProxyType;
 import io.vertx.core.streams.ReadStream;
 import io.vertx.core.streams.WriteStream;
-import io.vertx.ext.web.client.checks.ResponsePredicate;
 import io.vertx.ext.web.client.jackson.WineAndCheese;
+import io.vertx.ext.web.client.predicate.ResponsePredicate;
+import io.vertx.ext.web.client.predicate.ResponsePredicateResult;
 import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.ext.web.multipart.MultipartForm;
 import io.vertx.test.core.TestUtils;
@@ -33,6 +31,7 @@ import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeoutException;
@@ -43,7 +42,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import static io.vertx.ext.web.client.checks.ResponsePredicate.SC_OK;
+import static org.hamcrest.CoreMatchers.instanceOf;
 
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
@@ -1221,69 +1220,130 @@ public class WebClientTest extends HttpTestBase {
   @Test
   public void testExpectFail() throws Exception {
     testExpectation(true,
-      req -> req.expect(resp -> false),
+      req -> req.expect(ResponsePredicate.create(r -> ResponsePredicateResult.failure("boom"))),
       HttpServerResponse::end);
   }
 
   @Test
   public void testExpectPass() throws Exception {
     testExpectation(false,
-      req -> req.expect(resp -> true),
+      req -> req.expect(ResponsePredicate.create(r -> ResponsePredicateResult.success())),
       HttpServerResponse::end);
   }
 
   @Test
   public void testExpectStatusFail() throws Exception {
     testExpectation(true,
-      req -> req.expect(ResponsePredicate.SC_OK),
+      req -> req.expect(ResponsePredicate.status(200)),
       resp -> resp.setStatusCode(201).end());
   }
 
   @Test
   public void testExpectStatusPass() throws Exception {
     testExpectation(false,
-      req -> req.expect(ResponsePredicate.SC_OK),
+      req -> req.expect(ResponsePredicate.status(200)),
       resp -> resp.setStatusCode(200).end());
   }
 
   @Test
   public void testExpectStatusRangeFail() throws Exception {
     testExpectation(true,
-      req -> req.expect(ResponsePredicate.SC_SUCCESS),
+      req -> req.expect(ResponsePredicate.statusSuccess()),
       resp -> resp.setStatusCode(500).end());
   }
 
   @Test
   public void testExpectStatusRangePass1() throws Exception {
     testExpectation(false,
-      req -> req.expect(ResponsePredicate.SC_SUCCESS),
+      req -> req.expect(ResponsePredicate.statusSuccess()),
       resp -> resp.setStatusCode(200).end());
   }
 
   @Test
   public void testExpectStatusRangePass2() throws Exception {
     testExpectation(false,
-      req -> req.expect(ResponsePredicate.SC_SUCCESS),
+      req -> req.expect(ResponsePredicate.statusSuccess()),
       resp -> resp.setStatusCode(299).end());
   }
 
   @Test
   public void testExpectContentTypeFail() throws Exception {
     testExpectation(true,
-      req -> req.expect(ResponsePredicate.JSON),
+      req -> req.expect(ResponsePredicate.contentTypeJson()),
       HttpServerResponse::end);
   }
 
   @Test
   public void testExpectContentTypePass() throws Exception {
     testExpectation(false,
-      req -> req.expect(ResponsePredicate.JSON),
+      req -> req.expect(ResponsePredicate.contentTypeJson()),
       resp -> resp.putHeader("content-type", "application/json").end());
   }
 
+  @Test
+  public void testExpectCustomException() throws Exception {
+    testExpectation(true,
+      req -> req.expect(ResponsePredicate.create(r -> ResponsePredicateResult.failure("boom")).errorConverter(result -> new CustomException(result.message()))),
+      HttpServerResponse::end,
+      ar -> {
+        Throwable cause = ar.cause();
+        assertThat(cause, instanceOf(CustomException.class));
+        CustomException customException = (CustomException) cause;
+        assertEquals("boom", customException.getMessage());
+      });
+  }
+
+  @Test
+  public void testExpectCustomExceptionWithResponseBody() throws Exception {
+    UUID uuid = UUID.randomUUID();
+    testExpectation(true,
+      req -> {
+        ResponsePredicate predicate = ResponsePredicate.statusSuccess()
+          .bufferBody(true)
+          .errorConverter(result -> {
+            JsonObject body = new JsonObject(result.body());
+            return new CustomException(UUID.fromString(body.getString("tag")), body.getString("message"));
+          });
+        req.expect(predicate);
+      },
+      httpServerResponse -> {
+        httpServerResponse
+          .setStatusCode(400)
+          .end(new JsonObject().put("tag", uuid.toString()).put("message", "tilt").toBuffer());
+      },
+      ar -> {
+        Throwable cause = ar.cause();
+        assertThat(cause, instanceOf(CustomException.class));
+        CustomException customException = (CustomException) cause;
+        assertEquals("tilt", customException.getMessage());
+        assertEquals(uuid, customException.tag);
+      });
+  }
+
+  private static class CustomException extends Exception {
+
+    UUID tag;
+
+    CustomException(String message) {
+      super(message);
+    }
+
+    CustomException(UUID tag, String message) {
+      super(message);
+      this.tag = tag;
+    }
+  }
+
   private void testExpectation(boolean shouldFail,
-                              Consumer<HttpRequest<?>> modifier,
-                              Consumer<HttpServerResponse> bilto) throws Exception {
+                               Consumer<HttpRequest<?>> modifier,
+                               Consumer<HttpServerResponse> bilto) throws Exception {
+    testExpectation(shouldFail, modifier, bilto, null);
+  }
+
+  private void testExpectation(boolean shouldFail,
+                               Consumer<HttpRequest<?>> modifier,
+                               Consumer<HttpServerResponse> bilto,
+                               Consumer<AsyncResult<?>> resultTest) throws Exception {
     server.requestHandler(request -> bilto.accept(request.response()));
     startServer();
     HttpRequest<Buffer> request = client
@@ -1295,6 +1355,7 @@ public class WebClientTest extends HttpTestBase {
       } else {
         assertTrue("Expect response failure", shouldFail);
       }
+      if (resultTest != null) resultTest.accept(ar);
       testComplete();
     });
     await();
