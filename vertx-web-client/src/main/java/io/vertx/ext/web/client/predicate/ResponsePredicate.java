@@ -18,6 +18,7 @@ package io.vertx.ext.web.client.predicate;
 
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.http.HttpHeaders;
+import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.impl.predicate.ResponsePredicateImpl;
 
@@ -25,6 +26,24 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 
+/**
+ * A predicate on {@link HttpResponse}.
+ * <p>
+ * By default, a Vert.x Web Client request ends with an error only if something wrong happens at the network level.
+ * In other words, a {@code 404 Not Found} response, or a response with the wrong content type, are <em>NOT</em> considered as failures.
+ * <p>
+ * With a {@link ResponsePredicate}, it is possible to fail a request if the response does not match some criteria.
+ * A custom predicate instance may be created with {@link #create(Function, ErrorConverter)}
+ * and then activated with {@link HttpRequest#expect(ResponsePredicate)}.
+ * <p>
+ * As a convenience, a few predicates for common uses cases are predefined. For example:
+ * <ul>
+ * <li>{@link #SC_SUCCESS} to verify that the reponse has a {@code 2xx} code, or</li>
+ * <li>{@link #JSON} to verify that the reponse body contains JSON data.</li>
+ * </ul>
+ * Predefined predicates use the default error converter (discarding the body).
+ * However, you may create a new {@link ResponsePredicate} instance from an existing one using {@link #errorConverter(ErrorConverter)}.
+ */
 @VertxGen
 public interface ResponsePredicate {
 
@@ -410,7 +429,7 @@ public interface ResponsePredicate {
   }
 
   /**
-   * Creates a new {@link ResponsePredicate}.
+   * Creates a new {@link ResponsePredicate}. The default error converter will be used (discarding the body).
    *
    * @param test the function to invoke when the response is received
    */
@@ -419,7 +438,7 @@ public interface ResponsePredicate {
   }
 
   /**
-   * Creates a new {@link ResponsePredicate}.
+   * Creates a new {@link ResponsePredicate}, using a custom {@code errorConverter}.
    *
    * @param test the function to invoke when the response is received
    * @param errorConverter converts the result of the {@code test} function to a {@link Throwable}
