@@ -502,11 +502,9 @@ public class WebClientExamples {
   }
 
   public void predicateCustomError() {
-    ErrorConverter converter = ErrorConverter.withoutBody(result -> {
+    ResponsePredicate predicate = ResponsePredicate.SC_SUCCESS.errorConverter(result -> {
       return new MyCustomException(result.message());
     });
-
-    ResponsePredicate predicate = ResponsePredicate.SC_SUCCESS.errorConverter(converter);
   }
 
   public void predicateCustomErrorWithBody() {

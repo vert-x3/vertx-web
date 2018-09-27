@@ -28,11 +28,10 @@ import io.vertx.core.streams.Pump;
 import io.vertx.core.streams.ReadStream;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.HttpResponse;
-import io.vertx.ext.web.client.impl.predicate.ErrorConverterImpl;
 import io.vertx.ext.web.client.impl.predicate.ResponsePredicateImpl;
 import io.vertx.ext.web.client.impl.predicate.ResponsePredicateResultImpl;
+import io.vertx.ext.web.client.predicate.ErrorConverter;
 import io.vertx.ext.web.client.predicate.ResponsePredicate;
-import io.vertx.ext.web.client.predicate.ResponsePredicateResult;
 import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.ext.web.codec.spi.BodyStream;
 import io.vertx.ext.web.multipart.MultipartForm;
@@ -40,7 +39,6 @@ import io.vertx.ext.web.multipart.MultipartForm;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
-import java.util.function.Function;
 
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
@@ -140,13 +138,13 @@ public class HttpContext {
               return;
             }
             if (!predicateResult.succeeded()) {
-              ErrorConverterImpl errorConverter = (ErrorConverterImpl) predicate.getErrorConverter();
+              ErrorConverter errorConverter = predicate.getErrorConverter();
               if (!errorConverter.needsBody()) {
-                failOnPredicate(fut, errorConverter.getConverter(), predicateResult);
+                failOnPredicate(fut, errorConverter, predicateResult);
               } else {
                 resp.bodyHandler(buffer -> {
                   predicateResult.setHttpResponse(responseCopy(resp, buffer));
-                  failOnPredicate(fut, errorConverter.getConverter(), predicateResult);
+                  failOnPredicate(fut, errorConverter, predicateResult);
                 });
               }
               return;
@@ -324,7 +322,7 @@ public class HttpContext {
       value);
   }
 
-  private void failOnPredicate(Future<HttpResponse<Object>> fut, Function<ResponsePredicateResult, Throwable> converter, ResponsePredicateResultImpl predicateResult) {
+  private void failOnPredicate(Future<HttpResponse<Object>> fut, ErrorConverter converter, ResponsePredicateResultImpl predicateResult) {
     Throwable result;
     try {
       result = converter.apply(predicateResult);

@@ -34,11 +34,13 @@ public class ErrorConverterImpl implements ErrorConverter {
     this.needsBody = needsBody;
   }
 
-  public Function<ResponsePredicateResult, Throwable> getConverter() {
-    return converter;
-  }
-
+  @Override
   public boolean needsBody() {
     return needsBody;
+  }
+
+  @Override
+  public Throwable apply(ResponsePredicateResult result) {
+    return converter.apply(result);
   }
 }

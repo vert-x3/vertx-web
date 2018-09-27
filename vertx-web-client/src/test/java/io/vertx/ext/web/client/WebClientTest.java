@@ -1299,7 +1299,7 @@ public class WebClientTest extends HttpTestBase {
   @Test
   public void testExpectCustomException() throws Exception {
     ResponsePredicate predicate = ResponsePredicate.create(r -> ResponsePredicateResult.failure("boom"))
-      .errorConverter(ErrorConverter.withoutBody(result -> new CustomException(result.message())));
+      .errorConverter(result -> new CustomException(result.message()));
 
     testExpectation(true, req -> req.expect(predicate), HttpServerResponse::end, ar -> {
       Throwable cause = ar.cause();
@@ -1347,9 +1347,9 @@ public class WebClientTest extends HttpTestBase {
   public void testErrorConverterThrowsException() throws Exception {
     ResponsePredicate predicate = ResponsePredicate.create(r -> {
       return ResponsePredicateResult.failure("boom");
-    }).errorConverter(ErrorConverter.withoutBody(r -> {
+    }).errorConverter(result -> {
       throw new IndexOutOfBoundsException();
-    }));
+    });
 
     testExpectation(true, req -> req.expect(predicate), HttpServerResponse::end, ar -> {
       assertThat(ar.cause(), instanceOf(IndexOutOfBoundsException.class));
@@ -1360,7 +1360,7 @@ public class WebClientTest extends HttpTestBase {
   public void testErrorConverterReturnsNull() throws Exception {
     ResponsePredicate predicate = ResponsePredicate.create(r -> {
       return ResponsePredicateResult.failure("boom");
-    }).errorConverter(ErrorConverter.withoutBody(r -> null));
+    }).errorConverter(r -> null);
 
     testExpectation(true, req -> req.expect(predicate), HttpServerResponse::end, ar -> {
       assertThat(ar.cause(), not(instanceOf(NullPointerException.class)));

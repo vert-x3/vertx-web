@@ -26,8 +26,9 @@ import java.util.function.Function;
  *
  * @author Thomas Segismont
  */
+@FunctionalInterface
 @VertxGen
-public interface ErrorConverter {
+public interface ErrorConverter extends Function<ResponsePredicateResult, Throwable> {
 
   /**
    * Creates an {@link ErrorConverter} ignoring the HTTP response body.
@@ -47,5 +48,9 @@ public interface ErrorConverter {
    */
   static ErrorConverter withBody(Function<ResponsePredicateResult, Throwable> converter) {
     return new ErrorConverterImpl(converter, true);
+  }
+
+  default boolean needsBody() {
+    return false;
   }
 }

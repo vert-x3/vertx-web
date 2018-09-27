@@ -34,7 +34,7 @@ public class ResponsePredicateImpl implements ResponsePredicate {
 
   public ResponsePredicateImpl(Function<HttpResponse<Void>, ResponsePredicateResult> test) {
     this.test = test;
-    errorConverter = ErrorConverter.withoutBody(ResponsePredicateImpl::convert);
+    errorConverter = ResponsePredicateImpl::convert;
   }
 
   private static Throwable convert(ResponsePredicateResult result) {
