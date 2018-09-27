@@ -44,6 +44,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.hamcrest.CoreMatchers.not;
 
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
@@ -1275,10 +1276,24 @@ public class WebClientTest extends HttpTestBase {
   }
 
   @Test
+  public void testExpectOneOfContentTypesFail() throws Exception {
+    testExpectation(true,
+      req -> req.expect(ResponsePredicate.contentType(Arrays.asList("text/plain", "text/csv"))),
+      httpServerResponse -> httpServerResponse.putHeader(HttpHeaders.CONTENT_TYPE, HttpHeaders.TEXT_HTML).end());
+  }
+
+  @Test
   public void testExpectContentTypePass() throws Exception {
     testExpectation(false,
       req -> req.expect(ResponsePredicate.JSON),
       resp -> resp.putHeader("content-type", "application/json").end());
+  }
+
+  @Test
+  public void testExpectOneOfContentTypesPass() throws Exception {
+    testExpectation(false,
+      req -> req.expect(ResponsePredicate.contentType(Arrays.asList("text/plain", "text/html"))),
+      httpServerResponse -> httpServerResponse.putHeader(HttpHeaders.CONTENT_TYPE, HttpHeaders.TEXT_HTML).end());
   }
 
   @Test
@@ -1341,6 +1356,14 @@ public class WebClientTest extends HttpTestBase {
         throw new IndexOutOfBoundsException("boom");
       }))), HttpServerResponse::end, ar -> {
         assertThat(ar.cause(), instanceOf(IndexOutOfBoundsException.class));
+      });
+  }
+
+  @Test
+  public void testErrorConverterReturnsNull() throws Exception {
+    testExpectation(true,
+      req -> req.expect(ResponsePredicate.create(r -> ResponsePredicateResult.failure("boom")).errorConverter(ErrorConverter.withoutBody(r -> null))), HttpServerResponse::end, ar -> {
+        assertThat(ar.cause(), not(instanceOf(NullPointerException.class)));
       });
   }
 
