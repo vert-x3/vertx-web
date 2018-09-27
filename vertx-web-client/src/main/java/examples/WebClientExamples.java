@@ -30,6 +30,9 @@ import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
+import io.vertx.ext.web.client.predicate.ErrorConverter;
+import io.vertx.ext.web.client.predicate.ResponsePredicate;
+import io.vertx.ext.web.client.predicate.ResponsePredicateResult;
 import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.ext.web.multipart.MultipartForm;
 
@@ -404,6 +407,125 @@ public class WebClientExamples {
           System.out.println("Something went wrong " + ar.cause().getMessage());
         }
       });
+  }
+
+  public void manualSanityChecks(WebClient client) {
+    client
+      .get(8080, "myserver.mycompany.com", "/some-uri")
+      .send(ar -> {
+        if (ar.succeeded()) {
+
+          HttpResponse<Buffer> response = ar.result();
+
+          if (response.statusCode() == 200 && response.getHeader("content-type").equals("application/json")) {
+
+            // Decode the body as a json object
+            JsonObject body = response.bodyAsJsonObject();
+            System.out.println("Received response with status code" + response.statusCode() + " with body " + body);
+
+          } else {
+            System.out.println("Something went wrong " + response.statusCode());
+          }
+
+        } else {
+          System.out.println("Something went wrong " + ar.cause().getMessage());
+        }
+      });
+  }
+
+  public void usingPredicates(WebClient client) {
+    ResponsePredicate statusPredicate = ResponsePredicate.create(resp -> {
+      if (resp.statusCode() == 200) {
+        return ResponsePredicateResult.success();
+      }
+      return ResponsePredicateResult.failure("Unexpected response code: " + resp.statusCode());
+    });
+
+    ResponsePredicate contentTypePredicate = ResponsePredicate.create(resp -> {
+      if (resp.getHeader("content-type").equals("application/json")) {
+        return ResponsePredicateResult.success();
+      }
+      return ResponsePredicateResult.failure("Unexpected content: " + resp.getHeader("content-type"));
+    });
+
+    client
+      .get(8080, "myserver.mycompany.com", "/some-uri")
+      .expect(statusPredicate)
+      .expect(contentTypePredicate)
+      .send(ar -> {
+        if (ar.succeeded()) {
+
+          HttpResponse<Buffer> response = ar.result();
+
+          // Safely decode the body as a json object
+          JsonObject body = response.bodyAsJsonObject();
+          System.out.println("Received response with status code" + response.statusCode() + " with body " + body);
+
+        } else {
+          System.out.println("Something went wrong " + ar.cause().getMessage());
+        }
+      });
+  }
+
+  public void usingPredefinedPredicates(WebClient client) {
+    client
+      .get(8080, "myserver.mycompany.com", "/some-uri")
+      .expect(ResponsePredicate.SC_SUCCESS)
+      .expect(ResponsePredicate.JSON)
+      .send(ar -> {
+        if (ar.succeeded()) {
+
+          HttpResponse<Buffer> response = ar.result();
+
+          // Safely decode the body as a json object
+          JsonObject body = response.bodyAsJsonObject();
+          System.out.println("Received response with status code" + response.statusCode() + " with body " + body);
+
+        } else {
+          System.out.println("Something went wrong " + ar.cause().getMessage());
+        }
+      });
+  }
+
+  private static class MyCustomException extends Exception {
+    private final String code;
+
+    public MyCustomException(String message) {
+      super(message);
+      code = null;
+    }
+
+    public MyCustomException(String code, String message) {
+      super(message);
+      this.code = code;
+    }
+  }
+
+  public void predicateCustomError() {
+    ErrorConverter converter = ErrorConverter.withoutBody(result -> {
+      return new MyCustomException(result.message());
+    });
+
+    ResponsePredicate predicate = ResponsePredicate.SC_SUCCESS.errorConverter(converter);
+  }
+
+  public void predicateCustomErrorWithBody() {
+    ErrorConverter converter = ErrorConverter.withBody(result -> {
+
+      // Invoked after the response body is fully received
+      HttpResponse<Buffer> response = result.httpResponse();
+
+      if (response.getHeader("content-type").equals("application/json")) {
+        // Error body is JSON data
+        JsonObject body = response.bodyAsJsonObject();
+        return new MyCustomException(body.getString("code"), body.getString("message"));
+      }
+
+      // Fallback to defaut message
+      return new MyCustomException(result.message());
+    });
+
+    ResponsePredicate predicate = ResponsePredicate.SC_SUCCESS.errorConverter(converter);
   }
 
   public void testClientDisableFollowRedirects(Vertx vertx) {
