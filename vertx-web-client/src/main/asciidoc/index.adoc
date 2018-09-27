@@ -332,7 +332,7 @@ In other words, you must perform sanity checks manually after the response is re
 But if it's easier for your use case, you can trade flexibility for clarity and conciseness using _response predicates_.
 
 With a {@link io.vertx.ext.web.client.predicate.ResponsePredicate}, it is possible to fail a request if the response does not match some criteria.
-A custom predicate instance may be created with {@link io.vertx.ext.web.client.predicate.ResponsePredicate.create(java.util.function.Function<io.vertx.ext.web.client.HttpResponse<java.lang.Void>,io.vertx.ext.web.client.predicate.ResponsePredicateResult>)} and then activated with {@link io.vertx.ext.web.client.HttpRequest.expect}.
+A custom predicate instance may be created with {@link io.vertx.ext.web.client.predicate.ResponsePredicate#create(Function)} and then activated with {@link io.vertx.ext.web.client.HttpRequest#expect(ResponsePredicate)}.
 
 [source,$lang]
 ----
@@ -345,8 +345,8 @@ TIP: Response predicates are evaluated _before_ the response body is received. T
 
 As a convenience, a few predicates for common uses cases are predefined. For example:
 
-* {@link io.vertx.ext.web.client.predicate.ResponsePredicate.SC_SUCCESS} to verify that the reponse has a `2xx` code, or
-* {@link io.vertx.ext.web.client.predicate.ResponsePredicate.JSON} to verify that the reponse body contains JSON data.
+* {@link io.vertx.ext.web.client.predicate.ResponsePredicate#SC_SUCCESS} to verify that the reponse has a `2xx` code, or
+* {@link io.vertx.ext.web.client.predicate.ResponsePredicate#JSON} to verify that the reponse body contains JSON data.
 
 So the previous example can be simplified to:
 
@@ -360,16 +360,14 @@ Please refer to the {@link io.vertx.ext.web.client.predicate.ResponsePredicate} 
 ==== Creating custom exceptions
 
 By default, response predicates (including the predefined ones) use a default error converter which discards the body and conveys a simple message.
-
-However, you may customize the exception class by changing the error to converter:
+You may customize the exception class by changing the error converter:
 
 [source,$lang]
 ----
-{@link examples.WebClientExamples#predicateCustomError(io.vertx.ext.web.client.WebClient)}
+{@link examples.WebClientExamples#predicateCustomError()}
 ----
 
-Many web APIs provide details in error responses.
-
+But many web APIs provide details in error responses.
 For example, the https://developer.marvel.com/docs[Marvel API] uses this JSON object format:
 
 [source,javascript]
@@ -380,11 +378,11 @@ For example, the https://developer.marvel.com/docs[Marvel API] uses this JSON ob
 }
 ----
 
-To avoid losing this information, it is also possible to wait for the response body to be fully received before the error converter is invoked:
+To avoid losing this information, it is possible to wait for the response body to be fully received before the error converter is invoked:
 
 [source,$lang]
 ----
-{@link examples.WebClientExamples#predicateCustomErrorWithBody(io.vertx.ext.web.client.WebClient)}
+{@link examples.WebClientExamples#predicateCustomErrorWithBody()}
 ----
 
 === Handling 30x redirections
