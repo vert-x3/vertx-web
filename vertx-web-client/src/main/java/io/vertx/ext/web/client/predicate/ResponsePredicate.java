@@ -411,7 +411,7 @@ public interface ResponsePredicate {
         return ResponsePredicateResult.failure("Missing response content type");
       }
       for (String mimeType : mimeTypes) {
-        if (mimeType.equals(contentType)) {
+        if (contentType.equalsIgnoreCase(mimeType)) {
           return ResponsePredicateResult.success();
         }
       }

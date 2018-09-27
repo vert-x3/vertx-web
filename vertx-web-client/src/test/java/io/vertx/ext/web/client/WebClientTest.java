@@ -1286,13 +1286,13 @@ public class WebClientTest extends HttpTestBase {
   public void testExpectContentTypePass() throws Exception {
     testExpectation(false,
       req -> req.expect(ResponsePredicate.JSON),
-      resp -> resp.putHeader("content-type", "application/json").end());
+      resp -> resp.putHeader("content-type", "application/JSON").end());
   }
 
   @Test
   public void testExpectOneOfContentTypesPass() throws Exception {
     testExpectation(false,
-      req -> req.expect(ResponsePredicate.contentType(Arrays.asList("text/plain", "text/html"))),
+      req -> req.expect(ResponsePredicate.contentType(Arrays.asList("text/plain", "text/HTML"))),
       httpServerResponse -> httpServerResponse.putHeader(HttpHeaders.CONTENT_TYPE, HttpHeaders.TEXT_HTML).end());
   }
 
