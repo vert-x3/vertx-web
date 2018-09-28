@@ -54,8 +54,7 @@ public class XMLTypeValidator implements ParameterTypeValidator {
         Source xmlSchemaSource = new StreamSource(new StringReader(xmlSchema));
         return new XMLTypeValidator(factory.newSchema(xmlSchemaSource).newValidator());
       } catch (SAXException e) {
-        e.printStackTrace();
-        return null;
+        throw new RuntimeException(e);
       }
     }
   }
@@ -68,8 +67,6 @@ public class XMLTypeValidator implements ParameterTypeValidator {
 
     final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
     String FEATURE;
-
-    System.out.println(">>>>" + dbf.getFeature("http://apache.org/xml/features/disallow-doctype-decl"));
 
     // This is the PRIMARY defense. If DTDs (doctypes) are disallowed, almost all XML entity attacks are prevented
     // Xerces 2 only - http://xerces.apache.org/xerces2-j/features.html#disallow-doctype-decl
