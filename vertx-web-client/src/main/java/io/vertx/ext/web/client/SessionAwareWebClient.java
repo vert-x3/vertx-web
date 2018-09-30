@@ -11,7 +11,6 @@
 package io.vertx.ext.web.client;
 
 import io.vertx.codegen.annotations.Fluent;
-import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.ext.web.client.impl.SessionAwareWebClientImpl;
 
 /**
@@ -34,7 +33,6 @@ import io.vertx.ext.web.client.impl.SessionAwareWebClientImpl;
  *
  * @author <a href="mailto:tommaso.nolli@gmail.com">Tommaso Nolli</a>
  */
-@VertxGen
 public interface SessionAwareWebClient extends WebClient {
 
   /**

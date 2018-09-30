@@ -35,16 +35,23 @@ import io.vertx.ext.web.multipart.MultipartForm;
 public class SessionAwareHttpRequestImpl implements HttpRequest<Buffer> {
   private HttpRequestImpl<Buffer> request;
   private CookieStore cookieStore;
+  private CaseInsensitiveHeaders originalHeaders;
 
   public SessionAwareHttpRequestImpl(HttpRequestImpl<Buffer> request, CookieStore cookieStore) {
     this.request = request;
     this.cookieStore = cookieStore;
+    this.originalHeaders = new CaseInsensitiveHeaders();
+    this.originalHeaders.addAll(request.headers());
   }
 
   protected void prepare(CaseInsensitiveHeaders headers) {
     if (headers != null) {
-      request.headers().addAll(headers);
+      originalHeaders.addAll(headers);
     }
+    
+    // we need to reset the headers at every "send" because a previous call
+    // could have change the cookies (the server sent new ones or updated some values)
+    request.headers().clear().addAll(originalHeaders);
 
     String domain = request.virtualHost;
     if (domain == null) {
@@ -151,36 +158,43 @@ public class SessionAwareHttpRequestImpl implements HttpRequest<Buffer> {
 
   @Override
   public void sendStream(ReadStream<Buffer> body, Handler<AsyncResult<HttpResponse<Buffer>>> handler) {
+    prepare(null);
     request.sendStream(body, cookieHandler(handler));
   }
 
   @Override
   public void sendBuffer(Buffer body, Handler<AsyncResult<HttpResponse<Buffer>>> handler) {
+    prepare(null);
     request.sendBuffer(body, cookieHandler(handler));
   }
 
   @Override
   public void sendJsonObject(JsonObject body, Handler<AsyncResult<HttpResponse<Buffer>>> handler) {
+    prepare(null);
     request.sendJsonObject(body, cookieHandler(handler));
   }
 
   @Override
   public void sendJson(Object body, Handler<AsyncResult<HttpResponse<Buffer>>> handler) {
+    prepare(null);
     request.sendJson(body, cookieHandler(handler));
   }
 
   @Override
   public void sendForm(MultiMap body, Handler<AsyncResult<HttpResponse<Buffer>>> handler) {
+    prepare(null);
     request.sendForm(body, cookieHandler(handler));
   }
 
   @Override
   public void sendMultipartForm(MultipartForm body, Handler<AsyncResult<HttpResponse<Buffer>>> handler) {
+    prepare(null);
     request.sendMultipartForm(body, cookieHandler(handler));
   }
 
   @Override
   public void send(Handler<AsyncResult<HttpResponse<Buffer>>> handler) {
+    prepare(null);
     request.send(cookieHandler(handler));
   }
 
