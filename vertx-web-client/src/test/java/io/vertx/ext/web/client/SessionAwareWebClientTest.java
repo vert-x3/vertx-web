@@ -15,6 +15,7 @@ import static org.junit.Assert.assertEquals;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
 
 import org.junit.After;
@@ -24,6 +25,7 @@ import org.junit.runner.RunWith;
 
 import io.netty.handler.codec.http.cookie.Cookie;
 import io.netty.handler.codec.http.cookie.DefaultCookie;
+import io.netty.handler.codec.http.cookie.ServerCookieDecoder;
 import io.netty.handler.codec.http.cookie.ServerCookieEncoder;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
@@ -39,8 +41,6 @@ import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.ext.web.client.impl.InternalCookieStore;
 import io.vertx.ext.web.client.impl.SessionAwareWebClientImpl;
-import io.vertx.ext.web.client.impl.TreeCookieStore;
-import io.vertx.test.core.TestUtils;
 
 /**
  * @author <a href="mailto:tommaso.nolli@gmail.com">Tommaso Nolli</a>
@@ -102,36 +102,43 @@ public class SessionAwareWebClientTest {
       async.complete();
     });
   }
-  
-  // TODO: Remove when done with optimizations
+
   @Test
-  public void performancesTree(TestContext context) {
-    TreeCookieStore store = new TreeCookieStore();
-    
-    int num = 4000;
-    int pos = (int) (Math.random() * num);
-    Cookie ref = null;
-    for (int i = 0; i < num; i++) {
-      String domain = TestUtils.randomAlphaString(200);
-      DefaultCookie c = new DefaultCookie("a_cookie", "" + i);
-      c.setDomain(domain);
-      store.put(c);
-      if (pos == i) {
-        ref = c;
+  public void testSendUserCookie(TestContext context) throws Exception {
+    testRequest(context, req -> {
+      req.response().setChunked(true);
+      req.response().headers().add("set-cookie", ServerCookieEncoder.STRICT.encode(new DefaultCookie("test", "toast")));
+      List<String> cookies = req.headers().getAll("cookie");
+      for (String h : cookies) {
+        Set<Cookie> all = ServerCookieDecoder.STRICT.decode(h);
+        Cookie c = all.iterator().next();
+        if (c.name().equals("test")) {
+          req.response().write("OK");
+          break;
+        }
       }
-    }
+    });
+
+    HttpRequest<Buffer> req = client.get(PORT, "localhost", "/");
+
+    {
+      Async async = context.async();
+      req.send(ar -> {
+        context.assertTrue(ar.succeeded());
+        async.complete();
+      });
+      async.await();
+    }    
+
+    Async async = context.async();
+    req.send(ar -> {
+      context.assertTrue(ar.succeeded());
+      HttpResponse<Buffer> res = ar.result();
+      context.assertEquals(200, res.statusCode());
+      context.assertEquals("OK", res.bodyAsString());
+      async.complete();
+    });
     
-    context.assertNotNull(ref);
-    
-    long start = System.nanoTime();
-    Iterable<Cookie> found = store.get(false, ref.domain(), "/");
-    System.out.println("Elapsed tree: " + (System.nanoTime() - start) + " us.");
-    
-    num = 0;
-    for (Cookie c : found) {
-      num++;
-      context.assertEquals(ref.value(), c.value());
-    }
     
   }
   
