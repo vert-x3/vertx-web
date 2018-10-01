@@ -35,23 +35,25 @@ import io.vertx.ext.web.multipart.MultipartForm;
 public class SessionAwareHttpRequestImpl implements HttpRequest<Buffer> {
   private HttpRequestImpl<Buffer> request;
   private CookieStore cookieStore;
-  private CaseInsensitiveHeaders originalHeaders;
+  private MultiMap headers;
 
-  public SessionAwareHttpRequestImpl(HttpRequestImpl<Buffer> request, CookieStore cookieStore) {
+  public SessionAwareHttpRequestImpl(HttpRequestImpl<Buffer> request, CookieStore cookieStore, CaseInsensitiveHeaders clientHeaders) {
     this.request = request;
     this.cookieStore = cookieStore;
-    this.originalHeaders = new CaseInsensitiveHeaders();
-    this.originalHeaders.addAll(request.headers());
+    if (clientHeaders != null) {
+      this.headers = new CaseInsensitiveHeaders().addAll(clientHeaders);
+    }
   }
 
-  protected void prepare(CaseInsensitiveHeaders headers) {
-    if (headers != null) {
-      originalHeaders.addAll(headers);
-    }
-    
+  protected void prepare() {
     // we need to reset the headers at every "send" because a previous call
     // could have change the cookies (the server sent new ones or updated some values)
-    request.headers().clear().addAll(originalHeaders);
+    if (request.headers != null) {
+      request.headers().clear();
+    }
+    if (headers != null) {
+      request.headers().addAll(headers);
+    }
 
     String domain = request.virtualHost;
     if (domain == null) {
@@ -106,13 +108,16 @@ public class SessionAwareHttpRequestImpl implements HttpRequest<Buffer> {
 
   @Override
   public HttpRequest<Buffer> putHeader(String name, String value) {
-    request.putHeader(name, value);
+    headers().set(name, value);
     return this;
   }
 
   @Override
   public MultiMap headers() {
-    return request.headers();
+    if (headers == null) {
+      headers = new CaseInsensitiveHeaders();
+    }
+    return headers;
   }
 
   @Override
@@ -158,43 +163,43 @@ public class SessionAwareHttpRequestImpl implements HttpRequest<Buffer> {
 
   @Override
   public void sendStream(ReadStream<Buffer> body, Handler<AsyncResult<HttpResponse<Buffer>>> handler) {
-    prepare(null);
+    prepare();
     request.sendStream(body, cookieHandler(handler));
   }
 
   @Override
   public void sendBuffer(Buffer body, Handler<AsyncResult<HttpResponse<Buffer>>> handler) {
-    prepare(null);
+    prepare();
     request.sendBuffer(body, cookieHandler(handler));
   }
 
   @Override
   public void sendJsonObject(JsonObject body, Handler<AsyncResult<HttpResponse<Buffer>>> handler) {
-    prepare(null);
+    prepare();
     request.sendJsonObject(body, cookieHandler(handler));
   }
 
   @Override
   public void sendJson(Object body, Handler<AsyncResult<HttpResponse<Buffer>>> handler) {
-    prepare(null);
+    prepare();
     request.sendJson(body, cookieHandler(handler));
   }
 
   @Override
   public void sendForm(MultiMap body, Handler<AsyncResult<HttpResponse<Buffer>>> handler) {
-    prepare(null);
+    prepare();
     request.sendForm(body, cookieHandler(handler));
   }
 
   @Override
   public void sendMultipartForm(MultipartForm body, Handler<AsyncResult<HttpResponse<Buffer>>> handler) {
-    prepare(null);
+    prepare();
     request.sendMultipartForm(body, cookieHandler(handler));
   }
 
   @Override
   public void send(Handler<AsyncResult<HttpResponse<Buffer>>> handler) {
-    prepare(null);
+    prepare();
     request.send(cookieHandler(handler));
   }
 

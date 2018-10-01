@@ -33,9 +33,7 @@ public class SessionAwareWebClientImpl implements SessionAwareWebClient {
   }
 
   private HttpRequest<Buffer> wrapRequest(HttpRequest<Buffer> req) {
-    SessionAwareHttpRequestImpl request = new SessionAwareHttpRequestImpl((HttpRequestImpl<Buffer>) req, cookieStore);
-    request.prepare(headers);
-    return request;
+    return new SessionAwareHttpRequestImpl((HttpRequestImpl<Buffer>) req, cookieStore, headers);
   }
   
   public CookieStore getCookieStore() {
