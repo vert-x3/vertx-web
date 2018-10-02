@@ -37,7 +37,7 @@ public class SessionAwareHttpRequestImpl implements HttpRequest<Buffer> {
   private CookieStore cookieStore;
   private MultiMap headers;
 
-  public SessionAwareHttpRequestImpl(HttpRequestImpl<Buffer> request, CookieStore cookieStore, CaseInsensitiveHeaders clientHeaders) {
+  public SessionAwareHttpRequestImpl(HttpRequestImpl<Buffer> request, CookieStore cookieStore, MultiMap clientHeaders) {
     this.request = request;
     this.cookieStore = cookieStore;
     if (clientHeaders != null) {
@@ -74,7 +74,8 @@ public class SessionAwareHttpRequestImpl implements HttpRequest<Buffer> {
 
   @Override
   public HttpRequest<Buffer> method(HttpMethod value) {
-    return request.method(value);
+    request.method(value);
+    return this;
   }
 
   @Override
@@ -84,8 +85,10 @@ public class SessionAwareHttpRequestImpl implements HttpRequest<Buffer> {
   }
 
   @Override
+  @SuppressWarnings("unchecked")
   public <U> HttpRequest<U> as(BodyCodec<U> responseCodec) {
-    return request.as(responseCodec);
+    request.as(responseCodec);
+    return (HttpRequest<U>) this;
   }
 
   @Override
@@ -157,8 +160,7 @@ public class SessionAwareHttpRequestImpl implements HttpRequest<Buffer> {
 
   @Override
   public HttpRequest<Buffer> copy() {
-    request.copy();
-    return this;
+    return new SessionAwareHttpRequestImpl((HttpRequestImpl<Buffer>) request.copy(), cookieStore, headers);
   }
 
   @Override
