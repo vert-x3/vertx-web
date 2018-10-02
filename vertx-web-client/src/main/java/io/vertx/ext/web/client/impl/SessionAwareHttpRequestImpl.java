@@ -46,8 +46,8 @@ public class SessionAwareHttpRequestImpl implements HttpRequest<Buffer> {
   }
 
   protected void prepare() {
-    // we need to reset the headers at every "send" because a previous call
-    // could have change the cookies (the server sent new ones or updated some values)
+    // we need to reset the headers at every "send" because cookies can be changed,
+    // either by the server (that sent new ones) or by the user.
     if (request.headers != null) {
       request.headers().clear();
     }
@@ -213,15 +213,17 @@ public class SessionAwareHttpRequestImpl implements HttpRequest<Buffer> {
         }
         cookieHeaders.forEach(header -> {
           Cookie cookie = ClientCookieDecoder.STRICT.decode(header);
-          if (cookie.domain() == null) {
-            // Set the domain if missing, because we need to send cookies
-            // only to the domains we received them from.
-            cookie.setDomain(request.virtualHost != null ? request.virtualHost : request.host);
-          }
-          if (cookieStore instanceof InternalCookieStore) {
-            ((InternalCookieStore) cookieStore).put(cookie);
-          } else {
-            cookieStore.put(cookie.name(), cookie.value(), cookie.domain(), cookie.path(), cookie.maxAge(), cookie.isSecure());
+          if (cookie != null) {
+            if (cookie.domain() == null) {
+              // Set the domain if missing, because we need to send cookies
+              // only to the domains we received them from.
+              cookie.setDomain(request.virtualHost != null ? request.virtualHost : request.host);
+            }
+            if (cookieStore instanceof InternalCookieStore) {
+              ((InternalCookieStore) cookieStore).put(cookie);
+            } else {
+              cookieStore.put(cookie.name(), cookie.value(), cookie.domain(), cookie.path(), cookie.maxAge(), cookie.isSecure());
+            }
           }
         });
       }

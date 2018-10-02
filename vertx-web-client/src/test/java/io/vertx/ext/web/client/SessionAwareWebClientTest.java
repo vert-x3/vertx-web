@@ -12,10 +12,13 @@ package io.vertx.ext.web.client;
 
 import static org.junit.Assert.assertEquals;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 import org.junit.After;
@@ -27,20 +30,31 @@ import io.netty.handler.codec.http.cookie.Cookie;
 import io.netty.handler.codec.http.cookie.DefaultCookie;
 import io.netty.handler.codec.http.cookie.ServerCookieDecoder;
 import io.netty.handler.codec.http.cookie.ServerCookieEncoder;
+import io.vertx.core.AbstractVerticle;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
+import io.vertx.core.Verticle;
 import io.vertx.core.Vertx;
-import io.vertx.core.VertxOptions;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.dns.AddressResolverOptions;
+import io.vertx.core.file.AsyncFile;
+import io.vertx.core.file.OpenOptions;
+import io.vertx.core.http.CaseInsensitiveHeaders;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientOptions;
+import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.http.HttpServerRequest;
+import io.vertx.core.http.RequestOptions;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
+import io.vertx.ext.web.client.impl.CookieStoreImpl;
 import io.vertx.ext.web.client.impl.InternalCookieStore;
+import io.vertx.ext.web.client.impl.SessionAwareHttpRequestImpl;
 import io.vertx.ext.web.client.impl.SessionAwareWebClientImpl;
+import io.vertx.ext.web.multipart.MultipartForm;
 
 /**
  * @author <a href="mailto:tommaso.nolli@gmail.com">Tommaso Nolli</a>
@@ -54,19 +68,18 @@ public class SessionAwareWebClientTest {
 
   private HttpServer server;
 
-  protected VertxOptions getOptions() {
-    return new VertxOptions().setAddressResolverOptions(new AddressResolverOptions()
-        .setHostsValue(Buffer.buffer("127.0.0.1 somehost\n" + "127.0.0.1 localhost")));
-  }
-
   @Before
   public void setUp(TestContext context) throws Exception {
-    vertx = Vertx.vertx(getOptions());
-    HttpClient vc = vertx.createHttpClient(new HttpClientOptions().setDefaultPort(PORT).setDefaultHost("localhost"));
-    client = (SessionAwareWebClientImpl) SessionAwareWebClient.build(WebClient.wrap(vc));
+    vertx = Vertx.vertx();
+    client = buildClient(CookieStore.build());
     server = vertx.createHttpServer(new HttpServerOptions().setPort(PORT).setHost("0.0.0.0"));
   }
   
+  private SessionAwareWebClientImpl buildClient(CookieStore cookieStore) {
+    HttpClient vc = vertx.createHttpClient(new HttpClientOptions().setDefaultPort(PORT).setDefaultHost("localhost"));
+    return (SessionAwareWebClientImpl) SessionAwareWebClient.build(WebClient.wrap(vc), cookieStore);
+  }
+
   @After
   public void terDown() {
     vertx.close();
@@ -134,7 +147,7 @@ public class SessionAwareWebClientTest {
   }
 
   @Test
-  public void testSendUserCookie(TestContext context) {
+  public void testReceiveAndSendCookie(TestContext context) {
     prepareServer(context, req -> {
       req.response().setChunked(true);
       req.response().headers().add("set-cookie", ServerCookieEncoder.STRICT.encode(new DefaultCookie("test", "toast")));
@@ -164,6 +177,40 @@ public class SessionAwareWebClientTest {
       async.complete();
     });
   }
+
+  @Test
+  public void testReceiveAndSendCookieQuestionMark(TestContext context) {
+    prepareServer(context, req -> {
+      req.response().setChunked(true);
+      Cookie c = new DefaultCookie("test", "toast");
+      c.setPath("/path");
+      req.response().headers().add("set-cookie", ServerCookieEncoder.STRICT.encode(c));
+      c = getCookieValue(req, "test");
+      if (c != null) {
+        req.response().write("OK");
+      }
+    });
+
+    HttpRequest<Buffer> req = client.get(PORT, "localhost", "/path?a=b");
+
+    {
+      Async async = context.async();
+      req.send(ar -> {
+        context.assertTrue(ar.succeeded());
+        async.complete();
+      });
+      async.await();
+    }
+
+    Async async = context.async();
+    req.send(ar -> {
+      context.assertTrue(ar.succeeded());
+      HttpResponse<Buffer> res = ar.result();
+      context.assertEquals(200, res.statusCode());
+      context.assertEquals("OK", res.bodyAsString());
+      async.complete();
+    });
+  }
   
   @Test
   public void testClientHeaders(TestContext context) {
@@ -180,6 +227,16 @@ public class SessionAwareWebClientTest {
     });
 
     HttpRequest<Buffer> req = client.get(PORT, "localhost", "/");
+    
+    {
+      Async async = context.async();
+      req.send(ar -> {
+        context.assertTrue(ar.succeeded());
+        context.assertEquals(500, ar.result().statusCode());
+        async.complete();
+      });
+    }
+
     for (int i = 0; i < 3; i++) {
       req.putHeader(headerPrefix + i, String.valueOf(i));
     }
@@ -235,6 +292,142 @@ public class SessionAwareWebClientTest {
       context.assertEquals(200, ar.result().statusCode());
       async.complete();
     });
+  }
+  
+  @Test
+  public void testRequestWrapping(TestContext context) {
+    Consumer<HttpRequest<Buffer>> check = r -> {
+      context.assertTrue(r instanceof SessionAwareHttpRequestImpl);
+    };
+    
+    check.accept(client.delete("/"));
+    check.accept(client.delete("localhost", "/"));
+    check.accept(client.delete(PORT, "localhost", "/"));
+    check.accept(client.deleteAbs("http://localhost/"));
+    check.accept(client.get("/"));
+    check.accept(client.get("localhost", "/"));
+    check.accept(client.get(PORT, "localhost", "/"));
+    check.accept(client.getAbs("http://localhost/"));
+    check.accept(client.head("/"));
+    check.accept(client.head("localhost", "/"));
+    check.accept(client.head(PORT, "localhost", "/"));
+    check.accept(client.headAbs("http://localhost/"));
+    check.accept(client.patch("/"));
+    check.accept(client.patch("localhost", "/"));
+    check.accept(client.patch(PORT, "localhost", "/"));
+    check.accept(client.patchAbs("http://localhost/"));
+    check.accept(client.post("/"));
+    check.accept(client.post("localhost", "/"));
+    check.accept(client.post(PORT, "localhost", "/"));
+    check.accept(client.postAbs("http://localhost/"));
+    check.accept(client.put("/"));
+    check.accept(client.put("localhost", "/"));
+    check.accept(client.put(PORT, "localhost", "/"));
+    check.accept(client.putAbs("http://localhost/"));
+    check.accept(client.request(HttpMethod.GET, new RequestOptions()));
+    check.accept(client.request(HttpMethod.GET, "/"));
+    check.accept(client.request(HttpMethod.GET, "localhost", "/"));
+    check.accept(client.request(HttpMethod.GET, PORT, "localhost", "/"));
+    check.accept(client.requestAbs(HttpMethod.GET, "http://localhost/"));
+  }
+  
+  @Test
+  public void testRequestHadlerWrapping(TestContext context) throws IOException {
+    AtomicInteger count = new AtomicInteger(0);
+    client = buildClient(new CookieStoreImpl() {
+      @Override
+      public CookieStore put(Cookie cookie) {
+        count.incrementAndGet();
+        return super.put(cookie);
+      }
+    });
+    
+    String encodedCookie = ServerCookieEncoder.STRICT.encode(new DefaultCookie("a", "1"));
+    prepareServer(context, req -> {
+      req.response().headers().add("set-cookie", encodedCookie);
+    });
+    
+    int expected = 7;
+    Async async = context.async(expected);
+    Handler<AsyncResult<HttpResponse<Buffer>>> handler = ar -> { async.countDown(); };
+    HttpRequest<Buffer> req = client.post("/");
+    req.send(handler);
+    req.sendBuffer(Buffer.buffer(), handler);
+    req.sendForm(new CaseInsensitiveHeaders().add("a", "b"), handler);
+    req.sendJson("", handler);
+    req.sendJsonObject(new JsonObject(), handler);
+    req.sendMultipartForm(MultipartForm.create().attribute("a", "b"), handler);
+    
+    File f = File.createTempFile("vertx", ".tmp");
+    f.deleteOnExit();
+    AsyncFile asyncFile = vertx.fileSystem().openBlocking(f.getAbsolutePath(), new OpenOptions());
+    req.sendStream(asyncFile, handler);
+    
+    async.await();
+    asyncFile.close();
+    
+    context.assertEquals(expected, count.get());
+  }
+
+  @Test
+  public void testMultipleVerticles(TestContext testContext) {
+    String cookieName = "a";
+    
+    prepareServer(testContext, req -> {
+      req.response().headers().add("set-cookie", ServerCookieEncoder.STRICT.encode(new DefaultCookie(cookieName, req.toString())));
+    });
+    
+    client = buildClient(new CookieStoreImpl() {
+      @Override
+      public CookieStore put(Cookie cookie) {
+        return super.put(cookie);
+      }
+    });
+    
+    int numVerticles = 4;
+    int runs = 10;
+    Async async = testContext.async(numVerticles * runs);
+    
+    String host = "localhost";
+    String uri = "/";
+    
+    Verticle v = new AbstractVerticle() {
+      @Override
+      public void start() throws Exception {
+        vertx.eventBus().consumer("test", m -> {
+          client.get(host, uri).send(ar -> {
+            testContext.assertTrue(ar.succeeded());
+            async.countDown();            
+          });
+        });
+      }
+    };
+    
+    Async asyncDeploy = testContext.async(numVerticles);
+    for (int i = 0; i < numVerticles; i++) {
+      vertx.deployVerticle(v, ar -> { asyncDeploy.countDown(); });
+    }
+    asyncDeploy.await();
+    
+    for (int i = 0; i < runs; i++) {
+      vertx.eventBus().publish("test", "");
+    }
+    
+    async.await();
+    
+    Async asyncEnd = testContext.async();
+    vertx.undeploy(v.getClass().getName(), ar -> {
+      asyncEnd.complete();
+    });
+    asyncEnd.await();
+    
+    int i = 0;
+    Iterable<Cookie> all = client.getCookieStore().get(false, host, uri);
+    for (Cookie c : all) {
+      i++;
+      testContext.assertEquals(c.name(), cookieName);
+    }
+    assertEquals(1, i);
   }
   
   @Test

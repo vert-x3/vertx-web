@@ -12,7 +12,7 @@ package io.vertx.ext.web.client;
 
 import io.netty.handler.codec.http.cookie.Cookie;
 import io.vertx.codegen.annotations.Fluent;
-import io.vertx.ext.web.client.impl.TreeCookieStore;
+import io.vertx.ext.web.client.impl.CookieStoreImpl;
 
 /**
  * A cookie store that manages cookies for a single user; received for different domains and valid for different paths.
@@ -26,7 +26,7 @@ public interface CookieStore {
    * @return the new cookie store
    */
   static CookieStore build() {
-    return new TreeCookieStore();
+    return new CookieStoreImpl();
   }
   
   /**
