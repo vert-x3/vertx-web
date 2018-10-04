@@ -30,6 +30,9 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.concurrent.TimeUnit.NANOSECONDS;
+
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
@@ -374,9 +377,9 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
       sessionID.set(setCookie);
     }, 200, "OK", null);
     testRequest(HttpMethod.GET, "/1", req -> req.putHeader("cookie", sessionID.get()), 200, "OK", null);
-    long now = System.currentTimeMillis();
+    long now = System.nanoTime();
     testRequest(HttpMethod.GET, "/2", req -> req.putHeader("cookie", sessionID.get()), 200, "OK", null);
-    return System.currentTimeMillis() - now;
+    return MILLISECONDS.convert(System.nanoTime() - now, NANOSECONDS);
   }
 
   @Test
