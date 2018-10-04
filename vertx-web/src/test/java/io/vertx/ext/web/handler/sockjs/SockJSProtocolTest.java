@@ -68,7 +68,11 @@ public class SockJSProtocolTest {
     router.route("/echo/*").handler(SockJSHandler.create(vertx,
       new SockJSHandlerOptions().setMaxBytesStreaming(4096)).socketHandler(sock -> sock.handler(sock::write)));
     router.route("/close/*").handler(SockJSHandler.create(vertx,
-      new SockJSHandlerOptions().setMaxBytesStreaming(4096)).socketHandler(sock -> sock.close(3000, "Go away!")));
+      new SockJSHandlerOptions().setMaxBytesStreaming(4096)).socketHandler(sock -> {
+        // Close with a small delay so the opening sockjs frame "o" is not aggregated in the same TCP frame
+        // than the SockJS close frame "c[3000,"Go away!"]"
+        vertx.setTimer(10, id -> sock.close(3000, "Go away!"));
+    }));
     router.route("/disabled_websocket_echo/*").handler(SockJSHandler.create(vertx, new SockJSHandlerOptions()
       .setMaxBytesStreaming(4096).addDisabledTransport("WEBSOCKET")).socketHandler(sock -> sock.handler(sock::write)));
     router.route("/ticker/*").handler(SockJSHandler.create(vertx,
