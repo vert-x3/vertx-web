@@ -98,7 +98,8 @@ public class MVELTemplateTest {
 
     engine.render(context, "src/test/filesystemtemplates/test-mvel-template4.templ", render -> {
       should.assertTrue(render.succeeded());
-      should.assertEquals("Hello badger and fox\nRequest path is /test-mvel-template4.templ", render.result().toString());
+      String res = render.result().toString();
+      should.assertEquals("Hello badger and fox\n\nRequest path is /test-mvel-template4.templ\n", res);
       test.complete();
     });
     test.await();
