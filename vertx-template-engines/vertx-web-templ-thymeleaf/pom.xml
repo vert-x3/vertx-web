@@ -24,6 +24,12 @@
         </exclusion>
       </exclusions>
     </dependency>
+    <!-- Force same version than mysql/postgres driver -->
+    <dependency>
+      <groupId>org.javassist</groupId>
+      <artifactId>javassist</artifactId>
+      <version>3.21.0-GA</version>
+    </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
