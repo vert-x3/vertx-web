@@ -87,6 +87,7 @@ class HttpRequestImpl<T> implements HttpRequest<T> {
     this.params = other.params != null ? new CaseInsensitiveHeaders().addAll(other.params) : null;
     this.codec = other.codec;
     this.followRedirects = other.followRedirects;
+    this.ssl = other.ssl;
   }
 
   @Override
