@@ -135,6 +135,23 @@ public interface Router extends Handler<HttpServerRequest> {
   Route getWithRegex(String regex);
 
   /**
+   * Add a route that matches the specified method, path and the query param decoding flag.
+   * @param method the HTTP method to match
+   * @param path URI paths that begin with this path will match
+   * @param decodeQueryParam flag that gives an option to decode the query param.
+   * @return the route
+   */
+  Route route(HttpMethod method, String path, boolean decodeQueryParam);
+
+  /**
+   * Add a route that matches the specified path and the query param decoding flag.
+   * @param path URI paths that begin with this path will match
+   * @param decodeQueryParam flag that gives an option to decode the query param.
+   * @return the route
+   */
+  Route route(String path, boolean decodeQueryParam);
+
+  /**
    * Add a route that matches any HTTP HEAD request
    *
    * @return the route

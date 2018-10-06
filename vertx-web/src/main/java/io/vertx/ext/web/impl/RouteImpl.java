@@ -57,6 +57,7 @@ public class RouteImpl implements Route {
   private List<String> groups;
   private boolean useNormalisedPath = true;
   private Set<String> namedGroupsInRegex = new TreeSet<>();
+  private boolean decodeQueryParam = true;
 
   RouteImpl(RouterImpl router, int order) {
     this.router = router;
@@ -87,6 +88,21 @@ public class RouteImpl implements Route {
   RouteImpl(RouterImpl router, int order, String regex, boolean bregex) {
     this(router, order);
     setRegex(regex);
+  }
+
+  RouteImpl(RouterImpl router, int order, boolean decodeQueryParam, HttpMethod method, String path) {
+    this(router, order);
+    methods.add(method);
+    checkPath(path);
+    setPath(path);
+    this.decodeQueryParam = decodeQueryParam;
+  }
+
+  RouteImpl(RouterImpl router, int order, boolean decodeQueryParam, String path) {
+    this(router, order);
+    checkPath(path);
+    setPath(path);
+    this.decodeQueryParam = decodeQueryParam;
   }
 
   @Override
@@ -306,7 +322,7 @@ public class RouteImpl implements Route {
     }
 
     // Check if query params are already parsed
-    if (context.queryParams().size() == 0) {
+    if (context.queryParams().size() == 0 && decodeQueryParam) {
       // Decode query parameters and put inside context.queryParams
       Map<String, List<String>> decodedParams = new QueryStringDecoder(request.uri()).parameters();
 

@@ -105,6 +105,16 @@ public class RouterImpl implements Router {
   }
 
   @Override
+  public Route route(HttpMethod method, String path, boolean decodeQueryParam) {
+    return new RouteImpl(this, orderSequence.getAndIncrement(), decodeQueryParam, method, path);
+  }
+
+  @Override
+  public Route route(String path, boolean decodeQueryParam) {
+    return new RouteImpl(this, orderSequence.getAndIncrement(), decodeQueryParam, path);
+  }
+
+  @Override
   public Route get() {
     return route().method(HttpMethod.GET);
   }
