@@ -407,22 +407,23 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
       assertNotNull(setCookie);
     }, 200, "OK", null);
 
+    CountDownLatch responseReceived = new CountDownLatch(1);
     testRequest(HttpMethod.GET, "/1", req -> req.putHeader("cookie", "vertx-web.session=" + sessionId.get() + "; Path=/"), resp -> {
       String setCookie = resp.headers().get("set-cookie");
       assertNotNull(setCookie);
       assertFalse(("vertx-web.session=" + sessionId.get() + "; Path=/").equals(setCookie));
+      responseReceived.countDown();
     }, 200, "OK", null);
+    awaitLatch(responseReceived);
 
-    CountDownLatch latch = new CountDownLatch(1);
     // after the id is regenerated the old id must not be valid anymore
-
     store.get(sessionId.get(), get -> {
       assertTrue(get.succeeded());
       assertNull(get.result());
-      latch.countDown();
+      testComplete();
     });
 
-    awaitLatch(latch);
+    await();
   }
 
   @Test
