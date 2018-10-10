@@ -376,7 +376,11 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
       String setCookie = resp.headers().get("set-cookie");
       sessionID.set(setCookie);
     }, 200, "OK", null);
-    testRequest(HttpMethod.GET, "/1", req -> req.putHeader("cookie", sessionID.get()), 200, "OK", null);
+    CountDownLatch responseReceived = new CountDownLatch(1);
+    testRequest(HttpMethod.GET, "/1", req -> req.putHeader("cookie", sessionID.get()), resp -> {
+      responseReceived.countDown();
+    }, 200, "OK", null);
+    awaitLatch(responseReceived);
     long now = System.nanoTime();
     testRequest(HttpMethod.GET, "/2", req -> req.putHeader("cookie", sessionID.get()), 200, "OK", null);
     return MILLISECONDS.convert(System.nanoTime() - now, NANOSECONDS);
