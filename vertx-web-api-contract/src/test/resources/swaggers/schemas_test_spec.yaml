@@ -127,7 +127,7 @@ paths:
             schema:
               allOf:
                 - $ref: 'http://localhost:8081/card.json'
-                - $ref: './src/test/resources/swaggers/schemas/Card_id.yaml'
+                - $ref: './schemas/Card_id.yaml'
                 - type: object
                   properties:
                     parent_card:
@@ -157,7 +157,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: './src/test/resources/swaggers/schemas/tree.yaml#/tree'
+              $ref: './schemas/tree.yaml#/tree'
   /test12:
     post:
       operationId: test12
