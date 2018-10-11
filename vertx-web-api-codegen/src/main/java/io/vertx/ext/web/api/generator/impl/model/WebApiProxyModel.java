@@ -35,16 +35,16 @@ public class WebApiProxyModel extends ProxyModel {
   }
 
   @Override
-  protected void checkParamType(ExecutableElement elem, TypeMirror type, TypeInfo typeInfo, int pos, int numParams) {
+  protected void checkParamType(ExecutableElement elem, TypeMirror type, TypeInfo typeInfo, int pos, int numParams, boolean allowAnyJavaType) {
     // We allow RequestParameter but not as last or before last parameter
     if (RequestParameter.class.getName().equals(typeInfo.getName()) && (numParams - pos) > 2)
       return;
-    super.checkParamType(elem, type, typeInfo, pos, numParams);
+    super.checkParamType(elem, type, typeInfo, pos, numParams, allowAnyJavaType);
   }
 
   @Override
-  protected MethodInfo createMethodInfo(Set<ClassTypeInfo> ownerTypes, String methodName, String comment, Doc doc, MethodKind kind, TypeInfo returnType, Text returnDescription, boolean isFluent, boolean isCacheReturn, List<ParamInfo> mParams, ExecutableElement methodElt, boolean isStatic, boolean isDefault, ArrayList<TypeParamInfo.Method> typeParams, TypeElement declaringElt, boolean methodDeprecated) {
-    ProxyMethodInfo baseInfo = (ProxyMethodInfo) super.createMethodInfo(ownerTypes, methodName, comment, doc, kind, returnType, returnDescription, isFluent, isCacheReturn, mParams, methodElt, isStatic, isDefault, typeParams, declaringElt, methodDeprecated);
+  protected MethodInfo createMethodInfo(Set<ClassTypeInfo> ownerTypes, String methodName, String comment, Doc doc, TypeInfo returnType, Text returnDescription, boolean isFluent, boolean isCacheReturn, List<ParamInfo> mParams, ExecutableElement methodElt, boolean isStatic, boolean isDefault, ArrayList<TypeParamInfo.Method> typeParams, TypeElement declaringElt, boolean methodDeprecated, Text deprecatedDesc) {
+    ProxyMethodInfo baseInfo = (ProxyMethodInfo) super.createMethodInfo(ownerTypes, methodName, comment, doc, returnType, returnDescription, isFluent, isCacheReturn, mParams, methodElt, isStatic, isDefault, typeParams, declaringElt, methodDeprecated, deprecatedDesc);
     if (!isStatic && !baseInfo.isProxyClose()) {
       if (mParams.size() < 2) {
         throw new GenException(this.modelElt, "Method should have second to last parameter of type io.vertx.ext.web.api.RequestContext and last parameter of type Handler<AsyncResult<io.vertx.ext.web.api.OperationResult>>");
@@ -54,7 +54,7 @@ public class WebApiProxyModel extends ProxyModel {
         throw new GenException(this.modelElt, "Method " + methodName + "should have the second to last parameter with type io.vertx.ext.web.api.RequestContext");
       }
       ParamInfo shouldBeHandler = mParams.get(mParams.size() - 1);
-      if (kind != MethodKind.HANDLER || shouldBeHandler == null) {
+      if (baseInfo.getKind() != MethodKind.HANDLER || shouldBeHandler == null) {
         TypeInfo shouldBeOperationResult = ((ParameterizedTypeInfo) ((ParameterizedTypeInfo) shouldBeHandler.getType()).getArg(0)).getArg(0);
         if (!OperationResult.class.getName().equals(shouldBeOperationResult.getName()))
           throw new GenException(this.modelElt, "Method " + methodName + "should last parameter should be an handler of type Handler<AsyncResult<io.vertx.ext.web.api.OperationResult>>");

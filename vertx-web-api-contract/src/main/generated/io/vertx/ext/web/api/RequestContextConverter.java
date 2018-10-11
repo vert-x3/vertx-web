@@ -2,11 +2,12 @@ package io.vertx.ext.web.api;
 
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.JsonArray;
-import java.util.Objects;
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
 
 /**
  * Converter for {@link io.vertx.ext.web.api.RequestContext}.
- * NOTE: This class has been automatically generated from the {@link "io.vertx.ext.web.api.RequestContext} original class using Vert.x codegen.
+ * NOTE: This class has been automatically generated from the {@link io.vertx.ext.web.api.RequestContext} original class using Vert.x codegen.
  */
  class RequestContextConverter {
 
@@ -31,5 +32,4 @@ import java.util.Objects;
       json.put("params", obj.getParams());
     }
   }
-
 }

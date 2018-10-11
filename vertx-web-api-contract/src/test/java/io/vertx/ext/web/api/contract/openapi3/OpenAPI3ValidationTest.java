@@ -598,13 +598,13 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
     valuesArray.add(0, getFailureSample(ParameterType.INT));
     object.put("values", valuesArray);
 
-    testRequestWithJSON(HttpMethod.POST, "/jsonBodyTest/sampleTest", object, 400,
+    testRequestWithJSON(HttpMethod.POST, "/jsonBodyTest/sampleTest", object.toBuffer(), 400,
       errorMessage(ValidationException.ErrorType.JSON_INVALID),
-      new JsonObject().put("field", "body.values[0]"));
+      new JsonObject().put("field", "body.values[0]").toBuffer());
 
-    testRequestWithJSON(HttpMethod.POST, "/jsonBodyTest/sampleTest", new JsonArray(), 400,
+    testRequestWithJSON(HttpMethod.POST, "/jsonBodyTest/sampleTest", new JsonArray().toBuffer(), 400,
       errorMessage(ValidationException.ErrorType.JSON_INVALID),
-      new JsonObject().put("field", "body"));
+      new JsonObject().put("field", "body").toBuffer());
   }
 
 }

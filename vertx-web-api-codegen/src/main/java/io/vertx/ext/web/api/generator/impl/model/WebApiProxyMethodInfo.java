@@ -20,8 +20,8 @@ public class WebApiProxyMethodInfo extends ProxyMethodInfo {
   final List<ParamInfo> paramsToExtract;
   final String requestContextName;
 
-  public WebApiProxyMethodInfo(Set<ClassTypeInfo> ownerTypes, String name, MethodKind kind, TypeInfo returnType, Text returnDescription, boolean fluent, boolean cacheReturn, List<ParamInfo> params, String comment, Doc doc, boolean staticMethod, boolean defaultMethod, List<TypeParamInfo.Method> typeParams, boolean proxyIgnore, boolean proxyClose, boolean deprecated) {
-    super(ownerTypes, name, kind, returnType, returnDescription, fluent, cacheReturn, params, comment, doc, staticMethod, defaultMethod, typeParams, proxyIgnore, proxyClose, deprecated);
+  public WebApiProxyMethodInfo(Set<ClassTypeInfo> ownerTypes, String name, TypeInfo returnType, Text returnDescription, boolean fluent, boolean cacheReturn, List<ParamInfo> params, String comment, Doc doc, boolean staticMethod, boolean defaultMethod, List<TypeParamInfo.Method> typeParams, boolean proxyIgnore, boolean proxyClose, boolean deprecated, Text deprecatedDesc) {
+    super(ownerTypes, name, returnType, returnDescription, fluent, cacheReturn, params, comment, doc, staticMethod, defaultMethod, typeParams, proxyIgnore, proxyClose, deprecated, deprecatedDesc);
     paramsToExtract = params.subList(0, params.size() - 2);
     requestContextName = params.get(params.size() - 2).getName();
   }
@@ -30,7 +30,6 @@ public class WebApiProxyMethodInfo extends ProxyMethodInfo {
     this(
       info.getOwnerTypes(),
       info.getName(),
-      info.getKind(),
       info.getReturnType(),
       info.getReturnDescription(),
       info.isFluent(),
@@ -43,7 +42,8 @@ public class WebApiProxyMethodInfo extends ProxyMethodInfo {
       info.getTypeParams(),
       info.isProxyIgnore(),
       info.isProxyClose(),
-      info.isDeprecated()
+      info.isDeprecated(),
+      info.getDeprecatedDesc()
     );
   }
 
