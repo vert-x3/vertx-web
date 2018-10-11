@@ -136,58 +136,6 @@ public class OpenAPI3RouterFactoryImpl extends BaseRouterFactory<OpenAPI> implem
     return this;
   }
 
-  private String resolveOperationId(HttpMethod method, String path) {
-    // I assume the user give path in openapi style
-    PathItem pathObject = this.spec.getPaths().get(path);
-    if (pathObject == null) {
-      throw RouterFactoryException.createPathNotFoundException(path);
-    }
-    Operation operation;
-    switch (method) {
-      case GET:
-        operation = pathObject.getGet();
-        break;
-      case PUT:
-        operation = pathObject.getPut();
-        break;
-      case HEAD:
-        operation = pathObject.getHead();
-        break;
-      case DELETE:
-        operation = pathObject.getDelete();
-        break;
-      case PATCH:
-        operation = pathObject.getPatch();
-        break;
-      case POST:
-        operation = pathObject.getPost();
-        break;
-      case OPTIONS:
-        operation = pathObject.getOptions();
-        break;
-      case TRACE:
-        operation = pathObject.getTrace();
-        break;
-      case OTHER:
-      case CONNECT:
-      default:
-        throw RouterFactoryException.createPathNotFoundException(path);
-    }
-    return operation.getOperationId();
-  }
-
-  @Override
-  public OpenAPI3RouterFactory addHandler(HttpMethod method, String path, Handler handler) {
-    addHandlerByOperationId(resolveOperationId(method, path), handler);
-    return this;
-  }
-
-  @Override
-  public OpenAPI3RouterFactory addFailureHandler(HttpMethod method, String path, Handler failureHandler) {
-    addFailureHandlerByOperationId(resolveOperationId(method, path), failureHandler);
-    return this;
-  }
-
   @Override
   public Router getRouter() {
     Router router = Router.router(vertx);

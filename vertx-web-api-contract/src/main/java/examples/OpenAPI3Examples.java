@@ -112,15 +112,6 @@ public class OpenAPI3Examples {
               (ValidationException) failure).type().name()).end();
         });
 
-        // Add an handler with a combination of HttpMethod and path
-        routerFactory.addHandler(HttpMethod.POST, "/pets", routingContext -> {
-          // Extract request body and use it
-          RequestParameters params = routingContext.get("parsedParameters");
-          JsonObject pet = params.body().getJsonObject();
-          routingContext.response().putHeader("content-type", "application/json; charset=utf-8").end(pet
-            .encodePrettily());
-        });
-
         // Add a security handler
         // Handle security here
         routerFactory.addSecurityHandler("api_key", RoutingContext::next);
