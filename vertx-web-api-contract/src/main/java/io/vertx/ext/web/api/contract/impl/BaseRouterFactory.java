@@ -25,30 +25,6 @@ abstract public class BaseRouterFactory<Specification> implements RouterFactory<
     this(vertx, spec, new RouterFactoryOptions());
   }
 
-  @Override @Deprecated
-  public RouterFactory enableValidationFailureHandler(boolean enable) {
-    if (options == null)
-      this.options = new RouterFactoryOptions();
-    this.options.setMountValidationFailureHandler(enable);
-    return this;
-  }
-
-  @Override @Deprecated
-  public BaseRouterFactory setValidationFailureHandler(Handler<RoutingContext> handler) {
-    if (options == null)
-      this.options = new RouterFactoryOptions();
-    this.options.setValidationFailureHandler(handler);
-    return this;
-  }
-
-  @Override @Deprecated
-  public RouterFactory mountOperationsWithoutHandlers(boolean enable) {
-    if (options == null)
-      this.options = new RouterFactoryOptions();
-    this.options.setMountNotImplementedHandler(enable);
-    return this;
-  }
-
   @Override
   public RouterFactory setOptions(RouterFactoryOptions options) {
     this.options = options;

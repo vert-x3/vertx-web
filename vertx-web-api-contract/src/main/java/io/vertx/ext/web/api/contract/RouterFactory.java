@@ -25,32 +25,6 @@ public interface RouterFactory<Specification> {
   RouterFactory addSecurityHandler(String securitySchemaName, Handler<RoutingContext> handler);
 
   /**
-   * Add an handler to a path with a method. If combination path/method is not available in
-   * specification, it will throw a {@link RouterFactoryException}. Deprecated in favour of
-   * operation id
-   *
-   * @param method
-   * @param path
-   * @param handler
-   * @return
-   */
-  @Fluent @Deprecated
-  RouterFactory addHandler(HttpMethod method, String path, Handler<RoutingContext> handler);
-
-  /**
-   * Add a failure handler to a path with a method. If combination path/method is not available in
-   * specification, it will throw a {@link RouterFactoryException}. Deprecated in favour of
-   * operation id
-   *
-   * @param method
-   * @param path
-   * @param failureHandler
-   * @return
-   */
-  @Fluent @Deprecated
-  RouterFactory addFailureHandler(HttpMethod method, String path, Handler<RoutingContext> failureHandler);
-
-  /**
    * Override options
    *
    * @param options
@@ -65,36 +39,6 @@ public interface RouterFactory<Specification> {
    * @return
    */
   RouterFactoryOptions getOptions();
-
-  /**
-   * Deprecated. Instantiate {@link RouterFactoryOptions}
-   * and load it using {@link RouterFactory#setOptions(RouterFactoryOptions)}
-   *
-   * @param handler
-   * @return
-   */
-  @Fluent @Deprecated
-  RouterFactory setValidationFailureHandler(Handler<RoutingContext> handler);
-
-  /**
-   * Deprecated. Instantiate {@link RouterFactoryOptions}
-   * and load it using {@link RouterFactory#setOptions(RouterFactoryOptions)}
-   *
-   * @param enable
-   * @return
-   */
-  @Fluent @Deprecated
-  RouterFactory enableValidationFailureHandler(boolean enable);
-
-  /**
-   * Deprecated. Instantiate {@link RouterFactoryOptions}
-   * and load it using {@link RouterFactory#setOptions(RouterFactoryOptions)}
-   *
-   * @param enable
-   * @return
-   */
-  @Fluent @Deprecated
-  RouterFactory mountOperationsWithoutHandlers(boolean enable);
 
   /**
    * Construct a new router based on spec. It will fail if you are trying to mount a spec with security schemes
