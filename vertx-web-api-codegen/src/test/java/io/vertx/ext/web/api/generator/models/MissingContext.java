@@ -2,7 +2,7 @@ package io.vertx.ext.web.api.generator.models;
 
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
-import io.vertx.ext.web.api.OperationResult;
+import io.vertx.ext.web.api.OperationResponse;
 import io.vertx.ext.web.api.generator.WebApiServiceGen;
 
 /**
@@ -11,5 +11,5 @@ import io.vertx.ext.web.api.generator.WebApiServiceGen;
 @WebApiServiceGen
 public interface MissingContext {
 
-  void someMethod(Integer id, Handler<AsyncResult<OperationResult>> resultHandler);
+  void someMethod(Integer id, Handler<AsyncResult<OperationResponse>> resultHandler);
 }

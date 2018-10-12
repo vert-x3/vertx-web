@@ -4,17 +4,17 @@ import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
-import io.vertx.ext.web.api.OperationResult;
-import io.vertx.ext.web.api.RequestContext;
+import io.vertx.ext.web.api.OperationRequest;
+import io.vertx.ext.web.api.OperationResponse;
 import io.vertx.ext.web.api.generator.WebApiServiceGen;
 
 @WebApiServiceGen
 @VertxGen
 interface FailureTestService {
 
-  void testFailure(RequestContext context, Handler<AsyncResult<OperationResult>> resultHandler);
+  void testFailure(OperationRequest context, Handler<AsyncResult<OperationResponse>> resultHandler);
 
-  void testException(RequestContext context, Handler<AsyncResult<OperationResult>> resultHandler);
+  void testException(OperationRequest context, Handler<AsyncResult<OperationResponse>> resultHandler);
 
   static FailureTestService create(Vertx vertx) {
     return new FailureTestServiceImpl(vertx);

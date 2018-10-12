@@ -35,7 +35,7 @@ public class WebApiProxyHandlerGen extends ServiceProxyHandlerGen {
   public Stream<String> additionalImports(ProxyModel model) {
     return Stream.concat(
       model.getImportedTypes().stream().filter(c -> !c.getPackageName().equals("java.lang")).map(ClassTypeInfo::toString),
-      Stream.of("io.vertx.ext.web.api.RequestContext", "io.vertx.ext.web.api.generator.ApiHandlerUtils")
+      Stream.of("io.vertx.ext.web.api.OperationRequest", "io.vertx.ext.web.api.generator.ApiHandlerUtils")
     );
   }
 
@@ -50,9 +50,9 @@ public class WebApiProxyHandlerGen extends ServiceProxyHandlerGen {
       .stmt("JsonObject contextSerialized = json.getJsonObject(\"context\")")
       .code("if (contextSerialized == null)\n")
       .indent()
-      .stmt("throw new IllegalStateException(\"Received action \" + action + \" without RequestContext \\\"context\\\"\")")
+      .stmt("throw new IllegalStateException(\"Received action \" + action + \" without OperationRequest \\\"context\\\"\")")
       .unindent()
-      .stmt("RequestContext context = new RequestContext(contextSerialized)")
+      .stmt("OperationRequest context = new OperationRequest(contextSerialized)")
       .stmt("JsonObject params = context.getParams()")
       .code("try {\n")
       .indent()

@@ -7,8 +7,7 @@ import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.web.api.OperationResult;
-import io.vertx.ext.web.api.RequestContext;
+import io.vertx.ext.web.api.OperationResponse;
 import io.vertx.ext.web.api.RequestParameters;
 import io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory;
 import io.vertx.serviceproxy.ServiceBinder;
@@ -25,10 +24,10 @@ public class ApiCodegenExamples {
     });
   }
 
-  public void example2(Handler<AsyncResult<OperationResult>> resultHandler) {
+  public void example2(Handler<AsyncResult<OperationResponse>> resultHandler) {
     resultHandler.handle(
       Future.succeededFuture(
-        OperationResult.completedWithPlainText(Buffer.buffer("Hello world!"))
+        OperationResponse.completedWithPlainText(Buffer.buffer("Hello world!"))
       )
     );
   }

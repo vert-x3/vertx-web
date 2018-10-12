@@ -8,8 +8,8 @@ import io.vertx.core.eventbus.Message;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.api.OperationResult;
-import io.vertx.ext.web.api.RequestContext;
+import io.vertx.ext.web.api.OperationResponse;
+import io.vertx.ext.web.api.OperationRequest;
 import io.vertx.ext.web.api.RequestParameters;
 
 public class RouteToServiceProxyHandler implements Handler<RoutingContext> {
@@ -28,7 +28,7 @@ public class RouteToServiceProxyHandler implements Handler<RoutingContext> {
   public void handle(RoutingContext routingContext) {
     eventBus.send(address, buildPayload(routingContext), deliveryOptions, (AsyncResult<Message<JsonObject>> res) -> {
       if (res.succeeded()) {
-        OperationResult op = new OperationResult(res.result().body());
+        OperationResponse op = new OperationResponse(res.result().body());
         HttpServerResponse response = routingContext.response().setStatusCode(op.getStatusCode());
         response.setStatusMessage(op.getStatusMessage());
         op.getHeaders().forEach(h -> response.putHeader(h.getKey(), h.getValue()));
@@ -40,7 +40,7 @@ public class RouteToServiceProxyHandler implements Handler<RoutingContext> {
   }
 
   private static JsonObject buildPayload(RoutingContext context) {
-    return new JsonObject().put("context", new RequestContext(
+    return new JsonObject().put("context", new OperationRequest(
       context.request().headers(),
       ((RequestParameters)context.get("parsedParameters")).toJson()
     ).toJson());

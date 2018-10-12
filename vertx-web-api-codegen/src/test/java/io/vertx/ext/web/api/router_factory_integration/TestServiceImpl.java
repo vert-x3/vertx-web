@@ -5,8 +5,8 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.web.api.OperationResult;
-import io.vertx.ext.web.api.RequestContext;
+import io.vertx.ext.web.api.OperationResponse;
+import io.vertx.ext.web.api.OperationRequest;
 
 public class TestServiceImpl implements TestService {
   Vertx vertx;
@@ -17,18 +17,18 @@ public class TestServiceImpl implements TestService {
 
 
   @Override
-  public void testA(RequestContext context, Handler<AsyncResult<OperationResult>> resultHandler) {
+  public void testA(OperationRequest context, Handler<AsyncResult<OperationResponse>> resultHandler) {
     JsonObject body = context.getParams().getJsonObject("body");
     resultHandler.handle(Future.succeededFuture(
-      OperationResult.completedWithJson(new JsonObject().put("result", body.getString("hello") + " " + body.getString("name") + "!")))
+      OperationResponse.completedWithJson(new JsonObject().put("result", body.getString("hello") + " " + body.getString("name") + "!")))
     );
   }
 
   @Override
-  public void testB(RequestContext context, Handler<AsyncResult<OperationResult>> resultHandler) {
+  public void testB(OperationRequest context, Handler<AsyncResult<OperationResponse>> resultHandler) {
     JsonObject body = context.getParams().getJsonObject("body");
     resultHandler.handle(Future.succeededFuture(
-      OperationResult.completedWithJson(new JsonObject().put("result", body.getString("hello") + " " + body.getString("name") + "?")))
+      OperationResponse.completedWithJson(new JsonObject().put("result", body.getString("hello") + " " + body.getString("name") + "?")))
     );
   }
 }

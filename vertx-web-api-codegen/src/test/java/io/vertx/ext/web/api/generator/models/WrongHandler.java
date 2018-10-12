@@ -2,7 +2,7 @@ package io.vertx.ext.web.api.generator.models;
 
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
-import io.vertx.ext.web.api.RequestContext;
+import io.vertx.ext.web.api.OperationRequest;
 import io.vertx.ext.web.api.generator.WebApiServiceGen;
 
 /**
@@ -11,5 +11,5 @@ import io.vertx.ext.web.api.generator.WebApiServiceGen;
 @WebApiServiceGen
 public interface WrongHandler {
 
-  void someMethod(RequestContext context, Handler<AsyncResult<Integer>> resultHandler);
+  void someMethod(OperationRequest context, Handler<AsyncResult<Integer>> resultHandler);
 }

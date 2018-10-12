@@ -1,6 +1,6 @@
 package io.vertx.ext.web.api.generator.models;
 
-import io.vertx.ext.web.api.RequestContext;
+import io.vertx.ext.web.api.OperationRequest;
 import io.vertx.ext.web.api.generator.WebApiServiceGen;
 
 /**
@@ -9,5 +9,5 @@ import io.vertx.ext.web.api.generator.WebApiServiceGen;
 @WebApiServiceGen
 public interface MissingHandler {
 
-  void someMethod(Integer id, RequestContext context);
+  void someMethod(Integer id, OperationRequest context);
 }

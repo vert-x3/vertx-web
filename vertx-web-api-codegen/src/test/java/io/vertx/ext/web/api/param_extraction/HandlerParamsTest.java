@@ -8,8 +8,8 @@ import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.web.api.OperationResult;
-import io.vertx.ext.web.api.RequestContext;
+import io.vertx.ext.web.api.OperationResponse;
+import io.vertx.ext.web.api.OperationRequest;
 import io.vertx.ext.web.api.impl.RequestParameterImpl;
 import io.vertx.ext.web.api.impl.RequestParametersImpl;
 import io.vertx.ext.web.api.router_factory_integration.FilterData;
@@ -30,7 +30,7 @@ public class HandlerParamsTest extends VertxTestBase {
   private static final String ADDRESS = "address";
 
   private static JsonObject buildPayload(JsonObject params) {
-    return new JsonObject().put("context", new RequestContext(
+    return new JsonObject().put("context", new OperationRequest(
       MultiMap.caseInsensitiveMultiMap(),
       params
     ).toJson());
@@ -51,7 +51,7 @@ public class HandlerParamsTest extends VertxTestBase {
     CountDownLatch latch = new CountDownLatch(1);
     vertx.eventBus().send(address, payload, new DeliveryOptions().addHeader("action", actionName), (AsyncResult<Message<JsonObject>> res) -> {
       if (res.succeeded()) {
-        OperationResult op = new OperationResult(res.result().body());
+        OperationResponse op = new OperationResponse(res.result().body());
         assertEquals(200, op.getStatusCode().intValue());
         assertEquals("text/plain", op.getHeaders().get(HttpHeaders.CONTENT_TYPE));
         assertEquals(result, op.getPayload().toString());

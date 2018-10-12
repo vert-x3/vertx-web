@@ -1,12 +1,11 @@
 package io.vertx.ext.web.api.generator.models;
 
 import io.vertx.codegen.annotations.ProxyClose;
-import io.vertx.codegen.annotations.ProxyIgnore;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.web.api.OperationResult;
-import io.vertx.ext.web.api.RequestContext;
+import io.vertx.ext.web.api.OperationResponse;
+import io.vertx.ext.web.api.OperationRequest;
 import io.vertx.ext.web.api.RequestParameter;
 import io.vertx.ext.web.api.generator.WebApiServiceGen;
 
@@ -16,11 +15,11 @@ import io.vertx.ext.web.api.generator.WebApiServiceGen;
 @WebApiServiceGen
 public interface ValidWebApiProxy {
 
-  void testA(RequestContext context, Handler<AsyncResult<OperationResult>> resultHandler);
+  void testA(OperationRequest context, Handler<AsyncResult<OperationResponse>> resultHandler);
 
-  void testB(Integer id, JsonObject body, RequestContext context, Handler<AsyncResult<OperationResult>> resultHandler);
+  void testB(Integer id, JsonObject body, OperationRequest context, Handler<AsyncResult<OperationResponse>> resultHandler);
 
-  void testC(Integer id, RequestParameter body, RequestContext context, Handler<AsyncResult<OperationResult>> resultHandler);
+  void testC(Integer id, RequestParameter body, OperationRequest context, Handler<AsyncResult<OperationResponse>> resultHandler);
 
   @ProxyClose
   void closeIt();

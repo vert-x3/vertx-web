@@ -12,7 +12,7 @@ import io.vertx.core.json.JsonObject;
 import java.util.Map;
 
 @DataObject(generateConverter = true, publicConverter = false)
-public class OperationResult {
+public class OperationResponse {
 
   private final static Integer DEFAULT_STATUS_CODE = 200;
 
@@ -21,13 +21,13 @@ public class OperationResult {
   private Buffer payload;
   private MultiMap headers;
 
-  public OperationResult() {
+  public OperationResponse() {
     init();
   }
 
-  public OperationResult(JsonObject json) {
+  public OperationResponse(JsonObject json) {
     init();
-    OperationResultConverter.fromJson(json, this);
+    OperationResponseConverter.fromJson(json, this);
     JsonObject hdrs = json.getJsonObject("headers", null);
     if (hdrs != null) {
       headers = new CaseInsensitiveHeaders();
@@ -40,14 +40,14 @@ public class OperationResult {
     }
   }
 
-  public OperationResult(Integer statusCode, String statusMessage, Buffer payload, MultiMap headers) {
+  public OperationResponse(Integer statusCode, String statusMessage, Buffer payload, MultiMap headers) {
     this.statusCode = statusCode;
     this.statusMessage = statusMessage;
     this.payload = payload;
     this.headers = headers;
   }
 
-  public OperationResult(OperationResult other) {
+  public OperationResponse(OperationResponse other) {
     this.statusCode = other.getStatusCode();
     this.statusMessage = other.getStatusMessage();
     this.payload = other.getPayload();
@@ -56,7 +56,7 @@ public class OperationResult {
 
   public JsonObject toJson() {
     JsonObject json = new JsonObject();
-    OperationResultConverter.toJson(this, json);
+    OperationResponseConverter.toJson(this, json);
     if (headers != null) {
       JsonObject hJson = new JsonObject();
       headers.entries().forEach(entry -> hJson.put(entry.getKey(), entry.getValue()));
@@ -87,41 +87,41 @@ public class OperationResult {
     return headers;
   }
 
-  @Fluent public OperationResult setHeaders(MultiMap headers) {
+  @Fluent public OperationResponse setHeaders(MultiMap headers) {
     this.headers = headers;
     return this;
   }
 
-  @Fluent public OperationResult setStatusCode(Integer statusCode) {
+  @Fluent public OperationResponse setStatusCode(Integer statusCode) {
     this.statusCode = statusCode;
     return this;
   }
 
-  @Fluent public OperationResult setStatusMessage(String statusMessage) {
+  @Fluent public OperationResponse setStatusMessage(String statusMessage) {
     this.statusMessage = statusMessage;
     return this;
   }
 
-  @Fluent public OperationResult setPayload(Buffer payload) {
+  @Fluent public OperationResponse setPayload(Buffer payload) {
     this.payload = payload;
     return this;
   }
 
-  @Fluent public OperationResult putHeader(String key, String value) {
+  @Fluent public OperationResponse putHeader(String key, String value) {
     this.headers.add(key, value);
     return this;
   }
 
-  public static OperationResult completedWithJson(JsonObject jsonObject) {
+  public static OperationResponse completedWithJson(JsonObject jsonObject) {
     return completedWithJson(jsonObject.toBuffer());
   }
 
-  public static OperationResult completedWithJson(JsonArray jsonArray) {
+  public static OperationResponse completedWithJson(JsonArray jsonArray) {
    return completedWithJson(jsonArray.toBuffer());
   }
 
-  public static OperationResult completedWithJson(Buffer json) {
-    OperationResult op = new OperationResult();
+  public static OperationResponse completedWithJson(Buffer json) {
+    OperationResponse op = new OperationResponse();
     op.setStatusCode(200);
     op.setStatusMessage("OK");
     op.putHeader(HttpHeaders.CONTENT_TYPE.toString(), "application/json");
@@ -129,8 +129,8 @@ public class OperationResult {
     return op;
   }
 
-  public static OperationResult completedWithPlainText(Buffer text) {
-    return new OperationResult()
+  public static OperationResponse completedWithPlainText(Buffer text) {
+    return new OperationResponse()
       .setStatusCode(200)
       .setStatusMessage("OK")
       .putHeader(HttpHeaders.CONTENT_TYPE.toString(), "text/plain")

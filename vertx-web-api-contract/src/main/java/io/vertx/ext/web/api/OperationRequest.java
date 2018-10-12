@@ -9,18 +9,24 @@ import io.vertx.core.json.JsonObject;
 import java.util.Map;
 
 @DataObject(generateConverter = true, publicConverter = false)
-public class RequestContext {
+public class OperationRequest {
 
+  /**
+   * Request parsedParameters as JSON
+   */
   private JsonObject params;
+  /**
+   * Request headers
+   */
   private MultiMap headers;
 
-  public RequestContext() {
+  public OperationRequest() {
     init();
   }
 
-  public RequestContext(JsonObject json) {
+  public OperationRequest(JsonObject json) {
     init();
-    RequestContextConverter.fromJson(json, this);
+    OperationRequestConverter.fromJson(json, this);
     JsonObject hdrs = json.getJsonObject("headers", null);
     if (hdrs != null) {
       headers = new CaseInsensitiveHeaders();
@@ -33,19 +39,19 @@ public class RequestContext {
     }
   }
 
-  public RequestContext(MultiMap headers, JsonObject params) {
+  public OperationRequest(MultiMap headers, JsonObject params) {
     this.params = params;
     this.headers = headers;
   }
 
-  public RequestContext(RequestContext other) {
+  public OperationRequest(OperationRequest other) {
     this.params = other.getParams();
     this.headers = other.getHeaders();
   }
 
   public JsonObject toJson() {
     JsonObject json = new JsonObject();
-    RequestContextConverter.toJson(this, json);
+    OperationRequestConverter.toJson(this, json);
     if (headers != null) {
       JsonObject hJson = new JsonObject();
       headers.entries().forEach(entry -> hJson.put(entry.getKey(), entry.getValue()));
@@ -59,20 +65,26 @@ public class RequestContext {
     this.headers = MultiMap.caseInsensitiveMultiMap();
   }
 
+  /**
+   * Get request parsedParameters as JSON
+   */
   public JsonObject getParams() {
     return params;
   }
 
+  /**
+   * Get request headers
+   */
   public MultiMap getHeaders() {
     return headers;
   }
 
-  @Fluent public RequestContext setParams(JsonObject params) {
+  @Fluent public OperationRequest setParams(JsonObject params) {
     this.params = params;
     return this;
   }
 
-  @Fluent public RequestContext setHeaders(MultiMap headers) {
+  @Fluent public OperationRequest setHeaders(MultiMap headers) {
     this.headers = headers;
     return this;
   }

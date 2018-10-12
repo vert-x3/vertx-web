@@ -12,7 +12,7 @@ import io.swagger.v3.parser.ObjectMapperFactory;
 import io.swagger.v3.parser.core.models.ParseOptions;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.web.api.RequestContext;
+import io.vertx.ext.web.api.OperationRequest;
 import io.vertx.ext.web.api.validation.SpecFeatureNotSupportedException;
 
 import java.lang.reflect.Method;
@@ -273,13 +273,13 @@ public class OpenApi3Utils {
       .map(Map.Entry::getValue).collect(Collectors.toList());
   }
 
-  public final static List<Class> SERVICE_PROXY_METHOD_PARAMETERS = Arrays.asList(new Class[]{RequestContext.class, Handler.class});
+  public final static List<Class> SERVICE_PROXY_METHOD_PARAMETERS = Arrays.asList(new Class[]{OperationRequest.class, Handler.class});
 
   public static boolean serviceProxyMethodIsCompatibleHandler(Method method) {
     java.lang.reflect.Parameter[] parameters = method.getParameters();
     if (parameters.length < 2) return false;
     if (!parameters[parameters.length - 1].getType().equals(Handler.class)) return false;
-    if (!parameters[parameters.length - 2].getType().equals(RequestContext.class)) return false;
+    if (!parameters[parameters.length - 2].getType().equals(OperationRequest.class)) return false;
     return true;
   }
 

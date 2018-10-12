@@ -93,8 +93,8 @@ First you need to define your service interface. Let's start with this OpenAPI o
 
 Now we can build the interface that specifies a *TransactionService* that handles _getTransactionsList_ and _putTransaction_ operations. For each operation you need to write a method with name corresponding to operation id with following parameters:
 
-* Last parameter must be a `Handler<AsyncResult<OperationResult>>`
-* Second to last parameter must be a {@link io.vertx.ext.web.api.RequestContext}
+* Last parameter must be a `Handler<AsyncResult<OperationResponse>>`
+* Second to last parameter must be a {@link io.vertx.ext.web.api.OperationRequest}
 * All parameters from first to second to last (excluded) are extracted from {@link io.vertx.ext.web.api.RequestParameter} with specified type automatically, but they need to respect https://vertx.io/docs/vertx-service-proxy/java/#_restrictions_for_service_interface[service proxy restrictions]
 
 For example:
@@ -103,18 +103,18 @@ For example:
 ----
 @WebApiServiceGen
 interface TransactionService {
-  void getTransactionsList(String from, String to, RequestContext context, Handler<AsyncResult<OperationResult>> resultHandler);
-  void putTransaction(JsonObject body, RequestContext context, Handler<AsyncResult<OperationResult>> resultHandler);
+  void getTransactionsList(String from, String to, OperationRequest context, Handler<AsyncResult<OperationResponse>> resultHandler);
+  void putTransaction(JsonObject body, OperationRequest context, Handler<AsyncResult<OperationResponse>> resultHandler);
 }
 ----
 
-When you receive a request at `TransactionService.getTransactionsList()` the generated service handler will automatically extract `from` and `to` parameter (if present) from {@link io.vertx.ext.web.api.RequestContext}. In `putTransaction()` we use the `body` parameter name to extract the json body.
+When you receive a request at `TransactionService.getTransactionsList()` the generated service handler will automatically extract `from` and `to` parameter (if present) from {@link io.vertx.ext.web.api.OperationRequest}. In `putTransaction()` we use the `body` parameter name to extract the json body.
 
 The service handler is also capable to translate `JsonObject` to Vert.x data objects automatically, for example if you have a `Transaction` data object that matches the json schema above, you can rewrite the `putTransaction()` signature as:
 
 [source,java]
 ----
-void putTransaction(Transaction body, RequestContext context, Handler<AsyncResult<OperationResult>> resultHandler);
+void putTransaction(Transaction body, OperationRequest context, Handler<AsyncResult<OperationResponse>> resultHandler);
 ----
 
 Note that generated service handler matches method parameters with parameter name and not with the location of parameter, so avoid duplicated parameter names
@@ -123,9 +123,9 @@ We also encourage to extract with {@link io.vertx.ext.web.api.RequestParameter} 
 
 == Implement your service
 
-Now you can implement your service. The {@link io.vertx.ext.web.api.RequestContext} object contains headers and parameters maps.
+Now you can implement your service. The {@link io.vertx.ext.web.api.OperationRequest} object contains headers and parameters maps.
 
-To write the request you must call the `resultHandler` with an {@link io.vertx.ext.web.api.OperationResult}. To construct the {@link io.vertx.ext.web.api.OperationResult} you can use some handy methods like {@link io.vertx.ext.web.api.OperationResult#completedWithJson(io.vertx.core.buffer.Buffer)} or {@link io.vertx.ext.web.api.OperationResult#completedWithPlainText(io.vertx.core.buffer.Buffer)}
+To write the request you must call the `resultHandler` with an {@link io.vertx.ext.web.api.OperationResponse}. To construct the {@link io.vertx.ext.web.api.OperationResponse} you can use some handy methods like {@link io.vertx.ext.web.api.OperationResponse#completedWithJson(io.vertx.core.buffer.Buffer)} or {@link io.vertx.ext.web.api.OperationResponse#completedWithPlainText(io.vertx.core.buffer.Buffer)}
 
 For example:
 
