@@ -48,6 +48,8 @@ public class WebTestValidationBase extends WebTestWithWebClientBase {
     sampleValuesFailure.put(ParameterType.TIME, Arrays.asList(new SimpleDateFormat("yyyy:MM:dd").format(new Date())));
     sampleValuesSuccess.put(ParameterType.BASE64, Arrays.asList("SGVsbG8gVmVydHg="));
     sampleValuesFailure.put(ParameterType.BASE64, Arrays.asList());
+    sampleValuesSuccess.put(ParameterType.UUID, Arrays.asList(UUID.randomUUID().toString()));
+    sampleValuesFailure.put(ParameterType.UUID, Arrays.asList(UUID.randomUUID().toString() + "a"));
 
   }
 
