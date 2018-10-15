@@ -4,6 +4,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
@@ -14,6 +15,7 @@ import io.vertx.ext.web.api.contract.RouterFactoryException;
 import io.vertx.ext.web.api.contract.RouterFactoryOptions;
 import io.vertx.ext.web.api.validation.ValidationException;
 import io.vertx.ext.web.handler.BodyHandler;
+import io.vertx.ext.web.handler.StaticHandler;
 import org.junit.Test;
 
 import java.nio.file.Paths;
@@ -29,6 +31,7 @@ import java.util.stream.Stream;
 public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
 
   private OpenAPI3RouterFactory routerFactory;
+  private HttpServer fileServer;
 
   private Handler<RoutingContext> generateFailureHandler(boolean expected) {
     return routingContext -> {
@@ -54,16 +57,37 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
     awaitLatch(latch);
   }
 
+  private void startFileServer() throws InterruptedException {
+    Router router = Router.router(vertx);
+    router.route().handler(StaticHandler.create("src/test/resources"));
+    CountDownLatch latch = new CountDownLatch(1);
+    fileServer = vertx.createHttpServer(new HttpServerOptions().setPort(8081))
+      .requestHandler(router::accept).listen(onSuccess(res -> latch.countDown()));
+    awaitLatch(latch);
+  }
+
   private void stopServer() throws Exception {
     routerFactory = null;
-    if (server != null) {
-      CountDownLatch latch = new CountDownLatch(1);
+    CountDownLatch latch = new CountDownLatch(2);
+    if (fileServer == null) {
+      latch.countDown();
+    } else {
+      fileServer.close((asyncResult) -> {
+        assertTrue(asyncResult.succeeded());
+        latch.countDown();
+      });
+    }
+    if (server == null) {
+      latch.countDown();
+    } else {
       server.close((asyncResult) -> {
         assertTrue(asyncResult.succeeded());
         latch.countDown();
       });
-      awaitLatch(latch);
     }
+    awaitLatch(latch);
+    fileServer = null;
+    server = null;
   }
 
   private void assertThrow(Runnable r, Class exception) {
@@ -104,7 +128,7 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
     if (client != null) {
       try {
         client.close();
-      } catch (IllegalStateException e) {
+      } catch (IllegalStateException ignored) {
       }
     }
     super.tearDown();
@@ -150,8 +174,9 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
 
   @Test
   public void loadSpecFromURL() throws Exception {
+    startFileServer();
     CountDownLatch latch = new CountDownLatch(1);
-    OpenAPI3RouterFactory.create(this.vertx, "https://raw.githubusercontent.com/OAI/OpenAPI-Specification/master/examples/v3.0/petstore.yaml",
+    OpenAPI3RouterFactory.create(this.vertx, "http://localhost:8081/swaggers/router_factory_test.yaml",
       openAPI3RouterFactoryAsyncResult -> {
         assertTrue(openAPI3RouterFactoryAsyncResult.succeeded());
         assertNotNull(openAPI3RouterFactoryAsyncResult.result());
@@ -162,8 +187,9 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
 
   @Test
   public void failLoadSpecFromURL() throws Exception {
+    startFileServer();
     CountDownLatch latch = new CountDownLatch(1);
-    OpenAPI3RouterFactory.create(this.vertx, "https://helloworld.com/spec.yaml",
+    OpenAPI3RouterFactory.create(this.vertx, "http://localhost:8081/swaggers/does_not_exist.yaml",
       openAPI3RouterFactoryAsyncResult -> {
         assertTrue(openAPI3RouterFactoryAsyncResult.failed());
         assertEquals(RouterFactoryException.class, openAPI3RouterFactoryAsyncResult.cause().getClass());
