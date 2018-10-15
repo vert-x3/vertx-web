@@ -3,7 +3,7 @@
 
 Vert.x Web API Contract extends Vert.x Web to support https://www.openapis.org/[OpenAPI 3], bringing to you a simple interface to build your router and mount security and validation handler.
 
-If you are interested in building an application that routes API Requests to event bus, check out https://vertx.io/docs/vertx-web-api-codegen/java/[Vert.x Web API Codegen]
+If you are interested in building an application that routes API Requests to event bus, check out https://vertx.io/docs/vertx-web-api-service/java/[Vert.x Web API Service]
 
 == Using Vert.x API Contract
 

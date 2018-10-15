@@ -1,11 +1,11 @@
-= Vert.x Web API Codegen
+= Vert.x Web API Service
 :toc: left
 
-Vert.x Web API Codegen helps you routing the API requests incoming from a Vert.x Web Router built with https://vertx.io/docs/vertx-web-api-contract/java/[Vert.x Web API Contract Router Factory] to event bus. It's based on https://vertx.io/docs/vertx-service-proxy/java/[Vert.x service proxies]
+Vert.x Web API Service helps you routing the API requests incoming from a Vert.x Web Router built with https://vertx.io/docs/vertx-web-api-contract/java/[Vert.x Web API Contract Router Factory] to event bus. It's based on https://vertx.io/docs/vertx-service-proxy/java/[Vert.x service proxies]
 
-== Using Vert.x API Codegen
+== Using Vert.x API Service
 
-To use Vert.x API Codegen, add the following dependency to the _dependencies_ section of your build descriptor:
+To use Vert.x API Service, add the following dependency to the _dependencies_ section of your build descriptor:
 
 * Maven (in your `pom.xml`):
 
@@ -36,7 +36,7 @@ Vert.x Web API Contract helps you to build a Vert.x Web router compliant to an O
 {@link examples.ApiCodegenExamples#example1}
 ----
 
-With Vert.x Web API Codegen you can define an event bus service that connects automatically to the router factory, allowing automatic request routing to Vert.x Event Bus.
+With Vert.x Web API Service you can define an event bus service that connects automatically to the router factory, allowing automatic request routing to Vert.x Event Bus.
 
 We encourage you to read https://vertx.io/docs/vertx-service-proxy/java/[Service Proxy documentation] before going further
 
