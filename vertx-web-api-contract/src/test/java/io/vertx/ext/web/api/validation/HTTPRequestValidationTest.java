@@ -68,6 +68,11 @@ public class HTTPRequestValidationTest extends WebTestValidationBase {
     testPrimitiveParameterType(ParameterType.BASE64);
   }
 
+  @Test
+  public void testUUIDValidation() {
+    testPrimitiveParameterType(ParameterType.UUID);
+  }
+
   //TODO write all tests for validation methods
 
   /*

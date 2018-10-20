@@ -159,6 +159,9 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
           case "email":
             regex = RegularExpressions.EMAIL;
             break;
+          case "uuid":
+            regex = RegularExpressions.UUID;
+            break;
           default:
             throw new SpecFeatureNotSupportedException("format " + schema.getFormat() + " not supported");
         }
