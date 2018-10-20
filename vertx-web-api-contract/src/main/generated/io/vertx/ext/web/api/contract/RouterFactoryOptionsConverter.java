@@ -29,6 +29,11 @@ import java.time.format.DateTimeFormatter;
             obj.setMountValidationFailureHandler((Boolean)member.getValue());
           }
           break;
+        case "operationModelKey":
+          if (member.getValue() instanceof String) {
+            obj.setOperationModelKey((String)member.getValue());
+          }
+          break;
         case "requireSecurityHandlers":
           if (member.getValue() instanceof Boolean) {
             obj.setRequireSecurityHandlers((Boolean)member.getValue());
@@ -46,6 +51,9 @@ import java.time.format.DateTimeFormatter;
     json.put("mountNotImplementedHandler", obj.isMountNotImplementedHandler());
     json.put("mountResponseContentTypeHandler", obj.isMountResponseContentTypeHandler());
     json.put("mountValidationFailureHandler", obj.isMountValidationFailureHandler());
+    if (obj.getOperationModelKey() != null) {
+      json.put("operationModelKey", obj.getOperationModelKey());
+    }
     json.put("requireSecurityHandlers", obj.isRequireSecurityHandlers());
   }
 }

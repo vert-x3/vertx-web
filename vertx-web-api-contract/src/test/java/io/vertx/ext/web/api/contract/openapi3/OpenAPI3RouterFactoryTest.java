@@ -1,5 +1,6 @@
 package io.vertx.ext.web.api.contract.openapi3;
 
+import io.swagger.v3.oas.models.Operation;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpClientOptions;
@@ -653,6 +654,33 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
     testRequest(HttpMethod.GET, "/pets", null,
       response -> assertEquals(response.getHeader("header-from-global-handler"),
         "some more dummy data"), 200, "OK", null);
+  }
+
+  @Test
+  public void exposeConfigurationTest() throws Exception {
+    CountDownLatch latch = new CountDownLatch(1);
+    OpenAPI3RouterFactory.create(this.vertx, "src/test/resources/swaggers/router_factory_test.yaml",
+      openAPI3RouterFactoryAsyncResult -> {
+        routerFactory = openAPI3RouterFactoryAsyncResult.result();
+        routerFactory.setOptions(new RouterFactoryOptions().setOperationModelKey("fooBarKey"));
+
+        routerFactory.addHandlerByOperationId("listPets", routingContext -> {
+          Operation operation = routingContext.get("fooBarKey");
+
+          routingContext
+            .response()
+            .setStatusCode(200)
+            .setStatusMessage("OK")
+            .end(operation.getOperationId());
+        });
+
+        latch.countDown();
+      });
+    awaitLatch(latch);
+
+    startServer();
+
+    testRequest(HttpMethod.GET, "/pets", 200, "OK", "listPets");
   }
 
   @Test
