@@ -160,6 +160,12 @@ paths:
           description: Ok
         500:
           description: Something wrong happened
+  /testEmptyOperationResponse:
+    get:
+      operationId: testEmptyOperationResponse
+      responses:
+        200:
+          description: ok
 components:
   schemas:
     Payload:

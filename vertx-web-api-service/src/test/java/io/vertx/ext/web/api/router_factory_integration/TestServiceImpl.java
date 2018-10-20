@@ -7,6 +7,7 @@ import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.api.OperationResponse;
 import io.vertx.ext.web.api.OperationRequest;
+import io.vertx.ext.web.api.RequestParameter;
 
 public class TestServiceImpl implements TestService {
   Vertx vertx;
@@ -25,10 +26,16 @@ public class TestServiceImpl implements TestService {
   }
 
   @Override
-  public void testB(OperationRequest context, Handler<AsyncResult<OperationResponse>> resultHandler) {
-    JsonObject body = context.getParams().getJsonObject("body");
+  public void testB(JsonObject body, OperationRequest context, Handler<AsyncResult<OperationResponse>> resultHandler) {
     resultHandler.handle(Future.succeededFuture(
       OperationResponse.completedWithJson(new JsonObject().put("result", body.getString("hello") + " " + body.getString("name") + "?")))
     );
+  }
+
+  @Override
+  public void testEmptyOperationResponse(OperationRequest context, Handler<AsyncResult<OperationResponse>> resultHandler) {
+    resultHandler.handle(Future.succeededFuture(
+      new OperationResponse()
+    ));
   }
 }

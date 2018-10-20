@@ -461,4 +461,35 @@ public class OpenAPI3ServiceProxiesTest extends ApiWebTestBase {
 
     consumer.unregister();
   }
+
+  @Test
+  public void emptyOperationResultTest() throws Exception {
+    TestService service = new TestServiceImpl(vertx);
+
+    final ServiceBinder serviceBinder = new ServiceBinder(vertx).setAddress("someAddress");
+    MessageConsumer<JsonObject> consumer = serviceBinder.register(TestService.class, service);
+
+    CountDownLatch latch = new CountDownLatch(1);
+    OpenAPI3RouterFactory.create(this.vertx, "src/test/resources/swaggers/service_proxy_test.yaml",
+      openAPI3RouterFactoryAsyncResult -> {
+        routerFactory = openAPI3RouterFactoryAsyncResult.result();
+        routerFactory.setOptions(HANDLERS_TESTS_OPTIONS.setMountValidationFailureHandler(true));
+
+        routerFactory.mountServiceInterface(service.getClass(), "someAddress");
+
+        latch.countDown();
+      });
+    awaitLatch(latch);
+
+    startServer();
+
+    testRequest(
+      HttpMethod.GET,
+      "/testEmptyOperationResponse",
+      200,
+      "OK"
+    );
+    
+    consumer.unregister();
+  }
 }
