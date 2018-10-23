@@ -59,6 +59,11 @@ public class RouterFactoryOptions {
    */
   public final static boolean DEFAULT_MOUNT_RESPONSE_CONTENT_TYPE_HANDLER = true;
 
+  /**
+   * By default, RouterFactory will not expose operation configuration in the the routing context
+   */
+  public final static String DEFAULT_EXPOSE_CONFIGURATION_KEY = null;
+
   private Handler<RoutingContext> validationFailureHandler;
   private boolean mountValidationFailureHandler;
   private Handler<RoutingContext> notImplementedFailureHandler;
@@ -67,6 +72,7 @@ public class RouterFactoryOptions {
   private boolean mountResponseContentTypeHandler;
   private BodyHandler bodyHandler;
   private List<Handler<RoutingContext>> globalHandlers;
+  private String operationModelKey;
 
   public RouterFactoryOptions() {
     init();
@@ -86,6 +92,7 @@ public class RouterFactoryOptions {
     this.mountResponseContentTypeHandler = other.isMountResponseContentTypeHandler();
     this.bodyHandler = other.getBodyHandler();
     this.globalHandlers = other.getGlobalHandlers();
+    this.operationModelKey = other.getOperationModelKey();
   }
 
   public JsonObject toJson() {
@@ -103,6 +110,7 @@ public class RouterFactoryOptions {
     this.mountResponseContentTypeHandler = DEFAULT_MOUNT_RESPONSE_CONTENT_TYPE_HANDLER;
     this.bodyHandler = BodyHandler.create();
     this.globalHandlers = new ArrayList<>();
+    this.operationModelKey = DEFAULT_EXPOSE_CONFIGURATION_KEY;
   }
 
   public Handler<RoutingContext> getValidationFailureHandler() {
@@ -235,6 +243,22 @@ public class RouterFactoryOptions {
   @Fluent
   public RouterFactoryOptions addGlobalHandler(Handler<RoutingContext> globalHandler) {
     this.globalHandlers.add(globalHandler);
+    return this;
+  }
+
+  public String getOperationModelKey() {
+    return operationModelKey;
+  }
+
+  /**
+   * When set, an additional handler will be created to expose the operation model in the routing
+   * context under the given key. When the key is null, the handler is not added.
+   * @param operationModelKey
+   * @return
+   */
+  @Fluent
+  public RouterFactoryOptions setOperationModelKey(String operationModelKey) {
+    this.operationModelKey = operationModelKey;
     return this;
   }
 }

@@ -4,6 +4,8 @@ import io.vertx.ext.web.api.validation.ParameterTypeValidator;
 import io.vertx.ext.web.api.validation.ValidationException;
 import org.junit.Test;
 
+import java.util.UUID;
+
 /**
  * @author Francesco Guardiani @slinkydeveloper
  */
@@ -45,4 +47,15 @@ public class StringTypeValidatorTest {
     validator.isValid("a");
   }
 
+  @Test
+  public void isValidUUID() {
+    ParameterTypeValidator validator = new StringTypeValidator(RegularExpressions.UUID);
+    validator.isValid(UUID.randomUUID().toString());
+  }
+
+  @Test(expected = ValidationException.class)
+  public void isNotValidUUID() {
+    ParameterTypeValidator validator = new StringTypeValidator(RegularExpressions.UUID);
+    validator.isValid(UUID.randomUUID().toString().replaceAll("-","#"));
+  }
 }

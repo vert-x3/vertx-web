@@ -275,6 +275,10 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
     }
   }
 
+  synchronized Context context() {
+    return transportCtx;
+  }
+
   synchronized void register(HttpServerRequest req, TransportListener lst) {
     this.transportCtx = vertx.getOrCreateContext();
     this.localAddress = req.localAddress();

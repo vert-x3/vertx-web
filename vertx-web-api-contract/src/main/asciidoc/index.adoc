@@ -122,20 +122,9 @@ For example you can ask to router factory to mount the validation failure handle
 ----
 
 === Mount the handlers
-Now load your first path. There are two functions to load the handlers:
-
-* {@link io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory#addHandler(io.vertx.core.http.HttpMethod, java.lang.String, io.vertx.core.Handler)}
-* {@link io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory#addHandlerByOperationId(java.lang.String, io.vertx.core.Handler)}
-
-And, of course, two functions to load failure handlers
-
-* {@link io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory#addFailureHandler(io.vertx.core.http.HttpMethod, java.lang.String, io.vertx.core.Handler)}
-* {@link io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory#addFailureHandlerByOperationId(java.lang.String, io.vertx.core.Handler)}
+Now load your first operation handlers. To load an handler use {@link io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory#addHandlerByOperationId(java.lang.String, io.vertx.core.Handler)}. To load a failure handler use {@link io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory#addFailureHandlerByOperationId(java.lang.String, io.vertx.core.Handler)}
 
 You can, of course,*add multiple handlers to same operation**, without overwrite the existing ones.
-
-.Path in OpenAPI format
-IMPORTANT: If you want to use {@link io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory#addHandler(io.vertx.core.http.HttpMethod, java.lang.String, io.vertx.core.Handler)} or {@link io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory#addFailureHandler(io.vertx.core.http.HttpMethod, java.lang.String, io.vertx.core.Handler)} pay attention: You can provide a path only in OpenAPI styles (for example path `/hello/:param` doesn't work)
 
 For example:
 

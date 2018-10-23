@@ -137,7 +137,9 @@ class WebSocketTransport extends BaseTransport {
     public void sessionClosed() {
       session.writeClosed(this);
       closed = true;
-      ws.close();
+      // Asynchronously close the websocket to fix a bug in the SockJS TCK
+      // due to the WebSocket client that skip some frames (bug)
+      session.context().runOnContext(v -> ws.close());
     }
 
   }

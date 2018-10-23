@@ -17,18 +17,21 @@
 package io.vertx.ext.web.handler;
 
 import io.vertx.core.http.HttpMethod;
+import io.vertx.ext.web.Session;
+import io.vertx.ext.web.WebTestBase;
+import io.vertx.ext.web.impl.Utils;
 import io.vertx.ext.web.sstore.AbstractSession;
 import io.vertx.ext.web.sstore.LocalSessionStore;
-import io.vertx.ext.web.Session;
 import io.vertx.ext.web.sstore.SessionStore;
-import io.vertx.ext.web.impl.Utils;
-import io.vertx.ext.web.WebTestBase;
 import org.junit.Test;
 
 import java.text.DateFormat;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.concurrent.TimeUnit.NANOSECONDS;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -172,7 +175,6 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
       assertNotNull(sess.id());
       switch (requestCount.get()) {
         case 0:
-          rid.set(sess.id());
           sess.put("foo", "bar");
           break;
         case 1:
@@ -180,6 +182,7 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
           assertNull(sess.get("foo"));
           break;
       }
+      rid.set(sess.id());
       requestCount.incrementAndGet();
       rc.response().end();
     });
@@ -192,15 +195,15 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
     testRequest(HttpMethod.GET, "/", req -> req.putHeader("cookie", rSetCookie.get()), null, 200, "OK", null);
     CountDownLatch latch1 = new CountDownLatch(1);
     Thread.sleep(500); // FIXME -Needed because session.destroy is async :(
-    store.size(onSuccess(res -> {
-      assertEquals(1, res.intValue());
+    store.get(rid.get(), onSuccess(res -> {
+      assertNotNull(res);
       latch1.countDown();
     }));
     awaitLatch(latch1);
     Thread.sleep(2 * (LocalSessionStore.DEFAULT_REAPER_INTERVAL + timeout));
     CountDownLatch latch2 = new CountDownLatch(1);
-    store.size(onSuccess(res -> {
-      assertEquals(0, res.intValue());
+    store.get(rid.get(), onSuccess(res -> {
+      assertNull(res);
       latch2.countDown();
     }));
     awaitLatch(latch2);
@@ -226,22 +229,23 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
         case 1:
           assertFalse(rid.get().equals(sess.id())); // New session
           assertNull(sess.get("foo"));
+          rid.set(sess.id());
           sess.destroy();
           break;
       }
       requestCount.incrementAndGet();
       rc.response().end();
     });
-    AtomicReference<String> rSetCookie = new AtomicReference<>();
     testRequest(HttpMethod.GET, "/", null, resp -> {
       String setCookie = resp.headers().get("set-cookie");
       assertNull(setCookie);
       // the cookie got destroyed even before the end of the request, so no side effects are expected
     }, 200, "OK", null);
     testRequest(HttpMethod.GET, "/", null, null, 200, "OK", null);
+    Thread.sleep(500); // Needed because session.destroy is async
     CountDownLatch latch1 = new CountDownLatch(1);
-    store.size(onSuccess(res -> {
-      assertEquals(0, res.intValue());
+    store.get(rid.get(), onSuccess(res -> {
+      assertNull(res);
       latch1.countDown();
     }));
     awaitLatch(latch1);
@@ -372,10 +376,14 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
       String setCookie = resp.headers().get("set-cookie");
       sessionID.set(setCookie);
     }, 200, "OK", null);
-    testRequest(HttpMethod.GET, "/1", req -> req.putHeader("cookie", sessionID.get()), 200, "OK", null);
-    long now = System.currentTimeMillis();
+    CountDownLatch responseReceived = new CountDownLatch(1);
+    testRequest(HttpMethod.GET, "/1", req -> req.putHeader("cookie", sessionID.get()), resp -> {
+      responseReceived.countDown();
+    }, 200, "OK", null);
+    awaitLatch(responseReceived);
+    long now = System.nanoTime();
     testRequest(HttpMethod.GET, "/2", req -> req.putHeader("cookie", sessionID.get()), 200, "OK", null);
-    return System.currentTimeMillis() - now;
+    return MILLISECONDS.convert(System.nanoTime() - now, NANOSECONDS);
   }
 
   @Test
@@ -403,22 +411,23 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
       assertNotNull(setCookie);
     }, 200, "OK", null);
 
+    CountDownLatch responseReceived = new CountDownLatch(1);
     testRequest(HttpMethod.GET, "/1", req -> req.putHeader("cookie", "vertx-web.session=" + sessionId.get() + "; Path=/"), resp -> {
       String setCookie = resp.headers().get("set-cookie");
       assertNotNull(setCookie);
       assertFalse(("vertx-web.session=" + sessionId.get() + "; Path=/").equals(setCookie));
+      responseReceived.countDown();
     }, 200, "OK", null);
+    awaitLatch(responseReceived);
 
-    CountDownLatch latch = new CountDownLatch(1);
     // after the id is regenerated the old id must not be valid anymore
-
     store.get(sessionId.get(), get -> {
       assertTrue(get.succeeded());
       assertNull(get.result());
-      latch.countDown();
+      testComplete();
     });
 
-    awaitLatch(latch);
+    await();
   }
 
   @Test

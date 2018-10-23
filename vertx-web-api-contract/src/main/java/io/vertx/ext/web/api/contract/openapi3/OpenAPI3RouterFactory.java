@@ -19,9 +19,7 @@ import org.apache.commons.lang3.StringUtils;
 
 /**
  * Interface for OpenAPI3RouterFactory. <br/>
- * To add an handler, use {@link OpenAPI3RouterFactory#addHandlerByOperationId(String, Handler)}, in this
- * class is better than generic {@link RouterFactory#addHandler(HttpMethod, String, Handler)}<br/>
- * If you want to use {@link RouterFactory#addHandler(HttpMethod, String, Handler)} remember that <b>you have to pass path as declared in openapi specification</b>
+ * To add an handler, use {@link OpenAPI3RouterFactory#addHandlerByOperationId(String, Handler)}<br/>
  * Usage example:
  * <pre>
  * {@code
@@ -99,30 +97,5 @@ public interface OpenAPI3RouterFactory extends RouterFactory<OpenAPI> {
           future.fail(RouterFactoryException.createSpecInvalidException(StringUtils.join(swaggerParseResult.getMessages(), ", ")));
       }
     }, handler);
-  }
-
-
-  /**
-   * @deprecated use {@link OpenAPI3RouterFactory#create(Vertx, String, Handler)}
-   *
-   * @param vertx
-   * @param url
-   * @param handler
-   */
-  @Deprecated
-  static void createRouterFactoryFromFile(Vertx vertx, String url, Handler<AsyncResult<OpenAPI3RouterFactory>> handler) {
-    OpenAPI3RouterFactory.create(vertx, url, handler);
-  }
-
-  /**
-   * @deprecated use {@link OpenAPI3RouterFactory#create(Vertx, String, Handler)}
-   *
-   * @param vertx
-   * @param url
-   * @param handler
-   */
-  @Deprecated
-  static void createRouterFactoryFromURL(Vertx vertx, String url, Handler<AsyncResult<OpenAPI3RouterFactory>> handler) {
-    OpenAPI3RouterFactory.create(vertx, url, handler);
   }
 }

@@ -22,6 +22,10 @@ Enable or disable validation failure handler. If you enable it during router cre
  that manages ValidationException will be mounted. You can change the validation failure handler with with function link. If failure is different from ValidationException, next failure
  handler will be called.
 +++
+|[[operationModelKey]]`@operationModelKey`|`String`|+++
+When set, an additional handler will be created to expose the operation model in the routing
+ context under the given key. When the key is null, the handler is not added.
++++
 |[[requireSecurityHandlers]]`@requireSecurityHandlers`|`Boolean`|+++
 If true, when you call link the factory will mount for every path
  the required security handlers and, if a security handler is not defined, it throws an link

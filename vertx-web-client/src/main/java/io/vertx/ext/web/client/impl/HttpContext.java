@@ -252,8 +252,9 @@ public class HttpContext {
           responseFuture.tryFail(err);
         });
         stream.exceptionHandler(err -> {
-          req.reset();
+          // Notify before closing the connection otherwise the future could be failed with connection closed exception
           responseFuture.tryFail(err);
+          req.reset();
         });
         stream.endHandler(v -> {
           req.exceptionHandler(responseFuture::tryFail);
