@@ -23,6 +23,7 @@ import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.ext.web.client.impl.MultipartFormUpload;
 import io.vertx.ext.web.multipart.MultipartForm;
 import io.vertx.test.core.TestUtils;
+import junit.framework.AssertionFailedError;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -75,25 +76,46 @@ public class MultipartFormUploadTest {
   }
 
   @Test
-  public void testFileUpload(TestContext ctx) throws Exception {
+  public void testFileUpload1(TestContext ctx) {
+    vertx.runOnContext(v -> {
+      MultipartFormUpload upload = testFileUpload(ctx);
+      upload.run();
+      upload.resume();
+    });
+  }
+
+  @Test
+  public void testFileUpload2(TestContext ctx) {
+    vertx.runOnContext(v -> {
+      MultipartFormUpload upload = testFileUpload(ctx);
+      upload.resume();
+      upload.run();
+    });
+  }
+
+  private MultipartFormUpload testFileUpload(TestContext ctx) {
     Async async = ctx.async();
-    MultipartFormUpload upload = new MultipartFormUpload(vertx.getOrCreateContext(), MultipartForm.create().textFileUpload(
-      "the-file",
-      largeFile.getName(),
-      largeFile.getAbsolutePath(),
-      "text/plain"), true);
-    List<Buffer> buffers = Collections.synchronizedList(new ArrayList<>());
-    AtomicInteger end = new AtomicInteger();
-    upload.run();
-    upload.endHandler(v -> {
-      assertEquals(0, end.getAndIncrement());
-      ctx.assertTrue(buffers.size() > 0);
-      async.complete();
-    });
-    upload.handler(buffer -> {
-      assertEquals(0, end.get());
-      buffers.add(buffer);
-    });
-    upload.resume();
+    try {
+      MultipartFormUpload upload = new MultipartFormUpload(vertx.getOrCreateContext(), MultipartForm.create().textFileUpload(
+        "the-file",
+        largeFile.getName(),
+        largeFile.getAbsolutePath(),
+        "text/plain"), true);
+      List<Buffer> buffers = Collections.synchronizedList(new ArrayList<>());
+      AtomicInteger end = new AtomicInteger();
+      upload.endHandler(v -> {
+        assertEquals(0, end.getAndIncrement());
+        ctx.assertTrue(buffers.size() > 0);
+        async.complete();
+      });
+      upload.handler(buffer -> {
+        assertEquals(0, end.get());
+        buffers.add(buffer);
+      });
+      return upload;
+    } catch (Exception e) {
+      ctx.fail(e);
+      throw new AssertionError(e);
+    }
   }
 }
