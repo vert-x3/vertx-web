@@ -27,8 +27,8 @@ import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.impl.HeadersAdaptor;
-import io.vertx.core.queue.Queue;
 import io.vertx.core.streams.ReadStream;
+import io.vertx.core.streams.impl.InboundBuffer;
 import io.vertx.ext.web.multipart.FormDataPart;
 import io.vertx.ext.web.multipart.MultipartForm;
 
@@ -47,13 +47,13 @@ public class MultipartFormUpload implements ReadStream<Buffer> {
   private HttpPostRequestEncoder encoder;
   private Handler<Throwable> exceptionHandler;
   private Handler<Void> endHandler;
-  private Queue<Buffer> pending;
+  private InboundBuffer<Buffer> pending;
   private boolean ended;
   private final Context context;
 
   public MultipartFormUpload(Context context, MultipartForm parts, boolean multipart) throws Exception {
     this.context = context;
-    this.pending = Queue.<Buffer>queue(context).emptyHandler(v -> checkEnd()).writableHandler(v -> run()).pause();
+    this.pending = new InboundBuffer<Buffer>(context).emptyHandler(v -> checkEnd()).drainHandler(v -> run()).pause();
     this.request = new DefaultFullHttpRequest(
       HttpVersion.HTTP_1_1,
       io.netty.handler.codec.http.HttpMethod.POST,
@@ -94,7 +94,7 @@ public class MultipartFormUpload implements ReadStream<Buffer> {
           HttpContent chunk = encoder.readChunk(ALLOC);
           ByteBuf content = chunk.content();
           Buffer buff = Buffer.buffer(content);
-          if (!pending.add(buff)) {
+          if (!pending.write(buff)) {
             break;
           } else if (encoder.isEndOfInput()) {
             ended = true;
@@ -118,7 +118,7 @@ public class MultipartFormUpload implements ReadStream<Buffer> {
         Buffer buffer = Buffer.buffer(content);
         request = null;
         encoder = null;
-        pending.add(buffer);
+        pending.write(buffer);
         ended = true;
         if (pending.isEmpty() && endHandler != null) {
           endHandler.handle(null);
@@ -151,7 +151,7 @@ public class MultipartFormUpload implements ReadStream<Buffer> {
 
   @Override
   public ReadStream<Buffer> fetch(long amount) {
-    pending.take(amount);
+    pending.fetch(amount);
     return this;
   }
 
