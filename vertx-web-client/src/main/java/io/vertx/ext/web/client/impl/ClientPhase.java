@@ -15,7 +15,7 @@
  */
 package io.vertx.ext.web.client.impl;
 
-public enum ClientEventType {
+public enum ClientPhase {
 
   /**
    * The {@link io.vertx.core.http.HttpClientRequest} has not yet been created, the {@link HttpContext#request()} can be fully modified.

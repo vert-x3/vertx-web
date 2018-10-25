@@ -1,6 +1,5 @@
 package io.vertx.ext.web.client;
 
-import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.VertxOptions;
@@ -11,7 +10,7 @@ import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.http.HttpTestBase;
 import io.vertx.core.http.HttpVersion;
 import io.vertx.core.json.JsonArray;
-import io.vertx.ext.web.client.impl.ClientEventType;
+import io.vertx.ext.web.client.impl.ClientPhase;
 import io.vertx.ext.web.client.impl.HttpContext;
 import io.vertx.ext.web.client.impl.WebClientInternal;
 import org.junit.Test;
@@ -47,7 +46,7 @@ public class InterceptorTest extends HttpTestBase {
   }
 
   private void handleMutateRequest(HttpContext context) {
-    if (context.eventType() == ClientEventType.PREPARE_REQUEST) {
+    if (context.eventType() == ClientPhase.PREPARE_REQUEST) {
       context.request().host("localhost");
       context.request().port(8080);
     }
@@ -65,7 +64,7 @@ public class InterceptorTest extends HttpTestBase {
   }
 
   private void mutateResponseHandler(HttpContext context) {
-    if (context.eventType() == ClientEventType.DISPATCH_RESPONSE) {
+    if (context.eventType() == ClientPhase.DISPATCH_RESPONSE) {
       HttpResponse<?> resp = context.response();
       assertEquals(500, resp.statusCode());
       context.response(new HttpResponseImpl<Object>() {
@@ -116,11 +115,11 @@ public class InterceptorTest extends HttpTestBase {
     await();
   }
 
-  private Handler<HttpContext<?>> retryInterceptorHandler(AtomicInteger reqCount, AtomicInteger respCount, int num) {
+  private <T> Handler<HttpContext<T>> retryInterceptorHandler(AtomicInteger reqCount, AtomicInteger respCount, int num) {
     return ctx -> {
-      if (ctx.eventType() == ClientEventType.PREPARE_REQUEST) {
+      if (ctx.eventType() == ClientPhase.PREPARE_REQUEST) {
         reqCount.incrementAndGet();
-      } else if (ctx.eventType() == ClientEventType.DISPATCH_RESPONSE) {
+      } else if (ctx.eventType() == ClientPhase.DISPATCH_RESPONSE) {
         respCount.incrementAndGet();
         HttpResponse<?> resp = ctx.response();
         if (resp.statusCode() == 503) {
@@ -130,7 +129,7 @@ public class InterceptorTest extends HttpTestBase {
           }
           if (count < num) {
             ctx.set("retries", count + 1);
-            ctx.prepareRequest();
+            ctx.prepareRequest(ctx.request(), ctx.contentType(), ctx.body());
             return;
           }
         }
@@ -158,9 +157,8 @@ public class InterceptorTest extends HttpTestBase {
   }
 
   private void cacheInterceptorHandler(HttpContext<?> context) {
-    if (context.eventType() == ClientEventType.PREPARE_REQUEST) {
-      context.response(new HttpResponseImpl<>());
-      context.dispatchResponse();
+    if (context.eventType() == ClientPhase.PREPARE_REQUEST) {
+      context.dispatchResponse(new HttpResponseImpl<>());
     } else {
       context.next();
     }

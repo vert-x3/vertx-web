@@ -36,6 +36,6 @@ public interface WebClientInternal extends WebClient {
    * @param interceptor the interceptor to add, must not be null
    * @return a reference to this, so the API can be used fluently
    */
-  WebClientInternal addInterceptor(Handler<HttpContext<?>> interceptor);
+  <T> WebClientInternal addInterceptor(Handler<HttpContext<T>> interceptor);
 
 }

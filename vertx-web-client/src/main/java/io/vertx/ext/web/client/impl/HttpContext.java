@@ -45,61 +45,67 @@ public class HttpContext<T> {
 
   private final Context context;
   private final Handler<AsyncResult<HttpResponse<T>>> handler;
-  private final HttpRequestImpl request;
+  private HttpRequestImpl<T> request;
   private Object body;
   private String contentType;
   private Map<String, Object> attrs;
   private Iterator<Handler<HttpContext<?>>> it;
-  private ClientEventType eventType;
+  private ClientPhase phase;
   private HttpClientRequest clientRequest;
   private HttpClientResponse clientResponse;
   private HttpResponse<T> response;
   private Throwable failure;
 
-  public HttpContext(Context context,
-                     HttpRequest request,
-                     String contentType,
-                     Object body,
-                     Handler<AsyncResult<HttpResponse<T>>> handler) {
+  public HttpContext(Context context, Handler<AsyncResult<HttpResponse<T>>> handler) {
     this.context = context;
-    this.request = (HttpRequestImpl)request;
-    this.contentType = contentType;
-    this.body = body;
     this.handler = handler;
   }
 
+  /**
+   * @return the underlying client request, only available during {@link ClientPhase#SEND_REQUEST} and after
+   */
   public HttpClientRequest clientRequest() {
     return clientRequest;
   }
 
+  /**
+   * @return the underlying client request, only available during {@link ClientPhase#RECEIVE_RESPONSE} and after
+   */
   public HttpClientResponse clientResponse() {
     return clientResponse;
   }
 
-  public ClientEventType eventType() {
-    return eventType;
+  /**
+   * @return the current event type
+   */
+  public ClientPhase eventType() {
+    return phase;
   }
 
+  /**
+   * @return the current request object
+   */
   public HttpRequest<T> request() {
     return request;
   }
 
+  /**
+   * @return the current response object, only available during {@link ClientPhase#DISPATCH_RESPONSE}
+   */
   public HttpResponse<T> response() {
     return response;
   }
 
-  public HttpContext response(HttpResponse<T> response) {
+  public HttpContext<T> response(HttpResponse<T> response) {
     this.response = response;
     return this;
   }
 
+  /**
+   * @return the request content type
+   */
   public String contentType() {
     return contentType;
-  }
-
-  public HttpContext contentType(String contentType) {
-    this.contentType = contentType;
-    return this;
   }
 
   /**
@@ -110,55 +116,81 @@ public class HttpContext<T> {
   }
 
   /**
-   * Change the body to send
-   * @param body the new body
-   * @return a reference to this, so the API can be used fluently
-   */
-  public HttpContext body(Object body) {
-    this.body = body;
-    return this;
-  }
-
-  /**
-   * @return the failure, only for {@link ClientEventType#FAILURE}
+   * @return the failure, only for {@link ClientPhase#FAILURE}
    */
   public Throwable failure() {
     return failure;
   }
 
   /**
-   * Send the HTTP request, the context will traverse all interceptors. Any interceptor chain on the context
-   * will be reset.
+   * Prepare the HTTP request, this executes the {@link ClientPhase#PREPARE_REQUEST} phase:
+   * <ul>
+   *   <li>Traverse the interceptor chain</li>
+   *   <li>Execute the {@link ClientPhase#SEND_REQUEST} phase</li>
+   * </ul>
    */
-  public void prepareRequest() {
-    fire(ClientEventType.PREPARE_REQUEST);
-  }
-
-  public void sendRequest() {
-    fire(ClientEventType.SEND_REQUEST);
-  }
-
-  public void receiveResponse() {
-    fire(ClientEventType.RECEIVE_RESPONSE);
-  }
-
-  public void dispatchResponse() {
-    fire(ClientEventType.DISPATCH_RESPONSE);
+  public void prepareRequest(HttpRequest<T> request, String contentType, Object body) {
+    this.request = (HttpRequestImpl<T>) request;
+    this.contentType = contentType;
+    this.body = body;
+    fire(ClientPhase.PREPARE_REQUEST);
   }
 
   /**
-   * Fail the current exchange.
+   * Send the HTTP request, this executes the {@link ClientPhase#SEND_REQUEST} phase:
+   * <ul>
+   *   <li>Create the {@link HttpClientRequest}</li>
+   *   <li>Traverse the interceptor chain</li>
+   *   <li>Send the actual request</li>
+   * </ul>
+   */
+  public void sendRequest(HttpClientRequest clientRequest) {
+    this.clientRequest = clientRequest;
+    fire(ClientPhase.SEND_REQUEST);
+  }
+
+  /**
+   * Receive the HTTP response, this executes the {@link ClientPhase#RECEIVE_RESPONSE} phase:
+   * <ul>
+   *   <li>Traverse the interceptor chain</li>
+   *   <li>Execute the {@link ClientPhase#DISPATCH_RESPONSE} phase</li>
+   * </ul>
+   */
+  public void receiveResponse(HttpClientResponse clientResponse) {
+    this.clientResponse = clientResponse;
+    fire(ClientPhase.RECEIVE_RESPONSE);
+  }
+
+  /**
+   * Dispatch the HTTP response, this executes the {@link ClientPhase#DISPATCH_RESPONSE} phase:
+   * <ul>
+   *   <li>Create the {@link HttpResponse}</li>
+   *   <li>Traverse the interceptor chain</li>
+   *   <li>Deliver the response to the response handler</li>
+   * </ul>
+   */
+  public void dispatchResponse(HttpResponse<T> response) {
+    this.response = response;
+    fire(ClientPhase.DISPATCH_RESPONSE);
+  }
+
+  /**
+   * Fail the current HTTP context, this executes the {@link ClientPhase#FAILURE} phase:
+   * <ul>
+   *   <li>Traverse the interceptor chain</li>
+   *   <li>Deliver the failure to the response handler</li>
+   * </ul>
    *
    * @param cause the failure cause
    * @return {@code true} if the failure can be dispatched
    */
   public boolean fail(Throwable cause) {
-    if (eventType == ClientEventType.FAILURE) {
+    if (phase == ClientPhase.FAILURE) {
       // Already processing a failure
       return false;
     }
     failure = cause;
-    fire(ClientEventType.FAILURE);
+    fire(ClientPhase.FAILURE);
     return true;
   }
 
@@ -170,18 +202,19 @@ public class HttpContext<T> {
       Handler<HttpContext<?>> next = it.next();
       next.handle(this);
     } else {
-      exec();
+      it = null;
+      execute();
     }
   }
 
-  private void fire(ClientEventType type) {
-    eventType = type;
-    it = request.client.interceptors.iterator();
+  private void fire(ClientPhase phase) {
+    this.phase = phase;
+    this.it = request.client.interceptors.iterator();
     next();
   }
 
-  private void exec() {
-    switch (eventType) {
+  private void execute() {
+    switch (phase) {
       case PREPARE_REQUEST:
         handlePrepareRequest();
         break;
@@ -250,8 +283,7 @@ public class HttpContext<T> {
     if (request.headers != null) {
       req.headers().addAll(request.headers);
     }
-    clientRequest = req;
-    sendRequest();
+    sendRequest(req);
   }
 
   private void handleReceiveResponse() {
@@ -262,8 +294,7 @@ public class HttpContext<T> {
       // We are running on a context (the HTTP client mandates it)
       context.runOnContext(v -> {
         if (r.succeeded()) {
-          response = r.result();
-          dispatchResponse();
+          dispatchResponse(r.result());
         } else {
           fail(r.cause());
         }
@@ -313,8 +344,7 @@ public class HttpContext<T> {
       if (ar.succeeded()) {
         HttpClientResponse resp = ar.result();
         resp.pause();
-        clientResponse = resp;
-        receiveResponse();
+        receiveResponse(resp);
       } else {
         fail(ar.cause());
       }
@@ -404,7 +434,7 @@ public class HttpContext<T> {
     return attrs != null ? (T) attrs.get(key) : null;
   }
 
-  public HttpContext set(String key, Object value) {
+  public HttpContext<T> set(String key, Object value) {
     if (value == null) {
       if (attrs != null) {
         attrs.remove(key);
