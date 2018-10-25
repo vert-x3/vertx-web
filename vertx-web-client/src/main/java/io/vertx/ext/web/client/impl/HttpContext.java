@@ -41,124 +41,174 @@ import java.util.Map;
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
  */
-public class HttpContext {
+public class HttpContext<T> {
 
   private final Context context;
-  private final Handler<AsyncResult<HttpResponse<Object>>> responseHandler;
+  private final Handler<AsyncResult<HttpResponse<T>>> handler;
   private final HttpRequestImpl request;
   private Object body;
   private String contentType;
   private Map<String, Object> attrs;
-  private Handler<AsyncResult<HttpResponse<Object>>> currentResponseHandler;
-  private Iterator<Handler<HttpContext>> it;
+  private Iterator<Handler<HttpContext<?>>> it;
+  private ClientEventType eventType;
+  private HttpClientRequest clientRequest;
+  private HttpClientResponse clientResponse;
+  private HttpResponse<T> response;
+  private Throwable failure;
 
   public HttpContext(Context context,
                      HttpRequest request,
                      String contentType,
                      Object body,
-                     Handler<AsyncResult<HttpResponse<Object>>> responseHandler) {
+                     Handler<AsyncResult<HttpResponse<T>>> handler) {
     this.context = context;
     this.request = (HttpRequestImpl)request;
     this.contentType = contentType;
     this.body = body;
-    this.responseHandler = responseHandler;
+    this.handler = handler;
   }
 
-  /**
-   * Send the HTTP request, the context will traverse all interceptors. Any interceptor chain on the context
-   * will be reset.
-   */
-  public void interceptAndSend() {
-    it = request.client.interceptors.iterator();
-    currentResponseHandler = responseHandler;
-    next();
+  public HttpClientRequest clientRequest() {
+    return clientRequest;
   }
 
-  public HttpRequest request() {
+  public HttpClientResponse clientResponse() {
+    return clientResponse;
+  }
+
+  public ClientEventType eventType() {
+    return eventType;
+  }
+
+  public HttpRequest<T> request() {
     return request;
+  }
+
+  public HttpResponse<T> response() {
+    return response;
+  }
+
+  public HttpContext response(HttpResponse<T> response) {
+    this.response = response;
+    return this;
   }
 
   public String contentType() {
     return contentType;
   }
 
+  public HttpContext contentType(String contentType) {
+    this.contentType = contentType;
+    return this;
+  }
+
+  /**
+   * @return the body to send
+   */
   public Object body() {
     return body;
   }
 
-  public Handler<AsyncResult<HttpResponse<Object>>> getResponseHandler() {
-    return currentResponseHandler;
-  }
-
-  public void setResponseHandler(Handler<AsyncResult<HttpResponse<Object>>> responseHandler) {
-    this.currentResponseHandler = responseHandler;
+  /**
+   * Change the body to send
+   * @param body the new body
+   * @return a reference to this, so the API can be used fluently
+   */
+  public HttpContext body(Object body) {
+    this.body = body;
+    return this;
   }
 
   /**
-   * Call the next interceptor in the chain or send the request when the end of the chain is reached.
+   * @return the failure, only for {@link ClientEventType#FAILURE}
+   */
+  public Throwable failure() {
+    return failure;
+  }
+
+  /**
+   * Send the HTTP request, the context will traverse all interceptors. Any interceptor chain on the context
+   * will be reset.
+   */
+  public void prepareRequest() {
+    fire(ClientEventType.PREPARE_REQUEST);
+  }
+
+  public void sendRequest() {
+    fire(ClientEventType.SEND_REQUEST);
+  }
+
+  public void receiveResponse() {
+    fire(ClientEventType.RECEIVE_RESPONSE);
+  }
+
+  public void dispatchResponse() {
+    fire(ClientEventType.DISPATCH_RESPONSE);
+  }
+
+  /**
+   * Fail the current exchange.
+   *
+   * @param cause the failure cause
+   * @return {@code true} if the failure can be dispatched
+   */
+  public boolean fail(Throwable cause) {
+    if (eventType == ClientEventType.FAILURE) {
+      // Already processing a failure
+      return false;
+    }
+    failure = cause;
+    fire(ClientEventType.FAILURE);
+    return true;
+  }
+
+  /**
+   * Call the next interceptor in the chain.
    */
   public void next() {
     if (it.hasNext()) {
-      Handler<HttpContext> next = it.next();
+      Handler<HttpContext<?>> next = it.next();
       next.handle(this);
     } else {
-      sendRequest();
+      exec();
     }
   }
 
-  private void sendRequest() {
-    Future<HttpClientResponse> responseFuture = Future.<HttpClientResponse>future().setHandler(ar -> {
-      Context context = Vertx.currentContext();
-      if (ar.succeeded()) {
-        HttpClientResponse resp = ar.result();
-        Future<HttpResponse<Object>> fut = Future.future();
-        fut.setHandler(r -> {
-          // We are running on a context (the HTTP client mandates it)
-          context.runOnContext(v -> currentResponseHandler.handle(r));
-        });
-        resp.exceptionHandler(err -> {
-          if (!fut.isComplete()) {
-            fut.fail(err);
-          }
-        });
-        resp.pause();
-        ((BodyCodec<Object>)request.codec).create(ar2 -> {
-          resp.resume();
-          if (ar2.succeeded()) {
-            BodyStream<Object> stream = ar2.result();
-            stream.exceptionHandler(err -> {
-              if (!fut.isComplete()) {
-                fut.fail(err);
-              }
-            });
-            resp.endHandler(v -> {
-              if (!fut.isComplete()) {
-                stream.end();
-                if (stream.result().succeeded()) {
-                  fut.complete(new HttpResponseImpl<>(
-                    resp.version(),
-                    resp.statusCode(),
-                    resp.statusMessage(),
-                    resp.headers(),
-                    resp.trailers(),
-                    resp.cookies(),
-                    stream.result().result()));
-                } else {
-                  fut.fail(stream.result().cause());
-                }
-              }
-            });
-            Pump responsePump = Pump.pump(resp, stream);
-            responsePump.start();
-          } else {
-            currentResponseHandler.handle(Future.failedFuture(ar2.cause()));
-          }
-        });
-      } else {
-        currentResponseHandler.handle(Future.failedFuture(ar.cause()));
-      }
-    });
+  private void fire(ClientEventType type) {
+    eventType = type;
+    it = request.client.interceptors.iterator();
+    next();
+  }
 
+  private void exec() {
+    switch (eventType) {
+      case PREPARE_REQUEST:
+        handlePrepareRequest();
+        break;
+      case SEND_REQUEST:
+        handleSendRequest();
+        break;
+      case RECEIVE_RESPONSE:
+        handleReceiveResponse();
+        break;
+      case DISPATCH_RESPONSE:
+        handleDispatchResponse();
+        break;
+      case FAILURE:
+        handleFailure();
+        break;
+    }
+  }
+
+  private void handleFailure() {
+    handler.handle(Future.failedFuture(failure));
+  }
+
+  private void handleDispatchResponse() {
+    handler.handle(Future.succeededFuture(response));
+  }
+
+  private void handlePrepareRequest() {
     HttpClientRequest req;
     String requestURI;
     if (request.queryParams() != null && request.queryParams().size() > 0) {
@@ -172,9 +222,9 @@ public class HttpContext {
     String host = request.host;
     if (request.ssl != request.options.isSsl()) {
       req = request.client.client.request(request.method, new RequestOptions().setSsl(request.ssl).setHost(host).setPort
-              (port)
-              .setURI
-                      (requestURI));
+        (port)
+        .setURI
+          (requestURI));
     } else {
       if (request.protocol != null && !request.protocol.equals("http") && !request.protocol.equals("https")) {
         // we have to create an abs url again to parse it in HttpClient
@@ -182,7 +232,7 @@ public class HttpContext {
           URI uri = new URI(request.protocol, null, host, port, requestURI, null, null);
           req = request.client.client.requestAbs(request.method, uri.toString());
         } catch (URISyntaxException ex) {
-          currentResponseHandler.handle(Future.failedFuture(ex));
+          fail(ex);
           return;
         }
       } else {
@@ -200,6 +250,76 @@ public class HttpContext {
     if (request.headers != null) {
       req.headers().addAll(request.headers);
     }
+    clientRequest = req;
+    sendRequest();
+  }
+
+  private void handleReceiveResponse() {
+    HttpClientResponse resp = clientResponse;
+    Context context = Vertx.currentContext();
+    Future<HttpResponse<T>> fut = Future.future();
+    fut.setHandler(r -> {
+      // We are running on a context (the HTTP client mandates it)
+      context.runOnContext(v -> {
+        if (r.succeeded()) {
+          response = r.result();
+          dispatchResponse();
+        } else {
+          fail(r.cause());
+        }
+      });
+    });
+    resp.exceptionHandler(err -> {
+      if (!fut.isComplete()) {
+        fut.fail(err);
+      }
+    });
+    ((BodyCodec<T>)request.codec).create(ar2 -> {
+      resp.resume();
+      if (ar2.succeeded()) {
+        BodyStream<T> stream = ar2.result();
+        stream.exceptionHandler(err -> {
+          if (!fut.isComplete()) {
+            fut.fail(err);
+          }
+        });
+        resp.endHandler(v -> {
+          if (!fut.isComplete()) {
+            stream.end();
+            if (stream.result().succeeded()) {
+              fut.complete(new HttpResponseImpl<T>(
+                resp.version(),
+                resp.statusCode(),
+                resp.statusMessage(),
+                resp.headers(),
+                resp.trailers(),
+                resp.cookies(),
+                stream.result().result()));
+            } else {
+              fut.fail(stream.result().cause());
+            }
+          }
+        });
+        Pump responsePump = Pump.pump(resp, stream);
+        responsePump.start();
+      } else {
+        fail(ar2.cause());
+      }
+    });
+  }
+
+  private void handleSendRequest() {
+    Future<HttpClientResponse> responseFuture = Future.<HttpClientResponse>future().setHandler(ar -> {
+      if (ar.succeeded()) {
+        HttpClientResponse resp = ar.result();
+        resp.pause();
+        clientResponse = resp;
+        receiveResponse();
+      } else {
+        fail(ar.cause());
+      }
+    });
+    HttpClientRequest req = clientRequest;
     req.handler(responseFuture::tryComplete);
     if (request.timeout > 0) {
       req.setTimeout(request.timeout);
@@ -213,7 +333,6 @@ public class HttpContext {
           contentType = prev;
         }
       }
-
       if (body instanceof MultiMap) {
         MultipartForm parts = MultipartForm.create();
         MultiMap attributes = (MultiMap) body;
