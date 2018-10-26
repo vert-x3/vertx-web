@@ -115,27 +115,29 @@ public class InterceptorTest extends HttpTestBase {
     await();
   }
 
-  private <T> Handler<HttpContext<T>> retryInterceptorHandler(AtomicInteger reqCount, AtomicInteger respCount, int num) {
-    return ctx -> {
-      if (ctx.eventType() == ClientPhase.PREPARE_REQUEST) {
-        reqCount.incrementAndGet();
-      } else if (ctx.eventType() == ClientPhase.DISPATCH_RESPONSE) {
-        respCount.incrementAndGet();
-        HttpResponse<?> resp = ctx.response();
-        if (resp.statusCode() == 503) {
-          Integer count = ctx.get("retries");
-          if (count == null) {
-            count = 0;
-          }
-          if (count < num) {
-            ctx.set("retries", count + 1);
-            ctx.prepareRequest(ctx.request(), ctx.contentType(), ctx.body());
-            return;
-          }
+  private <T> void handle(HttpContext<T> ctx, AtomicInteger reqCount, AtomicInteger respCount, int num) {
+    if (ctx.eventType() == ClientPhase.PREPARE_REQUEST) {
+      reqCount.incrementAndGet();
+    } else if (ctx.eventType() == ClientPhase.DISPATCH_RESPONSE) {
+      respCount.incrementAndGet();
+      HttpResponse<?> resp = ctx.response();
+      if (resp.statusCode() == 503) {
+        Integer count = ctx.get("retries");
+        if (count == null) {
+          count = 0;
+        }
+        if (count < num) {
+          ctx.set("retries", count + 1);
+          ctx.prepareRequest(ctx.request(), ctx.contentType(), ctx.body());
+          return;
         }
       }
-      ctx.next();
-    };
+    }
+    ctx.next();
+  }
+
+  private Handler<HttpContext<?>> retryInterceptorHandler(AtomicInteger reqCount, AtomicInteger respCount, int num) {
+    return ctx -> handle(ctx, reqCount, respCount, num);
   }
 
   @Test
