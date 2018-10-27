@@ -13,7 +13,7 @@ To use Vert.x API Service, add the following dependency to the _dependencies_ se
 ----
 <dependency>
   <groupId>io.vertx</groupId>
-  <artifactId>vertx-web-api-codegen</artifactId>
+  <artifactId>vertx-web-api-service</artifactId>
   <version>${maven.version}</version>
 </dependency>
 ----
@@ -117,7 +117,7 @@ The service handler is also capable to translate `JsonObject` to Vert.x data obj
 void putTransaction(Transaction body, OperationRequest context, Handler<AsyncResult<OperationResponse>> resultHandler);
 ----
 
-Note that generated service handler matches method parameters with parameter name and not with the location of parameter, so avoid duplicated parameter names
+Note that generated service handler matches method parameters with spec's parameter name and not with the location of parameter, so avoid duplicated parameter names in your spec
 
 We also encourage to extract with {@link io.vertx.ext.web.api.RequestParameter} parameters that uses json schema allOf/anyOf/oneOf/not keywords because the extraction can produce undefined behaviours
 
