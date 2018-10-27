@@ -23,11 +23,7 @@ import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.ext.web.client.impl.MultipartFormUpload;
 import io.vertx.ext.web.multipart.MultipartForm;
 import io.vertx.test.core.TestUtils;
-import junit.framework.AssertionFailedError;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 
@@ -43,17 +39,21 @@ import static org.junit.Assert.assertEquals;
 @RunWith(VertxUnitRunner.class)
 public class MultipartFormUploadTest {
 
-  @Rule
-  public TemporaryFolder testFolder = new TemporaryFolder();
+  @ClassRule
+  public static TemporaryFolder testFolder = new TemporaryFolder();
 
   private Vertx vertx;
-  private File largeFile;
+  private static File largeFile;
+
+  @BeforeClass
+  public static void beforeClass() throws Exception {
+    largeFile = testFolder.newFile("large.dat");
+    Files.write(largeFile.toPath(), TestUtils.randomAlphaString(32 * 1024).getBytes());
+  }
 
   @Before
   public void setUp() throws Exception {
     vertx = Vertx.vertx();
-    largeFile = testFolder.newFile("large.dat");
-    Files.write(largeFile.toPath(), TestUtils.randomAlphaString(32 * 1024).getBytes());
   }
 
   @After
@@ -77,8 +77,11 @@ public class MultipartFormUploadTest {
 
   @Test
   public void testFileUpload1(TestContext ctx) {
+    // Create the async here to prevent the test complete successfully
+    // since testFileUpload is executing asynchronously
+    Async async = ctx.async();
     vertx.runOnContext(v -> {
-      MultipartFormUpload upload = testFileUpload(ctx);
+      MultipartFormUpload upload = testFileUpload(async, ctx);
       upload.run();
       upload.resume();
     });
@@ -86,15 +89,17 @@ public class MultipartFormUploadTest {
 
   @Test
   public void testFileUpload2(TestContext ctx) {
+    // Create the async here to prevent the test complete successfully
+    // since testFileUpload is executing asynchronously
+    Async async = ctx.async();
     vertx.runOnContext(v -> {
-      MultipartFormUpload upload = testFileUpload(ctx);
+      MultipartFormUpload upload = testFileUpload(async, ctx);
       upload.resume();
       upload.run();
     });
   }
 
-  private MultipartFormUpload testFileUpload(TestContext ctx) {
-    Async async = ctx.async();
+  private MultipartFormUpload testFileUpload(Async async, TestContext ctx) {
     try {
       MultipartFormUpload upload = new MultipartFormUpload(vertx.getOrCreateContext(), MultipartForm.create().textFileUpload(
         "the-file",
