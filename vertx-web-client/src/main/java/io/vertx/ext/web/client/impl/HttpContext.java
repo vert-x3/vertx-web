@@ -22,6 +22,7 @@ import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.RequestOptions;
+import io.vertx.core.http.impl.HttpClientImpl;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.streams.Pump;
@@ -55,6 +56,7 @@ public class HttpContext<T> {
   private HttpClientResponse clientResponse;
   private HttpResponse<T> response;
   private Throwable failure;
+  private int redirects;
 
   public HttpContext(Context context, Handler<AsyncResult<HttpResponse<T>>> handler) {
     this.context = context;
@@ -78,7 +80,7 @@ public class HttpContext<T> {
   /**
    * @return the current event type
    */
-  public ClientPhase eventType() {
+  public ClientPhase phase() {
     return phase;
   }
 
@@ -98,6 +100,24 @@ public class HttpContext<T> {
 
   public HttpContext<T> response(HttpResponse<T> response) {
     this.response = response;
+    return this;
+  }
+
+  /**
+   * @return the number of followed redirects, this value is initialized to {@code 0} during the prepare phase
+   */
+  public int redirects() {
+    return redirects;
+  }
+
+  /**
+   * Set the number of followed redirects.
+   *
+   * @param redirects the new value
+   * @return a reference to this, so the API can be used fluently
+   */
+  public HttpContext<T> redirects(int redirects) {
+    this.redirects = redirects;
     return this;
   }
 
@@ -157,8 +177,24 @@ public class HttpContext<T> {
    * </ul>
    */
   public void receiveResponse(HttpClientResponse clientResponse) {
-    this.clientResponse = clientResponse;
-    fire(ClientPhase.RECEIVE_RESPONSE);
+    int sc = clientResponse.statusCode();
+    int maxRedirects = request.followRedirects ? ((HttpClientImpl) request.client.client).getOptions().getMaxRedirects(): 0;
+    if (redirects < maxRedirects && sc >= 300 && sc < 400) {
+      redirects++;
+      Future<HttpClientRequest> next = request.client.client.redirectHandler().apply(clientResponse);
+      if (next != null) {
+        next.setHandler(ar -> {
+          if (ar.succeeded()) {
+            sendRequest(ar.result());
+          } else {
+            fail(ar.cause());
+          }
+        });
+      }
+    } else {
+      this.clientResponse = clientResponse;
+      fire(ClientPhase.RECEIVE_RESPONSE);
+    }
   }
 
   /**
@@ -279,7 +315,7 @@ public class HttpContext<T> {
       }
       req.setHost(virtalHost);
     }
-    req.setFollowRedirects(request.followRedirects);
+    redirects = 0;
     if (request.headers != null) {
       req.headers().addAll(request.headers);
     }

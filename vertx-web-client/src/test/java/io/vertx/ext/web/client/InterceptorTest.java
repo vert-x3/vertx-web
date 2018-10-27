@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -46,7 +47,7 @@ public class InterceptorTest extends HttpTestBase {
   }
 
   private void handleMutateRequest(HttpContext context) {
-    if (context.eventType() == ClientPhase.PREPARE_REQUEST) {
+    if (context.phase() == ClientPhase.PREPARE_REQUEST) {
       context.request().host("localhost");
       context.request().port(8080);
     }
@@ -64,7 +65,7 @@ public class InterceptorTest extends HttpTestBase {
   }
 
   private void mutateResponseHandler(HttpContext context) {
-    if (context.eventType() == ClientPhase.DISPATCH_RESPONSE) {
+    if (context.phase() == ClientPhase.DISPATCH_RESPONSE) {
       HttpResponse<?> resp = context.response();
       assertEquals(500, resp.statusCode());
       context.response(new HttpResponseImpl<Object>() {
@@ -96,11 +97,11 @@ public class InterceptorTest extends HttpTestBase {
     startServer();
     List<String> events = Collections.synchronizedList(new ArrayList<>());
     client.addInterceptor(context -> {
-      events.add(context.eventType().name() + "_1");
+      events.add(context.phase().name() + "_1");
       context.next();
     });
     client.addInterceptor(context -> {
-      events.add(context.eventType().name() + "_2");
+      events.add(context.phase().name() + "_2");
       context.next();
     });
     HttpRequest<Buffer> builder = client.get("/somepath");
@@ -116,9 +117,9 @@ public class InterceptorTest extends HttpTestBase {
   }
 
   private <T> void handle(HttpContext<T> ctx, AtomicInteger reqCount, AtomicInteger respCount, int num) {
-    if (ctx.eventType() == ClientPhase.PREPARE_REQUEST) {
+    if (ctx.phase() == ClientPhase.PREPARE_REQUEST) {
       reqCount.incrementAndGet();
-    } else if (ctx.eventType() == ClientPhase.DISPATCH_RESPONSE) {
+    } else if (ctx.phase() == ClientPhase.DISPATCH_RESPONSE) {
       respCount.incrementAndGet();
       HttpResponse<?> resp = ctx.response();
       if (resp.statusCode() == 503) {
@@ -159,7 +160,7 @@ public class InterceptorTest extends HttpTestBase {
   }
 
   private void cacheInterceptorHandler(HttpContext<?> context) {
-    if (context.eventType() == ClientPhase.PREPARE_REQUEST) {
+    if (context.phase() == ClientPhase.PREPARE_REQUEST) {
       context.dispatchResponse(new HttpResponseImpl<>());
     } else {
       context.next();
@@ -235,4 +236,111 @@ public class InterceptorTest extends HttpTestBase {
       return null;
     }
   }
+
+  @Test
+  public void testFollowRedirects() throws Exception {
+    server.requestHandler(req -> {
+      switch (req.path()) {
+        case "/1":
+          req.response().setStatusCode(302).putHeader("location", "http://localhost:8080/2").end();
+          break;
+        default:
+          req.response().end();
+      }
+    });
+    startServer();
+    List<ClientPhase> phases = new ArrayList<>();
+    List<String> requestUris = new ArrayList<>();
+    AtomicInteger redirects = new AtomicInteger();
+    client.addInterceptor(ctx -> {
+      phases.add(ctx.phase());
+      switch (ctx.phase()) {
+        case PREPARE_REQUEST:
+          assertEquals(0, ctx.redirects());
+          break;
+        case SEND_REQUEST:
+          assertEquals(redirects.getAndIncrement(), ctx.redirects());
+          requestUris.add(ctx.clientRequest().path());
+          break;
+      }
+      ctx.next();
+    });
+    HttpRequest<Buffer> builder = client.get("/1").host("localhost").port(8080);
+    builder.send(onSuccess(resp -> {
+      assertEquals(200, resp.statusCode());
+      assertEquals(Arrays.asList(
+        ClientPhase.PREPARE_REQUEST,
+        ClientPhase.SEND_REQUEST,
+        ClientPhase.SEND_REQUEST,
+        ClientPhase.RECEIVE_RESPONSE,
+        ClientPhase.DISPATCH_RESPONSE), phases);
+      assertEquals(Arrays.asList("/1", "/2"), requestUris);
+      complete();
+    }));
+    await();
+  }
+
+  @Test
+  public void testMaxRedirects() throws Exception {
+    CopyOnWriteArrayList<String> requests = new CopyOnWriteArrayList<>();
+    server.requestHandler(req -> {
+      requests.add(req.path());
+      req.response().setStatusCode(302).putHeader("location", "http://localhost:8080" + req.path() + "0").end();
+    });
+    startServer();
+    List<ClientPhase> phases = new ArrayList<>();
+    client.addInterceptor(ctx -> {
+      phases.add(ctx.phase());
+      ctx.next();
+    });
+    HttpRequest<Buffer> builder = client.get("/").host("localhost").port(8080);
+    builder.send(onSuccess(resp -> {
+      assertEquals(302, resp.statusCode());
+      assertEquals(Arrays.asList(
+        ClientPhase.PREPARE_REQUEST,
+        ClientPhase.SEND_REQUEST,
+        ClientPhase.SEND_REQUEST,
+        ClientPhase.SEND_REQUEST,
+        ClientPhase.SEND_REQUEST,
+        ClientPhase.SEND_REQUEST,
+        ClientPhase.SEND_REQUEST,
+        ClientPhase.SEND_REQUEST,
+        ClientPhase.SEND_REQUEST,
+        ClientPhase.SEND_REQUEST,
+        ClientPhase.SEND_REQUEST,
+        ClientPhase.SEND_REQUEST,
+        ClientPhase.SEND_REQUEST,
+        ClientPhase.SEND_REQUEST,
+        ClientPhase.SEND_REQUEST,
+        ClientPhase.SEND_REQUEST,
+        ClientPhase.SEND_REQUEST,
+        ClientPhase.SEND_REQUEST,
+        ClientPhase.RECEIVE_RESPONSE,
+        ClientPhase.DISPATCH_RESPONSE
+        ), phases);
+      assertEquals(Arrays.asList(
+        "/",
+        "/0",
+        "/00",
+        "/000",
+        "/0000",
+        "/00000",
+        "/000000",
+        "/0000000",
+        "/00000000",
+        "/000000000",
+        "/0000000000",
+        "/00000000000",
+        "/000000000000",
+        "/0000000000000",
+        "/00000000000000",
+        "/000000000000000",
+        "/0000000000000000"
+      ), requests);
+      complete();
+    }));
+    await();
+  }
+
+
 }
