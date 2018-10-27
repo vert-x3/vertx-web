@@ -1,5 +1,6 @@
 package io.vertx.ext.web.client;
 
+import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
@@ -11,7 +12,6 @@ import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.http.HttpTestBase;
 import io.vertx.core.http.HttpVersion;
 import io.vertx.core.json.JsonArray;
-import io.vertx.ext.web.client.impl.ClientEventType;
 import io.vertx.ext.web.client.impl.HttpContext;
 import io.vertx.ext.web.client.impl.WebClientInternal;
 import org.junit.Test;
@@ -46,11 +46,9 @@ public class InterceptorTest extends HttpTestBase {
     server = vertx.createHttpServer(new HttpServerOptions().setPort(DEFAULT_HTTP_PORT).setHost(DEFAULT_HTTP_HOST));
   }
 
-  private void handleMutateRequest(HttpContext context) {
-    if (context.eventType() == ClientEventType.PREPARE_REQUEST) {
-      context.request().host("localhost");
-      context.request().port(8080);
-    }
+  private <R> void handleMutateRequest(HttpContext context) {
+    context.request().host("localhost");
+    context.request().port(8080);
     context.next();
   }
 
@@ -65,16 +63,21 @@ public class InterceptorTest extends HttpTestBase {
   }
 
   private void mutateResponseHandler(HttpContext context) {
-    if (context.eventType() == ClientEventType.DISPATCH_RESPONSE) {
-      HttpResponse<?> resp = context.response();
-      assertEquals(500, resp.statusCode());
-      context.response(new HttpResponseImpl<Object>() {
-        @Override
-        public int statusCode() {
-          return 200;
-        }
-      });
-    }
+    Handler<AsyncResult<HttpResponse<Object>>> responseHandler = context.getResponseHandler();
+    context.setResponseHandler(ar -> {
+      if (ar.succeeded()) {
+        HttpResponse<Object> resp = ar.result();
+        assertEquals(500, resp.statusCode());
+        responseHandler.handle(Future.succeededFuture(new HttpResponseImpl<Object>() {
+          @Override
+          public int statusCode() {
+            return 200;
+          }
+        }));
+      } else {
+        responseHandler.handle(ar);
+      }
+    });
     context.next();
   }
 
@@ -97,44 +100,56 @@ public class InterceptorTest extends HttpTestBase {
     startServer();
     List<String> events = Collections.synchronizedList(new ArrayList<>());
     client.addInterceptor(context -> {
-      events.add(context.eventType().name() + "_1");
+      events.add("start1");
+      Handler responseHandler =
+              context.getResponseHandler();
+      context.setResponseHandler(innerEvent -> {
+        events.add("end1");
+        responseHandler.handle(innerEvent);
+      });
       context.next();
     });
     client.addInterceptor(context -> {
-      events.add(context.eventType().name() + "_2");
+      events.add("start2");
+      Handler responseHandler =
+              context.getResponseHandler();
+      context.setResponseHandler(innerEvent -> {
+        events.add("end2");
+        responseHandler.handle(innerEvent);
+      });
       context.next();
     });
     HttpRequest<Buffer> builder = client.get("/somepath");
     builder.send(onSuccess(resp -> {
-      assertEquals(Arrays.asList(
-        "PREPARE_REQUEST_1", "PREPARE_REQUEST_2",
-        "SEND_REQUEST_1", "SEND_REQUEST_2",
-        "RECEIVE_RESPONSE_1", "RECEIVE_RESPONSE_2",
-        "DISPATCH_RESPONSE_1", "DISPATCH_RESPONSE_2"), events);
+      assertEquals(Arrays.asList("start1", "start2", "end2", "end1"), events);
+      System.out.println("end in client");
       complete();
     }));
     await();
   }
 
-  private Handler<HttpContext<?>> retryInterceptorHandler(AtomicInteger reqCount, AtomicInteger respCount, int num) {
+  private Handler<HttpContext> retryInterceptorHandler(AtomicInteger reqCount, AtomicInteger respCount, int num) {
     return ctx -> {
-      if (ctx.eventType() == ClientEventType.PREPARE_REQUEST) {
-        reqCount.incrementAndGet();
-      } else if (ctx.eventType() == ClientEventType.DISPATCH_RESPONSE) {
+      reqCount.incrementAndGet();
+      Handler<AsyncResult<HttpResponse<Object>>> respHandler = ctx.getResponseHandler();
+      ctx.setResponseHandler(ar -> {
         respCount.incrementAndGet();
-        HttpResponse<?> resp = ctx.response();
-        if (resp.statusCode() == 503) {
-          Integer count = ctx.get("retries");
-          if (count == null) {
-            count = 0;
-          }
-          if (count < num) {
-            ctx.set("retries", count + 1);
-            ctx.prepareRequest();
-            return;
+        if (ar.succeeded()) {
+          HttpResponse<Object> resp = ar.result();
+          if (resp.statusCode() == 503) {
+            Integer count = ctx.get("retries");
+            if (count == null) {
+              count = 0;
+            }
+            if (count < num) {
+              ctx.set("retries", count + 1);
+              ctx.interceptAndSend();
+              return;
+            }
           }
         }
-      }
+        respHandler.handle(ar);
+      });
       ctx.next();
     };
   }
@@ -157,13 +172,8 @@ public class InterceptorTest extends HttpTestBase {
     await();
   }
 
-  private void cacheInterceptorHandler(HttpContext<?> context) {
-    if (context.eventType() == ClientEventType.PREPARE_REQUEST) {
-      context.response(new HttpResponseImpl<>());
-      context.dispatchResponse();
-    } else {
-      context.next();
-    }
+  private void cacheInterceptorHandler(HttpContext context) {
+    context.getResponseHandler().handle(Future.succeededFuture(new HttpResponseImpl<>()));
   }
 
   @Test

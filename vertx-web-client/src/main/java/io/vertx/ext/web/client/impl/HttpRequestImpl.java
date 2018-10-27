@@ -229,6 +229,6 @@ class HttpRequestImpl<T> implements HttpRequest<T> {
 
   private void send(String contentType, Object body, Handler<AsyncResult<HttpResponse<T>>> handler) {
     HttpContext ex = new HttpContext(((HttpClientImpl)client.client).getVertx().getOrCreateContext(), this, contentType, body, (Handler)handler);
-    ex.prepareRequest();
+    ex.interceptAndSend();
   }
 }
