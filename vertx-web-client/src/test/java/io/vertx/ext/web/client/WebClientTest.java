@@ -869,7 +869,7 @@ public class WebClientTest extends HttpTestBase {
   public void testQueryParamAppend() throws Exception {
     testRequest(client -> client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/?param1=param1_value1").addQueryParam("param1", "param1_value2").addQueryParam("param2", "param2_value"), req -> {
       assertEquals("param1=param1_value1&param1=param1_value2&param2=param2_value", req.query());
-      assertEquals("param1_value2", req.getParam("param1"));
+      assertEquals("param1_value1", req.getParam("param1"));
       assertEquals("param2_value", req.getParam("param2"));
     });
   }

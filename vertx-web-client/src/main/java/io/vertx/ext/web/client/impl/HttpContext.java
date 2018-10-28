@@ -232,10 +232,12 @@ public class HttpContext {
           responseFuture.tryFail(e);
           return;
         }
-        request.headers().addAll(multipartForm.headers());
         for (String headerName : request.headers().names()) {
           req.putHeader(headerName, request.headers().get(headerName));
         }
+        multipartForm.headers().forEach(header -> {
+          req.putHeader(header.getKey(), header.getValue());
+        });
         multipartForm.run();
       }
 

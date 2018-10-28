@@ -32,6 +32,8 @@ import java.text.DateFormat;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -276,7 +278,7 @@ public class StaticHandlerTest extends WebTestBase {
     for (String uri : uris) {
       CountDownLatch responseReceived = new CountDownLatch(1);
       client.get(uri)
-        .putHeader(HttpHeaders.ACCEPT_ENCODING, Arrays.asList("gzip", "jpg", "jpeg", "png"))
+        .putHeader(HttpHeaders.ACCEPT_ENCODING, String.join(", ", "gzip", "jpg", "jpeg", "png"))
         .exceptionHandler(this::fail)
         .handler(resp -> {
           assertEquals(200, resp.statusCode());
