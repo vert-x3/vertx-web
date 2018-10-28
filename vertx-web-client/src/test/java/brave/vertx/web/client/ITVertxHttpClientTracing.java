@@ -18,7 +18,7 @@ public class ITVertxHttpClientTracing extends ITHttpAsyncClient<WebClientInterna
     return ((WebClientInternal) WebClient.wrap(vertx.createHttpClient(new HttpClientOptions()
       .setDefaultPort(port)
       .setDefaultHost("127.0.0.1"))))
-      .addInterceptor(new TracingHttpClientRequestHandler<>(httpTracing));
+      .addInterceptor(new TracingHttpClientRequestHandler(httpTracing));
   }
 
   // TODO: we are unaware of the redirect. Ideally, redirects re-use the same infrastructure, simply

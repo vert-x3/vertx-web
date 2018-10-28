@@ -15,10 +15,7 @@ import io.vertx.core.http.HttpConnection;
 import io.vertx.core.net.SocketAddress;
 import io.vertx.ext.web.client.impl.HttpContext;
 
-/**
- * @param <T> only used for fluent api. We don't read it here.
- */
-final class TracingHttpClientRequestHandler<T> implements Handler<HttpContext<T>> {
+final class TracingHttpClientRequestHandler implements Handler<HttpContext<?>> {
   static final Setter<HttpClientRequest, String> SETTER = new Setter<HttpClientRequest, String>() {
     @Override public void put(HttpClientRequest carrier, String key, String value) {
       carrier.putHeader(key, value);
@@ -41,21 +38,34 @@ final class TracingHttpClientRequestHandler<T> implements Handler<HttpContext<T>
     serverName = httpTracing.serverName();
   }
 
-  @Override public void handle(HttpContext<T> context) {
-    // TODO: for redirects
-    Span span = null;
-    switch (context.eventType()) {
+  @Override public void handle(HttpContext<?> context) {
+    Span span = context.get(Span.class.getName());
+    switch (context.phase()) {
       case SEND_REQUEST:
+        // TODO: the phases seem to have a small glitch from a state machine POV
+        // we have a "sneaky response" in the case of a redirect. Ex a call with one redirect:
+        //
+        // PREPARE_REQUEST
+        // SEND_REQUEST
+        // SEND_REQUEST
+        // RECEIVE_RESPONSE
+        // DISPATCH_RESPONSE
+        //
+        // Seems we'd want to be notified on RECEIVE_RESPONSE as opposed to heuristics because
+        // sometimes a reentrant callback feels like a bug. Another way is for us to track the
+        // redirect count and assume if we get SEND_RESPONSE before RECEIVE_RESPONSE and the
+        // redirectCount incremented, it was a redirect. All this said, it seems nicer to qualify
+        // the phases in such a way that in redirect we have a receive for every send. If not, a
+        // "receive like" phase for when we are in redirect. ex PREPARE_REDIRECT?
+        if (span != null) finishSpan(context, span); // assume redirect
         span = handler.handleSend(injector, context.clientRequest());
         context.set(Span.class.getName(), span);
         break;
       case DISPATCH_RESPONSE:
       case FAILURE:
-        span = context.get(Span.class.getName());
         assert span != null : "unexpected lifecycle";
         if (span == null) break; // don't break
-        parseConnectionAddress(context.clientRequest(), span);
-        handler.handleReceive(context.clientResponse(), context.failure(), span);
+        finishSpan(context, span);
         context.set(Span.class.getName(), null);
         span = null;
         break;
@@ -73,6 +83,11 @@ final class TracingHttpClientRequestHandler<T> implements Handler<HttpContext<T>
     } else {
       context.next();
     }
+  }
+
+  private void finishSpan(HttpContext<?> context, Span span) {
+    parseConnectionAddress(context.clientRequest(), span);
+    handler.handleReceive(context.clientResponse(), context.failure(), span);
   }
 
   static void parseConnectionAddress(HttpClientRequest request, Span span) {
