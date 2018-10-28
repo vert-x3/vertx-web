@@ -112,7 +112,7 @@ public interface SessionAwareWebClient extends WebClient {
    */
   @Fluent
   SessionAwareWebClient removeHeader(String name);
-
+  
   /**
    * Returns this client's {@code CookieStore}
    * <p>

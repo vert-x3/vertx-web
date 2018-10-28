@@ -10,6 +10,7 @@
  */
 package io.vertx.ext.web.client.impl;
 
+import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.CaseInsensitiveHeaders;
 import io.vertx.core.http.HttpMethod;
@@ -23,17 +24,36 @@ import io.vertx.ext.web.client.WebClient;
  * @author <a href="mailto:tommaso.nolli@gmail.com">Tommaso Nolli</a>
  */
 public class SessionAwareWebClientImpl implements SessionAwareWebClient {
-  private WebClient webclient;
+  private WebClientImpl webclient;
   private CaseInsensitiveHeaders headers;
   private CookieStore cookieStore;
 
   public SessionAwareWebClientImpl(WebClient webClient, CookieStore cookieStore) {
-    this.webclient = webClient;
+    this.webclient = (WebClientImpl) webClient;
     this.cookieStore = cookieStore;
+    addInterceptor();
+  }
+  
+  private void addInterceptor() {
+    synchronized (this.webclient.interceptors) {
+      boolean add = true;
+      for (Handler<HttpContext> h : this.webclient.interceptors) {
+        if (h instanceof SessionAwareInterceptor) {
+          add = false;
+          break;
+        }
+      }
+      if (add) {
+        this.webclient.addInterceptor(new SessionAwareInterceptor());
+      }
+    }
   }
 
-  private HttpRequest<Buffer> wrapRequest(HttpRequest<Buffer> req) {
-    return new SessionAwareHttpRequestImpl((HttpRequestImpl<Buffer>) req, cookieStore, headers);
+  private HttpRequest<Buffer> prepareRequest(HttpRequest<Buffer> req) {
+    ((HttpRequestImpl<Buffer>) req).addOnContextCreated(context -> {
+      SessionAwareInterceptor.prepareContext(context, SessionAwareWebClientImpl.this);
+    });
+    return req;
   }
   
   public CookieStore getCookieStore() {
@@ -42,147 +62,147 @@ public class SessionAwareWebClientImpl implements SessionAwareWebClient {
 
   @Override
   public HttpRequest<Buffer> request(HttpMethod method, int port, String host, String requestURI) {
-    return wrapRequest(webclient.request(method, port, host, requestURI));
+    return prepareRequest(webclient.request(method, port, host, requestURI));
   }
 
   @Override
   public HttpRequest<Buffer> request(HttpMethod method, String host, String requestURI) {
-    return wrapRequest(webclient.request(method, host, requestURI));
+    return prepareRequest(webclient.request(method, host, requestURI));
   }
 
   @Override
   public HttpRequest<Buffer> request(HttpMethod method, String requestURI) {
-    return wrapRequest(webclient.request(method, requestURI));
+    return prepareRequest(webclient.request(method, requestURI));
   }
 
   @Override
   public HttpRequest<Buffer> request(HttpMethod method, RequestOptions options) {
-    return wrapRequest(webclient.request(method, options));
+    return prepareRequest(webclient.request(method, options));
   }
 
   @Override
   public HttpRequest<Buffer> requestAbs(HttpMethod method, String absoluteURI) {
-    return wrapRequest(webclient.requestAbs(method, absoluteURI));
+    return prepareRequest(webclient.requestAbs(method, absoluteURI));
   }
 
   @Override
   public HttpRequest<Buffer> get(String requestURI) {
-    return wrapRequest(webclient.get(requestURI));
+    return prepareRequest(webclient.get(requestURI));
   }
 
   @Override
   public HttpRequest<Buffer> get(int port, String host, String requestURI) {
-    return wrapRequest(webclient.get(port, host, requestURI));
+    return prepareRequest(webclient.get(port, host, requestURI));
   }
 
   @Override
   public HttpRequest<Buffer> get(String host, String requestURI) {
-    return wrapRequest(webclient.get(host, requestURI));
+    return prepareRequest(webclient.get(host, requestURI));
   }
 
   @Override
   public HttpRequest<Buffer> getAbs(String absoluteURI) {
-    return wrapRequest(webclient.getAbs(absoluteURI));
+    return prepareRequest(webclient.getAbs(absoluteURI));
   }
 
   @Override
   public HttpRequest<Buffer> post(String requestURI) {
-    return wrapRequest(webclient.post(requestURI));
+    return prepareRequest(webclient.post(requestURI));
   }
 
   @Override
   public HttpRequest<Buffer> post(int port, String host, String requestURI) {
-    return wrapRequest(webclient.post(port, host, requestURI));
+    return prepareRequest(webclient.post(port, host, requestURI));
   }
 
   @Override
   public HttpRequest<Buffer> post(String host, String requestURI) {
-    return wrapRequest(webclient.post(host, requestURI));
+    return prepareRequest(webclient.post(host, requestURI));
   }
 
   @Override
   public HttpRequest<Buffer> postAbs(String absoluteURI) {
-    return wrapRequest(webclient.postAbs(absoluteURI));
+    return prepareRequest(webclient.postAbs(absoluteURI));
   }
 
   @Override
   public HttpRequest<Buffer> put(String requestURI) {
-    return wrapRequest(webclient.put(requestURI));
+    return prepareRequest(webclient.put(requestURI));
   }
 
   @Override
   public HttpRequest<Buffer> put(int port, String host, String requestURI) {
-    return wrapRequest(webclient.put(port, host, requestURI));
+    return prepareRequest(webclient.put(port, host, requestURI));
   }
 
   @Override
   public HttpRequest<Buffer> put(String host, String requestURI) {
-    return wrapRequest(webclient.put(host, requestURI));
+    return prepareRequest(webclient.put(host, requestURI));
   }
 
   @Override
   public HttpRequest<Buffer> putAbs(String absoluteURI) {
-    return wrapRequest(webclient.putAbs(absoluteURI));
+    return prepareRequest(webclient.putAbs(absoluteURI));
   }
 
   @Override
   public HttpRequest<Buffer> delete(String requestURI) {
-    return wrapRequest(webclient.delete(requestURI));
+    return prepareRequest(webclient.delete(requestURI));
   }
 
   @Override
   public HttpRequest<Buffer> delete(int port, String host, String requestURI) {
-    return wrapRequest(webclient.delete(port, host, requestURI));
+    return prepareRequest(webclient.delete(port, host, requestURI));
   }
 
   @Override
   public HttpRequest<Buffer> delete(String host, String requestURI) {
-    return wrapRequest(webclient.delete(host, requestURI));
+    return prepareRequest(webclient.delete(host, requestURI));
   }
 
   @Override
   public HttpRequest<Buffer> deleteAbs(String absoluteURI) {
-    return wrapRequest(webclient.deleteAbs(absoluteURI));
+    return prepareRequest(webclient.deleteAbs(absoluteURI));
   }
 
   @Override
   public HttpRequest<Buffer> patch(String requestURI) {
-    return wrapRequest(webclient.patch(requestURI));
+    return prepareRequest(webclient.patch(requestURI));
   }
 
   @Override
   public HttpRequest<Buffer> patch(int port, String host, String requestURI) {
-    return wrapRequest(webclient.patch(port, host, requestURI));
+    return prepareRequest(webclient.patch(port, host, requestURI));
   }
 
   @Override
   public HttpRequest<Buffer> patch(String host, String requestURI) {
-    return wrapRequest(webclient.patch(host, requestURI));
+    return prepareRequest(webclient.patch(host, requestURI));
   }
 
   @Override
   public HttpRequest<Buffer> patchAbs(String absoluteURI) {
-    return wrapRequest(webclient.patchAbs(absoluteURI));
+    return prepareRequest(webclient.patchAbs(absoluteURI));
   }
 
   @Override
   public HttpRequest<Buffer> head(String requestURI) {
-    return wrapRequest(webclient.head(requestURI));
+    return prepareRequest(webclient.head(requestURI));
   }
 
   @Override
   public HttpRequest<Buffer> head(int port, String host, String requestURI) {
-    return wrapRequest(webclient.head(port, host, requestURI));
+    return prepareRequest(webclient.head(port, host, requestURI));
   }
 
   @Override
   public HttpRequest<Buffer> head(String host, String requestURI) {
-    return wrapRequest(webclient.head(host, requestURI));
+    return prepareRequest(webclient.head(host, requestURI));
   }
 
   @Override
   public HttpRequest<Buffer> headAbs(String absoluteURI) {
-    return wrapRequest(webclient.headAbs(absoluteURI));
+    return prepareRequest(webclient.headAbs(absoluteURI));
   }
 
   @Override
@@ -190,7 +210,7 @@ public class SessionAwareWebClientImpl implements SessionAwareWebClient {
     webclient.close();
   }
 
-  private CaseInsensitiveHeaders headers() {
+  protected CaseInsensitiveHeaders headers() {
     if (headers == null) {
       headers = new CaseInsensitiveHeaders();
     }

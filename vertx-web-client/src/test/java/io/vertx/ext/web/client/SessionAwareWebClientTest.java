@@ -52,7 +52,6 @@ import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.ext.web.client.impl.CookieStoreImpl;
 import io.vertx.ext.web.client.impl.InternalCookieStore;
-import io.vertx.ext.web.client.impl.SessionAwareHttpRequestImpl;
 import io.vertx.ext.web.client.impl.SessionAwareWebClientImpl;
 import io.vertx.ext.web.multipart.MultipartForm;
 
@@ -295,11 +294,22 @@ public class SessionAwareWebClientTest {
   }
   
   @Test
-  public void testRequestWrapping(TestContext context) {
+  public void testRequestPrepared(TestContext context) {
+    prepareServer(context, req -> {
+      req.response().headers().add("set-cookie", ServerCookieEncoder.STRICT.encode(new DefaultCookie("test", "toast")));
+    });
+
     Consumer<HttpRequest<Buffer>> check = r -> {
-      context.assertTrue(r instanceof SessionAwareHttpRequestImpl);
+      Async async = context.async();
+      client.getCookieStore().remove("test", "localhost", "/");
+      r.send(ar -> {
+        async.complete();
+        validate(context, client.getCookieStore().get(false, "localhost", "/"), 
+            new String[] { "test" }, new String[] { "toast" });
+      });
+      async.await();
     };
-    
+
     check.accept(client.delete("/"));
     check.accept(client.delete("localhost", "/"));
     check.accept(client.delete(PORT, "localhost", "/"));
