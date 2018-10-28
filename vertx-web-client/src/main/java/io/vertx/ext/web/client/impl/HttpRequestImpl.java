@@ -15,6 +15,10 @@
  */
 package io.vertx.ext.web.client.impl;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Consumer;
+
 import io.netty.handler.codec.http.QueryStringDecoder;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
@@ -51,6 +55,8 @@ class HttpRequestImpl<T> implements HttpRequest<T> {
   BodyCodec<T> codec;
   boolean followRedirects;
   boolean ssl;
+  
+  private List<Consumer<HttpContext>> onContextCreated;
 
   HttpRequestImpl(WebClientImpl client, HttpMethod method, boolean ssl, int port, String host, String uri, BodyCodec<T>
           codec, WebClientOptions options) {
@@ -226,9 +232,21 @@ class HttpRequestImpl<T> implements HttpRequest<T> {
   public void sendMultipartForm(MultipartForm body, Handler<AsyncResult<HttpResponse<T>>> handler) {
     send("multipart/form-data", body, handler);
   }
+  
+  protected void addOnContextCreated(Consumer<HttpContext> consumer) {
+    if (this.onContextCreated == null) {
+      this.onContextCreated = new ArrayList<>();
+    }
+    this.onContextCreated.add(consumer);
+  }
 
   private void send(String contentType, Object body, Handler<AsyncResult<HttpResponse<T>>> handler) {
     HttpContext ex = new HttpContext(((HttpClientImpl)client.client).getVertx().getOrCreateContext(), this, contentType, body, (Handler)handler);
+    if (onContextCreated != null) {
+      for (Consumer<HttpContext> c : onContextCreated) {
+        c.accept(ex);
+      }
+    }
     ex.interceptAndSend();
   }
 }
