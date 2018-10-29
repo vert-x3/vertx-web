@@ -80,7 +80,7 @@ public interface OpenAPI3RouterFactory extends RouterFactory<OpenAPI> {
   OpenAPI3RouterFactory addFailureHandlerByOperationId(String operationId, Handler<RoutingContext> failureHandler);
 
   /**
-   * Specify to route an incoming request for specified operation id to a Web Api Service mounted at the specified address on event bus. Please give a look at <a href="https://vertx.io/docs/vertx-web-api-codegen/java/">vertx-web-api-codegen documentation</a> for more informations
+   * Specify to route an incoming request for specified operation id to a Web Api Service mounted at the specified address on event bus. Please give a look at <a href="https://vertx.io/docs/vertx-web-api-service/java/">vertx-web-api-service documentation</a> for more informations
    *
    * @param operationId
    * @param address
@@ -91,7 +91,7 @@ public interface OpenAPI3RouterFactory extends RouterFactory<OpenAPI> {
 
   /**
    * Specify to route an incoming request for all operations that contains the specified tag to a Web Api Service mounted at the specified address on event bus.
-   * The request is handled by the method that matches the operation id. Please give a look at <a href="https://vertx.io/docs/vertx-web-api-codegen/java/">vertx-web-api-codegen documentation</a> for more informations
+   * The request is handled by the method that matches the operation id. Please give a look at <a href="https://vertx.io/docs/vertx-web-api-service/java/">vertx-web-api-service documentation</a> for more informations
    *
    * @param tag
    * @param address
@@ -101,7 +101,7 @@ public interface OpenAPI3RouterFactory extends RouterFactory<OpenAPI> {
   OpenAPI3RouterFactory mountServiceFromTag(String tag, String address);
 
   /**
-   * Introspect the OpenAPI spec to mount handlers for all operations that specifies a x-vertx-event-bus annotation. Please give a look at <a href="https://vertx.io/docs/vertx-web-api-codegen/java/">vertx-web-api-codegen documentation</a> for more informations
+   * Introspect the OpenAPI spec to mount handlers for all operations that specifies a x-vertx-event-bus annotation. Please give a look at <a href="https://vertx.io/docs/vertx-web-api-service/java/">vertx-web-api-service documentation</a> for more informations
    *
    * @return this factory
    */
@@ -109,7 +109,7 @@ public interface OpenAPI3RouterFactory extends RouterFactory<OpenAPI> {
   OpenAPI3RouterFactory mountServicesFromExtensions();
 
   /**
-   * Introspect the Web Api Service interface to route to service all matching method names with operation ids. Please give a look at <a href="https://vertx.io/docs/vertx-web-api-codegen/java/">vertx-web-api-codegen documentation</a> for more informations
+   * Introspect the Web Api Service interface to route to service all matching method names with operation ids. Please give a look at <a href="https://vertx.io/docs/vertx-web-api-service/java/">vertx-web-api-service documentation</a> for more informations
    *
    * @return this factory
    */
