@@ -30,6 +30,8 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.AuthHandler;
 import io.vertx.ext.web.handler.OAuth2AuthHandler;
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -43,6 +45,7 @@ import static io.vertx.ext.auth.oauth2.OAuth2FlowType.AUTH_CODE;
  */
 public class OAuth2AuthHandlerImpl extends AuthorizationAuthHandler implements OAuth2AuthHandler {
 
+  private static final Logger LOG = LoggerFactory.getLogger(OAuth2AuthHandlerImpl.class);
   /**
    * This is a verification step, it can abort the instantiation by
    * throwing a RuntimeException
@@ -77,9 +80,11 @@ public class OAuth2AuthHandlerImpl extends AuthorizationAuthHandler implements O
         final URL url = new URL(callbackURL);
         this.host = url.getProtocol() + "://" + url.getHost() + (url.getPort() == -1 ? "" : ":" + url.getPort());
         this.callbackPath = url.getPath();
+        LOG.debug("Callback configured: " + this.callbackPath);
       } else {
         this.host = null;
         this.callbackPath = null;
+        LOG.debug("No callback configured");
       }
     } catch (MalformedURLException e) {
       throw new RuntimeException(e);
@@ -111,6 +116,7 @@ public class OAuth2AuthHandlerImpl extends AuthorizationAuthHandler implements O
 
       if (token == null) {
         // redirect request to the oauth2 server as we know nothing about this request
+        LOG.debug("No Access Token");
         if (callback == null) {
           // it's a failure both cases but the cause is not the same
           handler.handle(Future.failedFuture("callback route is not configured."));
@@ -120,12 +126,15 @@ public class OAuth2AuthHandlerImpl extends AuthorizationAuthHandler implements O
         handler.handle(Future.failedFuture(new HttpStatusException(302, authURI(context.request().uri()))));
       } else {
         // attempt to decode the token and handle it as a user
+        LOG.debug("Access Token received, trying to decode ...");
         ((OAuth2Auth) authProvider).decodeToken(token, decodeToken -> {
           if (decodeToken.failed()) {
+            LOG.debug("Failed to decode Token");
             handler.handle(Future.failedFuture(new HttpStatusException(401, decodeToken.cause().getMessage())));
             return;
           }
 
+          LOG.debug("Token decoded, setting the user ...");
           context.setUser(decodeToken.result());
           // continue
           handler.handle(Future.succeededFuture());
@@ -181,14 +190,17 @@ public class OAuth2AuthHandlerImpl extends AuthorizationAuthHandler implements O
 
       // code is a require value
       if (code == null) {
+        LOG.debug("No AuthorizationCode !");
         ctx.fail(400);
         return;
       }
 
       final String state = ctx.request().getParam("state");
+      LOG.debug("Received State: "+ state);
 
       final JsonObject config = new JsonObject()
         .put("code", code);
+      LOG.debug("Received AuthorizationCode: "+ code + ". Stored in config for later use.");
 
       if (host != null) {
         config.put("redirect_uri", host + route.getPath());
@@ -200,6 +212,7 @@ public class OAuth2AuthHandlerImpl extends AuthorizationAuthHandler implements O
 
       authProvider.authenticate(config, res -> {
         if (res.failed()) {
+          LOG.debug("Failed to Authenticate the client.");
           ctx.fail(res.cause());
         } else {
           ctx.setUser(res.result());
@@ -207,8 +220,10 @@ public class OAuth2AuthHandlerImpl extends AuthorizationAuthHandler implements O
           if (session != null) {
             // the user has upgraded from unauthenticated to authenticated
             // session should be upgraded as recommended by owasp
+            LOG.debug("Session regenerated");
             session.regenerateId();
             // we should redirect the UA so this link becomes invalid
+            LOG.debug("Redirecting to "+ (state != null ? state : "/"));
             ctx.response()
               // disable all caching
               .putHeader(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate")
@@ -220,6 +235,7 @@ public class OAuth2AuthHandlerImpl extends AuthorizationAuthHandler implements O
               .end("Redirecting to " + (state != null ? state : "/") + ".");
           } else {
             // there is no session object so we cannot keep state
+            LOG.debug("No session! Rerouting to" + (state != null ? state : "/"));
             ctx.reroute(state != null ? state : "/");
           }
         }
