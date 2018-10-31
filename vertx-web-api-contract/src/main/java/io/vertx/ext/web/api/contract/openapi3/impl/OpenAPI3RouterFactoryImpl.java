@@ -8,14 +8,17 @@ import io.swagger.v3.oas.models.responses.ApiResponse;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.api.contract.RouterFactoryException;
 import io.vertx.ext.web.api.contract.impl.BaseRouterFactory;
+import io.vertx.ext.web.api.contract.impl.RouteToServiceProxyHandler;
 import io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory;
 import io.vertx.ext.web.handler.ResponseContentTypeHandler;
 
+import java.lang.reflect.Method;
 import java.util.*;
 
 /**
@@ -23,6 +26,10 @@ import java.util.*;
  */
 public class OpenAPI3RouterFactoryImpl extends BaseRouterFactory<OpenAPI> implements
   OpenAPI3RouterFactory {
+
+  private final static String OPENAPI_EXTENSION = "x-vertx-event-bus";
+  private final static String OPENAPI_EXTENSION_ADDRESS = "address";
+  private final static String OPENAPI_EXTENSION_METHOD_NAME = "method";
 
   // This map is fullfilled when spec is loaded in memory
   Map<String, OperationValue> operations;
@@ -35,7 +42,7 @@ public class OpenAPI3RouterFactoryImpl extends BaseRouterFactory<OpenAPI> implem
     private Operation operationModel;
 
     private List<Parameter> parameters;
-
+    private List<String> tags;
     private List<Handler<RoutingContext>> userHandlers;
     private List<Handler<RoutingContext>> userFailureHandlers;
 
@@ -44,6 +51,7 @@ public class OpenAPI3RouterFactoryImpl extends BaseRouterFactory<OpenAPI> implem
       this.method = method;
       this.path = path;
       this.operationModel = operationModel;
+      this.tags = operationModel.getTags();
       // Merge parameters
       List<Parameter> opParams = operationModel.getParameters()==null?new ArrayList<>():new ArrayList<>(operationModel.getParameters());
       List<Parameter> parentParams = parentParameters==null?new ArrayList<>():new ArrayList<>(parentParameters);
@@ -87,6 +95,12 @@ public class OpenAPI3RouterFactoryImpl extends BaseRouterFactory<OpenAPI> implem
     public boolean isConfigured() {
       return userHandlers.size() != 0;
     }
+
+    public List<String> getTags() {
+      return tags;
+    }
+
+    public boolean hasTag(String tag) { return tags != null && tags.contains(tag); }
   }
 
   public OpenAPI3RouterFactoryImpl(Vertx vertx, OpenAPI spec) {
@@ -126,6 +140,65 @@ public class OpenAPI3RouterFactoryImpl extends BaseRouterFactory<OpenAPI> implem
       OperationValue op = operations.get(operationId);
       if (op == null) throw RouterFactoryException.createOperationIdNotFoundException(operationId);
       op.addUserFailureHandler(failureHandler);
+    }
+    return this;
+  }
+
+  @Override
+  public OpenAPI3RouterFactory mountServiceFromTag(String tag, String address) {
+    for (Map.Entry<String, OperationValue> op : operations.entrySet()) {
+      if (op.getValue().hasTag(tag))
+        op.getValue().addUserHandler(RouteToServiceProxyHandler.build(vertx.eventBus(), address, OpenApi3Utils.sanitizeOperationId(op.getKey())));
+    }
+    return this;
+  }
+
+  @Override
+  public OpenAPI3RouterFactory mountServiceInterface(Class interfaceClass, String address) {
+    for (Method m : interfaceClass.getMethods()) {
+      if (OpenApi3Utils.serviceProxyMethodIsCompatibleHandler(m)) {
+        String methodName = m.getName();
+        OperationValue op = Optional
+          .ofNullable(this.operations.get(methodName))
+          .orElseGet(() ->
+            this.operations.entrySet().stream().filter(e -> OpenApi3Utils.sanitizeOperationId(e.getKey()).equals(methodName)).map(Map.Entry::getValue).findFirst().orElseGet(() -> null)
+          );
+        if (op != null) {
+          op.getUserHandlers().add(RouteToServiceProxyHandler.build(vertx.eventBus(), address, methodName));
+        }
+      }
+    }
+    return this;
+  }
+
+  @Override
+  public OpenAPI3RouterFactory mountOperationToEventBus(String operationId, String address) {
+    OperationValue op = operations.get(operationId);
+    if (op == null) throw RouterFactoryException.createOperationIdNotFoundException(operationId);
+    op.addUserHandler(RouteToServiceProxyHandler.build(vertx.eventBus(), address, operationId));
+    return this;
+  }
+
+  @Override
+  public OpenAPI3RouterFactory mountServicesFromExtensions() {
+    for (Map.Entry<String, OperationValue> op : operations.entrySet()) {
+      Operation operationModel = op.getValue().getOperationModel();
+      if (operationModel.getExtensions() != null && operationModel.getExtensions().containsKey(OPENAPI_EXTENSION)) {
+        Object extensionVal = operationModel.getExtensions().get(OPENAPI_EXTENSION);
+        if (extensionVal instanceof String) {
+          op.getValue().addUserHandler(RouteToServiceProxyHandler.build(vertx.eventBus(), (String)extensionVal, OpenApi3Utils.sanitizeOperationId(op.getKey())));
+        } else if (extensionVal instanceof Map) {
+          JsonObject extensionMap = new JsonObject((Map<String, Object>) extensionVal);
+          String address = extensionMap.getString(OPENAPI_EXTENSION_ADDRESS);
+          String methodName = extensionMap.getString(OPENAPI_EXTENSION_METHOD_NAME);
+          JsonObject sanitizedMap = OpenApi3Utils.sanitizeDeliveryOptionsExtension(extensionMap);
+          if (address == null || methodName == null)
+            RouterFactoryException.createWrongExtension("Extension " + OPENAPI_EXTENSION + " should define both " + OPENAPI_EXTENSION_ADDRESS + " and " + OPENAPI_EXTENSION_METHOD_NAME);
+          op.getValue().addUserHandler(RouteToServiceProxyHandler.build(vertx.eventBus(), address, methodName, sanitizedMap));
+        } else {
+          RouterFactoryException.createWrongExtension("Extension " + OPENAPI_EXTENSION + " should be or string or a JsonObject");
+        }
+      }
     }
     return this;
   }

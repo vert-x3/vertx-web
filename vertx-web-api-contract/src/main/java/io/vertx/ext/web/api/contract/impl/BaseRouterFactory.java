@@ -4,7 +4,10 @@ import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.api.contract.RouterFactory;
+import io.vertx.ext.web.api.contract.RouterFactoryException;
 import io.vertx.ext.web.api.contract.RouterFactoryOptions;
+
+import java.lang.annotation.Annotation;
 
 /**
  * @author Francesco Guardiani @slinkydeveloper

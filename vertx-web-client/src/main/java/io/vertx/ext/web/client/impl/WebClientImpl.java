@@ -38,7 +38,7 @@ public class WebClientImpl implements WebClientInternal {
 
   final HttpClient client;
   private final WebClientOptions options;
-  final List<Handler<HttpContext>> interceptors = new CopyOnWriteArrayList<>();
+  final List<Handler<HttpContext<?>>> interceptors = new CopyOnWriteArrayList<>();
 
   public WebClientImpl(HttpClient client, WebClientOptions options) {
     this.client = client;
@@ -218,8 +218,8 @@ public class WebClientImpl implements WebClientInternal {
   }
 
   @Override
-  public WebClientImpl addInterceptor(Handler<HttpContext> interceptor) {
-    interceptors.add(interceptor);
+  public WebClientInternal addInterceptor(Handler<HttpContext<?>> interceptor) {
+    interceptors.add((Handler) interceptor);
     return this;
   }
 

@@ -42,10 +42,10 @@ import io.vertx.core.json.DecodeException;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.core.net.SocketAddress;
-import io.vertx.core.queue.Queue;
 import io.vertx.core.shareddata.LocalMap;
 import io.vertx.core.shareddata.Shareable;
 import io.vertx.core.streams.ReadStream;
+import io.vertx.core.streams.impl.InboundBuffer;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.sockjs.SockJSSocket;
 
@@ -69,7 +69,7 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
   private static final Logger log = LoggerFactory.getLogger(SockJSSession.class);
   private final LocalMap<String, SockJSSession> sessions;
   private final Deque<String> pendingWrites = new LinkedList<>();
-  private final Queue<Buffer> pendingReads;
+  private final InboundBuffer<Buffer> pendingReads;
   private TransportListener listener;
   private boolean closed;
   private boolean openWritten;
@@ -102,7 +102,7 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
     this.id = id;
     this.timeout = timeout;
     this.sockHandler = sockHandler;
-    this.pendingReads = Queue.queue(vertx.getOrCreateContext());
+    this.pendingReads = new InboundBuffer<>(vertx.getOrCreateContext());
 
     // Start a heartbeat
 
@@ -139,7 +139,7 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
 
   @Override
   public ReadStream<Buffer> fetch(long amount) {
-    pendingReads.take(amount);
+    pendingReads.fetch(amount);
     return this;
   }
 
@@ -369,7 +369,7 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
       return false;
     } else {
       for (String msg : msgArr) {
-        pendingReads.add(buffer(msg));
+        pendingReads.write(buffer(msg));
       }
       return true;
     }

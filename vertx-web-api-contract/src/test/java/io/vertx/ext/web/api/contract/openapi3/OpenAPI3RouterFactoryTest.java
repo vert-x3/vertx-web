@@ -10,7 +10,7 @@ import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.WebTestWithWebClientBase;
+import io.vertx.ext.web.api.ApiWebTestBase;
 import io.vertx.ext.web.api.RequestParameters;
 import io.vertx.ext.web.api.contract.RouterFactoryException;
 import io.vertx.ext.web.api.contract.RouterFactoryOptions;
@@ -29,7 +29,7 @@ import java.util.stream.Stream;
  * This tests are about OpenAPI3RouterFactory behaviours
  * @author Francesco Guardiani @slinkydeveloper
  */
-public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
+public class OpenAPI3RouterFactoryTest extends ApiWebTestBase {
 
   private OpenAPI3RouterFactory routerFactory;
   private HttpServer fileServer;
@@ -717,7 +717,7 @@ public class OpenAPI3RouterFactoryTest extends WebTestWithWebClientBase {
 
     // Json consumes test
     JsonObject obj = new JsonObject("{\"name\":\"francesco\"}");
-    testRequestWithJSON(HttpMethod.POST, "/consumesTest", obj, 200, "OK", obj);
+    testRequestWithJSON(HttpMethod.POST, "/consumesTest", obj.toBuffer(), 200, "OK", obj.toBuffer());
 
     // Form consumes tests
     MultiMap form = MultiMap.caseInsensitiveMultiMap();

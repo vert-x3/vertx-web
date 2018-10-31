@@ -103,5 +103,8 @@ TIME as defined by partial-time - RFC3339
 |[[IPV4]]`IPV4`|-
 |[[IPV6]]`IPV6`|-
 |[[HOSTNAME]]`HOSTNAME`|-
+|[[UUID]]`UUID`|+++
+UUID as defined by RFC4122
++++
 |===
 
