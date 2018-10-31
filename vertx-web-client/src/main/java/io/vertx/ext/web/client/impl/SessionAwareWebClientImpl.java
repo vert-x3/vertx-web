@@ -37,7 +37,7 @@ public class SessionAwareWebClientImpl implements SessionAwareWebClient {
   private void addInterceptor() {
     synchronized (this.webclient.interceptors) {
       boolean add = true;
-      for (Handler<HttpContext> h : this.webclient.interceptors) {
+      for (Handler<HttpContext<?>> h : this.webclient.interceptors) {
         if (h instanceof SessionAwareInterceptor) {
           add = false;
           break;
