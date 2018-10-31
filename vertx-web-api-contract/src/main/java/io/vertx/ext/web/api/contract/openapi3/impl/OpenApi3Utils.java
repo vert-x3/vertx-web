@@ -10,8 +10,12 @@ import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.parameters.Parameter;
 import io.swagger.v3.parser.ObjectMapperFactory;
 import io.swagger.v3.parser.core.models.ParseOptions;
+import io.vertx.core.Handler;
+import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.api.OperationRequest;
 import io.vertx.ext.web.api.validation.SpecFeatureNotSupportedException;
 
+import java.lang.reflect.Method;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
@@ -267,6 +271,42 @@ public class OpenApi3Utils {
       .entrySet().stream()
       .filter(e -> matchingFunction.test(e.getKey()))
       .map(Map.Entry::getValue).collect(Collectors.toList());
+  }
+
+  public final static List<Class> SERVICE_PROXY_METHOD_PARAMETERS = Arrays.asList(new Class[]{OperationRequest.class, Handler.class});
+
+  public static boolean serviceProxyMethodIsCompatibleHandler(Method method) {
+    java.lang.reflect.Parameter[] parameters = method.getParameters();
+    if (parameters.length < 2) return false;
+    if (!parameters[parameters.length - 1].getType().equals(Handler.class)) return false;
+    if (!parameters[parameters.length - 2].getType().equals(OperationRequest.class)) return false;
+    return true;
+  }
+
+  public static JsonObject sanitizeDeliveryOptionsExtension(JsonObject jsonObject) {
+    JsonObject newObj = new JsonObject();
+    if (jsonObject.containsKey("timeout")) newObj.put("timeout", jsonObject.getValue("timeout"));
+    if (jsonObject.containsKey("headers")) newObj.put("headers", jsonObject.getValue("headers"));
+    return newObj;
+  }
+
+  public static String sanitizeOperationId(String operationId) {
+    StringBuffer result = new StringBuffer();
+    for (int i = 0; i < operationId.length(); i++) {
+      char c = operationId.charAt(i);
+      if (c == '-' || c == ' ' || c == '_') {
+        try {
+          while (c == '-' || c == ' ' || c == '_') {
+            i++;
+            c = operationId.charAt(i);
+          }
+          result.append(Character.toUpperCase(operationId.charAt(i)));
+        } catch (StringIndexOutOfBoundsException e) {}
+      } else {
+        result.append(c);
+      }
+    }
+    return result.toString();
   }
 
 }

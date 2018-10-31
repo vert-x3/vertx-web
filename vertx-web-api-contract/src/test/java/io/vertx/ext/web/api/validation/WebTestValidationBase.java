@@ -3,8 +3,8 @@ package io.vertx.ext.web.api.validation;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.WebTestWithWebClientBase;
 import io.vertx.ext.web.api.RequestParameter;
+import io.vertx.ext.web.api.ApiWebTestBase;
 import io.vertx.ext.web.handler.BodyHandler;
 
 import java.text.SimpleDateFormat;
@@ -14,7 +14,7 @@ import java.util.concurrent.ThreadLocalRandom;
 /**
  * @author Francesco Guardiani @slinkydeveloper
  */
-public class WebTestValidationBase extends WebTestWithWebClientBase {
+public class WebTestValidationBase extends ApiWebTestBase {
 
   static Map<ParameterType, List<String>> sampleValuesSuccess;
   static Map<ParameterType, List<String>> sampleValuesFailure;
