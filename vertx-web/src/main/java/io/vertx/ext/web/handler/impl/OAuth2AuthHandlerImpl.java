@@ -23,6 +23,8 @@ import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.auth.AuthProvider;
 import io.vertx.ext.auth.oauth2.OAuth2Auth;
 import io.vertx.ext.web.Route;
@@ -42,6 +44,8 @@ import static io.vertx.ext.auth.oauth2.OAuth2FlowType.AUTH_CODE;
  * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
  */
 public class OAuth2AuthHandlerImpl extends AuthorizationAuthHandler implements OAuth2AuthHandler {
+
+  private static final Logger log = LoggerFactory.getLogger(OAuth2AuthHandlerImpl.class);
 
   /**
    * This is a verification step, it can abort the instantiation by
@@ -116,8 +120,22 @@ public class OAuth2AuthHandlerImpl extends AuthorizationAuthHandler implements O
           handler.handle(Future.failedFuture("callback route is not configured."));
           return;
         }
-        // the redirect is processed as a failure to abort the chain
-        handler.handle(Future.failedFuture(new HttpStatusException(302, authURI(context.request().uri()))));
+        // when this handle is mounted as a catch all, the callback route must be configured before,
+        // as it would shade the callback route. When a request matches the callback path and has the
+        // method GET the exceptional case should not redirect to the oauth2 server as it would become
+        // an infinite redirect loop. In this case an exception must be raised.
+        if (
+          context.request().method() == HttpMethod.GET &&
+            context.normalisedPath().equals(callback.getPath())) {
+
+          if (log.isWarnEnabled()) {
+            log.warn("The callback route is shaded by the OAuth2AuthHandler, ensure the callback route is added BEFORE the OAuth2AuthHandler route!");
+          }
+          handler.handle(Future.failedFuture(new HttpStatusException(500, "Infinite redirect loop [oauth2 callback]")));
+        } else {
+          // the redirect is processed as a failure to abort the chain
+          handler.handle(Future.failedFuture(new HttpStatusException(302, authURI(context.request().uri()))));
+        }
       } else {
         // attempt to decode the token and handle it as a user
         ((OAuth2Auth) authProvider).decodeToken(token, decodeToken -> {
