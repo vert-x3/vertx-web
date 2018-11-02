@@ -22,6 +22,7 @@ import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxException;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.impl.HttpUtils;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
@@ -40,39 +41,6 @@ import java.util.TimeZone;
  * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
  */
 public class Utils extends io.vertx.core.impl.Utils {
-
-  private static int indexOfSlash(CharSequence str, int start) {
-    for (int i = start; i < str.length(); i++) {
-      if (str.charAt(i) == '/') {
-        return i;
-      }
-    }
-
-    return -1;
-  }
-
-  private static boolean matches(CharSequence path, int start, String what) {
-    return matches(path, start, what, false);
-  }
-
-  private static boolean matches(CharSequence path, int start, String what, boolean exact) {
-    if (exact) {
-      if (path.length() - start != what.length()) {
-        return false;
-      }
-    }
-
-    if (path.length() - start >= what.length()) {
-      for (int i = 0; i < what.length(); i++) {
-        if (path.charAt(start + i) != what.charAt(i)) {
-          return false;
-        }
-      }
-      return true;
-    }
-
-    return false;
-  }
 
   private static void decodeUnreserved(StringBuilder path, int start) {
     if (start + 3 <= path.length()) {
@@ -150,78 +118,7 @@ public class Utils extends io.vertx.core.impl.Utils {
 
     // remove dots as described in
     // http://tools.ietf.org/html/rfc3986#section-5.2.4
-    return removeDots(ibuf);
-  }
-
-  /**
-   * Removed dots as per <a href="http://tools.ietf.org/html/rfc3986#section-5.2.4>rfc3986</a>.
-   *
-   * There are 2 extra transformations that are not part of the spec but kept for backwards compatibility:
-   *
-   * double slash // will be converted to single slash and the path will always start with slash.
-   *
-   * @param path raw path
-   * @return normalized path
-   */
-  public static String removeDots(CharSequence path) {
-
-    if (path == null) {
-      return null;
-    }
-
-    final StringBuilder obuf = new StringBuilder(path.length());
-
-    int i = 0;
-    while (i < path.length()) {
-      // remove dots as described in
-      // http://tools.ietf.org/html/rfc3986#section-5.2.4
-      if (matches(path, i, "./")) {
-        i += 2;
-      } else if (matches(path, i, "../")) {
-        i += 3;
-      } else if (matches(path, i, "/./")) {
-        // preserve last slash
-        i += 2;
-      } else if (matches(path, i,"/.", true)) {
-        path = "/";
-        i = 0;
-      } else if (matches(path, i, "/../")) {
-        // preserve last slash
-        i += 3;
-        int pos = obuf.lastIndexOf("/");
-        if (pos != -1) {
-          obuf.delete(pos, obuf.length());
-        }
-      } else if (matches(path, i, "/..", true)) {
-        path = "/";
-        i = 0;
-        int pos = obuf.lastIndexOf("/");
-        if (pos != -1) {
-          obuf.delete(pos, obuf.length());
-        }
-      } else if (matches(path, i, ".", true) || matches(path, i, "..", true)) {
-        break;
-      } else {
-        if (path.charAt(i) == '/') {
-          i++;
-          // Not standard!!!
-          // but common // -> /
-          if (obuf.length() == 0 || obuf.charAt(obuf.length() - 1) != '/') {
-            obuf.append('/');
-          }
-        }
-        int pos = indexOfSlash(path, i);
-        if (pos != -1) {
-          obuf.append(path, i, pos);
-          i = pos;
-        } else {
-          obuf.append(path, i, path.length());
-          break;
-        }
-      }
-    }
-
-    return obuf.toString();
+    return HttpUtils.removeDots(ibuf);
   }
 
   public static ClassLoader getClassLoader() {
