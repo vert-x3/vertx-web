@@ -15,10 +15,10 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.CaseInsensitiveHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.RequestOptions;
-import io.vertx.ext.web.client.CookieStore;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.SessionAwareWebClient;
 import io.vertx.ext.web.client.WebClient;
+import io.vertx.ext.web.client.spi.CookieStore;
 
 /**
  * @author <a href="mailto:tommaso.nolli@gmail.com">Tommaso Nolli</a>

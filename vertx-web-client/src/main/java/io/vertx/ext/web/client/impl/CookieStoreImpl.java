@@ -17,13 +17,13 @@ import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.function.Consumer;
 
 import io.netty.handler.codec.http.cookie.Cookie;
-import io.netty.handler.codec.http.cookie.DefaultCookie;
-import io.vertx.ext.web.client.CookieStore;
+import io.vertx.core.http.impl.HttpUtils;
+import io.vertx.ext.web.client.spi.CookieStore;
 
 /**
  * @author <a href="mailto:tommaso.nolli@gmail.com">Tommaso Nolli</a>
  */
-public class CookieStoreImpl implements InternalCookieStore {
+public class CookieStoreImpl implements CookieStore {
 
   private ConcurrentHashMap<Key, Cookie> noDomainCookies;
   private ConcurrentSkipListMap<Key, Cookie> domainCookies;
@@ -35,13 +35,24 @@ public class CookieStoreImpl implements InternalCookieStore {
   
   @Override
   public Iterable<Cookie> get(boolean ssl, String domain, String path) {
-    /* TODO: Shall we cleanup path (remove dots)? Or HttpRequestImpl.uri is always normalized?
-     *       Ideally this should call io.vertx.ext.web.impl.Utils.removeDots
-     *       but vertx-web-client does not have a dependency on vertx-web so, probably, the Utils class (or parts of it)
-     *       should be moved to vertx-web-commons.
-     */
-
     assert domain != null && domain.length() > 0;
+
+    String cleanPath;
+    {
+      String uri = HttpUtils.removeDots(path);
+      // Remoe query params if present
+      int pos = uri.indexOf('?');
+      if (pos > -1) {
+        uri = uri.substring(0, pos);
+      }
+  
+      // Remoe frament identifier if present
+      pos = uri.indexOf('#');
+      if (pos > -1) {
+        uri = uri.substring(0, pos);
+      }
+      cleanPath = uri;
+    }
     
     TreeMap<String, Cookie> matches = new TreeMap<>();
     
@@ -49,12 +60,12 @@ public class CookieStoreImpl implements InternalCookieStore {
       if (!ssl && c.isSecure()) {
         return;
       }
-      if (c.path() != null && !path.equals(c.path())) {
+      if (c.path() != null && !cleanPath.equals(c.path())) {
         String cookiePath = c.path();
         if (!cookiePath.endsWith("/")) {
           cookiePath += '/';
         }
-        if (!path.startsWith(cookiePath)) {
+        if (!cleanPath.startsWith(cookiePath)) {
           return;
         }
       }
@@ -81,33 +92,6 @@ public class CookieStoreImpl implements InternalCookieStore {
   }
 
   @Override
-  public CookieStore put(String name, String value) {
-    return put(name, value, null, null, null, false);
-  }
-
-  @Override
-  public CookieStore put(String name, String value, String path) {
-    return put(name, value, null, path, null, false);
-  }
-
-  @Override
-  public CookieStore put(String name, String value, String domain, String path) {
-    return put(name, value, domain, path, null, false);
-  }
-
-  @Override
-  public CookieStore put(String name, String value, String domain, String path, Long maxAge, boolean isSecure) {
-    DefaultCookie cookie = new DefaultCookie(name, value);
-    cookie.setSecure(isSecure);
-    if (domain != null)
-      cookie.setDomain(domain);
-    if (path != null)
-      cookie.setPath(path);
-    if (maxAge != null)
-      cookie.setMaxAge(maxAge);
-    return put(cookie);
-  }
-  @Override
   public CookieStore put(Cookie cookie) {
     Key key = new Key(cookie.domain(), cookie.path(), cookie.name());
     if (key.domain.equals(Key.NO_DOMAIN)) {
@@ -119,18 +103,8 @@ public class CookieStoreImpl implements InternalCookieStore {
   }
 
   @Override
-  public CookieStore remove(String name) {
-    return remove(name, null, null);
-  }
-
-  @Override
-  public CookieStore remove(String name, String path) {
-    return remove(name, null, path);
-  }
-
-  @Override
-  public CookieStore remove(String name, String domain, String path) {
-    Key key = new Key(domain, path, name);
+  public CookieStore remove(Cookie cookie) {
+    Key key = new Key(cookie.domain(), cookie.path(), cookie.name());
     if (key.domain.equals(Key.NO_DOMAIN)) {
       noDomainCookies.remove(key);
     } else {
