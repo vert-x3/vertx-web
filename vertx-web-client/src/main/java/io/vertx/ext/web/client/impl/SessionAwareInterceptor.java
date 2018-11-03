@@ -8,7 +8,7 @@ import io.netty.handler.codec.http.cookie.Cookie;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.CaseInsensitiveHeaders;
-import io.vertx.ext.web.client.CookieStore;
+import io.vertx.ext.web.client.spi.CookieStore;
 
 public class SessionAwareInterceptor implements Handler<HttpContext<?>> {
   public static final String CLIENT_CONTEXT_KEY = "_SessionAwareWebClient";
@@ -22,6 +22,7 @@ public class SessionAwareInterceptor implements Handler<HttpContext<?>> {
       break;
     case DISPATCH_RESPONSE:
       processResponse(context);
+	  break;
     default:
       break;
     }
@@ -32,7 +33,7 @@ public class SessionAwareInterceptor implements Handler<HttpContext<?>> {
   private void prepareRequest(HttpContext<?> context) {
     
     HttpRequestImpl<?> request = (HttpRequestImpl<?>) context.request();
-    SessionAwareWebClientImpl webclient = (SessionAwareWebClientImpl) context.get(CLIENT_CONTEXT_KEY);
+    SessionAwareWebClientImpl webclient = context.get(CLIENT_CONTEXT_KEY);
     assert webclient != null : "WRONG API usage: missing SessionAwareWebClient in HttpContext";
 
     MultiMap headers = context.get(HEADERS_CONTEXT_KEY);
@@ -49,14 +50,8 @@ public class SessionAwareInterceptor implements Handler<HttpContext<?>> {
     if (domain == null) {
       domain = request.host;
     }
-
-    String uri = request.uri;
-    int pos = uri.indexOf('?');
-    if (pos > -1) {
-      uri = uri.substring(0, pos);
-    }
-
-    Iterable<Cookie> cookies = webclient.getCookieStore().get(request.ssl, domain, uri);
+    
+    Iterable<Cookie> cookies = webclient.getCookieStore().get(request.ssl, domain, request.uri);
     for (Cookie c : cookies) {
       request.headers().add("cookie", ClientCookieEncoder.STRICT.encode(c));
     }
@@ -68,7 +63,7 @@ public class SessionAwareInterceptor implements Handler<HttpContext<?>> {
       return;
     }
     
-    SessionAwareWebClientImpl webclient = (SessionAwareWebClientImpl) context.get(CLIENT_CONTEXT_KEY);
+    SessionAwareWebClientImpl webclient = context.get(CLIENT_CONTEXT_KEY);
     assert webclient != null : "WRONG API usage: missing SessionAwareWebClient in HttpContext";
     
     HttpRequestImpl<?> request = (HttpRequestImpl<?>) context.request();
@@ -81,12 +76,7 @@ public class SessionAwareInterceptor implements Handler<HttpContext<?>> {
           // only to the domains we received them from.
           cookie.setDomain(request.virtualHost != null ? request.virtualHost : request.host);
         }
-        if (cookieStore instanceof InternalCookieStore) {
-          ((InternalCookieStore) cookieStore).put(cookie);
-        } else {
-          cookieStore.put(cookie.name(), cookie.value(), cookie.domain(), cookie.path(), cookie.maxAge(),
-              cookie.isSecure());
-        }
+        cookieStore.put(cookie);
       }
     });
   }

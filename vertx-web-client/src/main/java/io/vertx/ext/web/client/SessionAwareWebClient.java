@@ -12,6 +12,7 @@ package io.vertx.ext.web.client;
 
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.ext.web.client.impl.SessionAwareWebClientImpl;
+import io.vertx.ext.web.client.spi.CookieStore;
 
 /**
  * An asynchronous sessions aware HTTP / HTTP/2 client called {@code SessionAwareWebClient}.
