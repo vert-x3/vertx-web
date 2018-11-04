@@ -339,7 +339,7 @@ public class SessionAwareWebClientTest {
   }
   
   @Test
-  public void testRequestPrepared(TestContext context) {
+  public void testRequestIsPrepared(TestContext context) {
     prepareServer(context, req -> {
       req.response().headers().add("set-cookie", ServerCookieEncoder.STRICT.encode(new DefaultCookie("test", "toast")));
     });
