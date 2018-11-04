@@ -86,7 +86,7 @@ public class SessionAwareWebClientTest {
   }
 
   @After
-  public void terDown() {
+  public void tearDown() {
     vertx.close();
   }
 
@@ -202,7 +202,7 @@ public class SessionAwareWebClientTest {
   }
   
   @Test
-  public void testSharedWbClient(TestContext context) {
+  public void testSharedWebClient(TestContext context) {
     AtomicInteger cnt = new AtomicInteger(0);
     prepareServer(context, req -> {
       req.response().setChunked(true);
@@ -241,22 +241,18 @@ public class SessionAwareWebClientTest {
     
     async.await();
     
-    int seq = 0;
+    cnt.set(0);
     for (SessionAwareWebClient client : clients) {
       Iterable<Cookie> cookies = client.getCookieStore().get(false, "localhost", "/");
 
       int i = 0;
       for (Cookie c : cookies) {
-        context.assertEquals("" + seq, c.value());
+        context.assertEquals("" + cnt.getAndIncrement(), c.value());
         i++;
       }
       
       context.assertEquals(i, 1);
-      seq++;
     }
-    
-    
-    
   }
 
   @Test
@@ -282,6 +278,7 @@ public class SessionAwareWebClientTest {
         context.assertEquals(500, ar.result().statusCode());
         async.complete();
       });
+      async.await();
     }
 
     for (int i = 0; i < 3; i++) {
@@ -392,7 +389,7 @@ public class SessionAwareWebClientTest {
   }
   
   @Test
-  public void testRequestHadlerWrapping(TestContext context) throws IOException {
+  public void testSendRequest(TestContext context) throws IOException {
     AtomicInteger count = new AtomicInteger(0);
     client = buildClient(plainWebClient, new CookieStoreImpl() {
       @Override
