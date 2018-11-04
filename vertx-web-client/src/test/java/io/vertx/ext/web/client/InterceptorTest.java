@@ -5,6 +5,8 @@ import io.vertx.core.MultiMap;
 import io.vertx.core.VertxOptions;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.dns.AddressResolverOptions;
+import io.vertx.core.file.AsyncFile;
+import io.vertx.core.file.OpenOptions;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.http.HttpTestBase;
@@ -13,6 +15,8 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.ext.web.client.impl.ClientPhase;
 import io.vertx.ext.web.client.impl.HttpContext;
 import io.vertx.ext.web.client.impl.WebClientInternal;
+import io.vertx.ext.web.codec.BodyCodec;
+
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -55,6 +59,15 @@ public class InterceptorTest extends HttpTestBase {
     context.next();
   }
 
+  private void handleMutateCodec(HttpContext context) {
+    if (context.phase() == ClientPhase.RECEIVE_RESPONSE) {
+      if (context.clientResponse().statusCode() == 200) {
+        context.request().as(BodyCodec.none());
+      }
+    }
+    context.next();
+  }
+
   @Test
   public void testMutateRequestInterceptor() throws Exception {
     server.requestHandler(req -> req.response().end());
@@ -62,6 +75,23 @@ public class InterceptorTest extends HttpTestBase {
     client.addInterceptor(this::handleMutateRequest);
     HttpRequest<Buffer> builder = client.get("/somepath").host("another-host").port(8081);
     builder.send(onSuccess(resp -> complete()));
+    await();
+  }
+
+  @Test
+  public void testMutateCodecInterceptor() throws Exception {
+    server.requestHandler(req -> req.response().end("foo!"));
+    startServer();
+    AsyncFile foo = vertx.fileSystem().openBlocking("foo.txt", new OpenOptions().setSync(true).setTruncateExisting(true));
+    client.addInterceptor(this::handleMutateCodec);
+    HttpRequest<Void> builder = client.get("/somepath").as(BodyCodec.pipe(foo));
+    builder.send(onSuccess(resp -> {
+      foo.write(Buffer.buffer("bar!"));
+      foo.close();
+      assertEquals("bar!", vertx.fileSystem().readFileBlocking("foo.txt").toString());
+      vertx.fileSystem().deleteBlocking("foo.txt");
+      complete();
+    }));
     await();
   }
 
