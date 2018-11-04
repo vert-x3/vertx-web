@@ -56,7 +56,7 @@ class HttpRequestImpl<T> implements HttpRequest<T> {
   boolean followRedirects;
   boolean ssl;
   
-  private List<Consumer<HttpContext>> onContextCreated;
+  private List<Consumer<HttpContext<?>>> onContextCreated;
 
   HttpRequestImpl(WebClientImpl client, HttpMethod method, boolean ssl, int port, String host, String uri, BodyCodec<T>
           codec, WebClientOptions options) {
@@ -233,7 +233,7 @@ class HttpRequestImpl<T> implements HttpRequest<T> {
     send("multipart/form-data", body, handler);
   }
   
-  protected void addOnContextCreated(Consumer<HttpContext> consumer) {
+  protected void addOnContextCreated(Consumer<HttpContext<?>> consumer) {
     if (this.onContextCreated == null) {
       this.onContextCreated = new ArrayList<>();
     }
@@ -243,7 +243,7 @@ class HttpRequestImpl<T> implements HttpRequest<T> {
   private void send(String contentType, Object body, Handler<AsyncResult<HttpResponse<T>>> handler) {
     HttpContext<T> ex = new HttpContext<T>(((HttpClientImpl)client.client).getVertx().getOrCreateContext(), handler);
     if (onContextCreated != null) {
-      for (Consumer<HttpContext> c : onContextCreated) {
+      for (Consumer<HttpContext<?>> c : onContextCreated) {
         c.accept(ex);
       }
     }
