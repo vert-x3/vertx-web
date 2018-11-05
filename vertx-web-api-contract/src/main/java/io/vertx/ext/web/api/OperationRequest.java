@@ -7,6 +7,7 @@ import io.vertx.core.http.CaseInsensitiveHeaders;
 import io.vertx.core.json.JsonObject;
 
 import java.util.Map;
+import java.util.function.Function;
 
 @DataObject(generateConverter = true, publicConverter = false)
 public class OperationRequest {
@@ -23,6 +24,10 @@ public class OperationRequest {
    * Contains routingContext.user().principal() if an user is authenticated
    */
   private JsonObject user;
+  /**
+   * Extra payload provided by {@link io.vertx.ext.web.api.contract.RouterFactoryOptions#setExtraOperationContextPayloadMapper(Function)}
+   */
+  private JsonObject extra;
 
   public OperationRequest() {
     init();
@@ -43,16 +48,18 @@ public class OperationRequest {
     }
   }
 
-  public OperationRequest(MultiMap headers, JsonObject params, JsonObject user) {
+  public OperationRequest(JsonObject params, MultiMap headers, JsonObject user, JsonObject extra) {
     this.params = params;
     this.headers = headers;
     this.user = user;
+    this.extra = extra;
   }
 
   public OperationRequest(OperationRequest other) {
     this.params = other.getParams();
     this.headers = other.getHeaders();
     this.user = other.getUser();
+    this.extra = other.getExtra();
   }
 
   public JsonObject toJson() {
@@ -70,6 +77,7 @@ public class OperationRequest {
     this.params = new JsonObject();
     this.headers = MultiMap.caseInsensitiveMultiMap();
     this.user = null;
+    this.extra = null;
   }
 
   /**
@@ -91,6 +99,14 @@ public class OperationRequest {
    */
   public JsonObject getUser() { return user; }
 
+  /**
+   * Get extra payload
+   * @return
+   */
+  public JsonObject getExtra() {
+    return extra;
+  }
+
   @Fluent public OperationRequest setParams(JsonObject params) {
     this.params = params;
     return this;
@@ -103,6 +119,12 @@ public class OperationRequest {
 
   @Fluent public OperationRequest setUser(JsonObject user) {
     this.user = user;
+    return this;
+  }
+
+  @Fluent
+  public OperationRequest setExtra(JsonObject extra) {
+    this.extra = extra;
     return this;
   }
 }

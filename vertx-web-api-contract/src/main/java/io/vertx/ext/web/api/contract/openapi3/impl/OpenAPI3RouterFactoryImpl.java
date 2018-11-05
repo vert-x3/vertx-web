@@ -46,6 +46,10 @@ public class OpenAPI3RouterFactoryImpl extends BaseRouterFactory<OpenAPI> implem
     private List<Handler<RoutingContext>> userHandlers;
     private List<Handler<RoutingContext>> userFailureHandlers;
 
+    private String ebServiceAddress;
+    private String ebServiceMethodName;
+    private JsonObject ebServiceDeliveryOptions;
+
     private OperationValue(HttpMethod method, String path, Operation operationModel, Collection<? extends
       Parameter> parentParameters) {
       this.method = method;
@@ -93,7 +97,7 @@ public class OpenAPI3RouterFactoryImpl extends BaseRouterFactory<OpenAPI> implem
     }
 
     public boolean isConfigured() {
-      return userHandlers.size() != 0;
+      return userHandlers.size() != 0 || mustMountRouteToService();
     }
 
     public List<String> getTags() {
@@ -101,6 +105,38 @@ public class OpenAPI3RouterFactoryImpl extends BaseRouterFactory<OpenAPI> implem
     }
 
     public boolean hasTag(String tag) { return tags != null && tags.contains(tag); }
+
+    public void mountRouteToService(String address) {
+      this.ebServiceAddress = address;
+      this.ebServiceMethodName = OpenApi3Utils.sanitizeOperationId(operationModel.getOperationId());
+    }
+
+    public void mountRouteToService(String address, String methodName) {
+      this.ebServiceAddress = address;
+      this.ebServiceMethodName = OpenApi3Utils.sanitizeOperationId(methodName);
+    }
+
+    public void mountRouteToService(String address, String methodName, JsonObject deliveryOptions) {
+      this.ebServiceAddress = address;
+      this.ebServiceMethodName = OpenApi3Utils.sanitizeOperationId(methodName);
+      this.ebServiceDeliveryOptions = deliveryOptions;
+    }
+
+    public boolean mustMountRouteToService() {
+      return this.ebServiceAddress != null;
+    }
+
+    public String getEbServiceAddress() {
+      return ebServiceAddress;
+    }
+
+    public String getEbServiceMethodName() {
+      return ebServiceMethodName;
+    }
+
+    public JsonObject getEbServiceDeliveryOptions() {
+      return ebServiceDeliveryOptions;
+    }
   }
 
   public OpenAPI3RouterFactoryImpl(Vertx vertx, OpenAPI spec) {
@@ -148,7 +184,7 @@ public class OpenAPI3RouterFactoryImpl extends BaseRouterFactory<OpenAPI> implem
   public OpenAPI3RouterFactory mountServiceFromTag(String tag, String address) {
     for (Map.Entry<String, OperationValue> op : operations.entrySet()) {
       if (op.getValue().hasTag(tag))
-        op.getValue().addUserHandler(RouteToServiceProxyHandler.build(vertx.eventBus(), address, OpenApi3Utils.sanitizeOperationId(op.getKey())));
+        op.getValue().mountRouteToService(address);
     }
     return this;
   }
@@ -164,7 +200,7 @@ public class OpenAPI3RouterFactoryImpl extends BaseRouterFactory<OpenAPI> implem
             this.operations.entrySet().stream().filter(e -> OpenApi3Utils.sanitizeOperationId(e.getKey()).equals(methodName)).map(Map.Entry::getValue).findFirst().orElseGet(() -> null)
           );
         if (op != null) {
-          op.getUserHandlers().add(RouteToServiceProxyHandler.build(vertx.eventBus(), address, methodName));
+          op.mountRouteToService(address, methodName);
         }
       }
     }
@@ -175,7 +211,7 @@ public class OpenAPI3RouterFactoryImpl extends BaseRouterFactory<OpenAPI> implem
   public OpenAPI3RouterFactory mountOperationToEventBus(String operationId, String address) {
     OperationValue op = operations.get(operationId);
     if (op == null) throw RouterFactoryException.createOperationIdNotFoundException(operationId);
-    op.addUserHandler(RouteToServiceProxyHandler.build(vertx.eventBus(), address, operationId));
+    op.mountRouteToService(address, operationId);
     return this;
   }
 
@@ -186,7 +222,7 @@ public class OpenAPI3RouterFactoryImpl extends BaseRouterFactory<OpenAPI> implem
       if (operationModel.getExtensions() != null && operationModel.getExtensions().containsKey(OPENAPI_EXTENSION)) {
         Object extensionVal = operationModel.getExtensions().get(OPENAPI_EXTENSION);
         if (extensionVal instanceof String) {
-          op.getValue().addUserHandler(RouteToServiceProxyHandler.build(vertx.eventBus(), (String)extensionVal, OpenApi3Utils.sanitizeOperationId(op.getKey())));
+          op.getValue().mountRouteToService((String) extensionVal, op.getKey());
         } else if (extensionVal instanceof Map) {
           JsonObject extensionMap = new JsonObject((Map<String, Object>) extensionVal);
           String address = extensionMap.getString(OPENAPI_EXTENSION_ADDRESS);
@@ -194,7 +230,7 @@ public class OpenAPI3RouterFactoryImpl extends BaseRouterFactory<OpenAPI> implem
           JsonObject sanitizedMap = OpenApi3Utils.sanitizeDeliveryOptionsExtension(extensionMap);
           if (address == null || methodName == null)
             RouterFactoryException.createWrongExtension("Extension " + OPENAPI_EXTENSION + " should define both " + OPENAPI_EXTENSION_ADDRESS + " and " + OPENAPI_EXTENSION_METHOD_NAME);
-          op.getValue().addUserHandler(RouteToServiceProxyHandler.build(vertx.eventBus(), address, methodName, sanitizedMap));
+          op.getValue().mountRouteToService(address, methodName, sanitizedMap);
         } else {
           RouterFactoryException.createWrongExtension("Extension " + OPENAPI_EXTENSION + " should be or string or a JsonObject");
         }
@@ -254,6 +290,22 @@ public class OpenAPI3RouterFactoryImpl extends BaseRouterFactory<OpenAPI> implem
       if (operation.isConfigured()) {
         handlersToLoad.addAll(operation.getUserHandlers());
         failureHandlersToLoad.addAll(operation.getUserFailureHandlers());
+        if (operation.mustMountRouteToService()) {
+          handlersToLoad.add(
+            (operation.getEbServiceDeliveryOptions() != null) ? RouteToServiceProxyHandler.build(
+              vertx.eventBus(),
+              operation.getEbServiceAddress(),
+              operation.getEbServiceMethodName(),
+              operation.getEbServiceDeliveryOptions(),
+              options.getExtraOperationContextPayloadMapper()
+            ) : RouteToServiceProxyHandler.build(
+              vertx.eventBus(),
+              operation.getEbServiceAddress(),
+              operation.getEbServiceMethodName(),
+              options.getExtraOperationContextPayloadMapper()
+            )
+          );
+        }
       } else {
         handlersToLoad.add(this.options.getNotImplementedFailureHandler());
       }

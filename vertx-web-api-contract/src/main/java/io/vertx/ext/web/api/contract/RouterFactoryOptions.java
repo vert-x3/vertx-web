@@ -10,6 +10,7 @@ import io.vertx.ext.web.handler.BodyHandler;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 /**
  * @author Francesco Guardiani @slinkydeveloper
@@ -62,7 +63,9 @@ public class RouterFactoryOptions {
   /**
    * By default, RouterFactory will not expose operation configuration in the the routing context
    */
-  public final static String DEFAULT_EXPOSE_CONFIGURATION_KEY = null;
+  public final static String DEFAULT_OPERATION_MODEL_KEY = null;
+
+  public final static Function<RoutingContext, JsonObject> DEFAULT_EXTRA_OPERATION_CONTEXT_PAYLOAD_MAPPER = null;
 
   private Handler<RoutingContext> validationFailureHandler;
   private boolean mountValidationFailureHandler;
@@ -73,6 +76,7 @@ public class RouterFactoryOptions {
   private BodyHandler bodyHandler;
   private List<Handler<RoutingContext>> globalHandlers;
   private String operationModelKey;
+  private Function<RoutingContext, JsonObject> extraOperationContextPayloadMapper;
 
   public RouterFactoryOptions() {
     init();
@@ -110,7 +114,8 @@ public class RouterFactoryOptions {
     this.mountResponseContentTypeHandler = DEFAULT_MOUNT_RESPONSE_CONTENT_TYPE_HANDLER;
     this.bodyHandler = BodyHandler.create();
     this.globalHandlers = new ArrayList<>();
-    this.operationModelKey = DEFAULT_EXPOSE_CONFIGURATION_KEY;
+    this.operationModelKey = DEFAULT_OPERATION_MODEL_KEY;
+    this.extraOperationContextPayloadMapper = DEFAULT_EXTRA_OPERATION_CONTEXT_PAYLOAD_MAPPER;
   }
 
   public Handler<RoutingContext> getValidationFailureHandler() {
@@ -259,6 +264,21 @@ public class RouterFactoryOptions {
   @Fluent
   public RouterFactoryOptions setOperationModelKey(String operationModelKey) {
     this.operationModelKey = operationModelKey;
+    return this;
+  }
+
+  public Function<RoutingContext, JsonObject> getExtraOperationContextPayloadMapper() {
+    return extraOperationContextPayloadMapper;
+  }
+
+  /**
+   * When set, this function is called while creating the payload of {@link io.vertx.ext.web.api.OperationRequest}
+   * @param extraOperationContextPayloadMapper
+   * @return
+   */
+  @Fluent
+  public RouterFactoryOptions setExtraOperationContextPayloadMapper(Function<RoutingContext, JsonObject> extraOperationContextPayloadMapper) {
+    this.extraOperationContextPayloadMapper = extraOperationContextPayloadMapper;
     return this;
   }
 }
