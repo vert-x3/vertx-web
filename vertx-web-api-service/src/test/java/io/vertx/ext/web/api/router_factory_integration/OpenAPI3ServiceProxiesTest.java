@@ -554,4 +554,36 @@ public class OpenAPI3ServiceProxiesTest extends ApiWebTestBase {
 
     consumer.unregister();
   }
+
+  @Test
+  public void extraPayloadTest() throws Exception {
+    TestService service = new TestServiceImpl(vertx);
+
+    final ServiceBinder serviceBinder = new ServiceBinder(vertx).setAddress("someAddress");
+    MessageConsumer<JsonObject> consumer = serviceBinder.register(TestService.class, service);
+
+    CountDownLatch latch = new CountDownLatch(1);
+    OpenAPI3RouterFactory.create(this.vertx, "src/test/resources/swaggers/service_proxy_test.yaml",
+      openAPI3RouterFactoryAsyncResult -> {
+        routerFactory = openAPI3RouterFactoryAsyncResult.result();
+        routerFactory.setOptions(HANDLERS_TESTS_OPTIONS.setExtraOperationContextPayloadMapper(rc -> new JsonObject().put("username", "slinkydeveloper")));
+
+        routerFactory.mountOperationToEventBus("extraPayload", "someAddress");
+
+        latch.countDown();
+      });
+    awaitLatch(latch);
+
+    startServer();
+
+    testRequest(
+      HttpMethod.GET,
+      "/extraPayload",
+      200,
+      "OK",
+      new JsonObject().put("result", "Hello slinkydeveloper!").toBuffer()
+    );
+
+    consumer.unregister();
+  }
 }

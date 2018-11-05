@@ -12,16 +12,20 @@ import io.vertx.ext.web.api.OperationResponse;
 import io.vertx.ext.web.api.OperationRequest;
 import io.vertx.ext.web.api.RequestParameters;
 
+import java.util.function.Function;
+
 public class RouteToServiceProxyHandler implements Handler<RoutingContext> {
 
   EventBus eventBus;
   String address;
   DeliveryOptions deliveryOptions;
+  Function<RoutingContext, JsonObject> extraOperationContextPayloadMapper;
 
-  public RouteToServiceProxyHandler(EventBus eventBus, String address, DeliveryOptions deliveryOptions) {
+  public RouteToServiceProxyHandler(EventBus eventBus, String address, DeliveryOptions deliveryOptions, Function<RoutingContext, JsonObject> extraOperationContextPayloadMapper) {
     this.eventBus = eventBus;
     this.address = address;
     this.deliveryOptions = deliveryOptions;
+    this.extraOperationContextPayloadMapper = extraOperationContextPayloadMapper;
   }
 
   @Override
@@ -44,21 +48,22 @@ public class RouteToServiceProxyHandler implements Handler<RoutingContext> {
     });
   }
 
-  private static JsonObject buildPayload(RoutingContext context) {
+  private JsonObject buildPayload(RoutingContext context) {
     return new JsonObject().put("context", new OperationRequest(
-      context.request().headers(),
       ((RequestParameters)context.get("parsedParameters")).toJson(),
-      (context.user() != null) ? context.user().principal() : null
+      context.request().headers(),
+      (context.user() != null) ? context.user().principal() : null,
+      (this.extraOperationContextPayloadMapper != null) ? this.extraOperationContextPayloadMapper.apply(context) : null
     ).toJson());
   }
 
-  public static RouteToServiceProxyHandler build(EventBus eventBus, String address, String actionName) {
-    return new RouteToServiceProxyHandler(eventBus, address, new DeliveryOptions().addHeader("action", actionName));
+  public static RouteToServiceProxyHandler build(EventBus eventBus, String address, String actionName, Function<RoutingContext, JsonObject> extraOperationContextPayloadMapper) {
+    return new RouteToServiceProxyHandler(eventBus, address, new DeliveryOptions().addHeader("action", actionName), extraOperationContextPayloadMapper);
   }
 
-  public static RouteToServiceProxyHandler build(EventBus eventBus, String address, String actionName, JsonObject deliveryOptions) {
+  public static RouteToServiceProxyHandler build(EventBus eventBus, String address, String actionName, JsonObject deliveryOptions, Function<RoutingContext, JsonObject> extraOperationContextPayloadMapper) {
     DeliveryOptions opt = new DeliveryOptions(deliveryOptions).addHeader("action", actionName);
-    return new RouteToServiceProxyHandler(eventBus, address, opt);
+    return new RouteToServiceProxyHandler(eventBus, address, opt, extraOperationContextPayloadMapper);
   }
 
 }

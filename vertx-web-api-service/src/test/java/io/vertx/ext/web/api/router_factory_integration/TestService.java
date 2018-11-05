@@ -17,6 +17,7 @@ public interface TestService {
   void testB(JsonObject body, OperationRequest context, Handler<AsyncResult<OperationResponse>> resultHandler);
   void testEmptyOperationResponse(OperationRequest context, Handler<AsyncResult<OperationResponse>> resultHandler);
   void testUser(OperationRequest context, Handler<AsyncResult<OperationResponse>> resultHandler);
+  void extraPayload(OperationRequest context, Handler<AsyncResult<OperationResponse>> resultHandler);
 
   static TestService create(Vertx vertx) {
     return new TestServiceImpl(vertx);

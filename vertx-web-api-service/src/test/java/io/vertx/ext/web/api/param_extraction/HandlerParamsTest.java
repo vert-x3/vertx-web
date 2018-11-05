@@ -31,9 +31,10 @@ public class HandlerParamsTest extends VertxTestBase {
 
   private static JsonObject buildPayload(JsonObject params) {
     return new JsonObject().put("context", new OperationRequest(
-      MultiMap.caseInsensitiveMultiMap(),
       params,
-      new JsonObject()
+      MultiMap.caseInsensitiveMultiMap(),
+      new JsonObject(),
+      null
     ).toJson());
   }
 

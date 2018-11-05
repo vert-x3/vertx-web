@@ -8,6 +8,9 @@
 [frame="topbot"]
 |===
 ^|Name | Type ^| Description
+|[[extra]]`@extra`|`Json object`|+++
+Get extra payload
++++
 |[[params]]`@params`|`Json object`|+++
 Get request parsedParameters as JSON
 +++

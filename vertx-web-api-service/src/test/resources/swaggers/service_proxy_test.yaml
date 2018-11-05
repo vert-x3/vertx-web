@@ -172,6 +172,12 @@ paths:
       responses:
         200:
           description: ok
+  /extraPayload:
+    get:
+      operationId: extraPayload
+      responses:
+        200:
+          description: ok
 components:
   schemas:
     Payload:

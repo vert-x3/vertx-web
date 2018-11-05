@@ -44,4 +44,11 @@ public class TestServiceImpl implements TestService {
       OperationResponse.completedWithJson(new JsonObject().put("result", "Hello " + context.getUser().getString("username") + "!")))
     );
   }
+
+  @Override
+  public void extraPayload(OperationRequest context, Handler<AsyncResult<OperationResponse>> resultHandler) {
+    resultHandler.handle(Future.succeededFuture(
+      OperationResponse.completedWithJson(new JsonObject().put("result", "Hello " + context.getExtra().getString("username") + "!")))
+    );
+  }
 }
