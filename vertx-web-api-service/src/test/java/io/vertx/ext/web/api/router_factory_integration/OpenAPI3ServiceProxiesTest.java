@@ -1,5 +1,6 @@
 package io.vertx.ext.web.api.router_factory_integration;
 
+import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.http.HttpClientOptions;
@@ -7,6 +8,8 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.auth.AuthProvider;
+import io.vertx.ext.auth.User;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.api.ApiWebTestBase;
@@ -27,7 +30,9 @@ public class OpenAPI3ServiceProxiesTest extends ApiWebTestBase {
 
   private OpenAPI3RouterFactory routerFactory;
 
-  private RouterFactoryOptions HANDLERS_TESTS_OPTIONS = new RouterFactoryOptions().setRequireSecurityHandlers(false);
+  private RouterFactoryOptions HANDLERS_TESTS_OPTIONS = new RouterFactoryOptions()
+    .setRequireSecurityHandlers(false)
+    .setMountNotImplementedHandler(false);
 
   private Handler<RoutingContext> generateFailureHandler(boolean expected) {
     return routingContext -> {
@@ -490,6 +495,63 @@ public class OpenAPI3ServiceProxiesTest extends ApiWebTestBase {
       "OK"
     );
     
+    consumer.unregister();
+  }
+
+  @Test
+  public void authorizedUserTest() throws Exception {
+    TestService service = new TestServiceImpl(vertx);
+
+    final ServiceBinder serviceBinder = new ServiceBinder(vertx).setAddress("someAddress");
+    MessageConsumer<JsonObject> consumer = serviceBinder.register(TestService.class, service);
+
+    CountDownLatch latch = new CountDownLatch(1);
+    OpenAPI3RouterFactory.create(this.vertx, "src/test/resources/swaggers/service_proxy_test.yaml",
+      openAPI3RouterFactoryAsyncResult -> {
+        routerFactory = openAPI3RouterFactoryAsyncResult.result();
+        routerFactory.setOptions(HANDLERS_TESTS_OPTIONS);
+
+        routerFactory.addHandlerByOperationId("testUser", rc -> {
+          rc.setUser(new User() {
+            @Override
+            public User isAuthorized(String s, Handler<AsyncResult<Boolean>> handler) {
+              return null;
+            }
+
+            @Override
+            public User clearCache() {
+              return null;
+            }
+
+            @Override
+            public JsonObject principal() {
+              return new JsonObject().put("username", "slinkydeveloper");
+            }
+
+            @Override
+            public void setAuthProvider(AuthProvider authProvider) {
+
+            }
+          }); // Put user mock into context
+          rc.next();
+        });
+
+        routerFactory.mountOperationToEventBus("testUser", "someAddress");
+
+        latch.countDown();
+      });
+    awaitLatch(latch);
+
+    startServer();
+
+    testRequest(
+      HttpMethod.GET,
+      "/testUser",
+      200,
+      "OK",
+      new JsonObject().put("result", "Hello slinkydeveloper!").toBuffer()
+    );
+
     consumer.unregister();
   }
 }
