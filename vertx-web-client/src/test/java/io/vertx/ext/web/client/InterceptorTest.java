@@ -12,13 +12,18 @@ import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.http.HttpTestBase;
 import io.vertx.core.http.HttpVersion;
 import io.vertx.core.json.JsonArray;
+import io.vertx.ext.unit.junit.Repeat;
+import io.vertx.ext.unit.junit.RepeatRule;
 import io.vertx.ext.web.client.impl.ClientPhase;
 import io.vertx.ext.web.client.impl.HttpContext;
 import io.vertx.ext.web.client.impl.WebClientInternal;
 import io.vertx.ext.web.codec.BodyCodec;
 
+import org.junit.Rule;
 import org.junit.Test;
 
+import java.io.File;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -59,14 +64,8 @@ public class InterceptorTest extends HttpTestBase {
     context.next();
   }
 
-  private void handleMutateCodec(HttpContext context) {
-    if (context.phase() == ClientPhase.RECEIVE_RESPONSE) {
-      if (context.clientResponse().statusCode() == 200) {
-        context.request().as(BodyCodec.none());
-      }
-    }
-    context.next();
-  }
+  @Rule
+  public RepeatRule rule = new RepeatRule();
 
   @Test
   public void testMutateRequestInterceptor() throws Exception {
@@ -78,21 +77,36 @@ public class InterceptorTest extends HttpTestBase {
     await();
   }
 
+  private void handleMutateCodec(HttpContext context) {
+    if (context.phase() == ClientPhase.RECEIVE_RESPONSE) {
+      if (context.clientResponse().statusCode() == 200) {
+        context.request().as(BodyCodec.none());
+      }
+    }
+    context.next();
+  }
+
+  @Repeat(1000)
   @Test
   public void testMutateCodecInterceptor() throws Exception {
     server.requestHandler(req -> req.response().end("foo!"));
     startServer();
-    AsyncFile foo = vertx.fileSystem().openBlocking("foo.txt", new OpenOptions().setSync(true).setTruncateExisting(true));
+    File f = Files.createTempFile("vertx", ".dat").toFile();
+    assertTrue(f.delete());
+    AsyncFile foo = vertx.fileSystem().openBlocking(f.getAbsolutePath(), new OpenOptions().setSync(true).setTruncateExisting(true));
     client.addInterceptor(this::handleMutateCodec);
     HttpRequest<Void> builder = client.get("/somepath").as(BodyCodec.pipe(foo));
     builder.send(onSuccess(resp -> {
       foo.write(Buffer.buffer("bar!"));
-      foo.close();
-      assertEquals("bar!", vertx.fileSystem().readFileBlocking("foo.txt").toString());
-      vertx.fileSystem().deleteBlocking("foo.txt");
-      complete();
+      foo.close(onSuccess(v -> {
+        assertEquals("bar!", vertx.fileSystem().readFileBlocking(f.getAbsolutePath()).toString());
+        testComplete();
+      }));
     }));
     await();
+    if (f.exists()) {
+      f.delete();
+    }
   }
 
   private void mutateResponseHandler(HttpContext context) {
