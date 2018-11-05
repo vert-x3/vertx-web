@@ -252,7 +252,7 @@ public class RouteImpl implements Route {
       return false;
     }
     if (pattern != null) {
-      String path = useNormalisedPath ? Utils.normalizePath(context.request().path()) : context.request().path();
+      String path = useNormalisedPath ? context.normalisedPath() : context.request().path();
       if (mountPoint != null) {
         path = path.substring(mountPoint.length());
       }
@@ -353,7 +353,7 @@ public class RouteImpl implements Route {
 
     if (useNormalisedPath) {
       // never null
-      requestPath = Utils.normalizePath(ctx.request().path());
+      requestPath = ctx.normalisedPath();
     } else {
       requestPath = ctx.request().path();
       // can be null

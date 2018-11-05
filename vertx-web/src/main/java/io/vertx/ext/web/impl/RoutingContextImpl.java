@@ -25,6 +25,7 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
+import io.vertx.core.http.impl.HttpUtils;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.auth.User;
@@ -199,7 +200,12 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   @Override
   public String normalisedPath() {
     if (normalisedPath == null) {
-      normalisedPath = Utils.normalizePath(request.path());
+      String path = request.path();
+      if (path == null) {
+        normalisedPath = "/";
+      } else {
+        normalisedPath = HttpUtils.normalizePath(path);
+      }
     }
     return normalisedPath;
   }
