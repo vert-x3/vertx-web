@@ -19,6 +19,11 @@ import java.time.format.DateTimeFormatter;
             obj.setParams(((JsonObject)member.getValue()).copy());
           }
           break;
+        case "user":
+          if (member.getValue() instanceof JsonObject) {
+            obj.setUser(((JsonObject)member.getValue()).copy());
+          }
+          break;
       }
     }
   }
@@ -30,6 +35,9 @@ import java.time.format.DateTimeFormatter;
    static void toJson(OperationRequest obj, java.util.Map<String, Object> json) {
     if (obj.getParams() != null) {
       json.put("params", obj.getParams());
+    }
+    if (obj.getUser() != null) {
+      json.put("user", obj.getUser());
     }
   }
 }

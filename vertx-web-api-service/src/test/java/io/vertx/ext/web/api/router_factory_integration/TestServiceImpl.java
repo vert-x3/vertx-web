@@ -16,7 +16,6 @@ public class TestServiceImpl implements TestService {
     this.vertx = vertx;
   }
 
-
   @Override
   public void testA(OperationRequest context, Handler<AsyncResult<OperationResponse>> resultHandler) {
     JsonObject body = context.getParams().getJsonObject("body");
@@ -37,5 +36,12 @@ public class TestServiceImpl implements TestService {
     resultHandler.handle(Future.succeededFuture(
       new OperationResponse()
     ));
+  }
+
+  @Override
+  public void testUser(OperationRequest context, Handler<AsyncResult<OperationResponse>> resultHandler) {
+    resultHandler.handle(Future.succeededFuture(
+      OperationResponse.completedWithJson(new JsonObject().put("result", "Hello " + context.getUser().getString("username") + "!")))
+    );
   }
 }

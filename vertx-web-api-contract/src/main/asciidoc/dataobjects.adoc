@@ -11,6 +11,9 @@
 |[[params]]`@params`|`Json object`|+++
 Get request parsedParameters as JSON
 +++
+|[[user]]`@user`|`Json object`|+++
+Get request principal user as routingContext.user().principal(), null if no user is authenticated
++++
 |===
 
 [[OperationResponse]]

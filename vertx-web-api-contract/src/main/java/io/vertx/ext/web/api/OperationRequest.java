@@ -19,6 +19,10 @@ public class OperationRequest {
    * Request headers
    */
   private MultiMap headers;
+  /**
+   * Contains routingContext.user().principal() if an user is authenticated
+   */
+  private JsonObject user;
 
   public OperationRequest() {
     init();
@@ -39,14 +43,16 @@ public class OperationRequest {
     }
   }
 
-  public OperationRequest(MultiMap headers, JsonObject params) {
+  public OperationRequest(MultiMap headers, JsonObject params, JsonObject user) {
     this.params = params;
     this.headers = headers;
+    this.user = user;
   }
 
   public OperationRequest(OperationRequest other) {
     this.params = other.getParams();
     this.headers = other.getHeaders();
+    this.user = other.getUser();
   }
 
   public JsonObject toJson() {
@@ -61,8 +67,9 @@ public class OperationRequest {
   }
 
   private void init() {
-    this.params = null;
+    this.params = new JsonObject();
     this.headers = MultiMap.caseInsensitiveMultiMap();
+    this.user = null;
   }
 
   /**
@@ -79,6 +86,11 @@ public class OperationRequest {
     return headers;
   }
 
+  /**
+   * Get request principal user as routingContext.user().principal(), null if no user is authenticated
+   */
+  public JsonObject getUser() { return user; }
+
   @Fluent public OperationRequest setParams(JsonObject params) {
     this.params = params;
     return this;
@@ -86,6 +98,11 @@ public class OperationRequest {
 
   @Fluent public OperationRequest setHeaders(MultiMap headers) {
     this.headers = headers;
+    return this;
+  }
+
+  @Fluent public OperationRequest setUser(JsonObject user) {
+    this.user = user;
     return this;
   }
 }
