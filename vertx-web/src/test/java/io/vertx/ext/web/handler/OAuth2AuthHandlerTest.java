@@ -110,6 +110,82 @@ public class OAuth2AuthHandlerTest extends WebTestBase {
   }
 
   @Test
+  public void testAuthCodeFlowBadSetup() throws Exception {
+
+    // lets mock a oauth2 server using code auth code flow
+    OAuth2Auth oauth2 = OAuth2Auth.create(vertx, OAuth2FlowType.AUTH_CODE, new OAuth2ClientOptions()
+      .setClientID("client-id")
+      .setClientSecret("client-secret")
+      .setSite("http://localhost:10000"));
+
+    final CountDownLatch latch = new CountDownLatch(1);
+
+    HttpServer server = vertx.createHttpServer().requestHandler(req -> {
+      if (req.method() == HttpMethod.POST && "/oauth/token".equals(req.path())) {
+        req.setExpectMultipart(true).bodyHandler(buffer -> req.response().putHeader("Content-Type", "application/json").end(fixture.encode()));
+      } else if (req.method() == HttpMethod.POST && "/oauth/revoke".equals(req.path())) {
+        req.setExpectMultipart(true).bodyHandler(buffer -> req.response().end());
+      } else {
+        req.response().setStatusCode(400).end();
+      }
+    }).listen(10000, ready -> {
+      if (ready.failed()) {
+        throw new RuntimeException(ready.cause());
+      }
+      // ready
+      latch.countDown();
+    });
+
+    latch.await();
+
+    // protect everything. This has the bad sideffect that it will also shade the callback route which is computed
+    // after this handler, the proper way to fix this would be create the route before
+    router.route().handler(OAuth2AuthHandler.create(oauth2, "http://localhost:8080/callback").setupCallback(router.route()));
+    // mount some handler under the protected zone
+    router.route("/protected/somepage").handler(rc -> {
+      assertNotNull(rc.user());
+      rc.response().end("Welcome to the protected resource!");
+    });
+
+
+    testRequest(HttpMethod.GET, "/protected/somepage", null, resp -> {
+      // in this case we should get a redirect
+      redirectURL = resp.getHeader("Location");
+      assertNotNull(redirectURL);
+    }, 302, "Found", null);
+
+    // fake the redirect
+    testRequest(HttpMethod.GET, "/callback?state=/protected/somepage&code=1", null, resp -> {
+    }, 500, "Internal Server Error", "Internal Server Error");
+
+    // second attempt with proper config
+    router.clear();
+
+    // protect everything.
+    OAuth2AuthHandler oauth2Handler = OAuth2AuthHandler.create(oauth2, "http://localhost:8080/callback").setupCallback(router.route());
+    // now the callback is registered before as it should
+    router.route().handler(oauth2Handler);
+    // mount some handler under the protected zone
+    router.route("/protected/somepage").handler(rc -> {
+      assertNotNull(rc.user());
+      rc.response().end("Welcome to the protected resource!");
+    });
+
+
+    testRequest(HttpMethod.GET, "/protected/somepage", null, resp -> {
+      // in this case we should get a redirect
+      redirectURL = resp.getHeader("Location");
+      assertNotNull(redirectURL);
+    }, 302, "Found", null);
+
+    // fake the redirect
+    testRequest(HttpMethod.GET, "/callback?state=/protected/somepage&code=1", null, resp -> {
+    }, 200, "OK", "Welcome to the protected resource!");
+
+    server.close();
+  }
+
+  @Test
   public void testPasswordFlow() throws Exception {
 
     // lets mock a oauth2 server using code auth code flow
