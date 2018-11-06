@@ -344,6 +344,6 @@ Or using create methods with absolute URI argument
 {@link examples.WebClientExamples#testAbsRequestSSL(io.vertx.ext.web.client.WebClient)}
 ----
 
-ifdef::java[]
-include::override/rxjava.adoc[]
+ifeval::["$lang" == "java"]
+include::override/rxjava2.adoc[]
 endif::[]
