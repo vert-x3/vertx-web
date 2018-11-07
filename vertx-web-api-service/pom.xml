@@ -32,6 +32,7 @@
       <version>${project.version}</version>
       <scope>provided</scope>
     </dependency>
+
     <!-- Testing dependencies -->
     <dependency>
       <groupId>io.vertx</groupId>
@@ -63,6 +64,31 @@
   </dependencies>
 
   <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <executions>
+            <execution>
+              <id>default-compile</id>
+              <configuration>
+                <compilerArgs>
+                  <arg>-proc:none</arg>
+                </compilerArgs>
+              </configuration>
+            </execution>
+            <execution>
+              <id>default-testCompile</id>
+              <configuration>
+                <testExcludes>
+                  <exclude>**/Invalid*.java</exclude>
+                </testExcludes>
+              </configuration>
+            </execution>
+          </executions>
+        </plugin>
+      </plugins>
+    </pluginManagement>
     <plugins>
       <plugin>
         <artifactId>maven-jar-plugin</artifactId>
@@ -87,106 +113,6 @@
               <excludes>
                 <exclude>examples/**</exclude>
               </excludes>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>default-compile</id>
-            <configuration>
-              <compilerArgs>
-                <arg>-proc:none</arg>
-              </compilerArgs>
-            </configuration>
-          </execution>
-          <execution>
-            <id>default-testCompile</id>
-            <configuration>
-              <compilerArgs>
-                <arg>-proc:none</arg>
-              </compilerArgs>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.bsc.maven</groupId>
-        <artifactId>maven-processor-plugin</artifactId>
-        <version>3.3.2</version>
-        <configuration>
-          <systemProperties>
-            <java.util.logging.SimpleFormatter.format>%4$s: %3$s - %5$s %6$s%n</java.util.logging.SimpleFormatter.format>
-          </systemProperties>
-        </configuration>
-        <executions>
-          <execution>
-            <id>generate-docs-sources</id>
-            <goals>
-              <goal>process</goal>
-            </goals>
-            <phase>process-classes</phase>
-            <configuration>
-              <processors>
-                <processor>io.vertx.codegen.CodeGenProcessor</processor>
-                <processor>io.vertx.docgen.JavaDocGenProcessor</processor>
-                <processor>io.vertx.docgen.DocGenProcessor</processor>
-              </processors>
-              <optionMap>
-                <codegen.output>${project.basedir}/target/generated-for-docs</codegen.output>
-                <docgen.output>${asciidoc.dir}/$lang</docgen.output>
-                <maven.groupId>${project.groupId}</maven.groupId>
-                <maven.artifactId>${project.artifactId}</maven.artifactId>
-                <maven.version>${project.version}</maven.version>
-              </optionMap>
-              <excludes>
-                <exclude>META-INF/**</exclude> <!-- This conf entry should remove model provider from compilation phase -->
-                <exclude>/examples/**</exclude>
-              </excludes>
-            </configuration>
-          </execution>
-          <execution>
-            <id>generate-test-sources</id>
-            <goals>
-              <goal>process-test</goal>
-            </goals>
-            <phase>generate-test-sources</phase>
-            <configuration>
-              <outputDirectory>${project.basedir}/target/generated-test-sources</outputDirectory>
-              <processors>
-                <processor>io.vertx.ext.web.api.generator.impl.WebApiServiceProxyGenerator</processor>
-              </processors>
-              <optionMap>
-                <codegen.output>${project.basedir}/target/generated-test-sources</codegen.output>
-              </optionMap>
-              <excludes>
-                <exclude>io/vertx/ext/web/api/generator/**</exclude> <!-- These files are processed during unit testing -->
-              </excludes>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-shade-plugin</artifactId>
-        <version>3.1.1</version>
-        <executions>
-          <execution>
-            <phase>package</phase>
-            <goals>
-              <goal>shade</goal>
-            </goals>
-            <configuration>
-              <filters>
-                <filter>
-                  <artifact>io.vertx:vertx-service-proxy</artifact>
-                  <excludes>
-                    <exclude>META-INF/**</exclude>
-                  </excludes>
-                </filter>
-              </filters>
             </configuration>
           </execution>
         </executions>

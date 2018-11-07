@@ -28,7 +28,7 @@ public class WebApiProxyTest {
   @Test
   public void testMissingContext() throws Exception {
     try {
-      generateWebApiProxyModel(MissingContext.class);
+      generateWebApiProxyModel(InvalidMissingContext.class);
       fail("Should throw exception");
     } catch (GenException e) {
       // OK
@@ -38,7 +38,7 @@ public class WebApiProxyTest {
   @Test
   public void testWrongHandler() throws Exception {
     try {
-      generateWebApiProxyModel(WrongHandler.class);
+      generateWebApiProxyModel(InvalidWrongHandler.class);
       fail("Should throw exception");
     } catch (GenException e) {
       // OK
@@ -48,7 +48,7 @@ public class WebApiProxyTest {
   @Test
   public void testMissingHandler() throws Exception {
     try {
-      generateWebApiProxyModel(MissingHandler.class);
+      generateWebApiProxyModel(InvalidMissingHandler.class);
       fail("Should throw exception");
     } catch (GenException e) {
       // OK
