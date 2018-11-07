@@ -7,6 +7,7 @@ import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.json.JsonObject;
+import io.vertx.docgen.Source;
 import io.vertx.ext.web.api.OperationResponse;
 import io.vertx.ext.web.api.RequestParameters;
 import io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory;
@@ -15,6 +16,7 @@ import io.vertx.serviceproxy.ServiceBinder;
 /**
  * @author <a href="https://github.com/slinkydeveloper">Francesco Guardiani</a>
  */
+@Source
 public class ApiCodegenExamples {
 
   public void example1(OpenAPI3RouterFactory routerFactory) {
