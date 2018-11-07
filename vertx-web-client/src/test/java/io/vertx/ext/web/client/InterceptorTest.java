@@ -12,7 +12,6 @@ import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.http.HttpTestBase;
 import io.vertx.core.http.HttpVersion;
 import io.vertx.core.json.JsonArray;
-import io.vertx.ext.unit.junit.Repeat;
 import io.vertx.ext.unit.junit.RepeatRule;
 import io.vertx.ext.web.client.impl.ClientPhase;
 import io.vertx.ext.web.client.impl.HttpContext;
@@ -86,7 +85,6 @@ public class InterceptorTest extends HttpTestBase {
     context.next();
   }
 
-  @Repeat(1000)
   @Test
   public void testMutateCodecInterceptor() throws Exception {
     server.requestHandler(req -> req.response().end("foo!"));
