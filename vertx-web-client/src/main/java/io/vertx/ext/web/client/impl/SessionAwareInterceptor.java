@@ -10,8 +10,11 @@ import io.vertx.core.MultiMap;
 import io.vertx.core.http.CaseInsensitiveHeaders;
 import io.vertx.ext.web.client.spi.CookieStore;
 
+/**
+ * A stateless interceptor for session management that operates on the {@code HttpContext}
+ */
 public class SessionAwareInterceptor implements Handler<HttpContext<?>> {
-  public static final String CLIENT_CONTEXT_KEY = "_SessionAwareWebClient";
+
   private static final String HEADERS_CONTEXT_KEY = "_originalHeaders";
   
   @Override
@@ -22,7 +25,7 @@ public class SessionAwareInterceptor implements Handler<HttpContext<?>> {
       break;
     case DISPATCH_RESPONSE:
       processResponse(context);
-	  break;
+	    break;
     default:
       break;
     }
@@ -33,8 +36,7 @@ public class SessionAwareInterceptor implements Handler<HttpContext<?>> {
   private void prepareRequest(HttpContext<?> context) {
     
     HttpRequestImpl<?> request = (HttpRequestImpl<?>) context.request();
-    SessionAwareWebClientImpl webclient = context.get(CLIENT_CONTEXT_KEY);
-    assert webclient != null : "WRONG API usage: missing SessionAwareWebClient in HttpContext";
+    WebClientSessionAware webclient = (WebClientSessionAware) request.client;
 
     MultiMap headers = context.get(HEADERS_CONTEXT_KEY);
     if (headers == null) {
@@ -51,7 +53,7 @@ public class SessionAwareInterceptor implements Handler<HttpContext<?>> {
       domain = request.host;
     }
     
-    Iterable<Cookie> cookies = webclient.getCookieStore().get(request.ssl, domain, request.uri);
+    Iterable<Cookie> cookies = webclient.cookieStore().get(request.ssl, domain, request.uri);
     for (Cookie c : cookies) {
       request.headers().add("cookie", ClientCookieEncoder.STRICT.encode(c));
     }
@@ -62,12 +64,10 @@ public class SessionAwareInterceptor implements Handler<HttpContext<?>> {
     if (cookieHeaders == null) {
       return;
     }
-    
-    SessionAwareWebClientImpl webclient = context.get(CLIENT_CONTEXT_KEY);
-    assert webclient != null : "WRONG API usage: missing SessionAwareWebClient in HttpContext";
-    
+
+    WebClientSessionAware webclient = (WebClientSessionAware) ((HttpRequestImpl)context.request()).client;
     HttpRequestImpl<?> request = (HttpRequestImpl<?>) context.request();
-    CookieStore cookieStore = webclient.getCookieStore();
+    CookieStore cookieStore = webclient.cookieStore();
     cookieHeaders.forEach(header -> {
       Cookie cookie = ClientCookieDecoder.STRICT.decode(header);
       if (cookie != null) {
@@ -80,9 +80,4 @@ public class SessionAwareInterceptor implements Handler<HttpContext<?>> {
       }
     });
   }
-
-  public static void prepareContext(HttpContext<?> context, SessionAwareWebClientImpl client) {
-    context.set(SessionAwareInterceptor.CLIENT_CONTEXT_KEY, client);
-  }
-
 }

@@ -11,7 +11,7 @@
 package io.vertx.ext.web.client;
 
 import io.vertx.codegen.annotations.Fluent;
-import io.vertx.ext.web.client.impl.SessionAwareWebClientImpl;
+import io.vertx.ext.web.client.impl.WebClientSessionAware;
 import io.vertx.ext.web.client.spi.CookieStore;
 
 /**
@@ -31,10 +31,11 @@ import io.vertx.ext.web.client.spi.CookieStore;
  *  <li>secure</li>
  *  <li>max-age and expires</li>
  * </ul>
+ * <p/>
  *
  * @author <a href="mailto:tommaso.nolli@gmail.com">Tommaso Nolli</a>
  */
-public interface SessionAwareWebClient extends WebClient {
+public interface WebClientSession extends WebClient {
 
   /**
    * Create a session aware web client using the provided {@code webClient} instance.
@@ -42,8 +43,8 @@ public interface SessionAwareWebClient extends WebClient {
    * @param webClient the web client instance
    * @return the created client
    */
-  static SessionAwareWebClient build(WebClient webClient) {
-    return build(webClient, CookieStore.build());
+  static WebClientSession create(WebClient webClient) {
+    return create(webClient, CookieStore.build());
   }
 
   /**
@@ -52,8 +53,8 @@ public interface SessionAwareWebClient extends WebClient {
    * @param webClient the web client instance
    * @return the created client
    */
-  static SessionAwareWebClient build(WebClient webClient, CookieStore cookieStore) {
-    return new SessionAwareWebClientImpl(webClient, cookieStore);
+  static WebClientSession create(WebClient webClient, CookieStore cookieStore) {
+    return new WebClientSessionAware(webClient, cookieStore);
   }
 
   /**
@@ -64,7 +65,7 @@ public interface SessionAwareWebClient extends WebClient {
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
-  SessionAwareWebClient setHeader(CharSequence name, CharSequence value);
+  WebClientSession setHeader(CharSequence name, CharSequence value);
 
   /**
    * Configure the client to add an HTTP header o every request.
@@ -74,27 +75,27 @@ public interface SessionAwareWebClient extends WebClient {
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
-  SessionAwareWebClient setHeader(String name, String value);
+  WebClientSession setHeader(String name, String value);
 
   /**
    * Configure the client to add an HTTP header o every request.
    *
    * @param name the header name
-   * @param value the header value
+   * @param values the header value
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
-  SessionAwareWebClient setHeader(CharSequence name, Iterable<CharSequence> values);
+  WebClientSession setHeader(CharSequence name, Iterable<CharSequence> values);
 
   /**
    * Configure the client to add an HTTP header o every request.
    *
    * @param name the header name
-   * @param value the header value
+   * @param values the header value
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
-  SessionAwareWebClient setHeader(String name, Iterable<String> values);
+  WebClientSession setHeader(String name, Iterable<String> values);
 
   /**
    * Removes a previously added header.
@@ -103,7 +104,7 @@ public interface SessionAwareWebClient extends WebClient {
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
-  SessionAwareWebClient removeHeader(CharSequence name);
+  WebClientSession removeHeader(CharSequence name);
 
   /**
    * Removes a previously added header.
@@ -112,7 +113,7 @@ public interface SessionAwareWebClient extends WebClient {
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
-  SessionAwareWebClient removeHeader(String name);
+  WebClientSession removeHeader(String name);
   
   /**
    * Returns this client's {@code CookieStore}
@@ -122,5 +123,5 @@ public interface SessionAwareWebClient extends WebClient {
    * and is automatically updated with cookies present in responses received by this client.  
    * @return this client's cookie store
    */
-  CookieStore getCookieStore();
+  CookieStore cookieStore();
 }

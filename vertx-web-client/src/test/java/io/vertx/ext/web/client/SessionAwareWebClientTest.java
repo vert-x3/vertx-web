@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
+import java.util.stream.IntStream;
 
 import org.junit.After;
 import org.junit.Before;
@@ -51,7 +52,6 @@ import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.ext.web.client.impl.CookieStoreImpl;
-import io.vertx.ext.web.client.impl.SessionAwareWebClientImpl;
 import io.vertx.ext.web.client.spi.CookieStore;
 import io.vertx.ext.web.multipart.MultipartForm;
 
@@ -63,7 +63,7 @@ public class SessionAwareWebClientTest {
   private static final int PORT = 8080;
   
   private WebClient plainWebClient;
-  private SessionAwareWebClientImpl client;
+  private WebClientSession client;
   private Vertx vertx;
 
   private HttpServer server;
@@ -81,13 +81,13 @@ public class SessionAwareWebClientTest {
     return WebClient.wrap(vc);
   }
 
-  private SessionAwareWebClientImpl buildClient(WebClient webClient, CookieStore cookieStore) {
-    return (SessionAwareWebClientImpl) SessionAwareWebClient.build(webClient, cookieStore);
+  private WebClientSession buildClient(WebClient webClient, CookieStore cookieStore) {
+    return WebClientSession.create(webClient, cookieStore);
   }
 
   @After
-  public void tearDown() {
-    vertx.close();
+  public void tearDown(TestContext ctx) {
+    vertx.close(ctx.asyncAssertSuccess());
   }
 
   private void prepareServer(TestContext context, Consumer<HttpServerRequest> reqHandler) {
@@ -99,11 +99,8 @@ public class SessionAwareWebClientTest {
         req.response().end();
       }
     });
-    server.listen(ar -> {
-      context.assertTrue(ar.succeeded());
-      async.complete();
-    });
-    async.await();
+    server.listen(context.asyncAssertSuccess(s -> async.complete()));
+    async.awaitSuccess(15000);
   }
   
   private Cookie getCookieValue(HttpServerRequest req, String name) {
@@ -128,7 +125,7 @@ public class SessionAwareWebClientTest {
 
     client.get(PORT, "localhost", "/").send(ar -> {
       context.assertTrue(ar.succeeded());
-      validate(context, client.getCookieStore().get(false, "localhost", "/"), 
+      validate(context, client.cookieStore().get(false, "localhost", "/"),
           new String[] { "test" }, new String[] { "toast" });
       async.complete();
     });
@@ -145,7 +142,7 @@ public class SessionAwareWebClientTest {
 
     client.get(PORT, "localhost", "/").send(ar -> {
       context.assertTrue(ar.succeeded());
-      validate(context, client.getCookieStore().get(false, "localhost", "/"), 
+      validate(context, client.cookieStore().get(false, "localhost", "/"),
           new String[] { "test1" ,"test2", "test3" }, new String[] { "toast1", "toast2", "toast3" });
       async.complete();
     });
@@ -217,10 +214,14 @@ public class SessionAwareWebClientTest {
       }
     });
 
-    SessionAwareWebClient[] clients = { client, buildClient(plainWebClient, CookieStore.build()) };
+    int numClients = 4;
+
+    WebClientSession[] clients = IntStream.range(0, numClients)
+      .mapToObj(val -> val == 0 ? client :  buildClient(plainWebClient, CookieStore.build()))
+      .toArray(WebClientSession[]::new);
 
     Async async = context.async(clients.length);
-    for (SessionAwareWebClient client : clients) {
+    for (WebClientSession client : clients) {
       HttpRequest<Buffer> req = client.get(PORT, "localhost", "/index.html");
   
       Async waiter = context.async();
@@ -242,8 +243,8 @@ public class SessionAwareWebClientTest {
     async.await();
     
     cnt.set(0);
-    for (SessionAwareWebClient client : clients) {
-      Iterable<Cookie> cookies = client.getCookieStore().get(false, "localhost", "/");
+    for (WebClientSession client : clients) {
+      Iterable<Cookie> cookies = client.cookieStore().get(false, "localhost", "/");
 
       int i = 0;
       for (Cookie c : cookies) {
@@ -270,16 +271,13 @@ public class SessionAwareWebClientTest {
     });
 
     HttpRequest<Buffer> req = client.get(PORT, "localhost", "/");
-    
-    {
-      Async async = context.async();
-      req.send(ar -> {
-        context.assertTrue(ar.succeeded());
-        context.assertEquals(500, ar.result().statusCode());
-        async.complete();
-      });
-      async.await();
-    }
+
+    Async respLatch = context.async();
+    req.send(context.asyncAssertSuccess(resp -> {
+      context.assertEquals(500, resp.statusCode());
+      respLatch.complete();
+    }));
+    respLatch.awaitSuccess(15000);
 
     for (int i = 0; i < 3; i++) {
       req.putHeader(headerPrefix + i, String.valueOf(i));
@@ -348,10 +346,10 @@ public class SessionAwareWebClientTest {
       Async async = context.async();
       Cookie c = new DefaultCookie("test", "localhost");
       c.setPath("/");
-      client.getCookieStore().remove(c);
+      client.cookieStore().remove(c);
       r.send(ar -> {
         async.complete();
-        validate(context, client.getCookieStore().get(false, "localhost", "/"), 
+        validate(context, client.cookieStore().get(false, "localhost", "/"),
             new String[] { "test" }, new String[] { "toast" });
       });
       async.await();
@@ -472,7 +470,7 @@ public class SessionAwareWebClientTest {
     asyncEnd.await();
     
     int i = 0;
-    Iterable<Cookie> all = client.getCookieStore().get(false, host, uri);
+    Iterable<Cookie> all = client.cookieStore().get(false, host, uri);
     for (Cookie c : all) {
       i++;
       testContext.assertEquals(c.name(), cookieName);
@@ -559,5 +557,9 @@ public class SessionAwareWebClientTest {
       context.assertEquals(expected[i], found[i], "Element " + i + " is not equal");
     }
   }
-  
+
+  @Test
+  public void testMultipleSessions(TestContext context) {
+
+  }
 }

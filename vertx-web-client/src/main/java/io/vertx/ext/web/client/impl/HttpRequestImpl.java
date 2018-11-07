@@ -15,7 +15,6 @@
  */
 package io.vertx.ext.web.client.impl;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -27,7 +26,6 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.CaseInsensitiveHeaders;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
-import io.vertx.core.http.impl.HttpClientImpl;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.streams.ReadStream;
 import io.vertx.ext.web.client.HttpRequest;
@@ -41,7 +39,7 @@ import io.vertx.ext.web.multipart.MultipartForm;
  */
 class HttpRequestImpl<T> implements HttpRequest<T> {
 
-  final WebClientImpl client;
+  final WebClientInternal client;
   final WebClientOptions options;
   MultiMap params;
   HttpMethod method;
@@ -58,12 +56,12 @@ class HttpRequestImpl<T> implements HttpRequest<T> {
   
   private List<Consumer<HttpContext<?>>> onContextCreated;
 
-  HttpRequestImpl(WebClientImpl client, HttpMethod method, boolean ssl, int port, String host, String uri, BodyCodec<T>
+  HttpRequestImpl(WebClientInternal client, HttpMethod method, boolean ssl, int port, String host, String uri, BodyCodec<T>
           codec, WebClientOptions options) {
     this(client, method, null, ssl, port, host, uri, codec, options);
   }
 
-  HttpRequestImpl(WebClientImpl client, HttpMethod method, String protocol, boolean ssl, int port, String host, String
+  HttpRequestImpl(WebClientInternal client, HttpMethod method, String protocol, boolean ssl, int port, String host, String
           uri, BodyCodec<T> codec, WebClientOptions options) {
     this.client = client;
     this.method = method;
@@ -233,20 +231,8 @@ class HttpRequestImpl<T> implements HttpRequest<T> {
     send("multipart/form-data", body, handler);
   }
   
-  protected void addOnContextCreated(Consumer<HttpContext<?>> consumer) {
-    if (this.onContextCreated == null) {
-      this.onContextCreated = new ArrayList<>();
-    }
-    this.onContextCreated.add(consumer);
-  }
-
   private void send(String contentType, Object body, Handler<AsyncResult<HttpResponse<T>>> handler) {
-    HttpContext<T> ex = new HttpContext<T>(((HttpClientImpl)client.client).getVertx().getOrCreateContext(), handler);
-    if (onContextCreated != null) {
-      for (Consumer<HttpContext<?>> c : onContextCreated) {
-        c.accept(ex);
-      }
-    }
-    ex.prepareRequest(this, contentType, body);
+    HttpContext<T> ctx = client.createContext(handler);
+    ctx.prepareRequest(this, contentType, body);
   }
 }

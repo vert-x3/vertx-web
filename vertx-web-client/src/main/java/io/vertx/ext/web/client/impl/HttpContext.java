@@ -37,6 +37,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -46,6 +47,8 @@ public class HttpContext<T> {
 
   private final Context context;
   private final Handler<AsyncResult<HttpResponse<T>>> handler;
+  private final HttpClientImpl client;
+  private final List<Handler<HttpContext<?>>> interceptors;
   private HttpRequestImpl<T> request;
   private Object body;
   private String contentType;
@@ -58,9 +61,11 @@ public class HttpContext<T> {
   private Throwable failure;
   private int redirects;
 
-  public HttpContext(Context context, Handler<AsyncResult<HttpResponse<T>>> handler) {
+  HttpContext(Context context, HttpClientImpl client, List<Handler<HttpContext<?>>> interceptors, Handler<AsyncResult<HttpResponse<T>>> handler) {
     this.context = context;
     this.handler = handler;
+    this.client = client;
+    this.interceptors = interceptors;
   }
 
   /**
@@ -178,10 +183,10 @@ public class HttpContext<T> {
    */
   public void receiveResponse(HttpClientResponse clientResponse) {
     int sc = clientResponse.statusCode();
-    int maxRedirects = request.followRedirects ? ((HttpClientImpl) request.client.client).getOptions().getMaxRedirects(): 0;
+    int maxRedirects = request.followRedirects ? client.getOptions().getMaxRedirects(): 0;
     if (redirects < maxRedirects && sc >= 300 && sc < 400) {
       redirects++;
-      Future<HttpClientRequest> next = request.client.client.redirectHandler().apply(clientResponse);
+      Future<HttpClientRequest> next = client.redirectHandler().apply(clientResponse);
       if (next != null) {
         next.setHandler(ar -> {
           if (ar.succeeded()) {
@@ -245,7 +250,7 @@ public class HttpContext<T> {
 
   private void fire(ClientPhase phase) {
     this.phase = phase;
-    this.it = request.client.interceptors.iterator();
+    this.it = interceptors.iterator();
     next();
   }
 
@@ -290,7 +295,7 @@ public class HttpContext<T> {
     int port = request.port;
     String host = request.host;
     if (request.ssl != request.options.isSsl()) {
-      req = request.client.client.request(request.method, new RequestOptions().setSsl(request.ssl).setHost(host).setPort
+      req = client.request(request.method, new RequestOptions().setSsl(request.ssl).setHost(host).setPort
         (port)
         .setURI
           (requestURI));
@@ -299,13 +304,13 @@ public class HttpContext<T> {
         // we have to create an abs url again to parse it in HttpClient
         try {
           URI uri = new URI(request.protocol, null, host, port, requestURI, null, null);
-          req = request.client.client.requestAbs(request.method, uri.toString());
+          req = client.requestAbs(request.method, uri.toString());
         } catch (URISyntaxException ex) {
           fail(ex);
           return;
         }
       } else {
-        req = request.client.client.request(request.method, port, host, requestURI);
+        req = client.request(request.method, port, host, requestURI);
       }
     }
     if (request.virtualHost != null) {

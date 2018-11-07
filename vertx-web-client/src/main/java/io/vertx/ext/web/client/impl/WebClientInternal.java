@@ -15,13 +15,17 @@
  */
 package io.vertx.ext.web.client.impl;
 
+import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
+import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClient;
 
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
  */
 public interface WebClientInternal extends WebClient {
+
+  <T> HttpContext<T> createContext(Handler<AsyncResult<HttpResponse<T>>> handler);
 
   /**
    * Add interceptor in the chain.
