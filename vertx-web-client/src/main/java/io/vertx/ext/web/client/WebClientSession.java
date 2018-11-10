@@ -15,7 +15,7 @@ import io.vertx.ext.web.client.impl.WebClientSessionAware;
 import io.vertx.ext.web.client.spi.CookieStore;
 
 /**
- * An asynchronous sessions aware HTTP / HTTP/2 client called {@code SessionAwareWebClient}.
+ * An asynchronous sessions aware HTTP / HTTP/2 client called {@code WebClientSession}.
  * <p>
  * This client wraps a {@link WebClient} and makes it session aware adding features to it:
  * <ul>
@@ -58,44 +58,44 @@ public interface WebClientSession extends WebClient {
   }
 
   /**
-   * Configure the client to add an HTTP header o every request.
+   * Configure the client to add an HTTP header to every request.
    *
    * @param name the header name
    * @param value the header value
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
-  WebClientSession setHeader(CharSequence name, CharSequence value);
+  WebClientSession addHeader(CharSequence name, CharSequence value);
 
   /**
-   * Configure the client to add an HTTP header o every request.
+   * Configure the client to add an HTTP header to every request.
    *
    * @param name the header name
    * @param value the header value
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
-  WebClientSession setHeader(String name, String value);
+  WebClientSession addHeader(String name, String value);
 
   /**
-   * Configure the client to add an HTTP header o every request.
+   * Configure the client to add an HTTP header to every request.
    *
    * @param name the header name
    * @param values the header value
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
-  WebClientSession setHeader(CharSequence name, Iterable<CharSequence> values);
+  WebClientSession addHeader(CharSequence name, Iterable<CharSequence> values);
 
   /**
-   * Configure the client to add an HTTP header o every request.
+   * Configure the client to add an HTTP header to every request.
    *
    * @param name the header name
    * @param values the header value
    * @return a reference to this, so the API can be used fluently
    */
   @Fluent
-  WebClientSession setHeader(String name, Iterable<String> values);
+  WebClientSession addHeader(String name, Iterable<String> values);
 
   /**
    * Removes a previously added header.
