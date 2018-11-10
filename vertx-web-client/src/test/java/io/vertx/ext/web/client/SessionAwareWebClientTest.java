@@ -197,7 +197,33 @@ public class SessionAwareWebClientTest {
       async.complete();
     });
   }
-  
+
+  @Test
+  public void testSessionHeaders(TestContext context) {
+    String headerName = "x-client-header";
+    String headerVal = "MY-HEADER";
+    
+    prepareServer(context, req -> {
+      req.response().setChunked(true);
+      if (headerVal.equals(req.getHeader(headerName))) {
+        req.response().write("OK");
+      } else {
+        req.response().write("ERR");
+      }
+    });
+    
+    Async async = context.async();
+    client.addHeader(headerName, headerVal);
+    client.get("/").send(ar -> {
+      context.assertTrue(ar.succeeded());
+      HttpResponse<Buffer> res = ar.result();
+      context.assertEquals(200, res.statusCode());
+      context.assertEquals("OK", res.bodyAsString());
+      async.complete();
+    });
+    
+  }
+
   @Test
   public void testSharedWebClient(TestContext context) {
     AtomicInteger cnt = new AtomicInteger(0);
@@ -556,10 +582,5 @@ public class SessionAwareWebClientTest {
     for (int i = 0; i < expected.length; i++) {
       context.assertEquals(expected[i], found[i], "Element " + i + " is not equal");
     }
-  }
-
-  @Test
-  public void testMultipleSessions(TestContext context) {
-
   }
 }

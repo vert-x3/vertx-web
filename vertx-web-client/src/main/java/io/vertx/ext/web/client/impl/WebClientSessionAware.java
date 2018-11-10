@@ -11,8 +11,8 @@
 package io.vertx.ext.web.client.impl;
 
 import io.vertx.core.http.CaseInsensitiveHeaders;
-import io.vertx.ext.web.client.WebClientSession;
 import io.vertx.ext.web.client.WebClient;
+import io.vertx.ext.web.client.WebClientSession;
 import io.vertx.ext.web.client.spi.CookieStore;
 
 /**
@@ -41,25 +41,25 @@ public class WebClientSessionAware extends WebClientBase implements WebClientSes
   }
 
   @Override
-  public WebClientSession setHeader(CharSequence name, CharSequence value) {
+  public WebClientSession addHeader(CharSequence name, CharSequence value) {
     headers().add(name, value);
     return this;
   }
 
   @Override
-  public WebClientSession setHeader(String name, String value) {
+  public WebClientSession addHeader(String name, String value) {
     headers().add(name, value);
     return this;
   }
 
   @Override
-  public WebClientSession setHeader(CharSequence name, Iterable<CharSequence> values) {
+  public WebClientSession addHeader(CharSequence name, Iterable<CharSequence> values) {
     headers().add(name, values);
     return this;
   }
 
   @Override
-  public WebClientSession setHeader(String name, Iterable<String> values) {
+  public WebClientSession addHeader(String name, Iterable<String> values) {
     headers().add(name, values);
     return this;
   }

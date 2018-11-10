@@ -344,6 +344,40 @@ Or using create methods with absolute URI argument
 {@link examples.WebClientExamples#testAbsRequestSSL(io.vertx.ext.web.client.WebClient)}
 ----
 
+== Sessions management
+
+Vert.x web offers a web session management facility; to use it, you create a 
+{@link io.vertx.ext.web.client.WebClientSession} for every user (session) and use it instead of the 
+{@link io.vertx.ext.web.client.WebClient}.
+
+=== Creating a WebSession
+
+You create a {@link io.vertx.ext.web.client.WebClientSession} instance as follows
+
+[source,$lang]
+----
+{@link examples.WebClientSessionExamples#create}
+----
+
+=== Making requests
+
+Once created, a {@link io.vertx.ext.web.client.WebClientSession} can be used instead of a 
+{@link io.vertx.ext.web.client.WebClient} to do HTTP(s) requests and automatically manage any cookies received from the server(s)
+you are calling.
+
+=== Setting session level headers
+
+You can set any session level headers to be added to every request as follows:
+
+[source,$lang]
+----
+{@link examples.WebClientSessionExamples#setHeaders}
+----
+
+The headers will then be added to every request; notice that these headers will be sent to all hosts; if you need
+to send different headers to different hosts, you have to add them manually to every single request and not to the 
+{@link io.vertx.ext.web.client.WebClientSession}.
+
 ifeval::["$lang" == "java"]
 include::override/rxjava2.adoc[]
 endif::[]
