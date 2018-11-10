@@ -2545,11 +2545,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
   private void stopServer() throws Exception {
     if (server != null) {
       CountDownLatch latch = new CountDownLatch(1);
-      try {
-        server.close((asyncResult) -> latch.countDown());
-      } catch (IllegalStateException e) { // Server is already open
-        latch.countDown();
-      }
+      server.close((asyncResult) -> latch.countDown());
       awaitLatch(latch);
     }
   }
