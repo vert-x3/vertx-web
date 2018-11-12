@@ -199,6 +199,21 @@ paths:
               items:
                 type: string
               minItems: 1
+  /test15:
+    post:
+      operationId: test15
+      responses:
+        default:
+          description: "OK"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: string
+                nullable: true
+              minItems: 1
 
 components:
   schemas:
