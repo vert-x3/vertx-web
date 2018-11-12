@@ -15,9 +15,6 @@
  */
 package io.vertx.ext.web.client.impl;
 
-import java.util.List;
-import java.util.function.Consumer;
-
 import io.netty.handler.codec.http.QueryStringDecoder;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
@@ -53,8 +50,6 @@ class HttpRequestImpl<T> implements HttpRequest<T> {
   BodyCodec<T> codec;
   boolean followRedirects;
   boolean ssl;
-  
-  private List<Consumer<HttpContext<?>>> onContextCreated;
 
   HttpRequestImpl(WebClientInternal client, HttpMethod method, boolean ssl, int port, String host, String uri, BodyCodec<T>
           codec, WebClientOptions options) {
