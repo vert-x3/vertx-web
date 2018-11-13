@@ -263,7 +263,7 @@ to pipe the response to a write stream
 
 === Decoding responses
 
-By default the web client provides an http response body as a {@code Buffer} and does not apply
+By default the web client provides an http response body as a `Buffer` and does not apply
 any decoding.
 
 Custom response body decoding can be achieved using {@link io.vertx.ext.web.codec.BodyCodec}:
@@ -307,7 +307,7 @@ simply discards the entire response body
 {@link examples.WebClientExamples#receiveResponseAndDiscard(io.vertx.ext.web.client.WebClient)}
 ----
 
-When you don't know in advance the content type of the http response, you can still use the {@code bodyAsXXX()} methods
+When you don't know in advance the content type of the http response, you can still use the `bodyAsXXX()` methods
 that decode the response to a specific type
 
 [source,$lang]
