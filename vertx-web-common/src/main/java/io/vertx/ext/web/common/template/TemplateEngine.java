@@ -61,7 +61,7 @@ public interface TemplateEngine {
    * @param templateFileName  the template file name to use
    * @param handler  the handler that will be called with a result containing the buffer or a failure.
    */
-  @SuppressWarnings("codegen-allow-any-java-type")
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
   void render(Map<String, Object> context, String templateFileName, Handler<AsyncResult<Buffer>> handler);
 
   /**
