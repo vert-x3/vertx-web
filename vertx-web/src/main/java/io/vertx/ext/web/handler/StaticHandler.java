@@ -142,7 +142,7 @@ public interface StaticHandler extends Handler<RoutingContext> {
    * @param classLoader the classloader used to load the resource
    * @return the handler
    */
-  @GenIgnore(GenIgnore.PERMITTED_TYPE)
+  @GenIgnore
   static StaticHandler create(String root, ClassLoader classLoader) {
     return new StaticHandlerImpl(root, classLoader);
   }

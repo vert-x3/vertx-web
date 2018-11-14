@@ -59,7 +59,7 @@ public interface CorsHandler extends Handler<RoutingContext> {
    * @param methods the methods to add
    * @return a reference to this, so the API can be used fluently
    */
-  @Fluent
+  @GenIgnore
   CorsHandler allowedMethods(Set<HttpMethod> methods);
 
   /**
