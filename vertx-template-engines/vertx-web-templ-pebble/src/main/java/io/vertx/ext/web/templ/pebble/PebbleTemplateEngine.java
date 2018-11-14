@@ -58,7 +58,7 @@ public interface PebbleTemplateEngine extends TemplateEngine {
    *
    * @return the engine
    */
-  @GenIgnore
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static PebbleTemplateEngine create(PebbleEngine engine) {
     return new PebbleTemplateEngineImpl(engine);
   }

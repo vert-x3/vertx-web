@@ -47,7 +47,7 @@ public interface Cookie {
    * @param nettyCookie  the Netty cookie
    * @return the cookie
    */
-  @GenIgnore
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static Cookie cookie(io.netty.handler.codec.http.cookie.Cookie nettyCookie) {
     return new CookieImpl(nettyCookie);
   }

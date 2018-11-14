@@ -57,6 +57,6 @@ public interface ThymeleafTemplateEngine extends TemplateEngine {
    *
    * @return a reference to the internal Thymeleaf TemplateEngine instance.
    */
-  @GenIgnore
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
   org.thymeleaf.TemplateEngine getThymeleafTemplateEngine();
 }

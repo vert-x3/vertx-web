@@ -81,7 +81,7 @@ public interface JadeTemplateEngine extends TemplateEngine {
    *
    * @return a reference to the internal JadeConfiguration instance.
    */
-  @GenIgnore
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
   JadeConfiguration getJadeConfiguration();
 
 }

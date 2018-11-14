@@ -132,7 +132,7 @@ public interface RoutingContext {
   /**
    * @return all the context data as a map
    */
-  @GenIgnore
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
   Map<String, Object> data();
 
   /**
