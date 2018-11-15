@@ -1,23 +1,27 @@
 package io.vertx.ext.web.api.contract.openapi3;
 
-import io.swagger.parser.OpenAPIParser;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.parser.OpenAPIV3Parser;
+import io.swagger.v3.parser.core.models.AuthorizationValue;
 import io.swagger.v3.parser.core.models.SwaggerParseResult;
-import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.Fluent;
+import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
-import io.vertx.core.http.HttpMethod;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.api.contract.RouterFactory;
 import io.vertx.ext.web.api.contract.RouterFactoryException;
 import io.vertx.ext.web.api.contract.openapi3.impl.OpenAPI3RouterFactoryImpl;
 import io.vertx.ext.web.api.contract.openapi3.impl.OpenApi3Utils;
 import org.apache.commons.lang3.StringUtils;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Interface for OpenAPI3RouterFactory. <br/>
@@ -124,10 +128,28 @@ public interface OpenAPI3RouterFactory extends RouterFactory<OpenAPI> {
    * @param url location of your spec. It can be an absolute path, a local path or remote url (with HTTP protocol)
    * @param handler  When specification is loaded, this handler will be called with AsyncResult<OpenAPI3RouterFactory>
    */
-  static void create(Vertx vertx, String url, Handler<AsyncResult<OpenAPI3RouterFactory>>
-    handler) {
+  static void create(Vertx vertx, String url, Handler<AsyncResult<OpenAPI3RouterFactory>> handler) {
+    create(vertx, url, Collections.emptyList(), handler);
+  }
+
+  /**
+   * Create a new OpenAPI3RouterFactory
+   *
+   * @param vertx
+   * @param url location of your spec. It can be an absolute path, a local path or remote url (with HTTP protocol)
+   * @param auth list of authorization values needed to access the remote url. Each item should be json representation
+   *             of an {@link AuthorizationValue}
+   * @param handler  When specification is loaded, this handler will be called with AsyncResult<OpenAPI3RouterFactory>
+   */
+  static void create(Vertx vertx,
+                     String url,
+                     List<JsonObject> auth,
+                     Handler<AsyncResult<OpenAPI3RouterFactory>> handler) {
+    List<AuthorizationValue> authorizationValues = auth.stream()
+      .map(obj -> obj.mapTo(AuthorizationValue.class))
+      .collect(Collectors.toList());
     vertx.executeBlocking((Future<OpenAPI3RouterFactory> future) -> {
-      SwaggerParseResult swaggerParseResult = new OpenAPIV3Parser().readLocation(url, null, OpenApi3Utils.getParseOptions());
+      SwaggerParseResult swaggerParseResult = new OpenAPIV3Parser().readLocation(url, authorizationValues, OpenApi3Utils.getParseOptions());
       if (swaggerParseResult.getMessages().isEmpty()) {
         future.complete(new OpenAPI3RouterFactoryImpl(vertx, swaggerParseResult.getOpenAPI()));
       } else {
