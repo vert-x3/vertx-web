@@ -39,6 +39,7 @@ public class OpenAPI3RouterFactoryImpl extends BaseRouterFactory<OpenAPI> implem
   private class OperationValue {
     private HttpMethod method;
     private String path;
+    private PathItem pathModel;
     private Operation operationModel;
 
     private List<Parameter> parameters;
@@ -50,15 +51,15 @@ public class OpenAPI3RouterFactoryImpl extends BaseRouterFactory<OpenAPI> implem
     private String ebServiceMethodName;
     private JsonObject ebServiceDeliveryOptions;
 
-    private OperationValue(HttpMethod method, String path, Operation operationModel, Collection<? extends
-      Parameter> parentParameters) {
+    private OperationValue(HttpMethod method, String path, Operation operationModel, PathItem pathModel) {
       this.method = method;
       this.path = path;
+      this.pathModel = pathModel;
       this.operationModel = operationModel;
       this.tags = operationModel.getTags();
       // Merge parameters
-      List<Parameter> opParams = operationModel.getParameters()==null?new ArrayList<>():new ArrayList<>(operationModel.getParameters());
-      List<Parameter> parentParams = parentParameters==null?new ArrayList<>():new ArrayList<>(parentParameters);
+      List<Parameter> opParams = operationModel.getParameters()==null ? new ArrayList<>() : operationModel.getParameters();
+      List<Parameter> parentParams = pathModel.getParameters() == null ? new ArrayList<>() : pathModel.getParameters();
       this.parameters = OpenApi3Utils.mergeParameters(opParams, parentParams);
       this.userHandlers = new ArrayList<>();
       this.userFailureHandlers = new ArrayList<>();
@@ -78,6 +79,10 @@ public class OpenAPI3RouterFactoryImpl extends BaseRouterFactory<OpenAPI> implem
 
     public String getPath() {
       return path;
+    }
+
+    public PathItem getPathModel() {
+      return pathModel;
     }
 
     public void addUserHandler(Handler<RoutingContext> userHandler) {
@@ -147,8 +152,12 @@ public class OpenAPI3RouterFactoryImpl extends BaseRouterFactory<OpenAPI> implem
     /* --- Initialization of all arrays and maps --- */
     for (Map.Entry<String, ? extends PathItem> pathEntry : spec.getPaths().entrySet()) {
       for (Map.Entry<PathItem.HttpMethod, ? extends Operation> opEntry : pathEntry.getValue().readOperationsMap().entrySet()) {
-        this.operations.put(opEntry.getValue().getOperationId(), new OperationValue(HttpMethod.valueOf(opEntry.getKey().name()), pathEntry.getKey(), opEntry.getValue(), pathEntry.getValue()
-          .getParameters()));
+        this.operations.put(opEntry.getValue().getOperationId(), new OperationValue(
+          HttpMethod.valueOf(opEntry.getKey().name()),
+          pathEntry.getKey(),
+          opEntry.getValue(),
+          pathEntry.getValue()
+        ));
       }
     }
   }
@@ -217,22 +226,26 @@ public class OpenAPI3RouterFactoryImpl extends BaseRouterFactory<OpenAPI> implem
 
   @Override
   public OpenAPI3RouterFactory mountServicesFromExtensions() {
-    for (Map.Entry<String, OperationValue> op : operations.entrySet()) {
-      Operation operationModel = op.getValue().getOperationModel();
-      if (operationModel.getExtensions() != null && operationModel.getExtensions().containsKey(OPENAPI_EXTENSION)) {
-        Object extensionVal = operationModel.getExtensions().get(OPENAPI_EXTENSION);
+    for (Map.Entry<String, OperationValue> opEntry : operations.entrySet()) {
+      OperationValue operation = opEntry.getValue();
+      Object extensionVal = OpenApi3Utils.getAndMergeServiceExtension(OPENAPI_EXTENSION, OPENAPI_EXTENSION_ADDRESS, OPENAPI_EXTENSION_METHOD_NAME, operation.pathModel, operation.operationModel);
+
+      if (extensionVal != null) {
         if (extensionVal instanceof String) {
-          op.getValue().mountRouteToService((String) extensionVal, op.getKey());
+          operation.mountRouteToService((String) extensionVal, opEntry.getKey());
         } else if (extensionVal instanceof Map) {
           JsonObject extensionMap = new JsonObject((Map<String, Object>) extensionVal);
           String address = extensionMap.getString(OPENAPI_EXTENSION_ADDRESS);
           String methodName = extensionMap.getString(OPENAPI_EXTENSION_METHOD_NAME);
           JsonObject sanitizedMap = OpenApi3Utils.sanitizeDeliveryOptionsExtension(extensionMap);
-          if (address == null || methodName == null)
-            RouterFactoryException.createWrongExtension("Extension " + OPENAPI_EXTENSION + " should define both " + OPENAPI_EXTENSION_ADDRESS + " and " + OPENAPI_EXTENSION_METHOD_NAME);
-          op.getValue().mountRouteToService(address, methodName, sanitizedMap);
+          if (address == null)
+            throw RouterFactoryException.createWrongExtension("Extension " + OPENAPI_EXTENSION + " must define " + OPENAPI_EXTENSION_ADDRESS);
+          if (methodName == null)
+            operation.mountRouteToService(address, opEntry.getKey());
+          else
+            operation.mountRouteToService(address, methodName, sanitizedMap);
         } else {
-          RouterFactoryException.createWrongExtension("Extension " + OPENAPI_EXTENSION + " should be or string or a JsonObject");
+          throw RouterFactoryException.createWrongExtension("Extension " + OPENAPI_EXTENSION + " must be or string or a JsonObject");
         }
       }
     }
