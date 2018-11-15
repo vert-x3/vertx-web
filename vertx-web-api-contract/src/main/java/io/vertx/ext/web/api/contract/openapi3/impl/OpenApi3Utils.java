@@ -192,6 +192,7 @@ public class OpenApi3Utils {
       } else {
         // type object case
         Map<String, ObjectField> properties = new HashMap<>();
+        if (schema.getProperties() == null) return new HashMap<>();
         for (Map.Entry<String, ? extends Schema> entry : ((Map<String, Schema>) schema.getProperties()).entrySet()) {
           properties.put(entry.getKey(), new OpenApi3Utils.ObjectField(entry.getValue(), entry.getKey(), schema));
         }

@@ -2,6 +2,7 @@ package io.vertx.ext.web.api.validation.impl;
 
 import io.netty.handler.codec.http.QueryStringDecoder;
 import io.vertx.core.MultiMap;
+import io.vertx.core.http.CaseInsensitiveHeaders;
 import io.vertx.ext.web.FileUpload;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.api.RequestParameter;
@@ -20,7 +21,11 @@ public abstract class BaseValidationHandler implements ValidationHandler {
 
   private Map<String, ParameterValidationRule> pathParamsRules;
   private Map<String, ParameterValidationRule> cookieParamsRules;
+  private ParameterTypeValidator cookieAdditionalPropertiesValidator;
+  private String cookieAdditionalPropertiesObjectPropertyName;
   private Map<String, ParameterValidationRule> queryParamsRules;
+  private ParameterTypeValidator queryAdditionalPropertiesValidator;
+  private String queryAdditionalPropertiesObjectPropertyName;
   private Map<String, ParameterValidationRule> formParamsRules;
   private Map<String, ParameterValidationRule> headerParamsRules;
   private ParameterTypeValidator entireBodyValidator;
@@ -128,7 +133,7 @@ public abstract class BaseValidationHandler implements ValidationHandler {
     for (ParameterValidationRule rule : cookieParamsRules.values()) {
       String name = rule.getName().trim();
       if (cookies.containsKey(name)) {
-        List<String> p = cookies.get(name);
+        List<String> p = cookies.remove(name);
         if (p.size() != 0) {
           RequestParameter parsedParam = rule.validateArrayParam(p);
           if (parsedParams.containsKey(parsedParam.getName()))
@@ -148,17 +153,34 @@ public abstract class BaseValidationHandler implements ValidationHandler {
             ParameterLocation.COOKIE);
       }
     }
+    if (cookieAdditionalPropertiesValidator != null) {
+      for (Map.Entry<String, List<String>> e : cookies.entrySet()) {
+        try {
+          Map<String, RequestParameter> r = new HashMap<>();
+          r.put(e.getKey(), cookieAdditionalPropertiesValidator.isValidCollection(e.getValue()));
+          RequestParameter parsedParam = new RequestParameterImpl(cookieAdditionalPropertiesObjectPropertyName, r);
+          if (parsedParams.containsKey(cookieAdditionalPropertiesObjectPropertyName))
+            parsedParam = parsedParam.merge(parsedParams.get(cookieAdditionalPropertiesObjectPropertyName));
+          parsedParams.put(parsedParam.getName(), parsedParam);
+        } catch (ValidationException ex) {
+          ex.setParameterName(cookieAdditionalPropertiesObjectPropertyName);
+          e.setValue(e.getValue());
+          throw ex;
+        }
+      }
+    }
     return parsedParams;
   }
 
   private Map<String, RequestParameter> validateQueryParams(RoutingContext routingContext) throws ValidationException {
     // Validation process validate only params that are registered in the validation -> extra params are allowed
     Map<String, RequestParameter> parsedParams = new HashMap<>();
-    MultiMap queryParams = routingContext.queryParams();
+    MultiMap queryParams = new CaseInsensitiveHeaders().addAll(routingContext.queryParams());
     for (ParameterValidationRule rule : queryParamsRules.values()) {
       String name = rule.getName();
       if (queryParams.contains(name)) {
         List<String> p = queryParams.getAll(name);
+        queryParams.remove(name);
         if (p.size() != 0) {
           RequestParameter parsedParam = rule.validateArrayParam(p);
           if (parsedParams.containsKey(parsedParam.getName()))
@@ -175,6 +197,22 @@ public abstract class BaseValidationHandler implements ValidationHandler {
       } else if (!rule.isOptional())
         throw ValidationException.ValidationExceptionFactory.generateNotFoundValidationException(name,
           ParameterLocation.QUERY);
+    }
+    if (queryAdditionalPropertiesValidator != null) {
+      for (Map.Entry<String, String> e : queryParams.entries()) {
+        try {
+          Map<String, RequestParameter> r = new HashMap<>();
+          r.put(e.getKey(), queryAdditionalPropertiesValidator.isValid(e.getValue()));
+          RequestParameter parsedParam = new RequestParameterImpl(queryAdditionalPropertiesObjectPropertyName, r);
+          if (parsedParams.containsKey(queryAdditionalPropertiesObjectPropertyName))
+            parsedParam = parsedParam.merge(parsedParams.get(queryAdditionalPropertiesObjectPropertyName));
+          parsedParams.put(parsedParam.getName(), parsedParam);
+        } catch (ValidationException ex) {
+          ex.setParameterName(queryAdditionalPropertiesObjectPropertyName);
+          e.setValue(e.getValue());
+          throw ex;
+        }
+      }
     }
     return parsedParams;
   }
@@ -323,4 +361,14 @@ public abstract class BaseValidationHandler implements ValidationHandler {
     this.entireBodyValidator = entireBodyValidator;
     bodyRequired = true;
   }
+
+  protected void setCookieAdditionalPropertyHandler(ParameterTypeValidator validator, String objectParameterName) {
+    this.cookieAdditionalPropertiesValidator = validator;
+    this.cookieAdditionalPropertiesObjectPropertyName = objectParameterName;
+  }
+  protected void setQueryAdditionalPropertyHandler(ParameterTypeValidator validator, String objectParameterName) {
+    this.queryAdditionalPropertiesValidator = validator;
+    this.queryAdditionalPropertiesObjectPropertyName = objectParameterName;
+  }
+
 }
