@@ -549,6 +549,14 @@ public class SessionAwareWebClientTest {
         new String[] { "a", "b", "e" }, 
         new String[] { "1", "2", "5" });
   }
+  
+  @Test
+  public void testCookieStoreIsFluent(TestContext context) {
+    CookieStore store = CookieStore.build();
+    Cookie cookie = new DefaultCookie("a", "a");
+    context.assertTrue(store == store.put(cookie));
+    context.assertTrue(store == store.remove(cookie));
+  }
 
   public void validate(TestContext context, Iterable<Cookie> cookies, String[] expectedNames, String[] expectedVals) {
     List<String> foundNames = new ArrayList<>();

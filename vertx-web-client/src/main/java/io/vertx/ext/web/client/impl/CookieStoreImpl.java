@@ -110,7 +110,7 @@ public class CookieStoreImpl implements CookieStore {
     } else {
       domainCookies.remove(key);
     }
-    return null;
+    return this;
   }
 
   private static class Key implements Comparable<Key> {
