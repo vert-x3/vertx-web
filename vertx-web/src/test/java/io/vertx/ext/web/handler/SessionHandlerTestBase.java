@@ -16,16 +16,6 @@
 
 package io.vertx.ext.web.handler;
 
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static java.util.concurrent.TimeUnit.NANOSECONDS;
-
-import java.text.DateFormat;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
-
-import org.junit.Test;
-
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.WebTestBase;
@@ -33,6 +23,17 @@ import io.vertx.ext.web.impl.Utils;
 import io.vertx.ext.web.sstore.AbstractSession;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import io.vertx.ext.web.sstore.SessionStore;
+import org.junit.Test;
+
+import java.text.DateFormat;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
+
+import static java.util.concurrent.TimeUnit.*;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -438,14 +439,24 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
 				}, 200, "OK", null);
 		awaitLatch(responseReceived);
 
-		// after the id is regenerated the old id must not be valid anymore
-		store.get(sessionId.get(), get -> {
-			assertTrue(get.succeeded());
-			assertNull(get.result());
-			testComplete();
-		});
-
-		await();
+    assertWaitUntil(() -> {
+      CompletableFuture<Session> cf = new CompletableFuture<>();
+      store.get(sessionId.get(), get -> {
+        if (get.succeeded()) {
+          cf.complete(get.result());
+        } else {
+          cf.completeExceptionally(get.cause());
+        }
+      });
+      try {
+        return cf.get() == null;
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+        throw new RuntimeException(e);
+      } catch (ExecutionException e) {
+        throw new RuntimeException(e.getCause());
+      }
+    }, TimeUnit.MILLISECONDS.convert(1, MINUTES), "old id must not be valid anymore");
 	}
 
 	@Test
