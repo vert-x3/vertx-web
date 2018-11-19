@@ -112,6 +112,13 @@ You can also construct a router factory from a remote spec:
 {@link examples.OpenAPI3Examples#constructRouterFactoryFromUrl}
 ----
 
+Or, you can also access a private remote spec by passing one or more https://github.com/swagger-api/swagger-parser#usage[AuthorizationValue]:
+
+[source,$lang]
+----
+{@link examples.OpenAPI3Examples#constructRouterFactoryFromUrlWithAuthenticationHeader}
+----
+
 You can also modify the behaviours of the router factory with {@link io.vertx.ext.web.api.contract.RouterFactoryOptions}.
 For example you can ask to router factory to mount the validation failure handler but to not mount the not implemented handler as follows:
 
