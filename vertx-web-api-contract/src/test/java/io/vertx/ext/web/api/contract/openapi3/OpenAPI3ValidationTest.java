@@ -1,5 +1,7 @@
 package io.vertx.ext.web.api.contract.openapi3;
 
+import io.netty.handler.codec.http.QueryStringDecoder;
+import io.netty.handler.codec.http.QueryStringEncoder;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.parser.OpenAPIV3Parser;
@@ -605,6 +607,90 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
     testRequestWithJSON(HttpMethod.POST, "/jsonBodyTest/sampleTest", new JsonArray().toBuffer(), 400,
       errorMessage(ValidationException.ErrorType.JSON_INVALID),
       new JsonObject().put("field", "body").toBuffer());
+  }
+
+  @Test
+  public void testQueryExpandedObjectTestOnlyAdditionalProperties() throws Exception {
+    Operation op = testSpec.getPaths().get("/queryTests/objectTests/onlyAdditionalProperties").getGet();
+    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(op, op.getParameters(), testSpec);
+    loadHandlers("/queryTests/objectTests/onlyAdditionalProperties",
+      HttpMethod.GET,
+      false,
+      validationHandler,
+      (routingContext) -> {
+        RequestParameters params = routingContext.get("parsedParameters");
+        assertEquals("hello", params.queryParameter("wellKnownParam").getString());
+        RequestParameter param = params.queryParameter("params");
+        assertFalse(param.getObjectKeys().contains("wellKnownParam"));
+        int res = param.getObjectValue("param2").getInteger() + param.getObjectValue("param1").getInteger();
+        routingContext.response().setStatusCode(200).setStatusMessage("Result: " + res).end();
+      }
+    );
+
+    testRequest(HttpMethod.GET, "/queryTests/objectTests/onlyAdditionalProperties?param1=2&param2=4&wellKnownParam=hello", 200, "Result: 6");
+  }
+
+  @Test
+  public void testQueryExpandedObjectTestOnlyAdditionalPropertiesFailure() throws Exception {
+    Operation op = testSpec.getPaths().get("/queryTests/objectTests/onlyAdditionalProperties").getGet();
+    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(op, op.getParameters(), testSpec);
+    loadHandlers("/queryTests/objectTests/onlyAdditionalProperties",
+      HttpMethod.GET,
+      true,
+      validationHandler,
+      (routingContext) -> {
+        routingContext.response().setStatusCode(200).setStatusMessage("OK").end();
+      }
+    );
+
+    testRequest(HttpMethod.GET, "/queryTests/objectTests/onlyAdditionalProperties?param1=2&param2=a&wellKnownParam=a", 400, errorMessage(ValidationException.ErrorType.NO_MATCH));
+  }
+
+  @Test
+  public void testCookieExpandedObjectTestOnlyAdditionalProperties() throws Exception {
+    Operation op = testSpec.getPaths().get("/cookieTests/objectTests/onlyAdditionalProperties").getGet();
+    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(op, op.getParameters(), testSpec);
+    loadHandlers("/cookieTests/objectTests/onlyAdditionalProperties",
+      HttpMethod.GET,
+      false,
+      validationHandler,
+      (routingContext) -> {
+        RequestParameters params = routingContext.get("parsedParameters");
+        assertEquals("hello", params.cookieParameter("wellKnownParam").toString());
+        RequestParameter param = params.cookieParameter("params");
+        assertFalse(param.getObjectKeys().contains("wellKnownParam"));
+        int res = param.getObjectValue("param2").getInteger() + param.getObjectValue("param1").getInteger();
+        routingContext.response().setStatusCode(200).setStatusMessage(Integer.toString(res)).end();
+      }
+    );
+
+    QueryStringEncoder params = new QueryStringEncoder("/");
+    params.addParam("param1", Integer.toString(5));
+    params.addParam("param2", Integer.toString(1));
+    params.addParam("wellKnownParam", "hello");
+
+    testRequestWithCookies(HttpMethod.GET, "/cookieTests/objectTests/onlyAdditionalProperties", params.toUri().getRawQuery(), 200, "6");
+  }
+
+  @Test
+  public void testCookieExpandedObjectTestOnlyAdditionalPropertiesFailure() throws Exception {
+    Operation op = testSpec.getPaths().get("/cookieTests/objectTests/onlyAdditionalProperties").getGet();
+    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(op, op.getParameters(), testSpec);
+    loadHandlers("/cookieTests/objectTests/onlyAdditionalProperties",
+      HttpMethod.GET,
+      true,
+      validationHandler,
+      (routingContext) -> {
+        routingContext.response().setStatusCode(200).setStatusMessage("OK").end();
+      }
+    );
+
+    QueryStringEncoder params = new QueryStringEncoder("/");
+    params.addParam("param1", Integer.toString(5));
+    params.addParam("param2", "a");
+    params.addParam("wellKnownParam", "hello");
+
+    testRequestWithCookies(HttpMethod.GET, "/cookieTests/objectTests/onlyAdditionalProperties", params.toUri().getRawQuery(), 400, errorMessage(ValidationException.ErrorType.NO_MATCH));
   }
 
 }

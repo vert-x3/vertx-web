@@ -300,6 +300,21 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
           "" + "not supported for parameter " + parameter.getName());
       }
     }
+    if (parameter.getSchema().getAdditionalProperties() instanceof Schema) {
+      if ("query".equals(parameter.getIn())) {
+        this.setQueryAdditionalPropertyHandler(
+          this.resolveInnerSchemaPrimitiveTypeValidator((Schema)parameter.getSchema().getAdditionalProperties(), true),
+          parameter.getName()
+        );
+      } else if ("cookie".equals(parameter.getIn())) {
+        this.setCookieAdditionalPropertyHandler(
+          this.resolveInnerSchemaPrimitiveTypeValidator((Schema)parameter.getSchema().getAdditionalProperties(), true),
+          parameter.getName()
+        );
+      } else {
+        throw new SpecFeatureNotSupportedException("additionalProperties with exploded object fields not supports in path parameter " + parameter.getName());
+      }
+    }
   }
 
   private void magicParameterExplodedStyleSimpleTypeObject(Parameter parameter) {
