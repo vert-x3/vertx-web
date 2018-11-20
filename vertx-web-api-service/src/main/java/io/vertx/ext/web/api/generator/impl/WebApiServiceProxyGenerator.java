@@ -23,6 +23,7 @@ import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.ext.web.api.generator.WebApiServiceGen;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -34,23 +35,11 @@ import java.util.stream.Collectors;
 @javax.annotation.processing.SupportedSourceVersion(javax.lang.model.SourceVersion.RELEASE_8)
 public class WebApiServiceProxyGenerator extends CodeGenProcessor {
 
-  public WebApiServiceProxyGenerator() { }
-
   private static final Predicate<Generator> FILTER = generator ->
     generator.name.contains("web_api_service_proxy_handler") || generator.name.equals("data_object_converters");
 
   @Override
   protected Predicate<Generator> filterGenerators() {
     return FILTER;
-  }
-
-  @Override
-  public Set<String> getSupportedAnnotationTypes() {
-    return Arrays.asList(
-      VertxGen.class,
-      WebApiServiceGen.class,
-      DataObject.class,
-      ModuleGen.class
-    ).stream().map(Class::getName).collect(Collectors.toSet());
   }
 }
