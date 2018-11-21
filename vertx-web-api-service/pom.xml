@@ -97,20 +97,6 @@
             <id>default-jar</id>
             <configuration>
               <excludes>
-                <exclude>META-INF/services/javax.annotation.processing.Processor</exclude>
-                <exclude>examples/**</exclude>
-              </excludes>
-            </configuration>
-          </execution>
-          <execution>
-            <id>processor-jar</id>
-            <phase>package</phase>
-            <goals>
-              <goal>jar</goal>
-            </goals>
-            <configuration>
-              <classifier>processor</classifier>
-              <excludes>
                 <exclude>examples/**</exclude>
               </excludes>
             </configuration>
@@ -131,6 +117,21 @@
             <configuration>
               <!-- Don't run it on this project as it's a generator -->
               <skip>true</skip>
+            </configuration>
+          </execution>
+          <execution>
+            <id>generate-test-sources</id>
+            <goals>
+              <goal>process-test</goal>
+            </goals>
+            <phase>generate-test-sources</phase>
+            <configuration>
+              <processors>
+                <processor>io.vertx.codegen.CodeGenProcessor</processor>
+              </processors>
+              <excludes>
+                <exclude>**/Invalid*.java</exclude>
+              </excludes>
             </configuration>
           </execution>
         </executions>
