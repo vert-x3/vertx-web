@@ -40,11 +40,6 @@ public class WebApiServiceProxyGenerator extends CodeGenProcessor {
     generator.name.contains("web_api_service_proxy_handler") || generator.name.equals("data_object_converters");
 
   @Override
-  protected Predicate<Generator> filterGenerators() {
-    return FILTER;
-  }
-
-  @Override
   public Set<String> getSupportedAnnotationTypes() {
     return Arrays.asList(
       VertxGen.class,

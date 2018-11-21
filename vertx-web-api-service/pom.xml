@@ -97,7 +97,7 @@
             <id>default-jar</id>
             <configuration>
               <excludes>
-                <exclude>META-INF/javax.annotation.processing.Processor</exclude>
+                <exclude>META-INF/services/javax.annotation.processing.Processor</exclude>
                 <exclude>examples/**</exclude>
               </excludes>
             </configuration>
@@ -113,6 +113,24 @@
               <excludes>
                 <exclude>examples/**</exclude>
               </excludes>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.bsc.maven</groupId>
+        <artifactId>maven-processor-plugin</artifactId>
+        <version>3.2.0</version>
+        <executions>
+          <execution>
+            <id>generate-sources</id>
+            <goals>
+              <goal>process</goal>
+            </goals>
+            <phase>generate-sources</phase>
+            <configuration>
+              <!-- Don't run it on this project as it's a generator -->
+              <skip>true</skip>
             </configuration>
           </execution>
         </executions>

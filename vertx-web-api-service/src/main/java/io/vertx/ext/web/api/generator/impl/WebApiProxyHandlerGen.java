@@ -1,8 +1,10 @@
 package io.vertx.ext.web.api.generator.impl;
 
 import io.vertx.codegen.ParamInfo;
+import io.vertx.codegen.annotations.ModuleGen;
 import io.vertx.codegen.type.*;
 import io.vertx.ext.web.api.RequestParameter;
+import io.vertx.ext.web.api.generator.WebApiServiceGen;
 import io.vertx.ext.web.api.generator.impl.model.WebApiProxyMethodInfo;
 import io.vertx.codegen.writer.CodeWriter;
 import io.vertx.serviceproxy.generator.GeneratorUtils;
@@ -10,6 +12,9 @@ import io.vertx.serviceproxy.generator.ServiceProxyHandlerGen;
 import io.vertx.serviceproxy.generator.model.ProxyMethodInfo;
 import io.vertx.serviceproxy.generator.model.ProxyModel;
 
+import java.lang.annotation.Annotation;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -26,6 +31,11 @@ public class WebApiProxyHandlerGen extends ServiceProxyHandlerGen {
     kinds = Collections.singleton("webapi_proxy");
     name = "web_api_service_proxy_handler";
     serviceCallHandler = utils.loadResource("service_call_handler", "vertx-web-api-contract-codegen");
+  }
+
+  @Override
+  public Collection<Class<? extends Annotation>> annotations() {
+    return Arrays.asList(WebApiServiceGen.class, ModuleGen.class);
   }
 
   public String className(ProxyModel model) {
