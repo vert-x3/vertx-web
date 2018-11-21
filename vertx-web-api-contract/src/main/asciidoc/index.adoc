@@ -177,3 +177,7 @@ When you are ready, generate the router and use it:
 ----
 {@link examples.OpenAPI3Examples#generateRouter}
 ----
+
+ifeval::["$lang" == "java"]
+include::override/rxjava2.adoc[]
+endif::[]
