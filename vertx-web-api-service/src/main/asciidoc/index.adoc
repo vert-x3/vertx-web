@@ -13,6 +13,12 @@ To use Vert.x API Service, add the following dependency to the _dependencies_ se
 ----
 <dependency>
   <groupId>io.vertx</groupId>
+  <artifactId>vertx-codegen</artifactId>
+  <version>${maven.version}</version>
+  <classifier>processor</classifier>
+</dependency>
+<dependency>
+  <groupId>io.vertx</groupId>
   <artifactId>vertx-web-api-service</artifactId>
   <version>${maven.version}</version>
 </dependency>
@@ -23,9 +29,15 @@ To use Vert.x API Service, add the following dependency to the _dependencies_ se
 [source,groovy,subs="+attributes"]
 ----
 dependencies {
-  compile 'io.vertx:vertx-web-api-codegen:${maven.version}'
+  compile 'io.vertx:vertx-codegen:${maven.version}:processor'
+  compile 'io.vertx:vertx-web-api-service:${maven.version}'
 }
 ----
+
+You need to import `vertx-codegen` to trigger the code generation from annotated interfaces
+
+If you want to use the interface you write in different languages, you will need to add the _language_ dependency such as
+`vertx-lang-groovy` for Groovy.
 
 == Recap on Vert.x Web API Contract
 
