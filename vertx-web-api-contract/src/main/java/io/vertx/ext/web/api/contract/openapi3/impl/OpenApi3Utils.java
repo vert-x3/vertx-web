@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.Operation;
+import io.swagger.v3.oas.models.PathItem;
 import io.swagger.v3.oas.models.media.ComposedSchema;
 import io.swagger.v3.oas.models.media.MediaType;
 import io.swagger.v3.oas.models.media.Schema;
@@ -13,6 +15,7 @@ import io.swagger.v3.parser.core.models.ParseOptions;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.api.OperationRequest;
+import io.vertx.ext.web.api.contract.RouterFactoryException;
 import io.vertx.ext.web.api.validation.SpecFeatureNotSupportedException;
 
 import java.lang.reflect.Method;
@@ -308,6 +311,40 @@ public class OpenApi3Utils {
       }
     }
     return result.toString();
+  }
+  
+  public static Object getAndMergeServiceExtension(String extensionKey, String addressKey, String methodKey, PathItem pathModel, Operation operationModel) {
+    Object pathExtension = pathModel.getExtensions() != null ? pathModel.getExtensions().get(extensionKey) : null;
+    Object operationExtension = operationModel.getExtensions() != null ? operationModel.getExtensions().get(extensionKey) : null;
+
+    // Cases:
+    // 1. both strings or path extension null: operation extension overrides all
+    // 2. path extension map and operation extension string: path extension interpreted as delivery options and operation extension as address
+    // 3. path extension string and operation extension map: path extension interpreted as address
+    // 4. both maps: extension map overrides path map elements
+    // 5. operation extension null: path extension overrides all
+
+    if ((operationExtension instanceof String && pathExtension instanceof String) || pathExtension == null) return operationExtension;
+    if (operationExtension instanceof String && pathExtension instanceof Map) {
+      Map<String, Object> result = new HashMap<>();
+      result.put(addressKey, operationExtension);
+      Map<String, Object> pathExtensionMap = (Map<String, Object>) pathExtension;
+      if (pathExtensionMap.containsKey(methodKey)) throw RouterFactoryException.createWrongExtension("Extension " + extensionKey + " in path declaration must not contain " + methodKey);
+      pathExtensionMap.forEach(result::putIfAbsent);
+      return result;
+    }
+    if (operationExtension instanceof Map && pathExtension instanceof String) {
+      Map<String, Object> result = (Map<String, Object>) operationExtension;
+      result.putIfAbsent(addressKey, pathExtension);
+      return result;
+    }
+    if (operationExtension instanceof Map && pathExtension instanceof Map) {
+      Map<String, Object> result = (Map<String, Object>) operationExtension;
+      ((Map<String, Object>)pathExtension).forEach(result::putIfAbsent);
+      return result;
+    }
+    if (operationExtension == null) return pathExtension;
+    return null;
   }
 
 }

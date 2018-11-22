@@ -10,7 +10,6 @@ paths:
       operationId: testA
       tags:
         - test
-      x-vertx-event-bus: address
       requestBody:
         content:
           application/json:
@@ -24,7 +23,6 @@ paths:
       operationId: testB
       tags:
         - test
-      x-vertx-event-bus: address
       requestBody:
         content:
           application/json:
@@ -38,9 +36,6 @@ paths:
       operationId: test_ -C_
       tags:
         - anotherTest
-      x-vertx-event-bus:
-        address: anotherAddress
-        method: testD
       requestBody:
         content:
           application/json:
@@ -54,9 +49,6 @@ paths:
       operationId: testD
       tags:
         - anotherTest
-      x-vertx-event-bus:
-        address: anotherAddress
-        method: testD
       requestBody:
         content:
           application/json:

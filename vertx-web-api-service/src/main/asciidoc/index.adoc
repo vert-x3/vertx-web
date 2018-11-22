@@ -134,7 +134,7 @@ For example:
 {@link examples.ApiCodegenExamples#example2}
 ----
 
-== Mount to Router Factory and run the service
+== Mount to Router Factory
 
 Now that your service is ready you need to mount it to {@link io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory}. When you use one of the methods below, the router factory mounts an handler that routes the request through the event bus to the service at the address specified. Pay attention to specify the correct address to event bus endpoint.
 
@@ -145,10 +145,15 @@ You have four methods to match the service with router operation handlers:
 * Specify the class interface and the address of the service with {@link io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory#mountServiceInterface(java.lang.Class, java.lang.String)}. This method introspects the interface public methods and mounts all matching method names with operation ids
 * Specify inside the OpenAPI specification the `x-vertx-event-bus` extension for operations you want to route to your service and scan all operations that contains it with {@link io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory#mountServicesFromExtensions()}
 
-The `x-vertx-event-bus` must be one of these two formats:
+=== Using the extension `x-vertx-event-bus`
+
+The `x-vertx-event-bus` can be configured both in path item object or in operation object. It can be:
 
 * A string containing the address of service
-* An object containing the field `address` and the field `method` that specifies the interface method name
+* An object containing:
+** The field `address` that specifies the address of the service
+** The field `method` that specifies the interface method name (valid only when you specify it in operation object)
+** The delivery options `timeout` and `headers` (Look at {@link io.vertx.core.eventbus.DeliveryOptions})
 
 For example if I want to route _getTransactionsList_ to `TransactionService` mounted at event bus address `transaction_service.my_application`:
 
@@ -176,10 +181,35 @@ Or
       method: getTransactionsList
 ----
 
+You can specify both in path item and operation the extension and router factory will take care of merging it:
+
+[source,yaml]
+----
+/api/transactions:
+  x-vertx-event-bus:
+    address: transaction_service.my_application
+    timeout: 1000
+  get:
+    operationId: getTransactionsList
+    parameters: ...
+    responses: ...
+  post:
+    operationId: postTransaction
+    parameters: ...
+    responses: ...
+    x-vertx-event-bus:
+      method: postTransactionToDb
+----
+
 Then you can call {@link io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory#mountServicesFromExtensions()} that scans entire spec and mounts the handlers that route to your service the requests
 
+== Run the service
+
 Now you can register your service to event bus:
+
 [source,$lang]
 ----
 {@link examples.ApiCodegenExamples#example3}
 ----
+
+For more info look at https://vertx.io/docs/vertx-service-proxy/java/#_exposing_your_service[Vert.x service proxy documentation]
