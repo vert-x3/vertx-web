@@ -502,7 +502,8 @@ public class OpenAPI3ServiceProxiesTest extends ApiWebTestBase {
     OpenAPI3RouterFactory.create(this.vertx, "src/test/resources/swaggers/service_proxy_test.yaml",
       openAPI3RouterFactoryAsyncResult -> {
         routerFactory = openAPI3RouterFactoryAsyncResult.result();
-        routerFactory.setOptions(HANDLERS_TESTS_OPTIONS.setExtraOperationContextPayloadMapper(rc -> new JsonObject().put("username", "slinkydeveloper")));
+        routerFactory.setOptions(HANDLERS_TESTS_OPTIONS);
+        routerFactory.setExtraOperationContextPayloadMapper(rc -> new JsonObject().put("username", "slinkydeveloper"));
 
         routerFactory.mountOperationToEventBus("extraPayload", "someAddress");
 

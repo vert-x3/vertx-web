@@ -526,14 +526,13 @@ public class OpenAPI3RouterFactoryTest extends ApiWebTestBase {
     OpenAPI3RouterFactory.create(this.vertx, "src/test/resources/swaggers/router_factory_test.yaml",
       openAPI3RouterFactoryAsyncResult -> {
         routerFactory = openAPI3RouterFactoryAsyncResult.result();
-        routerFactory.setOptions(HANDLERS_TESTS_OPTIONS
-          .setValidationFailureHandler(routingContext ->
-            routingContext
-              .response()
-              .setStatusCode(400)
-              .setStatusMessage("Very very Bad Request")
-              .end()
-          )
+        routerFactory.setOptions(HANDLERS_TESTS_OPTIONS);
+        routerFactory.setValidationFailureHandler(routingContext ->
+          routingContext
+            .response()
+            .setStatusCode(400)
+            .setStatusMessage("Very very Bad Request")
+            .end()
         );
 
         routerFactory.addHandlerByOperationId("listPets", routingContext -> routingContext
@@ -618,13 +617,14 @@ public class OpenAPI3RouterFactoryTest extends ApiWebTestBase {
           new RouterFactoryOptions()
             .setMountNotImplementedHandler(true)
             .setRequireSecurityHandlers(false)
-            .setNotImplementedFailureHandler(routingContext ->
-              routingContext
-                .response()
-                .setStatusCode(501)
-                .setStatusMessage("We are too lazy to implement this operation")
-                .end()
-            )
+        );
+
+        routerFactory.setNotImplementedFailureHandler(routingContext ->
+          routingContext
+            .response()
+            .setStatusCode(501)
+            .setStatusMessage("We are too lazy to implement this operation")
+            .end()
         );
 
         latch.countDown();
@@ -662,18 +662,16 @@ public class OpenAPI3RouterFactoryTest extends ApiWebTestBase {
     OpenAPI3RouterFactory.create(this.vertx, "src/test/resources/swaggers/router_factory_test.yaml",
       openAPI3RouterFactoryAsyncResult -> {
         routerFactory = openAPI3RouterFactoryAsyncResult.result();
-        routerFactory.setOptions(
-          new RouterFactoryOptions()
-            .setRequireSecurityHandlers(false)
-            .addGlobalHandler(rc -> {
-              rc.response().putHeader("header-from-global-handler", "some dummy data");
-              rc.next();
-            })
-            .addGlobalHandler(rc -> {
-              rc.response().putHeader("header-from-global-handler", "some more dummy data");
-              rc.next();
-            })
-        );
+        routerFactory.setOptions(new RouterFactoryOptions().setRequireSecurityHandlers(false));
+
+        routerFactory.addGlobalHandler(rc -> {
+          rc.response().putHeader("header-from-global-handler", "some dummy data");
+          rc.next();
+        });
+        routerFactory.addGlobalHandler(rc -> {
+            rc.response().putHeader("header-from-global-handler", "some more dummy data");
+            rc.next();
+        });
 
         routerFactory.addHandlerByOperationId("listPets", routingContext -> routingContext
           .response()
@@ -863,11 +861,9 @@ public class OpenAPI3RouterFactoryTest extends ApiWebTestBase {
           try {
             if (openAPI3RouterFactoryAsyncResult.succeeded()) {
               routerFactory = openAPI3RouterFactoryAsyncResult.result();
-              routerFactory.setOptions(
-                new RouterFactoryOptions()
-                  .setRequireSecurityHandlers(false)
-                  .setBodyHandler(BodyHandler.create("my-uploads"))
-              );
+              routerFactory.setOptions(new RouterFactoryOptions().setRequireSecurityHandlers(false));
+
+              routerFactory.setBodyHandler(BodyHandler.create("my-uploads"));
 
               routerFactory.addHandlerByOperationId("upload", (h) -> h.response().setStatusCode(201).end());
             } else {

@@ -262,9 +262,9 @@ public class OpenAPI3RouterFactoryImpl extends BaseRouterFactory<OpenAPI> implem
   public Router getRouter() {
     Router router = Router.router(vertx);
     Route globalRoute = router.route();
-    globalRoute.handler(options.getBodyHandler());
+    globalRoute.handler(this.getBodyHandler());
 
-    List<Handler<RoutingContext>> globalHandlers = this.getOptions().getGlobalHandlers();
+    List<Handler<RoutingContext>> globalHandlers = this.getGlobalHandlers();
     for (Handler<RoutingContext> globalHandler: globalHandlers) {
       globalRoute.handler(globalHandler);
     }
@@ -297,7 +297,7 @@ public class OpenAPI3RouterFactoryImpl extends BaseRouterFactory<OpenAPI> implem
       handlersToLoad.add(validationHandler);
 
       // Check validation failure handler
-      if (this.options.isMountValidationFailureHandler()) failureHandlersToLoad.add(this.options.getValidationFailureHandler());
+      if (this.options.isMountValidationFailureHandler()) failureHandlersToLoad.add(this.getValidationFailureHandler());
 
       // Check if path is set by user
       if (operation.isConfigured()) {
@@ -310,17 +310,17 @@ public class OpenAPI3RouterFactoryImpl extends BaseRouterFactory<OpenAPI> implem
               operation.getEbServiceAddress(),
               operation.getEbServiceMethodName(),
               operation.getEbServiceDeliveryOptions(),
-              options.getExtraOperationContextPayloadMapper()
+              this.getExtraOperationContextPayloadMapper()
             ) : RouteToEBServiceHandler.build(
               vertx.eventBus(),
               operation.getEbServiceAddress(),
               operation.getEbServiceMethodName(),
-              options.getExtraOperationContextPayloadMapper()
+              this.getExtraOperationContextPayloadMapper()
             )
           );
         }
       } else {
-        handlersToLoad.add(this.options.getNotImplementedFailureHandler());
+        handlersToLoad.add(this.getNotImplementedFailureHandler());
       }
 
       // Now add all handlers to route

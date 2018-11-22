@@ -17,6 +17,7 @@ import io.vertx.ext.web.api.contract.RouterFactory;
 import io.vertx.ext.web.api.contract.RouterFactoryException;
 import io.vertx.ext.web.api.contract.openapi3.impl.OpenAPI3RouterFactoryImpl;
 import io.vertx.ext.web.api.contract.openapi3.impl.OpenApi3Utils;
+import io.vertx.ext.web.handler.BodyHandler;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collections;
@@ -29,7 +30,7 @@ import java.util.stream.Collectors;
  * Usage example:
  * <pre>
  * {@code
- * OpenAPI3RouterFactory.createRouterFactoryFromFile(vertx, "src/resources/spec.yaml", asyncResult -> {
+ * OpenAPI3RouterFactory.create(vertx, "src/resources/spec.yaml", asyncResult -> {
  *  if (!asyncResult.succeeded()) {
  *     // IO failure or spec invalid
  *  } else {
@@ -44,6 +45,16 @@ import java.util.stream.Collectors;
  * });
  * }
  * </pre>
+ * <br/>
+ * Handlers are loaded in this order:<br/>
+ *  <ol>
+ *   <li>Body handler (Customizable with {@link this#setBodyHandler(BodyHandler)}</li>
+ *   <li>Custom global handlers configurable with {@link this#addGlobalHandler(Handler)}</li>
+ *   <li>Global security handlers defined in upper spec level</li>
+ *   <li>Operation specific security handlers</li>
+ *   <li>Generated validation handler</li>
+ *   <li>User handlers or "Not implemented" handler</li>
+ * </ol>
  *
  * @author Francesco Guardiani @slinkydeveloper
  */

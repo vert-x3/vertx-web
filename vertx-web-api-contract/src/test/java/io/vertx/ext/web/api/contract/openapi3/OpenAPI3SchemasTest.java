@@ -71,9 +71,9 @@ public class OpenAPI3SchemasTest extends WebTestValidationBase {
         new RouterFactoryOptions()
         .setRequireSecurityHandlers(false)
         .setMountValidationFailureHandler(true)
-        .setValidationFailureHandler(FAILURE_HANDLER)
         .setMountNotImplementedHandler(false)
       );
+      routerFactory.setValidationFailureHandler(FAILURE_HANDLER);
       latch.countDown();
     });
     awaitLatch(latch);
