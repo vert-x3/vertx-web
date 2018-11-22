@@ -14,7 +14,7 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.api.contract.RouterFactoryException;
 import io.vertx.ext.web.api.contract.impl.BaseRouterFactory;
-import io.vertx.ext.web.api.contract.impl.RouteToServiceProxyHandler;
+import io.vertx.ext.web.api.contract.impl.RouteToEBServiceHandler;
 import io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory;
 import io.vertx.ext.web.handler.ResponseContentTypeHandler;
 
@@ -305,13 +305,13 @@ public class OpenAPI3RouterFactoryImpl extends BaseRouterFactory<OpenAPI> implem
         failureHandlersToLoad.addAll(operation.getUserFailureHandlers());
         if (operation.mustMountRouteToService()) {
           handlersToLoad.add(
-            (operation.getEbServiceDeliveryOptions() != null) ? RouteToServiceProxyHandler.build(
+            (operation.getEbServiceDeliveryOptions() != null) ? RouteToEBServiceHandler.build(
               vertx.eventBus(),
               operation.getEbServiceAddress(),
               operation.getEbServiceMethodName(),
               operation.getEbServiceDeliveryOptions(),
               options.getExtraOperationContextPayloadMapper()
-            ) : RouteToServiceProxyHandler.build(
+            ) : RouteToEBServiceHandler.build(
               vertx.eventBus(),
               operation.getEbServiceAddress(),
               operation.getEbServiceMethodName(),

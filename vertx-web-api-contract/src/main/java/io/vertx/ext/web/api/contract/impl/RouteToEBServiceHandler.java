@@ -14,14 +14,14 @@ import io.vertx.ext.web.api.RequestParameters;
 
 import java.util.function.Function;
 
-public class RouteToServiceProxyHandler implements Handler<RoutingContext> {
+public class RouteToEBServiceHandler implements Handler<RoutingContext> {
 
   EventBus eventBus;
   String address;
   DeliveryOptions deliveryOptions;
   Function<RoutingContext, JsonObject> extraOperationContextPayloadMapper;
 
-  public RouteToServiceProxyHandler(EventBus eventBus, String address, DeliveryOptions deliveryOptions, Function<RoutingContext, JsonObject> extraOperationContextPayloadMapper) {
+  public RouteToEBServiceHandler(EventBus eventBus, String address, DeliveryOptions deliveryOptions, Function<RoutingContext, JsonObject> extraOperationContextPayloadMapper) {
     this.eventBus = eventBus;
     this.address = address;
     this.deliveryOptions = deliveryOptions;
@@ -57,13 +57,13 @@ public class RouteToServiceProxyHandler implements Handler<RoutingContext> {
     ).toJson());
   }
 
-  public static RouteToServiceProxyHandler build(EventBus eventBus, String address, String actionName, Function<RoutingContext, JsonObject> extraOperationContextPayloadMapper) {
-    return new RouteToServiceProxyHandler(eventBus, address, new DeliveryOptions().addHeader("action", actionName), extraOperationContextPayloadMapper);
+  public static RouteToEBServiceHandler build(EventBus eventBus, String address, String actionName, Function<RoutingContext, JsonObject> extraOperationContextPayloadMapper) {
+    return new RouteToEBServiceHandler(eventBus, address, new DeliveryOptions().addHeader("action", actionName), extraOperationContextPayloadMapper);
   }
 
-  public static RouteToServiceProxyHandler build(EventBus eventBus, String address, String actionName, JsonObject deliveryOptions, Function<RoutingContext, JsonObject> extraOperationContextPayloadMapper) {
+  public static RouteToEBServiceHandler build(EventBus eventBus, String address, String actionName, JsonObject deliveryOptions, Function<RoutingContext, JsonObject> extraOperationContextPayloadMapper) {
     DeliveryOptions opt = new DeliveryOptions(deliveryOptions).addHeader("action", actionName);
-    return new RouteToServiceProxyHandler(eventBus, address, opt, extraOperationContextPayloadMapper);
+    return new RouteToEBServiceHandler(eventBus, address, opt, extraOperationContextPayloadMapper);
   }
 
 }
