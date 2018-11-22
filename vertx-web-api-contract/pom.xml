@@ -57,11 +57,6 @@
     </dependency>
 
     <dependency>
-      <groupId>com.fasterxml.jackson.dataformat</groupId>
-      <artifactId>jackson-dataformat-yaml</artifactId>
-    </dependency>
-
-    <dependency>
       <groupId>io.vertx</groupId>
       <artifactId>vertx-web</artifactId>
       <type>test-jar</type>
