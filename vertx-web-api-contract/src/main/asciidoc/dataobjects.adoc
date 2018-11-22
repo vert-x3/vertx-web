@@ -45,6 +45,7 @@ Get request principal user as routingContext.user().principal(), null if no user
 ^|Name | Type ^| Description
 |[[mountNotImplementedHandler]]`@mountNotImplementedHandler`|`Boolean`|+++
 Automatic mount handlers that return HTTP 501 status code for operations where you didn't specify an handler.
+ You can change the "not implemented handler" with link
 +++
 |[[mountResponseContentTypeHandler]]`@mountResponseContentTypeHandler`|`Boolean`|+++
 If true, when required, the factory will mount a link

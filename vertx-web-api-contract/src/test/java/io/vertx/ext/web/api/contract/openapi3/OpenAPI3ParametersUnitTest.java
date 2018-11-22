@@ -62,9 +62,9 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
       new RouterFactoryOptions()
         .setRequireSecurityHandlers(false)
         .setMountValidationFailureHandler(true)
-        .setValidationFailureHandler(generateFailureHandler())
         .setMountNotImplementedHandler(false)
     );
+    routerFactory.setValidationFailureHandler(generateFailureHandler());
   }
 
   @Override
