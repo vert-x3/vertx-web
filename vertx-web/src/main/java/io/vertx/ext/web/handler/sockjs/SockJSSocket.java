@@ -115,6 +115,14 @@ public interface SockJSSocket extends ReadStream<Buffer>, WriteStream<Buffer> {
   void close();
 
   /**
+   * Close it giving a status code and reason. Only Applicable to RawWebSocket will downgrade to plain close for
+   * other transports.
+   */
+  default void close(int statusCode, String reason) {
+    close();
+  }
+
+  /**
    * Return the remote address for this socket
    */
   SocketAddress remoteAddress();

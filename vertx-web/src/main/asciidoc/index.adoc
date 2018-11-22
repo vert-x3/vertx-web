@@ -147,14 +147,15 @@ For every request that is routed there is a unique routing context instance, and
 all handlers for that request.
 
 Once we've set up the handler, we set the request handler of the HTTP server to pass all incoming requests
-to {@link io.vertx.ext.web.Router#accept}.
+to {@link io.vertx.ext.web.Router#handle}.
 
 So, that's the basics. Now we'll look at things in more detail:
 
 == Handling requests and calling the next handler
 
 When Vert.x-Web decides to route a request to a matching route, it calls the handler of the route passing in an instance
-of {@link io.vertx.ext.web.RoutingContext}.
+of {@link io.vertx.ext.web.RoutingContext}. A route can have different handlers, that you can append using
+{@link io.vertx.ext.web.Route#handler}
 
 If you don't end the response in your handler, you should call {@link io.vertx.ext.web.RoutingContext#next} so another
 matching route can handle the request (if any).
@@ -196,7 +197,7 @@ don't mind your blocking handlers executing in parallel you can set the blocking
 false using {@link io.vertx.ext.web.Route#blockingHandler(io.vertx.core.Handler, boolean)}.
 
 Note, if you need to process multipart form data from a blocking handler, you MUST use a non-blocking handler
-      FIRST in order to call {@code setExpectMultipart(true)}. Here is an example:
+      FIRST in order to call `setExpectMultipart(true)`. Here is an example:
 
 [source,$lang]
 ----
@@ -791,6 +792,12 @@ being affected by the PRNG algorithm.
 
 Vert.x-Web comes with two session store implementations out of the box, and you can also write your own if you prefer.
 
+The implementations are expected to follow the `ServiceLoader` conventions and all stores that are available at runtime
+from the classpath will be exposed. When more than 1 implementations are available the first one that can be
+instantiated and configured with success becomes the default. If none is available, then the default depends on the mode
+Vert.x was created. If cluster mode is available the the clustered session store is the default otherwise the local
+storage is the default.
+
 ==== Local session store
 
 With this store, sessions are stored locally in memory and only available in this instance.
@@ -803,10 +810,9 @@ requests might end up on a server which doesn't know about your session.
 
 Local session stores are implemented by using a shared local map, and have a reaper which clears out expired sessions.
 
-The reaper interval can be configured with
-{@link io.vertx.ext.web.sstore.LocalSessionStore#create(io.vertx.core.Vertx, String, long)}.
+The reaper interval can be configured with a json message with the key: `reaperInterval`.
 
-Here are some examples of creating a {@link io.vertx.ext.web.sstore.LocalSessionStore}
+Here are some examples of creating a local {@link io.vertx.ext.web.sstore.SessionStore}
 
 [source,$lang]
 ----
@@ -824,7 +830,7 @@ Your session is accessible from any node in the cluster using this store.
 
 To you use a clustered session store you should make sure your Vert.x instance is clustered.
 
-Here are some examples of creating a {@link io.vertx.ext.web.sstore.ClusteredSessionStore}
+Here are some examples of creating a clustered {@link io.vertx.ext.web.sstore.SessionStore}
 
 [source,$lang]
 ----
@@ -1400,7 +1406,7 @@ Thymeleaf templates.
 
 To use Apache FreeMarker, you need to add the following _dependency_ to your project:
 `${maven.groupId}:vertx-web-templ-freemarker:${maven.version}`. Create an instance of the Apache FreeMarker template engine
-using: `io.vertx.ext.web.templ.FreeMarkerTemplateEngine#create()`.
+using: `io.vertx.ext.web.templ.Engine#create()`.
 
 When using the Apache FreeMarker template engine, it will by default look for
 templates with the `.ftl` extension if no extension is specified in the file name.
@@ -1965,6 +1971,45 @@ or the header name they have chosen during the instantiation of the `CSRFHandler
 [source,$lang]
 ----
 {@link examples.WebExamples#example54}
+----
+
+=== Using AJAX
+
+When accessing protected routes via ajax both the csrf token will need to be passed in the request. Typically this is
+done using a request header, as adding a request header can typically be done at a central location easily without
+payload modification.
+
+The CSRF token is obtained from the server side context under the key `X-XSRF-TOKEN` (unless you specified a different
+name). This token needs to be exposed to the client-side, typically by including it in the initial page content. One
+possibility is to store it in an HTML <meta> tag, where value can then be retrieved at the time of the request by
+JavaScript.
+
+The following can be included in your view (handlebar example below):
+
+[source,html]
+----
+<meta name="csrf-token" content="${X-XSRF-TOKEN}">
+----
+
+The following is an example of using the Fetch API to post to the /process route with the CSRF token from the <meta>
+tag on the page:
+
+[source,js]
+----
+// Read the CSRF token from the <meta> tag
+var token = document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+
+// Make a request using the Fetch API
+fetch('/process', {
+  credentials: 'same-origin', // <-- includes cookies in the request
+  headers: {
+    'X-XSRF-TOKEN': token // <-- is the csrf token as a header
+  },
+  method: 'POST',
+  body: {
+    key: 'value'
+  }
+})
 ----
 
 == VirtualHost Handler

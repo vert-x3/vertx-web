@@ -16,7 +16,7 @@
     <dependency>
       <groupId>org.thymeleaf</groupId>
       <artifactId>thymeleaf</artifactId>
-      <version>3.0.0.RELEASE</version>
+      <version>3.0.9.RELEASE</version>
       <exclusions>
         <exclusion>
           <groupId>org.slf4j</groupId>
@@ -24,6 +24,7 @@
         </exclusion>
       </exclusions>
     </dependency>
+    <!-- Force same version than mysql/postgres driver -->
     <dependency>
       <groupId>org.javassist</groupId>
       <artifactId>javassist</artifactId>
@@ -37,13 +38,19 @@
     </dependency>
     <dependency>
       <groupId>io.vertx</groupId>
-      <artifactId>vertx-web</artifactId>
+      <artifactId>vertx-web-common</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>io.vertx</groupId>
       <artifactId>vertx-web</artifactId>
-      <type>test-jar</type>
+      <version>${project.version}</version>
+      <scope>provided</scope>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-unit</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>

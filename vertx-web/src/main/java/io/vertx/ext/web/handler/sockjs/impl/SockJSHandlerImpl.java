@@ -35,7 +35,6 @@ package io.vertx.ext.web.handler.sockjs.impl;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
@@ -49,6 +48,7 @@ import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSSocket;
 import io.vertx.ext.web.handler.sockjs.Transport;
 
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -63,6 +63,7 @@ import static io.vertx.core.buffer.Buffer.*;
 /**
  *
  * @author <a href="http://tfox.org">Tim Fox</a>
+ * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
 public class SockJSHandlerImpl implements SockJSHandler, Handler<RoutingContext> {
 
@@ -249,7 +250,7 @@ public class SockJSHandlerImpl implements SockJSHandler, Handler<RoutingContext>
   private static String getMD5String(String str) {
     try {
         MessageDigest md = MessageDigest.getInstance("MD5");
-        byte[] bytes = md.digest(str.getBytes("UTF-8"));
+        byte[] bytes = md.digest(str.getBytes(StandardCharsets.UTF_8));
         StringBuilder sb = new StringBuilder();
         for (byte b : bytes) {
           sb.append(Integer.toHexString(b + 127));
@@ -268,74 +269,16 @@ public class SockJSHandlerImpl implements SockJSHandler, Handler<RoutingContext>
       "<head>\n" +
       "  <meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\" />\n" +
       "  <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" />\n" +
+      "  <script src=\"{{ sockjs_url }}\"></script>\n" +
       "  <script>\n" +
       "    document.domain = document.domain;\n" +
-      "    _sockjs_onload = function(){SockJS.bootstrap_iframe();};\n" +
+      "    SockJS.bootstrap_iframe();\n" +
       "  </script>\n" +
-      "  <script src=\"{{ sockjs_url }}\"></script>\n" +
       "</head>\n" +
       "<body>\n" +
       "  <h2>Don't panic!</h2>\n" +
       "  <p>This is a SockJS hidden iframe. It's used for cross domain magic.</p>\n" +
       "</body>\n" +
       "</html>";
-
-  public static void installTestApplications(Router router, Vertx vertx) {
-
-    // These applications are required by the SockJS protocol and QUnit tests
-
-    router.route("/echo/*").handler(SockJSHandler.create(vertx,
-        new SockJSHandlerOptions().setMaxBytesStreaming(4096)).socketHandler(sock -> sock.handler(sock::write)));
-    router.route("/close/*").handler(SockJSHandler.create(vertx,
-        new SockJSHandlerOptions().setMaxBytesStreaming(4096)).socketHandler(SockJSSocket::close));
-    router.route("/disabled_websocket_echo/*").handler(SockJSHandler.create(vertx, new SockJSHandlerOptions()
-      .setMaxBytesStreaming(4096).addDisabledTransport("WEBSOCKET")).socketHandler(sock -> sock.handler(sock::write)));
-    router.route("/ticker/*").handler(SockJSHandler.create(vertx,
-        new SockJSHandlerOptions().setMaxBytesStreaming(4096)).socketHandler(sock -> {
-          long timerID = vertx.setPeriodic(1000, tid -> sock.write(buffer("tick!")));
-          sock.endHandler(v -> vertx.cancelTimer(timerID));
-        }));
-    router.route("/amplify/*").handler(SockJSHandler.create(vertx,
-        new SockJSHandlerOptions().setMaxBytesStreaming(4096)).socketHandler(sock -> sock.handler(data -> {
-          String str = data.toString();
-          int n = Integer.valueOf(str);
-          if (n < 0 || n > 19) {
-            n = 1;
-          }
-          int num = (int) Math.pow(2, n);
-          Buffer buff = buffer(num);
-          for (int i = 0; i < num; i++) {
-            buff.appendByte((byte) 'x');
-          }
-          sock.write(buff);
-        })));
-    router.route("/broadcast/*").handler(SockJSHandler.create(vertx,
-        new SockJSHandlerOptions().setMaxBytesStreaming(4096)).socketHandler(new Handler<SockJSSocket>() {
-          Set<String> connections = new HashSet<>();
-
-          public void handle(SockJSSocket sock) {
-            connections.add(sock.writeHandlerID());
-            sock.handler(buffer -> {
-              for (String actorID : connections) {
-                vertx.eventBus().publish(actorID, buffer);
-              }
-            });
-            sock.endHandler(v -> connections.remove(sock.writeHandlerID()));
-          }
-        }));
-    router.route("/cookie_needed_echo/*").handler(SockJSHandler.create(vertx, new SockJSHandlerOptions().
-      setMaxBytesStreaming(4096).setInsertJSESSIONID(true)).socketHandler(sock -> sock.handler(sock::write)));
-  }
-
-  // For debug only
-
-  // The sockjs-protocol tests must be run against the tests in the 0.3.3 tag of sockjs-protocol !!
-  public static void main(String[] args) throws Exception {
-    Vertx vertx = Vertx.vertx();
-    HttpServer server = vertx.createHttpServer();
-    Router router = Router.router(vertx);
-    installTestApplications(router, vertx);
-    server.requestHandler(router::accept).listen(8081);
-  }
 }
 

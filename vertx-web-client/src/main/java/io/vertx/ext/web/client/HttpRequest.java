@@ -25,7 +25,12 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.streams.ReadStream;
+import io.vertx.ext.web.client.predicate.ResponsePredicate;
+import io.vertx.ext.web.client.predicate.ResponsePredicateResult;
 import io.vertx.ext.web.codec.BodyCodec;
+import io.vertx.ext.web.multipart.MultipartForm;
+
+import java.util.function.Function;
 
 /**
  * A client-side HTTP request.
@@ -184,6 +189,30 @@ public interface HttpRequest<T> {
   HttpRequest<T> followRedirects(boolean value);
 
   /**
+   * Add an expectation that the response is valid according to the provided {@code predicate}.
+   * <p>
+   * Multiple predicates can be added.
+   *
+   * @param predicate the predicate
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  default HttpRequest<T> expect(Function<HttpResponse<Void>, ResponsePredicateResult> predicate) {
+    return expect(predicate::apply);
+  }
+
+  /**
+   * Add an expectation that the response is valid according to the provided {@code predicate}.
+   * <p>
+   * Multiple predicates can be added.
+   *
+   * @param predicate the predicate
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  HttpRequest<T> expect(ResponsePredicate predicate);
+
+  /**
    * Return the current query parameters.
    *
    * @return the current query parameters
@@ -236,6 +265,14 @@ public interface HttpRequest<T> {
    * @param body the body
    */
   void sendForm(MultiMap body, Handler<AsyncResult<HttpResponse<T>>> handler);
+
+  /**
+   * Like {@link #send(Handler)} but with an HTTP request {@code body} multimap encoded as form and the content type
+   * set to {@code multipart/form-data}. You may use this method to send attributes and upload files.
+   *
+   * @param body the body
+   */
+  void sendMultipartForm(MultipartForm body, Handler<AsyncResult<HttpResponse<T>>> handler);
 
   /**
    * Send a request, the {@code handler} will receive the response as an {@link HttpResponse}.

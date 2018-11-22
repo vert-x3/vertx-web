@@ -18,11 +18,7 @@ package io.vertx.ext.web.sstore;
 
 import io.vertx.core.VertxOptions;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.http.HttpClient;
-import io.vertx.core.http.HttpClientOptions;
-import io.vertx.core.http.HttpMethod;
-import io.vertx.core.http.HttpServer;
-import io.vertx.core.http.HttpServerOptions;
+import io.vertx.core.http.*;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.spi.cluster.ClusterManager;
 import io.vertx.ext.web.Router;
@@ -30,9 +26,7 @@ import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.CookieHandler;
 import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.handler.SessionHandlerTestBase;
-import io.vertx.ext.web.handler.SomeSerializable;
-import io.vertx.ext.web.sstore.impl.SessionImpl;
-import io.vertx.test.core.Repeat;
+import io.vertx.ext.web.sstore.impl.SharedDataSessionImpl;
 import io.vertx.test.core.TestUtils;
 import io.vertx.test.fakecluster.FakeClusterManager;
 import org.junit.Test;
@@ -73,7 +67,7 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
     SessionStore store1 = ClusteredSessionStore.create(vertices[0]);
     router1.route().handler(SessionHandler.create(store1));
     HttpServer server1 = vertices[0].createHttpServer(new HttpServerOptions().setPort(8081).setHost("localhost"));
-    server1.requestHandler(router1::accept);
+    server1.requestHandler(router1);
     server1.listen(onSuccess(s -> serversReady.countDown()));
     HttpClient client1 = vertices[0].createHttpClient(new HttpClientOptions());
 
@@ -82,7 +76,7 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
     SessionStore store2 = ClusteredSessionStore.create(vertices[1]);
     router2.route().handler(SessionHandler.create(store2));
     HttpServer server2 = vertices[1].createHttpServer(new HttpServerOptions().setPort(8082).setHost("localhost"));
-    server2.requestHandler(router2::accept);
+    server2.requestHandler(router2);
     server2.listen(onSuccess(s -> serversReady.countDown()));
     HttpClient client2 = vertices[0].createHttpClient(new HttpClientOptions());
 
@@ -91,7 +85,7 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
     SessionStore store3 = ClusteredSessionStore.create(vertices[2]);
     router3.route().handler(SessionHandler.create(store3));
     HttpServer server3 = vertices[2].createHttpServer(new HttpServerOptions().setPort(8083).setHost("localhost"));
-    server3.requestHandler(router3::accept);
+    server3.requestHandler(router3);
     server3.listen(onSuccess(s -> serversReady.countDown()));
     HttpClient client3 = vertices[0].createHttpClient(new HttpClientOptions());
 
@@ -137,14 +131,14 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
   @Test
   public void testSessionSerializationNullPrincipal() {
     long timeout = 123;
-    SessionImpl session = (SessionImpl)store.createSession(timeout);
+    SharedDataSessionImpl session = (SharedDataSessionImpl)store.createSession(timeout);
     session.setAccessed();
     long lastAccessed = session.lastAccessed();
     stuffSession(session);
     checkSession(session);
     Buffer buffer = Buffer.buffer();
     session.writeToBuffer(buffer);
-    SessionImpl session2 = (SessionImpl)store.createSession(0);
+    SharedDataSessionImpl session2 = (SharedDataSessionImpl)store.createSession(0);
     session2.readFromBuffer(0, buffer);
     checkSession(session2);
     assertEquals(timeout, session2.timeout());
@@ -165,7 +159,6 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
     session.put("somestring", "wibble");
     session.put("somebytes", bytes);
     session.put("somebuffer", buffer);
-    session.put("someserializable", new SomeSerializable("eek"));
     session.put("someclusterserializable", new JsonObject().put("foo", "bar"));
   }
 
@@ -190,9 +183,8 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
   @Test
   public void testRetryTimeout() throws Exception {
     long val = doTestSessionRetryTimeout();
-    assertTrue(val >= 3000 && val < 5000);
+    assertTrue(String.valueOf(val), val >= 3000 && val < 5000);
   }
-
 }
 
 

@@ -3,20 +3,22 @@ package io.vertx.ext.web.api.contract.openapi3.impl;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.networknt.schema.JsonSchema;
-import com.networknt.schema.JsonSchemaFactory;
 import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.Operation;
+import io.swagger.v3.oas.models.PathItem;
 import io.swagger.v3.oas.models.media.ComposedSchema;
 import io.swagger.v3.oas.models.media.MediaType;
 import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.parameters.Parameter;
 import io.swagger.v3.parser.ObjectMapperFactory;
 import io.swagger.v3.parser.core.models.ParseOptions;
-import io.vertx.core.json.Json;
-import io.vertx.core.json.JsonArray;
+import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.api.OperationRequest;
+import io.vertx.ext.web.api.contract.RouterFactoryException;
 import io.vertx.ext.web.api.validation.SpecFeatureNotSupportedException;
 
+import java.lang.reflect.Method;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
@@ -139,10 +141,10 @@ public class OpenApi3Utils {
     } else {
       List<Parameter> result = new ArrayList<>(operationParameters);
       List<Parameter> actualParams = new ArrayList<>(operationParameters);
-      for (int i = 0; i < parentParameters.size(); i++) {
-        for (int j = 0; j < actualParams.size(); j++) {
-          Parameter parentParam = parentParameters.get(i);
-          Parameter actualParam = actualParams.get(j);
+      for (Parameter parentParameter : parentParameters) {
+        for (Parameter actualParam1 : actualParams) {
+          Parameter parentParam = parentParameter;
+          Parameter actualParam = actualParam1;
           if (!(parentParam.getIn().equalsIgnoreCase(actualParam.getIn()) && parentParam.getName().equals(actualParam
             .getName())))
             result.add(parentParam);
@@ -193,6 +195,7 @@ public class OpenApi3Utils {
       } else {
         // type object case
         Map<String, ObjectField> properties = new HashMap<>();
+        if (schema.getProperties() == null) return new HashMap<>();
         for (Map.Entry<String, ? extends Schema> entry : ((Map<String, Schema>) schema.getProperties()).entrySet()) {
           properties.put(entry.getKey(), new OpenApi3Utils.ObjectField(entry.getValue(), entry.getKey(), schema));
         }
@@ -214,20 +217,17 @@ public class OpenApi3Utils {
     if (n.has("$ref")) {
       replaceRef(n, root, oas);
     } else if (n.has("allOf")) {
-      Iterator<JsonNode> it = n.get("allOf").iterator();
-      while (it.hasNext()) {
+      for (JsonNode jsonNode : n.get("allOf")) {
         // We assert that parser validated allOf as array of objects
-        walkAndSolve((ObjectNode) it.next(), root, oas);
+        walkAndSolve((ObjectNode) jsonNode, root, oas);
       }
     } else if (n.has("anyOf")) {
-      Iterator<JsonNode> it = n.get("anyOf").iterator();
-      while (it.hasNext()) {
-        walkAndSolve((ObjectNode) it.next(), root, oas);
+      for (JsonNode jsonNode : n.get("anyOf")) {
+        walkAndSolve((ObjectNode) jsonNode, root, oas);
       }
     } else if (n.has("oneOf")) {
-      Iterator<JsonNode> it = n.get("oneOf").iterator();
-      while (it.hasNext()) {
-        walkAndSolve((ObjectNode) it.next(), root, oas);
+      for (JsonNode jsonNode : n.get("oneOf")) {
+        walkAndSolve((ObjectNode) jsonNode, root, oas);
       }
     } else if (n.has("properties")) {
       ObjectNode properties = (ObjectNode) n.get("properties");
@@ -275,6 +275,76 @@ public class OpenApi3Utils {
       .entrySet().stream()
       .filter(e -> matchingFunction.test(e.getKey()))
       .map(Map.Entry::getValue).collect(Collectors.toList());
+  }
+
+  public final static List<Class> SERVICE_PROXY_METHOD_PARAMETERS = Arrays.asList(new Class[]{OperationRequest.class, Handler.class});
+
+  public static boolean serviceProxyMethodIsCompatibleHandler(Method method) {
+    java.lang.reflect.Parameter[] parameters = method.getParameters();
+    if (parameters.length < 2) return false;
+    if (!parameters[parameters.length - 1].getType().equals(Handler.class)) return false;
+    if (!parameters[parameters.length - 2].getType().equals(OperationRequest.class)) return false;
+    return true;
+  }
+
+  public static JsonObject sanitizeDeliveryOptionsExtension(JsonObject jsonObject) {
+    JsonObject newObj = new JsonObject();
+    if (jsonObject.containsKey("timeout")) newObj.put("timeout", jsonObject.getValue("timeout"));
+    if (jsonObject.containsKey("headers")) newObj.put("headers", jsonObject.getValue("headers"));
+    return newObj;
+  }
+
+  public static String sanitizeOperationId(String operationId) {
+    StringBuffer result = new StringBuffer();
+    for (int i = 0; i < operationId.length(); i++) {
+      char c = operationId.charAt(i);
+      if (c == '-' || c == ' ' || c == '_') {
+        try {
+          while (c == '-' || c == ' ' || c == '_') {
+            i++;
+            c = operationId.charAt(i);
+          }
+          result.append(Character.toUpperCase(operationId.charAt(i)));
+        } catch (StringIndexOutOfBoundsException e) {}
+      } else {
+        result.append(c);
+      }
+    }
+    return result.toString();
+  }
+  
+  public static Object getAndMergeServiceExtension(String extensionKey, String addressKey, String methodKey, PathItem pathModel, Operation operationModel) {
+    Object pathExtension = pathModel.getExtensions() != null ? pathModel.getExtensions().get(extensionKey) : null;
+    Object operationExtension = operationModel.getExtensions() != null ? operationModel.getExtensions().get(extensionKey) : null;
+
+    // Cases:
+    // 1. both strings or path extension null: operation extension overrides all
+    // 2. path extension map and operation extension string: path extension interpreted as delivery options and operation extension as address
+    // 3. path extension string and operation extension map: path extension interpreted as address
+    // 4. both maps: extension map overrides path map elements
+    // 5. operation extension null: path extension overrides all
+
+    if ((operationExtension instanceof String && pathExtension instanceof String) || pathExtension == null) return operationExtension;
+    if (operationExtension instanceof String && pathExtension instanceof Map) {
+      Map<String, Object> result = new HashMap<>();
+      result.put(addressKey, operationExtension);
+      Map<String, Object> pathExtensionMap = (Map<String, Object>) pathExtension;
+      if (pathExtensionMap.containsKey(methodKey)) throw RouterFactoryException.createWrongExtension("Extension " + extensionKey + " in path declaration must not contain " + methodKey);
+      pathExtensionMap.forEach(result::putIfAbsent);
+      return result;
+    }
+    if (operationExtension instanceof Map && pathExtension instanceof String) {
+      Map<String, Object> result = (Map<String, Object>) operationExtension;
+      result.putIfAbsent(addressKey, pathExtension);
+      return result;
+    }
+    if (operationExtension instanceof Map && pathExtension instanceof Map) {
+      Map<String, Object> result = (Map<String, Object>) operationExtension;
+      ((Map<String, Object>)pathExtension).forEach(result::putIfAbsent);
+      return result;
+    }
+    if (operationExtension == null) return pathExtension;
+    return null;
   }
 
 }

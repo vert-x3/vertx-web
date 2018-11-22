@@ -68,7 +68,7 @@ public class RoutingContextNullCurrentRouteTest {
                     }));
 
             vertx.createHttpServer()
-                    .requestHandler(router::accept)
+                    .requestHandler(router)
                     .listen(PORT, asyncResult -> {
                         if (asyncResult.succeeded()) {
                             startFuture.complete();

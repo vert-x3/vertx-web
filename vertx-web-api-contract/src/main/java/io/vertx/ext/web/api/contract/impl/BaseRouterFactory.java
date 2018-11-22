@@ -4,7 +4,10 @@ import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.api.contract.RouterFactory;
+import io.vertx.ext.web.api.contract.RouterFactoryException;
 import io.vertx.ext.web.api.contract.RouterFactoryOptions;
+
+import java.lang.annotation.Annotation;
 
 /**
  * @author Francesco Guardiani @slinkydeveloper
@@ -23,30 +26,6 @@ abstract public class BaseRouterFactory<Specification> implements RouterFactory<
 
   public BaseRouterFactory(Vertx vertx, Specification spec) {
     this(vertx, spec, new RouterFactoryOptions());
-  }
-
-  @Override @Deprecated
-  public RouterFactory enableValidationFailureHandler(boolean enable) {
-    if (options == null)
-      this.options = new RouterFactoryOptions();
-    this.options.setMountValidationFailureHandler(enable);
-    return this;
-  }
-
-  @Override @Deprecated
-  public BaseRouterFactory setValidationFailureHandler(Handler<RoutingContext> handler) {
-    if (options == null)
-      this.options = new RouterFactoryOptions();
-    this.options.setValidationFailureHandler(handler);
-    return this;
-  }
-
-  @Override @Deprecated
-  public RouterFactory mountOperationsWithoutHandlers(boolean enable) {
-    if (options == null)
-      this.options = new RouterFactoryOptions();
-    this.options.setMountNotImplementedHandler(enable);
-    return this;
   }
 
   @Override

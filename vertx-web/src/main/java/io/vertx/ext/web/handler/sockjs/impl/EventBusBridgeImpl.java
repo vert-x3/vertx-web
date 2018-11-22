@@ -496,7 +496,7 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
                          Handler<AsyncResult<Boolean>> handler) {
 
     if (curMatch.requiredAuthority != null) {
-      webUser.isAuthorised(curMatch.requiredAuthority, res -> {
+      webUser.isAuthorized(curMatch.requiredAuthority, res -> {
         if (res.succeeded()) {
           handler.handle(Future.succeededFuture(res.result()));
         } else {

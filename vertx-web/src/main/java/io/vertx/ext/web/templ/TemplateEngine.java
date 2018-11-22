@@ -20,6 +20,7 @@ import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 
 /**
@@ -30,7 +31,8 @@ import io.vertx.ext.web.RoutingContext;
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 @VertxGen
-public interface TemplateEngine {
+@Deprecated
+public interface TemplateEngine extends io.vertx.ext.web.common.template.TemplateEngine {
 
   /**
    * Render the template
@@ -43,12 +45,7 @@ public interface TemplateEngine {
    */
   @Deprecated
   default void render(RoutingContext context, String templateFileName, Handler<AsyncResult<Buffer>> handler) {
-    int sep = templateFileName.lastIndexOf('/');
-    if (sep != -1) {
-      render(context, templateFileName.substring(0, sep), templateFileName.substring(sep), handler);
-    } else {
-      render(context, "", templateFileName, handler);
-    }
+    render(new JsonObject(context.data()), templateFileName, handler);
   }
 
   /**
@@ -62,7 +59,10 @@ public interface TemplateEngine {
    * @param templateFileName  the relative template file name to use
    * @param handler  the handler that will be called with a result containing the buffer or a failure.
    */
-  void render(RoutingContext context, String templateDirectory, String templateFileName, Handler<AsyncResult<Buffer>> handler);
+  @Deprecated
+  default void render(RoutingContext context, String templateDirectory, String templateFileName, Handler<AsyncResult<Buffer>> handler) {
+    render(new JsonObject(context.data()), templateDirectory + templateFileName, handler);
+  }
 
   /**
    * Returns true if the template engine caches template files. If false, then template files are freshly loaded each

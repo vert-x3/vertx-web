@@ -1,0 +1,4 @@
+@import io.vertx.core.json.JsonObject
+@args (JsonObject context, String foo, String bar)
+Hello @foo and @bar
+Request path is @context.getString("path")

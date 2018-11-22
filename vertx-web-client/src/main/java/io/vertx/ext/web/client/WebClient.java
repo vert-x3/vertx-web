@@ -23,7 +23,7 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.RequestOptions;
 import io.vertx.core.http.impl.HttpClientImpl;
 import io.vertx.ext.web.client.cache.CacheManager;
-import io.vertx.ext.web.client.impl.WebClientImpl;
+import io.vertx.ext.web.client.impl.WebClientBase;
 
 /**
  * An asynchronous HTTP / HTTP/2 client called {@code WebClient}.
@@ -64,7 +64,7 @@ public interface WebClient {
    * @return the created web client
    */
   static WebClient create(Vertx vertx, WebClientOptions options) {
-    return new WebClientImpl(vertx.createHttpClient(options), options);
+    return new WebClientBase(vertx.createHttpClient(options), options);
   }
 
   /**
@@ -75,7 +75,7 @@ public interface WebClient {
    * @return  new instance of web client
    */
   static WebClient create(Vertx vertx, WebClientOptions options, CacheManager cacheManager) {
-    return new WebClientImpl(vertx.createHttpClient(options), options, cacheManager);
+    return new WebClientBase(vertx.createHttpClient(options), options, cacheManager);
   }
 
   /**
@@ -101,7 +101,7 @@ public interface WebClient {
   static WebClient wrap(HttpClient httpClient, WebClientOptions options) {
     WebClientOptions actualOptions = new WebClientOptions(((HttpClientImpl) httpClient).getOptions());
     actualOptions.init(options);
-    return new WebClientImpl(httpClient, actualOptions);
+    return new WebClientBase(httpClient, actualOptions);
   }
 
   /**

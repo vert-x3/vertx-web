@@ -102,6 +102,25 @@ paths:
       responses:
         default:
           description: ok
+  /queryTests/objectTests/onlyAdditionalProperties:
+    get:
+      operationId: objectTestOnlyAdditionalProperties
+      parameters:
+        - name: params
+          in: query
+          schema:
+            type: object
+            additionalProperties:
+              type: integer
+          style: form
+          explode: true
+        - name: wellKnownParam
+          in: query
+          schema:
+            type: string
+      responses:
+        default:
+          description: ok
   /queryTests/defaultString:
     get:
       operationId: testDefaultString
@@ -334,6 +353,25 @@ paths:
           schema:
             - type: string
               format: byte
+      responses:
+        default:
+          description: ok
+  /cookieTests/objectTests/onlyAdditionalProperties:
+    get:
+      operationId: cookieObjectTestOnlyAdditionalProperties
+      parameters:
+        - name: params
+          in: cookie
+          schema:
+            type: object
+            additionalProperties:
+              type: integer
+          style: form
+          explode: true
+        - name: wellKnownParam
+          in: cookie
+          schema:
+            type: string
       responses:
         default:
           description: ok

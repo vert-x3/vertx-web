@@ -33,7 +33,6 @@ public class HeaderParserTest {
 
     ((ParsableHeaderValue) headers.get(0)).forceParse();
 
-    System.out.println(headers.get(0).parameters());
     assertTrue(headers.get(0).parameters().containsKey("boo"));
     assertTrue(headers.get(0).parameters().containsKey("itWorks"));
     assertTrue(headers.get(0).parameters().containsKey("bar"));

@@ -77,8 +77,13 @@ public interface Session {
   /**
    * @return the session data as a map
    */
-  @GenIgnore
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
   Map<String, Object> data();
+
+  /**
+   * @return true if the session has data
+   */
+  boolean isEmpty();
 
   /**
    * @return the time the session was last accessed
@@ -115,4 +120,12 @@ public interface Session {
    */
   void setAccessed();
 
+  /**
+   * The short representation of the session to be added to the session cookie. By default is the session id.
+   *
+   * @return short representation string.
+   */
+  default String value() {
+    return id();
+  }
 }

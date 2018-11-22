@@ -1,50 +1,59 @@
-/*
- * Copyright (c) 2014 Red Hat, Inc. and others
- *
- * Red Hat licenses this file to you under the Apache License, version 2.0
- * (the "License"); you may not use this file except in compliance with the
- * License.  You may obtain a copy of the License at:
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
- * License for the specific language governing permissions and limitations
- * under the License.
- */
-
 package io.vertx.ext.web.api.contract;
 
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.JsonArray;
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
 
 /**
  * Converter for {@link io.vertx.ext.web.api.contract.RouterFactoryOptions}.
- *
  * NOTE: This class has been automatically generated from the {@link io.vertx.ext.web.api.contract.RouterFactoryOptions} original class using Vert.x codegen.
  */
  class RouterFactoryOptionsConverter {
 
-   static void fromJson(JsonObject json, RouterFactoryOptions obj) {
-    if (json.getValue("mountNotImplementedHandler") instanceof Boolean) {
-      obj.setMountNotImplementedHandler((Boolean)json.getValue("mountNotImplementedHandler"));
-    }
-    if (json.getValue("mountResponseContentTypeHandler") instanceof Boolean) {
-      obj.setMountResponseContentTypeHandler((Boolean)json.getValue("mountResponseContentTypeHandler"));
-    }
-    if (json.getValue("mountValidationFailureHandler") instanceof Boolean) {
-      obj.setMountValidationFailureHandler((Boolean)json.getValue("mountValidationFailureHandler"));
-    }
-    if (json.getValue("requireSecurityHandlers") instanceof Boolean) {
-      obj.setRequireSecurityHandlers((Boolean)json.getValue("requireSecurityHandlers"));
+   static void fromJson(Iterable<java.util.Map.Entry<String, Object>> json, RouterFactoryOptions obj) {
+    for (java.util.Map.Entry<String, Object> member : json) {
+      switch (member.getKey()) {
+        case "mountNotImplementedHandler":
+          if (member.getValue() instanceof Boolean) {
+            obj.setMountNotImplementedHandler((Boolean)member.getValue());
+          }
+          break;
+        case "mountResponseContentTypeHandler":
+          if (member.getValue() instanceof Boolean) {
+            obj.setMountResponseContentTypeHandler((Boolean)member.getValue());
+          }
+          break;
+        case "mountValidationFailureHandler":
+          if (member.getValue() instanceof Boolean) {
+            obj.setMountValidationFailureHandler((Boolean)member.getValue());
+          }
+          break;
+        case "operationModelKey":
+          if (member.getValue() instanceof String) {
+            obj.setOperationModelKey((String)member.getValue());
+          }
+          break;
+        case "requireSecurityHandlers":
+          if (member.getValue() instanceof Boolean) {
+            obj.setRequireSecurityHandlers((Boolean)member.getValue());
+          }
+          break;
+      }
     }
   }
 
    static void toJson(RouterFactoryOptions obj, JsonObject json) {
+    toJson(obj, json.getMap());
+  }
+
+   static void toJson(RouterFactoryOptions obj, java.util.Map<String, Object> json) {
     json.put("mountNotImplementedHandler", obj.isMountNotImplementedHandler());
     json.put("mountResponseContentTypeHandler", obj.isMountResponseContentTypeHandler());
     json.put("mountValidationFailureHandler", obj.isMountValidationFailureHandler());
+    if (obj.getOperationModelKey() != null) {
+      json.put("operationModelKey", obj.getOperationModelKey());
+    }
     json.put("requireSecurityHandlers", obj.isRequireSecurityHandlers());
   }
 }

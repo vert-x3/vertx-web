@@ -19,15 +19,17 @@ package io.vertx.ext.web.handler;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
+import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.shareddata.impl.ClusterSerializable;
 import io.vertx.ext.auth.PRNG;
+import io.vertx.ext.auth.shiro.ShiroAuthOptions;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.sstore.SessionStore;
-import io.vertx.ext.web.sstore.impl.SessionImpl;
+import io.vertx.ext.web.sstore.impl.SharedDataSessionImpl;
 import io.vertx.ext.auth.AuthProvider;
 import io.vertx.ext.auth.shiro.ShiroAuth;
 import io.vertx.ext.auth.shiro.ShiroAuthRealmType;
@@ -62,7 +64,7 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
     };
 
     JsonObject authConfig = new JsonObject().put("properties_path", "classpath:login/loginusers.properties");
-    AuthProvider authProvider = ShiroAuth.create(vertx, ShiroAuthRealmType.PROPERTIES, authConfig);
+    AuthProvider authProvider = ShiroAuth.create(vertx, new ShiroAuthOptions().setType(ShiroAuthRealmType.PROPERTIES).setConfig(authConfig));
     router.route("/protected/*").handler(BasicAuthHandler.create(authProvider, realm));
 
     router.route("/protected/somepage").handler(handler);
@@ -89,7 +91,7 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
     router.route().handler(SessionHandler.create(store));
 
     JsonObject authConfig = new JsonObject().put("properties_path", "classpath:login/loginusers.properties");
-    AuthProvider authProvider = ShiroAuth.create(vertx, ShiroAuthRealmType.PROPERTIES, authConfig);
+    AuthProvider authProvider = ShiroAuth.create(vertx, new ShiroAuthOptions().setType(ShiroAuthRealmType.PROPERTIES).setConfig(authConfig));
     router.route().handler(UserSessionHandler.create(authProvider));
     router.route("/protected/*").handler(BasicAuthHandler.create(authProvider));
 
@@ -170,7 +172,7 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
     };
 
     JsonObject authConfig = new JsonObject().put("properties_path", "classpath:login/loginusers.properties");
-    AuthProvider authProvider = ShiroAuth.create(vertx, ShiroAuthRealmType.PROPERTIES, authConfig);
+    AuthProvider authProvider = ShiroAuth.create(vertx, new ShiroAuthOptions().setType(ShiroAuthRealmType.PROPERTIES).setConfig(authConfig));
     router.route("/protected/*").handler(BasicAuthHandler.create(authProvider));
 
     router.route("/protected/somepage").handler(handler);
@@ -202,26 +204,31 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
     private final PRNG prng = new PRNG(vertx);
 
     @Override
+    public SessionStore init(Vertx vertx, JsonObject options) {
+      return this;
+    }
+
+    @Override
     public long retryTimeout() {
       return 0L;
     }
 
     @Override
     public Session createSession(long timeout) {
-      return new SessionImpl(prng, timeout, DEFAULT_SESSIONID_LENGTH);
+      return new SharedDataSessionImpl(prng, timeout, DEFAULT_SESSIONID_LENGTH);
     }
 
     @Override
     public Session createSession(long timeout, int length) {
-      return new SessionImpl(prng, timeout, length);
+      return new SharedDataSessionImpl(prng, timeout, length);
     }
 
     @Override
     public void get(String id, Handler<AsyncResult<Session>> resultHandler) {
       Buffer buff = sessions.get(id);
-      SessionImpl sess;
+      SharedDataSessionImpl sess;
       if (buff != null) {
-        sess = new SessionImpl(prng);
+        sess = new SharedDataSessionImpl(prng);
         sess.readFromBuffer(0, buff);
       } else {
         sess = null;
@@ -270,7 +277,7 @@ public class BasicAuthHandlerTest extends AuthHandlerTestBase {
     };
 
     JsonObject authConfig = new JsonObject().put("properties_path", "classpath:login/loginusers.properties");
-    AuthProvider authProvider = ShiroAuth.create(vertx, ShiroAuthRealmType.PROPERTIES, authConfig);
+    AuthProvider authProvider = ShiroAuth.create(vertx, new ShiroAuthOptions().setType(ShiroAuthRealmType.PROPERTIES).setConfig(authConfig));
     router.route().pathRegex("/api/.*").handler(BasicAuthHandler.create(authProvider));
 
     router.route("/api/v1/standard-job-profiles").handler(handler);

@@ -1,2 +1,2 @@
-Hello {{context.get("foo")}} and {{context.get("bar")}}
-Request path is {{context.request().path()}}
+Hello {{foo}} and {{bar}}
+Request path is {{context.getString("path")}}

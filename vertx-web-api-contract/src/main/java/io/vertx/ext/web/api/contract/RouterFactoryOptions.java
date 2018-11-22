@@ -8,6 +8,10 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.api.validation.ValidationException;
 import io.vertx.ext.web.handler.BodyHandler;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Function;
+
 /**
  * @author Francesco Guardiani @slinkydeveloper
  */
@@ -37,9 +41,7 @@ public class RouterFactoryOptions {
    * Default not implemented handler. It sends a response with status code 501,
    * status message "Not Implemented" and empty body
    */
-  public final static Handler<RoutingContext> DEFAULT_NOT_IMPLEMENTED_HANDLER = (routingContext) -> {
-    routingContext.response().setStatusCode(501).setStatusMessage("Not Implemented").end();
-  };
+  public final static Handler<RoutingContext> DEFAULT_NOT_IMPLEMENTED_HANDLER = (routingContext) -> routingContext.response().setStatusCode(501).setStatusMessage("Not Implemented").end();
 
 
   /**
@@ -58,6 +60,13 @@ public class RouterFactoryOptions {
    */
   public final static boolean DEFAULT_MOUNT_RESPONSE_CONTENT_TYPE_HANDLER = true;
 
+  /**
+   * By default, RouterFactory will not expose operation configuration in the the routing context
+   */
+  public final static String DEFAULT_OPERATION_MODEL_KEY = null;
+
+  public final static Function<RoutingContext, JsonObject> DEFAULT_EXTRA_OPERATION_CONTEXT_PAYLOAD_MAPPER = null;
+
   private Handler<RoutingContext> validationFailureHandler;
   private boolean mountValidationFailureHandler;
   private Handler<RoutingContext> notImplementedFailureHandler;
@@ -65,6 +74,9 @@ public class RouterFactoryOptions {
   private boolean requireSecurityHandlers;
   private boolean mountResponseContentTypeHandler;
   private BodyHandler bodyHandler;
+  private List<Handler<RoutingContext>> globalHandlers;
+  private String operationModelKey;
+  private Function<RoutingContext, JsonObject> extraOperationContextPayloadMapper;
 
   public RouterFactoryOptions() {
     init();
@@ -83,6 +95,8 @@ public class RouterFactoryOptions {
     this.requireSecurityHandlers = other.isRequireSecurityHandlers();
     this.mountResponseContentTypeHandler = other.isMountResponseContentTypeHandler();
     this.bodyHandler = other.getBodyHandler();
+    this.globalHandlers = other.getGlobalHandlers();
+    this.operationModelKey = other.getOperationModelKey();
   }
 
   public JsonObject toJson() {
@@ -99,6 +113,9 @@ public class RouterFactoryOptions {
     this.requireSecurityHandlers = DEFAULT_REQUIRE_SECURITY_HANDLERS;
     this.mountResponseContentTypeHandler = DEFAULT_MOUNT_RESPONSE_CONTENT_TYPE_HANDLER;
     this.bodyHandler = BodyHandler.create();
+    this.globalHandlers = new ArrayList<>();
+    this.operationModelKey = DEFAULT_OPERATION_MODEL_KEY;
+    this.extraOperationContextPayloadMapper = DEFAULT_EXTRA_OPERATION_CONTEXT_PAYLOAD_MAPPER;
   }
 
   public Handler<RoutingContext> getValidationFailureHandler() {
@@ -214,6 +231,54 @@ public class RouterFactoryOptions {
   @Fluent
   public RouterFactoryOptions setBodyHandler(BodyHandler bodyHandler) {
     this.bodyHandler = bodyHandler;
+    return this;
+  }
+
+  public List<Handler<RoutingContext>> getGlobalHandlers() {
+    return globalHandlers;
+  }
+
+  /**
+   * Add global handler to be applied prior to {@link io.vertx.ext.web.Router} being generated. <br/>
+   * Please note that you should not add a body handler inside that list. If you want to modify the body handler, please use {@link RouterFactoryOptions#setBodyHandler(BodyHandler)}
+   *
+   * @param globalHandler
+   * @return this object
+   */
+  @Fluent
+  public RouterFactoryOptions addGlobalHandler(Handler<RoutingContext> globalHandler) {
+    this.globalHandlers.add(globalHandler);
+    return this;
+  }
+
+  public String getOperationModelKey() {
+    return operationModelKey;
+  }
+
+  /**
+   * When set, an additional handler will be created to expose the operation model in the routing
+   * context under the given key. When the key is null, the handler is not added.
+   * @param operationModelKey
+   * @return
+   */
+  @Fluent
+  public RouterFactoryOptions setOperationModelKey(String operationModelKey) {
+    this.operationModelKey = operationModelKey;
+    return this;
+  }
+
+  public Function<RoutingContext, JsonObject> getExtraOperationContextPayloadMapper() {
+    return extraOperationContextPayloadMapper;
+  }
+
+  /**
+   * When set, this function is called while creating the payload of {@link io.vertx.ext.web.api.OperationRequest}
+   * @param extraOperationContextPayloadMapper
+   * @return
+   */
+  @Fluent
+  public RouterFactoryOptions setExtraOperationContextPayloadMapper(Function<RoutingContext, JsonObject> extraOperationContextPayloadMapper) {
+    this.extraOperationContextPayloadMapper = extraOperationContextPayloadMapper;
     return this;
   }
 }

@@ -4,7 +4,7 @@
   <parent>
     <groupId>io.vertx</groupId>
     <artifactId>vertx-ext-parent</artifactId>
-    <version>30</version>
+    <version>34</version>
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
@@ -69,6 +69,7 @@
     <module>vertx-web-client</module>
     <module>vertx-template-engines</module>
     <module>vertx-web-api-contract</module>
+    <module>vertx-web-api-service</module>
   </modules>
 
   <profiles>
@@ -81,7 +82,6 @@
         <dependency>
           <groupId>io.netty</groupId>
           <artifactId>netty-tcnative-boringssl-static</artifactId>
-          <version>2.0.7.Final</version>
           <scope>test</scope>
         </dependency>
       </dependencies>

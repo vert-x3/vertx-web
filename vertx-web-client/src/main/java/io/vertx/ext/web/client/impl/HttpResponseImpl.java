@@ -15,69 +15,82 @@
  */
 package io.vertx.ext.web.client.impl;
 
-import java.util.List;
-
 import io.vertx.core.MultiMap;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.http.HttpVersion;
 import io.vertx.core.json.JsonArray;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.codec.impl.BodyCodecImpl;
 
+import java.util.List;
+
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
  */
-class HttpResponseImpl<T> implements HttpResponse<T> {
+public class HttpResponseImpl<T> implements HttpResponse<T> {
 
-  private final HttpClientResponse resp;
-  private Buffer buff;
-  private T body;
+  private final HttpVersion version;
+  private final int statusCode;
+  private final String statusMessage;
+  private final MultiMap headers;
+  private final MultiMap trailers;
+  private final List<String> cookies;
+  private final T body;
 
-  HttpResponseImpl(HttpClientResponse resp, Buffer buff, T body) {
-    this.resp = resp;
-    this.buff = buff;
+  public HttpResponseImpl(HttpVersion version,
+                          int statusCode,
+                          String statusMessage,
+                          MultiMap headers,
+                          MultiMap trailers,
+                          List<String> cookies,
+                          T body) {
+    this.version = version;
+    this.statusCode = statusCode;
+    this.statusMessage = statusMessage;
+    this.headers = headers;
+    this.trailers = trailers;
+    this.cookies = cookies;
     this.body = body;
   }
 
   @Override
   public HttpVersion version() {
-    return resp.version();
+    return version;
   }
 
   @Override
   public int statusCode() {
-    return resp.statusCode();
+    return statusCode;
   }
 
   @Override
   public String statusMessage() {
-    return resp.statusMessage();
+    return statusMessage;
   }
 
   @Override
   public String getHeader(String headerName) {
-    return resp.getHeader(headerName);
+    return headers.get(headerName);
   }
 
   @Override
   public MultiMap trailers() {
-    return resp.trailers();
+    return trailers;
   }
 
   @Override
   public String getTrailer(String trailerName) {
-    return resp.getTrailer(trailerName);
+    return trailers.get(trailerName);
   }
 
   @Override
   public List<String> cookies() {
-    return resp.cookies();
+    return cookies;
   }
 
   @Override
   public MultiMap headers() {
-    return resp.headers();
+    return headers;
   }
 
   @Override
@@ -87,7 +100,7 @@ class HttpResponseImpl<T> implements HttpResponse<T> {
 
   @Override
   public Buffer bodyAsBuffer() {
-    return buff != null ? buff : body instanceof Buffer ? (Buffer)body : null;
+    return body instanceof Buffer ? (Buffer) body : null;
   }
 
   @Override

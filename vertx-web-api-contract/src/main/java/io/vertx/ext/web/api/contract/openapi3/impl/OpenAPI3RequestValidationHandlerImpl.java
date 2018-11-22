@@ -159,6 +159,9 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
           case "email":
             regex = RegularExpressions.EMAIL;
             break;
+          case "uuid":
+            regex = RegularExpressions.UUID;
+            break;
           default:
             throw new SpecFeatureNotSupportedException("format " + schema.getFormat() + " not supported");
         }
@@ -297,23 +300,41 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
           "" + "not supported for parameter " + parameter.getName());
       }
     }
+    if (parameter.getSchema().getAdditionalProperties() instanceof Schema) {
+      if ("query".equals(parameter.getIn())) {
+        this.setQueryAdditionalPropertyHandler(
+          this.resolveInnerSchemaPrimitiveTypeValidator((Schema)parameter.getSchema().getAdditionalProperties(), true),
+          parameter.getName()
+        );
+      } else if ("cookie".equals(parameter.getIn())) {
+        this.setCookieAdditionalPropertyHandler(
+          this.resolveInnerSchemaPrimitiveTypeValidator((Schema)parameter.getSchema().getAdditionalProperties(), true),
+          parameter.getName()
+        );
+      } else {
+        throw new SpecFeatureNotSupportedException("additionalProperties with exploded object fields not supports in path parameter " + parameter.getName());
+      }
+    }
   }
 
   private void magicParameterExplodedStyleSimpleTypeObject(Parameter parameter) {
     ObjectTypeValidator objectTypeValidator = ObjectTypeValidator.ObjectTypeValidatorFactory
       .createObjectTypeValidator(ContainerSerializationStyle.simple_exploded_object, false);
     this.resolveObjectTypeFields(objectTypeValidator, parameter.getSchema());
-    if (parameter.getIn().equals("path")) {
-      this.addPathParamRule(ParameterValidationRuleImpl.ParameterValidationRuleFactory
-        .createValidationRuleWithCustomTypeValidator(parameter.getName(), objectTypeValidator, !OpenApi3Utils
-          .isRequiredParam(parameter), OpenApi3Utils.resolveAllowEmptyValue(parameter), ParameterLocation.PATH));
-    } else if (parameter.getIn().equals("header")) {
-      this.addHeaderParamRule(ParameterValidationRuleImpl.ParameterValidationRuleFactory
-        .createValidationRuleWithCustomTypeValidator(parameter.getName(), objectTypeValidator, !OpenApi3Utils
-          .isRequiredParam(parameter), OpenApi3Utils.resolveAllowEmptyValue(parameter), ParameterLocation.HEADER));
-    } else {
-      throw new SpecFeatureNotSupportedException("combination of style, type and location (in) of parameter fields "
-        + "not supported for parameter " + parameter.getName());
+    switch (parameter.getIn()) {
+      case "path":
+        this.addPathParamRule(ParameterValidationRuleImpl.ParameterValidationRuleFactory
+          .createValidationRuleWithCustomTypeValidator(parameter.getName(), objectTypeValidator, !OpenApi3Utils
+            .isRequiredParam(parameter), OpenApi3Utils.resolveAllowEmptyValue(parameter), ParameterLocation.PATH));
+        break;
+      case "header":
+        this.addHeaderParamRule(ParameterValidationRuleImpl.ParameterValidationRuleFactory
+          .createValidationRuleWithCustomTypeValidator(parameter.getName(), objectTypeValidator, !OpenApi3Utils
+            .isRequiredParam(parameter), OpenApi3Utils.resolveAllowEmptyValue(parameter), ParameterLocation.HEADER));
+        break;
+      default:
+        throw new SpecFeatureNotSupportedException("combination of style, type and location (in) of parameter fields "
+          + "not supported for parameter " + parameter.getName());
     }
   }
 

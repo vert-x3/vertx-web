@@ -40,7 +40,7 @@ import java.util.Set;
  * Represents the context for the handling of a request in Vert.x-Web.
  * <p>
  * A new instance is created for each HTTP request that is received in the
- * {@link Router#accept(HttpServerRequest)} of the router.
+ * {@link Router#handle(HttpServerRequest)} of the router.
  * <p>
  * The same instance is passed to any matching request or failure handlers during the routing of the request or
  * failure.
@@ -132,7 +132,7 @@ public interface RoutingContext {
   /**
    * @return all the context data as a map
    */
-  @GenIgnore
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
   Map<String, Object> data();
 
   /**
@@ -195,7 +195,19 @@ public interface RoutingContext {
    * @param name  the name of the cookie
    * @return the cookie, if it existed, or null
    */
-  @Nullable Cookie removeCookie(String name);
+  default @Nullable Cookie removeCookie(String name) {
+    return removeCookie(name, true);
+  }
+
+  /**
+   * Remove a cookie from the cookie set. If invalidate is true then it will expire a cookie, notifying a User Agent to
+   * remove it from its cookie jar. The context must have first been routed to a
+   * {@link io.vertx.ext.web.handler.CookieHandler} for this to work.
+   *
+   * @param name  the name of the cookie
+   * @return the cookie, if it existed, or null
+   */
+  @Nullable Cookie removeCookie(String name, boolean invalidate);
 
   /**
    * @return the number of cookies. The context must have first been routed to a {@link io.vertx.ext.web.handler.CookieHandler}

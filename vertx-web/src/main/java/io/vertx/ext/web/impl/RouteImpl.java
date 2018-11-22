@@ -22,6 +22,7 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
+import io.vertx.core.net.impl.URIDecoder;
 import io.vertx.ext.web.MIMEHeader;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
@@ -215,12 +216,24 @@ public class RouteImpl implements Route {
     return sb.toString();
   }
 
-  synchronized void handleContext(RoutingContextImplBase context) {
-    contextHandlers.get(context.currentRouteNextHandlerIndex() - 1).handle(context);
+  void handleContext(RoutingContextImplBase context) {
+    Handler<RoutingContext> contextHandler;
+
+    synchronized (this) {
+      contextHandler = contextHandlers.get(context.currentRouteNextHandlerIndex() - 1);
+    }
+
+    contextHandler.handle(context);
   }
 
-  synchronized void handleFailure(RoutingContextImplBase context) {
-    failureHandlers.get(context.currentRouteNextFailureHandlerIndex() - 1).handle(context);
+  void handleFailure(RoutingContextImplBase context) {
+    Handler<RoutingContext> failureHandler;
+
+    synchronized (this) {
+      failureHandler = failureHandlers.get(context.currentRouteNextFailureHandlerIndex() - 1);
+    }
+
+    failureHandler.handle(context);
   }
 
   synchronized boolean matches(RoutingContextImplBase context, String mountPoint, boolean failure) {
@@ -239,7 +252,7 @@ public class RouteImpl implements Route {
       return false;
     }
     if (pattern != null) {
-      String path = useNormalisedPath ? Utils.normalizePath(context.request().path()) : context.request().path();
+      String path = useNormalisedPath ? context.normalisedPath() : context.request().path();
       if (mountPoint != null) {
         path = path.substring(mountPoint.length());
       }
@@ -323,7 +336,7 @@ public class RouteImpl implements Route {
 
   private void addPathParam(RoutingContext context, String name, String value) {
     HttpServerRequest request = context.request();
-    final String decodedValue = Utils.urlDecode(value, false);
+    final String decodedValue = URIDecoder.decodeURIComponent(value, false);
     if (!request.params().contains(name)) {
       request.params().add(name, decodedValue);
     }
@@ -340,7 +353,7 @@ public class RouteImpl implements Route {
 
     if (useNormalisedPath) {
       // never null
-      requestPath = Utils.normalizePath(ctx.request().path());
+      requestPath = ctx.normalisedPath();
     } else {
       requestPath = ctx.request().path();
       // can be null
@@ -410,6 +423,9 @@ public class RouteImpl implements Route {
   // intersection of regex chars and https://tools.ietf.org/html/rfc3986#section-3.3
   private static final Pattern RE_OPERATORS_NO_STAR = Pattern.compile("([\\(\\)\\$\\+\\.])");
 
+  // Pattern for :<token name> in path
+  private static final Pattern RE_TOKEN_SEARCH = Pattern.compile(":([A-Za-z][A-Za-z0-9_]*)");
+
   private void createPatternRegex(String path) {
     // escape path from any regex special chars
     path = RE_OPERATORS_NO_STAR.matcher(path).replaceAll("\\\\$1");
@@ -418,7 +434,7 @@ public class RouteImpl implements Route {
       path = path.substring(0, path.length() - 1) + ".*";
     }
     // We need to search for any :<token name> tokens in the String and replace them with named capture groups
-    Matcher m = Pattern.compile(":([A-Za-z][A-Za-z0-9_]*)").matcher(path);
+    Matcher m = RE_TOKEN_SEARCH.matcher(path);
     StringBuffer sb = new StringBuffer();
     groups = new ArrayList<>();
     int index = 0;

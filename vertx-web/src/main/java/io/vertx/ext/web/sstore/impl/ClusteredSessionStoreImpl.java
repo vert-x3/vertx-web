@@ -20,29 +20,46 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonObject;
 import io.vertx.core.shareddata.AsyncMap;
 import io.vertx.ext.auth.PRNG;
 import io.vertx.ext.web.Session;
+import io.vertx.ext.web.sstore.AbstractSession;
 import io.vertx.ext.web.sstore.ClusteredSessionStore;
+import io.vertx.ext.web.sstore.SessionStore;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public class ClusteredSessionStoreImpl implements ClusteredSessionStore {
+public class ClusteredSessionStoreImpl implements SessionStore, ClusteredSessionStore {
 
-  private final Vertx vertx;
-  private final PRNG random;
-  private final String sessionMapName;
-  private final long retryTimeout;
+  /**
+   * The default name used for the session map
+   */
+  private static final String DEFAULT_SESSION_MAP_NAME = "vertx-web.sessions";
+
+  /**
+   * Default retry time out, in ms, for a session not found in this store.
+   */
+  private static final long DEFAULT_RETRY_TIMEOUT = 5 * 1000; // 5 seconds
+
+
+  private Vertx vertx;
+  private PRNG random;
+  private String sessionMapName;
+  private long retryTimeout;
 
   // Clustered Map
   private volatile AsyncMap<String, Session> sessionMap;
 
-  public ClusteredSessionStoreImpl(Vertx vertx, String sessionMapName, long retryTimeout) {
+  @Override
+  public SessionStore init(Vertx vertx, JsonObject options) {
     this.vertx = vertx;
-    this.sessionMapName = sessionMapName;
-    this.retryTimeout = retryTimeout;
+    this.sessionMapName = options.getString("mapName", DEFAULT_SESSION_MAP_NAME);
+    this.retryTimeout = options.getLong("retryTimeout", DEFAULT_RETRY_TIMEOUT);
     this.random = new PRNG(vertx);
+
+    return this;
   }
 
   @Override
@@ -52,12 +69,12 @@ public class ClusteredSessionStoreImpl implements ClusteredSessionStore {
 
   @Override
   public Session createSession(long timeout) {
-    return new SessionImpl(random, timeout, DEFAULT_SESSIONID_LENGTH);
+    return new SharedDataSessionImpl(random, timeout, DEFAULT_SESSIONID_LENGTH);
   }
 
   @Override
   public Session createSession(long timeout, int length) {
-    return new SessionImpl(random, timeout, length);
+    return new SharedDataSessionImpl(random, timeout, length);
   }
 
   @Override
@@ -66,7 +83,7 @@ public class ClusteredSessionStoreImpl implements ClusteredSessionStore {
       if (res.succeeded()) {
         res.result().get(id, res2 -> {
           if (res2.succeeded()) {
-            SessionImpl session = (SessionImpl) res2.result();
+            AbstractSession session = (AbstractSession) res2.result();
             if (session != null) {
               session.setPRNG(random);
             }
@@ -104,11 +121,11 @@ public class ClusteredSessionStoreImpl implements ClusteredSessionStore {
       if (res.succeeded()) {
         // we need to take care of the transactionality of session data
         res.result().get(session.id(), old -> {
-          final SessionImpl oldSession;
-          final SessionImpl newSession = (SessionImpl) session;
+          final AbstractSession oldSession;
+          final AbstractSession newSession = (AbstractSession) session;
           // only care if succeeded
           if (old.succeeded()) {
-            oldSession = (SessionImpl) old.result();
+            oldSession = (AbstractSession) old.result();
           } else {
             // either not existent or error getting it from the map
             oldSession = null;
@@ -193,5 +210,4 @@ public class ClusteredSessionStoreImpl implements ClusteredSessionStore {
       resultHandler.handle(Future.succeededFuture(sessionMap));
     }
   }
-
 }

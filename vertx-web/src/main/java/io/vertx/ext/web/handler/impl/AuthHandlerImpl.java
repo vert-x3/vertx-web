@@ -166,7 +166,7 @@ public abstract class AuthHandlerImpl implements AuthHandler {
               .putHeader("WWW-Authenticate", header);
           }
           // to allow further processing if needed
-          processException(ctx, new HttpStatusException(401));
+          processException(ctx, new HttpStatusException(401, authN.cause()));
         }
       });
     });

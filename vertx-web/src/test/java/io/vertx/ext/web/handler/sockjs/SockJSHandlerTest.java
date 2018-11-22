@@ -55,7 +55,7 @@ public class SockJSHandlerTest extends WebTestBase {
     super.setUp();
     // Make sure a catch-all BodyHandler will not prevent websocket connection
     router.route().handler(BodyHandler.create());
-    SockJSHandler.installTestApplications(router, vertx);
+    SockJSProtocolTest.installTestApplications(router, vertx);
   }
 
   @Test
@@ -388,15 +388,13 @@ public class SockJSHandlerTest extends WebTestBase {
       .bridge(new BridgeOptions().setPingTimeout(1))
     );
 
-    client.websocket("/ws-timeout/websocket", ws -> {
-      ws.frameHandler(frame -> {
-        if (frame.isClose()) {
-          assertEquals(1001, frame.closeStatusCode());
-          assertEquals("Session expired", frame.closeReason());
-          testComplete();
-        }
-      });
-    });
+    client.websocket("/ws-timeout/websocket", ws -> ws.frameHandler(frame -> {
+      if (frame.isClose()) {
+        assertEquals(1001, frame.closeStatusCode());
+        assertEquals("Session expired", frame.closeReason());
+        testComplete();
+      }
+    }));
     await();
   }
 
@@ -407,9 +405,7 @@ public class SockJSHandlerTest extends WebTestBase {
       .bridge(new BridgeOptions().addInboundPermitted(new PermittedOptions().setAddress("SockJSHandlerTest.testInvalidMessageCode")))
     );
 
-    vertx.eventBus().consumer("SockJSHandlerTest.testInvalidMessageCode", msg -> {
-      msg.reply(new JsonObject());
-    });
+    vertx.eventBus().consumer("SockJSHandlerTest.testInvalidMessageCode", msg -> msg.reply(new JsonObject()));
 
     client.websocket("/ws-timeout/websocket", ws -> {
       ws.writeFinalBinaryFrame(Buffer.buffer("durp!"));

@@ -1,8 +1,8 @@
 package io.vertx.ext.web.api.validation;
 
 import io.vertx.codegen.annotations.VertxGen;
+import io.vertx.core.net.impl.URIDecoder;
 import io.vertx.ext.web.api.validation.impl.SplitterCharContainerDeserializer;
-import io.vertx.ext.web.impl.Utils;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -56,9 +56,9 @@ public enum ContainerSerializationStyle {
       Map<String, String> result = new HashMap<>();
       String[] values = serialized.split(Pattern.quote(","), -1);
       // Key value pairs -> odd length not allowed
-      for (int i = 0; i < values.length; i++) {
+      for (String value : values) {
         // empty key not allowed!
-        String[] values_internal = values[i].split("=", -1);
+        String[] values_internal = value.split("=", -1);
         if (values_internal[0].length() == 0) {
           throw ValidationException.ValidationExceptionFactory.generateDeserializationError("DeserializationError: " +
             "" + "Empty key not allowed");
@@ -82,7 +82,7 @@ public enum ContainerSerializationStyle {
       List<String> values = new ArrayList<>();
       Matcher m = MATRIX_PARAMETER.matcher(serialized);
       while (m.find())
-        values.add(Utils.urlDecode(m.group("value"), false));
+        values.add(URIDecoder.decodeURIComponent(m.group("value"), false));
       return values;
     }
 

@@ -12,7 +12,9 @@
   <artifactId>vertx-web-templ-rocker</artifactId>
 
   <properties>
-    <rocker.version>0.22.0</rocker.version>
+    <rocker.version>0.24.0</rocker.version>
+    <!-- Force Java 8, see https://github.com/fizzed/rocker/issues/90 -->
+    <rocker.javaVersion>1.8</rocker.javaVersion>
   </properties>
 
   <dependencies>
@@ -28,20 +30,20 @@
       </exclusions>
     </dependency>
     <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
-      <version>1.7.21</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
       <groupId>io.vertx</groupId>
-      <artifactId>vertx-web</artifactId>
+      <artifactId>vertx-web-common</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>io.vertx</groupId>
       <artifactId>vertx-web</artifactId>
-      <type>test-jar</type>
+      <version>${project.version}</version>
+      <scope>provided</scope>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-unit</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
@@ -55,18 +57,6 @@
 
   <build>
     <plugins>
-      <plugin>
-        <groupId>org.codehaus.gmavenplus</groupId>
-        <artifactId>gmavenplus-plugin</artifactId>
-        <executions>
-          <execution>
-            <goals>
-              <goal>addTestSources</goal>
-              <goal>testCompile</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
@@ -148,7 +138,7 @@
               <goal>generate</goal>
             </goals>
             <configuration>
-              <templateDirectory>${project.basedir}/src/test/templates</templateDirectory>
+              <templateDirectory>${project.basedir}/src/test/resources</templateDirectory>
               <outputDirectory>${project.build.directory}/generated-test-sources/rocker</outputDirectory>
               <addAsSources>false</addAsSources>
               <addAsTestSources>true</addAsTestSources>

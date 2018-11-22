@@ -54,10 +54,12 @@ public class ParsableHeaderValue implements ParsedHeaderValue {
   }
 
   public String parameter(String key) {
+    ensureHeaderProcessed();
     return parameter.get(key);
   }
 
   public Map<String, String> parameters() {
+    ensureHeaderProcessed();
     return Collections.unmodifiableMap(parameter);
   }
 
@@ -79,7 +81,7 @@ public class ParsableHeaderValue implements ParsedHeaderValue {
       String parameterValueToTest = parameter.get(requiredParameter.getKey());
       String requiredParamVal = requiredParameter.getValue();
       if (parameterValueToTest == null || (
-          !requiredParamVal.isEmpty() && !requiredParamVal.equals(parameterValueToTest))
+          !requiredParamVal.isEmpty() && !requiredParamVal.equalsIgnoreCase(parameterValueToTest))
          ){
         return false;
       }
@@ -161,18 +163,15 @@ public class ParsableHeaderValue implements ParsedHeaderValue {
     if (this == obj) {
       return true;
     }
-    if (obj == null || !(obj instanceof ParsableHeaderValue)) {
+    if (!(obj instanceof ParsableHeaderValue)) {
       return false;
     }
     ParsableHeaderValue other = (ParsableHeaderValue) obj;
     if (headerContent == null) {
-      if (other.headerContent != null) {
-        return false;
-      }
-    } else if (!headerContent.equals(other.headerContent)) {
-      return false;
+      return other.headerContent == null;
+    } else {
+      return headerContent.equals(other.headerContent);
     }
-    return true;
   }
 
 }

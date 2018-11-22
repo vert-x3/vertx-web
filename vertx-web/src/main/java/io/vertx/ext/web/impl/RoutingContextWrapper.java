@@ -189,8 +189,8 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   }
 
   @Override
-  public Cookie removeCookie(String name) {
-    return inner.removeCookie(name);
+  public Cookie removeCookie(String name, boolean invalidate) {
+    return inner.removeCookie(name, invalidate);
   }
 
   @Override

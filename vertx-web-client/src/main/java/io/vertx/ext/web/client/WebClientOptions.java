@@ -18,14 +18,18 @@ package io.vertx.ext.web.client;
 
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.Http2Settings;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpVersion;
 import io.vertx.core.impl.launcher.commands.VersionCommand;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.*;
+import io.vertx.core.net.*;
 import io.vertx.ext.web.client.cache.CacheOptions;
 
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Thomas Segismont
@@ -208,6 +212,11 @@ public class WebClientOptions extends HttpClientOptions {
   }
 
   @Override
+  public WebClientOptions setIdleTimeoutUnit(TimeUnit idleTimeoutUnit) {
+    return (WebClientOptions) super.setIdleTimeoutUnit(idleTimeoutUnit);
+  }
+
+  @Override
   public WebClientOptions setSsl(boolean ssl) {
     return (WebClientOptions) super.setSsl(ssl);
   }
@@ -255,11 +264,6 @@ public class WebClientOptions extends HttpClientOptions {
   @Override
   public WebClientOptions addEnabledCipherSuite(String suite) {
     return (WebClientOptions) super.addEnabledCipherSuite(suite);
-  }
-
-  @Override
-  public WebClientOptions addEnabledSecureTransportProtocol(String protocol) {
-    return (WebClientOptions) super.addEnabledSecureTransportProtocol(protocol);
   }
 
   @Override
@@ -416,6 +420,83 @@ public class WebClientOptions extends HttpClientOptions {
   public WebClientOptions setLogActivity(boolean logEnabled) {
     return (WebClientOptions) super.setLogActivity(logEnabled);
   }
+
+  @Override
+  public WebClientOptions addEnabledSecureTransportProtocol(String protocol) {
+    return (WebClientOptions) super.addEnabledSecureTransportProtocol(protocol);
+  }
+
+  @Override
+  public WebClientOptions removeEnabledSecureTransportProtocol(String protocol) {
+    return (WebClientOptions) super.removeEnabledSecureTransportProtocol(protocol);
+  }
+
+  @Override
+  public WebClientOptions setEnabledSecureTransportProtocols(Set<String> enabledSecureTransportProtocols) {
+    return (WebClientOptions) super.setEnabledSecureTransportProtocols(enabledSecureTransportProtocols);
+  }
+
+  @Override
+  public WebClientOptions setReusePort(boolean reusePort) {
+    return (WebClientOptions) super.setReusePort(reusePort);
+  }
+
+  @Override
+  public WebClientOptions setTcpFastOpen(boolean tcpFastOpen) {
+    return (WebClientOptions) super.setTcpFastOpen(tcpFastOpen);
+  }
+
+  @Override
+  public WebClientOptions setTcpCork(boolean tcpCork) {
+    return (WebClientOptions) super.setTcpCork(tcpCork);
+  }
+
+  @Override
+  public WebClientOptions setTcpQuickAck(boolean tcpQuickAck) {
+    return (WebClientOptions) super.setTcpQuickAck(tcpQuickAck);
+  }
+
+  @Override
+  public WebClientOptions setHttp2KeepAliveTimeout(int keepAliveTimeout) {
+    return (WebClientOptions) super.setHttp2KeepAliveTimeout(keepAliveTimeout);
+  }
+
+  @Override
+  public WebClientOptions setForceSni(boolean forceSni) {
+    return (WebClientOptions) super.setForceSni(forceSni);
+  }
+
+  @Override
+  public WebClientOptions setDecoderInitialBufferSize(int decoderInitialBufferSize) {
+    return (WebClientOptions) super.setDecoderInitialBufferSize(decoderInitialBufferSize);
+  }
+
+  @Override
+  public WebClientOptions setPoolCleanerPeriod(int poolCleanerPeriod) {
+    return (WebClientOptions) super.setPoolCleanerPeriod(poolCleanerPeriod);
+  }
+
+  @Override
+  public WebClientOptions setKeepAliveTimeout(int keepAliveTimeout) {
+    return (WebClientOptions) super.setKeepAliveTimeout(keepAliveTimeout);
+  }
+
+  @Override
+  public WebClientOptions setMaxWebsocketMessageSize(int maxWebsocketMessageSize) {
+    return (WebClientOptions) super.setMaxWebsocketMessageSize(maxWebsocketMessageSize);
+  }
+
+  @Override
+  public WebClientOptions setMaxInitialLineLength(int maxInitialLineLength) {
+    return (WebClientOptions) super.setMaxInitialLineLength(maxInitialLineLength);
+  }
+
+  @Override
+  public WebClientOptions setInitialSettings(Http2Settings settings) {
+    return (WebClientOptions) super.setInitialSettings(settings);
+  }
+
+
 
   public static String loadUserAgent() {
     String userAgent = "Vert.x-WebClient";

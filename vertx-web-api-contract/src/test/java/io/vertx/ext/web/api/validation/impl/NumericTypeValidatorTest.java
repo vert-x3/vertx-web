@@ -26,9 +26,9 @@ public class NumericTypeValidatorTest {
 
   @Test
   public void constructorLong() {
-    new NumericTypeValidator(Long.class, 1l);
+    new NumericTypeValidator(Long.class, 1L);
     NumericTypeValidator v = new NumericTypeValidator(Long.class, "1");
-    assertEquals(1l, v.getDefault());
+    assertEquals(1L, v.getDefault());
   }
 
   @Test(expected = IllegalArgumentException.class)

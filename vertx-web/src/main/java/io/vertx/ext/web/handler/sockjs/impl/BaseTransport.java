@@ -50,6 +50,7 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSSocket;
 import io.vertx.ext.web.handler.sockjs.Transport;
+import io.vertx.ext.web.impl.Utils;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -60,6 +61,7 @@ import static io.vertx.core.http.HttpHeaders.*;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
+ * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
 class BaseTransport {
 
@@ -69,7 +71,7 @@ class BaseTransport {
   protected final LocalMap<String, SockJSSession> sessions;
   protected SockJSHandlerOptions options;
 
-  protected static final String COMMON_PATH_ELEMENT_RE = "\\/[^\\/\\.]+\\/([^\\/\\.]+)\\/";
+  static final String COMMON_PATH_ELEMENT_RE = "\\/[^\\/\\.]+\\/([^\\/\\.]+)\\/";
 
   private static final long RAND_OFFSET = 2L << 30;
 
@@ -155,14 +157,18 @@ class BaseTransport {
   static void setCORS(RoutingContext rc) {
     HttpServerRequest req = rc.request();
     String origin = req.headers().get("origin");
-    if (origin == null || "null".equals(origin)) {
+    if (origin == null) {
       origin = "*";
     }
-    req.response().headers().set("Access-Control-Allow-Origin", origin);
-    req.response().headers().set("Access-Control-Allow-Credentials", "true");
+    Utils.addToMapIfAbsent(req.response().headers(), "Access-Control-Allow-Origin", origin);
+    if ("*".equals(origin)) {
+      Utils.addToMapIfAbsent(req.response().headers(), "Access-Control-Allow-Credentials", "false");
+    } else {
+      Utils.addToMapIfAbsent(req.response().headers(), "Access-Control-Allow-Credentials", "true");
+    }
     String hdr = req.headers().get("Access-Control-Request-Headers");
     if (hdr != null) {
-      req.response().headers().set("Access-Control-Allow-Headers", hdr);
+      Utils.addToMapIfAbsent(req.response().headers(), "Access-Control-Allow-Headers", hdr);
     }
   }
 
@@ -187,7 +193,7 @@ class BaseTransport {
   }
 
   static void setNoCacheHeaders(RoutingContext rc) {
-    rc.response().putHeader("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
+    rc.response().putHeader("Cache-Control", "no-store, no-cache, no-transform, must-revalidate, max-age=0");
   }
 
   static Handler<RoutingContext> createCORSOptionsHandler(SockJSHandlerOptions options, String methods) {
@@ -208,7 +214,7 @@ class BaseTransport {
   }
 
   // We remove cookie headers for security reasons. See https://github.com/sockjs/sockjs-node section on
-  // Authorisation
+  // Authorization
   static MultiMap removeCookieHeaders(MultiMap headers) {
     // We don't want to remove the JSESSION cookie.
     String cookieHeader = headers.get(COOKIE);
