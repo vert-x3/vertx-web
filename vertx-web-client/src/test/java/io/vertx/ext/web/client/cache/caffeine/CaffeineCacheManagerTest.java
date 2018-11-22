@@ -57,14 +57,15 @@ public class CaffeineCacheManagerTest extends CachedWebClientTest {
 
         // Generate unique ID each time
         server.requestHandler(h -> {
-            h.response().end(UUID.randomUUID().toString());
+            String uuid = UUID.randomUUID().toString();
+            h.response().end(uuid);
         });
         startServer();
 
         String res1 = syncRequest(webClient, "/abc", null);
 
-        for (int i = 0; i < 10; i++) {
-            syncRequest(webClient, "/bcd", null);
+        for (int i = 0; i < 3; i++) {
+            syncRequest(webClient, "/" + i, null);
         }
 
         String res2 = syncRequest(webClient, "/abc", null);
