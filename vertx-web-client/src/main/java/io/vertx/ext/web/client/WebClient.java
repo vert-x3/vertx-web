@@ -42,7 +42,6 @@ import io.vertx.ext.web.client.impl.WebClientBase;
  *
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
  */
-@VertxGen
 public interface WebClient {
 
   /**
