@@ -63,7 +63,7 @@ public class CaffeineCacheManagerTest extends CachedWebClientTest {
 
         String res1 = syncRequest(webClient, "/abc", null);
 
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < 10; i++) {
             syncRequest(webClient, "/bcd", null);
         }
 
