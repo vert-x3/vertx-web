@@ -1,9 +1,6 @@
 package io.vertx.ext.web.client.cache;
 
-import io.vertx.core.http.HttpClientResponse;
 import io.vertx.ext.web.client.HttpResponse;
-
-import java.util.Optional;
 
 /**
  * Abstracts caching of HTTP requests and responses
@@ -23,7 +20,7 @@ public interface CacheManager<K> {
    * @param cacheKey key based on HTTP request
    * @return cached HTTP response or Optional.empty
    */
-  Optional<HttpResponse<Object>> fetch(K cacheKey);
+  HttpResponse<Object> fetch(K cacheKey);
 
   /**
    * Puts new value in cache, where the key is based on request and value on response

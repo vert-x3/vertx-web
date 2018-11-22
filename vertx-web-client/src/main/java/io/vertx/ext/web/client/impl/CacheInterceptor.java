@@ -57,14 +57,13 @@ public class CacheInterceptor implements Handler<HttpContext<?>> {
 
       CacheKey cacheKey = new CacheKey(request);
       // If this is a GET call, we should check the value in cache
-      Optional<HttpResponse<Object>> valueFromCache = cacheManager.fetch(cacheKey);
+      HttpResponse<Object> value = cacheManager.fetch(cacheKey);
 
-      if (valueFromCache.isPresent()) {
-        HttpResponse<Object> value = valueFromCache.get();
+      if (value != null) {
         Set<String> cacheControl = parseCacheControl(request);
         if (shouldUseCache(cacheControl)) {
           if (!isValueExpired(request, cacheControl, value)) {
-            event.dispatchResponse(valueFromCache.get());
+            event.dispatchResponse(value);
             return;
           } else {
             cacheManager.remove(cacheKey);

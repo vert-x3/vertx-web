@@ -26,14 +26,8 @@ public class CaffeineCacheManager implements CacheManager<CacheInterceptor.Cache
   }
 
   @Override
-  public Optional<HttpResponse<Object>> fetch(CacheInterceptor.CacheKey cacheKey) {
-    HttpResponse<Object> value = cache.getIfPresent(cacheKey);
-
-    if (value == null) {
-      return Optional.empty();
-    } else {
-      return Optional.of(value);
-    }
+  public HttpResponse<Object> fetch(CacheInterceptor.CacheKey cacheKey) {
+    return cache.getIfPresent(cacheKey);
   }
 
   @Override

@@ -305,13 +305,9 @@ public class CachedWebClientTest extends WebClientTest {
                     }
 
                     @Override
-                    public Optional<HttpResponse<Object>> fetch(CacheInterceptor.CacheKey key) {
+                    public HttpResponse<Object> fetch(CacheInterceptor.CacheKey key) {
 
-                        HttpResponse<Object> value = cache.get("/abc");
-                        if (value != null) {
-                            return Optional.of(value);
-                        }
-                        return Optional.empty();
+                      return cache.get("/abc");
                     }
 
                     @Override

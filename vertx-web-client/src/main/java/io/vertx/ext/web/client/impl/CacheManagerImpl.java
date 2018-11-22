@@ -57,7 +57,7 @@ public class CacheManagerImpl implements CacheManager<CacheInterceptor.CacheKey>
     }
   }
 
-  public Optional<HttpResponse<Object>> fetch(CacheInterceptor.CacheKey cacheKey) {
+  public HttpResponse<Object> fetch(CacheInterceptor.CacheKey cacheKey) {
 
     // Always invalidate before checking if cache contains the value
     invalidate();
@@ -71,10 +71,10 @@ public class CacheManagerImpl implements CacheManager<CacheInterceptor.CacheKey>
         lru.remove(cacheKey);
         lru.add(cacheKey);
       }
-      return Optional.of(cacheValue.value);
+      return cacheValue.value;
     }
 
-    return Optional.empty();
+    return null;
   }
 
 
