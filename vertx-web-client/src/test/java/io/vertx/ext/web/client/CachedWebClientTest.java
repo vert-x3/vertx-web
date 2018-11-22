@@ -14,6 +14,8 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertNotEquals;
@@ -334,23 +336,24 @@ public class CachedWebClientTest extends WebClientTest {
     }
 
     protected String syncRequest(WebClient webClient, String uri, Map<String, String> headers) {
-        Future<String> f = Future.future();
-        HttpRequest<Buffer> req = webClient.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, uri);
+      HttpRequest<Buffer> req = webClient.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, uri);
 
-        if (headers != null) {
-            for (Map.Entry<String, String> e : headers.entrySet()) {
-                req.putHeader(e.getKey(), e.getValue());
-            }
-        }
+      if (headers != null) {
+          for (Map.Entry<String, String> e : headers.entrySet()) {
+              req.putHeader(e.getKey(), e.getValue());
+          }
+      }
 
-        req.send(h -> {
-            f.complete(h.result().bodyAsString());
-        });
+      CompletableFuture<String> future = new CompletableFuture<>();
 
-        // Can I has await?
-        while (!f.isComplete()) {
+      req.send(h -> {
+        future.complete(h.result().bodyAsString());
+      });
 
-        }
-        return f.result();
+      try {
+        return future.get();
+      } catch (InterruptedException | ExecutionException e) {
+        throw new RuntimeException();
+      }
     }
 }
