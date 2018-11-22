@@ -4,6 +4,7 @@ package io.vertx.ext.web.client.impl;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
+import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.client.cache.CacheOptions;
 import io.vertx.ext.web.client.HttpRequest;
@@ -21,7 +22,7 @@ import java.util.stream.StreamSupport;
 /**
  * Response cache implemented as WebClient interceptor
  */
-public class CacheInterceptor implements Handler<HttpContext> {
+public class CacheInterceptor implements Handler<HttpContext<?>> {
 
   private final CacheManager cacheManager;
 
@@ -45,7 +46,10 @@ public class CacheInterceptor implements Handler<HttpContext> {
     // Cache only GET requests
     if (!method.equals(HttpMethod.GET)) {
       event.next();
-    } else {
+    } else if (event.phase() != ClientPhase.SEND_REQUEST) {
+      event.next();
+    }
+    else {
 
       if (request.headers().get("date") == null) {
         request.putHeader("date", dateTimeFormatter.format(new Date()));
@@ -60,7 +64,7 @@ public class CacheInterceptor implements Handler<HttpContext> {
         Set<String> cacheControl = parseCacheControl(request);
         if (shouldUseCache(cacheControl)) {
           if (!isValueExpired(request, cacheControl, value)) {
-            event.getResponseHandler().handle(Future.succeededFuture(valueFromCache.get()));
+            event.dispatchResponse(valueFromCache.get());
             return;
           } else {
             cacheManager.remove(cacheKey);
@@ -73,13 +77,14 @@ public class CacheInterceptor implements Handler<HttpContext> {
   }
 
   private void handleCacheMiss(HttpContext event, HttpRequest request) {
-    Handler<AsyncResult<HttpResponse<Object>>> responseHandler = event.getResponseHandler();
-    event.setResponseHandler(r -> {
-      if (r.succeeded()) {
-        cacheManager.put(new CacheKey(request), r.result());
+
+    if (event.phase() == ClientPhase.RECEIVE_RESPONSE) {
+      HttpResponse r = event.response();
+      if (event.clientResponse().statusCode() == 200) {
+        cacheManager.put(new CacheKey(request), r);
       }
-      responseHandler.handle(r);
-    });
+    }
+
     event.next();
   }
 

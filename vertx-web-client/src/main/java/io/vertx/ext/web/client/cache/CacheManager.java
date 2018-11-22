@@ -1,5 +1,6 @@
 package io.vertx.ext.web.client.cache;
 
+import io.vertx.core.http.HttpClientResponse;
 import io.vertx.ext.web.client.HttpResponse;
 
 import java.util.Optional;
