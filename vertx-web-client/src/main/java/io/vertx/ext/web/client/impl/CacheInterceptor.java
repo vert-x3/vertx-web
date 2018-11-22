@@ -45,12 +45,12 @@ public class CacheInterceptor implements Handler<HttpContext<?>> {
 
     // Cache only GET requests
     if (!method.equals(HttpMethod.GET)) {
-      event.next();
-    } else if (event.phase() != ClientPhase.SEND_REQUEST) {
-      event.next();
+      //event.next();
     }
-    else {
-
+    else if (event.phase() == ClientPhase.DISPATCH_RESPONSE) {
+      handleCacheMiss(event, request);
+    }
+    else if (event.phase() == ClientPhase.PREPARE_REQUEST) {
       if (request.headers().get("date") == null) {
         request.putHeader("date", dateTimeFormatter.format(new Date()));
       }
@@ -70,21 +70,15 @@ public class CacheInterceptor implements Handler<HttpContext<?>> {
           }
         }
       }
-
-      handleCacheMiss(event, request);
     }
+    event.next();
   }
 
   private void handleCacheMiss(HttpContext event, HttpRequest request) {
-
-    if (event.phase() == ClientPhase.RECEIVE_RESPONSE) {
-      HttpResponse r = event.response();
-      if (event.clientResponse().statusCode() == 200) {
-        cacheManager.put(new CacheKey(request), r);
-      }
+    HttpResponse r = event.response();
+    if (r.statusCode() == 200) {
+      cacheManager.put(new CacheKey(request), r);
     }
-
-    event.next();
   }
 
   private boolean shouldUseCache(Set<String> cacheControl) {
