@@ -55,9 +55,20 @@ With Vert.x Web API Service you can define an event bus service that connects au
 
 We encourage you to read https://vertx.io/docs/vertx-service-proxy/java/[Service Proxy documentation] before going further
 
+== Overview
+
+The image below represents the architecture of an application using:
+
+* Vert.x Event Bus
+* Vert.x Web to serve requests with Router
+* Vert.x Web API Contract to build the router
+* Vert.x Web API Service to generate the event bus service handlers
+
+image::vertx-web-api-service.svg
+
 == Define your Service interface
 
-First you need to define your service interface. Let's start with this OpenAPI operation definition:
+Let's start with defining your service interface. We want to define the service interface for this OpenAPI operations definition:
 
 [source,yaml]
 ----
