@@ -1,16 +1,13 @@
 package io.vertx.ext.web.client.impl;
 
 
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Future;
 import io.vertx.core.Handler;
-import io.vertx.core.http.HttpClientResponse;
 import io.vertx.core.http.HttpMethod;
-import io.vertx.ext.web.client.cache.CacheOptions;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.cache.CacheKeyValue;
 import io.vertx.ext.web.client.cache.CacheManager;
+import io.vertx.ext.web.client.cache.CacheOptions;
 
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -21,10 +18,12 @@ import java.util.stream.StreamSupport;
 
 /**
  * Response cache implemented as WebClient interceptor
+ *
+ * @author Alexey Soshin
  */
 public class CacheInterceptor implements Handler<HttpContext<?>> {
 
-  private final CacheManager cacheManager;
+  private final CacheManager<CacheKey> cacheManager;
 
   private final DateFormat dateTimeFormatter;
   private final CacheOptions options;
@@ -44,33 +43,33 @@ public class CacheInterceptor implements Handler<HttpContext<?>> {
     HttpMethod method = ((HttpRequestImpl) request).method;
 
     // Cache only GET requests
-    if (!method.equals(HttpMethod.GET)) {
-      //event.next();
-    }
-    else if (event.phase() == ClientPhase.DISPATCH_RESPONSE) {
-      handleCacheMiss(event, request);
-    }
-    else if (event.phase() == ClientPhase.PREPARE_REQUEST) {
-      if (request.headers().get("date") == null) {
-        request.putHeader("date", dateTimeFormatter.format(new Date()));
+    if (method.equals(HttpMethod.GET)) {
+      if (event.phase() == ClientPhase.DISPATCH_RESPONSE) {
+        handleCacheMiss(event, request);
       }
+      else if (event.phase() == ClientPhase.PREPARE_REQUEST) {
+        if (request.headers().get("date") == null) {
+          request.putHeader("date", dateTimeFormatter.format(new Date()));
+        }
 
-      CacheKey cacheKey = new CacheKey(request);
-      // If this is a GET call, we should check the value in cache
-      HttpResponse<Object> value = cacheManager.fetch(cacheKey);
+        CacheKey cacheKey = new CacheKey(request);
+        // If this is a GET call, we should check the value in cache
+        HttpResponse<Object> value = cacheManager.fetch(cacheKey);
 
-      if (value != null) {
-        Set<String> cacheControl = parseCacheControl(request);
-        if (shouldUseCache(cacheControl)) {
-          if (!isValueExpired(request, cacheControl, value)) {
-            event.dispatchResponse(value);
-            return;
-          } else {
-            cacheManager.remove(cacheKey);
+        if (value != null) {
+          Set<String> cacheControl = parseCacheControl(request);
+          if (shouldUseCache(cacheControl)) {
+            if (!isValueExpired(request, cacheControl, value)) {
+              event.dispatchResponse(value);
+              return;
+            } else {
+              cacheManager.remove(cacheKey);
+            }
           }
         }
       }
     }
+
     event.next();
   }
 
