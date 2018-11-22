@@ -2,6 +2,7 @@ package io.vertx.ext.web.api.contract.openapi3.impl;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.JsonNodeType;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.networknt.schema.JsonSchema;
 import com.networknt.schema.JsonSchemaFactory;
@@ -237,6 +238,11 @@ public class OpenApi3Utils {
       }
     } else if (n.has("items")) {
       walkAndSolve((ObjectNode) n.get("items"), root, oas);
+    } else if (n.has("additionalProperties")) {
+      JsonNode jsonNode = n.get("additionalProperties");
+      if (jsonNode.getNodeType().equals(JsonNodeType.OBJECT)) {
+        walkAndSolve((ObjectNode) n.get("additionalProperties"), root, oas);
+      }
     }
   }
 
