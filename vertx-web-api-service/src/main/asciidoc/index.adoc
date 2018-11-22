@@ -1,7 +1,10 @@
 = Vert.x Web API Service
 :toc: left
 
-Vert.x Web API Service helps you routing the API requests incoming from a Vert.x Web Router built with https://vertx.io/docs/vertx-web-api-contract/java/[Vert.x Web API Contract Router Factory] to event bus. It's based on https://vertx.io/docs/vertx-service-proxy/java/[Vert.x service proxies]
+Vert.x Web API Service helps you routing the API requests incoming from a Vert.x Web Router built with https://vertx.io/docs/vertx-web-api-contract/java/[Vert.x Web API Contract Router Factory] to event bus.
+Event Bus provides itself important features like load balancing and distribution of requests across different Vert.x instances. We encourage you to give a look at https://vertx.io/docs/vertx-core/java/#event_bus[Event Bus documentation]
+
+It's based on same concept of https://vertx.io/docs/vertx-service-proxy/java/[Vert.x service proxies].
 
 == Using Vert.x API Service
 
@@ -52,7 +55,7 @@ With Vert.x Web API Service you can define an event bus service that connects au
 
 We encourage you to read https://vertx.io/docs/vertx-service-proxy/java/[Service Proxy documentation] before going further
 
-== Define your Service
+== Define your Service interface
 
 First you need to define your service interface. Let's start with this OpenAPI operation definition:
 
@@ -146,6 +149,25 @@ For example:
 {@link examples.ApiCodegenExamples#example2}
 ----
 
+=== The `OperationRequest` data object
+
+`OperationRequest` it's a _serializable_ version of `RoutingContext`. It doesn't contain all data encapsulated in `RoutingContext`. It transports to your service:
+
+* {@link io.vertx.ext.web.api.OperationRequest#getHeaders()}: Headers of the request
+* {@link io.vertx.ext.web.api.OperationRequest#getParams()}: Contains `routingContext.get("parsedParameters")`
+* {@link io.vertx.ext.web.api.OperationRequest#getUser()}: Contains `routingContext.user().principal()`, null if no user is authenticated
+* {@link io.vertx.ext.web.api.OperationRequest#getExtra()}: Contains an extra configurable payload
+
+You can configure a lambda that builds the extra payload with {@link io.vertx.ext.web.api.contract.RouterFactoryOptions#setExtraOperationContextPayloadMapper(java.util.function.Function)}
+
+=== The `OperationResponse` data object
+
+`OperationResponse` is composed by:
+
+* Headers of the response
+* Status code/Status message
+* Body as a payload. If you set the payload as null no body will be sent
+
 == Mount to Router Factory
 
 Now that your service is ready you need to mount it to {@link io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory}. When you use one of the methods below, the router factory mounts an handler that routes the request through the event bus to the service at the address specified. Pay attention to specify the correct address to event bus endpoint.
@@ -156,6 +178,8 @@ You have four methods to match the service with router operation handlers:
 * Mount operations matching a tag[https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.1.md#operation-object] to a specified address with {@link io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory#mountServiceFromTag(java.lang.String, java.lang.String)}.
 * Specify the class interface and the address of the service with {@link io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory#mountServiceInterface(java.lang.Class, java.lang.String)}. This method introspects the interface public methods and mounts all matching method names with operation ids
 * Specify inside the OpenAPI specification the `x-vertx-event-bus` extension for operations you want to route to your service and scan all operations that contains it with {@link io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory#mountServicesFromExtensions()}
+
+We suggest you to use the extension `x-vertx-event-bus` over all other methods. If you don't want to modify your spec adding extensions, we recommend you to use {@link io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory#mountServiceInterface(java.lang.Class, java.lang.String)}
 
 === Using the extension `x-vertx-event-bus`
 
@@ -212,6 +236,11 @@ You can specify both in path item and operation the extension and router factory
     x-vertx-event-bus:
       method: postTransactionToDb
 ----
+
+In this example:
+
+* `getTransactionList` operation is mapped to service at address `transaction_service.my_application` and method `getTransactionList`
+* `postTransaction` operation is mapped to service at address `transaction_service.my_application` and method `postTransactionToDb`
 
 Then you can call {@link io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory#mountServicesFromExtensions()} that scans entire spec and mounts the handlers that route to your service the requests
 
