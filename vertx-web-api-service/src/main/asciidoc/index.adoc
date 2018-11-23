@@ -169,7 +169,7 @@ For example:
 * {@link io.vertx.ext.web.api.OperationRequest#getUser()}: Contains `routingContext.user().principal()`, null if no user is authenticated
 * {@link io.vertx.ext.web.api.OperationRequest#getExtra()}: Contains an extra configurable payload
 
-You can configure a lambda that builds the extra payload with {@link io.vertx.ext.web.api.contract.RouterFactoryOptions#setExtraOperationContextPayloadMapper(java.util.function.Function)}
+You can configure a lambda that builds the extra payload with {@link io.vertx.ext.web.api.contract.RouterFactory#setExtraOperationContextPayloadMapper(java.util.function.Function)}
 
 === The `OperationResponse` data object
 
