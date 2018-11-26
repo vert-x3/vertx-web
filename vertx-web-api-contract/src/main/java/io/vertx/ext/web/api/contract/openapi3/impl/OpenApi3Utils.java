@@ -2,6 +2,7 @@ package io.vertx.ext.web.api.contract.openapi3.impl;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.JsonNodeType;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
@@ -237,6 +238,11 @@ public class OpenApi3Utils {
       }
     } else if (n.has("items")) {
       walkAndSolve((ObjectNode) n.get("items"), root, oas);
+    } else if (n.has("additionalProperties")) {
+      JsonNode jsonNode = n.get("additionalProperties");
+      if (jsonNode.getNodeType().equals(JsonNodeType.OBJECT)) {
+        walkAndSolve((ObjectNode) n.get("additionalProperties"), root, oas);
+      }
     }
   }
 
@@ -259,9 +265,8 @@ public class OpenApi3Utils {
         ObjectNode schema = ObjectMapperFactory.createJson().convertValue(s, ObjectNode.class);
         // We need to search inside for other refs
         if (!root.has("definitions")) {
-          ObjectNode definitions = JsonNodeFactory.instance.objectNode();
+          ObjectNode definitions = root.putObject("definitions");
           definitions.set(schemaName, schema);
-          root.putObject("definitions");
         } else {
           ((ObjectNode)root.get("definitions")).set(schemaName, schema);
         }

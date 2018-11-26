@@ -215,6 +215,19 @@ paths:
                 nullable: true
               minItems: 1
 
+  /test16:
+    post:
+      operationId: test16
+      responses:
+        default:
+          description: "OK"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/schemaC"
+
 components:
   schemas:
     Person:
@@ -266,3 +279,16 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/schemaA'
+    schemaC:
+      title: schemaC
+      properties:
+        mymap:
+          type: object
+          additionalProperties:
+            $ref: "#/components/schemas/schemaD"
+    schemaD:
+      required:
+        - a
+      properties:
+        a:
+          type: string

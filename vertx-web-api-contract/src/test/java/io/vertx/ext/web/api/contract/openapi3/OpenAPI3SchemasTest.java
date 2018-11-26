@@ -303,4 +303,12 @@ public class OpenAPI3SchemasTest extends WebTestValidationBase {
     assertRequestFail("/test15", "test15_fail.json");
   }
 
+  @Test
+  public void test16() throws Exception {
+    routerFactory.addHandlerByOperationId("test16", handler);
+    startServer();
+    assertRequestOk("/test16", "test16_ok.json");
+    assertRequestFail("/test16", "test16_fail.json");
+  }
+
 }
