@@ -45,7 +45,6 @@ import java.util.function.Function;
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
  */
-@Source
 public class WebClientExamples {
 
   public void create(Vertx vertx) {
