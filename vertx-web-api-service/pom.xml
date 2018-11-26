@@ -110,23 +110,7 @@
         <executions>
           <execution>
             <id>generate-sources</id>
-            <goals>
-              <goal>process</goal>
-            </goals>
             <phase>process-classes</phase>
-            <configuration>
-              <processors>
-                <processor>io.vertx.codegen.CodeGenProcessor</processor>
-                <processor>io.vertx.docgen.JavaDocGenProcessor</processor>
-                <processor>io.vertx.docgen.DocGenProcessor</processor>
-              </processors>
-              <optionMap>
-                <docgen.output>${project.build.directory}/asciidoc/$lang</docgen.output>
-                <maven.groupId>${project.groupId}</maven.groupId>
-                <maven.artifactId>${project.artifactId}</maven.artifactId>
-                <maven.version>${project.version}</maven.version>
-              </optionMap>
-            </configuration>
           </execution>
           <execution>
             <id>generate-test-sources</id>
