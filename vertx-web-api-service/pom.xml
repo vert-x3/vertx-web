@@ -110,14 +110,7 @@
         <executions>
           <execution>
             <id>generate-sources</id>
-            <goals>
-              <goal>process</goal>
-            </goals>
-            <phase>generate-sources</phase>
-            <configuration>
-              <!-- Don't run it on this project as it's a generator -->
-              <skip>true</skip>
-            </configuration>
+            <phase>process-classes</phase>
           </execution>
           <execution>
             <id>generate-test-sources</id>
