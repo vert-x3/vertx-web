@@ -1043,6 +1043,26 @@ public class WebClientTest extends HttpTestBase {
   }
 
   @Test
+  public void testInvalidRedirection() throws Exception {
+    server.requestHandler(req -> {
+      assertEquals(HttpMethod.POST, req.method());
+      assertEquals("/redirect", req.path());
+      req.response().setStatusCode(302).putHeader("Location", "http://www.google.com").end();
+    });
+    startServer();
+    HttpRequest<Buffer> builder = client
+      .post("/redirect")
+      .followRedirects(true);
+    builder.send(onSuccess(resp -> {
+      assertEquals(302, resp.statusCode());
+      assertEquals("http://www.google.com", resp.getHeader("Location"));
+      assertNull(resp.body());
+      complete();
+    }));
+    await();
+  }
+
+  @Test
   public void testVirtualHost() throws Exception {
     server.requestHandler(req -> {
       assertEquals("another-host:8080", req.host());

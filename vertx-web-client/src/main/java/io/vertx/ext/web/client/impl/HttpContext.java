@@ -195,11 +195,11 @@ public class HttpContext<T> {
             fail(ar.cause());
           }
         });
+        return;
       }
-    } else {
-      this.clientResponse = clientResponse;
-      fire(ClientPhase.RECEIVE_RESPONSE);
     }
+    this.clientResponse = clientResponse;
+    fire(ClientPhase.RECEIVE_RESPONSE);
   }
 
   /**
