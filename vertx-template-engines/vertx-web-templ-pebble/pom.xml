@@ -120,7 +120,7 @@
               <shadedClassifierName>shaded</shadedClassifierName>
               <artifactSet>
                 <includes>
-                  <include>com.mitchellbosecke:pebble</include>
+                  <include>io.pebbletemplates:pebble</include>
                 </includes>
               </artifactSet>
             </configuration>
