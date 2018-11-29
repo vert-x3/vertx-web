@@ -120,7 +120,7 @@
       } catch (e) {
         // dev tools are disabled so we cannot use console on IE
       }
-    }
+    };
 
     var setupSockJSConnection = function () {
       self.sockJSConn = new SockJS(url, null, options);
