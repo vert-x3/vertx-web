@@ -391,7 +391,13 @@ public class HttpContext<T> {
       }
     });
     HttpClientRequest req = clientRequest;
-    req.handler(responseFuture::tryComplete);
+    req.handler(ar -> {
+      if (ar.succeeded()) {
+        responseFuture.tryComplete(ar.result());
+      } else {
+        responseFuture.tryFail(ar.cause());
+      }
+    });
     if (request.timeout > 0) {
       req.setTimeout(request.timeout);
     }

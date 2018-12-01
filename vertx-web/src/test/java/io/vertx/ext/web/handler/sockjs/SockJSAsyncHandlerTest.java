@@ -21,15 +21,14 @@ public class SockJSAsyncHandlerTest extends SockJSTestBase {
       testComplete();
     }));
 
-    client.post("/test/400/8ne8e94a/xhr", resp -> {
+    client.post("/test/400/8ne8e94a/xhr", onSuccess(resp -> {
       assertEquals(200, resp.statusCode());
 
-      client.post("/test/400/8ne8e94a/xhr_send", respSend -> assertEquals(204, respSend.statusCode()))
-      .putHeader("content-length", "13")
-      .write("\"Hello World\"")
-      .end();
-    })
-    .end();
+      client.post("/test/400/8ne8e94a/xhr_send", onSuccess(respSend -> assertEquals(204, respSend.statusCode())))
+        .putHeader("content-length", "13")
+        .write("\"Hello World\"")
+        .end();
+    })).end();
 
     await();
   }
