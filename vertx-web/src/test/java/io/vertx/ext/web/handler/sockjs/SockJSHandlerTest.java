@@ -67,19 +67,19 @@ public class SockJSHandlerTest extends WebTestBase {
   }
 
   private void testGreeting(String uri) {
-    client.getNow(uri, resp -> {
+    client.getNow(uri, onSuccess(resp -> {
       assertEquals(200, resp.statusCode());
       assertEquals("text/plain; charset=UTF-8", resp.getHeader("content-type"));
       resp.bodyHandler(buff -> {
         assertEquals("Welcome to SockJS!\n", buff.toString());
         complete();
       });
-    });
+    }));
   }
 
   @Test
   public void testNotFound() {
-    waitFor(5);
+    waitFor(7);
 
     testNotFound("/echo/a");
     testNotFound("/echo/a.html");
@@ -353,10 +353,10 @@ public class SockJSHandlerTest extends WebTestBase {
   }
 
   private void testNotFound(String uri) {
-    client.getNow(uri, resp -> {
+    client.getNow(uri, onSuccess(resp -> {
       assertEquals(404, resp.statusCode());
       complete();
-    });
+    }));
   }
 
   @Test

@@ -83,6 +83,11 @@ class BridgeEventImpl implements BridgeEvent {
   }
 
   @Override
+  public Handler<AsyncResult<Boolean>> getHandler() {
+    return future.getHandler();
+  }
+
+  @Override
   public void complete(Boolean result) {
     future.complete(result);
   }

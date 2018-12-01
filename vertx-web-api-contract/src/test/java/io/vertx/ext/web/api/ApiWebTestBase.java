@@ -49,9 +49,7 @@ public class ApiWebTestBase extends WebTestBase {
   public void testRequestWithBufferResponse(HttpMethod method, String path, String contentType, Buffer obj, int statusCode, String statusMessage, Buffer expected, String expectedContentType) throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
     HttpClientRequest req = client
-      .request(method, 8080, "localhost", path)
-      .putHeader(HttpHeaders.CONTENT_TYPE, contentType)
-      .handler(res -> {
+      .request(method, 8080, "localhost", path, onSuccess(res -> {
         if (expected != null) {
           assertEquals(statusCode, res.statusCode());
           assertEquals(statusMessage, res.statusMessage());
@@ -66,7 +64,8 @@ public class ApiWebTestBase extends WebTestBase {
           assertEquals(statusMessage, res.statusMessage());
           latch.countDown();
         }
-      });
+      }))
+      .putHeader(HttpHeaders.CONTENT_TYPE, contentType);
     if (obj == null) req.end();
     else req.end(obj);
     awaitLatch(latch);
@@ -97,13 +96,13 @@ public class ApiWebTestBase extends WebTestBase {
   public void testRequestWithResponseContentTypeCheck(HttpMethod method, String path, int statusCode, String contentType, List<String> acceptableContentTypes) throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
     client
-      .request(method, 8080, "localhost", path)
-      .putHeader("Accept", String.join(", ", acceptableContentTypes))
-      .handler(res -> {
+      .request(method, 8080, "localhost", path, onSuccess(res -> {
         assertEquals(statusCode, res.statusCode());
         assertEquals(contentType, res.getHeader(HttpHeaders.CONTENT_TYPE));
         latch.countDown();
-      }).end();
+      }))
+      .putHeader("Accept", String.join(", ", acceptableContentTypes))
+      .end();
     awaitLatch(latch);
   }
 
