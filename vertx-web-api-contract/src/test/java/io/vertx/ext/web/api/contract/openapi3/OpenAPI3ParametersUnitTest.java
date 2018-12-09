@@ -2,6 +2,7 @@ package io.vertx.ext.web.api.contract.openapi3;
 
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.parser.OpenAPIV3Parser;
+import io.swagger.v3.parser.ResolverCache;
 import io.swagger.v3.parser.core.models.ParseOptions;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
@@ -41,11 +42,13 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
   ApiClient apiClient;
   OpenAPI3RouterFactory routerFactory;
 
+  public final static String SPEC_URL = "./src/test/resources/swaggers/openapi_parameters_compatibility_spec.yaml";
+
   @Rule
   public ExternalResource resource = new ExternalResource() {
     @Override
     protected void before() throws Throwable {
-      spec = loadSwagger("./src/test/resources/swaggers/openapi_parameters_compatibility_spec.yaml");
+      spec = loadSwagger(SPEC_URL);
     }
 
     @Override
@@ -57,7 +60,7 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
     super.setUp();
     stopServer(); // Have to stop default server of WebTestBase
     apiClient = new io.vertx.ext.web.api.contract.openapi3.ApiClient(webClient);
-    routerFactory = new OpenAPI3RouterFactoryImpl(this.vertx, spec);
+    routerFactory = new OpenAPI3RouterFactoryImpl(this.vertx, spec, new ResolverCache(spec, null, SPEC_URL));
     routerFactory.setOptions(
       new RouterFactoryOptions()
         .setRequireSecurityHandlers(false)
