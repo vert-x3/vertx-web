@@ -11,8 +11,6 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.api.ApiWebTestBase;
-import io.vertx.ext.web.WebTestWithWebClientBase;
-import io.vertx.ext.web.api.RequestParameter;
 import io.vertx.ext.web.api.RequestParameter;
 import io.vertx.ext.web.api.RequestParameters;
 import io.vertx.ext.web.api.contract.RouterFactoryException;
@@ -910,7 +908,8 @@ public class OpenAPI3RouterFactoryTest extends ApiWebTestBase {
             .response()
             .setStatusCode(200)
             .setStatusMessage("OK")
-            .end(jsonBody.encodePrettily());
+            .putHeader("Content-Type", "application/json")
+            .end(jsonBody.toBuffer());
         };
 
         routerFactory.addHandlerByOperationId("thisWayWorks", handler);
@@ -923,7 +922,7 @@ public class OpenAPI3RouterFactoryTest extends ApiWebTestBase {
     startServer();
 
     JsonObject obj = new JsonObject().put("id", "aaa").put("name", "bla");
-    testRequestWithJSON(HttpMethod.POST, "/v1/working", obj, 200, "OK", obj);
-    testRequestWithJSON(HttpMethod.POST, "/v1/notworking", obj, 200, "OK", obj);
+    testRequestWithJSON(HttpMethod.POST, "/v1/working", obj.toBuffer(), 200, "OK", obj.toBuffer());
+    testRequestWithJSON(HttpMethod.POST, "/v1/notworking", obj.toBuffer(), 200, "OK", obj.toBuffer());
   }
 }

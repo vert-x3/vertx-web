@@ -2,6 +2,7 @@ package io.vertx.ext.web.api.contract.openapi3;
 
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.parser.OpenAPIV3Parser;
+import io.swagger.v3.parser.ResolverCache;
 import io.swagger.v3.parser.core.models.AuthorizationValue;
 import io.swagger.v3.parser.core.models.SwaggerParseResult;
 import io.vertx.codegen.annotations.Fluent;
