@@ -5,6 +5,7 @@ import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.PathItem;
 import io.swagger.v3.oas.models.parameters.Parameter;
 import io.swagger.v3.oas.models.responses.ApiResponse;
+import io.swagger.v3.parser.ResolverCache;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
@@ -33,6 +34,7 @@ public class OpenAPI3RouterFactoryImpl extends BaseRouterFactory<OpenAPI> implem
 
   // This map is fullfilled when spec is loaded in memory
   Map<String, OperationValue> operations;
+  ResolverCache refsCache;
 
   SecurityHandlersStore securityHandlers;
 
@@ -144,8 +146,9 @@ public class OpenAPI3RouterFactoryImpl extends BaseRouterFactory<OpenAPI> implem
     }
   }
 
-  public OpenAPI3RouterFactoryImpl(Vertx vertx, OpenAPI spec) {
+  public OpenAPI3RouterFactoryImpl(Vertx vertx, OpenAPI spec, ResolverCache refsCache) {
     super(vertx, spec);
+    this.refsCache = refsCache;
     this.operations = new LinkedHashMap<>();
     this.securityHandlers = new SecurityHandlersStore();
 
@@ -293,7 +296,7 @@ public class OpenAPI3RouterFactoryImpl extends BaseRouterFactory<OpenAPI> implem
 
       // Generate ValidationHandler
       Handler<RoutingContext> validationHandler = new OpenAPI3RequestValidationHandlerImpl(operation
-        .getOperationModel(), operation.getParameters(), this.spec);
+        .getOperationModel(), operation.getParameters(), this.spec, refsCache);
       handlersToLoad.add(validationHandler);
 
       // Check validation failure handler

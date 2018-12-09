@@ -162,7 +162,7 @@ public interface OpenAPI3RouterFactory extends RouterFactory<OpenAPI> {
     vertx.executeBlocking((Future<OpenAPI3RouterFactory> future) -> {
       SwaggerParseResult swaggerParseResult = new OpenAPIV3Parser().readLocation(url, authorizationValues, OpenApi3Utils.getParseOptions());
       if (swaggerParseResult.getMessages().isEmpty()) {
-        future.complete(new OpenAPI3RouterFactoryImpl(vertx, swaggerParseResult.getOpenAPI()));
+        future.complete(new OpenAPI3RouterFactoryImpl(vertx, swaggerParseResult.getOpenAPI(), new ResolverCache(swaggerParseResult.getOpenAPI(), null, url)));
       } else {
         if (swaggerParseResult.getMessages().size() == 1 && swaggerParseResult.getMessages().get(0).matches("unable to read location `?\\Q" + url + "\\E`?"))
           future.fail(RouterFactoryException.createSpecNotExistsException(url));

@@ -11,6 +11,9 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.api.ApiWebTestBase;
+import io.vertx.ext.web.WebTestWithWebClientBase;
+import io.vertx.ext.web.api.RequestParameter;
+import io.vertx.ext.web.api.RequestParameter;
 import io.vertx.ext.web.api.RequestParameters;
 import io.vertx.ext.web.api.contract.RouterFactoryException;
 import io.vertx.ext.web.api.contract.RouterFactoryOptions;
@@ -55,7 +58,7 @@ public class OpenAPI3RouterFactoryTest extends ApiWebTestBase {
   }
 
   private void startServer() throws InterruptedException {
-    Router router = routerFactory.getRouter();
+    router = routerFactory.getRouter();
     server = vertx.createHttpServer(new HttpServerOptions().setPort(8080).setHost("localhost"));
     CountDownLatch latch = new CountDownLatch(1);
     server.requestHandler(router).listen(onSuccess(res -> latch.countDown()));
@@ -889,5 +892,38 @@ public class OpenAPI3RouterFactoryTest extends ApiWebTestBase {
     } finally {
       Paths.get("./my-uploads").toFile().deleteOnExit();
     }
+  }
+
+  @Test
+  public void testSharedRequestBody() throws Exception {
+    CountDownLatch latch = new CountDownLatch(1);
+    OpenAPI3RouterFactory.create(this.vertx, "src/test/resources/swaggers/shared_request_body.yaml",
+      openAPI3RouterFactoryAsyncResult -> {
+        routerFactory = openAPI3RouterFactoryAsyncResult.result();
+        routerFactory.setOptions(HANDLERS_TESTS_OPTIONS);
+
+        final Handler<RoutingContext> handler = routingContext -> {
+          RequestParameters params = routingContext.get("parsedParameters");
+          RequestParameter body = params.body();
+          JsonObject jsonBody = body.getJsonObject();
+          routingContext
+            .response()
+            .setStatusCode(200)
+            .setStatusMessage("OK")
+            .end(jsonBody.encodePrettily());
+        };
+
+        routerFactory.addHandlerByOperationId("thisWayWorks", handler);
+        routerFactory.addHandlerByOperationId("thisWayBroken", handler);
+
+        latch.countDown();
+      });
+    awaitLatch(latch);
+
+    startServer();
+
+    JsonObject obj = new JsonObject().put("id", "aaa").put("name", "bla");
+    testRequestWithJSON(HttpMethod.POST, "/v1/working", obj, 200, "OK", obj);
+    testRequestWithJSON(HttpMethod.POST, "/v1/notworking", obj, 200, "OK", obj);
   }
 }
