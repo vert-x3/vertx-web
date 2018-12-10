@@ -38,6 +38,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -763,6 +764,60 @@ public class WebClientTest extends HttpTestBase {
       assertSame(cause, err);
       testComplete();
     }));
+    await();
+  }
+
+  @Test
+  public void testAsyncFileResponseBodyStream() throws Exception {
+    server.requestHandler(req -> {
+      HttpServerResponse resp = req.response();
+      resp.end(TestUtils.randomBuffer(1024 * 1024));
+    });
+    startServer();
+    AtomicLong received = new AtomicLong();
+    AtomicBoolean closed = new AtomicBoolean();
+    AsyncFile file = new AsyncFile() {
+      public AsyncFile handler(Handler<Buffer> handler) { throw new UnsupportedOperationException(); }
+      public AsyncFile pause() { throw new UnsupportedOperationException(); }
+      public AsyncFile resume() { throw new UnsupportedOperationException(); }
+      public AsyncFile endHandler(Handler<Void> handler) { throw new UnsupportedOperationException(); }
+      public AsyncFile setWriteQueueMaxSize(int i) { throw new UnsupportedOperationException(); }
+      public AsyncFile drainHandler(Handler<Void> handler) { throw new UnsupportedOperationException(); }
+      public AsyncFile fetch(long l) { throw new UnsupportedOperationException(); }
+      public void end() { throw new UnsupportedOperationException(); }
+      public void close() { throw new UnsupportedOperationException(); }
+      public AsyncFile write(Buffer buffer, long l, Handler<AsyncResult<Void>> handler) { throw new UnsupportedOperationException(); }
+      public AsyncFile read(Buffer buffer, int i, long l, int i1, Handler<AsyncResult<Buffer>> handler) { throw new UnsupportedOperationException(); }
+      public AsyncFile flush() { throw new UnsupportedOperationException(); }
+      public AsyncFile flush(Handler<AsyncResult<Void>> handler) { throw new UnsupportedOperationException(); }
+      public AsyncFile setReadPos(long l) { throw new UnsupportedOperationException(); }
+      public AsyncFile setWritePos(long l) { throw new UnsupportedOperationException(); }
+      public AsyncFile setReadBufferSize(int i) { throw new UnsupportedOperationException(); }
+      public AsyncFile exceptionHandler(Handler<Throwable> handler) {
+        return this;
+      }
+      public boolean writeQueueFull() {
+        return false;
+      }
+      public AsyncFile write(Buffer buffer) {
+        received.addAndGet(buffer.length());
+        return this;
+      }
+      public void close(Handler<AsyncResult<Void>> handler) {
+        vertx.setTimer(500, id -> {
+          closed.set(true);
+          handler.handle(Future.succeededFuture());
+        });
+      }
+    };
+    HttpRequest<Buffer> get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
+    get
+      .as(BodyCodec.pipe(file))
+      .send(onSuccess(v -> {
+        assertEquals(1024 * 1024, received.get());
+        assertTrue(closed.get());
+        testComplete();
+      }));
     await();
   }
 
