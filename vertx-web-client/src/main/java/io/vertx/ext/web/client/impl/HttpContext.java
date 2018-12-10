@@ -358,18 +358,20 @@ public class HttpContext<T> {
         resp.endHandler(v -> {
           if (!fut.isComplete()) {
             stream.end();
-            if (stream.result().succeeded()) {
-              fut.complete(new HttpResponseImpl<T>(
-                resp.version(),
-                resp.statusCode(),
-                resp.statusMessage(),
-                resp.headers(),
-                resp.trailers(),
-                resp.cookies(),
-                stream.result().result()));
-            } else {
-              fut.fail(stream.result().cause());
-            }
+            stream.result().setHandler(ar -> {
+              if (ar.succeeded()) {
+                fut.complete(new HttpResponseImpl<T>(
+                  resp.version(),
+                  resp.statusCode(),
+                  resp.statusMessage(),
+                  resp.headers(),
+                  resp.trailers(),
+                  resp.cookies(),
+                  stream.result().result()));
+              } else {
+                fut.fail(ar.cause());
+              }
+            });
           }
         });
         Pump responsePump = Pump.pump(resp, stream);

@@ -19,6 +19,7 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.file.AsyncFile;
 import io.vertx.core.streams.WriteStream;
 import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.ext.web.codec.spi.BodyStream;
@@ -47,9 +48,7 @@ public class StreamingBodyCodec implements BodyCodec<Void> {
 
       @Override
       public void handle(Throwable cause) {
-        if (!fut.isComplete()) {
-          fut.fail(cause);
-        }
+        fut.tryFail(cause);
       }
 
       @Override
@@ -66,9 +65,18 @@ public class StreamingBodyCodec implements BodyCodec<Void> {
 
       @Override
       public void end() {
-        stream.end();
-        if (!fut.isComplete()) {
-          fut.complete();
+        if (stream instanceof AsyncFile) {
+          AsyncFile file = (AsyncFile) stream;
+          file.close(ar -> {
+            if (ar.succeeded()) {
+              fut.tryComplete();
+            } else {
+              fut.tryFail(ar.cause());
+            }
+          });
+        } else {
+          stream.end();
+          fut.tryComplete();
         }
       }
 
