@@ -700,6 +700,55 @@ public class StaticHandlerTest extends WebTestBase {
   }
 
   @Test
+  public void testRangeAwareRequestSegment() throws Exception {
+    stat.setEnableRangeSupport(true);
+    testRequest(HttpMethod.GET, "/somedir/range.bin", req -> req.headers().set("Range", "bytes=0-1023"), res -> {
+      assertEquals("bytes", res.headers().get("Accept-Ranges"));
+      assertEquals("1024", res.headers().get("Content-Length"));
+
+      res.bodyHandler(body -> {
+        assertEquals(1024, body.length());
+      });
+    }, 206, "Partial Content", null);
+
+    testRequest(HttpMethod.GET, "/somedir/range.bin", req -> req.headers().set("Range", "bytes=1024-2047"), res -> {
+      assertEquals("bytes", res.headers().get("Accept-Ranges"));
+      assertEquals("1024", res.headers().get("Content-Length"));
+
+      res.bodyHandler(body -> {
+        assertEquals(1024, body.length());
+      });
+    }, 206, "Partial Content", null);
+
+    testRequest(HttpMethod.GET, "/somedir/range.bin", req -> req.headers().set("Range", "bytes=2048-3071"), res -> {
+      assertEquals("bytes", res.headers().get("Accept-Ranges"));
+      assertEquals("1024", res.headers().get("Content-Length"));
+
+      res.bodyHandler(body -> {
+        assertEquals(1024, body.length());
+      });
+    }, 206, "Partial Content", null);
+
+    testRequest(HttpMethod.GET, "/somedir/range.bin", req -> req.headers().set("Range", "bytes=3072-4095"), res -> {
+      assertEquals("bytes", res.headers().get("Accept-Ranges"));
+      assertEquals("1024", res.headers().get("Content-Length"));
+
+      res.bodyHandler(body -> {
+        assertEquals(1024, body.length());
+      });
+    }, 206, "Partial Content", null);
+
+    testRequest(HttpMethod.GET, "/somedir/range.bin", req -> req.headers().set("Range", "bytes=4096-5119"), res -> {
+      assertEquals("bytes", res.headers().get("Accept-Ranges"));
+      assertEquals("1024", res.headers().get("Content-Length"));
+
+      res.bodyHandler(body -> {
+        assertEquals(1024, body.length());
+      });
+    }, 206, "Partial Content", null);
+  }
+
+  @Test
   public void testRangeAwareRequestBodyForDisabledRangeSupport() throws Exception {
     stat.setEnableRangeSupport(false);
     testRequest(HttpMethod.GET, "/somedir/range.jpg", req -> req.headers().set("Range", "bytes=0-999"), res -> res.bodyHandler(buff -> {
