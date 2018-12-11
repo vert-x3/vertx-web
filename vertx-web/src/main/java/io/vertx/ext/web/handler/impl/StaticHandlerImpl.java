@@ -387,8 +387,8 @@ public class StaticHandlerImpl implements StaticHandler {
 
         // Wrap the sendFile operation into a TCCL switch, so the file resolver would find the file from the set
         // classloader (if any).
-        final Long finalOffset = offset;
-        final Long finalEnd = end;
+        final long finalOffset = offset;
+        final long finalLength = end + 1 - offset;
         wrapInTCCLSwitch(() -> {
           // guess content type
           String contentType = MimeMapping.getMimeTypeForFilename(file);
@@ -400,7 +400,7 @@ public class StaticHandlerImpl implements StaticHandler {
             }
           }
 
-          return request.response().sendFile(file, finalOffset, finalEnd + 1, res2 -> {
+          return request.response().sendFile(file, finalOffset, finalLength, res2 -> {
             if (res2.failed()) {
               context.fail(res2.cause());
             }
