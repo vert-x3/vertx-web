@@ -328,7 +328,10 @@ public class OpenAPI3RouterFactoryImpl extends BaseRouterFactory<OpenAPI> implem
 
       // Now add all handlers to route
       OpenAPI3PathResolver pathResolver = new OpenAPI3PathResolver(operation.getPath(), operation.getParameters());
-      Route route = router.routeWithRegex(operation.getMethod(), pathResolver.solve().toString());
+      Route route = pathResolver
+        .solve() // If this optional is empty, this route doesn't need regex
+        .map(solvedRegex -> router.routeWithRegex(operation.getMethod(), solvedRegex.toString()))
+        .orElseGet(() -> router.route(operation.getMethod(), operation.getPath()));
 
       String exposeConfigurationKey = this.getOptions().getOperationModelKey();
       if (exposeConfigurationKey != null)

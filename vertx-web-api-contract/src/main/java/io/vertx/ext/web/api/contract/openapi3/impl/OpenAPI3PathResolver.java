@@ -3,10 +3,7 @@ package io.vertx.ext.web.api.contract.openapi3.impl;
 import io.swagger.v3.oas.models.parameters.Parameter;
 import io.vertx.ext.web.api.contract.RouterFactoryException;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -26,20 +23,29 @@ public class OpenAPI3PathResolver {
   public static final Pattern OAS_PATH_PARAMETERS_PATTERN = Pattern.compile("\\{{1}[.;?*+]*([^\\{\\}.;?*+]+)[^\\}]*\\}{1}");
   public static final Pattern ILLEGAL_PATH_MATCHER = Pattern.compile("\\{[^\\/]*\\/[^\\/]*\\}");
 
-  public static final String QUERY_REGEX_WITH_SLASH = "\\/?(?>\\??[^\\/]*)?";
-  public static final String QUERY_REGEX_WITHOUT_SLASH = "(?>\\??[^\\/]*)?";
+  private boolean shouldThreatDotAsReserved;
 
   public OpenAPI3PathResolver(String oasPath, List<Parameter> parameters) {
     this.oasPath = oasPath;
-    this.parameters = parameters;
+
+    // Filter parameters to get only path parameters
+    if (parameters != null)
+      this.parameters = parameters.stream().filter(parameter -> parameter.getIn().equals("path")).collect(Collectors.toList());
+    else
+      this.parameters = new ArrayList<>();
+
+    // If there's a parameter with label style, the dot should be escaped to avoid conflicts
+    this.shouldThreatDotAsReserved = hasParameterWithStyle("label");
 
     this.mappedGroups = new HashMap<>();
   }
 
-  public Pattern solve() {
-    // Filter parameters to get only path parameters
-    parameters = parameters.stream().filter(parameter -> parameter.getIn().equals("path")).collect(Collectors.toList());
-
+  /**
+   * This method returns a pattern only if a pattern is needed, otherwise it returns an empty optional
+   *
+   * @return
+   */
+  public Optional<Pattern> solve() {
     if (ILLEGAL_PATH_MATCHER.matcher(oasPath).matches())
       throw new RouterFactoryException("Path template not supported", RouterFactoryException.ErrorType.INVALID_SPEC_PATH);
 
@@ -54,7 +60,9 @@ public class OpenAPI3PathResolver {
       int i = 0;
       while (parametersMatcher.find()) {
         // Append constant string
-        regex.append(Pattern.quote(oasPath.substring(lastMatchEnd, parametersMatcher.start())));
+        String toQuote = oasPath.substring(lastMatchEnd, parametersMatcher.start());
+        if (toQuote.length() != 0)
+          regex.append(Pattern.quote(toQuote));
         lastMatchEnd = parametersMatcher.end();
 
         String paramName = parametersMatcher.group(1);
@@ -62,8 +70,8 @@ public class OpenAPI3PathResolver {
         if (parameterOptional.isPresent()) {
           // For every parameter style I have to generate a different regular expression
           Parameter parameter = parameterOptional.get();
-          String style = (parameter.getStyle() != null) ? parameter.getStyle().toString() : "simple";
-          boolean explode = (parameter.getExplode() != null) ? parameter.getExplode() : false;
+          String style = solveParamStyle(parameter);
+          boolean explode = solveParamExplode(parameter);
           boolean isObject = OpenApi3Utils.isParameterObjectOrAllOfType(parameter);
           boolean isArray = OpenApi3Utils.isParameterArrayType(parameter);
 
@@ -85,60 +93,117 @@ public class OpenAPI3PathResolver {
             +--------+---------+--------+-------------+-------------------------------------+--------------------------+
             | simple | true    | n/a    | blue        | blue,black,brown                    | R=100,G=200,B=150        |
             +--------+---------+--------+-------------+-------------------------------------+--------------------------+
+
+            RFC 3986 section 2.2 Reserved Characters (January 2005)
+            !	*	'	(	)	;	:	@	&	=	+	$	,	/	?	#	[	]
+
            */
 
-          switch (style) {
-            case "simple":
-              regex.append("(?<" + groupName + ">[^\\/\\;\\?\\:\\@\\&\\.\\\"\\<\\>\\#\\{\\}\\|\\\\\\^\\~\\[\\]\\`]*)?");
+          if (style.equals("simple")) {
+            regex.append(
+              RegexBuilder.create().namedGroup(
+                groupName,
+                RegexBuilder.create().notCharactersClass(
+                  "!",	"*",	"'", "(",	")",	";",	":",	"@",	"&",	"+",	"$",	"/",	"?",	"#",	"[",	"]", (shouldThreatDotAsReserved) ? "." : null
+                ).zeroOrMore()
+              ).zeroOrOne()
+            );
+            mappedGroups.put(groupName, paramName);
+          } else if (style.equals("label")) {
+            if (isObject && explode) {
+              Map<String, OpenApi3Utils.ObjectField> properties = OpenApi3Utils.solveObjectParameters(parameter.getSchema());
+              for (Map.Entry<String, OpenApi3Utils.ObjectField> entry : properties.entrySet()) {
+                groupName = "p" + i;
+                regex.append(
+                  RegexBuilder.create().optionalGroup(
+                    RegexBuilder.create()
+                      .escapeCharacter(".").zeroOrOne().quote(entry.getKey()).append("=")
+                      .namedGroup(groupName,
+                        RegexBuilder.create().notCharactersClass(
+                          "!",	"*",	"'", "(",	")",	";",	":",	"@",	"&",	"+",	"$",	"/",	"?",	"#",	"[",	"]", ".", "="
+                        ).zeroOrMore()
+                      )
+                  )
+                );
+                mappedGroups.put(groupName, entry.getKey());
+                i++;
+              }
+            } else {
+              regex.append(
+                RegexBuilder.create()
+                  .escapeCharacter(".").zeroOrOne()
+                  .namedGroup(groupName,
+                    RegexBuilder.create().notCharactersClass(
+                      "!",	"*",	"'",	"(",	")",	";",	":",	"@",	"&",	"=",	"+",	"$",	",",	"/",	"?",	"#",	"[",	"]"
+                    ).zeroOrMore()
+                  ).zeroOrOne()
+              );
               mappedGroups.put(groupName, paramName);
-              break;
-            case "label":
-              if (isObject && explode) {
-                Map<String, OpenApi3Utils.ObjectField> properties = OpenApi3Utils.solveObjectParameters(parameter.getSchema());
-                for (Map.Entry<String, OpenApi3Utils.ObjectField> entry : properties.entrySet()) {
-                  groupName = "p" + i;
-                  regex.append("\\.?" + entry.getKey() + "=(?<" + groupName + ">[^\\/\\;\\?\\:\\@\\=\\.\\&\\\"\\<\\>\\#\\{\\}\\|\\\\\\^\\~\\[\\]\\`]*)");
-                  mappedGroups.put(groupName, entry.getKey());
-                  i++;
-                }
-              } else {
-                regex.append("\\.?(?<" + groupName + ">[^\\/\\;\\?\\:\\@\\=\\&\\\"\\<\\>\\#\\{\\}\\|\\\\\\^\\~\\[\\]\\`]*)?");
-                mappedGroups.put(groupName, paramName);
+            }
+          } else if (style.equals("matrix")) {
+            if (isObject && explode) {
+              Map<String, OpenApi3Utils.ObjectField> properties = OpenApi3Utils.solveObjectParameters(parameter.getSchema());
+              for (Map.Entry<String, OpenApi3Utils.ObjectField> entry : properties.entrySet()) {
+                groupName = "p" + i;
+                regex.append(
+                  RegexBuilder.create().optionalGroup(
+                    RegexBuilder.create()
+                      .escapeCharacter(";").quote(entry.getKey()).append("=")
+                      .namedGroup(groupName,
+                        RegexBuilder.create().notCharactersClass(
+                          "!",	"*",	"'",	"(",	")",	";",	":",	"@",	"&",	"=",	"+",	"$",	",",	"/",	"?",	"#",	"[",	"]",
+                          (shouldThreatDotAsReserved) ? "." : null
+                        ).zeroOrMore()
+                      )
+                  )
+                );
+                mappedGroups.put(groupName, entry.getKey());
+                i++;
               }
-              break;
-            case "matrix":
-              if (isObject && explode) {
-                Map<String, OpenApi3Utils.ObjectField> properties = OpenApi3Utils.solveObjectParameters(parameter.getSchema());
-                for (Map.Entry<String, OpenApi3Utils.ObjectField> entry : properties.entrySet()) {
-                  groupName = "p" + i;
-                  regex.append("\\;" + entry.getKey() + "=(?<" + groupName + ">[^\\/\\;\\?\\:\\@\\=\\.\\&\\\"\\<\\>\\#\\{\\}\\|\\\\\\^\\~\\[\\]\\`]*)");
-                  mappedGroups.put(groupName, entry.getKey());
-                  i++;
-                }
-              } else if (isArray && explode) {
-                regex.append("(?<" + groupName + ">(?>;" + paramName + "=[^\\/\\;\\?\\:\\@\\&\\\"\\<\\>\\#\\{\\}\\|\\\\\\^\\~\\[\\]\\`]*)+)");
-                mappedGroups.put(groupName, paramName);
-              } else {
-                regex.append(";" + paramName + "=(?<" + groupName + ">[^\\/\\;\\?\\:\\@\\=\\&\\\"\\<\\>\\#\\{\\}\\|\\\\\\^\\~\\[\\]\\`]*)?");
-                mappedGroups.put(groupName, paramName);
-              }
-              break;
+            } else if (isArray && explode) {
+              regex.append(
+                RegexBuilder.create().namedGroup(
+                  groupName,
+                  RegexBuilder.create().atomicGroup(
+                    RegexBuilder.create()
+                      .append(";").quote(paramName).append("=")
+                      .notCharactersClass(
+                        "!",	"*",	"'",	"(",	")",	";",	":",	"@",	"&",	"=",	"+",	"$",	",",	"/",	"?",	"#",	"[",	"]",
+                        (shouldThreatDotAsReserved) ? "." : null
+                    ).zeroOrMore()
+                  ).oneOrMore()
+                )
+              );
+              mappedGroups.put(groupName, paramName);
+            } else {
+              regex.append(
+                RegexBuilder.create()
+                  .append(";").quote(paramName).append("=")
+                  .namedGroup(
+                    groupName,
+                    RegexBuilder.create().notCharactersClass(
+                      "!",	"*",	"'",	"(",	")",	";",	":",	"@",	"&",	"=",	"+",	"$",	"/",	"?",	"#",	"[",	"]",
+                      (shouldThreatDotAsReserved) ? "." : null
+                    ).zeroOrMore()
+                  ).zeroOrOne()
+              );
+              mappedGroups.put(groupName, paramName);
+            }
           }
         } else {
           throw RouterFactoryException.createSpecInvalidException("Missing parameter description for parameter name: " + paramName);
         }
         i++;
       }
-      regex.append(Pattern.quote(oasPath.substring(lastMatchEnd, (endSlash) ? oasPath.length() - 1 : oasPath.length())));
+      String toAppendQuoted = oasPath.substring(lastMatchEnd, (endSlash) ? oasPath.length() - 1 : oasPath.length());
+      if (toAppendQuoted.length() != 0)
+        regex.append(Pattern.quote(toAppendQuoted));
       if (endSlash)
-        regex.append(QUERY_REGEX_WITH_SLASH);
-      else
-        regex.append(QUERY_REGEX_WITHOUT_SLASH);
-      resolvedPattern = Pattern.compile(regex.toString());
+        regex.append("\\/");
+      return Optional.of(Pattern.compile(regex.toString()));
     } else {
-      resolvedPattern = Pattern.compile(Pattern.quote(oasPath));
+      return Optional.empty();
     }
-    return resolvedPattern;
   }
 
   public Pattern getResolvedPattern() {
@@ -147,5 +212,21 @@ public class OpenAPI3PathResolver {
 
   public Map<String, String> getMappedGroups() {
     return mappedGroups;
+  }
+
+  private String solveParamStyle(Parameter parameter) {
+    return (parameter.getStyle() != null) ? parameter.getStyle().toString() : "simple";
+  }
+
+  private boolean solveParamExplode(Parameter parameter) {
+    return (parameter.getExplode() != null) ? parameter.getExplode() : false;
+  }
+
+  private boolean hasParameterWithStyle(String style) {
+    return parameters.stream().map(this::solveParamStyle).anyMatch(s -> s.equals(style));
+  }
+
+  private boolean hasParameterWithStyleAndExplode(String style, boolean explode) {
+    return parameters.stream().anyMatch(p -> solveParamStyle(p).equals(style) && solveParamExplode(p) == explode);
   }
 }
