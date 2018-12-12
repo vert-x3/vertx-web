@@ -3,10 +3,7 @@ package io.vertx.ext.web.api.contract.openapi3;
 import io.swagger.v3.oas.models.Operation;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
-import io.vertx.core.http.HttpClientOptions;
-import io.vertx.core.http.HttpMethod;
-import io.vertx.core.http.HttpServer;
-import io.vertx.core.http.HttpServerOptions;
+import io.vertx.core.http.*;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
@@ -949,6 +946,45 @@ public class OpenAPI3RouterFactoryTest extends ApiWebTestBase {
     router = routerFactory.getRouter();
 
     assertTrue(router.getRoutes().stream().map(Route::getPath).anyMatch("/consumesTest"::equals));
+  }
 
+  @Test
+  public void testJsonEmptyBody() throws Exception {
+    CountDownLatch latch = new CountDownLatch(1);
+    OpenAPI3RouterFactory.create(this.vertx, "src/test/resources/swaggers/router_factory_test.yaml",
+      onSuccess(routerFactory -> {
+        this.routerFactory = routerFactory;
+        routerFactory.setOptions(new RouterFactoryOptions().setRequireSecurityHandlers(false).setMountNotImplementedHandler(false));
+
+        routerFactory.addHandlerByOperationId("jsonEmptyBody", routingContext -> {
+          RequestParameters params = routingContext.get("parsedParameters");
+          RequestParameter body = params.body();
+          routingContext
+            .response()
+            .setStatusCode(200)
+            .setStatusMessage("OK")
+            .putHeader("Content-Type", "application/json")
+            .end(new JsonObject().put("bodyEmpty", body == null).toBuffer());
+        });
+
+        latch.countDown();
+      }));
+    awaitLatch(latch);
+
+    startServer();
+
+    CountDownLatch requestLatch = new CountDownLatch(1);
+    client
+      .request(HttpMethod.POST, 8080, "localhost", "/jsonBody/empty", res -> {
+        assertEquals(200, res.statusCode());
+        assertEquals("application/json", res.getHeader(HttpHeaders.CONTENT_TYPE));
+        res.bodyHandler(buff -> {
+          JsonObject result = new JsonObject(normalizeLineEndingsFor(buff));
+          assertEquals(new JsonObject().put("bodyEmpty", true), result);
+          requestLatch.countDown();
+        });
+      })
+      .end();
+    awaitLatch(requestLatch);
   }
 }
