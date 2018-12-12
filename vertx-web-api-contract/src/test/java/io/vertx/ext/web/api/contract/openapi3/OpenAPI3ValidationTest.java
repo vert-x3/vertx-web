@@ -715,7 +715,7 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
     obj.put("dateTime2", "2018-01-01T10:00:00+10:00");
     obj.put("dateTime3", "2018-01-01T10:00:00-10:00");
 
-    testRequestWithJSON(HttpMethod.POST, "/jsonBodyWithDate", obj, 200, "OK", obj);
+    testRequestWithJSON(HttpMethod.POST, "/jsonBodyWithDate", obj.toBuffer(), 200, "OK", obj.toBuffer());
   }
 
 }
