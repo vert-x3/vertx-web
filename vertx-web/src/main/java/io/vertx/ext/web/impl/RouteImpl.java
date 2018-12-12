@@ -46,6 +46,7 @@ public class RouteImpl implements Route {
   private final RouterImpl router;
   private final Set<HttpMethod> methods = new HashSet<>();
   private final Set<MIMEHeader> consumes = new LinkedHashSet<>();
+  private boolean emptyBodyPermittedWithConsumes = false;
   private final Set<MIMEHeader> produces = new LinkedHashSet<>();
   private String path;
   private int order;
@@ -318,7 +319,7 @@ public class RouteImpl implements Route {
       // Can this route consume the specified content type
       MIMEHeader contentType = context.parsedHeaders().contentType();
       MIMEHeader consumal = contentType.findMatchedBy(consumes);
-      if (consumal == null) {
+      if (consumal == null && !(contentType.rawValue().isEmpty() && emptyBodyPermittedWithConsumes)) {
         return false;
       }
     }
@@ -479,4 +480,9 @@ public class RouteImpl implements Route {
   synchronized protected boolean hasNextFailureHandler(RoutingContextImplBase context) {
     return context.currentRouteNextFailureHandlerIndex() < failureHandlers.size();
   }
+
+  public void setEmptyBodyPermittedWithConsumes(boolean emptyBodyPermittedWithConsumes) {
+    this.emptyBodyPermittedWithConsumes = emptyBodyPermittedWithConsumes;
+  }
+
 }

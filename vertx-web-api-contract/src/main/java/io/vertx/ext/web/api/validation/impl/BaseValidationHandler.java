@@ -371,4 +371,8 @@ public abstract class BaseValidationHandler implements ValidationHandler {
     this.queryAdditionalPropertiesObjectPropertyName = objectParameterName;
   }
 
+  public boolean isBodyRequired() {
+    return bodyRequired;
+  }
+
 }

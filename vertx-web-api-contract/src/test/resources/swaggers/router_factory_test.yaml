@@ -136,6 +136,21 @@ paths:
       responses:
         200:
           description: ok
+  /jsonBody/empty:
+    post:
+      operationId: jsonEmptyBody
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: string
+      responses:
+        default:
+          description: ok
 components:
   schemas:
     Pet:

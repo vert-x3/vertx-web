@@ -18,6 +18,7 @@ import io.vertx.ext.web.api.contract.impl.BaseRouterFactory;
 import io.vertx.ext.web.api.contract.impl.RouteToEBServiceHandler;
 import io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory;
 import io.vertx.ext.web.handler.ResponseContentTypeHandler;
+import io.vertx.ext.web.impl.RouteImpl;
 
 import java.lang.reflect.Method;
 import java.util.*;
@@ -295,7 +296,7 @@ public class OpenAPI3RouterFactoryImpl extends BaseRouterFactory<OpenAPI> implem
       }
 
       // Generate ValidationHandler
-      Handler<RoutingContext> validationHandler = new OpenAPI3RequestValidationHandlerImpl(operation
+      OpenAPI3RequestValidationHandlerImpl validationHandler = new OpenAPI3RequestValidationHandlerImpl(operation
         .getOperationModel(), operation.getParameters(), this.spec, refsCache);
       handlersToLoad.add(validationHandler);
 
@@ -344,6 +345,7 @@ public class OpenAPI3RouterFactoryImpl extends BaseRouterFactory<OpenAPI> implem
         operation.getOperationModel().getRequestBody().getContent() != null)
         consumes.addAll(operation.getOperationModel().getRequestBody().getContent().keySet());
 
+
       if (operation.getOperationModel().getResponses() != null)
         for (ApiResponse response : operation.getOperationModel().getResponses().values())
           if (response.getContent() != null)
@@ -354,6 +356,9 @@ public class OpenAPI3RouterFactoryImpl extends BaseRouterFactory<OpenAPI> implem
 
       for (String ct : produces)
         route.produces(ct);
+
+      if (!consumes.isEmpty())
+        ((RouteImpl)route).setEmptyBodyPermittedWithConsumes(!validationHandler.isBodyRequired());
 
       if (options.isMountResponseContentTypeHandler() && produces.size() != 0)
         route.handler(ResponseContentTypeHandler.create());
