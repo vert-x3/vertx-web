@@ -8,6 +8,7 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.api.ApiWebTestBase;
@@ -924,5 +925,30 @@ public class OpenAPI3RouterFactoryTest extends ApiWebTestBase {
     JsonObject obj = new JsonObject().put("id", "aaa").put("name", "bla");
     testRequestWithJSON(HttpMethod.POST, "/v1/working", obj.toBuffer(), 200, "OK", obj.toBuffer());
     testRequestWithJSON(HttpMethod.POST, "/v1/notworking", obj.toBuffer(), 200, "OK", obj.toBuffer());
+  }
+
+  @Test
+  public void pathResolverShouldNotCreateRegex() throws Exception {
+    CountDownLatch latch = new CountDownLatch(1);
+    OpenAPI3RouterFactory.create(this.vertx, "src/test/resources/swaggers/produces_consumes_test.yaml",
+      openAPI3RouterFactoryAsyncResult -> {
+        routerFactory = openAPI3RouterFactoryAsyncResult.result();
+        routerFactory.setOptions(new RouterFactoryOptions().setMountNotImplementedHandler(false));
+
+        routerFactory.addHandlerByOperationId("consumesTest", routingContext ->
+          routingContext
+            .response()
+            .setStatusCode(200)
+            .setStatusMessage("OK")
+        );
+
+        latch.countDown();
+      });
+    awaitLatch(latch);
+
+    router = routerFactory.getRouter();
+
+    assertTrue(router.getRoutes().stream().map(Route::getPath).anyMatch("/consumesTest"::equals));
+
   }
 }
