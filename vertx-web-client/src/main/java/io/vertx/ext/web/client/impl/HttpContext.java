@@ -190,7 +190,11 @@ public class HttpContext<T> {
       if (next != null) {
         next.setHandler(ar -> {
           if (ar.succeeded()) {
-            sendRequest(ar.result());
+            HttpClientRequest nextRequest = ar.result();
+            if (request.headers != null) {
+              nextRequest.headers().addAll(request.headers);
+            }
+            sendRequest(nextRequest);
           } else {
             fail(ar.cause());
           }

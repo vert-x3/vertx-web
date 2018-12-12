@@ -1067,6 +1067,10 @@ public class WebClientTest extends HttpTestBase {
     waitFor(2);
     String location = "http://" + DEFAULT_HTTP_HOST + ":" + DEFAULT_HTTP_PORT + "/ok";
     server.requestHandler(req -> {
+      if (!req.headers().contains("foo", "bar", true)) {
+        fail("Missing expected header");
+        return;
+      }
       if (req.path().equals("/redirect")) {
         req.response().setStatusCode(301).putHeader("Location", location).end();
         if (!expect) {
@@ -1080,7 +1084,8 @@ public class WebClientTest extends HttpTestBase {
       }
     });
     startServer();
-    HttpRequest<Buffer> builder = client.get("/redirect");
+    HttpRequest<Buffer> builder = client.get("/redirect")
+      .putHeader("foo", "bar");
     if (set != null) {
       builder = builder.followRedirects(set);
     }
