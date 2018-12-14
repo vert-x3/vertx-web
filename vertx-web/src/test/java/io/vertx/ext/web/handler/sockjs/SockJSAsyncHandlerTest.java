@@ -7,6 +7,11 @@ import io.vertx.ext.web.handler.BodyHandler;
 
 public class SockJSAsyncHandlerTest extends SockJSTestBase {
 
+  public SockJSAsyncHandlerTest() {
+    // Use two servers so we test with HTTP request/response with load balanced SockJSSession access
+    numServers = 2;
+  }
+
   @Override
   protected void addHandlersBeforeSockJSHandler(Router router) {
     router.route().handler(BodyHandler.create());
