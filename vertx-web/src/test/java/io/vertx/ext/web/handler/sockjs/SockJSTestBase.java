@@ -14,29 +14,39 @@ import io.vertx.test.core.VertxTestBase;
 
 public abstract class SockJSTestBase extends VertxTestBase {
 
+  protected int numServers = 1;
   protected HttpClient client;
-  protected HttpServer server;
-  protected Router router;
+  protected HttpServer[] servers;
   protected SockJSHandler sockJSHandler;
+
+  protected Router createRouter() {
+    Router router = Router.router(vertx);
+    router.route().handler(CookieHandler.create());
+    router.route()
+      .handler(SessionHandler.create(LocalSessionStore.create(vertx))
+        .setNagHttps(false)
+        .setSessionTimeout(60 * 60 * 1000));
+    addHandlersBeforeSockJSHandler(router);
+    return router;
+  }
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    client = vertx.createHttpClient(new HttpClientOptions().setDefaultPort(8080));
-    router = Router.router(vertx);
-    router.route().handler(CookieHandler.create());
-    router.route()
-        .handler(SessionHandler.create(LocalSessionStore.create(vertx))
-            .setNagHttps(false)
-            .setSessionTimeout(60 * 60 * 1000));
-    addHandlersBeforeSockJSHandler(router);
+    servers = new HttpServer[numServers];
+    client = vertx.createHttpClient(new HttpClientOptions().setDefaultPort(8080).setKeepAlive(false));
     SockJSHandlerOptions options = new SockJSHandlerOptions().setHeartbeatInterval(2000);
     sockJSHandler = SockJSHandler.create(vertx, options);
-    router.route("/test/*").handler(sockJSHandler);
-    server = vertx.createHttpServer(new HttpServerOptions().setPort(8080).setHost("localhost"));
-    CountDownLatch latch = new CountDownLatch(1);
-    server.requestHandler(router).listen(ar -> latch.countDown());
-    awaitLatch(latch);
+    for (int i = 0;i < servers.length;i++) {
+      Router router = createRouter();
+      router.route("/test/*").handler(sockJSHandler);
+      servers[i] = vertx
+        .createHttpServer(new HttpServerOptions().setPort(8080).setHost("localhost"))
+        .requestHandler(router);
+      CountDownLatch latch = new CountDownLatch(1);
+      servers[i].listen(ar -> latch.countDown());
+      awaitLatch(latch);
+    }
   }
 
   protected void addHandlersBeforeSockJSHandler(Router router) {

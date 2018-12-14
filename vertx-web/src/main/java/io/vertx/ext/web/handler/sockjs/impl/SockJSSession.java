@@ -362,16 +362,24 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
   }
 
   synchronized boolean handleMessages(String messages) {
-
     String[] msgArr = parseMessageString(messages);
-
     if (msgArr == null) {
       return false;
-    } else {
-      for (String msg : msgArr) {
+    }
+    handleMessages(msgArr);
+    return true;
+  }
+
+
+  private synchronized void handleMessages(String[] messages) {
+    if (transportCtx == Vertx.currentContext()) {
+      for (String msg : messages) {
         pendingReads.write(buffer(msg));
       }
-      return true;
+    } else {
+      transportCtx.runOnContext(v -> {
+        handleMessages(messages);
+      });
     }
   }
 
