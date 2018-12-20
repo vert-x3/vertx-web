@@ -129,6 +129,15 @@ public interface HttpRequest<T> {
   HttpRequest<T> uri(String value);
 
   /**
+   * Configure the request to add multiple HTTP headers .
+   *
+   * @param headers The HTTP headers
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  HttpRequest<T> putHeaders(MultiMap headers);
+
+  /**
    * Configure the request to add a new HTTP header.
    *
    * @param name the header name

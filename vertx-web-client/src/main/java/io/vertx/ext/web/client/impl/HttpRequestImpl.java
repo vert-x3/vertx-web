@@ -132,6 +132,12 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
   }
 
   @Override
+  public HttpRequest<T> putHeaders(MultiMap headers) {
+    headers().addAll(headers);
+    return this;
+  }
+
+  @Override
   public HttpRequest<T> putHeader(String name, String value) {
     headers().set(name, value);
     return this;
