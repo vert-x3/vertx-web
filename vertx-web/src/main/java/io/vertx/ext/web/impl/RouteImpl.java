@@ -125,10 +125,10 @@ public class RouteImpl implements Route {
 
   @Override
   public synchronized Route order(int order) {
-    if (added) {
-      throw new IllegalStateException("Can't change order after route is active");
-    }
     this.order = order;
+    if (added) {
+      reAdd();
+    }
     return this;
   }
 
@@ -471,6 +471,14 @@ public class RouteImpl implements Route {
       router.add(this);
       added = true;
     }
+  }
+
+  private void reAdd() {
+    if (added) {
+      router.remove(this);
+      router.add(this);
+    }
+    checkAdd();
   }
 
   synchronized protected boolean hasNextContextHandler(RoutingContextImplBase context) {

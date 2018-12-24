@@ -439,18 +439,46 @@ public class RouterTest extends WebTestBase {
   }
 
   @Test
+  public void testChangeOrderAfterActive() throws Exception {
+    Route route1 = router.route("/some/path/").handler(routingContext -> {
+
+      HttpServerResponse response = routingContext.response();
+      response.write("route1\n");
+      routingContext.next();
+    });
+
+    Route route2 = router.route("/some/path/").handler(routingContext -> {
+
+      HttpServerResponse response = routingContext.response();
+      response.setChunked(true);
+      response.write("route2\n");
+      routingContext.next();
+    });
+
+    Route route3 = router.route("/some/path/").handler(routingContext -> {
+      HttpServerResponse response = routingContext.response();
+      response.write("route3");
+      routingContext.response().end();
+    });
+
+    route2.order(-1);
+
+    testRequest(HttpMethod.GET, "/some/path/", null, resp -> {
+      resp.bodyHandler(body -> {
+        body.toString().equals("route2\nroute1\nroute3");
+      });
+    }, 200, "OK", null);
+  }
+
+  @Test
   public void testChangeOrderAfterActive1() throws Exception {
     String path = "/blah";
     Route route = router.route(path).handler(rc -> {
       rc.response().write("apples");
       rc.next();
     });
-    try {
-      route.order(23);
-      fail();
-    } catch (IllegalStateException e) {
-      // OK
-    }
+    route.order(23);
+    assertTrue(router.getRoutes().size() == 1);
   }
 
   @Test
@@ -460,12 +488,8 @@ public class RouterTest extends WebTestBase {
       rc.response().write("apples");
       rc.next();
     });
-    try {
-      route.order(23);
-      fail();
-    } catch (IllegalStateException e) {
-      // OK
-    }
+    route.order(23);
+    assertTrue(router.getRoutes().size() == 1);
   }
 
   @Test
