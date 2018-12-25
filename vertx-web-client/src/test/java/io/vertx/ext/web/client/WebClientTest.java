@@ -113,7 +113,7 @@ public class WebClientTest extends HttpTestBase {
 
   @Test
   public void testPutHeaders() throws Exception {
-    MultiMap headers = new CaseInsensitiveHeaders();
+    MultiMap headers = MultiMap.caseInsensitiveMultiMap();
     headers.add("foo","bar");
     headers.add("ping","pong");
     testRequest(client -> client.get("somehost", "somepath").putHeaders(headers), req -> {
