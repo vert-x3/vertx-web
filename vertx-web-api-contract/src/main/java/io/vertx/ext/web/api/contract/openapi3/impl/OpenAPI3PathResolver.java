@@ -104,7 +104,7 @@ public class OpenAPI3PathResolver {
               RegexBuilder.create().namedGroup(
                 groupName,
                 RegexBuilder.create().notCharactersClass(
-                  "!",	"*",	"'", "(",	")",	";",	":",	"@",	"&",	"+",	"$",	"/",	"?",	"#",	"[",	"]", (shouldThreatDotAsReserved) ? "." : null
+                  "!",	"*",	"'", "(",	")",	";",	"@",	"&",	"+",	"$",	"/",	"?",	"#",	"[",	"]", (shouldThreatDotAsReserved) ? "." : null
                 ).zeroOrMore()
               ).zeroOrOne()
             );
@@ -120,7 +120,7 @@ public class OpenAPI3PathResolver {
                       .escapeCharacter(".").zeroOrOne().quote(entry.getKey()).append("=")
                       .namedGroup(groupName,
                         RegexBuilder.create().notCharactersClass(
-                          "!",	"*",	"'", "(",	")",	";",	":",	"@",	"&",	"+",	"$",	"/",	"?",	"#",	"[",	"]", ".", "="
+                          "!",	"*",	"'", "(",	")",	";",	"@",	"&",	"+",	"$",	"/",	"?",	"#",	"[",	"]", ".", "="
                         ).zeroOrMore()
                       )
                   )
@@ -134,7 +134,7 @@ public class OpenAPI3PathResolver {
                   .escapeCharacter(".").zeroOrOne()
                   .namedGroup(groupName,
                     RegexBuilder.create().notCharactersClass(
-                      "!",	"*",	"'",	"(",	")",	";",	":",	"@",	"&",	"=",	"+",	"$",	",",	"/",	"?",	"#",	"[",	"]"
+                      "!",	"*",	"'",	"(",	")",	";",	"@",	"&",	"=",	"+",	"$",	",",	"/",	"?",	"#",	"[",	"]"
                     ).zeroOrMore()
                   ).zeroOrOne()
               );
@@ -151,7 +151,7 @@ public class OpenAPI3PathResolver {
                       .escapeCharacter(";").quote(entry.getKey()).append("=")
                       .namedGroup(groupName,
                         RegexBuilder.create().notCharactersClass(
-                          "!",	"*",	"'",	"(",	")",	";",	":",	"@",	"&",	"=",	"+",	"$",	",",	"/",	"?",	"#",	"[",	"]",
+                          "!",	"*",	"'",	"(",	")",	";",	"@",	"&",	"=",	"+",	"$",	",",	"/",	"?",	"#",	"[",	"]",
                           (shouldThreatDotAsReserved) ? "." : null
                         ).zeroOrMore()
                       )
@@ -168,7 +168,7 @@ public class OpenAPI3PathResolver {
                     RegexBuilder.create()
                       .append(";").quote(paramName).append("=")
                       .notCharactersClass(
-                        "!",	"*",	"'",	"(",	")",	";",	":",	"@",	"&",	"=",	"+",	"$",	",",	"/",	"?",	"#",	"[",	"]",
+                        "!",	"*",	"'",	"(",	")",	";",	"@",	"&",	"=",	"+",	"$",	",",	"/",	"?",	"#",	"[",	"]",
                         (shouldThreatDotAsReserved) ? "." : null
                     ).zeroOrMore()
                   ).oneOrMore()
@@ -182,7 +182,7 @@ public class OpenAPI3PathResolver {
                   .namedGroup(
                     groupName,
                     RegexBuilder.create().notCharactersClass(
-                      "!",	"*",	"'",	"(",	")",	";",	":",	"@",	"&",	"=",	"+",	"$",	"/",	"?",	"#",	"[",	"]",
+                      "!",	"*",	"'",	"(",	")",	";",	"@",	"&",	"=",	"+",	"$",	"/",	"?",	"#",	"[",	"]",
                       (shouldThreatDotAsReserved) ? "." : null
                     ).zeroOrMore()
                   ).zeroOrOne()

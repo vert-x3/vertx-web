@@ -160,4 +160,32 @@ public class OpenAPI3PathResolverTest {
     );
   }
 
+  @Test
+  public void semicolonInASimplePathParam() {
+    OpenAPI3PathResolver resolver = instantiatePathResolver("path_simple");
+    String path = "/path/bla:bla:bla/test";
+    shouldMatchParameter(
+      resolver,
+      path,
+      "simple",
+      "bla:bla:bla"
+    );
+  }
+
+  @Test
+  public void matrixWithSemicolon() {
+    OpenAPI3PathResolver resolver = instantiatePathResolver("path_matrix_id_email");
+    String path = "/path/;id=" + "bla:bla" + ";email=" + encode("user@vertx.io") + "/test";
+    shouldMatchParameter(
+      resolver,
+      path,
+      "id",
+      "bla:bla");
+    shouldMatchParameter(
+      resolver,
+      path,
+      "email",
+      "user@vertx.io");
+  }
+
 }
