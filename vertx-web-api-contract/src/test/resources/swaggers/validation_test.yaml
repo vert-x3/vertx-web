@@ -466,6 +466,25 @@ paths:
       responses:
         default:
           description: Ok
+  '/query/form/explode/object':
+    get:
+      parameters:
+        - name: color
+          x-test: object
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/ColorObject"
+          style: form
+          explode: true
+      operationId: 'query_form_explode_object'
+      responses:
+        200:
+          description: Ok
+        400:
+          description: Wrong validation
+        default:
+          description: Default response
 components:
   schemas:
     Pet:
@@ -512,6 +531,21 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/SchemaRecursive'
+    ColorObject:
+      type: object
+      properties:
+        R:
+          type: string
+        G:
+          type: string
+        B:
+          type: string
+        alpha:
+          type: number
+      required:
+        - R
+        - G
+        - B
   securitySchemes:
     api_key:
       type: apiKey

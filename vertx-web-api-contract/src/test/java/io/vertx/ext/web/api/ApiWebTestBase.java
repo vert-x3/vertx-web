@@ -5,6 +5,7 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.WebTestBase;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.WebClient;
@@ -13,6 +14,7 @@ import io.vertx.ext.web.client.WebClientOptions;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 public class ApiWebTestBase extends WebTestBase {
 
@@ -46,19 +48,19 @@ public class ApiWebTestBase extends WebTestBase {
     super.tearDown();
   }
 
-  public void testRequestWithBufferResponse(HttpMethod method, String path, String contentType, Buffer obj, int statusCode, String statusMessage, Buffer expected, String expectedContentType) throws Exception {
+  public void testRequestWithBufferResponse(HttpMethod method, String path, String contentType, Buffer obj, int statusCode, String statusMessage, String expectedContentType, Consumer<Buffer> checkResult) throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
     HttpClientRequest req = client
       .request(method, 8080, "localhost", path)
       .putHeader(HttpHeaders.CONTENT_TYPE, contentType)
       .handler(res -> {
-        if (expected != null) {
+        if (checkResult != null) {
           assertEquals(statusCode, res.statusCode());
           assertEquals(statusMessage, res.statusMessage());
           assertEquals(expectedContentType, res.getHeader(HttpHeaders.CONTENT_TYPE));
           res.bodyHandler(buff -> {
             buff = normalizeLineEndingsFor(buff);
-            assertEquals(expected, buff);
+            checkResult.accept(buff);
             latch.countDown();
           });
         } else {
@@ -67,8 +69,9 @@ public class ApiWebTestBase extends WebTestBase {
           latch.countDown();
         }
       });
-    if (obj == null) req.end();
-    else req.end(obj);
+    if (contentType != null) req.putHeader(HttpHeaders.CONTENT_TYPE, contentType);
+    if (obj != null) req.end(obj);
+    else req.end();
     awaitLatch(latch);
   }
 
@@ -77,7 +80,11 @@ public class ApiWebTestBase extends WebTestBase {
   }
 
   public void testRequestWithJSON(HttpMethod method, String path, Buffer obj, int statusCode, String statusMessage, Buffer expected) throws Exception {
-    testRequestWithBufferResponse(method, path, "application/json", obj, statusCode, statusMessage, expected, "application/json");
+    testRequestWithBufferResponse(method, path, "application/json", obj, statusCode, statusMessage, "application/json", (expected != null) ? b -> assertEquals(expected, b) : null);
+  }
+
+  public void testEmptyRequestWithJSONObjectResponse(HttpMethod method, String path, int statusCode, String statusMessage, JsonObject expected) throws Exception {
+    testRequestWithBufferResponse(method, path, null, null, statusCode, statusMessage, "application/json", b -> assertEquals(expected, b.toJsonObject()));
   }
 
   public void testRequestWithForm(HttpMethod method, String path, FormType formType, MultiMap formMap, int statusCode, String statusMessage) throws Exception {
