@@ -45,8 +45,12 @@ public class StringTypeValidator extends SingleValueParameterTypeValidator<Strin
 
   @Override
   public RequestParameter isValidSingleParam(String value) {
-    if (!checkMinLength(value) || !checkMaxLength(value) || (pattern != null && !pattern.matcher(value).matches()))
-      throw ValidationException.ValidationExceptionFactory.generateNotMatchValidationException(null);
-    else return RequestParameter.create(value);
+    if (!checkMinLength(value))
+      throw ValidationException.ValidationExceptionFactory.generateNotMatchValidationException("Value doesn't respect min length " + minLength);
+    if (!checkMaxLength(value))
+      throw ValidationException.ValidationExceptionFactory.generateNotMatchValidationException("Value doesn't respect max length " + maxLength);
+    if (pattern != null && !pattern.matcher(value).matches())
+      throw ValidationException.ValidationExceptionFactory.generateNotMatchValidationException("Value doesn't respect pattern " + pattern);
+    return RequestParameter.create(value);
   }
 }
