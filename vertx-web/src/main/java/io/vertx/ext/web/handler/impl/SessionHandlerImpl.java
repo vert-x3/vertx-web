@@ -114,7 +114,9 @@ public class SessionHandlerImpl implements SessionHandler {
 			String sessionID = cookie.getValue();
 			if (sessionID != null && sessionID.length() > minLength) {
 				// we passed the OWASP min length requirements
-        context.request().pause();
+        if (context.vertx().isClustered()){
+          context.request().pause();
+        }
 				getSession(context.vertx(), sessionID, res -> {
 					if (res.succeeded()) {
 						Session session = res.result();
@@ -134,7 +136,9 @@ public class SessionHandlerImpl implements SessionHandler {
 					} else {
 						context.fail(res.cause());
 					}
-          context.request().resume();
+          if (context.vertx().isClustered()){
+            context.request().resume();
+          }
 					context.next();
 				});
 				return;
