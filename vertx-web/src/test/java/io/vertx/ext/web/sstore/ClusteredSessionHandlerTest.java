@@ -23,6 +23,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.spi.cluster.ClusterManager;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.Session;
+import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.CookieHandler;
 import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.handler.SessionHandlerTestBase;
@@ -126,6 +127,82 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
     testRequestBuffer(client2, HttpMethod.GET, 8082, "/", req -> req.putHeader("cookie", rSetCookie.get()), null, 200, "OK", null);
     Thread.sleep(1000);
     testRequestBuffer(client3, HttpMethod.GET, 8083, "/", req -> req.putHeader("cookie", rSetCookie.get()), null, 200, "OK", null);
+  }
+
+  @Test
+  public void testPostMethodWithClusteredSession() throws Exception {
+    String postStr = "sausages";
+    CountDownLatch serversReady = new CountDownLatch(1);
+
+    Router router1 = Router.router(vertices[0]);
+    router1.route().handler(CookieHandler.create());
+    SessionStore store1 = ClusteredSessionStore.create(vertices[0]);
+    router1.route().handler(SessionHandler.create(store1));
+    HttpServer server1 = vertices[0].createHttpServer(new HttpServerOptions().setPort(8081).setHost("localhost"));
+    server1.requestHandler(router1);
+    server1.listen(onSuccess(s -> serversReady.countDown()));
+    HttpClient client1 = vertices[0].createHttpClient(new HttpClientOptions());
+
+    Router router2 = Router.router(vertices[1]);
+    router2.route().handler(CookieHandler.create());
+    SessionStore store2 = ClusteredSessionStore.create(vertices[1]);
+    router2.route().handler(SessionHandler.create(store2));
+    HttpServer server2 = vertices[1].createHttpServer(new HttpServerOptions().setPort(8082).setHost("localhost"));
+    server2.requestHandler(router2);
+    server2.listen(onSuccess(s -> serversReady.countDown()));
+    HttpClient client2 = vertices[0].createHttpClient(new HttpClientOptions());
+
+    Router router3 = Router.router(vertices[2]);
+    router3.route().handler(CookieHandler.create());
+    SessionStore store3 = ClusteredSessionStore.create(vertices[2]);
+    router3.route().handler(SessionHandler.create(store3)).handler(BodyHandler.create());
+    HttpServer server3 = vertices[2].createHttpServer(new HttpServerOptions().setPort(8083).setHost("localhost"));
+    server3.requestHandler(router3);
+    server3.listen(onSuccess(s -> serversReady.countDown()));
+    HttpClient client3 = vertices[0].createHttpClient(new HttpClientOptions());
+
+    awaitLatch(serversReady);
+
+    router1.route().handler(rc -> {
+      Session sess = rc.session();
+      sess.put("foo", "bar");
+      stuffSession(sess);
+      rc.response().end();
+    });
+
+    router2.route().handler(rc -> {
+      Session sess = rc.session();
+      checkSession(sess);
+      assertEquals("bar", sess.get("foo"));
+      sess.put("eek", "wibble");
+      rc.response().end();
+    });
+
+    router3.route().handler(rc -> {
+      Session sess = rc.session();
+      checkSession(sess);
+      assertEquals("bar", sess.get("foo"));
+      assertEquals("wibble", sess.get("eek"));
+      assertEquals(postStr,rc.getBodyAsString());
+      rc.response().end();
+    });
+
+    AtomicReference<String> rSetCookie = new AtomicReference<>();
+    testRequestBuffer(client1, HttpMethod.GET, 8081, "/", null, resp -> {
+      String setCookie = resp.headers().get("set-cookie");
+      rSetCookie.set(setCookie);
+    }, 200, "OK", null);
+    // FIXME - for now we do an artificial sleep because it's possible the session hasn't been stored properly before
+    // the next request hits the server
+    // https://github.com/vert-x3/vertx-web/issues/93
+    Thread.sleep(1000);
+    testRequestBuffer(client2, HttpMethod.GET, 8082, "/", req -> req.putHeader("cookie", rSetCookie.get()), null, 200, "OK", null);
+    Thread.sleep(1000);
+    testRequestBuffer(client3, HttpMethod.GET, 8083, "/", req -> {
+      req.putHeader("cookie", rSetCookie.get());
+      req.setChunked(true);
+      req.write(postStr);
+    }, null, 200, "OK", null);
   }
 
   @Test
