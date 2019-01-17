@@ -95,6 +95,28 @@ public class WebClientTest extends HttpTestBase {
   }
 
   @Test
+  public void testBasicAuthentication() throws Exception {
+    testRequest(
+      client -> client.get("somehost", "somepath").basicAuthentication("someid", "somepassword"),
+      req -> {
+        String auth = req.headers().get(HttpHeaders.AUTHORIZATION);
+        assertEquals("Was expecting authorization header to contain a basic authentication string", "Basic c29tZWlkLXNvbWVwYXNzd29yZA==", auth);
+      }
+    );
+  }
+
+  @Test
+  public void testBearerTokenAuthentication() throws Exception {
+    testRequest(
+      client -> client.get("somehost", "somepath").bearerTokenAuthentication("sometoken"),
+      req -> {
+        String auth = req.headers().get(HttpHeaders.AUTHORIZATION);
+        assertEquals("Was expecting authorization header to contain a bearer token authentication string", "Bearer sometoken", auth);
+      }
+    );
+  }
+
+  @Test
   public void testCustomUserAgent() throws Exception {
     client = WebClient.wrap(super.client, new WebClientOptions().setUserAgent("smith"));
     testRequest(client -> client.get("somehost", "somepath"), req -> assertEquals(Collections.singletonList("smith"), req.headers().getAll(HttpHeaders.USER_AGENT)));
