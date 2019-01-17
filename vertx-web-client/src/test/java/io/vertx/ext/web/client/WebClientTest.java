@@ -791,6 +791,7 @@ public class WebClientTest extends HttpTestBase {
       public AsyncFile flush() { throw new UnsupportedOperationException(); }
       public AsyncFile flush(Handler<AsyncResult<Void>> handler) { throw new UnsupportedOperationException(); }
       public AsyncFile setReadPos(long l) { throw new UnsupportedOperationException(); }
+      public AsyncFile setReadLength(long l) { throw new UnsupportedOperationException(); }
       public AsyncFile setWritePos(long l) { throw new UnsupportedOperationException(); }
       public AsyncFile setReadBufferSize(int i) { throw new UnsupportedOperationException(); }
       public AsyncFile exceptionHandler(Handler<Throwable> handler) {
