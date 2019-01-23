@@ -311,4 +311,12 @@ public class OpenAPI3SchemasTest extends WebTestValidationBase {
     assertRequestFail("/test16", "test16_fail.json");
   }
 
+
+  @Test
+  public void testLocalRelativeRef() throws Exception {
+    routerFactory.addHandlerByOperationId("testLocalRelativeRef", handler);
+    startServer();
+    assertRequestOk("/testLocalRelativeRef", "testLocalRelativeRef_ok.json");
+    assertRequestFail("/testLocalRelativeRef", "testLocalRelativeRef_fail.json");
+  }
 }
