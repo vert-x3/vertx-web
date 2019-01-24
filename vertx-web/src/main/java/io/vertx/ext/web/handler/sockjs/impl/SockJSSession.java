@@ -69,6 +69,7 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
   private static final Logger log = LoggerFactory.getLogger(SockJSSession.class);
   private final LocalMap<String, SockJSSession> sessions;
   private final Deque<String> pendingWrites = new LinkedList<>();
+  private final Context bufferContext;
   private final InboundBuffer<Buffer> pendingReads;
   private TransportListener listener;
   private boolean closed;
@@ -102,7 +103,8 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
     this.id = id;
     this.timeout = timeout;
     this.sockHandler = sockHandler;
-    this.pendingReads = new InboundBuffer<>(vertx.getOrCreateContext());
+    bufferContext = vertx.getOrCreateContext();
+    this.pendingReads = new InboundBuffer<>(bufferContext);
 
     // Start a heartbeat
 
@@ -265,7 +267,9 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
 
   private synchronized void writePendingMessages() {
     String json = JsonCodec.encode(pendingWrites.toArray());
-    listener.sendFrame("a" + json);
+    if (listener != null) {
+      listener.sendFrame("a" + json);
+    }
     pendingWrites.clear();
     messagesSize = 0;
     if (drainHandler != null && messagesSize <= maxQueueSize / 2) {
@@ -372,12 +376,12 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
 
 
   private synchronized void handleMessages(String[] messages) {
-    if (transportCtx == Vertx.currentContext()) {
+    if (bufferContext == Vertx.currentContext()) {
       for (String msg : messages) {
         pendingReads.write(buffer(msg));
       }
     } else {
-      transportCtx.runOnContext(v -> {
+      bufferContext.runOnContext(v -> {
         handleMessages(messages);
       });
     }
