@@ -212,6 +212,9 @@ You can also write headers using putHeader
 
 === Configure the request to add authentication.
 
+Authentication can be performed manually by setting the correct headers, or, using our predefined methods
+(We strongly suggest having HTTPS enabled, especially for authenticated requests):
+
 In basic HTTP authentication, a request contains a header field of the form `Authorization: Basic <credentials>`,
 where credentials is the base64 encoding of id and password joined by a colon.
 

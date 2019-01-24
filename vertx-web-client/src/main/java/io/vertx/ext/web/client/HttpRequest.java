@@ -145,7 +145,7 @@ public interface HttpRequest<T> {
   MultiMap headers();
 
   /**
-   * Configure the request to add basic access authentication.
+   * Configure the request to perform basic access authentication.
    * <p>
    * In basic HTTP authentication, a request contains a header field of the form 'Authorization: Basic &#60;credentials&#62;',
    * where credentials is the base64 encoding of id and password joined by a colon.
@@ -159,7 +159,7 @@ public interface HttpRequest<T> {
   HttpRequest<T> basicAuthentication(String id, String password);
 
   /**
-   * Configure the request to add bearer token authentication.
+   * Configure the request to perform bearer token authentication.
    * <p>
    * In OAuth 2.0, a request contains a header field of the form 'Authorization: Bearer &#60;bearerToken&#62;',
    * where bearerToken is the bearer token issued by an authorization server to access protected resources.

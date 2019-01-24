@@ -32,7 +32,6 @@ import io.vertx.ext.web.client.predicate.ResponsePredicate;
 import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.ext.web.multipart.MultipartForm;
 
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
@@ -149,8 +148,8 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
 
   @Override
   public HttpRequest<T> basicAuthentication(String id, String password) {
-    String joined = id + "-" + password;
-    String credentials =  Base64.getEncoder().encodeToString(joined.getBytes(StandardCharsets.UTF_8));
+    Buffer buff = Buffer.buffer(id).appendString("-").appendString(password);
+    String credentials =  new String(Base64.getEncoder().encode(buff.getBytes()));
     return putHeader(HttpHeaders.AUTHORIZATION.toString(), "Basic " + credentials);
   }
 
