@@ -148,7 +148,12 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
 
   @Override
   public HttpRequest<T> basicAuthentication(String id, String password) {
-    Buffer buff = Buffer.buffer(id).appendString("-").appendString(password);
+    return this.basicAuthentication(Buffer.buffer(id), Buffer.buffer(password));
+  }
+
+  @Override
+  public HttpRequest<T> basicAuthentication(Buffer id, Buffer password) {
+    Buffer buff = Buffer.buffer().appendBuffer(id).appendString("-").appendBuffer(password);
     String credentials =  new String(Base64.getEncoder().encode(buff.getBytes()));
     return putHeader(HttpHeaders.AUTHORIZATION.toString(), "Basic " + credentials);
   }
