@@ -314,6 +314,16 @@ public class WebClientExamples {
     request.putHeader("other-header", "foo");
   }
 
+  public void addBasicAccessAuthentication(WebClient client) {
+    HttpRequest<Buffer> request = client.get(8080, "myserver.mycompany.com", "/some-uri")
+      .basicAuthentication("myid", "mypassword");
+  }
+
+  public void addBearerTokenAuthentication(WebClient client) {
+    HttpRequest<Buffer> request = client.get(8080, "myserver.mycompany.com", "/some-uri")
+      .bearerTokenAuthentication("myBearerToken");
+  }
+
   public void receiveResponse(WebClient client) {
     client
       .get(8080, "myserver.mycompany.com", "/some-uri")
