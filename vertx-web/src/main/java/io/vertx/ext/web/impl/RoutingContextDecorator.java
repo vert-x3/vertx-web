@@ -84,6 +84,11 @@ public class RoutingContextDecorator implements RoutingContext {
   }
 
   @Override
+  public void fail(int statusCode, Throwable throwable) {
+    vertx().runOnContext(future -> decoratedContext.fail(statusCode, throwable));
+  }
+
+  @Override
   public boolean failed() {
     return decoratedContext.failed();
   }

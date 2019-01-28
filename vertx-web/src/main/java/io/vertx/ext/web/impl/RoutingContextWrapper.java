@@ -74,6 +74,11 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   }
 
   @Override
+  public void fail(int statusCode, Throwable throwable) {
+    inner.fail(statusCode, throwable);
+  }
+
+  @Override
   public RoutingContext put(String key, Object obj) {
     inner.put(key, obj);
     return this;

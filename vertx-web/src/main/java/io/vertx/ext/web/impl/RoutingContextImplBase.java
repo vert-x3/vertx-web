@@ -17,6 +17,7 @@
 package io.vertx.ext.web.impl;
 
 import io.netty.handler.codec.http.HttpResponseStatus;
+import io.vertx.core.Handler;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
@@ -134,10 +135,11 @@ public abstract class RoutingContextImplBase implements RoutingContext {
           }
           return true;
         }
-      } catch (IllegalArgumentException e) {
+      } catch (Throwable e) {
         if (log.isTraceEnabled()) log.trace("IllegalArgumentException thrown during iteration", e);
-        // Failure in handling failure!
-        unhandledFailure(400, e, route.router());
+        // Failure in matches algorithm (If the exception is instanceof IllegalArgumentException probably is a QueryStringDecoder error!)
+        if (!this.response().ended())
+          unhandledFailure((e instanceof IllegalArgumentException) ? 400 : -1, e, route.router());
         return true;
       }
     }
@@ -147,11 +149,12 @@ public abstract class RoutingContextImplBase implements RoutingContext {
 
   protected void unhandledFailure(int statusCode, Throwable failure, RouterImpl router) {
     int code = statusCode != -1 ? statusCode : 500;
-    if (failure != null) {
-      if (router.exceptionHandler() != null) {
-        router.exceptionHandler().handle(failure);
-      } else {
-        log.error("Unexpected exception in route", failure);
+    Handler<RoutingContext> errorHandler = router.getErrorHandlerByStatusCode(code);
+    if (errorHandler != null) {
+      try {
+        errorHandler.handle(this);
+      } catch (Throwable t) {
+        log.error("Error in error handler", t);
       }
     }
     if (!response().ended()) {

@@ -2355,4 +2355,48 @@ public class RouterTest extends WebTestBase {
     }
     awaitLatch(latch);
   }
+
+  @Test
+  public void testCustom404ErrorHandler() throws Exception {
+    // Default 404 handler
+    testRequest(HttpMethod.GET, "/blah", 404, "Not Found", "<html><body><h1>Resource not found</h1></body></html>");
+    router.errorHandler(404, routingContext -> routingContext
+      .response()
+      .setStatusMessage("Not Found")
+      .setStatusCode(404)
+      .end("Not Found custom error")
+    );
+    testRequest(HttpMethod.GET, "/blah", 404, "Not Found", "Not Found custom error");
+  }
+
+  @Test
+  public void testDecodingErrorCustomHandler() throws Exception {
+    String BAD_PARAM = "~!@\\||$%^&*()_=-%22;;%27%22:%3C%3E/?]}{";
+
+    router.errorHandler(400, context -> context.response().setStatusCode(500).setStatusMessage("Dumb").end());
+
+    router.route().handler(rc -> rc.next());
+    router.route("/path").handler(rc -> rc.response().setStatusCode(500).end());
+    testRequest(HttpMethod.GET, "/path?q=" + BAD_PARAM, 500,"Dumb");
+  }
+
+  @Test
+  public void testCustomErrorHandler() throws Exception {
+
+    router.route("/path").handler(rc -> rc.fail(410));
+    router.errorHandler(410, context -> context.response().setStatusCode(500).setStatusMessage("Dumb").end());
+
+    testRequest(HttpMethod.GET, "/path", 500, "Dumb");
+  }
+
+  @Test
+  public void testErrorInCustomErrorHandler() throws Exception {
+
+    router.route("/path").handler(rc -> rc.fail(410));
+    router.errorHandler(410, rc -> {
+      throw new RuntimeException();
+    });
+
+    testRequest(HttpMethod.GET, "/path", 410, "Gone");
+  }
 }
