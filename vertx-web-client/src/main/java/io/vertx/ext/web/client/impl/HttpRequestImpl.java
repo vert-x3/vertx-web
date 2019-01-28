@@ -33,6 +33,7 @@ import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.ext.web.multipart.MultipartForm;
 
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 
 /**
@@ -143,6 +144,23 @@ public class HttpRequestImpl<T> implements HttpRequest<T> {
       headers = new CaseInsensitiveHeaders();
     }
     return headers;
+  }
+
+  @Override
+  public HttpRequest<T> basicAuthentication(String id, String password) {
+    return this.basicAuthentication(Buffer.buffer(id), Buffer.buffer(password));
+  }
+
+  @Override
+  public HttpRequest<T> basicAuthentication(Buffer id, Buffer password) {
+    Buffer buff = Buffer.buffer().appendBuffer(id).appendString("-").appendBuffer(password);
+    String credentials =  new String(Base64.getEncoder().encode(buff.getBytes()));
+    return putHeader(HttpHeaders.AUTHORIZATION.toString(), "Basic " + credentials);
+  }
+
+  @Override
+  public HttpRequest<T> bearerTokenAuthentication(String bearerToken) {
+    return putHeader(HttpHeaders.AUTHORIZATION.toString(), "Bearer " + bearerToken);
   }
 
   @Override
