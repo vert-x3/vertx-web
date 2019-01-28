@@ -142,16 +142,22 @@ public class RoutingContextImpl extends RoutingContextImplBase {
       // Send back FAILURE
       unhandledFailure(statusCode, failure, router);
     } else {
-      // Send back default 404
-      response().setStatusCode(404);
-      if (request().method() == HttpMethod.HEAD) {
-        // HEAD responses don't have a body
-        response().end();
-      } else {
-        response()
-                .putHeader(HttpHeaderNames.CONTENT_TYPE, "text/html; charset=utf-8")
-                .end(DEFAULT_404);
-      }
+      Handler<RoutingContext> handler = router.getErrorHandlerByStatusCode(404);
+      if (handler == null) { // Default 404 handling
+        // Send back default 404
+        this.response()
+          .setStatusMessage("Not Found")
+          .setStatusCode(404);
+        if (this.request().method() == HttpMethod.HEAD) {
+          // HEAD responses don't have a body
+          this.response().end();
+        } else {
+          this.response()
+            .putHeader(HttpHeaderNames.CONTENT_TYPE, "text/html; charset=utf-8")
+            .end("<html><body><h1>Resource not found</h1></body></html>");
+        }
+      } else
+        handler.handle(this);
     }
   }
 
@@ -163,7 +169,13 @@ public class RoutingContextImpl extends RoutingContextImplBase {
 
   @Override
   public void fail(Throwable t) {
-    this.failure = t == null ? new NullPointerException() : t;
+    this.fail(-1, t);
+  }
+
+  @Override
+  public void fail(int statusCode, Throwable throwable) {
+    this.statusCode = statusCode;
+    this.failure = throwable == null ? new NullPointerException() : throwable;
     doFail();
   }
 
