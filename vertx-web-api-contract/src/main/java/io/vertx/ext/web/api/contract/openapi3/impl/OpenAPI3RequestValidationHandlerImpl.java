@@ -298,15 +298,15 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
       if ("query".equals(parameter.getIn())) {
         this.addQueryParamRule(ParameterValidationRuleImpl.ParameterValidationRuleFactory
           .createValidationRuleWithCustomTypeValidator(entry.getKey(), new ExpandedObjectFieldValidator(this
-            .resolveInnerSchemaPrimitiveTypeValidator(entry.getValue().getSchema(), true), parameter.getName(), entry.getKey()), entry.getValue().isRequired(), OpenApi3Utils.resolveAllowEmptyValue(parameter), ParameterLocation.QUERY));
+            .resolveInnerSchemaPrimitiveTypeValidator(entry.getValue().getSchema(), true), parameter.getName(), entry.getKey()), !entry.getValue().isRequired(), OpenApi3Utils.resolveAllowEmptyValue(parameter), ParameterLocation.QUERY));
       } else if ("cookie".equals(parameter.getIn())) {
         this.addCookieParamRule(ParameterValidationRuleImpl.ParameterValidationRuleFactory
           .createValidationRuleWithCustomTypeValidator(entry.getKey(), new ExpandedObjectFieldValidator(this
-            .resolveInnerSchemaPrimitiveTypeValidator(entry.getValue().getSchema(), true), parameter.getName(), entry.getKey()), entry.getValue().isRequired(), false, ParameterLocation.COOKIE));
+            .resolveInnerSchemaPrimitiveTypeValidator(entry.getValue().getSchema(), true), parameter.getName(), entry.getKey()), !entry.getValue().isRequired(), false, ParameterLocation.COOKIE));
       } else if ("path".equals(parameter.getIn())) {
         this.addPathParamRule(ParameterValidationRuleImpl.ParameterValidationRuleFactory
           .createValidationRuleWithCustomTypeValidator(entry.getKey(), new ExpandedObjectFieldValidator(this
-            .resolveInnerSchemaPrimitiveTypeValidator(entry.getValue().getSchema(), true), parameter.getName(), entry.getKey()), entry.getValue().isRequired(), false, ParameterLocation.PATH));
+            .resolveInnerSchemaPrimitiveTypeValidator(entry.getValue().getSchema(), true), parameter.getName(), entry.getKey()), !entry.getValue().isRequired(), false, ParameterLocation.PATH));
       } else {
         throw new SpecFeatureNotSupportedException("combination of style, type and location (in) of parameter fields " +
           "" + "not supported for parameter " + parameter.getName());
@@ -356,7 +356,7 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
       if (parameter.getIn().equals("query")) {
         this.addQueryParamRule(ParameterValidationRuleImpl.ParameterValidationRuleFactory
           .createValidationRuleWithCustomTypeValidator(parameter.getName() + "[" + entry.getKey() + "]", new ExpandedObjectFieldValidator(this
-            .resolveInnerSchemaPrimitiveTypeValidator(entry.getValue().getSchema(), true), parameter.getName(), entry.getKey()), entry.getValue().isRequired(), OpenApi3Utils.resolveAllowEmptyValue(parameter), ParameterLocation.QUERY));
+            .resolveInnerSchemaPrimitiveTypeValidator(entry.getValue().getSchema(), true), parameter.getName(), entry.getKey()), !entry.getValue().isRequired(), OpenApi3Utils.resolveAllowEmptyValue(parameter), ParameterLocation.QUERY));
       } else {
         throw new SpecFeatureNotSupportedException("combination of style, type and location (in) of parameter fields " +
           "" + "not supported for parameter " + parameter.getName());
