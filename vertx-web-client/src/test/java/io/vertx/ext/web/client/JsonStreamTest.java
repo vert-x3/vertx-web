@@ -28,7 +28,6 @@ public class JsonStreamTest {
   public void setup(TestContext tc) {
     vertx = Vertx.vertx();
     client = WebClient.create(vertx, new WebClientOptions().setDefaultPort(8080).setDefaultHost("localhost"));
-    Async async = tc.async();
 
     vertx.createHttpServer().requestHandler(req -> {
       int count = Integer.valueOf(req.getParam("count"));
@@ -49,13 +48,7 @@ public class JsonStreamTest {
         req.response().write(separator);
       }
       req.response().end();
-    }).listen(8080, x -> {
-      if (x.succeeded()) {
-        async.complete();
-      } else {
-        tc.fail(x.cause());
-      }
-    });
+    }).listen(8080, tc.asyncAssertSuccess());
   }
 
   @After
