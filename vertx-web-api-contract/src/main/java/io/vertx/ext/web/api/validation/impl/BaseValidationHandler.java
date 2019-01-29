@@ -105,10 +105,12 @@ public abstract class BaseValidationHandler implements ValidationHandler {
     for (ParameterValidationRule rule : pathParamsRules.values()) {
       String name = rule.getName();
       if (pathParams.containsKey(name)) {
-        RequestParameter parsedParam = rule.validateSingleParam(pathParams.get(name));
-        if (parsedParams.containsKey(parsedParam.getName()))
-          parsedParam = parsedParam.merge(parsedParams.get(parsedParam.getName()));
-        parsedParams.put(parsedParam.getName(), parsedParam);
+        if (pathParams.get(name) != null || !rule.isOptional() ) {
+            RequestParameter parsedParam = rule.validateSingleParam(pathParams.get(name));
+            if (parsedParams.containsKey(parsedParam.getName()))
+              parsedParam = parsedParam.merge(parsedParams.get(parsedParam.getName()));
+            parsedParams.put(parsedParam.getName(), parsedParam);
+        }
       } else // Path params are required!
         throw ValidationException.ValidationExceptionFactory.generateNotFoundValidationException(name,
           ParameterLocation.PATH);
