@@ -69,7 +69,7 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
   private static final Logger log = LoggerFactory.getLogger(SockJSSession.class);
   private final LocalMap<String, SockJSSession> sessions;
   private final Deque<String> pendingWrites = new LinkedList<>();
-  private final Context bufferContext;
+  private final Context context;
   private final InboundBuffer<Buffer> pendingReads;
   private TransportListener listener;
   private boolean closed;
@@ -103,8 +103,8 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
     this.id = id;
     this.timeout = timeout;
     this.sockHandler = sockHandler;
-    bufferContext = vertx.getOrCreateContext();
-    this.pendingReads = new InboundBuffer<>(bufferContext);
+    context = vertx.getOrCreateContext();
+    pendingReads = new InboundBuffer<>(context);
 
     // Start a heartbeat
 
@@ -193,12 +193,14 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
   // Yes, SockJS is weird, but it's hard to work out expected server behaviour when there's no spec
   @Override
   public void close() {
+    Handler<Void> eh;
     synchronized (this) {
-      if (endHandler != null) {
-        endHandler.handle(null);
-      }
+      eh = endHandler;
       closed = true;
       doClose();
+    }
+    if (eh != null) {
+      eh.handle(null);
     }
   }
 
@@ -266,16 +268,16 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
   }
 
   private synchronized void writePendingMessages() {
-    String json = JsonCodec.encode(pendingWrites.toArray());
     if (listener != null) {
+      String json = JsonCodec.encode(pendingWrites.toArray());
       listener.sendFrame("a" + json);
-    }
-    pendingWrites.clear();
-    messagesSize = 0;
-    if (drainHandler != null && messagesSize <= maxQueueSize / 2) {
-      Handler<Void> dh = drainHandler;
-      drainHandler = null;
-      dh.handle(null);
+      pendingWrites.clear();
+      messagesSize = 0;
+      if (drainHandler != null) {
+        Handler<Void> dh = drainHandler;
+        drainHandler = null;
+        context.runOnContext(dh);
+      }
     }
   }
 
@@ -376,20 +378,24 @@ class SockJSSession extends SockJSSocketBase implements Shareable {
 
 
   private synchronized void handleMessages(String[] messages) {
-    if (bufferContext == Vertx.currentContext()) {
+    if (context == Vertx.currentContext()) {
       for (String msg : messages) {
         pendingReads.write(buffer(msg));
       }
     } else {
-      bufferContext.runOnContext(v -> {
+      context.runOnContext(v -> {
         handleMessages(messages);
       });
     }
   }
 
-  synchronized void handleException(Throwable t) {
-    if (exceptionHandler != null) {
-      exceptionHandler.handle(t);
+  void handleException(Throwable t) {
+    Handler<Throwable> eh;
+    synchronized (this) {
+      eh = exceptionHandler;
+    }
+    if (eh != null) {
+      context.runOnContext(v -> eh.handle(t));
     } else {
       log.error("Unhandled exception", t);
     }
