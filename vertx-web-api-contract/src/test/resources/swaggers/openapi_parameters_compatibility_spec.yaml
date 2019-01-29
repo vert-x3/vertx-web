@@ -1374,6 +1374,8 @@ components:
           type: string
         B:
           type: string
+        alpha:
+          type: string
       required:
         - R
         - G

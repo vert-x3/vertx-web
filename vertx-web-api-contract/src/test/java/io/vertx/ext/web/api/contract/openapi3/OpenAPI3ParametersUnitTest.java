@@ -1564,6 +1564,61 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
   }
 
   /**
+   * Test: query_optional_form_explode_object
+   * Expected parameters sent:
+   * color: R=100&G=200&B=150&alpha=50
+   * Expected response: {"color":{"R":"100","G":"200","B":"150","alpha":"50"}}
+   * @throws Exception
+   */
+  @Test
+  public void testQueryOptionalFormExplodeObject() throws Exception {
+    routerFactory.addHandlerByOperationId("query_form_explode_object", routingContext -> {
+      RequestParameters params = routingContext.get("parsedParameters");
+      JsonObject res = new JsonObject();
+
+      RequestParameter color_query = params.queryParameter("color");
+      assertNotNull(color_query);
+      assertTrue(color_query.isObject());
+      Map<String, String> map = new HashMap<>();
+      for (String key : color_query.getObjectKeys())
+        map.put(key, color_query.getObjectValue(key).getString());
+      res.put("color", map);
+
+
+      routingContext.response()
+        .setStatusCode(200)
+        .setStatusMessage("OK")
+        .putHeader("content-type", "application/json; charset=utf-8")
+        .end(res.encode());
+    });
+
+    CountDownLatch latch = new CountDownLatch(1);
+
+    Map<String, Object> color_query;
+    color_query = new HashMap<>();
+    color_query.put("R", "100");
+    color_query.put("G", "200");
+    color_query.put("B", "150");
+    color_query.put("alpha", "50");
+
+
+    startServer();
+
+    apiClient.queryFormExplodeObject(color_query, (AsyncResult<HttpResponse> ar) -> {
+      if (ar.succeeded()) {
+        assertEquals(200, ar.result().statusCode());
+        assertTrue("Expected: " + new JsonObject("{\"color\":{\"R\":\"100\",\"G\":\"200\",\"B\":\"150\",\"alpha\":\"50\"}}")
+          .encode() + " Actual: " + ar.result().bodyAsJsonObject().encode(), new JsonObject("{\"color\":{\"R\":\"100\",\"G\":\"200\",\"B\":\"150\",\"alpha\":\"50\"}}").equals(ar.result().bodyAsJsonObject()));
+      } else {
+        assertTrue(ar.cause().getMessage(), false);
+      }
+      latch.countDown();
+    });
+    awaitLatch(latch);
+
+  }
+
+  /**
    * Test: query_spaceDelimited_noexplode_array
    * Expected parameters sent:
    * color: blue%20black%20brown
