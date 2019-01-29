@@ -16,6 +16,15 @@
 
 package io.vertx.ext.web.handler;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.Set;
+
+import org.junit.AfterClass;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
@@ -24,16 +33,10 @@ import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.FileUpload;
+import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.WebTestBase;
 import io.vertx.test.core.TestUtils;
-import org.junit.AfterClass;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
-import java.io.File;
-import java.util.Set;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -558,5 +561,189 @@ public class BodyHandlerTest extends WebTestBase {
       req.write(buffer);
     }, 200, "OK", "");
   }
+  
+  @Test
+  public void testNoUploadDirMultiPartFormData() throws Exception
+  {
+    String dirName = getNotCreatedTemporaryFolderName();
+    router.clear();
+    router.route().handler(BodyHandler.create(false).setUploadsDirectory(dirName));
+    
+    Buffer fileData = TestUtils.randomBuffer(50);
+    router.route().handler(rc -> {
+      rc.response().end();
+      assertFalse("Upload directory must not be created.", vertx.fileSystem().existsBlocking(dirName));
+    });
+    sendFileUploadRequest(fileData, 200, "OK");
+  }
 
+  @Test
+  public void testFormMultipartFormDataWithAllowedFilesUploadFalse1() throws Exception {
+    testFormMultipartFormDataWithAllowedFilesUploadFalse(true);
+  }
+
+  @Test
+  public void testFormMultipartFormDataWithAllowedFilesUploadFalse2() throws Exception {
+      testFormMultipartFormDataWithAllowedFilesUploadFalse(false);
+  }
+  
+  private void testFormMultipartFormDataWithAllowedFilesUploadFalse(boolean mergeAttributes) throws Exception {
+    String fileName = "test.bin";
+    router.clear();
+    router.route().handler(BodyHandler.create(false).setMergeFormAttributes(mergeAttributes)).handler(rc -> {
+      MultiMap attrs = rc.request().formAttributes();
+      assertNotNull(attrs);
+      assertEquals(2, attrs.size());
+      assertEquals("Tim", attrs.get("attr1"));
+      assertEquals("Tommaso", attrs.get("attr2"));
+      MultiMap params = rc.request().params();
+      assertEquals(0, rc.fileUploads().size());
+      if (mergeAttributes) {
+        assertNotNull(params);
+        assertEquals(3, params.size());
+        assertEquals("Tim", params.get("attr1"));
+        assertEquals("Tommaso", params.get("attr2"));
+        assertEquals("foo", params.get("p1"));
+      } else {
+        assertNotNull(params);
+        assertEquals(1, params.size());
+        assertEquals("foo", params.get("p1"));
+        assertEquals("Tim", rc.request().getFormAttribute("attr1"));
+        assertEquals("Tommaso", rc.request().getFormAttribute("attr2"));
+      }
+      rc.response().end();
+    });
+    testRequest(HttpMethod.POST, "/?p1=foo", req -> {
+      Buffer buffer = Buffer.buffer();
+      String boundary = "dLV9Wyq26L_-JQxk6ferf-RT153LhOO";
+      String header =
+          "--" + boundary + "\r\n" +
+          "Content-Disposition: form-data; name=\"attr1\"\r\n\r\nTim\r\n" +
+          "--" + boundary + "\r\n" +
+          "Content-Disposition: form-data; name=\"attr2\"\r\n\r\nTommaso\r\n" +
+          "--" + boundary + "\r\n" +
+          "Content-Disposition: form-data; name=\"" + name + "\"; filename=\"" + fileName + "\"\r\n" +
+          "Content-Type: application/octet-stream\r\n" +
+          "Content-Transfer-Encoding: binary\r\n" +
+          "\r\n";
+        buffer.appendString(header);
+        buffer.appendBuffer(TestUtils.randomBuffer(50));
+      buffer.appendString("\r\n--" + boundary + "--\r\n");
+      req.headers().set("content-length", String.valueOf(buffer.length()));
+      req.headers().set("content-type", "multipart/form-data; boundary=" + boundary);
+      req.write(buffer);
+    }, 200, "OK", null);
+  }
+  
+  @Test
+  public void testNoUploadDirFormURLEncoded() throws Exception
+  {
+    String dirName = getNotCreatedTemporaryFolderName();
+    router.clear();
+    router.route().handler(BodyHandler.create(false).setUploadsDirectory(dirName));
+
+    testFormURLEncoded();
+
+    assertFalse("Upload directory must not be created.", vertx.fileSystem().existsBlocking(dirName));
+  }
+  
+  @Test
+  public void testBodyHandlerCreateTrueWorks() throws Exception
+  {
+    router.clear();
+    router.route().handler(BodyHandler.create(true));
+    testFormURLEncoded();
+  }
+
+  @Test
+  public void testSetHandleFileUploads() throws Exception
+  {
+    String dirName = getNotCreatedTemporaryFolderName();
+    router.clear();
+    
+    BodyHandler bodyHandler = BodyHandler.create().setUploadsDirectory(dirName).setHandleFileUploads(false);
+    router.route().handler(bodyHandler);
+    
+    Buffer fileData = TestUtils.randomBuffer(50);
+    Route route = router.route().handler(rc -> {
+      rc.response().end();
+      assertFalse("Upload directory must not be created.", vertx.fileSystem().existsBlocking(dirName));
+    });
+    sendFileUploadRequest(fileData, 200, "OK");
+    
+    route.remove();
+    bodyHandler.setHandleFileUploads(true);
+    router.route().handler(rc -> {
+      rc.response().end();
+      assertTrue("Upload directory must be created.", vertx.fileSystem().existsBlocking(dirName));
+    });
+    sendFileUploadRequest(fileData, 200, "OK");
+  }
+  
+  @Test
+  public void testRerouteWithHandleFileUploadsFalse() throws Exception
+  {
+    String fileName = "test.bin";
+    router.clear();
+    router.route().handler(BodyHandler.create(false).setMergeFormAttributes(true));
+    router.route("/toBeRerouted").handler(rc -> {
+      rc.reroute("/rerouted");
+    });
+    router.route("/rerouted").handler(rc -> {
+      MultiMap attrs = rc.request().formAttributes();
+      assertNotNull(attrs);
+      assertEquals(2, attrs.size());
+      assertEquals("Tim", attrs.get("attr1"));
+      assertEquals("Tommaso", attrs.get("attr2"));
+      MultiMap params = rc.request().params();
+      assertEquals(0, rc.fileUploads().size());
+      assertNotNull(params);
+      assertEquals(2, params.size());
+      assertEquals("Tim", params.get("attr1"));
+      assertEquals("Tommaso", params.get("attr2"));
+      rc.response().end();
+    });
+    testRequest(HttpMethod.POST, "/toBeRerouted", req -> {
+      Buffer buffer = Buffer.buffer();
+      String boundary = "dLV9Wyq26L_-JQxk6ferf-RT153LhOO";
+      String header =
+          "--" + boundary + "\r\n" +
+          "Content-Disposition: form-data; name=\"attr1\"\r\n\r\nTim\r\n" +
+          "--" + boundary + "\r\n" +
+          "Content-Disposition: form-data; name=\"attr2\"\r\n\r\nTommaso\r\n" +
+          "--" + boundary + "\r\n" +
+          "Content-Disposition: form-data; name=\"" + name + "\"; filename=\"" + fileName + "\"\r\n" +
+          "Content-Type: application/octet-stream\r\n" +
+          "Content-Transfer-Encoding: binary\r\n" +
+          "\r\n";
+        buffer.appendString(header);
+        buffer.appendBuffer(TestUtils.randomBuffer(50));
+      buffer.appendString("\r\n--" + boundary + "--\r\n");
+      req.headers().set("content-length", String.valueOf(buffer.length()));
+      req.headers().set("content-type", "multipart/form-data; boundary=" + boundary);
+      req.write(buffer);
+    }, 200, "OK", null);    
+  }
+
+  @Test
+  public void testBodyLimitWithHandleFileUploadsFalse() throws Exception
+  {
+    router.clear();
+    
+    BodyHandler bodyHandler = BodyHandler.create(false).setBodyLimit(2048);
+    router.route().handler(bodyHandler);
+    
+    Buffer fileData = TestUtils.randomBuffer(4096);
+    router.route().handler(rc -> {
+      rc.response().end();
+    });
+    sendFileUploadRequest(fileData, 413, "Request Entity Too Large");
+  }
+  
+  private String getNotCreatedTemporaryFolderName() throws IOException
+  {
+    File dir = tempUploads.newFolder();
+    dir.delete();
+    return dir.getPath();
+  }
 }

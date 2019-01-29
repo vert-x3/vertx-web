@@ -24,10 +24,11 @@ import io.netty.handler.codec.http.multipart.HttpPostRequestEncoder;
 import io.vertx.core.Context;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
+import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.impl.HeadersAdaptor;
-import io.vertx.core.queue.Queue;
 import io.vertx.core.streams.ReadStream;
+import io.vertx.core.streams.impl.InboundBuffer;
 import io.vertx.ext.web.multipart.FormDataPart;
 import io.vertx.ext.web.multipart.MultipartForm;
 
@@ -46,10 +47,13 @@ public class MultipartFormUpload implements ReadStream<Buffer> {
   private HttpPostRequestEncoder encoder;
   private Handler<Throwable> exceptionHandler;
   private Handler<Void> endHandler;
-  private Queue<Buffer> pending;
+  private InboundBuffer<Buffer> pending;
+  private boolean ended;
+  private final Context context;
 
   public MultipartFormUpload(Context context, MultipartForm parts, boolean multipart) throws Exception {
-    this.pending = Queue.<Buffer>queue(context).emptyHandler(v -> checkEnd()).writableHandler(v -> run()).pause();
+    this.context = context;
+    this.pending = new InboundBuffer<Buffer>(context).emptyHandler(v -> checkEnd()).drainHandler(v -> run()).pause();
     this.request = new DefaultFullHttpRequest(
       HttpVersion.HTTP_1_1,
       io.netty.handler.codec.http.HttpMethod.POST,
@@ -70,28 +74,38 @@ public class MultipartFormUpload implements ReadStream<Buffer> {
   private void checkEnd() {
     Handler<Void> handler;
     synchronized (MultipartFormUpload.this) {
-      if (encoder != null || (handler = endHandler) == null) {
-        return;
-      }
+      handler = ended ? endHandler : null;
     }
-    handler.handle(null);
+    if (handler != null) {
+      handler.handle(null);
+    }
   }
 
   public void run() {
-    while (encoder != null) {
+    if (Vertx.currentContext() != context) {
+      context.runOnContext(v -> {
+        run();
+      });
+      return;
+    }
+    while (!ended) {
       if (encoder.isChunked()) {
         try {
           HttpContent chunk = encoder.readChunk(ALLOC);
           ByteBuf content = chunk.content();
           Buffer buff = Buffer.buffer(content);
-          if (encoder.isEndOfInput()) {
+          if (!pending.write(buff)) {
+            break;
+          } else if (encoder.isEndOfInput()) {
+            ended = true;
             request = null;
             encoder = null;
-          }
-          if (!pending.add(buff)) {
-            break;
+            if (pending.isEmpty()) {
+              endHandler.handle(null);
+            }
           }
         } catch (Exception e) {
+          ended = true;
           request = null;
           encoder = null;
           if (exceptionHandler != null) {
@@ -104,7 +118,11 @@ public class MultipartFormUpload implements ReadStream<Buffer> {
         Buffer buffer = Buffer.buffer(content);
         request = null;
         encoder = null;
-        pending.add(buffer);
+        pending.write(buffer);
+        ended = true;
+        if (pending.isEmpty() && endHandler != null) {
+          endHandler.handle(null);
+        }
       }
     }
   }
@@ -133,7 +151,7 @@ public class MultipartFormUpload implements ReadStream<Buffer> {
 
   @Override
   public ReadStream<Buffer> fetch(long amount) {
-    pending.take(amount);
+    pending.fetch(amount);
     return this;
   }
 

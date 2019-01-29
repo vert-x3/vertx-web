@@ -238,7 +238,19 @@ class HttpServerRequestWrapper implements HttpServerRequest {
     return delegate.isEnded();
   }
 
+  @Override
   public boolean isSSL() {
     return delegate.isSSL();
+  }
+
+  @Override
+  public HttpServerRequest streamPriorityHandler(Handler<StreamPriority> handler) {
+    delegate.streamPriorityHandler(handler);
+    return this;
+  }
+
+  @Override
+  public StreamPriority streamPriority() {
+    return delegate.streamPriority();
   }
 }

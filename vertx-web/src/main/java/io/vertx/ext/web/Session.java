@@ -77,7 +77,7 @@ public interface Session {
   /**
    * @return the session data as a map
    */
-  @GenIgnore
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
   Map<String, Object> data();
 
   /**

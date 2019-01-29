@@ -1,10 +1,9 @@
-= Vert.x-Web API Contract
+= Vert.x Web API Contract
 :toc: left
 
-Vert.x-Web API Contract brings to Vert.x two features to help you to develop you API:
+Vert.x Web API Contract extends Vert.x Web to support https://www.openapis.org/[OpenAPI 3], bringing to you a simple interface to build your router and mount security and validation handler.
 
-* HTTP Requests validation
-* OpenAPI 3 Support with automatic requests validation
+If you are interested in building an application that routes API Requests to event bus, check out https://vertx.io/docs/vertx-web-api-service/java/[Vert.x Web API Service]
 
 == Using Vert.x API Contract
 
@@ -30,7 +29,7 @@ dependencies {
 }
 ----
 
-== HTTP Requests validation
+== HTTP Requests validation without OpenAPI 3
 
 Vert.x provides a validation framework that will validate requests for you and will put results of validation inside a container. To define a {@link io.vertx.ext.web.api.validation.HTTPRequestValidationHandler}:
 
@@ -71,7 +70,7 @@ As you can see, every parameter is mapped in respective language objects. You ca
 {@link examples.ValidationExamples#example4}
 ----
 
-== OpenAPI 3 support
+== OpenAPI 3
 
 Vert.x allows you to use your OpenApi 3 specification directly inside your code using the design first approach. Vert.x-Web provides:
 
@@ -113,6 +112,13 @@ You can also construct a router factory from a remote spec:
 {@link examples.OpenAPI3Examples#constructRouterFactoryFromUrl}
 ----
 
+Or, you can also access a private remote spec by passing one or more https://github.com/swagger-api/swagger-parser#usage[AuthorizationValue]:
+
+[source,$lang]
+----
+{@link examples.OpenAPI3Examples#constructRouterFactoryFromUrlWithAuthenticationHeader}
+----
+
 You can also modify the behaviours of the router factory with {@link io.vertx.ext.web.api.contract.RouterFactoryOptions}.
 For example you can ask to router factory to mount the validation failure handler but to not mount the not implemented handler as follows:
 
@@ -122,20 +128,9 @@ For example you can ask to router factory to mount the validation failure handle
 ----
 
 === Mount the handlers
-Now load your first path. There are two functions to load the handlers:
-
-* {@link io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory#addHandler(io.vertx.core.http.HttpMethod, java.lang.String, io.vertx.core.Handler)}
-* {@link io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory#addHandlerByOperationId(java.lang.String, io.vertx.core.Handler)}
-
-And, of course, two functions to load failure handlers
-
-* {@link io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory#addFailureHandler(io.vertx.core.http.HttpMethod, java.lang.String, io.vertx.core.Handler)}
-* {@link io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory#addFailureHandlerByOperationId(java.lang.String, io.vertx.core.Handler)}
+Now load your first operation handlers. To load an handler use {@link io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory#addHandlerByOperationId(java.lang.String, io.vertx.core.Handler)}. To load a failure handler use {@link io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory#addFailureHandlerByOperationId(java.lang.String, io.vertx.core.Handler)}
 
 You can, of course,*add multiple handlers to same operation**, without overwrite the existing ones.
-
-.Path in OpenAPI format
-IMPORTANT: If you want to use {@link io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory#addHandler(io.vertx.core.http.HttpMethod, java.lang.String, io.vertx.core.Handler)} or {@link io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory#addFailureHandler(io.vertx.core.http.HttpMethod, java.lang.String, io.vertx.core.Handler)} pay attention: You can provide a path only in OpenAPI styles (for example path `/hello/:param` doesn't work)
 
 For example:
 
@@ -182,3 +177,7 @@ When you are ready, generate the router and use it:
 ----
 {@link examples.OpenAPI3Examples#generateRouter}
 ----
+
+ifeval::["$lang" == "java"]
+include::override/rxjava2.adoc[]
+endif::[]

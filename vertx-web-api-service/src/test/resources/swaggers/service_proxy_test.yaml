@@ -1,0 +1,186 @@
+openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: Test spec for OpenAPI3RouterFactoryTest
+  license:
+    name: Apache 2.0 License
+paths:
+  /testA:
+    post:
+      operationId: testA
+      tags:
+        - test
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Payload"
+      responses:
+        200:
+          description: ok
+  /testB:
+    post:
+      operationId: testB
+      tags:
+        - test
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Payload"
+      responses:
+        200:
+          description: ok
+  /testC:
+    post:
+      operationId: test_ -C_
+      tags:
+        - anotherTest
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Payload"
+      responses:
+        200:
+          description: ok
+  /testD:
+    post:
+      operationId: testD
+      tags:
+        - anotherTest
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Payload"
+      responses:
+        200:
+          description: ok
+  /testE/{id}:
+    post:
+      operationId: testE
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: integer
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                value:
+                  type: integer
+      responses:
+        200:
+          description: ok
+  /testF/{id}:
+    post:
+      operationId: testF
+      parameters:
+        - name: id
+          in: path
+          schema:
+            type: integer
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              anyOf:
+                - type: object
+                  properties:
+                    value:
+                      type: integer
+                - type: array
+                  items:
+                    type: integer
+      responses:
+        200:
+          description: ok
+  /testFailure:
+    post:
+      operationId: testFailure
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Payload"
+      responses:
+        200:
+          description: ok
+  /testException:
+    post:
+      operationId: testException
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Payload"
+      responses:
+        200:
+          description: ok
+  /testDataObject:
+    post:
+      operationId: testDataObject
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                from:
+                  type: array
+                  items:
+                    type: string
+                    format: email
+                to:
+                  type: array
+                  items:
+                    type: string
+                    format: email
+                message:
+                  type: array
+                  items:
+                    type: string
+        required: true
+      responses:
+        200:
+          description: Ok
+        500:
+          description: Something wrong happened
+  /testEmptyOperationResponse:
+    get:
+      operationId: testEmptyOperationResponse
+      responses:
+        200:
+          description: ok
+  /testUser:
+    get:
+      operationId: testUser
+      responses:
+        200:
+          description: ok
+  /extraPayload:
+    get:
+      operationId: extraPayload
+      responses:
+        200:
+          description: ok
+components:
+  schemas:
+    Payload:
+      type: object
+      properties:
+        hello:
+          type: string
+        name:
+          type: string
+      required:
+        - hello
+        - name
+      additionalProperties: false
+

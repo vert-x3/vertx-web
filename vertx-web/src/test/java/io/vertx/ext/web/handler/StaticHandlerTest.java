@@ -32,6 +32,8 @@ import java.text.DateFormat;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -194,12 +196,12 @@ public class StaticHandlerTest extends WebTestBase {
       .setProtocolVersion(HttpVersion.HTTP_2)
       .setPemTrustOptions(new PemTrustOptions().addCertPath("tls/server-cert.pem"));
     HttpClient client = vertx.createHttpClient(options);
-    HttpClientRequest request = client.get(8443, "localhost", "/testLinkPreload.html", resp -> {
+    HttpClientRequest request = client.get(8443, "localhost", "/testLinkPreload.html", onSuccess(resp -> {
       assertEquals(200, resp.statusCode());
       assertEquals(HttpVersion.HTTP_2, resp.version());
       resp.bodyHandler(this::assertNotNull);
       testComplete();
-    });
+    }));
     request.pushHandler(pushedReq -> pushedReq.handler(pushedResp -> {
       fail();
     }));
@@ -227,17 +229,17 @@ public class StaticHandlerTest extends WebTestBase {
       .setProtocolVersion(HttpVersion.HTTP_2)
       .setPemTrustOptions(new PemTrustOptions().addCertPath("tls/server-cert.pem"));
     HttpClient client = vertx.createHttpClient(options);
-    HttpClientRequest request = client.get(8443, "localhost", "/testLinkPreload.html", resp -> {
+    HttpClientRequest request = client.get(8443, "localhost", "/testLinkPreload.html", onSuccess(resp -> {
       assertEquals(200, resp.statusCode());
       assertEquals(HttpVersion.HTTP_2, resp.version());
       resp.bodyHandler(this::assertNotNull);
-    });
+    }));
     CountDownLatch latch = new CountDownLatch(2);
-    request.pushHandler(pushedReq -> pushedReq.handler(pushedResp -> {
+    request.pushHandler(pushedReq -> pushedReq.handler(onSuccess(pushedResp -> {
       assertNotNull(pushedResp);
       pushedResp.bodyHandler(this::assertNotNull);
       latch.countDown();
-    }));
+    })));
     request.end();
     latch.await();
   }
@@ -275,14 +277,13 @@ public class StaticHandlerTest extends WebTestBase {
     List<String> contentEncodings = Collections.synchronizedList(new ArrayList<>());
     for (String uri : uris) {
       CountDownLatch responseReceived = new CountDownLatch(1);
-      client.get(uri)
-        .putHeader(HttpHeaders.ACCEPT_ENCODING, Arrays.asList("gzip", "jpg", "jpeg", "png"))
-        .exceptionHandler(this::fail)
-        .handler(resp -> {
-          assertEquals(200, resp.statusCode());
-          contentEncodings.add(resp.getHeader(HttpHeaders.CONTENT_ENCODING));
-          responseReceived.countDown();
-        }).end();
+      client.get(uri, onSuccess(resp -> {
+        assertEquals(200, resp.statusCode());
+        contentEncodings.add(resp.getHeader(HttpHeaders.CONTENT_ENCODING));
+        responseReceived.countDown();
+      }))
+        .putHeader(HttpHeaders.ACCEPT_ENCODING, String.join(", ", "gzip", "jpg", "jpeg", "png"))
+        .end();
       awaitLatch(responseReceived);
     }
     assertEquals(expectedContentEncodings, contentEncodings);
@@ -696,6 +697,55 @@ public class StaticHandlerTest extends WebTestBase {
       testComplete();
     }), 206, "Partial Content", null);
     await();
+  }
+
+  @Test
+  public void testRangeAwareRequestSegment() throws Exception {
+    stat.setEnableRangeSupport(true);
+    testRequest(HttpMethod.GET, "/somedir/range.bin", req -> req.headers().set("Range", "bytes=0-1023"), res -> {
+      assertEquals("bytes", res.headers().get("Accept-Ranges"));
+      assertEquals("1024", res.headers().get("Content-Length"));
+
+      res.bodyHandler(body -> {
+        assertEquals(1024, body.length());
+      });
+    }, 206, "Partial Content", null);
+
+    testRequest(HttpMethod.GET, "/somedir/range.bin", req -> req.headers().set("Range", "bytes=1024-2047"), res -> {
+      assertEquals("bytes", res.headers().get("Accept-Ranges"));
+      assertEquals("1024", res.headers().get("Content-Length"));
+
+      res.bodyHandler(body -> {
+        assertEquals(1024, body.length());
+      });
+    }, 206, "Partial Content", null);
+
+    testRequest(HttpMethod.GET, "/somedir/range.bin", req -> req.headers().set("Range", "bytes=2048-3071"), res -> {
+      assertEquals("bytes", res.headers().get("Accept-Ranges"));
+      assertEquals("1024", res.headers().get("Content-Length"));
+
+      res.bodyHandler(body -> {
+        assertEquals(1024, body.length());
+      });
+    }, 206, "Partial Content", null);
+
+    testRequest(HttpMethod.GET, "/somedir/range.bin", req -> req.headers().set("Range", "bytes=3072-4095"), res -> {
+      assertEquals("bytes", res.headers().get("Accept-Ranges"));
+      assertEquals("1024", res.headers().get("Content-Length"));
+
+      res.bodyHandler(body -> {
+        assertEquals(1024, body.length());
+      });
+    }, 206, "Partial Content", null);
+
+    testRequest(HttpMethod.GET, "/somedir/range.bin", req -> req.headers().set("Range", "bytes=4096-5119"), res -> {
+      assertEquals("bytes", res.headers().get("Accept-Ranges"));
+      assertEquals("1024", res.headers().get("Content-Length"));
+
+      res.bodyHandler(body -> {
+        assertEquals(1024, body.length());
+      });
+    }, 206, "Partial Content", null);
   }
 
   @Test

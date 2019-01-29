@@ -18,11 +18,7 @@ package io.vertx.ext.web.sstore;
 
 import io.vertx.core.VertxOptions;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.http.HttpClient;
-import io.vertx.core.http.HttpClientOptions;
-import io.vertx.core.http.HttpMethod;
-import io.vertx.core.http.HttpServer;
-import io.vertx.core.http.HttpServerOptions;
+import io.vertx.core.http.*;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.spi.cluster.ClusterManager;
 import io.vertx.ext.web.Router;
@@ -187,9 +183,8 @@ public class ClusteredSessionHandlerTest extends SessionHandlerTestBase {
   @Test
   public void testRetryTimeout() throws Exception {
     long val = doTestSessionRetryTimeout();
-    assertTrue(val >= 3000 && val < 5000);
+    assertTrue(String.valueOf(val), val >= 3000 && val < 5000);
   }
-
 }
 
 

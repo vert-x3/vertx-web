@@ -23,21 +23,25 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.CaseInsensitiveHeaders;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
-import io.vertx.core.http.impl.HttpClientImpl;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.streams.ReadStream;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClientOptions;
+import io.vertx.ext.web.client.predicate.ResponsePredicate;
 import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.ext.web.multipart.MultipartForm;
+
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.List;
 
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
  */
-class HttpRequestImpl<T> implements HttpRequest<T> {
+public class HttpRequestImpl<T> implements HttpRequest<T> {
 
-  final WebClientImpl client;
+  final WebClientInternal client;
   final WebClientOptions options;
   MultiMap params;
   HttpMethod method;
@@ -51,13 +55,14 @@ class HttpRequestImpl<T> implements HttpRequest<T> {
   BodyCodec<T> codec;
   boolean followRedirects;
   boolean ssl;
+  public List<ResponsePredicate> expectations;
 
-  HttpRequestImpl(WebClientImpl client, HttpMethod method, boolean ssl, int port, String host, String uri, BodyCodec<T>
+  HttpRequestImpl(WebClientInternal client, HttpMethod method, boolean ssl, int port, String host, String uri, BodyCodec<T>
           codec, WebClientOptions options) {
     this(client, method, null, ssl, port, host, uri, codec, options);
   }
 
-  HttpRequestImpl(WebClientImpl client, HttpMethod method, String protocol, boolean ssl, int port, String host, String
+  HttpRequestImpl(WebClientInternal client, HttpMethod method, String protocol, boolean ssl, int port, String host, String
           uri, BodyCodec<T> codec, WebClientOptions options) {
     this.client = client;
     this.method = method;
@@ -87,6 +92,7 @@ class HttpRequestImpl<T> implements HttpRequest<T> {
     this.params = other.params != null ? new CaseInsensitiveHeaders().addAll(other.params) : null;
     this.codec = other.codec;
     this.followRedirects = other.followRedirects;
+    this.ssl = other.ssl;
   }
 
   @Override
@@ -141,6 +147,23 @@ class HttpRequestImpl<T> implements HttpRequest<T> {
   }
 
   @Override
+  public HttpRequest<T> basicAuthentication(String id, String password) {
+    return this.basicAuthentication(Buffer.buffer(id), Buffer.buffer(password));
+  }
+
+  @Override
+  public HttpRequest<T> basicAuthentication(Buffer id, Buffer password) {
+    Buffer buff = Buffer.buffer().appendBuffer(id).appendString("-").appendBuffer(password);
+    String credentials =  new String(Base64.getEncoder().encode(buff.getBytes()));
+    return putHeader(HttpHeaders.AUTHORIZATION.toString(), "Basic " + credentials);
+  }
+
+  @Override
+  public HttpRequest<T> bearerTokenAuthentication(String bearerToken) {
+    return putHeader(HttpHeaders.AUTHORIZATION.toString(), "Bearer " + bearerToken);
+  }
+
+  @Override
   public HttpRequest<T> ssl(boolean value) {
     ssl = value;
     return this;
@@ -167,6 +190,15 @@ class HttpRequestImpl<T> implements HttpRequest<T> {
   @Override
   public HttpRequest<T> followRedirects(boolean value) {
     followRedirects = value;
+    return this;
+  }
+
+  @Override
+  public HttpRequest<T> expect(ResponsePredicate expectation) {
+    if (expectations == null) {
+      expectations = new ArrayList<>();
+    }
+    expectations.add(expectation);
     return this;
   }
 
@@ -225,9 +257,9 @@ class HttpRequestImpl<T> implements HttpRequest<T> {
   public void sendMultipartForm(MultipartForm body, Handler<AsyncResult<HttpResponse<T>>> handler) {
     send("multipart/form-data", body, handler);
   }
-
+  
   private void send(String contentType, Object body, Handler<AsyncResult<HttpResponse<T>>> handler) {
-    HttpContext ex = new HttpContext(((HttpClientImpl)client.client).getVertx().getOrCreateContext(), this, contentType, body, (Handler)handler);
-    ex.interceptAndSend();
+    HttpContext<T> ctx = client.createContext(handler);
+    ctx.prepareRequest(this, contentType, body);
   }
 }

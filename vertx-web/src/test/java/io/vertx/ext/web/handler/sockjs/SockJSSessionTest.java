@@ -44,14 +44,14 @@ public class SockJSSessionTest extends SockJSTestBase {
         }
       }).start();
     });
-    client.get("/test/400/8ne8e94a/eventsource", resp -> {
+    client.getNow("/test/400/8ne8e94a/eventsource", onSuccess(resp -> {
       AtomicInteger count = new AtomicInteger();
       resp.handler(msg -> {
         if (count.incrementAndGet() == 400) {
           resp.request().connection().close();
         }
       });
-    }).end();
+    }));
     await();
   }
 

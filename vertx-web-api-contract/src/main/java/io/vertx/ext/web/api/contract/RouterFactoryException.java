@@ -14,13 +14,16 @@ public class RouterFactoryException extends RuntimeException {
     /**
      * You are trying to mount an operation (combination of path and method) not defined in specification
      */
-    PATH_NOT_FOUND, /**
+    PATH_NOT_FOUND,
+    /**
      * You are trying to mount an operation with operation_id not defined in specification
      */
-    OPERATION_ID_NOT_FOUND, /**
+    OPERATION_ID_NOT_FOUND,
+    /**
      * Specification is not valid
      */
-    SPEC_INVALID, /**
+    SPEC_INVALID,
+    /**
      * Missing security handler during construction of router
      */
     MISSING_SECURITY_HANDLER,
@@ -31,7 +34,11 @@ public class RouterFactoryException extends RuntimeException {
     /**
      * You are trying to use two or more path parameters with a combination of parameters/name/styles/explode not supported
      */
-    PATH_PARAMETERS_COMBINATION_NOT_SUPPORTED
+    PATH_PARAMETERS_COMBINATION_NOT_SUPPORTED,
+    /**
+     * You specified an interface not annotated with io.vertx.ext.web.api.generator.WebApiProxyGen while calling {@link RouterFactory#mountServiceProxy(Class, String)}
+     */
+    WRONG_INTERFACE
   }
 
   private ErrorType type;
@@ -71,4 +78,13 @@ public class RouterFactoryException extends RuntimeException {
     return new RouterFactoryException("Missing handler for security requirement: " + securitySchema + ":" +
       securityScope, ErrorType.MISSING_SECURITY_HANDLER);
   }
+
+  public static RouterFactoryException createWrongExtension(String message) {
+    return new RouterFactoryException(message, ErrorType.SPEC_INVALID);
+  }
+
+  public static RouterFactoryException createWrongInterface(Class i) {
+    return new RouterFactoryException("Interface " + i.getName() + " is not annotated with @WebApiServiceProxy", ErrorType.WRONG_INTERFACE);
+  }
+
 }

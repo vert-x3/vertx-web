@@ -1375,7 +1375,7 @@ public class ApiClient {
      * @return
      */
     private String renderPathMatrix(String paramName, Object value) {
-        return ";" + paramName + "=" + String.valueOf(value);
+        return ";" + paramName + "=" + encode(String.valueOf(value));
     }
 
     /**
@@ -1408,7 +1408,7 @@ public class ApiClient {
     private String renderPathObjectMatrix(String paramName, Map<String, Object> values) {
         List<String> listToSerialize = new ArrayList<>();
         for (Map.Entry<String, Object> entry : values.entrySet()) {
-            listToSerialize.add(entry.getKey());
+            listToSerialize.add(encode(entry.getKey()));
             listToSerialize.add(encode(String.valueOf(entry.getValue())));
         }
         String serialized = String.join(",", listToSerialize);
@@ -1455,7 +1455,7 @@ public class ApiClient {
      * @return
      */
     private String renderPathLabel(String paramName, Object value) {
-        return "." + String.valueOf(value);
+        return "." + encode(String.valueOf(value));
     }
 
     /**
@@ -1487,7 +1487,7 @@ public class ApiClient {
     private String renderPathObjectLabel(String paramName, Map<String, Object> values) {
         List<String> listToSerialize = new ArrayList<>();
         for (Map.Entry<String, Object> entry : values.entrySet()) {
-            listToSerialize.add(entry.getKey());
+            listToSerialize.add(encode(entry.getKey()));
             listToSerialize.add(encode(String.valueOf(entry.getValue())));
         }
         return "." + String.join(".", listToSerialize);
@@ -1522,7 +1522,7 @@ public class ApiClient {
     private String renderPathObjectLabelExplode(String paramName, Map<String, Object> values) {
         String result = "";
         for (Map.Entry<String, Object> value : values.entrySet())
-            result = result.concat("." + value.getKey() + "=" + encode(String.valueOf(value.getValue())));
+            result = result.concat("." + encode(value.getKey()) + "=" + encode(String.valueOf(value.getValue())));
         return result;
     }
 
@@ -1555,7 +1555,7 @@ public class ApiClient {
     private String renderPathObjectSimple(String paramName, Map<String, Object> values) {
         List<String> listToSerialize = new ArrayList<>();
         for (Map.Entry<String, Object> entry : values.entrySet()) {
-            listToSerialize.add(entry.getKey());
+            listToSerialize.add(encode(entry.getKey()));
             listToSerialize.add(encode(String.valueOf(entry.getValue())));
         }
         return String.join(",", listToSerialize);
@@ -1604,7 +1604,7 @@ public class ApiClient {
      * @param request
      */
     private void addQueryArrayForm(String paramName, List<Object> values, HttpRequest request) {
-        String serialized = String.join(",", values.stream().map(String::valueOf).collect(Collectors.toList()));
+        String serialized = String.join(",", values.stream().map(String::valueOf).map(this::encode).collect(Collectors.toList()));
         this.addQueryParam(paramName, serialized, request); // Encoding is done by WebClient
     }
 
@@ -1622,7 +1622,7 @@ public class ApiClient {
     private void addQueryObjectForm(String paramName, Map<String, Object> values, HttpRequest request) {
         List<String> listToSerialize = new ArrayList<>();
         for (Map.Entry<String, Object> entry : values.entrySet()) {
-            listToSerialize.add(entry.getKey());
+            listToSerialize.add(encode(entry.getKey()));
             listToSerialize.add(String.valueOf(entry.getValue()));
         }
         String serialized = String.join(",", listToSerialize);
@@ -1771,7 +1771,7 @@ public class ApiClient {
      * @param request
      */
     private void addHeaderArraySimple(String headerName, List<Object> values, HttpRequest request) {
-        String serialized = String.join(",", values.stream().map(String::valueOf).collect(Collectors.toList()));
+        String serialized = String.join(",", values.stream().map(String::valueOf).map(this::encode).collect(Collectors.toList()));
         this.addHeaderParam(headerName, serialized, request);
     }
 
@@ -1789,8 +1789,8 @@ public class ApiClient {
     private void addHeaderObjectSimple(String headerName, Map<String, Object> values, HttpRequest request) {
         List<String> listToSerialize = new ArrayList<>();
         for (Map.Entry<String, Object> entry : values.entrySet()) {
-            listToSerialize.add(entry.getKey());
-            listToSerialize.add(String.valueOf(entry.getValue()));
+            listToSerialize.add(encode(entry.getKey()));
+            listToSerialize.add(encode(String.valueOf(entry.getValue())));
         }
         String serialized = String.join(",", listToSerialize);
         this.addHeaderParam(headerName, serialized, request);
@@ -1825,7 +1825,7 @@ public class ApiClient {
     private void addHeaderObjectSimpleExplode(String headerName, Map<String, Object> values, HttpRequest request) {
         List<String> listToSerialize = new ArrayList<>();
         for (Map.Entry<String, Object> entry : values.entrySet()) {
-            listToSerialize.add(entry.getKey() + "=" + String.valueOf(entry.getValue()));
+            listToSerialize.add(encode(entry.getKey()) + "=" + encode(String.valueOf(entry.getValue())));
         }
         String serialized = String.join(",", listToSerialize);
         this.addHeaderParam(headerName, serialized, request);
@@ -1843,7 +1843,7 @@ public class ApiClient {
      * @param request
      */
     private void addQueryArraySpaceDelimited(String paramName, List<Object> values, HttpRequest request) {
-        String serialized = String.join(" ", values.stream().map(String::valueOf).collect(Collectors.toList()));
+        String serialized = String.join(" ", values.stream().map(String::valueOf).map(this::encode).collect(Collectors.toList()));
         this.addQueryParam(paramName, serialized, request); // Encoding is done by WebClient
     }
 
@@ -1861,8 +1861,8 @@ public class ApiClient {
     private void addQueryObjectSpaceDelimited(String paramName, Map<String, Object> values, HttpRequest request) {
         List<String> listToSerialize = new ArrayList<>();
         for (Map.Entry<String, Object> entry : values.entrySet()) {
-            listToSerialize.add(entry.getKey());
-            listToSerialize.add(String.valueOf(entry.getValue()));
+            listToSerialize.add(encode(entry.getKey()));
+            listToSerialize.add(encode(String.valueOf(entry.getValue())));
         }
         String serialized = String.join(" ", listToSerialize);
         this.addQueryParam(paramName, serialized, request); // Encoding is done by WebClient
@@ -1880,7 +1880,7 @@ public class ApiClient {
      * @param request
      */
     private void addQueryArrayPipeDelimited(String paramName, List<Object> values, HttpRequest request) {
-        String serialized = String.join("|", values.stream().map(String::valueOf).collect(Collectors.toList()));
+        String serialized = String.join("|", values.stream().map(String::valueOf).map(this::encode).collect(Collectors.toList()));
         this.addQueryParam(paramName, serialized, request); // Encoding is done by WebClient
     }
 
@@ -1898,8 +1898,8 @@ public class ApiClient {
     private void addQueryObjectPipeDelimited(String paramName, Map<String, Object> values, HttpRequest request) {
         List<String> listToSerialize = new ArrayList<>();
         for (Map.Entry<String, Object> entry : values.entrySet()) {
-            listToSerialize.add(entry.getKey());
-            listToSerialize.add(String.valueOf(entry.getValue()));
+            listToSerialize.add(encode(entry.getKey()));
+            listToSerialize.add(encode(String.valueOf(entry.getValue())));
         }
         String serialized = String.join("|", listToSerialize);
         this.addQueryParam(paramName, serialized, request); // Encoding is done by WebClient
@@ -1918,7 +1918,7 @@ public class ApiClient {
      */
     private void addQueryObjectDeepObjectExplode(String paramName, Map<String, Object> values, HttpRequest request) {
         for (Map.Entry<String, Object> entry : values.entrySet()) {
-            this.addQueryParam(paramName + "[" + entry.getKey() + "]", String.valueOf(entry.getValue()), request);
+            this.addQueryParam(paramName + "[" + encode(entry.getKey()) + "]", encode(String.valueOf(entry.getValue())), request);
         }
     }
 

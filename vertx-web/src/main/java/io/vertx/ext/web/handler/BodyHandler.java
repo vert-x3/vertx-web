@@ -67,6 +67,16 @@ public interface BodyHandler extends Handler<RoutingContext> {
   }
 
   /**
+   * Create a body handler setting if it should handle file uploads
+   *
+   * @param handleFileUploads true if files upload should be handled
+   * @return the body handler
+   */
+  static BodyHandler create(boolean handleFileUploads) {
+    return new BodyHandlerImpl(handleFileUploads);
+  }
+
+  /**
    * Create a body handler and use the given upload directory.
    *
    * @param uploadDirectory  the uploads directory
@@ -75,6 +85,15 @@ public interface BodyHandler extends Handler<RoutingContext> {
   static BodyHandler create(String uploadDirectory) {
     return new BodyHandlerImpl(uploadDirectory);
   }
+  
+  /**
+   * Set whether file uploads will be handled
+   * 
+   * @param handleFileUploads  true if they should be handled
+   * @return reference to this for fluency
+   */
+  @Fluent
+  BodyHandler setHandleFileUploads(boolean handleFileUploads);
 
   /**
    * Set the maximum body size -1 means unlimited

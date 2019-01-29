@@ -5,7 +5,6 @@ import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientOptions;
-import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
@@ -36,12 +35,10 @@ public class RoutingContextNullCurrentRouteTest {
                 vertx.createHttpClient(new HttpClientOptions()
                         .setConnectTimeout(10000));
         Async async = testContext.async();
-        HttpClientRequest httpClientRequest =
-                client.get(PORT, "127.0.0.1", "/test", httpClientResponse -> {
-                    testContext.assertEquals(HttpURLConnection.HTTP_NO_CONTENT, httpClientResponse.statusCode());
-                    async.complete();
-                }).exceptionHandler(testContext::fail);
-        httpClientRequest.end();
+        client.getNow(PORT, "127.0.0.1", "/test", testContext.asyncAssertSuccess(httpClientResponse -> {
+          testContext.assertEquals(HttpURLConnection.HTTP_NO_CONTENT, httpClientResponse.statusCode());
+          async.complete();
+        }));
     }
 
     @After

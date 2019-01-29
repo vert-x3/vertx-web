@@ -210,6 +210,31 @@ You can also write headers using putHeader
 {@link examples.WebClientExamples#sendHeaders2(io.vertx.ext.web.client.WebClient)}
 ----
 
+=== Configure the request to add authentication.
+
+Authentication can be performed manually by setting the correct headers, or, using our predefined methods
+(We strongly suggest having HTTPS enabled, especially for authenticated requests):
+
+In basic HTTP authentication, a request contains a header field of the form `Authorization: Basic <credentials>`,
+where credentials is the base64 encoding of id and password joined by a colon.
+
+You can configure the request to add basic access authentication as follows:
+
+[source,$lang]
+----
+{@link examples.WebClientExamples#addBasicAccessAuthentication(io.vertx.ext.web.client.WebClient)}
+----
+
+In OAuth 2.0, a request contains a header field of the form `Authorization: Bearer <bearerToken>`,
+where bearerToken is the bearer token issued by an authorization server to access protected resources.
+
+You can configure the request to add bearer token authentication as follows:
+
+[source,$lang]
+----
+{@link examples.WebClientExamples#addBearerTokenAuthentication(io.vertx.ext.web.client.WebClient)}
+----
+
 === Reusing requests
 
 The {@link io.vertx.ext.web.client.HttpRequest#send(io.vertx.core.Handler)} method can be called multiple times
@@ -251,12 +276,19 @@ On a success result the callback happens after the response has been received
 {@link examples.WebClientExamples#receiveResponse(io.vertx.ext.web.client.WebClient)}
 ----
 
-WARNING: responses are fully buffered, use {@link io.vertx.ext.web.codec.BodyCodec#pipe(io.vertx.core.streams.WriteStream)}
+[CAUTION]
+====
+By default, a Vert.x Web Client request ends with an error only if something wrong happens at the network level.
+In other words, a `404 Not Found` response, or a response with the wrong content type, are *not* considered as failures.
+Use <<response-predicates, response predicates>> if you want the Web Client to perform sanity checks automatically.
+====
+
+WARNING: Responses are fully buffered, use {@link io.vertx.ext.web.codec.BodyCodec#pipe(io.vertx.core.streams.WriteStream)}
 to pipe the response to a write stream
 
 === Decoding responses
 
-By default the web client provides an http response body as a {@code Buffer} and does not apply
+By default the web client provides an http response body as a `Buffer` and does not apply
 any decoding.
 
 Custom response body decoding can be achieved using {@link io.vertx.ext.web.codec.BodyCodec}:
@@ -300,7 +332,7 @@ simply discards the entire response body
 {@link examples.WebClientExamples#receiveResponseAndDiscard(io.vertx.ext.web.client.WebClient)}
 ----
 
-When you don't know in advance the content type of the http response, you can still use the {@code bodyAsXXX()} methods
+When you don't know in advance the content type of the http response, you can still use the `bodyAsXXX()` methods
 that decode the response to a specific type
 
 [source,$lang]
@@ -309,6 +341,98 @@ that decode the response to a specific type
 ----
 
 WARNING: this is only valid for the response decoded as a buffer.
+
+[[response-predicates]]
+=== Response predicates
+
+By default, a Vert.x Web Client request ends with an error only if something wrong happens at the network level.
+
+In other words, you must perform sanity checks manually after the response is received:
+
+[source,$lang]
+----
+{@link examples.WebClientExamples#manualSanityChecks(io.vertx.ext.web.client.WebClient)}
+----
+
+You can trade flexibility for clarity and conciseness using _response predicates_.
+
+{@link io.vertx.ext.web.client.predicate.ResponsePredicate Response predicates} can fail a request when the response does
+not match a criteria.
+
+The Web Client comes with a set of out of the box predicates ready to use:
+
+[source,$lang]
+----
+{@link examples.WebClientExamples#usingPredefinedPredicates(io.vertx.ext.web.client.WebClient)}
+----
+
+You can also create custom predicates when existing predicates don't fit your needs:
+
+[source,$lang]
+----
+{@link examples.WebClientExamples#usingPredicates(io.vertx.ext.web.client.WebClient)}
+----
+
+TIP: Response predicates are evaluated _before_ the response body is received. Therefore you can't inspect the response body
+in a predicate test function.
+
+==== Predefined predicates
+
+As a convenience, the Web Client ships a few predicates for common uses cases .
+
+For status codes, e.g {@link io.vertx.ext.web.client.predicate.ResponsePredicate#SC_SUCCESS} to verify that the
+response has a `2xx` code, you can also create a custom one:
+
+[source,$lang]
+----
+{@link examples.WebClientExamples#usingSpecificStatus(io.vertx.ext.web.client.WebClient)}
+----
+
+For content types, e.g {@link io.vertx.ext.web.client.predicate.ResponsePredicate#JSON} to verify that the
+response body contains JSON data, you can also create a custom one:
+
+[source,$lang]
+----
+{@link examples.WebClientExamples#usingSpecificContentType(io.vertx.ext.web.client.WebClient)}
+----
+
+Please refer to the {@link io.vertx.ext.web.client.predicate.ResponsePredicate} documentation for a full list of predefined predicates.
+
+ifeval::["$lang" == "java"]
+==== Creating custom failures
+
+By default, response predicates (including the predefined ones) use a default error converter which discards
+the body and conveys a simple message. You can customize the exception class by changing the error converter:
+
+[source,$lang]
+----
+{@link examples.WebClientExamples#predicateCustomError()}
+----
+
+Many web APIs provide details in error responses.
+For example, the https://developer.marvel.com/docs[Marvel API] uses this JSON object format:
+
+[source,javascript]
+----
+{
+  "code": "InvalidCredentials",
+  "message": "The passed API key is invalid."
+}
+----
+
+To avoid losing this information, it is possible to wait for the response body to be fully received before the error
+converter is called:
+
+[source,$lang]
+----
+{@link examples.WebClientExamples#predicateCustomErrorWithBody()}
+----
+
+WARNING: creating exception in Java can have a performance cost when it captures a stack trace, so you might want
+         to create exceptions that do not capture the stack trace. By default exceptions are reported using the
+         an exception that does not capture the stack trace.
+
+endif::[]
 
 === Handling 30x redirections
 
@@ -344,6 +468,40 @@ Or using create methods with absolute URI argument
 {@link examples.WebClientExamples#testAbsRequestSSL(io.vertx.ext.web.client.WebClient)}
 ----
 
-ifdef::java[]
-include::override/rxjava.adoc[]
+== Sessions management
+
+Vert.x web offers a web session management facility; to use it, you create a 
+{@link io.vertx.ext.web.client.WebClientSession} for every user (session) and use it instead of the 
+{@link io.vertx.ext.web.client.WebClient}.
+
+=== Creating a WebSession
+
+You create a {@link io.vertx.ext.web.client.WebClientSession} instance as follows
+
+[source,$lang]
+----
+{@link examples.WebClientSessionExamples#create}
+----
+
+=== Making requests
+
+Once created, a {@link io.vertx.ext.web.client.WebClientSession} can be used instead of a 
+{@link io.vertx.ext.web.client.WebClient} to do HTTP(s) requests and automatically manage any cookies received from the server(s)
+you are calling.
+
+=== Setting session level headers
+
+You can set any session level headers to be added to every request as follows:
+
+[source,$lang]
+----
+{@link examples.WebClientSessionExamples#setHeaders}
+----
+
+The headers will then be added to every request; notice that these headers will be sent to all hosts; if you need
+to send different headers to different hosts, you have to add them manually to every single request and not to the 
+{@link io.vertx.ext.web.client.WebClientSession}.
+
+ifeval::["$lang" == "java"]
+include::override/rxjava2.adoc[]
 endif::[]

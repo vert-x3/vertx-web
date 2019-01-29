@@ -148,11 +148,11 @@ public class BlockingHandlerTest extends WebTestBase {
 
     CountDownLatch latch = new CountDownLatch(numExecBlocking);
     for (int i = 0; i < numExecBlocking; i++) {
-      client.getNow("/", resp -> {
+      client.getNow("/", onSuccess(resp -> {
         assertEquals(200, resp.statusCode());
         assertEquals("OK", resp.statusMessage());
         latch.countDown();
-      });
+      }));
     }
 
     awaitLatch(latch);

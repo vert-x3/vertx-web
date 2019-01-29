@@ -20,29 +20,42 @@ import java.net.URL;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.VertxException;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.RequestOptions;
+import io.vertx.core.http.impl.HttpClientImpl;
 import io.vertx.ext.web.client.HttpRequest;
+import io.vertx.ext.web.client.HttpResponse;
 import io.vertx.ext.web.client.WebClientOptions;
+import io.vertx.ext.web.client.impl.predicate.PredicateInterceptor;
 import io.vertx.ext.web.codec.impl.BodyCodecImpl;
-
 
 /**
  * @author <a href="mailto:julien@julienviet.com">Julien Viet</a>
  */
-public class WebClientImpl implements WebClientInternal {
+public class WebClientBase implements WebClientInternal {
 
   final HttpClient client;
-  private final WebClientOptions options;
-  final List<Handler<HttpContext>> interceptors = new CopyOnWriteArrayList<>();
+  final WebClientOptions options;
+  private final List<Handler<HttpContext<?>>> interceptors;
 
-  public WebClientImpl(HttpClient client, WebClientOptions options) {
+  public WebClientBase(HttpClient client, WebClientOptions options) {
     this.client = client;
     this.options = new WebClientOptions(options);
+    this.interceptors = new CopyOnWriteArrayList<>();
+
+    // Add base interceptor
+    addInterceptor(new PredicateInterceptor());
+  }
+
+  WebClientBase(WebClientBase webClient) {
+    this.client = webClient.client;
+    this.options = new WebClientOptions(webClient.options);
+    this.interceptors = new CopyOnWriteArrayList<>(webClient.interceptors);
   }
 
   @Override
@@ -218,9 +231,15 @@ public class WebClientImpl implements WebClientInternal {
   }
 
   @Override
-  public WebClientImpl addInterceptor(Handler<HttpContext> interceptor) {
-    interceptors.add(interceptor);
+  public WebClientInternal addInterceptor(Handler<HttpContext<?>> interceptor) {
+    interceptors.add((Handler) interceptor);
     return this;
+  }
+
+  @Override
+  public <T> HttpContext<T> createContext(Handler<AsyncResult<HttpResponse<T>>> handler) {
+    HttpClientImpl client = (HttpClientImpl) this.client;
+    return new HttpContext<>(client.getVertx().getOrCreateContext(), client, interceptors, handler);
   }
 
   @Override

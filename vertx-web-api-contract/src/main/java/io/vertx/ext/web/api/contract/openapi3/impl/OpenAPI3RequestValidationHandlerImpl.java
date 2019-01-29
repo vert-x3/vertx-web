@@ -5,6 +5,7 @@ import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.media.*;
 import io.swagger.v3.oas.models.parameters.Parameter;
 import io.swagger.v3.oas.models.parameters.RequestBody;
+import io.swagger.v3.parser.ResolverCache;
 import io.vertx.ext.web.FileUpload;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.api.RequestParameter;
@@ -20,6 +21,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import static io.swagger.v3.parser.util.RefUtils.computeRefFormat;
 
 /**
  * @author Francesco Guardiani @slinkydeveloper
@@ -72,13 +75,15 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
 
   List<Parameter> resolvedParameters;
   OpenAPI spec;
+  ResolverCache refsCache;
 
   /* --- Initialization functions --- */
 
-  public OpenAPI3RequestValidationHandlerImpl(Operation pathSpec, List<Parameter> resolvedParameters, OpenAPI spec) {
+  public OpenAPI3RequestValidationHandlerImpl(Operation pathSpec, List<Parameter> resolvedParameters, OpenAPI spec, ResolverCache refsCache) {
     super(pathSpec);
     this.resolvedParameters = resolvedParameters;
     this.spec = spec;
+    this.refsCache = refsCache;
     parseOperationSpec();
   }
 
@@ -87,10 +92,17 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
     // Extract from path spec parameters description
     if (resolvedParameters!=null) {
       for (Parameter opParameter : resolvedParameters) {
+        if (opParameter.get$ref() != null)
+          opParameter = refsCache.loadRef(opParameter.get$ref(), computeRefFormat(opParameter.get$ref()), Parameter.class);
         this.parseParameter(opParameter);
       }
     }
-    this.parseRequestBody(this.pathSpec.getRequestBody());
+    RequestBody body = this.pathSpec.getRequestBody();
+    if (body != null) {
+      if (body.get$ref() != null)
+        body = refsCache.loadRef(body.get$ref(), computeRefFormat(body.get$ref()), RequestBody.class);
+      this.parseRequestBody(body);
+    }
   }
 
   /* --- Type parsing functions --- */
@@ -158,6 +170,9 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
             break;
           case "email":
             regex = RegularExpressions.EMAIL;
+            break;
+          case "uuid":
+            regex = RegularExpressions.UUID;
             break;
           default:
             throw new SpecFeatureNotSupportedException("format " + schema.getFormat() + " not supported");
@@ -295,6 +310,21 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
       } else {
         throw new SpecFeatureNotSupportedException("combination of style, type and location (in) of parameter fields " +
           "" + "not supported for parameter " + parameter.getName());
+      }
+    }
+    if (parameter.getSchema().getAdditionalProperties() instanceof Schema) {
+      if ("query".equals(parameter.getIn())) {
+        this.setQueryAdditionalPropertyHandler(
+          this.resolveInnerSchemaPrimitiveTypeValidator((Schema)parameter.getSchema().getAdditionalProperties(), true),
+          parameter.getName()
+        );
+      } else if ("cookie".equals(parameter.getIn())) {
+        this.setCookieAdditionalPropertyHandler(
+          this.resolveInnerSchemaPrimitiveTypeValidator((Schema)parameter.getSchema().getAdditionalProperties(), true),
+          parameter.getName()
+        );
+      } else {
+        throw new SpecFeatureNotSupportedException("additionalProperties with exploded object fields not supports in path parameter " + parameter.getName());
       }
     }
   }
@@ -475,7 +505,9 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
           mediaType.getValue().getSchema().getType().equals("object")) {
           for (Map.Entry<String, ? extends Schema> multipartProperty : ((Map<String, Schema>) mediaType.getValue().getSchema().getProperties())
             .entrySet()) {
-            Encoding encodingProperty = mediaType.getValue().getEncoding().get(multipartProperty.getKey());
+            Encoding encodingProperty = null;
+            if (mediaType.getValue().getEncoding() != null)
+              encodingProperty = mediaType.getValue().getEncoding().get(multipartProperty.getKey());
             String contentTypeRegex;
             if (encodingProperty != null && encodingProperty.getContentType() != null)
               contentTypeRegex = OpenApi3Utils.resolveContentTypeRegex(encodingProperty.getContentType());

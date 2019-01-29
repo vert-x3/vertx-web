@@ -2,6 +2,7 @@ package io.vertx.ext.web.api.contract.openapi3;
 
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.parser.OpenAPIV3Parser;
+import io.swagger.v3.parser.ResolverCache;
 import io.swagger.v3.parser.core.models.ParseOptions;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
@@ -41,11 +42,13 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
   ApiClient apiClient;
   OpenAPI3RouterFactory routerFactory;
 
+  public final static String SPEC_URL = "./src/test/resources/swaggers/openapi_parameters_compatibility_spec.yaml";
+
   @Rule
   public ExternalResource resource = new ExternalResource() {
     @Override
     protected void before() throws Throwable {
-      spec = loadSwagger("./src/test/resources/swaggers/openapi_parameters_compatibility_spec.yaml");
+      spec = loadSwagger(SPEC_URL);
     }
 
     @Override
@@ -57,14 +60,14 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
     super.setUp();
     stopServer(); // Have to stop default server of WebTestBase
     apiClient = new io.vertx.ext.web.api.contract.openapi3.ApiClient(webClient);
-    routerFactory = new OpenAPI3RouterFactoryImpl(this.vertx, spec);
+    routerFactory = new OpenAPI3RouterFactoryImpl(this.vertx, spec, new ResolverCache(spec, null, SPEC_URL));
     routerFactory.setOptions(
       new RouterFactoryOptions()
         .setRequireSecurityHandlers(false)
         .setMountValidationFailureHandler(true)
-        .setValidationFailureHandler(generateFailureHandler())
         .setMountNotImplementedHandler(false)
     );
+    routerFactory.setValidationFailureHandler(generateFailureHandler());
   }
 
   @Override
@@ -2537,19 +2540,20 @@ public class OpenAPI3ParametersUnitTest extends WebTestValidationBase {
   private void startServer() throws Exception {
     router = routerFactory.getRouter();
     server = this.vertx.createHttpServer(new HttpServerOptions().setPort(8080).setHost("localhost"));
-    CountDownLatch latch = new CountDownLatch(1);
-    server.requestHandler(router::accept).listen(onSuccess(res -> latch.countDown()));
-    awaitLatch(latch);
+    while (true) {
+      try {
+        CountDownLatch latch = new CountDownLatch(1);
+        server.requestHandler(router).listen(onSuccess(res -> latch.countDown()));
+        awaitLatch(latch);
+        return;
+      } catch (AssertionError e) { }
+    }
   }
 
   private void stopServer() throws Exception {
     if (server != null) {
       CountDownLatch latch = new CountDownLatch(1);
-      try {
-        server.close((asyncResult) -> latch.countDown());
-      } catch (IllegalStateException e) { // Server is already open
-        latch.countDown();
-      }
+      server.close(onSuccess(v -> latch.countDown()));
       awaitLatch(latch);
     }
   }

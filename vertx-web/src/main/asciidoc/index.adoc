@@ -197,7 +197,7 @@ don't mind your blocking handlers executing in parallel you can set the blocking
 false using {@link io.vertx.ext.web.Route#blockingHandler(io.vertx.core.Handler, boolean)}.
 
 Note, if you need to process multipart form data from a blocking handler, you MUST use a non-blocking handler
-      FIRST in order to call {@code setExpectMultipart(true)}. Here is an example:
+      FIRST in order to call `setExpectMultipart(true)`. Here is an example:
 
 [source,$lang]
 ----
@@ -620,8 +620,9 @@ locale was provided by the user.
 
 If no routes match for any particular request, Vert.x-Web will signal a 404 error.
 
-This can then be handled by your own error handler, or perhaps the augmented error handler that we supply to use,
-or if no error handler is provided Vert.x-Web will send back a basic 404 (Not Found) response.
+
+A default 404 error handler is provided by Router. Anyway you can provide your own 404 error handler with
+{@link io.vertx.ext.web.Router#errorHandler}
 
 == Error handling
 
@@ -1599,6 +1600,15 @@ sock.onopen = function() {
 
 sock.onmessage = function(e) {
   console.log('message', e.data);
+};
+
+sock.onevent = function(event, message) {
+  console.log('event: %o, message:%o', event, message);
+  return true; // in order to signal that the message has been processed
+};
+
+sock.onunhandled = function(json) {
+  console.log('this message has no address:', json);
 };
 
 sock.onclose = function() {

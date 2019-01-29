@@ -41,7 +41,12 @@ public enum ParameterType {
    */
   TIME(new StringTypeValidator(RegularExpressions.TIME)), BASE64(new StringTypeValidator(RegularExpressions.BASE64)),
   IPV4(new StringTypeValidator(RegularExpressions.IPV4)), IPV6(new StringTypeValidator(RegularExpressions.IPV6)),
-  HOSTNAME(new StringTypeValidator(RegularExpressions.HOSTNAME));
+  HOSTNAME(new StringTypeValidator(RegularExpressions.HOSTNAME)),
+
+  /**
+   * UUID as defined by RFC4122
+   */
+  UUID(new StringTypeValidator(RegularExpressions.UUID));
 
   private ParameterTypeValidator validationMethod;
 
