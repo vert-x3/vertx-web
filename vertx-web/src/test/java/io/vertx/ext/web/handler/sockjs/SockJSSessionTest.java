@@ -30,20 +30,23 @@ import java.util.function.BooleanSupplier;
 public class SockJSSessionTest extends SockJSTestBase {
 
   @Test
-  public void testNoDeadlockWhenWritingFromAnotherThreadWithSseTransport() {
-    sockJSHandler.socketHandler(socket -> {
-      AtomicBoolean closed = new AtomicBoolean();
-      socket.endHandler(v -> {
-        closed.set(true);
-        testComplete();
-      });
-      new Thread(() -> {
-        while (!closed.get()) {
-          LockSupport.parkNanos(50);
-          socket.write(Buffer.buffer(TestUtils.randomAlphaString(256)));
-        }
-      }).start();
-    });
+  public void testNoDeadlockWhenWritingFromAnotherThreadWithSseTransport() throws Exception {
+    socketHandler = () -> {
+      return socket -> {
+        AtomicBoolean closed = new AtomicBoolean();
+        socket.endHandler(v -> {
+          closed.set(true);
+          testComplete();
+        });
+        new Thread(() -> {
+          while (!closed.get()) {
+            LockSupport.parkNanos(50);
+            socket.write(Buffer.buffer(TestUtils.randomAlphaString(256)));
+          }
+        }).start();
+      };
+    };
+    startServers();
     client.get("/test/400/8ne8e94a/eventsource", resp -> {
       AtomicInteger count = new AtomicInteger();
       resp.handler(msg -> {
@@ -56,26 +59,29 @@ public class SockJSSessionTest extends SockJSTestBase {
   }
 
   @Test
-  public void testNoDeadlockWhenWritingFromAnotherThreadWithWebsocketTransport() {
+  public void testNoDeadlockWhenWritingFromAnotherThreadWithWebsocketTransport() throws Exception {
     int numMsg = 4000;
     waitFor(1);
     AtomicInteger clientReceived = new AtomicInteger();
     AtomicInteger serverReceived = new AtomicInteger();
     BooleanSupplier shallStop = () -> clientReceived.get() > numMsg * 256 && serverReceived.get() > numMsg * 256;
-    sockJSHandler.socketHandler(socket -> {
-      socket.handler(msg -> serverReceived.addAndGet(msg.length()));
-      socket.write("hello");
-      new Thread(() -> {
-        while (!shallStop.getAsBoolean()) {
-          LockSupport.parkNanos(50);
-          try {
-            socket.write(Buffer.buffer(TestUtils.randomAlphaString(256)));
-          } catch (IllegalStateException e) {
-            // Websocket has been closed
+    socketHandler = () -> {
+      return socket -> {
+        socket.handler(msg -> serverReceived.addAndGet(msg.length()));
+        socket.write("hello");
+        new Thread(() -> {
+          while (!shallStop.getAsBoolean()) {
+            LockSupport.parkNanos(50);
+            try {
+              socket.write(Buffer.buffer(TestUtils.randomAlphaString(256)));
+            } catch (IllegalStateException e) {
+              // Websocket has been closed
+            }
           }
-        }
-      }).start();
-    });
+        }).start();
+      };
+    };
+    startServers();
     client.websocket("/test/400/8ne8e94a/websocket", ws -> ws.handler(msg -> {
       clientReceived.addAndGet(msg.length());
       ws.writeTextMessage("\"hello\"");
@@ -88,11 +94,14 @@ public class SockJSSessionTest extends SockJSTestBase {
   }
 
   @Test
-  public void testCombineMultipleFramesIntoASingleMessage() {
-    sockJSHandler.socketHandler(socket -> socket.handler(buf -> {
-      assertEquals("Hello World", buf.toString());
-      testComplete();
-    }));
+  public void testCombineMultipleFramesIntoASingleMessage() throws Exception {
+    socketHandler = () -> {
+      return socket -> socket.handler(buf -> {
+        assertEquals("Hello World", buf.toString());
+        testComplete();
+      });
+    };
+    startServers();
     client.websocket("/test/400/8ne8e94a/websocket", ws -> {
       ws.writeFrame(io.vertx.core.http.WebSocketFrame.textFrame("[\"Hello", false));
       ws.writeFrame(io.vertx.core.http.WebSocketFrame.continuationFrame(Buffer.buffer(" World\"]"), true));
