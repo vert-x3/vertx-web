@@ -19,8 +19,10 @@ package io.vertx.ext.web.handler.impl;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
-import io.vertx.core.impl.logging.Logger;
-import io.vertx.core.impl.logging.LoggerFactory;
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
+import io.vertx.ext.auth.AuthProvider;
+import io.vertx.ext.auth.User;
 import io.vertx.ext.web.Cookie;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
@@ -32,6 +34,8 @@ import io.vertx.ext.web.sstore.SessionStore;
  */
 public class SessionHandlerImpl implements SessionHandler {
 
+  private static final String SESSION_USER_HOLDER_KEY = "__vertx.userHolder";
+
 	private static final Logger log = LoggerFactory.getLogger(SessionHandlerImpl.class);
 
 	private final SessionStore sessionStore;
@@ -42,6 +46,7 @@ public class SessionHandlerImpl implements SessionHandler {
 	private boolean sessionCookieSecure;
 	private boolean sessionCookieHttpOnly;
 	private int minLength;
+	private AuthProvider authProvider;
 
 	public SessionHandlerImpl(String sessionCookieName, String sessionCookiePath, long sessionTimeout, boolean nagHttps,
 			boolean sessionCookieSecure, boolean sessionCookieHttpOnly, int minLength, SessionStore sessionStore) {
@@ -97,7 +102,13 @@ public class SessionHandlerImpl implements SessionHandler {
 		return this;
 	}
 
-	@Override
+  @Override
+  public SessionHandler setAuthProvider(AuthProvider authProvider) {
+    this.authProvider = authProvider;
+    return this;
+  }
+
+  @Override
 	public void handle(RoutingContext context) {
 		if (nagHttps && log.isDebugEnabled()) {
 			String uri = context.request().absoluteURI();
@@ -119,7 +130,31 @@ public class SessionHandlerImpl implements SessionHandler {
 						Session session = res.result();
 						if (session != null) {
 							context.setSession(session);
-							addStoreSessionHandler(context);
+							// attempt to load the user from the session if auth provider is known
+              if (authProvider != null) {
+                UserHolder holder = session.get(SESSION_USER_HOLDER_KEY);
+                if (holder != null) {
+                  User user = null;
+                  RoutingContext prevContext = holder.context;
+                  if (prevContext != null) {
+                    user = prevContext.user();
+                  } else if (holder.user != null) {
+                    user = holder.user;
+                    user.setAuthProvider(authProvider);
+                    holder.context = context;
+                    holder.user = null;
+                  }
+                  holder.context = context;
+                  if (user != null) {
+                    context.setUser(user);
+                  }
+                }
+                addStoreSessionHandler(context, holder == null);
+              } else {
+                // never store user as there's no provider for auth
+                addStoreSessionHandler(context, false);
+              }
+
 						} else {
 							// Cannot find session - either it timed out, or was explicitly destroyed at the
 							// server side on a
@@ -168,14 +203,23 @@ public class SessionHandlerImpl implements SessionHandler {
 		});
 	}
 
-	private void addStoreSessionHandler(RoutingContext context) {
+	private void addStoreSessionHandler(RoutingContext context, boolean storeUser) {
 		context.addHeadersEndHandler(v -> {
 			Session session = context.session();
 			if (!session.isDestroyed()) {
 				final int currentStatusCode = context.response().getStatusCode();
 				// Store the session (only and only if there was no error)
 				if (currentStatusCode >= 200 && currentStatusCode < 400) {
-					session.setAccessed();
+
+          // store the current user into the session
+          if (storeUser) {
+            // during the request the user might have been removed
+            if (context.user() != null) {
+              session.put(SESSION_USER_HOLDER_KEY, new UserHolder(context));
+            }
+          }
+
+          session.setAccessed();
 					if (session.isRegenerated()) {
 						// this means that a session id has been changed, usually it means a session
 						// upgrade
@@ -237,6 +281,7 @@ public class SessionHandlerImpl implements SessionHandler {
 		cookie.setHttpOnly(sessionCookieHttpOnly);
 		// Don't set max age - it's a session cookie
 		context.addCookie(cookie);
-		addStoreSessionHandler(context);
+		// only store the user if there's a auth provider
+		addStoreSessionHandler(context, authProvider != null);
 	}
 }

@@ -19,6 +19,7 @@ package io.vertx.ext.web.handler;
 import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
+import io.vertx.ext.auth.AuthProvider;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.impl.SessionHandlerImpl;
 import io.vertx.ext.web.sstore.SessionStore;
@@ -162,4 +163,13 @@ public interface SessionHandler extends Handler<RoutingContext> {
 	 */
 	@Fluent
 	SessionHandler setMinLength(int minLength);
+
+  /**
+   * Set an auth provider that will allow retrieving the User object from the session to the current routing context.
+   *
+   * @param authProvider any auth provider.
+   * @return a reference to this, so the API can be used fluently
+   */
+	@Fluent
+  SessionHandler setAuthProvider(AuthProvider authProvider);
 }
