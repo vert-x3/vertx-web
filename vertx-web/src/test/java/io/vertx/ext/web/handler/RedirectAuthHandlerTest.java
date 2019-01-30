@@ -158,8 +158,7 @@ public class RedirectAuthHandlerTest extends AuthHandlerTestBase {
     router.route().handler(BodyHandler.create());
     router.route().handler(CookieHandler.create());
     SessionStore store = LocalSessionStore.create(vertx);
-    router.route().handler(SessionHandler.create(store));
-    router.route().handler(UserSessionHandler.create(authProvider));
+    router.route().handler(SessionHandler.create(store).setAuthProvider(authProvider));
     AuthHandler authHandler = RedirectAuthHandler.create(authProvider);
 
     router.route("/protected/*").handler(authHandler);
@@ -248,8 +247,7 @@ public class RedirectAuthHandlerTest extends AuthHandlerTestBase {
     router.route().handler(BodyHandler.create());
     router.route().handler(CookieHandler.create());
     SessionStore store = LocalSessionStore.create(vertx);
-    router.route().handler(SessionHandler.create(store));
-    router.route().handler(UserSessionHandler.create(authProvider));
+    router.route().handler(SessionHandler.create(store).setAuthProvider(authProvider));
     AuthHandler authHandler = RedirectAuthHandler.create(authProvider);
     if (authorities != null) {
       authHandler.addAuthorities(authorities);

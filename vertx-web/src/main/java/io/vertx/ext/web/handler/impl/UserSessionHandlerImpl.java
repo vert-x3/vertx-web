@@ -26,6 +26,7 @@ import io.vertx.ext.web.handler.UserSessionHandler;
  *
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
+@Deprecated
 public class UserSessionHandlerImpl implements UserSessionHandler {
 
   private static final String SESSION_USER_HOLDER_KEY = "__vertx.userHolder";
