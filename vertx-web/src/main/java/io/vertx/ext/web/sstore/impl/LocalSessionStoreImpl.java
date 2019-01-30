@@ -137,12 +137,15 @@ public class LocalSessionStoreImpl implements SessionStore, LocalSessionStore, H
   @Override
   public synchronized void handle(Long tid) {
     long now = System.currentTimeMillis();
+
     Set<String> toRemove = new HashSet<>();
-    for (Session session: localMap.values()) {
+
+    localMap.forEach((String id, Session session) -> {
       if (now - session.lastAccessed() > session.timeout()) {
-        toRemove.add(session.id());
+        toRemove.add(id);
       }
-    }
+    });
+
     for (String id: toRemove) {
       localMap.remove(id);
     }
