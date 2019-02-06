@@ -19,7 +19,6 @@
     <dependency>
       <groupId>io.vertx</groupId>
       <artifactId>vertx-service-proxy</artifactId>
-      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>io.vertx</groupId>
@@ -29,7 +28,6 @@
     <dependency>
       <groupId>io.vertx</groupId>
       <artifactId>vertx-codegen</artifactId>
-      <version>${project.version}</version>
       <scope>provided</scope>
     </dependency>
 
@@ -39,7 +37,6 @@
       <artifactId>vertx-codegen</artifactId>
       <type>test-jar</type>
       <scope>test</scope>
-      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>io.vertx</groupId>
