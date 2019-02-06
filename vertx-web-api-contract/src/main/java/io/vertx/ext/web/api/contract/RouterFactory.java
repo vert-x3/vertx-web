@@ -54,7 +54,10 @@ public interface RouterFactory<Specification> {
    */
   Router getRouter();
 
-
+  /**
+   * @deprecated Router Factory won't manage the validation errors anymore. You must use {@link io.vertx.ext.web.Router#errorHandler(int, Handler)} with 400 error
+   */
+  @Deprecated
   Handler<RoutingContext> getValidationFailureHandler();
 
   /**
@@ -63,8 +66,10 @@ public interface RouterFactory<Specification> {
    *
    * @param validationFailureHandler
    * @return this object
+   * @deprecated Router Factory won't manage the validation errors anymore. You must use {@link io.vertx.ext.web.Router#errorHandler(int, Handler)} with 400 error
    */
   @Fluent
+  @Deprecated
   RouterFactory setValidationFailureHandler(Handler<RoutingContext> validationFailureHandler);
 
   /**
@@ -74,8 +79,10 @@ public interface RouterFactory<Specification> {
    *
    * @param notImplementedFailureHandler
    * @return this object
+   * @deprecated You must use {@link io.vertx.ext.web.Router#errorHandler(int, Handler)} with 501 error
    */
   @Fluent
+  @Deprecated
   RouterFactory setNotImplementedFailureHandler(Handler<RoutingContext> notImplementedFailureHandler);
 
   /**

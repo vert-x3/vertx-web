@@ -19,9 +19,11 @@ import java.util.function.Function;
 public class RouterFactoryOptions {
 
   /**
-   * By default, RouterFactory loads validation failure handler
+   * By default, RouterFactory doesn't mount validation failure handler
+   * @deprecated Router Factory won't manage the validation errors anymore. You must use {@link io.vertx.ext.web.Router#errorHandler(int, Handler)} with 400 error
    */
-  public final static boolean DEFAULT_MOUNT_VALIDATION_FAILURE_HANDLER = true;
+  @Deprecated
+  public final static boolean DEFAULT_MOUNT_VALIDATION_FAILURE_HANDLER = false;
 
   /**
    * By default, RouterFactory mounts Not Implemented handler
@@ -81,6 +83,11 @@ public class RouterFactoryOptions {
     this.operationModelKey = DEFAULT_OPERATION_MODEL_KEY;
   }
 
+  /**
+   * @deprecated Router Factory won't manage the validation errors anymore. You must use {@link io.vertx.ext.web.Router#errorHandler(int, Handler)} with 400 error
+   * @return
+   */
+  @Deprecated
   public boolean isMountValidationFailureHandler() {
     return mountValidationFailureHandler;
   }
@@ -92,8 +99,10 @@ public class RouterFactoryOptions {
    *
    * @param mountGlobalValidationFailureHandler
    * @return this object
+   * @deprecated Router Factory won't manage the validation errors anymore. You must use {@link io.vertx.ext.web.Router#errorHandler(int, Handler)} with 400 error
    */
   @Fluent
+  @Deprecated
   public RouterFactoryOptions setMountValidationFailureHandler(boolean mountGlobalValidationFailureHandler) {
     this.mountValidationFailureHandler = mountGlobalValidationFailureHandler;
     return this;
@@ -104,8 +113,8 @@ public class RouterFactoryOptions {
   }
 
   /**
-   * Automatic mount handlers that return HTTP 501 status code for operations where you didn't specify an handler.
-   * You can change the "not implemented handler" with {@link RouterFactory#setNotImplementedFailureHandler(Handler)}
+   * If true, Router Factory will automatically mount an handler that return HTTP 501 status code for each operation where you didn't specify an handler.
+   * You can customize the response with {@link io.vertx.ext.web.Router#errorHandler(int, Handler)}
    *
    * @param mountOperationsWithoutHandler
    * @return this object

@@ -71,5 +71,34 @@ public class ValidationExamples {
       JsonObject jsonBody = body.getJsonObject();
     }
   }
+
+  public void example5(Vertx vertx, Router router, HTTPRequestValidationHandler validationHandler) {
+    router.get("/awesome/:pathParam")
+      // Mount validation handler
+      .handler(validationHandler)
+      //Mount your handler
+      .handler((routingContext) -> {
+        // Your logic
+      })
+      //Mount your failure handler to manage the validation failure at path level
+      .failureHandler((routingContext) -> {
+        Throwable failure = routingContext.failure();
+        if (failure instanceof ValidationException) {
+          // Something went wrong during validation!
+          String validationErrorMessage = failure.getMessage();
+        }
+      });
+
+    // Manage the validation failure for all routes in the router
+    router.errorHandler(400, routingContext -> {
+      if (routingContext.failure() instanceof ValidationException) {
+        // Something went wrong during validation!
+        String validationErrorMessage = routingContext.failure().getMessage();
+      } else {
+        // Unknown 400 failure happened
+        routingContext.response().setStatusCode(400).end();
+      }
+    });
+  }
 }
 
