@@ -26,7 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * This tests are about OpenAPI 3 validation behaviours. The validation handlers are not constructed through OpenAPI3RouterFactory.
+ * These tests are about OpenAPI 3 validation behaviours. The validation handlers are not constructed through OpenAPI3RouterFactory.
  * For router factory behaviours, please give a look at OpenAPI3RouterFactoryTest
  * @author Francesco Guardiani @slinkydeveloper
  */
@@ -324,11 +324,11 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
     testRequestWithBufferResponse(HttpMethod.POST,
       "/jsonBodyTest/sampleTest",
       "application/json; charset=utf-8",
-      object.toBuffer(), 200, "OK", object.toBuffer(), "application/json");
+      object.toBuffer(), 200, "OK", "application/json", b -> assertEquals(object, b.toJsonObject()));
     testRequestWithBufferResponse(HttpMethod.POST,
       "/jsonBodyTest/sampleTest",
       "application/superapplication+json",
-      object.toBuffer(), 200, "OK", object.toBuffer(), "application/json");
+      object.toBuffer(), 200, "OK", "application/json", b -> assertEquals(object, b.toJsonObject()));
   }
 
   @Test
@@ -699,7 +699,7 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
   public void testJsonBodyWithDate() throws Exception {
     Operation op = testSpec.getPaths().get("/jsonBodyWithDate").getPost();
     OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(op, op.getParameters(), testSpec, refsCache);
-    loadHandlers("/jsonBodyWithDate", HttpMethod.POST, true, validationHandler, (routingContext) -> {
+    loadHandlers("/jsonBodyWithDate", HttpMethod.POST, false, validationHandler, (routingContext) -> {
       RequestParameters params = routingContext.get("parsedParameters");
       routingContext
         .response()
@@ -716,6 +716,67 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
     obj.put("dateTime3", "2018-01-01T10:00:00-10:00");
 
     testRequestWithJSON(HttpMethod.POST, "/jsonBodyWithDate", obj.toBuffer(), 200, "OK", obj.toBuffer());
+  }
+
+
+  /**
+   * Test: query_optional_form_explode_object
+   * Expected parameters sent:
+   * color: R=100&G=200&B=150&alpha=50
+   * Expected response: {"color":{"R":"100","G":"200","B":"150","alpha":"50"}}
+   */
+  @Test
+  public void testQueryOptionalFormExplodeObject() throws Exception {
+    Operation op = testSpec.getPaths().get("/query/form/explode/object").getGet();
+    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(op, op.getParameters(), testSpec, refsCache);
+    loadHandlers("/query/form/explode/object", HttpMethod.GET, false, validationHandler, routingContext -> {
+      RequestParameters params = routingContext.get("parsedParameters");
+
+      RequestParameter colorQueryParam = params.queryParameter("color");
+      assertNotNull(colorQueryParam);
+      assertTrue(colorQueryParam.isObject());
+
+      routingContext.response()
+        .setStatusCode(200)
+        .setStatusMessage("OK")
+        .putHeader("content-type", "application/json")
+        .end(((JsonObject)colorQueryParam.toJson()).encode());
+    });
+
+    String requestURI = "/query/form/explode/object?R=100&G=200&B=150&alpha=50";
+
+    testEmptyRequestWithJSONObjectResponse(HttpMethod.GET, requestURI, 200, "OK", new JsonObject("{\"R\":\"100\",\"G\":\"200\",\"B\":\"150\",\"alpha\":50}"));
+
+  }
+
+  /**
+   * Test: query_optional_form_explode_object
+   * Expected parameters sent:
+   * color: R=100&G=200&B=150&alpha=50
+   * Expected response: Validation failure
+   */
+  @Test
+  public void testQueryOptionalFormExplodeObjectFailure() throws Exception {
+    Operation op = testSpec.getPaths().get("/query/form/explode/object").getGet();
+    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(op, op.getParameters(), testSpec, refsCache);
+    loadHandlers("/query/form/explode/object", HttpMethod.GET, true, validationHandler, routingContext -> {
+      RequestParameters params = routingContext.get("parsedParameters");
+
+      RequestParameter colorQueryParam = params.queryParameter("color");
+      assertNotNull(colorQueryParam);
+      assertTrue(colorQueryParam.isObject());
+
+      routingContext.response()
+        .setStatusCode(200)
+        .setStatusMessage("OK")
+        .putHeader("content-type", "application/json")
+        .end(((JsonObject)colorQueryParam.toJson()).encode());
+    });
+
+    String requestURI = "/query/form/explode/object?R=100&G=200&B=150&alpha=aaa";
+
+    testRequest(HttpMethod.GET, requestURI, 400, errorMessage(ValidationException.ErrorType.NO_MATCH));
+
   }
 
 }
