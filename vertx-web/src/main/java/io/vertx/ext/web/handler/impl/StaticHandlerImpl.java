@@ -379,7 +379,7 @@ public class StaticHandlerImpl implements StaticHandler {
     if (request.method() == HttpMethod.HEAD) {
       request.response().end();
     } else {
-      if (rangeSupport && offset != null) {
+      if (rangeSupport && headers != null && offset != null) {
         // must return content range
         headers.set("Content-Range", "bytes " + offset + "-" + end + "/" + fileProps.size());
         // return a partial response
