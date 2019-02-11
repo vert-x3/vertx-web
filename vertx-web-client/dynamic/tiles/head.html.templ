@@ -1,0 +1,21 @@
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	
+	<!-- Configuration to help crawling see https://developers.google.com/webmasters/ajax-crawling/docs/specification-->
+	<meta name="fragment" content="!">
+	
+	<!--  This disables zooming, meaning users are only able to scroll, and results in the site feeling a bit more like a native application -->
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+	<title>@if{get('head.title') == null || "".equals(get('head.title'))}Vertx-web-client@else{}@{get('head.title')}@end{}</title>
+	
+	<!-- Add to homescreen for Chrome on Android -->
+	<meta name="mobile-web-app-capable" content="yes">
+	<link rel="icon" sizes="128x128" href="/images/icon_site.png">
+	
+	<!-- Add to homescreen for Safari on iOS -->
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-status-bar-style" content="black">
+	<meta name="apple-mobile-web-app-title" content="Web Starter Kit">
+	<link rel="apple-touch-icon-precomposed" href="/images/icon_site.png">
+</head>

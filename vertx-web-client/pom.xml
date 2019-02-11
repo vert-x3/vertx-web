@@ -31,6 +31,16 @@
       <artifactId>vertx-unit</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-web</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+	  <groupId>io.vertx</groupId>
+	  <artifactId>vertx-web-templ-mvel</artifactId>
+	  <scope>test</scope>
+	</dependency>
   </dependencies>
 
   <build>
