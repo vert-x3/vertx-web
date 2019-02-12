@@ -75,6 +75,7 @@ Configure the default behavior of the client to follow HTTP <code>30x</code> red
 |[[tryUseCompression]]`@tryUseCompression`|`Boolean`|-
 |[[tryUsePerFrameWebsocketCompression]]`@tryUsePerFrameWebsocketCompression`|`Boolean`|-
 |[[tryUsePerMessageWebsocketCompression]]`@tryUsePerMessageWebsocketCompression`|`Boolean`|-
+|[[tryWebsocketDeflateFrameCompression]]`@tryWebsocketDeflateFrameCompression`|`Boolean`|-
 |[[useAlpn]]`@useAlpn`|`Boolean`|-
 |[[usePooledBuffers]]`@usePooledBuffers`|`Boolean`|-
 |[[userAgent]]`@userAgent`|`String`|+++
