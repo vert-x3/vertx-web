@@ -26,7 +26,8 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.graphql.GraphQLHandler;
 
-import java.util.List;
+import java.util.Collections;
+import java.util.Map;
 
 import static io.vertx.core.http.HttpMethod.GET;
 import static io.vertx.core.http.HttpMethod.POST;
@@ -60,57 +61,77 @@ public class GraphQLHandlerImpl implements GraphQLHandler {
   }
 
   private void handleGet(RoutingContext rc) {
-    List<String> queryParam = rc.queryParam("query");
-    if (queryParam.isEmpty()) {
+    String query = getQueryFromQueryParam(rc);
+    if (query == null) {
       failQueryMissing(rc);
       return;
     }
-    execute(rc, queryParam.get(0));
+    Map<String, Object> variables;
+    try {
+      variables = getVariablesFromQueryParam(rc);
+    } catch (Exception e) {
+      rc.fail(400, e);
+      return;
+    }
+    execute(rc, query, variables == null ? Collections.emptyMap() : variables);
   }
 
   private void handlePost(RoutingContext rc, Buffer body) {
-    List<String> queryParam = rc.queryParam("query");
-    if (!queryParam.isEmpty()) {
-      execute(rc, queryParam.get(0));
+    String query = getQueryFromQueryParam(rc);
+    Map<String, Object> variables;
+    try {
+      variables = getVariablesFromQueryParam(rc);
+    } catch (Exception e) {
+      rc.fail(400, e);
       return;
     }
 
-    String contentType = rc.request().headers().get(HttpHeaders.CONTENT_TYPE);
-    if (contentType == null) {
-      contentType = "application/json";
-    } else {
-      contentType = contentType.toLowerCase();
+    if (query != null) {
+      execute(rc, query, variables == null ? Collections.emptyMap() : variables);
+      return;
     }
 
-    switch (contentType) {
+    switch (getContentType(rc)) {
 
       case "application/json":
         try {
           JsonObject bodyAsJson = new JsonObject(body);
-          String query = bodyAsJson.getString("query");
-          if (query == null) {
-            failQueryMissing(rc);
-          } else {
-            execute(rc, query);
+          query = bodyAsJson.getString("query");
+          if (variables == null) {
+            JsonObject jsonVariables = bodyAsJson.getJsonObject("variables");
+            variables = jsonVariables == null ? null : jsonVariables.getMap();
           }
         } catch (Exception e) {
           rc.fail(400, e);
+          return;
         }
         break;
 
       case "application/graphql":
-        execute(rc, body.toString());
+        query = body.toString();
         break;
 
       default:
         rc.fail(415);
+        return;
     }
+
+    if (query == null) {
+      failQueryMissing(rc);
+      return;
+    }
+    execute(rc, query, variables == null ? Collections.emptyMap() : variables);
   }
 
-  private void execute(RoutingContext rc, String query) {
+  private String getContentType(RoutingContext rc) {
+    String contentType = rc.request().headers().get(HttpHeaders.CONTENT_TYPE);
+    return contentType == null ? "application/json" : contentType.toLowerCase();
+  }
+
+  private void execute(RoutingContext rc, String query, Map<String, Object> variables) {
     ExecutionInput.Builder builder = ExecutionInput.newExecutionInput();
 
-    builder.query(query);
+    builder.query(query).variables(variables);
 
     graphQL.executeAsync(builder.build())
       .whenComplete((executionResult, throwable) -> {
@@ -120,6 +141,19 @@ public class GraphQLHandlerImpl implements GraphQLHandler {
           rc.fail(throwable);
         }
       });
+  }
+
+  private String getQueryFromQueryParam(RoutingContext rc) {
+    return rc.queryParams().get("query");
+  }
+
+  private Map<String, Object> getVariablesFromQueryParam(RoutingContext rc) throws Exception {
+    String variablesParam = rc.queryParams().get("variables");
+    if (variablesParam == null) {
+      return null;
+    } else {
+      return new JsonObject(variablesParam).getMap();
+    }
   }
 
   private void failQueryMissing(RoutingContext rc) {

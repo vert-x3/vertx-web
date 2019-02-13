@@ -33,16 +33,18 @@ import io.vertx.ext.web.WebTestBase;
 import io.vertx.ext.web.handler.BodyHandler;
 import org.junit.Test;
 
+import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static graphql.schema.idl.RuntimeWiring.newRuntimeWiring;
 import static io.vertx.core.http.HttpMethod.GET;
 import static io.vertx.core.http.HttpMethod.POST;
-import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.*;
 
 /**
  * @author Thomas Segismont
@@ -70,13 +72,29 @@ public class GraphQLHandlerTest extends WebTestBase {
       .setMethod(GET)
       .setQuery("query { allLinks { url } }");
     send(options, onSuccess(body -> {
-      checkLinkUrls(body);
+      checkLinkUrls(links.keySet(), body);
       testComplete();
     }));
     await();
   }
 
-  private void checkLinkUrls(JsonObject body) {
+  @Test
+  public void testSimpleGetWithVariable() throws Exception {
+    GraphQLRequestOptions options = new GraphQLRequestOptions()
+      .setMethod(GET)
+      .setQuery("query($secure: Boolean) { allLinks(secureOnly: $secure) { url } }");
+    options.getVariables().put("secure", "true");
+    send(options, onSuccess(body -> {
+      Set<String> expected = links.keySet().stream()
+        .filter(url -> url.startsWith("https://"))
+        .collect(toSet());
+      checkLinkUrls(expected, body);
+      testComplete();
+    }));
+    await();
+  }
+
+  private void checkLinkUrls(Set<String> expected, JsonObject body) {
     String bodyAsString = body.toString();
     assertFalse(bodyAsString, body.containsKey("errors"));
     JsonObject data = body.getJsonObject("data");
@@ -84,7 +102,7 @@ public class GraphQLHandlerTest extends WebTestBase {
       .map(JsonObject.class::cast)
       .map(json -> json.getString("url"))
       .collect(toList());
-    assertTrue(bodyAsString, urls.containsAll(links.keySet()) && links.keySet().containsAll(urls));
+    assertTrue(bodyAsString, urls.containsAll(expected) && expected.containsAll(urls));
   }
 
   @Test
@@ -98,11 +116,28 @@ public class GraphQLHandlerTest extends WebTestBase {
   }
 
   @Test
+  public void testGetInvalidVariable() throws Exception {
+    StringBuilder uri = new StringBuilder("/graphql");
+    uri.append("?query=").append(encode("query { allLinks { url } }"));
+    uri.append("&variables=").append(encode("[1,2,3]"));
+    client.get(uri.toString())
+      .handler(onSuccess(response -> {
+        assertEquals(400, response.statusCode());
+        testComplete();
+      })).end();
+    await();
+  }
+
+  private String encode(String s) throws UnsupportedEncodingException {
+    return URLEncoder.encode(s, StandardCharsets.UTF_8.name());
+  }
+
+  @Test
   public void testSimplePost() throws Exception {
     GraphQLRequestOptions options = new GraphQLRequestOptions()
       .setQuery("query { allLinks { url } }");
     send(options, onSuccess(body -> {
-      checkLinkUrls(body);
+      checkLinkUrls(links.keySet(), body);
       testComplete();
     }));
     await();
@@ -114,7 +149,7 @@ public class GraphQLHandlerTest extends WebTestBase {
       .setQuery("query { allLinks { url } }")
       .setContentType(null);
     send(options, onSuccess(body -> {
-      checkLinkUrls(body);
+      checkLinkUrls(links.keySet(), body);
       testComplete();
     }));
     await();
@@ -126,7 +161,7 @@ public class GraphQLHandlerTest extends WebTestBase {
     GraphQLRequestOptions options = new GraphQLRequestOptions()
       .setQuery("query { allLinks { url } }");
     send(options, onSuccess(body -> {
-      checkLinkUrls(body);
+      checkLinkUrls(links.keySet(), body);
       testComplete();
     }));
     await();
@@ -138,7 +173,7 @@ public class GraphQLHandlerTest extends WebTestBase {
       .setQuery("query { allLinks { url } }")
       .setQueryParam(true);
     send(options, onSuccess(body -> {
-      checkLinkUrls(body);
+      checkLinkUrls(links.keySet(), body);
       testComplete();
     }));
     await();
@@ -150,7 +185,7 @@ public class GraphQLHandlerTest extends WebTestBase {
       .setQuery("query { allLinks { url } }")
       .setContentType(GraphQLRequestOptions.GRAPHQL);
     send(options, onSuccess(body -> {
-      checkLinkUrls(body);
+      checkLinkUrls(links.keySet(), body);
       testComplete();
     }));
     await();
@@ -197,10 +232,40 @@ public class GraphQLHandlerTest extends WebTestBase {
     await();
   }
 
+  @Test
+  public void testSimplePostWithVariable() throws Exception {
+    GraphQLRequestOptions options = new GraphQLRequestOptions()
+      .setQuery("query($secure: Boolean) { allLinks(secureOnly: $secure) { url } }");
+    options.getVariables().put("secure", "true");
+    send(options, onSuccess(body -> {
+      Set<String> expected = links.keySet().stream()
+        .filter(url -> url.startsWith("https://"))
+        .collect(toSet());
+      checkLinkUrls(expected, body);
+      testComplete();
+    }));
+    await();
+  }
+
   private void send(GraphQLRequestOptions options, Handler<AsyncResult<JsonObject>> handler) throws Exception {
     StringBuilder uri = new StringBuilder("/graphql");
+    Map<String, String> params = new HashMap<>();
     if (options.method == GET || options.queryParam) {
-      uri.append("?query=").append(URLEncoder.encode(options.query, StandardCharsets.UTF_8.name()));
+      params.put("query", options.query);
+    }
+    if (options.method == GET && !options.variables.isEmpty()) {
+      params.put("variables", options.variables.toString());
+    }
+    if (!params.isEmpty()) {
+      uri.append("?");
+      uri.append(params.entrySet().stream()
+        .map(entry -> {
+          try {
+            return entry.getKey() + '=' + encode(entry.getValue());
+          } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
+          }
+        }).collect(joining("&")));
     }
     Future<JsonObject> future = Future.future();
     RequestOptions requestOptions = new RequestOptions()
@@ -228,7 +293,11 @@ public class GraphQLHandlerTest extends WebTestBase {
     } else if (GraphQLRequestOptions.GRAPHQL.equalsIgnoreCase(options.contentType)) {
       request.end(options.query);
     } else {
-      request.end(new JsonObject().put("query", options.query).toBuffer());
+      JsonObject requestBody = new JsonObject().put("query", options.query);
+      if (!options.variables.isEmpty()) {
+        requestBody.put("variables", options.variables);
+      }
+      request.end(requestBody.toBuffer());
     }
     future.setHandler(handler);
   }
@@ -241,6 +310,7 @@ public class GraphQLHandlerTest extends WebTestBase {
     String query;
     boolean queryParam;
     String contentType = JSON;
+    JsonObject variables = new JsonObject();
 
     GraphQLRequestOptions setMethod(HttpMethod method) {
       this.method = method;
@@ -261,10 +331,14 @@ public class GraphQLHandlerTest extends WebTestBase {
       this.contentType = contentType;
       return this;
     }
+
+    public JsonObject getVariables() {
+      return variables;
+    }
   }
 
   private GraphQL graphQL() {
-    String schema = vertx.fileSystem().readFileBlocking("schema.graphqls").toString();
+    String schema = vertx.fileSystem().readFileBlocking("links.graphqls").toString();
 
     SchemaParser schemaParser = new SchemaParser();
     TypeDefinitionRegistry typeDefinitionRegistry = schemaParser.parse(schema);
@@ -280,8 +354,10 @@ public class GraphQLHandlerTest extends WebTestBase {
       .build();
   }
 
-  private List<Link> getAllLinks(DataFetchingEnvironment dataFetchingEnvironment) {
+  private List<Link> getAllLinks(DataFetchingEnvironment env) {
+    boolean secureOnly = env.getArgument("secureOnly");
     return links.entrySet().stream()
+      .filter(e -> !secureOnly || e.getKey().startsWith("https://"))
       .map(e -> new Link(e.getKey(), e.getValue()))
       .collect(toList());
   }

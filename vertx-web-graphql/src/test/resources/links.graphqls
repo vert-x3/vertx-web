@@ -4,5 +4,5 @@ type Link {
 }
 
 type Query {
-  allLinks: [Link]
+  allLinks(secureOnly: Boolean = false): [Link]
 }
