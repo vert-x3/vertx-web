@@ -61,12 +61,7 @@
       <artifactId>vertx-auth-htdigest</artifactId>
       <optional>true</optional>
     </dependency>
-    <dependency>
-      <groupId>com.graphql-java</groupId>
-      <artifactId>graphql-java</artifactId>
-      <version>11.0</version>
-      <optional>true</optional>
-    </dependency>
+
     <!-- Testing -->
     <dependency>
       <groupId>io.vertx</groupId>

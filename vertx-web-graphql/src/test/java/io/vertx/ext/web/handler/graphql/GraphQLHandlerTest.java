@@ -264,7 +264,7 @@ public class GraphQLHandlerTest extends WebTestBase {
   }
 
   private GraphQL graphQL() {
-    String schema = vertx.fileSystem().readFileBlocking("io/vertx/ext/web/handler/graphql/schema.graphqls").toString();
+    String schema = vertx.fileSystem().readFileBlocking("schema.graphqls").toString();
 
     SchemaParser schemaParser = new SchemaParser();
     TypeDefinitionRegistry typeDefinitionRegistry = schemaParser.parse(schema);
