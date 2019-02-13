@@ -272,12 +272,14 @@ public class RoutingContextImpl extends RoutingContextImplBase {
 
   @Override
   public JsonObject getBodyAsJson() {
-    return body != null ? new JsonObject(body) : null;
+    // the minimal json is {} so we need at least 2 chars
+    return body != null && body.length() > 1 ? new JsonObject(body) : null;
   }
 
   @Override
   public JsonArray getBodyAsJsonArray() {
-    return body != null ? new JsonArray(body) : null;
+    // the minimal array is [] so we need at least 2 chars
+    return body != null && body.length() > 1 ? new JsonArray(body) : null;
   }
 
   @Override
