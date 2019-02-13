@@ -18,12 +18,18 @@ package io.vertx.ext.web.handler.graphql.impl;
 
 import graphql.ExecutionInput;
 import graphql.GraphQL;
+import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.HttpHeaders;
+import io.vertx.core.http.HttpMethod;
 import io.vertx.core.impl.NoStackTraceThrowable;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.graphql.GraphQLHandler;
 
 import java.util.List;
+
+import static io.vertx.core.http.HttpMethod.GET;
+import static io.vertx.core.http.HttpMethod.POST;
 
 /**
  * @author Thomas Segismont
@@ -38,15 +44,73 @@ public class GraphQLHandlerImpl implements GraphQLHandler {
 
   @Override
   public void handle(RoutingContext rc) {
-    ExecutionInput.Builder builder = ExecutionInput.newExecutionInput();
+    HttpMethod method = rc.request().method();
+    if (method == GET) {
+      handleGet(rc);
+    } else if (method == POST) {
+      Buffer body = rc.getBody();
+      if (body == null) {
+        rc.request().bodyHandler(buffer -> handlePost(rc, buffer));
+      } else {
+        handlePost(rc, body);
+      }
+    } else {
+      rc.fail(405);
+    }
+  }
 
+  private void handleGet(RoutingContext rc) {
     List<String> queryParam = rc.queryParam("query");
     if (queryParam.isEmpty()) {
-      rc.fail(400, new NoStackTraceThrowable("query param is missing"));
+      failQueryMissing(rc);
+      return;
+    }
+    execute(rc, queryParam.get(0));
+  }
+
+  private void handlePost(RoutingContext rc, Buffer body) {
+    List<String> queryParam = rc.queryParam("query");
+    if (!queryParam.isEmpty()) {
+      execute(rc, queryParam.get(0));
       return;
     }
 
-    builder.query(queryParam.get(0));
+    String contentType = rc.request().headers().get(HttpHeaders.CONTENT_TYPE);
+    if (contentType == null) {
+      contentType = "application/json";
+    } else {
+      contentType = contentType.toLowerCase();
+    }
+
+    switch (contentType) {
+
+      case "application/json":
+        try {
+          JsonObject bodyAsJson = new JsonObject(body);
+          String query = bodyAsJson.getString("query");
+          if (query == null) {
+            failQueryMissing(rc);
+          } else {
+            execute(rc, query);
+          }
+        } catch (Exception e) {
+          rc.fail(400, e);
+        }
+        break;
+
+      case "application/graphql":
+        execute(rc, body.toString());
+        break;
+
+      default:
+        rc.fail(415);
+    }
+  }
+
+  private void execute(RoutingContext rc, String query) {
+    ExecutionInput.Builder builder = ExecutionInput.newExecutionInput();
+
+    builder.query(query);
 
     graphQL.executeAsync(builder.build())
       .whenComplete((executionResult, throwable) -> {
@@ -56,5 +120,9 @@ public class GraphQLHandlerImpl implements GraphQLHandler {
           rc.fail(throwable);
         }
       });
+  }
+
+  private void failQueryMissing(RoutingContext rc) {
+    rc.fail(400, new NoStackTraceThrowable("Query is missing"));
   }
 }
