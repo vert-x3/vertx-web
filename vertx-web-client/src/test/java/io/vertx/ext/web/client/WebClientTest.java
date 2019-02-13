@@ -100,7 +100,7 @@ public class WebClientTest extends HttpTestBase {
       client -> client.get("somehost", "somepath").basicAuthentication("ém$¨=!$€", "&@#§$*éà#\"'"),
       req -> {
         String auth = req.headers().get(HttpHeaders.AUTHORIZATION);
-        assertEquals("Was expecting authorization header to contain a basic authentication string", "Basic w6ltJMKoPSEk4oKsLSZAI8KnJCrDqcOgIyIn", auth);
+        assertEquals("Was expecting authorization header to contain a basic authentication string", "Basic w6ltJMKoPSEk4oKsOiZAI8KnJCrDqcOgIyIn", auth);
       }
     );
   }
