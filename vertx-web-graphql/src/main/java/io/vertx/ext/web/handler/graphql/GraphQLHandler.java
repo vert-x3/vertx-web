@@ -23,6 +23,8 @@ import io.vertx.core.Handler;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.graphql.impl.GraphQLHandlerImpl;
 
+import java.util.function.Function;
+
 /**
  * @author Thomas Segismont
  */
@@ -33,4 +35,6 @@ public interface GraphQLHandler extends Handler<RoutingContext> {
   static GraphQLHandler create(GraphQL graphQL) {
     return new GraphQLHandlerImpl(graphQL);
   }
+
+  void queryContext(Function<RoutingContext, Object> context);
 }

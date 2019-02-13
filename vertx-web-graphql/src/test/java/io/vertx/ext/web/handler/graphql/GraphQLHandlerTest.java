@@ -26,6 +26,7 @@ import graphql.schema.idl.TypeDefinitionRegistry;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.WebTestBase;
 import io.vertx.ext.web.handler.BodyHandler;
 import org.junit.Test;
@@ -34,6 +35,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static graphql.schema.idl.RuntimeWiring.newRuntimeWiring;
 import static io.vertx.core.http.HttpMethod.GET;
@@ -42,6 +44,8 @@ import static io.vertx.ext.web.handler.graphql.GraphQLRequest.GRAPHQL;
 import static io.vertx.ext.web.handler.graphql.GraphQLRequest.encode;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
+import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.hamcrest.CoreMatchers.is;
 
 /**
  * @author Thomas Segismont
@@ -49,12 +53,15 @@ import static java.util.stream.Collectors.toSet;
 public class GraphQLHandlerTest extends WebTestBase {
 
   private Map<String, String> links = new HashMap<>();
+  private AtomicReference<Object> queryContext = new AtomicReference<>();
+  private GraphQLHandler graphQLHandler;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     createData();
-    router.route("/graphql").order(100).handler(GraphQLHandler.create(graphQL()));
+    graphQLHandler = GraphQLHandler.create(graphQL());
+    router.route("/graphql").order(100).handler(graphQLHandler);
   }
 
   private void createData() {
@@ -82,6 +89,9 @@ public class GraphQLHandlerTest extends WebTestBase {
   }
 
   private List<Link> getAllLinks(DataFetchingEnvironment env) {
+    if (!queryContext.compareAndSet(null, env.getContext())) {
+      throw new IllegalStateException();
+    }
     boolean secureOnly = env.getArgument("secureOnly");
     return links.entrySet().stream()
       .filter(e -> !secureOnly || e.getKey().startsWith("https://"))
@@ -262,6 +272,30 @@ public class GraphQLHandlerTest extends WebTestBase {
         assertEquals(415, response.statusCode());
         testComplete();
       })).end("<h1>Hello world!</h1>");
+    await();
+  }
+
+  @Test
+  public void testDefaultQueryContext() throws Exception {
+    GraphQLRequest request = new GraphQLRequest()
+      .setGraphQLQuery("query { allLinks { url } }");
+    request.send(client, onSuccess(body -> {
+      assertThat(queryContext.get(), is(instanceOf(RoutingContext.class)));
+      testComplete();
+    }));
+    await();
+  }
+
+  @Test
+  public void testCustomQueryContext() throws Exception {
+    Object expected = new Object();
+    graphQLHandler.queryContext(rc -> expected);
+    GraphQLRequest request = new GraphQLRequest()
+      .setGraphQLQuery("query { allLinks { url } }");
+    request.send(client, onSuccess(body -> {
+      assertSame(expected, queryContext.get());
+      testComplete();
+    }));
     await();
   }
 

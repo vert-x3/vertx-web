@@ -28,6 +28,7 @@ import io.vertx.ext.web.handler.graphql.GraphQLHandler;
 
 import java.util.Collections;
 import java.util.Map;
+import java.util.function.Function;
 
 import static io.vertx.core.http.HttpMethod.GET;
 import static io.vertx.core.http.HttpMethod.POST;
@@ -38,6 +39,7 @@ import static io.vertx.core.http.HttpMethod.POST;
 public class GraphQLHandlerImpl implements GraphQLHandler {
 
   private final GraphQL graphQL;
+  private Function<RoutingContext, Object> context = rc -> rc;
 
   public GraphQLHandlerImpl(GraphQL graphQL) {
     this.graphQL = graphQL;
@@ -132,6 +134,9 @@ public class GraphQLHandlerImpl implements GraphQLHandler {
     ExecutionInput.Builder builder = ExecutionInput.newExecutionInput();
 
     builder.query(query).variables(variables);
+    synchronized (this) {
+      builder.context(context.apply(rc));
+    }
 
     graphQL.executeAsync(builder.build())
       .whenComplete((executionResult, throwable) -> {
@@ -158,5 +163,10 @@ public class GraphQLHandlerImpl implements GraphQLHandler {
 
   private void failQueryMissing(RoutingContext rc) {
     rc.fail(400, new NoStackTraceThrowable("Query is missing"));
+  }
+
+  @Override
+  public synchronized void queryContext(Function<RoutingContext, Object> context) {
+    this.context = context != null ? context : rc -> rc;
   }
 }
