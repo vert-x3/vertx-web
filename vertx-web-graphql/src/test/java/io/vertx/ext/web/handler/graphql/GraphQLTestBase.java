@@ -17,23 +17,32 @@
 package io.vertx.ext.web.handler.graphql;
 
 import graphql.GraphQL;
-import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
 import graphql.schema.GraphQLSchema;
-import graphql.schema.idl.*;
-import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
-import org.junit.Test;
+import graphql.schema.idl.RuntimeWiring;
+import graphql.schema.idl.SchemaGenerator;
+import graphql.schema.idl.SchemaParser;
+import graphql.schema.idl.TypeDefinitionRegistry;
+import io.vertx.ext.web.WebTestBase;
 
 import static graphql.schema.idl.RuntimeWiring.newRuntimeWiring;
-import static io.vertx.core.http.HttpMethod.GET;
+import static java.util.stream.Collectors.toList;
 
 /**
  * @author Thomas Segismont
  */
-public class JsonResultsTest extends GraphQLTestBase {
+public class GraphQLTestBase extends WebTestBase {
+
+  protected TestData testData = new TestData();
+  protected GraphQLHandler graphQLHandler;
 
   @Override
+  public void setUp() throws Exception {
+    super.setUp();
+    graphQLHandler = GraphQLHandler.create(graphQL());
+    router.route("/graphql").order(100).handler(graphQLHandler);
+  }
+
   protected GraphQL graphQL() {
     String schema = vertx.fileSystem().readFileBlocking("links.graphqls").toString();
 
@@ -41,12 +50,6 @@ public class JsonResultsTest extends GraphQLTestBase {
     TypeDefinitionRegistry typeDefinitionRegistry = schemaParser.parse(schema);
 
     RuntimeWiring runtimeWiring = newRuntimeWiring()
-      .wiringFactory(new WiringFactory() {
-        @Override
-        public DataFetcher getDefaultDataFetcher(FieldWiringEnvironment environment) {
-          return new VertxPropertyDataFetcher(environment.getFieldDefinition().getName());
-        }
-      })
       .type("Query", builder -> builder.dataFetcher("allLinks", this::getAllLinks))
       .build();
 
@@ -57,41 +60,11 @@ public class JsonResultsTest extends GraphQLTestBase {
       .build();
   }
 
-  @Override
   protected Object getAllLinks(DataFetchingEnvironment env) {
     boolean secureOnly = env.getArgument("secureOnly");
     return testData.links.entrySet().stream()
       .filter(e -> !secureOnly || e.getKey().startsWith("https://"))
-      .map(e -> new JsonObject().put("url", e.getKey()).put("description", e.getValue()))
-      .collect(JsonArray::new, JsonArray::add, JsonArray::addAll);
-  }
-
-  @Test
-  public void testSimpleGet() throws Exception {
-    GraphQLRequest request = new GraphQLRequest()
-      .setMethod(GET)
-      .setGraphQLQuery("query { allLinks { url } }");
-    request.send(client, onSuccess(body -> {
-      if (testData.checkLinkUrls(testData.links.keySet(), body)) {
-        testComplete();
-      } else {
-        fail(body.toString());
-      }
-    }));
-    await();
-  }
-
-  @Test
-  public void testSimplePost() throws Exception {
-    GraphQLRequest request = new GraphQLRequest()
-      .setGraphQLQuery("query { allLinks { url } }");
-    request.send(client, onSuccess(body -> {
-      if (testData.checkLinkUrls(testData.links.keySet(), body)) {
-        testComplete();
-      } else {
-        fail(body.toString());
-      }
-    }));
-    await();
+      .map(e -> new Link(e.getKey(), e.getValue()))
+      .collect(toList());
   }
 }
