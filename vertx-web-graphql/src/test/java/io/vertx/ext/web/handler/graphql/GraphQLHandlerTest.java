@@ -31,9 +31,7 @@ import io.vertx.ext.web.WebTestBase;
 import io.vertx.ext.web.handler.BodyHandler;
 import org.junit.Test;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -52,23 +50,15 @@ import static org.hamcrest.CoreMatchers.is;
  */
 public class GraphQLHandlerTest extends WebTestBase {
 
-  private Map<String, String> links = new HashMap<>();
+  private TestData testData = new TestData();
   private AtomicReference<Object> queryContext = new AtomicReference<>();
   private GraphQLHandler graphQLHandler;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    createData();
     graphQLHandler = GraphQLHandler.create(graphQL());
     router.route("/graphql").order(100).handler(graphQLHandler);
-  }
-
-  private void createData() {
-    links.put("https://vertx.io", "Vert.x project");
-    links.put("https://www.eclipse.org", "Eclipse Foundation");
-    links.put("http://reactivex.io", "ReactiveX libraries");
-    links.put("https://www.graphql-java.com", "GraphQL Java implementation");
   }
 
   private GraphQL graphQL() {
@@ -93,7 +83,7 @@ public class GraphQLHandlerTest extends WebTestBase {
       throw new IllegalStateException();
     }
     boolean secureOnly = env.getArgument("secureOnly");
-    return links.entrySet().stream()
+    return testData.links.entrySet().stream()
       .filter(e -> !secureOnly || e.getKey().startsWith("https://"))
       .map(e -> new Link(e.getKey(), e.getValue()))
       .collect(toList());
@@ -105,8 +95,11 @@ public class GraphQLHandlerTest extends WebTestBase {
       .setMethod(GET)
       .setGraphQLQuery("query { allLinks { url } }");
     request.send(client, onSuccess(body -> {
-      checkLinkUrls(links.keySet(), body);
-      testComplete();
+      if (testData.checkLinkUrls(testData.links.keySet(), body)) {
+        testComplete();
+      } else {
+        fail(body.toString());
+      }
     }));
     await();
   }
@@ -118,11 +111,14 @@ public class GraphQLHandlerTest extends WebTestBase {
       .setGraphQLQuery("query($secure: Boolean) { allLinks(secureOnly: $secure) { url } }");
     request.getVariables().put("secure", "true");
     request.send(client, onSuccess(body -> {
-      Set<String> expected = links.keySet().stream()
+      Set<String> expected = testData.links.keySet().stream()
         .filter(url -> url.startsWith("https://"))
         .collect(toSet());
-      checkLinkUrls(expected, body);
-      testComplete();
+      if (testData.checkLinkUrls(expected, body)) {
+        testComplete();
+      } else {
+        fail(body.toString());
+      }
     }));
     await();
   }
@@ -153,8 +149,11 @@ public class GraphQLHandlerTest extends WebTestBase {
     GraphQLRequest request = new GraphQLRequest()
       .setGraphQLQuery("query { allLinks { url } }");
     request.send(client, onSuccess(body -> {
-      checkLinkUrls(links.keySet(), body);
-      testComplete();
+      if (testData.checkLinkUrls(testData.links.keySet(), body)) {
+        testComplete();
+      } else {
+        fail(body.toString());
+      }
     }));
     await();
   }
@@ -165,8 +164,11 @@ public class GraphQLHandlerTest extends WebTestBase {
       .setGraphQLQuery("query { allLinks { url } }")
       .setContentType(null);
     request.send(client, onSuccess(body -> {
-      checkLinkUrls(links.keySet(), body);
-      testComplete();
+      if (testData.checkLinkUrls(testData.links.keySet(), body)) {
+        testComplete();
+      } else {
+        fail(body.toString());
+      }
     }));
     await();
   }
@@ -177,8 +179,11 @@ public class GraphQLHandlerTest extends WebTestBase {
     GraphQLRequest request = new GraphQLRequest()
       .setGraphQLQuery("query { allLinks { url } }");
     request.send(client, onSuccess(body -> {
-      checkLinkUrls(links.keySet(), body);
-      testComplete();
+      if (testData.checkLinkUrls(testData.links.keySet(), body)) {
+        testComplete();
+      } else {
+        fail(body.toString());
+      }
     }));
     await();
   }
@@ -189,8 +194,11 @@ public class GraphQLHandlerTest extends WebTestBase {
       .setGraphQLQuery("query { allLinks { url } }")
       .setGraphQLQueryAsParam(true);
     request.send(client, onSuccess(body -> {
-      checkLinkUrls(links.keySet(), body);
-      testComplete();
+      if (testData.checkLinkUrls(testData.links.keySet(), body)) {
+        testComplete();
+      } else {
+        fail(body.toString());
+      }
     }));
     await();
   }
@@ -201,8 +209,11 @@ public class GraphQLHandlerTest extends WebTestBase {
       .setGraphQLQuery("query { allLinks { url } }")
       .setContentType(GRAPHQL);
     request.send(client, onSuccess(body -> {
-      checkLinkUrls(links.keySet(), body);
-      testComplete();
+      if (testData.checkLinkUrls(testData.links.keySet(), body)) {
+        testComplete();
+      } else {
+        fail(body.toString());
+      }
     }));
     await();
   }
@@ -213,11 +224,14 @@ public class GraphQLHandlerTest extends WebTestBase {
       .setGraphQLQuery("query($secure: Boolean) { allLinks(secureOnly: $secure) { url } }");
     request.getVariables().put("secure", "true");
     request.send(client, onSuccess(body -> {
-      Set<String> expected = links.keySet().stream()
+      Set<String> expected = testData.links.keySet().stream()
         .filter(url -> url.startsWith("https://"))
         .collect(toSet());
-      checkLinkUrls(expected, body);
-      testComplete();
+      if (testData.checkLinkUrls(expected, body)) {
+        testComplete();
+      } else {
+        fail(body.toString());
+      }
     }));
     await();
   }
@@ -297,16 +311,5 @@ public class GraphQLHandlerTest extends WebTestBase {
       testComplete();
     }));
     await();
-  }
-
-  private void checkLinkUrls(Set<String> expected, JsonObject body) {
-    String bodyAsString = body.toString();
-    assertFalse(bodyAsString, body.containsKey("errors"));
-    JsonObject data = body.getJsonObject("data");
-    List<String> urls = data.getJsonArray("allLinks").stream()
-      .map(JsonObject.class::cast)
-      .map(json -> json.getString("url"))
-      .collect(toList());
-    assertTrue(bodyAsString, urls.containsAll(expected) && expected.containsAll(urls));
   }
 }
