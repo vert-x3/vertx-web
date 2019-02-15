@@ -29,6 +29,8 @@
   <artifactId>vertx-web-graphql</artifactId>
 
   <properties>
+    <graphql.java.major.version>11</graphql.java.major.version>
+    <graphql.java.version>${graphql.java.major.version}.0</graphql.java.version>
     <doc.skip>false</doc.skip>
   </properties>
 
@@ -41,7 +43,7 @@
     <dependency>
       <groupId>com.graphql-java</groupId>
       <artifactId>graphql-java</artifactId>
-      <version>11.0</version>
+      <version>${graphql.java.version}</version>
     </dependency>
     <dependency>
       <groupId>io.vertx</groupId>
@@ -51,5 +53,26 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
+
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.bsc.maven</groupId>
+          <artifactId>maven-processor-plugin</artifactId>
+          <executions>
+            <execution>
+              <id>generate-sources</id>
+              <configuration>
+                <optionMap>
+                  <graphql.java.doc.version>v${graphql.java.major.version}</graphql.java.doc.version>
+                </optionMap>
+              </configuration>
+            </execution>
+          </executions>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+  </build>
 
 </project>
