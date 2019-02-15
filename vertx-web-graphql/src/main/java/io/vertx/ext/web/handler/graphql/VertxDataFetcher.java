@@ -32,7 +32,7 @@ import java.util.function.BiConsumer;
 public interface VertxDataFetcher<T> extends DataFetcher<CompletableFuture<T>> {
 
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
-  static <T> VertxDataFetcher<T> create(BiConsumer<Future<T>, DataFetchingEnvironment> dataFetcher) {
+  static <T> VertxDataFetcher<T> create(BiConsumer<DataFetchingEnvironment, Future<T>> dataFetcher) {
     CompletableFuture<T> cf = new CompletableFuture<>();
     Future<T> future = Future.future();
     future.setHandler(ar -> {
@@ -43,7 +43,7 @@ public interface VertxDataFetcher<T> extends DataFetcher<CompletableFuture<T>> {
       }
     });
     return environment -> {
-      dataFetcher.accept(future, environment);
+      dataFetcher.accept(environment, future);
       return cf;
     };
   }
