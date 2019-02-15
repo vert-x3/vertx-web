@@ -166,7 +166,8 @@ public class GraphQLHandlerImpl implements GraphQLHandler {
   }
 
   @Override
-  public synchronized void queryContext(Function<RoutingContext, Object> context) {
+  public synchronized GraphQLHandler queryContext(Function<RoutingContext, Object> context) {
     this.context = context != null ? context : rc -> rc;
+    return this;
   }
 }

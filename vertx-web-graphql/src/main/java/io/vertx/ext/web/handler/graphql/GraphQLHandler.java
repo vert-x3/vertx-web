@@ -17,6 +17,7 @@
 package io.vertx.ext.web.handler.graphql;
 
 import graphql.GraphQL;
+import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
@@ -36,5 +37,6 @@ public interface GraphQLHandler extends Handler<RoutingContext> {
     return new GraphQLHandlerImpl(graphQL);
   }
 
-  void queryContext(Function<RoutingContext, Object> context);
+  @Fluent
+  GraphQLHandler queryContext(Function<RoutingContext, Object> context);
 }
