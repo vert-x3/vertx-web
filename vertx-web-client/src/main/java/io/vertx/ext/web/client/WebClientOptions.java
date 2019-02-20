@@ -198,11 +198,6 @@ public class WebClientOptions extends HttpClientOptions {
   }
 
   @Override
-  public WebClientOptions setUsePooledBuffers(boolean usePooledBuffers) {
-    return (WebClientOptions) super.setUsePooledBuffers(usePooledBuffers);
-  }
-
-  @Override
   public WebClientOptions setIdleTimeout(int idleTimeout) {
     return (WebClientOptions) super.setIdleTimeout(idleTimeout);
   }
