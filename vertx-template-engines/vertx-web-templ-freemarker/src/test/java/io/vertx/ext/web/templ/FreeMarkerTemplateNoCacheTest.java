@@ -18,6 +18,7 @@ package io.vertx.ext.web.templ;
 
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
+import io.vertx.core.file.FileSystemOptions;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
@@ -43,7 +44,7 @@ public class FreeMarkerTemplateNoCacheTest {
 
   @BeforeClass
   public static void before() {
-    vertx = Vertx.vertx(new VertxOptions().setFileResolverCachingEnabled(false));
+    vertx = Vertx.vertx(new VertxOptions().setFileSystemOptions(new FileSystemOptions().setFileCachingEnabled(false)));
   }
 
   @Test
