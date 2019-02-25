@@ -32,6 +32,7 @@ import io.vertx.ext.web.handler.graphql.VertxPropertyDataFetcher;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 
 import static graphql.schema.idl.RuntimeWiring.newRuntimeWiring;
 
@@ -58,8 +59,8 @@ public class GraphQLExamples {
 
   class Link {}
 
-  private void completableFutureDataFetcher() {
-    DataFetcher<CompletableFuture<List<Link>>> dataFetcher = environment -> {
+  private void completionStageDataFetcher() {
+    DataFetcher<CompletionStage<List<Link>>> dataFetcher = environment -> {
       CompletableFuture<List<Link>> completableFuture = new CompletableFuture<>();
       retrieveLinksFromBackend(environment, ar -> {
         if (ar.succeeded()) {
@@ -124,7 +125,7 @@ public class GraphQLExamples {
     router.route("/graphql").handler(handler);
   }
 
-  private GraphQL setupGraphQLJava(DataFetcher<CompletableFuture<List<Link>>> dataFetcher) {
+  private GraphQL setupGraphQLJava(DataFetcher<CompletionStage<List<Link>>> dataFetcher) {
     return null;
   }
 

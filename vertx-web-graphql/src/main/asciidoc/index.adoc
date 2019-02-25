@@ -51,16 +51,16 @@ TIP: The {@link io.vertx.ext.web.handler.graphql.GraphQLHandler} does not requir
 
 The GraphQL-Java API is very well suited for the asynchronous world: the asynchronous execution strategy is the default for queries (serial asynchronous for mutations).
 
-To https://vertx.io/docs/vertx-core/java/#golden_rule[avoid blocking the event loop], all you have to do is implement https://www.graphql-java.com/documentation/${graphql.java.doc.version}/data-fetching/[data fetchers] that return a `CompletableFuture` instead of the result directly.
+To https://vertx.io/docs/vertx-core/java/#golden_rule[avoid blocking the event loop], all you have to do is implement https://www.graphql-java.com/documentation/${graphql.java.doc.version}/data-fetching/[data fetchers] that return a `CompletionStage` instead of the result directly.
 
 [source,java]
 ----
-{@link examples.GraphQLExamples#completableFutureDataFetcher}
+{@link examples.GraphQLExamples#completionStageDataFetcher}
 ----
 
 === Fetching data with callback-based APIs
 
-Implementing a data fetcher that return a `CompletableFuture` is not a complex task.
+Implementing a data fetcher that returns a `CompletionStage` is not a complex task.
 But when you work with Vert.x callback-based APIs, it requires a bit of boilerplate.
 
 This is where the {@link io.vertx.ext.web.handler.graphql.VertxDataFetcher} can help:

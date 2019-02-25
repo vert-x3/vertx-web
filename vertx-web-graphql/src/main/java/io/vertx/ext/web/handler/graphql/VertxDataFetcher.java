@@ -23,13 +23,14 @@ import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Future;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import java.util.function.BiConsumer;
 
 /**
  * @author Thomas Segismont
  */
 @VertxGen
-public interface VertxDataFetcher<T> extends DataFetcher<CompletableFuture<T>> {
+public interface VertxDataFetcher<T> extends DataFetcher<CompletionStage<T>> {
 
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static <T> VertxDataFetcher<T> create(BiConsumer<DataFetchingEnvironment, Future<T>> dataFetcher) {
