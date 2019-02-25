@@ -139,13 +139,13 @@ public class GraphQLHandlerImpl implements GraphQLHandler {
     }
 
     graphQL.executeAsync(builder.build())
-      .whenComplete((executionResult, throwable) -> {
+      .whenCompleteAsync((executionResult, throwable) -> {
         if (throwable == null) {
           rc.response().end(new JsonObject(executionResult.toSpecification()).toBuffer());
         } else {
           rc.fail(throwable);
         }
-      });
+      }, command -> rc.vertx().getOrCreateContext().runOnContext(v -> command.run()));
   }
 
   private String getQueryFromQueryParam(RoutingContext rc) {
