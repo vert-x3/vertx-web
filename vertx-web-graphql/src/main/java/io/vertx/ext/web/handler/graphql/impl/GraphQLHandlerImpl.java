@@ -18,6 +18,7 @@ package io.vertx.ext.web.handler.graphql.impl;
 
 import graphql.ExecutionInput;
 import graphql.GraphQL;
+import io.vertx.core.Context;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
@@ -138,6 +139,7 @@ public class GraphQLHandlerImpl implements GraphQLHandler {
       builder.context(context.apply(rc));
     }
 
+    Context ctx = rc.vertx().getOrCreateContext();
     graphQL.executeAsync(builder.build())
       .whenCompleteAsync((executionResult, throwable) -> {
         if (throwable == null) {
@@ -145,7 +147,7 @@ public class GraphQLHandlerImpl implements GraphQLHandler {
         } else {
           rc.fail(throwable);
         }
-      }, command -> rc.vertx().getOrCreateContext().runOnContext(v -> command.run()));
+      }, command -> ctx.runOnContext(v -> command.run()));
   }
 
   private String getQueryFromQueryParam(RoutingContext rc) {
