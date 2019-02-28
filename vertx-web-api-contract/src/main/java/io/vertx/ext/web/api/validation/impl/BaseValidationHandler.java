@@ -94,7 +94,7 @@ public abstract class BaseValidationHandler implements ValidationHandler {
       routingContext.next();
 
     } catch (ValidationException e) {
-      routingContext.fail(e);
+      routingContext.fail(400, e);
     }
   }
 

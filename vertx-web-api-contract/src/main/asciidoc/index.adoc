@@ -29,7 +29,7 @@ dependencies {
 }
 ----
 
-== HTTP Requests validation without OpenAPI 3
+== HTTP Requests validation
 
 Vert.x provides a validation framework that will validate requests for you and will put results of validation inside a container. To define a {@link io.vertx.ext.web.api.validation.HTTPRequestValidationHandler}:
 
@@ -45,7 +45,8 @@ Then you can mount your validation handler:
 {@link examples.ValidationExamples#example2}
 ----
 
-If validation succeeds, It returns request parameters inside {@link io.vertx.ext.web.api.RequestParameters}, otherwise It will throw a {@link io.vertx.ext.web.api.validation.ValidationException}
+If validation succeeds, It returns request parameters inside {@link io.vertx.ext.web.api.RequestParameters},
+otherwise It will throw a fail inside `RoutingContext` with 400 status code and {@link io.vertx.ext.web.api.validation.ValidationException} failure.
 
 === Types of request parameters
 Every parameter has a type validator, a class that describes the expected type of parameter.
@@ -70,35 +71,41 @@ As you can see, every parameter is mapped in respective language objects. You ca
 {@link examples.ValidationExamples#example4}
 ----
 
+=== Manage validation failures
+A validation error fails the `RoutingContext` with 400 status code and {@link io.vertx.ext.web.api.validation.ValidationException} failure.
+You can manage these failures both at route level using {@link io.vertx.ext.web.Route#failureHandler} or at router level using {@link io.vertx.ext.web.Router#errorHandler}:
+
+[source,$lang]
+----
+{@link examples.ValidationExamples#example5}
+----
+
 == OpenAPI 3
+Vert.x allows you to use your OpenAPI 3 specification directly inside your code using the design first approach. Vert.x-Web API Contract provides:
 
-Vert.x allows you to use your OpenApi 3 specification directly inside your code using the design first approach. Vert.x-Web provides:
-
-* OpenAPI 3 compliant API specification validation with automatic*loading of external Json schemas**
+* OpenAPI 3 compliant API specification validation with automatic **loading of external Json schemas**
 * Automatic request validation
 * Automatic mount of security validation handlers
-* Automatic 501 response for not implemented operations
-* Router factory to provide all these features to users
 
-You can also use the community project https://github.com/pmlopes/slush-vertx[`slush-vertx`] to generate server code from your OpenAPI 3 specification.
+You can also use the community project https://github.com/pmlopes/vertx-starter[`vertx-starter`] to generate server code from your OpenAPI 3 specification.
 
-=== The router factory
-You can create your web service based on OpenAPI3 specification with {@link io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory}.
+=== The Router Factory
+You can create your web service based on OpenAPI 3 specification with {@link io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory}.
 This class, as name says, is a router factory based on your OpenAPI 3 specification.
-{@link io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory} is intended to give you a really simple user interface to use OpenAPI 3 support. It includes:
+{@link io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory} is intended to give you a really simple user interface to use OpenAPI 3 related features. It includes:
 
 * Async loading of specification and its schema dependencies
 * Mount path with operationId or with combination of path and HTTP method
-* Automatic request parameters validation
-* Automatic convert OpenAPI style paths to Vert.x style paths
-* Lazy methods: operations (combination of paths and HTTP methods) are mounted in declaration order inside specification
-* Automatic mount of security validation handlers
+* Automatic generation of validation handlers
+* Automatic conversion between OpenAPI style paths and Vert.x style paths
+* Lazy methods: operations are mounted in declaration order inside specification
+* Automatic mount of security handlers
 
 === Create a new router factory
-To create a new router factory, Use method {@link io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory#create(io.vertx.core.Vertx, java.lang.String, io.vertx.core.Handler)}.
+To create a new router factory, use method {@link io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory#create(io.vertx.core.Vertx, java.lang.String, io.vertx.core.Handler)}.
 As location It accepts absolute paths, local paths and local or remote URLs (HTTP or file protocol).
 
-For example:
+For example to load a spec from the local filesystem:
 
 [source,$lang]
 ----
@@ -120,17 +127,13 @@ Or, you can also access a private remote spec by passing one or more https://git
 ----
 
 You can also modify the behaviours of the router factory with {@link io.vertx.ext.web.api.contract.RouterFactoryOptions}.
-For example you can ask to router factory to mount the validation failure handler but to not mount the not implemented handler as follows:
-
-[source,$lang]
-----
-{@link examples.OpenAPI3Examples#mountOptions}
-----
 
 === Mount the handlers
-Now load your first operation handlers. To load an handler use {@link io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory#addHandlerByOperationId(java.lang.String, io.vertx.core.Handler)}. To load a failure handler use {@link io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory#addFailureHandlerByOperationId(java.lang.String, io.vertx.core.Handler)}
+Now load your first operation handlers.
+To load an handler use {@link io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory#addHandlerByOperationId(java.lang.String, io.vertx.core.Handler)}.
+To load a failure handler use {@link io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory#addFailureHandlerByOperationId(java.lang.String, io.vertx.core.Handler)}
 
-You can, of course,*add multiple handlers to same operation**, without overwrite the existing ones.
+You can, of course, **add multiple handlers to same operation**, without overwrite the existing ones.
 
 For example:
 
@@ -139,12 +142,9 @@ For example:
 {@link examples.OpenAPI3Examples#addRoute}
 ----
 
-.Add operations with operationId
-IMPORTANT: Usage of combination of path and HTTP method is allowed, but it's better to add operations handlers with operationId, for performance reasons and to avoid paths nomenclature errors
-
 Now you can use parameter values as described above
 
-== Define security handlers
+=== Define security handlers
 A security handler is defined by a combination of schema name and scope. You can mount only one security handler for a combination.
 For example:
 
@@ -160,15 +160,43 @@ You can of course use included Vert.x security handlers, for example:
 {@link examples.OpenAPI3Examples#addJWT}
 ----
 
-=== Customize the router factory behaviours
-The router factory allows you to customize some behaviours during router generation with
-{@link io.vertx.ext.web.api.contract.RouterFactoryOptions}. Router factory can:
+When you generate the {@link io.vertx.ext.web.Router} the Router Factory fails if For debugging/testing purpose
 
-* Mount a 501 `Not Implemented` handler for operations where you haven't mounted any handler
-* Mount a 400 `Bad Request` handler that manages `ValidationException`
-* Mount the {@link io.vertx.ext.web.handler.ResponseContentTypeHandler} handler when needed
+=== Not Implemented Error
+Router Factory automatically mounts a default handler for operations without a specified handler.
+This default handler fails the routing context with 501 `Not Implemented` error.
+You can enable/disable it with {@link io.vertx.ext.web.api.contract.RouterFactoryOptions#setMountNotImplementedHandler}
+and you can customize this error handling with {@link io.vertx.ext.web.Router#errorHandler}
 
-Give a deeper look at {@link io.vertx.ext.web.api.contract.RouterFactoryOptions} documentation
+=== Response Content Type Handler
+Router Factory automatically mounts a {@link io.vertx.ext.web.handler.ResponseContentTypeHandler} handler when contract requires it.
+You can disable this feature with {@link io.vertx.ext.web.api.contract.RouterFactoryOptions#setMountResponseContentTypeHandler}
+
+=== Operation model
+If you need to access to your operation contract while handling the request,
+you can configure the router factory to push it inside the `RoutingContext` with {@link io.vertx.ext.web.api.contract.RouterFactoryOptions#setOperationModelKey}. For example:
+
+[source,$lang]
+----
+{@link examples.OpenAPI3Examples#addOperationModelKey}
+----
+
+=== Body Handler
+Router Factory automatically mounts a {@link io.vertx.ext.web.handler.BodyHandler} to manage request bodies.
+You can configure the instance of {@link io.vertx.ext.web.handler.BodyHandler} (e.g. to change upload directory) with {@link io.vertx.ext.web.api.contract.RouterFactory#setBodyHandler}.
+
+=== Custom global handlers
+If you need to mount handlers that must be executed for each operationin your router before the operation specific handlers, you can use {@link io.vertx.ext.web.api.contract.RouterFactory#addGlobalHandler}
+
+=== Router factory handlers mount order
+Handlers are loaded by the router factory in this order:
+
+1. Body handler
+2. Custom global handlers
+3. Global security handlers defined in upper spec level
+4. Operation specific security handlers
+5. Generated validation handler
+6. User handlers or "Not implemented" handler (if enabled)
 
 === Generate the router
 When you are ready, generate the router and use it:
@@ -177,6 +205,8 @@ When you are ready, generate the router and use it:
 ----
 {@link examples.OpenAPI3Examples#generateRouter}
 ----
+
+This method can fail with a {@link io.vertx.ext.web.api.contract.RouterFactoryException} if you didn't provide the required security handlers.
 
 ifeval::["$lang" == "java"]
 include::override/rxjava2.adoc[]
