@@ -33,6 +33,8 @@ public class OpenAPI3RouterFactoryImpl extends BaseRouterFactory<OpenAPI> implem
   private final static String OPENAPI_EXTENSION_ADDRESS = "address";
   private final static String OPENAPI_EXTENSION_METHOD_NAME = "method";
 
+  private final static Handler<RoutingContext> NOT_IMPLEMENTED_HANDLER = rc -> rc.fail(501);
+
   // This map is fullfilled when spec is loaded in memory
   Map<String, OperationValue> operations;
   ResolverCache refsCache;
@@ -300,9 +302,6 @@ public class OpenAPI3RouterFactoryImpl extends BaseRouterFactory<OpenAPI> implem
         .getOperationModel(), operation.getParameters(), this.spec, refsCache);
       handlersToLoad.add(validationHandler);
 
-      // Check validation failure handler
-      if (this.options.isMountValidationFailureHandler()) failureHandlersToLoad.add(this.getValidationFailureHandler());
-
       // Check if path is set by user
       if (operation.isConfigured()) {
         handlersToLoad.addAll(operation.getUserHandlers());
@@ -324,7 +323,7 @@ public class OpenAPI3RouterFactoryImpl extends BaseRouterFactory<OpenAPI> implem
           );
         }
       } else {
-        handlersToLoad.add(this.getNotImplementedFailureHandler());
+        handlersToLoad.add(NOT_IMPLEMENTED_HANDLER);
       }
 
       // Now add all handlers to route
@@ -369,6 +368,9 @@ public class OpenAPI3RouterFactoryImpl extends BaseRouterFactory<OpenAPI> implem
       for (Handler failureHandler : failureHandlersToLoad)
         route.failureHandler(failureHandler);
     }
+    // Check validation failure handler
+    if (this.options.isMountValidationFailureHandler()) router.errorHandler(400, this.getValidationFailureHandler());
+    if (this.options.isMountNotImplementedHandler()) router.errorHandler(501, this.getNotImplementedFailureHandler());
     return router;
   }
 

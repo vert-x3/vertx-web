@@ -1,5 +1,6 @@
 package examples;
 
+import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.parser.core.models.AuthorizationValue;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
@@ -70,17 +71,6 @@ public class OpenAPI3Examples {
       });
   }
 
-  public void mountOptions(AsyncResult<OpenAPI3RouterFactory> ar) {
-    OpenAPI3RouterFactory routerFactory = ar.result();
-    // Create and mount options to router factory
-    RouterFactoryOptions options =
-      new RouterFactoryOptions()
-      .setMountNotImplementedHandler(true)
-      .setMountValidationFailureHandler(false);
-
-    routerFactory.setOptions(options);
-  }
-
   public void addRoute(Vertx vertx, OpenAPI3RouterFactory routerFactory) {
     routerFactory.addHandlerByOperationId("awesomeOperation", routingContext -> {
       RequestParameters params = routingContext.get("parsedParameters");
@@ -99,6 +89,24 @@ public class OpenAPI3Examples {
 
   public void addJWT(OpenAPI3RouterFactory routerFactory, JWTAuth jwtAuthProvider) {
     routerFactory.addSecurityHandler("jwt_auth", JWTAuthHandler.create(jwtAuthProvider));
+  }
+
+  public void addOperationModelKey(OpenAPI3RouterFactory routerFactory, RouterFactoryOptions options) {
+    // Configure the operation model key and set options in router factory
+    options.setOperationModelKey("operationPOJO");
+    routerFactory.setOptions(options);
+
+    // Add an handler that uses the operation model
+    routerFactory.addHandlerByOperationId("listPets", routingContext -> {
+      io.swagger.v3.oas.models.Operation operation = routingContext.get("operationPOJO");
+
+      routingContext
+        .response()
+        .setStatusCode(200)
+        .setStatusMessage("OK")
+        // Write the response with operation id "listPets"
+        .end(operation.getOperationId());
+    });
   }
 
   public void generateRouter(Vertx vertx, OpenAPI3RouterFactory routerFactory) {
