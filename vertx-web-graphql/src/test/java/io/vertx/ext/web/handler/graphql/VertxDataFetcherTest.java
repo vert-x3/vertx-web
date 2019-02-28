@@ -61,7 +61,7 @@ public class VertxDataFetcherTest extends GraphQLTestBase {
       .setMethod(GET)
       .setGraphQLQuery("query { allLinks { url } }");
     request.send(client, onSuccess(body -> {
-      if (testData.checkLinkUrls(testData.links.keySet(), body)) {
+      if (testData.checkLinkUrls(testData.urls(), body)) {
         testComplete();
       } else {
         fail(body.toString());
@@ -75,7 +75,7 @@ public class VertxDataFetcherTest extends GraphQLTestBase {
     GraphQLRequest request = new GraphQLRequest()
       .setGraphQLQuery("query { allLinks { url } }");
     request.send(client, onSuccess(body -> {
-      if (testData.checkLinkUrls(testData.links.keySet(), body)) {
+      if (testData.checkLinkUrls(testData.urls(), body)) {
         testComplete();
       } else {
         fail(body.toString());

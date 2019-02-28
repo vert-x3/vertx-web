@@ -19,26 +19,7 @@ package io.vertx.ext.web.handler.graphql;
 /**
  * @author Thomas Segismont
  */
-public class Link {
-  private final String url;
-  private final String description;
-  private final String userId;
-
-  public Link(String url, String description, String userId) {
-    this.url = url;
-    this.description = description;
-    this.userId = userId;
-  }
-
-  public String getUrl() {
-    return url;
-  }
-
-  public String getDescription() {
-    return description;
-  }
-
-  public String getUserId() {
-    return userId;
-  }
+@FunctionalInterface
+public interface TriConsumer<T1, T2, T3> {
+  void accept(T1 t1, T2 t2, T3 t3);
 }

@@ -25,6 +25,8 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import org.junit.Test;
 
+import java.util.List;
+
 import static graphql.schema.idl.RuntimeWiring.newRuntimeWiring;
 import static io.vertx.core.http.HttpMethod.GET;
 
@@ -59,10 +61,16 @@ public class JsonResultsTest extends GraphQLTestBase {
 
   @Override
   protected Object getAllLinks(DataFetchingEnvironment env) {
-    boolean secureOnly = env.getArgument("secureOnly");
-    return testData.links.entrySet().stream()
-      .filter(e -> !secureOnly || e.getKey().startsWith("https://"))
-      .map(e -> new JsonObject().put("url", e.getKey()).put("description", e.getValue()))
+    @SuppressWarnings("unchecked")
+    List<Link> links = (List<Link>) super.getAllLinks(env);
+    return links.stream()
+      .map(link -> {
+        JsonObject jsonObject = new JsonObject()
+          .put("url", link.getUrl())
+          .put("description", link.getDescription())
+          .put("userId", link.getUserId());
+        return jsonObject;
+      })
       .collect(JsonArray::new, JsonArray::add, JsonArray::addAll);
   }
 
@@ -72,7 +80,7 @@ public class JsonResultsTest extends GraphQLTestBase {
       .setMethod(GET)
       .setGraphQLQuery("query { allLinks { url } }");
     request.send(client, onSuccess(body -> {
-      if (testData.checkLinkUrls(testData.links.keySet(), body)) {
+      if (testData.checkLinkUrls(testData.urls(), body)) {
         testComplete();
       } else {
         fail(body.toString());
@@ -86,7 +94,7 @@ public class JsonResultsTest extends GraphQLTestBase {
     GraphQLRequest request = new GraphQLRequest()
       .setGraphQLQuery("query { allLinks { url } }");
     request.send(client, onSuccess(body -> {
-      if (testData.checkLinkUrls(testData.links.keySet(), body)) {
+      if (testData.checkLinkUrls(testData.urls(), body)) {
         testComplete();
       } else {
         fail(body.toString());

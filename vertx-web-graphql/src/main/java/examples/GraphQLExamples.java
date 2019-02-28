@@ -17,8 +17,10 @@
 package examples;
 
 import graphql.GraphQL;
+import graphql.execution.instrumentation.dataloader.DataLoaderDispatcherInstrumentation;
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
+import graphql.schema.GraphQLSchema;
 import graphql.schema.idl.FieldWiringEnvironment;
 import graphql.schema.idl.RuntimeWiring;
 import graphql.schema.idl.WiringFactory;
@@ -29,6 +31,10 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.graphql.GraphQLHandler;
 import io.vertx.ext.web.handler.graphql.VertxDataFetcher;
 import io.vertx.ext.web.handler.graphql.VertxPropertyDataFetcher;
+import org.dataloader.BatchLoaderEnvironment;
+import org.dataloader.BatchLoaderWithContext;
+import org.dataloader.DataLoader;
+import org.dataloader.DataLoaderRegistry;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -61,7 +67,9 @@ public class GraphQLExamples {
 
   private void completionStageDataFetcher() {
     DataFetcher<CompletionStage<List<Link>>> dataFetcher = environment -> {
+
       CompletableFuture<List<Link>> completableFuture = new CompletableFuture<>();
+
       retrieveLinksFromBackend(environment, ar -> {
         if (ar.succeeded()) {
           completableFuture.complete(ar.result());
@@ -69,6 +77,7 @@ public class GraphQLExamples {
           completableFuture.completeExceptionally(ar.cause());
         }
       });
+
       return completableFuture;
     };
 
@@ -82,7 +91,9 @@ public class GraphQLExamples {
 
   private void vertxDataFetcher() {
     VertxDataFetcher<List<Link>> dataFetcher = VertxDataFetcher.create((environment, future) -> {
+
       retrieveLinksFromBackend(environment, future);
+
     });
 
     RuntimeWiring runtimeWiring = newRuntimeWiring()
@@ -100,6 +111,7 @@ public class GraphQLExamples {
       User user = routingContext.get("user");
 
       retrieveLinksPostedBy(user, future);
+
     });
   }
 
@@ -113,13 +125,16 @@ public class GraphQLExamples {
       User user = environment.getContext();
 
       retrieveLinksPostedBy(user, future);
+
     });
 
     GraphQL graphQL = setupGraphQLJava(dataFetcher);
 
     // Customize the query context object when setting up the handler
     GraphQLHandler handler = GraphQLHandler.create(graphQL).queryContext(routingContext -> {
+
       return routingContext.get("user");
+
     });
 
     router.route("/graphql").handler(handler);
@@ -131,11 +146,45 @@ public class GraphQLExamples {
 
   private void jsonData() {
     RuntimeWiring.Builder builder = newRuntimeWiring();
+
     builder.wiringFactory(new WiringFactory() {
+
       @Override
       public DataFetcher getDefaultDataFetcher(FieldWiringEnvironment environment) {
+
         return new VertxPropertyDataFetcher(environment.getFieldDefinition().getName());
+
       }
+    });
+  }
+
+  public void dataLoaderDispatcherInstrumentation(GraphQLSchema graphQLSchema) {
+    DataLoaderDispatcherInstrumentation dispatcherInstrumentation = new DataLoaderDispatcherInstrumentation();
+
+    GraphQL graphQL = GraphQL.newGraphQL(graphQLSchema)
+      .instrumentation(dispatcherInstrumentation)
+      .build();
+  }
+
+  public void createBatchLoader() {
+    BatchLoaderWithContext<String, Link> linksBatchLoader = (keys, environment) -> {
+
+      return retrieveLinksFromBackend(keys, environment);
+
+    };
+  }
+
+  private CompletionStage<List<Link>> retrieveLinksFromBackend(List<String> ids, BatchLoaderEnvironment environment) {
+    return null;
+  }
+
+  public void dataLoaderRegistry(GraphQL graphQL, BatchLoaderWithContext<String, Link> linksBatchLoader) {
+    GraphQLHandler handler = GraphQLHandler.create(graphQL).dataLoaderRegistry(rc -> {
+
+      DataLoader<String, Link> linkDataLoader = DataLoader.newDataLoader(linksBatchLoader);
+
+      return new DataLoaderRegistry().register("link", linkDataLoader);
+
     });
   }
 }

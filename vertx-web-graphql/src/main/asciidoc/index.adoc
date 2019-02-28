@@ -110,6 +110,33 @@ If you don't need (or don't wish to) use a domain object layer, you can configur
 
 TIP: {@link io.vertx.ext.web.handler.graphql.VertxPropertyDataFetcher} wraps a `PropertyDataFetcher` so you can still use it with domain objects.
 
+=== Using dataloaders
+
+Dataloaders help you to load data efficiently by batching fetch requests and caching results.
+
+First, you must configure the `GraphQL` object to use the `DataLoaderDispatcherInstrumentation`:
+
+[source,java]
+----
+{@link examples.GraphQLExamples#dataLoaderDispatcherInstrumentation}
+----
+
+Then create a batch loader:
+
+[source,java]
+----
+{@link examples.GraphQLExamples#createBatchLoader}
+----
+
+TIP: If you work with Vert.x callback-based APIs, you may create a batch loader with {@link io.vertx.ext.web.handler.graphql.VertxBatchLoader#create}.
+
+Eventually, configure the {@link io.vertx.ext.web.handler.graphql.GraphQLHandler} to create a `DataLoaderRegistry` for each request:
+
+[source,java]
+----
+{@link examples.GraphQLExamples#dataLoaderRegistry}
+----
+
 ifeval::["$lang" == "java"]
 include::override/rxjava2.adoc[]
 endif::[]

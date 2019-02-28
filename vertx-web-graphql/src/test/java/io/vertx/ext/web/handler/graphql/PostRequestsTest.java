@@ -21,11 +21,11 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import org.junit.Test;
 
-import java.util.Set;
+import java.util.List;
 
 import static io.vertx.ext.web.handler.graphql.GraphQLRequest.GRAPHQL;
 import static io.vertx.ext.web.handler.graphql.GraphQLRequest.encode;
-import static java.util.stream.Collectors.toSet;
+import static java.util.stream.Collectors.toList;
 
 /**
  * @author Thomas Segismont
@@ -37,7 +37,7 @@ public class PostRequestsTest extends GraphQLTestBase {
     GraphQLRequest request = new GraphQLRequest()
       .setGraphQLQuery("query { allLinks { url } }");
     request.send(client, onSuccess(body -> {
-      if (testData.checkLinkUrls(testData.links.keySet(), body)) {
+      if (testData.checkLinkUrls(testData.urls(), body)) {
         testComplete();
       } else {
         fail(body.toString());
@@ -52,7 +52,7 @@ public class PostRequestsTest extends GraphQLTestBase {
       .setGraphQLQuery("query { allLinks { url } }")
       .setContentType(null);
     request.send(client, onSuccess(body -> {
-      if (testData.checkLinkUrls(testData.links.keySet(), body)) {
+      if (testData.checkLinkUrls(testData.urls(), body)) {
         testComplete();
       } else {
         fail(body.toString());
@@ -67,7 +67,7 @@ public class PostRequestsTest extends GraphQLTestBase {
       .setGraphQLQuery("query { allLinks { url } }")
       .setGraphQLQueryAsParam(true);
     request.send(client, onSuccess(body -> {
-      if (testData.checkLinkUrls(testData.links.keySet(), body)) {
+      if (testData.checkLinkUrls(testData.urls(), body)) {
         testComplete();
       } else {
         fail(body.toString());
@@ -82,7 +82,7 @@ public class PostRequestsTest extends GraphQLTestBase {
       .setGraphQLQuery("query { allLinks { url } }")
       .setContentType(GRAPHQL);
     request.send(client, onSuccess(body -> {
-      if (testData.checkLinkUrls(testData.links.keySet(), body)) {
+      if (testData.checkLinkUrls(testData.urls(), body)) {
         testComplete();
       } else {
         fail(body.toString());
@@ -97,9 +97,9 @@ public class PostRequestsTest extends GraphQLTestBase {
       .setGraphQLQuery("query($secure: Boolean) { allLinks(secureOnly: $secure) { url } }");
     request.getVariables().put("secure", "true");
     request.send(client, onSuccess(body -> {
-      Set<String> expected = testData.links.keySet().stream()
+      List<String> expected = testData.urls().stream()
         .filter(url -> url.startsWith("https://"))
-        .collect(toSet());
+        .collect(toList());
       if (testData.checkLinkUrls(expected, body)) {
         testComplete();
       } else {

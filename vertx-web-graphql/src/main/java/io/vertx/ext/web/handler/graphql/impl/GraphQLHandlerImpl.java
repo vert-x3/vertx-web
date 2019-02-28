@@ -26,6 +26,7 @@ import io.vertx.core.impl.NoStackTraceThrowable;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.graphql.GraphQLHandler;
+import org.dataloader.DataLoaderRegistry;
 
 import java.util.Collections;
 import java.util.Map;
@@ -40,7 +41,8 @@ import static io.vertx.core.http.HttpMethod.POST;
 public class GraphQLHandlerImpl implements GraphQLHandler {
 
   private final GraphQL graphQL;
-  private Function<RoutingContext, Object> context = rc -> rc;
+  private Function<RoutingContext, Object> queryContextFactory = rc -> rc;
+  private Function<RoutingContext, DataLoaderRegistry> dataLoaderRegistryFactory = rc -> null;
 
   public GraphQLHandlerImpl(GraphQL graphQL) {
     this.graphQL = graphQL;
@@ -135,8 +137,20 @@ public class GraphQLHandlerImpl implements GraphQLHandler {
     ExecutionInput.Builder builder = ExecutionInput.newExecutionInput();
 
     builder.query(query).variables(variables);
+
+    Function<RoutingContext, Object> qc;
     synchronized (this) {
-      builder.context(context.apply(rc));
+      qc = queryContextFactory;
+    }
+    builder.context(qc.apply(rc));
+
+    Function<RoutingContext, DataLoaderRegistry> dlr;
+    synchronized (this) {
+      dlr = dataLoaderRegistryFactory;
+    }
+    DataLoaderRegistry registry = dlr.apply(rc);
+    if (registry != null) {
+      builder.dataLoaderRegistry(registry);
     }
 
     Context ctx = rc.vertx().getOrCreateContext();
@@ -168,8 +182,14 @@ public class GraphQLHandlerImpl implements GraphQLHandler {
   }
 
   @Override
-  public synchronized GraphQLHandler queryContext(Function<RoutingContext, Object> context) {
-    this.context = context != null ? context : rc -> rc;
+  public synchronized GraphQLHandler queryContext(Function<RoutingContext, Object> factory) {
+    queryContextFactory = factory != null ? factory : rc -> rc;
+    return this;
+  }
+
+  @Override
+  public synchronized GraphQLHandler dataLoaderRegistry(Function<RoutingContext, DataLoaderRegistry> factory) {
+    dataLoaderRegistryFactory = factory != null ? factory : rc -> null;
     return this;
   }
 }

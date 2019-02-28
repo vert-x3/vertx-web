@@ -19,26 +19,20 @@ package io.vertx.ext.web.handler.graphql;
 /**
  * @author Thomas Segismont
  */
-public class Link {
-  private final String url;
-  private final String description;
-  private final String userId;
+public class User {
+  private final String id;
+  private final String name;
 
-  public Link(String url, String description, String userId) {
-    this.url = url;
-    this.description = description;
-    this.userId = userId;
+  public User(String id, String name) {
+    this.id = id;
+    this.name = name;
   }
 
-  public String getUrl() {
-    return url;
+  public String getId() {
+    return id;
   }
 
-  public String getDescription() {
-    return description;
-  }
-
-  public String getUserId() {
-    return userId;
+  public String getName() {
+    return name;
   }
 }

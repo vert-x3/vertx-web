@@ -16,32 +16,36 @@
 
 package io.vertx.ext.web.handler.graphql;
 
-import graphql.GraphQL;
-import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.VertxGen;
-import io.vertx.core.Handler;
-import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.handler.graphql.impl.GraphQLHandlerImpl;
-import org.dataloader.DataLoaderRegistry;
+import io.vertx.core.Future;
+import org.dataloader.BatchLoaderEnvironment;
+import org.dataloader.BatchLoaderWithContext;
 
-import java.util.function.Function;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * @author Thomas Segismont
  */
 @VertxGen
-public interface GraphQLHandler extends Handler<RoutingContext> {
+public interface VertxBatchLoader<K, V> extends BatchLoaderWithContext<K, V> {
 
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
-  static GraphQLHandler create(GraphQL graphQL) {
-    return new GraphQLHandlerImpl(graphQL);
+  static <K, V> VertxBatchLoader<K, V> create(TriConsumer<List<K>, BatchLoaderEnvironment, Future<List<V>>> batchLoader) {
+    CompletableFuture<List<V>> cf = new CompletableFuture<>();
+    Future<List<V>> future = Future.future();
+    future.setHandler(ar -> {
+      if (ar.succeeded()) {
+        cf.complete(ar.result());
+      } else {
+        cf.completeExceptionally(ar.cause());
+      }
+    });
+    return (keys, environment) -> {
+      batchLoader.accept(keys, environment, future);
+      return cf;
+    };
   }
 
-  @Fluent
-  GraphQLHandler queryContext(Function<RoutingContext, Object> factory);
-
-  @Fluent
-  @GenIgnore(GenIgnore.PERMITTED_TYPE)
-  GraphQLHandler dataLoaderRegistry(Function<RoutingContext, DataLoaderRegistry> factory);
 }

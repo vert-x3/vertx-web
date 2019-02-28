@@ -18,11 +18,11 @@ package io.vertx.ext.web.handler.graphql;
 
 import org.junit.Test;
 
-import java.util.Set;
+import java.util.List;
 
 import static io.vertx.core.http.HttpMethod.GET;
 import static io.vertx.ext.web.handler.graphql.GraphQLRequest.encode;
-import static java.util.stream.Collectors.toSet;
+import static java.util.stream.Collectors.toList;
 
 /**
  * @author Thomas Segismont
@@ -35,7 +35,7 @@ public class GetRequestsTest extends GraphQLTestBase {
       .setMethod(GET)
       .setGraphQLQuery("query { allLinks { url } }");
     request.send(client, onSuccess(body -> {
-      if (testData.checkLinkUrls(testData.links.keySet(), body)) {
+      if (testData.checkLinkUrls(testData.urls(), body)) {
         testComplete();
       } else {
         fail(body.toString());
@@ -51,9 +51,9 @@ public class GetRequestsTest extends GraphQLTestBase {
       .setGraphQLQuery("query($secure: Boolean) { allLinks(secureOnly: $secure) { url } }");
     request.getVariables().put("secure", "true");
     request.send(client, onSuccess(body -> {
-      Set<String> expected = testData.links.keySet().stream()
+      List<String> expected = testData.urls().stream()
         .filter(url -> url.startsWith("https://"))
-        .collect(toSet());
+        .collect(toList());
       if (testData.checkLinkUrls(expected, body)) {
         testComplete();
       } else {

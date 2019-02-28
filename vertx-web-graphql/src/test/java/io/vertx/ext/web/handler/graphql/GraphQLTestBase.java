@@ -62,9 +62,8 @@ public class GraphQLTestBase extends WebTestBase {
 
   protected Object getAllLinks(DataFetchingEnvironment env) {
     boolean secureOnly = env.getArgument("secureOnly");
-    return testData.links.entrySet().stream()
-      .filter(e -> !secureOnly || e.getKey().startsWith("https://"))
-      .map(e -> new Link(e.getKey(), e.getValue()))
+    return testData.links.stream()
+      .filter(link -> !secureOnly || link.getUrl().startsWith("https://"))
       .collect(toList());
   }
 }
