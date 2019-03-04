@@ -822,6 +822,9 @@ public class WebClientTest extends HttpTestBase {
       public boolean writeQueueFull() {
         return false;
       }
+      public long getWritePos() {
+        throw new UnsupportedOperationException();
+      }
       public AsyncFile write(Buffer buffer) {
         received.addAndGet(buffer.length());
         return this;
