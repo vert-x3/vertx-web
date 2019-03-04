@@ -17,9 +17,15 @@
 package io.vertx.ext.web.handler.graphql;
 
 /**
+ * Like {@link java.util.function.BiConsumer} but accepts three arguments.
+ *
  * @author Thomas Segismont
  */
 @FunctionalInterface
-public interface TriConsumer<T1, T2, T3> {
-  void accept(T1 t1, T2 t2, T3 t3);
+public interface TriConsumer<T, U, V> {
+
+  /**
+   * Execute with the provided arguments.
+   */
+  void accept(T t, U u, V v);
 }

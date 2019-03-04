@@ -27,11 +27,21 @@ import java.util.concurrent.CompletionStage;
 import java.util.function.BiConsumer;
 
 /**
+ * A {@link DataFetcher} that works well with Vert.x callback-based APIs.
+ *
  * @author Thomas Segismont
  */
 @VertxGen
 public interface VertxDataFetcher<T> extends DataFetcher<CompletionStage<T>> {
 
+  /**
+   * Create a new data fetcher.
+   * The provided function will be invoked with the following arguments:
+   * <ul>
+   * <li>the {@link DataFetchingEnvironment}</li>
+   * <li>a future that the implementor must complete after the data objects are fetched</li>
+   * </ul>
+   */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static <T> VertxDataFetcher<T> create(BiConsumer<DataFetchingEnvironment, Future<T>> dataFetcher) {
     CompletableFuture<T> cf = new CompletableFuture<>();

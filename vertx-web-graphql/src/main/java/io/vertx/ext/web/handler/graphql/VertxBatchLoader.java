@@ -26,11 +26,22 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 /**
+ * A {@link BatchLoaderWithContext} that works well with Vert.x callback-based APIs.
+ *
  * @author Thomas Segismont
  */
 @VertxGen
 public interface VertxBatchLoader<K, V> extends BatchLoaderWithContext<K, V> {
 
+  /**
+   * Create a new batch loader.
+   * The provided function will be invoked with the following arguments:
+   * <ul>
+   * <li>the keys for the data objects that should be loaded</li>
+   * <li>the {@link BatchLoaderEnvironment}</li>
+   * <li>a future that the implementor must complete after the data objects are loaded</li>
+   * </ul>
+   */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static <K, V> VertxBatchLoader<K, V> create(TriConsumer<List<K>, BatchLoaderEnvironment, Future<List<V>>> batchLoader) {
     CompletableFuture<List<V>> cf = new CompletableFuture<>();
@@ -47,5 +58,4 @@ public interface VertxBatchLoader<K, V> extends BatchLoaderWithContext<K, V> {
       return cf;
     };
   }
-
 }

@@ -28,19 +28,36 @@ import org.dataloader.DataLoaderRegistry;
 import java.util.function.Function;
 
 /**
+ * A {@link io.vertx.ext.web.Route} handler for GraphQL requests.
+ *
  * @author Thomas Segismont
  */
 @VertxGen
 public interface GraphQLHandler extends Handler<RoutingContext> {
 
+  /**
+   * Create a new {@link GraphQLHandler} that will use the provided {@code graphQL} object to execute queries.
+   */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static GraphQLHandler create(GraphQL graphQL) {
     return new GraphQLHandlerImpl(graphQL);
   }
 
+  /**
+   * Customize the query context object.
+   * The provided {@code factory} method will be invoked for each incoming GraphQL request.
+   *
+   * @return a reference to this, so the API can be used fluently
+   */
   @Fluent
   GraphQLHandler queryContext(Function<RoutingContext, Object> factory);
 
+  /**
+   * Customize the {@link DataLoaderRegistry}.
+   * The provided {@code factory} method will be invoked for each incoming GraphQL request.
+   *
+   * @return a reference to this, so the API can be used fluently
+   */
   @Fluent
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   GraphQLHandler dataLoaderRegistry(Function<RoutingContext, DataLoaderRegistry> factory);

@@ -21,6 +21,8 @@ import graphql.schema.PropertyDataFetcher;
 import io.vertx.core.json.JsonObject;
 
 /**
+ * Extends {@link PropertyDataFetcher} so that properties can be read from a {@link JsonObject}.
+ *
  * @author Thomas Segismont
  */
 public class VertxPropertyDataFetcher extends PropertyDataFetcher {
