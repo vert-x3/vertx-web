@@ -41,7 +41,7 @@ public class VertxDataFetcherTest extends GraphQLTestBase {
 
     RuntimeWiring runtimeWiring = newRuntimeWiring()
       .type("Query", builder -> {
-        VertxDataFetcher<Object> dataFetcher = VertxDataFetcher.create((env, fut) -> {
+        VertxDataFetcher<Object> dataFetcher = new VertxDataFetcher<>((env, fut) -> {
           fut.complete(getAllLinks(env));
         });
         return builder.dataFetcher("allLinks", dataFetcher);

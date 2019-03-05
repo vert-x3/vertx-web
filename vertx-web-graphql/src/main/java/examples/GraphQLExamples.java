@@ -90,7 +90,7 @@ public class GraphQLExamples {
   }
 
   private void vertxDataFetcher() {
-    VertxDataFetcher<List<Link>> dataFetcher = VertxDataFetcher.create((environment, future) -> {
+    VertxDataFetcher<List<Link>> dataFetcher = new VertxDataFetcher<>((environment, future) -> {
 
       retrieveLinksFromBackend(environment, future);
 
@@ -104,7 +104,7 @@ public class GraphQLExamples {
   class User {}
 
   private void routingContextInDataFetchingEnvironment() {
-    VertxDataFetcher<List<Link>> dataFetcher = VertxDataFetcher.create((environment, future) -> {
+    VertxDataFetcher<List<Link>> dataFetcher = new VertxDataFetcher<>((environment, future) -> {
 
       RoutingContext routingContext = environment.getContext();
 
@@ -119,7 +119,7 @@ public class GraphQLExamples {
   }
 
   private void customContextInDataFetchingEnvironment(Router router) {
-    VertxDataFetcher<List<Link>> dataFetcher = VertxDataFetcher.create((environment, future) -> {
+    VertxDataFetcher<List<Link>> dataFetcher = new VertxDataFetcher<>((environment, future) -> {
 
       // User as custom context object
       User user = environment.getContext();

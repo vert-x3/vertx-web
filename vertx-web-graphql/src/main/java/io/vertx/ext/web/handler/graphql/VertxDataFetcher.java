@@ -18,8 +18,6 @@ package io.vertx.ext.web.handler.graphql;
 
 import graphql.schema.DataFetcher;
 import graphql.schema.DataFetchingEnvironment;
-import io.vertx.codegen.annotations.GenIgnore;
-import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Future;
 
 import java.util.concurrent.CompletableFuture;
@@ -31,8 +29,9 @@ import java.util.function.BiConsumer;
  *
  * @author Thomas Segismont
  */
-@VertxGen
-public interface VertxDataFetcher<T> extends DataFetcher<CompletionStage<T>> {
+public class VertxDataFetcher<T> implements DataFetcher<CompletionStage<T>> {
+
+  private final BiConsumer<DataFetchingEnvironment, Future<T>> dataFetcher;
 
   /**
    * Create a new data fetcher.
@@ -42,8 +41,12 @@ public interface VertxDataFetcher<T> extends DataFetcher<CompletionStage<T>> {
    * <li>a future that the implementor must complete after the data objects are fetched</li>
    * </ul>
    */
-  @GenIgnore(GenIgnore.PERMITTED_TYPE)
-  static <T> VertxDataFetcher<T> create(BiConsumer<DataFetchingEnvironment, Future<T>> dataFetcher) {
+  public VertxDataFetcher(BiConsumer<DataFetchingEnvironment, Future<T>> dataFetcher) {
+    this.dataFetcher = dataFetcher;
+  }
+
+  @Override
+  public CompletionStage<T> get(DataFetchingEnvironment environment) throws Exception {
     CompletableFuture<T> cf = new CompletableFuture<>();
     Future<T> future = Future.future();
     future.setHandler(ar -> {
@@ -53,9 +56,7 @@ public interface VertxDataFetcher<T> extends DataFetcher<CompletionStage<T>> {
         cf.completeExceptionally(ar.cause());
       }
     });
-    return environment -> {
-      dataFetcher.accept(environment, future);
-      return cf;
-    };
+    dataFetcher.accept(environment, future);
+    return cf;
   }
 }

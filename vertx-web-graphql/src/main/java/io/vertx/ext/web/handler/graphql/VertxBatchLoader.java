@@ -16,22 +16,22 @@
 
 package io.vertx.ext.web.handler.graphql;
 
-import io.vertx.codegen.annotations.GenIgnore;
-import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Future;
 import org.dataloader.BatchLoaderEnvironment;
 import org.dataloader.BatchLoaderWithContext;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 
 /**
  * A {@link BatchLoaderWithContext} that works well with Vert.x callback-based APIs.
  *
  * @author Thomas Segismont
  */
-@VertxGen
-public interface VertxBatchLoader<K, V> extends BatchLoaderWithContext<K, V> {
+public class VertxBatchLoader<K, V> implements BatchLoaderWithContext<K, V> {
+
+  private final TriConsumer<List<K>, BatchLoaderEnvironment, Future<List<V>>> batchLoader;
 
   /**
    * Create a new batch loader.
@@ -42,8 +42,12 @@ public interface VertxBatchLoader<K, V> extends BatchLoaderWithContext<K, V> {
    * <li>a future that the implementor must complete after the data objects are loaded</li>
    * </ul>
    */
-  @GenIgnore(GenIgnore.PERMITTED_TYPE)
-  static <K, V> VertxBatchLoader<K, V> create(TriConsumer<List<K>, BatchLoaderEnvironment, Future<List<V>>> batchLoader) {
+  public VertxBatchLoader(TriConsumer<List<K>, BatchLoaderEnvironment, Future<List<V>>> batchLoader) {
+    this.batchLoader = batchLoader;
+  }
+
+  @Override
+  public CompletionStage<List<V>> load(List<K> keys, BatchLoaderEnvironment environment) {
     CompletableFuture<List<V>> cf = new CompletableFuture<>();
     Future<List<V>> future = Future.future();
     future.setHandler(ar -> {
@@ -53,9 +57,7 @@ public interface VertxBatchLoader<K, V> extends BatchLoaderWithContext<K, V> {
         cf.completeExceptionally(ar.cause());
       }
     });
-    return (keys, environment) -> {
-      batchLoader.accept(keys, environment, future);
-      return cf;
-    };
+    batchLoader.accept(keys, environment, future);
+    return cf;
   }
 }

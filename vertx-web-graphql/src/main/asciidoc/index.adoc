@@ -128,7 +128,7 @@ Then create a batch loader:
 {@link examples.GraphQLExamples#createBatchLoader}
 ----
 
-TIP: If you work with Vert.x callback-based APIs, you may create a batch loader with {@link io.vertx.ext.web.handler.graphql.VertxBatchLoader#create}.
+TIP: If you work with Vert.x callback-based APIs, you may use a {@link io.vertx.ext.web.handler.graphql.VertxBatchLoader} to simplify your code.
 
 Eventually, configure the {@link io.vertx.ext.web.handler.graphql.GraphQLHandler} to create a `DataLoaderRegistry` for each request:
 
