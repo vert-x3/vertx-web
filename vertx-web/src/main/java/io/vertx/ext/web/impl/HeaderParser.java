@@ -1,7 +1,7 @@
 package io.vertx.ext.web.impl;
 
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
+import io.vertx.core.impl.logging.Logger;
+import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.ext.web.ParsedHeaderValue;
 
 import java.util.*;
@@ -71,7 +71,8 @@ public class HeaderParser {
               try {
                 weightCallback.accept(Float.parseFloat(val));
               } catch (NumberFormatException e) {
-                log.info("Found a \"q\" parameter with value \"{}\" which was unparsable", val);
+                if (log.isTraceEnabled())
+                log.trace("Found a \"q\" parameter with value \""+val+"\" that was unparsable");
               }
             } else {
               parameterCallback.accept(key, unquote(val));
