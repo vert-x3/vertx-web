@@ -20,6 +20,10 @@ import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.CaseInsensitiveHeaders;
+import io.vertx.core.http.HttpServerResponse;
+import io.vertx.core.impl.NoStackTraceThrowable;
+import io.vertx.core.impl.logging.Logger;
+import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.ext.web.handler.FaviconHandler;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.impl.Utils;
@@ -31,6 +35,10 @@ import static io.vertx.core.http.HttpHeaders.*;
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 public class FaviconHandlerImpl implements FaviconHandler {
+
+  private static final Logger logger = LoggerFactory.getLogger(FaviconHandler.class);
+
+  private final Icon NULL_ICON = new Icon();
 
   /**
    * ## Icon
@@ -60,6 +68,11 @@ public class FaviconHandlerImpl implements FaviconHandler {
       headers.add(CONTENT_TYPE, "image/x-icon");
       headers.add(CONTENT_LENGTH, Integer.toString(buffer.length()));
       headers.add(CACHE_CONTROL, "public, max-age=" + maxAgeSeconds);
+    }
+
+    private Icon() {
+      headers = null;
+      body = null;
     }
   }
 
@@ -138,14 +151,23 @@ public class FaviconHandlerImpl implements FaviconHandler {
   }
 
   private void init(Vertx vertx) {
+    Buffer buffer = null;
     try {
       if (path == null) {
-        icon = new Icon(Utils.readResourceToBuffer("favicon.ico"));
+        buffer = Utils.readResourceToBuffer("favicon.ico");
+        if (buffer == null) {
+          throw new NoStackTraceThrowable("The resource favicon.ico could not be loaded");
+        }
       } else {
-        icon = new Icon(vertx.fileSystem().readFileBlocking(path));
+        buffer = vertx.fileSystem().readFileBlocking(path);
       }
-    } catch (Exception e) {
-      throw new RuntimeException(e);
+    } catch (Throwable t) {
+      logger.error("Could not load favicon " + (path == null ? "favicon.ico" : path), t);
+    }
+    if (buffer != null) {
+      icon = new Icon(buffer);
+    } else {
+      icon = NULL_ICON;
     }
   }
 
@@ -155,8 +177,13 @@ public class FaviconHandlerImpl implements FaviconHandler {
       init(ctx.vertx());
     }
     if ("/favicon.ico".equals(ctx.request().path())) {
-      ctx.response().headers().addAll(icon.headers);
-      ctx.response().end(icon.body);
+      HttpServerResponse resp = ctx.response();
+      if (icon == NULL_ICON) {
+        resp.setStatusCode(404).end();
+      } else {
+        resp.headers().addAll(icon.headers);
+        resp.end(icon.body);
+      }
     } else {
       ctx.next();
     }
