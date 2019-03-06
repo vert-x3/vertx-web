@@ -19,6 +19,6 @@ public class BooleanTypeValidator extends SingleValueParameterTypeValidator<Bool
     else if (value.equalsIgnoreCase("false") || value.equalsIgnoreCase("f") || value.equalsIgnoreCase("0"))
       return RequestParameter.create(false);
     else
-      throw ValidationException.ValidationExceptionFactory.generateNotMatchValidationException(null);
+      throw ValidationException.ValidationExceptionFactory.generateNotMatchValidationException("Not a boolean value");
   }
 }

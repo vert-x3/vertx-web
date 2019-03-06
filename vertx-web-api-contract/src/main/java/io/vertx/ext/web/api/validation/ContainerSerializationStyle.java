@@ -60,8 +60,7 @@ public enum ContainerSerializationStyle {
         // empty key not allowed!
         String[] values_internal = value.split("=", -1);
         if (values_internal[0].length() == 0) {
-          throw ValidationException.ValidationExceptionFactory.generateDeserializationError("DeserializationError: " +
-            "" + "Empty key not allowed");
+          throw ValidationException.ValidationExceptionFactory.generateDeserializationError("DeserializationError: Empty key not allowed");
         } else {
           result.put(values_internal[0], values_internal[1]);
         }

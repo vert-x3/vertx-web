@@ -26,13 +26,13 @@ public abstract class SingleValueParameterTypeValidator<T> implements ParameterT
     if (this.hasDefault())
       return RequestParameter.create(getDefault());
     else
-      throw ValidationException.ValidationExceptionFactory.generateNotMatchValidationException(null);
+      throw ValidationException.ValidationExceptionFactory.generateNotMatchValidationException("Invalid value");
   }
 
   @Override
   public RequestParameter isValidCollection(List<String> value) throws ValidationException {
     if (value.size() > 1)
-      throw ValidationException.ValidationExceptionFactory.generateUnexpectedArrayValidationException(null, null);
+      throw ValidationException.ValidationExceptionFactory.generateUnexpectedArrayValidationException();
     return this.isValid(value.get(0));
   }
 

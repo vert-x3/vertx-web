@@ -80,10 +80,10 @@ public abstract class BaseValidationHandler implements ValidationHandler {
         } else if (Utils.isJsonContentType(contentType) || Utils.isXMLContentType(contentType)) {
           parsedParameters.setBody(validateEntireBody(routingContext));
         } else if (bodyRequired && !checkContentType(contentType)) {
-          throw ValidationException.ValidationExceptionFactory.generateWrongContentTypeExpected(contentType, null);
+          throw ValidationException.ValidationExceptionFactory.generateWrongContentTypeExpected(contentType);
         } // If content type is valid or body is not required, do nothing!
       } else if (bodyRequired) {
-        throw ValidationException.ValidationExceptionFactory.generateWrongContentTypeExpected(contentType, null);
+        throw ValidationException.ValidationExceptionFactory.generateWrongContentTypeExpected(contentType);
       }
 
       if (routingContext.data().containsKey("parsedParameters")) {

@@ -43,7 +43,7 @@ public interface ParameterTypeValidator {
    */
   default RequestParameter isValidCollection(List<String> value) throws ValidationException {
     if (value.size() > 1 && !(this instanceof ArrayTypeValidator || this instanceof ObjectTypeValidator))
-      throw ValidationException.ValidationExceptionFactory.generateUnexpectedArrayValidationException(null, null);
+      throw ValidationException.ValidationExceptionFactory.generateUnexpectedArrayValidationException();
     return this.isValid(value.get(0));
   }
 

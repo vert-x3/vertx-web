@@ -136,43 +136,31 @@ public class ValidationException extends VertxException {
         expectedContentType, "Content-Type", actualContentType, null, ErrorType.WRONG_CONTENT_TYPE);
     }
 
+    public static ValidationException generateWrongContentTypeExpected(String actualContentType) {
+      return new ValidationException(
+        "Wrong Content-Type header. Actual: " + actualContentType,
+        "Content-Type",
+        actualContentType,
+        null,
+        ErrorType.WRONG_CONTENT_TYPE
+      );
+    }
+
     public static ValidationException generateNotFoundValidationException(String parameterName, ParameterLocation
       location) {
       return new ValidationException("Error during validation of request. Parameter \"" + parameterName + "\" inside " +
         location.s + " not found", parameterName, null, null, ErrorType.NOT_FOUND);
     }
 
-    public static ValidationException generateUnexpectedArrayValidationException(String parameterName,
-                                                                                 ParameterValidationRule
-                                                                                   validationRule) {
-      return new ValidationException("Parameter " + parameterName + " not expected as an array", parameterName, null,
-        validationRule, ErrorType.UNEXPECTED_ARRAY);
-    }
-
-    public static ValidationException generateUnexpectedSingleStringValidationException(String parameterName,
-                                                                                        ParameterValidationRule
-                                                                                          validationRule) {
-      return new ValidationException("Parameter " + parameterName + "  expected as array", parameterName, null,
-        validationRule, ErrorType.UNEXPECTED_SINGLE_STRING);
-    }
-
-    public static ValidationException generateNotMatchValidationException(String parameterName, String value,
-                                                                          ParameterValidationRule validationRule) {
-      return new ValidationException("Error during validation of request. Parameter \"" + parameterName + "\" does "
-        + "not match the validator rules", parameterName, value, validationRule, ErrorType.NO_MATCH);
+    public static ValidationException generateUnexpectedArrayValidationException() {
+      return new ValidationException("Parameter  not expected as an array", null, null,
+        null, ErrorType.UNEXPECTED_ARRAY);
     }
 
     public static ValidationException generateFileNotFoundValidationException(String filename, String contentType) {
       return new ValidationException("Error during validation: File not found or wrong content type. Expected file "
         + "name: \"" + filename + "\". Expected content type: \"" + contentType + "\"", filename, null, null,
         ErrorType.FILE_NOT_FOUND);
-    }
-
-    public static ValidationException generateEmptyValueValidationException(String parameterName,
-                                                                            ParameterValidationRule rule,
-                                                                            ParameterLocation location) {
-      return new ValidationException("Parameter " + parameterName + " inside " + location.s + " is empty",
-        parameterName, null, rule, ErrorType.EMPTY_VALUE);
     }
 
     public static ValidationException generateUnexpectedArraySizeValidationException(Integer maxItems, Integer
