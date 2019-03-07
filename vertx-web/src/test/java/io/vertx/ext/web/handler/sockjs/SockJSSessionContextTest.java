@@ -16,33 +16,30 @@
 
 package io.vertx.ext.web.handler.sockjs;
 
-import io.vertx.ext.web.handler.BodyHandler;
+import io.vertx.core.json.JsonArray;
 import org.junit.Test;
 
+import static org.hamcrest.CoreMatchers.startsWith;
+
 /**
- * @author Ben Ripkens
+ * @author Thomas Segismont
  */
-public class SockJSAsyncHandlerTest extends SockJSTestBase {
+public class SockJSSessionContextTest extends SockJSTestBase {
 
   @Override
   public void setUp() throws Exception {
-    // Use two servers so we test with HTTP request/response with load balanced SockJSSession access
     numServers = 2;
-    preSockJSHandlerSetup = router -> {
-      router.route().handler(BodyHandler.create());
-      // simulate an async handler
-      router.route().handler(rtx -> rtx.vertx().executeBlocking(f -> f.complete(true), r -> rtx.next()));
-    };
     super.setUp();
   }
 
   @Test
   public void testHandleMessageFromXhrTransportWithAsyncHandler() throws Exception {
+    String msg = "Hello World";
     socketHandler = () -> {
       return socket -> {
-        socket.handler(buf -> {
-          assertEquals("Hello World", buf.toString());
-          testComplete();
+        socket.handler(buffer -> {
+          assertEquals(msg, buffer.toString());
+          socket.write(buffer);
         });
       };
     };
@@ -52,10 +49,28 @@ public class SockJSAsyncHandlerTest extends SockJSTestBase {
     client.post("/test/400/8ne8e94a/xhr", onSuccess(resp -> {
       assertEquals(200, resp.statusCode());
 
-      client.post("/test/400/8ne8e94a/xhr_send", onSuccess(respSend -> assertEquals(204, respSend.statusCode())))
-        .putHeader("content-length", "13")
-        .write("\"Hello World\"")
-        .end();
+      client.post("/test/400/8ne8e94a/xhr", onSuccess(resp2 -> {
+        assertEquals(200, resp.statusCode());
+
+        client.post("/test/400/8ne8e94a/xhr_send", onSuccess(respSend -> {
+          assertEquals(204, respSend.statusCode());
+
+          client.post("/test/400/8ne8e94a/xhr", onSuccess(resp3 -> {
+            assertEquals(200, resp.statusCode());
+            resp3.bodyHandler(buffer -> {
+              String body = buffer.toString();
+              assertThat(body, startsWith("a"));
+              JsonArray content = new JsonArray(body.substring(1));
+              assertEquals(1, content.size());
+              assertEquals(msg, content.getValue(0));
+              complete();
+            });
+          })).end();
+
+        })).end('"' + msg + '"');
+
+      })).end();
+
     })).end();
 
     await();

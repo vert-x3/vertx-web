@@ -25,6 +25,7 @@ import io.vertx.core.file.OpenOptions;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.parsetools.JsonParser;
 import io.vertx.core.streams.ReadStream;
 import io.vertx.core.streams.WriteStream;
 import io.vertx.docgen.Source;
@@ -381,6 +382,26 @@ public class WebClientExamples {
       .send(ar -> {
         if (ar.succeeded()) {
 
+          HttpResponse<Void> response = ar.result();
+
+          System.out.println("Received response with status code" + response.statusCode());
+        } else {
+          System.out.println("Something went wrong " + ar.cause().getMessage());
+        }
+      });
+  }
+
+  public void receiveResponseAsJsonStream(WebClient client) {
+    JsonParser parser = JsonParser.newParser().objectValueMode();
+    parser.handler(event -> {
+      JsonObject object = event.objectValue();
+      System.out.println("Got " + object.encode());
+    });
+    client
+      .get(8080, "myserver.mycompany.com", "/some-uri")
+      .as(BodyCodec.jsonStream(parser))
+      .send(ar -> {
+        if (ar.succeeded()) {
           HttpResponse<Void> response = ar.result();
 
           System.out.println("Received response with status code" + response.statusCode());

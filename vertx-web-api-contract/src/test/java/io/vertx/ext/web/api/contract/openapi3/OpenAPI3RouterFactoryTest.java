@@ -501,7 +501,7 @@ public class OpenAPI3RouterFactoryTest extends ApiWebTestBase {
     OpenAPI3RouterFactory.create(this.vertx, "src/test/resources/swaggers/router_factory_test.yaml",
       openAPI3RouterFactoryAsyncResult -> {
         routerFactory = openAPI3RouterFactoryAsyncResult.result();
-        routerFactory.setOptions(HANDLERS_TESTS_OPTIONS);
+        routerFactory.setOptions(HANDLERS_TESTS_OPTIONS.setMountValidationFailureHandler(true));
 
         routerFactory.addHandlerByOperationId("listPets", routingContext -> routingContext
           .response()
@@ -525,7 +525,7 @@ public class OpenAPI3RouterFactoryTest extends ApiWebTestBase {
     OpenAPI3RouterFactory.create(this.vertx, "src/test/resources/swaggers/router_factory_test.yaml",
       openAPI3RouterFactoryAsyncResult -> {
         routerFactory = openAPI3RouterFactoryAsyncResult.result();
-        routerFactory.setOptions(HANDLERS_TESTS_OPTIONS);
+        routerFactory.setOptions(HANDLERS_TESTS_OPTIONS.setMountValidationFailureHandler(true));
         routerFactory.setValidationFailureHandler(routingContext ->
           routingContext
             .response()

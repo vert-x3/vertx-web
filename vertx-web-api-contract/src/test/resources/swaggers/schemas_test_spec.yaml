@@ -227,6 +227,18 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/schemaC"
+  /testLocalRelativeRef:
+    post:
+      operationId: testLocalRelativeRef
+      responses:
+        default:
+          description: "OK"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "./schemas/card.json"
 
 components:
   schemas:

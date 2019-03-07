@@ -17,6 +17,7 @@
 package io.vertx.ext.web.templ;
 
 import io.vertx.core.Vertx;
+import io.vertx.core.file.FileSystemOptions;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
@@ -44,7 +45,7 @@ public class HandlebarsTemplateNoCacheTest {
 
   @BeforeClass
   public static void before() {
-    vertx = Vertx.vertx(new VertxOptions().setFileResolverCachingEnabled(true));
+    vertx = Vertx.vertx(new VertxOptions().setFileSystemOptions(new FileSystemOptions().setFileCachingEnabled(true)));
   }
 
   @Test

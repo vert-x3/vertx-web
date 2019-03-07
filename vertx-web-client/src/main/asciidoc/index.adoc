@@ -324,6 +324,15 @@ and signals the success or the failure of the operation in the async result resp
 {@link examples.WebClientExamples#receiveResponseAsWriteStream(io.vertx.ext.web.client.WebClient, io.vertx.core.streams.WriteStream)}
 ----
 
+It becomes frequent to see API returning a stream of JSON objects. For example, the Twitter API can provides a feed of
+tweets. To handle this use case you can use {@link io.vertx.ext.web.codec.BodyCodec#jsonStream(io.vertx.core.parsetools.JsonParser)}.
+You pass a JSON parser that emits the read JSON streams from the HTTP response:
+
+[source,$lang]
+----
+{@link examples.WebClientExamples#receiveResponseAsJsonStream(io.vertx.ext.web.client.WebClient)}
+----
+
 Finally if you are not interested at all by the response content, the {@link io.vertx.ext.web.codec.BodyCodec#none()}
 simply discards the entire response body
 
@@ -470,8 +479,8 @@ Or using create methods with absolute URI argument
 
 == Sessions management
 
-Vert.x web offers a web session management facility; to use it, you create a 
-{@link io.vertx.ext.web.client.WebClientSession} for every user (session) and use it instead of the 
+Vert.x web offers a web session management facility; to use it, you create a
+{@link io.vertx.ext.web.client.WebClientSession} for every user (session) and use it instead of the
 {@link io.vertx.ext.web.client.WebClient}.
 
 === Creating a WebSession
@@ -485,7 +494,7 @@ You create a {@link io.vertx.ext.web.client.WebClientSession} instance as follow
 
 === Making requests
 
-Once created, a {@link io.vertx.ext.web.client.WebClientSession} can be used instead of a 
+Once created, a {@link io.vertx.ext.web.client.WebClientSession} can be used instead of a
 {@link io.vertx.ext.web.client.WebClient} to do HTTP(s) requests and automatically manage any cookies received from the server(s)
 you are calling.
 
@@ -499,7 +508,7 @@ You can set any session level headers to be added to every request as follows:
 ----
 
 The headers will then be added to every request; notice that these headers will be sent to all hosts; if you need
-to send different headers to different hosts, you have to add them manually to every single request and not to the 
+to send different headers to different hosts, you have to add them manually to every single request and not to the
 {@link io.vertx.ext.web.client.WebClientSession}.
 
 ifeval::["$lang" == "java"]
