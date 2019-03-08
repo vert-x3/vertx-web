@@ -21,7 +21,7 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.ext.web.common.template.CachingTemplateEngine;
+import io.vertx.ext.web.common.WebEnvironment;
 import org.thymeleaf.IEngineConfiguration;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.IContext;
@@ -47,7 +47,7 @@ import java.util.Set;
 public class ThymeleafTemplateEngineImpl implements ThymeleafTemplateEngine {
 
   // should not be static, so at at creation time the value is evaluated
-  private final boolean enableCache = !Boolean.getBoolean(CachingTemplateEngine.DISABLE_TEMPL_CACHING_PROP_NAME);
+  private final boolean enableCache = !WebEnvironment.development();
 
   private final TemplateEngine templateEngine = new TemplateEngine();
   private ResourceTemplateResolver templateResolver;
