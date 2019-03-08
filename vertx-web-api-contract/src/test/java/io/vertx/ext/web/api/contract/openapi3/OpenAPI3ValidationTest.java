@@ -779,4 +779,86 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
 
   }
 
+  /**
+   * Test: query_required_param_form_required_explode_object
+   * Expected parameters sent:
+   * color: R=100&G=200&B=150&alpha=50
+   * Expected response: Validation failure
+   */
+  @Test
+  public void testQueryRequiredParamFormRequiredExplodeObjectFailure() throws Exception {
+    Operation op = testSpec.getPaths().get("/query/form/explode/object").getGet();
+    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(op, op.getParameters(), testSpec, refsCache);
+    loadHandlers("/query/form/explode/object", HttpMethod.GET, false, validationHandler, routingContext -> {
+      RequestParameters params = routingContext.get("parsedParameters");
+
+      RequestParameter colorQueryParam = params.queryParameter("color");
+      assertNotNull(colorQueryParam);
+      assertTrue(colorQueryParam.isObject());
+
+      routingContext.response()
+        .setStatusCode(200)
+        .setStatusMessage("OK")
+        .putHeader("content-type", "application/json")
+        .end(((JsonObject)colorQueryParam.toJson()).encode());
+    });
+
+    String requestURI = "/query/form/explode/object?G=200&B=150&alpha=50";
+
+//    testEmptyRequestWithJSONObjectResponse(HttpMethod.GET, requestURI, 200, "OK", new JsonObject("{\"G\":\"200\",\"B\":\"150\",\"alpha\":50}"));
+    testRequest(HttpMethod.GET, requestURI, 400, errorMessage(ValidationException.ErrorType.NOT_FOUND));
+
+  }
+
+  /**
+   * Test: query_required_param_form_optional_explode_object
+   * Expected parameters sent:
+   * color: R=100&G=200&B=150&alpha=50
+   * Expected response: {"color":{"G":"200","B":"150","alpha":"50"}}
+   */
+  @Test
+  public void testQueryRequiredParamFormOptionalExplodeObject() throws Exception {
+    Operation op = testSpec.getPaths().get("/query/form/optional/explode/object").getGet();
+    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(op, op.getParameters(), testSpec, refsCache);
+    loadHandlers("/query/form/optional/explode/object", HttpMethod.GET, false, validationHandler, routingContext -> {
+      RequestParameters params = routingContext.get("parsedParameters");
+
+      RequestParameter colorQueryParam = params.queryParameter("color");
+      assertNotNull(colorQueryParam);
+      assertTrue(colorQueryParam.isObject());
+
+      routingContext.response()
+        .setStatusCode(200)
+        .setStatusMessage("OK")
+        .putHeader("content-type", "application/json")
+        .end(((JsonObject)colorQueryParam.toJson()).encode());
+    });
+
+    String requestURI = "/query/form/optional/explode/object?G=200&B=150&alpha=50";
+//    String requestURI = "/query/form/optional/explode/object";
+
+//    testEmptyRequestWithJSONObjectResponse(HttpMethod.GET, requestURI, 200, "OK");
+
+    testEmptyRequestWithJSONObjectResponse(HttpMethod.GET, requestURI, 200, "OK", new JsonObject("{\"G\":\"200\",\"B\":\"150\",\"alpha\":50}"));
+    //testEmptyRequestWithJSONObjectResponse(HttpMethod.GET, requestURI, 200, "OK", new JsonObject("{\"R\":\"100\",\"G\":\"200\",\"B\":\"150\",\"alpha\":50}"));
+  }
+
+  @Test
+  public void testNoParamFromOptionalExplodeObject() throws Exception {
+    Operation op = testSpec.getPaths().get("/query/form/optional/explode/object").getGet();
+    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(op, op.getParameters(), testSpec, refsCache);
+    loadHandlers("/query/form/optional/explode/object", HttpMethod.GET, false, validationHandler, routingContext -> {
+      RequestParameters params = routingContext.get("parsedParameters");
+
+      routingContext.response()
+        .setStatusCode(200)
+        .setStatusMessage("OK")
+        .putHeader("content-type", "application/json")
+        .end("OK");
+    });
+
+    String requestURI = "/query/form/optional/explode/object";
+
+    testRequest(HttpMethod.GET, requestURI, 200, "OK");
+  }
 }

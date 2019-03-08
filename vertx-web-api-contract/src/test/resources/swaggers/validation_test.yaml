@@ -469,15 +469,34 @@ paths:
   '/query/form/explode/object':
     get:
       parameters:
+      - name: color
+        x-test: object
+        in: query
+        required: true
+        schema:
+          $ref: "#/components/schemas/ColorObject"
+        style: form
+        explode: true
+      operationId: 'query_form_explode_object'
+      responses:
+        200:
+          description: Ok
+        400:
+          description: Wrong validation
+        default:
+          description: Default response
+  '/query/form/optional/explode/object':
+    get:
+      parameters:
         - name: color
           x-test: object
           in: query
-          required: true
+          required: false
           schema:
             $ref: "#/components/schemas/ColorObject"
           style: form
           explode: true
-      operationId: 'query_form_explode_object'
+      operationId: 'query_form_optional_explode_object'
       responses:
         200:
           description: Ok
