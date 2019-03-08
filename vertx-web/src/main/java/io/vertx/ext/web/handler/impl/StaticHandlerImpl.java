@@ -93,11 +93,9 @@ public class StaticHandlerImpl implements StaticHandler {
 
   public StaticHandlerImpl(String root, ClassLoader classLoader) {
     this.classLoader = classLoader;
-    setRoot(root);
-  }
-
-  public StaticHandlerImpl() {
-    classLoader = null;
+    if (root != null) {
+      setRoot(root);
+    }
   }
 
   private String directoryTemplate(Vertx vertx) {

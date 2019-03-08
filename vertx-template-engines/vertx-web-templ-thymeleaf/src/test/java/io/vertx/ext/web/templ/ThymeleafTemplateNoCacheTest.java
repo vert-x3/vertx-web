@@ -52,7 +52,7 @@ public class ThymeleafTemplateNoCacheTest {
   public void testCachingDisabled(TestContext should) throws IOException {
     final Async test = should.async();
 
-    System.setProperty(CachingTemplateEngine.DISABLE_TEMPL_CACHING_PROP_NAME, "true");
+    System.setProperty("vertxweb.environment", "development");
     TemplateEngine engine = ThymeleafTemplateEngine.create(vertx);
 
     PrintWriter out;

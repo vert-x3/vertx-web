@@ -172,7 +172,7 @@ public class HandlebarsTemplateTest {
 
   @Test
   public void testTemplateOnClasspathDisableCaching(TestContext should) {
-    System.setProperty(CachingTemplateEngine.DISABLE_TEMPL_CACHING_PROP_NAME, "true");
+    System.setProperty("vertxweb.environment", "development");
     testTemplateOnClasspath(should);
   }
 
@@ -270,7 +270,7 @@ public class HandlebarsTemplateTest {
   public void testCachingEnabled(TestContext should) throws IOException {
     final Async test = should.async();
 
-    System.setProperty(CachingTemplateEngine.DISABLE_TEMPL_CACHING_PROP_NAME, "false");
+    System.setProperty("vertxweb.environment", "production");
     TemplateEngine engine = HandlebarsTemplateEngine.create(vertx);
 
     PrintWriter out;
