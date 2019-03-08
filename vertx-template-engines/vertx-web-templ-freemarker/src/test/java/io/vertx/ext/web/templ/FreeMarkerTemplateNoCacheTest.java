@@ -49,7 +49,7 @@ public class FreeMarkerTemplateNoCacheTest {
 
   @Test
   public void testCachingDisabled(TestContext should) throws Exception {
-    System.setProperty(CachingTemplateEngine.DISABLE_TEMPL_CACHING_PROP_NAME, "true");
+    System.setProperty("vertxweb.environment", "development");
     TemplateEngine engine = FreeMarkerTemplateEngine.create(vertx);
 
     should.assertFalse(engine.isCachingEnabled(), "Caching should be disabled");
