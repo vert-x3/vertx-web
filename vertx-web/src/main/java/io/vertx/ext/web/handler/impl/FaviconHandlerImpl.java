@@ -19,14 +19,13 @@ package io.vertx.ext.web.handler.impl;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.file.FileSystem;
 import io.vertx.core.http.CaseInsensitiveHeaders;
 import io.vertx.core.http.HttpServerResponse;
-import io.vertx.core.impl.NoStackTraceThrowable;
-import io.vertx.core.impl.logging.Logger;
-import io.vertx.core.impl.logging.LoggerFactory;
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.handler.FaviconHandler;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.impl.Utils;
 
 import static io.vertx.core.http.HttpHeaders.*;
 
@@ -37,6 +36,9 @@ import static io.vertx.core.http.HttpHeaders.*;
 public class FaviconHandlerImpl implements FaviconHandler {
 
   private static final Logger logger = LoggerFactory.getLogger(FaviconHandler.class);
+
+  // default framework branding
+  private static final String DEFAULT_VERTX_ICON = "META-INF/vertx/web/favicon.ico";
 
   private final Icon NULL_ICON = new Icon();
 
@@ -150,20 +152,43 @@ public class FaviconHandlerImpl implements FaviconHandler {
     this(null);
   }
 
-  private void init(Vertx vertx) {
-    Buffer buffer = null;
-    try {
-      if (path == null) {
-        buffer = Utils.readResourceToBuffer("favicon.ico");
-        if (buffer == null) {
-          throw new NoStackTraceThrowable("The resource favicon.ico could not be loaded");
-        }
-      } else {
-        buffer = vertx.fileSystem().readFileBlocking(path);
-      }
-    } catch (Throwable t) {
-      logger.error("Could not load favicon " + (path == null ? "favicon.ico" : path), t);
+  private Buffer readFile(FileSystem fs, String path) {
+    if (fs.existsBlocking(path)) {
+      return fs.readFileBlocking(path);
+    } else {
+      throw new RuntimeException(path + " not found!");
     }
+  }
+
+  private void init(Vertx vertx) {
+    final FileSystem fs = vertx.fileSystem();
+
+    Buffer buffer = null;
+
+    if (path == null) {
+      // use defaults
+      try {
+        // default is to load a favicon.ico from the resources
+        buffer = readFile(fs,"favicon.ico");
+      } catch (RuntimeException e) {
+        // if not provided return the default vertx icon
+        try {
+          buffer = fs.readFileBlocking(DEFAULT_VERTX_ICON);
+        } catch (RuntimeException e1) {
+          // if this fails (very unlikely unless users explicitly filters out the icon)
+          // leave the buffer as NULL so it is handled as a 404 (Not Found)
+        }
+      }
+    } else {
+      // use a custom location for the favicon.ico
+      try {
+        buffer = readFile(fs, path);
+      } catch (RuntimeException e) {
+        logger.error("Could not load favicon " + path);
+        // this will ensure the response is a 404 (Not Found)
+      }
+    }
+
     if (buffer != null) {
       icon = new Icon(buffer);
     } else {

@@ -71,4 +71,11 @@ public class FaviconHandlerTest extends WebTestBase {
     }, 404, "Not Found", Buffer.buffer());
   }
 
+  @Test
+  public void testDefaultIcon() throws Exception {
+    String path = "META-INF/vertx/web/favicon.ico";
+    router.route().handler(FaviconHandler.create(path));
+    router.route().handler(rc -> rc.response().end());
+    testRequest(HttpMethod.GET, "/favicon.ico", 200, "OK");
+  }
 }
