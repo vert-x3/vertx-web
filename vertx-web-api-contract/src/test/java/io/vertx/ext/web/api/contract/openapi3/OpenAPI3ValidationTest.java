@@ -805,7 +805,6 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
 
     String requestURI = "/query/form/explode/object?G=200&B=150&alpha=50";
 
-//    testEmptyRequestWithJSONObjectResponse(HttpMethod.GET, requestURI, 200, "OK", new JsonObject("{\"G\":\"200\",\"B\":\"150\",\"alpha\":50}"));
     testRequest(HttpMethod.GET, requestURI, 400, errorMessage(ValidationException.ErrorType.NOT_FOUND));
 
   }
@@ -835,12 +834,8 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
     });
 
     String requestURI = "/query/form/optional/explode/object?G=200&B=150&alpha=50";
-//    String requestURI = "/query/form/optional/explode/object";
-
-//    testEmptyRequestWithJSONObjectResponse(HttpMethod.GET, requestURI, 200, "OK");
 
     testEmptyRequestWithJSONObjectResponse(HttpMethod.GET, requestURI, 200, "OK", new JsonObject("{\"G\":\"200\",\"B\":\"150\",\"alpha\":50}"));
-    //testEmptyRequestWithJSONObjectResponse(HttpMethod.GET, requestURI, 200, "OK", new JsonObject("{\"R\":\"100\",\"G\":\"200\",\"B\":\"150\",\"alpha\":50}"));
   }
 
   @Test
