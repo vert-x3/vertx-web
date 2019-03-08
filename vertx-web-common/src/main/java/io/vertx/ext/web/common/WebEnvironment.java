@@ -13,13 +13,13 @@
  *
  *  You may elect to redistribute this code under either of these licenses.
  */
-package io.vertx.ext.web;
+package io.vertx.ext.web.common;
 
 import io.vertx.codegen.annotations.Nullable;
 import io.vertx.codegen.annotations.VertxGen;
 
 /**
- * Utility API to verify which mode is the web application running.
+ * Utility API to verify which environment is the web application running.
  *
  * The utility will check initially for the existence of a system property under the name `vertx.mode`,
  * if there is no such property then it will look under the environment variables under the name `VERTX_MODE`.
@@ -32,10 +32,10 @@ import io.vertx.codegen.annotations.VertxGen;
  * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
 @VertxGen
-public interface VertxMode {
+public interface WebEnvironment {
 
-  String SYSTEM_PROPERTY_NAME = "vertx.mode";
-  String ENV_VARIABLE_NAME = "VERTX_MODE";
+  String SYSTEM_PROPERTY_NAME = "vertxweb.environment";
+  String ENV_VARIABLE_NAME = "VERTXWEB_ENVIRONMENT";
 
   /**
    * Will return true if the mode is not null and equals ignoring case the string "dev"
@@ -43,7 +43,7 @@ public interface VertxMode {
    */
   static boolean development() {
     final String mode = mode();
-    return mode != null && "dev".equalsIgnoreCase(mode);
+    return "dev".equalsIgnoreCase(mode) || "Development".equalsIgnoreCase(mode);
   }
 
   /**

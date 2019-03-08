@@ -90,7 +90,7 @@ public class PebbleTemplateTest {
 
   @Test
   public void testTemplateHandlerOnClasspathDisableCaching(TestContext should) {
-    System.setProperty(CachingTemplateEngine.DISABLE_TEMPL_CACHING_PROP_NAME, "true");
+    System.setProperty("vertxweb.environment", "development");
     testTemplateHandlerOnClasspath(should);
   }
 
@@ -443,7 +443,7 @@ public class PebbleTemplateTest {
   public void testCachingEnabled(TestContext should) throws Exception {
     final Async test = should.async();
 
-    System.setProperty(CachingTemplateEngine.DISABLE_TEMPL_CACHING_PROP_NAME, "false");
+    System.setProperty("vertxweb.environment", "production");
     TemplateEngine engine = PebbleTemplateEngine.create(vertx);
 
     PrintWriter out;

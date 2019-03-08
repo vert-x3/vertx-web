@@ -108,7 +108,7 @@ public class MVELTemplateTest {
 
   @Test
   public void testTemplateHandlerOnClasspathDisableCaching(TestContext should) throws Exception {
-    System.setProperty(CachingTemplateEngine.DISABLE_TEMPL_CACHING_PROP_NAME, "true");
+    System.setProperty("vertxweb.environment", "development");
     testTemplateHandlerOnClasspath(should);
   }
 
@@ -165,7 +165,7 @@ public class MVELTemplateTest {
   public void testCachingEnabled(TestContext should) throws IOException {
     final Async test = should.async();
 
-    System.setProperty(CachingTemplateEngine.DISABLE_TEMPL_CACHING_PROP_NAME, "false");
+    System.setProperty("vertxweb.environment", "production");
     TemplateEngine engine = MVELTemplateEngine.create(vertx);
 
     PrintWriter out;

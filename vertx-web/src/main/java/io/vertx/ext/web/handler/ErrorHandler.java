@@ -18,7 +18,7 @@ package io.vertx.ext.web.handler;
 
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
-import io.vertx.ext.web.VertxMode;
+import io.vertx.ext.web.common.WebEnvironment;
 import io.vertx.ext.web.handler.impl.ErrorHandlerImpl;
 import io.vertx.ext.web.RoutingContext;
 
@@ -48,7 +48,7 @@ public interface ErrorHandler extends Handler<RoutingContext> {
    * @return the handler
    */
   static ErrorHandler create() {
-    return create(DEFAULT_ERROR_HANDLER_TEMPLATE, VertxMode.development());
+    return create(DEFAULT_ERROR_HANDLER_TEMPLATE, WebEnvironment.development());
   }
 
   /**
@@ -79,7 +79,7 @@ public interface ErrorHandler extends Handler<RoutingContext> {
    * @return the handler
    */
   static ErrorHandler create(String errorTemplateName) {
-    return create(errorTemplateName, VertxMode.development());
+    return create(errorTemplateName, WebEnvironment.development());
   }
 
 }

@@ -24,7 +24,7 @@ import io.vertx.ext.web.WebTestBase;
 
 import org.junit.Test;
 
-import static io.vertx.ext.web.VertxMode.SYSTEM_PROPERTY_NAME;
+import static io.vertx.ext.web.common.WebEnvironment.SYSTEM_PROPERTY_NAME;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
