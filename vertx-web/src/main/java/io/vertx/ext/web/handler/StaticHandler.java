@@ -22,7 +22,7 @@ import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.Handler;
 import io.vertx.ext.web.Http2PushMapping;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.VertxMode;
+import io.vertx.ext.web.common.WebEnvironment;
 import io.vertx.ext.web.handler.impl.StaticHandlerImpl;
 
 import java.util.List;
@@ -54,7 +54,7 @@ public interface StaticHandler extends Handler<RoutingContext> {
   /**
    * Default of whether cache header handling is enabled
    */
-  boolean DEFAULT_CACHING_ENABLED = !VertxMode.development();
+  boolean DEFAULT_CACHING_ENABLED = !WebEnvironment.development();
 
   /**
    * Default of whether directory listing is enabled

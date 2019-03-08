@@ -16,9 +16,8 @@
 
 package io.vertx.ext.web.templ;
 
-import io.vertx.ext.web.VertxMode;
+import io.vertx.ext.web.common.WebEnvironment;
 import io.vertx.ext.web.impl.ConcurrentLRUCache;
-import io.vertx.ext.web.templ.TemplateEngine;
 
 import java.util.Objects;
 
@@ -28,7 +27,7 @@ import java.util.Objects;
 public abstract class CachingTemplateEngine<T> implements TemplateEngine {
 
   // should not be static, so at at creation time the value is evaluated
-  private final boolean enableCache = !VertxMode.development();
+  private final boolean enableCache = !WebEnvironment.development();
 
   protected final ConcurrentLRUCache<String, T> cache;
   protected String extension;

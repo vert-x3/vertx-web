@@ -16,31 +16,45 @@
 
 package io.vertx.ext.web.templ;
 
+import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
-import io.vertx.core.http.HttpMethod;
-import io.vertx.ext.web.WebTestBase;
-import io.vertx.ext.web.handler.TemplateHandler;
+import io.vertx.core.file.FileSystemOptions;
+import io.vertx.core.json.JsonObject;
+import io.vertx.ext.unit.Async;
+import io.vertx.ext.unit.TestContext;
+import io.vertx.ext.unit.junit.VertxUnitRunner;
+import io.vertx.ext.web.common.template.CachingTemplateEngine;
+import io.vertx.ext.web.common.template.TemplateEngine;
+import io.vertx.ext.web.templ.freemarker.FreeMarkerTemplateEngine;
+import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.PrintWriter;
 
 /**
  * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
-public class FreeMarkerTemplateNoCacheTest extends WebTestBase {
+@RunWith(VertxUnitRunner.class)
+public class FreeMarkerTemplateNoCacheTest {
 
-  @Override
-  protected VertxOptions getOptions() {
-    return super.getOptions().setFileResolverCachingEnabled(false);
+  private static Vertx vertx;
+
+  @BeforeClass
+  public static void before() {
+    vertx = Vertx.vertx(new VertxOptions().setFileSystemOptions(new FileSystemOptions().setFileCachingEnabled(false)));
   }
 
   @Test
-  public void testCachingDisabled() throws Exception {
-    System.setProperty("vertx.mode", "dev");
-    TemplateEngine engine = FreeMarkerTemplateEngine.create();
+  public void testCachingDisabled(TestContext should) throws Exception {
+    System.setProperty("vertxweb.environment", "development");
+    TemplateEngine engine = FreeMarkerTemplateEngine.create(vertx);
 
-    assertFalse("Caching should be disabled", engine.isCachingEnabled());
+    should.assertFalse(engine.isCachingEnabled(), "Caching should be disabled");
+
+    final Async test = should.async();
 
     PrintWriter out;
     File temp = File.createTempFile("template", ".ftl", new File("target/classes"));
@@ -51,26 +65,26 @@ public class FreeMarkerTemplateNoCacheTest extends WebTestBase {
     out.flush();
     out.close();
 
-    testTemplateHandler(engine, "", temp.getName(), "before");
+    engine.render(new JsonObject(), temp.getName(), render -> {
+      should.assertTrue(render.succeeded());
+      should.assertEquals("before", render.result().toString());
+      // cache is enabled so if we change the content that should not affect the result
 
-    // cache is disabled so if we change the content that should affect the result
+      try {
+        PrintWriter out2 = new PrintWriter(temp);
+        out2.print("after");
+        out2.flush();
+        out2.close();
+      } catch (IOException e) {
+        should.fail(e);
+      }
 
-    out = new PrintWriter(temp);
-    out.print("after");
-    out.flush();
-    out.close();
-
-    testTemplateHandler(engine, "", temp.getName(), "after");
-  }
-
-  private void testTemplateHandler(TemplateEngine engine, String directoryName, String templateName,
-                                   String expected) throws Exception {
-    router.route().handler(context -> {
-      context.put("foo", "badger");
-      context.put("bar", "fox");
-      context.next();
+      engine.render(new JsonObject(), temp.getName(), render2 -> {
+        should.assertTrue(render2.succeeded());
+        should.assertEquals("after", render2.result().toString());
+        test.complete();
+      });
     });
-    router.route().handler(TemplateHandler.create(engine, directoryName, "text/plain"));
-    testRequest(HttpMethod.GET, "/" + templateName, 200, "OK", expected);
+    test.await();
   }
 }
