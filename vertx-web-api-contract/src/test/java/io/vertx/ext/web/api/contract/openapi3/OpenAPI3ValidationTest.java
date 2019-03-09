@@ -718,13 +718,6 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
     testRequestWithJSON(HttpMethod.POST, "/jsonBodyWithDate", obj.toBuffer(), 200, "OK", obj.toBuffer());
   }
 
-
-  /**
-   * Test: query_optional_form_explode_object
-   * Expected parameters sent:
-   * color: R=100&G=200&B=150&alpha=50
-   * Expected response: {"color":{"R":"100","G":"200","B":"150","alpha":"50"}}
-   */
   @Test
   public void testQueryOptionalFormExplodeObject() throws Exception {
     Operation op = testSpec.getPaths().get("/query/form/explode/object").getGet();
@@ -749,42 +742,6 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
 
   }
 
-  /**
-   * Test: query_optional_form_explode_object
-   * Expected parameters sent:
-   * color: R=100&G=200&B=150&alpha=50
-   * Expected response: Validation failure
-   */
-  @Test
-  public void testQueryOptionalFormExplodeObjectFailure() throws Exception {
-    Operation op = testSpec.getPaths().get("/query/form/explode/object").getGet();
-    OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(op, op.getParameters(), testSpec, refsCache);
-    loadHandlers("/query/form/explode/object", HttpMethod.GET, true, validationHandler, routingContext -> {
-      RequestParameters params = routingContext.get("parsedParameters");
-
-      RequestParameter colorQueryParam = params.queryParameter("color");
-      assertNotNull(colorQueryParam);
-      assertTrue(colorQueryParam.isObject());
-
-      routingContext.response()
-        .setStatusCode(200)
-        .setStatusMessage("OK")
-        .putHeader("content-type", "application/json")
-        .end(((JsonObject)colorQueryParam.toJson()).encode());
-    });
-
-    String requestURI = "/query/form/explode/object?R=100&G=200&B=150&alpha=aaa";
-
-    testRequest(HttpMethod.GET, requestURI, 400, errorMessage(ValidationException.ErrorType.NO_MATCH));
-
-  }
-
-  /**
-   * Test: query_required_param_form_required_explode_object
-   * Expected parameters sent:
-   * color: R=100&G=200&B=150&alpha=50
-   * Expected response: Validation failure
-   */
   @Test
   public void testQueryRequiredParamFormRequiredExplodeObjectFailure() throws Exception {
     Operation op = testSpec.getPaths().get("/query/form/explode/object").getGet();
@@ -809,14 +766,8 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
 
   }
 
-  /**
-   * Test: query_required_param_form_optional_explode_object
-   * Expected parameters sent:
-   * color: R=100&G=200&B=150&alpha=50
-   * Expected response: {"color":{"G":"200","B":"150","alpha":"50"}}
-   */
   @Test
-  public void testQueryRequiredParamFormOptionalExplodeObject() throws Exception {
+  public void testQueryRequiredParamFormOptionalExplodeObjectFailure() throws Exception {
     Operation op = testSpec.getPaths().get("/query/form/optional/explode/object").getGet();
     OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(op, op.getParameters(), testSpec, refsCache);
     loadHandlers("/query/form/optional/explode/object", HttpMethod.GET, false, validationHandler, routingContext -> {
@@ -835,7 +786,7 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
 
     String requestURI = "/query/form/optional/explode/object?G=200&B=150&alpha=50";
 
-    testEmptyRequestWithJSONObjectResponse(HttpMethod.GET, requestURI, 200, "OK", new JsonObject("{\"G\":\"200\",\"B\":\"150\",\"alpha\":50}"));
+    testRequest(HttpMethod.GET, requestURI, 400, errorMessage(ValidationException.ErrorType.NOT_FOUND));
   }
 
   @Test

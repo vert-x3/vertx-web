@@ -24,6 +24,7 @@ public abstract class BaseValidationHandler implements ValidationHandler {
   private ParameterTypeValidator cookieAdditionalPropertiesValidator;
   private String cookieAdditionalPropertiesObjectPropertyName;
   private Map<String, ParameterValidationRule> queryParamsRules;
+  private Map<String, ObjectParameter> queryObjectParamsRules;
   private ParameterTypeValidator queryAdditionalPropertiesValidator;
   private String queryAdditionalPropertiesObjectPropertyName;
   private Map<String, ParameterValidationRule> formParamsRules;
@@ -41,6 +42,7 @@ public abstract class BaseValidationHandler implements ValidationHandler {
     cookieParamsRules = new HashMap<>();
     formParamsRules = new HashMap<>();
     queryParamsRules = new HashMap<>();
+    queryObjectParamsRules = new HashMap<>();
     headerParamsRules = new HashMap<>();
     multipartFileRules = new HashMap<>();
     bodyFileRules = new ArrayList<>();
@@ -200,6 +202,38 @@ public abstract class BaseValidationHandler implements ValidationHandler {
         throw ValidationException.ValidationExceptionFactory.generateNotFoundValidationException(name,
           ParameterLocation.QUERY);
     }
+    for (ObjectParameter objectParameter : queryObjectParamsRules.values()) {
+      List<String> missingParams = new ArrayList<>();
+      for (ParameterValidationRule rule : objectParameter.getParamsRules().values()) {
+        String name = rule.getName();
+        if (queryParams.contains(name)) {
+          List<String> p = queryParams.getAll(name);
+          queryParams.remove(name);
+          if (p.size() != 0) {
+            RequestParameter parsedParam = rule.validateArrayParam(p);
+            if (parsedParams.containsKey(parsedParam.getName()))
+              parsedParam = parsedParam.merge(parsedParams.get(parsedParam.getName()));
+            parsedParams.put(parsedParam.getName(), parsedParam);
+          } else {
+            throw ValidationException.ValidationExceptionFactory.generateNotMatchValidationException(name + " can't be empty");
+          }
+        } else if (rule.parameterTypeValidator().getDefault() != null) {
+          RequestParameter parsedParam = new RequestParameterImpl(name, rule.parameterTypeValidator().getDefault());
+          if (parsedParams.containsKey(parsedParam.getName()))
+            parsedParam = parsedParam.merge(parsedParams.get(parsedParam.getName()));
+          parsedParams.put(parsedParam.getName(), parsedParam);
+        } else if (!rule.isOptional() && !objectParameter.isOptional()) {
+            throw ValidationException.ValidationExceptionFactory.generateNotFoundValidationException(name,
+              ParameterLocation.QUERY);
+        } else {
+          missingParams.add(name);
+        }
+      }
+      if (missingParams.size() != 0 && missingParams.size() != objectParameter.getParamsRules().size()) {
+        throw ValidationException.ValidationExceptionFactory.generateNotFoundValidationException(missingParams.toString(),
+          ParameterLocation.QUERY);
+      }
+    }
     if (queryAdditionalPropertiesValidator != null) {
       for (Map.Entry<String, String> e : queryParams.entries()) {
         try {
@@ -333,6 +367,15 @@ public abstract class BaseValidationHandler implements ValidationHandler {
 
   protected void addQueryParamRule(ParameterValidationRule rule) {
     if (!queryParamsRules.containsKey(rule.getName())) queryParamsRules.put(rule.getName(), rule);
+  }
+
+  protected void addQueryObjectParamRule(String objParamName , boolean isOptional, ParameterValidationRule rule) {
+    ObjectParameter objectParameter = queryObjectParamsRules.get(objParamName);
+    if (objectParameter == null) {
+      objectParameter = new ObjectParameter(objParamName, isOptional);
+      queryObjectParamsRules.put(objParamName, objectParameter);
+    }
+    objectParameter.addParameterValidationRule(rule);
   }
 
   protected void addFormParamRule(ParameterValidationRule rule) {
