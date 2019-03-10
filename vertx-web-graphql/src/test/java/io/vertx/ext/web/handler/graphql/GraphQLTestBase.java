@@ -39,8 +39,12 @@ public class GraphQLTestBase extends WebTestBase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    graphQLHandler = GraphQLHandler.create(graphQL());
+    graphQLHandler = GraphQLHandler.create(graphQL(), createOptions());
     router.route("/graphql").order(100).handler(graphQLHandler);
+  }
+
+  protected GraphQLHandlerOptions createOptions() {
+    return new GraphQLHandlerOptions();
   }
 
   protected GraphQL graphQL() {

@@ -29,6 +29,7 @@ import io.vertx.core.Handler;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.graphql.GraphQLHandler;
+import io.vertx.ext.web.handler.graphql.GraphQLHandlerOptions;
 import io.vertx.ext.web.handler.graphql.VertxDataFetcher;
 import io.vertx.ext.web.handler.graphql.VertxPropertyDataFetcher;
 import org.dataloader.BatchLoaderEnvironment;
@@ -57,6 +58,13 @@ public class GraphQLExamples {
     GraphQL graphQL = setupGraphQLJava();
 
     router.post("/graphql").handler(GraphQLHandler.create(graphQL));
+  }
+
+  public void handlerSetupBatching(GraphQL graphQL) {
+    GraphQLHandlerOptions options = new GraphQLHandlerOptions()
+      .setRequestBatchingEnabled(true);
+
+    GraphQLHandler handler = GraphQLHandler.create(graphQL, options);
   }
 
   private GraphQL setupGraphQLJava() {

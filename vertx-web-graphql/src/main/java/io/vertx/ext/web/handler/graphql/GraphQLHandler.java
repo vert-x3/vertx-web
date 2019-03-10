@@ -37,10 +37,24 @@ public interface GraphQLHandler extends Handler<RoutingContext> {
 
   /**
    * Create a new {@link GraphQLHandler} that will use the provided {@code graphQL} object to execute queries.
+   * <p>
+   * The handler will be configured with default {@link GraphQLHandlerOptions options}.
    */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static GraphQLHandler create(GraphQL graphQL) {
-    return new GraphQLHandlerImpl(graphQL);
+    return create(graphQL, new GraphQLHandlerOptions());
+  }
+
+  /**
+   * Create a new {@link GraphQLHandler} that will use the provided {@code graphQL} object to execute queries.
+   * <p>
+   * The handler will be configured with the given {@code options}.
+   *
+   * @param options options for configuring the {@link GraphQLHandler}
+   */
+  @GenIgnore(GenIgnore.PERMITTED_TYPE)
+  static GraphQLHandler create(GraphQL graphQL, GraphQLHandlerOptions options) {
+    return new GraphQLHandlerImpl(graphQL, options);
   }
 
   /**

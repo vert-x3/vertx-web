@@ -21,7 +21,7 @@ import io.vertx.ext.web.handler.BodyHandler;
 /**
  * @author Thomas Segismont
  */
-public class PostRequestsWithBodyTest extends PostRequestsTest {
+public class PostRequestsWithBodyHandlerTest extends PostRequestsTest {
 
   @Override
   public void setUp() throws Exception {
