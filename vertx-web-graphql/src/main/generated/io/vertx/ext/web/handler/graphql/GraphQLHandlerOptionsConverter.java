@@ -1,6 +1,9 @@
 package io.vertx.ext.web.handler.graphql;
 
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.json.JsonArray;
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
 
 /**
  * Converter for {@link io.vertx.ext.web.handler.graphql.GraphQLHandlerOptions}.
@@ -13,7 +16,7 @@ public class GraphQLHandlerOptionsConverter {
       switch (member.getKey()) {
         case "requestBatchingEnabled":
           if (member.getValue() instanceof Boolean) {
-            obj.setRequestBatchingEnabled((Boolean) member.getValue());
+            obj.setRequestBatchingEnabled((Boolean)member.getValue());
           }
           break;
       }
