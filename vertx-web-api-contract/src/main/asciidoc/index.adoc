@@ -186,7 +186,7 @@ Router Factory automatically mounts a {@link io.vertx.ext.web.handler.BodyHandle
 You can configure the instance of {@link io.vertx.ext.web.handler.BodyHandler} (e.g. to change upload directory) with {@link io.vertx.ext.web.api.contract.RouterFactory#setBodyHandler}.
 
 === Custom global handlers
-If you need to mount handlers that must be executed for each operationin your router before the operation specific handlers, you can use {@link io.vertx.ext.web.api.contract.RouterFactory#addGlobalHandler}
+If you need to mount handlers that must be executed for each operation in your router before the operation specific handlers, you can use {@link io.vertx.ext.web.api.contract.RouterFactory#addGlobalHandler}
 
 === Router factory handlers mount order
 Handlers are loaded by the router factory in this order:
