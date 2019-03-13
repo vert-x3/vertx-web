@@ -29,7 +29,7 @@
   <artifactId>vertx-web-graphql</artifactId>
 
   <properties>
-    <graphql.java.major.version>11</graphql.java.major.version>
+    <graphql.java.major.version>12</graphql.java.major.version>
     <graphql.java.version>${graphql.java.major.version}.0</graphql.java.version>
     <doc.skip>false</doc.skip>
   </properties>
