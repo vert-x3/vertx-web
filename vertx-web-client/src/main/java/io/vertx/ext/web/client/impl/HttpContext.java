@@ -25,11 +25,10 @@ import io.vertx.core.http.RequestOptions;
 import io.vertx.core.http.impl.HttpClientImpl;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.streams.Pump;
+import io.vertx.core.streams.Pipe;
 import io.vertx.core.streams.ReadStream;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.HttpResponse;
-import io.vertx.ext.web.codec.BodyCodec;
 import io.vertx.ext.web.codec.spi.BodyStream;
 import io.vertx.ext.web.multipart.MultipartForm;
 
@@ -350,20 +349,14 @@ public class HttpContext<T> {
         fut.fail(err);
       }
     });
-    ((BodyCodec<T>)request.codec).create(ar2 -> {
-      resp.resume();
-      if (ar2.succeeded()) {
-        BodyStream<T> stream = ar2.result();
-        stream.exceptionHandler(err -> {
-          if (!fut.isComplete()) {
-            fut.fail(err);
-          }
-        });
-        resp.endHandler(v -> {
-          if (!fut.isComplete()) {
-            stream.end();
-            stream.result().setHandler(ar -> {
-              if (ar.succeeded()) {
+    Pipe<Buffer> pipe = resp.pipe();
+    request.codec.create(ar1 -> {
+      if (ar1.succeeded()) {
+        BodyStream<T> stream = ar1.result();
+        pipe.to(stream, ar2 -> {
+          if (ar2.succeeded()) {
+            stream.result().setHandler(ar3 -> {
+              if (ar3.succeeded()) {
                 fut.complete(new HttpResponseImpl<T>(
                   resp.version(),
                   resp.statusCode(),
@@ -373,15 +366,16 @@ public class HttpContext<T> {
                   resp.cookies(),
                   stream.result().result()));
               } else {
-                fut.fail(ar.cause());
+                fut.fail(ar3.cause());
               }
             });
+          } else {
+            fut.fail(ar2.cause());
           }
         });
-        Pump responsePump = Pump.pump(resp, stream);
-        responsePump.start();
       } else {
-        fail(ar2.cause());
+        pipe.close();
+        fail(ar1.cause());
       }
     });
   }
@@ -448,25 +442,12 @@ public class HttpContext<T> {
         if (request.headers == null || !request.headers.contains(HttpHeaders.CONTENT_LENGTH)) {
           req.setChunked(true);
         }
-        Pump pump = Pump.pump(stream, req);
-        req.exceptionHandler(err -> {
-          pump.stop();
-          stream.endHandler(null);
-          stream.resume();
-          responseFuture.tryFail(err);
+        stream.pipeTo(req, ar -> {
+          if (ar.failed()) {
+            responseFuture.tryFail(ar.cause());
+            req.reset();
+          }
         });
-        stream.exceptionHandler(err -> {
-          // Notify before closing the connection otherwise the future could be failed with connection closed exception
-          responseFuture.tryFail(err);
-          req.reset();
-        });
-        stream.endHandler(v -> {
-          req.exceptionHandler(responseFuture::tryFail);
-          req.end();
-          pump.stop();
-        });
-        pump.start();
-        stream.resume();
       } else {
         Buffer buffer;
         if (body instanceof Buffer) {
