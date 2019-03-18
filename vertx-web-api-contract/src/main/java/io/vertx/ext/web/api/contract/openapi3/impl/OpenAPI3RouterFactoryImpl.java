@@ -34,6 +34,7 @@ public class OpenAPI3RouterFactoryImpl extends BaseRouterFactory<OpenAPI> implem
   private final static String OPENAPI_EXTENSION_METHOD_NAME = "method";
 
   private final static Handler<RoutingContext> NOT_IMPLEMENTED_HANDLER = rc -> rc.fail(501);
+  private final static Handler<RoutingContext> NOT_ALLOWED_HANDLER = rc -> rc.fail(405);
 
   // This map is fullfilled when spec is loaded in memory
   Map<String, OperationValue> operations;
@@ -323,7 +324,18 @@ public class OpenAPI3RouterFactoryImpl extends BaseRouterFactory<OpenAPI> implem
           );
         }
       } else {
-        handlersToLoad.add(NOT_IMPLEMENTED_HANDLER);
+        // Check if not implemented or method not allowed
+        boolean anyOperationWithSamePathConfigured = operations
+          .values()
+          .stream()
+          .filter(ov -> operation.path.equals(ov.path))
+          .filter(ov -> !ov.equals(operation))
+          .anyMatch(OperationValue::isConfigured);
+
+        if (anyOperationWithSamePathConfigured)
+          handlersToLoad.add(NOT_ALLOWED_HANDLER);
+        else
+          handlersToLoad.add(NOT_IMPLEMENTED_HANDLER);
       }
 
       // Now add all handlers to route

@@ -606,6 +606,31 @@ public class OpenAPI3RouterFactoryTest extends ApiWebTestBase {
     testRequest(HttpMethod.GET, "/pets", 501, "Not Implemented");
   }
 
+
+
+  @Test
+  public void mountNotAllowedHandler() throws Exception {
+    CountDownLatch latch = new CountDownLatch(1);
+    OpenAPI3RouterFactory.create(this.vertx, "src/test/resources/swaggers/router_factory_test.yaml",
+      openAPI3RouterFactoryAsyncResult -> {
+        routerFactory = openAPI3RouterFactoryAsyncResult.result();
+        routerFactory.setOptions(
+          new RouterFactoryOptions()
+            .setRequireSecurityHandlers(false)
+            .setMountNotImplementedHandler(true)
+        );
+
+        routerFactory.addHandlerByOperationId("createPets", RoutingContext::next);
+
+        latch.countDown();
+      });
+    awaitLatch(latch);
+
+    startServer();
+
+    testRequest(HttpMethod.GET, "/pets", 405, "Method Not Allowed");
+  }
+
   @Test
   public void mountCustomNotImplementedHandler() throws Exception {
     CountDownLatch latch = new CountDownLatch(1);
