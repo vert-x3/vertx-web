@@ -164,7 +164,7 @@ When you generate the {@link io.vertx.ext.web.Router} the Router Factory fails i
 
 === Not Implemented Error
 Router Factory automatically mounts a default handler for operations without a specified handler.
-This default handler fails the routing context with 501 `Not Implemented` error.
+This default handler fails the routing context with 405 `Method Not Allowed`/501 `Not Implemented` error.
 You can enable/disable it with {@link io.vertx.ext.web.api.contract.RouterFactoryOptions#setMountNotImplementedHandler}
 and you can customize this error handling with {@link io.vertx.ext.web.Router#errorHandler}
 
