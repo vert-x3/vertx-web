@@ -26,7 +26,7 @@ public class RouterFactoryOptions {
   public final static boolean DEFAULT_MOUNT_VALIDATION_FAILURE_HANDLER = false;
 
   /**
-   * By default, RouterFactory mounts Not Implemented handler
+   * By default, RouterFactory mounts Not Implemented/Method Not Allowed handler
    */
   public final static boolean DEFAULT_MOUNT_NOT_IMPLEMENTED_HANDLER = true;
 
@@ -113,7 +113,7 @@ public class RouterFactoryOptions {
   }
 
   /**
-   * If true, Router Factory will automatically mount an handler that return HTTP 501 status code for each operation where you didn't specify an handler.
+   * If true, Router Factory will automatically mount an handler that return HTTP 405/501 status code for each operation where you didn't specify an handler.
    * You can customize the response with {@link io.vertx.ext.web.Router#errorHandler(int, Handler)}
    *
    * @param mountOperationsWithoutHandler

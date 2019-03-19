@@ -19,9 +19,11 @@ import io.vertx.ext.web.api.contract.impl.RouteToEBServiceHandler;
 import io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory;
 import io.vertx.ext.web.handler.ResponseContentTypeHandler;
 import io.vertx.ext.web.impl.RouteImpl;
+import joptsimple.internal.Strings;
 
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author Francesco Guardiani @slinkydeveloper
@@ -34,6 +36,16 @@ public class OpenAPI3RouterFactoryImpl extends BaseRouterFactory<OpenAPI> implem
   private final static String OPENAPI_EXTENSION_METHOD_NAME = "method";
 
   private final static Handler<RoutingContext> NOT_IMPLEMENTED_HANDLER = rc -> rc.fail(501);
+  private static Handler<RoutingContext> generateNotAllowedHandler(List<HttpMethod> allowedMethods){
+    return rc -> {
+      rc.addHeadersEndHandler(v ->
+          rc.response().headers().add("Allow", Strings.join(
+            allowedMethods.stream().map(HttpMethod::toString).collect(Collectors.toList()), ", "
+          ))
+        );
+      rc.fail(405);
+    };
+  }
 
   // This map is fullfilled when spec is loaded in memory
   Map<String, OperationValue> operations;
@@ -43,6 +55,7 @@ public class OpenAPI3RouterFactoryImpl extends BaseRouterFactory<OpenAPI> implem
 
   private class OperationValue {
     private HttpMethod method;
+
     private String path;
     private PathItem pathModel;
     private Operation operationModel;
@@ -323,7 +336,19 @@ public class OpenAPI3RouterFactoryImpl extends BaseRouterFactory<OpenAPI> implem
           );
         }
       } else {
-        handlersToLoad.add(NOT_IMPLEMENTED_HANDLER);
+        // Check if not implemented or method not allowed
+        List<HttpMethod> configuredMethodsForThisPath = operations
+          .values()
+          .stream()
+          .filter(ov -> operation.path.equals(ov.path))
+          .filter(OperationValue::isConfigured)
+          .map(OperationValue::getMethod)
+          .collect(Collectors.toList());
+
+        if (!configuredMethodsForThisPath.isEmpty())
+          handlersToLoad.add(generateNotAllowedHandler(configuredMethodsForThisPath));
+        else
+          handlersToLoad.add(NOT_IMPLEMENTED_HANDLER);
       }
 
       // Now add all handlers to route
