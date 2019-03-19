@@ -70,6 +70,7 @@
     <module>vertx-template-engines</module>
     <module>vertx-web-api-contract</module>
     <module>vertx-web-api-service</module>
+    <module>vertx-web-graphql</module>
   </modules>
 
   <profiles>

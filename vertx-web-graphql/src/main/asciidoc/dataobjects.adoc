@@ -1,0 +1,19 @@
+= Cheatsheets
+
+[[GraphQLHandlerOptions]]
+== GraphQLHandlerOptions
+
+++++
+ Options for configuring the link.
+++++
+'''
+
+[cols=">25%,25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[requestBatchingEnabled]]`@requestBatchingEnabled`|`Boolean`|+++
+Whether request batching should be enabled. Defaults to <code>false</code>.
++++
+|===
+

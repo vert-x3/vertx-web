@@ -24,6 +24,8 @@ import io.vertx.ext.web.WebTestBase;
 
 import org.junit.Test;
 
+import static io.vertx.ext.web.common.WebEnvironment.SYSTEM_PROPERTY_NAME;
+
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
@@ -130,6 +132,15 @@ public class ErrorHandlerTest extends WebTestBase {
 
   @Test
   public void testFailWithException() throws Exception {
+    System.setProperty(SYSTEM_PROPERTY_NAME, "dev");
+    router
+      // clear the previous setup
+      .clear()
+      // new handler should use development mode
+      .route().failureHandler(ErrorHandler.create());
+    // unset the system property
+    System.setProperty(SYSTEM_PROPERTY_NAME, "test");
+
     int statusCode = 500;
     String statusMessage = "Something happened!";
     Exception e = new Exception(statusMessage);
@@ -147,7 +158,7 @@ public class ErrorHandlerTest extends WebTestBase {
   @Test
   public void testFailWithExceptionNoExceptionDetails() throws Exception {
     router.clear();
-    router.route().failureHandler(ErrorHandler.create(false));
+    router.route().failureHandler(ErrorHandler.create());
     int statusCode = 500;
     String statusMessage = "Something happened!";
     Exception e = new Exception(statusMessage);
