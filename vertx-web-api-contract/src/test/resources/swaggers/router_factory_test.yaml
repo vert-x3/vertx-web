@@ -39,6 +39,14 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+    delete:
+      summary: Delete all pets
+      operationId: deletePets
+      tags:
+        - pets
+      responses:
+        200:
+          description: oK
     post:
       summary: Create a pet
       operationId: createPets

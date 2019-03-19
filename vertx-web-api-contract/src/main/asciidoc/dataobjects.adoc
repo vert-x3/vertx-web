@@ -44,7 +44,7 @@ Get request principal user as routingContext.user().principal(), null if no user
 |===
 ^|Name | Type ^| Description
 |[[mountNotImplementedHandler]]`@mountNotImplementedHandler`|`Boolean`|+++
-If true, Router Factory will automatically mount an handler that return HTTP 501 status code for each operation where you didn't specify an handler.
+If true, Router Factory will automatically mount an handler that return HTTP 405/501 status code for each operation where you didn't specify an handler.
  You can customize the response with link
 +++
 |[[mountResponseContentTypeHandler]]`@mountResponseContentTypeHandler`|`Boolean`|+++

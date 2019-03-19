@@ -20,9 +20,12 @@ import org.apache.http.HttpStatus;
 import org.junit.Test;
 
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -597,6 +600,8 @@ public class OpenAPI3RouterFactoryTest extends ApiWebTestBase {
             .setMountNotImplementedHandler(true)
         );
 
+        routerFactory.addHandlerByOperationId("showPetById", RoutingContext::next);
+
         latch.countDown();
       });
     awaitLatch(latch);
@@ -620,6 +625,7 @@ public class OpenAPI3RouterFactoryTest extends ApiWebTestBase {
             .setMountNotImplementedHandler(true)
         );
 
+        routerFactory.addHandlerByOperationId("deletePets", RoutingContext::next);
         routerFactory.addHandlerByOperationId("createPets", RoutingContext::next);
 
         latch.countDown();
@@ -628,7 +634,12 @@ public class OpenAPI3RouterFactoryTest extends ApiWebTestBase {
 
     startServer();
 
-    testRequest(HttpMethod.GET, "/pets", 405, "Method Not Allowed");
+    testRequest(HttpMethod.GET, "/pets", null, resp -> {
+      assertTrue(
+        Stream.of("DELETE", "POST").collect(Collectors.toSet())
+          .equals(new HashSet<>(Arrays.asList(resp.getHeader("Allow").split(Pattern.quote(", ")))))
+      );
+    }, 405, "Method Not Allowed", null);
   }
 
   @Test
