@@ -50,6 +50,7 @@ Some of the key features of Vert.x-Web include:
 ** Thymeleaf
 ** Apache FreeMarker
 ** Pebble
+** Rocker
 * Response time handler
 * Static file serving, including caching logic and directory listing.
 * Request timeout support
@@ -1458,6 +1459,36 @@ Here are some examples:
 
 Please consult the http://www.mitchellbosecke.com/pebble/home/[Pebble documentation] for how to write
 Pebble templates.
+
+=== Rocker template engine
+
+To use Rocker, then add `io.vertx:vertx-web-templ-rocker:${maven.version}` as a dependency to your project.
+You can then create a Rocker template engine instance with `io.vertx.ext.web.templ.rocker#create()`.
+
+The values of the JSON context object passed to the `render` method are then exposed as template parameters.
+Given:
+
+----
+[snip]
+final JsonObject context = new JsonObject()
+  .put("foo", "badger")
+  .put("bar", "fox")
+  .put("context", new JsonObject().put("path", "/foo/bar"));
+
+engine.render(context, "somedir/TestRockerTemplate2", render -> {
+  // (...)
+});
+[snip]
+----
+
+then the template can be as the following `somedir/TestRockerTemplate2.rocker.html` resource file:
+
+----
+@import io.vertx.core.json.JsonObject
+@args (JsonObject context, String foo, String bar)
+Hello @foo and @bar
+Request path is @context.getString("path")
+----
 
 === Disabling caching
 
