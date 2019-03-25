@@ -293,6 +293,9 @@ public class BodyHandlerImpl implements BodyHandler {
         req.params().addAll(req.formAttributes());
       }
       context.setBody(body);
+
+      body = null;
+
       context.next();
     }
 
