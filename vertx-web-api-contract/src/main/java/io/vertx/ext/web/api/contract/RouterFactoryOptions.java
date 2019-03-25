@@ -166,8 +166,10 @@ public class RouterFactoryOptions {
    * context under the given key. When the key is null, the handler is not added.
    * @param operationModelKey
    * @return
+   * @deprecated In Vert.x 4 the exposed operation model will be a plain JsonObject type, no more Operation model
    */
   @Fluent
+  @Deprecated
   public RouterFactoryOptions setOperationModelKey(String operationModelKey) {
     this.operationModelKey = operationModelKey;
     return this;

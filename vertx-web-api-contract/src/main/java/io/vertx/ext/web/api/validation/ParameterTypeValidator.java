@@ -22,8 +22,9 @@ import java.util.List;
  * </ul>
  *
  * @author Francesco Guardiani @slinkydeveloper
+ * @deprecated This class will be removed in Vert.x 4.0 in favor of new validator
  */
-@VertxGen @FunctionalInterface
+@VertxGen @FunctionalInterface @Deprecated
 public interface ParameterTypeValidator {
   /**
    * Function that checks if parameter is valid. It returns a RequestParameter object that will be linked inside
@@ -72,6 +73,7 @@ public interface ParameterTypeValidator {
    *                     you have to set {@link ParameterValidationRule#allowEmptyValue()} true. It can be null
    * @return
    */
+  @Deprecated
   static ParameterTypeValidator createIntegerTypeValidator(Integer defaultValue) {
     return createIntegerTypeValidator(null, null, null, defaultValue);
   }
@@ -86,6 +88,7 @@ public interface ParameterTypeValidator {
    *                     you have to set {@link ParameterValidationRule#allowEmptyValue()} true. It can be null
    * @return
    */
+  @Deprecated
   static ParameterTypeValidator createIntegerTypeValidator(Double maximum, Double minimum, Double multipleOf, Integer
     defaultValue) {
     return createIntegerTypeValidator(false, maximum, false, minimum, multipleOf, defaultValue);
@@ -106,6 +109,7 @@ public interface ParameterTypeValidator {
    *                         null
    * @return
    */
+  @Deprecated
   static ParameterTypeValidator createIntegerTypeValidator(Boolean exclusiveMaximum, Double maximum, Boolean
     exclusiveMinimum, Double minimum, Double multipleOf, Object defaultValue) {
     return new NumericTypeValidator(Integer.class, exclusiveMaximum, maximum,
@@ -119,6 +123,7 @@ public interface ParameterTypeValidator {
    *                     you have to set {@link ParameterValidationRule#allowEmptyValue()} true. It can be null
    * @return
    */
+  @Deprecated
   static ParameterTypeValidator createLongTypeValidator(Long defaultValue) {
     return createLongTypeValidator(null, null, null, defaultValue);
   }
@@ -133,6 +138,7 @@ public interface ParameterTypeValidator {
    *                     you have to set {@link ParameterValidationRule#allowEmptyValue()} true. It can be null
    * @return
    */
+  @Deprecated
   static ParameterTypeValidator createLongTypeValidator(Double maximum, Double minimum, Double multipleOf, Long
     defaultValue) {
     return createLongTypeValidator(false, maximum, false, minimum, multipleOf, defaultValue);
@@ -153,6 +159,7 @@ public interface ParameterTypeValidator {
    *                         null
    * @return
    */
+  @Deprecated
   static ParameterTypeValidator createLongTypeValidator(Boolean exclusiveMaximum, Double maximum, Boolean
     exclusiveMinimum, Double minimum, Double multipleOf, Object defaultValue) {
     return new NumericTypeValidator(Long.class, exclusiveMaximum, maximum,
@@ -166,6 +173,7 @@ public interface ParameterTypeValidator {
    *                     you have to set {@link ParameterValidationRule#allowEmptyValue()} true. It can be null
    * @return
    */
+  @Deprecated
   static ParameterTypeValidator createFloatTypeValidator(Float defaultValue) {
     return createFloatTypeValidator(null, null, null, defaultValue);
   }
@@ -180,6 +188,7 @@ public interface ParameterTypeValidator {
    *                     you have to set {@link ParameterValidationRule#allowEmptyValue()} true. It can be null
    * @return
    */
+  @Deprecated
   static ParameterTypeValidator createFloatTypeValidator(Double maximum, Double minimum, Double multipleOf, Float
     defaultValue) {
     return createFloatTypeValidator(false, maximum, false, minimum, multipleOf, defaultValue);
@@ -200,6 +209,7 @@ public interface ParameterTypeValidator {
    *                         null
    * @return
    */
+  @Deprecated
   static ParameterTypeValidator createFloatTypeValidator(Boolean exclusiveMaximum, Double maximum, Boolean
     exclusiveMinimum, Double minimum, Double multipleOf, Object defaultValue) {
     return new NumericTypeValidator(Float.class, exclusiveMaximum, maximum,
@@ -213,6 +223,7 @@ public interface ParameterTypeValidator {
    *                     you have to set {@link ParameterValidationRule#allowEmptyValue()} true. It can be null
    * @return
    */
+  @Deprecated
   static ParameterTypeValidator createDoubleTypeValidator(Double defaultValue) {
     return createDoubleTypeValidator(null, null, null, defaultValue);
   }
@@ -227,6 +238,7 @@ public interface ParameterTypeValidator {
    *                     you have to set {@link ParameterValidationRule#allowEmptyValue()} true. It can be null
    * @return
    */
+  @Deprecated
   static ParameterTypeValidator createDoubleTypeValidator(Double maximum, Double minimum, Double multipleOf, Double
     defaultValue) {
     return createDoubleTypeValidator(false, maximum, false, minimum, multipleOf, defaultValue);
@@ -247,6 +259,7 @@ public interface ParameterTypeValidator {
    *                         null
    * @return
    */
+  @Deprecated
   static ParameterTypeValidator createDoubleTypeValidator(Boolean exclusiveMaximum, Double maximum, Boolean
     exclusiveMinimum, Double minimum, Double multipleOf, Object defaultValue) {
     return new NumericTypeValidator(Double.class, exclusiveMaximum, maximum,
@@ -260,6 +273,7 @@ public interface ParameterTypeValidator {
    *                     you have to set {@link ParameterValidationRule#allowEmptyValue()} true. It can be null
    * @return
    */
+  @Deprecated
   static ParameterTypeValidator createStringTypeValidator(Object defaultValue) {
     return createStringTypeValidator(null, null, null, defaultValue);
   }
@@ -272,6 +286,7 @@ public interface ParameterTypeValidator {
    *                     you have to set {@link ParameterValidationRule#allowEmptyValue()} true. It can be null
    * @return
    */
+  @Deprecated
   static ParameterTypeValidator createStringTypeValidator(String pattern, Object defaultValue) {
     return createStringTypeValidator(pattern, null, null, defaultValue);
   }
@@ -286,6 +301,7 @@ public interface ParameterTypeValidator {
    *                     you have to set {@link ParameterValidationRule#allowEmptyValue()} true. It can be null
    * @return
    */
+  @Deprecated
   static ParameterTypeValidator createStringTypeValidator(String pattern, Integer minLength, Integer maxLength,
                                                           Object defaultValue) {
     return new StringTypeValidator(pattern, minLength, maxLength, (String) defaultValue);
@@ -298,6 +314,7 @@ public interface ParameterTypeValidator {
    *                     you have to set {@link ParameterValidationRule#allowEmptyValue()} true. It can be null
    * @return
    */
+  @Deprecated
   static ParameterTypeValidator createBooleanTypeValidator(Object defaultValue) {
     if (defaultValue != null) {
       if (defaultValue instanceof String) return new BooleanTypeValidator(Boolean.valueOf((String) defaultValue));
@@ -313,6 +330,7 @@ public interface ParameterTypeValidator {
    * @param allowedValues allowed values. It <b>can't be</b> null
    * @return
    */
+  @Deprecated
   static ParameterTypeValidator createStringEnumTypeValidator(List<String> allowedValues) {
     return new EnumTypeValidator(allowedValues, ParameterType.GENERIC_STRING.validationMethod());
   }
@@ -325,6 +343,7 @@ public interface ParameterTypeValidator {
    *                      can be null
    * @return
    */
+  @Deprecated
   static ParameterTypeValidator createEnumTypeValidatorWithInnerValidator(List<String> allowedValues,
                                                                           ParameterTypeValidator innerValidator) {
     return new EnumTypeValidator(allowedValues, innerValidator);
@@ -336,6 +355,7 @@ public interface ParameterTypeValidator {
    * @param arrayMembersValidator Type validator that describe array items. It <b>can't be</b> null
    * @return
    */
+  @Deprecated
   static ParameterTypeValidator createArrayTypeValidator(ParameterTypeValidator arrayMembersValidator) {
     return ArrayTypeValidator.ArrayTypeValidatorFactory.createArrayTypeValidator(arrayMembersValidator);
   }
@@ -350,6 +370,7 @@ public interface ParameterTypeValidator {
    * @param minItems              Minimum items in array. It can be null
    * @return
    */
+  @Deprecated
   static ParameterTypeValidator createArrayTypeValidator(ParameterTypeValidator arrayMembersValidator, String
     collectionFormat, Integer maxItems, Integer minItems) {
     return ArrayTypeValidator.ArrayTypeValidatorFactory.createArrayTypeValidator(arrayMembersValidator,

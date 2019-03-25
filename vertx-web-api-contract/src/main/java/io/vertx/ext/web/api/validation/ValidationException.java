@@ -8,7 +8,9 @@ import io.vertx.core.VertxException;
  * This is the main class for every Validation flow related errors
  *
  * @author Francesco Guardiani @slinkydeveloper
+ * @deprecated The ValidationException will be completely revisited in Vert.x 4.0
  */
+@Deprecated
 public class ValidationException extends VertxException {
 
   /**

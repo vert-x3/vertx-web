@@ -11,8 +11,10 @@ import io.vertx.ext.web.api.validation.impl.StringTypeValidator;
  * {@link ParameterType#validationMethod()}
  *
  * @author Francesco Guardiani @slinkydeveloper
+ * @deprecated This class will be revisited in Vert.x 4.0
  */
 @VertxGen
+@Deprecated
 public enum ParameterType {
   /**
    * STRING Type accept every string

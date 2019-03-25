@@ -25,8 +25,10 @@ import io.vertx.ext.web.api.validation.impl.HTTPRequestValidationHandlerImpl;
  * If a parameter is flagged as an array, it will be validated also if the size of array is 1 element
  *
  * @author Francesco Guardiani @slinkydeveloper
+ * @deprecated This class will be revisited in Vert.x 4
  */
 @VertxGen
+@Deprecated
 public interface HTTPRequestValidationHandler extends ValidationHandler {
 
   /**
@@ -46,6 +48,7 @@ public interface HTTPRequestValidationHandler extends ValidationHandler {
    * @return this handler
    */
   @Fluent
+  @Deprecated
   HTTPRequestValidationHandler addPathParam(String parameterName, ParameterType type);
 
   /**
@@ -56,6 +59,7 @@ public interface HTTPRequestValidationHandler extends ValidationHandler {
    * @return this handler
    */
   @Fluent
+  @Deprecated
   HTTPRequestValidationHandler addPathParamWithPattern(String parameterName, String pattern);
 
   /**
@@ -69,6 +73,7 @@ public interface HTTPRequestValidationHandler extends ValidationHandler {
    * @return this handler
    */
   @Fluent
+  @Deprecated
   HTTPRequestValidationHandler addPathParamWithCustomTypeValidator(String parameterName, ParameterTypeValidator
     validator, boolean allowEmptyValue);
 
@@ -81,6 +86,7 @@ public interface HTTPRequestValidationHandler extends ValidationHandler {
    * @return this handler
    */
   @Fluent
+  @Deprecated
   HTTPRequestValidationHandler addQueryParam(String parameterName, ParameterType type, boolean required);
 
   /**
@@ -92,6 +98,7 @@ public interface HTTPRequestValidationHandler extends ValidationHandler {
    * @return this handler
    */
   @Fluent
+  @Deprecated
   HTTPRequestValidationHandler addQueryParamWithPattern(String parameterName, String pattern, boolean required);
 
   /**
@@ -103,6 +110,7 @@ public interface HTTPRequestValidationHandler extends ValidationHandler {
    * @return this handler
    */
   @Fluent
+  @Deprecated
   HTTPRequestValidationHandler addQueryParamsArray(String arrayName, ParameterType type, boolean required);
 
   /**
@@ -114,6 +122,7 @@ public interface HTTPRequestValidationHandler extends ValidationHandler {
    * @return this handler
    */
   @Fluent
+  @Deprecated
   HTTPRequestValidationHandler addQueryParamsArrayWithPattern(String arrayName, String pattern, boolean required);
 
   /**
@@ -128,6 +137,7 @@ public interface HTTPRequestValidationHandler extends ValidationHandler {
    * @return this handler
    */
   @Fluent
+  @Deprecated
   HTTPRequestValidationHandler addQueryParamWithCustomTypeValidator(String parameterName, ParameterTypeValidator
     validator, boolean required, boolean allowEmptyValue);
 
@@ -140,6 +150,7 @@ public interface HTTPRequestValidationHandler extends ValidationHandler {
    * @return this handler
    */
   @Fluent
+  @Deprecated
   HTTPRequestValidationHandler addHeaderParam(String headerName, ParameterType type, boolean required);
 
   /**
@@ -151,6 +162,7 @@ public interface HTTPRequestValidationHandler extends ValidationHandler {
    * @return this handler
    */
   @Fluent
+  @Deprecated
   HTTPRequestValidationHandler addHeaderParamWithPattern(String headerName, String pattern, boolean required);
 
   /**
@@ -165,6 +177,7 @@ public interface HTTPRequestValidationHandler extends ValidationHandler {
    * @return this handler
    */
   @Fluent
+  @Deprecated
   HTTPRequestValidationHandler addHeaderParamWithCustomTypeValidator(String headerName, ParameterTypeValidator
     validator, boolean required, boolean allowEmptyValue);
 
@@ -177,6 +190,7 @@ public interface HTTPRequestValidationHandler extends ValidationHandler {
    * @return this handler
    */
   @Fluent
+  @Deprecated
   HTTPRequestValidationHandler addFormParam(String parameterName, ParameterType type, boolean required);
 
   /**
@@ -188,6 +202,7 @@ public interface HTTPRequestValidationHandler extends ValidationHandler {
    * @return this handler
    */
   @Fluent
+  @Deprecated
   HTTPRequestValidationHandler addFormParamWithPattern(String parameterName, String pattern, boolean required);
 
   /**
@@ -199,6 +214,7 @@ public interface HTTPRequestValidationHandler extends ValidationHandler {
    * @return this handler
    */
   @Fluent
+  @Deprecated
   HTTPRequestValidationHandler addFormParamsArray(String parameterName, ParameterType type, boolean required);
 
   /**
@@ -210,6 +226,7 @@ public interface HTTPRequestValidationHandler extends ValidationHandler {
    * @return this handler
    */
   @Fluent
+  @Deprecated
   HTTPRequestValidationHandler addFormParamsArrayWithPattern(String parameterName, String pattern, boolean required);
 
   /**
@@ -224,6 +241,7 @@ public interface HTTPRequestValidationHandler extends ValidationHandler {
    * @return this handler
    */
   @Fluent
+  @Deprecated
   HTTPRequestValidationHandler addFormParamWithCustomTypeValidator(String parameterName, ParameterTypeValidator
     validator, boolean required, boolean allowEmptyValue);
 
@@ -234,6 +252,7 @@ public interface HTTPRequestValidationHandler extends ValidationHandler {
    * @return this handler
    */
   @Fluent
+  @Deprecated
   HTTPRequestValidationHandler addCustomValidatorFunction(CustomValidator customValidator);
 
   /**
@@ -243,6 +262,7 @@ public interface HTTPRequestValidationHandler extends ValidationHandler {
    * @return this handler
    */
   @Fluent
+  @Deprecated
   HTTPRequestValidationHandler addJsonBodySchema(String jsonSchema);
 
   /**
@@ -252,6 +272,7 @@ public interface HTTPRequestValidationHandler extends ValidationHandler {
    * @return this handler
    */
   @Fluent
+  @Deprecated
   HTTPRequestValidationHandler addXMLBodySchema(String xmlSchema);
 
   /**
@@ -262,6 +283,7 @@ public interface HTTPRequestValidationHandler extends ValidationHandler {
    * @return this handler
    */
   @Fluent
+  @Deprecated
   HTTPRequestValidationHandler addMultipartRequiredFile(String filename, String contentType);
 
   /**
@@ -272,6 +294,7 @@ public interface HTTPRequestValidationHandler extends ValidationHandler {
    * @return this handler
    */
   @Fluent
+  @Deprecated
   HTTPRequestValidationHandler addExpectedContentType(String contentType);
 
 }

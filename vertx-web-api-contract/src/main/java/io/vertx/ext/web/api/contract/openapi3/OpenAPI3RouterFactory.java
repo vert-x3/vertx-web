@@ -152,7 +152,9 @@ public interface OpenAPI3RouterFactory extends RouterFactory<OpenAPI> {
    * @param auth list of authorization values needed to access the remote url. Each item should be json representation
    *             of an {@link AuthorizationValue}
    * @param handler  When specification is loaded, this handler will be called with AsyncResult<OpenAPI3RouterFactory>
+   * @deprecated The auth parameter will change type in Vert.x 4.0
    */
+  @Deprecated
   static void create(Vertx vertx,
                      String url,
                      List<JsonObject> auth,

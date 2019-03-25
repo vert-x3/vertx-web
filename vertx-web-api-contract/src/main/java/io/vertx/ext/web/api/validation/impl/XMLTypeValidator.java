@@ -21,7 +21,9 @@ import java.io.StringReader;
 
 /**
  * @author Francesco Guardiani @slinkydeveloper
+ * @deprecated The XMLTypeValidator will be removed in Vert.x 4.0
  */
+@Deprecated
 public class XMLTypeValidator implements ParameterTypeValidator {
 
   private Validator schemaValidator;

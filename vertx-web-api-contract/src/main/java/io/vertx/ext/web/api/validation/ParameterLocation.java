@@ -10,7 +10,9 @@ import io.vertx.codegen.annotations.VertxGen;
 @VertxGen
 public enum ParameterLocation {
   HEADER("header"), QUERY("query"), PATH("path"), FILE("body multipart/form"), BODY_FORM("body form"), BODY("body"),
-  BODY_JSON("body json"), BODY_XML("body xml"), COOKIE("cookie");
+  BODY_JSON("body json"),
+  @Deprecated BODY_XML("body xml"),
+  COOKIE("cookie");
 
   public String s;
 

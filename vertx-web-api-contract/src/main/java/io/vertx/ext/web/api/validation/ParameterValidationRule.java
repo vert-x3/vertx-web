@@ -11,8 +11,10 @@ import java.util.List;
  * {@link HTTPRequestValidationHandler}
  *
  * @author Francesco Guardiani @slinkydeveloper
+ * @deprecated This class will be revisited in Vert.x 4
  */
 @VertxGen
+@Deprecated
 public interface ParameterValidationRule {
 
   /**

@@ -42,7 +42,9 @@ public interface RequestParameter {
    * If value is a map of fields, it returns keys of map, otherwise it returns null
    *
    * @return
+   * @deprecated From Vert.x 4 the objects will be handled as JsonObject using {@link RequestParameter#getJsonObject()}
    */
+  @Deprecated
   @Nullable List<String> getObjectKeys();
 
   /**
@@ -50,27 +52,34 @@ public interface RequestParameter {
    *
    * @param key
    * @return
+   * @deprecated From Vert.x 4 the objects will be handled as JsonObject using {@link RequestParameter#getJsonObject()}
    */
+  @Deprecated
   @Nullable RequestParameter getObjectValue(String key);
 
   /**
    * Returns true if value of RequestParameter is a map of fields
    *
    * @return
+   * @deprecated From Vert.x 4 the objects will be handled as JsonObject using {@link RequestParameter#getJsonObject()}
    */
+  @Deprecated
   boolean isObject();
 
   /**
    * Returns null if value is not a list, otherwise it returns value
    *
    * @return
+   * @deprecated From Vert.x 4 the array will be handled as JsonArray using {@link RequestParameter#getJsonArray()}
    */
+  @Deprecated
   @Nullable List<RequestParameter> getArray();
 
   /**
    * Returns true if value of RequestParameter is an array
    *
    * @return
+   * @deprecated From Vert.x 4 the array will be handled as JsonArray using {@link RequestParameter#getJsonArray()}
    */
   boolean isArray();
 
