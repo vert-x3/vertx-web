@@ -474,7 +474,7 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
         .createValidationRuleWithCustomTypeValidator(parameterName, JsonTypeValidator.JsonTypeValidatorFactory
           .createJsonTypeValidator(OpenApi3Utils.generateSanitizedJsonSchemaNode(schema, this.spec)), !OpenApi3Utils.isRequiredParam
           (multipartObjectSchema, parameterName), false, ParameterLocation.BODY_FORM));
-    } else if (contentTypePattern.matcher("text/plain").matches()) {
+    } else if (contentTypeRegex.equals(Pattern.quote("text/plain"))) {
       this.addFormParamRule(ParameterValidationRuleImpl.ParameterValidationRuleFactory
           .createValidationRuleWithCustomTypeValidator(parameterName,
               this.resolveSchemaTypeValidatorFormEncoded(schema),

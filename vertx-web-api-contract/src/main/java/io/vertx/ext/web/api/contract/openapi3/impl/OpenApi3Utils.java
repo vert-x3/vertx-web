@@ -129,7 +129,12 @@ public class OpenApi3Utils {
         stringBuilder.append(Pattern.quote(contentType.trim()) + "|");
       stringBuilder.deleteCharAt(stringBuilder.length() - 1);
       return stringBuilder.toString();
-    } else return Pattern.quote(listContentTypes);
+    } else if (listContentTypes.trim().endsWith("/*")) {
+      StringBuilder stringBuilder = new StringBuilder();
+      stringBuilder.append(listContentTypes.trim(), 0, listContentTypes.indexOf("/*"));
+      stringBuilder.append("\\/.*");
+      return stringBuilder.toString();
+    } return Pattern.quote(listContentTypes);
   }
 
   public static List<Parameter> mergeParameters(List<Parameter> operationParameters, List<Parameter> parentParameters) {
