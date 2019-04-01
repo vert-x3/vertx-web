@@ -456,7 +456,8 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
       .textFileUpload("param1", "random.txt", "src/test/resources/random.txt", "text/plain")
       .attribute("param2", pet.encode())
       .textFileUpload("param3", "random.csv", "src/test/resources/random.txt", "text/csv")
-      .attribute("param4", serializeInCSVStringArray(valuesArray));
+      .attribute("param4", serializeInCSVStringArray(valuesArray))
+      .binaryFileUpload("param1Binary", "random-file", "src/test/resources/random-file", "text/plain");
 
     testRequestWithMultipartForm(HttpMethod.POST, "/multipart/complex", form, 200, "ok");
   }

@@ -420,10 +420,15 @@ paths:
                   items:
                     type: number
                     format: float
+                param1binary:
+                  type: string
+                  format: binary
             encoding:
               param3:
                 contentType: text/csv
               param1:
+                contentType: text/plain
+              param1Binary:
                 contentType: text/plain
       responses:
         default:
