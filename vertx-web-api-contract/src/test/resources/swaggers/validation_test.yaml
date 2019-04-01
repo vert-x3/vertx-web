@@ -422,7 +422,9 @@ paths:
                     format: float
             encoding:
               param3:
-                contentType: application/sql
+                contentType: text/csv
+              param1:
+                contentType: text/plain
       responses:
         default:
           description: ok
