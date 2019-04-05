@@ -40,8 +40,12 @@ public class OpenApi3Utils {
   }
 
   public static boolean isParameterArrayType(Parameter parameter) {
-    if (parameter.getSchema() != null && parameter.getSchema().getType() != null)
-      return parameter.getSchema().getType().equals("array");
+    return isSchemaArray(parameter.getSchema());
+  }
+
+  public static boolean isSchemaArray(Schema schema) {
+    if (schema != null && schema.getType() != null)
+      return schema.getType().equals("array");
     else return false;
   }
 

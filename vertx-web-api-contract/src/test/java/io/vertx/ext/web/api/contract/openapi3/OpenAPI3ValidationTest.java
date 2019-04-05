@@ -464,11 +464,11 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
 
   @Test
   public void testEmptyBody() throws Exception {
-    Operation op = testSpec.getPaths().get("/multipart/complex").getPost();
+    Operation op = testSpec.getPaths().get("/multipart/complex/empty").getPost();
     OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(op, op.getParameters(), testSpec, refsCache);
-    loadHandlers("/multipart/complex", HttpMethod.POST, false, validationHandler, (routingContext) -> routingContext.response().setStatusMessage("ok").end());
+    loadHandlers("/multipart/complex/empty", HttpMethod.POST, false, validationHandler, (routingContext) -> routingContext.response().setStatusMessage("ok").end());
 
-    testRequest(HttpMethod.POST, "/multipart/complex", 200, "ok");
+    testRequest(HttpMethod.POST, "/multipart/complex/empty", 200, "ok");
   }
 
   @Test

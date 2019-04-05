@@ -448,40 +448,25 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
     return this.resolveInnerSchemaPrimitiveTypeValidator(schema, true);
   }
 
-  /* This function resolves default content types of multipart parameters */
-  private String resolveDefaultContentTypeRegex(Schema schema) {
-    if (OpenApi3Utils.isSchemaObjectOrAllOfType(schema))
-      return "\\Qapplication/json\\E|.*\\/.*\\+json"; // Regex for json content type
-
-    if (schema.getType() != null) {
-      if (schema.getType().equals("string") && schema.getFormat() != null && (schema.getFormat().equals
-        ("binary") || schema.getFormat().equals("base64")))
-        return Pattern.quote("application/octet-stream");
-      else if (schema.getType().equals("array"))
-        return this.resolveDefaultContentTypeRegex(((ArraySchema) schema).getItems());
-      else return Pattern.quote("text/plain");
-    }
-
-    throw new SpecFeatureNotSupportedException("Unable to find default content type for multipart parameter. Use " +
-      "encoding field");
-  }
-
   /* This function handle all multimaps parameters */
   private void handleMultimapParameter(String parameterName, String contentTypeRegex, Schema schema, Schema multipartObjectSchema) {
-    Pattern contentTypePattern = Pattern.compile(contentTypeRegex);
-    if (contentTypePattern.matcher("application/json").matches()) {
-      this.addFormParamRule(ParameterValidationRuleImpl.ParameterValidationRuleFactory
-        .createValidationRuleWithCustomTypeValidator(parameterName, JsonTypeValidator.JsonTypeValidatorFactory
-          .createJsonTypeValidator(OpenApi3Utils.generateSanitizedJsonSchemaNode(schema, this.spec)), !OpenApi3Utils.isRequiredParam
-          (multipartObjectSchema, parameterName), false, ParameterLocation.BODY_FORM));
-    } else if (contentTypeRegex.equals(Pattern.quote("text/plain"))) {
-      this.addFormParamRule(ParameterValidationRuleImpl.ParameterValidationRuleFactory
+    if (contentTypeRegex == null) {
+      if (OpenApi3Utils.isSchemaObjectOrAllOfType(schema) || (OpenApi3Utils.isSchemaArray(schema) && OpenApi3Utils.isSchemaObjectOrAllOfType(((ArraySchema) schema).getItems()))) {
+        this.addFormParamRule(ParameterValidationRuleImpl.ParameterValidationRuleFactory
+          .createValidationRuleWithCustomTypeValidator(parameterName, JsonTypeValidator.JsonTypeValidatorFactory
+            .createJsonTypeValidator(OpenApi3Utils.generateSanitizedJsonSchemaNode(schema, this.spec)), !OpenApi3Utils.isRequiredParam
+            (multipartObjectSchema, parameterName), false, ParameterLocation.BODY_FORM));
+      } else if (schema.getType().equals("string") && ("binary".equals(schema.getFormat()) || "base64".equals(schema.getFormat()))) {
+        this.addCustomValidator(new MultipartCustomValidator(Pattern.compile(Pattern.quote("application/octet-stream")), parameterName, !OpenApi3Utils.isRequiredParam(multipartObjectSchema, parameterName)));
+      } else {
+        this.addFormParamRule(ParameterValidationRuleImpl.ParameterValidationRuleFactory
           .createValidationRuleWithCustomTypeValidator(parameterName,
-              this.resolveSchemaTypeValidatorFormEncoded(schema),
-              !OpenApi3Utils.isRequiredParam(multipartObjectSchema, parameterName), false,
-              ParameterLocation.BODY_FORM));
+            this.resolveSchemaTypeValidatorFormEncoded(schema),
+            !OpenApi3Utils.isRequiredParam(multipartObjectSchema, parameterName), false,
+            ParameterLocation.BODY_FORM));
+      }
     } else {
-      this.addCustomValidator(new MultipartCustomValidator(contentTypePattern, parameterName, !OpenApi3Utils.isRequiredParam(multipartObjectSchema, parameterName)));
+      this.addCustomValidator(new MultipartCustomValidator(Pattern.compile(contentTypeRegex), parameterName, !OpenApi3Utils.isRequiredParam(multipartObjectSchema, parameterName)));
     }
   }
 
@@ -508,10 +493,10 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
             Encoding encodingProperty = null;
             if (mediaType.getValue().getEncoding() != null)
               encodingProperty = mediaType.getValue().getEncoding().get(multipartProperty.getKey());
-            String contentTypeRegex;
+            String contentTypeRegex = null;
             if (encodingProperty != null && encodingProperty.getContentType() != null)
               contentTypeRegex = OpenApi3Utils.resolveContentTypeRegex(encodingProperty.getContentType());
-            else contentTypeRegex = this.resolveDefaultContentTypeRegex(multipartProperty.getValue());
+
             handleMultimapParameter(multipartProperty.getKey(), contentTypeRegex, multipartProperty.getValue(),
               mediaType.getValue().getSchema());
           }
