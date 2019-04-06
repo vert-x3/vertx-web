@@ -10,6 +10,7 @@ import io.vertx.ext.web.WebTestBase;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
+import io.vertx.ext.web.multipart.MultipartForm;
 
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -94,6 +95,20 @@ public class ApiWebTestBase extends WebTestBase {
     request
       .putHeader("Content-Type", formType.headerValue)
       .sendForm(formMap, (ar) -> {
+        assertEquals(statusCode, ar.result().statusCode());
+        assertEquals(statusMessage, ar.result().statusMessage());
+        latch.countDown();
+      });
+    awaitLatch(latch);
+  }
+
+  public void testRequestWithMultipartForm(HttpMethod method, String path, MultipartForm formMap, int statusCode, String statusMessage) throws Exception {
+    CountDownLatch latch = new CountDownLatch(1);
+    HttpRequest<Buffer> request = webClient
+      .request(method, 8080, "localhost", path);
+    request
+      .sendMultipartForm(formMap, (ar) -> {
+        if (ar.failed()) fail(ar.cause());
         assertEquals(statusCode, ar.result().statusCode());
         assertEquals(statusMessage, ar.result().statusMessage());
         latch.countDown();

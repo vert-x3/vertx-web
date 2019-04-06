@@ -185,6 +185,17 @@ you can configure the router factory to push it inside the `RoutingContext` with
 Router Factory automatically mounts a {@link io.vertx.ext.web.handler.BodyHandler} to manage request bodies.
 You can configure the instance of {@link io.vertx.ext.web.handler.BodyHandler} (e.g. to change upload directory) with {@link io.vertx.ext.web.api.contract.RouterFactory#setBodyHandler}.
 
+=== `multipart/form-data` validation
+The validation handler separates file uploads and form attributes as explained:
+
+* If the parameter doesn't have an encoding associated field:
+  - If the parameter has `type: string` and `format: base64` or `format: binary` is a file upload with content-type `application/octet-stream`
+  - Otherwise is a form attribute
+* If the parameter has the encoding associated field is a file upload
+
+The form attributes are parsed and validated as other request parameters,
+while for file uploads the validation handler just checks the existence and the content type.
+
 === Custom global handlers
 If you need to mount handlers that must be executed for each operationin your router before the operation specific handlers, you can use {@link io.vertx.ext.web.api.contract.RouterFactory#addGlobalHandler}
 
