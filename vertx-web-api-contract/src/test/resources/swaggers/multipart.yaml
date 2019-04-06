@@ -1,0 +1,60 @@
+openapi: 3.0.1
+info:
+  title: Test API
+  description: 'Test API'
+  version: 1.0.0
+
+paths:
+  /testMultipartMultiple:
+    post:
+      operationId: testMultipartMultiple
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - type
+                - file1
+              properties:
+                file1:
+                  type: string
+                  description: File1
+                  format: binary
+                type:
+                  type: string
+                  description: Model type
+            encoding:
+              file1:
+                contentType: application/octet-stream, text/plain
+        required: true
+      responses:
+        200:
+          description: successful operation
+  /testMultipartWildcard:
+    post:
+      operationId: testMultipartWildcard
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - type
+                - file1
+              properties:
+                file1:
+                  type: string
+                  description: File1
+                  format: binary
+                type:
+                  type: string
+                  description: Model type
+            encoding:
+              file1:
+                contentType: text/*
+        required: true
+      responses:
+        200:
+          description: successful operation
+components: {}

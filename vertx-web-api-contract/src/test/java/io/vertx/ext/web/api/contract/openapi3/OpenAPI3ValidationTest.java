@@ -17,6 +17,7 @@ import io.vertx.ext.web.api.contract.openapi3.impl.OpenApi3Utils;
 import io.vertx.ext.web.api.validation.ParameterType;
 import io.vertx.ext.web.api.validation.ValidationException;
 import io.vertx.ext.web.api.validation.WebTestValidationBase;
+import io.vertx.ext.web.multipart.MultipartForm;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
@@ -437,38 +438,37 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
     OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(op, op.getParameters(), testSpec, refsCache);
     loadHandlers("/multipart/complex", HttpMethod.POST, false, validationHandler, (routingContext) -> {
       RequestParameters params = routingContext.get("parsedParameters");
-      assertEquals(params.formParameter("param1").getString(), "sampleString");
       assertNotNull(params.formParameter("param2").getJsonObject());
       assertEquals(params.formParameter("param2").getJsonObject().getString("name"), "Willy");
       assertEquals(params.formParameter("param4").getArray().size(), 4);
       routingContext.response().setStatusMessage("ok").end();
     });
-    MultiMap form = MultiMap.caseInsensitiveMultiMap();
-    form.add("param1", "sampleString");
 
     JsonObject pet = new JsonObject();
     pet.put("id", 14612);
     pet.put("name", "Willy");
 
-    form.add("param2", pet.encode());
-
-    form.add("param3", "SELECT * FROM table;");
-
     List<String> valuesArray = new ArrayList<>();
     for (int i = 0; i < 4; i++)
       valuesArray.add(getSuccessSample(ParameterType.FLOAT).getFloat().toString());
-    form.add("param4", serializeInCSVStringArray(valuesArray));
 
-    testRequestWithForm(HttpMethod.POST, "/multipart/complex", FormType.MULTIPART, form, 200, "ok");
+    MultipartForm form = MultipartForm.create()
+      .textFileUpload("param1", "random.txt", "src/test/resources/random.txt", "text/plain")
+      .attribute("param2", pet.encode())
+      .textFileUpload("param3", "random.csv", "src/test/resources/random.txt", "text/csv")
+      .attribute("param4", serializeInCSVStringArray(valuesArray))
+      .binaryFileUpload("param1Binary", "random-file", "src/test/resources/random-file", "text/plain");
+
+    testRequestWithMultipartForm(HttpMethod.POST, "/multipart/complex", form, 200, "ok");
   }
 
   @Test
   public void testEmptyBody() throws Exception {
-    Operation op = testSpec.getPaths().get("/multipart/complex").getPost();
+    Operation op = testSpec.getPaths().get("/multipart/complex/empty").getPost();
     OpenAPI3RequestValidationHandler validationHandler = new OpenAPI3RequestValidationHandlerImpl(op, op.getParameters(), testSpec, refsCache);
-    loadHandlers("/multipart/complex", HttpMethod.POST, false, validationHandler, (routingContext) -> routingContext.response().setStatusMessage("ok").end());
+    loadHandlers("/multipart/complex/empty", HttpMethod.POST, false, validationHandler, (routingContext) -> routingContext.response().setStatusMessage("ok").end());
 
-    testRequest(HttpMethod.POST, "/multipart/complex", 200, "ok");
+    testRequest(HttpMethod.POST, "/multipart/complex/empty", 200, "ok");
   }
 
   @Test

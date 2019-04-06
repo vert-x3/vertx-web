@@ -420,9 +420,54 @@ paths:
                   items:
                     type: number
                     format: float
+                param1binary:
+                  type: string
+                  format: binary
+              required:
+                - param1
+                - param1Binary
+                - param3
             encoding:
               param3:
-                contentType: application/sql
+                contentType: text/csv
+              param1:
+                contentType: text/plain
+              param1Binary:
+                contentType: text/plain
+      responses:
+        default:
+          description: ok
+  /multipart/complex/empty:
+    post:
+      operationId: complexMultipartRequestEmpty
+      requestBody:
+        required: false
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                param1:
+                  type: string
+                param2:
+                  $ref: "#/components/schemas/Pet"
+                param3:
+                  type: string
+                param4:
+                  type: array
+                  items:
+                    type: number
+                    format: float
+                param1binary:
+                  type: string
+                  format: binary
+            encoding:
+              param3:
+                contentType: text/csv
+              param1:
+                contentType: text/plain
+              param1Binary:
+                contentType: text/plain
       responses:
         default:
           description: ok

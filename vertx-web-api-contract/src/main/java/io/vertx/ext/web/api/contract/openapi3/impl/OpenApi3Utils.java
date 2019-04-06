@@ -40,8 +40,12 @@ public class OpenApi3Utils {
   }
 
   public static boolean isParameterArrayType(Parameter parameter) {
-    if (parameter.getSchema() != null && parameter.getSchema().getType() != null)
-      return parameter.getSchema().getType().equals("array");
+    return isSchemaArray(parameter.getSchema());
+  }
+
+  public static boolean isSchemaArray(Schema schema) {
+    if (schema != null && schema.getType() != null)
+      return schema.getType().equals("array");
     else return false;
   }
 
@@ -129,7 +133,12 @@ public class OpenApi3Utils {
         stringBuilder.append(Pattern.quote(contentType.trim()) + "|");
       stringBuilder.deleteCharAt(stringBuilder.length() - 1);
       return stringBuilder.toString();
-    } else return Pattern.quote(listContentTypes);
+    } else if (listContentTypes.trim().endsWith("/*")) {
+      StringBuilder stringBuilder = new StringBuilder();
+      stringBuilder.append(listContentTypes.trim(), 0, listContentTypes.indexOf("/*"));
+      stringBuilder.append("\\/.*");
+      return stringBuilder.toString();
+    } return Pattern.quote(listContentTypes);
   }
 
   public static List<Parameter> mergeParameters(List<Parameter> operationParameters, List<Parameter> parentParameters) {
