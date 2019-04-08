@@ -53,22 +53,44 @@ public class SockJSWebSocketTextTest extends WebTestBase {
     // Make sure a catch-all BodyHandler will not prevent websocket connection
     router.route().handler(BodyHandler.create());
     SockJSHandler textEchoHandler = SockJSHandler.create(vertx,
-        new SockJSHandlerOptions().setMaxBytesStreaming(4096))
-        .socketHandler(sock -> sock.handler(buf -> sock.write(buf.toString())));
-    router.route("/echo/*").handler(textEchoHandler);
+            new SockJSHandlerOptions().setMaxBytesStreaming(4096))
+            .socketHandler(sock -> sock.handler(buf -> sock.write(buf.toString())));
+    SockJSHandler binEchoHandler = SockJSHandler.create(vertx,
+            new SockJSHandlerOptions().setMaxBytesStreaming(4096))
+            .socketHandler(sock -> sock.handler(buf -> sock.write(buf)));
+    router.route("/echo-text/*").handler(textEchoHandler);
+    router.route("/echo-bin/*").handler(binEchoHandler);
   }
 
   @Test
   public void testWebSocketTextFrames() {
     String testMessage = "hello world";
     // Use raw websocket transport
-    client.websocket("/echo/websocket", ws -> {
+    client.websocket("/echo-text/websocket", ws -> {
       ws.writeTextMessage(testMessage);
       ws.frameHandler(frame -> {
         if (frame.isClose()) return; // ignore the close frame, we expect it
         assertTrue("Should have received text reply frame, actually received binary", frame.isText());
         String received = frame.textData();
         assertEquals("Should have received test text, actually received: " + received, testMessage, received);
+        complete();
+      });
+    });
+    
+    await();
+  }
+
+  @Test
+  public void testWebSocketBinaryFrames() {
+    Buffer testMessage = Buffer.buffer("hello binary world");
+    // Use raw websocket transport
+    client.websocket("/echo-bin/websocket", ws -> {
+      ws.writeBinaryMessage(testMessage);
+      ws.frameHandler(frame -> {
+        if (frame.isClose()) return; // ignore the close frame, we expect it
+        assertTrue("Should have received binary reply frame, actually received text", frame.isBinary());
+        Buffer received = frame.binaryData();
+        assertEquals("Should have received test data, actually received: " + received, testMessage, received);
         complete();
       });
     });
