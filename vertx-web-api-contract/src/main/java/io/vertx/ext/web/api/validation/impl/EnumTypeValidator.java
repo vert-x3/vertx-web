@@ -1,37 +1,36 @@
 package io.vertx.ext.web.api.validation.impl;
 
 import io.vertx.ext.web.api.RequestParameter;
+import io.vertx.ext.web.api.impl.RequestParameterImpl;
 import io.vertx.ext.web.api.validation.ParameterTypeValidator;
 import io.vertx.ext.web.api.validation.ValidationException;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author Francesco Guardiani @slinkydeveloper
  */
-public class EnumTypeValidator extends SingleValueParameterTypeValidator<Object> {
+public class EnumTypeValidator<T> extends SingleValueParameterTypeValidator<T> {
 
-  private List<String> allowedValues;
+  private List<T> allowedValues;
+  private ParameterTypeValidator innerValidator;
 
-  public EnumTypeValidator(List<String> allowedValues, ParameterTypeValidator innerValidator) {
-    super((innerValidator != null) ? innerValidator.getDefault() : null);
+  @SuppressWarnings("unchecked")
+  public EnumTypeValidator(List<T> allowedValues, ParameterTypeValidator innerValidator) {
+    super((innerValidator != null) ? (T) innerValidator.getDefault() : null);
+    this.innerValidator = innerValidator;
     this.allowedValues = allowedValues;
-    if (innerValidator != null) {
-      for (String value : this.allowedValues) {
-        try {
-          innerValidator.isValid(value);
-        } catch (ValidationException e) {
-          throw new IllegalArgumentException("Value " + value + "of enum is invalid" + e.getMessage());
-        }
-      }
-    }
   }
 
   @Override
   public RequestParameter isValidSingleParam(String value) {
-    if (!allowedValues.contains(value))
+    RequestParameterImpl parsedValue = (RequestParameterImpl)(
+      (this.innerValidator != null) ? innerValidator.isValid(value) : RequestParameter.create(value)
+    );
+    if (!allowedValues.contains(parsedValue.getValue()))
       throw ValidationException.ValidationExceptionFactory.generateNotMatchValidationException("Value " + value + " "
         + "in not inside enum list " + allowedValues.toString());
-    else return RequestParameter.create(value);
+    else return parsedValue;
   }
 }

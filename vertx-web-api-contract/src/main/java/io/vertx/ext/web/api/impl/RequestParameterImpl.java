@@ -59,6 +59,8 @@ public class RequestParameterImpl implements RequestParameter {
     this.value = value;
   }
 
+  public Object getValue() { return this.value; }
+
   @Override
   public @Nullable List<String> getObjectKeys() {
     return (isObject()) ? new ArrayList<>(((Map<String, RequestParameter>) value).keySet()) : null;
