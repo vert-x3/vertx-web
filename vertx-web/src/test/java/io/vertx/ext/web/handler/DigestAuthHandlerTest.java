@@ -56,7 +56,7 @@ public class DigestAuthHandlerTest extends WebTestBase {
     };
 
     HtdigestAuth authProvider = HtdigestAuth.create(vertx);
-    router.route("/dir/*").handler(DigestAuthHandler.create(authProvider));
+    router.route("/dir/*").handler(DigestAuthHandler.create(vertx, authProvider));
 
     router.route("/dir/index.html").handler(handler);
 
