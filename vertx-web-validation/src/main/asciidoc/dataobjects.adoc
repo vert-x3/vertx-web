@@ -1,0 +1,17 @@
+= Cheatsheets
+
+[[RequestPredicateResult]]
+== RequestPredicateResult
+
+++++
+ Data object representing a Request predicate result
+++++
+'''
+
+[cols=">25%,25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[errorMessage]]`@errorMessage`|`String`|-
+|===
+

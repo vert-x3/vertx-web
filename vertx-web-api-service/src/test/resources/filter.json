@@ -1,0 +1,25 @@
+{
+  "type": "object",
+  "properties": {
+    "from": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "format": "email"
+      }
+    },
+    "to": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "format": "email"
+      }
+    },
+    "message": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

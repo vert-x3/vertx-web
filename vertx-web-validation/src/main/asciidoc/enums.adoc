@@ -1,0 +1,20 @@
+= Enums
+
+[[ParameterLocation]]
+== ParameterLocation
+
+++++
+ ParameterLocation describe the location of parameter inside HTTP Request
+++++
+'''
+
+[cols=">25%,75%"]
+[frame="topbot"]
+|===
+^|Name | Description
+|[[HEADER]]`HEADER`|-
+|[[QUERY]]`QUERY`|-
+|[[PATH]]`PATH`|-
+|[[COOKIE]]`COOKIE`|-
+|===
+
