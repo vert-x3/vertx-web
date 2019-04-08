@@ -93,6 +93,11 @@ class RawWebSocketTransport {
       ws.writeBinaryMessage(data);
       return this;
     }
+    
+    public SockJSSocket write(String data) {
+      ws.writeTextMessage(data);
+      return this;
+    }
 
     public SockJSSocket setWriteQueueMaxSize(int maxQueueSize) {
       ws.setWriteQueueMaxSize(maxQueueSize);
