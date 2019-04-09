@@ -94,6 +94,12 @@ class RawWebSocketTransport {
       return this;
     }
 
+    @Override
+    public SockJSSocket write(String data) {
+      ws.writeTextMessage(data);
+      return this;
+    }
+
     public SockJSSocket setWriteQueueMaxSize(int maxQueueSize) {
       ws.setWriteQueueMaxSize(maxQueueSize);
       return this;
