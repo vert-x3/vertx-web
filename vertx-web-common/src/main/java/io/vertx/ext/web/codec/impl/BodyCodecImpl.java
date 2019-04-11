@@ -21,6 +21,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonCodecLoader;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.streams.WriteStream;
 import io.vertx.ext.web.codec.BodyCodec;
@@ -53,7 +54,10 @@ public class BodyCodecImpl<T> implements BodyCodec<T> {
   }
 
   public static <T> Function<Buffer, T> jsonDecoder(Class<T> type) {
-    return buff -> Json.decodeValue(buff.toString(), type);
+    if (JsonCodecLoader.INSTANCE.hasCodecFor(type))
+      return b -> JsonCodecLoader.INSTANCE.decodeBuffer(b, type);
+    else
+      return buff -> Json.decodeValue(buff.toString(), type);
   }
 
   private final Function<Buffer, T> decoder;

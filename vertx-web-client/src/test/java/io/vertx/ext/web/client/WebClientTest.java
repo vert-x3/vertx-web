@@ -14,6 +14,7 @@ import io.vertx.core.net.ProxyOptions;
 import io.vertx.core.net.ProxyType;
 import io.vertx.core.streams.ReadStream;
 import io.vertx.core.streams.WriteStream;
+import io.vertx.ext.web.client.codec.ItalianWineAndCheese;
 import io.vertx.ext.web.client.jackson.WineAndCheese;
 import io.vertx.ext.web.client.predicate.ErrorConverter;
 import io.vertx.ext.web.client.predicate.ResponsePredicate;
@@ -277,6 +278,15 @@ public class WebClientTest extends HttpTestBase {
   }
 
   @Test
+  public void testSendJsonPojoBodyWithCodec() throws Exception {
+    testSendBody(new ItalianWineAndCheese().setCheese("Parmigiano Reggiano").setWine("Montepulciano D'Abruzzo"),
+      (contentType, buff) -> {
+        assertEquals("application/json", contentType);
+        assertEquals(new JsonObject().put("wine", "Montepulciano D'Abruzzo").put("cheese", "Parmigiano Reggiano"), buff.toJsonObject());
+      });
+  }
+
+  @Test
   public void testSendJsonArrayBody() throws Exception {
     JsonArray body = new JsonArray().add(0).add(1).add(2);
     testSendBody(body, (contentType, buff) -> {
@@ -518,6 +528,22 @@ public class WebClientTest extends HttpTestBase {
       assertEquals(new WineAndCheese().setCheese("Goat Cheese").setWine("Condrieu"), resp.body());
       testComplete();
     }));
+    await();
+  }
+
+  @Test
+  public void testResponseBodyAsAsJsonMappedWithCodec() throws Exception {
+    JsonObject expected = new JsonObject().put("wine", "Montepulciano D'Abruzzo").put("cheese", "Parmigiano Reggiano");
+    server.requestHandler(req -> req.response().end(expected.encode()));
+    startServer();
+    HttpRequest<Buffer> get = client.get(DEFAULT_HTTP_PORT, DEFAULT_HTTP_HOST, "/somepath");
+    get
+      .as(BodyCodec.json(ItalianWineAndCheese.class))
+      .send(onSuccess(resp -> {
+        assertEquals(200, resp.statusCode());
+        assertEquals(new ItalianWineAndCheese().setCheese("Parmigiano Reggiano").setWine("Montepulciano D'Abruzzo"), resp.body());
+        testComplete();
+      }));
     await();
   }
 

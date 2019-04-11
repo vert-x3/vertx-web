@@ -24,6 +24,7 @@ import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.RequestOptions;
 import io.vertx.core.http.impl.HttpClientImpl;
 import io.vertx.core.json.Json;
+import io.vertx.core.json.JsonCodecLoader;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.streams.Pipe;
 import io.vertx.core.streams.ReadStream;
@@ -454,6 +455,8 @@ public class HttpContext<T> {
           buffer = (Buffer) body;
         } else if (body instanceof JsonObject) {
           buffer = Buffer.buffer(((JsonObject)body).encode());
+        } else if (JsonCodecLoader.INSTANCE.hasCodecFor(body.getClass())) {
+          buffer = JsonCodecLoader.INSTANCE.encodeBuffer(body);
         } else {
           buffer = Buffer.buffer(Json.encode(body));
         }
