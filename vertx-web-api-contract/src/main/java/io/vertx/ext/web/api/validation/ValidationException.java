@@ -62,11 +62,12 @@ public class ValidationException extends VertxException {
   private String parameterName;
   private ParameterValidationRule validationRule;
   private String value;
+  private String message;
   final private ErrorType errorType;
 
   private ValidationException(String message, String parameterName, String value, ParameterValidationRule validationRule, ErrorType errorType, Throwable cause) {
-    super((message != null && message.length() != 0) ? message : "ValidationException{" + "parameterName='" +
-      parameterName + '\'' + ", value='" + value + '\'' + ", errorType=" + errorType + '}', cause);
+    super(cause);
+    this.message = message;
     this.parameterName = parameterName;
     this.validationRule = validationRule;
     this.value = value;
@@ -123,9 +124,20 @@ public class ValidationException extends VertxException {
   }
 
   @Override
+  public String getMessage() {
+    if (message != null && !message.isEmpty()) return message;
+    else return toString();
+  }
+
+  @Override
   public String toString() {
-    return "ValidationException{" + "parameterName='" + parameterName + '\'' + ", value='" + value + '\'' + ", " +
-      "errorType=" + errorType + '}';
+    return "ValidationException{" +
+      "parameterName='" + parameterName + '\'' +
+      ", validationRule=" + validationRule +
+      ", value='" + value + '\'' +
+      ", message='" + message + '\'' +
+      ", errorType=" + errorType +
+      '}';
   }
 
   public static class ValidationExceptionFactory {
