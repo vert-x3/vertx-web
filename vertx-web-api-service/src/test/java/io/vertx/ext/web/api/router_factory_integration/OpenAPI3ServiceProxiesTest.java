@@ -2,6 +2,7 @@ package io.vertx.ext.web.api.router_factory_integration;
 
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.http.HttpClientOptions;
 import io.vertx.core.http.HttpMethod;
@@ -519,6 +520,38 @@ public class OpenAPI3ServiceProxiesTest extends ApiWebTestBase {
       200,
       "OK",
       new JsonObject().put("result", "Hello slinkydeveloper!").toBuffer()
+    );
+
+    consumer.unregister();
+  }
+
+  @Test
+  public void binaryDataTest() throws Exception {
+    BinaryTestService service = new BinaryTestServiceImpl();
+
+    final ServiceBinder serviceBinder = new ServiceBinder(vertx).setAddress("someAddress");
+    MessageConsumer<JsonObject> consumer = serviceBinder.register(BinaryTestService.class, service);
+
+    CountDownLatch latch = new CountDownLatch(1);
+    OpenAPI3RouterFactory.create(this.vertx, "src/test/resources/swaggers/service_proxy_test.yaml",
+      openAPI3RouterFactoryAsyncResult -> {
+        routerFactory = openAPI3RouterFactoryAsyncResult.result();
+        routerFactory.setOptions(HANDLERS_TESTS_OPTIONS);
+
+        routerFactory.mountOperationToEventBus("binaryTest", "someAddress");
+
+        latch.countDown();
+      });
+    awaitLatch(latch);
+
+    startServer();
+
+    testRequest(
+      HttpMethod.GET,
+      "/binaryTest",
+      200,
+      "OK",
+      Buffer.buffer(new byte[] {(byte) 0xb0})
     );
 
     consumer.unregister();
