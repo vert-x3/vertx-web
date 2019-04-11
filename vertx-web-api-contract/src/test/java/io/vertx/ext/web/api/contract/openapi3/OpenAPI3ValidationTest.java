@@ -439,8 +439,9 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
     loadHandlers("/multipart/complex", HttpMethod.POST, false, validationHandler, (routingContext) -> {
       RequestParameters params = routingContext.get("parsedParameters");
       assertNotNull(params.formParameter("param2").getJsonObject());
-      assertEquals(params.formParameter("param2").getJsonObject().getString("name"), "Willy");
-      assertEquals(params.formParameter("param4").getArray().size(), 4);
+      assertEquals("Willy", params.formParameter("param2").getJsonObject().getString("name"));
+      assertEquals(4, params.formParameter("param4").getArray().size());
+      assertEquals((Integer)2, params.formParameter("param5").getInteger());
       routingContext.response().setStatusMessage("ok").end();
     });
 
@@ -457,6 +458,7 @@ public class OpenAPI3ValidationTest extends WebTestValidationBase {
       .attribute("param2", pet.encode())
       .textFileUpload("param3", "random.csv", "src/test/resources/random.txt", "text/csv")
       .attribute("param4", serializeInCSVStringArray(valuesArray))
+      .attribute("param5", "2")
       .binaryFileUpload("param1Binary", "random-file", "src/test/resources/random-file", "text/plain");
 
     testRequestWithMultipartForm(HttpMethod.POST, "/multipart/complex", form, 200, "ok");
