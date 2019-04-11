@@ -170,6 +170,14 @@ paths:
       responses:
         200:
           description: ok
+  /binaryTest:
+    get:
+      operationId: binaryTest
+      responses:
+        200:
+          description: ok
+          content:
+            application/octet-stream: {}
 components:
   schemas:
     Payload:
