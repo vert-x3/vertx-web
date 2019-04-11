@@ -115,8 +115,10 @@ public class OpenAPI3RequestValidationHandlerImpl extends HTTPOperationRequestVa
       return ParameterType.GENERIC_STRING.validationMethod();
     }
     if (parseEnum && schema.getEnum() != null && schema.getEnum().size() != 0) {
-      return ParameterTypeValidator.createEnumTypeValidatorWithInnerValidator(new ArrayList(schema.getEnum()), this
-        .resolveInnerSchemaPrimitiveTypeValidator(schema, false));
+      return ParameterTypeValidator.createEnumTypeValidatorWithInnerValidator(
+        new ArrayList(schema.getEnum()),
+        this.resolveInnerSchemaPrimitiveTypeValidator(schema, false)
+      );
     }
     switch (schema.getType()) {
       case "integer":

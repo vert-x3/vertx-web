@@ -411,6 +411,9 @@ paths:
               properties:
                 param1:
                   type: string
+                param1binary:
+                  type: string
+                  format: binary
                 param2:
                   $ref: "#/components/schemas/Pet"
                 param3:
@@ -420,9 +423,12 @@ paths:
                   items:
                     type: number
                     format: float
-                param1binary:
-                  type: string
-                  format: binary
+                param5:
+                  type: integer
+                  format: int32
+                  enum:
+                    - 1
+                    - 2
               required:
                 - param1
                 - param1Binary
