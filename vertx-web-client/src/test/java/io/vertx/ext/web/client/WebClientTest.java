@@ -282,7 +282,7 @@ public class WebClientTest extends HttpTestBase {
     testSendBody(new ItalianWineAndCheese().setCheese("Parmigiano Reggiano").setWine("Montepulciano D'Abruzzo"),
       (contentType, buff) -> {
         assertEquals("application/json", contentType);
-        assertEquals(new JsonObject().put("wine", "Montepulciano D'Abruzzo").put("cheese", "Parmigiano Reggiano"), buff.toJsonObject());
+        assertEquals(new JsonObject().put("wine", "Trebbiano D'Abruzzo").put("cheese", "Parmigiano Reggiano"), buff.toJsonObject());
       });
   }
 
@@ -541,7 +541,7 @@ public class WebClientTest extends HttpTestBase {
       .as(BodyCodec.json(ItalianWineAndCheese.class))
       .send(onSuccess(resp -> {
         assertEquals(200, resp.statusCode());
-        assertEquals(new ItalianWineAndCheese().setCheese("Parmigiano Reggiano").setWine("Montepulciano D'Abruzzo"), resp.body());
+        assertEquals(new ItalianWineAndCheese().setCheese("Parmigiano Reggiano").setWine("Trebbiano D'Abruzzo"), resp.body());
         testComplete();
       }));
     await();

@@ -9,14 +9,14 @@ public class ItalianWineAndCheeseCodec implements JsonCodec<ItalianWineAndCheese
   public ItalianWineAndCheese decode(JsonObject value) throws IllegalArgumentException {
     return new ItalianWineAndCheese()
       .setCheese(value.getString("cheese"))
-      .setWine(value.getString("wine"));
+      .setWine("Trebbiano D'Abruzzo");
   }
 
   @Override
   public JsonObject encode(ItalianWineAndCheese value) throws IllegalArgumentException {
     return new JsonObject()
       .put("cheese", value.getCheese())
-      .put("wine", value.getWine());
+      .put("wine", "Trebbiano D'Abruzzo");
   }
 
   @Override

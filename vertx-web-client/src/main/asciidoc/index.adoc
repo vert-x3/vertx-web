@@ -154,7 +154,8 @@ use the {@link io.vertx.ext.web.client.HttpRequest#sendJsonObject(io.vertx.core.
 ----
 
 In Java, Groovy or Kotlin, you can use the {@link io.vertx.ext.web.client.HttpRequest#sendJson} method that maps
-a POJO (Plain Old Java Object) to a Json object using {@link io.vertx.core.json.Json#encode(java.lang.Object)}
+a POJO (Plain Old Java Object) to a Json object. This method tries to use a {@link io.vertx.core.json.JsonCodec}
+if available registered with SPI, otherwise it fallbacks to {@link io.vertx.core.json.Json#encode(java.lang.Object)}
 method
 
 [source,$lang]
@@ -314,6 +315,9 @@ In Java, Groovy or Kotlin, custom Json mapped POJO can be decoded
 ----
 {@link examples.WebClientExamples#receiveResponseAsJsonPOJO(io.vertx.ext.web.client.WebClient)}
 ----
+
+{@link io.vertx.ext.web.codec.BodyCodec#json(java.lang.Class)} tries to load a {@io.vertx.core.json.JsonCodec}
+from the SPI, otherwise it fallbacks to Jackson mapper
 
 When large response are expected, use the {@link io.vertx.ext.web.codec.BodyCodec#pipe(io.vertx.core.streams.WriteStream)}.
 This body codec pumps the response body buffers to a {@link io.vertx.core.streams.WriteStream}
