@@ -19,16 +19,12 @@ package io.vertx.ext.web.handler.impl;
 import io.vertx.core.*;
 import io.vertx.core.file.FileProps;
 import io.vertx.core.file.FileSystem;
-import io.vertx.core.http.HttpMethod;
-import io.vertx.core.http.HttpServerRequest;
-import io.vertx.core.http.HttpServerResponse;
-import io.vertx.core.http.HttpVersion;
-import io.vertx.core.http.HttpHeaders;
+import io.vertx.core.http.*;
 import io.vertx.core.http.impl.HttpUtils;
 import io.vertx.core.http.impl.MimeMapping;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.net.impl.URIDecoder;
 import io.vertx.ext.web.Http2PushMapping;
 import io.vertx.ext.web.RoutingContext;
@@ -329,6 +325,9 @@ public class StaticHandlerImpl implements StaticHandler {
     Long offset = null;
     Long end = null;
     MultiMap headers = null;
+
+    if (request.isEnded())
+      return;
 
     if (rangeSupport) {
       // check if the client is making a range request

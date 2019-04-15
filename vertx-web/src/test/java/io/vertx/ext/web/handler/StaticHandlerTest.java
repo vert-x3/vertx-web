@@ -32,8 +32,6 @@ import java.text.DateFormat;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -841,6 +839,19 @@ public class StaticHandlerTest extends WebTestBase {
   public void testHandlerAfter() throws Exception {
     router.get().handler(ctx -> ctx.response().end("Howdy!"));
     testRequest(HttpMethod.GET, "/not-existing-file.html", 200, "OK", "Howdy!");
+  }
+
+  @Test
+  public void testWriteResponseWhenAlreadyClosed() throws Exception {
+    router.clear();
+    router
+      .route()
+      .handler(rc -> {
+        rc.next();
+        rc.response().end("OtherResponse");
+      })
+      .handler(stat);
+    testRequest(HttpMethod.GET, "/index.html", 200, "OK", "OtherResponse");
   }
 
 
