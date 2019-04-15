@@ -27,12 +27,23 @@ To use Vert.x API Service, add the following dependency to the _dependencies_ se
 </dependency>
 ----
 
-* Gradle (in your `build.gradle` file):
+* Gradle < 5 (in your `build.gradle` file):
 
 [source,groovy,subs="+attributes"]
 ----
 dependencies {
   compile 'io.vertx:vertx-codegen:${maven.version}:processor'
+  compile 'io.vertx:vertx-web-api-service:${maven.version}'
+}
+----
+
+* Gradle >= 5 (in your `build.gradle` file):
+
+[source,groovy,subs="+attributes"]
+----
+dependencies {
+  annotationProcessor 'io.vertx:vertx-codegen:${maven.version}:processor'
+  annotationProcessor 'io.vertx:vertx-web-api-service:${maven.version}'
   compile 'io.vertx:vertx-web-api-service:${maven.version}'
 }
 ----
