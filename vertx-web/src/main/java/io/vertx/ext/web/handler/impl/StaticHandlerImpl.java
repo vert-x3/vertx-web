@@ -326,7 +326,7 @@ public class StaticHandlerImpl implements StaticHandler {
     Long end = null;
     MultiMap headers = null;
 
-    if (request.isEnded())
+    if (request.response().closed())
       return;
 
     if (rangeSupport) {
