@@ -117,8 +117,11 @@ public class CSRFHandlerImpl implements CSRFHandler {
       return false;
     }
 
-    String saltPlusToken = tokens[0] + "." + tokens[1];
-    String signature = BASE64.encodeToString(mac.doFinal(saltPlusToken.getBytes()));
+    byte[] saltPlusToken = (tokens[0] + "." + tokens[1]).getBytes();
+    synchronized (mac) {
+      saltPlusToken = mac.doFinal(saltPlusToken);
+    }
+    String signature = BASE64.encodeToString(saltPlusToken);
 
     if(!signature.equals(tokens[2])) {
       return false;
