@@ -19,9 +19,10 @@ package io.vertx.ext.web.handler.impl;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
-import io.vertx.ext.web.handler.CorsHandler;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.handler.CorsHandler;
 
+import java.net.URI;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Objects;
@@ -101,10 +102,6 @@ public class CorsHandlerImpl implements CorsHandler {
 
   @Override
   public CorsHandler allowCredentials(boolean allow) {
-    if (allowedOrigin == null && allow) {
-      // https://developer.mozilla.org/En/HTTP_access_control#Requests_with_credentials
-      throw new IllegalStateException("wildcard origin with credentials is not allowed");
-    }
     this.allowCredentials = allow;
     return this;
   }
@@ -144,6 +141,7 @@ public class CorsHandlerImpl implements CorsHandler {
         if (exposedHeadersString != null) {
           response.putHeader(ACCESS_CONTROL_EXPOSE_HEADERS, exposedHeadersString);
         }
+        context.put("corsHeadersWritten", true);
         context.next();
       }
     } else {
@@ -167,11 +165,20 @@ public class CorsHandlerImpl implements CorsHandler {
   }
 
   private boolean isValidOrigin(String origin) {
-    if (allowedOrigin == null) {
+    if (allowedOrigin == null && isValidOriginURI(origin)) {
       // Null means accept all origins
       return true;
     }
     return allowedOrigin.matcher(origin).matches();
+  }
+
+  private boolean isValidOriginURI(String origin) {
+    try {
+      URI.create(origin);
+      return true;
+    } catch (IllegalArgumentException e) {
+      return false;
+    }
   }
 
   private String getAllowedOrigin(String origin) {
