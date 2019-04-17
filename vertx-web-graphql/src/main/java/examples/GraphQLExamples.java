@@ -26,12 +26,11 @@ import graphql.schema.idl.RuntimeWiring;
 import graphql.schema.idl.WiringFactory;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
+import io.vertx.core.MultiMap;
+import io.vertx.core.http.HttpHeaders;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.handler.graphql.GraphQLHandler;
-import io.vertx.ext.web.handler.graphql.GraphQLHandlerOptions;
-import io.vertx.ext.web.handler.graphql.VertxDataFetcher;
-import io.vertx.ext.web.handler.graphql.VertxPropertyDataFetcher;
+import io.vertx.ext.web.handler.graphql.*;
 import org.dataloader.BatchLoaderEnvironment;
 import org.dataloader.BatchLoaderWithContext;
 import org.dataloader.DataLoader;
@@ -58,6 +57,28 @@ public class GraphQLExamples {
     GraphQL graphQL = setupGraphQLJava();
 
     router.post("/graphql").handler(GraphQLHandler.create(graphQL));
+  }
+
+  public void handlerSetupGraphiQL(GraphQL graphQL, Router router) {
+    GraphQLHandlerOptions options = new GraphQLHandlerOptions()
+      .setGraphiQLOptions(new GraphiQLOptions()
+        .setEnabled(true)
+      );
+
+    router.route("/graphql").handler(GraphQLHandler.create(graphQL, options));
+  }
+
+  public void handlerSetupGraphiQLAuthn(GraphQL graphQL, Router router) {
+    GraphQLHandlerOptions options = new GraphQLHandlerOptions()
+      .setGraphiQLOptions(new GraphiQLOptions()
+        .setEnabled(true)
+      );
+
+    GraphQLHandler graphQLHandler = GraphQLHandler.create(graphQL, options)
+      .graphiQLRequestHeaders(rc -> {
+        String token = rc.get("token");
+        return MultiMap.caseInsensitiveMultiMap().add(HttpHeaders.AUTHORIZATION, "Bearer " + token);
+      });
   }
 
   public void handlerSetupBatching(GraphQL graphQL) {
