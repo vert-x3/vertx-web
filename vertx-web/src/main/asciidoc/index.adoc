@@ -88,6 +88,20 @@ dependencies {
 }
 ----
 
+=== Development mode
+
+Vert.x Web by default operates in production mode.
+You can switch the development mode by assigning the `dev` value to either:
+
+* the `VERTXWEB_ENVIRONMENT` environment variable, or
+* the `vertxweb.environment` system property
+
+In development mode:
+
+* template engine caches are disabled
+* the `ErrorHandler` does not display exception details
+* the `StaticHandler` does not handle cache headers
+* the GraphiQL development tool is disabled
 
 == Re-cap on Vert.x core HTTP servers
 
