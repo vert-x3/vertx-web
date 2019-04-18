@@ -38,6 +38,8 @@ import static io.vertx.core.http.HttpHeaders.*;
  */
 public class CorsHandlerImpl implements CorsHandler {
 
+  public static final String CORS_HANDLED_FLAG = "corsHeadersWritten";
+
   private final Pattern allowedOrigin;
 
   private String allowedMethodsString;
@@ -141,7 +143,7 @@ public class CorsHandlerImpl implements CorsHandler {
         if (exposedHeadersString != null) {
           response.putHeader(ACCESS_CONTROL_EXPOSE_HEADERS, exposedHeadersString);
         }
-        context.put("corsHeadersWritten", true);
+        context.put(CORS_HANDLED_FLAG, true);
         context.next();
       }
     } else {

@@ -47,6 +47,7 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.shareddata.LocalMap;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.handler.impl.CorsHandlerImpl;
 import io.vertx.ext.web.handler.sockjs.SockJSHandlerOptions;
 import io.vertx.ext.web.handler.sockjs.SockJSSocket;
 import io.vertx.ext.web.handler.sockjs.Transport;
@@ -154,7 +155,7 @@ class BaseTransport {
   }
 
   static void setCORS(RoutingContext rc) {
-    if (rc.get("corsHeadersWritten") == null || !((boolean)rc.get("corsHeadersWritten"))) {
+    if (rc.get(CorsHandlerImpl.CORS_HANDLED_FLAG) == null || !((boolean)rc.get(CorsHandlerImpl.CORS_HANDLED_FLAG))) {
       HttpServerRequest req = rc.request();
       String origin = req.getHeader(ORIGIN);
       if (origin == null) {
