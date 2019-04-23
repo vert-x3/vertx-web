@@ -76,6 +76,9 @@ If your already have an HTTP Client in your application you can also reuse it
 {@link examples.WebClientExamples#wrap(io.vertx.core.http.HttpClient)}
 ----
 
+IMPORTANT: In most cases, a Web Client should be created once on application startup and then reused.
+Otherwise you lose a lot of benefits such as connection pooling and may leak resources if instances are not closed properly.
+
 == Making requests
 
 === Simple requests with no body
