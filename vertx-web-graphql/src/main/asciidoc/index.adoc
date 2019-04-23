@@ -47,6 +47,32 @@ However you can restrict the service to one type of HTTP method:
 
 TIP: The {@link io.vertx.ext.web.handler.graphql.GraphQLHandler} does not require a {@link io.vertx.ext.web.handler.BodyHandler} to read `POST` requests content.
 
+=== GraphiQL client
+
+As you are building your application, testing your GraphQL queries in https://github.com/graphql/graphiql[GraphiQL] can be handy.
+
+The GraphiQL user interface is disabled by default.
+To enable it, configure the {@link io.vertx.ext.web.handler.graphql.GraphiQLOptions}:
+
+[source,$lang]
+----
+{@link examples.GraphQLExamples#handlerSetupGraphiQL}
+----
+
+Then browse to http://localhost:8080/graphql.
+
+TIP: GraphiQL user interface is enabled automatically when Vert.x Web is in development mode.
+To switch the development mode on, use the `VERTXWEB_ENVIRONMENT` environment variable or `vertxweb.environment` system property and set it to `dev`.
+
+Please refer to the {@link io.vertx.ext.web.handler.graphql.GraphiQLOptions} documentation for details on customization options.
+
+If your application is protected by authentication, you can customize the headers to send by GraphiQL dynamically:
+
+[source,$lang]
+----
+{@link examples.GraphQLExamples#handlerSetupGraphiQLAuthn}
+----
+
 === Enable query batching
 
 Query batching consists in posting an array instead of a single object to the GraphQL endpoint.
